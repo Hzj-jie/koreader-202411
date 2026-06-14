@@ -1,5 +1,5 @@
 local Device = require("device")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local function getSupportedExtensions()
   local t = require("document/documentregistry"):getExtensions()
@@ -9,11 +9,11 @@ local function getSupportedExtensions()
 end
 
 local ExtAssoc = {
-  assoc = G_reader_settings:readSetting("file_ext_assoc") or {},
+  assoc = G_reader_settings:readTableRef("file_ext_assoc"),
 }
 
 function ExtAssoc:commit()
-  G_reader_settings:saveSetting("file_ext_assoc", self.assoc):flush()
+  G_reader_settings:save("file_ext_assoc", self.assoc):flush()
   -- Translate the boolean map back to map of providers the OS backend can inquire further
   local t = {}
   for k, v in pairs(getSupportedExtensions()) do
@@ -25,7 +25,7 @@ function ExtAssoc:commit()
 end
 
 function ExtAssoc:setAll(state)
-  for k, dummy in pairs(getSupportedExtensions()) do
+  for k in pairs(getSupportedExtensions()) do
     self:setOne(k, state)
   end
   self:commit()
@@ -39,7 +39,7 @@ function ExtAssoc:getSettingsMenuTable()
   local ret = {
     {
       keep_menu_open = true,
-      text = _("Enable all"),
+      text = gettext("Enable all"),
       callback = function(menu)
         self:setAll(true)
         menu:updateItems()
@@ -47,7 +47,7 @@ function ExtAssoc:getSettingsMenuTable()
     },
     {
       keep_menu_open = true,
-      text = _("Disable all"),
+      text = gettext("Disable all"),
       callback = function(menu)
         self:setAll(false)
         menu:updateItems()
@@ -57,11 +57,11 @@ function ExtAssoc:getSettingsMenuTable()
   }
   local exts = getSupportedExtensions()
   local keys = {}
-  for k, dummy in pairs(exts) do
+  for k in pairs(exts) do
     table.insert(keys, k)
   end
   table.sort(keys)
-  for dummy, k in ipairs(keys) do
+  for __, k in ipairs(keys) do
     table.insert(ret, {
       keep_menu_open = true,
       text = k,

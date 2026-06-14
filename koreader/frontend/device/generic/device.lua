@@ -8,24 +8,17 @@ local DataStorage = require("datastorage")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local UIManager -- Updated on UIManager init
-local logger = require("logger")
 local ffi = require("ffi")
+local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
-local ffiUtil = require("ffi/util")
 local C = ffi.C
 local T = ffiUtil.template
 
 -- We'll need a bunch of stuff for getifaddrs & co in Device:retrieveNetworkInfo
 require("ffi/posix_h")
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
 
 local Device = {
   screen_saver_mode = false,
@@ -41,60 +34,66 @@ local Device = {
   suspend_wait_timeout = 15,
 
   -- hardware feature tests: (these are functions!)
-  hasBattery = yes,
-  hasAuxBattery = no,
-  hasKeyboard = no,
-  hasKeys = no,
-  hasScreenKB = no, -- in practice only some Kindles
-  hasSymKey = no, -- in practice only some Kindles
-  canKeyRepeat = no,
-  hasDPad = no,
-  useDPadAsActionKeys = no,
-  hasExitOptions = yes,
-  hasFewKeys = no,
-  hasWifiToggle = yes,
-  hasSeamlessWifiToggle = yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
-  hasWifiManager = no,
-  hasWifiRestore = no,
-  isDefaultFullscreen = yes,
-  isHapticFeedbackEnabled = no,
-  isDeprecated = no, -- device no longer receive OTA updates
-  isTouchDevice = no,
-  hasFrontlight = no,
-  hasNaturalLight = no, -- FL warmth implementation specific to NTX boards (Kobo, Cervantes)
-  hasNaturalLightMixer = no, -- Same, but only found on newer boards
-  hasNaturalLightApi = no,
-  hasClipboard = yes, -- generic internal clipboard on all devices
-  hasEinkScreen = yes,
-  hasExternalSD = no, -- or other storage volume that cannot be accessed using the File Manager
-  canHWDither = no,
-  canHWInvert = no,
-  hasKaleidoWfm = no,
-  canDoSwipeAnimation = no,
-  canModifyFBInfo = no, -- some NTX boards do wonky things with the rotate flag after a FBIOPUT_VSCREENINFO ioctl
-  canUseCBB = yes, -- The C BB maintains a 1:1 feature parity with the Lua BB, except that is has NO support for BB4, and limited support for BBRGB24
-  hasColorScreen = no,
-  hasBGRFrameBuffer = no,
-  canImportFiles = no,
-  canShareText = no,
-  hasGSensor = no,
-  isGSensorLocked = no,
-  canToggleMassStorage = no,
-  canToggleChargingLED = no,
+  hasBattery = util.yes,
+  hasAuxBattery = util.no,
+  -- Has an almost full keyboard, e.g. Kindle 2, 3, DX and DXG.
+  hasKeyboard = util.no,
+  -- Has some physical keys, not include power button.
+  hasKeys = util.no,
+  hasScreenKB = util.no, -- in practice only some Kindles
+  hasSymKey = util.no, -- in practice only some Kindles
+  canKeyRepeat = util.no,
+  hasDPad = util.no,
+  useDPadAsActionKeys = util.no,
+  hasExitOptions = util.yes,
+  -- Has very limited physical keys, used only on pocketbook models.
+  hasFewKeys = util.no,
+  hasWifiToggle = util.yes,
+  hasSeamlessWifiToggle = util.yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
+  hasWifiManager = util.no,
+  hasWifiRestore = util.no,
+  isDefaultFullscreen = util.yes,
+  isHapticFeedbackEnabled = util.no,
+  isDeprecated = util.no, -- device no longer receive OTA updates
+  isTouchDevice = util.no,
+  hasFrontlight = util.no,
+  hasNaturalLight = util.no, -- FL warmth implementation specific to NTX boards (Kobo, Cervantes)
+  hasNaturalLightMixer = util.no, -- Same, but only found on newer boards
+  hasNaturalLightApi = util.no,
+  hasClipboard = util.yes, -- generic internal clipboard on all devices
+  hasEinkScreen = util.yes,
+  hasExternalSD = util.no, -- or other storage volume that cannot be accessed using the File Manager
+  canHWDither = util.no,
+  canHWInvert = util.no,
+  hasKaleidoWfm = util.no,
+  canDoSwipeAnimation = util.no,
+  canModifyFBInfo = util.no, -- some NTX boards do wonky things with the rotate flag after a FBIOPUT_VSCREENINFO ioctl
+  canUseCBB = util.yes, -- The C BB maintains a 1:1 feature parity with the Lua BB, except that is has NO support for BB4, and limited support for BBRGB24
+  hasColorScreen = util.no,
+  hasBGRFrameBuffer = util.no,
+  canImportFiles = util.no,
+  canShareText = util.no,
+  hasGSensor = util.no,
+  isGSensorLocked = util.no,
+  canToggleMassStorage = util.no,
+  canToggleChargingLED = util.no,
   _updateChargingLED = nil,
-  canUseWAL = yes, -- requires mmap'ed I/O on the target FS
-  canRestart = yes,
-  canSuspend = no,
-  canStandby = no,
-  canPowerSaveWhileCharging = no,
+  canUseWAL = util.yes, -- requires mmap'ed I/O on the target FS
+  canRestart = util.yes,
+  canSuspend = util.no,
+  canStandby = util.no,
+  canPowerSaveWhileCharging = util.no,
   total_standby_time = 0, -- total time spent in standby
   last_standby_time = 0, -- time spent during the last standby
   total_suspend_time = 0, -- total time spent in suspend
-  last_suspend_time = 0, -- time spent during the last suspend
-  canReboot = no,
-  canPowerOff = no,
-  canAssociateFileExtensions = no,
-  canDisconnectWifi = yes,
+  -- Note, these two can be nil to indicate the last resume / suspend times were
+  -- unknown.
+  last_resume_at = nil, -- time right before calling onResume event
+  last_suspend_at = nil, -- time right after calling onSuspend event
+  canReboot = util.no,
+  canPowerOff = util.no,
+  canAssociateFileExtensions = util.no,
+  canDisconnectWifi = util.yes,
 
   -- Start and stop text input mode (e.g. open soft keyboard, etc)
   startTextInput = function() end,
@@ -104,21 +103,21 @@ local Device = {
   -- and have device dependent implementations in the corresponding
   -- device/<devicetype>/device.lua file
   -- (these are functions!)
-  isAndroid = no,
-  isCervantes = no,
-  isKindle = no,
-  isKobo = no,
-  isPocketBook = no,
-  isRemarkable = no,
-  isSonyPRSTUX = no,
-  isSDL = no,
-  isEmulator = no,
-  isDesktop = no,
+  isAndroid = util.no,
+  isCervantes = util.no,
+  isKindle = util.no,
+  isKobo = util.no,
+  isPocketBook = util.no,
+  isRemarkable = util.no,
+  isSonyPRSTUX = util.no,
+  isSDL = util.no,
+  isEmulator = util.no,
+  isDesktop = util.no,
 
   -- some devices have part of their screen covered by the bezel
   viewport = nil,
   -- enforce portrait orientation of display when FB defaults to landscape
-  isAlwaysPortrait = no,
+  isAlwaysPortrait = util.no,
   -- On some devices (eg newer pocketbook) we can force HW rotation on the fly (before each update)
   -- The value here is table of 4 elements mapping the sensible linux constants to whatever
   -- nonsense the device actually has. Canonically it should return { 0, 1, 2, 3 } if the device
@@ -129,24 +128,14 @@ local Device = {
     return nil
   end,
   -- needs full screen refresh when resumed from screensaver?
-  needsScreenRefreshAfterResume = yes,
-
-  -- set to yes on devices that support over-the-air incremental updates.
-  hasOTAUpdates = no,
-
-  -- For devices that have non-blocking OTA updates, this function will return true if the download is currently running.
-  hasOTARunning = no,
-
-  -- set to yes on devices that have a non-blocking isWifiOn implementation
-  -- (c.f., https://github.com/koreader/koreader/pull/5211#issuecomment-521304139)
-  hasFastWifiStatusQuery = no,
+  needsScreenRefreshAfterResume = util.yes,
 
   -- set to yes on devices with system fonts
-  hasSystemFonts = no,
+  hasSystemFonts = util.no,
 
-  canOpenLink = no,
-  openLink = no,
-  canExternalDictLookup = no,
+  canOpenLink = util.no,
+  openLink = util.no,
+  canExternalDictLookup = util.no,
 }
 
 function Device:extend(o)
@@ -229,12 +218,6 @@ function Device:init()
 
   self.screen.isBGRFrameBuffer = self.hasBGRFrameBuffer
 
-  if G_reader_settings:has("low_pan_rate") then
-    self.screen.low_pan_rate = G_reader_settings:readSetting("low_pan_rate")
-  else
-    self.screen.low_pan_rate = self.hasEinkScreen()
-  end
-
   logger.info("initializing for device", self.model)
   logger.info("framebuffer resolution:", self.screen:getRawSize())
 
@@ -288,25 +271,23 @@ function Device:init()
   -- But as implementations come from base, they just return a Geom-like table...
   self.screen.getSize = function()
     local rect = self.screen.getRawSize(self.screen)
-    return Geom:new({ x = rect.x, y = rect.y, w = rect.w, h = rect.h })
+    return Geom:new({ x = rect.x or 0, y = rect.y or 0, w = rect.w, h = rect.h })
   end
 
   -- DPI
-  local dpi_override = G_reader_settings:readSetting("screen_dpi")
+  local dpi_override = G_reader_settings:read("screen_dpi")
   if dpi_override ~= nil then
     self:setScreenDPI(dpi_override)
   end
 
   -- Night mode
   self.orig_hw_nightmode = self.screen:getHWNightmode()
-  if G_reader_settings:isTrue("night_mode") then
-    self.screen:toggleNightMode()
-  end
+  self.screen:setNightmode(G_reader_settings:isTrue("night_mode"))
 
   -- Ensure the proper rotation on startup.
   -- We default to the rotation KOReader closed with.
   -- If the rotation is not locked it will be overridden by a book or the FM when opened.
-  local rotation_mode = G_reader_settings:readSetting("closed_rotation_mode")
+  local rotation_mode = G_reader_settings:read("closed_rotation_mode")
   if rotation_mode and rotation_mode ~= self.screen:getRotationMode() then
     self.screen:setRotationMode(rotation_mode)
   end
@@ -337,8 +318,12 @@ function Device:init()
 
   -- Can't be seamless if you can't do it at all ;)
   if not self:hasWifiToggle() then
-    self.hasSeamlessWifiToggle = no
+    self.hasSeamlessWifiToggle = util.no
   end
+
+  -- In case the first suspend / resume event wasn't caught by koreader.
+  self.last_suspend_at = time.realtime()
+  self.last_resume_at = time.realtime()
 end
 
 function Device:setScreenDPI(dpi_override)
@@ -361,7 +346,7 @@ function Device:rescheduleSuspend()
 end
 
 -- Only used on platforms where we handle suspend ourselves.
-function Device:onPowerEvent(ev)
+function Device:handlePowerEvent(ev)
   local Screensaver = require("ui/screensaver")
   if self.screen_saver_mode then
     if ev == "Power" or ev == "Resume" then
@@ -436,7 +421,7 @@ function Device:onPowerEvent(ev)
       )
     end
     -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
     if self:hasWifiToggle() then
       -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.
@@ -455,7 +440,7 @@ end
 
 function Device:showLightDialog()
   local FrontLightWidget = require("ui/widget/frontlightwidget")
-  UIManager:show(FrontLightWidget:new({}))
+  UIManager:show(FrontLightWidget:new())
 end
 
 function Device:info()
@@ -465,20 +450,20 @@ end
 function Device:install()
   local ConfirmBox = require("ui/widget/confirmbox")
   UIManager:show(ConfirmBox:new({
-    text = _("Update is ready. Install it now?"),
-    ok_text = _("Install"),
+    text = gettext("Update is ready. Install it now?"),
+    ok_text = gettext("Install"),
     ok_callback = function()
       local save_quit = function()
         self:saveSettings()
         UIManager:quit(85)
       end
-      UIManager:broadcastEvent(Event:new("Exit", save_quit))
+      UIManager:broadcastEvent(Event:new("ExitKOReader", save_quit))
     end,
-    cancel_text = _("Later"),
+    cancel_text = gettext("Later"),
     cancel_callback = function()
       local InfoMessage = require("ui/widget/infomessage")
       UIManager:show(InfoMessage:new({
-        text = _(
+        text = gettext(
           "The update will be applied the next time KOReader is started."
         ),
         unmovable = true,
@@ -491,12 +476,12 @@ function Device:install()
 end
 
 -- Hardware specific method to track opened/closed books (nil on book close)
-function Device:notifyBookState(title, document) end
+function Device:notifyBookState(_title, _document) end
 
 -- Hardware specific method for UI to signal allowed/disallowed standby.
 -- The device is allowed to enter standby only from within waitForEvents,
 -- and only if allowed state is true at the time of waitForEvents() invocation.
-function Device:setAutoStandby(isAllowed) end
+function Device:setAutoStandby(_isAllowed) end
 
 -- Hardware specific method to set OS-level file associations to launch koreader. Expects boolean map.
 function Device:associateFileExtensions(exts)
@@ -535,7 +520,7 @@ function Device:supportsScreensaver()
 end
 
 -- Device specific method to set datetime
-function Device:setDateTime(year, month, day, hour, min, sec) end
+function Device:setDateTime(_year, _month, _day, _hour, _min, _sec) end
 
 -- Device specific method if any setting needs being saved
 function Device:saveSettings() end
@@ -550,7 +535,7 @@ function Device:simulateSuspend() end
 function Device:simulateResume() end
 
 -- Put device into standby, input devices (buttons, touchscreen ...) stay enabled
-function Device:standby(max_duration) end
+function Device:standby(_max_duration) end
 
 -- Returns a string, used to determine the platform to fetch OTA updates
 function Device:otaModel()
@@ -562,10 +547,10 @@ Device specific method for performing haptic feedback.
 
 @string type Type of haptic feedback. See <https://developer.android.com/reference/android/view/HapticFeedbackConstants.html>.
 --]]
-function Device:performHapticFeedback(type) end
+function Device:performHapticFeedback(_type) end
 
 -- Device specific method for toggling input events
-function Device:setIgnoreInput(enable)
+function Device:setIgnoreInput(_enable)
   return true
 end
 
@@ -589,29 +574,29 @@ function Device:lockGSensor(toggle)
 
   if toggle == true then
     -- Lock GSensor to current roientation
-    self.isGSensorLocked = yes
+    self.isGSensorLocked = util.yes
   elseif toggle == false then
     -- Unlock GSensor
-    self.isGSensorLocked = no
+    self.isGSensorLocked = util.no
   else
     -- Toggle it
     if self:isGSensorLocked() then
-      self.isGSensorLocked = no
+      self.isGSensorLocked = util.no
     else
-      self.isGSensorLocked = yes
+      self.isGSensorLocked = util.yes
     end
   end
 end
 
 -- Device specific method for toggling the charging LED
-function Device:toggleChargingLED(toggle) end
+function Device:toggleChargingLED(_toggle) end
 
 -- Device specific method for setting the charging LED to the right state
 function Device:setupChargingLED() end
 
 -- Device specific method for enabling a specific amount of CPU cores
 -- (Should only be implemented on embedded platforms where we can afford to control that without screwing with the system).
-function Device:enableCPUCores(amount) end
+function Device:enableCPUCores(_amount) end
 
 -- NOTE: For this to work, all three must be implemented, and getKeyRepeat must be run on init (c.f., Kobo)!
 -- Device specific method to get the current key repeat setup (and is responsible for setting the canKeyRepeat cap)
@@ -623,7 +608,7 @@ function Device:restoreKeyRepeat() end
 -- NOTE: This one is for the user-facing toggle, it *ignores* the stock delay/period combo,
 --     opting instead for a hard-coded one (as we can't guarantee that key repeat is actually setup properly or at all).
 -- Device specific method to toggle key repeat
-function Device:toggleKeyRepeat(toggle) end
+function Device:toggleKeyRepeat(_toggle) end
 
 --[[
 prepare for application shutdown
@@ -633,13 +618,13 @@ function Device:exit()
   self:saveSettings()
 
   -- Save current rotation (or the original rotation if ScreenSaver temporarily modified it) to remember it for next startup
-  G_reader_settings:saveSetting(
+  G_reader_settings:save(
     "closed_rotation_mode",
     self.orig_rotation_mode or self.screen:getRotationMode()
   )
 
   -- Restore initial HW inversion state
-  self.screen:setHWNightmode(self.orig_hw_nightmode)
+  self.screen:setNightmode(self.orig_hw_nightmode)
 
   -- Tear down the fb backend
   self.screen:close()
@@ -753,7 +738,7 @@ function Device:ping4(ip)
   addr.sin_port = 0
 
   -- Send the ping
-  local start_time = time.now()
+  local start_time = time.monotonic()
   if
     C.sendto(
       socket,
@@ -825,14 +810,14 @@ function Device:ping4(ip)
         end
       end
     else
-      local end_time = time.now()
+      local end_time = time.monotonic()
       logger.info("Device:ping4: timed out waiting for a response from", ip)
       C.close(socket)
       return false, end_time - start_time
     end
     ::continue::
   end
-  local end_time = time.now()
+  local end_time = time.monotonic()
 
   -- If we got this far, we've got a reply to our ping in time!
   C.close(socket)
@@ -965,7 +950,7 @@ function Device:retrieveNetworkInfo()
               table.insert(results, "")
             end
             prev_ifname = ifname
-            table.insert(results, T(_("Interface: %1"), ifname))
+            table.insert(results, T(gettext("Interface: %1"), ifname))
             interfaces[ifname] = true
             -- Get its MAC address
             local ifr = ffi.new("struct ifreq")
@@ -986,7 +971,7 @@ function Device:retrieveNetworkInfo()
                 bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[4], 0xFF),
                 bit.band(ifr.ifr_ifru.ifru_hwaddr.sa_data[5], 0xFF)
               )
-              table.insert(results, T(_("MAC: %1"), mac))
+              table.insert(results, T(gettext("MAC: %1"), mac))
             end
 
             -- Check if it's a wireless interface (c.f., wireless-tools)
@@ -1012,31 +997,34 @@ function Device:retrieveNetworkInfo()
                   --[[
                   local token_index = bit.band(essid_on, C.IW_ENCODE_INDEX)
                   if token_index > 1 then
-                    table.insert(results, T(_("SSID: \"%1\" [%2]"), ffi.string(essid), token_index))
+                    table.insert(results, T(gettext("SSID: \"%1\" [%2]"), ffi.string(essid), token_index))
                   else
-                    table.insert(results, T(_("SSID: \"%1\""), ffi.string(essid)))
+                    table.insert(results, T(gettext("SSID: \"%1\""), ffi.string(essid)))
                   end
                   --]]
-                  table.insert(results, T(_('SSID: "%1"'), ffi.string(essid)))
+                  table.insert(
+                    results,
+                    T(gettext('SSID: "%1"'), ffi.string(essid))
+                  )
                 else
-                  table.insert(results, _("SSID: off/any"))
+                  table.insert(results, gettext("SSID: off/any"))
                 end
               end
             end
           end
 
           if family == C.AF_INET then
-            table.insert(results, T(_("IP: %1"), ffi.string(host)))
+            table.insert(results, T(gettext("IP: %1"), ffi.string(host)))
             local gw = self:getDefaultRoute(ifname)
             if gw then
-              table.insert(results, T(_("Default gateway: %1"), gw))
+              table.insert(results, T(gettext("Default gateway: %1"), gw))
               -- If that's a wireless interface, use *that* one for the ping test
               if interfaces[ifname] == "wireless" then
                 default_gw = gw
               end
             end
           else
-            table.insert(results, T(_("IPv6: %1"), ffi.string(host)))
+            table.insert(results, T(gettext("IPv6: %1"), ffi.string(host)))
             --- @todo: Build an IPv6 variant of getDefaultRoute that parses /proc/net/ipv6_route
           end
         end
@@ -1058,40 +1046,23 @@ function Device:retrieveNetworkInfo()
   if default_gw then
     local ok, rtt = self:ping4(default_gw)
     if ok then
-      table.insert(results, _("Gateway ping successful"))
+      table.insert(results, gettext("Gateway ping successful"))
       if rtt then
         rtt = string.format("%.3f", rtt * 1 / 1000) -- i.e., time.to_ms w/o flooring
-        table.insert(results, T(_("RTT: %1 ms"), rtt))
+        table.insert(results, T(gettext("RTT: %1 ms"), rtt))
       end
     else
-      table.insert(results, _("Gateway ping FAILED"))
+      table.insert(results, gettext("Gateway ping FAILED"))
       if rtt then
         rtt = string.format("%.1f", time.to_s(rtt))
-        table.insert(results, T(_("Timed out after %1 s"), rtt))
+        table.insert(results, T(gettext("Timed out after %1 s"), rtt))
       end
     end
   else
-    table.insert(results, _("No default gateway to ping"))
+    table.insert(results, gettext("No default gateway to ping"))
   end
-
-  local connected = function()
-    local network = require("ui/network/manager")
-    -- TODO: Check the online state here should not be necessary, remove this
-    -- hack.
-    network:_queryOnlineState()
-    return network:isOnline()
-  end
-  -- Need localization
-  table.insert(
-    results,
-    _("Internet") .. " " .. (connected() and _("online") or _("offline"))
-  )
 
   return results
-end
-
-function Device:setTime(hour, min)
-  return false
 end
 
 -- Return an integer value to indicate the brightness of the environment. The value should be in
@@ -1150,12 +1121,15 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   else
     return false,
       T(
-        _("Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."),
+        gettext(
+          "Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."
+        ),
         BD.filepath(archive)
       )
   end
   if not ok then
-    return false, T(_("Extracting archive failed:\n\n%1"), BD.filepath(archive))
+    return false,
+      T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
   end
   return true
 end
@@ -1191,10 +1165,10 @@ function Device:_UIManagerReady(uimgr)
   end)
 end
 -- In case implementations *also* need a reference to UIManager, *this* is the one to implement!
-function Device:UIManagerReady(uimgr) end
+function Device:UIManagerReady(_uimgr) end
 
 -- Devices can add additional event handlers by implementing this method.
-function Device:setEventHandlers(uimgr)
+function Device:setEventHandlers(_uimgr)
   -- These will most probably be overwritten by device-specific `setEventHandlers` implementations
   UIManager.event_handlers.Suspend = function()
     self.powerd:beforeSuspend()
@@ -1205,31 +1179,24 @@ function Device:setEventHandlers(uimgr)
 end
 
 -- The common operations that should be performed before suspending the device.
-function Device:_beforeSuspend(inhibit)
+function Device:_beforeSuspend()
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
-
-  if inhibit ~= false then
-    -- Block input events unrelated to power management
-    self.input:inhibitInput(true)
-
-    -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
-    self:disableKeyRepeat()
-  end
+  self.last_suspend_at = time.realtime()
+  -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
+  self:disableKeyRepeat()
 end
 
 -- The common operations that should be performed after resuming the device.
-function Device:_afterResume(inhibit)
-  if inhibit ~= false then
-    -- Restore key repeat if it's not disabled
-    if G_reader_settings:nilOrFalse("input_no_key_repeat") then
-      self:restoreKeyRepeat()
-    end
-
-    -- Restore full input handling
-    self.input:inhibitInput(false)
+function Device:_afterResume()
+  -- Restore key repeat if it's not disabled
+  if G_reader_settings:nilOrFalse("input_no_key_repeat") then
+    self:restoreKeyRepeat()
   end
 
+  self.last_resume_at = time.realtime()
+  self.total_suspend_time = self.total_suspend_time
+    + (self.last_resume_at - self.last_suspend_at)
   -- This is a hacky way to ensure the resume can be treated as an input.
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.

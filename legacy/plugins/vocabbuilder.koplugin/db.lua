@@ -1,0 +1,1 @@
+../../../koreader/plugins/vocabbuilder.koplugin/db.lua

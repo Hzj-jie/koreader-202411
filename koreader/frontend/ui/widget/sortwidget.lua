@@ -6,8 +6,8 @@ local ButtonDialog = require("ui/widget/buttondialog")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local CheckMark = require("ui/widget/checkmark")
 local Device = require("device")
-local Font = require("ui/font")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -25,8 +25,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local util = require("util")
 local T = require("ffi/util").template
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 
 local SortItemWidget = InputContainer:extend({
   item = nil,
@@ -100,36 +100,36 @@ function SortItemWidget:onTap(_, ges)
   if
     self.item.checked_func
     and (
-      self.show_parent.sort_disabled
+      self:showParent().sort_disabled
       or ges.pos:intersectWith(self.checkmark_widget.dimen)
     )
   then
     if self.item.callback then
       self.item:callback()
     end
-  elseif self.show_parent.sort_disabled then
+  elseif self:showParent().sort_disabled then
     if self.item.callback then
       self.item:callback()
     else
       return true
     end
-  elseif self.show_parent.marked == self.index then
-    self.show_parent.marked = 0
+  elseif self:showParent().marked == self.index then
+    self:showParent().marked = 0
   else
-    self.show_parent.marked = self.index
+    self:showParent().marked = self.index
   end
-  self.show_parent:_populateItems()
+  self:showParent():_populateItems()
   return true
 end
 
 function SortItemWidget:onHold()
   if self.item.hold_callback then
     self.item:hold_callback(function()
-      self.show_parent:_populateItems()
+      self:showParent():_populateItems()
     end)
   elseif self.item.callback then
     self.item:callback()
-    self.show_parent:_populateItems()
+    self:showParent():_populateItems()
   end
   return true
 end
@@ -160,7 +160,7 @@ function SortWidget:init()
   })
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.NextPage = { { Device.input.group.PgFwd } }
     self.key_events.PrevPage = { { Device.input.group.PgBack } }
     self.key_events.ShowWidgetMenu = { { "Menu" } }
@@ -174,8 +174,8 @@ function SortWidget:init()
     }
   end
   local padding = Size.padding.large
-  self.width_widget = self.dimen.w - 2 * padding
-  self.item_width = self.dimen.w - 2 * padding
+  self.width_widget = self:getSize().w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
   self.footer_center_width = math.floor(self.width_widget * (22 / 100))
   self.footer_button_width = math.floor(self.width_widget * (12 / 100))
   self.item_height = Size.item.height_big
@@ -196,7 +196,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_right = Button:new({
     icon = chevron_right,
@@ -206,7 +205,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_first_up = Button:new({
     icon = chevron_first,
@@ -220,7 +218,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_last_down = Button:new({
     icon = chevron_last,
@@ -234,7 +231,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_cancel = Button:new({
     icon = "exit",
@@ -244,7 +240,6 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_ok = Button:new({
     icon = "check",
@@ -254,12 +249,11 @@ function SortWidget:init()
     end,
     bordersize = 0,
     radius = 0,
-    show_parent = self,
   })
   self.footer_page = Button:new({
     text = "",
     hold_input = {
-      title = _("Enter page number"),
+      title = gettext("Enter page number"),
       input_type = "number",
       hint_func = function()
         return string.format("(1 - %s)", self.pages)
@@ -270,7 +264,7 @@ function SortWidget:init()
           self:goToPage(page)
         end
       end,
-      ok_text = _("Go to page"),
+      ok_text = gettext("Go to page"),
     },
     call_hold_input_on_tap = true,
     bordersize = 0,
@@ -278,7 +272,6 @@ function SortWidget:init()
     text_font_face = "pgfont",
     text_font_bold = false,
     width = self.footer_center_width,
-    show_parent = self,
   })
   self.page_info = HorizontalGroup:new({
     self.footer_cancel,
@@ -312,7 +305,7 @@ function SortWidget:init()
   })
   -- setup title bar
   self.title_bar = TitleBar:new({
-    width = self.dimen.w,
+    width = self:getSize().w,
     align = "left",
     with_bottom_line = true,
     bottom_line_color = Blitbuffer.COLOR_DARK_GRAY,
@@ -325,18 +318,17 @@ function SortWidget:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
   -- setup main content
   self.item_margin = math.floor(self.item_height / 8)
   local line_height = self.item_height + self.item_margin
-  local content_height = self.dimen.h
+  local content_height = self:getSize().h
     - self.title_bar:getHeight()
     - vertical_footer:getSize().h
     - padding
   self.items_per_page = math.floor(content_height / line_height)
   self.pages = math.ceil(#self.item_table / self.items_per_page)
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
 
   self:_populateItems()
 
@@ -346,13 +338,13 @@ function SortWidget:init()
       / 2
   end
   local frame_content = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
     VerticalGroup:new({
       self.title_bar,
-      VerticalSpan:new({ width = padding_below_title }),
+      VerticalSpan:new({ height = padding_below_title }),
       self.main_content,
     }),
   })
@@ -363,7 +355,7 @@ function SortWidget:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    height = self.dimen.h,
+    height = self:getSize().h,
     padding = 0,
     bordersize = 0,
     background = Blitbuffer.COLOR_WHITE,
@@ -434,7 +426,7 @@ function SortWidget:_populateItems()
   for idx = idx_offset + 1, page_last do
     table.insert(
       self.main_content,
-      VerticalSpan:new({ width = self.item_margin })
+      VerticalSpan:new({ height = self.item_margin })
     )
     local invert_status = false
     if idx == self.marked then
@@ -446,7 +438,6 @@ function SortWidget:_populateItems()
       item = self.item_table[idx],
       invert = invert_status,
       index = idx,
-      show_parent = self,
     })
     table.insert(self.layout, #self.layout, { item })
     table.insert(self.main_content, item)
@@ -528,13 +519,11 @@ function SortWidget:onSwipe(arg, ges_ev)
   elseif direction == "south" then
     -- Allow easier closing with swipe down
     self:onExit()
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -546,7 +535,7 @@ function SortWidget:onShowWidgetMenu()
   local buttons = {
     {
       {
-        text = _("Sort A to Z"),
+        text = gettext("Sort A to Z"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -556,7 +545,7 @@ function SortWidget:onShowWidgetMenu()
     },
     {
       {
-        text = _("Sort Z to A"),
+        text = gettext("Sort Z to A"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -566,7 +555,7 @@ function SortWidget:onShowWidgetMenu()
     },
     {
       {
-        text = _("Sort A to Z (natural)"),
+        text = gettext("Sort A to Z (natural)"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -576,7 +565,7 @@ function SortWidget:onShowWidgetMenu()
     },
     {
       {
-        text = _("Sort Z to A (natural)"),
+        text = gettext("Sort Z to A (natural)"),
         align = "left",
         callback = function()
           UIManager:close(dialog)
@@ -592,7 +581,7 @@ function SortWidget:onShowWidgetMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   return true
 end
 

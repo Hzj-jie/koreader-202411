@@ -2,11 +2,11 @@
 BBoxWidget shows a bbox for page cropping.
 ]]
 
-local InputContainer = require("ui/widget/container/inputcontainer")
 local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
+local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
 local Screen = Device.screen
 local Size = require("ui/size")
@@ -61,18 +61,20 @@ function BBoxWidget:init()
       { { "Right" }, event = "MoveIndicator", args = { 1, 0 } }
   end
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
     self.key_events.Select = { { "Press" } }
   end
 end
 
 function BBoxWidget:getSize()
-  return self.view.dimen
+  self:mergeSize(self.view:getSize())
+  return self.dimen
 end
 
 function BBoxWidget:paintTo(bb, x, y)
-  self.dimen = self.view.dimen:copy()
-  self.dimen.x, self.dimen.y = x, y
+  -- Populate self.dimen
+  self:getSize()
+  self:mergePosition(x, y)
 
   -- As getScreenBBox uses view states, screen_bbox initialization is postponed.
   self.screen_bbox = self.screen_bbox or self:getScreenBBox(self.page_bbox)
@@ -378,7 +380,7 @@ function BBoxWidget:onSwipeAdjust(arg, ges)
   return true
 end
 
-function BBoxWidget:onHoldAdjust(arg, ges)
+function BBoxWidget:onHoldAdjust(arg)
   --- @fixme this is a dirty hack to disable hold gesture in page cropping
   -- since Kobo devices may append hold gestures to each swipe gesture rendering
   -- relative replacement impossible. See koreader/koreader#987 at Github.
@@ -388,19 +390,19 @@ end
 
 function BBoxWidget:onConfirmAdjust(arg, ges)
   if self:inPageArea(ges) then
-    self.ui:handleEvent(Event:new("ConfirmPageCrop"))
+    UIManager:broadcastEvent(Event:new("ConfirmPageCrop"))
   end
   return true
 end
 
 function BBoxWidget:onExit()
-  self.ui:handleEvent(Event:new("CancelPageCrop"))
+  UIManager:broadcastEvent(Event:new("CancelPageCrop"))
   return true
 end
 
 function BBoxWidget:onSelect()
   if not self._confirm_stage or self._confirm_stage == 2 then
-    self.ui:handleEvent(Event:new("ConfirmPageCrop"))
+    UIManager:broadcastEvent(Event:new("ConfirmPageCrop"))
   else
     local bbox = self.screen_bbox
     self._confirm_stage = self._confirm_stage + 1

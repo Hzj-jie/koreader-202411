@@ -4,7 +4,6 @@ background task.
 See spec/unit/background_task_plugin_spec.lua for the usage.
 ]]
 
-local PluginShare = require("pluginshare")
 local SwitchPlugin = require("ui/plugin/switch_plugin")
 
 local BackgroundTaskPlugin = SwitchPlugin:extend()
@@ -28,6 +27,8 @@ function BackgroundTaskPlugin:_start()
     when = self.when,
     repeated = enabled,
     executable = self.executable,
+    callback = self.callback,
+    environment = self.environment,
   })
 end
 

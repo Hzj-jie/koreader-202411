@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ "${PRODUCT}" == "dragon" ]; then
+  ./obtain-ip-18db509.sh
+  exit
+fi
+
 # NOTE: Close any non-standard fds, so that it doesn't come back to bite us in the ass with USBMS (or sockets) later...
 for fd in /proc/"$$"/fd/*; do
     close_me="false"

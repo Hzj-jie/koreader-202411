@@ -7,19 +7,18 @@ local DataStorage = require("datastorage")
 local FFIUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local _ = require("gettext")
+local util = require("util")
 
 local separator_id = "----------------------------"
 
 local MenuSorter = {
-  orphaned_prefix = _("NEW: "),
   separator = {
     id = separator_id,
     text = "KOMenu:separator",
   },
 }
 
-function MenuSorter:readMSSettings(config_prefix)
+function MenuSorter:_readMSSettings(config_prefix)
   if config_prefix then
     local menu_order = string.format(
       "%s/%s_menu_order.lua",
@@ -28,27 +27,31 @@ function MenuSorter:readMSSettings(config_prefix)
     )
 
     if lfs.attributes(menu_order) then
-      return dofile(menu_order) or {}
+      local ret = dofile(menu_order)
+      assert(type(ret) == "table", "Menu order file must return a table!")
+      return ret
     end
   end
   return {}
 end
 
 function MenuSorter:mergeAndSort(config_prefix, item_table, order)
-  local user_order = self:readMSSettings(config_prefix)
+  local user_order = self:_readMSSettings(config_prefix)
   if user_order then
     for user_order_id, user_order_item in pairs(user_order) do
       order[user_order_id] = user_order_item
     end
   end
-  return self:sort(item_table, order)
+  return self:_sort(item_table, order)
 end
 
 --- Sorts a flat table of menu items into a hierarchical menu based on supplied order.
 ---- @tparam table item_table menu item table
 ---- @tparam table order sorting order
 ---- @treturn table the sorted menu item table
-function MenuSorter:sort(item_table, order)
+function MenuSorter:_sort(item_table, order)
+  -- The logic changes the item_table, need to make a copy.
+  item_table = util.tableDeepCopy(item_table)
   local menu_table = {}
   local sub_menus = {}
   -- the actual sorting of menu items
@@ -164,14 +167,11 @@ function MenuSorter:sort(item_table, order)
 
   -- attach orphans based on sorting_hint, or with a NEW prefix in the first menu if none found
   for k, v in FFIUtil.orderedPairs(item_table) do
-    local sorting_hint = v.sorting_hint
+    assert(v.sorting_hint, k)
 
     -- normally there should be menu text but check to be sure
     if v.text and v.new ~= true then
       v.id = k
-      if not sorting_hint then
-        v.text = self.orphaned_prefix .. v.text
-      end
       -- prevent text being prepended to item on menu reload, i.e., on switching between reader and filemanager
       v.new = true
       -- deal with orphaned submenus
@@ -182,13 +182,18 @@ function MenuSorter:sort(item_table, order)
         end
       end
     end
-    if sorting_hint then
-      local sorting_hint_menu =
-        self:findById(menu_table["KOMenu:menu_buttons"], sorting_hint)
+    local sorting_hint_menu =
+      self:findById(menu_table["KOMenu:menu_buttons"], v.sorting_hint)
+    if sorting_hint_menu then
       sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
       table.insert(sorting_hint_menu, v)
     else
-      table.insert(menu_table["KOMenu:menu_buttons"][1], v)
+      logger.warn(
+        "MenuSorter: sorting_hint target not found:",
+        v.sorting_hint,
+        "for item:",
+        k
+      )
     end
   end
   return menu_table["KOMenu:menu_buttons"]

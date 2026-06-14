@@ -14,9 +14,9 @@ local DocumentRegistry = require("document/documentregistry")
 local Event = require("ui/event")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local FileManagerCollection = require("apps/filemanager/filemanagercollection")
-local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
 local FileManagerFileSearcher =
   require("apps/filemanager/filemanagerfilesearcher")
+local FileManagerHistory = require("apps/filemanager/filemanagerhistory")
 local FileManagerShortcuts = require("apps/filemanager/filemanagershortcuts")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
@@ -38,16 +38,16 @@ local ReaderDictionary = require("apps/reader/modules/readerdictionary")
 local ReaderFont = require("apps/reader/modules/readerfont")
 local ReaderGoto = require("apps/reader/modules/readergoto")
 local ReaderHandMade = require("apps/reader/modules/readerhandmade")
-local ReaderHinting = require("apps/reader/modules/readerhinting")
 local ReaderHighlight = require("apps/reader/modules/readerhighlight")
-local ReaderScrolling = require("apps/reader/modules/readerscrolling")
+local ReaderHinting = require("apps/reader/modules/readerhinting")
 local ReaderKoptListener = require("apps/reader/modules/readerkoptlistener")
 local ReaderLink = require("apps/reader/modules/readerlink")
 local ReaderMenu = require("apps/reader/modules/readermenu")
 local ReaderPageMap = require("apps/reader/modules/readerpagemap")
-local ReaderPanning = require("apps/reader/modules/readerpanning")
 local ReaderPaging = require("apps/reader/modules/readerpaging")
+local ReaderPanning = require("apps/reader/modules/readerpanning")
 local ReaderRolling = require("apps/reader/modules/readerrolling")
+local ReaderScrolling = require("apps/reader/modules/readerscrolling")
 local ReaderSearch = require("apps/reader/modules/readersearch")
 local ReaderStatus = require("apps/reader/modules/readerstatus")
 local ReaderStyleTweak = require("apps/reader/modules/readerstyletweak")
@@ -63,12 +63,11 @@ local Screenshoter = require("ui/widget/screenshoter")
 local UIManager = require("ui/uimanager")
 local ffiUtil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
-local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
 
@@ -84,8 +83,8 @@ local ReaderUI = InputContainer:extend({
   -- password for document unlock
   password = nil,
 
-  postInitCallback = nil,
-  postReaderReadyCallback = nil,
+  -- size
+  dimen = nil,
 })
 
 function ReaderUI:registerModule(name, ui_module)
@@ -96,23 +95,19 @@ function ReaderUI:registerModule(name, ui_module)
   table.insert(self, ui_module)
 end
 
-function ReaderUI:registerPostInitCallback(callback)
-  table.insert(self.postInitCallback, callback)
-end
-
-function ReaderUI:registerPostReaderReadyCallback(callback)
-  table.insert(self.postReaderReadyCallback, callback)
-end
-
 function ReaderUI:init()
-  -- cap screen refresh on pan to 2 refreshes per second
-  local pan_rate = Screen.low_pan_rate and 2.0 or 30.0
+  -- Default size
+  self:mergeSize(Screen:getSize())
 
-  Input:inhibitInput(true) -- Inhibit any past and upcoming input events.
+  -- Show self at the very beginning to ensure all the UIManager:broadcastEvent
+  -- in the following calls can be received by ReaderUI modules.
+  UIManager:show(self)
+
+  -- cap screen refresh on pan to 2 refreshes per second
+  local pan_rate = G_named_settings.low_pan_rate_or_full(2.0)
+
   Device:setIgnoreInput(true) -- Avoid ANRs on Android with unprocessed events.
 
-  self.postInitCallback = {}
-  self.postReaderReadyCallback = {}
   -- if we are not the top level dialog ourselves, it must be given in the table
   if not self.dialog then
     self.dialog = self
@@ -365,9 +360,10 @@ function ReaderUI:init()
     if self.document.setupDefaultView then
       self.document:setupDefaultView()
     end
-    -- make sure we render document first before calling any callback
-    self:registerPostInitCallback(function()
-      local start_time = time.now()
+    -- make sure we render document first before calling any callback, so using
+    -- onReadSettings which happens before onReaderInited.
+    self.onReadSettings = function()
+      local start_time = time.monotonic()
       if not self.document:loadDocument() then
         self:dealWithLoadDocumentFailure()
       end
@@ -380,9 +376,11 @@ function ReaderUI:init()
 
       -- used to read additional settings after the document has been
       -- loaded (but not rendered yet)
-      self:handleEvent(Event:new("PreRenderDocument", self.doc_settings))
+      UIManager:broadcastEvent(
+        Event:new("PreRenderDocument", self.doc_settings)
+      )
 
-      start_time = time.now()
+      start_time = time.monotonic()
       self.document:render()
       logger.dbg(
         string.format(
@@ -393,7 +391,7 @@ function ReaderUI:init()
 
       -- Uncomment to output the built DOM (for debugging)
       -- logger.dbg(self.document:getHTMLFromXPointer(".0", 0x6830))
-    end)
+    end
     -- styletweak controller (must be before typeset controller)
     self:registerModule(
       "styletweak",
@@ -586,30 +584,26 @@ function ReaderUI:init()
 
   -- Allow others to change settings based on external factors
   -- Must be called after plugins are loaded & before setting are read.
-  self:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("DocSettingsLoad", self.doc_settings, self.document)
   )
   -- we only read settings after all the widgets are initialized
-  self:handleEvent(Event:new("ReadSettings", self.doc_settings))
-
-  for _, v in ipairs(self.postInitCallback) do
-    v()
-  end
-  self.postInitCallback = nil
+  UIManager:broadcastEvent(Event:new("ReadSettings", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("ReaderInited"))
 
   -- Now that document is loaded, store book metadata in settings.
   local props = self.document:getProps()
-  self.doc_settings:saveSetting("doc_props", props)
+  self.doc_settings:save("doc_props", props)
   -- And have an extended and customized copy in memory for quick access.
   self.doc_props = FileManagerBookInfo.extendProps(props, self.document.file)
 
-  local md5 = self.doc_settings:readSetting("partial_md5_checksum")
+  local md5 = self.doc_settings:read("partial_md5_checksum")
   if md5 == nil then
     md5 = util.partialMD5(self.document.file)
-    self.doc_settings:saveSetting("partial_md5_checksum", md5)
+    self.doc_settings:save("partial_md5_checksum", md5)
   end
 
-  local summary = self.doc_settings:readSetting("summary") or {}
+  local summary = self.doc_settings:readTableRef("summary")
   if summary.status == nil then
     summary.status = "reading"
     summary.modified = os.date("%Y-%m-%d", os.time())
@@ -617,7 +611,7 @@ function ReaderUI:init()
 
   if
     summary.status ~= "complete"
-    or not G_reader_settings:isTrue("history_freeze_finished_books")
+    or not G_reader_settings:nilOrTrue("history_freeze_finished_books")
   then
     require("readhistory"):addItem(self.document.file) -- (will update "lastfile")
   end
@@ -625,16 +619,10 @@ function ReaderUI:init()
   -- After initialisation notify that document is loaded and rendered
   -- CREngine only reports correct page count after rendering is done
   -- Need the same event for PDF document
-  self:handleEvent(Event:new("ReaderReady", self.doc_settings))
-
-  for _, v in ipairs(self.postReaderReadyCallback) do
-    v()
-  end
-  self.postReaderReadyCallback = nil
-  self.reloading = nil
+  UIManager:broadcastEvent(Event:new("ReaderReady", self.doc_settings))
+  UIManager:broadcastEvent(Event:new("PostReaderReady"))
 
   Device:setIgnoreInput(false) -- Allow processing of events (on Android).
-  Input:inhibitInputUntil(0.2)
 
   -- print("Ordered registered gestures:")
   -- for _, tzone in ipairs(self._ordered_touch_zones) do
@@ -684,7 +672,7 @@ function ReaderUI:getLastDirFile(to_file_browser)
   end
   local QuickStart = require("ui/quickstart")
   local last_dir
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   -- ignore quickstart guide as last_file so we can go back to home dir
   if last_file and last_file ~= QuickStart.quickstart_filename then
     last_dir = last_file:match("(.*)/")
@@ -714,8 +702,7 @@ function ReaderUI:onShowingReader()
   self.tearing_down = true
   self.dithered = nil
 
-  -- Don't enforce a "full" refresh, leave that decision to the next widget we'll *show*.
-  self:onExit(false)
+  self:onExit()
 end
 
 -- Same as above, except we don't close it yet. Useful for plugins that need to close custom Menus before calling showReader.
@@ -730,12 +717,12 @@ end
 function ReaderUI:showReader(file, provider, seamless)
   logger.dbg("show reader ui")
 
-  origin_file = file
+  local origin_file = file
   file = ffiUtil.realpath(file)
   if file == nil or lfs.attributes(file, "mode") ~= "file" then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
-        _("File '%1' does not exist."),
+        gettext("File '%1' does not exist."),
         BD.filepath(filemanagerutil.abbreviate(origin_file))
       ),
     }))
@@ -743,13 +730,15 @@ function ReaderUI:showReader(file, provider, seamless)
   end
 
   if not DocumentRegistry:hasProvider(file) and provider == nil then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
-        _("File '%1' is not supported."),
+        gettext("File '%1' is not supported."),
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
+      dismiss_callback = function()
+        self:showFileManager(file)
+      end,
     }))
-    self:showFileManager(file)
     return
   end
 
@@ -757,30 +746,21 @@ function ReaderUI:showReader(file, provider, seamless)
   UIManager:broadcastEvent(Event:new("ShowingReader"))
   provider = provider or DocumentRegistry:getProvider(file)
   if provider.provider then
-    self:showReaderCoroutine(file, provider, seamless)
+    self:_showReaderCoroutine(file, provider, seamless)
   else
-    UIManager:show(InfoMessage:new({
-      text = _("No reader engine for this file or invalid file."),
+    self:showWidget(InfoMessage:new({
+      text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
   end
 end
 
-function ReaderUI:showReaderCoroutine(file, provider, seamless)
-  UIManager:show(InfoMessage:new({
-    text = T(
-      _("Opening file '%1'."),
-      BD.filepath(filemanagerutil.abbreviate(file))
-    ),
-    timeout = 0.0,
-    invisible = seamless,
-  }))
+function ReaderUI:_showReaderCoroutine(file, provider, seamless)
   -- doShowReader might block for a long time, so force repaint here
-  UIManager:forceRePaint()
-  UIManager:nextTick(function()
+  local function f()
     logger.dbg("creating coroutine for showing reader")
     local co = coroutine.create(function()
-      self:doShowReader(file, provider, seamless)
+      self:_doShowReader(file, provider, seamless)
     end)
     local ok, err = coroutine.resume(co)
     if err ~= nil or ok == false then
@@ -788,31 +768,37 @@ function ReaderUI:showReaderCoroutine(file, provider, seamless)
       io.stderr:write(debug.traceback(co, err, 1))
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
-      Input:inhibitInputUntil(0.2)
-      -- Need localization.
-      UIManager:show(InfoMessage:new({
-        text = _("Unfortunately KOReader crashed.")
+      self:showWidget(InfoMessage:new({
+        text = gettext("Unfortunately KOReader crashed.")
           .. "\n"
-          .. _(
+          .. gettext(
             "Report a bug to https://github.com/Hzj-jie/koreader-202411 can help developers to improve it."
           ),
       }))
       self:showFileManager(file)
     end
-  end)
+  end
+  if seamless then
+    f()
+    return
+  end
+  UIManager:runWith(
+    f,
+    T(
+      gettext("Opening file '%1'."),
+      BD.filepath(filemanagerutil.abbreviate(file))
+    )
+  )
 end
 
-function ReaderUI:doShowReader(file, provider, seamless)
-  if seamless then
-    UIManager:avoidFlashOnNextRepaint()
-  end
+function ReaderUI:_doShowReader(file, provider)
   logger.info("opening file", file)
   -- Only keep a single instance running
   assert(ReaderUI.instance == nil)
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
-    UIManager:show(InfoMessage:new({
-      text = _("No reader engine for this file or invalid file."),
+    self:showWidget(InfoMessage:new({
+      text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
     return
@@ -831,9 +817,7 @@ function ReaderUI:doShowReader(file, provider, seamless)
   end
   local reader = ReaderUI:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     document = document,
-    reloading = self.reloading,
   })
 
   Screen:setWindowTitle(reader.doc_props.display_title)
@@ -847,19 +831,17 @@ function ReaderUI:doShowReader(file, provider, seamless)
   if FileManager.instance then
     FileManager.instance:onExit()
   end
-
-  UIManager:show(reader, seamless and "ui" or "full")
 end
 
 function ReaderUI:unlockDocumentWithPassword(document, try_again)
   logger.dbg("show input password dialog")
   self.password_dialog = InputDialog:new({
-    title = try_again and _("Password is incorrect, try again?")
-      or _("Input document password"),
+    title = try_again and gettext("Password is incorrect, try again?")
+      or gettext("Input document password"),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self:closeDialog()
@@ -867,7 +849,7 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
           end,
         },
         {
-          text = _("OK"),
+          text = gettext("OK"),
           callback = function()
             local success = self:onVerifyPassword(document)
             self:closeDialog()
@@ -882,8 +864,7 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
     },
     text_type = "password",
   })
-  UIManager:show(self.password_dialog)
-  self.password_dialog:showKeyboard()
+  self:showWidget(self.password_dialog)
 end
 
 function ReaderUI:onVerifyPassword(document)
@@ -901,8 +882,18 @@ function ReaderUI:onScreenResize(dimen)
   self:updateTouchZonesOnScreenResize(dimen)
 end
 
+function ReaderUI:onSetDimensions(dimen)
+  self:onScreenResize(dimen)
+end
+
 function ReaderUI:saveSettings()
-  self:handleEvent(Event:new("SaveSettings"))
+  -- Note, this behavior should only impact ReaderUI and its modules but not
+  -- other components, since it's called by UIManager:close /
+  -- widget:broadcastEvent("FlushSettings"). I.e. only the widget and its sub
+  -- widgets need to flush settings.
+  -- Note, even calling UIManager:broadcastEvent, it shouldn't make noticeable
+  -- difference, as the UIManager should only know ReaderUI in the case.
+  self:broadcastEvent(Event:new("SaveSettings"))
   self.doc_settings:flush()
   G_reader_settings:flush()
 end
@@ -911,38 +902,60 @@ function ReaderUI:onFlushSettings(show_notification)
   self:saveSettings()
   if show_notification then
     -- Invoked from dispatcher to explicitly flush settings
-    Notification:notify(_("Book metadata saved."))
+    Notification:notify(gettext("Book metadata saved."))
   end
 end
 
-function ReaderUI:closeDocument()
-  self.document:close()
-  self.document = nil
-end
-
-function ReaderUI:onExit(full_refresh)
+function ReaderUI:onExit(seamless)
+  UIManager:broadcastEvent(Event:new("CloseReaderMenu"))
+  UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
+  self.highlight:onExit() -- close highlight dialog if any
+  if self.document == nil then
+    -- This shouldn't happen, but who knows who would call ReaderUI:onExit?
+    return
+  end
   logger.dbg("closing reader")
-  PluginLoader:finalize()
-  Device:notifyBookState(nil, nil)
-  -- if self.dialog is us, we'll have our onFlushSettings() called
-  -- by UIManager:close() below, so avoid double save
-  if self.dialog ~= self then
-    self:saveSettings()
-  end
-  if self.document ~= nil then
-    require("readhistory"):updateLastBookTime(self.tearing_down)
-    -- Serialize the most recently displayed page for later launch
-    DocCache:serialize(self.document.file)
-    logger.dbg("closing document")
-    self:handleEvent(Event:new("CloseDocument"))
-    if
-      self.document:isEdited() and not self.highlight.highlight_write_into_pdf
-    then
-      self.document:discardChange()
+  local f = function()
+    PluginLoader:finalize()
+    Device:notifyBookState(nil, nil)
+    -- if self.dialog is us, we'll have our onFlushSettings() called
+    -- by UIManager:close() below, so avoid double save
+    if self.dialog ~= self then
+      self:saveSettings()
     end
-    self:closeDocument()
+    if self.document ~= nil then
+      require("readhistory"):updateLastBookTime(self.tearing_down)
+      -- Serialize the most recently displayed page for later launch
+      DocCache:serialize(self.document.file)
+      logger.dbg("closing document")
+      UIManager:broadcastEvent(Event:new("CloseDocument"))
+      if
+        self.document:isEdited() and not self.highlight.highlight_write_into_pdf
+      then
+        self.document:discardChange()
+      end
+      self.document:close()
+      self.document = nil
+    end
+    if self.dialog == self then
+      UIManager:close(self)
+    else
+      UIManager:close(self)
+      UIManager:close(self.dialog)
+    end
   end
-  UIManager:close(self.dialog, full_refresh ~= false and "full")
+
+  if seamless then
+    f()
+  else
+    UIManager:runWith(
+      f,
+      T(
+        gettext("Saving progress of file %1"),
+        BD.filepath(filemanagerutil.abbreviate(self.document.file))
+      )
+    )
+  end
 end
 
 function ReaderUI:onClose()
@@ -964,8 +977,8 @@ function ReaderUI:dealWithLoadDocumentFailure()
     logger.warn(
       "crengine failed recognizing or parsing this file: unsupported or invalid document"
     )
-    UIManager:show(InfoMessage:new({
-      text = _(
+    self:showWidget(InfoMessage:new({
+      text = gettext(
         "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
       ),
       dismiss_callback = function()
@@ -974,7 +987,6 @@ function ReaderUI:dealWithLoadDocumentFailure()
     }))
     -- Restore input, so can catch the InfoMessage dismiss and exit
     Device:setIgnoreInput(false)
-    Input:inhibitInputUntil(0.2)
     coroutine.yield() -- pause till InfoMessage is dismissed
   end
   -- We have to error and exit the coroutine anyway to avoid any segfault
@@ -984,9 +996,11 @@ function ReaderUI:dealWithLoadDocumentFailure()
 end
 
 function ReaderUI:onHome()
-  local file = self.document.file
+  local file = self.document and self.document.file
   self:onExit()
-  self:showFileManager(file)
+  if not require("apps/filemanager/filemanager").instance then
+    self:showFileManager(file)
+  end
   return true
 end
 
@@ -994,43 +1008,26 @@ function ReaderUI:onReload()
   self:reloadDocument()
 end
 
-function ReaderUI:reloadDocument(after_close_callback, seamless)
-  local file = self.document.file
-  local provider = getmetatable(self.document).__index
-
+function ReaderUI:_loadDocument(file, seamless)
   -- Mimic onShowingReader's refresh optimizations
   self.tearing_down = true
   self.dithered = nil
-  self.reloading = true
 
-  self:handleEvent(Event:new("CloseReaderMenu"))
-  self:handleEvent(Event:new("CloseConfigMenu"))
-  self:handleEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
-  self.highlight:onExit() -- close highlight dialog if any
-  self:onExit(false)
-  if after_close_callback then
-    -- allow caller to do stuff between close an re-open
-    after_close_callback(file, provider)
-  end
+  self:onExit(seamless)
 
-  self:showReader(file, provider, seamless)
+  self:showReader(file, nil, seamless)
 end
 
-function ReaderUI:switchDocument(new_file, seamless)
-  if not new_file then
+function ReaderUI:reloadDocument(seamless)
+  UIManager:broadcastEvent(Event:new("PreserveCurrentSession")) -- don't reset statistics' start_current_period
+  self:_loadDocument(self.document.file, seamless)
+end
+
+function ReaderUI:switchDocument(new_file)
+  if not new_file or new_file == self.document.file then
     return
   end
-
-  -- Mimic onShowingReader's refresh optimizations
-  self.tearing_down = true
-  self.dithered = nil
-
-  self:handleEvent(Event:new("CloseReaderMenu"))
-  self:handleEvent(Event:new("CloseConfigMenu"))
-  self.highlight:onExit() -- close highlight dialog if any
-  self:onExit(false)
-
-  self:showReader(new_file, nil, seamless)
+  self:_loadDocument(new_file)
 end
 
 function ReaderUI:onOpenLastDoc()

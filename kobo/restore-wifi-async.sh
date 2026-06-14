@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ "${PRODUCT}" == "dragon" ]; then
+  ./restore-wifi-async-18db509.sh
+  exit
+fi
+
 RestoreWifi() {
     echo "[$(date)] restore-wifi-async.sh: Restarting Wi-Fi"
 

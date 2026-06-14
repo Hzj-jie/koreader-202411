@@ -1,8 +1,8 @@
 -- load common SDL input/video library
-local SDL = require("ffi/SDL2_0")
 local BB = require("ffi/blitbuffer")
-local util = require("ffi/util")
+local SDL = require("ffi/SDL2_0")
 local ffi = require("ffi")
+local util = require("ffi/util")
 local framebuffer = {
   -- this blitbuffer will be used when we use refresh emulation
   sdl_bb = nil,

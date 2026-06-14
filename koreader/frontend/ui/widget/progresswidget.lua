@@ -30,7 +30,6 @@ Example:
 
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
-local Geom = require("ui/geometry")
 local IconWidget = require("ui/widget/iconwidget")
 local Math = require("optmath")
 local Widget = require("ui/widget/widget")
@@ -104,24 +103,10 @@ function ProgressWidget:renderMarkerIcon()
   end
 end
 
-function ProgressWidget:getSize()
-  return { w = self.width, h = self.height }
-end
-
 function ProgressWidget:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local my_size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = my_size.w,
-      h = my_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
-  if self.dimen.w == 0 or self.dimen.h == 0 then
+  if self:getSize().w == 0 or self:getSize().h == 0 then
     return
   end
 
@@ -255,8 +240,8 @@ function ProgressWidget:getPercentageFromPosition(pos)
   if not pos or not pos.x then
     return nil
   end
-  local width = self.dimen.w - 2 * self.margin_h
-  local x = pos.x - self.dimen.x - self.margin_h
+  local width = self:getSize().w - 2 * self.margin_h
+  local x = pos.x - self:getSize().x - self.margin_h
   if x < 0 or x > width then
     return nil
   end

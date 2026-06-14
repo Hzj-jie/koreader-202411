@@ -7,13 +7,15 @@ if Device:isAndroid() then
   return { disabled = true }
 end
 
+local ALLOW_BLOCKING_JOBS = false
+
 local CommandRunner = require("commandrunner")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
+local util = require("util")
 
 -- BackgroundRunner is an experimental feature to execute non-critical jobs in
 -- the background.
@@ -58,6 +60,9 @@ local _ = require("gettext")
 --             Errors thrown from this function will be ignored.
 --   nil: ignore.
 --
+-- catch_exception: boolean
+--   allow capturing the exception instead of crashing. Default false.
+--
 -- If a job does not contain enough information, it will be ignored.
 --
 -- Once the job is finished, several items will be added to the table:
@@ -100,7 +105,7 @@ local function _clone(job)
   result.executable = job.executable
   result.callback = job.callback
   result.environment = job.environment
-  result.insert_time = time.now()
+  result.insert_time = time.monotonic()
   return result
 end
 
@@ -127,6 +132,7 @@ function BackgroundRunner:_shouldRepeat(job)
 end
 
 function BackgroundRunner:_finishJob(job)
+  -- No timeout for real forked commands, they can run as long as they need.
   if type(job.executable) == "function" then
     local time_diff = job.end_time - job.start_time
     local threshold = time.s(1)
@@ -137,20 +143,25 @@ function BackgroundRunner:_finishJob(job)
     end
     job.timeout = (time_diff > threshold)
   end
-  job.blocked = job.timeout
-  if job.blocked then
+  if ALLOW_BLOCKING_JOBS then
+    job.blocked = job.timeout
+  else
+    job.blocked = false
+  end
+  if job.blocked or job.timeout then
     logger.warn(
       "BackgroundRunner: job [",
       _debugJobStr(job),
-      " will be blocked due to timeout"
+      "] may be blocked due to timeout"
     )
   end
   if not job.blocked and self:_shouldRepeat(job) then
     table.insert(PluginShare.backgroundJobs, _clone(job))
   elseif G_defaults:isTrue("DEV_MODE") then
-    logger.info("job ", _debugJobStr(job), " will not be repeated.")
+    assert(not job.blocked)
   end
-  if type(job.callback) == "function" then
+  if job.callback ~= nil then
+    assert(type(job.callback) == "function")
     job.callback(job)
   end
 end
@@ -176,7 +187,7 @@ function BackgroundRunner:_executeJob(job)
     return true
   end
   if type(job.executable) == "function" then
-    job.start_time = time.now()
+    job.start_time = time.monotonic()
     local status, err = pcall(job.executable)
     if status then
       job.result = 0
@@ -189,8 +200,10 @@ function BackgroundRunner:_executeJob(job)
       )
       job.result = 1
       job.exception = err
+      -- trigger the exception at the end to preserve the logs.
+      assert(job.catch_exception == true)
     end
-    job.end_time = time.now()
+    job.end_time = time.monotonic()
     self:_finishJob(job)
     return true
   end
@@ -231,7 +244,7 @@ function BackgroundRunner:_execute()
   for _ = 1, #PluginShare.backgroundJobs do
     local job = table.remove(PluginShare.backgroundJobs, 1)
     if job.insert_time == nil then
-      job.insert_time = time.now()
+      job.insert_time = time.monotonic()
     end
     local should_execute = false
     local should_ignore = false
@@ -248,7 +261,7 @@ function BackgroundRunner:_execute()
           )
           job.when = 1
         end
-        should_execute = (time.now() - job.insert_time >= time.s(job.when))
+        should_execute = (time.since(job.insert_time) >= time.s(job.when))
       else
         logger.warn("ignore negative job.when, ", _debugJobStr(job))
         should_ignore = true
@@ -258,7 +271,7 @@ function BackgroundRunner:_execute()
         should_execute = true
       elseif job.when == "best-effort" then
         -- TODO: Implement a better best-effort strategy.
-        should_execute = (time.now() - job.insert_time >= time.s(60))
+        should_execute = (time.monotonic() - job.insert_time >= time.s(60))
       elseif job.when == "idle" then
         should_execute = PluginShare.DeviceIdling
       else
@@ -331,6 +344,12 @@ end
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated()")
   self:init()
+end
+
+if util.isTesting() then
+  function BackgroundRunnerWidget:allowBlockingJobs(v)
+    ALLOW_BLOCKING_JOBS = v
+  end
 end
 
 return BackgroundRunnerWidget

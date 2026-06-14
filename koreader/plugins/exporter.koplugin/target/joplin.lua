@@ -8,13 +8,13 @@ local ltn12 = require("ltn12")
 local md = require("template/md")
 local socketutil = require("socketutil")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- joplin exporter
 local JoplinExporter = require("base"):new({
   name = "joplin",
   is_remote = true,
-  notebook_name = _("KOReader Notes"),
+  notebook_name = gettext("KOReader Notes"),
   version = "1.1.0",
 })
 
@@ -227,19 +227,19 @@ end
 
 function JoplinExporter:getMenuTable()
   return {
-    text = _("Joplin"),
+    text = gettext("Joplin"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Set Joplin IP and Port"),
+        text = gettext("Set Joplin IP and Port"),
         keep_menu_open = true,
         callback = function()
           local MultiInputDialog = require("ui/widget/multiinputdialog")
           local url_dialog
           url_dialog = MultiInputDialog:new({
-            title = _("Set Joplin IP and port number"),
+            title = gettext("Set Joplin IP and port number"),
             fields = {
               {
                 text = self.settings.ip,
@@ -253,13 +253,13 @@ function JoplinExporter:getMenuTable()
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(url_dialog)
                   end,
                 },
                 {
-                  text = _("OK"),
+                  text = gettext("OK"),
                   callback = function()
                     local fields = url_dialog:getFields()
                     local ip = fields[1]
@@ -278,27 +278,26 @@ function JoplinExporter:getMenuTable()
             },
           })
           UIManager:show(url_dialog)
-          url_dialog:showKeyboard()
         end,
       },
       {
-        text = _("Set authorization token"),
+        text = gettext("Set authorization token"),
         keep_menu_open = true,
         callback = function()
           local auth_dialog
           auth_dialog = InputDialog:new({
-            title = _("Set authorization token for Joplin"),
+            title = gettext("Set authorization token for Joplin"),
             input = self.settings.token,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(auth_dialog)
                   end,
                 },
                 {
-                  text = _("Set token"),
+                  text = gettext("Set token"),
                   callback = function()
                     self.settings.token = auth_dialog:getInputText()
                     self:saveSettings()
@@ -309,11 +308,10 @@ function JoplinExporter:getMenuTable()
             },
           })
           UIManager:show(auth_dialog)
-          auth_dialog:showKeyboard()
         end,
       },
       {
-        text = _("Export to Joplin"),
+        text = gettext("Export to Joplin"),
         checked_func = function()
           return self:isEnabled()
         end,
@@ -322,12 +320,12 @@ function JoplinExporter:getMenuTable()
         end,
       },
       {
-        text = _("Help"),
+        text = gettext("Help"),
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
             text = T(
-              _([[For Joplin setup instructions, see %1
+              gettext([[For Joplin setup instructions, see %1
 
 Markdown formatting can be configured in:
 Export highlights > Choose formats and services > Markdown.]]),
@@ -372,7 +370,7 @@ function JoplinExporter:export(t)
       self:saveSettings()
     end
   end
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableRef("exporter")
   local markdown_settings = plugin_settings.markdown
   local notebook_id = self.settings.notebook_guid
   for _, booknotes in pairs(t) do

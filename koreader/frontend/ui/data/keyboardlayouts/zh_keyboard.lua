@@ -16,9 +16,9 @@ rf. https://en.wikipedia.org/wiki/Stroke_count_method
 --]]
 
 local IME = require("ui/data/keyboardlayouts/generic_ime")
+local JA = require("ui/data/keyboardlayouts/ja_keyboard_keys")
+local gettext = require("gettext")
 local util = require("util")
-local JA = dofile("frontend/ui/data/keyboardlayouts/ja_keyboard_keys.lua")
-local _ = require("gettext")
 
 local SHOW_CANDI_KEY = "keyboard_chinese_stroke_show_candidates"
 local s_3 = { alt_label = "%°#", "3", west = "%", north = "°", east = "#" }
@@ -64,7 +64,7 @@ local W = "`" -- wildcard, * is not used because it can be input from symbols
 local genMenuItems = function(self)
   return {
     {
-      text = _("Show character candidates"),
+      text = gettext("Show character candidates"),
       checked_func = function()
         return G_reader_settings:nilOrTrue(SHOW_CANDI_KEY)
       end,
@@ -75,7 +75,7 @@ local genMenuItems = function(self)
   }
 end
 
-local code_map = dofile("frontend/ui/data/keyboardlayouts/zh_stroke_data.lua")
+local code_map = require("ui/data/keyboardlayouts/zh_stroke_data")
 local ime = IME:new({
   code_map = code_map,
   key_map = {

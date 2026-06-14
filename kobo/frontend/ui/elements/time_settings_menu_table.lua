@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/time_settings_menu_table.lua

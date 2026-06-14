@@ -1,12 +1,12 @@
 local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local _ = require("gettext")
 
 -- readwise exporter
 local ReadwiseExporter = require("base"):new({
@@ -45,8 +45,7 @@ local function makeRequest(endpoint, method, request_body, token)
     return nil, status
   end
 
-  local response = json.decode(sink[1])
-  return response
+  return json.decode(sink[1])
 end
 
 function ReadwiseExporter:isReadyToExport()
@@ -58,29 +57,29 @@ end
 
 function ReadwiseExporter:getMenuTable()
   return {
-    text = _("Readwise"),
+    text = gettext("Readwise"),
     checked_func = function()
       return self:isEnabled()
     end,
     sub_item_table = {
       {
-        text = _("Set authorization token"),
+        text = gettext("Set authorization token"),
         keep_menu_open = true,
         callback = function()
           local auth_dialog
           auth_dialog = InputDialog:new({
-            title = _("Set authorization token for Readwise"),
+            title = gettext("Set authorization token for Readwise"),
             input = self.settings.token,
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(auth_dialog)
                   end,
                 },
                 {
-                  text = _("Set token"),
+                  text = gettext("Set token"),
                   callback = function()
                     self.settings.token = auth_dialog:getInputText()
                     self:saveSettings()
@@ -91,11 +90,10 @@ function ReadwiseExporter:getMenuTable()
             },
           })
           UIManager:show(auth_dialog)
-          auth_dialog:showKeyboard()
         end,
       },
       {
-        text = _("Export to Readwise"),
+        text = gettext("Export to Readwise"),
         checked_func = function()
           return self:isEnabled()
         end,

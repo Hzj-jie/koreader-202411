@@ -11,13 +11,13 @@ local SortWidget = require("ui/widget/sortwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 local util = require("util")
 
 local FileManagerCollection = WidgetContainer:extend({
-  title = _("Collections"),
-  default_collection_title = _("Favorites"),
+  title = gettext("Collections"),
+  default_collection_title = gettext("Favorites"),
   checkmark = "\u{2713}",
 })
 
@@ -61,7 +61,6 @@ function FileManagerCollection:onShowColl(collection_name)
   collection_name = collection_name or ReadCollection.default_collection_name
   self.coll_menu = Menu:new({
     ui = self.ui,
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     -- item and book cover thumbnail dimensions in Mosaic and Detailed list display modes
@@ -90,7 +89,7 @@ function FileManagerCollection:onShowColl(collection_name)
     self.coll_menu = nil
   end
   self:updateItemTable()
-  UIManager:show(self.coll_menu)
+  self:showWidget(self.coll_menu)
   return true
 end
 
@@ -157,7 +156,7 @@ function FileManagerCollection:onMenuHold(item)
     if DocSettings:hasSidecarFile(file) then
       doc_settings_or_file = DocSettings:open(file)
       if not self.book_props then
-        local props = doc_settings_or_file:readSetting("doc_props")
+        local props = doc_settings_or_file:read("doc_props")
         self.book_props = self.ui.bookinfo.extendProps(props, file)
         self.book_props.has_cover = true
       end
@@ -187,7 +186,7 @@ function FileManagerCollection:onMenuHold(item)
   })
   table.insert(buttons, {
     {
-      text = _("Delete"),
+      text = gettext("Delete"),
       enabled = not is_currently_opened,
       callback = function()
         local FileManager = require("apps/filemanager/filemanager")
@@ -195,7 +194,7 @@ function FileManagerCollection:onMenuHold(item)
       end,
     },
     {
-      text = _("Remove from collection"),
+      text = gettext("Remove from collection"),
       callback = function()
         ReadCollection:removeItem(file, self.collection_name)
         close_dialog_update_callback()
@@ -234,7 +233,7 @@ function FileManagerCollection:onMenuHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(self.collfile_dialog)
+  self:showWidget(self.collfile_dialog)
   return true
 end
 
@@ -243,7 +242,7 @@ function FileManagerCollection:showCollDialog()
   local buttons = {
     {
       {
-        text = _("Collections"),
+        text = gettext("Collections"),
         callback = function()
           UIManager:close(coll_dialog)
           self.coll_menu.close_callback()
@@ -254,7 +253,7 @@ function FileManagerCollection:showCollDialog()
     {}, -- separator
     {
       {
-        text = _("Arrange books in collection"),
+        text = gettext("Arrange books in collection"),
         callback = function()
           UIManager:close(coll_dialog)
           self:sortCollection()
@@ -263,7 +262,7 @@ function FileManagerCollection:showCollDialog()
     },
     {
       {
-        text = _("Add a book to collection"),
+        text = gettext("Add a book to collection"),
         callback = function()
           UIManager:close(coll_dialog)
           local PathChooser = require("ui/widget/pathchooser")
@@ -283,7 +282,7 @@ function FileManagerCollection:showCollDialog()
               end
             end,
           })
-          UIManager:show(path_chooser)
+          self:showWidget(path_chooser)
         end,
       },
     },
@@ -295,8 +294,9 @@ function FileManagerCollection:showCollDialog()
     table.insert(buttons, {
       {
         text_func = function()
-          return is_in_collection and _("Remove current book from collection")
-            or _("Add current book to collection")
+          return is_in_collection
+              and gettext("Remove current book from collection")
+            or gettext("Add current book to collection")
         end,
         callback = function()
           UIManager:close(coll_dialog)
@@ -314,13 +314,13 @@ function FileManagerCollection:showCollDialog()
   coll_dialog = ButtonDialog:new({
     buttons = buttons,
   })
-  UIManager:show(coll_dialog)
+  self:showWidget(coll_dialog)
 end
 
 function FileManagerCollection:sortCollection()
   local sort_widget
   sort_widget = SortWidget:new({
-    title = _("Arrange books in collection"),
+    title = gettext("Arrange books in collection"),
     item_table = ReadCollection:getOrderedCollection(
       self.coll_menu.collection_name
     ),
@@ -332,7 +332,7 @@ function FileManagerCollection:sortCollection()
       self:updateItemTable()
     end,
   })
-  UIManager:show(sort_widget)
+  self:showWidget(sort_widget)
 end
 
 function FileManagerCollection:onBookMetadataChanged()
@@ -364,7 +364,6 @@ function FileManagerCollection:onShowCollList(
   end
   self.coll_list = Menu:new({
     subtitle = "",
-    covers_fullscreen = true,
     is_borderless = true,
     is_popout = false,
     title_bar_fm_style = true,
@@ -391,7 +390,7 @@ function FileManagerCollection:onShowCollList(
     end
   end
   self:updateCollListItemTable(true) -- init
-  UIManager:show(self.coll_list)
+  self:showWidget(self.coll_list)
   return true
 end
 
@@ -422,11 +421,12 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
   else
     item_table = self.coll_list.item_table
   end
-  local title = T(_("Collections (%1)"), #item_table)
+  local title = T(gettext("Collections (%1)"), #item_table)
   local subtitle
   if self.selected_collections then
     local selected_nb = util.tableSize(self.selected_collections)
-    subtitle = self.selected_collections and T(_("Selected: %1"), selected_nb)
+    subtitle = self.selected_collections
+      and T(gettext("Selected: %1"), selected_nb)
     if do_init and selected_nb > 0 then -- show first collection containing the long-pressed book
       for i, item in ipairs(item_table) do
         if self.selected_collections[item.name] then
@@ -472,14 +472,14 @@ function FileManagerCollection:onCollListHold(item)
   local buttons = {
     {
       {
-        text = _("Remove collection"),
+        text = gettext("Remove collection"),
         callback = function()
           UIManager:close(button_dialog)
           self._manager:removeCollection(item)
         end,
       },
       {
-        text = _("Rename collection"),
+        text = gettext("Rename collection"),
         callback = function()
           UIManager:close(button_dialog)
           self._manager:renameCollection(item)
@@ -492,7 +492,7 @@ function FileManagerCollection:onCollListHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
   return true
 end
 
@@ -506,7 +506,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
   local button_dialog, buttons
   local new_collection_button = {
     {
-      text = _("New collection"),
+      text = gettext("New collection"),
       callback = function()
         UIManager:close(button_dialog)
         self:addCollection()
@@ -519,7 +519,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
       {}, -- separator
       {
         {
-          text = _("Deselect all"),
+          text = gettext("Deselect all"),
           callback = function()
             UIManager:close(button_dialog)
             for name in pairs(self.selected_collections) do
@@ -529,7 +529,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
           end,
         },
         {
-          text = _("Select all"),
+          text = gettext("Select all"),
           callback = function()
             UIManager:close(button_dialog)
             for name in pairs(ReadCollection.coll) do
@@ -541,7 +541,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
       },
       {
         {
-          text = _("Apply selection"),
+          text = gettext("Apply selection"),
           callback = function()
             UIManager:close(button_dialog)
             caller_callback(self.selected_collections)
@@ -555,7 +555,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
       new_collection_button,
       {
         {
-          text = _("Arrange collections"),
+          text = gettext("Arrange collections"),
           callback = function()
             UIManager:close(button_dialog)
             self:sortCollections()
@@ -567,34 +567,34 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
   button_dialog = ButtonDialog:new({
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function FileManagerCollection:editCollectionName(editCallback, old_name)
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Enter collection name"),
+    title = gettext("Enter collection name"),
     input = old_name,
     input_hint = old_name,
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local new_name = input_dialog:getInputText()
             if new_name == "" or new_name == old_name then
               return
             end
             if ReadCollection.coll[new_name] then
-              UIManager:show(InfoMessage:new({
-                text = T(_("Collection already exists: %1"), new_name),
+              self:showWidget(InfoMessage:new({
+                text = T(gettext("Collection already exists: %1"), new_name),
               }))
             else
               UIManager:close(input_dialog)
@@ -605,8 +605,7 @@ function FileManagerCollection:editCollectionName(editCallback, old_name)
       },
     },
   })
-  UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
+  self:showWidget(input_dialog)
 end
 
 function FileManagerCollection:addCollection()
@@ -641,9 +640,9 @@ function FileManagerCollection:renameCollection(item)
 end
 
 function FileManagerCollection:removeCollection(item)
-  UIManager:show(ConfirmBox:new({
-    text = _("Remove collection?") .. "\n\n" .. item.text,
-    ok_text = _("Remove"),
+  self:showWidget(ConfirmBox:new({
+    text = gettext("Remove collection?") .. "\n\n" .. item.text,
+    ok_text = gettext("Remove"),
     ok_callback = function()
       ReadCollection:removeCollection(item.name)
       table.remove(self.coll_list.item_table, item.idx)
@@ -656,14 +655,14 @@ end
 function FileManagerCollection:sortCollections()
   local sort_widget
   sort_widget = SortWidget:new({
-    title = _("Arrange collections"),
+    title = gettext("Arrange collections"),
     item_table = util.tableDeepCopy(self.coll_list.item_table),
     callback = function()
       ReadCollection:updateCollectionListOrder(sort_widget.item_table)
       self:updateCollListItemTable(true) -- init
     end,
   })
-  UIManager:show(sort_widget)
+  self:showWidget(sort_widget)
 end
 
 -- external
@@ -676,7 +675,7 @@ function FileManagerCollection:genAddToCollectionButton(
 )
   local is_single_file = type(file_or_files) == "string"
   return {
-    text = _("Collections…"),
+    text = gettext("Collections…"),
     enabled = not button_disabled,
     callback = function()
       if caller_pre_callback then

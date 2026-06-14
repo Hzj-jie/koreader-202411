@@ -82,7 +82,7 @@ end
 
 --- Reduces number of history items to the required limit by removing old items.
 function ReadHistory:_reduce()
-  local history_size = G_reader_settings:readSetting("history_size") or 100000
+  local history_size = G_reader_settings:read("history_size") or 100000
   while #self.hist > history_size do
     table.remove(self.hist)
   end
@@ -97,7 +97,7 @@ function ReadHistory:_flush()
       file = v.file,
     })
   end
-  util.writeToFile(dump(content), history_file, true, true)
+  util.writeToFile(dump(content), history_file, true)
   self:ensureLastFile()
 end
 
@@ -164,7 +164,7 @@ function ReadHistory:ensureLastFile()
       break
     end
   end
-  G_reader_settings:saveSetting("lastfile", last_existing_file)
+  G_reader_settings:save("lastfile", last_existing_file)
 end
 
 --- Get last or previous file in history that is not current_file
@@ -172,7 +172,7 @@ end
 -- been removed from history).
 function ReadHistory:getPreviousFile(current_file)
   if not current_file then
-    current_file = G_reader_settings:readSetting("lastfile")
+    current_file = G_reader_settings:read("lastfile")
   end
   for _, v in ipairs(self.hist) do
     -- skip current document and deleted items kept in history
@@ -335,24 +335,20 @@ function ReadHistory:removeItem(item, idx, no_flush)
   end
 end
 
-function ReadHistory:_ignoreItem(file)
-  -- Expect file to be a realpath(file)
-  if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
-    return true -- bad legacy item
-  end
-  -- Note, the logic won't impact the existing items, but only the ones newly
-  -- added.
-  path = ffiutil.dirname(file)
-  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
+function ReadHistory:ignoreFile(file)
+  local filename = ffiutil.basename(file)
+  if
+    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
+  then
     return true
   end
-  exclude_files = { -- const
+  local exclude_files = { -- const
     "^batterystat%.log$",
     "^crash%.log$",
     "^crash%.prev%.log$",
+    "^koreader%.crash%..*%.log$",
     "^quickstart%-.*%.html$",
   }
-  filename = ffiutil.basename(file)
   for _, pattern in ipairs(exclude_files) do
     if filename:match(pattern) then
       return true
@@ -361,11 +357,25 @@ function ReadHistory:_ignoreItem(file)
   return false
 end
 
+function ReadHistory:_ignoreItem(file, ts)
+  -- Expect file to be a realpath(file)
+  if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
+    return true -- bad legacy item
+  end
+  -- Note, the logic won't impact the existing items, but only the ones newly
+  -- added.
+  local path = ffiutil.dirname(file)
+  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
+    return true
+  end
+  return self:ignoreFile(file)
+end
+
 --- Adds new item (last opened document) to the top of the history list.
 -- If item time (ts) is passed, add item to the history list at this time position.
 function ReadHistory:addItem(file, ts, no_flush)
   file = realpath(file)
-  if self:_ignoreItem(file) then
+  if self:_ignoreItem(file, ts) then
     return
   end
   local index = self:getIndexByFile(file)

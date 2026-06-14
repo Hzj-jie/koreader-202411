@@ -1,4 +1,4 @@
-local isAndroid, _ = pcall(require, "android")
+local isAndroid = pcall(require, "android")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("ffi/util")
 

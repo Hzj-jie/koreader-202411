@@ -1,16 +1,17 @@
 local BD = require("ui/bidi")
 local ButtonDialog = require("ui/widget/buttondialog")
+local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
 
 local FileManagerShortcuts = WidgetContainer:extend({
-  title = _("Folder shortcuts"),
-  folder_shortcuts = G_reader_settings:readTableSetting("folder_shortcuts"),
+  title = gettext("Folder shortcuts"),
+  folder_shortcuts = G_reader_settings:readTableRef("folder_shortcuts"),
 })
 
 function FileManagerShortcuts:updateItemTable()
@@ -54,14 +55,14 @@ function FileManagerShortcuts:onMenuHold(item)
   local buttons = {
     {
       {
-        text = _("Remove shortcut"),
+        text = gettext("Remove shortcut"),
         callback = function()
           UIManager:close(dialog)
           self._manager:removeShortcut(item.folder)
         end,
       },
       {
-        text = _("Rename shortcut"),
+        text = gettext("Rename shortcut"),
         callback = function()
           UIManager:close(dialog)
           self._manager:editShortcut(item.folder)
@@ -70,7 +71,7 @@ function FileManagerShortcuts:onMenuHold(item)
     },
     self._manager.ui.file_chooser and self._manager.ui.clipboard and {
       {
-        text = _("Paste to folder"),
+        text = gettext("Paste to folder"),
         callback = function()
           UIManager:close(dialog)
           self._manager.ui:pasteFileFromClipboard(item.folder)
@@ -83,7 +84,7 @@ function FileManagerShortcuts:onMenuHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   return true
 end
 
@@ -100,26 +101,47 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
   local name = item and item.text -- rename
   local input_dialog
   input_dialog = InputDialog:new({
-    title = _("Enter folder shortcut name"),
+    title = gettext("Enter folder shortcut name"),
     input = name,
+    input_hint = name and nil or FFIUtil.basename(folder),
     description = BD.dirpath(folder),
+    edited_callback = function()
+      if input_dialog == nil then
+        -- Callback happens during the constructor, do nothing.
+        return
+      end
+      if name == nil then -- new, allow hint.
+        return
+      end
+      local new_name = input_dialog:getInputText()
+      -- When input is cleared, the hint / original input will be provided,
+      -- also disallow it.
+      if new_name == nil or new_name == "" or new_name == name then
+        if input_dialog:disableButton("save") then
+          input_dialog:refreshButtons()
+        end
+      else
+        if input_dialog:enableButton("save") then
+          input_dialog:refreshButtons()
+        end
+      end
+    end,
     buttons = {
       {
         {
-          text = _("Cancel"),
-          id = "close",
+          text = gettext("Cancel"),
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
+          id = "save",
           is_enter_default = true,
+          enabled = (name == nil), -- New shortcut with default value as hint.
           callback = function()
             local new_name = input_dialog:getInputText()
-            if new_name == "" or new_name == name then
-              return
-            end
+            assert(new_name ~= nil and new_name ~= "" and new_name ~= name)
             UIManager:close(input_dialog)
             if item then
               item.text = new_name
@@ -139,8 +161,7 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
       },
     },
   })
-  UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
+  self:showWidget(input_dialog)
 end
 
 function FileManagerShortcuts:addShortcut()
@@ -152,15 +173,15 @@ function FileManagerShortcuts:addShortcut()
       or self.ui:getLastDirFile(),
     onConfirm = function(path)
       if self:hasFolderShortcut(path) then
-        UIManager:show(InfoMessage:new({
-          text = _("Shortcut already exists."),
+        self:showWidget(InfoMessage:new({
+          text = gettext("Shortcut already exists."),
         }))
       else
         self:editShortcut(path)
       end
     end,
   })
-  UIManager:show(path_chooser)
+  self:showWidget(path_chooser)
 end
 
 function FileManagerShortcuts:genShowFolderShortcutsButton(pre_callback)
@@ -180,7 +201,7 @@ function FileManagerShortcuts:genAddRemoveShortcutButton(
 )
   if self:hasFolderShortcut(folder) then
     return {
-      text = _("Remove from folder shortcuts"),
+      text = gettext("Remove from folder shortcuts"),
       callback = function()
         pre_callback()
         self:removeShortcut(folder)
@@ -189,7 +210,7 @@ function FileManagerShortcuts:genAddRemoveShortcutButton(
     }
   else
     return {
-      text = _("Add to folder shortcuts"),
+      text = gettext("Add to folder shortcuts"),
       callback = function()
         pre_callback()
         self:editShortcut(folder, post_callback)
@@ -205,7 +226,6 @@ end
 function FileManagerShortcuts:onShowFolderShortcutsDialog(select_callback)
   self.shortcuts_menu = Menu:new({
     title = self.title,
-    covers_fullscreen = true,
     is_borderless = true,
     is_popout = false,
     select_callback = select_callback, -- called from PathChooser titlebar left button
@@ -232,7 +252,7 @@ function FileManagerShortcuts:onShowFolderShortcutsDialog(select_callback)
     self.shortcuts_menu = nil
   end
   self:updateItemTable()
-  UIManager:show(self.shortcuts_menu)
+  self:showWidget(self.shortcuts_menu)
 end
 
 return FileManagerShortcuts

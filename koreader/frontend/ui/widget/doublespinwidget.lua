@@ -3,10 +3,10 @@ local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local Font = require("ui/font")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local MovableContainer = require("ui/widget/container/movablecontainer")
 local NumberPickerWidget = require("ui/widget/numberpickerwidget")
@@ -16,7 +16,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -27,20 +27,20 @@ local DoubleSpinWidget = FocusManager:extend({
   width = nil,
   width_factor = nil, -- number between 0 and 1, factor to the smallest of screen width and height
   height = nil,
-  left_text = _("Left"),
+  left_text = gettext("Left"),
   left_min = 1,
   left_max = 20,
   left_value = 1,
   left_precision = nil, -- default "%02d" in NumberPickerWidget
   left_wrap = false,
-  right_text = _("Right"),
+  right_text = gettext("Right"),
   right_min = 1,
   right_max = 20,
   right_value = 1,
   right_precision = nil,
   right_wrap = false,
-  cancel_text = _("Close"),
-  ok_text = _("Apply"),
+  cancel_text = gettext("Close"),
+  ok_text = gettext("Apply"),
   ok_always_enabled = false, -- set to true to enable OK button for unchanged values
   cancel_callback = nil,
   callback = nil,
@@ -69,7 +69,7 @@ function DoubleSpinWidget:init()
     )
   end
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.TapClose = {
@@ -101,7 +101,6 @@ function DoubleSpinWidget:update(
   local prev_movable_alpha = self.movable and self.movable.alpha
   self.layout = {}
   local left_widget = NumberPickerWidget:new({
-    show_parent = self,
     value = numberpicker_left_value or self.left_value,
     value_min = self.left_min,
     value_max = self.left_max,
@@ -113,7 +112,6 @@ function DoubleSpinWidget:update(
   })
   self:mergeLayoutInHorizontal(left_widget)
   local right_widget = NumberPickerWidget:new({
-    show_parent = self,
     value = numberpicker_right_value or self.right_value,
     value_min = self.right_min,
     value_max = self.right_max,
@@ -208,7 +206,6 @@ function DoubleSpinWidget:update(
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -226,7 +223,7 @@ function DoubleSpinWidget:update(
       {
         text = self.default_text
           or T(
-            _("Default values: %1%3 %4 %2%3"),
+            gettext("Default values: %1%3 %4 %2%3"),
             self.left_precision
                 and string.format(self.left_precision, self.left_default)
               or self.left_default,
@@ -294,7 +291,6 @@ function DoubleSpinWidget:update(
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(button_table)
 
@@ -340,7 +336,7 @@ function DoubleSpinWidget:update(
     self.movable:setMovedOffset(prev_movable_offset)
   end
   self:refocusWidget()
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return "ui", self.widget_frame.dimen
   end)
 end

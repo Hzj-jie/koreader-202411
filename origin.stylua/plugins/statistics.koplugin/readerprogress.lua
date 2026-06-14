@@ -12,14 +12,14 @@ local LeftContainer = require("ui/widget/container/leftcontainer")
 local LineWidget = require("ui/widget/linewidget")
 local ProgressWidget = require("ui/widget/progresswidget")
 local Size = require("ui/size")
-local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
+local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local datetime = require("datetime")
 local _ = require("gettext")
+local datetime = require("datetime")
 local Screen = Device.screen
 
 local LINE_COLOR = Blitbuffer.COLOR_GRAY_9

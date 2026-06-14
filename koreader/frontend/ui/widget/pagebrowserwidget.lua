@@ -21,9 +21,9 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Input = Device.input
 local Screen = Device.screen
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- We use the BookMapRow widget, a local widget defined in bookmapwidget.lua,
 -- that we made available via BookMapWidget itself
@@ -32,7 +32,7 @@ local BookMapRow = BookMapWidget.BookMapRow
 
 -- PageBrowserWidget: shows thumbnails of pages
 local PageBrowserWidget = InputContainer:extend({
-  title = _("Page browser"),
+  title = gettext("Page browser"),
   -- Focus page: will be put at the best place in the thumbnail grid
   -- (that is, the grid will pick thumbnails from pages before and
   -- after it, and more pages after than before)
@@ -47,11 +47,7 @@ function PageBrowserWidget:init()
   end
 
   -- Compute non-settings-dependant sizes and options
-  self.dimen = Geom:new({
-    w = Screen:getWidth(),
-    h = Screen:getHeight(),
-  })
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
+  self:mergeSize(Screen:getSize())
 
   if Device:hasKeys() then
     self.key_events = {
@@ -110,7 +106,7 @@ function PageBrowserWidget:init()
   end
 
   -- Put the BookMapRow left and right border outside of screen
-  self.row_width = self.dimen.w + 2 * BookMapRow.pages_frame_border
+  self.row_width = self:getSize().w + 2 * BookMapRow.pages_frame_border
 
   self.title_bar = TitleBar:new({
     fullscreen = true,
@@ -131,7 +127,6 @@ function PageBrowserWidget:init()
     close_hold_callback = function()
       self:onExit(true)
     end,
-    show_parent = self,
   })
   self.title_bar_h = self.title_bar:getHeight()
 
@@ -225,13 +220,13 @@ end
 function PageBrowserWidget:updateLayout()
   -- We start with showing all toc levels (we could use book_map_toc_depth,
   -- but we might want to have it different here).
-  self.nb_toc_spans = self.ui.doc_settings:readSetting("page_browser_toc_depth")
+  self.nb_toc_spans = self.ui.doc_settings:read("page_browser_toc_depth")
     or self.max_toc_depth
   if self.ui.handmade:isHandmadeTocEnabled() then
     -- We can switch from a custom TOC (max depth of 1) to the regular TOC
     -- (larger depth possible), so we'd rather not replace with 1 the depth
     -- set and saved for a regular TOC. So, use a dedicated setting for each.
-    self.nb_toc_spans = self.ui.doc_settings:readSetting(
+    self.nb_toc_spans = self.ui.doc_settings:read(
       "page_browser_toc_depth_handmade_toc"
     ) or self.max_toc_depth
   end
@@ -249,15 +244,17 @@ function PageBrowserWidget:updateLayout()
       + 2 * BookMapRow.pages_frame_border
   )
 
-  self.grid_width = self.dimen.w
-  self.grid_height = self.dimen.h - self.title_bar_h - self.row_height
+  self.grid_width = self:getSize().w
+  self.grid_height = self:getSize().h - self.title_bar_h - self.row_height
 
   -- We'll draw some kind of static transparent glass over the BookMapRow,
   -- which should span over the page slots that get their thumbnails shown.
   self.view_finder_r = Size.radius.window
   self.view_finder_bw = Size.border.default
   -- Have its top border noticeable above the BookMapRow top border
-  self.view_finder_y = self.dimen.h - self.row_height - 2 * self.view_finder_bw
+  self.view_finder_y = self:getSize().h
+    - self.row_height
+    - 2 * self.view_finder_bw
   -- And put its bottom rounded corner outside of screen
   self.view_finder_h = self.row_height
     + 2 * self.view_finder_bw
@@ -278,15 +275,15 @@ function PageBrowserWidget:updateLayout()
   end
   self.row = CenterContainer:new({
     dimen = Geom:new({
-      w = self.dimen.w,
+      w = self:getSize().w,
       h = self.row_height,
     }),
     -- Will contain a BookMapRow wider, with l/r borders outside screen
   })
 
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,
@@ -299,10 +296,10 @@ function PageBrowserWidget:updateLayout()
     }),
   })
 
-  self.nb_rows = self.ui.doc_settings:readSetting("page_browser_nb_rows")
-    or G_reader_settings:readSetting("page_browser_nb_rows")
-  self.nb_cols = self.ui.doc_settings:readSetting("page_browser_nb_cols")
-    or G_reader_settings:readSetting("page_browser_nb_cols")
+  self.nb_rows = self.ui.doc_settings:read("page_browser_nb_rows")
+    or G_reader_settings:read("page_browser_nb_rows")
+  self.nb_cols = self.ui.doc_settings:read("page_browser_nb_cols")
+    or G_reader_settings:read("page_browser_nb_cols")
   if not self.nb_rows or not self.nb_cols then
     -- 3 x 2 seems like a good default, in both portrait or landscape mode
     self.nb_cols = 3
@@ -310,9 +307,9 @@ function PageBrowserWidget:updateLayout()
   end
   self.nb_grid_items = self.nb_rows * self.nb_cols
 
-  self.thumbnails_pagenums = self.ui.doc_settings:readSetting(
+  self.thumbnails_pagenums = self.ui.doc_settings:read(
     "page_browser_thumbnails_pagenums"
-  ) or G_reader_settings:readSetting("page_browser_thumbnails_pagenums") or 2
+  ) or G_reader_settings:read("page_browser_thumbnails_pagenums") or 2
   -- Set our items target size
   -- Borders may eat into the margin, and the horizontal margin should be able to contain the page number
   local grid_item_default_margin = Screen:scaleBySize(10)
@@ -635,7 +632,6 @@ function PageBrowserWidget:update()
   local row = BookMapRow:new({
     height = self.row_height,
     width = self.row_width,
-    show_parent = self,
     left_spacing = left_spacing,
     nb_toc_spans = self.nb_toc_spans,
     span_height = self.span_height,
@@ -734,9 +730,7 @@ function PageBrowserWidget:update()
       end
     end
   end
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
   if G_reader_settings:isTrue("page_browser_preload_thumbnails") then
     self:preloadNextPrevScreenThumbnails()
   end
@@ -759,7 +753,7 @@ function PageBrowserWidget:paintTo(bb, x, y)
 
   -- If we would prefer to see the BookMapRow top border always take the full width
   -- so it acts as a separator from the thumbnail grid, add this:
-  -- bb:paintRect(0, self.dimen.h - self.row_height, self.dimen.w, BookMapRow.pages_frame_border, Blitbuffer.COLOR_BLACK)
+  -- bb:paintRect(0, self:getSize().h - self.row_height, self:getSize().w, BookMapRow.pages_frame_border, Blitbuffer.COLOR_BLACK)
   -- And explicitly paint our viewfinder over the BookMapRow
   bb:paintBorder(
     self.view_finder_x,
@@ -804,7 +798,7 @@ function PageBrowserWidget:clearTile(grid_idx, in_progress, do_refresh)
       face = Font:getFace("cfont", 20),
     })
   else
-    item_container[1] = VerticalSpan:new({ width = 0 })
+    item_container[1] = VerticalSpan:new({ height = 0 })
   end
   if do_refresh then
     UIManager:setDirty(self, function()
@@ -892,7 +886,7 @@ function PageBrowserWidget:showTile(grid_idx, page, tile, do_refresh)
       self.wait_for_refresh_on_show_tile = nil
       -- Be sure the main view initial refresh has ended before refreshing
       -- this first thumbnail, to avoid papercut refresh glitches.
-      UIManager:waitForVSync()
+      UIManager:waitForScreenRefresh()
     end
     UIManager:setDirty(self, function()
       if not thumb_frame.dimen then
@@ -975,7 +969,7 @@ function PageBrowserWidget:showMenu()
   local buttons = {
     {
       {
-        text = _("About page browser"),
+        text = gettext("About page browser"),
         align = "left",
         callback = function()
           self:showAbout()
@@ -984,7 +978,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Available gestures"),
+        text = gettext("Available gestures"),
         align = "left",
         callback = function()
           self:showGestures()
@@ -993,7 +987,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Preload next/prev thumbnails"),
+        text = gettext("Preload next/prev thumbnails"),
         checked_func = function()
           return G_reader_settings:isTrue("page_browser_preload_thumbnails")
         end,
@@ -1008,7 +1002,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Thumbnail columns"),
+        text = gettext("Thumbnail columns"),
         callback = function() end,
         align = "left",
       },
@@ -1039,7 +1033,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Thumbnail rows"),
+        text = gettext("Thumbnail rows"),
         callback = function() end,
         align = "left",
       },
@@ -1070,7 +1064,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Thumbnail page numbers"),
+        text = gettext("Thumbnail page numbers"),
         callback = function() end,
         align = "left",
       },
@@ -1101,7 +1095,7 @@ function PageBrowserWidget:showMenu()
     },
     {
       {
-        text = _("Chapters in bottom ribbon"),
+        text = gettext("Chapters in bottom ribbon"),
         callback = function() end,
         align = "left",
       },
@@ -1140,12 +1134,12 @@ function PageBrowserWidget:showMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function PageBrowserWidget:showAbout()
-  UIManager:show(InfoMessage:new({
-    text = _([[
+  self:showWidget(InfoMessage:new({
+    text = gettext([[
 Page browser shows thumbnails of pages.
 
 The bottom ribbon displays an extract of the book map around the pages displayed:
@@ -1162,8 +1156,8 @@ Under the pages, these indicators may be shown:
 end
 
 function PageBrowserWidget:showGestures()
-  UIManager:show(InfoMessage:new({
-    text = _([[
+  self:showWidget(InfoMessage:new({
+    text = gettext([[
 Swipe along the top or left screen edge to change the number of columns or rows of thumbnails.
 
 Swipe vertically to move one row, horizontally to move one screen.
@@ -1215,7 +1209,7 @@ function PageBrowserWidget:onExit(close_all_parents)
     -- As we're getting back to Reader, update the footer and the dogear state
     -- (we may have toggled bookmark for current page) and do a full flashing
     -- refresh to remove any ghost trace of thumbnails or black page slots
-    UIManager:broadcastEvent(Event:new("UpdateFooter"))
+    UIManager:broadcastEvent("UpdateFooter")
     self.ui.bookmark:onPageUpdate(self.ui:getCurrentPage())
     UIManager:setDirty(self.ui.dialog, "full")
   end
@@ -1229,29 +1223,36 @@ function PageBrowserWidget:saveSettings(reset)
     self.nb_cols = nil
   end
   if self.ui.handmade:isHandmadeTocEnabled() then
-    self.ui.doc_settings:saveSetting(
+    self.ui.doc_settings:save(
       "page_browser_toc_depth_handmade_toc",
       self.nb_toc_spans
     )
   else
-    self.ui.doc_settings:saveSetting(
-      "page_browser_toc_depth",
-      self.nb_toc_spans
-    )
+    self.ui.doc_settings:save("page_browser_toc_depth", self.nb_toc_spans)
   end
-  self.ui.doc_settings:saveSetting("page_browser_nb_rows", self.nb_rows)
-  self.ui.doc_settings:saveSetting("page_browser_nb_cols", self.nb_cols)
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save(
+    "page_browser_nb_rows",
+    self.nb_rows,
+    G_reader_settings:read("page_browser_nb_rows") or 2
+  )
+  self.ui.doc_settings:save(
+    "page_browser_nb_cols",
+    self.nb_cols,
+    G_reader_settings:read("page_browser_nb_cols") or 3
+  )
+  self.ui.doc_settings:save(
     "page_browser_thumbnails_pagenums",
-    self.thumbnails_pagenums
+    self.thumbnails_pagenums,
+    G_reader_settings:read("page_browser_thumbnails_pagenums") or 2
   )
   -- We also save nb_rows/nb_cols as global settings, so they will apply on other books
   -- where they were not already set
-  G_reader_settings:saveSetting("page_browser_nb_rows", self.nb_rows)
-  G_reader_settings:saveSetting("page_browser_nb_cols", self.nb_cols)
-  G_reader_settings:saveSetting(
+  G_reader_settings:save("page_browser_nb_rows", self.nb_rows, 2)
+  G_reader_settings:save("page_browser_nb_cols", self.nb_cols, 3)
+  G_reader_settings:save(
     "page_browser_thumbnails_pagenums",
-    self.thumbnails_pagenums
+    self.thumbnails_pagenums,
+    2
   )
 end
 
@@ -1472,7 +1473,7 @@ function PageBrowserWidget:onSwipe(arg, ges)
   else
     -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
@@ -1528,7 +1529,7 @@ function PageBrowserWidget:onSpread(arg, ges)
   return true
 end
 
-function PageBrowserWidget:onMultiSwipe(arg, ges)
+function PageBrowserWidget:onMultiSwipe(arg)
   -- All swipes gestures are used for navigation.
   -- Allow for quick closing with any multiswipe.
   self:onExit()
@@ -1569,20 +1570,16 @@ function PageBrowserWidget:onTap(arg, ges)
           local orig_bordersize = thumb_frame.bordersize
           thumb_frame.bordersize = Size.border.thick * 2
           local b_inc = thumb_frame.bordersize - orig_bordersize
-          thumb_frame.dimen.x = thumb_frame.dimen.x - b_inc
-          thumb_frame.dimen.y = thumb_frame.dimen.y - b_inc
-          thumb_frame.dimen.w = thumb_frame.dimen.w + 2 * b_inc
-          thumb_frame.dimen.h = thumb_frame.dimen.h + 2 * b_inc
-          UIManager:widgetRepaint(
-            thumb_frame,
-            thumb_frame.dimen.x,
-            thumb_frame.dimen.y
-          )
+          thumb_frame.dimen.x = thumb_frame:getSize().x - b_inc
+          thumb_frame.dimen.y = thumb_frame:getSize().y - b_inc
+          thumb_frame.dimen.w = thumb_frame:getSize().w + 2 * b_inc
+          thumb_frame.dimen.h = thumb_frame:getSize().h + 2 * b_inc
+          UIManager:scheduleWidgetRepaint(thumb_frame)
           Screen:refreshFast(
-            thumb_frame.dimen.x,
-            thumb_frame.dimen.y,
-            thumb_frame.dimen.w,
-            thumb_frame.dimen.h
+            thumb_frame:getSize().x,
+            thumb_frame:getSize().y,
+            thumb_frame:getSize().w,
+            thumb_frame:getSize().h
           )
           -- (refresh "fast" will make gray drawn black and may make the
           -- thumbnail a little uglier - but this enhances the effect
@@ -1594,7 +1591,7 @@ function PageBrowserWidget:onTap(arg, ges)
         -- and all their ancestors up to Reader
         self:onExit(true)
         self.ui.link:addCurrentLocationToStack()
-        self.ui:handleEvent(Event:new("GotoPage", page))
+        UIManager:broadcastEvent(Event:new("GotoPage", page))
         -- Note: with ReaderPaging, if we tap on the thumbnail for the current
         -- page, nothing would be refreshed. Our :onExit(true) will have the
         -- last ancestor issue a full refresh that will ensure it is painted.
@@ -1605,10 +1602,19 @@ function PageBrowserWidget:onTap(arg, ges)
   end
   -- If tap on a blank area, handle as prev/next page, so people
   -- not friend with swipe can still move around
-  if BD.flipIfMirroredUILayout(ges.pos.x < Screen:getWidth() / 2) then
-    self:onScrollPageUp()
-  else
+  -- Late initialization to avoid cycle dependency.
+  if
+    BD.flipIfMirroredUILayout(
+      ges.pos:intersectWith(
+        self.dimen
+          :copy()
+          :resize(require("apps/reader/modules/readerview").getForwardTapZone())
+      )
+    )
+  then
     self:onScrollPageDown()
+  else
+    self:onScrollPageUp()
   end
   return true
 end
@@ -1625,7 +1631,7 @@ function PageBrowserWidget:onHold(arg, ges)
     if page then
       local extra_symbols_pages = {}
       extra_symbols_pages[self.focus_page] = 0x25A2 -- white square with rounder corners
-      UIManager:show(BookMapWidget:new({
+      self:showWidget(BookMapWidget:new({
         launcher = self,
         ui = self.ui,
         focus_page = page,
@@ -1674,7 +1680,7 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
   local buttons = {
     {
       {
-        text = _("Toggle page bookmark"),
+        text = gettext("Toggle page bookmark"),
         align = "left",
         callback = function()
           UIManager:close(button_dialog)
@@ -1691,9 +1697,12 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
         -- Note: we may have multiple chapters on a same page: we will show the first, which
         -- would need to be removed to access the second... We may want to show as many
         -- buttons as there are chapters, with the start of the chapter title as its text.
-        text = (has_toc_item and _("Edit or remove TOC chapter") or _(
-          "Start TOC chapter here"
-        )) .. " " .. self.ui.handmade.custom_toc_symbol,
+        text = (
+          has_toc_item and gettext("Edit or remove TOC chapter")
+          or gettext("Start TOC chapter here")
+        )
+          .. " "
+          .. self.ui.handmade.custom_toc_symbol,
         align = "left",
         callback = function()
           UIManager:close(button_dialog)
@@ -1708,8 +1717,8 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
     local is_in_hidden_flow = self.ui.handmade:isInHiddenFlow(page)
     table.insert(buttons, {
       {
-        text = is_in_hidden_flow and _("Restart regular flow here")
-          or _("Start hidden flow here"),
+        text = is_in_hidden_flow and gettext("Restart regular flow here")
+          or gettext("Start hidden flow here"),
         align = "left",
         callback = function()
           UIManager:close(button_dialog)
@@ -1726,7 +1735,7 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
       return ges.pos, true
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return PageBrowserWidget

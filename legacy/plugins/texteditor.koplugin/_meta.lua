@@ -1,0 +1,1 @@
+../../../koreader/plugins/texteditor.koplugin/_meta.lua

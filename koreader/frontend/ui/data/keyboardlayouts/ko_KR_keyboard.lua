@@ -12,7 +12,7 @@ local HgHelper = require("ui/data/keyboardlayouts/ko_KR_helper")
 function HgHelper.UIHandler:put_char(char)
   HgHelper.UIHandler.inputbox:_addChars(char)
 end
-function HgHelper.UIHandler:del_char(char)
+function HgHelper.UIHandler:del_char()
   HgHelper.UIHandler.inputbox:_delChar()
 end
 HgHelper.HgFSM:init(HgHelper.UIHandler)
@@ -103,8 +103,7 @@ local wrapInputBox = function(inputbox)
 end
 
 -- Belows are just same as the English keyboard popup
-local en_popup =
-  dofile("frontend/ui/data/keyboardlayouts/keypopup/en_popup.lua")
+local en_popup = require("ui/data/keyboardlayouts/keypopup/en_popup")
 local com = en_popup.com -- comma (,)
 local prd = en_popup.prd -- period (.)
 local _at = en_popup._at

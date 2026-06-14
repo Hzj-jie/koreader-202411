@@ -1,0 +1,1 @@
+../../../koreader/plugins/japanese.koplugin/main.lua

@@ -4,8 +4,8 @@ local EventListener = require("ui/widget/eventlistener")
 local Notification = require("ui/widget/notification")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
-local bit = require("bit")
 local _ = require("gettext")
+local bit = require("bit")
 local T = require("ffi/util").template
 
 local DeviceListener = EventListener:extend({})

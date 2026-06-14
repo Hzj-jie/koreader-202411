@@ -10,15 +10,15 @@
 -- able to get there easily.
 --------
 
+local gettext = require("gettext")
 local logger = require("logger")
-local util = require("util")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
-local N_ = _.ngettext
+local util = require("util")
+local C_ = gettext.pgettext
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
-local K = dofile("frontend/ui/data/keyboardlayouts/ja_keyboard_keys.lua")
+local K = require("ui/data/keyboardlayouts/ja_keyboard_keys")
 
 local DEFAULT_KEITAI_TAP_INTERVAL_S = 2
 
@@ -30,13 +30,13 @@ local DEFAULT_KEITAI_TAP_INTERVAL_S = 2
 
 local function getKeitaiTapInterval()
   return time.s(
-    G_reader_settings:readSetting("keyboard_japanese_keitai_tap_interval")
+    G_reader_settings:read("keyboard_japanese_keitai_tap_interval")
       or DEFAULT_KEITAI_TAP_INTERVAL_S
   )
 end
 
 local function setKeitaiTapInterval(interval)
-  G_reader_settings:saveSetting(
+  G_reader_settings:save(
     "keyboard_japanese_keitai_tap_interval",
     time.to_s(interval)
   )
@@ -59,7 +59,7 @@ local function wrappedAddChars(inputbox, char)
       within_tap_window = time.since(inputbox._ja_last_tap_time)
         < getKeitaiTapInterval()
     end
-    inputbox._ja_last_tap_time = time.now()
+    inputbox._ja_last_tap_time = time.monotonic()
   else
     -- This is a non-keitai or non-tap key, so break out of keitai window.
     exitKeitaiMode(inputbox)
@@ -190,20 +190,20 @@ local function genMenuItems(self)
           )
         else
           -- @translators Flick and keitai are kinds of Japanese keyboard input modes. See <https://en.wikipedia.org/wiki/Japanese_input_method#Mobile_phones> for more information.
-          return _("Keitai input: disabled (flick-only input)")
+          return gettext("Keitai input: disabled (flick-only input)")
         end
       end,
-      help_text = _(
+      help_text = gettext(
         "How long to wait for the next tap when in keitai input mode before committing to the current character. During this window, tapping a single key will loop through candidates for the current character being input. Any other input will cause you to leave keitai mode."
       ),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local SpinWidget = require("ui/widget/spinwidget")
         local UIManager = require("ui/uimanager")
         local Screen = require("device").screen
         local items = SpinWidget:new({
-          title_text = _("Keitai tap interval"),
-          info_text = _(
+          title_text = gettext("Keitai tap interval"),
+          info_text = gettext(
             [[
 How long to wait (in seconds) for the next tap when in keitai input mode before committing to the current character. During this window, tapping a single key will loop through candidates for the current character being input. Any other input will cause you to leave keitai mode.
 
@@ -215,12 +215,12 @@ If set to 0, keitai input is disabled entirely and only flick input can be used.
           value_max = 10,
           value_step = 1,
           unit = C_("Time", "s"),
-          ok_text = _("Set interval"),
+          ok_text = gettext("Set interval"),
           default_value = DEFAULT_KEITAI_TAP_INTERVAL_S,
           callback = function(spin)
             setKeitaiTapInterval(time.s(spin.value))
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })

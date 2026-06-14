@@ -1,0 +1,1 @@
+../../../koreader/plugins/findhistory.koplugin/README.md

@@ -40,10 +40,10 @@
 ------------------------------------------------------------------------------
 
 -- Cache some library functions and objects.
+local bit = require("bit")
 local jit = require("jit")
 local jutil = require("jit.util")
 local vmdef = require("jit.vmdef")
-local bit = require("bit")
 local sub, gsub, format = string.sub, string.gsub, string.format
 local byte, band, shr = string.byte, bit.band, bit.rshift
 local funcinfo, funcbc, funck = jutil.funcinfo, jutil.funcbc, jutil.funck

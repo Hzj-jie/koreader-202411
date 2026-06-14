@@ -9,13 +9,12 @@ local util = require("util")
 local HorizontalGroup = WidgetContainer:extend({
   align = "center",
   allow_mirroring = true,
-  _size = nil,
 })
 
 function HorizontalGroup:getSize()
-  if not self._size then
+  if self._offsets == nil or self.dimen == nil then
+    self:mergeSize(0, 0)
     local _mirroredUI = BD.mirroredUILayout()
-    self._size = { w = 0, h = 0 }
     self._offsets = {}
     if _mirroredUI and self.allow_mirroring then
       util.arrayReverse(self)
@@ -23,23 +22,25 @@ function HorizontalGroup:getSize()
     for i, widget in ipairs(self) do
       local w_size = widget:getSize()
       self._offsets[i] = {
-        x = self._size.w,
+        x = self.dimen.w,
         y = w_size.h,
       }
-      self._size.w = self._size.w + w_size.w
-      if w_size.h > self._size.h then
-        self._size.h = w_size.h
+      self.dimen.w = self.dimen.w + w_size.w
+      if w_size.h > self.dimen.h then
+        self.dimen.h = w_size.h
       end
     end
     if _mirroredUI and self.allow_mirroring then
       util.arrayReverse(self)
     end
   end
-  return self._size
+  assert(self.dimen ~= nil)
+  return self.dimen
 end
 
 function HorizontalGroup:paintTo(bb, x, y)
   local size = self:getSize()
+  self:mergePosition(x, y)
   local _mirroredUI = BD.mirroredUILayout()
 
   if _mirroredUI and self.allow_mirroring then
@@ -76,7 +77,7 @@ function HorizontalGroup:clear()
 end
 
 function HorizontalGroup:resetLayout()
-  self._size = nil
+  self.dimen = nil
   self._offsets = {}
 end
 

@@ -2,10 +2,10 @@ local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 local Screen = Device.screen
 
@@ -34,7 +34,7 @@ local ReaderScrolling = WidgetContainer:extend({
   pause_before_release_cancel_duration = time.ms(300),
 
   -- Callbacks to be updated by readerrolling or readerpaging
-  _do_scroll_callback = function(distance)
+  _do_scroll_callback = function(_distance)
     return false
   end,
   _scroll_done_callback = function() end,
@@ -55,7 +55,7 @@ function ReaderScrolling:init()
   end
 
   -- The different scrolling methods are handled directly by readerpaging/readerrolling
-  self.scroll_method = G_reader_settings:readSetting("scroll_method")
+  self.scroll_method = G_reader_settings:read("scroll_method")
 
   -- Keep inertial scrolling available on the emulator (which advertises itself as eInk)
   if not Device:hasEinkScreen() or Device:isEmulator() then
@@ -92,7 +92,7 @@ end
 
 function ReaderScrolling:addToMainMenu(menu_items)
   menu_items.scrolling = {
-    text = _("Scrolling"),
+    text = gettext("Scrolling"),
     enabled_func = function()
       -- Make it only enabled when in continuous/scroll mode
       -- (different setting in self.view whether rolling or paging document)
@@ -105,8 +105,8 @@ function ReaderScrolling:addToMainMenu(menu_items)
     end,
     sub_item_table = {
       {
-        text = _("Classic scrolling"),
-        help_text = _(
+        text = gettext("Classic scrolling"),
+        help_text = gettext(
           [[Classic scrolling will move the document with your finger.]]
         ),
         checked_func = function()
@@ -120,8 +120,8 @@ function ReaderScrolling:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Turbo scrolling"),
-        help_text = _(
+        text = gettext("Turbo scrolling"),
+        help_text = gettext(
           [[
 Turbo scrolling will scroll the document, at each step, by the distance from your initial finger position (rather than by the distance from your previous finger position).
 It allows for faster scrolling without the need to lift and reposition your finger.]]
@@ -137,8 +137,8 @@ It allows for faster scrolling without the need to lift and reposition your fing
         end,
       },
       {
-        text = _("On-release scrolling"),
-        help_text = _(
+        text = gettext("On-release scrolling"),
+        help_text = gettext(
           [[
 On-release scrolling will scroll the document by the panned distance only on finger up.
 This is interesting on eInk if you only pan to better adjust page vertical position.]]
@@ -157,19 +157,19 @@ This is interesting on eInk if you only pan to better adjust page vertical posit
       {
         text_func = function()
           return T(
-            _("Activation delay: %1 ms"),
+            gettext("Activation delay: %1 ms"),
             self.scroll_activation_delay_ms
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local scroll_activation_delay_default_ms =
             self:getDefaultScrollActivationDelay_ms()
           local SpinWidget = require("ui/widget/spinwidget")
           local widget = SpinWidget:new({
-            title_text = _("Scroll activation delay"),
+            title_text = gettext("Scroll activation delay"),
             info_text = T(
-              _([[
+              gettext([[
 A delay can be used to avoid scrolling when swipes or multiswipes are intended.
 
 The delay value is in milliseconds and can range from 0 to 2000 (2 seconds).
@@ -183,17 +183,17 @@ Default value: %1 ms]]),
             value_step = 100,
             value_hold_step = 500,
             unit = C_("Time", "ms"),
-            ok_text = _("Set delay"),
+            ok_text = gettext("Set delay"),
             default_value = scroll_activation_delay_default_ms,
             callback = function(spin)
               self.scroll_activation_delay_ms = spin.value
               self:applyScrollSettings()
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -201,7 +201,7 @@ Default value: %1 ms]]),
   if self._inertial_scroll_supported then
     -- Add it before "Activation delay" to keep checkboxes together
     table.insert(menu_items.scrolling.sub_item_table, 4, {
-      text = _("Allow inertial scrolling"),
+      text = gettext("Allow inertial scrolling"),
       enabled_func = function()
         return self.scroll_method == self.SCROLL_METHOD_CLASSIC
       end,
@@ -219,21 +219,21 @@ end
 
 function ReaderScrolling:onReaderReady()
   -- We don't know if the gestures plugin is loaded in :init(), but we know it here
-  self.scroll_activation_delay_ms = G_reader_settings:readSetting(
+  self.scroll_activation_delay_ms = G_reader_settings:read(
     "scroll_activation_delay"
   ) or self:getDefaultScrollActivationDelay_ms()
   self:applyScrollSettings()
 end
 
 function ReaderScrolling:applyScrollSettings()
-  G_reader_settings:saveSetting("scroll_method", self.scroll_method)
-  G_reader_settings:saveSetting("inertial_scroll", self.inertial_scroll)
+  G_reader_settings:save("scroll_method", self.scroll_method)
+  G_reader_settings:save("inertial_scroll", self.inertial_scroll)
   if
     self.scroll_activation_delay_ms == self:getDefaultScrollActivationDelay_ms()
   then
-    G_reader_settings:delSetting("scroll_activation_delay")
+    G_reader_settings:delete("scroll_activation_delay")
   else
-    G_reader_settings:saveSetting(
+    G_reader_settings:save(
       "scroll_activation_delay",
       self.scroll_activation_delay_ms
     )
@@ -244,7 +244,7 @@ function ReaderScrolling:applyScrollSettings()
     self._inertial_scroll_enabled = false
   end
   self:setupTouchZones()
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new(
       "ScrollSettingsUpdated",
       self.scroll_method,
@@ -315,16 +315,31 @@ function ReaderScrolling:setupTouchZones()
   end
 end
 
-function ReaderScrolling:isInertialScrollingEnabled()
-  return self._inertial_scroll_enabled
-end
-
 function ReaderScrolling:setInertialScrollCallbacks(
   do_scroll_callback,
   scroll_done_callback
 )
-  self._do_scroll_callback = do_scroll_callback
-  self._scroll_done_callback = scroll_done_callback
+  if do_scroll_callback == nil then
+    self._do_scroll_callback = function()
+      return false
+    end
+  else
+    self._do_scroll_callback = function()
+      local r = do_scroll_callback()
+      if r then
+        UIManager:forceFastRefresh()
+      end
+      return r
+    end
+  end
+  if scroll_done_callback == nil then
+    self._scroll_done_callback = function() end
+  else
+    self._scroll_done_callback = function()
+      UIManager:resetForceFastRefresh()
+      scroll_done_callback()
+    end
+  end
 end
 
 function ReaderScrolling:startInertialScroll()
@@ -377,7 +392,7 @@ function ReaderScrolling:_setupAction()
 
       -- Initiate inertial scrolling (action=true), unless we should not
       if
-        time.now() - self._last_manual_scroll_timev
+        time.since(self._last_manual_scroll_timev)
         >= self.pause_before_release_cancel_duration
       then
         -- but not if no finger move for 0.3s before finger up

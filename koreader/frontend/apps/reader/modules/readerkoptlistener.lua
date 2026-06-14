@@ -1,5 +1,5 @@
-local EventListener = require("ui/widget/eventlistener")
 local Event = require("ui/event")
+local EventListener = require("ui/widget/eventlistener")
 local ReaderZooming = require("apps/reader/modules/readerzooming")
 local UIManager = require("ui/uimanager")
 
@@ -8,25 +8,27 @@ local ReaderKoptListener = EventListener:extend({})
 function ReaderKoptListener:setZoomMode(zoom_mode)
   if self.document.configurable.text_wrap == 1 then
     -- in reflow mode only "page" zoom mode is valid so override any other zoom mode
-    self.ui:handleEvent(Event:new("SetZoomMode", "page", "koptlistener"))
+    UIManager:broadcastEvent(Event:new("SetZoomMode", "page", "koptlistener"))
   else
-    self.ui:handleEvent(Event:new("SetZoomMode", zoom_mode, "koptlistener"))
+    UIManager:broadcastEvent(
+      Event:new("SetZoomMode", zoom_mode, "koptlistener")
+    )
   end
 end
 
 function ReaderKoptListener:onReadSettings(config)
   -- normal zoom mode is zoom mode used in non-reflow mode.
-  local normal_zoom_mode = config:readSetting("normal_zoom_mode")
+  local normal_zoom_mode = config:read("normal_zoom_mode")
     or ReaderZooming:combo_to_mode(
-      G_reader_settings:readSetting("kopt_zoom_mode_genus"),
-      G_reader_settings:readSetting("kopt_zoom_mode_type")
+      G_reader_settings:read("kopt_zoom_mode_genus"),
+      G_reader_settings:read("kopt_zoom_mode_type")
     )
   normal_zoom_mode = ReaderZooming.zoom_mode_label[normal_zoom_mode]
       and normal_zoom_mode
     or ReaderZooming.DEFAULT_ZOOM_MODE
   self.normal_zoom_mode = normal_zoom_mode
   self:setZoomMode(normal_zoom_mode)
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("GammaUpdate", self.document.configurable.contrast, true)
   ) -- no notification
   -- since K2pdfopt v2.21 negative value of word spacing is also used, for config
@@ -34,11 +36,11 @@ function ReaderKoptListener:onReadSettings(config)
   if self.document.configurable.word_spacing == -1 then
     self.document.configurable.word_spacing = -0.2
   end
-  self.ui:handleEvent(Event:new("DitheringUpdate"))
+  UIManager:broadcastEvent(Event:new("DitheringUpdate"))
 end
 
 function ReaderKoptListener:onSaveSettings()
-  self.ui.doc_settings:saveSetting("normal_zoom_mode", self.normal_zoom_mode)
+  self.ui.doc_settings:save("normal_zoom_mode", self.normal_zoom_mode)
 end
 
 function ReaderKoptListener:onRestoreZoomMode()
@@ -61,7 +63,7 @@ function ReaderKoptListener:onFineTuningFontSize(delta)
     + delta
 end
 
-function ReaderKoptListener:onZoomUpdate(zoom)
+function ReaderKoptListener:onZoomUpdate(_zoom)
   -- an exceptional case is reflow mode
   if self.document.configurable.text_wrap == 1 then
     self.view.state.zoom = 1.0
@@ -77,10 +79,10 @@ function ReaderKoptListener:onDocLangUpdate(lang)
     or lang == "kor"
   then
     self.document.configurable.word_spacing =
-      G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[1]
+      G_defaults:read("DKOPTREADER_CONFIG_WORD_SPACINGS")[1]
   else
     self.document.configurable.word_spacing =
-      G_defaults:readSetting("DKOPTREADER_CONFIG_WORD_SPACINGS")[3]
+      G_defaults:read("DKOPTREADER_CONFIG_WORD_SPACINGS")[3]
   end
 end
 
@@ -94,7 +96,7 @@ function ReaderKoptListener:onConfigChange(option_name, option_value)
     return
   end
   self.document.configurable[option_name] = option_value
-  self.ui:handleEvent(Event:new("StartActivityIndicator"))
+  UIManager:broadcastEvent(Event:new("StartActivityIndicator"))
   UIManager:setDirty("all", "partial")
   return true
 end

@@ -18,9 +18,9 @@ local PowerD = Device:getPowerDevice()
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local default_autoshutdown_timeout_seconds = 3 * 24 * 60 * 60 -- three days
@@ -206,11 +206,11 @@ end
 
 function AutoSuspend:init()
   logger.dbg("AutoSuspend: init")
-  self.autoshutdown_timeout_seconds = G_reader_settings:readSetting(
+  self.autoshutdown_timeout_seconds = G_reader_settings:read(
     "autoshutdown_timeout_seconds",
     default_autoshutdown_timeout_seconds
   )
-  self.auto_suspend_timeout_seconds = G_reader_settings:readSetting(
+  self.auto_suspend_timeout_seconds = G_reader_settings:read(
     "auto_suspend_timeout_seconds",
     default_auto_suspend_timeout_seconds
   )
@@ -441,7 +441,7 @@ end
 -- 1 ... display hour:min
 -- else ... display min:sec
 function AutoSuspend:pickTimeoutValue(
-  touchmenu_instance,
+  menu,
   title,
   info,
   setting,
@@ -492,7 +492,7 @@ function AutoSuspend:pickTimeoutValue(
     hour_max = hour_max,
     min_max = min_max,
     sec_max = sec_max,
-    ok_text = _("Set timeout"),
+    ok_text = gettext("Set timeout"),
     title_text = title,
     info_text = info,
     callback = function(t)
@@ -500,7 +500,7 @@ function AutoSuspend:pickTimeoutValue(
           * 60
         + (t.sec or 0)
       self[setting] = Math.clamp(self[setting], range[1], range[2])
-      G_reader_settings:saveSetting(setting, self[setting])
+      G_reader_settings:save(setting, self[setting])
       if is_standby then
         self:_unschedule_standby()
         self:toggleStandbyHandler(self:_enabledStandby())
@@ -509,8 +509,8 @@ function AutoSuspend:pickTimeoutValue(
         self:_unschedule()
         self:_start()
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
       local time_string = datetime.secondsToClockDuration(
         "letters",
@@ -519,7 +519,7 @@ function AutoSuspend:pickTimeoutValue(
         true
       )
       UIManager:show(InfoMessage:new({
-        text = T(_("%1: %2"), title, time_string),
+        text = T(gettext("%1: %2"), title, time_string),
         timeout = 3,
       }))
     end,
@@ -543,21 +543,21 @@ function AutoSuspend:pickTimeoutValue(
       end
       time_spinner:update(nil, nil, day, hour, min, sec) -- It is ok to pass nils here.
     end,
-    extra_text = _("Disable"),
+    extra_text = gettext("Disable"),
     extra_callback = function(this)
       self[setting] = -1 -- disable with a negative time/number
-      G_reader_settings:saveSetting(setting, -1)
+      G_reader_settings:save(setting, -1)
       if is_standby then
         self:_unschedule_standby()
         self:toggleStandbyHandler(false)
       else
         self:_unschedule()
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
       UIManager:show(InfoMessage:new({
-        text = T(_("%1: disabled"), title),
+        text = T(gettext("%1: disabled"), title),
         timeout = 3,
       }))
       this:onExit()
@@ -570,7 +570,6 @@ end
 function AutoSuspend:addToMainMenu(menu_items)
   -- Device:canSuspend() check elided because it's a plugin requirement
   menu_items.autosuspend = {
-    sorting_hint = "device",
     checked_func = function()
       return self:_enabled()
     end,
@@ -585,20 +584,20 @@ function AutoSuspend:addToMainMenu(menu_items)
           true,
           true
         )
-        return T(_("Autosuspend timeout: %1"), time_string)
+        return T(gettext("Autosuspend timeout: %1"), time_string)
       else
-        return _("Autosuspend timeout")
+        return gettext("Autosuspend timeout")
       end
     end,
     keep_menu_open = true,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       -- 60 sec (1') is the minimum and 24*3600 sec (1day) is the maximum suspend time.
       -- A suspend time of one day seems to be excessive.
       -- But it might make sense for battery testing.
       self:pickTimeoutValue(
-        touchmenu_instance,
-        _("Timeout for autosuspend"),
-        _("Enter time in hours and minutes."),
+        menu,
+        gettext("Timeout for autosuspend"),
+        gettext("Enter time in hours and minutes."),
         "auto_suspend_timeout_seconds",
         default_auto_suspend_timeout_seconds,
         { 60, 24 * 3600 },
@@ -608,7 +607,6 @@ function AutoSuspend:addToMainMenu(menu_items)
   }
   if Device:canPowerOff() then
     menu_items.autoshutdown = {
-      sorting_hint = "device",
       checked_func = function()
         return self:_enabledShutdown()
       end,
@@ -623,21 +621,21 @@ function AutoSuspend:addToMainMenu(menu_items)
             true,
             true
           )
-          return T(_("Autoshutdown timeout: %1"), time_string)
+          return T(gettext("Autoshutdown timeout: %1"), time_string)
         else
-          return _("Autoshutdown timeout")
+          return gettext("Autoshutdown timeout")
         end
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         -- 5*60 sec (5') is the minimum and 28*24*3600 (28days) is the maximum shutdown time.
         -- Minimum time has to be big enough, to avoid start-stop death scenarios.
         -- Maximum more than four weeks seems a bit excessive if you want to enable authoshutdown,
         -- even if the battery can last up to three months.
         self:pickTimeoutValue(
-          touchmenu_instance,
-          _("Timeout for autoshutdown"),
-          _("Enter time in days and hours."),
+          menu,
+          gettext("Timeout for autoshutdown"),
+          gettext("Enter time in days and hours."),
           "autoshutdown_timeout_seconds",
           default_autoshutdown_timeout_seconds,
           { 5 * 60, 28 * 24 * 3600 },
@@ -647,7 +645,7 @@ function AutoSuspend:addToMainMenu(menu_items)
     }
   end
   if Device:canStandby() then
-    local standby_help = _(
+    local standby_help = gettext(
       [[Standby puts the device into a power-saving state in which the screen is on and user input can be performed.
 
 Standby can not be entered if Wi-Fi is on.
@@ -658,13 +656,12 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
     if Device:isKobo() and not Device:hasReliableMxcWaitFor() then
       standby_help = standby_help
         .. "\n"
-        .. _(
+        .. gettext(
           [[Your device is known to be extremely unreliable, as such, failure to enter a power-saving state *may* hang the kernel, resulting in a full device hang or a device restart.]]
         )
     end
 
     menu_items.autostandby = {
-      sorting_hint = "device",
       checked_func = function()
         return self:_enabledStandby()
       end,
@@ -680,22 +677,22 @@ Upon user input, the device needs a certain amount of time to wake up. Generally
             true,
             true
           )
-          return T(_("Autostandby timeout: %1"), time_string)
+          return T(gettext("Autostandby timeout: %1"), time_string)
         else
-          return _("Autostandby timeout")
+          return gettext("Autostandby timeout")
         end
       end,
       help_text = standby_help,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         -- 4 sec is the minimum and 15*60 sec (15min) is the maximum standby time.
         -- We need a minimum time, so that scheduled function have a chance to execute.
         -- A standby time of 15 min seem excessive.
         -- But or battery testing it might give some sense.
         self:pickTimeoutValue(
-          touchmenu_instance,
-          _("Timeout for autostandby"),
-          _("Enter time in minutes and seconds."),
+          menu,
+          gettext("Timeout for autostandby"),
+          gettext("Enter time in minutes and seconds."),
           "auto_standby_timeout_seconds",
           default_auto_standby_timeout_seconds,
           { 1, 15 * 60 },

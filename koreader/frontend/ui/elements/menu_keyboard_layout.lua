@@ -11,14 +11,13 @@ local UIManager = require("ui/uimanager")
 local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local Screen = Device.screen
 local T = FFIUtil.template
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 
 local input_dialog, check_button_bold, check_button_border, check_button_compact
 
 local function getOrderedActivatedKeyboardLayouts()
-  local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts")
-    or {}
+  local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
   local activated_keyboards = {}
   for _, lang in ipairs(keyboard_layouts) do
     if VirtualKeyboard.lang_to_keyboard_layout[lang] then
@@ -55,21 +54,19 @@ local function genKeyboardLayoutsSubmenu()
       text_func = function()
         local text =
           T("%1 (%2)", Language:getLanguageName(lang), lang:sub(1, 2))
-        if G_reader_settings:readSetting("keyboard_layout_default") == lang then
+        if G_reader_settings:read("keyboard_layout_default") == lang then
           text = text .. "   ★"
         end
         return text
       end,
       checked_func = function()
-        local keyboard_layouts = G_reader_settings:readSetting(
-          "keyboard_layouts"
-        ) or {}
+        local keyboard_layouts =
+          G_reader_settings:readTableRef("keyboard_layouts")
         return util.arrayContains(keyboard_layouts, lang)
       end,
       callback = function()
-        local keyboard_layouts = G_reader_settings:readSetting(
-          "keyboard_layouts"
-        ) or {}
+        local keyboard_layouts =
+          G_reader_settings:readTableRef("keyboard_layouts")
         local layout_index = util.arrayContains(keyboard_layouts, lang)
         if layout_index then
           table.remove(keyboard_layouts, layout_index)
@@ -78,15 +75,15 @@ local function genKeyboardLayoutsSubmenu()
             table.insert(keyboard_layouts, lang)
           else -- no more space in the 'globe' popup
             UIManager:show(InfoMessage:new({
-              text = _("Up to four layouts can be enabled."),
+              text = gettext("Up to four layouts can be enabled."),
               timeout = 2,
             }))
           end
         end
       end,
-      hold_callback = function(touchmenu_instance)
-        G_reader_settings:saveSetting("keyboard_layout_default", lang)
-        touchmenu_instance:updateItems()
+      hold_callback = function(menu)
+        G_reader_settings:save("keyboard_layout_default", lang)
+        menu:updateItems()
       end,
     })
   end
@@ -111,7 +108,7 @@ local function genLayoutSpecificSubmenu()
             return keyboard:genMenuItems()
           else
             return {
-              text = _("Not implemented"),
+              text = gettext("Not implemented"),
             }
           end
         end,
@@ -122,7 +119,7 @@ local function genLayoutSpecificSubmenu()
   -- Be a little more user-friendly than an empty menu ;).
   if #item_table == 0 then
     table.insert(item_table, {
-      text = _("Not available for any of your active layouts"),
+      text = gettext("Not available for any of your active layouts"),
     })
   end
 
@@ -134,7 +131,7 @@ local sub_item_table = {
     text_func = function()
       local activated_keyboards, nb_keyboards =
         getActivatedKeyboardsStringCount()
-      local item_text = T(_("Keyboard layouts: %1"), activated_keyboards)
+      local item_text = T(gettext("Keyboard layouts: %1"), activated_keyboards)
 
       -- get width of text
       local tmp = TextWidget:new({
@@ -152,7 +149,7 @@ local sub_item_table = {
           - 2 * Size.padding.default
           - checked_widget:getSize().w
       then
-        item_text = T(_("Keyboard layouts (%1)"), nb_keyboards)
+        item_text = T(gettext("Keyboard layouts (%1)"), nb_keyboards)
       end
 
       return item_text
@@ -160,12 +157,12 @@ local sub_item_table = {
     sub_item_table_func = genKeyboardLayoutsSubmenu,
   },
   {
-    text = _("Layout-specific keyboard settings"),
+    text = gettext("Layout-specific keyboard settings"),
     -- Lazy-loaded to avoid pinning potentially unnecessary data
     sub_item_table_func = genLayoutSpecificSubmenu,
   },
   {
-    text = _("Remember last layout"),
+    text = gettext("Remember last layout"),
     checked_func = function()
       return G_reader_settings:nilOrTrue("keyboard_remember_layout")
     end,
@@ -175,57 +172,51 @@ local sub_item_table = {
     separator = true,
   },
   {
-    text = _("Keyboard appearance settings"),
+    text = gettext("Keyboard appearance settings"),
     keep_menu_open = true,
-    enabled_func = function()
-      return G_reader_settings:nilOrTrue("virtual_keyboard_enabled")
-    end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local InputDialog = require("ui/widget/inputdialog")
       input_dialog = InputDialog:new({
-        title = _("Keyboard font size"),
+        title = gettext("Keyboard font size"),
         -- do not use input_type = "number" to see letters on the keyboard
         input = tostring(
-          G_reader_settings:readSetting("keyboard_key_font_size")
+          G_reader_settings:read("keyboard_key_font_size")
             or VirtualKeyboard.default_label_size
         ),
         input_hint = "(16 - 30)",
         buttons = {
           {
             {
-              text = _("Close"),
+              text = gettext("Close"),
               id = "close",
               callback = function()
                 UIManager:close(input_dialog)
               end,
             },
             {
-              text = _("Apply"),
+              text = gettext("Apply"),
               is_enter_default = true,
               callback = function()
                 local font_size = tonumber(input_dialog:getInputText())
                 if font_size and font_size >= 16 and font_size <= 30 then
-                  G_reader_settings:saveSetting(
-                    "keyboard_key_font_size",
-                    font_size
-                  )
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save("keyboard_key_font_size", font_size)
+                  G_reader_settings:save(
                     "keyboard_key_bold",
                     check_button_bold.checked
                   )
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save(
                     "keyboard_key_border",
                     check_button_border.checked
                   )
-                  G_reader_settings:saveSetting(
+                  G_reader_settings:save(
                     "keyboard_key_compact",
                     check_button_compact.checked
                   )
                   input_dialog._input_widget:closeKeyboard()
                   input_dialog._input_widget:initKeyboard()
                   input_dialog:showKeyboard()
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  if menu then
+                    menu:updateItems()
                   end
                 end
               end,
@@ -235,63 +226,32 @@ local sub_item_table = {
       })
 
       check_button_bold = CheckButton:new({
-        text = _("in bold"),
+        text = gettext("in bold"),
         checked = G_reader_settings:isTrue("keyboard_key_bold"),
         parent = input_dialog,
       })
       input_dialog:addWidget(check_button_bold)
       check_button_border = CheckButton:new({
-        text = _("with border"),
+        text = gettext("with border"),
         checked = G_reader_settings:nilOrTrue("keyboard_key_border"),
         parent = input_dialog,
       })
       input_dialog:addWidget(check_button_border)
       check_button_compact = CheckButton:new({
-        text = _("compact"),
+        text = gettext("compact"),
         checked = G_reader_settings:isTrue("keyboard_key_compact"),
         parent = input_dialog,
       })
       input_dialog:addWidget(check_button_compact)
 
       UIManager:show(input_dialog)
-      input_dialog:showKeyboard()
     end,
   },
 }
-if Device:hasKeyboard() or Device:hasScreenKB() then
-  -- we use same pos. 4 as below so we are always above "keyboard appearance settings"
-  table.insert(sub_item_table, 4, {
-    text = _("Show virtual keyboard"),
-    help_text = _(
-      "Enable this setting to always display the virtual keyboard within a text input field. When a field is selected (in focus), you can temporarily toggle the keyboard on/off by pressing 'Shift' (or 'ScreenKB') + 'Home'."
-    ),
-    checked_func = function()
-      return G_reader_settings:nilOrTrue("virtual_keyboard_enabled")
-    end,
-    callback = function()
-      G_reader_settings:flipNilOrTrue("virtual_keyboard_enabled")
-      if G_reader_settings:isFalse("virtual_keyboard_enabled") then
-        local keyboard_infomessage
-        if Device:hasScreenKB() then
-          keyboard_infomessage = _(
-            "When a text field is selected (in focus), you can temporarily bring up the virtual keyboard by pressing 'ScreenKB' + 'Home'."
-          )
-        else
-          keyboard_infomessage = _(
-            "When a text field is selected (in focus), you can temporarily bring up the virtual keyboard by pressing 'Shift' + 'Home'."
-          )
-        end
-        UIManager:show(InfoMessage:new({
-          text = keyboard_infomessage,
-        }))
-      end
-    end,
-  })
-end
 if Device:isTouchDevice() then
   -- same pos. 4 as above so if both conditions are met we are above "Show virtual keyboard"
   table.insert(sub_item_table, 4, {
-    text = _("Swipe to input additional characters"),
+    text = gettext("Swipe to input additional characters"),
     checked_func = function()
       return G_reader_settings:nilOrTrue("keyboard_swipes_enabled")
     end,

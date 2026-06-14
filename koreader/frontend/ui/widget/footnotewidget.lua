@@ -16,7 +16,6 @@ local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 local time = require("ui/time")
@@ -185,7 +184,7 @@ function FootnoteWidget:init()
           if self.dialog then
             local lookup_target = hold_duration < time.s(3) and "LookupWord"
               or "LookupWikipedia"
-            self.dialog:handleEvent(Event:new(lookup_target, text))
+            UIManager:broadcastEvent(Event:new(lookup_target, text))
           end
         end,
       },
@@ -213,15 +212,12 @@ function FootnoteWidget:init()
   -- We may use a font size a bit smaller than the document one (because
   -- footnotes are usually smaller, and because NotoSans is a bit on the
   -- larger size when compared to other fonts at the same size)
-  local font_size =
-    G_reader_settings:readSetting("footnote_popup_absolute_font_size")
+  local font_size = G_reader_settings:read("footnote_popup_absolute_font_size")
   if font_size then
     font_size = Screen:scaleBySize(font_size)
   else
     font_size = self.doc_font_size
-      + (
-        G_reader_settings:readSetting("footnote_popup_relative_font_size") or -2
-      )
+      + (G_reader_settings:read("footnote_popup_relative_font_size") or -2)
   end
 
   local font_css = ""
@@ -341,12 +337,12 @@ function FootnoteWidget:init()
         h = top_border_size,
       }),
     }),
-    VerticalSpan:new({ width = padding_top }),
+    VerticalSpan:new({ height = padding_top }),
     HorizontalGroup:new({
       self.htmlwidget,
       HorizontalSpan:new({ width = padding_right }),
     }),
-    VerticalSpan:new({ width = padding_bottom }),
+    VerticalSpan:new({ height = padding_bottom }),
   })
 
   -- If htmlwidget contains only one page (small footnote content),
@@ -455,13 +451,11 @@ function FootnoteWidget:onSwipeFollow(arg, ges)
       self.close_callback(self.height)
     end
     return true
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
   end

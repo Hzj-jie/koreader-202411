@@ -9,20 +9,20 @@ Example for input of two strings and a number:
 
     local sample_input
     sample_input = MultiInputDialog:new{
-        title = _("Title to show"),
+        title = gettext("Title to show"),
         fields = {
             {
-                description = _("Describe this field"),
+                description = gettext("Describe this field"),
                 -- input_type = nil, -- default for text
-                text = _("First input"),
-                hint = _("Name"),
+                text = gettext("First input"),
+                hint = gettext("Name"),
             },
             {
                 text = "",
-                hint = _("Address"),
+                hint = gettext("Address"),
             },
             {
-                description = _("Enter a number"),
+                description = gettext("Enter a number"),
                 input_type = "number",
                 text = 666,
                 hint = 123,
@@ -31,21 +31,21 @@ Example for input of two strings and a number:
         buttons = {
             {
                 {
-                    text = _("Cancel"),
+                    text = gettext("Cancel"),
                     id = "close",
                     callback = function()
                         UIManager:close(sample_input)
                     end
                 },
                 {
-                    text = _("Info"),
+                    text = gettext("Info"),
                     callback = function()
                         -- do something
                     end
                 },
                 {
-                    text = _("Use settings"),
-                    callback = function(touchmenu_instance)
+                    text = gettext("Use settings"),
+                    callback = function(menu)
                         local fields = sample_input:getFields()
                         -- check for user input
                         if fields[1] ~= "" and fields[2] ~= ""
@@ -54,8 +54,8 @@ Example for input of two strings and a number:
                             UIManager:close(sample_input)
                             -- If we have a touch menu: Update menu entries,
                             -- when called from a menu
-                            if touchmenu_instance then
-                                touchmenu_instance:updateItems()
+                            if menu then
+                                menu:updateItems()
                             end
                         else
                             -- not all fields where entered
@@ -67,8 +67,6 @@ Example for input of two strings and a number:
     }
     UIManager:show(sample_input)
     sample_input:showKeyboard()
-
-
 It is strongly recommended to use a text describing the action to be
 executed, as demonstrated in the example above. If the resulting phrase would be
 longer than three words it should just read "OK".
@@ -88,7 +86,6 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local MultiInputDialog = InputDialog:extend({
@@ -125,11 +122,15 @@ function MultiInputDialog:init()
   self.input_fields = {}
   local input_description = {}
   for i, field in ipairs(self.fields) do
+    if field.text_type == "password" then
+      field.is_password_type = true
+    end
     local input_field_tmp = InputText:new({
       text = field.text,
       hint = field.hint,
       input_type = field.input_type,
-      text_type = field.text_type, -- "password"
+      text_type = field.text_type,
+      is_password_type = field.is_password_type,
       face = self.input_face,
       width = content_width,
       idx = i,
@@ -196,7 +197,7 @@ function MultiInputDialog:init()
         h = self.description_padding + self.description_margin,
       }),
       VerticalSpan:new({
-        width = self.description_padding + self.description_margin,
+        height = self.description_padding + self.description_margin,
       }),
     })
   )
@@ -266,14 +267,6 @@ function MultiInputDialog:onSwitchFocus(inputbox)
   self._input_widget:focus()
   self.focused_field_idx = inputbox.idx
 
-  if
-    (Device:hasKeyboard() or Device:hasScreenKB())
-    and G_reader_settings:isFalse("virtual_keyboard_enabled")
-  then
-    -- do not load virtual keyboard when user is hiding it.
-    return
-  end
-  -- Otherwise make sure we have a (new) visible keyboard
   self:showKeyboard()
 end
 
@@ -291,8 +284,9 @@ function MultiInputDialog:onKeyboardHeightChanged()
   end
   self:free()
   self.keyboard_visible = visible
-  for i, field in ipairs(self.fields) do -- restore entered text
+  for i, field in ipairs(self.fields) do -- restore entered text and type
     field.text = fields[i].text
+    field.text_type = fields[i].text_type
   end
   self:init()
   if self.keyboard_visible then

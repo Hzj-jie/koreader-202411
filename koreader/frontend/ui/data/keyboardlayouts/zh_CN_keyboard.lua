@@ -1,14 +1,15 @@
 local IME = require("ui/data/keyboardlayouts/generic_ime")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 
 -- Start with the english keyboard layout
-local py_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
+-- Explicitly make a new copy since the following logic will modify it.
+local py_keyboard = util.copyRequire("ui/data/keyboardlayouts/en_keyboard")
 local SETTING_NAME = "keyboard_chinese_pinyin_settings"
 
-local code_map = dofile("frontend/ui/data/keyboardlayouts/zh_pinyin_data.lua")
+local code_map = require("ui/data/keyboardlayouts/zh_pinyin_data")
 local settings =
-  G_reader_settings:readSetting(SETTING_NAME, { show_candi = true })
+  G_reader_settings:readTableRef(SETTING_NAME, { show_candi = true })
 local ime = IME:new({
   code_map = code_map,
   partial_separators = { " " },
@@ -69,13 +70,13 @@ py_keyboard.keys[4][5][3] = "》"
 local genMenuItems = function(self)
   return {
     {
-      text = _("Show character candidates"),
+      text = gettext("Show character candidates"),
       checked_func = function()
         return settings.show_candi
       end,
       callback = function()
         settings.show_candi = not settings.show_candi
-        G_reader_settings:saveSetting(SETTING_NAME, settings)
+        G_reader_settings:save(SETTING_NAME, settings)
       end,
     },
   }

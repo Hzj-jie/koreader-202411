@@ -31,6 +31,7 @@ local TrapWidget = InputContainer:extend({
   face = Font:getFace("infofont"),
   -- Whether to resend the event caught and used for dismissal
   resend_event = false,
+  invisible = true, -- This is a dirty hint for UIManager to ignore this widget.
 })
 
 function TrapWidget:init()
@@ -40,6 +41,7 @@ function TrapWidget:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
+  self.dimen = full_screen
   if Device:hasKeys() then
     self.key_events.AnyKeyPressed = { { Input.group.Any } }
   end
@@ -60,6 +62,7 @@ function TrapWidget:init()
     }
   end
   if self.text then
+    self.invisible = false
     local textw = TextWidget:new({
       text = self.text,
       face = self.face,
@@ -103,16 +106,14 @@ function TrapWidget:init()
         }),
       }),
     })
-  else
-    -- So that UIManager knows no refresh is needed and
-    -- avoids some unnecessary refreshes
-    self.invisible = true
   end
 end
 
 function TrapWidget:_dismissAndResend(evtype, ev)
   self.dismiss_callback()
-  UIManager:close(self)
+  -- In case some users would like to close the TrapWidget in
+  -- dismiss_callback but some others not.
+  UIManager:closeIfShown(self)
   if self.resend_event and evtype and ev then
     -- There may be some timing issues that could cause crashes, as we
     -- use nextTick, if the dismiss_callback uses UIManager:scheduleIn()

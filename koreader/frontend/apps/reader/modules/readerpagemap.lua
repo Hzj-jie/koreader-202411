@@ -15,7 +15,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = Device.screen
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderPageMap = WidgetContainer:extend({
   label_font_face = "ffont",
@@ -31,14 +31,12 @@ function ReaderPageMap:init()
   self.container = nil
   self.max_left_label_width = 0
   self.max_right_label_width = 0
-  self.label_font_size = G_reader_settings:readSetting(
-    "pagemap_label_font_size"
-  ) or self.label_default_font_size
-  self.use_textbox_widget = nil
+  self.label_font_size = G_reader_settings:read("pagemap_label_font_size")
+    or self.label_default_font_size
   self.initialized = false
-  self.ui:registerPostInitCallback(function()
+  self.onReaderInited = function()
     self:_postInit()
-  end)
+  end
 end
 
 function ReaderPageMap:_postInit()
@@ -223,14 +221,13 @@ function ReaderPageMap:onShowPageList()
   end
 
   -- We use the per-page and font-size settings set for the ToC
-  local items_per_page = G_reader_settings:readSetting("toc_items_per_page")
-    or 14
-  local items_font_size = G_reader_settings:readSetting("toc_items_font_size")
+  local items_per_page = G_reader_settings:read("toc_items_per_page") or 14
+  local items_font_size = G_reader_settings:read("toc_items_font_size")
     or Menu.getItemFontSize(items_per_page)
   local items_with_dots = G_reader_settings:nilOrTrue("toc_items_with_dots")
 
   local pl_menu = Menu:new({
-    title = _("Reference page numbers list"),
+    title = gettext("Reference page numbers list"),
     item_table = page_list,
     is_borderless = true,
     is_popout = false,
@@ -258,7 +255,6 @@ function ReaderPageMap:onShowPageList()
 
   self.pagelist_menu = CenterContainer:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     pl_menu,
   })
 
@@ -272,13 +268,11 @@ function ReaderPageMap:onShowPageList()
   pl_menu.close_callback = function()
     UIManager:close(self.pagelist_menu)
   end
-
-  pl_menu.show_parent = self.pagelist_menu
   self.refresh = function()
     pl_menu:updateItems()
   end
 
-  UIManager:show(self.pagelist_menu)
+  self:showWidget(self.pagelist_menu)
   return true
 end
 
@@ -332,77 +326,80 @@ end
 function ReaderPageMap:addToMainMenu(menu_items)
   menu_items.page_map = {
     -- @translators This and the other related ones refer to alternate page numbers provided in some EPUB books, that usually reference page numbers in a specific hardcopy edition of the book.
-    text = _("Reference pages"),
+    text = gettext("Reference pages"),
     sub_item_table = {
       {
         -- @translators This shows the <dc:source> in the EPUB that usually tells which hardcopy edition the reference page numbers refers to.
-        text = _("Reference source info"),
+        text = gettext("Reference source info"),
         enabled_func = function()
           return self.ui.document:getPageMapSource() ~= nil
         end,
         callback = function()
           local text = T(
-            _("Source (book hardcopy edition) of reference page numbers:\n\n%1"),
+            gettext(
+              "Source (book hardcopy edition) of reference page numbers:\n\n%1"
+            ),
             self.ui.document:getPageMapSource()
           )
           local InfoMessage = require("ui/widget/infomessage")
           local infomsg = InfoMessage:new({
             text = text,
           })
-          UIManager:show(infomsg)
+          self:showWidget(infomsg)
         end,
         keep_menu_open = true,
       },
       {
-        text = _("Reference page numbers list"),
+        text = gettext("Reference page numbers list"),
         callback = function()
           self:onShowPageList()
         end,
       },
       {
-        text = _("Use reference page numbers"),
+        text = gettext("Use reference page numbers"),
         checked_func = function()
           return self.use_page_labels
         end,
         callback = function()
           self.use_page_labels = not self.use_page_labels
-          self.ui.doc_settings:saveSetting(
+          self.ui.doc_settings:save(
             "pagemap_use_page_labels",
             self.use_page_labels
           )
           -- Reset a few stuff that may use page labels
-          self.ui.toc:resetToc()
-          self.ui.view.footer:onUpdateFooter()
+          UIManager:broadcastEvent("UpdateToc")
           self.ui.annotation:updatePageNumbers(true)
           UIManager:setDirty(self.view.dialog, "partial")
         end,
-        hold_callback = function(touchmenu_instance)
+        hold_callback = function(menu)
           local use_page_labels =
             G_reader_settings:isTrue("pagemap_use_page_labels")
-          UIManager:show(MultiConfirmBox:new({
+          self:showWidget(MultiConfirmBox:new({
             text = use_page_labels
-                and _(
+                and gettext(
                   "The default (★) for newly opened books that have a reference page numbers map is to use these reference page numbers instead of the renderer page numbers.\n\nWould you like to change it?"
                 )
-              or _(
+              or gettext(
                 "The default (★) for newly opened books that have a reference page numbers map is to not use these reference page numbers and keep using the renderer page numbers.\n\nWould you like to change it?"
               ),
             choice1_text_func = function()
-              return use_page_labels and _("Renderer") or _("Renderer (★)")
+              return use_page_labels and gettext("Renderer")
+                or gettext("Renderer (★)")
             end,
             choice1_callback = function()
               G_reader_settings:makeFalse("pagemap_use_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
             choice2_text_func = function()
-              return use_page_labels and _("Reference (★)") or _("Reference")
+              return use_page_labels and gettext("Reference (★)")
+                or gettext("Reference")
             end,
             choice2_callback = function()
               G_reader_settings:makeTrue("pagemap_use_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           }))
@@ -410,13 +407,13 @@ function ReaderPageMap:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = _("Show reference page labels in margin"),
+        text = gettext("Show reference page labels in margin"),
         checked_func = function()
           return self.show_page_labels
         end,
         callback = function()
           self.show_page_labels = not self.show_page_labels
-          self.ui.doc_settings:saveSetting(
+          self.ui.doc_settings:save(
             "pagemap_show_page_labels",
             self.show_page_labels
           )
@@ -424,33 +421,35 @@ function ReaderPageMap:addToMainMenu(menu_items)
           self:updateVisibleLabels()
           UIManager:setDirty(self.view.dialog, "partial")
         end,
-        hold_callback = function(touchmenu_instance)
+        hold_callback = function(menu)
           local show_page_labels =
             G_reader_settings:nilOrTrue("pagemap_show_page_labels")
-          UIManager:show(MultiConfirmBox:new({
+          self:showWidget(MultiConfirmBox:new({
             text = show_page_labels
-                and _(
+                and gettext(
                   "The default (★) for newly opened books that have a reference page numbers map is to show reference page number labels in the margin.\n\nWould you like to change it?"
                 )
-              or _(
+              or gettext(
                 "The default (★) for newly opened books that have a reference page numbers map is to not show reference page number labels in the margin.\n\nWould you like to change it?"
               ),
             choice1_text_func = function()
-              return show_page_labels and _("Hide") or _("Hide (★)")
+              return show_page_labels and gettext("Hide")
+                or gettext("Hide (★)")
             end,
             choice1_callback = function()
               G_reader_settings:makeFalse("pagemap_show_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
             choice2_text_func = function()
-              return show_page_labels and _("Show (★)") or _("Show")
+              return show_page_labels and gettext("Show (★)")
+                or gettext("Show")
             end,
             choice2_callback = function()
               G_reader_settings:makeTrue("pagemap_show_page_labels")
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           }))
@@ -458,35 +457,35 @@ function ReaderPageMap:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Page labels font size: %1"), self.label_font_size)
+          return T(gettext("Page labels font size: %1"), self.label_font_size)
         end,
         enabled_func = function()
           return self.show_page_labels
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local SpinWidget = require("ui/widget/spinwidget")
           local spin_w = SpinWidget:new({
             value = self.label_font_size,
             value_min = 8,
             value_max = 20,
             default_value = self.label_default_font_size,
-            title_text = _("Page labels font size"),
+            title_text = gettext("Page labels font size"),
             keep_shown_on_apply = true,
             callback = function(spin)
               self.label_font_size = spin.value
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "pagemap_label_font_size",
                 self.label_font_size
               )
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
               self:resetLayout()
               self:updateVisibleLabels()
               UIManager:setDirty(self.view.dialog, "partial")
             end,
           })
-          UIManager:show(spin_w)
+          self:showWidget(spin_w)
         end,
         keep_menu_open = true,
       },

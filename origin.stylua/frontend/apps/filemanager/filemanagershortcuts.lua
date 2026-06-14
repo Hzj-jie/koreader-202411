@@ -5,8 +5,8 @@ local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local lfs = require("libs/libkoreader-lfs")
 local _ = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 
 local FileManagerShortcuts = WidgetContainer:extend({
   title = _("Folder shortcuts"),

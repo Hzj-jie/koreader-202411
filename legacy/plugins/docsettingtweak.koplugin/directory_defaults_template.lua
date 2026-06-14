@@ -1,0 +1,1 @@
+../../../koreader/plugins/docsettingtweak.koplugin/directory_defaults_template.lua

@@ -11,16 +11,15 @@ local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
 local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
-local FrameContainer = require("ui/widget/container/framecontainer")
-local Notification = require("ui/widget/notification")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local ToggleLabel = TextWidget:extend({
@@ -55,9 +54,9 @@ function ToggleSwitch:init()
     dim = not self.enabled,
   })
 
-  self.toggle_content = VerticalGroup:new({})
+  self.toggle_content = VerticalGroup:new()
   for i = 1, self.row_count do
-    table.insert(self.toggle_content, HorizontalGroup:new({}))
+    table.insert(self.toggle_content, HorizontalGroup:new())
   end
 
   local item_padding = Size.padding.default -- only used to check if text truncate needed
@@ -177,11 +176,11 @@ function ToggleSwitch:circlePosition()
 end
 
 function ToggleSwitch:calculatePosition(gev)
-  local x = (gev.pos.x - self.dimen.x) / self.dimen.w * self.n_pos
+  local x = (gev.pos.x - self:getSize().x) / self:getSize().w * self.n_pos
   if BD.mirroredUILayout() then
     x = self.n_pos - x
   end
-  local y = (gev.pos.y - self.dimen.y) / self.dimen.h * self.row_count
+  local y = (gev.pos.y - self:getSize().y) / self:getSize().h * self.row_count
   return math.max(1, math.ceil(x))
     + math.min(self.row_count - 1, math.floor(y)) * self.n_pos
 end
@@ -219,11 +218,6 @@ function ToggleSwitch:onTapSelect(arg, gev)
     self.callback(self.position)
   end
   if self.toggle[self.position] ~= "⋮" then
-    if #self.values == 0 then -- this is a toggle which is not selectable (eg. increase, decrease)
-      Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_FINE)
-    else
-      Notification:setNotifySource(Notification.SOURCE_BOTTOM_MENU_TOGGLE)
-    end
     self.config:onConfigChoose(
       self.values,
       self.name,
@@ -235,10 +229,6 @@ function ToggleSwitch:onTapSelect(arg, gev)
 
     UIManager:setDirty(self.config, function()
       return "ui", self.dimen
-    end)
-
-    UIManager:tickAfterNext(function()
-      Notification:resetNotifySource()
     end)
   end
   return true
@@ -253,7 +243,7 @@ function ToggleSwitch:onHoldSelect(arg, gev)
     --- @note Ugly hack for the only widget that uses a dual toggle for fine-tuning (others prefer a buttonprogress)
     self.config:onMakeFineTuneDefault(
       "font_size",
-      _("Font Size"),
+      gettext("Font Size"),
       self.values or self.args,
       self.toggle,
       position == 1 and "-" or "+"

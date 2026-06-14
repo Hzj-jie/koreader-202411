@@ -19,16 +19,16 @@ local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
-local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 local Screen = Device.screen
 
@@ -74,7 +74,6 @@ function NumberPickerWidget:init()
     radius = 0,
     text_font_size = 24,
     width = self.width,
-    show_parent = self.show_parent,
     callback = function()
       if self.date_month and self.date_year then
         self.value_max = self:getDaysInMonth(
@@ -116,7 +115,6 @@ function NumberPickerWidget:init()
     radius = 0,
     text_font_size = 24,
     width = self.width,
-    show_parent = self.show_parent,
     callback = function()
       if self.date_month and self.date_year then
         self.value_max = self:getDaysInMonth(
@@ -152,7 +150,7 @@ function NumberPickerWidget:init()
   })
   table.insert(self.layout, { button_down })
 
-  local empty_space = VerticalSpan:new({ width = Size.padding.large })
+  local empty_space = VerticalSpan:new({ height = Size.padding.large })
 
   self.formatted_value = self.value
   if not self.value_table then
@@ -170,7 +168,7 @@ function NumberPickerWidget:init()
         )
       end
       input_dialog = InputDialog:new({
-        title = _("Enter number"),
+        title = gettext("Enter number"),
         input_hint = T(
           "%1 (%2 - %3)",
           self.formatted_value,
@@ -181,14 +179,14 @@ function NumberPickerWidget:init()
         buttons = {
           {
             {
-              text = _("Cancel"),
+              text = gettext("Cancel"),
               id = "close",
               callback = function()
                 UIManager:close(input_dialog)
               end,
             },
             {
-              text = _("OK"),
+              text = gettext("OK"),
               is_enter_default = true,
               callback = function()
                 local input_text = input_dialog:getInputText()
@@ -216,14 +214,14 @@ function NumberPickerWidget:init()
                     end
                     code = code:gsub("^=", "return ")
                     local env = { math = math } -- restrict to only math functions
-                    local func, dummy = load(code, "user_sandbox", nil, env)
+                    local func = load(code, "user_sandbox", nil, env)
                     if func then
                       return pcall(func)
                     end
                   end
-                  local dummy
-                  dummy, input_value = evaluate_string(input_text)
-                  input_value = dummy and tonumber(input_value)
+                  local eva_result
+                  eva_result, input_value = evaluate_string(input_text)
+                  input_value = eva_result and tonumber(input_value)
                 end
 
                 if turn_off_checks then
@@ -234,9 +232,9 @@ function NumberPickerWidget:init()
                     input_value < self.value_min
                     or input_value > self.value_max
                   then
-                    UIManager:show(InfoMessage:new({
+                    self:showWidget(InfoMessage:new({
                       text = T(
-                        _(
+                        gettext(
                           "ATTENTION:\nPrefixing the input with ':' disables sanity checks!\nThis value should be in the range of %1 - %2.\nUndefined behavior may occur."
                         ),
                         self.value_min,
@@ -259,24 +257,26 @@ function NumberPickerWidget:init()
                   self:update()
                   UIManager:close(input_dialog)
                 elseif input_value and input_value < self.value_min then
-                  UIManager:show(InfoMessage:new({
+                  self:showWidget(InfoMessage:new({
                     text = T(
-                      _("This value should be %1 or more."),
+                      gettext("This value should be %1 or more."),
                       self.value_min
                     ),
                     timeout = 2,
                   }))
                 elseif input_value and input_value > self.value_max then
-                  UIManager:show(InfoMessage:new({
+                  self:showWidget(InfoMessage:new({
                     text = T(
-                      _("This value should be %1 or less."),
+                      gettext("This value should be %1 or less."),
                       self.value_max
                     ),
                     timeout = 2,
                   }))
                 else
-                  UIManager:show(InfoMessage:new({
-                    text = _("Invalid value. Please enter a valid value."),
+                  self:showWidget(InfoMessage:new({
+                    text = gettext(
+                      "Invalid value. Please enter a valid value."
+                    ),
                     timeout = 2,
                   }))
                 end
@@ -285,8 +285,7 @@ function NumberPickerWidget:init()
           },
         },
       })
-      UIManager:show(input_dialog)
-      input_dialog:showKeyboard()
+      self:showWidget(input_dialog)
     end
   end
 
@@ -305,7 +304,6 @@ function NumberPickerWidget:init()
     text_font_face = self.spinner_face.font,
     text_font_size = self.spinner_face.orig_size,
     width = self.width,
-    show_parent = self.show_parent,
     callback = callback_input,
   })
   if callback_input then
@@ -336,9 +334,6 @@ function NumberPickerWidget:init()
   self.dimen = self.frame:getSize()
   self[1] = self.frame
   self:refocusWidget()
-  UIManager:setDirty(self.show_parent, function()
-    return "ui", self.dimen
-  end)
 end
 
 --[[--
@@ -353,9 +348,7 @@ function NumberPickerWidget:update()
   self.text_value:setText(tostring(self.formatted_value), self.width)
 
   self:refocusWidget()
-  UIManager:setDirty(self.show_parent, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
   if self.picker_updated_callback then
     self.picker_updated_callback(self.value, self.value_index)
   end

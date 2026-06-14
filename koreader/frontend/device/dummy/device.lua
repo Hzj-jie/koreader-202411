@@ -1,21 +1,15 @@
 local Generic = require("device/generic/device")
 local logger = require("logger")
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
+local util = require("util")
 
 local Device = Generic:extend({
   model = "dummy",
-  hasKeyboard = no,
-  hasKeys = no,
-  isTouchDevice = no,
-  needsScreenRefreshAfterResume = no,
-  hasColorScreen = yes,
-  hasEinkScreen = no,
+  hasKeyboard = util.no,
+  hasKeys = util.no,
+  isTouchDevice = util.no,
+  needsScreenRefreshAfterResume = util.no,
+  hasColorScreen = util.yes,
+  hasEinkScreen = util.no,
 })
 
 function Device:init()

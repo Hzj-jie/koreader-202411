@@ -3,8 +3,8 @@ local DocSettings = require("docsettings")
 local InfoMessage = require("ui/widget/infomessage")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local BookInfoManager = require("bookinfomanager")
 
@@ -45,26 +45,20 @@ function CoverMenu:updateCache(file, status, do_create, pages)
     end
     local doc_settings = DocSettings:open(file)
     -- We can get nb of page in the new 'doc_pages' setting, or from the old 'stats.page'
-    local doc_pages = doc_settings:readSetting("doc_pages")
+    local doc_pages = doc_settings:read("doc_pages")
     if doc_pages then
       pages = doc_pages
     else
-      local stats = doc_settings:readSetting("stats")
-      if stats and stats.pages and stats.pages ~= 0 then -- crengine with statistics disabled stores 0
+      local stats = doc_settings:readTable("stats") or {}
+      if stats.pages and stats.pages ~= 0 then -- crengine with statistics disabled stores 0
         pages = stats.pages
       end
     end
-    local percent_finished = doc_settings:readSetting("percent_finished")
-    local summary = doc_settings:readSetting("summary")
-    status = summary and summary.status
-    local has_highlight
-    local annotations = doc_settings:readSetting("annotations")
-    if annotations then
-      has_highlight = #annotations > 0
-    else
-      local highlight = doc_settings:readSetting("highlight")
-      has_highlight = highlight and next(highlight) and true
-    end
+    local percent_finished = doc_settings:read("percent_finished")
+    status = doc_settings:readTableRef("summary").status
+    local has_highlight = (
+      next(doc_settings:readTableRef("annotations")) and true
+    ) or (next(doc_settings:readTableRef("highlight")) and true)
     self.cover_info_cache[file] =
       table.pack(pages, percent_finished, status, has_highlight) -- may be a sparse array
   else
@@ -147,12 +141,15 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   Menu.mergeTitleBarIntoLayout(self)
 
-  self.show_parent.dithered = self._has_cover_images
-  UIManager:setDirty(self.show_parent, function()
-    local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
-      or self.dimen
-    return "ui", refresh_dimen, self.show_parent.dithered
-  end)
+  local show_parent = self:showParent()
+  if show_parent ~= nil then
+    show_parent.dithered = self._has_cover_images
+    UIManager:setDirty(show_parent, function()
+      local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
+        or self.dimen
+      return "ui", refresh_dimen, show_parent.dithered
+    end)
+  end
 
   -- As additionally done in FileChooser:updateItems()
   if self.path_items then
@@ -180,7 +177,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
           self.items_update_action = nil
         end
         UIManager:show(InfoMessage:new({
-          text = _(
+          text = gettext(
             "Start-up of background extraction job failed.\nPlease restart KOReader or your device."
           ),
         }))
@@ -197,17 +194,18 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         item:update()
         if item.bookinfo_found then
           logger.dbg("  found", item.text)
-          self.show_parent.dithered = item._has_cover_image
-          local refreshfunc = function()
+          show_parent = self:showParent()
+          assert(show_parent ~= nil)
+          show_parent.dithered = item._has_cover_image
+          UIManager:setDirty(show_parent, function()
             if item.refresh_dimen then
               -- MosaicMenuItem may exceed its own dimen in its paintTo
               -- with its "description" hint
-              return "ui", item.refresh_dimen, self.show_parent.dithered
+              return "ui", item.refresh_dimen, show_parent.dithered
             else
-              return "ui", item[1].dimen, self.show_parent.dithered
+              return "ui", item[1].dimen, show_parent.dithered
             end
-          end
-          UIManager:setDirty(self.show_parent, refreshfunc)
+          end)
           table.remove(self.items_to_update, i)
         else
           logger.dbg("  not yet found", item.text)
@@ -261,7 +259,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
       -- Replace it with ours
       -- This causes luacheck warning: "shadowing upvalue argument 'self' on line 34".
       -- Ignoring it (as done in filemanager.lua for the same showFileDialog)
-      self.showFileDialog = function(self, item) -- luacheck: ignore
+      self.showFileDialog = function(self, item)
         local file = item.path
         -- Call original function: it will create a ButtonDialog
         -- and store it as self.file_dialog, and UIManager:show() it.
@@ -286,8 +284,8 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         -- Add some new buttons to original buttons set
         table.insert(orig_buttons, {
           { -- Allow user to ignore some offending cover image
-            text = bookinfo.ignore_cover and _("Unignore cover")
-              or _("Ignore cover"),
+            text = bookinfo.ignore_cover and gettext("Unignore cover")
+              or gettext("Ignore cover"),
             enabled = bookinfo.has_cover and true or false,
             callback = function()
               BookInfoManager:setBookInfoProperties(file, {
@@ -298,8 +296,8 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
             end,
           },
           { -- Allow user to ignore some bad metadata (filename will be used instead)
-            text = bookinfo.ignore_meta and _("Unignore metadata")
-              or _("Ignore metadata"),
+            text = bookinfo.ignore_meta and gettext("Unignore metadata")
+              or gettext("Ignore metadata"),
             enabled = bookinfo.has_meta and true or false,
             callback = function()
               BookInfoManager:setBookInfoProperties(file, {
@@ -312,7 +310,7 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
         })
         table.insert(orig_buttons, {
           { -- Allow a new extraction (multiple interruptions, book replaced)...
-            text = _("Refresh cached book information"),
+            text = gettext("Refresh cached book information"),
             callback = function()
               -- Wipe the cache
               self:updateCache(file)
@@ -365,7 +363,8 @@ function CoverMenu:onHistoryMenuHold(item)
   -- Add some new buttons to original buttons set
   table.insert(orig_buttons, {
     { -- Allow user to ignore some offending cover image
-      text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
+      text = bookinfo.ignore_cover and gettext("Unignore cover")
+        or gettext("Ignore cover"),
       enabled = bookinfo.has_cover and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -376,8 +375,8 @@ function CoverMenu:onHistoryMenuHold(item)
       end,
     },
     { -- Allow user to ignore some bad metadata (filename will be used instead)
-      text = bookinfo.ignore_meta and _("Unignore metadata")
-        or _("Ignore metadata"),
+      text = bookinfo.ignore_meta and gettext("Unignore metadata")
+        or gettext("Ignore metadata"),
       enabled = bookinfo.has_meta and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -390,7 +389,7 @@ function CoverMenu:onHistoryMenuHold(item)
   })
   table.insert(orig_buttons, {
     { -- Allow a new extraction (multiple interruptions, book replaced)...
-      text = _("Refresh cached book information"),
+      text = gettext("Refresh cached book information"),
       callback = function()
         -- Wipe the cache
         self:updateCache(file)
@@ -437,7 +436,8 @@ function CoverMenu:onCollectionsMenuHold(item)
   -- Add some new buttons to original buttons set
   table.insert(orig_buttons, {
     { -- Allow user to ignore some offending cover image
-      text = bookinfo.ignore_cover and _("Unignore cover") or _("Ignore cover"),
+      text = bookinfo.ignore_cover and gettext("Unignore cover")
+        or gettext("Ignore cover"),
       enabled = bookinfo.has_cover and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -448,8 +448,8 @@ function CoverMenu:onCollectionsMenuHold(item)
       end,
     },
     { -- Allow user to ignore some bad metadata (filename will be used instead)
-      text = bookinfo.ignore_meta and _("Unignore metadata")
-        or _("Ignore metadata"),
+      text = bookinfo.ignore_meta and gettext("Unignore metadata")
+        or gettext("Ignore metadata"),
       enabled = bookinfo.has_meta and true or false,
       callback = function()
         BookInfoManager:setBookInfoProperties(file, {
@@ -462,7 +462,7 @@ function CoverMenu:onCollectionsMenuHold(item)
   })
   table.insert(orig_buttons, {
     { -- Allow a new extraction (multiple interruptions, book replaced)...
-      text = _("Refresh cached book information"),
+      text = gettext("Refresh cached book information"),
       callback = function()
         -- Wipe the cache
         self:updateCache(file)
@@ -544,7 +544,7 @@ function CoverMenu:tapPlus()
   table.insert(orig_buttons, {}) -- separator
   table.insert(orig_buttons, {
     {
-      text = _("Extract and cache book information"),
+      text = gettext("Extract and cache book information"),
       callback = function()
         UIManager:close(self.file_dialog)
         local Trapper = require("ui/trapper")

@@ -1,5 +1,5 @@
-local ffi = require("ffi")
 local bit = require("bit")
+local ffi = require("ffi")
 local C = ffi.C
 
 local android = require("android")

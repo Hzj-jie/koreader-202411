@@ -1,11 +1,10 @@
 local ConfigDialog = require("ui/widget/configdialog")
+local CreOptions = require("ui/data/creoptions")
 local Device = require("device")
 local Event = require("ui/event")
 local InputContainer = require("ui/widget/container/inputcontainer")
-local UIManager = require("ui/uimanager")
-local CreOptions = require("ui/data/creoptions")
 local KoptOptions = require("ui/data/koptoptions")
-local _ = require("gettext")
+local UIManager = require("ui/uimanager")
 
 local ReaderConfig = InputContainer:extend({
   last_panel_index = 1,
@@ -42,8 +41,8 @@ function ReaderConfig:initGesListener()
     return
   end
 
-  local DTAP_ZONE_CONFIG = G_defaults:readSetting("DTAP_ZONE_CONFIG")
-  local DTAP_ZONE_CONFIG_EXT = G_defaults:readSetting("DTAP_ZONE_CONFIG_EXT")
+  local DTAP_ZONE_CONFIG = G_defaults:read("DTAP_ZONE_CONFIG")
+  local DTAP_ZONE_CONFIG_EXT = G_defaults:read("DTAP_ZONE_CONFIG_EXT")
   self.ui:registerTouchZones({
     {
       id = "readerconfigmenu_tap",
@@ -148,22 +147,22 @@ function ReaderConfig:initGesListener()
 end
 
 function ReaderConfig:onShowConfigMenu()
+  self:onCloseConfigMenu()
   self.config_dialog = ConfigDialog:new({
     document = self.document,
     ui = self.ui,
     configurable = self.configurable,
     config_options = self.options,
     is_always_active = true,
-    covers_footer = true,
     close_callback = function()
       self:_closeCallback()
     end,
   })
-  self.ui:handleEvent(Event:new("DisableHinting"))
+  UIManager:broadcastEvent(Event:new("DisableHinting"))
+  self:showWidget(self.config_dialog)
   -- show last used panel when opening config dialog
-  self.config_dialog:onShowConfigPanel(self.last_panel_index)
-  UIManager:show(self.config_dialog)
-  self.ui:handleEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
+  self.config_dialog:showConfigPanel(self.last_panel_index)
+  UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
 
   return true
 end
@@ -183,7 +182,7 @@ function ReaderConfig:onSwipeShowConfigMenu(ges)
 end
 
 -- For some reason, things are fine and dandy without any of this for rotations, but we need it for actual resizes...
-function ReaderConfig:onSetDimensions(dimen)
+function ReaderConfig:onSetDimensions(_dimen)
   if self.config_dialog then
     -- init basically calls update & initGesListener and nothing else, which is exactly what we want.
     self.config_dialog:init()
@@ -193,7 +192,7 @@ end
 function ReaderConfig:_closeCallback()
   self.last_panel_index = self.config_dialog.panel_index
   self.config_dialog = nil
-  self.ui:handleEvent(Event:new("RestoreHinting"))
+  UIManager:broadcastEvent(Event:new("RestoreHinting"))
 end
 
 -- event handler for readercropping
@@ -204,8 +203,8 @@ function ReaderConfig:onCloseConfigMenu()
 end
 
 function ReaderConfig:onReadSettings(config)
-  self.configurable:loadSettings(config, self.options.prefix .. "_")
-  local config_panel_index = config:readSetting("config_panel_index")
+  self.configurable:load(config, self.options.prefix .. "_")
+  local config_panel_index = config:read("config_panel_index")
   if config_panel_index then
     config_panel_index = math.min(config_panel_index, #self.options)
   end
@@ -213,11 +212,8 @@ function ReaderConfig:onReadSettings(config)
 end
 
 function ReaderConfig:onSaveSettings()
-  self.configurable:saveSettings(
-    self.ui.doc_settings,
-    self.options.prefix .. "_"
-  )
-  self.ui.doc_settings:saveSetting("config_panel_index", self.last_panel_index)
+  self.configurable:save(self.ui.doc_settings, self.options.prefix .. "_")
+  self.ui.doc_settings:save("config_panel_index", self.last_panel_index)
 end
 
 return ReaderConfig

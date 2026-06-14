@@ -5,8 +5,8 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local _ = require("gettext")
+local logger = require("logger")
 local T = require("ffi/util").template
 
 local NetworkListener = EventListener:extend({

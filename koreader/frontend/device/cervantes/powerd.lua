@@ -18,14 +18,12 @@ local CervantesPowerD = BasePowerD:new({
 -- We can't read back the current state from the OS or hardware.
 -- Use the last value stored in KOReader settings instead.
 function CervantesPowerD:frontlightWarmthHW()
-  return G_reader_settings:readSetting("frontlight_warmth") or 0
+  return G_reader_settings:read("frontlight_warmth") or 0
 end
 
 function CervantesPowerD:_syncLightOnStart()
-  local new_intensity = G_reader_settings:readSetting("frontlight_intensity")
-    or nil
-  local is_frontlight_on = G_reader_settings:readSetting("is_frontlight_on")
-    or nil
+  local new_intensity = G_reader_settings:read("frontlight_intensity") or nil
+  local is_frontlight_on = G_reader_settings:read("is_frontlight_on") or nil
 
   if new_intensity ~= nil then
     self.hw_intensity = new_intensity
@@ -51,7 +49,7 @@ function CervantesPowerD:init()
 
   if self.device:hasFrontlight() then
     if self.device:hasNaturalLight() then
-      local nl_config = G_reader_settings:readSetting("natural_light_config")
+      local nl_config = G_reader_settings:read("natural_light_config")
       if nl_config then
         for key, val in pairs(nl_config) do
           self.device.frontlight_settings[key] = val
@@ -92,10 +90,10 @@ function CervantesPowerD:saveSettings()
     local cur_is_fl_on = self.is_fl_on
     local cur_warmth = self.fl_warmth
     -- Save intensity to koreader settings
-    G_reader_settings:saveSetting("frontlight_intensity", cur_intensity)
-    G_reader_settings:saveSetting("is_frontlight_on", cur_is_fl_on)
+    G_reader_settings:save("frontlight_intensity", cur_intensity)
+    G_reader_settings:save("is_frontlight_on", cur_is_fl_on)
     if cur_warmth ~= nil then
-      G_reader_settings:saveSetting("frontlight_warmth", cur_warmth)
+      G_reader_settings:save("frontlight_warmth", cur_warmth)
     end
   end
 end

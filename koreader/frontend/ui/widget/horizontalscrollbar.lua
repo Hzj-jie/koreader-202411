@@ -5,7 +5,6 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Size = require("ui/size")
-local Screen = require("device").screen
 
 local HorizontalScrollBar = InputContainer:extend({
   enable = true,
@@ -30,7 +29,7 @@ function HorizontalScrollBar:init()
   self.extra_touch_on_side =
     math.ceil(self.extra_touch_on_side_heightratio * self.height)
   if Device:isTouchDevice() then
-    local pan_rate = Screen.low_pan_rate and 2.0 or 5.0
+    local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
       TapScroll = {
         GestureRange:new({
@@ -102,19 +101,13 @@ HorizontalScrollBar.onHoldReleaseScroll = HorizontalScrollBar.onTapScroll
 HorizontalScrollBar.onPanScroll = HorizontalScrollBar.onTapScroll
 HorizontalScrollBar.onPanScrollRelease = HorizontalScrollBar.onTapScroll
 
-function HorizontalScrollBar:getSize()
-  return Geom:new({
-    w = self.width,
-    h = self.height,
-  })
-end
-
 function HorizontalScrollBar:set(low, high)
   self.low = low > 0 and low or 0
   self.high = high < 1 and high or 1
 end
 
 function HorizontalScrollBar:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   if not self.enable then
     return
   end
@@ -124,6 +117,8 @@ function HorizontalScrollBar:paintTo(bb, x, y)
     w = self.width,
     h = self.height + 2 * self.extra_touch_on_side,
   })
+  -- Reset the area first.
+  bb:paintRect(x, y, self.width, self.height, Blitbuffer.COLOR_WHITE)
   bb:paintBorder(
     x,
     y,

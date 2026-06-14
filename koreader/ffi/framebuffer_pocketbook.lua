@@ -1,5 +1,5 @@
-local ffi = require("ffi")
 local BB = require("ffi/blitbuffer")
+local ffi = require("ffi")
 local inkview = ffi.load("inkview")
 
 require("ffi/inkview_h")

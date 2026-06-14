@@ -9,11 +9,11 @@ end
 local PowerD = Device:getPowerDevice()
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
+local SpinWidget = require("ui/widget/spinwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local SpinWidget = require("ui/widget/spinwidget")
-local logger = require("logger")
 local _ = require("gettext")
+local logger = require("logger")
 
 local AutoStandby = WidgetContainer:extend({
   is_doc_only = false,

@@ -83,7 +83,7 @@ return {
   [82] = "KP0",
   [87] = "F11",
   [88] = "F12",
-  [96] = "Press", -- KPEnter
+  [96] = "Enter", -- KPEnter
 
   [97] = "Ctrl", -- Right Ctrl
   [98] = "Home",

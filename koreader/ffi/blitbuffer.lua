@@ -752,8 +752,28 @@ function ColorRGB32_mt.__index:invert()
   )
 end
 
+local function has_getColorRGB32(obj)
+  return obj.getColorRGB32 ~= nil
+end
+
 -- comparison:
 function ColorRGB32_mt:__eq(color)
+  if not color then
+    return false
+  end
+  local t = type(color)
+  if t == "cdata" then
+    local ok, has_method = pcall(has_getColorRGB32, color)
+    if not ok or not has_method then
+      return false
+    end
+  elseif t == "table" then
+    if not color.getColorRGB32 then
+      return false
+    end
+  else
+    return false
+  end
   local c = color:getColorRGB32()
   return (self:getR() == c:getR())
     and (self:getG() == c:getG())

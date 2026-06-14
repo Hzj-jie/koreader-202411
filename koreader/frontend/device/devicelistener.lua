@@ -5,14 +5,14 @@ local Notification = require("ui/widget/notification")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
 local bit = require("bit")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local DeviceListener = EventListener:extend({})
 
-function DeviceListener:onToggleNightMode()
-  local night_mode = G_reader_settings:isTrue("night_mode")
-  Screen:toggleNightMode()
+function DeviceListener:onToggleNightMode(night_mode)
+  G_reader_settings:save("night_mode", night_mode, false)
+  Screen:setNightmode(night_mode)
   -- Make sure CRe will bypass the call cache
   if
     self.ui
@@ -21,49 +21,12 @@ function DeviceListener:onToggleNightMode()
   then
     self.ui.document:resetCallCache()
   end
-  UIManager:setDirty("all", "full")
-  UIManager:ToggleNightMode(not night_mode)
-  G_reader_settings:saveSetting("night_mode", not night_mode)
-end
-
-function DeviceListener:onSetNightMode(night_mode_on)
-  local night_mode = G_reader_settings:isTrue("night_mode")
-  if night_mode_on ~= night_mode then
-    self:onToggleNightMode()
-  end
-end
-
-function DeviceListener:onShowIntensity()
-  if not Device:hasFrontlight() then
-    return true
-  end
-  local powerd = Device:getPowerDevice()
-  local new_text
-  if powerd:isFrontlightOff() then
-    new_text = _("Frontlight disabled.")
-  else
-    new_text =
-      T(_("Frontlight intensity set to %1."), powerd:frontlightIntensity())
-  end
-  Notification:notify(new_text)
-  return true
-end
-
-function DeviceListener:onShowWarmth()
-  if not Device:hasNaturalLight() then
-    return true
-  end
-  -- Display it in the native scale, like FrontLightWidget
-  local powerd = Device:getPowerDevice()
-  Notification:notify(
-    T(_("Warmth set to %1."), powerd:toNativeWarmth(powerd:frontlightWarmth()))
-  )
-  return true
+  UIManager:toggleNightMode()
 end
 
 -- frontlight controller
 if Device:hasFrontlight() then
-  local function calculateGestureDelta(ges, direction, min, max)
+  local function calculateGestureDelta(ges, direction, max)
     local delta_int
     if type(ges) == "table" then
       local gesture_multiplier
@@ -109,53 +72,64 @@ if Device:hasFrontlight() then
 
   -- direction +1 - increase frontlight
   -- direction -1 - decrease frontlight
-  function DeviceListener:onChangeFlIntensity(ges, direction)
+  function DeviceListener:changeFlIntensity(ges, direction)
+    -- TODO: Should assert.
+    if not Device:hasFrontlight() then
+      return false
+    end
     local powerd = Device:getPowerDevice()
-    local delta =
-      calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
-
-    local new_intensity = powerd:frontlightIntensity() + delta
-    -- when new_intensity <= 0, toggle light off
-    self:onSetFlIntensity(new_intensity)
-    self:onShowIntensity()
-    return true
+    local delta = calculateGestureDelta(ges, direction, powerd.fl_max)
+    return self:onSetFlIntensity(powerd:frontlightIntensity() + delta)
   end
 
   function DeviceListener:onSetFlIntensity(new_intensity)
+    -- TODO: Should assert.
+    if not Device:hasFrontlight() then
+      return false
+    end
     local powerd = Device:getPowerDevice()
+    if powerd:frontlightIntensity() == new_intensity then
+      -- This may not be accurate, the powerd can adjust the frontlight
+      -- intensity. So even the new_intensity does not equal to the
+      -- powerd:frontlightIntensity(), the following set calls may have no
+      -- effect.
+      return true
+    end
+    local new_text
     if new_intensity <= 0 then
       powerd:turnOffFrontlight()
+      new_text = gettext("Frontlight disabled.")
     else
       powerd:setIntensity(new_intensity)
+      -- Allow powerd adjusting the frontlight intensity.
+      new_text = T(
+        gettext("Frontlight intensity set to %1."),
+        powerd:frontlightIntensity()
+      )
     end
     powerd:updateResumeFrontlightState()
+    Notification:notify(new_text)
     return true
   end
 
   function DeviceListener:onIncreaseFlIntensity(ges)
-    self:onChangeFlIntensity(ges, 1)
-    return true
+    return self:changeFlIntensity(ges, 1)
   end
 
   function DeviceListener:onDecreaseFlIntensity(ges)
-    self:onChangeFlIntensity(ges, -1)
-    return true
+    return self:changeFlIntensity(ges, -1)
   end
 
   -- direction +1 - increase frontlight warmth
   -- direction -1 - decrease frontlight warmth
-  function DeviceListener:onChangeFlWarmth(ges, direction)
+  function DeviceListener:changeFlWarmth(ges, direction)
+    -- TODO: Should assert.
     if not Device:hasNaturalLight() then
-      return true
+      return false
     end
 
     local powerd = Device:getPowerDevice()
-    local delta = calculateGestureDelta(
-      ges,
-      direction,
-      powerd.fl_warmth_min,
-      powerd.fl_warmth_max
-    )
+    local delta = calculateGestureDelta(ges, direction, powerd.fl_warmth_max)
 
     -- Given that the native warmth ranges are usually pretty restrictive (e.g., [0, 10] or [0, 24]),
     -- do the computations in the native scale, to ensure we always actually *change* something,
@@ -165,12 +139,14 @@ if Device:hasFrontlight() then
       powerd:toNativeWarmth(powerd:frontlightWarmth()) + delta
     )
 
-    self:onSetFlWarmth(warmth)
-    self:onShowWarmth()
-    return true
+    return self:onSetFlWarmth(warmth)
   end
 
   function DeviceListener:onSetFlWarmth(warmth)
+    -- TODO: Should assert.
+    if not Device:hasNaturalLight() then
+      return false
+    end
     local powerd = Device:getPowerDevice()
     if warmth > 100 then
       warmth = 100
@@ -178,24 +154,31 @@ if Device:hasFrontlight() then
       warmth = 0
     end
     powerd:setWarmth(warmth)
+    -- Allow powerd adjusting warmth.
+    Notification:notify(
+      T(
+        gettext("Warmth set to %1."),
+        powerd:toNativeWarmth(powerd:frontlightWarmth())
+      )
+    )
     return true
   end
 
   function DeviceListener:onIncreaseFlWarmth(ges)
-    self:onChangeFlWarmth(ges, 1)
+    return self:changeFlWarmth(ges, 1)
   end
 
   function DeviceListener:onDecreaseFlWarmth(ges)
-    self:onChangeFlWarmth(ges, -1)
+    return self:changeFlWarmth(ges, -1)
   end
 
   function DeviceListener:onToggleFrontlight()
     local powerd = Device:getPowerDevice()
     local new_text
     if powerd:isFrontlightOn() then
-      new_text = _("Frontlight disabled.")
+      new_text = gettext("Frontlight disabled.")
     else
-      new_text = _("Frontlight enabled.")
+      new_text = gettext("Frontlight enabled.")
     end
     -- We defer displaying the Notification to PowerD, as the toggle may be a ramp, and we both want to make sure the refresh fencing won't affect it, and that we only display the Notification at the end...
     local notif_source = Notification.notify_source
@@ -203,7 +186,7 @@ if Device:hasFrontlight() then
       Notification:notify(new_text, notif_source)
     end
     if not powerd:toggleFrontlight(notif_cb) then
-      Notification:notify(_("Frontlight unchanged."), notif_source)
+      Notification:notify(gettext("Frontlight unchanged."), notif_source)
     end
     powerd:updateResumeFrontlightState()
   end
@@ -219,9 +202,9 @@ if Device:hasGSensor() then
     Device:toggleGSensor(not G_reader_settings:isTrue("input_ignore_gsensor"))
     local new_text
     if G_reader_settings:isTrue("input_ignore_gsensor") then
-      new_text = _("Accelerometer rotation events off.")
+      new_text = gettext("Accelerometer rotation events off.")
     else
-      new_text = _("Accelerometer rotation events on.")
+      new_text = gettext("Accelerometer rotation events on.")
     end
     Notification:notify(new_text)
     return true
@@ -230,10 +213,10 @@ if Device:hasGSensor() then
   function DeviceListener:onTempGSensorOn()
     local new_text
     if G_reader_settings:nilOrFalse("input_ignore_gsensor") then
-      new_text = _("Accelerometer rotation events already on.")
+      new_text = gettext("Accelerometer rotation events already on.")
     else
       Device:toggleGSensor(true)
-      new_text = _("Accelerometer rotation events on for 5 seconds.")
+      new_text = gettext("Accelerometer rotation events on for 5 seconds.")
       UIManager:scheduleIn(5.0, function()
         Device:toggleGSensor(false)
       end)
@@ -247,9 +230,9 @@ if Device:hasGSensor() then
     Device:lockGSensor(G_reader_settings:isTrue("input_lock_gsensor"))
     local new_text
     if G_reader_settings:isTrue("input_lock_gsensor") then
-      new_text = _("Orientation locked.")
+      new_text = gettext("Orientation locked.")
     else
-      new_text = _("Orientation unlocked.")
+      new_text = gettext("Orientation unlocked.")
     end
     Notification:notify(new_text)
     return true
@@ -266,14 +249,14 @@ function DeviceListener:onIterateRotation(ccw)
   -- Simply rotate by 90° CW or CCW
   local step = ccw and -1 or 1
   local arg = bit.band(Screen:getRotationMode() + step, 3)
-  self.ui:handleEvent(Event:new("SetRotationMode", arg))
+  UIManager:broadcastEvent(Event:new("SetRotationMode", arg))
   return true
 end
 
 function DeviceListener:onInvertRotation()
   -- Invert is always rota + 2, w/ wraparound
   local arg = bit.band(Screen:getRotationMode() + 2, 3)
-  self.ui:handleEvent(Event:new("SetRotationMode", arg))
+  UIManager:broadcastEvent(Event:new("SetRotationMode", arg))
   return true
 end
 
@@ -289,60 +272,13 @@ function DeviceListener:onSwapRotation()
     -- If Landscape, Portrait is -1
     arg = bit.band(rota - 1, 3)
   end
-  self.ui:handleEvent(Event:new("SetRotationMode", arg))
+  UIManager:broadcastEvent(Event:new("SetRotationMode", arg))
   return true
 end
 
-function DeviceListener:onSetRefreshRates(day, night)
-  UIManager:setRefreshRate(day, night)
-end
-
-function DeviceListener:onSetBothRefreshRates(rate)
-  UIManager:setRefreshRate(rate, rate)
-end
-
-function DeviceListener:onSetDayRefreshRate(day)
-  UIManager:setRefreshRate(day, nil)
-end
-
-function DeviceListener:onSetNightRefreshRate(night)
-  UIManager:setRefreshRate(nil, night)
-end
-
-function DeviceListener:onSetFlashOnChapterBoundaries(toggle)
-  if toggle == true then
-    G_reader_settings:makeTrue("refresh_on_chapter_boundaries")
-  else
-    G_reader_settings:delSetting("refresh_on_chapter_boundaries")
-  end
-end
-
-function DeviceListener:onToggleFlashOnChapterBoundaries()
-  G_reader_settings:flipNilOrFalse("refresh_on_chapter_boundaries")
-end
-
-function DeviceListener:onSetNoFlashOnSecondChapterPage(toggle)
-  if toggle == true then
-    G_reader_settings:makeTrue("no_refresh_on_second_chapter_page")
-  else
-    G_reader_settings:delSetting("no_refresh_on_second_chapter_page")
-  end
-end
-
-function DeviceListener:onToggleNoFlashOnSecondChapterPage()
-  G_reader_settings:flipNilOrFalse("no_refresh_on_second_chapter_page")
-end
-
-function DeviceListener:onSetFlashOnPagesWithImages(toggle)
-  if toggle == true then
-    G_reader_settings:delSetting("refresh_on_pages_with_images")
-  else
-    G_reader_settings:makeFalse("refresh_on_pages_with_images")
-  end
-end
-
-function DeviceListener:onToggleFlashOnPagesWithImages()
-  G_reader_settings:flipNilOrTrue("refresh_on_pages_with_images")
+function DeviceListener:onSetRefreshRate(rate)
+  G_named_settings.set.full_refresh_count(rate)
+  UIManager:updateRefreshRate()
 end
 
 function DeviceListener:onSwapPageTurnButtons(side)
@@ -356,9 +292,9 @@ function DeviceListener:onSwapPageTurnButtons(side)
     G_reader_settings:flipNilOrFalse("input_invert_left_page_turn_keys")
     Device:invertButtonsLeft()
     if G_reader_settings:isTrue("input_invert_left_page_turn_keys") then
-      new_text = _("Left-side page-turn buttons inverted.")
+      new_text = gettext("Left-side page-turn buttons inverted.")
     else
-      new_text = _("Left-side page-turn buttons no longer inverted.")
+      new_text = gettext("Left-side page-turn buttons no longer inverted.")
     end
   elseif side == "right" then
     -- Revert any prior global inversions first, as we could end up with an all greyed out menu.
@@ -369,9 +305,9 @@ function DeviceListener:onSwapPageTurnButtons(side)
     G_reader_settings:flipNilOrFalse("input_invert_right_page_turn_keys")
     Device:invertButtonsRight()
     if G_reader_settings:isTrue("input_invert_right_page_turn_keys") then
-      new_text = _("Right-side page-turn buttons inverted.")
+      new_text = gettext("Right-side page-turn buttons inverted.")
     else
-      new_text = _("Right-side page-turn buttons no longer inverted.")
+      new_text = gettext("Right-side page-turn buttons no longer inverted.")
     end
   else
     -- Revert any prior inversions first, as we could end up with an all greyed out menu.
@@ -383,7 +319,7 @@ function DeviceListener:onSwapPageTurnButtons(side)
       G_reader_settings:makeFalse("input_invert_right_page_turn_keys")
       G_reader_settings:makeFalse("input_invert_page_turn_keys")
       Device:invertButtons()
-      new_text = _("Page-turn buttons no longer inverted.")
+      new_text = gettext("Page-turn buttons no longer inverted.")
       Notification:notify(new_text)
       return true
     elseif G_reader_settings:isTrue("input_invert_left_page_turn_keys") then
@@ -396,9 +332,9 @@ function DeviceListener:onSwapPageTurnButtons(side)
     G_reader_settings:flipNilOrFalse("input_invert_page_turn_keys")
     Device:invertButtons()
     if G_reader_settings:isTrue("input_invert_page_turn_keys") then
-      new_text = _("Page-turn buttons inverted.")
+      new_text = gettext("Page-turn buttons inverted.")
     else
-      new_text = _("Page-turn buttons no longer inverted.")
+      new_text = gettext("Page-turn buttons no longer inverted.")
     end
   end
   Notification:notify(new_text)
@@ -424,7 +360,7 @@ function DeviceListener:onRequestUSBMS()
   MassStorage:start(false)
 end
 
-function DeviceListener:onExit(callback)
+function DeviceListener:onExitKOReader(callback)
   self.ui.menu:exitOrRestart(callback)
 end
 
@@ -448,9 +384,9 @@ end
 
 function DeviceListener:onFullRefresh()
   if self.ui and self.ui.view then
-    self.ui:handleEvent(Event:new("UpdateFooter", self.ui.view.footer_visible))
+    UIManager:broadcastEvent("UpdateFooter")
   end
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
 end
 
 -- On resume, make sure we restore Gestures handling in InputContainer, to avoid confusion for scatter-brained users ;).

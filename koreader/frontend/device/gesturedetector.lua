@@ -28,8 +28,6 @@ Current detectable gestures:
 
 You change the state machine by feeding it touch events, i.e. calling
 @{GestureDetector:feedEvent|GestureDetector:feedEvent(tev)}.
-
-
 a touch event should have following format:
 
     tev = {
@@ -93,21 +91,21 @@ local GestureDetector = {
   clock_id = nil,
   -- current values
   ges_tap_interval = time.ms(
-    G_reader_settings:readSetting("ges_tap_interval_ms") or TAP_INTERVAL_MS
+    G_reader_settings:read("ges_tap_interval_ms") or TAP_INTERVAL_MS
   ),
   ges_double_tap_interval = time.ms(
-    G_reader_settings:readSetting("ges_double_tap_interval_ms")
+    G_reader_settings:read("ges_double_tap_interval_ms")
       or DOUBLE_TAP_INTERVAL_MS
   ),
   ges_two_finger_tap_duration = time.ms(
-    G_reader_settings:readSetting("ges_two_finger_tap_duration_ms")
+    G_reader_settings:read("ges_two_finger_tap_duration_ms")
       or TWO_FINGER_TAP_DURATION_MS
   ),
   ges_hold_interval = time.ms(
-    G_reader_settings:readSetting("ges_hold_interval_ms") or HOLD_INTERVAL_MS
+    G_reader_settings:read("ges_hold_interval_ms") or HOLD_INTERVAL_MS
   ),
   ges_swipe_interval = time.ms(
-    G_reader_settings:readSetting("ges_swipe_interval_ms") or SWIPE_INTERVAL_MS
+    G_reader_settings:read("ges_swipe_interval_ms") or SWIPE_INTERVAL_MS
   ),
 }
 
@@ -259,6 +257,10 @@ function GestureDetector:feedEvent(tevs)
       -- This is what allows us to only do this once on contact creation ;).
       contact.current_tev = tev
     end
+    -- Universal safe-guard to heal contacts with missing initial event logs before executing state logic
+    if not contact.initial_tev and contact.current_tev then
+      contact.initial_tev = deepCopyEv(contact.current_tev)
+    end
     local ges = contact.state(contact)
     if ges then
       table.insert(gestures, ges)
@@ -298,14 +300,26 @@ function GestureDetector:isDoubleTap(tap1, tap2)
     local y_diff = math.abs(tap1.y - tap2.y)
 
     return (
-      x_diff < self.DOUBLE_TAP_DISTANCE
-      and y_diff < self.DOUBLE_TAP_DISTANCE
+      x_diff < self.DOUBLE_TAP_DISTANCE and y_diff < self.DOUBLE_TAP_DISTANCE
     )
   end
 end
 
 function Contact:isTwoFingerTap(buddy_contact)
   local gesture_detector = self.ges_dec
+
+  -- Guard against missing or malformed event logs in raw C touch events during out-of-order multi-touch sequences
+  if
+    not self.initial_tev
+    or not buddy_contact.initial_tev
+    or not self.current_tev
+    or not buddy_contact.current_tev
+  then
+    logger.warn(
+      "Contact:isTwoFingerTap: skipped due to missing event logs in slot active state context!"
+    )
+    return false
+  end
 
   local time_diff0 = self.current_tev.timev - self.initial_tev.timev
   if time_diff0 < 0 then
@@ -808,7 +822,23 @@ function Contact:panState(keep_contact)
   local gesture_detector = self.ges_dec
 
   logger.dbg("slot", slot, "in pan state...")
-  if tev.id == -1 then
+  local is_lift = (tev.id == -1)
+  if not is_lift then
+    local screen = gesture_detector.screen
+    if screen then
+      if
+        tev.x <= 1
+        or tev.x >= screen:getWidth() - 2
+        or tev.y <= 1
+        or tev.y >= screen:getHeight() - 2
+      then
+        logger.dbg("Contact:panState: Swiped to edge, treating as lift")
+        is_lift = true
+      end
+    end
+  end
+
+  if is_lift then
     -- End of pan, emit swipe and swipe-like gestures if necessary
     if self:isSwipe() then
       if buddy_contact and self.down then

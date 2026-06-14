@@ -7,7 +7,6 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
 local ffi = require("ffi")
@@ -17,24 +16,18 @@ require("ffi/linux_input_h")
 require("ffi/posix_h")
 require("ffi/fbink_input_h")
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
 local function NOP()
   return
 end
 
-local function koboEnableWifi(toggle)
-  if toggle == true then
-    logger.info("Kobo Wi-Fi: enabling Wi-Fi")
-    os.execute("./enable-wifi.sh")
-  else
-    logger.info("Kobo Wi-Fi: disabling Wi-Fi")
-    os.execute("./disable-wifi.sh")
-  end
+local function koboEnableWifi()
+  logger.info("Kobo Wi-Fi: enabling Wi-Fi")
+  os.execute("./enable-wifi.sh")
+end
+
+local function koboDisableWifi()
+  logger.info("Kobo Wi-Fi: disabling Wi-Fi")
+  os.execute("./disable-wifi.sh")
 end
 
 -- checks if standby is available on the device
@@ -42,7 +35,7 @@ local function checkStandby(target_state)
   logger.dbg("Kobo: checking if standby is possible ...")
   local f = io.open("/sys/power/state")
   if not f then
-    return no
+    return util.no
   end
   local mode = f:read()
   f:close()
@@ -51,12 +44,12 @@ local function checkStandby(target_state)
     logger.dbg(
       "Kobo: target standby state '" .. target_state .. "' is supported"
     )
-    return yes
+    return util.yes
   end
   logger.dbg(
     "Kobo: target standby state '" .. target_state .. "' is unsupported"
   )
-  return no
+  return util.no
 end
 
 -- Return the highest core number
@@ -103,19 +96,17 @@ end
 local Kobo = Generic:extend({
   model = "Kobo",
   ota_model = "kobo",
-  isKobo = yes,
-  isTouchDevice = yes, -- all of them are
-  hasOTAUpdates = yes,
-  hasFastWifiStatusQuery = yes,
-  hasWifiManager = yes,
-  hasWifiRestore = yes,
-  canStandby = no, -- will get updated by checkStandby()
-  canReboot = yes,
-  canPowerOff = yes,
-  canSuspend = yes,
-  supportsScreensaver = yes,
+  isKobo = util.yes,
+  isTouchDevice = util.yes, -- all of them are
+  hasWifiManager = util.yes,
+  hasWifiRestore = util.yes,
+  canStandby = util.no, -- will get updated by checkStandby()
+  canReboot = util.yes,
+  canPowerOff = util.yes,
+  canSuspend = util.yes,
+  supportsScreensaver = util.yes,
   -- most Kobos are MT-capable
-  hasMultitouch = yes,
+  hasMultitouch = util.yes,
   -- most Kobos have X/Y switched for the touch screen
   touch_switch_xy = true,
   -- most Kobos have also mirrored X coordinates
@@ -126,26 +117,26 @@ local Kobo = Generic:extend({
   --- @note: In practice, the check that is used for in ffi/framebuffer is no longer relevant,
   ---    since, in almost every case, we enforce a hardware Portrait rotation via fbdepth on startup by default ;).
   ---    We still want to keep it in case an unfortunate soul on an older device disables the bitdepth switch...
-  isAlwaysPortrait = yes,
+  isAlwaysPortrait = util.yes,
   -- we don't need an extra refreshFull on resume, thank you very much.
-  needsScreenRefreshAfterResume = no,
+  needsScreenRefreshAfterResume = util.no,
   -- some devices have coloured frontlights
-  hasNaturalLight = no,
-  hasNaturalLightMixer = no,
+  hasNaturalLight = util.no,
+  hasNaturalLightMixer = util.no,
   -- HW inversion is generally safe on Kobo, except on a few boards/kernels
-  canHWInvert = yes,
+  canHWInvert = util.yes,
   home_dir = "/mnt/onboard",
-  canToggleMassStorage = yes,
+  canToggleMassStorage = util.yes,
   -- New devices *may* be REAGL-aware, but generally don't expect explicit REAGL requests, default to not.
-  isREAGL = no,
+  isREAGL = util.no,
   -- Mark 7 devices sport an updated driver.
-  isMk7 = no,
+  isMk7 = util.no,
   -- MXCFB_WAIT_FOR_UPDATE_COMPLETE ioctls are generally reliable
-  hasReliableMxcWaitFor = yes,
+  hasReliableMxcWaitFor = util.yes,
   -- AllWinner SoCs require a completely different fb backend...
-  isSunxi = no,
+  isSunxi = util.no,
   -- The fb backend also needs to know if we're on a MediaTek SoC.
-  isMTK = no,
+  isMTK = util.no,
   -- On sunxi, "native" panel layout used to compute the G2D rotation handle (e.g., deviceQuirks.nxtBootRota in FBInk).
   boot_rota = nil,
   -- Standard sysfs path to the battery directory
@@ -158,9 +149,9 @@ local Kobo = Generic:extend({
   -- Event code to use to detect contact pressure
   pressure_event = nil,
   -- Device features multiple CPU cores
-  isSMP = no,
+  isSMP = util.no,
   -- Device supports "eclipse" waveform modes (i.e., optimized for nightmode).
-  hasEclipseWfm = no,
+  hasEclipseWfm = util.no,
   -- Device ships with various hardware revisions under the same device code, requiring automatic hardware detection (PMIC & FL)...
   automagic_sysfs = false,
   -- The standard "standby" power state
@@ -172,28 +163,28 @@ local Kobo = Generic:extend({
 local KoboTrilogyA = Kobo:extend({
   model = "Kobo_trilogy_A",
   -- Unlike its B brethren, this one doesn't do the weird translation dance when ABS_PRESSURE is 0...
-  hasKeys = yes,
-  hasMultitouch = no,
+  hasKeys = util.yes,
+  hasMultitouch = util.no,
 })
 -- Kobo Touch B:
 local KoboTrilogyB = Kobo:extend({
   model = "Kobo_trilogy_B",
   touch_kobo_mk3_protocol = true,
-  hasKeys = yes,
-  hasMultitouch = no,
+  hasKeys = util.yes,
+  hasMultitouch = util.no,
 })
 -- Kobo Touch C:
 local KoboTrilogyC = Kobo:extend({
   model = "Kobo_trilogy_C",
-  hasKeys = yes,
-  hasMultitouch = no,
+  hasKeys = util.yes,
+  hasMultitouch = util.no,
 })
 
 -- Kobo Mini:
 local KoboPixie = Kobo:extend({
   model = "Kobo_pixie",
   display_dpi = 200,
-  hasMultitouch = no,
+  hasMultitouch = util.no,
   -- bezel:
   viewport = Geom:new({ x = 0, y = 2, w = 596, h = 794 }),
 })
@@ -201,10 +192,10 @@ local KoboPixie = Kobo:extend({
 -- Kobo Aura One:
 local KoboDaylight = Kobo:extend({
   model = "Kobo_daylight",
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/lm3630a_led1b",
     frontlight_red = "/sys/class/backlight/lm3630a_led1a",
@@ -215,9 +206,9 @@ local KoboDaylight = Kobo:extend({
 -- Kobo Aura H2O:
 local KoboDahlia = Kobo:extend({
   model = "Kobo_dahlia",
-  canToggleChargingLED = yes,
+  canToggleChargingLED = util.yes,
   led_uses_channel_3 = true,
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   -- There's no slot 0, the first finger gets assigned slot 1, and the second slot 2.
   -- NOTE: Could be queried at runtime via EVIOCGABS on C.ABS_MT_TRACKING_ID (minimum field).
@@ -231,41 +222,41 @@ local KoboDahlia = Kobo:extend({
 -- Kobo Aura HD:
 local KoboDragon = Kobo:extend({
   model = "Kobo_dragon",
-  hasFrontlight = yes,
-  hasMultitouch = no,
+  hasFrontlight = util.yes,
+  hasMultitouch = util.no,
   display_dpi = 265,
 })
 
 -- Kobo Glo:
 local KoboKraken = Kobo:extend({
   model = "Kobo_kraken",
-  hasFrontlight = yes,
-  hasMultitouch = no,
+  hasFrontlight = util.yes,
+  hasMultitouch = util.no,
   display_dpi = 212,
 })
 
 -- Kobo Aura:
 local KoboPhoenix = Kobo:extend({
   model = "Kobo_phoenix",
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   display_dpi = 212,
   -- The bezel covers 10 pixels at the bottom:
   viewport = Geom:new({ x = 0, y = 0, w = 758, h = 1014 }),
   -- NOTE: AFAICT, the Aura was the only one explicitly requiring REAGL requests...
-  isREAGL = yes,
+  isREAGL = util.yes,
   -- NOTE: May have a buggy kernel, according to the nightmode hack...
-  canHWInvert = no,
+  canHWInvert = util.no,
 })
 
 -- Kobo Aura H2O2:
 local KoboSnow = Kobo:extend({
   model = "Kobo_snow",
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   touch_snow_protocol = true,
   touch_mirrored_x = false,
   display_dpi = 265,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/lm3630a_ledb",
     frontlight_red = "/sys/class/backlight/lm3630a_led",
@@ -277,11 +268,11 @@ local KoboSnow = Kobo:extend({
 --- @fixme Check if the Clara fix actually helps here... (#4015)
 local KoboSnowRev2 = Kobo:extend({
   model = "Kobo_snow_r2",
-  isMk7 = yes,
-  hasFrontlight = yes,
+  isMk7 = util.yes,
+  hasFrontlight = util.yes,
   touch_snow_protocol = true,
   display_dpi = 265,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/lm3630a_ledb",
     frontlight_red = "/sys/class/backlight/lm3630a_leda",
@@ -291,7 +282,7 @@ local KoboSnowRev2 = Kobo:extend({
 -- Kobo Aura second edition:
 local KoboStar = Kobo:extend({
   model = "Kobo_star",
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   display_dpi = 212,
 })
@@ -299,8 +290,8 @@ local KoboStar = Kobo:extend({
 -- Kobo Aura second edition, Rev 2:
 local KoboStarRev2 = Kobo:extend({
   model = "Kobo_star_r2",
-  isMk7 = yes,
-  hasFrontlight = yes,
+  isMk7 = util.yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   display_dpi = 212,
 })
@@ -308,7 +299,7 @@ local KoboStarRev2 = Kobo:extend({
 -- Kobo Glo HD:
 local KoboAlyssum = Kobo:extend({
   model = "Kobo_alyssum",
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   main_finger_slot = 1,
   display_dpi = 300,
@@ -324,12 +315,12 @@ local KoboPika = Kobo:extend({
 -- Kobo Clara HD:
 local KoboNova = Kobo:extend({
   model = "Kobo_nova",
-  isMk7 = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
+  isMk7 = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
   touch_snow_protocol = true,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/backlight/lm3630a_led/color",
@@ -350,14 +341,14 @@ local KoboNova = Kobo:extend({
 --     There's also a CM_ROTARY_ENABLE command, but which seems to do as much nothing as the STATUS one...
 local KoboFrost = Kobo:extend({
   model = "Kobo_frost",
-  isMk7 = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isMk7 = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   touch_snow_protocol = true,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/backlight/tlc5947_bl/color",
@@ -373,14 +364,14 @@ local KoboFrost = Kobo:extend({
 -- NOTE: Assume the same quirks as the Forma apply.
 local KoboStorm = Kobo:extend({
   model = "Kobo_storm",
-  isMk7 = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isMk7 = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   touch_snow_protocol = true,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/backlight/lm3630a_led/color",
@@ -399,18 +390,18 @@ local KoboStorm = Kobo:extend({
   --     the "expected" marker to wait for, and the *previous* one right before that.
   --     Of course, that first wait will mostly always return early, because that refresh is usually much older and already dealt with.
   --     This weird quirk was dropped on sunxi & MTK, FWIW.
-  hasReliableMxcWaitFor = no,
+  hasReliableMxcWaitFor = util.no,
 })
 
 -- Kobo Nia:
 local KoboLuna = Kobo:extend({
   model = "Kobo_luna",
-  isMk7 = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
+  isMk7 = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
   touch_phoenix_protocol = true,
   display_dpi = 212,
-  hasReliableMxcWaitFor = no, -- Board is similar to the Libra 2, but it's such an unpopular device that reports are scarce.
+  hasReliableMxcWaitFor = util.no, -- Board is similar to the Libra 2, but it's such an unpopular device that reports are scarce.
   -- Handle the HW revision w/ a BD71828 PMIC
   automagic_sysfs = true,
 })
@@ -418,32 +409,32 @@ local KoboLuna = Kobo:extend({
 -- Kobo Elipsa
 local KoboEuropa = Kobo:extend({
   model = "Kobo_europa",
-  isSunxi = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
+  isSunxi = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
   led_uses_channel_3 = true,
-  hasFrontlight = yes,
-  hasGSensor = yes,
+  hasFrontlight = util.yes,
+  hasGSensor = util.yes,
   pressure_event = C.ABS_MT_PRESSURE,
   display_dpi = 227,
   boot_rota = C.FB_ROTATE_CCW,
   battery_sysfs = "/sys/class/power_supply/battery",
-  isSMP = yes,
+  isSMP = util.yes,
 })
 
 -- Kobo Sage
 local KoboCadmus = Kobo:extend({
   model = "Kobo_cadmus",
-  isSunxi = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
+  isSunxi = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
   led_uses_channel_3 = true,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   pressure_event = C.ABS_MT_PRESSURE,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/leds/aw99703-bl_FL1/color",
@@ -455,9 +446,9 @@ local KoboCadmus = Kobo:extend({
   },
   boot_rota = C.FB_ROTATE_CW,
   battery_sysfs = "/sys/class/power_supply/battery",
-  hasAuxBattery = yes,
+  hasAuxBattery = util.yes,
   aux_battery_sysfs = "/sys/class/misc/cilix",
-  isSMP = yes,
+  isSMP = util.yes,
   -- Much like the Libra 2, there are at least two different HW revisions, with different PMICs...
   automagic_sysfs = true,
 })
@@ -465,16 +456,16 @@ local KoboCadmus = Kobo:extend({
 -- Kobo Libra 2:
 local KoboIo = Kobo:extend({
   model = "Kobo_io",
-  isMk7 = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isMk7 = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   pressure_event = C.ABS_MT_PRESSURE,
   touch_mirrored_x = false,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     -- Warmth goes from 0 to 10 on the device's side (our own internal scale is still normalized to [0...100])
@@ -485,7 +476,7 @@ local KoboIo = Kobo:extend({
   },
   -- It would appear that the Libra 2 inherited its ancestor's quirks, and more...
   -- c.f., https://github.com/koreader/koreader/issues/8414 & https://github.com/koreader/koreader/issues/8664
-  hasReliableMxcWaitFor = no,
+  hasReliableMxcWaitFor = util.no,
   -- NOTE: There are at least two hardware revisions of this device (*without* a device code change, this time),
   --     with *significant* hardware changes, so we'll handle this by making the sysfs path discovery automagic.
   --     c.f., https://github.com/koreader/koreader/issues/9218
@@ -495,13 +486,13 @@ local KoboIo = Kobo:extend({
 -- Kobo Clara 2E:
 local KoboGoldfinch = Kobo:extend({
   model = "Kobo_goldfinch",
-  isMk7 = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
+  isMk7 = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
   led_uses_channel_3 = true,
-  hasFrontlight = yes,
+  hasFrontlight = util.yes,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/leds/aw99703-bl_FL1/color",
@@ -512,22 +503,22 @@ local KoboGoldfinch = Kobo:extend({
   battery_sysfs = "/sys/class/power_supply/battery",
   -- Board is eerily similar to the Libra 2, so, it inherits the same quirks...
   -- c.f., https://github.com/koreader/koreader/issues/9552#issuecomment-1293000313
-  hasReliableMxcWaitFor = no,
+  hasReliableMxcWaitFor = util.no,
 })
 
 -- Kobo Elipsa 2E:
 local KoboCondor = Kobo:extend({
   model = "Kobo_condor",
-  isMTK = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
-  hasGSensor = yes,
+  isMTK = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 227,
   pressure_event = C.ABS_MT_PRESSURE,
   touch_mirrored_x = false,
   touch_mirrored_y = true,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/leds/aw99703-bl_FL1/color",
@@ -536,23 +527,23 @@ local KoboCondor = Kobo:extend({
     nl_inverted = true,
   },
   battery_sysfs = "/sys/class/power_supply/bd71827_bat",
-  isSMP = yes,
+  isSMP = util.yes,
 })
 
 -- Kobo Libra Colour:
 local KoboMonza = Kobo:extend({
   model = "Kobo_monza",
-  isMTK = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isMTK = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   pressure_event = C.ABS_MT_PRESSURE,
   touch_mirrored_x = false,
   touch_mirrored_y = true,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/backlight/lm3630a_led/color",
@@ -561,20 +552,20 @@ local KoboMonza = Kobo:extend({
     nl_inverted = true,
   },
   battery_sysfs = "/sys/class/power_supply/bd71827_bat",
-  isSMP = yes,
-  hasColorScreen = yes,
+  isSMP = util.yes,
+  hasColorScreen = util.yes,
 })
 
 -- Kobo Clara B/W:
 local KoboSpaBW = Kobo:extend({
   model = "Kobo_spaBW",
-  isMTK = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
+  isMTK = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
   touch_snow_protocol = true,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/backlight/lm3630a_led/color",
@@ -588,13 +579,13 @@ local KoboSpaBW = Kobo:extend({
 -- Kobo Clara Colour:
 local KoboSpaColour = Kobo:extend({
   model = "Kobo_spaColour",
-  isMTK = yes,
-  hasEclipseWfm = yes,
-  canToggleChargingLED = yes,
-  hasFrontlight = yes,
+  isMTK = util.yes,
+  hasEclipseWfm = util.yes,
+  canToggleChargingLED = util.yes,
+  hasFrontlight = util.yes,
   touch_snow_protocol = true,
   display_dpi = 300,
-  hasNaturalLight = yes,
+  hasNaturalLight = util.yes,
   frontlight_settings = {
     frontlight_white = "/sys/class/backlight/mxc_msp430.0/brightness",
     frontlight_mixer = "/sys/class/backlight/lm3630a_led/color",
@@ -603,8 +594,8 @@ local KoboSpaColour = Kobo:extend({
     nl_inverted = true,
   },
   battery_sysfs = "/sys/class/power_supply/bd71827_bat",
-  isSMP = yes,
-  hasColorScreen = yes,
+  isSMP = util.yes,
+  hasColorScreen = util.yes,
 })
 
 function Kobo:setupChargingLED()
@@ -645,7 +636,7 @@ function Kobo:getKeyRepeat()
       self.key_repeat[C.REP_DELAY],
       "ms"
     )
-    self.canKeyRepeat = yes
+    self.canKeyRepeat = util.yes
     return true
   end
 end
@@ -738,7 +729,7 @@ function Kobo:init()
     })
 
     -- Sunxi means no HW inversion :(
-    self.canHWInvert = no
+    self.canHWInvert = util.no
   else
     self.screen = require("ffi/framebuffer_mxcfb"):new({
       device = self,
@@ -752,7 +743,7 @@ function Kobo:init()
     if self.screen.fb_bpp == 32 and self.screen._vinfo.red.offset ~= 0 then
       -- Ensure we decode images properly, as our framebuffer is BGRA...
       logger.info("Enabling Kobo @ 32bpp BGR tweaks")
-      self.hasBGRFrameBuffer = yes
+      self.hasBGRFrameBuffer = util.yes
     end
   end
 
@@ -778,7 +769,6 @@ function Kobo:init()
   end
 
   -- Just to be safe, we absolutely don't want to call open on this, so just use stat
-  self.has_wakeup_count = util.pathExists("/sys/power/wakeup_count")
 
   -- Automagic sysfs discovery
   if self.automagic_sysfs then
@@ -847,16 +837,16 @@ function Kobo:init()
     and self.frontlight_settings
     and self.frontlight_settings.frontlight_mixer
   then
-    self.hasNaturalLightMixer = yes
+    self.hasNaturalLightMixer = util.yes
   end
   -- Ditto
   if self:isMk7() or self:isMTK() then
-    self.canHWDither = yes
+    self.canHWDither = util.yes
   end
 
   -- Enable Kaleido waveform modes on supported devices
   if self:hasColorScreen() and self:isMTK() then
-    self.hasKaleidoWfm = yes
+    self.hasKaleidoWfm = util.yes
   end
 
   -- NOTE: Devices with an AW99703 frontlight PWM controller feature a hardware smooth ramp when setting the frontlight intensity.
@@ -1017,7 +1007,7 @@ function Kobo:init()
   elseif util.pathExists("/sys/devices/platform/pmic_light.1/lit") then
     self.ntx_lit_sysfs_knob = "/sys/devices/platform/pmic_light.1/lit"
   else
-    self.canToggleChargingLED = no
+    self.canToggleChargingLED = util.no
   end
 
   -- Switch to the simple standard implementation if available
@@ -1050,7 +1040,7 @@ function Kobo:init()
   if self.canStandby() and (self:isMk7() or self:isSunxi()) then
     -- NOTE: Do *NOT* enable this on MTK. What happens if you do can only be described as "shit hits the fan".
     --     (Nickel doesn't).
-    self.canPowerSaveWhileCharging = yes
+    self.canPowerSaveWhileCharging = util.yes
   end
 
   -- Check if the device has a Neonode IR grid (to tone down the chatter on resume ;)).
@@ -1120,16 +1110,13 @@ function Kobo:setDateTime(year, month, day, hour, min, sec)
 end
 
 function Kobo:initNetworkManager(NetworkMgr)
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     self:releaseIP()
-    koboEnableWifi(false)
-    if complete_callback then
-      complete_callback()
-    end
+    koboDisableWifi()
   end
 
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)
-    koboEnableWifi(true)
+    koboEnableWifi()
     return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
   end
 
@@ -1152,6 +1139,7 @@ function Kobo:initNetworkManager(NetworkMgr)
 
   function NetworkMgr:restoreWifiAsync()
     os.execute("./restore-wifi-async.sh")
+    self:_asyncCheckWifiState()
   end
 
   function NetworkMgr:stopAsyncWifiRestore()
@@ -1278,25 +1266,6 @@ local function getCodeName()
     end
   end
   return codename
-end
-
-function Kobo:getFirmwareVersion()
-  local version_file = io.open("/mnt/onboard/.kobo/version", "re")
-  if not version_file then
-    self.firmware_rev = "none"
-    return
-  end
-  local version_str = version_file:read("*line")
-  version_file:close()
-
-  local i = 1
-  for field in version_str:gmatch("([^,]+)") do
-    if i == 3 then
-      self.firmware_rev = field
-      break
-    end
-    i = i + 1
-  end
 end
 
 local function getProductId()
@@ -1476,7 +1445,7 @@ function Kobo:suspend()
     return
   end
 
-  -- Murder Wi-Fi (again, c.f., `Device:onPowerEvent`) if NetworkMgr is attempting to connect or currently connected...
+  -- Murder Wi-Fi (again, c.f., `Device:handlePowerEvent`) if NetworkMgr is attempting to connect or currently connected...
   -- (Most likely because of a rerunWhenOnline in a Suspend handler)
   local network_mgr = require("ui/network/manager")
   if network_mgr:isWifiOn() then
@@ -1541,14 +1510,9 @@ function Kobo:_doSuspend()
   --]]
 
   logger.dbg("Kobo suspend: asking for a suspend to RAM . . .")
-  local suspend_time = time.boottime_or_realtime_coarse()
 
+  -- Do the real suspend.
   local ret = ffiUtil.writeToSysfs("mem", "/sys/power/state")
-
-  -- NOTE: At this point, we *should* be in suspend to RAM, as such,
-  --     execution should only resume on wakeup...
-  self.last_suspend_time = time.boottime_or_realtime_coarse() - suspend_time
-  self.total_suspend_time = self.total_suspend_time + self.last_suspend_time
 
   if ret then
     logger.info("Kobo suspend: ZzZ ZzZ ZzZ... And woke up!")
@@ -1765,15 +1729,15 @@ function Kobo:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Kobo:setEventHandlers(uimgr)
+function Kobo:setEventHandlers(_uimgr)
   -- We do not want auto suspend procedure to waste battery during
   -- suspend. So let's unschedule it when suspending, and restart it after
   -- resume. Done via the plugin's onSuspend/onResume handlers.
   UIManager.event_handlers.Suspend = function()
-    self:onPowerEvent("Suspend")
+    self:handlePowerEvent("Suspend")
   end
   UIManager.event_handlers.Resume = function()
-    self:onPowerEvent("Resume")
+    self:handlePowerEvent("Resume")
   end
   UIManager.event_handlers.PowerPress = function()
     -- Always schedule power off.

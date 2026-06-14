@@ -17,7 +17,6 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local SkimToWidget = FocusManager:extend({})
@@ -31,7 +30,7 @@ function SkimToWidget:init()
   local screen_height = Screen:getHeight()
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.TapProgress = {
@@ -48,8 +47,7 @@ function SkimToWidget:init()
   end
 
   -- nil for default center full mode; "top" and "bottom" for compact mode
-  local skim_dialog_position =
-    G_reader_settings:readSetting("skim_dialog_position")
+  local skim_dialog_position = G_reader_settings:read("skim_dialog_position")
   local full_mode = not skim_dialog_position
 
   local frame_border_size = Size.border.window
@@ -103,8 +101,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToPage(self.curr_page - 1)
     end,
@@ -115,8 +111,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToPage(self.curr_page - 10)
     end,
@@ -127,8 +121,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToPage(self.curr_page + 1)
     end,
@@ -139,8 +131,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToPage(self.curr_page + 10)
     end,
@@ -158,7 +148,6 @@ function SkimToWidget:init()
     bordersize = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
       self.callback_switch_to_goto()
     end,
@@ -173,8 +162,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToOrigPage()
     end,
@@ -198,8 +185,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       local page = self.ui.toc:getNextChapter(self.curr_page)
       if page and page >= 1 and page <= self.page_count then
@@ -216,8 +201,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       local page = self.ui.toc:getPreviousChapter(self.curr_page)
       if page and page >= 1 and page <= self.page_count then
@@ -234,8 +217,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToByEvent("GotoNextBookmarkFromPage")
     end,
@@ -249,8 +230,6 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
-    vsync = true,
     callback = function()
       self:goToByEvent("GotoPreviousBookmarkFromPage")
     end,
@@ -267,13 +246,12 @@ function SkimToWidget:init()
     radius = 0,
     width = button_width,
     height = button_height,
-    show_parent = self,
     callback = function()
-      self.ui:handleEvent(Event:new("ToggleBookmark"))
+      UIManager:broadcastEvent(Event:new("ToggleBookmark"))
       self:update()
     end,
     hold_callback = function()
-      self.ui:handleEvent(Event:new("ShowBookmark"))
+      UIManager:broadcastEvent(Event:new("ShowBookmark"))
       UIManager:close(self)
     end,
   })
@@ -284,7 +262,7 @@ function SkimToWidget:init()
     HorizontalSpan:new({ width = button_span_unit_width * larger_span_units })
   local top_row_span, bottom_row_span, top_buttons_row, bottom_buttons_row, radius
   if full_mode then
-    top_row_span = VerticalSpan:new({ width = Size.padding.fullscreen })
+    top_row_span = VerticalSpan:new({ height = Size.padding.fullscreen })
     bottom_row_span = top_row_span
     top_buttons_row = HorizontalGroup:new({
       align = "center",
@@ -312,7 +290,7 @@ function SkimToWidget:init()
     })
     radius = Size.radius.window
   else
-    top_row_span = VerticalSpan:new({ width = Size.padding.default })
+    top_row_span = VerticalSpan:new({ height = Size.padding.default })
     top_buttons_row = HorizontalGroup:new({
       align = "center",
       button_chapter_prev,
@@ -339,7 +317,7 @@ function SkimToWidget:init()
     })
     if skim_dialog_position == "top" then
       bottom_row_span, bottom_buttons_row = top_row_span, top_buttons_row
-      top_buttons_row = VerticalSpan:new({ width = 0 })
+      top_buttons_row = VerticalSpan:new({ height = 0 })
       top_row_span = top_buttons_row
     end
   end
@@ -480,13 +458,13 @@ end
 function SkimToWidget:goToPage(page)
   self.curr_page = page
   self:addOriginToLocationStack()
-  self.ui:handleEvent(Event:new("GotoPage", self.curr_page))
+  UIManager:broadcastEvent(Event:new("GotoPage", self.curr_page))
   self:update()
 end
 
 function SkimToWidget:goToByEvent(event_name)
   self:addOriginToLocationStack()
-  self.ui:handleEvent(Event:new(event_name, false))
+  UIManager:broadcastEvent(Event:new(event_name, false))
   -- add_current_location_to_stack=false, as we handled it here
   self.curr_page = self.ui:getCurrentPage()
   self:update()

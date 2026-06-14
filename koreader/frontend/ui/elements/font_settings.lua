@@ -1,7 +1,7 @@
 local Device = require("device")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 --[[ Font settings for systems with multiple font dirs ]]
 --
@@ -27,7 +27,7 @@ local function getDir(isUser)
       or "/ebrmain/adobefonts;/ebrmain/fonts"
   elseif Device:isRemarkable() then
     return isUser and LINUX_FONT_PATH or LINUX_SYS_FONT_PATH
-  elseif Device:isDesktop() or Device:isEmulator() then
+  elseif Device:isDesktop() then
     if jit.os == "OSX" then
       return isUser and home .. "/" .. MACOS_FONT_PATH or "/" .. MACOS_FONT_PATH
     else
@@ -74,19 +74,19 @@ end
 function FontSettings:getSystemFontMenuItems()
   local t = {
     {
-      text = _("Enable system fonts"),
+      text = gettext("Enable system fonts"),
       checked_func = usesSystemFonts,
       callback = function()
-        G_reader_settings:saveSetting("system_fonts", not usesSystemFonts())
+        G_reader_settings:save("system_fonts", not usesSystemFonts())
         local UIManager = require("ui/uimanager")
         UIManager:askForRestart()
       end,
     },
   }
 
-  if Device:isDesktop() or Device:isEmulator() then
+  if Device:isDesktop() then
     table.insert(t, 2, {
-      text = _("Open fonts folder"),
+      text = gettext("Open fonts folder"),
       keep_menu_open = true,
       callback = openFontDir,
     })

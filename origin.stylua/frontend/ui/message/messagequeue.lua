@@ -1,5 +1,5 @@
-local ffi = require("ffi")
 local Event = require("ui/event")
+local ffi = require("ffi")
 local logger = require("logger")
 
 local _ = require("ffi/zeromq_h")

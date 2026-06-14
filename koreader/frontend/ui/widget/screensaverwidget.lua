@@ -1,11 +1,10 @@
 local Device = require("device")
 local Event = require("ui/event")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local ScreenSaverWidget = InputContainer:extend({
@@ -89,7 +88,7 @@ function ScreenSaverWidget:onClose()
   end
 
   -- Make it full-screen (self.main_frame.dimen might be in a different orientation, and it's already full-screen anyway...)
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
 
   -- Will come after the Resume event, iff screensaver_delay is set.
   -- Comes *before* it otherwise.
@@ -103,7 +102,7 @@ end
 function ScreenSaverWidget:onResume()
   -- If we actually catch this event, it means screensaver_delay is set.
   -- Tell Device about it, so that further power button presses while we're still shown send us back to suspend.
-  -- NOTE: This only affects devices where we handle Power events ourselves (i.e., rely on Device -> Generic's onPowerEvent),
+  -- NOTE: This only affects devices where we handle Power events ourselves (i.e., rely on Device -> Generic's handlePowerEvent),
   --       and it *always* implies that Device.screen_saver_mode is true.
   Device.screen_saver_lock = true
 end

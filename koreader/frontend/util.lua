@@ -5,9 +5,10 @@ This module contains miscellaneous helper functions for the KOReader frontend.
 local Utf8Proc = require("ffi/utf8proc")
 local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local md5 = require("ffi/sha2").md5
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = ffiUtil.template
 
 local lshift = bit.lshift
@@ -16,6 +17,24 @@ local band = bit.band
 local bor = bit.bor
 
 local util = {}
+
+function util.isTesting()
+  return package.loaded["busted"] ~= nil
+    or package.loaded["busted.luajit"] ~= nil
+    or _G.busted ~= nil
+    or _G.describe ~= nil
+end
+
+if util.isTesting() then
+  --- Clear all the elements from an array without reassignment.
+  --- @table t the array to be cleared
+  function util.clearTable(t)
+    local c = #t
+    for i = 0, c do
+      t[i] = nil
+    end
+  end
+end
 
 ---- Strips all punctuation marks and spaces from a string.
 ---- @string text the string to be stripped
@@ -285,6 +304,13 @@ function util.tableRemoveValue(t, ...)
   end
 end
 
+--- Checks if an array-like table is empty (nil or has 0 elements).
+---- @param t Lua table (array)
+---- @treturn bool true if table is nil or empty
+function util.arrayIsEmpty(t)
+  return not t or #t == 0
+end
+
 --- Append all elements from t2 into t1.
 ---- @param t1 Lua table
 ---- @param t2 Lua table
@@ -361,31 +387,23 @@ function util.arrayContains(t, v, cb)
   return false
 end
 
---- Test whether array t contains a reference to array n (at any depth at or below m)
+--- Test whether array t contains a reference to n
 ---- @param t Lua table (array only)
----- @param n Lua table (array only)
----- @int m Max nesting level
-function util.arrayReferences(t, n, m, l)
-  if not m then
-    m = 15
+---- @param n anything
+function util.arrayDfSearch(t, n, d)
+  if d == nil then
+    d = 1
   end
-  if not l then
-    l = 0
+  if t == n then
+    return true, d
   end
-  if l > m then
+  if type(t) ~= "table" then
     return false
   end
-
-  if type(t) == "table" then
-    if t == n then
-      return true, l
-    end
-
-    for _, v in ipairs(t) do
-      local matched, depth = util.arrayReferences(v, n, m, l + 1)
-      if matched then
-        return matched, depth
-      end
+  for _, v in ipairs(t) do
+    local r, rd = util.arrayDfSearch(v, n, d + 1)
+    if r then
+      return r, rd
     end
   end
 
@@ -401,63 +419,16 @@ end
 ---- @param array Lua table (array only, sorted, ascending, every value must match the type of `value` and support comparison operators)
 ---- @param value
 ---- @return int index of value in array, or a (nil, insertion index) tuple if value was not found.
-function util.bsearch(array, value)
-  local lo = 1
-  local hi = #array
-  while lo <= hi do
-    -- invariants: value > array[i] for all i < lo
-    --       value < array[i] for all i > hi
-    local mid = bit.rshift(lo + hi, 1)
-    if array[mid] > value then
-      hi = mid - 1
-    elseif array[mid] < value then
-      lo = mid + 1
-    else
-      return mid
-    end
-  end
-  return nil, lo
-end
 
 --- Perform a leftmost insertion binary search for `value` in a *sorted* (ascending) `array`.
 ---- @param array Lua table (array only, sorted, ascending, every value must match the type of `value` and support comparison operators)
 ---- @param value
 ---- @return int leftmost insertion index of value in array.
-function util.bsearch_left(array, value)
-  local lo = 1
-  local hi = #array
-  while lo <= hi do
-    -- invariants: value > array[i] for all i < lo
-    --       value <= array[i] for all i > hi
-    local mid = bit.rshift(lo + hi, 1)
-    if array[mid] >= value then
-      hi = mid - 1
-    else
-      lo = mid + 1
-    end
-  end
-  return lo
-end
 
 --- Perform a rightmost insertion binary search for `value` in a *sorted* (ascending) `array`.
 ---- @param array Lua table (array only, sorted, ascending, every value must match the type of `value` and support comparison operators)
 ---- @param value
 ---- @return int rightmost insertion index of value in array.
-function util.bsearch_right(array, value)
-  local lo = 1
-  local hi = #array
-  while lo <= hi do
-    -- invariants: value >= array[i] for all i < low
-    --       value < array[i] for all i > high
-    local mid = bit.rshift(lo + hi, 1)
-    if array[mid] > value then
-      hi = mid - 1
-    else
-      lo = mid + 1
-    end
-  end
-  return lo
-end
 
 -- Merge t2 into t1, overwriting existing elements if they already exist
 -- Probably not safe with nested tables (c.f., https://stackoverflow.com/q/1283388)
@@ -480,14 +451,6 @@ To find . you need to escape it.
 ---- @string string
 ---- @string ch
 ---- @treturn int last occurrence or -1 if not found
-function util.lastIndexOf(string, ch)
-  local i = string:match(".*" .. ch .. "()")
-  if i == nil then
-    return -1
-  else
-    return i - 1
-  end
-end
 
 --- Pattern which matches a single well-formed UTF-8 character, including
 --- theoretical >4-byte extensions.
@@ -1229,32 +1192,41 @@ function util.readFromFile(filepath, mode)
   return data
 end
 
-function util.writeToFile(
-  data,
-  filepath,
-  force_flush,
-  lua_dofile_ready,
-  directory_updated
-)
+function util.writeToFile(data, filepath, lua_dofile_ready)
+  if not data then
+    return false, "data"
+  end
   if not filepath then
-    return
+    return false, "filepath"
   end
   if lua_dofile_ready then
     local t = { "-- ", filepath, "\nreturn ", data, "\n" }
     data = table.concat(t)
   end
-  local file, err = io.open(filepath, "wb")
+  local ori = util.readFromFile(filepath, "rb")
+  if ori == data then
+    local file = io.open(filepath, "a")
+    -- This could only happen when another process removed the file between the
+    -- io.open and the previous util.readFromFile.
+    if file then
+      logger.dbg("Content of ", filepath, " doesn't change, ignore writing.")
+      -- But still touch it.
+      file:close()
+      return true
+    end
+  end
+  local file, err = io.open(filepath .. ".new", "wb")
   if not file then
-    return nil, err
+    return false, err
   end
   file:write(data)
-  if force_flush then
-    ffiUtil.fsyncOpenedFile(file)
-  end
+  ffiUtil.fsyncOpenedFile(file)
   file:close()
-  if directory_updated then
-    ffiUtil.fsyncDirectory(filepath)
+  file, err = os.rename(filepath .. ".new", filepath)
+  if not file then
+    return file, err
   end
+  ffiUtil.fsyncDirectory(filepath)
   return true
 end
 
@@ -1559,12 +1531,6 @@ end
 
 --- Clear all the elements from an array without reassignment.
 --- @table t the array to be cleared
-function util.clearTable(t)
-  local c = #t
-  for i = 0, c do
-    t[i] = nil
-  end
-end
 
 --- Encode URL also known as percent-encoding see https://en.wikipedia.org/wiki/Percent-encoding
 --- @string text the string to encode
@@ -1769,6 +1735,60 @@ end
 --- Returns a must-existing directory.
 function util.backup_dir()
   return require("device").home_dir or "."
+end
+
+function util.yes()
+  return true
+end
+
+function util.no()
+  return false
+end
+
+--- Returns a debug identity string of a table (e.g., a widget), including address,
+--- instance keys, and prototype class keys.
+---- @param t table
+---- @treturn string
+function util.tableDebugIdentity(t)
+  if type(t) ~= "table" then
+    return tostring(t)
+  end
+
+  local addr = tostring(t)
+  local keys = {}
+  for k, v in pairs(t) do
+    if type(v) ~= "function" then
+      table.insert(keys, tostring(k) .. ":" .. tostring(v))
+    end
+  end
+  table.sort(keys)
+
+  local mt = getmetatable(t)
+  local mt_keys = {}
+  local mt_info = "none"
+  if mt and mt.__index and type(mt.__index) == "table" then
+    mt_info = tostring(mt.__index.typename or mt.__index.id or mt.__index)
+    for k, v in pairs(mt.__index) do
+      if type(v) ~= "function" then
+        table.insert(mt_keys, tostring(k) .. ":" .. tostring(v))
+      end
+    end
+    table.sort(mt_keys)
+  end
+
+  return string.format(
+    "%s { Class: %s, Instance Keys: { %s }, Class/Proto Keys: { %s } }",
+    addr,
+    mt_info,
+    table.concat(keys, ", "),
+    table.concat(mt_keys, ", ")
+  )
+end
+
+function util.copyRequire(f)
+  local v = require(f)
+  assert(type(v) == "table")
+  return util.tableDeepCopy(v)
 end
 
 return util

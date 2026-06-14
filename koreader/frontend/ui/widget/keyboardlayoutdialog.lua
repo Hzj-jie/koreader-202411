@@ -5,6 +5,7 @@ This widget displays a keyboard layout dialog.
 local Blitbuffer = require("ffi/blitbuffer")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
+local Device = require("device")
 local FFIUtil = require("ffi/util")
 local FocusManager = require("ui/widget/focusmanager")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -18,15 +19,12 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
-local Device = require("device")
 local Screen = Device.screen
 
 local KeyboardLayoutDialog = FocusManager:extend({
-  is_always_active = true,
   modal = true,
-  stop_events_propagation = true,
   keyboard_state = nil,
   width = nil,
 })
@@ -38,18 +36,15 @@ function KeyboardLayoutDialog:init()
   self.title_bar = TitleBar:new({
     width = self.width,
     with_bottom_line = true,
-    title = _("Keyboard layout"),
+    title = gettext("Keyboard layout"),
     bottom_v_padding = 0,
-    show_parent = self,
   })
 
   local buttons = {}
   local radio_buttons = {}
 
-  local keyboard_layouts = G_reader_settings:readSetting("keyboard_layouts")
-    or {}
-  local default_layout =
-    G_reader_settings:readSetting("keyboard_layout_default")
+  local keyboard_layouts = G_reader_settings:readTableRef("keyboard_layouts")
+  local default_layout = G_reader_settings:read("keyboard_layout_default")
   self.keyboard_state.force_current_layout = true
   local current_layout = self.parent.keyboard:getKeyboardLayout()
   self.keyboard_state.force_current_layout = false
@@ -75,20 +70,19 @@ function KeyboardLayoutDialog:init()
 
   table.insert(buttons, {
     {
-      text = _("Cancel"),
+      text = gettext("Cancel"),
       id = "close",
       callback = function()
-        UIManager:close(self.parent.keyboard_layout_dialog)
+        UIManager:close(self)
       end,
     },
     {
-      text = _("Switch to layout"),
+      text = gettext("Switch to layout"),
       is_enter_default = true,
       callback = function()
-        local provider =
-          self.parent.keyboard_layout_dialog.radio_button_table.checked_button.provider
+        local provider = self.radio_button_table.checked_button.provider
         self.parent.keyboard:setKeyboardLayout(provider)
-        UIManager:close(self.parent.keyboard_layout_dialog)
+        UIManager:close(self)
       end,
     },
   })
@@ -102,7 +96,6 @@ function KeyboardLayoutDialog:init()
     width = scroll_container_inner_width - 2 * Size.padding.large,
     focused = true,
     parent = self,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(self.radio_button_table)
 
@@ -111,7 +104,6 @@ function KeyboardLayoutDialog:init()
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(self.button_table)
 
@@ -135,7 +127,6 @@ function KeyboardLayoutDialog:init()
       w = self.width,
       h = radio_button_container_height,
     }),
-    show_parent = self,
     CenterContainer:new({
       dimen = Geom:new({
         w = scroll_container_inner_width,
@@ -154,11 +145,11 @@ function KeyboardLayoutDialog:init()
       align = "center",
       self.title_bar,
       VerticalSpan:new({
-        width = Size.span.vertical_large * 2,
+        height = Size.span.vertical_large * 2,
       }),
       self.cropping_widget, -- our ScrollableContainer
       VerticalSpan:new({
-        width = Size.span.vertical_large * 2,
+        height = Size.span.vertical_large * 2,
       }),
       -- buttons
       CenterContainer:new({
@@ -182,7 +173,7 @@ function KeyboardLayoutDialog:init()
     self.movable,
   })
   if Device:hasKeys() then
-    self.key_events.CloseDialog = { { Device.input.group.Back } }
+    self.key_events.ExitDialog = { { Device.input.group.Back } }
   end
 end
 
@@ -196,6 +187,9 @@ function KeyboardLayoutDialog:onClose()
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)
+  if self.parent then
+    self.parent.keyboard_layout_dialog = nil
+  end
 end
 
 function KeyboardLayoutDialog:onCloseDialog()

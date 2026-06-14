@@ -5,8 +5,8 @@ This module contains miscellaneous helper functions for the creoptions and kopto
 local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 local logger = require("logger")
 local Screen = Device.screen
@@ -111,7 +111,7 @@ end
 -- in which case we append the results of a conversion to that unit in the final string.
 -- It can also be set to `true`, in which case the unit is pulled from user settings ("dimension_units").
 function optionsutil.showValues(configurable, option, prefix, document, unit)
-  local default = G_reader_settings:readSetting(prefix .. "_" .. option.name)
+  local default = G_reader_settings:read(prefix .. "_" .. option.name)
   local current = configurable[option.name]
   local value_default, value_current
   unit = unit or option.name_text_unit
@@ -136,7 +136,8 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
     current = arg_table[current]
     if not current then
-      current = option.name_text_true_values and _("custom") or value_current
+      current = option.name_text_true_values and gettext("custom")
+        or value_current
     end
     if option.show_true_value_func then
       value_current = option.show_true_value_func(value_current)
@@ -148,7 +149,8 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
       end
       default = arg_table[default]
       if not default then
-        default = option.name_text_true_values and _("custom") or value_default
+        default = option.name_text_true_values and gettext("custom")
+          or value_default
       end
       if option.show_true_value_func then
         value_default = option.show_true_value_func(value_default)
@@ -184,7 +186,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
   end
   if not default then
-    default = _("not set")
+    default = gettext("not set")
   end
   local help_text = ""
   if option.help_text then
@@ -205,7 +207,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     local nb_current, nb_default = tonumber(current), tonumber(default)
     if nb_current == nil or nb_default == nil then
       text = T(
-        _("%1\n%2\nCurrent value: %3\nDefault value: %4"),
+        gettext("%1\n%2\nCurrent value: %3\nDefault value: %4"),
         name_text,
         help_text,
         formatFlexSize(value_current or current, unit),
@@ -213,7 +215,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
       )
     elseif value_default then
       text = T(
-        _("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5 (%6)"),
+        gettext("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5 (%6)"),
         name_text,
         help_text,
         current,
@@ -223,7 +225,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
       )
     else
       text = T(
-        _("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5"),
+        gettext("%1\n%2\nCurrent value: %3 (%4)\nDefault value: %5"),
         name_text,
         help_text,
         current,
@@ -233,7 +235,7 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
     end
   else
     text = T(
-      _("%1\n%2\nCurrent value: %3\nDefault value: %4"),
+      gettext("%1\n%2\nCurrent value: %3\nDefault value: %4"),
       name_text,
       help_text,
       formatFlexSize(current, unit),
@@ -244,13 +246,13 @@ function optionsutil.showValues(configurable, option, prefix, document, unit)
 end
 
 function optionsutil.showValuesHMargins(configurable, option)
-  local default = G_reader_settings:readSetting("copt_" .. option.name)
+  local default = G_reader_settings:read("copt_" .. option.name)
   local current = configurable[option.name]
   local unit = G_named_settings.dimension_units()
   if not default then
     UIManager:show(InfoMessage:new({
       text = T(
-        _([[
+        gettext([[
 Current margins:
   left: %1
   right: %2
@@ -262,7 +264,7 @@ Default margins: not set]]),
   else
     UIManager:show(InfoMessage:new({
       text = T(
-        _([[
+        gettext([[
 Current margins:
   left: %1
   right: %2

@@ -19,11 +19,11 @@ local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 
 local CalculatorUnitsDialog = InputContainer:new({
-  title = _("Units to convert"),
+  title = gettext("Units to convert"),
   modal = true,
   stop_events_propagation = true,
   width = math.floor(Screen:getWidth() * 0.8),
@@ -151,7 +151,6 @@ function CalculatorUnitsDialog:init()
     button_font_size = 20,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.dialog_frame = FrameContainer:new({
@@ -173,7 +172,7 @@ function CalculatorUnitsDialog:init()
         VerticalGroup:new({
           align = "left",
           TextWidget:new({
-            text = _(" from:"),
+            text = gettext(" from:"),
             face = self.text_face,
           }),
           CenterContainer:new({
@@ -187,7 +186,7 @@ function CalculatorUnitsDialog:init()
         VerticalGroup:new({
           align = "left",
           TextWidget:new({
-            text = _(" to:"),
+            text = gettext(" to:"),
             face = self.text_face,
           }),
 
@@ -201,7 +200,7 @@ function CalculatorUnitsDialog:init()
         }),
       }),
 
-      VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+      VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
       -- buttons
       CenterContainer:new({
         dimen = Geom:new({

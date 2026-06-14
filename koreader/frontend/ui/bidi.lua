@@ -37,8 +37,8 @@ https://material.io/design/usability/bidirectionality.html
 ]]
 
 local Language = require("ui/language")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 
 local Bidi = {
   _mirrored_ui_layout = false,
@@ -75,7 +75,7 @@ function Bidi.setup(lang)
     -- Simplified Chinese vs Traditional Chinese).
     -- Allow overriding xtext language rules from main UI language
     -- (eg. English UI, with French line breaking rules)
-    local alt_lang = G_reader_settings:readSetting("xtext_alt_lang") or lang
+    local alt_lang = G_reader_settings:read("xtext_alt_lang") or lang
     if alt_lang then
       xtext.setDefaultLang(alt_lang)
     end
@@ -102,7 +102,7 @@ function Bidi.setup(lang)
   end
   -- If RTL UI text, let's have untranslated strings (so english) still rendered LTR
   if Bidi._rtl_ui_text then
-    _.wrapUntranslated = function(text)
+    gettext.wrapUntranslated = function(text)
       -- We need to split by line and wrap each line as LTR (as the
       -- paragraph direction will still be RTL).
       local parts = {}
@@ -116,7 +116,7 @@ function Bidi.setup(lang)
       return table.concat(parts)
     end
   else
-    _.wrapUntranslated = _.wrapUntranslated_nowrap
+    gettext.wrapUntranslated = gettext.wrapUntranslated_nowrap
   end
 end
 

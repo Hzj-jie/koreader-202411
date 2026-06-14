@@ -1,9 +1,9 @@
 ---------------------------------
 -- Generic input method engine --
 ---------------------------------
+local Utf8Proc = require("ffi/utf8proc")
 local logger = require("logger")
 local util = require("util")
-local Utf8Proc = require("ffi/utf8proc")
 
 local function binarysearch(tbl, value, fcompval, reversed)
   if not fcompval then
@@ -146,8 +146,7 @@ function IME:uniqueMap(code)
       end
     end
     local next_code = self.sorted_codes[idx + 1]
-    local unique = next_code:sub(1, #code) ~= code
-    return unique
+    return next_code:sub(1, #code) ~= code
   end
 end
 

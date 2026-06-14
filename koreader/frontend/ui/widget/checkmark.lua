@@ -8,7 +8,7 @@ Example:
     local parent_widget = FrameContainer:new{}
     table.insert(parent_widget, CheckMark:new{
         checkable = false, -- shows nothing when false, defaults to true
-        checked = function() end, -- whether the box has a checkmark in it
+        checked = false, -- whether the box has a checkmark in it, defaults to false
     })
     UIManager:show(parent_widget)
 
@@ -81,16 +81,7 @@ function CheckMark:init()
     widget = empty_widget
   end
   self[1] = widget
-  self.dimen = unchecked_widget:getSize()
-end
-
-function CheckMark:paintTo(bb, x, y)
-  -- NOTE: Account for alignment/offsets computation being tacked on to self.dimen...
-  --       This is dumb and probably means we're doing something wonky... somewhere, but it works,
-  --       and allows us to keep sensible coordinates in dimen, so that they can be used for hitbox checks.
-  WidgetContainer.paintTo(self, bb, x - self.dimen.x, y - self.dimen.y)
-  self.dimen.x = x
-  self.dimen.y = y
+  self:mergeSize(unchecked_widget:getSize())
 end
 
 return CheckMark

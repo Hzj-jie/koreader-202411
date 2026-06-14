@@ -118,7 +118,7 @@ function Cache:check(key, ItemClass)
   elseif ItemClass then
     local cached = self.cached[md5(key)]
     if cached then
-      local item = ItemClass:new({})
+      local item = ItemClass:new()
       local ok, msg = pcall(item.load, item, cached)
       if ok then
         self:insert(key, item)

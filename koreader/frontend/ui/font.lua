@@ -131,8 +131,7 @@ local Font = {
 }
 
 if G_reader_settings and G_reader_settings:has("font_ui_fallbacks") then
-  local additional_fallbacks =
-    G_reader_settings:readSetting("font_ui_fallbacks")
+  local additional_fallbacks = G_reader_settings:read("font_ui_fallbacks")
   for i = #additional_fallbacks, 1, -1 do
     table.insert(
       Font.fallbacks,
@@ -180,9 +179,6 @@ bold_candidates = nil -- luacheck: ignore
 
 -- Helper functions with explicit names around
 -- bold/regular_font_variant tables
-function Font:hasBoldVariant(name)
-  return self.bold_font_variant[name] and true or false
-end
 
 function Font:getBoldVariantName(name)
   return self.bold_font_variant[name]
@@ -285,6 +281,14 @@ function Font:getFace(font, size, faceindex)
 
   if not size then
     size = self.sizemap[font]
+  end
+  if not size then
+    logger.warn(
+      "Font size not found for font:",
+      font,
+      "using default cfont size"
+    )
+    size = self.sizemap.cfont
   end
   -- original size before scaling by screen DPI
   local orig_size = size
@@ -401,6 +405,7 @@ end
 -- @treturn ui.font.FontFaceObj face face to use for drawing
 -- @treturn bool bold adjusted bold properties
 function Font:getAdjustedFace(face, bold)
+  face = face or self:getFace()
   if face.is_real_bold then
     -- No adjustment needed: main real bold font will ensure
     -- fallback fonts use their associated bold font or

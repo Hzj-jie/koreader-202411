@@ -6,8 +6,6 @@ local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local dump = require("dump")
 local util = require("util")
-local lfs = require("libs/libkoreader-lfs")
-local logger = require("logger")
 
 local LuaDefaults = LuaSettings:extend({
   ro = nil, -- will contain the defaults.lua k/v pairs (const)
@@ -20,55 +18,16 @@ function LuaDefaults:open(path)
   local new = LuaDefaults:extend({
     file = file_path,
   })
-  local ok, stored
-
-  -- File being absent and returning an empty table is a use case,
-  -- so logger.warn() only if there was an existing file
-  local existing = lfs.attributes(new.file, "mode") == "file"
-
-  ok, stored = pcall(dofile, new.file)
-  if ok and stored then
-    new.rw = stored
-  else
-    if existing then
-      logger.warn(
-        "LuaDefaults: Failed reading",
-        new.file,
-        "(probably corrupted)."
-      )
-    end
-    -- Fallback to .old if it exists
-    ok, stored = pcall(dofile, new.file .. ".old")
-    if ok and stored then
-      if existing then
-        logger.warn("LuaDefaults: read from backup file", new.file .. ".old")
-      end
-      new.rw = stored
-    else
-      if existing then
-        logger.warn(
-          "LuaDefaults: no usable backup file for",
-          new.file,
-          "to read from"
-        )
-      end
-      new.rw = {}
-    end
-  end
+  new.rw = LuaSettings:load(file_path)
 
   -- The actual defaults file, on the other hand, is set in stone.
-  ok, stored = pcall(dofile, "defaults.lua")
-  if ok and stored then
-    new.ro = stored
-  else
-    error("Failed reading defaults.lua")
-  end
+  new.ro = dofile("defaults.lua")
 
   return new
 end
 
 --- Reads a setting, optionally initializing it to a default.
-function LuaDefaults:readSetting(key, default)
+function LuaDefaults:read(key, default)
   if not default then
     if self:hasBeenCustomized(key) then
       return self.rw[key]
@@ -90,10 +49,10 @@ function LuaDefaults:readSetting(key, default)
 end
 
 --- Saves a setting.
-function LuaDefaults:saveSetting(key, value)
+function LuaDefaults:save(key, value)
   if util.tableEquals(self.ro[key], value, true) then
     -- Only keep actually custom settings in the rw table ;).
-    return self:delSetting(key)
+    return self:delete(key)
   else
     self.rw[key] = value
   end
@@ -101,7 +60,7 @@ function LuaDefaults:saveSetting(key, value)
 end
 
 --- Deletes a setting.
-function LuaDefaults:delSetting(key)
+function LuaDefaults:delete(key)
   self.rw[key] = nil
   return self
 end
@@ -122,8 +81,14 @@ function LuaDefaults:hasBeenCustomized(key)
 end
 
 --- Checks if setting has NOT been customized.
-function LuaDefaults:hasNotBeenCustomized(key)
-  return self.rw[key] == nil
+if util.isTesting() then
+  function LuaDefaults:hasNotBeenCustomized(key)
+    return self.rw[key] == nil
+  end
+
+  function LuaDefaults:readDefaultSetting(key)
+    return self.ro[key]
+  end
 end
 
 --- Checks if setting is `true` (boolean).
@@ -149,10 +114,6 @@ function LuaDefaults:getDataTables()
   return self.ro, self.rw
 end
 
-function LuaDefaults:readDefaultSetting(key)
-  return self.ro[key]
-end
-
 -- NOP unsupported LuaSettings APIs
 function LuaDefaults:reset() end
 
@@ -161,14 +122,7 @@ function LuaDefaults:flush()
   if not self.file then
     return
   end
-  local directory_updated = self:backup() -- LuaSettings
-  util.writeToFile(
-    dump(self.rw, nil, true),
-    self.file,
-    true,
-    true,
-    directory_updated
-  )
+  util.writeToFile(dump(self.rw), self.file, true)
   return self
 end
 

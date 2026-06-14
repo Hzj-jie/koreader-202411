@@ -10,10 +10,10 @@ of storing it.
 --
 
 local lfs = require("libs/libkoreader-lfs")
-local rapidjson = require("rapidjson")
 local logger = require("logger")
-local util = require("util")
+local rapidjson = require("rapidjson")
 local time = require("ui/time")
+local util = require("util")
 
 local used_metadata = {
   "uuid",

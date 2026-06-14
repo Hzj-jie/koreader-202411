@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "exporter",
-  fullname = _("Export highlights"),
-  description = _("Exports highlights and notes."),
+  fullname = gettext("Export highlights"),
+  description = gettext("Exports highlights and notes."),
 }

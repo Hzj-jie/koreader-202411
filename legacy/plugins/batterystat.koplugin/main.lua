@@ -1,0 +1,1 @@
+../../../koreader/plugins/batterystat.koplugin/main.lua

@@ -1,23 +1,17 @@
-local A, android = pcall(require, "android") -- luacheck: ignore
+local __, android = pcall(require, "android")
 local Event = require("ui/event")
-local Geom = require("ui/geometry")
 local Generic = require("device/generic/device")
+local Geom = require("ui/geometry")
 local UIManager
 local ffi = require("ffi")
 local C = ffi.C
 local FFIUtil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 local T = FFIUtil.template
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
 
 local function getCodename()
   local api = android.app.activity.sdkVersion
@@ -86,35 +80,30 @@ local external = require("device/thirdparty"):new({
 })
 
 local Device = Generic:extend({
-  isAndroid = yes,
+  isAndroid = util.yes,
   model = android.prop.product,
-  hasKeys = yes,
-  hasDPad = no,
-  hasSeamlessWifiToggle = no, -- Requires losing focus to the sytem's network settings and user interaction
-  hasExitOptions = no,
+  hasKeys = util.yes,
+  hasDPad = util.no,
+  hasSeamlessWifiToggle = util.no, -- Requires losing focus to the sytem's network settings and user interaction
+  hasExitOptions = util.no,
   hasEinkScreen = function()
     return android.isEink()
   end,
   hasColorScreen = android.isColorScreen,
   hasFrontlight = android.hasLights,
   hasNaturalLight = android.isWarmthDevice,
-  canRestart = no,
-  canSuspend = no,
+  canRestart = util.no,
+  canSuspend = util.no,
   firmware_rev = android.app.activity.sdkVersion,
   home_dir = android.getExternalStoragePath(),
   display_dpi = android.lib.AConfiguration_getDensity(android.app.config),
-  isHapticFeedbackEnabled = yes,
+  isHapticFeedbackEnabled = util.yes,
   isDefaultFullscreen = function()
     return android.app.activity.sdkVersion >= 19
   end,
-  hasClipboard = yes,
-  hasOTAUpdates = android.ota.isEnabled,
-  hasOTARunning = function()
-    return android.ota.isRunning
-  end,
-  hasFastWifiStatusQuery = yes,
-  hasSystemFonts = yes,
-  canOpenLink = yes,
+  hasClipboard = util.yes,
+  hasSystemFonts = util.yes,
+  canOpenLink = util.yes,
   openLink = function(self, link)
     if not link or type(link) ~= "string" then
       return
@@ -130,12 +119,12 @@ local Device = Generic:extend({
   importFile = function(path)
     android.importFile(path)
   end,
-  canShareText = yes,
+  canShareText = util.yes,
   doShareText = function(self, text, reason, title, mimetype)
     android.sendText(text, reason, title, mimetype)
   end,
 
-  canExternalDictLookup = yes,
+  canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
     return external.dicts
   end,
@@ -171,7 +160,7 @@ function Device:init()
   })
   self.powerd = require("device/android/powerd"):new({ device = self })
 
-  local event_map = dofile("frontend/device/android/event_map.lua")
+  local event_map = require("device/android/event_map")
 
   self.input = require("device/input"):new({
     device = self,
@@ -189,8 +178,7 @@ function Device:init()
       then
         this.device.screen:_updateWindow()
       elseif
-        ev.code == C.APP_CMD_LOST_FOCUS
-        or ev.code == C.APP_CMD_TERM_WINDOW
+        ev.code == C.APP_CMD_LOST_FOCUS or ev.code == C.APP_CMD_TERM_WINDOW
       then
         this.device.input:resetState()
       elseif ev.code == C.APP_CMD_CONFIG_CHANGED then
@@ -216,6 +204,7 @@ function Device:init()
         -- to-do: keyboard connected, disconnected
       elseif ev.code == C.APP_CMD_RESUME then
         if not android.prop.brokenLifecycle then
+          self.last_resume_at = time.monotonic()
           UIManager:broadcastEvent(Event:new("Resume"))
         end
         if external.when_back_callback then
@@ -233,12 +222,12 @@ function Device:init()
             local BD = require("ui/bidi")
             UIManager:scheduleIn(0.1, function()
               UIManager:show(InfoMessage:new({
-                text = T(_("Opening file '%1'."), BD.filepath(new_file)),
+                text = T(gettext("Opening file '%1'."), BD.filepath(new_file)),
                 timeout = 0.0,
               }))
             end)
             UIManager:scheduleIn(0.2, function()
-              require("apps/reader/readerui"):doShowReader(new_file)
+              require("apps/reader/readerui"):showReader(new_file)
             end)
           else
             -- check if we're resuming from importing content.
@@ -295,21 +284,21 @@ function Device:init()
     android.lib.AConfiguration_getKeyboard(android.app.config)
     == C.ACONFIGURATION_KEYBOARD_QWERTY
   then
-    self.hasKeyboard = yes
+    self.hasKeyboard = util.yes
   end
   -- check if we have a touchscreen
   if
     android.lib.AConfiguration_getTouchscreen(android.app.config)
     ~= C.ACONFIGURATION_TOUCHSCREEN_NOTOUCH
   then
-    self.isTouchDevice = yes
+    self.isTouchDevice = util.yes
   end
 
   -- check if we use custom timeouts
   if android.needsWakelocks() then
     android.timeout.set(C.AKEEP_SCREEN_ON_ENABLED)
   else
-    local timeout = G_reader_settings:readSetting("android_screen_timeout")
+    local timeout = G_reader_settings:read("android_screen_timeout")
     if timeout then
       if
         timeout == C.AKEEP_SCREEN_ON_ENABLED
@@ -355,11 +344,8 @@ function Device:initNetworkManager(NetworkMgr)
       complete_callback()
     end
   end
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     android.openWifiSettings()
-    if complete_callback then
-      complete_callback()
-    end
   end
 
   function NetworkMgr:_openSettings()
@@ -390,14 +376,14 @@ function Device:retrieveNetworkInfo()
   local ok, type = android.getNetworkInfo()
   ok, type = tonumber(ok), tonumber(type)
   if not ok or not type or type == C.ANETWORK_NONE then
-    return _("Not connected")
+    return gettext("Not connected")
   else
     if type == C.ANETWORK_WIFI then
-      return _("Connected to Wi-Fi")
+      return gettext("Connected to Wi-Fi")
     elseif type == C.ANETWORK_MOBILE then
-      return _("Connected to mobile data network")
+      return gettext("Connected to mobile data network")
     elseif type == C.ANETWORK_ETHERNET then
-      return _("Connected to Ethernet")
+      return gettext("Connected to Ethernet")
     end
   end
 end
@@ -439,7 +425,7 @@ function Device:_toggleFullscreenLegacy()
 
   local is_fullscreen = android.isFullscreen()
   android.setFullscreen(not is_fullscreen)
-  G_reader_settings:saveSetting("disable_android_fullscreen", is_fullscreen)
+  G_reader_settings:save("disable_android_fullscreen", is_fullscreen)
 
   self.fullscreen = android.isFullscreen()
   if self.fullscreen then
@@ -498,7 +484,7 @@ end
 function Device:toggleFullscreen()
   local is_fullscreen = android.isFullscreen()
   logger.dbg(string.format("requesting fullscreen: %s", not is_fullscreen))
-  local dummy, api = canToggleFullscreen()
+  local __, api = canToggleFullscreen()
   if api >= 19 then
     self:_toggleFullscreenImmersive()
   elseif api >= 16 then
@@ -513,7 +499,7 @@ function Device:info()
   local product_type = android.getPlatformName()
 
   local common_text = T(
-    _("%1\n\nOS: Android %2, api %3 on %4\nBuild flavor: %5\n"),
+    gettext("%1\n\nOS: Android %2, api %3 on %4\nBuild flavor: %5\n"),
     android.prop.product,
     getCodename(),
     Device.firmware_rev,
@@ -523,20 +509,20 @@ function Device:info()
 
   local platform_text = ""
   if product_type ~= "android" then
-    platform_text = "\n" .. T(_("Device type: %1"), product_type) .. "\n"
+    platform_text = "\n" .. T(gettext("Device type: %1"), product_type) .. "\n"
   end
 
   local eink_text = ""
   if is_eink then
     eink_text = "\n"
-      .. T(_("E-ink display supported.\nPlatform: %1"), eink_platform)
+      .. T(gettext("E-ink display supported.\nPlatform: %1"), eink_platform)
       .. "\n"
   end
 
   local wakelocks_text = ""
   if android.needsWakelocks() then
     wakelocks_text = "\n"
-      .. _(
+      .. gettext(
         "This device needs CPU, screen and touchscreen always on.\nScreen timeout will be ignored while the app is in the foreground!"
       )
       .. "\n"
@@ -594,14 +580,14 @@ function Device:showLightDialog()
 end
 
 function Device:_showLightDialog()
-  local title = android.isEink() and _("Frontlight settings")
-    or _("Light settings")
+  local title = android.isEink() and gettext("Frontlight settings")
+    or gettext("Light settings")
   android.lights.showDialog(
     title,
-    _("Brightness"),
-    _("Warmth"),
-    _("OK"),
-    _("Cancel")
+    gettext("Brightness"),
+    gettext("Warmth"),
+    gettext("OK"),
+    gettext("Cancel")
   )
 
   local action = android.lights.dialogState()
@@ -646,10 +632,10 @@ function Device:download(link, name, ok_text)
     }))
   elseif ok == C.ADOWNLOAD_FAILED then
     UIManager:show(ConfirmBox:new({
-      text = _(
+      text = gettext(
         "Your device seems to be unable to download packages.\nRetry using the browser?"
       ),
-      ok_text = _("Retry"),
+      ok_text = gettext("Retry"),
       ok_callback = function()
         self:openLink(link)
       end,
@@ -660,8 +646,8 @@ end
 function Device:install()
   local ConfirmBox = require("ui/widget/confirmbox")
   UIManager:show(ConfirmBox:new({
-    text = _("Update is ready. Install it now?"),
-    ok_text = _("Install"),
+    text = gettext("Update is ready. Install it now?"),
+    ok_text = gettext("Install"),
     ok_callback = function()
       UIManager:broadcastEvent(Event:new("FlushSettings"))
       UIManager:tickAfterNext(function()

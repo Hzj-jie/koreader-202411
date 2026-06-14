@@ -1,0 +1,1 @@
+../../../koreader/plugins/externalkeyboard.koplugin/event_map_keyboard.lua

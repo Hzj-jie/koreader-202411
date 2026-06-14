@@ -43,7 +43,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local Screen = Device.screen
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local InputContainer = WidgetContainer:extend({
   vertical_align = "top",
@@ -60,34 +60,6 @@ function InputContainer:_init()
   self.touch_zone_dg = nil
   self._zones = {}
   self._ordered_touch_zones = {}
-end
-
-function InputContainer:paintTo(bb, x, y)
-  if self[1] == nil then
-    return
-  end
-  if self.skip_paint then
-    return
-  end
-
-  if not self.dimen then
-    local content_size = self[1]:getSize()
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = content_size.w,
-      h = content_size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
-  if self.vertical_align == "center" then
-    local content_size = self[1]:getSize()
-    self[1]:paintTo(bb, x, y + math.floor((self.dimen.h - content_size.h) / 2))
-  else
-    self[1]:paintTo(bb, x, y)
-  end
 end
 
 --[[--
@@ -136,7 +108,7 @@ require("ui/uimanager"):show(test_widget)
 function InputContainer:registerTouchZones(zones)
   local screen_width, screen_height = Screen:getWidth(), Screen:getHeight()
   if not self.touch_zone_dg then
-    self.touch_zone_dg = DepGraph:new({})
+    self.touch_zone_dg = DepGraph:new()
   end
   for _, zone in ipairs(zones) do
     -- override touch zone with the same id to support reregistration
@@ -149,12 +121,8 @@ function InputContainer:registerTouchZones(zones)
       gs_range = GestureRange:new({
         ges = zone.ges,
         rate = zone.rate,
-        range = Geom:new({
-          x = screen_width * zone.screen_zone.ratio_x,
-          y = screen_height * zone.screen_zone.ratio_y,
-          w = screen_width * zone.screen_zone.ratio_w,
-          h = screen_height * zone.screen_zone.ratio_h,
-        }),
+        range = Geom:new({ x = 0, y = 0, w = screen_width, h = screen_height })
+          :resize(zone.screen_zone),
       }),
     }
     self.touch_zone_dg:addNode(zone.id)
@@ -181,16 +149,10 @@ function InputContainer:unRegisterTouchZones(zones)
         self.touch_zone_dg:removeNode(zone.id)
         if zone.overrides then
           for _, override_zone_id in ipairs(zone.overrides) do
-            --self.touch_zone_dg:removeNodeDep(override_zone_id, zone.id)
             self.touch_zone_dg:removeNodeDep(override_zone_id, zone.id)
           end
         end
-        for _, id in ipairs(self._ordered_touch_zones) do
-          if id.def.id == zone.id then
-            table.remove(self._ordered_touch_zones, i)
-            break
-          end
-        end
+        self._zones[zone.id] = nil
       end
     end
     self._ordered_touch_zones = {}
@@ -202,14 +164,6 @@ function InputContainer:unRegisterTouchZones(zones)
   end
 end
 
-function InputContainer:checkRegisterTouchZone(id)
-  if self.touch_zone_dg then
-    return self.touch_zone_dg:checkNode(id)
-  else
-    return false
-  end
-end
-
 --[[--
 Updates touch zones based on new screen dimensions.
 
@@ -217,11 +171,8 @@ Updates touch zones based on new screen dimensions.
 ]]
 function InputContainer:updateTouchZonesOnScreenResize(new_screen_dimen)
   for _, tzone in ipairs(self._ordered_touch_zones) do
-    local range = tzone.gs_range.range
-    range.x = new_screen_dimen.w * tzone.def.screen_zone.ratio_x
-    range.y = new_screen_dimen.h * tzone.def.screen_zone.ratio_y
-    range.w = new_screen_dimen.w * tzone.def.screen_zone.ratio_w
-    range.h = new_screen_dimen.h * tzone.def.screen_zone.ratio_h
+    tzone.gs_range.range = new_screen_dimen:copy()
+    tzone.gs_range.range:resize(tzone.def.screen_zone)
   end
 end
 
@@ -235,8 +186,9 @@ function InputContainer:onKeyPress(key)
       for _, oneseq in ipairs(seq) do
         -- NOTE: key is a device/key object, this isn't string.match!
         if key:match(oneseq) then
-          local eventname = seq.event or name
-          return self:handleEvent(Event:new(eventname, seq.args, key))
+          return self:handleEvent(
+            Event:new(seq.event or name, seq.args, key):asUserInput()
+          )
         end
       end
     end
@@ -245,16 +197,7 @@ end
 
 -- NOTE: Currently a verbatim copy of onKeyPress ;).
 function InputContainer:onKeyRepeat(key)
-  for name, seq in pairs(self.key_events) do
-    if not seq.is_inactive then
-      for _, oneseq in ipairs(seq) do
-        if key:match(oneseq) then
-          local eventname = seq.event or name
-          return self:handleEvent(Event:new(eventname, seq.args, key))
-        end
-      end
-    end
-  end
+  return self:onKeyPress(key)
 end
 
 function InputContainer:onGesture(ev)
@@ -266,20 +209,21 @@ function InputContainer:onGesture(ev)
   for name, gsseq in pairs(self.ges_events) do
     for _, gs_range in ipairs(gsseq) do
       if gs_range:match(ev) then
-        local eventname = gsseq.event or name
-        if self:handleEvent(Event:new(eventname, gsseq.args, ev)) then
+        if
+          self:handleEvent(
+            Event:new(gsseq.event or name, gsseq.args, ev):asUserInput()
+          )
+        then
           return true
         end
       end
     end
   end
-  if self.stop_events_propagation then
-    return true
-  end
+  return self:isShownModal()
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered
-function InputContainer:_isGestureAlwaysActive(ges, multiswipe_directions)
+function InputContainer:_isGestureAlwaysActive(_ges, _multiswipe_directions)
   -- If the plugin isn't enabled, IgnoreTouchInput can still be emitted by Dispatcher (e.g., via Profile or QuickMenu).
   -- Regardless of that, we still want to block all gestures anyway, as our own onResume handler will ensure
   -- that the standard onGesture handler is restored on the next resume cycle,
@@ -352,11 +296,11 @@ function InputContainer:onIgnoreTouchInput(toggle)
   local Notification = require("ui/widget/notification")
   if toggle == true then
     if self:setIgnoreTouchInput(true) then
-      Notification:notify(_("Disabled touch input"))
+      Notification:notify(gettext("Disabled touch input"))
     end
   elseif toggle == false then
     if self:setIgnoreTouchInput(false) then
-      Notification:notify(_("Restored touch input"))
+      Notification:notify(gettext("Restored touch input"))
     end
   else
     -- Toggle the current state
@@ -377,14 +321,14 @@ function InputContainer:onInput(input, ignore_first_hold_release)
     buttons = input.buttons or {
       {
         {
-          text = input.cancel_text or _("Cancel"),
+          text = input.cancel_text or gettext("Cancel"),
           id = "close",
           callback = function()
             self:closeInputDialog()
           end,
         },
         {
-          text = input.ok_text or _("OK"),
+          text = input.ok_text or gettext("OK"),
           is_enter_default = true,
           callback = function()
             if
@@ -399,7 +343,7 @@ function InputContainer:onInput(input, ignore_first_hold_release)
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
   self.input_dialog:showKeyboard(ignore_first_hold_release)
 end
 

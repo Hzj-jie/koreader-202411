@@ -46,8 +46,7 @@ local function convert(doc)
     for _, param in ipairs(params or {}) do
       if param.style ~= "header" then
         if
-          param.required
-          and (param.required == "true" or param.required == "1")
+          param.required and (param.required == "true" or param.required == "1")
         then
           if not required_params then
             required_params = {}

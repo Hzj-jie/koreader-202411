@@ -14,8 +14,8 @@ local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
 local buffer = require("string.buffer")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local Trapper = {}
 
@@ -47,7 +47,7 @@ function Trapper:wrap(func)
     local ok, err = xpcall(func, debug.traceback)
     UIManager:allowStandby()
     if not ok then
-      logger.warn("error in wrapped function:", err)
+      logger.err("error in wrapped function:", err)
       return false
     end
     return true
@@ -74,7 +74,7 @@ function Trapper:clear()
   if self:isWrapped() then
     if self.current_widget then
       UIManager:close(self.current_widget)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       self.current_widget = nil
     end
   end
@@ -153,24 +153,21 @@ function Trapper:info(text, fast_refresh)
       -- Don't just return false without confirmation (this tap may have been
       -- made by error, and we don't want to just cancel a long running job)
       local abort_box = ConfirmBox:new({
-        text = self.paused_text and self.paused_text or _("Paused"),
+        text = self.paused_text and self.paused_text or gettext("Paused"),
         -- ok and cancel reversed, as tapping outside will
         -- get cancel_callback called: if tap outside was the
         -- result of a tap error, we want to continue. Cancelling
         -- will need an explicit tap on the ok_text button.
         cancel_text = self.paused_continue_text and self.paused_continue_text
-          or _("Continue"),
+          or gettext("Continue"),
         ok_text = self.paused_abort_text and self.paused_abort_text
-          or _("Abort"),
+          or gettext("Abort"),
         cancel_callback = function()
           coroutine.resume(_coroutine, true)
         end,
         ok_callback = function()
           coroutine.resume(_coroutine, false)
         end,
-        -- flush any pending tap, so past events won't be considered
-        -- action on the yet to be displayed widget
-        flush_events_on_show = true,
       })
       UIManager:show(abort_box)
       -- no need to forceRePaint, UIManager will do it when we yield()
@@ -178,7 +175,7 @@ function Trapper:info(text, fast_refresh)
       UIManager:close(abort_box)
       if not go_on then
         UIManager:close(self.current_widget)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
         return false
       end
       if self.current_widget then
@@ -188,7 +185,7 @@ function Trapper:info(text, fast_refresh)
         self.current_widget:init()
         UIManager:show(self.current_widget)
       end
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     end
     -- go_on_func returned result = true, or abort_box did not abort:
     -- continue processing
@@ -223,13 +220,10 @@ function Trapper:info(text, fast_refresh)
         coroutine.resume(_coroutine, false)
       end,
       is_infomessage = true, -- flag on our InfoMessages
-      -- flush any pending tap, so past events won't be considered
-      -- action on the yet to be displayed widget
-      flush_events_on_show = true,
     })
     logger.dbg("Showing InfoMessage:", text)
     UIManager:show(self.current_widget)
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   return true
 end
@@ -295,9 +289,6 @@ function Trapper:confirm(text, cancel_text, ok_text)
     ok_callback = function()
       coroutine.resume(_coroutine, true)
     end,
-    -- flush any pending tap, so past events won't be considered
-    -- action on the yet to be displayed widget
-    flush_events_on_show = true,
   })
   logger.dbg("Showing ConfirmBox and waiting for answer:", text)
   UIManager:show(self.current_widget)
@@ -369,7 +360,7 @@ function Trapper:dismissablePopen(cmd, trap_widget_or_string)
         text = trap_widget_or_string,
       })
       UIManager:show(trap_widget)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     else
       -- Use an invisible TrapWidget that resend event, but not if
       -- trap_widget_or_string is false (rather than nil or true)
@@ -455,7 +446,7 @@ function Trapper:dismissablePopen(cmd, trap_widget_or_string)
     -- Remove our own trap_widget
     UIManager:close(trap_widget)
     if not own_trap_widget_invisible then
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     end
   end
   -- return what we got or not to our caller
@@ -529,7 +520,7 @@ function Trapper:dismissableRunInSubprocess(
         text = trap_widget_or_string,
       })
       UIManager:show(trap_widget)
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     else
       -- Use an invisible TrapWidget that resend event, but not if
       -- trap_widget_or_string is false (rather than nil or true)
@@ -560,7 +551,7 @@ function Trapper:dismissableRunInSubprocess(
   local ret_values
 
   local pid, parent_read_fd = ffiutil.runInSubProcess(
-    function(pid, child_write_fd)
+    function(_pid, child_write_fd)
       local output_str = ""
       if task_returns_simple_string then
         -- task is assumed to return only a string or nil,
@@ -697,7 +688,7 @@ function Trapper:dismissableRunInSubprocess(
     -- Remove our own trap_widget
     UIManager:close(trap_widget)
     if not own_trap_widget_invisible then
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
     end
   end
   -- return what we got or not to our caller

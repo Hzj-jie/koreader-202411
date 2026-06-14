@@ -1,11 +1,12 @@
 local Event = require("ui/event")
-local Geom = require("ui/geometry")
 local Generic = require("device/generic/device")
+local Geom = require("ui/geometry")
 local UIManager
 local SDL = require("ffi/SDL2_0")
 local ffi = require("ffi")
 local logger = require("logger")
 local time = require("ui/time")
+local util = require("util")
 
 -- SDL computes WM_CLASS on X11/Wayland based on process's binary name.
 -- Some desktop environments rely on WM_CLASS to name the app and/or to assign the proper icon.
@@ -16,16 +17,6 @@ if jit.os == "Linux" or jit.os == "BSD" or jit.os == "POSIX" then
   if not os.getenv("SDL_VIDEO_X11_WMCLASS") then
     ffi.C.setenv("SDL_VIDEO_X11_WMCLASS", "KOReader", 1)
   end
-end
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
-local function notOSX()
-  return jit.os ~= "OSX"
 end
 
 local function isUrl(s)
@@ -73,23 +64,23 @@ local external = require("device/thirdparty"):new({
 
 local Device = Generic:extend({
   model = "SDL",
-  isSDL = yes,
+  isSDL = util.yes,
   home_dir = os.getenv("XDG_DOCUMENTS_DIR") or os.getenv("HOME"),
   hasBattery = SDL.getPowerInfo,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and yes or no,
-  hasDPad = yes,
-  hasWifiToggle = no,
-  hasSeamlessWifiToggle = no,
-  isTouchDevice = yes,
-  isDefaultFullscreen = no,
-  needsScreenRefreshAfterResume = no,
-  hasColorScreen = yes,
-  hasEinkScreen = no,
-  hasSystemFonts = yes,
-  canSuspend = no,
-  canStandby = no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = os.getenv("DISABLE_TOUCH") == "1" and util.yes or util.no,
+  hasDPad = util.yes,
+  hasWifiToggle = util.no,
+  hasSeamlessWifiToggle = util.no,
+  isTouchDevice = util.yes,
+  isDefaultFullscreen = util.no,
+  needsScreenRefreshAfterResume = util.no,
+  hasColorScreen = util.yes,
+  hasEinkScreen = util.no,
+  hasSystemFonts = util.yes,
+  canSuspend = util.no,
+  canStandby = util.no,
   startTextInput = SDL.startTextInput,
   stopTextInput = SDL.stopTextInput,
   canOpenLink = getLinkOpener,
@@ -100,7 +91,7 @@ local Device = Generic:extend({
     end
     return runCommand(tool .. " '" .. link .. "'")
   end,
-  canExternalDictLookup = yes,
+  canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
     return external.dicts
   end,
@@ -119,7 +110,7 @@ local Device = Generic:extend({
       external.when_back_callback = nil
     end
   end,
-  window = G_reader_settings:readSetting("sdl_window") or {},
+  window = G_reader_settings:readTableRef("sdl_window"),
 })
 
 function Device:otaModel()
@@ -131,44 +122,38 @@ end
 local AppImage = Device:extend({
   model = "AppImage",
   ota_model = "appimage",
-  hasOTAUpdates = yes,
-  isDesktop = yes,
-})
-
-local Desktop = Device:extend({
-  model = SDL.getPlatform(),
-  isDesktop = yes,
-  canRestart = notOSX,
-  hasExitOptions = notOSX,
+  isDesktop = util.yes,
 })
 
 local Flatpak = Device:extend({
   model = "Flatpak",
-  isDesktop = yes,
-  canExternalDictLookup = no,
+  isDesktop = util.yes,
+  canExternalDictLookup = util.no,
 })
 
 local Emulator = Device:extend({
   model = "Emulator",
-  isEmulator = yes,
-  hasBattery = yes,
-  hasEinkScreen = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
-  hasNaturalLightApi = yes,
-  hasWifiToggle = yes,
+  isDesktop = util.yes,
+  isEmulator = util.yes,
+  hasBattery = util.yes,
+  hasEinkScreen = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
+  hasNaturalLightApi = util.yes,
+  hasWifiRestore = util.yes,
+  hasWifiToggle = util.yes,
   -- Not really, Device:reboot & Device:powerOff are not implemented, so we just exit ;).
-  canPowerOff = yes,
-  canReboot = yes,
+  canPowerOff = util.yes,
+  canReboot = util.yes,
   -- NOTE: Via simulateSuspend
-  canSuspend = yes,
-  canStandby = no,
+  canSuspend = util.yes,
+  canStandby = util.no,
 })
 
 local UbuntuTouch = Device:extend({
   model = "UbuntuTouch",
-  hasFrontlight = yes,
-  isDefaultFullscreen = yes,
+  hasFrontlight = util.yes,
+  isDefaultFullscreen = util.yes,
 })
 
 function Device:init()
@@ -182,15 +167,15 @@ function Device:init()
 
   local touchless = os.getenv("DISABLE_TOUCH") == "1"
   if touchless then
-    self.isTouchDevice = no
+    self.isTouchDevice = util.no
   end
 
   local portrait = os.getenv("EMULATE_READER_FORCE_PORTRAIT")
   if portrait then
-    self.isAlwaysPortrait = yes
+    self.isAlwaysPortrait = util.yes
   end
 
-  self.hasClipboard = yes
+  self.hasClipboard = util.yes
   self.screen = require("ffi/framebuffer_SDL2_0"):new({
     device = self,
     debug = logger.dbg,
@@ -213,7 +198,7 @@ function Device:init()
 
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/sdl/event_map_sdl2.lua"),
+    event_map = require("device/sdl/event_map_sdl2"),
     handleSdlEv = function(device_input, ev)
       -- SDL events can remain cdata but are almost completely transparent
       local SDL_TEXTINPUT = 771
@@ -260,22 +245,19 @@ function Device:init()
         local fake_release_ev = Event:new("Gesture", fake_ges_release)
         if scrolled_y == down then
           fake_ges.direction = "north"
-          UIManager:sendEvent(fake_pan_ev)
-          UIManager:sendEvent(fake_release_ev)
+          UIManager:userInput(fake_pan_ev)
+          UIManager:userInput(fake_release_ev)
         elseif scrolled_y == up then
           fake_ges.direction = "south"
-          UIManager:sendEvent(fake_pan_ev)
-          UIManager:sendEvent(fake_release_ev)
+          UIManager:userInput(fake_pan_ev)
+          UIManager:userInput(fake_release_ev)
         end
-      elseif ev.code == SDL_MULTIGESTURE then
+      elseif ev.code == SDL_MULTIGESTURE then -- luacheck: ignore 542
         -- no-op for now
-        do
-        end -- luacheck: ignore 541
       elseif ev.code == SDL_DROPFILE then
         local dropped_file_path = ev.value
         if dropped_file_path and dropped_file_path ~= "" then
-          local ReaderUI = require("apps/reader/readerui")
-          ReaderUI:doShowReader(dropped_file_path)
+          require("apps/reader/readerui"):showReader(dropped_file_path)
         end
       elseif ev.code == SDL_WINDOWEVENT_RESIZED then
         device_input.device.screen.resize(
@@ -316,16 +298,16 @@ function Device:init()
         self.window.left = ev.value.data1
         self.window.top = ev.value.data2
       elseif ev.code == SDL_TEXTINPUT then
-        UIManager:sendEvent(Event:new("TextInput", tostring(ev.value)))
+        UIManager:userInput(Event:new("TextInput", tostring(ev.value)))
       end
     end,
   })
 
-  self.keyboard_layout = dofile("frontend/device/sdl/keyboard_layout.lua")
+  self.keyboard_layout = require("device/sdl/keyboard_layout")
 
   if self.input.gameControllerRumble(0, 0, 0) then
-    self.isHapticFeedbackEnabled = yes
-    self.performHapticFeedback = function(type)
+    self.isHapticFeedbackEnabled = util.yes
+    self.performHapticFeedback = function(_type)
       self.input.gameControllerRumble()
     end
   end
@@ -386,7 +368,7 @@ function Device:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Device:setEventHandlers(uimgr)
+function Device:setEventHandlers(_uimgr)
   if not self:canSuspend() then
     -- If we can't suspend, we have no business even trying to, as we may not have overloaded `Device:simulateResume`.
     -- Instead, rely on the Generic Suspend/Resume handlers.
@@ -467,9 +449,9 @@ function Emulator:initNetworkManager(NetworkMgr)
       complete_callback()
     end
   end
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     G_reader_settings:flipNilOrTrue("emulator_fake_wifi_connected")
-    UIManager:scheduleIn(2, connectionChangedEvent, complete_callback)
+    UIManager:scheduleIn(2, connectionChangedEvent)
   end
   function NetworkMgr:_turnOnWifi(complete_callback)
     G_reader_settings:flipNilOrTrue("emulator_fake_wifi_connected")
@@ -478,11 +460,48 @@ function Emulator:initNetworkManager(NetworkMgr)
   function NetworkMgr:isWifiOn()
     return G_reader_settings:nilOrTrue("emulator_fake_wifi_connected")
   end
+  function NetworkMgr:restoreWifiAsync()
+    self:_turnOnWifi()
+  end
   function NetworkMgr:getNetworkInterfaceName()
     -- Not accurate.
     return "eth0"
   end
+  function NetworkMgr:getNetworkList()
+    local list = {}
+    for i = 1, 5 do
+      table.insert(list, {
+        signal_level = string.format("%d/5", i),
+        signal_quality = (i - 1) * 25,
+        connected = false,
+        ssid = string.format("fake-ssid-%d", i),
+        flags = "WPA",
+        password = false,
+      })
+    end
+    return list, nil
+  end
   NetworkMgr.isConnected = NetworkMgr.isWifiOn
+end
+
+local _pagePressPressure = 0
+function Emulator:pagePressPressure()
+  return _pagePressPressure
+end
+
+function Emulator:setPagePressPressure(v)
+  assert(v >= 0 and v <= 2)
+  _pagePressPressure = v
+end
+
+local _pagePressFeedback = 0
+function Emulator:pagePressFeedback()
+  return _pagePressFeedback
+end
+
+function Emulator:setPagePressFeedback(v)
+  assert(v >= 0 and v <= 3)
+  _pagePressFeedback = v
 end
 
 io.write("Starting SDL in " .. SDL.getBasePath() .. "\n")
@@ -492,8 +511,6 @@ if os.getenv("APPIMAGE") then
   return AppImage
 elseif os.getenv("FLATPAK") then
   return Flatpak
--- elseif os.getenv("KO_MULTIUSER") then
---   return Desktop
 elseif os.getenv("UBUNTU_APPLICATION_ISOLATION") then
   return UbuntuTouch
 else

@@ -1,21 +1,21 @@
 local InfoMessage = require("ui/widget/infomessage")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local UIManager = require("ui/uimanager")
-local mime = require("mime")
-local md = require("template/md")
-local json = require("json")
 local http = require("socket.http")
+local json = require("json")
+local logger = require("logger")
 local ltn12 = require("ltn12")
+local md = require("template/md")
+local mime = require("mime")
 local socket = require("socket")
 local socketutil = require("socketutil")
-local logger = require("logger")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- nextcloud notes exporter
 local NextcloudExporter = require("base"):new({
   name = "nextcloud_notes",
-  category = _("KOReader"),
+  category = gettext("KOReader"),
   is_remote = true,
 })
 
@@ -60,8 +60,7 @@ local function makeRequest(url, auth, method, request_body)
     return nil, "No response from Nextcloud"
   end
 
-  local response = json.decode(sink[1])
-  return response
+  return json.decode(sink[1])
 end
 
 function NextcloudExporter:isReadyToExport()
@@ -71,9 +70,9 @@ function NextcloudExporter:isReadyToExport()
 end
 
 function NextcloudExporter:getMenuTable()
-  local dialog_title = _("Setup Nextcloud Notes plugin")
+  local dialog_title = gettext("Setup Nextcloud Notes plugin")
   return {
-    text = _("Nextcloud Notes"),
+    text = gettext("Nextcloud Notes"),
     checked_func = function()
       return self:isEnabled()
     end,
@@ -87,20 +86,20 @@ function NextcloudExporter:getMenuTable()
             title = dialog_title,
             fields = {
               {
-                description = _("Nextcloud URL"),
+                description = gettext("Nextcloud URL"),
                 hint = "https://yournextcloud.com",
                 text = self.settings.host,
                 input_type = "string",
               },
               {
-                description = _("Username"),
-                hint = _("Username"),
+                description = gettext("Username"),
+                hint = gettext("Username"),
                 text = self.settings.username,
                 input_type = "string",
               },
               {
-                description = _("App password"),
-                hint = _("Security -> Devices & sessions"),
+                description = gettext("App password"),
+                hint = gettext("Security -> Devices & sessions"),
                 text = self.settings.password,
                 input_type = "string",
               },
@@ -108,13 +107,13 @@ function NextcloudExporter:getMenuTable()
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(url_dialog)
                   end,
                 },
                 {
-                  text = _("OK"),
+                  text = gettext("OK"),
                   callback = function()
                     local fields = url_dialog:getFields()
                     local host = fields[1]
@@ -139,11 +138,10 @@ function NextcloudExporter:getMenuTable()
             },
           })
           UIManager:show(url_dialog)
-          url_dialog:showKeyboard()
         end,
       },
       {
-        text = _("Export to Nextcloud Notes"),
+        text = gettext("Export to Nextcloud Notes"),
         checked_func = function()
           return self:isEnabled()
         end,
@@ -152,12 +150,12 @@ function NextcloudExporter:getMenuTable()
         end,
       },
       {
-        text = _("Help"),
+        text = gettext("Help"),
         keep_menu_open = true,
         callback = function()
           UIManager:show(InfoMessage:new({
             text = T(
-              _([[For Nextcloud Notes setup instructions, see %1
+              gettext([[For Nextcloud Notes setup instructions, see %1
 
 Markdown formatting can be configured in:
 Export highlights > Choose formats and services > Markdown.]]),
@@ -176,7 +174,7 @@ function NextcloudExporter:export(t)
   end
 
   -- determine if markdown export is set
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableRef("exporter")
   local markdown_settings = plugin_settings.markdown
 
   -- setup Nextcloud variables

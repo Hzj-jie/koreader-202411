@@ -10,10 +10,10 @@ of storing it.
 --
 
 local lfs = require("libs/libkoreader-lfs")
-local rapidjson = require("rapidjson")
 local logger = require("logger")
-local util = require("util")
+local rapidjson = require("rapidjson")
 local time = require("ui/time")
+local util = require("util")
 
 local used_metadata = {
   "uuid",
@@ -152,7 +152,7 @@ end
 
 -- remove a book from our books table
 function CalibreMetadata:removeBook(lpath)
-  local function drop_lpath(t, i, j)
+  local function drop_lpath(t, i, _j)
     return t[i].lpath ~= lpath
   end
   util.arrayRemove(self.books, drop_lpath)
@@ -252,7 +252,7 @@ function CalibreMetadata:init(dir, is_search)
   if not dir then
     return
   end
-  local start_time = time.now()
+  local start_time = time.monotonic()
   self.path = dir
   local ok_meta, ok_drive, file_meta, file_drive = findCalibreFiles(dir)
   self.driveinfo = file_drive

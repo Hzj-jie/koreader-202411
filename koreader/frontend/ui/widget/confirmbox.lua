@@ -4,8 +4,8 @@ Widget that shows a confirmation alert with a message and Cancel/OK buttons.
 Example:
 
     UIManager:show(ConfirmBox:new{
-        text = _("Save the document?"),
-        ok_text = _("Save"),  -- ok_text defaults to _("OK")
+        text = gettext("Save the document?"),
+        ok_text = gettext("Save"),  -- ok_text defaults to gettext("OK")
         ok_callback = function()
             -- save document
         end,
@@ -35,18 +35,19 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
-local Input = Device.input
+local gettext = require("gettext")
 local Screen = Device.screen
+
+local active_instances = 0
 
 local ConfirmBox = InputContainer:extend({
   modal = true,
   keep_dialog_open = false,
-  text = _("no text"),
+  text = gettext("no text"),
   face = Font:getFace("infofont"),
   icon = "notice-question",
-  ok_text = _("OK"),
-  cancel_text = _("Cancel"),
+  ok_text = gettext("OK"),
+  cancel_text = gettext("Cancel"),
   ok_callback = function() end,
   cancel_callback = function() end,
   other_buttons = nil,
@@ -55,8 +56,8 @@ local ConfirmBox = InputContainer:extend({
   margin = Size.margin.default,
   padding = Size.padding.default,
   dismissable = true, -- set to false if any button callback is required
-  flush_events_on_show = false, -- set to true when it might be displayed after
-  -- some processing, to avoid accidental dismissal
+  timeout = nil,
+  _timeout_func = nil,
 })
 
 function ConfirmBox:init()
@@ -75,7 +76,7 @@ function ConfirmBox:init()
       }
     end
     if Device:hasKeys() then
-      self.key_events.Close = { { Device.input.group.Back } }
+      self.key_events.Exit = { { Device.input.group.Dismiss } }
     end
   end
 
@@ -93,7 +94,7 @@ function ConfirmBox:init()
   if self._added_widgets then
     table.insert(
       self.text_group,
-      VerticalSpan:new({ width = Size.padding.large })
+      VerticalSpan:new({ height = Size.padding.large })
     )
     for _, widget in ipairs(self._added_widgets) do
       table.insert(self.text_group, widget)
@@ -160,7 +161,6 @@ function ConfirmBox:init()
     width = content:getSize().w,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   local frame = FrameContainer:new({
@@ -172,7 +172,7 @@ function ConfirmBox:init()
       align = "left",
       content,
       -- Add same vertical space after than before content
-      VerticalSpan:new({ width = self.margin + self.padding }),
+      VerticalSpan:new({ height = self.margin + self.padding }),
       button_table,
     }),
   })
@@ -235,16 +235,30 @@ function ConfirmBox:getAddedWidgetAvailableWidth()
 end
 
 function ConfirmBox:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple ConfirmBox instances detected!")
   UIManager:setDirty(self, function()
     return "ui", self.movable.dimen
   end)
-  if self.flush_events_on_show then
-    -- Discard queued and upcoming input events to avoid accidental dismissal
-    Input:inhibitInputUntil(true)
+  if self.timeout then
+    self._timeout_func = function()
+      self._timeout_func = nil
+      UIManager:close(self)
+    end
+    UIManager:scheduleIn(self.timeout, self._timeout_func)
   end
 end
 
 function ConfirmBox:onClose()
+  active_instances = active_instances - 1
+  assert(
+    active_instances >= 0,
+    "ConfirmBox active instances count went negative!"
+  )
+  if self._timeout_func then
+    UIManager:unschedule(self._timeout_func)
+    self._timeout_func = nil
+  end
   UIManager:setDirty(nil, function()
     return "ui", self.movable.dimen
   end)

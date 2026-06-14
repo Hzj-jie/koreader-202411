@@ -1,14 +1,14 @@
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DateTimeWidget = require("ui/widget/datetimewidget")
-local Event = require("ui/event")
+local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local datetime = require("datetime")
+local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local ReadTimer = WidgetContainer:extend({
@@ -28,22 +28,21 @@ function ReadTimer:init()
     end
 
     self.time = 0
-    local tip_text = _("Time is up")
-    local confirm_box
+    local tip_text = gettext("Time is up")
     -- only interval support repeat
     if self.last_interval_time > 0 then
       logger.dbg("can_repeat, show confirm_box")
-      confirm_box = ConfirmBox:new({
+      local confirm_box = ConfirmBox:new({
         text = tip_text,
-        ok_text = _("Repeat"),
+        ok_text = gettext("Repeat"),
         ok_callback = function()
           logger.dbg("Schedule a new time:", self.last_interval_time)
-          UIManager:close(confirm_box)
           self:rescheduleIn(self.last_interval_time)
         end,
-        cancel_text = _("Done"),
+        cancel_text = gettext("Done"),
         cancel_callback = function()
           self.last_interval_time = 0
+          self:unschedule()
         end,
       })
       UIManager:show(confirm_box)
@@ -59,9 +58,14 @@ function ReadTimer:init()
     if not self:scheduled() then
       return nil
     end
-    local hours, minutes, dummy = self:remainingTime(1)
+    local hours, minutes = self:remainingTime(1)
     local timer_info = string.format("%02d:%02d", hours, minutes)
-    return self.timer_symbol .. timer_info
+    if Device:isEmulator() then
+      return self.timer_symbol .. timer_info
+    else
+      -- TODO(#151): Try to fix it.
+      return self.timer_letter .. ": " .. timer_info
+    end
   end
 
   self.additional_footer_content_func = function()
@@ -69,56 +73,55 @@ function ReadTimer:init()
       return nil
     end
     local item_prefix = self.ui.view.footer.settings.item_prefix
-    local hours, minutes, dummy = self:remainingTime(1)
+    local hours, minutes = self:remainingTime(1)
     local timer_info = string.format("%02d:%02d", hours, minutes)
 
-    if item_prefix == "icons" then
+    if item_prefix == "icons" or item_prefix == "compact_items" then
       return self.timer_symbol .. " " .. timer_info
-    elseif item_prefix == "compact_items" then
-      return self.timer_symbol .. timer_info
     else
       return self.timer_letter .. ": " .. timer_info
     end
   end
 
   self.show_value_in_header =
-    G_reader_settings:readSetting("readtimer_show_value_in_header")
+    G_reader_settings:read("readtimer_show_value_in_header")
   self.show_value_in_footer =
-    G_reader_settings:readSetting("readtimer_show_value_in_footer")
-
-  if self.show_value_in_header then
-    self:addAdditionalHeaderContent()
-  end
-
-  if self.show_value_in_footer then
-    self:addAdditionalFooterContent()
-  end
+    G_reader_settings:read("readtimer_show_value_in_footer")
 
   self.ui.menu:registerToMainMenu(self)
 end
 
-function ReadTimer:update_status_bars(seconds)
+function ReadTimer:onPostReaderReady()
+  if not self:scheduled() then
+    return
+  end
+
   if self.show_value_in_header then
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+    self:addAdditionalHeaderContent()
+  else
+    self:removeAdditionalHeaderContent()
+  end
+
+  if self.show_value_in_footer then
+    self:addAdditionalFooterContent()
+  else
+    self:removeAdditionalFooterContent()
+  end
+end
+
+function ReadTimer:onTimesChange_1M()
+  if not self:scheduled() then
+    return
+  end
+  if self.show_value_in_header then
+    UIManager:broadcastEvent("UpdateHeader")
   end
   if self.show_value_in_footer then
-    UIManager:broadcastEvent(Event:new("RefreshAdditionalContent"))
-  end
-  -- if seconds schedule 1ms later
-  if seconds and seconds >= 0 then
-    UIManager:scheduleIn(
-      math.max(math.floor(seconds) % 60, 0.001),
-      self.update_status_bars,
-      self
-    )
-  elseif seconds and seconds < 0 and self:scheduled() then
-    UIManager:scheduleIn(
-      math.max(math.floor(self:remaining()) % 60, 0.001),
-      self.update_status_bars,
-      self
-    )
-  else
-    UIManager:scheduleIn(60, self.update_status_bars, self)
+    -- This is a little bit wasteful. When time is showed, ReaderFooter listens
+    -- to onTimesChange_1M and the onUpdateFooter will be called twice.
+    -- It's easy to create a different event handler to avoid double-updating,
+    -- but it seems not very necessary.
+    UIManager:broadcastEvent("UpdateFooter")
   end
 end
 
@@ -128,8 +131,8 @@ end
 
 function ReadTimer:remaining()
   if self:scheduled() then
-    -- Resolution: time.now() subsecond, os.time() two seconds
-    local remaining_s = time.to_s(self.time - time.now())
+    -- Resolution: time.monotonic() subsecond, os.time() two seconds
+    local remaining_s = time.to_s(self.time - time.monotonic())
     if remaining_s > 0 then
       return remaining_s
     else
@@ -163,40 +166,38 @@ function ReadTimer:remainingTime(round)
 end
 
 function ReadTimer:addAdditionalHeaderContent()
-  if self.ui.crelistener then
-    self.ui.crelistener:addAdditionalHeaderContent(
-      self.additional_header_content_func
-    )
-    self:update_status_bars(-1)
+  if not self.ui.crelistener then
+    return
   end
+  self.ui.crelistener:addAdditionalHeaderContent(
+    self.additional_header_content_func
+  )
 end
 function ReadTimer:addAdditionalFooterContent()
-  if self.ui.view then
-    self.ui.view.footer:addAdditionalFooterContent(
-      self.additional_footer_content_func
-    )
-    self:update_status_bars(-1)
+  if not self.ui.view then
+    return
   end
+  self.ui.view.footer:addAdditionalFooterContent(
+    self.additional_footer_content_func
+  )
 end
 
 function ReadTimer:removeAdditionalHeaderContent()
-  if self.ui.crelistener then
-    self.ui.crelistener:removeAdditionalHeaderContent(
-      self.additional_header_content_func
-    )
-    self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateHeader"))
+  if not self.ui.crelistener then
+    return
   end
+  self.ui.crelistener:removeAdditionalHeaderContent(
+    self.additional_header_content_func
+  )
 end
 
 function ReadTimer:removeAdditionalFooterContent()
-  if self.ui.view then
-    self.ui.view.footer:removeAdditionalFooterContent(
-      self.additional_footer_content_func
-    )
-    self:update_status_bars(-1)
-    UIManager:broadcastEvent(Event:new("UpdateFooter", true))
+  if not self.ui.view then
+    return
   end
+  self.ui.view.footer:removeAdditionalFooterContent(
+    self.additional_footer_content_func
+  )
 end
 
 function ReadTimer:unschedule()
@@ -204,52 +205,41 @@ function ReadTimer:unschedule()
     UIManager:unschedule(self.alarm_callback)
     self.time = 0
   end
-  UIManager:unschedule(self.update_status_bars, self)
+  self:removeAdditionalHeaderContent()
+  self:removeAdditionalFooterContent()
 end
 
 function ReadTimer:rescheduleIn(seconds)
-  -- Resolution: time.now() subsecond, os.time() two seconds
-  self.time = time.now() + time.s(seconds)
+  -- Resolution: time.monotonic() subsecond, os.time() two seconds
+  self.time = time.monotonic() + time.s(seconds)
   UIManager:scheduleIn(seconds, self.alarm_callback)
-  if self.show_value_in_header or self.show_value_in_footer then
-    self:update_status_bars(seconds)
-  end
+  self:onPostReaderReady()
 end
 
 function ReadTimer:addCheckboxes(widget)
   local checkbox_header = CheckButton:new({
-    text = _("Show timer in alt status bar"),
+    text = gettext("Show timer in alt status bar"),
     checked = self.show_value_in_header,
     parent = widget,
     callback = function()
       self.show_value_in_header = not self.show_value_in_header
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "readtimer_show_value_in_header",
         self.show_value_in_header,
         false
       )
-      if self.show_value_in_header then
-        self:addAdditionalHeaderContent()
-      else
-        self:removeAdditionalHeaderContent()
-      end
     end,
   })
   local checkbox_footer = CheckButton:new({
-    text = _("Show timer in status bar"),
+    text = gettext("Show timer in status bar"),
     checked = self.show_value_in_footer,
     parent = widget,
     callback = function()
       self.show_value_in_footer = not self.show_value_in_footer
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "readtimer_show_value_in_footer",
         self.show_value_in_footer
       )
-      if self.show_value_in_footer then
-        self:addAdditionalFooterContent()
-      else
-        self:removeAdditionalFooterContent()
-      end
     end,
   })
   widget:addWidget(checkbox_header)
@@ -262,7 +252,7 @@ function ReadTimer:addToMainMenu(menu_items)
       if self:scheduled() then
         local user_duration_format = G_named_settings.duration_format()
         return T(
-          _("Read timer (%1)"),
+          gettext("Read timer (%1)"),
           datetime.secondsToClockDuration(
             user_duration_format,
             self:remaining(),
@@ -270,7 +260,7 @@ function ReadTimer:addToMainMenu(menu_items)
           )
         )
       else
-        return _("Read timer")
+        return gettext("Read timer")
       end
     end,
     checked_func = function()
@@ -278,18 +268,18 @@ function ReadTimer:addToMainMenu(menu_items)
     end,
     sub_item_table = {
       {
-        text = _("Set time"),
+        text = gettext("Set time"),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local now_t = os.date("*t")
           local curr_hour = now_t.hour
           local curr_min = now_t.min
           local time_widget = DateTimeWidget:new({
             hour = curr_hour,
             min = curr_min,
-            ok_text = _("Set alarm"),
-            title_text = _("New alarm"),
-            info_text = _("Enter a time in hours and minutes."),
+            ok_text = gettext("Set alarm"),
+            title_text = gettext("New alarm"),
+            info_text = gettext("Enter a time in hours and minutes."),
             callback = function(alarm_time)
               self.last_interval_time = 0
               self:unschedule()
@@ -304,7 +294,7 @@ function ReadTimer:addToMainMenu(menu_items)
                 UIManager:show(InfoMessage:new({
                   -- @translators %1:%2 is a clock time (HH:MM), %3 is a duration
                   text = T(
-                    _("Timer set for %1:%2.\n\nThat's %3 from now."),
+                    gettext("Timer set for %1:%2.\n\nThat's %3 from now."),
                     string.format("%02d", alarm_time.hour),
                     string.format("%02d", alarm_time.min),
                     datetime.secondsToClockDuration(
@@ -315,12 +305,12 @@ function ReadTimer:addToMainMenu(menu_items)
                   ),
                   timeout = 5,
                 }))
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               else
                 UIManager:show(InfoMessage:new({
-                  text = _(
+                  text = gettext(
                     "Timer could not be set. The selected time is in the past."
                   ),
                   timeout = 5,
@@ -333,14 +323,13 @@ function ReadTimer:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Set interval"),
+        text = gettext("Set interval"),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local remain_time = {}
           local remain_hours, remain_minutes = self:remainingTime()
           if not remain_hours and not remain_minutes then
-            remain_time =
-              G_reader_settings:readSetting("reader_timer_remain_time")
+            remain_time = G_reader_settings:read("reader_timer_remain_time")
             if remain_time then
               remain_hours = remain_time[1]
               remain_minutes = remain_time[2]
@@ -350,9 +339,9 @@ function ReadTimer:addToMainMenu(menu_items)
             hour = remain_hours or 0,
             min = remain_minutes or 0,
             hour_max = 17,
-            ok_text = _("Set timer"),
-            title_text = _("Set reader timer"),
-            info_text = _("Enter a time in hours and minutes."),
+            ok_text = gettext("Set timer"),
+            title_text = gettext("Set reader timer"),
+            info_text = gettext("Enter a time in hours and minutes."),
             callback = function(timer_time)
               self:unschedule()
               local seconds = timer_time.hour * 3600 + timer_time.min * 60
@@ -363,7 +352,7 @@ function ReadTimer:addToMainMenu(menu_items)
                 UIManager:show(InfoMessage:new({
                   -- @translators This is a duration
                   text = T(
-                    _("Timer will expire in %1."),
+                    gettext("Timer will expire in %1."),
                     datetime.secondsToClockDuration(
                       user_duration_format,
                       seconds,
@@ -373,12 +362,9 @@ function ReadTimer:addToMainMenu(menu_items)
                   timeout = 5,
                 }))
                 remain_time = { timer_time.hour, timer_time.min }
-                G_reader_settings:saveSetting(
-                  "reader_timer_remain_time",
-                  remain_time
-                )
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                G_reader_settings:save("reader_timer_remain_time", remain_time)
+                if menu then
+                  menu:updateItems()
                 end
               end
             end,
@@ -389,15 +375,15 @@ function ReadTimer:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Stop timer"),
+        text = gettext("Stop timer"),
         keep_menu_open = true,
         enabled_func = function()
           return self:scheduled()
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self.last_interval_time = 0
           self:unschedule()
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       },
     },
@@ -408,18 +394,9 @@ end
 function ReadTimer:onResume()
   if self:scheduled() then
     logger.dbg("ReadTimer: onResume with an active timer")
-    local remainder = self:remaining()
-
-    if remainder == 0 then
-      -- Make sure we fire the alarm right away if it expired during suspend...
-      self:alarm_callback()
-      self:unschedule()
-    else
-      -- ...and that we re-schedule the timer against the REAL time if it's still ticking.
-      logger.dbg("ReadTimer: Rescheduling in", remainder, "seconds")
-      self:unschedule()
-      self:rescheduleIn(remainder)
-    end
+    self:unschedule()
+    -- When self:remaining() is 0, it should immediately fire the alarm.
+    self:rescheduleIn(self:remaining())
   end
 end
 

@@ -1,10 +1,10 @@
-local DocumentRegistry = require("document/documentregistry")
 local DocSettings = require("docsettings")
+local DocumentRegistry = require("document/documentregistry")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local ffiutil = require("ffi/util")
 local md5 = require("ffi/sha2").md5
-local util = require("util")
 local _ = require("gettext")
+local util = require("util")
 local T = ffiutil.template
 
 local MyClipping = {

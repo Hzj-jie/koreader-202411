@@ -68,40 +68,8 @@ function slt2.precompile(template, start_tag, end_tag)
 end
 
 -- unique a list, preserve order
-local function stable_uniq(t)
-  local existed = {}
-  local res = {}
-  for _, v in ipairs(t) do
-    if not existed[v] then
-      table.insert(res, v)
-      existed[v] = true
-    end
-  end
-  return res
-end
 
 -- @return { string }
-function slt2.get_dependency(template, start_tag, end_tag)
-  return stable_uniq(
-    include_fold(template, start_tag, end_tag, function(acc, v, name)
-      if type(v) == "string" then
-        return acc
-      elseif type(v) == "table" then
-        if name ~= nil then
-          table.insert(acc, name)
-        end
-        for _, subname in ipairs(v) do
-          table.insert(acc, subname)
-        end
-      else
-        error("Unknown type: " .. type(v))
-      end
-      return acc
-    end, function()
-      return {}
-    end)
-  )
-end
 
 -- @return { name = string, code = string / function}
 function slt2.loadstring(template, start_tag, end_tag, tmpl_name)
@@ -168,7 +136,7 @@ function slt2.loadfile(filename, start_tag, end_tag)
   return slt2.loadstring(all, start_tag, end_tag, filename)
 end
 
-local mt52 = { __index = _ENV }
+local mt52 = { __index = _ENV } -- luacheck: ignore 113
 local mt51 = { __index = _G }
 
 -- @return a coroutine function
@@ -178,7 +146,7 @@ function slt2.render_co(t, env)
     if env ~= nil then
       setmetatable(env, mt52)
     end
-    f = assert(load(t.code, t.name, "t", env or _ENV))
+    f = assert(load(t.code, t.name, "t", env or _ENV)) -- luacheck: ignore 113
   else -- lua 5.1
     if env ~= nil then
       setmetatable(env, mt51)

@@ -1,0 +1,1 @@
+../../../../koreader/frontend/ui/elements/dev_opt_menu_table.lua

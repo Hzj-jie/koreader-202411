@@ -6,10 +6,10 @@ local InfoMessage = require("ui/widget/infomessage")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
-local ltn12 = require("ltn12")
-local logger = require("logger")
-local util = require("util")
 local _ = require("gettext")
+local logger = require("logger")
+local ltn12 = require("ltn12")
+local util = require("util")
 local T = require("ffi/util").template
 
 local Ftp = {}

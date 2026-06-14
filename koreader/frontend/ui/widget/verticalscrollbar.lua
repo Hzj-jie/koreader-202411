@@ -4,7 +4,6 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Size = require("ui/size")
-local Screen = require("device").screen
 
 local VerticalScrollBar = InputContainer:extend({
   enable = true,
@@ -29,7 +28,7 @@ function VerticalScrollBar:init()
   self.extra_touch_on_side =
     math.ceil(self.extra_touch_on_side_width_ratio * self.width)
   if Device:isTouchDevice() then
-    local pan_rate = Screen.low_pan_rate and 2.0 or 5.0
+    local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
       TapScroll = {
         GestureRange:new({
@@ -98,19 +97,13 @@ VerticalScrollBar.onHoldReleaseScroll = VerticalScrollBar.onTapScroll
 VerticalScrollBar.onPanScroll = VerticalScrollBar.onTapScroll
 VerticalScrollBar.onPanScrollRelease = VerticalScrollBar.onTapScroll
 
-function VerticalScrollBar:getSize()
-  return Geom:new({
-    w = self.width,
-    h = self.height,
-  })
-end
-
 function VerticalScrollBar:set(low, high)
   self.low = low > 0 and low or 0
   self.high = high < 1 and high or 1
 end
 
 function VerticalScrollBar:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   if not self.enable then
     return
   end
@@ -120,6 +113,8 @@ function VerticalScrollBar:paintTo(bb, x, y)
     w = self.width + 2 * self.extra_touch_on_side,
     h = self.height,
   })
+  -- Reset the area first.
+  bb:paintRect(x, y, self.width, self.height, Blitbuffer.COLOR_WHITE)
   bb:paintBorder(
     x,
     y,

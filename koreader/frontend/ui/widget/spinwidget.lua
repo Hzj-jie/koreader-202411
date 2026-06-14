@@ -14,7 +14,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -33,8 +33,8 @@ local SpinWidget = FocusManager:extend({
   value_hold_step = 4,
   precision = nil, -- default "%02d" in NumberPickerWidget
   wrap = false,
-  cancel_text = _("Close"),
-  ok_text = _("Apply"),
+  cancel_text = gettext("Close"),
+  ok_text = gettext("Apply"),
   ok_always_enabled = false, -- set to true to enable OK button for unchanged value
   cancel_callback = nil,
   callback = nil,
@@ -69,7 +69,7 @@ function SpinWidget:init()
     )
   end
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.TapClose = {
@@ -95,7 +95,6 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
   local prev_movable_alpha = self.movable and self.movable.alpha
   self.layout = {}
   local value_widget = NumberPickerWidget:new({
-    show_parent = self,
     value = numberpicker_value or self.value,
     value_table = self.value_table,
     value_index = numberpicker_value_index or self.value_index,
@@ -123,7 +122,6 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -151,7 +149,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     end
     table.insert(buttons, {
       {
-        text = T(_("Default value: %1%2"), value, unit),
+        text = T(gettext("Default value: %1%2"), value, unit),
         callback = function()
           if value_widget.value_table then
             value_widget.value_index = self.default_value
@@ -228,7 +226,6 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(ok_cancel_buttons)
   self.vgroup = VerticalGroup:new({
@@ -287,7 +284,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     self.movable:setMovedOffset(prev_movable_offset)
   end
   self:refocusWidget()
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return "ui", self.spin_frame.dimen
   end)
 end

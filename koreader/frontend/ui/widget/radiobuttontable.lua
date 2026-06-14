@@ -52,7 +52,7 @@ function RadioButtonTable:init()
 
   for i = 1, row_cnt do
     self.radio_buttons_layout[i] = {}
-    local horizontal_group = HorizontalGroup:new({})
+    local horizontal_group = HorizontalGroup:new()
     local row = self.radio_buttons[i]
     local column_cnt = #row
     local sizer_space = (self.sep_width + 2 * self.padding) * (column_cnt - 1)
@@ -75,8 +75,6 @@ function RadioButtonTable:init()
         margin = 0,
         padding = 0,
         face = self.face,
-
-        show_parent = self.show_parent or self,
         parent = self.parent or self,
       })
       local button_callback = function()
@@ -141,7 +139,7 @@ function RadioButtonTable:addHorizontalSep(
   if vspan_before then
     table.insert(
       self.container,
-      VerticalSpan:new({ width = Size.span.vertical_default })
+      VerticalSpan:new({ height = Size.span.vertical_default })
     )
   end
   if add_line then
@@ -160,7 +158,7 @@ function RadioButtonTable:addHorizontalSep(
   if vspan_after then
     table.insert(
       self.container,
-      VerticalSpan:new({ width = Size.span.vertical_default })
+      VerticalSpan:new({ height = Size.span.vertical_default })
     )
   end
 end

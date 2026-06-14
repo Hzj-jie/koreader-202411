@@ -8,8 +8,6 @@ Show image from file example:
             -- Make sure alpha is set to true if png has transparent background
             -- alpha = true,
         })
-
-
 Show image from memory example:
 
         UIManager:show(ImageWidget:new{
@@ -22,7 +20,6 @@ Show image from memory example:
 
 local Blitbuffer = require("ffi/blitbuffer")
 local Cache = require("cache")
-local Geom = require("ui/geometry")
 local RenderImage = require("ui/renderimage")
 local Screen = require("device").screen
 local UIManager = require("ui/uimanager")
@@ -450,13 +447,15 @@ end
 function ImageWidget:getSize()
   self:_render()
   -- getSize will be used by the widget stack for centering/padding
-  if not self.width or not self.height then
+  if self.width and self.height then
+    -- if width or height provided, return them as is, even if image is smaller
+    -- and would be centered: we'll do the centering ourselves with offsets
+    self:mergeSize(self.width, self.height)
+  else
     -- no width/height provided, return bb size to let widget stack do the centering
-    return Geom:new({ w = self._bb:getWidth(), h = self._bb:getHeight() })
+    self:mergeSize(self._bb:getWidth(), self._bb:getHeight())
   end
-  -- if width or height provided, return them as is, even if image is smaller
-  -- and would be centered: we'll do the centering ourselves with offsets
-  return Geom:new({ w = self.width, h = self.height })
+  return self.dimen
 end
 
 function ImageWidget:getScaleFactor()
@@ -471,7 +470,7 @@ function ImageWidget:getScaleFactorExtrema()
 
   -- Compute dynamic limits for the scale factor, based on the screen's area and available memory (if possible).
   -- Extrema eyeballed to be somewhat sensible given our usual screen dimensions and available RAM.
-  local memfree, _ = util.calcFreeMem()
+  local memfree = util.calcFreeMem()
 
   local screen_area = Screen:getWidth() * Screen:getHeight()
   local min_area = math.ceil(screen_area * (1 / 10000))
@@ -531,17 +530,6 @@ function ImageWidget:getCurrentDiagonal()
 end
 
 -- And now, getters for the original, unscaled dimensions.
-function ImageWidget:getOriginalWidth()
-  return self._img_w
-end
-
-function ImageWidget:getOriginalHeight()
-  return self._img_h
-end
-
-function ImageWidget:getOriginalDiagonal()
-  return math.sqrt(self._img_w ^ 2 + self._img_h ^ 2)
-end
 
 function ImageWidget:getPanByCenterRatio(x, y)
   -- returns center ratio (without limits check) we would get with this panBy
@@ -592,19 +580,9 @@ function ImageWidget:paintTo(bb, x, y)
   if self.hide then
     return
   end
+  self:mergePosition(x, y)
   -- self:_render is called in getSize method
   local size = self:getSize()
-  if not self.dimen then
-    self.dimen = Geom:new({
-      x = x,
-      y = y,
-      w = size.w,
-      h = size.h,
-    })
-  else
-    self.dimen.x = x
-    self.dimen.y = y
-  end
   logger.dbg("blitFrom", x, y, self._offset_x, self._offset_y, size.w, size.h)
   local do_alpha = false
   if self.alpha == true then

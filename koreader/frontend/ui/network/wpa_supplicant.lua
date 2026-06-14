@@ -6,15 +6,15 @@ local crypto = require("ffi/crypto")
 local bin_to_hex = require("ffi/sha2").bin_to_hex
 local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
-local WpaClient = require("lj-wpaclient/wpaclient")
 local UIManager = require("ui/uimanager")
+local WpaClient = require("lj-wpaclient/wpaclient")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = FFIUtil.template
 
 local CLIENT_INIT_ERR_MSG =
-  _("Failed to initialize network control client: %1.")
+  gettext("Failed to initialize network control client: %1.")
 
 local WpaSupplicant = {}
 
@@ -55,7 +55,7 @@ function WpaSupplicant:getNetworkList()
   for _, network in ipairs(list) do
     network.ssid = decodeSSID(network.ssid)
     network.signal_quality = network:getSignalQuality()
-    local saved_nw = saved_networks:readSetting(network.ssid)
+    local saved_nw = saved_networks:read(network.ssid)
     if saved_nw then
       --- @todo verify saved_nw.flags == network.flags?
       -- This will break if user changed the network setting, e.g.,
@@ -130,11 +130,11 @@ function WpaSupplicant:authenticateNetwork(network)
   local cnt = 0
   local failure_cnt = 0
   local max_retry = 30
-  local info = InfoMessage:new({ text = _("Authenticating…") })
+  local info = InfoMessage:new({ text = gettext("Authenticating…") })
   local success = false
-  local msg = _("Authenticated")
+  local msg = gettext("Authenticated")
   UIManager:show(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   while cnt < max_retry do
     -- Start by checking if we're not actually connected already...
     -- NOTE: This is mainly to catch corner-cases where our preferred network list differs from the system's,
@@ -154,7 +154,7 @@ function WpaSupplicant:authenticateNetwork(network)
           text = string.upper(first) .. string.lower(rest) .. "…",
         })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
       end
     end
 
@@ -165,7 +165,7 @@ function WpaSupplicant:authenticateNetwork(network)
         UIManager:close(info)
         info = InfoMessage:new({ text = ev.msg })
         UIManager:show(info)
-        UIManager:forceRePaint()
+        UIManager:forceRepaint()
       end
       if ev:isAuthSuccessful() then
         network.wpa_supplicant_id = nw_id
@@ -174,7 +174,7 @@ function WpaSupplicant:authenticateNetwork(network)
       elseif ev:isAuthFailed() then
         failure_cnt = failure_cnt + 1
         if failure_cnt > 3 then
-          success, msg = false, _("Failed to authenticate")
+          success, msg = false, gettext("Failed to authenticate")
           break
         end
       end
@@ -188,9 +188,9 @@ function WpaSupplicant:authenticateNetwork(network)
   end
   wcli:close()
   UIManager:close(info)
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
   if cnt >= max_retry then
-    success, msg = false, _("Timed out")
+    success, msg = false, gettext("Timed out")
   end
   return success, msg
 end

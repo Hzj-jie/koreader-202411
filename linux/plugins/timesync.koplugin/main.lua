@@ -1,1 +1,0 @@
-../../../koreader/plugins/timesync.koplugin/main.lua

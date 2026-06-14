@@ -7,7 +7,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local Screen = require("device").screen
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local Screenshoter = InputContainer:extend({
   prefix = "Screenshot",
@@ -39,7 +39,7 @@ function Screenshoter:init()
 end
 
 function Screenshoter:getScreenshotDir()
-  local screenshot_dir = G_reader_settings:readSetting("screenshot_dir")
+  local screenshot_dir = G_reader_settings:read("screenshot_dir")
   return screenshot_dir and screenshot_dir:gsub("/$", "") or self.default_dir
 end
 
@@ -55,14 +55,14 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
   local buttons = {
     {
       {
-        text = _("Delete"),
+        text = gettext("Delete"),
         callback = function()
           os.remove(screenshot_name)
           dialog:onExit()
         end,
       },
       {
-        text = _("Set as book cover"),
+        text = gettext("Set as book cover"),
         enabled = file and true or false,
         callback = function()
           self.ui.bookinfo:setCustomCoverFromImage(file, screenshot_name)
@@ -73,7 +73,7 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
     },
     {
       {
-        text = _("View"),
+        text = gettext("View"),
         callback = function()
           local ImageViewer = require("ui/widget/imageviewer")
           local image_viewer = ImageViewer:new({
@@ -82,24 +82,23 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
             with_title_bar = false,
             buttons_visible = true,
           })
-          UIManager:show(image_viewer)
+          self:showWidget(image_viewer)
         end,
       },
       {
-        text = _("Set as wallpaper"),
+        text = gettext("Set as wallpaper"),
         callback = function()
-          G_reader_settings:saveSetting("screensaver_type", "image_file")
-          G_reader_settings:saveSetting("screensaver_image", screenshot_name)
+          G_reader_settings:save("screensaver_type", "image_file")
+          G_reader_settings:save("screensaver_image", screenshot_name)
           dialog:onExit()
         end,
       },
     },
   }
   dialog = ButtonDialog:new({
-    title = _("Screenshot saved to:")
-      .. "\n\n"
-      .. BD.filepath(screenshot_name)
-      .. "\n",
+    title = gettext("Screenshot saved to:") .. "\n\n" .. BD.filepath(
+      screenshot_name
+    ) .. "\n",
     modal = true,
     buttons = buttons,
     tap_close_callback = function()
@@ -116,18 +115,18 @@ function Screenshoter:onScreenshot(screenshot_name, caller_callback)
       end
     end,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   -- trigger full refresh
-  UIManager:setDirty(nil, "full")
+  UIManager:scheduleRefresh("full")
   return true
 end
 
 function Screenshoter:chooseFolder()
-  local title_header = _("Current screenshot folder:")
-  local current_path = G_reader_settings:readSetting("screenshot_dir")
+  local title_header = gettext("Current screenshot folder:")
+  local current_path = G_reader_settings:read("screenshot_dir")
   local default_path = self.default_dir
   local caller_callback = function(path)
-    G_reader_settings:saveSetting("screenshot_dir", path)
+    G_reader_settings:save("screenshot_dir", path)
   end
   filemanagerutil.showChooseDialog(
     title_header,
@@ -153,13 +152,11 @@ function Screenshoter:registerKeyEvents()
   if Device:hasKeyboard() then
     self.key_events.KeyPressShoot = {
       { "Alt", "Shift", "G" }, -- same as stock Kindle firmware
-      event = "KeyPressShoot",
     }
   elseif Device:hasScreenKB() then
     -- kindle 4 case: same as stock firmware.
     self.key_events.KeyPressShoot = {
       { "ScreenKB", "Menu" },
-      event = "KeyPressShoot",
     }
     -- unable to add other non-touch devices as simultaneous key presses won't work without modifiers
   end

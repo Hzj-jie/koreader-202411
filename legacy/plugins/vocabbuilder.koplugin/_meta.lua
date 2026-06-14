@@ -1,0 +1,1 @@
+../../../koreader/plugins/vocabbuilder.koplugin/_meta.lua

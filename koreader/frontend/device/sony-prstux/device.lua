@@ -3,26 +3,19 @@ local PluginShare = require("pluginshare")
 local UIManager
 local ffi = require("ffi")
 local logger = require("logger")
+local util = require("util")
 
 local C = ffi.C
 require("ffi/linux_input_h")
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end
-
 local SonyPRSTUX = Generic:extend({
   model = "Sony PRSTUX",
-  isSonyPRSTUX = yes,
-  hasKeys = yes,
-  hasOTAUpdates = no,
-  hasWifiManager = yes,
-  canReboot = yes,
-  canPowerOff = yes,
-  canSuspend = yes,
+  isSonyPRSTUX = util.yes,
+  hasKeys = util.yes,
+  hasWifiManager = util.yes,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
+  canSuspend = util.yes,
   usbPluggedIn = false,
   home_dir = nil,
 })
@@ -59,7 +52,7 @@ function SonyPRSTUX:init()
   self.powerd = require("device/sony-prstux/powerd"):new({ device = self })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/sony-prstux/event_map.lua"),
+    event_map = require("device/sony-prstux/event_map"),
   })
 
   self.input:open("/dev/input/event0") -- Keys
@@ -156,12 +149,9 @@ function SonyPRSTUX:usbPluggedIn()
 end
 
 function SonyPRSTUX:initNetworkManager(NetworkMgr)
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     self:releaseIP()
     os.execute("./set-wifi.sh off")
-    if complete_callback then
-      complete_callback()
-    end
   end
 
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)
@@ -209,7 +199,7 @@ function SonyPRSTUX:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function SonyPRSTUX:setEventHandlers(uimgr)
+function SonyPRSTUX:setEventHandlers(_uimgr)
   UIManager.event_handlers.Suspend = function()
     self:intoScreenSaver()
     self:suspend()
@@ -256,9 +246,9 @@ end
 
 -- For Sony PRS-T2
 local SonyPRSTUX_T2 = SonyPRSTUX:extend({
-  isTouchDevice = yes,
-  hasKeys = yes,
-  hasFrontlight = no,
+  isTouchDevice = util.yes,
+  hasKeys = util.yes,
+  hasFrontlight = util.no,
   display_dpi = 166,
 })
 

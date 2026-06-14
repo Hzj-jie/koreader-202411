@@ -1,0 +1,1 @@
+../../../koreader/plugins/archiveviewer.koplugin/_meta.lua

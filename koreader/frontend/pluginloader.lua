@@ -1,6 +1,6 @@
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local _ = require("gettext")
+local util = require("util")
 
 local DEFAULT_PLUGIN_PATH = "plugins"
 
@@ -15,51 +15,9 @@ local OBSOLETE_PLUGINS = {
   zsync = true,
 }
 
-local DEPRECATION_MESSAGES = {
-  remove = _("This plugin is unmaintained and will be removed soon."),
-  feature = _(
-    "The following features are unmaintained and will be removed soon:"
-  ),
-}
-
 local INVISIBLE_PLUGINS = {
   backgroundrunner = true,
 }
-
-local function deprecationFmt(field)
-  local s
-  if type(field) == "table" then
-    local f1, f2 = DEPRECATION_MESSAGES[field[1]], field[2]
-    if not f2 then
-      s = string.format("%s", f1)
-    else
-      s = string.format("%s: %s", f1, f2)
-    end
-  end
-  if not s then
-    return nil, ""
-  end
-  return true, s
-end
-
--- Deprecated plugins are still available, but show a hint about deprecation.
-local function getMenuTable(plugin)
-  local t = {}
-  t.name = plugin.name
-  t.fullname = string.format(
-    "%s%s",
-    plugin.fullname or plugin.name,
-    plugin.deprecated and " (" .. _("outdated") .. ")" or ""
-  )
-
-  local deprecated, message = deprecationFmt(plugin.deprecated)
-  t.description = string.format(
-    "%s%s",
-    plugin.description,
-    deprecated and "\n\n" .. message or ""
-  )
-  return t
-end
 
 local PluginLoader = {
   show_info = true,
@@ -78,16 +36,23 @@ function PluginLoader:loadPlugins()
   self.disabled_plugins = {}
   self.loaded_plugins = {}
   local lookup_path_list = { DEFAULT_PLUGIN_PATH }
-  local extra_paths = G_reader_settings:readSetting("extra_plugin_paths")
+  local data_dir = require("datastorage"):getDataDir()
+  if data_dir ~= "." then
+    local p = data_dir .. "/plugins/"
+    if not util.arrayContains(lookup_path_list, p) then
+      table.insert(lookup_path_list, p)
+    end
+  end
+  local extra_paths = G_reader_settings:read("extra_plugin_paths")
   if extra_paths then
     if type(extra_paths) == "string" then
       extra_paths = { extra_paths }
     end
     if type(extra_paths) == "table" then
       for _, extra_path in ipairs(extra_paths) do
-        local extra_path_mode = lfs.attributes(extra_path, "mode")
         if
-          extra_path_mode == "directory" and extra_path ~= DEFAULT_PLUGIN_PATH
+          lfs.attributes(extra_path, "mode") == "directory"
+          and not util.arrayContains(lookup_path_list, extra_path)
         then
           table.insert(lookup_path_list, extra_path)
         end
@@ -95,21 +60,13 @@ function PluginLoader:loadPlugins()
     else
       logger.err("extra_plugin_paths config only accepts string or table value")
     end
-  else
-    local data_dir = require("datastorage"):getDataDir()
-    if data_dir ~= "." then
-      table.insert(lookup_path_list, data_dir .. "/plugins/")
-    end
   end
 
   -- keep reference to old value so they can be restored later
   local package_path = package.path
   local package_cpath = package.cpath
 
-  local plugins_disabled = G_reader_settings:readSetting("plugins_disabled")
-  if type(plugins_disabled) ~= "table" then
-    plugins_disabled = {}
-  end
+  local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
   end
@@ -175,22 +132,24 @@ function PluginLoader:loadPlugins()
   return self.enabled_plugins, self.disabled_plugins
 end
 
+function PluginLoader:_addPluginsToMenu(plugins, enable)
+  for _, plugin in ipairs(plugins) do
+    table.insert(self.all_plugins, {
+      name = plugin.name,
+      fullname = plugin.fullname or plugin.name,
+      description = plugin.description,
+      enable = enable,
+    })
+  end
+end
+
 function PluginLoader:genPluginManagerSubItem()
   if not self.all_plugins then
     local enabled_plugins, disabled_plugins = self:loadPlugins()
     self.all_plugins = {}
 
-    for _, plugin in ipairs(enabled_plugins) do
-      local element = getMenuTable(plugin)
-      element.enable = true
-      table.insert(self.all_plugins, element)
-    end
-
-    for _, plugin in ipairs(disabled_plugins) do
-      local element = getMenuTable(plugin)
-      element.enable = false
-      table.insert(self.all_plugins, element)
-    end
+    self:_addPluginsToMenu(enabled_plugins, true)
+    self:_addPluginsToMenu(disabled_plugins, false)
 
     table.sort(self.all_plugins, function(v1, v2)
       return v1.fullname < v2.fullname
@@ -207,17 +166,14 @@ function PluginLoader:genPluginManagerSubItem()
         end,
         callback = function()
           local UIManager = require("ui/uimanager")
-          local _ = require("gettext")
-          local plugins_disabled = G_reader_settings:readSetting(
-            "plugins_disabled"
-          ) or {}
+          local plugins_disabled =
+            G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
             plugins_disabled[plugin.name] = nil
           else
             plugins_disabled[plugin.name] = true
           end
-          G_reader_settings:saveSetting("plugins_disabled", plugins_disabled)
           if self.show_info then
             self.show_info = false
             UIManager:askForRestart()
@@ -235,14 +191,16 @@ function PluginLoader:createPluginInstance(plugin, attr)
 end
 
 --- Checks if a specific plugin is instantiated
-function PluginLoader:isPluginLoaded(name)
-  return self.loaded_plugins[name] ~= nil
-end
+if util.isTesting() then
+  function PluginLoader:isPluginLoaded(name)
+    return self.loaded_plugins[name] ~= nil
+  end
 
---- Returns the current instance of a specific Plugin (if any)
---- (NOTE: You can also usually access it via self.ui[plugin_name])
-function PluginLoader:getPluginInstance(name)
-  return self.loaded_plugins[name]
+  --- Returns the current instance of a specific Plugin (if any)
+  --- (NOTE: You can also usually access it via self.ui[plugin_name])
+  function PluginLoader:getPluginInstance(name)
+    return self.loaded_plugins[name]
+  end
 end
 
 -- *MUST* be called on destruction of whatever called createPluginInstance!

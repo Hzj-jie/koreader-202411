@@ -29,9 +29,9 @@ local Widget = require("ui/widget/widget")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Input = Device.input
 local Screen = Device.screen
+local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- BookMapRow (reused by PageBrowserWidget)
 local BookMapRow = WidgetContainer:extend({

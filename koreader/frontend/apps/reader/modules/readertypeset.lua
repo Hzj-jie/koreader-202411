@@ -6,10 +6,10 @@ local Math = require("optmath")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local optionsutil = require("ui/data/optionsutil")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
 
@@ -25,12 +25,12 @@ function ReaderTypeset:init()
 end
 
 function ReaderTypeset:onReadSettings(config)
-  self.css = config:readSetting("css")
+  self.css = config:read("css")
   if not self.css then
     if self.ui.document.is_fb2 then
-      self.css = G_reader_settings:readSetting("copt_fb2_css")
+      self.css = G_reader_settings:read("copt_fb2_css")
     else
-      self.css = G_reader_settings:readSetting("copt_css")
+      self.css = G_reader_settings:read("copt_css")
     end
   end
   if not self.css then
@@ -49,19 +49,14 @@ function ReaderTypeset:onReadSettings(config)
   -- previously opened so bookmarks and highlights stay valid.
   -- For new books, use 'web' mode below in BLOCK_RENDERING_FLAGS
   if config:has("copt_block_rendering_mode") then
-    self.block_rendering_mode = config:readSetting("copt_block_rendering_mode")
+    self.block_rendering_mode = config:read("copt_block_rendering_mode")
   else
-    if
-      config:has("last_xpointer") and not config:has("docsettings_reset_done")
-    then
-      -- We have a last_xpointer: this book was previously opened
-      self.block_rendering_mode = 0
-    else
-      self.block_rendering_mode = G_reader_settings:readSetting(
-        "copt_block_rendering_mode"
-      ) or 3 -- default to 'web' mode
-    end
+    self.block_rendering_mode = G_reader_settings:read(
+      "copt_block_rendering_mode"
+    ) or 3 -- default to 'web' mode
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
+    -- This is mainly for the "or 3" condition, i.e. if there isn't a default
+    -- setting from G_reader_settings, treat the 3 as per-book setting.
     self.configurable.block_rendering_mode = self.block_rendering_mode
   end
   self:setBlockRenderingMode(self.block_rendering_mode)
@@ -85,8 +80,8 @@ function ReaderTypeset:onReadSettings(config)
     or false
 
   -- default to disable TXT formatting as it does more harm than good (the setting is not in UI)
-  self.txt_preformatted = config:readSetting("txt_preformatted")
-    or G_reader_settings:readSetting("txt_preformatted")
+  self.txt_preformatted = config:read("txt_preformatted")
+    or G_reader_settings:read("txt_preformatted")
     or 1
   self.ui.document:setTxtPreFormatted(self.txt_preformatted)
 
@@ -98,20 +93,20 @@ function ReaderTypeset:onReadSettings(config)
 end
 
 function ReaderTypeset:onSaveSettings()
-  self.ui.doc_settings:saveSetting("css", self.css)
+  self.ui.doc_settings:save("css", self.css)
 end
 
 function ReaderTypeset:onToggleEmbeddedStyleSheet(toggle)
   local text
   if toggle then
     self.configurable.embedded_css = 1
-    text = _("Enabled embedded styles.")
+    text = gettext("Enabled embedded styles.")
   else
     self.configurable.embedded_css = 0
-    text = _("Disabled embedded styles.")
+    text = gettext("Disabled embedded styles.")
   end
   self.ui.document:setEmbeddedStyleSheet(self.configurable.embedded_css)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(text)
   return true
 end
@@ -120,13 +115,13 @@ function ReaderTypeset:onToggleEmbeddedFonts(toggle)
   local text
   if toggle then
     self.configurable.embedded_fonts = 1
-    text = _("Enabled embedded fonts.")
+    text = gettext("Enabled embedded fonts.")
   else
     self.configurable.embedded_fonts = 0
-    text = _("Disabled embedded fonts.")
+    text = gettext("Disabled embedded fonts.")
   end
   self.ui.document:setEmbeddedFonts(self.configurable.embedded_fonts)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   Notification:notify(text)
   return true
 end
@@ -134,9 +129,9 @@ end
 function ReaderTypeset:onToggleImageScaling(toggle)
   self.configurable.smooth_scaling = toggle and 1 or 0
   self.ui.document:setImageScaling(toggle)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   local text = T(
-    _("Image scaling set to: %1"),
+    gettext("Image scaling set to: %1"),
     optionsutil:getOptionText("ToggleImageScaling", toggle)
   )
   Notification:notify(text)
@@ -146,14 +141,14 @@ end
 function ReaderTypeset:onToggleNightmodeImages(toggle)
   self.configurable.nightmode_images = toggle and 1 or 0
   self.ui.document:setNightmodeImages(toggle)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   return true
 end
 
 function ReaderTypeset:onSetBlockRenderingMode(mode)
   self:setBlockRenderingMode(mode)
   local text = T(
-    _("Render mode set to: %1"),
+    gettext("Render mode set to: %1"),
     optionsutil:getOptionText("SetBlockRenderingMode", mode)
   )
   Notification:notify(text)
@@ -163,9 +158,11 @@ end
 function ReaderTypeset:onSetRenderDPI(dpi)
   self.configurable.render_dpi = dpi
   self.ui.document:setRenderDPI(dpi)
-  self.ui:handleEvent(Event:new("UpdatePos"))
-  local text =
-    T(_("Zoom set to: %1"), optionsutil:getOptionText("SetRenderDPI", dpi))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
+  local text = T(
+    gettext("Zoom set to: %1"),
+    optionsutil:getOptionText("SetRenderDPI", dpi)
+  )
   Notification:notify(text)
   return true
 end
@@ -198,21 +195,13 @@ function ReaderTypeset:genStyleSheetMenu()
       text_func = function()
         local css_opt = self.ui.document.is_fb2 and "copt_fb2_css" or "copt_css"
         return text
-          .. (
-            css_file == G_reader_settings:readSetting(css_opt) and "   ★"
-            or ""
-          )
+          .. (css_file == G_reader_settings:read(css_opt) and "   ★" or "")
       end,
       callback = function()
         self:setStyleSheet(css_file or self.ui.document.default_css)
       end,
-      hold_callback = function(touchmenu_instance)
-        self:makeDefaultStyleSheet(
-          css_file,
-          text,
-          description,
-          touchmenu_instance
-        )
+      hold_callback = function(menu)
+        self:makeDefaultStyleSheet(css_file, text, description, menu)
       end,
       checked_func = function()
         if not css_file then -- "Auto"
@@ -240,9 +229,9 @@ function ReaderTypeset:genStyleSheetMenu()
   table.insert(
     style_table,
     getStyleMenuItem(
-      _("None"),
+      gettext("None"),
       "",
-      _(
+      gettext(
         "This sets an empty User-Agent stylesheet, and expects the document stylesheet to style everything (which publishers probably don't).\nThis is mostly only interesting for testing."
       )
     )
@@ -250,9 +239,9 @@ function ReaderTypeset:genStyleSheetMenu()
   table.insert(
     style_table,
     getStyleMenuItem(
-      _("Auto"),
+      gettext("Auto"),
       nil,
-      _(
+      gettext(
         "This selects the default and preferred stylesheet for the document type."
       ),
       nil,
@@ -274,9 +263,9 @@ function ReaderTypeset:genStyleSheetMenu()
     table.insert(
       style_table,
       getStyleMenuItem(
-        _("Traditional book look (epub.css)"),
+        gettext("Traditional book look (epub.css)"),
         css_files["epub.css"],
-        _(
+        gettext(
           [[
 This is our book look-alike stylesheet: it extends the HTML standard stylesheet with styles aimed at making HTML content look more like a paper book (with justified text and indentation on paragraphs) than like a web page.
 It is perfect for unstyled books, and might make styled books more readable.
@@ -291,9 +280,9 @@ It may cause some small issues on some books (miscentered titles, headings or se
     table.insert(
       style_table,
       getStyleMenuItem(
-        _("HTML Standard rendering (html5.css)"),
+        gettext("HTML Standard rendering (html5.css)"),
         css_files["html5.css"],
-        _(
+        gettext(
           [[
 This stylesheet conforms to the HTML Standard rendering suggestions (with a few limitations), similar to what most web browsers use.
 As most publishers nowadays make and test their book with tools based on web browser engines, it is the stylesheet to use to see a book as these publishers intended.
@@ -308,9 +297,9 @@ On unstyled books though, it may give them the look of a web page (left aligned 
     table.insert(
       style_table,
       getStyleMenuItem(
-        _("FictionBook (fb2.css)"),
+        gettext("FictionBook (fb2.css)"),
         css_files["fb2.css"],
-        _(
+        gettext(
           [[
 This stylesheet is to be used only with FB2 and FB3 documents, which are not classic HTML, and need some specific styling.
 (FictionBook 2 & 3 are open XML-based e-book formats which originated and gained popularity in Russia.)]]
@@ -331,7 +320,7 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
         getStyleMenuItem(
           css,
           css_files[css],
-          _(
+          gettext(
             "This stylesheet is obsolete: don't use it. It is kept solely to be able to open documents last read years ago and to migrate their highlights."
           )
         )
@@ -351,7 +340,7 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
       getStyleMenuItem(
         css,
         css_files[css],
-        _("This is a user added stylesheet.")
+        gettext("This is a user added stylesheet.")
       )
     )
   end
@@ -359,11 +348,11 @@ This stylesheet is to be used only with FB2 and FB3 documents, which are not cla
   style_table[#style_table].separator = true
   table.insert(style_table, {
     text_func = function()
-      local text = _("Obsolete")
+      local text = gettext("Obsolete")
       if obsoleted_css[self.css] then
-        text = T(_("Obsolete (%1)"), BD.filename(obsoleted_css[self.css]))
+        text = T(gettext("Obsolete (%1)"), BD.filename(obsoleted_css[self.css]))
       end
-      if obsoleted_css[G_reader_settings:readSetting("copt_css")] then
+      if obsoleted_css[G_reader_settings:read("copt_css")] then
         text = text .. "   ★"
       end
       return text
@@ -379,7 +368,7 @@ end
 function ReaderTypeset:onApplyStyleSheet()
   local tweaks_css = self.ui.styletweak:getCssText()
   self.ui.document:setStyleSheet(self.css, tweaks_css)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   return true
 end
 
@@ -388,20 +377,11 @@ function ReaderTypeset:setStyleSheet(new_css)
     self.css = new_css
     local tweaks_css = self.ui.styletweak:getCssText()
     self.ui.document:setStyleSheet(new_css, tweaks_css)
-    self.ui:handleEvent(Event:new("UpdatePos"))
+    UIManager:broadcastEvent(Event:new("UpdatePos"))
   end
 end
 
 -- Not used
-function ReaderTypeset:setEmbededStyleSheetOnly()
-  if self.css ~= nil then
-    -- clear applied css
-    self.ui.document:setStyleSheet("")
-    self.ui.document:setEmbeddedStyleSheet(1)
-    self.css = nil
-    self.ui:handleEvent(Event:new("UpdatePos"))
-  end
-end
 
 -- crengine enhanced block rendering feature/flags (see crengine/include/lvrend.h):
 --                                               legacy flat book web
@@ -463,10 +443,10 @@ function ReaderTypeset:setBlockRenderingMode(mode)
     flags = bit.band(flags, bit.bnot(0x02000000))
   end
   self.ui.document:setBlockRenderingFlags(flags)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
-function ReaderTypeset:ensureSanerBlockRenderingFlags(mode)
+function ReaderTypeset:ensureSanerBlockRenderingFlags(_mode)
   -- Called by ReaderRolling:onReadSettings() when old
   -- DOM version requested, before normalized xpointers,
   -- asking us to unset some of the flags set previously.
@@ -482,28 +462,26 @@ function ReaderTypeset:addToMainMenu(menu_items)
   }
 end
 
-function ReaderTypeset:makeDefaultStyleSheet(
-  css,
-  name,
-  description,
-  touchmenu_instance
-)
+function ReaderTypeset:makeDefaultStyleSheet(css, name, description, menu)
   local text = self.ui.document.is_fb2
-      and T(_("Set default style for FB2 documents to %1?"), BD.filename(name))
-    or T(_("Set default style to %1?"), BD.filename(name))
+      and T(
+        gettext("Set default style for FB2 documents to %1?"),
+        BD.filename(name)
+      )
+    or T(gettext("Set default style to %1?"), BD.filename(name))
   if description then
     text = text .. "\n\n" .. description
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     ok_callback = function()
       if self.ui.document.is_fb2 then
-        G_reader_settings:saveSetting("copt_fb2_css", css)
+        G_reader_settings:save("copt_fb2_css", css)
       else
-        G_reader_settings:saveSetting("copt_css", css)
+        G_reader_settings:save("copt_css", css)
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))
@@ -516,7 +494,7 @@ function ReaderTypeset:onSetPageHorizMargins(h_margins, when_applied_callback)
     h_margins[2],
     self.unscaled_margins[4],
   }
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -533,7 +511,7 @@ function ReaderTypeset:onSetPageTopMargin(t_margin, when_applied_callback)
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.b_page_margin = t_margin
   end
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -550,7 +528,7 @@ function ReaderTypeset:onSetPageBottomMargin(b_margin, when_applied_callback)
     -- Let ConfigDialog know so it can update it on screen and have it saved on quit
     self.configurable.t_page_margin = b_margin
   end
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
@@ -567,12 +545,15 @@ function ReaderTypeset:onSetPageTopAndBottomMargin(
     self.sync_t_b_page_margins = false
     self.configurable.sync_t_b_page_margins = 0
   end
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("SetPageMargins", self.unscaled_margins, when_applied_callback)
   )
 end
 
-function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
+function ReaderTypeset:onSyncPageTopBottomMargins(
+  _toggle,
+  when_applied_callback
+)
   self.sync_t_b_page_margins = not self.sync_t_b_page_margins
   if self.sync_t_b_page_margins then
     -- Adjust current top and bottom margins if needed
@@ -593,7 +574,7 @@ function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
         self.unscaled_margins[3],
         mean_margin,
       }
-      self.ui:handleEvent(
+      UIManager:broadcastEvent(
         Event:new(
           "SetPageMargins",
           self.unscaled_margins,
@@ -619,14 +600,14 @@ function ReaderTypeset:onSetPageMargins(margins, when_applied_callback)
     bottom = Screen:scaleBySize(margins[4]) + self.view.footer:getHeight()
   end
   self.ui.document:setPageMargins(left, top, right, bottom)
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
   if when_applied_callback then
     -- Provided when hide_on_apply, and ConfigDialog temporarily hidden:
     -- show an InfoMessage with the unscaled & scaled values,
     -- and call when_applied_callback on dismiss
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
-        _([[
+        gettext([[
 Margins set to:
 
   left: %1

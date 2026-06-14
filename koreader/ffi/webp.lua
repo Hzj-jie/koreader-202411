@@ -6,8 +6,8 @@ This is a LuaJIT FFI wrapper for libwebp.
 @module ffi.webp
 ]]
 
-local ffi = require("ffi")
 local BB = require("ffi/blitbuffer")
+local ffi = require("ffi")
 
 require("ffi/libwebp_h")
 

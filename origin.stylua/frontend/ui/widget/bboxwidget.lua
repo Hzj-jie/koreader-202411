@@ -2,11 +2,11 @@
 BBoxWidget shows a bbox for page cropping.
 ]]
 
-local InputContainer = require("ui/widget/container/inputcontainer")
 local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
+local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
 local Screen = Device.screen
 local Size = require("ui/size")

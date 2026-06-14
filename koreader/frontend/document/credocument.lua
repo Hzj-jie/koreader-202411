@@ -115,13 +115,13 @@ function CreDocument:cacheInit()
   cre.initCache(
     DataStorage:getDataDir() .. "/cache/cr3cache",
     (
-      G_reader_settings:readSetting("cre_disk_cache_max_size")
+      G_reader_settings:read("cre_disk_cache_max_size")
       or default_cre_disk_cache_max_size
     )
       * 1024
       * 1024,
     G_reader_settings:nilOrTrue("cre_compress_cached_data"),
-    G_reader_settings:readSetting("cre_storage_size_factor")
+    G_reader_settings:read("cre_storage_size_factor")
       or default_cre_storage_size_factor
   )
 end
@@ -203,7 +203,7 @@ function CreDocument:init()
   end
 
   -- This mode must be the same as the default one set as ReaderView.view_mode
-  self._view_mode = G_defaults:readSetting("DCREREADER_VIEW_MODE") == "scroll"
+  self._view_mode = G_defaults:read("DCREREADER_VIEW_MODE") == "scroll"
       and self.SCROLL_VIEW_MODE
     or self.PAGE_VIEW_MODE
 
@@ -331,7 +331,7 @@ function CreDocument:setupDefaultView()
 
   -- set monospace fonts size scaling
   self:setMonospaceFontScaling(
-    G_reader_settings:readSetting("cre_monospace_scaling") or 100
+    G_reader_settings:read("cre_monospace_scaling") or 100
   )
 
   -- adjust font sizes according to dpi set in canvas context
@@ -341,22 +341,16 @@ function CreDocument:setupDefaultView()
   if G_reader_settings:has("cre_header_status_font_size") then
     self._document:setIntProperty(
       "crengine.page.header.font.size",
-      CreUtil.font_size(
-        G_reader_settings:readSetting("cre_header_status_font_size")
-      )
+      CreUtil.font_size(G_reader_settings:read("cre_header_status_font_size"))
     )
   end
 
   -- One can set these to change from white background
   if G_reader_settings:has("cre_background_color") then
-    self:setBackgroundColor(
-      G_reader_settings:readSetting("cre_background_color")
-    )
+    self:setBackgroundColor(G_reader_settings:read("cre_background_color"))
   end
   if G_reader_settings:has("cre_background_image") then
-    self:setBackgroundImage(
-      G_reader_settings:readSetting("cre_background_image")
-    )
+    self:setBackgroundImage(G_reader_settings:read("cre_background_image"))
   end
 end
 
@@ -385,7 +379,7 @@ function CreDocument:render()
   -- This is now configurable and done by ReaderRolling:
   -- -- set visible page count in landscape
   -- if math.max(CanvasContext:getWidth(), CanvasContext:getHeight()) / CanvasContext:getDPI()
-  --   < G_defaults:readSetting("DCREREADER_TWO_PAGE_THRESHOLD") then
+  --   < G_defaults:read("DCREREADER_TWO_PAGE_THRESHOLD") then
   --   self:setVisiblePageCount(1)
   -- end
   logger.dbg("CreDocument: rendering document...")
@@ -855,7 +849,7 @@ function CreDocument:getNextVisibleChar(xp)
 end
 
 function CreDocument:getSelectedWordContext(
-  word,
+  _word,
   nb_words,
   pos0,
   pos1,
@@ -897,7 +891,7 @@ function CreDocument:getSelectedWordContext(
   return prev, next
 end
 
-function CreDocument:drawCurrentView(target, x, y, rect, pos)
+function CreDocument:drawCurrentView(target, x, y, rect, _pos)
   if self.buffer and (self.buffer.w ~= rect.w or self.buffer.h ~= rect.h) then
     self.buffer:free()
     self.buffer = nil
@@ -923,7 +917,7 @@ function CreDocument:drawCurrentView(target, x, y, rect, pos)
   -- We also honor the current smooth scaling setting,
   -- as well as the global SW dithering setting.
 
-  --local start_time = time.now()
+  --local start_time = time.monotonic()
   self._drawn_images_count, self._drawn_images_surface_ratio =
     self._document:drawCurrentPage(
       self.buffer,
@@ -932,12 +926,12 @@ function CreDocument:drawCurrentView(target, x, y, rect, pos)
       self._smooth_scaling,
       Screen.sw_dithering
     )
-  --local end_time = time.now()
+  --local end_time = time.monotonic()
   --print(string.format("CreDocument:drawCurrentView: Rendering took %9.3f ms", time.to_ms(end_time - start_time))
 
-  --start = time.now()
+  --start = time.monotonic()
   target:blitFrom(self.buffer, x, y, 0, 0, rect.w, rect.h)
-  --end_time = time.now()
+  --end_time = time.monotonic()
   --print(string.format("CreDocument:drawCurrentView: Blitting took  %9.3f ms", time.to_ms(end_time - start_time))
 end
 
@@ -958,11 +952,20 @@ function CreDocument:drawCurrentViewByPage(target, x, y, rect, page)
   self:drawCurrentView(target, x, y, rect)
 end
 
-function CreDocument:hintPage(pageno, zoom, rotation) end
+function CreDocument:hintPage(_pageno, _zoom, _rotation) end
 
-function CreDocument:drawPage(target, x, y, rect, pageno, zoom, rotation) end
+function CreDocument:drawPage(
+  _target,
+  _x,
+  _y,
+  _rect,
+  _pageno,
+  _zoom,
+  _rotation
+)
+end
 
-function CreDocument:renderPage(pageno, rect, zoom, rotation) end
+function CreDocument:renderPage(_pageno, _rect, _zoom, _rotation) end
 
 function CreDocument:getPageMargins()
   return self._document:getPageMargins()
@@ -1143,7 +1146,7 @@ function CreDocument:goBack()
   self._document:goBack()
 end
 
-function CreDocument:goForward(link)
+function CreDocument:goForward(_link)
   logger.dbg("CreDocument: go forward")
   self._document:goForward()
 end
@@ -1199,7 +1202,7 @@ function CreDocument:setOtherFontBiases()
   -- if other monospace fonts were registered (same factor as above so its
   -- synthetic bold or italic are used, in case some other monospace font
   -- has real bold or italic variants)
-  local monospace_font = G_reader_settings:readSetting("monospace_font")
+  local monospace_font = G_reader_settings:read("monospace_font")
     or self.monospace_font
   cre.setAsPreferredFontWithBias(monospace_font, 1 + 128 * 5 + 256 * 5, false)
 end
@@ -1223,7 +1226,7 @@ end
 function CreDocument:setupFallbackFontFaces()
   local fallbacks = {}
   local seen_fonts = {}
-  local user_fallback = G_reader_settings:readSetting("fallback_font")
+  local user_fallback = G_reader_settings:read("fallback_font")
   if user_fallback then
     table.insert(fallbacks, user_fallback)
     seen_fonts[user_fallback] = true
@@ -1318,22 +1321,12 @@ function CreDocument:setTextHyphenationForceAlgorithmic(toggle)
 end
 
 function CreDocument:getTextMainLangDefaultHyphDictionary()
-  local main_lang_tag, main_lang_active_hyph_dict, loaded_lang_infos =
-    cre.getTextLangStatus() -- luacheck: no unused
+  local main_lang_tag, __, loaded_lang_infos = cre.getTextLangStatus()
   return loaded_lang_infos[main_lang_tag]
     and loaded_lang_infos[main_lang_tag].hyph_dict_name
 end
 
 -- To use the old crengine hyphenation manager (only one global hyphenation method)
-function CreDocument:setHyphDictionary(new_hyph_dictionary)
-  if new_hyph_dictionary then
-    logger.dbg("CreDocument: set hyphenation dictionary", new_hyph_dictionary)
-    self._document:setStringProperty(
-      "crengine.hyphenation.directory",
-      new_hyph_dictionary
-    )
-  end
-end
 
 function CreDocument:setHyphLeftHyphenMin(value)
   -- default crengine value is 2: reset it if no value provided
@@ -1370,12 +1363,6 @@ function CreDocument:setRenderDPI(value)
   -- scaleBySize()'d when provided to crengine)
   logger.dbg("CreDocument: set render dpi", value or 96)
   self._document:setIntProperty("crengine.render.dpi", value or 96)
-end
-
-function CreDocument:setRenderScaleFontWithDPI(toggle)
-  -- whether to scale font with DPI, or keep the current size
-  logger.dbg("CreDocument: set render scale font with dpi", toggle)
-  self._document:setIntProperty("crengine.render.scale.font.with.dpi", toggle)
 end
 
 function CreDocument:clearSelection()
@@ -1620,7 +1607,7 @@ function CreDocument:findText(
   origin,
   direction,
   case_insensitive,
-  page,
+  _page,
   regex,
   max_hits
 )
@@ -1940,7 +1927,7 @@ function CreDocument:setupCallCache()
     end
     self._current_call_cache_tag = tag
   end
-  self._callCacheGetCurrentTag = function(tag)
+  self._callCacheGetCurrentTag = function(_tag)
     return self._current_call_cache_tag
   end
   -- per current tag cache
@@ -1965,7 +1952,7 @@ function CreDocument:setupCallCache()
     -- cache statistics
     self._call_cache_stats = {}
     now = function()
-      return time.now()
+      return time.monotonic()
     end
     addStatMiss = function(name, starttime, not_cached)
       local duration = time.since(starttime)
@@ -2095,8 +2082,8 @@ function CreDocument:setupCallCache()
       end
       table.insert(res, "  No hit for:")
       for _, k in ipairs(nohit_keys) do
-        local hits, hits_duration, misses, missed_duration =
-          unpack(self._call_cache_stats[k]) -- luacheck: no unused
+        local __, hits_duration, misses, missed_duration =
+          unpack(self._call_cache_stats[k])
         table.insert(
           res,
           string.format("  %s: %d misses %.3fs", k, misses, missed_duration)
@@ -2106,8 +2093,8 @@ function CreDocument:setupCallCache()
       if #notcached_keys > 0 then
         table.insert(res, "  No cache for:")
         for _, k in ipairs(notcached_keys) do
-          local hits, hits_duration, misses, missed_duration =
-            unpack(self._call_cache_stats[k]) -- luacheck: no unused
+          local __, hits_duration, misses, missed_duration =
+            unpack(self._call_cache_stats[k])
           table.insert(
             res,
             string.format("  %s: %d calls %.3fs", k, misses, missed_duration)
@@ -2137,7 +2124,8 @@ function CreDocument:setupCallCache()
   for name, func in pairs(CreDocument) do
     if type(func) == "function" then
       -- Various type of wrap
-      local no_wrap = false -- luacheck: no unused
+      -- TODO: Address this luacheck warning, no_wrap is never used.
+      local no_wrap = false -- luacheck: ignore 231
       local add_reset = false
       local add_buffer_trash = false
       local cache_by_tag = false

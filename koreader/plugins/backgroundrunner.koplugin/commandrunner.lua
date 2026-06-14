@@ -1,5 +1,5 @@
-local logger = require("logger")
 local UIManager = require("ui/uimanager")
+local logger = require("logger")
 local time = require("ui/time")
 
 local CommandRunner = {
@@ -40,7 +40,7 @@ function CommandRunner:start(job)
   assert(self.pio == nil)
   assert(self.job == nil)
   self.job = job
-  self.job.start_time = time.now()
+  self.job.start_time = time.monotonic()
   assert(type(self.job.executable) == "string")
   local command = self:createEnvironment()
     .. " "
@@ -82,7 +82,7 @@ function CommandRunner:poll()
     UIManager:allowStandby()
     self.pio:close()
     self.pio = nil
-    self.job.end_time = time.now()
+    self.job.end_time = time.monotonic()
     local job = self.job
     self.job = nil
     return job

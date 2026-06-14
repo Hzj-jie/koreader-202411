@@ -2,7 +2,6 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local Button = require("ui/widget/button")
-local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Event = require("ui/event")
 local FocusManager = require("ui/widget/focusmanager")
@@ -13,6 +12,7 @@ local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local ItemShortCutIcon = require("ui/widget/itemshortcuticon")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local Math = require("optmath")
 local OverlapGroup = require("ui/widget/overlapgroup")
@@ -28,65 +28,12 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
 local T = ffiUtil.template
-
---[[--
-Widget that displays a shortcut icon for menu item.
---]]
-local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
-  key = nil,
-  bordersize = Size.border.default,
-  radius = 0,
-  style = "square",
-})
-
-function ItemShortCutIcon:init()
-  if not self.key then
-    return
-  end
-
-  local radius = 0
-  local background = Blitbuffer.COLOR_WHITE
-  if self.style == "rounded_corner" then
-    radius = math.floor(self.width / 2)
-  elseif self.style == "grey_square" then
-    background = Blitbuffer.COLOR_LIGHT_GRAY
-  end
-
-  --- @todo Calculate font size by icon size  01.05 2012 (houqp).
-  local sc_face
-  if self.key:len() > 1 then
-    sc_face = Font:getFace("ffont", 14)
-  else
-    sc_face = Font:getFace("scfont", 22)
-  end
-
-  self[1] = FrameContainer:new({
-    padding = 0,
-    bordersize = self.bordersize,
-    radius = radius,
-    background = background,
-    dimen = self.dimen:copy(),
-    CenterContainer:new({
-      dimen = self.dimen,
-      TextWidget:new({
-        text = self.key,
-        face = sc_face,
-      }),
-    }),
-  })
-end
 
 --[[
 Widget that displays an item for menu
@@ -104,12 +51,12 @@ local MenuItem = InputContainer:extend({
 })
 
 function MenuItem:init()
-  self.content_width = self.dimen.w - 2 * Size.padding.fullscreen
+  self.content_width = self:getSize().w - 2 * Size.padding.fullscreen
 
   local shortcut_icon_dimen
   if self.shortcut then
     local icon_width = self.entry.shortcut_icon_width
-      or math.floor(self.dimen.h * 4 / 5)
+      or math.floor(self:getSize().h * 4 / 5)
     shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
@@ -131,13 +78,13 @@ function MenuItem:init()
     },
     HoldSelect = {
       GestureRange:new({
-        ges = self.handle_hold_on_hold_release and "hold_release" or "hold",
+        ges = "hold",
         range = self.dimen,
       }),
     },
   }
 
-  local max_item_height = self.dimen.h - 2 * self.linesize
+  local max_item_height = self:getSize().h - 2 * self.linesize
 
   -- We want to show at least one line, so cap the provided font sizes
   local max_font_size = TextBoxWidget:getFontSizeToFitHeight(max_item_height, 1)
@@ -168,13 +115,13 @@ function MenuItem:init()
   end
 
   -- State button and indentation for tree expand/collapse (for TOC)
-  local state_button = self.entry.state or HorizontalSpan:new({})
+  local state_button = self.entry.state or HorizontalSpan:new()
   local state_indent = self.entry.indent or 0
   local state_width = state_indent + (self.state_w or 0)
   local state_container = LeftContainer:new({
     dimen = Geom:new({
       w = math.floor(self.content_width / 2),
-      h = self.dimen.h,
+      h = self:getSize().h,
     }),
     HorizontalGroup:new({
       HorizontalSpan:new({
@@ -298,26 +245,28 @@ function MenuItem:init()
     end
     if self.align_baselines then -- Align baselines of text and mandatory
       -- The container widgets would additionally center these widgets,
-      -- so make sure they all get a height=self.dimen.h so they don't
+      -- so make sure they all get a height=self:getSize().h so they don't
       -- risk being shifted later and becoming misaligned
       local name_baseline = item_name:getBaseline()
       local mdtr_baseline = mandatory_widget:getBaseline()
       local name_height = item_name:getSize().h
       local mdtr_height = mandatory_widget:getSize().h
-      -- Make all the TextWidgets be self.dimen.h
-      item_name.forced_height = self.dimen.h
-      mandatory_widget.forced_height = self.dimen.h
+      -- Make all the TextWidgets be self:getSize().h
+      item_name.forced_height = self:getSize().h
+      mandatory_widget.forced_height = self:getSize().h
       if dots_widget then
-        dots_widget.forced_height = self.dimen.h
+        dots_widget.forced_height = self:getSize().h
       end
       if post_text_widget then
-        post_text_widget.forced_height = self.dimen.h
+        post_text_widget.forced_height = self:getSize().h
       end
       -- And adjust their baselines for proper centering and alignment
-      -- (We made sure the font sizes wouldn't exceed self.dimen.h, so we
+      -- (We made sure the font sizes wouldn't exceed self:getSize().h, so we
       -- get only non-negative pad_top here, and we're moving them down.)
-      local name_missing_pad_top = math.floor((self.dimen.h - name_height) / 2)
-      local mdtr_missing_pad_top = math.floor((self.dimen.h - mdtr_height) / 2)
+      local name_missing_pad_top =
+        math.floor((self:getSize().h - name_height) / 2)
+      local mdtr_missing_pad_top =
+        math.floor((self:getSize().h - mdtr_height) / 2)
       name_baseline = name_baseline + name_missing_pad_top
       mdtr_baseline = mdtr_baseline + mdtr_missing_pad_top
       local baselines_diff = Math.round(name_baseline - mdtr_baseline)
@@ -415,7 +364,7 @@ function MenuItem:init()
   end
 
   local text_container = LeftContainer:new({
-    dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+    dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
     HorizontalGroup:new({
       HorizontalSpan:new({
         width = state_width,
@@ -435,7 +384,7 @@ function MenuItem:init()
     })
   end
   local mandatory_container = RightContainer:new({
-    dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+    dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
     mandatory_widget,
   })
 
@@ -448,12 +397,12 @@ function MenuItem:init()
       x = 0,
       y = 0,
       w = self.content_width,
-      h = self.dimen.h,
+      h = self:getSize().h,
     }),
     HorizontalGroup:new({
       align = "center",
       OverlapGroup:new({
-        dimen = Geom:new({ w = self.content_width, h = self.dimen.h }),
+        dimen = Geom:new({ w = self.content_width, h = self:getSize().h }),
         state_container,
         text_container,
         mandatory_container,
@@ -550,32 +499,26 @@ function MenuItem:onTapSelect(arg, ges)
   end
 
   local pos = self:getGesPosition(ges)
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuSelect(self.entry, pos)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- Highlight
-    --
-    self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+  -- Highlight
+  --
+  self[1].invert = true
+  UIManager:invertWidget(self[1])
 
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  UIManager:forceRepaint()
+  UIManager:waitForScreenRefresh()
 
-    -- Unhighlight
-    --
-    self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+  -- Unhighlight
+  --
+  self[1].invert = false
+  UIManager:invertWidget(self[1])
 
-    -- Callback
-    --
-    self.menu:onMenuSelect(self.entry, pos)
+  -- Callback
+  --
+  self.menu:onMenuSelect(self.entry, pos)
 
-    UIManager:forceRePaint()
-  end
+  UIManager:forceRepaint()
   return true
 end
 
@@ -585,41 +528,75 @@ function MenuItem:onHoldSelect(arg, ges)
   end
 
   local pos = self:getGesPosition(ges)
-  if G_reader_settings:isFalse("flash_ui") then
-    self.menu:onMenuHold(self.entry, pos)
-  else
-    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+  -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-    -- Highlight
-    --
-    self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "fast", self[1].dimen)
+  -- Highlight
+  --
+  self[1].invert = true
+  UIManager:invertWidget(self[1])
 
-    UIManager:forceRePaint()
-    UIManager:yieldToEPDC()
+  UIManager:forceRepaint()
+  UIManager:waitForScreenRefresh()
 
-    -- Unhighlight
-    --
-    self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-    UIManager:setDirty(nil, "ui", self[1].dimen)
+  -- Unhighlight
+  --
+  self[1].invert = false
+  UIManager:invertWidget(self[1])
 
-    -- Callback
-    --
-    self.menu:onMenuHold(self.entry, pos)
+  -- Callback
+  --
+  self.menu:onMenuHold(self.entry, pos)
 
-    UIManager:forceRePaint()
-  end
+  UIManager:forceRepaint()
   return true
 end
+
+local ENABLE_SHORTCUT = Device:hasKeyboard()
+
+local ITEM_SHORTCUTS = {
+  "Q",
+  "W",
+  "E",
+  "R",
+  "T",
+
+  "A",
+  "S",
+  "D",
+  "F",
+  "G",
+
+  "Z",
+  "X",
+  "C",
+  "V",
+  "B",
+
+  "Y",
+  "U",
+  "I",
+  "O",
+  "P",
+
+  "H",
+  "J",
+  "K",
+  "L",
+  "Del",
+
+  "N",
+  "M",
+  ".",
+  "/",
+  "Sym", -- Replace "Press" with "Sym"
+}
 
 --[[
 Widget that displays menu
 --]]
 local Menu = FocusManager:extend({
-  show_parent = nil,
-
+  ENABLE_SHORTCUT = ENABLE_SHORTCUT,
+  ITEM_SHORTCUTS = ITEM_SHORTCUTS,
   no_title = false,
   title = "",
   custom_title_bar = nil,
@@ -632,39 +609,6 @@ local Menu = FocusManager:extend({
   dimen = nil,
   item_table = nil, -- NOT mandatory (will be empty)
   item_table_stack = nil,
-
-  item_shortcuts = { -- const
-    "Q",
-    "W",
-    "E",
-    "R",
-    "T",
-    "Y",
-    "U",
-    "I",
-    "O",
-    "P",
-    "A",
-    "S",
-    "D",
-    "F",
-    "G",
-    "H",
-    "J",
-    "K",
-    "L",
-    "Del",
-    "Z",
-    "X",
-    "C",
-    "V",
-    "B",
-    "N",
-    "M",
-    ".",
-    "Sym",
-  },
-  is_enable_shortcut = Device:hasKeyboard(),
 
   item_dimen = nil,
   page = 1,
@@ -698,16 +642,24 @@ local Menu = FocusManager:extend({
   line_color = Blitbuffer.COLOR_DARK_GRAY,
 })
 
-function Menu:_recalculateDimen(no_recalculate_dimen)
+function Menu:_calculateLayout()
   local perpage = self.items_per_page
-    or G_reader_settings:readSetting("items_per_page")
+    or G_reader_settings:read("items_per_page")
     or self.items_per_page_default
   local font_size = self.items_font_size
-    or G_reader_settings:readSetting("items_font_size")
+    or G_reader_settings:read("items_font_size")
     or Menu.getItemFontSize(perpage)
   if self.perpage ~= perpage or self.font_size ~= font_size then
     self.perpage = perpage
+    assert(self.perpage <= #ITEM_SHORTCUTS)
     self.font_size = font_size
+    return true
+  end
+  return false
+end
+
+function Menu:_recalculateDimen(no_recalculate_dimen)
+  if self:_calculateLayout() then
     no_recalculate_dimen = false
   end
 
@@ -732,7 +684,7 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
     x = 0,
     y = 0,
     w = self.inner_dimen.w,
-    h = math.floor(self.available_height / perpage),
+    h = math.floor(self.available_height / self.perpage),
   })
 
   if self.items_max_lines then
@@ -746,7 +698,6 @@ function Menu:_recalculateDimen(no_recalculate_dimen)
 end
 
 function Menu:init()
-  self.show_parent = self.show_parent or self
   self.item_table = self.item_table or {}
   self.item_table_stack = {}
   self.page = 1
@@ -759,14 +710,14 @@ function Menu:init()
     w = self.width or self.screen_w,
     h = self.height or self.screen_h,
   })
-  if self.dimen.h > self.screen_h then
+  if self:getSize().h > self.screen_h then
     self.dimen.h = self.screen_h
   end
 
   self.border_size = self.is_borderless and 0 or Size.border.window
   self.inner_dimen = Geom:new({
-    w = self.dimen.w - 2 * self.border_size,
-    h = self.dimen.h - 2 * self.border_size,
+    w = self:getSize().w - 2 * self.border_size,
+    h = self:getSize().h - 2 * self.border_size,
   })
 
   self.paths = {} -- per instance table to trace navigation path
@@ -780,7 +731,7 @@ function Menu:init()
     end
     self.title_bar = self.custom_title_bar
       or TitleBar:new({
-        width = self.dimen.w,
+        width = self:getSize().w,
         fullscreen = "true",
         align = "center",
         with_bottom_line = self.with_bottom_line,
@@ -807,12 +758,11 @@ function Menu:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self.show_parent or self,
       })
   end
 
   -- group for items
-  self.item_group = VerticalGroup:new({})
+  self.item_group = VerticalGroup:new()
   -- group for page info
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"
@@ -829,7 +779,6 @@ function Menu:init()
         self:onPrevPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_right_chev = self.page_info_right_chev
     or Button:new({
@@ -838,7 +787,6 @@ function Menu:init()
         self:onNextPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_first_chev = self.page_info_first_chev
     or Button:new({
@@ -847,7 +795,6 @@ function Menu:init()
         self:onFirstPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_last_chev = self.page_info_last_chev
     or Button:new({
@@ -856,7 +803,6 @@ function Menu:init()
         self:onLastPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -870,14 +816,14 @@ function Menu:init()
   local buttons = {
     {
       {
-        text = _("Cancel"),
+        text = gettext("Cancel"),
         id = "close",
         callback = function()
           self.page_info_text:closeInputDialog()
         end,
       },
       {
-        text = _("Go to page"),
+        text = gettext("Go to page"),
         is_enter_default = not self.goto_letter,
         callback = function()
           local page = tonumber(self.page_info_text.input_dialog:getInputText())
@@ -891,17 +837,17 @@ function Menu:init()
   }
 
   if self.goto_letter then
-    title_goto = _("Enter letter or page number")
+    title_goto = gettext("Enter letter or page number")
     hint_func = function()
       -- @translators First group is the standard range for alphabetic searches, second group is a page number range
-      return T(_("(a - z) or (1 - %1)"), self.page_num)
+      return T(gettext("(a - z) or (1 - %1)"), self.page_num)
     end
     table.insert(buttons, 1, {
       {
-        text = _("File search"),
+        text = gettext("File search"),
         callback = function()
           self.page_info_text:closeInputDialog()
-          UIManager:sendEvent(
+          UIManager:broadcastEvent(
             Event:new(
               "ShowFileSearch",
               self.page_info_text.input_dialog:getInputText()
@@ -910,7 +856,7 @@ function Menu:init()
         end,
       },
       {
-        text = _("Go to letter"),
+        text = gettext("Go to letter"),
         is_enter_default = true,
         callback = function()
           local search_string = self.page_info_text.input_dialog:getInputText()
@@ -932,7 +878,7 @@ function Menu:init()
       },
     })
   else
-    title_goto = _("Enter page number")
+    title_goto = gettext("Enter page number")
     type_goto = "number"
     hint_func = function()
       return string.format("(1 - %s)", self.page_num)
@@ -979,7 +925,6 @@ function Menu:init()
         end
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
       readonly = self.return_arrow_propagation,
     })
   self.page_return_arrow:hide()
@@ -990,7 +935,7 @@ function Menu:init()
     self.page_return_arrow,
   })
 
-  local header = self.no_title and VerticalSpan:new({ width = 0 })
+  local header = self.no_title and VerticalSpan:new({ height = 0 })
     or self.title_bar
   local body = self.item_group
   local footer = BottomContainer:new({
@@ -1010,7 +955,10 @@ function Menu:init()
     }),
   })
 
-  self:_recalculateDimen()
+  -- Initialize FileChooser.font_size and perpage, coverbrowser.koplugin will
+  -- override _recalculateDimen.
+  assert(self:_calculateLayout()) -- No idea how it could return false.
+  self:_recalculateDimen(false)
   self.content_group = VerticalGroup:new({
     align = "left",
     header,
@@ -1032,7 +980,7 @@ function Menu:init()
     bordersize = self.border_size,
     padding = 0,
     margin = 0,
-    radius = self.is_popout and math.floor(self.dimen.w * (1 / 20)) or 0,
+    radius = self.is_popout and math.floor(self:getSize().w * (1 / 20)) or 0,
     content,
   })
 
@@ -1074,14 +1022,16 @@ function Menu:init()
       range = self.dimen,
     }),
   }
-  self.ges_events.Close = self.on_close_ges
+  self.ges_events.Exit = self.on_close_ges
 
   if Device:hasKeys() then
     -- set up keyboard events
-    self.key_events.Close = { { Input.group.Back } }
-    self.key_events.LeftButtonTap = { { "Menu" } }
+    self.key_events.FocusLeft = nil
     if Device:hasFewKeys() then
-      self.key_events.Close = { { "Left" } }
+      self.key_events.Exit = { { "Left" } }
+    else
+      self.key_events.Exit = { { Input.group.Back } }
+      self.key_events.LeftButtonTap = { { "Left" } }
     end
     self.key_events.NextPage = { { Input.group.PgFwd } }
     self.key_events.PrevPage = { { Input.group.PgBack } }
@@ -1097,16 +1047,13 @@ function Menu:init()
   end
 
   if Device:hasDPad() then
-    if Device:hasFewKeys() then
-      -- we won't catch presses to "Right", leave that to MenuItem.
-      self.key_events.FocusRight = nil
-      -- add long press on "Right" key
-      self.key_events.Right = { { "Right" } }
-    end
-    -- shortcut icon is not needed for touch device
-    if self.is_enable_shortcut then
-      self.key_events.SelectByShortCut = { { self.item_shortcuts } }
-    end
+    -- we won't catch presses to "Right", leave that to MenuItem.
+    self.key_events.FocusRight = nil
+    -- add long press on "Right" key
+    self.key_events.KeyboardHold = { { "Right" } }
+  end
+  if ENABLE_SHORTCUT then
+    self.key_events.SelectByShortCut = { { ITEM_SHORTCUTS } }
   end
 
   if self.item_table.current then
@@ -1114,6 +1061,12 @@ function Menu:init()
   end
   if not self.path_items then -- not FileChooser
     self:updateItems(1, true)
+  end
+
+  if self.close_callback == nil then
+    self.close_callback = function()
+      UIManager:close(self)
+    end
   end
 end
 
@@ -1144,7 +1097,9 @@ function Menu:updatePageInfo(select_number)
       )
     end
     -- update page information
-    self.page_info_text:setText(T(_("Page %1 of %2"), self.page, self.page_num))
+    self.page_info_text:setText(
+      T(gettext("Page %1 of %2"), self.page, self.page_num)
+    )
     if self.page_num > 1 then
       self.page_info_text:enable()
     else
@@ -1162,7 +1117,7 @@ function Menu:updatePageInfo(select_number)
     self.page_info_last_chev:enableDisable(self.page < self.page_num)
     self.page_return_arrow:enableDisable(#self.paths > 0)
   else
-    self.page_info_text:setText(_("No items"))
+    self.page_info_text:setText(gettext("No items"))
     self.page_info_text:disableWithoutDimming()
 
     self.page_info_left_chev:hide()
@@ -1187,6 +1142,7 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   local idx_offset, multilines_show_more_text
   if self.items_max_lines then
     items_nb = #self.page_items[self.page]
+    assert(items_nb <= self.perpage)
   else
     items_nb = self.perpage
     idx_offset = (self.page - 1) * items_nb
@@ -1209,17 +1165,18 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
       select_number = idx
     end
     local item_shortcut, shortcut_style
-    if self.is_enable_shortcut then
-      item_shortcut = self.item_shortcuts[idx]
+    if ENABLE_SHORTCUT then
+      item_shortcut = ITEM_SHORTCUTS[idx]
       -- give different shortcut_style to keys in different lines of keyboard
-      shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+      if (idx - 1) % 10 >= 5 then
+        shortcut_style = "grey_square"
+      end
     end
     if self.items_max_lines then
       self.item_dimen.h = item.height
     end
     local item_tmp = MenuItem:new({
       idx = index,
-      show_parent = self.show_parent,
       state_w = self.state_w,
       text = Menu.getMenuText(item),
       bidi_wrap_func = item.bidi_wrap_func,
@@ -1246,7 +1203,6 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
       with_dots = self.with_dots,
       line_color = self.line_color,
       items_padding = self.items_padding,
-      handle_hold_on_hold_release = self.handle_hold_on_hold_release,
     })
     table.insert(self.item_group, item_tmp)
     -- this is for focus manager
@@ -1256,7 +1212,8 @@ function Menu:updateItems(select_number, no_recalculate_dimen)
   self:updatePageInfo(select_number)
   self:mergeTitleBarIntoLayout()
 
-  UIManager:setDirty(self.show_parent, function()
+  -- Otherwise the widget hasn't shown yet and will be paintTo later.
+  self:setDirty(function()
     local refresh_dimen = old_dimen and old_dimen:combine(self.dimen)
       or self.dimen
     return "ui", refresh_dimen
@@ -1391,7 +1348,7 @@ function Menu:setupItemHeights()
   })
     :getSize().w
   local available_width = self.inner_dimen.w
-  if self.is_enable_shortcut then
+  if ENABLE_SHORTCUT then
     available_width = available_width
       - line_height
       - Size.span.horizontal_default
@@ -1438,7 +1395,7 @@ function Menu:setupItemHeights()
   end
 end
 
-function Menu:onScreenResize(dimen)
+function Menu:onScreenResize(_dimen)
   self:init()
   return false
 end
@@ -1462,17 +1419,18 @@ function Menu:onSetRotationMode(rotation)
 end
 
 function Menu:onSelectByShortCut(_, keyevent)
-  for k, v in ipairs(self.item_shortcuts) do
+  for k, v in ipairs(ITEM_SHORTCUTS) do
     if k > self.perpage then
       break
-    elseif v == keyevent.key then
-      if self.item_table[(self.page - 1) * self.perpage + k] then
-        self:onMenuSelect(self.item_table[(self.page - 1) * self.perpage + k])
+    end
+    if v == keyevent.key then
+      local index = (self.page - 1) * self.perpage + k
+      if self.item_table[index] then
+        return self:onMenuSelect(self.item_table[index])
       end
-      break
     end
   end
-  return true
+  return false
 end
 
 function Menu:onShowGotoDialog()
@@ -1497,9 +1455,7 @@ function Menu:onMenuSelect(item)
       end
     end
     self:onMenuChoice(item)
-    if self.close_callback then
-      self.close_callback()
-    end
+    self.close_callback()
   else
     -- save menu title for later resume
     self.item_table.title = self.title
@@ -1524,7 +1480,7 @@ end
 override this function to process the item hold in a different manner
 ]]
 --
-function Menu:onMenuHold(item)
+function Menu:onMenuHold(_item)
   return true
 end
 
@@ -1553,7 +1509,7 @@ function Menu:onGotoPage(page)
   return true
 end
 
-function Menu:onRight()
+function Menu:onKeyboardHold()
   return self:sendHoldEventToFocusedWidget()
 end
 
@@ -1597,10 +1553,7 @@ function Menu:onExit()
 end
 
 function Menu:_closeAllMenus()
-  UIManager:close(self)
-  if self.close_callback then
-    self.close_callback()
-  end
+  self.close_callback()
   return true
 end
 
@@ -1625,13 +1578,11 @@ function Menu:onSwipe(arg, ges_ev)
     end
     -- If there is no close button, it's a top level Menu and swipe
     -- up/down may hide/show top menu
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
   end
 end
 
@@ -1646,7 +1597,7 @@ function Menu:onPan(arg, ges_ev)
   return true
 end
 
-function Menu:onMultiSwipe(arg, ges_ev)
+function Menu:onMultiSwipe(arg, _ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
@@ -1676,12 +1627,6 @@ function Menu.getItemFontSize(perpage)
   -- Get adjusted font size for the given nb of items per page:
   -- item font size between 14 and 24 for better matching
   return math.floor(24 - ((perpage - 6) * (1 / 18)) * 10)
-end
-
-function Menu.getItemMandatoryFontSize(perpage)
-  -- Get adjusted font size for the given nb of items per page:
-  -- "mandatory" font size between 12 and 18 for better matching
-  return math.floor(18 - (perpage - 6) * (1 / 3))
 end
 
 --- Adds > to touch menu items with a submenu

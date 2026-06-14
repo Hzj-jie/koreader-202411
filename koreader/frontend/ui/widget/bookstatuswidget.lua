@@ -3,8 +3,8 @@ local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
-local Font = require("ui/font")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -26,8 +26,8 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local datetime = require("datetime")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -50,7 +50,7 @@ local BookStatusWidget = FocusManager:extend({
 function BookStatusWidget:init()
   self.updated = nil
   self.layout = {}
-  self.summary = self.ui.doc_settings:readSetting("summary") or {}
+  self.summary = self.ui.doc_settings:readTableRef("summary")
   self.total_pages = self.ui.document:getPageCount()
   stats_book = self:getStats()
 
@@ -64,12 +64,11 @@ function BookStatusWidget:init()
     radius = 0,
     margin = 0,
     enabled = not self.readonly,
-    show_parent = self,
     readonly = self.readonly,
   })
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {
@@ -91,7 +90,6 @@ function BookStatusWidget:init()
   end
 
   local screen_size = Screen:getSize()
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
   self[1] = FrameContainer:new({
     width = screen_size.w,
     height = screen_size.h,
@@ -112,7 +110,7 @@ function BookStatusWidget:getStatDays()
   if stats_book.days then
     return tostring(stats_book.days)
   else
-    return _("N/A")
+    return gettext("N/A")
   end
 end
 
@@ -125,7 +123,7 @@ function BookStatusWidget:getStatHours()
       false
     )
   else
-    return _("N/A")
+    return gettext("N/A")
   end
 end
 
@@ -133,7 +131,7 @@ function BookStatusWidget:getStatReadPages()
   if stats_book.pages then
     return string.format("%s/%s", stats_book.pages, self.total_pages)
   else
-    return _("N/A")
+    return gettext("N/A")
   end
 end
 
@@ -144,17 +142,18 @@ function BookStatusWidget:getStatusContent(width)
     close_callback = not self.readonly and function()
       self:onExit()
     end,
-    show_parent = self,
   })
   local content = VerticalGroup:new({
     align = "left",
     title_bar,
     self:genBookInfoGroup(),
-    self:genHeader(_("Statistics")),
+    self:genHeader(gettext("Statistics")),
     self:genStatisticsGroup(width),
-    self:genHeader(_("Review")),
+    self:genHeader(gettext("Review")),
     self:genSummaryGroup(width),
-    self:genHeader(self.readonly and _("Book Status") or _("Update Status")),
+    self:genHeader(
+      self.readonly and gettext("Book Status") or gettext("Update Status")
+    ),
     self:generateSwitchGroup(width),
   })
   return content
@@ -183,11 +182,11 @@ function BookStatusWidget:genHeader(title)
   })
   local span_top, span_bottom
   if Screen:getScreenMode() == "landscape" then
-    span_top = VerticalSpan:new({ width = Size.span.horizontal_default })
-    span_bottom = VerticalSpan:new({ width = Size.span.horizontal_default })
+    span_top = VerticalSpan:new({ height = Size.span.horizontal_default })
+    span_bottom = VerticalSpan:new({ height = Size.span.horizontal_default })
   else
-    span_top = VerticalSpan:new({ width = Size.item.height_default })
-    span_bottom = VerticalSpan:new({ width = Size.span.vertical_large })
+    span_top = VerticalSpan:new({ height = Size.item.height_default })
+    span_bottom = VerticalSpan:new({ height = Size.span.vertical_large })
   end
 
   return VerticalGroup:new({
@@ -262,7 +261,7 @@ function BookStatusWidget:setStar(num)
   -- Individual stars are Button, w/ flash_ui, they'll have their own flash.
   -- And we need to redraw the full widget, because we don't know the coordinates of stars_container :/.
   self:refocusWidget()
-  UIManager:setDirty(self, "ui", nil, true)
+  self:setDirty("ui", nil, true)
   return true
 end
 
@@ -289,7 +288,7 @@ function BookStatusWidget:genBookInfoGroup()
   -- title
   local book_meta_info_group = VerticalGroup:new({
     align = "center",
-    VerticalSpan:new({ width = height * 0.2 }),
+    VerticalSpan:new({ height = height * 0.2 }),
     TextBoxWidget:new({
       text = props.display_title,
       lang = lang,
@@ -332,7 +331,7 @@ function BookStatusWidget:genBookInfoGroup()
   -- complete text
   local text_complete = TextWidget:new({
     text = T(
-      _("%1\xE2\x80\xAF% Completed"),
+      gettext("%1\xE2\x80\xAF% Completed"),
       string.format("%1.f", read_percentage * 100)
     ),
     face = self.small_font_face,
@@ -347,7 +346,7 @@ function BookStatusWidget:genBookInfoGroup()
   -- rating
   table.insert(
     book_meta_info_group,
-    VerticalSpan:new({ width = Screen:scaleBySize(30) })
+    VerticalSpan:new({ height = Screen:scaleBySize(30) })
   )
   local rateHeight = Screen:scaleBySize(60)
   table.insert(
@@ -411,21 +410,21 @@ function BookStatusWidget:genStatisticsGroup(width)
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Days"),
+        text = gettext("Days"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Time"),
+        text = gettext("Time"),
         face = self.small_font_face,
       }),
     }),
     CenterContainer:new({
       dimen = Geom:new({ w = tile_width, h = tile_height }),
       TextWidget:new({
-        text = _("Read pages"),
+        text = gettext("Read pages"),
         face = self.small_font_face,
       }),
     }),
@@ -483,12 +482,12 @@ function BookStatusWidget:genSummaryGroup(width)
     padding = text_padding,
     parent = self,
     readonly = self.readonly,
-    hint = _("A few words about the book"),
+    hint = gettext("A few words about the book"),
   })
   table.insert(self.layout, { self.input_note })
 
   return VerticalGroup:new({
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
     CenterContainer:new({
       dimen = Geom:new({ w = width, h = height }),
       self.input_note,
@@ -508,7 +507,7 @@ function BookStatusWidget:generateSwitchGroup(width)
 
   local switch = ToggleSwitch:new({
     width = math.floor(width * 0.6),
-    toggle = { _("Reading"), _("On hold"), _("Finished") },
+    toggle = { gettext("Reading"), gettext("On hold"), gettext("Finished") },
     args = { "reading", "abandoned", "complete" },
     values = { 1, 2, 3 },
     enabled = not self.readonly,
@@ -520,7 +519,7 @@ function BookStatusWidget:generateSwitchGroup(width)
   self:mergeLayoutInVertical(switch)
 
   return VerticalGroup:new({
-    VerticalSpan:new({ width = Screen:scaleBySize(10) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
     CenterContainer:new({
       ignore = "height",
       dimen = Geom:new({ w = width, h = height }),
@@ -529,7 +528,7 @@ function BookStatusWidget:generateSwitchGroup(width)
   })
 end
 
-function BookStatusWidget:onConfigChoose(values, name, event, args, position)
+function BookStatusWidget:onConfigChoose(_values, _name, _event, args, position)
   UIManager:tickAfterNext(function()
     self:onChangeBookStatus(args, position)
     UIManager:setDirty(nil, "ui", nil, true)
@@ -537,17 +536,17 @@ function BookStatusWidget:onConfigChoose(values, name, event, args, position)
 end
 
 function BookStatusWidget:onSwipe(arg, ges_ev)
-  if ges_ev.direction == "south" then
-    -- Allow easier closing with swipe down
-    self:onExit()
-  elseif
+  if
     ges_ev.direction == "east"
     or ges_ev.direction == "west"
     or ges_ev.direction == "north"
   then
     -- no use for now
-    do
-    end -- luacheck: ignore 541
+    return false
+  end
+  if ges_ev.direction == "south" then
+    -- Allow easier closing with swipe down
+    return self:onExit()
   else -- diagonal swipe
     -- trigger full refresh
     UIManager:setDirty(nil, "full", nil, true)
@@ -557,7 +556,7 @@ function BookStatusWidget:onSwipe(arg, ges_ev)
   end
 end
 
-function BookStatusWidget:onMultiSwipe(arg, ges_ev)
+function BookStatusWidget:onMultiSwipe(arg, _ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
@@ -574,9 +573,9 @@ function BookStatusWidget:onExit()
   return true
 end
 
-function BookStatusWidget:onSwitchFocus(inputbox)
+function BookStatusWidget:onSwitchFocus(_inputbox)
   self.note_dialog = InputDialog:new({
-    title = _("Review"),
+    title = gettext("Review"),
     input = self.input_note:getText(),
     scroll = true,
     allow_newline = true,
@@ -584,14 +583,14 @@ function BookStatusWidget:onSwitchFocus(inputbox)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self:closeInputDialog()
           end,
         },
         {
-          text = _("Save review"),
+          text = gettext("Save review"),
           is_enter_default = true,
           callback = function()
             local note = self.note_dialog:getInputText()
@@ -604,8 +603,7 @@ function BookStatusWidget:onSwitchFocus(inputbox)
       },
     },
   })
-  UIManager:show(self.note_dialog)
-  self.note_dialog:showKeyboard()
+  self:showWidget(self.note_dialog)
 end
 
 function BookStatusWidget:closeInputDialog()

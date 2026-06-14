@@ -8,20 +8,20 @@ local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Event = require("ui/event")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local ProgressWidget = require("ui/widget/progresswidget")
 local Screenshoter = require("ui/widget/screenshoter")
 local Size = require("ui/size")
 local TitleBar = require("ui/widget/titlebar")
+local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local ImageViewer = InputContainer:extend({
@@ -48,7 +48,7 @@ local ImageViewer = InputContainer:extend({
 
   fullscreen = false, -- false will add some padding around widget (so footer can be visible)
   with_title_bar = true,
-  title_text = _("Viewing image"), -- default title text
+  title_text = gettext("Viewing image"), -- default title text
   -- A caption can be toggled with tap on title_text (so, it needs with_title_bar=true):
   caption = nil,
   caption_visible = true, -- caption visible by default
@@ -136,9 +136,6 @@ function ImageViewer:init()
       MultiSwipe = { GestureRange:new({ ges = "multiswipe", range = range }) },
     }
   end
-  if self.fullscreen then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
 
   -- if self.image is a list of images, swap it with first image to be displayed
   if type(self.image) == "table" then
@@ -193,7 +190,8 @@ function ImageViewer:init()
     {
       {
         id = "scale",
-        text = self._scale_to_fit and _("Original size") or _("Scale"),
+        text = self._scale_to_fit and gettext("Original size")
+          or gettext("Scale"),
         callback = function()
           self.scale_factor = self._scale_to_fit and 1 or 0
           self._scale_to_fit = not self._scale_to_fit
@@ -205,7 +203,7 @@ function ImageViewer:init()
       },
       {
         id = "rotate",
-        text = self.rotated and _("No rotation") or _("Rotate"),
+        text = self.rotated and gettext("No rotation") or gettext("Rotate"),
         callback = function()
           self.rotated = not self.rotated and true or false
           self:update()
@@ -213,7 +211,7 @@ function ImageViewer:init()
       },
       {
         id = "close",
-        text = _("Close"),
+        text = gettext("Close"),
         callback = function()
           self:onExit()
         end,
@@ -224,7 +222,6 @@ function ImageViewer:init()
     width = self.width - 2 * self.button_padding,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self.button_container = CenterContainer:new({
     dimen = Geom:new({
@@ -253,7 +250,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
       self.captioned_title_bar = TitleBar:new({ -- when caption shown
         width = self.width,
@@ -273,7 +269,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
     else
       self.title_bar = TitleBar:new({
@@ -285,7 +280,6 @@ function ImageViewer:init()
         close_callback = function()
           self:onExit()
         end,
-        show_parent = self,
       })
     end
   end
@@ -372,12 +366,12 @@ function ImageViewer:update()
   if self.buttons_visible then
     local scale_btn = self.button_table:getButtonById("scale")
     scale_btn:setText(
-      self._scale_to_fit and _("Original size") or _("Scale"),
+      self._scale_to_fit and gettext("Original size") or gettext("Scale"),
       scale_btn.width
     )
     local rotate_btn = self.button_table:getButtonById("rotate")
     rotate_btn:setText(
-      self.rotated and _("No rotation") or _("Rotate"),
+      self.rotated and gettext("No rotation") or gettext("Rotate"),
       rotate_btn.width
     )
     table.insert(self.frame_elements, self.button_container)
@@ -398,7 +392,7 @@ function ImageViewer:update()
   --       page turns will show color quantization artefacts (i.e., banding) like crazy,
   --       while a long touch will trigger a dithered, flashing full-refresh that'll make everything shiny :).
   self.dithered = true
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     local update_region = self.main_frame.dimen:combine(orig_dimen)
     return wfm_mode, update_region, true
   end)
@@ -632,7 +626,7 @@ function ImageViewer:onSwipe(_, ges)
   return true
 end
 
-function ImageViewer:onMultiSwipe(_, ges)
+function ImageViewer:onMultiSwipe(_arg, _ges)
   -- As swipe south to close is only enabled when scaled to fit, but not
   -- when we are zoomed in/out, allow any multiswipe to close.
   self:onExit()
@@ -674,7 +668,7 @@ function ImageViewer:onPan(_, ges)
   return true
 end
 
-function ImageViewer:onPanRelease(_, ges)
+function ImageViewer:onPanRelease(_arg, _ges)
   if self._panning then
     self._panning = false
     self:panBy(-self._pan_relative_x, -self._pan_relative_y)
@@ -855,12 +849,12 @@ function ImageViewer:onSaveImageView()
     self.buttons_visible = false
     self.fullscreen = true
     self:update()
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
   end
   local screenshot_dir = Screenshoter:getScreenshotDir()
   local screenshot_name =
     os.date(screenshot_dir .. "/ImageViewer_%Y-%m-%d_%H%M%S.png")
-  UIManager:sendEvent(
+  UIManager:broadcastEvent(
     Event:new("Screenshot", screenshot_name, restore_settings_func)
   )
   return true
@@ -920,7 +914,7 @@ end
 -- Register DocumentRegistry auxiliary provider.
 function ImageViewer:register(registry)
   registry:addAuxProvider({
-    provider_name = _("Image viewer"),
+    provider_name = gettext("Image viewer"),
     provider = "imageviewer",
     order = 10, -- order in OpenWith dialog
     enabled_func = function(file)
@@ -933,7 +927,7 @@ function ImageViewer:register(registry)
 end
 
 function ImageViewer.openFile(file)
-  UIManager:show(ImageViewer:new({
+  self:showWidget(ImageViewer:new({
     file = file,
     fullscreen = true,
     with_title_bar = false,

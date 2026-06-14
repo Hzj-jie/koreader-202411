@@ -17,8 +17,8 @@
 
 ]]
 
-local ffi = require("ffi")
 local bit = require("bit")
+local ffi = require("ffi")
 local band = bit.band
 
 --[[
@@ -327,14 +327,6 @@ local EVENT_ATTR_VAL = 4 -- Attribute value
 local EVENT_END_DOC = 5 -- End of document
 local EVENT_MARK = 6 -- Internal only; notes position in buffer
 local EVENT_NONE = 7 -- Internal only; should never see this event
-
-local entity_refs = {
-  ["&lt;"] = "<",
-  ["&gt;"] = ">",
-  ["&amp;"] = "&",
-  ["&apos;"] = "'",
-  ["&quot;"] = '"',
-}
 
 -- Map constant values to constant names.
 local STATE_NAMES = {
@@ -728,13 +720,13 @@ for i = 0, #STATE_NAMES do
   code("function ", name, "_f(ps, c, verbose)\n")
   code("  local ctype = char_type[c]\n")
   local has_any
-  for i = 1, #cclasses do
-    local cclass = cclasses[i]
+  for j = 1, #cclasses do
+    local cclass = cclasses[j]
     local id = cclass.cclass
     local condition = cclass_match[id]
     if id == CCLASS_ANY then
       has_any = cclass
-    elseif i == 1 then
+    elseif j == 1 then
       code("  if ", condition, " then\n")
       gen_cclass_code("    ", cclass)
     else

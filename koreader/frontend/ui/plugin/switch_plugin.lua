@@ -8,8 +8,8 @@ local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local SwitchPlugin = WidgetContainer:extend({})
 
@@ -67,7 +67,7 @@ end
 function SwitchPlugin:_showConfirmBox(touchMenu)
   UIManager:show(ConfirmBox:new({
     text = self:_confirmMessage(),
-    ok_text = self.enabled and _("Disable") or _("Enable"),
+    ok_text = self.enabled and gettext("Disable") or gettext("Enable"),
     ok_callback = function()
       self:flipSetting()
       touchMenu:updateItems()
@@ -88,9 +88,9 @@ function SwitchPlugin:_confirmMessage()
     result = self.confirm_message() .. "\n"
   end
   if self.enabled then
-    result = result .. _("Do you want to disable it?")
+    result = result .. gettext("Do you want to disable it?")
   else
-    result = result .. _("Do you want to enable it?")
+    result = result .. gettext("Do you want to enable it?")
   end
   return result
 end

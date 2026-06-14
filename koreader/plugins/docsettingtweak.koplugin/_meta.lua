@@ -1,8 +1,8 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "docsettingtweak",
-  fullname = _("Tweak document settings"),
-  description = _(
+  fullname = gettext("Tweak document settings"),
+  description = gettext(
     [[This plugin allows you to tweak document settings before the document is loaded based on external factors.]]
   ),
 }

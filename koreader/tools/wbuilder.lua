@@ -7,7 +7,7 @@ require("setupkoenv")
 G_defaults = require("luadefaults"):open()
 
 local DataStorage = require("datastorage")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 -- read settings and check for language override
 -- has to be done before requiring other files because
@@ -15,30 +15,30 @@ local _ = require("gettext")
 G_reader_settings = require("luasettings"):open(
   DataStorage:getDataDir() .. "/settings.reader.lua"
 )
-local lang_locale = G_reader_settings:readSetting("language")
+local lang_locale = G_reader_settings:read("language")
 if lang_locale then
-  _.changeLang(lang_locale)
+  gettext.changeLang(lang_locale)
 end
-local Device = require("device")
 local CanvasContext = require("document/canvascontext")
+local Device = require("device")
 CanvasContext:init(Device)
-local UIManager = require("ui/uimanager")
-local RenderText = require("ui/rendertext")
+local AlphaContainer = require("ui/widget/container/alphacontainer")
+local CenterContainer = require("ui/widget/container/centercontainer")
+local ConfirmBox = require("ui/widget/confirmbox")
+local DEBUG = require("dbg")
+local DocumentRegistry = require("document/documentregistry")
 local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
-local Menu = require("ui/widget/menu")
-local Widget = require("ui/widget/widget")
-local TextWidget = require("ui/widget/textwidget")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
-local CenterContainer = require("ui/widget/container/centercontainer")
-local FrameContainer = require("ui/widget/container/framecontainer")
-local AlphaContainer = require("ui/widget/container/alphacontainer")
-local ConfirmBox = require("ui/widget/confirmbox")
-local TouchMenu = require("ui/widget/touchmenu")
-local DocumentRegistry = require("document/documentregistry")
+local Menu = require("ui/widget/menu")
 local ReaderUI = require("apps/reader/readerui")
-local DEBUG = require("dbg")
+local RenderText = require("ui/rendertext")
+local TextWidget = require("ui/widget/textwidget")
+local TouchMenu = require("ui/widget/touchmenu")
+local UIManager = require("ui/uimanager")
+local Widget = require("ui/widget/widget")
 local Screen = require("device").screen
 local Blitbuffer = require("ffi/blitbuffer")
 local InputText = require("ui/widget/inputtext")
@@ -48,8 +48,8 @@ DEBUG:turnOn()
 -----------------------------------------------------
 -- widget that paints the grid on the background
 -----------------------------------------------------
-TestGrid = Widget:new({})
-TestVisible = Widget:new({})
+TestGrid = Widget:new()
+TestVisible = Widget:new()
 
 function TestGrid:paintTo(bb)
   v_line = math.floor(bb:getWidth() / 50)
@@ -490,7 +490,7 @@ end
 
 function testTouchProbe()
   local TouchProbe = require("tools/kobo_touch_probe")
-  UIManager:show(TouchProbe:new({}))
+  UIManager:show(TouchProbe:new())
 end
 
 function testNetworkSetting()

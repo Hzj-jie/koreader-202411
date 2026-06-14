@@ -1,7 +1,7 @@
 local bit = require("bit")
 local ffi = require("ffi")
-local lfs = require("libs/libkoreader-lfs")
 local ffiUtil = require("ffi/util")
+local lfs = require("libs/libkoreader-lfs")
 local C = ffi.C
 
 require("ffi/posix_h")
@@ -495,8 +495,7 @@ local function mxc_update(
   --       but will save us an ioctl before the next refresh, something which, even if it didn't block at all,
   --       would possibly end up being more detrimental to latency/reactivity.
   if
-    ioc_data.update_mode == C.UPDATE_MODE_FULL
-    and fb.mech_wait_update_complete
+    ioc_data.update_mode == C.UPDATE_MODE_FULL and fb.mech_wait_update_complete
   then
     fb.debug("refresh: wait for completion of marker", marker)
     if fb:mech_wait_update_complete(marker) == -1 then
@@ -536,7 +535,7 @@ local function mxc_update(
   -- * Waiting for complete *after* Fast helps everywhere, but obviously murders latency, too.
   -- FWIW, Nickel does (using AUTO everywhere): Complete -> HL -> Submission -> UI -> Complete -> UnHL -> Submission
   -- * Doing something similar with our usual DU + AUTO combos doesn't help.
-  -- NOTE: Much like on lab126 MTK, bumping UIManager:yieldToEPDC to something along the lines of 175ms helps,
+  -- NOTE: Much like on lab126 MTK, bumping UIManager:waitForScreenRefresh to something along the lines of 175ms helps,
   --       but is also obviously not desirable latency-wise.
   --       Interestingly enough, lab126 devices are affected the *other* way around:
   --       they tend to optimize *out* the highlight, instead of having trouble dealing with the unhighlight...

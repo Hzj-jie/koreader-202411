@@ -22,10 +22,9 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
-local logger = require("logger")
 local T = require("ffi/util").template
-local _ = require("gettext")
-local C_ = _.pgettext
+local gettext = require("gettext")
+local C_ = gettext.pgettext
 local Screen = Device.screen
 
 local MODE = {
@@ -166,7 +165,7 @@ local footerTextGeneratorMap = {
       then
         return ""
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -185,7 +184,7 @@ local footerTextGeneratorMap = {
       then
         return ""
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -305,7 +304,7 @@ local footerTextGeneratorMap = {
     if footer.pageno then
       if footer.ui.pagemap and footer.ui.pagemap:wantsPageLabels() then
         -- (Page labels might not be numbers)
-        local label, idx, count = footer.ui.pagemap:getCurrentPageLabel(false) -- luacheck: no unused
+        local __, idx, count = footer.ui.pagemap:getCurrentPageLabel(false)
         local remaining = count - idx
         if footer.settings.pages_left_includes_current_page then
           remaining = remaining + 1
@@ -392,7 +391,7 @@ local footerTextGeneratorMap = {
     if statm then
       local symbol_type = footer.settings.item_prefix
       local prefix = symbol_prefix[symbol_type].mem_usage
-      local dummy, rss = statm:read("*number", "*number")
+      local __, rss = statm:read("*number", "*number")
       statm:close()
       -- we got the nb of 4Kb-pages used, that we convert to MiB
       rss = math.floor(rss * (4096 / 1024 / 1024))
@@ -421,17 +420,17 @@ local footerTextGeneratorMap = {
     else
       local prefix = symbol_prefix[symbol_type].wifi_status
       if NetworkMgr:isOnline() then
-        return T(_("%1 Online"), prefix)
+        return T(gettext("%1 Online"), prefix)
       elseif NetworkMgr:isConnected() then
-        return T(_("%1 Connected"), prefix)
+        return T(gettext("%1 Connected"), prefix)
       elseif NetworkMgr:isWifiOn() then
-        return T(_("%1 On"), prefix)
+        return T(gettext("%1 On"), prefix)
       elseif
         footer.settings.all_at_once and footer.settings.hide_empty_generators
       then
         return ""
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -447,7 +446,7 @@ local footerTextGeneratorMap = {
       if symbol_type == "icons" or symbol_type == "compact_items" then
         return symbol_prefix.icons.page_turning_inverted
       else
-        return T(_("%1 On"), prefix)
+        return T(gettext("%1 On"), prefix)
       end
     elseif
       footer.settings.all_at_once and footer.settings.hide_empty_generators
@@ -457,7 +456,7 @@ local footerTextGeneratorMap = {
       if symbol_type == "icons" or symbol_type == "compact_items" then
         return symbol_prefix.icons.page_turning_regular
       else
-        return T(_("%1 Off"), prefix)
+        return T(gettext("%1 Off"), prefix)
       end
     end
   end,
@@ -490,20 +489,18 @@ local ReaderFooter = WidgetContainer:extend({
   pages = nil,
   footer_text = nil,
   text_font_face = "ffont",
-  height = Screen:scaleBySize(
-    G_defaults:readSetting("DMINIBAR_CONTAINER_HEIGHT")
-  ),
+  height = Screen:scaleBySize(G_defaults:read("DMINIBAR_CONTAINER_HEIGHT")),
   horizontal_margin = Size.span.horizontal_default,
   bottom_padding = Size.padding.tiny,
   settings = nil, -- table
   -- added to expose them to unit tests
   textGeneratorMap = footerTextGeneratorMap,
+  _refresh_mode = "ui",
 })
 
 local DEFAULT_SETTINGS = {
   disable_progress_bar = false, -- enable progress bar by default
   chapter_progress_bar = false, -- the whole book
-  disabled = false,
   all_at_once = false,
   reclaim_height = false,
   toc_markers = true,
@@ -529,7 +526,7 @@ local DEFAULT_SETTINGS = {
   toc_markers_width = 2, -- unscaled_size_check: ignore
   text_font_size = 14, -- unscaled_size_check: ignore
   text_font_bold = false,
-  container_height = G_defaults:readSetting("DMINIBAR_CONTAINER_HEIGHT"),
+  container_height = G_defaults:read("DMINIBAR_CONTAINER_HEIGHT"),
   container_bottom_padding = 1, -- unscaled_size_check: ignore
   progress_margin_width = Device:isAndroid() and Screen:scaleByDPI(16) or 10, -- android: guidelines for rounded corner margins
   progress_margin = false, -- true if progress bar margins same as book margins
@@ -542,7 +539,6 @@ local DEFAULT_SETTINGS = {
   progress_bar_position = "alongside",
   bottom_horizontal_separator = false,
   align = "center",
-  auto_refresh_time = false,
   progress_style_thin_height = 3, -- unscaled_size_check: ignore
   progress_style_thick_height = 7, -- unscaled_size_check: ignore
   hide_empty_generators = false,
@@ -554,14 +550,11 @@ local DEFAULT_SETTINGS = {
 }
 
 function ReaderFooter:init()
-  self.settings = G_reader_settings:readSetting("footer") or DEFAULT_SETTINGS
+  self.settings = G_reader_settings:readTableRef("footer", DEFAULT_SETTINGS)
 
   self.additional_footer_content = {} -- array, where additional header content can be inserted.
 
   -- Remove items not supported by the current device
-  if not Device:hasFastWifiStatusQuery() then
-    MODE.wifi_status = nil
-  end
   if not Device:hasFrontlight() then
     MODE.frontlight = nil
   end
@@ -618,11 +611,6 @@ function ReaderFooter:init()
   for i = 0, #self.mode_index do
     self.mode_list[self.mode_index[i]] = i
   end
-  if self.settings.disabled then
-    -- footer feature is completely disabled, stop initialization now
-    self:disableFooter()
-    return
-  end
 
   self.pageno = self.view.state.page
   self.has_no_mode = true
@@ -649,8 +637,8 @@ function ReaderFooter:init()
     height = nil,
     percentage = nil,
     tick_width = Screen:scaleBySize(self.settings.toc_markers_width),
-    ticks = nil, -- ticks will be populated in self:updateFooterText
-    last = nil, -- last will be initialized in self:updateFooterText
+    ticks = nil, -- ticks will be populated in self:_updateFooterText
+    last = nil, -- last will be initialized in self:_updateFooterText
     initial_pos_marker = self.settings.initial_marker,
   })
 
@@ -663,7 +651,7 @@ function ReaderFooter:init()
     self.footer_text,
   })
   self:updateFooterContainer()
-  self.mode = G_reader_settings:readSetting("reader_footer_mode") or self.mode
+  self.mode = G_reader_settings:read("reader_footer_mode") or self.mode
   if self.has_no_mode and self.settings.disable_progress_bar then
     self.mode = self.mode_list.off
     self.view.footer_visible = false
@@ -672,52 +660,52 @@ function ReaderFooter:init()
   end
   if self.settings.all_at_once then
     self.view.footer_visible = (self.mode ~= self.mode_list.off)
-    self:updateFooterTextGenerator()
+    self:_updateFooterTextGenerator()
     if
       self.settings.progress_bar_position ~= "alongside" and self.has_no_mode
     then
       self.footer_text.height = 0
     end
   else
-    self:applyFooterMode()
+    self.view.footer_visible = self.view.footer_visible or false
+    self:_applyFooterMode()
   end
 
   self.visibility_change = nil
 
-  self.custom_text = G_reader_settings:readSetting("reader_footer_custom_text")
+  self.custom_text = G_reader_settings:read("reader_footer_custom_text")
     or "KOReader"
   self.custom_text_repetitions = tonumber(
-    G_reader_settings:readSetting("reader_footer_custom_text_repetitions")
-      or "1"
+    G_reader_settings:read("reader_footer_custom_text_repetitions") or "1"
   )
 end
 
-function ReaderFooter:set_custom_text(touchmenu_instance)
+function ReaderFooter:set_custom_text(menu)
   local text_dialog
   text_dialog = MultiInputDialog:new({
-    title = _("Enter a custom text"),
+    title = gettext("Enter a custom text"),
     fields = {
       {
         text = self.custom_text or "",
-        description = _("Custom string:"),
+        description = gettext("Custom string:"),
       },
       {
         text = self.custom_text_repetitions,
-        description = _("Number of repetitions:"),
+        description = gettext("Number of repetitions:"),
         input_type = "number",
       },
     },
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(text_dialog)
           end,
         },
         {
-          text = _("Set"),
+          text = gettext("Set"),
           callback = function()
             local inputs = text_dialog:getFields()
             local new_text, new_repetitions = inputs[1], inputs[2]
@@ -726,7 +714,7 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
             end
             if self.custom_text ~= new_text then
               self.custom_text = new_text
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "reader_footer_custom_text",
                 self.custom_text
               )
@@ -740,35 +728,34 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
               and self.custom_text_repetitions ~= new_repetitions
             then
               self.custom_text_repetitions = new_repetitions
-              G_reader_settings:saveSetting(
+              G_reader_settings:save(
                 "reader_footer_custom_text_repetitions",
                 self.custom_text_repetitions
               )
             end
             UIManager:close(text_dialog)
-            self:refreshFooter(true, true)
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            self:refreshFooter()
+            if menu then
+              menu:updateItems()
             end
           end,
         },
       },
     },
   })
-  UIManager:show(text_dialog)
-  text_dialog:showKeyboard()
+  self:showWidget(text_dialog)
 end
 
 -- Help text string, or function, to be shown, or executed, on a long press on menu item
 local option_help_text = {
-  pages_left_book = _(
+  pages_left_book = gettext(
     "Can be configured to include or exclude the current page."
   ),
-  percentage = _(
+  percentage = gettext(
     "Progress percentage can be shown with zero, one or two decimal places."
   ),
-  mem_usage = _("Show memory usage in MiB."),
-  reclaim_height = _(
+  mem_usage = gettext("Show memory usage in MiB."),
+  reclaim_height = gettext(
     "When the status bar is hidden, this setting will utilize the entirety of screen real estate (for your book) and will temporarily overlap the text when the status bar is shown."
   ),
   custom_text = ReaderFooter.set_custom_text,
@@ -776,7 +763,7 @@ local option_help_text = {
 
 function ReaderFooter:updateFooterContainer()
   local margin_span = HorizontalSpan:new({ width = self.horizontal_margin })
-  self.vertical_frame = VerticalGroup:new({})
+  self.vertical_frame = VerticalGroup:new()
   if self.settings.bottom_horizontal_separator then
     self.separator_line = LineWidget:new({
       dimen = Geom:new({
@@ -785,7 +772,7 @@ function ReaderFooter:updateFooterContainer()
       }),
     })
     local vertical_span =
-      VerticalSpan:new({ width = Size.span.vertical_default })
+      VerticalSpan:new({ height = Size.span.vertical_default })
     table.insert(self.vertical_frame, self.separator_line)
     table.insert(self.vertical_frame, vertical_span)
   end
@@ -824,7 +811,8 @@ function ReaderFooter:updateFooterContainer()
     })
   end
 
-  local vertical_span = VerticalSpan:new({ width = Size.span.vertical_default })
+  local vertical_span =
+    VerticalSpan:new({ height = Size.span.vertical_default })
 
   if
     self.settings.progress_bar_position == "above"
@@ -858,91 +846,11 @@ function ReaderFooter:updateFooterContainer()
   self[1] = self.footer_positioner
 end
 
-function ReaderFooter:unscheduleFooterAutoRefresh()
-  if not self.autoRefreshFooter then
-    return
-  end -- not yet set up
-  -- Slightly different wording than in rescheduleFooterAutoRefreshIfNeeded because it might not actually be scheduled at all
-  logger.dbg("ReaderFooter: unschedule autoRefreshFooter")
-  UIManager:unschedule(self.autoRefreshFooter)
-end
-
-function ReaderFooter:shouldBeRepainted()
-  if not self.view.footer_visible then
-    return false
-  end
-
-  local top_wg = UIManager:getTopmostVisibleWidget() or {}
-  if top_wg.name == "ReaderUI" then
-    -- No overlap possible, it's safe to request a targeted widget repaint
-    return true
-  elseif top_wg.covers_fullscreen or top_wg.covers_footer then
-    -- No repaint necessary at all
-    return false
-  end
-
-  -- The topmost visible widget might overlap with us, but dimen isn't reliable enough to do a proper bounds check
-  -- (as stuff often just sets it to the Screen dimensions),
-  -- so request a full ReaderUI repaint to avoid out-of-order repaints.
-  return true, true
-end
-
-function ReaderFooter:rescheduleFooterAutoRefreshIfNeeded()
-  if not self.autoRefreshFooter then
-    -- Create this function the first time we're called
-    self.autoRefreshFooter = function()
-      -- Only actually repaint the footer if nothing's being shown over ReaderUI (#6616)
-      -- (We want to avoid the footer to be painted over a widget covering it - we would
-      -- be fine refreshing it if the widget is not covering it, but this is hard to
-      -- guess from here.)
-      self:onUpdateFooter(self:shouldBeRepainted())
-
-      self:rescheduleFooterAutoRefreshIfNeeded() -- schedule (or not) next refresh
-    end
-  end
-  local unscheduled = UIManager:unschedule(self.autoRefreshFooter) -- unschedule if already scheduled
-  -- Only schedule an update if the footer has items that may change
-  -- As self.view.footer_visible may be temporarily toggled off by other modules,
-  -- we can't trust it for not scheduling auto refresh
-  local schedule = false
-  if self.settings.auto_refresh_time then
-    if self.settings.all_at_once then
-      if
-        self.settings.time
-        or self.settings.battery
-        or self.settings.wifi_status
-        or self.settings.mem_usage
-      then
-        schedule = true
-      end
-    else
-      if
-        self.mode == self.mode_list.time
-        or self.mode == self.mode_list.battery
-        or self.mode == self.mode_list.wifi_status
-        or self.mode == self.mode_list.mem_usage
-      then
-        schedule = true
-      end
-    end
-  end
-  if schedule then
-    UIManager:scheduleIn(61 - tonumber(os.date("%S")), self.autoRefreshFooter)
-    if not unscheduled then
-      logger.dbg("ReaderFooter: scheduled autoRefreshFooter")
-    else
-      logger.dbg("ReaderFooter: rescheduled autoRefreshFooter")
-    end
-  elseif unscheduled then
-    logger.dbg("ReaderFooter: unscheduled autoRefreshFooter")
-  end
-end
-
 function ReaderFooter:setupTouchZones()
   if not Device:isTouchDevice() then
     return
   end
-  local DTAP_ZONE_MINIBAR = G_defaults:readSetting("DTAP_ZONE_MINIBAR")
+  local DTAP_ZONE_MINIBAR = G_defaults:read("DTAP_ZONE_MINIBAR")
   local footer_screen_zone = {
     ratio_x = DTAP_ZONE_MINIBAR.x,
     ratio_y = DTAP_ZONE_MINIBAR.y,
@@ -1042,16 +950,7 @@ function ReaderFooter:getHeight()
   end
 end
 
-function ReaderFooter:disableFooter()
-  self.onReaderReady = function() end
-  self.resetLayout = function() end
-  self.updateFooterPage = function() end
-  self.updateFooterPos = function() end
-  self.mode = self.mode_list.off
-  self.view.footer_visible = false
-end
-
-function ReaderFooter:updateFooterTextGenerator()
+function ReaderFooter:_updateFooterTextGenerator()
   local footerTextGenerators = {}
   for i, m in pairs(self.mode_index) do
     if self.settings[m] then
@@ -1084,59 +983,69 @@ end
 function ReaderFooter:textOptionTitles(option)
   local symbol = self.settings.item_prefix
   local option_titles = {
-    all_at_once = _("Show all selected items at once"),
-    reclaim_height = _("Overlap status bar"),
+    all_at_once = gettext("Show all selected items at once"),
+    reclaim_height = gettext("Overlap status bar"),
     bookmark_count = T(
-      _("Bookmark count (%1)"),
+      gettext("Bookmark count (%1)"),
       symbol_prefix[symbol].bookmark_count
     ),
-    page_progress = T(_("Current page (%1)"), "/"),
+    page_progress = T(gettext("Current page (%1)"), "/"),
     pages_left_book = T(
-      _("Pages left in book (%1)"),
+      gettext("Pages left in book (%1)"),
       symbol_prefix[symbol].pages_left_book
     ),
     time = symbol_prefix[symbol].time
-        and T(_("Current time (%1)"), symbol_prefix[symbol].time)
-      or _("Current time"),
-    chapter_progress = T(_("Current page in chapter (%1)"), " ⁄⁄ "),
+        and T(gettext("Current time (%1)"), symbol_prefix[symbol].time)
+      or gettext("Current time"),
+    chapter_progress = T(
+      gettext("Current page in chapter (%1)"),
+      " ⁄⁄ "
+    ),
     pages_left = T(
-      _("Pages left in chapter (%1)"),
+      gettext("Pages left in chapter (%1)"),
       symbol_prefix[symbol].pages_left
     ),
-    battery = T(_("Battery percentage (%1)"), symbol_prefix[symbol].battery),
-    percentage = symbol_prefix[symbol].percentage
-        and T(_("Progress percentage (%1)"), symbol_prefix[symbol].percentage)
-      or _("Progress percentage"),
+    battery = T(
+      gettext("Battery percentage (%1)"),
+      symbol_prefix[symbol].battery
+    ),
+    percentage = symbol_prefix[symbol].percentage and T(
+      gettext("Progress percentage (%1)"),
+      symbol_prefix[symbol].percentage
+    ) or gettext("Progress percentage"),
     book_time_to_read = symbol_prefix[symbol].book_time_to_read and T(
-      _("Time left to finish book (%1)"),
+      gettext("Time left to finish book (%1)"),
       symbol_prefix[symbol].book_time_to_read
-    ) or _("Time left to finish book"),
+    ) or gettext("Time left to finish book"),
     chapter_time_to_read = T(
-      _("Time left to finish chapter (%1)"),
+      gettext("Time left to finish chapter (%1)"),
       symbol_prefix[symbol].chapter_time_to_read
     ),
     frontlight = T(
-      _("Brightness level (%1)"),
+      gettext("Brightness level (%1)"),
       symbol_prefix[symbol].frontlight
     ),
     frontlight_warmth = T(
-      _("Warmth level (%1)"),
+      gettext("Warmth level (%1)"),
       symbol_prefix[symbol].frontlight_warmth
     ),
     mem_usage = T(
-      _("KOReader memory usage (%1)"),
+      gettext("KOReader memory usage (%1)"),
       symbol_prefix[symbol].mem_usage
     ),
-    wifi_status = T(_("Wi-Fi status (%1)"), symbol_prefix[symbol].wifi_status),
+    wifi_status = T(
+      gettext("Wi-Fi status (%1)"),
+      symbol_prefix[symbol].wifi_status
+    ),
     page_turning_inverted = T(
-      _("Page turning inverted (%1)"),
+      gettext("Page turning inverted (%1)"),
       symbol_prefix[symbol].page_turning_inverted
     ),
-    book_author = _("Book author"),
-    book_title = _("Book title"),
-    book_chapter = _("Chapter title"),
+    book_author = gettext("Book author"),
+    book_title = gettext("Book title"),
+    book_chapter = gettext("Chapter title"),
     custom_text = T(
-      _("Custom text (long-press to edit): '%1'%2"),
+      gettext("Custom text (long-press to edit): '%1'%2"),
       self.custom_text,
       self.custom_text_repetitions > 1
           and string.format(" × %d", self.custom_text_repetitions)
@@ -1149,7 +1058,7 @@ end
 function ReaderFooter:addToMainMenu(menu_items)
   local sub_items = {}
   menu_items.status_bar = {
-    text = _("Status bar"),
+    text = gettext("Status bar"),
     sub_item_table = sub_items,
   }
 
@@ -1159,10 +1068,10 @@ function ReaderFooter:addToMainMenu(menu_items)
   end
 
   -- menu item to fake footer tapping when touch area is disabled
-  local DTAP_ZONE_MINIBAR = G_defaults:readSetting("DTAP_ZONE_MINIBAR")
+  local DTAP_ZONE_MINIBAR = G_defaults:read("DTAP_ZONE_MINIBAR")
   if DTAP_ZONE_MINIBAR.h == 0 or DTAP_ZONE_MINIBAR.w == 0 then
     table.insert(sub_items, {
-      text = _("Toggle mode"),
+      text = gettext("Toggle mode"),
       enabled_func = function()
         return not self.view.flipping_visible
       end,
@@ -1180,19 +1089,15 @@ function ReaderFooter:addToMainMenu(menu_items)
       help_text = type(option_help_text[option]) == "string"
         and option_help_text[option],
       help_text_func = type(option_help_text[option]) == "function"
-        and function(touchmenu_instance)
-          option_help_text[option](self, touchmenu_instance)
+        and function(menu)
+          option_help_text[option](self, menu)
         end,
       checked_func = function()
         return self.settings[option] == true
       end,
       callback = function()
         self.settings[option] = not self.settings[option]
-        -- We only need to send a SetPageBottomMargin event when we truly affect the margin
-        local should_signal = false
-        -- only case that we don't need a UI update is enable/disable
-        -- non-current mode when all_at_once is disabled.
-        local should_update = false
+        local should_refresh = false
         local first_enabled_mode_num
         local prev_has_no_mode = self.has_no_mode
         local prev_reclaim_height = self.reclaim_height
@@ -1208,29 +1113,25 @@ function ReaderFooter:addToMainMenu(menu_items)
         -- refresh margins position
         if self.has_no_mode then
           self.footer_text.height = 0
-          should_signal = true
+          should_refresh = true
           self.genFooterText = footerTextGeneratorMap.empty
           self.mode = self.mode_list.off
         elseif prev_has_no_mode then
           if self.settings.all_at_once then
             self.mode = self.mode_list.page_progress
-            self:applyFooterMode()
-            G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+            self:_applyFooterMode()
+            G_reader_settings:save("reader_footer_mode", self.mode)
           else
-            G_reader_settings:saveSetting(
-              "reader_footer_mode",
-              first_enabled_mode_num
-            )
+            G_reader_settings:save("reader_footer_mode", first_enabled_mode_num)
           end
-          should_signal = true
+          should_refresh = true
         elseif self.reclaim_height ~= prev_reclaim_height then
-          should_signal = true
-          should_update = true
+          should_refresh = true
         end
         if callback then
-          should_update = callback(self)
+          should_refresh = callback(self)
         elseif self.settings.all_at_once then
-          should_update = self:updateFooterTextGenerator()
+          should_refresh = self:_updateFooterTextGenerator()
         elseif
           (
             self.mode_list[option] == self.mode
@@ -1251,25 +1152,23 @@ function ReaderFooter:addToMainMenu(menu_items)
                 and self.mode_list.off
               or self.mode_list.page_progress
           end
-          should_update = true
-          self:applyFooterMode()
-          G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+          should_refresh = true
+          self:_applyFooterMode()
+          G_reader_settings:save("reader_footer_mode", self.mode)
         end
-        if should_update or should_signal then
-          self:refreshFooter(should_update, should_signal)
+        if should_refresh then
+          self:refreshFooter()
         end
-        -- The absence or presence of some items may change whether auto-refresh should be ensured
-        self:rescheduleFooterAutoRefreshIfNeeded()
       end,
     }
   end
 
   table.insert(sub_items, {
-    text = _("Progress bar"),
+    text = gettext("Progress bar"),
     separator = true,
     sub_item_table = {
       {
-        text = _("Show progress bar"),
+        text = gettext("Show progress bar"),
         checked_func = function()
           return not self.settings.disable_progress_bar
         end,
@@ -1282,15 +1181,15 @@ function ReaderFooter:addToMainMenu(menu_items)
           -- If the status bar is currently disabled, switch to an innocuous mode to display it
           if not self.view.footer_visible then
             self.mode = self.mode_list.page_progress
-            self:applyFooterMode()
-            G_reader_settings:saveSetting("reader_footer_mode", self.mode)
+            self:_applyFooterMode()
+            G_reader_settings:save("reader_footer_mode", self.mode)
           end
-          self:refreshFooter(true, true)
+          self:refreshFooter()
         end,
       },
       {
-        text = _("Show chapter-progress bar instead"),
-        help_text = _(
+        text = gettext("Show chapter-progress bar instead"),
+        help_text = gettext(
           "Show progress bar for the current chapter, instead of the whole book."
         ),
         enabled_func = function()
@@ -1305,7 +1204,10 @@ function ReaderFooter:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Position: %1"), self:genProgressBarPositionMenuItems())
+          return T(
+            gettext("Position: %1"),
+            self:genProgressBarPositionMenuItems()
+          )
         end,
         enabled_func = function()
           return not self.settings.disable_progress_bar
@@ -1320,9 +1222,9 @@ function ReaderFooter:addToMainMenu(menu_items)
       {
         text_func = function()
           if self.settings.progress_style_thin then
-            return _("Thickness and height: thin")
+            return gettext("Thickness and height: thin")
           else
-            return _("Thickness and height: thick")
+            return gettext("Thickness and height: thick")
           end
         end,
         enabled_func = function()
@@ -1330,7 +1232,7 @@ function ReaderFooter:addToMainMenu(menu_items)
         end,
         sub_item_table = {
           {
-            text = _("Thick"),
+            text = gettext("Thick"),
             checked_func = function()
               return not self.settings.progress_style_thin
             end,
@@ -1339,11 +1241,11 @@ function ReaderFooter:addToMainMenu(menu_items)
               local bar_height = self.settings.progress_style_thick_height
               self.progress_bar:updateStyle(true, bar_height)
               self:setTocMarkers()
-              self:refreshFooter(true, true)
+              self:refreshFooter()
             end,
           },
           {
-            text = _("Thin"),
+            text = gettext("Thin"),
             checked_func = function()
               return self.settings.progress_style_thin
             end,
@@ -1351,7 +1253,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               self.settings.progress_style_thin = true
               local bar_height = self.settings.progress_style_thin_height
               self.progress_bar:updateStyle(false, bar_height)
-              self:refreshFooter(true, true)
+              self:refreshFooter()
             end,
             separator = true,
           },
@@ -1360,9 +1262,9 @@ function ReaderFooter:addToMainMenu(menu_items)
               local height = self.settings.progress_style_thin
                   and self.settings.progress_style_thin_height
                 or self.settings.progress_style_thick_height
-              return T(_("Height: %1"), height)
+              return T(gettext("Height: %1"), height)
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local value, value_min, value_max, default_value
               if self.settings.progress_style_thin then
                 default_value = DEFAULT_SETTINGS.progress_style_thin_height
@@ -1382,7 +1284,7 @@ function ReaderFooter:addToMainMenu(menu_items)
                 value_hold_step = 2,
                 value_max = value_max,
                 default_value = default_value,
-                title_text = _("Progress bar height"),
+                title_text = gettext("Progress bar height"),
                 keep_shown_on_apply = true,
                 callback = function(spin)
                   if self.settings.progress_style_thin then
@@ -1390,11 +1292,11 @@ function ReaderFooter:addToMainMenu(menu_items)
                   else
                     self.settings.progress_style_thick_height = spin.value
                   end
-                  self:refreshFooter(true, true)
-                  touchmenu_instance:updateItems()
+                  self:refreshFooter()
+                  menu:updateItems()
                 end,
               })
-              UIManager:show(items)
+              self:showWidget(items)
             end,
             keep_menu_open = true,
           },
@@ -1403,18 +1305,18 @@ function ReaderFooter:addToMainMenu(menu_items)
       {
         text_func = function()
           local value = self.settings.progress_margin
-              and _("same as book margins")
+              and gettext("same as book margins")
             or self.settings.progress_margin_width
-          return T(_("Margins: %1"), value)
+          return T(gettext("Margins: %1"), value)
         end,
         enabled_func = function()
           return not self.settings.disable_progress_bar
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local spin_widget
           spin_widget = SpinWidget:new({
-            title_text = _("Progress bar margins"),
+            title_text = gettext("Progress bar margins"),
             value = self.settings.progress_margin_width,
             value_min = 0,
             value_max = 140, -- max creoptions h_page_margins
@@ -1424,30 +1326,30 @@ function ReaderFooter:addToMainMenu(menu_items)
             callback = function(spin)
               self.settings.progress_margin_width = spin.value
               self.settings.progress_margin = false
-              self:refreshFooter(true)
-              touchmenu_instance:updateItems()
+              self:refreshFooter()
+              menu:updateItems()
             end,
             extra_text = not self.ui.document.info.has_pages
-              and _("Same as book margins"),
+              and gettext("Same as book margins"),
             extra_callback = function()
               local h_margins = self.ui.document.configurable.h_page_margins
               local value = math.floor((h_margins[1] + h_margins[2]) / 2)
               self.settings.progress_margin_width = value
               self.settings.progress_margin = true
-              self:refreshFooter(true)
-              touchmenu_instance:updateItems()
+              self:refreshFooter()
+              menu:updateItems()
               spin_widget.value = value
               spin_widget.original_value = value
               spin_widget:update()
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
       },
       {
         text_func = function()
           return T(
-            _("Minimum progress bar width: %1\xE2\x80\xAF%"),
+            gettext("Minimum progress bar width: %1\xE2\x80\xAF%"),
             self.settings.progress_bar_min_width_pct
           ) -- U+202F NARROW NO-BREAK SPACE
         end,
@@ -1456,7 +1358,7 @@ function ReaderFooter:addToMainMenu(menu_items)
             and not self.settings.disable_progress_bar
             and self.settings.all_at_once
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local items = SpinWidget:new({
             value = self.settings.progress_bar_min_width_pct,
             value_min = 5,
@@ -1464,26 +1366,26 @@ function ReaderFooter:addToMainMenu(menu_items)
             value_hold_step = 20,
             value_max = 50,
             unit = "%",
-            title_text = _("Minimum progress bar width"),
-            text = _(
+            title_text = gettext("Minimum progress bar width"),
+            text = gettext(
               "Minimum percentage of screen width assigned to progress bar"
             ),
             keep_shown_on_apply = true,
             callback = function(spin)
               self.settings.progress_bar_min_width_pct = spin.value
-              self:refreshFooter(true, true)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              self:refreshFooter()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(items)
+          self:showWidget(items)
         end,
         keep_menu_open = true,
         separator = true,
       },
       {
-        text = _("Show initial-position marker"),
+        text = gettext("Show initial-position marker"),
         checked_func = function()
           return self.settings.initial_marker == true
         end,
@@ -1493,11 +1395,11 @@ function ReaderFooter:addToMainMenu(menu_items)
         callback = function()
           self.settings.initial_marker = not self.settings.initial_marker
           self.progress_bar.initial_pos_marker = self.settings.initial_marker
-          self:refreshFooter(true)
+          self:refreshFooter()
         end,
       },
       {
-        text = _("Show chapter markers"),
+        text = gettext("Show chapter markers"),
         checked_func = function()
           return self.settings.toc_markers == true
             and not self.settings.chapter_progress_bar
@@ -1510,13 +1412,13 @@ function ReaderFooter:addToMainMenu(menu_items)
         callback = function()
           self.settings.toc_markers = not self.settings.toc_markers
           self:setTocMarkers()
-          self:refreshFooter(true)
+          self:refreshFooter()
         end,
       },
       {
         text_func = function()
           return T(
-            _("Chapter marker width: %1"),
+            gettext("Chapter marker width: %1"),
             self:genProgressBarChapterMarkerWidthMenuItems()
           )
         end,
@@ -1537,7 +1439,7 @@ function ReaderFooter:addToMainMenu(menu_items)
   -- footer_items
   local footer_items = {}
   table.insert(sub_items, {
-    text = _("Status bar items"),
+    text = gettext("Status bar items"),
     sub_item_table = footer_items,
   })
   table.insert(footer_items, getMinibarOption("page_progress"))
@@ -1559,9 +1461,7 @@ function ReaderFooter:addToMainMenu(menu_items)
     table.insert(footer_items, getMinibarOption("frontlight_warmth"))
   end
   table.insert(footer_items, getMinibarOption("mem_usage"))
-  if Device:hasFastWifiStatusQuery() then
-    table.insert(footer_items, getMinibarOption("wifi_status"))
-  end
+  table.insert(footer_items, getMinibarOption("wifi_status"))
   table.insert(footer_items, getMinibarOption("page_turning_inverted"))
   table.insert(footer_items, getMinibarOption("book_author"))
   table.insert(footer_items, getMinibarOption("book_title"))
@@ -1571,10 +1471,10 @@ function ReaderFooter:addToMainMenu(menu_items)
   -- configure footer_items
   table.insert(sub_items, {
     separator = true,
-    text = _("Configure items"),
+    text = gettext("Configure items"),
     sub_item_table = {
       {
-        text = _("Arrange items in status bar"),
+        text = gettext("Arrange items in status bar"),
         separator = true,
         callback = function()
           local item_table = {}
@@ -1587,38 +1487,25 @@ function ReaderFooter:addToMainMenu(menu_items)
           local SortWidget = require("ui/widget/sortwidget")
           local sort_item
           sort_item = SortWidget:new({
-            title = _("Arrange items"),
+            title = gettext("Arrange items"),
             item_table = item_table,
             callback = function()
               for i = 1, #sort_item.item_table do
                 self.mode_index[i] = sort_item.item_table[i].label
               end
               self.settings.order = self.mode_index
-              self:updateFooterTextGenerator()
+              self:_updateFooterTextGenerator()
               self:onUpdateFooter()
               UIManager:setDirty(nil, "ui")
             end,
           })
-          UIManager:show(sort_item)
+          self:showWidget(sort_item)
         end,
       },
-      getMinibarOption("all_at_once", self.updateFooterTextGenerator),
+      getMinibarOption("all_at_once", self._updateFooterTextGenerator),
       {
-        text = _("Auto refresh items"),
-        help_text = _(
-          "This option allows certain items to update without needing user interaction (i.e page refresh). For example, the time item will update every minute regardless of user input."
-        ),
-        checked_func = function()
-          return self.settings.auto_refresh_time == true
-        end,
-        callback = function()
-          self.settings.auto_refresh_time = not self.settings.auto_refresh_time
-          self:rescheduleFooterAutoRefreshIfNeeded()
-        end,
-      },
-      {
-        text = _("Hide inactive items"),
-        help_text = _(
+        text = gettext("Hide inactive items"),
+        help_text = gettext(
           [[This option will hide inactive items from appearing on the status bar. For example, if the frontlight is 'off' (i.e 0 brightness), no symbols or values will be displayed until the brightness is set to a value >= 1.]]
         ),
         enabled_func = function()
@@ -1630,12 +1517,12 @@ function ReaderFooter:addToMainMenu(menu_items)
         callback = function()
           self.settings.hide_empty_generators =
             not self.settings.hide_empty_generators
-          self:refreshFooter(true, true)
+          self:refreshFooter()
         end,
       },
       {
-        text = _("Include current page in pages left"),
-        help_text = _(
+        text = gettext("Include current page in pages left"),
+        help_text = gettext(
           [[
 By default, KOReader does not include the current page when calculating pages left. For example, in a book or chapter with n pages the 'pages left' item will range from 'n−1' to 0 (last page).
 With this feature enabled, the current page is factored in, resulting in the count going from n to 1 instead.]]
@@ -1649,13 +1536,13 @@ With this feature enabled, the current page is factored in, resulting in the cou
         callback = function()
           self.settings.pages_left_includes_current_page =
             not self.settings.pages_left_includes_current_page
-          self:refreshFooter(true)
+          self:refreshFooter()
         end,
       },
       {
         text_func = function()
           return T(
-            _("Progress percentage format: %1"),
+            gettext("Progress percentage format: %1"),
             self:genProgressPercentageFormatMenuItems()
           )
         end,
@@ -1670,10 +1557,10 @@ With this feature enabled, the current page is factored in, resulting in the cou
         text_func = function()
           local font_weight = ""
           if self.settings.text_font_bold == true then
-            font_weight = ", " .. _("bold")
+            font_weight = ", " .. gettext("bold")
           end
           return T(
-            _("Item font: %1%2"),
+            gettext("Item font: %1%2"),
             self.settings.text_font_size,
             font_weight
           )
@@ -1681,11 +1568,14 @@ With this feature enabled, the current page is factored in, resulting in the cou
         sub_item_table = {
           {
             text_func = function()
-              return T(_("Item font size: %1"), self.settings.text_font_size)
+              return T(
+                gettext("Item font size: %1"),
+                self.settings.text_font_size
+              )
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local items_font = SpinWidget:new({
-                title_text = _("Item font size"),
+                title_text = gettext("Item font size"),
                 value = self.settings.text_font_size,
                 value_min = 8,
                 value_max = 36,
@@ -1704,18 +1594,18 @@ With this feature enabled, the current page is factored in, resulting in the cou
                     bold = self.settings.text_font_bold,
                   })
                   self.text_container[1] = self.footer_text
-                  self:refreshFooter(true, true)
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  self:refreshFooter()
+                  if menu then
+                    menu:updateItems()
                   end
                 end,
               })
-              UIManager:show(items_font)
+              self:showWidget(items_font)
             end,
             keep_menu_open = true,
           },
           {
-            text = _("Items in bold"),
+            text = gettext("Items in bold"),
             checked_func = function()
               return self.settings.text_font_bold == true
             end,
@@ -1728,14 +1618,14 @@ With this feature enabled, the current page is factored in, resulting in the cou
                 bold = self.settings.text_font_bold,
               })
               self.text_container[1] = self.footer_text
-              self:refreshFooter(true, true)
+              self:refreshFooter()
             end,
           },
         },
       },
       {
         text_func = function()
-          return T(_("Item symbols: %1"), self:genItemSymbolsMenuItems())
+          return T(gettext("Item symbols: %1"), self:genItemSymbolsMenuItems())
         end,
         sub_item_table = {
           self:genItemSymbolsMenuItems("icons"),
@@ -1745,7 +1635,10 @@ With this feature enabled, the current page is factored in, resulting in the cou
       },
       {
         text_func = function()
-          return T(_("Item separator: %1"), self:genItemSeparatorMenuItems())
+          return T(
+            gettext("Item separator: %1"),
+            self:genItemSeparatorMenuItems()
+          )
         end,
         sub_item_table = {
           self:genItemSeparatorMenuItems("bar"),
@@ -1755,28 +1648,28 @@ With this feature enabled, the current page is factored in, resulting in the cou
         },
       },
       {
-        text = _("Item max width"),
+        text = gettext("Item max width"),
         sub_item_table = {
           self:genItemMaxWidthMenuItems(
-            _("Book-author item"),
-            _("Book-author item: %1\xE2\x80\xAF%"),
+            gettext("Book-author item"),
+            gettext("Book-author item: %1\xE2\x80\xAF%"),
             "book_author_max_width_pct"
           ), -- U+202F NARROW NO-BREAK SPACE
           self:genItemMaxWidthMenuItems(
-            _("Book-title item"),
-            _("Book-title item: %1\xE2\x80\xAF%"),
+            gettext("Book-title item"),
+            gettext("Book-title item: %1\xE2\x80\xAF%"),
             "book_title_max_width_pct"
           ),
           self:genItemMaxWidthMenuItems(
-            _("Chapter-title item"),
-            _("Chapter-title item: %1\xE2\x80\xAF%"),
+            gettext("Chapter-title item"),
+            gettext("Chapter-title item: %1\xE2\x80\xAF%"),
             "book_chapter_max_width_pct"
           ),
         },
       },
       {
         text_func = function()
-          return T(_("Alignment: %1"), self:genAlignmentMenuItems())
+          return T(gettext("Alignment: %1"), self:genAlignmentMenuItems())
         end,
         enabled_func = function()
           return self.settings.disable_progress_bar
@@ -1790,55 +1683,55 @@ With this feature enabled, the current page is factored in, resulting in the cou
       },
       {
         text_func = function()
-          return T(_("Height: %1"), self.settings.container_height)
+          return T(gettext("Height: %1"), self.settings.container_height)
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local spin_widget = SpinWidget:new({
             value = self.settings.container_height,
             value_min = 7,
             value_max = 98,
             default_value = DEFAULT_SETTINGS.container_height,
-            title_text = _("Items container height"),
+            title_text = gettext("Items container height"),
             keep_shown_on_apply = true,
             callback = function(spin)
               self.settings.container_height = spin.value
               self.height = Screen:scaleBySize(self.settings.container_height)
-              self:refreshFooter(true, true)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              self:refreshFooter()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
         keep_menu_open = true,
       },
       {
         text_func = function()
           return T(
-            _("Bottom margin: %1"),
+            gettext("Bottom margin: %1"),
             self.settings.container_bottom_padding
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local spin_widget = SpinWidget:new({
             value = self.settings.container_bottom_padding,
             value_min = 0,
             value_max = 49,
             default_value = DEFAULT_SETTINGS.container_bottom_padding,
-            title_text = _("Container bottom margin"),
+            title_text = gettext("Container bottom margin"),
             keep_shown_on_apply = true,
             callback = function(spin)
               self.settings.container_bottom_padding = spin.value
               self.bottom_padding =
                 Screen:scaleBySize(self.settings.container_bottom_padding)
-              self:refreshFooter(true, true)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              self:refreshFooter()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
         keep_menu_open = true,
       },
@@ -1853,11 +1746,11 @@ With this feature enabled, the current page is factored in, resulting in the cou
           <= DEFAULT_SETTINGS.battery_hide_threshold
         then
           return T(
-            _("Hide battery item when higher than: %1\xE2\x80\xAF%"),
+            gettext("Hide battery item when higher than: %1\xE2\x80\xAF%"),
             self.settings.battery_hide_threshold
           ) -- U+202F NARROW NO-BREAK SPACE
         else
-          return _("Hide battery item at custom threshold")
+          return gettext("Hide battery item at custom threshold")
         end
       end,
       checked_func = function()
@@ -1867,7 +1760,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       enabled_func = function()
         return self.settings.all_at_once == true
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local max_pct = DEFAULT_SETTINGS.battery_hide_threshold
         local battery_threshold = SpinWidget:new({
           value = math.min(self.settings.battery_hide_threshold, max_pct),
@@ -1876,45 +1769,45 @@ With this feature enabled, the current page is factored in, resulting in the cou
           default_value = max_pct,
           unit = "%",
           value_hold_step = 10,
-          title_text = _("Minimum threshold to hide battery item"),
+          title_text = gettext("Minimum threshold to hide battery item"),
           callback = function(spin)
             self.settings.battery_hide_threshold = spin.value
-            self:refreshFooter(true, true)
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            self:refreshFooter()
+            if menu then
+              menu:updateItems()
             end
           end,
-          extra_text = _("Disable"),
+          extra_text = gettext("Disable"),
           extra_callback = function()
             self.settings.battery_hide_threshold = max_pct + 1
-            self:refreshFooter(true, true)
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            self:refreshFooter()
+            if menu then
+              menu:updateItems()
             end
           end,
           ok_always_enabled = true,
         })
-        UIManager:show(battery_threshold)
+        self:showWidget(battery_threshold)
       end,
       keep_menu_open = true,
       separator = true,
     })
   end
   table.insert(sub_items, {
-    text = _("Show status bar separator"),
+    text = gettext("Show status bar separator"),
     checked_func = function()
       return self.settings.bottom_horizontal_separator == true
     end,
     callback = function()
       self.settings.bottom_horizontal_separator =
         not self.settings.bottom_horizontal_separator
-      self:refreshFooter(true, true)
+      self:refreshFooter()
     end,
   })
   if Device:isTouchDevice() then
     table.insert(sub_items, getMinibarOption("reclaim_height"))
     table.insert(sub_items, {
-      text = _("Lock status bar"),
+      text = gettext("Lock status bar"),
       checked_func = function()
         return self.settings.lock_tap == true
       end,
@@ -1923,7 +1816,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       end,
     })
     table.insert(sub_items, {
-      text = _("Long-press on status bar to skim"),
+      text = gettext("Long-press on status bar to skim"),
       checked_func = function()
         return self.settings.skim_widget_on_hold == true
       end,
@@ -1939,9 +1832,9 @@ end
 
 function ReaderFooter:genProgressBarPositionMenuItems(value)
   local strings = {
-    above = _("Above items"),
-    alongside = _("Alongside items"),
-    below = _("Below items"),
+    above = gettext("Above items"),
+    alongside = gettext("Alongside items"),
+    below = gettext("Below items"),
   }
   if value == nil then
     return strings[self.settings.progress_bar_position]:lower()
@@ -1957,16 +1850,16 @@ function ReaderFooter:genProgressBarPositionMenuItems(value)
         self.settings.align = "center"
       end
       self.settings.progress_bar_position = value
-      self:refreshFooter(true, true)
+      self:refreshFooter()
     end,
   }
 end
 
 function ReaderFooter:genProgressBarChapterMarkerWidthMenuItems(value)
   local strings = {
-    _("Thin"),
-    _("Medium"),
-    _("Thick"),
+    gettext("Thin"),
+    gettext("Medium"),
+    gettext("Thick"),
   }
   if value == nil then
     return strings[self.settings.toc_markers_width]:lower()
@@ -1979,16 +1872,16 @@ function ReaderFooter:genProgressBarChapterMarkerWidthMenuItems(value)
     callback = function()
       self.settings.toc_markers_width = value -- unscaled_size_check: ignore
       self:setTocMarkers()
-      self:refreshFooter(true)
+      self:refreshFooter()
     end,
   }
 end
 
 function ReaderFooter:genProgressPercentageFormatMenuItems(value)
   local strings = {
-    ["0"] = _("No decimal places (%1)"),
-    ["1"] = _("1 decimal place (%1)"),
-    ["2"] = _("2 decimal places (%1)"),
+    ["0"] = gettext("No decimal places (%1)"),
+    ["1"] = gettext("1 decimal place (%1)"),
+    ["2"] = gettext("2 decimal places (%1)"),
   }
   local progressPercentage = function(digits)
     local symbol_type = self.settings.item_prefix
@@ -2011,7 +1904,7 @@ function ReaderFooter:genProgressPercentageFormatMenuItems(value)
     end,
     callback = function()
       self.settings.progress_pct_format = value
-      self:refreshFooter(true)
+      self:refreshFooter()
     end,
   }
 end
@@ -2042,17 +1935,17 @@ function ReaderFooter:genItemSymbolsMenuItems(value)
     end,
     callback = function()
       self.settings.item_prefix = value
-      self:refreshFooter(true)
+      self:refreshFooter()
     end,
   }
 end
 
 function ReaderFooter:genItemSeparatorMenuItems(value)
   local strings = {
-    bar = _("Vertical bar (|)"),
-    bullet = _("Bullet (•)"),
-    dot = _("Dot (·)"),
-    none = _("No separator"),
+    bar = gettext("Vertical bar (|)"),
+    bullet = gettext("Bullet (•)"),
+    dot = gettext("Dot (·)"),
+    none = gettext("No separator"),
   }
   if value == nil then
     return strings[self.settings.items_separator]:lower()
@@ -2064,7 +1957,7 @@ function ReaderFooter:genItemSeparatorMenuItems(value)
     end,
     callback = function()
       self.settings.items_separator = value
-      self:refreshFooter(true)
+      self:refreshFooter()
     end,
   }
 end
@@ -2074,10 +1967,12 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
     text_func = function()
       return T(item_text, self.settings[setting])
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local spin_widget = SpinWidget:new({
         title_text = title_text,
-        info_text = _("Maximum percentage of screen width used for the item"),
+        info_text = gettext(
+          "Maximum percentage of screen width used for the item"
+        ),
         value = self.settings[setting],
         value_min = 10,
         value_max = 100,
@@ -2088,11 +1983,11 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
         keep_shown_on_apply = true,
         callback = function(spin)
           self.settings[setting] = spin.value
-          self:refreshFooter(true, true)
-          touchmenu_instance:updateItems()
+          self:refreshFooter()
+          menu:updateItems()
         end,
       })
-      UIManager:show(spin_widget)
+      self:showWidget(spin_widget)
     end,
     keep_menu_open = true,
   }
@@ -2100,9 +1995,9 @@ end
 
 function ReaderFooter:genAlignmentMenuItems(value)
   local strings = {
-    left = _("Left"),
-    center = _("Center"),
-    right = _("Right"),
+    left = gettext("Left"),
+    center = gettext("Center"),
+    right = gettext("Right"),
   }
   if value == nil then
     return strings[self.settings.align]:lower()
@@ -2114,22 +2009,31 @@ function ReaderFooter:genAlignmentMenuItems(value)
     end,
     callback = function()
       self.settings.align = value
-      self:refreshFooter(true)
+      self:refreshFooter()
     end,
   }
 end
 
 function ReaderFooter:addAdditionalFooterContent(content_func)
+  for i, v in ipairs(self.additional_footer_content) do
+    if v == content_func then
+      return false
+    end
+  end
   table.insert(self.additional_footer_content, content_func)
+  self:onUpdateFooter()
+  return true
 end
 
 function ReaderFooter:removeAdditionalFooterContent(content_func)
   for i, v in ipairs(self.additional_footer_content) do
     if v == content_func then
       table.remove(self.additional_footer_content, i)
+      self:onUpdateFooter()
       return true
     end
   end
+  return false
 end
 
 -- this method will be updated at runtime based on user setting
@@ -2173,11 +2077,6 @@ function ReaderFooter:genAllFooterText()
     -- Skip empty generators, so they don't generate bogus separators
     local text, merge = gen(self)
     if text and text ~= "" then
-      if self.settings.item_prefix == "compact_items" then
-        -- remove whitespace from footer items if symbol_type is compact_items
-        -- use a hair-space to avoid issues with RTL display
-        text = text:gsub("%s", "\u{200A}")
-      end
       -- if generator request a merge of this item, add it directly,
       -- i.e. no separator before and after the text then.
       if merge then
@@ -2192,7 +2091,13 @@ function ReaderFooter:genAllFooterText()
       end
     end
   end
-  return table.concat(info, BD.wrap(self:genSeparator()))
+  local result = table.concat(info, BD.wrap(self:genSeparator()))
+  if self.settings.item_prefix == "compact_items" then
+    -- remove whitespace from footer items if symbol_type is compact_items
+    -- use a hair-space to avoid issues with RTL display
+    result = result:gsub("%s", "\u{200A}")
+  end
+  return result
 end
 
 function ReaderFooter:setTocMarkers(reset)
@@ -2258,7 +2163,7 @@ end
 function ReaderFooter:getAvgTimePerPage() end
 
 function ReaderFooter:getDataFromStatistics(title, pages)
-  local sec = _("N/A")
+  local sec = gettext("N/A")
   local average_time_per_page = self:getAvgTimePerPage()
   local user_duration_format = G_named_settings.duration_format()
   if average_time_per_page then
@@ -2271,16 +2176,63 @@ function ReaderFooter:getDataFromStatistics(title, pages)
   return title .. sec
 end
 
-function ReaderFooter:onUpdateFooter(force_repaint, full_repaint)
-  if self.pageno then
-    self:updateFooterPage(force_repaint, full_repaint)
-  else
-    self:updateFooterPos(force_repaint, full_repaint)
+function ReaderFooter:_repaint()
+  -- NOTE: This is essentially preventing us from truly using "fast" for panning,
+  --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
+  -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
+  -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
+  if (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI" then
+    -- If the top most widget is not the ReaderUI, footer doesn't need to be
+    -- repainted.
+    -- This behavior is questionable, but it can be safer to avoid repainting
+    -- everything above the footer.
+    return
+  end
+  --[[ -- The behavior is questionable.
+  if not G_named_settings.fast_screen_refresh() then
+    -- It's not expected to "fast" refreshing the screen, footer doesn't need to
+    -- be repainted.
+    return
+  end
+  ]]
+
+  if self.visibility_change then
+    self.visibility_change = nil
+    UIManager:broadcastEvent(Event:new("ReaderFooterVisibilityChange"))
+    -- If the footer is invisible or might be hidden behind another widget, we
+    -- need to repaint the full ReaderUI stack, but only when the visibility
+    -- changed.
+    self.view.dialog:scheduleRepaint()
+  elseif self.view.footer_visible then
+    -- Or if footer is visible, repaint itself.
+    self.footer_content:scheduleRepaint()
   end
 end
 
-function ReaderFooter:updateFooterPage(force_repaint, full_repaint)
-  if type(self.pageno) ~= "number" then
+-- Use of this event should be very cautious, ReaderFooter should listen to
+-- other events and call this function itself.
+function ReaderFooter:onUpdateFooter()
+  if not self.view.footer_visible then
+    self:_repaint()
+    return
+  end
+  self:_updateFooterPage()
+  self:_updateFooterPos()
+end
+
+function ReaderFooter:_isPageMode()
+  -- self.pageno is optional in "Pos" mode; checking pageno == number is not
+  -- suficient to differentiate the modes.
+  return type(self.pageno) == "number" and type(self.position) ~= "number"
+end
+
+function ReaderFooter:_isPosMode()
+  -- self.pageno is optional.
+  return type(self.position) == "number"
+end
+
+function ReaderFooter:_updateFooterPage()
+  if not self:_isPageMode() then
     return
   end
   if self.settings.chapter_progress_bar then
@@ -2299,11 +2251,11 @@ function ReaderFooter:updateFooterPage(force_repaint, full_repaint)
   else
     self.progress_bar:setPercentage(self:getBookProgress())
   end
-  self:updateFooterText(force_repaint, full_repaint)
+  self:_updateFooterText()
 end
 
-function ReaderFooter:updateFooterPos(force_repaint, full_repaint)
-  if type(self.position) ~= "number" then
+function ReaderFooter:_updateFooterPos()
+  if not self:_isPosMode() then
     return
   end
   if self.settings.chapter_progress_bar then
@@ -2325,21 +2277,17 @@ function ReaderFooter:updateFooterPos(force_repaint, full_repaint)
   else
     self.progress_bar:setPercentage(self.position / self.doc_height)
   end
-  self:updateFooterText(force_repaint, full_repaint)
+  self:_updateFooterText()
 end
 
--- updateFooterText will start as a noop. After onReaderReady event is
--- received, it will initialized as _updateFooterText below
-function ReaderFooter:updateFooterText(force_repaint, full_repaint) end
+-- _updateFooterText will start as a noop. After onReaderReady event is
+-- received, it will initialized as __updateFooterText below
+function ReaderFooter:_updateFooterText() end
 
 -- only call this function after document is fully loaded
-function ReaderFooter:_updateFooterText(force_repaint, full_repaint)
+function ReaderFooter:__updateFooterText()
   -- footer is invisible, we need neither a repaint nor a recompute, go away.
-  if
-    not self.view.footer_visible
-    and not force_repaint
-    and not full_repaint
-  then
+  if not self.view.footer_visible then
     return
   end
 
@@ -2421,60 +2369,24 @@ function ReaderFooter:_updateFooterText(force_repaint, full_repaint)
   end
   self.text_container.dimen.w = self.text_width
   self.horizontal_group:resetLayout()
-  -- NOTE: This is essentially preventing us from truly using "fast" for panning,
-  --     since it'll get coalesced in the "fast" panning update, upgrading it to "ui".
-  -- NOTE: That's assuming using "fast" for pans was a good idea, which, it turned out, not so much ;).
-  -- NOTE: We skip repaints on page turns/pos update, as that's redundant (and slow).
-  if force_repaint then
-    -- If there was a visibility change, notify ReaderView
-    if self.visibility_change then
-      self.visibility_change = nil
-      self.ui:handleEvent(Event:new("ReaderFooterVisibilityChange"))
-    end
-
-    -- NOTE: Getting the dimensions of the widget is impossible without having drawn it first,
-    --     so, we'll fudge it if need be...
-    --     i.e., when it's no longer visible, because there's nothing to draw ;).
-    local refresh_dim = self.footer_content.dimen
-    -- No more content...
-    if not self.view.footer_visible and not refresh_dim then
-      -- So, instead, rely on self:getHeight to compute self.footer_content's height early...
-      refresh_dim = self.dimen
-      refresh_dim.h = self:getHeight()
-      refresh_dim.y = self._saved_screen_height - refresh_dim.h
-    end
-    -- If we're making the footer visible (or it already is), we don't need to repaint ReaderUI behind it
-    if self.view.footer_visible and not full_repaint then
-      -- Unfortunately, it's not a modal (we never show() it), so it's not in the window stack,
-      -- instead, it's baked inside ReaderUI, so it gets slightly trickier...
-      -- NOTE: self.view.footer -> self ;).
-
-      -- c.f., ReaderView:paintTo()
-      UIManager:widgetRepaint(self.view.footer, 0, 0)
-      -- We've painted it first to ensure self.footer_content.dimen is sane
-      UIManager:setDirty(nil, function()
-        return self.view.currently_scrolling and "fast" or "ui",
-          self.footer_content.dimen
-      end)
-    else
-      -- If the footer is invisible or might be hidden behind another widget, we need to repaint the full ReaderUI stack.
-      UIManager:setDirty(self.view.dialog, function()
-        return self.view.currently_scrolling and "fast" or "ui", refresh_dim
-      end)
-    end
-  end
+  self:_repaint()
 end
 
 -- Note: no need for :onDocumentRerendered(), ReaderToc will catch "DocumentRerendered"
 -- and will then emit a "TocReset" after the new ToC is made.
 function ReaderFooter:onTocReset()
   self:setTocMarkers(true)
-  if self.view.view_mode == "page" then
-    self:updateFooterPage()
-  else
-    self:updateFooterPos()
+  self:onUpdateFooter()
+end
+
+function ReaderFooter:onTimesChange_1M()
+  if self.settings.time then
+    self:onUpdateFooter()
   end
 end
+ReaderFooter.onFrontlightStateChanged = ReaderFooter.onUpdateFooter
+ReaderFooter.onCharging = ReaderFooter.onUpdateFooter
+ReaderFooter.onNotCharging = ReaderFooter.onUpdateFooter
 
 function ReaderFooter:onPageUpdate(pageno)
   local toc_markers_update = false
@@ -2486,6 +2398,7 @@ function ReaderFooter:onPageUpdate(pageno)
     end
   end
   self.pageno = pageno
+  self.position = nil
   if not self.initial_pageno then
     self.initial_pageno = pageno
   end
@@ -2493,22 +2406,22 @@ function ReaderFooter:onPageUpdate(pageno)
   if toc_markers_update then
     self:setTocMarkers(true)
   end
-  self.ui.doc_settings:saveSetting("doc_pages", self.pages) -- for Book information
-  self:updateFooterPage()
+  self.ui.doc_settings:save("doc_pages", self.pages) -- for Book information
+  self:_updateFooterPage()
 end
 
 function ReaderFooter:onPosUpdate(pos, pageno)
   self.position = pos
+  self.pageno = pageno
   self.doc_height = self.ui.document.info.doc_height
   if pageno then
-    self.pageno = pageno
     if not self.initial_pageno then
       self.initial_pageno = pageno
     end
     self.pages = self.ui.document:getPageCount()
-    self.ui.doc_settings:saveSetting("doc_pages", self.pages) -- for Book information
+    self.ui.doc_settings:save("doc_pages", self.pages) -- for Book information
   end
-  self:updateFooterPos()
+  self:_updateFooterPos()
 end
 
 function ReaderFooter:onReaderReady()
@@ -2527,19 +2440,22 @@ function ReaderFooter:onReaderReady()
   end
   self:resetLayout(self.settings.progress_margin) -- set widget dimen
   self:setTocMarkers()
-  self.updateFooterText = self._updateFooterText
+  self._updateFooterText = self.__updateFooterText
   self:onUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
 end
 
-function ReaderFooter:applyFooterMode(mode)
-  if mode ~= nil then
-    self.mode = mode
-  end
+function ReaderFooter:_applyFooterMode()
   local prev_visible_state = self.view.footer_visible
+  assert(prev_visible_state ~= nil)
   self.view.footer_visible = (self.mode ~= self.mode_list.off)
+  if self.view.footer_visible ~= prev_visible_state then
+    -- It's allowed setting visibility_change to true multiple times without a
+    -- __updateFooterText() call.
+    -- Flag __updateFooterText to notify ReaderView to recalculate the visible_area!
+    self.visibility_change = true
+  end
 
-  -- NOTE: _updateFooterText won't actually run the text generator(s) when hidden ;).
+  -- NOTE: __updateFooterText won't actually run the text generator(s) when hidden ;).
 
   -- We're hidden, disable text generation entirely
   if not self.view.footer_visible then
@@ -2560,27 +2476,22 @@ function ReaderFooter:applyFooterMode(mode)
   end
 
   -- If we changed visibility state at runtime (as opposed to during init), better make sure the layout has been reset...
-  if
-    prev_visible_state ~= nil
-    and self.view.footer_visible ~= prev_visible_state
-  then
+  if self.visibility_change then
     self:updateFooterContainer()
-    -- NOTE: _updateFooterText does a resetLayout, but not a forced one!
+    -- NOTE: __updateFooterText does a resetLayout, but not a forced one!
     self:resetLayout(true)
-    -- Flag _updateFooterText to notify ReaderView to recalculate the visible_area!
-    self.visibility_change = true
   end
 end
 
 function ReaderFooter:onEnterFlippingMode()
   self.orig_mode = self.mode
-  self:applyFooterMode(self.mode_list.page_progress)
-  self:rescheduleFooterAutoRefreshIfNeeded()
+  self.mode = self.mode_list.page_progress
+  self:_applyFooterMode()
 end
 
 function ReaderFooter:onExitFlippingMode()
-  self:applyFooterMode(self.orig_mode)
-  self:rescheduleFooterAutoRefreshIfNeeded()
+  self.mode = self.orig_mode
+  self:_applyFooterMode()
 end
 
 function ReaderFooter:TapFooter(ges)
@@ -2590,9 +2501,9 @@ function ReaderFooter:TapFooter(ges)
     -- if reader footer is not drawn before the dimen value should be nil
     if dimen then
       local percentage = (pos.x - dimen.x) / dimen.w
-      self.ui:handleEvent(Event:new("GotoPercentage", percentage))
+      UIManager:broadcastEvent(Event:new("GotoPercentage", percentage))
     end
-    self:onUpdateFooter(true)
+    self:onUpdateFooter()
     return true
   end
   if self.settings.lock_tap then
@@ -2626,10 +2537,9 @@ function ReaderFooter:onToggleFooterMode()
       end
     end
   end
-  self:applyFooterMode()
-  G_reader_settings:saveSetting("reader_footer_mode", self.mode)
-  self:onUpdateFooter(true)
-  self:rescheduleFooterAutoRefreshIfNeeded()
+  self:_applyFooterMode()
+  G_reader_settings:save("reader_footer_mode", self.mode)
+  self:onUpdateFooter()
   return true
 end
 
@@ -2642,7 +2552,7 @@ function ReaderFooter:onToggleChapterProgressBar()
   then
     self.progress_bar.initial_percentage = self.initial_pageno / self.pages
   end
-  self:refreshFooter(true)
+  self:refreshFooter()
 end
 
 function ReaderFooter:getBookProgress()
@@ -2691,29 +2601,25 @@ function ReaderFooter:onHoldFooter(ges)
   end
 
   -- We're good, make sure we stop the event from going to readerhighlight_hold
-  self.ui:handleEvent(Event:new("ShowSkimtoDialog"))
+  UIManager:broadcastEvent(Event:new("ShowSkimtoDialog"))
   return true
 end
 
-function ReaderFooter:refreshFooter(refresh, signal)
+function ReaderFooter:refreshFooter()
   self:updateFooterContainer()
   self:resetLayout(true)
-  -- If we signal, the event we send will trigger a full repaint anyway, so we should be able to skip this one.
-  -- We *do* need to ensure we at least re-compute the footer layout, though, especially when going from visible to invisible...
-  self:onUpdateFooter(refresh and not signal, refresh and signal)
-  if signal then
-    if self.ui.document.provider == "crengine" then
-      -- This will ultimately trigger an UpdatePos, hence a ReaderUI repaint.
-      self.ui:handleEvent(
-        Event:new(
-          "SetPageBottomMargin",
-          self.ui.document.configurable.b_page_margin
-        )
+  self:onUpdateFooter()
+  if self.ui.document.provider == "crengine" then
+    -- This will ultimately trigger an UpdatePos, hence a ReaderUI repaint.
+    UIManager:broadcastEvent(
+      Event:new(
+        "SetPageBottomMargin",
+        self.ui.document.configurable.b_page_margin
       )
-    else
-      -- No fancy chain of events outside of CRe, just ask for a ReaderUI repaint ourselves ;).
-      UIManager:setDirty(self.view.dialog, "partial")
-    end
+    )
+  else
+    -- No fancy chain of events outside of CRe, just ask for a ReaderUI repaint ourselves ;).
+    UIManager:setDirty(self.view.dialog, "partial")
   end
 end
 
@@ -2725,15 +2631,14 @@ function ReaderFooter:onResume()
   end
 
   -- Don't repaint the footer until OutOfScreenSaver if screensaver_delay is enabled...
-  local screensaver_delay = G_reader_settings:readSetting("screensaver_delay")
+  local screensaver_delay = G_reader_settings:read("screensaver_delay")
   if screensaver_delay and screensaver_delay ~= "disable" then
     self._delayed_screensaver = true
     return
   end
 
   -- Maybe perform a footer repaint on resume if it was visible.
-  self:maybeUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
+  self:onUpdateFooter()
 end
 
 function ReaderFooter:onOutOfScreenSaver()
@@ -2743,33 +2648,12 @@ function ReaderFooter:onOutOfScreenSaver()
 
   self._delayed_screensaver = nil
   -- Maybe perform a footer repaint on resume if it was visible.
-  self:maybeUpdateFooter()
-  self:rescheduleFooterAutoRefreshIfNeeded()
+  self:onUpdateFooter()
 end
-
-function ReaderFooter:onSuspend()
-  self:unscheduleFooterAutoRefresh()
-end
-
-function ReaderFooter:onCloseDocument()
-  self:unscheduleFooterAutoRefresh()
-end
-
--- Used by event handlers that can trip without direct UI interaction...
-function ReaderFooter:maybeUpdateFooter()
-  -- ...so we need to avoid stomping over unsuspecting widgets (usually, ScreenSaver).
-  self:onUpdateFooter(self:shouldBeRepainted())
-end
-
-function ReaderFooter:onFrontlightStateChanged()
-  self:maybeUpdateFooter()
-end
-ReaderFooter.onCharging = ReaderFooter.onFrontlightStateChanged
-ReaderFooter.onNotCharging = ReaderFooter.onFrontlightStateChanged
 
 function ReaderFooter:onNetworkStateChanged()
   if self.settings.wifi_status then
-    self:maybeUpdateFooter()
+    self:onUpdateFooter()
   end
 end
 
@@ -2777,7 +2661,7 @@ function ReaderFooter:onSwapPageTurnButtons()
   if self.settings.page_turning_inverted then
     -- We may receive the event *before* DeviceListener, so delay this to make sure it had a chance to actually swap the settings.
     -- Also delay it further to avoid screwing with TouchMenu highlights...
-    UIManager:scheduleIn(0.5, self.maybeUpdateFooter, self)
+    UIManager:scheduleIn(0.5, self.onUpdateFooter, self)
   end
 end
 ReaderFooter.onToggleReadingOrder = ReaderFooter.onSwapPageTurnButtons
@@ -2792,12 +2676,12 @@ function ReaderFooter:onSetPageHorizMargins(h_margins)
   if self.settings.progress_margin then
     self.settings.progress_margin_width =
       math.floor((h_margins[1] + h_margins[2]) / 2)
-    self:refreshFooter(true)
+    self:refreshFooter()
   end
 end
 
 function ReaderFooter:onTimeFormatChanged()
-  self:refreshFooter(true, true)
+  self:refreshFooter()
 end
 
 function ReaderFooter:onBookMetadataChanged(prop_updated)
@@ -2808,14 +2692,7 @@ function ReaderFooter:onBookMetadataChanged(prop_updated)
       or prop_updated.metadata_key_updated == "authors"
     )
   then
-    self:maybeUpdateFooter()
-  end
-end
-
-function ReaderFooter:onRefreshAdditionalContent()
-  if #self.additional_footer_content > 0 then
-    -- Can be sent an any time, so we need to be careful about the repaint/refresh
-    self:maybeUpdateFooter()
+    self:onUpdateFooter()
   end
 end
 
@@ -2823,4 +2700,5 @@ function ReaderFooter:onClose()
   self:free()
 end
 
+ReaderFooter.default_settings = DEFAULT_SETTINGS
 return ReaderFooter

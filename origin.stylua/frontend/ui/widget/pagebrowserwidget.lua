@@ -21,9 +21,9 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Input = Device.input
 local Screen = Device.screen
+local _ = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- We use the BookMapRow widget, a local widget defined in bookmapwidget.lua,
 -- that we made available via BookMapWidget itself

@@ -11,9 +11,9 @@ local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
+local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local _ = require("gettext")
 local C_ = _.pgettext
 local T = require("ffi/util").template
 

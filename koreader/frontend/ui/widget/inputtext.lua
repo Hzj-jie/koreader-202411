@@ -2,10 +2,9 @@ local Blitbuffer = require("ffi/blitbuffer")
 local CheckButton = require("ui/widget/checkbutton")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
-local FrameContainer = require("ui/widget/container/framecontainer")
 local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
-local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Notification = require("ui/widget/notification")
 local ScrollTextWidget = require("ui/widget/scrolltextwidget")
@@ -14,8 +13,8 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local dbg = require("dbg")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local Keyboard -- Conditional instantiation
@@ -87,51 +86,31 @@ local function initTouchEvents()
     function InputText:initEventListener()
       self.ges_events = {
         TapTextBox = {
-          GestureRange:new({
-            ges = "tap",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("tap"),
         },
         HoldTextBox = {
-          GestureRange:new({
-            ges = "hold",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("hold"),
         },
         HoldReleaseTextBox = {
-          GestureRange:new({
-            ges = "hold_release",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("hold_release"),
         },
         SwipeTextBox = {
-          GestureRange:new({
-            ges = "swipe",
-            range = function()
-              return self.dimen
-            end,
-          }),
+          self:myRange("swipe"),
         },
         -- These are just to stop propagation of the event to
         -- parents in case there's a MovableContainer among them
         -- Commented for now, as this needs work
         -- HoldPanTextBox = {
-        --     GestureRange:new{ ges = "hold_pan", range = self.dimen }
+        --     self:myRange("hold_pan"),
         -- },
         -- PanTextBox = {
-        --     GestureRange:new{ ges = "pan", range = self.dimen }
+        --     self:myRange("pan"),
         -- },
         -- PanReleaseTextBox = {
-        --     GestureRange:new{ ges = "pan_release", range = self.dimen }
+        --     self:myRange("pan_release"),
         -- },
         -- TouchTextBox = {
-        --     GestureRange:new{ ges = "touch", range = self.dimen }
+        --     self:myRange("touch"),
         -- },
       }
     end
@@ -150,9 +129,7 @@ local function initTouchEvents()
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       else
-        if self.keyboard then
-          self.keyboard:showKeyboard()
-        end
+        self:showKeyboard()
         -- Make sure we're flagged as in focus again.
         -- NOTE: self:focus() does a full free/reinit cycle, which is completely unnecessary to begin with,
         --       *and* resets cursor position, which is problematic when tapping on an already in-focus field (#12444).
@@ -164,15 +141,19 @@ local function initTouchEvents()
         and #self.charlist > 0
       then -- do not move cursor within a hint
         local textwidget_offset = self.margin + self.bordersize + self.padding
-        local x = ges.pos.x - self._frame_textwidget.dimen.x - textwidget_offset
-        local y = ges.pos.y - self._frame_textwidget.dimen.y - textwidget_offset
+        local x = ges.pos.x
+          - self._frame_textwidget:getSize().x
+          - textwidget_offset
+        local y = ges.pos.y
+          - self._frame_textwidget:getSize().y
+          - textwidget_offset
         self.text_widget:moveCursorToXY(x, y, true) -- restrict_to_view=true
         self:resyncPos()
       end
       return true
     end
 
-    function InputText:onHoldTextBox(arg, ges)
+    function InputText:onHoldTextBox(_arg, _ges)
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       end
@@ -193,16 +174,16 @@ local function initTouchEvents()
               selection_end_pos
             )
             Device.input.setClipboardText(txt)
-            UIManager:show(Notification:new({
-              text = _("Selection copied to clipboard."),
+            self:showWidget(Notification:new({
+              text = gettext("Selection copied to clipboard."),
             }))
             self.selection_start_pos = nil
             self.do_select = false
             self:initTextBox()
           else -- select start
             self.selection_start_pos = self.charpos
-            UIManager:show(Notification:new({
-              text = _(
+            self:showWidget(Notification:new({
+              text = gettext(
                 "Set cursor to end of selection, then long-press in text box."
               ),
             }))
@@ -214,9 +195,9 @@ local function initTouchEvents()
         local is_clipboard_empty = clipboard_value == ""
         local clipboard_dialog
         clipboard_dialog = require("ui/widget/textviewer"):new({
-          title = _("Clipboard"),
+          title = gettext("Clipboard"),
           show_menu = false,
-          text = is_clipboard_empty and _("(empty)") or clipboard_value,
+          text = is_clipboard_empty and gettext("(empty)") or clipboard_value,
           fgcolor = is_clipboard_empty and Blitbuffer.COLOR_DARK_GRAY
             or Blitbuffer.COLOR_BLACK,
           width = math.floor(
@@ -231,43 +212,43 @@ local function initTouchEvents()
           buttons_table = {
             {
               {
-                text = _("Copy all"),
+                text = gettext("Copy all"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   Device.input.setClipboardText(table.concat(self.charlist))
-                  UIManager:show(Notification:new({
-                    text = _("All text copied to clipboard."),
+                  self:showWidget(Notification:new({
+                    text = gettext("All text copied to clipboard."),
                   }))
                 end,
               },
               {
-                text = _("Copy line"),
+                text = gettext("Copy line"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   local txt =
                     table.concat(self.charlist, "", self:getStringPos())
                   Device.input.setClipboardText(txt)
-                  UIManager:show(Notification:new({
-                    text = _("Line copied to clipboard."),
+                  self:showWidget(Notification:new({
+                    text = gettext("Line copied to clipboard."),
                   }))
                 end,
               },
               {
-                text = _("Copy word"),
+                text = gettext("Copy word"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
                   local txt =
                     table.concat(self.charlist, "", self:getStringPos(true))
                   Device.input.setClipboardText(txt)
-                  UIManager:show(Notification:new({
-                    text = _("Word copied to clipboard."),
+                  self:showWidget(Notification:new({
+                    text = gettext("Word copied to clipboard."),
                   }))
                 end,
               },
             },
             {
               {
-                text = _("Delete all"),
+                text = gettext("Delete all"),
                 enabled = #self.charlist > 0,
                 callback = function()
                   UIManager:close(clipboard_dialog)
@@ -275,11 +256,11 @@ local function initTouchEvents()
                 end,
               },
               {
-                text = _("Select"),
+                text = gettext("Select"),
                 callback = function()
                   UIManager:close(clipboard_dialog)
-                  UIManager:show(Notification:new({
-                    text = _(
+                  self:showWidget(Notification:new({
+                    text = gettext(
                       "Set cursor to start of selection, then long-press in text box."
                     ),
                   }))
@@ -288,7 +269,7 @@ local function initTouchEvents()
                 end,
               },
               {
-                text = _("Paste"),
+                text = gettext("Paste"),
                 enabled = not is_clipboard_empty,
                 callback = function()
                   UIManager:close(clipboard_dialog)
@@ -298,13 +279,13 @@ local function initTouchEvents()
             },
           },
         })
-        UIManager:show(clipboard_dialog)
+        self:showWidget(clipboard_dialog)
       end
       self._hold_handled = true
       return true
     end
 
-    function InputText:onHoldReleaseTextBox(arg, ges)
+    function InputText:onHoldReleaseTextBox(_arg, _ges)
       if self._hold_handled then
         self._hold_handled = nil
         return true
@@ -326,7 +307,7 @@ local function initTouchEvents()
         end
         -- Trigger a full-screen HQ flashing refresh so
         -- the keyboard can also be fully redrawn
-        UIManager:setDirty(nil, "full")
+        UIManager:scheduleRefresh("full")
       end
       -- Let it propagate in any case (a long diagonal swipe may also be
       -- used for taking a screenshot)
@@ -341,16 +322,8 @@ local function initDPadEvents()
       -- Event sent by focusmanager
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
-      elseif
-        (Device:hasKeyboard() or Device:hasScreenKB())
-        and G_reader_settings:isFalse("virtual_keyboard_enabled")
-      then
-        do
-        end -- luacheck: ignore 541
       else
-        if not self:isKeyboardVisible() then
-          self:showKeyboard()
-        end
+        self:showKeyboard()
       end
       self:focus()
       return true
@@ -399,8 +372,8 @@ end
 
 function InputText:isTextEditable(show_warning)
   if show_warning and not self.is_text_editable then
-    UIManager:show(Notification:new({
-      text = _("Text may be binary content, and is not editable"),
+    self:showWidget(Notification:new({
+      text = gettext("Text may be binary content, and is not editable"),
     }))
   end
   return self.is_text_editable
@@ -489,11 +462,15 @@ function InputText:initTextBox(text, char_added)
   if self.is_password_type and self.show_password_toggle then
     self._check_button = self._check_button
       or CheckButton:new({
-        text = _("Show password"),
+        text = gettext("Show password"),
+        checked = self.text_type == "text",
         parent = self,
         width = self.width,
         callback = function()
           self.text_type = self._check_button.checked and "text" or "password"
+          if self.parent.onSwitchFocus then
+            self.parent:onSwitchFocus(self)
+          end
           self:setText(self:getText(), true)
         end,
       })
@@ -603,13 +580,11 @@ function InputText:initTextBox(text, char_added)
     self._verticalgroup,
   })
   self[1] = self._frame
-  self.dimen = self._frame:getSize()
+  self:mergeSize(self._frame:getSize())
   --- @fixme self.parent is not always in the widget stack (BookStatusWidget)
   -- Don't even try to refresh dummy widgets used for text height computations...
   if not self.for_measurement_only then
-    UIManager:setDirty(self.parent, function()
-      return "ui", self.dimen
-    end)
+    self:scheduleRepaint()
   end
   if self.edit_callback then
     self.edit_callback(self.is_text_edited)
@@ -628,12 +603,14 @@ function InputText:unfocus()
   self.focused = false
   self.text_widget:unfocus()
   self._frame_textwidget.color = Blitbuffer.COLOR_DARK_GRAY
+  self:scheduleRepaint()
 end
 
 function InputText:focus()
   self.focused = true
   self.text_widget:focus()
   self._frame_textwidget.color = Blitbuffer.COLOR_BLACK
+  self:scheduleRepaint()
 end
 
 -- NOTE: This key_map can be used for keyboards without numeric keys, such as on Kindles with keyboards. It is loosely 'inspired' by the symbol layer on the virtual keyboard but,
@@ -641,54 +618,75 @@ end
 --       * K3 does not have numeric keys (top row) and,
 --       * we want to prioritise the most-likely-used characters for "style tweaks" and note taking
 --       (in English, sorry everybody else, there are just not enough keys)
-local sym_key_map = {
-  ["Q"] = "!",
-  ["W"] = "?",
-  ["E"] = "-",
-  ["R"] = "_",
-  ["T"] = "%",
-  ["Y"] = "=",
-  ["U"] = "7",
-  ["I"] = "8",
-  ["O"] = "9",
-  ["P"] = "0",
-  ["A"] = "<",
-  ["S"] = ">",
-  ["D"] = "(",
-  ["F"] = ")",
-  ["G"] = "#",
-  ["H"] = "'",
-  ["J"] = "4",
-  ["K"] = "5",
-  ["L"] = "6",
-  ["Z"] = "{",
-  ["X"] = "}",
-  ["C"] = "[",
-  ["V"] = "]",
-  ["B"] = "1",
-  ["N"] = "2",
-  ["M"] = "3",
-  ["."] = ":",
-  ["AA"] = ";",
-}
+local sym_key_map = (
+  (Device.model == "KindleDXG" or Device.model == "Kindle2")
+    and {
+      -- Kindle DX and Kindle 2 are sharing the same Device.model, but Kindle 2 does
+      -- have physical number keys, so it doesn't matter too much to shift the keys
+      ["Q"] = "1",
+      ["W"] = "2",
+      ["E"] = "3",
+      ["R"] = "4",
+      ["T"] = "5",
+      ["Y"] = "6",
+      ["U"] = "7",
+      ["I"] = "8",
+      ["O"] = "9",
+      ["P"] = "0",
+      ["A"] = "!",
+      ["S"] = "@",
+      ["D"] = "#",
+      ["F"] = "$",
+      ["G"] = "%",
+      ["H"] = "^",
+      ["J"] = "&",
+      ["K"] = "*",
+      ["L"] = "(",
+      ["Del"] = ")",
+      ["Z"] = "-",
+      ["X"] = "_",
+      ["C"] = "+",
+      ["V"] = "=",
+      ["B"] = "[",
+      ["N"] = "]",
+      ["M"] = "{",
+      ["."] = "}",
+      ["/"] = "?",
+    }
+  or {
+    ["Q"] = "!",
+    ["W"] = "?",
+    ["E"] = "-",
+    ["R"] = "_",
+    ["T"] = "%",
+    ["Y"] = "=",
+    ["U"] = "7",
+    ["I"] = "8",
+    ["O"] = "9",
+    ["P"] = "0",
+    ["A"] = "<",
+    ["S"] = ">",
+    ["D"] = "(",
+    ["F"] = ")",
+    ["G"] = "#",
+    ["H"] = "'",
+    ["J"] = "4",
+    ["K"] = "5",
+    ["L"] = "6",
+    ["Z"] = "{",
+    ["X"] = "}",
+    ["C"] = "[",
+    ["V"] = "]",
+    ["B"] = "1",
+    ["N"] = "2",
+    ["M"] = "3",
+    ["."] = ":",
+    ["AA"] = ";",
+  }
+)
 
--- Handle real keypresses from a physical keyboard, even if the virtual keyboard
--- is shown. Mostly likely to be in the emulator, but could be Android + BT
--- keyboard, or a "coder's keyboard" Android input method.
-function InputText:onKeyPress(key)
-  -- only handle key on focused status, otherwise there are more than one InputText
-  -- the first one always handle key pressed
-  if not self.focused then
-    return false
-  end
-  local handled = true
-
-  if
-    not key["Ctrl"]
-    and not key["Shift"]
-    and not key["Alt"]
-    and not key["ScreenKB"]
-  then
+function InputText:_handleControlKeys(key)
+  if not key:hasModifiers() then
     if key["Backspace"] then
       self:delChar()
     elseif key["Del"] then
@@ -704,47 +702,58 @@ function InputText:onKeyPress(key)
       self:rightChar()
       -- NOTE: When we are not showing the virtual keyboard, let focusmanger handle up/down keys, as they  are used to directly move around the widget
       --       seamlessly in and out of text fields and onto virtual buttons like `[cancel] [search dict]`, no need to unfocus first.
-    elseif
-      key["Up"] and G_reader_settings:nilOrTrue("virtual_keyboard_enabled")
-    then
+    elseif key["Up"] then
       self:upLine()
-    elseif
-      key["Down"] and G_reader_settings:nilOrTrue("virtual_keyboard_enabled")
-    then
+    elseif key["Down"] then
       self:downLine()
     elseif key["End"] then
       self:goToEnd()
     elseif key["Home"] then
       self:goToHome()
     elseif key["Press"] then
+      -- Unlike "Enter", this is a dedicated "Press" key which represents
+      -- "Enter" on emulator or DPad press on Kindle with keyboard.
+      if self.press_callback then
+        self.press_callback()
+      else
+        -- Otherwise, treat it as Enter.
+        self:addChars("\n")
+      end
+    elseif key["Enter"] then
       self:addChars("\n")
     elseif key["Tab"] then
       self:addChars("    ")
       -- as stated before, we also don't need to unfocus when there is no keyboard, one less key press to exit widgets, yay!
-    elseif
-      key["Back"] and G_reader_settings:nilOrTrue("virtual_keyboard_enabled")
-    then
+    elseif key["Back"] then
       if self.focused then
         self:unfocus()
       end
     else
-      handled = false
+      return false
     end
-  elseif key["Ctrl"] and not key["Shift"] and not key["Alt"] then
+    return true
+  end
+  if key["Ctrl"] then
+    assert(key:hasSingleModifier())
     if key["U"] then
       self:delToStartOfLine()
     elseif key["H"] then
       self:delChar()
     else
-      handled = false
+      return false
     end
-  else
-    handled = false
+    return true
   end
-  -- This primarily targets Kindle. When a virtual keyboard is shown on screen, mod+dpad allows controlling the cursor, as dpad alone
-  -- (see previous ‘if’) is now occupied handling the virtual keyboard.
-  if not handled and (key["ScreenKB"] or key["Shift"]) then
-    handled = true
+  return false
+end
+
+-- This primarily targets Kindle. When a virtual keyboard is shown on screen,
+-- mod+dpad allows controlling the cursor, as dpad alone (see previous ‘if’) is
+-- now occupied handling the virtual keyboard.
+function InputText:_handleKindleControlKeys(key)
+  -- Use Device:has* to differentiate models, it's less ideal, but creating too
+  -- many Device:has* functions is also less ideal.
+  if key["ScreenKB"] or key["Shift"] then
     if key["Back"] and Device:hasScreenKB() then
       self:delChar()
     elseif key["Back"] and Device:hasSymKey() then
@@ -769,55 +778,92 @@ function InputText:onKeyPress(key)
       -- Kindle does not have a dedicated button for commas
       self:addChars(",")
     else
-      handled = false
+      return false
     end
+    return true
   end
-  if not handled and Device:hasSymKey() then
-    handled = true
+  return false
+end
+
+function InputText:_handleSymKeyMap(key)
+  -- Imply Device:hasSymKey()
+  if key["Sym"] then
+    assert(key:hasSingleModifier())
     local symkey = sym_key_map[key.key]
-    -- Do not match Shift + Sym + 'Alphabet keys'
-    if symkey and key.modifiers["Sym"] and not key.modifiers["Shift"] then
+    if symkey then
       self:addChars(symkey)
-    else
-      handled = false
-    end
-  end
-  if not handled and Device:hasDPad() then
-    -- FocusManager may turn on alternative key maps.
-    -- These key map maybe single text keys.
-    -- It will cause unexpected focus move instead of enter text to InputText
-    if not FocusManagerInstance then
-      FocusManagerInstance = FocusManager:new({})
-    end
-    local is_alternative_key = FocusManagerInstance:isAlternativeKey(key)
-    if not is_alternative_key and Device:isSDL() then
-      -- SDL already insert char via TextInput event
-      -- Stop event propagate to FocusManager
       return true
     end
-    -- if it is single text char, insert it
-    local key_code = key.key -- is in upper case
-    if not Device.isSDL() and #key_code == 1 then
-      if key["Shift"] and key["Alt"] and key["G"] then
-        -- Allow the screenshot keyboard-shortcut to work when focus is on InputText
+  end
+  return false
+end
+
+function InputText:_handleChar(key)
+  assert(not Device:isSDL())
+  -- if it is single text char, insert it
+  local key_code = key.key -- is in upper case
+  if #key_code == 1 then
+    assert(key:numOfModifiers() <= 1)
+    if not key["Shift"] then
+      if key:hasSingleModifier() then
+        -- Other modifier: not a single char insert
         return false
       end
-      if not key["Shift"] then
-        key_code = string.lower(key_code)
-      end
-      for modifier, flag in pairs(key.modifiers) do
-        if modifier ~= "Shift" and flag then -- Other modifier: not a single char insert
-          return true
-        end
-      end
-      self:addChars(key_code)
-      return true
+      key_code = string.lower(key_code)
     end
-    if is_alternative_key then
-      return true -- Stop event propagate to FocusManager to void focus move
-    end
+    self:addChars(key_code)
+    return true
   end
-  return handled
+  -- FocusManager may turn on alternative key maps.
+  -- These key map maybe single text keys.
+  -- It will cause unexpected focus move instead of enter text to InputText
+  if not FocusManagerInstance then
+    FocusManagerInstance = FocusManager:new()
+  end
+  if FocusManagerInstance:isAlternativeKey(key) then
+    return true -- Stop event propagate to FocusManager to void focus move
+  end
+  return false
+end
+
+-- Handle real keypresses from a physical keyboard, even if the virtual keyboard
+-- is shown. Mostly likely to be in the emulator, but could be Android + BT
+-- keyboard, or a "coder's keyboard" Android input method.
+function InputText:onKeyPress(key)
+  -- only handle key on focused status, otherwise there are more than one InputText
+  -- the first one always handle key pressed
+  if not self.focused then
+    return false
+  end
+
+  -- Allow other components to register multiple-modifier shortcuts.
+  if key:hasMultipleModifiers() then
+    return false
+  end
+
+  if self:_handleControlKeys(key) then
+    return true
+  end
+
+  if self:_handleKindleControlKeys(key) then
+    return true
+  end
+
+  if self:_handleSymKeyMap(key) then
+    return true
+  end
+
+  if Device:isSDL() then
+    -- SDL already insert char via TextInput event, stop event propagate to
+    -- FocusManager.
+    return true
+  end
+
+  if self:_handleChar(key) then
+    return true
+  end
+
+  return false
 end
 
 -- Handle text coming directly as text from the Device layer (eg. soft keyboard
@@ -838,6 +884,7 @@ function InputText:showKeyboard(ignore_first_hold_release)
   if self.keyboard then
     self.keyboard:showKeyboard(ignore_first_hold_release)
   end
+  self:focus()
   return true
 end
 
@@ -845,6 +892,7 @@ function InputText:closeKeyboard()
   if self.keyboard then
     self.keyboard:hideKeyboard()
   end
+  self:unfocus()
 end
 
 function InputText:isKeyboardVisible()
@@ -875,7 +923,8 @@ function InputText:getLineHeight()
 end
 
 function InputText:getKeyboardDimen()
-  return self.readonly and Geom:new({ w = 0, h = 0 }) or self.keyboard.dimen
+  return self.readonly and Geom:new({ w = 0, h = 0 })
+    or self.keyboard:visibleSize()
 end
 
 -- calculate current and last (original) line numbers
@@ -1145,7 +1194,7 @@ function InputText:setText(text, keep_edited_state)
     self:checkTextEditability()
   end
 end
-dbg:guard(InputText, "setText", function(self, text, keep_edited_state)
+dbg:guard(InputText, "setText", function(self, text, _keep_edited_state)
   assert(type(text) == "string", "Wrong text type (expected string)")
 end)
 

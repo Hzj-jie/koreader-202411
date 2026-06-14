@@ -5,19 +5,18 @@ local FrameContainer = require("ui/widget/container/framecontainer")
 local OPDSBrowser = require("opdsbrowser")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 local Screen = require("device").screen
 local T = require("ffi/util").template
 
 local OPDSCatalog = WidgetContainer:extend({
-  title = _("OPDS Catalog"),
+  title = gettext("OPDS Catalog"),
 })
 
 function OPDSCatalog:init()
   local opds_browser = OPDSBrowser:new({
     title = self.title,
-    show_parent = self,
     is_popout = false,
     is_borderless = true,
     close_callback = function()
@@ -26,13 +25,13 @@ function OPDSCatalog:init()
     file_downloaded_callback = function(downloaded_file)
       UIManager:show(ConfirmBox:new({
         text = T(
-          _(
+          gettext(
             "File saved to:\n%1\nWould you like to read the downloaded book now?"
           ),
           BD.filepath(downloaded_file)
         ),
-        ok_text = _("Read now"),
-        cancel_text = _("Read later"),
+        ok_text = gettext("Read now"),
+        cancel_text = gettext("Read later"),
         ok_callback = function()
           local Event = require("ui/event")
           UIManager:broadcastEvent(Event:new("SetupShowReader"))
@@ -70,7 +69,6 @@ function OPDSCatalog:showCatalog()
   logger.dbg("show OPDS catalog")
   UIManager:show(OPDSCatalog:new({
     dimen = Screen:getSize(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
   }))
 end
 

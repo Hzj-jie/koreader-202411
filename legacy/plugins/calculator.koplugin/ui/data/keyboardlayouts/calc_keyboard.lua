@@ -1,0 +1,1 @@
+../../../../../../koreader/plugins/calculator.koplugin/ui/data/keyboardlayouts/calc_keyboard.lua

@@ -5,9 +5,9 @@ ReaderView module handles all the screen painting for document browsing.
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
+local Event = require("ui/event")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
-local Event = require("ui/event")
 local IconWidget = require("ui/widget/iconwidget")
 local InfoMessage = require("ui/widget/infomessage")
 local Notification = require("ui/widget/notification")
@@ -15,15 +15,14 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local ReaderDogear = require("apps/reader/modules/readerdogear")
 local ReaderFlipping = require("apps/reader/modules/readerflipping")
 local ReaderFooter = require("apps/reader/modules/readerfooter")
+local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
+local gettext = require("gettext")
 local logger = require("logger")
 local optionsutil = require("ui/data/optionsutil")
-local Size = require("ui/size")
-local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -34,7 +33,7 @@ local ReaderView = OverlapGroup:extend({
   -- single page state
   state = nil, -- table
   outer_page_color = Blitbuffer.gray(
-    G_defaults:readSetting("DOUTER_PAGE_COLOR") * (1 / 15)
+    G_defaults:read("DOUTER_PAGE_COLOR") * (1 / 15)
   ),
   -- highlight with "lighten" or "underscore" or "strikeout" or "invert"
   highlight = nil, -- table
@@ -46,7 +45,7 @@ local ReaderView = OverlapGroup:extend({
   -- PDF/DjVu continuous paging
   page_scroll = nil,
   page_bgcolor = Blitbuffer.gray(
-    G_defaults:readSetting("DBACKGROUND_COLOR") * (1 / 15)
+    G_defaults:read("DBACKGROUND_COLOR") * (1 / 15)
   ),
   page_states = nil, -- table
   -- properties of the gap drawn between each page in scroll mode:
@@ -54,7 +53,7 @@ local ReaderView = OverlapGroup:extend({
   -- DjVu page rendering mode (used in djvu.c:drawPage())
   render_mode = nil, -- default to COLOR, will be set in onReadSettings()
   -- Crengine view mode
-  view_mode = G_defaults:readSetting("DCREREADER_VIEW_MODE"), -- default to page mode
+  view_mode = G_defaults:read("DCREREADER_VIEW_MODE"), -- default to page mode
   hinting = true,
   emitHintPageEvent = nil,
 
@@ -70,11 +69,6 @@ local ReaderView = OverlapGroup:extend({
   dogear_visible = false,
   -- in flipping state
   flipping_visible = false,
-  -- to ensure periodic flush of settings
-  settings_last_save_time = nil,
-  -- might be directly updated by readerpaging/readerrolling when
-  -- they handle some panning/scrolling, to request "fast" refreshes
-  currently_scrolling = false,
 
   -- image content stats of the current page, if supported by the Document engine
   img_count = nil,
@@ -94,9 +88,8 @@ function ReaderView:init()
     bbox = nil,
   }
   self.highlight = {
-    lighten_factor = G_reader_settings:readSetting("highlight_lighten_factor")
-      or 0.2,
-    note_mark = G_reader_settings:readSetting("highlight_note_marker"),
+    lighten_factor = G_reader_settings:read("highlight_lighten_factor") or 0.2,
+    note_mark = G_reader_settings:read("highlight_note_marker"),
     temp_drawer = "invert",
     temp = {},
     saved_drawer = "lighten",
@@ -108,12 +101,12 @@ function ReaderView:init()
   self.page_gap = {
     -- color (0 = white, 8 = gray, 15 = black)
     color = Blitbuffer.gray(
-      (G_reader_settings:readSetting("page_gap_color") or 8) * (1 / 15)
+      (G_reader_settings:read("page_gap_color") or 8) * (1 / 15)
     ),
   }
-  self.visible_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-  self.page_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-  self.dim_area = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
+  self.visible_area = Geom:new()
+  self.page_area = Geom:new()
+  self.dim_area = Geom:new()
 
   -- Zero-init for sanity
   self.img_count = 0
@@ -121,10 +114,10 @@ function ReaderView:init()
 
   self:addWidgets()
   self.emitHintPageEvent = function()
-    self.ui:handleEvent(Event:new("HintPage", self.hinting))
+    UIManager:broadcastEvent(Event:new("HintPage", self.hinting))
   end
 
-  -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self.dimen...
+  -- We've subclassed OverlapGroup, go through its init, because it does some funky stuff with self:getSize()...
   OverlapGroup.init(self)
 end
 
@@ -170,7 +163,7 @@ readerui.view:registerViewModule('dummy_image', dummy_image)
 ]]
 function ReaderView:registerViewModule(name, widget)
   if not widget.paintTo then
-    print(name .. " view module does not have paintTo method!")
+    logger.err(name .. " view module does not have paintTo method!")
     return
   end
   widget.view = self
@@ -190,7 +183,9 @@ function ReaderView:resetLayout()
 end
 
 function ReaderView:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   dbg:v("readerview painting", self.visible_area, "to", x, y)
+
   if self.page_scroll then
     self:drawPageBackground(bb, x, y)
   else
@@ -265,9 +260,7 @@ function ReaderView:paintTo(bb, x, y)
     colorful = self:drawSavedHighlight(bb, x, y)
   end
   -- draw temporary highlight
-  if self.highlight.temp then
-    self:drawTempHighlight(bb, x, y)
-  end
+  self:drawTempHighlight(bb, x, y)
   -- draw highlight position indicator for non-touch
   if self.highlight.indicator then
     self:drawHighlightIndicator(bb, x, y)
@@ -287,7 +280,7 @@ function ReaderView:paintTo(bb, x, y)
     m:paintTo(bb, x, y)
   end
   -- stop activity indicator
-  self.ui:handleEvent(Event:new("StopActivityIndicator"))
+  UIManager:broadcastEvent(Event:new("StopActivityIndicator"))
 
   -- Most pages should not require dithering, but the dithering flag is also used to engage Kaleido waveform modes,
   -- so we'll set the flag to true if any of our drawn highlights were in color.
@@ -311,11 +304,8 @@ function ReaderView:paintTo(bb, x, y)
         self.dialog.dithered = true
       end
       -- Request a flashing update while we're at it, but only if it's the first time we're painting it
-      if
-        self.state.drawn == false
-        and G_reader_settings:nilOrTrue("refresh_on_pages_with_images")
-      then
-        UIManager:setDirty(nil, "full")
+      if self.state.drawn == false then
+        UIManager:scheduleRefresh("full")
       end
     end
     self.state.drawn = true
@@ -360,7 +350,7 @@ Get page area on screen for a given page number
 --]]
 function ReaderView:getScreenPageArea(page)
   if self.ui.paging then
-    local area = Geom:new({ x = 0, y = 0 })
+    local area = Geom:new()
     if self.page_scroll then
       for _, state in ipairs(self.page_states) do
         if page ~= state.page then
@@ -386,28 +376,40 @@ function ReaderView:getScreenPageArea(page)
 end
 
 function ReaderView:drawPageBackground(bb, x, y)
-  bb:paintRect(x, y, self.dimen.w, self.dimen.h, self.page_bgcolor)
+  bb:paintRect(x, y, self:getSize().w, self:getSize().h, self.page_bgcolor)
 end
 
 function ReaderView:drawPageSurround(bb, x, y)
-  if self.dimen.h > self.visible_area.h then
-    bb:paintRect(x, y, self.dimen.w, self.state.offset.y, self.outer_page_color)
+  if self:getSize().h > self.visible_area.h then
+    bb:paintRect(
+      x,
+      y,
+      self:getSize().w,
+      self.state.offset.y,
+      self.outer_page_color
+    )
     local bottom_margin = y + self.visible_area.h + self.state.offset.y
     bb:paintRect(
       x,
       bottom_margin,
-      self.dimen.w,
+      self:getSize().w,
       self.state.offset.y + self.footer:getHeight(),
       self.outer_page_color
     )
   end
-  if self.dimen.w > self.visible_area.w then
-    bb:paintRect(x, y, self.state.offset.x, self.dimen.h, self.outer_page_color)
+  if self:getSize().w > self.visible_area.w then
     bb:paintRect(
-      x + self.dimen.w - self.state.offset.x - 1,
+      x,
+      y,
+      self.state.offset.x,
+      self:getSize().h,
+      self.outer_page_color
+    )
+    bb:paintRect(
+      x + self:getSize().w - self.state.offset.x - 1,
       y,
       self.state.offset.x + 1,
-      self.dimen.h,
+      self:getSize().h,
       self.outer_page_color
     )
   end
@@ -487,7 +489,13 @@ function ReaderView:getScrollPageRect(page, rect_p)
 end
 
 function ReaderView:drawPageGap(bb, x, y)
-  bb:paintRect(x, y, self.dimen.w, self.page_gap.height, self.page_gap.color)
+  bb:paintRect(
+    x,
+    y,
+    self:getSize().w,
+    self.page_gap.height,
+    self.page_gap.color
+  )
 end
 
 function ReaderView:drawSinglePage(bb, x, y)
@@ -548,7 +556,7 @@ function ReaderView:drawScrollView(bb, x, y)
   )
 end
 
-function ReaderView:drawHighlightIndicator(bb, x, y)
+function ReaderView:drawHighlightIndicator(bb, _x, _y)
   local rect = self.highlight.indicator
   -- paint big cross line +
   bb:paintRect(
@@ -613,9 +621,6 @@ function ReaderView:drawPageSavedHighlight(bb, x, y)
               color,
               draw_note_mark
             )
-            if draw_note_mark and self.highlight.note_mark == "sidemark" then
-              draw_note_mark = false -- side mark in the first line only
-            end
           end
         end
       end
@@ -629,15 +634,15 @@ function ReaderView:drawXPointerSavedHighlight(bb, x, y)
   -- showing menu...). We might want to cache these boxes per page (and
   -- clear that cache when page layout change or highlights are added
   -- or removed).
-  -- Even in page mode, it's safer to use pos and ui.dimen.h
-  -- than pages' xpointers pos, even if ui.dimen.h is a bit
+  -- Even in page mode, it's safer to use pos and ui:getSize().h
+  -- than pages' xpointers pos, even if ui:getSize().h is a bit
   -- larger than pages' heights
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if self.view_mode == "page" and self.document:getVisiblePageCount() > 1 then
-    cur_view_bottom = cur_view_top + 2 * self.ui.dimen.h
+    cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
-    cur_view_bottom = cur_view_top + self.ui.dimen.h
+    cur_view_bottom = cur_view_top + self.ui:getSize().h
   end
   local colorful
   for _, item in ipairs(self.ui.annotation.annotations) do
@@ -820,34 +825,31 @@ function ReaderView:recalculate()
     end
     -- clear dim area
     self.dim_area:clear()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
   else
     self.visible_area:setSizeTo(self.dimen)
   end
-  self.state.offset = Geom:new({ x = 0, y = 0 })
-  if self.dimen.h > self.visible_area.h then
+  self.state.offset = Geom:new()
+  if self:getSize().h > self.visible_area.h then
     if self.footer_visible and not self.footer.settings.reclaim_height then
       self.state.offset.y = (
-        self.dimen.h - (self.visible_area.h + self.footer:getHeight())
+        self:getSize().h - (self.visible_area.h + self.footer:getHeight())
       ) / 2
     else
-      self.state.offset.y = (self.dimen.h - self.visible_area.h) / 2
+      self.state.offset.y = (self:getSize().h - self.visible_area.h) / 2
     end
   end
-  if self.dimen.w > self.visible_area.w then
-    self.state.offset.x = (self.dimen.w - self.visible_area.w) / 2
+  if self:getSize().w > self.visible_area.w then
+    self.state.offset.x = (self:getSize().w - self.visible_area.w) / 2
   end
 
   self:setupNoteMarkPosition()
 
   -- Flag a repaint so self:paintTo will be called
   -- NOTE: This is also unfortunately called during panning, essentially making sure we'll never be using "fast" for pans ;).
-  UIManager:setDirty(
-    self.dialog,
-    self.currently_scrolling and "fast" or "partial"
-  )
+  UIManager:setDirty(self.dialog, "partial")
 end
 
 function ReaderView:PanningUpdate(dx, dy)
@@ -859,7 +861,7 @@ function ReaderView:PanningUpdate(dx, dy)
     UIManager:setDirty(self.dialog, "partial")
     logger.dbg("on pan: page_area", self.page_area)
     logger.dbg("on pan: visible_area", self.visible_area)
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
   end
@@ -873,7 +875,7 @@ function ReaderView:PanningStart(x, y)
   end
   self.visible_area = self.panning_visible_area:copy()
   self.visible_area:offsetWithin(self.page_area, x, y)
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("ViewRecalculate", self.visible_area, self.page_area)
   )
   UIManager:setDirty(self.dialog, "partial")
@@ -887,7 +889,7 @@ function ReaderView:SetZoomCenter(x, y)
   local old = self.visible_area:copy()
   self.visible_area:centerWithin(self.page_area, x, y)
   if self.visible_area ~= old then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
     UIManager:setDirty(self.dialog, "partial")
@@ -957,15 +959,13 @@ function ReaderView:rotate(mode, old_mode)
     -- No layout change, just rotate & repaint with a flash
     UIManager:setDirty(self.dialog, "full")
   else
-    UIManager:setDirty(nil, "full") -- SetDimensions will only request a partial, we want a flash
-    local new_screen_size = Screen:getSize()
-    self.ui:handleEvent(Event:new("SetDimensions", new_screen_size))
-    self.ui:onScreenResize(new_screen_size)
-    self.ui:handleEvent(Event:new("InitScrollPageStates"))
+    UIManager:scheduleRefresh("full") -- SetDimensions will only request a partial, we want a flash
+    UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
+    UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
   Notification:notify(
     T(
-      _("Rotation mode set to: %1"),
+      gettext("Rotation mode set to: %1"),
       optionsutil:getOptionText("SetRotationMode", mode)
     )
   )
@@ -973,21 +973,21 @@ end
 
 function ReaderView:onSetDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self:mergeSize(dimensions)
   -- recalculate view
   self:recalculate()
 end
 
 function ReaderView:onRestoreDimensions(dimensions)
   self:resetLayout()
-  self.dimen = dimensions
+  self:mergeSize(dimensions)
   -- recalculate view
   self:recalculate()
 end
 
 function ReaderView:onSetFullScreen(full_screen)
   self.footer_visible = not full_screen
-  self.ui:handleEvent(Event:new("SetDimensions", Screen:getSize()))
+  UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
 end
 
 function ReaderView:onSetScrollMode(page_scroll)
@@ -997,8 +997,8 @@ function ReaderView:onSetScrollMode(page_scroll)
     and self.ui.zooming.paged_modes[self.zoom_mode]
     and self.document.configurable.text_wrap == 0
   then
-    UIManager:show(InfoMessage:new({
-      text = _(
+    self:showWidget(InfoMessage:new({
+      text = gettext(
         [[
 Continuous view (scroll mode) works best with zoom to page width, zoom to content width or zoom to rows.
 
@@ -1013,51 +1013,49 @@ In combination with zoom to fit page, page height, content height, content or co
     self.document.configurable.page_scroll = 0
   end
   self:recalculate()
-  self.ui:handleEvent(Event:new("InitScrollPageStates"))
+  UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
 end
 
 function ReaderView:onReadSettings(config)
   if self.ui.paging then
-    self.document:setTileCacheValidity(
-      config:readSetting("tile_cache_validity_ts")
-    )
-    self.render_mode = config:readSetting("render_mode")
-      or G_defaults:readSetting("DRENDER_MODE")
+    self.document:setTileCacheValidity(config:read("tile_cache_validity_ts"))
+    self.render_mode = config:read("render_mode")
+      or G_defaults:read("DRENDER_MODE")
     self.document.render_mode = self.render_mode
     if config:has("gamma") then -- old doc contrast setting
-      config:saveSetting("kopt_contrast", config:readSetting("gamma"))
-      config:delSetting("gamma")
+      config:save("kopt_contrast", config:read("gamma"))
+      config:delete("gamma")
     end
   end
   if G_reader_settings:nilOrFalse("lock_rotation") then
     local setting_name = self.ui.paging and "kopt_rotation_mode"
       or "copt_rotation_mode"
     -- document.configurable.rotation_mode is not ready yet
-    local rotation_mode = config:readSetting(setting_name)
-      or G_reader_settings:readSetting(setting_name)
+    local rotation_mode = config:read(setting_name)
+      or G_reader_settings:read(setting_name)
       or Screen.DEVICE_ROTATED_UPRIGHT
     self:onSetRotationMode(rotation_mode)
   end
-  local full_screen = config:readSetting("kopt_full_screen")
+  local full_screen = config:read("kopt_full_screen")
     or self.document.configurable.full_screen
   if full_screen == 0 then
     self.footer_visible = false
   end
   self:resetLayout()
-  local page_scroll = config:readSetting("kopt_page_scroll")
+  local page_scroll = config:read("kopt_page_scroll")
     or self.document.configurable.page_scroll
   self.page_scroll = page_scroll == 1 and true or false
   self.inverse_reading_order = config:isTrue("inverse_reading_order")
     or G_reader_settings:isTrue("inverse_reading_order")
   self.page_overlap_enable = config:isTrue("show_overlap_enable")
     or G_reader_settings:isTrue("page_overlap_enable")
-    or G_defaults:readSetting("DSHOWOVERLAP")
-  self.page_overlap_style = config:readSetting("page_overlap_style")
-    or G_reader_settings:readSetting("page_overlap_style")
+    or G_defaults:read("DSHOWOVERLAP")
+  self.page_overlap_style = config:read("page_overlap_style")
+    or G_reader_settings:read("page_overlap_style")
     or "dim"
   self.page_gap.height = Screen:scaleBySize(
-    config:readSetting("kopt_page_gap_height")
-      or G_reader_settings:readSetting("kopt_page_gap_height")
+    config:read("kopt_page_gap_height")
+      or G_reader_settings:read("kopt_page_gap_height")
       or 8
   )
 end
@@ -1069,18 +1067,22 @@ function ReaderView:shouldInvertBiDiLayoutMirroring()
 end
 
 function ReaderView:onPageUpdate(new_page_no)
+  if self.state.page == new_page_no and self.page_area then
+    return
+  end
   self.state.page = new_page_no
   self.state.drawn = false
   self:recalculate()
   self.highlight.temp = {}
-  self:checkAutoSaveSettings()
 end
 
 function ReaderView:onPosUpdate(new_pos)
+  if self.state.pos == new_pos then
+    return
+  end
   self.state.pos = new_pos
   self:recalculate()
   self.highlight.temp = {}
-  self:checkAutoSaveSettings()
 end
 
 function ReaderView:onZoomUpdate(zoom)
@@ -1126,7 +1128,7 @@ function ReaderView:onReaderFooterVisibilityChange()
       -- NOTE: ReaderView:recalculate will snap visible_area to page_area edges (depending on zoom direction).
       --     We don't actually want to move here, so save & restore our current visible_area *coordinates*...
       local x, y = self.visible_area.x, self.visible_area.y
-      self.ui:handleEvent(Event:new("SetDimensions", Screen:getSize()))
+      UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))
       self.visible_area.x = x
       self.visible_area.y = y
 
@@ -1155,10 +1157,10 @@ end
 function ReaderView:onGammaUpdate(gamma, no_notification)
   self.state.gamma = gamma
   if self.page_scroll then
-    self.ui:handleEvent(Event:new("UpdateScrollPageGamma", gamma))
+    UIManager:broadcastEvent(Event:new("UpdateScrollPageGamma", gamma))
   end
   if not no_notification then
-    Notification:notify(T(_("Contrast set to: %1."), gamma))
+    Notification:notify(T(gettext("Contrast set to: %1."), gamma))
   end
 end
 
@@ -1183,51 +1185,57 @@ end
 -- For KOptOptions
 function ReaderView:onHWDitheringUpdate(toggle)
   self.document.hw_dithering = toggle
-  Notification:notify(T(_("Hardware dithering set to: %1."), tostring(toggle)))
+  Notification:notify(
+    T(gettext("Hardware dithering set to: %1."), tostring(toggle))
+  )
 end
 
 function ReaderView:onSWDitheringUpdate(toggle)
   self.document.sw_dithering = toggle
-  Notification:notify(T(_("Software dithering set to: %1."), tostring(toggle)))
+  Notification:notify(
+    T(gettext("Software dithering set to: %1."), tostring(toggle))
+  )
 end
 
 function ReaderView:onFontSizeUpdate(font_size)
   if self.ui.paging then
-    self.ui:handleEvent(Event:new("ReZoom", font_size))
-    Notification:notify(T(_("Font zoom set to: %1."), font_size))
+    UIManager:broadcastEvent(Event:new("ReZoom", font_size))
+    Notification:notify(T(gettext("Font zoom set to: %1."), font_size))
   end
 end
 
 function ReaderView:onDefectSizeUpdate()
-  self.ui:handleEvent(Event:new("ReZoom"))
+  UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
 function ReaderView:onPageCrop()
-  self.ui:handleEvent(Event:new("ReZoom"))
+  UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
 function ReaderView:onMarginUpdate()
-  self.ui:handleEvent(Event:new("ReZoom"))
+  UIManager:broadcastEvent(Event:new("ReZoom"))
 end
 
-function ReaderView:onSetViewMode(new_mode)
+function ReaderView:onSetViewMode(new_mode, quiet)
   if new_mode ~= self.view_mode then
     self.view_mode = new_mode
     self.document:setViewMode(new_mode)
-    self.ui:handleEvent(Event:new("ChangeViewMode"))
-    Notification:notify(
-      T(
-        _("View mode set to: %1"),
-        optionsutil:getOptionText("SetViewMode", new_mode)
+    UIManager:broadcastEvent(Event:new("ChangeViewMode"))
+    if quiet ~= true then
+      Notification:notify(
+        T(
+          gettext("View mode set to: %1"),
+          optionsutil:getOptionText("SetViewMode", new_mode)
+        )
       )
-    )
+    end
   end
 end
 
 function ReaderView:onPageGapUpdate(page_gap)
   self.page_gap.height = Screen:scaleBySize(page_gap)
   Notification:notify(
-    T(_("Page gap set to %1."), optionsutil.formatFlexSize(page_gap))
+    T(gettext("Page gap set to %1."), optionsutil.formatFlexSize(page_gap))
   )
   return true
 end
@@ -1240,30 +1248,21 @@ function ReaderView:onSaveSettings()
     then
       self.document:resetTileCacheValidity()
     end
-    self.ui.doc_settings:saveSetting(
+    self.ui.doc_settings:save(
       "tile_cache_validity_ts",
       self.document:getTileCacheValidity()
     )
     if self.document.is_djvu then
-      self.ui.doc_settings:saveSetting("render_mode", self.render_mode)
+      self.ui.doc_settings:save("render_mode", self.render_mode)
     end
   end
   -- Don't etch the current rotation in stone when sticky rotation is enabled
   if G_reader_settings:nilOrFalse("lock_rotation") then
     self.document.configurable.rotation_mode = Screen:getRotationMode() -- will be saved by ReaderConfig
   end
-  self.ui.doc_settings:saveSetting(
-    "inverse_reading_order",
-    self.inverse_reading_order
-  )
-  self.ui.doc_settings:saveSetting(
-    "show_overlap_enable",
-    self.page_overlap_enable
-  )
-  self.ui.doc_settings:saveSetting(
-    "page_overlap_style",
-    self.page_overlap_style
-  )
+  self.ui.doc_settings:save("inverse_reading_order", self.inverse_reading_order)
+  self.ui.doc_settings:save("show_overlap_enable", self.page_overlap_enable)
+  self.ui.doc_settings:save("page_overlap_style", self.page_overlap_style)
 end
 
 function ReaderView:getRenderModeMenuTable()
@@ -1284,14 +1283,14 @@ function ReaderView:getRenderModeMenuTable()
   end
   return {
     -- @translators Selects which layers of the DjVu image should be rendered.  Valid  rendering  modes are color, black, mask, foreground, and background. See http://djvu.sourceforge.net/ and https://en.wikipedia.org/wiki/DjVu for more information about the format.
-    text = _("DjVu render mode"),
+    text = gettext("DjVu render mode"),
     sub_item_table = {
-      make_mode(_("COLOUR (works for both colour and b&w pages)"), 0),
-      make_mode(_("BLACK & WHITE (for b&w pages only, much faster)"), 1),
-      make_mode(_("COLOUR ONLY (slightly faster than COLOUR)"), 2),
-      make_mode(_("MASK ONLY (for b&w pages only)"), 3),
-      make_mode(_("COLOUR BACKGROUND (show only background)"), 4),
-      make_mode(_("COLOUR FOREGROUND (show only foreground)"), 5),
+      make_mode(gettext("COLOUR (works for both colour and b&w pages)"), 0),
+      make_mode(gettext("BLACK & WHITE (for b&w pages only, much faster)"), 1),
+      make_mode(gettext("COLOUR ONLY (slightly faster than COLOUR)"), 2),
+      make_mode(gettext("MASK ONLY (for b&w pages only)"), 3),
+      make_mode(gettext("COLOUR BACKGROUND (show only background)"), 4),
+      make_mode(gettext("COLOUR FOREGROUND (show only foreground)"), 5),
     },
   }
 end
@@ -1305,37 +1304,14 @@ function ReaderView:onClose()
   end
 end
 
-function ReaderView:onReaderReady()
-  self.ui.doc_settings:delSetting("docsettings_reset_done")
-  self.settings_last_save_time = UIManager:getElapsedTimeSinceBoot()
-end
-
-function ReaderView:onResume()
-  -- As settings were saved on suspend, reset this on resume,
-  -- as there's no need for a possibly immediate save.
-  self.settings_last_save_time = UIManager:getElapsedTimeSinceBoot()
-end
-
-function ReaderView:checkAutoSaveSettings()
-  if not self.settings_last_save_time then -- reader not yet ready
-    return
-  end
-  if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
+function ReaderView:onTimesChange_15M()
+  if G_reader_settings:isFalse("auto_save_settings") then
     -- no auto save
     return
   end
-
-  local interval_m =
-    G_reader_settings:readSetting("auto_save_settings_interval_minutes")
-  local interval = time.s(interval_m * 60)
-  local now = UIManager:getElapsedTimeSinceBoot()
-  if now - self.settings_last_save_time >= interval then
-    self.settings_last_save_time = now
-    -- I/O, delay until after the pageturn
-    UIManager:tickAfterNext(function()
-      self.ui:saveSettings()
-    end)
-  end
+  UIManager:nextTick(function()
+    self.ui:saveSettings()
+  end)
 end
 
 function ReaderView:isOverlapAllowed()
@@ -1357,83 +1333,48 @@ function ReaderView:onToggleReadingOrder()
   self:setupTouchZones()
   local is_rtl = self.inverse_reading_order ~= BD.mirroredUILayout() -- mirrored reading
   Notification:notify(
-    is_rtl and _("RTL page turning.") or _("LTR page turning.")
+    is_rtl and gettext("RTL page turning.") or gettext("LTR page turning.")
   )
   return true
 end
 
-function ReaderView:getTapZones()
-  local forward_zone, backward_zone
-  local DTAP_ZONE_FORWARD = G_defaults:readSetting("DTAP_ZONE_FORWARD")
-  local DTAP_ZONE_BACKWARD = G_defaults:readSetting("DTAP_ZONE_BACKWARD")
-  local tap_zones_type = G_reader_settings:readSetting("page_turns_tap_zones")
-    or "default"
-  if tap_zones_type == "default" then
+-- Note, this may return a none bd version if the self or
+-- self.inverse_reading_order is not defined.
+function ReaderView:getForwardTapZone()
+  local tap_zones_type = G_reader_settings:read("page_turns_tap_zones")
+    or "left_right"
+  local tap_zone_forward_w = G_reader_settings:read(
+    "page_turns_tap_zone_forward_size_ratio"
+  ) or 0.6
+  local forward_zone
+  if tap_zones_type == "left_right" then
     forward_zone = {
-      ratio_x = DTAP_ZONE_FORWARD.x,
-      ratio_y = DTAP_ZONE_FORWARD.y,
-      ratio_w = DTAP_ZONE_FORWARD.w,
-      ratio_h = DTAP_ZONE_FORWARD.h,
+      ratio_x = 1 - tap_zone_forward_w,
+      ratio_y = 0,
+      ratio_w = tap_zone_forward_w,
+      ratio_h = 1,
     }
-    backward_zone = {
-      ratio_x = DTAP_ZONE_BACKWARD.x,
-      ratio_y = DTAP_ZONE_BACKWARD.y,
-      ratio_w = DTAP_ZONE_BACKWARD.w,
-      ratio_h = DTAP_ZONE_BACKWARD.h,
+  elseif tap_zones_type == "top_bottom" then
+    forward_zone = {
+      ratio_x = 0,
+      ratio_y = 1 - tap_zone_forward_w,
+      ratio_w = 1,
+      ratio_h = tap_zone_forward_w,
     }
-  else -- user defined page turns tap zones
-    local tap_zone_forward_w = G_reader_settings:readSetting(
-      "page_turns_tap_zone_forward_size_ratio"
-    ) or DTAP_ZONE_FORWARD.w
-    local tap_zone_backward_w = G_reader_settings:readSetting(
-      "page_turns_tap_zone_backward_size_ratio"
-    ) or DTAP_ZONE_BACKWARD.w
-    if tap_zones_type == "left_right" then
-      forward_zone = {
-        ratio_x = 1 - tap_zone_forward_w,
-        ratio_y = 0,
-        ratio_w = tap_zone_forward_w,
-        ratio_h = 1,
-      }
-      backward_zone = {
-        ratio_x = 0,
-        ratio_y = 0,
-        ratio_w = tap_zone_backward_w,
-        ratio_h = 1,
-      }
-    elseif tap_zones_type == "top_bottom" then
-      forward_zone = {
-        ratio_x = 0,
-        ratio_y = 1 - tap_zone_forward_w,
-        ratio_w = 1,
-        ratio_h = tap_zone_forward_w,
-      }
-      backward_zone = {
-        ratio_x = 0,
-        ratio_y = 0,
-        ratio_w = 1,
-        ratio_h = tap_zone_backward_w,
-      }
-    else -- "bottom_top"
-      forward_zone = {
-        ratio_x = 0,
-        ratio_y = 0,
-        ratio_w = 1,
-        ratio_h = tap_zone_forward_w,
-      }
-      backward_zone = {
-        ratio_x = 0,
-        ratio_y = 1 - tap_zone_backward_w,
-        ratio_w = 1,
-        ratio_h = tap_zone_backward_w,
-      }
-    end
+  else -- "bottom_top"
+    forward_zone = {
+      ratio_x = 0,
+      ratio_y = 0,
+      ratio_w = 1,
+      ratio_h = tap_zone_forward_w,
+    }
   end
-  if self.inverse_reading_order ~= BD.mirroredUILayout() then -- mirrored reading
+  -- Allow running without self.
+  -- Mirrored reading
+  if self and self.inverse_reading_order ~= BD.mirroredUILayout() then
     forward_zone.ratio_x = 1 - forward_zone.ratio_x - forward_zone.ratio_w
-    backward_zone.ratio_x = 1 - backward_zone.ratio_x - backward_zone.ratio_w
   end
-  return forward_zone, backward_zone
+  return forward_zone
 end
 
 function ReaderView:setupNoteMarkPosition()

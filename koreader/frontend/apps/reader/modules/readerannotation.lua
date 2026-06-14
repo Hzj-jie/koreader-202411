@@ -1,6 +1,6 @@
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local ReaderAnnotation = WidgetContainer:extend({
@@ -101,8 +101,8 @@ function ReaderAnnotation:getAnnotationsFromBookmarksHighlights(
 end
 
 function ReaderAnnotation:onReadSettings(config)
-  local annotations = config:readSetting("annotations")
-  if annotations then
+  if config:has("annotations") then
+    local annotations = config:readTableRef("annotations")
     -- KOHighlights may set this key when it has merged annotations from different sources:
     -- we want to make sure they are updated and sorted
     local needs_update = config:isTrue("annotations_externally_modified")
@@ -112,32 +112,34 @@ function ReaderAnnotation:onReadSettings(config)
     local annotations_type = has_annotations and type(annotations[1].page)
     if self.ui.rolling and annotations_type ~= "string" then -- incompatible format loaded, or empty
       if has_annotations then -- backup incompatible format if not empty
-        config:saveSetting("annotations_paging", annotations)
+        config:save("annotations_paging", annotations)
       end
       -- load compatible format
-      annotations = config:readSetting("annotations_rolling") or {}
-      config:delSetting("annotations_rolling")
+      annotations = config:readTable("annotations_rolling") or {}
+      config:delete("annotations_rolling")
+      config:save("annotations", annotations)
       needs_sort = true
     elseif self.ui.paging and annotations_type ~= "number" then
       if has_annotations then
-        config:saveSetting("annotations_rolling", annotations)
+        config:save("annotations_rolling", annotations)
       end
-      annotations = config:readSetting("annotations_paging") or {}
-      config:delSetting("annotations_paging")
+      annotations = config:readTable("annotations_paging") or {}
+      config:delete("annotations_paging")
+      config:save("annotations", annotations)
       needs_sort = true
     end
     self.annotations = annotations
     if needs_update or needs_sort then
-      self.ui:registerPostReaderReadyCallback(function()
+      self.onPostReaderReady = function()
         self:updateAnnotations(needs_update, needs_sort)
-      end)
-      config:delSetting("annotations_externally_modified")
+      end
+      config:delete("annotations_externally_modified")
     end
   else -- first run
     if self.ui.rolling then
-      self.ui:registerPostInitCallback(function()
+      self.onReaderInited = function()
         self:migrateToAnnotations(config)
-      end)
+      end
     else
       self:migrateToAnnotations(config)
     end
@@ -145,8 +147,8 @@ function ReaderAnnotation:onReadSettings(config)
 end
 
 function ReaderAnnotation:migrateToAnnotations(config)
-  local bookmarks = config:readSetting("bookmarks") or {}
-  local highlights = config:readSetting("highlight") or {}
+  local bookmarks = config:readTable("bookmarks") or {}
+  local highlights = config:readTable("highlight") or {}
 
   if config:hasNot("highlights_imported") then
     -- before 2014, saved highlights were not added to bookmarks when they were created.
@@ -180,56 +182,58 @@ function ReaderAnnotation:migrateToAnnotations(config)
   if self.ui.rolling then
     if bookmarks_type == "string" then -- compatible format loaded, check for incompatible old backup
       if config:has("bookmarks_paging") then -- save incompatible old backup
-        local bookmarks_paging = config:readSetting("bookmarks_paging")
-        local highlights_paging = config:readSetting("highlight_paging")
+        local bookmarks_paging = config:read("bookmarks_paging")
+        local highlights_paging = config:read("highlight_paging")
         local annotations = self:getAnnotationsFromBookmarksHighlights(
           bookmarks_paging,
           highlights_paging
         )
-        config:saveSetting("annotations_paging", annotations)
-        config:delSetting("bookmarks_paging")
-        config:delSetting("highlight_paging")
+        config:save("annotations_paging", annotations)
+        config:delete("bookmarks_paging")
+        config:delete("highlight_paging")
       end
     else -- incompatible format loaded, or empty
       if has_bookmarks then -- save incompatible format if not empty
         local annotations =
           self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
-        config:saveSetting("annotations_paging", annotations)
+        config:save("annotations_paging", annotations)
       end
       -- load compatible format
-      bookmarks = config:readSetting("bookmarks_rolling") or {}
-      highlights = config:readSetting("highlight_rolling") or {}
-      config:delSetting("bookmarks_rolling")
-      config:delSetting("highlight_rolling")
+      bookmarks = config:readTableRef("bookmarks_rolling")
+      highlights = config:readTableRef("highlight_rolling")
+      config:delete("bookmarks_rolling")
+      config:delete("highlight_rolling")
     end
   else -- self.ui.paging
     if bookmarks_type == "number" then
       if config:has("bookmarks_rolling") then
-        local bookmarks_rolling = config:readSetting("bookmarks_rolling")
-        local highlights_rolling = config:readSetting("highlight_rolling")
+        local bookmarks_rolling = config:read("bookmarks_rolling")
+        local highlights_rolling = config:read("highlight_rolling")
         local annotations = self:getAnnotationsFromBookmarksHighlights(
           bookmarks_rolling,
           highlights_rolling
         )
-        config:saveSetting("annotations_rolling", annotations)
-        config:delSetting("bookmarks_rolling")
-        config:delSetting("highlight_rolling")
+        config:save("annotations_rolling", annotations)
+        config:delete("bookmarks_rolling")
+        config:delete("highlight_rolling")
       end
     else
       if has_bookmarks then
         local annotations =
           self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
-        config:saveSetting("annotations_rolling", annotations)
+        config:save("annotations_rolling", annotations)
       end
-      bookmarks = config:readSetting("bookmarks_paging") or {}
-      highlights = config:readSetting("highlight_paging") or {}
-      config:delSetting("bookmarks_paging")
-      config:delSetting("highlight_paging")
+      bookmarks = config:readTableRef("bookmarks_paging")
+      highlights = config:readTableRef("highlight_paging")
+      config:delete("bookmarks_paging")
+      config:delete("highlight_paging")
     end
   end
 
   self.annotations =
     self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, true)
+  -- has("annotations") is meaningful to indicate the finish of migration.
+  config:save("annotations", self.annotations)
 end
 
 function ReaderAnnotation:setNeedsUpdateFlag()
@@ -244,7 +248,6 @@ end
 
 function ReaderAnnotation:onSaveSettings()
   self:updatePageNumbers()
-  self.ui.doc_settings:saveSetting("annotations", self.annotations)
 end
 
 -- items handling
@@ -292,7 +295,7 @@ function ReaderAnnotation:updateItemByXPointer(item)
     chapter = nil
   end
   if not item.drawer then -- page bookmark
-    item.text = chapter and T(_("in %1"), chapter) or nil
+    item.text = chapter and T(gettext("in %1"), chapter) or nil
   end
   item.chapter = chapter
   item.pageno = self.document:getPageFromXPointer(item.page)

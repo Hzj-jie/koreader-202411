@@ -3,9 +3,9 @@ local DataStorage = require("datastorage")
 local FT = require("ffi/freetype")
 local HB = require("ffi/harfbuzz")
 local Persist = require("persist")
-local util = require("util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 
 local FontList = {
   fontdir = "./fonts",

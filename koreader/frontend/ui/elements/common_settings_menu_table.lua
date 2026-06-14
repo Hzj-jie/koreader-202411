@@ -1,4 +1,3 @@
-local DateTimeWidget = require("ui/widget/datetimewidget")
 local Device = require("device")
 local DocSettings = require("docsettings")
 local Event = require("ui/event")
@@ -8,9 +7,7 @@ local Language = require("ui/language")
 local NetworkMgr = require("ui/network/manager")
 local PowerD = Device:getPowerDevice()
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
-local N_ = _.ngettext
-local C_ = _.pgettext
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -20,7 +17,7 @@ if Device:isCervantes() then
   local util = require("util")
   if util.pathExists("/usr/bin/restart.sh") then
     common_settings.start_bq = {
-      text = T(_("Start %1 reader app"), "BQ"),
+      text = T(gettext("Start %1 reader app"), "BQ"),
       callback = function()
         UIManager:quit(87)
       end,
@@ -30,7 +27,7 @@ end
 
 if Device:hasFrontlight() then
   common_settings.frontlight = {
-    text = _("Frontlight"),
+    text = gettext("Frontlight"),
     callback = function()
       UIManager:broadcastEvent(Event:new("ShowFlDialog"))
     end,
@@ -42,7 +39,7 @@ if Device:canToggleMassStorage() then
 
   -- mass storage settings
   common_settings.mass_storage_settings = {
-    text = _("USB mass storage"),
+    text = gettext("USB mass storage"),
     sub_item_table = MassStorage:getSettingsMenuTable(),
   }
 
@@ -53,7 +50,7 @@ end
 if Device:canToggleChargingLED() then
   -- Charging LED settings
   common_settings.charging_led = {
-    text = _("Turn on the power LED when charging"),
+    text = gettext("Turn on the power LED when charging"),
     checked_func = function()
       return G_reader_settings:nilOrTrue("enable_charging_led")
     end,
@@ -66,175 +63,22 @@ end
 -- Associate OS level file extensions (must be off by default, because we're not associated initially)
 if Device:canAssociateFileExtensions() then
   common_settings.file_ext_assoc = {
-    text = _("Associate file extensions"),
+    text = gettext("Associate file extensions"),
     sub_item_table = require("ui/elements/file_ext_assoc"):getSettingsMenuTable(),
   }
 end
 
 -- This affects the topmenu, we want to be able to access it even if !Device:setDateTime()
-common_settings.time = {
-  text = _("Time and date"),
-  sub_item_table = {
-    {
-      text = _("12-hour clock"),
-      keep_menu_open = true,
-      checked_func = function()
-        return G_reader_settings:isTrue("twelve_hour_clock")
-      end,
-      callback = function()
-        G_reader_settings:flipNilOrFalse("twelve_hour_clock")
-        UIManager:broadcastEvent(Event:new("TimeFormatChanged"))
-      end,
-    },
-    {
-      text_func = function()
-        local duration_format = G_named_settings.duration_format()
-        local text = C_("Time", "Classic")
-        if duration_format == "modern" then
-          text = C_("Time", "Modern")
-        elseif duration_format == "letters" then
-          text = C_("Time", "Letters")
-        end
-        return T(_("Duration format: %1"), text)
-      end,
-      sub_item_table = {
-        {
-          text_func = function()
-            local datetime = require("datetime")
-            -- sample text shows 1:23:45
-            local duration_format_str =
-              datetime.secondsToClockDuration("classic", 5025, false)
-            return T(C_("Time", "Classic (%1)"), duration_format_str)
-          end,
-          checked_func = function()
-            return G_named_settings.duration_format() == "classic"
-          end,
-          callback = function()
-            G_reader_settings:saveSetting("duration_format", "classic")
-            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
-          end,
-        },
-        {
-          text_func = function()
-            local datetime = require("datetime")
-            -- sample text shows 1h23'45"
-            local duration_format_str =
-              datetime.secondsToClockDuration("modern", 5025, false)
-            return T(C_("Time", "Modern (%1)"), duration_format_str)
-          end,
-          checked_func = function()
-            return G_named_settings.duration_format() == "modern"
-          end,
-          callback = function()
-            G_reader_settings:saveSetting("duration_format", "modern")
-            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
-          end,
-        },
-        {
-          text_func = function()
-            local datetime = require("datetime")
-            -- sample text shows 1h 23m 45s
-            local duration_format_str =
-              datetime.secondsToClockDuration("letters", 5025, false)
-            return T(C_("Time", "Letters (%1)"), duration_format_str)
-          end,
-          checked_func = function()
-            return G_named_settings.duration_format() == "letters"
-          end,
-          callback = function()
-            G_reader_settings:saveSetting("duration_format", "letters")
-            UIManager:broadcastEvent(Event:new("UpdateFooter", true, true))
-          end,
-        },
-      },
-    },
-  },
-}
-if Device:setDateTime() then
-  table.insert(common_settings.time.sub_item_table, {
-    text = _("Set time"),
-    keep_menu_open = true,
-    callback = function()
-      local now_t = os.date("*t")
-      local curr_hour = now_t.hour
-      local curr_min = now_t.min
-      local time_widget = DateTimeWidget:new({
-        hour = curr_hour,
-        min = curr_min,
-        ok_text = _("Set time"),
-        title_text = _("Set time"),
-        info_text = _("Time is in hours and minutes."),
-        callback = function(time)
-          if Device:setDateTime(nil, nil, nil, time.hour, time.min) then
-            now_t = os.date("*t")
-            UIManager:show(InfoMessage:new({
-              text = T(
-                _("Current time: %1:%2"),
-                string.format("%02d", now_t.hour),
-                string.format("%02d", now_t.min)
-              ),
-            }))
-          else
-            UIManager:show(InfoMessage:new({
-              text = _("Time couldn't be set"),
-            }))
-          end
-        end,
-      })
-      UIManager:show(time_widget)
-    end,
-  })
-  table.insert(common_settings.time.sub_item_table, {
-    text = _("Set date"),
-    keep_menu_open = true,
-    callback = function()
-      local now_t = os.date("*t")
-      local curr_year = now_t.year
-      local curr_month = now_t.month
-      local curr_day = now_t.day
-      local date_widget = DateTimeWidget:new({
-        year = curr_year,
-        month = curr_month,
-        day = curr_day,
-        ok_text = _("Set date"),
-        title_text = _("Set date"),
-        info_text = _("Date is in years, months and days."),
-        callback = function(time)
-          now_t = os.date("*t")
-          if
-            Device:setDateTime(
-              time.year,
-              time.month,
-              time.day,
-              now_t.hour,
-              now_t.min,
-              now_t.sec
-            )
-          then
-            now_t = os.date("*t")
-            UIManager:show(InfoMessage:new({
-              text = T(
-                _("Current date: %1-%2-%3"),
-                now_t.year,
-                string.format("%02d", now_t.month),
-                string.format("%02d", now_t.day)
-              ),
-            }))
-          else
-            UIManager:show(InfoMessage:new({
-              text = _("Date couldn't be set"),
-            }))
-          end
-        end,
-      })
-      UIManager:show(date_widget)
-    end,
-  })
+common_settings.time = require("ui/elements/time_settings_menu_table")
+
+if Device.model == "KindleVoyage" or Device:isEmulator() then
+  common_settings.pagepress =
+    require("ui/elements/pagepress_settings_menu_table")
 end
 
 if Device:isKobo() then
   common_settings.ignore_sleepcover = {
-    text = _("Ignore all sleepcover events"),
+    text = gettext("Ignore all sleepcover events"),
     checked_func = function()
       return G_reader_settings:isTrue("ignore_power_sleepcover")
     end,
@@ -246,7 +90,7 @@ if Device:isKobo() then
   }
 
   common_settings.ignore_open_sleepcover = {
-    text = _("Ignore sleepcover wakeup events"),
+    text = gettext("Ignore sleepcover wakeup events"),
     checked_func = function()
       return G_reader_settings:isTrue("ignore_open_sleepcover")
     end,
@@ -260,8 +104,8 @@ end
 
 if Device:isKindle() and PowerD:hasHallSensor() then
   common_settings.cover_events = {
-    text = _("Disable Kindle cover events"),
-    help_text = _(
+    text = gettext("Disable Kindle cover events"),
+    help_text = gettext(
       [[Toggle the Hall effect sensor.
 This is used to detect if the cover is closed, which will automatically sleep and wake the device. If there is no cover present the sensor may cause spurious wakeups when located next to a magnetic source.]]
     ),
@@ -276,37 +120,36 @@ This is used to detect if the cover is closed, which will automatically sleep an
 end
 
 common_settings.night_mode = {
-  text = _("Night mode"),
+  text = gettext("Night mode"),
   checked_func = function()
     return G_reader_settings:isTrue("night_mode")
   end,
   callback = function()
-    UIManager:broadcastEvent(Event:new("ToggleNightMode"))
+    UIManager:broadcastEvent(
+      Event:new("ToggleNightMode", G_reader_settings:nilOrFalse("night_mode"))
+    )
   end,
 }
 common_settings.network = {
-  text = _("Network"),
+  text = gettext("Network"),
 }
 NetworkMgr:getMenuTable(common_settings)
 
 common_settings.screen = {
-  text = _("Screen"),
+  text = gettext("Screen"),
 }
 common_settings.screen_rotation =
-  dofile("frontend/ui/elements/screen_rotation_menu_table.lua")
-common_settings.screen_dpi =
-  dofile("frontend/ui/elements/screen_dpi_menu_table.lua")
+  require("ui/elements/screen_rotation_menu_table")
+common_settings.screen_dpi = require("ui/elements/screen_dpi_menu_table")
 common_settings.screen_eink_opt =
-  dofile("frontend/ui/elements/screen_eink_opt_menu_table.lua")
-common_settings.screen_notification =
-  dofile("frontend/ui/elements/screen_notification_menu_table.lua")
+  require("ui/elements/screen_eink_opt_menu_table")
 
 if Device:isTouchDevice() then
   common_settings.taps_and_gestures = {
-    text = _("Taps and gestures"),
+    text = gettext("Taps and gestures"),
   }
   common_settings.ignore_hold_corners = {
-    text = _("Ignore long-press on corners"),
+    text = gettext("Ignore long-press on corners"),
     checked_func = function()
       return G_reader_settings:isTrue("ignore_hold_corners")
     end,
@@ -314,22 +157,34 @@ if Device:isTouchDevice() then
       UIManager:broadcastEvent(Event:new("IgnoreHoldCorners"))
     end,
   }
-  common_settings.screen_disable_double_tab =
-    dofile("frontend/ui/elements/screen_disable_double_tap_table.lua")
-  common_settings.menu_activate =
-    dofile("frontend/ui/elements/menu_activate.lua")
+  common_settings.screen_disable_double_tap =
+    require("ui/elements/screen_disable_double_tap_table")
+  common_settings.menu_activate = require("ui/elements/menu_activate")
 end
+
+common_settings.disable_out_of_order_tap = {
+  text = gettext("Disable out of order interactions"),
+  help_text = gettext(
+    "Disallow taps or keyboard presses being sent to the UI elements before they are showing up.\nE-ink screens are slow and take noticeable time to update the content. Users may feel laggy, tap the screen or press the keyboard multiple times, and cause the following actions to interact with the unshown UI elements and trigger unexpected actions.\nThis feature decides if a user action is expected or caused by the delay of screen refreshing, and drops the unexpected ones.\nIt's highly suggested keeping this configuration enabled unless you feel the UI interactions are less responsive."
+  ),
+  checked_func = function()
+    return G_reader_settings:nilOrTrue("disable_out_of_order_input")
+  end,
+  callback = function()
+    G_reader_settings:flipNilOrTrue("disable_out_of_order_input")
+  end,
+}
 
 -- NOTE: Allow disabling color if it's mistakenly enabled on a Grayscale screen (after a settings import?)
 if Screen:isColorEnabled() or Screen:isColorScreen() then
   common_settings.color_rendering =
-    dofile("frontend/ui/elements/screen_color_menu_table.lua")
+    require("ui/elements/screen_color_menu_table")
 end
 
 -- fullscreen toggle for supported devices
 if not Device:isAlwaysFullscreen() then
   common_settings.fullscreen = {
-    text = _("Fullscreen"),
+    text = gettext("Fullscreen"),
     checked_func = function()
       return Device.fullscreen or Device.isDefaultFullscreen()
     end,
@@ -360,7 +215,7 @@ if Device:isAndroid() then
 
   -- haptic feedback override
   common_settings.android_haptic_feedback = {
-    text = _("Force haptic feedback"),
+    text = gettext("Force haptic feedback"),
     checked_func = function()
       return G_reader_settings:isTrue("haptic_feedback_override")
     end,
@@ -374,44 +229,38 @@ if Device:isAndroid() then
 
   -- volume key events
   common_settings.android_volume_keys = {
-    text = _("Volume key page turning"),
+    text = gettext("Volume key page turning"),
     checked_func = function()
       return not android.getVolumeKeysIgnored()
     end,
     callback = function()
       local is_ignored = android.getVolumeKeysIgnored()
       android.setVolumeKeysIgnored(not is_ignored)
-      G_reader_settings:saveSetting(
-        "android_ignore_volume_keys",
-        not is_ignored
-      )
+      G_reader_settings:save("android_ignore_volume_keys", not is_ignored)
     end,
   }
 
   common_settings.android_back_button = {
-    text = _("Ignore back button completely"),
+    text = gettext("Ignore back button completely"),
     checked_func = function()
       return android.isBackButtonIgnored()
     end,
     callback = function()
       local is_ignored = android.isBackButtonIgnored()
       android.setBackButtonIgnored(not is_ignored)
-      G_reader_settings:saveSetting(
-        "android_ignore_back_button",
-        not is_ignored
-      )
+      G_reader_settings:save("android_ignore_back_button", not is_ignored)
     end,
   }
 
   -- ignore battery optimization
   if Device.firmware_rev >= 23 then
     common_settings.ignore_battery_optimizations = {
-      text = _("Battery optimizations"),
+      text = gettext("Battery optimizations"),
       checked_func = function()
         return not android.settings.hasPermission("battery")
       end,
       callback = function()
-        local text = _([[
+        local text = gettext([[
 Go to Android battery optimization settings?
 
 You will be prompted with a permission management screen.
@@ -421,8 +270,8 @@ Please don't change any settings unless you know what you're doing.]])
         android.settings.requestPermission(
           "battery",
           text,
-          _("OK"),
-          _("Cancel")
+          gettext("OK"),
+          gettext("Cancel")
         )
       end,
     }
@@ -430,29 +279,29 @@ Please don't change any settings unless you know what you're doing.]])
 end
 
 common_settings.navigation = {
-  text = _("Navigation"),
+  text = gettext("Navigation"),
 }
 local back_to_exit_str = {
-  prompt = { _("Prompt"), _("prompt") },
-  always = { _("Always"), _("always") },
-  disable = { _("Disable"), _("disable") },
+  prompt = { gettext("Prompt"), gettext("prompt") },
+  always = { gettext("Always"), gettext("always") },
+  disable = { gettext("Disable"), gettext("disable") },
 }
 local function genGenericMenuEntry(title, setting, value, default, radiomark)
   return {
     text = title,
     checked_func = function()
-      return (G_reader_settings:readSetting(setting) or default) == value
+      return (G_reader_settings:read(setting) or default) == value
     end,
     radio = radiomark,
     callback = function()
-      G_reader_settings:saveSetting(setting, value)
+      G_reader_settings:save(setting, value)
     end,
   }
 end
 common_settings.back_to_exit = {
   text_func = function()
     local back_to_exit = G_named_settings.back_to_exit()
-    return T(_("Back to exit: %1"), back_to_exit_str[back_to_exit][2])
+    return T(gettext("Back to exit: %1"), back_to_exit_str[back_to_exit][2])
   end,
   sub_item_table = {
     genGenericMenuEntry(back_to_exit_str.prompt[1], "back_to_exit", "prompt"),
@@ -465,27 +314,30 @@ common_settings.back_in_filemanager = {
     local menu_info = ""
     local back_in_filemanager = G_named_settings.back_in_filemanager()
     if back_in_filemanager == "default" then
-      menu_info = _("back to exit")
+      menu_info = gettext("back to exit")
     elseif back_in_filemanager == "parent_folder" then
-      menu_info = _("parent folder")
+      menu_info = gettext("parent folder")
     end
-    return T(_("Back in file browser: %1"), menu_info)
+    return T(gettext("Back in file browser: %1"), menu_info)
   end,
   sub_item_table = {
     {
       text_func = function()
         local back_to_exit = G_named_settings.back_to_exit()
-        return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
+        return T(
+          gettext("Back to exit (%1)"),
+          back_to_exit_str[back_to_exit][2]
+        )
       end,
       checked_func = function()
         return G_named_settings.back_in_filemanager() == "default"
       end,
       callback = function()
-        G_reader_settings:saveSetting("back_in_filemanager", "default")
+        G_reader_settings:save("back_in_filemanager", "default")
       end,
     },
     genGenericMenuEntry(
-      _("Go to parent folder"),
+      gettext("Go to parent folder"),
       "back_in_filemanager",
       "parent_folder"
     ),
@@ -497,41 +349,44 @@ common_settings.back_in_reader = {
     local menu_info = ""
     local back_in_reader = G_named_settings.back_in_reader()
     if back_in_reader == "default" then
-      menu_info = _("back to exit")
+      menu_info = gettext("back to exit")
     elseif back_in_reader == "filebrowser" then
-      menu_info = _("file browser")
+      menu_info = gettext("file browser")
     elseif back_in_reader == "previous_location" then
-      menu_info = _("previous location")
+      menu_info = gettext("previous location")
     elseif back_in_reader == "previous_read_page" then
-      menu_info = _("previous read page")
+      menu_info = gettext("previous read page")
     end
-    return T(_("Back in reader: %1"), menu_info)
+    return T(gettext("Back in reader: %1"), menu_info)
   end,
   sub_item_table = {
     {
       text_func = function()
         local back_to_exit = G_named_settings.back_to_exit()
-        return T(_("Back to exit (%1)"), back_to_exit_str[back_to_exit][2])
+        return T(
+          gettext("Back to exit (%1)"),
+          back_to_exit_str[back_to_exit][2]
+        )
       end,
       checked_func = function()
         return G_named_settings.back_in_reader() == "default"
       end,
       callback = function()
-        G_reader_settings:saveSetting("back_in_reader", "default")
+        G_reader_settings:save("back_in_reader", "default")
       end,
     },
     genGenericMenuEntry(
-      _("Go to file browser"),
+      gettext("Go to file browser"),
       "back_in_reader",
       "filebrowser"
     ),
     genGenericMenuEntry(
-      _("Go to previous location"),
+      gettext("Go to previous location"),
       "back_in_reader",
       "previous_location"
     ),
     genGenericMenuEntry(
-      _("Go to previous read page"),
+      gettext("Go to previous read page"),
       "back_in_reader",
       "previous_read_page"
     ),
@@ -540,7 +395,7 @@ common_settings.back_in_reader = {
 -- Kindle keyboard does not have a 'Backspace' key
 if Device:hasKeyboard() and not Device:hasSymKey() then
   common_settings.backspace_as_back = {
-    text = _("Backspace works as back button"),
+    text = gettext("Backspace works as back button"),
     checked_func = function()
       return G_reader_settings:isTrue("backspace_as_back")
     end,
@@ -552,7 +407,7 @@ if Device:hasKeyboard() and not Device:hasSymKey() then
 end
 
 common_settings.opening_page_location_stack = {
-  text = _("Add opening page to location history"),
+  text = gettext("Add opening page to location history"),
   checked_func = function()
     return G_reader_settings:isTrue("opening_page_location_stack")
   end,
@@ -562,16 +417,15 @@ common_settings.opening_page_location_stack = {
 }
 
 local skim_dialog_position_string = {
-  top = _("Top"),
-  center = _("Center"),
-  bottom = _("Bottom"),
+  top = gettext("Top"),
+  center = gettext("Center"),
+  bottom = gettext("Bottom"),
 }
 common_settings.skim_dialog_position = {
   text_func = function()
-    local position = G_reader_settings:readSetting("skim_dialog_position")
-      or "center"
+    local position = G_reader_settings:read("skim_dialog_position") or "center"
     return T(
-      _("Skim dialog position: %1"),
+      gettext("Skim dialog position: %1"),
       skim_dialog_position_string[position]:lower()
     )
   end,
@@ -594,85 +448,36 @@ common_settings.skim_dialog_position = {
   },
 }
 
--- Auto-save settings: default value, info text and warning, and menu items
-if G_reader_settings:hasNot("auto_save_settings_interval_minutes") then
-  -- Default to auto save every 15 mn
-  G_reader_settings:saveSetting("auto_save_settings_interval_minutes", 15)
-end
-
-local auto_save_help_text = _(
-  [[
-This sets how often to rewrite to disk global settings and book metadata, including your current position and any highlights and bookmarks made, when you're reading a document.
-
-The normal behavior is to save those only when the document is closed, or your device suspended, or when exiting KOReader.
-
-Setting it to some interval may help prevent losing new settings/sidecar data after a software crash, but will cause more I/O writes the lower the interval is, and may slowly wear out your storage media in the long run.]]
-)
-
--- Some devices with FAT32 storage may not like having settings rewritten too often,
--- so let that be known. See https://github.com/koreader/koreader/pull/3625
-local warn_about_auto_save = Device:isKobo()
-  or Device:isKindle()
-  or Device:isCervantes()
-  or Device:isPocketBook()
-  or Device:isSonyPRSTUX()
-if warn_about_auto_save then
-  local auto_save_help_warning = _(
-    [[Please be warned that on this device, setting a low interval may exacerbate the potential for filesystem corruption and complete data loss after a hardware crash.]]
-  )
-  auto_save_help_text = auto_save_help_text .. "\n\n" .. auto_save_help_warning
-end
-
-local function genAutoSaveMenuItem(value)
-  local setting_name = "auto_save_settings_interval_minutes"
-  local text
-  if not value then
-    text = _("Only on close and suspend")
-  else
-    text = T(N_("Every minute", "Every %1 minutes", value), value)
-  end
-  return {
-    text = text,
-    help_text = auto_save_help_text,
-    checked_func = function()
-      return G_reader_settings:readSetting(setting_name) == value
-    end,
-    callback = function()
-      G_reader_settings:saveSetting(setting_name, value)
-    end,
-  }
-end
-
 common_settings.document = {
-  text = _("Document"),
+  text = gettext("Document"),
   -- submenus are filled by menu_order
 }
 
 local metadata_folder_str = {
-  ["doc"] = _("book folder"),
+  ["doc"] = gettext("book folder"),
   ["dir"] = DocSettings.getSidecarStorage("dir"),
   ["hash"] = DocSettings.getSidecarStorage("hash"),
 }
 
 local metadata_folder_help_table = {
-  _(
+  gettext(
     'Book view settings, reading progress, highlights, bookmarks and notes (collectively known as metadata) are stored in a separate folder named <book-filename>.sdr (".sdr" meaning "sidecar").'
   ),
   "",
-  _(
+  gettext(
     "You can decide between three locations/methods where these will be saved:"
   ),
-  _(
+  gettext(
     " - alongside the book file itself (the long time default): sdr folders will be visible when you browse your library directories with another file browser or from your computer, which may clutter your vision of your library. But this allows you to move them along when you reorganize your library, and also survives any renaming of parent directories. Also, if you perform directory synchronization or backups, your settings will be part of them."
   ),
   T(
-    _(
+    gettext(
       " - all in %1: sdr folders will only be visible and used by KOReader, and won't clutter your vision of your library directories with another file browser or from your computer. But any reorganisation of your library (directories or filename moves and renamings) may result in KOReader not finding your previous settings for these books. These settings won't be part of any synchronization or backups of your library."
     ),
     metadata_folder_str.dir
   ),
   T(
-    _(
+    gettext(
       " - all inside %1 as hashes: sdr folders are identified not by filepath/filename but by partial MD5 hash, allowing you to rename, move, and copy documents outside of KOReader without sdr folder clutter while keeping them linked to their metadata. However, any file modifications such as writing highlights into PDFs or downloading from calibre may change the hash, and thus lose their linked metadata. Calculating file hashes may also slow down file browser navigation. This option may suit users with multiple copies of documents across different devices and directories."
     ),
     metadata_folder_str.hash
@@ -681,12 +486,12 @@ local metadata_folder_help_table = {
 local metadata_folder_help_text = table.concat(metadata_folder_help_table, "\n")
 
 local hash_filemod_warn = T(
-  _(
+  gettext(
     "%1 requires calculating partial file hashes of documents which may slow down file browser navigation. Any file modifications (such as embedding annotations into PDF files or downloading from calibre) may change the partial hash, thereby losing track of any highlights, bookmarks, and progress data. Embedding PDF annotations can be set at menu Typeset → Highlights → Write highlights into PDF."
   ),
   metadata_folder_str.hash
 )
-local leaving_hash_sdr_warn = _(
+local leaving_hash_sdr_warn = gettext(
   "Warning: You currently have documents with hash-based metadata. Until this metadata is moved by opening those documents, or deleted, file browser navigation may remain slower."
 )
 
@@ -699,7 +504,7 @@ local function genMetadataFolderMenuItem(value)
     callback = function()
       local old_value = G_named_settings.document_metadata_folder()
       if value ~= old_value then
-        G_reader_settings:saveSetting("document_metadata_folder", value)
+        G_reader_settings:save("document_metadata_folder", value)
         if value == "hash" then
           DocSettings.setIsHashLocationEnabled(true)
           UIManager:show(InfoMessage:new({
@@ -725,12 +530,12 @@ end
 common_settings.document_metadata_location = {
   text_func = function()
     local value = G_named_settings.document_metadata_folder()
-    return T(_("Book metadata location: %1"), metadata_folder_str[value])
+    return T(gettext("Book metadata location: %1"), metadata_folder_str[value])
   end,
   help_text = metadata_folder_help_text,
   sub_item_table = {
     {
-      text = _("About book metadata location"),
+      text = gettext("About book metadata location"),
       keep_menu_open = true,
       callback = function()
         UIManager:show(InfoMessage:new({ text = metadata_folder_help_text }))
@@ -742,8 +547,8 @@ common_settings.document_metadata_location = {
     genMetadataFolderMenuItem("hash"),
     {
       text_func = function()
-        local hash_text = _("Show documents with hash-based metadata")
-        local no_hash_text = _("No documents with hash-based metadata")
+        local hash_text = gettext("Show documents with hash-based metadata")
+        local no_hash_text = gettext("No documents with hash-based metadata")
         if DocSettings.isHashLocationEnabled() then
           if G_named_settings.document_metadata_folder() ~= "hash" then
             return "⚠ " .. hash_text
@@ -763,41 +568,52 @@ common_settings.document_metadata_location = {
   },
 }
 
+local function auto_save_help_text()
+  local text = gettext(
+    [[
+This sets how often to rewrite to disk global settings and book metadata, including your current position and any highlights and bookmarks made, when you're reading a document.
+
+The normal behavior is to save those only when the document is closed, or your device suspended, or when exiting KOReader.
+
+Setting it to some interval may help prevent losing new settings/sidecar data after a software crash, but will cause more I/O writes the lower the interval is, and may slowly wear out your storage media in the long run.]]
+  )
+
+  -- Some devices with FAT32 storage may not like having settings rewritten too often,
+  -- so let that be known. See https://github.com/koreader/koreader/pull/3625
+  if
+    Device:isKobo()
+    or Device:isKindle()
+    or Device:isCervantes()
+    or Device:isPocketBook()
+    or Device:isSonyPRSTUX()
+  then
+    text = text
+      .. "\n\n"
+      .. gettext(
+        [[Please be warned that on this device, setting a low interval may exacerbate the potential for filesystem corruption and complete data loss after a hardware crash.]]
+      )
+  end
+
+  return text
+end
+
 common_settings.document_auto_save = {
-  text_func = function()
-    local interval =
-      G_reader_settings:readSetting("auto_save_settings_interval_minutes")
-    local s_interval
-    if interval == false then
-      s_interval = _("only on close and suspend")
-    else
-      s_interval = T(N_("every 1 m", "every %1 m", interval), interval)
-    end
-    return T(_("Save book metadata: %1"), s_interval)
+  text = gettext("Periodically save reading progress"),
+  help_text = auto_save_help_text(),
+  checked_func = function()
+    return G_reader_settings:nilOrTrue("auto_save_settings")
   end,
-  help_text = auto_save_help_text,
-  sub_item_table = {
-    genAutoSaveMenuItem(false),
-    genAutoSaveMenuItem(5),
-    genAutoSaveMenuItem(15),
-    genAutoSaveMenuItem(30),
-    genAutoSaveMenuItem(60),
-    warn_about_auto_save and {
-      text = _("Important info about this auto-save option"),
-      keep_menu_open = true,
-      callback = function()
-        UIManager:show(InfoMessage:new({ text = auto_save_help_text }))
-      end,
-    } or nil,
-  },
+  callback = function()
+    G_reader_settings:flipNilOrTrue("auto_save_settings")
+  end,
   separator = true,
 }
 
 common_settings.document_end_action = {
-  text = _("End of document action"),
+  text = gettext("End of document action"),
   sub_item_table = {
     {
-      text = _("Always mark as finished"),
+      text = gettext("Always mark as finished"),
       checked_func = function()
         return G_reader_settings:isTrue("end_document_auto_mark")
       end,
@@ -807,70 +623,69 @@ common_settings.document_end_action = {
       separator = true,
     },
     genGenericMenuEntry(
-      _("Ask with popup dialog"),
+      gettext("Ask with popup dialog"),
       "end_document_action",
       "pop-up",
       "pop-up",
       true
     ),
     genGenericMenuEntry(
-      _("Do nothing"),
+      gettext("Do nothing"),
       "end_document_action",
       "nothing",
       nil,
       true
     ),
     genGenericMenuEntry(
-      _("Book status"),
+      gettext("Book status"),
       "end_document_action",
       "book_status",
       nil,
       true
     ),
     genGenericMenuEntry(
-      _("Delete file"),
+      gettext("Delete file"),
       "end_document_action",
       "delete_file",
       nil,
       true
     ),
     {
-      text = _("Open next file"),
+      text = gettext("Open next file"),
       enabled_func = function()
-        return G_reader_settings:readSetting("collate") ~= "access"
+        return G_named_settings.collate() ~= "access"
       end,
       checked_func = function()
-        return G_reader_settings:readSetting("end_document_action")
-          == "next_file"
+        return G_reader_settings:read("end_document_action") == "next_file"
       end,
       radio = true,
       callback = function()
-        G_reader_settings:saveSetting("end_document_action", "next_file")
+        G_reader_settings:save("end_document_action", "next_file")
       end,
     },
     genGenericMenuEntry(
-      _("Go to beginning"),
+      gettext("Go to beginning"),
       "end_document_action",
       "goto_beginning",
       nil,
       true
     ),
     genGenericMenuEntry(
-      _("Return to file browser"),
+      gettext("Return to file browser"),
       "end_document_action",
       "file_browser",
       nil,
       true
     ),
     genGenericMenuEntry(
-      _("Mark book as finished"),
+      gettext("Mark book as finished"),
       "end_document_action",
       "mark_read",
       nil,
       true
     ),
     genGenericMenuEntry(
-      _("Book status and return to file browser"),
+      gettext("Book status and return to file browser"),
       "end_document_action",
       "book_status_file_browser",
       nil,
@@ -882,25 +697,24 @@ common_settings.document_end_action = {
 common_settings.language = Language:getLangMenuTable()
 
 common_settings.device = {
-  text = _("Device"),
+  text = gettext("Device"),
 }
 
 common_settings.keyboard_layout = {
-  text = _("Keyboard"),
-  sub_item_table = dofile("frontend/ui/elements/menu_keyboard_layout.lua"),
+  text = gettext("Keyboard"),
+  sub_item_table = require("ui/elements/menu_keyboard_layout"),
 }
 
-common_settings.font_ui_fallbacks =
-  dofile("frontend/ui/elements/font_ui_fallbacks.lua")
+common_settings.font_ui_fallbacks = require("ui/elements/font_ui_fallbacks")
 
 common_settings.units = {
   text_func = function()
     local unit = G_named_settings.dimension_units()
-    return T(_("Dimension units: %1"), unit)
+    return T(gettext("Dimension units: %1"), unit)
   end,
   sub_item_table = {
     {
-      text = _("Also show values in pixels"),
+      text = gettext("Also show values in pixels"),
       checked_func = function()
         return G_reader_settings:isTrue("dimension_units_append_px")
       end,
@@ -912,20 +726,26 @@ common_settings.units = {
       end,
       separator = true,
     },
-    genGenericMenuEntry(_("Metric system"), "dimension_units", "mm", nil, true),
     genGenericMenuEntry(
-      _("Imperial system"),
+      gettext("Metric system"),
+      "dimension_units",
+      "mm",
+      nil,
+      true
+    ),
+    genGenericMenuEntry(
+      gettext("Imperial system"),
       "dimension_units",
       "in",
       nil,
       true
     ),
-    genGenericMenuEntry(_("Pixels"), "dimension_units", "px", nil, true),
+    genGenericMenuEntry(gettext("Pixels"), "dimension_units", "px", nil, true),
   },
 }
 
 common_settings.screenshot = {
-  text = _("Screenshot folder"),
+  text = gettext("Screenshot folder"),
   callback = function()
     local Screenshoter = require("ui/widget/screenshoter")
     Screenshoter:chooseFolder()

@@ -8,17 +8,18 @@ local Device = require("device")
 
 if
   not (
-    Device.isAndroid()
-    or Device.isEmulator()
-    or Device.isRemarkable()
-    or Device.isPocketBook()
-    or Device.isKindle()
+    Device:isAndroid()
+    or Device:isEmulator()
+    or Device:isRemarkable()
+    or Device:isPocketBook()
+    or Device:isKindle()
+    or Device:isKobo()
   )
 then
   return { disabled = true }
 end
 
-local A, android = pcall(require, "android") -- luacheck: ignore
+local __, android = pcall(require, "android")
 local Blitbuffer = require("ffi/blitbuffer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
@@ -26,15 +27,15 @@ local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local PathChooser = require("ui/widget/pathchooser")
-local UIManager = require("ui/uimanager")
 local RenderImage = require("ui/renderimage")
+local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
 local md5 = require("ffi/sha2").md5
@@ -85,30 +86,26 @@ local default_cache_path = DataStorage:getDataDir()
 local default_fallback_path = DataStorage:getDataDir() .. "/"
 
 function CoverImage:init()
-  self.cover_image_path = G_reader_settings:readSetting("cover_image_path")
+  self.cover_image_path = G_reader_settings:read("cover_image_path")
     or Device:getDefaultCoverPath()
-  self.cover_image_format = G_reader_settings:readSetting("cover_image_format")
+  self.cover_image_format = G_reader_settings:read("cover_image_format")
     or "auto"
-  self.cover_image_quality = G_reader_settings:readSetting(
-    "cover_image_quality"
-  ) or 75
+  self.cover_image_quality = G_reader_settings:read("cover_image_quality") or 75
   self.cover_image_grayscale = G_reader_settings:isTrue("cover_image_grayscale")
-  self.cover_image_stretch_limit = G_reader_settings:readSetting(
+  self.cover_image_stretch_limit = G_reader_settings:read(
     "cover_image_stretch_limit"
   ) or 8
-  self.cover_image_background = G_reader_settings:readSetting(
-    "cover_image_background"
-  ) or "black"
-  self.cover_image_fallback_path = G_reader_settings:readSetting(
+  self.cover_image_background = G_reader_settings:read("cover_image_background")
+    or "black"
+  self.cover_image_fallback_path = G_reader_settings:read(
     "cover_image_fallback_path"
   ) or default_fallback_path
-  self.cover_image_cache_path = G_reader_settings:readSetting(
-    "cover_image_cache_path"
-  ) or default_cache_path
-  self.cover_image_cache_maxfiles = G_reader_settings:readSetting(
+  self.cover_image_cache_path = G_reader_settings:read("cover_image_cache_path")
+    or default_cache_path
+  self.cover_image_cache_maxfiles = G_reader_settings:read(
     "cover_image_cache_maxfiles"
   ) or 36
-  self.cover_image_cache_maxsize = G_reader_settings:readSetting(
+  self.cover_image_cache_maxsize = G_reader_settings:read(
     "cover_image_cache_maxsize"
   ) or 5 -- MB
   self.cover_image_cache_prefix = "cover_"
@@ -126,7 +123,7 @@ function CoverImage:cleanUpImage()
   elseif lfs.attributes(self.cover_image_fallback_path, "mode") ~= "file" then
     UIManager:show(InfoMessage:new({
       text = T(
-        _(
+        gettext(
           '"%1"\nis not a valid image file!\nA valid fallback image is required in Cover-Image.'
         ),
         self.cover_image_fallback_path
@@ -179,7 +176,9 @@ function CoverImage:createCoverImage(doc_settings)
           )
         then
           UIManager:show(InfoMessage:new({
-            text = _("Error writing file") .. "\n" .. self.cover_image_path,
+            text = gettext("Error writing file")
+              .. "\n"
+              .. self.cover_image_path,
             show_icon = true,
           }))
         end
@@ -259,7 +258,7 @@ function CoverImage:createCoverImage(doc_settings)
         )
       then
         UIManager:show(InfoMessage:new({
-          text = _("Error writing file") .. "\n" .. self.cover_image_path,
+          text = gettext("Error writing file") .. "\n" .. self.cover_image_path,
           show_icon = true,
         }))
       end
@@ -306,7 +305,7 @@ function CoverImage:getCacheFile(custom_cover)
   local custom_cover_mtime = custom_cover
       and lfs.attributes(custom_cover, "modification")
     or ""
-  local dummy, document_name = util.splitFilePathName(self.ui.document.file)
+  local __, document_name = util.splitFilePathName(self.ui.document.file)
   -- use document_name here. Title may contain characters not allowed on every filesystem (esp. vfat on /sdcard)
   local key = document_name
     .. custom_cover_mtime
@@ -454,21 +453,15 @@ end
 --[[--
 chooses a path or (an existing) file
 
-@touchmenu_instance for updating of the menu
+@menu for updating of the menu
 @string key is the G_reader_setting key which is used and changed
 @boolean folder_only just selects a path, no file handling
 @boolean new_file allows to enter a new filename, or use just an existing file
 @function migrate(a,b) callback to a function to mangle old folder/file with new folder/file.
   Can be used for migrating the contents of the old path to the new one
 ]]
-function CoverImage:choosePathFile(
-  touchmenu_instance,
-  key,
-  folder_only,
-  new_file,
-  migrate
-)
-  local old_path, dummy = util.splitFilePathName(self[key])
+function CoverImage:choosePathFile(menu, key, folder_only, new_file, migrate)
+  local old_path = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,
     select_file = not folder_only,
@@ -484,35 +477,35 @@ function CoverImage:choosePathFile(
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        G_reader_settings:save(key, dir_path)
+        if menu then
+          menu:updateItems()
         end
       elseif new_file and mode == "directory" then -- new filename should be entered or a file could be selected
         local file_input
         file_input = InputDialog:new({
-          title = _("Append filename"),
+          title = gettext("Append filename"),
           input = dir_path .. "/",
           buttons = {
             {
               {
-                text = _("Cancel"),
+                text = gettext("Cancel"),
                 id = "close",
                 callback = function()
                   UIManager:close(file_input)
                 end,
               },
               {
-                text = _("Save"),
+                text = gettext("Save"),
                 callback = function()
                   local file = file_input:getInputText()
                   if migrate and self[key] and self[key] ~= "" then
                     migrate(self, self[key], file)
                   end
                   self[key] = file
-                  G_reader_settings:saveSetting(key, file)
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  G_reader_settings:save(key, file)
+                  if menu then
+                    menu:updateItems()
                   end
                   UIManager:close(file_input)
                 end,
@@ -521,15 +514,14 @@ function CoverImage:choosePathFile(
           },
         })
         UIManager:show(file_input)
-        file_input:showKeyboard()
       elseif mode == "file" then -- just select an existing file
         if migrate then
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        G_reader_settings:save(key, dir_path)
+        if menu then
+          menu:updateItems()
         end
       end
     end,
@@ -539,7 +531,7 @@ end
 --[[--
 Update a specific G_reader_setting's value via a Spinner
 
-@touchmenu_instance used for updating the menu
+@menu used for updating the menu
 @string setting is the G_reader_setting key which is used and changed
 @string title shown in the spinner
 @int min minimum value of the spinner
@@ -548,7 +540,7 @@ Update a specific G_reader_setting's value via a Spinner
 @function callback to call, when spinner changed the value
 ]]
 function CoverImage:sizeSpinner(
-  touchmenu_instance,
+  menu,
   setting,
   title,
   min,
@@ -565,15 +557,15 @@ function CoverImage:sizeSpinner(
     unit = unit,
     default_value = default,
     title_text = title,
-    ok_text = _("Set"),
+    ok_text = gettext("Set"),
     callback = function(spin)
       self[setting] = spin.value
-      G_reader_settings:saveSetting(setting, self[setting])
+      G_reader_settings:save(setting, self[setting])
       if callback then
         callback(self)
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))
@@ -581,7 +573,7 @@ end
 
 -------------- menus and longer texts -----------
 
-local about_text = _(
+local about_text = gettext(
   [[
 This plugin saves a book cover to a file. That file can then be used as a screensaver on certain devices.
 
@@ -595,7 +587,7 @@ If the filename is empty or the file doesn't exist, the cover file will be delet
 If fallback is disabled, the screensaver image will stay in place after closing a book.]]
 )
 
-local set_image_text = _([[
+local set_image_text = gettext([[
 You can either choose an existing file:
 - Choose a file
 
@@ -610,7 +602,7 @@ or delete the path:
 -- menu entry: Cache settings
 function CoverImage:menuEntryCache()
   return {
-    text = _("Cache settings"),
+    text = gettext("Cache settings"),
     checked_func = function()
       return self:isCacheEnabled()
     end,
@@ -621,27 +613,27 @@ function CoverImage:menuEntryCache()
           if self.cover_image_cache_maxfiles > 0 then
             number = self.cover_image_cache_maxfiles
           elseif self.cover_image_cache_maxfiles == 0 then
-            number = _("unlimited")
+            number = gettext("unlimited")
           else
-            number = _("off")
+            number = gettext("off")
           end
-          return T(_("Maximum number of cached covers: %1"), number)
+          return T(gettext("Maximum number of cached covers: %1"), number)
         end,
         help_text = string.format(
           "%s\n\n%s",
-          _(
+          gettext(
             "If set to zero the number of cache files is unlimited.\nIf set to -1 the cache is disabled."
           ),
-          _("Each screen orientation requires its own cache file.")
+          gettext("Each screen orientation requires its own cache file.")
         ),
         checked_func = function()
           return self.cover_image_cache_maxfiles >= 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:sizeSpinner(
-            touchmenu_instance,
+            menu,
             "cover_image_cache_maxfiles",
-            _("Number of covers"),
+            gettext("Number of covers"),
             -1,
             100,
             36,
@@ -655,23 +647,23 @@ function CoverImage:menuEntryCache()
           if self.cover_image_cache_maxsize > 0 then
             number = util.getFriendlySize(self.cover_image_cache_maxsize * 1e6)
           elseif self.cover_image_cache_maxsize == 0 then
-            number = _("unlimited")
+            number = gettext("unlimited")
           else
-            number = _("off")
+            number = gettext("off")
           end
-          return T(_("Maximum size of cached covers: %1"), number)
+          return T(gettext("Maximum size of cached covers: %1"), number)
         end,
-        help_text = _(
+        help_text = gettext(
           "If set to zero the cache size is unlimited.\nIf set to -1 the cache is disabled."
         ),
         checked_func = function()
           return self.cover_image_cache_maxsize >= 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:sizeSpinner(
-            touchmenu_instance,
+            menu,
             "cover_image_cache_maxsize",
-            _("Cache size"),
+            gettext("Cache size"),
             -1,
             100,
             5,
@@ -682,9 +674,9 @@ function CoverImage:menuEntryCache()
       },
       self:menuEntrySetPath(
         "cover_image_cache_path",
-        _("Cover cache folder"),
-        _("Current cache path:\n%1"),
-        _(
+        gettext("Cover cache folder"),
+        gettext("Current cache path:\n%1"),
+        gettext(
           "Choose a cache folder. The contents of the old folder will be migrated."
         ),
         default_cache_path,
@@ -693,22 +685,22 @@ function CoverImage:menuEntryCache()
         self.migrateCache
       ),
       {
-        text = _("Clear cached covers"),
+        text = gettext("Clear cached covers"),
         help_text_func = function()
           local cache_count, cache_size = self:getCacheFiles(
             self.cover_image_cache_path,
             self.cover_image_cache_prefix
           )
           return T(
-            _("The cache contains %1 files and uses %2."),
+            gettext("The cache contains %1 files and uses %2."),
             cache_count,
             util.getFriendlySize(cache_size)
           )
         end,
         callback = function()
           UIManager:show(ConfirmBox:new({
-            text = _("Clear the cover image cache?"),
-            ok_text = _("Clear"),
+            text = gettext("Clear the cover image cache?"),
+            ok_text = gettext("Clear"),
             ok_callback = function()
               self:emptyCache()
             end,
@@ -746,36 +738,30 @@ function CoverImage:menuEntrySetPath(
     text = title,
     help_text_func = function()
       local text = self[key]
-      text = text ~= "" and text or _("not set")
+      text = text ~= "" and text or gettext("not set")
       return T(help, text)
     end,
     checked_func = function()
       return isFileOk(self[key]) or (isPathAllowed(self[key]) and folder_only)
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       UIManager:show(ConfirmBox:new({
         text = info,
         ok_callback = function()
-          self:choosePathFile(
-            touchmenu_instance,
-            key,
-            folder_only,
-            new_file,
-            migrate
-          )
+          self:choosePathFile(menu, key, folder_only, new_file, migrate)
         end,
         other_buttons = {
           {
             {
-              text = _("Default"),
+              text = gettext("Default"),
               callback = function()
                 if migrate then
                   migrate(self, self[key], default)
                 end
                 self[key] = default
-                G_reader_settings:saveSetting(key, default)
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                G_reader_settings:save(key, default)
+                if menu then
+                  menu:updateItems()
                 end
               end,
             },
@@ -797,9 +783,9 @@ function CoverImage:menuEntryFormat(title, format, grayscale)
       local old_cover_image_format = self.cover_image_format
       local old_cover_image_grayscale = self.cover_image_grayscale
       self.cover_image_format = format
-      G_reader_settings:saveSetting("cover_image_format", format)
+      G_reader_settings:save("cover_image_format", format)
       self.cover_image_grayscale = grayscale
-      G_reader_settings:saveSetting("cover_image_grayscale", grayscale)
+      G_reader_settings:save("cover_image_grayscale", grayscale)
       if
         self:coverEnabled()
         and (
@@ -815,14 +801,17 @@ end
 
 function CoverImage:menuEntryBackground(color, color_translatable)
   return {
-    text = T(_("Fit to screen, %1 background"), _(color_translatable)),
+    text = T(
+      gettext("Fit to screen, %1 background"),
+      gettext(color_translatable)
+    ),
     checked_func = function()
       return self.cover_image_background == color
     end,
     callback = function()
       local old_background = self.cover_image_background
       self.cover_image_background = color
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "cover_image_background",
         self.cover_image_background
       )
@@ -838,7 +827,7 @@ end
 -- menu entry: scale, background, format
 function CoverImage:menuEntrySBF()
   return {
-    text = _("Size, background and format"),
+    text = gettext("Size, background and format"),
     enabled_func = function()
       return self:coverEnabled()
     end,
@@ -846,29 +835,29 @@ function CoverImage:menuEntrySBF()
       {
         text_func = function()
           return T(
-            _("Aspect ratio stretch threshold: %1"),
+            gettext("Aspect ratio stretch threshold: %1"),
             self.cover_image_stretch_limit ~= 0
                 and self.cover_image_stretch_limit .. " %"
-              or _("off")
+              or gettext("off")
           )
         end,
         keep_menu_open = true,
         help_text_func = function()
           return T(
-            _(
+            gettext(
               "If the image and the screen have a similar aspect ratio (±%1 %), stretch the image instead of keeping its aspect ratio."
             ),
             self.cover_image_stretch_limit
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local function createCover()
             self:createCoverImage(self.ui.doc_settings)
           end
           self:sizeSpinner(
-            touchmenu_instance,
+            menu,
             "cover_image_stretch_limit",
-            _("Set stretch threshold"),
+            gettext("Set stretch threshold"),
             0,
             20,
             8,
@@ -877,18 +866,18 @@ function CoverImage:menuEntrySBF()
           )
         end,
       },
-      self:menuEntryBackground("black", _("black")),
-      self:menuEntryBackground("white", _("white")),
-      self:menuEntryBackground("gray", _("gray")),
+      self:menuEntryBackground("black", gettext("black")),
+      self:menuEntryBackground("white", gettext("white")),
+      self:menuEntryBackground("gray", gettext("gray")),
       {
-        text = _("Original image"),
+        text = gettext("Original image"),
         checked_func = function()
           return self.cover_image_background == "none"
         end,
         callback = function()
           local old_background = self.cover_image_background
           self.cover_image_background = "none"
-          G_reader_settings:saveSetting(
+          G_reader_settings:save(
             "cover_image_background",
             self.cover_image_background
           )
@@ -903,8 +892,8 @@ function CoverImage:menuEntrySBF()
       },
       -- menu entries: File format
       {
-        text = _("File format derived from filename"),
-        help_text = _(
+        text = gettext("File format derived from filename"),
+        help_text = gettext(
           "If the file format is not supported, then JPG will be used."
         ),
         checked_func = function()
@@ -913,10 +902,7 @@ function CoverImage:menuEntrySBF()
         callback = function()
           local old_cover_image_format = self.cover_image_format
           self.cover_image_format = "auto"
-          G_reader_settings:saveSetting(
-            "cover_image_format",
-            self.cover_image_format
-          )
+          G_reader_settings:save("cover_image_format", self.cover_image_format)
           if
             self:coverEnabled()
             and old_cover_image_format ~= self.cover_image_format
@@ -925,10 +911,10 @@ function CoverImage:menuEntrySBF()
           end
         end,
       },
-      self:menuEntryFormat(_("JPG file format"), "jpg"),
-      self:menuEntryFormat(_("PNG file format"), "png"),
-      self:menuEntryFormat(_("BMP file format (color)"), "bmp"),
-      self:menuEntryFormat(_("BMP file format (grayscale)"), "bmp", true),
+      self:menuEntryFormat(gettext("JPG file format"), "jpg"),
+      self:menuEntryFormat(gettext("PNG file format"), "png"),
+      self:menuEntryFormat(gettext("BMP file format (color)"), "bmp"),
+      self:menuEntryFormat(gettext("BMP file format (grayscale)"), "bmp", true),
     },
   }
 end
@@ -936,14 +922,14 @@ end
 -- CoverImage main menu
 function CoverImage:addToMainMenu(menu_items)
   menu_items.coverimage = {
-    text = _("Cover image"),
+    text = gettext("Cover image"),
     checked_func = function()
       return self:coverEnabled() or self:fallbackEnabled()
     end,
     sub_item_table = {
       -- menu entry: about cover image
       {
-        text = _("About cover image"),
+        text = gettext("About cover image"),
         callback = function()
           UIManager:show(InfoMessage:new({
             text = about_text,
@@ -955,8 +941,8 @@ function CoverImage:addToMainMenu(menu_items)
       -- menu entry: filename dialog
       self:menuEntrySetPath(
         "cover_image_path",
-        _("Set image path"),
-        _("Current Cover image path:\n%1"),
+        gettext("Set image path"),
+        gettext("Current Cover image path:\n%1"),
         set_image_text,
         Device:getDefaultCoverPath(),
         false,
@@ -965,7 +951,7 @@ function CoverImage:addToMainMenu(menu_items)
       ),
       -- menu entry: enable
       {
-        text = _("Save cover image"),
+        text = gettext("Save cover image"),
         checked_func = function()
           return self:coverEnabled()
         end,
@@ -976,7 +962,7 @@ function CoverImage:addToMainMenu(menu_items)
           if self.cover_image_path ~= "" then
             self.cover = not self.cover
             self.cover = self.cover and self:coverEnabled()
-            G_reader_settings:saveSetting("cover_image_enabled", self.cover)
+            G_reader_settings:save("cover_image_enabled", self.cover)
             if self:coverEnabled() then
               self:createCoverImage(self.ui.doc_settings)
             else
@@ -989,7 +975,7 @@ function CoverImage:addToMainMenu(menu_items)
       self:menuEntrySBF(),
       -- menu entry: exclude this cover
       {
-        text = _("Exclude this book cover"),
+        text = gettext("Exclude this book cover"),
         checked_func = function()
           return self.ui
             and self.ui.doc_settings
@@ -1010,16 +996,16 @@ function CoverImage:addToMainMenu(menu_items)
       -- menu entry: set fallback image
       self:menuEntrySetPath(
         "cover_image_fallback_path",
-        _("Set fallback path"),
-        _("The fallback image used on document close is:\n%1"),
-        _("You can choose a fallback image."),
+        gettext("Set fallback path"),
+        gettext("The fallback image used on document close is:\n%1"),
+        gettext("You can choose a fallback image."),
         default_fallback_path,
         false,
         false
       ),
       -- menu entry: fallback
       {
-        text = _("Turn on fallback image"),
+        text = gettext("Turn on fallback image"),
         checked_func = function()
           return self:fallbackEnabled()
         end,
@@ -1030,7 +1016,7 @@ function CoverImage:addToMainMenu(menu_items)
         callback = function()
           self.fallback = not self.fallback
           self.fallback = self.fallback and self:fallbackEnabled()
-          G_reader_settings:saveSetting("cover_image_fallback", self.fallback)
+          G_reader_settings:save("cover_image_fallback", self.fallback)
           if not self:coverEnabled() then
             self:cleanUpImage()
           end

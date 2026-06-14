@@ -15,7 +15,7 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 
-local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
+local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
 
 local TitleBar = OverlapGroup:extend({
   width = nil, -- default to screen width
@@ -57,22 +57,17 @@ local TitleBar = OverlapGroup:extend({
   left_icon_rotation_angle = 0,
   left_icon_tap_callback = function() end,
   left_icon_hold_callback = function() end,
-  left_icon_allow_flash = true,
   right_icon = nil,
   right_icon_size_ratio = 0.6,
   right_icon_rotation_angle = 0,
   right_icon_tap_callback = function() end,
   right_icon_hold_callback = function() end,
-  right_icon_allow_flash = true,
   -- set any of these _callback to false to not handle the event
   -- and let it propagate; otherwise the event is discarded
 
   -- If provided, use right_icon="exit" and use this as right_icon_tap_callback
   close_callback = nil,
   close_hold_callback = nil,
-
-  show_parent = nil,
-
   -- Internal: remember first sizes computed when title_shrink_font_to_fit=true,
   -- and keep using them after :setTitle() in case a smaller font size is needed,
   -- to keep the TitleBar geometry stable.
@@ -87,7 +82,6 @@ function TitleBar:init()
   if self.close_callback then
     self.right_icon = "close"
     self.right_icon_tap_callback = self.close_callback
-    self.right_icon_allow_flash = false
     if self.close_hold_callback then
       self.right_icon_hold_callback = function()
         self.close_hold_callback()
@@ -246,7 +240,7 @@ function TitleBar:init()
   self.title_group = VerticalGroup:new({
     align = self.align,
     overlap_align = self.align,
-    VerticalSpan:new({ width = title_top_padding }),
+    VerticalSpan:new({ height = title_top_padding }),
   })
   if self.align == "left" then
     -- we need to :resetLayout() both VerticalGroup and HorizontalGroup in :setTitle()
@@ -263,7 +257,7 @@ function TitleBar:init()
   if self.subtitle_widget then
     table.insert(
       self.title_group,
-      VerticalSpan:new({ width = self.title_subtitle_v_padding })
+      VerticalSpan:new({ height = self.title_subtitle_v_padding })
     )
     if self.align == "left" then
       local span_width = self.title_h_padding
@@ -283,7 +277,7 @@ function TitleBar:init()
 
   -- This TitleBar widget is an OverlapGroup: all sub elements overlap,
   -- and can overflow or underflow. Its height for its containers is
-  -- the one we set as self.dimen.h.
+  -- the one we set as self:getSize().h.
 
   self.titlebar_height = self.title_group:getSize().h
   if self.title_shrink_font_to_fit then
@@ -317,14 +311,15 @@ function TitleBar:init()
       background = self.bottom_line_color,
     })
     if self.bottom_line_h_padding then
-      line_widget.dimen.w = line_widget.dimen.w - 2 * self.bottom_line_h_padding
+      line_widget.dimen.w = line_widget:getSize().w
+        - 2 * self.bottom_line_h_padding
       line_widget = HorizontalGroup:new({
         HorizontalSpan:new({ width = self.bottom_line_h_padding }),
         line_widget,
       })
     end
     local filler_and_bottom_line = VerticalGroup:new({
-      VerticalSpan:new({ width = filler_height }),
+      VerticalSpan:new({ height = filler_height }),
       line_widget,
     })
     table.insert(self, filler_and_bottom_line)
@@ -351,7 +346,7 @@ function TitleBar:init()
     local h_padding = self.info_text_h_padding or self.title_h_padding
     local v_padding = self.with_bottom_line and Size.padding.default or 0
     local filler_and_info_text = VerticalGroup:new({
-      VerticalSpan:new({ width = self.titlebar_height + v_padding }),
+      VerticalSpan:new({ height = self.titlebar_height + v_padding }),
       HorizontalGroup:new({
         HorizontalSpan:new({ width = h_padding }),
         TextBoxWidget:new({
@@ -367,12 +362,10 @@ function TitleBar:init()
       + self.bottom_v_padding
   end
 
-  self.dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = self.width,
-    h = self.titlebar_height, -- buttons can overflow this
-  })
+  self:mergeSize(
+    self.width,
+    self.titlebar_height -- buttons can overflow this
+  )
 
   if self.has_left_icon then
     self.left_button = IconButton:new({
@@ -386,8 +379,6 @@ function TitleBar:init()
       overlap_align = "left",
       callback = self.left_icon_tap_callback,
       hold_callback = self.left_icon_hold_callback,
-      allow_flash = self.left_icon_allow_flash,
-      show_parent = self.show_parent,
     })
     table.insert(self, self.left_button)
   end
@@ -403,23 +394,12 @@ function TitleBar:init()
       overlap_align = "right",
       callback = self.right_icon_tap_callback,
       hold_callback = self.right_icon_hold_callback,
-      allow_flash = self.right_icon_allow_flash,
-      show_parent = self.show_parent,
     })
     table.insert(self, self.right_button)
   end
 
   -- Call our base class's init (especially since OverlapGroup has very peculiar self.dimen semantics...)
   OverlapGroup.init(self)
-end
-
-function TitleBar:paintTo(bb, x, y)
-  -- We need to update self.dimen's x and y for any ges.pos:intersectWith(title_bar)
-  -- to work. (This is done by FrameContainer, but not by most other widgets... It
-  -- should probably be done in all of them, but not sure of side effects...)
-  self.dimen.x = x
-  self.dimen.y = y
-  OverlapGroup.paintTo(self, bb, x, y)
 end
 
 function TitleBar:getHeight()
@@ -446,7 +426,7 @@ function TitleBar:setTitle(title, no_refresh)
       -- size: be sure everything is repainted
       UIManager:setDirty("all", "ui")
     else
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self, "ui")
     end
   else
     -- TextWidget with max-width: we can just update its text
@@ -456,7 +436,7 @@ function TitleBar:setTitle(title, no_refresh)
     end
     self.title_group:resetLayout()
     if not no_refresh then
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self, "ui")
     end
   end
 end
@@ -469,7 +449,7 @@ function TitleBar:setSubTitle(subtitle, no_refresh)
     end
     self.title_group:resetLayout()
     if not no_refresh then
-      UIManager:setDirty(self.show_parent, "ui", self.dimen)
+      UIManager:setDirty(self, "ui")
     end
   end
 end
@@ -477,32 +457,18 @@ end
 function TitleBar:setLeftIcon(icon)
   if self.has_left_icon then
     self.left_button:setIcon(icon)
-    UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    UIManager:setDirty(self, "ui")
   end
 end
 
 function TitleBar:setRightIcon(icon)
   if self.has_right_icon then
     self.right_button:setIcon(icon)
-    UIManager:setDirty(self.show_parent, "ui", self.dimen)
+    UIManager:setDirty(self, "ui")
   end
 end
 
 -- layout for FocusManager
-function TitleBar:generateHorizontalLayout()
-  local row = {}
-  if self.left_button then
-    table.insert(row, self.left_button)
-  end
-  if self.right_button then
-    table.insert(row, self.right_button)
-  end
-  local layout = {}
-  if #row > 0 then
-    table.insert(layout, row)
-  end
-  return layout
-end
 
 function TitleBar:generateVerticalLayout()
   local layout = {}

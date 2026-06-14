@@ -4,7 +4,7 @@ A button widget that shows text or an icon and handles callback when tapped.
 @usage
     local Button = require("ui/widget/button")
     local button = Button:new{
-        text = _("Press me!"),
+        text = gettext("Press me!"),
         enabled = false, -- defaults to true
         callback = some_callback_function,
         width = Screen:scaleBySize(50),
@@ -28,11 +28,10 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
 local Screen = Device.screen
 local logger = require("logger")
 
-local DGENERIC_ICON_SIZE = G_defaults:readSetting("DGENERIC_ICON_SIZE")
+local DGENERIC_ICON_SIZE = G_defaults:read("DGENERIC_ICON_SIZE")
 
 local Button = InputContainer:extend({
   text = nil, -- mandatory (unless icon is provided)
@@ -66,7 +65,6 @@ local Button = InputContainer:extend({
   text_font_face = "cfont",
   text_font_size = 20,
   text_font_bold = true,
-  vsync = nil, -- when "flash_ui" is enabled, allow bundling the highlight with the callback, and fence that batch away from the unhighlight. Avoid delays when callback requires a "partial" on Kobo Mk. 7, c.f., ffi/framebuffer_mxcfb for more details.
 })
 
 function Button:init()
@@ -104,6 +102,9 @@ function Button:init()
   local reference_height = self.height
   if self.text then
     local text = self.checked_func == nil and self.text or self:getDisplayText()
+    if self.shortcut then
+      text = "[" .. self.shortcut .. "] " .. text
+    end
     local fgcolor = self.enabled and Blitbuffer.COLOR_BLACK
       or Blitbuffer.COLOR_DARK_GRAY
     local face = Font:getFace(self.text_font_face, self.text_font_size)
@@ -215,7 +216,6 @@ function Button:init()
   end
   self.frame = FrameContainer:new({
     margin = self.margin,
-    show_parent = self.show_parent,
     bordersize = self.bordersize,
     background = self.background,
     radius = self.radius,
@@ -223,12 +223,14 @@ function Button:init()
     padding_bottom = self.padding_v,
     padding_left = self.padding_h,
     padding_right = self.padding_h,
+    _refresh_mode = "fast",
     self.label_container,
   })
   if self.preselect then
     self.frame.invert = true
   end
-  self.dimen = self.frame:getSize()
+  -- Keep the x, y.
+  self:mergeSize(self.frame:getSize())
   self[1] = self.frame
   self.ges_events = {
     TapSelectButton = {
@@ -251,6 +253,11 @@ function Button:init()
       }),
     },
   }
+  if self.shortcut then
+    self.key_events = {
+      TapSelectButton = { { self.shortcut } },
+    }
+  end
 end
 
 function Button:getMinNeededWidth()
@@ -269,9 +276,11 @@ function Button:setText(text, width)
       and not self.did_truncation_tweaks
     then
       self.text = text
+      self.icon = nil
       self.label_widget:setText(text)
     else
       self.text = text
+      self.icon = nil
       self.width = width
       self.label_widget:free()
       self:init()
@@ -282,6 +291,7 @@ end
 function Button:setIcon(icon, width)
   if icon ~= self.icon then
     self.icon = icon
+    self.text = nil
     self.width = width
     self.label_widget:free()
     self:init()
@@ -309,31 +319,35 @@ function Button:onUnfocus()
 end
 
 function Button:enable()
-  if not self.enabled then
-    if self.text then
-      self.label_widget.fgcolor = Blitbuffer.COLOR_BLACK
-      if self.label_widget.update then -- using a TextBoxWidget
-        self.label_widget:update() -- needed to redraw with the new color
-      end
-    else
-      self.label_widget.dim = false
-    end
-    self.enabled = true
+  if self.enabled then
+    return false
   end
+  if self.text then
+    self.label_widget.fgcolor = Blitbuffer.COLOR_BLACK
+    if self.label_widget.update then -- using a TextBoxWidget
+      self.label_widget:update() -- needed to redraw with the new color
+    end
+  else
+    self.label_widget.dim = false
+  end
+  self.enabled = true
+  return true
 end
 
 function Button:disable()
-  if self.enabled then
-    if self.text then
-      self.label_widget.fgcolor = Blitbuffer.COLOR_DARK_GRAY
-      if self.label_widget.update then
-        self.label_widget:update()
-      end
-    else
-      self.label_widget.dim = true
-    end
-    self.enabled = false
+  if not self.enabled then
+    return false
   end
+  if self.text then
+    self.label_widget.fgcolor = Blitbuffer.COLOR_DARK_GRAY
+    if self.label_widget.update then
+      self.label_widget:update()
+    end
+  else
+    self.label_widget.dim = true
+  end
+  self.enabled = false
+  return true
 end
 
 -- This is used by pagination buttons with a hold_input registered that we want to *sometimes* inhibit,
@@ -342,6 +356,9 @@ function Button:disableWithoutDimming()
   self.enabled = false
   if self.text then
     self.label_widget.fgcolor = Blitbuffer.COLOR_BLACK
+    if self.label_widget.update then
+      self.label_widget:update()
+    end
   else
     self.label_widget.dim = false
   end
@@ -407,15 +424,14 @@ function Button:_doFeedbackHighlight()
     end
 
     -- This repaints *now*, unlike setDirty
-    UIManager:widgetRepaint(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:repaintWidget(self[1])
   else
     self[1].invert = true
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
+    UIManager:invertWidget(self[1])
   end
-  UIManager:setDirty(nil, "fast", self[1].dimen)
 end
 
-function Button:_undoFeedbackHighlight(is_translucent)
+function Button:_undoFeedbackHighlight()
   if self.text then
     if self[1].radius == Size.radius.button then
       self[1].radius = nil
@@ -424,90 +440,36 @@ function Button:_undoFeedbackHighlight(is_translucent)
     else
       self[1].invert = false
     end
-    UIManager:widgetRepaint(self[1], self[1].dimen.x, self[1].dimen.y)
+
+    -- This repaints *now*, unlike setDirty
+    UIManager:repaintWidget(self[1])
   else
     self[1].invert = false
-    UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-  end
-
-  if is_translucent then
-    -- If our parent belongs to a translucent MovableContainer, we need to repaint it on unhighlight in order to honor alpha,
-    -- because our highlight/unhighlight will have made the Button fully opaque.
-    -- UIManager will detect transparency and then takes care of also repainting what's underneath us to avoid alpha layering glitches.
-    UIManager:setDirty(self.show_parent, "ui", self[1].dimen)
-  else
-    -- In case the callback itself won't enqueue a refresh region that includes us, do it ourselves.
-    -- If the button is disabled, switch to UI to make sure the gray comes through unharmed ;).
-    UIManager:setDirty(nil, self.enabled and "fast" or "ui", self[1].dimen)
+    UIManager:invertWidget(self[1])
   end
 end
 
 function Button:onTapSelectButton()
   if self.enabled or self.allow_tap_when_disabled then
     if self.callback then
-      if G_reader_settings:isFalse("flash_ui") then
-        self.callback()
-      else
-        -- NOTE: We have a few tricks up our sleeve in case our parent is inside a translucent MovableContainer...
-        local is_translucent = self.show_parent
-          and self.show_parent.movable
-          and self.show_parent.movable.alpha
+      -- Highlight
+      --
+      self:_doFeedbackHighlight()
 
-        -- Highlight
-        --
-        self:_doFeedbackHighlight()
+      UIManager:forceRepaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
+      -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
+      UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
+      -- because that would have a chance to noticeably delay it until the unhighlight.
 
-        -- Force the refresh by draining the refresh queue *now*, so we have a chance to see the highlight on its own, before whatever the callback will do.
-        if not self.vsync then
-          -- NOTE: Except when a Button is flagged vsync, in which case we *want* to bundle the highlight with the callback, to prevent further delays
-          UIManager:forceRePaint()
+      -- Unhighlight
+      self:_undoFeedbackHighlight()
+      UIManager:forceRepaint()
 
-          -- NOTE: Yield to the kernel for a tiny slice of time, otherwise, writing to the same fb region as the refresh we've just requested may be race-y,
-          --       causing mild variants of our friend the papercut refresh glitch ;).
-          --       Remember that the whole eInk refresh dance is completely asynchronous: we *request* a refresh from the kernel,
-          --       but it's up to the EPDC to schedule that however it sees fit...
-          --       The other approach would be to *ask* the EPDC to block until it's *completely* done,
-          --       but that's too much (because we only care about it being done *reading* the fb),
-          --       and that could take upwards of 300ms, which is also way too much ;).
-          UIManager:yieldToEPDC()
-        end
+      -- Callback
+      -- In case anything needs to be displayed in the callback; make sure it
+      -- runs at the last.
+      self.callback()
 
-        -- Unhighlight
-        --
-        -- We'll *paint* the unhighlight now, because at this point we can still be sure that our widget exists,
-        -- and that anything we do will not impact whatever the callback does (i.e., that we draw *below* whatever the callback might show).
-        -- We won't *fence* the refresh (i.e., it's queued, but we don't actually drain the queue yet), though, to ensure that we do not delay the callback, and that the unhighlight essentially blends into whatever the callback does.
-        -- Worst case scenario, we'll simply have "wasted" a tiny subwidget repaint if the callback closed us,
-        -- but doing it this way allows us to avoid a large array of potential interactions with whatever the callback may paint/refresh if we were to handle the unhighlight post-callback,
-        -- which would require a number of possibly brittle heuristics to handle.
-        -- NOTE: If a Button is marked vsync, we want to keep it highlighted for now (in order for said highlight to be visible during the callback refresh), we'll remove the highlight post-callback.
-        if not self.vsync then
-          self:_undoFeedbackHighlight(is_translucent)
-        end
-
-        -- Callback
-        --
-        self.callback()
-
-        -- Check if the callback reset transparency...
-        is_translucent = is_translucent and self.show_parent.movable.alpha
-
-        UIManager:forceRePaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
-        if self.vsync then
-          -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
-          UIManager:waitForVSync() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
-          -- because that would have a chance to noticeably delay it until the unhighlight.
-        end
-
-        -- Unhighlight
-        --
-        -- NOTE: If a Button is marked vsync, we have a guarantee from the programmer that the widget it belongs to is still alive and top-level post-callback,
-        --       so we can do this safely without risking UI glitches.
-        if self.vsync then
-          self:_undoFeedbackHighlight(is_translucent)
-          UIManager:forceRePaint()
-        end
-      end
       if self.checked_func then
         local text = self:getDisplayText()
         self.label_widget:setText(text)
@@ -539,11 +501,7 @@ function Button:refresh()
     )
     return
   end
-  UIManager:widgetRepaint(self[1], self[1].dimen.x, self.dimen.y)
-
-  UIManager:setDirty(nil, function()
-    return self.enabled and "fast" or "ui", self[1].dimen
-  end)
+  UIManager:setDirty(self[1], self.enabled and "fast" or "ui")
 end
 
 function Button:onHoldSelectButton()

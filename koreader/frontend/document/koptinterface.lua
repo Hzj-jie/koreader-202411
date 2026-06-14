@@ -4,8 +4,8 @@ Interface to k2pdfoptlib backend.
 
 local CacheItem = require("cacheitem")
 local CanvasContext = require("document/canvascontext")
-local DataStorage = require("datastorage")
 local DEBUG = require("dbg")
+local DataStorage = require("datastorage")
 local DocCache = require("document/doccache")
 local Document = require("document/document")
 local FFIUtil = require("ffi/util")
@@ -31,7 +31,7 @@ local KoptInterface = {
   default_context_size = 1024 * 1024,
 }
 
-local ContextCacheItem = CacheItem:new({})
+local ContextCacheItem = CacheItem:new()
 
 function ContextCacheItem:onFree()
   KoptInterface:waitForContext(self.kctx)
@@ -78,7 +78,7 @@ function ContextCacheItem:load(filename)
   end
 end
 
-local OCREngine = CacheItem:new({})
+local OCREngine = CacheItem:new()
 
 function OCREngine:onFree()
   if self.ocrengine.freeOCR then
@@ -89,33 +89,25 @@ end
 
 function KoptInterface:setDefaultConfigurable(configurable)
   configurable.doc_language =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE")
-  configurable.trim_page =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_TRIM_PAGE")
-  configurable.text_wrap =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_TEXT_WRAP")
+    G_defaults:read("DKOPTREADER_CONFIG_DOC_DEFAULT_LANG_CODE")
+  configurable.trim_page = G_defaults:read("DKOPTREADER_CONFIG_TRIM_PAGE")
+  configurable.text_wrap = G_defaults:read("DKOPTREADER_CONFIG_TEXT_WRAP")
   configurable.detect_indent =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DETECT_INDENT")
-  configurable.max_columns =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_MAX_COLUMNS")
+    G_defaults:read("DKOPTREADER_CONFIG_DETECT_INDENT")
+  configurable.max_columns = G_defaults:read("DKOPTREADER_CONFIG_MAX_COLUMNS")
   configurable.auto_straighten =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_AUTO_STRAIGHTEN")
+    G_defaults:read("DKOPTREADER_CONFIG_AUTO_STRAIGHTEN")
   configurable.justification =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_JUSTIFICATION")
+    G_defaults:read("DKOPTREADER_CONFIG_JUSTIFICATION")
   configurable.writing_direction = 0
-  configurable.font_size =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_FONT_SIZE")
-  configurable.page_margin =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_PAGE_MARGIN")
-  configurable.quality =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_RENDER_QUALITY")
-  configurable.contrast = G_defaults:readSetting("DKOPTREADER_CONFIG_CONTRAST")
-  configurable.defect_size =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DEFECT_SIZE")
-  configurable.line_spacing =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_LINE_SPACING")
+  configurable.font_size = G_defaults:read("DKOPTREADER_CONFIG_FONT_SIZE")
+  configurable.page_margin = G_defaults:read("DKOPTREADER_CONFIG_PAGE_MARGIN")
+  configurable.quality = G_defaults:read("DKOPTREADER_CONFIG_RENDER_QUALITY")
+  configurable.contrast = G_defaults:read("DKOPTREADER_CONFIG_CONTRAST")
+  configurable.defect_size = G_defaults:read("DKOPTREADER_CONFIG_DEFECT_SIZE")
+  configurable.line_spacing = G_defaults:read("DKOPTREADER_CONFIG_LINE_SPACING")
   configurable.word_spacing =
-    G_defaults:readSetting("DKOPTREADER_CONFIG_DEFAULT_WORD_SPACING")
+    G_defaults:read("DKOPTREADER_CONFIG_DEFAULT_WORD_SPACING")
 end
 
 function KoptInterface:waitForContext(kc)
@@ -359,7 +351,7 @@ end
 --[[--
 Get reflowed page dimensions.
 --]]
-function KoptInterface:getRFPageDimensions(doc, pageno, zoom, rotation)
+function KoptInterface:getRFPageDimensions(doc, pageno, _zoom, _rotation)
   local kc = self:getCachedContext(doc, pageno)
   local fullwidth, fullheight = kc:getPageDim()
   return Geom:new({ w = fullwidth, h = fullheight })
@@ -412,7 +404,7 @@ Render reflowed page into tile cache.
 
 Inherited from common document interface.
 --]]
-function KoptInterface:renderReflowedPage(doc, pageno, rect, zoom, rotation)
+function KoptInterface:renderReflowedPage(doc, pageno, _rect, _zoom, _rotation)
   local bbox = doc:getPageBBox(pageno)
   local hash_list = { "renderpg" }
   self:getContextHash(doc, pageno, bbox, hash_list)
@@ -449,9 +441,9 @@ Inherited from common document interface.
 function KoptInterface:renderOptimizedPage(
   doc,
   pageno,
-  rect,
+  _rect,
   zoom,
-  rotation,
+  _rotation,
   hinting
 )
   local bbox = doc:getPageBBox(pageno)
@@ -534,9 +526,9 @@ Inherited from common document interface.
 function KoptInterface:hintReflowedPage(
   doc,
   pageno,
-  zoom,
-  rotation,
-  gamma,
+  _zoom,
+  _rotation,
+  _gamma,
   hinting
 )
   local bbox = doc:getPageBBox(pageno)
@@ -965,7 +957,7 @@ end
 --[[--
 Get text from OCR providing selected text boxes.
 --]]
-function KoptInterface:getOCRText(doc, pageno, tboxes)
+function KoptInterface:getOCRText(_doc, _pageno, _tboxes)
   if not DocCache:check(self.ocrengine) then
     DocCache:insert(
       self.ocrengine,
@@ -975,7 +967,7 @@ function KoptInterface:getOCRText(doc, pageno, tboxes)
   logger.info("Not implemented yet")
 end
 
-function KoptInterface:getClipPageContext(doc, pos0, pos1, pboxes, drawer)
+function KoptInterface:getClipPageContext(doc, pos0, pos1, pboxes, _drawer)
   assert(pos0.page == pos1.page)
   assert(pos0.zoom == pos1.zoom)
   local rect
@@ -1074,7 +1066,7 @@ end
 Get word and word box around `pos`.
 --]]
 function KoptInterface:getWordFromBoxes(boxes, pos)
-  if not pos or not boxes or #boxes == 0 then
+  if not pos or util.arrayIsEmpty(boxes) then
     return {}
   end
   local i, j = getWordBoxIndices(boxes, pos)
@@ -1098,7 +1090,7 @@ end
 Get text and text boxes between `pos0` and `pos1`.
 --]]
 function KoptInterface:getTextFromBoxes(boxes, pos0, pos1)
-  if not pos0 or not pos1 or #boxes == 0 then
+  if not pos0 or not pos1 or util.arrayIsEmpty(boxes) then
     return {}
   end
   local line_text = ""
@@ -1292,7 +1284,7 @@ end
 Get word and word box from position in native page.
 ]]
 --
-function KoptInterface:getWordFromNativePosition(doc, boxes, pos)
+function KoptInterface:getWordFromNativePosition(_doc, boxes, pos)
   local native_word_box = self:getWordFromBoxes(boxes, pos)
   local word_box = {
     word = native_word_box.word,
@@ -1351,7 +1343,7 @@ end
 
 function KoptInterface:getSelectedWordContext(word, nb_words, pos)
   local boxes = self.last_text_boxes
-  if not pos or not boxes or #boxes == 0 then
+  if not pos or util.arrayIsEmpty(boxes) then
     return
   end
   local i, j = getWordBoxIndices(boxes, pos)
@@ -1521,7 +1513,12 @@ end
 Get text and text boxes from screen positions for native page.
 ]]
 --
-function KoptInterface:getTextFromNativePositions(doc, native_boxes, pos0, pos1)
+function KoptInterface:getTextFromNativePositions(
+  _doc,
+  native_boxes,
+  pos0,
+  pos1
+)
   local native_text_boxes = self:getTextFromBoxes(native_boxes, pos0, pos1)
   local text_boxes = {
     text = native_text_boxes.text,
@@ -1827,15 +1824,5 @@ end
 --[[--
 Log reflow duration.
 --]]
-function KoptInterface:logReflowDuration(pageno, dur)
-  local file = io.open("reflow_dur_log.txt", "a+")
-  if file then
-    if file:seek("end") == 0 then -- write the header only once
-      file:write("PAGE\tDUR\n")
-    end
-    file:write(string.format("%s\t%s\n", pageno, dur))
-    file:close()
-  end
-end
 
 return KoptInterface

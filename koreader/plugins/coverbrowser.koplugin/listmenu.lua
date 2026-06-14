@@ -13,9 +13,11 @@ local HorizontalSpan = require("ui/widget/horizontalspan")
 local IconWidget = require("ui/widget/iconwidget")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local ItemShortCutIcon = require("ui/widget/itemshortcuticon")
 local LeftContainer = require("ui/widget/container/leftcontainer")
 local LineWidget = require("ui/widget/linewidget")
 local Math = require("optmath")
+local Menu = require("ui/widget/menu")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
@@ -24,15 +26,13 @@ local TextWidget = require("ui/widget/textwidget")
 local UnderlineContainer = require("ui/widget/container/underlinecontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
-local N_ = _.ngettext
+local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
-local getMenuText = require("ui/widget/menu").getMenuText
 
 local BookInfoManager = require("bookinfomanager")
 
@@ -48,59 +48,10 @@ local corner_mark
 
 local scale_by_size = Screen:scaleBySize(1000000) * (1 / 1000000)
 
--- ItemShortCutIcon (for keyboard navigation) is private to menu.lua and can't be accessed,
--- so we need to redefine it
-local ItemShortCutIcon = WidgetContainer:extend({
-  dimen = Geom:new({
-    x = 0,
-    y = 0,
-    w = Screen:scaleBySize(22),
-    h = Screen:scaleBySize(22),
-  }),
-  key = nil,
-  bordersize = Size.border.default,
-  radius = 0,
-  style = "square",
-})
-
-function ItemShortCutIcon:init()
-  if not self.key then
-    return
-  end
-  local radius = 0
-  local background = Blitbuffer.COLOR_WHITE
-  if self.style == "rounded_corner" then
-    radius = math.floor(self.width / 2)
-  elseif self.style == "grey_square" then
-    background = Blitbuffer.COLOR_LIGHT_GRAY
-  end
-  local sc_face
-  if self.key:len() > 1 then
-    sc_face = Font:getFace("ffont", 14)
-  else
-    sc_face = Font:getFace("scfont", 22)
-  end
-  self[1] = FrameContainer:new({
-    padding = 0,
-    bordersize = self.bordersize,
-    radius = radius,
-    background = background,
-    dimen = self.dimen:copy(),
-    CenterContainer:new({
-      dimen = self.dimen,
-      TextWidget:new({
-        text = self.key,
-        face = sc_face,
-      }),
-    }),
-  })
-end
-
 -- Based on menu.lua's MenuItem
 local ListMenuItem = InputContainer:extend({
   entry = nil, -- hash, mandatory
   text = nil,
-  show_parent = nil,
   dimen = nil,
   shortcut = nil,
   shortcut_style = "square",
@@ -116,6 +67,7 @@ local ListMenuItem = InputContainer:extend({
 })
 
 function ListMenuItem:init()
+  assert(self.dimen ~= nil)
   -- filepath may be provided as 'file' (history, collection) or 'path' (filechooser)
   -- store it as attribute so we can use it elsewhere
   self.filepath = self.entry.file or self.entry.path
@@ -123,7 +75,7 @@ function ListMenuItem:init()
   -- As done in MenuItem
   -- Squared letter for keyboard navigation
   if self.shortcut then
-    local icon_width = math.floor(self.dimen.h * 2 / 5)
+    local icon_width = math.floor(self:getSize().h * 2 / 5)
     local shortcut_icon_dimen = Geom:new({
       x = 0,
       y = 0,
@@ -392,7 +344,7 @@ function ListMenuItem:update()
         )
       end
       -- right widget, first line
-      local directory, filename = util.splitFilePathName(self.filepath) -- luacheck: no unused
+      local __, filename = util.splitFilePathName(self.filepath)
       local filename_without_suffix, filetype =
         filemanagerutil.splitFileNameType(filename)
       local fileinfo_str
@@ -422,23 +374,27 @@ function ListMenuItem:update()
               T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
           end
         else
-          pages_str = status == "complete" and _("Finished") or _("On hold")
+          pages_str = status == "complete" and gettext("Finished")
+            or gettext("On hold")
         end
       elseif percent_finished then
         if pages then
           if BookInfoManager:getSetting("show_pages_read_as_progress") then
-            pages_str =
-              T(_("Page %1 of %2"), Math.round(percent_finished * pages), pages)
+            pages_str = T(
+              gettext("Page %1 of %2"),
+              Math.round(percent_finished * pages),
+              pages
+            )
           else
             pages_str = T(
-              _("%1 % of %2 pages"),
+              gettext("%1 % of %2 pages"),
               math.floor(100 * percent_finished),
               pages
             )
           end
           if BookInfoManager:getSetting("show_pages_left_in_progress") then
             pages_str = T(
-              _("%1, %2 to read"),
+              gettext("%1, %2 to read"),
               pages_str,
               Math.round(pages - percent_finished * pages),
               pages
@@ -556,9 +512,9 @@ function ListMenuItem:update()
             and bookinfo.series
             and series_mode == "series_in_separate_line"
           then
-            authors = { T(_("%1 et al."), authors[1]) }
+            authors = { T(gettext("%1 et al."), authors[1]) }
           elseif #authors > 2 then
-            authors = { authors[1], T(_("%1 et al."), authors[2]) }
+            authors = { authors[1], T(gettext("%1 et al."), authors[2]) }
           end
           authors = table.concat(authors, "\n")
           -- as we'll fit 3 lines instead of 2, we can avoid some loops by starting from a lower font size
@@ -603,7 +559,8 @@ function ListMenuItem:update()
       end
       if bookinfo.unsupported then
         -- Let's show this fact in place of the anyway empty authors slot
-        authors = T(_("(no book information: %1)"), _(bookinfo.unsupported))
+        authors =
+          T(gettext("(no book information: %1)"), gettext(bookinfo.unsupported))
       end
       -- Build title and authors texts with decreasing font size
       -- till it fits in the space available
@@ -786,7 +743,7 @@ function ListMenuItem:update()
           dimen = Geom:new({ w = wright_width, h = dimen.h }),
           VerticalGroup:new({
             align = "right",
-            VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+            VerticalSpan:new({ height = Screen:scaleBySize(2) }),
             wfileinfo,
             wpageinfo,
           }),
@@ -796,7 +753,7 @@ function ListMenuItem:update()
       -- A real simple widget, nothing fancy
       local hint = "…" -- display hint it's being loaded
       if self.file_deleted then -- unless file was deleted (can happen with History)
-        hint = " " .. _("(deleted)")
+        hint = " " .. gettext("(deleted)")
       end
       local text = BD.filename(self.text)
       local text_widget
@@ -849,7 +806,7 @@ function ListMenuItem:update()
   end
   -- Add some pad at top to balance with hidden underline line at bottom
   self._underline_container[1] = VerticalGroup:new({
-    VerticalSpan:new({ width = self.underline_h }),
+    VerticalSpan:new({ height = self.underline_h }),
     widget,
   })
 end
@@ -872,11 +829,11 @@ function ListMenuItem:paintTo(bb, x, y)
     local target = self[1][1][2]
     local ix
     if BD.mirroredUILayout() then
-      ix = target.dimen.w - self.shortcut_icon.dimen.w
+      ix = target:getSize().w - self.shortcut_icon:getSize().w
     else
       ix = 0
     end
-    local iy = target.dimen.h - self.shortcut_icon.dimen.h
+    local iy = target:getSize().h - self.shortcut_icon:getSize().h
     self.shortcut_icon:paintTo(bb, x + ix, y + iy)
   end
 
@@ -900,22 +857,22 @@ function ListMenuItem:paintTo(bb, x, y)
   then
     local target = self[1][1][2]
     local d_w = Screen:scaleBySize(3)
-    local d_h = math.ceil(target.dimen.h / 4)
+    local d_h = math.ceil(target:getSize().h / 4)
     if self.do_cover_image and target[1][1][1] then
       -- it has an image, align it on image's framecontainer's right border
       target = target[1][1]
       local ix
       if BD.mirroredUILayout() then
-        ix = target.dimen.x - d_w + 1
+        ix = target:getSize().x - d_w + 1
       else
-        ix = target.dimen.x + target.dimen.w - 1
+        ix = target:getSize().x + target:getSize().w - 1
       end
-      bb:paintBorder(ix, target.dimen.y, d_w, d_h, 1)
+      bb:paintBorder(ix, target:getSize().y, d_w, d_h, 1)
     else
       -- no image, align it to the left border
       local ix
       if BD.mirroredUILayout() then
-        ix = target.dimen.x + target.dimen.w - d_w
+        ix = target:getSize().x + target:getSize().w - d_w
       else
         ix = x
       end
@@ -944,7 +901,7 @@ function ListMenuItem:onTapSelect(arg)
   return true
 end
 
-function ListMenuItem:onHoldSelect(arg, ges)
+function ListMenuItem:onHoldSelect(arg, _ges)
   self.menu:onMenuHold(self.entry)
   return true
 end
@@ -962,7 +919,7 @@ function ListMenu:_recalculateDimen()
       self.others_height = self.others_height + 2
     end
     if not self.no_title then
-      self.others_height = self.others_height + self.title_bar.dimen.h
+      self.others_height = self.others_height + self.title_bar:getSize().h
     end
     if self.page_info then
       self.others_height = self.others_height + self.page_info:getSize().h
@@ -986,7 +943,7 @@ function ListMenu:_recalculateDimen()
     -- Default perpage is computed from a base of 64px per ListMenuItem,
     -- which gives 10 items on kobo glo hd.
     self.files_per_page = math.floor(available_height / scale_by_size / 64)
-    BookInfoManager:saveSetting("files_per_page", self.files_per_page)
+    BookInfoManager:save("files_per_page", self.files_per_page)
   end
   self.perpage = self.files_per_page
   if not self.portrait_mode then
@@ -1069,17 +1026,19 @@ function ListMenu:_updateItemsBuildUI()
     end
     -- Keyboard shortcuts, as done in Menu
     local item_shortcut, shortcut_style
-    if self.is_enable_shortcut then
-      item_shortcut = self.item_shortcuts[idx]
-      shortcut_style = (idx < 11 or idx > 20) and "square" or "grey_square"
+    if Menu.ENABLE_SHORTCUT then
+      item_shortcut = Menu.ITEM_SHORTCUTS[idx]
+      -- give different shortcut_style to keys in different lines of keyboard
+      if (idx - 1) % 10 >= 5 then
+        shortcut_style = "grey_square"
+      end
     end
 
     local item_tmp = ListMenuItem:new({
       height = self.item_height,
       width = self.item_width,
       entry = entry,
-      text = getMenuText(entry),
-      show_parent = self.show_parent,
+      text = Menu.getMenuText(entry),
       mandatory = entry.mandatory,
       dimen = self.item_dimen:copy(),
       shortcut = item_shortcut,

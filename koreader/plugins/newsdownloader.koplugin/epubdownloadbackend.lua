@@ -1,5 +1,6 @@
 local Version = require("version")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -7,7 +8,6 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
-local _ = require("gettext")
 local T = ffiutil.template
 
 local EpubDownloadBackend = {
@@ -88,7 +88,7 @@ end
 
 local function parse_set_cookie(c, quoted, cookie_table)
   c = c .. ";$last=last;"
-  local _, _, n, v, i =
+  local __, __, n, v, i =
     string.find(c, "(" .. token_class .. "+)%s*=%s*(.-)%s*;%s*()")
   local cookie = {
     name = n,
@@ -96,7 +96,7 @@ local function parse_set_cookie(c, quoted, cookie_table)
     attributes = {},
   }
   while 1 do
-    _, _, n, v, i =
+    __, __, n, v, i =
       string.find(c, "(" .. token_class .. "+)%s*=?%s*(.-)%s*;%s*()", i)
     if not n or n == "$last" then
       break
@@ -121,8 +121,8 @@ local function split_set_cookie(s, cookie_table)
   -- split into individual cookies
   local i = 1
   while 1 do
-    local _, _, cookie, next_token
-    _, _, cookie, i, next_token =
+    local __, cookie, next_token
+    __, __, cookie, i, next_token =
       string.find(s, "(.-)%s*%,%s*()(" .. token_class .. "+)%s*=", i)
     if not next_token then
       break
@@ -483,13 +483,13 @@ function EpubDownloadBackend:createEpub(
     -- the images he chose to not get.
   end
 
-  UI:info(T(_("%1\n\nBuilding EPUB…"), message))
+  UI:info(T(gettext("%1\n\nBuilding EPUB…"), message))
   -- Open the zip file (with .tmp for now, as crengine may still
   -- have a handle to the final epub_path, and we don't want to
   -- delete a good one if we fail/cancel later)
   local epub_path_tmp = epub_path .. ".tmp"
   local ZipWriter = require("ffi/zipwriter")
-  local epub = ZipWriter:new({})
+  local epub = ZipWriter:new()
   if not epub:open(epub_path_tmp) then
     logger.dbg("Failed to open epub_path_tmp")
     return false
@@ -681,7 +681,12 @@ function EpubDownloadBackend:createEpub(
       -- by tapping while the InfoMessage is displayed
       -- We use the fast_refresh option from image #2 for a quicker download
       local go_on = UI:info(
-        T(_("%1\n\nRetrieving image %2 / %3 …"), message, inum, nb_images),
+        T(
+          gettext("%1\n\nRetrieving image %2 / %3 …"),
+          message,
+          inum,
+          nb_images
+        ),
         inum >= 2
       )
       if not go_on then
@@ -711,9 +716,9 @@ function EpubDownloadBackend:createEpub(
         logger.dbg("Adding OEBPS/" .. img.imgpath)
       else
         go_on = UI:confirm(
-          T(_("Downloading image %1 failed. Continue anyway?"), inum),
-          _("Stop"),
-          _("Continue")
+          T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
+          gettext("Stop"),
+          gettext("Continue")
         )
         if not go_on then
           cancelled = true
@@ -727,20 +732,20 @@ function EpubDownloadBackend:createEpub(
   if cancelled then
     if
       UI:confirm(
-        _(
+        gettext(
           "Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"
         ),
-        _("Don't create"),
-        _("Create")
+        gettext("Don't create"),
+        gettext("Create")
       )
     then
       cancelled = false
     end
   end
   if cancelled then
-    UI:info(_("Canceled. Cleaning up…"))
+    UI:info(gettext("Canceled. Cleaning up…"))
   else
-    UI:info(T(_("%1\n\nPacking EPUB…"), message))
+    UI:info(T(gettext("%1\n\nPacking EPUB…"), message))
   end
   epub:close()
 

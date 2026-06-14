@@ -3,25 +3,18 @@ local LibLipcs = require("liblipcs")
 local UIManager
 local T = require("ffi/util").template
 local ffi = require("ffi")
-local time = require("ui/time")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local _ = require("gettext")
+local time = require("ui/time")
+local util = require("util")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
-local ffi = require("ffi")
 local C = ffi.C
 require("ffi/linux_fb_h")
 require("ffi/linux_input_h")
 require("ffi/posix_h")
 require("ffi/fbink_input_h")
-
-local function yes()
-  return true
-end
-local function no()
-  return false
-end -- luacheck: ignore
 
 -- Try to detect WARIO+ Kindle boards (i.MX6 & i.MX7)
 local function isWarioOrMore()
@@ -51,25 +44,6 @@ end
 local function kindleGetSavedNetworks()
   return LibLipcs:hash_accessor()
     :read_hash_property("com.lab126.wifid", "profileData")
-end
-
-local function kindleWifiState()
-  local lipc = LibLipcs:accessor()
-  if not LibLipcs:isFake(lipc) then
-    return lipc:get_string_property("com.lab126.wifid", "cmState")
-  end
-
-  local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
-  if not std_out then
-    return nil
-  end
-  local result = std_out:read("*l")
-  std_out:close()
-  return result
-end
-
-local function kindleIsWifiConnected()
-  return kindleWifiState() == "CONNECTED"
 end
 
 local function kindleGetCurrentProfile()
@@ -126,20 +100,24 @@ local function kindleGetScanList()
     return { profile }, nil
   end
   --]]
-  local result = LibLipcs:hash_accessor()
-    :read_hash_property("com.lab126.wifid", "scanList")
-  if result == nil then
-    return nil,
-      require("gettext")("Unable to communicate with the Wi-Fi backend")
+  -- Wait at most 1s.
+  for _ = 0, 4 do
+    local result = LibLipcs:hash_accessor()
+      :read_hash_property("com.lab126.wifid", "scanList")
+    if result ~= nil then
+      -- This is a very edge case where the scanList call fails sometimes.
+      return result, nil
+    end
+    C.usleep(250 * 1000)
   end
-  return result, nil
+  return nil,
+    require("gettext")("Cannot find any Wi-Fi, please try again later.")
 end
 
 local function kindleScanThenGetResults()
-  local _ = require("gettext")
   local lipc = LibLipcs:accessor()
   if LibLipcs:isFake(lipc) then
-    return nil, _("Unable to communicate with the Wi-Fi backend")
+    return nil, gettext("Unable to communicate with the Wi-Fi backend")
   end
 
   lipc:set_string_property("com.lab126.wifid", "scan", "") -- trigger a scan
@@ -186,7 +164,7 @@ local function kindleScanThenGetResults()
     return kindleGetScanList()
   end
   logger.warn("kindleScanThenGetResults: Timed-out scanning for Wi-Fi networks")
-  return nil, _("Scanning for Wi-Fi networks timed out")
+  return nil, gettext("Scanning for Wi-Fi networks timed out")
 end
 
 local function kindleEnableWifi(toggle)
@@ -208,27 +186,6 @@ local function kindleEnableWifi(toggle)
     lipc:set_int_property("com.lab126.cmd", "wirelessEnable", toggle)
     lipc:set_int_property("com.lab126.wifid", "enable", toggle)
   end
-end
-
--- sysfsInterfaceOperational may not indicate the internal state of
--- com.lab126.wifid.
-local function kindleIsWifiUp()
-  local lipc = LibLipcs:accessor()
-  if not LibLipcs:isFake(lipc) then
-    return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
-  end
-  local std_out = io.popen("lipc-get-prop -i com.lab126.wifid enable", "r")
-  if not std_out then
-    return false
-  end
-  local result = std_out:read("*number")
-  std_out:close()
-
-  if not result then
-    return false
-  end
-
-  return result == 1
 end
 
 --[[
@@ -303,41 +260,39 @@ end
 
 local Kindle = Generic:extend({
   model = "Kindle",
-  isKindle = yes,
+  isKindle = util.yes,
   -- NOTE: We can cheat by adding a platform-specific entry here, because the only code that will check for this is here.
   isSpecialOffers = isSpecialOffers(),
-  hasOTAUpdates = yes,
-  hasFastWifiStatusQuery = yes,
-  hasWifiRestore = yes,
+  hasWifiRestore = util.yes,
   -- NOTE: HW inversion is generally safe on mxcfb Kindles
-  canHWInvert = yes,
+  canHWInvert = util.yes,
   -- NOTE: And the fb driver is generally sane on those, too
-  canModifyFBInfo = yes,
+  canModifyFBInfo = util.yes,
   -- NOTE: Newer devices will turn the frontlight off at 0
-  canTurnFrontlightOff = yes,
+  canTurnFrontlightOff = util.yes,
   -- NOTE: Via powerd.toggleSuspend
-  canSuspend = yes,
-  canReboot = yes,
-  canPowerOff = yes,
+  canSuspend = util.yes,
+  canReboot = util.yes,
+  canPowerOff = util.yes,
   home_dir = "/mnt/us",
   -- New devices are REAGL-aware, default to REAGL
-  isREAGL = yes,
+  isREAGL = util.yes,
   -- Rex & Zelda devices sport an updated driver.
-  isZelda = no,
-  isRex = no,
+  isZelda = util.no,
+  isRex = util.no,
   -- So do devices running on a MediaTek SoC
-  isMTK = no,
+  isMTK = util.no,
   -- But of course, some devices don't actually support all the features the kernel exposes...
-  isNightModeChallenged = no,
+  isNightModeChallenged = util.no,
   -- NOTE: While this ought to behave on Zelda/Rex, turns out, nope, it really doesn't work on *any* of 'em :/ (c.f., ko#5884).
-  canHWDither = no,
+  canHWDither = util.no,
   -- Device has an Ambient Light Sensor
-  hasLightSensor = no,
+  hasLightSensor = util.no,
   -- The time the device went into suspend
   suspend_time = 0,
   framework_lipc_handle = frameworkStopped(),
   -- Kindle cannot disconnect a wifi, it will reconnect wifi automatically.
-  canDisconnectWifi = no,
+  canDisconnectWifi = util.no,
 })
 
 function Kindle:retrieveNetworkInfo()
@@ -347,9 +302,9 @@ function Kindle:retrieveNetworkInfo()
   local profile = kindleGetCurrentProfile()
   local ssid
   if profile == nil then
-    ssid = _("SSID: off/any")
+    ssid = gettext("SSID: off/any")
   else
-    ssid = T(_('SSID: "%1"'), ffi.string(profile.essid))
+    ssid = T(gettext('SSID: "%1"'), ffi.string(profile.essid))
   end
   for _, value in ipairs(results) do
     if value == ssid then
@@ -369,11 +324,11 @@ function Kindle:initNetworkManager(NetworkMgr)
       end
       -- It's impossible to force a sync wifi connection operation, but can only
       -- rely on the NetworkMgr:connectivityCheck to verify the state.
-      return EBUSY
+      return NetworkMgr.EBUSY
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...
-    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, _interactive)
       kindleEnableWifi(1)
       if complete_callback then
         complete_callback()
@@ -381,12 +336,8 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
   end
 
-  function NetworkMgr:_turnOffWifi(complete_callback)
+  function NetworkMgr:_turnOffWifi()
     kindleEnableWifi(0)
-    -- NOTE: Same here, except disconnect is simpler, so a dumb delay will do...
-    if complete_callback then
-      UIManager:scheduleIn(2, complete_callback)
-    end
   end
 
   function NetworkMgr:getNetworkInterfaceName()
@@ -420,15 +371,6 @@ function Kindle:initNetworkManager(NetworkMgr)
     if not scan_list then
       return nil, err
     end
-
-    -- trick ui/widget/networksetting into displaying the correct signal strength icon
-    local qualities = {
-      [1] = 0,
-      [2] = 6,
-      [3] = 31,
-      [4] = 56,
-      [5] = 81,
-    }
 
     local network_list = {}
     local saved_profiles = kindleGetSavedNetworks()
@@ -465,7 +407,9 @@ function Kindle:initNetworkManager(NetworkMgr)
           network.signal,
           network.signal_max
         ),
-        signal_quality = qualities[network.signal],
+        -- trick ui/widget/networksetting into displaying the correct signal
+        -- strength icon
+        signal_quality = (network.signal - 1) * 25,
         connected = connected,
         flags = network.key_mgmt,
         ssid = network.essid ~= "" and network.essid,
@@ -483,8 +427,82 @@ function Kindle:initNetworkManager(NetworkMgr)
     return { ssid = profile.essid }
   end
 
-  NetworkMgr.isWifiOn = kindleIsWifiUp
-  NetworkMgr.isConnected = kindleIsWifiConnected
+  NetworkMgr.isWifiOn = function()
+    return self:isWifiUp()
+  end
+  NetworkMgr.isConnected = function()
+    return self:isWifiConnected()
+  end
+end
+
+-- sysfsInterfaceOperational may not indicate the internal state of
+-- com.lab126.wifid.
+function Kindle:isWifiUp()
+  local function shouldDelayLipc()
+    if self.last_resume_at == nil then
+      -- Very likely the initial start of KOReader.
+      return false
+    end
+    -- Delay the initial com.lab126.cmd wirelessEnable call after resume. See
+    -- https://github.com/Hzj-jie/koreader-202411/issues/260 and
+    -- https://github.com/Hzj-jie/koreader-202411/issues/266
+    return time.to_s(time.realtime() - self.last_resume_at) < 10
+  end
+  if shouldDelayLipc() then
+    return false
+  end
+  local lipc = LibLipcs:accessor()
+  if not LibLipcs:isFake(lipc) then
+    return (lipc:get_int_property("com.lab126.wifid", "enable") or 0) == 1
+      and (lipc:get_int_property("com.lab126.cmd", "wirelessEnable") or 0)
+        == 1
+  end
+  local std_out = io.popen("lipc-get-prop -i com.lab126.wifid enable", "r")
+  if not std_out then
+    return false
+  end
+  local result = std_out:read("*number")
+  std_out:close()
+
+  if not result or result ~= 1 then
+    return false
+  end
+
+  std_out = io.popen("lipc-get-prop -i com.lab126.cmd wirelessEnable", "r")
+  if not std_out then
+    return false
+  end
+  result = std_out:read("*number")
+  std_out:close()
+
+  if not result or result ~= 1 then
+    return false
+  end
+
+  return true
+end
+
+function Kindle:isWifiConnected()
+  local function kindleWifiState()
+    local lipc = LibLipcs:accessor()
+    if not LibLipcs:isFake(lipc) then
+      return lipc:get_string_property("com.lab126.wifid", "cmState")
+    end
+
+    local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
+    if not std_out then
+      return nil
+    end
+    local result = std_out:read("*l")
+    std_out:close()
+    return result
+  end
+
+  if not self:isWifiUp() then
+    -- Checking wifi up may be delayed and causes the consistency issue.
+    return false
+  end
+  return kindleWifiState() == "CONNECTED"
 end
 
 function Kindle:supportsScreensaver()
@@ -630,7 +648,7 @@ function Kindle:init()
   if self.powerd:hasHallSensor() then
     if G_reader_settings:has("kindle_hall_effect_sensor_enabled") then
       self.powerd:onToggleHallSensor(
-        G_reader_settings:readSetting("kindle_hall_effect_sensor_enabled")
+        G_reader_settings:read("kindle_hall_effect_sensor_enabled")
       )
     end
   end
@@ -639,6 +657,20 @@ function Kindle:init()
 end
 
 function Kindle:setDateTime(year, month, day, hour, min, sec)
+  -- There isn't an official support of "Device:hasNetwork" since KOReader
+  -- always assumes the network is available. But these legacy models have no
+  -- wifi, and their cellular support has been ended a long time ago. So the
+  -- time / date change function should be enabled, otherwise users have no way
+  -- of setting time on these models.
+  if
+    self.model ~= "Kindle"
+    and self.model ~= "Kindle2"
+    and self.model ~= "KindleDXG"
+  then
+    -- Returns false to disable the feature.
+    return
+  end
+
   if hour == nil or min == nil then
     return true
   end
@@ -656,26 +688,28 @@ function Kindle:setDateTime(year, month, day, hour, min, sec)
 
     local command = string.format("/usr/sbin/setdate '%d'", epoch)
     return os.execute(command) == 0
-  end
-  local command
-  if year and month and day then
-    command = string.format(
-      "date -s '%d-%d-%d %d:%d:%d' '+%%Y-%%m-%%d %%H:%%M:%%S'",
-      year,
-      month,
-      day,
-      hour,
-      min,
-      sec
-    )
   else
-    command = string.format("date -s '%d:%d' '+%%H:%%M'", hour, min)
+    local command
+    if year and month and day then
+      command = string.format(
+        "date -s '%d-%d-%d %d:%d:%d' '+%%Y-%%m-%%d %%H:%%M:%%S'",
+        year,
+        month,
+        day,
+        hour,
+        min,
+        sec
+      )
+    else
+      command = string.format("date -s '%d:%d' '+%%H:%%M'", hour, min)
+    end
+    if os.execute(command) == 0 then
+      os.execute("hwclock -u -w")
+      return true
+    else
+      return false
+    end
   end
-  if os.execute(command) == 0 then
-    os.execute("hwclock -u -w")
-    return true
-  end
-  return false
 end
 
 function Kindle:usbPlugIn()
@@ -760,44 +794,6 @@ function Kindle:_outofScreenSaver(source)
       UIManager:setDirty("all", "full")
     end)
   end
-
-  -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
-  -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
-  if not self.canDeepSleep then
-    return
-  end
-  if self.last_suspend_time <= time.s(self.hibernationDelay) then
-    return
-  end
-  if
-    lfs.attributes("/var/local/system/powerd/hibernate_session_tracker", "mode")
-    ~= "file"
-  then
-    return
-  end
-  local mtime = lfs.attributes(
-    "/var/local/system/powerd/hibernate_session_tracker",
-    "modification"
-  )
-  local now = os.time()
-  if math.abs(now - mtime) > 60 then
-    return
-  end
-  -- That was less than a minute ago, assume we're golden.
-  logger.dbg("Kindle: Woke up from hibernation")
-  -- The banner on a 1236x1648 PW5 is 1235x125; we refresh the bottom 10% of the screen to be safe.
-  local Geom = require("ui/geometry")
-  local screen_height = self.screen:getHeight()
-  local refresh_height = math.ceil(screen_height * (1 / 10))
-  local refresh_region = Geom:new({
-    x = 0,
-    y = screen_height - 1 - refresh_height,
-    w = self.screen:getWidth(),
-    h = refresh_height,
-  })
-  UIManager:scheduleIn(1.5, function()
-    UIManager:setDirty("all", "ui", refresh_region)
-  end)
 end
 
 -- On stock, there's a distinction between OutOfSS (which *requests* closing the SS) and ExitingSS, which fires once they're *actually* closed...
@@ -811,15 +807,11 @@ end
 function Kindle:wakeupFromSuspend(ts)
   logger.dbg("Kindle:wakeupFromSuspend", ts)
   self.powerd:wakeupFromSuspend(ts)
-  self.last_suspend_time = time.boottime_or_realtime_coarse()
-    - self.suspend_time
-  self.total_suspend_time = self.total_suspend_time + self.last_suspend_time
 end
 
 function Kindle:readyToSuspend(delay)
   logger.dbg("Kindle:readyToSuspend", delay)
   self.powerd:readyToSuspend(delay)
-  self.suspend_time = time.boottime_or_realtime_coarse()
 end
 
 -- We add --no-same-permissions --no-same-owner to make the userstore fuse proxy happy...
@@ -836,7 +828,7 @@ function Kindle:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Kindle:setEventHandlers(uimgr)
+function Kindle:setEventHandlers(_uimgr)
   -- These custom fake events *will* pass an argument...
   self.input.fake_event_args.IntoSS = {}
   self.input.fake_event_args.OutOfSS = {}
@@ -856,6 +848,49 @@ function Kindle:setEventHandlers(uimgr)
     local arg = table.remove(self.input.fake_event_args[input_event])
     self:_outofScreenSaver(arg)
     self.powerd:afterResume()
+
+    -- If the device supports deep sleep, and we woke up from hibernation (which kicks in at the 1H mark),
+    -- chuck an extra tiny refresh to get rid of the "waking up" banner if the above refresh was too early...
+    if not self.canDeepSleep then
+      return
+    end
+    if
+      (self.last_resume_at - self.last_suspend_at)
+      <= time.s(self.hibernationDelay)
+    then
+      return
+    end
+    if
+      lfs.attributes(
+        "/var/local/system/powerd/hibernate_session_tracker",
+        "mode"
+      ) ~= "file"
+    then
+      return
+    end
+    local mtime = lfs.attributes(
+      "/var/local/system/powerd/hibernate_session_tracker",
+      "modification"
+    )
+    local now = os.time()
+    if math.abs(now - mtime) > 60 then
+      return
+    end
+    -- That was less than a minute ago, assume we're golden.
+    logger.dbg("Kindle: Woke up from hibernation")
+    -- The banner on a 1236x1648 PW5 is 1235x125; we refresh the bottom 10% of the screen to be safe.
+    local Geom = require("ui/geometry")
+    local screen_height = self.screen:getHeight()
+    local refresh_height = math.ceil(screen_height * (1 / 10))
+    local refresh_region = Geom:new({
+      x = 0,
+      y = screen_height - 1 - refresh_height,
+      w = self.screen:getWidth(),
+      h = refresh_height,
+    })
+    UIManager:scheduleIn(1.5, function()
+      UIManager:setDirty("all", "ui", refresh_region)
+    end)
   end
   -- Unused yet.
   -- self.powerd:afterResume() here may not always work, some units do not
@@ -890,8 +925,7 @@ function Kindle:ambientBrightnessLevel()
   if type(value) ~= "number" then
     return 0
   end
-  value = value
-    * (G_defaults:readSetting("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
+  value = value * (G_defaults:read("KINDLE_AMBIENT_BRIGHTNESS_MULTIPLIER") or 1)
   if value < 10 then
     return 0
   end
@@ -917,121 +951,121 @@ end
 
 local Kindle2 = Kindle:extend({
   model = "Kindle2",
-  isREAGL = no,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
-  canUseCBB = no, -- 4bpp
-  canUseWAL = no, -- Kernel too old to support mmap'ed I/O on /mnt/us
-  supportsScreensaver = yes, -- The first ad-supported device was the K3
+  isREAGL = util.no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
+  canUseCBB = util.no, -- 4bpp
+  canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
+  supportsScreensaver = util.yes, -- The first ad-supported device was the K3
 })
 
 local KindleDXG = Kindle:extend({
   model = "KindleDXG",
-  isREAGL = no,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
-  canUseCBB = no, -- 4bpp
-  canUseWAL = no, -- Kernel too old to support mmap'ed I/O on /mnt/us
-  supportsScreensaver = yes, -- The first ad-supported device was the K3
+  isREAGL = util.no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
+  canUseCBB = util.no, -- 4bpp
+  canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
+  supportsScreensaver = util.yes, -- The first ad-supported device was the K3
 })
 
 local Kindle3 = Kindle:extend({
   model = "Kindle3",
-  isREAGL = no,
-  hasKeyboard = yes,
-  hasKeys = yes,
-  hasSymKey = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
-  canUseCBB = no, -- 4bpp
+  isREAGL = util.no,
+  hasKeyboard = util.yes,
+  hasKeys = util.yes,
+  hasSymKey = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
+  canUseCBB = util.no, -- 4bpp
   isSpecialOffers = hasSpecialOffers(),
 })
 
 local Kindle4 = Kindle:extend({
   model = "Kindle4",
-  isREAGL = no,
-  hasKeys = yes,
-  hasScreenKB = yes,
-  hasDPad = yes,
-  useDPadAsActionKeys = yes,
-  canHWInvert = no,
-  canModifyFBInfo = no,
+  isREAGL = util.no,
+  hasKeys = util.yes,
+  hasScreenKB = util.yes,
+  hasDPad = util.yes,
+  useDPadAsActionKeys = util.yes,
+  canHWInvert = util.no,
+  canModifyFBInfo = util.no,
   -- NOTE: It could *technically* use the C BB, as it's running @ 8bpp, but it's expecting an inverted palette...
-  canUseCBB = no,
+  canUseCBB = util.no,
   isSpecialOffers = hasSpecialOffers(),
 })
 
 local KindleTouch = Kindle:extend({
   model = "KindleTouch",
-  isREAGL = no,
-  isTouchDevice = yes,
-  hasKeys = yes,
+  isREAGL = util.no,
+  isTouchDevice = util.yes,
+  hasKeys = util.yes,
   touch_dev = "/dev/input/event3",
 })
 
 local KindlePaperWhite = Kindle:extend({
   model = "KindlePaperWhite",
-  isREAGL = no,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
+  isREAGL = util.no,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
   display_dpi = 212,
   touch_dev = "/dev/input/event0",
 })
 
 local KindlePaperWhite2 = Kindle:extend({
   model = "KindlePaperWhite2",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
   display_dpi = 212,
   touch_dev = "/dev/input/event1",
 })
 
 local KindleBasic = Kindle:extend({
   model = "KindleBasic",
-  isTouchDevice = yes,
+  isTouchDevice = util.yes,
   touch_dev = "/dev/input/event1",
 })
 
 local KindleVoyage = Kindle:extend({
   model = "KindleVoyage",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
-  hasLightSensor = yes,
-  hasKeys = yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
+  hasLightSensor = util.yes,
+  hasKeys = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/event1",
 })
 
 local KindlePaperWhite3 = Kindle:extend({
   model = "KindlePaperWhite3",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  canTurnFrontlightOff = no,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  canTurnFrontlightOff = util.no,
   display_dpi = 300,
   touch_dev = "/dev/input/event1",
 })
 
 local KindleOasis = Kindle:extend({
   model = "KindleOasis",
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   --[[
   -- NOTE: Points to event3 on Wi-Fi devices, event4 on 3G devices...
@@ -1044,41 +1078,41 @@ local KindleOasis = Kindle:extend({
 
 local KindleOasis2 = Kindle:extend({
   model = "KindleOasis2",
-  isZelda = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasLightSensor = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isZelda = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasLightSensor = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/by-path/platform-30a30000.i2c-event",
 })
 
 local KindleOasis3 = Kindle:extend({
   model = "KindleOasis3",
-  isZelda = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
-  hasNaturalLightMixer = yes,
-  hasLightSensor = yes,
-  hasKeys = yes,
-  hasGSensor = yes,
+  isZelda = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
+  hasNaturalLightMixer = util.yes,
+  hasLightSensor = util.yes,
+  hasKeys = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/by-path/platform-30a30000.i2c-event",
 })
 
 local KindleBasic2 = Kindle:extend({
   model = "KindleBasic2",
-  isTouchDevice = yes,
+  isTouchDevice = util.yes,
   touch_dev = "/dev/input/event0",
 })
 
 local KindlePaperWhite4 = Kindle:extend({
   model = "KindlePaperWhite4",
-  isRex = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
+  isRex = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
   display_dpi = 300,
   -- NOTE: LTE devices once again have a mysterious extra SX9310 proximity sensor...
   --     Except this time, we can't rely on by-path, because there's no entry for the TS :/.
@@ -1088,59 +1122,59 @@ local KindlePaperWhite4 = Kindle:extend({
 
 local KindleBasic3 = Kindle:extend({
   model = "KindleBasic3",
-  isRex = yes,
+  isRex = util.yes,
   -- NOTE: Apparently, the KT4 doesn't actually support the fancy nightmode waveforms, c.f., ko/#5076
   --     It also doesn't handle HW dithering, c.f., base/#1039
-  isNightModeChallenged = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
+  isNightModeChallenged = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
   touch_dev = "/dev/input/event2",
 })
 
 local KindlePaperWhite5 = Kindle:extend({
   model = "KindlePaperWhite5",
-  isMTK = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
+  isMTK = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
   -- NOTE: We *can* technically control both LEDs independently,
   --     but the mix is device-specific, we don't have access to the LUT for the mix powerd is using,
   --     and the widget is designed for the Kobo Aura One anyway, so, hahaha, nope.
-  hasNaturalLightMixer = yes,
+  hasNaturalLightMixer = util.yes,
   display_dpi = 300,
   -- NOTE: While hardware dithering (via MDP) should be a thing, it doesn't appear to do anything right now :/.
-  canHWDither = no,
-  canDoSwipeAnimation = yes,
+  canHWDither = util.no,
+  canDoSwipeAnimation = util.yes,
   -- NOTE: Input device path is variable, see findInputDevices
 })
 
 local KindleBasic4 = Kindle:extend({
   model = "KindleBasic4",
-  isMTK = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
+  isMTK = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
   display_dpi = 300,
-  canHWDither = no,
-  canDoSwipeAnimation = yes,
+  canHWDither = util.no,
+  canDoSwipeAnimation = util.yes,
   -- NOTE: Like the PW5, input device path is variable, see findInputDevices
 })
 
 local KindleScribe = Kindle:extend({
   model = "KindleScribe",
-  isMTK = yes,
-  isTouchDevice = yes,
-  hasFrontlight = yes,
-  hasNaturalLight = yes,
+  isMTK = util.yes,
+  isTouchDevice = util.yes,
+  hasFrontlight = util.yes,
+  hasNaturalLight = util.yes,
   -- NOTE: We *can* technically control both LEDs independently,
   --     but the mix is device-specific, we don't have access to the LUT for the mix powerd is using,
   --     and the widget is designed for the Kobo Aura One anyway, so, hahaha, nope.
-  hasNaturalLightMixer = yes,
-  hasLightSensor = yes,
-  hasGSensor = yes,
+  hasNaturalLightMixer = util.yes,
+  hasLightSensor = util.yes,
+  hasGSensor = util.yes,
   display_dpi = 300,
   touch_dev = "/dev/input/touch",
-  canHWDither = yes,
-  canDoSwipeAnimation = yes,
+  canHWDither = util.yes,
+  canDoSwipeAnimation = util.yes,
 })
 
 function Kindle2:init()
@@ -1152,7 +1186,7 @@ function Kindle2:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_keyboard.lua"),
+    event_map = require("device/kindle/event_map_keyboard"),
   })
   Kindle.init(self)
 end
@@ -1166,9 +1200,9 @@ function KindleDXG:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_keyboard.lua"),
+    event_map = require("device/kindle/event_map_keyboard"),
   })
-  self.keyboard_layout = dofile("frontend/device/kindle/keyboard_layout.lua")
+  self.keyboard_layout = require("device/kindle/keyboard_layout")
   Kindle.init(self)
 end
 
@@ -1182,11 +1216,11 @@ function Kindle3:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_kindle4.lua"),
+    event_map = require("device/kindle/event_map_kindle4"),
   })
-  self.keyboard_layout = dofile("frontend/device/kindle/keyboard_layout.lua")
+  self.keyboard_layout = require("device/kindle/keyboard_layout")
   self.k3_alt_plus_key_kernel_translated =
-    dofile("frontend/device/kindle/k3_alt_and_top_row.lua")
+    require("device/kindle/k3_alt_and_top_row")
   Kindle.init(self)
 end
 
@@ -1200,7 +1234,7 @@ function Kindle4:init()
   })
   self.input = require("device/input"):new({
     device = self,
-    event_map = dofile("frontend/device/kindle/event_map_kindle4.lua"),
+    event_map = require("device/kindle/event_map_kindle4"),
   })
   Kindle.init(self)
 end
@@ -1349,6 +1383,32 @@ function KindleVoyage:init()
   end
 end
 
+function KindleVoyage:pagePressPressure()
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  return lipc:get_int_property("com.lab126.deviced", "fsrkeypadPressure")
+end
+
+function KindleVoyage:setPagePressPressure(v)
+  assert(v >= 0 and v <= 2)
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  lipc:set_int_property("com.lab126.deviced", "fsrkeypadPressure", v)
+end
+
+function KindleVoyage:pagePressFeedback()
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  return lipc:get_int_property("com.lab126.deviced", "hapticAmplitude")
+end
+
+function KindleVoyage:setPagePressFeedback(v)
+  assert(v >= 0 and v <= 3)
+  local lipc = LibLipcs:accessor()
+  assert(not LibLipcs:isFake(lipc))
+  lipc:set_int_property("com.lab126.deviced", "hapticAmplitude", v)
+end
+
 function KindlePaperWhite3:init()
   self.screen =
     require("ffi/framebuffer_mxcfb"):new({ device = self, debug = logger.dbg })
@@ -1364,7 +1424,7 @@ function KindlePaperWhite3:init()
 end
 
 -- HAL for gyro orientation switches (EV_ABS:ABS_PRESSURE (?!) w/ custom values to EV_MSC:MSC_GYRO w/ our own custom values)
-local function OasisGyroTranslation(this, ev)
+local function OasisGyroTranslation(_this, ev)
   local DEVICE_ORIENTATION_PORTRAIT_LEFT = 15
   local DEVICE_ORIENTATION_PORTRAIT_RIGHT = 17
   local DEVICE_ORIENTATION_PORTRAIT = 19
@@ -1451,7 +1511,7 @@ function KindleOasis:init()
 end
 
 -- HAL for gyro orientation switches (EV_ABS:ABS_PRESSURE (?!) w/ custom values to EV_MSC:MSC_GYRO w/ our own custom values)
-local function KindleGyroTransform(this, ev)
+local function KindleGyroTransform(_this, ev)
   -- See source code:
   -- c.f., drivers/input/misc/accel/bma2x2.c for KOA2/KOA3
   -- c.f., drivers/input/misc/kx132/kx132.h for KS

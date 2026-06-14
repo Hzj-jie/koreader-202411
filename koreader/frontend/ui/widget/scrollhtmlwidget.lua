@@ -4,11 +4,11 @@ HTML widget with vertical scroll bar.
 
 local BD = require("ui/bidi")
 local Device = require("device")
-local HtmlBoxWidget = require("ui/widget/htmlboxwidget")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
+local HtmlBoxWidget = require("ui/widget/htmlboxwidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
 local VerticalScrollBar = require("ui/widget/verticalscrollbar")
@@ -58,7 +58,7 @@ function ScrollHtmlWidget:init()
 
   self:_updateScrollBar()
 
-  local horizontal_group = HorizontalGroup:new({})
+  local horizontal_group = HorizontalGroup:new()
   table.insert(horizontal_group, self.htmlbox_widget)
   table.insert(
     horizontal_group,
@@ -199,10 +199,19 @@ function ScrollHtmlWidget:onScrollText(arg, ges)
 end
 
 function ScrollHtmlWidget:onTapScrollText(arg, ges)
-  if BD.flipIfMirroredUILayout(ges.pos.x < Screen:getWidth() / 2) then
-    return self:onScrollUp()
-  else
+  -- Late initialization to avoid cycle dependency.
+  if
+    BD.flipIfMirroredUILayout(
+      ges.pos:intersectWith(
+        self.dimen
+          :copy()
+          :resize(require("apps/reader/modules/readerview").getForwardTapZone())
+      )
+    )
+  then
     return self:onScrollDown()
+  else
+    return self:onScrollUp()
   end
 end
 

@@ -21,6 +21,7 @@ local NetworkMgr = require("ui/network/manager")
 local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("gettext")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
@@ -29,7 +30,6 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("util")
-local _ = require("gettext")
 local T = FFIUtil.template
 
 -- constants

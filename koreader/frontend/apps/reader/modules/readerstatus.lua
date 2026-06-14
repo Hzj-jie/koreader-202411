@@ -4,8 +4,8 @@ local Device = require("device")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 
 local ReaderStatus = WidgetContainer:extend({})
 
@@ -15,7 +15,7 @@ end
 
 function ReaderStatus:addToMainMenu(menu_items)
   menu_items.book_status = {
-    text = _("Book status"),
+    text = gettext("Book status"),
     callback = function()
       self:onShowBookStatus()
     end,
@@ -30,7 +30,7 @@ function ReaderStatus:onShowBookStatus(before_show_callback)
     before_show_callback()
   end
   status_page.dithered = true
-  UIManager:show(status_page, "full")
+  self:showWidget(status_page, "full")
   return true
 end
 
@@ -39,7 +39,7 @@ end
 function ReaderStatus:onEndOfBook()
   Device:performHapticFeedback("CONTEXT_CLICK")
   local QuickStart = require("ui/quickstart")
-  local last_file = G_reader_settings:readSetting("lastfile")
+  local last_file = G_reader_settings:read("lastfile")
   if last_file == QuickStart.quickstart_filename then
     -- Like onOpenNextDocumentInFolder, delay this so as not to break instance lifecycle
     UIManager:nextTick(function()
@@ -53,10 +53,9 @@ function ReaderStatus:onEndOfBook()
     self:markBook(true)
   end
 
-  local collate = G_reader_settings:readSetting("collate")
+  local collate = G_named_settings.collate()
   local next_file_enabled = collate ~= "access" and collate ~= "date"
-  local settings = G_reader_settings:readSetting("end_document_action")
-    or "pop-up"
+  local settings = G_reader_settings:read("end_document_action") or "pop-up"
   local top_widget = UIManager:getTopmostVisibleWidget() or {}
   if settings == "pop-up" and top_widget.name ~= "end_document" then
     local button_dialog
@@ -64,9 +63,9 @@ function ReaderStatus:onEndOfBook()
       {
         {
           text_func = function()
-            local status = (self.ui.doc_settings:readSetting("summary") or {}).status
-            return status == "complete" and _("Mark as reading")
-              or _("Mark as finished")
+            local status = self.ui.doc_settings:readTableRef("summary").status
+            return status == "complete" and gettext("Mark as reading")
+              or gettext("Mark as finished")
           end,
           callback = function()
             UIManager:close(button_dialog)
@@ -74,7 +73,7 @@ function ReaderStatus:onEndOfBook()
           end,
         },
         {
-          text = _("Book status"),
+          text = gettext("Book status"),
           callback = function()
             UIManager:close(button_dialog)
             self:onShowBookStatus()
@@ -83,14 +82,14 @@ function ReaderStatus:onEndOfBook()
       },
       {
         {
-          text = _("Go to beginning"),
+          text = gettext("Go to beginning"),
           callback = function()
             UIManager:close(button_dialog)
             self.ui.gotopage:onGoToBeginning()
           end,
         },
         {
-          text = _("Open next file"),
+          text = gettext("Open next file"),
           enabled = next_file_enabled,
           callback = function()
             UIManager:close(button_dialog)
@@ -100,14 +99,14 @@ function ReaderStatus:onEndOfBook()
       },
       {
         {
-          text = _("Delete file"),
+          text = gettext("Delete file"),
           callback = function()
             UIManager:close(button_dialog)
             self:deleteFile()
           end,
         },
         {
-          text = _("File browser"),
+          text = gettext("File browser"),
           callback = function()
             UIManager:close(button_dialog)
             -- Ditto
@@ -120,27 +119,27 @@ function ReaderStatus:onEndOfBook()
     }
     button_dialog = ButtonDialog:new({
       name = "end_document",
-      title = _(
+      title = gettext(
         "You've reached the end of the document.\nWhat would you like to do?"
       ),
       title_align = "center",
       buttons = buttons,
     })
-    UIManager:show(button_dialog)
+    self:showWidget(button_dialog)
   elseif settings == "book_status" then
     self:onShowBookStatus()
   elseif settings == "next_file" then
     if next_file_enabled then
       local info = InfoMessage:new({
-        text = _("Searching next file…"),
+        text = gettext("Searching next file…"),
       })
-      UIManager:show(info)
-      UIManager:forceRePaint()
+      self:showWidget(info)
+      UIManager:forceRepaint()
       UIManager:close(info)
       self:onOpenNextDocumentInFolder()
     else
-      UIManager:show(InfoMessage:new({
-        text = _(
+      self:showWidget(InfoMessage:new({
+        text = gettext(
           "Could not open next file. Sort by date does not support this feature."
         ),
       }))
@@ -154,8 +153,8 @@ function ReaderStatus:onEndOfBook()
     end)
   elseif settings == "mark_read" then
     self:markBook(true)
-    UIManager:show(InfoMessage:new({
-      text = _(
+    self:showWidget(InfoMessage:new({
+      text = gettext(
         "You've reached the end of the document.\nThe current book is marked as finished."
       ),
       timeout = 3,
@@ -195,8 +194,8 @@ function ReaderStatus:onOpenNextDocumentInFolder()
       self.ui:switchDocument(next_file)
     end)
   else
-    UIManager:show(InfoMessage:new({
-      text = _(
+    self:showWidget(InfoMessage:new({
+      text = gettext(
         "This is the last file in the current folder. No next file to open."
       ),
     }))
@@ -223,12 +222,11 @@ end
 -- If mark_read is true then we change status only from reading/abandoned to complete.
 -- Otherwise we change status from reading/abandoned to complete or from complete to reading.
 function ReaderStatus:markBook(mark_read)
-  local summary = self.ui.doc_settings:readSetting("summary") or {}
+  local summary = self.ui.doc_settings:readTableRef("summary")
   summary.status = (not mark_read and summary.status == "complete")
       and "reading"
     or "complete"
   summary.modified = os.date("%Y-%m-%d", os.time())
-  self.ui.doc_settings:saveSetting("summary", summary)
   -- If History is called over Reader, it will read the file to get the book status, so flush
   self.ui.doc_settings:flush()
 end

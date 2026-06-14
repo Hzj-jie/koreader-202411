@@ -118,68 +118,6 @@ fi
 # we're always starting from our working directory
 cd "${KOREADER_DIR}" || exit
 
-# Handle pending OTA update
-ko_update_check() {
-    NEWUPDATE="${KOREADER_DIR}/ota/koreader.updated.tar"
-    INSTALLED="${KOREADER_DIR}/ota/koreader.installed.tar"
-    if [ -f "${NEWUPDATE}" ]; then
-        logmsg "Updating KOReader . . ."
-        # Let our checkpoint script handle the detailed visual feedback...
-        eips_print_bottom_centered "Updating KOReader" 3
-        # Setup the FBInk daemon
-        export FBINK_NAMED_PIPE="/tmp/koreader.fbink"
-        rm -f "${FBINK_NAMED_PIPE}"
-        FBINK_PID="$(/var/tmp/fbink --daemon 1 %KOREADER% -q -y -6 -P 0)"
-        # NOTE: See frontend/ui/otamanager.lua for a few more details on how we squeeze a percentage out of tar's checkpoint feature
-        # NOTE: %B should always be 512 in our case, so let stat do part of the maths for us instead of using %s ;).
-        FILESIZE="$(stat -c %b "${NEWUPDATE}")"
-        BLOCKS="$((FILESIZE / 20))"
-        export CPOINTS="$((BLOCKS / 100))"
-        # NOTE: To avoid blowing up when tar truncates itself during an update, copy our GNU tar binary to the system's tmpfs,
-        #       and run that one (c.f., #4602)...
-        #       This is most likely a side-effect of the weird fuse overlay being used for /mnt/us (vs. the real vfat on /mnt/base-us),
-        #       which we cannot use because it's been mounted noexec for a few years now...
-        cp -pf "${KOREADER_DIR}/tar" /var/tmp/gnutar
-        # shellcheck disable=SC2016
-        /var/tmp/gnutar --no-same-permissions --no-same-owner --checkpoint="${CPOINTS}" --checkpoint-action=exec='printf "%s" $((TAR_CHECKPOINT / CPOINTS)) > ${FBINK_NAMED_PIPE}' -C "/mnt/us" -xf "${NEWUPDATE}"
-        fail=$?
-        kill -TERM "${FBINK_PID}"
-        # And remove our temporary tar binary...
-        rm -f /var/tmp/gnutar
-        # Cleanup behind us...
-        if [ "${fail}" -eq 0 ]; then
-            mv "${NEWUPDATE}" "${INSTALLED}"
-            logmsg "Update successful :)"
-            eips_print_bottom_centered "Update successful :)" 2
-            eips_print_bottom_centered "KOReader will start momentarily . . ." 1
-            # NOTE: Because, yep, that'll probably happen, as there's a high probability sh will throw a bogus syntax error,
-            #       probably for the same fuse-related reasons as tar...
-            # NOTE: Even if it doesn't necessarily leave the device in an unusable state,
-            #       always recommend a hard-reboot to flush stale ghost copies...
-            eips_print_bottom_centered "If it doesn't, you'll want to force a hard reboot" 0
-        else
-            # Huh ho...
-            logmsg "Update failed :( (${fail})"
-            eips_print_bottom_centered "Update failed :(" 2
-            eips_print_bottom_centered "KOReader may fail to function properly" 1
-        fi
-        rm -f "${NEWUPDATE}" # always purge newupdate to prevent update loops
-        unset CPOINTS FBINK_NAMED_PIPE
-        unset BLOCKS FILESIZE FBINK_PID
-        # Ensure everything is flushed to disk before we restart. This *will* stall for a while on slow storage!
-        sync
-    fi
-}
-# NOTE: Keep doing an initial update check, in addition to one during the restart loop, so we can pickup potential updates of this very script...
-ko_update_check
-# If an update happened, and was successful, reexec
-if [ -n "${fail}" ] && [ "${fail}" -eq 0 ]; then
-    # By now, we know we're in the right directory, and our script name is pretty much set in stone, so we can forgo using $0
-    # NOTE: REEXEC_FLAGS *needs* to be unquoted: we *want* word splitting here ;).
-    # shellcheck disable=SC2086
-    exec ./koreader.sh ${REEXEC_FLAGS} "${@}"
-fi
-
 # export dict directory
 export STARDICT_DATA_DIR="data/dict"
 
@@ -316,9 +254,6 @@ mv -f crash.log crash.prev.log || true
 
 RETURN_VALUE=85
 while [ "${RETURN_VALUE}" -eq 85 ]; do
-    # Do an update check now, so we can actually update KOReader via the "Restart KOReader" menu entry ;).
-    ko_update_check
-
     ./reader.lua "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
 done

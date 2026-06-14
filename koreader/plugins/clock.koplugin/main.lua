@@ -8,9 +8,9 @@ local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local Input = Device.input
 local Screen = Device.screen
-local Size = require("ui/size")
-local _ = require("gettext")
 local ClockWidget = require("clockwidget")
+local Size = require("ui/size")
+local gettext = require("gettext")
 local Clock = InputContainer:new({
   name = "clock",
   is_doc_only = false,
@@ -18,10 +18,7 @@ local Clock = InputContainer:new({
   width = Screen:getWidth(),
   height = Screen:getHeight(),
   scale_factor = 0,
-  dismiss_callback = function(self)
-    PluginShare.pause_auto_suspend = false
-    self._was_suspending = false
-  end,
+  _visible = false,
 })
 Clock.init = function(self)
   if Device:hasKeys() then
@@ -61,10 +58,9 @@ Clock.init = function(self)
 end
 Clock.addToMainMenu = function(self, menu_items)
   menu_items.clock = {
-    text = _("Clock"),
-    sorting_hint = "tools",
+    text = gettext("Clock"),
     callback = function()
-      return UIManager:show(self)
+      self:onClockShow()
     end,
   }
 end
@@ -83,8 +79,7 @@ Clock.onShow = function(self)
 end
 Clock.onSuspend = function(self)
   if
-    G_reader_settings:readSetting("clock_on_suspend")
-    and not self._was_suspending
+    G_reader_settings:read("clock_on_suspend") and not self._was_suspending
   then
     UIManager:show(self)
     self._was_suspending = true
@@ -96,22 +91,29 @@ Clock.onResume = function(self)
   end
   self._was_suspending = false
 end
-Clock.onAnyKeyPressed = function(self)
-  self:dismiss_callback()
-  return UIManager:close(self)
-end
 Clock.onTapClose = function(self)
-  self:dismiss_callback()
-  return UIManager:close(self)
+  if not self._visible then
+    return false
+  end
+  PluginShare.pause_auto_suspend = false
+  self._was_suspending = false
+  self._visible = false
+  UIManager:close(self)
+  return true
+end
+Clock.onAnyKeyPressed = function(self)
+  return self:onTapClose()
 end
 Clock.onClockShow = function(self)
-  return UIManager:show(self)
+  self._visible = true
+  UIManager:show(self)
+  return true
 end
 Clock.onDispatcherRegisterAction = function(self)
   return Dispatcher:registerAction("clock_show", {
     category = "none",
     event = "ClockShow",
-    title = _("Show clock"),
+    title = gettext("Show clock"),
     device = true,
   })
 end

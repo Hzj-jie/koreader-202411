@@ -8,12 +8,15 @@ Each target should inherit from this class and implement *at least* an `export` 
 
 local DataStorage = require("datastorage")
 local Device = require("device")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 
-local BaseExporter = {
-  clipping_dir = DataStorage:getFullDataDir() .. "/clipboard",
-}
+local BaseExporter = {}
+
+function BaseExporter.clipping_dir()
+  return G_reader_settings:readTableRef("exporter").clipping_dir
+    or (DataStorage:getFullDataDir() .. "/clipboard")
+end
 
 function BaseExporter:new(o)
   o = o or {}
@@ -62,7 +65,7 @@ end
 Loads settings for the exporter
 ]]
 function BaseExporter:loadSettings()
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableRef("exporter")
   self.settings = plugin_settings[self.name] or {}
 end
 
@@ -70,9 +73,8 @@ end
 Saves settings for the exporter
 ]]
 function BaseExporter:saveSettings()
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
+  local plugin_settings = G_reader_settings:readTableRef("exporter")
   plugin_settings[self.name] = self.settings
-  G_reader_settings:saveSetting("exporter", plugin_settings)
   self.new_settings = true
 end
 
@@ -82,7 +84,7 @@ Exports a table of booknotes to local format or remote service
 @param t table of booknotes
 @treturn bool success
 ]]
-function BaseExporter:export(t) end
+function BaseExporter:export(_t) end
 
 --[[--
 File path where the exporter writes its output
@@ -94,8 +96,8 @@ function BaseExporter:getFilePath(t)
   if self.is_remote then
     return
   end
-  local plugin_settings = G_reader_settings:readSetting("exporter") or {}
-  local clipping_dir = plugin_settings.clipping_dir or self.clipping_dir
+  local clipping_dir = BaseExporter.clipping_dir()
+  local plugin_settings = G_reader_settings:readTableRef("exporter")
   local title
   if #t == 1 then
     title = t[1].output_filename
@@ -159,7 +161,7 @@ end
 Shares text with other apps
 ]]
 function BaseExporter:shareText(text, title)
-  local reason = _("Share") .. " " .. self.name
+  local reason = gettext("Share") .. " " .. self.name
   Device:doShareText(text, reason, title, self.mimetype)
 end
 

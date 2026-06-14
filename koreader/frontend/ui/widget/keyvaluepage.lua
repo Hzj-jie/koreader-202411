@@ -24,8 +24,8 @@ local Blitbuffer = require("ffi/blitbuffer")
 local BottomContainer = require("ui/widget/container/bottomcontainer")
 local Button = require("ui/widget/button")
 local Device = require("device")
-local Font = require("ui/font")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
@@ -45,10 +45,9 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Input = Device.input
 local Screen = Device.screen
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local KeyValueItem = InputContainer:extend({
-  show_parent = nil,
   key = nil,
   value = nil,
   value_lang = nil,
@@ -226,32 +225,26 @@ end
 
 function KeyValueItem:onTap()
   if self.callback then
-    if G_reader_settings:isFalse("flash_ui") then
-      self.callback(self.kv_page, self)
-    else
-      -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-      -- Highlight
-      --
-      self[1].invert = true
-      UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-      UIManager:setDirty(nil, "fast", self[1].dimen)
+    -- Highlight
+    --
+    self[1].invert = true
+    UIManager:invertWidget(self[1])
 
-      UIManager:forceRePaint()
-      UIManager:yieldToEPDC()
+    UIManager:forceRepaint()
+    UIManager:waitForScreenRefresh()
 
-      -- Unhighlight
-      --
-      self[1].invert = false
-      UIManager:widgetInvert(self[1], self[1].dimen.x, self[1].dimen.y)
-      UIManager:setDirty(nil, "ui", self[1].dimen)
+    -- Unhighlight
+    --
+    self[1].invert = false
+    UIManager:invertWidget(self[1])
 
-      -- Callback
-      --
-      self.callback(self.kv_page, self)
+    -- Callback
+    --
+    self.callback(self.kv_page, self)
 
-      UIManager:forceRePaint()
-    end
+    UIManager:forceRepaint()
   else
     -- If no tap callback, allow for displaying the non-truncated
     -- text with Tap too
@@ -282,12 +275,11 @@ function KeyValueItem:onShowKeyValue()
     width = self.textviewer_width,
     height = self.textviewer_height,
   })
-  UIManager:show(textviewer)
+  self:showWidget(textviewer)
   return true
 end
 
 local KeyValuePage = FocusManager:extend({
-  show_parent = nil,
   kv_pairs = nil, -- not mandatory
   title = "",
   width = nil,
@@ -298,18 +290,16 @@ local KeyValuePage = FocusManager:extend({
   -- alignment of value when key or value overflows its reserved width (for
   -- now: 50%): "left" (stick to key), "right" (stick to screen's right border)
   value_overflow_align = "left",
-  single_page = nil, -- show all items on one single page (and make them small)
-  title_bar_align = "left",
+  title_bar_align = "center",
   title_bar_left_icon = nil,
   title_bar_left_icon_tap_callback = nil,
   title_bar_left_icon_hold_callback = nil,
 
   -- Take ownership of the entire screen.
-  stop_events_propagation = true,
+  modal = true,
 })
 
 function KeyValuePage:init()
-  self.show_parent = self.show_parent or self
   local kv_pairs = self.kv_pairs
   self.kv_pairs = {}
   -- deprecated, use separator=true on a regular k/v table
@@ -335,14 +325,8 @@ function KeyValuePage:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if
-    self.dimen.w == Screen:getWidth() and self.dimen.h == Screen:getHeight()
-  then
-    self.covers_fullscreen = true -- hint for UIManager:_repaint()
-  end
-
   if Device:hasKeys() then
-    self.key_events.Close = { { Input.group.Back } }
+    self.key_events.Exit = { { Input.group.Back } }
     self.key_events.NextPage = { { Input.group.PgFwd } }
     self.key_events.PrevPage = { { Input.group.PgBack } }
   end
@@ -370,8 +354,21 @@ function KeyValuePage:init()
         self:onReturn()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
+  -- Use left icon button in the title bar as return button if there isn't one
+  -- predefined.
+  if
+    self.callback_return ~= nil
+    and self.title_bar_left_icon_tap_callback == nil
+    and self.title_bar_left_icon_hold_callback == nil
+  then
+    assert(self.title_bar_left_icon == nil)
+    self.return_button = nil
+    -- Keep self.callback_return, it's used by :onReturn function.
+    self.title_bar_left_icon = self.page_return_arrow.icon
+    self.title_bar_left_icon_tap_callback = self.page_return_arrow.callback
+  end
+
   -- group for page info
   local chevron_left = "chevron.left"
   local chevron_right = "chevron.right"
@@ -388,7 +385,6 @@ function KeyValuePage:init()
         self:prevPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_right_chev = self.page_info_right_chev
     or Button:new({
@@ -397,7 +393,6 @@ function KeyValuePage:init()
         self:nextPage()
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_first_chev = self.page_info_first_chev
     or Button:new({
@@ -406,7 +401,6 @@ function KeyValuePage:init()
         self:goToPage(1)
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_last_chev = self.page_info_last_chev
     or Button:new({
@@ -415,7 +409,6 @@ function KeyValuePage:init()
         self:goToPage(self.pages)
       end,
       bordersize = 0,
-      show_parent = self.show_parent,
     })
   self.page_info_spacer = HorizontalSpan:new({
     width = Screen:scaleBySize(32),
@@ -425,6 +418,12 @@ function KeyValuePage:init()
     self.page_return_arrow:hide()
   elseif self.callback_return == nil then
     self.page_return_arrow:disable()
+  elseif
+    self.title_bar_left_icon_tap_callback == self.page_return_arrow.callback
+  then
+    assert(self.return_button == nil)
+    assert(self.title_bar_left_icon == self.page_return_arrow.icon)
+    self.page_return_arrow:hide()
   end
   self.return_button = HorizontalGroup:new({
     HorizontalSpan:new({
@@ -432,7 +431,7 @@ function KeyValuePage:init()
     }),
     self.page_return_arrow,
     HorizontalSpan:new({
-      width = self.dimen.w
+      width = self:getSize().w
         - self.page_return_arrow:getSize().w
         - Size.span.horizontal_small,
     }),
@@ -447,7 +446,7 @@ function KeyValuePage:init()
     or Button:new({
       text = "",
       hold_input = {
-        title = _("Enter page number"),
+        title = gettext("Enter page number"),
         input_type = "number",
         hint_func = function()
           return string.format("(1 - %s)", self.pages)
@@ -458,7 +457,7 @@ function KeyValuePage:init()
             self:goToPage(page)
           end
         end,
-        ok_text = _("Go to page"),
+        ok_text = gettext("Go to page"),
       },
       call_hold_input_on_tap = true,
       bordersize = 0,
@@ -478,15 +477,12 @@ function KeyValuePage:init()
   })
 
   local padding = Size.padding.large
-  self.item_width = self.dimen.w - 2 * padding
+  self.item_width = self:getSize().w - 2 * padding
 
-  local footer = nil
-  if not self.single_page then
-    footer = BottomContainer:new({
-      dimen = self.dimen:copy(),
-      self.page_info,
-    })
-  end
+  local footer = BottomContainer:new({
+    dimen = self.dimen:copy(),
+    self.page_info,
+  })
 
   local page_return = BottomContainer:new({
     dimen = self.dimen:copy(),
@@ -495,7 +491,10 @@ function KeyValuePage:init()
 
   self.title_bar = TitleBar:new({
     title = self.title,
-    fullscreen = self.covers_fullscreen,
+    fullscreen = (
+      self:getSize().w == Screen:getWidth()
+      and self:getSize().h == Screen:getHeight()
+    ),
     width = self.width,
     align = self.title_bar_align,
     with_bottom_line = true,
@@ -507,22 +506,18 @@ function KeyValuePage:init()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self.show_parent or self,
   })
 
   -- setup main content
-  local available_height = self.dimen.h
+  local available_height = self:getSize().h
     - self.title_bar:getHeight()
     - Size.span.vertical_large -- for above page_info (as title_bar adds one itself)
-    - (self.single_page and 0 or self.page_info:getSize().h)
+    - self.page_info:getSize().h
     - 2 * Size.line.thick
   -- account for possibly 2 separator lines added
 
-  self.items_per_page = G_reader_settings:readSetting("keyvalues_per_page")
+  self.items_per_page = G_reader_settings:read("keyvalues_per_page")
     or self.getDefaultItemsPerPage()
-  if self.single_page and self.items_per_page < #self.kv_pairs then
-    self.items_per_page = #self.kv_pairs
-  end
   self.item_height = math.floor(available_height / self.items_per_page)
   -- Put half of the pixels lost by floor'ing between title and content
   local content_height = self.items_per_page * self.item_height
@@ -538,11 +533,11 @@ function KeyValuePage:init()
   )
 
   self.pages = math.ceil(#self.kv_pairs / self.items_per_page)
-  self.main_content = VerticalGroup:new({})
+  self.main_content = VerticalGroup:new()
 
   -- set textviewer height to let our title fully visible (but hide the bottom line)
   self.textviewer_width = self.item_width
-  self.textviewer_height = self.dimen.h
+  self.textviewer_height = self:getSize().h
     - 2
       * (self.title_bar:getHeight() - Size.padding.default - Size.line.thick)
 
@@ -554,7 +549,7 @@ function KeyValuePage:init()
     VerticalGroup:new({
       align = "left",
       self.title_bar,
-      VerticalSpan:new({ width = span_height }),
+      VerticalSpan:new({ height = span_height }),
       HorizontalGroup:new({
         HorizontalSpan:new({ width = padding }),
         self.main_content,
@@ -565,8 +560,8 @@ function KeyValuePage:init()
   })
   -- assemble page
   self[1] = FrameContainer:new({
-    width = self.dimen.w,
-    height = self.dimen.h,
+    width = self:getSize().w,
+    height = self:getSize().h,
     padding = 0,
     margin = 0,
     bordersize = 0,
@@ -740,7 +735,6 @@ function KeyValuePage:_populateItems()
       value_align = self.value_align,
       kv_pairs_idx = kv_pairs_idx,
       kv_page = self,
-      show_parent = self.show_parent,
     })
     table.insert(self.main_content, kv_item)
     table.insert(self.layout, { kv_item })
@@ -767,7 +761,7 @@ function KeyValuePage:_populateItems()
   -- update page information
   if self.pages >= 1 then
     self.page_info_text:setText(
-      T(_("Page %1 of %2"), self.show_page, self.pages)
+      T(gettext("Page %1 of %2"), self.show_page, self.pages)
     )
     if self.pages > 1 then
       self.page_info_text:enable()
@@ -784,7 +778,7 @@ function KeyValuePage:_populateItems()
     self.page_info_first_chev:enableDisable(self.show_page > 1)
     self.page_info_last_chev:enableDisable(self.show_page < self.pages)
   else
-    self.page_info_text:setText(_("No items"))
+    self.page_info_text:setText(gettext("No items"))
     self.page_info_text:disableWithoutDimming()
 
     self.page_info_left_chev:hide()
@@ -797,9 +791,7 @@ function KeyValuePage:_populateItems()
     1,
     bit.bor(FocusManager.FOCUS_ONLY_ON_NT, FocusManager.NOT_UNFOCUS)
   )
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function KeyValuePage:removeKeyValueItem(kv_item)
@@ -832,20 +824,18 @@ function KeyValuePage:onSwipe(arg, ges_ev)
   elseif direction == "south" then
     -- Allow easier closing with swipe down
     self:onExit()
-  elseif direction == "north" then
+  elseif direction == "north" then -- luacheck: ignore 542
     -- no use for now
-    do
-    end -- luacheck: ignore 541
   else -- diagonal swipe
     -- trigger full refresh
-    UIManager:setDirty(nil, "full")
+    UIManager:scheduleRefresh("full")
     -- a long diagonal swipe may also be used for taking a screenshot,
     -- so let it propagate
     return false
   end
 end
 
-function KeyValuePage:onMultiSwipe(arg, ges_ev)
+function KeyValuePage:onMultiSwipe(arg)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.

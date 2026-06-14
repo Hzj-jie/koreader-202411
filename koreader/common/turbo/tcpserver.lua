@@ -55,11 +55,11 @@ function tcpserver.TCPServer:initialize(io_loop, ssl_options, max_buffer_size)
   self._started = false
   -- Validate SSL options if set.
   if self.ssl_options then
-    if not type(ssl_options.cert_file) == "string" then
+    if type(ssl_options.cert_file) ~= "string" then
       error("ssl_options argument is set, but cert_file argument is \
                 missing or not a string.")
     end
-    if not type(ssl_options.key_file) == "string" then
+    if type(ssl_options.key_file) ~= "string" then
       error("ssl_options argument is set, but key_file arguments is \
                 missing or not a string.")
     end

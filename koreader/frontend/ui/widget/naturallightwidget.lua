@@ -15,11 +15,11 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 
 local NaturalLightWidget = WidgetContainer:extend({
-  is_always_active = true,
+  modal = true,
   width = nil,
   height = nil,
   textbox_width = 0.1,
@@ -38,7 +38,6 @@ local NaturalLightWidget = WidgetContainer:extend({
 
 function NaturalLightWidget:init()
   self.medium_font_face = Font:getFace("ffont")
-  self.nl_bar = {}
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
   self.span = math.ceil(self.screen_height * 0.01)
@@ -83,7 +82,6 @@ function NaturalLightWidget:adaptableNumber(initial, step)
     margin = Size.margin.small,
     radius = 0,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:closeKeyboard()
       self:setValueTextBox(input_text, input_text:getText() - step)
@@ -100,7 +98,6 @@ function NaturalLightWidget:adaptableNumber(initial, step)
     margin = Size.margin.small,
     radius = 0,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:closeKeyboard()
       self:setValueTextBox(input_text, input_text:getText() + step)
@@ -140,7 +137,7 @@ end
 
 function NaturalLightWidget:update()
   local title_bar = TitleBar:new({
-    title = _("Natural light configuration"),
+    title = gettext("Natural light configuration"),
     width = self.width,
     align = "left",
     with_bottom_line = true,
@@ -149,7 +146,6 @@ function NaturalLightWidget:update()
       self:setAllValues(self.old_values)
       self:onExit()
     end,
-    show_parent = self,
   })
   local main_content = FrameContainer:new({
     padding = Size.padding.button,
@@ -203,7 +199,7 @@ function NaturalLightWidget:createMainContent(width, height)
   self.exponent = self:adaptableNumber(self.powerd.fl.exponent, 0.1)
 
   local separator = HorizontalSpan:new({ width = Size.span.horizontal_default })
-  local vspan = VerticalSpan:new({ width = Size.span.vertical_large * 2 })
+  local vspan = VerticalSpan:new({ height = Size.span.vertical_large * 2 })
   local vertical_group = VerticalGroup:new({ align = "center" })
   local title_group = HorizontalGroup:new({ align = "center" })
   local white_group = HorizontalGroup:new({ align = "center" })
@@ -212,37 +208,37 @@ function NaturalLightWidget:createMainContent(width, height)
   local exponent_group = HorizontalGroup:new({ align = "center" })
   local button_group = HorizontalGroup:new({ align = "center" })
   local text_gain = TextBoxWidget:new({
-    text = _("Amplification"),
+    text = gettext("Amplification"),
     face = self.medium_font_face,
     bold = true,
     width = self.textbox_width + 2 * self.button_width,
   })
   local text_offset = TextBoxWidget:new({
-    text = _("Offset"),
+    text = gettext("Offset"),
     face = self.medium_font_face,
     bold = true,
     width = self.textbox_width + self.button_width,
   })
   local text_white = TextBoxWidget:new({
-    text = _("White"),
+    text = gettext("White"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
   })
   local text_red = TextBoxWidget:new({
-    text = _("Red"),
+    text = gettext("Red"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
   })
   local text_green = TextBoxWidget:new({
-    text = _("Green"),
+    text = gettext("Green"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
   })
   local text_exponent = TextBoxWidget:new({
-    text = _("Exponent"),
+    text = gettext("Exponent"),
     face = self.medium_font_face,
     bold = true,
     width = self.text_width,
@@ -252,7 +248,6 @@ function NaturalLightWidget:createMainContent(width, height)
     margin = Size.margin.small,
     radius = 0,
     width = math.floor(self.width * 0.35),
-    show_parent = self,
     callback = function()
       self:setAllValues({
         white_gain = 25,
@@ -270,7 +265,6 @@ function NaturalLightWidget:createMainContent(width, height)
     margin = Size.margin.small,
     radius = 0,
     width = math.floor(self.width * 0.2),
-    show_parent = self,
     callback = function()
       self:setAllValues(self.old_values)
       self:onExit()
@@ -281,12 +275,8 @@ function NaturalLightWidget:createMainContent(width, height)
     margin = Size.margin.small,
     radius = 0,
     width = math.floor(self.width * 0.2),
-    show_parent = self,
     callback = function()
-      G_reader_settings:saveSetting(
-        "natural_light_config",
-        self:getCurrentValues()
-      )
+      G_reader_settings:save("natural_light_config", self:getCurrentValues())
       self:onExit()
     end,
   })

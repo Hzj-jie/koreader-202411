@@ -14,48 +14,43 @@ local Util = require("util")
 local VirtualKeyboard = require("ui/widget/virtualkeyboard")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local T = require("ffi/util").template
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("ffi/util")
-local _ = require("gettext")
 
-local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local CalculatorConvertDialog = require("calculatorconvertdialog")
+local CalculatorSettingsDialog = require("calculatorsettingsdialog")
 local Parser = require("formulaparser/formulaparser")
 
-local VERSION_FILE = "plugins/calculator.koplugin/VERSION"
-local LATEST_VERSION =
-  "https://raw.githubusercontent.com/zwim/calculator.koplugin/master/VERSION"
+local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"
 
 local Calculator = WidgetContainer:new({
   name = "calculator",
   is_doc_only = false,
-  calculator_output_path = G_reader_settings:readSetting(
-    "calculator_output_path"
-  ) or util.realpath(DataStorage:getDataDir()) .. "/output.calc",
-  calculator_input_path = G_reader_settings:readSetting(
-    "calculator_input_path"
-  ) or util.realpath(DataStorage:getDataDir()) .. "/input.calc",
-  init_file = "plugins/calculator.koplugin/init.calc",
-  use_init_file = G_reader_settings:readSetting("calculator_use_init_file")
-    or "yes",
-  load_file = G_reader_settings:readSetting("calculator_init_path")
-    or init_file,
+  calculator_output_path = G_reader_settings:read("calculator_output_path")
+    or util.realpath(DataStorage:getDataDir()) .. "/output.calc",
+  calculator_input_path = G_reader_settings:read("calculator_input_path")
+    or util.realpath(DataStorage:getDataDir()) .. "/input.calc",
+  init_file = DEFAULT_INIT_FILE,
+  use_init_file = G_reader_settings:read("calculator_use_init_file") or "yes",
+  load_file = G_reader_settings:read("calculator_init_path")
+    or DEFAULT_INIT_FILE,
   history = "",
   i_num = 1, -- number of next input
   input = {},
   angle_mode = "degree", -- don't translate
   angle_modes = {
-    { "radiant", _("Radiant") },
-    { "degree", _("Degree") },
-    { "gon", _("Gon") },
+    { "radiant", gettext("Radiant") },
+    { "degree", gettext("Degree") },
+    { "gon", gettext("Gon") },
   },
   number_format = "auto", -- don't translate
   number_formats = {
-    { "scientific", _("Scientific") },
-    { "engineer", _("Engineer") },
-    { "auto", _("Auto") },
-    { "programmer", _("Programmer") },
-    { "native", _("Native") },
+    { "scientific", gettext("Scientific") },
+    { "engineer", gettext("Engineer") },
+    { "auto", gettext("Auto") },
+    { "programmer", gettext("Programmer") },
+    { "native", gettext("Native") },
   },
   significant_places = 5, -- decimal places
   lower_bound = 4, -- switch to scientific if <=10^lower_bound
@@ -63,10 +58,10 @@ local Calculator = WidgetContainer:new({
 })
 
 function Calculator:init()
-  G_reader_settings:saveSetting("calculator_output_path", self.output_path)
-  G_reader_settings:saveSetting("calculator_input_path", self.input_path)
-  G_reader_settings:saveSetting("calculator_input_path", self.input_path)
-  G_reader_settings:saveSetting("calculator_use_init_file", self.use_init_file)
+  G_reader_settings:save("calculator_output_path", self.output_path)
+  G_reader_settings:save("calculator_input_path", self.input_path)
+  G_reader_settings:save("calculator_input_path", self.input_path)
+  G_reader_settings:save("calculator_use_init_file", self.use_init_file)
   if self.use_init_file == "yes" then
     self:load(nil, self.init_file)
   end
@@ -77,7 +72,7 @@ function Calculator:init()
   if self.ui.highlight then
     self.ui.highlight:addToHighlightDialog("13_convert", function(this)
       return {
-        text = _("Convert Unit"),
+        text = gettext("Convert Unit"),
         show_in_highlight_dialog_func = function()
           return this.selected_text.text:find("^%p*%d+") ~= nil
         end,
@@ -92,18 +87,14 @@ end
 
 function Calculator:addKeyboard()
   VirtualKeyboard.lang_to_keyboard_layout["Calculator"] = "calc_keyboard"
-  self.original_keyboard_layout =
-    G_reader_settings:readSetting("keyboard_layout")
-  G_reader_settings:saveSetting("keyboard_layout", "Calculator")
+  self.original_keyboard_layout = G_reader_settings:read("keyboard_layout")
+  G_reader_settings:save("keyboard_layout", "Calculator")
 end
 
 function Calculator:restoreKeyboard()
   VirtualKeyboard.lang_to_keyboard_layout["Calculator"] = nil
 
-  G_reader_settings:saveSetting(
-    "keyboard_layout",
-    self.original_keyboard_layout
-  )
+  G_reader_settings:save("keyboard_layout", self.original_keyboard_layout)
 end
 
 function Calculator:gotoEnd()
@@ -113,8 +104,7 @@ end
 
 function Calculator:addToMainMenu(menu_items)
   menu_items.calculator = {
-    text = _("Calculator"),
-    sorting_hint = "tools",
+    text = gettext("Calculator"),
     keep_menu_open = true,
     callback = function()
       self:onCalculatorStart()
@@ -126,7 +116,7 @@ function Calculator:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_calculator", {
     category = "none",
     event = "CalculatorStart",
-    title = _("Calculator"),
+    title = gettext("Calculator"),
     device = true,
   })
 end
@@ -147,7 +137,7 @@ function Calculator:getStatusLine()
   local format = self:getString(self.number_format, self.number_formats)
   format = format .. (" "):rep(12 - #format)
   return string.format(
-    _("∡ %s\tFormat: %s\t≈%d"),
+    gettext("∡ %s\tFormat: %s\t≈%d"),
     angle_mode,
     format,
     self.significant_places
@@ -155,13 +145,13 @@ function Calculator:getStatusLine()
 end
 
 function Calculator:generateInputDialog(status_line)
-  local hint = _([[Enter your calculations and press '⮠'
+  local hint = gettext([[Enter your calculations and press '⮠'
 '♺' Convert, '⎚' Clear, '⇧' Load,
 '⇩' Store, '☰' Settings, '✕' Close
 or type 'help()⮠']])
 
   return InputDialog:new({
-    title = _("Calculator"),
+    title = gettext("Calculator"),
     input_hint = hint,
     description = status_line,
     description_face = Font:getFace("scfont"),
@@ -198,16 +188,16 @@ or type 'help()⮠']])
         },
         {
           text = "⇧",
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(MultiConfirmBox:new({
-              text = T(_("Use file %1"), self.calculator_input_path),
+              text = T(gettext("Use file %1"), self.calculator_input_path),
               cancel_text = "✕", --cancel
-              choice1_text = _("Select"),
+              choice1_text = gettext("Select"),
               choice1_callback = function()
                 UIManager:close(self.input_dialog)
                 CalculatorSettingsDialog.choosePathFile(
                   self,
-                  touchmenu_instance,
+                  menu,
                   "calculator_input_path",
                   false,
                   true,
@@ -223,16 +213,16 @@ or type 'help()⮠']])
         },
         {
           text = "⇩",
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(MultiConfirmBox:new({
-              text = T(_("Use file %1"), self.calculator_output_path),
+              text = T(gettext("Use file %1"), self.calculator_output_path),
               cancel_text = "✕", --cancel
-              choice1_text = _("Select"),
+              choice1_text = gettext("Select"),
               choice1_callback = function()
                 UIManager:close(self.input_dialog)
                 CalculatorSettingsDialog.choosePathFile(
                   self,
-                  touchmenu_instance,
+                  menu,
                   "calculator_output_path",
                   false,
                   true,
@@ -324,11 +314,11 @@ function Calculator:convertUnit(text_containing_unit)
 end
 
 function Calculator:onCalculatorStart()
-  self.angle_mode = G_reader_settings:readSetting("calculator_angle_mode")
+  self.angle_mode = G_reader_settings:read("calculator_angle_mode")
     or self.angle_mode
-  self.number_format = G_reader_settings:readSetting("calculator_number_format")
+  self.number_format = G_reader_settings:read("calculator_number_format")
     or self.number_format
-  self.significant_places = G_reader_settings:readSetting(
+  self.significant_places = G_reader_settings:read(
     "calculator_significant_places"
   ) or self.significant_places
 
@@ -359,9 +349,9 @@ function Calculator:onCalculatorStart()
 
   self.input_dialog =
     self:generateInputDialog(self:expandTabs(self.status_line, expand - 1))
+  self.input_dialog.ignore_first_hold_release = true
 
   UIManager:show(self.input_dialog)
-  self.input_dialog:showKeyboard(true)
 end
 
 function Calculator:load(old_file, file_name)
@@ -603,7 +593,7 @@ function Calculator:calculate(input_text)
     else
       self.history = input_text
       UIManager:show(InfoMessage:new({
-        text = last_err or _("Input error"),
+        text = last_err or gettext("Input error"),
       }))
     end
     self.history = self.history:gsub("\n\n", "\n")

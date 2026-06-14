@@ -4,8 +4,8 @@ local GestureRange = require("ui/gesturerange")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 
 local ScreenSaverLockWidget = InputContainer:extend({
@@ -16,7 +16,7 @@ local ScreenSaverLockWidget = InputContainer:extend({
 
 function ScreenSaverLockWidget:init()
   if Device:isTouchDevice() then
-    if G_reader_settings:readSetting("screensaver_delay") == "gesture" then
+    if G_reader_settings:read("screensaver_delay") == "gesture" then
       self:setupGestureEvents()
     end
     if not self.has_exit_screensaver_gesture then
@@ -74,7 +74,7 @@ function ScreenSaverLockWidget:setupGestureEvents()
           -- onExitScreensaver() will handle.
           local event_name = "TriggerExitScreensaver_" .. gesture
           self.ges_events[gesture].event = event_name
-          self["on" .. event_name] = function(this, args, ev)
+          self["on" .. event_name] = function(_self, _arg, ev)
             ui_gesture.handler(ev)
             return true
           end
@@ -99,9 +99,9 @@ function ScreenSaverLockWidget:showWaitForGestureMessage()
   -- We just paint an InfoMessage on screen directly: we don't want
   -- another widget that we would need to prevent catching events
   local infomsg = InfoMessage:new({
-    text = self.has_exit_screensaver_gesture and _(
+    text = self.has_exit_screensaver_gesture and gettext(
       "Waiting for specific gesture to exit screensaver."
-    ) or _("No exit screensaver gesture configured. Tap to exit."),
+    ) or gettext("No exit screensaver gesture configured. Tap to exit."),
   })
   infomsg:paintTo(Screen.bb, 0, 0)
   infomsg:onShow() -- get the screen refreshed

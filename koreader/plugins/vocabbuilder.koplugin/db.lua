@@ -1,7 +1,7 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
-local SQ3 = require("lua-ljsqlite3/init")
 local LuaData = require("luadata")
+local SQ3 = require("lua-ljsqlite3/init")
 local logger = require("logger")
 
 local db_location = DataStorage:getSettingsDir()
@@ -179,7 +179,7 @@ function VocabularyBuilder:insertLookupData(db_conn)
     return
   end
 
-  local lookup_history_table = lookup_history:readSetting()
+  local lookup_history_table = lookup_history:read()
   local book_titles = {}
   local stmt = db_conn:prepare("INSERT INTO title (name) values (?);")
   for i = #lookup_history_table, 1, -1 do

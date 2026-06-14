@@ -37,4 +37,15 @@ function Event:new(name, ...)
   return o
 end
 
+function Event:isUserInput()
+  return false
+end
+
+function Event:asUserInput()
+  self.isUserInput = function()
+    return true
+  end
+  return self
+end
+
 return Event

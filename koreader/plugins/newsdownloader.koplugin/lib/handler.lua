@@ -103,86 +103,17 @@
 --  Initial Import
 --@author Paul Chakravarti (paulc@passtheaardvark.com)<p/>
 
----Handler to generate a string prepresentation of a table
---Convenience function for printHandler (Does not support recursive tables).
---@param t Table to be parsed
---@returns Returns a string representation of table
-local function showTable(t)
-  local sep = ""
-  local res = ""
-  if type(t) ~= "table" then
-    return t
-  end
-  for k, v in pairs(t) do
-    if type(v) == "table" then
-      v = showTable(v)
-    end
-    res = res .. sep .. string.format("%s=%s", k, v)
-    sep = ","
-  end
-  res = "{" .. res .. "}"
-  return res
-end
-
----Handler to generate a simple event trace
-local printHandler = function()
-  local obj = {}
-  obj.starttag = function(self, t, a, s, e)
-    io.write("Start    : " .. t .. "\n")
-    if a then
-      for k, v in pairs(a) do
-        io.write(string.format(" + %s='%s'\n", k, v))
-      end
-    end
-  end
-  obj.endtag = function(self, t, s, e)
-    io.write("End      : " .. t .. "\n")
-  end
-  obj.text = function(self, t, s, e)
-    io.write("Text     : " .. t .. "\n")
-  end
-  obj.cdata = function(self, t, s, e)
-    io.write("CDATA    : " .. t .. "\n")
-  end
-  obj.comment = function(self, t, s, e)
-    io.write("Comment  : " .. t .. "\n")
-  end
-  obj.dtd = function(self, t, a, s, e)
-    io.write("DTD      : " .. t .. "\n")
-    if a then
-      for k, v in pairs(a) do
-        io.write(string.format(" + %s='%s'\n", k, v))
-      end
-    end
-  end
-  obj.pi = function(self, t, a, s, e)
-    io.write("PI       : " .. t .. "\n")
-    if a then
-      for k, v in pairs(a) do
-        io.write(string.format(" + %s='%s'\n", k, v))
-      end
-    end
-  end
-  obj.decl = function(self, t, a, s, e)
-    io.write("XML Decl : " .. t .. "\n")
-    if a then
-      for k, v in pairs(a) do
-        io.write(string.format(" + %s='%s'\n", k, v))
-      end
-    end
-  end
-  return obj
-end
-
 --Obtém a primeira chave de uma tabela
 --@param Tabela de onde deverá ser obtido o primeiro elemento
 --@return Retorna a primeira chave da tabela
 local function getFirstKey(tb)
   if type(tb) == "table" then
     --O uso da função next não funciona para pegar o primeiro elemento. Trava aqui
+    -- This comment seems weird, but just keep it as-is.
     --k, v = next(tb)
     --return k
-    for k, v in pairs(tb) do
+    -- TODO: Address this luacheck warning.
+    for k in pairs(tb) do -- luacheck: ignore 512
       return k
     end
     return nil
@@ -271,76 +202,6 @@ local function simpleTreeHandler()
 
   obj.cdata = obj.text
 
-  return obj
-end
-
---- domHandler
-local function domHandler()
-  local obj = {}
-  obj.options = { commentNode = 1, piNode = 1, dtdNode = 1, declNode = 1 }
-  obj.root = { _children = { n = 0 }, _type = "ROOT" }
-  obj.current = obj.root
-  obj.starttag = function(self, t, a)
-    local node = {
-      _type = "ELEMENT",
-      _name = t,
-      _attr = a,
-      _parent = self.current,
-      _children = { n = 0 },
-    }
-    table.insert(self.current._children, node)
-    self.current = node
-  end
-  obj.endtag = function(self, t, s)
-    if t ~= self.current._name then
-      error("XML Error - Unmatched Tag [" .. s .. ":" .. t .. "]\n")
-    end
-    self.current = self.current._parent
-  end
-  obj.text = function(self, t)
-    local node = { _type = "TEXT", _parent = self.current, _text = t }
-    table.insert(self.current._children, node)
-  end
-  obj.comment = function(self, t)
-    if self.options.commentNode then
-      local node = { _type = "COMMENT", _parent = self.current, _text = t }
-      table.insert(self.current._children, node)
-    end
-  end
-  obj.pi = function(self, t, a)
-    if self.options.piNode then
-      local node = {
-        _type = "PI",
-        _name = t,
-        _attr = a,
-        _parent = self.current,
-      }
-      table.insert(self.current._children, node)
-    end
-  end
-  obj.decl = function(self, t, a)
-    if self.options.declNode then
-      local node = {
-        _type = "DECL",
-        _name = t,
-        _attr = a,
-        _parent = self.current,
-      }
-      table.insert(self.current._children, node)
-    end
-  end
-  obj.dtd = function(self, t, a)
-    if self.options.dtdNode then
-      local node = {
-        _type = "DTD",
-        _name = t,
-        _attr = a,
-        _parent = self.current,
-      }
-      table.insert(self.current._children, node)
-    end
-  end
-  obj.cdata = obj.text
   return obj
 end
 

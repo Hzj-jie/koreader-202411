@@ -5,8 +5,8 @@ This plugin provides a terminal emulator (VT52 (+some ANSI and some VT100))
 ]]
 
 local Device = require("device")
-local logger = require("logger")
 local ffi = require("ffi")
+local logger = require("logger")
 local C = ffi.C
 require("ffi/posix_h")
 
@@ -74,22 +74,22 @@ then
 end
 
 local Aliases = require("aliases")
-local Dispatcher = require("dispatcher")
 local DataStorage = require("datastorage")
+local Dispatcher = require("dispatcher")
 local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local ScrollTextWidget = require("ui/widget/scrolltextwidget")
 local SpinWidget = require("ui/widget/spinwidget")
-local UIManager = require("ui/uimanager")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local TermInputText = require("terminputtext")
 local TextWidget = require("ui/widget/textwidget")
+local UIManager = require("ui/uimanager")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local bit = require("bit")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local CHUNK_SIZE = 80 * 40 -- max. nb of read bytes (reduce this, if taps are not detected)
@@ -98,8 +98,7 @@ local Terminal = WidgetContainer:extend({
   name = "terminal",
   history = "",
   is_shell_open = false,
-  buffer_size = 1024
-    * (G_reader_settings:readSetting("terminal_buffer_size") or 16), -- size in kB
+  buffer_size = 1024 * (G_reader_settings:read("terminal_buffer_size") or 16), -- size in kB
   refresh_time = 0.2,
   terminal_data = ".",
 })
@@ -131,7 +130,7 @@ function Terminal:getDefaultShellExecutable()
     table.insert(shell, 1, env_shell)
   end
 
-  for dummy, file in ipairs(shell) do
+  for __, file in ipairs(shell) do
     if self:isExecutable(file) then
       self.default_shell_executable = file
       break
@@ -211,7 +210,7 @@ function Terminal:spawnShell(cols, rows)
   end
   local profile_file = "./plugins/terminal.koplugin/profile"
   local rlw = get_readline_wrapper()
-  local shell = G_reader_settings:readSetting("terminal_shell")
+  local shell = G_reader_settings:read("terminal_shell")
     or self:getDefaultShellExecutable()
   local args = {}
   if shell:find("bash") then
@@ -220,7 +219,7 @@ function Terminal:spawnShell(cols, rows)
 
   if not self:isExecutable(shell) then
     UIManager:show(InfoMessage:new({
-      text = _("Shell is not executable"),
+      text = gettext("Shell is not executable"),
     }))
     return false
   end
@@ -395,7 +394,7 @@ end
 
 function Terminal:generateInputDialog()
   return InputDialog:new({
-    title = _("Terminal emulator"),
+    title = gettext("Terminal emulator"),
     input = self.history,
     input_face = self.input_face,
     para_direction_rtl = false,
@@ -420,21 +419,21 @@ function Terminal:generateInputDialog()
         },
         {
           -- @translators This is the ESC-key on the keyboard.
-          text = _("Esc"),
+          text = gettext("Esc"),
           callback = function()
             self:transmit("\027")
           end,
         },
         {
           -- @translators This is the CTRL-key on the keyboard.
-          text = _("Ctrl"),
+          text = gettext("Ctrl"),
           callback = function()
             self.ctrl = true
           end,
         },
         {
           -- @translators This is the CTRL-C key combination.
-          text = _("Ctrl-C"),
+          text = gettext("Ctrl-C"),
           callback = function()
             self:transmit("\003")
             -- consume and drop everything
@@ -466,9 +465,9 @@ function Terminal:generateInputDialog()
         {
           text = "☰", -- settings menu
           callback = function()
-            UIManager:close(self.input_widget.keyboard)
+            self.input_widget:closeKeyboard()
             Aliases:show(self.terminal_data .. "/scripts/aliases", function()
-              UIManager:show(self.input_widget.keyboard)
+              self.input_widget:showKeyboard()
               UIManager:setDirty(self.input_dialog, "fast") -- is there a better solution
             end, self)
           end,
@@ -477,10 +476,10 @@ function Terminal:generateInputDialog()
           text = "✕", --cancel
           callback = function()
             UIManager:show(MultiConfirmBox:new({
-              text = _(
+              text = gettext(
                 "You can close the terminal, but leave the shell open for further commands or quit it now."
               ),
-              choice1_text = _("Close"),
+              choice1_text = gettext("Close"),
               choice1_callback = function()
                 self.history = self.input_dialog:getInputText()
                 -- trim trialing spaces and newlines
@@ -493,18 +492,18 @@ function Terminal:generateInputDialog()
 
                 UIManager:unschedule(Terminal.refresh)
                 UIManager:close(self.input_dialog)
-                if self.touchmenu_instance then
-                  self.touchmenu_instance:updateItems()
+                if self.menu then
+                  self.menu:updateItems()
                 end
               end,
-              choice2_text = _("Quit"),
+              choice2_text = gettext("Quit"),
               choice2_callback = function()
                 self.history = ""
                 self:killShell()
                 UIManager:unschedule(Terminal.refresh)
                 UIManager:close(self.input_dialog)
-                if self.touchmenu_instance then
-                  self.touchmenu_instance:updateItems()
+                if self.menu then
+                  self.menu:updateItems()
                 end
               end,
             }))
@@ -540,12 +539,12 @@ function Terminal:onClose()
   self:killShell()
 end
 
-function Terminal:onTerminalStart(touchmenu_instance)
-  self.touchmenu_instance = touchmenu_instance
+function Terminal:onTerminalStart(menu)
+  self.menu = menu
 
   self.input_face = Font:getFace(
     "smallinfont",
-    G_reader_settings:readSetting("terminal_font_size") or 14
+    G_reader_settings:read("terminal_font_size") or 14
   )
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
@@ -567,20 +566,19 @@ function Terminal:onTerminalStart(touchmenu_instance)
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
     UIManager:scheduleIn(0.25, Terminal.refresh, self, true)
-    self.input_dialog:showKeyboard(true)
   end
 end
 
 function Terminal:addToMainMenu(menu_items)
   menu_items.terminal = {
-    text = _("Terminal emulator"),
+    text = gettext("Terminal emulator"),
     keep_menu_open = true,
     sub_item_table = {
       {
-        text = _("About terminal emulator"),
+        text = gettext("About terminal emulator"),
         callback = function()
           local about_text =
-            _([[Terminal emulator can start a shell (command prompt).
+            gettext([[Terminal emulator can start a shell (command prompt).
 
 There are two environment variables TERMINAL_HOME and TERMINAL_DATA containing the path of the install and the data folders.
 
@@ -592,7 +590,7 @@ Aliases (shortcuts) to frequently used commands can be placed in:
           if not Device:isAndroid() then
             about_text = about_text
               .. "\n\n"
-              .. _(
+              .. gettext(
                 "You can use 'shfm' as a file manager, '?' shows shfm’s help message."
               )
           end
@@ -606,23 +604,24 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       },
       {
         text_func = function()
-          local state = self.is_shell_open and _("running") or _("not running")
-          return T(_("Open terminal session (%1)"), state)
+          local state = self.is_shell_open and gettext("running")
+            or gettext("not running")
+          return T(gettext("Open terminal session (%1)"), state)
         end,
-        callback = function(touchmenu_instance)
-          self:onTerminalStart(touchmenu_instance)
+        callback = function(menu)
+          self:onTerminalStart(menu)
         end,
         keep_menu_open = true,
       },
       {
-        text = _("End terminal session"),
+        text = gettext("End terminal session"),
         enabled_func = function()
           return self:killShell(true) >= 0
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self:killShell()
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end,
         keep_menu_open = true,
@@ -631,24 +630,23 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       {
         text_func = function()
           return T(
-            _("Font size: %1"),
-            G_reader_settings:readSetting("terminal_font_size") or 14
+            gettext("Font size: %1"),
+            G_reader_settings:read("terminal_font_size") or 14
           )
         end,
-        callback = function(touchmenu_instance)
-          local cur_size = G_reader_settings:readSetting("terminal_font_size")
-            or 14
+        callback = function(menu)
+          local cur_size = G_reader_settings:read("terminal_font_size") or 14
           local size_spin = SpinWidget:new({
             value = cur_size,
             value_min = 8,
             value_max = 30,
             value_hold_step = 2,
             default_value = 14,
-            title_text = _("Terminal emulator font size"),
+            title_text = gettext("Terminal emulator font size"),
             callback = function(spin)
-              G_reader_settings:saveSetting("terminal_font_size", spin.value)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              G_reader_settings:save("terminal_font_size", spin.value)
+              if menu then
+                menu:updateItems()
               end
             end,
           })
@@ -659,13 +657,12 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       {
         text_func = function()
           return T(
-            _("Buffer size: %1 kB"),
-            G_reader_settings:readSetting("terminal_buffer_size") or 16
+            gettext("Buffer size: %1 kB"),
+            G_reader_settings:read("terminal_buffer_size") or 16
           )
         end,
-        callback = function(touchmenu_instance)
-          local cur_buffer =
-            G_reader_settings:readSetting("terminal_buffer_size")
+        callback = function(menu)
+          local cur_buffer = G_reader_settings:read("terminal_buffer_size")
           local buffer_spin = SpinWidget:new({
             value = cur_buffer,
             value_min = 10,
@@ -673,11 +670,11 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             value_hold_step = 2,
             default_value = 16,
             unit = C_("Data storage size", "kB"),
-            title_text = _("Terminal emulator buffer size (kB)"),
+            title_text = gettext("Terminal emulator buffer size (kB)"),
             callback = function(spin)
-              G_reader_settings:saveSetting("terminal_buffer_size", spin.value)
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              G_reader_settings:save("terminal_buffer_size", spin.value)
+              if menu then
+                menu:updateItems()
               end
             end,
           })
@@ -688,43 +685,43 @@ Aliases (shortcuts) to frequently used commands can be placed in:
       {
         text_func = function()
           return T(
-            _("Shell executable: %1"),
-            G_reader_settings:readSetting("terminal_shell")
+            gettext("Shell executable: %1"),
+            G_reader_settings:read("terminal_shell")
               or self:getDefaultShellExecutable()
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           self.shell_dialog = InputDialog:new({
-            title = _("Shell to use"),
+            title = gettext("Shell to use"),
             description = T(
-              _("Here you can select the startup shell.\nDefault: %1"),
+              gettext("Here you can select the startup shell.\nDefault: %1"),
               self:getDefaultShellExecutable()
             ),
-            input = G_reader_settings:readSetting("terminal_shell")
+            input = G_reader_settings:read("terminal_shell")
               or self:getDefaultShellExecutable(),
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   callback = function()
                     UIManager:close(self.shell_dialog)
                   end,
                 },
                 {
-                  text = _("Default"),
+                  text = gettext("Default"),
                   callback = function()
-                    G_reader_settings:saveSetting(
+                    G_reader_settings:save(
                       "terminal_shell",
                       self:getDefaultShellExecutable()
                     )
                     UIManager:close(self.shell_dialog)
-                    if touchmenu_instance then
-                      touchmenu_instance:updateItems()
+                    if menu then
+                      menu:updateItems()
                     end
                   end,
                 },
                 {
-                  text = _("Save"),
+                  text = gettext("Save"),
                   is_enter_default = true,
                   callback = function()
                     local new_shell = self.shell_dialog:getInputText()
@@ -732,14 +729,14 @@ Aliases (shortcuts) to frequently used commands can be placed in:
                       new_shell = "sh"
                     end
                     if self:isExecutable(new_shell) then
-                      G_reader_settings:saveSetting("terminal_shell", new_shell)
+                      G_reader_settings:save("terminal_shell", new_shell)
                       UIManager:close(self.shell_dialog)
-                      if touchmenu_instance then
-                        touchmenu_instance:updateItems()
+                      if menu then
+                        menu:updateItems()
                       end
                     else
                       UIManager:show(InfoMessage:new({
-                        text = _("Shell is not executable"),
+                        text = gettext("Shell is not executable"),
                       }))
                     end
                   end,
@@ -748,7 +745,6 @@ Aliases (shortcuts) to frequently used commands can be placed in:
             },
           })
           UIManager:show(self.shell_dialog)
-          self.shell_dialog:showKeyboard()
         end,
         keep_menu_open = true,
       },
@@ -760,7 +756,7 @@ function Terminal:onDispatcherRegisterActions()
   Dispatcher:registerAction("terminal", {
     category = "none",
     event = "TerminalStart",
-    title = _("Terminal emulator"),
+    title = gettext("Terminal emulator"),
     device = true,
   })
 end

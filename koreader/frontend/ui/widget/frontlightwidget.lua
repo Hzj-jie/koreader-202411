@@ -4,10 +4,10 @@ local ButtonProgressWidget = require("ui/widget/buttonprogresswidget")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local Font = require("ui/font")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local Math = require("optmath")
@@ -20,18 +20,17 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
+local C_ = gettext.pgettext
 local Screen = Device.screen
 
 local FrontLightWidget = FocusManager:extend({
   name = "FrontLightWidget",
   width = nil,
   height = nil,
-  -- This should stay active during natural light configuration
-  is_always_active = true,
-  rate = Screen.low_pan_rate and 3 or 30, -- Widget update rate.
+  modal = true,
+  rate = G_named_settings.low_pan_rate_or_full(3), -- Widget update rate.
   last_time = 0, -- Tracks last update time to prevent update spamming.
 })
 
@@ -85,7 +84,7 @@ function FrontLightWidget:init()
     local close_keys = Device:hasFewKeys()
         and { Device.input.group.Back, "Left" }
       or Device.input.group.Back
-    self.key_events.Close = { { close_keys } }
+    self.key_events.Exit = { { close_keys } }
   end
   if Device:isTouchDevice() then
     self.ges_events = {
@@ -131,7 +130,7 @@ function FrontLightWidget:layout()
   -- Frontlight
   -- Bigger spans, as ProgressWidget appears to be ever so slightly smaller than ButtonProgressWidget ;).
   local fl_padding_span =
-    VerticalSpan:new({ width = Math.round(self.span * 1.5) })
+    VerticalSpan:new({ height = Math.round(self.span * 1.5) })
   local fl_group_above = HorizontalGroup:new({ align = "center" })
   local fl_group_below = HorizontalGroup:new({ align = "center" })
   local main_group = VerticalGroup:new({ align = "center" })
@@ -150,7 +149,7 @@ function FrontLightWidget:layout()
     last = self.fl.max,
   })
   local fl_header = TextWidget:new({
-    text = _("Brightness"),
+    text = gettext("Brightness"),
     face = self.medium_font_face,
     bold = true,
     max_width = self.inner_width,
@@ -159,7 +158,6 @@ function FrontLightWidget:layout()
     text = "−",
     enabled = self.fl.cur ~= self.fl.min,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.cur - 1)
     end,
@@ -168,7 +166,6 @@ function FrontLightWidget:layout()
     text = "＋",
     enabled = self.fl.cur ~= self.fl.max,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.cur + 1)
     end,
@@ -189,7 +186,6 @@ function FrontLightWidget:layout()
     text = C_("Extrema", "Min"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.min + 1)
     end, -- min is 1 (We use 0 to mean "toggle")
@@ -198,16 +194,14 @@ function FrontLightWidget:layout()
     text = C_("Extrema", "Max"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.max)
     end,
   })
   local fl_toggle = Button:new({
-    text = _("Toggle"),
+    text = gettext("Toggle"),
     enabled = true,
     width = self.button_width,
-    show_parent = self,
     callback = function()
       self:setBrightness(self.fl.min)
     end,
@@ -250,7 +244,7 @@ function FrontLightWidget:layout()
   -- Warmth
   if self.has_nl then
     -- Smaller spans, as ButtonProgressWidget appears to be ever so slightly taller than ProgressWidget ;).
-    local nl_padding_span = VerticalSpan:new({ width = self.span })
+    local nl_padding_span = VerticalSpan:new({ height = self.span })
     local nl_group_above = HorizontalGroup:new({ align = "center" })
     local nl_group_below = HorizontalGroup:new({ align = "center" })
 
@@ -265,13 +259,12 @@ function FrontLightWidget:layout()
       callback = function(i)
         self:setWarmth(Math.round(i * self.nl.stride), false)
       end,
-      show_parent = self,
       enabled = true,
     })
     -- We want a wider gap between the two sets of widgets
-    local nl_span = VerticalSpan:new({ width = Size.span.vertical_large * 4 })
+    local nl_span = VerticalSpan:new({ height = Size.span.vertical_large * 4 })
     local nl_header = TextWidget:new({
-      text = _("Warmth"),
+      text = gettext("Warmth"),
       face = self.medium_font_face,
       bold = true,
       max_width = self.inner_width,
@@ -280,7 +273,6 @@ function FrontLightWidget:layout()
       text = "−",
       enabled = self.nl.cur ~= self.nl.min,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.cur - 1, true)
       end,
@@ -289,7 +281,6 @@ function FrontLightWidget:layout()
       text = "＋",
       enabled = self.nl.cur ~= self.nl.max,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.cur + 1, true)
       end,
@@ -310,7 +301,6 @@ function FrontLightWidget:layout()
       text = C_("Extrema", "Min"),
       enabled = true,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.min, true)
       end,
@@ -319,7 +309,6 @@ function FrontLightWidget:layout()
       text = C_("Extrema", "Max"),
       enabled = true,
       width = self.button_width,
-      show_parent = self,
       callback = function()
         self:setWarmth(self.nl.max, true)
       end,
@@ -329,11 +318,10 @@ function FrontLightWidget:layout()
     -- Aura One R/G/B widget
     if not self.has_nl_mixer and not self.has_nl_api then
       nl_setup = Button:new({
-        text = _("Configure"),
+        text = gettext("Configure"),
         width = self.button_width,
-        show_parent = self,
         callback = function()
-          UIManager:show(NaturalLight:new({ fl_widget = self }))
+          self:showWidget(NaturalLight:new({ fl_widget = self }))
         end,
       })
       nl_spacer_width =
@@ -385,7 +373,7 @@ function FrontLightWidget:layout()
 
   -- Common
   local title_bar = TitleBar:new({
-    title = _("Frontlight"),
+    title = gettext("Frontlight"),
     width = self.width,
     align = "left",
     with_bottom_line = true,
@@ -393,7 +381,6 @@ function FrontLightWidget:layout()
     close_callback = function()
       self:onExit()
     end,
-    show_parent = self,
   })
   local inner_frame = FrameContainer:new({
     padding = Size.padding.button,
@@ -568,8 +555,8 @@ function FrontLightWidget:onTapProgress(arg, ges_ev)
     self:setFrontLightIntensity(num)
 
     -- But limit the widget update frequency on E Ink.
-    if Screen.low_pan_rate then
-      local current_time = time.now()
+    if G_named_settings.low_pan_rate() then
+      local current_time = time.monotonic()
       local last_time = self.last_time or 0
       if current_time - last_time > time.s(1 / self.rate) then
         self.last_time = current_time

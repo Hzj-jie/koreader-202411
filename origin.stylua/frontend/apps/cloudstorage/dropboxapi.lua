@@ -1,5 +1,6 @@
 local DocumentRegistry = require("document/documentregistry")
 local JSON = require("json")
+local _ = require("gettext")
 local ffiUtil = require("ffi/util")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
@@ -8,7 +9,6 @@ local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local util = require("util")
-local _ = require("gettext")
 
 local DropBoxApi = {}
 

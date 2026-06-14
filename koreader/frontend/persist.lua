@@ -77,7 +77,7 @@ local codecs = {
     reads_from_file = true,
     writes_to_file = true,
 
-    serialize = function(t, as_bytecode, path)
+    serialize = function(t, _as_bytecode, path)
       local ok, str = pcall(buffer.encode, t)
       if not ok then
         return nil, "cannot serialize " .. tostring(t) .. " (" .. str .. ")"

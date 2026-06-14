@@ -6,62 +6,128 @@
 
 local named_settings = {
   set = {},
+  flip = {},
+  default = {},
 }
 
 function named_settings.home_dir()
   -- Use of readSetting("home_dir") should still be possible but very limited, e.g. protected by
   -- G_named_settings:has("home_dir") or with another way to provide the backup_dir().
-  return G_reader_settings:readSetting("home_dir")
-    or require("util").backup_dir()
+  return G_reader_settings:read("home_dir") or require("util").backup_dir()
 end
 
 function named_settings.lastdir()
-  return G_reader_settings:readSetting("lastdir")
-    or require("util").backup_dir()
+  return G_reader_settings:read("lastdir") or require("util").backup_dir()
 end
 
 function named_settings.activate_menu()
-  return G_reader_settings:readSetting("activate_menu") or "swipe_tap"
+  return G_reader_settings:read("activate_menu") or "swipe_tap"
+end
+
+function named_settings.set.activate_menu(value)
+  return G_reader_settings:save("activate_menu", value, "swipe_tap")
 end
 
 function named_settings.auto_standby_timeout_seconds()
-  return G_reader_settings:readSetting("auto_standby_timeout_seconds") or -1
+  return G_reader_settings:read("auto_standby_timeout_seconds") or -1
 end
 
 function named_settings.back_in_filemanager()
-  return G_reader_settings:readSetting("back_in_filemanager") or "default"
+  return G_reader_settings:read("back_in_filemanager") or "default"
 end
 
 function named_settings.back_in_reader()
-  return G_reader_settings:readSetting("back_in_reader") or "previous_location"
+  return G_reader_settings:read("back_in_reader") or "previous_location"
 end
 
 function named_settings.back_to_exit()
-  return G_reader_settings:readSetting("back_to_exit") or "prompt"
+  return G_reader_settings:read("back_to_exit") or "prompt"
 end
 
 function named_settings.dict_font_size()
-  return G_reader_settings:readSetting("dict_font_size") or 20
+  return G_reader_settings:read("dict_font_size") or 20
 end
 
 function named_settings.dimension_units()
-  return G_reader_settings:readSetting("dimension_units") or "mm"
+  return G_reader_settings:read("dimension_units") or "mm"
 end
 
 function named_settings.document_metadata_folder()
-  return G_reader_settings:readSetting("document_metadata_folder") or "doc"
+  return G_reader_settings:read("document_metadata_folder") or "doc"
 end
 
 function named_settings.duration_format()
-  return G_reader_settings:readSetting("duration_format") or "classic"
+  return G_reader_settings:read("duration_format") or "classic"
 end
 
 function named_settings.show_file_in_bold()
-  return G_reader_settings:readSetting("show_file_in_bold") or "new"
+  return G_reader_settings:read("show_file_in_bold") or "new"
 end
 
 function named_settings.set.show_file_in_bold(value)
-  return G_reader_settings:saveSetting("show_file_in_bold", value, "new")
+  return G_reader_settings:save("show_file_in_bold", value, "new")
+end
+
+function named_settings.low_pan_rate()
+  if G_reader_settings:has("low_pan_rate") then
+    return G_reader_settings:read("low_pan_rate")
+  end
+  return require("device"):hasEinkScreen()
+end
+
+function named_settings.low_pan_rate_or_full(value)
+  return named_settings.low_pan_rate() and value or 30
+end
+
+function named_settings.low_pan_rate_or_scroll(value)
+  return named_settings.low_pan_rate() and (value or 2) or 5
+end
+
+function named_settings.flip.low_pan_rate()
+  return G_reader_settings:save(
+    "low_pan_rate",
+    not named_settings.low_pan_rate(),
+    require("device"):hasEinkScreen()
+  )
+end
+
+function named_settings.default.full_refresh_count()
+  return 24
+end
+
+function named_settings.full_refresh_count()
+  return G_reader_settings:read("full_refresh_count")
+    or named_settings.default.full_refresh_count()
+end
+
+function named_settings.set.full_refresh_count(rate)
+  return G_reader_settings:save(
+    "full_refresh_count",
+    rate,
+    named_settings.default.full_refresh_count()
+  )
+end
+
+function named_settings.fast_screen_refresh()
+  if not named_settings.low_pan_rate() then
+    return true
+  end
+  return G_reader_settings:isFalse("avoid_flashing_ui")
+    or named_settings.full_refresh_count()
+      < G_named_settings.default.full_refresh_count()
+end
+
+function named_settings.collate()
+  return G_reader_settings:read("collate") or "strcoll"
+end
+
+function named_settings.set.collate(value)
+  return G_reader_settings:save("collate", value, "strcoll")
+end
+
+function named_settings.show_bottom_menu()
+  return not require("device"):isTouchDevice()
+    or G_reader_settings:nilOrTrue("show_bottom_menu")
 end
 
 return named_settings

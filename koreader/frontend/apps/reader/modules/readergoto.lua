@@ -3,7 +3,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local SkimToWidget = require("ui/widget/skimtowidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local T = require("ffi/util").template
 
 local ReaderGoto = WidgetContainer:extend({})
@@ -14,13 +14,13 @@ end
 
 function ReaderGoto:addToMainMenu(menu_items)
   menu_items.go_to = {
-    text = _("Go to page"),
+    text = gettext("Go to page"),
     callback = function()
       self:onShowGotoDialog()
     end,
   }
   menu_items.skim_to = {
-    text = _("Skim document"),
+    text = gettext("Skim document"),
     callback = function()
       self:onShowSkimtoDialog()
     end,
@@ -43,24 +43,24 @@ function ReaderGoto:onShowGotoDialog()
   input_hint = input_hint
     .. string.format("  %.2f%%", curr_page / self.document:getPageCount() * 100)
   self.goto_dialog = InputDialog:new({
-    title = _("Enter page number or percentage"),
+    title = gettext("Enter page number or percentage"),
     input_hint = input_hint,
     input_type = "number",
-    description = self.document:hasHiddenFlows() and _([[
+    description = self.document:hasHiddenFlows() and gettext([[
 x for an absolute page number
 [x] for a page number in the main (linear) flow
 [x]y for a page number in the non-linear fragment y]]) or nil,
     buttons = {
       {
         {
-          text = _("Skim"),
+          text = gettext("Skim"),
           callback = function()
             self:close()
             self:onShowSkimtoDialog()
           end,
         },
         {
-          text = _("Go to %"),
+          text = gettext("Go to %"),
           callback = function()
             self:gotoPercent()
           end,
@@ -68,14 +68,14 @@ x for an absolute page number
       },
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             self:close()
           end,
         },
         {
-          text = _("Go to page"),
+          text = gettext("Go to page"),
           is_enter_default = true,
           callback = function()
             self:gotoPage()
@@ -84,8 +84,7 @@ x for an absolute page number
       },
     },
   })
-  UIManager:show(self.goto_dialog)
-  self.goto_dialog:showKeyboard()
+  self:showWidget(self.goto_dialog)
 end
 
 function ReaderGoto:onShowSkimtoDialog()
@@ -96,7 +95,7 @@ function ReaderGoto:onShowSkimtoDialog()
       self:onShowGotoDialog()
     end,
   })
-  UIManager:show(self.skimto)
+  self:showWidget(self.skimto)
 end
 
 function ReaderGoto:close()
@@ -110,17 +109,17 @@ function ReaderGoto:gotoPage()
   if number then
     self.ui.link:addCurrentLocationToStack()
     if relative_sign == "+" or relative_sign == "-" then
-      self.ui:handleEvent(Event:new("GotoRelativePage", number))
+      UIManager:broadcastEvent(Event:new("GotoRelativePage", number))
     else
       if self.ui.pagemap and self.ui.pagemap:wantsPageLabels() then
         number = self.ui.pagemap:getRenderedPageNumber(page_number, true)
         if number then -- found
-          self.ui:handleEvent(Event:new("GotoPage", number))
+          UIManager:broadcastEvent(Event:new("GotoPage", number))
         else
           return -- avoid self:close()
         end
       else
-        self.ui:handleEvent(Event:new("GotoPage", number))
+        UIManager:broadcastEvent(Event:new("GotoPage", number))
       end
     end
     self:close()
@@ -149,7 +148,7 @@ function ReaderGoto:gotoPage()
           page = self.ui.document:getFirstPageInFlow(flow) + number - 1
         end
         if page > 0 then
-          self.ui:handleEvent(Event:new("GotoPage", page))
+          UIManager:broadcastEvent(Event:new("GotoPage", page))
           self:close()
         end
       end
@@ -161,7 +160,7 @@ function ReaderGoto:gotoPercent()
   local number = self.goto_dialog:getInputValue()
   if number then
     self.ui.link:addCurrentLocationToStack()
-    self.ui:handleEvent(Event:new("GotoPercent", number))
+    UIManager:broadcastEvent(Event:new("GotoPercent", number))
     self:close()
   end
 end
@@ -170,7 +169,7 @@ function ReaderGoto:onGoToBeginning()
   local new_page = self.ui.document:getNextPage(0)
   if new_page then
     self.ui.link:addCurrentLocationToStack()
-    self.ui:handleEvent(Event:new("GotoPage", new_page))
+    UIManager:broadcastEvent(Event:new("GotoPage", new_page))
   end
   return true
 end
@@ -179,7 +178,7 @@ function ReaderGoto:onGoToEnd()
   local new_page = self.ui.document:getPrevPage(0)
   if new_page then
     self.ui.link:addCurrentLocationToStack()
-    self.ui:handleEvent(Event:new("GotoPage", new_page))
+    UIManager:broadcastEvent(Event:new("GotoPage", new_page))
   end
   return true
 end
@@ -207,7 +206,7 @@ function ReaderGoto:onGoToRandomPage()
     if random_page ~= current_page then
       table.remove(self.pages_pool, random_page_idx)
       self.ui.link:addCurrentLocationToStack()
-      self.ui:handleEvent(Event:new("GotoPage", random_page))
+      UIManager:broadcastEvent(Event:new("GotoPage", random_page))
       return true
     end
   end

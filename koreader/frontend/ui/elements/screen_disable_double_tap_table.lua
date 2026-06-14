@@ -1,14 +1,14 @@
 local UIManager = require("ui/uimanager")
-local _ = require("gettext")
+local gettext = require("gettext")
 
 return {
-  text = _("Disable double tap"),
+  text = gettext("Disable double tap"),
   checked_func = function()
     return G_reader_settings:nilOrTrue("disable_double_tap")
   end,
   callback = function()
     local disabled = G_reader_settings:nilOrTrue("disable_double_tap")
-    G_reader_settings:saveSetting("disable_double_tap", not disabled)
-    UIManager:askForRestart()
+    G_reader_settings:save("disable_double_tap", not disabled)
+    UIManager:askForRestartOrReload()
   end,
 }

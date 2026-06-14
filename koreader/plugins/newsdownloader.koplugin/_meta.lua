@@ -1,8 +1,8 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "newsdownloader",
-  fullname = _("News downloader"),
-  description = _(
+  fullname = gettext("News downloader"),
+  description = gettext(
     [[Retrieves RSS and Atom news entries and saves them as HTML files.]]
   ),
 }

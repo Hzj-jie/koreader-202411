@@ -3,8 +3,8 @@ local Math = require("optmath")
 local NickelConf = require("device/kobo/nickel_conf")
 local SysfsLight = require("device/sysfs_light")
 local UIManager
-local logger = require("logger")
 local RTC = require("ffi/rtc")
+local logger = require("logger")
 
 -- Here, we only deal with the real hw intensity.
 -- Dealing with toggling and remembering/restoring

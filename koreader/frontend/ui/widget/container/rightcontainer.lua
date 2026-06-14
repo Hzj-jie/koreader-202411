@@ -10,19 +10,22 @@ local RightContainer = WidgetContainer:extend({
 })
 
 function RightContainer:paintTo(bb, x, y)
+  self:mergePosition(x, y)
   local contentSize = self[1]:getSize()
   --- @fixme
-  -- if contentSize.w > self.dimen.w or contentSize.h > self.dimen.h then
+  -- if contentSize.w > self:getSize().w or contentSize.h > self:getSize().h then
   -- throw error? paint to scrap buffer and blit partially?
   -- for now, we ignore this
   -- end
   if not BD.mirroredUILayout() or not self.allow_mirroring then
-    x = x + (self.dimen.w - contentSize.w)
+    x = x + (self:getSize().w - contentSize.w)
     -- else: keep x, as in LeftContainer
   end
-  self.dimen.x = x
-  self.dimen.y = y + math.floor((self.dimen.h - contentSize.h) / 2)
-  self[1]:paintTo(bb, self.dimen.x, self.dimen.y)
+  self[1]:paintTo(bb, x, y + math.floor((self:getSize().h - contentSize.h) / 2))
+end
+
+function RightContainer:dirtyRegion()
+  return self[1]:dirtyRegion()
 end
 
 return RightContainer

@@ -6,9 +6,9 @@ local InputDialog = require("ui/widget/inputdialog")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 -- if sometime in the future crengine is updated to use normalized utf8 for hyphenation
@@ -53,9 +53,9 @@ function ReaderUserHyph:loadDictionary(name, reload, no_scrubbing)
     -- with the dictionary file by hand. -> Warning and disable.
     if ret == self.USER_DICT_ERROR_NOT_SORTED then
       if no_scrubbing then
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = T(
-            _(
+            gettext(
               "The user dictionary\n%1\nis not alphabetically sorted.\n\nIt will be disabled now."
             ),
             name
@@ -70,9 +70,9 @@ function ReaderUserHyph:loadDictionary(name, reload, no_scrubbing)
         self:loadDictionary(name, reload, true)
       end
     elseif ret == self.USER_DICT_MALFORMED then
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(
-          _(
+          gettext(
             "The user dictionary\n%1\nhas corrupted entries.\n\nOnly valid entries will be used."
           ),
           name
@@ -99,7 +99,7 @@ function ReaderUserHyph:loadUserDictionary(reload)
     self:isAvailable() and self:getDictionaryPath() or "",
     reload and true or false
   )
-  self.ui:handleEvent(Event:new("UpdatePos"))
+  UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
 -- Functions to use with the UI
@@ -115,13 +115,13 @@ end
 -- add Menu entry
 function ReaderUserHyph:getMenuEntry()
   return {
-    text = _("Custom hyphenation rules"),
-    help_text = _(
+    text = gettext("Custom hyphenation rules"),
+    help_text = gettext(
       "The hyphenation of a word can be changed from its default by long pressing for 3 seconds and selecting 'Hyphenate'."
     ),
     callback = function()
       local hyph_user_dict = not G_reader_settings:isTrue("hyph_user_dict")
-      G_reader_settings:saveSetting("hyph_user_dict", hyph_user_dict)
+      G_reader_settings:save("hyph_user_dict", hyph_user_dict)
       self:loadUserDictionary() -- not needed to force a reload here
     end,
     checked_func = function()
@@ -316,8 +316,8 @@ function ReaderUserHyph:modifyUserEntry(word)
 
   local input_dialog
   input_dialog = InputDialog:new({
-    title = T(_("Hyphenate: %1"), word),
-    description = _(
+    title = T(gettext("Hyphenate: %1"), word),
+    description = gettext(
       "Add hyphenation positions with hyphens ('-') or spaces (' ')."
     ),
     input = suggested_hyphenation,
@@ -326,21 +326,21 @@ function ReaderUserHyph:modifyUserEntry(word)
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(input_dialog)
           end,
         },
         {
-          text = _("Remove"),
+          text = gettext("Remove"),
           callback = function()
             UIManager:close(input_dialog)
             self:updateDictionary(word)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           is_enter_default = true,
           callback = function()
             local new_suggestion = input_dialog:getInputText()
@@ -358,8 +358,8 @@ function ReaderUserHyph:modifyUserEntry(word)
               end
               UIManager:close(input_dialog)
             else
-              UIManager:show(InfoMessage:new({
-                text = _("Invalid hyphenation!"),
+              self:showWidget(InfoMessage:new({
+                text = gettext("Invalid hyphenation!"),
               }))
             end
           end,
@@ -367,8 +367,7 @@ function ReaderUserHyph:modifyUserEntry(word)
       },
     },
   })
-  UIManager:show(input_dialog)
-  input_dialog:showKeyboard()
+  self:showWidget(input_dialog)
 end
 
 return ReaderUserHyph

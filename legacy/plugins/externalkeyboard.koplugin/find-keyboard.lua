@@ -1,0 +1,1 @@
+../../../koreader/plugins/externalkeyboard.koplugin/find-keyboard.lua

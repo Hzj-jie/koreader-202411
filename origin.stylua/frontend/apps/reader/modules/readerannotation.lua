@@ -1,6 +1,6 @@
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local logger = require("logger")
 local _ = require("gettext")
+local logger = require("logger")
 local T = require("ffi/util").template
 
 local ReaderAnnotation = WidgetContainer:extend({

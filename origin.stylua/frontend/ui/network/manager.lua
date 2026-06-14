@@ -7,12 +7,12 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local UIManager = require("ui/uimanager")
+local _ = require("gettext")
 local ffi = require("ffi")
 local ffiutil = require("ffi/util")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
-local _ = require("gettext")
 local C = ffi.C
 local T = ffiutil.template
 

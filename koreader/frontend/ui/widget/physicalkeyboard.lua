@@ -85,7 +85,7 @@ function PhysicalKeyboard:init()
   end
   self.key_events.KeyPress = { { all_keys } }
 
-  self.dimen = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
+  self.dimen = Geom:new()
 
   self:setType(self.inputbox.input_type)
 end
@@ -124,7 +124,7 @@ function PhysicalKeyboard:onKeyPress(ev)
 end
 
 function PhysicalKeyboard:setupNumericMappingUI()
-  local key_rows = VerticalGroup:new({})
+  local key_rows = VerticalGroup:new()
   local key_margin = Size.margin.tiny
   local row_len = #self.mapping[1]
   local base_key_width = math.floor(
@@ -139,7 +139,7 @@ function PhysicalKeyboard:setupNumericMappingUI()
   local key_width = math.floor(base_key_width + self.key_padding)
 
   for i, kb_row in ipairs(self.mapping) do
-    local row = HorizontalGroup:new({})
+    local row = HorizontalGroup:new()
     for j, key in ipairs(kb_row) do
       if j > 1 then
         table.insert(row, HorizontalSpan:new({ width = key_margin * 2 }))

@@ -1,13 +1,13 @@
-local Event = require("ui/event")
 local Device = require("device")
+local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local InputText = require("ui/widget/inputtext")
-local lfs = require("libs/libkoreader-lfs")
-local logger = require("logger")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 local ffi = require("ffi")
 local C = ffi.C
@@ -98,13 +98,6 @@ else
   return { disabled = true }
 end
 
-local function yes()
-  return true
-end
-local function no()
-  return false
-end -- luacheck: ignore
-
 local ExternalKeyboard = WidgetContainer:extend({
   name = "external_keyboard",
   is_doc_only = false,
@@ -143,14 +136,14 @@ end
 
 function ExternalKeyboard:addToMainMenu(menu_items)
   menu_items.external_keyboard = {
-    text = _("External Keyboard"),
+    text = gettext("External Keyboard"),
     sub_item_table = {
       {
-        text = _("Enable OTG mode to connect peripherals"),
+        text = gettext("Enable OTG mode to connect peripherals"),
         checked_func = function()
           return self:getOTGRole() == USB_ROLE_HOST
         end,
-        callback = function(touchmenu_instance)
+        callback = function(_menu)
           local role = self:getOTGRole()
           local new_role = (role == USB_ROLE_DEVICE) and USB_ROLE_HOST
             or USB_ROLE_DEVICE
@@ -158,18 +151,18 @@ function ExternalKeyboard:addToMainMenu(menu_items)
         end,
       },
       {
-        text = _("Always enable OTG mode"),
+        text = gettext("Always enable OTG mode"),
         checked_func = function()
           return G_reader_settings:isTrue("external_keyboard_otg_mode_on_start")
         end,
-        callback = function(touchmenu_instance)
+        callback = function(_menu)
           G_reader_settings:flipNilOrFalse(
             "external_keyboard_otg_mode_on_start"
           )
         end,
       },
       {
-        text = _("Help"),
+        text = gettext("Help"),
         keep_menu_open = true,
         callback = function()
           self:showHelp()
@@ -227,7 +220,7 @@ function ExternalKeyboard:sunxiSetOTGRole(role)
   end
 end
 
-function ExternalKeyboard:setOTGRole(role) end
+function ExternalKeyboard:setOTGRole(_role) end
 
 function ExternalKeyboard:onExit()
   logger.dbg("ExternalKeyboard:onExit")
@@ -298,7 +291,7 @@ function ExternalKeyboard:_onEvdevInputRemove(event_path)
   -- Only show this once
   if ExternalKeyboard.connected_keyboards == 0 then
     UIManager:show(InfoMessage:new({
-      text = _("Keyboard disconnected"),
+      text = gettext("Keyboard disconnected"),
       timeout = 1,
     }))
   end
@@ -443,7 +436,7 @@ function ExternalKeyboard:setupKeyboard(data)
     )
 
     if keyboard_info.has_dpad then
-      has_dpad_func = yes
+      has_dpad_func = util.yes
     end
   end
 
@@ -465,18 +458,18 @@ function ExternalKeyboard:setupKeyboard(data)
   util.tableMerge(event_map, Device.input.event_map)
   util.tableMerge(
     event_map,
-    dofile("plugins/externalkeyboard.koplugin/event_map_keyboard.lua")
+    require("plugins/externalkeyboard.koplugin/event_map_keyboard")
   )
   Device.input.event_map = event_map
-  Device.hasKeyboard = yes
-  Device.hasKeys = yes
-  Device.hasFewKeys = no
+  Device.hasKeyboard = util.yes
+  Device.hasKeys = util.yes
+  Device.hasFewKeys = util.no
   Device.hasDPad = has_dpad_func
 
   -- Only show this once
   if ExternalKeyboard.connected_keyboards == 1 then
     UIManager:show(InfoMessage:new({
-      text = _("Keyboard connected"),
+      text = gettext("Keyboard connected"),
       timeout = 1,
     }))
   end
@@ -490,7 +483,7 @@ end)
 
 function ExternalKeyboard:showHelp()
   UIManager:show(InfoMessage:new({
-    text = _(
+    text = gettext(
       "Note that in OTG mode the device will not be recognized as a USB drive by a computer."
     ),
   }))

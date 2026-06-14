@@ -4,9 +4,9 @@ local Event = require("ui/event")
 local EventListener = require("ui/widget/eventlistener")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- This module handles the "Back" key (and the "Back" gesture action).
 -- When global setting "back_in_reader" == "previous_read_page", it
@@ -83,7 +83,7 @@ function ReaderBack:_addPreviousLocationToStack()
 end
 
 -- Called when loading new document
-function ReaderBack:onReadSettings(config)
+function ReaderBack:onReadSettings(_config)
   self.location_stack = {}
   self.cur_location = nil
 end
@@ -126,7 +126,9 @@ function ReaderBack:onBack()
         -- saved_location, which will then not be added to the stack
         self.cur_location = nil
         logger.dbg("[ReaderBack] restoring:", saved_location)
-        self.ui:handleEvent(Event:new("RestoreBookLocation", saved_location))
+        UIManager:broadcastEvent(
+          Event:new("RestoreBookLocation", saved_location)
+        )
         -- Ensure we always have self.cur_location updated, as in some
         -- cases (same page), no event that we handle might be sent.
         UIManager:nextTick(self._addPreviousLocationToStackCallback)
@@ -137,8 +139,8 @@ function ReaderBack:onBack()
       -- On next "Back" only, proceed with the default behaviour (unless
       -- it's disabled, in which case we always show this notification)
       self.back_resist = true
-      UIManager:show(Notification:new({
-        text = _("Location history is empty."),
+      self:showWidget(Notification:new({
+        text = gettext("Location history is empty."),
       }))
       return true
     else
@@ -164,22 +166,22 @@ function ReaderBack:onBack()
       return true
     end
   elseif back_in_reader == "filebrowser" then
-    self.ui:handleEvent(Event:new("Home"))
+    UIManager:broadcastEvent(Event:new("Home"))
     -- Filebrowser will handle next "Back" and ensure back_to_exit
     return true
   end
 
   -- location stack empty, or back_in_reader == "default"
   if back_to_exit == "always" then
-    self.ui:handleEvent(Event:new("Close"))
+    UIManager:broadcastEvent(Event:new("Close"))
   elseif back_to_exit == "disable" then
     return true
   elseif back_to_exit == "prompt" then
-    UIManager:show(ConfirmBox:new({
-      text = _("Exit KOReader?"),
-      ok_text = _("Exit"),
+    self:showWidget(ConfirmBox:new({
+      text = gettext("Exit KOReader?"),
+      ok_text = gettext("Exit"),
       ok_callback = function()
-        self.ui:handleEvent(Event:new("Close"))
+        UIManager:broadcastEvent(Event:new("Close"))
       end,
     }))
   end

@@ -1,7 +1,7 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
-local SQ3 = require("lua-ljsqlite3/init")
 local LuaData = require("luadata")
+local SQ3 = require("lua-ljsqlite3/init")
 local logger = require("logger")
 
 local db_location = DataStorage:getSettingsDir()

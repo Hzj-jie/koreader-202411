@@ -1,5 +1,5 @@
-local reader_order = require("ui/elements/reader_menu_order")
 local filemanager_order = require("ui/elements/filemanager_menu_order")
+local reader_order = require("ui/elements/reader_menu_order")
 
 -- A "hacky" way to update plugin menu items on-the-fly.
 -- Use: require("plugins/insert_menu").add("my_plugin_menu_name")

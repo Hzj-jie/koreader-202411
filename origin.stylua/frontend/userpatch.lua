@@ -29,10 +29,10 @@ if isAndroid and android.prop.flavor == "fdroid" then
   return userpatch -- allows to use applyPatches as a no-op on F-Droid flavor
 end
 
+local DataStorage = require("datastorage")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local sort = require("sort")
-local DataStorage = require("datastorage")
 
 -- the directory KOReader is installed in (and runs from)
 local package_dir = lfs.currentdir()

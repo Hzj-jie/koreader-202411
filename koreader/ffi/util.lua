@@ -134,7 +134,7 @@ function util.strcoll(str1, str2)
   end
 
   local DALPHA_SORT_CASE_INSENSITIVE =
-    G_defaults:readSetting("DALPHA_SORT_CASE_INSENSITIVE")
+    G_defaults:read("DALPHA_SORT_CASE_INSENSITIVE")
   -- patch real strcoll implementation
   util.strcoll = function(a, b)
     if a == nil and b == nil then
@@ -260,8 +260,8 @@ function util.purgeDir(dir)
   for f in lfs.dir(dir) do
     if f ~= "." and f ~= ".." then
       local fullpath = util.joinPath(dir, f)
-      local attributes = lfs.attributes(fullpath)
-      if attributes.mode == "directory" then
+      local attributes = lfs.symlinkattributes(fullpath)
+      if attributes and attributes.mode == "directory" then
         ok, err = util.purgeDir(fullpath)
       else
         ok, err = os.remove(fullpath)
@@ -694,7 +694,7 @@ be required. There are no provisions for escaping place markers.
 
 @usage
   output = util.template(
-    _("Hello %1, welcome to %2."),
+    gettext("Hello %1, welcome to %2."),
     name,
     company
   )

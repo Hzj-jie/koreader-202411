@@ -4,8 +4,8 @@ local GestureRange = require("ui/gesturerange")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
-local util = require("util")
 local _ = require("gettext")
+local util = require("util")
 local Screen = Device.screen
 
 local ScreenSaverLockWidget = InputContainer:extend({

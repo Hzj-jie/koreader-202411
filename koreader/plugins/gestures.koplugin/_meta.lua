@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "gestures",
-  fullname = _("Gestures"),
-  description = _([[This plugin provides gesture support.]]),
+  fullname = gettext("Gestures"),
+  description = gettext([[This plugin provides gesture support.]]),
 }

@@ -21,7 +21,7 @@ local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = require("device").screen
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
@@ -29,7 +29,7 @@ local util = require("util")
 local Parser = require("formulaparser/formulaparser")
 
 local CalculatorSettingsDialog = InputContainer:new({
-  title = _("Calculator settings"),
+  title = gettext("Calculator settings"),
   modal = true,
   stop_events_propagation = true,
   width = math.floor(Screen:getWidth() * 0.8),
@@ -143,10 +143,7 @@ function CalculatorSettingsDialog:init()
             else
               Parser:eval(Parser:parse("setrad()"))
             end
-            G_reader_settings:saveSetting(
-              "calculator_angle_mode",
-              new_angle_mode
-            )
+            G_reader_settings:save("calculator_angle_mode", new_angle_mode)
             self.parent.status_line = self.parent:getStatusLine()
           end
 
@@ -154,10 +151,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_format.checked_button.provider
           if new_format ~= self.parent.number_format then
             self.parent.number_format = new_format
-            G_reader_settings:saveSetting(
-              "calculator_number_format",
-              new_format
-            )
+            G_reader_settings:save("calculator_number_format", new_format)
             self.parent.status_line = self.parent:getStatusLine()
           end
 
@@ -165,7 +159,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_significant.checked_button.provider
           if new_significant ~= self.parent.significant_places then
             self.parent.significant_places = new_significant
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "calculator_significant_places",
               new_significant
             )
@@ -176,10 +170,7 @@ function CalculatorSettingsDialog:init()
             self.radio_button_table_init.checked_button.provider
           if new_init_file ~= self.parent.use_init_file then
             self.parent.use_init_file = new_init_file
-            G_reader_settings:saveSetting(
-              "calculator_use_init_file",
-              new_init_file
-            )
+            G_reader_settings:save("calculator_use_init_file", new_init_file)
           end
 
           UIManager:close(self.parent.input_dialog)
@@ -232,7 +223,6 @@ function CalculatorSettingsDialog:init()
     button_font_size = 20,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
 
   self.dialog_frame = FrameContainer:new({
@@ -253,10 +243,10 @@ function CalculatorSettingsDialog:init()
         VerticalGroup:new({ -- angle and format
           align = "center",
           TextWidget:new({
-            text = _("Angle ∡"),
+            text = gettext("Angle ∡"),
             face = self.text_face,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
           CenterContainer:new({
             dimen = Geom:new({
               w = self.title_bar:getSize().w * 0.4,
@@ -264,9 +254,9 @@ function CalculatorSettingsDialog:init()
             }),
             self.radio_button_table_angle,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 4 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
-            text = _("Number format"),
+            text = gettext("Number format"),
             face = self.text_face,
           }),
           CenterContainer:new({
@@ -276,9 +266,9 @@ function CalculatorSettingsDialog:init()
             }),
             self.radio_button_table_format,
           }),
-          VerticalSpan:new({ width = Size.span.vertical_large * 4 }),
+          VerticalSpan:new({ height = Size.span.vertical_large * 4 }),
           TextWidget:new({
-            text = _("Autoload\ninit.calc"),
+            text = gettext("Autoload\ninit.calc"),
             face = self.text_face,
           }),
           CenterContainer:new({
@@ -294,7 +284,7 @@ function CalculatorSettingsDialog:init()
           align = "center",
           -- significant
           TextWidget:new({
-            text = _("Significance ≈"),
+            text = gettext("Significance ≈"),
             face = self.text_face,
           }),
 
@@ -308,7 +298,7 @@ function CalculatorSettingsDialog:init()
         }),
       }),
 
-      VerticalSpan:new({ width = Size.span.vertical_large * 2 }),
+      VerticalSpan:new({ height = Size.span.vertical_large * 2 }),
       -- buttons
       CenterContainer:new({
         dimen = Geom:new({
@@ -344,7 +334,7 @@ end
 --[[--
 chooses a path or (an existing) file (borrowed from coverimage)
 
-@touchmenu_instance for updating of the menu
+@menu for updating of the menu
 @string key is the G_reader_setting key which is used and changed
 @boolean folder_only just selects a path, no file handling
 @boolean new_file allows to enter a new filename, or use just an existing file
@@ -352,13 +342,13 @@ chooses a path or (an existing) file (borrowed from coverimage)
     Can be used for migrating the contents of the old path to the new one
 ]]
 function CalculatorSettingsDialog:choosePathFile(
-  touchmenu_instance,
+  menu,
   key,
   folder_only,
   new_file,
   migrate
 )
-  local old_path, _ = util.splitFilePathName(self[key])
+  local old_path = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,
     select_file = not folder_only,
@@ -374,34 +364,34 @@ function CalculatorSettingsDialog:choosePathFile(
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        G_reader_settings:save(key, dir_path)
+        if menu then
+          menu:updateItems()
         end
       elseif new_file and mode == "directory" then -- new filename should be entered or a file could be selected
         local file_input
         file_input = InputDialog:new({
-          title = _("Append filename"),
+          title = gettext("Append filename"),
           input = dir_path .. "/",
           buttons = {
             {
               {
-                text = _("Cancel"),
+                text = gettext("Cancel"),
                 callback = function()
                   UIManager:close(file_input)
                 end,
               },
               {
-                text = _("Save"),
+                text = gettext("Save"),
                 callback = function()
                   local file = file_input:getInputText()
                   if migrate and self[key] and self[key] ~= "" then
                     migrate(self, self[key], file)
                   end
                   self[key] = file
-                  G_reader_settings:saveSetting(key, file)
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  G_reader_settings:save(key, file)
+                  if menu then
+                    menu:updateItems()
                   end
                   UIManager:close(file_input)
                 end,
@@ -410,15 +400,14 @@ function CalculatorSettingsDialog:choosePathFile(
           },
         })
         UIManager:show(file_input)
-        file_input:showKeyboard()
       elseif mode == "file" then -- just select an existing file
         if migrate then
           migrate(self, self[key], dir_path)
         end
         self[key] = dir_path
-        G_reader_settings:saveSetting(key, dir_path)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        G_reader_settings:save(key, dir_path)
+        if menu then
+          menu:updateItems()
         end
       end
     end,

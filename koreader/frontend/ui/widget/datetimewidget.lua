@@ -8,9 +8,9 @@ Example for input a time:
     local time_widget = DateTimeWidget:new{
         hour = 10,
         min = 30,
-        ok_text = _("Set time"),
-        title_text = _("Set time"),
-        info_text = _("Some information"),
+        ok_text = gettext("Set time"),
+        title_text = gettext("Set time"),
+        info_text = gettext("Some information"),
         callback = function(time)
             -- use time.hour and time.min here
         end
@@ -25,8 +25,8 @@ Example for input a date:
         year = 2021,
         month = 12,
         day = 31,
-        ok_text = _("Set date"),
-        title_text = _("Set date"),
+        ok_text = gettext("Set date"),
+        title_text = gettext("Set date"),
         callback = function(time)
             -- use time.year, time.month, time.day here
         end
@@ -41,8 +41,8 @@ Example to input a duration in days, hours and minutes:
         day = 5,
         hour = 12,
         min = 0,
-        ok_text = _("Set"),
-        title_text = _("Set duration"),
+        ok_text = gettext("Set"),
+        title_text = gettext("Set duration"),
         callback = function(time)
             -- use time.day, time.hour, time.min here
         end
@@ -56,10 +56,10 @@ local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local FocusManager = require("ui/widget/focusmanager")
+local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
-local Font = require("ui/font")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local NumberPickerWidget = require("ui/widget/numberpickerwidget")
@@ -69,7 +69,7 @@ local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
+local gettext = require("gettext")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -78,8 +78,8 @@ local DateTimeWidget = FocusManager:extend({
   info_text = nil,
   width = nil,
   height = nil,
-  ok_text = _("Apply"),
-  cancel_text = _("Close"),
+  ok_text = gettext("Apply"),
+  cancel_text = gettext("Close"),
   -- Optional extra button on bottom
   extra_text = nil,
   extra_callback = nil,
@@ -122,7 +122,7 @@ function DateTimeWidget:init()
       math.min(self.screen_width, self.screen_height) * width_scale_factor
     )
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   if Device:isTouchDevice() then
     self.ges_events.TapClose = {
@@ -157,7 +157,6 @@ function DateTimeWidget:createLayout()
 
   if self.year then
     self.year_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.year,
       value_min = self.year_min or 2021,
       value_max = self.year_max or 2525,
@@ -171,7 +170,6 @@ function DateTimeWidget:createLayout()
   end
   if self.month then
     self.month_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.month,
       value_min = self.month_min or 1,
       value_max = self.month_max or 12,
@@ -185,7 +183,6 @@ function DateTimeWidget:createLayout()
   end
   if self.day then
     self.day_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.day,
       value_min = self.day_min or 1,
       value_max = self.day_max or 31,
@@ -200,7 +197,6 @@ function DateTimeWidget:createLayout()
 
   if self.hour then
     self.hour_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.hour,
       value_min = self.hour_min or 0,
       value_max = self.hour_max or 23,
@@ -214,7 +210,6 @@ function DateTimeWidget:createLayout()
   end
   if self.min then
     self.min_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.min,
       value_min = self.min_min or 0,
       value_max = self.min_max or 59,
@@ -228,7 +223,6 @@ function DateTimeWidget:createLayout()
   end
   if self.sec then
     self.sec_widget = NumberPickerWidget:new({
-      show_parent = self,
       value = self.sec,
       value_min = self.sec_min or 0,
       value_max = self.sec_max or 59,
@@ -295,7 +289,6 @@ function DateTimeWidget:createLayout()
     title = self.title_text,
     title_shrink_font_to_fit = true,
     info_text = self.info_text,
-    show_parent = self,
   })
 
   local buttons = {}
@@ -303,7 +296,7 @@ function DateTimeWidget:createLayout()
     table.insert(buttons, {
       {
         text = self.default_text
-          or T(_("Default value: %1"), self.default_value),
+          or T(gettext("Default value: %1"), self.default_value),
         callback = function()
           if self.default_callback then
             self.default_callback({
@@ -365,7 +358,6 @@ function DateTimeWidget:createLayout()
     width = self.width - 2 * Size.padding.default,
     buttons = buttons,
     zero_sep = true,
-    show_parent = self,
   })
   self:mergeLayoutInVertical(ok_cancel_buttons)
 

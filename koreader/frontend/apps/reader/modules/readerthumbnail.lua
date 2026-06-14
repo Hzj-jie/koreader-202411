@@ -9,9 +9,9 @@ local TileCacheItem = require("document/tilecacheitem")
 local UIManager = require("ui/uimanager")
 local Screen = Device.screen
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 
 -- This ReaderThumbnail module provides a service for generating thumbnails
 -- of book pages.
@@ -76,7 +76,7 @@ end
 
 function ReaderThumbnail:addToMainMenu(menu_items)
   menu_items.book_map = {
-    text = _("Book map"),
+    text = gettext("Book map"),
     callback = function()
       self:onShowBookMap()
     end,
@@ -92,7 +92,7 @@ function ReaderThumbnail:addToMainMenu(menu_items)
     return
   end
   menu_items.page_browser = {
-    text = _("Page browser"),
+    text = gettext("Page browser"),
     callback = function()
       self:onShowPageBrowser()
     end,
@@ -101,7 +101,7 @@ end
 
 function ReaderThumbnail:onShowBookMap(overview_mode)
   local BookMapWidget = require("ui/widget/bookmapwidget")
-  UIManager:show(BookMapWidget:new({
+  self:showWidget(BookMapWidget:new({
     ui = self.ui,
     overview_mode = overview_mode,
   }))
@@ -110,7 +110,7 @@ end
 
 function ReaderThumbnail:onShowPageBrowser()
   local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
-  UIManager:show(PageBrowserWidget:new({
+  self:showWidget(PageBrowserWidget:new({
     ui = self.ui,
   }))
   return true
@@ -378,7 +378,7 @@ end
 
 function ReaderThumbnail:startTileGeneration(request)
   local pid, parent_read_fd = ffiutil.runInSubProcess(
-    function(pid, child_write_fd)
+    function(_pid, child_write_fd)
       -- Get page image as if drawn on the screen
       local bb = self:_getPageImage(request.page)
       -- Scale it to fit in the requested size
@@ -387,7 +387,7 @@ function ReaderThumbnail:startTileGeneration(request)
       local target_w = math.floor(bb:getWidth() * scale_factor)
       local target_h = math.floor(bb:getHeight() * scale_factor)
       -- local time = require("ui/time")
-      -- local start_time = time.now()
+      -- local start_time = time.monotonic()
       local tile = TileCacheItem:new({
         bb = RenderImage:scaleBlitBuffer(bb, target_w, target_h, true),
         pageno = request.page,
@@ -427,11 +427,11 @@ function ReaderThumbnail:checkTileGeneration(request)
   )
   if stuff_to_read then
     -- local time = require("ui/time")
-    -- local start_time = time.now()
+    -- local start_time = time.monotonic()
     local result, err =
       self.codec.deserialize(ffiutil.readAllFromFD(parent_read_fd))
     if result then
-      local tile = TileCacheItem:new({})
+      local tile = TileCacheItem:new()
       tile:fromtable(result)
       if self.tile_cache then
         self.tile_cache:insert(request.hash, tile)
@@ -544,10 +544,10 @@ function ReaderThumbnail:_getPageImage(page)
 
     -- This seems to do it all well:
     --   local Event = require("ui/event")
-    --   self.ui:handleEvent(Event:new("SetDimensions", dimen))
+    --   UIManager:broadcastEvent(Event:new("SetDimensions", dimen))
     --   self.ui.view.dogear[1].dimen.w = dimen.w -- (hack... its code uses the Screen width)
-    --   self.ui:handleEvent(Event:new("PageUpdate", page))
-    --   self.ui:handleEvent(Event:new("SetZoomMode", "page"))
+    --   UIManager:broadcastEvent(Event:new("PageUpdate", page))
+    --   UIManager:broadcastEvent(Event:new("SetZoomMode", "page"))
 
     -- Trying to do as little as needed, knowing the internals:
     self.ui.view:onSetDimensions(dimen)

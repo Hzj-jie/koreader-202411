@@ -8,15 +8,15 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local LuaData = require("luadata")
 local NetworkMgr = require("ui/network/manager")
 local ReaderDictionary = require("apps/reader/modules/readerdictionary")
-local Trapper = require("ui/trapper")
 local Translator = require("ui/translator")
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local Wikipedia = require("ui/wikipedia")
+local _ = require("gettext")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = require("ffi/util").template
 
 local wikipedia_history = nil

@@ -1,5 +1,6 @@
 -- Start with the english keyboard layout
-local no_keyboard = dofile("frontend/ui/data/keyboardlayouts/en_keyboard.lua")
+local no_keyboard =
+  require("util").copyRequire("ui/data/keyboardlayouts/en_keyboard")
 
 local keys = no_keyboard.keys
 

@@ -1,5 +1,5 @@
-local socket = require("socket")
 local logger = require("logger")
+local socket = require("socket")
 
 -- Reference:
 -- https://lunarmodules.github.io/luasocket/tcp.html

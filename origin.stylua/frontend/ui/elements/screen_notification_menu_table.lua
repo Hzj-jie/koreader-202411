@@ -1,8 +1,8 @@
 local Notification = require("ui/widget/notification")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
-local logger = require("logger")
 local _ = require("gettext")
+local logger = require("logger")
 
 local band = bit.band
 local bor = bit.bor

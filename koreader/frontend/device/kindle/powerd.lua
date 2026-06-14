@@ -2,8 +2,8 @@ local BasePowerD = require("device/generic/powerd")
 local LibLipcs = require("liblipcs")
 local UIManager
 local WakeupMgr = require("device/wakeupmgr")
-local logger = require("logger")
 local ffiUtil = require("ffi/util")
+local logger = require("logger")
 -- liblipclua, see require below
 
 local KindlePowerD = BasePowerD:new({
@@ -21,33 +21,6 @@ function KindlePowerD:init()
   end
 
   self:initWakeupMgr()
-end
-
--- If we start with the light off (fl_intensity is fl_min), ensure a toggle will set it to the lowest "on" step,
--- and that we update fl_intensity (by using setIntensity and not setIntensityHW).
-function KindlePowerD:turnOnFrontlightHW(done_callback)
-  self:setIntensity(
-    self.fl_intensity == self.fl_min and self.fl_min + 1 or self.fl_intensity
-  )
-
-  return false
-end
--- Which means we need to get rid of the insane fl_intensity == fl_min shortcut in turnOnFrontlight, too...
--- That dates back to #2941, and I have no idea what it's supposed to help with.
-function KindlePowerD:turnOnFrontlight(done_callback)
-  if not self.device:hasFrontlight() then
-    return
-  end
-  if self:isFrontlightOn() then
-    return false
-  end
-  local cb_handled = self:turnOnFrontlightHW(done_callback)
-  self.is_fl_on = true
-  self:stateChanged()
-  if not cb_handled and done_callback then
-    done_callback()
-  end
-  return true
 end
 
 function KindlePowerD:frontlightIntensityHW()
@@ -201,7 +174,7 @@ function KindlePowerD:onToggleHallSensor(toggle)
   end
   ffiUtil.writeToSysfs(toggle, self.hall_file)
 
-  G_reader_settings:saveSetting(
+  G_reader_settings:save(
     "kindle_hall_effect_sensor_enabled",
     toggle == 1 and true or false
   )
@@ -265,7 +238,7 @@ function KindlePowerD:initWakeupMgr()
   self.device.wakeup_mgr =
     WakeupMgr:new({ rtc = require("device/kindle/mockrtc") })
 
-  function KindlePowerD:wakeupFromSuspend(ts)
+  function KindlePowerD:wakeupFromSuspend(_ts)
     -- Give the device a few seconds to settle.
     -- This filters out user input resumes -> device will resume to active
     -- Also the Kindle stays in Ready to suspend for 10 seconds
@@ -273,7 +246,7 @@ function KindlePowerD:initWakeupMgr()
     UIManager:scheduleIn(15, self.checkUnexpectedWakeup, self)
   end
 
-  function KindlePowerD:readyToSuspend(delay)
+  function KindlePowerD:readyToSuspend(_delay)
     if self.device.wakeup_mgr:isWakeupAlarmScheduled() then
       local now = os.time()
       local alarm = self.device.wakeup_mgr:getWakeupAlarmEpoch()

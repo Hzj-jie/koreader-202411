@@ -380,6 +380,16 @@ ko_do_dns() {
     fi
 }
 
+if ls /dev/mmcblk1*; then
+    # First of all, wait for the sd card to be mounted.
+    for i in $(seq 1 3); do
+        if grep ' /mnt/sd ' /proc/mounts; then
+            break
+        else
+            sleep 5s
+        fi
+    done
+fi
 # Remount the SD card RW if it's inserted and currently RO
 if awk '$4~/(^|,)ro($|,)/' /proc/mounts | grep ' /mnt/sd '; then
     mount -o remount,rw /mnt/sd

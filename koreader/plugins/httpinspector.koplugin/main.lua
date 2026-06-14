@@ -4,14 +4,13 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local Event = require("ui/event")
-local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = ffiUtil.template
 
 -- A plugin gets instantiated on each document load and reader/FM switch.
@@ -21,11 +20,13 @@ local should_run = G_reader_settings:isTrue("httpinspector_autostart")
 
 local DEFAULT_PORT = Device:isEmulator() and 8080 or 80
 
+-- Avoid caching the common _meta.lua file name as a module.
+local HELP_TEXT = dofile("plugins/httpinspector.koplugin/_meta.lua").description
+
 local HttpInspector = {}
 
 function HttpInspector:init()
-  self.port = G_reader_settings:readSetting("httpinspector_port")
-    or DEFAULT_PORT
+  self.port = G_reader_settings:read("httpinspector_port") or DEFAULT_PORT
   if should_run then
     -- Delay this until after all plugins are loaded
     UIManager:nextTick(function()
@@ -262,7 +263,7 @@ end
 -- May fail if recursive references, use with pcall()
 local getAsJsonString = function(obj)
   local encoder_options = {}
-  encoder_options.preProcess = function(value, isObjectKey)
+  encoder_options.preProcess = function(value, _isObjectKey)
     local value_type = type(value)
     if value_type == "function" then
       return "function"
@@ -331,19 +332,18 @@ local getFunctionInfo = function(func, full_code)
     local signature = util.trim(lines[1])
     info.signature = signature
     -- Try to guess (possibly wrongly) a few info from the signature string
-    local dummy, cnt
-    dummy, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
+    local __, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
     if cnt > 0 then
       info.nb_args = 0
     else
-      dummy, cnt = signature:gsub(",", "") -- check for nb of commas
+      __, cnt = signature:gsub(",", "") -- check for nb of commas
       info.nb_args = cnt and cnt + 1 or 1
     end
-    dummy, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
+    __, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
     if cnt > 0 then
       info.nb_args = -1
     end
-    dummy, cnt = signature:gsub("^[^(]*:", "")
+    __, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
     info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
@@ -956,7 +956,7 @@ function HttpInspector:showFunctionDetails(obj, reqinfo)
       T("Builtin function or from a C module: no source code available.")
     )
   else
-    local dummy, git_commit = require("version"):getNormalizedCurrentVersion()
+    local __, git_commit = require("version"):getNormalizedCurrentVersion()
     local github_uri = T(
       "https://github.com/koreader/koreader/blob/%1/%2#L%3",
       git_commit,
@@ -993,8 +993,8 @@ function HttpInspector:callFunction(
     table.insert(html, h)
   end
   local args, nb_args = getVariablesFromUri(args_as_uri)
-  local func_info = getFunctionInfo(func)
   if output_html then
+    local func_info = getFunctionInfo(func)
     add_html(
       T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or "")
     )
@@ -1015,7 +1015,7 @@ function HttpInspector:callFunction(
     add_html("")
   end
   local res, nbr, http_code, json, ok, ok2, err, trace
-  if func_info.is_method then
+  if instance and guessClassName(instance) then
     res = table.pack(
       xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args))
     )
@@ -1081,19 +1081,6 @@ end
 
 -- Handy function for testing the above, to be called with:
 --   /koreader/ui/httpinspector/someFunctionForInteractiveTesting?/
-function HttpInspector:someFunctionForInteractiveTesting(...)
-  if select(1, ...) then
-    HttpInspector.foo.bar = true -- error
-  end
-  return self and self.name or "no self",
-    #(table.pack(...)),
-    "original args follow",
-    ...
-  -- Copy and append this as args to the url, to get an error:
-  -- /true/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
-  -- and to get a success:
-  -- /false/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
-end
 
 local _dispatcher_actions
 
@@ -1128,13 +1115,13 @@ local getOrderedDispatcherActions = function()
   end
   -- Copied and pasted from Dispatcher (we can't reach that the same way as above)
   local section_list = {
-    { "general", _("General") },
-    { "device", _("Device") },
-    { "screen", _("Screen and lights") },
-    { "filemanager", _("File browser") },
-    { "reader", _("Reader") },
-    { "rolling", _("Reflowable documents (epub, fb2, txt…)") },
-    { "paging", _("Fixed layout documents (pdf, djvu, pics…)") },
+    { "general", gettext("General") },
+    { "device", gettext("Device") },
+    { "screen", gettext("Screen and lights") },
+    { "filemanager", gettext("File browser") },
+    { "reader", gettext("Reader") },
+    { "rolling", gettext("Reflowable documents (epub, fb2, txt…)") },
+    { "paging", gettext("Fixed layout documents (pdf, djvu, pics…)") },
   }
   _dispatcher_actions = {}
   for _, section in ipairs(section_list) do
@@ -1160,8 +1147,8 @@ local getOrderedDispatcherActions = function()
 end
 
 function HttpInspector:exposeEvent(uri, reqinfo)
-  local ftype, fragment -- luacheck: no unused
-  ftype, fragment, uri = stepUriFragment(uri) -- luacheck: no unused
+  local __, fragment
+  __, fragment, uri = stepUriFragment(uri)
   if fragment then
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
@@ -1189,7 +1176,7 @@ function HttpInspector:exposeEvent(uri, reqinfo)
     -- shutdown the HTTP server
     UIManager:nextTick(function()
       for _, ev in ipairs(events) do
-        UIManager:sendEvent(ev)
+        UIManager:userInput(ev)
       end
     end)
     return self:_sendResponse(
@@ -1222,11 +1209,9 @@ function HttpInspector:exposeEvent(uri, reqinfo)
           action
         )
       )
-    elseif action.condition == false then
+    elseif action.condition == false then -- luacheck: ignore 542
       -- Some bottom menu are just disabled on all devices,
       -- so just don't show any disabled action
-      do
-      end -- luacheck: ignore 541
     else
       local active = false
       if action.general or action.device or action.screen then
@@ -1386,8 +1371,8 @@ end
 
 function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   -- Similar to previous one, without any list.
-  local ftype, fragment -- luacheck: no unused
-  ftype, fragment, uri = stepUriFragment(uri) -- luacheck: no unused
+  local __, fragment
+  __, fragment, uri = stepUriFragment(uri)
   if fragment then
     -- Event name and args provided.
     -- We may get multiple events, separated by a dummy arg /&/
@@ -1446,63 +1431,50 @@ local HttpInspectorWidget = WidgetContainer:extend({
 })
 
 function HttpInspectorWidget:init()
+  HttpInspector.ui = self.ui
   self.ui.menu:registerToMainMenu(self)
 end
 
 function HttpInspectorWidget:addToMainMenu(menu_items)
   menu_items.httpremote = {
-    text = _("Remotely control KOReader"),
-    sorting_hint = "network",
-    sub_item_table = {
-      {
-        text = _("About"),
-        keep_menu_open = true,
-        callback = function()
-          local text = _(
-            "Allow remotely controlling KOReader via browsers, with "
-              .. "advanced features of inspecting KOReader internal state. It "
-              .. "poses security risks; only enable this on networks you can "
-              .. "trust."
+    text = gettext("Remotely control KOReader"),
+    help_text_func = function()
+      local text = HELP_TEXT .. "\n\n"
+      if NetworkMgr:isOnline() and HttpInspector:isRunning() then
+        text = text
+          .. T(
+            gettext("Navigate to %1 from a browser to control KOReader."),
+            NetworkMgr:ipAddress()
           )
-          text = text .. "\n\n"
-          -- Need localization.
-          if NetworkMgr:isOnline() and HttpInspector:isRunning() then
-            text = text
-              .. T(
-                _("Navigate to %1 from a browser to control KOReader."),
-                NetworkMgr:ipAddress()
-              )
-          elseif NetworkMgr:isOnline() then
-            text = text
-              .. T(
-                _(
-                  "After starting the HTTP server, navigate to %1 from a browser to control KOReader."
-                ),
-                NetworkMgr:ipAddress()
-              )
-          else
-            -- If the http server has been enabled, very likely the user knows
-            -- what does it mean and no extra "Starting the HTTP server"
-            -- infomation is needed.
-            text = text
-              .. _("Turn on the network connection to use the feature.")
-          end
-          UIManager:show(InfoMessage:new({
-            text = text,
-          }))
-        end,
-      },
+      elseif NetworkMgr:isOnline() then
+        text = text
+          .. T(
+            gettext(
+              "After starting the HTTP server, navigate to %1 from a browser to control KOReader."
+            ),
+            NetworkMgr:ipAddress()
+          )
+      else
+        -- If the http server has been enabled, very likely the user knows
+        -- what does it mean and no extra "Starting the HTTP server"
+        -- infomation is needed.
+        text = text
+          .. gettext("Turn on the network connection to use the feature.")
+      end
+      return text
+    end,
+    sub_item_table = {
       {
         text_func = function()
           if HttpInspector:isRunning() then
-            return _("Stop HTTP server")
+            return gettext("Stop HTTP server")
               .. " - "
-              .. T(_("Listening on port %1"), HttpInspector.port)
+              .. T(gettext("Listening on port %1"), HttpInspector.port)
           end
-          return _("Start HTTP server")
+          return gettext("Start HTTP server")
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           if HttpInspector:isRunning() then
             should_run = false
             HttpInspector:stop()
@@ -1510,12 +1482,12 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
             should_run = true
             HttpInspector:start()
           end
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
         separator = true,
       },
       {
-        text = _("Auto start HTTP server"),
+        text = gettext("Auto start HTTP server"),
         checked_func = function()
           return G_reader_settings:isTrue("httpinspector_autostart")
         end,
@@ -1525,38 +1497,38 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
       },
       {
         text_func = function()
-          return T(_("Port: %1"), HttpInspector.port)
+          return T(gettext("Port: %1"), HttpInspector.port)
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local InputDialog = require("ui/widget/inputdialog")
           local port_dialog
           port_dialog = InputDialog:new({
-            title = _("Set custom port"),
+            title = gettext("Set custom port"),
             input = HttpInspector.port,
             input_type = "number",
-            input_hint = _("Port number (default is 8080)"):gsub(
+            input_hint = gettext("Port number (default is 8080)"):gsub(
               "8080",
               DEFAULT_PORT
             ),
             buttons = {
               {
                 {
-                  text = _("Cancel"),
+                  text = gettext("Cancel"),
                   id = "close",
                   callback = function()
                     UIManager:close(port_dialog)
                   end,
                 },
                 {
-                  text = _("OK"),
+                  text = gettext("OK"),
                   -- keep_menu_open = true,
                   callback = function()
                     local port = port_dialog:getInputValue()
                     logger.warn("port", port)
                     if port and port >= 1 and port <= 65535 then
                       HttpInspector.port = port
-                      G_reader_settings:saveSetting(
+                      G_reader_settings:save(
                         "httpinspector_port",
                         port,
                         DEFAULT_PORT
@@ -1567,14 +1539,13 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
                       end
                     end
                     UIManager:close(port_dialog)
-                    touchmenu_instance:updateItems()
+                    menu:updateItems()
                   end,
                 },
               },
             },
           })
           UIManager:show(port_dialog)
-          port_dialog:showKeyboard()
         end,
       },
     },

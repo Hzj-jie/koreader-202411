@@ -9,34 +9,34 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Notification = require("ui/widget/notification")
 local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
+local Size = require("ui/size")
 local SpinWidget = require("ui/widget/spinwidget")
 local TextViewer = require("ui/widget/textviewer")
 local Translator = require("ui/translator")
 local UIManager = require("ui/uimanager")
 local dbg = require("dbg")
-local logger = require("logger")
-local util = require("util")
-local Size = require("ui/size")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
+local logger = require("logger")
 local time = require("ui/time")
-local _ = require("gettext")
-local C_ = _.pgettext
-local N_ = _.ngettext
+local util = require("util")
+local C_ = gettext.pgettext
+local N_ = gettext.ngettext
 local T = ffiUtil.template
 local Screen = Device.screen
 
 local ReaderHighlight = InputContainer:extend({
   -- Matches what is available in BlitBuffer.HIGHLIGHT_COLORS
   highlight_colors = {
-    { _("Red"), "red" },
-    { _("Orange"), "orange" },
-    { _("Yellow"), "yellow" },
-    { _("Green"), "green" },
-    { _("Olive"), "olive" },
-    { _("Cyan"), "cyan" },
-    { _("Blue"), "blue" },
-    { _("Purple"), "purple" },
-    { _("Gray"), "gray" },
+    { gettext("Red"), "red" },
+    { gettext("Orange"), "orange" },
+    { gettext("Yellow"), "yellow" },
+    { gettext("Green"), "green" },
+    { gettext("Olive"), "olive" },
+    { gettext("Cyan"), "cyan" },
+    { gettext("Blue"), "blue" },
+    { gettext("Purple"), "purple" },
+    { gettext("Gray"), "gray" },
   },
 })
 
@@ -62,7 +62,7 @@ function ReaderHighlight:init()
   self._current_indicator_pos = nil
   self._previous_indicator_pos = nil
   self._last_indicator_move_args =
-    { dx = 0, dy = 0, distance = 0, time = time:now() }
+    { dx = 0, dy = 0, distance = 0, time = time.monotonic() }
   self._fallback_drawer = self.view.highlight.saved_drawer -- "lighten"
   self._fallback_color = self.view.highlight.saved_color -- "yellow" or "gray"
 
@@ -73,7 +73,7 @@ function ReaderHighlight:init()
     -- so we put them first.
     ["01_select"] = function(this)
       return {
-        text = _("Select"),
+        text = gettext("Select"),
         enabled = this.hold_pos ~= nil,
         callback = function()
           this:startSelection()
@@ -83,7 +83,7 @@ function ReaderHighlight:init()
     end,
     ["02_highlight"] = function(this)
       return {
-        text = _("Highlight"),
+        text = gettext("Highlight"),
         enabled = this.hold_pos ~= nil,
         callback = function()
           this:saveHighlight(true)
@@ -100,15 +100,15 @@ function ReaderHighlight:init()
             util.cleanupSelectedText(this.selected_text.text)
           )
           this:onExit()
-          UIManager:show(Notification:new({
-            text = _("Selection copied to clipboard."),
+          self:showWidget(Notification:new({
+            text = gettext("Selection copied to clipboard."),
           }))
         end,
       }
     end,
     ["04_add_note"] = function(this)
       return {
-        text = _("Add note"),
+        text = gettext("Add note"),
         enabled = this.hold_pos ~= nil,
         callback = function()
           this:addNote()
@@ -120,7 +120,7 @@ function ReaderHighlight:init()
     -- depend on an internet connection.
     ["05_wikipedia"] = function(this)
       return {
-        text = _("Wikipedia"),
+        text = gettext("Wikipedia"),
         callback = function()
           UIManager:scheduleIn(0.1, function()
             this:lookupWikipedia()
@@ -133,16 +133,16 @@ function ReaderHighlight:init()
     end,
     ["06_dictionary"] = function(this)
       return {
-        text = _("Dictionary"),
+        text = gettext("Dictionary"),
         callback = function()
-          this:onHighlightDictLookup()
+          this:highlightDictLookup()
           -- We don't call this:onExit(), same reason as above
         end,
       }
     end,
     ["07_translate"] = function(this, index)
       return {
-        text = _("Translate"),
+        text = gettext("Translate"),
         callback = function()
           this:translate(index)
           -- We don't call this:onExit(), so one can still see
@@ -157,7 +157,7 @@ function ReaderHighlight:init()
     -- let the Search button be the last, occasionally narrow or wide, less confusing
     ["12_search"] = function(this)
       return {
-        text = _("Search"),
+        text = gettext("Search"),
         callback = function()
           this:onHighlightSearch()
           -- We don't call this:onExit(), crengine will highlight
@@ -170,7 +170,7 @@ function ReaderHighlight:init()
 
   -- Android devices
   if Device:canShareText() then
-    local action = _("Share Text")
+    local action = gettext("Share Text")
     self:addToHighlightDialog("08_share_text", function(this)
       return {
         text = action,
@@ -188,7 +188,7 @@ function ReaderHighlight:init()
   if not self.document.info.has_pages then
     self:addToHighlightDialog("09_view_html", function(this)
       return {
-        text = _("View HTML"),
+        text = gettext("View HTML"),
         callback = function()
           this:viewSelectionHTML()
         end,
@@ -199,7 +199,7 @@ function ReaderHighlight:init()
   -- User hyphenation dict
   self:addToHighlightDialog("10_user_dict", function(this)
     return {
-      text = _("Hyphenate"),
+      text = gettext("Hyphenate"),
       show_in_highlight_dialog_func = function()
         return this.ui.userhyph
           and this.ui.userhyph:isAvailable()
@@ -215,7 +215,7 @@ function ReaderHighlight:init()
   -- Links
   self:addToHighlightDialog("11_follow_link", function(this)
     return {
-      text = _("Follow Link"),
+      text = gettext("Follow Link"),
       show_in_highlight_dialog_func = function()
         return this.selected_link ~= nil
       end,
@@ -227,9 +227,9 @@ function ReaderHighlight:init()
     }
   end)
 
-  self.ui:registerPostInitCallback(function()
+  self.onReaderInited = function()
     self.ui.menu:registerToMainMenu(self)
-  end)
+  end
 
   -- delegate gesture listener to readerui, NOP our own
   self.ges_events = nil
@@ -311,11 +311,7 @@ function ReaderHighlight:setupTouchZones()
   if not Device:isTouchDevice() then
     return
   end
-  local hold_pan_rate = G_reader_settings:readSetting("hold_pan_rate")
-  if not hold_pan_rate then
-    hold_pan_rate = Screen.low_pan_rate and 5.0 or 30.0
-  end
-  local DTAP_ZONE_TOP_LEFT = G_defaults:readSetting("DTAP_ZONE_TOP_LEFT")
+  local DTAP_ZONE_TOP_LEFT = G_defaults:read("DTAP_ZONE_TOP_LEFT")
   self.ui:registerTouchZones({
     {
       id = "readerhighlight_tap_select_mode",
@@ -334,7 +330,7 @@ function ReaderHighlight:setupTouchZones()
         "tap_forward",
         "tap_backward",
       },
-      handler = function(ges)
+      handler = function(_ges)
         return self:onTapSelectModeIcon()
       end,
     },
@@ -396,7 +392,8 @@ function ReaderHighlight:setupTouchZones()
     {
       id = "readerhighlight_hold_pan",
       ges = "hold_pan",
-      rate = hold_pan_rate,
+      rate = G_reader_settings:read("hold_pan_rate")
+        or G_named_settings.low_pan_rate_or_full(5.0),
       screen_zone = {
         ratio_x = 0,
         ratio_y = 0,
@@ -416,46 +413,46 @@ function ReaderHighlight:onReaderReady()
     self.ui.paging
     and G_reader_settings:isTrue("highlight_write_into_pdf_notify")
   then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = T(
-        _("Write highlights into PDF: %1"),
-        self.highlight_write_into_pdf and _("on") or _("off")
+        gettext("Write highlights into PDF: %1"),
+        self.highlight_write_into_pdf and gettext("on") or gettext("off")
       ),
     }))
   end
 end
 
 local highlight_style = {
-  { _("Lighten"), "lighten" },
-  { _("Underline"), "underscore" },
-  { _("Strikethrough"), "strikeout" },
-  { _("Invert"), "invert" },
+  { gettext("Lighten"), "lighten" },
+  { gettext("Underline"), "underscore" },
+  { gettext("Strikethrough"), "strikeout" },
+  { gettext("Invert"), "invert" },
 }
 
 local note_mark = {
-  { _("None"), "none" },
-  { _("Underline"), "underline" },
-  { _("Side line"), "sideline" },
-  { _("Side mark"), "sidemark" },
+  { gettext("None"), "none" },
+  { gettext("Underline"), "underline" },
+  { gettext("Side line"), "sideline" },
+  { gettext("Side mark"), "sidemark" },
 }
 
 local long_press_action = {
-  { _("Ask with popup dialog"), "ask" },
-  { _("Do nothing"), "nothing" },
-  { _("Highlight"), "highlight" },
-  { _("Select and highlight"), "select" },
-  { _("Add note"), "note" },
-  { _("Translate"), "translate" },
-  { _("Wikipedia"), "wikipedia" },
-  { _("Dictionary"), "dictionary" },
-  { _("Fulltext search"), "search" },
+  { gettext("Ask with popup dialog"), "ask" },
+  { gettext("Do nothing"), "nothing" },
+  { gettext("Highlight"), "highlight" },
+  { gettext("Select and highlight"), "select" },
+  { gettext("Add note"), "note" },
+  { gettext("Translate"), "translate" },
+  { gettext("Wikipedia"), "wikipedia" },
+  { gettext("Dictionary"), "dictionary" },
+  { gettext("Fulltext search"), "search" },
 }
 
 local highlight_dialog_position = {
-  { _("Top"), "top" },
-  { _("Center"), "center" },
-  { _("Bottom"), "bottom" },
-  { _("Gesture position"), "gesture" },
+  { gettext("Top"), "top" },
+  { gettext("Center"), "center" },
+  { gettext("Bottom"), "bottom" },
+  { gettext("Gesture position"), "gesture" },
 }
 
 function ReaderHighlight:addToMainMenu(menu_items)
@@ -466,7 +463,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
     and not Device:useDPadAsActionKeys()
   then
     menu_items.start_content_selection = {
-      text = _("Start content selection"),
+      text = gettext("Start content selection"),
       callback = function()
         self:onStartHighlightIndicator()
       end,
@@ -477,7 +474,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
   local star = "   ★"
   local hl_sub_item_table = {}
   menu_items.highlight_options = {
-    text = _("Highlights"),
+    text = gettext("Highlights"),
     sub_item_table = hl_sub_item_table,
   }
   for _, v in ipairs(highlight_style) do
@@ -485,7 +482,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
     table.insert(hl_sub_item_table, {
       text_func = function()
         return style
-              == (G_reader_settings:readSetting("highlight_drawing_style") or self._fallback_drawer)
+              == (G_reader_settings:read("highlight_drawing_style") or self._fallback_drawer)
             and style_text .. star
           or style_text
       end,
@@ -496,9 +493,9 @@ function ReaderHighlight:addToMainMenu(menu_items)
       callback = function()
         self.view.highlight.saved_drawer = style
       end,
-      hold_callback = function(touchmenu_instance)
-        G_reader_settings:saveSetting("highlight_drawing_style", style)
-        touchmenu_instance:updateItems()
+      hold_callback = function(menu)
+        G_reader_settings:save("highlight_drawing_style", style)
+        menu:updateItems()
       end,
     })
   end
@@ -514,45 +511,42 @@ function ReaderHighlight:addToMainMenu(menu_items)
         end
       end
       text = text or saved_color -- nonstandard color
-      local default_color = G_reader_settings:readSetting("highlight_color")
+      local default_color = G_reader_settings:read("highlight_color")
         or self._fallback_color
       if saved_color == default_color then
         text = text .. star
       end
-      return T(_("Highlight color: %1"), text)
+      return T(gettext("Highlight color: %1"), text)
     end,
     enabled_func = function()
       return self.view.highlight.saved_drawer ~= "invert"
     end,
     keep_menu_open = true,
-    callback = function(touchmenu_instance) -- set color for new highlights in this book
+    callback = function(menu) -- set color for new highlights in this book
       local function apply_color(color)
         self.view.highlight.saved_color = color
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end
       self:showHighlightColorDialog(apply_color)
     end,
-    hold_callback = function(touchmenu_instance) -- set color for new highlights in new books
-      G_reader_settings:saveSetting(
-        "highlight_color",
-        self.view.highlight.saved_color
-      )
-      touchmenu_instance:updateItems()
+    hold_callback = function(menu) -- set color for new highlights in new books
+      G_reader_settings:save("highlight_color", self.view.highlight.saved_color)
+      menu:updateItems()
     end,
   })
   table.insert(hl_sub_item_table, {
     text_func = function()
       return T(
-        _("Gray highlight opacity: %1"),
-        G_reader_settings:readSetting("highlight_lighten_factor") or 0.2
+        gettext("Gray highlight opacity: %1"),
+        G_reader_settings:read("highlight_lighten_factor") or 0.2
       )
     end,
     enabled_func = function()
       return self.view.highlight.saved_drawer == "lighten"
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local spin_widget = SpinWidget:new({
-        value = G_reader_settings:readSetting("highlight_lighten_factor"),
+        value = G_reader_settings:read("highlight_lighten_factor"),
         value_min = 0,
         value_max = 1,
         precision = "%.2f",
@@ -560,16 +554,16 @@ function ReaderHighlight:addToMainMenu(menu_items)
         value_hold_step = 0.2,
         default_value = 0.2,
         keep_shown_on_apply = true,
-        title_text = _("Gray highlight opacity"),
-        info_text = _("The higher the value, the darker the gray."),
+        title_text = gettext("Gray highlight opacity"),
+        info_text = gettext("The higher the value, the darker the gray."),
         callback = function(spin)
-          G_reader_settings:saveSetting("highlight_lighten_factor", spin.value)
+          G_reader_settings:save("highlight_lighten_factor", spin.value)
           self.view.highlight.lighten_factor = spin.value
           UIManager:setDirty(self.dialog, "ui")
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       })
-      UIManager:show(spin_widget)
+      self:showWidget(spin_widget)
     end,
   })
   table.insert(hl_sub_item_table, {
@@ -577,11 +571,11 @@ function ReaderHighlight:addToMainMenu(menu_items)
       local notemark = self.view.highlight.note_mark or "none"
       for __, v in ipairs(note_mark) do
         if v[2] == notemark then
-          return T(_("Note marker: %1"), v[1]:lower())
+          return T(gettext("Note marker: %1"), v[1]:lower())
         end
       end
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local notemark = self.view.highlight.note_mark or "none"
       local radio_buttons = {}
       for _, v in ipairs(note_mark) do
@@ -593,35 +587,33 @@ function ReaderHighlight:addToMainMenu(menu_items)
           },
         })
       end
-      UIManager:show(RadioButtonWidget:new({
-        title_text = _("Note marker"),
+      self:showWidget(RadioButtonWidget:new({
+        title_text = gettext("Note marker"),
         width_factor = 0.5,
         keep_shown_on_apply = true,
         radio_buttons = radio_buttons,
         callback = function(radio)
           if radio.provider == "none" then
             self.view.highlight.note_mark = nil
-            G_reader_settings:delSetting("highlight_note_marker")
+            G_reader_settings:delete("highlight_note_marker")
           else
             self.view.highlight.note_mark = radio.provider
-            G_reader_settings:saveSetting(
-              "highlight_note_marker",
-              radio.provider
-            )
+            G_reader_settings:save("highlight_note_marker", radio.provider)
           end
           self.view:setupNoteMarkPosition()
-          UIManager:setDirty(self.dialog, "ui")
-          touchmenu_instance:updateItems()
+          UIManager:setDirty(self.ui, "ui")
+          menu:updateItems()
+          UIManager:close(radio)
         end,
       }))
     end,
     separator = true,
   })
   table.insert(hl_sub_item_table, {
-    text = _("Apply current style and color to all highlights"),
+    text = gettext("Apply current style and color to all highlights"),
     callback = function()
-      UIManager:show(ConfirmBox:new({
-        text = _("Are you sure you want to update all highlights?"),
+      self:showWidget(ConfirmBox:new({
+        text = gettext("Are you sure you want to update all highlights?"),
         icon = "texture-box",
         ok_callback = function()
           local count = 0
@@ -634,7 +626,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
           end
           if count > 0 then
             UIManager:setDirty(self.dialog, "ui")
-            UIManager:show(Notification:new({
+            self:showWidget(Notification:new({
               text = T(
                 N_(
                   "Applied style and color to 1 highlight",
@@ -653,19 +645,20 @@ function ReaderHighlight:addToMainMenu(menu_items)
   if self.document.is_pdf then
     table.insert(hl_sub_item_table, {
       text_func = function()
-        local text = self.highlight_write_into_pdf and _("on") or _("off")
+        local text = self.highlight_write_into_pdf and gettext("on")
+          or gettext("off")
         if
-          not self.highlight_write_into_pdf
-          == (not G_reader_settings:isTrue("highlight_write_into_pdf"))
+          self.highlight_write_into_pdf
+          ~= G_reader_settings:nilOrFalse("highlight_write_into_pdf")
         then
           text = text .. star
         end
-        return T(_("Write highlights into PDF: %1"), text)
+        return T(gettext("Write highlights into PDF: %1"), text)
       end,
       sub_item_table = {
         {
           text_func = function()
-            local text = _("On")
+            local text = gettext("On")
             return G_reader_settings:isTrue("highlight_write_into_pdf")
                 and text .. star
               or text
@@ -678,16 +671,16 @@ function ReaderHighlight:addToMainMenu(menu_items)
             if self.document:_checkIfWritable() then
               self.highlight_write_into_pdf = true
               if G_named_settings.document_metadata_folder() == "hash" then
-                UIManager:show(InfoMessage:new({
-                  text = _(
+                self:showWidget(InfoMessage:new({
+                  text = gettext(
                     "Warning: Book metadata location is set to hash-based storage. Writing highlights into a PDF modifies the file which may change the partial hash, resulting in its metadata (e.g., highlights and progress) being unlinked and lost."
                   ),
                   icon = "notice-warning",
                 }))
               end
             else
-              UIManager:show(InfoMessage:new({
-                text = _(
+              self:showWidget(InfoMessage:new({
+                text = gettext(
                   [[
 Highlights in this document will be saved in the settings file, but they won't be written in the document itself because the file is in a read-only location.
 
@@ -696,14 +689,14 @@ If you wish your highlights to be saved in the document, just move it to a writa
               }))
             end
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             G_reader_settings:makeTrue("highlight_write_into_pdf")
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
         {
           text_func = function()
-            local text = _("Off")
+            local text = gettext("Off")
             return G_reader_settings:hasNot("highlight_write_into_pdf")
                 and text .. star
               or text
@@ -715,13 +708,13 @@ If you wish your highlights to be saved in the document, just move it to a writa
           callback = function()
             self.highlight_write_into_pdf = false
           end,
-          hold_callback = function(touchmenu_instance)
-            G_reader_settings:delSetting("highlight_write_into_pdf")
-            touchmenu_instance:updateItems()
+          hold_callback = function(menu)
+            G_reader_settings:delete("highlight_write_into_pdf")
+            menu:updateItems()
           end,
         },
         {
-          text = _("Show reminder on book opening"),
+          text = gettext("Show reminder on book opening"),
           checked_func = function()
             return G_reader_settings:isTrue("highlight_write_into_pdf_notify")
           end,
@@ -731,14 +724,14 @@ If you wish your highlights to be saved in the document, just move it to a writa
           separator = true,
         },
         {
-          text = _("Write all highlights into PDF file"),
+          text = gettext("Write all highlights into PDF file"),
           enabled_func = function()
             return self.highlight_write_into_pdf
               and self.ui.annotation:getNumberOfHighlightsAndNotes() > 0
           end,
           callback = function()
-            UIManager:show(ConfirmBox:new({
-              text = _(
+            self:showWidget(ConfirmBox:new({
+              text = gettext(
                 "Are you sure you want to write all KOReader highlights into PDF file?"
               ),
               icon = "texture-box",
@@ -754,7 +747,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
                     end
                   end
                 end
-                UIManager:show(Notification:new({
+                self:showWidget(Notification:new({
                   text = T(
                     N_(
                       "1 highlight written into PDF file",
@@ -769,14 +762,14 @@ If you wish your highlights to be saved in the document, just move it to a writa
           end,
         },
         {
-          text = _("Delete all highlights from PDF file"),
+          text = gettext("Delete all highlights from PDF file"),
           enabled_func = function()
             return self.highlight_write_into_pdf
               and self.ui.annotation:getNumberOfHighlightsAndNotes() > 0
           end,
           callback = function()
-            UIManager:show(ConfirmBox:new({
-              text = _(
+            self:showWidget(ConfirmBox:new({
+              text = gettext(
                 "Are you sure you want to delete all KOReader highlights from PDF file?"
               ),
               icon = "texture-box",
@@ -788,7 +781,7 @@ If you wish your highlights to be saved in the document, just move it to a writa
                     self:writePdfAnnotation("delete", item)
                   end
                 end
-                UIManager:show(Notification:new({
+                self:showWidget(Notification:new({
                   text = T(
                     N_(
                       "1 highlight deleted from PDF file",
@@ -808,17 +801,17 @@ If you wish your highlights to be saved in the document, just move it to a writa
 
   if self.ui.paging then
     menu_items.panel_zoom_options = {
-      text = _("Panel zoom (manga/comic)"),
+      text = gettext("Panel zoom (manga/comic)"),
       sub_item_table = self:genPanelZoomMenu(),
     }
   end
 
   -- main menu Settings
   menu_items.long_press = {
-    text = _("Long-press on text"),
+    text = gettext("Long-press on text"),
     sub_item_table = {
       {
-        text = _("Dictionary on single word selection"),
+        text = gettext("Dictionary on single word selection"),
         checked_func = function()
           return not self.view.highlight.disabled
             and G_reader_settings:nilOrFalse("highlight_action_on_single_word")
@@ -838,9 +831,8 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(menu_items.long_press.sub_item_table, {
       text = v[1],
       checked_func = function()
-        return (
-          G_reader_settings:readSetting("default_highlight_action") or "ask"
-        ) == v[2]
+        return (G_reader_settings:read("default_highlight_action") or "ask")
+          == v[2]
       end,
       radio = true,
       callback = function()
@@ -854,23 +846,21 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(sub_item_table, {
       text = v[1],
       checked_func = function()
-        return (
-          G_reader_settings:readSetting("highlight_dialog_position") or "center"
-        ) == v[2]
+        return (G_reader_settings:read("highlight_dialog_position") or "center")
+          == v[2]
       end,
       callback = function()
-        G_reader_settings:saveSetting("highlight_dialog_position", v[2])
+        G_reader_settings:save("highlight_dialog_position", v[2])
       end,
     })
   end
   table.insert(menu_items.long_press.sub_item_table, {
     text_func = function()
-      local position = G_reader_settings:readSetting(
-        "highlight_dialog_position"
-      ) or "center"
+      local position = G_reader_settings:read("highlight_dialog_position")
+        or "center"
       for __, v in ipairs(highlight_dialog_position) do
         if v[2] == position then
-          return T(_("Highlight dialog position: %1"), v[1]:lower())
+          return T(gettext("Highlight dialog position: %1"), v[1]:lower())
         end
       end
     end,
@@ -881,47 +871,46 @@ If you wish your highlights to be saved in the document, just move it to a writa
     table.insert(menu_items.long_press.sub_item_table, {
       text_func = function()
         return T(
-          _("Highlight very-long-press interval: %1 s"),
-          G_reader_settings:readSetting("highlight_long_hold_threshold_s") or 3
+          gettext("Highlight very-long-press interval: %1 s"),
+          G_reader_settings:read("highlight_long_hold_threshold_s") or 3
         )
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local items = SpinWidget:new({
-          title_text = _("Highlight very-long-press interval"),
-          info_text = _(
+          title_text = gettext("Highlight very-long-press interval"),
+          info_text = gettext(
             "If a long-press is not released in this interval, it is considered a very-long-press. On document text, single word selection will not be triggered."
           ),
           width = math.floor(self.screen_w * 0.75),
-          value = G_reader_settings:readSetting(
-            "highlight_long_hold_threshold_s"
-          ) or 3,
+          value = G_reader_settings:read("highlight_long_hold_threshold_s")
+            or 3,
           value_min = 2.5,
           value_max = 20,
           value_step = 0.1,
           value_hold_step = 0.5,
           unit = C_("Time", "s"),
           precision = "%0.1f",
-          ok_text = _("Set interval"),
+          ok_text = gettext("Set interval"),
           default_value = 3,
           callback = function(spin)
-            G_reader_settings:saveSetting(
+            G_reader_settings:save(
               "highlight_long_hold_threshold_s",
               spin.value
             )
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })
-        UIManager:show(items)
+        self:showWidget(items)
       end,
     })
   end
 
   table.insert(menu_items.long_press.sub_item_table, {
-    text = _("Auto-scroll when selection reaches a corner"),
-    help_text = _(
+    text = gettext("Auto-scroll when selection reaches a corner"),
+    help_text = gettext(
       [[
 Auto-scroll to show part of the previous page when your text selection reaches the top left corner, or of the next page when it reaches the bottom right corner.
 Except when in two columns mode, where this is limited to showing only the previous or next column.]]
@@ -952,14 +941,13 @@ Except when in two columns mode, where this is limited to showing only the previ
     table.insert(menu_items.long_press.sub_item_table, {
       text_func = function()
         return T(
-          _("Rate of movement in content selection: %1"),
-          G_reader_settings:readSetting("highlight_non_touch_factor") or 4
+          gettext("Rate of movement in content selection: %1"),
+          G_reader_settings:read("highlight_non_touch_factor") or 4
         )
       end,
-      callback = function(touchmenu_instance)
-        local curr_val = G_reader_settings:readSetting(
-          "highlight_non_touch_factor"
-        ) or 4
+      callback = function(menu)
+        local curr_val = G_reader_settings:read("highlight_non_touch_factor")
+          or 4
         local spin_widget = SpinWidget:new({
           value = curr_val,
           value_min = 0.25,
@@ -967,25 +955,22 @@ Except when in two columns mode, where this is limited to showing only the previ
           precision = "%.2f",
           value_step = 0.25,
           default_value = 4,
-          title_text = _("Rate of movement"),
-          info_text = _(
+          title_text = gettext("Rate of movement"),
+          info_text = gettext(
             "Select a decimal value from 0.25 to 5. A smaller value results in a larger travel distance per keystroke. Font size and this value are inversely correlated, meaning a smaller font size requires a larger value and vice versa."
           ),
           callback = function(spin)
-            G_reader_settings:saveSetting(
-              "highlight_non_touch_factor",
-              spin.value
-            )
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            G_reader_settings:save("highlight_non_touch_factor", spin.value)
+            if menu then
+              menu:updateItems()
             end
           end,
         })
-        UIManager:show(spin_widget)
+        self:showWidget(spin_widget)
       end,
     })
     table.insert(menu_items.long_press.sub_item_table, {
-      text = _("Speed-up rate on multiple keystrokes"),
+      text = gettext("Speed-up rate on multiple keystrokes"),
       checked_func = function()
         return G_reader_settings:nilOrTrue("highlight_non_touch_spedup")
       end,
@@ -998,7 +983,7 @@ Except when in two columns mode, where this is limited to showing only the previ
     })
     table.insert(menu_items.long_press.sub_item_table, {
       text_func = function()
-        local highlight_non_touch_interval = G_reader_settings:readSetting(
+        local highlight_non_touch_interval = G_reader_settings:read(
           "highlight_non_touch_interval"
         ) or 1
         return T(
@@ -1014,10 +999,9 @@ Except when in two columns mode, where this is limited to showing only the previ
         return not self.view.highlight.disabled
           and G_reader_settings:nilOrTrue("highlight_non_touch_spedup")
       end,
-      callback = function(touchmenu_instance)
-        local curr_val = G_reader_settings:readSetting(
-          "highlight_non_touch_interval"
-        ) or 1
+      callback = function(menu)
+        local curr_val = G_reader_settings:read("highlight_non_touch_interval")
+          or 1
         local spin_widget = SpinWidget:new({
           value = curr_val,
           value_min = 0.1,
@@ -1025,35 +1009,32 @@ Except when in two columns mode, where this is limited to showing only the previ
           precision = "%.1f",
           value_step = 0.1,
           default_value = 1,
-          title_text = _("Time interval"),
-          info_text = _(
+          title_text = gettext("Time interval"),
+          info_text = gettext(
             "Select a decimal value up to 1 second. This is the period of time within which multiple keystrokes will speed-up rate of travel."
           ),
           callback = function(spin)
-            G_reader_settings:saveSetting(
-              "highlight_non_touch_interval",
-              spin.value
-            )
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            G_reader_settings:save("highlight_non_touch_interval", spin.value)
+            if menu then
+              menu:updateItems()
             end
           end,
         })
-        UIManager:show(spin_widget)
+        self:showWidget(spin_widget)
       end,
     })
 
     -- long_press setting is under taps_and_gestures menu which is not available for non-touch devices
     -- Clone long_press setting and change its label, making it much more meaningful for non-touch device users.
     menu_items.selection_text = menu_items.long_press
-    menu_items.selection_text.text = _("Selection on text")
+    menu_items.selection_text.text = gettext("Selection on text")
     menu_items.long_press = nil
   end
 
   -- main menu Search
   menu_items.translation_settings = Translator:genSettingsMenu()
   menu_items.translate_current_page = {
-    text = _("Translate current page"),
+    text = gettext("Translate current page"),
     callback = function()
       self:onTranslateCurrentPage()
     end,
@@ -1063,7 +1044,7 @@ end
 function ReaderHighlight:genPanelZoomMenu()
   return {
     {
-      text = _("Allow panel zoom"),
+      text = gettext("Allow panel zoom"),
       checked_func = function()
         return self.panel_zoom_enabled
       end,
@@ -1072,14 +1053,14 @@ function ReaderHighlight:genPanelZoomMenu()
       end,
       hold_callback = function()
         local ext = util.getFileNameSuffix(self.ui.document.file)
-        local curr = G_reader_settings:readSetting("panel_zoom_enabled") or {}
+        local curr = G_reader_settings:readTableRef("panel_zoom_enabled")
         curr[ext] = not curr[ext]
-        G_reader_settings:saveSetting("panel_zoom_enabled", curr)
+        G_reader_settings:save("panel_zoom_enabled", curr)
       end,
       separator = true,
     },
     {
-      text = _("Fall back to text selection"),
+      text = gettext("Fall back to text selection"),
       checked_func = function()
         return self.panel_zoom_fallback_to_text_selection
       end,
@@ -1088,14 +1069,11 @@ function ReaderHighlight:genPanelZoomMenu()
       end,
       hold_callback = function()
         local ext = util.getFileNameSuffix(self.ui.document.file)
-        local curr = G_reader_settings:readSetting(
+        local curr = G_reader_settings:readTableRef(
           "panel_zoom_fallback_to_text_selection"
-        ) or {}
-        curr[ext] = self.panel_zoom_fallback_to_text_selection
-        G_reader_settings:saveSetting(
-          "panel_zoom_fallback_to_text_selection",
-          curr
         )
+        curr[ext] = self.panel_zoom_fallback_to_text_selection
+        G_reader_settings:save("panel_zoom_fallback_to_text_selection", curr)
       end,
       separator = true,
     },
@@ -1106,7 +1084,7 @@ end
 -- to ensure current highlight has not already been cleared, and that we
 -- are not going to clear a new highlight
 function ReaderHighlight:getClearId()
-  self.clear_id = time.now() -- can act as a unique id
+  self.clear_id = time.monotonic() -- can act as a unique id
   return self.clear_id
 end
 
@@ -1152,13 +1130,13 @@ function ReaderHighlight:onTapSelectModeIcon()
   if not self.select_mode then
     return
   end
-  UIManager:show(ConfirmBox:new({
-    text = _(
+  self:showWidget(ConfirmBox:new({
+    text = gettext(
       "You are currently in SELECT mode.\nTo finish highlighting, long press where the highlight should end and press the HIGHLIGHT button.\nYou can also exit select mode by tapping on the start of the highlight."
     ),
     icon = "texture-box",
-    ok_text = _("Exit select mode"),
-    cancel_text = _("Close"),
+    ok_text = gettext("Exit select mode"),
+    cancel_text = gettext("Close"),
     ok_callback = function()
       self.select_mode = false
       self:deleteHighlight(self.highlight_idx)
@@ -1231,17 +1209,17 @@ function ReaderHighlight:onTapXPointerSavedHighlight(ges)
   --     because pos.page isn't super accurate in continuous mode
   --     (it's the page number for what's it the topleft corner of the screen,
   --     i.e., often a bit earlier)...
-  -- Even in page mode, it's safer to use pos and ui.dimen.h
-  -- than pages' xpointers pos, even if ui.dimen.h is a bit
+  -- Even in page mode, it's safer to use pos and ui:getSize().h
+  -- than pages' xpointers pos, even if ui:getSize().h is a bit
   -- larger than pages' heights
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if
     self.view.view_mode == "page" and self.document:getVisiblePageCount() > 1
   then
-    cur_view_bottom = cur_view_top + 2 * self.ui.dimen.h
+    cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
-    cur_view_bottom = cur_view_top + self.ui.dimen.h
+    cur_view_bottom = cur_view_top + self.ui:getSize().h
   end
   local highlights_tapped = {}
   for hl_i, item in ipairs(self.ui.annotation.annotations) do
@@ -1354,19 +1332,19 @@ function ReaderHighlight:updateHighlight(index, side, direction, move_by_char)
   local new_end = highlight.pos1
   local new_text = self.ui.document:getTextFromXPointers(new_beginning, new_end)
   highlight.text = util.cleanupSelectedText(new_text)
-  self.ui:handleEvent(
+  UIManager:broadcastEvent(
     Event:new("AnnotationsModified", { highlight, highlight_before })
   )
   if side == 0 then
     -- Ensure we show the page with the new beginning of highlight
     if not self.ui.document:isXPointerInCurrentPage(new_beginning) then
-      self.ui:handleEvent(Event:new("GotoXPointer", new_beginning))
+      UIManager:broadcastEvent(Event:new("GotoXPointer", new_beginning))
     end
   else
     -- Ensure we show the page with the new end of highlight
     if not self.ui.document:isXPointerInCurrentPage(new_end) then
       if self.view.view_mode == "page" then
-        self.ui:handleEvent(Event:new("GotoXPointer", new_end))
+        UIManager:broadcastEvent(Event:new("GotoXPointer", new_end))
       else
         -- Not easy to get the y that would show the whole line
         -- containing new_end. So, we scroll so that new_end
@@ -1377,6 +1355,8 @@ function ReaderHighlight:updateHighlight(index, side, direction, move_by_char)
       end
     end
   end
+  -- Do not promote refresh during the highlighting.
+  UIManager:ignoreNextRefreshPromote()
   UIManager:setDirty(self.dialog, "ui")
 end
 
@@ -1409,7 +1389,7 @@ function ReaderHighlight:showChooseHighlightDialog(highlights)
     dialog = ButtonDialog:new({
       buttons = buttons,
     })
-    UIManager:show(dialog)
+    self:showWidget(dialog)
   end
   return true
 end
@@ -1419,7 +1399,7 @@ function ReaderHighlight:showHighlightNoteOrDialog(index)
   if bookmark_note then
     local textviewer
     textviewer = TextViewer:new({
-      title = _("Note"),
+      title = gettext("Note"),
       show_menu = false,
       text = bookmark_note,
       width = math.floor(math.min(self.screen_w, self.screen_h) * 0.8),
@@ -1427,14 +1407,14 @@ function ReaderHighlight:showHighlightNoteOrDialog(index)
       buttons_table = {
         {
           {
-            text = _("Delete highlight"),
+            text = gettext("Delete highlight"),
             callback = function()
               UIManager:close(textviewer)
               self:deleteHighlight(index)
             end,
           },
           {
-            text = _("Edit highlight"),
+            text = gettext("Edit highlight"),
             callback = function()
               UIManager:close(textviewer)
               self:onShowHighlightDialog(index)
@@ -1443,7 +1423,7 @@ function ReaderHighlight:showHighlightNoteOrDialog(index)
         },
       },
     })
-    UIManager:show(textviewer)
+    self:showWidget(textviewer)
   else
     self:onShowHighlightDialog(index)
   end
@@ -1479,7 +1459,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
         end,
       },
       {
-        text = _("Note"),
+        text = gettext("Note"),
         callback = function()
           self:editHighlight(index)
           UIManager:close(self.edit_highlight_dialog)
@@ -1487,7 +1467,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
         end,
       },
       {
-        text = _("Details"),
+        text = gettext("Details"),
         callback = function()
           self.ui.bookmark:showBookmarkDetails(index)
           UIManager:close(self.edit_highlight_dialog)
@@ -1568,7 +1548,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
       return self:_getDialogAnchor(self.edit_highlight_dialog, item)
     end,
   })
-  UIManager:show(self.edit_highlight_dialog)
+  self:showWidget(self.edit_highlight_dialog)
   return true
 end
 
@@ -1622,12 +1602,12 @@ function ReaderHighlight:onShowHighlightMenu(index)
       )
     end,
     tap_close_callback = function()
-      self:handleEvent(Event:new("Tap"))
+      self:onTap()
     end,
   })
   -- NOTE: Disable merging for this update,
   --     or the buggy Sage kernel may alpha-blend it into the page (with a bogus alpha value, to boot)...
-  UIManager:show(self.highlight_dialog, "[ui]")
+  self:showWidget(self.highlight_dialog, "[ui]")
 end
 dbg:guard(ReaderHighlight, "onShowHighlightMenu", function(self)
   assert(
@@ -1637,7 +1617,7 @@ dbg:guard(ReaderHighlight, "onShowHighlightMenu", function(self)
 end)
 
 function ReaderHighlight:_getDialogAnchor(dialog, item)
-  local position = G_reader_settings:readSetting("highlight_dialog_position")
+  local position = G_reader_settings:read("highlight_dialog_position")
     or "center"
   if position == "center" then
     return
@@ -1720,9 +1700,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       -- no need to handle long-hold.
       if
         G_reader_settings:isTrue("highlight_action_on_single_word")
-        and (
-            G_reader_settings:readSetting("default_highlight_action") or "ask"
-          )
+        and (G_reader_settings:read("default_highlight_action") or "ask")
           == "ask"
       then
         handle_long_hold = false
@@ -1731,8 +1709,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       -- Multi words selection uses default_highlight_action, and no need for long-hold
       -- if it is already "ask".
       if
-        (G_reader_settings:readSetting("default_highlight_action") or "ask")
-        == "ask"
+        (G_reader_settings:read("default_highlight_action") or "ask") == "ask"
       then
         handle_long_hold = false
       end
@@ -1740,7 +1717,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
     if handle_long_hold then
       -- (Default delay is 3 seconds as in the menu items)
       UIManager:scheduleIn(
-        G_reader_settings:readSetting("highlight_long_hold_threshold_s") or 3,
+        G_reader_settings:read("highlight_long_hold_threshold_s") or 3,
         self.long_hold_reached_action
       )
     end
@@ -1753,14 +1730,14 @@ function ReaderHighlight:_resetHoldTimer(clear)
   end
 end
 
-function ReaderHighlight:onTogglePanelZoomSetting(arg, ges)
+function ReaderHighlight:onTogglePanelZoomSetting(arg, _ges)
   if self.ui.rolling then
     return
   end
   self.panel_zoom_enabled = not self.panel_zoom_enabled
 end
 
-function ReaderHighlight:onToggleFallbackTextSelection(arg, ges)
+function ReaderHighlight:onToggleFallbackTextSelection(arg, _ges)
   if self.ui.rolling then
     return
   end
@@ -1789,7 +1766,7 @@ function ReaderHighlight:onPanelZoom(arg, ges)
       fullscreen = true,
       rotated = rotate,
     })
-    UIManager:show(imgviewer)
+    self:showWidget(imgviewer)
     return true
   end
   return false
@@ -1825,12 +1802,12 @@ function ReaderHighlight:onHold(arg, ges)
     local ImageViewer = require("ui/widget/imageviewer")
     local imgviewer = ImageViewer:new({
       image = image,
-      -- title_text = _("Document embedded image"),
+      -- title_text = gettext("Document embedded image"),
       -- No title, more room for image
       with_title_bar = false,
       fullscreen = true,
     })
-    UIManager:show(imgviewer)
+    self:showWidget(imgviewer)
     self:onStopHighlightIndicator()
     return true
   end
@@ -1876,6 +1853,8 @@ function ReaderHighlight:onHold(arg, ges)
       end
     end
 
+    -- Do not promote refresh during the highlighting.
+    UIManager:ignoreNextRefreshPromote()
     if self.ui.paging then
       self.view.highlight.temp[self.hold_pos.page] = self.selected_text.sboxes
       -- Unfortunately, getWordFromPosition() may not return good coordinates,
@@ -1919,6 +1898,9 @@ function ReaderHighlight:onHoldPan(_, ges)
 
   self.holdpan_pos = self.view:screenToPageTransform(ges.pos)
   logger.dbg("holdpan position in page", self.holdpan_pos)
+
+  -- Do not promote refresh during the highlighting.
+  UIManager:ignoreNextRefreshPromote()
 
   if
     self.ui.rolling
@@ -1975,13 +1957,17 @@ function ReaderHighlight:onHoldPan(_, ges)
           -- Switch from page mode to scroll mode
           local restore_page_mode_xpointer = self.ui.document:getXPointer() -- top of current page
           self.restore_page_mode_func = function()
-            self.ui:handleEvent(Event:new("SetViewMode", "page"))
+            UIManager:broadcastEvent(
+              Event:new("SetViewMode", "page", --[[quiet=]] true)
+            )
             self.ui.rolling:onGotoXPointer(
               restore_page_mode_xpointer,
               self.selected_text_start_xpointer
             )
           end
-          self.ui:handleEvent(Event:new("SetViewMode", "scroll"))
+          UIManager:broadcastEvent(
+            Event:new("SetViewMode", "scroll", --[[quiet=]] true)
+          )
         end
         -- (using rolling:onGotoViewRel(1/3) has some strange side effects)
         local scroll_distance = math.floor(self.screen_h * 1 / 3)
@@ -2081,7 +2067,7 @@ function ReaderHighlight:onHoldPan(_, ges)
   UIManager:setDirty(self.dialog, "ui")
 end
 
-local info_message_ocr_text = _(
+local info_message_ocr_text = gettext(
   [[
 No OCR results or no language data.
 
@@ -2101,7 +2087,7 @@ function ReaderHighlight:lookup(selected_text, selected_link)
 
   -- if we extracted text directly
   if #selected_text.text > 0 and self.hold_pos then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new(
         "LookupWord",
         selected_text.text,
@@ -2132,11 +2118,11 @@ function ReaderHighlight:lookup(selected_text, selected_link)
     end
     logger.dbg("OCRed text:", text)
     if text and text ~= "" then
-      self.ui:handleEvent(
+      UIManager:broadcastEvent(
         Event:new("LookupWord", text, false, word_boxes, self, selected_link)
       )
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = info_message_ocr_text,
       }))
     end
@@ -2145,7 +2131,7 @@ end
 dbg:guard(
   ReaderHighlight,
   "lookup",
-  function(self, selected_text, selected_link)
+  function(self, selected_text, _selected_link)
     assert(
       selected_text ~= nil,
       "lookup must not be called with nil selected_text!"
@@ -2171,7 +2157,7 @@ function ReaderHighlight:getSelectedWordContext(nb_words)
   end
 end
 
-function ReaderHighlight:viewSelectionHTML(debug_view, no_css_files_buttons)
+function ReaderHighlight:viewSelectionHTML(_debug_view, _no_css_files_buttons)
   if
     self.selected_text
     and self.selected_text.pos0
@@ -2204,7 +2190,7 @@ function ReaderHighlight:translate(index)
     if text and text ~= "" then
       self:onTranslateText(text)
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = info_message_ocr_text,
       }))
     end
@@ -2260,7 +2246,7 @@ function ReaderHighlight:onHoldRelease()
   local long_final_hold = self.long_hold_reached
   self:_resetHoldTimer(true) -- clear state
 
-  local default_highlight_action = G_reader_settings:readSetting(
+  local default_highlight_action = G_reader_settings:read(
     "default_highlight_action"
   ) or "ask"
 
@@ -2309,7 +2295,7 @@ function ReaderHighlight:onHoldRelease()
         self:lookupWikipedia()
         self:onExit()
       elseif default_highlight_action == "dictionary" then
-        self:onHighlightDictLookup()
+        self:highlightDictLookup()
         self:onExit()
       elseif default_highlight_action == "search" then
         self:onHighlightSearch()
@@ -2332,20 +2318,19 @@ end
 
 function ReaderHighlight:onSetHighlightAction(action_num, no_notification)
   local v = long_press_action[action_num]
-  G_reader_settings:saveSetting("default_highlight_action", v[2])
+  G_reader_settings:save("default_highlight_action", v[2])
   self.view.highlight.disabled = v[2] == "nothing"
   if not no_notification then -- fired with a gesture
-    UIManager:show(Notification:new({
-      text = T(_("Default highlight action changed to '%1'."), v[1]),
+    self:showWidget(Notification:new({
+      text = T(gettext("Default highlight action changed to '%1'."), v[1]),
     }))
   end
   return true
 end
 
 function ReaderHighlight:onCycleHighlightAction()
-  local current_action = G_reader_settings:readSetting(
-    "default_highlight_action"
-  ) or "ask"
+  local current_action = G_reader_settings:read("default_highlight_action")
+    or "ask"
   local next_action_num
   for i, v in ipairs(long_press_action) do
     if v[2] == current_action then
@@ -2385,9 +2370,9 @@ function ReaderHighlight:onCycleHighlightStyle()
     next_style_num = 1
   end
   self.view.highlight.saved_drawer = highlight_style[next_style_num][2]
-  UIManager:show(Notification:new({
+  self:showWidget(Notification:new({
     text = T(
-      _("Default highlight style changed to '%1'."),
+      gettext("Default highlight style changed to '%1'."),
       highlight_style[next_style_num][1]
     ),
   }))
@@ -2456,8 +2441,8 @@ function ReaderHighlight:saveHighlight(extend_to_sentence)
       self:writePdfAnnotation("save", item)
     end
     local index = self.ui.annotation:addItem(item)
-    self.view.footer:maybeUpdateFooter()
-    self.ui:handleEvent(
+    UIManager:broadcastEvent("UpdateFooter")
+    UIManager:broadcastEvent(
       Event:new("AnnotationsModified", { item, nb_highlights_added = 1 })
     )
     return index
@@ -2493,7 +2478,7 @@ end
 
 function ReaderHighlight:lookupWikipedia()
   if self.selected_text then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new(
         "LookupWikipedia",
         util.cleanupSelectedText(self.selected_text.text)
@@ -2502,13 +2487,20 @@ function ReaderHighlight:lookupWikipedia()
   end
 end
 
+function ReaderHighlight:_closeHighlightDialog()
+  if self.highlight_dialog == nil then
+    return
+  end
+  local d = self.highlight_dialog
+  self.highlight_dialog = nil
+  -- ReaderHighlight:onExit won't trigger the close again.
+  UIManager:close(d)
+end
+
 function ReaderHighlight:onHighlightSearch()
   logger.dbg("search highlight")
   -- First, if our dialog is still shown, close it.
-  if self.highlight_dialog then
-    UIManager:close(self.highlight_dialog)
-    self.highlight_dialog = nil
-  end
+  self:_closeHighlightDialog()
   self:highlightFromHoldPos()
   if self.selected_text then
     local text =
@@ -2517,11 +2509,11 @@ function ReaderHighlight:onHighlightSearch()
   end
 end
 
-function ReaderHighlight:onHighlightDictLookup()
+function ReaderHighlight:highlightDictLookup()
   logger.dbg("dictionary lookup highlight")
   self:highlightFromHoldPos()
   if self.selected_text then
-    self.ui:handleEvent(
+    UIManager:broadcastEvent(
       Event:new("LookupWord", util.cleanupSelectedText(self.selected_text.text))
     )
   end
@@ -2569,7 +2561,7 @@ function ReaderHighlight:editHighlightStyle(index)
       end
     end
     UIManager:setDirty(self.dialog, "ui")
-    self.ui:handleEvent(Event:new("AnnotationsModified", { item }))
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightStyleDialog(apply_drawer, item.drawer, index)
 end
@@ -2586,7 +2578,7 @@ function ReaderHighlight:editHighlightColor(index)
       end
     end
     UIManager:setDirty(self.dialog, "ui")
-    self.ui:handleEvent(Event:new("AnnotationsModified", { item }))
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightColorDialog(apply_color, item)
 end
@@ -2607,8 +2599,8 @@ function ReaderHighlight:showHighlightStyleDialog(caller_callback, item_drawer)
       },
     })
   end
-  UIManager:show(RadioButtonWidget:new({
-    title_text = _("Highlight style"),
+  self:showWidget(RadioButtonWidget:new({
+    title_text = gettext("Highlight style"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
     radio_buttons = radio_buttons,
@@ -2626,7 +2618,7 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
     curr_color = item.color or default_color
     keep_shown_on_apply = true
   else
-    default_color = G_reader_settings:readSetting("highlight_color")
+    default_color = G_reader_settings:read("highlight_color")
       or self._fallback_color
     curr_color = self.view.highlight.saved_color
   end
@@ -2644,8 +2636,8 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
       },
     })
   end
-  UIManager:show(RadioButtonWidget:new({
-    title_text = _("Highlight color"),
+  self:showWidget(RadioButtonWidget:new({
+    title_text = gettext("Highlight color"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
     radio_buttons = radio_buttons,
@@ -2831,13 +2823,13 @@ function ReaderHighlight:getSavedExtendedHighlightPage(highlight, page, index)
 end
 
 function ReaderHighlight:onReadSettings(config)
-  self.view.highlight.saved_drawer = config:readSetting("highlight_drawer")
-    or G_reader_settings:readSetting("highlight_drawing_style")
+  self.view.highlight.saved_drawer = config:read("highlight_drawer")
+    or G_reader_settings:read("highlight_drawing_style")
     or self.view.highlight.saved_drawer
-  self.view.highlight.saved_color = config:readSetting("highlight_color")
-    or G_reader_settings:readSetting("highlight_color")
+  self.view.highlight.saved_color = config:read("highlight_color")
+    or G_reader_settings:read("highlight_color")
     or self.view.highlight.saved_color
-  self.view.highlight.disabled = G_reader_settings:readSetting(
+  self.view.highlight.disabled = G_reader_settings:read(
     "default_highlight_action"
   ) == "nothing"
 
@@ -2852,18 +2844,15 @@ function ReaderHighlight:onReadSettings(config)
           config:isTrue("highlight_write_into_pdf") -- true or false
       else
         self.highlight_write_into_pdf =
-          G_reader_settings:readSetting("highlight_write_into_pdf") -- true or nil
+          G_reader_settings:read("highlight_write_into_pdf") -- true or nil
       end
     end
     local ext = util.getFileNameSuffix(self.ui.document.file)
     if G_reader_settings:hasNot("panel_zoom_enabled") then
-      G_reader_settings:saveSetting(
-        "panel_zoom_enabled",
-        { cbz = true, cbt = true }
-      )
+      G_reader_settings:save("panel_zoom_enabled", { cbz = true, cbt = true })
     end
     if G_reader_settings:hasNot("panel_zoom_fallback_to_text_selection") then
-      G_reader_settings:saveSetting(
+      G_reader_settings:save(
         "panel_zoom_fallback_to_text_selection",
         { pdf = true }
       )
@@ -2871,17 +2860,16 @@ function ReaderHighlight:onReadSettings(config)
     if config:has("panel_zoom_enabled") then
       self.panel_zoom_enabled = config:isTrue("panel_zoom_enabled")
     else
-      self.panel_zoom_enabled = (G_reader_settings:readSetting(
+      self.panel_zoom_enabled = G_reader_settings:readTableRef(
         "panel_zoom_enabled"
-      ) or {})[ext] or false
+      )[ext] or false
     end
     if config:has("panel_zoom_fallback_to_text_selection") then
       self.panel_zoom_fallback_to_text_selection =
         config:isTrue("panel_zoom_fallback_to_text_selection")
     else
-      self.panel_zoom_fallback_to_text_selection = (
-        G_reader_settings:readSetting("panel_zoom_fallback_to_text_selection")
-        or {}
+      self.panel_zoom_fallback_to_text_selection = G_reader_settings:readTableRef(
+        "panel_zoom_fallback_to_text_selection"
       )[ext] or false
     end
   end
@@ -2892,29 +2880,20 @@ function ReaderHighlight:onUpdateHoldPanRate()
 end
 
 function ReaderHighlight:onSaveSettings()
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save(
     "highlight_drawer",
     self.view.highlight.saved_drawer
   )
-  self.ui.doc_settings:saveSetting(
-    "highlight_color",
-    self.view.highlight.saved_color
-  )
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save("highlight_color", self.view.highlight.saved_color)
+  self.ui.doc_settings:save(
     "highlight_write_into_pdf",
     self.highlight_write_into_pdf
   )
-  self.ui.doc_settings:saveSetting(
-    "panel_zoom_enabled",
-    self.panel_zoom_enabled
-  )
+  self.ui.doc_settings:save("panel_zoom_enabled", self.panel_zoom_enabled)
 end
 
 function ReaderHighlight:onExit()
-  if self.highlight_dialog then
-    UIManager:close(self.highlight_dialog)
-    self.highlight_dialog = nil
-  end
+  self:_closeHighlightDialog()
   -- clear highlighted text
   self:clear()
 end
@@ -3008,13 +2987,13 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
     local quick_move_distance_dy = self.view.visible_area.h * (1 / 5)
     -- single move distance, user adjustable, default value (4) capable to move on word with small font size and narrow line height
     local move_distance = Size.item.height_default
-      / (G_reader_settings:readSetting("highlight_non_touch_factor") or 4)
+      / (G_reader_settings:read("highlight_non_touch_factor") or 4)
     local rect = self._current_indicator_pos:copy()
     if quick_move then
       rect.x = rect.x + quick_move_distance_dx * dx
       rect.y = rect.y + quick_move_distance_dy * dy
     else
-      local now = time:now()
+      local now = time.monotonic()
       if
         dx == self._last_indicator_move_args.dx
         and dy == self._last_indicator_move_args.dy
@@ -3026,9 +3005,8 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
         -- quadruple press: 64 single distances, almost move to screen edge
         if G_reader_settings:nilOrTrue("highlight_non_touch_spedup") then
           -- user selects whether to use 'constant' or [this] 'sped up' rate (speed-up on by default)
-          local t_inter = G_reader_settings:readSetting(
-            "highlight_non_touch_interval"
-          ) or 1
+          local t_inter = G_reader_settings:read("highlight_non_touch_interval")
+            or 1
           if diff < time.s(t_inter) then
             move_distance = self._last_indicator_move_args.distance * 4
           end

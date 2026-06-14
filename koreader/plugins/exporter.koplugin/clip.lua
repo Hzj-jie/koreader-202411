@@ -1,10 +1,10 @@
-local DocumentRegistry = require("document/documentregistry")
 local DocSettings = require("docsettings")
+local DocumentRegistry = require("document/documentregistry")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local ffiutil = require("ffi/util")
 local md5 = require("ffi/sha2").md5
+local gettext = require("gettext")
 local util = require("util")
-local _ = require("gettext")
 local T = ffiutil.template
 
 local MyClipping = {
@@ -118,14 +118,13 @@ function MyClipping:parseTitleFromPath(line)
   elseif extensions[line:sub(-5):lower()] then
     line = line:sub(1, -6)
   end
-  local dummy, title, author
-  dummy, dummy, title, author = line:find("(.-)%s*%((.*)%)")
+  local __, __, title, author = line:find("(.-)%s*%((.*)%)")
   if not author then
-    dummy, dummy, title, author = line:find("(.-)%s*-%s*(.*)")
+    __, __, title, author = line:find("(.-)%s*-%s*(.*)")
   end
   title = title or line:match("^%s*(.-)%s*$")
-  return isEmpty(title) and _("Unknown Book") or title,
-    isEmpty(author) and _("Unknown Author") or author
+  return isEmpty(title) and gettext("Unknown Book") or title,
+    isEmpty(author) and gettext("Unknown Author") or author
 end
 
 local keywords = {
@@ -247,7 +246,7 @@ function MyClipping:getImage(image)
 end
 
 function MyClipping:parseAnnotations(annotations, book)
-  local settings = G_reader_settings:readSetting("exporter")
+  local settings = G_reader_settings:readTableRef("exporter")
   for _, item in ipairs(annotations) do
     if
       item.drawer
@@ -279,7 +278,7 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
   --- @todo Remove this once we get rid of auto-text or improve the data model.
   local pattern = "^"
     .. T(
-      _("Page %1 %2 @ %3"),
+      gettext("Page %1 %2 @ %3"),
       "%[?%d*%]?%d+",
       "(.*)",
       "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d"
@@ -287,7 +286,7 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
     .. "$"
 
   local orphan_highlights = {}
-  local settings = G_reader_settings:readSetting("exporter")
+  local settings = G_reader_settings:readTableRef("exporter")
   for page, items in pairs(highlights) do
     for _, item in ipairs(items) do
       if
@@ -366,7 +365,14 @@ function MyClipping:parseHighlight(highlights, bookmarks, book)
   end
   -- Sort clippings by their position in the book.
   table.sort(book, function(v1, v2)
-    return bookmark_indexes[v1[1].time] > bookmark_indexes[v2[1].time]
+    -- TODO: This seems impossible, but see #400.
+    if bookmark_indexes[v1[1].time] and bookmark_indexes[v2[1].time] then
+      return bookmark_indexes[v1[1].time] > bookmark_indexes[v2[1].time]
+    end
+    if bookmark_indexes[v1[1].time] then
+      return true
+    end
+    return false
   end)
   -- Place orphans at the end
   for _, v in ipairs(orphan_highlights) do
@@ -383,28 +389,29 @@ end
 
 function MyClipping:getClippingsFromBook(clippings, doc_path)
   local doc_settings = DocSettings:open(doc_path)
-  local highlights, bookmarks
-  local annotations = doc_settings:readSetting("annotations")
-  if annotations == nil then
-    highlights = doc_settings:readSetting("highlight")
-    if highlights == nil then
-      return
-    end
-    bookmarks = doc_settings:readSetting("bookmarks")
-  end
-  local props = doc_settings:readSetting("doc_props")
-  props = FileManagerBookInfo.extendProps(props, doc_path)
+  local props = FileManagerBookInfo.extendProps(
+    doc_settings:readTableRef("doc_props"),
+    doc_path
+  )
   local title, author = self:getTitleAuthor(doc_path, props)
   clippings[title] = {
     file = doc_path,
     title = title,
     author = author,
-    number_of_pages = doc_settings:readSetting("doc_pages"),
+    number_of_pages = doc_settings:read("doc_pages"),
   }
-  if annotations then
-    self:parseAnnotations(annotations, clippings[title])
-  else
-    self:parseHighlight(highlights, bookmarks, clippings[title])
+  if doc_settings:has("annotations") then
+    self:parseAnnotations(
+      doc_settings:readTableRef("annotations"),
+      clippings[title]
+    )
+  end
+  if doc_settings:has("highlight") then
+    self:parseHighlight(
+      doc_settings:readTableRef("highlight"),
+      doc_settings:readTableRef("bookmarks"),
+      clippings[title]
+    )
   end
 end
 

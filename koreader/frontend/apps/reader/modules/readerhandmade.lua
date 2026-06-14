@@ -7,7 +7,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local util = require("util")
 local T = require("ffi/util").template
-local _ = require("gettext")
+local gettext = require("gettext")
 
 local ReaderHandMade = WidgetContainer:extend({
   custom_toc_symbol = "\u{EAEC}", -- used in a few places
@@ -20,10 +20,10 @@ end
 function ReaderHandMade:onReadSettings(config)
   self.toc_enabled = config:isTrue("handmade_toc_enabled")
   self.toc_edit_enabled = config:nilOrTrue("handmade_toc_edit_enabled")
-  self.toc = config:readSetting("handmade_toc") or {}
+  self.toc = config:readTableRef("handmade_toc")
   self.flows_enabled = config:isTrue("handmade_flows_enabled")
   self.flows_edit_enabled = config:nilOrTrue("handmade_flows_edit_enabled")
-  self.flow_points = config:readSetting("handmade_flow_points") or {}
+  self.flow_points = config:readTableRef("handmade_flow_points")
   self.inactive_flow_points = {}
 
   -- Don't mess toc and flow_points made on that document if saved when
@@ -31,66 +31,62 @@ function ReaderHandMade:onReadSettings(config)
   if #self.toc > 0 then
     local has_xpointers = self.toc[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
-      config:saveSetting("handmade_toc_paging", self.toc)
-      self.toc = config:readSetting("handmade_toc_rolling") or {}
-      config:delSetting("handmade_toc_rolling")
+      config:save("handmade_toc_paging", self.toc)
+      self.toc = config:readTableRef("handmade_toc_rolling")
+      config:delete("handmade_toc_rolling")
     elseif self.ui.paging and has_xpointers then
-      config:saveSetting("handmade_toc_rolling", self.toc)
-      self.toc = config:readSetting("handmade_toc_paging") or {}
-      config:delSetting("handmade_toc_paging")
+      config:save("handmade_toc_rolling", self.toc)
+      self.toc = config:readTableRef("handmade_toc_paging")
+      config:delete("handmade_toc_paging")
     end
   else
     if self.ui.rolling and config:has("handmade_toc_rolling") then
-      self.toc = config:readSetting("handmade_toc_rolling")
-      config:delSetting("handmade_toc_rolling")
+      self.toc = config:read("handmade_toc_rolling")
+      config:delete("handmade_toc_rolling")
     elseif self.ui.paging and config:has("handmade_toc_paging") then
-      self.toc = config:readSetting("handmade_toc_paging")
-      config:delSetting("handmade_toc_paging")
+      self.toc = config:read("handmade_toc_paging")
+      config:delete("handmade_toc_paging")
     end
   end
   if #self.flow_points > 0 then
     local has_xpointers = self.flow_points[1].xpointer ~= nil
     if self.ui.rolling and not has_xpointers then
-      config:saveSetting("handmade_flow_points_paging", self.flow_points)
-      self.flow_points = config:readSetting("handmade_flow_points_rolling")
-        or {}
-      config:delSetting("handmade_flow_points_rolling")
+      config:save("handmade_flow_points_paging", self.flow_points)
+      self.flow_points = config:readTableRef("handmade_flow_points_rolling")
+      config:delete("handmade_flow_points_rolling")
     elseif self.ui.paging and has_xpointers then
-      config:saveSetting("handmade_flow_points_rolling", self.flow_points)
-      self.flow_points = config:readSetting("handmade_flow_points_paging") or {}
-      config:delSetting("handmade_flow_points_paging")
+      config:save("handmade_flow_points_rolling", self.flow_points)
+      self.flow_points = config:readTableRef("handmade_flow_points_paging")
+      config:delete("handmade_flow_points_paging")
     end
   else
     if self.ui.rolling and config:has("handmade_flow_points_rolling") then
-      self.flow_points = config:readSetting("handmade_flow_points_rolling")
-      config:delSetting("handmade_flow_points_rolling")
+      self.flow_points = config:read("handmade_flow_points_rolling")
+      config:delete("handmade_flow_points_rolling")
     elseif self.ui.paging and config:has("handmade_flow_points_paging") then
-      self.flow_points = config:readSetting("handmade_flow_points_paging")
-      config:delSetting("handmade_flow_points_paging")
+      self.flow_points = config:read("handmade_flow_points_paging")
+      config:delete("handmade_flow_points_paging")
     end
   end
 end
 
 function ReaderHandMade:onSaveSettings()
-  self.ui.doc_settings:saveSetting("handmade_toc_enabled", self.toc_enabled)
-  self.ui.doc_settings:saveSetting(
-    "handmade_toc_edit_enabled",
-    self.toc_edit_enabled
-  )
+  self.ui.doc_settings:save("handmade_toc_enabled", self.toc_enabled)
+  self.ui.doc_settings:save("handmade_toc_edit_enabled", self.toc_edit_enabled)
   if #self.toc > 0 then
-    self.ui.doc_settings:saveSetting("handmade_toc", self.toc)
+    self.ui.doc_settings:save("handmade_toc", self.toc)
   else
-    self.ui.doc_settings:delSetting("handmade_toc")
+    self.ui.doc_settings:delete("handmade_toc")
   end
-  self.ui.doc_settings:saveSetting("handmade_flows_enabled", self.flows_enabled)
-  self.ui.doc_settings:saveSetting(
+  self.ui.doc_settings:save("handmade_flows_enabled", self.flows_enabled)
+  self.ui.doc_settings:save(
     "handmade_flows_edit_enabled",
     self.flows_edit_enabled
   )
   if #self.flow_points > 0 then
-    self.ui.doc_settings:saveSetting("handmade_flow_points", self.flow_points)
+    self.ui.doc_settings:save("handmade_flow_points", self.flow_points)
   else
-    self.ui.doc_settings:delSetting("handmade_flow_points")
+    self.ui.doc_settings:delete("handmade_flow_points")
   end
 end
 
@@ -115,15 +111,11 @@ end
 function ReaderHandMade:onToggleHandmadeToc()
   self.toc_enabled = not self.toc_enabled
   self:setupToc()
-  -- Have footer updated, so we may see this took effect
-  self.view.footer:onUpdateFooter(self.view.footer_visible)
 end
 
 function ReaderHandMade:onToggleHandmadeFlows()
   self.flows_enabled = not self.flows_enabled
   self:setupFlows()
-  -- Have footer updated, so we may see this took effect
-  self.view.footer:onUpdateFooter(self.view.footer_visible)
   self.ui.annotation:setNeedsUpdateFlag()
 end
 
@@ -133,7 +125,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
     return
   end
   menu_items.handmade_toc = {
-    text = _("Custom table of contents") .. " " .. self.custom_toc_symbol,
+    text = gettext("Custom table of contents") .. " " .. self.custom_toc_symbol,
     checked_func = function()
       return self.toc_enabled
     end,
@@ -142,7 +134,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
     end,
   }
   menu_items.handmade_hidden_flows = {
-    text = _("Custom hidden flows"),
+    text = gettext("Custom hidden flows"),
     checked_func = function()
       return self.flows_enabled
     end,
@@ -152,7 +144,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
   }
   --[[ Not yet implemented
     menu_items.handmade_page_numbers = {
-        text = _("Custom page numbers"),
+        text = gettext("Custom page numbers"),
         checked_func = function() return false end,
         callback = function()
         end,
@@ -160,16 +152,16 @@ function ReaderHandMade:addToMainMenu(menu_items)
     ]]
   --
   menu_items.handmade_settings = {
-    text = _("Custom layout features"),
+    text = gettext("Custom layout features"),
     sub_item_table_func = function()
       return {
         {
-          text = _("About custom table of contents")
+          text = gettext("About custom table of contents")
             .. " "
             .. self.custom_toc_symbol,
           callback = function()
-            UIManager:show(InfoMessage:new({
-              text = _(
+            self:showWidget(InfoMessage:new({
+              text = gettext(
                 [[
 If the book has no table of contents or you would like to substitute it with your own, you can create a custom TOC. The original TOC (if available) will not be altered.
 
@@ -185,7 +177,7 @@ This custom table of contents is currently limited to a single level and can't h
           keep_menu_open = true,
         },
         {
-          text = _("Edit mode"),
+          text = gettext("Edit mode"),
           enabled_func = function()
             return self:isHandmadeTocEnabled()
           end,
@@ -199,27 +191,25 @@ This custom table of contents is currently limited to a single level and can't h
         },
         --[[ Not yet implemented
                 {
-                    text = _("Add multiple chapter start page numbers"),
+                    text = gettext("Add multiple chapter start page numbers"),
                 },
                 ]]
         --
         {
-          text = _("Clear custom table of contents"),
+          text = gettext("Clear custom table of contents"),
           enabled_func = function()
             return #self.toc > 0
           end,
-          callback = function(touchmenu_instance)
-            UIManager:show(ConfirmBox:new({
-              text = _(
+          callback = function(menu)
+            self:showWidget(ConfirmBox:new({
+              text = gettext(
                 "Are you sure you want to clear your custom table of contents?"
               ),
               ok_callback = function()
                 self.toc = {}
-                self.ui:handleEvent(Event:new("UpdateToc"))
-                -- The footer may be visible, so have it update its chapter related items
-                self.view.footer:onUpdateFooter(self.view.footer_visible)
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                UIManager:broadcastEvent(Event:new("UpdateToc"))
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -228,10 +218,10 @@ This custom table of contents is currently limited to a single level and can't h
           separator = true,
         },
         {
-          text = _("About custom hidden flows"),
+          text = gettext("About custom hidden flows"),
           callback = function()
-            UIManager:show(InfoMessage:new({
-              text = _(
+            self:showWidget(InfoMessage:new({
+              text = gettext(
                 [[
 Custom hidden flows can be created to exclude sections of the book from your normal reading flow:
 - hidden flows will automatically be skipped when turning pages within the regular flow;
@@ -251,7 +241,7 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           keep_menu_open = true,
         },
         {
-          text = _("Edit mode"),
+          text = gettext("Edit mode"),
           enabled_func = function()
             return self:isHandmadeHiddenFlowsEnabled()
           end,
@@ -265,16 +255,16 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
         {
           text_func = function()
             return T(
-              _("Clear inactive marked pages (%1)"),
+              gettext("Clear inactive marked pages (%1)"),
               #self.inactive_flow_points
             )
           end,
           enabled_func = function()
             return #self.inactive_flow_points > 0
           end,
-          callback = function(touchmenu_instance)
-            UIManager:show(ConfirmBox:new({
-              text = _(
+          callback = function(menu)
+            self:showWidget(ConfirmBox:new({
+              text = gettext(
                 "Inactive marked pages are pages that you tagged as start hidden flow or restart regular flow, but that other marked pages made them have no effect.\nAre you sure you want to clear them?"
               ),
               ok_callback = function()
@@ -282,13 +272,11 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                   table.remove(self.flow_points, self.inactive_flow_points[i])
                 end
                 self:updateDocFlows()
-                self.ui:handleEvent(Event:new("UpdateToc"))
-                self.ui:handleEvent(Event:new("InitScrollPageStates"))
-                -- The footer may be visible, so have it update its dependent items
-                self.view.footer:onUpdateFooter(self.view.footer_visible)
+                UIManager:broadcastEvent(Event:new("UpdateToc"))
+                UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
                 self.ui.annotation:setNeedsUpdateFlag()
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -296,25 +284,23 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           keep_menu_open = true,
         },
         {
-          text = _("Clear all marked pages"),
+          text = gettext("Clear all marked pages"),
           enabled_func = function()
             return #self.flow_points > 0
           end,
-          callback = function(touchmenu_instance)
-            UIManager:show(ConfirmBox:new({
-              text = _(
+          callback = function(menu)
+            self:showWidget(ConfirmBox:new({
+              text = gettext(
                 "Are you sure you want to clear all your custom hidden flows?"
               ),
               ok_callback = function()
                 self.flow_points = {}
                 self:updateDocFlows()
-                self.ui:handleEvent(Event:new("UpdateToc"))
-                self.ui:handleEvent(Event:new("InitScrollPageStates"))
-                -- The footer may be visible, so have it update its dependent items
-                self.view.footer:onUpdateFooter(self.view.footer_visible)
+                UIManager:broadcastEvent(Event:new("UpdateToc"))
+                UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
                 self.ui.annotation:setNeedsUpdateFlag()
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -324,10 +310,10 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
         },
         --[[ Not yet implemented
                 {
-                    text = _("About custom page numbers"),
+                    text = gettext("About custom page numbers"),
                 },
                 {
-                    text = _("Clear custom page numbers"),
+                    text = gettext("Clear custom page numbers"),
                 },
                 ]]
         --
@@ -363,11 +349,11 @@ function ReaderHandMade:onReaderReady()
   self:setupToc(true)
   -- Now send the events
   if self.toc_enabled or self.flows_enabled then
-    self.ui:handleEvent(Event:new("UpdateToc"))
+    UIManager:broadcastEvent(Event:new("UpdateToc"))
   end
   if self.flows_enabled then
     -- Needed to skip hidden flows if PDF in scroll mode
-    self.ui:handleEvent(Event:new("InitScrollPageStates"))
+    UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
 end
 
@@ -386,7 +372,7 @@ function ReaderHandMade:setupToc(no_event)
   if self.toc_enabled then
     -- If enabled, plug one method into the document object,
     -- so it is used instead of the method from its class.
-    self.document.getToc = function(this)
+    self.document.getToc = function(_this)
       -- ReaderToc may add fields to ToC items: return a copy,
       -- so the one we will save doesn't get polluted.
       return util.tableDeepCopy(self.toc)
@@ -398,7 +384,7 @@ function ReaderHandMade:setupToc(no_event)
   end
   self:updateHighlightDialog()
   if not no_event then
-    self.ui:handleEvent(Event:new("UpdateToc"))
+    UIManager:broadcastEvent(Event:new("UpdateToc"))
   end
 end
 
@@ -421,9 +407,9 @@ function ReaderHandMade:updateHighlightDialog()
             end
             local text
             if self:hasPageTocItem(pageno, xpointer) then
-              text = _("Edit TOC chapter")
+              text = gettext("Edit TOC chapter")
             else
-              text = _("Start TOC chapter")
+              text = gettext("Start TOC chapter")
             end
             text = text .. " " .. self.custom_toc_symbol
             return text
@@ -520,22 +506,22 @@ function ReaderHandMade:addOrEditPageTocItem(
   end
   local dialog
   dialog = InputDialog:new({
-    title = item_found and _("Edit custom TOC chapter")
-      or _("Create new custom ToC chapter"),
+    title = item_found and gettext("Edit custom TOC chapter")
+      or gettext("Create new custom ToC chapter"),
     input = item.title,
-    input_hint = _("TOC chapter title"),
-    description = T(_([[On page %1.]]), pageno),
+    input_hint = gettext("TOC chapter title"),
+    description = T(gettext([[On page %1.]]), pageno),
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(dialog)
           end,
         },
         {
-          text = item_found and _("Save") or _("Create"),
+          text = item_found and gettext("Save") or gettext("Create"),
           is_enter_default = true,
           callback = function()
             item.title = dialog:getInputText()
@@ -543,7 +529,7 @@ function ReaderHandMade:addOrEditPageTocItem(
             if not item_found then
               table.insert(self.toc, idx, item)
             end
-            self.ui:handleEvent(Event:new("UpdateToc"))
+            UIManager:broadcastEvent(Event:new("UpdateToc"))
             if when_updated_callback then
               when_updated_callback()
             end
@@ -553,11 +539,11 @@ function ReaderHandMade:addOrEditPageTocItem(
       item_found
           and {
             {
-              text = _("Remove"),
+              text = gettext("Remove"),
               callback = function()
                 UIManager:close(dialog)
                 table.remove(self.toc, idx)
-                self.ui:handleEvent(Event:new("UpdateToc"))
+                UIManager:broadcastEvent(Event:new("UpdateToc"))
                 if when_updated_callback then
                   when_updated_callback()
                 end
@@ -565,7 +551,7 @@ function ReaderHandMade:addOrEditPageTocItem(
             },
             selected_text
                 and {
-                  text = _("Use selected text"),
+                  text = gettext("Use selected text"),
                   callback = function()
                     -- Just replace the text without saving, to allow editing/fixing it
                     dialog:setInputText(selected_text.text, nil, false)
@@ -576,8 +562,7 @@ function ReaderHandMade:addOrEditPageTocItem(
         or nil,
     },
   })
-  UIManager:show(dialog)
-  dialog:showKeyboard()
+  self:showWidget(dialog)
   return true
 end
 
@@ -691,13 +676,13 @@ function ReaderHandMade:setupFlows(no_event)
     self:updateDocFlows()
     -- If enabled, plug some methods into the document object,
     -- so they are used instead of the methods from its class.
-    self.document.hasHiddenFlows = function(this)
+    self.document.hasHiddenFlows = function(_this)
       return true
     end
-    self.document.cacheFlows = function(this)
+    self.document.cacheFlows = function(_this)
       return
     end
-    self.document.getPageFlow = function(this, page)
+    self.document.getPageFlow = function(_this, page)
       for i, flow in ipairs(self.flows) do
         if page < flow[1] then
           return 0 -- page is not in a hidden flow
@@ -708,13 +693,13 @@ function ReaderHandMade:setupFlows(no_event)
       end
       return 0
     end
-    self.document.getFirstPageInFlow = function(this, flow)
+    self.document.getFirstPageInFlow = function(_this, flow)
       return self.flows[flow][1]
     end
-    self.document.getTotalPagesInFlow = function(this, flow)
+    self.document.getTotalPagesInFlow = function(_this, flow)
       return self.flows[flow][2]
     end
-    self.document.getPageNumberInFlow = function(this, page)
+    self.document.getPageNumberInFlow = function(_this, page)
       local nb_hidden_pages = 0
       for i, flow in ipairs(self.flows) do
         if page < flow[1] then
@@ -727,7 +712,7 @@ function ReaderHandMade:setupFlows(no_event)
       end
       return page - nb_hidden_pages
     end
-    self.document.getLastLinearPage = function(this)
+    self.document.getLastLinearPage = function(_this)
       return self.last_linear_page
     end
     -- We can reuse as-is these ones from CreDocument, which uses the ones defined above.
@@ -754,9 +739,9 @@ function ReaderHandMade:setupFlows(no_event)
     end
   end
   if not no_event then
-    self.ui:handleEvent(Event:new("UpdateToc"))
+    UIManager:broadcastEvent(Event:new("UpdateToc"))
     -- Needed to skip hidden flows if PDF in scroll mode
-    self.ui:handleEvent(Event:new("InitScrollPageStates"))
+    UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
   end
 end
 

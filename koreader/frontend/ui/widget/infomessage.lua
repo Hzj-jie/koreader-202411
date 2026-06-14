@@ -6,11 +6,11 @@ It vanishes on key press or after a given timeout.
 Example:
     local InfoMessage = require("ui/widget/infomessage")
     local UIManager = require("ui/uimanager")
-    local _ = require("gettext")
+    local gettext = require("gettext")
     local Screen = require("device").screen
     local sample
     sample = InfoMessage:new{
-        text = _("Some message"),
+        text = gettext("Some message"),
         -- Usually the height of a InfoMessage is self-adaptive. If this field is actively set, a
         -- scrollbar may be shown. This variable is usually helpful to display a large chunk of text
         -- which may exceed the height of the screen.
@@ -40,9 +40,10 @@ local Size = require("ui/size")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local _ = require("gettext")
 local Input = Device.input
 local Screen = Device.screen
+
+local MAX_SCREEN_RATIO = 3 / 4
 
 local InfoMessage = InputContainer:extend({
   modal = true,
@@ -70,12 +71,6 @@ local InfoMessage = InputContainer:extend({
   lang = nil,
   para_direction_rtl = nil,
   auto_para_direction = nil,
-  -- Don't call setDirty when closing the widget
-  no_refresh_on_close = nil,
-  -- Only have it painted after this delay (dismissing still works before it's shown)
-  show_delay = nil,
-  -- Set to true when it might be displayed after some processing, to avoid accidental dismissal
-  flush_events_on_show = false,
 })
 
 function InfoMessage:init()
@@ -126,7 +121,7 @@ function InfoMessage:init()
 
   local text_width
   if self.width == nil then
-    text_width = math.floor(Screen:getWidth() * 2 / 3)
+    text_width = math.floor(Screen:getWidth() * MAX_SCREEN_RATIO)
   else
     text_width = self.width - image_widget:getSize().w
     if text_width < 0 then
@@ -179,33 +174,14 @@ function InfoMessage:init()
     self.movable,
   })
   if not self.height then
-    -- Reduce font size until widget fit screen height if needed
+    -- Force using ScrollTextWidget if the widget cannot fit screen height.
     local cur_size = frame:getSize()
-    if cur_size and cur_size.h > 0.95 * Screen:getHeight() then
-      local orig_font = text_widget.face.orig_font
-      local orig_size = text_widget.face.orig_size
-      local real_size = text_widget.face.size
-      if orig_size > 10 then -- don't go too small
-        while true do
-          orig_size = orig_size - 1
-          self.face = Font:getFace(orig_font, orig_size)
-          -- scaleBySize() in Font:getFace() may give the same
-          -- real font size even if we decreased orig_size,
-          -- so check we really got a smaller real font size
-          if self.face.size < real_size then
-            break
-          end
-        end
-        -- re-init this widget
-        self:free()
-        self:init()
-      end
+    if cur_size and cur_size.h > MAX_SCREEN_RATIO * Screen:getHeight() then
+      self.height = math.floor(MAX_SCREEN_RATIO * Screen:getHeight())
+      -- re-init this widget
+      self:free()
+      self:init()
     end
-  end
-
-  if self.show_delay then
-    -- Don't have UIManager setDirty us yet
-    self.invisible = true
   end
 end
 
@@ -216,10 +192,6 @@ function InfoMessage:onClose()
     self._timeout_func = nil
   end
 
-  if self._delayed_show_action then
-    UIManager:unschedule(self._delayed_show_action)
-    self._delayed_show_action = nil
-  end
   if self.dismiss_callback then
     self.dismiss_callback()
     -- NOTE: Dirty hack for Trapper, which needs to pull a Lazarus on dead widgets while preserving the callback's integrity ;).
@@ -227,40 +199,10 @@ function InfoMessage:onClose()
       self.dismiss_callback = nil
     end
   end
-
-  if self.invisible then
-    -- Still invisible, no setDirty needed
-    return
-  end
-  if self.no_refresh_on_close then
-    return
-  end
-
-  UIManager:setDirty(nil, function()
-    return "ui", self.movable.dimen
-  end)
 end
 
 function InfoMessage:onShow()
   -- triggered by the UIManager after we got successfully show()'n (not yet painted)
-  if self.show_delay and self.invisible then
-    -- Let us be shown after this delay
-    self._delayed_show_action = function()
-      self._delayed_show_action = nil
-      self.invisible = false
-      self:onShow()
-    end
-    UIManager:scheduleIn(self.show_delay, self._delayed_show_action)
-    return true
-  end
-  -- set our region to be dirty, so UImanager will call our paintTo()
-  UIManager:setDirty(self, function()
-    return "ui", self.movable.dimen
-  end)
-  if self.flush_events_on_show then
-    -- Discard queued and upcoming input events to avoid accidental dismissal
-    Input:inhibitInputUntil(true)
-  end
   -- schedule a close on timeout, if any
   if self.timeout then
     self._timeout_func = function()
@@ -270,19 +212,6 @@ function InfoMessage:onShow()
     UIManager:scheduleIn(self.timeout, self._timeout_func)
   end
   return true
-end
-
-function InfoMessage:getVisibleArea()
-  if not self.invisible then
-    return self.movable.dimen
-  end
-end
-
-function InfoMessage:paintTo(bb, x, y)
-  if self.invisible then
-    return
-  end
-  InputContainer.paintTo(self, bb, x, y)
 end
 
 function InfoMessage:onTapClose()

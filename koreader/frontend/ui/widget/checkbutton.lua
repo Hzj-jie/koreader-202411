@@ -7,7 +7,7 @@ Example:
     local CheckButton = require("ui/widget/CheckButton")
     local parent_widget = OverlapGroup:new{}
     table.insert(parent_widget, CheckButton:new{
-        text = _("Show password"),
+        text = gettext("Show password"),
         callback = function() end,
     })
     UIManager:show(parent_widget)
@@ -55,7 +55,6 @@ function CheckButton:initCheckButton(checked)
       enabled = self.enabled,
       face = self.face,
       parent = self.parent or self,
-      show_parent = self.show_parent or self,
     })
   else
     self._checkmark = CheckMark:new({
@@ -64,7 +63,6 @@ function CheckButton:initCheckButton(checked)
       enabled = self.enabled,
       face = self.face,
       parent = self.parent or self,
-      show_parent = self.show_parent or self,
     })
   end
   local fgcolor = self.fgcolor or Blitbuffer.COLOR_BLACK
@@ -72,7 +70,7 @@ function CheckButton:initCheckButton(checked)
     text = self.text,
     face = self.face,
     width = (self.width or self.parent:getAddedWidgetAvailableWidth())
-      - self._checkmark.dimen.w,
+      - self._checkmark:getSize().w,
     bold = self.bold,
     fgcolor = self.enabled and fgcolor or Blitbuffer.COLOR_DARK_GRAY,
     bgcolor = self.bgcolor,
@@ -82,7 +80,7 @@ function CheckButton:initCheckButton(checked)
   self._verticalgroup = VerticalGroup:new({
     align = "left",
     VerticalSpan:new({
-      width = textbox_shift,
+      height = textbox_shift,
     }),
     self._textwidget,
   })
@@ -96,7 +94,6 @@ function CheckButton:initCheckButton(checked)
     background = self.background,
     margin = 0,
     padding = 0,
-    show_parent = self.show_parent or self,
     self._horizontalgroup,
   })
   self.dimen = self._frame:getSize()
@@ -134,54 +131,31 @@ function CheckButton:onTapCheckButton()
   elseif type(self.tap_input_func) == "function" then
     self:onInput(self.tap_input_func())
   else
-    if G_reader_settings:isFalse("flash_ui") then
-      if not self.radio then
-        self:toggleCheck()
-      end
-      if self.callback then
-        self.callback()
-      end
-    else
-      -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
+    -- c.f., ui/widget/iconbutton for the canonical documentation about the flash_ui code flow
 
-      local highlight_dimen = self.dimen
+    -- Highlight
+    --
+    self[1].invert = true
+    UIManager:invertWidget(self[1])
 
-      -- Highlight
-      --
-      self[1].invert = true
-      UIManager:widgetInvert(
-        self[1],
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "fast", highlight_dimen)
+    UIManager:forceRepaint()
+    UIManager:waitForScreenRefresh()
 
-      UIManager:forceRePaint()
-      UIManager:yieldToEPDC()
+    -- Unhighlight
+    --
+    self[1].invert = false
+    UIManager:invertWidget(self[1])
 
-      -- Unhighlight
-      --
-      self[1].invert = false
-      UIManager:widgetInvert(
-        self[1],
-        highlight_dimen.x,
-        highlight_dimen.y,
-        highlight_dimen.w
-      )
-      UIManager:setDirty(nil, "ui", highlight_dimen)
-
-      -- Callback
-      --
-      if not self.radio then
-        self:toggleCheck()
-      end
-      if self.callback then
-        self.callback()
-      end
-
-      UIManager:forceRePaint()
+    -- Callback
+    --
+    if not self.radio then
+      self:toggleCheck()
     end
+    if self.callback then
+      self.callback()
+    end
+
+    UIManager:forceRepaint()
   end
   return true
 end
@@ -231,7 +205,7 @@ end
 
 function CheckButton:disable()
   self.enabled = false
-  self:initCheckButton(false)
+  self:initCheckButton(self.checked)
   UIManager:setDirty(self.parent, function()
     return "ui", self.dimen
   end)

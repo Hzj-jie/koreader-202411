@@ -5,9 +5,9 @@ local DocCache = require("document/doccache")
 local DocSettings = require("docsettings")
 local Document = require("document/document")
 local DrawContext = require("ffi/drawcontext")
+local ffi = require("ffi")
 local logger = require("logger")
 local util = require("util")
-local ffi = require("ffi")
 local C = ffi.C
 local pdf = nil
 

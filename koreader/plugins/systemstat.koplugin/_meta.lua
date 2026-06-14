@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "systemstat",
-  fullname = _("System statistics"),
-  description = _([[Shows system statistics.]]),
+  fullname = gettext("System statistics"),
+  description = gettext([[Shows system statistics.]]),
 }

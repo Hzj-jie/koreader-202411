@@ -1,15 +1,15 @@
 local A, android = pcall(require, "android") -- luacheck: ignore
 local Event = require("ui/event")
-local Geom = require("ui/geometry")
 local Generic = require("device/generic/device")
+local Geom = require("ui/geometry")
 local UIManager
 local ffi = require("ffi")
 local C = ffi.C
 local FFIUtil = require("ffi/util")
+local _ = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local T = FFIUtil.template
 
 local function yes()
@@ -189,8 +189,7 @@ function Device:init()
       then
         this.device.screen:_updateWindow()
       elseif
-        ev.code == C.APP_CMD_LOST_FOCUS
-        or ev.code == C.APP_CMD_TERM_WINDOW
+        ev.code == C.APP_CMD_LOST_FOCUS or ev.code == C.APP_CMD_TERM_WINDOW
       then
         this.device.input:resetState()
       elseif ev.code == C.APP_CMD_CONFIG_CHANGED then

@@ -1,8 +1,7 @@
 local Device = require("device")
-local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
+local gettext = require("gettext")
 local logger = require("logger")
-local _ = require("gettext")
 
 local MassStorage = {}
 
@@ -19,30 +18,30 @@ end
 function MassStorage:getSettingsMenuTable()
   return {
     {
-      text = _("Disable confirmation popup"),
-      help_text = _(
+      text = gettext("Disable confirmation popup"),
+      help_text = gettext(
         [[This will ONLY affect what happens when you plug in the device!]]
       ),
       checked_func = function()
         return not self:requireConfirmation()
       end,
       callback = function()
-        G_reader_settings:saveSetting(
+        G_reader_settings:save(
           "mass_storage_confirmation_disabled",
           self:requireConfirmation()
         )
       end,
     },
     {
-      text = _("Disable mass storage functionality"),
-      help_text = _(
+      text = gettext("Disable mass storage functionality"),
+      help_text = gettext(
         [[In case your device uses an unsupported setup where you know it won't work properly.]]
       ),
       checked_func = function()
         return not self:isEnabled()
       end,
       callback = function()
-        G_reader_settings:saveSetting("mass_storage_disabled", self:isEnabled())
+        G_reader_settings:save("mass_storage_disabled", self:isEnabled())
       end,
     },
   }
@@ -51,7 +50,7 @@ end
 -- mass storage actions
 function MassStorage:getActionsMenuTable()
   return {
-    text = _("Start USB storage"),
+    text = gettext("Start USB storage"),
     enabled_func = function()
       return self:isEnabled()
     end,
@@ -77,13 +76,13 @@ function MassStorage:start(with_confirmation)
   if ask then
     local ConfirmBox = require("ui/widget/confirmbox")
     self.usbms_widget = ConfirmBox:new({
-      text = _("Share storage via USB?"),
-      ok_text = _("Share"),
+      text = gettext("Share storage via USB?"),
+      ok_text = gettext("Share"),
       ok_callback = function()
         -- save settings before activating USBMS:
         UIManager:flushSettings()
         logger.info("Exiting KOReader to enter USBMS mode...")
-        UIManager:broadcastEvent(Event:new("Exit"))
+        UIManager:broadcastEvent("ExitKOReader")
         UIManager:quit(86)
       end,
       cancel_callback = function()
@@ -96,7 +95,7 @@ function MassStorage:start(with_confirmation)
     -- save settings before activating USBMS:
     UIManager:flushSettings()
     logger.info("Exiting KOReader to enter USBMS mode...")
-    UIManager:broadcastEvent(Event:new("Exit"))
+    UIManager:broadcastEvent("ExitKOReader")
     UIManager:quit(86)
   end
 end

@@ -81,11 +81,6 @@ Offsets rectangle or point to certain coordinates
 @int x new x
 @int y new y
 ]]
-function Geom:offsetTo(x, y)
-  self.x = x
-  self.y = y
-  return self
-end
 
 --[[--
 Scales rectangle (top-left corner is rounded down, bottom-right corner is rounded up) or dimension
@@ -136,11 +131,6 @@ Note that for rectangles the offset stays the same
 @int dw width delta
 @int dh height delta
 ]]
-function Geom:changeSizeBy(dw, dh)
-  self.w = self.w + dw
-  self.h = self.h + dh
-  return self
-end
 
 --[[--
 Returns a new outer rectangle that contains both us and a given rectangle
@@ -222,30 +212,12 @@ Returns true if self does not share any area with rect_b
 
 @tparam Geom rect_b
 ]]
-function Geom:notOpenIntersectWith(rect_b)
-  if not rect_b or rect_b:area() == 0 then
-    return true
-  end
-
-  if
-    (self.x > (rect_b.x + rect_b.w))
-    or (self.y > (rect_b.y + rect_b.h))
-    or (rect_b.x > (self.x + self.w))
-    or (rect_b.y > (self.y + self.h))
-  then
-    return true
-  end
-  return false
-end
 
 --[[--
 Returns true if self geom shares area or an edge with rect_b.
 
 @tparam Geom rect_b
 ]]
-function Geom:openIntersectWith(rect_b)
-  return not self:notOpenIntersectWith(rect_b)
-end
 
 --[[--
 Set size of dimension or rectangle to size of given dimension/rectangle.
@@ -466,6 +438,22 @@ function Geom:isEmpty()
 end
 
 --[[--
+Resizes the Geom according to the ratio.
+]]
+function Geom:resize(ratio)
+  assert(type(ratio) == "table")
+  local x = self.x + self.w * ratio.ratio_x
+  local y = self.y + self.h * ratio.ratio_y
+  local w = self.w * ratio.ratio_w
+  local h = self.h * ratio.ratio_h
+  self.x = x
+  self.y = y
+  self.w = w
+  self.h = h
+  return self
+end
+
+--[[--
 Returns a bounding box which encompasses all passed rectangles.
 @tparam Geom rectangles to encompass
 @treturn Geom bounding box or nil if no rectangles passed
@@ -505,6 +493,34 @@ function Geom.boundingBox(boxes)
       h = bounding_box.y1 - bounding_box.y0,
     })
   end
+end
+
+-- Unlike Geom:__lt, this function provides a stable comparison.
+function Geom.smallerThan(a, b)
+  assert(a ~= nil and b ~= nil)
+  assert(type(a) == "table" and type(b) == "table")
+
+  -- Reference equal.
+  if a == b then
+    return false
+  end
+  if a:area() < b:area() then
+    return true
+  elseif a:area() > b:area() then
+    return false
+  end
+  -- Well, comparing x or y or table string.
+  if a.x < b.x then
+    return true
+  elseif a.x > b.x then
+    return false
+  end
+  if a.y < b.y then
+    return true
+  elseif a.y > b.y then
+    return false
+  end
+  return tostring(a) < tostring(b)
 end
 
 return Geom

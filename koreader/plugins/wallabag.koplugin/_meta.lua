@@ -1,6 +1,6 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "wallabag",
-  fullname = _("Wallabag"),
-  description = _([[Synchronises articles with a Wallabag server.]]),
+  fullname = gettext("Wallabag"),
+  description = gettext([[Synchronises articles with a Wallabag server.]]),
 }

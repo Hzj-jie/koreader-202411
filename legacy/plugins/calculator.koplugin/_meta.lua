@@ -1,0 +1,1 @@
+../../../koreader/plugins/calculator.koplugin/_meta.lua

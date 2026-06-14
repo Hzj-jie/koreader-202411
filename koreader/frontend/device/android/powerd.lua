@@ -68,7 +68,7 @@ function AndroidPowerD:turnOffFrontlightHW()
   end
 end
 
-function AndroidPowerD:turnOnFrontlightHW(done_callback)
+function AndroidPowerD:turnOnFrontlightHW(_done_callback)
   if self:isFrontlightOn() and self:isFrontlightOnHW() then
     return
   end

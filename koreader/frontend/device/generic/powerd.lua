@@ -48,11 +48,11 @@ end
 
 function BasePowerD:init() end
 --- @note: This should *always* call self:_decideFrontlightState() in its coda (unless you have a custom isFrontlightOn implementation)!
-function BasePowerD:setIntensityHW(intensity)
+function BasePowerD:setIntensityHW(_intensity)
   self:_decideFrontlightState()
 end
 --- @note: Unlike the "public" setWarmth, this one takes a value in the *native* scale!
-function BasePowerD:setWarmthHW(warmth) end
+function BasePowerD:setWarmthHW(_warmth) end
 function BasePowerD:getCapacityHW()
   return 0
 end
@@ -61,12 +61,6 @@ function BasePowerD:getAuxCapacityHW()
 end
 function BasePowerD:isAuxBatteryConnectedHW()
   return false
-end
-function BasePowerD:getDismissBatteryStatus()
-  return self.battery_warning
-end
-function BasePowerD:setDismissBatteryStatus(status)
-  self.battery_warning = status
 end
 --- @note: Should ideally return true as long as the device is plugged in, even once the battery is full...
 function BasePowerD:isChargingHW()
@@ -91,13 +85,13 @@ end
 --- @note: done_callback is used to display Notifications,
 ---        some implementations *may* need to handle it themselves because of timing constraints,
 ---        in which case they should return *true* here, so that the public API knows not to consume the callback early.
-function BasePowerD:turnOffFrontlightHW(done_callback)
+function BasePowerD:turnOffFrontlightHW(_done_callback)
   self:setIntensityHW(self.fl_min)
 
   -- Nothing fancy required, so we leave done_callback handling to the public API
   return false
 end
-function BasePowerD:turnOnFrontlightHW(done_callback)
+function BasePowerD:turnOnFrontlightHW(_done_callback)
   --- @fixme: what if fl_intensity == fl_min (c.f., kindle)?
   self:setIntensityHW(self.fl_intensity)
 
@@ -110,7 +104,7 @@ end
 -- (Such as turning the front light off).
 -- Do *not* omit calling Device's _beforeSuspend method! This default implementation passes `false` so as *not* to disable input events during PM.
 function BasePowerD:beforeSuspend()
-  self.device:_beforeSuspend(false)
+  self.device:_beforeSuspend()
 end
 -- Anything that needs to be done after doing a real hardware resume.
 -- (Such as restoring front light state).
@@ -120,7 +114,7 @@ function BasePowerD:afterResume()
   -- invalidate the last battery capacity pull time so that we get up to date data immediately.
   self:invalidateCapacityCache()
 
-  self.device:_afterResume(false)
+  self.device:_afterResume()
 end
 
 -- Update our UIManager reference once it's ready
@@ -131,7 +125,7 @@ function BasePowerD:UIManagerReady(uimgr)
   self:UIManagerReadyHW(uimgr)
 end
 -- Ditto, but for implementations
-function BasePowerD:UIManagerReadyHW(uimgr) end
+function BasePowerD:UIManagerReadyHW(_uimgr) end
 
 function BasePowerD:isFrontlightOn()
   return self.is_fl_on
@@ -198,9 +192,11 @@ function BasePowerD:turnOnFrontlight(done_callback)
   if self:isFrontlightOn() then
     return false
   end
+  -- It seems very wrong, but if it's expected to turn "on" the frontlight, at
+  -- least set the intensity to fl_min + 1 to make it "on".
   if self.fl_intensity == self.fl_min then
-    return false
-  end --- @fixme what the hell?
+    self.fl_intensity = self.fl_min + 1
+  end
   local cb_handled = self:turnOnFrontlightHW(done_callback)
   self.is_fl_on = true
   self:stateChanged()
@@ -309,7 +305,7 @@ function BasePowerD:getCapacity()
     now = UIManager:getElapsedTimeSinceBoot()
   else
     -- Add time the device was in standby and suspend
-    now = time.now()
+    now = time.monotonic()
       + self.device.total_standby_time
       + self.device.total_suspend_time
   end
@@ -336,7 +332,7 @@ function BasePowerD:getAuxCapacity()
     now = UIManager:getElapsedTimeSinceBoot()
   else
     -- Add time the device was in standby and suspend
-    now = time.now()
+    now = time.monotonic()
       + self.device.total_standby_time
       + self.device.total_suspend_time
   end

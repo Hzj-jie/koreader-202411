@@ -1,6 +1,6 @@
+local CanvasContext = require("document/canvascontext")
 local Document = require("document/document")
 local DrawContext = require("ffi/drawcontext")
-local CanvasContext = require("document/canvascontext")
 local pic = nil
 
 local PicDocument = Document:extend({
@@ -40,7 +40,7 @@ function PicDocument:init()
   self:_readMetadata()
 end
 
-function PicDocument:getUsedBBox(pageno)
+function PicDocument:getUsedBBox(_pageno)
   return {
     x0 = 0,
     y0 = 0,

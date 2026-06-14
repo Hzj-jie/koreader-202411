@@ -7309,7 +7309,7 @@ local function blake2x(
     else
       if inner_partial then
         local half_W, half_W_size = inner_partial()
-        half_W_size, inner_partial = half_W_size or 8
+        half_W_size, inner_partial = half_W_size or 8, nil
 
         local function get_hash_block(block_no)
           -- block_no = 0...(2^32-1)

@@ -1,0 +1,1 @@
+../../../koreader/plugins/clock.koplugin/clockwidget.lua

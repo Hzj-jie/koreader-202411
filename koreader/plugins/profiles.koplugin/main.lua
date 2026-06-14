@@ -8,9 +8,9 @@ local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local ffiUtil = require("ffi/util")
+local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local _ = require("gettext")
 local Screen = Device.screen
 local T = ffiUtil.template
 
@@ -27,7 +27,7 @@ local Profiles = WidgetContainer:extend({
 
 function Profiles:init()
   Dispatcher:init()
-  self.autoexec = G_reader_settings:readSetting("profiles_autoexec") or {}
+  self.autoexec = G_reader_settings:readTableRef("profiles_autoexec")
   self.ui.menu:registerToMainMenu(self)
   self:onDispatcherRegisterActions()
   self:onStart()
@@ -64,7 +64,7 @@ local function dispatcherRegisterProfile(name)
     category = "none",
     event = "ProfileExecute",
     arg = name,
-    title = T(_("Profile %1"), name),
+    title = T(gettext("Profile %1"), name),
     general = true,
   })
 end
@@ -84,7 +84,7 @@ end
 
 function Profiles:addToMainMenu(menu_items)
   menu_items.profiles = {
-    text = _("Profiles"),
+    text = gettext("Profiles"),
     sub_item_table_func = function()
       return self:getSubMenuItems()
     end,
@@ -95,30 +95,30 @@ function Profiles:getSubMenuItems()
   self:loadProfiles()
   local sub_item_table = {
     {
-      text = _("New"),
+      text = gettext("New"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local function editCallback(new_name)
           self.data[new_name] = { ["settings"] = { ["name"] = new_name } }
           self.updated = true
-          touchmenu_instance.item_table = self:getSubMenuItems()
-          touchmenu_instance.page = 1
-          touchmenu_instance:updateItems()
+          menu.item_table = self:getSubMenuItems()
+          menu.page = 1
+          menu:updateItems()
         end
         self:editProfileName(editCallback)
       end,
     },
     {
-      text = _("New with current book settings"),
+      text = gettext("New with current book settings"),
       enabled = self.ui.document ~= nil,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local function editCallback(new_name)
           self.data[new_name] = self:getProfileFromCurrentBookSettings(new_name)
           self.updated = true
-          touchmenu_instance.item_table = self:getSubMenuItems()
-          touchmenu_instance.page = 1
-          touchmenu_instance:updateItems()
+          menu.item_table = self:getSubMenuItems()
+          menu.page = 1
+          menu:updateItems()
         end
         self:editProfileName(editCallback)
       end,
@@ -129,21 +129,21 @@ function Profiles:getSubMenuItems()
     local sub_items = {
       ignored_by_menu_search = true,
       {
-        text = _("Execute"),
-        callback = function(touchmenu_instance)
-          touchmenu_instance:onExit()
+        text = gettext("Execute"),
+        callback = function(menu)
+          menu:onExit()
           self:onProfileExecute(k, { qm_show = false })
         end,
       },
       {
-        text = _("Show as QuickMenu"),
-        callback = function(touchmenu_instance)
-          touchmenu_instance:onExit()
+        text = gettext("Show as QuickMenu"),
+        callback = function(menu)
+          menu:onExit()
           self:onProfileExecute(k, { qm_show = true })
         end,
       },
       {
-        text = _("Auto-execute"),
+        text = gettext("Auto-execute"),
         checked_func = function()
           for _, profiles in pairs(self.autoexec) do
             if profiles[k] then
@@ -154,7 +154,7 @@ function Profiles:getSubMenuItems()
         sub_item_table_func = function()
           return {
             {
-              text = _("Ask to execute"),
+              text = gettext("Ask to execute"),
               checked_func = function()
                 return v.settings.auto_exec_ask
               end,
@@ -166,35 +166,43 @@ function Profiles:getSubMenuItems()
               end,
               separator = true,
             },
-            self:genAutoExecMenuItem(_("on KOReader start"), "Start", k),
-            self:genAutoExecMenuItem(_("on wake-up"), "Resume", k),
-            self:genAutoExecMenuItem(_("on rotation"), "SetRotationMode", k),
+            self:genAutoExecMenuItem(gettext("on KOReader start"), "Start", k),
+            self:genAutoExecMenuItem(gettext("on wake-up"), "Resume", k),
             self:genAutoExecMenuItem(
-              _("on showing folder"),
+              gettext("on rotation"),
+              "SetRotationMode",
+              k
+            ),
+            self:genAutoExecMenuItem(
+              gettext("on showing folder"),
               "PathChanged",
               k,
               true
             ),
             -- separator
-            self:genAutoExecMenuItem(_("on book opening"), "ReaderReadyAll", k),
             self:genAutoExecMenuItem(
-              _("on book closing"),
+              gettext("on book opening"),
+              "ReaderReadyAll",
+              k
+            ),
+            self:genAutoExecMenuItem(
+              gettext("on book closing"),
               "CloseDocumentAll",
               k
             ),
           }
         end,
-        hold_callback = function(touchmenu_instance)
+        hold_callback = function(menu)
           for event, profiles in pairs(self.autoexec) do
             if profiles[k] then
               util.tableRemoveValue(self.autoexec, event, k)
             end
           end
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       },
       {
-        text = _("Show notification on executing"),
+        text = gettext("Show notification on executing"),
         checked_func = function()
           return v.settings.notify
         end,
@@ -205,7 +213,7 @@ function Profiles:getSubMenuItems()
         separator = true,
       },
       {
-        text = _("Show in action list"),
+        text = gettext("Show in action list"),
         checked_func = function()
           return v.settings.registered
         end,
@@ -223,7 +231,7 @@ function Profiles:getSubMenuItems()
       },
       {
         text_func = function()
-          return T(_("Edit actions: (%1)"), Dispatcher:menuTextFunc(v))
+          return T(gettext("Edit actions: (%1)"), Dispatcher:menuTextFunc(v))
         end,
         sub_item_table_func = function()
           local edit_actions_sub_items = {}
@@ -233,9 +241,9 @@ function Profiles:getSubMenuItems()
         separator = true,
       },
       {
-        text = T(_("Rename: %1"), k),
+        text = T(gettext("Rename: %1"), k),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local function editCallback(new_name)
             self.data[new_name] = util.tableDeepCopy(v)
             self.data[new_name].settings.name = new_name
@@ -247,17 +255,17 @@ function Profiles:getSubMenuItems()
             end
             self.data[k] = nil
             self.updated = true
-            touchmenu_instance.item_table = self:getSubMenuItems()
-            touchmenu_instance:updateItems()
-            table.remove(touchmenu_instance.item_table_stack)
+            menu.item_table = self:getSubMenuItems()
+            menu:updateItems()
+            table.remove(menu.item_table_stack)
           end
           self:editProfileName(editCallback, k)
         end,
       },
       {
-        text = _("Duplicate"),
+        text = gettext("Duplicate"),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local function editCallback(new_name)
             self.data[new_name] = util.tableDeepCopy(v)
             self.data[new_name].settings.name = new_name
@@ -265,21 +273,21 @@ function Profiles:getSubMenuItems()
               dispatcherRegisterProfile(new_name)
             end
             self.updated = true
-            touchmenu_instance.item_table = self:getSubMenuItems()
-            touchmenu_instance:updateItems()
-            table.remove(touchmenu_instance.item_table_stack)
+            menu.item_table = self:getSubMenuItems()
+            menu:updateItems()
+            table.remove(menu.item_table_stack)
           end
           self:editProfileName(editCallback, k)
         end,
       },
       {
-        text = _("Delete"),
+        text = gettext("Delete"),
         keep_menu_open = true,
         separator = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           UIManager:show(ConfirmBox:new({
-            text = _("Do you want to delete this profile?"),
-            ok_text = _("Delete"),
+            text = gettext("Do you want to delete this profile?"),
+            ok_text = gettext("Delete"),
             ok_callback = function()
               self:updateAutoExec(k)
               if v.settings.registered then
@@ -288,9 +296,9 @@ function Profiles:getSubMenuItems()
               end
               self.data[k] = nil
               self.updated = true
-              touchmenu_instance.item_table = self:getSubMenuItems()
-              touchmenu_instance:updateItems()
-              table.remove(touchmenu_instance.item_table_stack)
+              menu.item_table = self:getSubMenuItems()
+              menu:updateItems()
+              table.remove(menu.item_table_stack)
             end,
           }))
         end,
@@ -318,19 +326,19 @@ end
 function Profiles:editProfileName(editCallback, old_name)
   local name_input
   name_input = InputDialog:new({
-    title = _("Enter profile name"),
+    title = gettext("Enter profile name"),
     input = old_name,
     buttons = {
       {
         {
-          text = _("Cancel"),
+          text = gettext("Cancel"),
           id = "close",
           callback = function()
             UIManager:close(name_input)
           end,
         },
         {
-          text = _("Save"),
+          text = gettext("Save"),
           callback = function()
             local new_name = name_input:getInputText()
             if new_name == "" or new_name == old_name then
@@ -339,7 +347,7 @@ function Profiles:editProfileName(editCallback, old_name)
             UIManager:close(name_input)
             if self.data[new_name] then
               UIManager:show(InfoMessage:new({
-                text = T(_("Profile already exists: %1"), new_name),
+                text = T(gettext("Profile already exists: %1"), new_name),
               }))
             else
               editCallback(new_name)
@@ -350,7 +358,6 @@ function Profiles:editProfileName(editCallback, old_name)
     },
   })
   UIManager:show(name_input)
-  name_input:showKeyboard()
 end
 
 function Profiles:getProfileFromCurrentBookSettings(new_name)
@@ -557,9 +564,9 @@ function Profiles:genAutoExecSetRotationModeMenuItem(
       end
       return sub_item_table
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       util.tableRemoveValue(self.autoexec, event, profile_name)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
     separator = separator,
   }
@@ -578,8 +585,8 @@ function Profiles:genAutoExecPathChangedMenuItem(
     end,
     sub_item_table_func = function()
       local conditions = {
-        { _("if folder path contains"), "has" },
-        { _("if folder path does not contain"), "has_not" },
+        { gettext("if folder path contains"), "has" },
+        { gettext("if folder path does not contain"), "has_not" },
       }
       local sub_item_table = {}
       for i, mode in ipairs(conditions) do
@@ -602,13 +609,13 @@ function Profiles:genAutoExecPathChangedMenuItem(
               conditions[i][2]
             )
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local condition = conditions[i][2]
             local dialog
             local buttons = {
               {
                 {
-                  text = _("Current folder"),
+                  text = gettext("Current folder"),
                   callback = function()
                     local curr_path = self.ui.file_chooser
                         and self.ui.file_chooser.path
@@ -620,14 +627,14 @@ function Profiles:genAutoExecPathChangedMenuItem(
             }
             table.insert(buttons, {
               {
-                text = _("Cancel"),
+                text = gettext("Cancel"),
                 id = "close",
                 callback = function()
                   UIManager:close(dialog)
                 end,
               },
               {
-                text = _("Save"),
+                text = gettext("Save"),
                 callback = function()
                   local txt = dialog:getInputText()
                   if txt == "" then
@@ -647,12 +654,12 @@ function Profiles:genAutoExecPathChangedMenuItem(
                     )
                   end
                   UIManager:close(dialog)
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               },
             })
             dialog = InputDialog:new({
-              title = _("Enter text contained in folder path"),
+              title = gettext("Enter text contained in folder path"),
               input = util.tableGetValue(
                 self.autoexec,
                 event,
@@ -662,15 +669,14 @@ function Profiles:genAutoExecPathChangedMenuItem(
               buttons = buttons,
             })
             UIManager:show(dialog)
-            dialog:showKeyboard()
           end,
         }
       end
       return sub_item_table
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       util.tableRemoveValue(self.autoexec, event, profile_name)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
     separator = separator,
   }
@@ -693,13 +699,18 @@ function Profiles:genAutoExecDocConditionalMenuItem(
     end,
     sub_item_table_func = function()
       local conditions = {
-        { _("if device orientation is"), "orientation" },
-        { _("if book metadata contains"), "doc_props" },
-        { _("if book file path contains"), "filepath" },
-        { _("if book is in collections"), "collections" },
+        { gettext("if device orientation is"), "orientation" },
+        { gettext("if book metadata contains"), "doc_props" },
+        { gettext("if book file path contains"), "filepath" },
+        { gettext("if book is in collections"), "collections" },
       }
       local sub_item_table = {
-        self:genAutoExecMenuItem(_("always"), event_always, profile_name, true),
+        self:genAutoExecMenuItem(
+          gettext("always"),
+          event_always,
+          profile_name,
+          true
+        ),
         -- separator
         {
           text = conditions[1][1], -- orientation
@@ -766,14 +777,14 @@ function Profiles:genAutoExecDocConditionalMenuItem(
             end
             return sub_item_table
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             util.tableRemoveValue(
               self.autoexec,
               event,
               profile_name,
               conditions[1][2]
             )
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
         {
@@ -818,13 +829,13 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                     prop
                   ) and true
                 end,
-                callback = function(touchmenu_instance)
+                callback = function(menu)
                   local dialog
                   local buttons = self.ui.document == nil and {}
                     or {
                       {
                         {
-                          text = _("Current book"),
+                          text = gettext("Current book"),
                           enabled_func = function()
                             return prop == "title"
                               or self.ui.doc_props[prop] ~= nil
@@ -839,14 +850,14 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                     }
                   table.insert(buttons, {
                     {
-                      text = _("Cancel"),
+                      text = gettext("Cancel"),
                       id = "close",
                       callback = function()
                         UIManager:close(dialog)
                       end,
                     },
                     {
-                      text = _("Save"),
+                      text = gettext("Save"),
                       callback = function()
                         local txt = dialog:getInputText()
                         if txt == "" then
@@ -868,12 +879,12 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                           )
                         end
                         UIManager:close(dialog)
-                        touchmenu_instance:updateItems()
+                        menu:updateItems()
                       end,
                     },
                   })
                   dialog = InputDialog:new({
-                    title = _("Enter text contained in:")
+                    title = gettext("Enter text contained in:")
                       .. " "
                       .. self.ui.bookinfo.prop_text[prop]:sub(1, -2),
                     input = util.tableGetValue(
@@ -886,9 +897,8 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                     buttons = buttons,
                   })
                   UIManager:show(dialog)
-                  dialog:showKeyboard()
                 end,
-                hold_callback = function(touchmenu_instance)
+                hold_callback = function(menu)
                   util.tableRemoveValue(
                     self.autoexec,
                     event,
@@ -896,20 +906,20 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                     condition,
                     prop
                   )
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               }
             end
             return sub_item_table
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             util.tableRemoveValue(
               self.autoexec,
               event,
               profile_name,
               conditions[2][2]
             )
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
         {
@@ -938,14 +948,14 @@ function Profiles:genAutoExecDocConditionalMenuItem(
               conditions[3][2]
             ) and true
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local condition = conditions[3][2]
             local dialog
             local buttons = self.ui.document == nil and {}
               or {
                 {
                   {
-                    text = _("Current book"),
+                    text = gettext("Current book"),
                     callback = function()
                       dialog:addTextToInput(self.ui.document.file)
                     end,
@@ -954,14 +964,14 @@ function Profiles:genAutoExecDocConditionalMenuItem(
               }
             table.insert(buttons, {
               {
-                text = _("Cancel"),
+                text = gettext("Cancel"),
                 id = "close",
                 callback = function()
                   UIManager:close(dialog)
                 end,
               },
               {
-                text = _("Save"),
+                text = gettext("Save"),
                 callback = function()
                   local txt = dialog:getInputText()
                   if txt == "" then
@@ -981,12 +991,12 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                     )
                   end
                   UIManager:close(dialog)
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               },
             })
             dialog = InputDialog:new({
-              title = _("Enter text contained in file path"),
+              title = gettext("Enter text contained in file path"),
               input = util.tableGetValue(
                 self.autoexec,
                 event,
@@ -996,16 +1006,15 @@ function Profiles:genAutoExecDocConditionalMenuItem(
               buttons = buttons,
             })
             UIManager:show(dialog)
-            dialog:showKeyboard()
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             util.tableRemoveValue(
               self.autoexec,
               event,
               profile_name,
               conditions[3][2]
             )
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
         {
@@ -1046,7 +1055,7 @@ function Profiles:genAutoExecDocConditionalMenuItem(
               conditions[4][2]
             ) and true
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local condition = conditions[4][2]
             local collections =
               util.tableGetValue(self.autoexec, event, profile_name, condition)
@@ -1067,7 +1076,7 @@ function Profiles:genAutoExecDocConditionalMenuItem(
                   condition
                 )
               end
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end
             self.ui.collections:onShowCollList(
               collections or {},
@@ -1075,23 +1084,23 @@ function Profiles:genAutoExecDocConditionalMenuItem(
               true
             )
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             util.tableRemoveValue(
               self.autoexec,
               event,
               profile_name,
               conditions[4][2]
             )
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         },
       }
       return sub_item_table
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       util.tableRemoveValue(self.autoexec, event_always, profile_name)
       util.tableRemoveValue(self.autoexec, event, profile_name)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
     separator = separator,
   }
@@ -1115,9 +1124,8 @@ function Profiles:onSetRotationMode(mode) -- global
   end
   for profile_name, modes in pairs(self.autoexec[event]) do
     if modes[mode] then
-      if self.ui.config then -- close bottom menu to let Dispatcher execute profile
-        self.ui.config:onCloseConfigMenu()
-      end
+      -- close bottom menu to let Dispatcher execute profile
+      UIManager:broadcastEvent("CloseConfigMenu")
       self:executeAutoExec(profile_name)
     end
   end
@@ -1179,11 +1187,11 @@ function Profiles:executeAutoExec(profile_name)
   end
   if profile.settings.auto_exec_ask then
     UIManager:show(ConfirmBox:new({
-      text = _("Do you want to execute profile?")
+      text = gettext("Do you want to execute profile?")
         .. "\n\n"
         .. profile_name
         .. "\n",
-      ok_text = _("Execute"),
+      ok_text = gettext("Execute"),
       ok_callback = function()
         logger.dbg("Profiles - auto executing:", profile_name)
         UIManager:nextTick(function()

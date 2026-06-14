@@ -75,10 +75,10 @@ All other time variables (a handful) get the appropriate suffix `_ms`, `_us`, `_
 @usage
     local time = require("ui/time")
 
-    local start_time = time.now()
+    local start_time = time.monotonic()
     -- Do some stuff.
     -- You can add and subtract `fts times` objects
-    local duration = time.now() - start_time
+    local duration = time.monotonic() - start_time
     -- and convert that object to various more human-readable formats, e.g.,
     print(string.format("Stuff took %.3fms", time.to_ms(duration)))
 
@@ -163,7 +163,7 @@ Returns a Lua (decimal) number (sec.usecs, with decimal places) (accurate to the
 ]]
 function time.since(start_time)
   -- Time difference
-  return time.now() - start_time
+  return time.monotonic() - start_time
 end
 
 --- Splits an fts to seconds and microseconds.
@@ -313,13 +313,6 @@ else
   time.boottime_or_realtime = time.realtime
   time.boottime_or_realtime_coarse = time.realtime_coarse
 end
-
---[[-- Alias for `monotonic_coarse`.
-
-The assumption being anything that requires accurate timestamps expects a monotonic clock source.
-This is certainly true for KOReader's UI scheduling.
-]]
-time.now = time.monotonic_coarse
 
 --- Converts an fts time to a string (seconds with 6 decimal places)
 function time.format_time(time_fts)

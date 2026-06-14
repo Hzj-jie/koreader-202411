@@ -1,8 +1,8 @@
-local _ = require("gettext")
+local gettext = require("gettext")
 return {
   name = "backgroundrunner",
-  fullname = _("Background runner"),
-  description = _(
+  fullname = gettext("Background runner"),
+  description = gettext(
     [[Service to other plugins: allows tasks to run regularly in the background.]]
   ),
 }

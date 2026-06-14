@@ -1,1 +1,0 @@
-../../../koreader/frontend/ui/otamanager.lua
