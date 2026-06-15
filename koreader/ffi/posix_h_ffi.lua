@@ -1,6 +1,80 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
+enum {
+  EPERM = 1,
+  EINTR = 4,
+  EAGAIN = 11,
+  EINVAL = 22,
+  ENODEV = 19,
+  ENOSYS = 38,
+  EPIPE = 32,
+  ETIME = 62,
+  ETIMEDOUT = 110,
+  O_APPEND = 1024,
+  O_CREAT = 64,
+  O_TRUNC = 512,
+  O_RDWR = 2,
+  O_RDONLY = 0,
+  O_WRONLY = 1,
+  O_NONBLOCK = 2048,
+  O_CLOEXEC = 524288,
+  S_IRUSR = 256,
+  S_IWUSR = 128,
+  S_IXUSR = 64,
+  S_IRWXU = 448,
+  S_IRGRP = 32,
+  S_IWGRP = 16,
+  S_IXGRP = 8,
+  S_IRWXG = 56,
+  S_IROTH = 4,
+  S_IWOTH = 2,
+  S_IXOTH = 1,
+  S_IRWXO = 7,
+  WNOHANG = 1,
+  POLLIN = 1,
+  POLLOUT = 4,
+  POLLERR = 8,
+  POLLHUP = 16,
+  PROT_READ = 1,
+  PROT_WRITE = 2,
+  MAP_SHARED = 1,
+  MAP_ANONYMOUS = 32,
+  MAP_FAILED = -1,
+  PATH_MAX = 4096,
+  TIMER_ABSTIME = 1,
+  F_OK = 0,
+  SCHED_OTHER = 0,
+  SCHED_BATCH = 3,
+  SCHED_IDLE = 5,
+  SCHED_FIFO = 1,
+  SCHED_RR = 2,
+  SCHED_RESET_ON_FORK = 1073741824,
+  NI_MAXHOST = 1025,
+  AF_INET = 2,
+  AF_INET6 = 10,
+  NI_NUMERICHOST = 1,
+  PF_INET = 2,
+  SOCK_DGRAM = 2,
+  SOCK_RAW = 3,
+  SOCK_NONBLOCK = 2048,
+  SOCK_CLOEXEC = 524288,
+  IPPROTO_IP = 0,
+  IPPROTO_ICMP = 1,
+  IFNAMSIZ = 16,
+  SIOCGIFHWADDR = 35111,
+  RTF_UP = 1,
+  RTF_GATEWAY = 2,
+  IFF_UP = 1,
+  IFF_LOOPBACK = 8,
+  SIOCGIWNAME = 35585,
+  SIOCGIWESSID = 35611,
+  IW_ESSID_MAX_SIZE = 32,
+  IW_ENCODE_INDEX = 255,
+  ICMP_MINLEN = 8,
+  ICMP_ECHO = 8,
+  ICMP_ECHOREPLY = 0,
+};
 struct timezone {
   int tz_minuteswest;
   int tz_dsttime;
@@ -353,4 +427,32 @@ if jit.os == "Linux" then
   -- NOTE: There's no librt.so symlink, so, specify the SOVER, but not the full path,
   --       in order to let the dynamic loader figure it out on its own (e.g.,  multilib).
   pcall(ffi.load, "rt.so.1", true)
+end
+
+if jit.os == "Linux" or jit.os == "Android" then
+  ffi.cdef([[
+    enum {
+      CLOCK_REALTIME = 0,
+      CLOCK_REALTIME_COARSE = 5,
+      CLOCK_MONOTONIC = 1,
+      CLOCK_MONOTONIC_COARSE = 6,
+      CLOCK_MONOTONIC_RAW = 4,
+      CLOCK_BOOTTIME = 7,
+      CLOCK_TAI = 11,
+      FIONREAD = 21531
+    };
+  ]])
+elseif jit.os == "OSX" then
+  ffi.cdef([[
+    enum {
+      CLOCK_REALTIME = 0,
+      CLOCK_REALTIME_COARSE = -1,
+      CLOCK_MONOTONIC = 6,
+      CLOCK_MONOTONIC_COARSE = 5,
+      CLOCK_MONOTONIC_RAW = 4,
+      CLOCK_BOOTTIME = -1,
+      CLOCK_TAI = -1,
+      FIONREAD = 1074030207
+    };
+  ]])
 end

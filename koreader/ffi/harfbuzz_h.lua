@@ -40,9 +40,9 @@ typedef enum {
   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE = 3,
 } hb_memory_mode_t;
 typedef void (*hb_destroy_func_t)(void *);
-static const int HB_OT_NAME_ID_FONT_FAMILY = 1;
-static const int HB_OT_NAME_ID_FONT_SUBFAMILY = 2;
-static const int HB_OT_NAME_ID_FULL_NAME = 4;
+enum { HB_OT_NAME_ID_FONT_FAMILY = 1 };
+enum { HB_OT_NAME_ID_FONT_SUBFAMILY = 2 };
+enum { HB_OT_NAME_ID_FULL_NAME = 4 };
 typedef struct FT_FaceRec_ *FT_Face;
 hb_blob_t *hb_blob_create(const char *, unsigned int, hb_memory_mode_t, void *, hb_destroy_func_t);
 hb_face_t *hb_face_create(hb_blob_t *, unsigned int);

@@ -1,14 +1,14 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-static const int FBIOGET_FSCREENINFO = 17922;
-static const int FBIOGET_VSCREENINFO = 17920;
-static const int FBIOPUT_VSCREENINFO = 17921;
-static const int FB_TYPE_PACKED_PIXELS = 0;
-static const int FB_ROTATE_UR = 0;
-static const int FB_ROTATE_CW = 1;
-static const int FB_ROTATE_UD = 2;
-static const int FB_ROTATE_CCW = 3;
+enum { FBIOGET_FSCREENINFO = 17922 };
+enum { FBIOGET_VSCREENINFO = 17920 };
+enum { FBIOPUT_VSCREENINFO = 17921 };
+enum { FB_TYPE_PACKED_PIXELS = 0 };
+enum { FB_ROTATE_UR = 0 };
+enum { FB_ROTATE_CW = 1 };
+enum { FB_ROTATE_UD = 2 };
+enum { FB_ROTATE_CCW = 3 };
 struct fb_bitfield {
   unsigned int offset;
   unsigned int length;
@@ -16,20 +16,20 @@ struct fb_bitfield {
 };
 struct fb_fix_screeninfo {
   char id[16];
-  long unsigned int smem_start;
+  unsigned long smem_start;
   unsigned int smem_len;
   unsigned int type;
   unsigned int type_aux;
   unsigned int visual;
-  short unsigned int xpanstep;
-  short unsigned int ypanstep;
-  short unsigned int ywrapstep;
+  unsigned short xpanstep;
+  unsigned short ypanstep;
+  unsigned short ywrapstep;
   unsigned int line_length;
-  long unsigned int mmio_start;
+  unsigned long mmio_start;
   unsigned int mmio_len;
   unsigned int accel;
-  short unsigned int capabilities;
-  short unsigned int reserved[2];
+  unsigned short capabilities;
+  unsigned short reserved[2];
 };
 struct fb_var_screeninfo {
   unsigned int xres;

@@ -18,10 +18,12 @@ local zstd = {}
 function zstd.zstd_compress(ptr, size)
   --print("zstd_compress:", ptr, size)
   local n = zst.ZSTD_compressBound(size)
+  print("DEBUG: size =", size, "n =", n, "type(n) =", type(n))
   local cbuff = C.calloc(n, 1)
+  print("DEBUG: cbuff =", cbuff)
   assert(
     cbuff ~= nil,
-    "Failed to allocate ZSTD compression buffer (" .. tonumber(n) .. " bytes)"
+    "Failed to allocate ZSTD compression buffer (" .. (tonumber(n) or tostring(n)) .. " bytes)"
   )
   -- NOTE: We should be quite all right with the default (3), which will most likely trounce zlib's 9 in every respect...
   local clen = zst.ZSTD_compress(cbuff, n, ptr, size, zst.ZSTD_CLEVEL_DEFAULT)

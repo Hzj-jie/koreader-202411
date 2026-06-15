@@ -57,8 +57,8 @@ ffi.cdef(string.format(
         char __size[%u];
         long int __align;
     } pthread_attr_t;
-    typedef long unsigned int pthread_t;
-    static const int PTHREAD_CREATE_DETACHED = %u;
+    typedef unsigned long pthread_t;
+    enum { PTHREAD_CREATE_DETACHED = %u };
     int pthread_attr_init(pthread_attr_t *);
     int pthread_attr_setdetachstate(pthread_attr_t *, int);
     int pthread_attr_destroy(pthread_attr_t *);

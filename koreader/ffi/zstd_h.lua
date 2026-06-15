@@ -1,10 +1,10 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-static const int ZSTD_CLEVEL_DEFAULT = 3;
+enum { ZSTD_CLEVEL_DEFAULT = 3 };
 size_t ZSTD_compress(void *, size_t, const void *, size_t, int);
 size_t ZSTD_decompress(void *, size_t, const void *, size_t);
-long long unsigned int ZSTD_getFrameContentSize(const void *, size_t);
+unsigned long long ZSTD_getFrameContentSize(const void *, size_t);
 size_t ZSTD_compressBound(size_t);
 unsigned int ZSTD_isError(size_t);
 const char *ZSTD_getErrorName(size_t);

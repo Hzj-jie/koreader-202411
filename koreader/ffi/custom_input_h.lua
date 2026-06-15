@@ -8,12 +8,12 @@ local ffi = require("ffi")
 -- (matches framebuffer constants, which matches Linux <input/fb.h> FB_ROTATE_* constants).
 -- (i.e., this is how the device is *physically* oriented).
 ffi.cdef([[
-static const int EV_SDL = 83;
-
-static const int MSC_GYRO = 71;
-
-static const int DEVICE_ROTATED_UPRIGHT = 0;
-static const int DEVICE_ROTATED_CLOCKWISE = 1;
-static const int DEVICE_ROTATED_UPSIDE_DOWN = 2;
-static const int DEVICE_ROTATED_COUNTER_CLOCKWISE = 3;
+enum {
+  EV_SDL = 83,
+  MSC_GYRO = 71,
+  DEVICE_ROTATED_UPRIGHT = 0,
+  DEVICE_ROTATED_CLOCKWISE = 1,
+  DEVICE_ROTATED_UPSIDE_DOWN = 2,
+  DEVICE_ROTATED_COUNTER_CLOCKWISE = 3
+};
 ]])

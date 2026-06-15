@@ -1,8 +1,8 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-static const int GIF_OK = 1;
-static const int GIF_ERROR = 0;
+enum { GIF_OK = 1 };
+enum { GIF_ERROR = 0 };
 typedef int GifWord;
 typedef unsigned char GifByteType;
 typedef struct GifColorType GifColorType;
@@ -70,11 +70,11 @@ int DGifCloseFile(GifFileType *, int *);
 int DGifSlurp(GifFileType *);
 const char *GifErrorString(int);
 int DGifSavedExtensionToGCB(GifFileType *, int, GraphicsControlBlock *);
-static const int DISPOSAL_UNSPECIFIED = 0;
-static const int DISPOSE_DO_NOT = 1;
-static const int DISPOSE_BACKGROUND = 2;
-static const int DISPOSE_PREVIOUS = 3;
-static const int NO_TRANSPARENT_COLOR = -1;
+enum { DISPOSAL_UNSPECIFIED = 0 };
+enum { DISPOSE_DO_NOT = 1 };
+enum { DISPOSE_BACKGROUND = 2 };
+enum { DISPOSE_PREVIOUS = 3 };
+enum { NO_TRANSPARENT_COLOR = -1 };
 typedef int (*InputFunc)(GifFileType *, GifByteType *, int);
 GifFileType *DGifOpen(void *, InputFunc, int *);
 ]])

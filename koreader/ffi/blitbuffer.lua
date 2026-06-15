@@ -63,7 +63,7 @@ typedef struct BlitBuffer {
     unsigned int pixel_stride;  // nb of pixels from the start of a line to the start of next line
     unsigned int h;
     size_t stride;              // nb of bytes from the start of a line to the start of next line
-    uint8_t * restrict data;
+    uint8_t * data;
     uint8_t config;
 } BlitBuffer;
 typedef struct BlitBuffer4 {
@@ -79,7 +79,7 @@ typedef struct BlitBuffer8 {
     unsigned int pixel_stride;
     unsigned int h;
     size_t stride;
-    Color8 * restrict data;
+    Color8 * data;
     uint8_t config;
 } BlitBuffer8;
 typedef struct BlitBuffer8A {
@@ -87,7 +87,7 @@ typedef struct BlitBuffer8A {
     unsigned int pixel_stride;
     unsigned int h;
     size_t stride;
-    Color8A * restrict data;
+    Color8A * data;
     uint8_t config;
 } BlitBuffer8A;
 typedef struct BlitBufferRGB16 {
@@ -95,7 +95,7 @@ typedef struct BlitBufferRGB16 {
     unsigned int pixel_stride;
     unsigned int h;
     size_t stride;
-    ColorRGB16 * restrict data;
+    ColorRGB16 * data;
     uint8_t config;
 } BlitBufferRGB16;
 
@@ -104,7 +104,7 @@ typedef struct BlitBufferRGB24 {
     unsigned int pixel_stride;
     unsigned int h;
     size_t stride;
-    ColorRGB24 * restrict data;
+    ColorRGB24 * data;
     uint8_t config;
 } BlitBufferRGB24;
 
@@ -113,40 +113,40 @@ typedef struct BlitBufferRGB32 {
     unsigned int pixel_stride;
     unsigned int h;
     size_t stride;
-    ColorRGB32 * restrict data;
+    ColorRGB32 * data;
     uint8_t config;
 } BlitBufferRGB32;
 
-void BB_fill(BlitBuffer * restrict bb, uint8_t v);
-void BB_fill_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, uint8_t v);
-void BB_fill_rect_RGB32(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_blend_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const Color8A * restrict color);
-void BB_blend_RGB32_over_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_blend_RGB_multiply_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB24 * restrict color);
-void BB_blend_RGB32_multiply_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_invert_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
-void BB_hatch_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int stripe_width, const Color8 * restrict color, uint8_t alpha);
-void BB_blit_to(const BlitBuffer * restrict source, BlitBuffer * restrict dest, unsigned int dest_x, unsigned int dest_y,
+void BB_fill(BlitBuffer * bb, uint8_t v);
+void BB_fill_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, uint8_t v);
+void BB_fill_rect_RGB32(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * color);
+void BB_blend_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const Color8A * color);
+void BB_blend_RGB32_over_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * color);
+void BB_blend_RGB_multiply_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB24 * color);
+void BB_blend_RGB32_multiply_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * color);
+void BB_invert_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
+void BB_hatch_rect(BlitBuffer * bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int stripe_width, const Color8 * color, uint8_t alpha);
+void BB_blit_to(const BlitBuffer * source, BlitBuffer * dest, unsigned int dest_x, unsigned int dest_y,
                 unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_dither_blit_to(const BlitBuffer * restrict source, BlitBuffer * restrict dest, unsigned int dest_x, unsigned int dest_y,
+void BB_dither_blit_to(const BlitBuffer * source, BlitBuffer * dest, unsigned int dest_x, unsigned int dest_y,
                 unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_add_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_add_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
                       unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, uint8_t alpha);
-void BB_alpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_alpha_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_dither_alpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_dither_alpha_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_pmulalpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_pmulalpha_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_dither_pmulalpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_dither_pmulalpha_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_invert_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_invert_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
                          unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_color_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
-                        unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const Color8A * restrict color);
-void BB_color_blit_from_RGB32(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
-                        unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_paint_rounded_corner(BlitBuffer * restrict bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
+void BB_color_blit_from(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
+                        unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const Color8A * color);
+void BB_color_blit_from_RGB32(BlitBuffer * dest, const BlitBuffer * source, unsigned int dest_x, unsigned int dest_y,
+                        unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const ColorRGB32 * color);
+void BB_paint_rounded_corner(BlitBuffer * bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
                         unsigned int bw, unsigned int r, uint8_t c, int anti_alias);
 ]])
 
@@ -845,6 +845,15 @@ local TYPE_BB8A = 2
 local TYPE_BBRGB16 = 3
 local TYPE_BBRGB24 = 4
 local TYPE_BBRGB32 = 5
+
+local TYPE_TO_DATATYPE = {
+  [TYPE_BB4] = "uint8_t*",
+  [TYPE_BB8] = "Color8*",
+  [TYPE_BB8A] = "Color8A*",
+  [TYPE_BBRGB16] = "ColorRGB16*",
+  [TYPE_BBRGB24] = "ColorRGB24*",
+  [TYPE_BBRGB32] = "ColorRGB32*",
+}
 
 local BB = {}
 
@@ -3472,7 +3481,7 @@ function BB.new(width, height, buffertype, dataptr, stride, pixel_stride)
     assert(dataptr ~= nil, "cannot allocate memory for new bb")
     bb:setAllocated(1)
   end
-  bb.data = ffi.cast(bb.data, dataptr)
+  bb.data = ffi.cast(TYPE_TO_DATATYPE[buffertype], dataptr)
   return bb
 end
 

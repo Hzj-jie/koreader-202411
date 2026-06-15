@@ -28,11 +28,13 @@ typedef enum {
   UTF8PROC_STRIPMARK = 8192,
   UTF8PROC_STRIPNA = 16384,
 } utf8proc_option_t;
-static const int UTF8PROC_ERROR_NOMEM = -1;
-static const int UTF8PROC_ERROR_OVERFLOW = -2;
-static const int UTF8PROC_ERROR_INVALIDUTF8 = -3;
-static const int UTF8PROC_ERROR_NOTASSIGNED = -4;
-static const int UTF8PROC_ERROR_INVALIDOPTS = -5;
+enum {
+  UTF8PROC_ERROR_NOMEM = -1,
+  UTF8PROC_ERROR_OVERFLOW = -2,
+  UTF8PROC_ERROR_INVALIDUTF8 = -3,
+  UTF8PROC_ERROR_NOTASSIGNED = -4,
+  UTF8PROC_ERROR_INVALIDOPTS = -5
+};
 typedef short int utf8proc_propval_t;
 struct utf8proc_property_struct {
   utf8proc_propval_t category;
@@ -45,14 +47,7 @@ struct utf8proc_property_struct {
   utf8proc_uint16_t lowercase_seqindex;
   utf8proc_uint16_t titlecase_seqindex;
   utf8proc_uint16_t comb_index;
-  unsigned int bidi_mirrored : 1;
-  unsigned int comp_exclusion : 1;
-  unsigned int ignorable : 1;
-  unsigned int control_boundary : 1;
-  unsigned int charwidth : 2;
-  unsigned int pad : 2;
-  unsigned int boundclass : 6;
-  unsigned int indic_conjunct_break : 2;
+  unsigned int padding;
 };
 typedef struct utf8proc_property_struct utf8proc_property_t;
 typedef enum {
@@ -154,34 +149,34 @@ typedef enum {
   UTF8PROC_BOUNDCLASS_E_ZWG = 20,
 } utf8proc_boundclass_t;
 typedef utf8proc_int32_t (*utf8proc_custom_func)(utf8proc_int32_t, void *);
-extern const utf8proc_int8_t utf8proc_utf8class[256] __attribute__((visibility("default")));
-const char *utf8proc_version(void) __attribute__((visibility("default")));
-const char *utf8proc_unicode_version(void) __attribute__((visibility("default")));
-const char *utf8proc_errmsg(utf8proc_ssize_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_iterate(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_int32_t *) __attribute__((visibility("default")));
-utf8proc_bool utf8proc_codepoint_valid(utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_encode_char(utf8proc_int32_t, utf8proc_uint8_t *) __attribute__((visibility("default")));
-const utf8proc_property_t *utf8proc_get_property(utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_decompose_char(utf8proc_int32_t, utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t, int *) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_decompose(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_decompose_custom(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t, utf8proc_custom_func, void *) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_normalize_utf32(utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_reencode(utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t) __attribute__((visibility("default")));
-utf8proc_bool utf8proc_grapheme_break_stateful(utf8proc_int32_t, utf8proc_int32_t, utf8proc_int32_t *) __attribute__((visibility("default")));
-utf8proc_bool utf8proc_grapheme_break(utf8proc_int32_t, utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_int32_t utf8proc_tolower(utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_int32_t utf8proc_toupper(utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_int32_t utf8proc_totitle(utf8proc_int32_t) __attribute__((visibility("default")));
-int utf8proc_islower(utf8proc_int32_t) __attribute__((visibility("default")));
-int utf8proc_isupper(utf8proc_int32_t) __attribute__((visibility("default")));
-int utf8proc_charwidth(utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_category_t utf8proc_category(utf8proc_int32_t) __attribute__((visibility("default")));
-const char *utf8proc_category_string(utf8proc_int32_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_map(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_uint8_t **, utf8proc_option_t) __attribute__((visibility("default")));
-utf8proc_ssize_t utf8proc_map_custom(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_uint8_t **, utf8proc_option_t, utf8proc_custom_func, void *) __attribute__((visibility("default")));
-utf8proc_uint8_t *utf8proc_NFD(const utf8proc_uint8_t *) __attribute__((visibility("default")));
-utf8proc_uint8_t *utf8proc_NFC(const utf8proc_uint8_t *) __attribute__((visibility("default")));
-utf8proc_uint8_t *utf8proc_NFKD(const utf8proc_uint8_t *) __attribute__((visibility("default")));
-utf8proc_uint8_t *utf8proc_NFKC(const utf8proc_uint8_t *) __attribute__((visibility("default")));
-utf8proc_uint8_t *utf8proc_NFKC_Casefold(const utf8proc_uint8_t *) __attribute__((visibility("default")));
+extern const utf8proc_int8_t utf8proc_utf8class[256];
+const char *utf8proc_version(void);
+const char *utf8proc_unicode_version(void);
+const char *utf8proc_errmsg(utf8proc_ssize_t);
+utf8proc_ssize_t utf8proc_iterate(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_int32_t *);
+utf8proc_bool utf8proc_codepoint_valid(utf8proc_int32_t);
+utf8proc_ssize_t utf8proc_encode_char(utf8proc_int32_t, utf8proc_uint8_t *);
+const utf8proc_property_t *utf8proc_get_property(utf8proc_int32_t);
+utf8proc_ssize_t utf8proc_decompose_char(utf8proc_int32_t, utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t, int *);
+utf8proc_ssize_t utf8proc_decompose(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t);
+utf8proc_ssize_t utf8proc_decompose_custom(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t, utf8proc_custom_func, void *);
+utf8proc_ssize_t utf8proc_normalize_utf32(utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t);
+utf8proc_ssize_t utf8proc_reencode(utf8proc_int32_t *, utf8proc_ssize_t, utf8proc_option_t);
+utf8proc_bool utf8proc_grapheme_break_stateful(utf8proc_int32_t, utf8proc_int32_t, utf8proc_int32_t *);
+utf8proc_bool utf8proc_grapheme_break(utf8proc_int32_t, utf8proc_int32_t);
+utf8proc_int32_t utf8proc_tolower(utf8proc_int32_t);
+utf8proc_int32_t utf8proc_toupper(utf8proc_int32_t);
+utf8proc_int32_t utf8proc_totitle(utf8proc_int32_t);
+int utf8proc_islower(utf8proc_int32_t);
+int utf8proc_isupper(utf8proc_int32_t);
+int utf8proc_charwidth(utf8proc_int32_t);
+utf8proc_category_t utf8proc_category(utf8proc_int32_t);
+const char *utf8proc_category_string(utf8proc_int32_t);
+utf8proc_ssize_t utf8proc_map(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_uint8_t **, utf8proc_option_t);
+utf8proc_ssize_t utf8proc_map_custom(const utf8proc_uint8_t *, utf8proc_ssize_t, utf8proc_uint8_t **, utf8proc_option_t, utf8proc_custom_func, void *);
+utf8proc_uint8_t *utf8proc_NFD(const utf8proc_uint8_t *);
+utf8proc_uint8_t *utf8proc_NFC(const utf8proc_uint8_t *);
+utf8proc_uint8_t *utf8proc_NFKD(const utf8proc_uint8_t *);
+utf8proc_uint8_t *utf8proc_NFKC(const utf8proc_uint8_t *);
+utf8proc_uint8_t *utf8proc_NFKC_Casefold(const utf8proc_uint8_t *);
 ]])

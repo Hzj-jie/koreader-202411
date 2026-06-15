@@ -91,12 +91,12 @@ function datetime.secondsToClock(seconds, withoutSeconds, withDays)
     local days = "0"
     local hours
     if withDays then
-      days = string.format("%d", seconds * (1 / (24 * 3600))) -- implicit math.floor for string.format
-      hours = string.format("%02d", (seconds * (1 / 3600)) % 24)
+      days = string.format("%d", math.floor(seconds / 86400))
+      hours = string.format("%02d", math.floor(seconds / 3600) % 24)
     else
-      hours = string.format("%02d", seconds * (1 / 3600))
+      hours = string.format("%02d", math.floor(seconds / 3600))
     end
-    local mins = string.format("%02d", round(seconds % 3600 * (1 / 60)))
+    local mins = string.format("%02d", math.floor(round(seconds % 3600 / 60)))
     if withoutSeconds then
       if mins == "60" then
         -- Can only happen because of rounding, which only happens if withoutSeconds...
@@ -108,7 +108,7 @@ function datetime.secondsToClock(seconds, withoutSeconds, withDays)
         .. ":"
         .. mins
     else
-      local secs = string.format("%02d", seconds % 60)
+      local secs = string.format("%02d", math.floor(seconds % 60))
       return (days ~= "0" and (days .. C_("Time", "d")) or "")
         .. hours
         .. ":"
@@ -272,6 +272,7 @@ if jit.os == "Windows" then
   ----        We *could* arguably feed the os.date output to gsub("^0(%d)(.*)$", "%1%2"), but, while unlikely,
   ----        it's conceivable that a translator would put something other that the hour at the front of the string ;).
   function datetime.secondsToHour(seconds, twelve_hour_clock)
+    seconds = seconds and math.floor(seconds) or os.time()
     if twelve_hour_clock then
       if os.date("%p", seconds) == "AM" then
         -- @translators This is the time in the morning using a 12-hour clock (%I is the hour, %M the minute).
@@ -287,6 +288,7 @@ if jit.os == "Windows" then
   end
 else
   function datetime.secondsToHour(seconds, twelve_hour_clock, pad_with_spaces)
+    seconds = seconds and math.floor(seconds) or os.time()
     if twelve_hour_clock then
       if os.date("%p", seconds) == "AM" then
         if pad_with_spaces then
@@ -322,7 +324,7 @@ end
 ---- @use_locale if true allows to translate the date-time string, if false return "%Y-%m-%d time"
 ---- @treturn string date string
 function datetime.secondsToDate(seconds, use_locale)
-  seconds = seconds or os.time()
+  seconds = seconds and math.floor(seconds) or os.time()
   if use_locale then
     local wday = os.date("%a", seconds)
     local month = os.date("%b", seconds)

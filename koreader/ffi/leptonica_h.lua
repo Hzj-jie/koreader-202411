@@ -4,7 +4,7 @@ ffi.cdef([[
 typedef signed char l_int8;
 typedef unsigned char l_uint8;
 typedef short int l_int16;
-typedef short unsigned int l_uint16;
+typedef unsigned short l_uint16;
 typedef int l_int32;
 typedef unsigned int l_uint32;
 typedef float l_float32;
@@ -14,9 +14,11 @@ typedef struct Boxa BOXA;
 typedef struct Numa NUMA;
 typedef struct Pix PIX;
 typedef struct Pixa PIXA;
-static const int L_NOCOPY = 0;
-static const int L_COPY = 1;
-static const int L_CLONE = 2;
+enum {
+  L_NOCOPY = 0,
+  L_COPY = 1,
+  L_CLONE = 2
+};
 BOX *boxAdjustSides(BOX *, BOX *, l_int32, l_int32, l_int32, l_int32);
 BOX *boxCreate(l_int32, l_int32, l_int32, l_int32);
 void boxDestroy(BOX **);

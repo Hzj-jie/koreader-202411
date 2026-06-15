@@ -145,4 +145,4 @@ notifyBackgroundJobsUpdated = function()
     end
 end
 
-math.randomseed(os.time() + os.clock() * 1000)
+math.randomseed(math.floor(os.time() + os.clock() * 1000))

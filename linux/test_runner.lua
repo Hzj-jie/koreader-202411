@@ -1,3 +1,9 @@
+if jit == nil then
+    jit = require("jit")
+end
+if bit == nil then
+    bit = require("bit")
+end
 local ffi = require("ffi")
 local lfs = require("libs/libkoreader-lfs")
 
@@ -24,8 +30,8 @@ os.exit = function(code, close)
 end
 
 -- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
-package.path = "./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
-package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
+package.path = "./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.4/?.lua;/usr/share/lua/5.4/?/init.lua;;"
+package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.4/?.so;;"
 
 -- 2. Load framework unit test helpers
 if not pcall(dofile, "test_helper.lua") then
@@ -149,10 +155,10 @@ if not test_file then
             -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
             -- writes to this isolated directory, preventing parallel file access conflicts!
             -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
-            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, spec_path)
+            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./lua test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, spec_path)
         else
             -- Run without environment manipulation for exempted tests
-            cmd = string.format("./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", spec_path)
+            cmd = string.format("./lua test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", spec_path)
         end
 
         local pipe = io.popen(cmd)

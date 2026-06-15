@@ -120,19 +120,17 @@ do
   }
 
   local t = sqlconstants
-  local pre = "static const int32_t SQLITE_"
   for i = 0, 26 do
-    t[#t + 1] = pre .. codes[i] .. " = " .. i .. ";\n"
+    t[#t + 1] = "enum { SQLITE_" .. codes[i] .. " = " .. i .. " };\n"
   end
   for i = 100, 101 do
-    t[#t + 1] = pre .. codes[i] .. " = " .. i .. ";\n"
+    t[#t + 1] = "enum { SQLITE_" .. codes[i] .. " = " .. i .. " };\n"
   end
   for i = 1, 5 do
-    t[#t + 1] = pre .. types[i] .. " = " .. i .. ";\n"
+    t[#t + 1] = "enum { SQLITE_" .. types[i] .. " = " .. i .. " };\n"
   end
-  pre = pre .. "OPEN_"
   for k, v in pairs(opens) do
-    t[#t + 1] = pre .. k .. " = " .. v .. ";\n"
+    t[#t + 1] = "enum { SQLITE_OPEN_" .. k .. " = " .. v .. " };\n"
   end
 end
 

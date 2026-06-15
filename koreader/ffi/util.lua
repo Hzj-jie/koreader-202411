@@ -65,18 +65,25 @@ require("ffi/posix_h")
 local util = {}
 
 if jit.os == "Windows" then
-  util.gettime = function()
-    local ft = ffi.new("FILETIME[1]")[0]
-    local tmpres = ffi.new("unsigned long", 0)
-    C.GetSystemTimeAsFileTime(ft)
-    tmpres = bor(tmpres, ft.dwHighDateTime)
-    tmpres = lshift(tmpres, 32)
-    tmpres = bor(tmpres, ft.dwLowDateTime)
-    -- converting file time to unix epoch
-    tmpres = tmpres - 11644473600000000ULL
-    tmpres = tmpres / 10
-    return tonumber(tmpres / 1000000ULL), tonumber(tmpres % 1000000ULL)
-  end
+  util.gettime = load([[
+    local ffi = require("ffi")
+    local C = ffi.C
+    local bit = require("bit")
+    local bor = bit.bor
+    local lshift = bit.lshift
+    return function()
+      local ft = ffi.new("FILETIME[1]")[0]
+      local tmpres = ffi.new("unsigned long", 0)
+      C.GetSystemTimeAsFileTime(ft)
+      tmpres = bor(tmpres, ft.dwHighDateTime)
+      tmpres = lshift(tmpres, 32)
+      tmpres = bor(tmpres, ft.dwLowDateTime)
+      -- converting file time to unix epoch
+      tmpres = tmpres - 11644473600000000ULL
+      tmpres = tmpres / 10
+      return tonumber(tmpres / 1000000ULL), tonumber(tmpres % 1000000ULL)
+    end
+  ]])()
 else
   local timeval = ffi.new("struct timeval")
   util.gettime = function()

@@ -16,9 +16,9 @@ struct ion_fd_data {
 struct ion_handle_data {
   ion_user_handle_t handle;
 };
-static const int ION_IOC_ALLOC = 3222554880;
-static const int ION_IOC_FREE = 3221506305;
-static const int ION_IOC_MAP = 3221768450;
+enum { ION_IOC_ALLOC = 3222554880 };
+enum { ION_IOC_FREE = 3221506305 };
+enum { ION_IOC_MAP = 3221768450 };
 enum ion_heap_mask {
   ION_HEAP_MASK_SYSTEM = 1,
   ION_HEAP_MASK_SYSTEM_CONTIG = 2,

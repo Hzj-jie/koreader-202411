@@ -45,8 +45,8 @@ struct einkfb_event_t {
   int y2;
   enum orientation_t orientation;
 };
-static const int FBIO_EINK_UPDATE_DISPLAY = 18139;
-static const int FBIO_EINK_UPDATE_DISPLAY_AREA = 18141;
-static const int FBIO_EINK_SET_DISPLAY_ORIENTATION = 18160;
-static const int FBIO_EINK_GET_DISPLAY_ORIENTATION = 18161;
+enum { FBIO_EINK_UPDATE_DISPLAY = 18139 };
+enum { FBIO_EINK_UPDATE_DISPLAY_AREA = 18141 };
+enum { FBIO_EINK_SET_DISPLAY_ORIENTATION = 18160 };
+enum { FBIO_EINK_GET_DISPLAY_ORIENTATION = 18161 };
 ]])

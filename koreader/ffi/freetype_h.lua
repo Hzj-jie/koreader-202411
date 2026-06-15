@@ -1,52 +1,54 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-static const int FT_FACE_FLAG_EXTERNAL_STREAM = 1024;
-static const int FT_FACE_FLAG_FAST_GLYPHS = 128;
-static const int FT_FACE_FLAG_FIXED_SIZES = 2;
-static const int FT_FACE_FLAG_FIXED_WIDTH = 4;
-static const int FT_FACE_FLAG_GLYPH_NAMES = 512;
-static const int FT_FACE_FLAG_HINTER = 2048;
-static const int FT_FACE_FLAG_HORIZONTAL = 16;
-static const int FT_FACE_FLAG_KERNING = 64;
-static const int FT_FACE_FLAG_MULTIPLE_MASTERS = 256;
-static const int FT_FACE_FLAG_SCALABLE = 1;
-static const int FT_FACE_FLAG_SFNT = 8;
-static const int FT_FACE_FLAG_VERTICAL = 32;
-static const int FT_KERNING_DEFAULT = 0;
-static const int FT_KERNING_UNFITTED = 1;
-static const int FT_KERNING_UNSCALED = 2;
-static const int FT_LOAD_CROP_BITMAP = 64;
-static const int FT_LOAD_DEFAULT = 0;
-static const int FT_LOAD_FORCE_AUTOHINT = 32;
-static const int FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH = 512;
-static const int FT_LOAD_IGNORE_TRANSFORM = 2048;
-static const int FT_LOAD_LINEAR_DESIGN = 8192;
-static const int FT_LOAD_MONOCHROME = 4096;
-static const int FT_LOAD_NO_AUTOHINT = 32768;
-static const int FT_LOAD_NO_BITMAP = 8;
-static const int FT_LOAD_NO_HINTING = 2;
-static const int FT_LOAD_NO_RECURSE = 1024;
-static const int FT_LOAD_NO_SCALE = 1;
-static const int FT_LOAD_PEDANTIC = 128;
-static const int FT_LOAD_RENDER = 4;
-static const int FT_LOAD_SBITS_ONLY = 16384;
-static const int FT_LOAD_TARGET_LCD = 196608;
-static const int FT_LOAD_TARGET_LCD_V = 262144;
-static const int FT_LOAD_TARGET_LIGHT = 65536;
-static const int FT_LOAD_TARGET_MONO = 131072;
-static const int FT_LOAD_TARGET_NORMAL = 0;
-static const int FT_LOAD_VERTICAL_LAYOUT = 16;
-static const int FT_STYLE_FLAG_BOLD = 2;
-static const int FT_STYLE_FLAG_ITALIC = 1;
+enum {
+  FT_FACE_FLAG_EXTERNAL_STREAM = 1024,
+  FT_FACE_FLAG_FAST_GLYPHS = 128,
+  FT_FACE_FLAG_FIXED_SIZES = 2,
+  FT_FACE_FLAG_FIXED_WIDTH = 4,
+  FT_FACE_FLAG_GLYPH_NAMES = 512,
+  FT_FACE_FLAG_HINTER = 2048,
+  FT_FACE_FLAG_HORIZONTAL = 16,
+  FT_FACE_FLAG_KERNING = 64,
+  FT_FACE_FLAG_MULTIPLE_MASTERS = 256,
+  FT_FACE_FLAG_SCALABLE = 1,
+  FT_FACE_FLAG_SFNT = 8,
+  FT_FACE_FLAG_VERTICAL = 32,
+  FT_KERNING_DEFAULT = 0,
+  FT_KERNING_UNFITTED = 1,
+  FT_KERNING_UNSCALED = 2,
+  FT_LOAD_CROP_BITMAP = 64,
+  FT_LOAD_DEFAULT = 0,
+  FT_LOAD_FORCE_AUTOHINT = 32,
+  FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH = 512,
+  FT_LOAD_IGNORE_TRANSFORM = 2048,
+  FT_LOAD_LINEAR_DESIGN = 8192,
+  FT_LOAD_MONOCHROME = 4096,
+  FT_LOAD_NO_AUTOHINT = 32768,
+  FT_LOAD_NO_BITMAP = 8,
+  FT_LOAD_NO_HINTING = 2,
+  FT_LOAD_NO_RECURSE = 1024,
+  FT_LOAD_NO_SCALE = 1,
+  FT_LOAD_PEDANTIC = 128,
+  FT_LOAD_RENDER = 4,
+  FT_LOAD_SBITS_ONLY = 16384,
+  FT_LOAD_TARGET_LCD = 196608,
+  FT_LOAD_TARGET_LCD_V = 262144,
+  FT_LOAD_TARGET_LIGHT = 65536,
+  FT_LOAD_TARGET_MONO = 131072,
+  FT_LOAD_TARGET_NORMAL = 0,
+  FT_LOAD_VERTICAL_LAYOUT = 16,
+  FT_STYLE_FLAG_BOLD = 2,
+  FT_STYLE_FLAG_ITALIC = 1
+};
 typedef char FT_String;
 typedef unsigned char FT_Byte;
-typedef short unsigned int FT_UShort;
+typedef unsigned short FT_UShort;
 typedef short int FT_Short;
 typedef int FT_Int;
 typedef unsigned int FT_UInt;
 typedef long int FT_Long;
-typedef long unsigned int FT_ULong;
+typedef unsigned long FT_ULong;
 typedef int FT_Error;
 typedef long int FT_Pos;
 typedef enum FT_Encoding_ FT_Encoding;
@@ -136,7 +138,7 @@ struct FT_Bitmap_ {
   unsigned int width;
   int pitch;
   unsigned char *buffer;
-  short unsigned int num_grays;
+  unsigned short num_grays;
   unsigned char pixel_mode;
   unsigned char palette_mode;
   void *palette;
@@ -152,11 +154,11 @@ struct FT_Generic_ {
   void (*finalizer)(void *);
 };
 struct FT_Outline_ {
-  short unsigned int n_contours;
-  short unsigned int n_points;
+  unsigned short n_contours;
+  unsigned short n_points;
   FT_Vector *points;
   unsigned char *tags;
-  short unsigned int *contours;
+  unsigned short *contours;
   int flags;
 };
 struct FT_Vector_ {
