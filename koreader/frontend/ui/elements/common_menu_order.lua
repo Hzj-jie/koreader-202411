@@ -141,8 +141,18 @@ local function mergeWith(b)
       "clock",
       "weather",
       "calculator",
+      "games",
       "----------------------------",
       "plugin_management",
+    },
+    games = {
+      "solitaire",
+      "sudoku",
+      "kochess",
+      "sokoban",
+      "checkers",
+      "nonogram",
+      "slidepuzzle",
     },
     search = {
       "search_settings",
