@@ -1,0 +1,1 @@
+../../../koreader/plugins/kochess.koplugin/board.lua

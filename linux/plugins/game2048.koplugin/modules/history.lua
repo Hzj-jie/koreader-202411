@@ -1,0 +1,1 @@
+../../../../koreader/plugins/game2048.koplugin/modules/history.lua

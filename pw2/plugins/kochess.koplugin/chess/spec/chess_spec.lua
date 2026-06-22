@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/kochess.koplugin/chess/spec/chess_spec.lua

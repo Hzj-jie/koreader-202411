@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/keepalive.koplugin/spec/unit/keepalive_spec.lua

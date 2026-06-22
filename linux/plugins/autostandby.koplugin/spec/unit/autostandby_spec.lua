@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/autostandby.koplugin/spec/unit/autostandby_spec.lua
