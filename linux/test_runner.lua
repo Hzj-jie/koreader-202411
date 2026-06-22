@@ -30,9 +30,9 @@ package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/
 -- Dynamic plugin path injection for single test mode
 local test_file = arg[1]
 if test_file then
-    local plugin = test_file:match("^plugins/([%w%.%-_]+)/")
+    local plugin = test_file:match("plugins/([%w%.%-_]+)/")
     if plugin then
-        package.path = string.format("./plugins/%s/?.lua;%s", plugin, package.path)
+        package.path = string.format("../koreader/plugins/%s/?.lua;./plugins/%s/?.lua;%s", plugin, plugin, package.path)
     end
 end
 
@@ -116,7 +116,7 @@ if not test_file then
     find_specs("spec/unit", spec_files)
 
     -- Dynamically find and include plugin specs
-    local plugins_dir = "plugins"
+    local plugins_dir = "../koreader/plugins"
     local plugins_attr = lfs.attributes(plugins_dir)
     if plugins_attr and plugins_attr.mode == "directory" then
         for plugin in lfs.dir(plugins_dir) do
