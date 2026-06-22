@@ -46,12 +46,12 @@ describe("NetworkMgr non-blocking test", function()
         end
 
         usleep_calls = 0
-        local result = NetworkMgr:reconnectOrShowNetworkMenu(nil, true, true)
+        local result = NetworkMgr:showNetworkMenu(nil)
 
         -- Assert it did not call usleep (no blocking loop)
         assert.are.equal(0, usleep_calls)
-        -- Assert it returned nil (since not connected)
-        assert.is_nil(result)
+        -- Assert it returned true (since settings menu shown)
+        assert.is_true(result)
     end)
 
     it("should return false if scanning failed and yielded no results", function()
@@ -60,7 +60,7 @@ describe("NetworkMgr non-blocking test", function()
         NetworkMgr.getNetworkList = function()
             return nil, "scan error"
         end
-        local result = NetworkMgr:reconnectOrShowNetworkMenu(nil, false, false)
+        local result = NetworkMgr:reconnect(nil, false)
         assert.is_false(result)
     end)
 
@@ -76,7 +76,7 @@ describe("NetworkMgr non-blocking test", function()
         NetworkMgr.obtainIP = function()
             obtain_ip_called = true
         end
-        local result = NetworkMgr:reconnectOrShowNetworkMenu(nil, false, false)
+        local result = NetworkMgr:reconnect(nil, false)
         assert.is_true(result)
         assert.is_true(obtain_ip_called)
     end)
@@ -99,7 +99,7 @@ describe("NetworkMgr non-blocking test", function()
         NetworkMgr.obtainIP = function()
             obtain_ip_called = true
         end
-        local result = NetworkMgr:reconnectOrShowNetworkMenu(nil, false, false)
+        local result = NetworkMgr:reconnect(nil, false)
         assert.is_true(result)
         assert.is_true(authenticate_called)
         assert.is_true(obtain_ip_called)
@@ -118,7 +118,7 @@ describe("NetworkMgr non-blocking test", function()
             show_menu_called = true
             return widget
         end
-        local result = NetworkMgr:reconnectOrShowNetworkMenu(nil, true, false)
+        local result = NetworkMgr:reconnect(nil, true)
         assert.is_nil(result)
         assert.is_true(show_menu_called)
     end)

@@ -203,7 +203,7 @@ function NetworkListener:onShowNetworkInfo()
   end
   if not NetworkMgr:isConnected() then
     -- User action, interactive == true.
-    NetworkMgr:reconnectOrShowNetworkMenu(nil, true)
+    NetworkMgr:reconnect(nil, true)
     return
   end
   if Device.retrieveNetworkInfo then
