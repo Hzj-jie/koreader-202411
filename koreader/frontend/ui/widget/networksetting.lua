@@ -98,7 +98,7 @@ function MinimalPaginator:paintTo(bb, x, y)
   )
 end
 
-function MinimalPaginator:setProgress(progress)
+function MinimalPaginator:_setProgress(progress)
   self.progress = progress
 end
 
@@ -186,7 +186,7 @@ function NetworkItem:init()
         }),
       })
     )
-    self.setting_ui:setConnectedItem(self)
+    self.setting_ui:_setConnectedItem(self)
   elseif self.info.password then
     self.btn_edit_nw = FrameContainer:new({
       bordersize = 0,
@@ -234,7 +234,7 @@ function NetworkItem:refresh()
 end
 
 function NetworkItem:connect()
-  local connected_item = self.setting_ui:getConnectedItem()
+  local connected_item = self.setting_ui:_getConnectedItem()
   if connected_item then
     connected_item:disconnect(true)
   end
@@ -245,7 +245,7 @@ function NetworkItem:connect()
   if success then
     obtainIP()
     self.info.connected = true
-    self.setting_ui:setConnectedItem(self)
+    self.setting_ui:_setConnectedItem(self)
     text = gettext("Connected.")
   else
     text = err_msg
@@ -287,13 +287,13 @@ function NetworkItem:disconnect(will_reconnect)
   end
   self.info.connected = nil
   self:refresh()
-  self.setting_ui:setConnectedItem(nil)
+  self.setting_ui:_setConnectedItem(nil)
   if self.setting_ui.disconnect_callback then
     self.setting_ui.disconnect_callback()
   end
 end
 
-function NetworkItem:saveAndConnectToNetwork(password_input)
+function NetworkItem:_saveAndConnectToNetwork(password_input)
   local new_passwd = password_input:getInputText()
   -- Dont set a empty password if WPA encryption, go through if it’s an open AP
   if
@@ -347,7 +347,7 @@ function NetworkItem:onEditNetwork()
           text = gettext("Connect"),
           is_enter_default = true,
           callback = function()
-            self:saveAndConnectToNetwork(password_input)
+            self:_saveAndConnectToNetwork(password_input)
           end,
         },
       },
@@ -378,7 +378,7 @@ function NetworkItem:onAddNetwork()
           text = gettext("Connect"),
           is_enter_default = true,
           callback = function()
-            self:saveAndConnectToNetwork(password_input)
+            self:_saveAndConnectToNetwork(password_input)
           end,
         },
       },
@@ -493,7 +493,7 @@ function NetworkSetting:init()
         width = self.width,
         height = self.height - self.pagination:getSize().h,
         page_update_cb = function(curr_page, total_pages)
-          self.pagination:setProgress(curr_page / total_pages)
+          self.pagination:_setProgress(curr_page / total_pages)
           -- self.page_text:setText(curr_page .. "/" .. total_pages)
           self:scheduleRepaint()
         end,
@@ -521,11 +521,11 @@ function NetworkSetting:init()
   end
 end
 
-function NetworkSetting:setConnectedItem(item)
+function NetworkSetting:_setConnectedItem(item)
   self.connected_item = item
 end
 
-function NetworkSetting:getConnectedItem()
+function NetworkSetting:_getConnectedItem()
   return self.connected_item
 end
 

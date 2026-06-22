@@ -166,7 +166,7 @@ function TextViewer:init(reinit)
           end_idx,
           to_source_index_func
         )
-          self:handleTextSelection(
+          self:_handleTextSelection(
             text,
             hold_duration,
             start_idx,
@@ -241,12 +241,12 @@ function TextViewer:init(reinit)
         if self._find_next then
           self:findCallback()
         else
-          self:findDialog()
+          self:_findDialog()
         end
       end,
       hold_callback = function()
         if self._find_next then
-          self:findDialog()
+          self:_findDialog()
         else
           if self.default_hold_callback then
             self.default_hold_callback()
@@ -489,7 +489,7 @@ function TextViewer:onForwardingPanRelease(arg, ges)
   return self.movable:onMovablePanRelease(arg, ges)
 end
 
-function TextViewer:findDialog()
+function TextViewer:_findDialog()
   local input_dialog, check_button_case
   input_dialog = InputDialog:new({
     title = gettext("Enter text to search for"),
@@ -564,7 +564,7 @@ function TextViewer:findCallback(input_dialog)
   )
   local msg
   if char_pos > 0 then
-    self:setTextBold(char_pos, #search_charlist)
+    self:_setTextBold(char_pos, #search_charlist)
     self.scroll_text_w:moveCursorToCharPos(
       char_pos,
       self.find_centered_lines_count
@@ -593,7 +593,7 @@ function TextViewer:findCallback(input_dialog)
   end
 end
 
-function TextViewer:handleTextSelection(
+function TextViewer:_handleTextSelection(
   text,
   hold_duration,
   start_idx,
@@ -633,7 +633,7 @@ function TextViewer:reinit()
   self.scroll_text_w:scrollToRatio(ratio, ratio == 0)
 end
 
-function TextViewer:setTextBold(start_pos, len)
+function TextViewer:_setTextBold(start_pos, len)
   local end_pos = start_pos + len
   local text = self.text
   if self.charlist == nil then
