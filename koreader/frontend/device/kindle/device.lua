@@ -319,7 +319,7 @@ function Kindle:initNetworkManager(NetworkMgr)
   if LibLipcs:supported() then
     function NetworkMgr:_turnOnWifi(complete_callback, interactive)
       kindleEnableWifi(1)
-      if self:reconnectOrShowNetworkMenu(complete_callback, interactive) then
+      if self:reconnect(complete_callback, interactive) then
         return true
       end
       -- It's impossible to force a sync wifi connection operation, but can only

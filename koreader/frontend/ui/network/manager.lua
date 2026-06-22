@@ -166,7 +166,7 @@ function NetworkMgr:_asyncCheckWifiState()
         -- avoid blocking UI. But unfortunately the network can be reached at
         -- anytimes, so retry this during the 2m window.
         -- Treat it as a user interaction to avoid UI irresponsiveness.
-        self:reconnectOrShowNetworkMenu(nil, true)
+        self:reconnect(nil, true)
       end
     end,
   })
@@ -249,7 +249,7 @@ end
 --     as opposed to an indirect one (like the beforeWifiAction framework).
 --     It allows the backend to skip UI prompts for non-interactive use-cases.
 -- NOTE: May optionally return a boolean, e.g., return false if the backend can guarantee the connection failed.
--- NOTE: These *must* run or appropriately forward complete_callback (e.g., to reconnectOrShowNetworkMenu),
+-- NOTE: These *must* run or appropriately forward complete_callback (e.g., to reconnect),
 --     as said callback is responsible for schedulig the connectivity check,
 --     which, in turn, is responsible for the Event signaling!
 function NetworkMgr:_turnOnWifi(_complete_callback, _interactive) end
@@ -742,15 +742,9 @@ function NetworkMgr:getWifiToggleMenuTable()
     end,
     hold_callback = function(menu)
       if self:isWifiOn() then
-        self:reconnectOrShowNetworkMenu(
-          function()
-            menu:updateItems()
-          end,
-          -- interactive
-          true,
-          -- prefer_list
-          true
-        )
+        self:showNetworkMenu(function()
+          menu:updateItems()
+        end)
       end
     end,
   }
@@ -944,11 +938,7 @@ end
 --   * true: Successfully connected to a network.
 --   * false: Explicit failure (e.g. scanning failed, should abort).
 --   * nil: Connection attempt is ongoing in the background or the network list dialog is shown (should NOT abort).
-function NetworkMgr:reconnectOrShowNetworkMenu(
-  complete_callback,
-  interactive,
-  prefer_list
-) -- bool|nil
+local function getSortedNetworkList(self, interactive)
   local function scanNetworkList()
     -- NOTE: Fairly hackish workaround for #4387,
     --     rescan if the first scan appeared to yield an empty list.
@@ -991,6 +981,20 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   table.sort(network_list, function(l, r)
     return l.signal_quality > r.signal_quality
   end)
+  return network_list
+end
+
+-- @tparam function complete_callback Callback triggered upon successful connection.
+-- @tparam boolean interactive True if triggered by direct user action (shows dialogs/info).
+-- @treturn bool|nil
+--   * true: Successfully connected to a network.
+--   * false: Explicit failure (e.g. scanning failed, should abort).
+--   * nil: Connection attempt is ongoing in the background or the network list dialog is shown (should NOT abort).
+function NetworkMgr:reconnect(complete_callback, interactive)
+  local network_list = getSortedNetworkList(self, interactive)
+  if network_list == false then
+    return false
+  end
 
   -- ssid indicates the state of the connection; it's nil if not connected.
   local ssid
@@ -1029,7 +1033,7 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
         -- attempt to connect to said preferred network....
         logger.dbg(
           "NetworkMgr: Attempting to authenticate on preferred network",
-          util.fixUtf8(network.ssid, "�")
+          util.fixUtf8(network.ssid, "\xef\xbf\xbd")
         )
         local success, err_msg = self:authenticateNetwork(network)
         if success then
@@ -1051,45 +1055,57 @@ function NetworkMgr:reconnectOrShowNetworkMenu(
   -- Connected, get ip address first anyway.
   if ssid ~= nil then
     self:obtainIP()
-  end
-
-  if ssid == nil or prefer_list then
-    -- NOTE: Also supports a disconnect_callback, should we use it for something?
-    --     Tearing down Wi-Fi completely when tapping "disconnect" would feel a bit harsh, though...
-    -- We don't want to display the AP list for non-interactive callers (e.g., beforeWifiAction framework)...
-    if interactive or prefer_list then
-      UIManager:show(require("ui/widget/networksetting"):new({
-        network_list = network_list,
-        connect_callback = complete_callback,
+    if interactive then
+      -- NOTE: On Kindle, we don't have an explicit obtainIP implementation,
+      --     and authenticateNetwork is async,
+      --     so we don't *actually* have a full connection yet,
+      --     we've just *started* connecting to the requested network...
+      UIManager:show(InfoMessage:new({
+        text = T(
+          Device:isKindle() and gettext("Connecting to network %1…")
+            or gettext("Connected to network %1"),
+          BD.wrap(util.fixUtf8(ssid, "\xef\xbf\xbd"))
+        ),
+        timeout = 3,
+        dismiss_callback = complete_callback,
       }))
+      UIManager:forceRepaint()
+    elseif complete_callback then
+      complete_callback()
     end
-    if ssid ~= nil then
-      return true
-    else
-      return nil
-    end
+    logger.dbg(
+      "NetworkMgr: Connected to network",
+      util.fixUtf8(ssid, "\xef\xbf\xbd")
+    )
+    return true
   end
 
   if interactive then
-    -- NOTE: On Kindle, we don't have an explicit obtainIP implementation,
-    --     and authenticateNetwork is async,
-    --     so we don't *actually* have a full connection yet,
-    --     we've just *started* connecting to the requested network...
-    UIManager:show(InfoMessage:new({
-      text = T(
-        Device:isKindle() and gettext("Connecting to network %1…")
-          or gettext("Connected to network %1"),
-        BD.wrap(util.fixUtf8(ssid, "�"))
-      ),
-      timeout = 3,
-      dismiss_callback = complete_callback,
-    }))
-    UIManager:forceRepaint()
-  elseif complete_callback then
-    complete_callback()
+    self:showNetworkMenu(complete_callback, network_list)
   end
-  logger.dbg("NetworkMgr: Connected to network", util.fixUtf8(ssid, "�"))
+  return nil
+end
 
+-- @tparam function complete_callback Callback triggered upon successful connection from the menu.
+-- @tparam table network_list Optional pre-scanned network list to avoid redundant scanning.
+-- @treturn bool
+--   * true: Settings menu is shown.
+--   * false: Scanning failed.
+function NetworkMgr:showNetworkMenu(complete_callback, network_list)
+  if not network_list then
+    network_list = getSortedNetworkList(self, true)
+    if network_list == false then
+      return false
+    end
+  end
+
+  -- NOTE: Also supports a disconnect_callback, should we use it for something?
+  --     Tearing down Wi-Fi completely when tapping "disconnect" would feel a bit harsh, though...
+  -- We don't want to display the AP list for non-interactive callers (e.g., beforeWifiAction framework)...
+  UIManager:show(require("ui/widget/networksetting"):new({
+    network_list = network_list,
+    connect_callback = complete_callback,
+  }))
   return true
 end
 
