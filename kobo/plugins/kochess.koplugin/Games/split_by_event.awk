@@ -1,0 +1,1 @@
+../../../../koreader/plugins/kochess.koplugin/Games/split_by_event.awk

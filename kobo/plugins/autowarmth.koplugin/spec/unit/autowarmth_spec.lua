@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua

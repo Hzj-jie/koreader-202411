@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/kochess.koplugin/chess/src/lua53bit.lua

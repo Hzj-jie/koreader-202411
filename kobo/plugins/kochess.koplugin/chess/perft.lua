@@ -1,0 +1,1 @@
+../../../../koreader/plugins/kochess.koplugin/chess/perft.lua
