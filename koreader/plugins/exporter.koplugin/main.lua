@@ -396,7 +396,7 @@ function Exporter:addToMainMenu(menu_items)
         text = f.name,
         callback = function()
           local TextViewer = require("ui/widget/textviewer")
-          TextViewer.openFile(f.path)
+          TextViewer:openFile(f.path)
         end,
       })
     end

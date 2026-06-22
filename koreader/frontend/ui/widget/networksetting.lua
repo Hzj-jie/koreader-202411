@@ -66,7 +66,7 @@ local band = bit.band
 local function obtainIP()
   --- @todo check for DHCP result
   local info = InfoMessage:new({ text = gettext("Obtaining IP address…") })
-  self:showWidget(info)
+  UIManager:show(info)
   UIManager:forceRepaint()
   NetworkMgr:obtainIP()
   UIManager:close(info)

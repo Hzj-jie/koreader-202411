@@ -251,11 +251,11 @@ function BookInfoManager:getBookCount()
   self:openDbConnection()
   local count = 0
   if self.db_conn then
-    count = tonumber(self.db_conn:rowexec("SELECT count(*) FROM bookinfo;")) or 0
+    count = tonumber(self.db_conn:rowexec("SELECT count(*) FROM bookinfo;"))
+      or 0
   end
   return count
 end
-
 
 function BookInfoManager:compactDb()
   -- Reduce db size (note: "when VACUUMing a database, as much as twice the

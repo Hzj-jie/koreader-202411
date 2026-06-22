@@ -727,13 +727,15 @@ function TextViewer:register(registry)
     enabled_func = function()
       return true -- all files
     end,
-    callback = TextViewer.openFile,
+    callback = function(file)
+      self:openFile(file)
+    end,
     disable_file = true,
     disable_type = false,
   })
 end
 
-function TextViewer.openFile(file)
+function TextViewer:openFile(file)
   local function _openFile(file_path)
     local file_handle = io.open(file_path, "rb")
     if not file_handle then

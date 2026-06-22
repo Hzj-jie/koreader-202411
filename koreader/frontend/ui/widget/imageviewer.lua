@@ -920,13 +920,15 @@ function ImageViewer:register(registry)
     enabled_func = function(file)
       return registry:isImageFile(file)
     end,
-    callback = ImageViewer.openFile,
+    callback = function(file)
+      self:openFile(file)
+    end,
     disable_file = true,
     disable_type = false,
   })
 end
 
-function ImageViewer.openFile(file)
+function ImageViewer:openFile(file)
   self:showWidget(ImageViewer:new({
     file = file,
     fullscreen = true,
