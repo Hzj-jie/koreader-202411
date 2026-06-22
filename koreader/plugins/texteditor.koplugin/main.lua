@@ -36,7 +36,7 @@ local TextEditor = WidgetContainer:extend({
   min_file_size_warn = 200000, -- warn/ask when opening files bigger than this
 })
 
-function TextEditor:onDispatcherRegisterActions()
+function TextEditor:_registerDispatcherActions()
   Dispatcher:registerAction("edit_last_edited_file", {
     category = "none",
     event = "OpenLastEditedFile",
@@ -47,7 +47,7 @@ function TextEditor:onDispatcherRegisterActions()
 end
 
 function TextEditor:init()
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
   self.ui.menu:registerToMainMenu(self)
   self:registerDocumentRegistryAuxProvider()
 end

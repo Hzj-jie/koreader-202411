@@ -58,7 +58,7 @@ local AutoWarmth = WidgetContainer:extend({
 })
 
 function AutoWarmth:init()
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
   self.ui.menu:registerToMainMenu(self)
 
   self.easy_mode = G_reader_settings:nilOrTrue("autowarmth_easy_mode")
@@ -128,7 +128,7 @@ function AutoWarmth:init()
   self:scheduleMidnightUpdate()
 end
 
-function AutoWarmth:onDispatcherRegisterActions()
+function AutoWarmth:_registerDispatcherActions()
   Dispatcher:registerAction("show_ephemeris", {
     category = "none",
     event = "ShowEphemeris",

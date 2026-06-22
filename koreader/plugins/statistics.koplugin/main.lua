@@ -78,7 +78,7 @@ local ReaderStatistics = Widget:extend({
   doc_md5 = nil,
 })
 
-function ReaderStatistics:onDispatcherRegisterActions()
+function ReaderStatistics:_registerDispatcherActions()
   Dispatcher:registerAction("toggle_statistics", {
     category = "none",
     event = "ToggleStatistics",
@@ -152,7 +152,7 @@ function ReaderStatistics:init()
   })
 
   self.ui.menu:registerToMainMenu(self)
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
   BookStatusWidget.getStats = function()
     return self:getStatsBookStatus(self.id_curr_book, self.settings.is_enabled)
   end

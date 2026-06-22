@@ -521,7 +521,7 @@ local SystemStatWidget = WidgetContainer:extend({
   name = "systemstat",
 })
 
-function SystemStatWidget:onDispatcherRegisterActions()
+function SystemStatWidget:_registerDispatcherActions()
   Dispatcher:registerAction("system_statistics", {
     category = "none",
     event = "ShowSysStatistics",
@@ -532,7 +532,7 @@ function SystemStatWidget:onDispatcherRegisterActions()
 end
 
 function SystemStatWidget:init()
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
   self.ui.menu:registerToMainMenu(self)
 end
 

@@ -65,7 +65,7 @@ function Calculator:init()
   if self.use_init_file == "yes" then
     self:load(nil, self.init_file)
   end
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
   self.ui.menu:registerToMainMenu(self)
 
   -- Add button to readerhighlight dialog
@@ -107,12 +107,12 @@ function Calculator:addToMainMenu(menu_items)
     text = gettext("Calculator"),
     keep_menu_open = true,
     callback = function()
-      self:onCalculatorStart()
+      self:_startCalculator()
     end,
   }
 end
 
-function Calculator:onDispatcherRegisterActions()
+function Calculator:_registerDispatcherActions()
   Dispatcher:registerAction("show_calculator", {
     category = "none",
     event = "CalculatorStart",
@@ -285,7 +285,7 @@ function Calculator:expandTabs(str, num)
 end
 
 function Calculator:convertUnit(text_containing_unit)
-  self:onCalculatorStart()
+  self:_startCalculator()
 
   -- delete multiline --
   if text_containing_unit:find("\n") then
@@ -313,7 +313,7 @@ function Calculator:convertUnit(text_containing_unit)
   UIManager:show(self.convert_dialog)
 end
 
-function Calculator:onCalculatorStart()
+function Calculator:_startCalculator()
   self.angle_mode = G_reader_settings:read("calculator_angle_mode")
     or self.angle_mode
   self.number_format = G_reader_settings:read("calculator_number_format")
@@ -367,7 +367,7 @@ function Calculator:load(old_file, file_name)
     logger.warn("Failed to load file from " .. file_name)
   end
   if old_file then
-    self:onCalculatorStart()
+    self:_startCalculator()
   end
 end
 
@@ -387,7 +387,7 @@ function Calculator:dump(old_file, file_name)
     logger.warn("Failed to dump calculator output to " .. file_name)
   end
   if old_file then
-    self:onCalculatorStart()
+    self:_startCalculator()
   end
 end
 

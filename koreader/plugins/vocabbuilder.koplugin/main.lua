@@ -496,12 +496,12 @@ function MenuDialog:onExit()
   return true
 end
 
-function MenuDialog:onChangeContextStatus(__, position)
+function MenuDialog:_changeContextStatus(__, position)
   settings.with_context = position == 2
   saveSettings()
 end
 
-function MenuDialog:onChangeEnableStatus(__, position)
+function MenuDialog:_changeEnableStatus(__, position)
   settings.enabled = position == 2
   saveSettings()
 end
@@ -510,9 +510,9 @@ function MenuDialog:onConfigChoose(values, name, event, args, position)
   UIManager:tickAfterNext(function()
     if values then
       if event == "ChangeEnableStatus" then
-        self:onChangeEnableStatus(args, position)
+        self:_changeEnableStatus(args, position)
       elseif event == "ChangeContextStatus" then
-        self:onChangeContextStatus(args, position)
+        self:_changeContextStatus(args, position)
       end
     end
     UIManager:setDirty(nil, "ui")
@@ -2182,7 +2182,7 @@ local VocabBuilder = WidgetContainer:extend({
 
 function VocabBuilder:init()
   self.ui.menu:registerToMainMenu(self)
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
 end
 
 function VocabBuilder:addToMainMenu(menu_items)
@@ -2226,7 +2226,7 @@ function VocabBuilder:onDictButtonsReady(dict_popup, buttons)
   })
 end
 
-function VocabBuilder:onDispatcherRegisterActions()
+function VocabBuilder:_registerDispatcherActions()
   Dispatcher:registerAction("show_vocab_builder", {
     category = "none",
     event = "ShowVocabBuilder",
