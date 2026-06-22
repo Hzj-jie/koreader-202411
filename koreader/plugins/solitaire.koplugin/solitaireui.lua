@@ -210,7 +210,10 @@ function SolitaireUI:buildUI()
                 },
                 {
                     text = gettext("Close"),
-                    callback = function() self:onClose() end,
+                    callback = function()
+                        self:onClose()
+                        UIManager:close(self)
+                    end,
                 },
             },
         },
@@ -909,7 +912,6 @@ function SolitaireUI:onClose()
     self:saveGame()
     -- Stop the timer refresh
     self.game:stopTimer()
-    UIManager:close(self)
     return true
 end
 

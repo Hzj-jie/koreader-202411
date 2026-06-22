@@ -93,4 +93,39 @@ describe("Games submenu integration", function()
         assert.is_not_nil(solitaire_item)
         assert.are.equal("Solitaire", solitaire_item.text)
     end)
+
+    it("verifies SolitaireUI onClose does not crash with stack overflow", function()
+        local old_path = package.path
+        package.path = package.path .. ";plugins/solitaire.koplugin/?.lua"
+        local SolitaireUI = require("solitaireui")
+        package.path = old_path
+
+        local UIManager = require("ui/uimanager")
+
+        -- Create a dummy game object
+        local mock_game = {
+            formatTime = function() return "00:00" end,
+            toSaveData = function() return {} end,
+            stopTimer = function() end,
+            draw_mode = 1,
+            moves = 0,
+            score = 0,
+        }
+
+        local ui = SolitaireUI:new{
+            game = mock_game,
+            stats = { current_win_streak = 0 },
+            settings_path = "/tmp/dummy_solitaire_settings.lua",
+            save_path = "/tmp/dummy_solitaire_save.lua",
+        }
+
+        -- Register in UIManager stack
+        UIManager:show(ui)
+
+        -- Call onClose and close widget
+        assert.has_no.errors(function()
+            ui:onClose()
+            UIManager:close(ui)
+        end)
+    end)
 end)
