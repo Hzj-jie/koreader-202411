@@ -92,6 +92,7 @@ Optimizations to reduce startup time, save battery, and extend device storage li
 This build incorporates logic and binaries from the following critical upstream packages:
 *   **KOReader 2024.11 "Slang"**: Base framework and source distributions from the [v2024.11 Release](https://github.com/koreader/koreader/releases/tag/v2024.11).
 *   **Platform Distributions**: Bundled resources derived from official release packages (`koreader-kindlepw2-v2024.11.zip`, `koreader-kindle-legacy-v2024.11.zip`, `koreader-kobo-v2024.11.zip`).
+*   **Community Plugins**: Select non-official plugins and extensions integrated from the community-maintained repository at [koreader/contrib](https://github.com/koreader/contrib).
 *   **SortedIteration**: Embedded ordered traversal utilities sourced from [Lua-Users SortedIteration](http://lua-users.org/wiki/SortedIteration).
 *   **Formatting & Linting**: Integration powered by **StyLua v2.1.0** and **Luacheck v1.2.0**.
 *   **Embedded Server**: SSH server operations backed by **Dropbearmulti 2024.85** static binaries.
