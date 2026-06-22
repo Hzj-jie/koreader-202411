@@ -1194,7 +1194,7 @@ function Sudoku:getBoard()
     if not self.board then
         self:ensureSettings()
         self.board = SudokuBoard:new()
-        local state = self.settings:readSetting("state")
+        local state = self.settings:read("state")
         if not self.board:load(state) then
             self.board:generate(DEFAULT_DIFFICULTY)
         end
@@ -1207,7 +1207,7 @@ function Sudoku:saveState()
         return
     end
     self:ensureSettings()
-    self.settings:saveSetting("state", self.board:serialize())
+    self.settings:save("state", self.board:serialize())
     self.settings:flush()
 end
 

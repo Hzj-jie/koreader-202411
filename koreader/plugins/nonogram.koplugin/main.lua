@@ -1200,7 +1200,7 @@ end
 function Nonogram:getBoard()
     if not self.board then
         self.board = NonogramBoard:new()
-        local state = self.settings:readSetting("state")
+        local state = self.settings:read("state")
         if not self.board:load(state) then
             self.board:generateRandomPuzzle()
         else
@@ -1214,7 +1214,7 @@ function Nonogram:saveState()
     if not self.board then
         return
     end
-    self.settings:saveSetting("state", self.board:serialize())
+    self.settings:save("state", self.board:serialize())
     self.settings:flush()
 end
 

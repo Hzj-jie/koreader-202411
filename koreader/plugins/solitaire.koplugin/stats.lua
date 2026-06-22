@@ -46,7 +46,7 @@ end
 function Stats:load()
     local ok, settings = pcall(LuaSettings.open, LuaSettings, self.stats_path)
     if ok and settings then
-        local data = settings:readSetting("stats")
+        local data = settings:read("stats")
         if data then
             local defaults = self:getDefaults()
             for k, v in pairs(defaults) do
@@ -72,7 +72,7 @@ function Stats:save()
         data[k] = self[k]
     end
     local settings = LuaSettings:open(self.stats_path)
-    settings:saveSetting("stats", data)
+    settings:save("stats", data)
     settings:flush()
 end
 

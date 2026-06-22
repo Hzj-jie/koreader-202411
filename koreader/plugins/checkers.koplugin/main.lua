@@ -72,16 +72,16 @@ local Checkers = FrameContainer:extend{
 function Checkers:loadSettings()
     local path = DataStorage:getSettingsDir() .. "/checkers.lua"
     self.settings = LuaSettings:open(path)
-    self.human[1] = self.settings:readSetting("human_black", true)
-    self.human[2] = self.settings:readSetting("human_white", false)
-    self.ai_depth = self.settings:readSetting("ai_depth",    5)
+    self.human[1] = self.settings:isTrueOr("human_black", true)
+    self.human[2] = self.settings:isTrueOr("human_white", false)
+    self.ai_depth = self.settings:read("ai_depth") or 5
 end
 
 function Checkers:saveSettings()
     if not self.settings then return end
-    self.settings:saveSetting("human_black", self.human[1])
-    self.settings:saveSetting("human_white", self.human[2])
-    self.settings:saveSetting("ai_depth",    self.ai_depth)
+    self.settings:save("human_black", self.human[1])
+    self.settings:save("human_white", self.human[2])
+    self.settings:save("ai_depth",    self.ai_depth)
     self.settings:flush()
 end
 

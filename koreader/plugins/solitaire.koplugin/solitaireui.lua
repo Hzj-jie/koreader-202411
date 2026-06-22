@@ -130,7 +130,7 @@ end
 function SolitaireUI:loadSettings()
     local ok, settings = pcall(LuaSettings.open, LuaSettings, self.settings_path)
     if ok and settings then
-        self.draw_mode_pref = settings:readSetting("draw_mode") or 1
+        self.draw_mode_pref = settings:read("draw_mode") or 1
     else
         self.draw_mode_pref = 1
     end
@@ -138,14 +138,14 @@ end
 
 function SolitaireUI:saveSettings()
     local settings = LuaSettings:open(self.settings_path)
-    settings:saveSetting("draw_mode", self.draw_mode_pref)
+    settings:save("draw_mode", self.draw_mode_pref)
     settings:flush()
 end
 
 function SolitaireUI:saveGame()
     local save_data = self.game:toSaveData()
     local settings = LuaSettings:open(self.save_path)
-    settings:saveSetting("game", save_data)
+    settings:save("game", save_data)
     settings:flush()
 end
 
@@ -155,7 +155,7 @@ function SolitaireUI:loadGame()
         return false
     end
 
-    local save_data = settings:readSetting("game")
+    local save_data = settings:read("game")
     if not save_data then
         return false
     end

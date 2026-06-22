@@ -91,14 +91,14 @@ end
 
 -- Return the configured font descriptor (entry from Settings.FONTS).
 function Settings.getFont(plugin)
-    local id = plugin.settings:readSetting("font_id") or Settings.FONTS[1].id
+    local id = plugin.settings:read("font_id") or Settings.FONTS[1].id
     return findFontById(id)
 end
 
 -- Return either the explicit font size or AUTO_FONT_SIZE (0) when the
 -- caller should compute one from the cell size automatically.
 function Settings.getFontSize(plugin)
-    local size = tonumber(plugin.settings:readSetting("font_size")) or Settings.AUTO_FONT_SIZE
+    local size = tonumber(plugin.settings:read("font_size")) or Settings.AUTO_FONT_SIZE
     if size < 0 then size = Settings.AUTO_FONT_SIZE end
     return size
 end
@@ -123,7 +123,7 @@ function Settings.buildSubMenu(plugin)
             return plugin.settings:isTrue("always_new_on_open")
         end,
         callback = function()
-            plugin.settings:toggle("always_new_on_open")
+            plugin.settings:save("always_new_on_open", not plugin.settings:isTrue("always_new_on_open"))
             plugin.settings:flush()
         end,
         keep_menu_open = true,
@@ -138,7 +138,7 @@ function Settings.buildSubMenu(plugin)
                 return Settings.getFont(plugin).id == font_def.id
             end,
             callback = function()
-                plugin.settings:saveSetting("font_id", font_def.id)
+                plugin.settings:save("font_id", font_def.id)
                 plugin.settings:flush()
                 if plugin.onSettingsChanged then plugin:onSettingsChanged() end
             end,
@@ -206,7 +206,7 @@ function Settings.buildSubMenu(plugin)
                     if new_value == auto_px then
                         new_value = Settings.AUTO_FONT_SIZE
                     end
-                    plugin.settings:saveSetting("font_size", new_value)
+                    plugin.settings:save("font_size", new_value)
                     plugin.settings:flush()
                     if plugin.onSettingsChanged then plugin:onSettingsChanged() end
                     refreshTouchMenu(touchmenu_instance)
@@ -233,7 +233,7 @@ function Settings.buildSubMenu(plugin)
                 return I18n.getChoice() == code
             end,
             callback = function()
-                plugin.settings:saveSetting("language", code)
+                plugin.settings:save("language", code)
                 plugin.settings:flush()
                 I18n.setActive(code)
                 if plugin.onSettingsChanged then plugin:onSettingsChanged() end

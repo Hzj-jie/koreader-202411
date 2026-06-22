@@ -25,15 +25,15 @@ local SlidePuzzle = WidgetContainer:extend{
 function SlidePuzzle:init()
     self.settings_file = DataStorage:getSettingsDir() .. "/slidepuzzle.lua"
     self.settings = LuaSettings:open(self.settings_file)
-    self.active_size = tonumber(self.settings:readSetting("active_size")) or Game.getMinSize()
+    self.active_size = tonumber(self.settings:read("active_size")) or Game.getMinSize()
     if self.active_size < Game.getMinSize() or self.active_size > Game.getMaxSize() then
         self.active_size = Game.getMinSize()
     end
-    self.states = self.settings:readSetting("states") or {}
-    self.stats = self.settings:readSetting("stats") or {}
+    self.states = self.settings:read("states") or {}
+    self.stats = self.settings:read("stats") or {}
     -- Resolve and apply the chosen language as early as possible so any
     -- subsequent UI strings (menu text included) use it.
-    I18n.setActive(self.settings:readSetting("language") or "default")
+    I18n.setActive(self.settings:read("language") or "default")
     self.ui.menu:registerToMainMenu(self)
 end
 
@@ -69,9 +69,9 @@ end
 -- Persistence helpers -----------------------------------------------------
 
 function SlidePuzzle:_saveAll()
-    self.settings:saveSetting("active_size", self.active_size)
-    self.settings:saveSetting("states", self.states)
-    self.settings:saveSetting("stats", self.stats)
+    self.settings:save("active_size", self.active_size)
+    self.settings:save("states", self.states)
+    self.settings:save("stats", self.stats)
     self.settings:flush()
 end
 

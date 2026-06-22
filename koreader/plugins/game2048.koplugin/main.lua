@@ -78,7 +78,7 @@ end
 function Game2048Storage:saveState(state)
     self:saveGameState(state.profile, state)
     -- Settings
-    self._settings:saveSetting("settings", state.settings:dump())
+    self._settings:save("settings", state.settings:dump())
 end
 
 --- Save game state
@@ -91,14 +91,14 @@ function Game2048Storage:saveGameState(profile, state)
         settings = {
         },
     }
-    self._settings:saveSetting("state_"..profile, state_dump)
+    self._settings:save("state_"..profile, state_dump)
 end
 
 --- Read state
 ---@param state Game2048State  Game state
 function Game2048Storage:readState(state)
     -- Settings
-    state.settings:merge(self._settings:readSetting("settings"))
+    state.settings:merge(self._settings:read("settings"))
     state.profile = state.settings.profile
     return self:readGameState(state.profile, state)
 end
@@ -107,7 +107,7 @@ end
 ---@param profile string Name of the state to save
 ---@param state Game2048State Game state
 function Game2048Storage:readGameState(profile, state)
-    local state_dump = self._settings:readSetting("state_"..profile)
+    local state_dump = self._settings:read("state_"..profile)
     if state_dump then
         state.settings:merge(state_dump.settings)
         if state.history:read(state_dump.history) and state.info:readUntracked(state_dump.info) then

@@ -48,12 +48,12 @@ function Sokoban:_loadSettings()
     if not self.settings then
         self.settings = LuaSettings:open(self.settings_file)
     end
-    self.current_set      = self.settings:readSetting("current_set")      or LEVEL_SETS[1].name
-    self.current_level    = self.settings:readSetting("current_level")    or 1
-    self.last_played_levels = self.settings:readSetting("last_played_levels") or {}
-    self.best_moves       = self.settings:readSetting("best_moves")       or {}
-    self.best_pushes      = self.settings:readSetting("best_pushes")      or {}
-    self.furthest_reached = self.settings:readSetting("furthest_reached") or {}
+    self.current_set      = self.settings:read("current_set")      or LEVEL_SETS[1].name
+    self.current_level    = self.settings:read("current_level")    or 1
+    self.last_played_levels = self.settings:read("last_played_levels") or {}
+    self.best_moves       = self.settings:read("best_moves")       or {}
+    self.best_pushes      = self.settings:read("best_pushes")      or {}
+    self.furthest_reached = self.settings:read("furthest_reached") or {}
     -- Ensure furthest_reached is at least consistent with best_moves (handles missing
     -- or stale data from sessions before progression tracking was added)
     for _, ls in ipairs(LEVEL_SETS) do
@@ -75,12 +75,12 @@ end
 
 function Sokoban:_saveSettings()
     if not self.settings then return end
-    self.settings:saveSetting("current_set",      self.current_set)
-    self.settings:saveSetting("current_level",    self.current_level)
-    self.settings:saveSetting("last_played_levels", self.last_played_levels)
-    self.settings:saveSetting("best_moves",       self.best_moves)
-    self.settings:saveSetting("best_pushes",      self.best_pushes)
-    self.settings:saveSetting("furthest_reached", self.furthest_reached)
+    self.settings:save("current_set",      self.current_set)
+    self.settings:save("current_level",    self.current_level)
+    self.settings:save("last_played_levels", self.last_played_levels)
+    self.settings:save("best_moves",       self.best_moves)
+    self.settings:save("best_pushes",      self.best_pushes)
+    self.settings:save("furthest_reached", self.furthest_reached)
     self.settings:flush()
 end
 

@@ -359,7 +359,7 @@ M.active = "en"
 function M.detectAuto()
     local lang
     if rawget(_G, "G_reader_settings") then
-        lang = G_reader_settings:readSetting("language")
+        lang = G_reader_settings:read("language")
     end
     if type(lang) ~= "string" or lang == "" then
         return "en"
