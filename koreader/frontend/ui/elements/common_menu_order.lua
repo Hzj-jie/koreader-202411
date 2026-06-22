@@ -153,6 +153,7 @@ local function mergeWith(b)
       "checkers",
       "nonogram",
       "slidepuzzle",
+      "game2048",
     },
     search = {
       "search_settings",
