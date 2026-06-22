@@ -276,7 +276,7 @@ function NetworkItem:disconnect(will_reconnect)
       NetworkMgr:releaseIP()
     else
       local info = InfoMessage:new({ text = gettext("Disconnecting…") })
-      self:showWidget(info)
+      UIManager:show(info)
       UIManager:forceRepaint()
 
       NetworkMgr:disconnectNetwork(self.info)
