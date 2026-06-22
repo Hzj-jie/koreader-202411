@@ -601,7 +601,7 @@ function TouchMenu:init()
     padding_left = math.floor(footer_width * 0.33 * 0.1),
     padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
-      self:backToUpperMenu()
+      self:_backToUpperMenu()
     end,
   })
   local footer_height = up_button:getSize().h + Size.line.thick
