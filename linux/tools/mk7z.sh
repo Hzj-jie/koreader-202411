@@ -1,1 +1,0 @@
-../../koreader/tools/mk7z.sh

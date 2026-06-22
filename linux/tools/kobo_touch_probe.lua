@@ -1,1 +1,0 @@
-../../koreader/tools/kobo_touch_probe.lua

@@ -1,1 +1,0 @@
-../../koreader/tools/ja_keyboard_generate.py
