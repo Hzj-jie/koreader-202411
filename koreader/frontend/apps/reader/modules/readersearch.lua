@@ -288,7 +288,7 @@ function ReaderSearch:_searchCallback(reverse, text)
     UIManager:closeIfNotNil(self.input_dialog)
     if reverse then
       self.last_search_hash = nil
-      self:onShowSearchDialog(
+      self:_showSearchDialog(
         search_text,
         reverse,
         self.use_regex,
@@ -373,7 +373,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
   return true
 end
 
-function ReaderSearch:onShowSearchDialog(
+function ReaderSearch:_showSearchDialog(
   text,
   direction,
   regex,

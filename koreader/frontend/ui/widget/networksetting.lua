@@ -315,7 +315,7 @@ function NetworkItem:_saveAndConnectToNetwork(password_input)
   UIManager:close(password_input)
 end
 
-function NetworkItem:onEditNetwork()
+function NetworkItem:_editNetwork()
   local password_input
   password_input = InputDialog:new({
     title = self.display_ssid,
@@ -357,7 +357,7 @@ function NetworkItem:onEditNetwork()
   return true
 end
 
-function NetworkItem:onAddNetwork()
+function NetworkItem:_addNetwork()
   local password_input
   password_input = InputDialog:new({
     title = self.display_ssid,
@@ -406,12 +406,12 @@ function NetworkItem:onTapSelect(arg, ges_ev)
     if
       self.btn_edit_nw and ges_ev.pos:intersectWith(self.btn_edit_nw.dimen)
     then
-      self:onEditNetwork()
+      self:_editNetwork()
     else
       self:connect()
     end
   else
-    self:onAddNetwork()
+    self:_addNetwork()
   end
   return true
 end
