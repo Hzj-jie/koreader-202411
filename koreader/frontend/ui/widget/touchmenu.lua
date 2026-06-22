@@ -194,10 +194,10 @@ function TouchMenuItem:onUnfocus()
 end
 
 function TouchMenuItem:_showHelpText()
-  return TouchMenuItem.showHelpText(self.item)
+  return TouchMenuItem.showHelpText(self.item, self.menu)
 end
 
-function TouchMenuItem.showHelpText(item)
+function TouchMenuItem.showHelpText(item, menu)
   local help_text
   if item.help_text then
     help_text = item.help_text
@@ -206,7 +206,7 @@ function TouchMenuItem.showHelpText(item)
   else
     return false
   end
-  self:showWidget(InfoMessage:new({ text = help_text }))
+  menu:showWidget(InfoMessage:new({ text = help_text }))
   return true
 end
 
@@ -1057,7 +1057,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     end
     return
   end
-  if TouchMenuItem.showHelpText(item) then
+  if TouchMenuItem.showHelpText(item, self) then
     return
   end
   if text_truncated then
