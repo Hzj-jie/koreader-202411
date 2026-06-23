@@ -84,6 +84,12 @@ function PluginLoader:loadPlugins()
       then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
+        if plugins_disabled[plugin_name] == nil then
+          local readme = plugin_root .. "/README.koreader-202411.md"
+          if lfs.attributes(readme, "mode") == "file" then
+            plugins_disabled[plugin_name] = true
+          end
+        end
         if plugins_disabled[plugin_name] then
           mainfile = metafile
         end

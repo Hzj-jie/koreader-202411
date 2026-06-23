@@ -26,7 +26,6 @@ local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"
 
 local Calculator = WidgetContainer:new({
   name = "calculator",
-  disabled = true,
   is_doc_only = false,
   calculator_output_path = G_reader_settings:read("calculator_output_path")
     or util.realpath(DataStorage:getDataDir()) .. "/output.calc",

@@ -39,6 +39,8 @@ M.LANGS = {
   { code = "de", name = "Deutsch" },
   { code = "ko", name = "한국어" },
   { code = "tr", name = "Türkçe" },
+  { code = "zh_cn", name = "简体中文" },
+  { code = "zh_tw", name = "繁體中文" },
 }
 
 -- Quick lookup of which short locale codes we ship a translation for.
@@ -50,6 +52,8 @@ local SUPPORTED = {
   de = true,
   ko = true,
   tr = true,
+  zh_cn = true,
+  zh_tw = true,
 }
 
 -- Reference English strings. Other languages translate against these
@@ -345,6 +349,88 @@ local tr = {
   ["col_plays"] = "Oyun",
 }
 
+local zh_cn = {
+  ["Slide puzzle"] = "滑动谜题",
+  ["Play"] = "开始",
+  ["Settings"] = "设置",
+  ["Always start a new puzzle on open"] = "打开时总是开始新谜题",
+  ["Reset best results"] = "重置最佳纪录",
+  ["Reset all best results?"] = "重置所有最佳纪录？",
+  ["Reset"] = "重置",
+  ["Best results cleared."] = "最佳纪录已清除。",
+  ["Font"] = "字体",
+  ["Font size"] = "字体大小",
+  ["Font size: %1"] = "字体大小: %1",
+  ["Auto"] = "自动",
+  ["OK"] = "确定",
+  ["Language"] = "语言",
+  ["Default"] = "默认",
+  ["Select font"] = "选择字体",
+  ["%1x%1 Puzzle    Moves: %2    Time: %3"] = "%1x%1 谜题    步数: %2    时间: %3",
+  ["Best: %1    Fewest moves: %2"] = "最佳: %1    最少步数: %2",
+  ["Best: not set yet"] = "最佳: 暂无",
+  ['Solved! Tap "New" to play again.'] = "已解开！点击“新建”重新玩。",
+  ["Tap a tile next to the gap, or swipe to slide."] = "点击空白格旁的方块，或滑动来移动。",
+  ["Solved in %1 moves and %2."] = "在 %1 步和 %2 内解开。",
+  ["Only tiles next to the gap can move."] = "只有空白格旁的方块可以移动。",
+  ["New puzzle — good luck!"] = "新谜题 — 祝你好运！",
+  ["You solved the %1x%1 puzzle!\nMoves: %2\nTime: %3"] = "你解开了 %1x%1 谜题！\n步数: %2\n时间: %3",
+  ["New"] = "新建",
+  ["Size"] = "大小",
+  ["Stats"] = "统计",
+  ["Close"] = "关闭",
+  ["Cancel"] = "取消",
+  ["Select board size"] = "选择棋盘大小",
+  ["%1 × %1"] = "%1 × %1",
+  ["Records:"] = "纪录:",
+  ["No games played yet."] = "暂无游戏记录。",
+  ["col_size"] = "大小",
+  ["col_time"] = "时间",
+  ["col_moves"] = "步数",
+  ["col_plays"] = "次数",
+}
+
+local zh_tw = {
+  ["Slide puzzle"] = "滑動謎題",
+  ["Play"] = "開始",
+  ["Settings"] = "設置",
+  ["Always start a new puzzle on open"] = "打開時總是開始新謎題",
+  ["Reset best results"] = "重置最佳紀錄",
+  ["Reset all best results?"] = "重置所有最佳紀錄？",
+  ["Reset"] = "重置",
+  ["Best results cleared."] = "最佳紀錄已清除。",
+  ["Font"] = "字體",
+  ["Font size"] = "字體大小",
+  ["Font size: %1"] = "字體大小: %1",
+  ["Auto"] = "自動",
+  ["OK"] = "確定",
+  ["Language"] = "語言",
+  ["Default"] = "預設",
+  ["Select font"] = "選擇字體",
+  ["%1x%1 Puzzle    Moves: %2    Time: %3"] = "%1x%1 謎題    步數: %2    時間: %3",
+  ["Best: %1    Fewest moves: %2"] = "最佳: %1    最少步數: %2",
+  ["Best: not set yet"] = "最佳: 暫無",
+  ['Solved! Tap "New" to play again.'] = "已解開！點擊「新建」重新玩。",
+  ["Tap a tile next to the gap, or swipe to slide."] = "點擊空白格旁的方塊，或滑動來移動。",
+  ["Solved in %1 moves and %2."] = "在 %1 步和 %2 內解開。",
+  ["Only tiles next to the gap can move."] = "只有空白格旁的方塊可以移動。",
+  ["New puzzle — good luck!"] = "新謎題 — 祝你好運！",
+  ["You solved the %1x%1 puzzle!\nMoves: %2\nTime: %3"] = "你解開了 %1x%1 謎題！\n步數: %2\n時間: %3",
+  ["New"] = "新建",
+  ["Size"] = "大小",
+  ["Stats"] = "統計",
+  ["Close"] = "關閉",
+  ["Cancel"] = "取消",
+  ["Select board size"] = "選擇棋盤大小",
+  ["%1 × %1"] = "%1 × %1",
+  ["Records:"] = "紀錄:",
+  ["No games played yet."] = "暫無遊戲記錄。",
+  ["col_size"] = "大小",
+  ["col_time"] = "時間",
+  ["col_moves"] = "步數",
+  ["col_plays"] = "次數",
+}
+
 local translations = {
   en = en,
   pt = pt,
@@ -353,6 +439,8 @@ local translations = {
   de = de,
   ko = ko,
   tr = tr,
+  zh_cn = zh_cn,
+  zh_tw = zh_tw,
 }
 
 -- Active locale code, set via M.setActive(). Defaults to English so
@@ -369,10 +457,11 @@ function M.detectAuto()
   if type(lang) ~= "string" or lang == "" then
     return "en"
   end
-  local short = lang:match("^([^_%-]+)")
-  if short then
-    short = short:lower()
+  local norm = lang:lower():gsub("-", "_")
+  if SUPPORTED[norm] then
+    return norm
   end
+  local short = norm:match("^([^_%-]+)")
   if short and SUPPORTED[short] then
     return short
   end

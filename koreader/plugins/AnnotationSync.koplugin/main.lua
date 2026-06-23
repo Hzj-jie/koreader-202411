@@ -33,7 +33,6 @@ local push_progress_description =
 local AnnotationSyncPlugin = WidgetContainer:extend({
   -- see also: _meta.lua
   is_doc_only = false,
-  disabled = true,
 
   settings = nil,
   manager = nil,

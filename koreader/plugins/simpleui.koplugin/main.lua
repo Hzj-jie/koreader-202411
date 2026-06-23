@@ -39,7 +39,6 @@ local UI = require("sui_core")
 
 local SimpleUIPlugin = WidgetContainer:new({
   name = "simpleui",
-  disabled = true,
 
   active_action = nil,
   _rebuild_scheduled = false,

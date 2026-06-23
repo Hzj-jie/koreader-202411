@@ -16264,12 +16264,12 @@ msgstr ""
 #: plugins/checkers.koplugin/settingswidget.lua:26
 #: plugins/sudoku.koplugin/main.lua:29
 msgid "Easy"
-msgstr ""
+msgstr "簡單"
 
 #: plugins/checkers.koplugin/settingswidget.lua:28
 #: plugins/sudoku.koplugin/main.lua:31
 msgid "Hard"
-msgstr ""
+msgstr "困難"
 
 #: plugins/checkers.koplugin/settingswidget.lua:29
 msgid "Expert"
@@ -16279,7 +16279,7 @@ msgstr ""
 #: plugins/kochess.koplugin/settingswidget.lua:159
 #: plugins/kochess.koplugin/settingswidget.lua:175
 msgid "Human"
-msgstr ""
+msgstr "人類"
 
 #: plugins/checkers.koplugin/settingswidget.lua:77
 msgid "AI"
@@ -17420,7 +17420,7 @@ msgstr "搜尋主資料夾中的閱讀記錄並更新歷史檢視。"
 #: plugins/game2048.koplugin/main.lua:645
 #: plugins/nonogram.koplugin/main.lua:977 plugins/sudoku.koplugin/main.lua:973
 msgid "New game"
-msgstr ""
+msgstr "新遊戲"
 
 #: plugins/game2048.koplugin/main.lua:465
 msgid "Score"
@@ -18062,22 +18062,24 @@ msgstr "確保裝置維持清醒以避免 Wi-Fi 斷線。"
 
 #: plugins/kochess.koplugin/main.lua:156 plugins/kochess.koplugin/main.lua:194
 msgid "Chess Game"
-msgstr ""
+msgstr "國際象棋"
 
 #: plugins/kochess.koplugin/main.lua:408
 msgid "Welcome!"
-msgstr ""
+msgstr "歡迎！"
 
 #: plugins/kochess.koplugin/main.lua:458
 msgid ""
 "Kochess Ready.\n"
 "White to play."
 msgstr ""
+"棋局已準備就緒。\n"
+"輪到白方下子。"
 
 #: plugins/kochess.koplugin/main.lua:766
 #: plugins/kochess.koplugin/settingswidget.lua:194
 msgid "Black"
-msgstr ""
+msgstr "黑方"
 
 #: plugins/kochess.koplugin/main.lua:769
 #, lua-format
@@ -18085,14 +18087,16 @@ msgid ""
 "Checkmate!\n"
 "%s wins."
 msgstr ""
+"將死！\n"
+"%s 獲勝。"
 
 #: plugins/kochess.koplugin/main.lua:795
 msgid "Kochess"
-msgstr ""
+msgstr "國際象棋"
 
 #: plugins/kochess.koplugin/main.lua:838
 msgid "Load PGN File"
-msgstr ""
+msgstr "載入 PGN 檔案"
 
 #: plugins/kochess.koplugin/main.lua:847 plugins/kochess.koplugin/main.lua:905
 msgid "Error"
@@ -18100,23 +18104,23 @@ msgstr "錯誤"
 
 #: plugins/kochess.koplugin/main.lua:848
 msgid "Could not open file:\n"
-msgstr ""
+msgstr "無法打開文件:\n"
 
 #: plugins/kochess.koplugin/main.lua:906
 msgid "Could not save file:\n"
-msgstr ""
+msgstr "無法保存文件:\n"
 
 #: plugins/kochess.koplugin/main.lua:917
 msgid "Game saved to:\n"
-msgstr ""
+msgstr "遊戲保存至:\n"
 
 #: plugins/kochess.koplugin/main.lua:933
 msgid "Save current game as"
-msgstr ""
+msgstr "目前遊戲另存為"
 
 #: plugins/kochess.koplugin/main.lua:965
 msgid "Select Save Folder"
-msgstr ""
+msgstr "選擇儲存資料夾"
 
 #: plugins/kochess.koplugin/main.lua:999
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2752
@@ -18126,15 +18130,15 @@ msgstr "資料夾"
 
 #: plugins/kochess.koplugin/main.lua:1009
 msgid "Filename"
-msgstr ""
+msgstr "檔案名稱"
 
 #: plugins/kochess.koplugin/main.lua:1041
 msgid "Promote to"
-msgstr ""
+msgstr "升變為"
 
 #: plugins/kochess.koplugin/_meta.lua:4
 msgid "Koreader Chess"
-msgstr ""
+msgstr "KOReader 國際象棋"
 
 #: plugins/kochess.koplugin/_meta.lua:5
 msgid "Chess game for Koreader"
@@ -18142,23 +18146,23 @@ msgstr ""
 
 #: plugins/kochess.koplugin/settingswidget.lua:118
 msgid "Chess Settings"
-msgstr ""
+msgstr "國際象棋設置"
 
 #: plugins/kochess.koplugin/settingswidget.lua:166
 msgid "Robot"
-msgstr ""
+msgstr "機器人"
 
 #: plugins/kochess.koplugin/settingswidget.lua:208
 msgid "Player Type"
-msgstr ""
+msgstr "玩家類型"
 
 #: plugins/kochess.koplugin/settingswidget.lua:307
 msgid "Engine Skill"
-msgstr ""
+msgstr "引擎水平"
 
 #: plugins/kochess.koplugin/settingswidget.lua:367
 msgid "Engine ELO Strength"
-msgstr ""
+msgstr "引擎 ELO 強度"
 
 #: plugins/kochess.koplugin/settingswidget.lua:388
 msgid " Time Settings"
@@ -18166,23 +18170,23 @@ msgstr ""
 
 #: plugins/kochess.koplugin/settingswidget.lua:389
 msgid "Time (min + sec):"
-msgstr ""
+msgstr "時間 (分 + 秒):"
 
 #: plugins/kochess.koplugin/settingswidget.lua:397
 msgid "Invalid Time Format"
-msgstr ""
+msgstr "時間格式無效"
 
 #: plugins/kochess.koplugin/settingswidget.lua:398
 msgid "Enter 'minutes + seconds' (e.g. '5 + 0')."
-msgstr ""
+msgstr "輸入 '分鐘 + 秒數' (例如 '5 + 0')。"
 
 #: plugins/kochess.koplugin/settingswidget.lua:423
 msgid "White Time: "
-msgstr ""
+msgstr "白方時間: "
 
 #: plugins/kochess.koplugin/settingswidget.lua:446
 msgid "Black Time: "
-msgstr ""
+msgstr "黑方時間: "
 
 #: plugins/kosync.koplugin/main.lua:27
 msgid "Register/login to KOReader server"
@@ -18843,40 +18847,40 @@ msgstr "取得 RSS 與 Atom 新聞項目並將其存為 HTML 檔案。"
 
 #: plugins/nonogram.koplugin/main.lua:237
 msgid "Puzzle"
-msgstr ""
+msgstr "謎題"
 
 #: plugins/nonogram.koplugin/main.lua:363
 #: plugins/nonogram.koplugin/main.lua:392
 msgid "No puzzle loaded."
-msgstr ""
+msgstr "未載入謎題。"
 
 #: plugins/nonogram.koplugin/main.lua:366
 msgid "Hide the solution to keep editing."
-msgstr ""
+msgstr "隱藏答案以繼續編輯。"
 
 #: plugins/nonogram.koplugin/main.lua:378
 msgid "Unknown action."
-msgstr ""
+msgstr "未知操作。"
 
 #: plugins/nonogram.koplugin/main.lua:395
 msgid "Already showing the solution."
-msgstr ""
+msgstr "已顯示答案。"
 
 #: plugins/nonogram.koplugin/main.lua:406
 msgid "Filled the correct cell %1,%2."
-msgstr ""
+msgstr "填充了正確的儲存格 %1,%2。"
 
 #: plugins/nonogram.koplugin/main.lua:410
 msgid "Cleared an incorrect cell %1,%2."
-msgstr ""
+msgstr "清除了錯誤的儲存格 %1,%2。"
 
 #: plugins/nonogram.koplugin/main.lua:414
 msgid "Everything already matches the solution."
-msgstr ""
+msgstr "所有內容已與答案一致。"
 
 #: plugins/nonogram.koplugin/main.lua:540
 msgid "Random %1x%2"
-msgstr ""
+msgstr "隨機 %1x%2"
 
 #: plugins/nonogram.koplugin/main.lua:943
 msgid "Tap a cell, then use the buttons below to fill or mark it."
@@ -18885,86 +18889,86 @@ msgstr ""
 #: plugins/nonogram.koplugin/main.lua:990
 #: plugins/nonogram.koplugin/main.lua:1271
 msgid "Show solution"
-msgstr ""
+msgstr "顯示答案"
 
 #: plugins/nonogram.koplugin/main.lua:1015
 msgid "Fill cell"
-msgstr ""
+msgstr "填充儲存格"
 
 #: plugins/nonogram.koplugin/main.lua:1022
 msgid "Mark empty"
-msgstr ""
+msgstr "標記空位"
 
 #: plugins/nonogram.koplugin/main.lua:1028
 msgid "Clear cell"
-msgstr ""
+msgstr "清除儲存格"
 
 #: plugins/nonogram.koplugin/main.lua:1036
 #: plugins/solitaire.koplugin/solitaireui.lua:196
 msgid "Hint"
-msgstr ""
+msgstr "提示"
 
 #: plugins/nonogram.koplugin/main.lua:1042
 #: plugins/sudoku.koplugin/main.lua:1037
 msgid "Check"
-msgstr ""
+msgstr "檢查"
 
 #: plugins/nonogram.koplugin/main.lua:1144
 msgid "%1 · Cell %2,%3"
-msgstr ""
+msgstr "%1 · 儲存格 %2,%3"
 
 #: plugins/nonogram.koplugin/main.lua:1148
 msgid "Puzzle solved! Start a new game or restart to play again."
-msgstr ""
+msgstr "謎題已解開！開始新遊戲或重新開始來再次遊玩。"
 
 #: plugins/nonogram.koplugin/main.lua:1152
 msgid "Solution is visible; editing is disabled."
-msgstr ""
+msgstr "顯示答案中；已禁用編輯。"
 
 #: plugins/nonogram.koplugin/main.lua:1154
 msgid "Conflicting cells are highlighted."
-msgstr ""
+msgstr "衝突的儲存格已高亮顯示。"
 
 #: plugins/nonogram.koplugin/main.lua:1174
 msgid "Great job!"
-msgstr ""
+msgstr "做得好！"
 
 #: plugins/nonogram.koplugin/main.lua:1236
 msgid "Everything matches the solution."
-msgstr ""
+msgstr "所有內容都符合答案。"
 
 #: plugins/nonogram.koplugin/main.lua:1240
 msgid "There are mistakes marked in darker cells."
-msgstr ""
+msgstr "較深儲存格中標記有錯誤。"
 
 #: plugins/nonogram.koplugin/main.lua:1242
 msgid "Looks good so far; keep filling the blanks."
-msgstr ""
+msgstr "目前看起來不錯，請繼續填空。"
 
 #: plugins/nonogram.koplugin/main.lua:1251
 msgid "Progress cleared."
-msgstr ""
+msgstr "進度已清除。"
 
 #: plugins/nonogram.koplugin/main.lua:1260
 msgid "Showing the full solution."
-msgstr ""
+msgstr "正在顯示完整答案。"
 
 #: plugins/nonogram.koplugin/main.lua:1262
 msgid "Solution hidden. Continue playing!"
-msgstr ""
+msgstr "答案已隱藏。繼續遊戲！"
 
 #: plugins/nonogram.koplugin/main.lua:1270
 msgid "Hide solution"
-msgstr ""
+msgstr "隱藏答案"
 
 #: plugins/nonogram.koplugin/main.lua:1291
 msgid "Generated a new random puzzle."
-msgstr ""
+msgstr "已生成新的隨機謎題。"
 
 #: plugins/nonogram.koplugin/main.lua:1311
 #: plugins/nonogram.koplugin/_meta.lua:5
 msgid "Nonogram"
-msgstr ""
+msgstr "數織"
 
 #: plugins/nonogram.koplugin/_meta.lua:7
 msgid ""
@@ -22673,23 +22677,23 @@ msgstr ""
 
 #: plugins/sokoban.koplugin/main.lua:91 plugins/sokoban.koplugin/_meta.lua:4
 msgid "Sokoban"
-msgstr ""
+msgstr "推箱子"
 
 #: plugins/sokoban.koplugin/main.lua:266 plugins/sokoban.koplugin/main.lua:318
 msgid "Moves: "
-msgstr ""
+msgstr "步數: "
 
 #: plugins/sokoban.koplugin/main.lua:269 plugins/sokoban.koplugin/main.lua:321
 msgid "Pushes: "
-msgstr ""
+msgstr "推箱數: "
 
 #: plugins/sokoban.koplugin/main.lua:316
 msgid "Solved!"
-msgstr ""
+msgstr "已解開！"
 
 #: plugins/sokoban.koplugin/main.lua:325
 msgid "Next Level"
-msgstr ""
+msgstr "下一關"
 
 #: plugins/sokoban.koplugin/_meta.lua:6
 msgid "Sokoban puzzle game. Push boxes onto target squares."
@@ -22697,21 +22701,21 @@ msgstr ""
 
 #: plugins/sokoban.koplugin/sokoban_settings.lua:36
 msgid "Level Select"
-msgstr ""
+msgstr "選擇關卡"
 
 #: plugins/sokoban.koplugin/sokoban_settings.lua:125
 msgid "Skip Level"
-msgstr ""
+msgstr "跳過關卡"
 
 #: plugins/sokoban.koplugin/sokoban_settings.lua:125
 msgid "Play"
-msgstr ""
+msgstr "開始"
 
 #: plugins/solitaire.koplugin/main.lua:18
 #: plugins/solitaire.koplugin/_meta.lua:4
 #: plugins/solitaire.koplugin/solitaireui.lua:915
 msgid "Solitaire"
-msgstr ""
+msgstr "接龍"
 
 #: plugins/solitaire.koplugin/_meta.lua:6
 msgid ""
@@ -22722,34 +22726,34 @@ msgstr ""
 #: plugins/solitaire.koplugin/solitaireui.lua:189
 #: plugins/sudoku.koplugin/main.lua:1044
 msgid "Undo"
-msgstr ""
+msgstr "復原"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:838
 #: plugins/sudoku.koplugin/main.lua:580
 msgid "Nothing to undo."
-msgstr ""
+msgstr "無可復原內容。"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:858
 msgid "No moves available. Try drawing from stock."
-msgstr ""
+msgstr "無路可走。請嘗試從牌堆摸牌。"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:885
 msgid "No cards can be automatically moved to foundations."
-msgstr ""
+msgstr "沒有牌可以自動移動到收牌區。"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:903
 #, lua-format
 msgid "Switched to %s mode"
-msgstr ""
+msgstr "已切換至 %s 模式"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:928
 msgid "Leaderboard"
-msgstr ""
+msgstr "排行榜"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:937
 #: plugins/solitaire.koplugin/solitaireui.lua:977
 msgid "Reset Statistics"
-msgstr ""
+msgstr "重置統計"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:979
 msgid ""
@@ -22759,7 +22763,7 @@ msgstr ""
 
 #: plugins/solitaire.koplugin/solitaireui.lua:995
 msgid "Statistics have been reset."
-msgstr ""
+msgstr "統計資料已重置。"
 
 #: plugins/solitaire.koplugin/solitaireui.lua:1039
 #, lua-format
@@ -23375,111 +23379,111 @@ msgstr ""
 
 #: plugins/sudoku.koplugin/main.lua:422 plugins/sudoku.koplugin/main.lua:531
 msgid "Hide result to keep playing."
-msgstr ""
+msgstr "隱藏結果以繼續遊戲。"
 
 #: plugins/sudoku.koplugin/main.lua:426 plugins/sudoku.koplugin/main.lua:535
 msgid "This cell is fixed."
-msgstr ""
+msgstr "此儲存格固定。"
 
 #: plugins/sudoku.koplugin/main.lua:434
 msgid "Cell already empty."
-msgstr ""
+msgstr "儲存格已空。"
 
 #: plugins/sudoku.koplugin/main.lua:538
 msgid "Clear the cell before adding notes."
-msgstr ""
+msgstr "添加筆記前先清除儲存格。"
 
 #: plugins/sudoku.koplugin/main.lua:933
 msgid "Tap a cell, then pick a number."
-msgstr ""
+msgstr "點擊儲存格，然後選擇數字。"
 
 #: plugins/sudoku.koplugin/main.lua:987 plugins/sudoku.koplugin/main.lua:1254
 msgid "Show result"
-msgstr ""
+msgstr "顯示結果"
 
 #: plugins/sudoku.koplugin/main.lua:1031
 msgid "Erase"
-msgstr ""
+msgstr "擦除"
 
 #: plugins/sudoku.koplugin/main.lua:1078
 msgid "Note: On"
-msgstr ""
+msgstr "筆記: 開啟"
 
 #: plugins/sudoku.koplugin/main.lua:1078
 msgid "Note: Off"
-msgstr ""
+msgstr "筆記: 關閉"
 
 #: plugins/sudoku.koplugin/main.lua:1100
 msgid "Note mode enabled."
-msgstr ""
+msgstr "筆記模式已啟用。"
 
 #: plugins/sudoku.koplugin/main.lua:1101
 msgid "Note mode disabled."
-msgstr ""
+msgstr "筆記模式已禁用。"
 
 #: plugins/sudoku.koplugin/main.lua:1108
 msgid "Difficulty: %1"
-msgstr ""
+msgstr "難度: %1"
 
 #: plugins/sudoku.koplugin/main.lua:1128
 msgid "Started a %1 game."
-msgstr ""
+msgstr "開始了 %1 遊戲。"
 
 #: plugins/sudoku.koplugin/main.lua:1152
 msgid "Select difficulty"
-msgstr ""
+msgstr "選擇難度"
 
 #: plugins/sudoku.koplugin/main.lua:1170
 msgid "Selected: %1,%2  ·  Empty cells: %3"
-msgstr ""
+msgstr "已選: %1,%2  ·  空儲存格: %3"
 
 #: plugins/sudoku.koplugin/main.lua:1174
 msgid "Result is being shown; editing is disabled."
-msgstr ""
+msgstr "正在顯示結果；已禁用編輯。"
 
 #: plugins/sudoku.koplugin/main.lua:1176
 msgid "Congratulations! Puzzle solved."
-msgstr ""
+msgstr "恭喜！謎題已解開。"
 
 #: plugins/sudoku.koplugin/main.lua:1178
 msgid "Note mode is ON."
-msgstr ""
+msgstr "筆記模式已開啟。"
 
 #: plugins/sudoku.koplugin/main.lua:1211
 msgid "Puzzle complete!"
-msgstr ""
+msgstr "謎題完成！"
 
 #: plugins/sudoku.koplugin/main.lua:1236
 msgid "Started a new game."
-msgstr ""
+msgstr "開始了新遊戲。"
 
 #: plugins/sudoku.koplugin/main.lua:1245
 msgid "Showing the solution."
-msgstr ""
+msgstr "正在顯示答案。"
 
 #: plugins/sudoku.koplugin/main.lua:1253
 msgid "Hide result"
-msgstr ""
+msgstr "隱藏結果"
 
 #: plugins/sudoku.koplugin/main.lua:1264
 msgid "Everything looks good!"
-msgstr ""
+msgstr "一切看起來都不錯！"
 
 #: plugins/sudoku.koplugin/main.lua:1266
 msgid "There are mistakes highlighted in red."
-msgstr ""
+msgstr "有高亮標紅的錯誤。"
 
 #: plugins/sudoku.koplugin/main.lua:1268
 msgid "Keep going!"
-msgstr ""
+msgstr "繼續加油！"
 
 #: plugins/sudoku.koplugin/main.lua:1284
 msgid "Last move undone."
-msgstr ""
+msgstr "復原了上一步。"
 
 #: plugins/sudoku.koplugin/main.lua:1310 plugins/sudoku.koplugin/_meta.lua:5
 msgid "Sudoku"
-msgstr ""
+msgstr "數獨"
 
 #: plugins/sudoku.koplugin/_meta.lua:7
 msgid ""
