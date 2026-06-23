@@ -126,7 +126,7 @@ return {
     ["toc_markers_width"] = 2,
     ["wifi_status"] = true,
   },
-  ["history_filter"] = "all",
+
   ["home_dir"] = "/mnt/us/documents",
   ["hyph_force_algorithmic"] = true,
   ["inertial_scroll"] = false,
@@ -152,8 +152,7 @@ return {
     ["sync_forward"] = 2,
   },
   ["low_pan_rate"] = true,
-  ["multiswipes_enabled"] = false,
-  ["night_mode"] = false,
+
   ["open_last_menu_show_filename"] = true,
   ["page_turns_disable_swipe"] = true,
   ["page_turns_disable_tap"] = true,
