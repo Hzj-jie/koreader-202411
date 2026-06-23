@@ -6,17 +6,26 @@ This guide details the steps and best practices for importing third-party plugin
 
 ## 1. Import Steps Checklist
 
-### [ ] Step 1: Copy Files
+### [ ] Step 1: Copy Files & Disable by Default
 - Copy the plugin directory (e.g., `my_plugin.koplugin/`) into `koreader/plugins/`.
+- **Disable the plugin by default**: Add `disabled = true` to the plugin's class/instance definition in `main.lua`. All ported/imported third-party plugins must start in a disabled state to prevent unauthorized startup resource usage or background crash risks.
 
-### [ ] Step 2: Establish Platform Symlinks
-- From the root of the repository, execute the consolidated link script:
+### [ ] Step 2: Document Porting Changes
+- Create a `README.koreader-202411.md` file inside the plugin folder.
+- Document:
+  - Original source repository and commit hash.
+  - Required installation steps (e.g., executing `./lns.sh`).
+  - Modifications applied for compatibility with v2024.11 (e.g., settings changes, fallbacks).
+  - Explicit confirmation that the plugin is disabled by default.
+
+### [ ] Step 3: Establish Platform Symlinks
+- From the root of the repository, execute the consolidated link script to link all plugin files (including the new README) to all platform directories:
   ```bash
   ./lns.sh
   ```
 - This populates the platform-specific directories (`linux/`, `pw2/`, `legacy/`, `kobo/`) with symlinks pointing to the files in `koreader/`.
 
-### [ ] Step 3: Git Tracking of Symlinks
+### [ ] Step 4: Git Tracking of Symlinks
 - Stage the new platform symlinks in git, but **exclude system/repository config files** from tracking to avoid repository pollution or index corruption:
   - **Exclude**: `.git/`, `.github/` workflows, `.gitmodules`, `.gitignore`, `.travis.yml`, `.travis.yaml`.
   - **Include**: All `.lua`, `.png`, `.svg`, `.json`, `.txt`, `.md`, `.mo` translation files, and platform-specific binaries/scripts (if any).
