@@ -39,7 +39,7 @@ link_dir_contents "koreader" "linux"
 rm -rf linux/scripts
 rm -rf linux/settings
 rm -f linux/spinning_zsync
-rm -rf linux/tools
+# Keep linux/tools for unit tests
 
 # --- 2. PW2 ---
 echo "Configuring pw2/..."

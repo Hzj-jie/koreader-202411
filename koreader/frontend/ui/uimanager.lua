@@ -448,26 +448,6 @@ function UIManager:closeIfNotNil(widget)
   end
 end
 
-function UIManager:close(widget)
-  if not UIManager:isWindowWidget(widget) then
-    logger.warn(
-      "FixMe: widget "
-        .. _widgetDebugStr(widget)
-        .. " has been closed already. "
-        .. debug.traceback()
-    )
-    return
-  end
-  self:_close(widget)
-end
-
-function UIManager:closeIfShown(widget)
-  if not UIManager:isWindowWidget(widget) then
-    return
-  end
-  self:_close(widget)
-end
-
 --- Shift the execution times of all scheduled tasks.
 -- UIManager uses CLOCK_MONOTONIC (which doesn't tick during standby), so shifting the execution
 -- time by a negative value will lead to an execution at the expected time.

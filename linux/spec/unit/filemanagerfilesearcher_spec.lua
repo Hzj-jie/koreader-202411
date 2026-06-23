@@ -346,7 +346,7 @@ describe("filemanagerfilesearcher", function()
       dialog.widgets[1].checked = true -- Case sensitive
       dialog.widgets[2].checked = false -- Exclude subfolders
 
-      stub(searcher, "doSearch")
+      stub(searcher, "_executeSearch")
       UIManager.close:clear()
 
       buttons[3].callback()
@@ -358,11 +358,11 @@ describe("filemanagerfilesearcher", function()
       assert.is_false(searcher.include_subfolders)
       assert.are.equal("/books", searcher.path)
 
-      assert.stub(searcher.doSearch).was.called(1)
+      assert.stub(searcher._executeSearch).was.called(1)
     end)
   end)
 
-  describe("doSearch", function()
+  describe("_executeSearch", function()
     local searcher
 
     before_each(function()
@@ -382,7 +382,7 @@ describe("filemanagerfilesearcher", function()
       local UIManager = require("ui/uimanager")
       UIManager.show:clear()
 
-      searcher:doSearch()
+      searcher:_executeSearch()
 
       -- Trapper shows InfoMessage, then closes it, then shows Menu
       -- Our mock UIManager stores last shown widget, which should be the Menu
@@ -422,7 +422,7 @@ describe("filemanagerfilesearcher", function()
       local UIManager = require("ui/uimanager")
       UIManager.show:clear()
 
-      searcher:doSearch()
+      searcher:_executeSearch()
 
       local confirmbox = UIManager.getLastShownWidget()
       assert.is_true(confirmbox.is_confirm_box)
@@ -615,7 +615,7 @@ describe("filemanagerfilesearcher", function()
         setRightIcon = spy.new(function() end)
       }
 
-      searcher:setSelectMode()
+      searcher:_setSelectMode()
       assert.truthy(searcher.selected_files)
 
       local item = FileSearcher.search_results[1]
@@ -625,7 +625,7 @@ describe("filemanagerfilesearcher", function()
       searcher.onMenuHold(mock_menu_inst, item)
       assert.truthy(searcher.selected_files[item.path])
 
-      searcher:setSelectMode()
+      searcher:_setSelectMode()
       local select_dialog = UIManager.getLastShownWidget()
 
       local select_btn = select_dialog.buttons[2][2]

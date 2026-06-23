@@ -358,7 +358,7 @@ function FileSearcher:onMenuHold(item)
     if item.is_file then
       item.dim = not item.dim and true or nil
       self._manager.selected_files[item.path] = item.dim
-      self._manager:updateMenu()
+      self._manager:_updateMenu()
     end
   else
     self._manager:showFileDialog(item)
