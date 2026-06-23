@@ -217,7 +217,7 @@ local function buildQAWidget(
     local col = VerticalGroup:new({ align = "center" })
     col[#col + 1] = icon_frame
     if show_labels then
-      col[#col + 1] = VerticalSpan:new({ width = lbl_sp })
+      col[#col + 1] = VerticalSpan:new({ height = lbl_sp })
       col[#col + 1] = CenterContainer:new({
         dimen = Geom:new({ w = d.frame_sz, h = lbl_h }),
         TextWidget:new({

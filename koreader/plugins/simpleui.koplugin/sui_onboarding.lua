@@ -42,7 +42,7 @@ function Onboarding.show(on_finish)
     local iw = ctx.inner_w
     local rows = {}
 
-    table.insert(rows, VerticalSpan:new({ width = Screen:scaleBySize(30) }))
+    table.insert(rows, VerticalSpan:new({ height = Screen:scaleBySize(30) }))
     table.insert(
       rows,
       FrameContainer:new({
@@ -58,7 +58,7 @@ function Onboarding.show(on_finish)
             bold = true,
             fgcolor = SUIStyle.getThemeColor("fg") or Blitbuffer.COLOR_BLACK,
           }),
-          VerticalSpan:new({ width = Screen:scaleBySize(4) }),
+          VerticalSpan:new({ height = Screen:scaleBySize(4) }),
           TextBoxWidget:new({
             text = _(
               "Start with a ready-made layout. You can change everything later."
@@ -86,7 +86,7 @@ function Onboarding.show(on_finish)
         and SUIPresets.getBuiltinPresets()
       or {}
 
-    table.insert(rows, VerticalSpan:new({ width = Screen:scaleBySize(30) }))
+    table.insert(rows, VerticalSpan:new({ height = Screen:scaleBySize(30) }))
 
     local preset_rows_args = { align = "left" }
     for _, bp in ipairs(builtins) do
@@ -134,7 +134,7 @@ function Onboarding.show(on_finish)
     local iw = ctx.inner_w
     local rows = {}
 
-    table.insert(rows, VerticalSpan:new({ width = Screen:scaleBySize(30) }))
+    table.insert(rows, VerticalSpan:new({ height = Screen:scaleBySize(30) }))
     table.insert(
       rows,
       FrameContainer:new({
@@ -150,7 +150,7 @@ function Onboarding.show(on_finish)
             bold = true,
             fgcolor = SUIStyle.getThemeColor("fg") or Blitbuffer.COLOR_BLACK,
           }),
-          VerticalSpan:new({ width = Screen:scaleBySize(4) }),
+          VerticalSpan:new({ height = Screen:scaleBySize(4) }),
           TextBoxWidget:new({
             text = _(
               "Simple UI is designed to be simple and flexible. Here are a few tips to get the most out of it."
@@ -179,7 +179,7 @@ function Onboarding.show(on_finish)
     local vpad = Screen:scaleBySize(16)
     local rows = {}
 
-    table.insert(rows, VerticalSpan:new({ width = Screen:scaleBySize(30) }))
+    table.insert(rows, VerticalSpan:new({ height = Screen:scaleBySize(30) }))
 
     local tips = {
       {
@@ -232,7 +232,7 @@ function Onboarding.show(on_finish)
             bold = true,
             fgcolor = fg,
           }),
-          VerticalSpan:new({ width = Screen:scaleBySize(4) }),
+          VerticalSpan:new({ height = Screen:scaleBySize(4) }),
           TextBoxWidget:new({
             text = tip.desc,
             face = Font:getFace(SUIStyle.FACE_REGULAR, SUIStyle.FS_CAPTION),

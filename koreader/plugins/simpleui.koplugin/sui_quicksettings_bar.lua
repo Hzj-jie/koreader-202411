@@ -71,7 +71,7 @@ local LABEL_SCALE_KEY = "simpleui_qs_bar_label_scale_pct"
 local MAX_SLOTS = 6
 
 local function getSlots()
-  local raw = SUISettings:readSetting(SLOTS_KEY)
+  local raw = SUISettings:readTable(SLOTS_KEY)
   return type(raw) == "table" and raw or {}
 end
 
@@ -256,7 +256,7 @@ local function buildPanel(touch_menu)
 
     if showLabels() then
       local lbl_w = btn_size + Screen:scaleBySize(6)
-      table.insert(vg, VerticalSpan:new({ width = Screen:scaleBySize(2) }))
+      table.insert(vg, VerticalSpan:new({ height = Screen:scaleBySize(2) }))
       table.insert(
         vg,
         CenterContainer:new({
@@ -431,7 +431,7 @@ local function buildPanel(touch_menu)
   local max_btn_w = Screen:scaleBySize(50)
   local slider_gap = Screen:scaleBySize(4)
   local slider_w = inner_w - 2 * small_btn_w - max_btn_w - 3 * slider_gap
-  local section_gap = VerticalSpan:new({ width = Screen:scaleBySize(6) })
+  local section_gap = VerticalSpan:new({ height = Screen:scaleBySize(6) })
 
   -- ── Frontlight slider ────────────────────────────────────────────────────
   local fl_group = VerticalGroup:new({ align = "center" })
@@ -658,7 +658,7 @@ local function buildPanel(touch_menu)
 
     table.insert(
       warmth_group,
-      VerticalSpan:new({ width = Screen:scaleBySize(12) })
+      VerticalSpan:new({ height = Screen:scaleBySize(12) })
     )
     table.insert(warmth_group, nl_label)
     table.insert(warmth_group, section_gap)
@@ -668,16 +668,16 @@ local function buildPanel(touch_menu)
   -- ── Assemble panel ───────────────────────────────────────────────────────
   local panel = VerticalGroup:new({
     align = "center",
-    VerticalSpan:new({ width = Screen:scaleBySize(20) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(20) }),
     CenterContainer:new({
       dimen = Geom:new({ w = panel_w, h = btn_row:getSize().h }),
       btn_row,
     }),
-    VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(16) }),
   })
 
   if #fl_group > 0 then
-    table.insert(panel, VerticalSpan:new({ width = Screen:scaleBySize(10) }))
+    table.insert(panel, VerticalSpan:new({ height = Screen:scaleBySize(10) }))
     table.insert(
       panel,
       CenterContainer:new({
@@ -697,7 +697,7 @@ local function buildPanel(touch_menu)
     )
   end
 
-  table.insert(panel, VerticalSpan:new({ width = Screen:scaleBySize(14) }))
+  table.insert(panel, VerticalSpan:new({ height = Screen:scaleBySize(14) }))
 
   local panel_h = panel:getSize().h
   local ic = InputContainer:new({

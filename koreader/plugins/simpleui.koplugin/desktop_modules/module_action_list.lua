@@ -297,7 +297,7 @@ local function buildListWidget(
     end
 
     if i > 1 and d.row_gap > 0 then
-      vg[#vg + 1] = VerticalSpan:new({ width = d.row_gap })
+      vg[#vg + 1] = VerticalSpan:new({ height = d.row_gap })
     end
     vg[#vg + 1] = row_content
   end

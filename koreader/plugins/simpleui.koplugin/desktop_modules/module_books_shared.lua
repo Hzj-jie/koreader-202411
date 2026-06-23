@@ -195,11 +195,11 @@ local _CLR_COVER_BG = Blitbuffer.gray(0.88)
 function SH.vspan(px, pool)
   if pool then
     if not pool[px] then
-      pool[px] = VerticalSpan:new({ width = px })
+      pool[px] = VerticalSpan:new({ height = px })
     end
     return pool[px]
   end
-  return VerticalSpan:new({ width = px })
+  return VerticalSpan:new({ height = px })
 end
 
 -- ---------------------------------------------------------------------------
@@ -376,14 +376,14 @@ function SH.coverPlaceholder(title, authors, w, h)
 
   local vgroup = VerticalGroup:new({})
   if authors then
-    table.insert(vgroup, VerticalSpan:new({ width = top_pad }))
+    table.insert(vgroup, VerticalSpan:new({ height = top_pad }))
     table.insert(vgroup, authors_wg)
   end
-  table.insert(vgroup, VerticalSpan:new({ width = inter_pad }))
+  table.insert(vgroup, VerticalSpan:new({ height = inter_pad }))
   if title then
     table.insert(vgroup, title_wg)
   end
-  table.insert(vgroup, VerticalSpan:new({ width = inter_pad }))
+  table.insert(vgroup, VerticalSpan:new({ height = inter_pad }))
 
   return FrameContainer:new({
     width = w,

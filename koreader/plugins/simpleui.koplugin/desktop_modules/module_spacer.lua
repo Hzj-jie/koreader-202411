@@ -74,7 +74,7 @@ local function makeInstance(inst_id)
     end
     local h = math.max(2, math.floor(_BASE_SPACER_H * _getScale(S.id, ctx.pfx)))
     -- VerticalSpan usa o campo `width` como altura — é a convenção do KOReader.
-    return VerticalSpan:new({ width = h })
+    return VerticalSpan:new({ height = h })
   end
 
   function S.getHeight(ctx)

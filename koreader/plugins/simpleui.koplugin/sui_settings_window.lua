@@ -71,7 +71,7 @@ local SettingsWindow = {}
 local LayoutService = {}
 
 function LayoutService.load()
-  local saved = SUISettings:readSetting("simpleui_layout")
+  local saved = SUISettings:readTable("simpleui_layout")
   if type(saved) == "table" and saved.pages then
     return saved
   end
@@ -468,12 +468,11 @@ local function buildScreens(st)
     -- reindexes (destroyInstance already removes from the persisted list,
     -- so the next repaint reflects the new numbers automatically).
     local row_counters = {}
-    local qa_inst_ids = SUISettings:readSetting("simpleui_qa_row_instances")
-      or {}
+    local qa_inst_ids = SUISettings:readTable("simpleui_qa_row_instances") or {}
     for idx, mid in ipairs(qa_inst_ids) do
       row_counters[mid] = { idx = idx, kind = "qa" }
     end
-    local spacer_inst_ids = SUISettings:readSetting(
+    local spacer_inst_ids = SUISettings:readTable(
       "simpleui_spacer_row_instances"
     ) or {}
     for idx, mid in ipairs(spacer_inst_ids) do

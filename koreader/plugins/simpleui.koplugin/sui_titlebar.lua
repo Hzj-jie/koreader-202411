@@ -206,7 +206,7 @@ end
 -- Merges saved config onto defaults. Any default items absent from the saved
 -- order lists are appended, so newly-added buttons always appear in Arrange.
 local function _loadCfg(key, defaults)
-  local raw = SUISettings:readSetting(key)
+  local raw = SUISettings:readTable(key)
   if type(raw) ~= "table" then
     local side = {}
     for k, v in pairs(defaults.side) do

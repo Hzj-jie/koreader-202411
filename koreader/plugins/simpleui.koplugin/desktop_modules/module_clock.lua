@@ -422,7 +422,7 @@ local function _buildWordClockWidget(text, face, inner_w, align, theme_fg)
   local vg = VerticalGroup:new({ align = align })
   vg[1] = makeLine(line1)
   if line2 ~= "" then
-    vg[2] = VerticalSpan:new({ width = math.floor(line_h * 0.10) })
+    vg[2] = VerticalSpan:new({ height = math.floor(line_h * 0.10) })
     vg[3] = makeLine(line2)
   end
   return vg
@@ -487,11 +487,11 @@ end
 local function _vspan(px, pool)
   if pool then
     if not pool[px] then
-      pool[px] = VerticalSpan:new({ width = px })
+      pool[px] = VerticalSpan:new({ height = px })
     end
     return pool[px]
   end
-  return VerticalSpan:new({ width = px })
+  return VerticalSpan:new({ height = px })
 end
 
 local function build(w, pfx, vspan_pool)

@@ -213,7 +213,7 @@ function SUIWindow:show()
     padding_top = 0,
     background = Blitbuffer.COLOR_WHITE,
     dimen = Geom:new({ w = self._modal_w, h = self._modal_h }),
-    VerticalSpan:new({ width = 0 }),
+    VerticalSpan:new({ height = 0 }),
   })
 
   local mf = self._modal_frame
@@ -733,7 +733,7 @@ function SUIWindow:_rebuildFrame(ctx, items)
   end
 
   local page_widget = pages[self._current_page]
-    or VerticalSpan:new({ width = 0 })
+    or VerticalSpan:new({ height = 0 })
   local content_block = VerticalGroup:new({ align = "left", tb, page_widget })
 
   local final_widget
@@ -1059,7 +1059,7 @@ function SUIWindow:_buildPages(widgets, avail_h)
           if not real_last._orig_sep then
             real_last._orig_sep = real_last[2]
           end
-          real_last[2] = VerticalSpan:new({ width = 0 })
+          real_last[2] = VerticalSpan:new({ height = 0 })
         end
         cur_vg = VerticalGroup:new({ align = "left" })
         table.insert(pages, cur_vg)
@@ -1070,7 +1070,7 @@ function SUIWindow:_buildPages(widgets, avail_h)
           if not last_w._orig_sep then
             last_w._orig_sep = last_w[2]
           end
-          last_w[2] = VerticalSpan:new({ width = 0 })
+          last_w[2] = VerticalSpan:new({ height = 0 })
         end
         cur_vg = VerticalGroup:new({ align = "left" })
         table.insert(pages, cur_vg)
@@ -1086,7 +1086,7 @@ function SUIWindow:_buildPages(widgets, avail_h)
     if not last_w._orig_sep then
       last_w._orig_sep = last_w[2]
     end
-    last_w[2] = VerticalSpan:new({ width = 0 })
+    last_w[2] = VerticalSpan:new({ height = 0 })
   end
 
   local inner_w = self._inner_w
@@ -1174,9 +1174,9 @@ function SUIWindow:_buildDotBar(total_pages)
 
   if total_pages <= 1 then
     if self._has_settings_btn then
-      return VerticalSpan:new({ width = total_h })
+      return VerticalSpan:new({ height = total_h })
     end
-    return VerticalSpan:new({ width = 0 })
+    return VerticalSpan:new({ height = 0 })
   end
 
   local TOUCH_W = Screen:scaleBySize(32)
@@ -1552,7 +1552,7 @@ function SUIWindow.ListRow(opts)
   local sub = type(opts.subtitle) == "function" and opts.subtitle()
     or opts.subtitle
   if sub and sub ~= "" then
-    table.insert(left_vg, VerticalSpan:new({ width = Screen:scaleBySize(4) }))
+    table.insert(left_vg, VerticalSpan:new({ height = Screen:scaleBySize(4) }))
     table.insert(
       left_vg,
       TextWidget:new({
@@ -1924,7 +1924,7 @@ function SUIWindow.Button(opts)
     return tappable
   end
   return VerticalGroup:new({
-    VerticalSpan:new({ width = _ITEM_VPAD }),
+    VerticalSpan:new({ height = _ITEM_VPAD }),
     tappable,
   })
 end
@@ -1949,7 +1949,7 @@ function SUIWindow.Section(opts)
   vg.is_section = true
 
   if opts.title and opts.title ~= "" then
-    table.insert(vg, VerticalSpan:new({ width = Screen:scaleBySize(16) }))
+    table.insert(vg, VerticalSpan:new({ height = Screen:scaleBySize(16) }))
     table.insert(
       vg,
       TextWidget:new({
@@ -1960,7 +1960,7 @@ function SUIWindow.Section(opts)
         max_width = opts.inner_w,
       })
     )
-    table.insert(vg, VerticalSpan:new({ width = Screen:scaleBySize(8) }))
+    table.insert(vg, VerticalSpan:new({ height = Screen:scaleBySize(8) }))
   end
 
   for _, child in ipairs(opts.children or {}) do
@@ -2501,7 +2501,7 @@ local function _CardBase(opts)
   local sub = type(opts.subtitle) == "function" and opts.subtitle()
     or opts.subtitle
   if sub and sub ~= "" then
-    table.insert(left_vg, VerticalSpan:new({ width = Screen:scaleBySize(4) }))
+    table.insert(left_vg, VerticalSpan:new({ height = Screen:scaleBySize(4) }))
     table.insert(
       left_vg,
       TextWidget:new({
@@ -2826,7 +2826,7 @@ local function _CardBase(opts)
 
   return VerticalGroup:new({
     align = "left",
-    VerticalSpan:new({ width = margin_v }),
+    VerticalSpan:new({ height = margin_v }),
     tappable,
   })
 end
@@ -3120,7 +3120,7 @@ function SUIWindow.TwoButtonFooter(ctx, left_opts, right_opts)
   local vg = VerticalGroup:new({
     align = "left",
     dimen = Geom:new({ w = iw, h = total_h }),
-    VerticalSpan:new({ width = top_pad }),
+    VerticalSpan:new({ height = top_pad }),
     HorizontalGroup:new({
       align = "center",
       left_btn,
@@ -3208,9 +3208,9 @@ function SUIWindow.CenteredButtonFooter(ctx, opts)
   local vg = VerticalGroup:new({
     align = "left",
     dimen = Geom:new({ w = iw, h = total_h }),
-    VerticalSpan:new({ width = top_pad }),
+    VerticalSpan:new({ height = top_pad }),
     tappable,
-    VerticalSpan:new({ width = bot_pad }),
+    VerticalSpan:new({ height = bot_pad }),
   })
   local ic = InputContainer:new({
     dimen = Geom:new({ w = iw, h = total_h }),

@@ -284,7 +284,7 @@ local function buildCoverCell(
     padding = 0,
     background = accent_color or Blitbuffer.COLOR_BLACK,
     dimen = Geom:new({ w = d.coll_w, h = d.accent_h }),
-    VerticalSpan:new({ width = 0 }),
+    VerticalSpan:new({ height = 0 }),
   })
 
   local base = VerticalGroup:new({ align = "left", stack, accent })
@@ -592,7 +592,7 @@ function M.build(w, ctx)
     local cell_vg = VerticalGroup:new({
       align = "center",
       thumb,
-      VerticalSpan:new({ width = d.label_gap }),
+      VerticalSpan:new({ height = d.label_gap }),
       label_aligned,
     })
 

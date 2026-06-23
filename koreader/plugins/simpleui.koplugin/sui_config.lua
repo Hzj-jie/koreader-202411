@@ -295,7 +295,7 @@ function M.setTopbarCustomText(s)
 end
 
 function M.getTopbarConfig()
-  local raw = SUISettings:get("simpleui_topbar_config")
+  local raw = SUISettings:readTable("simpleui_topbar_config")
   local cfg = {
     side = {},
     order_left = {},
@@ -389,7 +389,7 @@ function M.loadTabConfig()
   if _tabs_cache then
     return _tabs_cache
   end
-  local cfg = SUISettings:get("simpleui_bar_tabs")
+  local cfg = SUISettings:readTable("simpleui_bar_tabs")
   local result = {}
   local min_tabs = M.isNavpagerEnabled() and 1 or 2
   if
@@ -1716,7 +1716,9 @@ end
 -- No version flags needed — the nil-check on each key is the guard.
 function M.applyFirstRunDefaults()
   local function def(k, v)
-    if SUISettings:get(k) == nil then
+    local val = type(v) == "table" and SUISettings:readTable(k)
+      or SUISettings:get(k)
+    if val == nil then
       SUISettings:set(k, v)
     end
   end
@@ -1734,7 +1736,7 @@ function M.applyFirstRunDefaults()
     "simpleui_bar_tabs",
     { "home", "sui_settings", "homescreen", "history", "power" }
   )
-  if SUISettings:get("simpleui_topbar_config") == nil then
+  if SUISettings:readTable("simpleui_topbar_config") == nil then
     M.saveTopbarConfig({
       side = { clock = "left", battery = "right", wifi = "right" },
       order_left = { "clock" },
@@ -1794,7 +1796,7 @@ function M.applyFirstRunDefaults()
 
   -- Quick Actions Row instances (three stable ids that won't clash with
   -- runtime-generated ones, which use os.time() as suffix).
-  if SUISettings:get("simpleui_qa_row_instances") == nil then
+  if SUISettings:readTable("simpleui_qa_row_instances") == nil then
     local QA_INSTANCES = {
       "quick_actions_row_000001",
       "quick_actions_row_000002",
@@ -1821,7 +1823,7 @@ function M.applyFirstRunDefaults()
   -- Titlebar: search visible, browse visible left of menu
   def("simpleui_tb_item_fm_search", true)
   def("simpleui_tb_item_fm_browse", true)
-  if SUISettings:get("simpleui_tb_fm_cfg") == nil then
+  if SUISettings:readTable("simpleui_tb_fm_cfg") == nil then
     SUISettings:set("simpleui_tb_fm_cfg", {
       side = {
         fm_menu = "right",

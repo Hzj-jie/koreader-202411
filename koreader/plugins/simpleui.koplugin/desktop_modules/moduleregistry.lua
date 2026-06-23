@@ -97,7 +97,7 @@ local Registry = {}
 -- ---------------------------------------------------------------------------
 local function _placedInstanceIds()
   local placed = {}
-  local layout = SUISettings:readSetting("simpleui_layout")
+  local layout = SUISettings:readTable("simpleui_layout")
   if type(layout) == "table" and type(layout.pages) == "table" then
     for _, page in ipairs(layout.pages) do
       if type(page.modules) == "table" then
@@ -107,7 +107,7 @@ local function _placedInstanceIds()
       end
     end
   else
-    local order = SUISettings:readSetting("simpleui_hs_module_order")
+    local order = SUISettings:readTable("simpleui_hs_module_order")
     if type(order) == "table" then
       for _, mod_id in ipairs(order) do
         placed[mod_id] = true
@@ -132,7 +132,7 @@ end
 -- ---------------------------------------------------------------------------
 local function _pruneOrphanInstances(mod, placed)
   local inst_key = mod.instances_key or "simpleui_qa_row_instances"
-  local inst_ids = SUISettings:readSetting(inst_key) or {}
+  local inst_ids = SUISettings:readTable(inst_key) or {}
   if #inst_ids == 0 then
     return inst_ids
   end
@@ -276,7 +276,7 @@ end
 -- default, appending any modules not present in the saved list.
 -- Returns the cached default directly when no custom order has been saved.
 function Registry.loadOrder(pfx)
-  local saved = SUISettings:readSetting(pfx .. "module_order")
+  local saved = SUISettings:readTable(pfx .. "module_order")
   if type(saved) ~= "table" or #saved == 0 then
     return Registry.defaultOrder()
   end

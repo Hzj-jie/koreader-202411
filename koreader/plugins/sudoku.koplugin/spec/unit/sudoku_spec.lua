@@ -47,7 +47,9 @@ describe("Sudoku plugin unit tests", function()
           break
         end
       end
-      if selected_r then break end
+      if selected_r then
+        break
+      end
     end
 
     board:setSelection(selected_r, selected_c)

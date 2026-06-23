@@ -608,7 +608,7 @@ function M.build(w, ctx)
   local _next_gap = nil
   local function gap_before(size)
     if meta_has_content then
-      meta[#meta + 1] = VerticalSpan:new({ width = _next_gap or size })
+      meta[#meta + 1] = VerticalSpan:new({ height = _next_gap or size })
     end
     _next_gap = nil
   end

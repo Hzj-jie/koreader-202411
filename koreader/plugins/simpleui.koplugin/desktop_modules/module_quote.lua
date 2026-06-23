@@ -1146,7 +1146,7 @@ function M.build(w, ctx)
 
   local face_attr = Font:getFace(SUIStyle.FACE_REGULAR, attr_fs)
 
-  local vspan_gap = VerticalSpan:new({ width = quote_gap })
+  local vspan_gap = VerticalSpan:new({ height = quote_gap })
 
   -- Theme: when fg is set use it for all text; otherwise fall back to module defaults.
   local ok_ss, SUIStyle = pcall(require, "sui_style")
@@ -1227,8 +1227,8 @@ function M.build(w, ctx)
   -- (left/right) since VerticalGroup has no padding property of its own.
   -- The inner_row is wrapped in an alignment container so the text block
   -- sits left / center / right within the full module width.
-  local pad_span = VerticalSpan:new({ width = PAD })
-  local pad2_span = VerticalSpan:new({ width = PAD2 })
+  local pad_span = VerticalSpan:new({ height = PAD })
+  local pad2_span = VerticalSpan:new({ height = PAD2 })
   local hpad = HorizontalSpan:new({ width = PAD })
   local inner_row = HorizontalGroup:new({ hpad, content, hpad })
   local Geom = require("ui/geometry")

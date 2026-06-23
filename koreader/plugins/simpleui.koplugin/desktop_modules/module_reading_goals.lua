@@ -441,7 +441,7 @@ local function _buildInnerDefault(
         alignment = "right",
       }),
     }),
-    VerticalSpan:new({ width = d.sub_gap }),
+    VerticalSpan:new({ height = d.sub_gap }),
     UI.makeColoredText({
       text = detail_str,
       face = d.face_sub,
@@ -862,7 +862,7 @@ function M.build(w, ctx)
         if k == "annual" and show_ann then
           if rendered_count > 0 then
             rows_children[#rows_children + 1] =
-              VerticalSpan:new({ width = cd.row_gap })
+              VerticalSpan:new({ height = cd.row_gap })
           end
           local lbl_w = _measureLblW({ year_str }, cd.face_row, cd.lbl_w)
           cd.lbl_w = lbl_w
@@ -899,7 +899,7 @@ function M.build(w, ctx)
         elseif k == "monthly" and show_mon then
           if rendered_count > 0 then
             rows_children[#rows_children + 1] =
-              VerticalSpan:new({ width = cd.row_gap })
+              VerticalSpan:new({ height = cd.row_gap })
           end
           local lbl_w = _measureLblW({ month_str }, cd.face_row, cd.lbl_w)
           cd.lbl_w = lbl_w
@@ -930,7 +930,7 @@ function M.build(w, ctx)
         elseif k == "daily" and show_day then
           if rendered_count > 0 then
             rows_children[#rows_children + 1] =
-              VerticalSpan:new({ width = cd.row_gap })
+              VerticalSpan:new({ height = cd.row_gap })
           end
           local lbl_w = _measureLblW({ _("Today") }, cd.face_row, cd.lbl_w)
           local row_widget, row_update_fn = buildCompactGoalRow(
@@ -969,7 +969,7 @@ function M.build(w, ctx)
         if k == "annual" and show_ann then
           if rendered_count > 0 then
             rows_children[#rows_children + 1] =
-              VerticalSpan:new({ width = d.row_gap })
+              VerticalSpan:new({ height = d.row_gap })
           end
           local pct, pct_str, detail = _annualData(books_read)
           local ann_lbl_w = _measureLblW({ year_str }, d.face_row, d.lbl_w)
@@ -1005,7 +1005,7 @@ function M.build(w, ctx)
         elseif k == "monthly" and show_mon then
           if rendered_count > 0 then
             rows_children[#rows_children + 1] =
-              VerticalSpan:new({ width = d.row_gap })
+              VerticalSpan:new({ height = d.row_gap })
           end
           local pct, pct_str, detail = _monthlyData(month_secs)
           local mon_lbl_w = _measureLblW({ month_str }, d.face_row, d.lbl_w)
@@ -1035,7 +1035,7 @@ function M.build(w, ctx)
         elseif k == "daily" and show_day then
           if rendered_count > 0 then
             rows_children[#rows_children + 1] =
-              VerticalSpan:new({ width = d.row_gap })
+              VerticalSpan:new({ height = d.row_gap })
           end
           local pct, pct_str, detail = _dailyData(today_secs)
           local day_lbl_w = _measureLblW({ _("Today") }, d.face_row, d.lbl_w)

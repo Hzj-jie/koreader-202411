@@ -1029,7 +1029,7 @@ function StatsWindows.showFinishedBooksDialog(initial_page)
           fgcolor = CLR_BLACK,
           alignment = "center",
         }),
-        VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+        VerticalSpan:new({ height = Screen:scaleBySize(2) }),
         TextWidget:new({
           text = label,
           face = face_lbl,
@@ -1061,7 +1061,7 @@ function StatsWindows.showFinishedBooksDialog(initial_page)
 
     local title_author_group = VerticalGroup:new({
       align = "center",
-      VerticalSpan:new({ width = Screen:scaleBySize(24) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(24) }),
       _TextBoxWidget:new({
         text = d.title,
         face = face_title,
@@ -1071,14 +1071,14 @@ function StatsWindows.showFinishedBooksDialog(initial_page)
         alignment = "center",
         max_lines = 2,
       }),
-      VerticalSpan:new({ width = Screen:scaleBySize(4) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(4) }),
       TextWidget:new({
         text = d.authors or "",
         face = face_author,
         fgcolor = CLR_BLACK,
         max_width = text_max_w,
       }),
-      VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(16) }),
     })
 
     local tappable_title
@@ -1110,7 +1110,7 @@ function StatsWindows.showFinishedBooksDialog(initial_page)
     local meta_col = VerticalGroup:new({
       align = "center",
       tappable_title,
-      VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(16) }),
       metrics_row,
     })
 
@@ -1317,10 +1317,10 @@ function StatsWindows.showFinishedBooksDialog(initial_page)
       end
     )
 
-    local block_gap = VerticalSpan:new({ width = Screen:scaleBySize(10) })
+    local block_gap = VerticalSpan:new({ height = Screen:scaleBySize(10) })
 
     return {
-      VerticalSpan:new({ width = Screen:scaleBySize(6) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(6) }),
       top_card,
       block_gap,
       rows_block,
@@ -2183,7 +2183,7 @@ local function _riYearlyRow(
         fgcolor = CLR_BLACK,
         bold = true,
       }),
-      VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(2) }),
       TextWidget:new({
         text = lbl_str,
         face = face_lbl,
@@ -2359,7 +2359,7 @@ local function _riMonthlyChart(
     return VerticalGroup:new({
       align = "center",
       bars,
-      VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(2) }),
       lbls,
     })
   end
@@ -2374,7 +2374,7 @@ local function _riMonthlyChart(
     table.insert(row2, monthly_data[i])
   end
   table.insert(chart, makeBarRow(row1))
-  table.insert(chart, VerticalSpan:new({ width = Screen:scaleBySize(8) }))
+  table.insert(chart, VerticalSpan:new({ height = Screen:scaleBySize(8) }))
   table.insert(chart, makeBarRow(row2))
   return chart
 end
@@ -2435,7 +2435,7 @@ local function _buildInsightsPage2(inner_w, avail_h, streaks)
             alignment = "center",
           }),
         }),
-        VerticalSpan:new({ width = Screen:scaleBySize(6) }),
+        VerticalSpan:new({ height = Screen:scaleBySize(6) }),
         _CenterContainer:new({
           dimen = Geom:new({ w = cell_w3, h = val_h3 }),
           TextWidget:new({
@@ -2447,7 +2447,7 @@ local function _buildInsightsPage2(inner_w, avail_h, streaks)
             alignment = "center",
           }),
         }),
-        VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+        VerticalSpan:new({ height = Screen:scaleBySize(2) }),
         _CenterContainer:new({
           dimen = Geom:new({ w = cell_w3, h = lbl_h3 }),
           TextWidget:new({
@@ -2896,7 +2896,7 @@ function StatsWindows.showReadingInsightsWindow()
           fgcolor = CLR_BLACK,
           bold = true,
         }),
-        VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+        VerticalSpan:new({ height = Screen:scaleBySize(2) }),
         TextWidget:new({
           text = label,
           face = face_lbl,
@@ -2972,51 +2972,51 @@ function StatsWindows.showReadingInsightsWindow()
 
     local all1 = VerticalGroup:new({
       align = "left",
-      VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(16) }),
       sectionLabel(_("TODAY'S SUMMARY")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       today_row,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
       sectionLabel(_("DAY STREAK")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       streak_row,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
       sectionLabel(_("WEEK STREAK")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       wstreak_row,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
     })
 
     local all2 = VerticalGroup:new({
       align = "left",
-      VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(16) }),
       sectionLabel(_("LAST 7 DAYS")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       week_row,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
       sectionLabel(_("THIS WEEK")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       thisweek_row,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
       sectionLabel(_("THIS MONTH")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       month_row,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
     })
 
     local all3 = VerticalGroup:new({
       align = "left",
-      VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(16) }),
       sectionLabel(_("ALL TIME")),
-      VerticalSpan:new({ width = Screen:scaleBySize(8) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(8) }),
       alltime_block,
-      VerticalSpan:new({ width = sec_gap + Screen:scaleBySize(24) }),
+      VerticalSpan:new({ height = sec_gap + Screen:scaleBySize(24) }),
       year_header,
-      VerticalSpan:new({ width = Screen:scaleBySize(4) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(4) }),
       yearly_row,
-      VerticalSpan:new({ width = sec_gap + Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = sec_gap + Screen:scaleBySize(16) }),
       chart,
-      VerticalSpan:new({ width = sec_gap }),
+      VerticalSpan:new({ height = sec_gap }),
     })
 
     local page1 = FrameContainer:new({
@@ -3182,7 +3182,7 @@ function StatsWindows.showBookStatsFromFile(filepath)
           fgcolor = CLR_BLACK,
           alignment = "center",
         }),
-        VerticalSpan:new({ width = Screen:scaleBySize(2) }),
+        VerticalSpan:new({ height = Screen:scaleBySize(2) }),
         TextWidget:new({
           text = label,
           face = face_lbl,
@@ -3224,7 +3224,7 @@ function StatsWindows.showBookStatsFromFile(filepath)
 
     local title_author_group = VerticalGroup:new({
       align = "center",
-      VerticalSpan:new({ width = Screen:scaleBySize(24) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(24) }),
       _TextBoxWidget:new({
         text = d.title,
         face = face_title,
@@ -3234,14 +3234,14 @@ function StatsWindows.showBookStatsFromFile(filepath)
         alignment = "center",
         max_lines = 2,
       }),
-      VerticalSpan:new({ width = Screen:scaleBySize(4) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(4) }),
       TextWidget:new({
         text = d.authors or "",
         face = face_author,
         fgcolor = CLR_BLACK,
         max_width = text_max_w,
       }),
-      VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(16) }),
     })
 
     local fp = book.filepath
@@ -3278,7 +3278,7 @@ function StatsWindows.showBookStatsFromFile(filepath)
       VerticalGroup:new({
         align = "center",
         tappable_title,
-        VerticalSpan:new({ width = Screen:scaleBySize(16) }),
+        VerticalSpan:new({ height = Screen:scaleBySize(16) }),
         metrics_row,
       }),
     })
@@ -3460,9 +3460,9 @@ function StatsWindows.showBookStatsFromFile(filepath)
       end
     )
 
-    local block_gap = VerticalSpan:new({ width = Screen:scaleBySize(10) })
+    local block_gap = VerticalSpan:new({ height = Screen:scaleBySize(10) })
     return {
-      VerticalSpan:new({ width = Screen:scaleBySize(6) }),
+      VerticalSpan:new({ height = Screen:scaleBySize(6) }),
       top_card,
       block_gap,
       rows_block,

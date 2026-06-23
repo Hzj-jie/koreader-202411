@@ -2531,7 +2531,7 @@ local function _buildQuadCover(
       -- A child widget is required so FrameContainer:getSize() doesn't crash.
       cells[i] = CenterContainer:new({
         dimen = Geom:new({ w = cw, h = ch }),
-        VerticalSpan:new({ width = 1 }),
+        VerticalSpan:new({ height = 1 }),
       })
     end
   end
@@ -4447,7 +4447,7 @@ function M.install()
         dimen = Geom:new({ w = main_w, h = dimen.h }),
         VerticalGroup:new({
           wname,
-          VerticalSpan:new({ width = _EDGE_MARGIN * 2 }),
+          VerticalSpan:new({ height = _EDGE_MARGIN * 2 }),
           wcount,
         }),
       })
@@ -4468,7 +4468,7 @@ function M.install()
         self._underline_container[1]:free()
       end
       self._underline_container[1] = VerticalGroup:new({
-        VerticalSpan:new({ width = underline_h }),
+        VerticalSpan:new({ height = underline_h }),
         widget,
       })
     end -- ListMenuItem:_setListFolderCover

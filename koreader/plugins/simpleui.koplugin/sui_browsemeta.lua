@@ -705,7 +705,7 @@ end
 local function _getRepresentativeFile(base_dir, dim_key, filter_value)
   local leaf_path = _leafPath(base_dir, dim_key, filter_value)
 
-  local overrides = SUISettings:readSetting(_FC_COVERS_KEY) or {}
+  local overrides = SUISettings:readTable(_FC_COVERS_KEY) or {}
   local override_fp = overrides[leaf_path]
   if override_fp and lfs.attributes(override_fp, "mode") == "file" then
     _repr_file_cache[leaf_path] = override_fp
@@ -784,7 +784,7 @@ local function _getVirtualList(fc, path, collate)
       values = _getMetadataValues(base_dir, dim_key)
       _meta_values_cache[path] = values
     end
-    local overrides = SUISettings:readSetting(_FC_COVERS_KEY) or {}
+    local overrides = SUISettings:readTable(_FC_COVERS_KEY) or {}
     for i, v in ipairs(values) do
       local val = v[1]
       local label = (val == false or val == nil) and NULL_MARKER or val
@@ -1205,7 +1205,7 @@ local _orig_realpath = nil
 local _orig_showFileDialog = nil
 
 local function _getCoverOverrides()
-  return SUISettings:readSetting(_FC_COVERS_KEY) or {}
+  return SUISettings:readTable(_FC_COVERS_KEY) or {}
 end
 
 local function _saveCoverOverride(vpath, book_path)

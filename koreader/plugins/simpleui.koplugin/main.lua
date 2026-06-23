@@ -746,7 +746,7 @@ function SimpleUIPlugin:init()
         end
 
         local function map_cfg(cfg_key, mapping)
-          local cfg = SUISettings:get(cfg_key)
+          local cfg = SUISettings:readTable(cfg_key)
           if type(cfg) == "table" then
             local changed = false
             local function map_arr(arr)

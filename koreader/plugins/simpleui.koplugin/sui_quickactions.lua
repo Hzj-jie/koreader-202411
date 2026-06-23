@@ -1072,7 +1072,7 @@ local function getQASettingsKey(qa_id)
 end
 
 function QA.getCustomQAList()
-  return SUISettings:get("simpleui_qa_list") or {}
+  return SUISettings:readTable("simpleui_qa_list") or {}
 end
 
 function QA.saveCustomQAList(list)
@@ -1080,7 +1080,7 @@ function QA.saveCustomQAList(list)
 end
 
 function QA.getCustomQAConfig(qa_id)
-  local cfg = SUISettings:get(getQASettingsKey(qa_id)) or {}
+  local cfg = SUISettings:readTable(getQASettingsKey(qa_id)) or {}
   return {
     label = cfg.label or qa_id,
     path = cfg.path,
@@ -1231,7 +1231,7 @@ function QA.sanitizeQASlots()
   for _, pfx in ipairs({ "simpleui_hs_qa_" }) do
     for slot = 1, 3 do
       local key = pfx .. slot .. "_items"
-      local items = SUISettings:get(key)
+      local items = SUISettings:readTable(key)
       if type(items) == "table" then
         local clean = {}
         local slot_changed = false
@@ -1250,7 +1250,7 @@ function QA.sanitizeQASlots()
     end
   end
 
-  local tabs = SUISettings:get("simpleui_bar_tabs")
+  local tabs = SUISettings:readTable("simpleui_bar_tabs")
   if type(tabs) == "table" then
     local clean_tabs = {}
     local tabs_changed = false

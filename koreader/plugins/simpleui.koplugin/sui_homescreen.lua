@@ -465,7 +465,7 @@ local function buildEmptyState(w, h)
           bold = true,
         }),
       }),
-      VerticalSpan:new({ width = _EMPTY_GAP }),
+      VerticalSpan:new({ height = _EMPTY_GAP }),
       CenterContainer:new({
         dimen = Geom:new({ w = w }),
         UI.makeColoredText({
@@ -1594,7 +1594,7 @@ function HomescreenWidget:init()
     bordersize = 0,
     padding = 0,
     dimen = Geom:new({ w = sw, h = sh }),
-    VerticalSpan:new({ width = sh }),
+    VerticalSpan:new({ height = sh }),
   })
 
   -- Register top-of-screen tap/swipe zones to open the KOReader main menu,
@@ -1857,7 +1857,7 @@ end
 function HomescreenWidget:_vspan(px)
   local pool = self._vspan_pool
   if not pool[px] then
-    pool[px] = VerticalSpan:new({ width = px })
+    pool[px] = VerticalSpan:new({ height = px })
   end
   return pool[px]
 end
@@ -1942,7 +1942,7 @@ function HomescreenWidget:_initLayout()
 
   self._footer_chevron = buildChevronFooter(_goto)
   self._footer_dot = buildDotFooter(_goto)
-  self._footer_hidden_span = VerticalSpan:new({ width = 0 })
+  self._footer_hidden_span = VerticalSpan:new({ height = 0 })
 
   local footer_bc = BottomContainer:new({
     dimen = Geom:new({ w = sw, h = content_h }),
@@ -1980,7 +1980,7 @@ function HomescreenWidget:_buildCtx()
           or "with_pct",
         stats_style = SUISettings:readSetting(PFX .. "currently_stats_style")
           or "default",
-        elem_order = SUISettings:readSetting(PFX .. "currently_elem_order"),
+        elem_order = SUISettings:readTable(PFX .. "currently_elem_order"),
         show = {
           title = SUISettings:nilOrTrue(PFX .. "currently_show_title"),
           author = SUISettings:nilOrTrue(PFX .. "currently_show_author"),
@@ -2014,7 +2014,7 @@ function HomescreenWidget:_buildCtx()
             PFX .. "coverdeck_show_book_remaining"
           ),
         },
-        elem_order = SUISettings:readSetting(PFX .. "coverdeck_stats_order"),
+        elem_order = SUISettings:readTable(PFX .. "coverdeck_stats_order"),
       },
     }
     self._cfg_cache = cfg
@@ -2128,7 +2128,7 @@ function HomescreenWidget:_buildCtx()
   if mod_rg and Registry.isEnabled(mod_rg, PFX) then
     needs_books = true
   elseif mod_rs and mod_rs.isEnabled and mod_rs.isEnabled(PFX) then
-    local rs_items = SUISettings:readSetting(PFX .. "reading_stats_items") or {}
+    local rs_items = SUISettings:readTable(PFX .. "reading_stats_items") or {}
     for _, id in ipairs(rs_items) do
       if id == "total_books" then
         needs_books = true
@@ -2554,7 +2554,7 @@ function HomescreenWidget:_updatePage(keep_cache, books_only, stats_only)
   end
 
   -- Module list cache — rebuilt whenever layout changes.
-  local layout = SUISettings:readSetting("simpleui_layout")
+  local layout = SUISettings:readTable("simpleui_layout")
   local raw_order = Registry.loadOrder(PFX)
 
   local layout_fingerprint = ""
