@@ -280,11 +280,19 @@ describe("PluginLoader module", function()
             -- menu[1] is Mock1 (since it is sorted: "Mock 1 Plugin" vs "Mock 2 Plugin")
             assert.are.equal("Mock 1 Plugin", menu[1].text)
             assert.is_false(menu[1].checked_func()) -- Currently disabled
-            
+
             -- Trigger the toggle callback
             menu[1].callback()
 
             -- The toggle should set it to false (meaning not disabled) in G_reader_settings
+            assert.is_false(mock_disabled_plugins["mock1"])
+
+            -- Trigger the toggle callback again (disabling it again)
+            menu[1].callback()
+            assert.is_true(mock_disabled_plugins["mock1"])
+
+            -- Trigger the toggle callback once more (enabling it again for the rest of the test)
+            menu[1].callback()
             assert.is_false(mock_disabled_plugins["mock1"])
 
             -- 3. Reset loader state for next startup simulation
