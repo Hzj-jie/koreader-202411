@@ -176,7 +176,7 @@ function PluginLoader:genPluginManagerSubItem()
             G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
-            plugins_disabled[plugin.name] = nil
+            plugins_disabled[plugin.name] = false
           else
             plugins_disabled[plugin.name] = true
           end
