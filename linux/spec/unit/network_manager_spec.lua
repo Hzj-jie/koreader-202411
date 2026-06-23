@@ -215,6 +215,67 @@ describe("network_manager module", function()
         end)
     end)
 
+    describe("reconnect and showNetworkMenu", function()
+        local NetworkMgr
+        local network_connected_called
+        local original_networkConnected
+
+        setup(function()
+            package.loaded["ui/network/manager"] = nil
+            NetworkMgr = require("ui/network/manager")
+            original_networkConnected = NetworkMgr._networkConnected
+            NetworkMgr._networkConnected = function(self)
+                network_connected_called = network_connected_called + 1
+            end
+        end)
+
+        before_each(function()
+            network_connected_called = 0
+            -- Mock getNetworkList to return a mocked list
+            NetworkMgr.getNetworkList = function()
+                return {
+                    { ssid = "MockAP", signal_quality = 100, connected = true, flags = "WPA" }
+                }
+            end
+        end)
+
+        it("should call _networkConnected when reconnect succeeds (auto-connect path)", function()
+            local callback_ran = false
+            local res = NetworkMgr:reconnect(function()
+                callback_ran = true
+            end, false)
+
+            assert.is_true(res)
+            assert.is_true(callback_ran)
+            assert.is.same(network_connected_called, 1)
+        end)
+
+        it("should call _networkConnected when showNetworkMenu is connected manually", function()
+            local callback_ran = false
+            local original_show = UIManager.show
+            -- Mock UIManager.show to simulate connecting successfully from the network settings widget
+            UIManager.show = function(self_ui, widget)
+                if widget.connect_callback then
+                    widget.connect_callback()
+                end
+            end
+
+            local res = NetworkMgr:showNetworkMenu(function()
+                callback_ran = true
+            end)
+
+            assert.is_true(res)
+            assert.is_true(callback_ran)
+            assert.is.same(network_connected_called, 1)
+
+            UIManager.show = original_show
+        end)
+
+        teardown(function()
+            NetworkMgr._networkConnected = original_networkConnected
+        end)
+    end)
+
     teardown(function()
         function Device:initNetworkManager() end
         function Device:hasWifiRestore() return false end

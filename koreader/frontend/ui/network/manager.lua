@@ -109,6 +109,15 @@ function NetworkMgr:_networkConnected()
   self:queryOnlineState()
 end
 
+function NetworkMgr:wrapCallback(complete_callback)
+  return function()
+    self:_networkConnected()
+    if complete_callback then
+      complete_callback()
+    end
+  end
+end
+
 function NetworkMgr:queryOnlineState()
   -- This function is blocking, so only the start time needs to be recorded.
   self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
@@ -1067,11 +1076,11 @@ function NetworkMgr:reconnect(complete_callback, interactive)
           BD.wrap(util.fixUtf8(ssid, "\xef\xbf\xbd"))
         ),
         timeout = 3,
-        dismiss_callback = complete_callback,
+        dismiss_callback = self:wrapCallback(complete_callback),
       }))
       UIManager:forceRepaint()
-    elseif complete_callback then
-      complete_callback()
+    else
+      self:wrapCallback(complete_callback)()
     end
     logger.dbg(
       "NetworkMgr: Connected to network",
@@ -1104,7 +1113,7 @@ function NetworkMgr:showNetworkMenu(complete_callback, network_list)
   -- We don't want to display the AP list for non-interactive callers (e.g., beforeWifiAction framework)...
   UIManager:show(require("ui/widget/networksetting"):new({
     network_list = network_list,
-    connect_callback = complete_callback,
+    connect_callback = self:wrapCallback(complete_callback),
   }))
   return true
 end
