@@ -3066,8 +3066,7 @@ function HomescreenWidget:_updatePage(keep_cache, books_only, stats_only)
   -- Warn when module heights overflow the visible area (portrait only).
   -- Skipped when the user has disabled the warning in settings.
   if
-    not is_landscape
-    and SUISettings:nilOrTrue("simpleui_hs_overflow_warn")
+    not is_landscape and SUISettings:nilOrTrue("simpleui_hs_overflow_warn")
   then
     local total_body_h = 0
     for i = 1, #body do

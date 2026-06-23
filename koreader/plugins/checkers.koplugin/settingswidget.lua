@@ -152,7 +152,10 @@ function SettingsWidget:assembleContent()
       VerticalSpan:new({ width = Size.padding.large }),
 
       CenterContainer:new({
-        dimen = Geometry:new({ w = D.width, h = self.playerSection:getSize().h }),
+        dimen = Geometry:new({
+          w = D.width,
+          h = self.playerSection:getSize().h,
+        }),
         self.playerSection,
       }),
 

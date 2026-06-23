@@ -502,9 +502,9 @@ function SettingsWidget:assembleContent()
           })
         or VerticalSpan:new({ width = 0 }),
 
-      self.engine.state.uciok
-          and VerticalSpan:new({ width = Size.padding.large })
-        or empty,
+      self.engine.state.uciok and VerticalSpan:new({
+        width = Size.padding.large,
+      }) or empty,
 
       -- Skill only if engine is ready
       self.engine.state.uciok
@@ -517,13 +517,16 @@ function SettingsWidget:assembleContent()
           })
         or VerticalSpan:new({ width = 0 }),
 
-      self.engine.state.uciok
-          and VerticalSpan:new({ width = Size.padding.large })
-        or empty,
+      self.engine.state.uciok and VerticalSpan:new({
+        width = Size.padding.large,
+      }) or empty,
 
       -- Time controls
       CenterContainer:new({
-        dimen = Geometry:new({ w = D.width, h = self.timeSettingsGroup:getSize().h }),
+        dimen = Geometry:new({
+          w = D.width,
+          h = self.timeSettingsGroup:getSize().h,
+        }),
         self.timeSettingsGroup,
       }),
       VerticalSpan:new({ width = Size.padding.large }),

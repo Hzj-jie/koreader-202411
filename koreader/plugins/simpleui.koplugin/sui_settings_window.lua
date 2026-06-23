@@ -574,12 +574,10 @@ local function buildScreens(st)
               end
               if #picker_items == 0 then
                 local InfoMessage = require("ui/widget/infomessage")
-                UIManager:show(
-                  InfoMessage:new({
-                    text = _("No other pages available."),
-                    timeout = 2,
-                  })
-                )
+                UIManager:show(InfoMessage:new({
+                  text = _("No other pages available."),
+                  timeout = 2,
+                }))
                 return
               end
               ctx.push(

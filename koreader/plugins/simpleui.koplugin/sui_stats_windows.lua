@@ -1696,7 +1696,12 @@ local function _riGetStreaks()
       end
       local ts_end = entries[best_e] and tonumber(entries[best_e][2]) or 0
       local ts_start = entries[best_s] and tonumber(entries[best_s][2]) or 0
-      return { current = current, best = best, best_start = ts_start, best_end = ts_end }
+      return {
+        current = current,
+        best = best,
+        best_start = ts_start,
+        best_end = ts_end,
+      }
     end
 
     local today = os.date("%Y-%m-%d")
@@ -1789,7 +1794,12 @@ local function _riGetStreaks()
       end
       local ts_end = entries[best_e] and entries[best_e][2] or 0 -- last_ts of last week
       local ts_start = entries[best_s] and entries[best_s][1] or 0 -- first_ts of first week
-      return { current = current, best = best, best_start = ts_start, best_end = ts_end }
+      return {
+        current = current,
+        best = best,
+        best_start = ts_start,
+        best_end = ts_end,
+      }
     end
 
     return { days = day_streaks, weeks = computeWeekStreak(weeks) }

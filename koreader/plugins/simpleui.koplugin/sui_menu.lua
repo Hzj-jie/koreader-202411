@@ -2582,19 +2582,17 @@ return function(SimpleUIPlugin)
         end
         if not found then
           if #items >= MAX_QA_ITEMS then
-            UIManager:show(
-              InfoMessage():new({
-                text = string.format(
-                  N_(
-                    "The maximum of %d action per module has been reached. Remove one first.",
-                    "The maximum of %d actions per module has been reached. Remove one first.",
-                    MAX_QA_ITEMS
-                  ),
+            UIManager:show(InfoMessage():new({
+              text = string.format(
+                N_(
+                  "The maximum of %d action per module has been reached. Remove one first.",
+                  "The maximum of %d actions per module has been reached. Remove one first.",
                   MAX_QA_ITEMS
                 ),
-                timeout = 2,
-              })
-            )
+                MAX_QA_ITEMS
+              ),
+              timeout = 2,
+            }))
             return
           end
           new_items[#new_items + 1] = id
@@ -2620,12 +2618,10 @@ return function(SimpleUIPlugin)
         callback = function()
           local qa_ids = getItems()
           if #qa_ids < 2 then
-            UIManager:show(
-              InfoMessage():new({
-                text = _("Add at least 2 actions to arrange."),
-                timeout = 2,
-              })
-            )
+            UIManager:show(InfoMessage():new({
+              text = _("Add at least 2 actions to arrange."),
+              timeout = 2,
+            }))
             return
           end
           local pool_labels = {}
@@ -5302,15 +5298,13 @@ return function(SimpleUIPlugin)
                                         "simpleui_icon_active_preset",
                                         _name
                                       )
-                                      UIManager:show(
-                                        InfoMessage():new({
-                                          text = string.format(
-                                            _('Preset "%s" updated.'),
-                                            _name
-                                          ),
-                                          timeout = 2,
-                                        })
-                                      )
+                                      UIManager:show(InfoMessage():new({
+                                        text = string.format(
+                                          _('Preset "%s" updated.'),
+                                          _name
+                                        ),
+                                        timeout = 2,
+                                      }))
                                       UIManager:nextTick(function()
                                         if ctx_menu and ctx_menu.refresh then
                                           ctx_menu.refresh()
@@ -5986,9 +5980,8 @@ return function(SimpleUIPlugin)
             return _("Simple UI")
               .. " — "
               .. (
-                SUISettings:nilOrTrue("simpleui_enabled") and _("On") or _(
-                  "Off"
-                )
+                SUISettings:nilOrTrue("simpleui_enabled") and _("On")
+                or _("Off")
               )
           end,
           checked_func = function()

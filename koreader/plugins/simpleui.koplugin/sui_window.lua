@@ -1785,25 +1785,22 @@ function SUIWindow.ListRow(opts)
               label = glyph .. "  " .. label
             end
           end
-          table.insert(
-            buttons,
+          table.insert(buttons, {
             {
-              {
-                text = label,
-                align = "left",
-                font_face = SUIStyle.FACE_REGULAR,
-                font_size = SUIStyle.FS_BODY,
-                font_bold = true,
-                dim = item.dim,
-                callback = function()
-                  UIManager:close(dialog)
-                  if item.on_tap then
-                    item.on_tap()
-                  end
-                end,
-              },
-            }
-          )
+              text = label,
+              align = "left",
+              font_face = SUIStyle.FACE_REGULAR,
+              font_size = SUIStyle.FS_BODY,
+              font_bold = true,
+              dim = item.dim,
+              callback = function()
+                UIManager:close(dialog)
+                if item.on_tap then
+                  item.on_tap()
+                end
+              end,
+            },
+          })
         end
         local dialog_w = math.floor(Screen:getWidth() * 0.42)
         dialog = ButtonDialog:new({
@@ -2292,14 +2289,11 @@ function SUIWindow.MenuTable(opts)
               and _item.sub_item_table_func()
             or _item.sub_item_table
           if push then
-            push(
-              nil,
-              {
-                items = s,
-                title = _title,
-                items_func = _item.sub_item_table_func,
-              }
-            )
+            push(nil, {
+              items = s,
+              title = _title,
+              items_func = _item.sub_item_table_func,
+            })
           end
         elseif _item.callback then
           pcall(_item.callback)
@@ -2385,43 +2379,40 @@ function SUIWindow.ActionMenu(opts)
           label = glyph .. "  " .. label
         end
       end
-      table.insert(
-        buttons,
+      table.insert(buttons, {
         {
-          {
-            text = label,
-            dim = _item.dim,
-            enabled = not (_item.dim or _item.enabled == false),
-            align = "left",
-            font_face = SUIStyle.FACE_REGULAR,
-            font_size = SUIStyle.FS_BODY,
-            font_bold = true,
-            callback = function()
-              if _item.keep_open then
-                UIManager:close(dialog)
-                if _item.on_tap then
-                  _item.on_tap()
-                end
-                UIManager:scheduleIn(0, function()
-                  dialog = ButtonDialog:new({
-                    shrink_unneeded_width = true,
-                    buttons = buildButtons(),
-                    anchor = opts.anchor and function()
-                      return opts.anchor
-                    end or nil,
-                  })
-                  UIManager:show(dialog)
-                end)
-              else
-                UIManager:close(dialog)
-                if _item.on_tap then
-                  _item.on_tap()
-                end
+          text = label,
+          dim = _item.dim,
+          enabled = not (_item.dim or _item.enabled == false),
+          align = "left",
+          font_face = SUIStyle.FACE_REGULAR,
+          font_size = SUIStyle.FS_BODY,
+          font_bold = true,
+          callback = function()
+            if _item.keep_open then
+              UIManager:close(dialog)
+              if _item.on_tap then
+                _item.on_tap()
               end
-            end,
-          },
-        }
-      )
+              UIManager:scheduleIn(0, function()
+                dialog = ButtonDialog:new({
+                  shrink_unneeded_width = true,
+                  buttons = buildButtons(),
+                  anchor = opts.anchor and function()
+                    return opts.anchor
+                  end or nil,
+                })
+                UIManager:show(dialog)
+              end)
+            else
+              UIManager:close(dialog)
+              if _item.on_tap then
+                _item.on_tap()
+              end
+            end
+          end,
+        },
+      })
     end
     return buttons
   end
@@ -2736,14 +2727,11 @@ local function _CardBase(opts)
       )
     end
     if opts.on_move_page then
-      table.insert(
-        hold_items,
-        {
-          text = _("Move to page"),
-          icon = "move_page",
-          on_tap = opts.on_move_page,
-        }
-      )
+      table.insert(hold_items, {
+        text = _("Move to page"),
+        icon = "move_page",
+        on_tap = opts.on_move_page,
+      })
     end
     if opts.on_move_up then
       table.insert(
@@ -2752,14 +2740,11 @@ local function _CardBase(opts)
       )
     end
     if opts.on_move_down then
-      table.insert(
-        hold_items,
-        {
-          text = _("Move down"),
-          icon = "arrow_down",
-          on_tap = opts.on_move_down,
-        }
-      )
+      table.insert(hold_items, {
+        text = _("Move down"),
+        icon = "arrow_down",
+        on_tap = opts.on_move_down,
+      })
     end
     if opts.on_update then
       table.insert(
@@ -2797,25 +2782,22 @@ local function _CardBase(opts)
               label = glyph .. "  " .. label
             end
           end
-          table.insert(
-            buttons,
+          table.insert(buttons, {
             {
-              {
-                text = label,
-                align = "left",
-                font_face = SUIStyle.FACE_REGULAR,
-                font_size = SUIStyle.FS_BODY,
-                font_bold = true,
-                dim = item.dim,
-                callback = function()
-                  UIManager:close(dialog)
-                  if item.on_tap then
-                    item.on_tap()
-                  end
-                end,
-              },
-            }
-          )
+              text = label,
+              align = "left",
+              font_face = SUIStyle.FACE_REGULAR,
+              font_size = SUIStyle.FS_BODY,
+              font_bold = true,
+              dim = item.dim,
+              callback = function()
+                UIManager:close(dialog)
+                if item.on_tap then
+                  item.on_tap()
+                end
+              end,
+            },
+          })
         end
         local dialog_w = math.floor(Screen:getWidth() * 0.42)
         dialog = ButtonDialog:new({

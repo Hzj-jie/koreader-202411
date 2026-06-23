@@ -1350,12 +1350,10 @@ function M.getMenuItems(ctx_menu)
       local InfoMessage = ctx_menu and ctx_menu.InfoMessage
         or require("ui/widget/infomessage")
       local UIM = ctx_menu and ctx_menu.UIManager or require("ui/uimanager")
-      UIM:show(
-        InfoMessage:new({
-          text = _lc("Stats updated successfully."),
-          timeout = 2,
-        })
-      )
+      UIM:show(InfoMessage:new({
+        text = _lc("Stats updated successfully."),
+        timeout = 2,
+      }))
     end,
   }
   return menu

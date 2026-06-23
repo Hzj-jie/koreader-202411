@@ -972,10 +972,15 @@ local function buildFromHighlight(
       "simpleui: quote: buildFromHighlight: pool empty, showing fallback"
     )
 
-    return buildWidget(inner_w, _("No highlights found. Open a book and highlight some passages."), _(
-      "Your highlights"
-    ), face_quote, face_attr, vspan_gap, has_wallpaper
-),
+    return buildWidget(
+      inner_w,
+      _("No highlights found. Open a book and highlight some passages."),
+      _("Your highlights"),
+      face_quote,
+      face_attr,
+      vspan_gap,
+      has_wallpaper
+    ),
       nil
   end
 

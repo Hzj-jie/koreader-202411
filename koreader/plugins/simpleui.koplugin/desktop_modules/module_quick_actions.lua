@@ -409,12 +409,10 @@ local function makeInstance(inst_id)
           local InfoMessage = ctx_menu.InfoMessage
             or require("ui/widget/infomessage")
           local uim = ctx_menu.UIManager or UIManager
-          uim:show(
-            InfoMessage:new({
-              text = _("Add at least 2 actions to arrange."),
-              timeout = 2,
-            })
-          )
+          uim:show(InfoMessage:new({
+            text = _("Add at least 2 actions to arrange."),
+            timeout = 2,
+          }))
           return
         end
         local pool_labels = {}

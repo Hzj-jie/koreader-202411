@@ -1267,12 +1267,10 @@ function QSBar.makeMenuItems(ctx_menu)
       if #slots < 2 then
         local InfoMessage = require("ui/widget/infomessage")
         local UIM = (ctx_menu and ctx_menu.UIManager) or UIManager
-        UIM:show(
-          InfoMessage:new({
-            text = _("Add at least 2 actions to arrange."),
-            timeout = 3,
-          })
-        )
+        UIM:show(InfoMessage:new({
+          text = _("Add at least 2 actions to arrange."),
+          timeout = 3,
+        }))
         return
       end
       local sort_items = {}
@@ -1453,12 +1451,10 @@ function QSBar.makeMenuItems(ctx_menu)
                             local InfoMessage = require("ui/widget/infomessage")
                             local UIM = ctx_menu and ctx_menu.UIManager
                               or require("ui/uimanager")
-                            UIM:show(
-                              InfoMessage:new({
-                                text = _("Maximum slots reached."),
-                                timeout = 2,
-                              })
-                            )
+                            UIM:show(InfoMessage:new({
+                              text = _("Maximum slots reached."),
+                              timeout = 2,
+                            }))
                             return
                           end
                           cur[#cur + 1] = entry.id

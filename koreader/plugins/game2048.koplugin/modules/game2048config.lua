@@ -178,18 +178,15 @@ function Game2048Config:onSelectTheme()
   for n, theme in ipairs(themes) do
     local name = current_theme_id == theme.id and theme.name .. " ✓"
       or theme.name
-    table.insert(
-      buttons,
+    table.insert(buttons, {
       {
-        {
-          text = name,
-          callback = function()
-            select(n)
-          end,
-          align = "left",
-        },
-      }
-    )
+        text = name,
+        callback = function()
+          select(n)
+        end,
+        align = "left",
+      },
+    })
   end
 
   self._theme_select_dialog = ButtonDialog:new({

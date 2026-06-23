@@ -824,12 +824,10 @@ function M.getMenuItems(ctx_menu)
       callback = function()
         local rs_ids = getItems()
         if #rs_ids < 2 then
-          _UIManager:show(
-            InfoMessage:new({
-              text = _lc("Add at least 2 stats to arrange."),
-              timeout = 2,
-            })
-          )
+          _UIManager:show(InfoMessage:new({
+            text = _lc("Add at least 2 stats to arrange."),
+            timeout = 2,
+          }))
           return
         end
         local sort_items = {}
@@ -845,14 +843,12 @@ function M.getMenuItems(ctx_menu)
           SUISettings:saveSetting(items_key, new_order)
           refresh()
         end
-        _UIManager:show(
-          SortWidget:new({
-            title = _lc("Arrange Reading Stats"),
-            covers_fullscreen = true,
-            item_table = sort_items,
-            callback = on_save,
-          })
-        )
+        _UIManager:show(SortWidget:new({
+          title = _lc("Arrange Reading Stats"),
+          covers_fullscreen = true,
+          item_table = sort_items,
+          callback = on_save,
+        }))
       end,
       sui_build = ctx_menu.is_sui
           and function(ctx, _item)
@@ -1144,12 +1140,10 @@ function M.getMenuItems(ctx_menu)
       local InfoMessage = ctx_menu and ctx_menu.InfoMessage
         or require("ui/widget/infomessage")
       local UIM = ctx_menu and ctx_menu.UIManager or require("ui/uimanager")
-      UIM:show(
-        InfoMessage:new({
-          text = _lc("Stats updated successfully."),
-          timeout = 2,
-        })
-      )
+      UIM:show(InfoMessage:new({
+        text = _lc("Stats updated successfully."),
+        timeout = 2,
+      }))
     end,
   }
 

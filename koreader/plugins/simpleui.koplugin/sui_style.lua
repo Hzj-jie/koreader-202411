@@ -1207,14 +1207,12 @@ function M.sui_build_system_icons(plugin, ctx_menu, ctx)
                   if safe then
                     on_valid(safe)
                   else
-                    ctx_menu.UIManager:show(
-                      ctx_menu.InfoMessage:new({
-                        text = _(
-                          "Unsupported icon format.\nPlease use a PNG or SVG file."
-                        ),
-                        timeout = 3,
-                      })
-                    )
+                    ctx_menu.UIManager:show(ctx_menu.InfoMessage:new({
+                      text = _(
+                        "Unsupported icon format.\nPlease use a PNG or SVG file."
+                      ),
+                      timeout = 3,
+                    }))
                   end
                 end
                 _guardedSetIcon(new_path, function(safe_path)

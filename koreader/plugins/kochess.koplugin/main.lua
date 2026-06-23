@@ -574,7 +574,12 @@ function Kochess:createPgnLogWidget(txt, w, h)
   })
 end
 function Kochess:createToolbarButton(icon, w, h, cb)
-  return ButtonWidget:new({ icon = icon, icon_width = w, icon_height = h, callback = cb })
+  return ButtonWidget:new({
+    icon = icon,
+    icon_width = w,
+    icon_height = h,
+    callback = cb,
+  })
 end
 function Kochess:handleUndoMove(all)
   self:stopUCI()

@@ -8,22 +8,23 @@ This guide details the steps and best practices for importing third-party plugin
 
 ### [ ] Step 1: Copy Files & Disable by Default
 - Copy the plugin directory (e.g., `my_plugin.koplugin/`) into `koreader/plugins/`.
-- **Disable the plugin by default**: Add `disabled = true` to the plugin's class/instance definition in `main.lua`. All ported/imported third-party plugins must start in a disabled state to prevent unauthorized startup resource usage or background crash risks.
+- **Disable the plugin by default**: Add a versioned readme file matching `README.<git-branch>.md` (e.g. `README.koreader-202411.md`) in the plugin's root folder. Do NOT hardcode `disabled = true` in the plugin code itself. The core `pluginloader.lua` will dynamically detect this readme file and set `disabled = true` during registration.
 
 ### [ ] Step 2: Document Porting Changes
-- Create a `README.koreader-202411.md` file inside the plugin folder.
+- Create the versioned readme file (e.g., `README.koreader-202411.md`) inside the plugin folder.
 - Document:
   - Original source repository and commit hash.
   - Required installation steps (e.g., executing `./lns.sh`).
   - Modifications applied for compatibility with v2024.11 (e.g., settings changes, fallbacks).
-  - Explicit confirmation that the plugin is disabled by default.
+  - Implicitly serving as the marker for the default disabled status.
 
-### [ ] Step 3: Establish Platform Symlinks
-- From the root of the repository, execute the consolidated link script to link all plugin files (including the new README) to all platform directories:
+### [ ] Step 3: Establish Platform Symlinks & Exclusions
+- If the plugin needs to be excluded from specific target platforms (e.g., legacy DXG Kindle target `legacy/` due to the lack of touchscreen/Wi-Fi, or desktop binaries from embedded targets), open `lns.sh` and add the plugin to the corresponding exclude patterns variable (e.g., `LEGACY_EXCLUDES`, `PW2_EXCLUDES`, `KOBO_EXCLUDES`).
+- From the root of the repository, execute the consolidated link script to link/exclude all plugin files (including the new README) to all platform directories:
   ```bash
   ./lns.sh
   ```
-- This populates the platform-specific directories (`linux/`, `pw2/`, `legacy/`, `kobo/`) with symlinks pointing to the files in `koreader/`.
+- This populates the platform-specific directories (`linux/`, `pw2/`, `legacy/`, `kobo/`) with symlinks pointing to the files in `koreader/`, respecting the exclusion lists.
 
 ### [ ] Step 4: Git Tracking of Symlinks
 - Stage the new platform symlinks in git, but **exclude system/repository config files** from tracking to avoid repository pollution or index corruption:
@@ -104,3 +105,37 @@ Run the test suite from the `linux/` directory:
 ```bash
 ./luajit test_runner.lua spec/unit/games_submenu_spec.lua spec/unit/menusorter_spec.lua
 ```
+
+---
+
+## 4. Localization (l10n) Guidelines
+
+If the plugin contains user-facing strings, they must be localized to support KOReader's multilingual interface.
+
+### A. Core Translation Catalog
+If the plugin uses standard KOReader localization methods (i.e. `gettext("...")` or `_("...")`):
+1. **Extract Strings**: Collect all translatable strings from the plugin source code.
+2. **Merge with Main Catalogs**: Add translation entries for target languages (like `zh_CN` and `zh_TW`) to the respective translation file (e.g. `koreader/l10n/zh_CN/koreader.po`).
+3. **Verify PO Format**: Run `msgfmt -c` to compile and verify there are no translation format or escape-character errors in the PO files.
+
+### B. Self-Contained i18n Modules
+If the plugin uses a self-contained translation module (such as `my_plugin_i18n.lua`):
+1. **Define Mappings**: Define distinct translation tables for all languages/sub-locales you wish to support.
+2. **Register Supported Languages**: Ensure the language codes are registered in the metadata lists and marked as supported.
+3. **Proper Sub-Locale Detection (Critical)**:
+   - When resolving the default system language, ensure you check for full/normalized locale matches (e.g., `zh_cn` or `zh_tw`) first before checking short prefixes (like `zh`). This avoids falling back to English or an incorrect sub-locale when sub-locales have significantly different writing systems (like Simplified vs Traditional Chinese).
+   - **Correct Pattern**:
+     ```lua
+     function M.detectAuto()
+       local lang = G_reader_settings:read("language") or "en"
+       local norm = lang:lower():gsub("-", "_")
+       if SUPPORTED[norm] then
+         return norm
+       end
+       local short = norm:match("^([^_%-]+)")
+       if short and SUPPORTED[short] then
+         return short
+       end
+       return "en"
+     end
+     ```

@@ -1004,7 +1004,10 @@ local function _createCollectionFromSeriesGroup(vpath, series_name)
   local series_items = _sg_items_cache[vpath]
   if not series_items or #series_items == 0 then
     UIManager:show(
-      InfoMessage:new({ text = _("No books found in this series."), timeout = 2 })
+      InfoMessage:new({
+        text = _("No books found in this series."),
+        timeout = 2,
+      })
     )
     return
   end
@@ -1073,7 +1076,10 @@ local function _openSeriesGroupCoverPicker(vpath, menu, BookInfoManager)
   local series_items = _sg_items_cache[vpath]
   if not series_items or #series_items == 0 then
     UIManager:show(
-      InfoMessage:new({ text = _("No books found in this series."), timeout = 2 })
+      InfoMessage:new({
+        text = _("No books found in this series."),
+        timeout = 2,
+      })
     )
     return
   end
@@ -1143,7 +1149,10 @@ local function _openFolderCoverPicker(dir_path, menu, BookInfoManager)
 
   if #books == 0 then
     UIManager:show(
-      InfoMessage:new({ text = _("No books found in this folder."), timeout = 2 })
+      InfoMessage:new({
+        text = _("No books found in this folder."),
+        timeout = 2,
+      })
     )
     return
   end
@@ -3800,7 +3809,8 @@ function M.install()
   function MosaicMenuItem:onFocus()
     self._underline_container.color = self._fc_underline_color
       or (
-        M.getHideUnderline() and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
+        M.getHideUnderline() and Blitbuffer.COLOR_WHITE
+        or Blitbuffer.COLOR_BLACK
       )
     return true
   end
@@ -4281,10 +4291,8 @@ function M.install()
           and bi.cover_fetched
           and not bi.ignore_cover
           and not (
-            cover_specs and BookInfoManager.isCachedCoverInvalid(
-              bi,
-              cover_specs
-            )
+            cover_specs
+            and BookInfoManager.isCachedCoverInvalid(bi, cover_specs)
           )
         then
           self:_setListFolderCover(bi)

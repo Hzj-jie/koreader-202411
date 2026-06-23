@@ -268,10 +268,16 @@ local function _buildInnerCompact(
   local DETAIL_W = math.max(0, right_w - PCT_W - PCT_DETAIL_GAP)
 
   local function vcenter_left(child, col_w)
-    return LeftContainer:new({ dimen = Geom:new({ w = col_w, h = ROW_H }), child })
+    return LeftContainer:new({
+      dimen = Geom:new({ w = col_w, h = ROW_H }),
+      child,
+    })
   end
   local function vcenter_right(child, col_w)
-    return RightContainer:new({ dimen = Geom:new({ w = col_w, h = ROW_H }), child })
+    return RightContainer:new({
+      dimen = Geom:new({ w = col_w, h = ROW_H }),
+      child,
+    })
   end
 
   local eff_blk = clr_blk or _CLR_TEXT_LBL
@@ -1605,12 +1611,10 @@ function M.getMenuItems(ctx_menu)
         local InfoMessage = ctx_menu and ctx_menu.InfoMessage
           or require("ui/widget/infomessage")
         local UIM = ctx_menu and ctx_menu.UIManager or require("ui/uimanager")
-        UIM:show(
-          InfoMessage:new({
-            text = _lc("Stats updated successfully."),
-            timeout = 2,
-          })
-        )
+        UIM:show(InfoMessage:new({
+          text = _lc("Stats updated successfully."),
+          timeout = 2,
+        }))
       end,
     },
   }

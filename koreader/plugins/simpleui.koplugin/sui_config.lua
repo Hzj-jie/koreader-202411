@@ -1757,25 +1757,22 @@ function M.applyFirstRunDefaults()
   def(PFX .. "reading_goals_enabled", false)
   def(PFX .. "reading_stats_enabled", false)
   def(PFX .. "action_list_enabled", false)
-  def(
-    PFX .. "module_order",
-    {
-      "quote",
-      "currently",
-      "recent",
-      "clock",
-      "coverdeck",
-      "new_books",
-      "tbr",
-      "collections",
-      "reading_goals",
-      "reading_stats",
-      "quick_actions_row_000001",
-      "quick_actions_row_000002",
-      "quick_actions_row_000003",
-      "action_list",
-    }
-  )
+  def(PFX .. "module_order", {
+    "quote",
+    "currently",
+    "recent",
+    "clock",
+    "coverdeck",
+    "new_books",
+    "tbr",
+    "collections",
+    "reading_goals",
+    "reading_stats",
+    "quick_actions_row_000001",
+    "quick_actions_row_000002",
+    "quick_actions_row_000003",
+    "action_list",
+  })
   def(PFX .. "currently_show_title", true)
   def(PFX .. "currently_show_author", true)
   def(PFX .. "currently_show_progress", true)
@@ -1844,17 +1841,14 @@ function M.applyFirstRunDefaults()
   def("simpleui_qs_bar_shape", "round")
   def("simpleui_qs_bar_bg", "flat")
   def("simpleui_qs_bar_settings_on_hold", true)
-  def(
-    "simpleui_qs_bar_slots",
-    {
-      "wifi_toggle",
-      "bookmark_browser",
-      "frontlight",
-      "night_mode",
-      "power",
-      "sui_settings",
-    }
-  )
+  def("simpleui_qs_bar_slots", {
+    "wifi_toggle",
+    "bookmark_browser",
+    "frontlight",
+    "night_mode",
+    "power",
+    "sui_settings",
+  })
 
   -- KOReader global: open homescreen on launch (only set once on fresh install)
   gdef("start_with", "homescreen_simpleui")

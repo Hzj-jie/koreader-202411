@@ -962,15 +962,13 @@ function SUIPresets.makeMenuItems(opts)
                                 ctx2.repaint()
                                 UIManager:nextTick(on_apply)
                               else
-                                showDialog(
-                                  InfoMessage():new({
-                                    text = string.format(
-                                      _('Preset "%s" not found.'),
-                                      _name
-                                    ),
-                                    timeout = 2,
-                                  })
-                                )
+                                showDialog(InfoMessage():new({
+                                  text = string.format(
+                                    _('Preset "%s" not found.'),
+                                    _name
+                                  ),
+                                  timeout = 2,
+                                }))
                               end
                             end,
                           })
@@ -1088,15 +1086,10 @@ function SUIPresets.makeMenuItems(opts)
                       unlock_overlay()
                       SUIPresets.save(_name)
                       SUISettings:set("simpleui_hs_active_preset", _name)
-                      showDialog(
-                        InfoMessage():new({
-                          text = string.format(
-                            _('Preset "%s" updated.'),
-                            _name
-                          ),
-                          timeout = 2,
-                        })
-                      )
+                      showDialog(InfoMessage():new({
+                        text = string.format(_('Preset "%s" updated.'), _name),
+                        timeout = 2,
+                      }))
                       UIManager:nextTick(on_save)
                     end,
                     cancel_callback = function()
@@ -1134,26 +1127,22 @@ function SUIPresets.makeMenuItems(opts)
                               return
                             end
                             if isBuiltinName(new_name) then
-                              showDialog(
-                                InfoMessage():new({
-                                  text = _(
-                                    "This name is reserved by a built-in preset."
-                                  ),
-                                  timeout = 2,
-                                })
-                              )
+                              showDialog(InfoMessage():new({
+                                text = _(
+                                  "This name is reserved by a built-in preset."
+                                ),
+                                timeout = 2,
+                              }))
                               return
                             end
                             if SUIPresets.exists(new_name) then
-                              showDialog(
-                                InfoMessage():new({
-                                  text = string.format(
-                                    _('A preset named "%s" already exists.'),
-                                    new_name
-                                  ),
-                                  timeout = 2,
-                                })
-                              )
+                              showDialog(InfoMessage():new({
+                                text = string.format(
+                                  _('A preset named "%s" already exists.'),
+                                  new_name
+                                ),
+                                timeout = 2,
+                              }))
                               return
                             end
                             SUIPresets.rename(_name, new_name)
@@ -1347,15 +1336,13 @@ function SUIPresets.makeMenuItems(opts)
                                       "simpleui_hs_active_preset",
                                       _name
                                     )
-                                    showDialog(
-                                      InfoMessage():new({
-                                        text = string.format(
-                                          _('Preset "%s" updated.'),
-                                          _name
-                                        ),
-                                        timeout = 2,
-                                      })
-                                    )
+                                    showDialog(InfoMessage():new({
+                                      text = string.format(
+                                        _('Preset "%s" updated.'),
+                                        _name
+                                      ),
+                                      timeout = 2,
+                                    }))
                                     ctx2.repaint()
                                     UIManager:nextTick(on_save)
                                   end,

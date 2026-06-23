@@ -737,14 +737,12 @@ function M.getMenuItems(ctx_menu)
             _syncSettings(new_list)
             refresh()
           end
-          _UIManager:show(
-            SortWidget:new({
-              title = _lc("Arrange To Be Read List"),
-              item_table = sort_items,
-              covers_fullscreen = true,
-              callback = on_save,
-            })
-          )
+          _UIManager:show(SortWidget:new({
+            title = _lc("Arrange To Be Read List"),
+            item_table = sort_items,
+            covers_fullscreen = true,
+            callback = on_save,
+          }))
         end,
       }
 

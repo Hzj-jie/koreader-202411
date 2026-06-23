@@ -199,22 +199,18 @@ local function _doWifiToggle(plugin)
     return Device:hasWifiToggle()
   end)
   if not (ok_hw and has_wifi) then
-    UIManager:show(
-      require("ui/widget/infomessage"):new({
-        text = _("WiFi not available on this device."),
-        timeout = 2,
-      })
-    )
+    UIManager:show(require("ui/widget/infomessage"):new({
+      text = _("WiFi not available on this device."),
+      timeout = 2,
+    }))
     return
   end
   local ok_nm, NetworkMgr = pcall(require, "ui/network/manager")
   if not ok_nm or not NetworkMgr then
-    UIManager:show(
-      require("ui/widget/infomessage"):new({
-        text = _("Network manager unavailable."),
-        timeout = 2,
-      })
-    )
+    UIManager:show(require("ui/widget/infomessage"):new({
+      text = _("Network manager unavailable."),
+      timeout = 2,
+    }))
     return
   end
   local ok_state, wifi_on = pcall(function()
@@ -229,7 +225,10 @@ local function _doWifiToggle(plugin)
       NetworkMgr:turnOffWifi()
     end)
     UIManager:show(
-      require("ui/widget/infomessage"):new({ text = _("Wi-Fi off"), timeout = 1 })
+      require("ui/widget/infomessage"):new({
+        text = _("Wi-Fi off"),
+        timeout = 1,
+      })
     )
   else
     Config.wifi_optimistic = true
@@ -1677,14 +1676,12 @@ function QA.sui_build_qa_icons(plugin, ctx_menu, ctx)
               if safe then
                 on_valid(safe)
               else
-                ctx_menu.UIManager:show(
-                  ctx_menu.InfoMessage:new({
-                    text = _(
-                      "Unsupported icon format.\nPlease use a PNG or SVG file."
-                    ),
-                    timeout = 3,
-                  })
-                )
+                ctx_menu.UIManager:show(ctx_menu.InfoMessage:new({
+                  text = _(
+                    "Unsupported icon format.\nPlease use a PNG or SVG file."
+                  ),
+                  timeout = 3,
+                }))
               end
             end
 
@@ -2526,12 +2523,10 @@ function QA.showQuickActionDialog(plugin, qa_id, on_done)
             is_enter_default = true,
             callback = function()
               if not current_action_type then
-                UIManager:show(
-                  InfoMessage:new({
-                    text = _("Please select an action."),
-                    timeout = 3,
-                  })
-                )
+                UIManager:show(InfoMessage:new({
+                  text = _("Please select an action."),
+                  timeout = 3,
+                }))
                 return
               end
               local inputs = active_dialog:getFields()
