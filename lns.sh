@@ -4,8 +4,8 @@
 # Run from repository root to create platform symlinks.
 
 exclude_patterns() {
-    # Exclude git/travis configs, workflows, and platform-specific/local dev files
-    grep -E -v '\.gitmodules$|\.gitignore$|\.travis\.ya?ml$|\.git/|\.github/'
+    # Exclude git/travis configs, workflows, stylua.toml, and platform-specific/local dev files
+    grep -E -v '\.gitmodules$|\.gitignore$|\.travis\.ya?ml$|stylua\.toml$|\.git/|\.github/'
 }
 
 link_dir_contents() {
@@ -47,6 +47,7 @@ link_dir_contents "koreader" "pw2"
 # PW2 specific: merge with kindle
 link_dir_contents "kindle" "pw2"
 rm -rf pw2/extensions
+rm -f pw2/plugins/kochess.koplugin/engines/stockfish_pc
 
 # --- 3. Legacy ---
 echo "Configuring legacy/..."
@@ -72,9 +73,11 @@ rm -rf legacy/web
 rm -rf legacy/plugins/gestures.koplugin
 rm -rf legacy/plugins/terminal.koplugin
 rm -rf legacy/plugins/coverbrowser.koplugin
+rm -f legacy/plugins/kochess.koplugin/engines/stockfish_pc
 
 # --- 4. Kobo ---
 echo "Configuring kobo/..."
 link_dir_contents "koreader" "kobo"
+rm -f kobo/plugins/kochess.koplugin/engines/stockfish_pc
 
 echo "Platform linking complete!"
