@@ -8,4 +8,6 @@
 *   **Issue Reference in Commit Messages**: In your commit messages, always reference Buganizer or GitHub issues using the following prefixes:
     *   Use `fix: #<issue-id>` if the change fully resolves the issue.
     *   Use `bug: #<issue-id>` if the change is related to, or a part of, the work for the issue.
+*   **Plugin Development & Import Guidelines**: When importing new plugins, modifying existing ones, or handling target-specific exclusions/linking, you must read and adhere to the guidelines documented in [plugin_import_guide.md](file:///.agents/plugin_import_guide.md).
+
 
