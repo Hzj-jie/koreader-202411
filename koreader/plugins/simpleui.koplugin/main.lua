@@ -2005,7 +2005,7 @@ function SimpleUIPlugin:onCloseDocument()
       -- This is safe because forceRePaint() runs synchronously and the
       -- InfoMessage is a non-blocking toast (timeout=0.0 auto-closes it);
       -- no other widget draw or event dispatch occurs between the two lines.
-      local was_silent = UIManager:isInSilentMode()
+      local was_silent = UIManager.isInSilentMode and UIManager:isInSilentMode()
       if was_silent then
         UIManager:setSilentMode(false)
       end
@@ -2013,7 +2013,7 @@ function SimpleUIPlugin:onCloseDocument()
         text = _("Closing book…"),
         timeout = 0.0,
       }))
-      UIManager:forceRePaint()
+      UIManager:forceRepaint()
       if was_silent then
         UIManager:setSilentMode(true)
       end

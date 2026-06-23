@@ -2793,7 +2793,7 @@ function StatsWindows.showLoadingNotice()
     text = _("Loading statistics\xe2\x80\xa6"),
     timeout = 0.0,
   }))
-  UIManager:forceRePaint()
+  UIManager:forceRepaint()
 end
 
 --- Opens the Reading Insights window.

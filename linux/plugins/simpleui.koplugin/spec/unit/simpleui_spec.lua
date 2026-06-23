@@ -62,4 +62,61 @@ describe("SimpleUI config logic unit tests", function()
     assert.are.equal("right", tb_cfg.side.wifi)
     assert.are.equal("clock", tb_cfg.order_left[1])
   end)
+
+  it("should not create a cycle in TouchMenu QuickSettings bar", function()
+    local TouchMenu = require("ui/widget/touchmenu")
+    local Event = require("ui/event")
+    local Device = require("device")
+    local stub = require("luassert.stub")
+
+    -- Stub frontlight capability
+    local has_fl_stub = stub(Device, "hasFrontlight").returns(true)
+    local has_nl_stub = stub(Device, "hasNaturalLight").returns(true)
+    local dummy_powerd = {
+      fl_min = 0,
+      fl_max = 24,
+      fl_warmth_min = 0,
+      fl_warmth_max = 10,
+      frontlightIntensity = function() return 12 end,
+      frontlightWarmth = function() return 5 end,
+      toNativeWarmth = function(self, w) return w end,
+      setIntensity = function() end,
+      setWarmth = function() end,
+      getBatterySymbol = function() return "batt" end,
+      getCapacity = function() return 80 end,
+      isCharged = function() return false end,
+      isCharging = function() return false end,
+    }
+    local get_powerd_stub = stub(Device, "getPowerDevice").returns(dummy_powerd)
+
+    -- Enable QSBar
+    SUISettings:set("simpleui_bar_enabled", true)
+    local package_path = package.path
+    package.path = "plugins/simpleui.koplugin/?.lua;" .. package.path
+    local QSBar = require("sui_quicksettings_bar")
+    QSBar.install()
+    package.path = package_path
+
+    -- Construct TouchMenu with the simpleui panel tab active
+    local menu = TouchMenu:new({
+      width = 400,
+      tab_item_table = {
+        {
+          icon = "simpleui_settings",
+          remember = false,
+          _sui_qs_panel = true,
+          { text = "Item 1" }
+        }
+      }
+    })
+
+    -- Broadcast an event to trigger broadcastEvent recursion
+    local ev = Event:new("SomeBroadcastEvent")
+    menu:broadcastEvent(ev)
+
+    -- Revert stubs
+    has_fl_stub:revert()
+    has_nl_stub:revert()
+    get_powerd_stub:revert()
+  end)
 end)
