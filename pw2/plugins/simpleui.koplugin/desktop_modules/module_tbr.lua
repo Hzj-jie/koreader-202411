@@ -1,1 +1,0 @@
-../../../../koreader/plugins/simpleui.koplugin/desktop_modules/module_tbr.lua

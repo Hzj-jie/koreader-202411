@@ -1,1 +1,0 @@
-../../../koreader/plugins/simpleui.koplugin/extract_strings.py

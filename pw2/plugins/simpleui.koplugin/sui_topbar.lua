@@ -1,1 +1,0 @@
-../../../koreader/plugins/simpleui.koplugin/sui_topbar.lua
