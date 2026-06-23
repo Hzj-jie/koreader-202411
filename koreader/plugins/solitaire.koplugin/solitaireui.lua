@@ -155,10 +155,10 @@ function SolitaireUI:loadGame()
         return false
     end
 
-    local save_data = settings:read("game")
-    if not save_data then
+    if not settings:has("game") then
         return false
     end
+    local save_data = settings:readTableRef("game")
 
     return self.game:fromSaveData(save_data)
 end

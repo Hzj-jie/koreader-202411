@@ -67,11 +67,10 @@ function AnnotationSyncPlugin:init()
   utils.insert_after_statistics(self.plugin_id)
   self:onDispatcherRegisterActions()
 
-  self.settings = G_reader_settings:read(self.plugin_id)
-  if not self.settings then
-    self.settings = util.tableDeepCopy(self.default_settings)
-    G_reader_settings:save(self.plugin_id, self.settings)
-  end
+  self.settings = G_reader_settings:readTableRef(
+    self.plugin_id,
+    util.tableDeepCopy(self.default_settings)
+  )
 
   -- Fallback/migration for legacy cloud_server_object
   if not self.settings.sync_server then
@@ -180,7 +179,7 @@ function AnnotationSyncPlugin:init()
 end
 
 function AnnotationSyncPlugin:saveSettings()
-  G_reader_settings:save(self.plugin_id, self.settings)
+  G_reader_settings:save(self.plugin_id, self.settings, self.default_settings)
 end
 
 function AnnotationSyncPlugin:deletePluginSettings()
