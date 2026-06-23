@@ -713,13 +713,7 @@ end
 
 function TouchMenu:onTimesChange_1M()
   self:_updateTimeInfo()
-  if self.device_info then
-    self.device_info:resetLayout()
-  end
-  if self.footer then
-    self.footer:resetLayout()
-  end
-  UIManager:setDirty(self.footer, "ui")
+  UIManager:scheduleWidgetRepaint(self.time_info)
 end
 
 function TouchMenu:_updateTimeInfo()
