@@ -160,7 +160,7 @@ function ReaderHandMade:addToMainMenu(menu_items)
             .. " "
             .. self.custom_toc_symbol,
           callback = function()
-            UIManager:show(InfoMessage:new({
+            self:showWidget(InfoMessage:new({
               text = gettext(
                 [[
 If the book has no table of contents or you would like to substitute it with your own, you can create a custom TOC. The original TOC (if available) will not be altered.
@@ -200,16 +200,16 @@ This custom table of contents is currently limited to a single level and can't h
           enabled_func = function()
             return #self.toc > 0
           end,
-          callback = function(touchmenu_instance)
-            UIManager:show(ConfirmBox:new({
+          callback = function(menu)
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to clear your custom table of contents?"
               ),
               ok_callback = function()
                 self.toc = {}
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -220,7 +220,7 @@ This custom table of contents is currently limited to a single level and can't h
         {
           text = gettext("About custom hidden flows"),
           callback = function()
-            UIManager:show(InfoMessage:new({
+            self:showWidget(InfoMessage:new({
               text = gettext(
                 [[
 Custom hidden flows can be created to exclude sections of the book from your normal reading flow:
@@ -262,8 +262,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           enabled_func = function()
             return #self.inactive_flow_points > 0
           end,
-          callback = function(touchmenu_instance)
-            UIManager:show(ConfirmBox:new({
+          callback = function(menu)
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Inactive marked pages are pages that you tagged as start hidden flow or restart regular flow, but that other marked pages made them have no effect.\nAre you sure you want to clear them?"
               ),
@@ -275,8 +275,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
                 UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
                 self.ui.annotation:setNeedsUpdateFlag()
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -288,8 +288,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
           enabled_func = function()
             return #self.flow_points > 0
           end,
-          callback = function(touchmenu_instance)
-            UIManager:show(ConfirmBox:new({
+          callback = function(menu)
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "Are you sure you want to clear all your custom hidden flows?"
               ),
@@ -299,8 +299,8 @@ Hidden flows are shown with gray or hatched background in Book map and Page brow
                 UIManager:broadcastEvent(Event:new("UpdateToc"))
                 UIManager:broadcastEvent(Event:new("InitScrollPageStates"))
                 self.ui.annotation:setNeedsUpdateFlag()
-                if touchmenu_instance then
-                  touchmenu_instance:updateItems()
+                if menu then
+                  menu:updateItems()
                 end
               end,
             }))
@@ -372,7 +372,7 @@ function ReaderHandMade:setupToc(no_event)
   if self.toc_enabled then
     -- If enabled, plug one method into the document object,
     -- so it is used instead of the method from its class.
-    self.document.getToc = function(this)
+    self.document.getToc = function(_this)
       -- ReaderToc may add fields to ToC items: return a copy,
       -- so the one we will save doesn't get polluted.
       return util.tableDeepCopy(self.toc)
@@ -676,13 +676,13 @@ function ReaderHandMade:setupFlows(no_event)
     self:updateDocFlows()
     -- If enabled, plug some methods into the document object,
     -- so they are used instead of the methods from its class.
-    self.document.hasHiddenFlows = function(this)
+    self.document.hasHiddenFlows = function(_this)
       return true
     end
-    self.document.cacheFlows = function(this)
+    self.document.cacheFlows = function(_this)
       return
     end
-    self.document.getPageFlow = function(this, page)
+    self.document.getPageFlow = function(_this, page)
       for i, flow in ipairs(self.flows) do
         if page < flow[1] then
           return 0 -- page is not in a hidden flow
@@ -693,13 +693,13 @@ function ReaderHandMade:setupFlows(no_event)
       end
       return 0
     end
-    self.document.getFirstPageInFlow = function(this, flow)
+    self.document.getFirstPageInFlow = function(_this, flow)
       return self.flows[flow][1]
     end
-    self.document.getTotalPagesInFlow = function(this, flow)
+    self.document.getTotalPagesInFlow = function(_this, flow)
       return self.flows[flow][2]
     end
-    self.document.getPageNumberInFlow = function(this, page)
+    self.document.getPageNumberInFlow = function(_this, page)
       local nb_hidden_pages = 0
       for i, flow in ipairs(self.flows) do
         if page < flow[1] then
@@ -712,7 +712,7 @@ function ReaderHandMade:setupFlows(no_event)
       end
       return page - nb_hidden_pages
     end
-    self.document.getLastLinearPage = function(this)
+    self.document.getLastLinearPage = function(_this)
       return self.last_linear_page
     end
     -- We can reuse as-is these ones from CreDocument, which uses the ones defined above.

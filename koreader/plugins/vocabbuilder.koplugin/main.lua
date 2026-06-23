@@ -506,7 +506,7 @@ function MenuDialog:_changeEnableStatus(__, position)
   saveSettings()
 end
 
-function MenuDialog:onConfigChoose(values, name, event, args, position)
+function MenuDialog:onConfigChoose(values, _name, event, args, position)
   UIManager:tickAfterNext(function()
     if values then
       if event == "ChangeEnableStatus" then
@@ -1047,12 +1047,14 @@ function VocabItemWidget:getTimeSinceDue()
 
   local rounding = elapsed > 0 and math.floor or math.ceil
   if abs < 60 then
+    -- xgettext: no-lua-format
     readable_time = T(C_("Time", "%1s"), abs)
   elseif abs < 3600 then
     readable_time = T(C_("Time", "%1m"), rounding(abs / 60))
   elseif abs < 3600 * 24 then
     readable_time = T(C_("Time", "%1h"), rounding(abs / 3600))
   elseif abs < 3600 * 24 * 30 then
+    -- xgettext: no-lua-format
     readable_time = T(C_("Time", "%1d"), rounding(abs / 3600 / 24))
   elseif abs < 3600 * 24 * 365 then
     readable_time = T(C_("Time", "%1 mo."), rounding(abs / 3600 / 24 / 3) / 10)
@@ -1100,11 +1102,6 @@ function VocabItemWidget:undo()
   UIManager:setDirty(self, function()
     return "ui", self[1].dimen
   end)
-end
-
-function VocabItemWidget:removeAndClose()
-  self:remover()
-  UIManager:close(self.dialogue)
 end
 
 function VocabItemWidget:showMore()
@@ -1194,7 +1191,7 @@ function VocabItemWidget:onTap(_, ges)
   return true
 end
 
-function VocabItemWidget:onHold(_, ges)
+function VocabItemWidget:onHold(_arg, _ges)
   self:onShowBookAssignment()
   return true
 end

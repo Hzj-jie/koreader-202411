@@ -156,7 +156,7 @@ function ReaderToc:onPageUpdate(pageno)
   self.pageno = pageno
 end
 
-function ReaderToc:onPosUpdate(pos, pageno)
+function ReaderToc:onPosUpdate(_pos, pageno)
   if pageno then
     self.pageno = pageno
   end
@@ -176,7 +176,7 @@ function ReaderToc:fillToc()
       end
     end
   end
-  self.toc = self.ui.document:getToc()
+  self.toc = self.ui.document:getToc() or {}
   self:validateAndFixToc()
 end
 
@@ -982,7 +982,7 @@ function ReaderToc:onShowToc()
         text = item.text,
         face = Font:getFace("infofont", self.items_font_size),
       })
-      UIManager:show(infomessage)
+      self:showWidget(infomessage)
     end
     return true
   end
@@ -1013,7 +1013,7 @@ function ReaderToc:onShowToc()
     self.collapsed_toc.current or -1
   )
 
-  UIManager:show(menu_container)
+  self:showWidget(menu_container)
 
   return true
 end
@@ -1114,7 +1114,7 @@ function ReaderToc:addToMainMenu(menu_items)
   }
   -- ToC (and other navigation) settings
   menu_items.navi_settings = {
-    text = gettext("Settings"),
+    text = gettext("Navigation settings"),
   }
   -- Alternative ToC (only available with CRE documents)
   if self.ui.document:canHaveAlternativeToc() then
@@ -1142,14 +1142,14 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
       checked_func = function()
         return self.ui.document:isTocAlternativeToc()
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         if self.ui.document:isTocAlternativeToc() then
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = gettext(
               "The table of contents for this book is currently an alternative one built from the document headings.\nDo you want to get back the original table of contents? (The book will be reloaded.)"
             ),
             ok_callback = function()
-              touchmenu_instance:closeMenu()
+              menu:closeMenu()
               self.ui.doc_settings:delete("alternative_toc")
               self.ui.document:invalidateCacheFile()
               self.toc_ticks_ignored_levels = {} -- reset this
@@ -1161,12 +1161,12 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
             end,
           }))
         else
-          UIManager:show(ConfirmBox:new({
+          self:showWidget(ConfirmBox:new({
             text = gettext(
               "Do you want to use an alternative table of contents built from the document headings?"
             ),
             ok_callback = function()
-              touchmenu_instance:closeMenu()
+              menu:closeMenu()
               self:resetToc()
               self.toc_ticks_ignored_levels = {} -- reset this
               self.ui.document:buildAlternativeToc()
@@ -1308,7 +1308,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
           self:resetToc()
         end,
       })
-      UIManager:show(items)
+      self:showWidget(items)
     end,
   }
   menu_items.toc_items_font_size = {
@@ -1331,7 +1331,7 @@ Enabling this option will restrict display to the chapter titles of progress bar
           G_reader_settings:save("toc_items_font_size", spin.value)
         end,
       })
-      UIManager:show(items_font)
+      self:showWidget(items_font)
     end,
   }
   menu_items.toc_items_show_chapter_length = {

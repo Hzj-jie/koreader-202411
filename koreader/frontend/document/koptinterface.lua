@@ -351,7 +351,7 @@ end
 --[[--
 Get reflowed page dimensions.
 --]]
-function KoptInterface:getRFPageDimensions(doc, pageno, zoom, rotation)
+function KoptInterface:getRFPageDimensions(doc, pageno, _zoom, _rotation)
   local kc = self:getCachedContext(doc, pageno)
   local fullwidth, fullheight = kc:getPageDim()
   return Geom:new({ w = fullwidth, h = fullheight })
@@ -404,7 +404,7 @@ Render reflowed page into tile cache.
 
 Inherited from common document interface.
 --]]
-function KoptInterface:renderReflowedPage(doc, pageno, rect, zoom, rotation)
+function KoptInterface:renderReflowedPage(doc, pageno, _rect, _zoom, _rotation)
   local bbox = doc:getPageBBox(pageno)
   local hash_list = { "renderpg" }
   self:getContextHash(doc, pageno, bbox, hash_list)
@@ -441,9 +441,9 @@ Inherited from common document interface.
 function KoptInterface:renderOptimizedPage(
   doc,
   pageno,
-  rect,
+  _rect,
   zoom,
-  rotation,
+  _rotation,
   hinting
 )
   local bbox = doc:getPageBBox(pageno)
@@ -526,9 +526,9 @@ Inherited from common document interface.
 function KoptInterface:hintReflowedPage(
   doc,
   pageno,
-  zoom,
-  rotation,
-  gamma,
+  _zoom,
+  _rotation,
+  _gamma,
   hinting
 )
   local bbox = doc:getPageBBox(pageno)
@@ -957,7 +957,7 @@ end
 --[[--
 Get text from OCR providing selected text boxes.
 --]]
-function KoptInterface:getOCRText(doc, pageno, tboxes)
+function KoptInterface:getOCRText(_doc, _pageno, _tboxes)
   if not DocCache:check(self.ocrengine) then
     DocCache:insert(
       self.ocrengine,
@@ -967,7 +967,7 @@ function KoptInterface:getOCRText(doc, pageno, tboxes)
   logger.info("Not implemented yet")
 end
 
-function KoptInterface:getClipPageContext(doc, pos0, pos1, pboxes, drawer)
+function KoptInterface:getClipPageContext(doc, pos0, pos1, pboxes, _drawer)
   assert(pos0.page == pos1.page)
   assert(pos0.zoom == pos1.zoom)
   local rect
@@ -1066,7 +1066,7 @@ end
 Get word and word box around `pos`.
 --]]
 function KoptInterface:getWordFromBoxes(boxes, pos)
-  if not pos or not boxes or #boxes == 0 then
+  if not pos or util.arrayIsEmpty(boxes) then
     return {}
   end
   local i, j = getWordBoxIndices(boxes, pos)
@@ -1090,7 +1090,7 @@ end
 Get text and text boxes between `pos0` and `pos1`.
 --]]
 function KoptInterface:getTextFromBoxes(boxes, pos0, pos1)
-  if not pos0 or not pos1 or #boxes == 0 then
+  if not pos0 or not pos1 or util.arrayIsEmpty(boxes) then
     return {}
   end
   local line_text = ""
@@ -1284,7 +1284,7 @@ end
 Get word and word box from position in native page.
 ]]
 --
-function KoptInterface:getWordFromNativePosition(doc, boxes, pos)
+function KoptInterface:getWordFromNativePosition(_doc, boxes, pos)
   local native_word_box = self:getWordFromBoxes(boxes, pos)
   local word_box = {
     word = native_word_box.word,
@@ -1343,7 +1343,7 @@ end
 
 function KoptInterface:getSelectedWordContext(word, nb_words, pos)
   local boxes = self.last_text_boxes
-  if not pos or not boxes or #boxes == 0 then
+  if not pos or util.arrayIsEmpty(boxes) then
     return
   end
   local i, j = getWordBoxIndices(boxes, pos)
@@ -1513,7 +1513,12 @@ end
 Get text and text boxes from screen positions for native page.
 ]]
 --
-function KoptInterface:getTextFromNativePositions(doc, native_boxes, pos0, pos1)
+function KoptInterface:getTextFromNativePositions(
+  _doc,
+  native_boxes,
+  pos0,
+  pos1
+)
   local native_text_boxes = self:getTextFromBoxes(native_boxes, pos0, pos1)
   local text_boxes = {
     text = native_text_boxes.text,
@@ -1819,15 +1824,5 @@ end
 --[[--
 Log reflow duration.
 --]]
-function KoptInterface:logReflowDuration(pageno, dur)
-  local file = io.open("reflow_dur_log.txt", "a+")
-  if file then
-    if file:seek("end") == 0 then -- write the header only once
-      file:write("PAGE\tDUR\n")
-    end
-    file:write(string.format("%s\t%s\n", pageno, dur))
-    file:close()
-  end
-end
 
 return KoptInterface

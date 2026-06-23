@@ -18,6 +18,24 @@ local bor = bit.bor
 
 local util = {}
 
+function util.isTesting()
+  return package.loaded["busted"] ~= nil
+    or package.loaded["busted.luajit"] ~= nil
+    or _G.busted ~= nil
+    or _G.describe ~= nil
+end
+
+if util.isTesting() then
+  --- Clear all the elements from an array without reassignment.
+  --- @table t the array to be cleared
+  function util.clearTable(t)
+    local c = #t
+    for i = 0, c do
+      t[i] = nil
+    end
+  end
+end
+
 ---- Strips all punctuation marks and spaces from a string.
 ---- @string text the string to be stripped
 ---- @treturn string stripped text
@@ -286,6 +304,13 @@ function util.tableRemoveValue(t, ...)
   end
 end
 
+--- Checks if an array-like table is empty (nil or has 0 elements).
+---- @param t Lua table (array)
+---- @treturn bool true if table is nil or empty
+function util.arrayIsEmpty(t)
+  return not t or #t == 0
+end
+
 --- Append all elements from t2 into t1.
 ---- @param t1 Lua table
 ---- @param t2 Lua table
@@ -394,63 +419,16 @@ end
 ---- @param array Lua table (array only, sorted, ascending, every value must match the type of `value` and support comparison operators)
 ---- @param value
 ---- @return int index of value in array, or a (nil, insertion index) tuple if value was not found.
-function util.bsearch(array, value)
-  local lo = 1
-  local hi = #array
-  while lo <= hi do
-    -- invariants: value > array[i] for all i < lo
-    --       value < array[i] for all i > hi
-    local mid = bit.rshift(lo + hi, 1)
-    if array[mid] > value then
-      hi = mid - 1
-    elseif array[mid] < value then
-      lo = mid + 1
-    else
-      return mid
-    end
-  end
-  return nil, lo
-end
 
 --- Perform a leftmost insertion binary search for `value` in a *sorted* (ascending) `array`.
 ---- @param array Lua table (array only, sorted, ascending, every value must match the type of `value` and support comparison operators)
 ---- @param value
 ---- @return int leftmost insertion index of value in array.
-function util.bsearch_left(array, value)
-  local lo = 1
-  local hi = #array
-  while lo <= hi do
-    -- invariants: value > array[i] for all i < lo
-    --       value <= array[i] for all i > hi
-    local mid = bit.rshift(lo + hi, 1)
-    if array[mid] >= value then
-      hi = mid - 1
-    else
-      lo = mid + 1
-    end
-  end
-  return lo
-end
 
 --- Perform a rightmost insertion binary search for `value` in a *sorted* (ascending) `array`.
 ---- @param array Lua table (array only, sorted, ascending, every value must match the type of `value` and support comparison operators)
 ---- @param value
 ---- @return int rightmost insertion index of value in array.
-function util.bsearch_right(array, value)
-  local lo = 1
-  local hi = #array
-  while lo <= hi do
-    -- invariants: value >= array[i] for all i < low
-    --       value < array[i] for all i > high
-    local mid = bit.rshift(lo + hi, 1)
-    if array[mid] > value then
-      hi = mid - 1
-    else
-      lo = mid + 1
-    end
-  end
-  return lo
-end
 
 -- Merge t2 into t1, overwriting existing elements if they already exist
 -- Probably not safe with nested tables (c.f., https://stackoverflow.com/q/1283388)
@@ -473,14 +451,6 @@ To find . you need to escape it.
 ---- @string string
 ---- @string ch
 ---- @treturn int last occurrence or -1 if not found
-function util.lastIndexOf(string, ch)
-  local i = string:match(".*" .. ch .. "()")
-  if i == nil then
-    return -1
-  else
-    return i - 1
-  end
-end
 
 --- Pattern which matches a single well-formed UTF-8 character, including
 --- theoretical >4-byte extensions.
@@ -1561,12 +1531,6 @@ end
 
 --- Clear all the elements from an array without reassignment.
 --- @table t the array to be cleared
-function util.clearTable(t)
-  local c = #t
-  for i = 0, c do
-    t[i] = nil
-  end
-end
 
 --- Encode URL also known as percent-encoding see https://en.wikipedia.org/wiki/Percent-encoding
 --- @string text the string to encode
@@ -1781,6 +1745,45 @@ function util.no()
   return false
 end
 
+--- Returns a debug identity string of a table (e.g., a widget), including address,
+--- instance keys, and prototype class keys.
+---- @param t table
+---- @treturn string
+function util.tableDebugIdentity(t)
+  if type(t) ~= "table" then
+    return tostring(t)
+  end
+
+  local addr = tostring(t)
+  local keys = {}
+  for k, v in pairs(t) do
+    if type(v) ~= "function" then
+      table.insert(keys, tostring(k) .. ":" .. tostring(v))
+    end
+  end
+  table.sort(keys)
+
+  local mt = getmetatable(t)
+  local mt_keys = {}
+  local mt_info = "none"
+  if mt and mt.__index and type(mt.__index) == "table" then
+    mt_info = tostring(mt.__index.typename or mt.__index.id or mt.__index)
+    for k, v in pairs(mt.__index) do
+      if type(v) ~= "function" then
+        table.insert(mt_keys, tostring(k) .. ":" .. tostring(v))
+      end
+    end
+    table.sort(mt_keys)
+  end
+
+  return string.format(
+    "%s { Class: %s, Instance Keys: { %s }, Class/Proto Keys: { %s } }",
+    addr,
+    mt_info,
+    table.concat(keys, ", "),
+    table.concat(mt_keys, ", ")
+  )
+end
 function util.copyRequire(f)
   local v = require(f)
   assert(type(v) == "table")

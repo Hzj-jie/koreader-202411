@@ -1,0 +1,1 @@
+../../../koreader/plugins/calculator.koplugin/README.koreader-202411.md

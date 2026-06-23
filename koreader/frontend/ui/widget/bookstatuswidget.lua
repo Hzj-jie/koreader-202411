@@ -528,7 +528,7 @@ function BookStatusWidget:generateSwitchGroup(width)
   })
 end
 
-function BookStatusWidget:onConfigChoose(values, name, event, args, position)
+function BookStatusWidget:onConfigChoose(_values, _name, _event, args, position)
   UIManager:tickAfterNext(function()
     self:onChangeBookStatus(args, position)
     UIManager:setDirty(nil, "ui", nil, true)
@@ -556,7 +556,7 @@ function BookStatusWidget:onSwipe(arg, ges_ev)
   end
 end
 
-function BookStatusWidget:onMultiSwipe(arg, ges_ev)
+function BookStatusWidget:onMultiSwipe(arg, _ges_ev)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
@@ -573,7 +573,7 @@ function BookStatusWidget:onExit()
   return true
 end
 
-function BookStatusWidget:onSwitchFocus(inputbox)
+function BookStatusWidget:onSwitchFocus(_inputbox)
   self.note_dialog = InputDialog:new({
     title = gettext("Review"),
     input = self.input_note:getText(),

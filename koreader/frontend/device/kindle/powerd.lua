@@ -238,7 +238,7 @@ function KindlePowerD:initWakeupMgr()
   self.device.wakeup_mgr =
     WakeupMgr:new({ rtc = require("device/kindle/mockrtc") })
 
-  function KindlePowerD:wakeupFromSuspend(ts)
+  function KindlePowerD:wakeupFromSuspend(_ts)
     -- Give the device a few seconds to settle.
     -- This filters out user input resumes -> device will resume to active
     -- Also the Kindle stays in Ready to suspend for 10 seconds
@@ -246,7 +246,7 @@ function KindlePowerD:initWakeupMgr()
     UIManager:scheduleIn(15, self.checkUnexpectedWakeup, self)
   end
 
-  function KindlePowerD:readyToSuspend(delay)
+  function KindlePowerD:readyToSuspend(_delay)
     if self.device.wakeup_mgr:isWakeupAlarmScheduled() then
       local now = os.time()
       local alarm = self.device.wakeup_mgr:getWakeupAlarmEpoch()

@@ -720,7 +720,7 @@ function ReaderUI:showReader(file, provider, seamless)
   local origin_file = file
   file = ffiUtil.realpath(file)
   if file == nil or lfs.attributes(file, "mode") ~= "file" then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext("File '%1' does not exist."),
         BD.filepath(filemanagerutil.abbreviate(origin_file))
@@ -730,13 +730,15 @@ function ReaderUI:showReader(file, provider, seamless)
   end
 
   if not DocumentRegistry:hasProvider(file) and provider == nil then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext("File '%1' is not supported."),
         BD.filepath(filemanagerutil.abbreviate(file))
       ),
+      dismiss_callback = function()
+        self:showFileManager(file)
+      end,
     }))
-    self:showFileManager(file)
     return
   end
 
@@ -746,7 +748,7 @@ function ReaderUI:showReader(file, provider, seamless)
   if provider.provider then
     self:_showReaderCoroutine(file, provider, seamless)
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
@@ -796,7 +798,7 @@ function ReaderUI:_doShowReader(file, provider)
   assert(ReaderUI.instance == nil)
   local document = DocumentRegistry:openDocument(file, provider)
   if not document then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No reader engine for this file or invalid file."),
     }))
     self:showFileManager(file)
@@ -949,7 +951,6 @@ function ReaderUI:onExit(seamless)
   else
     UIManager:runWith(
       f,
-      -- Need localization.
       T(
         gettext("Saving progress of file %1"),
         BD.filepath(filemanagerutil.abbreviate(self.document.file))
@@ -977,7 +978,7 @@ function ReaderUI:dealWithLoadDocumentFailure()
     logger.warn(
       "crengine failed recognizing or parsing this file: unsupported or invalid document"
     )
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
       ),
@@ -996,9 +997,11 @@ function ReaderUI:dealWithLoadDocumentFailure()
 end
 
 function ReaderUI:onHome()
-  local file = self.document.file
+  local file = self.document and self.document.file
   self:onExit()
-  self:showFileManager(file)
+  if not require("apps/filemanager/filemanager").instance then
+    self:showFileManager(file)
+  end
   return true
 end
 

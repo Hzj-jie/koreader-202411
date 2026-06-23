@@ -45,7 +45,7 @@ Example for input of two strings and a number:
                 },
                 {
                     text = gettext("Use settings"),
-                    callback = function(touchmenu_instance)
+                    callback = function(menu)
                         local fields = sample_input:getFields()
                         -- check for user input
                         if fields[1] ~= "" and fields[2] ~= ""
@@ -54,8 +54,8 @@ Example for input of two strings and a number:
                             UIManager:close(sample_input)
                             -- If we have a touch menu: Update menu entries,
                             -- when called from a menu
-                            if touchmenu_instance then
-                                touchmenu_instance:updateItems()
+                            if menu then
+                                menu:updateItems()
                             end
                         else
                             -- not all fields where entered
@@ -122,11 +122,15 @@ function MultiInputDialog:init()
   self.input_fields = {}
   local input_description = {}
   for i, field in ipairs(self.fields) do
+    if field.text_type == "password" then
+      field.is_password_type = true
+    end
     local input_field_tmp = InputText:new({
       text = field.text,
       hint = field.hint,
       input_type = field.input_type,
-      text_type = field.text_type, -- "password"
+      text_type = field.text_type,
+      is_password_type = field.is_password_type,
       face = self.input_face,
       width = content_width,
       idx = i,
@@ -280,8 +284,9 @@ function MultiInputDialog:onKeyboardHeightChanged()
   end
   self:free()
   self.keyboard_visible = visible
-  for i, field in ipairs(self.fields) do -- restore entered text
+  for i, field in ipairs(self.fields) do -- restore entered text and type
     field.text = fields[i].text
+    field.text_type = fields[i].text_type
   end
   self:init()
   if self.keyboard_visible then

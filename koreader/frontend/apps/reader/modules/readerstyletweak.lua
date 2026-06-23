@@ -219,7 +219,7 @@ function TweakInfoWidget:onTap(arg, ges)
     -- can be pasted into the book-specific tweak editor)
     -- (Add \n on both sides for easier pasting)
     Device.input.setClipboardText("\n" .. self.css_text .. "\n")
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = gettext("CSS text copied to clipboard"),
     }))
     return true
@@ -313,7 +313,7 @@ function ReaderStyleTweak:resolveConflictsBeforeEnabling(id, conflicts_with)
         or util.arrayContains(conflicts_with, otid)
     end
   else
-    conflicts_with_func = function(otid)
+    conflicts_with_func = function(_otid)
       return false
     end
   end
@@ -361,12 +361,12 @@ function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(
         or util.arrayContains(conflicts_with, otid)
     end
   else
-    conflicts_with_func = function(otid)
+    conflicts_with_func = function(_otid)
       return false
     end
   end
   local to_remove = {}
-  for other_id, other_enabled in pairs(self.global_tweaks) do
+  for other_id in pairs(self.global_tweaks) do
     -- We also reset the provided "id" for a complete cleanup,
     -- it is expected the caller will re-enable it
     if other_id == id or conflicts_with_func(other_id) then
@@ -379,7 +379,7 @@ function ReaderStyleTweak:resolveConflictsBeforeMakingDefault(
   -- Also remove the provided "id" and any conflicting one from doc_tweaks (where
   -- they may be false and prevent this new default to apply to current book)
   to_remove = {}
-  for other_id, other_enabled in pairs(self.doc_tweaks) do
+  for other_id in pairs(self.doc_tweaks) do
     if other_id == id or conflicts_with_func(other_id) then
       table.insert(to_remove, other_id)
     end
@@ -398,7 +398,7 @@ end
 function ReaderStyleTweak:updateCssText(apply)
   if self.enabled then
     local tweaks = {}
-    for id, enabled in pairs(self.global_tweaks) do
+    for id in pairs(self.global_tweaks) do
       -- there are only enabled tweaks in global_tweaks, but we don't
       -- add them here if they appear in doc_tweaks (if enabled in
       -- doc_tweaks, they'll be added below; if disabled, they should
@@ -407,7 +407,7 @@ function ReaderStyleTweak:updateCssText(apply)
         table.insert(tweaks, self.tweaks_by_id[id])
       end
     end
-    for id, enabled in pairs(self.doc_tweaks) do
+    for id in pairs(self.doc_tweaks) do
       -- there are enabled (true) and disabled (false) tweaks in doc_tweaks
       if self.doc_tweaks[id] == true then
         table.insert(tweaks, self.tweaks_by_id[id])
@@ -518,7 +518,7 @@ function ReaderStyleTweak:init()
       self:updateCssText(true) -- apply it immediately
     end,
     hold_callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = gettext(
           [[
 Style tweaks allow changing small parts of book styles (including the publisher/embedded styles) to make visual adjustments or disable unwanted publisher layout choices.
@@ -542,13 +542,13 @@ You can enable individual tweaks on this book with a tap, or view more details a
   -- css_tweaks.lua, or like the one we build from user styletweaks
   -- directory files and sub-directories)
   local addTweakMenuItem
-  addTweakMenuItem = function(menu, item)
+  addTweakMenuItem = function(menus, item)
     if type(item) == "table" and #item > 0 then -- sub-menu
       local sub_item_table = {}
       for _, it in ipairs(item) do
         addTweakMenuItem(sub_item_table, it) -- recurse
       end
-      table.insert(menu, {
+      table.insert(menus, {
         text_func = function()
           local text = item.title or "### undefined submenu title ###"
           local nb_enabled = self:nbTweaksEnabled(sub_item_table)
@@ -570,7 +570,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
         item.priority = 0
       end
       self.tweaks_by_id[item.id] = item
-      table.insert(menu, {
+      table.insert(menus, {
         tweak_id = item.id,
         enabled_func = is_enabled,
         checked_func = function()
@@ -586,8 +586,8 @@ You can enable individual tweaks on this book with a tap, or view more details a
           end
           return title
         end,
-        hold_callback = function(touchmenu_instance)
-          UIManager:show(TweakInfoWidget:new({
+        hold_callback = function(menu)
+          self:showWidget(TweakInfoWidget:new({
             tweak = item,
             is_global_default = self.global_tweaks[item.id],
             toggle_global_default_callback = function()
@@ -627,7 +627,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
                 end
                 self.global_tweaks[item.id] = true
               end
-              touchmenu_instance:updateItems()
+              menu:updateItems()
               self:updateCssText(true) -- apply it immediately
             end,
             is_tweak_in_dispatcher = self.tweaks_in_dispatcher[item.id],
@@ -644,7 +644,7 @@ You can enable individual tweaks on this book with a tap, or view more details a
                 self.tweaks_in_dispatcher[item.id] = item.title
                 dispatcherRegisterStyleTweak(item.id, item.title)
               end
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           }))
         end,
@@ -655,25 +655,25 @@ You can enable individual tweaks on this book with a tap, or view more details a
         separator = item.separator,
       })
     elseif item.info_text then -- informative menu item
-      table.insert(menu, {
+      table.insert(menus, {
         text = item.title or "### undefined menu title ###",
         -- No check box.
         -- Show the info text when either tap or hold
         keep_menu_open = true,
         callback = function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = item.info_text,
           }))
         end,
         hold_callback = function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = item.info_text,
           }))
         end,
         separator = item.separator,
       })
     else
-      table.insert(menu, {
+      table.insert(menus, {
         text = item.if_empty_menu_title or gettext("This section is empty"),
         enabled = false,
       })
@@ -714,12 +714,12 @@ You can enable individual tweaks on this book with a tap, or view more details a
     end
     table.sort(dir_list)
     table.sort(file_list)
-    for __, subdir in ipairs(dir_list) do
+    for _, subdir in ipairs(dir_list) do
       local sub_item_table = { title = subdir:gsub("_", " ") }
       process_tweaks_dir(dir .. "/" .. subdir, sub_item_table)
       table.insert(item_table, sub_item_table)
     end
-    for __, file in ipairs(file_list) do
+    for _, file in ipairs(file_list) do
       local title = file:gsub("%.css$", ""):gsub("_", " ")
       local filepath = dir .. "/" .. file
       table.insert(item_table, {
@@ -766,18 +766,18 @@ You can enable individual tweaks on this book with a tap, or view more details a
     checked_func = function()
       return self.book_style_tweak_enabled
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       if self.book_style_tweak then
         -- There is a tweak: toggle it on tap, like other tweaks
         self.book_style_tweak_enabled = not self.book_style_tweak_enabled
         self:updateCssText(true) -- apply it immediately
       else
         -- No tweak defined: launch editor
-        self:editBookTweak(touchmenu_instance)
+        self:editBookTweak(menu)
       end
     end,
-    hold_callback = function(touchmenu_instance)
-      self:editBookTweak(touchmenu_instance)
+    hold_callback = function(menu)
+      self:editBookTweak(menu)
     end,
   }
   table.insert(self.tweaks_table, book_tweak_item)
@@ -786,9 +786,9 @@ You can enable individual tweaks on this book with a tap, or view more details a
   self:onDispatcherRegisterActions()
 end
 
-function ReaderStyleTweak:addToMainMenu(menu_items)
+function ReaderStyleTweak:addToMainMenu(menus)
   -- insert table to main reader menu
-  menu_items.style_tweaks = {
+  menus.style_tweaks = {
     text_func = function()
       if self.enabled and self.nb_enabled_tweaks > 0 then
         return T(gettext("Style tweaks (%1)"), self.nb_enabled_tweaks)
@@ -832,7 +832,7 @@ function ReaderStyleTweak:onToggleStyleTweak(tweak_id, item, no_notification)
   end
   self:updateCssText(true) -- apply it immediately
   if not no_notification then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = text,
     }))
   end
@@ -1132,7 +1132,7 @@ If used as-is, they will act on ALL elements!]]),
   },
 }
 
-function ReaderStyleTweak:editBookTweak(touchmenu_instance)
+function ReaderStyleTweak:editBookTweak(menu)
   local InputDialog = require("ui/widget/inputdialog")
   local editor -- our InputDialog instance
   local tweak_button_id = "editBookTweakButton"
@@ -1242,7 +1242,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                   callback = function()
                     if is_info_only then
                       -- No CSS bit to insert, show description also on tap
-                      UIManager:show(InfoMessage:new({ text = description }))
+                      self:showWidget(InfoMessage:new({ text = description }))
                       return
                     end
                     if not is_submenu then -- insert as-is on tap
@@ -1264,7 +1264,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                             align = "left",
                             callback = function()
                               if sub_is_info_only then
-                                UIManager:show(
+                                self:showWidget(
                                   InfoMessage:new({ text = sub_description })
                                 )
                                 return
@@ -1275,7 +1275,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                             end,
                             hold_callback = sub_description
                               and function()
-                                UIManager:show(
+                                self:showWidget(
                                   InfoMessage:new({ text = sub_description })
                                 )
                               end,
@@ -1303,12 +1303,12 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                         buttons = sub_buttons,
                         anchor = anchor_func,
                       })
-                      UIManager:show(sub_suggestions_popup_widget)
+                      self:showWidget(sub_suggestions_popup_widget)
                     end
                   end,
                   hold_callback = description
                       and function()
-                        UIManager:show(InfoMessage:new({ text = description }))
+                        self:showWidget(InfoMessage:new({ text = description }))
                       end
                     or nil,
                 },
@@ -1328,7 +1328,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
                   true
               end,
             })
-            UIManager:show(suggestions_popup_widget)
+            self:showWidget(suggestions_popup_widget)
           end,
         },
       },
@@ -1367,7 +1367,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
       end
     end,
     reset_button_text = gettext("Restore"),
-    reset_callback = function(content) -- Will add a Reset button
+    reset_callback = function(_content) -- Will add a Reset button
       return self.book_style_tweak or "", gettext("Book tweak restored")
     end,
     save_button_text = SAVE_BUTTON_LABEL,
@@ -1417,12 +1417,12 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
       if should_apply then
         -- Let menu be closed and previous page be refreshed,
         -- so one can see how the text is changed by the tweak.
-        touchmenu_instance:closeMenu()
+        menu:closeMenu()
         UIManager:scheduleIn(0.2, function()
           self:updateCssText(true) -- have it applied
         end)
       else
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end
       editor.save_callback_called = true
       return true, msg
@@ -1433,7 +1433,7 @@ function ReaderStyleTweak:editBookTweak(touchmenu_instance)
       -- If close_status is false, text was modified but then discarded, and
       -- InputDialog will show our close_discarded_notif_text
       if not editor.save_callback_called and close_status ~= false then
-        UIManager:show(Notification:new({
+        self:showWidget(Notification:new({
           text = NOT_MODIFIED_MSG,
         }))
       end

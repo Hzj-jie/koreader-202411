@@ -7,6 +7,7 @@ local http = require("socket.http")
 local https = require("ssl.https")
 local ltn12 = require("ltn12")
 local socket = require("socket")
+local util = require("util")
 
 local socketutil = {
   -- Init to the default LuaSocket/LuaSec values
@@ -101,7 +102,7 @@ function socketutil.table_sink(t)
 
   local start_ts = os.time()
   t = t or {}
-  local f = function(chunk, err)
+  local f = function(chunk, _err)
     if chunk then
       if os.time() - start_ts > socketutil.total_timeout then
         return nil, socketutil.SINK_TIMEOUT_CODE
@@ -114,27 +115,29 @@ function socketutil.table_sink(t)
 end
 
 --- Custom version of `ltn12.sink.file` that honors total_timeout
-function socketutil.file_sink(handle, io_err)
-  if socketutil.total_timeout < 0 then
-    return ltn12.sink.file(handle, io_err)
-  end
-
-  if handle then
-    local start_ts = os.time()
-    return function(chunk, err)
-      if not chunk then
-        handle:close()
-        return 1
-      else
-        if os.time() - start_ts > socketutil.total_timeout then
-          handle:close()
-          return nil, socketutil.SINK_TIMEOUT_CODE
-        end
-        return handle:write(chunk)
-      end
+if util.isTesting() then
+  function socketutil.file_sink(handle, io_err)
+    if socketutil.total_timeout < 0 then
+      return ltn12.sink.file(handle, io_err)
     end
-  else
-    return nil, io_err or "unable to open file"
+
+    if handle then
+      local start_ts = os.time()
+      return function(chunk, _err)
+        if not chunk then
+          handle:close()
+          return 1
+        else
+          if os.time() - start_ts > socketutil.total_timeout then
+            handle:close()
+            return nil, socketutil.SINK_TIMEOUT_CODE
+          end
+          return handle:write(chunk)
+        end
+      end
+    else
+      return nil, io_err or "unable to open file"
+    end
   end
 end
 

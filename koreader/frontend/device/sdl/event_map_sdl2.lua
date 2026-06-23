@@ -85,7 +85,8 @@ return {
   [1073741888] = "LPgFwd", -- F[7]
   [1073741889] = "F8", -- F[8]
   [1073741890] = "F9", -- F[9]
-  [1073741891] = "F10", -- F[10]
+  -- Some laptops may not have a Menu key anymore, treat the F10 as menu key.
+  [1073741891] = "Menu", -- F[10]
   [1073741892] = "F11", -- F[11]
   -- On regular laptops, the Enter is treated as Press which triggers most of
   -- the actions. But F12 is hacked to be the Enter key, and represents the

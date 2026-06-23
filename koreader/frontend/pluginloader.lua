@@ -1,4 +1,3 @@
-local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -16,51 +15,9 @@ local OBSOLETE_PLUGINS = {
   zsync = true,
 }
 
-local DEPRECATION_MESSAGES = {
-  remove = gettext("This plugin is unmaintained and will be removed soon."),
-  feature = gettext(
-    "The following features are unmaintained and will be removed soon:"
-  ),
-}
-
 local INVISIBLE_PLUGINS = {
   backgroundrunner = true,
 }
-
-local function deprecationFmt(field)
-  local s
-  if type(field) == "table" then
-    local f1, f2 = DEPRECATION_MESSAGES[field[1]], field[2]
-    if not f2 then
-      s = string.format("%s", f1)
-    else
-      s = string.format("%s: %s", f1, f2)
-    end
-  end
-  if not s then
-    return nil, ""
-  end
-  return true, s
-end
-
--- Deprecated plugins are still available, but show a hint about deprecation.
-local function getMenuTable(plugin)
-  local t = {}
-  t.name = plugin.name
-  t.fullname = string.format(
-    "%s%s",
-    plugin.fullname or plugin.name,
-    plugin.deprecated and " (" .. gettext("outdated") .. ")" or ""
-  )
-
-  local deprecated, message = deprecationFmt(plugin.deprecated)
-  t.description = string.format(
-    "%s%s",
-    plugin.description,
-    deprecated and "\n\n" .. message or ""
-  )
-  return t
-end
 
 local PluginLoader = {
   show_info = true,
@@ -175,22 +132,24 @@ function PluginLoader:loadPlugins()
   return self.enabled_plugins, self.disabled_plugins
 end
 
+function PluginLoader:_addPluginsToMenu(plugins, enable)
+  for _, plugin in ipairs(plugins) do
+    table.insert(self.all_plugins, {
+      name = plugin.name,
+      fullname = plugin.fullname or plugin.name,
+      description = plugin.description,
+      enable = enable,
+    })
+  end
+end
+
 function PluginLoader:genPluginManagerSubItem()
   if not self.all_plugins then
     local enabled_plugins, disabled_plugins = self:loadPlugins()
     self.all_plugins = {}
 
-    for _, plugin in ipairs(enabled_plugins) do
-      local element = getMenuTable(plugin)
-      element.enable = true
-      table.insert(self.all_plugins, element)
-    end
-
-    for _, plugin in ipairs(disabled_plugins) do
-      local element = getMenuTable(plugin)
-      element.enable = false
-      table.insert(self.all_plugins, element)
-    end
+    self:_addPluginsToMenu(enabled_plugins, true)
+    self:_addPluginsToMenu(disabled_plugins, false)
 
     table.sort(self.all_plugins, function(v1, v2)
       return v1.fullname < v2.fullname
@@ -232,14 +191,16 @@ function PluginLoader:createPluginInstance(plugin, attr)
 end
 
 --- Checks if a specific plugin is instantiated
-function PluginLoader:isPluginLoaded(name)
-  return self.loaded_plugins[name] ~= nil
-end
+if util.isTesting() then
+  function PluginLoader:isPluginLoaded(name)
+    return self.loaded_plugins[name] ~= nil
+  end
 
---- Returns the current instance of a specific Plugin (if any)
---- (NOTE: You can also usually access it via self.ui[plugin_name])
-function PluginLoader:getPluginInstance(name)
-  return self.loaded_plugins[name]
+  --- Returns the current instance of a specific Plugin (if any)
+  --- (NOTE: You can also usually access it via self.ui[plugin_name])
+  function PluginLoader:getPluginInstance(name)
+    return self.loaded_plugins[name]
+  end
 end
 
 -- *MUST* be called on destruction of whatever called createPluginInstance!

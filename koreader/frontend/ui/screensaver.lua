@@ -31,32 +31,32 @@ local Screen = Device.screen
 
 -- Default settings
 if G_reader_settings:hasNot("screensaver_show_message") then
-  G_reader_settings:makeFalse("screensaver_show_message")
+  G_reader_settings:makeFalse("screensaver_show_message", false)
 end
 if G_reader_settings:hasNot("screensaver_type") then
-  G_reader_settings:save("screensaver_type", "disable")
-  G_reader_settings:makeTrue("screensaver_show_message")
+  G_reader_settings:save("screensaver_type", "disable", "disable")
+  G_reader_settings:makeTrue("screensaver_show_message", false)
 end
 if G_reader_settings:hasNot("screensaver_img_background") then
-  G_reader_settings:save("screensaver_img_background", "black")
+  G_reader_settings:save("screensaver_img_background", "black", "black")
 end
 if G_reader_settings:hasNot("screensaver_msg_background") then
-  G_reader_settings:save("screensaver_msg_background", "none")
+  G_reader_settings:save("screensaver_msg_background", "none", "none")
 end
 if G_reader_settings:hasNot("screensaver_message_position") then
-  G_reader_settings:save("screensaver_message_position", "middle")
+  G_reader_settings:save("screensaver_message_position", "middle", "middle")
 end
 if G_reader_settings:hasNot("screensaver_stretch_images") then
-  G_reader_settings:makeFalse("screensaver_stretch_images")
+  G_reader_settings:makeFalse("screensaver_stretch_images", false)
 end
 if G_reader_settings:hasNot("screensaver_rotate_auto_for_best_fit") then
-  G_reader_settings:makeFalse("screensaver_rotate_auto_for_best_fit")
+  G_reader_settings:makeFalse("screensaver_rotate_auto_for_best_fit", false)
 end
 if G_reader_settings:hasNot("screensaver_delay") then
-  G_reader_settings:save("screensaver_delay", "disable")
+  G_reader_settings:save("screensaver_delay", "disable", "disable")
 end
 if G_reader_settings:hasNot("screensaver_hide_fallback_msg") then
-  G_reader_settings:makeFalse("screensaver_hide_fallback_msg")
+  G_reader_settings:makeFalse("screensaver_hide_fallback_msg", false)
 end
 
 local Screensaver = {
@@ -386,7 +386,7 @@ Enter a custom message to be displayed on the sleep screen. The following escape
   UIManager:show(input_dialog)
 end
 
-function Screensaver:setStretchLimit(touchmenu_instance)
+function Screensaver:setStretchLimit(menu)
   UIManager:show(SpinWidget:new({
     value = G_reader_settings:read("screensaver_stretch_limit_percentage") or 8,
     value_min = 0,
@@ -399,32 +399,29 @@ function Screensaver:setStretchLimit(touchmenu_instance)
     callback = function(spin)
       G_reader_settings:save("screensaver_stretch_limit_percentage", spin.value)
       G_reader_settings:makeTrue("screensaver_stretch_images")
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
     extra_text = gettext("Disable stretch"),
     extra_callback = function()
       G_reader_settings:makeFalse("screensaver_stretch_images")
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
     option_text = gettext("Full stretch"),
     option_callback = function()
       G_reader_settings:makeTrue("screensaver_stretch_images")
       G_reader_settings:delete("screensaver_stretch_limit_percentage")
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))
 end
 
 -- When called after setup(), may not match the saved settings, because it accounts for fallbacks that might have kicked in.
-function Screensaver:getMode()
-  return self.screensaver_type
-end
 
 function Screensaver:modeExpectsPortrait()
   return self.screensaver_type ~= "message"

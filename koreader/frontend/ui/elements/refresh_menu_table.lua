@@ -9,7 +9,6 @@ return {
     keep_menu_open = true,
     callback = function()
       UIManager:show(InfoMessage:new({
-        -- Need localization
         text = gettext(
           "Showing a new content on an E-ink screen usually does not fully clear the previous content and leaves some blur. It may be referred as E-ink shadow or ghosting.\nThe blur needs a full refresh to be cleared cleanly. But a full refresh can be slow and trigger a flicker.\nKOReader allows users deciding the frequence of the full refresh, i.e. more full refreshes for better display quality or less full refreshes for responsiveness.\nUsually you do not to adjust this configuration, the balanced setting should be good enough for most of the use cases."
         ),
@@ -17,9 +16,7 @@ return {
     end,
   },
   {
-    -- Need localization
     text = gettext("Never automatically fully refresh screen"),
-    -- Need localization
     help_text = gettext(
       "The full refresh will happen only when showing an image, moving to next chapter or opening another book."
     ),
@@ -32,7 +29,6 @@ return {
     radio = true,
   },
   {
-    -- Need localization
     text = gettext("Low full refresh rate for better responsiveness"),
     checked_func = function()
       return G_named_settings.full_refresh_count() == 48
@@ -43,7 +39,6 @@ return {
     radio = true,
   },
   {
-    -- Need localization
     text = gettext("Balance between responsiveness and quality"),
     checked_func = function()
       return G_named_settings.full_refresh_count()
@@ -60,7 +55,6 @@ return {
     radio = true,
   },
   {
-    -- Need localization
     text = gettext("High full refresh rate for better display quality"),
     checked_func = function()
       return G_named_settings.full_refresh_count() == 4

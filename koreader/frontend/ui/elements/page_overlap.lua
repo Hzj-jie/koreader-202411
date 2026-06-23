@@ -35,9 +35,9 @@ local PageOverlap = {
           }))
         end
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         G_reader_settings:flipNilOrFalse("page_overlap_enable")
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end,
     },
   },
@@ -56,7 +56,7 @@ table.insert(PageOverlap.sub_item_table, {
       and ReaderUI.instance.view:isOverlapAllowed()
       and ReaderUI.instance.view.page_overlap_enable
   end,
-  callback = function(touchmenu_instance)
+  callback = function(menu)
     local SpinWidget = require("ui/widget/spinwidget")
     UIManager:show(SpinWidget:new({
       title_text = gettext("Number of overlapped lines"),
@@ -70,7 +70,7 @@ You can set how many lines are shown.]]),
       precision = "%d",
       callback = function(spin)
         G_reader_settings:save("copt_overlap_lines", spin.value)
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end,
     }))
   end,
@@ -104,9 +104,9 @@ for _, v in ipairs(page_overlap_styles) do
     callback = function()
       ReaderUI.instance.view.page_overlap_style = style
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       G_reader_settings:save("page_overlap_style", style)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   })
 end

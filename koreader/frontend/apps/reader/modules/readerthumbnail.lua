@@ -101,7 +101,7 @@ end
 
 function ReaderThumbnail:onShowBookMap(overview_mode)
   local BookMapWidget = require("ui/widget/bookmapwidget")
-  UIManager:show(BookMapWidget:new({
+  self:showWidget(BookMapWidget:new({
     ui = self.ui,
     overview_mode = overview_mode,
   }))
@@ -110,7 +110,7 @@ end
 
 function ReaderThumbnail:onShowPageBrowser()
   local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
-  UIManager:show(PageBrowserWidget:new({
+  self:showWidget(PageBrowserWidget:new({
     ui = self.ui,
   }))
   return true
@@ -378,7 +378,7 @@ end
 
 function ReaderThumbnail:startTileGeneration(request)
   local pid, parent_read_fd = ffiutil.runInSubProcess(
-    function(pid, child_write_fd)
+    function(_pid, child_write_fd)
       -- Get page image as if drawn on the screen
       local bb = self:_getPageImage(request.page)
       -- Scale it to fit in the requested size

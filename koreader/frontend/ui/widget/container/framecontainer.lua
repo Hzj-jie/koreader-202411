@@ -81,6 +81,9 @@ function FrameContainer:onFocus()
   if not self.focusable then
     return false
   end
+  if self._focused then
+    return true
+  end
   self._origin_bordersize = self.bordersize
   self._origin_border_color = self.color
   self.bordersize = self.focus_border_size
@@ -104,7 +107,7 @@ end
 
 function FrameContainer:paintTo(bb, x, y)
   self:mergePosition(x, y)
-  local width, height = self:_contentSize()
+  local width, _ = self:_contentSize()
   -- Expose self.dimen for further use.
   self:getSize()
 

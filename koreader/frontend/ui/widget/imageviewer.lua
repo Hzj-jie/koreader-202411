@@ -392,7 +392,7 @@ function ImageViewer:update()
   --       page turns will show color quantization artefacts (i.e., banding) like crazy,
   --       while a long touch will trigger a dithered, flashing full-refresh that'll make everything shiny :).
   self.dithered = true
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     local update_region = self.main_frame.dimen:combine(orig_dimen)
     return wfm_mode, update_region, true
   end)
@@ -527,7 +527,7 @@ function ImageViewer:onTap(_, ges)
       and ges.pos.x < Screen:getWidth() / 10
       and ges.pos.y > Screen:getHeight() * 9 / 10
     then
-      return self:onSaveImageView()
+      return self:_saveImageView()
     end
   end
   if self.with_title_bar then
@@ -626,7 +626,7 @@ function ImageViewer:onSwipe(_, ges)
   return true
 end
 
-function ImageViewer:onMultiSwipe(_, ges)
+function ImageViewer:onMultiSwipe(_arg, _ges)
   -- As swipe south to close is only enabled when scaled to fit, but not
   -- when we are zoomed in/out, allow any multiswipe to close.
   self:onExit()
@@ -668,7 +668,7 @@ function ImageViewer:onPan(_, ges)
   return true
 end
 
-function ImageViewer:onPanRelease(_, ges)
+function ImageViewer:onPanRelease(_arg, _ges)
   if self._panning then
     self._panning = false
     self:panBy(-self._pan_relative_x, -self._pan_relative_y)
@@ -828,10 +828,10 @@ function ImageViewer:onPinch(_, ges)
 end
 
 function ImageViewer:onTapDiagonal()
-  return self:onSaveImageView()
+  return self:_saveImageView()
 end
 
-function ImageViewer:onSaveImageView()
+function ImageViewer:_saveImageView()
   -- We save the currently displayed blitbuffer (panned or zoomed)
   -- after getting fullscreen and removing UI elements if needed.
   local restore_settings_func
@@ -920,14 +920,16 @@ function ImageViewer:register(registry)
     enabled_func = function(file)
       return registry:isImageFile(file)
     end,
-    callback = ImageViewer.openFile,
+    callback = function(file)
+      self:openFile(file)
+    end,
     disable_file = true,
     disable_type = false,
   })
 end
 
-function ImageViewer.openFile(file)
-  UIManager:show(ImageViewer:new({
+function ImageViewer:openFile(file)
+  self:showWidget(ImageViewer:new({
     file = file,
     fullscreen = true,
     with_title_bar = false,

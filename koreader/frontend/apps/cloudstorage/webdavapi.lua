@@ -218,7 +218,7 @@ function WebDavApi:uploadFile(file_url, user, pass, local_path, etag)
   return code
 end
 
-function WebDavApi:createFolder(folder_url, user, pass, folder_name)
+function WebDavApi:createFolder(folder_url, user, pass, _folder_name)
   socketutil:set_timeout(
     socketutil.FILE_BLOCK_TIMEOUT,
     socketutil.FILE_TOTAL_TIMEOUT

@@ -53,7 +53,7 @@ function ReaderUserHyph:loadDictionary(name, reload, no_scrubbing)
     -- with the dictionary file by hand. -> Warning and disable.
     if ret == self.USER_DICT_ERROR_NOT_SORTED then
       if no_scrubbing then
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = T(
             gettext(
               "The user dictionary\n%1\nis not alphabetically sorted.\n\nIt will be disabled now."
@@ -70,7 +70,7 @@ function ReaderUserHyph:loadDictionary(name, reload, no_scrubbing)
         self:loadDictionary(name, reload, true)
       end
     elseif ret == self.USER_DICT_MALFORMED then
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(
           gettext(
             "The user dictionary\n%1\nhas corrupted entries.\n\nOnly valid entries will be used."
@@ -358,7 +358,7 @@ function ReaderUserHyph:modifyUserEntry(word)
               end
               UIManager:close(input_dialog)
             else
-              UIManager:show(InfoMessage:new({
+              self:showWidget(InfoMessage:new({
                 text = gettext("Invalid hyphenation!"),
               }))
             end

@@ -62,7 +62,7 @@ function TextEditor:registerDocumentRegistryAuxProvider()
   })
 end
 
-function TextEditor:isFileTypeSupported(file)
+function TextEditor:isFileTypeSupported(_file)
   return true
 end
 
@@ -140,7 +140,7 @@ function TextEditor:getSubMenuItems()
             return T(gettext("Text font size: %1"), self.font_size)
           end,
           keep_menu_open = true,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local SpinWidget = require("ui/widget/spinwidget")
             local font_size = self.font_size
             UIManager:show(SpinWidget:new({
@@ -151,7 +151,7 @@ function TextEditor:getSubMenuItems()
               title_text = gettext("Text font size"),
               callback = function(spin)
                 self.font_size = spin.value
-                touchmenu_instance:updateItems()
+                menu:updateItems()
               end,
             }))
           end,
@@ -227,7 +227,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
             return #self.history > 0
           end,
           keep_menu_open = true,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(ConfirmBox:new({
               text = gettext("Clean text editor history?"),
               ok_text = gettext("Clean"),
@@ -240,7 +240,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
                     table.remove(sub_item_table)
                   end
                 end
-                touchmenu_instance:updateItems()
+                menu:updateItems()
               end,
             }))
           end,
@@ -251,16 +251,16 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
     {
       text = gettext("New file"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:setupWhenDoneFunc(touchmenu_instance)
+      callback = function(menu)
+        self:setupWhenDoneFunc(menu)
         self:newFile()
       end,
     },
     {
       text = gettext("Open file"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:setupWhenDoneFunc(touchmenu_instance)
+      callback = function(menu)
+        self:setupWhenDoneFunc(menu)
         self:chooseFile()
       end,
       separator = true,
@@ -272,12 +272,12 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
     table.insert(sub_item_table, {
       text = T("\u{f016} %1", BD.filename(filename)), -- file symbol
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:setupWhenDoneFunc(touchmenu_instance)
+      callback = function(menu)
+        self:setupWhenDoneFunc(menu)
         self:checkEditFile(file_path, true)
       end,
       _texteditor_id = file_path, -- for removal from menu itself
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         -- Show full path and some info, and propose to remove from history
         local text
         local attr = lfs.attributes(file_path)
@@ -312,7 +312,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
                 break
               end
             end
-            touchmenu_instance:updateItems()
+            menu:updateItems()
           end,
         }))
       end,
@@ -321,16 +321,16 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
   return sub_item_table
 end
 
-function TextEditor:setupWhenDoneFunc(touchmenu_instance)
+function TextEditor:setupWhenDoneFunc(menu)
   -- This will keep a reference to the TouchMenu instance, that may not
   -- get released if file opening is aborted while in the file selection
   -- widgets and dialogs (quite complicated to call a resetWhenDoneFunc()
   -- in every abort case). But :getSubMenuItems() will release it when
   -- the TextEditor menu is opened again.
   self.whenDoneFunc = function()
-    touchmenu_instance.item_table = self:getSubMenuItems()
-    touchmenu_instance.page = 1
-    touchmenu_instance:updateItems()
+    menu.item_table = self:getSubMenuItems()
+    menu.page = 1
+    menu:updateItems()
   end
 end
 
@@ -351,19 +351,20 @@ function TextEditor:removeFromHistory(file_path)
 end
 
 function TextEditor:addToHistory(file_path)
-  local new_history = {}
-  table.insert(new_history, file_path)
+  table.insert(self.history, 1, file_path)
   -- Trim history and cleanup duplicates
-  local seen = {}
-  seen[file_path] = true
-  while #self.history > 0 and #new_history < self.history_keep_size do
-    local item = table.remove(self.history, 1)
-    if not seen[item] then
-      table.insert(new_history, item)
-      seen[item] = true
+  for i, v in ipairs(self.history) do
+    if i > 1 then
+      if v == file_path then
+        table.remove(self.history, i)
+        return
+      end
     end
   end
-  self.history = new_history
+  -- Otherwise remove the last one if count is over the limit.
+  if #self.history > self.history_keep_size then
+    table.remove(self.history)
+  end
 end
 
 function TextEditor:newFile()
@@ -615,7 +616,7 @@ function TextEditor:editFile(file_path, readonly)
       end
     end,
     -- File restoring callback
-    reset_callback = function(content) -- Will add a Reset button
+    reset_callback = function(_content) -- Will add a Reset button
       return util.readFromFile(file_path, "rb") or "",
         gettext("Text reset to last saved content")
     end,
@@ -633,7 +634,7 @@ function TextEditor:editFile(file_path, readonly)
       end
     end,
     -- File saving callback
-    save_callback = function(content, closing) -- Will add Save/Close buttons
+    save_callback = function(content, _closing) -- Will add Save/Close buttons
       if readonly then
         -- We shouldn't be called if read-only, but just in case
         return false, gettext("File is read only")
@@ -741,12 +742,6 @@ end
 
 -- quickly open and edit a file
 -- calls the done_callback function on close
-function TextEditor:quickEditFile(file_path, done_callback, possible_new_file)
-  if done_callback then
-    self.whenDoneFunc = done_callback
-  end
-  self:checkEditFile(file_path, possible_new_file or false)
-end
 
 -- TitleBar left button tap
 function TextEditor:showMenu()

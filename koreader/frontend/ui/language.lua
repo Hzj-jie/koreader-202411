@@ -4,7 +4,6 @@ local gettext = require("gettext")
 
 local Language = {
   language_names = {
-    C = "English",
     en = "English",
     en_GB = "English (United Kingdom)",
     ca = "Catalá",
@@ -95,7 +94,7 @@ end
 function Language:changeLanguage(lang_locale)
   local UIManager = require("ui/uimanager")
   gettext.changeLang(lang_locale)
-  G_reader_settings:save("language", lang_locale)
+  G_reader_settings:save("language", lang_locale, "en")
   UIManager:askForRestart(
     gettext(
       "Please restart KOReader for the new language setting to take effect."
@@ -107,10 +106,11 @@ function Language:genLanguageSubItem(lang_locale)
   return {
     text = self:getLanguageName(lang_locale),
     checked_func = function()
-      if lang_locale == "C" then
-        lang_locale = "en"
+      local current_lang = G_reader_settings:read("language") or "en"
+      if current_lang == "C" then
+        current_lang = "en"
       end
-      return (G_reader_settings:read("language") or "en") == lang_locale
+      return current_lang == lang_locale
     end,
     callback = function()
       self:changeLanguage(lang_locale)
@@ -126,7 +126,7 @@ function Language:getLangMenuTable()
       text = gettext("Language"),
       -- NOTE: language with no translation are commented out for now
       sub_item_table = {
-        self:genLanguageSubItem("C"),
+        self:genLanguageSubItem("en"),
         self:genLanguageSubItem("en_GB"),
         self:genLanguageSubItem("ca"),
         self:genLanguageSubItem("cs"),

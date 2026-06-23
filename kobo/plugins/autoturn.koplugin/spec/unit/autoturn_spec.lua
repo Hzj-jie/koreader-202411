@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/autoturn.koplugin/spec/unit/autoturn_spec.lua

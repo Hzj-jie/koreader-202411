@@ -149,16 +149,10 @@ function InputContainer:unRegisterTouchZones(zones)
         self.touch_zone_dg:removeNode(zone.id)
         if zone.overrides then
           for _, override_zone_id in ipairs(zone.overrides) do
-            --self.touch_zone_dg:removeNodeDep(override_zone_id, zone.id)
             self.touch_zone_dg:removeNodeDep(override_zone_id, zone.id)
           end
         end
-        for _, id in ipairs(self._ordered_touch_zones) do
-          if id.def.id == zone.id then
-            table.remove(self._ordered_touch_zones, i)
-            break
-          end
-        end
+        self._zones[zone.id] = nil
       end
     end
     self._ordered_touch_zones = {}
@@ -167,14 +161,6 @@ function InputContainer:unRegisterTouchZones(zones)
         table.insert(self._ordered_touch_zones, self._zones[zone_id])
       end
     end
-  end
-end
-
-function InputContainer:checkRegisterTouchZone(id)
-  if self.touch_zone_dg then
-    return self.touch_zone_dg:checkNode(id)
-  else
-    return false
   end
 end
 
@@ -233,13 +219,11 @@ function InputContainer:onGesture(ev)
       end
     end
   end
-  if self.stop_events_propagation then
-    return true
-  end
+  return self:isShownModal()
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered
-function InputContainer:_isGestureAlwaysActive(ges, multiswipe_directions)
+function InputContainer:_isGestureAlwaysActive(_ges, _multiswipe_directions)
   -- If the plugin isn't enabled, IgnoreTouchInput can still be emitted by Dispatcher (e.g., via Profile or QuickMenu).
   -- Regardless of that, we still want to block all gestures anyway, as our own onResume handler will ensure
   -- that the standard onGesture handler is restored on the next resume cycle,
@@ -359,7 +343,7 @@ function InputContainer:onInput(input, ignore_first_hold_release)
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
   self.input_dialog:showKeyboard(ignore_first_hold_release)
 end
 

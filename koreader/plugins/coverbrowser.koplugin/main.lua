@@ -103,7 +103,6 @@ function CoverBrowser:init()
   )
   series_mode = BookInfoManager:getSetting("series_mode")
   init_done = true
-  BookInfoManager:closeDbConnection() -- will be re-opened if needed
 end
 
 function CoverBrowser:addToMainMenu(menu_items)

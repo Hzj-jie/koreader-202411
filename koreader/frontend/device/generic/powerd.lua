@@ -48,11 +48,11 @@ end
 
 function BasePowerD:init() end
 --- @note: This should *always* call self:_decideFrontlightState() in its coda (unless you have a custom isFrontlightOn implementation)!
-function BasePowerD:setIntensityHW(intensity)
+function BasePowerD:setIntensityHW(_intensity)
   self:_decideFrontlightState()
 end
 --- @note: Unlike the "public" setWarmth, this one takes a value in the *native* scale!
-function BasePowerD:setWarmthHW(warmth) end
+function BasePowerD:setWarmthHW(_warmth) end
 function BasePowerD:getCapacityHW()
   return 0
 end
@@ -85,13 +85,13 @@ end
 --- @note: done_callback is used to display Notifications,
 ---        some implementations *may* need to handle it themselves because of timing constraints,
 ---        in which case they should return *true* here, so that the public API knows not to consume the callback early.
-function BasePowerD:turnOffFrontlightHW(done_callback)
+function BasePowerD:turnOffFrontlightHW(_done_callback)
   self:setIntensityHW(self.fl_min)
 
   -- Nothing fancy required, so we leave done_callback handling to the public API
   return false
 end
-function BasePowerD:turnOnFrontlightHW(done_callback)
+function BasePowerD:turnOnFrontlightHW(_done_callback)
   --- @fixme: what if fl_intensity == fl_min (c.f., kindle)?
   self:setIntensityHW(self.fl_intensity)
 
@@ -125,7 +125,7 @@ function BasePowerD:UIManagerReady(uimgr)
   self:UIManagerReadyHW(uimgr)
 end
 -- Ditto, but for implementations
-function BasePowerD:UIManagerReadyHW(uimgr) end
+function BasePowerD:UIManagerReadyHW(_uimgr) end
 
 function BasePowerD:isFrontlightOn()
   return self.is_fl_on

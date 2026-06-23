@@ -152,7 +152,7 @@ end
 
 -- remove a book from our books table
 function CalibreMetadata:removeBook(lpath)
-  local function drop_lpath(t, i, j)
+  local function drop_lpath(t, i, _j)
     return t[i].lpath ~= lpath
   end
   util.arrayRemove(self.books, drop_lpath)

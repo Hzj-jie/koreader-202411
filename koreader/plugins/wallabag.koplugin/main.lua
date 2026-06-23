@@ -223,8 +223,8 @@ function Wallabag:addToMainMenu(menu_items)
               return T(gettext("Set download folder: %1"), BD.dirpath(path))
             end,
             keep_menu_open = true,
-            callback = function(touchmenu_instance)
-              self:setDownloadDirectory(touchmenu_instance)
+            callback = function(menu)
+              self:setDownloadDirectory(menu)
             end,
             separator = true,
           },
@@ -239,8 +239,8 @@ function Wallabag:addToMainMenu(menu_items)
               return T(gettext("Filter articles by tag: %1"), filter)
             end,
             keep_menu_open = true,
-            callback = function(touchmenu_instance)
-              self:setFilterTag(touchmenu_instance)
+            callback = function(menu)
+              self:setFilterTag(menu)
             end,
           },
           {
@@ -251,9 +251,9 @@ function Wallabag:addToMainMenu(menu_items)
               return T(gettext("Ignore tags (%1)"), self.ignore_tags)
             end,
             keep_menu_open = true,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               self:setTagsDialog(
-                touchmenu_instance,
+                menu,
                 gettext("Tags to ignore"),
                 gettext("Enter a comma-separated list of tags to ignore."),
                 self.ignore_tags,
@@ -271,9 +271,9 @@ function Wallabag:addToMainMenu(menu_items)
               return T(gettext("Automatic tags (%1)"), self.auto_tags)
             end,
             keep_menu_open = true,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               self:setTagsDialog(
-                touchmenu_instance,
+                menu,
                 gettext("Tags to automatically add"),
                 gettext(
                   "Enter a comma-separated list of tags to automatically add to new articles."
@@ -1106,8 +1106,7 @@ function Wallabag:getArticleID(path)
     logger.warn("Wallabag: getArticleID: no match! ")
     return
   end
-  local id = path:sub(offset + prefix_len, endpos - 1)
-  return id
+  return path:sub(offset + prefix_len, endpos - 1)
 end
 
 function Wallabag:refreshCurrentDirIfNeeded()
@@ -1116,7 +1115,7 @@ function Wallabag:refreshCurrentDirIfNeeded()
   end
 end
 
-function Wallabag:setFilterTag(touchmenu_instance)
+function Wallabag:setFilterTag(menu)
   self.tag_dialog = InputDialog:new({
     title = gettext("Set a single tag to filter articles on"),
     input = self.filter_tag,
@@ -1135,7 +1134,7 @@ function Wallabag:setFilterTag(touchmenu_instance)
           callback = function()
             self.filter_tag = self.tag_dialog:getInputText()
             self:saveSettings()
-            touchmenu_instance:updateItems()
+            menu:updateItems()
             UIManager:close(self.tag_dialog)
           end,
         },
@@ -1145,13 +1144,7 @@ function Wallabag:setFilterTag(touchmenu_instance)
   UIManager:show(self.tag_dialog)
 end
 
-function Wallabag:setTagsDialog(
-  touchmenu_instance,
-  title,
-  description,
-  value,
-  callback
-)
+function Wallabag:setTagsDialog(menu, title, description, value, callback)
   self.tags_dialog = InputDialog:new({
     title = title,
     description = description,
@@ -1171,7 +1164,7 @@ function Wallabag:setTagsDialog(
           callback = function()
             callback(self.tags_dialog:getInputText())
             self:saveSettings()
-            touchmenu_instance:updateItems()
+            menu:updateItems()
             UIManager:close(self.tags_dialog)
           end,
         },
@@ -1291,15 +1284,15 @@ function Wallabag:editClientSettings()
   UIManager:show(self.client_settings_dialog)
 end
 
-function Wallabag:setDownloadDirectory(touchmenu_instance)
+function Wallabag:setDownloadDirectory(menu)
   require("ui/downloadmgr")
     :new({
       onConfirm = function(path)
         logger.dbg("Wallabag: set download directory to: ", path)
         self.directory = path
         self:saveSettings()
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
     })
@@ -1339,14 +1332,6 @@ function Wallabag:readSettings()
     LuaSettings:open(DataStorage:getSettingsDir() .. "/wallabag.lua")
   wb_settings:readTableRef("wallabag")
   return wb_settings
-end
-
-function Wallabag:saveWBSettings(setting)
-  if not self.wb_settings then
-    self.wb_settings = self:readSettings()
-  end
-  self.wb_settings:save("wallabag", setting)
-  self.wb_settings:flush()
 end
 
 function Wallabag:addWallabagArticle(article_url)

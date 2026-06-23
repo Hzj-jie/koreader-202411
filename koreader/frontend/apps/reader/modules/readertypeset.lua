@@ -200,13 +200,8 @@ function ReaderTypeset:genStyleSheetMenu()
       callback = function()
         self:setStyleSheet(css_file or self.ui.document.default_css)
       end,
-      hold_callback = function(touchmenu_instance)
-        self:makeDefaultStyleSheet(
-          css_file,
-          text,
-          description,
-          touchmenu_instance
-        )
+      hold_callback = function(menu)
+        self:makeDefaultStyleSheet(css_file, text, description, menu)
       end,
       checked_func = function()
         if not css_file then -- "Auto"
@@ -387,15 +382,6 @@ function ReaderTypeset:setStyleSheet(new_css)
 end
 
 -- Not used
-function ReaderTypeset:setEmbededStyleSheetOnly()
-  if self.css ~= nil then
-    -- clear applied css
-    self.ui.document:setStyleSheet("")
-    self.ui.document:setEmbeddedStyleSheet(1)
-    self.css = nil
-    UIManager:broadcastEvent(Event:new("UpdatePos"))
-  end
-end
 
 -- crengine enhanced block rendering feature/flags (see crengine/include/lvrend.h):
 --                                               legacy flat book web
@@ -460,7 +446,7 @@ function ReaderTypeset:setBlockRenderingMode(mode)
   UIManager:broadcastEvent(Event:new("UpdatePos"))
 end
 
-function ReaderTypeset:ensureSanerBlockRenderingFlags(mode)
+function ReaderTypeset:ensureSanerBlockRenderingFlags(_mode)
   -- Called by ReaderRolling:onReadSettings() when old
   -- DOM version requested, before normalized xpointers,
   -- asking us to unset some of the flags set previously.
@@ -476,12 +462,7 @@ function ReaderTypeset:addToMainMenu(menu_items)
   }
 end
 
-function ReaderTypeset:makeDefaultStyleSheet(
-  css,
-  name,
-  description,
-  touchmenu_instance
-)
+function ReaderTypeset:makeDefaultStyleSheet(css, name, description, menu)
   local text = self.ui.document.is_fb2
       and T(
         gettext("Set default style for FB2 documents to %1?"),
@@ -491,7 +472,7 @@ function ReaderTypeset:makeDefaultStyleSheet(
   if description then
     text = text .. "\n\n" .. description
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     ok_callback = function()
       if self.ui.document.is_fb2 then
@@ -499,8 +480,8 @@ function ReaderTypeset:makeDefaultStyleSheet(
       else
         G_reader_settings:save("copt_css", css)
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   }))
@@ -569,7 +550,10 @@ function ReaderTypeset:onSetPageTopAndBottomMargin(
   )
 end
 
-function ReaderTypeset:onSyncPageTopBottomMargins(toggle, when_applied_callback)
+function ReaderTypeset:onSyncPageTopBottomMargins(
+  _toggle,
+  when_applied_callback
+)
   self.sync_t_b_page_margins = not self.sync_t_b_page_margins
   if self.sync_t_b_page_margins then
     -- Adjust current top and bottom margins if needed
@@ -621,7 +605,7 @@ function ReaderTypeset:onSetPageMargins(margins, when_applied_callback)
     -- Provided when hide_on_apply, and ConfigDialog temporarily hidden:
     -- show an InfoMessage with the unscaled & scaled values,
     -- and call when_applied_callback on dismiss
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = T(
         gettext([[
 Margins set to:

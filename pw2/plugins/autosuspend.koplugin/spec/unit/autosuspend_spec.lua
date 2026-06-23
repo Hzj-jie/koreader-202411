@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua

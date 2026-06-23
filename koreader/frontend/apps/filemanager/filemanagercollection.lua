@@ -89,7 +89,7 @@ function FileManagerCollection:onShowColl(collection_name)
     self.coll_menu = nil
   end
   self:updateItemTable()
-  UIManager:show(self.coll_menu)
+  self:showWidget(self.coll_menu)
   return true
 end
 
@@ -233,7 +233,7 @@ function FileManagerCollection:onMenuHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(self.collfile_dialog)
+  self:showWidget(self.collfile_dialog)
   return true
 end
 
@@ -282,7 +282,7 @@ function FileManagerCollection:showCollDialog()
               end
             end,
           })
-          UIManager:show(path_chooser)
+          self:showWidget(path_chooser)
         end,
       },
     },
@@ -314,7 +314,7 @@ function FileManagerCollection:showCollDialog()
   coll_dialog = ButtonDialog:new({
     buttons = buttons,
   })
-  UIManager:show(coll_dialog)
+  self:showWidget(coll_dialog)
 end
 
 function FileManagerCollection:sortCollection()
@@ -332,7 +332,7 @@ function FileManagerCollection:sortCollection()
       self:updateItemTable()
     end,
   })
-  UIManager:show(sort_widget)
+  self:showWidget(sort_widget)
 end
 
 function FileManagerCollection:onBookMetadataChanged()
@@ -390,7 +390,7 @@ function FileManagerCollection:onShowCollList(
     end
   end
   self:updateCollListItemTable(true) -- init
-  UIManager:show(self.coll_list)
+  self:showWidget(self.coll_list)
   return true
 end
 
@@ -492,7 +492,7 @@ function FileManagerCollection:onCollListHold(item)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
   return true
 end
 
@@ -567,7 +567,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
   button_dialog = ButtonDialog:new({
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function FileManagerCollection:editCollectionName(editCallback, old_name)
@@ -593,7 +593,7 @@ function FileManagerCollection:editCollectionName(editCallback, old_name)
               return
             end
             if ReadCollection.coll[new_name] then
-              UIManager:show(InfoMessage:new({
+              self:showWidget(InfoMessage:new({
                 text = T(gettext("Collection already exists: %1"), new_name),
               }))
             else
@@ -640,7 +640,7 @@ function FileManagerCollection:renameCollection(item)
 end
 
 function FileManagerCollection:removeCollection(item)
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = gettext("Remove collection?") .. "\n\n" .. item.text,
     ok_text = gettext("Remove"),
     ok_callback = function()
@@ -662,7 +662,7 @@ function FileManagerCollection:sortCollections()
       self:updateCollListItemTable(true) -- init
     end,
   })
-  UIManager:show(sort_widget)
+  self:showWidget(sort_widget)
 end
 
 -- external

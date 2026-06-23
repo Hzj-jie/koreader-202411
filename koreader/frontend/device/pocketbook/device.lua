@@ -425,7 +425,7 @@ function PocketBook:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function PocketBook:setEventHandlers(uimgr)
+function PocketBook:setEventHandlers(_uimgr)
   -- Only fg/bg state plugin notifiers, not real power event.
   UIManager.event_handlers.Suspend = function()
     self.powerd:beforeSuspend()
@@ -671,7 +671,7 @@ local PocketBook634K3 = PocketBook:extend({
   hasNaturalLight = util.yes,
 })
 
-function PocketBook634K3._fb_init(fb, finfo, vinfo)
+function PocketBook634K3._fb_init(_fb, _finfo, vinfo)
   vinfo.bits_per_pixel = 24
 end
 
@@ -716,7 +716,7 @@ local PocketBook700K3 = PocketBook:extend({
   inkview_translates_buttons = true,
 })
 
-function PocketBook700K3._fb_init(fb, finfo, vinfo)
+function PocketBook700K3._fb_init(_fb, _finfo, vinfo)
   -- Pocketbook Color Lux reports bits_per_pixel = 8, but actually uses an RGB24 framebuffer
   vinfo.bits_per_pixel = 24
 end
@@ -758,7 +758,7 @@ local PocketBook741 = PocketBook:extend({
   usingForcedRotation = landscape_ccw,
 })
 
-function PocketBook741._fb_init(fb, finfo, vinfo)
+function PocketBook741._fb_init(_fb, _finfo, vinfo)
   -- Pocketbook Color Lux reports bits_per_pixel = 8, but actually uses an RGB24 framebuffer
   vinfo.bits_per_pixel = 24
 end
@@ -775,7 +775,7 @@ local PocketBook743C = PocketBook:extend({
   hasNaturalLight = util.yes,
 })
 
-function PocketBook743C._fb_init(fb, finfo, vinfo)
+function PocketBook743C._fb_init(_fb, _finfo, vinfo)
   -- Pocketbook Color Lux reports bits_per_pixel = 8, but actually uses an RGB24 framebuffer
   vinfo.bits_per_pixel = 24
 end
@@ -793,7 +793,7 @@ local PocketBook743K3 = PocketBook:extend({
   hasNaturalLight = util.yes,
 })
 
-function PocketBook743K3._fb_init(fb, finfo, vinfo)
+function PocketBook743K3._fb_init(_fb, _finfo, vinfo)
   -- Pocketbook Color Lux reports bits_per_pixel = 8, but actually uses an RGB24 framebuffer
   vinfo.bits_per_pixel = 24
 end
@@ -819,7 +819,7 @@ function PocketBookColorLux:_model_init()
   self.screen.blitbuffer_rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
   self.screen.native_rotation_mode = self.screen.DEVICE_ROTATED_UPRIGHT
 end
-function PocketBookColorLux._fb_init(fb, finfo, vinfo)
+function PocketBookColorLux._fb_init(fb, _finfo, vinfo)
   -- Pocketbook Color Lux reports bits_per_pixel = 8, but actually uses an RGB24 framebuffer
   vinfo.bits_per_pixel = 24
   vinfo.xres = vinfo.xres / 3

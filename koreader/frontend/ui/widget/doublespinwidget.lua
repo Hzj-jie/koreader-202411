@@ -336,7 +336,7 @@ function DoubleSpinWidget:update(
     self.movable:setMovedOffset(prev_movable_offset)
   end
   self:refocusWidget()
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return "ui", self.widget_frame.dimen
   end)
 end

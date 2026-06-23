@@ -203,33 +203,25 @@ function NetworkListener:onShowNetworkInfo()
   end
   if not NetworkMgr:isConnected() then
     -- User action, interactive == true.
-    NetworkMgr:reconnectOrShowNetworkMenu(nil, true)
+    NetworkMgr:reconnect(nil, true)
     return
   end
   if Device.retrieveNetworkInfo then
-    UIManager:runWith(
-      function()
-        -- Since it's running with some display hints, we can spend some time to
-        -- query the online state again in case the network dropped between two
-        -- online state checks.
-        NetworkMgr:queryOnlineState()
-        -- Need localization.
-        UIManager:show(InfoMessage:new({
-          -- Need localization.
-          text = table.concat(Device:retrieveNetworkInfo(), "\n")
-            .. "\n"
-            .. gettext("Internet")
-            .. " "
-            .. (
-              NetworkMgr:isOnline() and gettext("online") or gettext("offline")
-            ),
-          -- IPv6 addresses are *loooooong*!
-          face = Font:getFace("x_smallinfofont"),
-        }))
-      end,
-      -- Need localization.
-      gettext("Retrieving network information…")
-    )
+    UIManager:runWith(function()
+      -- Since it's running with some display hints, we can spend some time to
+      -- query the online state again in case the network dropped between two
+      -- online state checks.
+      NetworkMgr:queryOnlineState()
+      UIManager:show(InfoMessage:new({
+        text = table.concat(Device:retrieveNetworkInfo(), "\n")
+          .. "\n"
+          .. gettext("Internet")
+          .. " "
+          .. (NetworkMgr:isOnline() and gettext("online") or gettext("offline")),
+        -- IPv6 addresses are *loooooong*!
+        face = Font:getFace("x_smallinfofont"),
+      }))
+    end, gettext("Retrieving network information…"))
   else
     UIManager:show(InfoMessage:new({
       text = gettext("Could not retrieve network info."),

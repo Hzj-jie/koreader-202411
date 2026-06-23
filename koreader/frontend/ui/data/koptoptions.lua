@@ -512,7 +512,7 @@ The first option ("auto") tries to automatically align reflowed text as it is in
         enabled_func = function(configurable)
           return optionsutil.enableIfEquals(configurable, "text_wrap", 1)
         end,
-        name_text_hold_callback = function(configurable, __, prefix)
+        name_text_hold_callback = function(configurable, _option, prefix)
           local opt = {
             name = "font_size",
             name_text = gettext("Font Size"),

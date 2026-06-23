@@ -81,9 +81,9 @@ local function genKeyboardLayoutsSubmenu()
           end
         end
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         G_reader_settings:save("keyboard_layout_default", lang)
-        touchmenu_instance:updateItems()
+        menu:updateItems()
       end,
     })
   end
@@ -215,8 +215,8 @@ local sub_item_table = {
                   input_dialog._input_widget:closeKeyboard()
                   input_dialog._input_widget:initKeyboard()
                   input_dialog:showKeyboard()
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  if menu then
+                    menu:updateItems()
                   end
                 end
               end,

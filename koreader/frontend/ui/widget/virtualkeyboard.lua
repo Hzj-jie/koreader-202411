@@ -23,6 +23,8 @@ local time = require("ui/time")
 local util = require("util")
 local Screen = Device.screen
 
+local active_instances = 0
+
 local keyboard_state = {
   force_current_layout = false, -- Set to true to get/set current layout (instead of default layout)
 }
@@ -785,7 +787,6 @@ local VirtualKeyboard = FocusManager:extend({
   visible = nil,
   lock_visibility = false,
   covers_footer = true,
-  modal = true,
   disable_double_tap = true,
   inputbox = nil,
   KEYS = nil, -- table to store layouts
@@ -845,7 +846,12 @@ local VirtualKeyboard = FocusManager:extend({
   },
 })
 
+function VirtualKeyboard:isAlwaysOnTop()
+  return true
+end
+
 function VirtualKeyboard:init()
+  assert(self.inputbox, "inputbox is mandatory")
   if self.uwrap_func then
     self.uwrap_func()
     self.uwrap_func = nil
@@ -997,6 +1003,8 @@ function VirtualKeyboard:_refresh(want_flash, fullscreen)
 end
 
 function VirtualKeyboard:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple VirtualKeyboard instances detected!")
   self:_refresh(true)
   self.visible = true
   Device:startTextInput()
@@ -1016,6 +1024,7 @@ function VirtualKeyboard:onClose()
   --     specifically because, given how we propagate events, the key event will go to whichever inputtext comes earlier in the container's array...
   -- c.f., 2ccf7601fe1cbd9794aea0be754ea4166b9767d7 in #12361 and the comments surrounding it ;).
   Device:stopTextInput()
+  active_instances = active_instances - 1
 end
 
 function VirtualKeyboard:lockVisibility(toggle)

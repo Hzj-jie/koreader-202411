@@ -126,7 +126,7 @@ function CloudStorage:selectCloudType()
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(self.cloud_dialog)
+  self:showWidget(self.cloud_dialog)
   return true
 end
 
@@ -183,7 +183,7 @@ function CloudStorage:openCloudServer(url)
     return true
   else
     logger.err("CloudStorage:", e)
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         "Cannot fetch list of folder contents\nPlease check your configuration or network connection."
       ),
@@ -249,7 +249,7 @@ function CloudStorage:downloadFile(item)
         )
       end
     end)
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Downloading. This might take a moment."),
       timeout = 1,
     }))
@@ -345,7 +345,7 @@ function CloudStorage:downloadFile(item)
             self:onExit()
           end
           if lfs.attributes(path_dir) then
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = gettext(
                 "File already exists. Would you like to overwrite it?"
               ),
@@ -379,7 +379,7 @@ function CloudStorage:downloadFile(item)
     title = createTitle(filename_orig, filename, download_dir),
     buttons = buttons,
   })
-  UIManager:show(self.download_dialog)
+  self:showWidget(self.download_dialog)
 end
 
 function CloudStorage:updateSyncFolder(item, source, dest)
@@ -432,7 +432,7 @@ function CloudStorage:onMenuHold(item)
         },
       },
     })
-    UIManager:show(button_dialog)
+    self:showWidget(button_dialog)
   end
   if item.editable then
     local cs_server_dialog
@@ -484,7 +484,7 @@ function CloudStorage:onMenuHold(item)
     cs_server_dialog = ButtonDialog:new({
       buttons = buttons,
     })
-    UIManager:show(cs_server_dialog)
+    self:showWidget(cs_server_dialog)
     return true
   end
 end
@@ -530,13 +530,13 @@ function CloudStorage:synchronizeCloud(item)
                 )
             end
           end
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = text,
             timeout = 3,
           }))
         else
           Trapper:reset() -- close any last widget not cleaned if error
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = gettext(
               "No files to download from Dropbox.\nPlease check your configuration and connection."
             ),
@@ -673,7 +673,7 @@ function CloudStorage:synchronizeSettings(item)
       },
     },
   })
-  UIManager:show(syn_dialog)
+  self:showWidget(syn_dialog)
 end
 
 function CloudStorage:showPlusMenu(url)
@@ -710,7 +710,7 @@ function CloudStorage:showPlusMenu(url)
       },
     },
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function CloudStorage:uploadFile(url)
@@ -724,7 +724,7 @@ function CloudStorage:uploadFile(url)
         self.last_path = "/"
       end
       if lfs.attributes(file_path, "size") > 157286400 then
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = gettext("File size must be less than 150 MB."),
         }))
       else
@@ -732,7 +732,7 @@ function CloudStorage:uploadFile(url)
           self:openCloudServer(url)
         end
         UIManager:nextTick(function()
-          UIManager:show(InfoMessage:new({
+          self:showWidget(InfoMessage:new({
             text = gettext("Uploading…"),
             timeout = 1,
           }))
@@ -760,7 +760,7 @@ function CloudStorage:uploadFile(url)
       end
     end,
   })
-  UIManager:show(path_chooser)
+  self:showWidget(path_chooser)
 end
 
 function CloudStorage:createFolder(url)

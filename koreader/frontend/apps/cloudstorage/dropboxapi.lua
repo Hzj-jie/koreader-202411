@@ -333,6 +333,7 @@ function DropBoxApi:fetchAdditionalFolders(response, token)
     end
   until not result.has_more
 
+  out.has_more = false
   return out
 end
 

@@ -39,13 +39,9 @@ local formatter_buttons = {
   { gettext("Underline (with <u></u> tags)"), "underline_u_tag" },
 }
 
-function MarkdownExporter:editFormatStyle(
-  drawer_style,
-  label,
-  touchmenu_instance
-)
+function MarkdownExporter:editFormatStyle(drawer_style, label, menu)
   local radio_buttons = {}
-  for _idx, v in ipairs(formatter_buttons) do
+  for _, v in ipairs(formatter_buttons) do
     table.insert(radio_buttons, {
       {
         text = v[1],
@@ -60,7 +56,7 @@ function MarkdownExporter:editFormatStyle(
     radio_buttons = radio_buttons,
     callback = function(radio)
       self.settings.formatting_options[drawer_style] = radio.provider
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   }))
 end
@@ -93,7 +89,7 @@ local highlight_style = {
 }
 
 function MarkdownExporter:getMenuTable()
-  local menu = {
+  local menus = {
     text = gettext("Markdown"),
     checked_func = function()
       return self:isEnabled()
@@ -121,8 +117,8 @@ function MarkdownExporter:getMenuTable()
     },
   }
 
-  for _idx, entry in ipairs(highlight_style) do
-    table.insert(menu.sub_item_table, {
+  for _, entry in ipairs(highlight_style) do
+    table.insert(menus.sub_item_table, {
       text_func = function()
         return entry[1]
           .. ": "
@@ -132,12 +128,12 @@ function MarkdownExporter:getMenuTable()
         return self.settings.highlight_formatting
       end,
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
-        self:editFormatStyle(entry[2], entry[1], touchmenu_instance)
+      callback = function(menu)
+        self:editFormatStyle(entry[2], entry[1], menu)
       end,
     })
   end
-  return menu
+  return menus
 end
 
 function MarkdownExporter:export(t)
@@ -146,7 +142,7 @@ function MarkdownExporter:export(t)
   if not file then
     return false
   end
-  for idx, book in ipairs(t) do
+  for _, book in ipairs(t) do
     local tbl = md.prepareBookContent(
       book,
       self.settings.formatting_options,

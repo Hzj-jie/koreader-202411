@@ -139,9 +139,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
   setmetatable(page_table, {
     __index = function(_, key)
       if type(key) ~= "number" then
-        local error_bb =
-          RenderImage:renderImageFile("resources/koreader.png", false)
-        return error_bb
+        return RenderImage:renderImageFile("resources/koreader.png", false)
       else
         local index = key - 1
         local page_url = remote_url:gsub("{pageNumber}", tostring(index))
@@ -184,9 +182,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
         else
           logger.dbg("OPDSBrowser:streamPages: Request failed:", status or code)
           logger.dbg("OPDSBrowser:streamPages: Response headers:", headers)
-          local error_bb =
-            RenderImage:renderImageFile("resources/koreader.png", false)
-          return error_bb
+          return RenderImage:renderImageFile("resources/koreader.png", false)
         end
       end
     end,

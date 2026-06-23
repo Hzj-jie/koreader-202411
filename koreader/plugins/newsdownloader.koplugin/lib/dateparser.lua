@@ -42,18 +42,8 @@ function dateparser.register_format(format_name, format_function)
 end
 
 ---register a date format parsing function
-function dateparser.unregister_format(format_name)
-  if type(format_name) ~= "string" then
-    return nil, "format name must be a string"
-  end
-  formats[format_name] = nil
-end
 
 ---return the function responsible for handling format_name date strings
-function dateparser.get_format_function(format_name)
-  return formats[format_name] or nil,
-    ("format %s not registered"):format(format_name)
-end
 
 ---try to parse date string
 --@param str date string

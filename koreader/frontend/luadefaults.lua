@@ -81,8 +81,14 @@ function LuaDefaults:hasBeenCustomized(key)
 end
 
 --- Checks if setting has NOT been customized.
-function LuaDefaults:hasNotBeenCustomized(key)
-  return self.rw[key] == nil
+if util.isTesting() then
+  function LuaDefaults:hasNotBeenCustomized(key)
+    return self.rw[key] == nil
+  end
+
+  function LuaDefaults:readDefaultSetting(key)
+    return self.ro[key]
+  end
 end
 
 --- Checks if setting is `true` (boolean).
@@ -106,10 +112,6 @@ end
 --- Low-level API for filemanagersetdefaults
 function LuaDefaults:getDataTables()
   return self.ro, self.rw
-end
-
-function LuaDefaults:readDefaultSetting(key)
-  return self.ro[key]
 end
 
 -- NOP unsupported LuaSettings APIs

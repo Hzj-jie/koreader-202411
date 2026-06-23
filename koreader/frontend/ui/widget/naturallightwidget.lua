@@ -19,7 +19,7 @@ local gettext = require("gettext")
 local Screen = Device.screen
 
 local NaturalLightWidget = WidgetContainer:extend({
-  is_always_active = true,
+  modal = true,
   width = nil,
   height = nil,
   textbox_width = 0.1,
@@ -38,7 +38,6 @@ local NaturalLightWidget = WidgetContainer:extend({
 
 function NaturalLightWidget:init()
   self.medium_font_face = Font:getFace("ffont")
-  self.nl_bar = {}
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
   self.span = math.ceil(self.screen_height * 0.01)

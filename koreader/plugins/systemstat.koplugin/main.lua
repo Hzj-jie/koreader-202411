@@ -231,14 +231,12 @@ function SystemStat:appendCounters()
     })
   end
   if self.discharge_time then
-    -- Need localization.
     self:put({
       "  " .. gettext("Start discharging at"),
       datetime.secondsToDateTime(time.to_s(self.discharge_time), nil, true),
     })
   end
   self:put({
-    -- Need localization
     "  " .. gettext("Device model"),
     Device.model,
   })
@@ -250,12 +248,10 @@ function SystemStat:appendCounters()
     self.wakeup_count,
   })
   self:put({ gettext("  Discharge cycles"), self.discharge_count })
-  -- no localization.
   self:put({
     "  " .. gettext("Background jobs"),
     #require("pluginshare").backgroundJobs,
   })
-  -- no localization.
   self:put({
     "  " .. gettext("Pending network jobs"),
     require("ui/network/networklistener"):countsOfPendingJobs(),
@@ -263,7 +259,6 @@ function SystemStat:appendCounters()
       local msg = ""
       local c, o = require("ui/network/networklistener"):pendingJobKeys()
       if #c > 0 then
-        -- Need localization
         msg = msg .. gettext("Pending jobs after being connected")
         for _, k in ipairs(c) do
           msg = msg .. "\n" .. k
@@ -273,7 +268,6 @@ function SystemStat:appendCounters()
         if msg ~= "" then
           msg = msg .. "\n"
         end
-        -- Need localization
         msg = msg .. gettext("Pending jobs after being online")
         for _, k in ipairs(o) do
           msg = msg .. "\n" .. k
@@ -286,6 +280,13 @@ function SystemStat:appendCounters()
       end
     end,
   })
+  local BookInfoManager = package.loaded["bookinfomanager"]
+  if BookInfoManager then
+    self:put({
+      "  " .. gettext("Indexed files"),
+      BookInfoManager:getBookCount(),
+    })
+  end
 end
 
 function SystemStat:awakeSec()
@@ -296,7 +297,6 @@ end
 
 function SystemStat:appendSystemInfo()
   self:put({ gettext("System information"), "" })
-  -- Need localization
   self:put({
     gettext("  Number of processes"),
     self.sys_stat.processes.count,
@@ -326,7 +326,6 @@ function SystemStat:appendSystemInfo()
         .. "%)",
     })
   end
-  -- Need localization
   self:put({ "  " .. gettext("Number of processors"), self.sys_stat.cpu.count })
   -- @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
   self:put({
@@ -345,20 +344,17 @@ function SystemStat:appendSystemInfo()
     })
   end
   if #self.sys_stat.cpu.average > 1 then
-    -- Need localization
     self:put({
       "  " .. gettext("5 minutes usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
     })
   end
   if #self.sys_stat.cpu.average > 2 then
-    -- Need localization
     self:put({
       "  " .. gettext("15 minutes usage %"),
       string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
     })
   end
-  -- Need localization
   self:put({
     "  " .. gettext("Usage % during awake"),
     string.format(
@@ -366,7 +362,6 @@ function SystemStat:appendSystemInfo()
       (1 - self.sys_stat.cpu.idle / self.sys_stat.cpu.total) * 100
     ),
   })
-  -- Need localization
   self:put({
     "  " .. gettext("Usage % since boot"),
     string.format(
@@ -416,7 +411,6 @@ function SystemStat:appendProcessInfo()
     if n2 ~= nil then
       n1 = n1 + n2
     end
-    -- Need localization
     -- Fairly hard for reader.lua to use so much processor resources, do not
     -- change the unit to millions.
     self:put({ "  " .. gettext("Total ticks"), n1 })
@@ -432,7 +426,6 @@ function SystemStat:appendProcessInfo()
   if #t < 19 then
     return
   end
-  -- Need localization
   self:put({ "  " .. gettext("Priority / nice"), t[18] .. " / " .. t[19] })
 
   if #t < 20 then

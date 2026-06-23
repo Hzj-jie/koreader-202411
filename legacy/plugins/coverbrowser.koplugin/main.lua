@@ -1,1 +1,0 @@
-../../../koreader/plugins/coverbrowser.koplugin/main.lua

@@ -482,7 +482,7 @@ Note that your selected font size is not affected by this setting.]]
         event = "ChangeSize",
         args = { -0.5, 0.5 },
         alternate = false,
-        name_text_hold_callback = function(configurable, __, prefix)
+        name_text_hold_callback = function(configurable, _option, prefix)
           local opt = {
             name = "font_size",
             name_text = gettext("Font Size"),
@@ -731,7 +731,7 @@ Note that your selected font size is not affected by this setting.]]
 - +3 will use the "Bold (700)" variation of a font if available.
 If a font variation is not available, as well as for fractional adjustments, it will be synthesized from the nearest available weight.]]
         ),
-        help_text_func = function(configurable, document)
+        help_text_func = function(_configurable, document)
           local cre = require("document/credocument"):engineInit()
           local font_face = document:getFontFace()
           local available_weights =
@@ -847,7 +847,7 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
           [[Enable or disable the use of the fonts embedded in the book.
 (Disabling the fonts specified in the publisher stylesheets can also be achieved via Style Tweaks in the main menu.)]]
         ),
-        help_text_func = function(configurable, document)
+        help_text_func = function(_configurable, document)
           local font_list = document:getEmbeddedFontList()
           if next(font_list) then
             local font_details = {}

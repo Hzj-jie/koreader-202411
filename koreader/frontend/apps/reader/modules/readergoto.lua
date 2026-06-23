@@ -95,7 +95,7 @@ function ReaderGoto:onShowSkimtoDialog()
       self:onShowGotoDialog()
     end,
   })
-  UIManager:show(self.skimto)
+  self:showWidget(self.skimto)
 end
 
 function ReaderGoto:close()

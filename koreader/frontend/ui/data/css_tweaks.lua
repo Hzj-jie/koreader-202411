@@ -335,6 +335,11 @@ You may also want to enable, in the top menu → Gear → Taps and gestures → 
         css = [[body { direction: rtl !important; }]],
         priority = 2, -- so it overrides the LTR one below
       },
+      -- {
+      --   id = "body_writing_mode_vertical_rl",
+      --   title = gettext("Traditional Chinese vertial and RTL"),
+      --   css = [[body { writing-mode: vertical-rl !important; }]],
+      -- },
       {
         id = "text_align_most_right",
         conflicts_with = "text_align_all_right",
@@ -774,7 +779,6 @@ width: 100% !important;
       },
       {
         id = "almost_image_full_width",
-        -- Need localization
         title = gettext("Almost full-width images"),
         description = gettext(
           "Useful for books containing only images, when they are smaller than your screen. May stretch images in some cases."

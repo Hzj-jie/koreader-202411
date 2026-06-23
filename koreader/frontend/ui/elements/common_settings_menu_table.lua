@@ -163,9 +163,7 @@ if Device:isTouchDevice() then
 end
 
 common_settings.disable_out_of_order_tap = {
-  -- Need localization
   text = gettext("Disable out of order interactions"),
-  -- Need localization
   help_text = gettext(
     "Disallow taps or keyboard presses being sent to the UI elements before they are showing up.\nE-ink screens are slow and take noticeable time to update the content. Users may feel laggy, tap the screen or press the keyboard multiple times, and cause the following actions to interact with the unshown UI elements and trigger unexpected actions.\nThis feature decides if a user action is expected or caused by the delay of screen refreshing, and drops the unexpected ones.\nIt's highly suggested keeping this configuration enabled unless you feel the UI interactions are less responsive."
   ),
@@ -600,7 +598,6 @@ Setting it to some interval may help prevent losing new settings/sidecar data af
 end
 
 common_settings.document_auto_save = {
-  -- Need localization
   text = gettext("Periodically save reading progress"),
   help_text = auto_save_help_text(),
   checked_func = function()
@@ -656,7 +653,7 @@ common_settings.document_end_action = {
     {
       text = gettext("Open next file"),
       enabled_func = function()
-        return G_reader_settings:read("collate") ~= "access"
+        return G_named_settings.collate() ~= "access"
       end,
       checked_func = function()
         return G_reader_settings:read("end_document_action") == "next_file"

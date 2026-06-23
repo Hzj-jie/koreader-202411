@@ -146,8 +146,7 @@ function IME:uniqueMap(code)
       end
     end
     local next_code = self.sorted_codes[idx + 1]
-    local unique = next_code:sub(1, #code) ~= code
-    return unique
+    return next_code:sub(1, #code) ~= code
   end
 end
 

@@ -100,14 +100,14 @@ function BookShortcuts:getSubMenuItems()
     {
       text = gettext("New shortcut"),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local path_chooser = PathChooser:new({
           path = G_named_settings.home_dir(),
           onConfirm = function(path)
             self:addShortcut(path)
-            touchmenu_instance.item_table = self:getSubMenuItems()
-            touchmenu_instance.page = 1
-            touchmenu_instance:updateItems()
+            menu.item_table = self:getSubMenuItems()
+            menu.page = 1
+            menu:updateItems()
           end,
         })
         UIManager:show(path_chooser)
@@ -169,15 +169,15 @@ function BookShortcuts:getSubMenuItems()
       callback = function()
         self:onBookShortcut(k)
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         UIManager:show(ConfirmBox:new({
           text = gettext("Do you want to delete this shortcut?"),
           ok_text = gettext("Delete"),
           ok_callback = function()
             self:deleteShortcut(k)
-            touchmenu_instance.item_table = self:getSubMenuItems()
-            touchmenu_instance.page = 1
-            touchmenu_instance:updateItems()
+            menu.item_table = self:getSubMenuItems()
+            menu.page = 1
+            menu:updateItems()
           end,
         }))
       end,

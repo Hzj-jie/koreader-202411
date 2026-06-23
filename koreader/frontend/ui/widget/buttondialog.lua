@@ -59,6 +59,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local util = require("util")
 
+local active_instances = 0
+
 local ButtonDialog = FocusManager:extend({
   buttons = nil,
   width = nil,
@@ -94,14 +96,7 @@ function ButtonDialog:init()
   end
   if self.dismissable then
     if Device:hasKeys() then
-      local back_group = util.tableDeepCopy(Device.input.group.Back)
-      if Device:hasFewKeys() then
-        table.insert(back_group, "Left")
-        self.key_events.Exit = { { back_group } }
-      else
-        table.insert(back_group, "Menu")
-        self.key_events.Exit = { { back_group } }
-      end
+      self.key_events.Exit = { { Device.input.group.Dismiss } }
     end
     if Device:isTouchDevice() then
       self.ges_events.TapClose = {
@@ -279,6 +274,18 @@ function ButtonDialog:setTitle(title)
   UIManager:setDirty("all", "ui")
 end
 
+function ButtonDialog:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple ButtonDialog instances detected!")
+end
+
+function ButtonDialog:onClose()
+  active_instances = active_instances - 1
+  assert(
+    active_instances >= 0,
+    "ButtonDialog active instances count went negative!"
+  )
+end
 function ButtonDialog:onExit()
   if self.tap_close_callback then
     self.tap_close_callback()

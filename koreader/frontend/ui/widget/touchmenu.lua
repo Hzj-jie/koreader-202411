@@ -2,6 +2,7 @@
 TouchMenu widget for hierarchical menus.
 ]]
 local BD = require("ui/bidi")
+local active_instances = 0
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
 local CenterContainer = require("ui/widget/container/centercontainer")
@@ -193,19 +194,15 @@ function TouchMenuItem:onUnfocus()
 end
 
 function TouchMenuItem:_showHelpText()
-  return TouchMenuItem.showHelpText(self.item)
-end
-
-function TouchMenuItem.showHelpText(item)
   local help_text
-  if item.help_text then
-    help_text = item.help_text
-  elseif type(item.help_text_func) == "function" then
-    help_text = item.help_text_func()
+  if self.item.help_text then
+    help_text = self.item.help_text
+  elseif type(self.item.help_text_func) == "function" then
+    help_text = self.item.help_text_func()
   else
     return false
   end
-  UIManager:show(InfoMessage:new({ text = help_text }))
+  self:showWidget(InfoMessage:new({ text = help_text }))
   return true
 end
 
@@ -404,7 +401,7 @@ function TouchMenuBar:init()
           sep.style = current_icon and "solid" or "none"
         end
       end
-      self.menu:switchMenuTab(k)
+      self.menu:_switchMenuTab(k)
     end
 
     table.insert(self.bar_icon_group, self.icon_widgets[k])
@@ -444,7 +441,7 @@ function TouchMenuBar:init()
   })
 end
 
-function TouchMenuBar:switchToTab(index)
+function TouchMenuBar:_switchToTab(index)
   -- a little safety check
   -- don't auto-activate a non-existent index
   if index < 1 then
@@ -487,6 +484,10 @@ local TouchMenu = FocusManager:extend({
 })
 
 function TouchMenu:init()
+  assert(self.tab_item_table, "tab_item_table is mandatory")
+  if not self.width then
+    self.width = Screen:getWidth()
+  end
   -- We won't include self.bordersize in our width calculations, so that
   -- borders are pushed off-(screen-)width and so not visible.
   -- We'll then be similar to bottom menu ConfigDialog (where this
@@ -579,7 +580,7 @@ function TouchMenu:init()
     face = self.fface,
     text_font_bold = false,
     callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = datetime.secondsToDateTime(nil, nil, true),
       }))
     end,
@@ -600,7 +601,7 @@ function TouchMenu:init()
     padding_left = math.floor(footer_width * 0.33 * 0.1),
     padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
-      self:backToUpperMenu()
+      self:_backToUpperMenu()
     end,
   })
   local footer_height = up_button:getSize().h + Size.line.thick
@@ -660,7 +661,12 @@ function TouchMenu:init()
   })
   self.footer_top_margin =
     VerticalSpan:new({ height = Size.span.vertical_default })
-  self.bar:switchToTab(self.last_index or 1)
+  self.bar:_switchToTab(self.last_index or 1)
+end
+
+function TouchMenu:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple TouchMenu instances detected!")
 end
 
 function TouchMenu:onClose()
@@ -675,6 +681,7 @@ function TouchMenu:onClose()
   then
     UIManager:setDirty(nil, "flashui")
   end
+  active_instances = active_instances - 1
 end
 
 function TouchMenu:_recalculatePageLayout()
@@ -816,7 +823,7 @@ function TouchMenu:updateItems()
 end
 
 -- Only called by TouchMenuBar:switchToTab / IconButton.callback.
-function TouchMenu:switchMenuTab(tab_num)
+function TouchMenu:_switchMenuTab(tab_num)
   assert(tab_num >= 1 and tab_num <= #self.tab_item_table)
   if self.tab_item_table[tab_num].remember ~= false then
     self.last_index = tab_num
@@ -837,7 +844,7 @@ function TouchMenu:switchMenuTab(tab_num)
   self:updateItems()
 end
 
-function TouchMenu:backToUpperMenu(no_close)
+function TouchMenu:_backToUpperMenu(no_close)
   if #self.item_table_stack ~= 0 then
     self.item_table = table.remove(self.item_table_stack)
     -- Allow a menu table to refresh itself when going up (ie. from a setting
@@ -886,7 +893,7 @@ function TouchMenu:onNextPage()
         index = 1
       end
     until self.tab_item_table[index].remember ~= false
-    self.bar:switchToTab(index)
+    self.bar:_switchToTab(index)
     assert(self.page == 1)
   end
   self:updateItems()
@@ -905,7 +912,7 @@ function TouchMenu:onPrevPage()
         index = #self.tab_item_table
       end
     until self.tab_item_table[index].remember ~= false
-    self.bar:switchToTab(index)
+    self.bar:_switchToTab(index)
     self.page = self.page_num
   end
   self:updateItems()
@@ -948,7 +955,7 @@ function TouchMenu:onSwipe(arg, ges_ev)
     -- We don't allow the menu to be closed (this is also necessary as
     -- a swipe south will be emitted when done opening the menu with
     -- swipe, as the event handled for that is pan south).
-    self:backToUpperMenu(true)
+    self:_backToUpperMenu(true)
   else
     return false
   end
@@ -1046,11 +1053,11 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     end
     return
   end
-  if TouchMenuItem.showHelpText(item) then
+  if TouchMenuItem:extend({ item = item, menu = self }):_showHelpText() then
     return
   end
   if text_truncated then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = Menu.getMenuText(item),
       show_icon = false,
     }))
@@ -1075,7 +1082,7 @@ function TouchMenu:onExit()
 end
 
 function TouchMenu:onBack()
-  return self:backToUpperMenu()
+  return self:_backToUpperMenu()
 end
 
 -- Menu search feature
@@ -1125,7 +1132,7 @@ function TouchMenu:search(search_for)
   return found_menu_items
 end
 
-function TouchMenu:openMenu(path, with_animation)
+function TouchMenu:_openMenu(path, with_animation)
   local parts = {}
   for part in util.gsplit(path, "%.", false) do -- path is ie. "2.3.3.1"
     table.insert(parts, tonumber(part))
@@ -1182,7 +1189,7 @@ function TouchMenu:openMenu(path, with_animation)
       if self.bar.icon_widgets[tab_nb].image.invert then
         highlightWidget(self.bar.icon_widgets[tab_nb].image, true)
       end
-      self.bar:switchToTab(tab_nb)
+      self.bar:_switchToTab(tab_nb)
       item_nb = table.remove(parts)
       step = STEPS.TARGET_PAGE_OR_HIGHLIGHT_NEXT_PREV
     elseif
@@ -1290,14 +1297,14 @@ function TouchMenu:openMenu(path, with_animation)
             end,
             resend_event = true,
           })
-          UIManager:show(trap_widget)
+          self:showWidget(trap_widget)
           walkStep()
         end
       end
     end,
     resend_event = not with_animation, -- if not animation, don't eat the tap
   })
-  UIManager:show(trap_widget) -- catch taps during animation
+  self:showWidget(trap_widget) -- catch taps during animation
 
   -- Call it: it will reschedule itself if animation; if not, it will
   -- just execute itself without pause until done.
@@ -1317,7 +1324,7 @@ function TouchMenu:onShowMenuSearch()
       local function open_menu(i, animate)
         UIManager:close(self.results_menu_container)
         UIManager:setDirty(nil, "ui")
-        self:openMenu(found_menu_items[i][3], animate)
+        self:_openMenu(found_menu_items[i][3], animate)
       end
       local function item_callback(i)
         local confirm_box
@@ -1341,7 +1348,7 @@ function TouchMenu:onShowMenuSearch()
             },
           },
         })
-        UIManager:show(confirm_box)
+        self:showWidget(confirm_box)
       end
 
       local result_items = {}
@@ -1368,12 +1375,12 @@ function TouchMenu:onShowMenuSearch()
         single_line = true,
         items_per_page = 10,
         items_font_size = Menu.getItemFontSize(10),
-        onMenuSelect = function(item, pos)
+        onMenuSelect = function(_, pos)
           if pos.callback then
             pos.callback()
           end
         end,
-        onMenuHold = function(item, pos)
+        onMenuHold = function(_, pos)
           if pos.hold_callback then
             pos.hold_callback()
           end
@@ -1390,7 +1397,7 @@ function TouchMenu:onShowMenuSearch()
       })
       UIManager:show(self.results_menu_container)
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(gettext("No menus containing '%1' found."), search_string),
       }))
     end
@@ -1418,7 +1425,11 @@ function TouchMenu:onShowMenuSearch()
           callback = function()
             local search_for = search_dialog:getInputText()
             search_for = Utf8Proc.lowercase(search_for)
-            G_reader_settings:save("menu_search_string", search_for)
+            G_reader_settings:save(
+              "menu_search_string",
+              search_for,
+              Utf8Proc.lowercase(gettext("Help"))
+            )
             UIManager:close(search_dialog)
             show_search_results(search_for)
           end,

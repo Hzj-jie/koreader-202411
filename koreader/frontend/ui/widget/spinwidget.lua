@@ -284,7 +284,7 @@ function SpinWidget:update(numberpicker_value, numberpicker_value_index)
     self.movable:setMovedOffset(prev_movable_offset)
   end
   self:refocusWidget()
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return "ui", self.spin_frame.dimen
   end)
 end

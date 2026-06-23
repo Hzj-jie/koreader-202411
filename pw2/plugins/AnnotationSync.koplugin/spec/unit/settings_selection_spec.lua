@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/settings_selection_spec.lua

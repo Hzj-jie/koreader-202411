@@ -27,6 +27,8 @@ function BackgroundTaskPlugin:_start()
     when = self.when,
     repeated = enabled,
     executable = self.executable,
+    callback = self.callback,
+    environment = self.environment,
   })
 end
 

@@ -29,6 +29,8 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
 local serpent = require("ffi/serpent")
 local util = require("util")
+
+local active_instances = 0
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -399,7 +401,7 @@ function ConfigOption:init()
       -- Find out currently selected and default items indexes
       local current_item = nil
       local default_item = self.options[c].default_pos
-      local function value_diff(val1, val2, name)
+      local function value_diff(val1, val2)
         assert(type(val1) == type(val2))
         if type(val1) == "number" then
           return math.abs(val1 - val2)
@@ -417,22 +419,17 @@ function ConfigOption:init()
             or self.config.configurable[self.options[c].name]
           local min_diff
           if type(val) == "table" then
-            min_diff = value_diff(
-              val[1],
-              self.options[c].values[1][1],
-              self.options[c].name
-            )
+            min_diff = value_diff(val[1], self.options[c].values[1][1])
           else
-            min_diff =
-              value_diff(val, self.options[c].values[1], self.options[c].name)
+            min_diff = value_diff(val, self.options[c].values[1])
           end
 
           local diff
           for index, val_ in pairs(self.options[c].values) do
             if type(val) == "table" then
-              diff = value_diff(val[1], val_[1], self.options[c].name)
+              diff = value_diff(val[1], val_[1])
             else
-              diff = value_diff(val, val_, self.options[c].name)
+              diff = value_diff(val, val_)
             end
             if val == val_ then
               current_item = index
@@ -1056,16 +1053,15 @@ function ConfigDialog:init()
     local back_group = util.tableDeepCopy(Device.input.group.Back)
     if Device:hasFewKeys() then
       table.insert(back_group, "Left")
-      self.key_events.Exit = { { back_group } }
     else
       table.insert(back_group, "Menu")
       table.insert(back_group, "AA")
-      self.key_events.Exit = { { back_group } }
     end
+    self.key_events.Exit = { { back_group } }
+    self.key_events.NextPage = { { Device.input.group.PgFwd } }
+    self.key_events.PrevPage = { { Device.input.group.PgBack } }
   end
 end
-
-function ConfigDialog:updateConfigPanel(index) end
 
 function ConfigDialog:update()
   self:moveFocusTo(1, 1, FocusManager.NOT_FOCUS) -- reset selected for re-created layout
@@ -1107,11 +1103,37 @@ function ConfigDialog:update()
   })
 end
 
+function ConfigDialog:onShow()
+  active_instances = active_instances + 1
+  assert(active_instances <= 1, "Multiple ConfigDialog instances detected!")
+end
+
 function ConfigDialog:onClose()
+  active_instances = active_instances - 1
+  assert(
+    active_instances >= 0,
+    "ConfigDialog active instances count went negative!"
+  )
   -- NOTE: As much as we would like to flash here, don't, because of adverse interactions with touchmenu that might lead to a double flash...
   UIManager:setDirty(nil, function()
     return "partial", self.dialog_frame.dimen
   end)
+end
+
+function ConfigDialog:onNextPage()
+  local i = self.panel_index + 1
+  if i > #self.config_options then
+    i = 1
+  end
+  self:showConfigPanel(i)
+end
+
+function ConfigDialog:onPrevPage()
+  local i = self.panel_index - 1
+  if i <= 0 then
+    i = #self.config_options
+  end
+  self:showConfigPanel(i)
 end
 
 function ConfigDialog:showConfigPanel(index)
@@ -1368,7 +1390,7 @@ function ConfigDialog:onConfigMoreChoose(
           ) or default_value_orig[2]
         else
           curr_values = self.configurable[name]
-          local default_values = G_reader_settings:read(
+          local default_values = G_reader_settings:readTable(
             self.config_options.prefix .. "_" .. name
           ) or default_value_orig
           left_default = default_values[1]
@@ -1422,7 +1444,7 @@ function ConfigDialog:onConfigMoreChoose(
             else
               values_string = T("%1, %2", left_value, right_value)
             end
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = T(
                 gettext("Set default %1 to %2?"),
                 (name_text or ""),
@@ -1521,7 +1543,7 @@ function ConfigDialog:onConfigMoreChoose(
             else
               value_string = spin.value
             end
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = T(
                 gettext("Set default %1 to %2?"),
                 (name_text or ""),
@@ -1582,7 +1604,7 @@ function ConfigDialog:onConfigMoreChoose(
             end,
         })
       end
-      UIManager:show(widget)
+      self:showWidget(widget)
     end
     -- Even if skip_paint (to temporarily hide it), we need
     -- to issue setDirty for what's below to be painted
@@ -1614,7 +1636,7 @@ function ConfigDialog:onMakeDefault(name, name_text, values, labels, position)
     )
   end
 
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = T(
       gettext("Set default %1 to %2?"),
       (name_text or ""),
@@ -1637,7 +1659,7 @@ end
 function ConfigDialog:onMakeFineTuneDefault(
   name,
   name_text,
-  values,
+  _values,
   labels,
   direction
 )
@@ -1666,7 +1688,7 @@ function ConfigDialog:onMakeFineTuneDefault(
     display_value = current_value
   end
 
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = T(
       gettext("Set default %1 to %2?"),
       (name_text or ""),

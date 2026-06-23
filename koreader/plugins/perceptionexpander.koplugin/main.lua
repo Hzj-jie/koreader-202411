@@ -208,7 +208,7 @@ function PerceptionExpander:addToMainMenu(menu_items)
   }
 end
 
-function PerceptionExpander:onPageUpdate(pageno)
+function PerceptionExpander:onPageUpdate(_pageno)
   if not self.is_enabled then
     return
   end

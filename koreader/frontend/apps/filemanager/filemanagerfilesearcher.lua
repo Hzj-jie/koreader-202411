@@ -55,7 +55,7 @@ function FileSearcher:onShowFileSearch(search_string)
       and check_button_metadata.checked
     local Trapper = require("ui/trapper")
     Trapper:wrap(function()
-      self:doSearch()
+      self:_executeSearch()
     end)
   end
   search_dialog = InputDialog:new({
@@ -115,7 +115,7 @@ function FileSearcher:onShowFileSearch(search_string)
   return true
 end
 
-function FileSearcher:doSearch()
+function FileSearcher:_executeSearch()
   local search_hash = self.path
     .. (FileSearcher.search_string or "")
     .. tostring(self.case_sensitive)
@@ -159,7 +159,7 @@ function FileSearcher:doSearch()
   if #FileSearcher.search_results > 0 then
     self:onShowSearchResults(not_cached)
   else
-    self:showSearchResultsMessage(true)
+    self:_showSearchResultsMessage(true)
   end
 end
 
@@ -210,7 +210,7 @@ function FileSearcher:getList()
             if self.include_subfolders and not sys_folders[fullpath] then
               table.insert(new_dirs, fullpath)
             end
-            if self:isFileMatch(f, fullpath, search_string) then
+            if self:_isFileMatch(f, fullpath, search_string) then
               table.insert(dirs, { f, fullpath, attributes })
             end
             -- Always ignore macOS resource forks, too.
@@ -222,7 +222,7 @@ function FileSearcher:getList()
             ))
             and FileChooser:show_file(f)
           then
-            if self:isFileMatch(f, fullpath, search_string, true) then
+            if self:_isFileMatch(f, fullpath, search_string, true) then
               table.insert(files, { f, fullpath, attributes })
             end
           end
@@ -234,7 +234,7 @@ function FileSearcher:getList()
   return dirs, files, self.no_metadata_count
 end
 
-function FileSearcher:isFileMatch(filename, fullpath, search_string, is_file)
+function FileSearcher:_isFileMatch(filename, fullpath, search_string, is_file)
   if search_string == "*" then
     return true
   end
@@ -267,11 +267,11 @@ function FileSearcher:isFileMatch(filename, fullpath, search_string, is_file)
   end
 end
 
-function FileSearcher:showSearchResultsMessage(no_results)
+function FileSearcher:_showSearchResultsMessage(no_results)
   local text = no_results
     and T(gettext("No results for '%1'."), FileSearcher.search_string)
   if self.no_metadata_count == 0 then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = text,
       icon = "notice-info",
       ok_text = gettext("File search"),
@@ -291,7 +291,7 @@ function FileSearcher:showSearchResultsMessage(no_results)
       "Not all books metadata extracted yet.\nExtract metadata now?"
     )
     text = no_results and text .. "\n\n" .. txt or txt
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = text,
       ok_text = gettext("Extract"),
       ok_callback = function()
@@ -310,6 +310,8 @@ function FileSearcher:onShowSearchResults(not_cached)
     return
   end
 
+  self.modified = false
+
   self.search_menu = Menu:new({
     subtitle = T(gettext("Query: %1"), FileSearcher.search_string),
     is_borderless = true,
@@ -317,7 +319,7 @@ function FileSearcher:onShowSearchResults(not_cached)
     title_bar_fm_style = true,
     title_bar_left_icon = "appbar.menu",
     onLeftButtonTap = function()
-      self:setSelectMode()
+      self:_setSelectMode()
     end,
     onMenuSelect = self.onMenuSelect,
     onMenuHold = self.onMenuHold,
@@ -327,18 +329,19 @@ function FileSearcher:onShowSearchResults(not_cached)
   self.search_menu.close_callback = function()
     self.selected_files = nil
     UIManager:close(self.search_menu)
-    if self.ui.file_chooser then
+    if self.ui.file_chooser and self.modified then
       self.ui.file_chooser:refreshPath()
     end
+    self.modified = false
   end
-  self:updateMenu(FileSearcher.search_results)
-  UIManager:show(self.search_menu)
+  self:_updateMenu(FileSearcher.search_results)
+  self:showWidget(self.search_menu)
   if not_cached and self.no_metadata_count ~= 0 then
-    self:showSearchResultsMessage()
+    self:_showSearchResultsMessage()
   end
 end
 
-function FileSearcher:updateMenu(item_table)
+function FileSearcher:_updateMenu(item_table)
   item_table = item_table or self.search_menu.item_table
   self.search_menu:switchItemTable(
     T(gettext("Search results (%1)"), #item_table),
@@ -375,7 +378,7 @@ function FileSearcher:showFileDialog(item)
   local function update_item_callback()
     item.mandatory =
       FileChooser:getMenuItemMandatory(item, FileChooser:getCollate())
-    self:updateMenu()
+    self:_updateMenu()
   end
   local buttons = {}
   if item.is_file then
@@ -417,7 +420,8 @@ function FileSearcher:showFileDialog(item)
             UIManager:close(dialog)
             table.remove(FileSearcher.search_results, item.idx)
             table.remove(self.search_menu.item_table, item.idx)
-            self:updateMenu()
+            self:_updateMenu()
+            self.modified = true
           end
           local FileManager = require("apps/filemanager/filemanager")
           FileManager:showDeleteFileDialog(file, post_delete_callback)
@@ -457,7 +461,7 @@ function FileSearcher:showFileDialog(item)
     title = title .. "\n",
     buttons = buttons,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
 end
 
 function FileSearcher:onMenuSelect(item)
@@ -483,16 +487,16 @@ function FileSearcher:onMenuSelect(item)
   return true
 end
 
-function FileSearcher:setSelectMode()
+function FileSearcher:_setSelectMode()
   if self.selected_files then
-    self:showSelectModeDialog()
+    self:_showSelectModeDialog()
   else
     self.selected_files = {}
     self.search_menu:setTitleBarLeftIcon("check")
   end
 end
 
-function FileSearcher:showSelectModeDialog()
+function FileSearcher:_showSelectModeDialog()
   local item_table = self.search_menu.item_table
   local select_count = util.tableSize(self.selected_files)
   local actions_enabled = select_count > 0
@@ -516,7 +520,7 @@ function FileSearcher:showSelectModeDialog()
           for _, item in ipairs(item_table) do
             item.dim = nil
           end
-          self:updateMenu()
+          self:_updateMenu()
         end,
       },
       {
@@ -529,7 +533,7 @@ function FileSearcher:showSelectModeDialog()
               self.selected_files[item.path] = true
             end
           end
-          self:updateMenu()
+          self:_updateMenu()
         end,
       },
     },
@@ -545,7 +549,7 @@ function FileSearcher:showSelectModeDialog()
               item.dim = nil
             end
           end
-          self:updateMenu()
+          self:_updateMenu()
         end,
       },
       {
@@ -554,12 +558,13 @@ function FileSearcher:showSelectModeDialog()
         callback = function()
           UIManager:close(select_dialog)
           local selected_files = self.selected_files
-          self.search_menu.close_callback()
           if self.ui.file_chooser then
             self.ui.selected_files = selected_files
             self.ui.title_bar:setRightIcon("check")
-            self.ui.file_chooser:refreshPath()
-          else -- called from Reader
+            self.modified = true
+          end
+          self.search_menu.close_callback()
+          if not self.ui.file_chooser then
             self.ui:onExit()
             self.ui:showFileManager(self.path .. "/", selected_files)
           end
@@ -572,7 +577,7 @@ function FileSearcher:showSelectModeDialog()
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(select_dialog)
+  self:showWidget(select_dialog)
 end
 
 return FileSearcher

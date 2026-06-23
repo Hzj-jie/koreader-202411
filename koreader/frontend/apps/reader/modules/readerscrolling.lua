@@ -34,7 +34,7 @@ local ReaderScrolling = WidgetContainer:extend({
   pause_before_release_cancel_duration = time.ms(300),
 
   -- Callbacks to be updated by readerrolling or readerpaging
-  _do_scroll_callback = function(distance)
+  _do_scroll_callback = function(_distance)
     return false
   end,
   _scroll_done_callback = function() end,
@@ -162,7 +162,7 @@ This is interesting on eInk if you only pan to better adjust page vertical posit
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local scroll_activation_delay_default_ms =
             self:getDefaultScrollActivationDelay_ms()
           local SpinWidget = require("ui/widget/spinwidget")
@@ -188,12 +188,12 @@ Default value: %1 ms]]),
             callback = function(spin)
               self.scroll_activation_delay_ms = spin.value
               self:applyScrollSettings()
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -313,10 +313,6 @@ function ReaderScrolling:setupTouchZones()
   else
     self.ui:unRegisterTouchZones(zones)
   end
-end
-
-function ReaderScrolling:isInertialScrollingEnabled()
-  return self._inertial_scroll_enabled
 end
 
 function ReaderScrolling:setInertialScrollCallbacks(

@@ -135,6 +135,9 @@ function datetime.secondsToHClock(
 )
   local SECONDS_SYMBOL = '"'
   seconds = tonumber(seconds)
+  if not seconds then
+    return "--"
+  end
   if seconds == 0 then
     if withoutSeconds then
       if hmsFormat then
@@ -144,6 +147,7 @@ function datetime.secondsToHClock(
       end
     else
       if hmsFormat then
+        -- xgettext: no-lua-format
         return T(C_("Time", "%1s"), "0")
       else
         return "0" .. SECONDS_SYMBOL
@@ -165,6 +169,7 @@ function datetime.secondsToHClock(
     else
       if hmsFormat then
         if compact then
+          -- xgettext: no-lua-format
           return T(C_("Time", "%1s"), string.format("%d", seconds))
         else
           return T(
@@ -354,18 +359,27 @@ function datetime.secondsToDateTime(seconds, twelve_hour_clock, use_locale)
     datetime.secondsToHour(seconds, twelve_hour_clock, not use_locale)
 
   -- @translators Use the following placeholders in the desired order: %1 date, %2 time
-  local message_text =
-    T(C_("Date string", "%1 %2"), BD.wrap(date_string), BD.wrap(time_string))
-  return message_text
+  return T(
+    C_("Date string", "%1 %2"),
+    BD.wrap(date_string),
+    BD.wrap(time_string)
+  )
 end
 
 --- Converts a date+time string to seconds
 ---- @string "YYYY-MM-DD HH:MM:SS", time may be absent
 ---- @treturn seconds
 function datetime.stringToSeconds(datetime_string)
+  if not datetime_string or type(datetime_string) ~= "string" then
+    return nil
+  end
   local year, month, day = datetime_string:match("(%d+)-(%d+)-(%d+)")
+  if not year or not month or not day then
+    return nil
+  end
   local hour, min, sec = datetime_string:match("(%d+):(%d+):(%d+)")
-  return os.time({
+  -- Wrap in pcall to protect against platform-specific time epoch overflows (e.g. year > 2038 on 32-bit systems)
+  local ok, seconds = pcall(os.time, {
     year = year,
     month = month,
     day = day,
@@ -373,6 +387,10 @@ function datetime.stringToSeconds(datetime_string)
     min = min or 0,
     sec = sec or 0,
   })
+  if ok then
+    return seconds
+  end
+  return nil
 end
 
 return datetime

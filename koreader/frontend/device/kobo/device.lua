@@ -769,7 +769,6 @@ function Kobo:init()
   end
 
   -- Just to be safe, we absolutely don't want to call open on this, so just use stat
-  self.has_wakeup_count = util.pathExists("/sys/power/wakeup_count")
 
   -- Automagic sysfs discovery
   if self.automagic_sysfs then
@@ -1118,7 +1117,7 @@ function Kobo:initNetworkManager(NetworkMgr)
 
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)
     koboEnableWifi()
-    return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
+    return self:reconnect(complete_callback, interactive)
   end
 
   local net_if = os.getenv("INTERFACE") or "eth0"
@@ -1267,25 +1266,6 @@ local function getCodeName()
     end
   end
   return codename
-end
-
-function Kobo:getFirmwareVersion()
-  local version_file = io.open("/mnt/onboard/.kobo/version", "re")
-  if not version_file then
-    self.firmware_rev = "none"
-    return
-  end
-  local version_str = version_file:read("*line")
-  version_file:close()
-
-  local i = 1
-  for field in version_str:gmatch("([^,]+)") do
-    if i == 3 then
-      self.firmware_rev = field
-      break
-    end
-    i = i + 1
-  end
 end
 
 local function getProductId()
@@ -1749,7 +1729,7 @@ function Kobo:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Kobo:setEventHandlers(uimgr)
+function Kobo:setEventHandlers(_uimgr)
   -- We do not want auto suspend procedure to waste battery during
   -- suspend. So let's unschedule it when suspending, and restart it after
   -- resume. Done via the plugin's onSuspend/onResume handlers.

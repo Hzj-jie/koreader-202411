@@ -26,7 +26,7 @@ end
 
 -- frontlight controller
 if Device:hasFrontlight() then
-  local function calculateGestureDelta(ges, direction, min, max)
+  local function calculateGestureDelta(ges, direction, max)
     local delta_int
     if type(ges) == "table" then
       local gesture_multiplier
@@ -78,8 +78,7 @@ if Device:hasFrontlight() then
       return false
     end
     local powerd = Device:getPowerDevice()
-    local delta =
-      calculateGestureDelta(ges, direction, powerd.fl_min, powerd.fl_max)
+    local delta = calculateGestureDelta(ges, direction, powerd.fl_max)
     return self:onSetFlIntensity(powerd:frontlightIntensity() + delta)
   end
 
@@ -130,12 +129,7 @@ if Device:hasFrontlight() then
     end
 
     local powerd = Device:getPowerDevice()
-    local delta = calculateGestureDelta(
-      ges,
-      direction,
-      powerd.fl_warmth_min,
-      powerd.fl_warmth_max
-    )
+    local delta = calculateGestureDelta(ges, direction, powerd.fl_warmth_max)
 
     -- Given that the native warmth ranges are usually pretty restrictive (e.g., [0, 10] or [0, 24]),
     -- do the computations in the native scale, to ensure we always actually *change* something,

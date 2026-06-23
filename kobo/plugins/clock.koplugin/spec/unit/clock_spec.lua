@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/clock.koplugin/spec/unit/clock_spec.lua

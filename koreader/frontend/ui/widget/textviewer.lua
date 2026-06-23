@@ -166,7 +166,7 @@ function TextViewer:init(reinit)
           end_idx,
           to_source_index_func
         )
-          self:handleTextSelection(
+          self:_handleTextSelection(
             text,
             hold_duration,
             start_idx,
@@ -241,12 +241,12 @@ function TextViewer:init(reinit)
         if self._find_next then
           self:findCallback()
         else
-          self:findDialog()
+          self:_findDialog()
         end
       end,
       hold_callback = function()
         if self._find_next then
-          self:findDialog()
+          self:_findDialog()
         else
           if self.default_hold_callback then
             self.default_hold_callback()
@@ -392,7 +392,7 @@ function TextViewer:onTapClose(arg, ges_ev)
   return true
 end
 
-function TextViewer:onMultiSwipe(arg, ges_ev)
+function TextViewer:onMultiSwipe(arg)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.
@@ -489,7 +489,7 @@ function TextViewer:onForwardingPanRelease(arg, ges)
   return self.movable:onMovablePanRelease(arg, ges)
 end
 
-function TextViewer:findDialog()
+function TextViewer:_findDialog()
   local input_dialog, check_button_case
   input_dialog = InputDialog:new({
     title = gettext("Enter text to search for"),
@@ -564,7 +564,7 @@ function TextViewer:findCallback(input_dialog)
   )
   local msg
   if char_pos > 0 then
-    self:setTextBold(char_pos, #search_charlist)
+    self:_setTextBold(char_pos, #search_charlist)
     self.scroll_text_w:moveCursorToCharPos(
       char_pos,
       self.find_centered_lines_count
@@ -580,7 +580,7 @@ function TextViewer:findCallback(input_dialog)
     self._find_next = false
     self._old_virtual_line_num = 1
   end
-  UIManager:show(Notification:new({
+  self:showWidget(Notification:new({
     text = msg,
   }))
   if self._find_next_button ~= self._find_next then
@@ -593,7 +593,7 @@ function TextViewer:findCallback(input_dialog)
   end
 end
 
-function TextViewer:handleTextSelection(
+function TextViewer:_handleTextSelection(
   text,
   hold_duration,
   start_idx,
@@ -612,7 +612,7 @@ function TextViewer:handleTextSelection(
   end
   if Device:hasClipboard() then
     Device.input.setClipboardText(text)
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = start_idx == end_idx and gettext("Word copied to clipboard.")
         or gettext("Selection copied to clipboard."),
     }))
@@ -633,7 +633,7 @@ function TextViewer:reinit()
   self.scroll_text_w:scrollToRatio(ratio, ratio == 0)
 end
 
-function TextViewer:setTextBold(start_pos, len)
+function TextViewer:_setTextBold(start_pos, len)
   local end_pos = start_pos + len
   local text = self.text
   if self.charlist == nil then
@@ -677,7 +677,7 @@ function TextViewer:onShowMenu()
               self:reinit()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -715,7 +715,7 @@ function TextViewer:onShowMenu()
       return self.titlebar.left_button.image.dimen
     end,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
 end
 
 -- Register DocumentRegistry auxiliary provider.
@@ -727,13 +727,15 @@ function TextViewer:register(registry)
     enabled_func = function()
       return true -- all files
     end,
-    callback = TextViewer.openFile,
+    callback = function(file)
+      self:openFile(file)
+    end,
     disable_file = true,
     disable_type = false,
   })
 end
 
-function TextViewer.openFile(file)
+function TextViewer:openFile(file)
   local function _openFile(file_path)
     local file_handle = io.open(file_path, "rb")
     if not file_handle then
@@ -741,7 +743,7 @@ function TextViewer.openFile(file)
     end
     local file_content = file_handle:read("*all")
     file_handle:close()
-    UIManager:show(TextViewer:new({
+    self:showWidget(TextViewer:new({
       title = file_path,
       title_multilines = true,
       text = file_content,
@@ -752,7 +754,7 @@ function TextViewer.openFile(file)
   if attr then
     if attr.size > 400000 then
       local ConfirmBox = require("ui/widget/confirmbox")
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext(
             "This file is %2:\n\n%1\n\nAre you sure you want to open it?\n\nOpening big files may take some time."

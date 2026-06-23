@@ -40,7 +40,7 @@ function PicDocument:init()
   self:_readMetadata()
 end
 
-function PicDocument:getUsedBBox(pageno)
+function PicDocument:getUsedBBox(_pageno)
   return {
     x0 = 0,
     y0 = 0,

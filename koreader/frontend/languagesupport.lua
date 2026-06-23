@@ -135,6 +135,9 @@ local function callPlugin(plugin, handler_name, ...)
     )
     return
   end
+  if ret[1] == nil then
+    return nil
+  end
   logger.dbg("language plugin", handler_name, "returned", ret)
   return ret
 end

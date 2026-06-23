@@ -395,7 +395,7 @@ function DictQuickLookup:init()
               .. ".epub"
             filename = util.getSafeFilename(filename, dir):gsub("_", " ")
             local epub_path = dir .. "/" .. filename
-            UIManager:show(ConfirmBox:new({
+            self:showWidget(ConfirmBox:new({
               text = T(gettext("Save as %1?"), BD.filename(filename)),
               ok_callback = function()
                 UIManager:scheduleIn(0.1, function()
@@ -406,7 +406,7 @@ function DictQuickLookup:init()
                     lang,
                     function(success)
                       if success then
-                        UIManager:show(ConfirmBox:new({
+                        self:showWidget(ConfirmBox:new({
                           text = T(
                             gettext(
                               "Article saved to:\n%1\n\nWould you like to read the downloaded article now?"
@@ -439,7 +439,7 @@ function DictQuickLookup:init()
                           end,
                         }))
                       else
-                        UIManager:show(InfoMessage:new({
+                        self:showWidget(InfoMessage:new({
                           text = gettext(
                             "Saving Wikipedia article failed or interrupted."
                           ),
@@ -969,26 +969,6 @@ function DictQuickLookup:update()
   end)
 end
 
-function DictQuickLookup:getInitialVisibleArea()
-  -- Some positioning happens only at paintTo() time, but we want
-  -- to know this before. So, do a bit like WidgetContainer does
-  -- (without any MovableContainer offset)
-  local dict_size = self.dict_frame:getSize()
-  local area = Geom:new({
-    w = dict_size.w,
-    h = dict_size.h,
-    x = self.region.x + math.floor((self.region.w - dict_size.w) / 2),
-  })
-  if self.align == "top" then
-    area.y = self.region.y
-  elseif self.align == "bottom" then
-    area.y = self.region.y + self.region.h - dict_size.h
-  elseif self.align == "center" then
-    area.x = self.region.y + math.floor((self.region.h - dict_size.h) / 2)
-  end
-  return area
-end
-
 function DictQuickLookup:onClose()
   -- Our TextBoxWidget/HtmlBoxWidget/TextWidget/ImageWidget are proper child widgets,
   -- so this event will propagate to 'em, and they'll free their resources.
@@ -1001,13 +981,16 @@ function DictQuickLookup:onClose()
         for _, im in ipairs(r.images) do
           if im.bb then
             im.bb:free()
+            im.bb = nil
           end
           if im.hi_bb then
             im.hi_bb:free()
+            im.hi_bb = nil
           end
         end
       end
     end
+    self.images_cleanup_needed = nil
   end
 
   -- Drop our ref from the static class member
@@ -1497,7 +1480,7 @@ function DictQuickLookup:onShowResultsMenu()
   })
   button_dialog:setScrolledOffset(self.menu_scrolled_offsets["main"])
   self.menu_opened[button_dialog] = true
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
   return true
 end
 
@@ -1615,7 +1598,7 @@ function DictQuickLookup:showResultsAltMenu()
         self.menu_scrolled_offsets["alt_sub" .. dictnum]
       )
       self.menu_opened[button_dialog2] = true
-      UIManager:show(button_dialog2)
+      self:showWidget(button_dialog2)
     end
     table.insert(row, {
       text = text,
@@ -1644,7 +1627,7 @@ function DictQuickLookup:showResultsAltMenu()
   })
   button_dialog:setScrolledOffset(self.menu_scrolled_offsets["alt"])
   self.menu_opened[button_dialog] = true
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function DictQuickLookup:showWikiResultsMenu()
@@ -1694,7 +1677,7 @@ function DictQuickLookup:showWikiResultsMenu()
   })
   button_dialog:setScrolledOffset(self.menu_scrolled_offsets["wiki"])
   self.menu_opened[button_dialog] = true
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return DictQuickLookup

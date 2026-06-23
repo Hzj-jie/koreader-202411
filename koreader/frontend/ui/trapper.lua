@@ -551,7 +551,7 @@ function Trapper:dismissableRunInSubprocess(
   local ret_values
 
   local pid, parent_read_fd = ffiutil.runInSubProcess(
-    function(pid, child_write_fd)
+    function(_pid, child_write_fd)
       local output_str = ""
       if task_returns_simple_string then
         -- task is assumed to return only a string or nil,

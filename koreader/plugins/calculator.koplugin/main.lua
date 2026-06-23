@@ -188,7 +188,7 @@ or type 'help()⮠']])
         },
         {
           text = "⇧",
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(MultiConfirmBox:new({
               text = T(gettext("Use file %1"), self.calculator_input_path),
               cancel_text = "✕", --cancel
@@ -197,7 +197,7 @@ or type 'help()⮠']])
                 UIManager:close(self.input_dialog)
                 CalculatorSettingsDialog.choosePathFile(
                   self,
-                  touchmenu_instance,
+                  menu,
                   "calculator_input_path",
                   false,
                   true,
@@ -213,7 +213,7 @@ or type 'help()⮠']])
         },
         {
           text = "⇩",
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             UIManager:show(MultiConfirmBox:new({
               text = T(gettext("Use file %1"), self.calculator_output_path),
               cancel_text = "✕", --cancel
@@ -222,7 +222,7 @@ or type 'help()⮠']])
                 UIManager:close(self.input_dialog)
                 CalculatorSettingsDialog.choosePathFile(
                   self,
-                  touchmenu_instance,
+                  menu,
                   "calculator_output_path",
                   false,
                   true,

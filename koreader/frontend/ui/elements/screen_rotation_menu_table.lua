@@ -16,13 +16,13 @@ local function genMenuItem(text, mode)
       return Screen:getRotationMode() == mode
     end,
     radio = true,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       UIManager:broadcastEvent(Event:new("SetRotationMode", mode))
-      touchmenu_instance:closeMenu()
+      menu:closeMenu()
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       G_reader_settings:save("fm_rotation_mode", mode)
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   }
 end

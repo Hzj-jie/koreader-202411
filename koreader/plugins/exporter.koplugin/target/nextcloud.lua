@@ -60,8 +60,7 @@ local function makeRequest(url, auth, method, request_body)
     return nil, "No response from Nextcloud"
   end
 
-  local response = json.decode(sink[1])
-  return response
+  return json.decode(sink[1])
 end
 
 function NextcloudExporter:isReadyToExport()

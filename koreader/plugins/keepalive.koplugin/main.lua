@@ -15,25 +15,25 @@ local menuItem = {
 local disable
 local enable
 
-local function disableOnMenu(touchmenu_instance)
+local function disableOnMenu(menu)
   disable()
   PluginShare.keepalive = false
-  touchmenu_instance:updateItems()
+  menu:updateItems()
 end
 
-local function showConfirmBox(touchmenu_instance)
+local function showConfirmBox(menu)
   UIManager:show(ConfirmBox:new({
     text = gettext(
       'The system won\'t sleep while this message is showing.\n\nPress "Stay alive" if you prefer to keep the system on even after closing this notification. *This will drain the battery*.\n\nIf KOReader terminates before "Close" is pressed, please start and close the KeepAlive plugin again to ensure settings are reset.'
     ),
     cancel_text = gettext("Close"),
     cancel_callback = function()
-      disableOnMenu(touchmenu_instance)
+      disableOnMenu(menu)
     end,
     ok_text = gettext("Stay alive"),
     ok_callback = function()
       PluginShare.keepalive = true
-      touchmenu_instance:updateItems()
+      menu:updateItems()
     end,
   }))
 end
@@ -73,12 +73,12 @@ else
   return { disabled = true }
 end
 
-menuItem.callback = function(touchmenu_instance)
+menuItem.callback = function(menu)
   if PluginShare.keepalive then
-    disableOnMenu(touchmenu_instance)
+    disableOnMenu(menu)
   else
     enable()
-    showConfirmBox(touchmenu_instance)
+    showConfirmBox(menu)
   end
 end
 

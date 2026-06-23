@@ -263,7 +263,7 @@ end
 -- May fail if recursive references, use with pcall()
 local getAsJsonString = function(obj)
   local encoder_options = {}
-  encoder_options.preProcess = function(value, isObjectKey)
+  encoder_options.preProcess = function(value, _isObjectKey)
     local value_type = type(value)
     if value_type == "function" then
       return "function"
@@ -993,8 +993,8 @@ function HttpInspector:callFunction(
     table.insert(html, h)
   end
   local args, nb_args = getVariablesFromUri(args_as_uri)
-  local func_info = getFunctionInfo(func)
   if output_html then
+    local func_info = getFunctionInfo(func)
     add_html(
       T("<title>%1(%2)</title>", reqinfo.fragments[1], args_as_uri or "")
     )
@@ -1015,7 +1015,7 @@ function HttpInspector:callFunction(
     add_html("")
   end
   local res, nbr, http_code, json, ok, ok2, err, trace
-  if func_info.is_method then
+  if instance and guessClassName(instance) then
     res = table.pack(
       xpcall(func, debug.traceback, instance, unpack(args, 1, nb_args))
     )
@@ -1081,19 +1081,6 @@ end
 
 -- Handy function for testing the above, to be called with:
 --   /koreader/ui/httpinspector/someFunctionForInteractiveTesting?/
-function HttpInspector:someFunctionForInteractiveTesting(...)
-  if select(1, ...) then
-    HttpInspector.foo.bar = true -- error
-  end
-  return self and self.name or "no self",
-    #(table.pack(...)),
-    "original args follow",
-    ...
-  -- Copy and append this as args to the url, to get an error:
-  -- /true/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
-  -- and to get a success:
-  -- /false/nil/true/false/"true"/-1.2/"/"/abc/'d"/ef'/
-end
 
 local _dispatcher_actions
 
@@ -1444,6 +1431,7 @@ local HttpInspectorWidget = WidgetContainer:extend({
 })
 
 function HttpInspectorWidget:init()
+  HttpInspector.ui = self.ui
   self.ui.menu:registerToMainMenu(self)
 end
 
@@ -1452,7 +1440,6 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
     text = gettext("Remotely control KOReader"),
     help_text_func = function()
       local text = HELP_TEXT .. "\n\n"
-      -- Need localization.
       if NetworkMgr:isOnline() and HttpInspector:isRunning() then
         text = text
           .. T(
@@ -1487,7 +1474,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
           return gettext("Start HTTP server")
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           if HttpInspector:isRunning() then
             should_run = false
             HttpInspector:stop()
@@ -1495,7 +1482,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
             should_run = true
             HttpInspector:start()
           end
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
         separator = true,
       },
@@ -1513,7 +1500,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
           return T(gettext("Port: %1"), HttpInspector.port)
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local InputDialog = require("ui/widget/inputdialog")
           local port_dialog
           port_dialog = InputDialog:new({
@@ -1552,7 +1539,7 @@ function HttpInspectorWidget:addToMainMenu(menu_items)
                       end
                     end
                     UIManager:close(port_dialog)
-                    touchmenu_instance:updateItems()
+                    menu:updateItems()
                   end,
                 },
               },

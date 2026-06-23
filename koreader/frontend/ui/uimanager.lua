@@ -66,26 +66,78 @@ local function _isWidget(widget)
   if widget ~= nil and type(widget) == "table" then
     return true
   end
-  logger.warn("FixMe: Attempted to check a nil widget or not a table. ",
-              debug.traceback())
+  logger.warn(
+    "FixMe: Attempted to check a nil widget or not a table. ",
+    widget,
+    debug.traceback()
+  )
   return false
 end
 
 local function _widgetDebugStr(widget)
   assert(_isWidget(widget))
-  return widget.name or widget.id or tostring(widget)
+  return widget:debugStr()
 end
 
-local function _widgetWindow(w)
+-- How long to wait between ZMQ wakeups: 50ms.
+local ZMQ_TIMEOUT = 50 * 1000
+
+-- This is a singleton
+local UIManager = {
+  event_handlers = nil,
+
+  _full_refresh_count = G_named_settings.default.full_refresh_count(),
+  _window_stack = {},
+  _task_queue = {},
+  _task_queue_dirty = false,
+  _dirty = {},
+  _zeromqs = {},
+  _refresh_stack = {},
+  _refresh_func_stack = {},
+  _entered_poweroff_stage = false,
+  _exit_code = nil,
+  _gated_quit = nil,
+  _prevent_standby_count = 0,
+  _prev_prevent_standby_count = 0,
+  _input_gestures_disabled = false,
+  _last_user_action_time = 0,
+  _force_fast_refresh = false,
+  _refresh_count = 0,
+}
+
+function UIManager:_windowStackDebugList()
+  local stack_details = {}
+  for idx, win in ipairs(self._window_stack) do
+    table.insert(
+      stack_details,
+      string.format(
+        "[%d] %s (addr: %s)",
+        idx,
+        win.widget:debugStr(),
+        tostring(win.widget)
+      )
+    )
+  end
+  return table.concat(stack_details, ", ")
+end
+
+function UIManager:_widgetWindow(w)
   assert(_isWidget(w))
   local window = w:window()
   if window == nil then
-    -- TODO: Should assert.
     logger.warn(
       "FixMe: Unknown widget ",
       _widgetDebugStr(w),
-      " to repaint, it may not be shown yet, or you may want to send in the ",
-      "show(widget) instead. ",
+      "\n  Current UIManager address: ",
+      tostring(self),
+      "\n  Current UIManager _window_stack size: ",
+      #self._window_stack,
+      "\n  Current UIManager _window_stack: { ",
+      self:_windowStackDebugList(),
+      " }",
+      "\n  Target widget: ",
+      require("util").tableDebugIdentity(w),
+      " ",
       debug.traceback()
     )
     return nil
@@ -93,7 +145,7 @@ local function _widgetWindow(w)
   return window
 end
 
-local function cropping_region(widget)
+function UIManager:cropping_region(widget)
   assert(_isWidget(widget))
   local dimen = widget:getSize()
   assert(dimen ~= nil)
@@ -101,7 +153,7 @@ local function cropping_region(widget)
   -- y may not present.
   local x, y, w, h = dimen.x, dimen.y, dimen.w, dimen.h
 
-  local window = _widgetWindow(widget)
+  local window = self:_widgetWindow(widget)
   if (not x or not y) and window then
     -- Before the initial paintTo call, widget.dimen isn't available. In the
     -- case, it's expected to paintTo a showParent which starts from the top
@@ -157,32 +209,6 @@ local function cropping_region(widget)
   end
   return Geom:new({ x = x, y = y, w = w, h = h })
 end
-
--- How long to wait between ZMQ wakeups: 50ms.
-local ZMQ_TIMEOUT = 50 * 1000
-
--- This is a singleton
-local UIManager = {
-  event_handlers = nil,
-
-  _full_refresh_count = G_named_settings.default.full_refresh_count(),
-  _window_stack = {},
-  _task_queue = {},
-  _task_queue_dirty = false,
-  _dirty = {},
-  _zeromqs = {},
-  _refresh_stack = {},
-  _refresh_func_stack = {},
-  _entered_poweroff_stage = false,
-  _exit_code = nil,
-  _gated_quit = nil,
-  _prevent_standby_count = 0,
-  _prev_prevent_standby_count = 0,
-  _input_gestures_disabled = false,
-  _last_user_action_time = 0,
-  _force_fast_refresh = false,
-  _refresh_count = 0,
-}
 
 function UIManager:init()
   self.event_handlers = {
@@ -263,9 +289,9 @@ end
 Registers and shows a widget.
 
 Widgets are registered in a stack, from bottom to top in registration order,
-with a few tweaks to handle modals & toasts:
-toast widgets are stacked together on top,
-then modal widgets are stacked together, and finally come standard widgets.
+with a few tweaks to layer them correctly:
+always-on-top widgets (like modals, virtual keyboard, and notifications) are
+stacked together at the top of the stack, followed by standard widgets.
 
 If you think about how painting will be handled (also bottom to top), this makes perfect sense ;).
 
@@ -275,27 +301,27 @@ If refreshtype is omitted, no refresh will be enqueued at this time.
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:show(widget)
+  if not _isWidget(widget) then
+    return
+  end
   assert(not self:isWindowWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
-
   -- The window x and y are never used.
   local window = { x = 0, y = 0, widget = widget }
   -- put this window on top of the topmost non-modal window
   for i = #self._window_stack, 0, -1 do
     local top_window = self._window_stack[i]
-    -- toasts are stacked on top of other toasts,
-    -- then come modals, and then other widgets
-    if top_window and top_window.widget.toast then
-      if widget.toast then
-        table.insert(self._window_stack, i + 1, window)
-        break
-      end
-    elseif widget.modal or not top_window or not top_window.widget.modal then
+    if
+      widget:isAlwaysOnTop()
+      or not top_window
+      or not top_window.widget:isAlwaysOnTop()
+    then
       table.insert(self._window_stack, i + 1, window)
       break
     end
   end
+
   self._dirty[widget] = true
   -- tell the widget that it is shown now
   widget:handleEvent(Event:new("Show"))
@@ -326,7 +352,7 @@ If refreshtype is omitted, no extra refresh will be enqueued at this time, leavi
 @param widget a @{ui.widget.widget|widget} object
 ]]
 function UIManager:_close(widget)
-  assert(UIManager:isWindowWidget(widget))
+  assert(self:isWindowWidget(widget))
 
   logger.dbg("close widget:", _widgetDebugStr(widget))
   -- First notify the closed widget to save its settings...
@@ -340,7 +366,11 @@ function UIManager:_close(widget)
   for i = #self._window_stack, 1, -1 do
     local w = self._window_stack[i].widget
     if w == widget then
-      self._dirty[w] = nil
+      for k in pairs(self._dirty) do
+        if k == w or util.arrayDfSearch(w, k) then
+          self._dirty[k] = nil
+        end
+      end
       self:_scheduleRefreshWindowWidget(self._window_stack[i])
       table.remove(self._window_stack, i)
       -- Unfortunately, here the logic needs to mark the ones *below* dirty,
@@ -380,6 +410,41 @@ function UIManager:_close(widget)
   if widget._restored_input_gestures then
     logger.dbg("Widget is gone, disabling gesture handling again")
     self:setIgnoreTouchInput(true)
+  end
+  widget:uimanagedCleanUp()
+end
+
+-- The three close functions functional wise are identical but log different
+-- warning messages.
+function UIManager:close(widget)
+  if not _isWidget(widget) then
+    -- _isWidget will log.
+    return
+  end
+
+  if not self:isWindowWidget(widget) then
+    logger.warn(
+      "FixMe: widget "
+        .. _widgetDebugStr(widget)
+        .. " has been closed already. "
+        .. debug.traceback()
+    )
+    return
+  end
+
+  self:_close(widget)
+end
+
+function UIManager:closeIfShown(widget)
+  -- Still log if widget is nil or not a Widget.
+  if _isWidget(widget) and self:isWindowWidget(widget) then
+    self:_close(widget)
+  end
+end
+
+function UIManager:closeIfNotNil(widget)
+  if widget ~= nil then
+    self:close(widget)
   end
 end
 
@@ -459,7 +524,7 @@ function UIManager:scheduleIn(seconds, action, ...)
   local when = time.monotonic() + time.s(seconds)
   self:schedule(when, action, ...)
 end
-dbg:guard(UIManager, "scheduleIn", function(self, seconds, action)
+dbg:guard(UIManager, "scheduleIn", function(self, seconds, _)
   assert(seconds >= 0, "Only positive seconds allowed")
 end)
 
@@ -753,6 +818,7 @@ function UIManager:quit(exit_code, implicit)
     end
   end
   self._task_queue_dirty = false
+  self:clearRenderStack()
   self._window_stack = {}
   self._task_queue = {}
   for i = #self._zeromqs, 1, -1 do
@@ -770,9 +836,11 @@ dbg:guard(UIManager, "quit", function(self, exit_code)
 end)
 
 -- Disable automatic UIManager quit; for testing purposes
-function UIManager:setRunForeverMode()
-  self._gated_quit = function()
-    return false
+if util.isTesting() then
+  function UIManager:setRunForeverMode()
+    self._gated_quit = function()
+      return false
+    end
   end
 end
 
@@ -814,53 +882,17 @@ function UIManager:userInput(event)
     event = Event:new(event)
   end
   event:asUserInput()
-  local top_widget
+
   local checked_widgets = {}
-  -- Toast widgets, which, by contract, must be at the top of the window stack, never stop event propagation.
-  for i = #self._window_stack, 1, -1 do
-    local widget = self._window_stack[i].widget
-    -- Whether it's a toast or not, we'll call handleEvent now,
-    -- so we'll want to skip it during the table walk later.
-    checked_widgets[widget] = true
-    if widget.toast then
-      -- We never stop event propagation on toasts, but we still want to send the event to them.
-      -- (In particular, because we want them to close on user input).
-      widget:handleEvent(event)
-    else
-      -- The first widget to consume events as designed is the topmost non-toast one
-      top_widget = widget
-      break
-    end
-  end
 
-  -- Extremely unlikely, but we can't exclude the possibility of *everything* being a toast ;).
-  -- In which case, the event has nowhere else to go, so, we're done.
-  if not top_widget then
-    return
-  end
-
-  if top_widget:handleEvent(event) then
-    return
-  end
-
-  -- If the event was not consumed (no handler returned true), active widgets (from top to bottom) can access it.
-  -- NOTE: _window_stack can shrink/grow when widgets are closed (CloseWidget & Close events) or opened.
-  --     Simply looping in reverse would only cover the list shrinking, and that only by a *single* element,
-  --     something we can't really guarantee, hence the more dogged iterator below,
-  --     which relies on a hash check of already processed widgets (LuaJIT actually hashes the table's GC reference),
-  --     rather than a simple loop counter, and will in fact iterate *at least* #items ^ 2 times.
-  --     Thankfully, that list should be very small, so the overhead should be minimal.
+  -- Propagate sequentially down the stack
   local i = #self._window_stack
   while i > 0 do
     local widget = self._window_stack[i].widget
     if not checked_widgets[widget] then
       checked_widgets[widget] = true
-      if widget.is_always_active then
-        -- Widget itself is flagged always active, let it handle the event
-        -- NOTE: is_always_active widgets are currently widgets that want to show a VirtualKeyboard or listen to Dispatcher events
-        if widget:handleEvent(event) then
-          return
-        end
+      if widget:handleEvent(event) then
+        return
       end
       -- As mentioned above, event handlers might have shown/closed widgets,
       -- so all bets are off on our old window tally being accurate, so let's take it from the top again ;).
@@ -1073,7 +1105,7 @@ function UIManager:_repaintDirtyWidgets()
   end
 
   for w in pairs(self._dirty) do
-    local window = _widgetWindow(w)
+    local window = self:_widgetWindow(w)
     if window ~= nil then
       local index = self:findWindow(window)
       -- Otherwise the window should be nil.
@@ -1132,7 +1164,7 @@ function UIManager:_repaintDirtyWidgets()
     local window = self._window_stack[i]
     for _, widget in ipairs(dirty_widgets[i]) do
       logger.dbg("painting widget:", _widgetDebugStr(widget))
-      local paint_region = cropping_region(widget)
+      local paint_region = self:cropping_region(widget)
       assert(paint_region ~= nil)
       widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
       self:_scheduleRefreshWindowWidget(window, widget)
@@ -1360,7 +1392,7 @@ function UIManager:scheduleWidgetRepaint(widget)
 
   -- Allows a widget being showed later.
   self._dirty[widget] = true
-  return _widgetWindow(widget) ~= nil
+  return self:_widgetWindow(widget) ~= nil
 end
 
 --[[--
@@ -1386,7 +1418,7 @@ user interactions.
 function UIManager:repaintWidget(widget)
   assert(_isWidget(widget))
   assert(widget:getSize() ~= nil)
-  local paint_region = cropping_region(widget)
+  local paint_region = self:cropping_region(widget)
   assert(paint_region ~= nil)
   widget:paintTo(Screen.bb, paint_region.x, paint_region.y)
   -- Explicitly using "fast" to reduce the cost of showing feedbacks.
@@ -1408,7 +1440,7 @@ user interactions.
 --]]
 function UIManager:invertWidget(widget)
   assert(_isWidget(widget))
-  local invert_region = cropping_region(widget)
+  local invert_region = self:cropping_region(widget)
   if invert_region == nil then
     return
   end
@@ -1659,8 +1691,7 @@ function UIManager:askForReboot(message_text)
   -- Give the other event handlers a chance to be executed.
   -- 'Reboot' event will be sent by the handler
   self:nextTick(function()
-    local ConfirmBox = require("ui/widget/confirmbox")
-    self:show(ConfirmBox:new({
+    self:show(require("ui/widget/confirmbox"):new({
       text = message_text
         or gettext("Are you sure you want to reboot the device?"),
       ok_text = gettext("Reboot"),
@@ -1678,8 +1709,7 @@ function UIManager:askForPowerOff(message_text)
   -- Give the other event handlers a chance to be executed.
   -- 'PowerOff' event will be sent by the handler
   self:nextTick(function()
-    local ConfirmBox = require("ui/widget/confirmbox")
-    self:show(ConfirmBox:new({
+    self:show(require("ui/widget/confirmbox"):new({
       text = message_text
         or gettext("Are you sure you want to power off the device?"),
       ok_text = gettext("Power off"),
@@ -1695,15 +1725,14 @@ function UIManager:askForRestart(message_text)
   -- 'Restart' event will be sent by the handler
   self:nextTick(function()
     if Device:canRestart() then
-      local ConfirmBox = require("ui/widget/confirmbox")
-      self:show(ConfirmBox:new({
+      self:show(require("ui/widget/confirmbox"):new({
         text = message_text
           or gettext("This will take effect on next restart."),
         ok_text = gettext("Restart now"),
         ok_callback = function()
           self:broadcastEvent(Event:new("Restart"))
         end,
-        cancel_text = gettext("Restart later"),
+        cancel_text = gettext("Later"),
       }))
     else
       self:show(require("ui/widget/infomessage"):new({
@@ -1711,6 +1740,25 @@ function UIManager:askForRestart(message_text)
           or gettext("This will take effect on next restart."),
       }))
     end
+  end)
+end
+
+function UIManager:askForRestartOrReload(message_text)
+  local ReaderUI = require("apps/reader/readerui")
+  if not ReaderUI.instance then
+    self:askForRestart(message_text)
+    return
+  end
+
+  self:nextTick(function()
+    self:show(require("ui/widget/confirmbox"):new({
+      text = message_text
+        or gettext("Settings changed. Reload document to take effect?"),
+      cancel_text = gettext("Later"),
+      ok_callback = function()
+        ReaderUI.instance:reloadDocument()
+      end,
+    }))
   end)
 end
 

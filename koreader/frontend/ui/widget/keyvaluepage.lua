@@ -275,7 +275,7 @@ function KeyValueItem:onShowKeyValue()
     width = self.textviewer_width,
     height = self.textviewer_height,
   })
-  UIManager:show(textviewer)
+  self:showWidget(textviewer)
   return true
 end
 
@@ -296,7 +296,7 @@ local KeyValuePage = FocusManager:extend({
   title_bar_left_icon_hold_callback = nil,
 
   -- Take ownership of the entire screen.
-  stop_events_propagation = true,
+  modal = true,
 })
 
 function KeyValuePage:init()
@@ -835,7 +835,7 @@ function KeyValuePage:onSwipe(arg, ges_ev)
   end
 end
 
-function KeyValuePage:onMultiSwipe(arg, ges_ev)
+function KeyValuePage:onMultiSwipe(arg)
   -- For consistency with other fullscreen widgets where swipe south can't be
   -- used to close and where we then allow any multiswipe to close, allow any
   -- multiswipe to close this widget too.

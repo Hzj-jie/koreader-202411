@@ -556,7 +556,7 @@ function ReaderView:drawScrollView(bb, x, y)
   )
 end
 
-function ReaderView:drawHighlightIndicator(bb, x, y)
+function ReaderView:drawHighlightIndicator(bb, _x, _y)
   local rect = self.highlight.indicator
   -- paint big cross line +
   bb:paintRect(
@@ -997,7 +997,7 @@ function ReaderView:onSetScrollMode(page_scroll)
     and self.ui.zooming.paged_modes[self.zoom_mode]
     and self.document.configurable.text_wrap == 0
   then
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext(
         [[
 Continuous view (scroll mode) works best with zoom to page width, zoom to content width or zoom to rows.
@@ -1067,6 +1067,9 @@ function ReaderView:shouldInvertBiDiLayoutMirroring()
 end
 
 function ReaderView:onPageUpdate(new_page_no)
+  if self.state.page == new_page_no and self.page_area then
+    return
+  end
   self.state.page = new_page_no
   self.state.drawn = false
   self:recalculate()
@@ -1074,6 +1077,9 @@ function ReaderView:onPageUpdate(new_page_no)
 end
 
 function ReaderView:onPosUpdate(new_pos)
+  if self.state.pos == new_pos then
+    return
+  end
   self.state.pos = new_pos
   self:recalculate()
   self.highlight.temp = {}

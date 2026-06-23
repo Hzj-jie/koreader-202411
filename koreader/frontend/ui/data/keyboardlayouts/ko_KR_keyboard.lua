@@ -12,7 +12,7 @@ local HgHelper = require("ui/data/keyboardlayouts/ko_KR_helper")
 function HgHelper.UIHandler:put_char(char)
   HgHelper.UIHandler.inputbox:_addChars(char)
 end
-function HgHelper.UIHandler:del_char(char)
+function HgHelper.UIHandler:del_char()
   HgHelper.UIHandler.inputbox:_delChar()
 end
 HgHelper.HgFSM:init(HgHelper.UIHandler)

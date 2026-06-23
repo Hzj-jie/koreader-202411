@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/repro_issue_23_integration_spec.lua

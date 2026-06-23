@@ -183,10 +183,6 @@ function HgSylbls:_final_idx(char)
   return HgSylbls.IDX_FINAL[char]
 end
 
-function HgSylbls:in_intial(char)
-  -- double initial can be typed directly from 2-beolsik kbd, hence no table of two chars
-  return HgSylbls.IDX_INITIAL[char] ~= nil
-end
 function HgSylbls:in_medial(char)
   char = HgSylbls:_2elem_tbl_to_str(char)
   return HgSylbls.IDX_MEDIAL[char] ~= nil
@@ -338,7 +334,7 @@ function HgFSM:process_char(char)
   end
 end
 
-function HgFSM:process_bsp(char)
+function HgFSM:process_bsp()
   if
     HgFSM.fsm_state == HgFSM.STATE.IDLE
     or HgFSM.fsm_state == HgFSM.STATE.GOT_INITIAL
@@ -366,7 +362,7 @@ function HgFSM:_process_generic_char(char)
   HgFSM:clean_state()
   HgFSM.ui_handler:put_char(char)
 end
-function HgFSM:_process_generic_bsp(char)
+function HgFSM:_process_generic_bsp()
   HgFSM:clean_state()
   HgFSM.ui_handler:del_char()
 end

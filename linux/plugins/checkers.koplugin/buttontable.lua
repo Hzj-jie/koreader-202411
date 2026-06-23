@@ -1,0 +1,1 @@
+../../../koreader/plugins/checkers.koplugin/buttontable.lua

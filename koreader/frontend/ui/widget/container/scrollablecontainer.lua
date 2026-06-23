@@ -19,7 +19,6 @@ local GestureRange = require("ui/gesturerange")
 local HorizontalScrollBar = require("ui/widget/horizontalscrollbar")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
-local UIManager = require("ui/uimanager")
 local VerticalScrollBar = require("ui/widget/verticalscrollbar")
 local Input = Device.input
 local Screen = Device.screen
@@ -412,9 +411,7 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
   end
   self:_hideTruncatedGridItemsIfRequested()
   self:_updateScrollBars()
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
 end
 
 function ScrollableContainer:getScrolledOffset()

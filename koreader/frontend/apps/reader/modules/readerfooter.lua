@@ -680,7 +680,7 @@ function ReaderFooter:init()
   )
 end
 
-function ReaderFooter:set_custom_text(touchmenu_instance)
+function ReaderFooter:set_custom_text(menu)
   local text_dialog
   text_dialog = MultiInputDialog:new({
     title = gettext("Enter a custom text"),
@@ -735,8 +735,8 @@ function ReaderFooter:set_custom_text(touchmenu_instance)
             end
             UIManager:close(text_dialog)
             self:refreshFooter()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         },
@@ -1089,8 +1089,8 @@ function ReaderFooter:addToMainMenu(menu_items)
       help_text = type(option_help_text[option]) == "string"
         and option_help_text[option],
       help_text_func = type(option_help_text[option]) == "function"
-        and function(touchmenu_instance)
-          option_help_text[option](self, touchmenu_instance)
+        and function(menu)
+          option_help_text[option](self, menu)
         end,
       checked_func = function()
         return self.settings[option] == true
@@ -1264,7 +1264,7 @@ function ReaderFooter:addToMainMenu(menu_items)
                 or self.settings.progress_style_thick_height
               return T(gettext("Height: %1"), height)
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local value, value_min, value_max, default_value
               if self.settings.progress_style_thin then
                 default_value = DEFAULT_SETTINGS.progress_style_thin_height
@@ -1293,10 +1293,10 @@ function ReaderFooter:addToMainMenu(menu_items)
                     self.settings.progress_style_thick_height = spin.value
                   end
                   self:refreshFooter()
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
-              UIManager:show(items)
+              self:showWidget(items)
             end,
             keep_menu_open = true,
           },
@@ -1313,7 +1313,7 @@ function ReaderFooter:addToMainMenu(menu_items)
           return not self.settings.disable_progress_bar
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local spin_widget
           spin_widget = SpinWidget:new({
             title_text = gettext("Progress bar margins"),
@@ -1327,7 +1327,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               self.settings.progress_margin_width = spin.value
               self.settings.progress_margin = false
               self:refreshFooter()
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
             extra_text = not self.ui.document.info.has_pages
               and gettext("Same as book margins"),
@@ -1337,13 +1337,13 @@ function ReaderFooter:addToMainMenu(menu_items)
               self.settings.progress_margin_width = value
               self.settings.progress_margin = true
               self:refreshFooter()
-              touchmenu_instance:updateItems()
+              menu:updateItems()
               spin_widget.value = value
               spin_widget.original_value = value
               spin_widget:update()
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
       },
       {
@@ -1358,7 +1358,7 @@ function ReaderFooter:addToMainMenu(menu_items)
             and not self.settings.disable_progress_bar
             and self.settings.all_at_once
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local items = SpinWidget:new({
             value = self.settings.progress_bar_min_width_pct,
             value_min = 5,
@@ -1374,12 +1374,12 @@ function ReaderFooter:addToMainMenu(menu_items)
             callback = function(spin)
               self.settings.progress_bar_min_width_pct = spin.value
               self:refreshFooter()
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(items)
+          self:showWidget(items)
         end,
         keep_menu_open = true,
         separator = true,
@@ -1499,7 +1499,7 @@ function ReaderFooter:addToMainMenu(menu_items)
               UIManager:setDirty(nil, "ui")
             end,
           })
-          UIManager:show(sort_item)
+          self:showWidget(sort_item)
         end,
       },
       getMinibarOption("all_at_once", self._updateFooterTextGenerator),
@@ -1573,7 +1573,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
                 self.settings.text_font_size
               )
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local items_font = SpinWidget:new({
                 title_text = gettext("Item font size"),
                 value = self.settings.text_font_size,
@@ -1595,12 +1595,12 @@ With this feature enabled, the current page is factored in, resulting in the cou
                   })
                   self.text_container[1] = self.footer_text
                   self:refreshFooter()
-                  if touchmenu_instance then
-                    touchmenu_instance:updateItems()
+                  if menu then
+                    menu:updateItems()
                   end
                 end,
               })
-              UIManager:show(items_font)
+              self:showWidget(items_font)
             end,
             keep_menu_open = true,
           },
@@ -1685,7 +1685,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
         text_func = function()
           return T(gettext("Height: %1"), self.settings.container_height)
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local spin_widget = SpinWidget:new({
             value = self.settings.container_height,
             value_min = 7,
@@ -1697,12 +1697,12 @@ With this feature enabled, the current page is factored in, resulting in the cou
               self.settings.container_height = spin.value
               self.height = Screen:scaleBySize(self.settings.container_height)
               self:refreshFooter()
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
         keep_menu_open = true,
       },
@@ -1713,7 +1713,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
             self.settings.container_bottom_padding
           )
         end,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local spin_widget = SpinWidget:new({
             value = self.settings.container_bottom_padding,
             value_min = 0,
@@ -1726,12 +1726,12 @@ With this feature enabled, the current page is factored in, resulting in the cou
               self.bottom_padding =
                 Screen:scaleBySize(self.settings.container_bottom_padding)
               self:refreshFooter()
-              if touchmenu_instance then
-                touchmenu_instance:updateItems()
+              if menu then
+                menu:updateItems()
               end
             end,
           })
-          UIManager:show(spin_widget)
+          self:showWidget(spin_widget)
         end,
         keep_menu_open = true,
       },
@@ -1760,7 +1760,7 @@ With this feature enabled, the current page is factored in, resulting in the cou
       enabled_func = function()
         return self.settings.all_at_once == true
       end,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local max_pct = DEFAULT_SETTINGS.battery_hide_threshold
         local battery_threshold = SpinWidget:new({
           value = math.min(self.settings.battery_hide_threshold, max_pct),
@@ -1773,21 +1773,21 @@ With this feature enabled, the current page is factored in, resulting in the cou
           callback = function(spin)
             self.settings.battery_hide_threshold = spin.value
             self:refreshFooter()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           extra_text = gettext("Disable"),
           extra_callback = function()
             self.settings.battery_hide_threshold = max_pct + 1
             self:refreshFooter()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           ok_always_enabled = true,
         })
-        UIManager:show(battery_threshold)
+        self:showWidget(battery_threshold)
       end,
       keep_menu_open = true,
       separator = true,
@@ -1967,7 +1967,7 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
     text_func = function()
       return T(item_text, self.settings[setting])
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local spin_widget = SpinWidget:new({
         title_text = title_text,
         info_text = gettext(
@@ -1984,10 +1984,10 @@ function ReaderFooter:genItemMaxWidthMenuItems(title_text, item_text, setting)
         callback = function(spin)
           self.settings[setting] = spin.value
           self:refreshFooter()
-          touchmenu_instance:updateItems()
+          menu:updateItems()
         end,
       })
-      UIManager:show(spin_widget)
+      self:showWidget(spin_widget)
     end,
     keep_menu_open = true,
   }
@@ -2700,4 +2700,5 @@ function ReaderFooter:onClose()
   self:free()
 end
 
+ReaderFooter.default_settings = DEFAULT_SETTINGS
 return ReaderFooter

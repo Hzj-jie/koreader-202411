@@ -18,7 +18,7 @@ local MenuSorter = {
   },
 }
 
-function MenuSorter:readMSSettings(config_prefix)
+function MenuSorter:_readMSSettings(config_prefix)
   if config_prefix then
     local menu_order = string.format(
       "%s/%s_menu_order.lua",
@@ -27,27 +27,29 @@ function MenuSorter:readMSSettings(config_prefix)
     )
 
     if lfs.attributes(menu_order) then
-      return require(menu_order) or {}
+      local ret = dofile(menu_order)
+      assert(type(ret) == "table", "Menu order file must return a table!")
+      return ret
     end
   end
   return {}
 end
 
 function MenuSorter:mergeAndSort(config_prefix, item_table, order)
-  local user_order = self:readMSSettings(config_prefix)
+  local user_order = self:_readMSSettings(config_prefix)
   if user_order then
     for user_order_id, user_order_item in pairs(user_order) do
       order[user_order_id] = user_order_item
     end
   end
-  return self:sort(item_table, order)
+  return self:_sort(item_table, order)
 end
 
 --- Sorts a flat table of menu items into a hierarchical menu based on supplied order.
 ---- @tparam table item_table menu item table
 ---- @tparam table order sorting order
 ---- @treturn table the sorted menu item table
-function MenuSorter:sort(item_table, order)
+function MenuSorter:_sort(item_table, order)
   -- The logic changes the item_table, need to make a copy.
   item_table = util.tableDeepCopy(item_table)
   local menu_table = {}
@@ -182,9 +184,28 @@ function MenuSorter:sort(item_table, order)
     end
     local sorting_hint_menu =
       self:findById(menu_table["KOMenu:menu_buttons"], v.sorting_hint)
-    sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
-    table.insert(sorting_hint_menu, v)
+    if sorting_hint_menu then
+      sorting_hint_menu = sorting_hint_menu.sub_item_table or sorting_hint_menu
+      table.insert(sorting_hint_menu, v)
+    else
+      logger.warn(
+        "MenuSorter: sorting_hint target not found:",
+        v.sorting_hint,
+        "for item:",
+        k
+      )
+    end
   end
+
+  -- Remove empty submenus
+  for i = #sub_menus, 1, -1 do
+    local sub_menu = sub_menus[i]
+    local sub_menu_pos = self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
+    if sub_menu_pos and sub_menu_pos.sub_item_table and #sub_menu_pos.sub_item_table == 0 then
+      self:removeMenuButton(menu_table["KOMenu:menu_buttons"], sub_menu)
+    end
+  end
+
   return menu_table["KOMenu:menu_buttons"]
 end
 
@@ -193,6 +214,9 @@ end
 ---- @tparam string needle_id Menu item ID string
 ---- @treturn table a reference to the table item if found
 function MenuSorter:findById(tbl, needle_id)
+  if tbl == nil then
+    return nil
+  end
   local items = {}
 
   for _, item in pairs(tbl) do
@@ -212,6 +236,32 @@ function MenuSorter:findById(tbl, needle_id)
     elseif sub_table then
       for _, item in pairs(sub_table) do
         if type(item) == "table" and item.id then
+          table.insert(items, item)
+        end
+      end
+    end
+    k, v = next(items, k)
+  end
+end
+
+function MenuSorter:removeMenuButton(tbl, needle_id)
+  local items = {}
+  for _, item in pairs(tbl) do
+    if item ~= "KOMenu:menu_buttons" then
+      table.insert(items, item)
+    end
+  end
+
+  local k, v
+  k, v = next(items, nil)
+  while k do
+    local sub_table = v.sub_item_table or type(v) == "table" and v
+    if sub_table then
+      for idx, item in ipairs(sub_table) do
+        if type(item) == "table" and item.id == needle_id then
+          table.remove(sub_table, idx)
+          return true
+        elseif type(item) == "table" and item.id then
           table.insert(items, item)
         end
       end

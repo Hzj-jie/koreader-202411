@@ -184,7 +184,7 @@ local function getIndentLevel(line)
   return level
 end
 
-local function stripIndent(line, level, ignorepattern)
+local function stripIndent(line, level, _ignorepattern)
   local currentLevel = -1
   for i = 1, #line do
     if byte(line, i) == byte("\t") then

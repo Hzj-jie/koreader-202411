@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/remote_parsing_spec.lua

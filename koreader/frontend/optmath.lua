@@ -4,6 +4,7 @@ Simple math helper functions
 
 local bit = require("bit")
 local dbg = require("dbg")
+local util = require("util")
 
 local Math = {}
 
@@ -101,8 +102,10 @@ The optional argument func specifies a one-argument ordering function.
 @tparam func func
 @treturn dynamic maximum element of a table
 ]]
-function Math.tmax(tab, func)
-  return tmin_max(tab, func, "max")
+if util.isTesting() then
+  function Math.tmax(tab, func)
+    return tmin_max(tab, func, "max")
+  end
 end
 
 --[[--
@@ -121,7 +124,7 @@ function Math.clamp(value, min, max)
   end
   return value
 end
-dbg:guard(Math, "minmax", function(value, min, max)
+dbg:guard(Math, "minmax", function(_value, min, max)
   assert(
     min ~= nil and max ~= nil,
     "Math.clamp: min " .. min .. " and max " .. nil .. " must not be nil"

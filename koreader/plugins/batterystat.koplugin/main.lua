@@ -26,14 +26,6 @@ function State:new(o)
   return o
 end
 
-function State:toString()
-  return string.format(
-    "{%d @ %s}",
-    self.percentage,
-    os.date("%c", time.to_s(self.timestamp))
-  )
-end
-
 local Usage = {}
 local INDENTATION = "   " -- Three spaces.
 

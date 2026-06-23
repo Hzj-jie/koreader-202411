@@ -26,15 +26,6 @@ function DepGraph:new(new_o)
 end
 
 -- Check if node exists, and is active
-function DepGraph:checkNode(id)
-  for _, n in ipairs(self.nodes) do
-    if n.key == id and not n.disabled then
-      return true
-    end
-  end
-
-  return false
-end
 
 -- Returns a (node, node_index) tuple
 function DepGraph:getNode(id)

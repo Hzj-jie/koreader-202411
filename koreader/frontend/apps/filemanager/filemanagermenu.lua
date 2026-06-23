@@ -40,6 +40,9 @@ function FileManagerMenu:init()
     tools = {
       icon = "appbar.tools",
     },
+    games = {
+      text = gettext("Games"),
+    },
     search = {
       icon = "appbar.search",
     },
@@ -59,7 +62,11 @@ function FileManagerMenu:registerKeyEvents()
   if not Device:hasKeys() then
     return
   end
-  self.key_events.ShowMenu = { { "Menu" } }
+  if Device:hasFewKeys() then
+    self.key_events.ShowMenu = { { { "Menu", "Right" } } }
+  else
+    self.key_events.ShowMenu = { { "Menu" } }
+  end
   if Device:hasScreenKB() then
     self.key_events.OpenLastDoc = { { "ScreenKB", "Back" } }
   end
@@ -146,7 +153,7 @@ function FileManagerMenu:onOpenLastDoc()
   local last_file = G_reader_settings:read("lastfile")
   if not last_file or lfs.attributes(last_file, "mode") ~= "file" then
     local InfoMessage = require("ui/widget/infomessage")
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("Cannot open last document"),
     }))
     return
@@ -157,7 +164,7 @@ function FileManagerMenu:onOpenLastDoc()
     -- Mimic's FileManager's onShowingReader refresh optimizations
     self.ui.tearing_down = true
     self.ui.dithered = nil
-    self:_closeFileManagerMenu()
+    self:onClose()
   end
 
   local ReaderUI = require("apps/reader/readerui")
@@ -169,7 +176,7 @@ function FileManagerMenu:setUpdateItemTable()
 
   -- setting tab
   self.menu_items.filebrowser_settings = {
-    text = gettext("Settings"),
+    text = gettext("File browser settings"),
     sub_item_table = {
       {
         text = gettext("Show finished books"),
@@ -215,7 +222,7 @@ function FileManagerMenu:setUpdateItemTable()
 - Search results and folder shortcuts
 - File and folder selection
 - Calibre and OPDS browsers/search results]]),
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local default_value = FileChooser.items_per_page_default
               local current_value = G_reader_settings:read("items_per_page")
                 or default_value
@@ -233,17 +240,17 @@ function FileManagerMenu:setUpdateItemTable()
                     default_value
                   )
                   FileChooser:refreshPath()
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
-              UIManager:show(widget)
+              self:showWidget(widget)
             end,
           },
           {
             text_func = function()
               return T(gettext("Item font size: %1"), FileChooser.font_size)
             end,
-            callback = function(touchmenu_instance)
+            callback = function(menu)
               local current_value = FileChooser.font_size
               local default_value = FileChooser.getItemFontSize(
                 G_reader_settings:read("items_per_page")
@@ -266,10 +273,10 @@ function FileManagerMenu:setUpdateItemTable()
                     default_value
                   )
                   FileChooser:refreshPath()
-                  touchmenu_instance:updateItems()
+                  menu:updateItems()
                 end,
               })
-              UIManager:show(widget)
+              self:showWidget(widget)
             end,
           },
           {
@@ -343,7 +350,7 @@ function FileManagerMenu:setUpdateItemTable()
           {
             text = gettext("Clear history of deleted files"),
             callback = function()
-              UIManager:show(ConfirmBox:new({
+              self:showWidget(ConfirmBox:new({
                 text = gettext("Clear history of deleted files?"),
                 ok_text = gettext("Clear"),
                 ok_callback = function()
@@ -442,7 +449,7 @@ To:
 - Reading statistics details
 - A few other plugins]]),
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local default_value = KeyValuePage.getDefaultItemsPerPage()
           local current_value = G_reader_settings:read("keyvalues_per_page")
             or default_value
@@ -458,10 +465,10 @@ To:
                 spin.value,
                 default_value
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -581,7 +588,7 @@ Tap a book in the search results to open it.]]
     end,
     hold_callback = function()
       local last_file = G_reader_settings:read("lastfile")
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to open the last document: %1?"),
           BD.filepath(last_file)
@@ -608,7 +615,7 @@ Tap a book in the search results to open it.]]
       icon = "plus",
       remember = false,
       callback = function()
-        self:_closeFileManagerMenu()
+        self:onClose()
         self.ui:tapPlus()
       end,
     }
@@ -639,7 +646,7 @@ function FileManagerMenu:getSortingMenuTable()
         return k == id
       end,
       callback = function()
-        G_reader_settings:save("collate", k)
+        G_named_settings.set.collate(k)
         self.ui.file_chooser:clearSortingCache()
         self.ui.file_chooser:refreshPath()
       end,
@@ -673,7 +680,7 @@ function FileManagerMenu:getStartWithMenuTable()
         return v[2] == (G_reader_settings:read("start_with") or "filemanager")
       end,
       callback = function()
-        G_reader_settings:save("start_with", v[2])
+        G_reader_settings:save("start_with", v[2], "filemanager")
       end,
       radio = true,
     })
@@ -691,9 +698,9 @@ function FileManagerMenu:getStartWithMenuTable()
   }
 end
 
-function FileManagerMenu:exitOrRestart(callback, force)
+function FileManagerMenu:exitOrRestart(callback, _force)
   CommonMenu:exitOrRestart(function()
-    self:_closeFileManagerMenu()
+    self:onClose()
   end, self.ui, callback)
 end
 
@@ -707,6 +714,7 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   local menu_container = CenterContainer:new({
+    modal = true,
     ignore = "height",
     dimen = Screen:getSize(),
   })
@@ -729,17 +737,17 @@ function FileManagerMenu:onShowMenu(tab_index)
   end
 
   main_menu.close_callback = function()
-    self:_closeFileManagerMenu()
+    self:onClose()
   end
 
   menu_container[1] = main_menu
   -- maintain a reference to menu_container
   self.menu_container = menu_container
-  UIManager:show(menu_container)
+  self:showWidget(menu_container)
   return true
 end
 
-function FileManagerMenu:_closeFileManagerMenu()
+function FileManagerMenu:onClose()
   if not self.menu_container then
     return true
   end
@@ -784,10 +792,10 @@ function FileManagerMenu:onSwipeShowMenu(ges)
   end
 end
 
-function FileManagerMenu:onSetDimensions(dimen)
+function FileManagerMenu:onSetDimensions(_dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
-    self:_closeFileManagerMenu()
+    self:onClose()
     self:onShowMenu()
   end
 

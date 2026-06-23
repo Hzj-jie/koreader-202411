@@ -160,8 +160,8 @@ function ReaderFont:setupFaceMenuTable()
         -- a gesture/profile), which may be convenient for some users.
         self:addToRecentlySelectedList(v)
       end,
-      hold_callback = function(touchmenu_instance)
-        self:makeDefault(v, is_monospace, touchmenu_instance)
+      hold_callback = function(menu)
+        self:makeDefault(v, is_monospace, menu)
       end,
       checked_func = function()
         return v == self.font_face
@@ -354,13 +354,13 @@ function ReaderFont:onSetFont(face)
   end
 end
 
-function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
+function ReaderFont:makeDefault(face, is_monospace, menu)
   if face then
     if is_monospace then
       -- If the font is monospace, assume it wouldn't be a candidate
       -- to be set as a fallback font, and allow it to be set as the
       -- default monospace font.
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = T(
           gettext(
             "Would you like %1 to be used as the default font (★), or the monospace font (🄼)?"
@@ -370,8 +370,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
         choice1_text = gettext("Default"),
         choice1_callback = function()
           G_reader_settings:save("cre_font", face)
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end,
         choice2_text = C_("Font", "Monospace"),
@@ -381,14 +381,14 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
           local current_face = self.font_face
           self.font_face = nil
           self:onSetFont(current_face)
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end,
       }))
       return
     end
-    UIManager:show(MultiConfirmBox:new({
+    self:showWidget(MultiConfirmBox:new({
       text = T(
         gettext(
           "Would you like %1 to be used as the default font (★), or the fallback font (�)?\n\nCharacters not found in the active font are shown in the fallback font instead."
@@ -398,8 +398,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
       choice1_text = gettext("Default"),
       choice1_callback = function()
         G_reader_settings:save("cre_font", face)
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
       choice2_text = C_("Font", "Fallback"),
@@ -407,8 +407,8 @@ function ReaderFont:makeDefault(face, is_monospace, touchmenu_instance)
         G_reader_settings:save("fallback_font", face)
         self.ui.document:setupFallbackFontFaces()
         UIManager:broadcastEvent(Event:new("UpdatePos"))
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end,
     }))
@@ -457,8 +457,7 @@ function ReaderFont:gesToFontSize(ges)
         / math.min(Screen:getWidth(), Screen:getHeight())
     )
   end
-  local delta_int = self.steps[step] or self.steps[#self.steps]
-  return delta_int
+  return self.steps[step] or self.steps[#self.steps]
 end
 
 function ReaderFont:onIncreaseFontSize(ges)
@@ -631,12 +630,12 @@ Enabling this will ignore such font names and make sure your preferred family fo
             self.font_family_fonts[family_tag] = false
             self:updateFontFamilyFonts()
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             g_font_family_fonts[family_tag] = nil
             self.font_family_fonts[family_tag] = nil
             self:updateFontFamilyFonts()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           checked_func = function()
@@ -705,12 +704,12 @@ Enabling this will ignore such font names and make sure your preferred family fo
             end
             self:updateFontFamilyFonts()
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             g_font_family_fonts[family_tag] = v
             self.font_family_fonts[family_tag] = nil
             self:updateFontFamilyFonts()
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
           checked_func = function()
@@ -778,7 +777,7 @@ function ReaderFont:getFontSettingsTable()
       self.face_table.needs_refresh = true
     end,
     hold_callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext([[
 The font list menu can show fonts sorted by name or by most recently selected.
 New fonts discovered at KOReader startup will be shown first.
@@ -849,7 +848,7 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
     end,
     callback = function()
       local SpinWidget = require("ui/widget/spinwidget")
-      UIManager:show(SpinWidget:new({
+      self:showWidget(SpinWidget:new({
         value = G_reader_settings:read("cre_monospace_scaling") or 100,
         value_min = 30,
         value_step = 1,
@@ -862,7 +861,7 @@ This may help with Greek words among Latin text (as Latin fonts often do not hav
         keep_shown_on_apply = true,
         callback = function(spin)
           local scale = spin.value
-          G_reader_settings:save("cre_monospace_scaling", scale)
+          G_reader_settings:save("cre_monospace_scaling", scale, 100)
           self.ui.document:setMonospaceFontScaling(scale)
           UIManager:broadcastEvent(Event:new("UpdatePos"))
         end,
@@ -879,7 +878,7 @@ This setting allows scaling all monospace fonts by this percentage so they can f
   table.insert(settings_table, {
     text = gettext("Generate font test document"),
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext(
           "Would you like to generate an HTML document showing a text sample rendered with each available font?"
         ),
@@ -931,7 +930,7 @@ function ReaderFont:sortFaceList(face_list)
       seen_fonts[face] = true
     end
     -- Remove no-longer-there fonts from our list
-    util.arrayRemove(self.fonts_recently_selected, function(t, i, j)
+    util.arrayRemove(self.fonts_recently_selected, function(t, i, _j)
       return seen_fonts[t[i]]
     end)
   end
@@ -1050,7 +1049,7 @@ a { color: black; }
   end
   f:write("</body></html>\n")
   f:close()
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = T(
       gettext("Document created as:\n%1\n\nWould you like to view it now?"),
       BD.filepath(font_test_final_path)

@@ -1,0 +1,500 @@
+-- SettingsWidget.lua
+-- Autonomous API widget for chess settings.
+local Device = require("device")
+local Screen = Device.screen
+local UIManager = require("ui/uimanager")
+local Blitbuffer = require("ffi/blitbuffer")
+local Font = require("ui/font")
+local Geometry = require("ui/geometry")
+local Size = require("ui/size")
+local Logger = require("logger")
+
+
+local CenterContainer = require("ui/widget/container/centercontainer")
+local RadioButtonTable = require("ui/widget/radiobuttontable")
+local InputDialog = require("ui/widget/inputdialog")
+local HorizontalGroup = require("ui/widget/horizontalgroup")
+local TextWidget = require("ui/widget/textwidget")
+local VerticalGroup = require("ui/widget/verticalgroup")
+local VerticalSpan = require("ui/widget/verticalspan")
+local ButtonWidget    = require("ui/widget/button")
+local FrameContainer = require("ui/widget/container/framecontainer")
+local MovableContainer = require("ui/widget/container/movablecontainer")
+
+local Chess = require("chess")
+local gettext = require("gettext") -- Localization function
+
+local BACKGROUND_COLOR = Blitbuffer.COLOR_WHITE
+
+local SettingsWidget = {}
+SettingsWidget.__index = SettingsWidget
+
+-- ============================================================================
+--  Constructor
+-- ============================================================================
+-- options:
+--   engine            = your UCI engine instance
+--   timer             = your timer object
+--   game              = your game logic (for .is_human, .set_human, .turn, etc.)
+--   onApply(settings) = callback when user clicks Apply
+--   onCancel()        = callback when user clicks Cancel (optional)
+function SettingsWidget:new(opts)
+    assert(opts.engine, "engine is required")
+    assert(opts.timer,  "timer is required")
+    assert(opts.game,   "game is required")
+    assert(opts.onApply and type(opts.onApply) == "function",
+           "onApply callback is required")
+    assert(opts.parent,   "parent is required")
+
+    self = setmetatable({
+        engine     = opts.engine,
+        timer      = opts.timer,
+        game       = opts.game,
+        onApply    = opts.onApply,
+        onCancel   = opts.onCancel,
+        parent     = opts.parent,
+        dialog     = nil,
+        changes    = {},
+    }, SettingsWidget)
+
+    self:initializeState()
+    return self
+end
+
+-- ============================================================================
+--  Initialize the local `changes` table from current engine/timer/game state
+-- ============================================================================
+function SettingsWidget:initializeState()
+    -- Skill bounds (0..20)
+    self.min_skill = 0
+    self.max_skill = 20
+
+    -- Time bounds
+    self.min_base_min = 1
+    self.max_base_min = 180
+    self.min_incr_sec = 0
+    self.max_incr_sec = 60
+
+    local currentSkill = (self.parent and tonumber(self.parent.current_skill)) or nil
+
+    -- 2) si no existe, caemos a lo que diga el wrapper (ojo: suele ser el default=20)
+    if not currentSkill then
+        local skillOpt = self.engine.state.options["Skill Level"]
+        Logger.info("Engine option Skill Level (default): " .. (skillOpt and tostring(skillOpt.value) or "nil"))
+        currentSkill = (skillOpt and tonumber(skillOpt.value)) or 10
+    end
+    currentSkill = math.max(0, math.min(20, currentSkill))
+
+    -- Current changes snapshot
+    self.changes = {
+        human_choice = {
+            [Chess.WHITE] = self.game.is_human(Chess.WHITE),
+            [Chess.BLACK] = self.game.is_human(Chess.BLACK),
+        },
+        skill_level = currentSkill,
+        time_control = {
+            [Chess.WHITE] = {
+                base_minutes  = self.timer.base[Chess.WHITE] / 60,
+                incr_seconds  = self.timer.increment[Chess.WHITE],
+            },
+            [Chess.BLACK] = {
+                base_minutes  = self.timer.base[Chess.BLACK] / 60,
+                incr_seconds  = self.timer.increment[Chess.BLACK],
+            },
+        },
+    }
+end
+
+-- ============================================================================
+--  Public show() method: builds and displays the dialog
+-- ============================================================================
+function SettingsWidget:show()
+    local dlg = InputDialog:new{
+        title          = gettext("Chess Settings"),
+        save_callback  = function() self:applyAndClose() end,
+        dismiss_callback = function()
+            if self.onCancel then self.onCancel() end
+        end,
+    }
+    dlg.element_width = math.floor(dlg.width * 0.8)
+    self.dialog = dlg
+
+    -- Build the UI groups
+    self:buildPlayerTypeGroup()
+    -- self:buildEloGroup()
+    self:buildSkillGroup()
+
+    self:buildTimeGroups()
+    self:assembleContent()
+
+    dlg:refocusWidget()
+    UIManager:show(dlg)
+end
+
+-- ============================================================================
+--  Helper: enable the Apply button when something changes
+-- ============================================================================
+function SettingsWidget:markDirty()
+    self.dialog:_buttons_edit_callback(true)
+    UIManager:setDirty(self.parent, "ui")
+end
+
+-- ============================================================================
+--  PLAYER TYPE RADIO GROUP
+-- ============================================================================
+function SettingsWidget:buildPlayerTypeGroup()
+    local makeList = function(color)
+        return {{
+            { text = gettext("Human"), checked = self.changes.human_choice[color], color = color }
+        }, {
+            { text = gettext("Robot"), checked = not self.changes.human_choice[color], color = color }
+        }}
+    end
+
+    local function onSelect(entry)
+        self.changes.human_choice[entry.color] = (entry.text == gettext("Human"))
+        self:markDirty()
+    end
+
+    -- White
+    local wtxt = TextWidget:new{ text = gettext("White")..":", face = Font:getFace("cfont",22) }
+    local whiteRadios = RadioButtonTable:new{
+        width  = math.floor(self.dialog.element_width/2 - wtxt:getSize().w),
+        radio_buttons = makeList(Chess.WHITE),
+        button_select_callback = onSelect,
+        parent = self.dialog
+    }
+    self.playerTypeGroupWhite = HorizontalGroup:new{ wtxt, whiteRadios }
+
+    -- Black
+    local btxt = TextWidget:new{ text = gettext("Black")..":", face = Font:getFace("cfont",22) }
+    local blackRadios = RadioButtonTable:new{
+        width  = math.floor(self.dialog.element_width/2 - btxt:getSize().w),
+        radio_buttons = makeList(Chess.BLACK),
+        button_select_callback = onSelect,
+        parent = self.dialog
+    }
+    self.playerTypeGroupBlack = HorizontalGroup:new{ btxt, blackRadios }
+
+    self.playerSettingsGroup = HorizontalGroup:new{
+        width = self.dialog.element_width,
+        TextWidget:new{ text=gettext("Player Type")..":", face=Font:getFace("cfont",22) },
+        VerticalGroup:new{ spacing=Size.padding.small,
+                           self.playerTypeGroupWhite,
+                           self.playerTypeGroupBlack }
+    }
+end
+
+-- ============================================================================
+--  SKILL LEVEL GROUP
+-- ============================================================================
+function SettingsWidget:buildSkillGroup()
+    local function approxElo(skill)
+        -- Aproximación orientativa (no es exacta). Ajusta si quieres.
+        local map = {
+            [0]=700, 800, 900, 1000, 1100,
+            1200, 1300, 1400, 1500, 1600,
+            1700, 1800, 1900, 2000, 2100,
+            2200, 2300, 2400, 2500, 2600, 2700
+        }
+        return map[skill] or 1350
+    end
+
+    local function label()
+        local s = tonumber(self.changes.skill_level) or 5
+        return string.format("%d (≈%d)", s, approxElo(s))
+    end
+
+    local tv = TextWidget:new{
+        text   = label(),
+        face   = Font:getFace("cfont",22),
+        halign = "center",
+        width  = 140
+    }
+    self.skillValueText = tv
+
+    local function updateDisplay()
+        tv:setText(label())
+        UIManager:setDirty(self, "ui")
+    end
+
+    local function onClick(delta)
+        self.changes.skill_level = math.max(
+            self.min_skill,
+            math.min(self.max_skill, (tonumber(self.changes.skill_level) or 5) + delta)
+        )
+        updateDisplay()
+        self:markDirty()
+    end
+
+    local decBtn = ButtonWidget:new{
+        text     = "- 1",
+        callback = function() onClick(-1) end,
+        face     = Font:getFace("cfont",20),
+        padding  = Size.padding.small,
+        radius   = Size.radius.button,
+        parent   = self.dialog,
+    }
+    local incBtn = ButtonWidget:new{
+        text     = "+ 1",
+        callback = function() onClick(1) end,
+        face     = Font:getFace("cfont",20),
+        padding  = Size.padding.small,
+        radius   = Size.radius.button,
+        parent   = self.dialog,
+    }
+
+    local ctrl = HorizontalGroup:new{ spacing=Size.padding.small, decBtn, tv, incBtn }
+    self.skillSettingsGroup = HorizontalGroup:new{
+        width = self.dialog.element_width,
+        TextWidget:new{ text=gettext("Engine Skill")..":", face=Font:getFace("cfont",22) },
+        ctrl
+    }
+end
+
+-- ============================================================================
+--  ELO GROUP
+-- ============================================================================
+function SettingsWidget:buildEloGroup()
+    -- value display
+    local tv = TextWidget:new{
+        text   = tostring(self.changes.elo_strength),
+        face   = Font:getFace("cfont",22),
+        halign = "center",
+        width  = 80
+    }
+    self.eloValueText = tv
+
+    local function updateDisplay()
+        tv:setText(tostring(math.floor(self.changes.elo_strength)))
+        UIManager:setDirty(self, "ui")
+    end
+
+    local function onClick(delta)
+        self.changes.elo_strength = math.max(
+            self.min_elo,
+            math.min(self.max_elo, self.changes.elo_strength + delta)
+        )
+        updateDisplay()
+        self:markDirty()
+    end
+
+    local decBtn = ButtonWidget:new{
+        text     = "- "..tostring(self.elo_step),
+        callback = function() onClick(-self.elo_step) end,
+        face     = Font:getFace("cfont",20),
+        padding  = Size.padding.small,
+        radius   = Size.radius.button,
+        parent   = self.dialog,
+    }
+    local incBtn = ButtonWidget:new{
+        text     = "+ "..tostring(self.elo_step),
+        callback = function() onClick(self.elo_step) end,
+        face     = Font:getFace("cfont",20),
+        padding  = Size.padding.small,
+        radius   = Size.radius.button,
+        parent   = self.dialog,
+    }
+
+    local ctrl = HorizontalGroup:new{ spacing=Size.padding.small, decBtn, tv, incBtn }
+    self.eloSettingsGroup = HorizontalGroup:new{
+        width = self.dialog.element_width,
+        TextWidget:new{ text=gettext("Engine ELO Strength")..":", face=Font:getFace("cfont",22) },
+        ctrl
+    }
+end
+
+-- ============================================================================
+--  TIME GROUPS: one button per color that opens a sub-dialog
+-- ============================================================================
+function SettingsWidget:buildTimeGroups()
+    local function fmt(b,i) return string.format("%d + %d",b,i) end
+
+    local function openSubDialog(color, btn)
+        local cur = self.changes.time_control[color]
+        local inputFmt = fmt(cur.base_minutes, cur.incr_seconds)
+
+        local timeDlg
+        timeDlg = InputDialog:new{
+            title           = gettext(color.." Time Settings"),
+            description     = gettext("Time (min + sec):"),
+            allow_newline   = false,
+            input           = inputFmt,
+            input_type      = "number",
+            save_callback   = function(txt)
+                local nb, ni = txt:match("^(%d+)%s*+%s*(%d+)$")
+                if not nb or not ni then
+                    UIManager:showMessage(
+                      gettext("Invalid Time Format"),
+                      gettext("Enter 'minutes + seconds' (e.g. '5 + 0').")
+                    )
+                    return
+                end
+                nb = math.max(self.min_base_min, math.min(self.max_base_min, tonumber(nb)))
+                ni = math.max(self.min_incr_sec, math.min(self.max_incr_sec, tonumber(ni)))
+                if cur.base_minutes ~= nb or cur.incr_seconds ~= ni then
+                    cur.base_minutes  = nb
+                    cur.incr_seconds  = ni
+                    btn:setText(fmt(nb,ni))
+                    self:markDirty()
+                end
+                timeDlg:onCloseKeyboard()
+                UIManager:close(timeDlg)
+            end,
+            dismiss_callback = function() end,
+        }
+        timeDlg:refocusWidget()
+        UIManager:show(timeDlg)
+    end
+
+    local wbtn
+    local wtxt = TextWidget:new{ text=gettext("White Time: "), face=Font:getFace("cfont",22) }
+    wbtn = ButtonWidget:new{
+        text     = fmt(self.changes.time_control[Chess.WHITE].base_minutes,
+                       self.changes.time_control[Chess.WHITE].incr_seconds),
+        callback = function() openSubDialog(Chess.WHITE, wbtn) end,
+        face     = Font:getFace("cfont",20),
+        padding  = Size.padding.small,
+        radius   = Size.radius.button,
+        parent   = self.dialog,
+        width    = self.dialog.element_width/2 - wtxt:getSize().w - Size.padding.small*2,
+    }
+    self.whiteTimeGroup = HorizontalGroup:new{ wtxt, wbtn }
+
+    local bbtn
+    local btxt = TextWidget:new{ text=gettext("Black Time: "), face=Font:getFace("cfont",22) }
+    bbtn = ButtonWidget:new{
+        text     = fmt(self.changes.time_control[Chess.BLACK].base_minutes,
+                       self.changes.time_control[Chess.BLACK].incr_seconds),
+        callback = function() openSubDialog(Chess.BLACK, bbtn) end,
+        face     = Font:getFace("cfont",20),
+        padding  = Size.padding.small,
+        radius   = Size.radius.button,
+        parent   = self.dialog,
+        width    = self.dialog.element_width/2 - btxt:getSize().w - Size.padding.small*2,
+    }
+    self.blackTimeGroup = HorizontalGroup:new{ btxt, bbtn }
+
+    self.timeSettingsGroup = VerticalGroup:new{
+        width   = self.dialog.element_width,
+        spacing = Size.padding.large,
+        self.whiteTimeGroup,
+        self.blackTimeGroup,
+    }
+end
+
+-- ============================================================================
+--  Assemble the final dialog content and show
+-- ============================================================================
+function SettingsWidget:assembleContent()
+    local D = self.dialog
+    local empty = VerticalSpan:new{ width = 0 }
+    local content = FrameContainer:new{
+        radius     = Size.radius.window,
+        bordersize = Size.border.window,
+        background = BACKGROUND_COLOR,
+        padding    = 0,
+        margin     = 0,
+
+        VerticalGroup:new{
+            align = "left",
+            D.title_bar,
+
+            VerticalSpan:new{ width = Size.padding.large },
+
+            -- Player type only if engine is ready
+            self.engine.state.uciok and CenterContainer:new{
+                dimen = Geometry:new{ w=D.width, h=self.playerSettingsGroup:getSize().h },
+                self.playerSettingsGroup
+            } or VerticalSpan:new{ width = 0 },
+
+            self.engine.state.uciok and VerticalSpan:new{ width = Size.padding.large } or empty,
+
+            -- Skill only if engine is ready
+            self.engine.state.uciok and CenterContainer:new{
+                dimen = Geometry:new{ w=D.width, h=self.skillSettingsGroup:getSize().h },
+                self.skillSettingsGroup
+            } or VerticalSpan:new{ width = 0 },
+
+            self.engine.state.uciok and VerticalSpan:new{ width = Size.padding.large } or empty,
+
+            -- Time controls
+            CenterContainer:new{
+                dimen = Geometry:new{ w=D.width, h=self.timeSettingsGroup:getSize().h },
+                self.timeSettingsGroup
+            },
+            VerticalSpan:new{ width = Size.padding.large },
+
+            -- Buttons
+            CenterContainer:new{
+                dimen = Geometry:new{
+                    w = D.title_bar:getSize().w,
+                    h = D.button_table:getSize().h,
+                },
+                D.button_table
+            },
+        }
+    }
+
+    D.movable = MovableContainer:new{ content }
+    D[1]      = CenterContainer:new{ dimen = Screen:getSize(), D.movable }
+end
+
+-- ============================================================================
+--  APPLY: gather `self.changes`, perform any engine/timer updates, then callback
+-- ============================================================================
+function SettingsWidget:applyAndClose()
+    local s = self.changes
+
+    -- 1) Skill Level (0..20)
+    local optSkill = self.engine.state.options["Skill Level"]
+    local v = tonumber(s.skill_level) or 5
+    v = math.max(0, math.min(20, v))
+
+    if optSkill then
+        self.engine:setOption("Skill Level", tostring(v))
+    end
+
+    if self.parent then
+        self.parent.current_skill = v
+    end
+    -- Aseguramos que no esté activo el modo ELO limitado
+    local optLimit = self.engine.state.options["UCI_LimitStrength"]
+    if optLimit and tostring(optLimit.value) ~= "false" then
+        self.engine:setOption("UCI_LimitStrength", "false")
+    end
+
+    if self.engine and self.engine.state.uciok then
+        self.engine.send("isready")
+    end
+
+    -- 2) Time controls
+    local function applyTime(color)
+        local baseOld = self.timer.base[color] / 60
+        local incrOld = self.timer.increment[color]
+        local c = s.time_control[color]
+        if baseOld ~= c.base_minutes then
+            self.timer.base[color] = c.base_minutes * 60
+        end
+        if incrOld ~= c.incr_seconds then
+            self.timer.increment[color] = c.incr_seconds
+        end
+    end
+    applyTime(Chess.WHITE)
+    applyTime(Chess.BLACK)
+
+    -- 3) Player types
+    for _, color in ipairs({Chess.WHITE, Chess.BLACK}) do
+        if self.game.is_human(color) ~= s.human_choice[color] then
+            self.game.set_human(color, s.human_choice[color])
+        end
+    end
+
+    -- invoke user callback
+    self.onApply(s)
+
+    -- close the dialog
+    UIManager:close(self.dialog)
+end
+
+return SettingsWidget

@@ -37,6 +37,9 @@ function ReaderMenu:init()
     tools = {
       icon = "appbar.tools",
     },
+    games = {
+      text = gettext("Games"),
+    },
     search = {
       icon = "appbar.search",
     },
@@ -69,21 +72,10 @@ function ReaderMenu:registerKeyEvents()
   if not Device:hasKeys() then
     return
   end
-  if Device:isTouchDevice() then
+  if Device:hasFewKeys() then
+    self.key_events.PressMenu = { { { "Menu", "Right" } } }
+  else
     self.key_events.PressMenu = { { "Menu" } }
-    if Device:hasFewKeys() then
-      self.key_events.PressMenu = { { { "Menu", "Right" } } }
-    end
-  end
-  if not Device:isTouchDevice() or Device:isEmulator() then
-    -- Map Menu key to top menu only, because the bottom menu is only designed for touch devices.
-    --- @fixme: Is this still the case?
-    ---     (Swapping between top and bottom might not be implemented, though, so it might still be a good idea).
-    self.key_events.ShowMenu = { { "Menu" } }
-    if Device:hasFewKeys() then
-      self.key_events.ShowMenu = { { { "Menu", "Right" } } }
-    end
-    self.key_events.ShowKeyboardShortcuts = { { "Shift", "S" } }
   end
 end
 
@@ -215,7 +207,7 @@ function ReaderMenu:setUpdateItemTable()
     text = gettext("Reset document settings to default"),
     keep_menu_open = true,
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext(
           "Reset current document settings to their default values?\n\nReading position, highlights and bookmarks will be kept.\nThe document will be reloaded."
         ),
@@ -237,13 +229,13 @@ function ReaderMenu:setUpdateItemTable()
     text = gettext("Save document settings as default"),
     keep_menu_open = true,
     callback = function()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = gettext("Save current document settings as default values?"),
         ok_text = gettext("Save"),
         ok_callback = function()
           self:closeMenu()
           self:saveDocumentSettingsAsDefault()
-          UIManager:show(require("ui/widget/notification"):new({
+          self:showWidget(require("ui/widget/notification"):new({
             text = gettext("Default settings updated"),
           }))
         end,
@@ -345,7 +337,7 @@ function ReaderMenu:setUpdateItemTable()
     end,
     hold_callback = function()
       local previous_file = self:getPreviousFile()
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to open the previous document: %1?"),
           BD.filepath(previous_file)
@@ -387,13 +379,13 @@ function ReaderMenu:saveDocumentSettingsAsDefault()
   end
 end
 
-function ReaderMenu:exitOrRestart(callback, force)
+function ReaderMenu:exitOrRestart(callback, _force)
   CommonMenu:exitOrRestart(function()
     self:closeMenu()
   end, self.ui, callback)
 end
 
-function ReaderMenu:onShowMenu(tab_index)
+function ReaderMenu:_showMenu(tab_index)
   if self.tab_item_table == nil then
     self:setUpdateItemTable()
   end
@@ -403,6 +395,7 @@ function ReaderMenu:onShowMenu(tab_index)
   end
 
   local menu_container = CenterContainer:new({
+    modal = true,
     ignore = "height",
     dimen = Screen:getSize(),
   })
@@ -431,7 +424,7 @@ function ReaderMenu:onShowMenu(tab_index)
   menu_container[1] = main_menu
   -- maintain a reference to menu_container
   self.menu_container = menu_container
-  UIManager:show(menu_container)
+  self:showWidget(menu_container)
   return true
 end
 
@@ -446,11 +439,11 @@ function ReaderMenu:onCloseReaderMenu()
   return true
 end
 
-function ReaderMenu:onSetDimensions(dimen)
+function ReaderMenu:onSetDimensions(_dimen)
   -- This widget doesn't support in-place layout updates, so, close & reopen
   if self.menu_container then
     self:onCloseReaderMenu()
-    self:onShowMenu()
+    self:_showMenu()
   end
 
   -- update gesture zones according to new screen dimen
@@ -478,10 +471,10 @@ end
 
 function ReaderMenu:onSwipeShowMenu(ges)
   if self.activation_menu ~= "tap" and ges.direction == "south" then
-    if G_reader_settings:nilOrTrue("show_bottom_menu") then
+    if G_named_settings.show_bottom_menu() then
       UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
     end
-    self:onShowMenu(self:_getTabIndexFromLocation(ges))
+    self:_showMenu(self:_getTabIndexFromLocation(ges))
     UIManager:broadcastEvent(Event:new("HandledAsSwipe")) -- cancel any pan scroll made
     return true
   end
@@ -489,19 +482,19 @@ end
 
 function ReaderMenu:onTapShowMenu(ges)
   if self.activation_menu ~= "swipe" then
-    if G_reader_settings:nilOrTrue("show_bottom_menu") then
+    if G_named_settings.show_bottom_menu() then
       UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
     end
-    self:onShowMenu(self:_getTabIndexFromLocation(ges))
+    self:_showMenu(self:_getTabIndexFromLocation(ges))
     return true
   end
 end
 
 function ReaderMenu:onPressMenu()
-  if G_reader_settings:nilOrTrue("show_bottom_menu") then
+  if G_named_settings.show_bottom_menu() then
     UIManager:broadcastEvent(Event:new("ShowConfigMenu"))
   end
-  self:onShowMenu()
+  self:_showMenu()
   return true
 end
 
@@ -519,7 +512,7 @@ function ReaderMenu:onSaveSettings()
 end
 
 function ReaderMenu:onMenuSearch()
-  self:onShowMenu()
+  self:_showMenu()
   UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
 end
 

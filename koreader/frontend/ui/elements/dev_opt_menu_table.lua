@@ -280,9 +280,9 @@ table.insert(developer_options.sub_item_table, {
     -- No need to show "This will take effect on next CRE book opening."
     -- as this menu is only accessible from file browser
   end,
-  hold_callback = function(touchmenu_instance)
+  hold_callback = function(menu)
     G_reader_settings:flipNilOrFalse("use_cre_call_cache_log_stats")
-    touchmenu_instance:updateItems()
+    menu:updateItems()
   end,
 })
 table.insert(developer_options.sub_item_table, {

@@ -229,7 +229,7 @@ local FileChooser = Menu:extend({
           local summary = doc_settings:readTableRef("summary")
 
           -- books marked as "finished" or "on hold" should be considered the same as 100% and less than 0% respectively
-          if summary.status == "complete" then
+          if summary and summary.status == "complete" then
             sort_percent = 1.0
           elseif summary and summary.status == "abandoned" then
             sort_percent = -0.01
@@ -329,7 +329,7 @@ function FileChooser:show_file(filename, fullpath)
     return false
   end
   if
-    not FileChooser.show_finished
+    not self.show_finished
     and fullpath ~= nil
     and filemanagerutil.getStatus(fullpath) == "complete"
   then
@@ -451,12 +451,12 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
 end
 
 function FileChooser:getCollate()
-  local collate_id = G_reader_settings:read("collate") or "strcoll"
+  local collate_id = G_named_settings.collate()
   local collate = self.collates[collate_id]
   if collate ~= nil then
     return collate, collate_id
   else
-    G_reader_settings:save("collate", "strcoll")
+    G_named_settings.set.collate("strcoll")
     return self.collates.strcoll, "strcoll"
   end
 end
@@ -577,32 +577,28 @@ function FileChooser:updateItems(select_number, no_recalculate_dimen)
 end
 
 function FileChooser:refreshPath()
-  UIManager:runWith(
-    function()
-      local _, folder_name = util.splitFilePathName(self.path)
-      Screen:setWindowTitle(folder_name)
+  UIManager:runWith(function()
+    local _, folder_name = util.splitFilePathName(self.path)
+    Screen:setWindowTitle(folder_name)
 
-      local itemmatch
-      if self.focused_path then
-        itemmatch = { path = self.focused_path }
-        -- We use focused_path only once, but remember it
-        -- for CoverBrowser to re-apply it on startup if needed
-        self.prev_focused_path = self.focused_path
-        self.focused_path = nil
-      end
-      local subtitle = self.filemanager == nil
-        and BD.directory(filemanagerutil.abbreviate(self.path))
-      self:switchItemTable(
-        nil,
-        self:genItemTableFromPath(self.path),
-        self.path_items[self.path],
-        itemmatch,
-        subtitle
-      )
-    end,
-    -- Need localization.
-    T(gettext("Loading contents in %1"), self.path)
-  )
+    local itemmatch
+    if self.focused_path then
+      itemmatch = { path = self.focused_path }
+      -- We use focused_path only once, but remember it
+      -- for CoverBrowser to re-apply it on startup if needed
+      self.prev_focused_path = self.focused_path
+      self.focused_path = nil
+    end
+    local subtitle = self.filemanager == nil
+      and BD.directory(filemanagerutil.abbreviate(self.path))
+    self:switchItemTable(
+      nil,
+      self:genItemTableFromPath(self.path),
+      self.path_items[self.path],
+      itemmatch,
+      subtitle
+    )
+  end, T(gettext("Loading contents in %1"), self.path))
 end
 
 function FileChooser:changeToPath(path, focused_path)
@@ -663,21 +659,6 @@ function FileChooser:onFolderUp()
   end
 end
 
-function FileChooser:changePageToPath(path)
-  if not path then
-    return
-  end
-  for num, item in ipairs(self.item_table) do
-    if not item.is_file and item.path == path then
-      local page = math.floor((num - 1) / self.perpage) + 1
-      if page ~= self.page then
-        self:onGotoPage(page)
-      end
-      break
-    end
-  end
-end
-
 function FileChooser:toggleShowFilesMode(mode)
   -- modes: "show_finished", "show_hidden", "show_unsupported"
   FileChooser[mode] = not FileChooser[mode]
@@ -701,12 +682,12 @@ function FileChooser:onMenuHold(item)
   return true
 end
 
-function FileChooser:fileSelect(item)
+function FileChooser:fileSelect(_item)
   UIManager:close(self)
   return true
 end
 
-function FileChooser:fileHold(item)
+function FileChooser:fileHold(_item)
   return true
 end
 

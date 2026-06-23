@@ -129,7 +129,7 @@ function ReaderSearch:addToMainMenu(menu_items)
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local widget = SpinWidget:new({
             title_text = gettext("Words in context"),
             value = self.findall_nb_context_words,
@@ -144,10 +144,10 @@ function ReaderSearch:addToMainMenu(menu_items)
                 "fulltext_search_nb_context_words",
                 spin.value
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
       {
@@ -158,7 +158,7 @@ function ReaderSearch:addToMainMenu(menu_items)
           )
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local default_value = 4
           local widget = SpinWidget:new({
             title_text = gettext("Max lines per result"),
@@ -177,17 +177,17 @@ function ReaderSearch:addToMainMenu(menu_items)
               )
               self.findall_results_max_lines = spin.value
               self.last_search_hash = nil
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
             extra_text = gettext("Disable"),
             extra_callback = function()
               G_reader_settings:delete("fulltext_search_results_max_lines")
               self.findall_results_max_lines = nil
               self.last_search_hash = nil
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
       {
@@ -201,7 +201,7 @@ function ReaderSearch:addToMainMenu(menu_items)
           return not self.findall_results_max_lines
         end,
         keep_menu_open = true,
-        callback = function(touchmenu_instance)
+        callback = function(menu)
           local widget = SpinWidget:new({
             title_text = gettext("Results per page"),
             value = self.findall_results_per_page,
@@ -214,10 +214,10 @@ function ReaderSearch:addToMainMenu(menu_items)
                 "fulltext_search_results_per_page",
                 spin.value
               )
-              touchmenu_instance:updateItems()
+              menu:updateItems()
             end,
           })
-          UIManager:show(widget)
+          self:showWidget(widget)
         end,
       },
     },
@@ -239,14 +239,14 @@ end
 function ReaderSearch:searchText(text) -- from highlight dialog
   if G_reader_settings:isTrue("fulltext_search_find_all") then
     self.ui.highlight:clear()
-    self:searchCallback(nil, text)
+    self:_searchCallback(nil, text)
   else
-    self:searchCallback(0, text) -- forward
+    self:_searchCallback(0, text) -- forward
   end
 end
 
 -- if reverse == 1 search backwards
-function ReaderSearch:searchCallback(reverse, text)
+function ReaderSearch:_searchCallback(reverse, text)
   local search_text = text or self.input_dialog:getInputText()
   if search_text == nil or search_text == "" then
     return
@@ -283,12 +283,12 @@ function ReaderSearch:searchCallback(reverse, text)
     else
       error_message = gettext("Invalid regular expression.")
     end
-    UIManager:show(InfoMessage:new({ text = error_message }))
+    self:showWidget(InfoMessage:new({ text = error_message }))
   else
-    UIManager:close(self.input_dialog)
+    UIManager:closeIfNotNil(self.input_dialog)
     if reverse then
       self.last_search_hash = nil
-      self:onShowSearchDialog(
+      self:_showSearchDialog(
         search_text,
         reverse,
         self.use_regex,
@@ -328,20 +328,20 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
           -- @translators Find all results in entire document, button displayed on the search bar, should be short.
           text = C_("Search text", "All"),
           callback = function()
-            self:searchCallback()
+            self:_searchCallback()
           end,
         },
         {
           text = backward_text,
           callback = function()
-            self:searchCallback(1)
+            self:_searchCallback(1)
           end,
         },
         {
           text = forward_text,
           is_enter_default = true,
           callback = function()
-            self:searchCallback(0)
+            self:_searchCallback(0)
           end,
         },
       },
@@ -359,7 +359,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
     checked = self.use_regex,
     parent = self.input_dialog,
     hold_callback = function()
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = help_text,
         width = Screen:getWidth() * 0.9,
       }))
@@ -373,7 +373,7 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
   return true
 end
 
-function ReaderSearch:onShowSearchDialog(
+function ReaderSearch:_showSearchDialog(
   text,
   direction,
   regex,
@@ -506,7 +506,7 @@ function ReaderSearch:onShowSearchDialog(
         else
           notification_text = gettext("No results on following pages")
         end
-        UIManager:show(Notification:new({
+        self:showWidget(Notification:new({
           text = notification_text,
         }))
       end
@@ -548,11 +548,11 @@ function ReaderSearch:onShowSearchDialog(
       {
         {
           text = from_start_text,
-          callback = search(self.searchFromStart, text, nil),
+          callback = search(self._searchFromStart, text, nil),
         },
         {
           text = backward_text,
-          callback = search(self.searchNext, text, 1),
+          callback = search(self._searchNext, text, 1),
         },
         {
           icon = "appbar.search",
@@ -565,11 +565,11 @@ function ReaderSearch:onShowSearchDialog(
         },
         {
           text = forward_text,
-          callback = search(self.searchNext, text, 0),
+          callback = search(self._searchNext, text, 0),
         },
         {
           text = from_end_text,
-          callback = search(self.searchFromEnd, text, nil),
+          callback = search(self._searchFromEnd, text, nil),
         },
       },
     },
@@ -584,15 +584,15 @@ function ReaderSearch:onShowSearchDialog(
     -- initial position: center of the screen
     UIManager:show(self.wait_button)
     UIManager:tickAfterNext(function()
-      do_search(self.searchFromCurrent, text, direction)()
+      do_search(self._searchFromCurrent, text, direction)()
       UIManager:close(self.wait_button)
-      UIManager:show(self.search_dialog)
+      self:showWidget(self.search_dialog)
       --- @todo regional
       UIManager:setDirty(self.dialog, "partial")
     end)
   else
-    do_search(self.searchFromCurrent, text, direction)()
-    UIManager:show(self.search_dialog)
+    do_search(self._searchFromCurrent, text, direction)()
+    self:showWidget(self.search_dialog)
     --- @todo regional
     UIManager:setDirty(self.dialog, "partial")
   end
@@ -620,11 +620,11 @@ function ReaderSearch:search(pattern, origin, regex, case_insensitive)
     self.max_hits
   )
   Device:setIgnoreInput(false)
-  self:showErrorNotification(words_found, regex, self.max_hits)
+  self:_showErrorNotification(words_found, regex, self.max_hits)
   return retval
 end
 
-function ReaderSearch:showErrorNotification(words_found, regex, max_hits)
+function ReaderSearch:_showErrorNotification(words_found, regex, max_hits)
   regex = regex or self.use_regex
   max_hits = max_hits or self.findall_max_hits
   local regex_retval = regex and self.ui.document:getAndClearRegexSearchError()
@@ -635,31 +635,31 @@ function ReaderSearch:showErrorNotification(words_found, regex, max_hits)
     else
       error_message = gettext("Unspecified error")
     end
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = error_message,
       timeout = false,
     }))
   elseif words_found and words_found >= max_hits then
-    UIManager:show(Notification:new({
+    self:showWidget(Notification:new({
       text = gettext("Too many hits"),
       timeout = 4,
     }))
   end
 end
 
-function ReaderSearch:searchFromStart(pattern, _, regex, case_insensitive)
+function ReaderSearch:_searchFromStart(pattern, _, regex, case_insensitive)
   self.direction = 0
   self._expect_back_results = true
   return self:search(pattern, -1, regex, case_insensitive)
 end
 
-function ReaderSearch:searchFromEnd(pattern, _, regex, case_insensitive)
+function ReaderSearch:_searchFromEnd(pattern, _, regex, case_insensitive)
   self.direction = 1
   self._expect_back_results = false
   return self:search(pattern, -1, regex, case_insensitive)
 end
 
-function ReaderSearch:searchFromCurrent(
+function ReaderSearch:_searchFromCurrent(
   pattern,
   direction,
   regex,
@@ -671,7 +671,7 @@ function ReaderSearch:searchFromCurrent(
 end
 
 -- ignore current page and search next occurrence
-function ReaderSearch:searchNext(pattern, direction, regex, case_insensitive)
+function ReaderSearch:_searchNext(pattern, direction, regex, case_insensitive)
   self.direction = direction
   self._expect_back_results = direction == 1
   return self:search(pattern, 1, regex, case_insensitive)
@@ -708,7 +708,7 @@ function ReaderSearch:findAllText(search_text)
   if self.findall_results then
     self:onShowFindAllResults(not_cached)
   else
-    UIManager:show(
+    self:showWidget(
       InfoMessage:new({ text = gettext("No results in the document") })
     )
   end
@@ -768,7 +768,7 @@ function ReaderSearch:onShowFindAllResults(not_cached)
     title_bar_fm_style = true,
     title_bar_left_icon = "appbar.menu",
     onLeftButtonTap = function()
-      self:showAllResultsMenuDialog()
+      self:_showAllResultsMenuDialog()
     end,
     onMenuChoice = function(_menu_self, item)
       if self.ui.rolling then
@@ -796,7 +796,7 @@ function ReaderSearch:onShowFindAllResults(not_cached)
           indent = indent .. " "
         end
       end
-      UIManager:show(InfoMessage:new({ text = text .. indent .. last }))
+      self:showWidget(InfoMessage:new({ text = text .. indent .. last }))
       return true
     end,
     close_callback = function()
@@ -805,18 +805,18 @@ function ReaderSearch:onShowFindAllResults(not_cached)
       UIManager:close(self.result_menu)
     end,
   })
-  self:updateAllResultsMenu(nil, self.findall_results_item_index)
-  UIManager:show(self.result_menu)
-  self:showErrorNotification(#self.findall_results)
+  self:_updateAllResultsMenu(nil, self.findall_results_item_index)
+  self:showWidget(self.result_menu)
+  self:_showErrorNotification(#self.findall_results)
 end
 
-function ReaderSearch:updateAllResultsMenu(item_table, item_index)
+function ReaderSearch:_updateAllResultsMenu(item_table, item_index)
   local items_nb = item_table and #item_table or #self.result_menu.item_table
   local title = T(gettext("Search results (%1)"), items_nb)
   self.result_menu:switchItemTable(title, item_table, item_index)
 end
 
-function ReaderSearch:showAllResultsMenuDialog()
+function ReaderSearch:_showAllResultsMenuDialog()
   local item_table = self.result_menu.item_table
   local button_dialog
   local buttons = {
@@ -837,7 +837,7 @@ function ReaderSearch:showAllResultsMenuDialog()
               break
             end
           end
-          self:updateAllResultsMenu(new_item_table)
+          self:_updateAllResultsMenu(new_item_table)
         end,
       },
     },
@@ -869,7 +869,7 @@ function ReaderSearch:showAllResultsMenuDialog()
               break
             end
           end
-          self:updateAllResultsMenu(nil, index or #item_table)
+          self:_updateAllResultsMenu(nil, index or #item_table)
         end,
       },
     },
@@ -878,7 +878,7 @@ function ReaderSearch:showAllResultsMenuDialog()
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return ReaderSearch

@@ -228,7 +228,7 @@ function Japanese:genMenuItem()
         "Number of characters to look ahead when trying to expand tap-and-hold word selection in documents."
       ),
       keep_menu_open = true,
-      callback = function(touchmenu_instance)
+      callback = function(menu)
         local SpinWidget = require("ui/widget/spinwidget")
         local Screen = require("device").screen
         local items = SpinWidget:new({
@@ -255,8 +255,8 @@ Default value: %1]]),
               "language_japanese_text_scan_length",
               self.max_scan_length
             )
-            if touchmenu_instance then
-              touchmenu_instance:updateItems()
+            if menu then
+              menu:updateItems()
             end
           end,
         })

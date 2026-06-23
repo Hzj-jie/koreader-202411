@@ -20,10 +20,8 @@ local order = require("ui/elements/common_menu_order")({
     "----------------------------",
     "book_map", -- if Device:isTouchDevice()
     "page_browser", -- if Device:isTouchDevice()
-    "----------------------------",
     "go_to",
     "skim_to",
-    "progress_sync",
     "autoturn",
     "----------------------------",
     "go_to_previous_location",
@@ -32,18 +30,19 @@ local order = require("ui/elements/common_menu_order")({
   navi_settings = {
     "toc_ticks_level_ignore",
     "----------------------------",
+    "progress_sync",
+    "----------------------------",
+    "bookmarks_settings",
+    "----------------------------",
     "toc_items_per_page",
     "toc_items_font_size",
     "toc_items_show_chapter_length",
     "toc_items_with_dots",
-    "----------------------------",
     "toc_alt_toc",
     "----------------------------",
     "handmade_toc",
     "handmade_hidden_flows",
     "handmade_settings",
-    "----------------------------",
-    "bookmarks_settings",
   },
   typeset = {
     "reset_document_settings",

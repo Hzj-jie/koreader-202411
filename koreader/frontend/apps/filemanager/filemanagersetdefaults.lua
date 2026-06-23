@@ -313,18 +313,18 @@ function SetDefaultsWidget:saveSettings()
 
   -- And flush to disk
   G_defaults:flush()
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext("Default settings saved."),
   }))
 end
 
-function SetDefaultsWidget:saveBeforeExit(callback)
+function SetDefaultsWidget:saveBeforeExit(_callback)
   local save_text = gettext("Save and quit")
   if Device:canRestart() then
     save_text = gettext("Save and restart")
   end
   if self.settings_changed then
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       dismissable = false,
       text = gettext(
         "KOReader needs to be restarted to apply the new default settings."

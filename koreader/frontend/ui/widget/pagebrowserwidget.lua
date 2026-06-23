@@ -730,9 +730,7 @@ function PageBrowserWidget:update()
       end
     end
   end
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:scheduleRepaint()
   if G_reader_settings:isTrue("page_browser_preload_thumbnails") then
     self:preloadNextPrevScreenThumbnails()
   end
@@ -1136,11 +1134,11 @@ function PageBrowserWidget:showMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function PageBrowserWidget:showAbout()
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext([[
 Page browser shows thumbnails of pages.
 
@@ -1158,7 +1156,7 @@ Under the pages, these indicators may be shown:
 end
 
 function PageBrowserWidget:showGestures()
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = gettext([[
 Swipe along the top or left screen edge to change the number of columns or rows of thumbnails.
 
@@ -1232,19 +1230,29 @@ function PageBrowserWidget:saveSettings(reset)
   else
     self.ui.doc_settings:save("page_browser_toc_depth", self.nb_toc_spans)
   end
-  self.ui.doc_settings:save("page_browser_nb_rows", self.nb_rows)
-  self.ui.doc_settings:save("page_browser_nb_cols", self.nb_cols)
+  self.ui.doc_settings:save(
+    "page_browser_nb_rows",
+    self.nb_rows,
+    G_reader_settings:read("page_browser_nb_rows") or 2
+  )
+  self.ui.doc_settings:save(
+    "page_browser_nb_cols",
+    self.nb_cols,
+    G_reader_settings:read("page_browser_nb_cols") or 3
+  )
   self.ui.doc_settings:save(
     "page_browser_thumbnails_pagenums",
-    self.thumbnails_pagenums
+    self.thumbnails_pagenums,
+    G_reader_settings:read("page_browser_thumbnails_pagenums") or 2
   )
   -- We also save nb_rows/nb_cols as global settings, so they will apply on other books
   -- where they were not already set
-  G_reader_settings:save("page_browser_nb_rows", self.nb_rows)
-  G_reader_settings:save("page_browser_nb_cols", self.nb_cols)
+  G_reader_settings:save("page_browser_nb_rows", self.nb_rows, 2)
+  G_reader_settings:save("page_browser_nb_cols", self.nb_cols, 3)
   G_reader_settings:save(
     "page_browser_thumbnails_pagenums",
-    self.thumbnails_pagenums
+    self.thumbnails_pagenums,
+    2
   )
 end
 
@@ -1521,7 +1529,7 @@ function PageBrowserWidget:onSpread(arg, ges)
   return true
 end
 
-function PageBrowserWidget:onMultiSwipe(arg, ges)
+function PageBrowserWidget:onMultiSwipe(arg)
   -- All swipes gestures are used for navigation.
   -- Allow for quick closing with any multiswipe.
   self:onExit()
@@ -1623,7 +1631,7 @@ function PageBrowserWidget:onHold(arg, ges)
     if page then
       local extra_symbols_pages = {}
       extra_symbols_pages[self.focus_page] = 0x25A2 -- white square with rounder corners
-      UIManager:show(BookMapWidget:new({
+      self:showWidget(BookMapWidget:new({
         launcher = self,
         ui = self.ui,
         focus_page = page,
@@ -1727,7 +1735,7 @@ function PageBrowserWidget:onThumbnailHold(page, ges)
       return ges.pos, true
     end,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 return PageBrowserWidget

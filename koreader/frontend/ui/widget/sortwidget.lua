@@ -581,7 +581,7 @@ function SortWidget:onShowWidgetMenu()
       return self.title_bar.left_button.image.dimen
     end,
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   return true
 end
 

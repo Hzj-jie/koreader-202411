@@ -8,7 +8,7 @@ Example:
     local parent_widget = FrameContainer:new{}
     table.insert(parent_widget, CheckMark:new{
         checkable = false, -- shows nothing when false, defaults to true
-        checked = function() end, -- whether the box has a checkmark in it
+        checked = false, -- whether the box has a checkmark in it, defaults to false
     })
     UIManager:show(parent_widget)
 

@@ -166,7 +166,7 @@ function ReaderLink:init()
       text = gettext("Show QR code"),
       callback = function()
         UIManager:close(this.external_link_dialog)
-        UIManager:show(QRMessage:new({
+        self:showWidget(QRMessage:new({
           text = link_url,
           width = Device.screen:getWidth(),
           height = Device.screen:getHeight(),
@@ -246,7 +246,7 @@ function ReaderLink:init()
       end,
     }
   end
-  self._external_link_buttons["90_cancel"] = function(this, link_url)
+  self._external_link_buttons["90_cancel"] = function(this, _link_url)
     return {
       text = gettext("Cancel"),
       callback = function()
@@ -262,9 +262,6 @@ end
 -- overriding the default behaviour of treating these as filepaths.
 -- Registering the "file" scheme also overrides its default handling.
 -- Registered schemes are reset on each initialisation of ReaderLink.
-function ReaderLink:registerScheme(scheme)
-  table.insert(self.supported_external_schemes, scheme)
-end
 
 function ReaderLink:onGesture() end
 
@@ -309,7 +306,7 @@ end
 
 ReaderLink.onPhysicalKeyboardConnected = ReaderLink.registerKeyEvents
 
-function ReaderLink:onReadSettings(config)
+function ReaderLink:onReadSettings(_config)
   -- called when loading new document
   self:onClearLocationStack()
 end
@@ -360,13 +357,13 @@ function ReaderLink:addToMainMenu(menu_items)
     callback = function()
       self:onGoBackLink()
     end,
-    hold_callback = function(touchmenu_instance)
-      UIManager:show(ConfirmBox:new({
+    hold_callback = function(menu)
+      self:showWidget(ConfirmBox:new({
         text = gettext("Clear location history?"),
         ok_text = gettext("Clear"),
         ok_callback = function()
           self:onClearLocationStack()
-          touchmenu_instance:closeMenu()
+          menu:closeMenu()
         end,
       }))
     end,
@@ -379,13 +376,13 @@ function ReaderLink:addToMainMenu(menu_items)
     callback = function()
       self:onGoForwardLink()
     end,
-    hold_callback = function(touchmenu_instance)
-      UIManager:show(ConfirmBox:new({
+    hold_callback = function(menu)
+      self:showWidget(ConfirmBox:new({
         text = gettext("Clear forward location history?"),
         ok_text = gettext("Clear"),
         ok_callback = function()
           self:onClearForwardLocationStack()
-          touchmenu_instance:closeMenu()
+          menu:closeMenu()
         end,
       }))
     end,
@@ -608,7 +605,7 @@ The footnote popup font can adjust to the font size you've set for the document,
               extra_callback = function()
                 UIManager:close(spin_widget)
                 spin_widget = get_font_size_widget(false)
-                UIManager:show(spin_widget)
+                self:showWidget(spin_widget)
               end,
             })
           else
@@ -638,7 +635,7 @@ The recommended value is -2.]]),
               extra_callback = function()
                 UIManager:close(spin_widget)
                 spin_widget = get_font_size_widget(true)
-                UIManager:show(spin_widget)
+                self:showWidget(spin_widget)
               end,
             })
           end
@@ -647,7 +644,7 @@ The recommended value is -2.]]),
         local show_absolute_font_size_widget =
           G_reader_settings:has("footnote_popup_absolute_font_size")
         spin_widget = get_font_size_widget(show_absolute_font_size_widget)
-        UIManager:show(spin_widget)
+        self:showWidget(spin_widget)
       end,
       help_text = gettext(
         [[
@@ -750,7 +747,7 @@ function ReaderLink:showLinkBox(link, allow_footnote_popup)
       self.document:nativeToPageRectTransform(link.pos.page, link.lbox)
     )
     if sbox then
-      UIManager:show(LinkBox:new({
+      self:showWidget(LinkBox:new({
         box = sbox,
         timeout = G_defaults:read("FOLLOW_LINK_TIMEOUT"),
         callback = function()
@@ -996,7 +993,7 @@ function ReaderLink:onGotoLink(
       if anchor then
         display_filename = display_filename .. anchor
       end
-      UIManager:show(ConfirmBox:new({
+      self:showWidget(ConfirmBox:new({
         text = T(
           gettext("Would you like to read this local document?\n\n%1\n"),
           BD.filepath(display_filename)
@@ -1008,7 +1005,7 @@ function ReaderLink:onGotoLink(
         end,
       }))
     else
-      UIManager:show(InfoMessage:new({
+      self:showWidget(InfoMessage:new({
         text = T(
           gettext("Link to unsupported local file:\n%1"),
           BD.url(link_url)
@@ -1019,7 +1016,7 @@ function ReaderLink:onGotoLink(
   end
 
   -- Not supported
-  UIManager:show(InfoMessage:new({
+  self:showWidget(InfoMessage:new({
     text = T(gettext("Invalid or external link:\n%1"), BD.url(link_url)),
     -- no timeout to allow user to type that link in his web browser
   }))
@@ -1033,7 +1030,7 @@ function ReaderLink:onGoToExternalLink(link_url)
     title = title,
     buttons = buttons,
   })
-  UIManager:show(self.external_link_dialog)
+  self:showWidget(self.external_link_dialog)
   return true
 end
 
@@ -1430,7 +1427,7 @@ function ReaderLink:onPosUpdate()
   end
 end
 
-function ReaderLink:onGoToLatestBookmark(ges)
+function ReaderLink:onGoToLatestBookmark(_ges)
   local latest_bookmark = self.ui.bookmark:getLatestBookmark()
   if latest_bookmark then
     if self.ui.paging then
@@ -1674,18 +1671,12 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
     end,
     dialog = self.dialog,
   })
-  UIManager:show(popup)
+  self:showWidget(popup)
   return true
 end
 
 function ReaderLink:addToExternalLinkDialog(idx, fn_button)
   self._external_link_buttons[idx] = fn_button
-end
-
-function ReaderLink:removeFromExternalLinkDialog(idx)
-  local button = self._external_link_buttons[idx]
-  self._external_link_buttons[idx] = nil
-  return button
 end
 
 function ReaderLink:getButtonsForExternalLinkDialog(link_url)

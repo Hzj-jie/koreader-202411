@@ -156,7 +156,7 @@ function SonyPRSTUX:initNetworkManager(NetworkMgr)
 
   function NetworkMgr:_turnOnWifi(complete_callback, interactive)
     os.execute("./set-wifi.sh on")
-    return self:reconnectOrShowNetworkMenu(complete_callback, interactive)
+    return self:reconnect(complete_callback, interactive)
   end
 
   function NetworkMgr:getNetworkInterfaceName()
@@ -199,7 +199,7 @@ function SonyPRSTUX:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function SonyPRSTUX:setEventHandlers(uimgr)
+function SonyPRSTUX:setEventHandlers(_uimgr)
   UIManager.event_handlers.Suspend = function()
     self:intoScreenSaver()
     self:suspend()

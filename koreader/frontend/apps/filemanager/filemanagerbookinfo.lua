@@ -22,7 +22,8 @@ local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 local N_ = gettext.ngettext
 local Screen = Device.screen
-local T = require("ffi/util").template
+local ffiutil = require("ffi/util")
+local T = ffiutil.template
 
 local BookInfo = WidgetContainer:extend({
   title = gettext("Book information"),
@@ -85,6 +86,11 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   table.insert(kv_pairs, { gettext("Filename:"), BD.filename(filename) })
   table.insert(kv_pairs, { gettext("Format:"), filetype:upper() })
   table.insert(kv_pairs, { gettext("Size:"), sizeStr(attr) })
+  table.insert(kv_pairs, {
+    gettext("Last open:"),
+    attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.access)
+      or gettext("Unknown"),
+  })
   table.insert(kv_pairs, {
     gettext("File date:"),
     attr ~= nil and os.date("%Y-%m-%d %H:%M:%S", attr.modification)
@@ -205,23 +211,17 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   })
   if has_sidecar then
     table.insert(kv_pairs, {
-      -- Need localization
       gettext("Number of bookmarks"),
       #doc_settings_or_file:readTableRef("annotations"),
     })
     table.insert(
       kv_pairs,
-      -- Need localization
       { gettext("Number of settings:"), doc_settings_or_file:settingCount() }
     )
-    table.insert(
-      kv_pairs,
-      -- Need localization
-      {
-        gettext("Setting file size:"),
-        sizeStr(doc_settings_or_file:fileAttribute()),
-      }
-    )
+    table.insert(kv_pairs, {
+      gettext("Setting file size:"),
+      sizeStr(doc_settings_or_file:fileAttribute()),
+    })
   end
 
   return kv_pairs, file, values_lang
@@ -253,7 +253,7 @@ function BookInfo:show(doc_settings_or_file, book_props)
       end
     end,
   })
-  UIManager:show(self.kvp_widget)
+  self:showWidget(self.kvp_widget)
 end
 
 function BookInfo.getCustomProp(prop_key, filepath)
@@ -382,7 +382,7 @@ function BookInfo:onShowBookInfo()
 end
 
 function BookInfo:showBookProp(prop_key, prop_text)
-  UIManager:show(TextViewer:new({
+  self:showWidget(TextViewer:new({
     title = self.prop_text[prop_key],
     text = prop_text,
     text_type = prop_key == "description" and "book_info" or nil,
@@ -400,7 +400,7 @@ function BookInfo:onShowBookDescription(description, file)
   if description then
     self:showBookProp("description", util.htmlToPlainTextIfHtml(description))
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No book description available."),
     }))
   end
@@ -415,9 +415,9 @@ function BookInfo:onShowBookCover(file, force_orig)
       with_title_bar = false,
       fullscreen = true,
     })
-    UIManager:show(imgviewer)
+    self:showWidget(imgviewer)
   else
-    UIManager:show(InfoMessage:new({
+    self:showWidget(InfoMessage:new({
       text = gettext("No cover image available."),
     }))
   end
@@ -490,7 +490,7 @@ function BookInfo:setCustomCover(file, book_props)
         end
       end,
     })
-    UIManager:show(path_chooser)
+    self:showWidget(path_chooser)
   end
 end
 
@@ -658,7 +658,7 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
               end
             end,
           })
-          UIManager:show(confirm_box)
+          self:showWidget(confirm_box)
         end,
       },
       {
@@ -683,7 +683,7 @@ function BookInfo:showCustomDialog(file, book_props, prop_key)
     title_align = "center",
     buttons = buttons,
   })
-  UIManager:show(button_dialog)
+  self:showWidget(button_dialog)
 end
 
 function BookInfo:editSummary(doc_settings_or_file, book_props)
@@ -763,6 +763,11 @@ function BookInfo:moveBookMetadata()
       ["/sys"] = true,
     }
     local books_to_move = {}
+    local start_path = ffiutil.realpath(file_chooser.path)
+    local visited = {}
+    if start_path then
+      visited[start_path] = true
+    end
     local dirs = { file_chooser.path }
     while #dirs ~= 0 do
       local new_dirs = {}
@@ -782,7 +787,11 @@ function BookInfo:moveBookMetadata()
               and file_chooser:show_dir(f)
               and not sys_folders[fullpath]
             then
-              table.insert(new_dirs, fullpath)
+              local real_path = ffiutil.realpath(fullpath)
+              if real_path and not visited[real_path] then
+                visited[real_path] = true
+                table.insert(new_dirs, fullpath)
+              end
             elseif
               attributes.mode == "file"
               and not util.stringStartsWith(f, "._")
@@ -798,7 +807,7 @@ function BookInfo:moveBookMetadata()
     end
     return books_to_move
   end
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = gettext(
       "Scan books in current folder and subfolders for their metadata location?"
     ),
@@ -807,13 +816,13 @@ function BookInfo:moveBookMetadata()
       local books_to_move = scanPath()
       local books_to_move_nb = #books_to_move
       if books_to_move_nb == 0 then
-        UIManager:show(InfoMessage:new({
+        self:showWidget(InfoMessage:new({
           text = gettext(
             "No books with metadata not in your preferred location found."
           ),
         }))
       else
-        UIManager:show(ConfirmBox:new({
+        self:showWidget(ConfirmBox:new({
           text = T(
             N_(
               "1 book with metadata not in your preferred location found.",

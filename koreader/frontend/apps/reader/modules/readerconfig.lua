@@ -182,7 +182,7 @@ function ReaderConfig:onSwipeShowConfigMenu(ges)
 end
 
 -- For some reason, things are fine and dandy without any of this for rotations, but we need it for actual resizes...
-function ReaderConfig:onSetDimensions(dimen)
+function ReaderConfig:onSetDimensions(_dimen)
   if self.config_dialog then
     -- init basically calls update & initGesListener and nothing else, which is exactly what we want.
     self.config_dialog:init()
@@ -203,7 +203,7 @@ function ReaderConfig:onCloseConfigMenu()
 end
 
 function ReaderConfig:onReadSettings(config)
-  self.configurable:loadSettings(config, self.options.prefix .. "_")
+  self.configurable:load(config, self.options.prefix .. "_")
   local config_panel_index = config:read("config_panel_index")
   if config_panel_index then
     config_panel_index = math.min(config_panel_index, #self.options)
@@ -212,10 +212,7 @@ function ReaderConfig:onReadSettings(config)
 end
 
 function ReaderConfig:onSaveSettings()
-  self.configurable:saveSettings(
-    self.ui.doc_settings,
-    self.options.prefix .. "_"
-  )
+  self.configurable:save(self.ui.doc_settings, self.options.prefix .. "_")
   self.ui.doc_settings:save("config_panel_index", self.last_panel_index)
 end
 

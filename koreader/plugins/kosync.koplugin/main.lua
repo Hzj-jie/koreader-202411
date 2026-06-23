@@ -229,11 +229,11 @@ function KOSync:addToMainMenu(menu_items)
         checked_func = function()
           return self.settings.auto_sync
         end,
-        help_text =
-          -- Need localization
-          gettext(
-            "Enable the feature will automatically pull and push progress when necessary."
-          ) .. "\n\n" .. gettext(
+        help_text = gettext(
+          "Enable the feature will automatically pull and push progress when necessary."
+        )
+          .. "\n\n"
+          .. gettext(
             [[This may lead to nagging about toggling WiFi on document close and suspend/resume, depending on the device's connectivity.]]
           ),
         callback = function()
@@ -401,7 +401,6 @@ function KOSync:setCustomServer(server)
   -- Keep a reference to retry.
   self.last_custom_server_attempt = server
   UIManager:show(InfoMessage:new({
-    -- Need localization
     text = T(
       gettext(
         "The new server address %1 is invalid, revert back to %2.\nError: %3"
@@ -696,13 +695,9 @@ function KOSync:_updateProgress(interactive)
   end
 
   if interactive then
-    UIManager:runWith(
-      function()
-        NetworkMgr:runWhenOnline(exec, "kosync-push-" .. doc_digest)
-      end,
-      -- Need localization
-      gettext("Pushing progress…")
-    )
+    UIManager:runWith(function()
+      NetworkMgr:runWhenOnline(exec, "kosync-push-" .. doc_digest)
+    end, gettext("Pushing progress…"))
   else
     NetworkMgr:willRerunWhenOnline(exec, "kosync-push-" .. doc_digest)
   end
@@ -856,13 +851,9 @@ function KOSync:_getProgress(interactive)
   end
 
   if interactive then
-    UIManager:runWith(
-      function()
-        NetworkMgr:runWhenOnline(exec, "kosync-pull-" .. doc_digest)
-      end,
-      -- Need localization
-      gettext("Pulling progress…")
-    )
+    UIManager:runWith(function()
+      NetworkMgr:runWhenOnline(exec, "kosync-pull-" .. doc_digest)
+    end, gettext("Pulling progress…"))
   else
     NetworkMgr:willRerunWhenOnline(exec, "kosync-pull-" .. doc_digest)
   end

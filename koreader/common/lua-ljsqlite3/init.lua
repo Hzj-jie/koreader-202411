@@ -132,18 +132,19 @@ do
   end
   pre = pre .. "OPEN_"
   for k, v in pairs(opens) do
-    t[#t + 1] = pre .. k .. " = " .. bit.tobit(v) .. ";\n"
+    t[#t + 1] = pre .. k .. " = " .. v .. ";\n"
   end
 end
 
 -- Cdef ------------------------------------------------------------------------
 -- SQLITE_*, OPEN_*
 
-ffi.cdef(table.concat(sqlconstants))
-sqlconstants = nil
+if not pcall(ffi.typeof, "sqlite3") then
+  ffi.cdef(table.concat(sqlconstants))
+  sqlconstants = nil
 
--- sqlite3*, ljsqlite3_*
-ffi.cdef([[
+  -- sqlite3*, ljsqlite3_*
+  ffi.cdef([[
 // Typedefs.
 typedef struct sqlite3 sqlite3;
 typedef struct sqlite3_stmt sqlite3_stmt;
@@ -231,6 +232,7 @@ int sqlite3_create_function(
   void (*xFinal)(sqlite3_context*)
 );
 ]])
+end
 
 -- --------------------------------------------------------------------------------
 local sql = ffi.loadlib("sqlite3", "0")
@@ -385,20 +387,24 @@ end
 function conn_mt:close()
   T_open(self)
   -- Close all stmt linked to conn.
-  for k, _ in pairs(connstmt[self]) do
-    if not k._closed then
-      k:close()
+  if connstmt[self] then
+    for k, _ in pairs(connstmt[self]) do
+      if not k._closed then
+        k:close()
+      end
     end
   end
   -- Close all callbacks linked to conn.
-  for _, v in pairs(conncb[self].scalar) do
-    v:free()
-  end
-  for _, v in pairs(conncb[self].step) do
-    v:free()
-  end
-  for _, v in pairs(conncb[self].final) do
-    v:free()
+  if conncb[self] then
+    for _, v in pairs(conncb[self].scalar) do
+      v:free()
+    end
+    for _, v in pairs(conncb[self].step) do
+      v:free()
+    end
+    for _, v in pairs(conncb[self].final) do
+      v:free()
+    end
   end
   local code = sql.sqlite3_close_v2(self._ptr)
   T_okcode(self._ptr, code)
@@ -420,6 +426,7 @@ function conn_mt:prepare(stmtstr)
   local code = sql.sqlite3_prepare_v2(self._ptr, stmtstr, #stmtstr, aptr, nil)
   T_okcode(self._ptr, code)
   local stmt = stmt_ct(aptr[0], false, self._ptr, code)
+  connstmt[self] = connstmt[self] or setmetatable({}, { __mode = "k" })
   connstmt[self][stmt] = true
   return stmt
 end

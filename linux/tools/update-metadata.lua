@@ -1,1 +1,0 @@
-../../koreader/tools/update-metadata.lua

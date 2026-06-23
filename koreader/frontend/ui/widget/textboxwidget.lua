@@ -1249,10 +1249,6 @@ function TextBoxWidget:_renderImage(start_row_idx)
   end
 end
 
-function TextBoxWidget:getCharWidth(idx)
-  return self.char_width[self.charlist[idx]]
-end
-
 function TextBoxWidget:getVisLineCount()
   return self.lines_per_page
 end
@@ -2231,7 +2227,7 @@ function TextBoxWidget:onHoldStartText(_, ges)
   return true
 end
 
-function TextBoxWidget:onHoldPanText(_, ges)
+function TextBoxWidget:onHoldPanText(_arg, _ges)
   -- We don't highlight the currently selected text, but just let this
   -- event pop up if we are not currently selecting text
   if not self.hold_start_time then
@@ -2295,7 +2291,7 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
             caption = image.caption,
             fullscreen = true,
           })
-          UIManager:show(imgviewer)
+          self:showWidget(imgviewer)
         end
         -- Wrap it with Trapper, as load_bb_func may be using some of its
         -- dismissable methods

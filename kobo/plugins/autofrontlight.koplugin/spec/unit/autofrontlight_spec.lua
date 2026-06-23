@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/autofrontlight.koplugin/spec/unit/autofrontlight_spec.lua

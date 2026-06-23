@@ -110,7 +110,6 @@ local function kindleGetScanList()
     end
     C.usleep(250 * 1000)
   end
-  -- Need localization
   return nil,
     require("gettext")("Cannot find any Wi-Fi, please try again later.")
 end
@@ -320,7 +319,7 @@ function Kindle:initNetworkManager(NetworkMgr)
   if LibLipcs:supported() then
     function NetworkMgr:_turnOnWifi(complete_callback, interactive)
       kindleEnableWifi(1)
-      if self:reconnectOrShowNetworkMenu(complete_callback, interactive) then
+      if self:reconnect(complete_callback, interactive) then
         return true
       end
       -- It's impossible to force a sync wifi connection operation, but can only
@@ -329,7 +328,7 @@ function Kindle:initNetworkManager(NetworkMgr)
     end
   else
     -- If we can't use the lipc Lua bindings, we can't support any kind of interactive Wi-Fi UI...
-    function NetworkMgr:_turnOnWifi(complete_callback, interactive)
+    function NetworkMgr:_turnOnWifi(complete_callback, _interactive)
       kindleEnableWifi(1)
       if complete_callback then
         complete_callback()
@@ -829,7 +828,7 @@ function Kindle:UIManagerReady(uimgr)
   UIManager = uimgr
 end
 
-function Kindle:setEventHandlers(uimgr)
+function Kindle:setEventHandlers(_uimgr)
   -- These custom fake events *will* pass an argument...
   self.input.fake_event_args.IntoSS = {}
   self.input.fake_event_args.OutOfSS = {}
@@ -1425,7 +1424,7 @@ function KindlePaperWhite3:init()
 end
 
 -- HAL for gyro orientation switches (EV_ABS:ABS_PRESSURE (?!) w/ custom values to EV_MSC:MSC_GYRO w/ our own custom values)
-local function OasisGyroTranslation(this, ev)
+local function OasisGyroTranslation(_this, ev)
   local DEVICE_ORIENTATION_PORTRAIT_LEFT = 15
   local DEVICE_ORIENTATION_PORTRAIT_RIGHT = 17
   local DEVICE_ORIENTATION_PORTRAIT = 19
@@ -1512,7 +1511,7 @@ function KindleOasis:init()
 end
 
 -- HAL for gyro orientation switches (EV_ABS:ABS_PRESSURE (?!) w/ custom values to EV_MSC:MSC_GYRO w/ our own custom values)
-local function KindleGyroTransform(this, ev)
+local function KindleGyroTransform(_this, ev)
   -- See source code:
   -- c.f., drivers/input/misc/accel/bma2x2.c for KOA2/KOA3
   -- c.f., drivers/input/misc/kx132/kx132.h for KS

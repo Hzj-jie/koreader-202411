@@ -1504,7 +1504,7 @@ function Dispatcher:getDisplayList(settings)
 end
 
 -- Display a SortWidget to sort the enable actions execution order.
-function Dispatcher:_sortActions(caller, location, settings, touchmenu_instance)
+function Dispatcher:_sortActions(caller, location, settings, menu)
   local display_list = Dispatcher:getDisplayList(location[settings])
   local SortWidget = require("ui/widget/sortwidget")
   local sort_widget
@@ -1521,8 +1521,8 @@ function Dispatcher:_sortActions(caller, location, settings, touchmenu_instance)
           location[settings].settings.order[i] = v.key
         end
       end
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
       caller.updated = true
     end,
@@ -1530,8 +1530,8 @@ function Dispatcher:_sortActions(caller, location, settings, touchmenu_instance)
   UIManager:show(sort_widget)
 end
 
-function Dispatcher:_addItem(caller, menu, location, settings, section)
-  local function setValue(k, value, touchmenu_instance)
+function Dispatcher:_addItem(caller, menus, location, settings, section)
+  local function setValue(k, value, menu)
     if value ~= nil then
       if location[settings] == nil then
         location[settings] = {}
@@ -1543,11 +1543,11 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
       Dispatcher:_removeFromOrder(location, settings, k)
     end
     caller.updated = true
-    if touchmenu_instance then
-      touchmenu_instance:updateItems()
+    if menu then
+      menu:updateItems()
     end
   end
-  for __, k in ipairs(dispatcher_menu_order) do
+  for _, k in ipairs(dispatcher_menu_order) do
     if
       settingsList[k][section] == true and settingsList[k].condition ~= false
     then
@@ -1555,30 +1555,30 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
         settingsList[k].category == "none"
         or settingsList[k].category == "arg"
       then
-        table.insert(menu, {
+        table.insert(menus, {
           text = settingsList[k].title,
           checked_func = function()
             return location[settings] ~= nil and location[settings][k] ~= nil
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local value = (
               location[settings] == nil or location[settings][k] == nil
             )
                 and true
               or nil
-            setValue(k, value, touchmenu_instance)
+            setValue(k, value, menu)
           end,
           separator = settingsList[k].separator,
         })
       elseif settingsList[k].category == "absolutenumber" then
-        table.insert(menu, {
+        table.insert(menus, {
           text_func = function()
             return Dispatcher:getNameFromItem(k, location[settings])
           end,
           checked_func = function()
             return location[settings] ~= nil and location[settings][k] ~= nil
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local SpinWidget = require("ui/widget/spinwidget")
             local precision
             if
@@ -1604,27 +1604,27 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
               unit = settingsList[k].unit,
               ok_always_enabled = true,
               callback = function(spin)
-                setValue(k, spin.value, touchmenu_instance)
+                setValue(k, spin.value, menu)
               end,
             })
             UIManager:show(items)
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             if location[settings] ~= nil and location[settings][k] ~= nil then
-              setValue(k, nil, touchmenu_instance)
+              setValue(k, nil, menu)
             end
           end,
           separator = settingsList[k].separator,
         })
       elseif settingsList[k].category == "incrementalnumber" then
-        table.insert(menu, {
+        table.insert(menus, {
           text_func = function()
             return Dispatcher:getNameFromItem(k, location[settings])
           end,
           checked_func = function()
             return location[settings] ~= nil and location[settings][k] ~= nil
           end,
-          callback = function(touchmenu_instance)
+          callback = function(menu)
             local value = location[settings] and location[settings][k]
             if value == nil or value < settingsList[k].min then
               value = settingsList[k].min
@@ -1651,19 +1651,19 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
               ),
               ok_always_enabled = true,
               callback = function(spin)
-                setValue(k, spin.value, touchmenu_instance)
+                setValue(k, spin.value, menu)
               end,
               option_text = caller.profiles == nil
                 and gettext("Use gesture distance"), -- Gesture manager only
               option_callback = function()
-                setValue(k, 0, touchmenu_instance)
+                setValue(k, 0, menu)
               end,
             })
             UIManager:show(items)
           end,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             if location[settings] ~= nil and location[settings][k] ~= nil then
-              setValue(k, nil, touchmenu_instance)
+              setValue(k, nil, menu)
             end
           end,
           separator = settingsList[k].separator,
@@ -1694,7 +1694,7 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
             end,
           })
         end
-        table.insert(menu, {
+        table.insert(menus, {
           text_func = function()
             return Dispatcher:getNameFromItem(k, location[settings])
           end,
@@ -1703,9 +1703,9 @@ function Dispatcher:_addItem(caller, menu, location, settings, section)
           end,
           sub_item_table = sub_item_table,
           keep_menu_open = true,
-          hold_callback = function(touchmenu_instance)
+          hold_callback = function(menu)
             if location[settings] ~= nil and location[settings][k] ~= nil then
-              setValue(k, nil, touchmenu_instance)
+              setValue(k, nil, menu)
             end
           end,
           separator = settingsList[k].separator,
@@ -1726,17 +1726,17 @@ example usage:
     Dispatcher:addSubMenu(self, sub_items, self.data, "profile1")
 --]]
 --
-function Dispatcher:addSubMenu(caller, menu, location, settings)
+function Dispatcher:addSubMenu(caller, menus, location, settings)
   Dispatcher:init()
-  menu.ignored_by_menu_search = true -- all those would be duplicated
-  table.insert(menu, {
+  menus.ignored_by_menu_search = true -- all those would be duplicated
+  table.insert(menus, {
     text = gettext("Nothing"),
     separator = true,
     checked_func = function()
       return location[settings] ~= nil
         and Dispatcher:_itemsCount(location[settings]) == 0
     end,
-    callback = function(touchmenu_instance)
+    callback = function(menu)
       local name = location[settings]
         and location[settings].settings
         and location[settings].settings.name
@@ -1745,8 +1745,8 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
         location[settings].settings = { name = name }
       end
       caller.updated = true
-      if touchmenu_instance then
-        touchmenu_instance:updateItems()
+      if menu then
+        menu:updateItems()
       end
     end,
   })
@@ -1762,7 +1762,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
   for _, section in ipairs(section_list) do
     local submenu = {}
     Dispatcher:_addItem(caller, submenu, location, settings, section[1])
-    table.insert(menu, {
+    table.insert(menus, {
       text = section[2],
       checked_func = function()
         if location[settings] ~= nil then
@@ -1779,7 +1779,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
           end
         end
       end,
-      hold_callback = function(touchmenu_instance)
+      hold_callback = function(menu)
         if location[settings] ~= nil then
           for k, _ in pairs(location[settings]) do
             if
@@ -1790,25 +1790,25 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
               caller.updated = true
             end
           end
-          if touchmenu_instance then
-            touchmenu_instance:updateItems()
+          if menu then
+            menu:updateItems()
           end
         end
       end,
       sub_item_table = submenu,
     })
   end
-  table.insert(menu, {
+  table.insert(menus, {
     text = gettext("Arrange actions"),
     checked_func = function()
       return location[settings] ~= nil
         and location[settings].settings ~= nil
         and location[settings].settings.order ~= nil
     end,
-    callback = function(touchmenu_instance)
-      Dispatcher:_sortActions(caller, location, settings, touchmenu_instance)
+    callback = function(menu)
+      Dispatcher:_sortActions(caller, location, settings, menu)
     end,
-    hold_callback = function(touchmenu_instance)
+    hold_callback = function(menu)
       if
         location[settings]
         and location[settings].settings
@@ -1816,13 +1816,13 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       then
         Dispatcher:_removeFromOrder(location, settings)
         caller.updated = true
-        if touchmenu_instance then
-          touchmenu_instance:updateItems()
+        if menu then
+          menu:updateItems()
         end
       end
     end,
   })
-  table.insert(menu, {
+  table.insert(menus, {
     text = gettext("Show as QuickMenu"),
     checked_func = function()
       return location[settings] ~= nil
@@ -1847,7 +1847,7 @@ function Dispatcher:addSubMenu(caller, menu, location, settings)
       end
     end,
   })
-  table.insert(menu, {
+  table.insert(menus, {
     text = gettext("Keep QuickMenu open"),
     checked_func = function()
       return location[settings] ~= nil

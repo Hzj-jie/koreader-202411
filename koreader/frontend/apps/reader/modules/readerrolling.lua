@@ -357,7 +357,7 @@ function ReaderRolling:onCheckDomStyleCoherence()
         "\nNote that this change in styles may render your bookmarks or highlights no more valid.\nIf some of them do not show anymore, you can just revert the change you just made to have them shown again.\n\n"
       )
     end
-    UIManager:show(ConfirmBox:new({
+    self:showWidget(ConfirmBox:new({
       text = T(
         gettext(
           "Styles have changed in such a way that fully reloading the document may be needed for a correct rendering.\n%1Do you want to reload the document?"
@@ -493,7 +493,7 @@ function ReaderRolling:addToMainMenu(menu_items)
         self:onToggleHideNonlinear()
       end,
       hold_callback = function()
-        UIManager:show(ConfirmBox:new({
+        self:showWidget(ConfirmBox:new({
           text = T(
             hide_nonlinear_text
               .. "\n\n"
@@ -560,7 +560,7 @@ To get back to a sane state, a full rendering will happen in the background, get
           )
       end
       local MultiConfirmBox = require("ui/widget/multiconfirmbox")
-      UIManager:show(MultiConfirmBox:new({
+      self:showWidget(MultiConfirmBox:new({
         text = text,
         -- This text is a bit long, and MultiConfirmBox currently doesn't adjust the
         -- font size and may overflow the screen height: use a smaller font size
@@ -1256,7 +1256,7 @@ function ReaderRolling:onRedrawCurrentView()
   return true
 end
 
-function ReaderRolling:onSetDimensions(dimen)
+function ReaderRolling:onSetDimensions(_dimen)
   if not self.ui:ready() then
     -- ReaderUI:init() not yet done: just set document dimensions
     self.ui.document:setViewDimen(Screen:getSize())
@@ -1661,7 +1661,7 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
   end
 
   -- To be provided to applyFuncToXPointersSlots()
-  local migrateXPointer = function(obj, slot, info)
+  local migrateXPointer = function(obj, slot, _info)
     local xp = obj[slot]
     if not xp then
       return
@@ -1812,7 +1812,7 @@ Note that %1 (out of %2) xpaths from your bookmarks and highlights have been nor
   end
   text = T(text, table.concat(details, "\n\n"))
 
-  UIManager:show(ConfirmBox:new({
+  self:showWidget(ConfirmBox:new({
     text = text,
     -- Given the layout of the buttons (Cancel|OK, and a big other button below
     -- with "Not now"), we don't want cancel_callback to be called when dismissing
@@ -1844,7 +1844,7 @@ Note that %1 (out of %2) xpaths from your bookmarks and highlights have been nor
           local infomsg = InfoMessage:new({
             text = gettext("Upgrading and reloading book…"),
           })
-          UIManager:show(infomsg)
+          self:showWidget(infomsg)
           -- Let this message be shown
           UIManager:scheduleIn(2, function()
             UIManager:close(infomsg)

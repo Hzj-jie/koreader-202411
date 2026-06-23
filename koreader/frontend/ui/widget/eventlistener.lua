@@ -48,38 +48,40 @@ call is ignored.
 ]]
 function EventListener:handleEvent(event)
   if self[event.handler] == nil then
-    return false
+    return self:isShownModal() and event:isUserInput()
   end
-  local r = false
   if type(self[event.handler]) == "function" then
-    r = self:_runEvent(self[event.handler], event)
+    local r = self:_runEvent(self[event.handler], event)
+    if r then
+      return true
+    end
   else
     assert(type(self[event.handler]) == "table")
+    local r = false
     for _, v in ipairs(self[event.handler]) do
-      r = r or self:_runEvent(v, event)
+      local res = self:_runEvent(v, event)
+      if res then
+        r = true
+      end
+    end
+    if r then
+      return true
     end
   end
-  if not event:isUserInput() then
-    r = true
-  end
-  --[[--
-  if r then
-    if type(self[event.handler]) == "function" then
-      print("EventListener:handleEvent:",
-            event.handler,
-            "handled by",
-            debug.getinfo(self[event.handler], "S").short_src,
-            self)
-    else
-      print("EventListener:handleEvent:",
-            event.handler,
-            "handled by",
-            debug.getinfo(self[event.handler][1], "S").short_src,
-            self)
-    end
-  end
-  --]]
-  return r
+
+  return not event:isUserInput() or self:isShownModal()
+end
+
+-- Checks if the widget belongs in the topmost visual layer (above standard widgets).
+-- Note: Multiple always-on-top widgets can coexist in the stack; they will be
+-- layered sequentially relative to one another in the order they are shown.
+function EventListener:isAlwaysOnTop()
+  return self.modal == true
+end
+
+function EventListener:isShownModal()
+  -- Coerce to boolean explicitly to avoid returning nil if self.modal is undefined.
+  return (self.modal == true) and require("ui/uimanager"):isWindowWidget(self)
 end
 
 function EventListener:broadcastEvent(event) --> void

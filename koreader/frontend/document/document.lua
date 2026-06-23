@@ -110,7 +110,7 @@ end
 function Document:init() end
 
 -- this might be overridden by a document implementation
-function Document:unlock(password)
+function Document:unlock(_password)
   -- return true instead when the password provided unlocked the document
   return false
 end
@@ -259,15 +259,15 @@ function Document:getTotalPagesLeft(page)
   return self.info.number_of_pages - page
 end
 
-function Document:getPageFlow(page)
+function Document:getPageFlow(_page)
   return 0
 end
 
-function Document:getFirstPageInFlow(flow)
+function Document:getFirstPageInFlow(_flow)
   return 1
 end
 
-function Document:getTotalPagesInFlow(flow)
+function Document:getTotalPagesInFlow(_flow)
   return self.info.number_of_pages
 end
 
@@ -368,27 +368,27 @@ function Document:isTocAlternativeToc()
   return false
 end
 
-function Document:getPageLinks(pageno)
+function Document:getPageLinks(_pageno)
   return nil
 end
 
-function Document:getLinkFromPosition(pageno, pos)
+function Document:getLinkFromPosition(_pageno, _pos)
   return nil
 end
 
-function Document:getImageFromPosition(pos)
+function Document:getImageFromPosition(_pos)
   return nil
 end
 
-function Document:getTextFromPositions(pos0, pos1)
+function Document:getTextFromPositions(_pos0, _pos1)
   return nil
 end
 
-function Document:getTextBoxes(pageno)
+function Document:getTextBoxes(_pageno)
   return nil
 end
 
-function Document:getOCRWord(pageno, rect)
+function Document:getOCRWord(_pageno, _rect)
   return nil
 end
 
@@ -664,45 +664,20 @@ function Document:getPageText(pageno)
   return text
 end
 
-function Document:saveHighlight(pageno, item)
+function Document:saveHighlight(_pageno, _item)
   return nil
 end
 
-function Document:deleteHighlight(pageno, item)
+function Document:deleteHighlight(_pageno, _item)
   return nil
 end
 
-function Document:updateHighlightContents(pageno, item, contents)
+function Document:updateHighlightContents(_pageno, _item, _contents)
   return nil
 end
 
 --[[
 helper functions
 --]]
-function Document:logMemoryUsage(pageno)
-  local status_file = io.open("/proc/self/status", "r")
-  local log_file = io.open("mem_usage_log.txt", "a+")
-  local data = -1
-  if status_file then
-    for line in status_file:lines() do
-      local s, n
-      s, n = line:gsub("VmData:%s-(%d+) kB", "%1")
-      if n ~= 0 then
-        data = tonumber(s)
-      end
-      if data ~= -1 then
-        break
-      end
-    end
-    status_file:close()
-  end
-  if log_file then
-    if log_file:seek("end") == 0 then -- write the header only once
-      log_file:write("PAGE\tMEM\n")
-    end
-    log_file:write(string.format("%s\t%s\n", pageno, data))
-    log_file:close()
-  end
-end
 
 return Document

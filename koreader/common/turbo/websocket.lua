@@ -459,7 +459,7 @@ end
 --- Error handler.
 function websocket.WebSocketHandler:_error(msg)
   log.error("[websocket.lua] " .. msg)
-  if not self._closed == true and not self.stream:closed() then
+  if not self._closed and not self.stream:closed() then
     self:close()
   end
   self:on_error(msg)

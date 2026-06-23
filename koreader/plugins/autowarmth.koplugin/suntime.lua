@@ -99,10 +99,6 @@ local SunTime = {
 --                     47° are within 1min 30sec
 --                     65° are within 5min
 -- https://www.astronomie.info/zeitgleichung/#Auf-_und_Untergang (German)
-function SunTime:getZglSimple()
-  local T = self.date.yday
-  return -0.171 * sin(0.0337 * T + 0.465) - 0.1299 * sin(0.01787 * T - 0.168)
-end
 
 -- more advanced 'Equation of time' good for dates between 1800-2200
 -- errors are better than with the simple method
@@ -223,9 +219,6 @@ end
   Use a simple equation of time (valid for the years 2008-2027)
 --]]
 --
-function SunTime:setSimple()
-  self.getZgl = self.getZglSimple
-end
 --[[--
   Use an advanced equation of time (valid for the years 1800-2200 at least)
 --]]
