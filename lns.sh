@@ -47,21 +47,21 @@ link_dir_contents "koreader" "linux" "$LINUX_EXCLUDES"
 
 # --- 2. PW2 ---
 echo "Configuring pw2/..."
-PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc"
+PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$"
 link_dir_contents "koreader" "pw2" "$PW2_EXCLUDES"
 # PW2 specific: merge with kindle
 link_dir_contents "kindle" "pw2" "$PW2_EXCLUDES"
 
 # --- 3. Legacy ---
 echo "Configuring legacy/..."
-LEGACY_EXCLUDES="^extensions/|^extensions$|^web/|^web$|settings/weather\.lua|plugins/autodim\.koplugin|plugins/autofrontlight\.koplugin|plugins/autostandby\.koplugin|plugins/autosuspend\.koplugin|plugins/calibre\.koplugin|plugins/httpinspector\.koplugin|plugins/kosync\.koplugin|plugins/newsdownloader\.koplugin|plugins/opds\.koplugin|plugins/SSH\.koplugin|plugins/wallabag\.koplugin|plugins/weather\.koplugin|plugins/gestures\.koplugin|plugins/terminal\.koplugin|plugins/coverbrowser\.koplugin|plugins/kochess\.koplugin/engines/stockfish_pc|plugins/simpleui\.koplugin|plugins/AnnotationSync\.koplugin"
+LEGACY_EXCLUDES="^extensions/|^extensions$|^web/|^web$|settings/weather\.lua|plugins/autodim\.koplugin|plugins/autofrontlight\.koplugin|plugins/autostandby\.koplugin|plugins/autosuspend\.koplugin|plugins/calibre\.koplugin|plugins/httpinspector\.koplugin|plugins/kosync\.koplugin|plugins/newsdownloader\.koplugin|plugins/opds\.koplugin|plugins/SSH\.koplugin|plugins/wallabag\.koplugin|plugins/weather\.koplugin|plugins/gestures\.koplugin|plugins/terminal\.koplugin|plugins/coverbrowser\.koplugin|plugins/kochess\.koplugin/engines/stockfish_pc|plugins/simpleui\.koplugin|plugins/AnnotationSync\.koplugin|/spec/|/spec$"
 link_dir_contents "koreader" "legacy" "$LEGACY_EXCLUDES"
 # Legacy specific: merge with kindle
 link_dir_contents "kindle" "legacy" "$LEGACY_EXCLUDES"
 
 # --- 4. Kobo ---
 echo "Configuring kobo/..."
-KOBO_EXCLUDES="plugins/kochess\.koplugin/engines/stockfish_pc"
+KOBO_EXCLUDES="plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$"
 link_dir_contents "koreader" "kobo" "$KOBO_EXCLUDES"
 
 echo "Platform linking complete!"
