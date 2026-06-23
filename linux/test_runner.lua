@@ -116,7 +116,7 @@ if not test_file then
     find_specs("spec/unit", spec_files)
 
     -- Dynamically find and include plugin specs
-    local plugins_dir = "../koreader/plugins"
+    local plugins_dir = "plugins"
     local plugins_attr = lfs.attributes(plugins_dir)
     if plugins_attr and plugins_attr.mode == "directory" then
         for plugin in lfs.dir(plugins_dir) do
