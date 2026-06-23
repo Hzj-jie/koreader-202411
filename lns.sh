@@ -75,6 +75,7 @@ rm -rf legacy/plugins/terminal.koplugin
 rm -rf legacy/plugins/coverbrowser.koplugin
 rm -f legacy/plugins/kochess.koplugin/engines/stockfish_pc
 rm -rf legacy/plugins/simpleui.koplugin
+rm -rf legacy/plugins/AnnotationSync.koplugin
 
 # --- 4. Kobo ---
 echo "Configuring kobo/..."

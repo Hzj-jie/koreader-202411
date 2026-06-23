@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/sync_mixed_offline_spec.lua

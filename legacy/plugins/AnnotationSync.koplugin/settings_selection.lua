@@ -1,1 +1,0 @@
-../../../koreader/plugins/AnnotationSync.koplugin/settings_selection.lua

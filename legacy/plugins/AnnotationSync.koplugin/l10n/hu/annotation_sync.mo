@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/AnnotationSync.koplugin/l10n/hu/annotation_sync.mo
