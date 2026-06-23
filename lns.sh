@@ -54,7 +54,7 @@ link_dir_contents "kindle" "pw2" "$PW2_EXCLUDES"
 
 # --- 3. Legacy ---
 echo "Configuring legacy/..."
-LEGACY_EXCLUDES="^extensions/|^extensions$|^web/|^web$|settings/weather\.lua|plugins/autodim\.koplugin|plugins/autofrontlight\.koplugin|plugins/autostandby\.koplugin|plugins/autosuspend\.koplugin|plugins/calibre\.koplugin|plugins/httpinspector\.koplugin|plugins/kosync\.koplugin|plugins/newsdownloader\.koplugin|plugins/opds\.koplugin|plugins/SSH\.koplugin|plugins/wallabag\.koplugin|plugins/weather\.koplugin|plugins/gestures\.koplugin|plugins/terminal\.koplugin|plugins/coverbrowser\.koplugin|plugins/kochess\.koplugin/engines/stockfish_pc|plugins/simpleui\.koplugin|plugins/AnnotationSync\.koplugin|/spec/|/spec$"
+LEGACY_EXCLUDES="^extensions/|^extensions$|^web/|^web$|settings/weather\.lua|plugins/autodim\.koplugin|plugins/autofrontlight\.koplugin|plugins/autostandby\.koplugin|plugins/autosuspend\.koplugin|plugins/calibre\.koplugin|plugins/httpinspector\.koplugin|plugins/kosync\.koplugin|plugins/newsdownloader\.koplugin|plugins/opds\.koplugin|plugins/SSH\.koplugin|plugins/wallabag\.koplugin|plugins/weather\.koplugin|plugins/gestures\.koplugin|plugins/terminal\.koplugin|plugins/coverbrowser\.koplugin|plugins/kochess\.koplugin/engines/stockfish_pc|plugins/AnnotationSync\.koplugin|/spec/|/spec$"
 link_dir_contents "koreader" "legacy" "$LEGACY_EXCLUDES"
 # Legacy specific: merge with kindle
 link_dir_contents "kindle" "legacy" "$LEGACY_EXCLUDES"

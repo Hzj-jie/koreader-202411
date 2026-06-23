@@ -1,1 +1,0 @@
-../../../koreader/plugins/simpleui.koplugin/README.koreader-202411.md
