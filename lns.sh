@@ -11,11 +11,15 @@ exclude_patterns() {
 link_dir_contents() {
     src_dir="$1"
     dst_prefix="$2"
+    custom_excludes="$3"
 
     # Create directories
     find "$src_dir" -type d | exclude_patterns | while read -r d ; do
         rel_d=$(echo "$d" | sed "s|^$src_dir/||")
         if [ -n "$rel_d" ] && [ "$rel_d" != "$src_dir" ]; then
+            if [ -n "$custom_excludes" ] && echo "$rel_d" | grep -E -q "$custom_excludes"; then
+                continue
+            fi
             mkdir -p "$dst_prefix/$rel_d" 2>/dev/null
         fi
     done
@@ -24,6 +28,9 @@ link_dir_contents() {
     find "$src_dir" -type f | exclude_patterns | while read -r f ; do
         rel_f=$(echo "$f" | sed "s|^$src_dir/||")
         if [ -n "$rel_f" ]; then
+            if [ -n "$custom_excludes" ] && echo "$rel_f" | grep -E -q "$custom_excludes"; then
+                continue
+            fi
             rm -f "$dst_prefix/$rel_f"
             ln -rs "$f" "$dst_prefix/$rel_f"
         fi
@@ -34,52 +41,27 @@ echo "Linking platforms..."
 
 # --- 1. Linux ---
 echo "Configuring linux/..."
-link_dir_contents "koreader" "linux"
-# Linux specific pruning
-rm -rf linux/scripts
-rm -rf linux/settings
-rm -f linux/spinning_zsync
-# Keep linux/tools for unit tests
+# Linux specific pruning: scripts, settings, spinning_zsync
+LINUX_EXCLUDES="^scripts/|^scripts$|^settings/|^settings$|^spinning_zsync$"
+link_dir_contents "koreader" "linux" "$LINUX_EXCLUDES"
 
 # --- 2. PW2 ---
 echo "Configuring pw2/..."
-link_dir_contents "koreader" "pw2"
+PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc"
+link_dir_contents "koreader" "pw2" "$PW2_EXCLUDES"
 # PW2 specific: merge with kindle
-link_dir_contents "kindle" "pw2"
-rm -rf pw2/extensions
-rm -f pw2/plugins/kochess.koplugin/engines/stockfish_pc
+link_dir_contents "kindle" "pw2" "$PW2_EXCLUDES"
 
 # --- 3. Legacy ---
 echo "Configuring legacy/..."
-link_dir_contents "koreader" "legacy"
+LEGACY_EXCLUDES="^extensions/|^extensions$|^web/|^web$|settings/weather\.lua|plugins/autodim\.koplugin|plugins/autofrontlight\.koplugin|plugins/autostandby\.koplugin|plugins/autosuspend\.koplugin|plugins/calibre\.koplugin|plugins/httpinspector\.koplugin|plugins/kosync\.koplugin|plugins/newsdownloader\.koplugin|plugins/opds\.koplugin|plugins/SSH\.koplugin|plugins/wallabag\.koplugin|plugins/weather\.koplugin|plugins/gestures\.koplugin|plugins/terminal\.koplugin|plugins/coverbrowser\.koplugin|plugins/kochess\.koplugin/engines/stockfish_pc|plugins/simpleui\.koplugin|plugins/AnnotationSync\.koplugin"
+link_dir_contents "koreader" "legacy" "$LEGACY_EXCLUDES"
 # Legacy specific: merge with kindle
-link_dir_contents "kindle" "legacy"
-rm -rf legacy/extensions
-# Legacy specific pruning (unsupported plugins and heavy assets)
-rm -rf legacy/plugins/autodim.koplugin
-rm -rf legacy/plugins/autofrontlight.koplugin
-rm -rf legacy/plugins/autostandby.koplugin
-rm -rf legacy/plugins/autosuspend.koplugin
-rm -rf legacy/plugins/calibre.koplugin
-rm -rf legacy/plugins/httpinspector.koplugin
-rm -rf legacy/plugins/kosync.koplugin
-rm -rf legacy/plugins/newsdownloader.koplugin
-rm -rf legacy/plugins/opds.koplugin
-rm -rf legacy/plugins/SSH.koplugin
-rm -rf legacy/plugins/wallabag.koplugin
-rm -rf legacy/plugins/weather.koplugin
-rm -f legacy/settings/weather.lua
-rm -rf legacy/web
-rm -rf legacy/plugins/gestures.koplugin
-rm -rf legacy/plugins/terminal.koplugin
-rm -rf legacy/plugins/coverbrowser.koplugin
-rm -f legacy/plugins/kochess.koplugin/engines/stockfish_pc
-rm -rf legacy/plugins/simpleui.koplugin
-rm -rf legacy/plugins/AnnotationSync.koplugin
+link_dir_contents "kindle" "legacy" "$LEGACY_EXCLUDES"
 
 # --- 4. Kobo ---
 echo "Configuring kobo/..."
-link_dir_contents "koreader" "kobo"
-rm -f kobo/plugins/kochess.koplugin/engines/stockfish_pc
+KOBO_EXCLUDES="plugins/kochess\.koplugin/engines/stockfish_pc"
+link_dir_contents "koreader" "kobo" "$KOBO_EXCLUDES"
 
 echo "Platform linking complete!"
