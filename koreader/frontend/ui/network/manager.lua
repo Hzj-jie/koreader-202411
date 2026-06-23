@@ -581,6 +581,18 @@ end
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
 function NetworkMgr:_beforeWifiAction()
+  if self:_isWifiConnected() then
+    UIManager:show(ConfirmBox:new({
+      text = gettext("You are connected to Wi-Fi, but have no Internet access.")
+        .. "\n"
+        .. gettext("Do you want to select another Wi-Fi network?"),
+      ok_text = gettext("Select Wi-Fi"),
+      ok_callback = function()
+        self:showNetworkMenu()
+      end,
+    }))
+    return
+  end
   local wifi_enable_action = G_reader_settings:read("wifi_enable_action")
   if wifi_enable_action == "turn_on" then
     self:toggleWifiOn()

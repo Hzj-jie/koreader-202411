@@ -276,6 +276,71 @@ describe("network_manager module", function()
         end)
     end)
 
+    describe("runWhenOnline and _beforeWifiAction", function()
+        local NetworkMgr
+        local original_show
+        local show_called_widgets
+        local original_isOnline
+        local original_isWifiConnected
+
+        setup(function()
+            package.loaded["ui/network/manager"] = nil
+            NetworkMgr = require("ui/network/manager")
+            original_show = UIManager.show
+            original_isOnline = NetworkMgr.isOnline
+            original_isWifiConnected = NetworkMgr._isWifiConnected
+        end)
+
+        before_each(function()
+            show_called_widgets = {}
+            UIManager.show = function(self_ui, widget)
+                table.insert(show_called_widgets, widget)
+                return widget
+            end
+        end)
+
+        it("should return false and prompt to select another Wi-Fi if already connected but offline", function()
+            -- Mock connected but offline state
+            NetworkMgr._isWifiConnected = function() return true end
+            NetworkMgr.isOnline = function() return false end
+
+            local show_network_menu_called = false
+            NetworkMgr.showNetworkMenu = function()
+                show_network_menu_called = true
+            end
+
+            local callback_ran = false
+            local res = NetworkMgr:runWhenOnline(function()
+                callback_ran = true
+            end)
+
+            -- Assert the action was backlogged (runWhenOnline returned false)
+            assert.is_false(res)
+            assert.is_false(callback_ran)
+
+
+
+            local confirm_box = nil
+            for _, widget in ipairs(show_called_widgets) do
+                if widget.ok_text and widget.ok_text:find("Select Wi-Fi", 1, true) then
+                    confirm_box = widget
+                end
+            end
+            assert.is_not_nil(confirm_box)
+
+            -- Simulate clicking "Select Wi-Fi"
+            confirm_box.ok_callback()
+            assert.is_true(show_network_menu_called)
+        end)
+
+        teardown(function()
+            UIManager.show = original_show
+            NetworkMgr.isOnline = original_isOnline
+            NetworkMgr._isWifiConnected = original_isWifiConnected
+        end)
+    end)
+
+
     teardown(function()
         function Device:initNetworkManager() end
         function Device:hasWifiRestore() return false end
