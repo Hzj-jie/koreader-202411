@@ -80,8 +80,7 @@ describe("AnnotationSync Settings Persistence", function()
       assert.is_equal(7, sync_instance.settings.progress_sync_interval)
 
       -- 5. Verify persistent state in G_reader_settings
-      local saved_settings =
-        G_reader_settings:read(sync_instance.plugin_id)
+      local saved_settings = G_reader_settings:read(sync_instance.plugin_id)
       assert.is_equal(7, saved_settings.progress_sync_interval)
 
       UIManager.show = old_show
@@ -116,15 +115,11 @@ describe("AnnotationSync Settings Persistence", function()
   it("should migrate legacy cloud_server_object on init", function()
     -- 1. Setup legacy setting
     local legacy_server = { url = "http://legacy-server", type = "webdav" }
-    G_reader_settings:save(
-      "cloud_server_object",
-      json.encode(legacy_server)
-    )
+    G_reader_settings:save("cloud_server_object", json.encode(legacy_server))
 
     -- 2. Clear plugin settings sync_server
-    local plugin_settings = G_reader_settings:read(
-      sync_instance.plugin_id
-    ) or {}
+    local plugin_settings = G_reader_settings:read(sync_instance.plugin_id)
+      or {}
     plugin_settings.sync_server = nil
     G_reader_settings:save(sync_instance.plugin_id, plugin_settings)
 
@@ -168,10 +163,7 @@ describe("AnnotationSync Settings Persistence", function()
         "http://test-server-confirm",
         G_reader_settings:read("cloud_download_dir")
       )
-      assert.is_equal(
-        "dropbox",
-        G_reader_settings:read("cloud_provider_type")
-      )
+      assert.is_equal("dropbox", G_reader_settings:read("cloud_provider_type"))
     end
   )
 

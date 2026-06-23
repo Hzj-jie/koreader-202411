@@ -364,10 +364,12 @@ describe("AnnotationSync PDF Core Integration", function()
       local entry = highlight_pdf_db[1]
       readerui.paging:onGotoPage(10)
       fastforward_ui_events()
-      
+
       test_utils.emulate_highlight(readerui, entry)
       local ann_uncropped = readerui.annotation.annotations[1]
-      local key_uncropped = ann_uncropped and annotations_mod.annotation_key(ann_uncropped) or "NIL_KEY"
+      local key_uncropped = ann_uncropped
+          and annotations_mod.annotation_key(ann_uncropped)
+        or "NIL_KEY"
       readerui.annotation.annotations = {}
       readerui.highlight:clear()
 
@@ -396,7 +398,9 @@ describe("AnnotationSync PDF Core Integration", function()
       -- Highlight again at the SAME screen coordinates
       test_utils.emulate_highlight(readerui, entry)
       local ann_cropped = readerui.annotation.annotations[1]
-      local key_cropped = ann_cropped and annotations_mod.annotation_key(ann_cropped) or "NIL_KEY"
+      local key_cropped = ann_cropped
+          and annotations_mod.annotation_key(ann_cropped)
+        or "NIL_KEY"
 
       -- Keys should differ because we clicked different text (due to simulated crop shift)
       assert.is_not_equal(key_uncropped, key_cropped)

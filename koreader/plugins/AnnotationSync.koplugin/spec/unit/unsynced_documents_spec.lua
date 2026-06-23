@@ -144,10 +144,14 @@ describe("Unsynced / Pending Documents Feature", function()
         handleEvent = function() end,
       })
       local MockMenu = MockWidget:extend({
-        debugStr = function() return "MockMenu" end,
+        debugStr = function()
+          return "MockMenu"
+        end,
       })
       local MockConfirmBox = MockWidget:extend({
-        debugStr = function() return "MockConfirmBox" end,
+        debugStr = function()
+          return "MockConfirmBox"
+        end,
       })
 
       local menu_shown = false

@@ -200,8 +200,13 @@ function MenuSorter:_sort(item_table, order)
   -- Remove empty submenus
   for i = #sub_menus, 1, -1 do
     local sub_menu = sub_menus[i]
-    local sub_menu_pos = self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
-    if sub_menu_pos and sub_menu_pos.sub_item_table and #sub_menu_pos.sub_item_table == 0 then
+    local sub_menu_pos =
+      self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
+    if
+      sub_menu_pos
+      and sub_menu_pos.sub_item_table
+      and #sub_menu_pos.sub_item_table == 0
+    then
       self:removeMenuButton(menu_table["KOMenu:menu_buttons"], sub_menu)
     end
   end

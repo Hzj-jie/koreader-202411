@@ -26,10 +26,7 @@ describe("AnnotationSync Trash & Restore", function()
     _G.old_ImageViewer_new = test_utils.mock_image_viewer()
 
     G_reader_settings:save("cloud_download_dir", "mock")
-    G_reader_settings:save(
-      "cloud_server_object",
-      json.encode({ url = "mock" })
-    )
+    G_reader_settings:save("cloud_server_object", json.encode({ url = "mock" }))
 
     readerui, sync_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",

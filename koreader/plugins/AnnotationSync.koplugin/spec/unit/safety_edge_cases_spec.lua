@@ -154,10 +154,7 @@ describe("AnnotationSync Safety Edge Cases", function()
     end
 
     G_reader_settings:save("cloud_download_dir", "mock")
-    G_reader_settings:save(
-      "cloud_server_object",
-      json.encode({ url = "mock" })
-    )
+    G_reader_settings:save("cloud_server_object", json.encode({ url = "mock" }))
 
     -- 3. Ensure local annotations are empty
     readerui.annotation.annotations = {}

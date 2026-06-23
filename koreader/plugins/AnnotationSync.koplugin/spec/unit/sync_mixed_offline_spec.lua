@@ -175,7 +175,6 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         { [key_pdf_r] = ann_pdf_r }
       )
 
-
       SyncService.sync = function(server, local_path, callback, upload_only)
         local income = local_path:match("juliet") and income_epub or income_pdf
         return callback(local_path, local_path, income)

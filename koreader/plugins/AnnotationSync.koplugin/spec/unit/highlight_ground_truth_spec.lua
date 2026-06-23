@@ -72,8 +72,16 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
       for i, entry in ipairs(test_entries) do
         local stored_ann = readerui.annotation.annotations[i]
         -- Allow slight difference due to font/wrap differences (one being a substring of another)
-        local match = stored_ann.text:find(entry.text, 1, true) or entry.text:find(stored_ann.text, 1, true)
-        assert.truthy(match, string.format("Expected text to match closely: expected '%s', got '%s'", entry.text, stored_ann.text))
+        local match = stored_ann.text:find(entry.text, 1, true)
+          or entry.text:find(stored_ann.text, 1, true)
+        assert.truthy(
+          match,
+          string.format(
+            "Expected text to match closely: expected '%s', got '%s'",
+            entry.text,
+            stored_ann.text
+          )
+        )
       end
 
       local count, changed_docs =

@@ -90,8 +90,7 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
     setmetatable(sync_instance.settings, {
       __index = function(t, k)
         if k == "sync_server" then
-          local server_json =
-            G_reader_settings:read("cloud_server_object")
+          local server_json = G_reader_settings:read("cloud_server_object")
           if server_json and server_json ~= "" then
             local ok, server = pcall(json.decode, server_json)
             if ok and server then

@@ -105,14 +105,19 @@ function AnnotationSyncPlugin:init()
   if not gettext.loadPO then
     gettext.loadPO = function(po_path)
       local po = io.open(po_path, "r")
-      if not po then return end
+      if not po then
+        return
+      end
 
       local translation = gettext.translation
       local context = gettext.context
 
       local function addTranslation(msgctxt, msgid, msgstr)
-        local unescaped = msgstr:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
-        if unescaped == "" then return end
+        local unescaped =
+          msgstr:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
+        if unescaped == "" then
+          return
+        end
 
         if msgctxt and msgctxt ~= "" then
           if not context[msgctxt] then
@@ -134,7 +139,9 @@ function AnnotationSyncPlugin:init()
           if data.msgid and data.msgstr and data.msgstr ~= "" then
             addTranslation(data.msgctxt, data.msgid, data.msgstr)
           end
-          if line == nil then break end
+          if line == nil then
+            break
+          end
           data = {}
           what = nil
         else
@@ -374,27 +381,22 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       },
       {
         text = gettext("Push settings to cloud"),
-        enabled = (
-          (G_reader_settings:read("cloud_download_dir") or "") ~= ""
-        ),
+        enabled = ((G_reader_settings:read("cloud_download_dir") or "") ~= ""),
         callback = function()
           self.manager:pushSettings()
         end,
       },
       {
         text = gettext("Pull settings from cloud"),
-        enabled = (
-          (G_reader_settings:read("cloud_download_dir") or "") ~= ""
-        ),
+        enabled = ((G_reader_settings:read("cloud_download_dir") or "") ~= ""),
         callback = function()
           self.manager:pullSettings()
         end,
       },
       {
         text = gettext("Manual Sync"),
-        enabled = (
-          (G_reader_settings:read("cloud_download_dir") or "") ~= ""
-        ) and ((self.ui and self.ui.document) ~= nil),
+        enabled = ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
+          and ((self.ui and self.ui.document) ~= nil),
         hold_callback = function()
           utils.show_msg(manual_sync_description)
         end,

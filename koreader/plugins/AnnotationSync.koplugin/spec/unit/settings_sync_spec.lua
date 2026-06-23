@@ -183,7 +183,10 @@ return {
       local SyncService = require("apps/cloudstorage/syncservice")
       local old_sync = SyncService.sync
       SyncService.sync = function(server, local_path, callback, is_silent)
-        print("MOCK SyncService.sync called in settings_sync_spec.lua! local_path:", local_path)
+        print(
+          "MOCK SyncService.sync called in settings_sync_spec.lua! local_path:",
+          local_path
+        )
         sync_called = true
         local income_path = local_path .. ".income"
         -- Simulation: OtherDevice has differing auto_standby_timeout_seconds (50 instead of 100)

@@ -180,9 +180,7 @@ function M.write_annotations_json(
   end
   local annotation_map = M.list_to_map(stored_annotations)
   local json_path = sdr_dir .. "/" .. annotation_filename
-  if
-    util.writeToFile(json.encode(annotation_map), json_path)
-  then
+  if util.writeToFile(json.encode(annotation_map), json_path) then
     return json_path
   end
   return false

@@ -518,11 +518,8 @@ end
 
 function SyncManager:writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
-  local ok, err = util.writeToFile(
-    self:_serialize_table(changed_docs),
-    track_path,
-    true
-  )
+  local ok, err =
+    util.writeToFile(self:_serialize_table(changed_docs), track_path, true)
   if not ok then
     logger.warn(
       "AnnotationSync: Failed to write changed documents file: "
@@ -758,8 +755,7 @@ function SyncManager:pushSettings()
   }
 
   local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
-  local ok, err =
-    util.writeToFile(json.encode(local_data), json_path)
+  local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
       "AnnotationSync: failed to write settings JSON: "
