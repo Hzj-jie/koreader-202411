@@ -1,1 +1,0 @@
-../../../koreader/plugins/legacy_terminal.koplugin/_meta.lua

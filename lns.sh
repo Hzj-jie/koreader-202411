@@ -53,9 +53,16 @@ echo "Configuring linux/..."
 LINUX_EXCLUDES="^scripts/|^scripts$|^settings/|^settings$|^spinning_zsync$"
 link_dir_contents "koreader" "linux" "$LINUX_EXCLUDES"
 
+# Recreate test and spec symlinks for linux tests
+mkdir -p linux/spec/unit 2>/dev/null
+ln -rsf "origin/test" "linux/test"
+ln -rsf "linux/spec" "linux/spec/front"
+ln -rsf "linux/base/spec" "linux/spec/base"
+ln -rsf "linux/test" "linux/spec/unit/data"
+
 # --- 2. PW2 ---
 echo "Configuring pw2/..."
-PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$"
+PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$|plugins/legacy_terminal\.koplugin"
 link_dir_contents "koreader" "pw2" "$PW2_EXCLUDES"
 # PW2 specific: merge with kindle
 link_dir_contents "kindle" "pw2" "$PW2_EXCLUDES"
@@ -69,7 +76,7 @@ link_dir_contents "kindle" "legacy" "$LEGACY_EXCLUDES"
 
 # --- 4. Kobo ---
 echo "Configuring kobo/..."
-KOBO_EXCLUDES="plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$"
+KOBO_EXCLUDES="plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$|plugins/legacy_terminal\.koplugin"
 link_dir_contents "koreader" "kobo" "$KOBO_EXCLUDES"
 
 echo "Platform linking complete!"
