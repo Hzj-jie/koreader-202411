@@ -282,11 +282,15 @@ if not test_file then
     print("[*] Test Suite Summary:")
     print("    Total test files: " .. total_tests)
     print("    Passed files:     " .. passed_tests .. "/" .. total_tests)
-    print("    Failed files:     " .. #failed_tests .. "/" .. total_tests)
+    if #failed_tests > 0 then
+        print("    Failed files:     " .. #failed_tests .. "/" .. total_tests)
+    end
     print("    ---------------------------------------------------------------------")
     print("    Total test cases: " .. total_cases)
     print("    Passed cases:     " .. passed_cases .. "/" .. total_cases)
-    print("    Failed cases:     " .. failed_cases .. "/" .. total_cases)
+    if failed_cases > 0 then
+        print("    Failed cases:     " .. failed_cases .. "/" .. total_cases)
+    end
     print("=========================================================================")
 
     if #failed_cases_details > 0 then
