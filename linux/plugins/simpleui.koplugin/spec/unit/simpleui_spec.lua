@@ -119,4 +119,93 @@ describe("SimpleUI config logic unit tests", function()
     has_nl_stub:revert()
     get_powerd_stub:revert()
   end)
+
+  it("should preserve time_info coordinates after minute tick update", function()
+    local TouchMenu = require("ui/widget/touchmenu")
+    local Device = require("device")
+    local Screen = Device.screen
+    local stub = require("luassert.stub")
+
+    -- Stub power device
+    local dummy_powerd = {
+      getBatterySymbol = function() return "batt" end,
+      getCapacity = function() return 80 end,
+      isCharged = function() return false end,
+      isCharging = function() return false end,
+    }
+    local get_powerd_stub = stub(Device, "getPowerDevice").returns(dummy_powerd)
+
+    local menu = TouchMenu:new({
+      width = 400,
+      tab_item_table = {
+        {
+          icon = "simpleui_settings",
+          remember = false,
+          { text = "Item 1" }
+        }
+      }
+    })
+
+    -- Paint the menu to set absolute coordinates of the time_info widget
+    menu:paintTo(Screen.bb, 0, 0)
+
+    local initial_x = menu.time_info.dimen.x
+    local initial_y = menu.time_info.dimen.y
+
+    assert.is_not_nil(initial_x)
+    assert.is_not_nil(initial_y)
+    assert.True(initial_x > 0)
+    assert.True(initial_y > 0)
+
+    -- Trigger clock minute tick update
+    menu:onTimesChange_1M()
+
+    -- Check coordinates again
+    assert.are.equal(initial_x, menu.time_info.dimen.x)
+    assert.are.equal(initial_y, menu.time_info.dimen.y)
+
+    get_powerd_stub:revert()
+  end)
+
+  it("should shift time_info left when text length increases", function()
+    local TouchMenu = require("ui/widget/touchmenu")
+    local Device = require("device")
+    local Screen = Device.screen
+
+    local menu = TouchMenu:new({
+      width = 400,
+      tab_item_table = {
+        {
+          icon = "simpleui_settings",
+          remember = false,
+          { text = "Item 1" }
+        }
+      }
+    })
+
+    -- Paint with short text first
+    menu.time_info:setText("12:00")
+    menu:paintTo(Screen.bb, 0, 0)
+    local short_x = menu.time_info.dimen.x
+    local short_w = menu.time_info.dimen.w
+
+    -- Mock _updateTimeInfo to set longer text
+    menu._updateTimeInfo = function(self)
+      self.time_info:setText("12:00 ⌁ batt 100% + aux 100%")
+    end
+
+    -- Trigger clock minute tick update (which runs layout resets)
+    menu:onTimesChange_1M()
+    
+    -- Repaint menu to verify updated layout positions
+    menu:paintTo(Screen.bb, 0, 0)
+    local long_x = menu.time_info.dimen.x
+    local long_w = menu.time_info.dimen.w
+
+    -- The button should have grown
+    assert.True(long_w > short_w)
+    
+    -- It should have shifted left (long_x < short_x) to maintain right alignment
+    assert.True(long_x < short_x)
+  end)
 end)
