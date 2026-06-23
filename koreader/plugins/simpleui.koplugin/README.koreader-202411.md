@@ -10,3 +10,5 @@ This folder contains the `SimpleUI` (Clean Homescreen / Launcher) plugin importe
 2. **Missing Core Dependency Fallback (`BookList` / `FileChooser`)**:
    - The plugin depends on the core `ui/widget/booklist` class which is absent in this version of KOReader.
    - Patched `sui_patches.lua` to dynamically check for `ui/widget/booklist` and automatically fall back to patching `ui/widget/filechooser` instead.
+3. **Removal of Silent Mode Support**:
+   - Fully removed references and calls to `UIManager`'s non-existent silent mode functionality (e.g., `isInSilentMode` / `setSilentMode`) as it is not supported in the current `UIManager` implementation.
