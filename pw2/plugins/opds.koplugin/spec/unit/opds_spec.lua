@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/opds.koplugin/spec/unit/opds_spec.lua

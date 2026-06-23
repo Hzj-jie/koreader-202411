@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/systemstat.koplugin/spec/unit/systemstat_spec.lua

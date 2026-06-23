@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/autodim.koplugin/spec/unit/autodim_spec.lua
