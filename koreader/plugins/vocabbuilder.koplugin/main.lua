@@ -496,12 +496,12 @@ function MenuDialog:onExit()
   return true
 end
 
-function MenuDialog:_changeContextStatus(__, position)
+function MenuDialog:_changeContextStatus(_args, position)
   settings.with_context = position == 2
   saveSettings()
 end
 
-function MenuDialog:_changeEnableStatus(__, position)
+function MenuDialog:_changeEnableStatus(_args, position)
   settings.enabled = position == 2
   saveSettings()
 end

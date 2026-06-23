@@ -21,16 +21,12 @@ ignore = {
   "211/__", -- unused variable __: avoid conflicting with _
   "212/arg", -- unused argument arg: commonly used by event handlers.
   "212/self", -- unused argument self
-  "212/__", -- unused argument __: avoid conflicting with _
   "213", -- unused loop variable
   "231/__", -- variable __ is never accessed: avoid conflicting with _
   "411/__", -- variable __ was previously defined: avoid conflicting with _
-  "412/__", -- variable __ was previously defined as an argument: avoid conflicting with _
   "413/__", -- variable __ was previously defined as a loop variable: avoid conflicting with _
   "421/__", -- shadowing definition of variable __: avoid conflicting with _
   "423/__", -- shadowing definition of loop variable __: avoid conflicting with _
   "431/__", -- shadowing upvalue __: avoid conflicting with _
   "432/self", -- shadowing upvalue argument self: allow self being reused.
-  -- TODO: Remove
-  "212", -- unused argument
 }
