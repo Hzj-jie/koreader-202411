@@ -9,5 +9,7 @@
     *   Use `fix: #<issue-id>` if the change fully resolves the issue.
     *   Use `bug: #<issue-id>` if the change is related to, or a part of, the work for the issue.
 *   **Plugin Development & Import Guidelines**: When importing new plugins, modifying existing ones, or handling target-specific exclusions/linking, you must read and adhere to the guidelines documented in [plugin_import_guide.md](file:///.agents/plugin_import_guide.md).
+*   **Test Spec Files Location**: Never add test spec files into the `koreader/` directory, unless they are coming from external plugins. Add tests into the `linux/` folder instead.
+
 
 
