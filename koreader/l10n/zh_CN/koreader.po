@@ -19455,7 +19455,8 @@ msgid ""
 "The maximum of %d action per module has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "每个模块最多 %d 个操作。请先删除一个。"
+msgstr[1] "每个模块最多 %d 个操作。请先删除一个。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19464,7 +19465,8 @@ msgstr[0] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
+msgstr[0] "  (剩余 %s)"
+msgstr[1] "  (剩余 %s)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -19619,7 +19621,8 @@ msgstr "（%d/%d — 已达上限）"
 #, lua-format
 msgid "(%d/%d — %d left)"
 msgid_plural "(%d/%d — %d left)"
-msgstr[0] ""
+msgstr[0] "（%d/%d — 剩余 %d）"
+msgstr[1] "（%d/%d — 剩余 %d）"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:488
 msgid "No collections selected  —  long press to configure"
@@ -19672,7 +19675,8 @@ msgstr "已读 %d%%"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
+msgstr[0] "阅读 %d 天"
+msgstr[1] "阅读 %d 天"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -19870,13 +19874,15 @@ msgstr "每天分钟数："
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
+msgstr[0] "%d/%d 本书"
+msgstr[1] "%d/%d 本书"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
+msgstr[0] "%d 本书"
+msgstr[1] "%d 本书"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20013,7 +20019,8 @@ msgstr "未选择统计项"
 msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "每行最多 %d 个统计项。请先移除一项。"
+msgstr[1] "每行最多 %d 个统计项。请先移除一项。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20290,7 +20297,8 @@ msgstr "至少需要 2 个标签。请先选择另一个标签。"
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "最多 %d 个标签。请先删除一个。"
+msgstr[1] "最多 %d 个标签。请先删除一个。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20445,6 +20453,11 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"顶部栏中显示的文本。\n"
+"最多 %d 个字符。"
+msgstr[1] ""
+"顶部栏中显示的文本。\n"
+"最多 %d 个字符。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -20847,13 +20860,13 @@ msgstr "仅手势"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3428
 msgid "Statistics Loading Notice"
-msgstr ""
+msgstr "统计信息加载提示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3430
 msgid ""
 "Show a brief \"Loading statistics…\" notice when opening a statistics "
 "window, preventing accidental double-taps while e-ink refreshes."
-msgstr ""
+msgstr "打开统计窗口时显示短暂的“正在加载统计信息…”提示，防止在电子墨水屏刷新时发生意外的双击。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3442
 msgid "Overflow Warning"
@@ -21685,7 +21698,7 @@ msgstr "书签浏览器不可用。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:337
 msgid "Fetching bookmarks…"
-msgstr ""
+msgstr "正在获取书签…"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:389
 msgid "Bookmark browser"
@@ -21917,7 +21930,8 @@ msgstr "创建快捷操作"
 msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
-msgstr[0] ""
+msgstr[0] "最多 %d 个快捷操作。请先删除一个。"
+msgstr[1] "最多 %d 个快捷操作。请先删除一个。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078
@@ -21980,7 +21994,8 @@ msgstr "排序快捷设置"
 #, lua-format
 msgid "Maximum of %d slot reached. Remove one first."
 msgid_plural "Maximum of %d slots reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "最多 %d 个槽位。请先移除一个。"
+msgstr[1] "最多 %d 个槽位。请先移除一个。"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1360
 msgid "Enable Quick Settings Bar"
@@ -22219,15 +22234,15 @@ msgstr "12月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:758
 msgid "Please enter a date in YYYY-MM-DD format."
-msgstr ""
+msgstr "请输入 YYYY-MM-DD 格式的日期。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:830
 msgid "Date started"
-msgstr ""
+msgstr "开始日期"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:841
 msgid "Date finished"
-msgstr ""
+msgstr "结束日期"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:907
 #, lua-format
@@ -22270,7 +22285,8 @@ msgstr "笔记"
 #, lua-format
 msgid "%d book read in %s"
 msgid_plural "%d books read in %s"
-msgstr[0] ""
+msgstr[0] "已读 %d 本书在 %s 年"
+msgstr[1] "已读 %d 本书在 %s 年"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2217
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2483
@@ -22280,12 +22296,14 @@ msgstr "已读小时数"
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2220
 msgid "day read"
 msgid_plural "days read"
-msgstr[0] ""
+msgstr[0] "已读天数"
+msgstr[1] "已读天数"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2237
 msgid "page read"
 msgid_plural "pages read"
-msgstr[0] ""
+msgstr[0] "已读页数"
+msgstr[1] "已读页数"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2488
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2921
@@ -22313,7 +22331,8 @@ msgstr "已读页数"
 #, lua-format
 msgid "%d day"
 msgid_plural "%d days"
-msgstr[0] ""
+msgstr[0] "%d 天"
+msgstr[1] "%d 天"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2677
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2714
@@ -22330,11 +22349,12 @@ msgstr "最佳连续纪录"
 #, lua-format
 msgid "%d week"
 msgid_plural "%d weeks"
-msgstr[0] ""
+msgstr[0] "%d 周"
+msgstr[1] "%d 周"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2783
 msgid "Loading statistics…"
-msgstr ""
+msgstr "正在加载统计信息…"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2919
 msgid "reading time"
@@ -22374,7 +22394,7 @@ msgstr "阅读洞察"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3466
 msgid "Book Statistics"
-msgstr ""
+msgstr "图书统计"
 
 #: plugins/simpleui.koplugin/sui_style.lua:76
 msgid "Menu Button"

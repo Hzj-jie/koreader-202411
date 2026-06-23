@@ -19859,7 +19859,9 @@ msgid ""
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
 msgstr[0] ""
+"Modül başına maksimum %d eylem sınırına ulaşıldı. Önce birini kaldırın."
 msgstr[1] ""
+"Modül başına maksimum %d eylem sınırına ulaşıldı. Önce birini kaldırın."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19868,8 +19870,8 @@ msgstr[1] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "  (%d kaldı)"
+msgstr[1] "  (%d kaldı)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -20078,8 +20080,8 @@ msgstr "%%%d Okundu"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d okuma günü"
+msgstr[1] "%d okuma günü"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -20277,15 +20279,15 @@ msgstr "Günlük dakika:"
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d/%d kitap"
+msgstr[1] "%d/%d kitap"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d kitap"
+msgstr[1] "%d kitap"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20423,7 +20425,9 @@ msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
 msgstr[0] ""
+"Satır başına maksimum %d istatistik sınırına ulaşıldı. Önce birini kaldırın."
 msgstr[1] ""
+"Satır başına maksimum %d istatistik sınırına ulaşıldı. Önce birini kaldırın."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20700,8 +20704,8 @@ msgstr "En az 2 sekme gereklidir. Önce başka bir sekme seçin."
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Maksimum %d sekme sınırına ulaşıldı. Önce birini kaldırın."
+msgstr[1] "Maksimum %d sekme sınırına ulaşıldı. Önce birini kaldırın."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20856,7 +20860,11 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"Üst çubukta gösterilen metin.\n"
+"Maksimum %d karakter."
 msgstr[1] ""
+"Üst çubukta gösterilen metin.\n"
+"Maksimum %d karakter."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -22286,8 +22294,8 @@ msgstr "Hızlı Eylem Oluştur"
 msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Maksimum %d hızlı eylem sınırına ulaşıldı. Önce birini silin."
+msgstr[1] "Maksimum %d hızlı eylem sınırına ulaşıldı. Önce birini silin."
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078

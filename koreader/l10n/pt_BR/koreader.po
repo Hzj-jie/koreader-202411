@@ -19889,8 +19889,8 @@ msgid ""
 "The maximum of %d action per module has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "O máximo de %d ação por módulo foi atingido. Remova uma primeiro."
+msgstr[1] "O máximo de %d ações por módulo foi atingido. Remova uma primeiro."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19899,8 +19899,8 @@ msgstr[1] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "  (%d restante)"
+msgstr[1] "  (%d restantes)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -20055,8 +20055,8 @@ msgstr "(%d/%d — no limite)"
 #, lua-format
 msgid "(%d/%d — %d left)"
 msgid_plural "(%d/%d — %d left)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "(%d/%d — %d restante)"
+msgstr[1] "(%d/%d — %d restantes)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:488
 msgid "No collections selected  —  long press to configure"
@@ -20109,8 +20109,8 @@ msgstr "%d%% Lido"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d dia de leitura"
+msgstr[1] "%d dias de leitura"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -20314,15 +20314,15 @@ msgstr "Minutos por dia:"
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d/%d livro"
+msgstr[1] "%d/%d livros"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d livro"
+msgstr[1] "%d livros"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20463,7 +20463,9 @@ msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
 msgstr[0] ""
+"O máximo de %d estatística por linha foi atingido. Remova uma primeiro."
 msgstr[1] ""
+"O máximo de %d estatísticas por linha foi atingido. Remova uma primeiro."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20743,8 +20745,8 @@ msgstr "São necessárias pelo menos 2 abas. Selecione outra aba primeiro."
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "O máximo de %d separador foi atingido. Remova um primeiro."
+msgstr[1] "O máximo de %d separadores foi atingido. Remova um primeiro."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20899,7 +20901,11 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"Texto exibido na barra superior.\n"
+"Máximo %d caractere."
 msgstr[1] ""
+"Texto exibido na barra superior.\n"
+"Máximo %d caracteres."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -22407,8 +22413,8 @@ msgstr "Criar Ação Rápida"
 msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "O máximo de %d ação rápida foi atingido. Exclua uma primeiro."
+msgstr[1] "O máximo de %d ações rápidas foi atingido. Exclua uma primeiro."
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078
@@ -22473,8 +22479,8 @@ msgstr "Organizar Configurações Rápidas"
 #, lua-format
 msgid "Maximum of %d slot reached. Remove one first."
 msgid_plural "Maximum of %d slots reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Máximo de %d espaço atingido. Remova um primeiro."
+msgstr[1] "Máximo de %d espaços atingidos. Remova um primeiro."
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1360
 msgid "Enable Quick Settings Bar"
@@ -22764,8 +22770,8 @@ msgstr "Notas"
 #, lua-format
 msgid "%d book read in %s"
 msgid_plural "%d books read in %s"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d livro lido em %s"
+msgstr[1] "%d livros lidos em %s"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2217
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2483
@@ -22775,14 +22781,14 @@ msgstr "horas lidas"
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2220
 msgid "day read"
 msgid_plural "days read"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "dia lido"
+msgstr[1] "dias lidos"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2237
 msgid "page read"
 msgid_plural "pages read"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "página lida"
+msgstr[1] "páginas lidas"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2488
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2921
@@ -22810,8 +22816,8 @@ msgstr "Páginas lidas"
 #, lua-format
 msgid "%d day"
 msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d dia"
+msgstr[1] "%d dias"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2677
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2714
@@ -22828,8 +22834,8 @@ msgstr "Melhor sequência"
 #, lua-format
 msgid "%d week"
 msgid_plural "%d weeks"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d semana"
+msgstr[1] "%d semanas"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2783
 msgid "Loading statistics…"

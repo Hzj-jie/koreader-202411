@@ -19880,8 +19880,11 @@ msgid ""
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
 msgstr[0] ""
+"Numărul maxim de %d acțiune pe modul a fost atins. Șterge una mai întâi."
 msgstr[1] ""
+"Numărul maxim de %d acțiuni pe modul a fost atins. Șterge una mai întâi."
 msgstr[2] ""
+"Numărul maxim de %d de acțiuni pe modul a fost atins. Șterge una mai întâi."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19890,9 +19893,9 @@ msgstr[2] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "  (%s rămasă)"
+msgstr[1] "  (%s rămase)"
+msgstr[2] "  (%s rămase)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -20102,9 +20105,9 @@ msgstr "%d%% citit"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d zi de citit"
+msgstr[1] "%d zile de citit"
+msgstr[2] "%d de zile de citit"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -20303,17 +20306,17 @@ msgstr "Minute pe zi:"
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d/%d carte"
+msgstr[1] "%d/%d cărți"
+msgstr[2] "%d/%d de cărți"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d carte"
+msgstr[1] "%d cărți"
+msgstr[2] "%d de cărți"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20451,8 +20454,11 @@ msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
 msgstr[0] ""
+"Numărul maxim de %d acțiune pe modul a fost atins. Șterge una mai întâi."
 msgstr[1] ""
+"Numărul maxim de %d acțiuni pe modul a fost atins. Șterge una mai întâi."
 msgstr[2] ""
+"Numărul maxim de %d de acțiuni pe modul a fost atins. Șterge una mai întâi."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20729,9 +20735,9 @@ msgstr "Minim 2 file necesare. Alege mai întâi altă filă."
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Numărul maxim de %d filă a fost atins. Șterge una mai întâi."
+msgstr[1] "Numărul maxim de %d file a fost atins. Șterge una mai întâi."
+msgstr[2] "Numărul maxim de %d de file a fost atins. Șterge una mai întâi."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20886,8 +20892,14 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"Textul afișat în bara superioară.\n"
+"Maxim %d caracter."
 msgstr[1] ""
+"Textul afișat în bara superioară.\n"
+"Maxim %d caractere."
 msgstr[2] ""
+"Textul afișat în bara superioară.\n"
+"Maxim %d de caractere."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -22318,8 +22330,11 @@ msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
 msgstr[0] ""
+"Numărul maxim de %d acțiune rapidă a fost atins. Șterge una mai întâi."
 msgstr[1] ""
+"Numărul maxim de %d acțiuni rapide a fost atins. Șterge una mai întâi."
 msgstr[2] ""
+"Numărul maxim de %d de acțiuni rapide a fost atins. Șterge una mai întâi."
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078

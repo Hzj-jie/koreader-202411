@@ -19925,7 +19925,9 @@ msgid ""
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
 msgstr[0] ""
+"Le maximum de %d action par module a été atteint. Supprimez-en une d'abord."
 msgstr[1] ""
+"Le maximum de %d actions par module a été atteint. Supprimez-en une d'abord."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19934,8 +19936,8 @@ msgstr[1] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "  (%d restant)"
+msgstr[1] "  (%d restants)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -20144,8 +20146,8 @@ msgstr "%d%% lu"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d jour de lecture"
+msgstr[1] "%d jours de lecture"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -20343,15 +20345,15 @@ msgstr "Minutes par jour :"
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d/%d livre"
+msgstr[1] "%d/%d livres"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d livre"
+msgstr[1] "%d livres"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20489,7 +20491,11 @@ msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
 msgstr[0] ""
+"Le maximum de %d statistique par ligne a été atteint. Supprimez-en une "
+"d'abord."
 msgstr[1] ""
+"Le maximum de %d statistiques par ligne a été atteint. Supprimez-en une "
+"d'abord."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20766,8 +20772,8 @@ msgstr "Minimum 2 onglets requis. Sélectionnez un autre onglet d'abord."
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Le maximum de %d onglet a été atteint. Supprimez-en un d'abord."
+msgstr[1] "Le maximum de %d onglets a été atteint. Supprimez-en un d'abord."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20922,7 +20928,11 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"Texte affiché dans la barre supérieure.\n"
+"Maximum %d caractère."
 msgstr[1] ""
+"Texte affiché dans la barre supérieure.\n"
+"Maximum %d caractères."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -22350,7 +22360,9 @@ msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
 msgstr[0] ""
+"Le maximum de %d action rapide a été atteint. Supprimez-en une d'abord."
 msgstr[1] ""
+"Le maximum de %d actions rapides a été atteint. Supprimez-en une d'abord."
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078

@@ -1091,7 +1091,7 @@ msgstr "所有書籍的後設資料都在您指定的路徑下。"
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:828
 msgid "1 book with metadata not in your preferred location found."
 msgid_plural "%1 books with metadata not in your preferred location found."
-msgstr[0] ""
+msgstr[0] "%1本書的後設資料不在您指定的路徑下。"
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:835
 msgid "Move book metadata to your preferred location?"
@@ -1127,7 +1127,7 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:887
 msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
-msgstr[0] ""
+msgstr[0] "%1 本書籍使用了基於雜湊的後設資料儲存"
 
 #: frontend/apps/filemanager/filemanagercollection.lua:19
 #: frontend/apps/filemanager/filemanagercollection.lua:245
@@ -17941,7 +17941,7 @@ msgstr "文字轉換：未啟用"
 #: plugins/japanese.koplugin/deinflector.lua:636
 msgid "Text conversions: %1 enabled"
 msgid_plural "Text conversions: %1 enabled"
-msgstr[0] ""
+msgstr[0] "文本轉換：啟用了 %1"
 
 #: plugins/japanese.koplugin/deinflector.lua:645
 msgid ""
@@ -17963,12 +17963,12 @@ msgstr "活用轉換器資訊"
 #: plugins/japanese.koplugin/deinflector.lua:662
 msgid "%1 rule"
 msgid_plural "%1 rules"
-msgstr[0] ""
+msgstr[0] "%1 條規則"
 
 #: plugins/japanese.koplugin/deinflector.lua:664
 msgid "%1 variant"
 msgid_plural "%1 variants"
-msgstr[0] ""
+msgstr[0] "%1 種變體"
 
 #. @translators %1 is the "%1 rule(s)" string, %2 is the "%1 variant(s)"
 #. string.
@@ -19426,18 +19426,18 @@ msgstr "在一段時間後顯示警告訊息。"
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:154
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:104
 msgid "No actions configured  —  long press to configure"
-msgstr ""
+msgstr "未配置任何操作 — 長按以配置"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:125
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:155
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:105
 #: plugins/simpleui.koplugin/sui_settings_window.lua:510
 msgid "No actions configured"
-msgstr ""
+msgstr "未配置任何操作"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:364
 msgid "Action List"
-msgstr ""
+msgstr "操作列表"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:449
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:636
@@ -19450,7 +19450,8 @@ msgid ""
 "The maximum of %d action per module has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "每個模組最多 %d 個操作。請先刪除一個。"
+msgstr[1] "每個模組最多 %d 個操作。請先刪除一個。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19459,154 +19460,155 @@ msgstr[0] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
+msgstr[0] "  (剩餘 %s)"
+msgstr[1] "  (剩餘 %s)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
 msgid "One"
-msgstr ""
+msgstr "一"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:219
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:275
 msgid "Two"
-msgstr ""
+msgstr "二"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:220
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:276
 msgid "Three"
-msgstr ""
+msgstr "三"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:221
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:277
 msgid "Four"
-msgstr ""
+msgstr "四"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:222
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:278
 msgid "Five"
-msgstr ""
+msgstr "五"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:223
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:279
 msgid "Six"
-msgstr ""
+msgstr "六"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:224
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:280
 msgid "Seven"
-msgstr ""
+msgstr "七"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:225
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:281
 msgid "Eight"
-msgstr ""
+msgstr "八"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:226
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:282
 msgid "Nine"
-msgstr ""
+msgstr "九"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:227
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:283
 msgid "Ten"
-msgstr ""
+msgstr "十"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:228
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:284
 msgid "Eleven"
-msgstr ""
+msgstr "十一"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:229
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:285
 msgid "Twelve"
-msgstr ""
+msgstr "十二"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:230
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:286
 msgid "Thirteen"
-msgstr ""
+msgstr "十三"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:231
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:287
 msgid "Fourteen"
-msgstr ""
+msgstr "十四"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:232
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:288
 msgid "Fifteen"
-msgstr ""
+msgstr "十五"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:233
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:289
 msgid "Sixteen"
-msgstr ""
+msgstr "十六"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:234
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:290
 msgid "Seventeen"
-msgstr ""
+msgstr "十七"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:235
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:291
 msgid "Eighteen"
-msgstr ""
+msgstr "十八"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:236
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:292
 msgid "Nineteen"
-msgstr ""
+msgstr "十九"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:241
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:295
 msgid "Twenty"
-msgstr ""
+msgstr "二十"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:242
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:296
 msgid "Thirty"
-msgstr ""
+msgstr "三十"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:243
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:297
 msgid "Forty"
-msgstr ""
+msgstr "四十"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:244
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:298
 msgid "Fifty"
-msgstr ""
+msgstr "五十"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:248
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:350
 msgid "Midnight"
-msgstr ""
+msgstr "午夜藍"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:249
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:353
 msgid "Noon"
-msgstr ""
+msgstr "中午"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:252
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:373
 msgid "O'Clock"
-msgstr ""
+msgstr "點鐘"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:253
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:314
 msgid "Oh"
-msgstr ""
+msgstr "Oh"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:260
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:301
 msgid "WORD_CLOCK_TENS_SEP"
-msgstr ""
+msgstr "WORD_CLOCK_TENS_SEP"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:395
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:621
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:433
 #, lua-format
 msgid "(%d/%d — at limit)"
-msgstr ""
+msgstr "（%d/%d — 已達上限）"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:398
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:624
@@ -19614,11 +19616,12 @@ msgstr ""
 #, lua-format
 msgid "(%d/%d — %d left)"
 msgid_plural "(%d/%d — %d left)"
-msgstr[0] ""
+msgstr[0] "（%d/%d — 剩餘 %d）"
+msgstr[1] "（%d/%d — 剩餘 %d）"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:488
 msgid "No collections selected  —  long press to configure"
-msgstr ""
+msgstr "未選擇任何收藏夾 — 長按以配置"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:489
 msgid "No collections selected"
@@ -19667,7 +19670,8 @@ msgstr "已讀 %d%%"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
+msgstr[0] "閱讀 %d 天"
+msgstr[1] "閱讀 %d 天"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -19723,7 +19727,7 @@ msgstr "新書"
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:843
 #: plugins/simpleui.koplugin/sui_menu.lua:2560
 msgid "Quick Actions Row"
-msgstr ""
+msgstr "快捷操作行"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:400
 #: plugins/simpleui.koplugin/sui_bottombar.lua:1176
@@ -19743,7 +19747,7 @@ msgstr "排序項目"
 #: plugins/simpleui.koplugin/sui_menu.lua:2625
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1272
 msgid "Add at least 2 actions to arrange."
-msgstr ""
+msgstr "請至少新增 2 個操作以進行排列。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:441
 #: plugins/simpleui.koplugin/sui_menu.lua:2641
@@ -19755,7 +19759,7 @@ msgstr "排序 %s"
 #: plugins/simpleui.koplugin/sui_menu.lua:2681
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1533
 msgid "Hide Label"
-msgstr ""
+msgstr "隱藏標籤"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:489
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:497
@@ -19781,7 +19785,7 @@ msgstr "快捷操作"
 #: plugins/simpleui.koplugin/sui_menu.lua:2742
 #: plugins/simpleui.koplugin/sui_window.lua:3000
 msgid "No items selected."
-msgstr ""
+msgstr "未選中任何專案。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:548
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:601
@@ -19796,13 +19800,13 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_settings_window.lua:987
 #: plugins/simpleui.koplugin/sui_window.lua:696
 msgid "Add Item"
-msgstr ""
+msgstr "新增專案"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_quote.lua:874
 msgid ""
 "No custom quotes found. Add a .lua file to the plugin's sui_quotes/ folder "
 "and select it in Settings."
-msgstr ""
+msgstr "未找到自定義名言。請將 .lua 檔案新增到外掛的 sui_quotes/  資料夾中，然後在設定中選擇它。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_quote.lua:924
 msgid "No quotes found."
@@ -19847,11 +19851,11 @@ msgstr "今年閱讀的實體書："
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:589
 msgid "Monthly Reading Goal"
-msgstr ""
+msgstr "月度閱讀目標"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:590
 msgid "Hours per month:"
-msgstr ""
+msgstr "每月小時數："
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:615
 msgid "Daily Reading Goal"
@@ -19865,13 +19869,15 @@ msgstr "每天分鐘數："
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
+msgstr[0] "%d/%d 本書"
+msgstr[1] "%d/%d 本書"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
+msgstr[0] "%d 本書"
+msgstr[1] "%d 本書"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -19891,7 +19897,7 @@ msgstr "今天"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:1099
 msgid "Error in Reading Goals: check crash.log"
-msgstr ""
+msgstr "閱讀目標出錯：請檢視 crash.log"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:100
 msgid "Today — Time"
@@ -19911,19 +19917,19 @@ msgstr "今天閱讀的頁數"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:114
 msgid "This week — Time"
-msgstr ""
+msgstr "本週 — 時間"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:118
 msgid "of reading this week"
-msgstr ""
+msgstr "本週閱讀量"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:121
 msgid "This week — Pages"
-msgstr ""
+msgstr "本週 — 頁數"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:125
 msgid "pages read this week"
-msgstr ""
+msgstr "本週已讀頁數"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:128
 msgid "Daily avg — Time"
@@ -19943,19 +19949,19 @@ msgstr "頁/天（7 天）"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:142
 msgid "This month — Time"
-msgstr ""
+msgstr "本月 — 時間"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:146
 msgid "of reading this month"
-msgstr ""
+msgstr "本月閱讀量"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:149
 msgid "This month — Pages"
-msgstr ""
+msgstr "本月 — 頁數"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:153
 msgid "pages read this month"
-msgstr ""
+msgstr "本月已讀頁數"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:156
 msgid "All time — Time"
@@ -19997,7 +20003,7 @@ msgstr "閱讀統計"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:501
 msgid "No stats selected  —  long press to configure"
-msgstr ""
+msgstr "未選擇任何統計項 — 長按以配置"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua:502
 msgid "No stats selected"
@@ -20008,7 +20014,8 @@ msgstr "未選擇統計項"
 msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "每行最多 %d 個統計項。請先移除一項。"
+msgstr[1] "每行最多 %d 個統計項。請先移除一項。"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20029,7 +20036,7 @@ msgstr "%d%%"
 #: plugins/simpleui.koplugin/desktop_modules/module_spacer.lua:58
 #: plugins/simpleui.koplugin/desktop_modules/module_spacer.lua:119
 msgid "Spacer"
-msgstr ""
+msgstr "間隔元件"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_tbr.lua:290
 #: plugins/simpleui.koplugin/desktop_modules/module_tbr.lua:291
@@ -20049,24 +20056,24 @@ msgstr "加入待讀"
 
 #: plugins/simpleui.koplugin/main.lua:1097
 msgid "Simple UI: Go to Homescreen"
-msgstr ""
+msgstr "Simple UI：前往主螢幕"
 
 #: plugins/simpleui.koplugin/main.lua:1103
 msgid "Simple UI: Go to Library"
-msgstr ""
+msgstr "Simple UI：前往書庫"
 
 #: plugins/simpleui.koplugin/main.lua:1109
 msgid "Simple UI: Toggle Homescreen / Library"
-msgstr ""
+msgstr "Simple UI：切換主螢幕 / 書庫"
 
 #: plugins/simpleui.koplugin/main.lua:1115
 msgid "Simple UI: Settings"
-msgstr ""
+msgstr "Simple UI：設定"
 
 #: plugins/simpleui.koplugin/main.lua:1312
 #, lua-format
 msgid "More by %s (%d)"
-msgstr ""
+msgstr "更多 %s 的作品（%d）"
 
 #: plugins/simpleui.koplugin/main.lua:1384
 #: plugins/statistics.koplugin/main.lua:110
@@ -20075,7 +20082,7 @@ msgstr "書籍統計資料"
 
 #: plugins/simpleui.koplugin/main.lua:2014
 msgid "Closing book…"
-msgstr ""
+msgstr "正在關閉書籍..."
 
 #: plugins/simpleui.koplugin/main.lua:2464
 #: plugins/simpleui.koplugin/main.lua:2478
@@ -20106,25 +20113,25 @@ msgstr "作者"
 #: plugins/simpleui.koplugin/sui_config.lua:198
 #: plugins/simpleui.koplugin/sui_quickactions.lua:893
 msgid "Tags"
-msgstr ""
+msgstr "標籤"
 
 #: plugins/simpleui.koplugin/sui_browsemeta.lua:763
 msgid "Browse by"
-msgstr ""
+msgstr "瀏覽方式"
 
 #: plugins/simpleui.koplugin/sui_browsemeta.lua:1278
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1015
 msgid "New collection name"
-msgstr ""
+msgstr "新的收藏夾名字"
 
 #: plugins/simpleui.koplugin/sui_browsemeta.lua:1326
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1052
 msgid "Collection \"%1\" created with %2 books."
-msgstr ""
+msgstr "收藏夾 “%1” 已建立，包含 %2 本書。"
 
 #: plugins/simpleui.koplugin/sui_browsemeta.lua:1357
 msgid "No books found."
-msgstr ""
+msgstr "未找到書籍。"
 
 #: plugins/simpleui.koplugin/sui_browsemeta.lua:1371
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1088
@@ -20142,13 +20149,13 @@ msgstr "資料夾封面"
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1245
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1663
 msgid "Set folder cover"
-msgstr ""
+msgstr "設定資料夾封面"
 
 #: plugins/simpleui.koplugin/sui_browsemeta.lua:1638
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1304
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1677
 msgid "Create collection"
-msgstr ""
+msgstr "建立收藏夾"
 
 #: plugins/simpleui.koplugin/sui_config.lua:121
 #: plugins/simpleui.koplugin/sui_config.lua:494
@@ -20168,7 +20175,7 @@ msgstr "Wi-Fi"
 #: plugins/simpleui.koplugin/sui_config.lua:166
 #: plugins/simpleui.koplugin/sui_quickactions.lua:776
 msgid "Night Mode"
-msgstr ""
+msgstr "夜間模式"
 
 #: plugins/simpleui.koplugin/sui_config.lua:171
 #: plugins/simpleui.koplugin/sui_quickactions.lua:785
@@ -20211,7 +20218,7 @@ msgstr "自訂"
 #: plugins/simpleui.koplugin/sui_menu.lua:4080
 #: plugins/simpleui.koplugin/sui_menu.lua:4089
 msgid "Banner"
-msgstr ""
+msgstr "橫幅"
 
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1007
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:1076
@@ -20224,7 +20231,7 @@ msgstr "在此資料夾中未找到書籍。"
 
 #: plugins/simpleui.koplugin/sui_foldercovers.lua:3147
 msgid " p."
-msgstr ""
+msgstr "頁"
 
 #: plugins/simpleui.koplugin/sui_homescreen.lua:463
 msgid "No books opened yet"
@@ -20243,12 +20250,16 @@ msgid ""
 "Vertical space above this module.\n"
 "100% is the default spacing."
 msgstr ""
+"此模組上方的垂直間距。\n"
+"100% 為預設間距。"
 
 #: plugins/simpleui.koplugin/sui_homescreen.lua:3117
 msgid ""
 "Modules exceed the visible area.\n"
 "Move some to another page or adjust the scale."
 msgstr ""
+"模組超出可見區域。\n"
+"請將部分模組移至其他頁面，或調整縮放比例。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:241
 #: plugins/simpleui.koplugin/sui_menu.lua:4750
@@ -20266,26 +20277,27 @@ msgstr "僅文字"
 #: plugins/simpleui.koplugin/sui_menu.lua:357
 #: plugins/simpleui.koplugin/sui_menu.lua:380
 msgid "Arrange Tabs"
-msgstr ""
+msgstr "排序標籤"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:443
 msgid "Minimum 1 tab required in navpager mode."
-msgstr ""
+msgstr "導航頁模式至少需要 1 個標籤。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:444
 msgid "Minimum 2 tabs required. Select another tab first."
-msgstr ""
+msgstr "至少需要 2 個標籤。請先選擇另一個標籤。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:455
 #: plugins/simpleui.koplugin/sui_menu.lua:1677
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "最多 %d 個標籤。請先刪除一個。"
+msgstr[1] "最多 %d 個標籤。請先刪除一個。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
-msgstr ""
+msgstr "模式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:557
 msgid ""
@@ -20293,6 +20305,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"分頁欄已設為預設。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:562
 #: plugins/simpleui.koplugin/sui_style.lua:1258
@@ -20305,6 +20320,9 @@ msgid ""
 "The arrows dim when there is no previous or next page.\n"
 "With navpager active, as few as 1 tab and at most 4 tabs can be configured."
 msgstr ""
+"用底部欄邊緣的上一頁/下一頁箭頭替換分頁欄。\n"
+"沒有上一頁或下一頁時箭頭會變暗。\n"
+"啟用導航頁時，可配置最少 1 個標籤，最多 4 個標籤。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:575
 msgid ""
@@ -20312,6 +20330,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"導航分頁器已啟用。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:579
 #: plugins/simpleui.koplugin/sui_menu.lua:656
@@ -20335,10 +20356,13 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"分頁欄已隱藏。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:596
 msgid "Home Screen Style"
-msgstr ""
+msgstr "主螢幕樣式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:599
 msgid "Dot Pager"
@@ -20359,17 +20383,21 @@ msgid ""
 "Uses the standard KOReader pagination bar on the homescreen.\n"
 "Not available when Navpager is active."
 msgstr ""
+"在主螢幕上使用 KOReader 標準分頁欄。\n"
+"啟用導航分頁器時不可用。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:667
 msgid ""
 "Hides the pagination bar on the homescreen.\n"
 "Not available when Navpager is active."
 msgstr ""
+"隱藏主螢幕上的分頁欄。\n"
+"啟用導航分頁器時不可用。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:685
 #: plugins/simpleui.koplugin/sui_menu.lua:1778
 msgid "Bar Size"
-msgstr ""
+msgstr "欄大小"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:691
 msgid "Extra Small"
@@ -20383,6 +20411,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"分頁欄大小將在重啟後改變。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:711
 msgid "Small"
@@ -20390,7 +20421,7 @@ msgstr "小"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:754
 msgid "Show Page Count in Title Bar"
-msgstr ""
+msgstr "在標題欄顯示頁數"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:760
 msgid ""
@@ -20398,6 +20429,9 @@ msgid ""
 "Navpager enables this automatically.\n"
 "Not available when Navpager is active."
 msgstr ""
+"在瀏覽書庫、歷史或收藏時，在標題欄副標題中顯示“第 X 頁，共 Y 頁”。\n"
+"啟用導航分頁器時自動開啟。\n"
+"啟用導航分頁器時不可用。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:791
 #: plugins/simpleui.koplugin/sui_menu.lua:793
@@ -20414,6 +20448,11 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"頂部欄中顯示的文本。\n"
+"最多 %d 個字元。"
+msgstr[1] ""
+"頂部欄中顯示的文本。\n"
+"最多 %d 個字元。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -20425,7 +20464,7 @@ msgstr ""
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1125
 msgid "Enable Status Bar"
-msgstr ""
+msgstr "啟用狀態列"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1136
 #, lua-format
@@ -20434,6 +20473,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"重啟後狀態列將變為 %s。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1150
 #: plugins/simpleui.koplugin/sui_menu.lua:1159
@@ -20446,17 +20488,19 @@ msgstr "項目"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1198
 msgid "Empty"
-msgstr ""
+msgstr "空"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1418
 msgid "Status Bar Size"
-msgstr ""
+msgstr "狀態列大小"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1420
 msgid ""
 "Height of the top status bar.\n"
 "100% is the default size."
 msgstr ""
+"頂部狀態列的高度。\n"
+"100% 為預設大小。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1440
 #: plugins/simpleui.koplugin/sui_menu.lua:1809
@@ -20465,6 +20509,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"需要重啟才能使新欄大小在所有佈局中生效。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1454
 msgid "Swipe Indicator"
@@ -20472,7 +20519,7 @@ msgstr "滑動指示器"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1468
 msgid "Hide Wi-Fi Icon When Off"
-msgstr ""
+msgstr "Wi-Fi關閉時隱藏圖示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1479
 #: plugins/simpleui.koplugin/sui_menu.lua:1892
@@ -20486,10 +20533,12 @@ msgid ""
 "When enabled, long-pressing the top bar opens its settings menu.\n"
 "Disable this to prevent the settings menu from appearing on long tap."
 msgstr ""
+"啟用後，長按頂部欄會開啟其設定選單。\n"
+"停用此項可防止長按時出現設定選單。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1503
 msgid "Enable Navigation Bar"
-msgstr ""
+msgstr "啟用導航欄"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1514
 #, lua-format
@@ -20498,43 +20547,46 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"重啟後導航欄將變為 %s。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1533
 #, lua-format
 msgid "Tabs  (%d/%d — at limit)"
-msgstr ""
+msgstr "標籤  (%d/%d — 已達限制)"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1536
 #, lua-format
 msgid "Tabs  (%d/%d — %d left)"
-msgstr ""
+msgstr "標籤頁（%d/%d — 剩餘 %d 個）"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1550
 #: plugins/simpleui.koplugin/sui_menu.lua:1615
 msgid "Tabs"
-msgstr ""
+msgstr "標籤"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1720
 msgid "Tab Style"
-msgstr ""
+msgstr "標籤樣式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1724
 msgid "Bar Style"
-msgstr ""
+msgstr "欄樣式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1743
 #: plugins/simpleui.koplugin/sui_menu.lua:5806
 msgid "Framed"
-msgstr ""
+msgstr "有邊框"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1759
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1574
 msgid "Bare"
-msgstr ""
+msgstr "極簡模式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1787
 msgid "Navigation Bar Size"
-msgstr ""
+msgstr "導航欄大小"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1789
 msgid ""
@@ -20575,18 +20627,24 @@ msgid ""
 "Space below the bottom navigation bar.\n"
 "100% is the default spacing."
 msgstr ""
+"底部導航欄下方的間距。\n"
+"100% 為預設間距。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:1894
 msgid ""
 "When enabled, long-pressing the bottom bar opens its settings menu.\n"
 "Disable this to prevent the settings menu from appearing on long tap."
 msgstr ""
+"啟用後，長按底部欄會開啟其設定選單。\n"
+"停用此項可防止長按時出現設定選單。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2011
 msgid ""
 "Invalid arrangement.\n"
 "Keep items between the Left and Right separators."
 msgstr ""
+"排序無效。\n"
+"請將專案保持在左側和右側分隔符之間。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2054
 #: plugins/simpleui.koplugin/sui_menu.lua:2061
@@ -20598,11 +20656,11 @@ msgstr "排序按鈕"
 #: plugins/simpleui.koplugin/sui_menu.lua:2125
 #: plugins/simpleui.koplugin/sui_menu.lua:2176
 msgid "Add Button"
-msgstr ""
+msgstr "新增按鈕"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2375
 msgid "Enable Title Bar"
-msgstr ""
+msgstr "啟用標題欄"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2388
 #, lua-format
@@ -20611,6 +20669,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"重啟後標題欄將變為 %s。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2400
 #: plugins/simpleui.koplugin/sui_menu.lua:2409
@@ -20620,12 +20681,12 @@ msgstr "書庫按鈕"
 #: plugins/simpleui.koplugin/sui_menu.lua:2416
 #: plugins/simpleui.koplugin/sui_menu.lua:2425
 msgid "Sub-page Buttons"
-msgstr ""
+msgstr "子頁面按鈕"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2432
 #: plugins/simpleui.koplugin/sui_menu.lua:2436
 msgid "Appearance"
-msgstr ""
+msgstr "外觀"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2448
 msgid "Button Size"
@@ -20647,7 +20708,7 @@ msgstr "模組  (%d)"
 #: plugins/simpleui.koplugin/sui_menu.lua:2949
 #: plugins/simpleui.koplugin/sui_settings_window.lua:345
 msgid "Edit Layout"
-msgstr ""
+msgstr "編輯佈局"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2956
 msgid "Module Settings"
@@ -20655,53 +20716,55 @@ msgstr "模組設定"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:2999
 msgid "Enable Wallpaper"
-msgstr ""
+msgstr "啟用桌布"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3014
 msgid "Select Wallpaper"
-msgstr ""
+msgstr "選擇桌布"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3041
 msgid "No wallpapers found."
-msgstr ""
+msgstr "未找到桌布。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3044
 msgid "Place images in:"
-msgstr ""
+msgstr "請將圖片放入："
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3055
 msgid "Transparent status bar"
-msgstr ""
+msgstr "透明狀態列"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3073
 msgid "Transparent navigation bar"
-msgstr ""
+msgstr "透明導航欄"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3095
 msgid "Show wallpaper on all screens"
-msgstr ""
+msgstr "在所有螢幕顯示桌布"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3113
 msgid "Stretch to fill screen"
-msgstr ""
+msgstr "拉伸以填滿螢幕"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3128
 msgid "Auto-rotate"
-msgstr ""
+msgstr "自動旋轉"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3143
 msgid "Invert in Night Mode"
-msgstr ""
+msgstr "夜間模式下反轉顏色"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3176
 msgid "Lighten Wallpaper"
-msgstr ""
+msgstr "桌布增亮"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3178
 msgid ""
 "Fades the wallpaper towards white to improve text readability.\n"
 "0% is the default (no lightening)."
 msgstr ""
+"將桌布向白色漸變，提升文本可讀性。\n"
+"0% 為預設值（無增亮）。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3203
 msgid "Start with Home Screen"
@@ -20725,6 +20788,8 @@ msgid ""
 "Scales all modules and labels together.\n"
 "100% is the default size."
 msgstr ""
+"同時縮放所有模組和標籤。\n"
+"100% 為預設大小。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3255
 msgid ""
@@ -20732,6 +20797,9 @@ msgid ""
 "Individual overrides in Module Settings take precedence.\n"
 "100% is the default size."
 msgstr ""
+"所有模組的全域性比例。\n"
+"模組設定中的單獨覆蓋將優先。\n"
+"100% 為預設大小。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3281
 msgid "Labels"
@@ -20739,7 +20807,7 @@ msgstr "標籤"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3290
 msgid "Disable \"Lock Scale\" first to set a custom label scale."
-msgstr ""
+msgstr "請先停用“鎖定縮放比例”以設定自定義標籤縮放。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3299
 msgid "Label Scale"
@@ -20750,6 +20818,8 @@ msgid ""
 "Scales the section label text above each module.\n"
 "100% is the default size."
 msgstr ""
+"每個模組上方的分割槽標籤文本的縮放比例。\n"
+"100% 為預設大小。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3326
 msgid "Reset to Default Scale"
@@ -20757,7 +20827,7 @@ msgstr "重設為預設比例"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3332
 msgid "Reset all scales to default (100%)? This cannot be undone."
-msgstr ""
+msgstr "將所有比例重置為預設值（100%）？此操作不可撤銷。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3352
 msgid "Return to Book Folder"
@@ -20767,49 +20837,51 @@ msgstr "返回書籍所在資料夾"
 msgid ""
 "When closing a book from the Home Screen, go back to the folder where the "
 "book is located instead of the Library home folder."
-msgstr ""
+msgstr "從主螢幕關閉書籍時，返回該書所在的資料夾，而不是書庫主資料夾。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3366
 msgid "Closing Book Notice"
-msgstr ""
+msgstr "關閉書籍時是否提示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3368
 msgid ""
 "Show a brief \"Closing book…\" notice when closing a book, preventing "
 "accidental double-taps while e-ink refreshes."
-msgstr ""
+msgstr "關閉書籍時顯示短暫的“正在關閉書籍…”提示，防止在電子墨水屏重新整理期間發生意外雙擊。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3391
 msgid "Gesture Only"
-msgstr ""
+msgstr "僅手勢"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3428
 msgid "Statistics Loading Notice"
-msgstr ""
+msgstr "統計資訊載入提示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3430
 msgid ""
 "Show a brief \"Loading statistics…\" notice when opening a statistics "
 "window, preventing accidental double-taps while e-ink refreshes."
-msgstr ""
+msgstr "開啟統計視窗時顯示短暫的“正在載入統計資訊…”提示，防止在電子墨水屏重新整理時發生意外的雙擊。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3442
 msgid "Overflow Warning"
-msgstr ""
+msgstr "溢位警告"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3444
 msgid "Warn when modules on a page exceed the available screen height."
-msgstr ""
+msgstr "當頁面上的模組超出螢幕高度時發出警告。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3458
 msgid ""
 "When enabled, long-pressing a module on the home screen opens its settings menu.\n"
 "Disable this to prevent settings from appearing on long tap."
 msgstr ""
+"啟用後，長按主螢幕上的模組會開啟其設定選單。\n"
+"停用此項可防止長按時出現設定選單。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3471
 msgid "Preserve Deleted Books in Statistics"
-msgstr ""
+msgstr "刪除書籍後仍保留統計"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3473
 msgid ""
@@ -20817,17 +20889,20 @@ msgid ""
 "\n"
 "Books changed back to Reading or Abandoned are automatically removed from this list."
 msgstr ""
+"已讀完的書籍從裝置中刪除後，仍保留在主螢幕“已讀書籍”統計中。\n"
+"\n"
+"若將書籍狀態改回“閱讀中”或“放棄”，則會自動從該列表中移除。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3512
 #: plugins/simpleui.koplugin/sui_settings_window.lua:361
 msgid "Presets"
-msgstr ""
+msgstr "預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3531
 #: plugins/simpleui.koplugin/sui_settings_window.lua:369
 #: plugins/simpleui.koplugin/sui_settings_window.lua:990
 msgid "Behaviour"
-msgstr ""
+msgstr "行為"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3542
 msgid "Status Bar"
@@ -20850,39 +20925,39 @@ msgstr "分頁列"
 #: plugins/simpleui.koplugin/sui_menu.lua:3566
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1198
 msgid "Quick Settings Bar"
-msgstr ""
+msgstr "快捷設定欄"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3595
 msgid "Enable Library Custom Covers"
-msgstr ""
+msgstr "啟用書庫自定義封面"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3613
 msgid "Enable Browse by Author / Series / Tags"
-msgstr ""
+msgstr "啟用按作者 / 系列 / 標籤瀏覽"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3655
 msgid "Group by Book Series"
-msgstr ""
+msgstr "按書籍系列分組"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3672
 msgid "Cover Settings"
-msgstr ""
+msgstr "封面設定"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3679
 msgid "Folder Cover Type"
-msgstr ""
+msgstr "資料夾封面型別"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3682
 msgid "Single Cover"
-msgstr ""
+msgstr "單封面"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3695
 msgid "4-Cover Grid (Mosaic View Only)"
-msgstr ""
+msgstr "四封面網格（僅限馬賽克檢視）"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3708
 msgid "Auto (Single ↔ 4-Cover Grid)"
-msgstr ""
+msgstr "自動（單欄 ↔ 四封面網格）"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3724
 msgid "Overlays"
@@ -20890,17 +20965,19 @@ msgstr "覆蓋層"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3728
 msgid "Badges"
-msgstr ""
+msgstr "徽章"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3744
 msgid "Badge Size"
-msgstr ""
+msgstr "標籤大小"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3746
 msgid ""
 "Scale for the library badges (progress, pages, etc.).\n"
 "100% is the default size."
 msgstr ""
+"書庫徽章（進度、頁數等）的縮放比例。\n"
+"100% 為預設大小。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3767
 msgid "Number of Books in Folder"
@@ -20909,7 +20986,7 @@ msgstr "資料夾中的書籍數量"
 #: plugins/simpleui.koplugin/sui_menu.lua:3779
 #: plugins/simpleui.koplugin/sui_menu.lua:4410
 msgid "Position"
-msgstr ""
+msgstr "位置"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3836
 #: plugins/simpleui.koplugin/sui_menu.lua:3926
@@ -20917,7 +20994,7 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_menu.lua:4131
 #: plugins/simpleui.koplugin/sui_menu.lua:4246
 msgid "Color"
-msgstr ""
+msgstr "顏色"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3840
 #: plugins/simpleui.koplugin/sui_menu.lua:3848
@@ -20930,7 +21007,7 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_menu.lua:4249
 #: plugins/simpleui.koplugin/sui_menu.lua:4257
 msgid "Dark"
-msgstr ""
+msgstr "深色"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3841
 #: plugins/simpleui.koplugin/sui_menu.lua:3861
@@ -20943,7 +21020,7 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_menu.lua:4250
 #: plugins/simpleui.koplugin/sui_menu.lua:4270
 msgid "Light"
-msgstr ""
+msgstr "淺色"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3880
 msgid "Number of Pages"
@@ -20962,7 +21039,7 @@ msgstr "可見"
 #: plugins/simpleui.koplugin/sui_menu.lua:3979
 #: plugins/simpleui.koplugin/sui_menu.lua:4355
 msgid "Visibility"
-msgstr ""
+msgstr "可見"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:3970
 msgid "Series Index"
@@ -20975,41 +21052,43 @@ msgstr "類型"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4175
 msgid "New Book"
-msgstr ""
+msgstr "新書"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4180
 #: plugins/simpleui.koplugin/sui_menu.lua:4195
 #: plugins/simpleui.koplugin/sui_menu.lua:4204
 msgid "Badge"
-msgstr ""
+msgstr "徽章"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4182
 #: plugins/simpleui.koplugin/sui_menu.lua:4197
 #: plugins/simpleui.koplugin/sui_menu.lua:4217
 msgid "Ribbon"
-msgstr ""
+msgstr "絲帶"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4291
 msgid "Finished Books"
-msgstr ""
+msgstr "已讀完的書籍"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4301
 msgid "Fade Finished Books"
-msgstr ""
+msgstr "淡化已讀完的書籍"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4313
 msgid "Intensity"
-msgstr ""
+msgstr "強度"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4325
 msgid "Fade Intensity"
-msgstr ""
+msgstr "淡化強度"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4327
 msgid ""
 "Fades finished book covers towards white.\n"
 "50% is the default."
 msgstr ""
+"將已讀完的書籍封面向白色淡化。\n"
+"50% 為預設值。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4348
 msgid "Folder Name"
@@ -21025,7 +21104,7 @@ msgstr "透明"
 #: plugins/simpleui.koplugin/sui_menu.lua:4367
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1607
 msgid "Solid"
-msgstr ""
+msgstr "純色"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4468
 msgid "Text Size"
@@ -21040,10 +21119,12 @@ msgid ""
 "Scale for the folder name overlay text.\n"
 "100% is the default size."
 msgstr ""
+"資料夾名稱疊加文本的縮放比例。\n"
+"100% 為預設大小。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4493
 msgid "Title and Author Below Covers"
-msgstr ""
+msgstr "封面下方顯示標題和作者"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4514
 msgid ""
@@ -21051,10 +21132,13 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"標題欄已停用。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4526
 msgid "Title only"
-msgstr ""
+msgstr "僅標題"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4540
 msgid ""
@@ -21062,10 +21146,13 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"標題欄已啟用。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4551
 msgid "Title and Author"
-msgstr ""
+msgstr "標題與作者"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4566
 msgid ""
@@ -21073,6 +21160,9 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"標題與作者欄已啟用。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4583
 msgid "Uniformize Covers (2:3)"
@@ -21080,46 +21170,46 @@ msgstr "統一封面比例（2:3）"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4596
 msgid "Hide Selection Underline"
-msgstr ""
+msgstr "隱藏選擇下劃線"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4607
 msgid "Hide Folder Book Spine"
-msgstr ""
+msgstr "隱藏資料夾書脊"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4619
 msgid "Placeholder Cover for Bookless Folders"
-msgstr ""
+msgstr "空資料夾的佔位封面"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4634
 msgid "Scan Subfolders for Covers"
-msgstr ""
+msgstr "掃描子資料夾中的封面"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4658
 msgid "Display"
-msgstr ""
+msgstr "顯示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4757
 #: plugins/simpleui.koplugin/sui_menu.lua:4769
 #: plugins/simpleui.koplugin/sui_style.lua:1264
 msgid "System Icons"
-msgstr ""
+msgstr "系統圖示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4845
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1787
 msgid "Quick Actions Icons"
-msgstr ""
+msgstr "快捷操作圖示"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4877
 msgid "Icon Packs"
-msgstr ""
+msgstr "圖示包"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4881
 msgid "Module unavailable"
-msgstr ""
+msgstr "模組不可用"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4958
 msgid "Install pack from ZIP"
-msgstr ""
+msgstr "從 ZIP 檔案安裝包"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:4984
 msgid ""
@@ -21127,6 +21217,9 @@ msgid ""
 "Place .zip files in:\n"
 "%1"
 msgstr ""
+"未找到 .zip 檔案。\n"
+"請將 .zip 檔案放入：\n"
+"%1"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5000
 #, lua-format
@@ -21134,18 +21227,20 @@ msgid ""
 "Pack \"%s\" installed.\n"
 "You can now apply it from the list."
 msgstr ""
+"包“%s”已安裝。\n"
+"您現在可以從列表中選擇應用。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5008
 msgid "Error installing pack:"
-msgstr ""
+msgstr "安裝包時出錯："
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5027
 msgid "No packs found."
-msgstr ""
+msgstr "未找到包。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5029
 msgid "Place a folder or .zip in:"
-msgstr ""
+msgstr "請將資料夾或 .zip 檔案放入："
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5045
 #, lua-format
@@ -21153,53 +21248,55 @@ msgid ""
 "Pack \"%s\" applied.\n"
 "%d icons replaced."
 msgstr ""
+"包“%s”已應用。\n"
+"替換了 %d 個圖示。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5053
 msgid "Error applying pack:"
-msgstr ""
+msgstr "應用包時出錯："
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5072
 msgid "Icon Presets"
-msgstr ""
+msgstr "圖示預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5177
 #: plugins/simpleui.koplugin/sui_presets.lua:874
 #: plugins/simpleui.koplugin/sui_presets.lua:968
 #, lua-format
 msgid "Preset \"%s\" not found."
-msgstr ""
+msgstr "未找到預設“%s”。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5188
 #: plugins/simpleui.koplugin/sui_presets.lua:883
 #: plugins/simpleui.koplugin/sui_presets.lua:892
 #: plugins/simpleui.koplugin/sui_presets.lua:897
 msgid "Select Preset"
-msgstr ""
+msgstr "選擇預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5197
 #: plugins/simpleui.koplugin/sui_presets.lua:992
 msgid "Save as new preset"
-msgstr ""
+msgstr "另存為新預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5204
 msgid "Save icon preset"
-msgstr ""
+msgstr "儲存圖示預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5206
 #: plugins/simpleui.koplugin/sui_presets.lua:999
 msgid "Preset name"
-msgstr ""
+msgstr "預設名稱"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5225
 #: plugins/simpleui.koplugin/sui_presets.lua:1017
 msgid "Please enter a name for the preset."
-msgstr ""
+msgstr "請輸入預設名稱。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5240
 #: plugins/simpleui.koplugin/sui_presets.lua:1034
 #, lua-format
 msgid "Preset \"%s\" saved."
-msgstr ""
+msgstr "預設“%s”已儲存。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5255
 #: plugins/simpleui.koplugin/sui_presets.lua:1042
@@ -21208,6 +21305,8 @@ msgid ""
 "A preset named \"%s\" already exists.\n"
 "Overwrite it?"
 msgstr ""
+"名為 \"%s\" 的預設已存在。\n"
+"是否覆蓋？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5278
 #: plugins/simpleui.koplugin/sui_menu.lua:5443
@@ -21216,18 +21315,18 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_presets.lua:1211
 #: plugins/simpleui.koplugin/sui_presets.lua:1216
 msgid "Manage presets"
-msgstr ""
+msgstr "管理預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5287
 #: plugins/simpleui.koplugin/sui_presets.lua:1076
 msgid "Update with current settings"
-msgstr ""
+msgstr "使用當前設定更新"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5292
 #: plugins/simpleui.koplugin/sui_menu.lua:5599
 #, lua-format
 msgid "Overwrite preset \"%s\" with the current icon settings?"
-msgstr ""
+msgstr "用當前圖示設定覆蓋預設“%s”？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5308
 #: plugins/simpleui.koplugin/sui_menu.lua:5616
@@ -21235,7 +21334,7 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_presets.lua:1353
 #, lua-format
 msgid "Preset \"%s\" updated."
-msgstr ""
+msgstr "預設“%s”已更新。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5330
 #: plugins/simpleui.koplugin/sui_menu.lua:5504
@@ -21243,7 +21342,7 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_presets.lua:1259
 #, lua-format
 msgid "Rename \"%s\""
-msgstr ""
+msgstr "重新命名 \"%s\""
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5364
 #: plugins/simpleui.koplugin/sui_menu.lua:5547
@@ -21251,7 +21350,7 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_presets.lua:1303
 #, lua-format
 msgid "A preset named \"%s\" already exists."
-msgstr ""
+msgstr "名為 \"%s\" 的預設已存在。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5407
 #: plugins/simpleui.koplugin/sui_menu.lua:5467
@@ -21259,17 +21358,17 @@ msgstr ""
 #: plugins/simpleui.koplugin/sui_presets.lua:1231
 #, lua-format
 msgid "Delete preset \"%s\"?"
-msgstr ""
+msgstr "刪除預設“%s”？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5643
 #: plugins/simpleui.koplugin/sui_presets.lua:1371
 msgid "No presets found."
-msgstr ""
+msgstr "未找到預設。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5662
 #: plugins/simpleui.koplugin/sui_presets.lua:1390
 msgid "Import preset"
-msgstr ""
+msgstr "匯入預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5673
 #: plugins/simpleui.koplugin/sui_presets.lua:1398
@@ -21278,22 +21377,25 @@ msgid ""
 "Place .lua files in:\n"
 "%1"
 msgstr ""
+"未找到預設檔案。\n"
+"請將 .lua 檔案放入：\n"
+"%1"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5688
 #: plugins/simpleui.koplugin/sui_presets.lua:1414
 #, lua-format
 msgid "Preset \"%s\" imported."
-msgstr ""
+msgstr "預設“%s”已匯入。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5700
 #: plugins/simpleui.koplugin/sui_presets.lua:1422
 msgid "Error importing preset: "
-msgstr ""
+msgstr "匯入預設時出錯："
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5717
 #: plugins/simpleui.koplugin/sui_presets.lua:1438
 msgid "Export preset"
-msgstr ""
+msgstr "匯出預設"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5732
 #: plugins/simpleui.koplugin/sui_presets.lua:1449
@@ -21302,29 +21404,31 @@ msgid ""
 "Preset exported to:\n"
 "%s"
 msgstr ""
+"預設已匯出至：\n"
+"%s"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5739
 #: plugins/simpleui.koplugin/sui_presets.lua:1454
 msgid "Error exporting preset: "
-msgstr ""
+msgstr "匯出預設時出錯："
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5760
 #: plugins/simpleui.koplugin/sui_menu.lua:5764
 msgid "UI Font"
-msgstr ""
+msgstr "UI 字型"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5769
 msgid "UI Font  (default)"
-msgstr ""
+msgstr "UI 字型（預設）"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5771
 #, lua-format
 msgid "UI Font  [%s]"
-msgstr ""
+msgstr "UI 字型 [%s]"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5786
 msgid "Progress Bar Type"
-msgstr ""
+msgstr "進度條樣式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5789
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1619
@@ -21343,7 +21447,7 @@ msgstr "作者：%s"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5879
 msgid "Automatic Update Check"
-msgstr ""
+msgstr "自動檢查更新"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5892
 msgid "Check for Updates"
@@ -21355,17 +21459,19 @@ msgstr "未找到更新模組。"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5908
 msgid "Factory Reset"
-msgstr ""
+msgstr "恢復出廠設定"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5916
 msgid ""
 "This will delete all Simple UI settings and restart KOReader.\n"
 "Are you sure?"
 msgstr ""
+"這將刪除所有 Simple UI 設定並重啟 KOReader。\n"
+"確定要繼續嗎？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:5918
 msgid "Delete Settings"
-msgstr ""
+msgstr "刪除設定"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:6016
 #, lua-format
@@ -21374,12 +21480,15 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"重啟後 Simple UI 將變為 %s。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:6031
 #: plugins/simpleui.koplugin/sui_settings_window.lua:277
 #: plugins/simpleui.koplugin/sui_settings_window.lua:979
 msgid "Bars"
-msgstr ""
+msgstr "欄樣式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:6038
 #: plugins/simpleui.koplugin/sui_patches.lua:987
@@ -21393,86 +21502,86 @@ msgstr "主畫面"
 #: plugins/simpleui.koplugin/sui_settings_window.lua:295
 #: plugins/simpleui.koplugin/sui_settings_window.lua:981
 msgid "Style"
-msgstr ""
+msgstr "樣式"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:6068
 #, lua-format
 msgid "Quick Actions  (%d/%d — at limit)"
-msgstr ""
+msgstr "快捷操作（%d/%d — 已達上限）"
 
 #: plugins/simpleui.koplugin/sui_menu.lua:6074
 #, lua-format
 msgid "Quick Actions  (%d/%d — %d left)"
-msgstr ""
+msgstr "快捷操作（%d/%d — 剩餘 %d 個）"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:56
 msgid "Choose your initial layout"
-msgstr ""
+msgstr "選擇初始佈局"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:64
 msgid "Start with a ready-made layout. You can change everything later."
-msgstr ""
+msgstr "從預設佈局開始，後續均可自由調整。"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:148
 msgid "Make it yours"
-msgstr ""
+msgstr "打造成您的專屬樣式"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:156
 msgid ""
 "Simple UI is designed to be simple and flexible. Here are a few tips to get "
 "the most out of it."
-msgstr ""
+msgstr "Simple UI 的設計兼具簡潔與靈活。以下是充分發揮其功能的一些小技巧。"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:186
 msgid "Long press to customize"
-msgstr ""
+msgstr "長按以自定義"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:188
 msgid ""
 "Press and hold any element on the screen (like modules or bars) to quickly "
 "customize its settings."
-msgstr ""
+msgstr "長按螢幕上的任意元素（如模組或欄），快速自定義其設定。"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:192
 msgid "Customize even more"
-msgstr ""
+msgstr "更多自定義設定"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:194
 msgid "Go to Settings > Home Screen to edit your layout whenever you want."
-msgstr ""
+msgstr "隨時前往 設定 > 主螢幕 編輯您的佈局。"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:198
 msgid "Set your reading goal"
-msgstr ""
+msgstr "設定你的閱讀目標"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:200
 msgid ""
 "If you selected the Momentum Preset, long press the Reading Goal module to "
 "choose and set your reading goals."
-msgstr ""
+msgstr "如果您選擇了“動量”預設，請長按“閱讀目標”模組以選擇和設定您的閱讀目標。"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:204
 msgid "Custom wallpapers and icons"
-msgstr ""
+msgstr "自定義桌布和圖示"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:206
 msgid ""
 "Place your files in koreader/settings/simpleui/sui_wallpapers or sui_icons."
-msgstr ""
+msgstr "請將檔案放入 koreader/settings/simpleui/sui_wallpapers 或 sui_icons 資料夾。"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:277
 #: plugins/simpleui.koplugin/sui_onboarding.lua:278
 msgid "Welcome to Simple UI"
-msgstr ""
+msgstr "歡迎使用 Simple UI"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:279
 #: plugins/simpleui.koplugin/sui_onboarding.lua:280
 msgid "Quick Tips"
-msgstr ""
+msgstr "快捷提示"
 
 #: plugins/simpleui.koplugin/sui_onboarding.lua:323
 msgid "Start using Simple UI"
-msgstr ""
+msgstr "開始使用 Simple UI"
 
 #: plugins/simpleui.koplugin/sui_patches.lua:1020
 #: plugins/simpleui.koplugin/sui_patches.lua:1022
@@ -21481,75 +21590,75 @@ msgstr "啟動時"
 
 #: plugins/simpleui.koplugin/sui_patches.lua:1193
 msgid "The «To Be Read» collection cannot be renamed."
-msgstr ""
+msgstr "“待讀”收藏夾無法重新命名。"
 
 #: plugins/simpleui.koplugin/sui_patches.lua:1241
 msgid "To Be Read list is full (max. 5 books)."
-msgstr ""
+msgstr "待讀列表已滿（最多 5 本書）。"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:162
 msgid "At a Glance"
-msgstr ""
+msgstr "概覽"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:206
 msgid "Mindful Reading"
-msgstr ""
+msgstr "正念閱讀"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:252
 msgid "Momentum"
-msgstr ""
+msgstr "動量"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:280
 msgid "Library View"
-msgstr ""
+msgstr "書庫檢視"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:486
 #: plugins/simpleui.koplugin/sui_presets.lua:708
 msgid "No export directory"
-msgstr ""
+msgstr "未指定匯出目錄"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:490
 #: plugins/simpleui.koplugin/sui_presets.lua:712
 msgid "Preset not found"
-msgstr ""
+msgstr "未找到預設"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:498
 #: plugins/simpleui.koplugin/sui_presets.lua:512
 #: plugins/simpleui.koplugin/sui_presets.lua:720
 #: plugins/simpleui.koplugin/sui_presets.lua:734
 msgid "LuaSettings module unavailable"
-msgstr ""
+msgstr "LuaSettings 模組不可用"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:518
 #: plugins/simpleui.koplugin/sui_presets.lua:740
 msgid "Invalid preset file"
-msgstr ""
+msgstr "無效的預設檔案"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:523
 #: plugins/simpleui.koplugin/sui_presets.lua:745
 msgid "Invalid data"
-msgstr ""
+msgstr "無效資料"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:934
 #: plugins/simpleui.koplugin/sui_presets.lua:939
 msgid "My Presets"
-msgstr ""
+msgstr "我的預設"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:997
 msgid "Save preset"
-msgstr ""
+msgstr "儲存預設"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:1024
 #: plugins/simpleui.koplugin/sui_presets.lua:1140
 #: plugins/simpleui.koplugin/sui_presets.lua:1291
 msgid "This name is reserved by a built-in preset."
-msgstr ""
+msgstr "此名稱已被內建預設保留使用。"
 
 #: plugins/simpleui.koplugin/sui_presets.lua:1081
 #: plugins/simpleui.koplugin/sui_presets.lua:1337
 #, lua-format
 msgid "Overwrite preset \"%s\" with the current homescreen settings?"
-msgstr ""
+msgstr "用當前主螢幕設定覆蓋預設“%s”？"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:73
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1683
@@ -21559,10 +21668,12 @@ msgid ""
 "Unsupported icon format.\n"
 "Please use a PNG or SVG file."
 msgstr ""
+"不支援的圖示格式。\n"
+"請使用 PNG 或 SVG 檔案。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:204
 msgid "WiFi not available on this device."
-msgstr ""
+msgstr "該裝置不支援 Wi-Fi。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:214
 msgid "Network manager unavailable."
@@ -21590,7 +21701,7 @@ msgstr "書籤瀏覽器"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:433
 msgid "Home folder + subfolders"
-msgstr ""
+msgstr "主資料夾 + 子資料夾"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:536
 #: plugins/terminal.koplugin/main.lua:499
@@ -21625,23 +21736,23 @@ msgstr "統計外掛不可用。"
 #: plugins/simpleui.koplugin/sui_quickactions.lua:868
 #: plugins/simpleui.koplugin/sui_quickactions.lua:901
 msgid "Browse by Authors/Series/Tags not available."
-msgstr ""
+msgstr "按作者/系列/標籤瀏覽不可用。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:841
 #: plugins/simpleui.koplugin/sui_quickactions.lua:874
 #: plugins/simpleui.koplugin/sui_quickactions.lua:907
 msgid "Enable 'Browse by Author / Series / Tags' in the library menu first."
-msgstr ""
+msgstr "請先在書庫選單中啟用“按作者 / 系列 / 標籤瀏覽”。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1052
 #, lua-format
 msgid "Action not available: %s"
-msgstr ""
+msgstr "操作不可用：%s"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1059
 #, lua-format
 msgid "Action error: %s"
-msgstr ""
+msgstr "操作錯誤：%s"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1666
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2941
@@ -21658,20 +21769,20 @@ msgstr "系統操作"
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1770
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1774
 msgid "Custom Actions"
-msgstr ""
+msgstr "自定義操作"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1789
 #: plugins/simpleui.koplugin/sui_style.lua:1266
 msgid "Reset All"
-msgstr ""
+msgstr "全部重置"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1794
 msgid "Reset all Quick Actions icons to default?"
-msgstr ""
+msgstr "是否將所有快捷操作圖示重置為預設？"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1930
 msgid "Use this Nerd Font icon?"
-msgstr ""
+msgstr "使用此 Nerd Font 圖示嗎？"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1932
 msgid "Confirm"
@@ -21679,11 +21790,11 @@ msgstr "確認"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1955
 msgid "Nerd Font Icon"
-msgstr ""
+msgstr "Nerd Font 圖示"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1957
 msgid "hex code, e.g. E001"
-msgstr ""
+msgstr "十六進位制程式碼，例如 E001"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1959
 msgid ""
@@ -21699,15 +21810,15 @@ msgstr ""
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:1993
 msgid "Codepoint out of valid Unicode range (0–10FFFF)."
-msgstr ""
+msgstr "程式碼點超出有效的 Unicode 範圍（0–10FFFF）。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2001
 msgid "Invalid input. Please enter 1–6 hexadecimal digits (0–9, A–F)."
-msgstr ""
+msgstr "輸入無效。請輸入 1–6 個十六進位制數字（0–9、A–F）。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2047
 msgid "Nerd Font symbol…"
-msgstr ""
+msgstr "Nerd Font 符號…"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2070
 msgid "No icons found in:"
@@ -21765,15 +21876,15 @@ msgstr "預設（系統）"
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2463
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2540
 msgid "Action"
-msgstr ""
+msgstr "操作"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2486
 msgid "Action name…"
-msgstr ""
+msgstr "操作名稱…"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2531
 msgid "Please select an action."
-msgstr ""
+msgstr "請選擇一個操作。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2583
 msgid "Path chooser not available."
@@ -21799,11 +21910,11 @@ msgstr "未找到系統操作。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2747
 msgid "Action Type"
-msgstr ""
+msgstr "操作型別"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2816
 msgid "Reset All Quick Action Icons"
-msgstr ""
+msgstr "重置所有快捷操作圖示"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:2996
 msgid "Create Quick Action"
@@ -21814,7 +21925,8 @@ msgstr "建立快捷操作"
 msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
-msgstr[0] ""
+msgstr[0] "最多 %d 個快捷操作。請先刪除一個。"
+msgstr[1] "最多 %d 個快捷操作。請先刪除一個。"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078
@@ -21824,7 +21936,7 @@ msgstr "未設定"
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3109
 #, lua-format
 msgid "Delete quick action \"%s\"?"
-msgstr ""
+msgstr "刪除快捷操作“%s”？"
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3160
 #, lua-format
@@ -21855,31 +21967,34 @@ msgid ""
 "No folder, collection or plugin configured.\n"
 "Go to Simple UI → Settings → Quick Actions to set one."
 msgstr ""
+"未配置資料夾、收藏夾或外掛。\n"
+"請前往 Simple UI → 設定 → 快捷操作進行配置。"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:419
 msgid ""
 "No actions configured.\n"
 "Go to Bars → Quick Settings Bar."
-msgstr ""
+msgstr "未配置任何操作。請前往 欄 → 快捷設定欄 進行配置。"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:517
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:640
 msgid "Max"
-msgstr ""
+msgstr "最大值"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1293
 msgid "Arrange Quick Settings"
-msgstr ""
+msgstr "排序快捷設定"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1341
 #, lua-format
 msgid "Maximum of %d slot reached. Remove one first."
 msgid_plural "Maximum of %d slots reached. Remove one first."
-msgstr[0] ""
+msgstr[0] "最多 %d 個槽位。請先移除一個。"
+msgstr[1] "最多 %d 個槽位。請先移除一個。"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1360
 msgid "Enable Quick Settings Bar"
-msgstr ""
+msgstr "啟用快捷設定欄"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1371
 #, lua-format
@@ -21888,32 +22003,35 @@ msgid ""
 "\n"
 "Restart now?"
 msgstr ""
+"重啟後快捷設定欄將變為 %s。\n"
+"\n"
+"是否立即重啟？"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1398
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1422
 msgid "No actions active yet."
-msgstr ""
+msgstr "未配置任何操作"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1436
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1479
 msgid "Add Action"
-msgstr ""
+msgstr "新增操作"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1458
 msgid "Maximum slots reached."
-msgstr ""
+msgstr "已達最大槽位數量。"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1490
 msgid "Frontlight Slider"
-msgstr ""
+msgstr "前光燈滑塊"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1503
 msgid "Warmth Slider"
-msgstr ""
+msgstr "色溫滑塊"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1516
 msgid "Label"
-msgstr ""
+msgstr "標籤"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1523
 msgid ""
@@ -21925,208 +22043,210 @@ msgstr ""
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1547
 msgid "Button Type"
-msgstr ""
+msgstr "按鈕型別"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1550
 msgid "Round"
-msgstr ""
+msgstr "圓形"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1562
 msgid "Rounded Square"
-msgstr ""
+msgstr "圓角方形"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1589
 msgid "Button Background"
-msgstr ""
+msgstr "按鈕背景"
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1636
 msgid ""
 "When enabled, long-pressing the Quick Settings Bar opens its settings menu.\n"
 "Disable this to prevent the settings menu from appearing on long tap."
 msgstr ""
+"啟用後，長按快捷設定欄會開啟其設定選單。\n"
+"停用此項可防止長按時出現設定選單。"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:250
 #: plugins/simpleui.koplugin/sui_settings_window.lua:257
 msgid "Settings not found."
-msgstr ""
+msgstr "未找到設定。"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:269
 msgid "Layout, wallpaper and behaviour"
-msgstr ""
+msgstr "佈局、桌布與行為"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:278
 msgid "Status, title, navigation and pagination"
-msgstr ""
+msgstr "狀態列、標題欄、導航欄和分頁欄"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:287
 msgid "Book-browser settings"
-msgstr ""
+msgstr "書庫瀏覽設定"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:296
 msgid "Icons, fonts and appearance"
-msgstr ""
+msgstr "圖示、字型與外觀"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:309
 msgid "Global custom quick actions"
-msgstr ""
+msgstr "全域性自定義快捷操作"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:312
 #, lua-format
 msgid "Global custom quick actions  (%d/%d)"
-msgstr ""
+msgstr "全域性自定義快捷操作（%d/%d）"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:330
 msgid "Version, author and updates"
-msgstr ""
+msgstr "版本、作者與更新"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:385
 #: plugins/simpleui.koplugin/sui_settings_window.lua:552
 #: plugins/simpleui.koplugin/sui_settings_window.lua:995
 msgid "Page 1 (Home)"
-msgstr ""
+msgstr "第 1 頁（主頁）"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:386
 #: plugins/simpleui.koplugin/sui_settings_window.lua:553
 #: plugins/simpleui.koplugin/sui_settings_window.lua:995
 #, lua-format
 msgid "Page %d"
-msgstr ""
+msgstr "第 %d 頁"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:416
 #: plugins/simpleui.koplugin/sui_settings_window.lua:599
 msgid "No modules"
-msgstr ""
+msgstr "無模組"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:545
 #: plugins/simpleui.koplugin/sui_settings_window.lua:587
 #: plugins/simpleui.koplugin/sui_window.lua:2742
 msgid "Move to page"
-msgstr ""
+msgstr "移至頁面"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:579
 msgid "No other pages available."
-msgstr ""
+msgstr "沒有其他可用頁面。"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:705
 msgid "All modules have already been added."
-msgstr ""
+msgstr "所有模組都已新增。"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:728
 #: plugins/simpleui.koplugin/sui_window.lua:3368
 msgid "All items have already been added."
-msgstr ""
+msgstr "所有專案都已新增。"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:788
 msgid "Presets module unavailable."
-msgstr ""
+msgstr "預設模組不可用。"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:977
 msgid "Simple UI Settings"
-msgstr ""
+msgstr "Simple UI 設定"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:983
 msgid "Layout Editor"
-msgstr ""
+msgstr "佈局編輯"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:984
 #: plugins/simpleui.koplugin/sui_settings_window.lua:1085
 msgid "Add Module"
-msgstr ""
+msgstr "新增模組"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:991
 msgid "Home Screen Presets"
-msgstr ""
+msgstr "主螢幕預設"
 
 #: plugins/simpleui.koplugin/sui_settings_window.lua:1047
 msgid "Add Page"
-msgstr ""
+msgstr "新增頁面"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:154
 msgid "No filepath."
-msgstr ""
+msgstr "未提供檔案路徑。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:159
 msgid "Statistics database library not available."
-msgstr ""
+msgstr "統計資料庫模組不可用。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:164
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:212
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3126
 msgid "No statistics found for this book."
-msgstr ""
+msgstr "未找到此書的統計資料。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:168
 msgid "Could not open statistics database."
-msgstr ""
+msgstr "無法開啟統計資料庫。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:458
 msgid "jan"
-msgstr ""
+msgstr "1月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:459
 msgid "feb"
-msgstr ""
+msgstr "2月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:460
 msgid "mar"
-msgstr ""
+msgstr "3月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:461
 msgid "apr"
-msgstr ""
+msgstr "4月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:462
 msgid "may"
-msgstr ""
+msgstr "5月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:463
 msgid "jun"
-msgstr ""
+msgstr "6月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:464
 msgid "jul"
-msgstr ""
+msgstr "7月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:465
 msgid "aug"
-msgstr ""
+msgstr "8月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:466
 msgid "sep"
-msgstr ""
+msgstr "9月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:467
 msgid "oct"
-msgstr ""
+msgstr "10月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:468
 msgid "nov"
-msgstr ""
+msgstr "11月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:469
 msgid "dec"
-msgstr ""
+msgstr "12月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:758
 msgid "Please enter a date in YYYY-MM-DD format."
-msgstr ""
+msgstr "請輸入 YYYY-MM-DD 格式的日期。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:830
 msgid "Date started"
-msgstr ""
+msgstr "開始日期"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:841
 msgid "Date finished"
-msgstr ""
+msgstr "結束日期"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:907
 #, lua-format
 msgid "No books finished in %s"
-msgstr ""
+msgstr "%s 年尚未讀完任何書籍"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:975
 msgid "Unknown error."
-msgstr ""
+msgstr "未知錯誤。"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:1055
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3205
@@ -22144,52 +22264,55 @@ msgstr "頁數"
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2610
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3394
 msgid "Average per day"
-msgstr ""
+msgstr "日均值"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:1262
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3400
 msgid "Average per page"
-msgstr ""
+msgstr "每頁平均值"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:1275
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3413
 msgid "Notes"
-msgstr ""
+msgstr "筆記"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:1334
 #, lua-format
 msgid "%d book read in %s"
 msgid_plural "%d books read in %s"
-msgstr[0] ""
+msgstr[0] "已讀 %d 本書在 %s 年"
+msgstr[1] "已讀 %d 本書在 %s 年"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2217
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2483
 msgid "hours read"
-msgstr ""
+msgstr "已讀小時數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2220
 msgid "day read"
 msgid_plural "days read"
-msgstr[0] ""
+msgstr[0] "已讀天數"
+msgstr[1] "已讀天數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2237
 msgid "page read"
 msgid_plural "pages read"
-msgstr[0] ""
+msgstr[0] "已讀頁數"
+msgstr[1] "已讀頁數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2488
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2921
 msgid "pages read"
-msgstr ""
+msgstr "已讀頁數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2612
 msgid "Pages per day"
-msgstr ""
+msgstr "每日頁數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2630
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2647
 msgid "Total time"
-msgstr ""
+msgstr "總時長"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2632
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2649
@@ -22203,148 +22326,150 @@ msgstr "閱讀頁數"
 #, lua-format
 msgid "%d day"
 msgid_plural "%d days"
-msgstr[0] ""
+msgstr[0] "%d 天"
+msgstr[1] "%d 天"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2677
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2714
 msgid "Current streak"
-msgstr ""
+msgstr "當前連續紀錄"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2683
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2720
 msgid "Best streak"
-msgstr ""
+msgstr "最佳連續紀錄"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2692
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2696
 #, lua-format
 msgid "%d week"
 msgid_plural "%d weeks"
-msgstr[0] ""
+msgstr[0] "%d 周"
+msgstr[1] "%d 周"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2783
 msgid "Loading statistics…"
-msgstr ""
+msgstr "正在載入統計資訊…"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2919
 msgid "reading time"
-msgstr ""
+msgstr "閱讀時長"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2966
 msgid "TODAY'S SUMMARY"
-msgstr ""
+msgstr "今日摘要"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2970
 msgid "DAY STREAK"
-msgstr ""
+msgstr "連續天數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2974
 msgid "WEEK STREAK"
-msgstr ""
+msgstr "連續週數"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2983
 msgid "LAST 7 DAYS"
-msgstr ""
+msgstr "最近7天"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2987
 msgid "THIS WEEK"
-msgstr ""
+msgstr "本週"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2991
 msgid "THIS MONTH"
-msgstr ""
+msgstr "本月"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3000
 msgid "ALL TIME"
-msgstr ""
+msgstr "總計"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3042
 msgid "Reading Insights"
-msgstr ""
+msgstr "閱讀洞察"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:3466
 msgid "Book Statistics"
-msgstr ""
+msgstr "圖書統計"
 
 #: plugins/simpleui.koplugin/sui_style.lua:76
 msgid "Menu Button"
-msgstr ""
+msgstr "選單按鈕"
 
 #: plugins/simpleui.koplugin/sui_style.lua:84
 msgid "Search Button"
-msgstr ""
+msgstr "搜尋按鈕"
 
 #: plugins/simpleui.koplugin/sui_style.lua:92
 msgid "Back Button"
-msgstr ""
+msgstr "返回按鈕"
 
 #: plugins/simpleui.koplugin/sui_style.lua:103
 msgid "Browse Button (default)"
-msgstr ""
+msgstr "瀏覽按鈕（預設）"
 
 #: plugins/simpleui.koplugin/sui_style.lua:111
 msgid "Browse Button (author)"
-msgstr ""
+msgstr "瀏覽按鈕（作者）"
 
 #: plugins/simpleui.koplugin/sui_style.lua:119
 msgid "Browse Button (series)"
-msgstr ""
+msgstr "瀏覽按鈕（系列）"
 
 #: plugins/simpleui.koplugin/sui_style.lua:127
 msgid "Browse Button (tags)"
-msgstr ""
+msgstr "瀏覽按鈕（標籤）"
 
 #: plugins/simpleui.koplugin/sui_style.lua:139
 msgid "Pagination: Previous Page"
-msgstr ""
+msgstr "分頁：上一頁"
 
 #: plugins/simpleui.koplugin/sui_style.lua:147
 msgid "Pagination: Next Page"
-msgstr ""
+msgstr "分頁：下一頁"
 
 #: plugins/simpleui.koplugin/sui_style.lua:155
 msgid "Pagination: First Page"
-msgstr ""
+msgstr "分頁：第一頁"
 
 #: plugins/simpleui.koplugin/sui_style.lua:163
 msgid "Pagination: Last Page"
-msgstr ""
+msgstr "分頁：最後一頁"
 
 #: plugins/simpleui.koplugin/sui_style.lua:172
 msgid "Navpager: Previous"
-msgstr ""
+msgstr "導航分頁器：上一頁"
 
 #: plugins/simpleui.koplugin/sui_style.lua:180
 msgid "Navpager: Next"
-msgstr ""
+msgstr "導航分頁器：下一頁"
 
 #: plugins/simpleui.koplugin/sui_style.lua:191
 msgid "Collections: Back Button"
-msgstr ""
+msgstr "收藏夾：返回按鈕"
 
 #: plugins/simpleui.koplugin/sui_style.lua:200
 msgid "Default: Folder"
-msgstr ""
+msgstr "預設：資料夾"
 
 #: plugins/simpleui.koplugin/sui_style.lua:208
 msgid "Default: Plugin"
-msgstr ""
+msgstr "預設：外掛"
 
 #: plugins/simpleui.koplugin/sui_style.lua:216
 msgid "Default: System"
-msgstr ""
+msgstr "預設：系統"
 
 #: plugins/simpleui.koplugin/sui_style.lua:225
 msgid "Folder Covers: Empty Folder"
-msgstr ""
+msgstr "資料夾封面：空資料夾"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1009
 msgid "Reset All System Icons"
-msgstr ""
+msgstr "重置所有系統圖示"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1256
 msgid "Browse Icons"
-msgstr ""
+msgstr "瀏覽圖示"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1259
 msgid "Folder Covers"
@@ -22352,56 +22477,56 @@ msgstr "資料夾封面"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1271
 msgid "Reset all system icons to default?"
-msgstr ""
+msgstr "是否將所有系統圖示重置為預設？"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1668
 msgid "Enable custom UI font"
-msgstr ""
+msgstr "啟用自定義 UI 字型"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1677
 #: plugins/simpleui.koplugin/sui_style.lua:1728
 msgid "Restart to fully apply the UI font change."
-msgstr ""
+msgstr "重啟以完全應用 UI 字型更改。"
 
 #: plugins/simpleui.koplugin/sui_style.lua:1685
 msgid "No fonts found."
-msgstr ""
+msgstr "未找到字型。"
 
 #: plugins/simpleui.koplugin/sui_style.lua:2291
 msgid "File not found: "
-msgstr ""
+msgstr "檔案未找到："
 
 #: plugins/simpleui.koplugin/sui_style.lua:2295
 msgid "ffi/archiver not available in this KOReader version"
-msgstr ""
+msgstr "此 KOReader 版本不支援 ffi/archiver 模組"
 
 #: plugins/simpleui.koplugin/sui_style.lua:2299
 msgid "Could not determine packs folder"
-msgstr ""
+msgstr "無法確定包資料夾位置"
 
 #: plugins/simpleui.koplugin/sui_style.lua:2303
 msgid "Could not open zip (invalid format or corrupted)"
-msgstr ""
+msgstr "無法開啟 zip 檔案（格式無效或已損壞）"
 
 #: plugins/simpleui.koplugin/sui_style.lua:2356
 msgid "pack_path not provided"
-msgstr ""
+msgstr "未提供 pack_path 引數"
 
 #: plugins/simpleui.koplugin/sui_style.lua:2360
 msgid "Path does not exist: "
-msgstr ""
+msgstr "路徑不存在："
 
 #: plugins/simpleui.koplugin/sui_style.lua:2368
 msgid "Error extracting zip: "
-msgstr ""
+msgstr "解壓 zip 檔案時出錯："
 
 #: plugins/simpleui.koplugin/sui_style.lua:2372
 msgid "Unsupported format (use a folder or a .zip file)"
-msgstr ""
+msgstr "不支援的格式（請使用資料夾或 .zip 檔案）"
 
 #: plugins/simpleui.koplugin/sui_style.lua:2375
 msgid "Pack folder not accessible: "
-msgstr ""
+msgstr "無法訪問包資料夾："
 
 #: plugins/simpleui.koplugin/sui_titlebar.lua:110
 #: plugins/simpleui.koplugin/sui_titlebar.lua:146
@@ -22411,23 +22536,23 @@ msgstr "選單"
 
 #: plugins/simpleui.koplugin/sui_titlebar.lua:131
 msgid "Browse"
-msgstr ""
+msgstr "瀏覽"
 
 #: plugins/simpleui.koplugin/sui_titlebar.lua:1193
 msgid "Browse library"
-msgstr ""
+msgstr "書庫瀏覽方式"
 
 #: plugins/simpleui.koplugin/sui_titlebar.lua:1206
 msgid "By author"
-msgstr ""
+msgstr "作者"
 
 #: plugins/simpleui.koplugin/sui_titlebar.lua:1214
 msgid "By series"
-msgstr ""
+msgstr "系列"
 
 #: plugins/simpleui.koplugin/sui_titlebar.lua:1222
 msgid "By tags"
-msgstr ""
+msgstr "按標籤"
 
 #: plugins/simpleui.koplugin/sui_topbar.lua:595
 msgid "Top Bar"
@@ -22436,7 +22561,7 @@ msgstr "頂部列"
 #: plugins/simpleui.koplugin/sui_updater.lua:476
 #, lua-format
 msgid "Downloading Simple UI %s…"
-msgstr ""
+msgstr "正在下載 Simple UI %s…"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:500
 msgid "Download error: "
@@ -22453,6 +22578,9 @@ msgid ""
 "\n"
 "Restart KOReader to apply the update?"
 msgstr ""
+"Simple UI %s 已安裝。\n"
+"\n"
+"是否重啟 KOReader 以使更新生效？"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:534
 msgid "Update cancelled."
@@ -22461,7 +22589,7 @@ msgstr "更新已取消。"
 #: plugins/simpleui.koplugin/sui_updater.lua:555
 #, lua-format
 msgid "Simple UI is up to date (%s)."
-msgstr ""
+msgstr "Simple UI 已是最新版本（%s）。"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:562
 #, lua-format
@@ -22469,6 +22597,8 @@ msgid ""
 "Simple UI %s is available!\n"
 "You have %s."
 msgstr ""
+"Simple UI %s 可用！\n"
+"您當前版本為 %s。"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:566
 msgid "What's new:"
@@ -22480,10 +22610,13 @@ msgid ""
 "\n"
 "Open the releases page?"
 msgstr ""
+"未找到下載檔案。\n"
+"\n"
+"是否開啟發布頁面？"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:593
 msgid "Download and install now?"
-msgstr ""
+msgstr "是否立即下載並安裝？"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:594
 msgid "Download and install"
@@ -22507,25 +22640,25 @@ msgstr "更新檢查已取消。"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:778
 msgid "latest"
-msgstr ""
+msgstr "最新版"
 
 #: plugins/simpleui.koplugin/sui_updater.lua:780
 #, lua-format
 msgid "⬆ Update available: %s"
-msgstr ""
+msgstr "⬆ 有可用更新：%s"
 
 #: plugins/simpleui.koplugin/sui_window.lua:2347
 #: plugins/simpleui.koplugin/sui_window.lua:3103
 msgid "No items available."
-msgstr ""
+msgstr "沒有可用專案。"
 
 #: plugins/simpleui.koplugin/sui_window.lua:2751
 msgid "Move up"
-msgstr ""
+msgstr "上移"
 
 #: plugins/simpleui.koplugin/sui_window.lua:2758
 msgid "Move down"
-msgstr ""
+msgstr "下移"
 
 #: plugins/slidepuzzle.koplugin/_meta.lua:5
 msgid "Slide Puzzle"
@@ -22985,7 +23118,7 @@ msgstr "以當前每頁 %1 的速度，將花費 %2 的閱讀時間。"
 #: plugins/statistics.koplugin/main.lua:2045
 msgid "At the current rate of %1 per day, that will take 1 day."
 msgid_plural "At the current rate of %1 per day, that will take %2 days."
-msgstr[0] ""
+msgstr[0] "以當前每天 %1 的速度，將花費 %2 天。"
 
 #: plugins/statistics.koplugin/main.lua:2060
 #: plugins/statistics.koplugin/main.lua:2077
@@ -23065,7 +23198,7 @@ msgstr "書籍開始日期"
 #: plugins/statistics.koplugin/main.lua:2345
 msgid "(1 day ago) %2"
 msgid_plural "(%1 days ago) %2"
-msgstr[0] ""
+msgstr[0] "(%1 天前) %2"
 
 #: plugins/statistics.koplugin/main.lua:2182
 msgid "Current page/Total pages"

@@ -19902,7 +19902,11 @@ msgid ""
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
 msgstr[0] ""
+"Достигнат лимит от %d действие.\n"
+"Премахнете едно."
 msgstr[1] ""
+"Достигнат лимит от %d действия.\n"
+"Премахнете едно."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19911,8 +19915,8 @@ msgstr[1] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "  (остава %d)"
+msgstr[1] "  (остават %d)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -20121,8 +20125,8 @@ msgstr "%d%% прочетено"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d ден четене"
+msgstr[1] "%d дни четене"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -20322,15 +20326,15 @@ msgstr "Минути на ден:"
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d/%d книга"
+msgstr[1] "%d/%d книги"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d книга"
+msgstr[1] "%d книги"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20468,7 +20472,11 @@ msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
 msgstr[0] ""
+"Максимум %d статистика на ред.\n"
+"Премахнете една."
 msgstr[1] ""
+"Максимум %d статистики на ред.\n"
+"Премахнете една."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20749,7 +20757,9 @@ msgstr ""
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
 msgstr[0] ""
-msgstr[1] ""
+"Достигнат лимит от %d раздел.\n"
+"Премахнете един."
+msgstr[1] "Достигнат лимит от %d раздела. Премахнете един."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20904,7 +20914,11 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"Текст в горната лента.\n"
+"Максимум %d знак."
 msgstr[1] ""
+"Текст в горната лента.\n"
+"Максимум %d знака."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -22363,7 +22377,11 @@ msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
 msgstr[0] ""
+"Достигнат лимит от %d бързо действие.\n"
+"Изтрийте едно."
 msgstr[1] ""
+"Достигнат лимит от %d бързи действия.\n"
+"Изтрийте едно."
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078

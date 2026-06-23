@@ -19706,9 +19706,9 @@ msgid ""
 "The maximum of %d action per module has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d actions per module has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Bylo dosaženo maxima %d akce na modul. Nejprve jednu odeberte."
+msgstr[1] "Bylo dosaženo maxima %d akcí na modul. Nejprve jednu odeberte."
+msgstr[2] "Bylo dosaženo maxima %d akcí na modul. Nejprve jednu odeberte."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_action_list.lua:533
 #: plugins/simpleui.koplugin/desktop_modules/module_quick_actions.lua:459
@@ -19717,9 +19717,9 @@ msgstr[2] ""
 #, lua-format
 msgid "  (%d left)"
 msgid_plural "  (%d left)"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "  (zbývá %d)"
+msgstr[1] "  (zbývají %d)"
+msgstr[2] "  (zbývá %d)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:218
 #: plugins/simpleui.koplugin/desktop_modules/module_clock.lua:274
@@ -19874,9 +19874,9 @@ msgstr "(%d/%d — na limitu)"
 #, lua-format
 msgid "(%d/%d — %d left)"
 msgid_plural "(%d/%d — %d left)"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "(%d/%d — zbývá %d)"
+msgstr[1] "(%d/%d — zbývají %d)"
+msgstr[2] "(%d/%d — zbývá %d)"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_collections.lua:488
 msgid "No collections selected  —  long press to configure"
@@ -19929,9 +19929,9 @@ msgstr "Přečteno %d%%"
 #, lua-format
 msgid "%d day of reading"
 msgid_plural "%d days of reading"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d den čtení"
+msgstr[1] "%d dny čtení"
+msgstr[2] "%d dní čtení"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_coverdeck.lua:823
 #: plugins/simpleui.koplugin/desktop_modules/module_currently.lua:794
@@ -20133,17 +20133,17 @@ msgstr "Minut denně:"
 #, lua-format
 msgid "%d/%d book"
 msgid_plural "%d/%d books"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d/%d kniha"
+msgstr[1] "%d/%d knihy"
+msgstr[2] "%d/%d knih"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:667
 #, lua-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d kniha"
+msgstr[1] "%d knihy"
+msgstr[2] "%d knih"
 
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:756
 #: plugins/simpleui.koplugin/desktop_modules/module_reading_goals.lua:757
@@ -20281,8 +20281,11 @@ msgid "The maximum of %d stat per row has been reached. Remove one first."
 msgid_plural ""
 "The maximum of %d stats per row has been reached. Remove one first."
 msgstr[0] ""
+"Bylo dosaženo maxima %d statistiky na řádek. Nejprve jednu odeberte."
 msgstr[1] ""
+"Bylo dosaženo maxima %d statistik na řádek. Nejprve jednu odeberte."
 msgstr[2] ""
+"Bylo dosaženo maxima %d statistik na řádek. Nejprve jednu odeberte."
 
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:74
 #: plugins/simpleui.koplugin/desktop_modules/module_recent.lua:75
@@ -20561,9 +20564,9 @@ msgstr "Jsou vyžadovány minimálně 2 karty. Nejprve vyberte jinou kartu."
 #, lua-format
 msgid "The maximum of %d tab has been reached. Remove one first."
 msgid_plural "The maximum of %d tabs has been reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Bylo dosaženo maxima %d karty. Nejprve jednu odeberte."
+msgstr[1] "Bylo dosaženo maxima %d karet. Nejprve jednu odeberte."
+msgstr[2] "Bylo dosaženo maxima %d karet. Nejprve jednu odeberte."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:543
 msgid "Mode"
@@ -20718,8 +20721,14 @@ msgid_plural ""
 "Text shown in the top bar.\n"
 "Maximum %d characters."
 msgstr[0] ""
+"Text zobrazený v horní liště.\n"
+"Maximum %d znak."
 msgstr[1] ""
+"Text zobrazený v horní liště.\n"
+"Maximum %d znaky."
 msgstr[2] ""
+"Text zobrazený v horní liště.\n"
+"Maximum %d znaků."
 
 #: plugins/simpleui.koplugin/sui_menu.lua:950
 msgid ""
@@ -22209,9 +22218,9 @@ msgstr "Vytvořit rychlou akci"
 msgid "The maximum of %d quick action has been reached. Delete one first."
 msgid_plural ""
 "The maximum of %d quick actions has been reached. Delete one first."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Bylo dosaženo maxima %d rychlé akce. Nejprve jednu smažte."
+msgstr[1] "Bylo dosaženo maxima %d rychlých akcí. Nejprve jednu smažte."
+msgstr[2] "Bylo dosaženo maxima %d rychlých akcí. Nejprve jednu smažte."
 
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3060
 #: plugins/simpleui.koplugin/sui_quickactions.lua:3078
@@ -22276,9 +22285,9 @@ msgstr "Uspořádat rychlá nastavení"
 #, lua-format
 msgid "Maximum of %d slot reached. Remove one first."
 msgid_plural "Maximum of %d slots reached. Remove one first."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Bylo dosaženo maxima %d slotu. Nejprve jeden odeberte."
+msgstr[1] "Bylo dosaženo maxima %d slotů. Nejprve jeden odeberte."
+msgstr[2] "Bylo dosaženo maxima %d slotů. Nejprve jeden odeberte."
 
 #: plugins/simpleui.koplugin/sui_quicksettings_bar.lua:1360
 msgid "Enable Quick Settings Bar"
@@ -22568,9 +22577,9 @@ msgstr "Poznámky"
 #, lua-format
 msgid "%d book read in %s"
 msgid_plural "%d books read in %s"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d přečtená kniha v %s"
+msgstr[1] "%d přečtené knihy v %s"
+msgstr[2] "%d přečtených knih v %s"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2217
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2483
@@ -22580,16 +22589,16 @@ msgstr "přečtených hodin"
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2220
 msgid "day read"
 msgid_plural "days read"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "přečtený den"
+msgstr[1] "přečtené dny"
+msgstr[2] "přečtených dní"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2237
 msgid "page read"
 msgid_plural "pages read"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "přečtená stránka"
+msgstr[1] "přečtené stránky"
+msgstr[2] "přečtených stránek"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2488
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2921
@@ -22617,9 +22626,9 @@ msgstr "Přečtené stránky"
 #, lua-format
 msgid "%d day"
 msgid_plural "%d days"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d den"
+msgstr[1] "%d dny"
+msgstr[2] "%d dní"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2677
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2714
@@ -22636,9 +22645,9 @@ msgstr "Nejlepší série"
 #, lua-format
 msgid "%d week"
 msgid_plural "%d weeks"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d týden"
+msgstr[1] "%d týdny"
+msgstr[2] "%d týdnů"
 
 #: plugins/simpleui.koplugin/sui_stats_windows.lua:2783
 msgid "Loading statistics…"
