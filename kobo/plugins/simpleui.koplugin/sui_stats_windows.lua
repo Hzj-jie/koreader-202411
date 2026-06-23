@@ -1,0 +1,1 @@
+../../../koreader/plugins/simpleui.koplugin/sui_stats_windows.lua

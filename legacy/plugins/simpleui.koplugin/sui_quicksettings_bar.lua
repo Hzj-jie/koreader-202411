@@ -1,0 +1,1 @@
+../../../koreader/plugins/simpleui.koplugin/sui_quicksettings_bar.lua

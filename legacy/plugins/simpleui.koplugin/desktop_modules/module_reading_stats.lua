@@ -1,0 +1,1 @@
+../../../../koreader/plugins/simpleui.koplugin/desktop_modules/module_reading_stats.lua

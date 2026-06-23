@@ -1,0 +1,1 @@
+../../../../koreader/plugins/simpleui.koplugin/locale/it_IT.po
