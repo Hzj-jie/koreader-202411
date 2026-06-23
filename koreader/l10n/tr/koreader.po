@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 23:26-0700\n"
+"POT-Creation-Date: 2026-06-23 13:29-0700\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -50,7 +50,7 @@ msgstr ""
 "olur."
 
 #: reader.lua:223 frontend/apps/reader/modules/readertypography.lua:617
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/network/manager.lua:880
 msgid "Ignore"
 msgstr "Yok say"
 
@@ -192,25 +192,25 @@ msgstr "Dosya adını yazın"
 #: frontend/ui/elements/timeout_android.lua:65 frontend/ui/screensaver.lua:366
 #: frontend/ui/widget/bookstatuswidget.lua:586
 #: frontend/ui/widget/confirmbox.lua:50
-#: frontend/ui/widget/container/inputcontainer.lua:326
+#: frontend/ui/widget/container/inputcontainer.lua:324
 #: frontend/ui/widget/dictquicklookup.lua:1364
-#: frontend/ui/widget/inputdialog.lua:891
-#: frontend/ui/widget/inputdialog.lua:977
-#: frontend/ui/widget/inputdialog.lua:1037
-#: frontend/ui/widget/keyboardlayoutdialog.lua:75
+#: frontend/ui/widget/inputdialog.lua:886
+#: frontend/ui/widget/inputdialog.lua:972
+#: frontend/ui/widget/inputdialog.lua:1032
+#: frontend/ui/widget/keyboardlayoutdialog.lua:73
 #: frontend/ui/widget/menu.lua:819 frontend/ui/widget/multiconfirmbox.lua:49
 #: frontend/ui/widget/networksetting.lua:329
 #: frontend/ui/widget/networksetting.lua:371
 #: frontend/ui/widget/numberpickerwidget.lua:182
 #: frontend/ui/widget/pathchooser.lua:142 frontend/ui/widget/textviewer.lua:500
-#: frontend/ui/widget/touchmenu.lua:1420
+#: frontend/ui/widget/touchmenu.lua:1416
 #: plugins/autowarmth.koplugin/main.lua:929
 #: plugins/autowarmth.koplugin/main.lua:1268
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:379
 #: plugins/calibre.koplugin/main.lua:385
 #: plugins/calibre.koplugin/search.lua:247
 #: plugins/calibre.koplugin/wireless.lua:453
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:877
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:890
 #: plugins/coverimage.koplugin/main.lua:492
 #: plugins/exporter.koplugin/target/flomo.lua:75
 #: plugins/exporter.koplugin/target/joplin.lua:256
@@ -396,7 +396,7 @@ msgstr "Yerel klasörü seçin"
 #: frontend/ui/widget/dictquicklookup.lua:564
 #: frontend/ui/widget/doublespinwidget.lua:42
 #: frontend/ui/widget/imageviewer.lua:214
-#: frontend/ui/widget/inputdialog.lua:884
+#: frontend/ui/widget/inputdialog.lua:879
 #: frontend/ui/widget/radiobuttonwidget.lua:56
 #: frontend/ui/widget/spinwidget.lua:36 frontend/ui/widget/textviewer.lua:276
 #: plugins/keepalive.koplugin/main.lua:29
@@ -570,8 +570,8 @@ msgstr "Dropbox klasörü (kök için /)"
 #: frontend/apps/reader/modules/readerstyletweak.lua:1169
 #: frontend/apps/reader/modules/readeruserhyph.lua:343
 #: frontend/apps/reader/modules/readerwikipedia.lua:203
-#: frontend/ui/widget/inputdialog.lua:858
-#: frontend/ui/widget/inputdialog.lua:903
+#: frontend/ui/widget/inputdialog.lua:853
+#: frontend/ui/widget/inputdialog.lua:898
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:385
 #: plugins/coverimage.koplugin/main.lua:499
 #: plugins/gestures.koplugin/main.lua:437
@@ -961,7 +961,7 @@ msgstr "Özel kitap üst verileri alanı sıfırlansın mı?"
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
 #: frontend/apps/reader/modules/readermenu.lua:211
-#: frontend/ui/widget/inputdialog.lua:832
+#: frontend/ui/widget/inputdialog.lua:827
 #: plugins/statistics.koplugin/main.lua:3178
 #: plugins/statistics.koplugin/main.lua:3220
 #: plugins/vocabbuilder.koplugin/main.lua:200
@@ -1198,8 +1198,7 @@ msgstr "Kitap klasörü"
 #: frontend/apps/filemanager/filemanagerhistory.lua:466
 #: frontend/apps/reader/modules/readerbookmark.lua:1563
 #: frontend/apps/reader/modules/readersearch.lua:352
-#: frontend/ui/widget/inputdialog.lua:1002
-#: frontend/ui/widget/textviewer.lua:525
+#: frontend/ui/widget/inputdialog.lua:997 frontend/ui/widget/textviewer.lua:525
 msgid "Case sensitive"
 msgstr "Büyük-küçük harfe duyarlı"
 
@@ -1261,7 +1260,7 @@ msgstr "Arama sonuçları (%1)"
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:440
 #: frontend/apps/filemanager/filemanager.lua:924
 #: frontend/apps/filemanager/filemanager.lua:1637
-#: frontend/ui/widget/textviewer.lua:763 frontend/ui/widget/touchmenu.lua:1338
+#: frontend/ui/widget/textviewer.lua:765 frontend/ui/widget/touchmenu.lua:1334
 #: plugins/texteditor.koplugin/main.lua:495
 msgid "Open"
 msgstr "Aç"
@@ -1394,7 +1393,7 @@ msgstr "Geçmişte aranacak ifadeyi yazın"
 #: frontend/apps/reader/modules/readerbookmark.lua:1526
 #: frontend/apps/reader/modules/readerhighlight.lua:160
 #: frontend/ui/widget/dictquicklookup.lua:546
-#: frontend/ui/widget/touchmenu.lua:1427
+#: frontend/ui/widget/touchmenu.lua:1423
 #: plugins/opds.koplugin/opdsbrowser.lua:405
 #: plugins/opds.koplugin/opdsbrowser.lua:420
 #: plugins/opds.koplugin/opdsbrowser.lua:601
@@ -1486,7 +1485,7 @@ msgstr ""
 "Bir dosyayı silerseniz, kalıcı olarak kaybolacaktır."
 
 #: frontend/apps/filemanager/filemanager.lua:652
-#: plugins/exporter.koplugin/main.lua:329 plugins/exporter.koplugin/_meta.lua:4
+#: plugins/exporter.koplugin/main.lua:450 plugins/exporter.koplugin/_meta.lua:4
 msgid "Export highlights"
 msgstr "Vurguları dışa aktar"
 
@@ -1951,7 +1950,7 @@ msgstr "Son belgeyi açmak ister misiniz: %1?"
 #: frontend/apps/reader/readerui.lua:852 frontend/device/android/device.lua:589
 #: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:49
-#: frontend/ui/widget/container/inputcontainer.lua:333
+#: frontend/ui/widget/container/inputcontainer.lua:331
 #: frontend/ui/widget/numberpickerwidget.lua:189
 #: plugins/autowarmth.koplugin/main.lua:936
 #: plugins/calibre.koplugin/main.lua:392
@@ -1993,7 +1992,7 @@ msgstr "son dosya"
 msgid "Start with: %1"
 msgstr "Şunun başlat: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:729
+#: frontend/apps/filemanager/filemanagermenu.lua:730
 msgid "File manager menu"
 msgstr "Dosya yöneticisi menüsü"
 
@@ -4859,7 +4858,7 @@ msgstr "Önceki: %1"
 msgid "Would you like to open the previous document: %1?"
 msgstr "Önceki belgeyi açmak ister misiniz: %1?"
 
-#: frontend/apps/reader/modules/readermenu.lua:410
+#: frontend/apps/reader/modules/readermenu.lua:411
 msgid "Document menu"
 msgstr "Belge menüsü"
 
@@ -5379,7 +5378,7 @@ msgid "Invalid regular expression."
 msgstr "Kurallı ifade geçersiz."
 
 #: frontend/apps/reader/modules/readersearch.lua:313
-#: frontend/ui/widget/inputdialog.lua:971 frontend/ui/widget/textviewer.lua:495
+#: frontend/ui/widget/inputdialog.lua:966 frontend/ui/widget/textviewer.lua:495
 msgid "Enter text to search for"
 msgstr "Aranacak ifadeyi yazın"
 
@@ -7734,12 +7733,12 @@ msgid "Light settings"
 msgstr "Aydınlatma ayarları"
 
 #: frontend/device/android/device.lua:587
-#: frontend/ui/widget/frontlightwidget.lua:153
+#: frontend/ui/widget/frontlightwidget.lua:152
 msgid "Brightness"
 msgstr "Parlaklık"
 
 #: frontend/device/android/device.lua:588
-#: frontend/ui/widget/frontlightwidget.lua:268
+#: frontend/ui/widget/frontlightwidget.lua:267
 msgid "Warmth"
 msgstr "Sıcaklık"
 
@@ -7839,8 +7838,8 @@ msgstr "Sayfa çevirme düğmeleri artık ters çevrilmiyor."
 msgid "Page-turn buttons inverted."
 msgstr "Sayfa çevirme düğmeleri ters çevrilmiş."
 
-#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1755
-#: frontend/ui/uimanager.lua:1777
+#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1738
 msgid "Later"
 msgstr "Daha sonra"
 
@@ -7976,7 +7975,7 @@ msgstr "Yeniden başlat"
 
 #: frontend/dispatcher.lua:171
 #: frontend/ui/elements/common_exit_menu_table.lua:51
-#: frontend/ui/uimanager.lua:1735
+#: frontend/ui/uimanager.lua:1696
 msgid "Power off"
 msgstr "Gücü kapat"
 
@@ -10943,14 +10942,14 @@ msgstr ""
 "Sayfanın ekrana sığacak şekilde nasıl yeniden boyutlandırılacağını ayarlayın."
 
 #: frontend/ui/data/koptoptions.lua:243
-#: plugins/coverbrowser.koplugin/main.lua:206
-#: plugins/coverbrowser.koplugin/main.lua:261
+#: plugins/coverbrowser.koplugin/main.lua:205
+#: plugins/coverbrowser.koplugin/main.lua:260
 msgid "Rows"
 msgstr "Satır sayısı"
 
 #: frontend/ui/data/koptoptions.lua:243
-#: plugins/coverbrowser.koplugin/main.lua:200
-#: plugins/coverbrowser.koplugin/main.lua:255
+#: plugins/coverbrowser.koplugin/main.lua:199
+#: plugins/coverbrowser.koplugin/main.lua:254
 msgid "Columns"
 msgstr "Sütunlar"
 
@@ -11403,7 +11402,7 @@ msgid "Advanced settings"
 msgstr "Gelişmiş ayarlar"
 
 #: frontend/ui/elements/common_info_menu_table.lua:23
-#: frontend/ui/widget/touchmenu.lua:1416 frontend/ui/widget/touchmenu.lua:1435
+#: frontend/ui/widget/touchmenu.lua:1412 frontend/ui/widget/touchmenu.lua:1431
 #: plugins/exporter.koplugin/target/joplin.lua:323
 #: plugins/exporter.koplugin/target/nextcloud.lua:153
 #: plugins/exporter.koplugin/target/xmnote.lua:71
@@ -11517,7 +11516,7 @@ msgid "Start %1 reader app"
 msgstr "%1 okuyucu uygulamasını aç"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:30
-#: frontend/ui/widget/frontlightwidget.lua:377
+#: frontend/ui/widget/frontlightwidget.lua:376
 msgid "Frontlight"
 msgstr "Ön aydınlatma"
 
@@ -11637,13 +11636,13 @@ msgid "Navigation"
 msgstr "Gezinme"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:285
-#: frontend/ui/network/manager.lua:862 plugins/kosync.koplugin/main.lua:84
+#: frontend/ui/network/manager.lua:877 plugins/kosync.koplugin/main.lua:84
 #: plugins/kosync.koplugin/main.lua:285 plugins/kosync.koplugin/main.lua:322
 msgid "Prompt"
 msgstr "Soru"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:285
-#: frontend/ui/network/manager.lua:862
+#: frontend/ui/network/manager.lua:877
 msgid "prompt"
 msgstr "soru"
 
@@ -12115,7 +12114,7 @@ msgid "Share storage via USB?"
 msgstr "Depolama USB üzerinden paylaşılsın mı?"
 
 #: frontend/ui/elements/mass_storage.lua:80
-#: plugins/exporter.koplugin/base.lua:161
+#: plugins/exporter.koplugin/base.lua:164
 msgid "Share"
 msgstr "Paylaş"
 
@@ -12912,58 +12911,70 @@ msgstr ""
 msgid "Language"
 msgstr "Dil"
 
-#: frontend/ui/network/manager.lua:71 frontend/ui/network/manager.lua:528
+#: frontend/ui/network/manager.lua:71 frontend/ui/network/manager.lua:537
 msgid "Error connecting to the network"
 msgstr "Ağ bağlantısı kurulurken bir sorun çıktı"
 
-#: frontend/ui/network/manager.lua:493
+#: frontend/ui/network/manager.lua:502
 msgid "Turning on Wi-Fi…"
 msgstr "Ağ açılıyor…"
 
-#: frontend/ui/network/manager.lua:537
+#: frontend/ui/network/manager.lua:546
 msgid ""
 "A previous connection attempt is still ongoing, this one will be ignored!"
 msgstr "Önceki bir bağlantı denemesi hala devam ediyor, bu göz ardı edilecek!"
 
-#: frontend/ui/network/manager.lua:552
+#: frontend/ui/network/manager.lua:561
 msgid "Turning off Wi-Fi…"
 msgstr "Ağ kapatılıyor…"
 
-#: frontend/ui/network/manager.lua:598
+#: frontend/ui/network/manager.lua:586
+msgid "You are connected to Wi-Fi, but have no Internet access."
+msgstr ""
+
+#: frontend/ui/network/manager.lua:588
+msgid "Do you want to select another Wi-Fi network?"
+msgstr ""
+
+#: frontend/ui/network/manager.lua:589
+msgid "Select Wi-Fi"
+msgstr ""
+
+#: frontend/ui/network/manager.lua:619
 msgid "Network connection is required to perform the action."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:600
+#: frontend/ui/network/manager.lua:621
 msgid "Do you want to turn on Wi-Fi?"
 msgstr "Ağ bağlantısı açılsın mı?"
 
-#: frontend/ui/network/manager.lua:601 frontend/ui/network/manager.lua:861
+#: frontend/ui/network/manager.lua:622 frontend/ui/network/manager.lua:876
 #: plugins/autowarmth.koplugin/main.lua:1241
 #: plugins/gestures.koplugin/main.lua:1324
 msgid "Turn on"
 msgstr "Aç"
 
-#: frontend/ui/network/manager.lua:657
+#: frontend/ui/network/manager.lua:678
 msgid "Action will be performed after network being online"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:672
+#: frontend/ui/network/manager.lua:693
 msgid "Action will be performed after network being connected"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:711
+#: frontend/ui/network/manager.lua:732
 msgid "Wi-Fi settings"
 msgstr "Ağ ayarları"
 
-#: frontend/ui/network/manager.lua:723
+#: frontend/ui/network/manager.lua:744
 msgid "Wi-Fi connection"
 msgstr "Ağ bağlantısı"
 
-#: frontend/ui/network/manager.lua:769
+#: frontend/ui/network/manager.lua:784
 msgid "HTTP proxy %1"
 msgstr "HTTP vekil sunucu %1"
 
-#: frontend/ui/network/manager.lua:785
+#: frontend/ui/network/manager.lua:800
 msgid ""
 "Tip:\n"
 "Long press on this menu entry to configure HTTP proxy."
@@ -12971,15 +12982,15 @@ msgstr ""
 "İpucu:\n"
 "HTTP vekil sunucu ayarları için bu menü kaydına uzun süre basın."
 
-#: frontend/ui/network/manager.lua:791
+#: frontend/ui/network/manager.lua:806
 msgid "Enter proxy address"
 msgstr "Vekil sunucu adresini yazın"
 
-#: frontend/ui/network/manager.lua:802
+#: frontend/ui/network/manager.lua:817
 msgid "Disable Wi-Fi connection when inactive"
 msgstr "Etkin olmadığında ağ bağlantısı kapatılsın"
 
-#: frontend/ui/network/manager.lua:805
+#: frontend/ui/network/manager.lua:820
 msgid ""
 "This is unlikely to function properly on a stock Kindle, given how much "
 "network activity the framework generates."
@@ -12987,7 +12998,7 @@ msgstr ""
 "Altyapının oluşturduğu ağ yüküne bakarak bunun eski bir Kindle üzerinde "
 "düzgün çalışmayacağı söylenebilir."
 
-#: frontend/ui/network/manager.lua:808
+#: frontend/ui/network/manager.lua:823
 msgid ""
 "This will automatically turn Wi-Fi off after a generous period of network "
 "inactivity, without disrupting workflows that require a network connection, "
@@ -12998,11 +13009,11 @@ msgstr ""
 "kapatır. Böylece pilin boşalması konusunda endişelenmeden okumayı "
 "sürdürebilirsiniz."
 
-#: frontend/ui/network/manager.lua:821
+#: frontend/ui/network/manager.lua:836
 msgid "Restore Wi-Fi connection on resume"
 msgstr "Sürdürüldüğünde ağ yeniden bağlansın"
 
-#: frontend/ui/network/manager.lua:824
+#: frontend/ui/network/manager.lua:839
 msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
 "startup or on resume if Wi-Fi used to be enabled the last time you used "
@@ -13012,45 +13023,45 @@ msgstr ""
 "kapatmadıysanız, başlangıçta veya uyandırıldığında otomatik ve sessizce "
 "yeniden ağ bağlantısı kurmayı dener."
 
-#: frontend/ui/network/manager.lua:840
+#: frontend/ui/network/manager.lua:855
 msgid "Network info"
 msgstr "Ağ bilgileri"
 
-#: frontend/ui/network/manager.lua:861
+#: frontend/ui/network/manager.lua:876
 msgid "turn on"
 msgstr "Açılsın"
 
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/network/manager.lua:880
 msgid "ignore"
 msgstr "Yok say"
 
-#: frontend/ui/network/manager.lua:883
+#: frontend/ui/network/manager.lua:898
 msgid "Action when Wi-Fi is off: %1"
 msgstr "Ağ kapalıyken yapılacak işlem: %1"
 
-#: frontend/ui/network/manager.lua:901
+#: frontend/ui/network/manager.lua:916
 msgid "Automatically connect to the known Wi-Fi"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:903
+#: frontend/ui/network/manager.lua:918
 msgid ""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:969
+#: frontend/ui/network/manager.lua:980
 msgid "No available wifi networks found."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:978
+#: frontend/ui/network/manager.lua:989
 msgid "Scanning for networks…"
 msgstr "Ağlar aranıyor…"
 
-#: frontend/ui/network/manager.lua:1080
+#: frontend/ui/network/manager.lua:1086
 msgid "Connecting to network %1…"
 msgstr "%1 ağına bağlanılıyor…"
 
-#: frontend/ui/network/manager.lua:1081
+#: frontend/ui/network/manager.lua:1087
 msgid "Connected to network %1"
 msgstr "%1 ağına bağlı"
 
@@ -14169,14 +14180,14 @@ msgstr "Duraklatıldı"
 
 #: frontend/ui/trapper.lua:162 frontend/ui/wikipedia.lua:1706
 #: plugins/calibre.koplugin/wireless.lua:230
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:878
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:891
 #: plugins/newsdownloader.koplugin/epubdownloadbackend.lua:721
 #: plugins/newsdownloader.koplugin/main.lua:329
 msgid "Continue"
 msgstr "İlerle"
 
 #: frontend/ui/trapper.lua:164
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:917
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:930
 msgid "Abort"
 msgstr "İptal"
 
@@ -14188,28 +14199,28 @@ msgstr "Kapalı"
 msgid "Rebooting…"
 msgstr "Yeniden başlatılıyor…"
 
-#: frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1677
 msgid "Are you sure you want to reboot the device?"
 msgstr "Aygıtı yeniden başlatmak istediğinize emin misiniz?"
 
-#: frontend/ui/uimanager.lua:1717
+#: frontend/ui/uimanager.lua:1678
 msgid "Reboot"
 msgstr "Yeniden başlat"
 
-#: frontend/ui/uimanager.lua:1734
+#: frontend/ui/uimanager.lua:1695
 msgid "Are you sure you want to power off the device?"
 msgstr "Aygıtı kapatmak istediğinize emin misiniz?"
 
-#: frontend/ui/uimanager.lua:1750 frontend/ui/uimanager.lua:1760
+#: frontend/ui/uimanager.lua:1711 frontend/ui/uimanager.lua:1721
 #: plugins/calibre.koplugin/main.lua:227
 msgid "This will take effect on next restart."
 msgstr "Bu ayar sonraki yeniden başlatmada geçerli olacak."
 
-#: frontend/ui/uimanager.lua:1751
+#: frontend/ui/uimanager.lua:1712
 msgid "Restart now"
 msgstr "Şimdi yeniden başlat"
 
-#: frontend/ui/uimanager.lua:1776
+#: frontend/ui/uimanager.lua:1737
 msgid "Settings changed. Reload document to take effect?"
 msgstr ""
 
@@ -14514,11 +14525,11 @@ msgstr ""
 msgid "no text"
 msgstr "metin yok"
 
-#: frontend/ui/widget/container/inputcontainer.lua:301
+#: frontend/ui/widget/container/inputcontainer.lua:299
 msgid "Disabled touch input"
 msgstr "Dokunma girişini kapalı"
 
-#: frontend/ui/widget/container/inputcontainer.lua:305
+#: frontend/ui/widget/container/inputcontainer.lua:303
 msgid "Restored touch input"
 msgstr "Dokunma girişini açıldı"
 
@@ -14616,25 +14627,25 @@ msgstr "Geçerli klasör okunabilir değil. Bazı içerikler görüntülenmeyebi
 msgid "Loading contents in %1"
 msgstr ""
 
-#: frontend/ui/widget/frontlightwidget.lua:187
-#: frontend/ui/widget/frontlightwidget.lua:302
+#: frontend/ui/widget/frontlightwidget.lua:186
+#: frontend/ui/widget/frontlightwidget.lua:301
 #: plugins/statistics.koplugin/main.lua:1318
 msgctxt "Extrema"
 msgid "Min"
 msgstr "En az"
 
-#: frontend/ui/widget/frontlightwidget.lua:195
-#: frontend/ui/widget/frontlightwidget.lua:310
+#: frontend/ui/widget/frontlightwidget.lua:194
+#: frontend/ui/widget/frontlightwidget.lua:309
 #: plugins/statistics.koplugin/main.lua:1325
 msgctxt "Extrema"
 msgid "Max"
 msgstr "En fazla"
 
-#: frontend/ui/widget/frontlightwidget.lua:203
+#: frontend/ui/widget/frontlightwidget.lua:202
 msgid "Toggle"
 msgstr "Değiştir"
 
-#: frontend/ui/widget/frontlightwidget.lua:322
+#: frontend/ui/widget/frontlightwidget.lua:321
 msgid "Configure"
 msgstr "Yapılandır"
 
@@ -14666,76 +14677,76 @@ msgstr "Döndür"
 msgid "Image viewer"
 msgstr "Görsel görüntüleyici"
 
-#: frontend/ui/widget/inputdialog.lua:413
+#: frontend/ui/widget/inputdialog.lua:408
 msgid "Read only"
 msgstr "Salt okunur"
 
-#: frontend/ui/widget/inputdialog.lua:415
+#: frontend/ui/widget/inputdialog.lua:410
 msgid "Not editable"
 msgstr "Düzenlenemez"
 
-#: frontend/ui/widget/inputdialog.lua:844
+#: frontend/ui/widget/inputdialog.lua:839
 msgid "Text reset"
 msgstr "Metni sıfırla"
 
-#: frontend/ui/widget/inputdialog.lua:849
+#: frontend/ui/widget/inputdialog.lua:844
 msgid "Resetting failed."
 msgstr "Sıfırlanamadı."
 
-#: frontend/ui/widget/inputdialog.lua:870
-#: frontend/ui/widget/inputdialog.lua:912
+#: frontend/ui/widget/inputdialog.lua:865
+#: frontend/ui/widget/inputdialog.lua:907
 msgid "Saving failed."
 msgstr "Kaydedilemedi."
 
-#: frontend/ui/widget/inputdialog.lua:876
-#: frontend/ui/widget/inputdialog.lua:921
+#: frontend/ui/widget/inputdialog.lua:871
+#: frontend/ui/widget/inputdialog.lua:916
 msgid "Saved"
 msgstr "Kaydedildi"
 
-#: frontend/ui/widget/inputdialog.lua:890
+#: frontend/ui/widget/inputdialog.lua:885
 msgid "You have unsaved changes."
 msgstr "Kaydedilmemiş değişiklikleriniz var."
 
-#: frontend/ui/widget/inputdialog.lua:892
+#: frontend/ui/widget/inputdialog.lua:887
 msgid "Discard"
 msgstr "Yok say"
 
-#: frontend/ui/widget/inputdialog.lua:900
+#: frontend/ui/widget/inputdialog.lua:895
 msgid "Changes discarded"
 msgstr "Değişiklikler yok sayıldı"
 
-#: frontend/ui/widget/inputdialog.lua:966 frontend/ui/widget/textviewer.lua:238
+#: frontend/ui/widget/inputdialog.lua:961 frontend/ui/widget/textviewer.lua:238
 #: frontend/ui/widget/textviewer.lua:589
 msgid "Find"
 msgstr "Bul"
 
-#: frontend/ui/widget/inputdialog.lua:985 frontend/ui/widget/textviewer.lua:507
+#: frontend/ui/widget/inputdialog.lua:980 frontend/ui/widget/textviewer.lua:507
 msgid "Find first"
 msgstr "Birinciyi bul"
 
-#: frontend/ui/widget/inputdialog.lua:991 frontend/ui/widget/textviewer.lua:514
+#: frontend/ui/widget/inputdialog.lua:986 frontend/ui/widget/textviewer.lua:514
 #: frontend/ui/widget/textviewer.lua:588
 msgid "Find next"
 msgstr "Sonrakini bul"
 
-#: frontend/ui/widget/inputdialog.lua:1025
+#: frontend/ui/widget/inputdialog.lua:1020
 msgid "Enter line number"
 msgstr "Satır numarasını yazın"
 
 #. @translators %1 is the current line number, %2 is the last line number
-#: frontend/ui/widget/inputdialog.lua:1028
+#: frontend/ui/widget/inputdialog.lua:1023
 msgid "%1 (1 - %2)"
 msgstr "%1 (1 - %2)"
 
-#: frontend/ui/widget/inputdialog.lua:1045
+#: frontend/ui/widget/inputdialog.lua:1040
 msgid "Go to line"
 msgstr "Satıra git"
 
-#: frontend/ui/widget/inputdialog.lua:1167
+#: frontend/ui/widget/inputdialog.lua:1162
 msgid "Found in line %1."
 msgstr "%1. satırda bulundu."
 
-#: frontend/ui/widget/inputdialog.lua:1169
+#: frontend/ui/widget/inputdialog.lua:1164
 #: frontend/ui/widget/textviewer.lua:579
 msgid "Not found."
 msgstr "Bulunamadı."
@@ -14789,11 +14800,11 @@ msgstr "Metin içeriği ikili olabilir ve düzenlenemeyebilir"
 msgid "Show password"
 msgstr "Parolayı görüntüle"
 
-#: frontend/ui/widget/keyboardlayoutdialog.lua:41
+#: frontend/ui/widget/keyboardlayoutdialog.lua:39
 msgid "Keyboard layout"
 msgstr "Klavye düzeni"
 
-#: frontend/ui/widget/keyboardlayoutdialog.lua:82
+#: frontend/ui/widget/keyboardlayoutdialog.lua:80
 msgid "Switch to layout"
 msgstr "Düzene geç"
 
@@ -14806,7 +14817,7 @@ msgstr "Sayfa numarasını yazın"
 
 #. @translators %1 is the current page. %2 is the total number of pages. In some languages a good translation might need to reverse this order, for instance: "Total %2, page %1".
 #: frontend/ui/widget/keyvaluepage.lua:764 frontend/ui/widget/menu.lua:1101
-#: frontend/ui/widget/touchmenu.lua:797
+#: frontend/ui/widget/touchmenu.lua:793
 #: plugins/coverbrowser.koplugin/listmenu.lua:384
 #: plugins/statistics.koplugin/calendarview.lua:885
 #: plugins/vocabbuilder.koplugin/main.lua:1830
@@ -15166,7 +15177,7 @@ msgstr "İki yana yasla"
 msgid "Text viewer"
 msgstr "Metin görüntüleyici"
 
-#: frontend/ui/widget/textviewer.lua:758
+#: frontend/ui/widget/textviewer.lua:760
 #: plugins/texteditor.koplugin/main.lua:490
 msgid ""
 "This file is %2:\n"
@@ -15185,29 +15196,29 @@ msgstr ""
 "\n"
 "Büyük dosyaların açılması uzun sürebilir."
 
-#: frontend/ui/widget/touchmenu.lua:1283
+#: frontend/ui/widget/touchmenu.lua:1279
 msgid "Walking you there…"
 msgstr "Sizi oraya götürüyoruz…"
 
-#: frontend/ui/widget/touchmenu.lua:1346
+#: frontend/ui/widget/touchmenu.lua:1342
 msgid "Walk me there"
 msgstr "Beni oraya götür"
 
-#: frontend/ui/widget/touchmenu.lua:1375
+#: frontend/ui/widget/touchmenu.lua:1371
 #: plugins/calibre.koplugin/search.lua:530
 #: plugins/opds.koplugin/opdsbrowser.lua:605
 msgid "Search results"
 msgstr "Arama sonuçları"
 
-#: frontend/ui/widget/touchmenu.lua:1405
+#: frontend/ui/widget/touchmenu.lua:1401
 msgid "No menus containing '%1' found."
 msgstr "'%1' içeren bir menü bulunamadı."
 
-#: frontend/ui/widget/touchmenu.lua:1412
+#: frontend/ui/widget/touchmenu.lua:1408
 msgid "Search menu entry"
 msgstr "Menü kaydı arama"
 
-#: frontend/ui/widget/touchmenu.lua:1414
+#: frontend/ui/widget/touchmenu.lua:1410
 msgid ""
 "Search for a menu entry containing the following text (case insensitive)."
 msgstr ""
@@ -16637,23 +16648,23 @@ msgstr "çok fazla kesinti ya da çökme olmuş"
 msgid "Book info cache database updated."
 msgstr "Kitap bilgisi ön bellek veri tabanı güncellendi."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:261
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:274
 msgid "Failed compacting database: %1"
 msgstr "Veri tabanı sıkıştırılamadı: %1"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:265
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:278
 msgid "Cache database size reduced from %1 to %2."
 msgstr "%1 olan ön bellek veri tabanı boyutu %2 değerine düştü."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:662
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:675
 msgid "Cache is empty. Nothing to prune."
 msgstr "Ön bellek boş. Temizlenecek bir şey yok."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:680
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:693
 msgid "Removed %1 / %2 entries from cache."
 msgstr "Ön bellekten %1 / %2 kayıt silindi."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:868
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:881
 msgid ""
 "This will extract metadata and cover images from books in the current "
 "directory.\n"
@@ -16678,34 +16689,34 @@ msgstr ""
 "Çıkartma işlemi uzun sürebilir ve pil düzeyinizi düşürebilir: aygıtınızı "
 "şarja bağlamanız iyi olabilir."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:885
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:898
 msgid "Also extract book information from books in subdirectories?"
 msgstr "Alt klasörlerdeki kitapların kitap bilgileri de çıkartılsın mı?"
 
 #. @translators Extract book information only for books in this directory.
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:888
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:901
 msgid "Here only"
 msgstr "Yalnızca burada"
 
 #. @translators Extract book information for books in this directory as well as in subdirectories.
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:890
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:903
 msgid "Here and under"
 msgstr "Burada ve altında"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:895
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:908
 msgid ""
 "Do you want to refresh metadata and covers that have already been extracted?"
 msgstr "Daha önce çıkartılmış üst veri ve kapak bilgileri yenilensin mi?"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:898
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:911
 msgid "Don't refresh"
 msgstr "Yenileme"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:899
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:912
 msgid "Refresh"
 msgstr "Yenile"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:903
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:916
 msgid ""
 "If you have removed many books, or have renamed some directories, it is good "
 "to remove them from the cache database.\n"
@@ -16717,43 +16728,43 @@ msgstr ""
 "\n"
 "Silinmiş kitapların ön bellekten de silinmesini ister misiniz?"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:907
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:920
 msgid "Don't prune"
 msgstr "Silme"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:908
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:921
 msgid "Prune"
 msgstr "Sil"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:915
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:928
 msgid "Do you want to abort extraction?"
 msgstr "Çıkartmaktan vazgeçmek ister misiniz?"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:916
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:929
 msgid "Don't abort"
 msgstr "Vazgeçme"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:929
-#: plugins/coverbrowser.koplugin/main.lua:512
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:942
+#: plugins/coverbrowser.koplugin/main.lua:511
 msgid "Pruning cache of removed books…"
 msgstr "Silinmiş kitaplar ön bellekten temizleniyor…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:953
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:966
 msgid "Looking for books to index…"
 msgstr "Dizine eklenecek kitaplara bakılıyor…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:967
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:980
 msgid "No books were found."
 msgstr "Herhangi bir kitap bulunamadı."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:979
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1041
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:992
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1054
 msgid "Found 1 book to index."
 msgid_plural "Found %1 books to index."
 msgstr[0] "Dizine eklenecek 1 kitap bulundu."
 msgstr[1] "Dizine eklenecek %1 kitap bulundu."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:992
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1005
 msgid ""
 "Found %1 books.\n"
 "Looking for those not already present in the cache database…"
@@ -16761,11 +16772,11 @@ msgstr ""
 "%1 kitap bulundu.\n"
 "Bu kitaplar ön bellek veri tabanında yok gibi görünüyor…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1030
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1043
 msgid "No books were found that need to be indexed."
 msgstr "Dizine eklenmesi gereken bir kitap bulunamadı."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1070
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1083
 msgid ""
 "Indexing %1 / %2…\n"
 "\n"
@@ -16775,11 +16786,11 @@ msgstr ""
 "\n"
 "%3"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1119
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1132
 msgid "Processed %1 / %2 books."
 msgstr "%1 / %2 kitap işlendi."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1123
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1136
 msgid "One extracted successfully."
 msgid_plural "%1 extracted successfully."
 msgstr[0] "Biri başarıyla çıkarıldı."
@@ -16888,119 +16899,119 @@ msgstr "Görsel olmayan üst veri bulunan ayrıntılı liste"
 msgid "Detailed list with cover images and filenames"
 msgstr "Kapak görselleri ve dosya adları bulunan ayrıntılı liste"
 
-#: plugins/coverbrowser.koplugin/main.lua:144
+#: plugins/coverbrowser.koplugin/main.lua:143
 msgid "Use this mode everywhere"
 msgstr "Her yerde bu kip kullanılsın"
 
-#: plugins/coverbrowser.koplugin/main.lua:156
+#: plugins/coverbrowser.koplugin/main.lua:155
 msgid "History display mode"
 msgstr "Geçmiş görüntüleme kipi"
 
-#: plugins/coverbrowser.koplugin/main.lua:163
+#: plugins/coverbrowser.koplugin/main.lua:162
 msgid "Collections display mode"
 msgstr "Derlemeleri görüntüleme kipi"
 
-#: plugins/coverbrowser.koplugin/main.lua:170
+#: plugins/coverbrowser.koplugin/main.lua:169
 msgid "Display mode"
 msgstr "Görüntüleme kipi"
 
-#: plugins/coverbrowser.koplugin/main.lua:181
+#: plugins/coverbrowser.koplugin/main.lua:180
 msgid "Mosaic and detailed list settings"
 msgstr "Mozaik ve ayrıntılı liste ayarları"
 
-#: plugins/coverbrowser.koplugin/main.lua:187
+#: plugins/coverbrowser.koplugin/main.lua:186
 msgid "Items per page in portrait mosaic mode: %1 × %2"
 msgstr "Dikey mozaik kipinde sayfa başına öge sayısı: %1 × %2"
 
-#: plugins/coverbrowser.koplugin/main.lua:198
+#: plugins/coverbrowser.koplugin/main.lua:197
 msgid "Portrait mosaic mode"
 msgstr "Dikey mozaik kipi"
 
-#: plugins/coverbrowser.koplugin/main.lua:243
+#: plugins/coverbrowser.koplugin/main.lua:242
 msgid "Items per page in landscape mosaic mode: %1 × %2"
 msgstr "Yatay mozaik kipinde sayfa başına öge sayısı: %1 × %2"
 
-#: plugins/coverbrowser.koplugin/main.lua:253
+#: plugins/coverbrowser.koplugin/main.lua:252
 msgid "Landscape mosaic mode"
 msgstr "Yatay mozaik kipi"
 
-#: plugins/coverbrowser.koplugin/main.lua:302
+#: plugins/coverbrowser.koplugin/main.lua:301
 msgid "Items per page in portrait list mode: %1"
 msgstr "Dikey liste kipinde sayfa başına öge sayısı: %1"
 
-#: plugins/coverbrowser.koplugin/main.lua:310
+#: plugins/coverbrowser.koplugin/main.lua:309
 msgid "Portrait list mode"
 msgstr "Dikey liste kipi"
 
-#: plugins/coverbrowser.koplugin/main.lua:339
+#: plugins/coverbrowser.koplugin/main.lua:338
 msgid "Progress"
 msgstr "İlerleme"
 
-#: plugins/coverbrowser.koplugin/main.lua:342
+#: plugins/coverbrowser.koplugin/main.lua:341
 msgid "Show progress in mosaic mode"
 msgstr "Mozaik kipinde ilerleme yüzdesi görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:353
+#: plugins/coverbrowser.koplugin/main.lua:352
 msgid "Show progress in detailed list mode"
 msgstr "Ayrıntılı liste kipinde ilerleme yüzdesi görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:363
+#: plugins/coverbrowser.koplugin/main.lua:362
 msgid "Show number of pages read instead of progress %"
 msgstr "İlerleme yüzdesi yerine okunmuş sayfa sayısı görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:376
+#: plugins/coverbrowser.koplugin/main.lua:375
 msgid "Show number of pages left to read"
 msgstr "Okunacak sayfa sayısı görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:391
+#: plugins/coverbrowser.koplugin/main.lua:390
 msgid "Display hints"
 msgstr "İpuçları görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:394
+#: plugins/coverbrowser.koplugin/main.lua:393
 msgid "Show hint for books with description"
 msgstr "Açıklaması olan kitaplar için ipucu görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:404
+#: plugins/coverbrowser.koplugin/main.lua:403
 msgid "Show hint for book status in history"
 msgstr "Geçmişteki kitapların durumu için ipucu görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:414
+#: plugins/coverbrowser.koplugin/main.lua:413
 msgid "Show hint for book status in collections"
 msgstr "Derlemelerdeki kitapların durumu için ipucu görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:426
+#: plugins/coverbrowser.koplugin/main.lua:425
 msgid "Series"
 msgstr "Diziler"
 
-#: plugins/coverbrowser.koplugin/main.lua:429
+#: plugins/coverbrowser.koplugin/main.lua:428
 msgid "Append series metadata to authors"
 msgstr "Dizi üst verisini yazarlara eklensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:444
+#: plugins/coverbrowser.koplugin/main.lua:443
 msgid "Append series metadata to title"
 msgstr "Dizi üst verisini başlığa eklensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:459
+#: plugins/coverbrowser.koplugin/main.lua:458
 msgid "Show series metadata in separate line"
 msgstr "Diziler üst verisi ayrı bir satırda görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:476
+#: plugins/coverbrowser.koplugin/main.lua:475
 msgid "Show file properties"
 msgstr "Dosya özellikleri görüntülensin"
 
-#: plugins/coverbrowser.koplugin/main.lua:487
+#: plugins/coverbrowser.koplugin/main.lua:486
 msgid "Book info cache management"
 msgstr "Kitap bilgileri ön belleği yönetimi"
 
-#: plugins/coverbrowser.koplugin/main.lua:492
+#: plugins/coverbrowser.koplugin/main.lua:491
 msgid "Current cache size: "
 msgstr "Geçerli ön bellek boyutu: "
 
-#: plugins/coverbrowser.koplugin/main.lua:498
+#: plugins/coverbrowser.koplugin/main.lua:497
 msgid "Prune cache of removed books"
 msgstr "Silinen kitapları ön bellekten temizle"
 
-#: plugins/coverbrowser.koplugin/main.lua:506
+#: plugins/coverbrowser.koplugin/main.lua:505
 msgid ""
 "Are you sure that you want to prune cache of removed books?\n"
 "(This may take a while.)"
@@ -17008,15 +17019,15 @@ msgstr ""
 "Silinmiş kitapları ön bellekten silmek istediğinize emin misiniz?\n"
 "(Bu işlem zaman alabilir)"
 
-#: plugins/coverbrowser.koplugin/main.lua:508
+#: plugins/coverbrowser.koplugin/main.lua:507
 msgid "Prune cache"
 msgstr "Ön belleği temizle"
 
-#: plugins/coverbrowser.koplugin/main.lua:525
+#: plugins/coverbrowser.koplugin/main.lua:524
 msgid "Compact cache database"
 msgstr "Ön bellek veri tabanını sıkıştır"
 
-#: plugins/coverbrowser.koplugin/main.lua:532
+#: plugins/coverbrowser.koplugin/main.lua:531
 msgid ""
 "Are you sure that you want to compact cache database?\n"
 "(This may take a while.)"
@@ -17024,19 +17035,19 @@ msgstr ""
 "Ön bellek veri tabanını sıkıştırmak istediğinizden emin misiniz?\n"
 "(Bu işlem zaman alabilir)"
 
-#: plugins/coverbrowser.koplugin/main.lua:534
+#: plugins/coverbrowser.koplugin/main.lua:533
 msgid "Compact database"
 msgstr "Veri tabanını sıkıştır"
 
-#: plugins/coverbrowser.koplugin/main.lua:538
+#: plugins/coverbrowser.koplugin/main.lua:537
 msgid "Compacting cache database…"
 msgstr "Ön bellek veri tabanı sıkıştırılıyor…"
 
-#: plugins/coverbrowser.koplugin/main.lua:551
+#: plugins/coverbrowser.koplugin/main.lua:550
 msgid "Delete cache database"
 msgstr "Ön bellek veri tabanını sil"
 
-#: plugins/coverbrowser.koplugin/main.lua:558
+#: plugins/coverbrowser.koplugin/main.lua:557
 msgid ""
 "Are you sure that you want to delete cover and metadata cache?\n"
 "(This will also reset your display mode settings.)"
@@ -17044,7 +17055,7 @@ msgstr ""
 "Kapak ve üst veri ön belleğini silmek istediğinize emin misiniz?\n"
 "(Bu işlem görüntüleme kipi ayarlarınızı da sıfırlayacak)"
 
-#: plugins/coverbrowser.koplugin/main.lua:560
+#: plugins/coverbrowser.koplugin/main.lua:559
 msgid "Purge"
 msgstr "Temizle"
 
@@ -17360,60 +17371,64 @@ msgstr "Bilinmeyen kitap"
 msgid "Unknown Author"
 msgstr "Bilinmeyen yazar"
 
-#: plugins/exporter.koplugin/main.lua:137
+#: plugins/exporter.koplugin/main.lua:138
 #: plugins/exporter.koplugin/main.lua:332
 #, fuzzy
 msgid "Export all notes in current book"
 msgstr "Bu kitaptaki tüm notları ver"
 
-#: plugins/exporter.koplugin/main.lua:143
+#: plugins/exporter.koplugin/main.lua:144
 #: plugins/exporter.koplugin/main.lua:341
 msgid "Export all notes in all books in history"
 msgstr "Geçmişteki tüm kitaplardaki tüm notları dışa aktar"
 
-#: plugins/exporter.koplugin/main.lua:189
-#: plugins/exporter.koplugin/main.lua:211
-#: plugins/exporter.koplugin/main.lua:226
+#: plugins/exporter.koplugin/main.lua:190
+#: plugins/exporter.koplugin/main.lua:212
+#: plugins/exporter.koplugin/main.lua:227
 msgid "Exporting may take several seconds…"
 msgstr "Verme işlemi birkaç saniye sürebilir…"
 
-#: plugins/exporter.koplugin/main.lua:248
+#: plugins/exporter.koplugin/main.lua:249
 msgid "%1: Exported successfully."
 msgstr "%1: Dışa aktarıldı."
 
-#: plugins/exporter.koplugin/main.lua:254
+#: plugins/exporter.koplugin/main.lua:255
 msgid "%1: Exported to %2."
 msgstr "%1: %2 üzerine aktarıldı."
 
-#: plugins/exporter.koplugin/main.lua:261
+#: plugins/exporter.koplugin/main.lua:262
 msgid "%1: Failed to export."
 msgstr "%1: Dışa aktarılamadı."
 
-#: plugins/exporter.koplugin/main.lua:284
+#: plugins/exporter.koplugin/main.lua:285
 msgid "Share as %1"
 msgstr "%1 olarak paylaş"
 
-#: plugins/exporter.koplugin/main.lua:351
-msgid "Choose formats and services"
-msgstr "Biçimleri ve hizmetleri seçin"
-
-#: plugins/exporter.koplugin/main.lua:355
-msgid "Choose highlight styles"
-msgstr "Vurgu biçemini değiştir"
-
-#: plugins/exporter.koplugin/main.lua:360
-msgid "Choose export folder"
-msgstr "Dışa aktarma klasörünü seçin"
-
-#: plugins/exporter.koplugin/main.lua:367
-msgid "Use book folder for single export"
-msgstr ""
-
-#: plugins/exporter.koplugin/main.lua:382
+#: plugins/exporter.koplugin/main.lua:357
 msgid "Share all notes in this book"
 msgstr "Bu kitaptaki tüm notları paylaş"
 
-#: plugins/exporter.koplugin/main.lua:395
+#: plugins/exporter.koplugin/main.lua:406
+msgid "More..."
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:419
+msgid "Choose formats and services"
+msgstr "Biçimleri ve hizmetleri seçin"
+
+#: plugins/exporter.koplugin/main.lua:423
+msgid "Choose highlight styles"
+msgstr "Vurgu biçemini değiştir"
+
+#: plugins/exporter.koplugin/main.lua:428
+msgid "Choose export folder"
+msgstr "Dışa aktarma klasörünü seçin"
+
+#: plugins/exporter.koplugin/main.lua:435
+msgid "Use book folder for single export"
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:471
 msgid "Current export folder:"
 msgstr "Geçerli dışa aktarma klasörü:"
 
@@ -20185,17 +20200,17 @@ msgid "Last resume time"
 msgstr "Son sürdürme zamanı"
 
 #: plugins/systemstat.koplugin/main.lua:202
-#: plugins/systemstat.koplugin/main.lua:298
+#: plugins/systemstat.koplugin/main.lua:305
 msgid "Up time"
 msgstr "Çalışma süresi"
 
 #: plugins/systemstat.koplugin/main.lua:208
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:312
 msgid "Time spent awake"
 msgstr "Uyanık olarak geçirilen zaman"
 
 #: plugins/systemstat.koplugin/main.lua:217
-#: plugins/systemstat.koplugin/main.lua:315
+#: plugins/systemstat.koplugin/main.lua:322
 msgid "Time in suspend"
 msgstr "Beklemeye geçme süresi"
 
@@ -20244,116 +20259,120 @@ msgstr ""
 msgid "Pending jobs after being online"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:292
+#: plugins/systemstat.koplugin/main.lua:286
+msgid "Indexed files"
+msgstr ""
+
+#: plugins/systemstat.koplugin/main.lua:299
 msgid "System information"
 msgstr "Sistem bilgileri"
 
-#: plugins/systemstat.koplugin/main.lua:294
+#: plugins/systemstat.koplugin/main.lua:301
 msgid "  Number of processes"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:322
+#: plugins/systemstat.koplugin/main.lua:329
 msgid "Number of processors"
 msgstr ""
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:325
+#: plugins/systemstat.koplugin/main.lua:332
 msgid "  Total ticks (million)"
 msgstr "  Toplam imler (milyon)"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:330
+#: plugins/systemstat.koplugin/main.lua:337
 msgid "  Idle ticks (million)"
 msgstr "  Boş imler (milyon)"
 
-#: plugins/systemstat.koplugin/main.lua:335
-#: plugins/systemstat.koplugin/main.lua:413
+#: plugins/systemstat.koplugin/main.lua:342
+#: plugins/systemstat.koplugin/main.lua:420
 msgid "  Processor usage %"
 msgstr "  İşlemci kullanımı %"
 
-#: plugins/systemstat.koplugin/main.lua:341
+#: plugins/systemstat.koplugin/main.lua:348
 msgid "5 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:347
+#: plugins/systemstat.koplugin/main.lua:354
 msgid "15 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:352
+#: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % during awake"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:359
+#: plugins/systemstat.koplugin/main.lua:366
 msgid "Usage % since boot"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:369
+#: plugins/systemstat.koplugin/main.lua:376
 msgid "  Total memory (MB)"
 msgstr "  Toplam bellek (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:373
+#: plugins/systemstat.koplugin/main.lua:380
 msgid "  Free memory (MB)"
 msgstr "  Boş bellek (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:377
+#: plugins/systemstat.koplugin/main.lua:384
 msgid "  Available memory (MB)"
 msgstr "  Kullanılabilecek bellek (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:394
+#: plugins/systemstat.koplugin/main.lua:401
 msgid "Process"
 msgstr "Süreç"
 
-#: plugins/systemstat.koplugin/main.lua:396
+#: plugins/systemstat.koplugin/main.lua:403
 msgid "  ID"
 msgstr "  Kod"
 
-#: plugins/systemstat.koplugin/main.lua:409
+#: plugins/systemstat.koplugin/main.lua:416
 msgid "Total ticks"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:422
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "Priority / nice"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:429
+#: plugins/systemstat.koplugin/main.lua:436
 msgid "  Threads"
 msgstr "  İşlemler"
 
-#: plugins/systemstat.koplugin/main.lua:438
+#: plugins/systemstat.koplugin/main.lua:445
 msgid "  Virtual memory (MB)"
 msgstr "  Sanal bellek (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:448
+#: plugins/systemstat.koplugin/main.lua:455
 msgid "  RAM usage (MB)"
 msgstr "  RAM kullanımı (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:464
+#: plugins/systemstat.koplugin/main.lua:471
 msgid "Storage information"
 msgstr "Depolama bilgileri"
 
-#: plugins/systemstat.koplugin/main.lua:468
+#: plugins/systemstat.koplugin/main.lua:475
 msgid "  Unexpected"
 msgstr "  Beklenmeyen"
 
-#: plugins/systemstat.koplugin/main.lua:470
+#: plugins/systemstat.koplugin/main.lua:477
 msgid "  Mount point"
 msgstr "  Bağlama noktası"
 
-#: plugins/systemstat.koplugin/main.lua:471
+#: plugins/systemstat.koplugin/main.lua:478
 msgid "  Available"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:472
+#: plugins/systemstat.koplugin/main.lua:479
 msgid "  Total"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:473
+#: plugins/systemstat.koplugin/main.lua:480
 msgid "  Used percentage"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:499
-#: plugins/systemstat.koplugin/main.lua:514
-#: plugins/systemstat.koplugin/main.lua:527
+#: plugins/systemstat.koplugin/main.lua:506
+#: plugins/systemstat.koplugin/main.lua:521
+#: plugins/systemstat.koplugin/main.lua:534
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "Sistem istatistikleri"

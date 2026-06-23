@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-13 14:22-0700\n"
+"POT-Creation-Date: 2026-06-23 13:29-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,7 +33,7 @@ msgid ""
 msgstr ""
 
 #: reader.lua:223 frontend/apps/reader/modules/readertypography.lua:617
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/network/manager.lua:880
 msgid "Ignore"
 msgstr ""
 
@@ -172,7 +172,7 @@ msgstr ""
 #: frontend/ui/widget/networksetting.lua:371
 #: frontend/ui/widget/numberpickerwidget.lua:182
 #: frontend/ui/widget/pathchooser.lua:142 frontend/ui/widget/textviewer.lua:500
-#: frontend/ui/widget/touchmenu.lua:1420
+#: frontend/ui/widget/touchmenu.lua:1416
 #: plugins/autowarmth.koplugin/main.lua:929
 #: plugins/autowarmth.koplugin/main.lua:1268
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:379
@@ -1161,7 +1161,7 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:440
 #: frontend/apps/filemanager/filemanager.lua:924
 #: frontend/apps/filemanager/filemanager.lua:1637
-#: frontend/ui/widget/textviewer.lua:763 frontend/ui/widget/touchmenu.lua:1338
+#: frontend/ui/widget/textviewer.lua:765 frontend/ui/widget/touchmenu.lua:1334
 #: plugins/texteditor.koplugin/main.lua:495
 msgid "Open"
 msgstr ""
@@ -1294,7 +1294,7 @@ msgstr ""
 #: frontend/apps/reader/modules/readerbookmark.lua:1526
 #: frontend/apps/reader/modules/readerhighlight.lua:160
 #: frontend/ui/widget/dictquicklookup.lua:546
-#: frontend/ui/widget/touchmenu.lua:1427
+#: frontend/ui/widget/touchmenu.lua:1423
 #: plugins/opds.koplugin/opdsbrowser.lua:405
 #: plugins/opds.koplugin/opdsbrowser.lua:420
 #: plugins/opds.koplugin/opdsbrowser.lua:601
@@ -10124,7 +10124,7 @@ msgid "Advanced settings"
 msgstr ""
 
 #: frontend/ui/elements/common_info_menu_table.lua:23
-#: frontend/ui/widget/touchmenu.lua:1416 frontend/ui/widget/touchmenu.lua:1435
+#: frontend/ui/widget/touchmenu.lua:1412 frontend/ui/widget/touchmenu.lua:1431
 #: plugins/exporter.koplugin/target/joplin.lua:323
 #: plugins/exporter.koplugin/target/nextcloud.lua:153
 #: plugins/exporter.koplugin/target/xmnote.lua:71
@@ -10330,13 +10330,13 @@ msgid "Navigation"
 msgstr ""
 
 #: frontend/ui/elements/common_settings_menu_table.lua:285
-#: frontend/ui/network/manager.lua:862 plugins/kosync.koplugin/main.lua:84
+#: frontend/ui/network/manager.lua:877 plugins/kosync.koplugin/main.lua:84
 #: plugins/kosync.koplugin/main.lua:285 plugins/kosync.koplugin/main.lua:322
 msgid "Prompt"
 msgstr ""
 
 #: frontend/ui/elements/common_settings_menu_table.lua:285
-#: frontend/ui/network/manager.lua:862
+#: frontend/ui/network/manager.lua:877
 msgid "prompt"
 msgstr ""
 
@@ -11480,134 +11480,146 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:71 frontend/ui/network/manager.lua:528
+#: frontend/ui/network/manager.lua:71 frontend/ui/network/manager.lua:537
 msgid "Error connecting to the network"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:493
+#: frontend/ui/network/manager.lua:502
 msgid "Turning on Wi-Fi…"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:537
+#: frontend/ui/network/manager.lua:546
 msgid ""
 "A previous connection attempt is still ongoing, this one will be ignored!"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:552
+#: frontend/ui/network/manager.lua:561
 msgid "Turning off Wi-Fi…"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:598
+#: frontend/ui/network/manager.lua:586
+msgid "You are connected to Wi-Fi, but have no Internet access."
+msgstr ""
+
+#: frontend/ui/network/manager.lua:588
+msgid "Do you want to select another Wi-Fi network?"
+msgstr ""
+
+#: frontend/ui/network/manager.lua:589
+msgid "Select Wi-Fi"
+msgstr ""
+
+#: frontend/ui/network/manager.lua:619
 msgid "Network connection is required to perform the action."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:600
+#: frontend/ui/network/manager.lua:621
 msgid "Do you want to turn on Wi-Fi?"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:601 frontend/ui/network/manager.lua:861
+#: frontend/ui/network/manager.lua:622 frontend/ui/network/manager.lua:876
 #: plugins/autowarmth.koplugin/main.lua:1241
 #: plugins/gestures.koplugin/main.lua:1324
 msgid "Turn on"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:657
+#: frontend/ui/network/manager.lua:678
 msgid "Action will be performed after network being online"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:672
+#: frontend/ui/network/manager.lua:693
 msgid "Action will be performed after network being connected"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:711
+#: frontend/ui/network/manager.lua:732
 msgid "Wi-Fi settings"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:723
+#: frontend/ui/network/manager.lua:744
 msgid "Wi-Fi connection"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:769
+#: frontend/ui/network/manager.lua:784
 msgid "HTTP proxy %1"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:785
+#: frontend/ui/network/manager.lua:800
 msgid ""
 "Tip:\n"
 "Long press on this menu entry to configure HTTP proxy."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:791
+#: frontend/ui/network/manager.lua:806
 msgid "Enter proxy address"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:802
+#: frontend/ui/network/manager.lua:817
 msgid "Disable Wi-Fi connection when inactive"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:805
+#: frontend/ui/network/manager.lua:820
 msgid ""
 "This is unlikely to function properly on a stock Kindle, given how much "
 "network activity the framework generates."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:808
+#: frontend/ui/network/manager.lua:823
 msgid ""
 "This will automatically turn Wi-Fi off after a generous period of network "
 "inactivity, without disrupting workflows that require a network connection, "
 "so you can just keep reading without worrying about battery drain."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:821
+#: frontend/ui/network/manager.lua:836
 msgid "Restore Wi-Fi connection on resume"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:824
+#: frontend/ui/network/manager.lua:839
 msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
 "startup or on resume if Wi-Fi used to be enabled the last time you used "
 "KOReader, and you did not explicitly disable it."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:840
+#: frontend/ui/network/manager.lua:855
 msgid "Network info"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:861
+#: frontend/ui/network/manager.lua:876
 msgid "turn on"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/network/manager.lua:880
 msgid "ignore"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:883
+#: frontend/ui/network/manager.lua:898
 msgid "Action when Wi-Fi is off: %1"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:901
+#: frontend/ui/network/manager.lua:916
 msgid "Automatically connect to the known Wi-Fi"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:903
+#: frontend/ui/network/manager.lua:918
 msgid ""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:969
+#: frontend/ui/network/manager.lua:980
 msgid "No available wifi networks found."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:978
+#: frontend/ui/network/manager.lua:989
 msgid "Scanning for networks…"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:1080
+#: frontend/ui/network/manager.lua:1086
 msgid "Connecting to network %1…"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:1081
+#: frontend/ui/network/manager.lua:1087
 msgid "Connected to network %1"
 msgstr ""
 
@@ -12962,7 +12974,7 @@ msgstr ""
 
 #. @translators %1 is the current page. %2 is the total number of pages. In some languages a good translation might need to reverse this order, for instance: "Total %2, page %1".
 #: frontend/ui/widget/keyvaluepage.lua:764 frontend/ui/widget/menu.lua:1101
-#: frontend/ui/widget/touchmenu.lua:797
+#: frontend/ui/widget/touchmenu.lua:793
 #: plugins/coverbrowser.koplugin/listmenu.lua:384
 #: plugins/statistics.koplugin/calendarview.lua:885
 #: plugins/vocabbuilder.koplugin/main.lua:1830
@@ -13284,7 +13296,7 @@ msgstr ""
 msgid "Text viewer"
 msgstr ""
 
-#: frontend/ui/widget/textviewer.lua:758
+#: frontend/ui/widget/textviewer.lua:760
 #: plugins/texteditor.koplugin/main.lua:490
 msgid ""
 "This file is %2:\n"
@@ -13296,29 +13308,29 @@ msgid ""
 "Opening big files may take some time."
 msgstr ""
 
-#: frontend/ui/widget/touchmenu.lua:1283
+#: frontend/ui/widget/touchmenu.lua:1279
 msgid "Walking you there…"
 msgstr ""
 
-#: frontend/ui/widget/touchmenu.lua:1346
+#: frontend/ui/widget/touchmenu.lua:1342
 msgid "Walk me there"
 msgstr ""
 
-#: frontend/ui/widget/touchmenu.lua:1375
+#: frontend/ui/widget/touchmenu.lua:1371
 #: plugins/calibre.koplugin/search.lua:530
 #: plugins/opds.koplugin/opdsbrowser.lua:605
 msgid "Search results"
 msgstr ""
 
-#: frontend/ui/widget/touchmenu.lua:1405
+#: frontend/ui/widget/touchmenu.lua:1401
 msgid "No menus containing '%1' found."
 msgstr ""
 
-#: frontend/ui/widget/touchmenu.lua:1412
+#: frontend/ui/widget/touchmenu.lua:1408
 msgid "Search menu entry"
 msgstr ""
 
-#: frontend/ui/widget/touchmenu.lua:1414
+#: frontend/ui/widget/touchmenu.lua:1410
 msgid ""
 "Search for a menu entry containing the following text (case insensitive)."
 msgstr ""
