@@ -24,6 +24,7 @@ for i in frontend/ui/data/onetime_migration.lua \
          plugins/gestures.koplugin/migration.lua \
          plugins/timesync.koplugin \
          plugins/weather.koplugin/settings.lua \
+         plugins/simpleui.koplugin \
          zsync2 \
          spinning_zsync ; do
   echo "$2/koreader/$i"
