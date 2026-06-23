@@ -763,4 +763,55 @@ describe("Readerfooter module", function()
         readerui:onClose()
     end)
     ]]--
+
+    it("should update footer when NetworkStateChanged event is broadcasted", function()
+        local sample_epub = "spec/front/unit/data/juliet.epub"
+        local settings = G_reader_settings:read("footer")
+        settings.wifi_status = true
+        settings.item_prefix = "icons"
+        settings.all_at_once = true
+        G_reader_settings:save("footer", settings)
+
+        local readerui = ReaderUI:new{
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_epub),
+        }
+        local footer = readerui.view.footer
+
+        -- Mock NetworkMgr status methods
+        local NetworkMgr = require("ui/network/manager")
+        local original_isWifiOn = NetworkMgr.isWifiOn
+        local original_isConnected = NetworkMgr.isConnected
+        local original_isOnline = NetworkMgr.isOnline
+
+        NetworkMgr.isWifiOn = function() return false end
+        NetworkMgr.isConnected = function() return false end
+        NetworkMgr.isOnline = function() return false end
+
+        -- Force update footer to apply mock initial status
+        footer:onUpdateFooter()
+
+        -- Default wifi status should be network_off icon "\u{E71C}"
+        assert.truthy(footer.footer_text.text:find("\u{E71C}"))
+
+        -- Now change mock status to online
+        NetworkMgr.isWifiOn = function() return true end
+        NetworkMgr.isConnected = function() return true end
+        NetworkMgr.isOnline = function() return true end
+
+        -- Broadcast NetworkStateChanged event
+        UIManager:broadcastEvent("NetworkStateChanged")
+
+        -- Footer text should now contain network_online icon "\u{EC87}"
+        assert.truthy(footer.footer_text.text:find("\u{EC87}"))
+        assert.falsy(footer.footer_text.text:find("\u{E71C}"))
+
+        -- Restore original NetworkMgr methods
+        NetworkMgr.isWifiOn = original_isWifiOn
+        NetworkMgr.isConnected = original_isConnected
+        NetworkMgr.isOnline = original_isOnline
+
+        readerui:onExit()
+        readerui:onClose()
+    end)
 end)
