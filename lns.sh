@@ -59,6 +59,8 @@ ln -rsf "origin/test" "linux/test"
 ln -rsf "linux/spec" "linux/spec/front"
 ln -rsf "linux/base/spec" "linux/spec/base"
 ln -rsf "linux/test" "linux/spec/unit/data"
+ln -rsf "origin.linux/data/tessdata" "linux/data/tessdata"
+
 
 # --- 2. PW2 ---
 echo "Configuring pw2/..."
