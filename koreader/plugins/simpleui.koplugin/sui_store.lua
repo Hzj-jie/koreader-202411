@@ -79,6 +79,15 @@ local function _getStore()
       read = function(_, k)
         return _mem[k]
       end,
+      readTableRef = function(_, k, default)
+        if _mem[k] == nil then
+          _mem[k] = default or {}
+        end
+        return _mem[k]
+      end,
+      readTable = function(_, k)
+        return _mem[k]
+      end,
       save = function(_, k, v)
         _mem[k] = v
       end,
@@ -104,6 +113,14 @@ local SUISettings = {}
 --- Read a value.  Returns nil when the key is absent, or default_value if provided.
 function SUISettings:get(key, default_value)
   return _getStore():read(key, default_value)
+end
+
+function SUISettings:readTableRef(key, default)
+  return _getStore():readTableRef(key, default)
+end
+
+function SUISettings:readTable(key)
+  return _getStore():readTable(key)
 end
 
 --- Write a value and persist to disk immediately.

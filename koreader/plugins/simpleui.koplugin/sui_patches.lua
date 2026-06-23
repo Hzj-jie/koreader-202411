@@ -199,6 +199,18 @@ end
 function M.patchFileManagerClass(plugin)
   local FileManager = require("apps/filemanager/filemanager")
 
+  if not FileManager.addFileDialogButtons then
+    FileManager.addFileDialogButtons = function(self, row_id, row_func)
+      FileManager.file_dialog_added_buttons = FileManager.file_dialog_added_buttons
+        or { index = {} }
+      if FileManager.file_dialog_added_buttons.index[row_id] == nil then
+        table.insert(FileManager.file_dialog_added_buttons, row_func)
+        FileManager.file_dialog_added_buttons.index[row_id] =
+          #FileManager.file_dialog_added_buttons
+      end
+    end
+  end
+
   -- Refresh the shared "live plugin" pointer on every call -- including
   -- when setup_already_patched is true below.  This is what lets the
   -- one-time-installed setupLayout/onShow/onPathChanged closures (which
@@ -483,6 +495,47 @@ function M.patchFileManagerClass(plugin)
       end
 
       orig_setupLayout(fm_self)
+
+      local fc = fm_self.file_chooser
+      if fc and fc.showFileDialog then
+        local orig_showFileDialog = fc.showFileDialog
+        fc.showFileDialog = function(fc_self, item)
+          orig_showFileDialog(fc_self, item)
+
+          local added = FileManager.file_dialog_added_buttons
+          if added and #added > 0 and fc_self.file_dialog then
+            local file = item.path
+            local is_file = item.is_file
+            local book_props = fc_self.book_props
+
+            local orig_title = fc_self.file_dialog.title
+            local orig_title_align = fc_self.file_dialog.title_align
+            local orig_buttons = fc_self.file_dialog.buttons
+
+            local changed = false
+            for _, row_func in ipairs(added) do
+              local row = row_func(file, is_file, book_props)
+              if row then
+                table.insert(orig_buttons, row)
+                changed = true
+              end
+            end
+
+            if changed then
+              UIManager:close(fc_self.file_dialog)
+              UIManager:clearRenderStack()
+
+              local ButtonDialog = require("ui/widget/buttondialog")
+              fc_self.file_dialog = ButtonDialog:new({
+                title = orig_title,
+                title_align = orig_title_align,
+                buttons = orig_buttons,
+              })
+              UIManager:show(fc_self.file_dialog)
+            end
+          end
+        end
+      end
 
       -- Re-apply title-bar customisations to the fresh TitleBar instance that
       -- orig_setupLayout just created.  We must use reapply (restore + apply)

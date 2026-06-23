@@ -224,12 +224,10 @@ local function _doWifiToggle(plugin)
     pcall(function()
       NetworkMgr:turnOffWifi()
     end)
-    UIManager:show(
-      require("ui/widget/infomessage"):new({
-        text = _("Wi-Fi off"),
-        timeout = 1,
-      })
-    )
+    UIManager:show(require("ui/widget/infomessage"):new({
+      text = _("Wi-Fi off"),
+      timeout = 1,
+    }))
   else
     Config.wifi_optimistic = true
     local ok_on, err = pcall(function()

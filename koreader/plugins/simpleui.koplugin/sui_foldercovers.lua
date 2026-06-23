@@ -1003,12 +1003,10 @@ local function _createCollectionFromSeriesGroup(vpath, series_name)
 
   local series_items = _sg_items_cache[vpath]
   if not series_items or #series_items == 0 then
-    UIManager:show(
-      InfoMessage:new({
-        text = _("No books found in this series."),
-        timeout = 2,
-      })
-    )
+    UIManager:show(InfoMessage:new({
+      text = _("No books found in this series."),
+      timeout = 2,
+    }))
     return
   end
 
@@ -1075,12 +1073,10 @@ local function _openSeriesGroupCoverPicker(vpath, menu, BookInfoManager)
 
   local series_items = _sg_items_cache[vpath]
   if not series_items or #series_items == 0 then
-    UIManager:show(
-      InfoMessage:new({
-        text = _("No books found in this series."),
-        timeout = 2,
-      })
-    )
+    UIManager:show(InfoMessage:new({
+      text = _("No books found in this series."),
+      timeout = 2,
+    }))
     return
   end
 
@@ -1148,12 +1144,10 @@ local function _openFolderCoverPicker(dir_path, menu, BookInfoManager)
   _collectBooks(menu, dir_path, 1, max_depth, books)
 
   if #books == 0 then
-    UIManager:show(
-      InfoMessage:new({
-        text = _("No books found in this folder."),
-        timeout = 2,
-      })
-    )
+    UIManager:show(InfoMessage:new({
+      text = _("No books found in this folder."),
+      timeout = 2,
+    }))
     return
   end
 
