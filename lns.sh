@@ -39,6 +39,14 @@ link_dir_contents() {
 
 echo "Linking platforms..."
 
+# Clean target directories of all existing symlinks first
+for d in linux pw2 legacy kobo; do
+    if [ -d "$d" ]; then
+        echo "Cleaning existing symlinks in $d/..."
+        find "$d" -type l -exec rm -f {} +
+    fi
+done
+
 # --- 1. Linux ---
 echo "Configuring linux/..."
 # Linux specific pruning: scripts, settings, spinning_zsync
