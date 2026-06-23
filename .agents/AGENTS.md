@@ -10,7 +10,7 @@
     *   Use `bug: #<issue-id>` if the change is related to, or a part of, the work for the issue.
 *   **Plugin Development & Import Guidelines**: When importing new plugins, modifying existing ones, or handling target-specific exclusions/linking, you must read and adhere to the guidelines documented in [plugin_import_guide.md](file:///.agents/plugin_import_guide.md).
 *   **Test Spec Files Location**: Never add test spec files into the `koreader/` directory, unless they are coming from external plugins. Add tests into the `linux/` folder instead.
-*   **Symbolic Link Propagation (`lns.sh`)**: When adding or removing files from the `koreader/` directory, you must run the `./lns.sh` script to propagate the symbolic links to target device platform folders (e.g. `linux/`, `pw2/`, `legacy/`, etc.).
+*   **Symbolic Link Propagation (`lns.sh`)**: When adding or removing files from the `koreader/` directory, you must run the `./lns.sh` script to propagate the symbolic links to target device platform folders (e.g. `linux/`, `pw2/`, `legacy/`, etc.). Note that you do NOT need to run `./lns.sh` if you are only modifying the content of an existing file (as symlinks automatically reflect the modified file contents).
 *   **Tracking Removed Files**: When deleting files from the repository that were previously present under `koreader/`, you must update [remove-removed-files.sh](file://../remove-removed-files.sh) to include their paths so they can be cleaned up on target devices.
 
 
