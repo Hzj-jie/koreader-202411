@@ -121,10 +121,10 @@ if not test_file then
     if plugins_attr and plugins_attr.mode == "directory" then
         for plugin in lfs.dir(plugins_dir) do
             if plugin ~= "." and plugin ~= ".." then
-                local spec_dir = plugins_dir .. "/" .. plugin .. "/spec/unit"
-                local spec_attr = lfs.attributes(spec_dir)
-                if spec_attr and spec_attr.mode == "directory" then
-                    find_specs(spec_dir, spec_files)
+                local plugin_path = plugins_dir .. "/" .. plugin
+                local attr = lfs.attributes(plugin_path)
+                if attr and attr.mode == "directory" then
+                    find_specs(plugin_path, spec_files)
                 end
             end
         end
