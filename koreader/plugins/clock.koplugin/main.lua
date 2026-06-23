@@ -13,6 +13,7 @@ local Size = require("ui/size")
 local gettext = require("gettext")
 local Clock = InputContainer:new({
   name = "clock",
+  disabled = true,
   is_doc_only = false,
   modal = true,
   width = Screen:getWidth(),

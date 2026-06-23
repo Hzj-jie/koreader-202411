@@ -22,6 +22,7 @@ local T = ffiutil.template
 
 local Weather = WidgetContainer:new({
   name = "weather",
+  disabled = true,
   settings_file = DataStorage:getSettingsDir() .. "/weather.lua",
   settings = nil,
   default_postal_code = "X0A0H0",
