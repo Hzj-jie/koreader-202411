@@ -54,7 +54,7 @@ local Game2048Widget = InputContainer:extend({
   bold = false,
 
   -- Tile color palette
-  palette = require("ui.theme.game2048widgettheme")[1].palette,
+  palette = require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")[1].palette,
   -- Other settings
   new_tile_delay = 0.1,
 

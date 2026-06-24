@@ -17,10 +17,10 @@ local HorizontalGroup = require("ui/widget/horizontalgroup")
 local TitleBarWidget = require("ui/widget/titlebar")
 local VerticalGroup = require("ui/widget/verticalgroup")
 
-local AI = require("ai")
-local CheckersBoard = require("board")
-local Game = require("game")
-local SettingsWidget = require("settingswidget")
+local AI = require("plugins/checkers.koplugin/ai")
+local CheckersBoard = require("plugins/checkers.koplugin/board")
+local Game = require("plugins/checkers.koplugin/game")
+local SettingsWidget = require("plugins/checkers.koplugin/settingswidget")
 local gettext = require("gettext")
 
 -- ── Icon installation ─────────────────────────────────────────────────────────

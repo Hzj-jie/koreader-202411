@@ -2,7 +2,7 @@
 -- Renders an 8×8 grid; only the 32 dark squares are interactive.
 
 local Blitbuffer = require("ffi/blitbuffer")
-local ButtonTable = require("buttontable")
+local ButtonTable = require("plugins/checkers.koplugin/buttontable")
 local Device = require("device")
 local Geom = require("ui/geometry")
 local Screen = Device.screen

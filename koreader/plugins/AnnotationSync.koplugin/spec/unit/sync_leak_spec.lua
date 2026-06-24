@@ -45,8 +45,8 @@ describe("Sync Document Leak Verification", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
-    local SyncManager = require("manager")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
+    local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
 
     -- Mock Plugin object
     local mock_plugin = {

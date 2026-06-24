@@ -14,8 +14,8 @@ describe("Background Sync Behavior", function()
     Trapper = require("ui/trapper")
     json = require("json")
 
-    test_utils = require("spec/unit/test_utils")
-    remote = require("remote")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
+    remote = require("plugins/AnnotationSync.koplugin/remote")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
 
@@ -129,7 +129,7 @@ describe("Background Sync Behavior", function()
     end
 
     -- Mock annotations.sync_callback
-    local annotations = require("annotations")
+    local annotations = require("plugins/AnnotationSync.koplugin/annotations")
     local old_sync_callback = annotations.sync_callback
     annotations.sync_callback = function()
       return true, {}

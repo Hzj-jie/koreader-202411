@@ -12,11 +12,11 @@ local json = require("json")
 local logger = require("logger")
 local util = require("util")
 
-local SettingsSelection = require("settings_selection")
-local SyncManager = require("manager")
-local annotations = require("annotations")
-local menus = require("menus")
-local utils = require("utils")
+local SettingsSelection = require("plugins/AnnotationSync.koplugin/settings_selection")
+local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
+local annotations = require("plugins/AnnotationSync.koplugin/annotations")
+local menus = require("plugins/AnnotationSync.koplugin/menus")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local has_syncservice, SyncService =
   pcall(require, "apps/cloudstorage/syncservice")

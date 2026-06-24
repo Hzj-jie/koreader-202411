@@ -13,7 +13,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
     Geom = require("ui/geometry")
@@ -23,11 +23,11 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     DataStorage = require("datastorage")
     json = require("json")
     util = require("util")
-    annotations_mod = require("annotations")
+    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db = require("spec/unit/highlight_db")
-    highlight_pdf_db = require("spec/unit/highlight_pdf_db")
-    AnnotationSyncPlugin = require("main")
+    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    highlight_pdf_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_pdf_db")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     _G.old_ImageViewer_new = test_utils.mock_image_viewer()

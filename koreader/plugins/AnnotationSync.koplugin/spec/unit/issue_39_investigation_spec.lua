@@ -10,7 +10,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     Geom = require("ui/geometry")
     ReaderUI = require("apps/reader/readerui")
@@ -18,10 +18,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
     util = require("util")
-    annotations_mod = require("annotations")
+    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db = require("spec/unit/highlight_db")
-    AnnotationSyncPlugin = require("main")
+    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     local logger = require("logger")
     logger:setLevel(logger.levels.dbg)

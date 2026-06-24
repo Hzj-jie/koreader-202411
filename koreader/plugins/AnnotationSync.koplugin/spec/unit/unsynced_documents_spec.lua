@@ -7,7 +7,7 @@ describe("Unsynced / Pending Documents Feature", function()
 
   setup(function()
     require("commonrequire")
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
@@ -19,7 +19,7 @@ describe("Unsynced / Pending Documents Feature", function()
     json = require("json")
     util = require("util")
 
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     os.execute("mkdir -p " .. test_data_dir .. "/plugins")
@@ -95,8 +95,8 @@ describe("Unsynced / Pending Documents Feature", function()
       end
 
       local messages = {}
-      local old_show_msg = require("utils").show_msg
-      require("utils").show_msg = function(msg)
+      local old_show_msg = require("plugins/AnnotationSync.koplugin/utils").show_msg
+      require("plugins/AnnotationSync.koplugin/utils").show_msg = function(msg)
         table.insert(messages, msg)
       end
 
@@ -119,7 +119,7 @@ describe("Unsynced / Pending Documents Feature", function()
       SyncService.sync = old_sync
       sync_instance.manager.getDocumentByFile = old_getDoc
       require("ui/widget/confirmbox").new = old_ConfirmBox_new
-      require("utils").show_msg = old_show_msg
+      require("plugins/AnnotationSync.koplugin/utils").show_msg = old_show_msg
       os.remove(file2)
     end
   )
@@ -130,7 +130,7 @@ describe("Unsynced / Pending Documents Feature", function()
       local file1 = readerui.document.file
       sync_instance.manager:addToChangedDocumentsFile(file1)
 
-      local menus = require("menus")
+      local menus = require("plugins/AnnotationSync.koplugin/menus")
       local Menu = require("ui/widget/menu")
       local ConfirmBox = require("ui/widget/confirmbox")
 

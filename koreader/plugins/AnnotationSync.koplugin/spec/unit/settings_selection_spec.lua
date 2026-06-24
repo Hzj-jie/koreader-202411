@@ -9,11 +9,11 @@ describe("AnnotationSync Settings Selection", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     UIManager = require("ui/uimanager")
     util = require("util")
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
   end)

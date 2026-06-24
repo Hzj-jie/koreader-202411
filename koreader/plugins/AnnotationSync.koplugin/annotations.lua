@@ -1,7 +1,7 @@
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
-local utils = require("utils")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local M = {}
 

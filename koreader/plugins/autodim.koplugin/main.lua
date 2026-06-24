@@ -26,8 +26,7 @@ local AUTODIM_DURATION_S = 1
 local AUTODIM_END_FL = 1
 -- Kindle auto-shuts off in roughly 10 minutes, cut it into half.
 local DEFAULT_AUTODIM_STARTTIME_M = 5
--- Avoid caching the common _meta.lua file name as a module.
-local HELP_TEXT = dofile("plugins/autodim.koplugin/_meta.lua").description
+local HELP_TEXT = require("plugins/autodim.koplugin/_meta").description
 
 local AutoDim = WidgetContainer:extend({
   name = "autodim",

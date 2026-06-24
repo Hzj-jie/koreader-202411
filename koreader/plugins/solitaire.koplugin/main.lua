@@ -2,7 +2,7 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 
-local SolitaireUI = require("solitaireui")
+local SolitaireUI = require("plugins/solitaire.koplugin/solitaireui")
 
 local Solitaire = WidgetContainer:extend({
   name = "solitaire",

@@ -1,5 +1,5 @@
 local Blitbuffer = require("ffi/blitbuffer")
-local Button = require("button")
+local Button = require("plugins/kochess.koplugin/button")
 local Device = require("device")
 local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")

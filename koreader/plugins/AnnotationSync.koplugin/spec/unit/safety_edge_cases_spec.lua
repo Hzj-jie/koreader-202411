@@ -10,7 +10,7 @@ describe("AnnotationSync Safety Edge Cases", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     Geom = require("ui/geometry")
     ReaderUI = require("apps/reader/readerui")
@@ -18,7 +18,7 @@ describe("AnnotationSync Safety Edge Cases", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
 
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     _G.old_ImageViewer_new = test_utils.mock_image_viewer()

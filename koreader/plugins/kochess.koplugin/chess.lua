@@ -1,4 +1,4 @@
-local _Chess = require("chess/src/chess")
+local _Chess = require("plugins/kochess.koplugin/chess/src/chess")
 
 local Chess = {}
 Chess.__index = Chess

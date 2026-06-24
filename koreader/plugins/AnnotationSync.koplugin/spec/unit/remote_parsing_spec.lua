@@ -8,8 +8,8 @@ describe("Remote Response Parsing (Issue #39)", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    annotations_mod = require("annotations")
-    test_utils = require("spec/unit/test_utils")
+    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     json = require("json")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -100,7 +100,7 @@ describe("Remote Response Parsing (Issue #39)", function()
   end)
 
   it("normalizes old progress format and preserves 'pos'", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_data = {
       device = "OldDevice",
       page = 10,

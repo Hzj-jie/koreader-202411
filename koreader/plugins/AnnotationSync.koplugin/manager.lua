@@ -12,10 +12,10 @@ local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
 local lfs = require("libs/libkoreader-lfs")
 
-local annotations = require("annotations")
-local menus = require("menus")
-local remote = require("remote")
-local utils = require("utils")
+local annotations = require("plugins/AnnotationSync.koplugin/annotations")
+local menus = require("plugins/AnnotationSync.koplugin/menus")
+local remote = require("plugins/AnnotationSync.koplugin/remote")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local SyncManager = {}
 

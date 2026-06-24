@@ -10,10 +10,10 @@ local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 
-local Game = require("slidepuzzle_game")
-local I18n = require("slidepuzzle_i18n")
-local Screen = require("slidepuzzle_screen")
-local Settings = require("slidepuzzle_settings")
+local Game = require("plugins/slidepuzzle.koplugin/slidepuzzle_game")
+local I18n = require("plugins/slidepuzzle.koplugin/slidepuzzle_i18n")
+local Screen = require("plugins/slidepuzzle.koplugin/slidepuzzle_screen")
+local Settings = require("plugins/slidepuzzle.koplugin/slidepuzzle_settings")
 
 local SlidePuzzle = WidgetContainer:extend({
   name = "slidepuzzle",

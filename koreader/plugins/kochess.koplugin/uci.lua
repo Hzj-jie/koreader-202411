@@ -1,5 +1,5 @@
 local Logger = require("logger")
-local Utils = require("utils")
+local Utils = require("plugins/kochess.koplugin/utils")
 
 local M = {}
 

@@ -8,8 +8,8 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    annotations_mod = require("annotations")
-    test_utils = require("spec/unit/test_utils")
+    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     docsettings = require("frontend/docsettings")
     json = require("json")
 

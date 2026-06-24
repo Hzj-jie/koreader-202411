@@ -10,10 +10,10 @@ describe("AnnotationSync internationalization", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     _ = require("gettext")
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
   end)
 
   before_each(function()

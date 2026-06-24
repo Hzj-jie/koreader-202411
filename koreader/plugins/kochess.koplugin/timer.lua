@@ -1,7 +1,7 @@
 -- chess_timer.lua
 -- A Lua module for a chess timer that counts down from a specified duration for each player.
-local Chess = require("chess/src/chess")
-local Utils = require("utils")
+local Chess = require("plugins/kochess.koplugin/chess/src/chess")
+local Utils = require("plugins/kochess.koplugin/utils")
 
 local Timer = {}
 local TIMER_TIMEOUT = 10

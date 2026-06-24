@@ -10,7 +10,7 @@ describe("Dropbox Sync Reproduction", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     Geom = require("ui/geometry")
     ReaderUI = require("apps/reader/readerui")
@@ -18,9 +18,9 @@ describe("Dropbox Sync Reproduction", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
     util = require("util")
-    annotations_mod = require("annotations")
+    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     os.execute("mkdir -p " .. test_data_dir .. "/plugins")

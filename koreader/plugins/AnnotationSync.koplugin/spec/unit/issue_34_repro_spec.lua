@@ -7,7 +7,7 @@ describe("Issue #34 Reproduction & Fix Verification", function()
 
   setup(function()
     require("commonrequire")
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
@@ -20,7 +20,7 @@ describe("Issue #34 Reproduction & Fix Verification", function()
     json = require("json")
     util = require("util")
 
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     os.execute("mkdir -p " .. test_data_dir .. "/plugins")
@@ -61,8 +61,8 @@ describe("Issue #34 Reproduction & Fix Verification", function()
 
       -- 3. Run Sync All
       local messages = {}
-      local old_show_msg = require("utils").show_msg
-      require("utils").show_msg = function(msg)
+      local old_show_msg = require("plugins/AnnotationSync.koplugin/utils").show_msg
+      require("plugins/AnnotationSync.koplugin/utils").show_msg = function(msg)
         table.insert(messages, msg)
       end
 
@@ -79,7 +79,7 @@ describe("Issue #34 Reproduction & Fix Verification", function()
       end
 
       SyncService.sync = old_sync
-      require("utils").show_msg = old_show_msg
+      require("plugins/AnnotationSync.koplugin/utils").show_msg = old_show_msg
 
       assert.is_true(
         found,

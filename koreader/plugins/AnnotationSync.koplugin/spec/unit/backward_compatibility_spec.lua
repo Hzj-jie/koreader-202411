@@ -9,12 +9,12 @@ describe("AnnotationSync Backward Compatibility", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
-    AnnotationSyncPlugin = require("main")
-    remote = require("remote")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
+    remote = require("plugins/AnnotationSync.koplugin/remote")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
   end)
@@ -64,7 +64,7 @@ describe("AnnotationSync Backward Compatibility", function()
       end
 
       -- 3. Mock annotations.sync_callback
-      local annotations = require("annotations")
+      local annotations = require("plugins/AnnotationSync.koplugin/annotations")
       local old_sync_callback = annotations.sync_callback
       annotations.sync_callback = function()
         return true, {}

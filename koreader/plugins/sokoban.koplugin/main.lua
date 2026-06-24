@@ -19,17 +19,17 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = Device.screen
 local gettext = require("gettext")
 
-local Board = require("sokoban_board")
-local Game = require("sokoban_game")
+local Board = require("plugins/sokoban.koplugin/sokoban_board")
+local Game = require("plugins/sokoban.koplugin/sokoban_game")
 local IconButton = require("ui/widget/iconbutton")
-local SettingsWidget = require("sokoban_settings")
+local SettingsWidget = require("plugins/sokoban.koplugin/sokoban_settings")
 
 local LEVEL_SETS = {
-  require("levels/microban"),
-  require("levels/minicosmos"),
-  require("levels/microcosmos"),
-  require("levels/original-plus-extra"),
-  require("levels/sasquatch"),
+  require("plugins/sokoban.koplugin/levels/microban"),
+  require("plugins/sokoban.koplugin/levels/minicosmos"),
+  require("plugins/sokoban.koplugin/levels/microcosmos"),
+  require("plugins/sokoban.koplugin/levels/original-plus-extra"),
+  require("plugins/sokoban.koplugin/levels/sasquatch"),
 }
 
 local Sokoban = WidgetContainer:extend({

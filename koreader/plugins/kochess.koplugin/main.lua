@@ -29,11 +29,11 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local infoMessage = require("ui/widget/infomessage")
 
-local Chess = require("chess")
-local ChessBoard = require("board")
-local SettingsWidget = require("settingswidget")
-local Timer = require("timer")
-local Uci = require("uci")
+local Chess = require("plugins/kochess.koplugin/chess")
+local ChessBoard = require("plugins/kochess.koplugin/board")
+local SettingsWidget = require("plugins/kochess.koplugin/settingswidget")
+local Timer = require("plugins/kochess.koplugin/timer")
+local Uci = require("plugins/kochess.koplugin/uci")
 local gettext = require("gettext")
 
 -- RUTA ABSOLUTA

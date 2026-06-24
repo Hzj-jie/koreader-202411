@@ -5,8 +5,8 @@ local T = require("ffi/util").template
 local gettext = require("gettext")
 local util = require("util")
 
-local annotations = require("annotations")
-local utils = require("utils")
+local annotations = require("plugins/AnnotationSync.koplugin/annotations")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local has_syncservice, SyncService =
   pcall(require, "apps/cloudstorage/syncservice")

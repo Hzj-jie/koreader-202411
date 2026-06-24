@@ -21,10 +21,10 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local util = require("util")
 local T = require("ffi/util").template
 
-local BoardWidget = require("slidepuzzle_board")
-local Game = require("slidepuzzle_game")
-local I18n = require("slidepuzzle_i18n")
-local Settings = require("slidepuzzle_settings")
+local BoardWidget = require("plugins/slidepuzzle.koplugin/slidepuzzle_board")
+local Game = require("plugins/slidepuzzle.koplugin/slidepuzzle_game")
+local I18n = require("plugins/slidepuzzle.koplugin/slidepuzzle_i18n")
+local Settings = require("plugins/slidepuzzle.koplugin/slidepuzzle_settings")
 
 local TICK_INTERVAL = 1
 

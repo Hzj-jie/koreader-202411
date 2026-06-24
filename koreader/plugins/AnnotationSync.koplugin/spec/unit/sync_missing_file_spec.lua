@@ -94,7 +94,7 @@ end
 
 local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
 package.path = plugin_path .. ";" .. package.path
-local SyncManager = require("manager")
+local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
 
 describe("Sync Missing File Handling", function()
   local manager
@@ -102,7 +102,7 @@ describe("Sync Missing File Handling", function()
   local old_getDataDir
 
   setup(function()
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
 
     -- Mock Plugin object
     local mock_plugin = {

@@ -20,7 +20,7 @@ local TextWidget = require("ui/widget/textwidget")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 
-local Chess = require("chess")
+local Chess = require("plugins/kochess.koplugin/chess")
 local gettext = require("gettext") -- Localization function
 
 local BACKGROUND_COLOR = Blitbuffer.COLOR_WHITE

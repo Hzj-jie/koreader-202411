@@ -10,7 +10,7 @@ describe("Reading Progress Sync Integration", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     Geom = require("ui/geometry")
     ReaderUI = require("apps/reader/readerui")
@@ -21,10 +21,10 @@ describe("Reading Progress Sync Integration", function()
     json = require("json")
     util = require("util")
 
-    AnnotationSyncPlugin = require("main")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     -- Mock utils globally because remote.lua is missing the require
-    _G.utils = require("utils")
+    _G.utils = require("plugins/AnnotationSync.koplugin/utils")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
 
@@ -112,7 +112,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("increments counter and triggers sync every X pages", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local push_called = 0
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
@@ -156,7 +156,7 @@ describe("Reading Progress Sync Integration", function()
       return false
     end
 
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local push_called = 0
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
@@ -177,7 +177,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("stores a map of devices in progress.json", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
       callback(true)
@@ -210,7 +210,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("prioritizes getLastPercent() from paging module", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
       callback(true)
@@ -245,7 +245,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("displays remote entries in jump menu and allows jumping", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local device_id = "RemoteDevice"
     local remote_data = {
       [device_id] = {
@@ -306,7 +306,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "orders devices by progress percentage descending and breaks ties alphabetically",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local remote_data = {
         ["Device A"] = {
           page = 78,
@@ -366,7 +366,7 @@ describe("Reading Progress Sync Integration", function()
   )
 
   it("includes 'pos' field in progress.json when available", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
       callback(true)
@@ -396,7 +396,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("prioritizes 'GotoPos' when 'pos' is present in remote data", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local device_id = "RemoteDevice"
     local remote_data = {
       [device_id] = {
@@ -462,7 +462,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("falls back to 'GotoPage' when 'pos' is missing in remote data", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local device_id = "RemoteDevice"
     local remote_data = {
       [device_id] = {
@@ -516,7 +516,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "handles pullProgress when local progress file and directory are missing",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local docsettings = require("frontend/docsettings")
       local device_id = "RemoteDevice"
       local remote_data = {
@@ -594,7 +594,7 @@ describe("Reading Progress Sync Integration", function()
   )
 
   it("retrieves progress from rolling module when paging is missing", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
       callback(true)
@@ -643,7 +643,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "resolves pos to the last-but-3 word of the page for reflowable documents in page mode when setting is enabled",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local old_push = remote.push_progress_bg
       remote.push_progress_bg = function(widget, path, callback)
         callback(true)
@@ -714,7 +714,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "keeps default first-word behavior when settings.progress_sync_last_word is false (default)",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local old_push = remote.push_progress_bg
       remote.push_progress_bg = function(widget, path, callback)
         callback(true)
@@ -780,7 +780,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "debounces progress sync and queues pending syncs when already syncing",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local push_called = 0
       local old_push = remote.push_progress_bg
       local cb_trigger
@@ -832,7 +832,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "flushes pending sync immediately on onCloseDocument or onSuspend",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local push_called = 0
       local old_push = remote.push_progress_bg
       remote.push_progress_bg = function(widget, path, callback)
@@ -994,7 +994,7 @@ describe("Reading Progress Sync Integration", function()
   end)
 
   it("uses custom device name in progress.json when configured", function()
-    local remote = require("remote")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_push = remote.push_progress_bg
     remote.push_progress_bg = function(widget, path, callback)
       callback(true)
@@ -1033,7 +1033,7 @@ describe("Reading Progress Sync Integration", function()
   it(
     "identifies the custom device name as '(this device)' in the jump menu",
     function()
-      local remote = require("remote")
+      local remote = require("plugins/AnnotationSync.koplugin/remote")
       local remote_data = {
         ["MyCustomDevice"] = {
           page = 10,

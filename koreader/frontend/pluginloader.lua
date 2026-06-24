@@ -97,9 +97,6 @@ function PluginLoader:loadPlugins()
           if plugins_disabled[plugin_name] then
             mainfile = metafile
           end
-          package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
-          package.cpath =
-            string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
           local plugin_module = dofile(mainfile)
           assert(plugin_module ~= nil)
           assert(
@@ -123,8 +120,6 @@ function PluginLoader:loadPlugins()
           else
             logger.dbg("Plugin", mainfile, "has been disabled.")
           end
-          package.path = package_path
-          package.cpath = package_cpath
         else
           logger.info("Plugin folder", entry, "does not contain a valid plugin setup. Skipping.")
         end
@@ -132,11 +127,7 @@ function PluginLoader:loadPlugins()
     end
   end
 
-  -- set package path for all loaded plugins
-  for _, plugin in ipairs(self.enabled_plugins) do
-    package.path = string.format("%s;%s/?.lua", package.path, plugin.path)
-    package.cpath = string.format("%s;%s/lib/?.so", package.cpath, plugin.path)
-  end
+
 
   table.sort(self.enabled_plugins, function(v1, v2)
     return v1.path < v2.path

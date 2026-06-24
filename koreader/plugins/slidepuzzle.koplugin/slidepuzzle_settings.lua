@@ -14,7 +14,7 @@ local UIManager = require("ui/uimanager")
 local ffiUtil = require("ffi/util")
 local T = ffiUtil.template
 
-local I18n = require("slidepuzzle_i18n")
+local I18n = require("plugins/slidepuzzle.koplugin/slidepuzzle_i18n")
 
 local Settings = {}
 

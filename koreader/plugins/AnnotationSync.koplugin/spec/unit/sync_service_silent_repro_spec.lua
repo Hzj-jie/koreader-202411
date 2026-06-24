@@ -13,7 +13,7 @@ describe("SyncService Silent Mode Repro", function()
 
     UIManager = require("ui/uimanager")
     NetworkMgr = require("ui/network/manager")
-    remote = require("remote")
+    remote = require("plugins/AnnotationSync.koplugin/remote")
 
     -- Mock Network connected
     NetworkMgr.isConnected = function()

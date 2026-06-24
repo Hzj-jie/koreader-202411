@@ -10,7 +10,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    test_utils = require("spec/unit/test_utils")
+    test_utils = require("plugins/AnnotationSync.koplugin/spec/unit/test_utils")
     disable_plugins()
     Geom = require("ui/geometry")
     ReaderUI = require("apps/reader/readerui")
@@ -18,8 +18,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
 
-    highlight_db = require("spec/unit/highlight_db")
-    AnnotationSyncPlugin = require("main")
+    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     _G.old_ImageViewer_new = test_utils.mock_image_viewer()
@@ -110,7 +110,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       -- We must force a reload of manager to pick up the new docsettings mock
       local old_manager = package.loaded["manager"]
       package.loaded["manager"] = nil
-      local SyncManager = require("manager")
+      local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
 
       -- 3. Instantiate Manager with a dummy plugin interface
       local mock_plugin = { ui = readerui, settings = {} }
@@ -131,7 +131,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   it(
     "should skip deletions if local map is empty but last sync was not (Issue 23 Protection)",
     function()
-      local annotations_mod = require("annotations")
+      local annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
       local local_map = {} -- EMPTY
       local last_sync_map = {
         ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },
@@ -157,7 +157,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   it(
     "should allow deletions if local map is empty but 'force' is true (Manual Override)",
     function()
-      local annotations_mod = require("annotations")
+      local annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
       local local_map = {} -- EMPTY
       local last_sync_map = {
         ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },

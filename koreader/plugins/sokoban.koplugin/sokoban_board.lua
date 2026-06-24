@@ -5,7 +5,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local Screen = Device.screen
 local UIManager = require("ui/uimanager")
 
-local Game = require("sokoban_game")
+local Game = require("plugins/sokoban.koplugin/sokoban_game")
 
 local ICON_DIR -- set by init from plugin_path passed by main.lua
 

@@ -18,8 +18,8 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local Screen = Device.screen
 local gettext = require("gettext")
 
-local Game = require("game")
-local Stats = require("stats")
+local Game = require("plugins/solitaire.koplugin/game")
+local Stats = require("plugins/solitaire.koplugin/stats")
 
 local SolitaireUI = InputContainer:extend({
   name = "solitaire_ui",

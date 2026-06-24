@@ -4,7 +4,7 @@ local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local T = require("ffi/util").template
-local utils = require("utils")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local M = {}
 
