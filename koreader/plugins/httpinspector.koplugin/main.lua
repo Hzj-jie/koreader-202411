@@ -517,6 +517,10 @@ function HttpInspector:_processRequest(data, request_id)
       return self:exposeEvent(uri, reqinfo)
     elseif fragment == "broadcast" then
       return self:exposeBroadcastEvent(uri, reqinfo)
+    elseif fragment == "touch" then
+      return self:exposeTouch(uri, reqinfo)
+    elseif fragment == "key" then
+      return self:exposeKey(uri, reqinfo)
     end
   end
 
@@ -1421,6 +1425,97 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   add_html(
     T("Usage: <a href='%1'>%1</a>", "/koreader/broadcast/EventName/arg1/arg2")
   )
+  add_html("</pre>")
+  html = table.concat(html, "\n")
+  return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
+end
+
+function HttpInspector:exposeTouch(uri, reqinfo)
+  local __, action
+  __, action, uri = stepUriFragment(uri)
+  if action then
+    local args, nb_args = getVariablesFromUri(uri)
+    local x = args[1]
+    local y = args[2]
+    local slot = args[3] or 0
+    local SDL = require("ffi/SDL2_0")
+
+    -- Wrap event injection inside nextTick so the HTTP response is sent before
+    -- the touch triggers any high-level UI transitions or document loads.
+    UIManager:nextTick(function()
+      if action == "tap" then
+        SDL.simulateTouch("down", x, y, slot)
+        SDL.simulateTouch("up", x, y, slot)
+      elseif action == "swipe" then
+        local x2 = args[3]
+        local y2 = args[4]
+        local steps = args[5] or 5
+        slot = args[6] or 0
+        SDL.simulateTouch("down", x, y, slot)
+        for i = 1, steps do
+          local t = i / steps
+          local cx = x + (x2 - x) * t
+          local cy = y + (y2 - y) * t
+          SDL.simulateTouch("move", cx, cy, slot)
+        end
+        SDL.simulateTouch("up", x2, y2, slot)
+      else
+        SDL.simulateTouch(action, x, y, slot)
+      end
+    end)
+
+    return self:_sendResponse(
+      reqinfo,
+      200,
+      CTYPE.TEXT,
+      string.format("Touch simulated: %s (%d, %d)", action, x or 0, y or 0)
+    )
+  end
+
+  local html = {}
+  local add_html = function(h)
+    table.insert(html, h)
+  end
+  add_html("<title>Simulate Touch</title>")
+  add_html("<pre>Touch event simulation API.")
+  add_html("Usage:")
+  add_html("  - Tap: <a href='/koreader/touch/tap/100/200'>/koreader/touch/tap/x/y</a>")
+  add_html("  - Swipe: <a href='/koreader/touch/swipe/100/500/100/100/10'>/koreader/touch/swipe/x1/y1/x2/y2/steps</a>")
+  add_html("  - Manual Down: /koreader/touch/down/x/y/slot")
+  add_html("  - Manual Up: /koreader/touch/up/x/y/slot")
+  add_html("  - Manual Move: /koreader/touch/move/x/y/slot")
+  add_html("</pre>")
+  html = table.concat(html, "\n")
+  return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
+end
+
+function HttpInspector:exposeKey(uri, reqinfo)
+  local __, key_str
+  __, key_str, uri = stepUriFragment(uri)
+  local key_code = tonumber(key_str)
+  if key_code then
+    local SDL = require("ffi/SDL2_0")
+    UIManager:nextTick(function()
+      SDL.simulateKey(key_code)
+    end)
+    return self:_sendResponse(
+      reqinfo,
+      200,
+      CTYPE.TEXT,
+      "Key simulated: " .. key_code
+    )
+  end
+
+  local html = {}
+  local add_html = function(h)
+    table.insert(html, h)
+  end
+  add_html("<title>Simulate Key</title>")
+  add_html("<pre>Key event simulation API.")
+  add_html("Usage:")
+  add_html("  - Escape: <a href='/koreader/key/27'>/koreader/key/27</a>")
+  add_html("  - Enter: <a href='/koreader/key/13'>/koreader/key/13</a>")
+  add_html("  - Down: <a href='/koreader/key/1073741905'>/koreader/key/1073741905</a>")
   add_html("</pre>")
   html = table.concat(html, "\n")
   return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
