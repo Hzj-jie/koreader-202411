@@ -558,7 +558,7 @@ function Kochess:updateEvalLine()
   )
   if self.eval_line then
     self.eval_line:setText(formatEval(self))
-    UIManager:setDirty(self, "ui")
+    self:setDirty("ui")
   end
 end
 
