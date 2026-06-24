@@ -40,7 +40,7 @@ echo "--------------------------------------------------------------------------
 echo ">>> [2/2] RUNNING SWEEP: DEVELOPMENTAL BRANCH (linux/)"
 echo "--------------------------------------------------------------------------------"
 pushd linux > /dev/null
-./luajit benchmark.lua "$@" > /tmp/master_benchmark_raw.txt 2>&1
+./luajit tools/benchmark.lua "$@" > /tmp/master_benchmark_raw.txt 2>&1
 popd > /dev/null
 echo ">>> [2/2] Developmental optimized sweep completed successfully!"
 echo ""

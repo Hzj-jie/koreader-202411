@@ -1,1 +1,1 @@
-../linux/benchmark.lua
+../linux/tools/benchmark.lua
