@@ -175,33 +175,30 @@ log("lib_search_path: " .. lib_search_path)
 log("lib_basic_format: " .. lib_basic_format)
 log("lib_version_format: " .. lib_version_format)
 
--- Override standard require to intercept paths containing ".koplugin/" and bypass dot-to-slash replacement.
+-- Override standard require to intercept paths starting with "plugins/*.koplugin/" and bypass dot-to-slash replacement.
 local orig_require = _G.require
 _G.require = function(name)
-    if type(name) ~= "string" then
-        error("wanna string for the name, got " .. tostring(name), 2)
-    end
-    if name:find("%.koplugin/") then
-        if not package.loaded[name] then
-            local path_errs = {}
-            local loaded_module = nil
-            for template in package.path:gmatch("[^;]+") do
-                local file_path = template:gsub("%?", name)
-                local file = io.open(file_path, "r")
-                if file then
-                    file:close()
-                    loaded_module = assert(loadfile(file_path))()
-                    break
-                else
-                    table.insert(path_errs, string.format("\n\tno file '%s'", file_path))
-                end
-            end
-            if loaded_module == nil then
-                error(string.format("module '%s' not found:%s", name, table.concat(path_errs)))
-            end
-            package.loaded[name] = loaded_module
-        end
+    assert(type(name) == "string", "wanna string for the name")
+    if package.loaded[name] ~= nil then
         return package.loaded[name]
     end
-    return orig_require(name)
+    if not name:find("^plugins/[^/]+%.koplugin/") then
+        return orig_require(name)
+    end
+
+    local loaded_module = nil
+    for template in package.path:gmatch("[^;]+") do
+        local file_path = template:gsub("%?", name)
+        local file = io.open(file_path, "r")
+        if file then
+            file:close()
+            loaded_module = assert(loadfile(file_path))()
+            break
+        end
+    end
+    if loaded_module == nil then
+        error("module '" .. name .. "' not found")
+    end
+    package.loaded[name] = loaded_module
+    return loaded_module
 end
