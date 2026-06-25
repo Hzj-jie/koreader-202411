@@ -1,1 +1,0 @@
-../../../koreader/plugins/sudoku.koplugin/_meta.lua

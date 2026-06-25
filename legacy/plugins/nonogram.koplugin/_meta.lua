@@ -1,1 +1,0 @@
-../../../koreader/plugins/nonogram.koplugin/_meta.lua

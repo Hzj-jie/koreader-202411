@@ -1,1 +1,0 @@
-../../../koreader/plugins/kochess.koplugin/uci.lua

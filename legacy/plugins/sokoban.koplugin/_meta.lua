@@ -1,1 +1,0 @@
-../../../koreader/plugins/sokoban.koplugin/_meta.lua

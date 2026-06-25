@@ -1,1 +1,0 @@
-../../../koreader/plugins/slidepuzzle.koplugin/slidepuzzle_board.lua

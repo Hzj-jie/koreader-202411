@@ -1,1 +1,0 @@
-../../../koreader/plugins/solitaire.koplugin/_meta.lua
