@@ -743,7 +743,7 @@ function ReaderFooter:set_custom_text(menu)
       },
     },
   })
-  self:showWidget(text_dialog)
+  UIManager:show(text_dialog)
 end
 
 -- Help text string, or function, to be shown, or executed, on a long press on menu item

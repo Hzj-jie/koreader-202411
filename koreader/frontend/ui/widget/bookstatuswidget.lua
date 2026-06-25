@@ -603,7 +603,7 @@ function BookStatusWidget:onSwitchFocus(_inputbox)
       },
     },
   })
-  self:showWidget(self.note_dialog)
+  UIManager:show(self.note_dialog)
 end
 
 function BookStatusWidget:closeInputDialog()

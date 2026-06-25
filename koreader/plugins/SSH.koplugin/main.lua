@@ -202,12 +202,12 @@ function SSH:addToMainMenu(menu_items)
       {
         text_func = function()
           return self:isRunning() and gettext("Stop SSH server")
-            or gettext("Stop SSH server")
+            or gettext("Start SSH server")
         end,
         keep_menu_open = true,
-        callback = function(menu)
+        callback = function(touchmenu_instance)
           self:onToggleSSHServer()
-          menu:updateItems()
+          touchmenu_instance:updateItems()
         end,
       },
       {
@@ -219,8 +219,8 @@ function SSH:addToMainMenu(menu_items)
           return not self:isRunning()
         end,
         help_text = gettext("Stop SSH server to configure"),
-        callback = function(menu)
-          self:show_port_dialog(menu)
+        callback = function(touchmenu_instance)
+          self:show_port_dialog(touchmenu_instance)
         end,
       },
       {

@@ -18,7 +18,7 @@
 -- have to call sdcv each time) we batch as many candidates as possible
 -- together in order to reduce the impact we have on text selection.
 
-local Deinflector = require("deinflector")
+local Deinflector = require("plugins/japanese.koplugin/deinflector")
 local LanguageSupport = require("languagesupport")
 local ReaderDictionary = require("apps/reader/modules/readerdictionary")
 local UIManager = require("ui/uimanager")

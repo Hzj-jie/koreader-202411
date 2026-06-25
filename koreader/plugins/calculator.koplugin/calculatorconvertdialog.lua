@@ -3,7 +3,7 @@ This widget displays the calculator convert menu
 ]]
 
 local ButtonDialog = require("ui/widget/buttondialog")
-local CalculatorUnitsDialog = require("calculatorunitsdialog")
+local CalculatorUnitsDialog = require("plugins/calculator.koplugin/calculatorunitsdialog")
 local Font = require("ui/font")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Size = require("ui/size")

@@ -39,13 +39,4 @@ table.insert(eink_settings_table.sub_item_table, {
   end,
 })
 
-if Device:hasEinkScreen() then
-  if (Screen.wf_level_max or 0) > 0 then
-    table.insert(
-      eink_settings_table.sub_item_table,
-      require("ui/elements/waveform_level")
-    )
-  end
-end
-
 return eink_settings_table

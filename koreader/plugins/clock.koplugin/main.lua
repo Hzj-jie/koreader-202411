@@ -8,7 +8,7 @@ local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local Input = Device.input
 local Screen = Device.screen
-local ClockWidget = require("clockwidget")
+local ClockWidget = require("plugins/clock.koplugin/clockwidget")
 local Size = require("ui/size")
 local gettext = require("gettext")
 local Clock = InputContainer:new({
@@ -54,7 +54,7 @@ Clock.init = function(self)
     padding = padding,
   })
   self.ui.menu:registerToMainMenu(self)
-  return self:onDispatcherRegisterAction()
+  return self:_registerDispatcherAction()
 end
 Clock.addToMainMenu = function(self, menu_items)
   menu_items.clock = {
@@ -109,7 +109,7 @@ Clock.onClockShow = function(self)
   UIManager:show(self)
   return true
 end
-Clock.onDispatcherRegisterAction = function(self)
+Clock._registerDispatcherAction = function(self)
   return Dispatcher:registerAction("clock_show", {
     category = "none",
     event = "ClockShow",

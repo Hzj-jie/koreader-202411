@@ -174,7 +174,7 @@ local sub_item_table = {
   {
     text = gettext("Keyboard appearance settings"),
     keep_menu_open = true,
-    callback = function(menu)
+    callback = function(touchmenu_instance)
       local InputDialog = require("ui/widget/inputdialog")
       input_dialog = InputDialog:new({
         title = gettext("Keyboard font size"),

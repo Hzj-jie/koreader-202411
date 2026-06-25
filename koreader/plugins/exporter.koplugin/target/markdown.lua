@@ -1,10 +1,10 @@
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
-local md = require("template/md")
+local md = require("plugins/exporter.koplugin/template/md")
 local T = require("ffi/util").template
 
 -- markdown exporter
-local MarkdownExporter = require("base"):new({
+local MarkdownExporter = require("plugins/exporter.koplugin/base"):new({
   name = "markdown",
   extension = "md",
   mimetype = "text/markdown",

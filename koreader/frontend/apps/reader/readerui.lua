@@ -768,7 +768,8 @@ function ReaderUI:_showReaderCoroutine(file, provider, seamless)
       io.stderr:write(debug.traceback(co, err, 1))
       -- Restore input if we crashed before ReaderUI has restored it
       Device:setIgnoreInput(false)
-      self:showWidget(InfoMessage:new({
+      -- Need localization.
+      UIManager:show(InfoMessage:new({
         text = gettext("Unfortunately KOReader crashed.")
           .. "\n"
           .. gettext(
@@ -864,7 +865,7 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
     },
     text_type = "password",
   })
-  self:showWidget(self.password_dialog)
+  UIManager:show(self.password_dialog)
 end
 
 function ReaderUI:onVerifyPassword(document)

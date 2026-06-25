@@ -149,7 +149,7 @@ local function validateUser(user, pass)
 end
 
 function KOSync:_createClient()
-  return require("KOSyncClient"):new({
+  return require("plugins/kosync.koplugin/KOSyncClient"):new({
     custom_url = self.settings.custom_server,
     service_spec = self.path .. "/api.json",
   })

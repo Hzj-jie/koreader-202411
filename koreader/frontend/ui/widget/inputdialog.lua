@@ -737,6 +737,9 @@ function InputDialog:onExit()
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)
   end
+  -- Avoid calling onKeyboardClosed again.
+  self.add_nav_bar = false
+  self.fullscreen = false
   self:closeKeyboard()
 end
 

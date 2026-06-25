@@ -367,7 +367,7 @@ function ReaderUserHyph:modifyUserEntry(word)
       },
     },
   })
-  self:showWidget(input_dialog)
+  UIManager:show(input_dialog)
 end
 
 return ReaderUserHyph

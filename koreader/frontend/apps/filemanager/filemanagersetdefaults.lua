@@ -127,7 +127,7 @@ function SetDefaultsWidget:init()
           input_type = value_type,
           width = self.dialog_width,
         })
-        self:showWidget(set_dialog)
+        UIManager:show(set_dialog)
       end
 
       table.insert(self.menu_entries, {
@@ -187,7 +187,7 @@ function SetDefaultsWidget:init()
           },
           width = self.dialog_width,
         })
-        self:showWidget(set_dialog)
+        UIManager:show(set_dialog)
       end
 
       table.insert(self.menu_entries, {
@@ -239,7 +239,7 @@ function SetDefaultsWidget:init()
           input_type = value_type,
           width = self.dialog_width,
         })
-        self:showWidget(set_dialog)
+        UIManager:show(set_dialog)
       end
 
       table.insert(self.menu_entries, {

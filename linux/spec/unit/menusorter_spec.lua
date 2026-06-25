@@ -282,6 +282,40 @@ describe("MenuSorter module", function()
         assert.equals(0, #test_menu)
     end)
 
+    it("should remove a menu button using removeMenuButton", function()
+        local menu = {
+            {
+                id = "first",
+                sub_item_table = {
+                    { id = "second" },
+                    { id = "third" },
+                }
+            }
+        }
+        MenuSorter:removeMenuButton(menu, "third")
+        assert.equals(1, #menu[1].sub_item_table)
+        assert.equals("second", menu[1].sub_item_table[1].id)
+    end)
+
+    it("should hide submenus if they contain zero items", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            first = { text = "First Menu" },
+            second = { text = "Second Submenu" },
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = { "first" },
+            first = { "second" },
+            second = {},
+        }
+
+        local test_menu = MenuSorter:_sort(menu_items, order)
+
+        assert.equals("first", test_menu[1].id)
+        assert.equals(0, #test_menu[1])
+    end)
+
+
     describe("_readMSSettings", function()
         local test_file_path
         setup(function()

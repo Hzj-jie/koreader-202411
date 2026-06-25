@@ -307,7 +307,6 @@ function UIManager:show(widget)
   assert(not self:isWindowWidget(widget))
 
   logger.dbg("show widget:", _widgetDebugStr(widget))
-
   -- The window x and y are never used.
   local window = { x = 0, y = 0, widget = widget }
   -- put this window on top of the topmost non-modal window

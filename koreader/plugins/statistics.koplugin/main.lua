@@ -12,7 +12,7 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
 local ReadHistory = require("readhistory")
 local ReaderFooter = require("apps/reader/modules/readerfooter")
-local ReaderProgress = require("readerprogress")
+local ReaderProgress = require("plugins/statistics.koplugin/readerprogress")
 local SQ3 = require("lua-ljsqlite3/init")
 local Screensaver = require("ui/screensaver")
 local SyncService = require("frontend/apps/cloudstorage/syncservice")
@@ -78,7 +78,7 @@ local ReaderStatistics = Widget:extend({
   doc_md5 = nil,
 })
 
-function ReaderStatistics:onDispatcherRegisterActions()
+function ReaderStatistics:_registerDispatcherActions()
   Dispatcher:registerAction("toggle_statistics", {
     category = "none",
     event = "ToggleStatistics",
@@ -152,7 +152,7 @@ function ReaderStatistics:init()
   })
 
   self.ui.menu:registerToMainMenu(self)
-  self:onDispatcherRegisterActions()
+  self:_registerDispatcherActions()
   BookStatusWidget.getStats = function()
     return self:getStatsBookStatus(self.id_curr_book, self.settings.is_enabled)
   end
@@ -2111,7 +2111,7 @@ function ReaderStatistics:getCurrentStat()
         false
       ),
       callback = function()
-        local CalendarView = require("calendarview")
+        local CalendarView = require("plugins/statistics.koplugin/calendarview")
         local title_callback = function(_this)
           return T(gettext("Today (%1)"), datetime.secondsToDate(now_ts, true))
         end
@@ -3522,7 +3522,7 @@ end
 function ReaderStatistics:onShowCalendarView()
   self:insertDB()
   self.kv = nil -- clean left over stack link
-  local CalendarView = require("calendarview")
+  local CalendarView = require("plugins/statistics.koplugin/calendarview")
   UIManager:show(CalendarView:new({
     reader_statistics = self,
     start_day_of_week = self.settings.calendar_start_day_of_week,
@@ -3535,7 +3535,7 @@ end
 function ReaderStatistics:onShowCalendarDayView()
   self:insertDB()
   self.kv = nil -- clean left over stack link
-  local CalendarView = require("calendarview")
+  local CalendarView = require("plugins/statistics.koplugin/calendarview")
   CalendarView:showCalendarDayView(self)
 end
 

@@ -174,3 +174,33 @@ end
 log("lib_search_path: " .. lib_search_path)
 log("lib_basic_format: " .. lib_basic_format)
 log("lib_version_format: " .. lib_version_format)
+
+-- Override standard require to intercept paths containing ".koplugin/" and bypass dot-to-slash replacement.
+local orig_require = _G.require
+_G.require = function(name)
+    if type(name) ~= "string" then
+        error("wanna string for the name, got " .. tostring(name), 2)
+    end
+    if package.loaded[name] then
+        return package.loaded[name]
+    end
+    if not name:find("plugins/[^/]+%.koplugin/") then
+        return orig_require(name)
+    end
+
+    local loaded_module = nil
+    for template in package.path:gmatch("[^;]+") do
+        local file_path = template:gsub("%?", name)
+        local file = io.open(file_path, "r")
+        if file then
+            file:close()
+            loaded_module = assert(loadfile(file_path))()
+            break
+        end
+    end
+    if not loaded_module then
+        error(string.format("module '%s' not found", name), 2)
+    end
+    package.loaded[name] = loaded_module
+    return loaded_module
+end

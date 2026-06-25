@@ -193,7 +193,7 @@ function TouchMenuItem:onUnfocus()
   return true
 end
 
-function TouchMenuItem:showHelpText()
+function TouchMenuItem:_showHelpText()
   local help_text
   if self.item.help_text then
     help_text = self.item.help_text
@@ -213,7 +213,7 @@ function TouchMenuItem:_tapEventHandler(f)
     enabled = self.item.enabled_func()
   end
   if enabled == false then
-    self:showHelpText()
+    self:_showHelpText()
     return true
   end -- don't propagate
 
@@ -401,7 +401,7 @@ function TouchMenuBar:init()
           sep.style = current_icon and "solid" or "none"
         end
       end
-      self.menu:switchMenuTab(k)
+      self.menu:_switchMenuTab(k)
     end
 
     table.insert(self.bar_icon_group, self.icon_widgets[k])
@@ -441,7 +441,7 @@ function TouchMenuBar:init()
   })
 end
 
-function TouchMenuBar:switchToTab(index)
+function TouchMenuBar:_switchToTab(index)
   -- a little safety check
   -- don't auto-activate a non-existent index
   if index < 1 then
@@ -601,7 +601,7 @@ function TouchMenu:init()
     padding_left = math.floor(footer_width * 0.33 * 0.1),
     padding_right = math.floor(footer_width * 0.33 * 0.5),
     callback = function()
-      self:backToUpperMenu()
+      self:_backToUpperMenu()
     end,
   })
   local footer_height = up_button:getSize().h + Size.line.thick
@@ -661,7 +661,7 @@ function TouchMenu:init()
   })
   self.footer_top_margin =
     VerticalSpan:new({ height = Size.span.vertical_default })
-  self.bar:switchToTab(self.last_index or 1)
+  self.bar:_switchToTab(self.last_index or 1)
 end
 
 function TouchMenu:onShow()
@@ -823,7 +823,7 @@ function TouchMenu:updateItems()
 end
 
 -- Only called by TouchMenuBar:switchToTab / IconButton.callback.
-function TouchMenu:switchMenuTab(tab_num)
+function TouchMenu:_switchMenuTab(tab_num)
   assert(tab_num >= 1 and tab_num <= #self.tab_item_table)
   if self.tab_item_table[tab_num].remember ~= false then
     self.last_index = tab_num
@@ -844,7 +844,7 @@ function TouchMenu:switchMenuTab(tab_num)
   self:updateItems()
 end
 
-function TouchMenu:backToUpperMenu(no_close)
+function TouchMenu:_backToUpperMenu(no_close)
   if #self.item_table_stack ~= 0 then
     self.item_table = table.remove(self.item_table_stack)
     -- Allow a menu table to refresh itself when going up (ie. from a setting
@@ -893,7 +893,7 @@ function TouchMenu:onNextPage()
         index = 1
       end
     until self.tab_item_table[index].remember ~= false
-    self.bar:switchToTab(index)
+    self.bar:_switchToTab(index)
     assert(self.page == 1)
   end
   self:updateItems()
@@ -912,7 +912,7 @@ function TouchMenu:onPrevPage()
         index = #self.tab_item_table
       end
     until self.tab_item_table[index].remember ~= false
-    self.bar:switchToTab(index)
+    self.bar:_switchToTab(index)
     self.page = self.page_num
   end
   self:updateItems()
@@ -955,7 +955,7 @@ function TouchMenu:onSwipe(arg, ges_ev)
     -- We don't allow the menu to be closed (this is also necessary as
     -- a swipe south will be emitted when done opening the menu with
     -- swipe, as the event handled for that is pan south).
-    self:backToUpperMenu(true)
+    self:_backToUpperMenu(true)
   else
     return false
   end
@@ -1053,7 +1053,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     end
     return
   end
-  if TouchMenuItem:extend({ item = item, menu = self }):showHelpText() then
+  if TouchMenuItem:extend({ item = item, menu = self }):_showHelpText() then
     return
   end
   if text_truncated then
@@ -1082,7 +1082,7 @@ function TouchMenu:onExit()
 end
 
 function TouchMenu:onBack()
-  return self:backToUpperMenu()
+  return self:_backToUpperMenu()
 end
 
 -- Menu search feature
@@ -1132,7 +1132,7 @@ function TouchMenu:search(search_for)
   return found_menu_items
 end
 
-function TouchMenu:openMenu(path, with_animation)
+function TouchMenu:_openMenu(path, with_animation)
   local parts = {}
   for part in util.gsplit(path, "%.", false) do -- path is ie. "2.3.3.1"
     table.insert(parts, tonumber(part))
@@ -1189,7 +1189,7 @@ function TouchMenu:openMenu(path, with_animation)
       if self.bar.icon_widgets[tab_nb].image.invert then
         highlightWidget(self.bar.icon_widgets[tab_nb].image, true)
       end
-      self.bar:switchToTab(tab_nb)
+      self.bar:_switchToTab(tab_nb)
       item_nb = table.remove(parts)
       step = STEPS.TARGET_PAGE_OR_HIGHLIGHT_NEXT_PREV
     elseif
@@ -1324,7 +1324,7 @@ function TouchMenu:onShowMenuSearch()
       local function open_menu(i, animate)
         UIManager:close(self.results_menu_container)
         UIManager:setDirty(nil, "ui")
-        self:openMenu(found_menu_items[i][3], animate)
+        self:_openMenu(found_menu_items[i][3], animate)
       end
       local function item_callback(i)
         local confirm_box
@@ -1395,7 +1395,7 @@ function TouchMenu:onShowMenuSearch()
         dimen = Screen:getSize(),
         results_menu,
       })
-      self:showWidget(self.results_menu_container)
+      UIManager:show(self.results_menu_container)
     else
       self:showWidget(InfoMessage:new({
         text = T(gettext("No menus containing '%1' found."), search_string),
@@ -1438,7 +1438,7 @@ function TouchMenu:onShowMenuSearch()
     },
   })
 
-  self:showWidget(search_dialog)
+  UIManager:show(search_dialog)
 end
 
 return TouchMenu

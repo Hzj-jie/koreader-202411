@@ -26,11 +26,11 @@ The parser looks to bookmarks._.text field for edited notes. bookmarks._.notes i
 --]]
 --
 
-local BaseExporter = require("base")
+local BaseExporter = require("plugins/exporter.koplugin/base")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
-local MyClipping = require("clip")
+local MyClipping = require("plugins/exporter.koplugin/clip")
 local NetworkMgr = require("ui/network/manager")
 local ReaderHighlight = require("apps/reader/modules/readerhighlight")
 local UIManager = require("ui/uimanager")
@@ -107,17 +107,17 @@ end
 local Exporter = WidgetContainer:extend({
   name = "exporter",
   targets = {
-    flomo = require("target/flomo"),
-    html = require("target/html"),
-    joplin = require("target/joplin"),
-    json = require("target/json"),
-    markdown = require("target/markdown"),
-    memos = require("target/memos"),
-    my_clippings = require("target/my_clippings"),
-    nextcloud = require("target/nextcloud"),
-    readwise = require("target/readwise"),
-    text = require("target/text"),
-    xmnote = require("target/xmnote"),
+    flomo = require("plugins/exporter.koplugin/target/flomo"),
+    html = require("plugins/exporter.koplugin/target/html"),
+    joplin = require("plugins/exporter.koplugin/target/joplin"),
+    json = require("plugins/exporter.koplugin/target/json"),
+    markdown = require("plugins/exporter.koplugin/target/markdown"),
+    memos = require("plugins/exporter.koplugin/target/memos"),
+    my_clippings = require("plugins/exporter.koplugin/target/my_clippings"),
+    nextcloud = require("plugins/exporter.koplugin/target/nextcloud"),
+    readwise = require("plugins/exporter.koplugin/target/readwise"),
+    text = require("plugins/exporter.koplugin/target/text"),
+    xmnote = require("plugins/exporter.koplugin/target/xmnote"),
   },
 })
 
@@ -365,7 +365,7 @@ function Exporter:addToMainMenu(menu_items)
 
   -- List recent files
   -- Note: BaseExporter.clipping_dir() is defined in base.lua because targets
-  -- need it, and base.lua cannot require("main") due to circular dependency.
+  -- need it, and base.lua cannot require("plugins/exporter.koplugin/main") due to circular dependency.
   local clipping_dir = BaseExporter.clipping_dir()
   local files = {}
   if lfs.attributes(clipping_dir, "mode") == "directory" then

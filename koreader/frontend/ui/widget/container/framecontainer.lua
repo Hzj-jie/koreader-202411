@@ -22,6 +22,7 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local logger = require("logger")
 
 local FrameContainer = WidgetContainer:extend({
   background = nil,
