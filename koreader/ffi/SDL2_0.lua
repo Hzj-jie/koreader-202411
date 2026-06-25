@@ -398,13 +398,16 @@ local SDL_BUTTON_RIGHT = 3
 
 function S.waitForEvent(sec, usec)
   if #inputQueue > 0 then
-    return true
+    local events = inputQueue
+    inputQueue = {}
+    return true, events
   end
 
   local event = ffi.new("union SDL_Event")
-  -- TimeVal to ms if we were passed one to begin with, otherwise, -1 => block.
-  -- NOTE: Since we have *less* precision than a timeval, we round *up*, to avoid passing zero for < 1ms timevals.
   local timeout = sec and math.ceil((sec * 1000000 + usec) * (1 / 1000)) or -1
+  if timeout == -1 then
+    timeout = 50
+  end
 
   -- Reset the queue
   inputQueue = {}
