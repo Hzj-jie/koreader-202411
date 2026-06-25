@@ -1483,6 +1483,13 @@ function HttpInspector:exposeKey(uri, reqinfo)
       error("Key requires a keycode/string")
     end
     local keycode = tostring(args[1])
+    if keycode == "Esc" then
+      keycode = "Back"
+    elseif keycode == "Enter" then
+      keycode = "Press"
+    elseif #keycode == 1 then
+      keycode = keycode:upper()
+    end
 
     local Key = require("device/key")
     local key_obj = Key:new(keycode, { Shift = false, Ctrl = false, Alt = false })
