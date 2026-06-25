@@ -62,8 +62,6 @@ function PluginLoader:loadPlugins()
     end
   end
 
-
-
   local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
@@ -120,8 +118,6 @@ function PluginLoader:loadPlugins()
       end
     end
   end
-
-
 
   table.sort(self.enabled_plugins, function(v1, v2)
     return v1.path < v2.path
