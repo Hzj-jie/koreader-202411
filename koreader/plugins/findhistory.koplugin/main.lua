@@ -11,7 +11,7 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 
 local menuItem = {
-  text = dofile("plugins/findhistory.koplugin/_meta.lua").fullname,
+  text = require("plugins/findhistory.koplugin/_meta").fullname,
 }
 
 local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
