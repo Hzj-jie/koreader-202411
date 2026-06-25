@@ -713,7 +713,7 @@ end
 
 function TouchMenu:onTimesChange_1M()
   self:_updateTimeInfo()
-  UIManager:scheduleWidgetRepaint(self.time_info)
+  self.time_info:scheduleRepaint()
 end
 
 function TouchMenu:_updateTimeInfo()
