@@ -398,7 +398,9 @@ local SDL_BUTTON_RIGHT = 3
 
 function S.waitForEvent(sec, usec)
   if #inputQueue > 0 then
-    return true, inputQueue
+    local events = inputQueue
+    inputQueue = {}
+    return true, events
   end
 
   local event = ffi.new("union SDL_Event")
