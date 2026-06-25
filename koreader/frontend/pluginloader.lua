@@ -62,9 +62,7 @@ function PluginLoader:loadPlugins()
     end
   end
 
-  -- keep reference to old value so they can be restored later
-  local package_path = package.path
-  local package_cpath = package.cpath
+
 
   local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
@@ -91,9 +89,7 @@ function PluginLoader:loadPlugins()
           if plugins_disabled[plugin_name] then
             mainfile = metafile
           end
-          package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
-          package.cpath =
-            string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
+
           local plugin_module = dofile(mainfile)
           assert(plugin_module ~= nil)
           assert(
@@ -120,17 +116,12 @@ function PluginLoader:loadPlugins()
         else
           logger.warn("Plugin directory", entry, "is missing required files (main.lua or _meta.lua), skipping.")
         end
-        package.path = package_path
-        package.cpath = package_cpath
+
       end
     end
   end
 
-  -- set package path for all loaded plugins
-  for _, plugin in ipairs(self.enabled_plugins) do
-    package.path = string.format("%s;%s/?.lua", package.path, plugin.path)
-    package.cpath = string.format("%s;%s/lib/?.so", package.cpath, plugin.path)
-  end
+
 
   table.sort(self.enabled_plugins, function(v1, v2)
     return v1.path < v2.path

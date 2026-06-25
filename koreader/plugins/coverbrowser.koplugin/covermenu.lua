@@ -6,7 +6,7 @@ local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local logger = require("logger")
 
-local BookInfoManager = require("bookinfomanager")
+local BookInfoManager = require("plugins/coverbrowser.koplugin/bookinfomanager")
 
 -- This is a kind of "base class" for both MosaicMenu and ListMenu.
 -- It implements the common code shared by these, mostly the non-UI

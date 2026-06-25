@@ -36,7 +36,7 @@ describe("Clock plugin tests", function()
                 }
             end)
         }
-        package.loaded["clockwidget"] = mock_clockwidget
+        package.loaded["plugins/clock.koplugin/clockwidget"] = mock_clockwidget
     end)
 
     after_each(function()
@@ -53,7 +53,7 @@ describe("Clock plugin tests", function()
             G_reader_settings_read_stubbed = false
         end
 
-        package.loaded["clockwidget"] = nil
+        package.loaded["plugins/clock.koplugin/clockwidget"] = nil
         package.unload("plugins/clock.koplugin/main")
         PluginShare.pause_auto_suspend = nil
     end)

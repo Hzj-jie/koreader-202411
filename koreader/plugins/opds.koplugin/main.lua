@@ -23,7 +23,7 @@ function OPDS:init()
 end
 
 function OPDS:showCatalog()
-  local OPDSCatalog = require("opdscatalog")
+  local OPDSCatalog = require("plugins/opds.koplugin/opdscatalog")
   local filemanagerRefresh = function()
     self.ui:onRefresh()
   end
