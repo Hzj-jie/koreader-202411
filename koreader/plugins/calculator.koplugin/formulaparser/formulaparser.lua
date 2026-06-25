@@ -15,7 +15,7 @@ usage:
 
 local Parser = {}
 
-local ParserHelp = require("plugins/calculator.koplugin/formulaparser/parserhelp")
+local ParserHelp = require("formulaparser/parserhelp")
 
 math.randomseed(os.time())
 

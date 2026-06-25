@@ -11,8 +11,6 @@ local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local battery_status_dismissed = false
-local battery_confirm_box = nil
-local memory_confirm_box = nil
 
 local ReaderDeviceStatus = WidgetContainer:extend({})
 
@@ -104,7 +102,6 @@ function ReaderDeviceStatus:_checkBatteryStatus()
     dismissable = false,
     ok_callback = function()
       battery_status_dismissed = true
-      battery_confirm_box = nil
     end,
     cancel_text = gettext("Remind later"),
     -- Auto-close before the next 5-minute check to avoid dialog stacking.

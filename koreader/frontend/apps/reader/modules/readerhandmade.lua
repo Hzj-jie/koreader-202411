@@ -562,7 +562,7 @@ function ReaderHandMade:addOrEditPageTocItem(
         or nil,
     },
   })
-  UIManager:show(dialog)
+  self:showWidget(dialog)
   return true
 end
 

@@ -5,7 +5,7 @@ local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
-local md = require("plugins/exporter.koplugin/template/md")
+local md = require("template/md")
 local mime = require("mime")
 local socket = require("socket")
 local socketutil = require("socketutil")
@@ -13,7 +13,7 @@ local T = require("ffi/util").template
 local gettext = require("gettext")
 
 -- nextcloud notes exporter
-local NextcloudExporter = require("plugins/exporter.koplugin/base"):new({
+local NextcloudExporter = require("base"):new({
   name = "nextcloud_notes",
   category = gettext("KOReader"),
   is_remote = true,

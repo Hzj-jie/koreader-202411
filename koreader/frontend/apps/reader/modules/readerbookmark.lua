@@ -1430,7 +1430,7 @@ function ReaderBookmark:setBookmarkNote(
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
@@ -1472,7 +1472,7 @@ function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function ReaderBookmark:setHighlightedText(item_or_index, text, caller_callback)
@@ -1603,7 +1603,7 @@ function ReaderBookmark:onSearchBookmark()
   })
   input_dialog:addWidget(check_button_bookmark)
 
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
   return true
 end
 

@@ -314,7 +314,7 @@ local BatteryStatWidget = WidgetContainer:extend({
   name = "batterystat",
 })
 
-function BatteryStatWidget:_registerDispatcherActions()
+function BatteryStatWidget:onDispatcherRegisterActions()
   Dispatcher:registerAction("battery_statistics", {
     category = "none",
     event = "ShowBatteryStatistics",
@@ -329,7 +329,7 @@ function BatteryStatWidget:init()
   if not self.ui or not self.ui.menu then
     return
   end
-  self:_registerDispatcherActions()
+  self:onDispatcherRegisterActions()
   self.ui.menu:registerToMainMenu(self)
 end
 

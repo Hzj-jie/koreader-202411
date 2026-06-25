@@ -605,7 +605,7 @@ function FileManagerCollection:editCollectionName(editCallback, old_name)
       },
     },
   })
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function FileManagerCollection:addCollection()

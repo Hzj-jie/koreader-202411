@@ -9,7 +9,7 @@ local socket = require("socket")
 local socketutil = require("socketutil")
 
 -- readwise exporter
-local ReadwiseExporter = require("plugins/exporter.koplugin/base"):new({
+local ReadwiseExporter = require("base"):new({
   name = "readwise",
   is_remote = true,
 })

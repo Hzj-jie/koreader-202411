@@ -40,9 +40,6 @@ function FileManagerMenu:init()
     tools = {
       icon = "appbar.tools",
     },
-    games = {
-      text = gettext("Games"),
-    },
     search = {
       icon = "appbar.search",
     },

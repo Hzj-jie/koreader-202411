@@ -1784,6 +1784,7 @@ function util.tableDebugIdentity(t)
     table.concat(mt_keys, ", ")
   )
 end
+
 function util.copyRequire(f)
   local v = require(f)
   assert(type(v) == "table")

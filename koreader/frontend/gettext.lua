@@ -198,17 +198,10 @@ function GetText_mt.__index.changeLang(new_lang)
   -- can be various things such as `en_US` or `en_US:en`
   if
     new_lang == "C"
-    or new_lang == "POSIX"
     or new_lang == nil
     or new_lang == ""
-    or new_lang == "en"
     or new_lang:match("^en_US") == "en_US"
   then
-    -- These locales or values bypass the translation mechanism and fall back
-    -- to the default English strings. They are typically used for:
-    -- 1. Resetting or disabling localization altogether.
-    -- 2. Standard system fallback locales (e.g. "C" or "POSIX" read from env variables like LANG, LC_ALL, LC_MESSAGES, or LANGUAGE on startup).
-    -- 3. The native interface language ("en" or "en_US") which has no separate translation file.
     return
   end
 

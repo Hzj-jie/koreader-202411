@@ -129,4 +129,5 @@ function named_settings.show_bottom_menu()
   return not require("device"):isTouchDevice()
     or G_reader_settings:nilOrTrue("show_bottom_menu")
 end
+
 return named_settings

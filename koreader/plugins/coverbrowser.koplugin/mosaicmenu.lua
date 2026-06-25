@@ -30,7 +30,7 @@ local util = require("util")
 local Screen = Device.screen
 local T = require("ffi/util").template
 
-local BookInfoManager = require("plugins/coverbrowser.koplugin/bookinfomanager")
+local BookInfoManager = require("bookinfomanager")
 
 -- Here is the specific UI implementation for "mosaic" display modes
 -- (see covermenu.lua for the generic code)

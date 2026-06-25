@@ -460,13 +460,7 @@ chooses a path or (an existing) file
 @function migrate(a,b) callback to a function to mangle old folder/file with new folder/file.
   Can be used for migrating the contents of the old path to the new one
 ]]
-function CoverImage:choosePathFile(
-  touchmenu_instance,
-  key,
-  folder_only,
-  new_file,
-  migrate
-)
+function CoverImage:choosePathFile(menu, key, folder_only, new_file, migrate)
   local old_path = util.splitFilePathName(self[key])
   UIManager:show(PathChooser:new({
     select_directory = folder_only or new_file,

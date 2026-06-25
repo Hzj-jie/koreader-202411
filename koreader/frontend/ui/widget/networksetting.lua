@@ -98,7 +98,7 @@ function MinimalPaginator:paintTo(bb, x, y)
   )
 end
 
-function MinimalPaginator:_setProgress(progress)
+function MinimalPaginator:setProgress(progress)
   self.progress = progress
 end
 
@@ -186,7 +186,7 @@ function NetworkItem:init()
         }),
       })
     )
-    self.setting_ui:_setConnectedItem(self)
+    self.setting_ui:setConnectedItem(self)
   elseif self.info.password then
     self.btn_edit_nw = FrameContainer:new({
       bordersize = 0,
@@ -234,7 +234,7 @@ function NetworkItem:refresh()
 end
 
 function NetworkItem:connect()
-  local connected_item = self.setting_ui:_getConnectedItem()
+  local connected_item = self.setting_ui:getConnectedItem()
   if connected_item then
     connected_item:disconnect(true)
   end
@@ -245,7 +245,7 @@ function NetworkItem:connect()
   if success then
     obtainIP()
     self.info.connected = true
-    self.setting_ui:_setConnectedItem(self)
+    self.setting_ui:setConnectedItem(self)
     text = gettext("Connected.")
   else
     text = err_msg
@@ -287,13 +287,13 @@ function NetworkItem:disconnect(will_reconnect)
   end
   self.info.connected = nil
   self:refresh()
-  self.setting_ui:_setConnectedItem(nil)
+  self.setting_ui:setConnectedItem(nil)
   if self.setting_ui.disconnect_callback then
     self.setting_ui.disconnect_callback()
   end
 end
 
-function NetworkItem:_saveAndConnectToNetwork(password_input)
+function NetworkItem:saveAndConnectToNetwork(password_input)
   local new_passwd = password_input:getInputText()
   -- Dont set a empty password if WPA encryption, go through if it’s an open AP
   if
@@ -315,7 +315,7 @@ function NetworkItem:_saveAndConnectToNetwork(password_input)
   UIManager:close(password_input)
 end
 
-function NetworkItem:_editNetwork()
+function NetworkItem:onEditNetwork()
   local password_input
   password_input = InputDialog:new({
     title = self.display_ssid,
@@ -347,17 +347,17 @@ function NetworkItem:_editNetwork()
           text = gettext("Connect"),
           is_enter_default = true,
           callback = function()
-            self:_saveAndConnectToNetwork(password_input)
+            self:saveAndConnectToNetwork(password_input)
           end,
         },
       },
     },
   })
-  UIManager:show(password_input)
+  self:showWidget(password_input)
   return true
 end
 
-function NetworkItem:_addNetwork()
+function NetworkItem:onAddNetwork()
   local password_input
   password_input = InputDialog:new({
     title = self.display_ssid,
@@ -378,13 +378,13 @@ function NetworkItem:_addNetwork()
           text = gettext("Connect"),
           is_enter_default = true,
           callback = function()
-            self:_saveAndConnectToNetwork(password_input)
+            self:saveAndConnectToNetwork(password_input)
           end,
         },
       },
     },
   })
-  UIManager:show(password_input)
+  self:showWidget(password_input)
   return true
 end
 
@@ -406,12 +406,12 @@ function NetworkItem:onTapSelect(arg, ges_ev)
     if
       self.btn_edit_nw and ges_ev.pos:intersectWith(self.btn_edit_nw.dimen)
     then
-      self:_editNetwork()
+      self:onEditNetwork()
     else
       self:connect()
     end
   else
-    self:_addNetwork()
+    self:onAddNetwork()
   end
   return true
 end
@@ -493,7 +493,7 @@ function NetworkSetting:init()
         width = self.width,
         height = self.height - self.pagination:getSize().h,
         page_update_cb = function(curr_page, total_pages)
-          self.pagination:_setProgress(curr_page / total_pages)
+          self.pagination:setProgress(curr_page / total_pages)
           -- self.page_text:setText(curr_page .. "/" .. total_pages)
           self:scheduleRepaint()
         end,
@@ -521,11 +521,11 @@ function NetworkSetting:init()
   end
 end
 
-function NetworkSetting:_setConnectedItem(item)
+function NetworkSetting:setConnectedItem(item)
   self.connected_item = item
 end
 
-function NetworkSetting:_getConnectedItem()
+function NetworkSetting:getConnectedItem()
   return self.connected_item
 end
 

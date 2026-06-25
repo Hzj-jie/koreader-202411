@@ -323,7 +323,7 @@ function CloudStorage:downloadFile(item)
               },
             },
           })
-          UIManager:show(input_dialog)
+          self:showWidget(input_dialog)
         end,
       },
     },
@@ -823,7 +823,7 @@ function CloudStorage:createFolder(url)
     parent = input_dialog,
   })
   input_dialog:addWidget(check_button_enter_folder)
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function CloudStorage:configCloud(type)

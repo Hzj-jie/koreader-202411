@@ -2,7 +2,7 @@
     This module implements calibre metadata searching.
 --]]
 
-local CalibreMetadata = require("plugins/calibre.koplugin/metadata")
+local CalibreMetadata = require("metadata")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")

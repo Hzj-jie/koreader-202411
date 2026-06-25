@@ -18,9 +18,9 @@ local gettext = require("gettext")
 local logger = require("logger")
 local util = require("ffi/util")
 
-local CalculatorConvertDialog = require("plugins/calculator.koplugin/calculatorconvertdialog")
-local CalculatorSettingsDialog = require("plugins/calculator.koplugin/calculatorsettingsdialog")
-local Parser = require("plugins/calculator.koplugin/formulaparser/formulaparser")
+local CalculatorConvertDialog = require("calculatorconvertdialog")
+local CalculatorSettingsDialog = require("calculatorsettingsdialog")
+local Parser = require("formulaparser/formulaparser")
 
 local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"
 
@@ -65,7 +65,7 @@ function Calculator:init()
   if self.use_init_file == "yes" then
     self:load(nil, self.init_file)
   end
-  self:_registerDispatcherActions()
+  self:onDispatcherRegisterActions()
   self.ui.menu:registerToMainMenu(self)
 
   -- Add button to readerhighlight dialog
@@ -107,12 +107,12 @@ function Calculator:addToMainMenu(menu_items)
     text = gettext("Calculator"),
     keep_menu_open = true,
     callback = function()
-      self:_startCalculator()
+      self:onCalculatorStart()
     end,
   }
 end
 
-function Calculator:_registerDispatcherActions()
+function Calculator:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_calculator", {
     category = "none",
     event = "CalculatorStart",
@@ -285,7 +285,7 @@ function Calculator:expandTabs(str, num)
 end
 
 function Calculator:convertUnit(text_containing_unit)
-  self:_startCalculator()
+  self:onCalculatorStart()
 
   -- delete multiline --
   if text_containing_unit:find("\n") then
@@ -313,7 +313,7 @@ function Calculator:convertUnit(text_containing_unit)
   UIManager:show(self.convert_dialog)
 end
 
-function Calculator:_startCalculator()
+function Calculator:onCalculatorStart()
   self.angle_mode = G_reader_settings:read("calculator_angle_mode")
     or self.angle_mode
   self.number_format = G_reader_settings:read("calculator_number_format")
@@ -367,7 +367,7 @@ function Calculator:load(old_file, file_name)
     logger.warn("Failed to load file from " .. file_name)
   end
   if old_file then
-    self:_startCalculator()
+    self:onCalculatorStart()
   end
 end
 
@@ -387,7 +387,7 @@ function Calculator:dump(old_file, file_name)
     logger.warn("Failed to dump calculator output to " .. file_name)
   end
   if old_file then
-    self:_startCalculator()
+    self:onCalculatorStart()
   end
 end
 

@@ -527,7 +527,7 @@ function ImageViewer:onTap(_, ges)
       and ges.pos.x < Screen:getWidth() / 10
       and ges.pos.y > Screen:getHeight() * 9 / 10
     then
-      return self:_saveImageView()
+      return self:onSaveImageView()
     end
   end
   if self.with_title_bar then
@@ -828,10 +828,10 @@ function ImageViewer:onPinch(_, ges)
 end
 
 function ImageViewer:onTapDiagonal()
-  return self:_saveImageView()
+  return self:onSaveImageView()
 end
 
-function ImageViewer:_saveImageView()
+function ImageViewer:onSaveImageView()
   -- We save the currently displayed blitbuffer (panned or zoomed)
   -- after getting fullscreen and removing UI elements if needed.
   local restore_settings_func

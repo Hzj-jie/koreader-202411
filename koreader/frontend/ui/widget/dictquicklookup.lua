@@ -1382,7 +1382,7 @@ function DictQuickLookup:onLookupInputWord(hint)
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
 end
 
 function DictQuickLookup:lookupWikipedia(get_fullpage, word, is_sane, lang)

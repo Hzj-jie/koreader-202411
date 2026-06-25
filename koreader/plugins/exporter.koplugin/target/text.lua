@@ -3,7 +3,7 @@ local T = util.template
 local gettext = require("gettext")
 
 -- text exporter
-local TextExporter = require("plugins/exporter.koplugin/base"):new({
+local TextExporter = require("base"):new({
   name = "text",
   extension = "txt",
   mimetype = "text/plain",
