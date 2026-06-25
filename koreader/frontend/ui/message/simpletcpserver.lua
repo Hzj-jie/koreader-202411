@@ -25,13 +25,21 @@ function SimpleTCPServer:new(o)
 end
 
 function SimpleTCPServer:start()
-  self.server = socket.bind(self.host, self.port)
-  if self.server then
-    self.server:settimeout(0.01) -- set timeout (10ms)
-    logger.dbg("SimpleTCPServer: Server listening on port " .. self.port)
-  else
-    logger.warn("Failed to start SimpleTCPServer on port " .. self.port)
+  for i = 1, 10 do
+    self.server = socket.bind(self.host, self.port)
+    if self.server then
+      self.server:settimeout(0.01) -- set timeout (10ms)
+      local _, actual_port = self.server:getsockname()
+      if actual_port then
+        self.port = actual_port
+      end
+      logger.dbg("SimpleTCPServer: Server listening on port " .. self.port)
+      return
+    end
+    logger.warn(string.format("Failed to start SimpleTCPServer on port %s, retrying in 200ms (attempt %d/10)...", tostring(self.port), i))
+    socket.select(nil, nil, 0.2)
   end
+  logger.err("Failed to start SimpleTCPServer on port " .. self.port .. " after 10 attempts")
 end
 
 function SimpleTCPServer:stop()
