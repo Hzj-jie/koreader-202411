@@ -196,6 +196,16 @@ function MenuSorter:_sort(item_table, order)
       )
     end
   end
+
+  -- Remove empty submenus
+  for i = #sub_menus, 1, -1 do
+    local sub_menu = sub_menus[i]
+    local sub_menu_pos = self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
+    if sub_menu_pos and sub_menu_pos.sub_item_table and #sub_menu_pos.sub_item_table == 0 then
+      self:removeMenuButton(menu_table["KOMenu:menu_buttons"], sub_menu)
+    end
+  end
+
   return menu_table["KOMenu:menu_buttons"]
 end
 
@@ -204,6 +214,9 @@ end
 ---- @tparam string needle_id Menu item ID string
 ---- @treturn table a reference to the table item if found
 function MenuSorter:findById(tbl, needle_id)
+  if tbl == nil then
+    return nil
+  end
   local items = {}
 
   for _, item in pairs(tbl) do
@@ -223,6 +236,32 @@ function MenuSorter:findById(tbl, needle_id)
     elseif sub_table then
       for _, item in pairs(sub_table) do
         if type(item) == "table" and item.id then
+          table.insert(items, item)
+        end
+      end
+    end
+    k, v = next(items, k)
+  end
+end
+
+function MenuSorter:removeMenuButton(tbl, needle_id)
+  local items = {}
+  for _, item in pairs(tbl) do
+    if item ~= "KOMenu:menu_buttons" then
+      table.insert(items, item)
+    end
+  end
+
+  local k, v
+  k, v = next(items, nil)
+  while k do
+    local sub_table = v.sub_item_table or type(v) == "table" and v
+    if sub_table then
+      for idx, item in ipairs(sub_table) do
+        if type(item) == "table" and item.id == needle_id then
+          table.remove(sub_table, idx)
+          return true
+        elseif type(item) == "table" and item.id then
           table.insert(items, item)
         end
       end

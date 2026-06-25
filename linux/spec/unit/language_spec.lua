@@ -23,8 +23,8 @@ describe("Language module", function()
         assert.are.equal("English", Language:getLanguageName("en"))
     end)
 
-    it("should return the locale code itself for unknown locale C", function()
-        assert.are.equal("C", Language:getLanguageName("C"))
+    it("should return the locale code itself for unknown locale xy", function()
+        assert.are.equal("xy", Language:getLanguageName("xy"))
     end)
 
     it("should contain sub-item for en and not C in language menu", function()
