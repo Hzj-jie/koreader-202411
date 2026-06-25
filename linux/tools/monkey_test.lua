@@ -63,22 +63,144 @@ if ip == "127.0.0.1" or ip == "localhost" then
   print(string.format("[*] httpinspector started on dynamic port: %d", port))
 end
 
-print(string.format("[+] Connected! Injecting %d random events...", count))
+local function is_modal_open(target_ip, target_port)
+  local url = string.format("http://%s:%d/koreader/UIManager/_window_stack/2/x", target_ip, target_port)
+  local body, code = http.request(url)
+  return code == 200
+end
+
+local function is_input_dialog_open(target_ip, target_port)
+  local url = string.format("http://%s:%d/koreader/UIManager/_window_stack/2/widget/_input_widget/bordersize", target_ip, target_port)
+  local body, code = http.request(url)
+  return code == 200
+end
+
+local state = {
+  menu_cooldown = 0,
+  modal_open_ticks = 0,
+  input_chars_typed = 0,
+}
+
+local function get_next_action(target_ip, target_port)
+  local modal_open = is_modal_open(target_ip, target_port)
+  local input_dialog_open = is_input_dialog_open(target_ip, target_port)
+
+  if not input_dialog_open then
+    state.input_chars_typed = 0
+  end
+
+  if modal_open then
+    state.modal_open_ticks = state.modal_open_ticks + 1
+  else
+    state.modal_open_ticks = 0
+  end
+
+  -- If a modal has been open for too long (e.g. 5 ticks), force dismiss it
+  if state.modal_open_ticks > 8 then
+    print("[*] Modal stuck detected! Sending Escape to dismiss...")
+    state.modal_open_ticks = 0
+    return { type = "key", value = "Esc" }
+  end
+
+  -- If it is an input dialog, type some characters first, then enter
+  if input_dialog_open then
+    if state.input_chars_typed < 4 then
+      local charset = {"t", "e", "s", "t", "m", "o", "n", "k", "y"}
+      local char = charset[math.random(1, #charset)]
+      state.input_chars_typed = state.input_chars_typed + 1
+      return { type = "key", value = char }
+    else
+      state.input_chars_typed = 0
+      return { type = "key", value = "Enter" }
+    end
+  end
+
+  local rand = math.random()
+
+  -- If modal is open (but not an input dialog), focus on keys (like Enter, Esc, Up, Down) to navigate it
+  if modal_open then
+    if rand < 0.40 then
+      -- Tap inside modal bounds (usually center of the screen)
+      local x = math.random(150, 450)
+      local y = math.random(300, 500)
+      return { type = "touch", x = x, y = y }
+    elseif rand < 0.70 then
+      -- Navigate Up/Down
+      local key = math.random() < 0.5 and "Down" or "Up"
+      return { type = "key", value = key }
+    else
+      -- Confirm/Dismiss
+      local key = math.random() < 0.6 and "Enter" or "Esc"
+      return { type = "key", value = key }
+    end
+  end
+
+  -- Normal mode (no modal open)
+  if state.menu_cooldown > 0 then
+    state.menu_cooldown = state.menu_cooldown - 1
+  end
+
+  if rand < 0.65 then
+    -- 65% probability: Page turning (reading)
+    if math.random() < 0.85 then
+      -- Turn forward (Right zone)
+      local x = math.random(450, 590)
+      local y = math.random(200, 600)
+      return { type = "touch", x = x, y = y }
+    else
+      -- Turn backward (Left zone)
+      local x = math.random(10, 150)
+      local y = math.random(200, 600)
+      return { type = "touch", x = x, y = y }
+    end
+  elseif rand < 0.80 then
+    -- 15% probability: Keyboard navigation
+    local keys = {"Right", "Left", "Down", "Up"}
+    local keyname = keys[math.random(1, #keys)]
+    return { type = "key", value = keyname }
+  elseif rand < 0.90 then
+    -- 10% probability: Content area taps
+    local x = math.random(150, 450)
+    local y = math.random(200, 600)
+    return { type = "touch", x = x, y = y }
+  else
+    -- 10% probability: Toggle Menu (Top or Bottom zones)
+    if state.menu_cooldown == 0 then
+      state.menu_cooldown = 10 -- do not toggle menu again for next 10 actions
+      local top = math.random() < 0.7
+      if top then
+        -- Top bar menu
+        local x = math.random(50, 550)
+        local y = math.random(10, 80)
+        return { type = "touch", x = x, y = y }
+      else
+        -- Bottom bar menu
+        local x = math.random(50, 550)
+        local y = math.random(720, 780)
+        return { type = "touch", x = x, y = y }
+      end
+    else
+      -- Cooldown active, fallback to page turn forward
+      local x = math.random(450, 590)
+      local y = math.random(200, 600)
+      return { type = "touch", x = x, y = y }
+    end
+  end
+end
+
+print(string.format("[+] Connected! Injecting %d guided monkey events...", count))
 math.randomseed(os.time())
 
 local passed = true
 local action_err = nil
 
 for i = 1, count do
+  local action = get_next_action(ip, port)
   local url
-  if math.random() < 0.90 then
-    local x = math.random(10, 590)
-    local y = math.random(10, 790)
-    url = string.format("http://%s:%d/koreader/touch/%d/%d", ip, port, x, y)
+  if action.type == "touch" then
+    url = string.format("http://%s:%d/koreader/touch/%d/%d", ip, port, action.x, action.y)
   else
-    local keys = {"Right", "Left", "Down", "Up"}
-    local keyname = keys[math.random(1, #keys)]
-    url = string.format("http://%s:%d/koreader/key/%s", ip, port, keyname)
+    url = string.format("http://%s:%d/koreader/key/%s", ip, port, action.value)
   end
 
   local body, code = http.request(url)
