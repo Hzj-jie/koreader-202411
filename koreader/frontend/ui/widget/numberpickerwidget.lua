@@ -285,7 +285,7 @@ function NumberPickerWidget:init()
           },
         },
       })
-      UIManager:show(input_dialog)
+      self:showWidget(input_dialog)
     end
   end
 

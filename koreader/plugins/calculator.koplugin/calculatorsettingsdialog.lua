@@ -26,7 +26,7 @@ local Screen = require("device").screen
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
-local Parser = require("plugins/calculator.koplugin/formulaparser/formulaparser")
+local Parser = require("formulaparser/formulaparser")
 
 local CalculatorSettingsDialog = InputContainer:new({
   title = gettext("Calculator settings"),

@@ -166,7 +166,7 @@ function TextViewer:init(reinit)
           end_idx,
           to_source_index_func
         )
-          self:_handleTextSelection(
+          self:handleTextSelection(
             text,
             hold_duration,
             start_idx,
@@ -241,12 +241,12 @@ function TextViewer:init(reinit)
         if self._find_next then
           self:findCallback()
         else
-          self:_findDialog()
+          self:findDialog()
         end
       end,
       hold_callback = function()
         if self._find_next then
-          self:_findDialog()
+          self:findDialog()
         else
           if self.default_hold_callback then
             self.default_hold_callback()
@@ -489,7 +489,7 @@ function TextViewer:onForwardingPanRelease(arg, ges)
   return self.movable:onMovablePanRelease(arg, ges)
 end
 
-function TextViewer:_findDialog()
+function TextViewer:findDialog()
   local input_dialog, check_button_case
   input_dialog = InputDialog:new({
     title = gettext("Enter text to search for"),
@@ -532,7 +532,7 @@ function TextViewer:_findDialog()
   input_dialog:addWidget(check_button_case)
   input_dialog.ignore_first_hold_release = true
 
-  UIManager:show(input_dialog)
+  self:showWidget(input_dialog)
 end
 
 function TextViewer:findCallback(input_dialog)
@@ -564,7 +564,7 @@ function TextViewer:findCallback(input_dialog)
   )
   local msg
   if char_pos > 0 then
-    self:_setTextBold(char_pos, #search_charlist)
+    self:setTextBold(char_pos, #search_charlist)
     self.scroll_text_w:moveCursorToCharPos(
       char_pos,
       self.find_centered_lines_count
@@ -593,7 +593,7 @@ function TextViewer:findCallback(input_dialog)
   end
 end
 
-function TextViewer:_handleTextSelection(
+function TextViewer:handleTextSelection(
   text,
   hold_duration,
   start_idx,
@@ -633,7 +633,7 @@ function TextViewer:reinit()
   self.scroll_text_w:scrollToRatio(ratio, ratio == 0)
 end
 
-function TextViewer:_setTextBold(start_pos, len)
+function TextViewer:setTextBold(start_pos, len)
   local end_pos = start_pos + len
   local text = self.text
   if self.charlist == nil then

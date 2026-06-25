@@ -3,7 +3,7 @@ local md5 = require("ffi/MD5")
 local rapidjson = require("rapidjson")
 
 -- json exporter
-local JsonExporter = require("plugins/exporter.koplugin/base"):new({
+local JsonExporter = require("base"):new({
   name = "json",
   -- the proper mimetype is "application/json" as stated in
   -- https://www.iana.org/assignments/media-types/application/json

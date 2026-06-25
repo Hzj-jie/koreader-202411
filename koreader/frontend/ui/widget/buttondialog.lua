@@ -286,6 +286,7 @@ function ButtonDialog:onClose()
     "ButtonDialog active instances count went negative!"
   )
 end
+
 function ButtonDialog:onExit()
   if self.tap_close_callback then
     self.tap_close_callback()

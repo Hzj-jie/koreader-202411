@@ -397,35 +397,16 @@ local SDL_BUTTON_LEFT = 1
 local SDL_BUTTON_RIGHT = 3
 
 function S.waitForEvent(sec, usec)
-  if #inputQueue > 0 then
-    local events = inputQueue
-    inputQueue = {}
-    return true, events
-  end
-
   local event = ffi.new("union SDL_Event")
+  -- TimeVal to ms if we were passed one to begin with, otherwise, -1 => block.
+  -- NOTE: Since we have *less* precision than a timeval, we round *up*, to avoid passing zero for < 1ms timevals.
   local timeout = sec and math.ceil((sec * 1000000 + usec) * (1 / 1000)) or -1
-  if timeout == -1 then
-    timeout = 50
-  end
 
   -- Reset the queue
   inputQueue = {}
 
-  local got_event
-  if os.getenv("SDL_VIDEODRIVER") == "dummy" then
-    local delay_ms = timeout
-    if delay_ms == -1 then
-      delay_ms = 50
-    end
-    if delay_ms > 0 then
-      SDL.SDL_Delay(delay_ms)
-    end
-    got_event = SDL.SDL_PollEvent(event)
-  else
-    got_event = SDL.SDL_WaitEventTimeout(event, timeout)
-  end
-
+  -- Wait for event
+  local got_event = SDL.SDL_WaitEventTimeout(event, timeout)
   if got_event == 0 then
     -- ETIME
     return false, C.ETIME
@@ -738,28 +719,6 @@ end
 
 function S.getVersion()
   return string.format("%d.%d.%d", getSDLVersion())
-end
-
-function S.simulateTouch(action, x, y, slot)
-  slot = slot or 0
-  local event = {
-    type = (action == "down" and SDL.SDL_FINGERDOWN) or (action == "up" and SDL.SDL_FINGERUP) or SDL.SDL_FINGERMOTION,
-    tfinger = { fingerId = slot }
-  }
-  if action == "down" then
-    setPointerDownState(slot, true)
-    genTouchDownEvent(event, slot, x, y)
-  elseif action == "up" then
-    genTouchUpEvent(event, slot, x, y)
-    pointers[slot] = nil
-  elseif action == "move" then
-    genTouchMoveEvent(event, slot, x, y)
-  end
-end
-
-function S.simulateKey(key_code)
-  genEmuEvent(C.EV_KEY, key_code, 1)
-  genEmuEvent(C.EV_KEY, key_code, 0)
 end
 
 return S

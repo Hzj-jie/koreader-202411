@@ -27,15 +27,6 @@ end
 package.path = "./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
 package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
--- Dynamic plugin path injection for single test mode
-local test_file = arg[1]
-if test_file then
-    local plugin = test_file:match("plugins/([%w%.%-_]+)/")
-    if plugin then
-        package.path = string.format("../koreader/plugins/%s/?.lua;./plugins/%s/?.lua;%s", plugin, plugin, package.path)
-    end
-end
-
 -- 2. Load framework unit test helpers
 if not pcall(dofile, "test_helper.lua") then
     dofile("ffi/loadlib.lua")
@@ -114,22 +105,6 @@ if not test_file then
 
     find_specs("base/spec/unit", spec_files)
     find_specs("spec/unit", spec_files)
-
-    -- Dynamically find and include plugin specs
-    local plugins_dir = "plugins"
-    local plugins_attr = lfs.attributes(plugins_dir)
-    if plugins_attr and plugins_attr.mode == "directory" then
-        for plugin in lfs.dir(plugins_dir) do
-            if plugin ~= "." and plugin ~= ".." then
-                local plugin_path = plugins_dir .. "/" .. plugin
-                local attr = lfs.attributes(plugin_path)
-                if attr and attr.mode == "directory" then
-                    find_specs(plugin_path, spec_files)
-                end
-            end
-        end
-    end
-
     table.sort(spec_files)
 
     if #spec_files == 0 then

@@ -353,7 +353,7 @@ function VirtualKey:_showLayoutDialog()
     parent = self,
     keyboard_state = keyboard_state,
   })
-  UIManager:show(self.keyboard_layout_dialog)
+  self:showWidget(self.keyboard_layout_dialog)
 end
 
 function VirtualKey:genKeyboardLayoutKeyChars()

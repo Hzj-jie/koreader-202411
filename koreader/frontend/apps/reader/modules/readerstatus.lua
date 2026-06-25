@@ -133,7 +133,7 @@ function ReaderStatus:onEndOfBook()
       local info = InfoMessage:new({
         text = gettext("Searching next file…"),
       })
-      UIManager:show(info)
+      self:showWidget(info)
       UIManager:forceRepaint()
       UIManager:close(info)
       self:onOpenNextDocumentInFolder()

@@ -20,7 +20,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local Math = require("optmath")
 local Notification = require("ui/widget/notification")
 local SpinWidget = require("ui/widget/spinwidget")
-local SunTime = require("plugins/autowarmth.koplugin/suntime")
+local SunTime = require("suntime")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -58,7 +58,7 @@ local AutoWarmth = WidgetContainer:extend({
 })
 
 function AutoWarmth:init()
-  self:_registerDispatcherActions()
+  self:onDispatcherRegisterActions()
   self.ui.menu:registerToMainMenu(self)
 
   self.easy_mode = G_reader_settings:nilOrTrue("autowarmth_easy_mode")
@@ -128,7 +128,7 @@ function AutoWarmth:init()
   self:scheduleMidnightUpdate()
 end
 
-function AutoWarmth:_registerDispatcherActions()
+function AutoWarmth:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_ephemeris", {
     category = "none",
     event = "ShowEphemeris",

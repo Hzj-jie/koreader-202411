@@ -239,14 +239,14 @@ end
 function ReaderSearch:searchText(text) -- from highlight dialog
   if G_reader_settings:isTrue("fulltext_search_find_all") then
     self.ui.highlight:clear()
-    self:_searchCallback(nil, text)
+    self:searchCallback(nil, text)
   else
-    self:_searchCallback(0, text) -- forward
+    self:searchCallback(0, text) -- forward
   end
 end
 
 -- if reverse == 1 search backwards
-function ReaderSearch:_searchCallback(reverse, text)
+function ReaderSearch:searchCallback(reverse, text)
   local search_text = text or self.input_dialog:getInputText()
   if search_text == nil or search_text == "" then
     return
@@ -288,7 +288,7 @@ function ReaderSearch:_searchCallback(reverse, text)
     UIManager:closeIfNotNil(self.input_dialog)
     if reverse then
       self.last_search_hash = nil
-      self:_showSearchDialog(
+      self:onShowSearchDialog(
         search_text,
         reverse,
         self.use_regex,
@@ -328,20 +328,20 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
           -- @translators Find all results in entire document, button displayed on the search bar, should be short.
           text = C_("Search text", "All"),
           callback = function()
-            self:_searchCallback()
+            self:searchCallback()
           end,
         },
         {
           text = backward_text,
           callback = function()
-            self:_searchCallback(1)
+            self:searchCallback(1)
           end,
         },
         {
           text = forward_text,
           is_enter_default = true,
           callback = function()
-            self:_searchCallback(0)
+            self:searchCallback(0)
           end,
         },
       },
@@ -369,11 +369,11 @@ function ReaderSearch:onShowFulltextSearchInput(search_string)
     self.input_dialog:addWidget(self.check_button_regex)
   end
 
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
   return true
 end
 
-function ReaderSearch:_showSearchDialog(
+function ReaderSearch:onShowSearchDialog(
   text,
   direction,
   regex,
@@ -548,11 +548,11 @@ function ReaderSearch:_showSearchDialog(
       {
         {
           text = from_start_text,
-          callback = search(self._searchFromStart, text, nil),
+          callback = search(self.searchFromStart, text, nil),
         },
         {
           text = backward_text,
-          callback = search(self._searchNext, text, 1),
+          callback = search(self.searchNext, text, 1),
         },
         {
           icon = "appbar.search",
@@ -565,11 +565,11 @@ function ReaderSearch:_showSearchDialog(
         },
         {
           text = forward_text,
-          callback = search(self._searchNext, text, 0),
+          callback = search(self.searchNext, text, 0),
         },
         {
           text = from_end_text,
-          callback = search(self._searchFromEnd, text, nil),
+          callback = search(self.searchFromEnd, text, nil),
         },
       },
     },
@@ -584,14 +584,14 @@ function ReaderSearch:_showSearchDialog(
     -- initial position: center of the screen
     UIManager:show(self.wait_button)
     UIManager:tickAfterNext(function()
-      do_search(self._searchFromCurrent, text, direction)()
+      do_search(self.searchFromCurrent, text, direction)()
       UIManager:close(self.wait_button)
       self:showWidget(self.search_dialog)
       --- @todo regional
       UIManager:setDirty(self.dialog, "partial")
     end)
   else
-    do_search(self._searchFromCurrent, text, direction)()
+    do_search(self.searchFromCurrent, text, direction)()
     self:showWidget(self.search_dialog)
     --- @todo regional
     UIManager:setDirty(self.dialog, "partial")
@@ -620,11 +620,11 @@ function ReaderSearch:search(pattern, origin, regex, case_insensitive)
     self.max_hits
   )
   Device:setIgnoreInput(false)
-  self:_showErrorNotification(words_found, regex, self.max_hits)
+  self:showErrorNotification(words_found, regex, self.max_hits)
   return retval
 end
 
-function ReaderSearch:_showErrorNotification(words_found, regex, max_hits)
+function ReaderSearch:showErrorNotification(words_found, regex, max_hits)
   regex = regex or self.use_regex
   max_hits = max_hits or self.findall_max_hits
   local regex_retval = regex and self.ui.document:getAndClearRegexSearchError()
@@ -647,19 +647,19 @@ function ReaderSearch:_showErrorNotification(words_found, regex, max_hits)
   end
 end
 
-function ReaderSearch:_searchFromStart(pattern, _, regex, case_insensitive)
+function ReaderSearch:searchFromStart(pattern, _, regex, case_insensitive)
   self.direction = 0
   self._expect_back_results = true
   return self:search(pattern, -1, regex, case_insensitive)
 end
 
-function ReaderSearch:_searchFromEnd(pattern, _, regex, case_insensitive)
+function ReaderSearch:searchFromEnd(pattern, _, regex, case_insensitive)
   self.direction = 1
   self._expect_back_results = false
   return self:search(pattern, -1, regex, case_insensitive)
 end
 
-function ReaderSearch:_searchFromCurrent(
+function ReaderSearch:searchFromCurrent(
   pattern,
   direction,
   regex,
@@ -671,7 +671,7 @@ function ReaderSearch:_searchFromCurrent(
 end
 
 -- ignore current page and search next occurrence
-function ReaderSearch:_searchNext(pattern, direction, regex, case_insensitive)
+function ReaderSearch:searchNext(pattern, direction, regex, case_insensitive)
   self.direction = direction
   self._expect_back_results = direction == 1
   return self:search(pattern, 1, regex, case_insensitive)
@@ -768,7 +768,7 @@ function ReaderSearch:onShowFindAllResults(not_cached)
     title_bar_fm_style = true,
     title_bar_left_icon = "appbar.menu",
     onLeftButtonTap = function()
-      self:_showAllResultsMenuDialog()
+      self:showAllResultsMenuDialog()
     end,
     onMenuChoice = function(_menu_self, item)
       if self.ui.rolling then
@@ -805,18 +805,18 @@ function ReaderSearch:onShowFindAllResults(not_cached)
       UIManager:close(self.result_menu)
     end,
   })
-  self:_updateAllResultsMenu(nil, self.findall_results_item_index)
+  self:updateAllResultsMenu(nil, self.findall_results_item_index)
   self:showWidget(self.result_menu)
-  self:_showErrorNotification(#self.findall_results)
+  self:showErrorNotification(#self.findall_results)
 end
 
-function ReaderSearch:_updateAllResultsMenu(item_table, item_index)
+function ReaderSearch:updateAllResultsMenu(item_table, item_index)
   local items_nb = item_table and #item_table or #self.result_menu.item_table
   local title = T(gettext("Search results (%1)"), items_nb)
   self.result_menu:switchItemTable(title, item_table, item_index)
 end
 
-function ReaderSearch:_showAllResultsMenuDialog()
+function ReaderSearch:showAllResultsMenuDialog()
   local item_table = self.result_menu.item_table
   local button_dialog
   local buttons = {
@@ -837,7 +837,7 @@ function ReaderSearch:_showAllResultsMenuDialog()
               break
             end
           end
-          self:_updateAllResultsMenu(new_item_table)
+          self:updateAllResultsMenu(new_item_table)
         end,
       },
     },
@@ -869,7 +869,7 @@ function ReaderSearch:_showAllResultsMenuDialog()
               break
             end
           end
-          self:_updateAllResultsMenu(nil, index or #item_table)
+          self:updateAllResultsMenu(nil, index or #item_table)
         end,
       },
     },

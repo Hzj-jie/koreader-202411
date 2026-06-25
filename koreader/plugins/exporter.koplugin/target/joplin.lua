@@ -5,13 +5,13 @@ local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
-local md = require("plugins/exporter.koplugin/template/md")
+local md = require("template/md")
 local socketutil = require("socketutil")
 local T = require("ffi/util").template
 local gettext = require("gettext")
 
 -- joplin exporter
-local JoplinExporter = require("plugins/exporter.koplugin/base"):new({
+local JoplinExporter = require("base"):new({
   name = "joplin",
   is_remote = true,
   notebook_name = gettext("KOReader Notes"),

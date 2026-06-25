@@ -79,7 +79,7 @@ function ReaderWikipedia:lookupInput()
       },
     },
   })
-  UIManager:show(self.input_dialog)
+  self:showWidget(self.input_dialog)
 end
 
 function ReaderWikipedia:addToMainMenu(menu_items)
@@ -207,7 +207,7 @@ function ReaderWikipedia:addToMainMenu(menu_items)
               },
             },
           })
-          UIManager:show(wikilang_input)
+          self:showWidget(wikilang_input)
         end,
         separator = true,
       },

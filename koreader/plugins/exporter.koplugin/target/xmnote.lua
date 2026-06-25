@@ -14,7 +14,7 @@ local T = util.template
 local gettext = require("gettext")
 
 -- xmnote exporter
-local XMNoteExporter = require("plugins/exporter.koplugin/base"):new({
+local XMNoteExporter = require("base"):new({
   name = "xmnote",
   is_remote = true,
   server_port = 8080,

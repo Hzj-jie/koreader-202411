@@ -1442,7 +1442,7 @@ function ReaderStyleTweak:editBookTweak(menu)
   })
   -- ignore first hold release, as we may be invoked from hold
   editor.ignore_first_hold_release = true
-  UIManager:show(editor)
+  self:showWidget(editor)
 end
 
 return ReaderStyleTweak

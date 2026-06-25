@@ -793,7 +793,7 @@ function ReaderDictionary:onShowDictionaryLookup()
       },
     },
   })
-  UIManager:show(self.dictionary_lookup_dialog)
+  self:showWidget(self.dictionary_lookup_dialog)
   return true
 end
 
@@ -1088,7 +1088,7 @@ function ReaderDictionary:showLookupMsg(text)
     -- display of the info message to be cancelled. So no delay here, and force
     -- a repaint.
   })
-  UIManager:show(self.lookup_progress_msg)
+  self:showWidget(self.lookup_progress_msg)
   UIManager:forceRepaint()
 end
 

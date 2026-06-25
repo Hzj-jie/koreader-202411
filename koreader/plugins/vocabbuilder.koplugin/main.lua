@@ -13,7 +13,7 @@ local ButtonDialog = require("ui/widget/buttondialog")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
-local DB = require("plugins/vocabbuilder.koplugin/db")
+local DB = require("db")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
@@ -496,12 +496,12 @@ function MenuDialog:onExit()
   return true
 end
 
-function MenuDialog:_changeContextStatus(_args, position)
+function MenuDialog:onChangeContextStatus(_args, position)
   settings.with_context = position == 2
   saveSettings()
 end
 
-function MenuDialog:_changeEnableStatus(_args, position)
+function MenuDialog:onChangeEnableStatus(_args, position)
   settings.enabled = position == 2
   saveSettings()
 end
@@ -510,9 +510,9 @@ function MenuDialog:onConfigChoose(values, _name, event, args, position)
   UIManager:tickAfterNext(function()
     if values then
       if event == "ChangeEnableStatus" then
-        self:_changeEnableStatus(args, position)
+        self:onChangeEnableStatus(args, position)
       elseif event == "ChangeContextStatus" then
-        self:_changeContextStatus(args, position)
+        self:onChangeContextStatus(args, position)
       end
     end
     UIManager:setDirty(nil, "ui")
@@ -2179,7 +2179,7 @@ local VocabBuilder = WidgetContainer:extend({
 
 function VocabBuilder:init()
   self.ui.menu:registerToMainMenu(self)
-  self:_registerDispatcherActions()
+  self:onDispatcherRegisterActions()
 end
 
 function VocabBuilder:addToMainMenu(menu_items)
@@ -2223,7 +2223,7 @@ function VocabBuilder:onDictButtonsReady(dict_popup, buttons)
   })
 end
 
-function VocabBuilder:_registerDispatcherActions()
+function VocabBuilder:onDispatcherRegisterActions()
   Dispatcher:registerAction("show_vocab_builder", {
     category = "none",
     event = "ShowVocabBuilder",

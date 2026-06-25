@@ -8,9 +8,9 @@
 --]]
 
 local BD = require("ui/bidi")
-local CalibreExtensions = require("plugins/calibre.koplugin/extensions")
-local CalibreSearch = require("plugins/calibre.koplugin/search")
-local CalibreWireless = require("plugins/calibre.koplugin/wireless")
+local CalibreExtensions = require("extensions")
+local CalibreSearch = require("search")
+local CalibreWireless = require("wireless")
 local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")

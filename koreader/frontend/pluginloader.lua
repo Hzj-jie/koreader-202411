@@ -84,50 +84,46 @@ function PluginLoader:loadPlugins()
       then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
-        if plugins_disabled[plugin_name] == nil then
-          local readme = plugin_root .. "/README.koreader-202411.md"
-          if lfs.attributes(readme, "mode") == "file" then
-            plugins_disabled[plugin_name] = true
-          end
+        if plugins_disabled[plugin_name] then
+          mainfile = metafile
         end
-        local main_exists = lfs.attributes(mainfile, "mode") == "file"
-        local meta_exists = lfs.attributes(metafile, "mode") == "file"
-
-        if meta_exists and (plugins_disabled[plugin_name] or main_exists) then
+        package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
+        package.cpath =
+          string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
+        local plugin_module = dofile(mainfile)
+        assert(plugin_module ~= nil)
+        assert(
+          plugin_module.disabled == nil
+            or type(plugin_module.disabled) == "boolean"
+        )
+        if not plugin_module.disabled then
+          plugin_module.path = plugin_root
+          plugin_module.name = plugin_module.name
+            or plugin_root:match("/(.-)%.koplugin")
           if plugins_disabled[plugin_name] then
-            mainfile = metafile
-          end
-          local plugin_module = dofile(mainfile)
-          assert(plugin_module ~= nil)
-          assert(
-            plugin_module.disabled == nil
-              or type(plugin_module.disabled) == "boolean"
-          )
-          if not plugin_module.disabled then
-            plugin_module.path = plugin_root
-            plugin_module.name = plugin_module.name
-              or plugin_root:match("/(.-)%.koplugin")
-            if plugins_disabled[plugin_name] then
-              table.insert(self.disabled_plugins, plugin_module)
-            else
-              local plugin_metamodule = dofile(metafile)
-              assert(plugin_metamodule)
-              for k, v in pairs(plugin_metamodule) do
-                plugin_module[k] = v
-              end
-              table.insert(self.enabled_plugins, plugin_module)
-            end
+            table.insert(self.disabled_plugins, plugin_module)
           else
-            logger.dbg("Plugin", mainfile, "has been disabled.")
+            local plugin_metamodule = dofile(metafile)
+            assert(plugin_metamodule)
+            for k, v in pairs(plugin_metamodule) do
+              plugin_module[k] = v
+            end
+            table.insert(self.enabled_plugins, plugin_module)
           end
         else
-          logger.info("Plugin folder", entry, "does not contain a valid plugin setup. Skipping.")
+          logger.dbg("Plugin", mainfile, "has been disabled.")
         end
+        package.path = package_path
+        package.cpath = package_cpath
       end
     end
   end
 
-
+  -- set package path for all loaded plugins
+  for _, plugin in ipairs(self.enabled_plugins) do
+    package.path = string.format("%s;%s/?.lua", package.path, plugin.path)
+    package.cpath = string.format("%s;%s/lib/?.so", package.cpath, plugin.path)
+  end
 
   table.sort(self.enabled_plugins, function(v1, v2)
     return v1.path < v2.path
@@ -174,7 +170,7 @@ function PluginLoader:genPluginManagerSubItem()
             G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
-            plugins_disabled[plugin.name] = false
+            plugins_disabled[plugin.name] = nil
           else
             plugins_disabled[plugin.name] = true
           end
