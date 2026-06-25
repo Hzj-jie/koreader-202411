@@ -57,7 +57,14 @@ function HttpInspector:start()
     end,
   })
   self.http_socket:start()
+  self.port = self.http_socket.port
   self.http_messagequeue = UIManager:insertZMQ(self.http_socket)
+
+  local f = io.open(DataStorage:getDataDir() .. "/httpinspector.port", "w")
+  if f then
+    f:write(tostring(self.port) .. "\n")
+    f:close()
+  end
 
   logger.dbg("HttpInspector: Server listening on port " .. self.port)
 end
@@ -86,6 +93,8 @@ end
 
 function HttpInspector:stop()
   logger.dbg("HttpInspector: Stopping server...")
+
+  os.remove(DataStorage:getDataDir() .. "/httpinspector.port")
 
   if self.http_socket then
     self.http_socket:stop()
@@ -517,6 +526,10 @@ function HttpInspector:_processRequest(data, request_id)
       return self:exposeEvent(uri, reqinfo)
     elseif fragment == "broadcast" then
       return self:exposeBroadcastEvent(uri, reqinfo)
+    elseif fragment == "touch" then
+      return self:exposeTouch(uri, reqinfo)
+    elseif fragment == "key" then
+      return self:exposeKey(uri, reqinfo)
     end
   end
 
@@ -1424,6 +1437,79 @@ function HttpInspector:exposeBroadcastEvent(uri, reqinfo)
   add_html("</pre>")
   html = table.concat(html, "\n")
   return self:_sendResponse(reqinfo, 200, CTYPE.HTML, html)
+end
+
+function HttpInspector:exposeTouch(uri, reqinfo)
+  local ok, err = pcall(function()
+    local args, nb_args = getVariablesFromUri(uri)
+    if nb_args ~= 2 then
+      error("Touch requires X and Y coordinates")
+    end
+    local x = args[1]
+    local y = args[2]
+
+    local Geom = require("ui/geometry")
+    local pos = Geom:new({ x = x, y = y, w = 0, h = 0 })
+    local ges = {
+      ges = "tap",
+      pos = pos,
+      time = { sec = 0, usec = 0 }
+    }
+    local ev = Event:new("Gesture", ges)
+    ev:asUserInput()
+
+    UIManager:nextTick(function()
+      UIManager:userInput(ev)
+    end)
+  end)
+
+  if not ok then
+    logger.err("HttpInspector: Error in exposeTouch: " .. tostring(err))
+    return self:_sendResponse(reqinfo, 500, CTYPE.TEXT, "Error: " .. tostring(err))
+  end
+
+  return self:_sendResponse(
+    reqinfo,
+    200,
+    CTYPE.TEXT,
+    "Touch injected successfully"
+  )
+end
+
+function HttpInspector:exposeKey(uri, reqinfo)
+  local ok, err = pcall(function()
+    local args, nb_args = getVariablesFromUri(uri)
+    if nb_args ~= 1 then
+      error("Key requires a keycode/string")
+    end
+    local keycode = tostring(args[1])
+
+    local Key = require("device/key")
+    local key_obj = Key:new(keycode, { Shift = false, Ctrl = false, Alt = false })
+
+    local ev_press = Event:new("KeyPress", key_obj)
+    ev_press:asUserInput()
+
+    local ev_release = Event:new("KeyRelease", key_obj)
+    ev_release:asUserInput()
+
+    UIManager:nextTick(function()
+      UIManager:userInput(ev_press)
+      UIManager:userInput(ev_release)
+    end)
+  end)
+
+  if not ok then
+    logger.err("HttpInspector: Error in exposeKey: " .. tostring(err))
+    return self:_sendResponse(reqinfo, 500, CTYPE.TEXT, "Error: " .. tostring(err))
+  end
+
+  return self:_sendResponse(
+    reqinfo,
+    200,
+    CTYPE.TEXT,
+    T("Key injected: %1", keycode)
+  )
 end
 
 local HttpInspectorWidget = WidgetContainer:extend({

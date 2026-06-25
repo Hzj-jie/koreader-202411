@@ -2,6 +2,7 @@
 -- Comparative pagination benchmark runner
 
 require("setupkoenv")
+package.path = "tools/?.lua;" .. package.path
 
 local ffiUtil = require("ffi/util")
 local http = require("socket.http")
@@ -25,12 +26,15 @@ local function quote_arg(arg)
   return quote_char .. arg .. quote_char
 end
 
+local test_env = require("test_env")
+local config = test_env.parse_args(arg)
+
 local BENCHMARK_HOME = "/tmp/koreader_benchmark"
-local IP_ADDRESS
-local PORT
+local IP_ADDRESS = config.ip
+local PORT = config.port
 local BASE_URL
-local SSH_TARGET
-local DEVICE_DIR = "/tmp"
+local SSH_TARGET = config.ssh_target
+local DEVICE_DIR = config.device_dir or "/tmp"
 local IS_REAL_DEVICE
 local IS_LOCAL_IP
 local pwd = lfs.currentdir()
@@ -45,59 +49,10 @@ local TARGET_DOCUMENTS = {
   "test/sample.pdf",
   "test/sample.txt",
 }
--- SSH session context detection to prevent remote high-latency GUI rendering delays
-local is_ssh = (os.getenv("SSH_CLIENT") ~= nil)
-  or (os.getenv("SSH_TTY") ~= nil)
-  or (os.getenv("SSH_CONNECTION") ~= nil)
 
--- Reachable active X11 display screen query auto-detection
-local has_screen = false
-if os.getenv("DISPLAY") and not is_ssh then
-  local ok = os.execute("xset -q >/dev/null 2>&1")
-  if ok == 0 or ok == true then
-    has_screen = true
-  end
-end
-
--- Resolve baseline viewport execution mode (Headless vs. Headful)
-local HEADFUL = has_screen
+local HEADFUL = not config.headless
 
 do
-  -- CLI flag overrides
-  local i = 1
-  while i <= #arg do
-    if arg[i] == "--headful" then
-      HEADFUL = true
-      i = i + 1
-    elseif arg[i] == "--headless" then
-      HEADFUL = false
-      i = i + 1
-    elseif arg[i] == "--ip" and arg[i+1] then
-      IP_ADDRESS = arg[i+1]
-      i = i + 2
-    elseif arg[i] == "--port" and arg[i+1] then
-      PORT = tonumber(arg[i+1])
-      i = i + 2
-    elseif arg[i] == "--ssh-target" and arg[i+1] then
-      SSH_TARGET = arg[i+1]
-      i = i + 2
-    elseif arg[i] == "--device-dir" and arg[i+1] then
-      DEVICE_DIR = arg[i+1]
-      i = i + 2
-    else
-      i = i + 1
-    end
-  end
-
-  -- Environment variable overrides
-  local env_headful = os.getenv("HEADFUL")
-  local env_headless = os.getenv("HEADLESS")
-  if env_headful == "1" or env_headful == "true" then
-    HEADFUL = true
-  elseif env_headless == "1" or env_headless == "true" then
-    HEADFUL = false
-  end
-
   -- Resolve final configuration based on execution mode
   if IP_ADDRESS then
     IS_REAL_DEVICE = true
@@ -130,9 +85,15 @@ do
   else
     IS_REAL_DEVICE = false
     IS_LOCAL_IP = false
-    PORT = PORT or 8088 -- default HTTP port for emulator
-    BASE_URL = string.format("http://localhost:%d/koreader", PORT)
-    print(string.format("[*] Target Mode: Local Emulator (localhost:%d)", PORT))
+    if config.port then
+      PORT = config.port
+      BASE_URL = string.format("http://localhost:%d/koreader", PORT)
+      print(string.format("[*] Target Mode: Local Emulator with static port (localhost:%d)", PORT))
+    else
+      PORT = nil
+      BASE_URL = nil
+      print("[*] Target Mode: Local Emulator with dynamic port allocation")
+    end
   end
 end
 
@@ -180,6 +141,7 @@ return {
     error("Failed to open settings file for writing: " .. settings_path)
   end
 
+  local settings_port = IS_REAL_DEVICE and PORT or 0
   local settings_content = string.format(
     [[-- benchmark configuration
 return {
@@ -200,7 +162,7 @@ return {
   }
 }
 ]],
-    PORT
+    settings_port
   )
   f:write(settings_content)
   f:close()
@@ -244,11 +206,28 @@ local function wait_for_ready()
       break
     end
 
-    local success = http_get(BASE_URL .. "/")
-    if success then
-      server_ready = true
-      break
+    if not IS_REAL_DEVICE and (not PORT or PORT == 0) then
+      local port_filepath = BENCHMARK_HOME .. "/.config/koreader/httpinspector.port"
+      local pf = io.open(port_filepath, "r")
+      if pf then
+        local val = pf:read("*line")
+        pf:close()
+        if val then
+          PORT = tonumber(val)
+          BASE_URL = string.format("http://localhost:%d/koreader", PORT)
+          print(string.format("[*] Dynamically detected emulator port: %d", PORT))
+        end
+      end
     end
+
+    if PORT and PORT > 0 then
+      local success = http_get(BASE_URL .. "/")
+      if success then
+        server_ready = true
+        break
+      end
+    end
+
     ffiUtil.usleep(200 * 1000) -- sleep 200ms
   end
 
@@ -971,6 +950,7 @@ local function is_process_alive(pid)
 end
 
 local function main()
+  test_env.free_ports()
   print(
     "Starting multi-document comparative benchmarking suite (active session single-run switcher)..."
   )
