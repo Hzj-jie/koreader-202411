@@ -3,7 +3,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local logger = require("logger")
 local T = require("ffi/util").template
-local BookInfoManager = require("bookinfomanager")
+local BookInfoManager = require("plugins/coverbrowser.koplugin/bookinfomanager")
 
 --[[
     This plugin provides additional display modes to file browsers (File Manager
@@ -650,13 +650,13 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
 
   -- In both mosaic and list modes, replace original methods with those from
   -- our generic CoverMenu
-  local CoverMenu = require("covermenu")
+  local CoverMenu = require("plugins/coverbrowser.koplugin/covermenu")
   FileChooser.updateCache = CoverMenu.updateCache
   FileChooser.updateItems = CoverMenu.updateItems
   FileChooser.onClose = CoverMenu.onClose
   if FileChooser.display_mode_type == "mosaic" then
     -- Replace some other original methods with those from our MosaicMenu
-    local MosaicMenu = require("mosaicmenu")
+    local MosaicMenu = require("plugins/coverbrowser.koplugin/mosaicmenu")
     FileChooser._recalculateDimen = MosaicMenu._recalculateDimen
     FileChooser._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
     -- Set MosaicMenu behaviour:
@@ -666,7 +666,7 @@ function CoverBrowser:setupFileManagerDisplayMode(display_mode)
     FileChooser._do_center_partial_rows = false
   elseif FileChooser.display_mode_type == "list" then
     -- Replace some other original methods with those from our ListMenu
-    local ListMenu = require("listmenu")
+    local ListMenu = require("plugins/coverbrowser.koplugin/listmenu")
     FileChooser._recalculateDimen = ListMenu._recalculateDimen
     FileChooser._updateItemsBuildUI = ListMenu._updateItemsBuildUI
     -- Set ListMenu behaviour:
@@ -706,7 +706,7 @@ local function _FileManagerHistory_updateItemTable(self)
 
     -- In both mosaic and list modes, replace original methods with those from
     -- our generic CoverMenu
-    local CoverMenu = require("covermenu")
+    local CoverMenu = require("plugins/coverbrowser.koplugin/covermenu")
     hist_menu.updateCache = CoverMenu.updateCache
     hist_menu.updateItems = CoverMenu.updateItems
     hist_menu.onClose = CoverMenu.onClose
@@ -717,7 +717,7 @@ local function _FileManagerHistory_updateItemTable(self)
     CoverBrowser.initGrid(hist_menu, display_mode)
     if hist_menu.display_mode_type == "mosaic" then
       -- Replace some other original methods with those from our MosaicMenu
-      local MosaicMenu = require("mosaicmenu")
+      local MosaicMenu = require("plugins/coverbrowser.koplugin/mosaicmenu")
       hist_menu._recalculateDimen = MosaicMenu._recalculateDimen
       hist_menu._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
       -- Set MosaicMenu behaviour:
@@ -725,7 +725,7 @@ local function _FileManagerHistory_updateItemTable(self)
       hist_menu._do_center_partial_rows = true -- nicer looking when few elements
     elseif hist_menu.display_mode_type == "list" then
       -- Replace some other original methods with those from our ListMenu
-      local ListMenu = require("listmenu")
+      local ListMenu = require("plugins/coverbrowser.koplugin/listmenu")
       hist_menu._recalculateDimen = ListMenu._recalculateDimen
       hist_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
       -- Set ListMenu behaviour:
@@ -788,7 +788,7 @@ local function _FileManagerCollections_updateItemTable(self)
 
     -- In both mosaic and list modes, replace original methods with those from
     -- our generic CoverMenu
-    local CoverMenu = require("covermenu")
+    local CoverMenu = require("plugins/coverbrowser.koplugin/covermenu")
     coll_menu.updateCache = CoverMenu.updateCache
     coll_menu.updateItems = CoverMenu.updateItems
     coll_menu.onClose = CoverMenu.onClose
@@ -799,7 +799,7 @@ local function _FileManagerCollections_updateItemTable(self)
     CoverBrowser.initGrid(coll_menu, display_mode)
     if coll_menu.display_mode_type == "mosaic" then
       -- Replace some other original methods with those from our MosaicMenu
-      local MosaicMenu = require("mosaicmenu")
+      local MosaicMenu = require("plugins/coverbrowser.koplugin/mosaicmenu")
       coll_menu._recalculateDimen = MosaicMenu._recalculateDimen
       coll_menu._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
       -- Set MosaicMenu behaviour:
@@ -807,7 +807,7 @@ local function _FileManagerCollections_updateItemTable(self)
       coll_menu._do_center_partial_rows = true -- nicer looking when few elements
     elseif coll_menu.display_mode_type == "list" then
       -- Replace some other original methods with those from our ListMenu
-      local ListMenu = require("listmenu")
+      local ListMenu = require("plugins/coverbrowser.koplugin/listmenu")
       coll_menu._recalculateDimen = ListMenu._recalculateDimen
       coll_menu._updateItemsBuildUI = ListMenu._updateItemsBuildUI
       -- Set ListMenu behaviour:

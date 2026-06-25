@@ -9,7 +9,7 @@ end
 
 local ALLOW_BLOCKING_JOBS = false
 
-local CommandRunner = require("commandrunner")
+local CommandRunner = require("plugins/backgroundrunner.koplugin/commandrunner")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")

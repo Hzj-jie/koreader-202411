@@ -3,7 +3,7 @@ local T = util.template
 local gettext = require("gettext")
 
 -- myClippings exporter
-local ClippingsExporter = require("base"):new({
+local ClippingsExporter = require("plugins/exporter.koplugin/base"):new({
   name = "myClippings",
   extension = "txt",
   mimetype = "text/plain",

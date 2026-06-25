@@ -73,7 +73,7 @@ then
   return { disabled = true }
 end
 
-local Aliases = require("aliases")
+local Aliases = require("plugins/terminal.koplugin/aliases")
 local DataStorage = require("datastorage")
 local Dispatcher = require("dispatcher")
 local Font = require("ui/font")
@@ -82,7 +82,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local ScrollTextWidget = require("ui/widget/scrolltextwidget")
 local SpinWidget = require("ui/widget/spinwidget")
-local TermInputText = require("terminputtext")
+local TermInputText = require("plugins/terminal.koplugin/terminputtext")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")

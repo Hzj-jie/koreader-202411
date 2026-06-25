@@ -62,10 +62,6 @@ function PluginLoader:loadPlugins()
     end
   end
 
-  -- keep reference to old value so they can be restored later
-  local package_path = package.path
-  local package_cpath = package.cpath
-
   local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
     plugins_disabled[entry] = false
@@ -84,45 +80,43 @@ function PluginLoader:loadPlugins()
       then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
-        if plugins_disabled[plugin_name] then
-          mainfile = metafile
-        end
-        package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
-        package.cpath =
-          string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
-        local plugin_module = dofile(mainfile)
-        assert(plugin_module ~= nil)
-        assert(
-          plugin_module.disabled == nil
-            or type(plugin_module.disabled) == "boolean"
-        )
-        if not plugin_module.disabled then
-          plugin_module.path = plugin_root
-          plugin_module.name = plugin_module.name
-            or plugin_root:match("/(.-)%.koplugin")
+        local main_exists = lfs.attributes(mainfile, "mode") == "file"
+        local meta_exists = lfs.attributes(metafile, "mode") == "file"
+
+        if meta_exists and (plugins_disabled[plugin_name] or main_exists) then
           if plugins_disabled[plugin_name] then
-            table.insert(self.disabled_plugins, plugin_module)
-          else
-            local plugin_metamodule = dofile(metafile)
-            assert(plugin_metamodule)
-            for k, v in pairs(plugin_metamodule) do
-              plugin_module[k] = v
+            mainfile = metafile
+          end
+
+          local plugin_module = dofile(mainfile)
+          assert(plugin_module ~= nil)
+          assert(
+            plugin_module.disabled == nil
+              or type(plugin_module.disabled) == "boolean"
+          )
+          if not plugin_module.disabled then
+            plugin_module.path = plugin_root
+            plugin_module.name = plugin_module.name
+              or plugin_root:match("/(.-)%.koplugin")
+            if plugins_disabled[plugin_name] then
+              table.insert(self.disabled_plugins, plugin_module)
+            else
+              local plugin_metamodule = dofile(metafile)
+              assert(plugin_metamodule)
+              for k, v in pairs(plugin_metamodule) do
+                plugin_module[k] = v
+              end
+              table.insert(self.enabled_plugins, plugin_module)
             end
-            table.insert(self.enabled_plugins, plugin_module)
+          else
+            logger.dbg("Plugin", mainfile, "has been disabled.")
           end
         else
-          logger.dbg("Plugin", mainfile, "has been disabled.")
+          logger.warn("Plugin directory", entry, "is missing required files (main.lua or _meta.lua), skipping.")
         end
-        package.path = package_path
-        package.cpath = package_cpath
+
       end
     end
-  end
-
-  -- set package path for all loaded plugins
-  for _, plugin in ipairs(self.enabled_plugins) do
-    package.path = string.format("%s;%s/?.lua", package.path, plugin.path)
-    package.cpath = string.format("%s;%s/lib/?.so", package.cpath, plugin.path)
   end
 
   table.sort(self.enabled_plugins, function(v1, v2)
