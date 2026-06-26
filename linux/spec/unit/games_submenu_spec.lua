@@ -1,5 +1,5 @@
 describe("Games submenu integration", function()
-    local ReaderMenu, MenuSorter, common_menu_order
+    local ReaderMenu, FileManagerMenu, MenuSorter, common_menu_order
     setup(function()
         require("commonrequire")
         package.unloadAll()
@@ -10,6 +10,7 @@ describe("Games submenu integration", function()
         end
         require("document/canvascontext"):init(Device)
         ReaderMenu = require("apps/reader/modules/readermenu")
+        FileManagerMenu = require("apps/filemanager/filemanagermenu")
         MenuSorter = require("ui/menusorter")
         common_menu_order = require("ui/elements/common_menu_order")
     end)
@@ -27,71 +28,85 @@ describe("Games submenu integration", function()
         assert.is_true(contains_games)
     end)
 
-    it("verifies the Games submenu is hidden if no game plugins are registered", function()
-        local reader_menu = ReaderMenu:new{
+    local function verify_games_hidden(MenuClass)
+        local menu = MenuClass:new{
             ui = {
                 document = {},
                 menu = {
                     registerToMainMenu = function() end
+                },
+                file_chooser = {
+                    collates = {}
                 }
             }
         }
-        reader_menu.registered_widgets = {}
-        -- No game widgets are registered, but say we have calculator
+        menu.registered_widgets = {}
         local mock_calculator = {
             addToMainMenu = function(self, menu_items)
                 menu_items.calculator = { text = "Calculator" }
             end
         }
-        table.insert(reader_menu.registered_widgets, mock_calculator)
+        table.insert(menu.registered_widgets, mock_calculator)
 
-        reader_menu:setUpdateItemTable()
+        menu:setUpdateItemTable()
 
-        -- Retrieve the sorted tools menu items
-        local tools_menu = MenuSorter:findById(reader_menu.tab_item_table, "tools")
+        local tools_menu = MenuSorter:findById(menu.tab_item_table, "tools")
         assert.is_not_nil(tools_menu)
-        -- Calculator should be present
         local calculator_item = MenuSorter:findById(tools_menu, "calculator")
         assert.is_not_nil(calculator_item)
 
-        -- Games submenu should NOT be present (since it's empty and hidden!)
         local games_item = MenuSorter:findById(tools_menu, "games")
         assert.is_nil(games_item)
-    end)
+    end
 
-    it("verifies the Games submenu appears if a game plugin is registered", function()
-        local reader_menu = ReaderMenu:new{
+    local function verify_games_appears(MenuClass)
+        local menu = MenuClass:new{
             ui = {
                 document = {},
                 menu = {
                     registerToMainMenu = function() end
+                },
+                file_chooser = {
+                    collates = {}
                 }
             }
         }
-        reader_menu.registered_widgets = {}
-
-        -- Mock a solitaire game plugin registering itself
+        menu.registered_widgets = {}
         local mock_solitaire = {
             addToMainMenu = function(self, menu_items)
                 menu_items.solitaire = { text = "Solitaire" }
             end
         }
-        table.insert(reader_menu.registered_widgets, mock_solitaire)
+        table.insert(menu.registered_widgets, mock_solitaire)
 
-        reader_menu:setUpdateItemTable()
+        menu:setUpdateItemTable()
 
-        local tools_menu = MenuSorter:findById(reader_menu.tab_item_table, "tools")
+        local tools_menu = MenuSorter:findById(menu.tab_item_table, "tools")
         assert.is_not_nil(tools_menu)
 
-        -- Games submenu SHOULD be present now!
         local games_item = MenuSorter:findById(tools_menu, "games")
         assert.is_not_nil(games_item)
         assert.are.equal("Games", games_item.text)
 
-        -- Solitaire should be inside the Games submenu!
         local solitaire_item = MenuSorter:findById(games_item.sub_item_table, "solitaire")
         assert.is_not_nil(solitaire_item)
         assert.are.equal("Solitaire", solitaire_item.text)
+    end
+
+    it("verifies the Games submenu is hidden if no game plugins are registered in ReaderMenu", function()
+        verify_games_hidden(ReaderMenu)
+    end)
+
+    it("verifies the Games submenu is hidden if no game plugins are registered in FileManagerMenu", function()
+        verify_games_hidden(FileManagerMenu)
+    end)
+
+    it("verifies the Games submenu appears if a game plugin is registered in ReaderMenu", function()
+        verify_games_appears(ReaderMenu)
+    end)
+
+    it("verifies the Games submenu appears if a game plugin is registered in FileManagerMenu", function()
+        verify_games_appears(FileManagerMenu)
     end)
 
     it("verifies SolitaireUI onClose does not crash with stack overflow", function()
