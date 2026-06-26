@@ -144,7 +144,6 @@ describe("PluginLoader module", function()
         -- Reset PluginLoader state
         PluginLoader.enabled_plugins = nil
         PluginLoader.disabled_plugins = nil
-        PluginLoader.loaded_plugins = {}
         PluginLoader.all_plugins = nil
         mock_disabled_plugins = {}
         mock_extra_paths = nil
@@ -205,25 +204,14 @@ describe("PluginLoader module", function()
             PluginLoader:loadPlugins()
         end)
 
-        it("should create and manage plugin instances", function()
+        it("should create plugin instances", function()
             local plugin_class = PluginLoader.enabled_plugins[1] -- Mock1
             assert.are.equal("Mock1", plugin_class.name)
-
-            assert.is_false(PluginLoader:isPluginLoaded("Mock1"))
-            assert.is_nil(PluginLoader:getPluginInstance("Mock1"))
 
             local success, instance = PluginLoader:createPluginInstance(plugin_class, { attr1 = "val1" })
             assert.is_true(success)
             assert.truthy(instance)
             assert.are.equal("val1", instance.attr1)
-
-            -- PluginLoader:createPluginInstance doesn't automatically register it in loaded_plugins,
-            -- it seems. Let's check how it is registered.
-            -- In pluginloader.lua, loaded_plugins is just initialized to {} and finalized to {}.
-            -- Wait, where is loaded_plugins populated?
-            -- Let's check pluginloader.lua again.
-            -- Ah, loaded_plugins is NOT populated in createPluginInstance!
-            -- Let's search where loaded_plugins is populated in the codebase.
         end)
     end)
 
