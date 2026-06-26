@@ -916,7 +916,6 @@ function ReaderUI:onExit(seamless)
   end
   logger.dbg("closing reader")
   local f = function()
-    PluginLoader:finalize()
     Device:notifyBookState(nil, nil)
     -- if self.dialog is us, we'll have our onFlushSettings() called
     -- by UIManager:close() below, so avoid double save

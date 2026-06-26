@@ -832,7 +832,6 @@ end
 
 function FileManager:onExit()
   logger.dbg("close filemanager")
-  PluginLoader:finalize()
   -- See ReaderUI:onFlushSettings, this should only impact the widget and its
   -- sub widget.
   self:broadcastEvent(Event:new("SaveSettings"))
