@@ -35,11 +35,14 @@ local logger = require("logger")
 local Input = Device.input
 local Screen = Device.screen
 
-local Game2048Config = require("plugins/game2048.koplugin/modules/game2048config")
-local Game2048Widget = require("plugins/game2048.koplugin/ui/widget/game2048widget")
+local Game2048Config =
+  require("plugins/game2048.koplugin/modules/game2048config")
+local Game2048Widget =
+  require("plugins/game2048.koplugin/ui/widget/game2048widget")
 local GameBoard = require("plugins/game2048.koplugin/modules/gameboard")
 local History = require("plugins/game2048.koplugin/modules/history")
-local ScoreBoardWidget = require("plugins/game2048.koplugin/ui/widget/scoreboardwidget")
+local ScoreBoardWidget =
+  require("plugins/game2048.koplugin/ui/widget/scoreboardwidget")
 
 ---Convert seconds into format hh:mm:ss
 ---@param seconds integer Seconds elapsed
@@ -577,7 +580,8 @@ function Game2048Screen:newGame()
 end
 
 local function loadGame2048WidgetThemePalette(theme_name)
-  local themes = require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")
+  local themes =
+    require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")
   local theme_n = 1
   for n, theme in ipairs(themes) do
     if theme.id == theme_name then

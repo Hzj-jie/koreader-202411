@@ -19,7 +19,8 @@ describe("AnnotationSync Trash & Restore", function()
     json = require("json")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    highlight_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)

@@ -19,7 +19,8 @@ describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
     UIManager = require("ui/uimanager")
     DataStorage = require("datastorage")
 
-    highlight_pdf_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_pdf_db")
+    highlight_pdf_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_pdf_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)

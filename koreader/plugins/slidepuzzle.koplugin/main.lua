@@ -70,7 +70,6 @@ function SlidePuzzle:addToMainMenu(menu_items)
   }
 end
 
-
 -- Persistence helpers -----------------------------------------------------
 
 function SlidePuzzle:_saveAll()

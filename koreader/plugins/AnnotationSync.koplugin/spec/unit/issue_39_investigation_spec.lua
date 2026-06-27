@@ -20,7 +20,8 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    highlight_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     local logger = require("logger")

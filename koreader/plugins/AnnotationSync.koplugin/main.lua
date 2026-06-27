@@ -12,7 +12,8 @@ local json = require("json")
 local logger = require("logger")
 local util = require("util")
 
-local SettingsSelection = require("plugins/AnnotationSync.koplugin/settings_selection")
+local SettingsSelection =
+  require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")

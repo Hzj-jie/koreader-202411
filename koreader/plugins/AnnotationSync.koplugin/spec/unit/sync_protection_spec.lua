@@ -18,7 +18,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    highlight_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -131,7 +132,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   it(
     "should skip deletions if local map is empty but last sync was not (Issue 23 Protection)",
     function()
-      local annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
+      local annotations_mod =
+        require("plugins/AnnotationSync.koplugin/annotations")
       local local_map = {} -- EMPTY
       local last_sync_map = {
         ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },
@@ -157,7 +159,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   it(
     "should allow deletions if local map is empty but 'force' is true (Manual Override)",
     function()
-      local annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
+      local annotations_mod =
+        require("plugins/AnnotationSync.koplugin/annotations")
       local local_map = {} -- EMPTY
       local last_sync_map = {
         ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },

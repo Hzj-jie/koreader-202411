@@ -518,7 +518,6 @@ function Screen:showStats()
   }))
 end
 
-
 function Screen:onClose()
   self:stopTicker()
   self.plugin:saveCurrentState(self.game)

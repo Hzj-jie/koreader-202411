@@ -165,7 +165,8 @@ function Game2048Config:onCloseCallback()
 end
 
 function Game2048Config:onSelectTheme()
-  local themes = require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")
+  local themes =
+    require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")
 
   local function select(theme_n)
     self:onConfigChange("theme", themes[theme_n].id)

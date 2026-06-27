@@ -52,7 +52,10 @@ local FrameContainer = WidgetContainer:extend({
 
 function FrameContainer:_contentSize()
   if self[1] == nil then
-    logger.warn("FixMe: Empty FrameContainer, no child widget: ", self:debugStr())
+    logger.warn(
+      "FixMe: Empty FrameContainer, no child widget: ",
+      self:debugStr()
+    )
     return 0, 0
   end
   local content_size = self[1]:getSize()

@@ -61,7 +61,8 @@ describe("Issue #34 Reproduction & Fix Verification", function()
 
       -- 3. Run Sync All
       local messages = {}
-      local old_show_msg = require("plugins/AnnotationSync.koplugin/utils").show_msg
+      local old_show_msg =
+        require("plugins/AnnotationSync.koplugin/utils").show_msg
       require("plugins/AnnotationSync.koplugin/utils").show_msg = function(msg)
         table.insert(messages, msg)
       end

@@ -25,8 +25,10 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
-    highlight_pdf_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_pdf_db")
+    highlight_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    highlight_pdf_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_pdf_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)

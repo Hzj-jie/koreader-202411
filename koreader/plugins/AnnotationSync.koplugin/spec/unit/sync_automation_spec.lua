@@ -19,7 +19,8 @@ describe("AnnotationSync Automation & Settings", function()
     json = require("json")
     util = require("util")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
+    highlight_db =
+      require("plugins/AnnotationSync.koplugin/spec/unit/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
