@@ -27,6 +27,7 @@ but notice that this does _not_ do the layout for you,
 it rather defines an abstract layout.
 ]]
 local FocusManager = InputContainer:extend({
+  modal = true,
   selected = nil, -- defaults to x=1, y=1
   layout = nil, -- mandatory
   movement_allowed = { x = true, y = true },

@@ -37,6 +37,7 @@ local util = require("util")
 local Screen = Device.screen
 
 local TextViewer = InputContainer:extend({
+  modal = true,
   title = nil,
   text = nil,
   charlist = nil, -- internal
