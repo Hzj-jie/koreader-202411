@@ -1453,7 +1453,7 @@ function HttpInspector:exposeTouch(uri, reqinfo)
     local ges = {
       ges = "tap",
       pos = pos,
-      time = { sec = 0, usec = 0 }
+      time = { sec = 0, usec = 0 },
     }
     local ev = Event:new("Gesture", ges)
     ev:asUserInput()
@@ -1465,7 +1465,12 @@ function HttpInspector:exposeTouch(uri, reqinfo)
 
   if not ok then
     logger.err("HttpInspector: Error in exposeTouch: " .. tostring(err))
-    return self:_sendResponse(reqinfo, 500, CTYPE.TEXT, "Error: " .. tostring(err))
+    return self:_sendResponse(
+      reqinfo,
+      500,
+      CTYPE.TEXT,
+      "Error: " .. tostring(err)
+    )
   end
 
   return self:_sendResponse(
@@ -1492,7 +1497,8 @@ function HttpInspector:exposeKey(uri, reqinfo)
     end
 
     local Key = require("device/key")
-    local key_obj = Key:new(keycode, { Shift = false, Ctrl = false, Alt = false })
+    local key_obj =
+      Key:new(keycode, { Shift = false, Ctrl = false, Alt = false })
 
     local ev_press = Event:new("KeyPress", key_obj)
     ev_press:asUserInput()
@@ -1508,7 +1514,12 @@ function HttpInspector:exposeKey(uri, reqinfo)
 
   if not ok then
     logger.err("HttpInspector: Error in exposeKey: " .. tostring(err))
-    return self:_sendResponse(reqinfo, 500, CTYPE.TEXT, "Error: " .. tostring(err))
+    return self:_sendResponse(
+      reqinfo,
+      500,
+      CTYPE.TEXT,
+      "Error: " .. tostring(err)
+    )
   end
 
   return self:_sendResponse(
