@@ -1,0 +1,1 @@
+../../../koreader/plugins/slidepuzzle.koplugin/README.koreader-202411.md

@@ -1,0 +1,1 @@
+../../../koreader/plugins/sokoban.koplugin/README.koreader-202411.md

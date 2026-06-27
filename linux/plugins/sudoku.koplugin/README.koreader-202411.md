@@ -1,0 +1,1 @@
+../../../koreader/plugins/sudoku.koplugin/README.koreader-202411.md
