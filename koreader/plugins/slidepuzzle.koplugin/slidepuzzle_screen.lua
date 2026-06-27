@@ -518,25 +518,6 @@ function Screen:showStats()
   }))
 end
 
--- Called by the plugin when settings (font face, font size, language)
--- have changed while the screen is visible. Rebuilds the texts and
--- refreshes the board so the new preferences take effect immediately.
-function Screen:applyPreferences()
-  local font_def = Settings.getFont(self.plugin)
-  local font_size_override = Settings.getFontSize(self.plugin)
-  if self.board_widget then
-    self.board_widget:setFontPrefs(
-      font_def and font_def.face_name or nil,
-      font_size_override
-    )
-  end
-  self:updateHeader()
-  self:updateBestLabel()
-  self:updateMessage()
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
-end
 
 function Screen:onClose()
   self:stopTicker()

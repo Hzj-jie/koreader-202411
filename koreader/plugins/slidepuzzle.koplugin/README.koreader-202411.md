@@ -10,5 +10,6 @@ This folder contains the compatibility record and integration details for the `S
 ## Modifications Applied for Compatibility
 1. **Close Event Stack Overflow Prevention**:
    - Refactored `Screen:onClose()` to clean up state without calling `UIManager:close(self)` (which was triggering infinite recursion during teardown). Moved the UIManager close call to the button callback.
-2. **Function Naming Alignment**:
-   - Renamed non-event-handling screen methods `onNewGame` and `onPreferencesChanged` to `startNewGame` and `applyPreferences` respectively to comply with naming guidelines and prevent collision with the event dispatching loop.
+2. **Function Naming Alignment & Dead Code Removal**:
+   - Renamed the non-event-handling screen method `onNewGame` to `startNewGame` to comply with naming guidelines and prevent collision with the event dispatching loop.
+   - Removed the unused and broken `onPreferencesChanged`/`onSettingsChanged` dead code blocks from both the screen and main plugin classes.
