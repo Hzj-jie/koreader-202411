@@ -22,6 +22,7 @@ local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local Size = require("ui/size")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local logger = require("logger")
 
 local FrameContainer = WidgetContainer:extend({
   background = nil,
@@ -50,6 +51,10 @@ local FrameContainer = WidgetContainer:extend({
 })
 
 function FrameContainer:_contentSize()
+  if self[1] == nil then
+    logger.warn("FixMe: Empty FrameContainer, no child widget: ", self:debugStr())
+    return 0, 0
+  end
   local content_size = self[1]:getSize()
   self._padding_top = self.padding_top or self.padding
   self._padding_right = self.padding_right or self.padding

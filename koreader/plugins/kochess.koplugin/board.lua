@@ -1,6 +1,6 @@
 -- board.lua (VERSIÓN BLINDADA: REFRESCO GLOBAL)
 local Blitbuffer = require("ffi/blitbuffer")
-local ButtonTable = require("plugins/kochess.koplugin/buttontable")
+local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Chess = require("plugins/kochess.koplugin/chess")
 local Device = require("device")
