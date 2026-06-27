@@ -80,7 +80,12 @@ function PluginLoader:loadPlugins()
         local metafile = plugin_root .. "/_meta.lua"
         local main_exists = lfs.attributes(mainfile, "mode") == "file"
         local meta_exists = lfs.attributes(metafile, "mode") == "file"
-
+        if plugins_disabled[plugin_name] == nil then
+          local readme = plugin_root .. "/README.koreader-202411.md"
+          if lfs.attributes(readme, "mode") == "file" then
+            plugins_disabled[plugin_name] = true
+          end
+        end
         if meta_exists and (plugins_disabled[plugin_name] or main_exists) then
           if plugins_disabled[plugin_name] then
             mainfile = metafile
@@ -165,7 +170,7 @@ function PluginLoader:genPluginManagerSubItem()
             G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
-            plugins_disabled[plugin.name] = nil
+            plugins_disabled[plugin.name] = false
           else
             plugins_disabled[plugin.name] = true
           end
