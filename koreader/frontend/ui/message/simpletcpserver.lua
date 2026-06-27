@@ -36,10 +36,20 @@ function SimpleTCPServer:start()
       logger.dbg("SimpleTCPServer: Server listening on port " .. self.port)
       return
     end
-    logger.warn(string.format("Failed to start SimpleTCPServer on port %s, retrying in 200ms (attempt %d/10)...", tostring(self.port), i))
+    logger.warn(
+      string.format(
+        "Failed to start SimpleTCPServer on port %s, retrying in 200ms (attempt %d/10)...",
+        tostring(self.port),
+        i
+      )
+    )
     socket.select(nil, nil, 0.2)
   end
-  logger.err("Failed to start SimpleTCPServer on port " .. self.port .. " after 10 attempts")
+  logger.err(
+    "Failed to start SimpleTCPServer on port "
+      .. self.port
+      .. " after 10 attempts"
+  )
 end
 
 function SimpleTCPServer:stop()

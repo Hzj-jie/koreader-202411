@@ -110,9 +110,12 @@ function PluginLoader:loadPlugins()
             logger.dbg("Plugin", mainfile, "has been disabled.")
           end
         else
-          logger.warn("Plugin directory", entry, "is missing required files (main.lua or _meta.lua), skipping.")
+          logger.warn(
+            "Plugin directory",
+            entry,
+            "is missing required files (main.lua or _meta.lua), skipping."
+          )
         end
-
       end
     end
   end

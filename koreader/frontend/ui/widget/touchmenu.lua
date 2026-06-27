@@ -171,7 +171,11 @@ function TouchMenuItem:init()
 
   for k, v in pairs(self.item) do
     -- on event handlers.
-    if k:sub(1, 2) == "on" and type(v) == "function" then
+    if
+      type(k) == "string"
+      and k:sub(1, 2) == "on"
+      and type(v) == "function"
+    then
       self[k] = function(...)
         local r = v(self.menu, ...)
         -- This event isn't triggered by an user interaction, and the update may

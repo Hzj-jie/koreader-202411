@@ -18,9 +18,12 @@ local gettext = require("gettext")
 local logger = require("logger")
 local util = require("ffi/util")
 
-local CalculatorConvertDialog = require("plugins/calculator.koplugin/calculatorconvertdialog")
-local CalculatorSettingsDialog = require("plugins/calculator.koplugin/calculatorsettingsdialog")
-local Parser = require("plugins/calculator.koplugin/formulaparser/formulaparser")
+local CalculatorConvertDialog =
+  require("plugins/calculator.koplugin/calculatorconvertdialog")
+local CalculatorSettingsDialog =
+  require("plugins/calculator.koplugin/calculatorsettingsdialog")
+local Parser =
+  require("plugins/calculator.koplugin/formulaparser/formulaparser")
 
 local DEFAULT_INIT_FILE = "plugins/calculator.koplugin/init.calc"
 

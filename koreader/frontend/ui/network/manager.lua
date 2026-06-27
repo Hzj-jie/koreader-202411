@@ -583,9 +583,9 @@ end
 function NetworkMgr:_beforeWifiAction()
   if self:_isWifiConnected() then
     UIManager:show(ConfirmBox:new({
-      text = gettext("You are connected to Wi-Fi, but have no Internet access.")
-        .. "\n"
-        .. gettext("Do you want to select another Wi-Fi network?"),
+      text = gettext(
+        "You are connected to Wi-Fi, but have no Internet access."
+      ) .. "\n" .. gettext("Do you want to select another Wi-Fi network?"),
       ok_text = gettext("Select Wi-Fi"),
       ok_callback = function()
         self:showNetworkMenu()
