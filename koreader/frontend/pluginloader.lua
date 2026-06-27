@@ -24,6 +24,16 @@ local PluginLoader = {
   enabled_plugins = nil,
   disabled_plugins = nil,
   all_plugins = nil,
+  DEFAULT_DISABLED_PLUGINS = {
+    AnnotationSync = true,
+    checkers = true,
+    game2048 = true,
+    nonogram = true,
+    slidepuzzle = true,
+    sokoban = true,
+    solitaire = true,
+    sudoku = true,
+  },
 }
 
 function PluginLoader:loadPlugins()
@@ -81,8 +91,7 @@ function PluginLoader:loadPlugins()
         local main_exists = lfs.attributes(mainfile, "mode") == "file"
         local meta_exists = lfs.attributes(metafile, "mode") == "file"
         if plugins_disabled[plugin_name] == nil then
-          local readme = plugin_root .. "/README.koreader-202411.md"
-          if lfs.attributes(readme, "mode") == "file" then
+          if self.DEFAULT_DISABLED_PLUGINS[plugin_name] then
             plugins_disabled[plugin_name] = true
           end
         end

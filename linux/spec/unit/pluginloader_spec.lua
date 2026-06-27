@@ -5,7 +5,6 @@ describe("PluginLoader module", function()
     local orig_read, orig_readTableRef
     local mock_disabled_plugins = {}
     local mock_extra_paths = nil
-    local mock_files_exist = {}
 
     setup(function()
         require("commonrequire")
@@ -38,32 +37,26 @@ describe("PluginLoader module", function()
             return orig_dir(path)
         end
 
+        -- Mock lfs.attributes
         lfs.attributes = function(path, request)
             local path_str = tostring(path)
-            local mock_ret
             if string.find(path_str, "mock1.koplugin") or
                string.find(path_str, "mock2.koplugin") or
                string.find(path_str, "zsync.koplugin") or
                string.find(path_str, "extra1.koplugin") then
                 if request == "mode" or not request then
                     if string.match(path_str, "%.koplugin$") or path_str == "/extra/plugins" then
-                        mock_ret = "directory"
-                    elseif string.find(path_str, "README.koreader-202411.md", 1, true) then
-                        mock_ret = mock_files_exist[path_str] and "file" or nil
+                        return "directory"
                     else
-                        mock_ret = "file"
+                        return "file"
                     end
                 end
             elseif path_str == "/extra/plugins" then
                 if request == "mode" or not request then
-                    mock_ret = "directory"
+                    return "directory"
                 end
             end
-            local final_ret = mock_ret
-            if final_ret == nil then
-                final_ret = orig_attributes(path, request)
-            end
-            return final_ret
+            return orig_attributes(path, request)
         end
 
         -- Mock dofile
@@ -154,7 +147,6 @@ describe("PluginLoader module", function()
         PluginLoader.all_plugins = nil
         mock_disabled_plugins = {}
         mock_extra_paths = nil
-        mock_files_exist = {}
     end)
 
     describe("loadPlugins", function()
@@ -241,11 +233,20 @@ describe("PluginLoader module", function()
         end)
     end)
 
-    describe("default-disable via versioned README", function()
-        it("should dynamically disable plugin by default when README exists on first start", function()
-            -- Simulate README exists
-            mock_files_exist["plugins/mock1.koplugin/README.koreader-202411.md"] = true
+    describe("default-disable via list", function()
+        local backup_list
+        before_each(function()
+            backup_list = PluginLoader.DEFAULT_DISABLED_PLUGINS
+            PluginLoader.DEFAULT_DISABLED_PLUGINS = {
+                mock1 = true,
+            }
+        end)
 
+        after_each(function()
+            PluginLoader.DEFAULT_DISABLED_PLUGINS = backup_list
+        end)
+
+        it("should dynamically disable plugin by default when present in default disabled list on first start", function()
             local enabled, disabled = PluginLoader:loadPlugins()
             assert.are.equal(1, #enabled)
             assert.are.equal(1, #disabled)
@@ -254,9 +255,6 @@ describe("PluginLoader module", function()
         end)
 
         it("should preserve enabled status when toggled to true/enabled by user", function()
-            -- Simulate README exists
-            mock_files_exist["plugins/mock1.koplugin/README.koreader-202411.md"] = true
-
             -- 1. Initial start: plugin is disabled by default
             local enabled, disabled = PluginLoader:loadPlugins()
             assert.are.equal(1, #disabled)
@@ -265,6 +263,7 @@ describe("PluginLoader module", function()
             -- 2. Simulate User toggles it to enable in the Plugin Manager
             local menu = PluginLoader:genPluginManagerSubItem()
             -- menu[1] is Mock1 (since it is sorted: "Mock 1 Plugin" vs "Mock 2 Plugin")
+            assert.are.equal("Mock 1 Plugin", menu[1].text)
             assert.is_false(menu[1].checked_func()) -- Currently disabled
 
             -- Trigger the toggle callback
