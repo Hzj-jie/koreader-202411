@@ -113,4 +113,20 @@ describe("TouchMenu", function()
 
     assert.spy(UIManager.show).was.not_called()
   end)
+
+  it("does not crash when an item has an integer key", function()
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Test Tab",
+          icon = "dummy",
+          {
+            text = "Item 1",
+            [1] = "some value",
+          }
+        }
+      }
+    })
+    assert.is_not_nil(menu)
+  end)
 end)
