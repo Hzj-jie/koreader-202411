@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/kochess.koplugin/chess/src/nobitop.lua
