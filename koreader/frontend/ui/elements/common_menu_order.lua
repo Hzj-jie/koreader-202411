@@ -145,15 +145,6 @@ local function mergeWith(b)
       "----------------------------",
       "plugin_management",
     },
-    games = {
-      "solitaire",
-      "sudoku",
-      "kochess",
-      "sokoban",
-      "checkers",
-      "nonogram",
-      "slidepuzzle",
-    },
     search = {
       "search_settings",
       "----------------------------",
