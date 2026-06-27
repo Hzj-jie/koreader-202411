@@ -417,6 +417,7 @@ function NetworkItem:onTapSelect(arg, ges_ev)
 end
 
 local NetworkSetting = InputContainer:extend({
+  modal = true,
   width = nil,
   height = nil,
   -- sample network_list entry: {
