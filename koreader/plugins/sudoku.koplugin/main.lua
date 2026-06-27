@@ -972,7 +972,7 @@ function SudokuScreen:buildLayout()
         {
           text = gettext("New game"),
           callback = function()
-            self:onNewGame()
+            self:startNewGame()
           end,
         },
         {
@@ -1012,7 +1012,7 @@ function SudokuScreen:buildLayout()
       row[#row + 1] = {
         text = tostring(digit),
         callback = function()
-          self:onDigit(digit)
+          self:inputDigit(digit)
         end,
       }
       value = value + 1
@@ -1030,7 +1030,7 @@ function SudokuScreen:buildLayout()
     {
       text = gettext("Erase"),
       callback = function()
-        self:onErase()
+        self:eraseDigit()
       end,
     },
     {
@@ -1043,7 +1043,7 @@ function SudokuScreen:buildLayout()
       id = "undo_button",
       text = gettext("Undo"),
       callback = function()
-        self:onUndo()
+        self:undoMove()
       end,
     },
   }
@@ -1184,7 +1184,7 @@ function SudokuScreen:updateStatus(message)
   end)
 end
 
-function SudokuScreen:onDigit(value)
+function SudokuScreen:inputDigit(value)
   if self.note_mode then
     local ok, err = self.board:toggleNoteDigit(value)
     if not ok then
@@ -1213,7 +1213,7 @@ function SudokuScreen:onDigit(value)
   end
 end
 
-function SudokuScreen:onErase()
+function SudokuScreen:eraseDigit()
   local row, col = self.board:getSelection()
   self.board:clearNotes(row, col)
   local ok, err = self.board:clearSelection()
@@ -1227,7 +1227,7 @@ function SudokuScreen:onErase()
   self:updateUndoButton()
 end
 
-function SudokuScreen:onNewGame()
+function SudokuScreen:startNewGame()
   self.board:generate(self.board.difficulty)
   self.plugin:saveState()
   self.board_widget:refresh()
@@ -1274,7 +1274,7 @@ function SudokuScreen:onClose()
   self.plugin:onScreenClosed()
 end
 
-function SudokuScreen:onUndo()
+function SudokuScreen:undoMove()
   local ok, err = self.board:undo()
   if not ok then
     self:updateStatus(err)

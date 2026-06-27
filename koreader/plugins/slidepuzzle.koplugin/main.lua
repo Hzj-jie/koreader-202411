@@ -73,8 +73,8 @@ end
 -- Hook called by the settings sub-menu after any preference changes.
 -- Drops cached UI assets so the next render uses the new values.
 function SlidePuzzle:onSettingsChanged()
-  if self.screen and self.screen.onPreferencesChanged then
-    self.screen:onPreferencesChanged()
+  if self.screen and self.screen.applyPreferences then
+    self.screen:applyPreferences()
   end
 end
 

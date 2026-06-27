@@ -130,7 +130,7 @@ function Screen:buildLayout()
           text = I18n.t("New"),
           background = Blitbuffer.COLOR_WHITE,
           callback = function()
-            self:onNewGame()
+            self:startNewGame()
           end,
         },
         {
@@ -152,6 +152,7 @@ function Screen:buildLayout()
           background = Blitbuffer.COLOR_WHITE,
           callback = function()
             self:onClose()
+            UIManager:close(self)
           end,
         },
       },
@@ -287,7 +288,7 @@ function Screen:performTap(row, col)
   if self.game:isWon() then
     -- Tapping anywhere on a solved puzzle starts a fresh game of the
     -- same size, which matches the "feel" of quick puzzle apps.
-    self:onNewGame()
+    self:startNewGame()
     return
   end
   local ok = self.game:moveTileAt(row, col)
@@ -351,7 +352,7 @@ end
 
 -- Buttons -----------------------------------------------------------------
 
-function Screen:onNewGame()
+function Screen:startNewGame()
   self.plugin:startNewGame(self.game:getSize())
   self.game = self.plugin:getCurrentGame()
   self.board_widget:setGame(self.game)
@@ -520,7 +521,7 @@ end
 -- Called by the plugin when settings (font face, font size, language)
 -- have changed while the screen is visible. Rebuilds the texts and
 -- refreshes the board so the new preferences take effect immediately.
-function Screen:onPreferencesChanged()
+function Screen:applyPreferences()
   local font_def = Settings.getFont(self.plugin)
   local font_size_override = Settings.getFontSize(self.plugin)
   if self.board_widget then
@@ -541,7 +542,6 @@ function Screen:onClose()
   self:stopTicker()
   self.plugin:saveCurrentState(self.game)
   self.plugin:onScreenClosed()
-  UIManager:close(self)
   UIManager:setDirty(nil, "full")
 end
 

@@ -6,3 +6,9 @@ This folder contains the compatibility record and integration details for the `S
 - **Games Submenu Integration**: The game is integrated into the file manager under the `Tools` -> `Games` submenu.
 - **Localization**: Slide Puzzle's internal localization catalog has been translated, and its language auto-detection has been updated to support full and normalized sub-locales (e.g. `zh_CN` / `zh_TW`).
 - **Default State**: To maintain a minimal start-up performance footprint and keep the main launcher interface uncluttered, this plugin is disabled by default. It can be easily enabled via the KOReader Plugin Manager (`Tools` -> `Plugin Manager`).
+
+## Modifications Applied for Compatibility
+1. **Close Event Stack Overflow Prevention**:
+   - Refactored `Screen:onClose()` to clean up state without calling `UIManager:close(self)` (which was triggering infinite recursion during teardown). Moved the UIManager close call to the button callback.
+2. **Function Naming Alignment**:
+   - Renamed non-event-handling screen methods `onNewGame` and `onPreferencesChanged` to `startNewGame` and `applyPreferences` respectively to comply with naming guidelines and prevent collision with the event dispatching loop.
