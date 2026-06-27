@@ -70,4 +70,34 @@ describe("TextViewer", function()
     UIManager:close(text_viewer)
     UIManager.show:revert()
   end)
+
+  it("should be placed above modal widgets in the UIManager window stack", function()
+    local Widget = require("ui/widget/widget")
+    local Geom = require("ui/geometry")
+    local mock_modal = Widget:new({
+      modal = true,
+      dimen = Geom:new({ w = 100, h = 100 }),
+    })
+    local tv = TextViewer:new({ text = "test" })
+
+    UIManager:show(mock_modal)
+    UIManager:show(tv)
+
+    local modal_idx, tv_idx
+    for idx, win in ipairs(UIManager._window_stack) do
+      if win.widget == mock_modal then
+        modal_idx = idx
+      elseif win.widget == tv then
+        tv_idx = idx
+      end
+    end
+
+    -- Clean up UIManager stack first
+    UIManager:close(tv)
+    UIManager:close(mock_modal)
+
+    assert.is_not_nil(modal_idx, "mock_modal should be in the window stack")
+    assert.is_not_nil(tv_idx, "TextViewer should be in the window stack")
+    assert.is_true(tv_idx > modal_idx, "TextViewer should be above mock_modal in the stack")
+  end)
 end)

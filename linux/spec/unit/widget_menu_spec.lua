@@ -35,4 +35,9 @@ describe("Menu widget", function()
             },
         }, re)
     end)
+
+    it("should be modal by default", function()
+        local m = Menu:new({ item_table = {} })
+        assert.is_true(m.modal)
+    end)
 end)

@@ -63,4 +63,11 @@ describe("ButtonDialog", function()
 
     assert.is_nil(dialog.key_events.Exit)
   end)
+
+  it("should be modal by default", function()
+    local dialog = ButtonDialog:new({
+      buttons = { { text = "Test", id = "test" } },
+    })
+    assert.is_true(dialog.modal)
+  end)
 end)
