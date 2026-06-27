@@ -134,4 +134,34 @@ describe("NetworkSetting module", function()
         UIManager.show:revert()
         UIManager.close:revert()
     end)
+
+    it("should be placed above modal widgets in the UIManager window stack", function()
+        local Widget = require("ui/widget/widget")
+        local Geom = require("ui/geometry")
+        local mock_modal = Widget:new({
+            modal = true,
+            dimen = Geom:new({ w = 100, h = 100 }),
+        })
+        local ns = NetworkSetting:new({ network_list = {} })
+
+        UIManager:show(mock_modal)
+        UIManager:show(ns)
+
+        local modal_idx, ns_idx
+        for idx, win in ipairs(UIManager._window_stack) do
+            if win.widget == mock_modal then
+                modal_idx = idx
+            elseif win.widget == ns then
+                ns_idx = idx
+            end
+        end
+
+        -- Clean up UIManager stack first
+        UIManager:close(ns)
+        UIManager:close(mock_modal)
+
+        assert.is_not_nil(modal_idx, "mock_modal should be in the window stack")
+        assert.is_not_nil(ns_idx, "NetworkSetting should be in the window stack")
+        assert.is_true(ns_idx > modal_idx, "NetworkSetting should be above mock_modal in the stack")
+    end)
 end)
