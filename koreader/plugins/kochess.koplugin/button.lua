@@ -11,7 +11,7 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
 local gettext = require("gettext")
 
-local Button = require("ui/widget/button")
+local Button = require("ui/widget/button"):extend({})
 
 function Button:init()
   if self.menu_style then

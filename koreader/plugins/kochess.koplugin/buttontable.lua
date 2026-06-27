@@ -8,7 +8,7 @@ local Size = require("ui/size")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Screen = Device.screen
 
-local ButtonTable = require("ui/widget/buttontable")
+local ButtonTable = require("ui/widget/buttontable"):extend({})
 
 function ButtonTable:init()
   self.width = self.width
