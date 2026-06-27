@@ -145,6 +145,9 @@ local function mergeWith(b)
       "----------------------------",
       "plugin_management",
     },
+    games = {
+      -- Coming from plugins
+    },
     search = {
       "search_settings",
       "----------------------------",
