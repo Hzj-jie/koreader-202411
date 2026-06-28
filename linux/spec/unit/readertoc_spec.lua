@@ -160,8 +160,65 @@ describe("Readertoc module", function()
 
             local safe_title = readertoc:getTocTitleByPage(1)
             assert.are.equal(safe_title, "")
+            local menu_items = {}
+            readertoc:addToMainMenu(menu_items)
+            assert.is_nil(menu_items.table_of_contents)
 
             -- Cleanup
+            doc:close()
+        end)
+
+        it("should dynamically register table_of_contents menu if a manual/handmade TOC is added", function()
+            local ReaderToc = require("apps/reader/modules/readertoc")
+            local sample_epub = "spec/front/unit/data/leaves.epub"
+
+            local doc = DocumentRegistry:openDocument(sample_epub)
+            -- Mock getToc to return nil initially (simulating no native TOC)
+            local current_toc = nil
+            doc.getToc = function()
+                return current_toc
+            end
+
+            local mock_readerui = {
+                dialog = {},
+                view = {},
+                document = doc,
+                doc_settings = require("docsettings"):open(sample_epub),
+                menu = {
+                    registerToMainMenu = function() end,
+                },
+                registerModule = function() end,
+            }
+
+            local readertoc = ReaderToc:new({
+                dialog = mock_readerui.dialog,
+                view = mock_readerui.view,
+                ui = mock_readerui,
+            })
+
+            -- 1. Verify table_of_contents is nil initially
+            local menu_items = {}
+            readertoc:addToMainMenu(menu_items)
+            assert.is_nil(menu_items.table_of_contents)
+
+            -- 2. Simulate user adding a handmade TOC
+            readertoc:resetToc()
+            current_toc = {
+                { title = "Custom Chapter 1", page = 5, depth = 1 }
+            }
+
+            -- Re-add to menu
+            menu_items = {}
+            readertoc:addToMainMenu(menu_items)
+            assert.is_not_nil(menu_items.table_of_contents)
+
+            -- 3. Simulate user clearing handmade TOC
+            readertoc:resetToc()
+            current_toc = {}
+            menu_items = {}
+            readertoc:addToMainMenu(menu_items)
+            assert.is_nil(menu_items.table_of_contents)
+
             doc:close()
         end)
     end)
