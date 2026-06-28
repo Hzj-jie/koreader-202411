@@ -129,6 +129,7 @@ describe("BookMapWidget ReaderUI Integration", function()
         -- Verify it does NOT have on_exit or on_update callbacks because it was opened from ReaderThumbnail
         assert.falsy(bookmap.on_exit)
         assert.falsy(bookmap.on_update)
+        assert.truthy(bookmap.on_root_exit)
 
         -- Mock getVGroupRowAtY and getPageAtX to bypass coordinate calculations
         bookmap.getVGroupRowAtY = function()

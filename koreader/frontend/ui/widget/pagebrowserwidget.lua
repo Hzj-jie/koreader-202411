@@ -39,6 +39,7 @@ local PageBrowserWidget = InputContainer:extend({
   focus_page = nil,
   on_exit = nil,
   on_update = nil,
+  on_root_exit = nil,
 })
 
 function PageBrowserWidget:init()
@@ -1210,7 +1211,9 @@ function PageBrowserWidget:onExit(close_all_parents)
     -- refresh to remove any ghost trace of thumbnails or black page slots
     UIManager:broadcastEvent("UpdateFooter")
     self.ui.bookmark:onPageUpdate(self.ui:getCurrentPage())
-    UIManager:setDirty(self.ui.dialog, "full")
+    if self.on_root_exit then
+      self.on_root_exit()
+    end
   end
   return true
 end

@@ -695,6 +695,7 @@ local BookMapWidget = InputContainer:extend({
   focus_page = nil,
   on_exit = nil,
   on_update = nil,
+  on_root_exit = nil,
   -- Extra symbols to show below pages
   extra_symbols_pages = nil,
   -- Restricted mode, as initial view (all on one screen), but allowing chapter levels changes
@@ -1629,7 +1630,9 @@ function BookMapWidget:onExit(close_all_parents)
     -- refresh to remove any ghost trace of thumbnails or black page slots
     UIManager:broadcastEvent("UpdateFooter")
     self.ui.bookmark:onPageUpdate(self.ui:getCurrentPage())
-    UIManager:setDirty(self.ui.dialog, "full")
+    if self.on_root_exit then
+      self.on_root_exit()
+    end
   end
   return true
 end

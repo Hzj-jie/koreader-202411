@@ -104,6 +104,9 @@ function ReaderThumbnail:onShowBookMap(overview_mode)
   self:showWidget(BookMapWidget:new({
     ui = self.ui,
     overview_mode = overview_mode,
+    on_root_exit = function()
+      self.ui:setDirty(nil, "full")
+    end,
   }))
   return true
 end
@@ -112,6 +115,9 @@ function ReaderThumbnail:onShowPageBrowser()
   local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
   self:showWidget(PageBrowserWidget:new({
     ui = self.ui,
+    on_root_exit = function()
+      self.ui:setDirty(nil, "full")
+    end,
   }))
   return true
 end
