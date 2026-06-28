@@ -165,7 +165,7 @@ function MenuSorter:_sort(item_table, order)
   -- remove top level reference before orphan handling
   item_table["KOMenu:menu_buttons"] = nil
 
-  -- attach orphans based on sorting_hint, or with a NEW prefix in the first menu if none found
+  -- attach orphans based on sorting_hint
   for k, v in FFIUtil.orderedPairs(item_table) do
     assert(v.sorting_hint, k)
 
