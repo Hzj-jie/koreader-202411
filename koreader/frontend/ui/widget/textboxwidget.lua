@@ -52,6 +52,8 @@ local TextBoxWidget = InputContainer:extend({
   height_overflow_show_ellipsis = false, -- if height overflow, append ellipsis to last shown line
   top_line_num = nil, -- original virtual_line_num to scroll to
   charpos = nil, -- idx of char to draw the cursor on its left (can exceed #charlist by 1)
+  sel_start_idx = nil,
+  sel_end_idx = nil,
 
   -- for internal use
   charlist = nil, -- idx => char
@@ -890,6 +892,19 @@ function TextBoxWidget:_shapeLine(line)
   -- at the expense of recomputing it when back to this page?
 end
 
+function TextBoxWidget:_paintHighlightRect(x0, x1, y)
+  local hx = x0
+  local hy = y - self.line_glyph_baseline
+  local hw = x1 - x0
+  local hh = self.line_height_px
+  local color = self._bb:getHighlightColor(255)
+  if self._bb:isRGB() then
+    self._bb:paintRectRGB32(hx, hy, hw, hh, color)
+  else
+    self._bb:paintRect(hx, hy, hw, hh, color)
+  end
+end
+
 ---- Lays out text.
 function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
   if start_row_idx < 1 then
@@ -964,6 +979,33 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
       end
       self:_shapeLine(line)
       if line.xglyphs then -- non-empty line
+        if self.sel_start_idx and self.sel_end_idx then
+          local start_x = nil
+          local end_x = nil
+          for _, xglyph in ipairs(line.xglyphs) do
+            if not xglyph.no_drawing then
+              local is_selected = xglyph.text_index >= self.sel_start_idx and xglyph.text_index <= self.sel_end_idx
+              if is_selected then
+                if not start_x then
+                  start_x = xglyph.x0
+                  end_x = xglyph.x1
+                else
+                  if xglyph.x0 < start_x then start_x = xglyph.x0 end
+                  if xglyph.x1 > end_x then end_x = xglyph.x1 end
+                end
+              else
+                if start_x and end_x then
+                  self:_paintHighlightRect(start_x, end_x, y)
+                  start_x = nil
+                  end_x = nil
+                end
+              end
+            end
+          end
+          if start_x and end_x then
+            self:_paintHighlightRect(start_x, end_x, y)
+          end
+        end
         for _, xglyph in ipairs(line.xglyphs) do
           if not xglyph.no_drawing then
             local face = self.face.getFallbackFont(xglyph.font_num) -- callback (not a method)
@@ -2227,13 +2269,52 @@ function TextBoxWidget:onHoldStartText(_, ges)
   return true
 end
 
-function TextBoxWidget:onHoldPanText(_arg, _ges)
-  -- We don't highlight the currently selected text, but just let this
-  -- event pop up if we are not currently selecting text
+function TextBoxWidget:onHoldPanText(_arg, ges)
   if not self.hold_start_time then
     return false
   end
-  -- Don't let that event be processed by other widget
+
+  local hold_end_x = ges.pos.x - self:getSize().x
+  local hold_end_y = ges.pos.y - self:getSize().y
+
+  local p0, p1 = Geom.sortPoints(
+    { x = self.hold_start_x, y = self.hold_start_y },
+    { x = hold_end_x, y = hold_end_y }
+  )
+  local x0, y0, x1, y1 = p0.x, p0.y, p1.x, p1.y
+
+  if self.use_xtext then
+    local sel_start_idx = self:getCharPosAtXY(x0, y0)
+    local sel_end_idx = self:getCharPosAtXY(x1, y1)
+    if sel_start_idx and sel_end_idx then
+      if sel_start_idx > sel_end_idx then
+        sel_start_idx, sel_end_idx = sel_end_idx, sel_start_idx
+      end
+      if sel_start_idx <= #self._xtext then
+        if sel_end_idx > #self._xtext then
+          sel_end_idx = #self._xtext
+        end
+        if self.sel_start_idx ~= sel_start_idx or self.sel_end_idx ~= sel_end_idx then
+          self.sel_start_idx = sel_start_idx
+          self.sel_end_idx = sel_end_idx
+          self:update()
+          self:setDirty()
+        end
+      end
+    end
+  else
+    local sel_start_idx = self:_findWordEdge(x0, y0, FIND_START)
+    local sel_end_idx = self:_findWordEdge(x1, y1, FIND_END)
+    if sel_start_idx and sel_end_idx then
+      if self.sel_start_idx ~= sel_start_idx or self.sel_end_idx ~= sel_end_idx then
+        self.sel_start_idx = sel_start_idx
+        self.sel_end_idx = sel_end_idx
+        self:update()
+        self:setDirty()
+      end
+    end
+  end
+
   return true
 end
 
@@ -2330,6 +2411,13 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
   self.hold_start_x = nil
   self.hold_start_y = nil
   self.hold_start_time = nil
+
+  if self.sel_start_idx or self.sel_end_idx then
+    self.sel_start_idx = nil
+    self.sel_end_idx = nil
+    self:update()
+    self:setDirty()
+  end
 
   if self.use_xtext then
     -- With xtext and fribidi, words may not be laid out in logical order,

@@ -2,6 +2,7 @@
 HTML widget (without scroll bars).
 --]]
 
+local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
 local DrawContext = require("ffi/drawcontext")
 local Geom = require("ui/geometry")
@@ -22,6 +23,7 @@ local HtmlBoxWidget = InputContainer:extend({
   hold_start_pos = nil,
   hold_start_time = nil,
   html_link_tapped_callback = nil,
+  highlight_rects = nil,
 })
 
 function HtmlBoxWidget:init()
@@ -119,6 +121,13 @@ function HtmlBoxWidget:_render()
   local dc = DrawContext.new()
   self.bb = page:draw_new(dc, self:getSize().w, self:getSize().h, 0, 0)
   page:close()
+
+  if self.highlight_rects then
+    local color = self.bb:getHighlightColor(128)
+    for _, rect in ipairs(self.highlight_rects) do
+      self.bb:paintRect(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0, color, self.bb.setPixelBlend)
+    end
+  end
 end
 
 function HtmlBoxWidget:getSinglePageHeight()
@@ -198,59 +207,78 @@ function HtmlBoxWidget:onHoldStartText(_, ges)
   return true
 end
 
-function HtmlBoxWidget:onHoldPanText(_arg, _ges)
-  -- We don't highlight the currently selected text, but just let this
-  -- event pop up if we are not currently selecting text
-  if not self.hold_start_pos then
-    return false
-  end
-  return true
-end
-
-function HtmlBoxWidget:getSelectedText(lines, start_pos, end_pos)
+function HtmlBoxWidget:getSelectedWordsAndRects(lines, start_pos, end_pos)
+  local p0, p1 = Geom.sortPoints(start_pos, end_pos)
   local found_start = false
   local words = {}
+  local rects = {}
 
   for _, line in ipairs(lines) do
     for _, w in ipairs(line) do
       if type(w) == "table" then
         if not found_start then
-          if
-            start_pos.x >= w.x0
-            and start_pos.x < w.x1
-            and start_pos.y >= w.y0
-            and start_pos.y < w.y1
-          then
+          if p0.x >= w.x0 and p0.x < w.x1 and p0.y >= w.y0 and p0.y < w.y1 then
             found_start = true
-          elseif
-            end_pos.x >= w.x0
-            and end_pos.x < w.x1
-            and end_pos.y >= w.y0
-            and end_pos.y < w.y1
-          then
-            -- We found end_pos before start_pos, switch them
-            found_start = true
-            start_pos, end_pos = end_pos, start_pos
           end
         end
 
         if found_start then
           table.insert(words, w.word)
-
-          -- Found the end.
-          if
-            end_pos.x >= w.x0
-            and end_pos.x < w.x1
-            and end_pos.y >= w.y0
-            and end_pos.y < w.y1
-          then
-            return words
+          table.insert(rects, { x0 = w.x0, y0 = w.y0, x1 = w.x1, y1 = w.y1 })
+          if p1.x >= w.x0 and p1.x < w.x1 and p1.y >= w.y0 and p1.y < w.y1 then
+            return words, rects
           end
         end
       end
     end
+    if found_start and p1.y < line[1].y0 then
+      break
+    end
   end
 
+  return words, rects
+end
+
+function HtmlBoxWidget:onHoldPanText(_arg, ges)
+  if not self.hold_start_pos then
+    return false
+  end
+
+  local end_pos = self:getPosFromAbsPos(ges.pos)
+  if not end_pos then
+    return true
+  end
+
+  local page = self.document:openPage(self.page_number)
+  local lines = page:getPageText()
+  page:close()
+
+  local _, rects = self:getSelectedWordsAndRects(lines, self.hold_start_pos, end_pos)
+
+  local changed = false
+  if not self.highlight_rects or #self.highlight_rects ~= #rects then
+    changed = true
+  else
+    for idx, r in ipairs(rects) do
+      local existing = self.highlight_rects[idx]
+      if existing.x0 ~= r.x0 or existing.y0 ~= r.y0 or existing.x1 ~= r.x1 or existing.y1 ~= r.y1 then
+        changed = true
+        break
+      end
+    end
+  end
+
+  if changed then
+    self.highlight_rects = rects
+    self.bb = nil
+    self:setDirty()
+  end
+
+  return true
+end
+
+function HtmlBoxWidget:getSelectedText(lines, start_pos, end_pos)
+  local words = self:getSelectedWordsAndRects(lines, start_pos, end_pos)
   return words
 end
 
@@ -277,6 +305,10 @@ function HtmlBoxWidget:onHoldReleaseText(callback, ges)
   local page = self.document:openPage(self.page_number)
   local lines = page:getPageText()
   page:close()
+
+  self.highlight_rects = nil
+  self.bb = nil
+  self:setDirty()
 
   local words = self:getSelectedText(lines, start_pos, end_pos)
   local selected_text = table.concat(words, " ")
