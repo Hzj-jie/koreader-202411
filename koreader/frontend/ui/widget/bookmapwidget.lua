@@ -693,8 +693,8 @@ local BookMapWidget = InputContainer:extend({
   -- Focus page: show the BookMapRow containing this page
   -- in the middle of screen
   focus_page = nil,
-  -- Should only be nil on the first launch via ReaderThumbnail
-  launcher = nil,
+  on_exit = nil,
+  on_update = nil,
   -- Extra symbols to show below pages
   extra_symbols_pages = nil,
   -- Restricted mode, as initial view (all on one screen), but allowing chapter levels changes
@@ -1600,15 +1600,15 @@ function BookMapWidget:onExit(close_all_parents)
   -- Close this widget
   logger.dbg("closing BookMapWidget")
   UIManager:close(self)
-  if self.launcher then
-    -- We were launched by a PageBrowserWidget, don't do any cleanup.
+  if self.on_exit or self.on_update then
+    -- We were launched by another widget, don't do any cleanup.
     if close_all_parents then
-      -- The last one of these (which has no launcher attribute)
-      -- will do the cleanup below.
-      self.launcher:onExit(true)
+      if self.on_exit then
+        self.on_exit(true)
+      end
     else
-      if self.editable_stuff_edited then
-        self.launcher:updateEditableStuff(true)
+      if self.editable_stuff_edited and self.on_update then
+        self.on_update()
       end
     end
   else
@@ -2017,9 +2017,14 @@ function BookMapWidget:onTap(arg, ges)
     end
     local PageBrowserWidget = require("ui/widget/pagebrowserwidget")
     self:showWidget(PageBrowserWidget:new({
-      launcher = self,
       ui = self.ui,
       focus_page = page,
+      on_exit = function(close_all_parents)
+        self:onExit(close_all_parents)
+      end,
+      on_update = function()
+        self:updateEditableStuff(true)
+      end,
     }))
   end
   return true
