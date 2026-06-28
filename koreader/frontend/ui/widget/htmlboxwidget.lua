@@ -198,7 +198,7 @@ function HtmlBoxWidget:onHoldStartText(_, ges)
   return true
 end
 
-function HtmlBoxWidget:onHoldPan(_arg, _ges)
+function HtmlBoxWidget:onHoldPanText(_arg, _ges)
   -- We don't highlight the currently selected text, but just let this
   -- event pop up if we are not currently selecting text
   if not self.hold_start_pos then
