@@ -1364,7 +1364,7 @@ function ReaderLink:selectRelPageLink(rel)
   if not self.cur_selected_page_link_num then
     self.cur_selected_link = nil
     self.document:highlightXPointer()
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     return
   end
   local selected_link = links[self.cur_selected_page_link_num]
@@ -1397,7 +1397,7 @@ function ReaderLink:selectRelPageLink(rel)
   }
   self.document:highlightXPointer() -- clear any previous one
   self.document:highlightXPointer(self.cur_selected_link.from_xpointer)
-  UIManager:setDirty(self.dialog, "ui")
+  UIManager:setDirty(self.ui, "ui")
   return true
 end
 
@@ -1609,7 +1609,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
     self.document:highlightXPointer(link.from_xpointer)
     -- Don't let a previous footnote popup clear our highlight
     self._footnote_popup_discard_previous_close_callback = true
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     close_callback = function(footnote_height)
       -- remove this highlight (actually all) on close
       local highlight_page = self.document:getCurrentPage()
@@ -1619,7 +1619,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
         -- this could remove too early a marker on the target page
         -- after this footnote is followed
         if self.document:getCurrentPage() == highlight_page then
-          UIManager:setDirty(self.dialog, "ui")
+          UIManager:setDirty(self.ui, "ui")
         end
       end
       if footnote_height then
@@ -1669,7 +1669,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
       end
       self._footnote_popup_discard_previous_close_callback = nil
     end,
-    dialog = self.dialog,
+    dialog = self.ui,
   })
   self:showWidget(popup)
   return true

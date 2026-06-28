@@ -576,7 +576,7 @@ function ReaderSearch:onShowSearchDialog(
     tap_close_callback = function()
       logger.dbg("highlight clear")
       self.ui.highlight:clear()
-      UIManager:setDirty(self.dialog, "ui")
+      UIManager:setDirty(self.ui, "ui")
     end,
   })
   if regex and isSlowRegex(text) then
@@ -588,13 +588,13 @@ function ReaderSearch:onShowSearchDialog(
       UIManager:close(self.wait_button)
       self:showWidget(self.search_dialog)
       --- @todo regional
-      UIManager:setDirty(self.dialog, "partial")
+      UIManager:setDirty(self.ui, "partial")
     end)
   else
     do_search(self.searchFromCurrent, text, direction)()
     self:showWidget(self.search_dialog)
     --- @todo regional
-    UIManager:setDirty(self.dialog, "partial")
+    UIManager:setDirty(self.ui, "partial")
   end
 
   return true

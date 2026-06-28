@@ -122,7 +122,6 @@ function ReaderUI:init()
   self:registerModule(
     "view",
     ReaderView:new({
-      dialog = self.dialog,
       dimen = self.dimen,
       ui = self,
       document = self.document,
@@ -135,7 +134,6 @@ function ReaderUI:init()
     "screenshot",
     Screenshoter:new({
       prefix = "Reader",
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -144,7 +142,6 @@ function ReaderUI:init()
   self:registerModule(
     "link",
     ReaderLink:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -153,7 +150,6 @@ function ReaderUI:init()
   self:registerModule(
     "highlight",
     ReaderHighlight:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -171,7 +167,6 @@ function ReaderUI:init()
   self:registerModule(
     "handmade",
     ReaderHandMade:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -180,7 +175,6 @@ function ReaderUI:init()
   self:registerModule(
     "toc",
     ReaderToc:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -188,14 +182,12 @@ function ReaderUI:init()
   self:registerModule(
     "bookmark",
     ReaderBookmark:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
   self:registerModule(
     "annotation",
     ReaderAnnotation:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -205,7 +197,6 @@ function ReaderUI:init()
   self:registerModule(
     "gotopage",
     ReaderGoto:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -221,7 +212,6 @@ function ReaderUI:init()
   self:registerModule(
     "dictionary",
     ReaderDictionary:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -230,7 +220,6 @@ function ReaderUI:init()
   self:registerModule(
     "wikipedia",
     ReaderWikipedia:new({
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })
@@ -249,7 +238,6 @@ function ReaderUI:init()
       "config",
       ReaderConfig:new({
         configurable = self.document.configurable,
-        dialog = self.dialog,
         ui = self,
         document = self.document,
       })
@@ -259,7 +247,6 @@ function ReaderUI:init()
       self:registerModule(
         "koptlistener",
         ReaderKoptListener:new({
-          dialog = self.dialog,
           ui = self,
           document = self.document,
         })
@@ -269,7 +256,6 @@ function ReaderUI:init()
       self:registerModule(
         "crelistener",
         ReaderCoptListener:new({
-          dialog = self.dialog,
           ui = self,
           document = self.document,
         })
@@ -280,7 +266,6 @@ function ReaderUI:init()
       self:registerModule(
         "activityindicator",
         ReaderActivityIndicator:new({
-          dialog = self.dialog,
           ui = self,
           document = self.document,
         })
@@ -293,7 +278,6 @@ function ReaderUI:init()
     self:registerModule(
       "cropping",
       ReaderCropping:new({
-        dialog = self.dialog,
         ui = self,
         document = self.document,
       })
@@ -303,7 +287,6 @@ function ReaderUI:init()
       "paging",
       ReaderPaging:new({
         pan_rate = pan_rate,
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -311,7 +294,6 @@ function ReaderUI:init()
     self:registerModule(
       "zooming",
       ReaderZooming:new({
-        dialog = self.dialog,
         document = self.document,
         ui = self,
       })
@@ -320,7 +302,6 @@ function ReaderUI:init()
     self:registerModule(
       "panning",
       ReaderPanning:new({
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -328,7 +309,6 @@ function ReaderUI:init()
     self:registerModule(
       "hinting",
       ReaderHinting:new({
-        dialog = self.dialog,
         zoom = self.zooming,
         ui = self,
         document = self.document,
@@ -376,7 +356,6 @@ function ReaderUI:init()
     self:registerModule(
       "styletweak",
       ReaderStyleTweak:new({
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -385,7 +364,6 @@ function ReaderUI:init()
       "typeset",
       ReaderTypeset:new({
         configurable = self.document.configurable,
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -394,7 +372,6 @@ function ReaderUI:init()
       "font",
       ReaderFont:new({
         configurable = self.document.configurable,
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -402,7 +379,6 @@ function ReaderUI:init()
     self:registerModule(
       "userhyph",
       ReaderUserHyph:new({
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -410,7 +386,6 @@ function ReaderUI:init()
     self:registerModule(
       "typography",
       ReaderTypography:new({
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -420,7 +395,6 @@ function ReaderUI:init()
       ReaderRolling:new({
         configurable = self.document.configurable,
         pan_rate = pan_rate,
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -428,7 +402,6 @@ function ReaderUI:init()
     self:registerModule(
       "pagemap",
       ReaderPageMap:new({
-        dialog = self.dialog,
         ui = self,
       })
     )
@@ -439,7 +412,6 @@ function ReaderUI:init()
     "scrolling",
     ReaderScrolling:new({
       pan_rate = pan_rate,
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -454,7 +426,6 @@ function ReaderUI:init()
   self:registerModule(
     "search",
     ReaderSearch:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -478,7 +449,6 @@ function ReaderUI:init()
   self:registerModule(
     "filesearcher",
     FileManagerFileSearcher:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -486,7 +456,6 @@ function ReaderUI:init()
   self:registerModule(
     "folder_shortcuts",
     FileManagerShortcuts:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -494,7 +463,6 @@ function ReaderUI:init()
   self:registerModule(
     "history",
     FileManagerHistory:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -502,7 +470,6 @@ function ReaderUI:init()
   self:registerModule(
     "collections",
     FileManagerCollection:new({
-      dialog = self.dialog,
       ui = self,
     })
   )
@@ -510,7 +477,6 @@ function ReaderUI:init()
   self:registerModule(
     "bookinfo",
     FileManagerBookInfo:new({
-      dialog = self.dialog,
       document = self.document,
       ui = self,
     })
@@ -534,7 +500,6 @@ function ReaderUI:init()
   -- koreader plugins
   for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
     local ok, plugin_or_err = PluginLoader:createPluginInstance(plugin_module, {
-      dialog = self.dialog,
       ui = self,
       document = self.document,
     })

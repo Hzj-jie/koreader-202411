@@ -559,7 +559,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
         callback = function(spin)
           G_reader_settings:save("highlight_lighten_factor", spin.value)
           self.ui.view.highlight.lighten_factor = spin.value
-          UIManager:setDirty(self.dialog, "ui")
+          UIManager:setDirty(self.ui, "ui")
           menu:updateItems()
         end,
       })
@@ -625,7 +625,7 @@ function ReaderHighlight:addToMainMenu(menu_items)
             end
           end
           if count > 0 then
-            UIManager:setDirty(self.dialog, "ui")
+            UIManager:setDirty(self.ui, "ui")
             self:showWidget(Notification:new({
               text = T(
                 N_(
@@ -1116,7 +1116,7 @@ function ReaderHighlight:clear(clear_id)
   if self.hold_pos then
     self.hold_pos = nil
     self.selected_text = nil
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     return true
   end
 end
@@ -1357,7 +1357,7 @@ function ReaderHighlight:updateHighlight(index, side, direction, move_by_char)
   end
   -- Do not promote refresh during the highlighting.
   UIManager:ignoreNextRefreshPromote()
-  UIManager:setDirty(self.dialog, "ui")
+  UIManager:setDirty(self.ui, "ui")
 end
 
 function ReaderHighlight:showChooseHighlightDialog(highlights)
@@ -1678,7 +1678,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
       self.long_hold_reached = true
       -- Have ReaderView redraw and refresh ReaderFlipping and our state icon, avoiding flashes
       UIManager:setDirty(
-        self.dialog,
+        self.ui,
         "ui",
         self.ui.view.flipping:getRefreshRegion()
       )
@@ -1726,7 +1726,7 @@ function ReaderHighlight:_resetHoldTimer(clear)
   if self.long_hold_reached then
     self.long_hold_reached = false
     -- Have ReaderView redraw and refresh ReaderFlipping with our state icon removed
-    UIManager:setDirty(self.dialog, "ui", self.ui.view.flipping:getRefreshRegion())
+    UIManager:setDirty(self.ui, "ui", self.ui.view.flipping:getRefreshRegion())
   end
 end
 
@@ -1859,11 +1859,11 @@ function ReaderHighlight:onHold(arg, ges)
       self.ui.view.highlight.temp[self.hold_pos.page] = self.selected_text.sboxes
       -- Unfortunately, getWordFromPosition() may not return good coordinates,
       -- so refresh the whole page
-      UIManager:setDirty(self.dialog, "ui")
+      UIManager:setDirty(self.ui, "ui")
     else
       -- With crengine, getWordFromPosition() does return good coordinates.
       UIManager:setDirty(
-        self.dialog,
+        self.ui,
         "ui",
         Geom.boundingBox(self.selected_text.sboxes)
       )
@@ -1978,7 +1978,7 @@ function ReaderHighlight:onHoldPan(_, ges)
           self.selected_text_start_xpointer
         )
         self.hold_pos.y = self.hold_pos.y - orig_y + new_y
-        UIManager:setDirty(self.dialog, "ui")
+        UIManager:setDirty(self.ui, "ui")
         return true
       else -- two pages mode
         -- We don't switch to scroll mode: we just turn 1 page to
@@ -2023,7 +2023,7 @@ function ReaderHighlight:onHoldPan(_, ges)
           self.ui.rolling:_gotoPage(cur_page - 1, true, true) -- no odd left page enforcement
           self.hold_pos.x = self.hold_pos.x + screen_half_width
         end
-        UIManager:setDirty(self.dialog, "ui")
+        UIManager:setDirty(self.ui, "ui")
         return true
       end
     else
@@ -2064,7 +2064,7 @@ function ReaderHighlight:onHoldPan(_, ges)
   if self.selected_text then
     self.ui.view.highlight.temp[self.hold_pos.page] = self.selected_text.sboxes
   end
-  UIManager:setDirty(self.dialog, "ui")
+  UIManager:setDirty(self.ui, "ui")
 end
 
 local info_message_ocr_text = gettext(
@@ -2524,7 +2524,7 @@ function ReaderHighlight:deleteHighlight(index)
   local item = self.ui.annotation.annotations[index]
   self:writePdfAnnotation("delete", item)
   self.ui.bookmark:removeItemByIndex(index)
-  UIManager:setDirty(self.dialog, "ui")
+  UIManager:setDirty(self.ui, "ui")
 end
 
 function ReaderHighlight:addNote(text)
@@ -2538,7 +2538,7 @@ end
 function ReaderHighlight:editHighlight(index, is_new_note, text)
   local note_updated_callback = function()
     if self.ui.view.highlight.note_mark then -- refresh note marker
-      UIManager:setDirty(self.dialog, "ui")
+      UIManager:setDirty(self.ui, "ui")
     end
   end
   self.ui.bookmark:setBookmarkNote(
@@ -2560,7 +2560,7 @@ function ReaderHighlight:editHighlightStyle(index)
         self:writePdfAnnotation("content", item, item.note)
       end
     end
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightStyleDialog(apply_drawer, item.drawer, index)
@@ -2577,7 +2577,7 @@ function ReaderHighlight:editHighlightColor(index)
         self:writePdfAnnotation("content", item, item.note)
       end
     end
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightColorDialog(apply_color, item)
@@ -2722,7 +2722,7 @@ function ReaderHighlight:extendSelection()
     pboxes = new_pboxes,
     ext = ext,
   }
-  UIManager:setDirty(self.dialog, "ui")
+  UIManager:setDirty(self.ui, "ui")
 end
 
 -- Calculates positions, text, pboxes of one page of selected multi-page highlight
@@ -2922,14 +2922,14 @@ function ReaderHighlight:onHighlightPress()
             y = pos.y + pos.h / 2,
           })
           -- move indicator to center selected text making succeed same row selection much accurate.
-          UIManager:setDirty(self.dialog, "ui", self._current_indicator_pos)
+          UIManager:setDirty(self.ui, "ui", self._current_indicator_pos)
           self._current_indicator_pos.x = pos.x
             + pos.w / 2
             - self._current_indicator_pos.w / 2
           self._current_indicator_pos.y = pos.y
             + pos.h / 2
             - self._current_indicator_pos.h / 2
-          UIManager:setDirty(self.dialog, "ui", self._current_indicator_pos)
+          UIManager:setDirty(self.ui, "ui", self._current_indicator_pos)
         end
       else
         self:onStopHighlightIndicator(true) -- need_clear_selection=true
@@ -2958,7 +2958,7 @@ function ReaderHighlight:onStartHighlightIndicator()
     end
     self._current_indicator_pos = rect
     self.ui.view.highlight.indicator = rect
-    UIManager:setDirty(self.dialog, "ui", rect)
+    UIManager:setDirty(self.ui, "ui", rect)
     return true
   end
   return false
@@ -2971,7 +2971,7 @@ function ReaderHighlight:onStopHighlightIndicator(need_clear_selection)
     self._start_indicator_highlight = false
     self._current_indicator_pos = nil
     self.ui.view.highlight.indicator = nil
-    UIManager:setDirty(self.dialog, "ui", rect)
+    UIManager:setDirty(self.ui, "ui", rect)
     if need_clear_selection then
       self:clear()
     end
@@ -3031,10 +3031,10 @@ function ReaderHighlight:onMoveHighlightIndicator(args)
     if rect.y + rect.h > self.ui.view.visible_area.h then
       rect.y = self.ui.view.visible_area.h - rect.h
     end
-    UIManager:setDirty(self.dialog, "ui", self._current_indicator_pos)
+    UIManager:setDirty(self.ui, "ui", self._current_indicator_pos)
     self._current_indicator_pos = rect
     self.ui.view.highlight.indicator = rect
-    UIManager:setDirty(self.dialog, "ui", rect)
+    UIManager:setDirty(self.ui, "ui", rect)
     if self._start_indicator_highlight then
       self:onHoldPan(nil, self:_createHighlightGesture("hold_pan"))
     end

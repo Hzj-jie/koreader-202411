@@ -1228,7 +1228,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
         self:updateBookmarkList(item_table, -1)
       else
         if self.ui.view.highlight.note_mark then -- refresh note marker
-          UIManager:setDirty(self.dialog, "ui")
+          UIManager:setDirty(self.ui, "ui")
         end
       end
     end

@@ -285,11 +285,11 @@ function ReaderView:paintTo(bb, x, y)
 
   -- Most pages should not require dithering, but the dithering flag is also used to engage Kaleido waveform modes,
   -- so we'll set the flag to true if any of our drawn highlights were in color.
-  self.dialog.dithered = colorful
+  self.ui.dithered = colorful
   -- For KOpt, let the user choose.
   if self.ui.paging then
     if self.document.hw_dithering then
-      self.dialog.dithered = true
+      self.ui.dithered = true
     end
   else
     -- Whereas for CRe,
@@ -302,7 +302,7 @@ function ReaderView:paintTo(bb, x, y)
     if img_coverage >= 0.075 or coverage_diff >= 0.075 then
       -- Request dithering on the actual page with image content
       if img_coverage >= 0.075 then
-        self.dialog.dithered = true
+        self.ui.dithered = true
       end
       -- Request a flashing update while we're at it, but only if it's the first time we're painting it
       if self.state.drawn == false then
@@ -787,7 +787,7 @@ This method is supposed to be only used by ReaderPaging
 --]]
 function ReaderView:recalculate()
   -- Start by resetting the dithering flag early, so it doesn't carry over from the previous page.
-  self.dialog.dithered = nil
+  self.ui.dithered = nil
 
   if self.ui.paging and self.state.page then
     self.page_area =
@@ -850,7 +850,7 @@ function ReaderView:recalculate()
 
   -- Flag a repaint so self:paintTo will be called
   -- NOTE: This is also unfortunately called during panning, essentially making sure we'll never be using "fast" for pans ;).
-  UIManager:setDirty(self.dialog, "partial")
+  UIManager:setDirty(self.ui, "partial")
 end
 
 function ReaderView:PanningUpdate(dx, dy)
@@ -859,7 +859,7 @@ function ReaderView:PanningUpdate(dx, dy)
   self.visible_area:offsetWithin(self.page_area, dx, dy)
   if self.visible_area ~= old then
     -- flag a repaint
-    UIManager:setDirty(self.dialog, "partial")
+    UIManager:setDirty(self.ui, "partial")
     logger.dbg("on pan: page_area", self.page_area)
     logger.dbg("on pan: visible_area", self.visible_area)
     UIManager:broadcastEvent(
@@ -879,7 +879,7 @@ function ReaderView:PanningStart(x, y)
   UIManager:broadcastEvent(
     Event:new("ViewRecalculate", self.visible_area, self.page_area)
   )
-  UIManager:setDirty(self.dialog, "partial")
+  UIManager:setDirty(self.ui, "partial")
 end
 
 function ReaderView:PanningStop()
@@ -893,7 +893,7 @@ function ReaderView:SetZoomCenter(x, y)
     UIManager:broadcastEvent(
       Event:new("ViewRecalculate", self.visible_area, self.page_area)
     )
-    UIManager:setDirty(self.dialog, "partial")
+    UIManager:setDirty(self.ui, "partial")
   end
 end
 
@@ -958,7 +958,7 @@ function ReaderView:rotate(mode, old_mode)
   local matching_orientation = bit.band(mode, 1) == bit.band(old_mode, 1)
   if matching_orientation then
     -- No layout change, just rotate & repaint with a flash
-    UIManager:setDirty(self.dialog, "full")
+    UIManager:setDirty(self.ui, "full")
   else
     UIManager:scheduleRefresh("full") -- SetDimensions will only request a partial, we want a flash
     UIManager:broadcastEvent(Event:new("SetDimensions", Screen:getSize()))

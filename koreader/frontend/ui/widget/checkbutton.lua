@@ -190,7 +190,7 @@ end
 
 function CheckButton:toggleCheck()
   self:initCheckButton(not self.checked)
-  UIManager:setDirty(self.parent, function()
+  self:setDirty(function()
     return "ui", self.dimen
   end)
 end
@@ -198,7 +198,7 @@ end
 function CheckButton:enable()
   self.enabled = true
   self:initCheckButton(self.checked)
-  UIManager:setDirty(self.parent, function()
+  self:setDirty(function()
     return "ui", self.dimen
   end)
 end
@@ -206,7 +206,7 @@ end
 function CheckButton:disable()
   self.enabled = false
   self:initCheckButton(self.checked)
-  UIManager:setDirty(self.parent, function()
+  self:setDirty(function()
     return "ui", self.dimen
   end)
 end
