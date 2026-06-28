@@ -1610,7 +1610,6 @@ function BookMapWidget:onExit(close_all_parents)
       if self.editable_stuff_edited then
         self.launcher:updateEditableStuff(true)
       end
-      UIManager:setDirty(self.launcher, "ui")
     end
   else
     BD.resetInvert()
