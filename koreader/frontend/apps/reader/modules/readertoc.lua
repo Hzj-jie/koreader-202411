@@ -1103,15 +1103,18 @@ function ReaderToc:collapseToc(index)
 end
 
 function ReaderToc:addToMainMenu(menu_items)
-  -- insert table to main reader menu
-  menu_items.table_of_contents = {
-    text_func = function()
-      return self:getTitle()
-    end,
-    callback = function()
-      self:onShowToc()
-    end,
-  }
+  self:fillToc()
+  if #self.toc > 0 then
+    -- insert table to main reader menu
+    menu_items.table_of_contents = {
+      text_func = function()
+        return self:getTitle()
+      end,
+      callback = function()
+        self:onShowToc()
+      end,
+    }
+  end
   -- ToC (and other navigation) settings
   menu_items.navi_settings = {
     text = gettext("Navigation settings"),
