@@ -26,8 +26,7 @@ function util.isTesting()
 end
 
 function util.getSourceDir()
-  local source = debug.getinfo(2, "S").source
-  return assert(source:match("^@(.+)/[^/]+$"))
+  return assert(debug.getinfo(2, "S").source:match("^@(.+)/[^/]+$"))
 end
 
 
