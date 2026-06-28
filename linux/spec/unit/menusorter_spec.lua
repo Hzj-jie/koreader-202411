@@ -102,18 +102,10 @@ describe("MenuSorter module", function()
         local result_menu = {
             [1] = {
                 [1] = {
-                    ["id"] = "tools",
-                    ["sub_item_table"] = {
-                        [1] = {
-                            ["sorting_hint"] = "tools",
-                            ["new"] = true,
-                            ["id"] = "search",
-                            ["text"] = "Search"
-                        },
-                        ["text"] = "Tools",
-                        ["id"] = "tools"
-                    },
-                    ["text"] = "Tools"
+                    ["id"] = "search",
+                    ["new"] = true,
+                    ["sorting_hint"] = "tools",
+                    ["text"] = "Tools - Search"
                 },
                 [2] = {
                     ["id"] = "submenu",
@@ -302,7 +294,62 @@ describe("MenuSorter module", function()
         -- empty_submenu is in setting, but it has no children, so it should be removed from setting!
         assert.equals(1, #test_menu) -- just setting itself
         assert.equals("setting", test_menu[1].id)
-        assert.is_nil(test_menu[1][1]) -- no children in setting because empty_submenu was removed!
+    end)
+
+    it("should merge single-item submenus into parent with merged text", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            tools = {text="Tools"},
+            games = {text="Games"},
+            sudoku = {text="Sudoku", callback="sudoku_callback"},
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = {
+                "tools",
+            },
+            tools = {
+                "games",
+            },
+            games = {
+                "sudoku",
+            },
+        }
+
+        local test_menu = MenuSorter:_sort(menu_items, order)
+
+        -- games submenu has only 1 item (sudoku).
+        -- It should be merged/flattened into tools directly, with text "Games - Sudoku"!
+        assert.equals(1, #test_menu) -- tools
+        assert.equals("tools", test_menu[1].id)
+        assert.equals(1, #test_menu[1]) -- 1 item in tools
+        assert.equals("sudoku", test_menu[1][1].id) -- the item is sudoku
+        assert.equals("Games - Sudoku", test_menu[1][1].text) -- text merged!
+        assert.equals("sudoku_callback", test_menu[1][1].callback) -- callback preserved!
+        assert.is_nil(test_menu[1][1].sub_item_table) -- no longer a submenu!
+    end)
+
+    it("should error if single-item submenu child has radio = true", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            tools = {text="Tools"},
+            games = {text="Games"},
+            sudoku = {text="Sudoku", radio=true, callback="sudoku_callback"},
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = {
+                "tools",
+            },
+            tools = {
+                "games",
+            },
+            games = {
+                "sudoku",
+            },
+        }
+
+        assert.has_error(function()
+            MenuSorter:_sort(menu_items, order)
+        end)
     end)
 
     describe("_readMSSettings", function()
