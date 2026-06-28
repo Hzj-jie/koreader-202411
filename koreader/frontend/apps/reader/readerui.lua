@@ -136,7 +136,6 @@ function ReaderUI:init()
     Screenshoter:new({
       prefix = "Reader",
       dialog = self.dialog,
-      view = self.view,
       ui = self,
     })
   )
@@ -146,7 +145,6 @@ function ReaderUI:init()
     "link",
     ReaderLink:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -156,7 +154,6 @@ function ReaderUI:init()
     "highlight",
     ReaderHighlight:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -167,7 +164,6 @@ function ReaderUI:init()
   self:registerModule(
     "menu",
     ReaderMenu:new({
-      view = self.view,
       ui = self,
     })
   )
@@ -176,7 +172,6 @@ function ReaderUI:init()
     "handmade",
     ReaderHandMade:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -186,7 +181,6 @@ function ReaderUI:init()
     "toc",
     ReaderToc:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
     })
   )
@@ -195,7 +189,6 @@ function ReaderUI:init()
     "bookmark",
     ReaderBookmark:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
     })
   )
@@ -203,7 +196,6 @@ function ReaderUI:init()
     "annotation",
     ReaderAnnotation:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -214,7 +206,6 @@ function ReaderUI:init()
     "gotopage",
     ReaderGoto:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -231,7 +222,6 @@ function ReaderUI:init()
     "dictionary",
     ReaderDictionary:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -241,7 +231,6 @@ function ReaderUI:init()
     "wikipedia",
     ReaderWikipedia:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })
@@ -261,7 +250,6 @@ function ReaderUI:init()
       ReaderConfig:new({
         configurable = self.document.configurable,
         dialog = self.dialog,
-        view = self.view,
         ui = self,
         document = self.document,
       })
@@ -272,7 +260,6 @@ function ReaderUI:init()
         "koptlistener",
         ReaderKoptListener:new({
           dialog = self.dialog,
-          view = self.view,
           ui = self,
           document = self.document,
         })
@@ -283,7 +270,6 @@ function ReaderUI:init()
         "crelistener",
         ReaderCoptListener:new({
           dialog = self.dialog,
-          view = self.view,
           ui = self,
           document = self.document,
         })
@@ -295,7 +281,6 @@ function ReaderUI:init()
         "activityindicator",
         ReaderActivityIndicator:new({
           dialog = self.dialog,
-          view = self.view,
           ui = self,
           document = self.document,
         })
@@ -309,7 +294,6 @@ function ReaderUI:init()
       "cropping",
       ReaderCropping:new({
         dialog = self.dialog,
-        view = self.view,
         ui = self,
         document = self.document,
       })
@@ -320,7 +304,6 @@ function ReaderUI:init()
       ReaderPaging:new({
         pan_rate = pan_rate,
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -330,7 +313,6 @@ function ReaderUI:init()
       ReaderZooming:new({
         dialog = self.dialog,
         document = self.document,
-        view = self.view,
         ui = self,
       })
     )
@@ -339,7 +321,6 @@ function ReaderUI:init()
       "panning",
       ReaderPanning:new({
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -349,7 +330,6 @@ function ReaderUI:init()
       ReaderHinting:new({
         dialog = self.dialog,
         zoom = self.zooming,
-        view = self.view,
         ui = self,
         document = self.document,
       })
@@ -397,7 +377,6 @@ function ReaderUI:init()
       "styletweak",
       ReaderStyleTweak:new({
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -407,7 +386,6 @@ function ReaderUI:init()
       ReaderTypeset:new({
         configurable = self.document.configurable,
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -417,7 +395,6 @@ function ReaderUI:init()
       ReaderFont:new({
         configurable = self.document.configurable,
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -426,7 +403,6 @@ function ReaderUI:init()
       "userhyph",
       ReaderUserHyph:new({
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -435,7 +411,6 @@ function ReaderUI:init()
       "typography",
       ReaderTypography:new({
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -446,7 +421,6 @@ function ReaderUI:init()
         configurable = self.document.configurable,
         pan_rate = pan_rate,
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -455,7 +429,6 @@ function ReaderUI:init()
       "pagemap",
       ReaderPageMap:new({
         dialog = self.dialog,
-        view = self.view,
         ui = self,
       })
     )
@@ -468,7 +441,6 @@ function ReaderUI:init()
       pan_rate = pan_rate,
       dialog = self.dialog,
       ui = self,
-      view = self.view,
     })
   )
   -- back location stack
@@ -476,7 +448,6 @@ function ReaderUI:init()
     "back",
     ReaderBack:new({
       ui = self,
-      view = self.view,
     })
   )
   -- fulltext search
@@ -484,7 +455,6 @@ function ReaderUI:init()
     "search",
     ReaderSearch:new({
       dialog = self.dialog,
-      view = self.view,
       ui = self,
     })
   )
@@ -550,7 +520,6 @@ function ReaderUI:init()
     "devicelistener",
     DeviceListener:new({
       document = self.document,
-      view = self.view,
       ui = self,
     })
   )
@@ -558,7 +527,6 @@ function ReaderUI:init()
     "networklistener",
     NetworkListener:new({
       document = self.document,
-      view = self.view,
       ui = self,
     })
   )
@@ -567,7 +535,6 @@ function ReaderUI:init()
   for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
     local ok, plugin_or_err = PluginLoader:createPluginInstance(plugin_module, {
       dialog = self.dialog,
-      view = self.view,
       ui = self,
       document = self.document,
     })

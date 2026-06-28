@@ -648,7 +648,7 @@ function KOSync:_updateProgress(interactive)
   local username = self.settings.username
   local userkey = self.settings.userkey
   local device_id = self.device_id
-  local filename = self.view.document.file
+  local filename = self.ui.view.document.file
 
   -- No self in this function, the execution may be delayed.
   local function exec()
@@ -738,7 +738,7 @@ function KOSync:_getProgress(interactive)
       self.settings.userkey,
       doc_digest,
       function(ok, body)
-        logger.dbg("KOSync: [Pull] progress for", self.view.document.file)
+        logger.dbg("KOSync: [Pull] progress for", self.ui.view.document.file)
         logger.dbg("KOSync: ok:", ok, "body:", body)
         if not ok or not body then
           if interactive then

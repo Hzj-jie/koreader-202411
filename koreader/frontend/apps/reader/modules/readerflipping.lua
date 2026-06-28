@@ -99,7 +99,7 @@ end
 
 function ReaderFlipping:paintTo(bb, x, y)
   local widget
-  if self.ui.paging and self.view.flipping_visible then
+  if self.ui.paging and self.ui.view.flipping_visible then
     -- pdf page flipping or bookmark browsing mode
     widget = self.ui.paging.bookmark_flipping_mode
         and self.bookmark_flipping_widget

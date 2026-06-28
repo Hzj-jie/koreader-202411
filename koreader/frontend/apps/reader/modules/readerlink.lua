@@ -684,7 +684,7 @@ end
 -- document type, so this function provides a wrapper.
 function ReaderLink:getLinkFromGes(ges)
   if self.ui.paging then
-    local pos = self.view:screenToPageTransform(ges.pos)
+    local pos = self.ui.view:screenToPageTransform(ges.pos)
     if pos then
       -- link box in native page
       local link, lbox = self.document:getLinkFromPosition(pos.page, pos)
@@ -742,7 +742,7 @@ end
 function ReaderLink:showLinkBox(link, allow_footnote_popup)
   if link and link.lbox then -- pdfdocument
     -- screen box that holds the link
-    local sbox = self.view:pageToScreenTransform(
+    local sbox = self.ui.view:pageToScreenTransform(
       link.pos.page,
       self.document:nativeToPageRectTransform(link.pos.page, link.lbox)
     )
@@ -938,7 +938,7 @@ function ReaderLink:onGotoLink(
           -- current page that addCurrentLocationToStack() would give, and
           -- we may be able to show a marker when back
           local saved_location
-          if self.view.view_mode == "scroll" then
+          if self.ui.view.view_mode == "scroll" then
             -- In scroll mode, we still use the top of page as the
             -- xpointer to go back to, so we get back to the same view.
             -- We can still show the marker at the link position
@@ -1124,7 +1124,7 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
   -- We use squared distances throughout the computations,
   -- no need to math.sqrt() anything for comparisons.
   if self.ui.paging then
-    local pos = self.view:screenToPageTransform(ges.pos)
+    local pos = self.ui.view:screenToPageTransform(ges.pos)
     if not pos then
       return
     end

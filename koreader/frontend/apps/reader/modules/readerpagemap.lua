@@ -50,7 +50,7 @@ function ReaderPageMap:_postInit()
   self.has_pagemap = true
   self:resetLayout()
   self.ui.menu:registerToMainMenu(self)
-  self.view:registerViewModule("pagemap", self)
+  self.ui.view:registerViewModule("pagemap", self)
 end
 
 function ReaderPageMap:resetLayout()
@@ -134,12 +134,12 @@ function ReaderPageMap:updateVisibleLabels()
   local page_labels = self.ui.document:getPageMapVisiblePageLabels()
   local footer_height = (
     (
-        self.view.footer_visible
-        and not self.view.footer.settings.reclaim_height
+        self.ui.view.footer_visible
+        and not self.ui.view.footer.settings.reclaim_height
       )
       and 1
     or 0
-  ) * self.view.footer:getHeight()
+  ) * self.ui.view.footer:getHeight()
   local max_y = Screen:getHeight() - footer_height
   local last_label_bottom_y = 0
   local on_second_page = false
@@ -369,7 +369,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           -- Reset a few stuff that may use page labels
           UIManager:broadcastEvent("UpdateToc")
           self.ui.annotation:updatePageNumbers(true)
-          UIManager:setDirty(self.view.dialog, "partial")
+          UIManager:setDirty(self.ui.view.dialog, "partial")
         end,
         hold_callback = function(menu)
           local use_page_labels =
@@ -419,7 +419,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           )
           self:resetLayout()
           self:updateVisibleLabels()
-          UIManager:setDirty(self.view.dialog, "partial")
+          UIManager:setDirty(self.ui.view.dialog, "partial")
         end,
         hold_callback = function(menu)
           local show_page_labels =
@@ -482,7 +482,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
               end
               self:resetLayout()
               self:updateVisibleLabels()
-              UIManager:setDirty(self.view.dialog, "partial")
+              UIManager:setDirty(self.ui.view.dialog, "partial")
             end,
           })
           self:showWidget(spin_w)

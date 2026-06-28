@@ -100,7 +100,7 @@ end
 
 function PerceptionExpander:onReaderReady()
   self.ui.menu:registerToMainMenu(self)
-  self.view:registerViewModule("perception_expander", self)
+  self.ui.view:registerViewModule("perception_expander", self)
 end
 
 function PerceptionExpander:resetLayout()

@@ -76,6 +76,7 @@ local ReaderView = OverlapGroup:extend({
 })
 
 function ReaderView:init()
+  self.ui.view = self
   self.view_modules = {}
 
   self.state = {

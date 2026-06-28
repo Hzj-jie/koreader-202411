@@ -350,10 +350,10 @@ end
 
 function ReaderBookmark:onToggleBookmark()
   self:toggleBookmark()
-  self.view.dogear:onSetDogearVisibility(not self.view.dogear_visible)
+  self.ui.view.dogear:onSetDogearVisibility(not self.ui.view.dogear_visible)
   -- Refresh the dogear first, because it might inherit ReaderUI refresh hints.
-  UIManager:setDirty(self.view.dialog, function()
-    return "ui", self.view.dogear:getRefreshRegion()
+  UIManager:setDirty(self.ui.view.dialog, function()
+    return "ui", self.ui.view.dogear:getRefreshRegion()
   end)
   -- And ask for a footer refresh, in case we have bookmark_count enabled.
   -- Assuming the footer is visible, it'll request a refresh regardless, but the EPDC should optimize it out if no content actually changed.
@@ -396,7 +396,7 @@ end
 
 function ReaderBookmark:setDogearVisibility(pn_or_xp)
   local visible = self:isPageBookmarked(pn_or_xp)
-  self.view.dogear:onSetDogearVisibility(visible)
+  self.ui.view.dogear:onSetDogearVisibility(visible)
 end
 
 function ReaderBookmark:isPageBookmarked(pn_or_xp)
@@ -597,7 +597,7 @@ end
 -- bookmarks misc info, helpers
 
 function ReaderBookmark:getCurrentPageNumber()
-  return self.ui.paging and self.view.state.page
+  return self.ui.paging and self.ui.view.state.page
     or self.ui.document:getXPointer()
 end
 
@@ -1227,7 +1227,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
         end
         self:updateBookmarkList(item_table, -1)
       else
-        if self.view.highlight.note_mark then -- refresh note marker
+        if self.ui.view.highlight.note_mark then -- refresh note marker
           UIManager:setDirty(self.dialog, "ui")
         end
       end

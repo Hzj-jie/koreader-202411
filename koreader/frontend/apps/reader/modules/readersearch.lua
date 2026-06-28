@@ -407,7 +407,7 @@ function ReaderSearch:onShowSearchDialog(
             { page = res.page - 1 },
             neglect_current_location
           )
-          self.view.highlight.temp[res.page] = res
+          self.ui.view.highlight.temp[res.page] = res
         else
           -- Was previously just:
           --   self.ui.link:onGotoLink(res[1].start, neglect_current_location)
@@ -488,7 +488,7 @@ function ReaderSearch:onShowSearchDialog(
           -- For now, only do this with CreDocument. With PDF, whether in single page mode or
           -- in scroll mode, the view can scroll a bit when showing results, and we want to
           -- allow "go back" to restore the original viewport.
-          if self.ui.rolling and self.view.view_mode == "page" then
+          if self.ui.rolling and self.ui.view.view_mode == "page" then
             if current_page == self.ui.document:getCurrentPage() then
               self.ui.link:popFromLocationStack()
               neglect_current_location = false
@@ -605,7 +605,7 @@ end
 function ReaderSearch:search(pattern, origin, regex, case_insensitive)
   logger.dbg("search pattern", pattern)
   local direction = self.direction
-  local page = self.view.state.page
+  local page = self.ui.view.state.page
   if case_insensitive == nil then
     case_insensitive = true
   end
@@ -782,7 +782,7 @@ function ReaderSearch:onShowFindAllResults(not_cached)
           boxes[i] = self.ui.document:nativeToPageRectTransform(page, box)
         end
         self.ui.link:onGotoLink({ page = page - 1 })
-        self.view.highlight.temp[page] = boxes
+        self.ui.view.highlight.temp[page] = boxes
       end
     end,
     onMenuHold = function(_menu_self, item)

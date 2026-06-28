@@ -37,8 +37,8 @@ function ReaderAnnotation:buildAnnotation(bm, highlights, init)
   if hl == nil then -- page bookmark or orphaned bookmark
     hl = {}
     if bm.highlighted then -- orphaned bookmark
-      hl.drawer = self.view.highlight.saved_drawer
-      hl.color = self.view.highlight.saved_color
+      hl.drawer = self.ui.view.highlight.saved_drawer
+      hl.color = self.ui.view.highlight.saved_color
       if self.ui.paging then
         if bm.pos0.page == bm.pos1.page then
           hl.pboxes =

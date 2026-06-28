@@ -612,7 +612,7 @@ function ReaderFooter:init()
     self.mode_list[self.mode_index[i]] = i
   end
 
-  self.pageno = self.view.state.page
+  self.pageno = self.ui.view.state.page
   self.has_no_mode = true
   self.reclaim_height = self.settings.reclaim_height
   for _, m in ipairs(self.mode_index) do
@@ -654,12 +654,12 @@ function ReaderFooter:init()
   self.mode = G_reader_settings:read("reader_footer_mode") or self.mode
   if self.has_no_mode and self.settings.disable_progress_bar then
     self.mode = self.mode_list.off
-    self.view.footer_visible = false
+    self.ui.view.footer_visible = false
     self:resetLayout()
     self.footer_text.height = 0
   end
   if self.settings.all_at_once then
-    self.view.footer_visible = (self.mode ~= self.mode_list.off)
+    self.ui.view.footer_visible = (self.mode ~= self.mode_list.off)
     self:_updateFooterTextGenerator()
     if
       self.settings.progress_bar_position ~= "alongside" and self.has_no_mode
@@ -667,7 +667,7 @@ function ReaderFooter:init()
       self.footer_text.height = 0
     end
   else
-    self.view.footer_visible = self.view.footer_visible or false
+    self.ui.view.footer_visible = self.ui.view.footer_visible or false
     self:_applyFooterMode()
   end
 
@@ -1073,7 +1073,7 @@ function ReaderFooter:addToMainMenu(menu_items)
     table.insert(sub_items, {
       text = gettext("Toggle mode"),
       enabled_func = function()
-        return not self.view.flipping_visible
+        return not self.ui.view.flipping_visible
       end,
       callback = function()
         self:onToggleFooterMode()
@@ -1179,7 +1179,7 @@ function ReaderFooter:addToMainMenu(menu_items)
             self:setTocMarkers()
           end
           -- If the status bar is currently disabled, switch to an innocuous mode to display it
-          if not self.view.footer_visible then
+          if not self.ui.view.footer_visible then
             self.mode = self.mode_list.page_progress
             self:_applyFooterMode()
             G_reader_settings:save("reader_footer_mode", self.mode)
@@ -2135,7 +2135,7 @@ function ReaderFooter:setTocMarkers(reset)
       if self.ui.toc then
         self.progress_bar.ticks = self.ui.toc:getTocTicksFlattened()
       end
-      if self.view.view_mode == "page" then
+      if self.ui.view.view_mode == "page" then
         self.progress_bar.last = self.pages or self.ui.document:getPageCount()
       else
         -- in scroll mode, convert pages to positions
@@ -2202,8 +2202,8 @@ function ReaderFooter:_repaint()
     -- If the footer is invisible or might be hidden behind another widget, we
     -- need to repaint the full ReaderUI stack, but only when the visibility
     -- changed.
-    self.view.dialog:scheduleRepaint()
-  elseif self.view.footer_visible then
+    self.ui.view.dialog:scheduleRepaint()
+  elseif self.ui.view.footer_visible then
     -- Or if footer is visible, repaint itself.
     self.footer_content:scheduleRepaint()
   end
@@ -2212,7 +2212,7 @@ end
 -- Use of this event should be very cautious, ReaderFooter should listen to
 -- other events and call this function itself.
 function ReaderFooter:onUpdateFooter()
-  if not self.view.footer_visible then
+  if not self.ui.view.footer_visible then
     self:_repaint()
     return
   end
@@ -2287,7 +2287,7 @@ function ReaderFooter:_updateFooterText() end
 -- only call this function after document is fully loaded
 function ReaderFooter:__updateFooterText()
   -- footer is invisible, we need neither a repaint nor a recompute, go away.
-  if not self.view.footer_visible then
+  if not self.ui.view.footer_visible then
     return
   end
 
@@ -2445,10 +2445,10 @@ function ReaderFooter:onReaderReady()
 end
 
 function ReaderFooter:_applyFooterMode()
-  local prev_visible_state = self.view.footer_visible
+  local prev_visible_state = self.ui.view.footer_visible
   assert(prev_visible_state ~= nil)
-  self.view.footer_visible = (self.mode ~= self.mode_list.off)
-  if self.view.footer_visible ~= prev_visible_state then
+  self.ui.view.footer_visible = (self.mode ~= self.mode_list.off)
+  if self.ui.view.footer_visible ~= prev_visible_state then
     -- It's allowed setting visibility_change to true multiple times without a
     -- __updateFooterText() call.
     -- Flag __updateFooterText to notify ReaderView to recalculate the visible_area!
@@ -2458,7 +2458,7 @@ function ReaderFooter:_applyFooterMode()
   -- NOTE: __updateFooterText won't actually run the text generator(s) when hidden ;).
 
   -- We're hidden, disable text generation entirely
-  if not self.view.footer_visible then
+  if not self.ui.view.footer_visible then
     self.genFooterText = footerTextGeneratorMap.empty
   else
     if self.settings.all_at_once then
@@ -2495,7 +2495,7 @@ function ReaderFooter:onExitFlippingMode()
 end
 
 function ReaderFooter:TapFooter(ges)
-  if self.view.flipping_visible and ges then
+  if self.ui.view.flipping_visible and ges then
     local pos = ges.pos
     local dimen = self.progress_bar.dimen
     -- if reader footer is not drawn before the dimen value should be nil
@@ -2589,7 +2589,7 @@ function ReaderFooter:onHoldFooter(ges)
   if not self.settings.skim_widget_on_hold then
     return
   end
-  if not self.view.footer_visible then
+  if not self.ui.view.footer_visible then
     return
   end
   if
@@ -2619,7 +2619,7 @@ function ReaderFooter:refreshFooter()
     )
   else
     -- No fancy chain of events outside of CRe, just ask for a ReaderUI repaint ourselves ;).
-    UIManager:setDirty(self.view.dialog, "partial")
+    UIManager:setDirty(self.ui.view.dialog, "partial")
   end
 end
 

@@ -95,9 +95,9 @@ function ReaderScrolling:addToMainMenu(menu_items)
     text = gettext("Scrolling"),
     enabled_func = function()
       -- Make it only enabled when in continuous/scroll mode
-      -- (different setting in self.view whether rolling or paging document)
+      -- (different setting in self.ui.view whether rolling or paging document)
       if
-        self.view and (self.view.page_scroll or self.view.view_mode == "scroll")
+        self.ui.view and (self.ui.view.page_scroll or self.ui.view.view_mode == "scroll")
       then
         return true
       end

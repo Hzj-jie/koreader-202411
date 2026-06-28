@@ -23,7 +23,7 @@ function ReaderCoptListener:onReadSettings(_config)
   -- scroll mode).
   self.document:setViewMode(view_mode_name)
   -- ReaderView is the holder of the view_mode state
-  self.view.view_mode = view_mode_name
+  self.ui.view.view_mode = view_mode_name
 
   self.title = G_reader_settings:read("cre_header_title") or 1
   self.author = G_reader_settings:read("cre_header_author") or 1
@@ -79,7 +79,7 @@ function ReaderCoptListener:_headerRefresh()
   -- Only draw it if the header is shown...
   if
     self.document.configurable.status_line == 0
-    and self.view.view_mode == "page"
+    and self.ui.view.view_mode == "page"
   then
     -- ...and something has changed
     local new_battery_level = self.ui.rolling:updateBatteryState()
@@ -110,7 +110,7 @@ function ReaderCoptListener:updatePageInfoOverride(pageno)
 
   if
     self.document.configurable.status_line ~= 0
-    or self.view.view_mode ~= "page"
+    or self.ui.view.view_mode ~= "page"
     or not self:page_info_override()
     or not next(self.additional_header_content)
   then
@@ -272,7 +272,7 @@ function ReaderCoptListener:_updateHeader()
   self.document:resetBufferCache() -- be sure next repaint is a redrawing
   -- Force a refresh if we're not hidden behind another widget
   UIManager:setDirty(
-    self.view.dialog,
+    self.ui.view.dialog,
     "ui",
     Geom:new({
       x = 0,
