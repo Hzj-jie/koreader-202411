@@ -279,7 +279,30 @@ describe("MenuSorter module", function()
         assert.has_no.errors(function()
             test_menu = MenuSorter:_sort(menu_items, order)
         end)
-        assert.equals(0, #test_menu)
+    end)
+
+    it("should remove empty submenus automatically", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            setting = {text="Settings"},
+            empty_submenu = {text="Empty Submenu"},
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = {
+                "setting",
+            },
+            setting = {
+                "empty_submenu",
+            },
+            empty_submenu = {},
+        }
+
+        local test_menu = MenuSorter:_sort(menu_items, order)
+
+        -- empty_submenu is in setting, but it has no children, so it should be removed from setting!
+        assert.equals(1, #test_menu) -- just setting itself
+        assert.equals("setting", test_menu[1].id)
+        assert.is_nil(test_menu[1][1]) -- no children in setting because empty_submenu was removed!
     end)
 
     describe("_readMSSettings", function()
