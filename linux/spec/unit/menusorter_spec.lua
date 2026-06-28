@@ -471,6 +471,54 @@ describe("MenuSorter module", function()
             assert.equals(2, #test_menu)
         end)
 
+        it("should successfully load redirected user overrides", function()
+            local DataStorage = require("datastorage")
+            local settings_dir = DataStorage:getSettingsDir()
+
+            -- Create shared config file
+            local f_shared = io.open(settings_dir .. "/shared_menu_order.lua", "w")
+            assert.is_truthy(f_shared)
+            f_shared:write([[
+                return {
+                    ["KOMenu:menu_buttons"] = { "search" },
+                    ["KOMenu:disabled"] = { "main", "setting", "tools" },
+                }
+            ]])
+            f_shared:close()
+
+            -- Create redirect config file
+            local f_redirect = io.open(settings_dir .. "/test_menu_order.lua", "w")
+            assert.is_truthy(f_redirect)
+            f_redirect:write([[
+                local util = require("util")
+                return dofile(util.getSourceDir() .. "/shared_menu_order.lua")
+            ]])
+            f_redirect:close()
+
+            local menu_items = {
+                ["KOMenu:menu_buttons"] = {},
+                main = { text = "Main" },
+                search = { text = "Search" },
+                tools = { text = "Tools" },
+                setting = { text = "Settings" },
+            }
+
+            local default_order = {
+                ["KOMenu:menu_buttons"] = { "setting", "tools", "search", "main" },
+                setting = {},
+                tools = {},
+                search = {},
+                main = {},
+            }
+
+            local test_menu = MenuSorter:mergeAndSort("test", menu_items, default_order)
+
+            assert.equals(1, #test_menu)
+            assert.equals("search", test_menu[1].id)
+
+            os.remove(settings_dir .. "/shared_menu_order.lua")
+        end)
+
         it("should crash if user order file has syntax error", function()
             local f = io.open(test_file_path, "w")
             assert.is_truthy(f)
