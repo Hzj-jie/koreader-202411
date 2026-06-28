@@ -219,7 +219,17 @@ function InputContainer:onGesture(ev)
       end
     end
   end
-  return self:isShownModal()
+  if self:isShownModal() then
+    return true
+  end
+  -- Block unhandled gesture events inside the visible bounds of any active
+  -- window-level widget to prevent them from leaking to elements underneath.
+  if require("ui/uimanager"):isWindowWidget(self) then
+    if ev.pos and ev.pos:intersectWith(self:getSize()) then
+      return true
+    end
+  end
+  return false
 end
 
 -- Will be overloaded by the Gestures plugin, if enabled, for use in _onGestureFiltered
