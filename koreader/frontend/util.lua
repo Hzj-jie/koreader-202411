@@ -25,6 +25,12 @@ function util.isTesting()
     or _G.describe ~= nil
 end
 
+function util.getSourceDir()
+  local source = debug.getinfo(2, "S").source
+  return assert(source:match("^@(.+)/[^/]+$"))
+end
+
+
 if util.isTesting() then
   --- Clear all the elements from an array without reassignment.
   --- @table t the array to be cleared

@@ -102,18 +102,10 @@ describe("MenuSorter module", function()
         local result_menu = {
             [1] = {
                 [1] = {
-                    ["id"] = "tools",
-                    ["sub_item_table"] = {
-                        [1] = {
-                            ["sorting_hint"] = "tools",
-                            ["new"] = true,
-                            ["id"] = "search",
-                            ["text"] = "Search"
-                        },
-                        ["text"] = "Tools",
-                        ["id"] = "tools"
-                    },
-                    ["text"] = "Tools"
+                    ["id"] = "search",
+                    ["new"] = true,
+                    ["sorting_hint"] = "tools",
+                    ["text"] = "Tools - Search"
                 },
                 [2] = {
                     ["id"] = "submenu",
@@ -302,7 +294,62 @@ describe("MenuSorter module", function()
         -- empty_submenu is in setting, but it has no children, so it should be removed from setting!
         assert.equals(1, #test_menu) -- just setting itself
         assert.equals("setting", test_menu[1].id)
-        assert.is_nil(test_menu[1][1]) -- no children in setting because empty_submenu was removed!
+    end)
+
+    it("should merge single-item submenus into parent with merged text", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            tools = {text="Tools"},
+            games = {text="Games"},
+            sudoku = {text="Sudoku", callback="sudoku_callback"},
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = {
+                "tools",
+            },
+            tools = {
+                "games",
+            },
+            games = {
+                "sudoku",
+            },
+        }
+
+        local test_menu = MenuSorter:_sort(menu_items, order)
+
+        -- games submenu has only 1 item (sudoku).
+        -- It should be merged/flattened into tools directly, with text "Games - Sudoku"!
+        assert.equals(1, #test_menu) -- tools
+        assert.equals("tools", test_menu[1].id)
+        assert.equals(1, #test_menu[1]) -- 1 item in tools
+        assert.equals("sudoku", test_menu[1][1].id) -- the item is sudoku
+        assert.equals("Games - Sudoku", test_menu[1][1].text) -- text merged!
+        assert.equals("sudoku_callback", test_menu[1][1].callback) -- callback preserved!
+        assert.is_nil(test_menu[1][1].sub_item_table) -- no longer a submenu!
+    end)
+
+    it("should error if single-item submenu child has radio = true", function()
+        local menu_items = {
+            ["KOMenu:menu_buttons"] = {},
+            tools = {text="Tools"},
+            games = {text="Games"},
+            sudoku = {text="Sudoku", radio=true, callback="sudoku_callback"},
+        }
+        local order = {
+            ["KOMenu:menu_buttons"] = {
+                "tools",
+            },
+            tools = {
+                "games",
+            },
+            games = {
+                "sudoku",
+            },
+        }
+
+        assert.has_error(function()
+            MenuSorter:_sort(menu_items, order)
+        end)
     end)
 
     describe("_readMSSettings", function()
@@ -422,6 +469,54 @@ describe("MenuSorter module", function()
             assert.equals("tools", test_menu[2].id)
             -- main and setting should be disabled, so not in the menu (only search and tools should be present)
             assert.equals(2, #test_menu)
+        end)
+
+        it("should successfully load redirected user overrides", function()
+            local DataStorage = require("datastorage")
+            local settings_dir = DataStorage:getSettingsDir()
+
+            -- Create shared config file
+            local f_shared = io.open(settings_dir .. "/shared_menu_order.lua", "w")
+            assert.is_truthy(f_shared)
+            f_shared:write([[
+                return {
+                    ["KOMenu:menu_buttons"] = { "search" },
+                    ["KOMenu:disabled"] = { "main", "setting", "tools" },
+                }
+            ]])
+            f_shared:close()
+
+            -- Create redirect config file
+            local f_redirect = io.open(settings_dir .. "/test_menu_order.lua", "w")
+            assert.is_truthy(f_redirect)
+            f_redirect:write([[
+                local util = require("util")
+                return dofile(util.getSourceDir() .. "/shared_menu_order.lua")
+            ]])
+            f_redirect:close()
+
+            local menu_items = {
+                ["KOMenu:menu_buttons"] = {},
+                main = { text = "Main" },
+                search = { text = "Search" },
+                tools = { text = "Tools" },
+                setting = { text = "Settings" },
+            }
+
+            local default_order = {
+                ["KOMenu:menu_buttons"] = { "setting", "tools", "search", "main" },
+                setting = {},
+                tools = {},
+                search = {},
+                main = {},
+            }
+
+            local test_menu = MenuSorter:mergeAndSort("test", menu_items, default_order)
+
+            assert.equals(1, #test_menu)
+            assert.equals("search", test_menu[1].id)
+
+            os.remove(settings_dir .. "/shared_menu_order.lua")
         end)
 
         it("should crash if user order file has syntax error", function()

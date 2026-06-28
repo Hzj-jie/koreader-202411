@@ -211,6 +211,8 @@ function MenuSorter:_sort(item_table, order)
     end
   end
 
+  self:_flattenSingleItemSubmenus(menu_table["KOMenu:menu_buttons"])
+
   return menu_table["KOMenu:menu_buttons"]
 end
 
@@ -272,6 +274,42 @@ function MenuSorter:removeMenuButton(tbl, needle_id)
       end
     end
     k, v = next(items, k)
+  end
+end
+
+function MenuSorter:_flattenSingleItemSubmenus(item)
+  if not item or type(item) ~= "table" then return end
+
+  local children = item.sub_item_table
+  if not children and type(item) == "table" and #item > 0 then
+    children = item
+  end
+  if children then
+    -- First, process all children recursively
+    for idx = 1, #children do
+      self:_flattenSingleItemSubmenus(children[idx])
+    end
+
+    -- Now check if any child is a submenu with exactly 1 item
+    local idx = 1
+    while idx <= #children do
+      local submenu = children[idx]
+      if type(submenu) == "table" and submenu.sub_item_table and #submenu.sub_item_table == 1 then
+        local only_item = submenu.sub_item_table[1]
+
+        -- Merge texts
+        local submenu_text = submenu.text or ""
+        local item_text = only_item.text or ""
+
+        assert(not only_item.radio, "Cannot merge single-item submenu containing a radio button")
+        local flat_item = util.tableDeepCopy(only_item)
+        flat_item.text = submenu_text .. " - " .. item_text
+
+        -- Replace the submenu with the merged flat item
+        children[idx] = flat_item
+      end
+      idx = idx + 1
+    end
   end
 end
 
