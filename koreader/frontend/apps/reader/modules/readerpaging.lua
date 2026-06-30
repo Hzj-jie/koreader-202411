@@ -565,11 +565,7 @@ function ReaderPaging:onPanRelease(_, ges)
         (ges and ges.from_mousewheel)
         or not self.ui.scrolling:startInertialScroll()
       then
-<<<<<<< HEAD
-        UIManager:setDirty(self.ui.view.dialog, "partial")
-=======
         UIManager:setDirty(self.ui.dialog, "partial")
->>>>>>> 9c3562a9 (fix: resolve unit test failures on readerdevicestatus, readerfooter, and terminal)
       end
     end
   end
