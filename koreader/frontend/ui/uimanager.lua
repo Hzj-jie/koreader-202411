@@ -784,6 +784,10 @@ end
 --- Signals to quit.
 -- An exit_code of false is not allowed.
 function UIManager:quit(exit_code, implicit)
+  if util.isMonkeyTest() then
+    logger.info("Ignoring quit event during monkey test mode.")
+    return true
+  end
   if exit_code == false then
     logger.err("UIManager:quit() called with false")
     return
