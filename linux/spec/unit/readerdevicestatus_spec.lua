@@ -143,6 +143,9 @@ describe("ReaderDeviceStatus", function()
       getScheduledFuncs = function()
         return scheduled_funcs
       end,
+      isWindowWidget = function()
+        return true
+      end,
     }
     package.loaded["ui/uimanager"] = UIManager
 
