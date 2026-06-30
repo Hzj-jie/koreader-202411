@@ -201,7 +201,7 @@ end
 
 function ReaderPaging:onColorRenderingUpdate()
   self.ui.document:updateColorRendering()
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 --[[
@@ -247,7 +247,7 @@ function ReaderPaging:onTogglePageFlipping()
   end
   UIManager:broadcastEvent(Event:new("SetHinting", not self.page_flipping_mode))
   UIManager:broadcastEvent(Event:new("ReZoom"))
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 function ReaderPaging:onToggleBookmarkFlipping()
@@ -267,7 +267,7 @@ function ReaderPaging:onToggleBookmarkFlipping()
     Event:new("SetHinting", not self.bookmark_flipping_mode)
   )
   UIManager:broadcastEvent(Event:new("ReZoom"))
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 function ReaderPaging:enterFlippingMode()
@@ -320,7 +320,7 @@ function ReaderPaging:pageFlipping(flipping_page, flipping_ges)
   elseif direction == "north" then
     self:_gotoPage(flipping_page + math.floor(whole * abs_proportion))
   end
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 function ReaderPaging:bookmarkFlipping(flipping_page, flipping_ges)
@@ -330,7 +330,7 @@ function ReaderPaging:bookmarkFlipping(flipping_page, flipping_ges)
   elseif direction == "west" then
     UIManager:broadcastEvent(Event:new("GotoNextBookmark", flipping_page))
   end
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 function ReaderPaging:enterSkimMode()
@@ -389,7 +389,7 @@ function ReaderPaging:onScrollSettingsUpdated(
         )
       end,
       function() -- scroll_done_callback
-        UIManager:setDirty(self.view.dialog, "partial")
+        UIManager:setDirty(self.ui.dialog, "partial")
       end
     )
   else
@@ -565,7 +565,7 @@ function ReaderPaging:onPanRelease(_, ges)
         (ges and ges.from_mousewheel)
         or not self.ui.scrolling:startInertialScroll()
       then
-        UIManager:setDirty(self.view.dialog, "partial")
+        UIManager:setDirty(self.ui.dialog, "partial")
       end
     end
   end
@@ -582,7 +582,7 @@ function ReaderPaging:onHandledAsSwipe()
         self.view.page_states[#self.view.page_states].page,
         "scrolling"
       )
-      UIManager:setDirty(self.view.dialog, "ui")
+      UIManager:setDirty(self.ui.dialog, "ui")
     end
     self._pan_page_states_to_restore = nil
     self._pan_started = false
@@ -693,7 +693,7 @@ function ReaderPaging:onRestoreBookLocation(saved_location)
   self:setPagePosition(self:getTopPage(), self:getTopPosition())
   -- In some cases (same page, different offset), doing the above
   -- might not redraw the screen. Ensure it is.
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
   return true
 end
 
@@ -970,7 +970,7 @@ function ReaderPaging:onScrollPanRel(diff)
     self.view.page_states[#self.view.page_states].page,
     "scrolling"
   )
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
   return true
 end
 
@@ -1023,7 +1023,7 @@ function ReaderPaging:onScrollPageRel(page_diff)
     self.view.page_states[#self.view.page_states].page,
     "scrolling"
   )
-  UIManager:setDirty(self.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
   return true
 end
 

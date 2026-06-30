@@ -784,6 +784,7 @@ end
 
 local VirtualKeyboard = FocusManager:extend({
   name = "VirtualKeyboard",
+  modal = false,
   visible = nil,
   lock_visibility = false,
   covers_footer = true,

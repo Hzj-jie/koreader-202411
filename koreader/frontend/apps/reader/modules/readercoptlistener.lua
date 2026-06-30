@@ -272,7 +272,7 @@ function ReaderCoptListener:_updateHeader()
   self.document:resetBufferCache() -- be sure next repaint is a redrawing
   -- Force a refresh if we're not hidden behind another widget
   UIManager:setDirty(
-    self.view.dialog,
+    self.ui.dialog,
     "ui",
     Geom:new({
       x = 0,
