@@ -118,7 +118,7 @@ function MoveToArchive:onMoveToArchive(do_copy)
   if do_copy then
     text =
       gettext("Book copied.\nDo you want to open it from the archive folder?")
-    FileManager:copyFileFromTo(document_full_path, self.archive_dir_path)
+    FileManager:copyFile(document_full_path, self.archive_dir_path)
   else
     text =
       gettext("Book moved.\nDo you want to open it from the archive folder?")
