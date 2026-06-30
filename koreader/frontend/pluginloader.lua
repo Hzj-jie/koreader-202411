@@ -19,21 +19,22 @@ local INVISIBLE_PLUGINS = {
   backgroundrunner = true,
 }
 
+local DEFAULT_DISABLED_PLUGINS = {
+  AnnotationSync = true,
+  checkers = true,
+  game2048 = true,
+  nonogram = true,
+  slidepuzzle = true,
+  sokoban = true,
+  solitaire = true,
+  sudoku = true,
+}
+
 local PluginLoader = {
   show_info = true,
   enabled_plugins = nil,
   disabled_plugins = nil,
   all_plugins = nil,
-  DEFAULT_DISABLED_PLUGINS = {
-    AnnotationSync = true,
-    checkers = true,
-    game2048 = true,
-    nonogram = true,
-    slidepuzzle = true,
-    sokoban = true,
-    solitaire = true,
-    sudoku = true,
-  },
 }
 
 function PluginLoader:loadPlugins()
@@ -78,25 +79,24 @@ function PluginLoader:loadPlugins()
     logger.info("Loading plugins from directory:", lookup_path)
     for entry in lfs.dir(lookup_path) do
       local plugin_root = lookup_path .. "/" .. entry
-      local mode = lfs.attributes(plugin_root, "mode")
-      local plugin_name = entry:sub(1, -10)
+      local plugin_code_name = entry:sub(1, -10)
       -- valid koreader plugin directory
       if
-        mode == "directory"
+        lfs.attributes(plugin_root, "mode") == "directory"
         and entry:find(".+%.koplugin$")
-        and not OBSOLETE_PLUGINS[plugin_name]
+        and not OBSOLETE_PLUGINS[plugin_code_name]
       then
         local mainfile = plugin_root .. "/main.lua"
         local metafile = plugin_root .. "/_meta.lua"
-        local main_exists = lfs.attributes(mainfile, "mode") == "file"
-        local meta_exists = lfs.attributes(metafile, "mode") == "file"
-        if plugins_disabled[plugin_name] == nil then
-          if self.DEFAULT_DISABLED_PLUGINS[plugin_name] then
-            plugins_disabled[plugin_name] = true
+        if plugins_disabled[plugin_code_name] == nil then
+          if DEFAULT_DISABLED_PLUGINS[plugin_code_name] then
+            plugins_disabled[plugin_code_name] = true
           end
         end
-        if meta_exists and (plugins_disabled[plugin_name] or main_exists) then
-          if plugins_disabled[plugin_name] then
+        if lfs.attributes(metafile, "mode") == "file"
+          and (plugins_disabled[plugin_code_name] or lfs.attributes(mainfile, "mode") == "file")
+        then
+          if plugins_disabled[plugin_code_name] then
             mainfile = metafile
           end
 
@@ -108,9 +108,11 @@ function PluginLoader:loadPlugins()
           )
           if not plugin_module.disabled then
             plugin_module.path = plugin_root
-            plugin_module.name = plugin_module.name
-              or plugin_root:match("/(.-)%.koplugin")
-            if plugins_disabled[plugin_name] then
+            -- code_name: unique identifier matching the folder name (used for settings storage keys)
+            -- name: internally-used Lua class/module name of the plugin instance
+            plugin_module.code_name = plugin_code_name
+            plugin_module.name = plugin_module.name or plugin_code_name
+            if plugins_disabled[plugin_code_name] then
               table.insert(self.disabled_plugins, plugin_module)
             else
               local plugin_metamodule = dofile(metafile)
@@ -148,6 +150,7 @@ function PluginLoader:_addPluginsToMenu(plugins, enable)
       fullname = plugin.fullname or plugin.name,
       description = plugin.description,
       enable = enable,
+      code_name = plugin.code_name,
     })
   end
 end
@@ -178,10 +181,19 @@ function PluginLoader:genPluginManagerSubItem()
           local plugins_disabled =
             G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
+          local is_default_disabled = DEFAULT_DISABLED_PLUGINS[plugin.code_name]
           if plugin.enable then
-            plugins_disabled[plugin.name] = false
+            if is_default_disabled then
+              plugins_disabled[plugin.code_name] = false
+            else
+              plugins_disabled[plugin.code_name] = nil
+            end
           else
-            plugins_disabled[plugin.name] = true
+            if is_default_disabled then
+              plugins_disabled[plugin.code_name] = nil
+            else
+              plugins_disabled[plugin.code_name] = true
+            end
           end
           if self.show_info then
             self.show_info = false
