@@ -43,7 +43,7 @@ describe("Games submenu integration", function()
         menu.registered_widgets = {}
         local mock_calculator = {
             addToMainMenu = function(self, menu_items)
-                menu_items.calculator = { text = "Calculator" }
+                menu_items.calculator = { text = "Calculator", sorting_hint = "tools" }
             end
         }
         table.insert(menu.registered_widgets, mock_calculator)
@@ -74,10 +74,16 @@ describe("Games submenu integration", function()
         menu.registered_widgets = {}
         local mock_solitaire = {
             addToMainMenu = function(self, menu_items)
-                menu_items.solitaire = { text = "Solitaire" }
+                menu_items.solitaire = { text = "Solitaire", sorting_hint = "games" }
+            end
+        }
+        local mock_sudoku = {
+            addToMainMenu = function(self, menu_items)
+                menu_items.sudoku = { text = "Sudoku", sorting_hint = "games" }
             end
         }
         table.insert(menu.registered_widgets, mock_solitaire)
+        table.insert(menu.registered_widgets, mock_sudoku)
 
         menu:setUpdateItemTable()
 

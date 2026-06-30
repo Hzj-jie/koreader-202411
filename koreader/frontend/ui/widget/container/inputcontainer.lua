@@ -225,7 +225,8 @@ function InputContainer:onGesture(ev)
   -- Block unhandled gesture events inside the visible bounds of any active
   -- window-level widget to prevent them from leaking to elements underneath.
   if require("ui/uimanager"):isWindowWidget(self) then
-    if ev.pos and ev.pos:intersectWith(self:getSize()) then
+    local size = self.visibleSize and self:visibleSize() or self:getSize()
+    if ev.pos and ev.pos:intersectWith(size) then
       return true
     end
   end
