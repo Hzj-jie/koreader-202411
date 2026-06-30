@@ -210,7 +210,7 @@ function FileManager:setupLayout()
           enabled = is_not_parent_folder,
           callback = function()
             UIManager:close(self.file_dialog)
-            file_manager:copyFile(file)
+            file_manager:copyFileNameToClipboard(file)
           end,
         },
         {
@@ -938,7 +938,7 @@ function FileManager:openRandomFile(dir)
   end
 end
 
-function FileManager:copyFile(file)
+function FileManager:copyFileNameToClipboard(file)
   self.cutfile = false
   self.clipboard = file
 end
@@ -1416,7 +1416,7 @@ end
 
 --- A shortcut to execute cp.
 -- @treturn boolean result of cp command
-function FileManager:copyFileFromTo(from, to)
+function FileManager:copyFile(from, to)
   if util.isMonkeyTest() then
     logger.info(
       "File copy operation is ignored in monkey test mode: from="
