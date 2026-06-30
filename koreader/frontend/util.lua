@@ -25,10 +25,13 @@ function util.isTesting()
     or _G.describe ~= nil
 end
 
+function util.isMonkeyTest()
+  return os.getenv("KO_MONKEY_TEST") ~= nil
+end
+
 function util.getSourceDir()
   return assert(debug.getinfo(2, "S").source:match("^@(.+)/[^/]+$"))
 end
-
 
 if util.isTesting() then
   --- Clear all the elements from an array without reassignment.
@@ -1198,6 +1201,27 @@ function util.readFromFile(filepath, mode)
 end
 
 function util.writeToFile(data, filepath, lua_dofile_ready)
+  -- Under monkey test mode, block all writes to files EXCEPT:
+  -- 1. quickstart: generated on first boot; preventing it shows a retry dialog that blocks the monkey.
+  -- 2. httpinspector.port: allows the monkey test runner script to connect to the emulator.
+  -- 3. cache/ and /tmp/: temporary runtime caches/logs that don't pollute persistent state.
+  if
+    util.isMonkeyTest()
+    and not (
+      filepath
+      and (
+        filepath:find("quickstart")
+        or filepath:find("httpinspector%.port")
+        or filepath:find("cache/")
+        or filepath:find("/tmp/")
+      )
+    )
+  then
+    logger.dbg(
+      "Skipping file write in monkey test mode: " .. tostring(filepath)
+    )
+    return true
+  end
   if not data then
     return false, "data"
   end

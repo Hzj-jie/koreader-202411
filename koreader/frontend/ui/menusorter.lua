@@ -278,7 +278,9 @@ function MenuSorter:removeMenuButton(tbl, needle_id)
 end
 
 function MenuSorter:_flattenSingleItemSubmenus(item)
-  if not item or type(item) ~= "table" then return end
+  if not item or type(item) ~= "table" then
+    return
+  end
 
   local children = item.sub_item_table
   if not children and type(item) == "table" and #item > 0 then
@@ -294,14 +296,21 @@ function MenuSorter:_flattenSingleItemSubmenus(item)
     local idx = 1
     while idx <= #children do
       local submenu = children[idx]
-      if type(submenu) == "table" and submenu.sub_item_table and #submenu.sub_item_table == 1 then
+      if
+        type(submenu) == "table"
+        and submenu.sub_item_table
+        and #submenu.sub_item_table == 1
+      then
         local only_item = submenu.sub_item_table[1]
 
         -- Merge texts
         local submenu_text = submenu.text or ""
         local item_text = only_item.text or ""
 
-        assert(not only_item.radio, "Cannot merge single-item submenu containing a radio button")
+        assert(
+          not only_item.radio,
+          "Cannot merge single-item submenu containing a radio button"
+        )
         local flat_item = util.tableDeepCopy(only_item)
         flat_item.text = submenu_text .. " - " .. item_text
 

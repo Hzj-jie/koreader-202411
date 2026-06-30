@@ -1126,6 +1126,14 @@ function FileManager:createFolder()
               return
             end
             UIManager:close(input_dialog)
+            if util.isMonkeyTest() then
+              logger.info(
+                "Folder creation is ignored in monkey test mode: name="
+                  .. tostring(new_folder_name)
+              )
+              self.file_chooser:refreshPath()
+              return
+            end
             local new_folder =
               string.format("%s/%s", self.file_chooser.path, new_folder_name)
             if util.makePath(new_folder) then
@@ -1197,6 +1205,15 @@ function FileManager:showDeleteFileDialog(
 end
 
 function FileManager:deleteFile(file, is_file)
+  if util.isMonkeyTest() then
+    logger.info(
+      "File deletion is ignored in monkey test mode: file="
+        .. tostring(file)
+        .. ", is_file="
+        .. tostring(is_file)
+    )
+    return true
+  end
   if is_file then
     local ok = os.remove(file)
     if ok then
@@ -1220,6 +1237,13 @@ function FileManager:deleteFile(file, is_file)
 end
 
 function FileManager:deleteSelectedFiles()
+  if util.isMonkeyTest() then
+    logger.info(
+      "Selected files deletion is ignored in monkey test mode: selected_files="
+        .. require("dump")(self.selected_files)
+    )
+    return
+  end
   if not self.selected_files then
     return
   end
@@ -1378,18 +1402,45 @@ end
 --- A shortcut to execute mv.
 -- @treturn boolean result of mv command
 function FileManager:moveFile(from, to)
+  if util.isMonkeyTest() then
+    logger.info(
+      "File move operation is ignored in monkey test mode: from="
+        .. tostring(from)
+        .. ", to="
+        .. tostring(to)
+    )
+    return true
+  end
   return ffiUtil.execute(self.mv_bin, from, to) == 0
 end
 
 --- A shortcut to execute cp.
 -- @treturn boolean result of cp command
 function FileManager:copyFileFromTo(from, to)
+  if util.isMonkeyTest() then
+    logger.info(
+      "File copy operation is ignored in monkey test mode: from="
+        .. tostring(from)
+        .. ", to="
+        .. tostring(to)
+    )
+    return true
+  end
   return ffiUtil.execute(self.cp_bin, from, to) == 0
 end
 
 --- A shortcut to execute cp recursively.
 -- @treturn boolean result of cp command
 function FileManager:copyRecursive(from, to)
+  if util.isMonkeyTest() then
+    logger.info(
+      "Recursive file copy operation is ignored in monkey test mode: from="
+        .. tostring(from)
+        .. ", to="
+        .. tostring(to)
+    )
+    return true
+  end
   return ffiUtil.execute(self.cp_bin, "-r", from, to) == 0
 end
 

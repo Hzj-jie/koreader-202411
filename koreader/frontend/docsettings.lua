@@ -560,6 +560,10 @@ function DocSettings:getCustomCoverFile(reset_cache)
 end
 
 function DocSettings:flushCustomCover(doc_path, image_file)
+  if util.isMonkeyTest() then
+    logger.dbg("Skipping custom cover flush in monkey test mode.")
+    return
+  end
   local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
   local new_cover_filename = "/cover."
     .. util.getFileNameSuffix(image_file):lower()
