@@ -1127,7 +1127,7 @@ function FileManager:createFolder()
             end
             UIManager:close(input_dialog)
             if util.isMonkeyTest() then
-              logger.info(
+              logger.warn(
                 "Folder creation is ignored in monkey test mode: name="
                   .. tostring(new_folder_name)
               )
@@ -1206,7 +1206,7 @@ end
 
 function FileManager:deleteFile(file, is_file)
   if util.isMonkeyTest() then
-    logger.info(
+    logger.warn(
       "File deletion is ignored in monkey test mode: file="
         .. tostring(file)
         .. ", is_file="
@@ -1238,7 +1238,7 @@ end
 
 function FileManager:deleteSelectedFiles()
   if util.isMonkeyTest() then
-    logger.info(
+    logger.warn(
       "Selected files deletion is ignored in monkey test mode: selected_files="
         .. require("dump")(self.selected_files)
     )
@@ -1403,7 +1403,7 @@ end
 -- @treturn boolean result of mv command
 function FileManager:moveFile(from, to)
   if util.isMonkeyTest() then
-    logger.info(
+    logger.warn(
       "File move operation is ignored in monkey test mode: from="
         .. tostring(from)
         .. ", to="
@@ -1418,7 +1418,7 @@ end
 -- @treturn boolean result of cp command
 function FileManager:copyFile(from, to)
   if util.isMonkeyTest() then
-    logger.info(
+    logger.warn(
       "File copy operation is ignored in monkey test mode: from="
         .. tostring(from)
         .. ", to="
@@ -1433,7 +1433,7 @@ end
 -- @treturn boolean result of cp command
 function FileManager:copyRecursive(from, to)
   if util.isMonkeyTest() then
-    logger.info(
+    logger.warn(
       "Recursive file copy operation is ignored in monkey test mode: from="
         .. tostring(from)
         .. ", to="

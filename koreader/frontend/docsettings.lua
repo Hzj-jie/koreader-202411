@@ -561,7 +561,7 @@ end
 
 function DocSettings:flushCustomCover(doc_path, image_file)
   if util.isMonkeyTest() then
-    logger.dbg("Skipping custom cover flush in monkey test mode.")
+    logger.warn("Skipping custom cover flush in monkey test mode.")
     return
   end
   local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
