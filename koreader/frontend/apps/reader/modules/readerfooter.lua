@@ -2202,7 +2202,7 @@ function ReaderFooter:_repaint()
     -- If the footer is invisible or might be hidden behind another widget, we
     -- need to repaint the full ReaderUI stack, but only when the visibility
     -- changed.
-    self.ui.view.dialog:scheduleRepaint()
+    self.ui.dialog:scheduleRepaint()
   elseif self.ui.view.footer_visible then
     -- Or if footer is visible, repaint itself.
     self.footer_content:scheduleRepaint()
@@ -2619,7 +2619,7 @@ function ReaderFooter:refreshFooter()
     )
   else
     -- No fancy chain of events outside of CRe, just ask for a ReaderUI repaint ourselves ;).
-    UIManager:setDirty(self.ui.view.dialog, "partial")
+    UIManager:setDirty(self.ui.dialog, "partial")
   end
 end
 

@@ -616,7 +616,7 @@ function ReaderRolling:onScrollSettingsUpdated(
         if self.ui.document then
           self.xpointer = self.ui.document:getXPointer()
         end
-        UIManager:setDirty(self.ui.view.dialog, "partial")
+        UIManager:setDirty(self.ui.dialog, "partial")
       end
     )
   else
@@ -768,7 +768,7 @@ function ReaderRolling:onPanRelease(_, ges)
       (ges and ges.from_mousewheel)
       or not self.ui.scrolling:startInertialScroll()
     then
-      UIManager:setDirty(self.ui.view.dialog, "partial")
+      UIManager:setDirty(self.ui.dialog, "partial")
     end
   end
 end
@@ -1213,7 +1213,7 @@ function ReaderRolling:updatePos(force)
     UIManager:broadcastEvent(Event:new("DocumentRerendered"))
   end
   self:onUpdateTopStatusBarMarkers()
-  UIManager:setDirty(self.ui.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
   self.current_header_height = self.ui.view.view_mode == "page"
       and self.ui.document:getHeaderHeight()
     or 0
@@ -1236,7 +1236,7 @@ function ReaderRolling:onChangeViewMode()
     end
     self:_gotoXPointer(self.xpointer)
     -- Ensure a whole screen refresh is always enqueued
-    UIManager:setDirty(self.ui.view.dialog, "partial")
+    UIManager:setDirty(self.ui.dialog, "partial")
   else
     table.insert(self.onReaderInited, function()
       self:_gotoXPointer(self.xpointer)
@@ -1280,7 +1280,7 @@ end
 
 function ReaderRolling:onColorRenderingUpdate()
   self.ui.document:updateColorRendering()
-  UIManager:setDirty(self.ui.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 --[[
@@ -1896,7 +1896,7 @@ function ReaderRolling:handleRenderingDelayed()
   self._stepRerenderingAutomation(self.RENDERING_STATE.PARTIALLY_RERENDERED)
   -- Have ReaderView draw the current page, which will provoke the partial rerendering
   -- of the DocFragement the current page is from.
-  UIManager:setDirty(self.ui.view.dialog, "partial")
+  UIManager:setDirty(self.ui.dialog, "partial")
 end
 
 function ReaderRolling:handlePartialRerendering()
@@ -2158,7 +2158,7 @@ function ReaderRolling:setupRerenderingAutomation()
       )
       -- Have ReaderView redraw and refresh ReaderFlipping and our state icon, avoiding flashes
       UIManager:setDirty(
-        self.ui.view.dialog,
+        self.ui.dialog,
         "ui",
         self.ui.view.flipping:getRefreshRegion()
       )
