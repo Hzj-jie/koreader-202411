@@ -68,9 +68,7 @@ function DoubleSpinWidget:init()
       math.min(self.screen_width, self.screen_height) * self.width_factor
     )
   end
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
   if Device:isTouchDevice() then
     self.ges_events.TapClose = {
       GestureRange:new({

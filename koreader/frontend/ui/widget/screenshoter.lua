@@ -149,17 +149,10 @@ function Screenshoter:onSwipeDiagonal()
 end
 
 function Screenshoter:registerKeyEvents()
-  if Device:hasKeyboard() then
-    self.key_events.KeyPressShoot = {
-      { "Alt", "Shift", "G" }, -- same as stock Kindle firmware
-    }
-  elseif Device:hasScreenKB() then
-    -- kindle 4 case: same as stock firmware.
-    self.key_events.KeyPressShoot = {
-      { "ScreenKB", "Menu" },
-    }
-    -- unable to add other non-touch devices as simultaneous key presses won't work without modifiers
-  end
+  self.key_events.KeyPressShoot = {
+    { "Alt", "Shift", "G" }, -- same as stock Kindle firmware
+    { "ScreenKB", "Menu" },
+  }
 end
 
 Screenshoter.onPhysicalKeyboardConnected = Screenshoter.registerKeyEvents

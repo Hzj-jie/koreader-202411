@@ -130,12 +130,10 @@ function ScrollTextWidget:init()
       }
     end
   end
-  if Device:hasKeys() then
-    self.key_events = {
-      ScrollDown = { { Input.group.PgFwd } },
-      ScrollUp = { { Input.group.PgBack } },
-    }
-  end
+  self.key_events = {
+    ScrollDown = { { Input.group.PgFwd } },
+    ScrollUp = { { Input.group.PgBack } },
+  }
 end
 
 function ScrollTextWidget:unfocus()

@@ -190,12 +190,10 @@ function FootnoteWidget:init()
       },
     }
   end
-  if Device:hasKeys() then
-    self.key_events = {
-      Close = { { Device.input.group.Back } },
-      Follow = { { "Press" } },
-    }
-  end
+  self.key_events = {
+    Close = { { Device.input.group.Back } },
+    Follow = { { "Press" } },
+  }
 
   -- Workaround bugs in MuPDF:
   -- There is something with its handling of <BR>:

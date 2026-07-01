@@ -95,9 +95,7 @@ function ButtonDialog:init()
     )
   end
   if self.dismissable then
-    if Device:hasKeys() then
-      self.key_events.Exit = { { Device.input.group.Dismiss } }
-    end
+    self.key_events.Exit = { { Device.input.group.Dismiss } }
     if Device:isTouchDevice() then
       self.ges_events.TapClose = {
         GestureRange:new({

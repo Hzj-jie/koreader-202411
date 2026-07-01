@@ -29,9 +29,7 @@ function SkimToWidget:init()
   local screen_width = Screen:getWidth()
   local screen_height = Screen:getHeight()
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
   if Device:isTouchDevice() then
     self.ges_events.TapProgress = {
       GestureRange:new({
@@ -388,18 +386,16 @@ function SkimToWidget:init()
     end
     self:moveFocusTo(1, 1)
   end
-  if Device:hasKeyboard() then
-    self.key_events.QKey = { { "Q" }, event = "FirstRowKeyPress", args = 0 }
-    self.key_events.WKey = { { "W" }, event = "FirstRowKeyPress", args = 0.11 }
-    self.key_events.EKey = { { "E" }, event = "FirstRowKeyPress", args = 0.22 }
-    self.key_events.RKey = { { "R" }, event = "FirstRowKeyPress", args = 0.33 }
-    self.key_events.TKey = { { "T" }, event = "FirstRowKeyPress", args = 0.44 }
-    self.key_events.YKey = { { "Y" }, event = "FirstRowKeyPress", args = 0.55 }
-    self.key_events.UKey = { { "U" }, event = "FirstRowKeyPress", args = 0.66 }
-    self.key_events.IKey = { { "I" }, event = "FirstRowKeyPress", args = 0.77 }
-    self.key_events.OKey = { { "O" }, event = "FirstRowKeyPress", args = 0.88 }
-    self.key_events.PKey = { { "P" }, event = "FirstRowKeyPress", args = 1 }
-  end
+  self.key_events.QKey = { { "Q" }, event = "FirstRowKeyPress", args = 0 }
+  self.key_events.WKey = { { "W" }, event = "FirstRowKeyPress", args = 0.11 }
+  self.key_events.EKey = { { "E" }, event = "FirstRowKeyPress", args = 0.22 }
+  self.key_events.RKey = { { "R" }, event = "FirstRowKeyPress", args = 0.33 }
+  self.key_events.TKey = { { "T" }, event = "FirstRowKeyPress", args = 0.44 }
+  self.key_events.YKey = { { "Y" }, event = "FirstRowKeyPress", args = 0.55 }
+  self.key_events.UKey = { { "U" }, event = "FirstRowKeyPress", args = 0.66 }
+  self.key_events.IKey = { { "I" }, event = "FirstRowKeyPress", args = 0.77 }
+  self.key_events.OKey = { { "O" }, event = "FirstRowKeyPress", args = 0.88 }
+  self.key_events.PKey = { { "P" }, event = "FirstRowKeyPress", args = 1 }
 end
 
 function SkimToWidget:update()

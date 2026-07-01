@@ -112,10 +112,8 @@ function TextViewer:init(reinit)
   self._find_next_button = false
   self._old_virtual_line_num = 1
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-    self.key_events.ShowMenu = { { "Menu" } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
+  self.key_events.ShowMenu = { { "Menu" } }
 
   if Device:isTouchDevice() then
     local range = Geom:new({

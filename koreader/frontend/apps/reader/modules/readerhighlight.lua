@@ -530,7 +530,10 @@ function ReaderHighlight:addToMainMenu(menu_items)
       self:showHighlightColorDialog(apply_color)
     end,
     hold_callback = function(menu) -- set color for new highlights in new books
-      G_reader_settings:save("highlight_color", self.ui.view.highlight.saved_color)
+      G_reader_settings:save(
+        "highlight_color",
+        self.ui.view.highlight.saved_color
+      )
       menu:updateItems()
     end,
   })
@@ -1215,7 +1218,8 @@ function ReaderHighlight:onTapXPointerSavedHighlight(ges)
   local cur_view_top = self.document:getCurrentPos()
   local cur_view_bottom
   if
-    self.ui.view.view_mode == "page" and self.document:getVisiblePageCount() > 1
+    self.ui.view.view_mode == "page"
+    and self.document:getVisiblePageCount() > 1
   then
     cur_view_bottom = cur_view_top + 2 * self.ui:getSize().h
   else
@@ -1655,8 +1659,10 @@ function ReaderHighlight:_getDialogAnchor(dialog, item)
     if text_box then
       text_box = text_box.sbox
       if text_box and self.ui.paging then
-        text_box =
-          self.ui.view:pageToScreenTransform(self.ui.paging.current_page, text_box)
+        text_box = self.ui.view:pageToScreenTransform(
+          self.ui.paging.current_page,
+          text_box
+        )
       end
     end
     if text_box == nil then
@@ -1856,7 +1862,8 @@ function ReaderHighlight:onHold(arg, ges)
     -- Do not promote refresh during the highlighting.
     UIManager:ignoreNextRefreshPromote()
     if self.ui.paging then
-      self.ui.view.highlight.temp[self.hold_pos.page] = self.selected_text.sboxes
+      self.ui.view.highlight.temp[self.hold_pos.page] =
+        self.selected_text.sboxes
       -- Unfortunately, getWordFromPosition() may not return good coordinates,
       -- so refresh the whole page
       UIManager:setDirty(self.ui, "ui")
@@ -2884,7 +2891,10 @@ function ReaderHighlight:onSaveSettings()
     "highlight_drawer",
     self.ui.view.highlight.saved_drawer
   )
-  self.ui.doc_settings:save("highlight_color", self.ui.view.highlight.saved_color)
+  self.ui.doc_settings:save(
+    "highlight_color",
+    self.ui.view.highlight.saved_color
+  )
   self.ui.doc_settings:save(
     "highlight_write_into_pdf",
     self.highlight_write_into_pdf

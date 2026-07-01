@@ -125,7 +125,14 @@ function HtmlBoxWidget:_render()
   if self.highlight_rects then
     local color = self.bb:getHighlightColor(128)
     for _, rect in ipairs(self.highlight_rects) do
-      self.bb:paintRect(rect.x0, rect.y0, rect.x1 - rect.x0, rect.y1 - rect.y0, color, self.bb.setPixelBlend)
+      self.bb:paintRect(
+        rect.x0,
+        rect.y0,
+        rect.x1 - rect.x0,
+        rect.y1 - rect.y0,
+        color,
+        self.bb.setPixelBlend
+      )
     end
   end
 end
@@ -253,7 +260,8 @@ function HtmlBoxWidget:onHoldPanText(_arg, ges)
   local lines = page:getPageText()
   page:close()
 
-  local _, rects = self:getSelectedWordsAndRects(lines, self.hold_start_pos, end_pos)
+  local _, rects =
+    self:getSelectedWordsAndRects(lines, self.hold_start_pos, end_pos)
 
   local changed = false
   if not self.highlight_rects or #self.highlight_rects ~= #rects then
@@ -261,7 +269,12 @@ function HtmlBoxWidget:onHoldPanText(_arg, ges)
   else
     for idx, r in ipairs(rects) do
       local existing = self.highlight_rects[idx]
-      if existing.x0 ~= r.x0 or existing.y0 ~= r.y0 or existing.x1 ~= r.x1 or existing.y1 ~= r.y1 then
+      if
+        existing.x0 ~= r.x0
+        or existing.y0 ~= r.y0
+        or existing.x1 ~= r.x1
+        or existing.y1 ~= r.y1
+      then
         changed = true
         break
       end

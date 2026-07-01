@@ -121,9 +121,7 @@ function DateTimeWidget:init()
     or math.floor(
       math.min(self.screen_width, self.screen_height) * width_scale_factor
     )
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
   if Device:isTouchDevice() then
     self.ges_events.TapClose = {
       GestureRange:new({

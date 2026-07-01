@@ -93,8 +93,12 @@ function PluginLoader:loadPlugins()
             plugins_disabled[plugin_code_name] = true
           end
         end
-        if lfs.attributes(metafile, "mode") == "file"
-          and (plugins_disabled[plugin_code_name] or lfs.attributes(mainfile, "mode") == "file")
+        if
+          lfs.attributes(metafile, "mode") == "file"
+          and (
+            plugins_disabled[plugin_code_name]
+            or lfs.attributes(mainfile, "mode") == "file"
+          )
         then
           if plugins_disabled[plugin_code_name] then
             mainfile = metafile

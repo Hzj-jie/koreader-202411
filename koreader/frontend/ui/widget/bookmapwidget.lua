@@ -718,21 +718,19 @@ function BookMapWidget:init()
     h = Screen:getHeight(),
   })
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-    self.key_events.ShowBookMapMenu = { { "Menu" } }
-    self.key_events.ScrollPageUp = { { Input.group.PgBack } }
-    self.key_events.ScrollPageDown = { { Input.group.PgFwd } }
-    if Device:hasSymKey() then
-      self.key_events.ScrollRowUp = { { "Shift", "Up" } }
-      self.key_events.ScrollRowDown = { { "Shift", "Down" } }
-    elseif Device:hasScreenKB() then
-      self.key_events.ScrollRowUp = { { "ScreenKB", "Up" } }
-      self.key_events.ScrollRowDown = { { "ScreenKB", "Down" } }
-    else
-      self.key_events.ScrollRowUp = { { "Up" } }
-      self.key_events.ScrollRowDown = { { "Down" } }
-    end
+  self.key_events.Exit = { { Device.input.group.Back } }
+  self.key_events.ShowBookMapMenu = { { "Menu" } }
+  self.key_events.ScrollPageUp = { { Input.group.PgBack } }
+  self.key_events.ScrollPageDown = { { Input.group.PgFwd } }
+  if Device:hasSymKey() then
+    self.key_events.ScrollRowUp = { { "Shift", "Up" } }
+    self.key_events.ScrollRowDown = { { "Shift", "Down" } }
+  elseif Device:hasScreenKB() then
+    self.key_events.ScrollRowUp = { { "ScreenKB", "Up" } }
+    self.key_events.ScrollRowDown = { { "ScreenKB", "Down" } }
+  else
+    self.key_events.ScrollRowUp = { { "Up" } }
+    self.key_events.ScrollRowDown = { { "Down" } }
   end
   if Device:isTouchDevice() then
     self.ges_events = {

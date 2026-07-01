@@ -622,7 +622,8 @@ Tap to dismiss.]]),
         optionsutil.formatFlexSize(margins[3]),
         optionsutil.formatFlexSize(margins[2]),
         optionsutil.formatFlexSize(margins[4]),
-        self.ui.view.footer.reclaim_height and 0 or self.ui.view.footer:getHeight()
+        self.ui.view.footer.reclaim_height and 0
+          or self.ui.view.footer:getHeight()
       ),
       dismiss_callback = when_applied_callback,
     }))

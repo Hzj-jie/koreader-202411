@@ -984,14 +984,19 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
           local end_x = nil
           for _, xglyph in ipairs(line.xglyphs) do
             if not xglyph.no_drawing then
-              local is_selected = xglyph.text_index >= self.sel_start_idx and xglyph.text_index <= self.sel_end_idx
+              local is_selected = xglyph.text_index >= self.sel_start_idx
+                and xglyph.text_index <= self.sel_end_idx
               if is_selected then
                 if not start_x then
                   start_x = xglyph.x0
                   end_x = xglyph.x1
                 else
-                  if xglyph.x0 < start_x then start_x = xglyph.x0 end
-                  if xglyph.x1 > end_x then end_x = xglyph.x1 end
+                  if xglyph.x0 < start_x then
+                    start_x = xglyph.x0
+                  end
+                  if xglyph.x1 > end_x then
+                    end_x = xglyph.x1
+                  end
                 end
               else
                 if start_x and end_x then
@@ -2294,7 +2299,10 @@ function TextBoxWidget:onHoldPanText(_arg, ges)
         if sel_end_idx > #self._xtext then
           sel_end_idx = #self._xtext
         end
-        if self.sel_start_idx ~= sel_start_idx or self.sel_end_idx ~= sel_end_idx then
+        if
+          self.sel_start_idx ~= sel_start_idx
+          or self.sel_end_idx ~= sel_end_idx
+        then
           self.sel_start_idx = sel_start_idx
           self.sel_end_idx = sel_end_idx
           self:update()
@@ -2306,7 +2314,9 @@ function TextBoxWidget:onHoldPanText(_arg, ges)
     local sel_start_idx = self:_findWordEdge(x0, y0, FIND_START)
     local sel_end_idx = self:_findWordEdge(x1, y1, FIND_END)
     if sel_start_idx and sel_end_idx then
-      if self.sel_start_idx ~= sel_start_idx or self.sel_end_idx ~= sel_end_idx then
+      if
+        self.sel_start_idx ~= sel_start_idx or self.sel_end_idx ~= sel_end_idx
+      then
         self.sel_start_idx = sel_start_idx
         self.sel_end_idx = sel_end_idx
         self:update()
