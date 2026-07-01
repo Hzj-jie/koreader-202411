@@ -1034,18 +1034,15 @@ function Menu:init()
   end
   self.key_events.NextPage = { { Input.group.PgFwd } }
   self.key_events.PrevPage = { { Input.group.PgBack } }
-  self.key_events.FirstPage = {
-    { "Shift", { "LPgBack", "RPgBack" } },
-    { "ScreenKB", { "LPgBack", "RPgBack" } },
-  }
-  self.key_events.LastPage = {
-    { "Shift", { "LPgFwd", "RPgFwd" } },
-    { "ScreenKB", { "LPgFwd", "RPgFwd" } },
-  }
-  self.key_events.ShowGotoDialog = {
-    { "Shift", "Down" },
-    { "ScreenKB", "Down" },
-  }
+  if Device:hasKeyboard() then
+    self.key_events.FirstPage = { { "Shift", { "LPgBack", "RPgBack" } } }
+    self.key_events.LastPage = { { "Shift", { "LPgFwd", "RPgFwd" } } }
+    self.key_events.ShowGotoDialog = { { "Shift", "Down" } }
+  elseif Device:hasScreenKB() then
+    self.key_events.FirstPage = { { "ScreenKB", { "LPgBack", "RPgBack" } } }
+    self.key_events.LastPage = { { "ScreenKB", { "LPgFwd", "RPgFwd" } } }
+    self.key_events.ShowGotoDialog = { { "ScreenKB", "Down" } }
+  end
 
   if Device:hasDPad() then
     -- we won't catch presses to "Right", leave that to MenuItem.

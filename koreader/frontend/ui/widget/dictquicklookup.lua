@@ -103,23 +103,24 @@ function DictQuickLookup:init()
   self.key_events.ReadNextResult = { { Input.group.PgFwd } }
   self.key_events.Exit = { { Input.group.Back } }
   self.key_events.MenuKeyPress = { { "Menu" } }
-  self.key_events.ChangeToPrevDict = {
-    { "Shift", "Left" },
-    { "ScreenKB", "Left" },
-  }
-  self.key_events.ChangeToNextDict = {
-    { "Shift", "Right" },
-    { "ScreenKB", "Right" },
-  }
-  self.key_events.LookupInputWordClear =
-    { { Input.group.Alphabet }, event = "LookupInputWord" }
-  -- We need to concat here so that the 'del' event press, which propagates to inputText (desirable for previous key_event,
-  -- i.e., LookupInputWordClear) does not remove the last char of self.word
-  self.key_events.LookupInputWord = {
-    { Device:hasSymKey() and "Del" or "Backspace" },
-    { "ScreenKB", "Back" },
-    args = self.word .. " ",
-  }
+  if Device:hasKeyboard() then
+    self.key_events.ChangeToPrevDict = { { "Shift", "Left" } }
+    self.key_events.ChangeToNextDict = { { "Shift", "Right" } }
+    self.key_events.LookupInputWordClear =
+      { { Input.group.Alphabet }, event = "LookupInputWord" }
+    -- We need to concat here so that the 'del' event press, which propagates to inputText (desirable for previous key_event,
+    -- i.e., LookupInputWordClear) does not remove the last char of self.word
+    self.key_events.LookupInputWord = {
+      { Device:hasSymKey() and "Del" or "Backspace" },
+      args = self.word .. " ",
+    }
+  elseif Device:hasScreenKB() then
+    self.key_events.ChangeToPrevDict = { { "ScreenKB", "Left" } }
+    self.key_events.ChangeToNextDict = { { "ScreenKB", "Right" } }
+    -- same case as hasKeyboard
+    self.key_events.LookupInputWord =
+      { { "ScreenKB", "Back" }, args = self.word .. " " }
+  end
   if Device:isTouchDevice() then
     local range = Geom:new({
       x = 0,
