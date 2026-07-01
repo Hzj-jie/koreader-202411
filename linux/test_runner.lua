@@ -275,6 +275,11 @@ if not test_file then
                 spawn_job(next_spec_idx)
                 next_spec_idx = next_spec_idx + 1
             end
+
+            -- Clean up the worker's isolated config directory
+            if job.worker_config_dir then
+                os.execute("rm -rf " .. string.format("%q", job.worker_config_dir))
+            end
         end
     end
 

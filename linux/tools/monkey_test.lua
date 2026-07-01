@@ -26,7 +26,7 @@ if ip == "127.0.0.1" or ip == "localhost" then
   settings:save("httpinspector_autostart", true)
   settings:flush()
 
-  local env_vars = "EMULATE_READER_W=600 EMULATE_READER_H=800"
+  local env_vars = "EMULATE_READER_W=600 EMULATE_READER_H=800 KO_MONKEY_TEST=1"
   if headless then
     env_vars = env_vars .. " SDL_VIDEODRIVER=dummy"
   end

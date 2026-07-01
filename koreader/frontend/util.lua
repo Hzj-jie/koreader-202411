@@ -25,10 +25,32 @@ function util.isTesting()
     or _G.describe ~= nil
 end
 
+function util.isMonkeyTest()
+  return os.getenv("KO_MONKEY_TEST") ~= nil
+end
+
+-- Under monkey test mode, we block file system modifications
+-- EXCEPT for the following allowed paths:
+-- 1. quickstart: help documentation generated on first boot; blocking it causes a modal retry dialog that gets the monkey stuck.
+-- 2. httpinspector.port: written by the plugin to communicate the dynamic port to the test runner script.
+-- 3. cache/, /tmp/ and help: temporary caches/logs that do not affect the persistent reader settings or history.
+function util.isMonkeyTestAllowedPath(path)
+  if not util.isMonkeyTest() then
+    return true
+  end
+  if not path then
+    return false
+  end
+  return path:find("quickstart")
+    or path:find("httpinspector%.port")
+    or path:find("cache/")
+    or path:find("/tmp/")
+    or path:find("help")
+end
+
 function util.getSourceDir()
   return assert(debug.getinfo(2, "S").source:match("^@(.+)/[^/]+$"))
 end
-
 
 if util.isTesting() then
   --- Clear all the elements from an array without reassignment.
@@ -874,6 +896,10 @@ end
 -- @string path the directory to create
 -- @treturn bool true on success; nil, err_message on error
 function util.makePath(path)
+  if not util.isMonkeyTestAllowedPath(path) then
+    logger.warn("Skipping makePath in monkey test mode: " .. tostring(path))
+    return true
+  end
   if lfs.attributes(path, "mode") == "directory" then
     return true
   end
@@ -1198,6 +1224,12 @@ function util.readFromFile(filepath, mode)
 end
 
 function util.writeToFile(data, filepath, lua_dofile_ready)
+  if not util.isMonkeyTestAllowedPath(filepath) then
+    logger.warn(
+      "Skipping file write in monkey test mode: " .. tostring(filepath)
+    )
+    return true
+  end
   if not data then
     return false, "data"
   end
