@@ -57,7 +57,6 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
-local util = require("util")
 
 local active_instances = 0
 
@@ -95,9 +94,7 @@ function ButtonDialog:init()
     )
   end
   if self.dismissable then
-    if Device:hasKeys() then
-      self.key_events.Exit = { { Device.input.group.Dismiss } }
-    end
+    self.key_events.Exit = { { Device.input.group.Dismiss } }
     if Device:isTouchDevice() then
       self.ges_events.TapClose = {
         GestureRange:new({

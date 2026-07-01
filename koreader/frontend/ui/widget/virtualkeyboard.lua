@@ -737,9 +737,7 @@ function VirtualKeyPopup:init()
   self.tap_interval_override =
     time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
 
   local offset_x = 2 * keyboard_frame.bordersize
     + keyboard_frame.padding
@@ -875,9 +873,7 @@ function VirtualKeyboard:init()
   self:initLayer(self.keyboard_layer)
   self.tap_interval_override =
     time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
-  if Device:hasKeys() then
-    self.key_events.KeyboardBack = { { Device.input.group.Back } }
-  end
+  self.key_events.KeyboardBack = { { Device.input.group.Back } }
   if keyboard.wrapInputBox then
     self.uwrap_func = keyboard.wrapInputBox(self.inputbox) or self.uwrap_func
   end

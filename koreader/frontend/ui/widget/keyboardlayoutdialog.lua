@@ -172,9 +172,7 @@ function KeyboardLayoutDialog:init()
     }),
     self.movable,
   })
-  if Device:hasKeys() then
-    self.key_events.ExitDialog = { { Device.input.group.Back } }
-  end
+  self.key_events.ExitDialog = { { Device.input.group.Back } }
 end
 
 function KeyboardLayoutDialog:onShow()

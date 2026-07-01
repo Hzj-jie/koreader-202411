@@ -80,22 +80,20 @@ local ImageViewer = InputContainer:extend({
 })
 
 function ImageViewer:init()
-  if Device:hasKeys() then
-    if type(self.image) == "table" then
-      -- if self.image is a table, then use hardware keys to change image
-      self.key_events = {
-        Close = { { Device.input.group.Back } },
-        ShowPrevImage = { { Device.input.group.PgBack } },
-        ShowNextImage = { { Device.input.group.PgFwd } },
-      }
-    else
-      -- otherwise, use hardware keys to zoom in/out
-      self.key_events = {
-        Close = { { Device.input.group.Back } },
-        ZoomIn = { { Device.input.group.PgBack } },
-        ZoomOut = { { Device.input.group.PgFwd } },
-      }
-    end
+  if type(self.image) == "table" then
+    -- if self.image is a table, then use hardware keys to change image
+    self.key_events = {
+      Close = { { Device.input.group.Back } },
+      ShowPrevImage = { { Device.input.group.PgBack } },
+      ShowNextImage = { { Device.input.group.PgFwd } },
+    }
+  else
+    -- otherwise, use hardware keys to zoom in/out
+    self.key_events = {
+      Close = { { Device.input.group.Back } },
+      ZoomIn = { { Device.input.group.PgBack } },
+      ZoomOut = { { Device.input.group.PgFwd } },
+    }
   end
   if Device:isTouchDevice() then
     local range = Geom:new({

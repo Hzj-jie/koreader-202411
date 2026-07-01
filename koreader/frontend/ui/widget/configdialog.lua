@@ -1048,19 +1048,17 @@ function ConfigDialog:init()
       }),
     }),
   }
-  if Device:hasKeys() then
-    -- set up keyboard events
-    local back_group = util.tableDeepCopy(Device.input.group.Back)
-    if Device:hasFewKeys() then
-      table.insert(back_group, "Left")
-    else
-      table.insert(back_group, "Menu")
-      table.insert(back_group, "AA")
-    end
-    self.key_events.Exit = { { back_group } }
-    self.key_events.NextPage = { { Device.input.group.PgFwd } }
-    self.key_events.PrevPage = { { Device.input.group.PgBack } }
+  -- set up keyboard events
+  local back_group = util.tableDeepCopy(Device.input.group.Back)
+  if Device:hasFewKeys() then
+    table.insert(back_group, "Left")
+  else
+    table.insert(back_group, "Menu")
+    table.insert(back_group, "AA")
   end
+  self.key_events.Exit = { { back_group } }
+  self.key_events.NextPage = { { Device.input.group.PgFwd } }
+  self.key_events.PrevPage = { { Device.input.group.PgBack } }
 end
 
 function ConfigDialog:update()

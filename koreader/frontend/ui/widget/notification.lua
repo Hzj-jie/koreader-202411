@@ -36,9 +36,7 @@ local Notification = InputContainer:extend({
 function Notification:init()
   if not self.toast then
     -- If not toast, closing is handled in here
-    if Device:hasKeys() then
-      self.key_events.AnyKeyPressed = { { Input.group.Any } }
-    end
+    self.key_events.AnyKeyPressed = { { Input.group.Any } }
     if Device:isTouchDevice() then
       self.ges_events.TapClose = {
         GestureRange:new({

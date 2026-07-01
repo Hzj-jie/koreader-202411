@@ -49,15 +49,13 @@ function PageBrowserWidget:init()
   -- Compute non-settings-dependant sizes and options
   self:mergeSize(Screen:getSize())
 
-  if Device:hasKeys() then
-    self.key_events = {
-      Close = { { Device.input.group.Back } },
-      ScrollRowUp = { { "Up" } },
-      ScrollRowDown = { { "Down" } },
-      ScrollPageUp = { { Input.group.PgBack } },
-      ScrollPageDown = { { Input.group.PgFwd } },
-    }
-  end
+  self.key_events = {
+    Close = { { Device.input.group.Back } },
+    ScrollRowUp = { { "Up" } },
+    ScrollRowDown = { { "Down" } },
+    ScrollPageUp = { { Input.group.PgBack } },
+    ScrollPageDown = { { Input.group.PgFwd } },
+  }
   if Device:isTouchDevice() then
     self.ges_events = {
       Swipe = {

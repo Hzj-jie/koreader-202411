@@ -134,14 +134,10 @@ function ScrollableContainer:init()
       } or nil,
     }
   end
-  if Device:hasKeys() then
-    self.key_events = {
-      ScrollPageUp = not ignore.key_pg_back and { { Input.group.PgBack } }
-        or nil,
-      ScrollPageDown = not ignore.key_pg_fwd and { { Input.group.PgFwd } }
-        or nil,
-    }
-  end
+  self.key_events = {
+    ScrollPageUp = not ignore.key_pg_back and { { Input.group.PgBack } } or nil,
+    ScrollPageDown = not ignore.key_pg_fwd and { { Input.group.PgFwd } } or nil,
+  }
 end
 
 function ScrollableContainer:initState()

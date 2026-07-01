@@ -60,10 +60,8 @@ function BBoxWidget:init()
     self.key_events.MoveIndicatorRight =
       { { "Right" }, event = "MoveIndicator", args = { 1, 0 } }
   end
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-    self.key_events.Select = { { "Press" } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
+  self.key_events.Select = { { "Press" } }
 end
 
 function BBoxWidget:getSize()

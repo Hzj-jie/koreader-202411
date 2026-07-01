@@ -90,12 +90,10 @@ function ScrollHtmlWidget:init()
     }
   end
 
-  if Device:hasKeys() then
-    self.key_events = {
-      ScrollDown = { { Input.group.PgFwd } },
-      ScrollUp = { { Input.group.PgBack } },
-    }
-  end
+  self.key_events = {
+    ScrollDown = { { Input.group.PgFwd } },
+    ScrollUp = { { Input.group.PgBack } },
+  }
 end
 
 -- Not to be confused with ScrollTextWidget's updateScrollBar, which has user-visible effects.
