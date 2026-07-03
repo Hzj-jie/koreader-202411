@@ -223,8 +223,4 @@ function PluginLoader:menuItem()
   }
 end
 
-function PluginLoader:createPluginInstance(plugin, attr)
-  return true, plugin:new(attr)
-end
-
 return PluginLoader
