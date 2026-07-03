@@ -120,7 +120,7 @@ function ReaderStatistics:init()
   self.is_doc = false
   self.is_doc_not_frozen = false -- freeze finished books statistics
 
-  -- Placeholder until onReaderReady
+  -- Placeholder until onPostReaderReady
   self.data = {
     title = "",
     authors = "N/A",
@@ -185,14 +185,24 @@ function ReaderStatistics:init()
     return readingprogress
   end
 
-  if
-    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
-  then
-    self:initDocumentState(self.ui.doc_settings)
+  -- If the document is already fully loaded (e.g. during late loading
+  -- when a user dynamically enables the plugin from settings), we can
+  -- initialize document state immediately. Otherwise (during standard startup),
+  -- we must defer initialization until onPostReaderReady is broadcasted
+  -- because metadata (self.ui.doc_props) is not yet populated in init().
+  if self:_isDocReady() then
+    self:_initDocState(self.ui.doc_settings)
   end
 end
 
-function ReaderStatistics:initDocumentState(config)
+function ReaderStatistics:_isDocReady()
+  return self.ui.doc_props
+    and self.ui.doc_settings
+    and self.ui.doc_settings:read("partial_md5_checksum") ~= nil
+end
+
+function ReaderStatistics:_initDocState(config)
+  assert(self:_isDocReady())
   if self.data_initialized then
     return
   end
@@ -201,7 +211,7 @@ function ReaderStatistics:initDocumentState(config)
   self.data = config:readTableRef("stats", { performance_in_pages = {} })
   self.doc_md5 = config:read("partial_md5_checksum")
 
-  self:checkInitDatabase()
+  self:_checkInitDatabase()
   self:_initData()
 end
 
@@ -374,7 +384,7 @@ function ReaderStatistics:getStatsBookStatus(id_curr_book, stat_enable)
   }
 end
 
-function ReaderStatistics:checkInitDatabase()
+function ReaderStatistics:_checkInitDatabase()
   local convert_to_db = (
     lfs.attributes(db_location, "mode") == "file"
     and lfs.attributes(db_location, "size") > 0
@@ -3527,12 +3537,8 @@ function ReaderStatistics:onReadingResumed()
   self._reading_paused_ts = nil
 end
 
-function ReaderStatistics:onReaderReady(config)
-  self:initDocumentState(config)
-end
-
 function ReaderStatistics:onPostReaderReady()
-  self:initDocumentState(self.ui.doc_settings)
+  self:_initDocState(self.ui.doc_settings)
 end
 
 function ReaderStatistics:onShowCalendarView()
