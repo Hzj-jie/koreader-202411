@@ -77,6 +77,27 @@ function KOSync:init()
   end
 
   self.ui.menu:registerToMainMenu(self)
+
+  if
+    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+  then
+    self:initDocumentState()
+  end
+end
+
+function KOSync:initDocumentState()
+  if self.data_initialized then
+    return
+  end
+  self.data_initialized = true
+
+  if self.settings.auto_sync then
+    UIManager:scheduleIn(0.1, function()
+      self.last_page_turn_timestamp = 0
+      self:_getProgress(false)
+    end)
+  end
+  self:onDispatcherRegisterActions()
 end
 
 local function getNameStrategy(type)
@@ -172,16 +193,7 @@ function KOSync:onDispatcherRegisterActions()
 end
 
 function KOSync:onReaderReady()
-  if self.settings.auto_sync then
-    UIManager:scheduleIn(0.1, function()
-      -- Opening a book will trigger onPageUpdated, but the page isn't "updated"
-      -- when the book is opened. So reset the last_page_turn_timestamp in
-      -- onReaderReady event to force a pull if any.
-      self.last_page_turn_timestamp = 0
-      self:_getProgress(false)
-    end)
-  end
-  self:onDispatcherRegisterActions()
+  self:initDocumentState()
 end
 
 function KOSync:addToMainMenu(menu_items)

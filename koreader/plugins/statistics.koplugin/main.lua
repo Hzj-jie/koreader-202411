@@ -184,6 +184,25 @@ function ReaderStatistics:init()
     end
     return readingprogress
   end
+
+  if
+    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+  then
+    self:initDocumentState(self.ui.doc_settings)
+  end
+end
+
+function ReaderStatistics:initDocumentState(config)
+  if self.data_initialized then
+    return
+  end
+  self.data_initialized = true
+
+  self.data = config:readTableRef("stats", { performance_in_pages = {} })
+  self.doc_md5 = config:read("partial_md5_checksum")
+
+  self:checkInitDatabase()
+  self:_initData()
 end
 
 function ReaderStatistics:_updateFrozen()
@@ -3509,14 +3528,11 @@ function ReaderStatistics:onReadingResumed()
 end
 
 function ReaderStatistics:onReaderReady(config)
-  self.data = config:readTableRef("stats", { performance_in_pages = {} })
-  self.doc_md5 = config:read("partial_md5_checksum")
+  self:initDocumentState(config)
 end
 
 function ReaderStatistics:onPostReaderReady()
-  self:checkInitDatabase()
-  -- we have correct page count now, do the actual initialization work
-  self:_initData()
+  self:initDocumentState(self.ui.doc_settings)
 end
 
 function ReaderStatistics:onShowCalendarView()

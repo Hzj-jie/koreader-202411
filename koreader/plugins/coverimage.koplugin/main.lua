@@ -115,6 +115,12 @@ function CoverImage:init()
   lfs.mkdir(self.cover_image_cache_path)
 
   self.ui.menu:registerToMainMenu(self)
+
+  if
+    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+  then
+    self:createCoverImage(self.ui.doc_settings)
+  end
 end
 
 function CoverImage:cleanUpImage()
