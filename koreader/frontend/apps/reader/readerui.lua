@@ -499,19 +499,14 @@ function ReaderUI:init()
 
   -- koreader plugins
   for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
-    local ok, plugin_or_err = PluginLoader:createPluginInstance(plugin_module, {
-      ui = self,
-      document = self.document,
-    })
-    if ok then
-      self:registerModule(plugin_module.name, plugin_or_err)
-      logger.dbg(
-        "RD loaded plugin",
-        plugin_module.name,
-        "at",
-        plugin_module.path
-      )
-    end
+    self:registerModule(
+      plugin_module.name,
+      plugin_module:new({
+        ui = self,
+        document = self.document,
+      })
+    )
+    logger.dbg("RD loaded plugin", plugin_module.name, "at", plugin_module.path)
   end
 
   -- Allow others to change settings based on external factors

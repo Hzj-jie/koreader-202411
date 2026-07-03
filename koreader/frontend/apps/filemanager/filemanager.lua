@@ -466,18 +466,13 @@ function FileManager:init()
   -- koreader plugins
   for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
     if not plugin_module.is_doc_only then
-      local ok, plugin_or_err =
-        PluginLoader:createPluginInstance(plugin_module, { ui = self })
-      -- Keep references to the modules which do not register into menu.
-      if ok then
-        self:registerModule(plugin_module.name, plugin_or_err)
-        logger.dbg(
-          "FM loaded plugin",
-          plugin_module.name,
-          "at",
-          plugin_module.path
-        )
-      end
+      self:registerModule(plugin_module.name, plugin_module:new({ ui = self }))
+      logger.dbg(
+        "FM loaded plugin",
+        plugin_module.name,
+        "at",
+        plugin_module.path
+      )
     end
   end
 
