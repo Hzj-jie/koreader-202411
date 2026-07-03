@@ -120,7 +120,7 @@ function ReaderStatistics:init()
   self.is_doc = false
   self.is_doc_not_frozen = false -- freeze finished books statistics
 
-  -- Placeholder until onReaderReady
+  -- Placeholder until onPostReaderReady
   self.data = {
     title = "",
     authors = "N/A",
@@ -3527,10 +3527,6 @@ function ReaderStatistics:onReadingResumed()
     end
   end
   self._reading_paused_ts = nil
-end
-
-function ReaderStatistics:onReaderReady(config)
-  self:initDocumentState(config)
 end
 
 function ReaderStatistics:onPostReaderReady()
