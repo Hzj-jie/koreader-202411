@@ -21,12 +21,12 @@ local INVISIBLE_PLUGINS = {
 }
 
 local PluginLoader = {
-  show_info = true,
-  needs_restart = false,
   enabled_plugins = nil,
   disabled_plugins = nil,
   all_plugins = nil,
   plugins_disabled = nil,
+  plugin_enabled = false,
+  plugin_disabled = false,
 }
 
 function PluginLoader:pluginsDisabled()
@@ -174,10 +174,11 @@ function PluginLoader:menuItem()
           plugin.enable = not plugin.enable
           if plugin.enable then
             self:pluginsDisabled()[plugin.name] = nil
+            self.plugin_enabled = true
           else
             self:pluginsDisabled()[plugin.name] = true
+            self.plugin_disabled = true
           end
-          self.needs_restart = true
         end,
         help_text = plugin.description,
       })
@@ -188,15 +189,36 @@ function PluginLoader:menuItem()
     text = gettext("Plugin management"),
     sub_item_table = plugin_table,
     onClose = function()
-      if not self.needs_restart then
+      if not self.plugin_enabled and not self.plugin_disabled then
         return
       end
-      self.needs_restart = false
-      if self.show_info then
-        self.show_info = false
-        local UIManager = require("ui/uimanager")
-        UIManager:askForRestart()
+
+      local msg
+      if self.plugin_enabled and self.plugin_disabled then
+        msg = gettext(
+          "Newly enabled plugins may not work properly, and "
+            .. "disabled plugins may still run in the background, until "
+            .. "the current book is reloaded or KOReader is restarted. "
+            .. "Do you want to restart now?"
+        )
+      elseif self.plugin_enabled then
+        msg = gettext(
+          "Newly enabled plugins may not work properly until "
+            .. "the current book is reloaded or KOReader is restarted. "
+            .. "Do you want to restart now?"
+        )
+      else
+        msg = gettext(
+          "Although disabled plugins are removed from the "
+            .. "menu, they may still run in the background until the "
+            .. "current book is reloaded or KOReader is restarted. "
+            .. "Do you want to restart now?"
+        )
       end
+
+      self.plugin_enabled = false
+      self.plugin_disabled = false
+      require("ui/uimanager"):askForRestart(msg)
     end,
   }
 end
