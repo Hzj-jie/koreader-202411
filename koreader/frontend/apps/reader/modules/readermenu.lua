@@ -517,6 +517,15 @@ function ReaderMenu:onShowKeyboardShortcuts()
   require("ui/elements/common_info_menu_table").keyboard_shortcuts.callback()
 end
 
+function ReaderMenu:onRefreshMenu()
+  self.tab_item_table = nil
+  if self.menu_container then
+    self:onCloseReaderMenu()
+    self:_showMenu()
+  end
+  return true
+end
+
 function ReaderMenu:registerToMainMenu(widget)
   table.insert(self.registered_widgets, widget)
 end

@@ -805,6 +805,15 @@ function FileManagerMenu:onMenuSearch()
   UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
 end
 
+function FileManagerMenu:onRefreshMenu()
+  self.tab_item_table = nil
+  if self.menu_container then
+    self:onClose()
+    self:onShowMenu()
+  end
+  return true
+end
+
 function FileManagerMenu:registerToMainMenu(widget)
   table.insert(self.registered_widgets, widget)
 end
