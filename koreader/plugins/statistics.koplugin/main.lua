@@ -186,7 +186,9 @@ function ReaderStatistics:init()
   end
 
   if
-    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+    self.ui.doc_props
+    and self.ui.doc_settings
+    and self.ui.doc_settings:read("partial_md5_checksum")
   then
     self:initDocumentState(self.ui.doc_settings)
   end
