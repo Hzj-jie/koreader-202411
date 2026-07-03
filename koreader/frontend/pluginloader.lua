@@ -1,3 +1,4 @@
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -21,10 +22,19 @@ local INVISIBLE_PLUGINS = {
 
 local PluginLoader = {
   show_info = true,
+  needs_restart = false,
   enabled_plugins = nil,
   disabled_plugins = nil,
   all_plugins = nil,
+  plugins_disabled = nil,
 }
+
+function PluginLoader:pluginsDisabled()
+  if not self.plugins_disabled then
+    self.plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
+  end
+  return self.plugins_disabled
+end
 
 function PluginLoader:loadPlugins()
   if self.enabled_plugins then
@@ -60,9 +70,8 @@ function PluginLoader:loadPlugins()
     end
   end
 
-  local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
-    plugins_disabled[entry] = false
+    self:pluginsDisabled()[entry] = false
   end
   for _, lookup_path in ipairs(lookup_path_list) do
     logger.info("Loading plugins from directory:", lookup_path)
@@ -81,8 +90,10 @@ function PluginLoader:loadPlugins()
         local main_exists = lfs.attributes(mainfile, "mode") == "file"
         local meta_exists = lfs.attributes(metafile, "mode") == "file"
 
-        if meta_exists and (plugins_disabled[plugin_name] or main_exists) then
-          if plugins_disabled[plugin_name] then
+        if
+          meta_exists and (self:pluginsDisabled()[plugin_name] or main_exists)
+        then
+          if self:pluginsDisabled()[plugin_name] then
             mainfile = metafile
           end
 
@@ -96,7 +107,7 @@ function PluginLoader:loadPlugins()
             plugin_module.path = plugin_root
             plugin_module.name = plugin_module.name
               or plugin_root:match("/(.-)%.koplugin")
-            if plugins_disabled[plugin_name] then
+            if self:pluginsDisabled()[plugin_name] then
               table.insert(self.disabled_plugins, plugin_module)
             else
               local plugin_metamodule = dofile(metafile)
@@ -138,7 +149,7 @@ function PluginLoader:_addPluginsToMenu(plugins, enable)
   end
 end
 
-function PluginLoader:genPluginManagerSubItem()
+function PluginLoader:menuItem()
   if not self.all_plugins then
     local enabled_plugins, disabled_plugins = self:loadPlugins()
     self.all_plugins = {}
@@ -160,25 +171,34 @@ function PluginLoader:genPluginManagerSubItem()
           return plugin.enable
         end,
         callback = function()
-          local UIManager = require("ui/uimanager")
-          local plugins_disabled =
-            G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
           if plugin.enable then
-            plugins_disabled[plugin.name] = nil
+            self:pluginsDisabled()[plugin.name] = nil
           else
-            plugins_disabled[plugin.name] = true
+            self:pluginsDisabled()[plugin.name] = true
           end
-          if self.show_info then
-            self.show_info = false
-            UIManager:askForRestart()
-          end
+          self.needs_restart = true
         end,
         help_text = plugin.description,
       })
     end
   end
-  return plugin_table
+
+  return {
+    text = gettext("Plugin management"),
+    sub_item_table = plugin_table,
+    onClose = function()
+      if not self.needs_restart then
+        return
+      end
+      self.needs_restart = false
+      if self.show_info then
+        self.show_info = false
+        local UIManager = require("ui/uimanager")
+        UIManager:askForRestart()
+      end
+    end,
+  }
 end
 
 function PluginLoader:createPluginInstance(plugin, attr)
