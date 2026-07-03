@@ -90,6 +90,46 @@ To maintain clean semantics and avoid naming collisions with standard event hand
 1. **Private/Internal Functions**: Prefix internally-used private class methods and helpers with an underscore `_` prefix (e.g. `_turnOnWifi`, `_saveSettings`).
 2. **Non-Event Handler Functions**: Rename functions that are not actual event handlers to regular `verb + subject` names (e.g., rename `onSettingsChanged` to `updateSettings` if it doesn't handle a dispatched event) to prevent the event system from incorrectly invoking them.
 
+### E. Robustness against Dynamic Late Loading
+Plugins can be enabled dynamically at runtime without restarting KOReader. In these scenarios, the plugin is loaded *after* the document has already been loaded, causing it to miss critical document startup lifecycle events (such as `onReaderReady` and `onPostReaderReady`).
+
+1. **Do Not Crash on Missed Events**:
+   - Ensure the plugin does not crash if it misses startup events. It is acceptable for the plugin to be non-functional or ignore events if its internal state isn't initialized, but it **must not crash** the main KOReader process.
+   - Guard against `nil` values when indexing internal structures (e.g. `self.data` or `self.doc_md5`) that would normally be set during startup events.
+
+2. **Handle Late Loading (Recommended)**:
+   - If the plugin is instantiated when a document is already active, detect this in `init()` and trigger the initialization immediately.
+   - Use `self.ui.doc_settings:read("partial_md5_checksum")` to check if document metadata is already available (indicating a late load).
+   - Implement an idempotent initialization method guarded by a flag (e.g., `self.data_initialized`) to prevent double-initialization when the startup events *do* run.
+
+   **Example Pattern**:
+   ```lua
+   function MyPlugin:init()
+     self.ui.menu:registerToMainMenu(self)
+
+     -- If document is already loaded, initialize immediately
+     if self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum") then
+       self:initDocumentState(self.ui.doc_settings)
+     end
+   end
+
+   function MyPlugin:initDocumentState(config)
+     if self.data_initialized then
+       return
+     end
+     self.data_initialized = true
+
+     -- Perform actual initialization (read tables, init DBs, etc.)
+     self.data = config:readTableRef("stats", {})
+     self.doc_md5 = config:read("partial_md5_checksum")
+     self:setupInternalState()
+   end
+
+   function MyPlugin:onReaderReady(config)
+     self:initDocumentState(config)
+   end
+   ```
+
 ---
 
 ## 3. Testing & Verification
