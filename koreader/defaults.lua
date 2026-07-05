@@ -194,4 +194,7 @@ return {
 
   -- Enable features for developers, e.g. enable logging. Default is false.
   -- DEV_MODE = true,
+
+  -- Keep only "restart koreader" in the Exit menu if true.
+  DO_NOT_EXIT = false,
 }
