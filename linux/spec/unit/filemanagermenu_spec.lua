@@ -170,7 +170,7 @@ describe("filemanagermenu", function()
     }
 
     package.loaded["pluginloader"] = {
-      genPluginManagerSubItem = function() return {} end,
+      menuItem = function() return {} end,
     }
 
     package.loaded["ui/size"] = {

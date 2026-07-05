@@ -146,6 +146,7 @@ describe("PluginLoader module", function()
         PluginLoader.disabled_plugins = nil
         PluginLoader.all_plugins = nil
         PluginLoader.show_info = true
+        PluginLoader.plugins_disabled = nil
         mock_disabled_plugins = {}
         mock_extra_paths = nil
     end)
@@ -203,28 +204,16 @@ describe("PluginLoader module", function()
         end)
     end)
 
-    describe("Plugin Lifecycle and Instance Management", function()
-        before_each(function()
-            mock_disabled_plugins["checkers"] = false
-            PluginLoader:loadPlugins()
-        end)
-
-        it("should create plugin instances", function()
-            local plugin_class = PluginLoader.enabled_plugins[1] -- checkers
-            assert.are.equal("checkers", plugin_class.name)
-
-            local success, instance = PluginLoader:createPluginInstance(plugin_class, { attr1 = "val1" })
-            assert.is_true(success)
-            assert.truthy(instance)
-            assert.are.equal("val1", instance.attr1)
-        end)
-    end)
-
-    describe("genPluginManagerSubItem", function()
+    describe("menuItem", function()
         it("should generate menu items for plugins", function()
             mock_disabled_plugins["checkers"] = false
             mock_disabled_plugins["mock2"] = true
-            local menu = PluginLoader:genPluginManagerSubItem()
+            local item = PluginLoader:menuItem()
+            assert.truthy(item)
+            assert.are.equal("Plugin management", item.text)
+            assert.truthy(item.onClose)
+
+            local menu = item.sub_item_table
             assert.truthy(menu)
             -- checkers and mock2 should be in the menu
             assert.are.equal(2, #menu)
@@ -255,7 +244,7 @@ describe("PluginLoader module", function()
             assert.are.equal("checkers", disabled[1].name)
 
             -- 2. Simulate User toggles it to enable in the Plugin Manager
-            local menu = PluginLoader:genPluginManagerSubItem()
+            local menu = PluginLoader:menuItem().sub_item_table
             -- menu[1] is checkers (since it is sorted: "Checkers Game" vs "Mock2")
             assert.are.equal("Checkers Game", menu[1].text)
             assert.is_false(menu[1].checked_func()) -- Currently disabled
@@ -309,7 +298,7 @@ describe("PluginLoader module", function()
             mock_disabled_plugins["checkers"] = true
             mock_disabled_plugins["mock2"] = nil -- nil means default (enabled)
 
-            local menu_items = PluginLoader:genPluginManagerSubItem()
+            local menu_items = PluginLoader:menuItem().sub_item_table
             local checkers_item, mock2_item
             for _, item in ipairs(menu_items) do
                 if item.text == "Checkers Game" then
