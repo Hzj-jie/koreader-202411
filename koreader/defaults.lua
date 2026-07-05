@@ -196,5 +196,5 @@ return {
   -- DEV_MODE = true,
 
   -- Keep only "restart koreader" in the Exit menu if true.
-  DO_NOT_EXIT = false,
+  DO_NOT_EXIT = true,
 }
