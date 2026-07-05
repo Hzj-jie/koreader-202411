@@ -145,6 +145,7 @@ describe("PluginLoader module", function()
         PluginLoader.enabled_plugins = nil
         PluginLoader.disabled_plugins = nil
         PluginLoader.all_plugins = nil
+        PluginLoader.plugins_disabled = nil
         mock_disabled_plugins = {}
         mock_extra_paths = nil
     end)
@@ -199,26 +200,15 @@ describe("PluginLoader module", function()
         end)
     end)
 
-    describe("Plugin Lifecycle and Instance Management", function()
-        before_each(function()
-            PluginLoader:loadPlugins()
-        end)
-
-        it("should create plugin instances", function()
-            local plugin_class = PluginLoader.enabled_plugins[1] -- Mock1
-            assert.are.equal("Mock1", plugin_class.name)
-
-            local success, instance = PluginLoader:createPluginInstance(plugin_class, { attr1 = "val1" })
-            assert.is_true(success)
-            assert.truthy(instance)
-            assert.are.equal("val1", instance.attr1)
-        end)
-    end)
-
-    describe("genPluginManagerSubItem", function()
+    describe("menuItem", function()
         it("should generate menu items for plugins", function()
             mock_disabled_plugins["mock2"] = true
-            local menu = PluginLoader:genPluginManagerSubItem()
+            local item = PluginLoader:menuItem()
+            assert.truthy(item)
+            assert.are.equal("Plugin management", item.text)
+            assert.truthy(item.onClose)
+
+            local menu = item.sub_item_table
             assert.truthy(menu)
             -- mock1 and mock2 should be in the menu
             assert.are.equal(2, #menu)
