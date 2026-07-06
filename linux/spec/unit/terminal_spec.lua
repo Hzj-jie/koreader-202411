@@ -196,4 +196,139 @@ describe("Terminal plugin button tap integration", function()
         UIManager:close(input_dialog)
         filemanager:onClose()
     end)
+
+    it("should not crash when restoring an out-of-bounds or nil saved cursor position", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        term_widget:interpretAnsiSeq("abc")
+        assert.is.same(4, term_widget.charpos)
+
+        -- 1. Test out-of-bounds saved position (should clamp to #charlist + 1 = 4)
+        term_widget.store_pos_dec = 100
+        term_widget:interpretAnsiSeq("\0278")
+        assert.is.same(4, term_widget.charpos)
+
+        -- 2. Test nil saved position (should not change charpos)
+        term_widget.store_pos_dec = nil
+        term_widget:interpretAnsiSeq("\0278")
+        assert.is.same(4, term_widget.charpos)
+
+        -- 3. Print more text to verify it works normally
+        term_widget:interpretAnsiSeq("d")
+        assert.is.same("d", term_widget.charlist[4])
+        assert.is.same(5, term_widget.charpos)
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
+
+    it("should not allow charpos to go out of bounds and create nil holes when writing text", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        term_widget:interpretAnsiSeq("a")
+        -- Set charpos way out of bounds of current buffer
+        term_widget.charpos = 5000
+
+        -- Write a character
+        term_widget:interpretAnsiSeq("x")
+
+        -- Verify that charpos was clamped to 2 and x was written there
+        assert.is.same("a", term_widget.charlist[1])
+        assert.is.same("x", term_widget.charlist[2])
+        assert.is.same(2, #term_widget.charlist)
+        assert.is.same(3, term_widget.charpos)
+
+        -- Verify table.concat doesn't crash
+        local success, result = pcall(table.concat, term_widget.charlist)
+        assert.is_true(success, "table.concat failed: " .. tostring(result))
+        assert.is.same("ax", result)
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
+
+    it("should correctly update charpos and avoid nil holes during scrollRegionUp", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        term_widget:resize(10, 10)
+        term_widget:formatTerminal(true)
+
+        -- 1. Setup lines: 3 lines of 5 characters
+        term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n")
+
+        -- 2. Enable scroll region
+        term_widget.scroll_region_top = 1
+        term_widget.scroll_region_bottom = 2
+        term_widget.scroll_region_line = 2
+
+        -- Move cursor to line 3 (index 18, which is the \n of ABCDE\n)
+        term_widget.charpos = 18
+
+        -- 3. Trigger scroll up
+        term_widget:scrollRegionUp(1)
+
+        -- Verify charpos was correctly shifted (18 - 11 = 7)
+        assert.is.same(7, term_widget.charpos)
+
+        -- Verify table.concat doesn't crash (i.e. no nil holes were created)
+        local success, result = pcall(table.concat, term_widget.charlist)
+        assert.is_true(success, "table.concat failed: " .. tostring(result))
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
 end)
