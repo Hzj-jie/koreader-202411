@@ -192,6 +192,12 @@ function TermInputText:restoreBuffer(buffer)
   end
 end
 
+function TermInputText:_updateCharPos(pos)
+  if pos then
+    self.charpos = math.max(1, math.min(#self.charlist + 1, pos))
+  end
+end
+
 function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
   if cmd == "A" then -- cursor up
     param1 = param1 == 0 and 1 or param1
@@ -241,7 +247,7 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
       local saved_pos = self.charpos
       self:moveCursorToRowCol(1, 1)
       self:clearToEndOfScreen()
-      self.charpos = saved_pos
+      self:_updateCharPos(saved_pos)
     end
     return true
   elseif cmd == "K" then -- clear to end of line
@@ -372,7 +378,7 @@ function TermInputText:interpretAnsiSeq(text)
       elseif next_byte == "7" then
         self.store_pos_dec = self.charpos
       elseif next_byte == "8" then
-        self.charpos = self.store_pos_dec
+        self:_updateCharPos(self.store_pos_dec)
       end
     elseif self.sequence_state == "escY" then
       param1 = next_byte
@@ -391,7 +397,7 @@ function TermInputText:interpretAnsiSeq(text)
       if next_byte == "s" then -- save cursor pos
         self.store_pos_sco = self.charpos
       elseif next_byte == "u" then -- restore cursor pos
-        self.charpos = self.store_pos_sco
+        self:_updateCharPos(self.store_pos_sco)
       elseif next_byte == "?" then
         self.sequence_mode = "?"
         self.sequence_state = "escParam2"
@@ -503,14 +509,16 @@ function TermInputText:scrollRegionUp(column)
       end
     end
     pos = pos + 1
-
+    -- Track starting position to compute number of deleted characters.
+    -- We defer updating self.charpos to the end to avoid expensive calculations of #self.charlist.
+    local orig_pos = pos
     table.remove(self.charlist, pos)
-    self.charpos = self.charpos - 1
     pos = pos - 1
     while pos > 0 and self.charlist[pos] ~= "\n" do
       table.remove(self.charlist, pos)
       pos = pos - 1
     end
+    self:_updateCharPos(self.charpos - (orig_pos - pos))
 
     pos = self.charpos + 1
     for _ = column, self.maxc - column do
@@ -552,6 +560,8 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   self.is_text_edited = true
   if #self.charlist == 0 then -- widget text is empty or a hint text is displayed
     self.charpos = 1 -- move cursor to the first position
+  else
+    self:_updateCharPos(self.charpos)
   end
 
   local function insertSpaces(n)
@@ -614,7 +624,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       end
       self.charpos = self.charpos + 1
     elseif chars_list[i] == "\b" then
-      self.charpos = self.charpos - 1
+      self:leftChar(true)
     elseif chars_list[i] == nil then
       logger.warn("TermInputText: new_char is nil at index", i)
     else
@@ -712,7 +722,7 @@ end
 
 function TermInputText:exitAlternateKeypad()
   if self.store_position then
-    self.charpos = self.store_position
+    self:_updateCharPos(self.store_position)
     self.store_position = nil
     -- clear the alternate keypad buffer
     while self.charlist[self.charpos] do
