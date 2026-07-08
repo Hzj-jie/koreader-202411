@@ -479,10 +479,27 @@ function TermInputText:scrollRegionDown(column)
       end
     end
     pos = pos - 1
+    local end_pos = pos
+    -- Find the last newline character before the bottom line's end to isolate it.
+    -- We will delete everything from this start index up to end_pos.
+    while pos - 1 > 0 and self.charlist[pos - 1] ~= "\n" do
+      pos = pos - 1
+    end
 
-    table.remove(self.charlist, pos)
-    while self.charlist[pos] ~= "\n" do
-      table.remove(self.charlist, pos)
+    -- Shift remaining elements down to fill the gap of the deleted line
+    table.move(self.charlist, end_pos + 1, #self.charlist, pos)
+
+    -- Cleanly remove the trailing duplicate elements
+    local deleted_len = end_pos - pos + 1
+    for _ = 1, deleted_len do
+      table.remove(self.charlist)
+    end
+
+    -- Update cursor position mathematically
+    if self.charpos > end_pos then
+      self.charpos = self.charpos - deleted_len
+    elseif self.charpos >= pos then
+      self.charpos = pos
     end
 
     pos = self.charpos

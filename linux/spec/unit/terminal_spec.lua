@@ -331,4 +331,115 @@ describe("Terminal plugin button tap integration", function()
         UIManager:close(input_dialog)
         filemanager:onClose()
     end)
+
+    it("should avoid nil holes and not crash table.concat during scrollRegionDown", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        term_widget:resize(10, 10)
+        term_widget:formatTerminal(true)
+
+        -- 1. Setup lines: 5 lines of 5 characters
+        term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n67890\nXYZWZ\n")
+
+        -- Verify buffer is correct
+        local success, result = pcall(table.concat, term_widget.charlist)
+        assert.is_true(success)
+
+        -- 2. Enable scroll region on lines 2 to 4
+        term_widget.scroll_region_top = 2
+        term_widget.scroll_region_bottom = 4
+        term_widget.scroll_region_line = 2 -- cursor is at top of region (line 2)
+
+        -- Move cursor to line 2 (index 12, start of abcde)
+        term_widget.charpos = 12
+
+        -- 3. Trigger scroll down
+        term_widget:scrollRegionDown(1)
+
+        -- Verify table.concat doesn't crash (i.e. no nil holes were created)
+        local success_concat, result_concat = pcall(table.concat, term_widget.charlist)
+        assert.is_true(success_concat, "table.concat failed: " .. tostring(result_concat))
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
+
+    it("should delete the bottom line of the scroll region and shift other lines correctly during scrollRegionDown", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        term_widget:resize(10, 10)
+        term_widget:formatTerminal(true)
+
+        -- 1. Setup lines: 5 lines of 5 characters
+        term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n67890\nXYZWZ\n")
+
+        -- Verify buffer is correct
+        local success, result = pcall(table.concat, term_widget.charlist)
+        assert.is_true(success)
+
+        -- 2. Enable scroll region on lines 2 to 4
+        term_widget.scroll_region_top = 2
+        term_widget.scroll_region_bottom = 4
+        term_widget.scroll_region_line = 2 -- cursor is at top of region (line 2)
+
+        -- Move cursor to line 2 (index 12, start of abcde)
+        term_widget.charpos = 12
+
+        -- 3. Trigger scroll down
+        term_widget:scrollRegionDown(1)
+
+        local result_concat = table.concat(term_widget.charlist)
+
+        -- Verify that the bottom line of scroll region (Line 4: 67890) was deleted,
+        -- NOT the line below it (Line 5: XYZWZ).
+        local lines = {}
+        for line in result_concat:gmatch("[^\n]+") do
+            table.insert(lines, line)
+        end
+
+        assert.is.same("12345     ", lines[1])
+        assert.is.same("..........", lines[2])
+        assert.is.same("abcde     ", lines[3])
+        assert.is.same("ABCDE     ", lines[4])
+        assert.is.same("XYZWZ     ", lines[5])
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
 end)
