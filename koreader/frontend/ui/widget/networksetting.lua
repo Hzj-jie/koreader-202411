@@ -53,6 +53,7 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
+local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Widget = require("ui/widget/widget")
@@ -479,6 +480,22 @@ function NetworkSetting:init()
     progress = 0,
   })
 
+  local title_bar = TitleBar:new({
+    title = gettext("Wi-Fi networks"),
+    width = self.width,
+    align = "center",
+    with_bottom_line = true,
+    left_icon = "close",
+    left_icon_tap_callback = function()
+      UIManager:close(self)
+    end,
+    right_icon = "cre.render.reload",
+    right_icon_tap_callback = function()
+      UIManager:close(self)
+      NetworkMgr:showNetworkMenu(self.connect_callback)
+    end,
+  })
+
   self.height = self.height
     or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
   self.popup = FrameContainer:new({
@@ -487,15 +504,17 @@ function NetworkSetting:init()
     bordersize = Size.border.window,
     VerticalGroup:new({
       align = "left",
+      title_bar,
       self.pagination,
       ListView:new({
         padding = 0,
         items = items,
         width = self.width,
-        height = self.height - self.pagination:getSize().h,
+        height = self.height
+          - self.pagination:getSize().h
+          - title_bar:getSize().h,
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
-          -- self.page_text:setText(curr_page .. "/" .. total_pages)
           self:scheduleRepaint()
         end,
       }),
