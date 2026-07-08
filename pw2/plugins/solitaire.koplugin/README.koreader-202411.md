@@ -1,0 +1,1 @@
+../../../koreader/plugins/solitaire.koplugin/README.koreader-202411.md
