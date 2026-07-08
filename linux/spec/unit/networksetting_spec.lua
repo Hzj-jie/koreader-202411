@@ -165,17 +165,22 @@ describe("NetworkSetting module", function()
         assert.is_true(ns_idx > modal_idx, "NetworkSetting should be above mock_modal in the stack")
     end)
 
-    it("should trigger refreshNetworkList when title bar refresh button is tapped", function()
-        stub(NetworkMgr, "getSortedNetworkList", function() return {} end)
-        local ns = NetworkSetting:new{network_list = {}}
-        spy.on(ns, "refreshNetworkList")
+    it("should close self and call NetworkMgr:showNetworkMenu when title bar refresh button is tapped", function()
+        stub(NetworkMgr, "showNetworkMenu")
+        spy.on(UIManager, "close")
+
+        local ns = NetworkSetting:new{
+            network_list = {},
+            connect_callback = "mock_callback"
+        }
 
         local title_bar = ns[1][1][1][1]
         title_bar.right_icon_tap_callback()
 
-        assert.spy(ns.refreshNetworkList).was.called(1)
-        assert.spy(NetworkMgr.getSortedNetworkList).was.called(1)
+        assert.spy(UIManager.close).was.called_with(UIManager, ns)
+        assert.spy(NetworkMgr.showNetworkMenu).was.called_with(NetworkMgr, "mock_callback")
 
-        NetworkMgr.getSortedNetworkList:revert()
+        NetworkMgr.showNetworkMenu:revert()
+        UIManager.close:revert()
     end)
 end)
