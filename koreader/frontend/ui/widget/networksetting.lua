@@ -440,27 +440,7 @@ function NetworkSetting:init()
       Screen:getWidth() - Screen:scaleBySize(50),
       Screen:scaleBySize(600)
     )
-  self.height = self.height
-    or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
 
-  self:buildLayout()
-
-  if Device:isTouchDevice() then
-    self.ges_events.TapClose = {
-      GestureRange:new({
-        ges = "tap",
-        range = Geom:new({
-          x = 0,
-          y = 0,
-          w = Screen:getWidth(),
-          h = Screen:getHeight(),
-        }),
-      }),
-    }
-  end
-end
-
-function NetworkSetting:buildLayout()
   local gray_bg = Blitbuffer.COLOR_GRAY_E
   local items = {}
   table.sort(self.network_list, function(l, r)
@@ -511,10 +491,13 @@ function NetworkSetting:buildLayout()
     end,
     right_icon = "cre.render.reload",
     right_icon_tap_callback = function()
-      self:refreshNetworkList()
+      UIManager:close(self)
+      NetworkMgr:showNetworkMenu(self.connect_callback)
     end,
   })
 
+  self.height = self.height
+    or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
   self.popup = FrameContainer:new({
     background = Blitbuffer.COLOR_WHITE,
     padding = 0,
@@ -542,14 +525,19 @@ function NetworkSetting:buildLayout()
     dimen = { w = Screen:getWidth(), h = Screen:getHeight() },
     self.popup,
   })
-end
 
-function NetworkSetting:refreshNetworkList()
-  local network_list = NetworkMgr:getSortedNetworkList(true)
-  if network_list then
-    self.network_list = network_list
-    self:buildLayout()
-    self:scheduleRepaint()
+  if Device:isTouchDevice() then
+    self.ges_events.TapClose = {
+      GestureRange:new({
+        ges = "tap",
+        range = Geom:new({
+          x = 0,
+          y = 0,
+          w = Screen:getWidth(),
+          h = Screen:getHeight(),
+        }),
+      }),
+    }
   end
 end
 

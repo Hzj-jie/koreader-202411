@@ -959,7 +959,7 @@ end
 --   * true: Successfully connected to a network.
 --   * false: Explicit failure (e.g. scanning failed, should abort).
 --   * nil: Connection attempt is ongoing in the background or the network list dialog is shown (should NOT abort).
-function NetworkMgr:getSortedNetworkList(interactive)
+local function getSortedNetworkList(self, interactive)
   local function scanNetworkList()
     -- NOTE: Fairly hackish workaround for #4387,
     --     rescan if the first scan appeared to yield an empty list.
@@ -1012,7 +1012,7 @@ end
 --   * false: Explicit failure (e.g. scanning failed, should abort).
 --   * nil: Connection attempt is ongoing in the background or the network list dialog is shown (should NOT abort).
 function NetworkMgr:reconnect(complete_callback, interactive)
-  local network_list = self:getSortedNetworkList(interactive)
+  local network_list = getSortedNetworkList(self, interactive)
   if network_list == false then
     return false
   end
@@ -1114,7 +1114,7 @@ end
 --   * false: Scanning failed.
 function NetworkMgr:showNetworkMenu(complete_callback, network_list)
   if not network_list then
-    network_list = self:getSortedNetworkList(true)
+    network_list = getSortedNetworkList(self, true)
     if network_list == false then
       return false
     end
