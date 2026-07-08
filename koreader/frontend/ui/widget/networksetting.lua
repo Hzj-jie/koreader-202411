@@ -53,6 +53,7 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
+local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Widget = require("ui/widget/widget")
@@ -439,7 +440,27 @@ function NetworkSetting:init()
       Screen:getWidth() - Screen:scaleBySize(50),
       Screen:scaleBySize(600)
     )
+  self.height = self.height
+    or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
 
+  self:buildLayout()
+
+  if Device:isTouchDevice() then
+    self.ges_events.TapClose = {
+      GestureRange:new({
+        ges = "tap",
+        range = Geom:new({
+          x = 0,
+          y = 0,
+          w = Screen:getWidth(),
+          h = Screen:getHeight(),
+        }),
+      }),
+    }
+  end
+end
+
+function NetworkSetting:buildLayout()
   local gray_bg = Blitbuffer.COLOR_GRAY_E
   local items = {}
   table.sort(self.network_list, function(l, r)
@@ -479,23 +500,38 @@ function NetworkSetting:init()
     progress = 0,
   })
 
-  self.height = self.height
-    or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
+  local title_bar = TitleBar:new({
+    title = gettext("Wi-Fi networks"),
+    width = self.width,
+    align = "center",
+    with_bottom_line = true,
+    left_icon = "close",
+    left_icon_tap_callback = function()
+      UIManager:close(self)
+    end,
+    right_icon = "cre.render.reload",
+    right_icon_tap_callback = function()
+      self:refreshNetworkList()
+    end,
+  })
+
   self.popup = FrameContainer:new({
     background = Blitbuffer.COLOR_WHITE,
     padding = 0,
     bordersize = Size.border.window,
     VerticalGroup:new({
       align = "left",
+      title_bar,
       self.pagination,
       ListView:new({
         padding = 0,
         items = items,
         width = self.width,
-        height = self.height - self.pagination:getSize().h,
+        height = self.height
+          - self.pagination:getSize().h
+          - title_bar:getSize().h,
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
-          -- self.page_text:setText(curr_page .. "/" .. total_pages)
           self:scheduleRepaint()
         end,
       }),
@@ -506,19 +542,14 @@ function NetworkSetting:init()
     dimen = { w = Screen:getWidth(), h = Screen:getHeight() },
     self.popup,
   })
+end
 
-  if Device:isTouchDevice() then
-    self.ges_events.TapClose = {
-      GestureRange:new({
-        ges = "tap",
-        range = Geom:new({
-          x = 0,
-          y = 0,
-          w = Screen:getWidth(),
-          h = Screen:getHeight(),
-        }),
-      }),
-    }
+function NetworkSetting:refreshNetworkList()
+  local network_list = NetworkMgr:getSortedNetworkList(true)
+  if network_list then
+    self.network_list = network_list
+    self:buildLayout()
+    self:scheduleRepaint()
   end
 end
 
