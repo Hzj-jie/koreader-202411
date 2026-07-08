@@ -482,6 +482,7 @@ function NetworkSetting:init()
 
   local title_bar = TitleBar:new({
     title = gettext("Wi-Fi networks"),
+    subtitle = " ",
     width = self.width,
     align = "center",
     with_bottom_line = true,
@@ -515,6 +516,9 @@ function NetworkSetting:init()
           - title_bar:getSize().h,
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
+          title_bar:setSubTitle(
+            string.format("%d / %d", curr_page, total_pages)
+          )
           self:scheduleRepaint()
         end,
       }),
