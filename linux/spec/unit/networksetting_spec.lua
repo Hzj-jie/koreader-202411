@@ -113,7 +113,7 @@ describe("NetworkSetting module", function()
             },
         }
         local ns = NetworkSetting:new{network_list = network_list}
-        local item = ns[1][1][1][2].items[1]
+        local item = ns[1][1][1][3].items[1]
 
         item:connect()
 
@@ -163,5 +163,19 @@ describe("NetworkSetting module", function()
         assert.is_not_nil(modal_idx, "mock_modal should be in the window stack")
         assert.is_not_nil(ns_idx, "NetworkSetting should be in the window stack")
         assert.is_true(ns_idx > modal_idx, "NetworkSetting should be above mock_modal in the stack")
+    end)
+
+    it("should trigger refreshNetworkList when title bar refresh button is tapped", function()
+        stub(NetworkMgr, "getSortedNetworkList", function() return {} end)
+        local ns = NetworkSetting:new{network_list = {}}
+        spy.on(ns, "refreshNetworkList")
+
+        local title_bar = ns[1][1][1][1]
+        title_bar.right_icon_tap_callback()
+
+        assert.spy(ns.refreshNetworkList).was.called(1)
+        assert.spy(NetworkMgr.getSortedNetworkList).was.called(1)
+
+        NetworkMgr.getSortedNetworkList:revert()
     end)
 end)
