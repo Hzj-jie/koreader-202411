@@ -198,13 +198,23 @@ function TermInputText:_updateCharPos(pos)
   end
 end
 
-function TermInputText:_removeLineEndingAt(end_pos)
-  -- Find the start of this line by looking backwards
-  local pos = end_pos - 1
-  -- Find the last newline character before end_pos to isolate the line.
-  while pos - 1 > 0 and self.charlist[pos - 1] ~= "\n" do
+function TermInputText:_findNextNewline(pos)
+  while pos <= #self.charlist and self.charlist[pos] ~= "\n" do
+    pos = pos + 1
+  end
+  return pos
+end
+
+function TermInputText:_findPreviousNewline(pos)
+  while pos > 0 and self.charlist[pos] ~= "\n" do
     pos = pos - 1
   end
+  return pos
+end
+
+function TermInputText:_removeLineEndingAt(end_pos)
+  -- Find the start of this line by looking backwards
+  local pos = self:_findPreviousNewline(end_pos - 1) + 1
 
   -- Shift remaining elements down to fill the gap of the deleted line
   table.move(self.charlist, end_pos + 1, #self.charlist, pos)
@@ -496,9 +506,7 @@ function TermInputText:scrollRegionDown(column)
   else -- scroll down
     local pos = self.charpos
     for _ = self.scroll_region_line, self.scroll_region_bottom do
-      while pos > 1 and self.charlist[pos] ~= "\n" do
-        pos = pos + 1
-      end
+      pos = self:_findNextNewline(pos)
       if pos < #self.charlist then
         pos = pos + 1
       end
@@ -521,9 +529,7 @@ function TermInputText:scrollRegionUp(column)
   else -- scroll up
     local pos = self.charpos
     for _ = self.scroll_region_line, self.scroll_region_top + 1, -1 do
-      while pos > 1 and self.charlist[pos] ~= "\n" do
-        pos = pos - 1
-      end
+      pos = self:_findPreviousNewline(pos)
       if pos > 1 then
         pos = pos - 1
       end
