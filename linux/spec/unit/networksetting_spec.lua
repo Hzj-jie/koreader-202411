@@ -32,6 +32,7 @@ describe("NetworkSetting module", function()
             network_list = network_list,
             connect_callback = function() called = true end
         }
+        assert.equal("1 / 1", ns[1][1][1][1].subtitle_widget.text)
         ns.connected_item:disconnect()
         assert.falsy(called)
 
