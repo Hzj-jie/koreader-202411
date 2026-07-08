@@ -198,6 +198,31 @@ function TermInputText:_updateCharPos(pos)
   end
 end
 
+function TermInputText:_removeLineEndingAt(end_pos)
+  -- Find the start of this line by looking backwards
+  local pos = end_pos - 1
+  -- Find the last newline character before end_pos to isolate the line.
+  while pos - 1 > 0 and self.charlist[pos - 1] ~= "\n" do
+    pos = pos - 1
+  end
+
+  -- Shift remaining elements down to fill the gap of the deleted line
+  table.move(self.charlist, end_pos + 1, #self.charlist, pos)
+
+  -- Cleanly remove the trailing duplicate elements
+  local deleted_len = end_pos - pos + 1
+  for _ = 1, deleted_len do
+    table.remove(self.charlist)
+  end
+
+  -- Update cursor position mathematically
+  if self.charpos > end_pos then
+    self.charpos = self.charpos - deleted_len
+  elseif self.charpos >= pos then
+    self.charpos = pos
+  end
+end
+
 function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
   if cmd == "A" then -- cursor up
     param1 = param1 == 0 and 1 or param1
@@ -478,29 +503,7 @@ function TermInputText:scrollRegionDown(column)
         pos = pos + 1
       end
     end
-    pos = pos - 1
-    local end_pos = pos
-    -- Find the last newline character before the bottom line's end to isolate it.
-    -- We will delete everything from this start index up to end_pos.
-    while pos - 1 > 0 and self.charlist[pos - 1] ~= "\n" do
-      pos = pos - 1
-    end
-
-    -- Shift remaining elements down to fill the gap of the deleted line
-    table.move(self.charlist, end_pos + 1, #self.charlist, pos)
-
-    -- Cleanly remove the trailing duplicate elements
-    local deleted_len = end_pos - pos + 1
-    for _ = 1, deleted_len do
-      table.remove(self.charlist)
-    end
-
-    -- Update cursor position mathematically
-    if self.charpos > end_pos then
-      self.charpos = self.charpos - deleted_len
-    elseif self.charpos >= pos then
-      self.charpos = pos
-    end
+    self:_removeLineEndingAt(pos - 1)
 
     pos = self.charpos
     for _ = column, self.maxc - column + 1 do
@@ -525,17 +528,7 @@ function TermInputText:scrollRegionUp(column)
         pos = pos - 1
       end
     end
-    pos = pos + 1
-    -- Track starting position to compute number of deleted characters.
-    -- We defer updating self.charpos to the end to avoid expensive calculations of #self.charlist.
-    local orig_pos = pos
-    table.remove(self.charlist, pos)
-    pos = pos - 1
-    while pos > 0 and self.charlist[pos] ~= "\n" do
-      table.remove(self.charlist, pos)
-      pos = pos - 1
-    end
-    self:_updateCharPos(self.charpos - (orig_pos - pos))
+    self:_removeLineEndingAt(pos + 1)
 
     pos = self.charpos + 1
     for _ = column, self.maxc - column do
