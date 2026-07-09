@@ -102,15 +102,19 @@ function TermInputText:init()
   self.alternate_buffer = {}
   self.save_buffer = {}
   InputText.init(self)
-  -- Disallow layout change for the same reason.
-  self.keyboard.lang_to_keyboard_layout = {
-    en = "en_keyboard",
-  }
-  -- Disallow long-press popups and swipe, they enter non-ascii characters.
-  self.keyboard.tap_only = true
-  -- Force en layout to avoid crashing. Calling this function will
-  -- re-initialize the keyboard and take effect of the above change.
-  self.keyboard:setKeyboardLayout("en")
+  if self.keyboard then
+    -- Disallow layout change for the same reason.
+    self.keyboard.lang_to_keyboard_layout = {
+      en = "en_keyboard",
+    }
+    -- Disallow long-press popups and swipe, they enter non-ascii characters.
+    self.keyboard.tap_only = true
+    -- Force en layout to avoid crashing. Calling this function will
+    -- re-initialize the keyboard and take effect of the above change.
+    if self.keyboard.setKeyboardLayout then
+      self.keyboard:setKeyboardLayout("en")
+    end
+  end
 end
 
 -- disable positioning cursor by tap in emulator mode

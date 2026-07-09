@@ -442,4 +442,52 @@ describe("Terminal plugin button tap integration", function()
         UIManager:close(input_dialog)
         filemanager:onClose()
     end)
+
+    it("should not crash during initialization when Device is mocked to use PhysicalKeyboard", function()
+        local Device = require("device")
+        -- 1. Backup Device:isTouchDevice
+        local orig_isTouchDevice = Device.isTouchDevice
+        Device.isTouchDevice = function() return false end
+
+        -- 2. Mock Device:hasDPad to return false to force PhysicalKeyboard loading
+        local orig_hasDPad = Device.hasDPad
+        Device.hasDPad = function() return false end
+
+        -- 3. Force reload inputtext and terminputtext
+        package.loaded["ui/widget/inputtext"] = nil
+        package.loaded["plugins/terminal.koplugin/terminputtext"] = nil
+
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        -- 4. Start terminal (should use TermInputText with PhysicalKeyboard)
+        local success, err = pcall(function()
+            terminal:onTerminalStart(filemanager.menu)
+        end)
+
+        -- 5. Restore mocks and packages
+        Device.isTouchDevice = orig_isTouchDevice
+        Device.hasDPad = orig_hasDPad
+        package.loaded["ui/widget/inputtext"] = nil
+        package.loaded["plugins/terminal.koplugin/terminputtext"] = nil
+
+        assert.is_true(success, "onTerminalStart crashed under PhysicalKeyboard: " .. tostring(err))
+
+        if success then
+            local input_dialog = UIManager._window_stack[2].widget
+            UIManager:close(input_dialog)
+        end
+        filemanager:onClose()
+    end)
 end)
