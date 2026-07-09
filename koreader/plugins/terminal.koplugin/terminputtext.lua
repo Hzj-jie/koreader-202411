@@ -102,15 +102,19 @@ function TermInputText:init()
   self.alternate_buffer = {}
   self.save_buffer = {}
   InputText.init(self)
-  -- Disallow layout change for the same reason.
-  self.keyboard.lang_to_keyboard_layout = {
-    en = "en_keyboard",
-  }
-  -- Disallow long-press popups and swipe, they enter non-ascii characters.
-  self.keyboard.tap_only = true
-  -- Force en layout to avoid crashing. Calling this function will
-  -- re-initialize the keyboard and take effect of the above change.
-  self.keyboard:setKeyboardLayout("en")
+  if self.keyboard then
+    -- Disallow layout change for the same reason.
+    self.keyboard.lang_to_keyboard_layout = {
+      en = "en_keyboard",
+    }
+    -- Disallow long-press popups and swipe, they enter non-ascii characters.
+    self.keyboard.tap_only = true
+    -- Force en layout to avoid crashing. Calling this function will
+    -- re-initialize the keyboard and take effect of the above change.
+    if self.keyboard.setKeyboardLayout then
+      self.keyboard:setKeyboardLayout("en")
+    end
+  end
 end
 
 -- disable positioning cursor by tap in emulator mode
@@ -669,8 +673,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
             local p = insertSpaces(self.maxc)
             table.insert(self.charlist, p, "\n")
           end
-          current_line_start = self.charpos
-          current_visual_col = 0
         end
       else
         -- not self.wrap
@@ -883,8 +885,8 @@ function TermInputText:rightChar(skip_callback)
   if self.charpos > #self.charlist then
     return
   end
-  local right_char = self.charlist[self.charpos + 1]
-  if not right_char or right_char == "\n" then
+  local cur_char = self.charlist[self.charpos]
+  if not cur_char or cur_char == "\n" then
     return
   end
   InputText.rightChar(self)
