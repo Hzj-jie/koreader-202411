@@ -674,8 +674,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
             local p = insertSpaces(self.maxc)
             table.insert(self.charlist, p, "\n")
           end
-          current_line_start = self.charpos
-          current_visual_col = 0
         end
       else
         -- not self.wrap
@@ -888,8 +886,8 @@ function TermInputText:rightChar(skip_callback)
   if self.charpos > #self.charlist then
     return
   end
-  local right_char = self.charlist[self.charpos + 1]
-  if not right_char or right_char == "\n" then
+  local cur_char = self.charlist[self.charpos]
+  if not cur_char or cur_char == "\n" then
     return
   end
   InputText.rightChar(self)

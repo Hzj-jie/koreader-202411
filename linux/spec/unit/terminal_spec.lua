@@ -443,6 +443,84 @@ describe("Terminal plugin button tap integration", function()
         filemanager:onClose()
     end)
 
+    it("should allow moving cursor right up to the end of line (before newline)", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        term_widget:interpretAnsiSeq("abc\n")
+
+        -- Buffer is {"a", "b", "c", "\n"}, length 4.
+        -- Let's position cursor at index 1 (before "a") manually.
+        term_widget:moveCursorToCharPos(1)
+
+        -- Move right (should go to 2, before "b")
+        term_widget:rightChar(true)
+        assert.is.same(2, term_widget.charpos)
+
+        -- Move right (should go to 3, before "c")
+        term_widget:rightChar(true)
+        assert.is.same(3, term_widget.charpos)
+
+        -- Move right (should go to 4, before "\n", i.e. after "c")
+        term_widget:rightChar(true)
+        assert.is.same(4, term_widget.charpos)
+
+        -- Move right (should NOT move, since index 4 is "\n")
+        term_widget:rightChar(true)
+        assert.is.same(4, term_widget.charpos)
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
+
+    it("should handle invalid UTF-8 characters and binary data gracefully without crashing", function()
+        local filemanager = FileManager:new{
+            dimen = Screen:getSize(),
+            root_path = "spec/unit/data",
+        }
+
+        local terminal = filemanager.terminal
+        terminal.spawnShell = function(self)
+            self.is_shell_open = true
+            return true
+        end
+        terminal.receive = function(self) return "" end
+        terminal.transmit = function(self) end
+        terminal.refresh = function(self) end
+
+        terminal:onTerminalStart(filemanager.menu)
+        UIManager:forceRepaint()
+
+        local input_dialog = UIManager._window_stack[2].widget
+        local term_widget = input_dialog._input_widget
+
+        -- Send invalid UTF-8 sequence and binary bytes (e.g. \xff\xfe\x00)
+        local success, err = pcall(function()
+            term_widget:interpretAnsiSeq("hello \xff\xfe\000 world")
+        end)
+        assert.is_true(success, "interpretAnsiSeq crashed: " .. tostring(err))
+
+        UIManager:close(input_dialog)
+        filemanager:onClose()
+    end)
+
     it("should not crash during initialization when Device is mocked to use PhysicalKeyboard", function()
         local Device = require("device")
         -- 1. Backup Device:isTouchDevice
