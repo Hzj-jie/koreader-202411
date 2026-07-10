@@ -471,9 +471,9 @@ function Terminal:generateInputDialog()
         {
           text = "☰", -- settings menu
           callback = function()
-            self.input_dialog:toggleKeyboard(false)
+            self.input_dialog:closeKeyboard()
             Aliases:show(self.terminal_data .. "/scripts/aliases", function()
-              self.input_dialog:toggleKeyboard(true)
+              self.input_dialog:showKeyboard()
             end, self)
           end,
         },
