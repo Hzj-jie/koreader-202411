@@ -671,7 +671,7 @@ function InputDialog:closeKeyboard()
   self._in_close_keyboard = nil
 end
 
-function InputDialog:restoreKeyboard()
+function InputDialog:_restoreKeyboard()
   if self._keyboard_was_visible then
     self:showKeyboard()
     self._keyboard_was_visible = nil
@@ -970,7 +970,7 @@ function InputDialog:_addScrollButtons(nav_bar)
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
-                    self:restoreKeyboard()
+                    self:_restoreKeyboard()
                   end,
                 },
                 {
@@ -1030,7 +1030,7 @@ function InputDialog:_addScrollButtons(nav_bar)
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
-                    self:restoreKeyboard()
+                    self:_restoreKeyboard()
                   end,
                 },
                 {
@@ -1044,7 +1044,7 @@ function InputDialog:_addScrollButtons(nav_bar)
                       and new_line_num <= last_line_num
                     then
                       UIManager:close(input_dialog)
-                      self:restoreKeyboard()
+                      self:_restoreKeyboard()
                       self._input_widget:moveCursorToCharPos(
                         self._input_widget:getLineCharPos(new_line_num)
                       )
@@ -1145,7 +1145,7 @@ function InputDialog:findCallback(input_dialog, find_first)
     return
   end
   UIManager:close(input_dialog)
-  self:restoreKeyboard()
+  self:_restoreKeyboard()
   local start_pos = find_first and 1 or self._charpos + 1
   local char_pos = util.stringSearch(
     self.input,
