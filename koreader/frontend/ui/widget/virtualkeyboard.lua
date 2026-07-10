@@ -956,7 +956,7 @@ end
 
 function VirtualKeyboard:onKeyboardBack()
   if
-    Device:hasDPad()
+    Device:isTouchDevice()
     and self.inputbox ~= nil
     and self.inputbox.parent ~= nil
     and self.inputbox.parent.deny_keyboard_hiding
