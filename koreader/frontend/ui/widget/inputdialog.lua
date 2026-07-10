@@ -143,7 +143,7 @@ local InputDialog = FocusManager:extend({
   add_scroll_buttons = false, -- add scroll Up/Down buttons to first row of buttons
   add_nav_bar = false, -- append a row of page navigation buttons
   -- note that the text widget can be scrolled with Swipe North/South even when no button
-  keyboard_visible = true, -- whether we start with the keyboard visible or not (i.e., our caller skipped onShowKeyboard)
+  _should_show_keyboard = true, -- whether we start with the keyboard visible or not (i.e., our caller skipped onShowKeyboard)
   -- needs add_nav_bar to have a Show keyboard button to get it back
   scroll_by_pan = false, -- allow scrolling by lines with Pan (= Swipe, but wait a bit at end
   -- of gesture before releasing) (may conflict with movable)
@@ -192,7 +192,7 @@ local InputDialog = FocusManager:extend({
   alignment_strict = false,
 
   -- for internal use
-  _keyboard_was_visible = nil, -- previous kb visibility state
+
   _text_modified = false, -- previous known modified status
   _top_line_num = nil,
   _charpos = nil,
@@ -203,6 +203,11 @@ local InputDialog = FocusManager:extend({
 })
 
 function InputDialog:init()
+  if self.keyboard_visible ~= nil then
+    self._should_show_keyboard = self.keyboard_visible
+    self.keyboard_visible = nil
+  end
+
   self.layout = { {} }
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
@@ -221,7 +226,7 @@ function InputDialog:init()
     self.text_width = self.text_width or math.floor(self.width * 0.9)
   end
   if self.readonly then -- hide keyboard if we can't edit
-    self.keyboard_visible = false
+    self._should_show_keyboard = false
   end
 
   -- Title & description
@@ -299,7 +304,7 @@ function InputDialog:init()
     local text_height = input_widget:getTextHeight()
     local line_height = input_widget:getLineHeight()
     local input_pad_height = input_widget:getSize().h - text_height
-    local keyboard_height = self.keyboard_visible
+    local keyboard_height = self._should_show_keyboard
         and input_widget:getKeyboardDimen().h
       or 0
     input_widget:closeKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
@@ -453,7 +458,7 @@ function InputDialog:init()
     end
     frame = self.movable
   end
-  local keyboard_height = self.keyboard_visible
+  local keyboard_height = self._should_show_keyboard
       and self._input_widget:getKeyboardDimen().h
     or 0
   self[1] = CenterContainer:new({
@@ -480,7 +485,7 @@ function InputDialog:init()
   end
 
   -- If we're fullscreen without the virtual keyboard, make sure only the toggle button can bring back the keyboard...
-  if self.fullscreen and not self.keyboard_visible then
+  if self.fullscreen and not self._should_show_keyboard then
     self:lockKeyboard(true)
   end
 end
@@ -502,9 +507,9 @@ function InputDialog:reinit()
   self.text_height = self.orig_text_height or nil
 
   -- Same deal as in toggleKeyboard...
-  self.keyboard_visible = visible and true or false
+  self._should_show_keyboard = visible and true or false
   self:init()
-  if self.keyboard_visible then
+  if self._should_show_keyboard then
     self:showKeyboard()
   end
   -- Our position on screen has probably changed, so have the full screen refreshed
@@ -614,11 +619,11 @@ function InputDialog:onClose()
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
-  if not self.keyboard_visible then
+  if not self._should_show_keyboard then
     self.input = self:getInputText()
     self:onExit()
     self:free()
-    self.keyboard_visible = true
+    self._should_show_keyboard = true
     self:init()
     self:lockKeyboard(false)
 
@@ -639,12 +644,12 @@ function InputDialog:closeKeyboard()
   end
   self._in_close_keyboard = true
 
-  if self.keyboard_visible then
+  if self._should_show_keyboard then
     self.input = self:getInputText()
     self:_closeKeyboard() -- Close it on the OLD widget before freeing it!
     self:onExit()
     self:free()
-    self.keyboard_visible = false
+    self._should_show_keyboard = false
     self:init()
     -- Prevent InputText:onTapTextBox from opening the keyboard back up on top of our buttons
     self:lockKeyboard(true)
@@ -678,12 +683,12 @@ function InputDialog:_showKeyboard(ignore_first_hold_release)
   self._input_widget:showKeyboard(ignore_first_hold_release)
   -- There's a bit of a chicken or egg issue in init where we would like to check the actual keyboard's visibility state,
   -- but the widget might not exist or be shown yet, so we'll just have to keep this in sync...
-  self.keyboard_visible = self:isKeyboardVisible()
+  self._should_show_keyboard = self:isKeyboardVisible()
 end
 
 function InputDialog:_closeKeyboard()
   self._input_widget:closeKeyboard()
-  self.keyboard_visible = self:isKeyboardVisible()
+  self._should_show_keyboard = self:isKeyboardVisible()
 end
 
 -- NOTE: Only called by fullscreen and/or add_nav_bar codepaths
@@ -939,7 +944,7 @@ function InputDialog:_addScrollButtons(nav_bar)
     -- Also add Keyboard hide/show button if we can
     if self.fullscreen and not self.readonly then
       table.insert(row, {
-        text = self.keyboard_visible and "↓⌨" or "↑⌨",
+        text = self._should_show_keyboard and "↓⌨" or "↑⌨",
         id = "keyboard",
         callback = function()
           if self:isKeyboardVisible() then

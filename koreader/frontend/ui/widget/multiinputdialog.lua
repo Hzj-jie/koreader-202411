@@ -283,13 +283,13 @@ function MultiInputDialog:onKeyboardHeightChanged()
     end
   end
   self:free()
-  self.keyboard_visible = visible
+  self._should_show_keyboard = visible
   for i, field in ipairs(self.fields) do -- restore entered text and type
     field.text = fields[i].text
     field.text_type = fields[i].text_type
   end
   self:init()
-  if self.keyboard_visible then
+  if self._should_show_keyboard then
     self:showKeyboard()
   end
   UIManager:setDirty("all", "flashui")
