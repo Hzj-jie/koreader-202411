@@ -103,6 +103,12 @@ local Terminal = WidgetContainer:extend({
   terminal_data = ".",
 })
 
+function Terminal:getInputWidget()
+  assert(self.input_dialog ~= nil, "input_dialog is nil")
+  assert(self.input_dialog._input_widget ~= nil, "input_widget is nil")
+  return self.input_dialog._input_widget
+end
+
 function Terminal:isExecutable(file)
   -- check if file is an executable or a command in PATH
   return os.execute(string.format("test -x %s || command -v %s", file, file))
@@ -155,8 +161,8 @@ end
 
 function Terminal:spawnShell(cols, rows)
   if self.is_shell_open then
-    self.input_widget:resize(rows, cols)
-    self.input_widget:interpretAnsiSeq(self:receive())
+    self:getInputWidget():resize(rows, cols)
+    self:getInputWidget():interpretAnsiSeq(self:receive())
     return true
   end
 
@@ -294,8 +300,8 @@ function Terminal:spawnShell(cols, rows)
     self:transmit("stty cols " .. cols .. " rows " .. rows .. "\n")
   end
 
-  self.input_widget:resize(rows, cols)
-  self.input_widget:interpretAnsiSeq(self:receive())
+  self:getInputWidget():resize(rows, cols)
+  self:getInputWidget():interpretAnsiSeq(self:receive())
 
   logger.info("Terminal: spawn done")
   return true
@@ -321,8 +327,8 @@ function Terminal:refresh(reset)
 
   local next_text = self:receive()
   if next_text ~= "" then
-    self.input_widget:interpretAnsiSeq(next_text)
-    self.input_widget:trimBuffer(self.buffer_size)
+    self:getInputWidget():interpretAnsiSeq(next_text)
+    self:getInputWidget():trimBuffer(self.buffer_size)
     if self.is_shell_open then
       UIManager:tickAfterNext(function()
         UIManager:scheduleIn(self.refresh_time, Terminal.refresh, self)
@@ -441,34 +447,33 @@ function Terminal:generateInputDialog()
             while self:receive() ~= "" do
               C.tcflush(self.ptmx, C.TCIFLUSH)
             end
-            self.input_widget:addChars("\003", true) -- as we flush the queue
+            self:getInputWidget():addChars("\003", true) -- as we flush the queue
           end,
         },
         {
           text = "⇧",
           callback = function()
-            self.input_widget:upLine()
+            self:getInputWidget():upLine()
           end,
           hold_callback = function()
-            self.input_widget:scrollUp()
+            self:getInputWidget():scrollUp()
           end,
         },
         {
           text = "⇩",
           callback = function()
-            self.input_widget:downLine()
+            self:getInputWidget():downLine()
           end,
           hold_callback = function()
-            self.input_widget:scrollDown()
+            self:getInputWidget():scrollDown()
           end,
         },
         {
           text = "☰", -- settings menu
           callback = function()
-            self.input_widget:closeKeyboard()
+            self.input_dialog:toggleKeyboard(false)
             Aliases:show(self.terminal_data .. "/scripts/aliases", function()
-              self.input_widget:showKeyboard()
-              UIManager:setDirty(self.input_dialog, "fast") -- is there a better solution
+              self.input_dialog:toggleKeyboard(true)
             end, self)
           end,
         },
@@ -548,16 +553,16 @@ function Terminal:onTerminalStart(menu)
   )
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
-  self.input_widget = self.input_dialog._input_widget
 
   local scroll_bar_width = ScrollTextWidget.scroll_bar_width
     + ScrollTextWidget.text_scroll_span
   self.maxc = math.floor(
-    (self.input_widget.width - scroll_bar_width) / self:getCharSize()
+    (self:getInputWidget().width - scroll_bar_width) / self:getCharSize()
   )
 
-  self.maxr =
-    math.floor(self.input_widget.height / self.input_widget:getLineHeight())
+  self.maxr = math.floor(
+    self:getInputWidget().height / self:getInputWidget():getLineHeight()
+  )
 
   self.store_position = 1
 
