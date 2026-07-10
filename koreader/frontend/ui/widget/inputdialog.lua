@@ -130,7 +130,7 @@ local InputDialog = FocusManager:extend({
   description = nil,
   buttons = nil,
   input_type = nil,
-  deny_keyboard_hiding = false, -- don't hide keyboard on tap outside
+
   enter_callback = nil,
   strike_callback = nil, -- call this on every keystroke
   inputtext_class = InputText, -- (Terminal plugin provides TermInputText)
@@ -222,9 +222,6 @@ function InputDialog:init()
   end
   if self.readonly then -- hide keyboard if we can't edit
     self.keyboard_visible = false
-  end
-  if self.fullscreen or self.add_nav_bar then
-    self.deny_keyboard_hiding = true
   end
 
   -- Title & description
@@ -541,9 +538,7 @@ end
 -- If the keyboard is hidden, tap outside of the dialog to close the dialog.
 function InputDialog:onTap(arg, ges)
   -- This is slightly more fine-grained than VK's own visibility lock, hence the duplication...
-  if self.deny_keyboard_hiding then
-    return
-  end
+
   if self:isKeyboardVisible() then
     -- NOTE: While VirtualKey will attempt to cover the gap between keys in its hitbox (i.e., the grey border),
     --       a tap *may* still fall outside of the ges_events range of a VirtualKey (e.g., on the very edges of the board's frame).

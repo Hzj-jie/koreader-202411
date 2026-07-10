@@ -955,14 +955,6 @@ function VirtualKeyboard:setKeyboardLayout(layout)
 end
 
 function VirtualKeyboard:onKeyboardBack()
-  if
-    Device:isTouchDevice()
-    and self.inputbox ~= nil
-    and self.inputbox.parent ~= nil
-    and self.inputbox.parent.deny_keyboard_hiding
-  then
-    return false
-  end
   self:onExit()
   return true
 end
