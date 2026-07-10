@@ -613,22 +613,14 @@ function InputDialog:onClose()
   self:onExit()
 end
 
-function InputDialog:_showKeyboard(ignore_first_hold_release)
-  self._input_widget:showKeyboard(ignore_first_hold_release)
-  self.keyboard_visible = self._input_widget:isKeyboardVisible()
-end
-
-function InputDialog:_closeKeyboard()
-  self._input_widget:closeKeyboard()
-  self.keyboard_visible = self._input_widget:isKeyboardVisible()
-end
-
 function InputDialog:showKeyboard(ignore_first_hold_release)
   if not self.keyboard_visible then
     self.input = self:getInputText()
+    self:onExit()
+    self:free()
     self.keyboard_visible = true
-    self:lockKeyboard(false)
     self:init()
+    self:lockKeyboard(false)
 
     local keyboard_button = self.button_table:getButtonById("keyboard")
     if keyboard_button then
@@ -648,7 +640,6 @@ function InputDialog:closeKeyboard()
   self._in_close_keyboard = true
 
   if self.keyboard_visible then
-    self._keyboard_was_visible = true
     self.input = self:getInputText()
     self:_closeKeyboard() -- Close it on the OLD widget before freeing it!
     self:onExit()
@@ -671,21 +662,22 @@ function InputDialog:closeKeyboard()
   self._in_close_keyboard = nil
 end
 
-function InputDialog:_restoreKeyboard()
-  if self._keyboard_was_visible then
-    self:showKeyboard()
-    self._keyboard_was_visible = nil
-  else
-    self:closeKeyboard()
-  end
-end
-
 function InputDialog:isKeyboardVisible()
   return self._input_widget:isKeyboardVisible()
 end
 
 function InputDialog:lockKeyboard(toggle)
   return self._input_widget:lockKeyboard(toggle)
+end
+
+function InputDialog:_showKeyboard(ignore_first_hold_release)
+  self._input_widget:showKeyboard(ignore_first_hold_release)
+  self.keyboard_visible = self._input_widget:isKeyboardVisible()
+end
+
+function InputDialog:_closeKeyboard()
+  self._input_widget:closeKeyboard()
+  self.keyboard_visible = self._input_widget:isKeyboardVisible()
 end
 
 -- NOTE: Only called by fullscreen and/or add_nav_bar codepaths
@@ -957,6 +949,7 @@ function InputDialog:_addScrollButtons(nav_bar)
       table.insert(row, {
         text = gettext("Find"),
         callback = function()
+          local was_visible = self:isKeyboardVisible()
           self:closeKeyboard() -- hide text editor keyboard
           local input_dialog
           input_dialog = InputDialog:new({
@@ -970,20 +963,24 @@ function InputDialog:_addScrollButtons(nav_bar)
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
-                    self:_restoreKeyboard()
+                    if was_visible then
+                      self:showKeyboard()
+                    else
+                      self:closeKeyboard()
+                    end
                   end,
                 },
                 {
                   text = gettext("Find first"),
                   callback = function()
-                    self:findCallback(input_dialog, true)
+                    self:findCallback(input_dialog, true, was_visible)
                   end,
                 },
                 {
                   text = gettext("Find next"),
                   is_enter_default = true,
                   callback = function()
-                    self:findCallback(input_dialog)
+                    self:findCallback(input_dialog, nil, was_visible)
                   end,
                 },
               },
@@ -1010,6 +1007,7 @@ function InputDialog:_addScrollButtons(nav_bar)
         font_bold = false,
         id = "go",
         callback = function()
+          local was_visible = self:isKeyboardVisible()
           self:closeKeyboard() -- hide text editor keyboard
           local curr_line_num, last_line_num = self._input_widget:getLineNums()
           local input_dialog
@@ -1030,7 +1028,11 @@ function InputDialog:_addScrollButtons(nav_bar)
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
-                    self:_restoreKeyboard()
+                    if was_visible then
+                      self:showKeyboard()
+                    else
+                      self:closeKeyboard()
+                    end
                   end,
                 },
                 {
@@ -1044,7 +1046,11 @@ function InputDialog:_addScrollButtons(nav_bar)
                       and new_line_num <= last_line_num
                     then
                       UIManager:close(input_dialog)
-                      self:_restoreKeyboard()
+                      if was_visible then
+                        self:showKeyboard()
+                      else
+                        self:closeKeyboard()
+                      end
                       self._input_widget:moveCursorToCharPos(
                         self._input_widget:getLineCharPos(new_line_num)
                       )
@@ -1139,13 +1145,17 @@ function InputDialog:_addScrollButtons(nav_bar)
   end
 end
 
-function InputDialog:findCallback(input_dialog, find_first)
+function InputDialog:findCallback(input_dialog, find_first, was_visible)
   self.search_value = input_dialog:getInputText()
   if self.search_value == "" then
     return
   end
   UIManager:close(input_dialog)
-  self:_restoreKeyboard()
+  if was_visible then
+    self:showKeyboard()
+  else
+    self:closeKeyboard()
+  end
   local start_pos = find_first and 1 or self._charpos + 1
   local char_pos = util.stringSearch(
     self.input,
