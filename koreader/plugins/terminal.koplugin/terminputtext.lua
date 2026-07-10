@@ -24,42 +24,6 @@ local esc_seq = {
   page_down = "\027[6~",
 }
 
-local function getCharWidth(c)
-  if type(c) ~= "string" or c == "" or c == "\n" then
-    return 0
-  end
-  if util.isCJKChar(c) then
-    return 2
-  else
-    return 1
-  end
-end
-
-local function getVisualWidth(charlist, start_idx, end_idx)
-  local width = 0
-  for i = start_idx, end_idx do
-    width = width + getCharWidth(charlist[i])
-  end
-  return width
-end
-
-local function getCharposAtVisualColumn(
-  charlist,
-  line_start_idx,
-  target_visual_col
-)
-  local cur_visual_col = 0
-  local i = line_start_idx
-  while charlist[i] and charlist[i] ~= "\n" do
-    if cur_visual_col >= target_visual_col then
-      return i
-    end
-    cur_visual_col = cur_visual_col + getCharWidth(charlist[i])
-    i = i + 1
-  end
-  return i
-end
-
 local function isNum(char)
   if #char ~= 1 then
     return
@@ -102,19 +66,15 @@ function TermInputText:init()
   self.alternate_buffer = {}
   self.save_buffer = {}
   InputText.init(self)
-  if self.keyboard then
-    -- Disallow layout change for the same reason.
-    self.keyboard.lang_to_keyboard_layout = {
-      en = "en_keyboard",
-    }
-    -- Disallow long-press popups and swipe, they enter non-ascii characters.
-    self.keyboard.tap_only = true
-    -- Force en layout to avoid crashing. Calling this function will
-    -- re-initialize the keyboard and take effect of the above change.
-    if self.keyboard.setKeyboardLayout then
-      self.keyboard:setKeyboardLayout("en")
-    end
-  end
+  -- Disallow layout change for the same reason.
+  self.keyboard.lang_to_keyboard_layout = {
+    en = "en_keyboard",
+  }
+  -- Disallow long-press popups and swipe, they enter non-ascii characters.
+  self.keyboard.tap_only = true
+  -- Force en layout to avoid crashing. Calling this function will
+  -- re-initialize the keyboard and take effect of the above change.
+  self.keyboard:setKeyboardLayout("en")
 end
 
 -- disable positioning cursor by tap in emulator mode
@@ -196,12 +156,6 @@ function TermInputText:restoreBuffer(buffer)
   end
 end
 
-function TermInputText:_updateCharPos(pos)
-  if pos then
-    self.charpos = math.max(1, math.min(#self.charlist + 1, pos))
-  end
-end
-
 function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
   if cmd == "A" then -- cursor up
     param1 = param1 == 0 and 1 or param1
@@ -251,7 +205,7 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
       local saved_pos = self.charpos
       self:moveCursorToRowCol(1, 1)
       self:clearToEndOfScreen()
-      self:_updateCharPos(saved_pos)
+      self.charpos = saved_pos
     end
     return true
   elseif cmd == "K" then -- clear to end of line
@@ -382,7 +336,7 @@ function TermInputText:interpretAnsiSeq(text)
       elseif next_byte == "7" then
         self.store_pos_dec = self.charpos
       elseif next_byte == "8" then
-        self:_updateCharPos(self.store_pos_dec)
+        self.charpos = self.store_pos_dec
       end
     elseif self.sequence_state == "escY" then
       param1 = next_byte
@@ -401,7 +355,7 @@ function TermInputText:interpretAnsiSeq(text)
       if next_byte == "s" then -- save cursor pos
         self.store_pos_sco = self.charpos
       elseif next_byte == "u" then -- restore cursor pos
-        self:_updateCharPos(self.store_pos_sco)
+        self.charpos = self.store_pos_sco
       elseif next_byte == "?" then
         self.sequence_mode = "?"
         self.sequence_state = "escParam2"
@@ -483,27 +437,10 @@ function TermInputText:scrollRegionDown(column)
       end
     end
     pos = pos - 1
-    local end_pos = pos
-    -- Find the last newline character before the bottom line's end to isolate it.
-    -- We will delete everything from this start index up to end_pos.
-    while pos - 1 > 0 and self.charlist[pos - 1] ~= "\n" do
-      pos = pos - 1
-    end
 
-    -- Shift remaining elements down to fill the gap of the deleted line
-    table.move(self.charlist, end_pos + 1, #self.charlist, pos)
-
-    -- Cleanly remove the trailing duplicate elements
-    local deleted_len = end_pos - pos + 1
-    for _ = 1, deleted_len do
-      table.remove(self.charlist)
-    end
-
-    -- Update cursor position mathematically
-    if self.charpos > end_pos then
-      self.charpos = self.charpos - deleted_len
-    elseif self.charpos >= pos then
-      self.charpos = pos
+    table.remove(self.charlist, pos)
+    while self.charlist[pos] ~= "\n" do
+      table.remove(self.charlist, pos)
     end
 
     pos = self.charpos
@@ -530,16 +467,14 @@ function TermInputText:scrollRegionUp(column)
       end
     end
     pos = pos + 1
-    -- Track starting position to compute number of deleted characters.
-    -- We defer updating self.charpos to the end to avoid expensive calculations of #self.charlist.
-    local orig_pos = pos
+
     table.remove(self.charlist, pos)
+    self.charpos = self.charpos - 1
     pos = pos - 1
     while pos > 0 and self.charlist[pos] ~= "\n" do
       table.remove(self.charlist, pos)
       pos = pos - 1
     end
-    self:_updateCharPos(self.charpos - (orig_pos - pos))
 
     pos = self.charpos + 1
     for _ = column, self.maxc - column do
@@ -581,8 +516,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   self.is_text_edited = true
   if #self.charlist == 0 then -- widget text is empty or a hint text is displayed
     self.charpos = 1 -- move cursor to the first position
-  else
-    self:_updateCharPos(self.charpos)
   end
 
   local function insertSpaces(n)
@@ -645,78 +578,29 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       end
       self.charpos = self.charpos + 1
     elseif chars_list[i] == "\b" then
-      self:leftChar(true)
-    elseif chars_list[i] == nil then
-      logger.warn("TermInputText: new_char is nil at index", i)
+      self.charpos = self.charpos - 1
     else
-      local new_char = chars_list[i]
-      local new_w = getCharWidth(new_char)
-
-      -- 1. Check visual column and wrap if necessary
-      local pos = self.charpos - 1
-      while pos > 0 and self.charlist[pos] ~= "\n" do
-        pos = pos - 1
-      end
-      local current_line_start = pos + 1
-      local current_visual_col =
-        getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
-
       if self.wrap then
-        if current_visual_col + new_w > self.maxc then
-          -- Wrap to next line
-          -- Find end of current line
-          local eol = self.charpos
-          while self.charlist[eol] and self.charlist[eol] ~= "\n" do
-            eol = eol + 1
-          end
-          self.charpos = eol + 1 -- move past \n
+        if self.charlist[self.charpos] == "\n" then
+          self.charpos = self.charpos + 1
           if not self.charlist[self.charpos] then
             local p = insertSpaces(self.maxc)
             table.insert(self.charlist, p, "\n")
           end
         end
       else
-        -- not self.wrap
-        if current_visual_col + new_w > self.maxc then
-          self.charpos = getCharposAtVisualColumn(
-            self.charlist,
-            current_line_start,
-            self.maxc - new_w
-          )
+        local column = 1
+        local pos = self.charpos
+        while pos > 0 and self.charlist[pos] ~= "\n" do
+          pos = pos - 1
+          column = column + 1
+        end
+        if self.charlist[self.charpos] == "\n" or column > self.maxc then
+          self.charpos = self.charpos - 1
         end
       end
-
-      -- 2. Overwrite logic with width adjustment
-      local idx = self.charpos
-      local old_char = self.charlist[idx]
-      local old_w = getCharWidth(old_char)
-
-      self.charlist[idx] = new_char
+      self.charlist[self.charpos] = chars_list[i]
       self.charpos = self.charpos + 1
-
-      local diff = new_w - old_w
-      if diff > 0 then
-        local target_remove = diff
-        local next_idx = idx + 1
-        while
-          target_remove > 0
-          and self.charlist[next_idx]
-          and self.charlist[next_idx] ~= "\n"
-        do
-          local next_w = getCharWidth(self.charlist[next_idx])
-          table.remove(self.charlist, next_idx)
-          target_remove = target_remove - next_w
-        end
-        if target_remove < 0 then
-          for _ = 1, -target_remove do
-            table.insert(self.charlist, next_idx, " ")
-          end
-        end
-      elseif diff < 0 then
-        for _ = 1, -diff do
-          table.insert(self.charlist, idx + 1, " ")
-        end
-      end
     end
   end
 
@@ -741,7 +625,7 @@ end
 
 function TermInputText:exitAlternateKeypad()
   if self.store_position then
-    self:_updateCharPos(self.store_position)
+    self.charpos = self.store_position
     self.store_position = nil
     -- clear the alternate keypad buffer
     while self.charlist[self.charpos] do
@@ -786,19 +670,14 @@ function TermInputText:moveCursorToRowCol(r, c)
   local cur_r, cur_c = 1, 0
   local i = self.store_position or 1
   while i < #self.charlist do
-    if self.charlist[i] == "\n" then
-      if cur_r == r then
-        self.charpos = i
-        break
-      end
-      cur_c = 0
-      cur_r = cur_r + 1
+    if self.charlist[i] ~= "\n" then
+      cur_c = cur_c + 1
     else
-      local c_w = getCharWidth(self.charlist[i])
-      cur_c = cur_c + c_w
+      cur_c = 0 -- as we are at the last NL
+      cur_r = cur_r + 1
     end
     self.charpos = i
-    if cur_r == r and cur_c >= c then
+    if cur_r == r and cur_c == c then
       break
     end
     i = i + 1
@@ -886,57 +765,47 @@ function TermInputText:rightChar(skip_callback)
   if self.charpos > #self.charlist then
     return
   end
-  local cur_char = self.charlist[self.charpos]
-  if not cur_char or cur_char == "\n" then
+  local right_char = self.charlist[self.charpos + 1]
+  if not right_char or right_char == "\n" then
     return
   end
   InputText.rightChar(self)
 end
 
 function TermInputText:moveCursorUp()
-  local pos = self.charpos - 1
-  while pos > 0 and self.charlist[pos] ~= "\n" do
+  local pos = self.charpos
+  while self.charlist[pos] and self.charlist[pos] ~= "\n" do
     pos = pos - 1
   end
-  local current_line_start = pos + 1
-  local visual_column =
-    getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
-
-  pos = pos - 1 -- move before \n
-  if pos < 1 then
-    return -- no previous line
-  end
-  while pos > 0 and self.charlist[pos] ~= "\n" do
+  local column = self.charpos - pos
+  pos = pos - 1
+  while self.charlist[pos] and self.charlist[pos] ~= "\n" do
     pos = pos - 1
   end
-  local prev_line_start = pos + 1
-
-  self.charpos =
-    getCharposAtVisualColumn(self.charlist, prev_line_start, visual_column)
+  self.charpos = pos + column
   self:moveCursorToCharPos(self.charpos)
 end
 
 function TermInputText:moveCursorDown()
-  local pos = self.charpos - 1
+  local pos = self.charpos
+
+  -- detect current column
   while pos > 0 and self.charlist[pos] ~= "\n" do
     pos = pos - 1
   end
-  local current_line_start = pos + 1
-  local visual_column =
-    getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
+  local column = self.charpos - pos
 
-  -- Move to next line
   while self.charlist[self.charpos] and self.charlist[self.charpos] ~= "\n" do
     self.charpos = self.charpos + 1
   end
-  if not self.charlist[self.charpos] then
-    return -- no next line
+  self.charpos = self.charpos + 1
+  for i = 1, column - 1 do
+    if self.charlist[pos + i] or self.charlist[pos + i] ~= "\n" then
+      self.charpos = self.charpos + 1
+    else
+      break
+    end
   end
-  self.charpos = self.charpos + 1 -- move past \n
-
-  local next_line_start = self.charpos
-  self.charpos =
-    getCharposAtVisualColumn(self.charlist, next_line_start, visual_column)
   self:moveCursorToCharPos(self.charpos)
 end
 
