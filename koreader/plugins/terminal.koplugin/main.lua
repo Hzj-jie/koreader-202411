@@ -104,7 +104,9 @@ local Terminal = WidgetContainer:extend({
 })
 
 function Terminal:getInputWidget()
-  return self.input_dialog and self.input_dialog._input_widget
+  assert(self.input_dialog ~= nil, "input_dialog is nil")
+  assert(self.input_dialog._input_widget ~= nil, "input_widget is nil")
+  return self.input_dialog._input_widget
 end
 
 function Terminal:isExecutable(file)
