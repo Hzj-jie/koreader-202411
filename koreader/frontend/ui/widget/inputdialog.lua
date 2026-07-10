@@ -646,6 +646,7 @@ function InputDialog:closeKeyboard()
     self:free()
     self.keyboard_visible = false
     self:init()
+    -- Prevent InputText:onTapTextBox from opening the keyboard back up on top of our buttons
     self:lockKeyboard(true)
 
     local keyboard_button = self.button_table:getButtonById("keyboard")
@@ -671,13 +672,18 @@ function InputDialog:lockKeyboard(toggle)
 end
 
 function InputDialog:_showKeyboard(ignore_first_hold_release)
+  -- NOTE: There's no VirtualKeyboard widget instantiated at all when readonly,
+  --       and our input widget handles that itself, so we don't need any guards here.
+  --       (In which case, isKeyboardVisible will return `nil`, same as if we had a VK instantiated but *never* shown).
   self._input_widget:showKeyboard(ignore_first_hold_release)
-  self.keyboard_visible = self._input_widget:isKeyboardVisible()
+  -- There's a bit of a chicken or egg issue in init where we would like to check the actual keyboard's visibility state,
+  -- but the widget might not exist or be shown yet, so we'll just have to keep this in sync...
+  self.keyboard_visible = self:isKeyboardVisible()
 end
 
 function InputDialog:_closeKeyboard()
   self._input_widget:closeKeyboard()
-  self.keyboard_visible = self._input_widget:isKeyboardVisible()
+  self.keyboard_visible = self:isKeyboardVisible()
 end
 
 -- NOTE: Only called by fullscreen and/or add_nav_bar codepaths
