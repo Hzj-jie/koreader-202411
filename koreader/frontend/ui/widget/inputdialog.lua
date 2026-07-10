@@ -391,6 +391,7 @@ function InputDialog:init()
     scroll_by_pan = self.scroll_by_pan,
     cursor_at_end = self.cursor_at_end,
     readonly = self.readonly,
+    disable_auto_keyboard = self.add_nav_bar,
     parent = self,
     is_text_edited = self._text_modified,
     top_line_num = self._top_line_num,
@@ -482,11 +483,6 @@ function InputDialog:init()
     for _, widget in ipairs(self._added_widgets) do
       self:addWidget(widget, true)
     end
-  end
-
-  -- If we're fullscreen without the virtual keyboard, make sure only the toggle button can bring back the keyboard...
-  if self.fullscreen and not self._should_show_keyboard then
-    self:lockKeyboard(true)
   end
 end
 
@@ -625,7 +621,6 @@ function InputDialog:showKeyboard(ignore_first_hold_release)
     self:free()
     self._should_show_keyboard = true
     self:init()
-    self:lockKeyboard(false)
 
     local keyboard_button = self.button_table:getButtonById("keyboard")
     if keyboard_button then
@@ -651,8 +646,6 @@ function InputDialog:closeKeyboard()
     self:free()
     self._should_show_keyboard = false
     self:init()
-    -- Prevent InputText:onTapTextBox from opening the keyboard back up on top of our buttons
-    self:lockKeyboard(true)
 
     local keyboard_button = self.button_table:getButtonById("keyboard")
     if keyboard_button then
@@ -670,10 +663,6 @@ end
 
 function InputDialog:isKeyboardVisible()
   return self._input_widget:isKeyboardVisible()
-end
-
-function InputDialog:lockKeyboard(toggle)
-  return self._input_widget:lockKeyboard(toggle)
 end
 
 function InputDialog:_showKeyboard(ignore_first_hold_release)

@@ -53,6 +53,7 @@ local InputText = InputContainer:extend({
   alignment_strict = false,
 
   readonly = nil, -- will not support a Keyboard widget if true
+  disable_auto_keyboard = false, -- prevent tapping the textbox from automatically popping up the keyboard. Useful in fullscreen dialogs where visibility transitions are strictly managed by buttons.
 
   -- for internal use
   keyboard = nil, -- Keyboard widget (either VirtualKeyboard or PhysicalKeyboard)
@@ -129,7 +130,9 @@ local function initTouchEvents()
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       else
-        self:showKeyboard()
+        if not self.disable_auto_keyboard then
+          self:showKeyboard()
+        end
         -- Make sure we're flagged as in focus again.
         -- NOTE: self:focus() does a full free/reinit cycle, which is completely unnecessary to begin with,
         --       *and* resets cursor position, which is problematic when tapping on an already in-focus field (#12444).
@@ -898,12 +901,6 @@ end
 function InputText:isKeyboardVisible()
   if self.keyboard then
     return self.keyboard:isVisible()
-  end
-end
-
-function InputText:lockKeyboard(toggle)
-  if self.keyboard then
-    return self.keyboard:lockVisibility(toggle)
   end
 end
 
