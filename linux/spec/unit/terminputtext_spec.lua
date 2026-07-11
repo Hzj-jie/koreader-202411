@@ -102,5 +102,42 @@ describe("TermInputText widget module", function()
         assert.are.same(expected, term.charlist)
       end
     )
+
+    it("should handle typing with long prompt and maxc=65", function()
+      local term = TermInputText:new({
+        maxc = 65,
+        maxr = 19,
+        wrap = true,
+      })
+      local prompt =
+        "zijiehe@zijiehe09:~/data/git/koreader-202411/koreader/plugins/terminal.koplugin$ "
+      term:addChars(prompt)
+
+      -- Type "l", "s", " ", "-"
+      term:addChars("l")
+      term:addChars("s")
+      term:addChars(" ")
+      term:addChars("-")
+
+      local expected = {}
+      for i = 1, 65 do
+        table.insert(expected, prompt:sub(i, i))
+      end
+      table.insert(expected, "\n")
+      for i = 66, 81 do
+        table.insert(expected, prompt:sub(i, i))
+      end
+      table.insert(expected, "l")
+      table.insert(expected, "s")
+      table.insert(expected, " ")
+      table.insert(expected, "-")
+      -- Pad Row 2 to maxc (65)
+      for _ = 1, 45 do
+        table.insert(expected, " ")
+      end
+      table.insert(expected, "\n")
+
+      assert.are.same(expected, term.charlist)
+    end)
   end)
 end)
