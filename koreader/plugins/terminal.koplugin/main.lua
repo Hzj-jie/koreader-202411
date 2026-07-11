@@ -327,6 +327,7 @@ function Terminal:refresh(reset)
 
   local next_text = self:receive()
   if next_text ~= "" then
+    logger.info("Terminal: received:", string.format("%q", next_text))
     self:getInputWidget():interpretAnsiSeq(next_text)
     self:getInputWidget():trimBuffer(self.buffer_size)
     if self.is_shell_open then
