@@ -720,6 +720,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   end
 
   -- the same as in inputtext.lua
+  self:assertCharlist(self.charlist, "TermInputText:addChars")
   if not skip_table_concat then
     self:initTextBox(table.concat(self.charlist), true)
   end
