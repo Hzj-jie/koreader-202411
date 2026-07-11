@@ -540,6 +540,12 @@ function Terminal:generateInputDialog()
   dialog.reinit = function(d)
     org_reinit(d)
     if self.maxc and self.maxr then
+      logger.info(
+        "Terminal: restoring size in reinit maxc =",
+        self.maxc,
+        "maxr =",
+        self.maxr
+      )
       d._input_widget:resize(self.maxr, self.maxc)
     end
   end
@@ -572,6 +578,18 @@ function Terminal:onTerminalStart(menu)
 
   self.maxr = math.floor(
     self:getInputWidget().height / self:getInputWidget():getLineHeight()
+  )
+  logger.info(
+    "Terminal: calculated maxc =",
+    self.maxc,
+    "maxr =",
+    self.maxr,
+    "width =",
+    self:getInputWidget().width,
+    "height =",
+    self:getInputWidget().height,
+    "charSize =",
+    self:getCharSize()
   )
 
   self.store_position = 1
