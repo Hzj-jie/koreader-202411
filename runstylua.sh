@@ -21,5 +21,6 @@ function run_twice {
 
 run_twice "koreader"
 run_twice "origin.stylua"
+run_twice "linux/spec"
 
 # Run everything twice to avoid syntax breakages.
