@@ -668,6 +668,9 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
           while self.charlist[eol] and self.charlist[eol] ~= "\n" do
             eol = eol + 1
           end
+          if not self.charlist[eol] then
+            self:_setChar(eol, "\n")
+          end
           self.charpos = eol + 1 -- move past \n
           if not self.charlist[self.charpos] then
             local p = insertSpaces(self.maxc)
