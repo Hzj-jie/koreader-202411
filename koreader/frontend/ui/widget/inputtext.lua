@@ -70,14 +70,30 @@ local InputText = InputContainer:extend({
 })
 
 function InputText:assertCharlist(list, context)
-  for i = 1, #list do
-    assert(
-      list[i] ~= nil,
-      "InputText assertion failed: charlist has nil at "
-        .. i
-        .. " in "
-        .. (context or "unknown")
-    )
+  local max_key = 0
+  for k, v in pairs(list) do
+    if type(k) == "number" and k > max_key then
+      max_key = k
+    end
+  end
+
+  for i = 1, max_key do
+    if list[i] == nil then
+      local nearby = {}
+      for j = math.max(1, i - 5), math.min(max_key, i + 5) do
+        table.insert(nearby, string.format("[%d]=%q", j, tostring(list[j])))
+      end
+      error(
+        string.format(
+          "InputText assertion failed: charlist has nil at %d (max_key=%d, #list=%d) in %s. Nearby: %s",
+          i,
+          max_key,
+          #list,
+          context or "unknown",
+          table.concat(nearby, ", ")
+        )
+      )
+    end
     assert(
       type(list[i]) == "string",
       "InputText assertion failed: charlist has non-string at "
