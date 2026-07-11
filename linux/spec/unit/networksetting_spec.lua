@@ -34,7 +34,7 @@ describe("NetworkSetting module", function()
         called = true
       end,
     })
-    assert.equal("1 / 1", ns[1][1][1][1].subtitle_widget.text)
+    assert.equal("Wi-Fi networks (1/1)", ns[1][1][1][1].title_widget.text)
     ns.connected_item:disconnect()
     assert.falsy(called)
 
