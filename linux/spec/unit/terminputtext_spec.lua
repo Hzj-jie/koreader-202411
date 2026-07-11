@@ -18,16 +18,16 @@ describe("TermInputText widget module", function()
             -- Write 9 chars -> stays on row 1
             term:addChars("123456789")
             assert.is_true(equals({"1","2","3","4","5","6","7","8","9"}, term.charlist))
-            
+
             -- Write 1 more -> 10 chars, fits row 1
             term:addChars("0")
             assert.is_true(equals({"1","2","3","4","5","6","7","8","9","0"}, term.charlist))
-            
+
             -- Write 1 more -> 11th char, should wrap to row 2!
             term:addChars("a")
             local expected = {"1","2","3","4","5","6","7","8","9","0","\n","a"," "," "," "," "," "," "," "," "," ","\n"}
             assert.is_true(equals(expected, term.charlist))
-            
+
             -- Now write "b". Since "a" was at 12, "b" should go to 13 (no wrap!).
             term:addChars("b")
             expected[13] = "b"
