@@ -506,10 +506,7 @@ function InputText:initTextBox(text, char_added)
     local text_width = self.width
     if text_width then
       -- Account for the scrollbar that will be used
-      local scroll_bar_width = Screen:scaleBySize(
-        ScrollTextWidget.DEFAULT_SCROLL_BAR_WIDTH
-          + ScrollTextWidget.DEFAULT_TEXT_SCROLL_SPAN
-      )
+      local scroll_bar_width = ScrollTextWidget:getStaticScrollbarWidth()
       text_width = text_width - scroll_bar_width
     end
     local text_widget = TextBoxWidget:new({

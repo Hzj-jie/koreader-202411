@@ -54,13 +54,27 @@ local ScrollTextWidget = InputContainer:extend({
   for_measurement_only = nil, -- When the widget is a one-off used to compute text height
 })
 
+function ScrollTextWidget:getStaticScrollbarWidth()
+  return scale(self.DEFAULT_SCROLL_BAR_WIDTH)
+    + scale(self.DEFAULT_TEXT_SCROLL_SPAN)
+end
+
 function ScrollTextWidget:init()
   self.width = self.width or scale(self.DEFAULT_WIDTH)
   self.height = self.height or scale(self.DEFAULT_HEIGHT)
   self.scroll_bar_width = self.scroll_bar_width
     or scale(self.DEFAULT_SCROLL_BAR_WIDTH)
-  self.text_scroll_span = self.text_scroll_span
-    or scale(self.DEFAULT_TEXT_SCROLL_SPAN)
+
+  self.v_scroll_bar = VerticalScrollBar:new({
+    width = self.scroll_bar_width,
+    scroll_callback = function(ratio)
+      self:scrollToRatio(ratio, false)
+    end,
+  })
+
+  self.reserved_width = self.text_scroll_span
+      and (self.text_scroll_span + self.scroll_bar_width)
+    or self.v_scroll_bar:getRequiredWidth()
 
   self.text_widget = TextBoxWidget:new({
     text = self.text,
@@ -73,7 +87,7 @@ function ScrollTextWidget:init()
     face = self.face,
     image_alt_face = self.image_alt_face,
     fgcolor = self.fgcolor,
-    width = self.width - self.scroll_bar_width - self.text_scroll_span,
+    width = self.width - self.reserved_width,
     height = self.height,
     images = self.images,
     alignment = self.alignment,
@@ -86,23 +100,15 @@ function ScrollTextWidget:init()
   })
   local visible_line_count = self.text_widget:getVisLineCount()
   local total_line_count = self.text_widget:getAllLineCount()
-  self.v_scroll_bar = VerticalScrollBar:new({
-    enable = visible_line_count < total_line_count,
-    low = 0,
-    high = visible_line_count / total_line_count,
-    width = self.scroll_bar_width,
-    height = self.text_widget:getTextHeight(),
-    scroll_callback = function(ratio)
-      self:scrollToRatio(ratio, false)
-    end,
-  })
+  self.v_scroll_bar.height = self.text_widget:getTextHeight()
+  self.v_scroll_bar.enable = visible_line_count < total_line_count
   self:_calculateScrollBar()
 
   local horizontal_group = HorizontalGroup:new({ align = "top" })
   table.insert(horizontal_group, self.text_widget)
   table.insert(
     horizontal_group,
-    HorizontalSpan:new({ width = self.text_scroll_span })
+    HorizontalSpan:new({ width = self.reserved_width - self.scroll_bar_width })
   )
   table.insert(horizontal_group, self.v_scroll_bar)
   self[1] = horizontal_group
@@ -243,7 +249,7 @@ end
 
 function ScrollTextWidget:moveCursorToXY(x, y, no_overflow)
   if BD.mirroredUILayout() then -- the scroll bar is on the left
-    x = x - self.scroll_bar_width - self.text_scroll_span
+    x = x - self.reserved_width
   end
   self.text_widget:moveCursorToXY(x, y, no_overflow)
   self:_updateScrollBar()
