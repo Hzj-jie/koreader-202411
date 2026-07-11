@@ -37,7 +37,11 @@ describe("BookInfo", function()
     local ffiutil = require("ffi/util")
     original_ffiutil_realpath = ffiutil.realpath
     ffiutil.realpath = spy.new(function(path)
-      if path:sub(1, 7) == "/books/" or path:sub(1, 7) == "/dummy/" or path == "/books" then
+      if
+        path:sub(1, 7) == "/books/"
+        or path:sub(1, 7) == "/dummy/"
+        or path == "/books"
+      then
         return path
       end
       return original_ffiutil_realpath(path)
@@ -90,25 +94,49 @@ describe("BookInfo", function()
       return obj
     end
     mock_widget_container.showWidget = require("ui/widget/widget").showWidget
-    mock_widget_container.uimanagedCleanUp = require("ui/widget/widget").uimanagedCleanUp
-    package.loaded["ui/widget/container/widgetcontainer"] = mock_widget_container
+    mock_widget_container.uimanagedCleanUp =
+      require("ui/widget/widget").uimanagedCleanUp
+    package.loaded["ui/widget/container/widgetcontainer"] =
+      mock_widget_container
 
     clear_table(mock_bidi)
-    mock_bidi.filename = function(x) return x end
-    mock_bidi.dirpath = function(x) return x end
-    mock_bidi.auto = function(x) return x end
-    mock_bidi.mirroredUILayout = function() return false end
-    mock_bidi.rtlUIText = function() return false end
-    mock_bidi.flipIfMirroredUILayout = function(x) return x end
-    mock_bidi.ltr = function(x) return x end
-    mock_bidi.rtl = function(x) return x end
+    mock_bidi.filename = function(x)
+      return x
+    end
+    mock_bidi.dirpath = function(x)
+      return x
+    end
+    mock_bidi.auto = function(x)
+      return x
+    end
+    mock_bidi.mirroredUILayout = function()
+      return false
+    end
+    mock_bidi.rtlUIText = function()
+      return false
+    end
+    mock_bidi.flipIfMirroredUILayout = function(x)
+      return x
+    end
+    mock_bidi.ltr = function(x)
+      return x
+    end
+    mock_bidi.rtl = function(x)
+      return x
+    end
     package.loaded["ui/bidi"] = mock_bidi
 
     clear_table(mock_gettext)
-    mock_gettext.pgettext = function(_, text) return text end
-    mock_gettext.ngettext = function(sing, plur, n) return n == 1 and sing or plur end
+    mock_gettext.pgettext = function(_, text)
+      return text
+    end
+    mock_gettext.ngettext = function(sing, plur, n)
+      return n == 1 and sing or plur
+    end
     setmetatable(mock_gettext, {
-      __call = function(_, text) return text end,
+      __call = function(_, text)
+        return text
+      end,
     })
     package.loaded["gettext"] = mock_gettext
 
@@ -119,12 +147,20 @@ describe("BookInfo", function()
     package.loaded["ui/uimanager"] = mock_uimanager
 
     clear_table(mock_docsettings)
-    mock_docsettings.findCustomCoverFile = spy.new(function() return nil end)
-    mock_docsettings.findCustomMetadataFile = spy.new(function() return nil end)
+    mock_docsettings.findCustomCoverFile = spy.new(function()
+      return nil
+    end)
+    mock_docsettings.findCustomMetadataFile = spy.new(function()
+      return nil
+    end)
     mock_docsettings.openSettingsFile = spy.new(function()
       return {
-        read = function(self, key) return nil end,
-        readTableRef = function(self, key) return {} end,
+        read = function(self, key)
+          return nil
+        end,
+        readTableRef = function(self, key)
+          return {}
+        end,
         save = function(self, key, val) end,
         purge = function(self) end,
         flushCustomMetadata = function(self) end,
@@ -132,10 +168,14 @@ describe("BookInfo", function()
     end)
     mock_docsettings.open = spy.new(function()
       return {
-        read = function(self, key) return nil end,
+        read = function(self, key)
+          return nil
+        end,
       }
     end)
-    mock_docsettings.hasSidecarFile = spy.new(function() return false end)
+    mock_docsettings.hasSidecarFile = spy.new(function()
+      return false
+    end)
     package.loaded["docsettings"] = mock_docsettings
 
     clear_table(mock_document)
@@ -150,16 +190,24 @@ describe("BookInfo", function()
     clear_table(mock_docregistry)
     mock_docregistry.openDocument = spy.new(function(self, file)
       return {
-        getPageCount = function() return 100 end,
-        getProps = function() return { title = "Opened Title", authors = "Opened Author" } end,
-        getCoverPageImage = function() return "mock_cover_image" end,
+        getPageCount = function()
+          return 100
+        end,
+        getProps = function()
+          return { title = "Opened Title", authors = "Opened Author" }
+        end,
+        getCoverPageImage = function()
+          return "mock_cover_image"
+        end,
         close = function() end,
       }
     end)
     package.loaded["document/documentregistry"] = mock_docregistry
 
     clear_table(mock_utf8proc)
-    mock_utf8proc.lowercase = function(s) return string.lower(s) end
+    mock_utf8proc.lowercase = function(s)
+      return string.lower(s)
+    end
     package.loaded["ffi/utf8proc"] = mock_utf8proc
 
     clear_table(mock_button_dialog)
@@ -198,8 +246,12 @@ describe("BookInfo", function()
         title = args.title,
         input = args.input,
         buttons = args.buttons,
-        getInputText = function(s) return s.input_text or s.input or "" end,
-        getInputValue = function(s) return s.input_text or s.input or "" end,
+        getInputText = function(s)
+          return s.input_text or s.input or ""
+        end,
+        getInputValue = function(s)
+          return s.input_text or s.input or ""
+        end,
       }
     end)
     package.loaded["ui/widget/inputdialog"] = mock_input_dialog
@@ -246,7 +298,9 @@ describe("BookInfo", function()
 
     local Device = require("device")
     Device.input.setClipboardText = spy.new(function(text) end)
-    Device.input.hasClipboard = function() return true end
+    Device.input.hasClipboard = function()
+      return true
+    end
 
     package.loaded["apps/filemanager/filemanagerbookinfo"] = nil
     BookInfo = require("apps/filemanager/filemanagerbookinfo")
@@ -286,8 +340,8 @@ describe("BookInfo", function()
         menu = {
           registerToMainMenu = spy.new(function(self, widget)
             table.insert(mock_menu_registered, widget)
-          end)
-        }
+          end),
+        },
       }
       local instance = BookInfo:new({
         document = {},
@@ -301,8 +355,8 @@ describe("BookInfo", function()
     it("does not register to main menu if self.document is absent", function()
       local mock_ui = {
         menu = {
-          registerToMainMenu = spy.new(function() end)
-        }
+          registerToMainMenu = spy.new(function() end),
+        },
       }
       local instance = BookInfo:new({
         ui = mock_ui,
@@ -330,51 +384,61 @@ describe("BookInfo", function()
   end)
 
   describe("extendProps", function()
-    it("merges original props with custom props if filepath is provided", function()
-      mock_docsettings.findCustomMetadataFile = spy.new(function(_, filepath)
-        if filepath == "/books/file.epub" then
-          return "/metadata/file.lua"
-        end
-      end)
-      mock_docsettings.openSettingsFile = spy.new(function(metafile)
-        return {
-          readTableRef = function(self, key)
-            if key == "custom_props" then
-              return {
-                title = "Custom Title",
-                authors = "Custom Author",
-              }
-            end
-            return {}
+    it(
+      "merges original props with custom props if filepath is provided",
+      function()
+        mock_docsettings.findCustomMetadataFile = spy.new(function(_, filepath)
+          if filepath == "/books/file.epub" then
+            return "/metadata/file.lua"
           end
+        end)
+        mock_docsettings.openSettingsFile = spy.new(function(metafile)
+          return {
+            readTableRef = function(self, key)
+              if key == "custom_props" then
+                return {
+                  title = "Custom Title",
+                  authors = "Custom Author",
+                }
+              end
+              return {}
+            end,
+          }
+        end)
+
+        local original_props = {
+          title = "Orig Title",
+          authors = "Orig Author",
+          series = "Orig Series",
+          pages = 250,
         }
-      end)
 
-      local original_props = {
-        title = "Orig Title",
-        authors = "Orig Author",
-        series = "Orig Series",
-        pages = 250,
-      }
+        local extended =
+          BookInfo.extendProps(original_props, "/books/file.epub")
+        assert.are.equal("Custom Title", extended.title)
+        assert.are.equal("Custom Author", extended.authors)
+        assert.are.equal("Orig Series", extended.series)
+        assert.are.equal(250, extended.pages)
+      end
+    )
 
-      local extended = BookInfo.extendProps(original_props, "/books/file.epub")
-      assert.are.equal("Custom Title", extended.title)
-      assert.are.equal("Custom Author", extended.authors)
-      assert.are.equal("Orig Series", extended.series)
-      assert.are.equal(250, extended.pages)
-    end)
+    it(
+      "uses filename as display_title if original and custom title is missing",
+      function()
+        mock_docsettings.findCustomMetadataFile = spy.new(function()
+          return nil
+        end)
 
-    it("uses filename as display_title if original and custom title is missing", function()
-      mock_docsettings.findCustomMetadataFile = spy.new(function() return nil end)
+        local original_props = {
+          authors = "Orig Author",
+        }
 
-      local original_props = {
-        authors = "Orig Author",
-      }
-
-      local extended = BookInfo.extendProps(original_props, "/books/mybook.epub")
-      assert.is_nil(extended.title)
-      assert.are.equal("mybook", extended.display_title)
-    end)
+        local extended =
+          BookInfo.extendProps(original_props, "/books/mybook.epub")
+        assert.is_nil(extended.title)
+        assert.are.equal("mybook", extended.display_title)
+      end
+    )
   end)
 
   describe("extract", function()
@@ -391,7 +455,8 @@ describe("BookInfo", function()
       }
 
       local instance = BookInfo:new({})
-      local kv_pairs, file, values_lang = instance:extract("/books/file.epub", book_props)
+      local kv_pairs, file, values_lang =
+        instance:extract("/books/file.epub", book_props)
 
       assert.are.equal("/books/file.epub", file)
       assert.are.equal("en", values_lang)
@@ -403,7 +468,8 @@ describe("BookInfo", function()
       for _, kv in ipairs(kv_pairs) do
         keys[kv[1]] = kv[2]
         if kv.callback then
-          vals[kv[1]] = { val = kv[2], cb = kv.callback, hold_cb = kv.hold_callback }
+          vals[kv[1]] =
+            { val = kv[2], cb = kv.callback, hold_cb = kv.hold_callback }
         else
           vals[kv[1]] = kv[2]
         end
@@ -443,76 +509,94 @@ describe("BookInfo", function()
       assert.truthy(instance.kvp_widget)
       assert.are.equal("Book information", instance.kvp_widget.title)
       assert.spy(mock_uimanager.show).was_called(1)
-      assert.spy(mock_uimanager.show).was_called_with(mock_uimanager, instance.kvp_widget)
+      assert
+        .spy(mock_uimanager.show)
+        .was_called_with(mock_uimanager, instance.kvp_widget)
     end)
 
-    it("broadcasts invalidation events when closing after metadata update", function()
-      local instance = BookInfo:new({})
-      instance:show("/books/file.epub", { title = "Metadata Title" })
+    it(
+      "broadcasts invalidation events when closing after metadata update",
+      function()
+        local instance = BookInfo:new({})
+        instance:show("/books/file.epub", { title = "Metadata Title" })
 
-      instance.prop_updated = {
-        filepath = "/books/file.epub",
-        doc_props = { title = "Updated Title" },
-        metadata_key_updated = "title",
-        metadata_value_old = "Metadata Title",
-      }
+        instance.prop_updated = {
+          filepath = "/books/file.epub",
+          doc_props = { title = "Updated Title" },
+          metadata_key_updated = "title",
+          metadata_value_old = "Metadata Title",
+        }
 
-      instance.kvp_widget.close_callback()
+        instance.kvp_widget.close_callback()
 
-      assert.is_nil(instance.custom_doc_settings)
-      assert.is_nil(instance.custom_book_cover)
+        assert.is_nil(instance.custom_doc_settings)
+        assert.is_nil(instance.custom_book_cover)
 
-      assert.spy(mock_uimanager.broadcastEvent).was_called(2)
-      local call_args1 = mock_uimanager.broadcastEvent.calls[1]
-      assert.are.equal("onInvalidateMetadataCache", call_args1.refs[2].handler)
-      assert.are.equal("/books/file.epub", call_args1.refs[2].args[1])
+        assert.spy(mock_uimanager.broadcastEvent).was_called(2)
+        local call_args1 = mock_uimanager.broadcastEvent.calls[1]
+        assert.are.equal(
+          "onInvalidateMetadataCache",
+          call_args1.refs[2].handler
+        )
+        assert.are.equal("/books/file.epub", call_args1.refs[2].args[1])
 
-      local call_args2 = mock_uimanager.broadcastEvent.calls[2]
-      assert.are.equal("onBookMetadataChanged", call_args2.refs[2].handler)
-      assert.are.equal(instance.prop_updated, call_args2.refs[2].args[1])
-    end)
+        local call_args2 = mock_uimanager.broadcastEvent.calls[2]
+        assert.are.equal("onBookMetadataChanged", call_args2.refs[2].handler)
+        assert.are.equal(instance.prop_updated, call_args2.refs[2].args[1])
+      end
+    )
 
-    it("broadcasts metadata changed when closing after summary update", function()
-      local instance = BookInfo:new({})
-      instance:show("/books/file.epub", { title = "Metadata Title" })
+    it(
+      "broadcasts metadata changed when closing after summary update",
+      function()
+        local instance = BookInfo:new({})
+        instance:show("/books/file.epub", { title = "Metadata Title" })
 
-      instance.summary_updated = true
+        instance.summary_updated = true
 
-      instance.kvp_widget.close_callback()
+        instance.kvp_widget.close_callback()
 
-      assert.spy(mock_uimanager.broadcastEvent).was_called(1)
-      local call_args = mock_uimanager.broadcastEvent.calls[1]
-      assert.are.equal("onBookMetadataChanged", call_args.refs[2].handler)
-      assert.is_nil(call_args.refs[2].args[1])
-    end)
+        assert.spy(mock_uimanager.broadcastEvent).was_called(1)
+        local call_args = mock_uimanager.broadcastEvent.calls[1]
+        assert.are.equal("onBookMetadataChanged", call_args.refs[2].handler)
+        assert.is_nil(call_args.refs[2].args[1])
+      end
+    )
   end)
 
   describe("getDocProps", function()
-    it("reads from sidecar file (doc_props + doc_pages) if available", function()
-      mock_docsettings.hasSidecarFile = spy.new(function() return true end)
-      mock_docsettings.open = spy.new(function()
-        return {
-          read = function(_, key)
-            if key == "doc_props" then
-              return {
-                title = "Sidecar Title",
-                authors = "Sidecar Author",
-              }
-            elseif key == "doc_pages" then
-              return 320
-            end
-          end
-        }
-      end)
+    it(
+      "reads from sidecar file (doc_props + doc_pages) if available",
+      function()
+        mock_docsettings.hasSidecarFile = spy.new(function()
+          return true
+        end)
+        mock_docsettings.open = spy.new(function()
+          return {
+            read = function(_, key)
+              if key == "doc_props" then
+                return {
+                  title = "Sidecar Title",
+                  authors = "Sidecar Author",
+                }
+              elseif key == "doc_pages" then
+                return 320
+              end
+            end,
+          }
+        end)
 
-      local props = BookInfo.getDocProps("/books/book.epub")
-      assert.are.equal("Sidecar Title", props.title)
-      assert.are.equal("Sidecar Author", props.authors)
-      assert.are.equal(320, props.pages)
-    end)
+        local props = BookInfo.getDocProps("/books/book.epub")
+        assert.are.equal("Sidecar Title", props.title)
+        assert.are.equal("Sidecar Author", props.authors)
+        assert.are.equal(320, props.pages)
+      end
+    )
 
     it("reads stats if doc_props is missing in sidecar", function()
-      mock_docsettings.hasSidecarFile = spy.new(function() return true end)
+      mock_docsettings.hasSidecarFile = spy.new(function()
+        return true
+      end)
       mock_docsettings.open = spy.new(function()
         return {
           read = function(_, key)
@@ -521,7 +605,7 @@ describe("BookInfo", function()
             elseif key == "doc_pages" then
               return 250
             end
-          end
+          end,
         }
       end)
       mock_document.getProps = spy.new(function(_, stats)
@@ -538,46 +622,60 @@ describe("BookInfo", function()
       assert.are.equal(250, props.pages)
     end)
 
-    it("reads from custom metadata file if sidecar metadata is missing", function()
-      mock_docsettings.hasSidecarFile = spy.new(function() return false end)
-      mock_docsettings.findCustomMetadataFile = spy.new(function(_, file)
-        if file == "/books/book.epub" then
-          return "/metadata/book.lua"
-        end
-      end)
-      mock_docsettings.openSettingsFile = spy.new(function(metafile)
-        assert.are.equal("/metadata/book.lua", metafile)
-        return {
-          read = function(_, key)
-            if key == "doc_props" then
-              return {
-                title = "Custom Meta Title",
-                authors = "Custom Meta Author",
-              }
-            end
-          end,
-          readTableRef = function(_, key)
-            return {}
+    it(
+      "reads from custom metadata file if sidecar metadata is missing",
+      function()
+        mock_docsettings.hasSidecarFile = spy.new(function()
+          return false
+        end)
+        mock_docsettings.findCustomMetadataFile = spy.new(function(_, file)
+          if file == "/books/book.epub" then
+            return "/metadata/book.lua"
           end
-        }
-      end)
+        end)
+        mock_docsettings.openSettingsFile = spy.new(function(metafile)
+          assert.are.equal("/metadata/book.lua", metafile)
+          return {
+            read = function(_, key)
+              if key == "doc_props" then
+                return {
+                  title = "Custom Meta Title",
+                  authors = "Custom Meta Author",
+                }
+              end
+            end,
+            readTableRef = function(_, key)
+              return {}
+            end,
+          }
+        end)
 
-      local props = BookInfo.getDocProps("/books/book.epub")
-      assert.are.equal("Custom Meta Title", props.title)
-      assert.are.equal("Custom Meta Author", props.authors)
-    end)
+        local props = BookInfo.getDocProps("/books/book.epub")
+        assert.are.equal("Custom Meta Title", props.title)
+        assert.are.equal("Custom Meta Author", props.authors)
+      end
+    )
 
-    it("opens document directly if all sidecar & custom metadata are missing", function()
-      mock_docsettings.hasSidecarFile = spy.new(function() return false end)
-      mock_docsettings.findCustomMetadataFile = spy.new(function() return nil end)
+    it(
+      "opens document directly if all sidecar & custom metadata are missing",
+      function()
+        mock_docsettings.hasSidecarFile = spy.new(function()
+          return false
+        end)
+        mock_docsettings.findCustomMetadataFile = spy.new(function()
+          return nil
+        end)
 
-      local props = BookInfo.getDocProps("/books/book.epub")
-      assert.are.equal("Opened Title", props.title)
-      assert.are.equal("Opened Author", props.authors)
-      assert.are.equal(100, props.pages)
-      assert.spy(mock_docregistry.openDocument).was_called(1)
-      assert.spy(mock_docregistry.openDocument).was_called_with(mock_docregistry, "/books/book.epub")
-    end)
+        local props = BookInfo.getDocProps("/books/book.epub")
+        assert.are.equal("Opened Title", props.title)
+        assert.are.equal("Opened Author", props.authors)
+        assert.are.equal(100, props.pages)
+        assert.spy(mock_docregistry.openDocument).was_called(1)
+        assert
+          .spy(mock_docregistry.openDocument)
+          .was_called_with(mock_docregistry, "/books/book.epub")
+      end
+    )
   end)
 
   describe("findInProps", function()
@@ -604,10 +702,15 @@ describe("BookInfo", function()
       assert.falsy(instance:findInProps(book_props, "gatsby", true) or false)
     end)
 
-    it("returns false if search string is not found in any properties", function()
-      local instance = BookInfo:new({})
-      assert.falsy(instance:findInProps(book_props, "dracula", false) or false)
-    end)
+    it(
+      "returns false if search string is not found in any properties",
+      function()
+        local instance = BookInfo:new({})
+        assert.falsy(
+          instance:findInProps(book_props, "dracula", false) or false
+        )
+      end
+    )
   end)
 
   describe("onShowBookDescription", function()
@@ -617,26 +720,38 @@ describe("BookInfo", function()
 
       instance:onShowBookDescription("Direct description")
       assert.spy(instance.showBookProp).was_called(1)
-      assert.spy(instance.showBookProp).was_called_with(instance, "description", "Direct description")
+      assert
+        .spy(instance.showBookProp)
+        .was_called_with(instance, "description", "Direct description")
     end)
 
     it("extracts description from document if file is provided", function()
       local instance = BookInfo:new({})
       instance.showBookProp = spy.new(function() end)
 
-      mock_docsettings.hasSidecarFile = spy.new(function() return false end)
-      mock_docsettings.findCustomMetadataFile = spy.new(function() return nil end)
+      mock_docsettings.hasSidecarFile = spy.new(function()
+        return false
+      end)
+      mock_docsettings.findCustomMetadataFile = spy.new(function()
+        return nil
+      end)
       mock_docregistry.openDocument = spy.new(function()
         return {
-          getPageCount = function() return 100 end,
-          getProps = function() return { description = "File description" } end,
+          getPageCount = function()
+            return 100
+          end,
+          getProps = function()
+            return { description = "File description" }
+          end,
           close = function() end,
         }
       end)
 
       instance:onShowBookDescription(nil, "/books/book.epub")
       assert.spy(instance.showBookProp).was_called(1)
-      assert.spy(instance.showBookProp).was_called_with(instance, "description", "File description")
+      assert
+        .spy(instance.showBookProp)
+        .was_called_with(instance, "description", "File description")
     end)
 
     it("shows error dialog if description is completely missing", function()
@@ -661,13 +776,16 @@ describe("BookInfo", function()
       mock_docregistry.openDocument = spy.new(function(_, file)
         if file == "/covers/custom_cover.jpg" then
           return {
-            getCoverPageImage = function() return "custom_cover_data" end,
+            getCoverPageImage = function()
+              return "custom_cover_data"
+            end,
             close = spy.new(function() end),
           }
         end
       end)
 
-      local cover_data, custom_cover_path = instance:getCoverImage(nil, "/books/book.epub", false)
+      local cover_data, custom_cover_path =
+        instance:getCoverImage(nil, "/books/book.epub", false)
       assert.are.equal("custom_cover_data", cover_data)
       assert.are.equal("/covers/custom_cover.jpg", custom_cover_path)
     end)
@@ -682,7 +800,9 @@ describe("BookInfo", function()
       mock_docregistry.openDocument = spy.new(function(_, file)
         if file == "/books/book.epub" then
           return {
-            getCoverPageImage = function() return "orig_cover_data" end,
+            getCoverPageImage = function()
+              return "orig_cover_data"
+            end,
             close = spy.new(function() end),
           }
         end
@@ -696,7 +816,9 @@ describe("BookInfo", function()
   describe("onShowBookCover", function()
     it("shows cover image in ImageViewer if available", function()
       local instance = BookInfo:new({})
-      instance.getCoverImage = spy.new(function() return "my_cover_image" end)
+      instance.getCoverImage = spy.new(function()
+        return "my_cover_image"
+      end)
 
       instance:onShowBookCover("/books/book.epub")
       assert.spy(mock_imageviewer.new).was_called(1)
@@ -709,7 +831,9 @@ describe("BookInfo", function()
 
     it("shows error message if cover image is not available", function()
       local instance = BookInfo:new({})
-      instance.getCoverImage = spy.new(function() return nil end)
+      instance.getCoverImage = spy.new(function()
+        return nil
+      end)
 
       instance:onShowBookCover("/books/book.epub")
       assert.spy(mock_info_message.new).was_called(1)
@@ -724,10 +848,16 @@ describe("BookInfo", function()
 
     before_each(function()
       original_os_remove = os.remove
-      os.remove = spy.new(function() return true end)
+      os.remove = spy.new(function()
+        return true
+      end)
       mock_docsettings.removeSidecarDir = spy.new(function() end)
-      mock_docsettings.flushCustomCover = spy.new(function() return true end)
-      mock_docregistry.isImageFile = spy.new(function(_, f) return f:match("%.jpg$") ~= nil end)
+      mock_docsettings.flushCustomCover = spy.new(function()
+        return true
+      end)
+      mock_docregistry.isImageFile = spy.new(function(_, f)
+        return f:match("%.jpg$") ~= nil
+      end)
     end)
 
     after_each(function()
@@ -743,32 +873,43 @@ describe("BookInfo", function()
 
       assert.spy(os.remove).was_called_with("/covers/custom.jpg")
       assert.spy(mock_docsettings.removeSidecarDir).was_called(1)
-      assert.spy(instance.updateBookInfo).was_called_with(instance, "/books/book.epub", {}, "cover")
+      assert
+        .spy(instance.updateBookInfo)
+        .was_called_with(instance, "/books/book.epub", {}, "cover")
     end)
 
-    it("shows pathchooser to select an image if custom cover does not exist", function()
-      local instance = BookInfo:new({})
-      instance.custom_book_cover = nil
-      instance.updateBookInfo = spy.new(function() end)
+    it(
+      "shows pathchooser to select an image if custom cover does not exist",
+      function()
+        local instance = BookInfo:new({})
+        instance.custom_book_cover = nil
+        instance.updateBookInfo = spy.new(function() end)
 
-      instance:setCustomCover("/books/book.epub", {})
+        instance:setCustomCover("/books/book.epub", {})
 
-      assert.spy(mock_pathchooser.new).was_called(1)
-      local chooser_args = mock_pathchooser.new.calls[1].refs[2]
-      assert.is_false(chooser_args.select_directory)
-      assert.is_function(chooser_args.file_filter)
-      assert.is_function(chooser_args.onConfirm)
+        assert.spy(mock_pathchooser.new).was_called(1)
+        local chooser_args = mock_pathchooser.new.calls[1].refs[2]
+        assert.is_false(chooser_args.select_directory)
+        assert.is_function(chooser_args.file_filter)
+        assert.is_function(chooser_args.onConfirm)
 
-      -- Test file filter
-      assert.is_true(chooser_args.file_filter("test.jpg"))
-      assert.is_false(chooser_args.file_filter("test.txt"))
+        -- Test file filter
+        assert.is_true(chooser_args.file_filter("test.jpg"))
+        assert.is_false(chooser_args.file_filter("test.txt"))
 
-      -- Test onConfirm
-      chooser_args.onConfirm("/covers/new_custom.jpg")
-      assert.spy(mock_docsettings.flushCustomCover).was_called_with(mock_docsettings, "/books/book.epub", "/covers/new_custom.jpg")
-      assert.spy(instance.updateBookInfo).was_called_with(instance, "/books/book.epub", {}, "cover")
-      assert.spy(mock_uimanager.show).was_called_with(mock_uimanager, match.is_table()) -- shows path_chooser
-    end)
+        -- Test onConfirm
+        chooser_args.onConfirm("/covers/new_custom.jpg")
+        assert
+          .spy(mock_docsettings.flushCustomCover)
+          .was_called_with(mock_docsettings, "/books/book.epub", "/covers/new_custom.jpg")
+        assert
+          .spy(instance.updateBookInfo)
+          .was_called_with(instance, "/books/book.epub", {}, "cover")
+        assert
+          .spy(mock_uimanager.show)
+          .was_called_with(mock_uimanager, match.is_table()) -- shows path_chooser
+      end
+    )
   end)
 
   describe("setCustomCoverFromImage", function()
@@ -776,9 +917,15 @@ describe("BookInfo", function()
 
     before_each(function()
       original_os_remove = os.remove
-      os.remove = spy.new(function() return true end)
-      mock_docsettings.flushCustomCover = spy.new(function() return true end)
-      mock_docsettings.findCustomCoverFile = spy.new(function() return "/covers/custom.jpg" end)
+      os.remove = spy.new(function()
+        return true
+      end)
+      mock_docsettings.flushCustomCover = spy.new(function()
+        return true
+      end)
+      mock_docsettings.findCustomCoverFile = spy.new(function()
+        return "/covers/custom.jpg"
+      end)
     end)
 
     after_each(function()
@@ -789,16 +936,25 @@ describe("BookInfo", function()
       local instance = BookInfo:new({})
       instance.ui = {
         doc_settings = {
-          getCustomCoverFile = spy.new(function() end)
-        }
+          getCustomCoverFile = spy.new(function() end),
+        },
       }
 
-      instance:setCustomCoverFromImage("/books/book.epub", "/covers/new_custom.jpg")
+      instance:setCustomCoverFromImage(
+        "/books/book.epub",
+        "/covers/new_custom.jpg"
+      )
 
-      assert.spy(mock_docsettings.findCustomCoverFile).was_called_with(mock_docsettings, "/books/book.epub")
+      assert
+        .spy(mock_docsettings.findCustomCoverFile)
+        .was_called_with(mock_docsettings, "/books/book.epub")
       assert.spy(os.remove).was_called_with("/covers/custom.jpg")
-      assert.spy(mock_docsettings.flushCustomCover).was_called_with(mock_docsettings, "/books/book.epub", "/covers/new_custom.jpg")
-      assert.spy(instance.ui.doc_settings.getCustomCoverFile).was_called_with(instance.ui.doc_settings, true)
+      assert
+        .spy(mock_docsettings.flushCustomCover)
+        .was_called_with(mock_docsettings, "/books/book.epub", "/covers/new_custom.jpg")
+      assert
+        .spy(instance.ui.doc_settings.getCustomCoverFile)
+        .was_called_with(instance.ui.doc_settings, true)
       assert.spy(mock_uimanager.broadcastEvent).was_called(2)
     end)
   end)
@@ -810,7 +966,11 @@ describe("BookInfo", function()
       mock_settings_instance = {
         file = "/metadata/book.lua",
         save = spy.new(function() end),
-        read = spy.new(function(_, k) if k == "doc_props" then return {} end end),
+        read = spy.new(function(_, k)
+          if k == "doc_props" then
+            return {}
+          end
+        end),
         readTableRef = spy.new(function(_, k)
           if k == "custom_props" then
             return mock_settings_instance.custom_props_data or {}
@@ -831,63 +991,93 @@ describe("BookInfo", function()
       mock_docsettings.removeSidecarDir = spy.new(function() end)
     end)
 
-    it("creates a new custom metadata file if it does not exist and saves original props", function()
-      local instance = BookInfo:new({})
-      instance.updateBookInfo = spy.new(function() end)
-      instance.custom_doc_settings = nil
+    it(
+      "creates a new custom metadata file if it does not exist and saves original props",
+      function()
+        local instance = BookInfo:new({})
+        instance.updateBookInfo = spy.new(function() end)
+        instance.custom_doc_settings = nil
 
-      local book_props = {
-        title = "Original Title",
-        display_title = "display_title_backup",
-      }
+        local book_props = {
+          title = "Original Title",
+          display_title = "display_title_backup",
+        }
 
-      instance:setCustomMetadata("/books/book.epub", book_props, "title", "New Title")
+        instance:setCustomMetadata(
+          "/books/book.epub",
+          book_props,
+          "title",
+          "New Title"
+        )
 
-      assert.spy(mock_docsettings.openSettingsFile).was_called_with()
-      assert.spy(mock_settings_instance.save).was_called_with(match.is_table(), "doc_props", { title = "Original Title" })
-      assert.are.equal("New Title", book_props.title)
-      assert.are.equal("New Title", book_props.display_title)
-      assert.spy(mock_settings_instance.flushCustomMetadata).was_called_with(match.is_table(), "/books/book.epub")
-      assert.spy(instance.updateBookInfo).was_called_with(instance, "/books/book.epub", book_props, "title", "Original Title")
-    end)
+        assert.spy(mock_docsettings.openSettingsFile).was_called_with()
+        assert
+          .spy(mock_settings_instance.save)
+          .was_called_with(match.is_table(), "doc_props", { title = "Original Title" })
+        assert.are.equal("New Title", book_props.title)
+        assert.are.equal("New Title", book_props.display_title)
+        assert
+          .spy(mock_settings_instance.flushCustomMetadata)
+          .was_called_with(match.is_table(), "/books/book.epub")
+        assert
+          .spy(instance.updateBookInfo)
+          .was_called_with(instance, "/books/book.epub", book_props, "title", "Original Title")
+      end
+    )
 
     it("uses existing custom metadata and updates customized field", function()
       local instance = BookInfo:new({})
       instance.updateBookInfo = spy.new(function() end)
       instance.custom_doc_settings = mock_settings_instance
       mock_settings_instance.custom_props_data = {
-        title = "Custom Title 1"
+        title = "Custom Title 1",
       }
 
       local book_props = {
         title = "Custom Title 1",
       }
 
-      instance:setCustomMetadata("/books/book.epub", book_props, "title", "Custom Title 2")
+      instance:setCustomMetadata(
+        "/books/book.epub",
+        book_props,
+        "title",
+        "Custom Title 2"
+      )
 
-      assert.spy(mock_settings_instance.flushCustomMetadata).was_called_with(match.is_table(), "/books/book.epub")
+      assert
+        .spy(mock_settings_instance.flushCustomMetadata)
+        .was_called_with(match.is_table(), "/books/book.epub")
       assert.are.equal("Custom Title 2", book_props.title)
-      assert.spy(instance.updateBookInfo).was_called_with(instance, "/books/book.epub", book_props, "title", "Custom Title 1")
+      assert
+        .spy(instance.updateBookInfo)
+        .was_called_with(instance, "/books/book.epub", book_props, "title", "Custom Title 1")
     end)
 
-    it("purges custom metadata file if no custom props remain after reset", function()
-      local instance = BookInfo:new({})
-      instance.updateBookInfo = spy.new(function() end)
-      instance.custom_doc_settings = mock_settings_instance
-      mock_settings_instance.custom_props_data = {
-        title = "Custom Title"
-      }
+    it(
+      "purges custom metadata file if no custom props remain after reset",
+      function()
+        local instance = BookInfo:new({})
+        instance.updateBookInfo = spy.new(function() end)
+        instance.custom_doc_settings = mock_settings_instance
+        mock_settings_instance.custom_props_data = {
+          title = "Custom Title",
+        }
 
-      local book_props = {
-        title = "Custom Title",
-      }
+        local book_props = {
+          title = "Custom Title",
+        }
 
-      instance:setCustomMetadata("/books/book.epub", book_props, "title", nil)
+        instance:setCustomMetadata("/books/book.epub", book_props, "title", nil)
 
-      assert.spy(mock_settings_instance.purge).was_called(1)
-      assert.spy(mock_docsettings.removeSidecarDir).was_called_with("/metadata/", "book.lua")
-      assert.spy(instance.updateBookInfo).was_called_with(instance, "/books/book.epub", book_props, "title", "Custom Title")
-    end)
+        assert.spy(mock_settings_instance.purge).was_called(1)
+        assert
+          .spy(mock_docsettings.removeSidecarDir)
+          .was_called_with("/metadata/", "book.lua")
+        assert
+          .spy(instance.updateBookInfo)
+          .was_called_with(instance, "/books/book.epub", book_props, "title", "Custom Title")
+      end
+    )
   end)
 
   describe("showCustomEditDialog", function()
@@ -896,7 +1086,7 @@ describe("BookInfo", function()
       instance.setCustomMetadata = spy.new(function() end)
 
       local book_props = {
-        title = "Original Title"
+        title = "Original Title",
       }
 
       instance:showCustomEditDialog("/books/book.epub", book_props, "title")
@@ -914,8 +1104,12 @@ describe("BookInfo", function()
       dialog_mock.input_text = "New Title"
       save_btn.callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, dialog_mock)
-      assert.spy(instance.setCustomMetadata).was_called_with(instance, "/books/book.epub", book_props, "title", "New Title")
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, dialog_mock)
+      assert
+        .spy(instance.setCustomMetadata)
+        .was_called_with(instance, "/books/book.epub", book_props, "title", "New Title")
     end)
   end)
 
@@ -933,7 +1127,7 @@ describe("BookInfo", function()
             return custom_prop and { title = "Custom Title" } or {}
           end
           return {}
-        end)
+        end),
       }
       instance.custom_book_cover = nil
       original_prop = "Original Title"
@@ -947,7 +1141,11 @@ describe("BookInfo", function()
     end)
 
     it("shows ButtonDialog for metadata and handles 'Copy original'", function()
-      instance:showCustomDialog("/books/book.epub", { title = "Original Title" }, "title")
+      instance:showCustomDialog(
+        "/books/book.epub",
+        { title = "Original Title" },
+        "title"
+      )
 
       assert.spy(mock_button_dialog.new).was_called(1)
       local dialog_args = mock_button_dialog.new.calls[1].refs[2]
@@ -959,11 +1157,17 @@ describe("BookInfo", function()
 
       local Device = require("device")
       copy_btn.callback()
-      assert.spy(Device.input.setClipboardText).was_called_with("Original Title")
+      assert
+        .spy(Device.input.setClipboardText)
+        .was_called_with("Original Title")
     end)
 
     it("shows ButtonDialog for metadata and handles 'View original'", function()
-      instance:showCustomDialog("/books/book.epub", { title = "Original Title" }, "title")
+      instance:showCustomDialog(
+        "/books/book.epub",
+        { title = "Original Title" },
+        "title"
+      )
 
       local dialog_args = mock_button_dialog.new.calls[1].refs[2]
       local view_btn = dialog_args.buttons[1][2]
@@ -971,12 +1175,18 @@ describe("BookInfo", function()
       assert.is_true(view_btn.enabled)
 
       view_btn.callback()
-      assert.spy(instance.showBookProp).was_called_with(instance, "title", "Original Title")
+      assert
+        .spy(instance.showBookProp)
+        .was_called_with(instance, "title", "Original Title")
     end)
 
     it("shows ButtonDialog for metadata and handles 'Reset custom'", function()
       custom_prop = true
-      instance:showCustomDialog("/books/book.epub", { title = "Custom Title" }, "title")
+      instance:showCustomDialog(
+        "/books/book.epub",
+        { title = "Custom Title" },
+        "title"
+      )
 
       local dialog_args = mock_button_dialog.new.calls[1].refs[2]
       local reset_btn = dialog_args.buttons[2][1]
@@ -989,11 +1199,17 @@ describe("BookInfo", function()
       assert.are.equal("Reset custom book metadata field?", confirm_args.text)
 
       confirm_args.ok_callback()
-      assert.spy(instance.setCustomMetadata).was_called_with(instance, "/books/book.epub", { title = "Custom Title" }, "title")
+      assert
+        .spy(instance.setCustomMetadata)
+        .was_called_with(instance, "/books/book.epub", { title = "Custom Title" }, "title")
     end)
 
     it("shows ButtonDialog for metadata and handles 'Set custom'", function()
-      instance:showCustomDialog("/books/book.epub", { title = "Original Title" }, "title")
+      instance:showCustomDialog(
+        "/books/book.epub",
+        { title = "Original Title" },
+        "title"
+      )
 
       local dialog_args = mock_button_dialog.new.calls[1].refs[2]
       local set_btn = dialog_args.buttons[2][2]
@@ -1001,41 +1217,56 @@ describe("BookInfo", function()
       assert.is_true(set_btn.enabled)
 
       set_btn.callback()
-      assert.spy(instance.showCustomEditDialog).was_called_with(instance, "/books/book.epub", { title = "Original Title" }, "title")
+      assert
+        .spy(instance.showCustomEditDialog)
+        .was_called_with(instance, "/books/book.epub", { title = "Original Title" }, "title")
     end)
 
-    it("shows ButtonDialog for cover and handles 'View original' cover", function()
-      instance.custom_book_cover = "/covers/custom_cover.jpg"
-      instance:showCustomDialog("/books/book.epub", {})
+    it(
+      "shows ButtonDialog for cover and handles 'View original' cover",
+      function()
+        instance.custom_book_cover = "/covers/custom_cover.jpg"
+        instance:showCustomDialog("/books/book.epub", {})
 
-      local dialog_args = mock_button_dialog.new.calls[1].refs[2]
-      assert.are.equal("Book metadata: Cover image", dialog_args.title)
+        local dialog_args = mock_button_dialog.new.calls[1].refs[2]
+        assert.are.equal("Book metadata: Cover image", dialog_args.title)
 
-      local view_btn = dialog_args.buttons[1][2]
-      assert.are.equal("View original", view_btn.text)
-      assert.is_true(view_btn.enabled)
+        local view_btn = dialog_args.buttons[1][2]
+        assert.are.equal("View original", view_btn.text)
+        assert.is_true(view_btn.enabled)
 
-      view_btn.callback()
-      assert.spy(instance.onShowBookCover).was_called_with(instance, "/books/book.epub", true)
-    end)
+        view_btn.callback()
+        assert
+          .spy(instance.onShowBookCover)
+          .was_called_with(instance, "/books/book.epub", true)
+      end
+    )
 
-    it("shows ButtonDialog for cover and handles 'Reset custom' cover", function()
-      instance.custom_book_cover = "/covers/custom_cover.jpg"
-      instance:showCustomDialog("/books/book.epub", {})
+    it(
+      "shows ButtonDialog for cover and handles 'Reset custom' cover",
+      function()
+        instance.custom_book_cover = "/covers/custom_cover.jpg"
+        instance:showCustomDialog("/books/book.epub", {})
 
-      local dialog_args = mock_button_dialog.new.calls[1].refs[2]
-      local reset_btn = dialog_args.buttons[2][1]
-      assert.are.equal("Reset custom", reset_btn.text)
-      assert.is_true(reset_btn.enabled)
+        local dialog_args = mock_button_dialog.new.calls[1].refs[2]
+        local reset_btn = dialog_args.buttons[2][1]
+        assert.are.equal("Reset custom", reset_btn.text)
+        assert.is_true(reset_btn.enabled)
 
-      reset_btn.callback()
-      assert.spy(mock_confirm_box.new).was_called(1)
-      local confirm_args = mock_confirm_box.new.calls[1].refs[2]
-      assert.are.equal("Reset custom cover?\nImage file will be deleted.", confirm_args.text)
+        reset_btn.callback()
+        assert.spy(mock_confirm_box.new).was_called(1)
+        local confirm_args = mock_confirm_box.new.calls[1].refs[2]
+        assert.are.equal(
+          "Reset custom cover?\nImage file will be deleted.",
+          confirm_args.text
+        )
 
-      confirm_args.ok_callback()
-      assert.spy(instance.setCustomCover).was_called_with(instance, "/books/book.epub", {})
-    end)
+        confirm_args.ok_callback()
+        assert
+          .spy(instance.setCustomCover)
+          .was_called_with(instance, "/books/book.epub", {})
+      end
+    )
 
     it("shows ButtonDialog for cover and handles 'Set custom' cover", function()
       instance.custom_book_cover = nil
@@ -1047,7 +1278,9 @@ describe("BookInfo", function()
       assert.is_true(set_btn.enabled)
 
       set_btn.callback()
-      assert.spy(instance.setCustomCover).was_called_with(instance, "/books/book.epub", {})
+      assert
+        .spy(instance.setCustomCover)
+        .was_called_with(instance, "/books/book.epub", {})
     end)
   end)
 
@@ -1059,7 +1292,7 @@ describe("BookInfo", function()
       instance = BookInfo:new({})
       instance.show = spy.new(function() end)
       instance.kvp_widget = {
-        onExit = spy.new(function() end)
+        onExit = spy.new(function() end),
       }
 
       mock_settings = {
@@ -1068,7 +1301,7 @@ describe("BookInfo", function()
             return { rating = 3, note = "Initial Note" }
           end
           return {}
-        end)
+        end),
       }
 
       local fm_util = require("apps/filemanager/filemanagerutil")
@@ -1077,33 +1310,42 @@ describe("BookInfo", function()
       end)
     end)
 
-    it("shows InputDialog with note and rating buttons, and saves review on rating button click", function()
-      instance:editSummary(mock_settings, {})
+    it(
+      "shows InputDialog with note and rating buttons, and saves review on rating button click",
+      function()
+        instance:editSummary(mock_settings, {})
 
-      assert.spy(mock_input_dialog.new).was_called(1)
-      local dialog_args = mock_input_dialog.new.calls[1].refs[2]
-      assert.are.equal("Edit book review", dialog_args.title)
-      assert.are.equal("Initial Note", dialog_args.input)
+        assert.spy(mock_input_dialog.new).was_called(1)
+        local dialog_args = mock_input_dialog.new.calls[1].refs[2]
+        assert.are.equal("Edit book review", dialog_args.title)
+        assert.are.equal("Initial Note", dialog_args.input)
 
-      local row = dialog_args.buttons[1]
-      assert.are.equal(9, #row)
-      assert.are.equal("★", row[3].text)
-      assert.are.equal("★", row[4].text)
-      assert.are.equal("★", row[5].text)
-      assert.are.equal("☆", row[6].text)
-      assert.are.equal("☆", row[7].text)
+        local row = dialog_args.buttons[1]
+        assert.are.equal(9, #row)
+        assert.are.equal("★", row[3].text)
+        assert.are.equal("★", row[4].text)
+        assert.are.equal("★", row[5].text)
+        assert.are.equal("☆", row[6].text)
+        assert.are.equal("☆", row[7].text)
 
-      local dialog_mock = mock_uimanager.show.calls[1].refs[2]
-      dialog_mock.getInputText = function() return "New Note" end
-      row[6].callback()
+        local dialog_mock = mock_uimanager.show.calls[1].refs[2]
+        dialog_mock.getInputText = function()
+          return "New Note"
+        end
+        row[6].callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, dialog_mock)
+        assert
+          .spy(mock_uimanager.close)
+          .was_called_with(mock_uimanager, dialog_mock)
 
-      local fm_util = require("apps/filemanager/filemanagerutil")
-      assert.spy(fm_util.saveSummary).was_called_with(mock_settings, { rating = 4, note = "New Note" })
-      assert.is_true(instance.summary_updated)
-      assert.spy(instance.show).was_called_with(instance, mock_settings, {})
-    end)
+        local fm_util = require("apps/filemanager/filemanagerutil")
+        assert
+          .spy(fm_util.saveSummary)
+          .was_called_with(mock_settings, { rating = 4, note = "New Note" })
+        assert.is_true(instance.summary_updated)
+        assert.spy(instance.show).was_called_with(instance, mock_settings, {})
+      end
+    )
 
     it("saves review on 'Save review' button click", function()
       instance:editSummary(mock_settings, {})
@@ -1113,13 +1355,19 @@ describe("BookInfo", function()
       assert.are.equal("Save review", save_btn.text)
 
       local dialog_mock = mock_uimanager.show.calls[1].refs[2]
-      dialog_mock.getInputText = function() return "Another Note" end
+      dialog_mock.getInputText = function()
+        return "Another Note"
+      end
       save_btn.callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, dialog_mock)
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, dialog_mock)
 
       local fm_util = require("apps/filemanager/filemanagerutil")
-      assert.spy(fm_util.saveSummary).was_called_with(mock_settings, { rating = 3, note = "Another Note" })
+      assert
+        .spy(fm_util.saveSummary)
+        .was_called_with(mock_settings, { rating = 3, note = "Another Note" })
       assert.is_true(instance.summary_updated)
       assert.spy(instance.show).was_called_with(instance, mock_settings, {})
     end)
@@ -1134,15 +1382,19 @@ describe("BookInfo", function()
     before_each(function()
       mock_file_chooser = {
         path = "/books",
-        show_dir = spy.new(function() return true end),
-        show_file = spy.new(function() return true end),
+        show_dir = spy.new(function()
+          return true
+        end),
+        show_file = spy.new(function()
+          return true
+        end),
         refreshPath = spy.new(function() end),
       }
       instance = BookInfo:new({
         ui = {
           file_chooser = mock_file_chooser,
         },
-        menu_container = {}
+        menu_container = {},
       })
 
       local real_lfs = require("libs/libkoreader-lfs")
@@ -1156,7 +1408,9 @@ describe("BookInfo", function()
             return files[i]
           end
         end
-        return function() return nil end
+        return function()
+          return nil
+        end
       end)
 
       original_lfs_attributes = real_lfs.attributes
@@ -1171,9 +1425,11 @@ describe("BookInfo", function()
         return nil
       end)
 
-      mock_docsettings.isSidecarFileNotInPreferredLocation = spy.new(function(path)
-        return path == "/books/file1.epub"
-      end)
+      mock_docsettings.isSidecarFileNotInPreferredLocation = spy.new(
+        function(path)
+          return path == "/books/file1.epub"
+        end
+      )
       mock_docsettings.updateLocation = spy.new(function() end)
     end)
 
@@ -1183,63 +1439,89 @@ describe("BookInfo", function()
       real_lfs.attributes = original_lfs_attributes
     end)
 
-    it("scans path and alerts if no books with legacy metadata are found", function()
-      scan_files["/books"] = { ".", "..", "file2.epub" }
-      dir_attributes["/books/file2.epub"] = { mode = "file" }
+    it(
+      "scans path and alerts if no books with legacy metadata are found",
+      function()
+        scan_files["/books"] = { ".", "..", "file2.epub" }
+        dir_attributes["/books/file2.epub"] = { mode = "file" }
 
-      instance:moveBookMetadata()
+        instance:moveBookMetadata()
 
-      assert.spy(mock_confirm_box.new).was_called(1)
-      local scan_confirm = mock_confirm_box.new.calls[1].refs[2]
-      assert.are.equal("Scan books in current folder and subfolders for their metadata location?", scan_confirm.text)
+        assert.spy(mock_confirm_box.new).was_called(1)
+        local scan_confirm = mock_confirm_box.new.calls[1].refs[2]
+        assert.are.equal(
+          "Scan books in current folder and subfolders for their metadata location?",
+          scan_confirm.text
+        )
 
-      scan_confirm.ok_callback()
+        scan_confirm.ok_callback()
 
-      assert.spy(mock_info_message.new).was_called(1)
-      local info_dialog = mock_info_message.new.calls[1].refs[2]
-      assert.are.equal("No books with metadata not in your preferred location found.", info_dialog.text)
-    end)
+        assert.spy(mock_info_message.new).was_called(1)
+        local info_dialog = mock_info_message.new.calls[1].refs[2]
+        assert.are.equal(
+          "No books with metadata not in your preferred location found.",
+          info_dialog.text
+        )
+      end
+    )
 
-    it("scans path, finds legacy books, and moves metadata on confirmation", function()
-      scan_files["/books"] = { ".", "..", "file1.epub", "subdir" }
-      scan_files["/books/subdir"] = { ".", "..", "file3.epub" }
+    it(
+      "scans path, finds legacy books, and moves metadata on confirmation",
+      function()
+        scan_files["/books"] = { ".", "..", "file1.epub", "subdir" }
+        scan_files["/books/subdir"] = { ".", "..", "file3.epub" }
 
-      dir_attributes["/books/file1.epub"] = { mode = "file" }
-      dir_attributes["/books/subdir"] = { mode = "directory" }
-      dir_attributes["/books/subdir/file3.epub"] = { mode = "file" }
+        dir_attributes["/books/file1.epub"] = { mode = "file" }
+        dir_attributes["/books/subdir"] = { mode = "directory" }
+        dir_attributes["/books/subdir/file3.epub"] = { mode = "file" }
 
-      mock_docsettings.isSidecarFileNotInPreferredLocation = spy.new(function(path)
-        return path == "/books/file1.epub" or path == "/books/subdir/file3.epub"
-      end)
+        mock_docsettings.isSidecarFileNotInPreferredLocation = spy.new(
+          function(path)
+            return path == "/books/file1.epub"
+              or path == "/books/subdir/file3.epub"
+          end
+        )
 
-      instance:moveBookMetadata()
+        instance:moveBookMetadata()
 
-      local scan_confirm = mock_confirm_box.new.calls[1].refs[2]
-      scan_confirm.ok_callback()
+        local scan_confirm = mock_confirm_box.new.calls[1].refs[2]
+        scan_confirm.ok_callback()
 
-      assert.spy(mock_confirm_box.new).was_called(2)
-      local move_confirm = mock_confirm_box.new.calls[2].refs[2]
-      assert.match("2 books with metadata not in your preferred location found.", move_confirm.text)
+        assert.spy(mock_confirm_box.new).was_called(2)
+        local move_confirm = mock_confirm_box.new.calls[2].refs[2]
+        assert.match(
+          "2 books with metadata not in your preferred location found.",
+          move_confirm.text
+        )
 
-      move_confirm.ok_callback()
+        move_confirm.ok_callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, instance.menu_container)
-      assert.spy(mock_docsettings.updateLocation).was_called(2)
-      assert.spy(mock_docsettings.updateLocation).was_called_with("/books/file1.epub", "/books/file1.epub")
-      assert.spy(mock_docsettings.updateLocation).was_called_with("/books/subdir/file3.epub", "/books/subdir/file3.epub")
-      assert.spy(mock_file_chooser.refreshPath).was_called(1)
-    end)
+        assert
+          .spy(mock_uimanager.close)
+          .was_called_with(mock_uimanager, instance.menu_container)
+        assert.spy(mock_docsettings.updateLocation).was_called(2)
+        assert
+          .spy(mock_docsettings.updateLocation)
+          .was_called_with("/books/file1.epub", "/books/file1.epub")
+        assert
+          .spy(mock_docsettings.updateLocation)
+          .was_called_with("/books/subdir/file3.epub", "/books/subdir/file3.epub")
+        assert.spy(mock_file_chooser.refreshPath).was_called(1)
+      end
+    )
   end)
 
   describe("showBooksWithHashBasedMetadata", function()
     local original_lfs_attributes
 
     before_each(function()
-      mock_docsettings.getSidecarStorage = spy.new(function(type) return "/hash_path" end)
+      mock_docsettings.getSidecarStorage = spy.new(function(type)
+        return "/hash_path"
+      end)
       mock_docsettings.findSidecarFilesInHashLocation = spy.new(function()
         return {
           { "/hash_path/book1_sidecar.lua", "/hash_path/book1_custom.lua" },
-          { "/hash_path/book2_sidecar.lua", nil }
+          { "/hash_path/book2_sidecar.lua", nil },
         }
       end)
 
@@ -1247,34 +1529,51 @@ describe("BookInfo", function()
         if file == "/hash_path/book1_sidecar.lua" then
           return {
             read = function(_, key)
-              if key == "doc_props" then return { title = "Orig Title 1", authors = "Author 1" }
-              elseif key == "doc_path" then return "/books/book1.epub" end
-            end
+              if key == "doc_props" then
+                return { title = "Orig Title 1", authors = "Author 1" }
+              elseif key == "doc_path" then
+                return "/books/book1.epub"
+              end
+            end,
           }
         elseif file == "/hash_path/book1_custom.lua" then
           return {
             readTableRef = function(_, key)
-              if key == "custom_props" then return { title = "Custom Title 1" } end
+              if key == "custom_props" then
+                return { title = "Custom Title 1" }
+              end
               return {}
-            end
+            end,
           }
         elseif file == "/hash_path/book2_sidecar.lua" then
           return {
             read = function(_, key)
-              if key == "doc_props" then return { title = "Orig Title 2", authors = "Author 2" }
-              elseif key == "doc_path" then return "/books/book2.epub" end
-            end
+              if key == "doc_props" then
+                return { title = "Orig Title 2", authors = "Author 2" }
+              elseif key == "doc_path" then
+                return "/books/book2.epub"
+              end
+            end,
           }
         end
-        return { read = function() end, readTableRef = function() return {} end }
+        return {
+          read = function() end,
+          readTableRef = function()
+            return {}
+          end,
+        }
       end)
 
       local real_lfs = require("libs/libkoreader-lfs")
       original_lfs_attributes = real_lfs.attributes
       real_lfs.attributes = spy.new(function(path, field)
         if field == "mode" then
-          if path == "/books/book1.epub" then return "file" end
-          if path == "/books/book2.epub" then return nil end
+          if path == "/books/book1.epub" then
+            return "file"
+          end
+          if path == "/books/book2.epub" then
+            return nil
+          end
         end
         return nil
       end)
@@ -1285,17 +1584,35 @@ describe("BookInfo", function()
       real_lfs.attributes = original_lfs_attributes
     end)
 
-    it("collects hash-based metadata, resolves paths, and displays TextViewer with results", function()
-      BookInfo.showBooksWithHashBasedMetadata()
+    it(
+      "collects hash-based metadata, resolves paths, and displays TextViewer with results",
+      function()
+        BookInfo.showBooksWithHashBasedMetadata()
 
-      assert.spy(mock_text_viewer.new).was_called(1)
-      local viewer_args = mock_text_viewer.new.calls[1].refs[2]
-      assert.are.equal("2 documents with hash-based metadata", viewer_args.title)
-      assert.is_true(viewer_args.title_multilines)
+        assert.spy(mock_text_viewer.new).was_called(1)
+        local viewer_args = mock_text_viewer.new.calls[1].refs[2]
+        assert.are.equal(
+          "2 documents with hash-based metadata",
+          viewer_args.title
+        )
+        assert.is_true(viewer_args.title_multilines)
 
-      assert.truthy(viewer_args.text:find("1. Title: Custom Title 1; Author: Author 1\nDocument: /books/book1.epub", 1, true))
-      assert.truthy(viewer_args.text:find("2. Title: Orig Title 2; Author: Author 2\nDocument: N/A", 1, true))
-    end)
+        assert.truthy(
+          viewer_args.text:find(
+            "1. Title: Custom Title 1; Author: Author 1\nDocument: /books/book1.epub",
+            1,
+            true
+          )
+        )
+        assert.truthy(
+          viewer_args.text:find(
+            "2. Title: Orig Title 2; Author: Author 2\nDocument: N/A",
+            1,
+            true
+          )
+        )
+      end
+    )
   end)
 
   describe("uimanagedCleanUp", function()
@@ -1312,7 +1629,9 @@ describe("BookInfo", function()
       bi:uimanagedCleanUp()
 
       assert.is_nil(bi.kvp_widget)
-      assert.stub(mock_uimanager.closeIfShown).was_called_with(mock_uimanager, dummy_widget)
+      assert
+        .stub(mock_uimanager.closeIfShown)
+        .was_called_with(mock_uimanager, dummy_widget)
 
       mock_uimanager.closeIfShown:revert()
     end)

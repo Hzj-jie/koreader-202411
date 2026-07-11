@@ -1,5 +1,5 @@
-local spy = require("luassert.spy")
 local mock = require("luassert.mock")
+local spy = require("luassert.spy")
 
 describe("systemstat", function()
   local SystemStatWidget
@@ -16,11 +16,21 @@ describe("systemstat", function()
     orig_getPowerDevice = Device.getPowerDevice
     Device.getPowerDevice = function()
       return {
-        isCharging = function() return true end,
-        isCharged = function() return true end,
-        isAuxBatteryConnected = function() return false end,
-        isAuxCharging = function() return false end,
-        isAuxCharged = function() return false end,
+        isCharging = function()
+          return true
+        end,
+        isCharged = function()
+          return true
+        end,
+        isAuxBatteryConnected = function()
+          return false
+        end,
+        isAuxCharging = function()
+          return false
+        end,
+        isAuxCharged = function()
+          return false
+        end,
       }
     end
 
@@ -32,7 +42,9 @@ describe("systemstat", function()
 
     -- Mock BookInfoManager
     mock_bookinfomanager = {
-      getBookCount = spy.new(function() return 123 end)
+      getBookCount = spy.new(function()
+        return 123
+      end),
     }
     package.loaded["bookinfomanager"] = mock_bookinfomanager
 
@@ -50,12 +62,12 @@ describe("systemstat", function()
 
   it("shows indexed files count in statistics", function()
     local menu = {
-      registerToMainMenu = spy.new(function() end)
+      registerToMainMenu = spy.new(function() end),
     }
     local widget = SystemStatWidget:new({
       ui = {
-        menu = menu
-      }
+        menu = menu,
+      },
     })
 
     -- Trigger statistics display

@@ -1,18 +1,18 @@
 describe("ImageWidget module", function()
-    local ImageWidget
-    setup(function()
-        require("commonrequire")
-        ImageWidget = require("ui/widget/imagewidget")
-    end)
+  local ImageWidget
+  setup(function()
+    require("commonrequire")
+    ImageWidget = require("ui/widget/imagewidget")
+  end)
 
-    it("should render without error", function()
-        local imgw = ImageWidget:new{
-            file = "resources/koreader.png"
-        }
-        imgw:_render()
-        assert(imgw._bb)
-    end)
-    --[[
+  it("should render without error", function()
+    local imgw = ImageWidget:new({
+      file = "resources/koreader.png",
+    })
+    imgw:_render()
+    assert(imgw._bb)
+  end)
+  --[[
     -- NOTE: There was never actually sane error handling in there,
     --       it would just crash later because of a lack of BB object.
     --       We now return a checkerboard pattern on image decoding failure,

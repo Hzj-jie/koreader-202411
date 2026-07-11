@@ -1,5 +1,5 @@
-local spy = require("luassert.spy")
 local mock = require("luassert.mock")
+local spy = require("luassert.spy")
 
 describe("TouchMenu", function()
   local TouchMenu
@@ -29,9 +29,9 @@ describe("TouchMenu", function()
         {
           text = "Test Tab",
           icon = "dummy",
-          { text = "Item 1", help_text = "Help for Item 1" }
-        }
-      }
+          { text = "Item 1", help_text = "Help for Item 1" },
+        },
+      },
     })
 
     local item = { text = "Item 1", help_text = "Help for Item 1" }
@@ -51,9 +51,9 @@ describe("TouchMenu", function()
         {
           text = "Test Tab",
           icon = "dummy",
-          { text = "Item 2" }
-        }
-      }
+          { text = "Item 2" },
+        },
+      },
     })
 
     local help_called = false
@@ -62,7 +62,7 @@ describe("TouchMenu", function()
       help_text_func = function()
         help_called = true
         return "Dynamic Help"
-      end
+      end,
     }
 
     menu:onMenuHold(item)
@@ -75,27 +75,30 @@ describe("TouchMenu", function()
     UIManager:close(arg)
   end)
 
-  it("shows menu text as fallback if text is truncated and no help text is present", function()
-    local menu = TouchMenu:new({
-      tab_item_table = {
-        {
-          text = "Test Tab",
-          icon = "dummy",
-          { text = "Item 3" }
-        }
-      }
-    })
+  it(
+    "shows menu text as fallback if text is truncated and no help text is present",
+    function()
+      local menu = TouchMenu:new({
+        tab_item_table = {
+          {
+            text = "Test Tab",
+            icon = "dummy",
+            { text = "Item 3" },
+          },
+        },
+      })
 
-    local item = { text = "Item 3" }
-    -- call with text_truncated = true
-    menu:onMenuHold(item, true)
+      local item = { text = "Item 3" }
+      -- call with text_truncated = true
+      menu:onMenuHold(item, true)
 
-    assert.spy(UIManager.show).was.called(1)
-    local arg = UIManager.show.calls[1].refs[2]
-    assert.equal("Item 3", arg.text)
+      assert.spy(UIManager.show).was.called(1)
+      local arg = UIManager.show.calls[1].refs[2]
+      assert.equal("Item 3", arg.text)
 
-    UIManager:close(arg)
-  end)
+      UIManager:close(arg)
+    end
+  )
 
   it("does nothing if no help text and text is not truncated", function()
     local menu = TouchMenu:new({
@@ -103,9 +106,9 @@ describe("TouchMenu", function()
         {
           text = "Test Tab",
           icon = "dummy",
-          { text = "Item 4" }
-        }
-      }
+          { text = "Item 4" },
+        },
+      },
     })
 
     local item = { text = "Item 4" }
@@ -123,9 +126,9 @@ describe("TouchMenu", function()
           {
             text = "Item 1",
             [1] = "some value",
-          }
-        }
-      }
+          },
+        },
+      },
     })
     assert.is_not_nil(menu)
   end)

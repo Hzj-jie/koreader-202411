@@ -163,8 +163,12 @@ describe("filemanagerutil", function()
       close = spy.new(function(self, widget)
         last_closed_widget = widget
       end),
-      getLastShownWidget = function() return last_shown_widget end,
-      getLastClosedWidget = function() return last_closed_widget end,
+      getLastShownWidget = function()
+        return last_shown_widget
+      end,
+      getLastClosedWidget = function()
+        return last_closed_widget
+      end,
     }
     package.loaded["gettext"] = function(text)
       return text
@@ -181,7 +185,7 @@ describe("filemanagerutil", function()
           enabled = args.enabled,
         }
         return res
-      end)
+      end),
     }
     package.loaded["ui/widget/checkbutton"] = mock_check_button
 
@@ -194,10 +198,12 @@ describe("filemanagerutil", function()
           text = args.text,
           ok_callback = args.ok_callback,
           widgets = {},
-          addWidget = function(s, w) table.insert(s.widgets, w) end
+          addWidget = function(s, w)
+            table.insert(s.widgets, w)
+          end,
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/confirmbox"] = mock_confirm_box
 
@@ -208,7 +214,7 @@ describe("filemanagerutil", function()
           title = args.title,
           buttons = args.buttons,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/buttondialog"] = mock_button_dialog
 
@@ -218,7 +224,7 @@ describe("filemanagerutil", function()
           is_path_chooser = true,
           onConfirm = args.onConfirm,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/pathchooser"] = mock_path_chooser
 
@@ -226,16 +232,19 @@ describe("filemanagerutil", function()
       show = spy.new(function() end),
       onShowBookCover = spy.new(function() end),
       onShowBookDescription = spy.new(function() end),
-      extendProps = spy.new(function(p) return p end),
+      extendProps = spy.new(function(p)
+        return p
+      end),
     }
-    package.loaded["apps/filemanager/filemanagerbookinfo"] = mock_filemanager_bookinfo
+    package.loaded["apps/filemanager/filemanagerbookinfo"] =
+      mock_filemanager_bookinfo
 
     local mock_filemanager = {
       instance = {
         file_chooser = {
-          changeToPath = spy.new(function() end)
-        }
-      }
+          changeToPath = spy.new(function() end),
+        },
+      },
     }
     package.loaded["apps/filemanager/filemanager"] = mock_filemanager
 
@@ -243,7 +252,7 @@ describe("filemanagerutil", function()
       instance = {
         onExit = spy.new(function() end),
         showFileManager = spy.new(function() end),
-      }
+      },
     }
     package.loaded["apps/reader/readerui"] = mock_readerui
 
@@ -419,53 +428,65 @@ describe("filemanagerutil", function()
   end)
 
   describe("genStatusButtonsRow", function()
-    it("should generate three buttons with checkmark on current status and disabled", function()
-      local doc_settings = mock_doc_settings:open("book.epub")
-      mock_doc_settings.mock_summary = { status = "reading" }
+    it(
+      "should generate three buttons with checkmark on current status and disabled",
+      function()
+        local doc_settings = mock_doc_settings:open("book.epub")
+        mock_doc_settings.mock_summary = { status = "reading" }
 
-      local callback_called = false
-      local caller_callback = function() callback_called = true end
+        local callback_called = false
+        local caller_callback = function()
+          callback_called = true
+        end
 
-      local buttons = filemanagerutil.genStatusButtonsRow(doc_settings, caller_callback)
+        local buttons =
+          filemanagerutil.genStatusButtonsRow(doc_settings, caller_callback)
 
-      assert.are.equal(3, #buttons)
+        assert.are.equal(3, #buttons)
 
-      -- Button 1: Reading (should have checkmark and be disabled)
-      assert.truthy(buttons[1].text:find("Reading  ✓", 1, true))
-      assert.is_false(buttons[1].enabled)
+        -- Button 1: Reading (should have checkmark and be disabled)
+        assert.truthy(buttons[1].text:find("Reading  ✓", 1, true))
+        assert.is_false(buttons[1].enabled)
 
-      -- Button 2: On hold
-      assert.truthy(buttons[2].text:find("On hold", 1, true))
-      assert.is_nil(buttons[2].text:find("✓", 1, true))
-      assert.is_true(buttons[2].enabled)
+        -- Button 2: On hold
+        assert.truthy(buttons[2].text:find("On hold", 1, true))
+        assert.is_nil(buttons[2].text:find("✓", 1, true))
+        assert.is_true(buttons[2].enabled)
 
-      -- Button 3: Finished
-      assert.truthy(buttons[3].text:find("Finished", 1, true))
-      assert.is_nil(buttons[3].text:find("✓", 1, true))
-      assert.is_true(buttons[3].enabled)
+        -- Button 3: Finished
+        assert.truthy(buttons[3].text:find("Finished", 1, true))
+        assert.is_nil(buttons[3].text:find("✓", 1, true))
+        assert.is_true(buttons[3].enabled)
 
-      -- Triggering callback of an enabled button
-      local UIManager = require("ui/uimanager")
-      UIManager.broadcastEvent:clear()
+        -- Triggering callback of an enabled button
+        local UIManager = require("ui/uimanager")
+        UIManager.broadcastEvent:clear()
 
-      buttons[3].callback()
+        buttons[3].callback()
 
-      assert.is_true(callback_called)
-      assert.are.equal("complete", mock_doc_settings.mock_summary.status)
-      assert.spy(UIManager.broadcastEvent).was.called(1)
-    end)
+        assert.is_true(callback_called)
+        assert.are.equal("complete", mock_doc_settings.mock_summary.status)
+        assert.spy(UIManager.broadcastEvent).was.called(1)
+      end
+    )
 
-    it("should work when passed a file path string instead of settings object", function()
-      mock_doc_settings.sidecar_exists = true
-      mock_doc_settings.mock_summary = { status = "abandoned" }
+    it(
+      "should work when passed a file path string instead of settings object",
+      function()
+        mock_doc_settings.sidecar_exists = true
+        mock_doc_settings.mock_summary = { status = "abandoned" }
 
-      local buttons = filemanagerutil.genStatusButtonsRow("book.epub", function() end)
+        local buttons = filemanagerutil.genStatusButtonsRow(
+          "book.epub",
+          function() end
+        )
 
-      assert.are.equal(3, #buttons)
-      -- Button 2 is "On hold" status
-      assert.truthy(buttons[2].text:find("On hold  ✓", 1, true))
-      assert.is_false(buttons[2].enabled)
-    end)
+        assert.are.equal(3, #buttons)
+        -- Button 2 is "On hold" status
+        assert.truthy(buttons[2].text:find("On hold  ✓", 1, true))
+        assert.is_false(buttons[2].enabled)
+      end
+    )
   end)
 
   describe("genResetSettingsButton", function()
@@ -474,7 +495,10 @@ describe("filemanagerutil", function()
       mock_doc_settings.custom_cover_file = nil
       mock_doc_settings.custom_metadata_file = nil
 
-      local button = filemanagerutil.genResetSettingsButton("book.epub", function() end)
+      local button = filemanagerutil.genResetSettingsButton(
+        "book.epub",
+        function() end
+      )
       assert.is_false(button.enabled)
     end)
 
@@ -483,7 +507,10 @@ describe("filemanagerutil", function()
       mock_doc_settings.custom_cover_file = nil
       mock_doc_settings.custom_metadata_file = nil
 
-      local button = filemanagerutil.genResetSettingsButton("book.epub", function() end)
+      local button = filemanagerutil.genResetSettingsButton(
+        "book.epub",
+        function() end
+      )
       assert.is_true(button.enabled)
     end)
 
@@ -492,7 +519,10 @@ describe("filemanagerutil", function()
       mock_doc_settings.custom_cover_file = "/path/cover.jpg"
       mock_doc_settings.custom_metadata_file = "/path/metadata.xml"
 
-      local button = filemanagerutil.genResetSettingsButton("book.epub", function() end)
+      local button = filemanagerutil.genResetSettingsButton(
+        "book.epub",
+        function() end
+      )
       assert.is_true(button.enabled)
 
       local UIManager = require("ui/uimanager")
@@ -518,52 +548,61 @@ describe("filemanagerutil", function()
       assert.is_true(confirmbox.widgets[3].enabled)
     end)
 
-    it("should purge checked settings and trigger callbacks when ok_callback is executed", function()
-      local doc_settings = mock_doc_settings:open("book.epub")
-      mock_doc_settings.sidecar_exists = true
-      mock_doc_settings.custom_cover_file = "/path/cover.jpg"
-      mock_doc_settings.custom_metadata_file = "/path/metadata.xml"
+    it(
+      "should purge checked settings and trigger callbacks when ok_callback is executed",
+      function()
+        local doc_settings = mock_doc_settings:open("book.epub")
+        mock_doc_settings.sidecar_exists = true
+        mock_doc_settings.custom_cover_file = "/path/cover.jpg"
+        mock_doc_settings.custom_metadata_file = "/path/metadata.xml"
 
-      local caller_called = false
-      local button = filemanagerutil.genResetSettingsButton(doc_settings, function()
-        caller_called = true
-      end)
+        local caller_called = false
+        local button = filemanagerutil.genResetSettingsButton(
+          doc_settings,
+          function()
+            caller_called = true
+          end
+        )
 
-      button.callback()
+        button.callback()
 
-      local UIManager = require("ui/uimanager")
-      local confirmbox = UIManager.getLastShownWidget()
+        local UIManager = require("ui/uimanager")
+        local confirmbox = UIManager.getLastShownWidget()
 
-      -- Uncheck custom cover
-      assert.are.equal("custom cover image", confirmbox.widgets[2].text)
-      confirmbox.widgets[2].checked = false
+        -- Uncheck custom cover
+        assert.are.equal("custom cover image", confirmbox.widgets[2].text)
+        confirmbox.widgets[2].checked = false
 
-      -- Trigger ok_callback
-      doc_settings.purge:clear()
-      UIManager.broadcastEvent:clear()
-      local readhistory = require("readhistory")
-      readhistory.fileSettingsPurged:clear()
+        -- Trigger ok_callback
+        doc_settings.purge:clear()
+        UIManager.broadcastEvent:clear()
+        local readhistory = require("readhistory")
+        readhistory.fileSettingsPurged:clear()
 
-      confirmbox.ok_callback()
+        confirmbox.ok_callback()
 
-      assert.spy(doc_settings.purge).was.called(1)
-      local purge_args = doc_settings.purge.calls[1].vals[3]
-      assert.is_true(purge_args.doc_settings)
-      assert.is_false(purge_args.custom_cover_file)
-      assert.are.equal("/path/metadata.xml", purge_args.custom_metadata_file)
+        assert.spy(doc_settings.purge).was.called(1)
+        local purge_args = doc_settings.purge.calls[1].vals[3]
+        assert.is_true(purge_args.doc_settings)
+        assert.is_false(purge_args.custom_cover_file)
+        assert.are.equal("/path/metadata.xml", purge_args.custom_metadata_file)
 
-      assert.is_true(caller_called)
-      assert.spy(readhistory.fileSettingsPurged).was.called(1)
-    end)
+        assert.is_true(caller_called)
+        assert.spy(readhistory.fileSettingsPurged).was.called(1)
+      end
+    )
   end)
 
   describe("genShowFolderButton", function()
     it("should change path in filemanager if filemanager is active", function()
       local filemanager = require("apps/filemanager/filemanager")
       local caller_called = false
-      local button = filemanagerutil.genShowFolderButton("/path/to/book.epub", function()
-        caller_called = true
-      end)
+      local button = filemanagerutil.genShowFolderButton(
+        "/path/to/book.epub",
+        function()
+          caller_called = true
+        end
+      )
 
       filemanager.instance.file_chooser.changeToPath:clear()
       button.callback()
@@ -575,39 +614,49 @@ describe("filemanagerutil", function()
       assert.are.equal("/path/to/book.epub", args[3])
     end)
 
-    it("should switch from reader to filemanager if filemanager is inactive", function()
-      local filemanager = require("apps/filemanager/filemanager")
-      local readerui = require("apps/reader/readerui")
-      local old_instance = filemanager.instance
-      filemanager.instance = nil
+    it(
+      "should switch from reader to filemanager if filemanager is inactive",
+      function()
+        local filemanager = require("apps/filemanager/filemanager")
+        local readerui = require("apps/reader/readerui")
+        local old_instance = filemanager.instance
+        filemanager.instance = nil
 
-      local caller_called = false
-      local button = filemanagerutil.genShowFolderButton("/path/to/book.epub", function()
-        caller_called = true
-      end)
+        local caller_called = false
+        local button = filemanagerutil.genShowFolderButton(
+          "/path/to/book.epub",
+          function()
+            caller_called = true
+          end
+        )
 
-      readerui.instance.onExit:clear()
-      readerui.instance.showFileManager:clear()
+        readerui.instance.onExit:clear()
+        readerui.instance.showFileManager:clear()
 
-      button.callback()
+        button.callback()
 
-      assert.is_true(caller_called)
-      assert.spy(readerui.instance.onExit).was.called(1)
-      assert.spy(readerui.instance.showFileManager).was.called(1)
-      local args = readerui.instance.showFileManager.calls[1].vals
-      assert.are.equal("/path/to/book.epub", args[2])
+        assert.is_true(caller_called)
+        assert.spy(readerui.instance.onExit).was.called(1)
+        assert.spy(readerui.instance.showFileManager).was.called(1)
+        local args = readerui.instance.showFileManager.calls[1].vals
+        assert.are.equal("/path/to/book.epub", args[2])
 
-      filemanager.instance = old_instance
-    end)
+        filemanager.instance = old_instance
+      end
+    )
   end)
 
   describe("genBookInformationButton", function()
     it("should call filemanagerbookinfo show on callback", function()
       local bookinfo = require("apps/filemanager/filemanagerbookinfo")
       local caller_called = false
-      local button = filemanagerutil.genBookInformationButton("book.epub", { prop = 1 }, function()
-        caller_called = true
-      end)
+      local button = filemanagerutil.genBookInformationButton(
+        "book.epub",
+        { prop = 1 },
+        function()
+          caller_called = true
+        end
+      )
 
       bookinfo.show:clear()
       button.callback()
@@ -622,16 +671,24 @@ describe("filemanagerutil", function()
 
   describe("genBookCoverButton", function()
     it("should be disabled if book_props says has_cover is false", function()
-      local button = filemanagerutil.genBookCoverButton("book.epub", { has_cover = false }, function() end)
+      local button = filemanagerutil.genBookCoverButton(
+        "book.epub",
+        { has_cover = false },
+        function() end
+      )
       assert.is_false(button.enabled)
     end)
 
     it("should show cover image on callback", function()
       local bookinfo = require("apps/filemanager/filemanagerbookinfo")
       local caller_called = false
-      local button = filemanagerutil.genBookCoverButton("book.epub", { has_cover = true }, function()
-        caller_called = true
-      end)
+      local button = filemanagerutil.genBookCoverButton(
+        "book.epub",
+        { has_cover = true },
+        function()
+          caller_called = true
+        end
+      )
 
       assert.is_true(button.enabled)
       bookinfo.onShowBookCover:clear()
@@ -646,16 +703,24 @@ describe("filemanagerutil", function()
 
   describe("genBookDescriptionButton", function()
     it("should be disabled if no description in book_props", function()
-      local button = filemanagerutil.genBookDescriptionButton("book.epub", { description = nil }, function() end)
+      local button = filemanagerutil.genBookDescriptionButton(
+        "book.epub",
+        { description = nil },
+        function() end
+      )
       assert.is_false(button.enabled)
     end)
 
     it("should show description on callback", function()
       local bookinfo = require("apps/filemanager/filemanagerbookinfo")
       local caller_called = false
-      local button = filemanagerutil.genBookDescriptionButton("book.epub", { description = "Good book" }, function()
-        caller_called = true
-      end)
+      local button = filemanagerutil.genBookDescriptionButton(
+        "book.epub",
+        { description = "Good book" },
+        function()
+          caller_called = true
+        end
+      )
 
       assert.is_true(button.enabled)
       bookinfo.onShowBookDescription:clear()
@@ -670,63 +735,80 @@ describe("filemanagerutil", function()
   end)
 
   describe("showChooseDialog", function()
-    it("should show ButtonDialog and show PathChooser on Choose button click", function()
-      local UIManager = require("ui/uimanager")
-      UIManager.show:clear()
-      UIManager.close:clear()
+    it(
+      "should show ButtonDialog and show PathChooser on Choose button click",
+      function()
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
+        UIManager.close:clear()
 
-      local callback_called = false
-      local caller_callback = function(path)
-        callback_called = path
+        local callback_called = false
+        local caller_callback = function(path)
+          callback_called = path
+        end
+
+        filemanagerutil.showChooseDialog(
+          "Select",
+          caller_callback,
+          "/cur/path",
+          "/def/path",
+          "*.epub"
+        )
+
+        assert.spy(UIManager.show).was.called(1)
+        local dialog = UIManager.getLastShownWidget()
+        assert.is_true(dialog.is_button_dialog)
+        assert.are.equal(2, #dialog.buttons)
+
+        -- Button 1: Choose file
+        assert.are.equal("Choose file", dialog.buttons[1][1].text)
+        -- Button 2: Use default
+        assert.are.equal("Use default", dialog.buttons[2][1].text)
+        assert.is_true(dialog.buttons[2][1].enabled)
+
+        -- Trigger Choose File callback
+        UIManager.show:clear()
+        dialog.buttons[1][1].callback()
+
+        assert.spy(UIManager.close).was.called(1)
+        assert.are.equal(dialog, UIManager.getLastClosedWidget())
+
+        assert.spy(UIManager.show).was.called(1)
+        local path_chooser = UIManager.getLastShownWidget()
+        assert.is_true(path_chooser.is_path_chooser)
+
+        -- Trigger path chooser confirm
+        path_chooser.onConfirm("/new/path/book.epub")
+        assert.are.equal("/new/path/book.epub", callback_called)
       end
+    )
 
-      filemanagerutil.showChooseDialog("Select", caller_callback, "/cur/path", "/def/path", "*.epub")
+    it(
+      "should trigger default path directly on Use Default button click",
+      function()
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
+        UIManager.close:clear()
 
-      assert.spy(UIManager.show).was.called(1)
-      local dialog = UIManager.getLastShownWidget()
-      assert.is_true(dialog.is_button_dialog)
-      assert.are.equal(2, #dialog.buttons)
+        local callback_called = false
+        local caller_callback = function(path)
+          callback_called = path
+        end
 
-      -- Button 1: Choose file
-      assert.are.equal("Choose file", dialog.buttons[1][1].text)
-      -- Button 2: Use default
-      assert.are.equal("Use default", dialog.buttons[2][1].text)
-      assert.is_true(dialog.buttons[2][1].enabled)
+        filemanagerutil.showChooseDialog(
+          "Select",
+          caller_callback,
+          "/cur/path",
+          "/def/path"
+        )
 
-      -- Trigger Choose File callback
-      UIManager.show:clear()
-      dialog.buttons[1][1].callback()
+        local dialog = UIManager.getLastShownWidget()
+        dialog.buttons[2][1].callback()
 
-      assert.spy(UIManager.close).was.called(1)
-      assert.are.equal(dialog, UIManager.getLastClosedWidget())
-
-      assert.spy(UIManager.show).was.called(1)
-      local path_chooser = UIManager.getLastShownWidget()
-      assert.is_true(path_chooser.is_path_chooser)
-
-      -- Trigger path chooser confirm
-      path_chooser.onConfirm("/new/path/book.epub")
-      assert.are.equal("/new/path/book.epub", callback_called)
-    end)
-
-    it("should trigger default path directly on Use Default button click", function()
-      local UIManager = require("ui/uimanager")
-      UIManager.show:clear()
-      UIManager.close:clear()
-
-      local callback_called = false
-      local caller_callback = function(path)
-        callback_called = path
+        assert.spy(UIManager.close).was.called(1)
+        assert.are.equal(dialog, UIManager.getLastClosedWidget())
+        assert.are.equal("/def/path", callback_called)
       end
-
-      filemanagerutil.showChooseDialog("Select", caller_callback, "/cur/path", "/def/path")
-
-      local dialog = UIManager.getLastShownWidget()
-      dialog.buttons[2][1].callback()
-
-      assert.spy(UIManager.close).was.called(1)
-      assert.are.equal(dialog, UIManager.getLastClosedWidget())
-      assert.are.equal("/def/path", callback_called)
-    end)
+    )
   end)
 end)

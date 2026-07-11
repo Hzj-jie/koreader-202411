@@ -61,7 +61,9 @@ describe("key", function()
     it("should return hyphen-separated sequence", function()
       local k = Key:new("K", { Alt = true })
       -- If the bug exists, tostring(k) will fail with an error
-      local ok, res = pcall(function() return tostring(k) end)
+      local ok, res = pcall(function()
+        return tostring(k)
+      end)
       assert.is_true(ok)
       assert.are.equal("Alt-K", res)
     end)
@@ -82,16 +84,19 @@ describe("key", function()
       assert.is_false(k:match({ "K" }))
     end)
 
-    it("should not match if extra modifier is present in key but not in sequence", function()
-      -- Key has Alt. Sequence requires Alt and K. Matches.
-      assert.is_true(k:match({ "Alt", "K" }))
+    it(
+      "should not match if extra modifier is present in key but not in sequence",
+      function()
+        -- Key has Alt. Sequence requires Alt and K. Matches.
+        assert.is_true(k:match({ "Alt", "K" }))
 
-      -- Key has Alt. Sequence only requires K.
-      -- Wait, Key:match logic:
-      -- "additional modifier keys are pressed, don't match"
-      -- If sequence doesn't include 'Alt', but key has 'Alt' pressed, it should NOT match.
-      assert.is_false(k:match({ "K" }))
-    end)
+        -- Key has Alt. Sequence only requires K.
+        -- Wait, Key:match logic:
+        -- "additional modifier keys are pressed, don't match"
+        -- If sequence doesn't include 'Alt', but key has 'Alt' pressed, it should NOT match.
+        assert.is_false(k:match({ "K" }))
+      end
+    )
 
     it("should match with alternative keys", function()
       assert.is_true(k:match({ "Alt", { "K", "L" } }))

@@ -14,16 +14,34 @@ describe("filemanagermenu", function()
   before_each(function()
     mock_device = {
       screen = {
-        getSize = function() return { w = 800, h = 600 } end,
-        getWidth = function() return 800 end,
-        getHeight = function() return 600 end,
+        getSize = function()
+          return { w = 800, h = 600 }
+        end,
+        getWidth = function()
+          return 800
+        end,
+        getHeight = function()
+          return 600
+        end,
       },
-      hasKeyboard = function() return true end,
-      hasKeys = function() return true end,
-      hasFewKeys = function() return false end,
-      hasScreenKB = function() return true end,
-      isTouchDevice = function() return true end,
-      supportsScreensaver = function() return true end,
+      hasKeyboard = function()
+        return true
+      end,
+      hasKeys = function()
+        return true
+      end,
+      hasFewKeys = function()
+        return false
+      end,
+      hasScreenKB = function()
+        return true
+      end,
+      isTouchDevice = function()
+        return true
+      end,
+      supportsScreensaver = function()
+        return true
+      end,
     }
     package.loaded["device"] = mock_device
 
@@ -44,7 +62,9 @@ describe("filemanagermenu", function()
         return not not reader_settings_data[key]
       end),
       nilOrTrue = spy.new(function(self, key)
-        if reader_settings_data[key] == nil then return true end
+        if reader_settings_data[key] == nil then
+          return true
+        end
         return not not reader_settings_data[key]
       end),
       flipNilOrFalse = spy.new(function(self, key)
@@ -72,12 +92,20 @@ describe("filemanagermenu", function()
       collate = "alphabetic",
     }
     mock_named_settings = {
-      activate_menu = spy.new(function() return named_settings_data.activate_menu end),
-      show_file_in_bold = spy.new(function() return named_settings_data.show_file_in_bold end),
+      activate_menu = spy.new(function()
+        return named_settings_data.activate_menu
+      end),
+      show_file_in_bold = spy.new(function()
+        return named_settings_data.show_file_in_bold
+      end),
       set = {
-        show_file_in_bold = spy.new(function(val) named_settings_data.show_file_in_bold = val end),
-        collate = spy.new(function(val) named_settings_data.collate = val end),
-      }
+        show_file_in_bold = spy.new(function(val)
+          named_settings_data.show_file_in_bold = val
+        end),
+        collate = spy.new(function(val)
+          named_settings_data.collate = val
+        end),
+      },
     }
     _G.G_named_settings = mock_named_settings
 
@@ -88,30 +116,42 @@ describe("filemanagermenu", function()
         elseif key == "DTAP_ZONE_MENU_EXT" then
           return { x = 0, y = 0, w = 1, h = 0.2 }
         end
-      end)
+      end),
     }
     _G.G_defaults = mock_defaults
 
     package.loaded["ui/bidi"] = {
-      filename = function(s) return s end,
-      filepath = function(s) return s end,
-      mirroredUILayout = function() return false end,
+      filename = function(s)
+        return s
+      end,
+      filepath = function(s)
+        return s
+      end,
+      mirroredUILayout = function()
+        return false
+      end,
     }
 
     package.loaded["ui/widget/container/centercontainer"] = {
       new = spy.new(function(self, _args)
         local obj = { is_center_container = true }
         return setmetatable(obj, {
-          __newindex = function(t, k, v) rawset(t, k, v) end,
-          __index = function(t, k) return rawget(t, k) end
+          __newindex = function(t, k, v)
+            rawset(t, k, v)
+          end,
+          __index = function(t, k)
+            return rawget(t, k)
+          end,
         })
-      end)
+      end),
     }
 
     package.loaded["ui/widget/container/inputcontainer"] = {
       new = function(s, args)
         local inst = setmetatable(args or {}, { __index = s })
-        if inst.init then inst:init() end
+        if inst.init then
+          inst:init()
+        end
         return inst
       end,
       extend = function(self, child)
@@ -128,7 +168,9 @@ describe("filemanagermenu", function()
     }
 
     package.loaded["apps/common_menu"] = {
-      exitOrRestart = spy.new(function(self, cb) cb() end),
+      exitOrRestart = spy.new(function(self, cb)
+        cb()
+      end),
     }
 
     package.loaded["ui/widget/confirmbox"] = {
@@ -139,7 +181,7 @@ describe("filemanagermenu", function()
           ok_text = args.ok_text,
           ok_callback = args.ok_callback,
         }
-      end)
+      end),
     }
 
     package.loaded["ui/widget/infomessage"] = {
@@ -148,12 +190,13 @@ describe("filemanagermenu", function()
           is_info_message = true,
           text = args.text,
         }
-      end)
+      end),
     }
 
-
     package.loaded["ui/event"] = {
-      new = function(self, name) return { name = name } end,
+      new = function(self, name)
+        return { name = name }
+      end,
     }
 
     package.loaded["ffi/util"] = {
@@ -162,15 +205,19 @@ describe("filemanagermenu", function()
         return tmpl:gsub("%%(%d+)", function(n)
           return tostring(args[tonumber(n)])
         end)
-      end
+      end,
     }
 
     package.loaded["ui/widget/keyvaluepage"] = {
-      getDefaultItemsPerPage = function() return 15 end,
+      getDefaultItemsPerPage = function()
+        return 15
+      end,
     }
 
     package.loaded["pluginloader"] = {
-      menuItem = function() return {} end,
+      menuItem = function()
+        return {}
+      end,
     }
 
     package.loaded["ui/size"] = {
@@ -178,7 +225,9 @@ describe("filemanagermenu", function()
     }
 
     package.loaded["ui/widget/spinwidget"] = {
-      new = spy.new(function(self, args) return args end),
+      new = spy.new(function(self, args)
+        return args
+      end),
     }
 
     local last_shown_widget
@@ -194,10 +243,18 @@ describe("filemanagermenu", function()
       broadcastEvent = spy.new(function(self, ev)
         table.insert(broadcast_events, ev)
       end),
-      getLastShownWidget = function() return last_shown_widget end,
-      getLastClosedWidget = function() return last_closed_widget end,
-      getBroadcastEvents = function() return broadcast_events end,
-      clearBroadcastEvents = function() broadcast_events = {} end,
+      getLastShownWidget = function()
+        return last_shown_widget
+      end,
+      getLastClosedWidget = function()
+        return last_closed_widget
+      end,
+      getBroadcastEvents = function()
+        return broadcast_events
+      end,
+      clearBroadcastEvents = function()
+        broadcast_events = {}
+      end,
     }
 
     package.loaded["apps/filemanager/filemanagerutil"] = {
@@ -221,7 +278,9 @@ describe("filemanagermenu", function()
         local dir, name = path:match("^(.-)([^/]*)$")
         return dir, name
       end,
-      backup_dir = function() return "/backup" end,
+      backup_dir = function()
+        return "/backup"
+      end,
     }
 
     package.loaded["dbg"] = {
@@ -235,7 +294,7 @@ describe("filemanagermenu", function()
           table.insert(res, { text = v.text or k, name = k })
         end
         return res
-      end)
+      end),
     }
     package.loaded["ui/elements/filemanager_menu_order"] = {}
     package.loaded["ui/elements/screensaver_menu"] = {}
@@ -244,15 +303,19 @@ describe("filemanagermenu", function()
     package.loaded["ui/elements/cloud_storage_menu_table"] = {}
     package.loaded["ui/elements/common_info_menu_table"] = {
       keyboard_shortcuts = {
-        callback = spy.new(function() end)
-      }
+        callback = spy.new(function() end),
+      },
     }
     package.loaded["ui/elements/common_exit_menu_table"] = {}
 
     mock_gettext = setmetatable({
-      ngettext = function(sing, plur, n) return n == 1 and sing or plur end,
+      ngettext = function(sing, plur, n)
+        return n == 1 and sing or plur
+      end,
     }, {
-      __call = function(self, text) return text end
+      __call = function(self, text)
+        return text
+      end,
     })
     package.loaded["gettext"] = mock_gettext
 
@@ -263,14 +326,16 @@ describe("filemanagermenu", function()
         show_unsupported = false,
         items_per_page_default = 10,
         font_size = 16,
-        getItemFontSize = function(_ipp) return 16 end,
+        getItemFontSize = function(_ipp)
+          return 16
+        end,
         toggleShowFilesMode = spy.new(function() end),
         refreshPath = spy.new(function() end),
         getCollate = function()
           return { can_collate_mixed = true, text = "Alphabetic" }
         end,
         collates = {
-          alphabetic = { text = "Alphabetic", menu_order = 1 }
+          alphabetic = { text = "Alphabetic", menu_order = 1 },
         },
         clearSortingCache = spy.new(function() end),
       },
@@ -325,35 +390,38 @@ describe("filemanagermenu", function()
   end)
 
   it("should register key events on init", function()
-    local menu = FileManagerMenu:new{ ui = mock_ui }
+    local menu = FileManagerMenu:new({ ui = mock_ui })
     assert.truthy(menu.key_events.ShowMenu)
     assert.truthy(menu.key_events.OpenLastDoc)
     assert.truthy(menu.key_events.ShowKeyboardShortcuts)
   end)
 
   it("should register touch zones on initGesListener", function()
-    local menu = FileManagerMenu:new{ ui = mock_ui }
+    local menu = FileManagerMenu:new({ ui = mock_ui })
     menu:initGesListener()
     assert.spy(menu.registerTouchZones).was.called(1)
   end)
 
   describe("onOpenLastDoc", function()
     it("should open last document if exists and close menu", function()
-      local menu = FileManagerMenu:new{ ui = mock_ui }
-      menu.menu_container = { is_center_container = true, [1] = { last_index = 1 } }
+      local menu = FileManagerMenu:new({ ui = mock_ui })
+      menu.menu_container =
+        { is_center_container = true, [1] = { last_index = 1 } }
 
       local ReaderUI = { showReader = spy.new(function() end) }
       package.loaded["apps/reader/readerui"] = ReaderUI
 
       menu:onOpenLastDoc()
 
-      assert.spy(ReaderUI.showReader).was.called_with(ReaderUI, "/books/book1.epub")
+      assert
+        .spy(ReaderUI.showReader).was
+        .called_with(ReaderUI, "/books/book1.epub")
       assert.is_nil(menu.menu_container)
       package.loaded["apps/reader/readerui"] = nil
     end)
 
     it("should show info message if last document does not exist", function()
-      local menu = FileManagerMenu:new{ ui = mock_ui }
+      local menu = FileManagerMenu:new({ ui = mock_ui })
       G_reader_settings:save("lastfile", "/books/nonexistent.epub")
 
       local UIManager = require("ui/uimanager")
@@ -369,7 +437,7 @@ describe("filemanagermenu", function()
 
   describe("setUpdateItemTable", function()
     it("should populate menu items correctly", function()
-      local menu = FileManagerMenu:new{ ui = mock_ui }
+      local menu = FileManagerMenu:new({ ui = mock_ui })
       menu:setUpdateItemTable()
 
       assert.truthy(menu.menu_items.filebrowser_settings)
@@ -379,7 +447,7 @@ describe("filemanagermenu", function()
     end)
 
     it("should toggle show finished files callback", function()
-      local menu = FileManagerMenu:new{ ui = mock_ui }
+      local menu = FileManagerMenu:new({ ui = mock_ui })
       menu:setUpdateItemTable()
 
       local sub = menu.menu_items.filebrowser_settings.sub_item_table
@@ -388,13 +456,15 @@ describe("filemanagermenu", function()
 
       assert.is_false(show_finished_item.checked_func())
       show_finished_item.callback()
-      assert.spy(mock_ui.file_chooser.toggleShowFilesMode).was.called_with(mock_ui.file_chooser, "show_finished")
+      assert
+        .spy(mock_ui.file_chooser.toggleShowFilesMode).was
+        .called_with(mock_ui.file_chooser, "show_finished")
     end)
   end)
 
   describe("onShowMenu", function()
     it("should show TouchMenu in touch device", function()
-      local menu = FileManagerMenu:new{ ui = mock_ui }
+      local menu = FileManagerMenu:new({ ui = mock_ui })
 
       local UIManager = require("ui/uimanager")
       UIManager.show:clear()
@@ -402,7 +472,7 @@ describe("filemanagermenu", function()
       local TouchMenu = {
         new = spy.new(function(self, args)
           return { is_touch_menu = true, last_index = args.last_index }
-        end)
+        end),
       }
       package.loaded["ui/widget/touchmenu"] = TouchMenu
 

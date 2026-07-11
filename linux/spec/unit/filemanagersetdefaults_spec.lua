@@ -37,7 +37,9 @@ describe("filemanagersetdefaults", function()
         for k in pairs(t) do
           table.insert(keys, k)
         end
-        table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
+        table.sort(keys, function(a, b)
+          return tostring(a) < tostring(b)
+        end)
         local i = 0
         return function()
           i = i + 1
@@ -45,25 +47,35 @@ describe("filemanagersetdefaults", function()
             return keys[i], t[keys[i]]
           end
         end
-      end
+      end,
     }
     package.loaded["ffi/util"] = mock_ffiutil
 
     mock_device = {
       screen = {
-        getSize = function() return { w = 800, h = 600 } end,
-        getWidth = function() return 800 end,
-        getHeight = function() return 600 end,
-        scaleBySize = function(self, val) return val end,
+        getSize = function()
+          return { w = 800, h = 600 }
+        end,
+        getWidth = function()
+          return 800
+        end,
+        getHeight = function()
+          return 600
+        end,
+        scaleBySize = function(self, val)
+          return val
+        end,
       },
-      canRestart = function() return true end,
+      canRestart = function()
+        return true
+      end,
     }
     package.loaded["device"] = mock_device
 
     package.loaded["ui/size"] = {
       margin = {
         fullscreen_popout = 10,
-      }
+      },
     }
 
     local mock_center_container = {
@@ -72,7 +84,9 @@ describe("filemanagersetdefaults", function()
         setmetatable(subclass, { __index = self })
         subclass.new = function(cls, ...)
           local inst = setmetatable({}, { __index = cls })
-          if inst.init then inst:init(...) end
+          if inst.init then
+            inst:init(...)
+          end
           return inst
         end
         return subclass
@@ -81,7 +95,8 @@ describe("filemanagersetdefaults", function()
         require("ui/uimanager"):show(widget, ...)
       end,
     }
-    package.loaded["ui/widget/container/centercontainer"] = mock_center_container
+    package.loaded["ui/widget/container/centercontainer"] =
+      mock_center_container
 
     mock_menu = {
       new = spy.new(function(self, args)
@@ -94,7 +109,7 @@ describe("filemanagersetdefaults", function()
           switchItemTable = spy.new(function() end),
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/menu"] = mock_menu
 
@@ -109,7 +124,7 @@ describe("filemanagersetdefaults", function()
           cancel_callback = args.cancel_callback,
           dismissable = args.dismissable,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/confirmbox"] = mock_confirm_box
 
@@ -119,7 +134,7 @@ describe("filemanagersetdefaults", function()
           is_info_message = true,
           text = args.text,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/infomessage"] = mock_info_message
 
@@ -133,10 +148,12 @@ describe("filemanagersetdefaults", function()
           buttons = args.buttons,
           input_type = args.input_type,
           width = args.width,
-          getInputValue = function() return obj.mock_input_value or args.input end,
+          getInputValue = function()
+            return obj.mock_input_value or args.input
+          end,
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/inputdialog"] = mock_input_dialog
 
@@ -149,10 +166,12 @@ describe("filemanagersetdefaults", function()
           fields = args.fields,
           buttons = args.buttons,
           width = args.width,
-          getFields = function() return obj.mock_fields or {} end,
+          getFields = function()
+            return obj.mock_fields or {}
+          end,
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/multiinputdialog"] = mock_multi_input_dialog
 
@@ -168,8 +187,12 @@ describe("filemanagersetdefaults", function()
       end),
       restartKOReader = spy.new(function() end),
       quit = spy.new(function() end),
-      getLastShownWidget = function() return last_shown_widget end,
-      getLastClosedWidget = function() return last_closed_widget end,
+      getLastShownWidget = function()
+        return last_shown_widget
+      end,
+      getLastClosedWidget = function()
+        return last_closed_widget
+      end,
     }
 
     package.loaded["gettext"] = function(text)
@@ -184,16 +207,24 @@ describe("filemanagersetdefaults", function()
 
     mock_util = {
       tableEquals = function(t1, t2)
-        if type(t1) ~= type(t2) then return false end
-        if type(t1) ~= "table" then return t1 == t2 end
+        if type(t1) ~= type(t2) then
+          return false
+        end
+        if type(t1) ~= "table" then
+          return t1 == t2
+        end
         for k, v in pairs(t1) do
-          if not mock_util.tableEquals(v, t2[k]) then return false end
+          if not mock_util.tableEquals(v, t2[k]) then
+            return false
+          end
         end
         for k, v in pairs(t2) do
-          if not mock_util.tableEquals(v, t1[k]) then return false end
+          if not mock_util.tableEquals(v, t1[k]) then
+            return false
+          end
         end
         return true
-      end
+      end,
     }
     package.loaded["util"] = mock_util
 
@@ -220,35 +251,40 @@ describe("filemanagersetdefaults", function()
   end)
 
   describe("ConfirmEdit", function()
-    it("should show confirm box on first edit, then show SetDefaultsWidget", function()
-      local UIManager = require("ui/uimanager")
-      UIManager.show:clear()
+    it(
+      "should show confirm box on first edit, then show SetDefaultsWidget",
+      function()
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
 
-      SetDefaults.EditConfirmed = nil -- Reset state
+        SetDefaults.EditConfirmed = nil -- Reset state
 
-      SetDefaults:ConfirmEdit()
+        SetDefaults:ConfirmEdit()
 
-      assert.spy(UIManager.show).was.called(1)
-      local confirmbox = UIManager.getLastShownWidget()
-      assert.is_true(confirmbox.is_confirm_box)
-      assert.truthy(confirmbox.text:find("Are you sure you want to continue?"))
+        assert.spy(UIManager.show).was.called(1)
+        local confirmbox = UIManager.getLastShownWidget()
+        assert.is_true(confirmbox.is_confirm_box)
+        assert.truthy(
+          confirmbox.text:find("Are you sure you want to continue?")
+        )
 
-      -- Trigger OK
-      UIManager.show:clear()
-      confirmbox.ok_callback()
+        -- Trigger OK
+        UIManager.show:clear()
+        confirmbox.ok_callback()
 
-      assert.is_true(SetDefaults.EditConfirmed)
-      assert.spy(UIManager.show).was.called(1)
-      local widget = UIManager.getLastShownWidget()
-      assert.truthy(widget.defaults_menu) -- Widget initialized and created menu
+        assert.is_true(SetDefaults.EditConfirmed)
+        assert.spy(UIManager.show).was.called(1)
+        local widget = UIManager.getLastShownWidget()
+        assert.truthy(widget.defaults_menu) -- Widget initialized and created menu
 
-      -- Second time should show directly
-      UIManager.show:clear()
-      SetDefaults:ConfirmEdit()
-      assert.spy(UIManager.show).was.called(1)
-      local widget2 = UIManager.getLastShownWidget()
-      assert.truthy(widget2.defaults_menu)
-    end)
+        -- Second time should show directly
+        UIManager.show:clear()
+        SetDefaults:ConfirmEdit()
+        assert.spy(UIManager.show).was.called(1)
+        local widget2 = UIManager.getLastShownWidget()
+        assert.truthy(widget2.defaults_menu)
+      end
+    )
   end)
 
   describe("SetDefaultsWidget", function()
@@ -280,11 +316,26 @@ describe("filemanagersetdefaults", function()
       assert.are.equal(6, #widget.menu_entries)
 
       -- Check gen_menu_entry formatting
-      assert.are.equal("BOOL_KEY = true", widget.menu_entries[widget.state.BOOL_KEY.idx].text)
-      assert.are.equal("NUM_KEY = 42", widget.menu_entries[widget.state.NUM_KEY.idx].text)
-      assert.are.equal("STR_KEY = \"hello\"", widget.menu_entries[widget.state.STR_KEY.idx].text)
-      assert.are.equal("TBL_KEY = {...}", widget.menu_entries[widget.state.TBL_KEY.idx].text)
-      assert.are.equal("NETWORK_PROXY = nil", widget.menu_entries[widget.state.NETWORK_PROXY.idx].text)
+      assert.are.equal(
+        "BOOL_KEY = true",
+        widget.menu_entries[widget.state.BOOL_KEY.idx].text
+      )
+      assert.are.equal(
+        "NUM_KEY = 42",
+        widget.menu_entries[widget.state.NUM_KEY.idx].text
+      )
+      assert.are.equal(
+        'STR_KEY = "hello"',
+        widget.menu_entries[widget.state.STR_KEY.idx].text
+      )
+      assert.are.equal(
+        "TBL_KEY = {...}",
+        widget.menu_entries[widget.state.TBL_KEY.idx].text
+      )
+      assert.are.equal(
+        "NETWORK_PROXY = nil",
+        widget.menu_entries[widget.state.NETWORK_PROXY.idx].text
+      )
     end)
 
     it("should handle unknown keys in rw_defaults with a warning", function()
@@ -320,63 +371,66 @@ describe("filemanagersetdefaults", function()
     end)
 
     describe("Editing boolean values", function()
-      it("should show InputDialog and update value to true/false/default", function()
-        local UIManager = require("ui/uimanager")
-        local idx = widget.state.BOOL_KEY.idx
-        local entry = widget.menu_entries[idx]
+      it(
+        "should show InputDialog and update value to true/false/default",
+        function()
+          local UIManager = require("ui/uimanager")
+          local idx = widget.state.BOOL_KEY.idx
+          local entry = widget.menu_entries[idx]
 
-        -- Trigger callback (editBoolean)
-        UIManager.show:clear()
-        entry.callback()
+          -- Trigger callback (editBoolean)
+          UIManager.show:clear()
+          entry.callback()
 
-        assert.spy(UIManager.show).was.called(1)
-        local dialog = UIManager.getLastShownWidget()
-        assert.is_true(dialog.is_input_dialog)
-        assert.are.equal("BOOL_KEY", dialog.title)
-        assert.are.equal("true", dialog.input)
+          assert.spy(UIManager.show).was.called(1)
+          local dialog = UIManager.getLastShownWidget()
+          assert.is_true(dialog.is_input_dialog)
+          assert.are.equal("BOOL_KEY", dialog.title)
+          assert.are.equal("true", dialog.input)
 
-        -- Buttons: Cancel, Default, true, false
-        -- Let's check buttons structure
-        -- dialog.buttons = { { cancel_button, default_button, true_button, false_button } }
-        local buttons = dialog.buttons[1]
-        assert.are.equal("Cancel", buttons[1].text)
-        assert.are.equal("Default", buttons[2].text)
-        assert.are.equal("true", buttons[3].text)
-        assert.are.equal("false", buttons[4].text)
+          -- Buttons: Cancel, Default, true, false
+          -- Let's check buttons structure
+          -- dialog.buttons = { { cancel_button, default_button, true_button, false_button } }
+          local buttons = dialog.buttons[1]
+          assert.are.equal("Cancel", buttons[1].text)
+          assert.are.equal("Default", buttons[2].text)
+          assert.are.equal("true", buttons[3].text)
+          assert.are.equal("false", buttons[4].text)
 
-        -- Default button should be disabled initially because value is default
-        assert.is_false(buttons[2].enabled)
+          -- Default button should be disabled initially because value is default
+          assert.is_false(buttons[2].enabled)
 
-        -- Click "false"
-        UIManager.close:clear()
-        widget.defaults_menu.switchItemTable:clear()
-        buttons[4].callback()
+          -- Click "false"
+          UIManager.close:clear()
+          widget.defaults_menu.switchItemTable:clear()
+          buttons[4].callback()
 
-        assert.spy(UIManager.close).was.called(1)
-        assert.are.equal(dialog, UIManager.getLastClosedWidget())
-        assert.are.equal(false, widget.state.BOOL_KEY.value)
-        assert.is_true(widget.state.BOOL_KEY.dirty)
-        assert.is_true(widget.settings_changed)
-        assert.are.equal("BOOL_KEY = false", widget.menu_entries[idx].text)
-        assert.is_true(widget.menu_entries[idx].bold)
-        assert.spy(widget.defaults_menu.switchItemTable).was.called(1)
+          assert.spy(UIManager.close).was.called(1)
+          assert.are.equal(dialog, UIManager.getLastClosedWidget())
+          assert.are.equal(false, widget.state.BOOL_KEY.value)
+          assert.is_true(widget.state.BOOL_KEY.dirty)
+          assert.is_true(widget.settings_changed)
+          assert.are.equal("BOOL_KEY = false", widget.menu_entries[idx].text)
+          assert.is_true(widget.menu_entries[idx].bold)
+          assert.spy(widget.defaults_menu.switchItemTable).was.called(1)
 
-        -- Edit again to test "Default" button
-        UIManager.show:clear()
-        entry.callback()
-        dialog = UIManager.getLastShownWidget()
-        buttons = dialog.buttons[1]
+          -- Edit again to test "Default" button
+          UIManager.show:clear()
+          entry.callback()
+          dialog = UIManager.getLastShownWidget()
+          buttons = dialog.buttons[1]
 
-        -- Default button should now be enabled
-        assert.is_true(buttons[2].enabled)
+          -- Default button should now be enabled
+          assert.is_true(buttons[2].enabled)
 
-        -- Click "Default"
-        UIManager.close:clear()
-        buttons[2].callback()
-        assert.spy(UIManager.close).was.called(1)
-        assert.are.equal(true, widget.state.BOOL_KEY.value)
-        assert.is_false(widget.menu_entries[idx].bold)
-      end)
+          -- Click "Default"
+          UIManager.close:clear()
+          buttons[2].callback()
+          assert.spy(UIManager.close).was.called(1)
+          assert.are.equal(true, widget.state.BOOL_KEY.value)
+          assert.is_false(widget.menu_entries[idx].bold)
+        end
+      )
     end)
 
     describe("Editing table values", function()
@@ -450,7 +504,7 @@ describe("filemanagersetdefaults", function()
         assert.spy(UIManager.close).was.called(1)
         assert.are.equal("world", widget.state.STR_KEY.value)
         assert.is_true(widget.state.STR_KEY.dirty)
-        assert.are.equal("STR_KEY = \"world\"", widget.menu_entries[idx].text)
+        assert.are.equal('STR_KEY = "world"', widget.menu_entries[idx].text)
         assert.is_true(widget.menu_entries[idx].bold)
       end)
 
@@ -556,22 +610,27 @@ describe("filemanagersetdefaults", function()
         assert.spy(UIManager.restartKOReader).was.called(1)
       end)
 
-      it("should show ConfirmBox with Save and quit if Device cannot restart", function()
-        local UIManager = require("ui/uimanager")
-        UIManager.show:clear()
+      it(
+        "should show ConfirmBox with Save and quit if Device cannot restart",
+        function()
+          local UIManager = require("ui/uimanager")
+          UIManager.show:clear()
 
-        mock_device.canRestart = function() return false end
-        widget.settings_changed = true
-        widget:saveBeforeExit()
+          mock_device.canRestart = function()
+            return false
+          end
+          widget.settings_changed = true
+          widget:saveBeforeExit()
 
-        local confirmbox = UIManager.getLastShownWidget()
-        assert.are.equal("Save and quit", confirmbox.ok_text)
+          local confirmbox = UIManager.getLastShownWidget()
+          assert.are.equal("Save and quit", confirmbox.ok_text)
 
-        -- Click OK
-        UIManager.quit:clear()
-        confirmbox.ok_callback()
-        assert.spy(UIManager.quit).was.called(1)
-      end)
+          -- Click OK
+          UIManager.quit:clear()
+          confirmbox.ok_callback()
+          assert.spy(UIManager.quit).was.called(1)
+        end
+      )
 
       it("should discard changes on Cancel", function()
         local UIManager = require("ui/uimanager")
