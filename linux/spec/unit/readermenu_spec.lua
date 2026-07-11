@@ -459,17 +459,16 @@ describe("ReaderMenu integration", function()
     readerui = ReaderUI.instance
 
     -- Swipe west
-    local swipe_event =
-      Event:new("Gesture", {
-        ges = "swipe",
-        direction = "west",
-        distance = 100,
-        pos = Geom:new({
-          x = Screen:getWidth() / 2,
-          y = Screen:getHeight() / 2,
-        }),
-        time = require("ui/time").monotonic() + 1000,
-      }):asUserInput()
+    local swipe_event = Event:new("Gesture", {
+      ges = "swipe",
+      direction = "west",
+      distance = 100,
+      pos = Geom:new({
+        x = Screen:getWidth() / 2,
+        y = Screen:getHeight() / 2,
+      }),
+      time = require("ui/time").monotonic() + 1000,
+    }):asUserInput()
 
     UIManager:userInput(swipe_event)
 

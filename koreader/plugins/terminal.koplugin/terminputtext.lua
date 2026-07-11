@@ -118,7 +118,10 @@ function TermInputText:init()
 end
 
 -- disable positioning cursor by tap in emulator mode
-function TermInputText:onTapTextBox(arg, _ges)
+function TermInputText:onTapTextBox(arg, ges)
+  if not self:isKeyboardVisible() then
+    self:showKeyboard()
+  end
   return true
 end
 

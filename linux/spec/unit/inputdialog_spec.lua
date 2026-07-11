@@ -128,56 +128,68 @@ describe("InputDialog widget", function()
   end)
 
   describe("disable_auto_keyboard configuration", function()
-    it("should set disable_auto_keyboard=true on InputText when add_nav_bar=true", function()
-      local dialog = InputDialog:new({
-        title = "Test Nav Bar",
-        input = "",
-        add_nav_bar = true,
-        fullscreen = true,
-      })
-      assert.truthy(dialog._input_widget.disable_auto_keyboard)
-    end)
-
-    it("should set disable_auto_keyboard=false on InputText when add_nav_bar=false/nil", function()
-      local dialog = InputDialog:new({
-        title = "Test No Nav Bar",
-        input = "",
-      })
-      assert.falsy(dialog._input_widget.disable_auto_keyboard)
-    end)
-
-    it("should not show keyboard on onTapTextBox when disable_auto_keyboard=true", function()
-      local dialog = InputDialog:new({
-        title = "Test Nav Bar",
-        input = "",
-        add_nav_bar = true,
-        fullscreen = true,
-      })
-
-      local input_widget = dialog._input_widget
-      local show_keyboard_called = false
-      input_widget.showKeyboard = function()
-        show_keyboard_called = true
+    it(
+      "should set disable_auto_keyboard=true on InputText when add_nav_bar=true",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test Nav Bar",
+          input = "",
+          add_nav_bar = true,
+          fullscreen = true,
+        })
+        assert.truthy(dialog._input_widget.disable_auto_keyboard)
       end
+    )
 
-      input_widget:onTapTextBox(nil, {})
-      assert.falsy(show_keyboard_called)
-    end)
-
-    it("should show keyboard on onTapTextBox when disable_auto_keyboard=false", function()
-      local dialog = InputDialog:new({
-        title = "Test No Nav Bar",
-        input = "",
-      })
-
-      local input_widget = dialog._input_widget
-      local show_keyboard_called = false
-      input_widget.showKeyboard = function()
-        show_keyboard_called = true
+    it(
+      "should set disable_auto_keyboard=false on InputText when add_nav_bar=false/nil",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test No Nav Bar",
+          input = "",
+        })
+        assert.falsy(dialog._input_widget.disable_auto_keyboard)
       end
+    )
 
-      input_widget:onTapTextBox(nil, {})
-      assert.truthy(show_keyboard_called)
-    end)
+    it(
+      "should not show keyboard on onTapTextBox when disable_auto_keyboard=true",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test Nav Bar",
+          input = "",
+          add_nav_bar = true,
+          fullscreen = true,
+        })
+
+        local input_widget = dialog._input_widget
+        local show_keyboard_called = false
+        input_widget.showKeyboard = function()
+          show_keyboard_called = true
+        end
+
+        input_widget:onTapTextBox(nil, {})
+        assert.falsy(show_keyboard_called)
+      end
+    )
+
+    it(
+      "should show keyboard on onTapTextBox when disable_auto_keyboard=false",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test No Nav Bar",
+          input = "",
+        })
+
+        local input_widget = dialog._input_widget
+        local show_keyboard_called = false
+        input_widget.showKeyboard = function()
+          show_keyboard_called = true
+        end
+
+        input_widget:onTapTextBox(nil, {})
+        assert.truthy(show_keyboard_called)
+      end
+    )
   end)
 end)
