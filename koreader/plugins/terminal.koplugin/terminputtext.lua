@@ -77,6 +77,15 @@ local function isPrintable(ch)
     or ch == "\011"
 end
 
+local function safeWriteChar(list, idx, val)
+  if idx > #list + 1 then
+    for i = #list + 1, idx - 1 do
+      list[i] = " "
+    end
+  end
+  list[idx] = val
+end
+
 local TermInputText = InputText:extend({
   maxr = 40,
   maxc = 80,
@@ -586,6 +595,11 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
 
   local function insertSpaces(n)
     if n > 0 then
+      if self.charpos > #self.charlist + 1 then
+        for i = #self.charlist + 1, self.charpos - 1 do
+          self.charlist[i] = " "
+        end
+      end
       table.move(self.charlist, self.charpos, #self.charlist, self.charpos + n)
       for i = self.charpos, self.charpos + n - 1 do
         self.charlist[i] = " "
@@ -690,7 +704,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       local old_char = self.charlist[idx]
       local old_w = getCharWidth(old_char)
 
-      self.charlist[idx] = new_char
+      safeWriteChar(self.charlist, idx, new_char)
       self.charpos = self.charpos + 1
 
       local diff = new_w - old_w
