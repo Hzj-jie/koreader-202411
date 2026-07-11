@@ -117,7 +117,11 @@ function TermInputText:init()
   end
 end
 
--- disable positioning cursor by tap in emulator mode
+-- Override onTapTextBox to do nothing (just return true).
+-- This prevents the text cursor from jumping when tapping the text box,
+-- which is disallowed because cursor position is managed by the shell.
+-- (Note: preventing keyboard from closing on tap outside is handled
+-- by overriding onTap to no-op in the parent InputDialog instead).
 function TermInputText:onTapTextBox(arg, _ges)
   return true
 end
