@@ -78,7 +78,9 @@ describe("ScrollableContainer module", function()
 
   it("should paint horizontal scrollbar with shift in RTL", function()
     local bb = {
-      getType = function() return 1 end,
+      getType = function()
+        return 1
+      end,
       blitFrom = function() end,
     }
     -- Container size: 200x200, content: 300x300 (both scrollbars)

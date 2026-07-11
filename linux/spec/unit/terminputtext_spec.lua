@@ -63,5 +63,44 @@ describe("TermInputText widget module", function()
       expected[13] = "b"
       assert.is_true(equals(expected, term.charlist))
     end)
+
+    it(
+      "should not delete characters from next line when overwriting newline",
+      function()
+        local term = TermInputText:new({
+          maxc = 10,
+          maxr = 3,
+          wrap = true,
+        })
+        -- Setup: two lines of text
+        term.charlist = {
+          "1",
+          "2",
+          "3",
+          "\n",
+          "a",
+          "b",
+          "c",
+          "\n",
+        }
+        -- "123\nabc\n"
+        -- indices: 1="1", 2="2", 3="3", 4="\n", 5="a", 6="b", 7="c", 8="\n"
+        term.charpos = 4
+        term:addChars("x")
+
+        local expected = {
+          "1",
+          "2",
+          "3",
+          "x",
+          "\n",
+          "a",
+          "b",
+          "c",
+          "\n",
+        }
+        assert.are.same(expected, term.charlist)
+      end
+    )
   end)
 end)

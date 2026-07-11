@@ -689,36 +689,40 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
           )
         end
       end
-
       -- 2. Overwrite logic with width adjustment
       local idx = self.charpos
       local old_char = self.charlist[idx]
-      local old_w = getCharWidth(old_char)
 
-      self:_setChar(idx, new_char)
-      self.charpos = self.charpos + 1
+      if old_char == "\n" then
+        table.insert(self.charlist, idx, new_char)
+        self.charpos = self.charpos + 1
+      else
+        local old_w = getCharWidth(old_char)
+        self:_setChar(idx, new_char)
+        self.charpos = self.charpos + 1
 
-      local diff = new_w - old_w
-      if diff > 0 then
-        local target_remove = diff
-        local next_idx = idx + 1
-        while
-          target_remove > 0
-          and self.charlist[next_idx]
-          and self.charlist[next_idx] ~= "\n"
-        do
-          local next_w = getCharWidth(self.charlist[next_idx])
-          table.remove(self.charlist, next_idx)
-          target_remove = target_remove - next_w
-        end
-        if target_remove < 0 then
-          for _ = 1, -target_remove do
-            table.insert(self.charlist, next_idx, " ")
+        local diff = new_w - old_w
+        if diff > 0 then
+          local target_remove = diff
+          local next_idx = idx + 1
+          while
+            target_remove > 0
+            and self.charlist[next_idx]
+            and self.charlist[next_idx] ~= "\n"
+          do
+            local next_w = getCharWidth(self.charlist[next_idx])
+            table.remove(self.charlist, next_idx)
+            target_remove = target_remove - next_w
           end
-        end
-      elseif diff < 0 then
-        for _ = 1, -diff do
-          table.insert(self.charlist, idx + 1, " ")
+          if target_remove < 0 then
+            for _ = 1, -target_remove do
+              table.insert(self.charlist, next_idx, " ")
+            end
+          end
+        elseif diff < 0 then
+          for _ = 1, -diff do
+            table.insert(self.charlist, idx + 1, " ")
+          end
         end
       end
     end
