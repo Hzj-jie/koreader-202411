@@ -194,36 +194,44 @@ describe("InputDialog widget", function()
   end)
 
   it(
-    "should adjust layout height when using TermInputText and tapping it",
+    "should close keyboard on tap outside by default, but not if onTap is overridden",
     function()
-      local TermInputText = require("plugins/terminal.koplugin/terminputtext")
       local UIManager = require("ui/uimanager")
-      local dialog = InputDialog:new({
-        title = "Test TermInputText Tap",
+      local Geom = require("ui/geometry")
+
+      -- Case 1: Default (should close)
+      local dialog_default = InputDialog:new({
+        title = "Test Default onTap",
         input = "",
         fullscreen = true,
-        inputtext_class = TermInputText,
       })
-
-      UIManager:show(dialog)
+      UIManager:show(dialog_default)
       UIManager:forceRepaint()
+      assert.is_true(dialog_default:isKeyboardVisible())
 
-      local screen_height = require("device").screen:getHeight()
-      local initial_height = dialog[1]:getSize().h
-
-      -- Hide keyboard
-      dialog:closeKeyboard()
+      -- Tap outside (0,0 is outside the keyboard which is at the bottom)
+      dialog_default:onTap(nil, { pos = Geom:new({ x = 0, y = 0 }) })
       UIManager:forceRepaint()
-      assert.are.equal(screen_height, dialog[1]:getSize().h)
+      assert.falsy(dialog_default:isKeyboardVisible())
+      UIManager:close(dialog_default)
 
-      -- Simulate tap on TermInputText textbox
-      dialog._input_widget:onTapTextBox(nil, {})
+      -- Case 2: Overridden (should NOT close)
+      local dialog_override = InputDialog:new({
+        title = "Test Override onTap",
+        input = "",
+        fullscreen = true,
+        onTap = function()
+          return true
+        end,
+      })
+      UIManager:show(dialog_override)
       UIManager:forceRepaint()
+      assert.is_true(dialog_override:isKeyboardVisible())
 
-      -- It should have called parent:showKeyboard() and shrunk the layout!
-      assert.are.equal(initial_height, dialog[1]:getSize().h)
-
-      UIManager:close(dialog)
+      dialog_override:onTap(nil, { pos = Geom:new({ x = 0, y = 0 }) })
+      UIManager:forceRepaint()
+      assert.is_true(dialog_override:isKeyboardVisible()) -- Still visible!
+      UIManager:close(dialog_override)
     end
   )
 end)

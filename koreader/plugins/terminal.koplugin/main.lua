@@ -409,6 +409,9 @@ function Terminal:generateInputDialog()
     cursor_at_end = true,
     fullscreen = true,
     inputtext_class = TermInputText,
+    onTap = function()
+      return true
+    end,
     buttons = {
       {
         {
