@@ -192,4 +192,38 @@ describe("InputDialog widget", function()
       end
     )
   end)
+
+  it(
+    "should adjust layout height when using TermInputText and tapping it",
+    function()
+      local TermInputText = require("plugins/terminal.koplugin/terminputtext")
+      local UIManager = require("ui/uimanager")
+      local dialog = InputDialog:new({
+        title = "Test TermInputText Tap",
+        input = "",
+        fullscreen = true,
+        inputtext_class = TermInputText,
+      })
+
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
+
+      local screen_height = require("device").screen:getHeight()
+      local initial_height = dialog[1]:getSize().h
+
+      -- Hide keyboard
+      dialog:closeKeyboard()
+      UIManager:forceRepaint()
+      assert.are.equal(screen_height, dialog[1]:getSize().h)
+
+      -- Simulate tap on TermInputText textbox
+      dialog._input_widget:onTapTextBox(nil, {})
+      UIManager:forceRepaint()
+
+      -- It should have called parent:showKeyboard() and shrunk the layout!
+      assert.are.equal(initial_height, dialog[1]:getSize().h)
+
+      UIManager:close(dialog)
+    end
+  )
 end)
