@@ -566,7 +566,7 @@ function Terminal:onTerminalStart(menu)
 
   self.store_position = 1
 
-  logger.info(
+  logger.warn(
     string.format(
       "Terminal metrics: widget_w=%d, scroll_bar_w=%d, char_w=%d, calculated_cols=%d",
       self:getInputWidget().width,
