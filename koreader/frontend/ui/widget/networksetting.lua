@@ -482,15 +482,16 @@ function NetworkSetting:init()
 
   local title_bar = TitleBar:new({
     title = gettext("Wi-Fi networks"),
-    subtitle = " ",
     width = self.width,
     align = "center",
     with_bottom_line = true,
     left_icon = "close",
+    left_icon_size_ratio = 0.8,
     left_icon_tap_callback = function()
       UIManager:close(self)
     end,
     right_icon = "cre.render.reload",
+    right_icon_size_ratio = 0.8,
     right_icon_tap_callback = function()
       UIManager:close(self)
       NetworkMgr:showNetworkMenu(self.connect_callback)
@@ -516,8 +517,13 @@ function NetworkSetting:init()
           - title_bar:getSize().h,
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
-          title_bar:setSubTitle(
-            string.format("%d / %d", curr_page, total_pages)
+          title_bar:setTitle(
+            string.format(
+              "%s (%d/%d)",
+              gettext("Wi-Fi networks"),
+              curr_page,
+              total_pages
+            )
           )
           self:scheduleRepaint()
         end,
