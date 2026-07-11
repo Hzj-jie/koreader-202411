@@ -611,7 +611,9 @@ function InputDialog:onClose()
     active_instances >= 0,
     "InputDialog active instances count went negative!"
   )
+  self._is_closing = true
   self:onExit()
+  self._is_closing = nil
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
@@ -645,7 +647,9 @@ function InputDialog:closeKeyboard()
     self:onExit()
     self:free()
     self._should_show_keyboard = false
-    self:init()
+    if not self._is_closing then
+      self:init()
+    end
 
     local keyboard_button = self.button_table:getButtonById("keyboard")
     if keyboard_button then
