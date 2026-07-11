@@ -77,23 +77,6 @@ local function isPrintable(ch)
     or ch == "\011"
 end
 
-local function safeWriteChar(list, idx, val)
-  if idx > #list + 1 then
-    logger.warn(
-      string.format(
-        "safeWriteChar: padding gap from %d to %d with spaces (val=%q)",
-        #list + 1,
-        idx - 1,
-        tostring(val)
-      )
-    )
-    for i = #list + 1, idx - 1 do
-      list[i] = " "
-    end
-  end
-  list[idx] = val
-end
-
 local TermInputText = InputText:extend({
   maxr = 40,
   maxc = 80,
@@ -616,21 +599,9 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
 
   local function insertSpaces(n)
     if n > 0 then
-      if self.charpos > #self.charlist + 1 then
-        logger.warn(
-          string.format(
-            "insertSpaces: padding gap from %d to %d with spaces",
-            #self.charlist + 1,
-            self.charpos - 1
-          )
-        )
-        for i = #self.charlist + 1, self.charpos - 1 do
-          self.charlist[i] = " "
-        end
-      end
       table.move(self.charlist, self.charpos, #self.charlist, self.charpos + n)
       for i = self.charpos, self.charpos + n - 1 do
-        self.charlist[i] = " "
+        self:_setChar(i, " ")
       end
     end
     return self.charpos + math.max(0, n)
@@ -732,7 +703,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       local old_char = self.charlist[idx]
       local old_w = getCharWidth(old_char)
 
-      safeWriteChar(self.charlist, idx, new_char)
+      self:_setChar(idx, new_char)
       self.charpos = self.charpos + 1
 
       local diff = new_w - old_w
@@ -806,7 +777,7 @@ function TermInputText:formatTerminal(clear)
 
       if self.charlist[i] ~= "\n" then
         if clear then
-          self.charlist[i] = " "
+          self:_setChar(i, " ")
         end
       else
         table.insert(self.charlist, i, " ")
@@ -851,7 +822,7 @@ function TermInputText:clearToEndOfScreen()
   local pos = self.charpos
   while pos <= #self.charlist do
     if self.charlist[pos] ~= "\n" then
-      self.charlist[pos] = " "
+      self:_setChar(pos, " ")
     end
     pos = pos + 1
   end
@@ -866,7 +837,7 @@ function TermInputText:delToEndOfLine()
   local cur_pos = self.charpos
   -- self.charlist[self.charpos] is the char after the cursor
   while self.charlist[cur_pos] and self.charlist[cur_pos] ~= "\n" do
-    self.charlist[cur_pos] = " "
+    self:_setChar(cur_pos, " ")
     cur_pos = cur_pos + 1
   end
 end

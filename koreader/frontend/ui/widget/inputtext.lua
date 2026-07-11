@@ -69,6 +69,15 @@ local InputText = InputContainer:extend({
   selection_start_pos = nil, -- selection start position
 })
 
+function InputText:_setChar(idx, char)
+  if idx > #self.charlist + 1 then
+    for i = #self.charlist + 1, idx - 1 do
+      self.charlist[i] = " "
+    end
+  end
+  self.charlist[idx] = char
+end
+
 -- These may be (internally) overloaded as needed, depending on Device capabilities.
 function InputText:initEventListener() end
 function InputText:onFocus() end
