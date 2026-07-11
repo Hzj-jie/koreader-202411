@@ -1007,6 +1007,10 @@ function InputText:addChars(chars)
   end
   local added_charlist = util.splitToChars(chars)
   for i = #added_charlist, 1, -1 do
+    assert(
+      added_charlist[i] ~= nil,
+      "InputText:addChars: added_charlist contains nil"
+    )
     table.insert(self.charlist, self.charpos, added_charlist[i])
   end
   self.charpos = self.charpos + #added_charlist
