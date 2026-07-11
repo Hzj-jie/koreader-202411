@@ -566,7 +566,15 @@ function Terminal:onTerminalStart(menu)
 
   self.store_position = 1
 
-  logger.dbg("Terminal: resolution= " .. self.maxc .. "x" .. self.maxr)
+  logger.info(
+    string.format(
+      "Terminal metrics: widget_w=%d, scroll_bar_w=%d, char_w=%d, calculated_cols=%d",
+      self:getInputWidget().width,
+      scroll_bar_width,
+      self:getCharSize(),
+      self.maxc
+    )
+  )
 
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
