@@ -500,7 +500,7 @@ end
 function util.splitToChars(text)
   local tab = {}
   if text ~= nil then
-    local prevcharcode, charcode = 0
+    local charcode
     -- Supports WTF-8 : https://en.wikipedia.org/wiki/UTF-8#WTF-8
     -- a superset of UTF-8, that includes UTF-16 surrogates
     -- in UTF-8 bytes (forbidden in well-formed UTF-8).
@@ -521,37 +521,32 @@ function util.splitToChars(text)
     local hi_surrogate_uchar
     for uchar in text:gmatch(util.UTF8_CHAR_PATTERN) do
       charcode = ffiUtil.utf8charcode(uchar)
-      -- (not sure why we need this prevcharcode check; we could get
-      -- charcode=nil with invalid UTF-8, but should we then really
-      -- ignore the following charcode ?)
-      if prevcharcode then -- utf8
-        if charcode and charcode >= 0xD800 and charcode <= 0xDBFF then
-          if hi_surrogate then -- previous unconsumed one, add it even if invalid
-            table.insert(tab, hi_surrogate_uchar)
-          end
-          hi_surrogate = charcode
-          hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
-        elseif
-          hi_surrogate
-          and charcode
-          and charcode >= 0xDC00
-          and charcode <= 0xDFFF
-        then
-          -- low surrogate following a high surrogate, good, let's make them a single char
-          charcode = lshift((hi_surrogate - 0xD800), 10)
-            + (charcode - 0xDC00)
-            + 0x10000
-          table.insert(tab, util.unicodeCodepointToUtf8(charcode))
-          hi_surrogate = nil
-        else
-          if hi_surrogate then -- previous unconsumed one, add it even if invalid
-            table.insert(tab, hi_surrogate_uchar)
-          end
-          hi_surrogate = nil
-          table.insert(tab, uchar)
+
+      if charcode and charcode >= 0xD800 and charcode <= 0xDBFF then
+        if hi_surrogate then -- previous unconsumed one, add it even if invalid
+          table.insert(tab, hi_surrogate_uchar)
         end
+        hi_surrogate = charcode
+        hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
+      elseif
+        hi_surrogate
+        and charcode
+        and charcode >= 0xDC00
+        and charcode <= 0xDFFF
+      then
+        -- low surrogate following a high surrogate, good, let's make them a single char
+        charcode = lshift((hi_surrogate - 0xD800), 10)
+          + (charcode - 0xDC00)
+          + 0x10000
+        table.insert(tab, util.unicodeCodepointToUtf8(charcode))
+        hi_surrogate = nil
+      else
+        if hi_surrogate then -- previous unconsumed one, add it even if invalid
+          table.insert(tab, hi_surrogate_uchar)
+        end
+        hi_surrogate = nil
+        table.insert(tab, uchar)
       end
-      prevcharcode = charcode
     end
   end
   return tab
