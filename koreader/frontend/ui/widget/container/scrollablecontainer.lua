@@ -90,6 +90,7 @@ function ScrollableContainer:getScrollbarWidth(scroll_bar_width)
 end
 
 function ScrollableContainer:init()
+  self:mayMergeWidthAndHeight()
   -- Unflatten self.ignore_events to table keys for cleaner code below
   local ignore = {}
   if self.ignore_events then

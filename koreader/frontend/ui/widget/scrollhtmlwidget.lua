@@ -27,11 +27,15 @@ local ScrollHtmlWidget = InputContainer:extend({
   dimen = nil,
   width = 0,
   height = 0,
-  scroll_bar_width = Screen:scaleBySize(6),
+  DEFAULT_SCROLL_BAR_WIDTH = 6,
+  scroll_bar_width = nil,
   text_scroll_span = nil,
 })
 
 function ScrollHtmlWidget:init()
+  self.scroll_bar_width = self.scroll_bar_width
+    or Screen:scaleBySize(self.DEFAULT_SCROLL_BAR_WIDTH)
+
   self.v_scroll_bar = VerticalScrollBar:new({
     width = self.scroll_bar_width,
     scroll_callback = function(ratio)

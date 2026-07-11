@@ -65,4 +65,16 @@ describe("InputText widget module", function()
       assert.is_true(equals({ "a", " ", " ", " ", "e" }, InputText.charlist))
     end)
   end)
+
+  describe("initTextBox()", function()
+    it("should reduce text_widget width by scrollbar required width", function()
+      local input = require("ui/widget/inputtext"):new({
+        width = 200,
+      })
+      input:initTextBox("")
+
+      local expected_width = 200 - input.text_widget.reserved_width
+      assert.are.equal(expected_width, input.text_widget.text_widget.width)
+    end)
+  end)
 end)
