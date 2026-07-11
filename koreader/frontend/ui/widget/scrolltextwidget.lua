@@ -28,10 +28,10 @@ local ScrollTextWidget = InputContainer:extend({
   scroll_by_pan = false, -- allow scrolling by lines with Pan
   face = nil,
   fgcolor = Blitbuffer.COLOR_BLACK,
-  width = Screen:scaleBySize(400),
-  height = Screen:scaleBySize(20),
-  scroll_bar_width = Screen:scaleBySize(6),
-  text_scroll_span = Screen:scaleBySize(12),
+  width = 400,
+  height = 20,
+  scroll_bar_width = 6,
+  text_scroll_span = 12,
   dialog = nil,
   images = nil,
   -- See TextBoxWidget for details about these options
@@ -47,6 +47,19 @@ local ScrollTextWidget = InputContainer:extend({
 })
 
 function ScrollTextWidget:init()
+  if not rawget(self, "width") then
+    self.width = Screen:scaleBySize(self.width)
+  end
+  if not rawget(self, "height") then
+    self.height = Screen:scaleBySize(self.height)
+  end
+  if not rawget(self, "scroll_bar_width") then
+    self.scroll_bar_width = Screen:scaleBySize(self.scroll_bar_width)
+  end
+  if not rawget(self, "text_scroll_span") then
+    self.text_scroll_span = Screen:scaleBySize(self.text_scroll_span)
+  end
+
   self.text_widget = TextBoxWidget:new({
     text = self.text,
     charlist = self.charlist,
