@@ -17,6 +17,10 @@ local VerticalScrollBar = require("ui/widget/verticalscrollbar")
 local Input = Device.input
 local Screen = Device.screen
 
+local function scale(px)
+  return Screen:scaleBySize(px)
+end
+
 local ScrollTextWidget = InputContainer:extend({
   text = nil,
   charlist = nil,
@@ -28,10 +32,14 @@ local ScrollTextWidget = InputContainer:extend({
   scroll_by_pan = false, -- allow scrolling by lines with Pan
   face = nil,
   fgcolor = Blitbuffer.COLOR_BLACK,
-  width = 400,
-  height = 20,
-  scroll_bar_width = 6,
-  text_scroll_span = 12,
+  DEFAULT_WIDTH = 400,
+  DEFAULT_HEIGHT = 20,
+  DEFAULT_SCROLL_BAR_WIDTH = 6,
+  DEFAULT_TEXT_SCROLL_SPAN = 12,
+  width = nil,
+  height = nil,
+  scroll_bar_width = nil,
+  text_scroll_span = nil,
   dialog = nil,
   images = nil,
   -- See TextBoxWidget for details about these options
@@ -47,18 +55,12 @@ local ScrollTextWidget = InputContainer:extend({
 })
 
 function ScrollTextWidget:init()
-  if not rawget(self, "width") then
-    self.width = Screen:scaleBySize(self.width)
-  end
-  if not rawget(self, "height") then
-    self.height = Screen:scaleBySize(self.height)
-  end
-  if not rawget(self, "scroll_bar_width") then
-    self.scroll_bar_width = Screen:scaleBySize(self.scroll_bar_width)
-  end
-  if not rawget(self, "text_scroll_span") then
-    self.text_scroll_span = Screen:scaleBySize(self.text_scroll_span)
-  end
+  self.width = self.width or scale(self.DEFAULT_WIDTH)
+  self.height = self.height or scale(self.DEFAULT_HEIGHT)
+  self.scroll_bar_width = self.scroll_bar_width
+    or scale(self.DEFAULT_SCROLL_BAR_WIDTH)
+  self.text_scroll_span = self.text_scroll_span
+    or scale(self.DEFAULT_TEXT_SCROLL_SPAN)
 
   self.text_widget = TextBoxWidget:new({
     text = self.text,

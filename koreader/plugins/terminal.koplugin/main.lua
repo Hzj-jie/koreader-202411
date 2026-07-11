@@ -558,8 +558,9 @@ function Terminal:onTerminalStart(menu)
   self.input_dialog = self:generateInputDialog()
 
   local scroll_bar_width = Device.screen:scaleBySize(
-    ScrollTextWidget.scroll_bar_width
-  ) + Device.screen:scaleBySize(ScrollTextWidget.text_scroll_span)
+    ScrollTextWidget.DEFAULT_SCROLL_BAR_WIDTH
+      + ScrollTextWidget.DEFAULT_TEXT_SCROLL_SPAN
+  )
   self.maxc = math.floor(
     (self:getInputWidget().width - scroll_bar_width) / self:getCharSize()
   )
