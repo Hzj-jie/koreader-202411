@@ -399,7 +399,7 @@ function Terminal:getCharSize()
 end
 
 function Terminal:generateInputDialog()
-  return InputDialog:new({
+  local dialog = InputDialog:new({
     title = gettext("Terminal emulator"),
     input = self.history,
     input_face = self.input_face,
@@ -536,6 +536,14 @@ function Terminal:generateInputDialog()
       self:transmit(chars)
     end,
   })
+  local org_reinit = dialog.reinit
+  dialog.reinit = function(d)
+    org_reinit(d)
+    if self.maxc and self.maxr then
+      d._input_widget:resize(self.maxr, self.maxc)
+    end
+  end
+  return dialog
 end
 
 function Terminal:onExit()
