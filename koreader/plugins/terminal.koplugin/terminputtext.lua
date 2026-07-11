@@ -79,6 +79,14 @@ end
 
 local function safeWriteChar(list, idx, val)
   if idx > #list + 1 then
+    logger.warn(
+      string.format(
+        "safeWriteChar: padding gap from %d to %d with spaces (val=%q)",
+        #list + 1,
+        idx - 1,
+        tostring(val)
+      )
+    )
     for i = #list + 1, idx - 1 do
       list[i] = " "
     end
@@ -239,10 +247,23 @@ function TermInputText:_removeLineEndingAt(end_pos)
   end
 
   -- Update cursor position mathematically
+  local old_charpos = self.charpos
   if self.charpos > end_pos then
     self.charpos = self.charpos - deleted_len
   elseif self.charpos >= pos then
     self.charpos = pos
+  end
+  if self.charpos ~= old_charpos then
+    logger.info(
+      string.format(
+        "_removeLineEndingAt: adjusted charpos from %d to %d (deleted_len=%d, range=[%d, %d])",
+        old_charpos,
+        self.charpos,
+        deleted_len,
+        pos,
+        end_pos
+      )
+    )
   end
 end
 
@@ -596,6 +617,13 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   local function insertSpaces(n)
     if n > 0 then
       if self.charpos > #self.charlist + 1 then
+        logger.warn(
+          string.format(
+            "insertSpaces: padding gap from %d to %d with spaces",
+            #self.charlist + 1,
+            self.charpos - 1
+          )
+        )
         for i = #self.charlist + 1, self.charpos - 1 do
           self.charlist[i] = " "
         end
