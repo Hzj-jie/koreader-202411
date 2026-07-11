@@ -500,10 +500,6 @@ end
 function util.splitToChars(text)
   local tab = {}
   if text ~= nil then
-    assert(
-      type(text) == "string",
-      "util.splitToChars: input text is not a string, got " .. type(text)
-    )
     local charcode
     -- Supports WTF-8 : https://en.wikipedia.org/wiki/UTF-8#WTF-8
     -- a superset of UTF-8, that includes UTF-16 surrogates
@@ -524,20 +520,12 @@ function util.splitToChars(text)
     local hi_surrogate
     local hi_surrogate_uchar
 
-    local function insertChar(c)
-      assert(
-        type(c) == "string",
-        "util.splitToChars: attempting to insert non-string character"
-      )
-      table.insert(tab, c)
-    end
-
     for uchar in text:gmatch(util.UTF8_CHAR_PATTERN) do
       charcode = ffiUtil.utf8charcode(uchar)
 
       if charcode and charcode >= 0xD800 and charcode <= 0xDBFF then
         if hi_surrogate then -- previous unconsumed one, add it even if invalid
-          insertChar(hi_surrogate_uchar)
+          table.insert(tab, hi_surrogate_uchar)
         end
         hi_surrogate = charcode
         hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
@@ -551,19 +539,16 @@ function util.splitToChars(text)
         charcode = lshift((hi_surrogate - 0xD800), 10)
           + (charcode - 0xDC00)
           + 0x10000
-        insertChar(util.unicodeCodepointToUtf8(charcode))
+        table.insert(tab, util.unicodeCodepointToUtf8(charcode))
         hi_surrogate = nil
       else
         if hi_surrogate then -- previous unconsumed one, add it even if invalid
-          insertChar(hi_surrogate_uchar)
+          table.insert(tab, hi_surrogate_uchar)
         end
         hi_surrogate = nil
-        insertChar(uchar)
+        table.insert(tab, uchar)
       end
     end
-  end
-  for i = 1, #tab do
-    assert(tab[i] ~= nil, "util.splitToChars: table has hole at " .. i)
   end
   return tab
 end

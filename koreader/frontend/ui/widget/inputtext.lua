@@ -69,41 +69,6 @@ local InputText = InputContainer:extend({
   selection_start_pos = nil, -- selection start position
 })
 
-function InputText:assertCharlist(list, context)
-  local max_key = 0
-  for k, v in pairs(list) do
-    if type(k) == "number" and k > max_key then
-      max_key = k
-    end
-  end
-
-  for i = 1, max_key do
-    if list[i] == nil then
-      local nearby = {}
-      for j = math.max(1, i - 5), math.min(max_key, i + 5) do
-        table.insert(nearby, string.format("[%d]=%q", j, tostring(list[j])))
-      end
-      error(
-        string.format(
-          "InputText assertion failed: charlist has nil at %d (max_key=%d, #list=%d) in %s. Nearby: %s",
-          i,
-          max_key,
-          #list,
-          context or "unknown",
-          table.concat(nearby, ", ")
-        )
-      )
-    end
-    assert(
-      type(list[i]) == "string",
-      "InputText assertion failed: charlist has non-string at "
-        .. i
-        .. " in "
-        .. (context or "unknown")
-    )
-  end
-end
-
 -- These may be (internally) overloaded as needed, depending on Device capabilities.
 function InputText:initEventListener() end
 function InputText:onFocus() end
@@ -445,7 +410,6 @@ function InputText:init()
     end
   end
   self.charlist = util.splitToChars(self.text)
-  self:assertCharlist(self.charlist, "InputText:init")
   self:initTextBox(self.text)
   self:checkTextEditability()
   if self.readonly ~= true then
@@ -1043,14 +1007,9 @@ function InputText:addChars(chars)
   end
   local added_charlist = util.splitToChars(chars)
   for i = #added_charlist, 1, -1 do
-    assert(
-      added_charlist[i] ~= nil,
-      "InputText:addChars: added_charlist contains nil"
-    )
     table.insert(self.charlist, self.charpos, added_charlist[i])
   end
   self.charpos = self.charpos + #added_charlist
-  self:assertCharlist(self.charlist, "InputText:addChars")
   self.is_text_edited = true
   self:initTextBox(nil, true)
 end
@@ -1225,7 +1184,6 @@ end
 function InputText:setText(text, keep_edited_state)
   -- Keep previous charpos and top_line_num
   self.charlist = util.splitToChars(text)
-  self:assertCharlist(self.charlist, "InputText:setText")
   self:initTextBox(text)
   if not keep_edited_state then
     -- assume new text is set by caller, and we start fresh
