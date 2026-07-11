@@ -149,7 +149,15 @@ describe("CloudStorage", function()
       run = function(self, _address, _user, _pass, _url)
         return self.run_response
       end,
-      downloadFile = function(self, _item, _address, _user, _pass, _path, callback_close)
+      downloadFile = function(
+        self,
+        _item,
+        _address,
+        _user,
+        _pass,
+        _path,
+        callback_close
+      )
         self.download_called = true
         if callback_close then
           callback_close()
@@ -169,19 +177,43 @@ describe("CloudStorage", function()
       run = function(self, _address, _user, _pass, _path, _folder_mode)
         return self.run_response
       end,
-      downloadFile = function(self, _item, _address, _user, _pass, _path, callback_close)
+      downloadFile = function(
+        self,
+        _item,
+        _address,
+        _user,
+        _pass,
+        _path,
+        callback_close
+      )
         self.download_called = true
         if callback_close then
           callback_close()
         end
       end,
-      uploadFile = function(self, _url, _address, _user, _pass, _path, callback_close)
+      uploadFile = function(
+        self,
+        _url,
+        _address,
+        _user,
+        _pass,
+        _path,
+        callback_close
+      )
         self.upload_called = true
         if callback_close then
           callback_close()
         end
       end,
-      createFolder = function(self, _url, _address, _user, _pass, _name, callback_close)
+      createFolder = function(
+        self,
+        _url,
+        _address,
+        _user,
+        _pass,
+        _name,
+        callback_close
+      )
         self.create_folder_called = true
         if callback_close then
           callback_close()
@@ -427,11 +459,14 @@ describe("CloudStorage", function()
   end)
 
   describe("init", function()
-    it("should load settings and generate empty item table if no servers added", function()
-      mock_settings_obj.cs_servers = {}
-      local cs = CloudStorage:new()
-      assert.are.same({}, cs.item_table)
-    end)
+    it(
+      "should load settings and generate empty item table if no servers added",
+      function()
+        mock_settings_obj.cs_servers = {}
+        local cs = CloudStorage:new()
+        assert.are.same({}, cs.item_table)
+      end
+    )
 
     it("should generate item table with added servers", function()
       mock_settings_obj.cs_servers = {
@@ -578,7 +613,8 @@ describe("CloudStorage", function()
       cs.username = "user"
       cs.password = "pass"
 
-      mock_lfs.files["/default/download/dir/file.epub"] = { mode = "file", size = 100 }
+      mock_lfs.files["/default/download/dir/file.epub"] =
+        { mode = "file", size = 100 }
 
       cs:downloadFile({ text = "file.epub", url = "/remote/file.epub" })
 
@@ -597,7 +633,10 @@ describe("CloudStorage", function()
       assert.are.equal(1, #mock_uimanager.shown_widgets)
       local confirm = mock_uimanager.shown_widgets[1]
       assert.is_true(confirm.is_confirm_box)
-      assert.are.equal("File already exists. Would you like to overwrite it?", confirm.text)
+      assert.are.equal(
+        "File already exists. Would you like to overwrite it?",
+        confirm.text
+      )
 
       confirm.ok_callback()
 

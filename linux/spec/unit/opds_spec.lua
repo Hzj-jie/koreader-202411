@@ -258,136 +258,191 @@ local facet_sample = [[
 ]]
 
 describe("OPDS module #nocov", function()
-    local socketutil
-    local OPDSParser, OPDSBrowser
-    local orig_path, orig_lbt, orig_ltt, orig_fbt, orig_ftt
-    local orig_http_request
+  local socketutil
+  local OPDSParser, OPDSBrowser
+  local orig_path, orig_lbt, orig_ltt, orig_fbt, orig_ftt
+  local orig_http_request
 
-    setup(function()
-        orig_path = package.path
-        package.path = "plugins/opds.koplugin/?.lua;" .. package.path
-        require("commonrequire")
-        socketutil = require("socketutil")
-        OPDSParser = require("opdsparser")
-        OPDSBrowser = require("opdsbrowser")
+  setup(function()
+    orig_path = package.path
+    package.path = "plugins/opds.koplugin/?.lua;" .. package.path
+    require("commonrequire")
+    socketutil = require("socketutil")
+    OPDSParser = require("opdsparser")
+    OPDSBrowser = require("opdsbrowser")
 
-        -- Mock HTTP request to return static search descriptors
-        local http = require("socket.http")
-        orig_http_request = http.request
-        http.request = function(request)
-            local url_str = type(request) == "table" and request.url or request
-            if type(request) == "table" and url_str then
-                if string.find(url_str, "gutenberg.org") or string.find(url_str, "feedbooks.com") or string.find(url_str, "flibusta.is") then
-                    if string.find(url_str, "xml") or string.find(url_str, "opensearch") then
-                        local osd = [=[<?xml version="1.0" encoding="UTF-8"?>
+    -- Mock HTTP request to return static search descriptors
+    local http = require("socket.http")
+    orig_http_request = http.request
+    http.request = function(request)
+      local url_str = type(request) == "table" and request.url or request
+      if type(request) == "table" and url_str then
+        if
+          string.find(url_str, "gutenberg.org")
+          or string.find(url_str, "feedbooks.com")
+          or string.find(url_str, "flibusta.is")
+        then
+          if
+            string.find(url_str, "xml") or string.find(url_str, "opensearch")
+          then
+            local osd = [=[<?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>Mock Search</ShortName>
   <Url type="application/atom+xml" template="/search?query={searchTerms}"/>
 </OpenSearchDescription>]=]
-                        if request.sink then
-                            request.sink(osd)
-                        end
-                        return 1, 200, { ["content-type"] = "application/opensearchdescription+xml" }, "HTTP/1.1 200 OK"
-                    end
-                end
+            if request.sink then
+              request.sink(osd)
             end
-            return orig_http_request(request)
+            return 1,
+              200,
+              { ["content-type"] = "application/opensearchdescription+xml" },
+              "HTTP/1.1 200 OK"
+          end
         end
+      end
+      return orig_http_request(request)
+    end
 
-        -- Make the timeouts more lenient to avoid spurious test failures
-        orig_lbt = socketutil.LARGE_BLOCK_TIMEOUT
-        socketutil.LARGE_BLOCK_TIMEOUT = socketutil.DEFAULT_BLOCK_TIMEOUT
-        orig_ltt = socketutil.LARGE_TOTAL_TIMEOUT
-        socketutil.LARGE_TOTAL_TIMEOUT = socketutil.DEFAULT_TOTAL_TIMEOUT
-        orig_fbt = socketutil.FILE_BLOCK_TIMEOUT
-        socketutil.FILE_BLOCK_TIMEOUT = socketutil.DEFAULT_BLOCK_TIMEOUT
-        orig_ftt = socketutil.FILE_TOTAL_TIMEOUT
-        socketutil.FILE_TOTAL_TIMEOUT = socketutil.DEFAULT_TOTAL_TIMEOUT
+    -- Make the timeouts more lenient to avoid spurious test failures
+    orig_lbt = socketutil.LARGE_BLOCK_TIMEOUT
+    socketutil.LARGE_BLOCK_TIMEOUT = socketutil.DEFAULT_BLOCK_TIMEOUT
+    orig_ltt = socketutil.LARGE_TOTAL_TIMEOUT
+    socketutil.LARGE_TOTAL_TIMEOUT = socketutil.DEFAULT_TOTAL_TIMEOUT
+    orig_fbt = socketutil.FILE_BLOCK_TIMEOUT
+    socketutil.FILE_BLOCK_TIMEOUT = socketutil.DEFAULT_BLOCK_TIMEOUT
+    orig_ftt = socketutil.FILE_TOTAL_TIMEOUT
+    socketutil.FILE_TOTAL_TIMEOUT = socketutil.DEFAULT_TOTAL_TIMEOUT
+  end)
+
+  teardown(function()
+    local http = require("socket.http")
+    http.request = orig_http_request
+
+    package.path = orig_path
+    socketutil.LARGE_BLOCK_TIMEOUT = orig_lbt
+    socketutil.LARGE_TOTAL_TIMEOUT = orig_ltt
+    socketutil.FILE_BLOCK_TIMEOUT = orig_fbt
+    socketutil.FILE_TOTAL_TIMEOUT = orig_ftt
+  end)
+
+  describe("OPDS parser module", function()
+    it("should parse OPDS navigation catalog", function()
+      local catalog = OPDSParser:parse(navigation_sample)
+      local feed = catalog.feed
+      assert.truthy(feed)
+      assert.are.same(feed.title, "Project Gutenberg")
+      local entries = feed.entry
+      assert.truthy(entries)
+      assert.are.same(#entries, 3)
+      local entry = entries[3]
+      assert.are.same(entry.title, "Random")
+      assert.are.same(
+        entry.id,
+        "https://www.gutenberg.org/ebooks/search.opds/?sort_order=random"
+      )
+      assert.are.same(
+        "/ebooks/search.opds/?sort_order=random",
+        entry.link[1].href
+      )
+    end)
+    it("should parse OPDS acquisition catalog", function()
+      local catalog = OPDSParser:parse(acquisition_sample)
+      local feed = catalog.feed
+      assert.truthy(feed)
+      local entries = feed.entry
+      assert.truthy(entries)
+      assert.are.same(#entries, 2)
+      local entry = entries[2]
+      assert.are.same(
+        entry.title,
+        "1000 Mythological Characters Briefly Described"
+      )
+      assert.are.same(
+        entry.link[1].href,
+        "https://www.gutenberg.org/ebooks/42474.epub.images"
+      )
+      assert.are.same(entry.link[1].title, "EPUB (with images)")
+    end)
+  end)
+
+  describe("OPDS browser module", function()
+    describe("URL generation", function()
+      it("should generate search item", function()
+        local catalog = OPDSParser:parse(navigation_sample)
+        local item_table = OPDSBrowser:genItemTableFromCatalog(
+          catalog,
+          "https://www.gutenberg.org/ebooks.opds/?format=opds"
+        )
+
+        assert.truthy(item_table)
+        assert.are.same(item_table[1].text, "\u{f002} " .. "Search")
+      end)
+      it("should generate URL on rel=subsection", function()
+        local catalog = OPDSParser:parse(navigation_sample)
+        local item_table = OPDSBrowser:genItemTableFromCatalog(
+          catalog,
+          "https://www.gutenberg.org/ebooks.opds/?format=opds"
+        )
+
+        assert.truthy(item_table)
+        assert.are.same(item_table[2].title, "Popular")
+        assert.are.same(
+          item_table[2].url,
+          "https://www.gutenberg.org/ebooks/search.opds/?sort_order=downloads"
+        )
+      end)
+      it("should generate URL on rel=popular and rel=new", function()
+        local catalog = OPDSParser:parse(popular_new_sample)
+        local item_table = OPDSBrowser:genItemTableFromCatalog(
+          catalog,
+          "http://www.feedbooks.com/publicdomain/catalog.atom"
+        )
+
+        assert.truthy(item_table)
+        assert.are.same(item_table[2].title, "Most popular")
+        assert.are.same(
+          item_table[2].url,
+          "https://catalog.feedbooks.com/publicdomain/browse/top.atom?lang=en"
+        )
+        assert.are.same(item_table[3].title, "Recently added")
+        assert.are.same(
+          item_table[3].url,
+          "https://catalog.feedbooks.com/publicdomain/browse/recent.atom?lang=en"
+        )
+      end)
+      it(
+        "should use the main URL for faceted links as long as faceted links aren't properly supported",
+        function()
+          local catalog = OPDSParser:parse(facet_sample)
+          local item_table = OPDSBrowser:genItemTableFromCatalog(
+            catalog,
+            "http://flibusta.is/opds"
+          )
+
+          assert.truthy(item_table)
+          assert.are.same(
+            item_table[2].url,
+            "http://flibusta.is/opds/author/75357"
+          )
+        end
+      )
     end)
 
-    teardown(function()
-        local http = require("socket.http")
-        http.request = orig_http_request
+    it(
+      "should not fill item table incorrectly with thumbnail or image URL",
+      function()
+        local catalog = OPDSParser:parse(facet_sample)
+        local item_table = OPDSBrowser:genItemTableFromCatalog(
+          catalog,
+          "http://flibusta.is/opds"
+        )
 
-        package.path = orig_path
-        socketutil.LARGE_BLOCK_TIMEOUT = orig_lbt
-        socketutil.LARGE_TOTAL_TIMEOUT = orig_ltt
-        socketutil.FILE_BLOCK_TIMEOUT = orig_fbt
-        socketutil.FILE_TOTAL_TIMEOUT = orig_ftt
-    end)
-
-    describe("OPDS parser module", function()
-        it("should parse OPDS navigation catalog", function()
-            local catalog = OPDSParser:parse(navigation_sample)
-            local feed = catalog.feed
-            assert.truthy(feed)
-            assert.are.same(feed.title, "Project Gutenberg")
-            local entries = feed.entry
-            assert.truthy(entries)
-            assert.are.same(#entries, 3)
-            local entry = entries[3]
-            assert.are.same(entry.title, "Random")
-            assert.are.same(entry.id, "https://www.gutenberg.org/ebooks/search.opds/?sort_order=random")
-            assert.are.same(
-                "/ebooks/search.opds/?sort_order=random",
-                entry.link[1].href)
-        end)
-        it("should parse OPDS acquisition catalog", function()
-            local catalog = OPDSParser:parse(acquisition_sample)
-            local feed = catalog.feed
-            assert.truthy(feed)
-            local entries = feed.entry
-            assert.truthy(entries)
-            assert.are.same(#entries, 2)
-            local entry = entries[2]
-            assert.are.same(entry.title, "1000 Mythological Characters Briefly Described")
-            assert.are.same(entry.link[1].href, "https://www.gutenberg.org/ebooks/42474.epub.images")
-            assert.are.same(entry.link[1].title, "EPUB (with images)")
-        end)
-    end)
-
-    describe("OPDS browser module", function()
-        describe("URL generation", function()
-            it("should generate search item", function()
-                local catalog = OPDSParser:parse(navigation_sample)
-                local item_table = OPDSBrowser:genItemTableFromCatalog(catalog, "https://www.gutenberg.org/ebooks.opds/?format=opds")
-
-                assert.truthy(item_table)
-                assert.are.same(item_table[1].text, "\u{f002} " .. "Search")
-            end)
-            it("should generate URL on rel=subsection", function()
-                local catalog = OPDSParser:parse(navigation_sample)
-                local item_table = OPDSBrowser:genItemTableFromCatalog(catalog, "https://www.gutenberg.org/ebooks.opds/?format=opds")
-
-                assert.truthy(item_table)
-                assert.are.same(item_table[2].title, "Popular")
-                assert.are.same(item_table[2].url, "https://www.gutenberg.org/ebooks/search.opds/?sort_order=downloads")
-            end)
-            it("should generate URL on rel=popular and rel=new", function()
-                local catalog = OPDSParser:parse(popular_new_sample)
-                local item_table = OPDSBrowser:genItemTableFromCatalog(catalog, "http://www.feedbooks.com/publicdomain/catalog.atom")
-
-                assert.truthy(item_table)
-                assert.are.same(item_table[2].title, "Most popular")
-                assert.are.same(item_table[2].url, "https://catalog.feedbooks.com/publicdomain/browse/top.atom?lang=en")
-                assert.are.same(item_table[3].title, "Recently added")
-                assert.are.same(item_table[3].url, "https://catalog.feedbooks.com/publicdomain/browse/recent.atom?lang=en")
-            end)
-            it("should use the main URL for faceted links as long as faceted links aren't properly supported", function()
-                local catalog = OPDSParser:parse(facet_sample)
-                local item_table = OPDSBrowser:genItemTableFromCatalog(catalog, "http://flibusta.is/opds")
-
-                assert.truthy(item_table)
-                assert.are.same(item_table[2].url, "http://flibusta.is/opds/author/75357")
-            end)
-        end)
-
-        it("should not fill item table incorrectly with thumbnail or image URL", function()
-            local catalog = OPDSParser:parse(facet_sample)
-            local item_table = OPDSBrowser:genItemTableFromCatalog(catalog, "http://flibusta.is/opds")
-
-            assert.truthy(item_table)
-            assert.are_not.same(item_table[2].image, "http://flibusta.is/opds/author/75357")
-        end)
-    end)
+        assert.truthy(item_table)
+        assert.are_not.same(
+          item_table[2].image,
+          "http://flibusta.is/opds/author/75357"
+        )
+      end
+    )
+  end)
 end)

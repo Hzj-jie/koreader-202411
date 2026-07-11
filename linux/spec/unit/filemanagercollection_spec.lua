@@ -11,14 +11,15 @@ describe("filemanagercollection", function()
   local mock_gettext
   local match = require("luassert.match")
 
-
   setup(function()
     require("commonrequire")
   end)
 
   before_each(function()
     _G.G_named_settings = {
-      home_dir = function() return "/home/user" end
+      home_dir = function()
+        return "/home/user"
+      end,
     }
 
     mock_read_collection = {
@@ -30,7 +31,7 @@ describe("filemanagercollection", function()
         },
         ["Sci-Fi"] = {
           { text = "Book 3", file = "/books/book3.epub", order = 1 },
-        }
+        },
       },
       coll_order = {
         favorites = 1,
@@ -38,7 +39,9 @@ describe("filemanagercollection", function()
       },
       removeItem = spy.new(function(self, file, coll_name)
         local list = mock_read_collection.coll[coll_name]
-        if not list then return end
+        if not list then
+          return
+        end
         for i, item in ipairs(list) do
           if item.file == file then
             table.remove(list, i)
@@ -51,12 +54,17 @@ describe("filemanagercollection", function()
           mock_read_collection.coll[coll_name] = {}
         end
         local list = mock_read_collection.coll[coll_name]
-        table.insert(list, { text = file:match("([^/]+)$"), file = file, order = #list + 1 })
+        table.insert(
+          list,
+          { text = file:match("([^/]+)$"), file = file, order = #list + 1 }
+        )
       end),
       isFileInCollection = spy.new(function(self, file, coll_name)
         local list = mock_read_collection.coll[coll_name] or {}
         for _, item in ipairs(list) do
-          if item.file == file then return true end
+          if item.file == file then
+            return true
+          end
         end
         return false
       end),
@@ -83,9 +91,11 @@ describe("filemanagercollection", function()
         mock_read_collection.coll_order[name] = nil
       end),
       renameCollection = spy.new(function(self, old_name, new_name)
-        mock_read_collection.coll[new_name] = mock_read_collection.coll[old_name]
+        mock_read_collection.coll[new_name] =
+          mock_read_collection.coll[old_name]
         mock_read_collection.coll[old_name] = nil
-        mock_read_collection.coll_order[new_name] = mock_read_collection.coll_order[old_name]
+        mock_read_collection.coll_order[new_name] =
+          mock_read_collection.coll_order[old_name]
         mock_read_collection.coll_order[old_name] = nil
       end),
       addCollection = spy.new(function(self, name)
@@ -99,26 +109,48 @@ describe("filemanagercollection", function()
     package.loaded["readcollection"] = mock_read_collection
 
     package.loaded["ui/bidi"] = {
-      filename = function(s) return s end,
+      filename = function(s)
+        return s
+      end,
     }
 
     package.loaded["device"] = {
-      hasKeyboard = function() return true end,
-      canExecuteScript = function() return false end,
+      hasKeyboard = function()
+        return true
+      end,
+      canExecuteScript = function()
+        return false
+      end,
     }
 
     package.loaded["docsettings"] = {
-      hasSidecarFile = function() return false end,
-      open = function() return {} end,
+      hasSidecarFile = function()
+        return false
+      end,
+      open = function()
+        return {}
+      end,
     }
 
     package.loaded["apps/filemanager/filemanagerutil"] = {
-      genStatusButtonsRow = function() return { text = "Mock Status Row" } end,
-      genResetSettingsButton = function() return { text = "Mock Reset Button" } end,
-      genBookInformationButton = function() return { text = "Mock Info Button" } end,
-      genShowFolderButton = function() return { text = "Mock Show Folder Button" } end,
-      genBookCoverButton = function() return { text = "Mock Cover Button" } end,
-      genBookDescriptionButton = function() return { text = "Mock Desc Button" } end,
+      genStatusButtonsRow = function()
+        return { text = "Mock Status Row" }
+      end,
+      genResetSettingsButton = function()
+        return { text = "Mock Reset Button" }
+      end,
+      genBookInformationButton = function()
+        return { text = "Mock Info Button" }
+      end,
+      genShowFolderButton = function()
+        return { text = "Mock Show Folder Button" }
+      end,
+      genBookCoverButton = function()
+        return { text = "Mock Cover Button" }
+      end,
+      genBookDescriptionButton = function()
+        return { text = "Mock Desc Button" }
+      end,
     }
 
     mock_menu = {
@@ -133,18 +165,20 @@ describe("filemanagercollection", function()
           _manager = args._manager,
           collection_name = args.collection_name,
           paths = {},
-          switchItemTable = spy.new(function(s, title, item_table, idx, dummy, subtitle) -- luacheck: ignore 212
-            s.title = title
-            s.item_table = item_table
-            s.subtitle = subtitle
-          end),
+          switchItemTable = spy.new(
+            function(s, title, item_table, idx, dummy, subtitle) -- luacheck: ignore 212
+              s.title = title
+              s.item_table = item_table
+              s.subtitle = subtitle
+            end
+          ),
           updateItems = spy.new(function() end),
           showWidget = function(self, widget, ...)
             require("ui/uimanager"):show(widget, ...)
           end,
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/menu"] = mock_menu
 
@@ -156,7 +190,7 @@ describe("filemanagercollection", function()
           ok_text = args.ok_text,
           ok_callback = args.ok_callback,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/confirmbox"] = mock_confirm_box
 
@@ -166,7 +200,7 @@ describe("filemanagercollection", function()
           is_info_message = true,
           text = args.text,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/infomessage"] = mock_info_message
 
@@ -178,10 +212,12 @@ describe("filemanagercollection", function()
           title = args.title,
           input = args.input,
           buttons = args.buttons,
-          getInputText = function() return obj.mock_input_value or args.input or "" end,
+          getInputText = function()
+            return obj.mock_input_value or args.input or ""
+          end,
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/inputdialog"] = mock_input_dialog
 
@@ -192,7 +228,7 @@ describe("filemanagercollection", function()
           title = args.title,
           buttons = args.buttons,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/buttondialog"] = mock_button_dialog
 
@@ -204,7 +240,7 @@ describe("filemanagercollection", function()
           item_table = args.item_table,
           callback = args.callback,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/sortwidget"] = mock_sort_widget
 
@@ -219,14 +255,22 @@ describe("filemanagercollection", function()
         last_closed_widget = widget
       end),
       forceRepaint = spy.new(function() end),
-      getLastShownWidget = function() return last_shown_widget end,
-      getLastClosedWidget = function() return last_closed_widget end,
+      getLastShownWidget = function()
+        return last_shown_widget
+      end,
+      getLastClosedWidget = function()
+        return last_closed_widget
+      end,
     }
 
     mock_gettext = setmetatable({
-      ngettext = function(sing, plur, n) return n == 1 and sing or plur end,
+      ngettext = function(sing, plur, n)
+        return n == 1 and sing or plur
+      end,
     }, {
-      __call = function(self, text) return text end
+      __call = function(self, text)
+        return text
+      end,
     })
     package.loaded["gettext"] = mock_gettext
 
@@ -236,13 +280,15 @@ describe("filemanagercollection", function()
         return tmpl:gsub("%%(%d+)", function(n)
           return tostring(args[tonumber(n)])
         end)
-      end
+      end,
     }
 
     package.loaded["util"] = {
       tableSize = function(t)
         local count = 0
-        for _ in pairs(t) do count = count + 1 end
+        for _ in pairs(t) do
+          count = count + 1
+        end
         return count
       end,
       tableDeepCopy = function(t)
@@ -255,7 +301,7 @@ describe("filemanagercollection", function()
           end
         end
         return copy
-      end
+      end,
     }
 
     mock_ui = {
@@ -266,8 +312,10 @@ describe("filemanagercollection", function()
         refreshPath = spy.new(function() end),
       },
       bookinfo = {
-        extendProps = function(props, _file) return props end,
-      }
+        extendProps = function(props, _file)
+          return props
+        end,
+      },
     }
 
     package.loaded["apps/filemanager/filemanagercollection"] = nil
@@ -295,12 +343,14 @@ describe("filemanagercollection", function()
   end)
 
   it("should register to main menu on init", function()
-    local manager = FileManagerCollection:new{ ui = mock_ui }
-    assert.spy(mock_ui.menu.registerToMainMenu).was.called_with(mock_ui.menu, manager)
+    local manager = FileManagerCollection:new({ ui = mock_ui })
+    assert
+      .spy(mock_ui.menu.registerToMainMenu).was
+      .called_with(mock_ui.menu, manager)
   end)
 
   it("should populate main menu items", function()
-    local manager = FileManagerCollection:new{ ui = mock_ui }
+    local manager = FileManagerCollection:new({ ui = mock_ui })
     local menu_items = {}
     manager:addToMainMenu(menu_items)
 
@@ -312,7 +362,7 @@ describe("filemanagercollection", function()
 
   describe("onShowColl (Viewing a collection)", function()
     it("should show the collection menu with items sorted by order", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
 
       local UIManager = require("ui/uimanager")
       UIManager.show:clear()
@@ -334,7 +384,7 @@ describe("filemanagercollection", function()
 
   describe("onMenuChoice", function()
     it("should open file if not currently viewing a document", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       mock_ui.document = nil
       mock_ui.openFile = spy.new(function() end)
 
@@ -345,20 +395,22 @@ describe("filemanagercollection", function()
     end)
 
     it("should switch document if viewing a different document", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       mock_ui.document = { file = "/books/book2.pdf" }
       mock_ui.switchDocument = spy.new(function() end)
 
       local item = { file = "/books/book1.epub" }
       manager:onMenuChoice(item)
 
-      assert.spy(mock_ui.switchDocument).was.called_with(mock_ui, "/books/book1.epub")
+      assert
+        .spy(mock_ui.switchDocument).was
+        .called_with(mock_ui, "/books/book1.epub")
     end)
   end)
 
   describe("onMenuHold (context menu for a book in collection)", function()
     it("should show options including removal from collection", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.coll_menu = mock_menu:new({
         collection_name = "favorites",
         ui = mock_ui,
@@ -399,7 +451,9 @@ describe("filemanagercollection", function()
       spy.on(manager, "updateItemTable")
       dialog.buttons[4][2].callback()
 
-      assert.spy(mock_read_collection.removeItem).was.called_with(match._, "/books/book1.epub", "favorites")
+      assert
+        .spy(mock_read_collection.removeItem).was
+        .called_with(match._, "/books/book1.epub", "favorites")
       assert.spy(manager.updateItemTable).was.called(1)
       assert.is_true(manager.files_updated)
     end)
@@ -407,10 +461,10 @@ describe("filemanagercollection", function()
 
   describe("showCollDialog (options for the viewing collection)", function()
     it("should show dialog with arrange and add options", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.coll_menu = {
         collection_name = "favorites",
-        close_callback = spy.new(function() end)
+        close_callback = spy.new(function() end),
       }
 
       local UIManager = require("ui/uimanager")
@@ -434,7 +488,7 @@ describe("filemanagercollection", function()
 
   describe("onShowCollList (Viewing collections list)", function()
     it("should show collections list in normal mode", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
 
       local UIManager = require("ui/uimanager")
       UIManager.show:clear()
@@ -444,7 +498,10 @@ describe("filemanagercollection", function()
       assert.spy(UIManager.show).was.called(1)
       local menu = UIManager.getLastShownWidget()
       assert.is_true(menu.is_menu)
-      assert.are.equal("appbar.menu", menu.onLeftButtonTap_icon or "appbar.menu") -- is normal mode icon
+      assert.are.equal(
+        "appbar.menu",
+        menu.onLeftButtonTap_icon or "appbar.menu"
+      ) -- is normal mode icon
 
       assert.are.equal("Collections (2)", menu.title)
       assert.are.equal(2, #menu.item_table)
@@ -458,7 +515,7 @@ describe("filemanagercollection", function()
     end)
 
     it("should show collections list in select mode for a book", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
 
       local UIManager = require("ui/uimanager")
       UIManager.show:clear()
@@ -483,7 +540,7 @@ describe("filemanagercollection", function()
 
   describe("onCollListChoice", function()
     it("should open collection in normal mode", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.selected_collections = nil -- normal mode
 
       spy.on(manager, "onShowColl")
@@ -499,17 +556,17 @@ describe("filemanagercollection", function()
     end)
 
     it("should toggle checkmark in select mode", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.selected_collections = { favorites = true } -- select mode
       manager.checkmark = "X"
 
       local item_table = {
         { name = "favorites", mandatory = "X", idx = 1 },
-        { name = "Sci-Fi", mandatory = "  ", idx = 2 }
+        { name = "Sci-Fi", mandatory = "  ", idx = 2 },
       }
       manager.coll_list = {
         item_table = item_table,
-        switchItemTable = spy.new(function() end)
+        switchItemTable = spy.new(function() end),
       }
 
       local mock_menu_inst = {
@@ -532,10 +589,10 @@ describe("filemanagercollection", function()
 
   describe("addCollection", function()
     it("should prompt for name and call ReadCollection to add", function()
-      local manager = FileManagerCollection:new{ ui = mock_ui }
+      local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.coll_list = {
         item_table = {},
-        switchItemTable = spy.new(function() end)
+        switchItemTable = spy.new(function() end),
       }
 
       local UIManager = require("ui/uimanager")
@@ -552,42 +609,53 @@ describe("filemanagercollection", function()
       dialog.mock_input_value = "New Coll"
       dialog.buttons[1][2].callback() -- Save button
 
-      assert.spy(mock_read_collection.addCollection).was.called_with(match._, "New Coll")
+      assert
+        .spy(mock_read_collection.addCollection).was
+        .called_with(match._, "New Coll")
       assert.are.equal(1, #manager.coll_list.item_table)
       assert.are.equal("New Coll", manager.coll_list.item_table[1].name)
     end)
   end)
 
   describe("uimanagedCleanUp", function()
-    it("closes coll_menu, collfile_dialog, and coll_list automatically", function()
-      local fmc = FileManagerCollection:new{ ui = mock_ui }
-      local dummy_menu = { name = "dummy_menu" }
-      local dummy_dialog = { name = "dummy_dialog" }
-      local dummy_list = { name = "dummy_list" }
-      local stub = require("luassert.stub")
-      local UIManager = require("ui/uimanager")
+    it(
+      "closes coll_menu, collfile_dialog, and coll_list automatically",
+      function()
+        local fmc = FileManagerCollection:new({ ui = mock_ui })
+        local dummy_menu = { name = "dummy_menu" }
+        local dummy_dialog = { name = "dummy_dialog" }
+        local dummy_list = { name = "dummy_list" }
+        local stub = require("luassert.stub")
+        local UIManager = require("ui/uimanager")
 
-      stub(UIManager, "closeIfShown")
+        stub(UIManager, "closeIfShown")
 
-      fmc:showWidget(dummy_menu)
-      fmc:showWidget(dummy_dialog)
-      fmc:showWidget(dummy_list)
+        fmc:showWidget(dummy_menu)
+        fmc:showWidget(dummy_dialog)
+        fmc:showWidget(dummy_list)
 
-      fmc.coll_menu = dummy_menu
-      fmc.collfile_dialog = dummy_dialog
-      fmc.coll_list = dummy_list
+        fmc.coll_menu = dummy_menu
+        fmc.collfile_dialog = dummy_dialog
+        fmc.coll_list = dummy_list
 
-      fmc:uimanagedCleanUp()
+        fmc:uimanagedCleanUp()
 
-      assert.is_nil(fmc.coll_menu)
-      assert.is_nil(fmc.collfile_dialog)
-      assert.is_nil(fmc.coll_list)
+        assert.is_nil(fmc.coll_menu)
+        assert.is_nil(fmc.collfile_dialog)
+        assert.is_nil(fmc.coll_list)
 
-      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_menu)
-      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_dialog)
-      assert.stub(UIManager.closeIfShown).was_called_with(UIManager, dummy_list)
+        assert
+          .stub(UIManager.closeIfShown)
+          .was_called_with(UIManager, dummy_menu)
+        assert
+          .stub(UIManager.closeIfShown)
+          .was_called_with(UIManager, dummy_dialog)
+        assert
+          .stub(UIManager.closeIfShown)
+          .was_called_with(UIManager, dummy_list)
 
-      UIManager.closeIfShown:revert()
-    end)
+        UIManager.closeIfShown:revert()
+      end
+    )
   end)
 end)
