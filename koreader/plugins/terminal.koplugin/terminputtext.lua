@@ -230,23 +230,10 @@ function TermInputText:_removeLineEndingAt(end_pos)
   end
 
   -- Update cursor position mathematically
-  local old_charpos = self.charpos
   if self.charpos > end_pos then
     self.charpos = self.charpos - deleted_len
   elseif self.charpos >= pos then
     self.charpos = pos
-  end
-  if self.charpos ~= old_charpos then
-    logger.info(
-      string.format(
-        "_removeLineEndingAt: adjusted charpos from %d to %d (deleted_len=%d, range=[%d, %d])",
-        old_charpos,
-        self.charpos,
-        deleted_len,
-        pos,
-        end_pos
-      )
-    )
   end
 end
 
