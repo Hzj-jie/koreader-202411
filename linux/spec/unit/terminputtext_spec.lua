@@ -161,5 +161,41 @@ describe("TermInputText widget module", function()
 
       assert.are.same(expected, term.charlist)
     end)
+    it(
+      "should not introduce extra newlines when typing sequentially with raw Enter",
+      function()
+        local term = TermInputText:new({
+          maxc = 10,
+          maxr = 5,
+          wrap = true,
+        })
+
+        -- Type "abc", then raw Enter (\n), then "d", then raw Enter, then "e"
+        term:addChars("abc")
+        term:addChars("\n")
+        term:addChars("d")
+        term:addChars("\n")
+        term:addChars("e")
+
+        local expected = {
+          "a",
+          "b",
+          "c",
+          "\n",
+          " ",
+          " ",
+          " ",
+          "d",
+          "\n",
+          " ",
+          " ",
+          " ",
+          " ",
+          "e",
+          "\n",
+        }
+        assert.are.same(expected, term.charlist)
+      end
+    )
   end)
 end)

@@ -538,10 +538,7 @@ function TermInputText:scrollRegionUp(column)
   else -- scroll up
     local pos = self.charpos
     for _ = self.scroll_region_line, self.scroll_region_top + 1, -1 do
-      pos = self:_findPreviousNewline(pos)
-      if pos > 1 then
-        pos = pos - 1
-      end
+      pos = self:_findPreviousNewline(pos - 1)
     end
     self:_removeLineEndingAt(pos + 1)
 
@@ -594,7 +591,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   for i = 1, #chars_list do
     if chars_list[i] == "\n" then
       -- detect current column
-      local pos = self.charpos
+      local pos = self.charpos - 1
       while pos > 0 and self.charlist[pos] ~= "\n" do
         pos = pos - 1
       end
@@ -611,15 +608,25 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
         self.charpos = self.charpos + 1
       end
 
-      if not self.charlist[self.charpos] then -- add new line if necessary
+      if self.charlist[self.charpos] == "\n" then
+        self.charpos = self.charpos + 1
+      elseif not self.charlist[self.charpos] then
         table.insert(self.charlist, self.charpos, "\n")
         self.charpos = self.charpos + 1
       end
 
       -- go to column in next line
-      if not self.charlist[self.charpos] then
+      if
+        not self.charlist[self.charpos] or self.charlist[self.charpos] == "\n"
+      then
         local n = column - 1
         if n > 0 then
+          table.move(
+            self.charlist,
+            self.charpos,
+            #self.charlist,
+            self.charpos + n
+          )
           for j = self.charpos, self.charpos + n - 1 do
             self:_setChar(j, " ")
           end
