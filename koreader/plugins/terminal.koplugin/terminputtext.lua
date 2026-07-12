@@ -734,16 +734,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
   if not skip_table_concat then
     self:initTextBox(table.concat(self.charlist), true)
   end
-  local f =
-    io.open("koreader/plugins/terminal.koplugin/debug_charlist.txt", "w")
-  if f then
-    f:write("charlist size: " .. #self.charlist .. "\n")
-    f:write("charpos: " .. self.charpos .. "\n")
-    for j, c in ipairs(self.charlist) do
-      f:write(string.format("[%d] = %q\n", j, c))
-    end
-    f:close()
-  end
 end
 dbg:guard(TermInputText, "addChars", function(self, chars)
   assert(
