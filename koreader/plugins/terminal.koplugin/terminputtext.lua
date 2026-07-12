@@ -589,16 +589,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
     self:_updateCharPos(self.charpos)
   end
 
-  local function insertSpaces(n)
-    if n > 0 then
-      table.move(self.charlist, self.charpos, #self.charlist, self.charpos + n)
-      for i = self.charpos, self.charpos + n - 1 do
-        self:_setChar(i, " ")
-      end
-    end
-    return self.charpos + math.max(0, n)
-  end
-
   -- this is a modification of inputtext.lua
   local chars_list = util.splitToChars(chars) -- for UTF8
   for i = 1, #chars_list do
@@ -628,7 +618,13 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
 
       -- go to column in next line
       if not self.charlist[self.charpos] then
-        self.charpos = insertSpaces(column - 1)
+        local n = column - 1
+        if n > 0 then
+          for j = self.charpos, self.charpos + n - 1 do
+            self:_setChar(j, " ")
+          end
+          self.charpos = self.charpos + n
+        end
       end
 
       if self.charlist[self.charpos] then
