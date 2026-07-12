@@ -45,22 +45,13 @@ describe("TermInputText widget module", function()
         "0",
         "\n",
         "a",
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
-        " ",
         "\n",
       }
       assert.is_true(equals(expected, term.charlist))
 
       -- Now write "b". Since "a" was at 12, "b" should go to 13 (no wrap!).
       term:addChars("b")
-      expected[13] = "b"
+      table.insert(expected, 13, "b")
       assert.is_true(equals(expected, term.charlist))
     end)
 
@@ -131,10 +122,6 @@ describe("TermInputText widget module", function()
       table.insert(expected, "s")
       table.insert(expected, " ")
       table.insert(expected, "-")
-      -- Pad Row 2 to maxc (65)
-      for _ = 1, 45 do
-        table.insert(expected, " ")
-      end
       table.insert(expected, "\n")
 
       assert.are.same(expected, term.charlist)
@@ -170,9 +157,6 @@ describe("TermInputText widget module", function()
       table.insert(expected, "-")
       table.insert(expected, "l")
       table.insert(expected, "a")
-      for _ = 1, 57 do
-        table.insert(expected, " ")
-      end
       table.insert(expected, "\n")
 
       assert.are.same(expected, term.charlist)

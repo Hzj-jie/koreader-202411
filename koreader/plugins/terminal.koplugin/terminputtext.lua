@@ -203,7 +203,7 @@ end
 
 function TermInputText:_updateCharPos(pos)
   if pos then
-    self.charpos = math.max(1, math.min(#self.charlist + 1, pos))
+    self.charpos = math.max(1, pos)
   end
 end
 
@@ -635,10 +635,9 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
         self.charpos = self.charpos + 1
       end
 
-      -- fill line
+      -- fill line (just insert newline, no padding)
       if not self.charlist[self.charpos] then
-        local p = insertSpaces(self.maxc + 1 - column)
-        table.insert(self.charlist, p, "\n")
+        table.insert(self.charlist, self.charpos, "\n")
       end
     elseif chars_list[i] == "\r" then
       if self.charlist[self.charpos] == "\n" then
@@ -688,8 +687,7 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
           self:_setChar(eol, "\n")
           self.charpos = eol + 1 -- move past \n
           if not self.charlist[self.charpos] then
-            local p = insertSpaces(self.maxc)
-            table.insert(self.charlist, p, "\n")
+            table.insert(self.charlist, self.charpos, "\n")
           end
         end
       else
