@@ -247,6 +247,9 @@ function PluginLoader:menuItem()
       self.plugin_enabled = false
       self.plugin_disabled = false
       require("ui/uimanager"):askForRestart(msg)
+      require("ui/uimanager"):broadcastEvent(
+        require("ui/event"):new("RefreshMenu")
+      )
     end,
   }
 end
