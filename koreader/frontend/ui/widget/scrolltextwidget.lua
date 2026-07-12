@@ -55,8 +55,8 @@ local ScrollTextWidget = InputContainer:extend({
 })
 
 function ScrollTextWidget:getStaticScrollbarWidth()
-  return scale(self.DEFAULT_SCROLL_BAR_WIDTH)
-    + scale(self.DEFAULT_TEXT_SCROLL_SPAN)
+  local default_sb_w = scale(self.DEFAULT_SCROLL_BAR_WIDTH)
+  return VerticalScrollBar.getRequiredWidth({ width = default_sb_w })
 end
 
 function ScrollTextWidget:init()
