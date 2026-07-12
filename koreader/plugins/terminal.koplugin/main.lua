@@ -80,7 +80,7 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
-local ScrollTextWidget = require("ui/widget/scrolltextwidget")
+
 local SpinWidget = require("ui/widget/spinwidget")
 local TermInputText = require("plugins/terminal.koplugin/terminputtext")
 local TextWidget = require("ui/widget/textwidget")
@@ -571,10 +571,8 @@ function Terminal:onTerminalStart(menu)
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
 
-  local scroll_bar_width = ScrollTextWidget:getStaticScrollbarWidth()
-  self.maxc = math.floor(
-    (self:getInputWidget().width - scroll_bar_width) / self:getCharSize()
-  )
+  self.maxc =
+    math.floor(self:getInputWidget().text_widget.width / self:getCharSize())
 
   self.maxr = math.floor(
     self:getInputWidget().height / self:getInputWidget():getLineHeight()
@@ -596,9 +594,9 @@ function Terminal:onTerminalStart(menu)
 
   logger.warn(
     string.format(
-      "Terminal metrics: widget_w=%d, scroll_bar_w=%d, char_w=%d, calculated_cols=%d",
+      "Terminal metrics: widget_w=%d, inner_w=%d, char_w=%d, calculated_cols=%d",
       self:getInputWidget().width,
-      scroll_bar_width,
+      self:getInputWidget().text_widget.width,
       self:getCharSize(),
       self.maxc
     )

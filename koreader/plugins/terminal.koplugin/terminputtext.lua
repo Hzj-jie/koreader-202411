@@ -98,6 +98,7 @@ local TermInputText = InputText:extend({
 
   wrap = true,
   no_line_breaking_rules = true,
+  text_scroll_span = 0,
 
   alternate_buffer = nil, -- table
   save_buffer = nil, -- table

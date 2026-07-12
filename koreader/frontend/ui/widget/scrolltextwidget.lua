@@ -39,7 +39,7 @@ local ScrollTextWidget = InputContainer:extend({
   width = nil,
   height = nil,
   scroll_bar_width = nil,
-  text_scroll_span = nil,
+  text_scroll_span = nil, -- expected to be already Screen:scaleBySize'd
   dialog = nil,
   images = nil,
   -- See TextBoxWidget for details about these options
@@ -54,11 +54,6 @@ local ScrollTextWidget = InputContainer:extend({
   for_measurement_only = nil, -- When the widget is a one-off used to compute text height
 })
 
-function ScrollTextWidget:getStaticScrollbarWidth()
-  local default_sb_w = scale(self.DEFAULT_SCROLL_BAR_WIDTH)
-  return VerticalScrollBar.getRequiredWidth({ width = default_sb_w })
-end
-
 function ScrollTextWidget:init()
   self.width = self.width or scale(self.DEFAULT_WIDTH)
   self.height = self.height or scale(self.DEFAULT_HEIGHT)
@@ -72,9 +67,8 @@ function ScrollTextWidget:init()
     end,
   })
 
-  self.reserved_width = self.text_scroll_span
-      and (self.text_scroll_span + self.scroll_bar_width)
-    or self.v_scroll_bar:getRequiredWidth()
+  self.reserved_width = self.v_scroll_bar:getRequiredWidth()
+    + (self.text_scroll_span or 0)
 
   self.text_widget = TextBoxWidget:new({
     text = self.text,

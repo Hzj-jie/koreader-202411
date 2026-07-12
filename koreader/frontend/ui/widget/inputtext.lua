@@ -498,16 +498,23 @@ function InputText:initTextBox(text, char_added)
     self._password_toggle = nil
   end
 
+  if self.scroll then
+    self.text_scroll_span = self.text_scroll_span
+      or scale(ScrollTextWidget.DEFAULT_TEXT_SCROLL_SPAN)
+  end
+
   if not self.height then
     -- If no height provided, measure the text widget height
     -- we would start with, and use a ScrollTextWidget with that
     -- height, so widget does not overflow container if we extend
     -- the text and increase the number of lines.
     local text_width = self.width
-    if text_width then
+    if text_width and self.scroll then
       -- Account for the scrollbar that will be used
-      local scroll_bar_width = ScrollTextWidget:getStaticScrollbarWidth()
-      text_width = text_width - scroll_bar_width
+      local default_sb_w = scale(ScrollTextWidget.DEFAULT_SCROLL_BAR_WIDTH)
+      local scroll_bar_req_w =
+        VerticalScrollBar.getRequiredWidth({ width = default_sb_w })
+      text_width = text_width - scroll_bar_req_w - self.text_scroll_span
     end
     local text_widget = TextBoxWidget:new({
       text = show_text,
@@ -544,6 +551,7 @@ function InputText:initTextBox(text, char_added)
       dialog = self.parent,
       scroll_callback = self.scroll_callback,
       scroll_by_pan = self.scroll_by_pan,
+      text_scroll_span = self.text_scroll_span,
       for_measurement_only = self.for_measurement_only,
       no_line_breaking_rules = self.no_line_breaking_rules,
     })
