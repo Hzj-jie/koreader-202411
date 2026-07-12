@@ -205,13 +205,13 @@ describe("TermInputText widget module", function()
         wrap = false,
       })
       term:addChars("1234")
-      assert.are.same({"1", "2", "3", "4"}, term.charlist)
+      assert.are.same({ "1", "2", "3", "4" }, term.charlist)
       assert.are.same(5, term.charpos)
 
       term:addChars("5")
       -- Terminal emulators usually drop or overwrite the last char on wrap=false.
       -- The cursor shouldn't jump backward and overwrite previous letters.
-      local expected = {"1", "2", "3", "5"}
+      local expected = { "1", "2", "3", "5" }
       assert.are.same(expected, term.charlist)
     end)
   end)
@@ -227,7 +227,7 @@ describe("TermInputText widget module", function()
       term:addChars("hello\n")
       term:addChars("world,")
       term:addChars(" this is a long text to exceed limits\n")
-      
+
       -- Force trim buffer
       term:trimBuffer(15)
 
@@ -237,25 +237,31 @@ describe("TermInputText widget module", function()
   end)
 
   describe("formatTerminal & moveCursorToRowCol", function()
-    it("should handle formatting when line contains CJK characters (visual width 2)", function()
-      local term = TermInputText:new({
-        maxc = 6,
-        maxr = 2,
-        wrap = true,
-      })
-      -- CJK has width 2, so 3 CJK chars fills a line of maxc 6
-      term:addChars("你好世界！")
-      assert.are.same({"你", "好", "世", "\n", "界", "！", "\n"}, term.charlist)
-      
-      -- Now move cursor to row 1, col 3
-      term:moveCursorToRowCol(1, 4)
-      -- "你" is width 2, "好" is width 2.
-      -- So visual col 4 is the start of "好"? No, visual col 4 is after "你" and "好" (2+2=4), so it should point to "世" which is index 3.
-      assert.are.same("好", term.charlist[term.charpos])
-      
-      -- Wait, if formatTerminal pads exactly maxc *characters* rather than *visual columns*, what gets generated?
-      -- Let's assert nothing for now and just print or let it crash.
-      print("Charpos after move: ", term.charpos)
-    end)
+    it(
+      "should handle formatting when line contains CJK characters (visual width 2)",
+      function()
+        local term = TermInputText:new({
+          maxc = 6,
+          maxr = 2,
+          wrap = true,
+        })
+        -- CJK has width 2, so 3 CJK chars fills a line of maxc 6
+        term:addChars("你好世界！")
+        assert.are.same(
+          { "你", "好", "世", "\n", "界", "！", "\n" },
+          term.charlist
+        )
+
+        -- Now move cursor to row 1, col 3
+        term:moveCursorToRowCol(1, 4)
+        -- "你" is width 2, "好" is width 2.
+        -- So visual col 4 is the start of "好"? No, visual col 4 is after "你" and "好" (2+2=4), so it should point to "世" which is index 3.
+        assert.are.same("好", term.charlist[term.charpos])
+
+        -- Wait, if formatTerminal pads exactly maxc *characters* rather than *visual columns*, what gets generated?
+        -- Let's assert nothing for now and just print or let it crash.
+        print("Charpos after move: ", term.charpos)
+      end
+    )
   end)
 end)

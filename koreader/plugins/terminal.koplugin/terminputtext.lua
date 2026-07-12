@@ -528,7 +528,7 @@ function TermInputText:scrollRegionDown(column)
 
     pos = self.charpos
     for _ = column, self.maxc - column + 1 do
-      table.insert(self.charlist, pos, ".")
+      table.insert(self.charlist, pos, " ")
       pos = pos + 1
     end
     table.insert(self.charlist, pos, "\n")
