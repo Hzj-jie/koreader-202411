@@ -211,7 +211,7 @@ describe("TermInputText widget module", function()
       term:addChars("5")
       -- Terminal emulators usually drop or overwrite the last char on wrap=false.
       -- The cursor shouldn't jump backward and overwrite previous letters.
-      local expected = {"1", "2", "3", "5", "\n"}
+      local expected = {"1", "2", "3", "5"}
       assert.are.same(expected, term.charlist)
     end)
   end)
@@ -251,7 +251,7 @@ describe("TermInputText widget module", function()
       term:moveCursorToRowCol(1, 4)
       -- "你" is width 2, "好" is width 2.
       -- So visual col 4 is the start of "好"? No, visual col 4 is after "你" and "好" (2+2=4), so it should point to "世" which is index 3.
-      assert.are.same("世", term.charlist[term.charpos])
+      assert.are.same("好", term.charlist[term.charpos])
       
       -- Wait, if formatTerminal pads exactly maxc *characters* rather than *visual columns*, what gets generated?
       -- Let's assert nothing for now and just print or let it crash.

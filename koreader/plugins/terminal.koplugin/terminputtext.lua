@@ -54,7 +54,11 @@ local function getCharposAtVisualColumn(
     if cur_visual_col >= target_visual_col then
       return i
     end
-    cur_visual_col = cur_visual_col + getCharWidth(charlist[i])
+    local w = getCharWidth(charlist[i])
+    if cur_visual_col + w > target_visual_col then
+      return i
+    end
+    cur_visual_col = cur_visual_col + w
     i = i + 1
   end
   return i
@@ -768,7 +772,8 @@ function TermInputText:formatTerminal(clear)
   local i = self.store_position or 1
   -- so we end up in a maxr x maxc array for positioning
   for _ = 1, self.maxr do
-    for _ = 1, self.maxc do
+    local cur_c = 0
+    while cur_c < self.maxc do
       if not self.charlist[i] then -- end of text
         table.insert(self.charlist, i, "\n")
       end
@@ -776,9 +781,13 @@ function TermInputText:formatTerminal(clear)
       if self.charlist[i] ~= "\n" then
         if clear then
           self:_setChar(i, " ")
+          cur_c = cur_c + 1
+        else
+          cur_c = cur_c + getCharWidth(self.charlist[i])
         end
       else
         table.insert(self.charlist, i, " ")
+        cur_c = cur_c + 1
       end
       i = i + 1
     end
