@@ -574,7 +574,7 @@ function Terminal:onTerminalStart(menu)
   local scroll_bar_width = ScrollTextWidget:getStaticScrollbarWidth()
   self.maxc = math.floor(
     (self:getInputWidget().width - scroll_bar_width) / self:getCharSize()
-  )
+  ) - 1
 
   self.maxr = math.floor(
     self:getInputWidget().height / self:getInputWidget():getLineHeight()
