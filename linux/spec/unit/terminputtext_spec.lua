@@ -139,5 +139,43 @@ describe("TermInputText widget module", function()
 
       assert.are.same(expected, term.charlist)
     end)
+
+    it("should handle PTY sequence from log", function()
+      local term = TermInputText:new({
+        maxc = 65,
+        maxr = 19,
+        wrap = true,
+      })
+      term:interpretAnsiSeq(
+        "You can use shfm as a filemanager, ? shows help in shfm.\13\n\27[?2004h$ "
+      )
+      term:interpretAnsiSeq("l")
+      term:interpretAnsiSeq("s")
+      term:interpretAnsiSeq(" ")
+      term:interpretAnsiSeq("-")
+      term:interpretAnsiSeq("l")
+      term:interpretAnsiSeq("a")
+
+      local expected = {}
+      local welcome = "You can use shfm as a filemanager, ? shows help in shfm."
+      for i = 1, 56 do
+        table.insert(expected, welcome:sub(i, i))
+      end
+      table.insert(expected, "\n")
+      table.insert(expected, "$")
+      table.insert(expected, " ")
+      table.insert(expected, "l")
+      table.insert(expected, "s")
+      table.insert(expected, " ")
+      table.insert(expected, "-")
+      table.insert(expected, "l")
+      table.insert(expected, "a")
+      for _ = 1, 57 do
+        table.insert(expected, " ")
+      end
+      table.insert(expected, "\n")
+
+      assert.are.same(expected, term.charlist)
+    end)
   end)
 end)
