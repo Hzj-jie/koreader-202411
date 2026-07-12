@@ -545,6 +545,7 @@ function InputText:initTextBox(text, char_added)
       scroll_callback = self.scroll_callback,
       scroll_by_pan = self.scroll_by_pan,
       for_measurement_only = self.for_measurement_only,
+      no_line_breaking_rules = self.no_line_breaking_rules,
     })
   else
     self.text_widget = TextBoxWidget:new({
@@ -566,6 +567,7 @@ function InputText:initTextBox(text, char_added)
       height = self.height,
       dialog = self.parent,
       for_measurement_only = self.for_measurement_only,
+      no_line_breaking_rules = self.no_line_breaking_rules,
     })
   end
   -- Get back possibly modified charpos and virtual_line_num

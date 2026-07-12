@@ -50,6 +50,7 @@ local TextBoxWidget = InputContainer:extend({
   height = nil, -- nil value indicates unscrollable text widget
   height_adjust = false, -- if true, reduce height to a multiple of line_height (for nicer centering)
   height_overflow_show_ellipsis = false, -- if height overflow, append ellipsis to last shown line
+  no_line_breaking_rules = false,
   top_line_num = nil, -- original virtual_line_num to scroll to
   charpos = nil, -- idx of char to draw the cursor on its left (can exceed #charlist by 1)
   sel_start_idx = nil,
@@ -410,7 +411,7 @@ function TextBoxWidget:_splitToLines()
       local line = self._xtext:makeLine(
         offset,
         targeted_width,
-        false,
+        self.no_line_breaking_rules,
         self.tabstop_nb_space_width
       )
       -- logger.dbg("makeLine", ln, line)
@@ -488,7 +489,10 @@ function TextBoxWidget:_splitToLines()
         local adjusted_idx = idx
         local adjusted_width = cur_line_width
         while
-          adjusted_idx > offset and not util.isSplittable(c, next_c, prev_c)
+          adjusted_idx > offset
+          and not (
+            self.no_line_breaking_rules or util.isSplittable(c, next_c, prev_c)
+          )
         do
           adjusted_width = adjusted_width
             - self.char_width[self.charlist[adjusted_idx]]
@@ -965,7 +969,7 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
           line = self._xtext:makeLine(
             line.offset,
             line.targeted_width - ellipsis_width,
-            false,
+            self.no_line_breaking_rules,
             self._tabstop_width
           )
           self.vertical_string_list[i] = line -- replace the former one

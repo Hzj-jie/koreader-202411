@@ -85,4 +85,64 @@ describe("TextBoxWidget widget", function()
       assert.is_nil(tw.sel_end_idx)
     end
   )
+  it(
+    "should not wrap ls after prompt when no_line_breaking_rules is true",
+    function()
+      local face = Font:getFace("cfont", 25)
+      local text = "welcome\n$ ls" .. string.rep(" ", 16) .. "\n"
+
+      local function getLineText(tw, line_num)
+        local line = tw.vertical_string_list[line_num]
+        if not line then
+          return nil
+        end
+        local chars = require("util").splitToChars(tw.text)
+        local start_idx = line.offset
+        local end_idx = line.end_offset or #chars
+        local line_text = {}
+        for j = start_idx, end_idx do
+          table.insert(line_text, chars[j] or "?")
+        end
+        return table.concat(line_text)
+      end
+
+      -- Case 1: use_xtext = true, no_line_breaking_rules = true
+      local tw1 = TextBoxWidget:new({
+        width = 140,
+        face = face,
+        text = text,
+        use_xtext = true,
+        no_line_breaking_rules = true,
+      })
+      assert.are.equal("welcome", getLineText(tw1, 1))
+      local line2_1 = getLineText(tw1, 2)
+      assert.is_not_nil(line2_1)
+      assert.is_true(line2_1:sub(1, 4) == "$ ls")
+
+      -- Case 2: use_xtext = false, no_line_breaking_rules = true
+      local tw2 = TextBoxWidget:new({
+        width = 140,
+        face = face,
+        text = text,
+        use_xtext = false,
+        no_line_breaking_rules = true,
+      })
+      assert.are.equal("welcome", getLineText(tw2, 1))
+      local line2_2 = getLineText(tw2, 2)
+      assert.is_not_nil(line2_2)
+      assert.is_true(line2_2:sub(1, 4) == "$ ls")
+
+      -- For comparison, verify that with use_xtext = true, no_line_breaking_rules = false,
+      -- it DOES wrap ls (the bug we are fixing)
+      local tw3 = TextBoxWidget:new({
+        width = 140,
+        face = face,
+        text = text,
+        use_xtext = true,
+        no_line_breaking_rules = false,
+      })
+      assert.are.equal("welcome", getLineText(tw3, 1))
+      assert.are.equal("$", getLineText(tw3, 2)) -- only "$" on line 2!
+    end
+  )
 end)
