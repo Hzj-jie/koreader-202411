@@ -659,18 +659,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
       local current_line_start = pos + 1
       local current_visual_col =
         getVisualWidth(self.charlist, current_line_start, self.charpos - 1)
-      logger.info(
-        "TermInputText: char =",
-        new_char,
-        "pos =",
-        self.charpos,
-        "line_start =",
-        current_line_start,
-        "vis_col =",
-        current_visual_col,
-        "maxc =",
-        self.maxc
-      )
 
       if self.wrap then
         if current_visual_col + new_w > self.maxc then
