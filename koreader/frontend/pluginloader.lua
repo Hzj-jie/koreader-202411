@@ -95,15 +95,15 @@ function PluginLoader:loadPlugins()
         and entry:find(".+%.koplugin$")
         and not OBSOLETE_PLUGINS[plugin_code_name]
       then
-        local mainfile = plugin_root .. "/main.lua"
-        local metafile = plugin_root .. "/_meta.lua"
+        local mainfile = plugin_root .. "/main"
+        local metafile = plugin_root .. "/_meta"
         if self:pluginsDisabled()[plugin_code_name] == nil then
           if DEFAULT_DISABLED_PLUGINS[plugin_code_name] then
             self:pluginsDisabled()[plugin_code_name] = true
           end
         end
-        local main_exists = lfs.attributes(mainfile, "mode") == "file"
-        local meta_exists = lfs.attributes(metafile, "mode") == "file"
+        local main_exists = lfs.attributes(mainfile .. ".lua", "mode") == "file"
+        local meta_exists = lfs.attributes(metafile .. ".lua", "mode") == "file"
 
         if
           meta_exists
@@ -113,7 +113,7 @@ function PluginLoader:loadPlugins()
             mainfile = metafile
           end
 
-          local plugin_module = dofile(mainfile)
+          local plugin_module = require(mainfile)
           assert(plugin_module ~= nil)
           assert(
             plugin_module.disabled == nil
@@ -128,7 +128,7 @@ function PluginLoader:loadPlugins()
             if self:pluginsDisabled()[plugin_code_name] then
               table.insert(self.disabled_plugins, plugin_module)
             else
-              local plugin_metamodule = dofile(metafile)
+              local plugin_metamodule = require(metafile)
               assert(plugin_metamodule)
               for k, v in pairs(plugin_metamodule) do
                 plugin_module[k] = v
@@ -136,7 +136,7 @@ function PluginLoader:loadPlugins()
               table.insert(self.enabled_plugins, plugin_module)
             end
           else
-            logger.dbg("Plugin", mainfile, "has been disabled.")
+            logger.dbg("Plugin", entry, "has been disabled.")
           end
         else
           logger.warn(
@@ -250,8 +250,10 @@ function PluginLoader:menuItem()
       -- Do not stop the current close of the menu, showing the message later.
       UIManager:nextTick(function()
         UIManager:askForRestart(msg)
+        self.enabled_plugins = nil
+        self.disabled_plugins = nil
+        self.all_plugins = nil
         UIManager:broadcastEvent("RefreshMenu")
-        -- TODO: Need to reload our items as well.
       end)
     end
   }
