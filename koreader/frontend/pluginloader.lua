@@ -181,42 +181,6 @@ function PluginLoader:menuItem()
     end)
   end
 
-  local on_close_func = function()
-    if not self.plugin_enabled and not self.plugin_disabled then
-      return
-    end
-
-    local msg
-    if self.plugin_enabled and self.plugin_disabled then
-      msg = gettext(
-        "Newly enabled plugins may not work properly, and "
-          .. "disabled plugins may still run in the background, until "
-          .. "the current book is reloaded or KOReader is restarted. "
-          .. "Do you want to restart now?"
-      )
-    elseif self.plugin_enabled then
-      msg = gettext(
-        "Newly enabled plugins may not work properly until "
-          .. "the current book is reloaded or KOReader is restarted. "
-          .. "Do you want to restart now?"
-      )
-    else
-      msg = gettext(
-        "Although disabled plugins are removed from the "
-          .. "menu, they may still run in the background until the "
-          .. "current book is reloaded or KOReader is restarted. "
-          .. "Do you want to restart now?"
-      )
-    end
-
-    self.plugin_enabled = false
-    self.plugin_disabled = false
-    require("ui/uimanager"):askForRestart(msg)
-    require("ui/uimanager"):broadcastEvent(
-      require("ui/event"):new("RefreshMenu")
-    )
-  end
-
   local plugin_table = {}
   for _, plugin in ipairs(self.all_plugins) do
     if not INVISIBLE_PLUGINS[plugin.name] then
@@ -245,7 +209,6 @@ function PluginLoader:menuItem()
           end
         end,
         help_text = plugin.description,
-        onClose = on_close_func,
       })
     end
   end
@@ -253,7 +216,44 @@ function PluginLoader:menuItem()
   return {
     text = gettext("Plugin management"),
     sub_item_table = plugin_table,
-    onClose = on_close_func,
+    onClose = function()
+      if not self.plugin_enabled and not self.plugin_disabled then
+        return
+      end
+
+      local msg
+      if self.plugin_enabled and self.plugin_disabled then
+        msg = gettext(
+          "Newly enabled plugins may not work properly, and "
+            .. "disabled plugins may still run in the background, until "
+            .. "the current book is reloaded or KOReader is restarted. "
+            .. "Do you want to restart now?"
+        )
+      elseif self.plugin_enabled then
+        msg = gettext(
+          "Newly enabled plugins may not work properly until "
+            .. "the current book is reloaded or KOReader is restarted. "
+            .. "Do you want to restart now?"
+        )
+      else
+        msg = gettext(
+          "Although disabled plugins are removed from the "
+            .. "menu, they may still run in the background until the "
+            .. "current book is reloaded or KOReader is restarted. "
+            .. "Do you want to restart now?"
+        )
+      end
+
+      self.plugin_enabled = false
+      self.plugin_disabled = false
+      local UIManager = require("ui/uimanager")
+      -- Do not stop the current close of the menu, showing the message later.
+      UIManager:nextTick(function()
+        UIManager:askForRestart(msg)
+        UIManager:broadcastEvent("RefreshMenu")
+        -- TODO: Need to reload our items as well.
+      end)
+    end
   }
 end
 
