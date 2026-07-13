@@ -152,15 +152,15 @@ function AnnotationSyncPlugin:init()
             else
               s = line:match('^%s*"(.*)"%s*$')
             end
-            if what and s and not fuzzy then
+            if fuzzy then
+              if not (what and s == "") then
+                fuzzy = false
+              end
+            elseif what and s then
               s = s:gsub("\\n", "\n")
               s = s:gsub('\\"', '"')
               s = s:gsub("\\\\", "\\")
               data[what] = (data[what] or "") .. s
-            elseif what and s == "" and fuzzy then
-              -- ignore
-            else
-              fuzzy = false
             end
           elseif line:match("#, fuzzy") then
             fuzzy = true

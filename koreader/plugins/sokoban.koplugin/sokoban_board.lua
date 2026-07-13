@@ -1,9 +1,6 @@
-local Device = require("device")
 local Geom = require("ui/geometry")
 local ImageWidget = require("ui/widget/imagewidget")
 local InputContainer = require("ui/widget/container/inputcontainer")
-local Screen = Device.screen
-local UIManager = require("ui/uimanager")
 
 local Game = require("plugins/sokoban.koplugin/sokoban_game")
 

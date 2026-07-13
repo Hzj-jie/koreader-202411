@@ -2,7 +2,6 @@
 HTML widget (without scroll bars).
 --]]
 
-local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
 local DrawContext = require("ffi/drawcontext")
 local Geom = require("ui/geometry")

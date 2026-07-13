@@ -10,7 +10,6 @@ local GestureRange = require("ui/gesturerange")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local LuaSettings = require("luasettings")
-local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
@@ -168,9 +167,7 @@ end
 function SolitaireUI:buildUI()
   self.touch_zones = {}
 
-  local game_area_height = self.screen_height
-    - self.status_bar_height
-    - self.button_bar_height
+  local game_area_height
 
   -- Draw mode label
   local draw_mode_label = self.game.draw_mode == 3 and "D3" or "D1"
@@ -291,7 +288,7 @@ function SolitaireUI:buildUI()
   })
 end
 
-function SolitaireUI:drawGame(bb, offset_x, offset_y)
+function SolitaireUI:drawGame(bb, _offset_x, offset_y)
   local y_offset = offset_y + 10
 
   self:drawStock(bb, self.margin, y_offset)
@@ -331,7 +328,7 @@ function SolitaireUI:drawCard(
   is_top_card,
   is_stock
 )
-  local is_stock = is_stock or false
+  is_stock = is_stock or false
   local border_width = highlighted and 3 or 1
 
   bb:paintRect(x, y, self.card_width, self.card_height, Blitbuffer.COLOR_WHITE)

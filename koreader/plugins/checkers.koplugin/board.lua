@@ -22,16 +22,13 @@ local SEL_BORDER = 5 -- selection border thickness (pixels, before scaling)
 --   even rank → dark files 1,3,5,7  → lib_col = (file-1)/2
 --   odd  rank → dark files 0,2,4,6  → lib_col = file/2
 
-local _pos_layout = {} -- _pos_layout[row][col] = position 1-32
 local pos_to_visual = {} -- pos_to_visual[pos]  = {rank=r, file=f}
 local visual_to_pos = {} -- visual_to_pos[rank][file] = pos (nil for light)
 do
   local p = 1
   for row = 0, BOARD_SIZE - 1 do
-    _pos_layout[row] = {}
     visual_to_pos[row] = {}
     for col = 0, BOARD_W - 1 do
-      _pos_layout[row][col] = p
       local f = (row % 2 == 0) and (col * 2 + 1) or (col * 2)
       pos_to_visual[p] = { rank = row, file = f }
       visual_to_pos[row][f] = p

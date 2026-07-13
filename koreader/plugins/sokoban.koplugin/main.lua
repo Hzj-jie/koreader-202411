@@ -4,12 +4,9 @@ local DataStorage = require("datastorage")
 local Device = require("device")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
-local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local InputContainer = require("ui/widget/container/inputcontainer")
 local LuaSettings = require("luasettings")
-local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
@@ -113,7 +110,6 @@ function Sokoban:startLevel(set_idx, level_num)
   local ls = LEVEL_SETS[set_idx]
   if not ls then
     ls = LEVEL_SETS[1]
-    set_idx = 1
   end
   if level_num < 1 then
     level_num = 1

@@ -6,9 +6,7 @@ This is a game inspired by 2048
 --
 
 local Blitbuffer = require("ffi/blitbuffer")
-local BottomContainer = require("ui/widget/container/bottomcontainer")
 local ButtonTable = require("ui/widget/buttontable")
-local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -18,19 +16,13 @@ local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local InfoMessage = require("ui/widget/infomessage")
-local InputContainer = require("ui/widget/container/inputcontainer")
 local LuaSettings = require("luasettings")
-local OverlapGroup = require("ui/widget/overlapgroup")
-local Size = require("ui/size")
-local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
-local logger = require("logger")
 
 local Input = Device.input
 local Screen = Device.screen
@@ -596,7 +588,7 @@ function Game2048Screen:onThemeChange(theme_name)
   self._game_widget:setPalette(loadGame2048WidgetThemePalette(theme_name))
 end
 
-function Game2048Screen:onProfileChange(profile_name)
+function Game2048Screen:onProfileChange(_profile_name)
   -- New profile name is already applied to the game's settings object,
   -- therefore there is no need to use th passed new profile_name
   if self.storage:switchGameState(self.state) then

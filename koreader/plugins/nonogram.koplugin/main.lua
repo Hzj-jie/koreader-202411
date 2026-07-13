@@ -367,7 +367,7 @@ function NonogramBoard:applyAction(action)
   end
   local row, col = self:getSelection()
   local previous = self.user_grid[row][col]
-  local target = previous
+  local target
   if action == "fill" then
     target = 1
   elseif action == "mark" then
