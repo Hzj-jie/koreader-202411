@@ -1,7 +1,7 @@
 describe("PluginLoader module", function()
   local PluginLoader
   local lfs
-  local orig_dir, orig_attributes, orig_dofile
+  local orig_dir, orig_attributes, orig_dofile, orig_require
   local orig_read, orig_readTableRef
   local mock_disabled_plugins = {}
   local mock_extra_paths = nil
@@ -65,11 +65,13 @@ describe("PluginLoader module", function()
       return orig_attributes(path, request)
     end
 
-    -- Mock dofile
-    _G.dofile = function(path)
+    orig_require = _G.require
+
+    -- Mock require
+    _G.require = function(path)
       local path_str = tostring(path)
       if string.find(path_str, "checkers.koplugin") then
-        if string.find(path_str, "main.lua") then
+        if string.find(path_str, "main") then
           return {
             name = "checkers",
             disabled = false,
@@ -80,7 +82,7 @@ describe("PluginLoader module", function()
               return o
             end,
           }
-        elseif string.find(path_str, "_meta.lua") then
+        elseif string.find(path_str, "_meta") then
           return {
             fullname = "Checkers Game",
             description = "Classic checkers board game",
@@ -88,13 +90,10 @@ describe("PluginLoader module", function()
         end
       elseif string.find(path_str, "mock2.koplugin") then
         -- mock2 might be loaded as meta if disabled
-        if
-          string.find(path_str, "main.lua")
-          or string.find(path_str, "_meta.lua")
-        then
+        if string.find(path_str, "main") or string.find(path_str, "_meta") then
           if
             mock_disabled_plugins["mock2"]
-            and string.find(path_str, "_meta.lua")
+            and string.find(path_str, "_meta")
           then
             return {
               fullname = "Mock 2 Plugin (Disabled)",
@@ -113,20 +112,23 @@ describe("PluginLoader module", function()
           }
         end
       elseif string.find(path_str, "extra1.koplugin") then
-        if string.find(path_str, "main.lua") then
+        if string.find(path_str, "main") then
           return {
             name = "Extra1",
             disabled = false,
           }
-        elseif string.find(path_str, "_meta.lua") then
+        elseif string.find(path_str, "_meta") then
           return {
             fullname = "Extra 1 Plugin",
             description = "Description for Extra 1",
           }
         end
       end
-      return orig_dofile(path)
+      return orig_require(path)
     end
+
+    -- We can keep a dummy dofile mock just in case anything else calls it from our legacy behavior
+    _G.dofile = _G.require
 
     -- Mock G_reader_settings
     G_reader_settings.read = function(self, key)
@@ -147,6 +149,7 @@ describe("PluginLoader module", function()
   teardown(function()
     lfs.dir = orig_dir
     lfs.attributes = orig_attributes
+    _G.require = orig_require
     _G.dofile = orig_dofile
     G_reader_settings.read = orig_read
     G_reader_settings.readTableRef = orig_readTableRef
@@ -157,7 +160,8 @@ describe("PluginLoader module", function()
     PluginLoader.enabled_plugins = nil
     PluginLoader.disabled_plugins = nil
     PluginLoader.all_plugins = nil
-    PluginLoader.show_info = true
+    PluginLoader.plugin_enabled = false
+    PluginLoader.plugin_disabled = false
     PluginLoader.plugins_disabled = nil
     mock_disabled_plugins = {}
     mock_extra_paths = nil
@@ -238,6 +242,60 @@ describe("PluginLoader module", function()
       assert.is_true(menu[1].checked_func())
       assert.is_false(menu[2].checked_func())
     end)
+
+    it(
+      "should correctly clear caches and broadcast RefreshMenu on onClose",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_ask = UIManager.askForRestart
+        local orig_broadcast = UIManager.broadcastEvent
+        local orig_nextTick = UIManager.nextTick
+
+        local broadcasted_events = {}
+        UIManager.askForRestart = function() end
+        UIManager.broadcastEvent = function(self, event)
+          table.insert(broadcasted_events, event.handler or event)
+        end
+        UIManager.nextTick = function(self, func)
+          func()
+        end
+
+        -- Populate caches first by generating a menu item
+        mock_disabled_plugins["checkers"] = false
+        local item = PluginLoader:menuItem()
+
+        -- If nothing changed, plugin_enabled/plugin_disabled remains false
+        assert.is_false(PluginLoader.plugin_enabled)
+        item.onClose()
+
+        -- Caches should NOT be cleared if no plugins were toggled
+        assert.truthy(PluginLoader.all_plugins)
+        assert.are.equal(0, #broadcasted_events)
+
+        -- Simulate toggling a plugin to toggled/disabled
+        item.sub_item_table[1].callback()
+        assert.is_true(
+          PluginLoader.plugin_disabled or PluginLoader.plugin_enabled
+        )
+
+        -- Call onClose again, which should now trigger a reload and RefreshMenu
+        item.onClose()
+
+        -- Caches SHOULD be cleared now
+        assert.is_nil(PluginLoader.all_plugins)
+        assert.is_nil(PluginLoader.enabled_plugins)
+        assert.is_nil(PluginLoader.disabled_plugins)
+
+        -- Should have broadcast RefreshMenu
+        assert.are.equal(1, #broadcasted_events)
+        assert.are.equal("RefreshMenu", broadcasted_events[1])
+
+        -- Restore mocks
+        UIManager.askForRestart = orig_ask
+        UIManager.broadcastEvent = orig_broadcast
+        UIManager.nextTick = orig_nextTick
+      end
+    )
   end)
 
   describe("default-disable via list", function()
