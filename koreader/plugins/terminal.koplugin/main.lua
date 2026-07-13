@@ -571,8 +571,9 @@ function Terminal:onTerminalStart(menu)
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
 
-  self.maxc =
-    math.floor(self:getInputWidget().text_widget.text_widget.width / self:getCharSize())
+  self.maxc = math.floor(
+    self:getInputWidget().text_widget.text_widget.width / self:getCharSize()
+  )
 
   self.maxr = math.floor(
     self:getInputWidget().height / self:getInputWidget():getLineHeight()
