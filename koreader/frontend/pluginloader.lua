@@ -255,7 +255,7 @@ function PluginLoader:menuItem()
         self.all_plugins = nil
         UIManager:broadcastEvent("RefreshMenu")
       end)
-    end
+    end,
   }
 end
 
