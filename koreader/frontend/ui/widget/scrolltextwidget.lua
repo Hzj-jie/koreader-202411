@@ -93,10 +93,7 @@ function ScrollTextWidget:init()
     for_measurement_only = self.for_measurement_only,
     no_line_breaking_rules = self.no_line_breaking_rules,
   })
-  local visible_line_count = self.text_widget:getVisLineCount()
-  local total_line_count = self.text_widget:getAllLineCount()
-  self.v_scroll_bar.height = self.text_widget:getTextHeight()
-  self.v_scroll_bar.enable = visible_line_count < total_line_count
+  self:_layoutScrollBar()
   self:_calculateScrollBar()
 
   local horizontal_group = HorizontalGroup:new({ align = "top" })
@@ -398,6 +395,24 @@ function ScrollTextWidget:onPanReleaseText(arg)
     return true
   end
   return false
+end
+
+function ScrollTextWidget:_layoutScrollBar()
+  self.v_scroll_bar.height = self.text_widget:getTextHeight()
+  self.v_scroll_bar.enable = self.text_widget:getVisLineCount() < self.text_widget:getAllLineCount()
+end
+
+function ScrollTextWidget:setText(text, charlist, charpos, fgcolor)
+  self.text = text
+  self.charlist = charlist
+  self.charpos = charpos
+  if fgcolor then
+    self.fgcolor = fgcolor
+    self.text_widget.fgcolor = fgcolor
+  end
+  self.text_widget:setText(text, charlist, charpos)
+  self:_layoutScrollBar()
+  self:_updateScrollBar()
 end
 
 return ScrollTextWidget

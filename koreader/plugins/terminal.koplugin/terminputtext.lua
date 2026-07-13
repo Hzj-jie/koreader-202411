@@ -545,7 +545,7 @@ function TermInputText:scrollRegionUp(column)
     for _ = self.scroll_region_line, self.scroll_region_top + 1, -1 do
       pos = self:_findPreviousNewline(pos - 1)
     end
-    self:_removeLineEndingAt(pos + 1)
+    self:_removeLineEndingAt(pos)
 
     pos = self.charpos + 1
     for _ = column, self.maxc - column do

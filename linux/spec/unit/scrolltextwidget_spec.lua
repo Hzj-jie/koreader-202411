@@ -46,7 +46,7 @@ describe("ScrollTextWidget module", function()
       ScrollTextWidget:new({ text = "test", text_scroll_span = custom_span })
     assert.are.equal(
       custom_span,
-      widget.reserved_width - widget.scroll_bar_width
+      widget.reserved_width - widget.v_scroll_bar:getRequiredWidth()
     )
   end)
 

@@ -207,13 +207,12 @@ function TextBoxWidget:init()
     self.text = table.concat(charlist, "")
   end
 
-  self:_computeTextDimensions()
-  self:_updateLayout()
+  self:_setText()
   if self.editable then
-    self:moveCursorToCharPos(self.charpos or 1)
+    self.charpos = self.charpos or 1
+    -- Force moving the cursor pos.
+    self:moveCursorToCharPos(self:_resetCharPos())
   end
-  -- Populate self:getSize().
-  self:getSize()
 
   if Device:isTouchDevice() then
     self.ges_events.TapImage = {
@@ -1449,6 +1448,12 @@ function TextBoxWidget:free(full)
   UIManager:ignoreWidgetRepaint(self)
 end
 
+function TextBoxWidget:_resetCharPos(charpos)
+  charpos = charpos or self.charpos
+  self.charpos = nil
+  return charpos
+end
+
 function TextBoxWidget:update(scheduled_update)
   self:free(false)
   -- We set this flag so :_renderText() can know we were called from a
@@ -1458,17 +1463,34 @@ function TextBoxWidget:update(scheduled_update)
   self.scheduled_update = nil
 end
 
-function TextBoxWidget:setText(text)
-  if text == self.text then
-    return
-  end
-
-  self.text = text
+function TextBoxWidget:_setText(text, charlist, fgcolor)
+  self.text = text or self.text
+  self.charlist = charlist or self.charlist
+  -- Technically speaking we shouldn't consider fgcolor when _setText, but we
+  -- want to be a little bit optimized to avoid calling update twice when both
+  -- fgcolor and text change.
+  self.fgcolor = fgcolor or self.fgcolor
   self:_computeTextDimensions()
   self:update()
 
   -- Don't break the reference, update self.dimen
   self:getSize()
+end
+
+function TextBoxWidget:setText(text, charlist, charpos, fgcolor)
+  if (text ~= self.text) or (charlist ~= self.charlist) then
+    self:_setText(text, charlist, fgcolor)
+    -- Fallback to current pos or 1 if editable, then reset to force update
+    charpos = self:_resetCharPos(charpos or self.charpos)
+  elseif fgcolor and self.fgcolor ~= fgcolor then
+    -- Unfortunately if fgcolor is changed, we still need to run self:update().
+    self.fgcolor = fgcolor
+    self:update()
+  end
+
+  if self.editable or charpos then
+    self:moveCursorToCharPos(charpos)
+  end
 end
 dbg:guard(TextBoxWidget, "setText", function(self, text)
   assert(type(text) == "string", "Wrong text type (expected string)")
@@ -1879,6 +1901,13 @@ local CURSOR_USE_REFRESH_FUNCS =
 -- Update charpos to the one provided; if out of current view, update
 -- virtual_line_num to move it to view, and draw the cursor
 function TextBoxWidget:moveCursorToCharPos(charpos)
+  if not charpos or self.charpos == charpos then
+    return
+  end
+
+  if self.charlist and charpos > #self.charlist + 1 then
+    charpos = #self.charlist + 1
+  end
   self.charpos = charpos
   self.prev_virtual_line_num = self.virtual_line_num
   local x, y, screen_line_num = self:_getXYForCharPos() -- we can get y outside current view

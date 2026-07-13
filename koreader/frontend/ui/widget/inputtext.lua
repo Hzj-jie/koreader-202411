@@ -431,10 +431,6 @@ end
 -- the text widget to have the new text splittted into possibly different
 -- lines than before
 function InputText:initTextBox(text, char_added)
-  if self.text_widget then
-    self.text_widget:free(true)
-  end
-
   -- 'text' is passed in init() and setText() only, to check editability;
   -- other methods modify and provide self.charlist
   self.text = text or table.concat(self.charlist)
@@ -503,106 +499,112 @@ function InputText:initTextBox(text, char_added)
       or Screen:scaleBySize(ScrollTextWidget.DEFAULT_TEXT_SCROLL_SPAN)
   end
 
-  if not self.height then
-    -- If no height provided, measure the text widget height
-    -- we would start with, and use a ScrollTextWidget with that
-    -- height, so widget does not overflow container if we extend
-    -- the text and increase the number of lines.
-    local text_width = self.width
-    if text_width and self.scroll then
-      -- Account for the scrollbar that will be used
-      local default_sb_w =
-        Screen:scaleBySize(ScrollTextWidget.DEFAULT_SCROLL_BAR_WIDTH)
-      local scroll_bar_req_w =
-        VerticalScrollBar.getRequiredWidth({ width = default_sb_w })
-      text_width = text_width - scroll_bar_req_w - self.text_scroll_span
-    end
-    local text_widget = TextBoxWidget:new({
-      text = show_text,
-      charlist = show_charlist,
-      face = self.face,
-      width = text_width,
-      lang = self.lang, -- these might influence height
-      para_direction_rtl = self.para_direction_rtl,
-      auto_para_direction = self.auto_para_direction,
-      for_measurement_only = true, -- flag it as a dummy, so it won't trigger any bogus repaint/refresh...
-    })
-    self.height = text_widget:getTextHeight()
-    self.scroll = true
-    text_widget:free(true)
-  end
-  if self.scroll then
-    self.text_widget = ScrollTextWidget:new({
-      text = show_text,
-      charlist = show_charlist,
-      charpos = self.charpos,
-      top_line_num = self.top_line_num,
-      editable = self.focused,
-      select_mode = self.do_select,
-      face = self.face,
-      fgcolor = fgcolor,
-      alignment = self.alignment,
-      justified = self.justified,
-      lang = self.lang,
-      para_direction_rtl = self.para_direction_rtl,
-      auto_para_direction = self.auto_para_direction,
-      alignment_strict = self.alignment_strict,
-      width = self.width,
-      height = self.height,
-      dialog = self.parent,
-      scroll_callback = self.scroll_callback,
-      scroll_by_pan = self.scroll_by_pan,
-      text_scroll_span = self.text_scroll_span,
-      for_measurement_only = self.for_measurement_only,
-      no_line_breaking_rules = self.no_line_breaking_rules,
-    })
+  if self.text_widget then
+    self.text_widget:setText(show_text, show_charlist, self.charpos, fgcolor)
   else
-    self.text_widget = TextBoxWidget:new({
-      text = show_text,
-      charlist = show_charlist,
-      charpos = self.charpos,
-      top_line_num = self.top_line_num,
-      editable = self.focused,
-      select_mode = self.do_select,
-      face = self.face,
-      fgcolor = fgcolor,
-      alignment = self.alignment,
-      justified = self.justified,
-      lang = self.lang,
-      para_direction_rtl = self.para_direction_rtl,
-      auto_para_direction = self.auto_para_direction,
-      alignment_strict = self.alignment_strict,
-      width = self.width,
-      height = self.height,
-      dialog = self.parent,
-      for_measurement_only = self.for_measurement_only,
-      no_line_breaking_rules = self.no_line_breaking_rules,
+    if not self.height then
+      -- If no height provided, measure the text widget height
+      -- we would start with, and use a ScrollTextWidget with that
+      -- height, so widget does not overflow container if we extend
+      -- the text and increase the number of lines.
+      local text_width = self.width
+      if text_width and self.scroll then
+        -- Account for the scrollbar that will be used
+        local default_sb_w =
+          Screen:scaleBySize(ScrollTextWidget.DEFAULT_SCROLL_BAR_WIDTH)
+        local scroll_bar_req_w =
+          VerticalScrollBar.getRequiredWidth({ width = default_sb_w })
+        text_width = text_width - scroll_bar_req_w - self.text_scroll_span
+      end
+      local text_widget = TextBoxWidget:new({
+        text = show_text,
+        charlist = show_charlist,
+        face = self.face,
+        width = text_width,
+        lang = self.lang, -- these might influence height
+        para_direction_rtl = self.para_direction_rtl,
+        auto_para_direction = self.auto_para_direction,
+        for_measurement_only = true, -- flag it as a dummy, so it won't trigger any bogus repaint/refresh...
+      })
+      self.height = text_widget:getTextHeight()
+      self.scroll = true
+      text_widget:free(true)
+    end
+    if self.scroll then
+      self.text_widget = ScrollTextWidget:new({
+        text = show_text,
+        charlist = show_charlist,
+        charpos = self.charpos,
+        top_line_num = self.top_line_num,
+        editable = self.focused,
+        select_mode = self.do_select,
+        face = self.face,
+        fgcolor = fgcolor,
+        alignment = self.alignment,
+        justified = self.justified,
+        lang = self.lang,
+        para_direction_rtl = self.para_direction_rtl,
+        auto_para_direction = self.auto_para_direction,
+        alignment_strict = self.alignment_strict,
+        width = self.width,
+        height = self.height,
+        dialog = self.parent,
+        scroll_callback = self.scroll_callback,
+        scroll_by_pan = self.scroll_by_pan,
+        text_scroll_span = self.text_scroll_span,
+        for_measurement_only = self.for_measurement_only,
+        no_line_breaking_rules = self.no_line_breaking_rules,
+      })
+    else
+      self.text_widget = TextBoxWidget:new({
+        text = show_text,
+        charlist = show_charlist,
+        charpos = self.charpos,
+        top_line_num = self.top_line_num,
+        editable = self.focused,
+        select_mode = self.do_select,
+        face = self.face,
+        fgcolor = fgcolor,
+        alignment = self.alignment,
+        justified = self.justified,
+        lang = self.lang,
+        para_direction_rtl = self.para_direction_rtl,
+        auto_para_direction = self.auto_para_direction,
+        alignment_strict = self.alignment_strict,
+        width = self.width,
+        height = self.height,
+        dialog = self.parent,
+        for_measurement_only = self.for_measurement_only,
+        no_line_breaking_rules = self.no_line_breaking_rules,
+      })
+    end
+
+    self._frame_textwidget = FrameContainer:new({
+      bordersize = self.bordersize,
+      padding = self.padding,
+      margin = self.margin,
+      color = self.focused and Blitbuffer.COLOR_BLACK
+        or Blitbuffer.COLOR_DARK_GRAY,
+      self.text_widget,
     })
+    self._verticalgroup = VerticalGroup:new({
+      align = "left",
+      self._frame_textwidget,
+      self._password_toggle,
+    })
+    self._frame = FrameContainer:new({
+      bordersize = 0,
+      margin = 0,
+      padding = 0,
+      self._verticalgroup,
+    })
+    self[1] = self._frame
+    self:mergeSize(self._frame:getSize())
   end
+
   -- Get back possibly modified charpos and virtual_line_num
   self:resyncPos()
 
-  self._frame_textwidget = FrameContainer:new({
-    bordersize = self.bordersize,
-    padding = self.padding,
-    margin = self.margin,
-    color = self.focused and Blitbuffer.COLOR_BLACK
-      or Blitbuffer.COLOR_DARK_GRAY,
-    self.text_widget,
-  })
-  self._verticalgroup = VerticalGroup:new({
-    align = "left",
-    self._frame_textwidget,
-    self._password_toggle,
-  })
-  self._frame = FrameContainer:new({
-    bordersize = 0,
-    margin = 0,
-    padding = 0,
-    self._verticalgroup,
-  })
-  self[1] = self._frame
-  self:mergeSize(self._frame:getSize())
   --- @fixme self.parent is not always in the widget stack (BookStatusWidget)
   -- Don't even try to refresh dummy widgets used for text height computations...
   if not self.for_measurement_only then
