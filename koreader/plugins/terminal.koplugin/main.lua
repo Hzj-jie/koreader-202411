@@ -572,35 +572,13 @@ function Terminal:onTerminalStart(menu)
   self.input_dialog = self:generateInputDialog()
 
   self.maxc =
-    math.floor(self:getInputWidget().text_widget.width / self:getCharSize())
+    math.floor(self:getInputWidget().text_widget.text_widget.width / self:getCharSize())
 
   self.maxr = math.floor(
     self:getInputWidget().height / self:getInputWidget():getLineHeight()
   )
-  logger.info(
-    "Terminal: calculated maxc =",
-    self.maxc,
-    "maxr =",
-    self.maxr,
-    "width =",
-    self:getInputWidget().width,
-    "height =",
-    self:getInputWidget().height,
-    "charSize =",
-    self:getCharSize()
-  )
 
   self.store_position = 1
-
-  logger.warn(
-    string.format(
-      "Terminal metrics: widget_w=%d, inner_w=%d, char_w=%d, calculated_cols=%d",
-      self:getInputWidget().width,
-      self:getInputWidget().text_widget.width,
-      self:getCharSize(),
-      self.maxc
-    )
-  )
 
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
