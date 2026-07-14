@@ -149,7 +149,7 @@ function Game2048Config:showConfigMenu()
   return true
 end
 
-function Game2048Config:onSetDimensions(dimen)
+function Game2048Config:onSetDimensions(_dimen)
   if self.config_dialog then
     -- init basically calls update & initGesListener and nothing else, which is exactly what we want.
     self.config_dialog:init()

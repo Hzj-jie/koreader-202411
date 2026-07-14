@@ -1482,12 +1482,13 @@ function HttpInspector:exposeTouch(uri, reqinfo)
 end
 
 function HttpInspector:exposeKey(uri, reqinfo)
+  local keycode
   local ok, err = pcall(function()
     local args, nb_args = getVariablesFromUri(uri)
     if nb_args ~= 1 then
       error("Key requires a keycode/string")
     end
-    local keycode = tostring(args[1])
+    keycode = tostring(args[1])
     if keycode == "Esc" then
       keycode = "Back"
     elseif keycode == "Enter" then

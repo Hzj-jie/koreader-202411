@@ -175,7 +175,7 @@ function Exporter:requiresNetwork()
 end
 
 function Exporter:getDocumentClippings()
-  return self.parser:parseCurrentDoc(self.view) or {}
+  return self.parser:parseCurrentDoc(self.ui.view) or {}
 end
 
 --- Parse and export highlights from the currently opened document.

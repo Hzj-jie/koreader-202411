@@ -500,7 +500,7 @@ function Game:clone()
     }
   end
 
-  local new_board = {
+  local cloned_board = {
     player_turn = sb.player_turn,
     width = sb.width,
     height = sb.height,
@@ -512,14 +512,14 @@ function Game:clone()
     pieces = new_pieces,
     searcher = new_searcher(),
   }
-  searcher_build(new_board.searcher, new_board)
+  searcher_build(cloned_board.searcher, cloned_board)
 
   if prcfcm_pos then
-    new_board.piece_requiring_further_capture_moves =
-      new_board.searcher.position_pieces[prcfcm_pos]
+    cloned_board.piece_requiring_further_capture_moves =
+      cloned_board.searcher.position_pieces[prcfcm_pos]
   end
 
-  c.board = new_board
+  c.board = cloned_board
   c.history = {}
   c.consecutive_noncapture_limit = self.consecutive_noncapture_limit
   c.moves_since_last_capture = self.moves_since_last_capture

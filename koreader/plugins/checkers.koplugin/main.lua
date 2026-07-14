@@ -317,7 +317,7 @@ end
 
 -- ── Move handling ─────────────────────────────────────────────────────────────
 
-function Checkers:onMoveExecuted(from, to)
+function Checkers:onMoveExecuted(_from, _to)
   if self.game:is_over() then
     self:updateStatus()
     self:showGameOver()
