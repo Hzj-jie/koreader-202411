@@ -108,6 +108,22 @@ function TermInputText:init()
   self.alternate_buffer = {}
   self.save_buffer = {}
   InputText.init(self)
+  local textbox = self.text_widget.text_widget
+  assert(textbox, "TermInputText: TextBoxWidget not found inside ScrollTextWidget")
+  -- Override scrollViewToCharPos to prevent page-jumping scroll.
+  -- By default, scrollViewToCharPos aligns the view to page boundaries.
+  -- For a terminal, we want smooth line-by-line scrolling, which is handled
+  -- by moveCursorToCharPos. We only need to clamp virtual_line_num here
+  -- to keep it valid if the buffer was trimmed.
+  textbox.scrollViewToCharPos = function(this)
+    local max_virtual_line_num = #this.vertical_string_list - this.lines_per_page + 1
+    if this.virtual_line_num > max_virtual_line_num then
+      this.virtual_line_num = max_virtual_line_num
+      if this.virtual_line_num < 1 then
+        this.virtual_line_num = 1
+      end
+    end
+  end
   if self.keyboard then
     -- Disallow layout change for the same reason.
     self.keyboard.lang_to_keyboard_layout = {
