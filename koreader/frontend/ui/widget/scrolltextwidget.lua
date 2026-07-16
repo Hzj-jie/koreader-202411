@@ -35,7 +35,8 @@ local ScrollTextWidget = InputContainer:extend({
   DEFAULT_WIDTH = 400,
   DEFAULT_HEIGHT = 20,
   DEFAULT_SCROLL_BAR_WIDTH = 6,
-  DEFAULT_TEXT_SCROLL_SPAN = 12,
+  -- Subtract SAFETY_MARGIN as it is already included in the scrollbar's required width.
+  DEFAULT_TEXT_SCROLL_SPAN = 12 - VerticalScrollBar.SAFETY_MARGIN,
   width = nil,
   height = nil,
   scroll_bar_width = nil,

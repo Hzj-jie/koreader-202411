@@ -20,6 +20,7 @@ local VerticalScrollBar = InputContainer:extend({
   -- view size and position relative to the whole scrollable height):
   min_thumb_size = Size.line.thick,
   scroll_callback = nil,
+  SAFETY_MARGIN = 5,
 })
 
 function VerticalScrollBar:init()
@@ -101,8 +102,8 @@ end
 function VerticalScrollBar:getRequiredWidth()
   -- We need to reserve space for the scrollbar itself (1x width),
   -- the touch zone extensions on both sides (2x width),
-  -- and a 5px safety margin on the inner side next to the content.
-  return 3 * self.width + Device.screen:scaleBySize(5)
+  -- and a safety margin (SAFETY_MARGIN) on the inner side next to the content.
+  return 3 * self.width + Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
 end
 
 function VerticalScrollBar:paintTo(bb, x, y)
