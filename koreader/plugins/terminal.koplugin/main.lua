@@ -595,19 +595,6 @@ function Terminal:onClose()
   self:killShell()
 end
 
-function Terminal:dumpLayout(widget, depth)
-  depth = depth or 0
-  local indent = string.rep("  ", depth)
-  local dimen = widget.dimen
-  local dimen_str = dimen and string.format("%dx%d+%d+%d", dimen.w, dimen.h, dimen.x or -1, dimen.y or -1) or "nil"
-  logger.info(indent .. tostring(widget) .. " dimen=" .. dimen_str)
-  if widget.propagateEvent then
-    for _, child in ipairs(widget) do
-      self:dumpLayout(child, depth + 1)
-    end
-  end
-end
-
 function Terminal:onTerminalStart(menu)
   self.menu = menu
 
@@ -641,8 +628,6 @@ function Terminal:onTerminalStart(menu)
 
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
-    UIManager:forceRepaint()
-    self:dumpLayout(self.input_dialog)
     UIManager:scheduleIn(0.25, Terminal.refresh, self, true)
   end
 end
