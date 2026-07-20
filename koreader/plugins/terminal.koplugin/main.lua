@@ -22,6 +22,13 @@ pid_t setsid(void) __attribute__((nothrow, leaf));
 static const int TCIFLUSH = 0;
 int tcdrain(int fd) __attribute__((nothrow, leaf));
 int tcflush(int fd, int queue_selector) __attribute__((nothrow, leaf));
+
+struct winsize {
+    unsigned short ws_row;
+    unsigned short ws_col;
+    unsigned short ws_xpixel;
+    unsigned short ws_ypixel;
+};
 ]])
 
 local function check_prerequisites()
@@ -93,6 +100,7 @@ local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local CHUNK_SIZE = 80 * 40 -- max. nb of read bytes (reduce this, if taps are not detected)
+local TIOCSWINSZ = 0x5414
 
 local Terminal = WidgetContainer:extend({
   name = "terminal",
@@ -157,6 +165,25 @@ function Terminal:init()
   self.terminal_data = DataStorage:getDataDir()
   lfs.mkdir(self.terminal_data .. "/scripts")
   os.remove("terminal.pid") -- clean leftover from last run
+end
+
+function Terminal:_updateWinSize(cols, rows)
+  if not self.ptmx or self.ptmx == -1 then
+    return
+  end
+  local ws = ffi.new("struct winsize")
+  ws.ws_row = rows
+  ws.ws_col = cols
+  ws.ws_xpixel = 0
+  ws.ws_ypixel = 0
+  if C.ioctl(self.ptmx, TIOCSWINSZ, ws) ~= 0 then
+    logger.err(
+      "Terminal: ioctl TIOCSWINSZ failed:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
+  else
+    logger.info("Terminal: set pty size to", cols, "x", rows)
+  end
 end
 
 function Terminal:spawnShell(cols, rows)
@@ -257,11 +284,7 @@ function Terminal:spawnShell(cols, rows)
     C.dup2(pts, 2)
     C.close(pts)
 
-    if cols and rows then
-      if not Device:isAndroid() then
-        os.execute("stty cols " .. cols .. " rows " .. rows)
-      end
-    end
+
 
     C.setenv("TERM", "vt52", 1)
     C.setenv("ENV", profile_file, 1) -- when bash is started as sh
@@ -294,10 +317,10 @@ function Terminal:spawnShell(cols, rows)
   end
 
   self.is_shell_open = true
+  self:_updateWinSize(cols, rows)
   if Device:isAndroid() then
     -- feed the following commands to the running shell
     self:transmit("export TERM=vt52\n")
-    self:transmit("stty cols " .. cols .. " rows " .. rows .. "\n")
   end
 
   self:getInputWidget():resize(rows, cols)
@@ -539,15 +562,20 @@ function Terminal:generateInputDialog()
   local org_reinit = dialog.reinit
   dialog.reinit = function(d)
     org_reinit(d)
-    if self.maxc and self.maxr then
-      logger.info(
-        "Terminal: restoring size in reinit maxc =",
-        self.maxc,
-        "maxr =",
-        self.maxr
-      )
-      d._input_widget:resize(self.maxr, self.maxc)
-    end
+    self.maxc = math.floor(
+      d._input_widget.text_widget.text_widget.width / self:getCharSize()
+    )
+    self.maxr = math.floor(
+      d._input_widget.height / d._input_widget:getLineHeight()
+    )
+    logger.info(
+      "Terminal: resized in reinit maxc =",
+      self.maxc,
+      "maxr =",
+      self.maxr
+    )
+    d._input_widget:resize(self.maxr, self.maxc)
+    self:_updateWinSize(self.maxc, self.maxr)
   end
   return dialog
 end
