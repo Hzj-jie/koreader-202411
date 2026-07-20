@@ -564,10 +564,10 @@ function Terminal:generateInputDialog()
     org_reinit(d)
     self.maxc = math.floor(
       d._input_widget.text_widget.text_widget.width / self:getCharSize()
-    )
+    ) - 1
     self.maxr = math.floor(
       d._input_widget.height / d._input_widget:getLineHeight()
-    )
+    ) - 3
     logger.info(
       "Terminal: resized in reinit maxc =",
       self.maxc,
@@ -601,11 +601,11 @@ function Terminal:onTerminalStart(menu)
 
   self.maxc = math.floor(
     self:getInputWidget().text_widget.text_widget.width / self:getCharSize()
-  )
+  ) - 1
 
   self.maxr = math.floor(
     self:getInputWidget().height / self:getInputWidget():getLineHeight()
-  )
+  ) - 3
 
   self.store_position = 1
 
