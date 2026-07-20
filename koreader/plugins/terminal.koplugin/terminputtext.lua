@@ -655,9 +655,6 @@ function TermInputText:addChars(chars, skip_callback, skip_table_concat)
         end
       end
 
-      if self.charlist[self.charpos] then
-        self.charpos = self.charpos + 1
-      end
 
       -- fill line (just insert newline, no padding)
       if not self.charlist[self.charpos] then

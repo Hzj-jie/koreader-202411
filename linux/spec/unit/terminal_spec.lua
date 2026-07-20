@@ -486,9 +486,9 @@ describe("Terminal plugin button tap integration", function()
 
       assert.is.same("12345     ", lines[1])
       assert.is.same("          ", lines[2])
-      assert.is.same(" abcde    ", lines[3])
-      assert.is.same(" ABCDE    ", lines[4])
-      assert.is.same(" XYZWZ    ", lines[5])
+      assert.is.same("abcde     ", lines[3])
+      assert.is.same("ABCDE     ", lines[4])
+      assert.is.same("XYZWZ     ", lines[5])
 
       UIManager:close(input_dialog)
       filemanager:onClose()
@@ -744,4 +744,5 @@ describe("Terminal plugin button tap integration", function()
 
     package.loaded["plugins/terminal.koplugin/main"] = nil
   end)
+
 end)
