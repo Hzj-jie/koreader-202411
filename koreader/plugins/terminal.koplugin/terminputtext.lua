@@ -350,7 +350,7 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
     --- @todo
     return true
   elseif cmd == "r" then
-    if param2 > 0 and param2 < self.maxr then
+    if param2 > 0 and param2 <= self.maxr then
       self.scroll_region_bottom = param2
     else
       self.scroll_region_bottom = nil
@@ -358,7 +358,7 @@ function TermInputText:_helperVT52VT100(cmd, mode, param1, param2, _param3)
 
     if
       self.scroll_region_bottom
-      and param1 < self.maxr
+      and param1 <= self.maxr
       and param1 <= param2
       and param1 > 0
     then
