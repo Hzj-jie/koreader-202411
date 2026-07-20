@@ -562,11 +562,17 @@ function Terminal:generateInputDialog()
   local org_reinit = dialog.reinit
   dialog.reinit = function(d)
     org_reinit(d)
-    self.maxc = math.floor(
-      d._input_widget.text_widget.text_widget.width / self:getCharSize()
-    )
-    self.maxr = math.floor(
-      d._input_widget.height / d._input_widget:getLineHeight()
+    local tb_w = d._input_widget.text_widget.text_widget.width
+    local char_w = self:getCharSize()
+    self.maxc = math.floor(tb_w / char_w)
+
+    local iw_h = d._input_widget.height
+    local line_h = d._input_widget:getLineHeight()
+    self.maxr = math.floor(iw_h / line_h)
+
+    logger.info(
+      "Terminal: reinit tb_w =", tb_w, "char_w =", char_w, "maxc =", self.maxc,
+      "iw_h =", iw_h, "line_h =", line_h, "maxr =", self.maxr
     )
     logger.info(
       "Terminal: resized in reinit maxc =",
@@ -599,12 +605,17 @@ function Terminal:onTerminalStart(menu)
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
 
-  self.maxc = math.floor(
-    self:getInputWidget().text_widget.text_widget.width / self:getCharSize()
-  )
+  local tb_w = self:getInputWidget().text_widget.text_widget.width
+  local char_w = self:getCharSize()
+  self.maxc = math.floor(tb_w / char_w)
 
-  self.maxr = math.floor(
-    self:getInputWidget().height / self:getInputWidget():getLineHeight()
+  local iw_h = self:getInputWidget().height
+  local line_h = self:getInputWidget():getLineHeight()
+  self.maxr = math.floor(iw_h / line_h)
+
+  logger.info(
+    "Terminal: onTerminalStart tb_w =", tb_w, "char_w =", char_w, "maxc =", self.maxc,
+    "iw_h =", iw_h, "line_h =", line_h, "maxr =", self.maxr
   )
 
   self.store_position = 1
