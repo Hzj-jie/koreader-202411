@@ -743,5 +743,4 @@ describe("Terminal plugin button tap integration", function()
     assert.is.same(80, ioctl_ws.ws_col)
 
     package.loaded["plugins/terminal.koplugin/main"] = nil
-  end)
 end)
