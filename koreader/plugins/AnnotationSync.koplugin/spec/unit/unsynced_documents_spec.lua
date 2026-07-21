@@ -42,8 +42,8 @@ describe("Unsynced / Pending Documents Feature", function()
     end
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     UIManager:quit()
-    package.loaded["main"] = nil
-    package.loaded["menus"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/menus"] = nil
   end)
 
   before_each(function()

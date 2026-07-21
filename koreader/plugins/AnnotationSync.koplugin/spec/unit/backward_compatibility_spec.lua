@@ -25,8 +25,8 @@ describe("AnnotationSync Backward Compatibility", function()
     end
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     UIManager:quit()
-    package.loaded["main"] = nil
-    package.loaded["remote"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
   end)
 
   before_each(function()

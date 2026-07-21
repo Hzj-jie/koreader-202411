@@ -104,12 +104,12 @@ describe("Sync Document Leak Verification", function()
       return {}
     end
     -- SyncManager:writeAnnotationsJSON uses docsettings and annotations
-    package.loaded["docsettings"] = {
+    package.loaded["frontend/docsettings"] = {
       getSidecarDir = function()
         return test_data_dir
       end,
     }
-    package.loaded["annotations"] = {
+    package.loaded["plugins/AnnotationSync.koplugin/annotations"] = {
       write_annotations_json = function(_, _, sdr_dir, filename)
         return sdr_dir .. "/" .. filename
       end,
@@ -118,7 +118,7 @@ describe("Sync Document Leak Verification", function()
       end,
     }
     -- remote.sync_annotations is also needed
-    package.loaded["remote"] = {
+    package.loaded["plugins/AnnotationSync.koplugin/remote"] = {
       sync_annotations = function(
         plugin,
         document,
@@ -136,7 +136,7 @@ describe("Sync Document Leak Verification", function()
     DocumentRegistry.openDocument = _G.old_DocumentRegistry_open
     local util = require("util")
     util.fileExists = _G.old_util_fileExists
-    package.loaded["manager"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
   end)
 
   before_each(function()

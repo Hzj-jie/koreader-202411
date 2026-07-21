@@ -28,7 +28,7 @@ describe("Background Sync Behavior", function()
 
   teardown(function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
-    package.loaded["remote"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
   end)
 
   local mock_widget

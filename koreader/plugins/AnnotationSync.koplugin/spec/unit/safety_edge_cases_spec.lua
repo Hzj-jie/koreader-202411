@@ -36,7 +36,7 @@ describe("AnnotationSync Safety Edge Cases", function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
     UIManager:quit()
-    package.loaded["main"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
 
   it(

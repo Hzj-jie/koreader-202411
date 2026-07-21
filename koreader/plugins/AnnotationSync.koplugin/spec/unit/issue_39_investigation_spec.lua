@@ -58,7 +58,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
     os.date = _G.old_os_date
     UIManager:quit()
-    package.loaded["main"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
 
   before_each(function()

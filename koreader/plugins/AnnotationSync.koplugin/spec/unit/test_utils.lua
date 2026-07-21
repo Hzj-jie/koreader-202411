@@ -25,11 +25,19 @@ local M = {}
 local current_readerui
 local old_isConnected
 
+local old_G_reader_settings
+
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
   local old_getDataDir = DataStorage.getDataDir
   DataStorage.getDataDir = function()
     return test_data_dir
+  end
+
+  if _G.G_reader_settings then
+    old_G_reader_settings = _G.G_reader_settings
+    local LuaSettings = require("luasettings")
+    _G.G_reader_settings = LuaSettings:open(test_data_dir .. "/settings.reader.lua")
   end
 
   local NetworkMgr = require("ui/network/manager")
@@ -44,6 +52,26 @@ end
 function M.teardown_test_env(test_data_dir, old_getDataDir)
   DataStorage.getDataDir = old_getDataDir
   os.execute("rm -rf " .. test_data_dir)
+
+  local DocumentRegistry = require("document/documentregistry")
+  local files = {}
+  for file in pairs(DocumentRegistry.registry) do
+    table.insert(files, file)
+  end
+  for _, file in ipairs(files) do
+    local reg = DocumentRegistry.registry[file]
+    if reg and reg.doc and reg.doc.is_open then
+      while DocumentRegistry.registry[file] do
+        reg.doc:close()
+      end
+    end
+  end
+  DocumentRegistry.registry = {}
+
+  if old_G_reader_settings then
+    _G.G_reader_settings = old_G_reader_settings
+    old_G_reader_settings = nil
+  end
 
   if old_isConnected then
     local NetworkMgr = require("ui/network/manager")

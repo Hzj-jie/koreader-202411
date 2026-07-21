@@ -38,7 +38,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
     UIManager:quit()
-    package.loaded["main"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
 
   it(
@@ -109,8 +109,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       -- 2. Load Manager directly (bypassing Plugin/Main)
       -- We must force a reload of manager to pick up the new docsettings mock
-      local old_manager = package.loaded["manager"]
-      package.loaded["manager"] = nil
+      local old_manager = package.loaded["plugins/AnnotationSync.koplugin/manager"]
+      package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
       local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
 
       -- 3. Instantiate Manager with a dummy plugin interface
@@ -125,7 +125,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       -- 5. Cleanup
       package.loaded["frontend/docsettings"] = old_ds_module
-      package.loaded["manager"] = old_manager
+      package.loaded["plugins/AnnotationSync.koplugin/manager"] = old_manager
     end
   )
 

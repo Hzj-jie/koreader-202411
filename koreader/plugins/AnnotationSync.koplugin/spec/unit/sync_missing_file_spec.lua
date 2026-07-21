@@ -39,13 +39,13 @@ util.fileExists = function(file)
   return existing_files[file] == true
 end
 
-package.loaded["remote"] = {
+package.loaded["plugins/AnnotationSync.koplugin/remote"] = {
   sync_annotations = function(plugin, document, json_path, on_complete, force)
     on_complete(true, {})
   end,
 }
 
-package.loaded["annotations"] = {
+package.loaded["plugins/AnnotationSync.koplugin/annotations"] = {
   write_annotations_json = function(_, _, sdr_dir, filename)
     return sdr_dir .. "/" .. filename
   end,
@@ -54,7 +54,7 @@ package.loaded["annotations"] = {
   end,
 }
 
-package.loaded["docsettings"] = {
+package.loaded["frontend/docsettings"] = {
   getSidecarDir = function()
     return test_data_dir
   end,
@@ -129,10 +129,10 @@ describe("Sync Missing File Handling", function()
     DocumentRegistry.openDocument = old_open
     DocumentRegistry.getProvider = old_getProvider
     util.fileExists = _G.old_util_fileExists
-    package.loaded["manager"] = nil
-    package.loaded["remote"] = nil
-    package.loaded["annotations"] = nil
-    package.loaded["docsettings"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/annotations"] = nil
+    package.loaded["frontend/docsettings"] = nil
   end)
 
   before_each(function()

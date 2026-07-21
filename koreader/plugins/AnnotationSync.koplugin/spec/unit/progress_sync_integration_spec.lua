@@ -46,7 +46,7 @@ describe("Reading Progress Sync Integration", function()
     end
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     UIManager:quit()
-    package.loaded["main"] = nil
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
     _G.utils = nil
   end)
 
