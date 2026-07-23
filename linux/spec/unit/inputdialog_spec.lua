@@ -126,4 +126,112 @@ describe("InputDialog widget", function()
 
     UIManager:close(dialog)
   end)
+
+  describe("disable_auto_keyboard configuration", function()
+    it(
+      "should set disable_auto_keyboard=true on InputText when add_nav_bar=true",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test Nav Bar",
+          input = "",
+          add_nav_bar = true,
+          fullscreen = true,
+        })
+        assert.truthy(dialog._input_widget.disable_auto_keyboard)
+      end
+    )
+
+    it(
+      "should set disable_auto_keyboard=false on InputText when add_nav_bar=false/nil",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test No Nav Bar",
+          input = "",
+        })
+        assert.falsy(dialog._input_widget.disable_auto_keyboard)
+      end
+    )
+
+    it(
+      "should not show keyboard on onTapTextBox when disable_auto_keyboard=true",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test Nav Bar",
+          input = "",
+          add_nav_bar = true,
+          fullscreen = true,
+        })
+
+        local input_widget = dialog._input_widget
+        local show_keyboard_called = false
+        input_widget.showKeyboard = function()
+          show_keyboard_called = true
+        end
+
+        input_widget:onTapTextBox(nil, {})
+        assert.falsy(show_keyboard_called)
+      end
+    )
+
+    it(
+      "should show keyboard on onTapTextBox when disable_auto_keyboard=false",
+      function()
+        local dialog = InputDialog:new({
+          title = "Test No Nav Bar",
+          input = "",
+        })
+
+        local input_widget = dialog._input_widget
+        local show_keyboard_called = false
+        input_widget.showKeyboard = function()
+          show_keyboard_called = true
+        end
+
+        input_widget:onTapTextBox(nil, {})
+        assert.truthy(show_keyboard_called)
+      end
+    )
+  end)
+
+  it(
+    "should close keyboard on tap outside by default, but not if onTap is overridden",
+    function()
+      local UIManager = require("ui/uimanager")
+      local Geom = require("ui/geometry")
+
+      -- Case 1: Default (should close)
+      local dialog_default = InputDialog:new({
+        title = "Test Default onTap",
+        input = "",
+        fullscreen = true,
+      })
+      UIManager:show(dialog_default)
+      UIManager:forceRepaint()
+      assert.is_true(dialog_default:isKeyboardVisible())
+
+      -- Tap outside (0,0 is outside the keyboard which is at the bottom)
+      dialog_default:onTap(nil, { pos = Geom:new({ x = 0, y = 0 }) })
+      UIManager:forceRepaint()
+      assert.falsy(dialog_default:isKeyboardVisible())
+      UIManager:close(dialog_default)
+
+      -- Case 2: Overridden (should NOT close)
+      local dialog_override = InputDialog:new({
+        title = "Test Override onTap",
+        input = "",
+        fullscreen = true,
+        onTap = function()
+          return true
+        end,
+      })
+      UIManager:show(dialog_override)
+      UIManager:forceRepaint()
+      assert.is_true(dialog_override:isKeyboardVisible())
+
+      dialog_override:onTap(nil, { pos = Geom:new({ x = 0, y = 0 }) })
+      UIManager:forceRepaint()
+      assert.is_true(dialog_override:isKeyboardVisible()) -- Still visible!
+      UIManager:close(dialog_override)
+    end
+  )
 end)

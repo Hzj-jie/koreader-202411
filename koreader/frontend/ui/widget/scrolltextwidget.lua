@@ -35,11 +35,12 @@ local ScrollTextWidget = InputContainer:extend({
   DEFAULT_WIDTH = 400,
   DEFAULT_HEIGHT = 20,
   DEFAULT_SCROLL_BAR_WIDTH = 6,
-  DEFAULT_TEXT_SCROLL_SPAN = 12,
+  -- Subtract SAFETY_MARGIN as it is already included in the scrollbar's required width.
+  DEFAULT_TEXT_SCROLL_SPAN = 12 - VerticalScrollBar.SAFETY_MARGIN,
   width = nil,
   height = nil,
   scroll_bar_width = nil,
-  text_scroll_span = nil,
+  text_scroll_span = nil, -- expected to be already Screen:scaleBySize'd
   dialog = nil,
   images = nil,
   -- See TextBoxWidget for details about these options
@@ -59,8 +60,16 @@ function ScrollTextWidget:init()
   self.height = self.height or scale(self.DEFAULT_HEIGHT)
   self.scroll_bar_width = self.scroll_bar_width
     or scale(self.DEFAULT_SCROLL_BAR_WIDTH)
-  self.text_scroll_span = self.text_scroll_span
-    or scale(self.DEFAULT_TEXT_SCROLL_SPAN)
+
+  self.v_scroll_bar = VerticalScrollBar:new({
+    width = self.scroll_bar_width,
+    scroll_callback = function(ratio)
+      self:scrollToRatio(ratio, false)
+    end,
+  })
+
+  self.reserved_width = self.v_scroll_bar:getRequiredWidth()
+    + (self.text_scroll_span or 0)
 
   self.text_widget = TextBoxWidget:new({
     text = self.text,
@@ -73,7 +82,7 @@ function ScrollTextWidget:init()
     face = self.face,
     image_alt_face = self.image_alt_face,
     fgcolor = self.fgcolor,
-    width = self.width - self.scroll_bar_width - self.text_scroll_span,
+    width = self.width - self.reserved_width,
     height = self.height,
     images = self.images,
     alignment = self.alignment,
@@ -83,26 +92,16 @@ function ScrollTextWidget:init()
     auto_para_direction = self.auto_para_direction,
     alignment_strict = self.alignment_strict,
     for_measurement_only = self.for_measurement_only,
+    no_line_breaking_rules = self.no_line_breaking_rules,
   })
-  local visible_line_count = self.text_widget:getVisLineCount()
-  local total_line_count = self.text_widget:getAllLineCount()
-  self.v_scroll_bar = VerticalScrollBar:new({
-    enable = visible_line_count < total_line_count,
-    low = 0,
-    high = visible_line_count / total_line_count,
-    width = self.scroll_bar_width,
-    height = self.text_widget:getTextHeight(),
-    scroll_callback = function(ratio)
-      self:scrollToRatio(ratio, false)
-    end,
-  })
+  self:_layoutScrollBar()
   self:_calculateScrollBar()
 
   local horizontal_group = HorizontalGroup:new({ align = "top" })
   table.insert(horizontal_group, self.text_widget)
   table.insert(
     horizontal_group,
-    HorizontalSpan:new({ width = self.text_scroll_span })
+    HorizontalSpan:new({ width = self.reserved_width - self.scroll_bar_width })
   )
   table.insert(horizontal_group, self.v_scroll_bar)
   self[1] = horizontal_group
@@ -243,7 +242,7 @@ end
 
 function ScrollTextWidget:moveCursorToXY(x, y, no_overflow)
   if BD.mirroredUILayout() then -- the scroll bar is on the left
-    x = x - self.scroll_bar_width - self.text_scroll_span
+    x = x - self.reserved_width
   end
   self.text_widget:moveCursorToXY(x, y, no_overflow)
   self:_updateScrollBar()
@@ -397,6 +396,24 @@ function ScrollTextWidget:onPanReleaseText(arg)
     return true
   end
   return false
+end
+
+function ScrollTextWidget:_layoutScrollBar()
+  self.v_scroll_bar.height = self.text_widget:getTextHeight()
+  self.v_scroll_bar.enable = self.text_widget:getVisLineCount() < self.text_widget:getAllLineCount()
+end
+
+function ScrollTextWidget:setText(text, charlist, charpos, fgcolor)
+  self.text = text
+  self.charlist = charlist
+  self.charpos = charpos
+  if fgcolor then
+    self.fgcolor = fgcolor
+    self.text_widget.fgcolor = fgcolor
+  end
+  self.text_widget:setText(text, charlist, charpos)
+  self:_layoutScrollBar()
+  self:_updateScrollBar()
 end
 
 return ScrollTextWidget

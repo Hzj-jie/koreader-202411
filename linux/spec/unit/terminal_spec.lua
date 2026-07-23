@@ -10,13 +10,20 @@ describe("Terminal plugin button tap integration", function()
     FileManager = require("apps/filemanager/filemanager")
   end)
 
-  before_each(function()
-    UIManager._window_stack = {}
-  end)
+  local function cleanup()
+    if UIManager and UIManager._window_stack then
+      while #UIManager._window_stack > 0 do
+        local w = UIManager._window_stack[#UIManager._window_stack].widget
+        UIManager:close(w)
+      end
+    end
+    if FileManager then
+      FileManager.instance = nil
+    end
+  end
 
-  after_each(function()
-    UIManager._window_stack = {}
-  end)
+  before_each(cleanup)
+  after_each(cleanup)
 
   it(
     "should trigger callbacks for all key-bar buttons in Terminal input dialog",
@@ -190,21 +197,21 @@ describe("Terminal plugin button tap integration", function()
       -- "a" (1), "b" (1), "c" (1) -> 3. (Cursor is after "c", so at visual col 3).
       -- Target visual col is 3.
       -- Line 1: {"中", "文", "文", "件", "名", "\n"} (start at 1).
-      -- "中" (cols 0-2), "文" (cols 2-4).
-      -- Target 3 is in middle of first "文", snaps to 4 (index 3, which is second "文").
-      -- So charpos should become 3.
+      -- "中" (cols 0-2), first "文" (cols 2-4).
+      -- Target 3 is inside first "文", snaps to index 2 (first "文") due to containment-based snapping in getCharposAtVisualColumn.
+      -- So charpos should become 2.
       term_widget:moveCursorUp()
-      assert.is.same(3, term_widget.charpos)
+      assert.is.same(2, term_widget.charpos)
 
       -- Move DOWN:
       -- Current visual col on line 1 (start at 1):
-      -- "中" (2), first "文" (2) -> 4 (before second "文").
-      -- Target visual col is 4.
+      -- "中" (2) -> 2 (since cursor is at index 2, which is start of first "文").
+      -- Target visual col is 2.
       -- Line 2: {"a", "b", "c", " ", ...} (start at 7).
-      -- "a" (1), "b" (1), "c" (1), " " (1) -> 4.
-      -- So it should land on index 11 (after "c" and one space).
+      -- "a" (1), "b" (1) -> 2.
+      -- So it should land on index 9 (after "b", which is "c" index).
       term_widget:moveCursorDown()
-      assert.is.same(11, term_widget.charpos)
+      assert.is.same(9, term_widget.charpos)
 
       UIManager:close(input_dialog)
       filemanager:onClose()
@@ -291,16 +298,17 @@ describe("Terminal plugin button tap integration", function()
       -- Write a character
       term_widget:interpretAnsiSeq("x")
 
-      -- Verify that charpos was clamped to 2 and x was written there
+      -- Verify that the gap was padded with spaces and x was written at 5000
       assert.is.same("a", term_widget.charlist[1])
-      assert.is.same("x", term_widget.charlist[2])
-      assert.is.same(2, #term_widget.charlist)
-      assert.is.same(3, term_widget.charpos)
+      assert.is.same(" ", term_widget.charlist[2])
+      assert.is.same("x", term_widget.charlist[5000])
+      assert.is.same(5000, #term_widget.charlist)
+      assert.is.same(5001, term_widget.charpos)
 
       -- Verify table.concat doesn't crash
       local success, result = pcall(table.concat, term_widget.charlist)
       assert.is_true(success, "table.concat failed: " .. tostring(result))
-      assert.is.same("ax", result)
+      assert.is.same("a" .. string.rep(" ", 4998) .. "x", result)
 
       UIManager:close(input_dialog)
       filemanager:onClose()
@@ -475,8 +483,9 @@ describe("Terminal plugin button tap integration", function()
         table.insert(lines, line)
       end
 
+
       assert.is.same("12345     ", lines[1])
-      assert.is.same("..........", lines[2])
+      assert.is.same("          ", lines[2])
       assert.is.same("abcde     ", lines[3])
       assert.is.same("ABCDE     ", lines[4])
       assert.is.same("XYZWZ     ", lines[5])
@@ -633,4 +642,107 @@ describe("Terminal plugin button tap integration", function()
       filemanager:onClose()
     end
   )
+
+  it("should monitor ScrollTextWidget instantiations in Terminal", function()
+    local ScrollTextWidget = require("ui/widget/scrolltextwidget")
+    local spy_new = spy.on(ScrollTextWidget, "new")
+
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+
+    local terminal = filemanager.terminal
+    terminal.spawnShell = function(self)
+      self.is_shell_open = true
+      return true
+    end
+    terminal.receive = function(self)
+      return ""
+    end
+    terminal.transmit = function(self) end
+    terminal.refresh = function(self) end
+
+    -- Start terminal
+    terminal:onTerminalStart(filemanager.menu)
+    UIManager:forceRepaint()
+
+    local input_dialog = UIManager._window_stack[2].widget
+    local term_widget = input_dialog._input_widget
+
+    local initial_calls = #spy_new.calls
+
+    -- Simulate keystrokes or ansi output
+    term_widget:interpretAnsiSeq("a")
+    term_widget:interpretAnsiSeq("b")
+    term_widget:interpretAnsiSeq("c")
+
+    local after_calls = #spy_new.calls
+
+    -- We expect 0 calls because it's reused now
+    assert.are.equal(0, after_calls - initial_calls)
+
+    UIManager:close(input_dialog)
+    filemanager:onClose()
+    spy_new:revert()
+  end)
+
+  it("should call ioctl TIOCSWINSZ with correct dimensions in _updateWinSize", function()
+    local ffi = require("ffi")
+    local original_ffi_C = ffi.C
+
+    local ioctl_called = false
+    local ioctl_fd, ioctl_req, ioctl_ws
+
+    local mock_C = setmetatable({
+      ioctl = function(fd, req, ws)
+        ioctl_called = true
+        ioctl_fd = fd
+        ioctl_req = tonumber(req)
+        local ws_struct = ffi.cast("struct winsize*", ws)
+        ioctl_ws = {
+          ws_row = tonumber(ws_struct.ws_row),
+          ws_col = tonumber(ws_struct.ws_col),
+        }
+        return 0
+      end
+    }, {
+      __index = original_ffi_C
+    })
+
+    local mock_ffi = setmetatable({
+      C = mock_C
+    }, {
+      __index = ffi
+    })
+
+    package.loaded["ffi"] = mock_ffi
+    package.loaded["plugins/terminal.koplugin/main"] = nil
+
+    local Terminal = require("plugins/terminal.koplugin/main")
+
+    package.loaded["ffi"] = ffi
+
+    local mock_ui = {
+      menu = {
+        registerToMainMenu = function() end
+      }
+    }
+    local terminal = Terminal:new({
+      ui = mock_ui
+    })
+    terminal.ptmx = 42
+
+    terminal:_updateWinSize(80, 24)
+
+    assert.is_true(ioctl_called)
+    assert.is.same(42, ioctl_fd)
+    assert.is.same(0x5414, ioctl_req)
+    assert.is_not_nil(ioctl_ws)
+    assert.is.same(24, ioctl_ws.ws_row)
+    assert.is.same(80, ioctl_ws.ws_col)
+
+    package.loaded["plugins/terminal.koplugin/main"] = nil
+  end)
+
 end)

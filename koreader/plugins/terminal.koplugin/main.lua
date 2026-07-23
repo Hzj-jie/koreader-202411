@@ -22,6 +22,13 @@ pid_t setsid(void) __attribute__((nothrow, leaf));
 static const int TCIFLUSH = 0;
 int tcdrain(int fd) __attribute__((nothrow, leaf));
 int tcflush(int fd, int queue_selector) __attribute__((nothrow, leaf));
+
+struct winsize {
+    unsigned short ws_row;
+    unsigned short ws_col;
+    unsigned short ws_xpixel;
+    unsigned short ws_ypixel;
+};
 ]])
 
 local function check_prerequisites()
@@ -80,7 +87,7 @@ local Font = require("ui/font")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
-local ScrollTextWidget = require("ui/widget/scrolltextwidget")
+
 local SpinWidget = require("ui/widget/spinwidget")
 local TermInputText = require("plugins/terminal.koplugin/terminputtext")
 local TextWidget = require("ui/widget/textwidget")
@@ -93,6 +100,7 @@ local C_ = gettext.pgettext
 local T = require("ffi/util").template
 
 local CHUNK_SIZE = 80 * 40 -- max. nb of read bytes (reduce this, if taps are not detected)
+local TIOCSWINSZ = 0x5414
 
 local Terminal = WidgetContainer:extend({
   name = "terminal",
@@ -157,6 +165,25 @@ function Terminal:init()
   self.terminal_data = DataStorage:getDataDir()
   lfs.mkdir(self.terminal_data .. "/scripts")
   os.remove("terminal.pid") -- clean leftover from last run
+end
+
+function Terminal:_updateWinSize(cols, rows)
+  if not self.ptmx or self.ptmx == -1 then
+    return
+  end
+  local ws = ffi.new("struct winsize")
+  ws.ws_row = rows
+  ws.ws_col = cols
+  ws.ws_xpixel = 0
+  ws.ws_ypixel = 0
+  if C.ioctl(self.ptmx, TIOCSWINSZ, ws) ~= 0 then
+    logger.err(
+      "Terminal: ioctl TIOCSWINSZ failed:",
+      ffi.string(C.strerror(ffi.errno()))
+    )
+  else
+    logger.info("Terminal: set pty size to", cols, "x", rows)
+  end
 end
 
 function Terminal:spawnShell(cols, rows)
@@ -257,11 +284,7 @@ function Terminal:spawnShell(cols, rows)
     C.dup2(pts, 2)
     C.close(pts)
 
-    if cols and rows then
-      if not Device:isAndroid() then
-        os.execute("stty cols " .. cols .. " rows " .. rows)
-      end
-    end
+
 
     C.setenv("TERM", "vt52", 1)
     C.setenv("ENV", profile_file, 1) -- when bash is started as sh
@@ -294,10 +317,10 @@ function Terminal:spawnShell(cols, rows)
   end
 
   self.is_shell_open = true
+  self:_updateWinSize(cols, rows)
   if Device:isAndroid() then
     -- feed the following commands to the running shell
     self:transmit("export TERM=vt52\n")
-    self:transmit("stty cols " .. cols .. " rows " .. rows .. "\n")
   end
 
   self:getInputWidget():resize(rows, cols)
@@ -399,7 +422,7 @@ function Terminal:getCharSize()
 end
 
 function Terminal:generateInputDialog()
-  return InputDialog:new({
+  local dialog = InputDialog:new({
     title = gettext("Terminal emulator"),
     input = self.history,
     input_face = self.input_face,
@@ -409,6 +432,9 @@ function Terminal:generateInputDialog()
     cursor_at_end = true,
     fullscreen = true,
     inputtext_class = TermInputText,
+    onTap = function()
+      return true
+    end,
     buttons = {
       {
         {
@@ -471,9 +497,9 @@ function Terminal:generateInputDialog()
         {
           text = "☰", -- settings menu
           callback = function()
-            self.input_dialog:toggleKeyboard(false)
+            self.input_dialog:closeKeyboard()
             Aliases:show(self.terminal_data .. "/scripts/aliases", function()
-              self.input_dialog:toggleKeyboard(true)
+              self.input_dialog:showKeyboard()
             end, self)
           end,
         },
@@ -533,6 +559,31 @@ function Terminal:generateInputDialog()
       self:transmit(chars)
     end,
   })
+  local org_reinit = dialog.reinit
+  dialog.reinit = function(d)
+    org_reinit(d)
+    local tb_w = d._input_widget.text_widget.text_widget.width
+    local char_w = self:getCharSize()
+    self.maxc = math.floor(tb_w / char_w)
+
+    local iw_h = d._input_widget.height
+    local line_h = d._input_widget:getLineHeight()
+    self.maxr = math.floor(iw_h / line_h)
+
+    logger.info(
+      "Terminal: reinit tb_w =", tb_w, "char_w =", char_w, "maxc =", self.maxc,
+      "iw_h =", iw_h, "line_h =", line_h, "maxr =", self.maxr
+    )
+    logger.info(
+      "Terminal: resized in reinit maxc =",
+      self.maxc,
+      "maxr =",
+      self.maxr
+    )
+    d._input_widget:resize(self.maxr, self.maxc)
+    self:_updateWinSize(self.maxc, self.maxr)
+  end
+  return dialog
 end
 
 function Terminal:onExit()
@@ -554,21 +605,26 @@ function Terminal:onTerminalStart(menu)
   self.ctrl = false
   self.input_dialog = self:generateInputDialog()
 
-  local scroll_bar_width = Device.screen:scaleBySize(
-    ScrollTextWidget.DEFAULT_SCROLL_BAR_WIDTH
-      + ScrollTextWidget.DEFAULT_TEXT_SCROLL_SPAN
-  )
-  self.maxc = math.floor(
-    (self:getInputWidget().width - scroll_bar_width) / self:getCharSize()
-  )
+  local tb_w = self:getInputWidget().text_widget.text_widget.width
+  local char_w = self:getCharSize()
+  self.maxc = math.floor(tb_w / char_w)
 
-  self.maxr = math.floor(
-    self:getInputWidget().height / self:getInputWidget():getLineHeight()
+  local iw_h = self:getInputWidget().height
+  local line_h = self:getInputWidget():getLineHeight()
+  self.maxr = math.floor(iw_h / line_h)
+
+  local dialog = self.input_dialog
+  local title_h = dialog.title_bar and dialog.title_bar:getSize().h or 0
+  local buttons_h = dialog.button_table and dialog.button_table:getSize().h or 0
+  local kb_h = dialog._should_show_keyboard and self:getInputWidget():getKeyboardDimen().h or 0
+
+  logger.info(
+    "Terminal: onTerminalStart tb_w =", tb_w, "char_w =", char_w, "maxc =", self.maxc,
+    "iw_h =", iw_h, "line_h =", line_h, "maxr =", self.maxr,
+    "title_h =", title_h, "buttons_h =", buttons_h, "kb_h =", kb_h
   )
 
   self.store_position = 1
-
-  logger.dbg("Terminal: resolution= " .. self.maxc .. "x" .. self.maxr)
 
   if self:spawnShell(self.maxc, self.maxr) then
     UIManager:show(self.input_dialog)
