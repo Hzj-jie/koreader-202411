@@ -807,10 +807,6 @@ end
 
 function FileManagerMenu:onRefreshMenu()
   self.tab_item_table = nil
-  if self.menu_container then
-    self:onClose()
-    self:onShowMenu()
-  end
   return true
 end
 

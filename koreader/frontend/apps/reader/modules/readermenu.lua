@@ -519,10 +519,6 @@ end
 
 function ReaderMenu:onRefreshMenu()
   self.tab_item_table = nil
-  if self.menu_container then
-    self:onCloseReaderMenu()
-    self:_showMenu()
-  end
   return true
 end
 
