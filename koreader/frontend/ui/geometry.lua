@@ -523,4 +523,13 @@ function Geom.smallerThan(a, b)
   return tostring(a) < tostring(b)
 end
 
+-- Returns two points sorted in reading order (top-to-bottom, left-to-right)
+function Geom.sortPoints(p0, p1)
+  if p0.y < p1.y or (p0.y == p1.y and p0.x <= p1.x) then
+    return p0, p1
+  else
+    return p1, p0
+  end
+end
+
 return Geom
