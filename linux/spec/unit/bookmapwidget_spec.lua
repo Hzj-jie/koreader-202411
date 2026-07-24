@@ -99,6 +99,14 @@ describe("BookMapWidget callbacks", function()
       UIManager.close = original_close
     end
   )
+
+  it("should calculate dimensions via getSize", function()
+    local bm = BookMapWidget:new({
+      ui = mock_ui,
+    })
+    local size = bm:getSize()
+    assert.is_not_nil(size)
+  end)
 end)
 
 describe("BookMapWidget ReaderUI Integration", function()

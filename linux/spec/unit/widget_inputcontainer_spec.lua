@@ -333,4 +333,27 @@ describe("InputContainer widget", function()
       assert.is_falsy(res_outside)
     end
   )
+
+  it("should support getSize, mergeSize, mergePosition, and dirtyRegion", function()
+    local Geom = require("ui/geometry")
+    local ic = InputContainer:new({
+      dimen = Geom:new({ x = 0, y = 0, w = 300, h = 400 }),
+    })
+
+    local size = ic:getSize()
+    assert.is_not_nil(size)
+    assert.are.equal(300, size.w)
+    assert.are.equal(400, size.h)
+
+    ic:mergeSize(350, 450)
+    assert.are.equal(350, ic:getSize().w)
+    assert.are.equal(450, ic:getSize().h)
+
+    ic:mergePosition(10, 20)
+    assert.are.equal(10, ic:getSize().x)
+    assert.are.equal(20, ic:getSize().y)
+
+    local region = ic:dirtyRegion()
+    assert.is_not_nil(region)
+  end)
 end)
