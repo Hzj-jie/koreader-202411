@@ -299,9 +299,20 @@ describe("Readersearch module", function()
       end
     )
 
-    it("should verify readersearch module", function()
+    it("should verify readersearch module and main menu items", function()
       local ReaderSearch = require("apps/reader/modules/readersearch")
       assert.is_table(ReaderSearch)
+
+      local rs = ReaderSearch:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+      })
+      local menu_items = {}
+      rs:addToMainMenu(menu_items)
+      assert.is_table(menu_items.fulltext_search_settings)
     end)
   end)
 end)
