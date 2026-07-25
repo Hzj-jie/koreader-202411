@@ -5,7 +5,6 @@ local Persist
 local lfs
 local HB
 
-
 describe("FontList", function()
   setup(function()
     require("commonrequire")

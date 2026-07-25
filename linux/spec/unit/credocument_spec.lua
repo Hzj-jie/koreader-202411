@@ -350,12 +350,15 @@ describe("CreDocument unit tests", function()
   end)
 
   describe("CreDocument init with fb2 file", function()
-    it("should initialize with fb2 file setting default_css to fb2.css", function()
-      local fb_doc = CreDocument:new({
-        file = "test.fb2",
-      })
-      assert.are.same("./data/fb2.css", fb_doc.default_css)
-      assert.is_true(fb_doc.is_fb2)
-    end)
+    it(
+      "should initialize with fb2 file setting default_css to fb2.css",
+      function()
+        local fb_doc = CreDocument:new({
+          file = "test.fb2",
+        })
+        assert.are.same("./data/fb2.css", fb_doc.default_css)
+        assert.is_true(fb_doc.is_fb2)
+      end
+    )
   end)
 end)

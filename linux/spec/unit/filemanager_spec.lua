@@ -589,15 +589,17 @@ describe("FileManager module", function()
     util.purgeDir(copy_dir)
   end)
 
-
-  it("should return early when rename target matches original basename", function()
-    local filemanager = FileManager:new({
-      dimen = Screen:getSize(),
-      root_path = "spec/unit/data",
-    })
-    filemanager:renameFile("spec/unit/data/2col.pdf", "2col.pdf", true)
-    filemanager:onExit()
-  end)
+  it(
+    "should return early when rename target matches original basename",
+    function()
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = "spec/unit/data",
+      })
+      filemanager:renameFile("spec/unit/data/2col.pdf", "2col.pdf", true)
+      filemanager:onExit()
+    end
+  )
 
   it("should trigger refresh and home handlers", function()
     local filemanager = FileManager:new({
@@ -610,5 +612,3 @@ describe("FileManager module", function()
     filemanager:onExit()
   end)
 end)
-
-

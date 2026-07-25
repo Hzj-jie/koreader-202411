@@ -225,7 +225,8 @@ describe("Koptinterface module", function()
     local Geom = require("ui/geometry")
     local canvas_size = require("document/canvascontext"):getSize()
     local target = Blitbuffer.new(canvas_size.w, canvas_size.h)
-    local rect = Geom:new({ x = 0, y = 0, w = canvas_size.w, h = canvas_size.h })
+    local rect =
+      Geom:new({ x = 0, y = 0, w = canvas_size.w, h = canvas_size.h })
 
     doc.configurable.text_wrap = 0
     doc.configurable.page_opt = 0
@@ -268,14 +269,26 @@ describe("Koptinterface module", function()
   it("should compare positions correctly", function()
     local pos_page1 = { page = 1, x = 100, y = 100 }
     local pos_page2 = { page = 2, x = 100, y = 100 }
-    assert.are.equal(1, Koptinterface:comparePositions(complex_doc, pos_page1, pos_page2))
-    assert.are.equal(-1, Koptinterface:comparePositions(complex_doc, pos_page2, pos_page1))
+    assert.are.equal(
+      1,
+      Koptinterface:comparePositions(complex_doc, pos_page1, pos_page2)
+    )
+    assert.are.equal(
+      -1,
+      Koptinterface:comparePositions(complex_doc, pos_page2, pos_page1)
+    )
 
     local pos_top = { page = 19, x = 400, y = 400 }
     local pos_bottom = { page = 19, x = 400, y = 530 }
-    assert.are.equal(1, Koptinterface:comparePositions(complex_doc, pos_top, pos_bottom))
+    assert.are.equal(
+      1,
+      Koptinterface:comparePositions(complex_doc, pos_top, pos_bottom)
+    )
 
-    assert.are.equal(0, Koptinterface:comparePositions(complex_doc, pos_bottom, pos_bottom))
+    assert.are.equal(
+      0,
+      Koptinterface:comparePositions(complex_doc, pos_bottom, pos_bottom)
+    )
   end)
 
   it("should get text from native and reflow positions", function()
@@ -298,11 +311,13 @@ describe("Koptinterface module", function()
     complex_doc.configurable.text_wrap = 0
     local ppos0 = { page = 19, x = 400, y = 530 }
     local ppos1 = { page = 19, x = 450, y = 530 }
-    local boxes = Koptinterface:getPageBoxesFromPositions(complex_doc, 19, ppos0, ppos1)
+    local boxes =
+      Koptinterface:getPageBoxesFromPositions(complex_doc, 19, ppos0, ppos1)
     assert.is_not_nil(boxes)
 
     complex_doc.configurable.text_wrap = 1
-    local rboxes = Koptinterface:getPageBoxesFromPositions(complex_doc, 19, ppos0, ppos1)
+    local rboxes =
+      Koptinterface:getPageBoxesFromPositions(complex_doc, 19, ppos0, ppos1)
     assert.is_not_nil(rboxes)
   end)
 
@@ -344,31 +359,51 @@ describe("Koptinterface module", function()
     assert.is_not_nil(word_info)
     assert.is_not_nil(word_info.word)
 
-    local prev_text, next_text = Koptinterface:getSelectedWordContext(word_info.word, 2, pos)
+    local prev_text, next_text =
+      Koptinterface:getSelectedWordContext(word_info.word, 2, pos)
     assert.is_not_nil(prev_text)
     assert.is_not_nil(next_text)
   end)
 
-  it("should handle edge cases in getWordFromBoxes and getTextFromBoxes", function()
-    assert.are.same({}, Koptinterface:getWordFromBoxes(nil, { x = 0, y = 0 }))
-    assert.are.same({}, Koptinterface:getWordFromBoxes({}, { x = 0, y = 0 }))
+  it(
+    "should handle edge cases in getWordFromBoxes and getTextFromBoxes",
+    function()
+      assert.are.same({}, Koptinterface:getWordFromBoxes(nil, { x = 0, y = 0 }))
+      assert.are.same({}, Koptinterface:getWordFromBoxes({}, { x = 0, y = 0 }))
 
-    assert.are.same({}, Koptinterface:getTextFromBoxes(nil, { x = 0, y = 0 }, { x = 1, y = 1 }))
-    assert.are.same({}, Koptinterface:getTextFromBoxes({}, { x = 0, y = 0 }, { x = 1, y = 1 }))
+      assert.are.same(
+        {},
+        Koptinterface:getTextFromBoxes(nil, { x = 0, y = 0 }, { x = 1, y = 1 })
+      )
+      assert.are.same(
+        {},
+        Koptinterface:getTextFromBoxes({}, { x = 0, y = 0 }, { x = 1, y = 1 })
+      )
 
-    local sample_boxes = {
-      {
-        y0 = 10, y1 = 20, x0 = 10, x1 = 100,
-        { word = "hello-", x0 = 10, y0 = 10, x1 = 50, y1 = 20 },
-      },
-      {
-        y0 = 25, y1 = 35, x0 = 10, x1 = 100,
-        { word = "world", x0 = 10, y0 = 25, x1 = 50, y1 = 35 },
-      },
-    }
-    local res = Koptinterface:getTextFromBoxes(sample_boxes, { x = 15, y = 15 }, { x = 15, y = 30 })
-    assert.are.equal("helloworld", res.text)
-  end)
+      local sample_boxes = {
+        {
+          y0 = 10,
+          y1 = 20,
+          x0 = 10,
+          x1 = 100,
+          { word = "hello-", x0 = 10, y0 = 10, x1 = 50, y1 = 20 },
+        },
+        {
+          y0 = 25,
+          y1 = 35,
+          x0 = 10,
+          x1 = 100,
+          { word = "world", x0 = 10, y0 = 25, x1 = 50, y1 = 35 },
+        },
+      }
+      local res = Koptinterface:getTextFromBoxes(
+        sample_boxes,
+        { x = 15, y = 15 },
+        { x = 15, y = 30 }
+      )
+      assert.are.equal("helloworld", res.text)
+    end
+  )
 
   it("should handle OCR word extraction", function()
     paper_doc.configurable.text_wrap = 0

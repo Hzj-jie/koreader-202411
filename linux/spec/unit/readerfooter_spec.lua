@@ -912,7 +912,10 @@ describe("Readerfooter module", function()
 
     footer.settings.item_prefix = "icons"
     assert.is.same("☼ 50", footer.textGeneratorMap.frontlight(footer))
-    assert.is.same("💡 75%", footer.textGeneratorMap.frontlight_warmth(footer))
+    assert.is.same(
+      "💡 75%",
+      footer.textGeneratorMap.frontlight_warmth(footer)
+    )
 
     -- Off state with hide_empty_generators
     powerd.isFrontlightOn = function()
@@ -946,7 +949,9 @@ describe("Readerfooter module", function()
     assert.is.same("⇄", footer.textGeneratorMap.page_turning_inverted(footer))
 
     footer.settings.item_prefix = "letters"
-    assert.truthy(footer.textGeneratorMap.page_turning_inverted(footer):find("On"))
+    assert.truthy(
+      footer.textGeneratorMap.page_turning_inverted(footer):find("On")
+    )
 
     G_reader_settings:delete("input_invert_page_turn_keys")
     footer.settings.item_prefix = "icons"
@@ -1082,44 +1087,46 @@ describe("Readerfooter module", function()
     readerui:onClose()
   end)
 
-  it("should test event handlers onResume, onSetPageHorizMargins, flipping mode", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
-    purgeDir(DocSettings:getSidecarDir(sample_epub))
-    os.remove(DocSettings:getHistoryPath(sample_epub))
+  it(
+    "should test event handlers onResume, onSetPageHorizMargins, flipping mode",
+    function()
+      local sample_epub = "spec/front/unit/data/juliet.epub"
+      purgeDir(DocSettings:getSidecarDir(sample_epub))
+      os.remove(DocSettings:getHistoryPath(sample_epub))
 
-    local readerui = ReaderUI:new({
-      dimen = Screen:getSize(),
-      document = DocumentRegistry:openDocument(sample_epub),
-    })
-    local footer = readerui.view.footer
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      local footer = readerui.view.footer
 
-    -- onSetPageHorizMargins
-    footer.settings.progress_margin = true
-    footer:onSetPageHorizMargins({ 20, 20 })
-    assert.is.same(20, footer.settings.progress_margin_width)
+      -- onSetPageHorizMargins
+      footer.settings.progress_margin = true
+      footer:onSetPageHorizMargins({ 20, 20 })
+      assert.is.same(20, footer.settings.progress_margin_width)
 
-    -- onTimeFormatChanged
-    footer:onTimeFormatChanged()
+      -- onTimeFormatChanged
+      footer:onTimeFormatChanged()
 
-    -- onSwapPageTurnButtons
-    footer.settings.page_turning_inverted = true
-    footer:onSwapPageTurnButtons()
+      -- onSwapPageTurnButtons
+      footer.settings.page_turning_inverted = true
+      footer:onSwapPageTurnButtons()
 
-    -- onEnterFlippingMode & onExitFlippingMode
-    footer:onEnterFlippingMode()
-    assert.is.same(footer.mode_list.page_progress, footer.mode)
-    footer:onExitFlippingMode()
+      -- onEnterFlippingMode & onExitFlippingMode
+      footer:onEnterFlippingMode()
+      assert.is.same(footer.mode_list.page_progress, footer.mode)
+      footer:onExitFlippingMode()
 
-    -- onResume and onOutOfScreenSaver
-    G_reader_settings:save("screensaver_delay", "5m")
-    footer:onResume()
-    assert.is_true(footer._delayed_screensaver)
-    footer:onOutOfScreenSaver()
-    assert.is_nil(footer._delayed_screensaver)
-    G_reader_settings:delete("screensaver_delay")
+      -- onResume and onOutOfScreenSaver
+      G_reader_settings:save("screensaver_delay", "5m")
+      footer:onResume()
+      assert.is_true(footer._delayed_screensaver)
+      footer:onOutOfScreenSaver()
+      assert.is_nil(footer._delayed_screensaver)
+      G_reader_settings:delete("screensaver_delay")
 
-    readerui:onExit()
-    readerui:onClose()
-  end)
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
 end)
-

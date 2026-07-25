@@ -227,47 +227,74 @@ describe("Readertoc module", function()
   end)
 
   describe("cleanUpTocTitle", function()
-    it("should strip carriage returns and replace empty titles when requested", function()
-      assert.are.equal("Chapter 1", toc:cleanUpTocTitle("Chapter 1\13", false))
-      assert.are.equal("\u{2013}", toc:cleanUpTocTitle("   \13", true))
-      assert.are.equal("   ", toc:cleanUpTocTitle("   ", false))
-    end)
+    it(
+      "should strip carriage returns and replace empty titles when requested",
+      function()
+        assert.are.equal(
+          "Chapter 1",
+          toc:cleanUpTocTitle("Chapter 1\13", false)
+        )
+        assert.are.equal("\u{2013}", toc:cleanUpTocTitle("   \13", true))
+        assert.are.equal("   ", toc:cleanUpTocTitle("   ", false))
+      end
+    )
   end)
 
   describe("getTitle", function()
-    it("should return standard and formatted titles depending on TOC state", function()
-      local ReaderToc = require("apps/reader/modules/readertoc")
-      local mock_ui = {
-        handmade = {
-          isHandmadeTocEnabled = function() return false end,
-          custom_toc_symbol = "[H]",
-        },
-        document = {
-          isTocAlternativeToc = function() return false end,
-        },
-        menu = { registerToMainMenu = function() end },
-      }
-      local test_toc = ReaderToc:new({ ui = mock_ui })
-      assert.are.equal("Table of contents", test_toc:getTitle())
+    it(
+      "should return standard and formatted titles depending on TOC state",
+      function()
+        local ReaderToc = require("apps/reader/modules/readertoc")
+        local mock_ui = {
+          handmade = {
+            isHandmadeTocEnabled = function()
+              return false
+            end,
+            custom_toc_symbol = "[H]",
+          },
+          document = {
+            isTocAlternativeToc = function()
+              return false
+            end,
+          },
+          menu = { registerToMainMenu = function() end },
+        }
+        local test_toc = ReaderToc:new({ ui = mock_ui })
+        assert.are.equal("Table of contents", test_toc:getTitle())
 
-      mock_ui.handmade.isHandmadeTocEnabled = function() return true end
-      assert.is_not_nil(test_toc:getTitle():find("[H]", 1, true))
+        mock_ui.handmade.isHandmadeTocEnabled = function()
+          return true
+        end
+        assert.is_not_nil(test_toc:getTitle():find("[H]", 1, true))
 
-      mock_ui.handmade.isHandmadeTocEnabled = function() return false end
-      mock_ui.document.isTocAlternativeToc = function() return true end
-      assert.is_not_nil(test_toc:getTitle():find(test_toc.alt_toc_symbol, 1, true))
-    end)
+        mock_ui.handmade.isHandmadeTocEnabled = function()
+          return false
+        end
+        mock_ui.document.isTocAlternativeToc = function()
+          return true
+        end
+        assert.is_not_nil(
+          test_toc:getTitle():find(test_toc.alt_toc_symbol, 1, true)
+        )
+      end
+    )
   end)
 
   describe("settings management", function()
     it("should read and save TOC settings", function()
       local mock_config = {
         readTableRef = function(self, key)
-          if key == "toc_ticks_ignored_levels" then return { [2] = true } end
+          if key == "toc_ticks_ignored_levels" then
+            return { [2] = true }
+          end
         end,
         read = function(self, key)
-          if key == "toc_chapter_navigation_bind_to_ticks" then return true end
-          if key == "toc_chapter_title_bind_to_ticks" then return false end
+          if key == "toc_chapter_navigation_bind_to_ticks" then
+            return true
+          end
+          if key == "toc_chapter_title_bind_to_ticks" then
+            return false
+          end
         end,
       }
       toc:onReadSettings(mock_config)
@@ -298,8 +325,12 @@ describe("Readertoc module", function()
             { title = "Sec 3", page = 15, depth = 1 },
           }
         end,
-        getPageFlow = function() return 0 end,
-        canHaveAlternativeToc = function() return false end,
+        getPageFlow = function()
+          return 0
+        end,
+        canHaveAlternativeToc = function()
+          return false
+        end,
       }
       local mock_ui = {
         document = mock_doc,
@@ -324,9 +355,15 @@ describe("Readertoc module", function()
             { title = "Ch 2", page = 10, depth = 1 },
           }
         end,
-        getPageCount = function() return 25 end,
-        getPageFlow = function() return 0 end,
-        canHaveAlternativeToc = function() return false end,
+        getPageCount = function()
+          return 25
+        end,
+        getPageFlow = function()
+          return 0
+        end,
+        canHaveAlternativeToc = function()
+          return false
+        end,
       }
       local mock_ui = {
         document = mock_doc,

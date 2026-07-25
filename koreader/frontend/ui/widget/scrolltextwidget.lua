@@ -400,7 +400,8 @@ end
 
 function ScrollTextWidget:_layoutScrollBar()
   self.v_scroll_bar.height = self.text_widget:getTextHeight()
-  self.v_scroll_bar.enable = self.text_widget:getVisLineCount() < self.text_widget:getAllLineCount()
+  self.v_scroll_bar.enable = self.text_widget:getVisLineCount()
+    < self.text_widget:getAllLineCount()
 end
 
 function ScrollTextWidget:setText(text, charlist, charpos, fgcolor)

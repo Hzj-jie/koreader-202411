@@ -94,7 +94,9 @@ describe("ConfigDialog", function()
     while #UIManager._window_stack > 0 do
       local w = table.remove(UIManager._window_stack)
       if w.onClose then
-        pcall(function() w:onClose() end)
+        pcall(function()
+          w:onClose()
+        end)
       end
     end
     UIManager._task_queue = {}
@@ -166,22 +168,25 @@ describe("ConfigDialog", function()
     end)
   end)
 
-  it("should close dialog and invoke callback on closeDialog and onExit", function()
-    local callback_called = false
-    local dialog = ConfigDialog:new({
-      config_options = mock_options,
-      configurable = mock_configurable,
-      close_callback = function()
-        callback_called = true
-      end,
-    })
+  it(
+    "should close dialog and invoke callback on closeDialog and onExit",
+    function()
+      local callback_called = false
+      local dialog = ConfigDialog:new({
+        config_options = mock_options,
+        configurable = mock_configurable,
+        close_callback = function()
+          callback_called = true
+        end,
+      })
 
-    UIManager:show(dialog)
-    UIManager:forceRepaint()
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
 
-    assert.is_true(dialog:onExit())
-    assert.is_true(callback_called)
-  end)
+      assert.is_true(dialog:onExit())
+      assert.is_true(callback_called)
+    end
+  )
 
   it("should handle tap to close menu outside of dialog frame", function()
     local dialog = ConfigDialog:new({
@@ -291,7 +296,14 @@ describe("ConfigDialog", function()
       choice_called = true
     end
 
-    dialog:onConfigChoose({ "val1", "val2" }, "opt_text", "SetTextOpt", nil, 1, false)
+    dialog:onConfigChoose(
+      { "val1", "val2" },
+      "opt_text",
+      "SetTextOpt",
+      nil,
+      1,
+      false
+    )
 
     -- Flush task queue (tickAfterNext)
     UIManager:_checkTasks()
@@ -301,85 +313,141 @@ describe("ConfigDialog", function()
     dialog:closeDialog()
   end)
 
-  it("should handle onConfigFineTuneChoose for increment and decrement", function()
-    local dialog = ConfigDialog:new({
-      config_options = mock_options,
-      configurable = mock_configurable,
-    })
+  it(
+    "should handle onConfigFineTuneChoose for increment and decrement",
+    function()
+      local dialog = ConfigDialog:new({
+        config_options = mock_options,
+        configurable = mock_configurable,
+      })
 
-    UIManager:show(dialog)
-    UIManager:forceRepaint()
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
 
-    local last_choice_name, last_choice_val
-    dialog.onConfigChoice = function(self, name, val)
-      last_choice_name = name
-      last_choice_val = val
+      local last_choice_name, last_choice_val
+      dialog.onConfigChoice = function(self, name, val)
+        last_choice_name = name
+        last_choice_val = val
+      end
+
+      -- Numeric decrement
+      dialog:onConfigFineTuneChoose(
+        { 1, 2, 3, 4, 5 },
+        "opt_progress",
+        nil,
+        nil,
+        "-",
+        false,
+        { value_step = 1 }
+      )
+      UIManager:_checkTasks()
+      UIManager:_checkTasks()
+      assert.are.equal("opt_progress", last_choice_name)
+      assert.are.equal(2, last_choice_val)
+
+      -- Numeric increment
+      dialog:onConfigFineTuneChoose(
+        { 1, 2, 3, 4, 5 },
+        "opt_progress",
+        nil,
+        nil,
+        "+",
+        false,
+        { value_step = 1 }
+      )
+      UIManager:_checkTasks()
+      UIManager:_checkTasks()
+      assert.are.equal("opt_progress", last_choice_name)
+      assert.are.equal(4, last_choice_val)
+
+      -- Table value decrement
+      dialog:onConfigFineTuneChoose(
+        { { 10, 10 }, { 20, 20 } },
+        "h_page_margins",
+        nil,
+        nil,
+        "-",
+        false,
+        { value_step = 2 }
+      )
+      UIManager:_checkTasks()
+      UIManager:_checkTasks()
+      assert.are.equal("h_page_margins", last_choice_name)
+      assert.is_same({ 8, 8 }, last_choice_val)
+
+      -- Table value increment
+      dialog:onConfigFineTuneChoose(
+        { { 10, 10 }, { 20, 20 } },
+        "h_page_margins",
+        nil,
+        nil,
+        "+",
+        false,
+        { value_step = 2 }
+      )
+      UIManager:_checkTasks()
+      UIManager:_checkTasks()
+      assert.are.equal("h_page_margins", last_choice_name)
+      assert.is_same({ 12, 12 }, last_choice_val)
+
+      dialog:closeDialog()
     end
+  )
 
-    -- Numeric decrement
-    dialog:onConfigFineTuneChoose({ 1, 2, 3, 4, 5 }, "opt_progress", nil, nil, "-", false, { value_step = 1 })
-    UIManager:_checkTasks()
-    UIManager:_checkTasks()
-    assert.are.equal("opt_progress", last_choice_name)
-    assert.are.equal(2, last_choice_val)
+  it(
+    "should handle onMakeDefault for normal, font_fine_tune, and h_page_margins options",
+    function()
+      local dialog = ConfigDialog:new({
+        config_options = mock_options,
+        configurable = mock_configurable,
+      })
 
-    -- Numeric increment
-    dialog:onConfigFineTuneChoose({ 1, 2, 3, 4, 5 }, "opt_progress", nil, nil, "+", false, { value_step = 1 })
-    UIManager:_checkTasks()
-    UIManager:_checkTasks()
-    assert.are.equal("opt_progress", last_choice_name)
-    assert.are.equal(4, last_choice_val)
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
 
-    -- Table value decrement
-    dialog:onConfigFineTuneChoose({ { 10, 10 }, { 20, 20 } }, "h_page_margins", nil, nil, "-", false, { value_step = 2 })
-    UIManager:_checkTasks()
-    UIManager:_checkTasks()
-    assert.are.equal("h_page_margins", last_choice_name)
-    assert.is_same({ 8, 8 }, last_choice_val)
+      local confirm_box_shown = nil
+      dialog.showWidget = function(self, widget)
+        confirm_box_shown = widget
+      end
 
-    -- Table value increment
-    dialog:onConfigFineTuneChoose({ { 10, 10 }, { 20, 20 } }, "h_page_margins", nil, nil, "+", false, { value_step = 2 })
-    UIManager:_checkTasks()
-    UIManager:_checkTasks()
-    assert.are.equal("h_page_margins", last_choice_name)
-    assert.is_same({ 12, 12 }, last_choice_val)
+      -- font_fine_tune ignore
+      dialog:onMakeDefault(
+        "font_fine_tune",
+        "Font Fine Tune",
+        { 1 },
+        { "1" },
+        1
+      )
+      assert.is_nil(confirm_box_shown)
 
-    dialog:closeDialog()
-  end)
+      -- h_page_margins
+      dialog:onMakeDefault(
+        "h_page_margins",
+        "Margins",
+        { { 10, 10 } },
+        { { 10, 10 } },
+        1
+      )
+      assert.is_not_nil(confirm_box_shown)
 
-  it("should handle onMakeDefault for normal, font_fine_tune, and h_page_margins options", function()
-    local dialog = ConfigDialog:new({
-      config_options = mock_options,
-      configurable = mock_configurable,
-    })
+      -- Test ok_callback in ConfirmBox
+      confirm_box_shown.ok_callback()
 
-    UIManager:show(dialog)
-    UIManager:forceRepaint()
+      -- Normal primitive value
+      confirm_box_shown = nil
+      dialog:onMakeDefault(
+        "opt_text",
+        "Text Opt",
+        { "s", "m" },
+        { "Small", "Medium" },
+        1
+      )
+      assert.is_not_nil(confirm_box_shown)
+      confirm_box_shown.ok_callback()
 
-    local confirm_box_shown = nil
-    dialog.showWidget = function(self, widget)
-      confirm_box_shown = widget
+      dialog:closeDialog()
     end
-
-    -- font_fine_tune ignore
-    dialog:onMakeDefault("font_fine_tune", "Font Fine Tune", { 1 }, { "1" }, 1)
-    assert.is_nil(confirm_box_shown)
-
-    -- h_page_margins
-    dialog:onMakeDefault("h_page_margins", "Margins", { { 10, 10 } }, { { 10, 10 } }, 1)
-    assert.is_not_nil(confirm_box_shown)
-
-    -- Test ok_callback in ConfirmBox
-    confirm_box_shown.ok_callback()
-
-    -- Normal primitive value
-    confirm_box_shown = nil
-    dialog:onMakeDefault("opt_text", "Text Opt", { "s", "m" }, { "Small", "Medium" }, 1)
-    assert.is_not_nil(confirm_box_shown)
-    confirm_box_shown.ok_callback()
-
-    dialog:closeDialog()
-  end)
+  )
 
   it("should handle onMakeFineTuneDefault", function()
     local dialog = ConfigDialog:new({
@@ -396,146 +464,182 @@ describe("ConfigDialog", function()
     end
 
     -- Numeric option
-    dialog:onMakeFineTuneDefault("opt_progress", "Progress Opt", { 1, 5 }, { 1, 5 }, "+")
+    dialog:onMakeFineTuneDefault(
+      "opt_progress",
+      "Progress Opt",
+      { 1, 5 },
+      { 1, 5 },
+      "+"
+    )
     assert.is_not_nil(confirm_box_shown)
     confirm_box_shown.ok_callback()
 
     -- Table option (h_page_margins)
     confirm_box_shown = nil
-    dialog:onMakeFineTuneDefault("h_page_margins", "Margins", { { 10, 10 } }, { { 10, 10 } }, "-")
+    dialog:onMakeFineTuneDefault(
+      "h_page_margins",
+      "Margins",
+      { { 10, 10 } },
+      { { 10, 10 } },
+      "-"
+    )
     assert.is_not_nil(confirm_box_shown)
     confirm_box_shown.ok_callback()
 
     dialog:closeDialog()
   end)
 
-  it("should handle onConfigMoreChoose with SpinWidget and DoubleSpinWidget", function()
-    local dialog = ConfigDialog:new({
-      config_options = mock_options,
-      configurable = mock_configurable,
-    })
+  it(
+    "should handle onConfigMoreChoose with SpinWidget and DoubleSpinWidget",
+    function()
+      local dialog = ConfigDialog:new({
+        config_options = mock_options,
+        configurable = mock_configurable,
+      })
 
-    UIManager:show(dialog)
-    UIManager:forceRepaint()
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
 
-    local widget_shown = nil
-    dialog.showWidget = function(self, widget)
-      widget_shown = widget
+      local widget_shown = nil
+      dialog.showWidget = function(self, widget)
+        widget_shown = widget
+      end
+
+      -- Single value SpinWidget
+      dialog:onConfigMoreChoose(
+        { 1, 5, 10 },
+        5,
+        "opt_progress",
+        "SetProgress",
+        nil,
+        "Progress Option",
+        {
+          value_min = 1,
+          value_max = 10,
+        },
+        false
+      )
+      UIManager:_checkTasks()
+      UIManager:_checkTasks()
+      assert.is_not_nil(widget_shown)
+
+      -- Test spin widget callback & extra_callback
+      if widget_shown.callback then
+        widget_shown.callback(widget_shown)
+      end
+      if widget_shown.extra_callback then
+        widget_shown.extra_callback(widget_shown)
+      end
+
+      -- Double value DoubleSpinWidget
+      widget_shown = nil
+      dialog:onConfigMoreChoose(
+        { { 5, 5 }, { 20, 20 } },
+        { 10, 10 },
+        "h_page_margins",
+        "SetMargins",
+        nil,
+        "Margins",
+        {
+          left_min = 0,
+          left_max = 50,
+          right_min = 0,
+          right_max = 50,
+        },
+        false
+      )
+      UIManager:_checkTasks()
+      UIManager:_checkTasks()
+      assert.is_not_nil(widget_shown)
+
+      if widget_shown.callback then
+        widget_shown.callback(12, 12)
+      end
+      if widget_shown.extra_callback then
+        widget_shown.extra_callback(12, 12)
+      end
+
+      dialog:closeDialog()
     end
+  )
 
-    -- Single value SpinWidget
-    dialog:onConfigMoreChoose({ 1, 5, 10 }, 5, "opt_progress", "SetProgress", nil, "Progress Option", {
-      value_min = 1,
-      value_max = 10,
-    }, false)
-    UIManager:_checkTasks()
-    UIManager:_checkTasks()
-    assert.is_not_nil(widget_shown)
-
-    -- Test spin widget callback & extra_callback
-    if widget_shown.callback then
-      widget_shown.callback(widget_shown)
-    end
-    if widget_shown.extra_callback then
-      widget_shown.extra_callback(widget_shown)
-    end
-
-    -- Double value DoubleSpinWidget
-    widget_shown = nil
-    dialog:onConfigMoreChoose({ { 5, 5 }, { 20, 20 } }, { 10, 10 }, "h_page_margins", "SetMargins", nil, "Margins", {
-      left_min = 0,
-      left_max = 50,
-      right_min = 0,
-      right_max = 50,
-    }, false)
-    UIManager:_checkTasks()
-    UIManager:_checkTasks()
-    assert.is_not_nil(widget_shown)
-
-    if widget_shown.callback then
-      widget_shown.callback(12, 12)
-    end
-    if widget_shown.extra_callback then
-      widget_shown.extra_callback(12, 12)
-    end
-
-    dialog:closeDialog()
-  end)
-
-  it("should support custom option callbacks, show_func, enabled_func, and text functions", function()
-    local hold_called = false
-    local custom_options = {
-      prefix = "custom",
-      {
-        icon = "appbar.custom",
-        options = {
-          {
-            name = "dyn_name",
-            name_text_func = function()
-              return "Dynamic Text"
-            end,
-            name_text_hold_callback = function()
-              hold_called = true
-            end,
-            item_icons_func = function()
-              return { "icon_a", "icon_b" }
-            end,
-            values = { "a", "b" },
-            show_func = function()
-              return true
-            end,
-            enabled_func = function()
-              return true
-            end,
-          },
-          {
-            name = "hidden_opt",
-            name_text = "Hidden",
-            toggle = { "Off", "On" },
-            values = { "off", "on" },
-            show_func = function()
-              return false
-            end,
-          },
-          {
-            name = "disabled_opt",
-            name_text = "Disabled",
-            toggle = { "Off", "On" },
-            values = { "off", "on" },
-            enabled_func = function()
-              return false
-            end,
+  it(
+    "should support custom option callbacks, show_func, enabled_func, and text functions",
+    function()
+      local hold_called = false
+      local custom_options = {
+        prefix = "custom",
+        {
+          icon = "appbar.custom",
+          options = {
+            {
+              name = "dyn_name",
+              name_text_func = function()
+                return "Dynamic Text"
+              end,
+              name_text_hold_callback = function()
+                hold_called = true
+              end,
+              item_icons_func = function()
+                return { "icon_a", "icon_b" }
+              end,
+              values = { "a", "b" },
+              show_func = function()
+                return true
+              end,
+              enabled_func = function()
+                return true
+              end,
+            },
+            {
+              name = "hidden_opt",
+              name_text = "Hidden",
+              toggle = { "Off", "On" },
+              values = { "off", "on" },
+              show_func = function()
+                return false
+              end,
+            },
+            {
+              name = "disabled_opt",
+              name_text = "Disabled",
+              toggle = { "Off", "On" },
+              values = { "off", "on" },
+              enabled_func = function()
+                return false
+              end,
+            },
           },
         },
-      },
-    }
+      }
 
-    local dialog = ConfigDialog:new({
-      config_options = custom_options,
-      configurable = {
-        dyn_name = "a",
-        hidden_opt = "off",
-        disabled_opt = "off",
-      },
-    })
+      local dialog = ConfigDialog:new({
+        config_options = custom_options,
+        configurable = {
+          dyn_name = "a",
+          hidden_opt = "off",
+          disabled_opt = "off",
+        },
+      })
 
-    UIManager:show(dialog)
-    UIManager:forceRepaint()
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
 
-    assert.is_not_nil(dialog)
-    local opt = dialog:findOptionByName("dyn_name")
-    assert.is_not_nil(opt)
-    if opt.name_text_hold_callback then
-      opt.name_text_hold_callback()
+      assert.is_not_nil(dialog)
+      local opt = dialog:findOptionByName("dyn_name")
+      assert.is_not_nil(opt)
+      if opt.name_text_hold_callback then
+        opt.name_text_hold_callback()
+      end
+      assert.is_true(hold_called)
+
+      local hidden_opt = dialog:findOptionByName("hidden_opt")
+      assert.is_not_nil(hidden_opt)
+
+      local disabled_opt = dialog:findOptionByName("disabled_opt")
+      assert.is_not_nil(disabled_opt)
+
+      dialog:closeDialog()
     end
-    assert.is_true(hold_called)
-
-    local hidden_opt = dialog:findOptionByName("hidden_opt")
-    assert.is_not_nil(hidden_opt)
-
-    local disabled_opt = dialog:findOptionByName("disabled_opt")
-    assert.is_not_nil(disabled_opt)
-
-    dialog:closeDialog()
-  end)
+  )
 end)
