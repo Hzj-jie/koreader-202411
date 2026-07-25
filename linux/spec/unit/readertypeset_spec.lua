@@ -19,6 +19,10 @@ describe("ReaderTypeset module", function()
     local typeset = readerui.typeset
     assert.is_table(typeset)
 
+    local menu_items = {}
+    typeset:addToMainMenu(menu_items)
+    assert.is_table(menu_items.set_render_style)
+
     readerui:onExit()
     readerui:onClose()
   end)
