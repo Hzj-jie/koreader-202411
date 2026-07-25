@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("NaturalLightWidget UI component", function()
   local Device, PowerD, NaturalLightWidget
 
