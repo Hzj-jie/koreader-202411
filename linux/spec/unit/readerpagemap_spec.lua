@@ -18,6 +18,9 @@ describe("ReaderPageMap module", function()
 
     local pagemap = readerui.pagemap
     assert.is_table(pagemap)
+    assert.is_function(pagemap.resetLayout)
+
+    pagemap:resetLayout()
 
     readerui:onExit()
     readerui:onClose()
