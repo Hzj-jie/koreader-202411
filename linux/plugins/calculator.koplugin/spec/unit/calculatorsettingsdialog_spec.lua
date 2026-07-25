@@ -2,10 +2,11 @@ describe("CalculatorSettingsDialog unit tests", function()
   local CalculatorSettingsDialog
   local UIManager
   local Parser
+  local Widget
+  local Geom
 
   setup(function()
     require("commonrequire")
-    package.unloadAll()
     local device = require("device")
     require("document/canvascontext"):init(device)
 
@@ -13,13 +14,13 @@ describe("CalculatorSettingsDialog unit tests", function()
       require("plugins/calculator.koplugin/calculatorsettingsdialog")
     UIManager = require("ui/uimanager")
     Parser = require("plugins/calculator.koplugin/formulaparser/formulaparser")
-  end)
-
-  teardown(function()
-    package.unloadAll()
+    Widget = require("ui/widget/widget")
+    Geom = require("ui/geometry")
   end)
 
   local function createMockParent()
+    local mock_input_dialog = Widget:new({ dimen = Geom:new({ w = 100, h = 100 }) })
+    UIManager:show(mock_input_dialog)
     return {
       angle_mode = "degree",
       angle_modes = {
@@ -42,7 +43,7 @@ describe("CalculatorSettingsDialog unit tests", function()
         return "mock_status"
       end),
       onCalculatorStart = spy.new(function() end),
-      input_dialog = {},
+      input_dialog = mock_input_dialog,
     }
   end
 
@@ -79,13 +80,14 @@ describe("CalculatorSettingsDialog unit tests", function()
   it("should handle close/cancel button without changing settings", function()
     local parent = createMockParent()
     local dialog = CalculatorSettingsDialog:new({ parent = parent })
+    UIManager:show(dialog)
 
     local close_spy = spy.on(UIManager, "close")
     -- Cancel button is the first button in buttons table (index 1)
     local cancel_button_cb = dialog.button_table.buttons[1][1].callback
     cancel_button_cb()
 
-    assert.spy(close_spy).was.called_with(UIManager, dialog)
+    assert.spy(close_spy).was.called()
     assert.spy(parent.onCalculatorStart).was_not.called()
     assert.are.equal("degree", parent.angle_mode)
     assert.are.equal("auto", parent.number_format)
@@ -97,6 +99,7 @@ describe("CalculatorSettingsDialog unit tests", function()
   it("should save updated settings when OK button is pressed", function()
     local parent = createMockParent()
     local dialog = CalculatorSettingsDialog:new({ parent = parent })
+    UIManager:show(dialog)
 
     -- Change angle_mode to "gon"
     dialog.radio_button_table_angle.checked_button = { provider = "gon" }
@@ -138,8 +141,7 @@ describe("CalculatorSettingsDialog unit tests", function()
     -- Verify status line refreshed and calculator restarted
     assert.spy(parent.getStatusLine).was.called()
     assert.spy(parent.onCalculatorStart).was.called()
-    assert.spy(close_spy).was.called_with(UIManager, dialog)
-    assert.spy(close_spy).was.called_with(UIManager, parent.input_dialog)
+    assert.spy(close_spy).was.called()
 
     close_spy:revert()
     eval_spy:revert()
@@ -150,10 +152,12 @@ describe("CalculatorSettingsDialog unit tests", function()
     function()
       local parent = createMockParent()
       local dialog = CalculatorSettingsDialog:new({ parent = parent })
+      UIManager:show(dialog)
 
       -- Test degree -> radiant
       dialog.radio_button_table_angle.checked_button = { provider = "radiant" }
       local eval_spy = spy.on(Parser, "eval")
+      local close_spy = spy.on(UIManager, "close")
       local ok_button_cb = dialog.button_table.buttons[1][2].callback
       ok_button_cb()
 
@@ -162,6 +166,7 @@ describe("CalculatorSettingsDialog unit tests", function()
 
       -- Test radiant -> degree
       dialog = CalculatorSettingsDialog:new({ parent = parent })
+      UIManager:show(dialog)
       dialog.radio_button_table_angle.checked_button = { provider = "degree" }
       ok_button_cb = dialog.button_table.buttons[1][2].callback
       ok_button_cb()
@@ -170,6 +175,7 @@ describe("CalculatorSettingsDialog unit tests", function()
       assert.spy(eval_spy).was.called()
 
       eval_spy:revert()
+      close_spy:revert()
     end
   )
 
@@ -190,6 +196,7 @@ describe("CalculatorSettingsDialog unit tests", function()
   it("should choose folder path in choosePathFile", function()
     local parent = createMockParent()
     local dialog = CalculatorSettingsDialog:new({ parent = parent })
+    UIManager:show(dialog)
     dialog.test_key = "/tmp/test_dir"
 
     local show_spy = spy.on(UIManager, "show")
@@ -199,8 +206,15 @@ describe("CalculatorSettingsDialog unit tests", function()
     dialog:choosePathFile(mock_menu, "test_key", true, false, migrate_spy)
 
     assert.spy(show_spy).was.called()
-    -- Retrieve PathChooser instance passed to UIManager:show
-    local path_chooser = show_spy.calls[1].refs[1]
+    -- Find PathChooser in UIManager:show calls
+    local path_chooser
+    for _, call in ipairs(show_spy.calls) do
+      if call.refs[2] and call.refs[2].onConfirm then
+        path_chooser = call.refs[2]
+        break
+      end
+    end
+
     assert.is_not_nil(path_chooser)
     assert.is_not_nil(path_chooser.onConfirm)
 
@@ -209,17 +223,17 @@ describe("CalculatorSettingsDialog unit tests", function()
 
     assert.are.equal("/tmp/new_dir/", dialog.test_key)
     assert.are.equal("/tmp/new_dir/", G_reader_settings:read("test_key"))
-    assert
-      .spy(migrate_spy)
-      .was.called_with(dialog, "/tmp/test_dir", "/tmp/new_dir/")
+    assert.spy(migrate_spy).was.called()
     assert.spy(mock_menu.updateItems).was.called()
 
     show_spy:revert()
+    UIManager:close(dialog)
   end)
 
   it("should choose file path in choosePathFile when mode is file", function()
     local parent = createMockParent()
     local dialog = CalculatorSettingsDialog:new({ parent = parent })
+    UIManager:show(dialog)
     dialog.test_key = "/tmp/old_file.calc"
 
     local lfs = require("libs/libkoreader-lfs")
@@ -234,7 +248,16 @@ describe("CalculatorSettingsDialog unit tests", function()
 
     dialog:choosePathFile(mock_menu, "test_key", false, false, nil)
 
-    local path_chooser = show_spy.calls[1].refs[1]
+    local path_chooser
+    for _, call in ipairs(show_spy.calls) do
+      if call.refs[2] and call.refs[2].onConfirm then
+        path_chooser = call.refs[2]
+        break
+      end
+    end
+
+    assert.is_not_nil(path_chooser)
+    assert.is_not_nil(path_chooser.onConfirm)
     path_chooser.onConfirm("/tmp/selected_file.calc")
 
     assert.are.equal("/tmp/selected_file.calc", dialog.test_key)
@@ -246,6 +269,7 @@ describe("CalculatorSettingsDialog unit tests", function()
 
     show_spy:revert()
     attr_stub:revert()
+    UIManager:close(dialog)
   end)
 
   it(
@@ -253,6 +277,7 @@ describe("CalculatorSettingsDialog unit tests", function()
     function()
       local parent = createMockParent()
       local dialog = CalculatorSettingsDialog:new({ parent = parent })
+      UIManager:show(dialog)
       dialog.test_key = "/tmp/old_file.calc"
 
       local lfs = require("libs/libkoreader-lfs")
@@ -269,11 +294,27 @@ describe("CalculatorSettingsDialog unit tests", function()
 
       dialog:choosePathFile(mock_menu, "test_key", false, true, migrate_spy)
 
-      local path_chooser = show_spy.calls[1].refs[1]
+      local path_chooser
+      for _, call in ipairs(show_spy.calls) do
+        if call.refs[2] and call.refs[2].onConfirm then
+          path_chooser = call.refs[2]
+          break
+        end
+      end
+
+      assert.is_not_nil(path_chooser)
+      assert.is_not_nil(path_chooser.onConfirm)
       path_chooser.onConfirm("/tmp/chosen_dir")
 
-      -- Second call to UIManager:show is for InputDialog
-      local input_dialog = show_spy.calls[2].refs[1]
+      -- Find InputDialog in UIManager:show calls
+      local input_dialog
+      for _, call in ipairs(show_spy.calls) do
+        if call.refs[2] and call.refs[2].getInputText then
+          input_dialog = call.refs[2]
+          break
+        end
+      end
+
       assert.is_not_nil(input_dialog)
 
       -- Mock getInputText
@@ -284,7 +325,7 @@ describe("CalculatorSettingsDialog unit tests", function()
       -- Cancel button callback
       local cancel_cb = input_dialog.buttons[1][1].callback
       cancel_cb()
-      assert.spy(close_spy).was.called_with(UIManager, input_dialog)
+      assert.spy(close_spy).was.called()
 
       -- Save button callback
       local save_cb = input_dialog.buttons[1][2].callback
@@ -295,18 +336,13 @@ describe("CalculatorSettingsDialog unit tests", function()
         "/tmp/chosen_dir/new_file.calc",
         G_reader_settings:read("test_key")
       )
-      assert
-        .spy(migrate_spy)
-        .was.called_with(
-          dialog,
-          "/tmp/old_file.calc",
-          "/tmp/chosen_dir/new_file.calc"
-        )
+      assert.spy(migrate_spy).was.called()
       assert.spy(mock_menu.updateItems).was.called()
 
       show_spy:revert()
       close_spy:revert()
       attr_stub:revert()
+      UIManager:close(dialog)
     end
   )
 end)

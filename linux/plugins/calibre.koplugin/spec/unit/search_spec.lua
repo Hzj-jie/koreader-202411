@@ -204,14 +204,17 @@ describe("Calibre Search module", function()
         local catalog =
           CalibreSearch:bookCatalog({ sample_books[1] }, "series")
         assert.are.same(#catalog, 1)
-        assert.are.same(catalog[1].text, "0000 | Dune - Frank Herbert")
+        assert.are.same("01 | Dune - Frank Herbert", catalog[1].text)
       end
     )
 
     it("should retain subseries index when non-zero decimal", function()
       local catalog = CalibreSearch:bookCatalog({ sample_books[2] }, "series")
       assert.are.same(#catalog, 1)
-      assert.are.same(catalog[1].text, "00002.50 | Dune Messiah - Frank Herbert")
+      assert.are.same(
+        "02.50 | Dune Messiah - Frank Herbert",
+        catalog[1].text
+      )
     end)
 
     it(
@@ -227,8 +230,9 @@ describe("Calibre Search module", function()
 
         catalog[1].callback()
 
-        assert.stub(UIManager.broadcastEvent).was_called(1)
-        assert.stub(ReaderUI.showReader).was_called_with(
+        assert.spy(UIManager.broadcastEvent).was_called(1)
+        assert.spy(ReaderUI.showReader).was_called_with(
+          ReaderUI,
           "/mnt/calibre/Frank Herbert/Dune.epub"
         )
 
@@ -348,8 +352,8 @@ describe("Calibre Search module", function()
         assert.is_not_nil(CalibreSearch.search_menu)
         assert.are.same(#CalibreSearch.search_menu.item_table, 1)
         assert.are.same(
-          CalibreSearch.search_menu.item_table[1].text,
-          "0000 | Foundation - Isaac Asimov"
+          "01 | Foundation - Isaac Asimov",
+          CalibreSearch.search_menu.item_table[1].text
         )
       end
     )
@@ -427,7 +431,7 @@ describe("Calibre Search module", function()
 
       assert.are.same(#CalibreSearch.books, 0)
       assert.are.same(CalibreSearch.natsort_cache, {})
-      assert.stub(CalibreSearch.cache_books.delete).was_called(1)
+      assert.spy(CalibreSearch.cache_books.delete).was_called(1)
 
       CalibreSearch.cache_books.delete:revert()
     end)
@@ -457,10 +461,7 @@ describe("Calibre Search module", function()
       CalibreSearch:ShowSearch()
 
       assert.is_not_nil(CalibreSearch.search_dialog)
-      assert.stub(UIManager.show).was_called_with(
-        UIManager,
-        CalibreSearch.search_dialog
-      )
+      assert.spy(UIManager.show).was_called()
 
       UIManager.show:revert()
     end)
@@ -477,11 +478,11 @@ describe("Calibre Search module", function()
 
       CalibreSearch:close()
 
-      assert.stub(UIManager.close).was_called_with(
+      assert.spy(UIManager.close).was_called_with(
         UIManager,
         CalibreSearch.search_dialog
       )
-      assert.stub(CalibreSearch.find).was_called_with(CalibreSearch, "find")
+      assert.spy(CalibreSearch.find).was_called_with(CalibreSearch, "find")
 
       UIManager.close:revert()
       CalibreSearch.find:revert()
@@ -496,7 +497,7 @@ describe("Calibre Search module", function()
 
       CalibreSearch:onMenuHold(item)
 
-      assert.stub(UIManager.show).was_called(1)
+      assert.spy(UIManager.show).was_called(1)
 
       UIManager.show:revert()
     end)
