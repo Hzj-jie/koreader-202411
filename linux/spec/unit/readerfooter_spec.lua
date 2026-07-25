@@ -882,4 +882,244 @@ describe("Readerfooter module", function()
       readerui:onClose()
     end
   )
+
+  it("should test frontlight and frontlight_warmth text generators", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    local Device = require("device")
+    local powerd = Device:getPowerDevice()
+
+    local orig_isFrontlightOn = powerd.isFrontlightOn
+    local orig_frontlightIntensity = powerd.frontlightIntensity
+    local orig_frontlightWarmth = powerd.frontlightWarmth
+
+    powerd.isFrontlightOn = function()
+      return true
+    end
+    powerd.frontlightIntensity = function()
+      return 50
+    end
+    powerd.frontlightWarmth = function()
+      return 75
+    end
+
+    footer.settings.item_prefix = "icons"
+    assert.is.same("☼ 50", footer.textGeneratorMap.frontlight(footer))
+    assert.is.same("💡 75%", footer.textGeneratorMap.frontlight_warmth(footer))
+
+    -- Off state with hide_empty_generators
+    powerd.isFrontlightOn = function()
+      return false
+    end
+    footer.settings.all_at_once = true
+    footer.settings.hide_empty_generators = true
+    assert.is.same("", footer.textGeneratorMap.frontlight(footer))
+    assert.is.same("", footer.textGeneratorMap.frontlight_warmth(footer))
+
+    powerd.isFrontlightOn = orig_isFrontlightOn
+    powerd.frontlightIntensity = orig_frontlightIntensity
+    powerd.frontlightWarmth = orig_frontlightWarmth
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should test page_turning_inverted generator and symbols", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    G_reader_settings:save("input_invert_page_turn_keys", true)
+
+    footer.settings.item_prefix = "icons"
+    assert.is.same("⇄", footer.textGeneratorMap.page_turning_inverted(footer))
+
+    footer.settings.item_prefix = "letters"
+    assert.truthy(footer.textGeneratorMap.page_turning_inverted(footer):find("On"))
+
+    G_reader_settings:delete("input_invert_page_turn_keys")
+    footer.settings.item_prefix = "icons"
+    assert.is.same("⇉", footer.textGeneratorMap.page_turning_inverted(footer))
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should test book metadata and getFittedText", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    readerui.doc_props = {
+      display_title = "A Very Long Title That Will Be Fitted To The Max Width Percent",
+      authors = "Author Name",
+    }
+    footer.settings.book_title_max_width_pct = 10
+    local fitted_title = footer.textGeneratorMap.book_title(footer)
+    assert.truthy(fitted_title ~= "")
+
+    local fitted_author = footer.textGeneratorMap.book_author(footer)
+    assert.truthy(fitted_author ~= "")
+
+    -- Book metadata changed handler
+    footer:onBookMetadataChanged({ metadata_key_updated = "title" })
+    footer:onBookMetadataChanged({ metadata_key_updated = "authors" })
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should test custom_text generator and set_custom_text", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    footer.custom_text = "TEST"
+    footer.custom_text_repetitions = 2
+
+    local text, merge = footer.textGeneratorMap.custom_text(footer)
+    assert.is.same("TESTTEST", text)
+    assert.is.same(false, merge)
+
+    footer.custom_text = "   "
+    text, merge = footer.textGeneratorMap.custom_text(footer)
+    assert.is.same("   ", text)
+    assert.is.same(true, merge)
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should test add and remove additional footer content", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+
+    local my_content = function()
+      return "EXTRA"
+    end
+    assert.is_true(footer:addAdditionalFooterContent(my_content))
+    assert.is_false(footer:addAdditionalFooterContent(my_content))
+
+    assert.is_true(footer:removeAdditionalFooterContent(my_content))
+    assert.is_false(footer:removeAdditionalFooterContent(my_content))
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should test menu item generators", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+
+    -- genItemSymbolsMenuItems
+    local icons_item = footer:genItemSymbolsMenuItems("icons")
+    assert.is.same(true, icons_item.checked_func())
+    icons_item.callback()
+    assert.is.same("icons", footer.settings.item_prefix)
+
+    -- genItemSeparatorMenuItems
+    local bullet_item = footer:genItemSeparatorMenuItems("bullet")
+    assert.is.same(false, bullet_item.checked_func())
+    bullet_item.callback()
+    assert.is.same("bullet", footer.settings.items_separator)
+
+    -- genAlignmentMenuItems
+    local left_align = footer:genAlignmentMenuItems("left")
+    left_align.callback()
+    assert.is.same("left", footer.settings.align)
+
+    -- genProgressBarChapterMarkerWidthMenuItems
+    local thin_marker = footer:genProgressBarChapterMarkerWidthMenuItems(1)
+    thin_marker.callback()
+    assert.is.same(1, footer.settings.toc_markers_width)
+
+    -- genProgressPercentageFormatMenuItems
+    local fmt1 = footer:genProgressPercentageFormatMenuItems("1")
+    fmt1.callback()
+    assert.is.same("1", footer.settings.progress_pct_format)
+
+    -- genProgressBarPositionMenuItems
+    local pos_above = footer:genProgressBarPositionMenuItems("above")
+    pos_above.callback()
+    assert.is.same("above", footer.settings.progress_bar_position)
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should test event handlers onResume, onSetPageHorizMargins, flipping mode", function()
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+
+    -- onSetPageHorizMargins
+    footer.settings.progress_margin = true
+    footer:onSetPageHorizMargins({ 20, 20 })
+    assert.is.same(20, footer.settings.progress_margin_width)
+
+    -- onTimeFormatChanged
+    footer:onTimeFormatChanged()
+
+    -- onSwapPageTurnButtons
+    footer.settings.page_turning_inverted = true
+    footer:onSwapPageTurnButtons()
+
+    -- onEnterFlippingMode & onExitFlippingMode
+    footer:onEnterFlippingMode()
+    assert.is.same(footer.mode_list.page_progress, footer.mode)
+    footer:onExitFlippingMode()
+
+    -- onResume and onOutOfScreenSaver
+    G_reader_settings:save("screensaver_delay", "5m")
+    footer:onResume()
+    assert.is_true(footer._delayed_screensaver)
+    footer:onOutOfScreenSaver()
+    assert.is_nil(footer._delayed_screensaver)
+    G_reader_settings:delete("screensaver_delay")
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
 end)
+
