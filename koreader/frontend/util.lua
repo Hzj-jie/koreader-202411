@@ -19,10 +19,11 @@ local bor = bit.bor
 local util = {}
 
 function util.isTesting()
-  return package.loaded["busted"] ~= nil
-    or package.loaded["busted.luajit"] ~= nil
-    or _G.busted ~= nil
-    or _G.describe ~= nil
+  return package.loaded["busted.luajit"] ~= nil
+end
+
+function util.isLuaCov()
+  return package.loaded["luacov"] ~= nil
 end
 
 function util.isMonkeyTest()
