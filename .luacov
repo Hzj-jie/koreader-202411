@@ -20,4 +20,9 @@ return {
     "_spec$",
     "_meta$",
   },
+
+  includeuntestedfiles = {
+    "koreader/frontend",
+    "koreader/plugins",
+  },
 }
