@@ -37,7 +37,8 @@ function M.setup_test_env(test_data_dir)
   if _G.G_reader_settings then
     old_G_reader_settings = _G.G_reader_settings
     local LuaSettings = require("luasettings")
-    _G.G_reader_settings = LuaSettings:open(test_data_dir .. "/settings.reader.lua")
+    _G.G_reader_settings =
+      LuaSettings:open(test_data_dir .. "/settings.reader.lua")
   end
 
   local NetworkMgr = require("ui/network/manager")

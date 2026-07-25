@@ -142,7 +142,8 @@ function FootnoteWidget:init()
   -- Subtract SAFETY_MARGIN as it is already included in the scrollbar's required width.
   self.doc_margins = {
     left = self.doc_margins.left,
-    right = self.doc_margins.right - Screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN),
+    right = self.doc_margins.right
+      - Screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN),
     top = self.doc_margins.top,
     bottom = self.doc_margins.bottom,
   }

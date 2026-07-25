@@ -16,7 +16,9 @@ describe("ReaderCoptListener module", function()
       },
     }
     local mock_config = {
-      read = function() return nil end,
+      read = function()
+        return nil
+      end,
     }
 
     local listener = ReaderCoptListener:new({

@@ -60,28 +60,31 @@ describe("Button widget", function()
     assert.is_equal("Back to text", b.label_widget.text)
   end)
 
-  it("should calculate size via getSize and support geometry merge methods", function()
-    local b = Button:new({
-      text = "Geometry test",
-      width = 100,
-      height = 40,
-    })
+  it(
+    "should calculate size via getSize and support geometry merge methods",
+    function()
+      local b = Button:new({
+        text = "Geometry test",
+        width = 100,
+        height = 40,
+      })
 
-    local size = b:getSize()
-    assert.is_not_nil(size)
-    assert.are.equal(100, size.w)
-    assert.is_true(size.h >= 40)
+      local size = b:getSize()
+      assert.is_not_nil(size)
+      assert.are.equal(100, size.w)
+      assert.is_true(size.h >= 40)
 
-    b:mergeSize(120, 50)
-    local new_size = b:getSize()
-    assert.are.equal(120, new_size.w)
-    assert.are.equal(50, new_size.h)
+      b:mergeSize(120, 50)
+      local new_size = b:getSize()
+      assert.are.equal(120, new_size.w)
+      assert.are.equal(50, new_size.h)
 
-    b:mergePosition(10, 20)
-    local pos_size = b:getSize()
-    assert.are.equal(10, pos_size.x)
-    assert.are.equal(20, pos_size.y)
-  end)
+      b:mergePosition(10, 20)
+      local pos_size = b:getSize()
+      assert.are.equal(10, pos_size.x)
+      assert.are.equal(20, pos_size.y)
+    end
+  )
 
   it("should support dirtyRegion", function()
     local b = Button:new({

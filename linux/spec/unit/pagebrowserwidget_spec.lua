@@ -101,12 +101,43 @@ describe("PageBrowserWidget module", function()
           return false
         end,
       },
-      toc = { pageno = 1, toc_depth = 0, toc = {}, fillToc = function() end, getSpansCount = function() return 0 end },
-      link = { getPreviousLocationPages = function() return {} end },
-      bookmark = { getBookmarkedPages = function() return {} end },
-      doc_settings = { read = function() return nil end },
-      handmade = { isHandmadeTocEnabled = function() return false end },
-      thumbnail = { hasThumbnail = function() return false end, getPageThumbnail = function() return nil end },
+      toc = {
+        pageno = 1,
+        toc_depth = 0,
+        toc = {},
+        fillToc = function() end,
+        getSpansCount = function()
+          return 0
+        end,
+      },
+      link = {
+        getPreviousLocationPages = function()
+          return {}
+        end,
+      },
+      bookmark = {
+        getBookmarkedPages = function()
+          return {}
+        end,
+      },
+      doc_settings = {
+        read = function()
+          return nil
+        end,
+      },
+      handmade = {
+        isHandmadeTocEnabled = function()
+          return false
+        end,
+      },
+      thumbnail = {
+        hasThumbnail = function()
+          return false
+        end,
+        getPageThumbnail = function()
+          return nil
+        end,
+      },
     }
 
     local widget = PageBrowserWidget:new({

@@ -109,7 +109,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       -- 2. Load Manager directly (bypassing Plugin/Main)
       -- We must force a reload of manager to pick up the new docsettings mock
-      local old_manager = package.loaded["plugins/AnnotationSync.koplugin/manager"]
+      local old_manager =
+        package.loaded["plugins/AnnotationSync.koplugin/manager"]
       package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
       local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
 
