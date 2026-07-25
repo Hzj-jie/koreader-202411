@@ -1008,6 +1008,7 @@ describe("Readerfooter module", function()
     assert.is.same(false, merge)
 
     footer.custom_text = "   "
+    footer.custom_text_repetitions = 1
     text, merge = footer.textGeneratorMap.custom_text(footer)
     assert.is.same("   ", text)
     assert.is.same(true, merge)
