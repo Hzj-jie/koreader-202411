@@ -56,7 +56,10 @@ describe("Readerpaging module", function()
     it("should handle percent navigation", function()
       paging:onGotoPage(1)
       paging:onGotoPercent(50)
-      assert.equals(math.floor(paging.number_of_pages * 0.5), paging.current_page)
+      assert.equals(
+        math.floor(paging.number_of_pages * 0.5),
+        paging.current_page
+      )
 
       paging:onGotoPercent(-10)
       assert.equals(1, paging.current_page)
@@ -65,7 +68,10 @@ describe("Readerpaging module", function()
       assert.equals(paging.number_of_pages, paging.current_page)
 
       paging:onGotoPercentage(0.2)
-      assert.equals(math.floor(0.2 * paging.number_of_pages), paging.current_page)
+      assert.equals(
+        math.floor(0.2 * paging.number_of_pages),
+        paging.current_page
+      )
 
       paging:onGotoPercentage(-0.5)
       assert.equals(1, paging.current_page)
@@ -125,7 +131,10 @@ describe("Readerpaging module", function()
 
       local orig_wrap = readerui.view.document.configurable.text_wrap
       paging:onToggleReflow()
-      assert.is_not.equals(orig_wrap, readerui.view.document.configurable.text_wrap)
+      assert.is_not.equals(
+        orig_wrap,
+        readerui.view.document.configurable.text_wrap
+      )
       paging:onToggleReflow()
       assert.equals(orig_wrap, readerui.view.document.configurable.text_wrap)
     end)
@@ -149,8 +158,12 @@ describe("Readerpaging module", function()
       local orig_toc = readerui.toc
       local orig_link = readerui.link
       readerui.toc = {
-        getNextChapter = function(self, page) return page + 1 end,
-        getPreviousChapter = function(self, page) return page - 1 > 0 and page - 1 or nil end,
+        getNextChapter = function(self, page)
+          return page + 1
+        end,
+        getPreviousChapter = function(self, page)
+          return page - 1 > 0 and page - 1 or nil
+        end,
       }
       readerui.link = {
         addCurrentLocationToStack = function() end,
@@ -167,10 +180,21 @@ describe("Readerpaging module", function()
 
     it("should handle save and read settings", function()
       local MockConfig = {
-        data = { page_positions = {}, last_page = 3, flipping_zoom_mode = "fit", flipping_scroll_mode = true },
-        readTableRef = function(self, key) return self.data[key] end,
-        read = function(self, key) return self.data[key] end,
-        isTrue = function(self, key) return self.data[key] == true end,
+        data = {
+          page_positions = {},
+          last_page = 3,
+          flipping_zoom_mode = "fit",
+          flipping_scroll_mode = true,
+        },
+        readTableRef = function(self, key)
+          return self.data[key]
+        end,
+        read = function(self, key)
+          return self.data[key]
+        end,
+        isTrue = function(self, key)
+          return self.data[key] == true
+        end,
       }
       paging:onReadSettings(MockConfig)
       assert.equals(3, paging.current_page)
@@ -180,7 +204,9 @@ describe("Readerpaging module", function()
       local saved = {}
       local orig_doc_settings = readerui.doc_settings
       readerui.doc_settings = {
-        save = function(self, key, val) saved[key] = val end
+        save = function(self, key, val)
+          saved[key] = val
+        end,
       }
       paging:onSaveSettings()
       readerui.doc_settings = orig_doc_settings
@@ -189,7 +215,6 @@ describe("Readerpaging module", function()
       assert.equals("fit", saved["flipping_zoom_mode"])
       assert.is_true(saved["flipping_scroll_mode"])
     end)
-
 
     it("should handle view recalculate, zoom mode, and page updates", function()
       paging:onZoomModeUpdate("pageheight")
@@ -244,7 +269,6 @@ describe("Readerpaging module", function()
       UIManager:quit()
     end)
   end)
-
 
   describe("Scroll mode", function()
     setup(function()
@@ -327,6 +351,3 @@ describe("Readerpaging module", function()
     end)
   end)
 end)
-
-
-

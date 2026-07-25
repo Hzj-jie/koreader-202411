@@ -227,55 +227,134 @@ describe("PageBrowserWidget widget", function()
     assert.are.equal(initial_focus, widget.focus_page)
   end)
 
-  it("should handle gesture events: swipe, pinch, spread, pan, multiswipe", function()
-    local Device = require("device")
-    local widget = PageBrowserWidget:new({
-      ui = mock_ui,
-    })
-    make_mock_window(widget)
+  it(
+    "should handle gesture events: swipe, pinch, spread, pan, multiswipe",
+    function()
+      local Device = require("device")
+      local widget = PageBrowserWidget:new({
+        ui = mock_ui,
+      })
+      make_mock_window(widget)
 
-    -- Pan / mousewheel
-    assert.is_true(widget:onPan(nil, { mousewheel_direction = true, direction = "north" }))
-    assert.is_true(widget:onPan(nil, { mousewheel_direction = true, direction = "south" }))
+      -- Pan / mousewheel
+      assert.is_true(
+        widget:onPan(nil, { mousewheel_direction = true, direction = "north" })
+      )
+      assert.is_true(
+        widget:onPan(nil, { mousewheel_direction = true, direction = "south" })
+      )
 
-    -- Pinch
-    assert.is_true(widget:onPinch(nil, { direction = "horizontal" }))
-    assert.is_true(widget:onPinch(nil, { direction = "vertical" }))
-    assert.is_true(widget:onPinch(nil, { direction = "diagonal" }))
+      -- Pinch
+      assert.is_true(widget:onPinch(nil, { direction = "horizontal" }))
+      assert.is_true(widget:onPinch(nil, { direction = "vertical" }))
+      assert.is_true(widget:onPinch(nil, { direction = "diagonal" }))
 
-    -- Spread
-    assert.is_true(widget:onSpread(nil, { direction = "horizontal" }))
-    assert.is_true(widget:onSpread(nil, { direction = "vertical" }))
-    assert.is_true(widget:onSpread(nil, { direction = "diagonal" }))
+      -- Spread
+      assert.is_true(widget:onSpread(nil, { direction = "horizontal" }))
+      assert.is_true(widget:onSpread(nil, { direction = "vertical" }))
+      assert.is_true(widget:onSpread(nil, { direction = "diagonal" }))
 
-    -- Swipe north / south
-    local screen_w = Device.screen:getWidth()
-    local screen_h = Device.screen:getHeight()
+      -- Swipe north / south
+      local screen_w = Device.screen:getWidth()
+      local screen_h = Device.screen:getHeight()
 
-    -- Left edge swipe for rows
-    assert.is_true(widget:onSwipe(nil, { direction = "north", pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }) }))
-    assert.is_true(widget:onSwipe(nil, { direction = "south", pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }) }))
+      -- Left edge swipe for rows
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "north",
+            pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }),
+          }
+        )
+      )
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "south",
+            pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }),
+          }
+        )
+      )
 
-    -- Main area vertical swipe
-    assert.is_true(widget:onSwipe(nil, { direction = "north", pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }) }))
-    assert.is_true(widget:onSwipe(nil, { direction = "south", pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }) }))
+      -- Main area vertical swipe
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "north",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+          }
+        )
+      )
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "south",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+          }
+        )
+      )
 
-    -- Top edge swipe for cols
-    assert.is_true(widget:onSwipe(nil, { direction = "west", pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }) }))
-    assert.is_true(widget:onSwipe(nil, { direction = "east", pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }) }))
+      -- Top edge swipe for cols
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "west",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }),
+          }
+        )
+      )
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "east",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }),
+          }
+        )
+      )
 
-    -- Bottom ribbon swipe
-    assert.is_true(widget:onSwipe(nil, { direction = "west", pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 10 }) }))
+      -- Bottom ribbon swipe
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "west",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 10 }),
+          }
+        )
+      )
 
-    -- Main area horizontal swipe
-    assert.is_true(widget:onSwipe(nil, { direction = "west", pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }) }))
+      -- Main area horizontal swipe
+      assert.is_true(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "west",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+          }
+        )
+      )
 
-    -- Diagonal swipe
-    assert.is_false(widget:onSwipe(nil, { direction = "northeast", pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }) }))
+      -- Diagonal swipe
+      assert.is_false(
+        widget:onSwipe(
+          nil,
+          {
+            direction = "northeast",
+            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+          }
+        )
+      )
 
-    -- MultiSwipe
-    assert.is_true(widget:onMultiSwipe())
-  end)
+      -- MultiSwipe
+      assert.is_true(widget:onMultiSwipe())
+    end
+  )
 
   it("should handle tap events", function()
     local Device = require("device")
@@ -288,14 +367,31 @@ describe("PageBrowserWidget widget", function()
     local screen_h = Device.screen:getHeight()
 
     -- Tap title bar
-    assert.is_true(widget:onTap(nil, { pos = Geom:new({ x = screen_w * 0.5, y = 5 }) }))
+    assert.is_true(
+      widget:onTap(nil, { pos = Geom:new({ x = screen_w * 0.5, y = 5 }) })
+    )
 
     -- Tap bottom ribbon
-    assert.is_true(widget:onTap(nil, { pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 5 }) }))
+    assert.is_true(
+      widget:onTap(
+        nil,
+        { pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 5 }) }
+      )
+    )
 
     -- Tap blank area for forward / backward navigation
-    assert.is_true(widget:onTap(nil, { pos = Geom:new({ x = screen_w * 0.9, y = screen_h * 0.5 }) }))
-    assert.is_true(widget:onTap(nil, { pos = Geom:new({ x = screen_w * 0.1, y = screen_h * 0.5 }) }))
+    assert.is_true(
+      widget:onTap(
+        nil,
+        { pos = Geom:new({ x = screen_w * 0.9, y = screen_h * 0.5 }) }
+      )
+    )
+    assert.is_true(
+      widget:onTap(
+        nil,
+        { pos = Geom:new({ x = screen_w * 0.1, y = screen_h * 0.5 }) }
+      )
+    )
   end)
 
   it("should handle hold events and thumbnail hold dialogs", function()
@@ -309,10 +405,17 @@ describe("PageBrowserWidget widget", function()
     local screen_h = Device.screen:getHeight()
 
     -- Hold on title bar
-    assert.is_true(widget:onHold(nil, { pos = Geom:new({ x = screen_w * 0.5, y = 5 }) }))
+    assert.is_true(
+      widget:onHold(nil, { pos = Geom:new({ x = screen_w * 0.5, y = 5 }) })
+    )
 
     -- Hold on bottom ribbon
-    assert.is_true(widget:onHold(nil, { pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 5 }) }))
+    assert.is_true(
+      widget:onHold(
+        nil,
+        { pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 5 }) }
+      )
+    )
     if #UIManager._window_stack > 1 then
       UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
     end
@@ -404,40 +507,43 @@ describe("PageBrowserWidget widget", function()
     assert.is_true(widget_with_launcher:onExit(false))
   end)
 
-  it("should support hidden flows and page labels in pagebrowser update", function()
-    -- Enable hidden flows
-    mock_ui.document.hasHiddenFlows = function()
-      return true
-    end
-    mock_ui.document.flows = { { 1, 5 } }
-    mock_ui.document.getPageFlow = function(self, p)
-      return p <= 5 and 1 or 0
-    end
-    mock_ui.document.getPageNumberInFlow = function(self, p)
-      return p
-    end
-
-    -- Enable page labels
-    mock_ui.pagemap = {
-      wantsPageLabels = function()
+  it(
+    "should support hidden flows and page labels in pagebrowser update",
+    function()
+      -- Enable hidden flows
+      mock_ui.document.hasHiddenFlows = function()
         return true
-      end,
-      cleanPageLabel = function(self, label)
-        return label
-      end,
-    }
-    mock_ui.document.getPageMap = function()
-      return {
-        { page = 1, label = "i" },
-        { page = 5, label = "1" },
-      }
-    end
+      end
+      mock_ui.document.flows = { { 1, 5 } }
+      mock_ui.document.getPageFlow = function(self, p)
+        return p <= 5 and 1 or 0
+      end
+      mock_ui.document.getPageNumberInFlow = function(self, p)
+        return p
+      end
 
-    local widget = PageBrowserWidget:new({
-      ui = mock_ui,
-    })
-    assert.is_table(widget)
-    assert.is_table(widget.hidden_flows)
-    assert.is_table(widget.page_labels)
-  end)
+      -- Enable page labels
+      mock_ui.pagemap = {
+        wantsPageLabels = function()
+          return true
+        end,
+        cleanPageLabel = function(self, label)
+          return label
+        end,
+      }
+      mock_ui.document.getPageMap = function()
+        return {
+          { page = 1, label = "i" },
+          { page = 5, label = "1" },
+        }
+      end
+
+      local widget = PageBrowserWidget:new({
+        ui = mock_ui,
+      })
+      assert.is_table(widget)
+      assert.is_table(widget.hidden_flows)
+      assert.is_table(widget.page_labels)
+    end
+  )
 end)

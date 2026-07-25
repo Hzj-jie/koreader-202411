@@ -35,7 +35,12 @@ describe("Menu widget", function()
       assert.is_true(#formatted3 > #"Submenu")
 
       -- Item with sub_item_table_func
-      local item4 = { text = "Submenu Func", sub_item_table_func = function() return {} end }
+      local item4 = {
+        text = "Submenu Func",
+        sub_item_table_func = function()
+          return {}
+        end,
+      }
       local formatted4 = Menu.getMenuText(item4)
       assert.is_not_nil(formatted4:find("Submenu Func"))
     end)
@@ -111,26 +116,33 @@ describe("Menu widget", function()
       assert.are.equal(300, m.dimen.h)
     end)
 
-    it("should handle custom title bar and title bar left icon callbacks", function()
-      local left_tapped = false
-      local left_held = false
-      local m = Menu:new({
-        title = "Menu Title",
-        subtitle = "Subtitle",
-        title_bar_left_icon = "back",
-        onLeftButtonTap = function() left_tapped = true end,
-        onLeftButtonHold = function() left_held = true end,
-        item_table = { { text = "Entry" } },
-      })
+    it(
+      "should handle custom title bar and title bar left icon callbacks",
+      function()
+        local left_tapped = false
+        local left_held = false
+        local m = Menu:new({
+          title = "Menu Title",
+          subtitle = "Subtitle",
+          title_bar_left_icon = "back",
+          onLeftButtonTap = function()
+            left_tapped = true
+          end,
+          onLeftButtonHold = function()
+            left_held = true
+          end,
+          item_table = { { text = "Entry" } },
+        })
 
-      assert.is_not_nil(m.title_bar)
-      m:onLeftButtonTap()
-      assert.is_true(left_tapped)
-      m:onLeftButtonHold()
-      assert.is_true(left_held)
+        assert.is_not_nil(m.title_bar)
+        m:onLeftButtonTap()
+        assert.is_true(left_tapped)
+        m:onLeftButtonHold()
+        assert.is_true(left_held)
 
-      m:setTitleBarLeftIcon("home")
-    end)
+        m:setTitleBarLeftIcon("home")
+      end
+    )
   end)
 
   describe("Page calculation and navigation", function()
@@ -200,7 +212,10 @@ describe("Menu widget", function()
     it("should support setupItemHeights with items_max_lines", function()
       local items = {}
       for i = 1, 10 do
-        table.insert(items, { text = "Long multiline item text " .. i, mandatory = "Tag " .. i })
+        table.insert(
+          items,
+          { text = "Long multiline item text " .. i, mandatory = "Tag " .. i }
+        )
       end
       local m = Menu:new({
         title = "Flexible height",
@@ -236,60 +251,69 @@ describe("Menu widget", function()
       assert.are.equal(1, m.page)
     end)
 
-    it("should handle onMenuSelect for callbacks, disabled items, and submenus", function()
-      local callback_called = false
-      local closed = false
+    it(
+      "should handle onMenuSelect for callbacks, disabled items, and submenus",
+      function()
+        local callback_called = false
+        local closed = false
 
-      local sub_table = {
-        {
-          text = "Sub Item 1",
-          callback = function()
-            callback_called = true
-          end,
-        },
-      }
-
-      local m
-      m = Menu:new({
-        title = "Root Menu",
-        close_callback = function()
-          closed = true
-        end,
-        item_table = {
-          { text = "Disabled Item", select_enabled = false, callback = function() end },
+        local sub_table = {
           {
-            text = "Disabled Func Item",
-            select_enabled_func = function() return false end,
-            callback = function() end,
+            text = "Sub Item 1",
+            callback = function()
+              callback_called = true
+            end,
           },
-          { text = "Submenu Item", sub_item_table = sub_table },
-        },
-      })
+        }
 
-      -- Select disabled item
-      m:onMenuSelect(m.item_table[1])
-      assert.is_false(closed)
+        local m
+        m = Menu:new({
+          title = "Root Menu",
+          close_callback = function()
+            closed = true
+          end,
+          item_table = {
+            {
+              text = "Disabled Item",
+              select_enabled = false,
+              callback = function() end,
+            },
+            {
+              text = "Disabled Func Item",
+              select_enabled_func = function()
+                return false
+              end,
+              callback = function() end,
+            },
+            { text = "Submenu Item", sub_item_table = sub_table },
+          },
+        })
 
-      -- Select disabled func item
-      m:onMenuSelect(m.item_table[2])
-      assert.is_false(closed)
+        -- Select disabled item
+        m:onMenuSelect(m.item_table[1])
+        assert.is_false(closed)
 
-      -- Select submenu item
-      m:onMenuSelect(m.item_table[3])
-      assert.are.equal(1, #m.item_table_stack)
-      assert.are.equal("Submenu Item", m.title_bar.title_widget.text)
-      assert.are.equal(1, #m.item_table)
+        -- Select disabled func item
+        m:onMenuSelect(m.item_table[2])
+        assert.is_false(closed)
 
-      -- Select sub item
-      m:onMenuSelect(m.item_table[1])
-      assert.is_true(callback_called)
-      assert.is_true(closed)
+        -- Select submenu item
+        m:onMenuSelect(m.item_table[3])
+        assert.are.equal(1, #m.item_table_stack)
+        assert.are.equal("Submenu Item", m.title_bar.title_widget.text)
+        assert.are.equal(1, #m.item_table)
 
-      -- Exit submenu
-      m:onExit()
-      assert.are.equal(0, #m.item_table_stack)
-      assert.are.equal("Root Menu", m.title_bar.title_widget.text)
-    end)
+        -- Select sub item
+        m:onMenuSelect(m.item_table[1])
+        assert.is_true(callback_called)
+        assert.is_true(closed)
+
+        -- Exit submenu
+        m:onExit()
+        assert.are.equal(0, #m.item_table_stack)
+        assert.are.equal("Root Menu", m.title_bar.title_widget.text)
+      end
+    )
   end)
 
   describe("Event handling", function()
@@ -324,7 +348,10 @@ describe("Menu widget", function()
         title = "Swipe Test",
         items_per_page = 2,
         item_table = {
-          { text = "1" }, { text = "2" }, { text = "3" }, { text = "4" },
+          { text = "1" },
+          { text = "2" },
+          { text = "3" },
+          { text = "4" },
         },
       })
 
@@ -335,7 +362,9 @@ describe("Menu widget", function()
       assert.are.equal(1, m.page)
 
       local exited = false
-      m._closeAllMenus = function() exited = true end
+      m._closeAllMenus = function()
+        exited = true
+      end
       m:onSwipe(nil, { direction = "south" })
       assert.is_true(exited)
     end)
@@ -345,7 +374,10 @@ describe("Menu widget", function()
         title = "Pan Test",
         items_per_page = 2,
         item_table = {
-          { text = "1" }, { text = "2" }, { text = "3" }, { text = "4" },
+          { text = "1" },
+          { text = "2" },
+          { text = "3" },
+          { text = "4" },
         },
       })
 
@@ -361,7 +393,9 @@ describe("Menu widget", function()
       local m = Menu:new({
         title = "Tap Close Test",
         is_popout = true,
-        close_callback = function() closed = true end,
+        close_callback = function()
+          closed = true
+        end,
         item_table = { { text = "Entry" } },
       })
 
@@ -379,7 +413,9 @@ describe("Menu widget", function()
       local closed = false
       local m = Menu:new({
         title = "Misc Events",
-        close_callback = function() closed = true end,
+        close_callback = function()
+          closed = true
+        end,
         item_table = { { text = "Entry" } },
       })
 
@@ -395,10 +431,14 @@ describe("Menu widget", function()
       local m = Menu:new({
         title = "Resize Test",
         item_table = { { text = "Entry" } },
-        _recreate_func = function() recreated = true end,
+        _recreate_func = function()
+          recreated = true
+        end,
         _manager = {
           ui = {
-            onSetRotationMode = function() rotation_set = true end,
+            onSetRotationMode = function()
+              rotation_set = true
+            end,
           },
         },
       })
@@ -431,38 +471,48 @@ describe("Menu widget", function()
       assert.is_not_nil(item_widget)
 
       item_widget:onFocus()
-      assert.are.equal(Blitbuffer.COLOR_BLACK, item_widget._underline_container.color)
+      assert.are.equal(
+        Blitbuffer.COLOR_BLACK,
+        item_widget._underline_container.color
+      )
 
       item_widget:onUnfocus()
-      assert.are.equal(Blitbuffer.COLOR_GRAY, item_widget._underline_container.color)
+      assert.are.equal(
+        Blitbuffer.COLOR_GRAY,
+        item_widget._underline_container.color
+      )
     end)
 
-    it("should render MenuItem options (single line, dots, baselines, mandatory, post_text)", function()
-      local m = Menu:new({
-        title = "MenuItem Render Options Test",
-        single_line = true,
-        align_baselines = true,
-        with_dots = true,
-        item_table = {
-          {
-            text = "Full item text",
-            post_text = " (10p)",
-            mandatory = "100 KB",
-            mandatory_dim = true,
-            bold = true,
-            dim = true,
+    it(
+      "should render MenuItem options (single line, dots, baselines, mandatory, post_text)",
+      function()
+        local m = Menu:new({
+          title = "MenuItem Render Options Test",
+          single_line = true,
+          align_baselines = true,
+          with_dots = true,
+          item_table = {
+            {
+              text = "Full item text",
+              post_text = " (10p)",
+              mandatory = "100 KB",
+              mandatory_dim = true,
+              bold = true,
+              dim = true,
+            },
           },
-        },
-      })
+        })
 
-      local item_widget = m.item_group[1]
-      assert.is_not_nil(item_widget)
-      assert.is_true(item_widget.single_line)
-      assert.is_true(item_widget.with_dots)
+        local item_widget = m.item_group[1]
+        assert.is_not_nil(item_widget)
+        assert.is_true(item_widget.single_line)
+        assert.is_true(item_widget.with_dots)
 
-      local dots_text, min_width = item_widget:getDotsText(item_widget.info_face)
-      assert.is_not_nil(dots_text)
-      assert.is_true(min_width > 0)
-    end)
+        local dots_text, min_width =
+          item_widget:getDotsText(item_widget.info_face)
+        assert.is_not_nil(dots_text)
+        assert.is_true(min_width > 0)
+      end
+    )
   end)
 end)

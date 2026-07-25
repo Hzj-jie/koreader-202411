@@ -1,8 +1,6 @@
-local workspace = os.getenv("KO_WORKSPACE_DIR") or "."
-
 return {
-  statsfile = workspace .. "/luacov.stats.out",
-  reportfile = workspace .. "/luacov.report.out",
+  statsfile = os.getenv("LUACOV_STATS_FILE") or ((os.getenv("KO_WORKSPACE_DIR") or ".") .. "/luacov.stats.out"),
+  reportfile = (os.getenv("KO_WORKSPACE_DIR") or ".") .. "/luacov.report.out",
 
   modules = {
     ["frontend.*"] = "koreader",

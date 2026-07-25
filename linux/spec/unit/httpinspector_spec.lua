@@ -18,7 +18,9 @@ describe("HttpInspector plugin tests", function()
     local i = 1
     while true do
       local name, val = debug.getupvalue(widget.onEnterStandby, i)
-      if not name then break end
+      if not name then
+        break
+      end
       if name == "HttpInspector" then
         return val
       end
@@ -39,7 +41,9 @@ describe("HttpInspector plugin tests", function()
     local n = 1
     while true do
       local name, value = debug.getupvalue(Dispatcher.init, n)
-      if not name then break end
+      if not name then
+        break
+      end
       if name == "settingsList" then
         settings = value
         break
@@ -49,13 +53,26 @@ describe("HttpInspector plugin tests", function()
     if settings then
       for _, action in pairs(settings) do
         if type(action) == "table" then
-          if action.category == "string" and not action.args and not action.args_func then
+          if
+            action.category == "string"
+            and not action.args
+            and not action.args_func
+          then
             action.args = { "opt1" }
             action.toggle = { "Option 1" }
-          elseif action.category == "absolutenumber" or action.category == "incrementalnumber" then
-            if not action.min then action.min = 1 end
-            if not action.max then action.max = 100 end
-          elseif action.category == "configurable" and not action.configurable then
+          elseif
+            action.category == "absolutenumber"
+            or action.category == "incrementalnumber"
+          then
+            if not action.min then
+              action.min = 1
+            end
+            if not action.max then
+              action.max = 100
+            end
+          elseif
+            action.category == "configurable" and not action.configurable
+          then
             action.configurable = { name = "cfg", values = { "val1" } }
             action.toggle = { "Option 1" }
           end
@@ -86,9 +103,15 @@ describe("HttpInspector plugin tests", function()
     local ReaderZooming = require("apps/reader/modules/readerzooming")
     local fontlist = require("fontlist")
 
-    stub(FileManager, "getDisplayModeActions").returns({ "classic" }, { "Classic" })
+    stub(FileManager, "getDisplayModeActions").returns(
+      { "classic" },
+      { "Classic" }
+    )
     stub(FileManager, "getSortByActions").returns({ "name" }, { "Name" })
-    stub(ReaderHighlight, "getHighlightActions").returns({ "highlight" }, { "Highlight" })
+    stub(ReaderHighlight, "getHighlightActions").returns(
+      { "highlight" },
+      { "Highlight" }
+    )
     stub(ReaderZooming, "getZoomModeActions").returns({ "page" }, { "Page" })
     stub(fontlist, "getFontArgFunc").returns({ "font1" }, { "Font1" })
 
@@ -263,7 +286,9 @@ describe("HttpInspector plugin tests", function()
 
       assert.are.equal(42, sent_id)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
-      assert.is_not_nil(sent_data:find("Content%-Type: text/plain; charset=utf%-8"))
+      assert.is_not_nil(
+        sent_data:find("Content%-Type: text/plain; charset=utf%-8")
+      )
       assert.is_not_nil(sent_data:find("Content%-Length: 11"))
       assert.is_not_nil(sent_data:find("Hello World"))
     end)
@@ -282,21 +307,24 @@ describe("HttpInspector plugin tests", function()
       assert.is_not_nil(sent_data:find("Only GET supported"))
     end)
 
-    it("redirects root GET request / to /koreader/ when index.html missing", function()
-      local orig_open = io.open
-      stub(io, "open").invokes(function(filepath, mode)
-        if filepath == "web/index.html" then
-          return nil
-        end
-        return orig_open(filepath, mode)
-      end)
+    it(
+      "redirects root GET request / to /koreader/ when index.html missing",
+      function()
+        local orig_open = io.open
+        stub(io, "open").invokes(function(filepath, mode)
+          if filepath == "web/index.html" then
+            return nil
+          end
+          return orig_open(filepath, mode)
+        end)
 
-      HttpInspector:_processRequest("GET / HTTP/1.1\r\n\r\n", 11)
-      assert.is_not_nil(sent_data:find("HTTP/1.0 302 Found"))
-      assert.is_not_nil(sent_data:find("Location: /koreader/"))
+        HttpInspector:_processRequest("GET / HTTP/1.1\r\n\r\n", 11)
+        assert.is_not_nil(sent_data:find("HTTP/1.0 302 Found"))
+        assert.is_not_nil(sent_data:find("Location: /koreader/"))
 
-      io.open:revert()
-    end)
+        io.open:revert()
+      end
+    )
 
     it("returns 404 for missing static files", function()
       HttpInspector:_processRequest("GET /nonexistent.txt HTTP/1.1\r\n\r\n", 12)
@@ -311,7 +339,10 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("returns 404 for unknown entry point under /koreader/", function()
-      HttpInspector:_processRequest("GET /koreader/unknown_entry/ HTTP/1.1\r\n\r\n", 14)
+      HttpInspector:_processRequest(
+        "GET /koreader/unknown_entry/ HTTP/1.1\r\n\r\n",
+        14
+      )
       assert.is_not_nil(sent_data:find("HTTP/1.0 404 Not Found"))
       assert.is_not_nil(sent_data:find("Unknown entry point."))
     end)
@@ -336,7 +367,8 @@ describe("HttpInspector plugin tests", function()
 
     it("exposes tables as HTML or JSON", function()
       local test_obj = { num = 42, str = "test", fn = function() end }
-      local reqinfo = { request_id = 1, parsed_uri = "/test", uri = "/test/", fragments = {} }
+      local reqinfo =
+        { request_id = 1, parsed_uri = "/test", uri = "/test/", fragments = {} }
 
       -- Trailing slash: browseObject HTML
       HttpInspector:exposeObject(test_obj, "/", reqinfo)
@@ -353,13 +385,23 @@ describe("HttpInspector plugin tests", function()
 
     it("navigates into nested table keys and handles missing keys", function()
       local test_obj = { child = { value = "inner" } }
-      local reqinfo = { request_id = 1, parsed_uri = "/test", uri = "/test/child/value", fragments = {} }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test",
+        uri = "/test/child/value",
+        fragments = {},
+      }
 
       HttpInspector:exposeObject(test_obj, "/child/value", reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
       assert.is_not_nil(sent_data:find("inner"))
 
-      reqinfo = { request_id = 1, parsed_uri = "/test", uri = "/test/missing_key/", fragments = {} }
+      reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test",
+        uri = "/test/missing_key/",
+        fragments = {},
+      }
       HttpInspector:exposeObject(test_obj, "/missing_key/", reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 404 Not Found"))
       assert.is_not_nil(sent_data:find("No such table/object key"))
@@ -369,14 +411,26 @@ describe("HttpInspector plugin tests", function()
       local test_obj = { count = 10 }
 
       -- TEXT assignment =
-      local reqinfo = { request_id = 1, parsed_uri = "/test", uri = "/test/count=20", fragments = { "count", "test_obj" } }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test",
+        uri = "/test/count=20",
+        fragments = { "count", "test_obj" },
+      }
       HttpInspector:exposeObject(test_obj, "/count=20", reqinfo)
       assert.are.equal(20, test_obj.count)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
-      assert.is_not_nil(sent_data:find("Variable '/test/count' assigned with: 20"))
+      assert.is_not_nil(
+        sent_data:find("Variable '/test/count' assigned with: 20")
+      )
 
       -- HTML assignment ?=
-      reqinfo = { request_id = 1, parsed_uri = "/test", uri = "/test/count?=30", fragments = { "count", "test_obj" } }
+      reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test",
+        uri = "/test/count?=30",
+        fragments = { "count", "test_obj" },
+      }
       HttpInspector:exposeObject(test_obj, "/count?=30", reqinfo)
       assert.are.equal(30, test_obj.count)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
@@ -384,18 +438,34 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("shows function details on ?", function()
-      local sample_fn = function(a, b) return a + b end
-      local reqinfo = { request_id = 1, parsed_uri = "/test/fn", uri = "/test/fn?", fragments = { "fn" } }
+      local sample_fn = function(a, b)
+        return a + b
+      end
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test/fn",
+        uri = "/test/fn?",
+        fragments = { "fn" },
+      }
 
       HttpInspector:exposeObject(sample_fn, "?", reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
       assert.is_not_nil(sent_data:find("text/html"))
-      assert.is_not_nil(sent_data:find("accepting or requiring up to 2 arguments"))
+      assert.is_not_nil(
+        sent_data:find("accepting or requiring up to 2 arguments")
+      )
     end)
 
     it("calls function and returns JSON or HTML results", function()
-      local add_fn = function(a, b) return a + b end
-      local reqinfo = { request_id = 1, parsed_uri = "/add", uri = "/add/5/10", fragments = { "add" } }
+      local add_fn = function(a, b)
+        return a + b
+      end
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/add",
+        uri = "/add/5/10",
+        fragments = { "add" },
+      }
 
       -- Call as JSON
       HttpInspector:callFunction(add_fn, nil, "5/10", false, reqinfo)
@@ -403,7 +473,12 @@ describe("HttpInspector plugin tests", function()
       assert.is_not_nil(sent_data:find("%[15%]"))
 
       -- Call as HTML
-      reqinfo = { request_id = 1, parsed_uri = "/add", uri = "/add/5/10", fragments = { "add" } }
+      reqinfo = {
+        request_id = 1,
+        parsed_uri = "/add",
+        uri = "/add/5/10",
+        fragments = { "add" },
+      }
       HttpInspector:callFunction(add_fn, nil, "5/10", true, reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
       assert.is_not_nil(sent_data:find("Success"))
@@ -411,8 +486,15 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("handles function execution errors with 500 status code", function()
-      local err_fn = function() error("something went wrong") end
-      local reqinfo = { request_id = 1, parsed_uri = "/err", uri = "/err/", fragments = { "err" } }
+      local err_fn = function()
+        error("something went wrong")
+      end
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/err",
+        uri = "/err/",
+        fragments = { "err" },
+      }
 
       HttpInspector:callFunction(err_fn, nil, "", false, reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 500 Internal Server Error"))
@@ -421,7 +503,10 @@ describe("HttpInspector plugin tests", function()
 
     it("handles BlitBuffer rendering as PNG", function()
       local ffi = require("ffi")
-      pcall(ffi.cdef, "typedef struct { int dummy_field; } mock_bb_httpinspector_t;")
+      pcall(
+        ffi.cdef,
+        "typedef struct { int dummy_field; } mock_bb_httpinspector_t;"
+      )
       local mock_cdata = ffi.new("mock_bb_httpinspector_t")
       local mt = {
         __index = {
@@ -436,7 +521,8 @@ describe("HttpInspector plugin tests", function()
       }
       pcall(ffi.metatype, "mock_bb_httpinspector_t", mt)
 
-      local reqinfo = { request_id = 1, parsed_uri = "/bb", uri = "/bb", fragments = {} }
+      local reqinfo =
+        { request_id = 1, parsed_uri = "/bb", uri = "/bb", fragments = {} }
 
       HttpInspector:exposeObject(mock_cdata, "", reqinfo)
       assert.is_not_nil(sent_data)
@@ -447,7 +533,12 @@ describe("HttpInspector plugin tests", function()
 
     it("rejects non-serializable cdata/userdata with 403", function()
       local dummy_thread = coroutine.create(function() end)
-      local reqinfo = { request_id = 1, parsed_uri = "/thread", uri = "/thread", fragments = {} }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/thread",
+        uri = "/thread",
+        fragments = {},
+      }
 
       HttpInspector:exposeObject(dummy_thread, "", reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 403 Forbidden"))
@@ -473,14 +564,26 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("exposes dispatcher actions list when no event provided", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/event", uri = "/koreader/event", fragments = { "event" } }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/event",
+        uri = "/koreader/event",
+        fragments = { "event" },
+      }
       HttpInspector:exposeEvent("", reqinfo)
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK", 1, true))
-      assert.is_not_nil(sent_data:find("List of high-level KOReader events", 1, true))
+      assert.is_not_nil(
+        sent_data:find("List of high-level KOReader events", 1, true)
+      )
     end)
 
     it("schedules event sending when event and args are provided", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/event", uri = "/koreader/event/Close", fragments = { "event" } }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/event",
+        uri = "/koreader/event/Close",
+        fragments = { "event" },
+      }
       HttpInspector:exposeEvent("/Close", reqinfo)
 
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
@@ -494,7 +597,12 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("handles multiple chained events separated by &", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/event", uri = "/koreader/event/Goto/5/&/Close", fragments = { "event" } }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/event",
+        uri = "/koreader/event/Goto/5/&/Close",
+        fragments = { "event" },
+      }
       HttpInspector:exposeEvent("/Goto/5/&/Close", reqinfo)
 
       assert.is_not_nil(sent_data:find("Event sent: Goto, Close"))
@@ -504,25 +612,43 @@ describe("HttpInspector plugin tests", function()
       assert.are.equal(2, #UIManager.userInput.calls)
     end)
 
-    it("schedules broadcast event when exposeBroadcastEvent is called", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/broadcast", uri = "/koreader/broadcast", fragments = { "broadcast" } }
+    it(
+      "schedules broadcast event when exposeBroadcastEvent is called",
+      function()
+        local reqinfo = {
+          request_id = 1,
+          parsed_uri = "/koreader/broadcast",
+          uri = "/koreader/broadcast",
+          fragments = { "broadcast" },
+        }
 
-      -- Without event: HTML instructions
-      HttpInspector:exposeBroadcastEvent("", reqinfo)
-      assert.is_not_nil(sent_data:find("Broadcast event"))
+        -- Without event: HTML instructions
+        HttpInspector:exposeBroadcastEvent("", reqinfo)
+        assert.is_not_nil(sent_data:find("Broadcast event"))
 
-      -- With event: schedule broadcast
-      reqinfo = { request_id = 1, parsed_uri = "/koreader/broadcast", uri = "/koreader/broadcast/Bookmark", fragments = { "broadcast" } }
-      HttpInspector:exposeBroadcastEvent("/Bookmark", reqinfo)
-      assert.is_not_nil(sent_data:find("Event broadcasted: Bookmark"))
+        -- With event: schedule broadcast
+        reqinfo = {
+          request_id = 1,
+          parsed_uri = "/koreader/broadcast",
+          uri = "/koreader/broadcast/Bookmark",
+          fragments = { "broadcast" },
+        }
+        HttpInspector:exposeBroadcastEvent("/Bookmark", reqinfo)
+        assert.is_not_nil(sent_data:find("Event broadcasted: Bookmark"))
 
-      local tick_fn = UIManager.nextTick.calls[1].refs[2]
-      tick_fn()
-      assert.stub(UIManager.broadcastEvent).was_called()
-    end)
+        local tick_fn = UIManager.nextTick.calls[1].refs[2]
+        tick_fn()
+        assert.stub(UIManager.broadcastEvent).was_called()
+      end
+    )
 
     it("injects touch gesture when coordinates are valid", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/touch", uri = "/koreader/touch/100/200", fragments = {} }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/touch",
+        uri = "/koreader/touch/100/200",
+        fragments = {},
+      }
       HttpInspector:exposeTouch("/100/200", reqinfo)
 
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
@@ -535,7 +661,12 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("returns error 500 when exposeTouch has invalid coordinates", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/touch", uri = "/koreader/touch/100", fragments = {} }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/touch",
+        uri = "/koreader/touch/100",
+        fragments = {},
+      }
       HttpInspector:exposeTouch("/100", reqinfo)
 
       assert.is_not_nil(sent_data:find("HTTP/1.0 500 Internal Server Error"))
@@ -543,7 +674,12 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("injects key press and release events when key code is valid", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/key", uri = "/koreader/key/Esc", fragments = {} }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/key",
+        uri = "/koreader/key/Esc",
+        fragments = {},
+      }
       HttpInspector:exposeKey("/Esc", reqinfo)
 
       assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
@@ -557,7 +693,12 @@ describe("HttpInspector plugin tests", function()
     end)
 
     it("returns error 500 when exposeKey is missing keycode", function()
-      local reqinfo = { request_id = 1, parsed_uri = "/koreader/key", uri = "/koreader/key", fragments = {} }
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/key",
+        uri = "/koreader/key",
+        fragments = {},
+      }
       HttpInspector:exposeKey("", reqinfo)
 
       assert.is_not_nil(sent_data:find("HTTP/1.0 500 Internal Server Error"))

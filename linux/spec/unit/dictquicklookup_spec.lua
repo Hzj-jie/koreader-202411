@@ -49,7 +49,11 @@ describe("DictQuickLookup", function()
       end
     end
     UIManager.broadcastEvent = function() end
-    UIManager.scheduleIn = function(_, fn) if fn then fn() end end
+    UIManager.scheduleIn = function(_, fn)
+      if fn then
+        fn()
+      end
+    end
     UIManager.scheduleRefresh = function() end
   end)
 
@@ -86,11 +90,21 @@ describe("DictQuickLookup", function()
   describe("getWikiSaveEpubDefaultDir", function()
     it("should handle home_dir with and without trailing slash", function()
       local old_home = G_named_settings.home_dir
-      G_named_settings.home_dir = function() return "/home/user/" end
-      assert.are.equal("/home/user/Wikipedia", DictQuickLookup.getWikiSaveEpubDefaultDir())
+      G_named_settings.home_dir = function()
+        return "/home/user/"
+      end
+      assert.are.equal(
+        "/home/user/Wikipedia",
+        DictQuickLookup.getWikiSaveEpubDefaultDir()
+      )
 
-      G_named_settings.home_dir = function() return "/home/user" end
-      assert.are.equal("/home/user/Wikipedia", DictQuickLookup.getWikiSaveEpubDefaultDir())
+      G_named_settings.home_dir = function()
+        return "/home/user"
+      end
+      assert.are.equal(
+        "/home/user/Wikipedia",
+        DictQuickLookup.getWikiSaveEpubDefaultDir()
+      )
 
       G_named_settings.home_dir = old_home
     end)
@@ -274,7 +288,9 @@ describe("DictQuickLookup", function()
   describe("Lifecycle events (onShow, onClose, onExit, onHoldClose)", function()
     it("should set dirty on onShow and onClose", function()
       local dirty_called = false
-      UIManager.setDirty = function() dirty_called = true end
+      UIManager.setDirty = function()
+        dirty_called = true
+      end
 
       local lookup = DictQuickLookup:new({
         word = "test",
@@ -291,13 +307,25 @@ describe("DictQuickLookup", function()
     it("should cleanup image blitbuffers on onClose", function()
       local free_called = false
       local dummy_bb = setmetatable({
-        free = function() free_called = true end,
-        getType = function() return "bb" end,
-        getWidth = function() return 10 end,
-        getHeight = function() return 10 end,
-        getInverse = function(s) return s end,
+        free = function()
+          free_called = true
+        end,
+        getType = function()
+          return "bb"
+        end,
+        getWidth = function()
+          return 10
+        end,
+        getHeight = function()
+          return 10
+        end,
+        getInverse = function(s)
+          return s
+        end,
       }, {
-        __index = function() return function() end end,
+        __index = function()
+          return function() end
+        end,
       })
       local results = createDummyResults()
       results[1].images = { { bb = dummy_bb, width = 10, height = 10 } }
@@ -316,9 +344,13 @@ describe("DictQuickLookup", function()
       local broadcast_called = false
       UIManager.close = function(_, widget)
         close_called = true
-        if widget and widget.onClose then widget:onClose() end
+        if widget and widget.onClose then
+          widget:onClose()
+        end
       end
-      UIManager.broadcastEvent = function() broadcast_called = true end
+      UIManager.broadcastEvent = function()
+        broadcast_called = true
+      end
 
       local lookup = DictQuickLookup:new({
         word = "test",
@@ -338,9 +370,15 @@ describe("DictQuickLookup", function()
       local save_called = false
       local clear_called = false
       local mock_highlight = {
-        saveHighlight = function() save_called = true end,
-        clear = function() clear_called = true end,
-        getClearId = function() return 1 end,
+        saveHighlight = function()
+          save_called = true
+        end,
+        clear = function()
+          clear_called = true
+        end,
+        getClearId = function()
+          return 1
+        end,
       }
 
       local lookup = DictQuickLookup:new({
@@ -359,7 +397,9 @@ describe("DictQuickLookup", function()
       local closed_count = 0
       UIManager.close = function(_, widget)
         closed_count = closed_count + 1
-        if widget and widget.onClose then widget:onClose() end
+        if widget and widget.onClose then
+          widget:onClose()
+        end
       end
 
       local _lookup1 = DictQuickLookup:new({
@@ -418,7 +458,9 @@ describe("DictQuickLookup", function()
       local mock_highlight = {
         saveHighlight = function() end,
         clear = function() end,
-        getClearId = function() return 1 end,
+        getClearId = function()
+          return 1
+        end,
       }
 
       local lookup = DictQuickLookup:new({
@@ -436,24 +478,27 @@ describe("DictQuickLookup", function()
       assert.is_true(lookup.save_highlight)
     end)
 
-    it("should build wiki fullpage layout with Save and Close buttons", function()
-      local results = createDummyResults()
-      results[1].is_wiki_fullpage = true
+    it(
+      "should build wiki fullpage layout with Save and Close buttons",
+      function()
+        local results = createDummyResults()
+        results[1].is_wiki_fullpage = true
 
-      local lookup = DictQuickLookup:new({
-        word = "test",
-        results = results,
-        is_wiki = true,
-        ui = dummy_ui,
-        is_wiki_fullpage = true,
-      })
+        local lookup = DictQuickLookup:new({
+          word = "test",
+          results = results,
+          is_wiki = true,
+          ui = dummy_ui,
+          is_wiki_fullpage = true,
+        })
 
-      local save_btn = lookup.button_table:getButtonById("save")
-      assert.truthy(save_btn)
+        local save_btn = lookup.button_table:getButtonById("save")
+        assert.truthy(save_btn)
 
-      local close_btn = lookup.button_table:getButtonById("close")
-      assert.truthy(close_btn)
-    end)
+        local close_btn = lookup.button_table:getButtonById("close")
+        assert.truthy(close_btn)
+      end
+    )
 
     it("should build link button when selected_link is present", function()
       local lookup = DictQuickLookup:new({
@@ -549,36 +594,41 @@ describe("DictQuickLookup", function()
 
       -- Swipe north -> refresh callback
       local refreshed = false
-      lookup.refresh_callback = function() refreshed = true end
+      lookup.refresh_callback = function()
+        refreshed = true
+      end
       local swipe_north = { pos = def_dimen:copy(), direction = "north" }
       assert.is_false(lookup:onSwipe(nil, swipe_north))
       assert.is_true(refreshed)
     end)
 
-    it("should handle forwarding text hold, touch, and mousewheel events", function()
-      local lookup = DictQuickLookup:new({
-        word = "test",
-        results = createDummyResults(),
-      })
+    it(
+      "should handle forwarding text hold, touch, and mousewheel events",
+      function()
+        local lookup = DictQuickLookup:new({
+          word = "test",
+          results = createDummyResults(),
+        })
 
-      local ev = { pos = Geom:new({ x = 0, y = 0, w = 1, h = 1 }) }
-      lookup:onHoldStartText(nil, ev)
-      lookup:onHoldPanText(nil, ev)
-      lookup:onHoldReleaseText(nil, ev)
-      lookup:onForwardingTouch(nil, ev)
-      lookup:onForwardingPan(nil, ev)
+        local ev = { pos = Geom:new({ x = 0, y = 0, w = 1, h = 1 }) }
+        lookup:onHoldStartText(nil, ev)
+        lookup:onHoldPanText(nil, ev)
+        lookup:onHoldReleaseText(nil, ev)
+        lookup:onForwardingTouch(nil, ev)
+        lookup:onForwardingPan(nil, ev)
 
-      -- Mousewheel scrolling forward / backward
-      local mw_down = { from_mousewheel = true, relative = { y = -1 } }
-      assert.is_true(lookup:onForwardingPanRelease(nil, mw_down))
+        -- Mousewheel scrolling forward / backward
+        local mw_down = { from_mousewheel = true, relative = { y = -1 } }
+        assert.is_true(lookup:onForwardingPanRelease(nil, mw_down))
 
-      local mw_up = { from_mousewheel = true, relative = { y = 1 } }
-      assert.is_true(lookup:onForwardingPanRelease(nil, mw_up))
-    end)
+        local mw_up = { from_mousewheel = true, relative = { y = 1 } }
+        assert.is_true(lookup:onForwardingPanRelease(nil, mw_up))
+      end
+    )
 
     it("should adjust window position based on word_boxes", function()
       local word_boxes = {
-        Geom:new({ x = 10, y = 200, w = 100, h = 30 })
+        Geom:new({ x = 10, y = 200, w = 100, h = 30 }),
       }
 
       local lookup = DictQuickLookup:new({
