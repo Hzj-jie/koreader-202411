@@ -24,7 +24,7 @@ os.exit = function(code, close)
 end
 
 -- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
-package.path = "./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;;"
+package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
 package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
 -- 2. Load framework unit test helpers
@@ -317,6 +317,13 @@ if not test_file then
 end
 
 -- 4. Execute Busted runner (loads options automatically from .busted config file)
+pcall(function()
+    local runner = require("luacov.runner")
+    if runner and runner.debug_hook then
+        debug.sethook(runner.debug_hook, "l")
+    end
+end)
+
 local ok, err = pcall(function()
     require("busted.runner")({ standalone = false })
 end)
@@ -330,5 +337,13 @@ end
 collectgarbage("collect")
 collectgarbage("collect")
 
--- 6. Exit cleanly bypassing out-of-order VM teardown crashes
+-- 6. Flush luacov statistics if coverage runner is active
+pcall(function()
+    local runner = require("luacov.runner")
+    if runner and runner.save_stats then
+        runner.save_stats()
+    end
+end)
+
+-- 7. Exit cleanly bypassing out-of-order VM teardown crashes
 original_os_exit(exit_code, false)

@@ -3,6 +3,8 @@ return {
   reportfile = "luacov.report.out",
 
   include = {
+    "^frontend/",
+    "^plugins/",
     "^koreader/frontend/",
     "^koreader/plugins/",
   },
