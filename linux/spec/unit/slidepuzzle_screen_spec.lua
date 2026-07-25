@@ -3,7 +3,8 @@ describe("SlidePuzzleScreen module", function()
 
   setup(function()
     require("commonrequire")
-    SlidePuzzleScreen = require("plugins/slidepuzzle.koplugin/slidepuzzle_screen")
+    SlidePuzzleScreen =
+      require("plugins/slidepuzzle.koplugin/slidepuzzle_screen")
     Game = require("plugins/slidepuzzle.koplugin/slidepuzzle_game")
   end)
 
@@ -13,9 +14,13 @@ describe("SlidePuzzleScreen module", function()
       game = game,
       plugin = {
         path = "plugins/slidepuzzle.koplugin",
-        getStats = function() return {} end,
+        getStats = function()
+          return {}
+        end,
         settings = {
-          read = function() return {} end,
+          read = function()
+            return {}
+          end,
         },
       },
     })

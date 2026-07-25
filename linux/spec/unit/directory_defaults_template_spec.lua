@@ -3,7 +3,8 @@ describe("DirectoryDefaultsTemplate module", function()
 
   setup(function()
     require("commonrequire")
-    Template = require("plugins/docsettingtweak.koplugin/directory_defaults_template")
+    Template =
+      require("plugins/docsettingtweak.koplugin/directory_defaults_template")
   end)
 
   it("should return directory defaults template table", function()

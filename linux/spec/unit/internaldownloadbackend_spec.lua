@@ -3,7 +3,8 @@ describe("InternalDownloadBackend module", function()
 
   setup(function()
     require("commonrequire")
-    InternalDownloadBackend = require("plugins/newsdownloader.koplugin/internaldownloadbackend")
+    InternalDownloadBackend =
+      require("plugins/newsdownloader.koplugin/internaldownloadbackend")
   end)
 
   it("should expose InternalDownloadBackend table", function()

@@ -3,7 +3,8 @@ describe("Game2048WidgetTheme module", function()
 
   setup(function()
     require("commonrequire")
-    Game2048WidgetTheme = require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")
+    Game2048WidgetTheme =
+      require("plugins/game2048.koplugin/ui/theme/game2048widgettheme")
   end)
 
   it("should expose Game2048WidgetTheme table", function()

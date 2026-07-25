@@ -3,7 +3,8 @@ describe("ScoreBoardWidget widget", function()
 
   setup(function()
     require("commonrequire")
-    ScoreBoardWidget = require("plugins/game2048.koplugin/ui/widget/scoreboardwidget")
+    ScoreBoardWidget =
+      require("plugins/game2048.koplugin/ui/widget/scoreboardwidget")
   end)
 
   it("should initialize ScoreBoardWidget", function()
