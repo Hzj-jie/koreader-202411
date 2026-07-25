@@ -1,0 +1,16 @@
+describe("BookMapWidget widget", function()
+  setup(function()
+    require("commonrequire")
+  end)
+
+  it("should require BookMapWidget module", function()
+    local BookMapWidget = require("ui/widget/bookmapwidget")
+    assert.is_table(BookMapWidget)
+    assert.is_function(BookMapWidget.new)
+  end)
+
+  it("should expose BookMapRow subwidget", function()
+    local BookMapWidget = require("ui/widget/bookmapwidget")
+    assert.is_table(BookMapWidget.BookMapRow)
+  end)
+end)
