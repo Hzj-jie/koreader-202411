@@ -1,0 +1,18 @@
+return {
+  statsfile = "luacov.stats.out",
+  reportfile = "luacov.report.out",
+
+  include = {
+    "^koreader/frontend/",
+    "^koreader/plugins/",
+  },
+
+  exclude = {
+    "^linux/spec/",
+    "^koreader/ffi/",
+    "^koreader/common/",
+    "^koreader/jit/",
+    "_spec$",
+    "_meta$",
+  },
+}

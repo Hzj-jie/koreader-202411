@@ -9,3 +9,10 @@ native/ffi/libffi-*
 native/lfs/luafilesystem-*
 origin.linux/
 .aider*
+scratch/
+pending-changes.txt
+linux/screenshots/
+*.un~
+luacov.stats.out
+luacov.report.out
+
