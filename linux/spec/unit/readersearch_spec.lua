@@ -298,5 +298,10 @@ describe("Readersearch module", function()
         UIManager.closeIfShown = original_closeIfShown
       end
     )
+
+    it("should verify readersearch module", function()
+      local ReaderSearch = require("apps/reader/modules/readersearch")
+      assert.is_table(ReaderSearch)
+    end)
   end)
 end)
