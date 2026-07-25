@@ -3,12 +3,16 @@ describe("Sokoban extra levels data modules", function()
 
   setup(function()
     require("commonrequire")
-    OriginalPlusExtra = require("plugins/sokoban.koplugin/levels/original-plus-extra")
+    OriginalPlusExtra =
+      require("plugins/sokoban.koplugin/levels/original-plus-extra")
     Sasquatch = require("plugins/sokoban.koplugin/levels/sasquatch")
   end)
 
-  it("should return level tables for original-plus-extra and sasquatch", function()
-    assert.is_table(OriginalPlusExtra)
-    assert.is_table(Sasquatch)
-  end)
+  it(
+    "should return level tables for original-plus-extra and sasquatch",
+    function()
+      assert.is_table(OriginalPlusExtra)
+      assert.is_table(Sasquatch)
+    end
+  )
 end)
