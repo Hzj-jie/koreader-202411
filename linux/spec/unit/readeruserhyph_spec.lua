@@ -18,8 +18,18 @@ describe("ReaderUserHyph module", function()
 
     local userhyph = readerui.userhyph
     assert.is_table(userhyph)
+    assert.is_function(userhyph.getDictionaryPath)
+
+    local dict_path = userhyph:getDictionaryPath()
+    assert.is_string(dict_path)
 
     readerui:onExit()
     readerui:onClose()
+  end)
+
+  it("should validate hyphenation suggestions", function()
+    assert.is_true(ReaderUserHyph:checkHyphenation("hy-phe-na-tion", "hyphenation"))
+    assert.is_false(ReaderUserHyph:checkHyphenation("hy--phenation", "hyphenation"))
+    assert.is_false(ReaderUserHyph:checkHyphenation("different", "hyphenation"))
   end)
 end)
