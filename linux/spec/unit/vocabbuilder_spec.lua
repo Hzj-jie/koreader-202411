@@ -23,4 +23,17 @@ describe("VocabBuilder plugin", function()
     vb:addToMainMenu(items)
     assert.is_table(items.vocabbuilder)
   end)
+
+  it("should test settings initialization and options", function()
+    local vb = VocabBuilder:new({
+      ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      },
+    })
+    vb:init()
+    assert.is_table(vb.ui)
+    assert.is_function(vb.onWordLookedUp)
+  end)
 end)
