@@ -178,16 +178,16 @@ if not test_file then
             luacov_env = string.format("LUACOV_STATS_FILE=%q ", lfs.currentdir() .. "/luacov.stats.worker_" .. idx .. ".out")
         end
 
+        worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
+        lfs.mkdir(worker_config_dir)
         if use_isolated_env then
-            worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
-            lfs.mkdir(worker_config_dir)
             -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
             -- writes to this isolated directory, preventing parallel file access conflicts!
             -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
             cmd = string.format("%sKO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_config_dir, lua_flags, spec_path)
         else
-            -- Run without environment manipulation for exempted tests
-            cmd = string.format("%s./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, lua_flags, spec_path)
+            -- Run without KO_MULTIUSER=1 for exempted tests, but keep XDG_CONFIG_HOME isolated to prevent race conditions
+            cmd = string.format("%sXDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_config_dir, lua_flags, spec_path)
         end
 
         local pipe = io.popen(cmd)
