@@ -6,7 +6,13 @@ return {
 
   modules = {
     ["frontend.*"] = "koreader",
+    ["frontend.*.*"] = "koreader",
+    ["frontend.*.*.*"] = "koreader",
+    ["document.*"] = "koreader/frontend/document",
+    ["document.*.*"] = "koreader/frontend/document",
     ["plugins.*"] = "koreader",
+    ["plugins.*.*"] = "koreader",
+    ["plugins.*.*.*"] = "koreader",
   },
 
   include = {
