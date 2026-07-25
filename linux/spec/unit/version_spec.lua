@@ -1,3 +1,4 @@
+-- luacheck: globals io.open
 describe("Version module", function()
   local Version
   setup(function()
@@ -6,8 +7,8 @@ describe("Version module", function()
   end)
   it("should get current revision", function()
     local rev = Version:getCurrentRevision()
-    local year, month, point, revision =
-      rev:match("v(%d%d%d%d)%.(%d%d)%.?(%d?)-?(%d*)") -- luacheck: ignore 211
+    local year, month =
+      rev:match("v(%d%d%d%d)%.(%d%d)%.?(%d?)-?(%d*)")
     local commit = rev:match("-%d*-g(%x*)[%d_%-]*") -- luacheck: ignore 211
     assert.is_truthy(year)
     assert.is_truthy(month)

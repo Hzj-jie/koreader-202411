@@ -1,3 +1,4 @@
+-- luacheck: globals os.time os.date package.unloadAll
 describe("Readerfooter module", function()
   local DocumentRegistry, ReaderUI, ReaderFooter, DocSettings, UIManager
   local purgeDir, Screen, copyFile

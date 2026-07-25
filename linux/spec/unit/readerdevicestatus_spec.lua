@@ -1,3 +1,4 @@
+-- luacheck: globals io.open
 describe("ReaderDeviceStatus", function()
   local ReaderDeviceStatus
   local UIManager
@@ -73,7 +74,7 @@ describe("ReaderDeviceStatus", function()
 
     -- Mock G_reader_settings
     _G.G_reader_settings = {
-      read = function(self, key)
+      read = function(self, _key)
         if key == "device_status_battery_threshold" then
           return 20
         end

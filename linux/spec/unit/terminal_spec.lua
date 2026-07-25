@@ -1,5 +1,6 @@
+-- luacheck: globals package.unloadAll
 describe("Terminal plugin button tap integration", function()
-  local UIManager, Screen, FileManager, original_refresh
+  local UIManager, Screen, FileManager
 
   setup(function()
     require("commonrequire")
@@ -401,7 +402,7 @@ describe("Terminal plugin button tap integration", function()
       term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n67890\nXYZWZ\n")
 
       -- Verify buffer is correct
-      local success, result = pcall(table.concat, term_widget.charlist)
+      local success = pcall(table.concat, term_widget.charlist)
       assert.is_true(success)
 
       -- 2. Enable scroll region on lines 2 to 4
@@ -460,7 +461,7 @@ describe("Terminal plugin button tap integration", function()
       term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n67890\nXYZWZ\n")
 
       -- Verify buffer is correct
-      local success, result = pcall(table.concat, term_widget.charlist)
+      local success = pcall(table.concat, term_widget.charlist)
       assert.is_true(success)
 
       -- 2. Enable scroll region on lines 2 to 4

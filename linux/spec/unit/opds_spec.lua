@@ -257,6 +257,7 @@ local facet_sample = [[
 </feed>
 ]]
 
+-- luacheck: max line length 3000
 describe("OPDS module #nocov", function()
   local socketutil
   local OPDSParser, OPDSBrowser

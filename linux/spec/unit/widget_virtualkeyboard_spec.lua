@@ -1,5 +1,6 @@
+-- luacheck: globals package.unloadAll
 describe("VirtualKeyboard component", function()
-  local Device, VirtualKeyboard, Event, UIManager
+  local Device, VirtualKeyboard, UIManager
 
   setup(function()
     require("commonrequire")
@@ -9,26 +10,25 @@ describe("VirtualKeyboard component", function()
 
     Device = require("device")
     VirtualKeyboard = require("ui/widget/virtualkeyboard")
-    Event = require("ui/event")
     UIManager = require("ui/uimanager")
   end)
 
   before_each(function()
     UIManager._window_stack = {}
     _G.G_reader_settings = {
-      read = function(self, key)
+      read = function(self, _key)
         return nil
       end,
-      nilOrTrue = function(self, key)
+      nilOrTrue = function(self, _key)
         return true
       end,
-      isTrue = function(self, key)
+      isTrue = function(self, _key)
         return false
       end,
-      isFalse = function(self, key)
+      isFalse = function(self, _key)
         return false
       end,
-      readTableRef = function(self, key)
+      readTableRef = function(self, _key)
         return { "en" }
       end,
     }

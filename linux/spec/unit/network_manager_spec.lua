@@ -1,3 +1,4 @@
+-- luacheck: globals os.clock
 describe("network_manager module", function()
   local Device
   local UIManager
@@ -122,7 +123,7 @@ describe("network_manager module", function()
       NetworkMgr._abortWifiConnection = function()
         abort_called = abort_called + 1
       end
-      UIManager.show = function(self_ui, widget)
+      UIManager.show = function(_self_ui, widget)
         show_called = show_called + 1
         shown_message = widget
       end
@@ -283,7 +284,7 @@ describe("network_manager module", function()
         local callback_ran = false
         local original_show = UIManager.show
         -- Mock UIManager.show to simulate connecting successfully from the network settings widget
-        UIManager.show = function(self_ui, widget)
+        UIManager.show = function(_self_ui, widget)
           if widget.connect_callback then
             widget.connect_callback()
           end
@@ -323,7 +324,7 @@ describe("network_manager module", function()
 
     before_each(function()
       show_called_widgets = {}
-      UIManager.show = function(self_ui, widget)
+      UIManager.show = function(_self_ui, widget)
         table.insert(show_called_widgets, widget)
         return widget
       end
