@@ -9,7 +9,7 @@ describe("ReaderThumbnail module", function()
     Screen = require("device").screen
   end)
 
-  it("should initialize thumbnail module", function()
+  it("should initialize thumbnail module and add items to main menu", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
     local readerui = ReaderUI:new({
       dimen = Screen:getSize(),
@@ -18,6 +18,10 @@ describe("ReaderThumbnail module", function()
 
     local thumbnail = readerui.thumbnail
     assert.is_table(thumbnail)
+
+    local menu_items = {}
+    thumbnail:addToMainMenu(menu_items)
+    assert.is_table(menu_items.book_map)
 
     readerui:onExit()
     readerui:onClose()
