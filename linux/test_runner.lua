@@ -77,8 +77,9 @@ if not test_file then
 
     -- If we are running in origin.linux, we must also exempt tests that fail
     -- due to KO_MULTIUSER causing the device to be detected as Desktop instead of Emulator.
-    local target = lfs.symlinkattributes("test_runner.lua", "target")
-    if target and target:match("origin%.linux") then
+    local target_tr = lfs.symlinkattributes("test_runner.lua", "target") or ""
+    local target_fe = lfs.symlinkattributes("frontend", "target") or ""
+    if target_tr:match("origin") or target_fe:match("origin") then
         env_exemptions["spec/unit/readerhighlight_spec.lua"] = true
         env_exemptions["spec/unit/autosuspend_spec.lua"] = true
         env_exemptions["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true
