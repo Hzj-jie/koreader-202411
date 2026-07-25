@@ -225,4 +225,140 @@ describe("Readertoc module", function()
       end
     )
   end)
+
+  describe("cleanUpTocTitle", function()
+    it("should strip carriage returns and replace empty titles when requested", function()
+      assert.are.equal("Chapter 1", toc:cleanUpTocTitle("Chapter 1\13", false))
+      assert.are.equal("\u{2013}", toc:cleanUpTocTitle("   \13", true))
+      assert.are.equal("   ", toc:cleanUpTocTitle("   ", false))
+    end)
+  end)
+
+  describe("getTitle", function()
+    it("should return standard and formatted titles depending on TOC state", function()
+      local ReaderToc = require("apps/reader/modules/readertoc")
+      local mock_ui = {
+        handmade = {
+          isHandmadeTocEnabled = function() return false end,
+          custom_toc_symbol = "[H]",
+        },
+        document = {
+          isTocAlternativeToc = function() return false end,
+        },
+        menu = { registerToMainMenu = function() end },
+      }
+      local test_toc = ReaderToc:new({ ui = mock_ui })
+      assert.are.equal("Table of contents", test_toc:getTitle())
+
+      mock_ui.handmade.isHandmadeTocEnabled = function() return true end
+      assert.is_not_nil(test_toc:getTitle():find("[H]", 1, true))
+
+      mock_ui.handmade.isHandmadeTocEnabled = function() return false end
+      mock_ui.document.isTocAlternativeToc = function() return true end
+      assert.is_not_nil(test_toc:getTitle():find(test_toc.alt_toc_symbol, 1, true))
+    end)
+  end)
+
+  describe("settings management", function()
+    it("should read and save TOC settings", function()
+      local mock_config = {
+        readTableRef = function(self, key)
+          if key == "toc_ticks_ignored_levels" then return { [2] = true } end
+        end,
+        read = function(self, key)
+          if key == "toc_chapter_navigation_bind_to_ticks" then return true end
+          if key == "toc_chapter_title_bind_to_ticks" then return false end
+        end,
+      }
+      toc:onReadSettings(mock_config)
+      assert.is_true(toc.toc_ticks_ignored_levels[2])
+      assert.is_true(toc.toc_chapter_navigation_bind_to_ticks)
+      assert.is_false(toc.toc_chapter_title_bind_to_ticks)
+
+      local saved = {}
+      local orig_save = toc.ui.doc_settings.save
+      toc.ui.doc_settings.save = function(self, key, val)
+        saved[key] = val
+      end
+      toc:onSaveSettings()
+      assert.is_true(saved.toc_chapter_navigation_bind_to_ticks)
+      assert.is_false(saved.toc_chapter_title_bind_to_ticks)
+      toc.ui.doc_settings.save = orig_save
+    end)
+  end)
+
+  describe("validateAndFixToc", function()
+    it("should fix bogus TOC items with out-of-order page numbers", function()
+      local ReaderToc = require("apps/reader/modules/readertoc")
+      local mock_doc = {
+        getToc = function()
+          return {
+            { title = "Sec 1", page = 10, depth = 1 },
+            { title = "Sec 2", page = 5, depth = 1 },
+            { title = "Sec 3", page = 15, depth = 1 },
+          }
+        end,
+        getPageFlow = function() return 0 end,
+        canHaveAlternativeToc = function() return false end,
+      }
+      local mock_ui = {
+        document = mock_doc,
+        doc_settings = { read = function() end, isTrue = function() end },
+        menu = { registerToMainMenu = function() end },
+      }
+      local test_toc = ReaderToc:new({ ui = mock_ui })
+      test_toc:fillToc()
+      assert.are.equal(1, test_toc.toc[1].page)
+      assert.are.equal(10, test_toc.toc[1].orig_page)
+      assert.are.equal(5, test_toc.toc[2].page)
+    end)
+  end)
+
+  describe("completeTocWithChapterLengths", function()
+    it("should calculate chapter lengths based on page differences", function()
+      local ReaderToc = require("apps/reader/modules/readertoc")
+      local mock_doc = {
+        getToc = function()
+          return {
+            { title = "Ch 1", page = 1, depth = 1 },
+            { title = "Ch 2", page = 10, depth = 1 },
+          }
+        end,
+        getPageCount = function() return 25 end,
+        getPageFlow = function() return 0 end,
+        canHaveAlternativeToc = function() return false end,
+      }
+      local mock_ui = {
+        document = mock_doc,
+        doc_settings = { read = function() end, isTrue = function() end },
+        menu = { registerToMainMenu = function() end },
+      }
+      local test_toc = ReaderToc:new({ ui = mock_ui })
+      test_toc:fillToc()
+      test_toc:completeTocWithChapterLengths()
+      assert.are.equal(9, test_toc.toc[1].chapter_length)
+      assert.are.equal(15, test_toc.toc[2].chapter_length)
+    end)
+  end)
+
+  describe("chapter title and navigation helpers", function()
+    it("should get full chapter title hierarchy and helper statuses", function()
+      local titles = toc:getFullTocTitleByPage(60)
+      assert.is_table(titles)
+      assert.is_true(#titles > 0)
+
+      toc:onPageUpdate(60)
+      assert.are.equal(60, toc.pageno)
+      assert.is_string(toc:getTocTitleOfCurrentPage())
+
+      toc:onPosUpdate(nil, 65)
+      assert.are.equal(65, toc.pageno)
+
+      assert.is_boolean(toc:isChapterStart(10))
+      assert.is_boolean(toc:isChapterEnd(10))
+
+      assert.is_true(toc:onUpdateToc())
+      assert.is_nil(toc.toc)
+    end)
+  end)
 end)
