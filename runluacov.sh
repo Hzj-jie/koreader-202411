@@ -8,7 +8,7 @@ export KO_WORKSPACE_DIR="$(pwd)"
 
 rm -f luacov.stats.out luacov.report.out
 
-export LUA_PATH="luacov/?.lua;luacov/?/init.lua;./luacov/?.lua;./luacov/?/init.lua;${KO_WORKSPACE_DIR}/linux/luacov/?.lua;${KO_WORKSPACE_DIR}/linux/luacov/?/init.lua;;$LUA_PATH"
+export LUA_PATH="luacov/?.lua;luacov/?/init.lua;./luacov/?.lua;./luacov/?/init.lua;${KO_WORKSPACE_DIR}/linux/luacov/?.lua;${KO_WORKSPACE_DIR}/linux/luacov/?/init.lua;${KO_WORKSPACE_DIR}/linux/?.lua;;$LUA_PATH"
 export LUAFLAGS="-joff -lluacov"
 
 echo "[*] Running unit test suite with LuaCov coverage instrumentation..."
@@ -16,7 +16,7 @@ echo "[*] Running unit test suite with LuaCov coverage instrumentation..."
 
 echo ""
 echo "[*] Generating coverage report..."
-./linux/luacov/bin/luacov
+./linux/luajit -e 'package.cpath="linux/libs/?.so;"..package.cpath; package.loaded["lfs"]=require("libkoreader-lfs")' ./linux/luacov/bin/luacov
 
 if [ -f "luacov.report.out" ]; then
     echo "[*] Coverage report generated: luacov.report.out"
