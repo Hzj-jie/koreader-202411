@@ -16,7 +16,8 @@ describe("ReaderFlipping module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local readerflipping = readerui.flipping or ReaderFlipping:new({ ui = readerui })
+    local readerflipping = readerui.flipping
+      or ReaderFlipping:new({ ui = readerui })
     assert.is_table(readerflipping)
 
     readerui:onExit()

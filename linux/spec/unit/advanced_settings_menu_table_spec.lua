@@ -3,7 +3,8 @@ describe("AdvancedSettingsMenuTable element", function()
 
   setup(function()
     require("commonrequire")
-    AdvancedSettingsMenuTable = require("ui/elements/advanced_settings_menu_table")
+    AdvancedSettingsMenuTable =
+      require("ui/elements/advanced_settings_menu_table")
   end)
 
   it("should return advanced settings menu table", function()

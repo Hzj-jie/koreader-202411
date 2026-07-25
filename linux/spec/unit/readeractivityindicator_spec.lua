@@ -3,7 +3,8 @@ describe("ReaderActivityIndicator module", function()
 
   setup(function()
     require("commonrequire")
-    ReaderActivityIndicator = require("apps/reader/modules/readeractivityindicator")
+    ReaderActivityIndicator =
+      require("apps/reader/modules/readeractivityindicator")
   end)
 
   it("should initialize activity indicator module stub", function()

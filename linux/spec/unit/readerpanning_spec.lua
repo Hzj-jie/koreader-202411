@@ -16,7 +16,8 @@ describe("ReaderPanning module", function()
       document = DocumentRegistry:openDocument(sample_pdf),
     })
 
-    local readerpanning = readerui.panning or ReaderPanning:new({ ui = readerui })
+    local readerpanning = readerui.panning
+      or ReaderPanning:new({ ui = readerui })
     assert.is_table(readerpanning)
 
     readerui:onExit()

@@ -16,7 +16,8 @@ describe("ReaderHinting module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local readerhinting = readerui.hinting or ReaderHinting:new({ ui = readerui })
+    local readerhinting = readerui.hinting
+      or ReaderHinting:new({ ui = readerui })
     assert.is_table(readerhinting)
 
     readerui:onExit()

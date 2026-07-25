@@ -40,19 +40,24 @@ describe("FootnoteWidget", function()
     assert.is_true(followed)
   end)
 
-  it("should handle tap close gesture event when tapped outside container", function()
-    local tap_closed = false
-    local widget = FootnoteWidget:new({
-      html = "<p>Footnote text</p>",
-      on_tap_close_callback = function()
-        tap_closed = true
-      end,
-    })
+  it(
+    "should handle tap close gesture event when tapped outside container",
+    function()
+      local tap_closed = false
+      local widget = FootnoteWidget:new({
+        html = "<p>Footnote text</p>",
+        on_tap_close_callback = function()
+          tap_closed = true
+        end,
+      })
 
-    widget.container = { dimen = Geom:new({ x = 10, y = 10, w = 100, h = 100 }) }
-    local res = widget:onTapClose(nil, { pos = Geom:new({ x = 500, y = 500 }) })
+      widget.container =
+        { dimen = Geom:new({ x = 10, y = 10, w = 100, h = 100 }) }
+      local res =
+        widget:onTapClose(nil, { pos = Geom:new({ x = 500, y = 500 }) })
 
-    assert.is_true(res)
-    assert.is_true(tap_closed)
-  end)
+      assert.is_true(res)
+      assert.is_true(tap_closed)
+    end
+  )
 end)

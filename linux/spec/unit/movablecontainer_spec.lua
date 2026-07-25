@@ -9,7 +9,8 @@ describe("MovableContainer widget", function()
   end)
 
   it("should initialize with default parameters", function()
-    local inner_widget = Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
+    local inner_widget =
+      Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
     local container = MovableContainer:new({
       [1] = inner_widget,
     })
@@ -22,7 +23,8 @@ describe("MovableContainer widget", function()
   end)
 
   it("should handle setting and resetting moved offset", function()
-    local inner_widget = Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
+    local inner_widget =
+      Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
     local container = MovableContainer:new({
       [1] = inner_widget,
     })
@@ -39,7 +41,8 @@ describe("MovableContainer widget", function()
   end)
 
   it("should toggle alpha on hold gesture when unmoved", function()
-    local inner_widget = Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
+    local inner_widget =
+      Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
     local container = MovableContainer:new({
       [1] = inner_widget,
       dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }),
@@ -55,7 +58,8 @@ describe("MovableContainer widget", function()
   end)
 
   it("should handle swipe gestures to move offset within bounds", function()
-    local inner_widget = Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
+    local inner_widget =
+      Widget:new({ dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }) })
     local container = MovableContainer:new({
       [1] = inner_widget,
       dimen = Geom:new({ x = 10, y = 10, w = 100, h = 50 }),

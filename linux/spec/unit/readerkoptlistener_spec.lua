@@ -16,7 +16,8 @@ describe("ReaderKoptListener module", function()
       document = DocumentRegistry:openDocument(sample_pdf),
     })
 
-    local readerkoptlistener = readerui.koptlistener or ReaderKoptListener:new({ ui = readerui })
+    local readerkoptlistener = readerui.koptlistener
+      or ReaderKoptListener:new({ ui = readerui })
     assert.is_table(readerkoptlistener)
 
     readerui:onExit()

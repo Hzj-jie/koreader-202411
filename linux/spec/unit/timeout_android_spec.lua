@@ -7,6 +7,10 @@ describe("TimeoutAndroid element", function()
   end)
 
   it("should handle non-android platform gracefully", function()
-    assert.is_true(TimeoutAndroid == true or type(TimeoutAndroid) == "table" or type(TimeoutAndroid) == "function")
+    assert.is_true(
+      TimeoutAndroid == true
+        or type(TimeoutAndroid) == "table"
+        or type(TimeoutAndroid) == "function"
+    )
   end)
 end)
