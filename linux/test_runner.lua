@@ -124,9 +124,6 @@ if not test_file then
     end
 
     local lua_flags = os.getenv("LUAFLAGS") or ""
-    if lua_flags:find("luacov") then
-        max_jobs = 1
-    end
 
     print("[*] Running with parallelism limit: " .. max_jobs)
     print("")
@@ -148,6 +145,10 @@ if not test_file then
 
         local cmd
         local worker_config_dir
+        local luacov_env = ""
+        if lua_flags:find("luacov") then
+            luacov_env = string.format("LUACOV_STATS_FILE=%q ", lfs.currentdir() .. "/luacov.stats.worker_" .. idx .. ".out")
+        end
 
         if use_isolated_env then
             worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
@@ -155,10 +156,10 @@ if not test_file then
             -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
             -- writes to this isolated directory, preventing parallel file access conflicts!
             -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
-            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, lua_flags, spec_path)
+            cmd = string.format("%sKO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_config_dir, lua_flags, spec_path)
         else
             -- Run without environment manipulation for exempted tests
-            cmd = string.format("./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", lua_flags, spec_path)
+            cmd = string.format("%s./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, lua_flags, spec_path)
         end
 
         local pipe = io.popen(cmd)
@@ -287,6 +288,29 @@ if not test_file then
                 os.execute("rm -rf " .. string.format("%q", job.worker_config_dir))
             end
         end
+    end
+
+    if lua_flags:find("luacov") then
+        print("[*] Merging parallel LuaCov statistics files...")
+        local stats = require("luacov.stats")
+        local runner = require("luacov.runner")
+        local merged_data = {}
+        for i = 1, #spec_files do
+            local wfile = lfs.currentdir() .. "/luacov.stats.worker_" .. i .. ".out"
+            local data = stats.load(wfile)
+            if data then
+                for filename, filedata in pairs(data) do
+                    if merged_data[filename] then
+                        runner.update_stats(merged_data[filename], filedata)
+                    else
+                        merged_data[filename] = filedata
+                    end
+                end
+                os.remove(wfile)
+            end
+        end
+        stats.save(lfs.currentdir() .. "/luacov.stats.out", merged_data)
+        print("[*] Successfully merged parallel coverage statistics into luacov.stats.out")
     end
 
     print("=========================================================================")

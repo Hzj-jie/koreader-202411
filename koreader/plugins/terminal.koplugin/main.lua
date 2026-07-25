@@ -284,7 +284,6 @@ function Terminal:spawnShell(cols, rows)
     C.dup2(pts, 2)
     C.close(pts)
 
-
     C.setenv("TERM", "vt52", 1)
     C.setenv("ENV", profile_file, 1) -- when bash is started as sh
     C.setenv("BASH_ENV", profile_file, 1) -- when bash is started non-interactive
@@ -570,8 +569,18 @@ function Terminal:generateInputDialog()
     self.maxr = math.floor(iw_h / line_h)
 
     logger.info(
-      "Terminal: reinit tb_w =", tb_w, "char_w =", char_w, "maxc =", self.maxc,
-      "iw_h =", iw_h, "line_h =", line_h, "maxr =", self.maxr
+      "Terminal: reinit tb_w =",
+      tb_w,
+      "char_w =",
+      char_w,
+      "maxc =",
+      self.maxc,
+      "iw_h =",
+      iw_h,
+      "line_h =",
+      line_h,
+      "maxr =",
+      self.maxr
     )
     logger.info(
       "Terminal: resized in reinit maxc =",
@@ -615,12 +624,29 @@ function Terminal:onTerminalStart(menu)
   local dialog = self.input_dialog
   local title_h = dialog.title_bar and dialog.title_bar:getSize().h or 0
   local buttons_h = dialog.button_table and dialog.button_table:getSize().h or 0
-  local kb_h = dialog._should_show_keyboard and self:getInputWidget():getKeyboardDimen().h or 0
+  local kb_h = dialog._should_show_keyboard
+      and self:getInputWidget():getKeyboardDimen().h
+    or 0
 
   logger.info(
-    "Terminal: onTerminalStart tb_w =", tb_w, "char_w =", char_w, "maxc =", self.maxc,
-    "iw_h =", iw_h, "line_h =", line_h, "maxr =", self.maxr,
-    "title_h =", title_h, "buttons_h =", buttons_h, "kb_h =", kb_h
+    "Terminal: onTerminalStart tb_w =",
+    tb_w,
+    "char_w =",
+    char_w,
+    "maxc =",
+    self.maxc,
+    "iw_h =",
+    iw_h,
+    "line_h =",
+    line_h,
+    "maxr =",
+    self.maxr,
+    "title_h =",
+    title_h,
+    "buttons_h =",
+    buttons_h,
+    "kb_h =",
+    kb_h
   )
 
   self.store_position = 1

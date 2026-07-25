@@ -392,4 +392,200 @@ describe("Readerhighlight module", function()
       end)
     end)
   end)
+
+  describe("unit tests for ReaderHighlight methods", function()
+    local readerui
+    local sample_epub = DataStorage:getDataDir() .. "/juliet.epub"
+
+    before_each(function()
+      UIManager:quit()
+      require("ffi/util").copyFile(
+        "spec/front/unit/data/juliet.epub",
+        sample_epub
+      )
+      readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      readerui:paintTo(Screen.bb, 0, 0)
+    end)
+
+    after_each(function()
+      readerui.highlight:clear()
+      readerui.annotation.annotations = {}
+      readerui:onExit()
+      readerui:onClose()
+      os.remove(sample_epub)
+      os.execute("rm -rf " .. sample_epub:gsub("%.epub$", ".sdr"))
+    end)
+
+    it(
+      "should allow adding and removing buttons from highlight dialog",
+      function()
+        local highlight = readerui.highlight
+        local custom_called = false
+        local custom_fn = function()
+          return {
+            text = "Custom Action",
+            callback = function()
+              custom_called = true
+            end,
+          }
+        end
+
+        highlight:addToHighlightDialog("99_custom", custom_fn)
+        assert.truthy(highlight._highlight_buttons["99_custom"])
+        local btn_def = highlight._highlight_buttons["99_custom"](highlight)
+        assert.are.equal("Custom Action", btn_def.text)
+        btn_def.callback()
+        assert.is_true(custom_called)
+
+        highlight:removeFromHighlightDialog("99_custom")
+        assert.is_nil(highlight._highlight_buttons["99_custom"])
+      end
+    )
+
+    it("should manage highlight actions and cycle through them", function()
+      local highlight = readerui.highlight
+      local nums, texts = highlight:getHighlightActions()
+      assert.truthy(#nums > 0)
+      assert.are.equal(#nums, #texts)
+
+      highlight:onSetHighlightAction(2, true)
+      assert.are.equal(
+        "nothing",
+        G_reader_settings:read("default_highlight_action")
+      )
+      assert.is_true(highlight.view.highlight.disabled)
+
+      highlight:onSetHighlightAction(3, true)
+      assert.are.equal(
+        "highlight",
+        G_reader_settings:read("default_highlight_action")
+      )
+      assert.is_false(highlight.view.highlight.disabled)
+
+      highlight:onCycleHighlightAction()
+      assert.are.equal(
+        "select",
+        G_reader_settings:read("default_highlight_action")
+      )
+    end)
+
+    it("should get highlight styles and cycle style drawers", function()
+      local highlight = readerui.highlight
+      local styles = highlight.getHighlightStyles()
+      assert.truthy(#styles > 0)
+
+      assert.are.equal("Lighten", highlight:getHighlightStyleString("lighten"))
+      assert.are.equal(
+        "Underline",
+        highlight:getHighlightStyleString("underscore")
+      )
+      assert.is_nil(highlight:getHighlightStyleString("nonexistent_style"))
+
+      highlight.view.highlight.saved_drawer = "lighten"
+      highlight:onCycleHighlightStyle()
+      assert.are.equal("underscore", highlight.view.highlight.saved_drawer)
+    end)
+
+    it("should toggle panel zoom and text selection settings", function()
+      local highlight = readerui.highlight
+      local saved_rolling = highlight.ui.rolling
+      highlight.ui.rolling = nil
+
+      local initial_pz = not not highlight.panel_zoom_enabled
+      highlight:onTogglePanelZoomSetting()
+      assert.are.equal(not initial_pz, highlight.panel_zoom_enabled)
+
+      local initial_fallback =
+        not not highlight.panel_zoom_fallback_to_text_selection
+      highlight:onToggleFallbackTextSelection()
+      assert.are.equal(
+        not initial_fallback,
+        highlight.panel_zoom_fallback_to_text_selection
+      )
+
+      highlight.ui.rolling = saved_rolling
+    end)
+
+    it("should set dimensions properly", function()
+      local highlight = readerui.highlight
+      highlight:onSetDimensions(Geom:new({ w = 1024, h = 768 }))
+      assert.are.equal(1024, highlight.screen_w)
+      assert.are.equal(768, highlight.screen_h)
+    end)
+
+    it("should handle clear_id correctly", function()
+      local highlight = readerui.highlight
+      highlight.hold_pos = Geom:new({ x = 100, y = 100 })
+      highlight.selected_text = { text = "test" }
+
+      local clear_id = highlight:getClearId()
+      assert.truthy(clear_id)
+
+      -- Clearing with mismatched ID should do nothing
+      highlight:clear(clear_id + 999)
+      assert.truthy(highlight.hold_pos)
+
+      -- Clearing with valid ID or onClearHighlight should clear
+      assert.is_true(highlight:onClearHighlight())
+      assert.is_nil(highlight.hold_pos)
+      assert.is_nil(highlight.selected_text)
+    end)
+
+    it("should get saved highlights per page", function()
+      local highlight = readerui.highlight
+      readerui.annotation.annotations = {
+        {
+          drawer = "lighten",
+          pos0 = { page = 5 },
+          pos1 = { page = 5 },
+          text = "sample 1",
+        },
+        {
+          drawer = "underscore",
+          pos0 = { page = 10 },
+          pos1 = { page = 12 },
+          text = "sample 2",
+          ext = {
+            [10] = { pos0 = { page = 10 }, pos1 = { page = 10 }, pboxes = {} },
+          },
+        },
+      }
+
+      local page5_hl, offset5 = highlight:getPageSavedHighlights(5)
+      assert.are.equal(1, #page5_hl)
+      assert.are.equal(0, offset5)
+
+      local page10_hl, offset10 = highlight:getPageSavedHighlights(10)
+      assert.are.equal(1, #page10_hl)
+      assert.are.equal(1, offset10)
+      assert.are.equal(2, page10_hl[1].parent)
+
+      local page1_hl = highlight:getPageSavedHighlights(1)
+      assert.are.equal(0, #page1_hl)
+    end)
+
+    it("should support indicator navigation gestures and lifecycle", function()
+      local highlight = readerui.highlight
+      highlight.view.visible_area = Geom:new({ w = 600, h = 800 })
+
+      -- Start indicator
+      assert.is_true(highlight:onStartHighlightIndicator())
+      assert.truthy(highlight._current_indicator_pos)
+
+      -- Create gesture from indicator
+      local ges = highlight:_createHighlightGesture("tap")
+      assert.are.equal("tap", ges.ges)
+      assert.truthy(ges.pos)
+
+      -- Move indicator
+      assert.is_true(highlight:onMoveHighlightIndicator({ 1, 0 }))
+
+      -- Stop indicator
+      assert.is_true(highlight:onStopHighlightIndicator(true))
+      assert.is_nil(highlight._current_indicator_pos)
+    end)
+  end)
 end)

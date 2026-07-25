@@ -486,4 +486,129 @@ describe("FileManager module", function()
       filemanager:onExit()
     end
   )
+
+  it("should return current directory or nil based on instance", function()
+    assert.is_nil(FileManager:getCurrentDir())
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    assert.is_not_nil(FileManager:getCurrentDir())
+    filemanager:onExit()
+    assert.is_nil(FileManager:getCurrentDir())
+  end)
+
+  it("should set clipboard and cutfile flag correctly", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    filemanager:copyFileNameToClipboard("test.epub")
+    assert.is.same("test.epub", filemanager.clipboard)
+    assert.is_false(filemanager.cutfile)
+
+    filemanager:cutFile("test2.epub")
+    assert.is.same("test2.epub", filemanager.clipboard)
+    assert.is_true(filemanager.cutfile)
+    filemanager:onExit()
+  end)
+
+  it("should toggle selection mode", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    assert.is_nil(filemanager.selected_files)
+    filemanager:onToggleSelectMode()
+    assert.is_not_nil(filemanager.selected_files)
+
+    filemanager:onToggleSelectMode()
+    assert.is_nil(filemanager.selected_files)
+    filemanager:onExit()
+  end)
+
+  it("should return display mode and sort by actions", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local names, texts = FileManager.getDisplayModeActions()
+    assert.is_true(#names > 0)
+    assert.is_true(#texts > 0)
+    assert.is.same("classic", names[1])
+
+    local sort_names, sort_texts = FileManager.getSortByActions()
+    assert.is_true(#sort_names > 0)
+    assert.is_true(#sort_texts > 0)
+    filemanager:onExit()
+  end)
+
+  it("should handle reverse and mixed sorting settings", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    assert.is_true(filemanager:onSetReverseSorting(true))
+    assert.is_true(G_reader_settings:isTrue("reverse_collate"))
+
+    assert.is_true(filemanager:onSetMixedSorting(true))
+    assert.is_true(G_reader_settings:isTrue("collate_mixed"))
+
+    filemanager:onSetReverseSorting(false)
+    filemanager:onSetMixedSorting(false)
+    filemanager:onExit()
+  end)
+
+  it("should handle file copy/move helper functions", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local tmp_dir = "spec/unit/data/fm_test_tmp"
+    local copy_dir = "spec/unit/data/fm_test_tmp_copy"
+    util.purgeDir(tmp_dir)
+    util.purgeDir(copy_dir)
+    lfs.mkdir(tmp_dir)
+
+    local src_file = "spec/unit/data/2col.pdf"
+    local copy_file = tmp_dir .. "/copy.pdf"
+    local move_file = tmp_dir .. "/move.pdf"
+
+    assert.is_true(filemanager:copyFile(src_file, copy_file))
+    assert.is_not_nil(lfs.attributes(copy_file))
+
+    assert.is_true(filemanager:moveFile(copy_file, move_file))
+    assert.is_nil(lfs.attributes(copy_file))
+    assert.is_not_nil(lfs.attributes(move_file))
+
+    assert.is_true(filemanager:copyRecursive(tmp_dir, copy_dir))
+    assert.is_not_nil(lfs.attributes(copy_dir))
+
+    filemanager:onExit()
+    util.purgeDir(tmp_dir)
+    util.purgeDir(copy_dir)
+  end)
+
+  it(
+    "should return early when rename target matches original basename",
+    function()
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = "spec/unit/data",
+      })
+      filemanager:renameFile("spec/unit/data/2col.pdf", "2col.pdf", true)
+      filemanager:onExit()
+    end
+  )
+
+  it("should trigger refresh and home handlers", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    assert.is_true(filemanager:onHome())
+    filemanager:onRefreshContent()
+    filemanager:onBookMetadataChanged()
+    filemanager:onExit()
+  end)
 end)
