@@ -10,7 +10,7 @@ describe("CenterContainer", function()
       getSize = function(self)
         return self.dimen
       end,
-      paintTo = function(self, bb, x, y)
+      paintTo = function(self, _bb, x, y)
         self.painted_x = x
         self.painted_y = y
       end,

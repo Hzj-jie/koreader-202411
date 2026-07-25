@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll
 describe("AutoSuspend", function()
   setup(function()
     require("commonrequire")

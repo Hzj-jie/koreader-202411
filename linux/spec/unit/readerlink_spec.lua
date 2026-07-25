@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll
 describe("ReaderLink module", function()
   local DocumentRegistry, ReaderUI, UIManager, sample_epub, sample_pdf, Event, Screen
 

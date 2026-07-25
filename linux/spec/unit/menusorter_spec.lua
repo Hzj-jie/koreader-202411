@@ -285,6 +285,7 @@ describe("MenuSorter module", function()
       assert.has_no.errors(function()
         test_menu = MenuSorter:_sort(menu_items, order)
       end)
+      assert.is_not_nil(test_menu)
     end
   )
 

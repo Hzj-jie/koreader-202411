@@ -1,4 +1,3 @@
-local mock = require("luassert.mock")
 local spy = require("luassert.spy")
 
 describe("systemstat", function()

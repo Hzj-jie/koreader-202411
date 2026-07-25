@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll
 describe("AutoStandby plugin tests", function()
   local Device, PowerD, MockTime, class, AutoStandby, UIManager, original_event_hook
 

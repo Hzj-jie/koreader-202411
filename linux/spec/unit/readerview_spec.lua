@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll
 describe("Readerview module", function()
   local DocumentRegistry, Blitbuffer, ReaderUI, UIManager, Event, Screen, DocSettings
 

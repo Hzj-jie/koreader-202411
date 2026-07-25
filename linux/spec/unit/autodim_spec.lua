@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll requireBackgroundRunner notifyBackgroundJobsUpdated stopBackgroundRunner
 describe("AutoDim widget tests", function()
   local Device, PowerD, MockTime, class, AutoDim, UIManager
 

@@ -1,5 +1,5 @@
 require("commonrequire")
-local dummy = require("ffi/posix_h")
+require("ffi/posix_h")
 local ffi = require("ffi")
 local logger = require("logger")
 local time = require("ui/time")

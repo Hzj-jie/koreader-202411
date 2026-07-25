@@ -1,3 +1,4 @@
+-- luacheck: globals package.reload
 describe("Size module", function()
   local Size
   setup(function()
