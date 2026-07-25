@@ -271,8 +271,10 @@ describe("ReadHistory module", function()
     local h = reload()
     for i = 1000, 1, -1 do
       touch(to_file(i))
-      h:addItem(to_file(i))
+      h:addItem(to_file(i), nil, true)
     end
+    h:_reduce()
+    h:_flush()
 
     for i = 1, 500 do -- at most 500 items are stored
       assert_item_is(h, i, string.format("%04d", i))
