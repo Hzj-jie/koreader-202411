@@ -122,6 +122,12 @@ if not test_file then
             max_jobs = cores
         end
     end
+
+    local lua_flags = os.getenv("LUAFLAGS") or ""
+    if lua_flags:find("luacov") then
+        max_jobs = 1
+    end
+
     print("[*] Running with parallelism limit: " .. max_jobs)
     print("")
 
@@ -149,10 +155,10 @@ if not test_file then
             -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
             -- writes to this isolated directory, preventing parallel file access conflicts!
             -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
-            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, spec_path)
+            cmd = string.format("KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", worker_config_dir, lua_flags, spec_path)
         else
             -- Run without environment manipulation for exempted tests
-            cmd = string.format("./luajit test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", spec_path)
+            cmd = string.format("./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", lua_flags, spec_path)
         end
 
         local pipe = io.popen(cmd)
