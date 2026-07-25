@@ -350,43 +350,15 @@ describe("AutoSuspend", function()
   end)
 
   describe("kindle", function()
-    it("should reset Kindle T1 timeout", function()
+    it("should be disabled on Kindle devices", function()
       local Device = require("device")
-      local PowerD = Device:getPowerDevice()
       stub(Device, "isKindle")
-      Device.isKindle.returns(false) -- initially false to bypass top check
-
-      local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-
-      stub(PowerD, "resetT1Timeout")
-      Device.input.waitEvent = function() end
-      local UIManager = require("ui/uimanager")
-      UIManager:setRunForeverMode()
-      require("mock_time"):install()
-      UIManager:handleInput()
-      UIManager:updateLastUserActionTime()
-      UIManager:quit()
-
       Device.isKindle.returns(true)
 
-      local runner = requireBackgroundRunner()
-      UIManager:show(runner)
+      local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
+      assert.is_true(widget_class.disabled)
 
-      local widget = widget_class:new() --luacheck: ignore
-      local mock_time = require("mock_time")
-
-      mock_time:increase(1)
-      UIManager:handleInput()
-      mock_time:increase(300)
-      UIManager:handleInput()
-
-      assert.stub(PowerD.resetT1Timeout).was.called(1)
-
-      UIManager:close(runner)
-      stopBackgroundRunner()
       Device.isKindle:revert()
-      PowerD.resetT1Timeout:revert()
-      require("mock_time"):uninstall()
     end)
   end)
 end)

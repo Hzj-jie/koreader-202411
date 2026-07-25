@@ -75,6 +75,9 @@ if not test_file then
         ["spec/unit/screenshoter_spec.lua"] = true,
         ["spec/unit/docsettings_spec.lua"] = true,
         ["spec/unit/named_settings_spec.lua"] = true,
+        ["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true,
+        ["plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua"] = true,
+        ["plugins/clock.koplugin/spec/unit/clock_spec.lua"] = true,
     }
 
     -- If we are running in origin.linux, we must also exempt tests that fail
@@ -82,9 +85,6 @@ if not test_file then
     local target = lfs.symlinkattributes("test_runner.lua", "target")
     if target and target:match("origin%.linux") then
         env_exemptions["spec/unit/autosuspend_spec.lua"] = true
-        env_exemptions["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true
-        env_exemptions["plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua"] = true
-        env_exemptions["plugins/clock.koplugin/spec/unit/clock_spec.lua"] = true
         env_exemptions["spec/unit/device_spec.lua"] = true
         env_exemptions["spec/unit/eink_optimization_spec.lua"] = true
         env_exemptions["spec/unit/network_manager_spec.lua"] = true

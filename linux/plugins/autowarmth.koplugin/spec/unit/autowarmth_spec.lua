@@ -141,7 +141,7 @@ describe("AutoWarmth plugin tests", function()
       local Dispatcher = require("dispatcher")
       stub(Dispatcher, "registerAction")
 
-      AutoWarmth:_registerDispatcherActions()
+      AutoWarmth:onDispatcherRegisterActions()
 
       assert
         .stub(Dispatcher.registerAction)
