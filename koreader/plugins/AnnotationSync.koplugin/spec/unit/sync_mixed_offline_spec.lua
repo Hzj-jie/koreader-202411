@@ -1,6 +1,6 @@
 describe("AnnotationSync Mixed Documents & Offline Sync All", function()
   local ReaderUI, UIManager, SyncService, Geom, DataStorage
-  local AnnotationSyncPlugin, highlight_db, highlight_pdf_db, test_utils, json, util
+  local AnnotationSyncPlugin, highlight_db, highlight_pdf_db, test_utils, json, util, annotations_mod
   local readerui, sync_instance
   local test_data_dir = os.getenv("PWD") .. "/test_sync_mixed_offline_tmp"
   local old_getDataDir
