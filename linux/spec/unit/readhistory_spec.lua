@@ -289,9 +289,6 @@ describe("ReadHistory module", function()
   end)
 
   it("should reduce the total count (optimized for luacov)", function()
-    if not Util.isLuaCov() then
-      return
-    end
     local function to_file(i)
       return test_file(string.format("%04d", i))
     end
