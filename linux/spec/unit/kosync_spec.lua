@@ -197,24 +197,24 @@ describe("KOSync modules #internet #nocov", function()
 
     c.init = function() end
 
-    c.register = function(name, passwd)
+    c.register = function(_name, _passwd)
       return res.result, res.body
     end
 
-    c.authorize = function(name, passwd)
+    c.authorize = function(_name, _passwd)
       return res.result, res.body
     end
 
     c.update_progress = function(
-      name,
-      passwd,
-      doc,
-      prog,
-      percent,
-      device,
-      device_id,
+      _name,
+      _passwd,
+      _doc_arg,
+      _prog,
+      _percent,
+      _device_arg,
+      _device_id,
       cb
-    ) --luacheck: ignore
+    )
       cb(res.result, res.body)
     end
 

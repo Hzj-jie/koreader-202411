@@ -1,6 +1,7 @@
 local logger
 local serpent = require("ffi/serpent")
 
+
 describe("logger", function()
   local original_date
   local original_io_write

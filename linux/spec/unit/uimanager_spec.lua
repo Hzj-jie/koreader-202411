@@ -812,7 +812,7 @@ describe("UIManager spec", function()
     it("should call askForRestart if ReaderUI.instance is nil", function()
       local askForRestart_called = false
       local old_askForRestart = UIManager.askForRestart
-      UIManager.askForRestart = function(self, msg)
+      UIManager.askForRestart = function(self, _msg)
         askForRestart_called = true
       end
 

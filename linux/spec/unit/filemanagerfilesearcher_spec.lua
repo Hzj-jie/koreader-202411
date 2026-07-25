@@ -668,7 +668,7 @@ describe("filemanagerfilesearcher", function()
       assert.are.equal("Delete", delete_btn.text)
 
       package.loaded["apps/filemanager/filemanager"] = {
-        showDeleteFileDialog = function(self, file, callback)
+        showDeleteFileDialog = function(self, _file, callback)
           callback()
         end,
       }

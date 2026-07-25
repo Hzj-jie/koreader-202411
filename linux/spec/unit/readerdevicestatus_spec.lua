@@ -86,7 +86,7 @@ describe("ReaderDeviceStatus", function()
           return true
         end
       end,
-      nilOrTrue = function(self, key)
+      nilOrTrue = function(self, _key)
         return true
       end,
       has = function(self, key)

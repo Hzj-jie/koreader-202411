@@ -132,7 +132,7 @@ describe("LanguageSupport", function()
 
         -- setup document behavior
         mock_document.getTextFromXPointers = spy.new(
-          function(self, p0, p1, clean)
+          function(self, _p0, _p1, clean)
             if clean then
               return "ellow"
             else
@@ -141,7 +141,7 @@ describe("LanguageSupport", function()
           end
         )
         mock_document.getScreenBoxesFromPositions = spy.new(
-          function(self, p0, p1, flag)
+          function(self, _p0, _p1, _flag)
             return { { x = 10, y = 20 } }
           end
         )
@@ -194,7 +194,7 @@ describe("LanguageSupport", function()
         ls:registerPlugin(ja_plugin)
         ls:registerPlugin(fallback_plugin)
 
-        mock_document.getTextFromXPointers = function(self, p0, p1)
+        mock_document.getTextFromXPointers = function(self, _p0, _p1)
           return "llow"
         end
         mock_document.getScreenBoxesFromPositions = function()

@@ -103,8 +103,7 @@ function VerticalScrollBar:getRequiredWidth()
   -- We need to reserve space for the scrollbar itself (1x width),
   -- the touch zone extensions on both sides (2x width),
   -- and a safety margin (SAFETY_MARGIN) on the inner side next to the content.
-  return 3 * self.width
-    + Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
+  return 3 * self.width + Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
 end
 
 function VerticalScrollBar:paintTo(bb, x, y)

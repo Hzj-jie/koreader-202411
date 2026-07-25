@@ -29,11 +29,11 @@ describe("EventListener class", function()
     local call_count = 0
     local el = EventListener:new({
       onMyCustomEvent = {
-        function(self, event)
+        function(self, _event)
           call_count = call_count + 1
           return false
         end,
-        function(self, event)
+        function(self, _event)
           call_count = call_count + 1
           return true
         end,
@@ -59,7 +59,7 @@ describe("EventListener class", function()
     "should return true for programmatic event even if handler returns false",
     function()
       local el = EventListener:new({
-        onMyCustomEvent = function(self, event)
+        onMyCustomEvent = function(self, _event)
           return false
         end,
       })
@@ -74,7 +74,7 @@ describe("EventListener class", function()
 
   it("should respect handler return status for user input event", function()
     local el = EventListener:new({
-      onMyCustomEvent = function(self, event)
+      onMyCustomEvent = function(self, _event)
         return false
       end,
     })

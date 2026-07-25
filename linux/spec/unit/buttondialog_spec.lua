@@ -2,7 +2,6 @@ describe("ButtonDialog", function()
   local ButtonDialog
   local mock_device
   local UIManager
-  local util = require("util")
 
   setup(function()
     require("commonrequire")

@@ -5,6 +5,7 @@ local Persist
 local lfs
 local HB
 
+
 describe("FontList", function()
   setup(function()
     require("commonrequire")
@@ -42,7 +43,7 @@ describe("FontList", function()
         return false
       end
 
-      util.findFiles = function(dir, cb)
+      util.findFiles = function(_dir, cb)
         cb("/mock/fonts/NormalFont.ttf", "NormalFont.ttf", { change = 100 })
         cb(
           "/mock/fonts/DiwanMuna-Bold.ttf",
@@ -71,7 +72,7 @@ describe("FontList", function()
         return true
       end
 
-      util.findFiles = function(dir, cb)
+      util.findFiles = function(_dir, cb)
         cb("/mock/fonts/NormalFont.ttf", "NormalFont.ttf", { change = 100 })
         cb(
           "/mock/fonts/DiwanMuna-Bold.ttf",
@@ -111,7 +112,6 @@ describe("FontList", function()
     local original_getenv
     local original_persist_new
     local original_mkdir
-    local mock_cache_save_called = false
 
     before_each(function()
       original_findFiles = util.findFiles
@@ -120,10 +120,9 @@ describe("FontList", function()
       original_getenv = os.getenv
       original_persist_new = Persist.new
       original_mkdir = lfs.mkdir
-      mock_cache_save_called = false
 
       -- Stub Persist:new to return dummy cache
-      Persist.new = function(self, opts)
+      Persist.new = function(self, _opts)
         return {
           load = function()
             return {}
@@ -431,7 +430,7 @@ describe("FontList", function()
       lfs.mkdir = function()
         return true
       end
-      os.getenv = function(name)
+      os.getenv = function(_name)
         return nil
       end
 
@@ -441,7 +440,7 @@ describe("FontList", function()
           load = function()
             return mock_cache_data, nil
           end,
-          save = function(self_cache, data)
+          save = function(_self_cache, data)
             mock_cache_save_called = true
             mock_cache_saved_data = data
             return true

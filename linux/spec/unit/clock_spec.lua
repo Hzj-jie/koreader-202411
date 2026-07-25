@@ -30,7 +30,7 @@ describe("Clock plugin tests", function()
 
     -- Mock clockwidget to avoid image loading/rendering
     mock_clockwidget = {
-      new = spy.new(function(self, args)
+      new = spy.new(function(self, _args)
         return {
           dimen = { w = 100, h = 100 },
         }

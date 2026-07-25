@@ -1,5 +1,5 @@
 describe("KeepAlive plugin tests", function()
-  local Device, KeepAlive, UIManager, PluginShare
+  local Device, UIManager, PluginShare
 
   setup(function()
     require("commonrequire")

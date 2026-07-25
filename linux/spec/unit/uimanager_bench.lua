@@ -24,6 +24,7 @@ local function check()
   end
 end
 
+
 describe("UIManager checkTasks benchmark", function()
   local now = time.monotonic()
   local wait_until -- luacheck: no unused

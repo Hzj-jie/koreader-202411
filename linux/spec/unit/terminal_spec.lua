@@ -1,5 +1,5 @@
 describe("Terminal plugin button tap integration", function()
-  local UIManager, Screen, FileManager, original_refresh
+  local UIManager, Screen, FileManager
 
   setup(function()
     require("commonrequire")
@@ -401,7 +401,7 @@ describe("Terminal plugin button tap integration", function()
       term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n67890\nXYZWZ\n")
 
       -- Verify buffer is correct
-      local success, result = pcall(table.concat, term_widget.charlist)
+      local success = pcall(table.concat, term_widget.charlist)
       assert.is_true(success)
 
       -- 2. Enable scroll region on lines 2 to 4
@@ -460,7 +460,7 @@ describe("Terminal plugin button tap integration", function()
       term_widget:interpretAnsiSeq("12345\nabcde\nABCDE\n67890\nXYZWZ\n")
 
       -- Verify buffer is correct
-      local success, result = pcall(table.concat, term_widget.charlist)
+      local success = pcall(table.concat, term_widget.charlist)
       assert.is_true(success)
 
       -- 2. Enable scroll region on lines 2 to 4
@@ -482,6 +482,7 @@ describe("Terminal plugin button tap integration", function()
       for line in result_concat:gmatch("[^\n]+") do
         table.insert(lines, line)
       end
+
 
       assert.is.same("12345     ", lines[1])
       assert.is.same("          ", lines[2])
@@ -686,64 +687,61 @@ describe("Terminal plugin button tap integration", function()
     spy_new:revert()
   end)
 
-  it(
-    "should call ioctl TIOCSWINSZ with correct dimensions in _updateWinSize",
-    function()
-      local ffi = require("ffi")
-      local original_ffi_C = ffi.C
+  it("should call ioctl TIOCSWINSZ with correct dimensions in _updateWinSize", function()
+    local ffi = require("ffi")
+    local original_ffi_C = ffi.C
 
-      local ioctl_called = false
-      local ioctl_fd, ioctl_req, ioctl_ws
+    local ioctl_called = false
+    local ioctl_fd, ioctl_req, ioctl_ws
 
-      local mock_C = setmetatable({
-        ioctl = function(fd, req, ws)
-          ioctl_called = true
-          ioctl_fd = fd
-          ioctl_req = tonumber(req)
-          local ws_struct = ffi.cast("struct winsize*", ws)
-          ioctl_ws = {
-            ws_row = tonumber(ws_struct.ws_row),
-            ws_col = tonumber(ws_struct.ws_col),
-          }
-          return 0
-        end,
-      }, {
-        __index = original_ffi_C,
-      })
+    local mock_C = setmetatable({
+      ioctl = function(fd, req, ws)
+        ioctl_called = true
+        ioctl_fd = fd
+        ioctl_req = tonumber(req)
+        local ws_struct = ffi.cast("struct winsize*", ws)
+        ioctl_ws = {
+          ws_row = tonumber(ws_struct.ws_row),
+          ws_col = tonumber(ws_struct.ws_col),
+        }
+        return 0
+      end
+    }, {
+      __index = original_ffi_C
+    })
 
-      local mock_ffi = setmetatable({
-        C = mock_C,
-      }, {
-        __index = ffi,
-      })
+    local mock_ffi = setmetatable({
+      C = mock_C
+    }, {
+      __index = ffi
+    })
 
-      package.loaded["ffi"] = mock_ffi
-      package.loaded["plugins/terminal.koplugin/main"] = nil
+    package.loaded["ffi"] = mock_ffi
+    package.loaded["plugins/terminal.koplugin/main"] = nil
 
-      local Terminal = require("plugins/terminal.koplugin/main")
+    local Terminal = require("plugins/terminal.koplugin/main")
 
-      package.loaded["ffi"] = ffi
+    package.loaded["ffi"] = ffi
 
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
+    local mock_ui = {
+      menu = {
+        registerToMainMenu = function() end
       }
-      local terminal = Terminal:new({
-        ui = mock_ui,
-      })
-      terminal.ptmx = 42
+    }
+    local terminal = Terminal:new({
+      ui = mock_ui
+    })
+    terminal.ptmx = 42
 
-      terminal:_updateWinSize(80, 24)
+    terminal:_updateWinSize(80, 24)
 
-      assert.is_true(ioctl_called)
-      assert.is.same(42, ioctl_fd)
-      assert.is.same(0x5414, ioctl_req)
-      assert.is_not_nil(ioctl_ws)
-      assert.is.same(24, ioctl_ws.ws_row)
-      assert.is.same(80, ioctl_ws.ws_col)
+    assert.is_true(ioctl_called)
+    assert.is.same(42, ioctl_fd)
+    assert.is.same(0x5414, ioctl_req)
+    assert.is_not_nil(ioctl_ws)
+    assert.is.same(24, ioctl_ws.ws_row)
+    assert.is.same(80, ioctl_ws.ws_col)
 
-      package.loaded["plugins/terminal.koplugin/main"] = nil
-    end
-  )
+    package.loaded["plugins/terminal.koplugin/main"] = nil
+  end)
 end)

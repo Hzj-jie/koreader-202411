@@ -1,5 +1,5 @@
 describe("KeyboardLayoutDialog UI component", function()
-  local Device, KeyboardLayoutDialog
+  local KeyboardLayoutDialog
 
   setup(function()
     require("commonrequire")
@@ -7,16 +7,15 @@ describe("KeyboardLayoutDialog UI component", function()
     local device = require("device")
     require("document/canvascontext"):init(device)
 
-    Device = require("device")
     KeyboardLayoutDialog = require("ui/widget/keyboardlayoutdialog")
   end)
 
   before_each(function()
     _G.G_reader_settings = {
-      readTableRef = function(self, key)
+      readTableRef = function(self, _key)
         return { "en_US" }
       end,
-      read = function(self, key)
+      read = function(self, _key)
         return "en_US"
       end,
     }

@@ -1,4 +1,3 @@
-local mock = require("luassert.mock")
 local spy = require("luassert.spy")
 
 describe("ImageViewer", function()
@@ -46,7 +45,7 @@ describe("ImageViewer", function()
       return 141
     end
 
-    stub(ImageWidget, "new", function(self, args)
+    stub(ImageWidget, "new", function(self, _args)
       return DummyImageWidget:new()
     end)
   end)

@@ -1,10 +1,9 @@
 describe("MultiInputDialog widget", function()
-  local MultiInputDialog, InputText, InputDialog, UIManager
+  local MultiInputDialog, InputText, UIManager
   setup(function()
     require("commonrequire")
     MultiInputDialog = require("ui/widget/multiinputdialog")
     InputText = require("ui/widget/inputtext")
-    InputDialog = require("ui/widget/inputdialog")
     UIManager = require("ui/uimanager")
   end)
 

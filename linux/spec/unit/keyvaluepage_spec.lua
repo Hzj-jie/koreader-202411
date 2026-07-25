@@ -1,5 +1,5 @@
 describe("KeyValuePage UI component", function()
-  local Device, KeyValuePage
+  local KeyValuePage
 
   setup(function()
     require("commonrequire")
@@ -7,7 +7,6 @@ describe("KeyValuePage UI component", function()
     local device = require("device")
     require("document/canvascontext"):init(device)
 
-    Device = require("device")
     KeyValuePage = require("ui/widget/keyvaluepage")
   end)
 
