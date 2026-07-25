@@ -269,12 +269,15 @@ describe("ReadHistory module", function()
     end
     rm(file("history.lua"))
     local h = reload()
+    local is_luacov = package.loaded["luacov"] ~= nil or (os.getenv("LUAFLAGS") and os.getenv("LUAFLAGS"):find("luacov") ~= nil)
     for i = 1000, 1, -1 do
       touch(to_file(i))
-      h:addItem(to_file(i), nil, true)
+      h:addItem(to_file(i), nil, is_luacov)
     end
-    h:_reduce()
-    h:_flush()
+    if is_luacov then
+      h:_reduce()
+      h:_flush()
+    end
 
     for i = 1, 500 do -- at most 500 items are stored
       assert_item_is(h, i, string.format("%04d", i))
