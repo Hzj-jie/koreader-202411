@@ -94,4 +94,5 @@ This build incorporates logic and binaries from the following critical upstream 
 *   **Platform Distributions**: Bundled resources derived from official release packages (`koreader-kindlepw2-v2024.11.zip`, `koreader-kindle-legacy-v2024.11.zip`, `koreader-kobo-v2024.11.zip`).
 *   **SortedIteration**: Embedded ordered traversal utilities sourced from [Lua-Users SortedIteration](http://lua-users.org/wiki/SortedIteration).
 *   **Formatting & Linting**: Integration powered by **StyLua v2.1.0** and **Luacheck v1.2.0**.
+*   **Code Coverage**: Integration powered by **LuaCov v0.17.0** (sourced via `luarocks unpack luacov 0.17.0` / [lunarmodules/luacov](https://github.com/lunarmodules/luacov)).
 *   **Embedded Server**: SSH server operations backed by **Dropbearmulti 2024.85** static binaries.

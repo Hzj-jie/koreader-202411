@@ -1,0 +1,30 @@
+local workspace = os.getenv("KO_WORKSPACE_DIR") or "."
+
+return {
+  statsfile = workspace .. "/luacov.stats.out",
+  reportfile = workspace .. "/luacov.report.out",
+
+  modules = {
+    ["frontend.*"] = "koreader",
+    ["plugins.*"] = "koreader",
+  },
+
+  include = {
+    "^koreader/frontend/",
+    "^koreader/plugins/",
+  },
+
+  exclude = {
+    "^linux/spec/",
+    "^koreader/ffi/",
+    "^koreader/common/",
+    "^koreader/jit/",
+    "_spec$",
+    "_meta$",
+  },
+
+  includeuntestedfiles = {
+    "koreader/frontend",
+    "koreader/plugins",
+  },
+}
