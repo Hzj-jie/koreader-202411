@@ -265,49 +265,39 @@ describe("ReadHistory module", function()
     rm(test_file("e"))
   end)
 
+  local function testReduceTotalCount(no_flush)
+    local function to_file(i)
+      return test_file(string.format("%04d", i))
+    end
+    rm(file("history.lua"))
+    local h = reload()
+    for i = 1000, 1, -1 do
+      touch(to_file(i))
+      h:addItem(to_file(i), nil, no_flush)
+    end
+    if no_flush then
+      h:_reduce()
+      h:_flush()
+    end
+
+    for i = 1, 500 do -- at most 500 items are stored
+      assert_item_is(h, i, string.format("%04d", i))
+    end
+
+    for i = 1, 1000 do
+      rm(to_file(i))
+    end
+  end
+
   it("should reduce the total count", function()
     if Util.isLuaCov() then
       return
     end
-    local function to_file(i)
-      return test_file(string.format("%04d", i))
-    end
-    rm(file("history.lua"))
-    local h = reload()
-    for i = 1000, 1, -1 do
-      touch(to_file(i))
-      h:addItem(to_file(i))
-    end
-
-    for i = 1, 500 do -- at most 500 items are stored
-      assert_item_is(h, i, string.format("%04d", i))
-    end
-
-    for i = 1, 1000 do
-      rm(to_file(i))
-    end
+    testReduceTotalCount(false)
   end)
 
   it("should reduce the total count (optimized for luacov)", function()
-    local function to_file(i)
-      return test_file(string.format("%04d", i))
-    end
-    rm(file("history.lua"))
-    local h = reload()
-    for i = 1000, 1, -1 do
-      touch(to_file(i))
-      h:addItem(to_file(i), nil, true)
-    end
-    h:_reduce()
-    h:_flush()
-
-    for i = 1, 500 do -- at most 500 items are stored
-      assert_item_is(h, i, string.format("%04d", i))
-    end
-
-    for i = 1, 1000 do
-      rm(to_file(i))
-    end
+    testReduceTotalCount(true)
   end)
 
   it("should reload the history file if it updated", function()
