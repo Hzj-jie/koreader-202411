@@ -2,9 +2,12 @@ return {
   statsfile = "luacov.stats.out",
   reportfile = "luacov.report.out",
 
+  modules = {
+    ["frontend.*"] = "koreader",
+    ["plugins.*"] = "koreader",
+  },
+
   include = {
-    "^frontend/",
-    "^plugins/",
     "^koreader/frontend/",
     "^koreader/plugins/",
   },

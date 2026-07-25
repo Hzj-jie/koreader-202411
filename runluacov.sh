@@ -16,11 +16,6 @@ echo "[*] Running unit test suite with LuaCov coverage instrumentation..."
 
 echo ""
 echo "[*] Generating coverage report..."
-if [ -f "luacov.stats.out" ]; then
-    # Normalize relative paths in stats output from sandbox (frontend/ -> koreader/frontend/)
-    sed -i 's#\(^\|:\)frontend/#\1koreader/frontend/#g; s#\(^\|:\)plugins/#\1koreader/plugins/#g' luacov.stats.out 2>/dev/null || true
-fi
-
 ./linux/luacov/bin/luacov
 
 if [ -f "luacov.report.out" ]; then
