@@ -13,8 +13,8 @@ describe("Menu Keyboard Layout element", function()
   end)
 
   before_each(function()
-    G_reader_settings:save("keyboard_layouts", { "en_US" })
-    G_reader_settings:save("keyboard_layout_default", "en_US")
+    G_reader_settings:save("keyboard_layouts", { "en" })
+    G_reader_settings:save("keyboard_layout_default", "en")
     G_reader_settings:save("keyboard_remember_layout", nil)
     G_reader_settings:save("keyboard_swipes_enabled", nil)
     G_reader_settings:save("keyboard_key_font_size", nil)
@@ -34,14 +34,14 @@ describe("Menu Keyboard Layout element", function()
   end)
 
   it("should correctly handle keyboard layouts summary and submenu", function()
-    G_reader_settings:save("keyboard_layouts", { "en_US" })
+    G_reader_settings:save("keyboard_layouts", { "en" })
 
     local summary_item = menu_keyboard_layout[1]
 
     -- Test summary text_func
     local text = summary_item.text_func()
     assert.is_string(text)
-    assert.is_not_nil(text:find("en_US"))
+    assert.is_not_nil(text:find("Keyboard layouts"))
 
     -- Test fallback when keyboard_layouts is empty
     G_reader_settings:save("keyboard_layouts", {})
@@ -49,7 +49,7 @@ describe("Menu Keyboard Layout element", function()
     assert.is_string(text)
 
     -- Test truncated text when summary width exceeds screen width limit
-    G_reader_settings:save("keyboard_layouts", { "en_US", "fr_FR" })
+    G_reader_settings:save("keyboard_layouts", { "en", "fr" })
     local Screen = Device.screen
     local old_width = Screen.getWidth
     Screen.getWidth = function()
@@ -67,37 +67,37 @@ describe("Menu Keyboard Layout element", function()
     assert.is_table(layout_submenu)
     assert.is_true(#layout_submenu > 0)
 
-    -- Find item for en_US
+    -- Find item for 'en' specifically
     local en_item
     for _, item in ipairs(layout_submenu) do
       local item_text = item.text_func()
-      if item_text:find("en_US") then
+      if item_text:find("English") then
         en_item = item
         break
       end
     end
     assert.is_not_nil(en_item)
 
-    -- Test star indicator when en_US is default layout
-    G_reader_settings:save("keyboard_layout_default", "en_US")
+    -- Test star indicator when 'en' is default layout
+    G_reader_settings:save("keyboard_layout_default", "en")
     assert.is_not_nil(en_item.text_func():find("★", 1, true))
 
-    G_reader_settings:save("keyboard_layout_default", "fr_FR")
+    G_reader_settings:save("keyboard_layout_default", "fr")
     assert.is_nil(en_item.text_func():find("★", 1, true))
 
     -- Test checked_func
-    G_reader_settings:save("keyboard_layouts", { "en_US" })
-    assert.is_true(en_item.checked_func())
+    G_reader_settings:save("keyboard_layouts", { "en" })
+    assert.is_truthy(en_item.checked_func())
 
-    G_reader_settings:save("keyboard_layouts", { "fr_FR" })
+    G_reader_settings:save("keyboard_layouts", { "fr" })
     assert.is_false(en_item.checked_func())
 
     -- Test callback deselecting an active layout
-    G_reader_settings:save("keyboard_layouts", { "en_US", "fr_FR" })
+    G_reader_settings:save("keyboard_layouts", { "en", "fr" })
     en_item.callback()
     local updated_layouts = G_reader_settings:readTableRef("keyboard_layouts")
     assert.are.equal(1, #updated_layouts)
-    assert.are.equal("fr_FR", updated_layouts[1])
+    assert.are.equal("fr", updated_layouts[1])
 
     -- Test callback selecting a new layout (< 4 active)
     en_item.callback()
@@ -105,10 +105,7 @@ describe("Menu Keyboard Layout element", function()
     assert.are.equal(2, #updated_layouts)
 
     -- Test callback selecting a layout when limit (4) is reached
-    G_reader_settings:save(
-      "keyboard_layouts",
-      { "fr_FR", "de_DE", "es_ES", "ru_RU" }
-    )
+    G_reader_settings:save("keyboard_layouts", { "fr", "de", "es", "ru" })
     local ui_show_called = false
     local old_show = UIManager.show
     UIManager.show = function(self, widget)
@@ -130,7 +127,7 @@ describe("Menu Keyboard Layout element", function()
       end,
     }
     en_item.hold_callback(mock_menu)
-    assert.are.equal("en_US", G_reader_settings:read("keyboard_layout_default"))
+    assert.are.equal("en", G_reader_settings:read("keyboard_layout_default"))
     assert.is_true(update_items_called)
   end)
 
@@ -140,7 +137,7 @@ describe("Menu Keyboard Layout element", function()
     -- Case A: No active layouts have layout-specific submenus
     local old_lang_has_submenu = VirtualKeyboard.lang_has_submenu
     VirtualKeyboard.lang_has_submenu = {}
-    G_reader_settings:save("keyboard_layouts", { "en_US" })
+    G_reader_settings:save("keyboard_layouts", { "en" })
 
     local submenu = specific_item.sub_item_table_func()
     assert.is_table(submenu)
@@ -149,12 +146,11 @@ describe("Menu Keyboard Layout element", function()
     assert.is_not_nil(submenu[1].text:find("Not available"))
 
     -- Case B: Active layout has submenu with genMenuItems
-    VirtualKeyboard.lang_has_submenu = { en_US = true }
-    package.loaded["ui/data/keyboardlayouts/en_keyboard"] = {
-      genMenuItems = function()
-        return { { text = "Test Custom Setting" } }
-      end,
-    }
+    local real_en_keyboard = require("ui/data/keyboardlayouts/en_keyboard")
+    VirtualKeyboard.lang_has_submenu = { en = true }
+    real_en_keyboard.genMenuItems = function()
+      return { { text = "Test Custom Setting" } }
+    end
 
     submenu = specific_item.sub_item_table_func()
     assert.are.equal(1, #submenu)
@@ -163,12 +159,13 @@ describe("Menu Keyboard Layout element", function()
     assert.are.equal("Test Custom Setting", items[1].text)
 
     -- Case C: Active layout has submenu without genMenuItems
-    package.loaded["ui/data/keyboardlayouts/en_keyboard"] = {}
+    real_en_keyboard.genMenuItems = nil
+    submenu = specific_item.sub_item_table_func()
+    assert.are.equal(1, #submenu)
     items = submenu[1].sub_item_table_func()
-    assert.are.equal("Not implemented", items[1].text)
+    assert.are.equal("Not implemented", items.text)
 
     VirtualKeyboard.lang_has_submenu = old_lang_has_submenu
-    package.loaded["ui/data/keyboardlayouts/en_keyboard"] = nil
   end)
 
   it("should handle 'Remember last layout' setting", function()
@@ -279,33 +276,21 @@ describe("Menu Keyboard Layout element", function()
       close_btn.callback()
       assert.are.equal(shown_dialog, closed_widget)
 
-      -- Wrap input_widget methods instead of replacing the input_widget
+      -- Mock input_widget methods to track calls during Apply
       local keyboard_closed = false
       local keyboard_inited = false
       local keyboard_shown = false
 
-      local old_close_kb = shown_dialog._input_widget.closeKeyboard
-      shown_dialog._input_widget.closeKeyboard = function(self)
-        keyboard_closed = true
-        if old_close_kb then
-          old_close_kb(self)
-        end
-      end
-
-      local old_init_kb = shown_dialog._input_widget.initKeyboard
-      shown_dialog._input_widget.initKeyboard = function(self)
-        keyboard_inited = true
-        if old_init_kb then
-          old_init_kb(self)
-        end
-      end
-
-      local old_show_kb = shown_dialog.showKeyboard
-      shown_dialog.showKeyboard = function(self)
+      shown_dialog._input_widget = {
+        closeKeyboard = function()
+          keyboard_closed = true
+        end,
+        initKeyboard = function()
+          keyboard_inited = true
+        end,
+      }
+      shown_dialog.showKeyboard = function()
         keyboard_shown = true
-        if old_show_kb then
-          old_show_kb(self)
-        end
       end
 
       -- Test Apply button callback with invalid font size (<16)
@@ -314,7 +299,6 @@ describe("Menu Keyboard Layout element", function()
         return input_text
       end
 
-      menu_updated = false
       apply_btn.callback()
       assert.is_false(keyboard_closed)
       assert.is_false(menu_updated)
