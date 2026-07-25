@@ -630,4 +630,12 @@ describe("AutoWarmth plugin tests", function()
       end
     )
   end)
+
+  describe("Main menu items", function()
+    it("should populate auto warmth menu entries in main menu", function()
+      local menu_items = {}
+      AutoWarmth:addToMainMenu(menu_items)
+      assert.is_table(menu_items.autowarmth)
+    end)
+  end)
 end)
