@@ -10,7 +10,7 @@ describe("ReaderWikipedia module", function()
     local registered = false
     local mock_ui = {
       menu = {
-        registerToMainMenu = function(self_menu, target)
+        registerToMainMenu = function(_self_menu, _target)
           registered = true
         end,
       },

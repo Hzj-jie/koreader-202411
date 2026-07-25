@@ -1,10 +1,9 @@
 describe("FootnoteWidget module", function()
-  local FootnoteWidget, UIManager
+  local FootnoteWidget
 
   setup(function()
     require("commonrequire")
     FootnoteWidget = require("ui/widget/footnotewidget")
-    UIManager = require("ui/uimanager")
   end)
 
   it(
@@ -15,7 +14,7 @@ describe("FootnoteWidget module", function()
 
       local footnote = FootnoteWidget:new({
         html = "<html><body><p>Test footnote content</p></body></html>",
-        close_callback = function(h)
+        close_callback = function(_h)
           close_called = true
         end,
         follow_callback = function()

@@ -10,7 +10,7 @@ describe("ReaderTypeset module", function()
     local register_called = false
     local mock_ui = {
       menu = {
-        registerToMainMenu = function(self_module, target)
+        registerToMainMenu = function(_self_module, _target)
           register_called = true
         end,
       },

@@ -1,10 +1,8 @@
 describe("CheckButton widget", function()
-  local CheckButton, Font, Blitbuffer
+  local CheckButton
   setup(function()
     require("commonrequire")
     CheckButton = require("ui/widget/checkbutton")
-    Font = require("ui/font")
-    Blitbuffer = require("ffi/blitbuffer")
   end)
 
   it("should preserve checked state when disabled and re-enabled", function()

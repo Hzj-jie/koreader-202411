@@ -11,7 +11,7 @@ describe("ReaderPanning module", function()
     local mock_ui = {
       view = {
         visible_area = { w = 600, h = 800 },
-        PanningUpdate = function(self_view, dx, dy)
+        PanningUpdate = function(_self_view, dx, dy)
           update_args = { dx = dx, dy = dy }
         end,
       },

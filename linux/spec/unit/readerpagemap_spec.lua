@@ -17,7 +17,7 @@ describe("ReaderPageMap module", function()
         end,
       },
       view = {
-        registerViewModule = function(self_view, name, module)
+        registerViewModule = function(_self_view, _name, _module)
           registered_view = true
         end,
       },

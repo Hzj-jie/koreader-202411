@@ -1,10 +1,9 @@
 describe("PageBrowserWidget module", function()
-  local PageBrowserWidget, UIManager
+  local PageBrowserWidget
 
   setup(function()
     require("commonrequire")
     PageBrowserWidget = require("ui/widget/pagebrowserwidget")
-    UIManager = require("ui/uimanager")
   end)
 
   it("should initialize with mergeSize and support exit callbacks", function()
@@ -84,6 +83,8 @@ describe("PageBrowserWidget module", function()
     -- Verify callback registration
     assert.is_not_nil(widget.on_exit)
     assert.is_not_nil(widget.on_root_exit)
+    assert.is_false(exit_called)
+    assert.is_false(root_exit_called)
   end)
 
   it("should support mergeSize and dirtyRegion", function()

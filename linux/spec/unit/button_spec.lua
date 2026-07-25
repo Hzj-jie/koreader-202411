@@ -1,9 +1,8 @@
 describe("Button widget", function()
-  local Button, Font, Blitbuffer
+  local Button, Blitbuffer
   setup(function()
     require("commonrequire")
     Button = require("ui/widget/button")
-    Font = require("ui/font")
     Blitbuffer = require("ffi/blitbuffer")
   end)
 

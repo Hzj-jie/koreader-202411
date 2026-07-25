@@ -10,7 +10,7 @@ describe("ReaderKoptListener module", function()
     local saved_key, saved_val
     local mock_ui = {
       doc_settings = {
-        save = function(self_ds, key, val)
+        save = function(_self_ds, key, val)
           saved_key = key
           saved_val = val
         end,

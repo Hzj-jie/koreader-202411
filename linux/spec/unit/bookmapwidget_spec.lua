@@ -1,11 +1,10 @@
 describe("BookMapWidget callbacks", function()
-  local BookMapWidget, Font, UIManager
+  local BookMapWidget, UIManager
   local mock_ui
 
   setup(function()
     require("commonrequire")
     BookMapWidget = require("ui/widget/bookmapwidget")
-    Font = require("ui/font")
     UIManager = require("ui/uimanager")
 
     mock_ui = {
@@ -62,7 +61,7 @@ describe("BookMapWidget callbacks", function()
     local exit_called = false
     local bm = BookMapWidget:new({
       ui = mock_ui,
-      on_exit = function(close_all)
+      on_exit = function(_close_all)
         exit_called = true
       end,
     })
@@ -110,18 +109,16 @@ describe("BookMapWidget callbacks", function()
 end)
 
 describe("BookMapWidget ReaderUI Integration", function()
-  local DataStorage, DocumentRegistry, ReaderUI, UIManager, Screen, DocSettings, Util, BookMapWidget, PageBrowserWidget
+  local DocumentRegistry, ReaderUI, UIManager, Screen, DocSettings, BookMapWidget, PageBrowserWidget
   local sample_epub
 
   setup(function()
     require("commonrequire")
-    DataStorage = require("datastorage")
     DocSettings = require("docsettings")
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     Screen = require("device").screen
-    Util = require("ffi/util")
     BookMapWidget = require("ui/widget/bookmapwidget")
     PageBrowserWidget = require("ui/widget/pagebrowserwidget")
 

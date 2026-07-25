@@ -22,7 +22,7 @@ describe("ReaderScrolling module", function()
     assert.are.equal("on_release", scrolling.SCROLL_METHOD_ON_RELEASE)
 
     local called = false
-    scrolling._do_scroll_callback = function(dist)
+    scrolling._do_scroll_callback = function(_dist)
       called = true
       return true
     end
