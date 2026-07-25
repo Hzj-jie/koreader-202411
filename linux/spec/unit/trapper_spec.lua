@@ -27,14 +27,17 @@ describe("Trapper module", function()
     assert.is_true(resumed)
   end)
 
-  it("should execute dismissableRunInSubprocess fallback in-process when unwrapped", function()
-    local run_count = 0
-    local ok, res = Trapper:dismissableRunInSubprocess(function()
-      run_count = run_count + 1
-      return "done"
-    end, "Processing...")
-    assert.is_true(ok)
-    assert.is_same(1, run_count)
-    assert.is_same("done", res)
-  end)
+  it(
+    "should execute dismissableRunInSubprocess fallback in-process when unwrapped",
+    function()
+      local run_count = 0
+      local ok, res = Trapper:dismissableRunInSubprocess(function()
+        run_count = run_count + 1
+        return "done"
+      end, "Processing...")
+      assert.is_true(ok)
+      assert.is_same(1, run_count)
+      assert.is_same("done", res)
+    end
+  )
 end)

@@ -28,8 +28,12 @@ describe("ReaderUserHyph module", function()
   end)
 
   it("should validate hyphenation suggestions", function()
-    assert.is_true(ReaderUserHyph:checkHyphenation("hy-phe-na-tion", "hyphenation"))
-    assert.is_false(ReaderUserHyph:checkHyphenation("hy--phenation", "hyphenation"))
+    assert.is_true(
+      ReaderUserHyph:checkHyphenation("hy-phe-na-tion", "hyphenation")
+    )
+    assert.is_false(
+      ReaderUserHyph:checkHyphenation("hy--phenation", "hyphenation")
+    )
     assert.is_false(ReaderUserHyph:checkHyphenation("different", "hyphenation"))
   end)
 end)

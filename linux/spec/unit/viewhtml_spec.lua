@@ -13,12 +13,15 @@ describe("ViewHTML module", function()
     assert.is_function(ViewHTML.viewSelectionHTML)
   end)
 
-  it("should handle viewSelectionHTML with missing pos0 or pos1 gracefully", function()
-    local document = {}
-    assert.is_nil(ViewHTML:viewSelectionHTML(document, nil))
-    assert.is_nil(ViewHTML:viewSelectionHTML(document, {}))
-    assert.is_nil(ViewHTML:viewSelectionHTML(document, { pos0 = {} }))
-  end)
+  it(
+    "should handle viewSelectionHTML with missing pos0 or pos1 gracefully",
+    function()
+      local document = {}
+      assert.is_nil(ViewHTML:viewSelectionHTML(document, nil))
+      assert.is_nil(ViewHTML:viewSelectionHTML(document, {}))
+      assert.is_nil(ViewHTML:viewSelectionHTML(document, { pos0 = {} }))
+    end
+  )
 
   it("should open TextViewer dialog for valid selection html", function()
     local document = {
