@@ -53,3 +53,13 @@ ignore = {
   "431/__", -- shadowing upvalue __: avoid conflicting with _
   "432/self", -- shadowing upvalue argument self: allow self being reused.
 }
+
+files["**/spec/unit/**"] = {
+  std = "+busted",
+  ignore = {
+    "211", -- unused variable in test specs
+    "212", -- unused argument in test mocks/callbacks
+    "231", -- variable never accessed in test specs
+    "431", -- shadowing upvalue in test blocks
+  },
+}
