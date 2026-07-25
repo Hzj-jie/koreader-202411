@@ -1,3 +1,4 @@
+-- luacheck: globals package.unload
 describe("background_jobs", function()
   local background_jobs
   local mock_uimanager

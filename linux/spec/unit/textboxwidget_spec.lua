@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll
 describe("TextBoxWidget widget", function()
   require("commonrequire")
   local TextBoxWidget = require("ui/widget/textboxwidget")

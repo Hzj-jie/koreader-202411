@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll
 describe("ReaderMenu integration", function()
   local DocumentRegistry, ReaderUI, DocSettings, UIManager, Screen, purgeDir
 
@@ -497,7 +498,7 @@ describe("ReaderMenu integration", function()
     os.remove(DocSettings:getHistoryPath(file2))
 
     -- 1. Open file1
-    local readerui = ReaderUI:new({
+    ReaderUI:new({
       dimen = Screen:getSize(),
       document = DocumentRegistry:openDocument(file1),
     })

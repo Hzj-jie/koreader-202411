@@ -205,7 +205,7 @@ describe("PluginLoader module", function()
       mock_disabled_plugins["checkers"] = false
       mock_extra_paths = "/extra/plugins"
 
-      local enabled, disabled = PluginLoader:loadPlugins()
+      local enabled = PluginLoader:loadPlugins()
       -- checkers, mock2, and extra1
       assert.are.equal(3, #enabled)
 
@@ -314,7 +314,7 @@ describe("PluginLoader module", function()
       "should preserve enabled status when toggled to true/enabled by user",
       function()
         -- 1. Initial start: plugin is disabled by default
-        local enabled, disabled = PluginLoader:loadPlugins()
+        local _, disabled = PluginLoader:loadPlugins()
         assert.are.equal(1, #disabled)
         assert.are.equal("checkers", disabled[1].name)
 

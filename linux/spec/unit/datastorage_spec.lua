@@ -1,3 +1,4 @@
+-- luacheck: globals os.getenv
 describe("DataStorage module", function()
   local DataStorage
   local original_getenv = os.getenv

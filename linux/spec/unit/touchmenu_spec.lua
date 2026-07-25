@@ -1,9 +1,7 @@
-local mock = require("luassert.mock")
 local spy = require("luassert.spy")
 
 describe("TouchMenu", function()
   local TouchMenu
-  local InfoMessage
   local UIManager
 
   setup(function()

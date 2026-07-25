@@ -1,5 +1,4 @@
 local Language = require("ui/language")
-local stub = require("luassert.stub")
 
 describe("Language module", function()
   setup(function()
@@ -35,7 +34,6 @@ describe("Language module", function()
     assert.is_table(menu.sub_item_table)
 
     local found_en = false
-    local found_c = false
     for _, item in ipairs(menu.sub_item_table) do
       if item.text == "English" then
         -- Note: Language:genLanguageSubItem text comes from getLanguageName

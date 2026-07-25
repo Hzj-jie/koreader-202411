@@ -99,7 +99,7 @@ describe("NetworkMgr non-blocking test", function()
         nil
     end
     local authenticate_called = false
-    NetworkMgr.authenticateNetwork = function(self_mgr, network)
+    NetworkMgr.authenticateNetwork = function(_self_mgr, network)
       authenticate_called = true
       assert.are.equal("fake1", network.ssid)
       return true
@@ -126,7 +126,7 @@ describe("NetworkMgr non-blocking test", function()
           nil
       end
       local show_menu_called = false
-      UIManager.show = function(self_ui, widget)
+      UIManager.show = function(_self_ui, widget)
         show_menu_called = true
         return widget
       end

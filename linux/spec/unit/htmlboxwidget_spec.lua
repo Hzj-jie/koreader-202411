@@ -17,7 +17,7 @@ describe("HtmlBoxWidget module", function()
           },
         }
       end,
-      draw_new = function(self, dc, w, h)
+      draw_new = function(self, _dc, w, h)
         return Blitbuffer.new(w, h)
       end,
       close = function() end,
@@ -55,7 +55,7 @@ describe("HtmlBoxWidget module", function()
 
     -- 3. Release hold/selection
     local called = false
-    widget:onHoldReleaseText(function(text, duration)
+    widget:onHoldReleaseText(function(text, _duration)
       assert.are.equal("Hello World", text)
       called = true
     end, { pos = { x = 80, y = 10 } })

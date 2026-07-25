@@ -1,3 +1,4 @@
+-- luacheck: globals os.time
 describe("datetime module", function()
   local datetime
   setup(function()
