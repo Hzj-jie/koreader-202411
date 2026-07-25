@@ -259,97 +259,52 @@ describe("PageBrowserWidget widget", function()
       local screen_h = Device.screen:getHeight()
 
       -- Left edge swipe for rows
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "north",
-            pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }),
-          }
-        )
-      )
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "south",
-            pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }),
-          }
-        )
-      )
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "north",
+        pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }),
+      }))
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "south",
+        pos = Geom:new({ x = screen_w * 0.05, y = screen_h * 0.5 }),
+      }))
 
       -- Main area vertical swipe
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "north",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
-          }
-        )
-      )
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "south",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
-          }
-        )
-      )
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "north",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+      }))
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "south",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+      }))
 
       -- Top edge swipe for cols
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "west",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }),
-          }
-        )
-      )
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "east",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }),
-          }
-        )
-      )
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "west",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }),
+      }))
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "east",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.05 }),
+      }))
 
       -- Bottom ribbon swipe
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "west",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 10 }),
-          }
-        )
-      )
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "west",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h - 10 }),
+      }))
 
       -- Main area horizontal swipe
-      assert.is_true(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "west",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
-          }
-        )
-      )
+      assert.is_true(widget:onSwipe(nil, {
+        direction = "west",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+      }))
 
       -- Diagonal swipe
-      assert.is_false(
-        widget:onSwipe(
-          nil,
-          {
-            direction = "northeast",
-            pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
-          }
-        )
-      )
+      assert.is_false(widget:onSwipe(nil, {
+        direction = "northeast",
+        pos = Geom:new({ x = screen_w * 0.5, y = screen_h * 0.5 }),
+      }))
 
       -- MultiSwipe
       assert.is_true(widget:onMultiSwipe())

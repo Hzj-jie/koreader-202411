@@ -10,7 +10,10 @@ describe("Readerui module", function()
     UIManager = require("ui/uimanager")
     Screen = require("device").screen
     sample_epub = "spec/front/unit/data/readerui_leaves.epub"
-    require("ffi/util").copyFile("spec/front/unit/data/leaves.epub", sample_epub)
+    require("ffi/util").copyFile(
+      "spec/front/unit/data/leaves.epub",
+      sample_epub
+    )
 
     readerui = ReaderUI:new({
       dimen = Screen:getSize(),
