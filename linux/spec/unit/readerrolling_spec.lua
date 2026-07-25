@@ -290,4 +290,8 @@ describe("Readerrolling module", function()
       tmp_readerui:onClose()
     end)
   end)
+
+  it("should check readerrolling instance state", function()
+    assert.is_table(rolling)
+  end)
 end)
