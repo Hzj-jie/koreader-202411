@@ -1,4 +1,3 @@
--- luacheck: globals package.unload
 describe("SwitchPlugin", function()
   require("commonrequire")
   local SwitchPlugin = require("ui/plugin/switch_plugin")

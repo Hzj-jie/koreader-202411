@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("Frontlight function in PowerD", function()
   local Device, PowerD
   local param, test_when_on, test_when_off

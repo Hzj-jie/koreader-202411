@@ -1,4 +1,3 @@
--- luacheck: globals io.open
 describe("Version module", function()
   local Version
   setup(function()

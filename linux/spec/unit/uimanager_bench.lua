@@ -1,4 +1,3 @@
--- luacheck: globals assert.is_true describe
 require("commonrequire")
 
 local UIManager = require("ui/uimanager")
@@ -25,7 +24,7 @@ local function check()
   end
 end
 
--- luacheck: globals describe assert.is_true
+
 describe("UIManager checkTasks benchmark", function()
   local now = time.monotonic()
   local wait_until -- luacheck: no unused

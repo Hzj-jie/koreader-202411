@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("VirtualKeyboard component", function()
   local Device, VirtualKeyboard, UIManager
 

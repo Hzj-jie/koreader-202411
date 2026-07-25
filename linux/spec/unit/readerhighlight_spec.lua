@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("Readerhighlight module", function()
   local DataStorage, DocumentRegistry, ReaderUI, UIManager, Screen, Geom, Event
   local sample_pdf

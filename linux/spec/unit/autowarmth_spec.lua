@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll package.unload os.date notifyBackgroundJobsUpdated
 describe("AutoWarmth plugin tests", function()
   local Device, SunTime, MockTime, class, AutoWarmth, UIManager
   local original_os_date = os.date

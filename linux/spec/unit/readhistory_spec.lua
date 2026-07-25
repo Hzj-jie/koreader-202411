@@ -1,4 +1,3 @@
--- luacheck: globals package.reload
 describe("ReadHistory module", function()
   local DocSettings
   local DataStorage

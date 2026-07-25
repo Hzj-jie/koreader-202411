@@ -1,7 +1,7 @@
 local logger
 local serpent = require("ffi/serpent")
 
--- luacheck: globals os.date io.write
+
 describe("logger", function()
   local original_date
   local original_io_write

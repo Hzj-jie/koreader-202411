@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("WidgetContainer component", function()
   local Widget, WidgetContainer, Event
 

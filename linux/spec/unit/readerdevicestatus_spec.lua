@@ -1,4 +1,3 @@
--- luacheck: globals io.open
 describe("ReaderDeviceStatus", function()
   local ReaderDeviceStatus
   local UIManager

@@ -1,4 +1,3 @@
--- luacheck: globals package.reload
 describe("Nickel configuration module", function()
   local lfs, NickelConf
   setup(function()

@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("FrontLightWidget UI component", function()
   local Device, PowerD, FrontLightWidget
 

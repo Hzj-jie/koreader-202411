@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("Games submenu integration", function()
   local ReaderMenu, FileManagerMenu, MenuSorter, common_menu_order
   setup(function()

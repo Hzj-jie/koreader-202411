@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll requireBackgroundRunner notifyBackgroundJobsUpdated stopBackgroundRunner
 describe("AutoFrontlight widget tests", function()
   local Device, PowerD, MockTime, class, AutoFrontlight, UIManager
 

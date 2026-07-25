@@ -1,4 +1,3 @@
--- luacheck: globals os.time os.date package.unloadAll package.unload
 describe("Clock plugin tests", function()
   local Device, UIManager, PluginShare, Clock, Dispatcher
   local mock_clockwidget

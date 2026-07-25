@@ -1,4 +1,3 @@
--- luacheck: globals os.clock
 describe("network_manager module", function()
   local Device
   local UIManager

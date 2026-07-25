@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll package.unload
 describe("KeepAlive plugin tests", function()
   local Device, UIManager, PluginShare
 

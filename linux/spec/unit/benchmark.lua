@@ -1,4 +1,3 @@
--- luacheck: globals describe assert.truthy
 require("commonrequire")
 local DocumentRegistry = require("document/documentregistry")
 local util = require("ffi/util")

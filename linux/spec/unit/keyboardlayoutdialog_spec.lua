@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("KeyboardLayoutDialog UI component", function()
   local KeyboardLayoutDialog
 

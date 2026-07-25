@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll package.unload requireBackgroundRunner stopBackgroundRunner notifyBackgroundJobsUpdated time
 describe("AutoTurn plugin tests", function()
   local UIManager, PluginShare, Device, MockTime
   local mock_menu, mock_topmost_widget

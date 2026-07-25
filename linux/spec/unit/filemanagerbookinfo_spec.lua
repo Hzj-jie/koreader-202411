@@ -1,4 +1,3 @@
--- luacheck: globals os.remove
 describe("BookInfo", function()
   local BookInfo
   local mock_widget_container = {}

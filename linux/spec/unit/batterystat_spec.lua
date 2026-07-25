@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("BatteryState plugin tests #nocov", function()
   local MockTime, module, time
 

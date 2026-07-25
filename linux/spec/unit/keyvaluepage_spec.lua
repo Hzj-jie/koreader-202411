@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("KeyValuePage UI component", function()
   local KeyValuePage
 

@@ -1,6 +1,6 @@
 local socketutil
 
--- luacheck: globals os.time
+
 describe("socketutil", function()
   local mock_version
   local mock_http

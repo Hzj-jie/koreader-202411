@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("Terminal plugin button tap integration", function()
   local UIManager, Screen, FileManager
 

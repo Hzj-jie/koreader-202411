@@ -1,4 +1,3 @@
--- luacheck: globals package.unloadAll
 describe("FileManager module", function()
   local FileManager, lfs, docsettings, UIManager, Screen, util
   setup(function()

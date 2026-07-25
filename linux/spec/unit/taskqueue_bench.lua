@@ -1,4 +1,3 @@
--- luacheck: globals describe
 require("commonrequire")
 
 local UIManager = require("ui/uimanager")
