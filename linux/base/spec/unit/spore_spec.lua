@@ -51,7 +51,7 @@ describe("Lua Spore modules", function()
 
         package.loaded['Spore.Middleware.Dummy'] = {}
         local dummy_resp = { status = 200 }
-        require('Spore.Middleware.Dummy').call = function (self, req)
+        require('Spore.Middleware.Dummy').call = function (_self, _req)
             return dummy_resp
         end
         client:reset_middlewares()

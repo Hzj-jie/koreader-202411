@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll package.unload requireBackgroundRunner stopBackgroundRunner notifyBackgroundJobsUpdated
 describe("BackgroundRunner widget tests", function()
   local Device, PluginShare, MockTime, UIManager
 

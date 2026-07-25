@@ -1,3 +1,4 @@
+-- luacheck: globals os.remove
 describe("BookInfo", function()
   local BookInfo
   local mock_widget_container = {}
@@ -7,7 +8,6 @@ describe("BookInfo", function()
   local mock_docregistry = {}
   local mock_uimanager = {}
   local mock_utf8proc = {}
-  local mock_filemanagerutil = {}
   local mock_gettext = {}
   local mock_button_dialog = {}
   local mock_confirm_box = {}
@@ -141,9 +141,9 @@ describe("BookInfo", function()
     package.loaded["gettext"] = mock_gettext
 
     clear_table(mock_uimanager)
-    mock_uimanager.show = spy.new(function(self, widget) end)
-    mock_uimanager.close = spy.new(function(self, widget) end)
-    mock_uimanager.broadcastEvent = spy.new(function(self, event) end)
+    mock_uimanager.show = spy.new(function(self, _widget) end)
+    mock_uimanager.close = spy.new(function(self, _widget) end)
+    mock_uimanager.broadcastEvent = spy.new(function(self, _event) end)
     package.loaded["ui/uimanager"] = mock_uimanager
 
     clear_table(mock_docsettings)
@@ -155,20 +155,20 @@ describe("BookInfo", function()
     end)
     mock_docsettings.openSettingsFile = spy.new(function()
       return {
-        read = function(self, key)
+        read = function(self, _key)
           return nil
         end,
-        readTableRef = function(self, key)
+        readTableRef = function(self, _key)
           return {}
         end,
-        save = function(self, key, val) end,
+        save = function(self, _key, _val) end,
         purge = function(self) end,
         flushCustomMetadata = function(self) end,
       }
     end)
     mock_docsettings.open = spy.new(function()
       return {
-        read = function(self, key)
+        read = function(self, _key)
           return nil
         end,
       }
@@ -179,7 +179,7 @@ describe("BookInfo", function()
     package.loaded["docsettings"] = mock_docsettings
 
     clear_table(mock_document)
-    mock_document.getProps = spy.new(function(self, stats)
+    mock_document.getProps = spy.new(function(self, _stats)
       return {
         title = "Book Title",
         authors = "Book Author",
@@ -188,7 +188,7 @@ describe("BookInfo", function()
     package.loaded["document/document"] = mock_document
 
     clear_table(mock_docregistry)
-    mock_docregistry.openDocument = spy.new(function(self, file)
+    mock_docregistry.openDocument = spy.new(function(self, _file)
       return {
         getPageCount = function()
           return 100
@@ -297,7 +297,7 @@ describe("BookInfo", function()
     package.loaded["ui/widget/pathchooser"] = mock_pathchooser
 
     local Device = require("device")
-    Device.input.setClipboardText = spy.new(function(text) end)
+    Device.input.setClipboardText = spy.new(function(_text) end)
     Device.input.hasClipboard = function()
       return true
     end
@@ -392,7 +392,7 @@ describe("BookInfo", function()
             return "/metadata/file.lua"
           end
         end)
-        mock_docsettings.openSettingsFile = spy.new(function(metafile)
+        mock_docsettings.openSettingsFile = spy.new(function(_metafile)
           return {
             readTableRef = function(self, key)
               if key == "custom_props" then
@@ -644,7 +644,7 @@ describe("BookInfo", function()
                 }
               end
             end,
-            readTableRef = function(_, key)
+            readTableRef = function(_, _key)
               return {}
             end,
           }
@@ -1114,7 +1114,7 @@ describe("BookInfo", function()
   end)
 
   describe("showCustomDialog", function()
-    local original_prop, custom_prop
+    local custom_prop
     local instance
 
     before_each(function()
@@ -1130,7 +1130,6 @@ describe("BookInfo", function()
         end),
       }
       instance.custom_book_cover = nil
-      original_prop = "Original Title"
       custom_prop = false
 
       instance.onShowBookCover = spy.new(function() end)
@@ -1305,7 +1304,7 @@ describe("BookInfo", function()
       }
 
       local fm_util = require("apps/filemanager/filemanagerutil")
-      fm_util.saveSummary = spy.new(function(settings, summary)
+      fm_util.saveSummary = spy.new(function(settings, _summary)
         return settings
       end)
     end)
@@ -1512,10 +1511,8 @@ describe("BookInfo", function()
   end)
 
   describe("showBooksWithHashBasedMetadata", function()
-    local original_lfs_attributes
-
     before_each(function()
-      mock_docsettings.getSidecarStorage = spy.new(function(type)
+      mock_docsettings.getSidecarStorage = spy.new(function(_type)
         return "/hash_path"
       end)
       mock_docsettings.findSidecarFilesInHashLocation = spy.new(function()

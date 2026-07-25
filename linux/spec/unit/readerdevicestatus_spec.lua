@@ -74,7 +74,7 @@ describe("ReaderDeviceStatus", function()
 
     -- Mock G_reader_settings
     _G.G_reader_settings = {
-      read = function(self, _key)
+      read = function(self, key)
         if key == "device_status_battery_threshold" then
           return 20
         end
@@ -87,7 +87,7 @@ describe("ReaderDeviceStatus", function()
           return true
         end
       end,
-      nilOrTrue = function(self, key)
+      nilOrTrue = function(self, _key)
         return true
       end,
       has = function(self, key)

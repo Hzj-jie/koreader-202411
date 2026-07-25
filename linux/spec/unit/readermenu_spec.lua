@@ -1,4 +1,4 @@
--- luacheck: globals package.unloadAll
+-- luacheck: globals package.unloadAll readerui
 describe("ReaderMenu integration", function()
   local DocumentRegistry, ReaderUI, DocSettings, UIManager, Screen, purgeDir
 

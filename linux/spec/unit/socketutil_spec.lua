@@ -166,7 +166,7 @@ describe("socketutil", function()
           local t = {}
           local sink = socketutil.table_sink(t)
 
-          local ok, _err = sink("chunk1")
+          local ok = sink("chunk1")
           assert.is_not_nil(ok)
 
           -- Simulate passage of 11 seconds (total_timeout is 10)
@@ -235,7 +235,7 @@ describe("socketutil", function()
 
           local sink = socketutil.file_sink(mock_handle)
 
-          local ok, _err = sink("chunk1")
+          local ok = sink("chunk1")
           assert.is_not_nil(ok)
 
           -- Simulate passage of 11 seconds (total_timeout is 10)

@@ -5,7 +5,7 @@ local Persist
 local lfs
 local HB
 
--- luacheck: globals os.getenv
+-- luacheck: globals os.getenv mock_cache_save_called
 describe("FontList", function()
   setup(function()
     require("commonrequire")
@@ -112,7 +112,6 @@ describe("FontList", function()
     local original_getenv
     local original_persist_new
     local original_mkdir
-    local mock_cache_save_called = false
 
     before_each(function()
       original_findFiles = util.findFiles

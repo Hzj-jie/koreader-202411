@@ -1,3 +1,4 @@
+-- luacheck: globals G_defaults G_reader_settings G_named_settings einkfb package.unload package.replace package.reload package.unloadAll requireBackgroundRunner stopBackgroundRunner notifyBackgroundJobsUpdated
 -- Check if we're running a busted version recent enough that we don't need to deal with the LuaJIT hacks...
 -- That currently means > 2.0.0 (i.e., scm-2, which isn't on LuaRocks...).
 local busted_ok = false

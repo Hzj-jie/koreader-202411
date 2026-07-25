@@ -1,3 +1,4 @@
+-- luacheck: globals package.unloadAll package.unload requireBackgroundRunner stopBackgroundRunner
 describe("BackgroundTaskPlugin", function()
   require("commonrequire")
   local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")

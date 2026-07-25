@@ -1,3 +1,4 @@
+-- luacheck: globals os.time os.date package.unloadAll package.unload
 describe("Clock plugin tests", function()
   local Device, UIManager, PluginShare, Clock, Dispatcher
   local mock_clockwidget
@@ -30,7 +31,7 @@ describe("Clock plugin tests", function()
 
     -- Mock clockwidget to avoid image loading/rendering
     mock_clockwidget = {
-      new = spy.new(function(self, args)
+      new = spy.new(function(self, _args)
         return {
           dimen = { w = 100, h = 100 },
         }

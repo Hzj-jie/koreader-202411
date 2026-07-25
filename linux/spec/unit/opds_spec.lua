@@ -1,3 +1,4 @@
+-- luacheck: max line length 3000
 -- https://www.gutenberg.org/ebooks.opds/
 local navigation_sample = [[
 <?xml version="1.0" encoding="utf-8"?>
