@@ -6,6 +6,7 @@ describe("ReadHistory module", function()
   local realpath
   local reload
   local lfs
+  local Util
   local now = 61
 
   local function file(name)
@@ -62,6 +63,7 @@ describe("ReadHistory module", function()
       return package.reload("readhistory")
     end
     lfs = require("libs/libkoreader-lfs")
+    Util = require("util")
 
     mkdir(joinPath(DataStorage:getDataDir(), "testdata"))
   end)
@@ -263,7 +265,7 @@ describe("ReadHistory module", function()
     rm(test_file("e"))
   end)
 
-  it("should reduce the total count", function()
+  local function testReduceTotalCount(no_flush)
     local function to_file(i)
       return test_file(string.format("%04d", i))
     end
@@ -271,7 +273,11 @@ describe("ReadHistory module", function()
     local h = reload()
     for i = 1000, 1, -1 do
       touch(to_file(i))
-      h:addItem(to_file(i))
+      h:addItem(to_file(i), nil, no_flush)
+    end
+    if no_flush then
+      h:_reduce()
+      h:_flush()
     end
 
     for i = 1, 500 do -- at most 500 items are stored
@@ -281,6 +287,17 @@ describe("ReadHistory module", function()
     for i = 1, 1000 do
       rm(to_file(i))
     end
+  end
+
+  it("should reduce the total count", function()
+    if Util.isLuaCov() then
+      return
+    end
+    testReduceTotalCount(false)
+  end)
+
+  it("should reduce the total count (optimized for luacov)", function()
+    testReduceTotalCount(true)
   end)
 
   it("should reload the history file if it updated", function()

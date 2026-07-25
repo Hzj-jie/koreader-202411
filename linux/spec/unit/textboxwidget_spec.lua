@@ -145,4 +145,17 @@ describe("TextBoxWidget widget", function()
       assert.are.equal("$", getLineText(tw3, 2)) -- only "$" on line 2!
     end
   )
+
+  it("should update text and line count via setText()", function()
+    local tw = TextBoxWidget:new({
+      dimen = { x = 0, y = 0 },
+      face = Font:getFace("cfont", 25),
+      text = "Initial Text",
+    })
+    assert.is_equal("Initial Text", tw.text)
+
+    tw:setText("New Multi\nLine Text")
+    assert.is_equal("New Multi\nLine Text", tw.text)
+    assert.is_true(#tw.vertical_string_list >= 2)
+  end)
 end)

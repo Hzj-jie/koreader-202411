@@ -47,6 +47,11 @@ describe("Readerrolling module", function()
       end
     end)
 
+    it("should return last percent progress", function()
+      rolling:onGotoPage(5)
+      assert.is_number(rolling:getLastPercent())
+    end)
+
     it("should goto relative page", function()
       for i = 20, 40, 5 do
         rolling:onGotoPage(i)

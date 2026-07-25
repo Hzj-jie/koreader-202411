@@ -106,6 +106,10 @@ describe("BookMapWidget callbacks", function()
     local size = bm:getSize()
     assert.is_not_nil(size)
   end)
+
+  it("should expose BookMapRow subwidget", function()
+    assert.is_table(BookMapWidget.BookMapRow)
+  end)
 end)
 
 describe("BookMapWidget ReaderUI Integration", function()
@@ -136,8 +140,6 @@ describe("BookMapWidget ReaderUI Integration", function()
     -- Initially, the topmost widget on the stack is ReaderUI
     assert.truthy(UIManager:isWindowWidget(readerui))
 
-    -- 1. Show BookMap
-    readerui.thumbnail:onShowBookMap()
     -- 1. Show BookMap
     readerui.thumbnail:onShowBookMap()
     local bookmap
