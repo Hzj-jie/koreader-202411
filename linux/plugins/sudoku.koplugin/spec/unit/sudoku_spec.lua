@@ -81,4 +81,32 @@ describe("Sudoku plugin unit tests", function()
     notes = board:getCellNotes(selected_r, selected_c)
     assert.is_nil(notes)
   end)
+
+  describe("Menu & Dispatcher Integration", function()
+    it("should populate main menu items", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = class:new({ ui = mock_ui })
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.sudoku)
+    end)
+
+    it("should register dispatcher actions", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = class:new({ ui = mock_ui })
+      if type(plugin.onDispatcherRegisterActions) == "function" then
+        plugin:onDispatcherRegisterActions()
+      end
+    end)
+  end)
 end)
