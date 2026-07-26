@@ -24,6 +24,7 @@ describe("ProgressWidget widget", function()
     })
     if type(progress.setPercentage) == "function" then
       progress:setPercentage(0.5)
+      progress:paintTo(Screen.bb, 0, 0)
     end
     assert.is_table(progress)
   end)
