@@ -470,5 +470,11 @@ describe("Profiles plugin", function()
       assert.is_table(sub_items)
       assert.is_true(#sub_items >= 4)
     end)
+
+    it("should populate main menu items", function()
+      local menu_items = {}
+      profiles_instance:addToMainMenu(menu_items)
+      assert.is_table(menu_items.profiles)
+    end)
   end)
 end)
