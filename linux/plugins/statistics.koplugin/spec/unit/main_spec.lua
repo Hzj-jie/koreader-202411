@@ -605,4 +605,10 @@ describe("ReaderStatistics plugin main spec", function()
     os.remove(cached_db)
     os.remove(income_db)
   end)
+
+  it("should register dispatcher actions safely", function()
+    if type(ReaderStatistics.onDispatcherRegisterActions) == "function" then
+      ReaderStatistics:onDispatcherRegisterActions()
+    end
+  end)
 end)
