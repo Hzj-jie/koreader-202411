@@ -359,5 +359,14 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       menu:_recalculateDimen()
       assert.are.equal(0, menu.page_num)
     end)
+
+    it("should handle item tap helper safely", function()
+      local menu = createMockMenu({
+        item_table = { { text = "Book 1" } },
+      })
+      if type(menu._onItemTap) == "function" then
+        menu:_onItemTap({ text = "Book 1" })
+      end
+    end)
   end)
 end)
