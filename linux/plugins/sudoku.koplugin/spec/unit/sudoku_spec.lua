@@ -80,6 +80,12 @@ describe("Sudoku plugin unit tests", function()
     board:toggleNoteDigit(3)
     notes = board:getCellNotes(selected_r, selected_c)
     assert.is_nil(notes)
+
+    if type(board.clearNotes) == "function" then
+      board:clearNotes(selected_r, selected_c)
+      notes = board:getCellNotes(selected_r, selected_c)
+      assert.is_nil(notes)
+    end
   end)
 
   describe("Menu & Dispatcher Integration", function()
