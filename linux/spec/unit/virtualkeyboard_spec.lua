@@ -496,4 +496,9 @@ describe("VirtualKeyboard component", function()
     end
     vk:setVisibility(false)
   end)
+
+  it("should expose PhysicalKeyboard class safely", function()
+    local PhysicalKeyboard = require("ui/widget/physicalkeyboard")
+    assert.is_table(PhysicalKeyboard)
+  end)
 end)
