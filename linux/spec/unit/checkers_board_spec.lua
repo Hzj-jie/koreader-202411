@@ -16,5 +16,8 @@ describe("Checkers Board widget module", function()
     })
 
     assert.is_table(board)
+    if type(board.clearSelection) == "function" then
+      board:clearSelection()
+    end
   end)
 end)
