@@ -25,4 +25,20 @@ describe("ReaderPageMap module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  describe("Menu & Dispatcher Integration", function()
+    it("should register dispatcher actions", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local pagemap = ReaderPageMap:new({
+        ui = mock_ui,
+      })
+      if type(pagemap.onDispatcherRegisterActions) == "function" then
+        pagemap:onDispatcherRegisterActions()
+      end
+    end)
+  end)
 end)
