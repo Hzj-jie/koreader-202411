@@ -927,5 +927,12 @@ describe("KOSync plugin tests", function()
       kosync._updateProgress:revert()
       kosync._getProgress:revert()
     end)
+
+    it("registers dispatcher actions safely", function()
+      kosync:init()
+      if type(kosync.onDispatcherRegisterActions) == "function" then
+        kosync:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
