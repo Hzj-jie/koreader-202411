@@ -623,11 +623,16 @@ describe("AutoWarmth plugin tests", function()
         MockTime:increase(2)
         UIManager:handleInput()
 
-        -- The 1.5s timer should also set warmth to 20
         assert
           .stub(Device.powerd.setWarmth)
           .was_called_with(match.is_table(), 20, true)
       end
     )
+
+    it("should register dispatcher actions safely", function()
+      if type(AutoWarmth.onDispatcherRegisterActions) == "function" then
+        AutoWarmth:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
