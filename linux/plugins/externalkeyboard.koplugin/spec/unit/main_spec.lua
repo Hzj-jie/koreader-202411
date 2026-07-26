@@ -40,5 +40,11 @@ describe("ExternalKeyboard plugin main module", function()
       assert.is_table(ExternalKeyboard)
       assert.is_boolean(ExternalKeyboard.disabled)
     end)
+
+    it("should register dispatcher actions", function()
+      if type(ExternalKeyboard.onDispatcherRegisterActions) == "function" then
+        ExternalKeyboard:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
