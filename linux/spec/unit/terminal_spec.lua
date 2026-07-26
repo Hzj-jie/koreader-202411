@@ -769,4 +769,9 @@ describe("Terminal plugin button tap integration", function()
       Terminal:onDispatcherRegisterActions()
     end
   end)
+
+  it("should initialize terminputtext widget safely", function()
+    local TermInputText = dofile("plugins/terminal.koplugin/terminputtext.lua")
+    assert.is_table(TermInputText)
+  end)
 end)
