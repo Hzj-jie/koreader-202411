@@ -313,6 +313,10 @@ describe("Readersearch module", function()
       local menu_items = {}
       rs:addToMainMenu(menu_items)
       assert.is_table(menu_items.fulltext_search_settings)
+
+      if type(rs.onShowSearchDialog) == "function" then
+        assert.is_function(rs.onShowSearchDialog)
+      end
     end)
   end)
 end)
