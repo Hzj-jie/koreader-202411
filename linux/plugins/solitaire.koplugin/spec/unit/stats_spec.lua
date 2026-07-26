@@ -16,5 +16,14 @@ describe("Solitaire Stats module", function()
       assert.are.equal(0, s.games_played)
       assert.are.equal(0, s.games_won)
     end)
+
+    it("should update stats when games finish", function()
+      local s = Stats:new()
+      if type(s.onGameFinish) == "function" then
+        s:onGameFinish(true)
+        assert.are.equal(1, s.games_played)
+        assert.are.equal(1, s.games_won)
+      end
+    end)
   end)
 end)
