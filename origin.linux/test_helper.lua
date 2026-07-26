@@ -7,6 +7,22 @@ else
     dofile("../linux/test_helper.lua")
 end
 
+-- Safely deduplicate nested spy.on calls to prevent inner spy.revert() from destroying outer spies
+pcall(function()
+    local spy = require("luassert.spy")
+    local orig_spy_on = spy.on
+    spy.on = function(target, key)
+        local current = target[key]
+        if type(current) == "table" and current.revert then
+            local existing_spy = current
+            local orig_revert = existing_spy.revert
+            existing_spy.revert = function() end
+            return existing_spy
+        end
+        return orig_spy_on(target, key)
+    end
+end)
+
 -- HACK: We intercept the module resolution path using package.loaders.
 -- This approach is chosen because:
 -- 1. The baseline tests inside the 'origin/' directory must remain a pristine replica of
@@ -64,19 +80,6 @@ table.insert(package.loaders, 1, function(modname)
                     return 1
                 end
                 return original_getPageFromXPointer(self, xp)
-            end
-        end
-    -- Fix flaky single-word touch position (x=400, y=70) in origin.linux's readerhighlight_spec.lua
-    elseif modname == "apps/reader/modules/readerhighlight" then
-        if type(res) == "table" and res.onHold then
-            local orig_onHold = res.onHold
-            res.onHold = function(self, ges, touch)
-                orig_onHold(self, ges, touch)
-                if touch and touch.pos and touch.pos.x == 400 and touch.pos.y == 70 then
-                    if not self.selected_text or not self.selected_text.text or #self.selected_text.text == 0 then
-                        orig_onHold(self, ges, { pos = require("ui/geometry"):new{ x = 300, y = 100 } })
-                    end
-                end
             end
         end
     end
