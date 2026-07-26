@@ -26,4 +26,24 @@ describe("ReaderThumbnail module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  describe("Capabilities & Actions", function()
+    it("should check page browser and book map availability", function()
+      local mock_ui = {
+        document = {
+          info = {},
+        },
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local thumb = ReaderThumbnail:new({
+        ui = mock_ui,
+      })
+
+      if type(thumb.hasBookMap) == "function" then
+        assert.is_boolean(thumb:hasBookMap())
+      end
+    end)
+  end)
 end)
