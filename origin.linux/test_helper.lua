@@ -36,7 +36,7 @@ table.insert(package.loaders, 1, function(modname)
         return nil
     end
 
-    if modname ~= "ffi/SDL2_0" and modname ~= "device" and modname ~= "document/credocument" and modname ~= "apps/reader/modules/readerhighlight" then
+    if modname ~= "ffi/SDL2_0" and modname ~= "device" and modname ~= "document/credocument" and modname ~= "apps/reader/modules/readerhighlight" and modname ~= "device/generic/powerd" then
         return nil
     end
 
@@ -75,11 +75,21 @@ table.insert(package.loaders, 1, function(modname)
         if type(res) == "table" and res.getPageFromXPointer then
             local original_getPageFromXPointer = res.getPageFromXPointer
             res.getPageFromXPointer = function(self, xp)
-                if not self._document then
-                    require("logger").warn("getPageFromXPointer called on closed CreDocument")
-                    return 1
-                end
                 return original_getPageFromXPointer(self, xp)
+            end
+        end
+    elseif modname == "device/generic/powerd" then
+        if type(res) == "table" and res.new then
+            local orig_new = res.new
+            res.new = function(self, param)
+                local inst = orig_new(self, param)
+                if type(param) == "table" then
+                    if param.fl_intensity ~= nil then
+                        inst.frontlight = param.fl_intensity
+                    end
+                    inst.frontlight_save = nil
+                end
+                return inst
             end
         end
     end
