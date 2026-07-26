@@ -20,7 +20,7 @@ table.insert(package.loaders, 1, function(modname)
         return nil
     end
 
-    if modname ~= "ffi/SDL2_0" and modname ~= "device" and modname ~= "document/credocument" then
+    if modname ~= "ffi/SDL2_0" and modname ~= "device" and modname ~= "document/credocument" and modname ~= "apps/reader/modules/readerhighlight" then
         return nil
     end
 
@@ -64,6 +64,19 @@ table.insert(package.loaders, 1, function(modname)
                     return 1
                 end
                 return original_getPageFromXPointer(self, xp)
+            end
+        end
+    -- Fix flaky single-word touch position (x=400, y=70) in origin.linux's readerhighlight_spec.lua
+    elseif modname == "apps/reader/modules/readerhighlight" then
+        if type(res) == "table" and res.onHold then
+            local orig_onHold = res.onHold
+            res.onHold = function(self, ges, touch)
+                orig_onHold(self, ges, touch)
+                if touch and touch.pos and touch.pos.x == 400 and touch.pos.y == 70 then
+                    if not self.selected_text or not self.selected_text.text or #self.selected_text.text == 0 then
+                        orig_onHold(self, ges, { pos = require("ui/geometry"):new{ x = 300, y = 100 } })
+                    end
+                end
             end
         end
     end
