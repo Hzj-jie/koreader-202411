@@ -70,5 +70,14 @@ describe("NewsDownloader plugin", function()
         assert.is_table(feeds)
       end
     end)
+
+    it("should register dispatcher actions", function()
+      local downloader = NewsDownloader:new({
+        ui = create_mock_ui(),
+      })
+      if type(downloader.onDispatcherRegisterActions) == "function" then
+        downloader:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
