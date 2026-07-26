@@ -270,6 +270,190 @@ describe("Readerrolling module", function()
     end)
   end)
 
+  describe("test goto percent and relative page navigation", function()
+    it("should jump to percent position", function()
+      rolling:onGotoPercent(25)
+      assert.is_number(rolling:getLastPercent())
+      assert.is_not_nil(rolling.xpointer)
+    end)
+
+    it("should jump to relative page", function()
+      rolling:onGotoPage(10)
+      rolling:onGotoRelativePage(5)
+      assert.are.same(15, rolling.current_page)
+      rolling:onGotoRelativePage(-3)
+      assert.are.same(12, rolling.current_page)
+    end)
+
+    it("should save and restore book location", function()
+      rolling:onGotoPage(15)
+      local loc = { xpointer = rolling:getBookLocation() }
+      assert.is_not_nil(loc.xpointer)
+      rolling:onGotoPage(40)
+      assert.are.same(40, rolling.current_page)
+      rolling:onRestoreBookLocation(loc)
+      assert.are.same(15, rolling.current_page)
+    end)
+  end)
+
+  describe("test scroll settings and panning", function()
+    it("should update scroll settings", function()
+      local time = require("ui/time")
+      rolling:onScrollSettingsUpdated("classic", true, 200)
+      assert.are.same("classic", rolling.scroll_method)
+      assert.are.same(200, time.to_ms(rolling.scroll_activation_delay))
+      rolling:onScrollSettingsUpdated("turbo", false, 100)
+      assert.are.same("turbo", rolling.scroll_method)
+      assert.are.same(100, time.to_ms(rolling.scroll_activation_delay))
+    end)
+
+    it("should handle panning in page and scroll modes", function()
+      readerui.view.view_mode = "page"
+      rolling:onPanning({ 0, 1 })
+      readerui.view.view_mode = "scroll"
+      local pos_before = rolling.current_pos
+      rolling:onPanning({ 0, 1 })
+      assert.are_not.same(pos_before, rolling.current_pos)
+      readerui.view.view_mode = "page"
+    end)
+  end)
+
+  describe("test settings handlers and mode toggles", function()
+    it("should toggle hide non-linear fragments", function()
+      local orig = rolling.hide_nonlinear_flows
+      rolling:onToggleHideNonlinear()
+      assert.are.same(not orig, rolling.hide_nonlinear_flows)
+      rolling:onToggleHideNonlinear()
+      assert.are.same(orig, rolling.hide_nonlinear_flows)
+    end)
+
+    it("should set status line property", function()
+      rolling:onSetStatusLine(0)
+      assert.is_true(rolling.cre_top_bar_enabled)
+      rolling:onSetStatusLine(1)
+      assert.is_false(rolling.cre_top_bar_enabled)
+    end)
+
+    it("should set visible pages count", function()
+      rolling:onSetVisiblePages(2)
+      assert.are.same(2, rolling.configurable.visible_pages)
+      rolling:onSetVisiblePages(1)
+      assert.are.same(1, rolling.configurable.visible_pages)
+    end)
+
+    it("should update view mode changes", function()
+      rolling:onChangeViewMode()
+      assert.is_number(rolling.current_header_height)
+    end)
+  end)
+
+  describe("test swipe and gesture options", function()
+    it(
+      "should handle swipe gestures with normal and inverse reading order",
+      function()
+        rolling:onGotoPage(10)
+        readerui.view.inverse_reading_order = false
+        rolling:onSwipe(nil, { direction = "west" })
+        assert.are.same(11, rolling.current_page)
+        rolling:onSwipe(nil, { direction = "east" })
+        assert.are.same(10, rolling.current_page)
+        readerui.view.inverse_reading_order = true
+        rolling:onSwipe(nil, { direction = "west" })
+        assert.are.same(9, rolling.current_page)
+        rolling:onSwipe(nil, { direction = "east" })
+        assert.are.same(10, rolling.current_page)
+        readerui.view.inverse_reading_order = false
+      end
+    )
+  end)
+
+  describe("test main menu items and battery state", function()
+    it("should populate main menu items", function()
+      local menu_items = {}
+      rolling:addToMainMenu(menu_items)
+      assert.is_table(menu_items.partial_rerendering)
+      assert.is_function(menu_items.partial_rerendering.enabled_func)
+      assert.is_function(menu_items.partial_rerendering.checked_func)
+      assert.is_function(menu_items.partial_rerendering.callback)
+    end)
+
+    it(
+      "should update battery state according to view mode and status line",
+      function()
+        rolling:onSetStatusLine(0)
+        readerui.view.view_mode = "page"
+        local batt = rolling:updateBatteryState()
+        assert.is_number(batt)
+        readerui.view.view_mode = "scroll"
+        assert.are.same(0, rolling:updateBatteryState())
+        readerui.view.view_mode = "page"
+        rolling:onSetStatusLine(1)
+        assert.are.same(0, rolling:updateBatteryState())
+      end
+    )
+  end)
+
+  describe("test key events registration", function()
+    it("should register key events with left_right_keys_turn_pages", function()
+      G_reader_settings:save("left_right_keys_turn_pages", true)
+      rolling:registerKeyEvents()
+      assert.is_table(rolling.key_events)
+      G_reader_settings:save("left_right_keys_turn_pages", false)
+      rolling:registerKeyEvents()
+      assert.is_table(rolling.key_events)
+    end)
+  end)
+
+  describe("test xpointer and position navigation", function()
+    it("should navigate using xpointer", function()
+      rolling:onGotoPage(5)
+      local xp = rolling.xpointer
+      assert.is_not_nil(xp)
+      rolling:onGotoPage(12)
+      assert.are.same(12, rolling.current_page)
+      rolling:onGotoXPointer(xp)
+      assert.are.same(5, rolling.current_page)
+    end)
+
+    it("should handle gesture reset in onHandledAsSwipe", function()
+      rolling._pan_started = true
+      rolling._pan_pos_at_pan_start = 50
+      rolling:onHandledAsSwipe()
+      assert.are.same(50, rolling.current_pos)
+      assert.is_false(rolling._pan_started)
+    end)
+
+    it("should handle pan release", function()
+      rolling._pan_has_scrolled = true
+      rolling._pan_to_scroll_later = 0
+      rolling:onPanRelease(nil, { from_mousewheel = true })
+      assert.is_false(rolling._pan_started)
+      assert.is_false(rolling._pan_has_scrolled)
+    end)
+  end)
+
+  describe("test document events and settings persistence", function()
+    it("should handle zoom event", function()
+      rolling:onZoom()
+    end)
+
+    it("should handle color rendering update event", function()
+      rolling:onColorRenderingUpdate()
+    end)
+
+    it("should save settings correctly", function()
+      rolling:onSaveSettings()
+      assert.are.same(
+        rolling.xpointer,
+        readerui.doc_settings:read("last_xpointer")
+      )
+      assert.are.same(
+        rolling.hide_nonlinear_flows,
+        readerui.doc_settings:read("hide_nonlinear_flows")
+      )
+    end)
+  end)
+
   describe("test initialization", function()
     it("should emit PageUpdate event after book is rendered", function()
       local ReaderView = require("apps/reader/modules/readerview")
