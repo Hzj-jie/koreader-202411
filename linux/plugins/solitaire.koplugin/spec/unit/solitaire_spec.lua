@@ -4,6 +4,7 @@ describe("Solitaire game engine unit tests", function()
   setup(function()
     require("commonrequire")
     package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
     Game = dofile("plugins/solitaire.koplugin/game.lua")
   end)
 
@@ -172,5 +173,23 @@ describe("Solitaire game engine unit tests", function()
     for i = 1, 4 do
       assert.are.equal(#g1.foundations[i], #g2.foundations[i])
     end
+  end)
+
+  describe("SolitaireUI instantiation", function()
+    it("should initialize SolitaireUI widget container", function()
+      local Device = require("device")
+      if not Device.isKindle then
+        Device.isKindle = function() return false end
+      end
+      local SolitaireUI = require("plugins/solitaire.koplugin/solitaireui")
+      assert.is_table(SolitaireUI)
+
+      local ui = SolitaireUI:new({
+        plugin = {},
+      })
+      assert.is_table(ui)
+      assert.is_number(ui.card_width)
+      assert.is_number(ui.card_height)
+    end)
   end)
 end)
