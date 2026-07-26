@@ -35,5 +35,19 @@ describe("ReadTimer plugin main module", function()
       rt:addToMainMenu(menu_items)
       assert.is_table(menu_items.read_timer)
     end)
+
+    it("should register dispatcher actions safely", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local rt = ReadTimer:new({
+        ui = mock_ui,
+      })
+      if type(rt.onDispatcherRegisterActions) == "function" then
+        rt:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
