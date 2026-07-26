@@ -28,4 +28,16 @@ describe("OptionsUtil module", function()
       assert.are.equal("b", OptionsUtil.getPrevItem(list, "c"))
     end
   end)
+
+  it("should evaluate enableIfNotEquals correctly", function()
+    local configurable = { option1 = "val1", option2 = "val2" }
+    if type(OptionsUtil.enableIfNotEquals) == "function" then
+      assert.is_false(
+        OptionsUtil.enableIfNotEquals(configurable, "option1", "val1")
+      )
+      assert.is_true(
+        OptionsUtil.enableIfNotEquals(configurable, "option1", "val2")
+      )
+    end
+  end)
 end)
