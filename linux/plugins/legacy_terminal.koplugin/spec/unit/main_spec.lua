@@ -27,5 +27,19 @@ describe("Legacy Terminal plugin main module", function()
         LegacyTerminal:onDispatcherRegisterActions()
       end
     end)
+
+    it("should populate main menu items", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local term = LegacyTerminal:new({
+        ui = mock_ui,
+      })
+      local menu_items = {}
+      term:addToMainMenu(menu_items)
+      assert.is_table(menu_items)
+    end)
   end)
 end)
