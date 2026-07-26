@@ -175,5 +175,8 @@ describe("ReaderProgress module", function()
   it("should handle custom stats_span setting gracefully", function()
     local progress = createSampleProgress({ current_pages = 100 })
     assert.is_table(progress)
+    if type(progress.onSwipe) == "function" then
+      progress:onSwipe(nil, { direction = "west" })
+    end
   end)
 end)
