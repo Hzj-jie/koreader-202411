@@ -37,6 +37,7 @@ describe("Clock plugin tests", function()
       end),
     }
     package.loaded["clockwidget"] = mock_clockwidget
+    package.loaded["plugins/clock.koplugin/clockwidget"] = mock_clockwidget
   end)
 
   after_each(function()

@@ -324,16 +324,20 @@ describe("Statistics plugin", function()
     end)
 
     it("should retrieve days from period", function()
+      local now_t = os.date("*t")
       local now_ts = os.time()
-      local start_today = now_ts - (now_ts % 86400)
+      local from_begin_day = now_t.hour * 3600 + now_t.min * 60 + now_t.sec
+      local start_today = now_ts - from_begin_day
       local days = stats:getDaysFromPeriod(start_today, start_today + 86400)
       assert.is_table(days)
       assert.is_same(1, #days)
     end)
 
     it("should retrieve books from period", function()
+      local now_t = os.date("*t")
       local now_ts = os.time()
-      local start_today = now_ts - (now_ts % 86400)
+      local from_begin_day = now_t.hour * 3600 + now_t.min * 60 + now_t.sec
+      local start_today = now_ts - from_begin_day
       local books = stats:getBooksFromPeriod(start_today, start_today + 86400)
       assert.is_table(books)
       assert.is_same(1, #books)

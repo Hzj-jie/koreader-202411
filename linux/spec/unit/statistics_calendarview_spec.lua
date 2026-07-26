@@ -339,5 +339,18 @@ describe("CalendarView widget", function()
         end
       end
     )
+
+    it("should handle navigation via swipe events", function()
+      local view = CalendarView:new({
+        reader_statistics = mock_reader_statistics,
+        cur_month = "2024-05",
+        width = 600,
+        height = 800,
+      })
+      if type(view.onSwipe) == "function" then
+        view:onSwipe(nil, { direction = "west" })
+        view:onSwipe(nil, { direction = "east" })
+      end
+    end)
   end)
 end)

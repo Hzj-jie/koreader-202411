@@ -124,4 +124,17 @@ describe("ScrollableContainer module", function()
 
     mirrored_stub:revert()
   end)
+
+  it("should calculate scroll bounds and offsets", function()
+    local content = createContent(500, 500)
+    local container = ScrollableContainer:new({
+      width = 200,
+      height = 200,
+      [1] = content,
+    })
+    container:initState()
+    assert.is_table(container)
+    assert.is_table(container:getScrolledOffset())
+    container:_scrollBy(10, 10)
+  end)
 end)

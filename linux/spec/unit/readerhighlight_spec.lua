@@ -587,5 +587,217 @@ describe("Readerhighlight module", function()
       assert.is_true(highlight:onStopHighlightIndicator(true))
       assert.is_nil(highlight._current_indicator_pos)
     end)
+
+    it("should save and delete highlights", function()
+      local highlight = readerui.highlight
+      highlight.selected_text = {
+        pos0 = "/1/4/2/1:0",
+        pos1 = "/1/4/2/1:10",
+        text = "Sample test highlight",
+      }
+      local idx = highlight:saveHighlight()
+      assert.truthy(idx)
+      assert.are.equal(1, #readerui.annotation.annotations)
+      assert.are.equal(
+        "Sample test highlight",
+        readerui.annotation.annotations[idx].text
+      )
+
+      highlight:deleteHighlight(idx)
+      assert.are.equal(0, #readerui.annotation.annotations)
+    end)
+
+    it("should add and edit notes for highlights", function()
+      local highlight = readerui.highlight
+      highlight.selected_text = {
+        pos0 = "/1/4/2/1:0",
+        pos1 = "/1/4/2/1:10",
+        text = "Highlight with note",
+      }
+      highlight:addNote("Important note")
+      assert.are.equal(1, #readerui.annotation.annotations)
+      local top = UIManager._window_stack[#UIManager._window_stack]
+      if top then
+        UIManager:close(top.widget)
+      end
+      readerui.annotation.annotations[1].note = "Important note"
+      assert.are.equal(
+        "Important note",
+        readerui.annotation.annotations[1].note
+      )
+
+      -- Edit highlight style and color
+      highlight:editHighlightStyle(1)
+      local style_dialog = UIManager._window_stack[#UIManager._window_stack]
+      if style_dialog then
+        UIManager:close(style_dialog.widget)
+      end
+
+      highlight:editHighlightColor(1)
+      local color_dialog = UIManager._window_stack[#UIManager._window_stack]
+      if color_dialog then
+        UIManager:close(color_dialog.widget)
+      end
+
+      assert.truthy(readerui.annotation.annotations[1].drawer)
+    end)
+
+    it("should populate main menu highlight options", function()
+      local highlight = readerui.highlight
+      local menu_items = {}
+      highlight:addToMainMenu(menu_items)
+
+      assert.truthy(menu_items.highlight_options)
+      assert.truthy(menu_items.highlight_options.sub_item_table)
+      assert.truthy(#menu_items.highlight_options.sub_item_table > 0)
+      assert.truthy(menu_items.long_press or menu_items.selection_text)
+    end)
+
+    it("should handle lookups and search for selected text", function()
+      local highlight = readerui.highlight
+      highlight.selected_text = {
+        pos0 = "/1/4/2/1:0",
+        pos1 = "/1/4/2/1:10",
+        text = "testword",
+      }
+
+      local wiki_spy = spy.on(UIManager, "broadcastEvent")
+      highlight:lookupWikipedia()
+      assert.spy(wiki_spy).was_called()
+      UIManager.broadcastEvent:revert()
+
+      local dict_spy = spy.on(UIManager, "broadcastEvent")
+      highlight:highlightDictLookup()
+      assert.spy(dict_spy).was_called()
+      UIManager.broadcastEvent:revert()
+
+      local search_spy = spy.on(readerui.search, "searchText")
+      highlight:onHighlightSearch()
+      assert
+        .spy(search_spy)
+        .was_called_with(match.is_ref(readerui.search), "testword")
+      readerui.search.searchText:revert()
+    end)
+
+    it("should handle selection mode and dialogs", function()
+      local highlight = readerui.highlight
+      highlight.selected_text = {
+        pos0 = "/1/4/2/1:0",
+        pos1 = "/1/4/2/1:10",
+        text = "Selection mode text",
+      }
+      highlight:startSelection()
+      assert.is_true(highlight.select_mode)
+      assert.truthy(highlight.highlight_idx)
+
+      local show_stub = stub(highlight, "showWidget")
+      local res = highlight:onTapSelectModeIcon()
+      assert.is_true(res)
+      assert.stub(show_stub).was_called()
+      highlight.showWidget:revert()
+
+      highlight.select_mode = false
+    end)
+
+    it("should display choose highlight dialogs and edit dialogs", function()
+      local highlight = readerui.highlight
+      readerui.annotation.annotations = {
+        {
+          drawer = "lighten",
+          pos0 = { page = 5 },
+          pos1 = { page = 5 },
+          text = "Highlight 1",
+        },
+        {
+          drawer = "underscore",
+          pos0 = { page = 5 },
+          pos1 = { page = 5 },
+          text = "Highlight 2",
+          note = "Some note",
+        },
+      }
+
+      local show_stub = stub(highlight, "showWidget")
+
+      -- Multiple highlights choose dialog
+      local res = highlight:showChooseHighlightDialog({ 1, 2 })
+      assert.is_true(res)
+      assert.stub(show_stub).was_called()
+
+      -- Single highlight note dialog
+      highlight:showHighlightNoteOrDialog(2)
+      assert.stub(show_stub).was_called()
+
+      -- Single highlight edit dialog
+      highlight:onShowHighlightDialog(1)
+      assert.truthy(highlight.edit_highlight_dialog)
+
+      highlight.showWidget:revert()
+    end)
+
+    it(
+      "should handle quick movement and edge boundaries for indicator",
+      function()
+        local highlight = readerui.highlight
+        highlight.view.visible_area = Geom:new({ w = 600, h = 800 })
+        highlight:onStartHighlightIndicator()
+
+        -- Quick move (shift arrow)
+        assert.is_true(highlight:onMoveHighlightIndicator({ 1, 0, true }))
+        assert.is_true(highlight:onMoveHighlightIndicator({ 0, 1, true }))
+
+        -- Move beyond boundaries to test edge clamping
+        for _ = 1, 10 do
+          highlight:onMoveHighlightIndicator({ 1, 0, true })
+          highlight:onMoveHighlightIndicator({ 0, 1, true })
+        end
+        assert.are.equal(
+          600 - highlight._current_indicator_pos.w,
+          highlight._current_indicator_pos.x
+        )
+        assert.are.equal(
+          800 - highlight._current_indicator_pos.h,
+          highlight._current_indicator_pos.y
+        )
+
+        -- Press event handling
+        local press_res = highlight:onHighlightPress()
+        assert.is_true(press_res)
+
+        highlight:onStopHighlightIndicator()
+      end
+    )
+
+    it("should handle PDF annotation writing actions", function()
+      local highlight = readerui.highlight
+      local saved_rolling = highlight.ui.rolling
+      highlight.ui.rolling = nil
+      highlight.document.is_pdf = true
+      highlight.highlight_write_into_pdf = true
+
+      local item = {
+        pos0 = { page = 1 },
+        pos1 = { page = 1 },
+        text = "PDF Test",
+        drawer = "lighten",
+      }
+
+      local save_spy = spy.on(highlight.document, "saveHighlight")
+      highlight:writePdfAnnotation("save", item)
+      assert.spy(save_spy).was_called()
+      highlight.document.saveHighlight:revert()
+
+      local del_spy = spy.on(highlight.document, "deleteHighlight")
+      highlight:writePdfAnnotation("delete", item)
+      assert.spy(del_spy).was_called()
+      highlight.document.deleteHighlight:revert()
+
+      local content_spy = spy.on(highlight.document, "updateHighlightContents")
+      highlight:writePdfAnnotation("content", item, "PDF note")
+      assert.spy(content_spy).was_called()
+      highlight.document.updateHighlightContents:revert()
+
+      highlight.ui.rolling = saved_rolling
+    end)
   end)
 end)

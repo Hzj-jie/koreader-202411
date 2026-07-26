@@ -77,4 +77,23 @@ describe("InputText widget module", function()
       assert.are.equal(expected_width, input.text_widget.text_widget.width)
     end)
   end)
+
+  describe("Text manipulation & deletion", function()
+    it("should set and get text correctly", function()
+      local input = require("ui/widget/inputtext"):new({
+        text = "initial",
+      })
+      assert.are.equal("initial", input:getText())
+      input:setText("updated")
+      assert.are.equal("updated", input:getText())
+    end)
+
+    it("should handle delChar when text is not empty", function()
+      local input = require("ui/widget/inputtext"):new({
+        text = "abc",
+      })
+      input:delChar()
+      assert.are.equal("ab", input:getText())
+    end)
+  end)
 end)

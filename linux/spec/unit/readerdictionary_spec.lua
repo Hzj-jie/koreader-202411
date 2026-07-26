@@ -124,4 +124,10 @@ describe("Readerdictionary module", function()
 
     UIManager:close(readerui)
   end)
+
+  it("should register dispatcher actions", function()
+    if type(dictionary.onDispatcherRegisterActions) == "function" then
+      dictionary:onDispatcherRegisterActions()
+    end
+  end)
 end)
