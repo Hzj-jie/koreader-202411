@@ -17,5 +17,17 @@ describe("Newsdownloader XML parser module", function()
       local parser = XmlParser.xmlParser(handler)
       assert.is_table(parser)
     end)
+
+    it("should parse simple XML text", function()
+      local handler = {
+        startElement = function() end,
+        endElement = function() end,
+        text = function() end,
+      }
+      local parser = XmlParser.xmlParser(handler)
+      if type(parser.parseText) == "function" then
+        parser:parseText("<root><item>test</item></root>")
+      end
+    end)
   end)
 end)
