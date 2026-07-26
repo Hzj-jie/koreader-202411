@@ -14,5 +14,11 @@ describe("Coverbrowser CoverMenu module", function()
       assert.is_table(CoverMenu)
       assert.is_function(CoverMenu.updateCache)
     end)
+
+    it("should handle updateCache safely", function()
+      if type(CoverMenu.updateCache) == "function" then
+        CoverMenu:updateCache()
+      end
+    end)
   end)
 end)
