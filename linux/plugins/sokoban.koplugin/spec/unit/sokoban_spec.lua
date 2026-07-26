@@ -141,6 +141,7 @@ describe("Sokoban game logic unit tests", function()
     if type(g.reset) == "function" then
       g:reset()
       assert.are.equal(0, g.moves)
+      assert.are.equal(0, g.pushes)
     end
   end)
 
