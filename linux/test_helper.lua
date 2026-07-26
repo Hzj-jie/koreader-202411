@@ -13,3 +13,19 @@ _G.require = function(name)
     end
     return res
 end
+
+-- Safely deduplicate nested spy.on calls to prevent inner spy.revert() from destroying outer spies
+pcall(function()
+    local spy = require("luassert.spy")
+    local orig_spy_on = spy.on
+    spy.on = function(target, key)
+        local current = target[key]
+        if type(current) == "table" and current.revert then
+            local existing_spy = current
+            local orig_revert = existing_spy.revert
+            existing_spy.revert = function() end
+            return existing_spy
+        end
+        return orig_spy_on(target, key)
+    end
+end)
