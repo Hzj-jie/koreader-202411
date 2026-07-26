@@ -557,6 +557,9 @@ describe("ReaderBookmark module", function()
     it("should format bookmark page string for PDF", function()
       local bookmark_mod = readerui.bookmark
       assert.are.same("15", bookmark_mod:getBookmarkPageString(15))
+      if type(bookmark_mod.onDispatcherRegisterActions) == "function" then
+        bookmark_mod:onDispatcherRegisterActions()
+      end
     end)
   end)
 end)
