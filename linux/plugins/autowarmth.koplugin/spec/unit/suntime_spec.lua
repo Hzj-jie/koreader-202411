@@ -19,5 +19,11 @@ describe("SunTime module for Autowarmth", function()
       assert.is_number(SunTime.rise)
       assert.is_number(SunTime.set)
     end)
+
+    it("should retrieve timezone offset safely", function()
+      if type(SunTime.getTimezoneOffset) == "function" then
+        assert.is_number(SunTime:getTimezoneOffset(os.time()))
+      end
+    end)
   end)
 end)
