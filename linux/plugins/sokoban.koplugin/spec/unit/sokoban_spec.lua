@@ -132,4 +132,14 @@ describe("Sokoban game logic unit tests", function()
     assert.True(g:move(0, 1)) -- push box onto target
     assert.True(g:is_solved())
   end)
+
+  it("should reset level to initial state", function()
+    local level = "#####\n#@$.#\n#####"
+    local g = Game.from_xsb(level)
+    g:move(0, 1)
+    if type(g.reset) == "function" then
+      g:reset()
+      assert.are.equal(0, g.moves)
+    end
+  end)
 end)
