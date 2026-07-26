@@ -134,5 +134,19 @@ describe("Sudoku plugin unit tests", function()
         class:onDispatcherRegisterActions()
       end
     end)
+
+    it("should check board isSolved status safely", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local Sudoku = class:new({ ui = mock_ui })
+      local board = Sudoku:getBoard()
+      if type(board.isSolved) == "function" then
+        assert.is_boolean(board:isSolved())
+      end
+    end)
   end)
 end)
