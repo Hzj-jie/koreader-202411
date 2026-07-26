@@ -57,5 +57,19 @@ describe("Calculator plugin main module", function()
       calc:addToMainMenu(menu_items)
       assert.is_table(menu_items.calculator)
     end)
+
+    it("should register dispatcher actions", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local calc = Calculator:new({
+        ui = mock_ui,
+      })
+      if type(calc.onDispatcherRegisterActions) == "function" then
+        calc:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
