@@ -29,5 +29,11 @@ describe("Newsdownloader XML parser module", function()
         parser:parseText("<root><item>test</item></root>")
       end
     end)
+
+    it("should evaluate xml entities safely", function()
+      if type(XmlParser.eval) == "function" then
+        assert.are.equal("&", XmlParser.eval("&amp;"))
+      end
+    end)
   end)
 end)
