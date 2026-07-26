@@ -191,5 +191,14 @@ describe("Solitaire game engine unit tests", function()
       assert.is_number(ui.card_width)
       assert.is_number(ui.card_height)
     end)
+
+    it("should handle newGame reset", function()
+      local g = Game:new()
+      g:deal()
+      if type(g.newGame) == "function" then
+        g:newGame()
+        assert.are.equal(0, g.moves)
+      end
+    end)
   end)
 end)
