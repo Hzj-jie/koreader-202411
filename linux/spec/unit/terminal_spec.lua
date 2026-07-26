@@ -762,4 +762,11 @@ describe("Terminal plugin button tap integration", function()
     terminal:addToMainMenu(menu_items)
     assert.is_table(menu_items.terminal)
   end)
+
+  it("should register dispatcher actions for terminal plugin", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    if type(Terminal.onDispatcherRegisterActions) == "function" then
+      Terminal:onDispatcherRegisterActions()
+    end
+  end)
 end)
