@@ -475,7 +475,10 @@ describe("Readerrolling module", function()
     end)
   end)
 
-  it("should check readerrolling instance state", function()
+  it("should check readerrolling instance state and save settings", function()
     assert.is_table(rolling)
+    if type(rolling.onSaveSettings) == "function" then
+      rolling:onSaveSettings()
+    end
   end)
 end)
