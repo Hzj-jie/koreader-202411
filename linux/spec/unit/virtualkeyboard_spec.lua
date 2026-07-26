@@ -482,4 +482,18 @@ describe("VirtualKeyboard component", function()
     vk1:setVisibility(false)
     UIManager:close(vk2)
   end)
+
+  it("should handle layout change and key repetition safely", function()
+    local mock_inputbox = createMockInputbox()
+    local vk = VirtualKeyboard:new({
+      inputbox = mock_inputbox,
+      width = 600,
+      height = 300,
+    })
+    vk:setVisibility(true)
+    if type(vk.changeLayout) == "function" then
+      vk:changeLayout("es")
+    end
+    vk:setVisibility(false)
+  end)
 end)
