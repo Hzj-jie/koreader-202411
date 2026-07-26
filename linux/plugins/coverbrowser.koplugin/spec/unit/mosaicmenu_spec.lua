@@ -349,5 +349,15 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       assert.are.equal(1, #menu.items_to_update)
       assert.are.equal("Book Untracked", menu.items_to_update[1].text)
     end)
+
+    it("should handle empty item table gracefully", function()
+      local menu = createMockMenu({
+        nb_cols_portrait = 2,
+        nb_rows_portrait = 2,
+        item_table = {},
+      })
+      menu:_recalculateDimen()
+      assert.are.equal(0, menu.page_num)
+    end)
   end)
 end)
