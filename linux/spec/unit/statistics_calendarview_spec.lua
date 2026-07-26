@@ -349,6 +349,7 @@ describe("CalendarView widget", function()
       })
       if type(view.onSwipe) == "function" then
         view:onSwipe(nil, { direction = "west" })
+        view:onSwipe(nil, { direction = "east" })
       end
     end)
   end)
