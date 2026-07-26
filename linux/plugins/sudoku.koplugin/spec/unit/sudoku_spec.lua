@@ -121,5 +121,12 @@ describe("Sudoku plugin unit tests", function()
       plugin:addToMainMenu(menu_items)
       assert.is_table(menu_items.sudoku)
     end)
+
+    it("should register dispatcher actions safely", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      if type(class.onDispatcherRegisterActions) == "function" then
+        class:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
