@@ -36,7 +36,7 @@ table.insert(package.loaders, 1, function(modname)
         return nil
     end
 
-    if modname ~= "ffi/SDL2_0" and modname ~= "device" and modname ~= "document/credocument" and modname ~= "apps/reader/modules/readerhighlight" and modname ~= "device/generic/powerd" then
+    if modname ~= "ffi/SDL2_0" and modname ~= "device" and modname ~= "document/credocument" and modname ~= "device/generic/powerd" then
         return nil
     end
 
