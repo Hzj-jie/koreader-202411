@@ -39,6 +39,9 @@ describe("ReaderPageMap module", function()
       if type(pagemap.onDispatcherRegisterActions) == "function" then
         pagemap:onDispatcherRegisterActions()
       end
+      if type(pagemap.getPageMap) == "function" then
+        pagemap:getPageMap()
+      end
     end)
   end)
 end)
