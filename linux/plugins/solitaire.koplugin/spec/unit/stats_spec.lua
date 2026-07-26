@@ -23,6 +23,10 @@ describe("Solitaire Stats module", function()
         s:onGameFinish(true)
         assert.are.equal(1, s.games_played)
         assert.are.equal(1, s.games_won)
+
+        s:onGameFinish(false)
+        assert.are.equal(2, s.games_played)
+        assert.are.equal(1, s.games_won)
       end
     end)
   end)
