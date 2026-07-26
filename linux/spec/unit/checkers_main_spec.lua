@@ -47,5 +47,19 @@ describe("Checkers main plugin module", function()
         plugin:onDispatcherRegisterActions()
       end
     end)
+
+    it("should handle onCheckers action trigger safely", function()
+      local plugin = Checkers:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+        path = "plugins/checkers.koplugin",
+      })
+      if type(plugin.onCheckers) == "function" then
+        plugin:onCheckers()
+      end
+    end)
   end)
 end)
