@@ -258,6 +258,198 @@ describe("ReaderBookmark module", function()
       assert.falsy(readerui.bookmark.bookmark_menu)
       assert.falsy(UIManager:isWindowWidget(dummy_menu))
     end)
+
+    it("should check if bookmark text is auto generated", function()
+      local bookmark_mod = readerui.bookmark
+      local xp5 = readerui.document:getPageXPointer(5)
+
+      local bm1 = {
+        page = xp5,
+        text = "",
+        notes = "note",
+        datetime = "2026-01-01 00:00:00",
+      }
+      assert.truthy(bookmark_mod:isBookmarkAutoText(bm1))
+
+      local bm2 = {
+        page = xp5,
+        text = "note",
+        notes = "note",
+        datetime = "2026-01-01 00:00:00",
+      }
+      assert.truthy(bookmark_mod:isBookmarkAutoText(bm2))
+
+      local page_str = bookmark_mod:getBookmarkPageString(xp5)
+      local auto_text = Util.template(
+        "Page %1 %2 @ %3",
+        page_str,
+        "my note",
+        "2026-01-01 00:00:00"
+      )
+      local bm3 = {
+        page = xp5,
+        text = auto_text,
+        notes = "my note",
+        datetime = "2026-01-01 00:00:00",
+      }
+      assert.truthy(bookmark_mod:isBookmarkAutoText(bm3))
+
+      local bm4 = {
+        page = xp5,
+        text = "Custom Title",
+        notes = "my note",
+        datetime = "2026-01-01 00:00:00",
+      }
+      assert.falsy(bookmark_mod:isBookmarkAutoText(bm4))
+    end)
+
+    it("should get first and last bookmarked pages", function()
+      local bookmark_mod = readerui.bookmark
+      local orig_annotations = bookmark_mod.ui.annotation.annotations
+
+      local xp5 = readerui.document:getPageXPointer(5)
+      local xp10 = readerui.document:getPageXPointer(10)
+      local xp20 = readerui.document:getPageXPointer(20)
+
+      bookmark_mod.ui.annotation.annotations = {
+        { page = xp5 },
+        { page = xp10 },
+        { page = xp20 },
+      }
+
+      assert.are.same(xp5, bookmark_mod:getFirstBookmarkedPage(xp10))
+      assert.is_nil(bookmark_mod:getFirstBookmarkedPage(xp5))
+
+      assert.are.same(xp20, bookmark_mod:getLastBookmarkedPage(xp10))
+      assert.is_nil(bookmark_mod:getLastBookmarkedPage(xp20))
+
+      bookmark_mod.ui.annotation.annotations = orig_annotations
+    end)
+
+    it("should delete item note", function()
+      local bookmark_mod = readerui.bookmark
+      local orig_annotations = bookmark_mod.ui.annotation.annotations
+
+      local item = {
+        page = readerui.document:getPageXPointer(5),
+        drawer = true,
+        note = "test note",
+      }
+      bookmark_mod.ui.annotation.annotations = { item }
+
+      bookmark_mod:deleteItemNote(item)
+      assert.is_nil(bookmark_mod.ui.annotation.annotations[1].note)
+
+      bookmark_mod.ui.annotation.annotations = orig_annotations
+    end)
+
+    it("should generate menu items for show_in_items and sort_by", function()
+      local bookmark_mod = readerui.bookmark
+
+      assert.is.string(bookmark_mod:genShowInItemsMenuItems())
+
+      local item_note = bookmark_mod:genShowInItemsMenuItems("note")
+      assert.truthy(item_note.checked_func)
+      assert.truthy(item_note.callback)
+      item_note.callback()
+      assert.are.same("note", bookmark_mod.items_text)
+
+      assert.is.string(bookmark_mod:genSortByMenuItems())
+
+      local sort_date = bookmark_mod:genSortByMenuItems("date")
+      assert.truthy(sort_date.checked_func)
+      assert.truthy(sort_date.callback)
+      sort_date.callback()
+      assert.are.same("date", G_reader_settings:read("bookmarks_items_sorting"))
+
+      -- restore sort to page
+      local sort_page = bookmark_mod:genSortByMenuItems("page")
+      sort_page.callback()
+    end)
+
+    it("should add bookmark items to main menu", function()
+      local bookmark_mod = readerui.bookmark
+      local menu_items = {}
+      bookmark_mod:addToMainMenu(menu_items)
+
+      assert.truthy(menu_items.bookmarks)
+      assert.truthy(menu_items.bookmarks_settings)
+      assert.truthy(menu_items.bookmark_search)
+    end)
+
+    it("should format bookmark item text correctly", function()
+      local bookmark_mod = readerui.bookmark
+      local item = {
+        type = "note",
+        text_orig = "original text",
+        note = "my note",
+        datetime = "2026-01-01 12:00:00",
+      }
+
+      bookmark_mod.items_text = "text"
+      bookmark_mod.sorting_mode = "page"
+      local text1 = bookmark_mod:getBookmarkItemText(item)
+      assert.truthy(text1:find("original text", 1, true))
+
+      bookmark_mod.items_text = "note"
+      local text2 = bookmark_mod:getBookmarkItemText(item)
+      assert.truthy(text2:find("my note", 1, true))
+
+      bookmark_mod.sorting_mode = "date"
+      local text3 = bookmark_mod:getBookmarkItemText(item)
+      assert.truthy(text3:find("2026-01-01 12:00:00", 1, true))
+
+      bookmark_mod.items_text = "note"
+      bookmark_mod.sorting_mode = "page"
+    end)
+
+    it(
+      "should navigate to first, last, next, and previous bookmarks",
+      function()
+        local bookmark_mod = readerui.bookmark
+        local orig_annotations = bookmark_mod.ui.annotation.annotations
+
+        local xp5 = readerui.document:getPageXPointer(5)
+        local xp10 = readerui.document:getPageXPointer(10)
+        local xp20 = readerui.document:getPageXPointer(20)
+
+        bookmark_mod.ui.annotation.annotations = {
+          { page = xp5 },
+          { page = xp10 },
+          { page = xp20 },
+        }
+
+        readerui.rolling:onGotoPage(10)
+
+        assert.truthy(bookmark_mod:onGotoFirstBookmark(false))
+        assert.truthy(bookmark_mod:onGotoLastBookmark(false))
+        assert.truthy(bookmark_mod:onGotoPreviousBookmarkFromPage(false))
+        assert.truthy(bookmark_mod:onGotoNextBookmarkFromPage(false))
+
+        bookmark_mod.ui.annotation.annotations = orig_annotations
+      end
+    )
+
+    it("should filter menu items by edited text", function()
+      local bookmark_mod = readerui.bookmark
+
+      local item1 = { text_edited = true, text = "edited" }
+      local item2 = { text_edited = nil, text = "not edited" }
+      local dummy_menu = {
+        item_table = { item1, item2 },
+        switchItemTable = function() end,
+      }
+      bookmark_mod.bookmark_menu = { dummy_menu }
+
+      bookmark_mod:filterByEditedText()
+
+      assert.truthy(bookmark_mod.show_edited_only)
+      assert.are.same(1, #dummy_menu.item_table)
+      assert.are.same("edited", dummy_menu.item_table[1].text)
+
+      bookmark_mod.bookmark_menu = nil
+      bookmark_mod.show_edited_only = nil
+    end)
   end)
 
   describe("PDF document", function()
@@ -341,6 +533,33 @@ describe("ReaderBookmark module", function()
     it("should return nil for boundary bookmark lookups", function()
       assert.is_nil(readerui.bookmark:getPreviousBookmarkedPage(1))
       assert.is_nil(readerui.bookmark:getNextBookmarkedPage(50))
+    end)
+
+    it("should get first and last bookmarked pages in PDF", function()
+      local bookmark_mod = readerui.bookmark
+      local orig_annotations = bookmark_mod.ui.annotation.annotations
+
+      bookmark_mod.ui.annotation.annotations = {
+        { page = 5 },
+        { page = 10 },
+        { page = 20 },
+      }
+
+      assert.are.same(5, bookmark_mod:getFirstBookmarkedPage(10))
+      assert.is_nil(bookmark_mod:getFirstBookmarkedPage(5))
+
+      assert.are.same(20, bookmark_mod:getLastBookmarkedPage(10))
+      assert.is_nil(bookmark_mod:getLastBookmarkedPage(20))
+
+      bookmark_mod.ui.annotation.annotations = orig_annotations
+    end)
+
+    it("should format bookmark page string for PDF", function()
+      local bookmark_mod = readerui.bookmark
+      assert.are.same("15", bookmark_mod:getBookmarkPageString(15))
+      if type(bookmark_mod.onDispatcherRegisterActions) == "function" then
+        bookmark_mod:onDispatcherRegisterActions()
+      end
     end)
   end)
 end)

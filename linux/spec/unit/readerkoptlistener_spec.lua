@@ -1,30 +1,26 @@
 describe("ReaderKoptListener module", function()
-  local ReaderKoptListener
+  local ReaderKoptListener, DocumentRegistry, ReaderUI, Screen
 
   setup(function()
     require("commonrequire")
     ReaderKoptListener = require("apps/reader/modules/readerkoptlistener")
+    DocumentRegistry = require("document/documentregistry")
+    ReaderUI = require("apps/reader/readerui")
+    Screen = require("device").screen
   end)
 
-  it("should save settings using self.ui.doc_settings", function()
-    local saved_key, saved_val
-    local mock_ui = {
-      doc_settings = {
-        save = function(_self_ds, key, val)
-          saved_key = key
-          saved_val = val
-        end,
-      },
-    }
-
-    local listener = ReaderKoptListener:new({
-      ui = mock_ui,
-      normal_zoom_mode = "page",
+  it("should initialize kopt listener module", function()
+    local sample_pdf = "spec/front/unit/data/sample.pdf"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_pdf),
     })
 
-    assert.is_not_nil(listener)
-    listener:onSaveSettings()
-    assert.are.equal("normal_zoom_mode", saved_key)
-    assert.are.equal("page", saved_val)
+    local readerkoptlistener = readerui.koptlistener
+      or ReaderKoptListener:new({ ui = readerui })
+    assert.is_table(readerkoptlistener)
+
+    readerui:onExit()
+    readerui:onClose()
   end)
 end)

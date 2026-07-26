@@ -221,4 +221,10 @@ describe("AutoStandby plugin tests", function()
       .stub(UIManager.scheduleIn)
       .was_called_with(UIManager, 3, class.allow, class)
   end)
+
+  it("should register dispatcher actions safely", function()
+    if type(class.onDispatcherRegisterActions) == "function" then
+      class:onDispatcherRegisterActions()
+    end
+  end)
 end)

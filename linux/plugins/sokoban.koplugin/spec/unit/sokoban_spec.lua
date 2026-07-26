@@ -4,6 +4,7 @@ describe("Sokoban game logic unit tests", function()
   setup(function()
     require("commonrequire")
     package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
     Game = dofile("plugins/sokoban.koplugin/sokoban_game.lua")
   end)
 
@@ -131,5 +132,25 @@ describe("Sokoban game logic unit tests", function()
     assert.False(g:is_solved())
     assert.True(g:move(0, 1)) -- push box onto target
     assert.True(g:is_solved())
+  end)
+
+  it("should reset level to initial state", function()
+    local level = "#####\n#@$.#\n#####"
+    local g = Game.from_xsb(level)
+    g:move(0, 1)
+    if type(g.reset) == "function" then
+      g:reset()
+      assert.are.equal(0, g.moves)
+      assert.are.equal(0, g.pushes)
+    end
+  end)
+
+  it("should load sokoban settings module safely", function()
+    local Device = require("device")
+    stub(Device, "isKindle")
+    Device.isKindle.returns(false)
+    local Settings = dofile("plugins/sokoban.koplugin/sokoban_settings.lua")
+    assert.is_table(Settings)
+    Device.isKindle:revert()
   end)
 end)

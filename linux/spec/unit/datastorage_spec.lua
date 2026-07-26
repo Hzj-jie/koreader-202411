@@ -11,6 +11,9 @@ describe("DataStorage module", function()
     env_mock = {}
     os.getenv = function(var)
       if env_mock[var] ~= nil then
+        if env_mock[var] == false then
+          return nil
+        end
         return env_mock[var]
       end
       return original_getenv(var)
@@ -65,6 +68,7 @@ describe("DataStorage module", function()
 
   it("should honor KO_MULTIUSER and fallback to HOME", function()
     env_mock["KO_MULTIUSER"] = "true"
+    env_mock["XDG_CONFIG_HOME"] = false
     env_mock["HOME"] = "/home/testuser"
 
     local lfs = require("libs/libkoreader-lfs")

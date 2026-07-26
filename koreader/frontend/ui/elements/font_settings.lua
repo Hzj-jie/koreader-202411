@@ -10,8 +10,12 @@ local function getDir(isUser)
   local home = Device.home_dir
 
   local XDG_DATA_HOME = os.getenv("XDG_DATA_HOME")
-  local LINUX_FONT_PATH = XDG_DATA_HOME and XDG_DATA_HOME .. "/fonts"
-    or home .. "/.local/share/fonts"
+  local LINUX_FONT_PATH
+  if XDG_DATA_HOME then
+    LINUX_FONT_PATH = XDG_DATA_HOME .. "/fonts"
+  elseif home then
+    LINUX_FONT_PATH = home .. "/.local/share/fonts"
+  end
   local LINUX_SYS_FONT_PATH = "/usr/share/fonts"
   local MACOS_FONT_PATH = "Library/fonts"
 

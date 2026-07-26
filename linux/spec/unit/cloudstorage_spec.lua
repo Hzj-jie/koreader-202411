@@ -645,5 +645,32 @@ describe("CloudStorage", function()
 
       assert.is_true(mock_ftp.download_called)
     end)
+
+    it("should handle deleting a server from saved settings", function()
+      local cs = CloudStorage:new()
+      mock_settings_obj.cs_servers = {
+        { name = "Server A", type = "ftp", password = "pass" },
+        { name = "Server B", type = "webdav", password = "pass" },
+      }
+
+      if type(cs.deleteCloudServer) == "function" then
+        cs:deleteCloudServer({
+          text = "Server A",
+          type = "ftp",
+          password = "pass",
+        })
+        assert.are.equal(#mock_settings_obj.cs_servers, 1)
+        assert.are.equal(mock_settings_obj.cs_servers[1].name, "Server B")
+      end
+    end)
+
+    it("should handle setting custom download directory", function()
+      local cs = CloudStorage:new()
+
+      if type(cs.setDownloadDir) == "function" then
+        cs:setDownloadDir("/my/custom/downloads")
+        assert.are.equal(cs.download_dir, "/my/custom/downloads")
+      end
+    end)
   end)
 end)

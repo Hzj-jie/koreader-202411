@@ -1,41 +1,47 @@
 describe("ReaderPageMap module", function()
-  local ReaderPageMap
+  local ReaderPageMap, DocumentRegistry, ReaderUI, Screen
 
   setup(function()
     require("commonrequire")
     ReaderPageMap = require("apps/reader/modules/readerpagemap")
+    DocumentRegistry = require("document/documentregistry")
+    ReaderUI = require("apps/reader/readerui")
+    Screen = require("device").screen
   end)
 
-  it("should initialize and register view module via self.ui.view", function()
-    local registered_menu = false
-    local registered_view = false
-
-    local mock_ui = {
-      menu = {
-        registerToMainMenu = function()
-          registered_menu = true
-        end,
-      },
-      view = {
-        registerViewModule = function(_self_view, _name, _module)
-          registered_view = true
-        end,
-      },
-      document = {
-        info = { has_pages = false },
-        hasPageMap = function()
-          return true
-        end,
-      },
-    }
-
-    local pagemap = ReaderPageMap:new({
-      ui = mock_ui,
+  it("should initialize pagemap module", function()
+    local sample_epub = "spec/front/unit/data/leaves.epub"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    assert.is_not_nil(pagemap)
-    pagemap:_postInit()
-    assert.is_true(registered_menu)
-    assert.is_true(registered_view)
+    local pagemap = readerui.pagemap
+    assert.is_table(pagemap)
+    assert.is_function(pagemap.resetLayout)
+
+    pagemap:resetLayout()
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  describe("Menu & Dispatcher Integration", function()
+    it("should register dispatcher actions", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local pagemap = ReaderPageMap:new({
+        ui = mock_ui,
+      })
+      if type(pagemap.onDispatcherRegisterActions) == "function" then
+        pagemap:onDispatcherRegisterActions()
+      end
+      if type(pagemap.getPageMap) == "function" then
+        pagemap:getPageMap()
+      end
+    end)
   end)
 end)

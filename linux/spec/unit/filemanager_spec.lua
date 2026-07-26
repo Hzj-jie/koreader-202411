@@ -611,4 +611,200 @@ describe("FileManager module", function()
     filemanager:onBookMetadataChanged()
     filemanager:onExit()
   end)
+
+  it("should update title bar path correctly with shortcut status", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    filemanager:updateTitleBarPath("spec/unit/data")
+    assert.is_not_nil(filemanager.title_bar.subtitle)
+    filemanager:onExit()
+  end)
+
+  it("should open folder menu dialog on onShowFolderMenu", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+    filemanager:onShowFolderMenu()
+    UIManager.show = old_show
+    assert.is_not_nil(shown_widget)
+    filemanager:onExit()
+  end)
+
+  it("should open plus menu in normal mode and select mode", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    -- Normal mode
+    filemanager:onShowPlusMenu()
+    assert.is_not_nil(shown_widget)
+    assert.is_nil(shown_widget.select_mode)
+
+    -- Select mode
+    filemanager:onToggleSelectMode()
+    filemanager.selected_files["spec/unit/data/2col.pdf"] = true
+    shown_widget = nil
+    filemanager:onShowPlusMenu()
+    assert.is_not_nil(shown_widget)
+    assert.is_true(shown_widget.select_mode)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
+
+  it("should handle onSetDisplayMode and onSetSortBy", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    assert.is_true(filemanager:onSetDisplayMode("classic"))
+    assert.is_true(filemanager:onSetSortBy("filename"))
+    filemanager:onExit()
+  end)
+
+  it("should open create folder input dialog", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+    filemanager:createFolder()
+    UIManager.show = old_show
+    assert.is_not_nil(shown_widget)
+    filemanager:onExit()
+  end)
+
+  it("should open rename file dialog for file and folder", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    filemanager:showRenameFileDialog("spec/unit/data/2col.pdf", true)
+    assert.is_not_nil(shown_widget)
+
+    shown_widget = nil
+    filemanager:showRenameFileDialog("spec/unit/data", false)
+    assert.is_not_nil(shown_widget)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
+
+  it("should show copy and move selected files confirmation dialogs", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    filemanager.cutfile = false
+    filemanager:showCopyMoveSelectedFilesDialog(function() end)
+    assert.is_not_nil(shown_widget)
+
+    shown_widget = nil
+    filemanager.cutfile = true
+    filemanager:showCopyMoveSelectedFilesDialog(function() end)
+    assert.is_not_nil(shown_widget)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
+
+  it("should show open with dialog and invoke openFile callbacks", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    filemanager:showOpenWithDialog("spec/unit/data/2col.pdf")
+    assert.is_not_nil(shown_widget)
+    UIManager.show = old_show
+
+    local doc_cb_called = false
+    local old_showReader = require("apps/reader/readerui").showReader
+    require("apps/reader/readerui").showReader = function() end
+
+    filemanager:openFile("spec/unit/data/2col.pdf", nil, function()
+      doc_cb_called = true
+    end)
+    assert.is_true(doc_cb_called)
+
+    require("apps/reader/readerui").showReader = old_showReader
+    filemanager:onExit()
+  end)
+
+  it("should handle rotation mode and swipe gestures", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    filemanager:onSetRotationMode(Screen.DEVICE_ROTATED_UPRIGHT)
+
+    local prev_called, next_called = false, false
+    filemanager.file_chooser.onPrevPage = function()
+      prev_called = true
+    end
+    filemanager.file_chooser.onNextPage = function()
+      next_called = true
+    end
+
+    filemanager:onSwipeFM({ direction = "west" })
+    assert.is_true(next_called)
+
+    filemanager:onSwipeFM({ direction = "east" })
+    assert.is_true(prev_called)
+
+    filemanager:onExit()
+  end)
+
+  it("should handle setHome confirmation dialog", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    filemanager:setHome("spec/unit/data")
+    assert.is_not_nil(shown_widget)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
 end)

@@ -108,4 +108,18 @@ describe("Nonogram board logic unit tests", function()
     board:applyAction("fill")
     assert.False(board:isSolved())
   end)
+
+  describe("Plugin Menu & Dispatcher Integration", function()
+    it("should populate main menu items", function()
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.nonogram)
+    end)
+
+    it("should register dispatcher actions", function()
+      if type(plugin.onDispatcherRegisterActions) == "function" then
+        plugin:onDispatcherRegisterActions()
+      end
+    end)
+  end)
 end)

@@ -298,5 +298,25 @@ describe("Readersearch module", function()
         UIManager.closeIfShown = original_closeIfShown
       end
     )
+
+    it("should verify readersearch module and main menu items", function()
+      local ReaderSearch = require("apps/reader/modules/readersearch")
+      assert.is_table(ReaderSearch)
+
+      local rs = ReaderSearch:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+      })
+      local menu_items = {}
+      rs:addToMainMenu(menu_items)
+      assert.is_table(menu_items.fulltext_search_settings)
+
+      if type(rs.onShowSearchDialog) == "function" then
+        assert.is_function(rs.onShowSearchDialog)
+      end
+    end)
   end)
 end)

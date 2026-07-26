@@ -31,4 +31,23 @@ describe("FrameContainer", function()
     fc:onUnfocus()
     assert.is_equal(2, fc.bordersize) -- Should restore to original!
   end)
+
+  it("should calculate container size including padding and border", function()
+    local dummy_widget = {
+      getSize = function()
+        return { w = 10, h = 10 }
+      end,
+      paintTo = function() end,
+    }
+    local fc = FrameContainer:new({
+      dummy_widget,
+      bordersize = 2,
+      padding = 5,
+      margin = 1,
+    })
+    local sz = fc:getSize()
+    assert.is_table(sz)
+    assert.is_number(sz.w)
+    assert.is_number(sz.h)
+  end)
 end)

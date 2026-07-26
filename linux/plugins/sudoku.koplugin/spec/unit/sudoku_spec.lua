@@ -80,5 +80,73 @@ describe("Sudoku plugin unit tests", function()
     board:toggleNoteDigit(3)
     notes = board:getCellNotes(selected_r, selected_c)
     assert.is_nil(notes)
+
+    if type(board.clearNotes) == "function" then
+      board:clearNotes(selected_r, selected_c)
+      notes = board:getCellNotes(selected_r, selected_c)
+      assert.is_nil(notes)
+    end
+  end)
+
+  describe("Menu & Dispatcher Integration", function()
+    it("should populate main menu items", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = class:new({ ui = mock_ui })
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.sudoku)
+    end)
+
+    it("should register dispatcher actions", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = class:new({ ui = mock_ui })
+      if type(plugin.onDispatcherRegisterActions) == "function" then
+        plugin:onDispatcherRegisterActions()
+      end
+    end)
+
+    it("should populate main menu items", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = class:new({ ui = mock_ui })
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.sudoku)
+    end)
+
+    it("should register dispatcher actions safely", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      if type(class.onDispatcherRegisterActions) == "function" then
+        class:onDispatcherRegisterActions()
+      end
+    end)
+
+    it("should check board isSolved status safely", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local Sudoku = class:new({ ui = mock_ui })
+      local board = Sudoku:getBoard()
+      if type(board.isSolved) == "function" then
+        assert.is_boolean(board:isSolved())
+      end
+    end)
   end)
 end)

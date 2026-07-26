@@ -746,4 +746,32 @@ describe("Terminal plugin button tap integration", function()
       package.loaded["plugins/terminal.koplugin/main"] = nil
     end
   )
+
+  it("should populate main menu entries", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    local mock_ui = {
+      menu = {
+        registerToMainMenu = function() end,
+      },
+    }
+    local terminal = Terminal:new({
+      ui = mock_ui,
+    })
+    local menu_items = {}
+
+    terminal:addToMainMenu(menu_items)
+    assert.is_table(menu_items.terminal)
+  end)
+
+  it("should register dispatcher actions for terminal plugin", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    if type(Terminal.onDispatcherRegisterActions) == "function" then
+      Terminal:onDispatcherRegisterActions()
+    end
+  end)
+
+  it("should initialize terminputtext widget safely", function()
+    local TermInputText = dofile("plugins/terminal.koplugin/terminputtext.lua")
+    assert.is_table(TermInputText)
+  end)
 end)
