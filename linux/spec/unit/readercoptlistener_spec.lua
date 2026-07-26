@@ -35,6 +35,10 @@ describe("ReaderCoptListener module", function()
       listener:onSetCreFont("Noto Sans", 100)
     end
 
+    if type(listener.onCoptChanged) == "function" then
+      listener:onCoptChanged("copt_key", "copt_val")
+    end
+
     doc:close()
   end)
 end)
