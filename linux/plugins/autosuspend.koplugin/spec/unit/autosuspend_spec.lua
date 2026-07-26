@@ -358,6 +358,10 @@ describe("AutoSuspend", function()
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
       assert.is_true(widget_class.disabled)
 
+      if type(widget_class.onDispatcherRegisterActions) == "function" then
+        widget_class:onDispatcherRegisterActions()
+      end
+
       Device.isKindle:revert()
     end)
   end)
