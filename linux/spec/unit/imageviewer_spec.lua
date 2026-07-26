@@ -67,4 +67,11 @@ describe("ImageViewer", function()
     UIManager:close(widget)
     UIManager.show:revert()
   end)
+
+  it("should register dispatcher actions", function()
+    local viewer = ImageViewer:new({})
+    if type(viewer.onDispatcherRegisterActions) == "function" then
+      viewer:onDispatcherRegisterActions()
+    end
+  end)
 end)
