@@ -15,5 +15,10 @@ describe("Korean IME helper module (ko_KR_helper.lua)", function()
       assert.is_table(KoHelper.UIHandler)
       assert.is_table(KoHelper.HgFSM)
     end)
+
+    it("should expose HgFSM table safely", function()
+      local fsm = KoHelper.HgFSM
+      assert.is_table(fsm)
+    end)
   end)
 end)
