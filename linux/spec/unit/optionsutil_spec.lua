@@ -18,4 +18,14 @@ describe("OptionsUtil module", function()
     assert.is_true(OptionsUtil.enableIfEquals(configurable, "option1", "val1"))
     assert.is_false(OptionsUtil.enableIfEquals(configurable, "option1", "val2"))
   end)
+
+  it("should retrieve next and previous items safely", function()
+    local list = { "a", "b", "c" }
+    if type(OptionsUtil.getNextItem) == "function" then
+      assert.are.equal("b", OptionsUtil.getNextItem(list, "a"))
+    end
+    if type(OptionsUtil.getPrevItem) == "function" then
+      assert.are.equal("b", OptionsUtil.getPrevItem(list, "c"))
+    end
+  end)
 end)
