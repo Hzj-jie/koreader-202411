@@ -22,4 +22,21 @@ describe("ReaderWikipedia module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  describe("Menu & Action Registration", function()
+    it("should populate main menu items", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local wiki = ReaderWikipedia:new({
+        ui = mock_ui,
+      })
+
+      local menu_items = {}
+      wiki:addToMainMenu(menu_items)
+      assert.is_table(menu_items.wikipedia_lookup)
+    end)
+  end)
 end)
