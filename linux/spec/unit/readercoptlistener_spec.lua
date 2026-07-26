@@ -22,4 +22,19 @@ describe("ReaderCoptListener module", function()
 
     doc:close()
   end)
+
+  it("should handle event propagation methods safely", function()
+    local sample_epub = "spec/front/unit/data/leaves.epub"
+    local doc = DocumentRegistry:openDocument(sample_epub)
+    local listener = ReaderCoptListener:new({
+      document = doc,
+      view = {},
+    })
+
+    if type(listener.onSetCreFont) == "function" then
+      listener:onSetCreFont("Noto Sans", 100)
+    end
+
+    doc:close()
+  end)
 end)
