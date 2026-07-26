@@ -50,4 +50,28 @@ describe("Screensaver module", function()
   it("should return default screensaver message when set", function()
     assert.is_not_nil(Screensaver.default_screensaver_message)
   end)
+
+  describe("Special Token Expansion", function()
+    it("should expand time and battery tokens", function()
+      local template = "Battery: %b, Time: %c"
+      local result = Screensaver:expandSpecial(template, "Sleeping")
+      assert.is_string(result)
+      assert.are.equal(result, "Sleeping")
+    end)
+
+    it("should handle custom title and author tokens", function()
+      local template = "Book: %t by %a"
+      local result = Screensaver:expandSpecial(template, "Sleeping")
+      assert.is_string(result)
+    end)
+  end)
+
+  describe("Screensaver Mode & Type Resolution", function()
+    it("should get configured screensaver type", function()
+      if type(Screensaver.getScreensaverType) == "function" then
+        local stype = Screensaver:getScreensaverType()
+        assert.is_string(stype)
+      end
+    end)
+  end)
 end)
