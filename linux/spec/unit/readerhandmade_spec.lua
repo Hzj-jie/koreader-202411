@@ -23,4 +23,20 @@ describe("ReaderHandmade module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  describe("Menu Registration & Settings", function()
+    it("should populate main menu items", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local handmade = ReaderHandmade:new({
+        ui = mock_ui,
+      })
+      local menu_items = {}
+      handmade:addToMainMenu(menu_items)
+      assert.is_table(menu_items.handmade_toc)
+    end)
+  end)
 end)
