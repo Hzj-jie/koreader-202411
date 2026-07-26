@@ -20,4 +20,17 @@ describe("Checkers Board widget module", function()
       board:clearSelection()
     end
   end)
+
+  it("should handle painting board to canvas context safely", function()
+    local Screen = require("device").screen
+    local game = Game:new()
+    local board = Board:new({
+      game = game,
+      width = 400,
+      height = 400,
+    })
+    if type(board.paintTo) == "function" then
+      board:paintTo(Screen.bb, 0, 0)
+    end
+  end)
 end)
