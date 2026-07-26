@@ -108,5 +108,18 @@ describe("Sudoku plugin unit tests", function()
         plugin:onDispatcherRegisterActions()
       end
     end)
+
+    it("should populate main menu items", function()
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = class:new({ ui = mock_ui })
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.sudoku)
+    end)
   end)
 end)
