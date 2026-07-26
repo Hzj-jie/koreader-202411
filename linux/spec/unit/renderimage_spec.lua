@@ -13,4 +13,10 @@ describe("RenderImage module", function()
     local result = RenderImage:renderImageFile("non_existent_image.png")
     assert.is_nil(result)
   end)
+
+  it("should handle corrupted image header gracefully", function()
+    local corrupted_data = "CORRUPTED_HEADER_DATA_12345"
+    local result = RenderImage:renderImageData(corrupted_data, #corrupted_data)
+    assert.is_nil(result)
+  end)
 end)
