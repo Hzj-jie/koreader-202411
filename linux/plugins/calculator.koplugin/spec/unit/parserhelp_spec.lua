@@ -14,6 +14,7 @@ describe("ParserHelp module for Calculator", function()
     it("should expose help text and functions table", function()
       assert.is_table(ParserHelp)
       assert.is_string(ParserHelp.help_text)
+      assert.True(#ParserHelp.help_text > 0)
       if type(ParserHelp.getHelp) == "function" then
         local help = ParserHelp:getHelp()
         assert.is_table(help)
