@@ -450,6 +450,10 @@ describe("ReaderStatistics plugin main spec", function()
     stats:onShowReaderProgress()
     assert.stub(UIManager.show).was_called()
 
+    -- Test onShowReaderProgress
+    stats:onShowReaderProgress()
+    assert.stub(UIManager.show).was_called()
+
     stats:onShowBookStats()
     assert.stub(UIManager.show).was_called()
   end)
