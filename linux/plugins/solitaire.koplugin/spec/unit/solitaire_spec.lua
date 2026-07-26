@@ -198,6 +198,7 @@ describe("Solitaire game engine unit tests", function()
       if type(g.newGame) == "function" then
         g:newGame()
         assert.are.equal(0, g.moves)
+        assert.are.equal(0, g.score)
       end
     end)
   end)
