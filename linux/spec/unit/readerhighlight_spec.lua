@@ -456,14 +456,14 @@ describe("Readerhighlight module", function()
         "nothing",
         G_reader_settings:read("default_highlight_action")
       )
-      assert.is_true(highlight.view.highlight.disabled)
+      assert.is_true(highlight.ui.view.highlight.disabled)
 
       highlight:onSetHighlightAction(3, true)
       assert.are.equal(
         "highlight",
         G_reader_settings:read("default_highlight_action")
       )
-      assert.is_false(highlight.view.highlight.disabled)
+      assert.is_false(highlight.ui.view.highlight.disabled)
 
       highlight:onCycleHighlightAction()
       assert.are.equal(
@@ -484,9 +484,9 @@ describe("Readerhighlight module", function()
       )
       assert.is_nil(highlight:getHighlightStyleString("nonexistent_style"))
 
-      highlight.view.highlight.saved_drawer = "lighten"
+      highlight.ui.view.highlight.saved_drawer = "lighten"
       highlight:onCycleHighlightStyle()
-      assert.are.equal("underscore", highlight.view.highlight.saved_drawer)
+      assert.are.equal("underscore", highlight.ui.view.highlight.saved_drawer)
     end)
 
     it("should toggle panel zoom and text selection settings", function()
@@ -569,7 +569,7 @@ describe("Readerhighlight module", function()
 
     it("should support indicator navigation gestures and lifecycle", function()
       local highlight = readerui.highlight
-      highlight.view.visible_area = Geom:new({ w = 600, h = 800 })
+      highlight.ui.view.visible_area = Geom:new({ w = 600, h = 800 })
 
       -- Start indicator
       assert.is_true(highlight:onStartHighlightIndicator())
@@ -739,7 +739,7 @@ describe("Readerhighlight module", function()
       "should handle quick movement and edge boundaries for indicator",
       function()
         local highlight = readerui.highlight
-        highlight.view.visible_area = Geom:new({ w = 600, h = 800 })
+        highlight.ui.view.visible_area = Geom:new({ w = 600, h = 800 })
         highlight:onStartHighlightIndicator()
 
         -- Quick move (shift arrow)

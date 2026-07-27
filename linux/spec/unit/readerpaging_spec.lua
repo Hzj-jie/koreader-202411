@@ -32,7 +32,7 @@ describe("Readerpaging module", function()
     end)
 
     it("should calculate progress and percent correctly", function()
-      paging.view.page_scroll = false
+      paging.ui.view.page_scroll = false
       paging.current_page = 5
       paging.number_of_pages = 10
       assert.equals(5, paging:getLastProgress())
