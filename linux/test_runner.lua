@@ -68,28 +68,22 @@ if not test_file then
     print("=========================================================================")
 
     -- List of spec files that must be exempted from environment isolation (KO_MULTIUSER)
-    -- because they test path resolution, local file creation, or monkeypatch 
-    -- core settings logic (like docsettings/named_settings) that breaks isolation.
+    -- because they test device detection (Emulator vs Desktop), path resolution, local file creation,
+    -- or monkeypatch core settings logic that breaks isolation.
     local env_exemptions = {
         ["spec/unit/datastorage_spec.lua"] = true,
         ["spec/unit/screenshoter_spec.lua"] = true,
+        ["spec/unit/readerhighlight_spec.lua"] = true,
+        ["spec/unit/readerpaging_spec.lua"] = true,
+        ["spec/unit/autosuspend_spec.lua"] = true,
+        ["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true,
+        ["plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua"] = true,
+        ["plugins/clock.koplugin/spec/unit/clock_spec.lua"] = true,
+        ["spec/unit/device_spec.lua"] = true,
+        ["spec/unit/eink_optimization_spec.lua"] = true,
+        ["spec/unit/network_manager_spec.lua"] = true,
+        ["spec/unit/readerfooter_spec.lua"] = true,
     }
-
-    -- If we are running in origin.linux, we must also exempt tests that fail
-    -- due to KO_MULTIUSER causing the device to be detected as Desktop instead of Emulator.
-    local target_tr = lfs.symlinkattributes("test_runner.lua", "target") or ""
-    local target_fe = lfs.symlinkattributes("frontend", "target") or ""
-    if target_tr:match("origin") or target_fe:match("origin") then
-        env_exemptions["spec/unit/readerhighlight_spec.lua"] = true
-        env_exemptions["spec/unit/autosuspend_spec.lua"] = true
-        env_exemptions["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true
-        env_exemptions["plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua"] = true
-        env_exemptions["plugins/clock.koplugin/spec/unit/clock_spec.lua"] = true
-        env_exemptions["spec/unit/device_spec.lua"] = true
-        env_exemptions["spec/unit/eink_optimization_spec.lua"] = true
-        env_exemptions["spec/unit/network_manager_spec.lua"] = true
-        env_exemptions["spec/unit/readerfooter_spec.lua"] = true
-    end
 
     -- Find all spec files under base/spec/unit and spec/unit
     local spec_files = {}
@@ -180,14 +174,16 @@ if not test_file then
 
         worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
         lfs.mkdir(worker_config_dir)
+        local worker_tmp_dir = worker_config_dir .. "/tmp"
+        lfs.mkdir(worker_tmp_dir)
         if use_isolated_env then
-            -- We set KO_MULTIUSER=1 and XDG_CONFIG_HOME to direct all configuration/settings
-            -- writes to this isolated directory, preventing parallel file access conflicts!
+            -- We set KO_MULTIUSER=1, TMPDIR, and XDG_CONFIG_HOME to direct all configuration/settings
+            -- and temporary writes to this isolated directory, preventing parallel file access conflicts!
             -- We also set TESSDATA_PREFIX=data so Tesseract OCR can find the trained data in the isolated environment.
-            cmd = string.format("%sKO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_config_dir, lua_flags, spec_path)
+            cmd = string.format("%sTMPDIR=%q KO_MULTIUSER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
         else
-            -- Run without KO_MULTIUSER=1 for exempted tests, but keep XDG_CONFIG_HOME isolated to prevent race conditions
-            cmd = string.format("%sXDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_config_dir, lua_flags, spec_path)
+            -- Run without KO_MULTIUSER=1 for exempted tests, but keep TMPDIR and XDG_CONFIG_HOME isolated to prevent race conditions
+            cmd = string.format("%sTMPDIR=%q XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
         end
 
         local pipe = io.popen(cmd)
