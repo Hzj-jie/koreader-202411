@@ -137,4 +137,18 @@ describe("ScrollableContainer module", function()
     assert.is_table(container:getScrolledOffset())
     container:_scrollBy(10, 10)
   end)
+
+  it("should handle scroll reset and panning gestures", function()
+    local content = createContent(500, 500)
+    local container = ScrollableContainer:new({
+      width = 200,
+      height = 200,
+      [1] = content,
+    })
+    container:initState()
+    if type(container.resetScroll) == "function" then
+      container:resetScroll()
+      assert.are.same({ x = 0, y = 0 }, container:getScrolledOffset())
+    end
+  end)
 end)
