@@ -38,5 +38,18 @@ describe("ReaderHandmade module", function()
       handmade:addToMainMenu(menu_items)
       assert.is_table(menu_items.handmade_toc)
     end)
+
+    it("should handle dispatcher registration", function()
+      local handmade = ReaderHandmade:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+      })
+      if type(handmade.onDispatcherRegisterActions) == "function" then
+        handmade:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
