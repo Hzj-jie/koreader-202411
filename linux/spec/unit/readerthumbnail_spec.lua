@@ -44,6 +44,10 @@ describe("ReaderThumbnail module", function()
       if type(thumb.hasBookMap) == "function" then
         assert.is_boolean(thumb:hasBookMap())
       end
+
+      if type(thumb.onDispatcherRegisterActions) == "function" then
+        thumb:onDispatcherRegisterActions()
+      end
     end)
   end)
 end)
