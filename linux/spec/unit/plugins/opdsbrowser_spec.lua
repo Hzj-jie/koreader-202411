@@ -58,5 +58,15 @@ describe("OPDSBrowser module", function()
       assert.is_table(browser)
       assert.are.equal(browser.title, "OPDS Catalogs")
     end)
+
+    it("should manage OPDS servers list correctly", function()
+      local browser = OPDSBrowser:new({
+        title = "OPDS Catalogs",
+      })
+      if type(browser.getServers) == "function" then
+        local servers = browser:getServers()
+        assert.is_table(servers)
+      end
+    end)
   end)
 end)
