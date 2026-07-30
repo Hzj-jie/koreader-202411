@@ -38,5 +38,18 @@ describe("ReaderWikipedia module", function()
       wiki:addToMainMenu(menu_items)
       assert.is_table(menu_items.wikipedia_lookup)
     end)
+
+    it("should handle dispatcher registration", function()
+      local wiki = ReaderWikipedia:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+      })
+      if type(wiki.onDispatcherRegisterActions) == "function" then
+        wiki:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
