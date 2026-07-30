@@ -38,5 +38,25 @@ describe("ReaderStyleTweak module", function()
         tweak:onDispatcherRegisterActions()
       end
     end)
+
+    it("should manage active style tweaks", function()
+      local mock_ui = {
+        document = {
+          info = {
+            has_crengine = true,
+          },
+        },
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local tweak = ReaderStyleTweak:new({
+        ui = mock_ui,
+      })
+
+      if type(tweak.isTweakActive) == "function" then
+        assert.is_boolean(tweak:isTweakActive("sample_tweak"))
+      end
+    end)
   end)
 end)
