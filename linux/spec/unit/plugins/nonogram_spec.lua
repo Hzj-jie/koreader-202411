@@ -17,5 +17,8 @@ describe("Nonogram plugin main module", function()
     })
 
     assert.is_table(plugin)
+    if type(plugin.onDispatcherRegisterActions) == "function" then
+      plugin:onDispatcherRegisterActions()
+    end
   end)
 end)
