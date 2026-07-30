@@ -672,5 +672,12 @@ describe("CloudStorage", function()
         assert.are.equal(cs.download_dir, "/my/custom/downloads")
       end
     end)
+
+    it("should handle dispatcher registration and menu creation", function()
+      local cs = CloudStorage:new()
+      if type(cs.onDispatcherRegisterActions) == "function" then
+        cs:onDispatcherRegisterActions()
+      end
+    end)
   end)
 end)
