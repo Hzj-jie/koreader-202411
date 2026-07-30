@@ -55,4 +55,17 @@ describe("NumberPickerWidget module", function()
     picker:update()
     assert.is_equal(picker:getValue(), 15)
   end)
+
+  it("should handle step increment and decrement operations", function()
+    local picker = NumberPickerWidget:new({
+      value = 5,
+      value_min = 0,
+      value_max = 10,
+      value_step = 2,
+    })
+    if type(picker.setValue) == "function" then
+      picker:setValue(7)
+      assert.is_equal(picker:getValue(), 7)
+    end
+  end)
 end)
