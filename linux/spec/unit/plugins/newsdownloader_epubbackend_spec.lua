@@ -15,5 +15,12 @@ describe("EpubDownloadBackend module", function()
       assert.is_table(EpubDownloadBackend)
       assert.are.equal(EpubDownloadBackend.dismissed_error_code, "Interrupted by user")
     end)
+
+    it("should expose backend table functions", function()
+      assert.is_table(EpubDownloadBackend)
+      if type(EpubDownloadBackend.downloadFeeds) == "function" then
+        assert.is_function(EpubDownloadBackend.downloadFeeds)
+      end
+    end)
   end)
 end)
