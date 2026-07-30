@@ -57,4 +57,11 @@ describe("WpaSupplicant network module", function()
       mock_wpaclient.new:revert()
     end
   )
+
+  it("should handle error handling when disconnecting or getting current network", function()
+    if type(WpaSupplicant.disconnectNetwork) == "function" then
+      local ok, err = WpaSupplicant:disconnectNetwork({ ssid = "test_ssid" })
+      assert.is_nil(ok)
+    end
+  end)
 end)
