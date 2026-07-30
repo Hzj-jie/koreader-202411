@@ -6,7 +6,6 @@ describe("EpubDownloadBackend module", function()
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
-    package.path = "plugins/newsdownloader.koplugin/?.lua;" .. package.path
     EpubDownloadBackend = require("plugins/newsdownloader.koplugin/epubdownloadbackend")
   end)
 

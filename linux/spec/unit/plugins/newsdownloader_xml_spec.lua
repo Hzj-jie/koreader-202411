@@ -6,7 +6,6 @@ describe("Newsdownloader XML parser module", function()
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
-    package.path = "plugins/newsdownloader.koplugin/lib/?.lua;" .. package.path
     XmlParser = require("plugins/newsdownloader.koplugin/lib/xml")
   end)
 

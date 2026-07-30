@@ -135,10 +135,7 @@ describe("Games submenu integration", function()
   it(
     "verifies SolitaireUI onClose does not crash with stack overflow",
     function()
-      local old_path = package.path
-      package.path = package.path .. ";plugins/solitaire.koplugin/?.lua"
-      local SolitaireUI = require("solitaireui")
-      package.path = old_path
+      local SolitaireUI = require("plugins/solitaire.koplugin/solitaireui")
 
       local UIManager = require("ui/uimanager")
 

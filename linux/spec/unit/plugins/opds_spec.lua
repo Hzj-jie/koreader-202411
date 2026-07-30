@@ -264,12 +264,10 @@ describe("OPDS module #nocov", function()
   local orig_http_request
 
   setup(function()
-    orig_path = package.path
-    package.path = "plugins/opds.koplugin/?.lua;" .. package.path
     require("commonrequire")
     socketutil = require("socketutil")
-    OPDSParser = require("opdsparser")
-    OPDSBrowser = require("opdsbrowser")
+    OPDSParser = require("plugins/opds.koplugin/opdsparser")
+    OPDSBrowser = require("plugins/opds.koplugin/opdsbrowser")
 
     -- Mock HTTP request to return static search descriptors
     local http = require("socket.http")
@@ -318,7 +316,6 @@ describe("OPDS module #nocov", function()
     local http = require("socket.http")
     http.request = orig_http_request
 
-    package.path = orig_path
     socketutil.LARGE_BLOCK_TIMEOUT = orig_lbt
     socketutil.LARGE_TOTAL_TIMEOUT = orig_ltt
     socketutil.FILE_BLOCK_TIMEOUT = orig_fbt
