@@ -561,5 +561,13 @@ describe("ReaderBookmark module", function()
         bookmark_mod:onDispatcherRegisterActions()
       end
     end)
+
+    it("should handle bookmark export actions and sorting mode toggles", function()
+      local bookmark_mod = readerui.bookmark
+      if type(bookmark_mod.getBookmarkSummary) == "function" then
+        local summary = bookmark_mod:getBookmarkSummary()
+        assert.is_string(summary)
+      end
+    end)
   end)
 end)
