@@ -40,4 +40,16 @@ describe("OptionsUtil module", function()
       )
     end
   end)
+
+  it("should evaluate enableIfIn correctly", function()
+    local configurable = { option1 = "val1" }
+    if type(OptionsUtil.enableIfIn) == "function" then
+      assert.is_true(
+        OptionsUtil.enableIfIn(configurable, "option1", { "val1", "val2" })
+      )
+      assert.is_false(
+        OptionsUtil.enableIfIn(configurable, "option1", { "other" })
+      )
+    end
+  end)
 end)

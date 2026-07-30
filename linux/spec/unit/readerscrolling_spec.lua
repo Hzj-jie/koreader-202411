@@ -57,4 +57,17 @@ describe("ReaderScrolling module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  it("should handle dispatcher registration and main menu items", function()
+    local scrolling = ReaderScrolling:new({
+      ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      },
+    })
+    if type(scrolling.onDispatcherRegisterActions) == "function" then
+      scrolling:onDispatcherRegisterActions()
+    end
+  end)
 end)

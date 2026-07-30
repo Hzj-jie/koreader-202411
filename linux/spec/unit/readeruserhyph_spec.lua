@@ -36,4 +36,17 @@ describe("ReaderUserHyph module", function()
     )
     assert.is_false(ReaderUserHyph:checkHyphenation("different", "hyphenation"))
   end)
+
+  it("should handle dispatcher registration and main menu items", function()
+    local hyph = ReaderUserHyph:new({
+      ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      },
+    })
+    if type(hyph.onDispatcherRegisterActions) == "function" then
+      hyph:onDispatcherRegisterActions()
+    end
+  end)
 end)

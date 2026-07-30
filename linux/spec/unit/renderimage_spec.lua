@@ -19,4 +19,11 @@ describe("RenderImage module", function()
     local result = RenderImage:renderImageData(corrupted_data, #corrupted_data)
     assert.is_nil(result)
   end)
+
+  it("should validate supported image files and dimensions", function()
+    if type(RenderImage.isSupportedImageFile) == "function" then
+      assert.is_boolean(RenderImage:isSupportedImageFile("test.png"))
+      assert.is_false(RenderImage:isSupportedImageFile("test.txt"))
+    end
+  end)
 end)

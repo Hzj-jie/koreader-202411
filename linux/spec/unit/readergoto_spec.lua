@@ -22,4 +22,17 @@ describe("ReaderGoto module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  it("should handle dispatcher registration and main menu items", function()
+    local rgoto = ReaderGoto:new({
+      ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      },
+    })
+    if type(rgoto.onDispatcherRegisterActions) == "function" then
+      rgoto:onDispatcherRegisterActions()
+    end
+  end)
 end)

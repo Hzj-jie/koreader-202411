@@ -80,6 +80,10 @@ describe("ReaderCoptListener module", function()
       listener:onCoptChanged("copt_key", "copt_val")
     end
 
+    if type(listener.onSetInterlineSpace) == "function" then
+      listener:onSetInterlineSpace(120)
+    end
+
     doc:close()
   end)
 end)

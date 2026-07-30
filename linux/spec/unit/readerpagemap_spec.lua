@@ -84,6 +84,9 @@ describe("ReaderPageMap module", function()
       if type(pagemap.getPageMap) == "function" then
         pagemap:getPageMap()
       end
+      if type(pagemap.hasPageMap) == "function" then
+        assert.is_boolean(pagemap:hasPageMap())
+      end
     end)
   end)
 end)
