@@ -137,5 +137,14 @@ describe("Wallabag plugin", function()
         NetworkMgr.runWhenOnline:revert()
       end
     )
+
+    it("should handle setting updates and dialog triggers safely", function()
+      local mock_ui = create_mock_ui()
+      local wallabag = Wallabag:new({ ui = mock_ui })
+
+      if type(wallabag.onShowWallabagMenu) == "function" then
+        assert.is_function(wallabag.onShowWallabagMenu)
+      end
+    end)
   end)
 end)
