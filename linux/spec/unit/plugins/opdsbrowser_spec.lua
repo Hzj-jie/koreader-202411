@@ -31,7 +31,6 @@ describe("OPDSBrowser module", function()
       flush = function() end,
     }
 
-    package.path = "plugins/opds.koplugin/?.lua;" .. package.path
     OPDSBrowser = require("plugins/opds.koplugin/opdsbrowser")
   end)
 

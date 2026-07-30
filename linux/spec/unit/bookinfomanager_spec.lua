@@ -4,12 +4,11 @@ describe("bookinfomanager", function()
 
   setup(function()
     require("commonrequire")
-    package.path = "plugins/coverbrowser.koplugin/?.lua;" .. package.path
-    BookInfoManager = require("bookinfomanager")
+    BookInfoManager = require("plugins/coverbrowser.koplugin/bookinfomanager")
   end)
 
   teardown(function()
-    package.loaded["bookinfomanager"] = nil
+    package.loaded["plugins/coverbrowser.koplugin/bookinfomanager"] = nil
     if BookInfoManager then
       BookInfoManager:deleteDb()
     end
