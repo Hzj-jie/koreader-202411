@@ -78,6 +78,9 @@ describe("NewsDownloader plugin", function()
       if type(downloader.onDispatcherRegisterActions) == "function" then
         downloader:onDispatcherRegisterActions()
       end
+      if type(downloader.onShowNewsMenu) == "function" then
+        assert.is_function(downloader.onShowNewsMenu)
+      end
     end)
   end)
 end)
