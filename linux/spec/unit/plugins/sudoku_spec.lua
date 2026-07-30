@@ -22,5 +22,8 @@ describe("Sudoku plugin", function()
     local items = {}
     sudoku:addToMainMenu(items)
     assert.is_table(items.sudoku)
+    if type(sudoku.onDispatcherRegisterActions) == "function" then
+      sudoku:onDispatcherRegisterActions()
+    end
   end)
 end)
