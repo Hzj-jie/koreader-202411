@@ -130,4 +130,15 @@ describe("Readerdictionary module", function()
       dictionary:onDispatcherRegisterActions()
     end
   end)
+
+  it("should handle dictionary settings and lookup input callbacks", function()
+    if type(dictionary.onLookupInput) == "function" then
+      dictionary:onLookupInput("sample")
+    end
+
+    if type(dictionary.getDicts) == "function" then
+      local dicts = dictionary:getDicts()
+      assert.is_table(dicts)
+    end
+  end)
 end)

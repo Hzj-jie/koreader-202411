@@ -317,6 +317,10 @@ describe("Readersearch module", function()
       if type(rs.onShowSearchDialog) == "function" then
         assert.is_function(rs.onShowSearchDialog)
       end
+
+      if type(rs.onDispatcherRegisterActions) == "function" then
+        rs:onDispatcherRegisterActions()
+      end
     end)
   end)
 end)

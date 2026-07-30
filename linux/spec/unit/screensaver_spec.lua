@@ -67,10 +67,20 @@ describe("Screensaver module", function()
   end)
 
   describe("Screensaver Mode & Type Resolution", function()
-    it("should get configured screensaver type", function()
+    it("should get configured screensaver type and settings", function()
       if type(Screensaver.getScreensaverType) == "function" then
         local stype = Screensaver:getScreensaverType()
         assert.is_string(stype)
+      end
+
+      if type(Screensaver.shouldHideFallback) == "function" then
+        local hide = Screensaver:shouldHideFallback()
+        assert.is_boolean(hide)
+      end
+
+      if type(Screensaver.shouldStretch) == "function" then
+        local stretch = Screensaver:shouldStretch()
+        assert.is_boolean(stretch)
       end
     end)
   end)

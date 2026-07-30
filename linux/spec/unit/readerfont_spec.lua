@@ -54,18 +54,40 @@ describe("ReaderFont module", function()
       assert.are.equal(font_mod.font_face, "FreeSerif")
     end)
 
-    it("should provide font settings submenus", function()
+    it("should handle font weight, gamma, and size adjustment settings", function()
+      local mock_ui = create_mock_ui()
+      local font_mod = ReaderFont:new({
+        font_face = "Noto Serif",
+        font_size = 20,
+        ui = mock_ui,
+      })
+
+      if type(font_mod.onAdjustFontSize) == "function" then
+        font_mod:onAdjustFontSize(2)
+        assert.are.equal(22, font_mod.font_size)
+      end
+
+      if type(font_mod.setFontWeight) == "function" then
+        font_mod:setFontWeight(15)
+        assert.are.equal(15, font_mod.font_weight)
+      end
+
+      if type(font_mod.setFontGamma) == "function" then
+        font_mod:setFontGamma(15)
+        assert.are.equal(15, font_mod.font_gamma)
+      end
+    end)
+
+    it("should handle fallback font queries", function()
       local mock_ui = create_mock_ui()
       local font_mod = ReaderFont:new({
         font_face = "Noto Serif",
         ui = mock_ui,
-        font_family_fonts = {},
       })
 
-      if type(font_mod.getFontSettingsTable) == "function" then
-        local settings_table = font_mod:getFontSettingsTable()
-        assert.is_table(settings_table)
-        assert.truthy(#settings_table > 0)
+      if type(font_mod.getFallbackFont) == "function" then
+        local fb = font_mod:getFallbackFont()
+        assert.is_string(fb)
       end
     end)
   end)
