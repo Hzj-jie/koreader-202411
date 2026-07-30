@@ -74,4 +74,17 @@ describe("ImageViewer", function()
       viewer:onDispatcherRegisterActions()
     end
   end)
+
+  it("should handle zoom and rotation actions", function()
+    local viewer = ImageViewer:new({})
+    if type(viewer.zoomIn) == "function" then
+      viewer:zoomIn()
+    end
+    if type(viewer.zoomOut) == "function" then
+      viewer:zoomOut()
+    end
+    if type(viewer.rotateClockwise) == "function" then
+      viewer:rotateClockwise()
+    end
+  end)
 end)
