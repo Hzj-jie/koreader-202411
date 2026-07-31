@@ -62,4 +62,11 @@ describe("RenderImage module", function()
 
     os.remove(tmp_svg)
   end)
+
+  it("should handle WebP rendering fallback gracefully", function()
+    if type(RenderImage.renderWebpImageFile) == "function" then
+      local result = RenderImage:renderWebpImageFile("non_existent.webp")
+      assert.is_nil(result)
+    end
+  end)
 end)
