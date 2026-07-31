@@ -3,13 +3,15 @@ describe("ReaderWikipedia module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
     ReaderWikipedia = require("apps/reader/modules/readerwikipedia")
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
     Screen = require("device").screen
   end)
 
-  it("should initialize wikipedia module", function()
+  it("should initialize wikipedia module and manage settings", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
     local readerui = ReaderUI:new({
       dimen = Screen:getSize(),
@@ -19,12 +21,19 @@ describe("ReaderWikipedia module", function()
     local wikipedia = readerui.wikipedia
     assert.is_table(wikipedia)
 
+    if type(wikipedia.onReadSettings) == "function" then
+      wikipedia:onReadSettings(readerui.doc_settings)
+    end
+    if type(wikipedia.onSaveSettings) == "function" then
+      wikipedia:onSaveSettings()
+    end
+
     readerui:onExit()
     readerui:onClose()
   end)
 
-  describe("Menu & Action Registration", function()
-    it("should populate main menu items", function()
+  describe("Menu & Word Handling", function()
+    it("should populate main menu items and sanitize input words", function()
       local mock_ui = {
         menu = {
           registerToMainMenu = function() end,
@@ -37,6 +46,11 @@ describe("ReaderWikipedia module", function()
       local menu_items = {}
       wiki:addToMainMenu(menu_items)
       assert.is_table(menu_items.wikipedia_lookup)
+
+      if type(wiki.cleanWord) == "function" then
+        local cleaned = wiki:cleanWord("  Test Word!  ")
+        assert.is_string(cleaned)
+      end
     end)
 
     it("should handle dispatcher registration", function()
