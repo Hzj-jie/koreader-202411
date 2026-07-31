@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # KOReader Test Suite Repeat Execution Entry.
 # Usage: ./repeat_run_tests.sh [run_tests.sh_args...]
-# Repeats running ./run_tests.sh with all arguments ($*), displaying only failure lines.
+# Repeats running ./run_tests.sh with all arguments ($*), displaying failure details when a run fails.
 
 set -euo pipefail
 
@@ -10,6 +10,8 @@ FAIL_COUNT=0
 
 TMP_OUTPUT=$(mktemp)
 trap 'rm -f "$TMP_OUTPUT"' EXIT
+
+export TEST_BRIEF=1
 
 echo "[*] Starting repeated execution of: ./run_tests.sh $*"
 echo "[*] Press Ctrl+C to stop."
@@ -25,11 +27,7 @@ while true; do
         echo "========================================================================="
         echo "[!] FAILURE DETECTED on Run #$RUN_COUNT (Total Failures: $FAIL_COUNT)"
         echo "========================================================================="
-        if grep -i -E "fail|error" "$TMP_OUTPUT" > /dev/null 2>&1; then
-            grep -i -E "fail|error" "$TMP_OUTPUT"
-        else
-            cat "$TMP_OUTPUT"
-        fi
+        cat "$TMP_OUTPUT"
         echo "========================================================================="
     fi
 done
