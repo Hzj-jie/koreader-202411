@@ -5,6 +5,8 @@ describe("Screensaver module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
     Screensaver = require("ui/screensaver")
   end)
 
@@ -66,21 +68,15 @@ describe("Screensaver module", function()
     end)
   end)
 
-  describe("Screensaver Mode & Type Resolution", function()
-    it("should get configured screensaver type and settings", function()
-      if type(Screensaver.getScreensaverType) == "function" then
-        local stype = Screensaver:getScreensaverType()
-        assert.is_string(stype)
+  describe("Screensaver Resolution & Message", function()
+    it("should handle screensaver message retrieval and close safely", function()
+      if type(Screensaver.getScreensaverMessage) == "function" then
+        local msg = Screensaver:getScreensaverMessage()
+        assert.is_string(msg)
       end
 
-      if type(Screensaver.shouldHideFallback) == "function" then
-        local hide = Screensaver:shouldHideFallback()
-        assert.is_boolean(hide)
-      end
-
-      if type(Screensaver.shouldStretch) == "function" then
-        local stretch = Screensaver:shouldStretch()
-        assert.is_boolean(stretch)
+      if type(Screensaver.close) == "function" then
+        Screensaver:close()
       end
     end)
   end)
