@@ -3,6 +3,9 @@ describe("ReaderCoptListener module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
+
     ReaderCoptListener = require("apps/reader/modules/readercoptlistener")
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
@@ -43,6 +46,40 @@ describe("ReaderCoptListener module", function()
       listener:onSetInterlineSpace(120)
     end
 
+    if type(listener.onSetGammaIndex) == "function" then
+      listener:onSetGammaIndex(15)
+    end
+
     doc:close()
+  end)
+
+  it("should handle reader ready and settings callbacks", function()
+    local mock_doc = {
+      configurable = { view_mode = 0, status_line = 0 },
+      setViewMode = function() end,
+      setPageInfoOverride = function() end,
+      prop_to_cre_prop = {},
+      _document = {
+        setIntProperty = function() end,
+        setStringProperty = function() end,
+      },
+    }
+    local mock_ui = {
+      rolling = { updateBatteryState = function() return 100 end },
+      doc_settings = { read = function() return nil end },
+    }
+    local listener = ReaderCoptListener:new({
+      document = mock_doc,
+      view = {},
+      ui = mock_ui,
+    })
+
+    if type(listener.onReadSettings) == "function" then
+      listener:onReadSettings({})
+    end
+
+    if type(listener.onReaderReady) == "function" then
+      listener:onReaderReady()
+    end
   end)
 end)
