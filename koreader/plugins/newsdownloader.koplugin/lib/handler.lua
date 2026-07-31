@@ -170,7 +170,7 @@ local function simpleTreeHandler()
     --atual está contida.
     local prev = self.stack[#self.stack - 1]
     if not prev[t] then
-      error("XML Error - Unmatched Tag [" .. s .. ":" .. t .. "]\n")
+      error("XML Error - Unmatched Tag [" .. (s or "") .. ":" .. t .. "]\n")
     end
     if prev == self.root then
       -- Once parsing complete recursively reduce tree
