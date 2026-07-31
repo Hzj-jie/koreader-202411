@@ -27,10 +27,8 @@ end
 package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
 package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
-local is_worker = os.getenv("KO_TEST_WORKER") == "1"
-
 -- WORKER PROCESS EXECUTION MODE
-if is_worker then
+if os.getenv("KO_TEST_WORKER") == "1" then
     local test_file = arg[1]
     if test_file then
         local plugin = test_file:match("^plugins/([%w%.%-_]+)/")
@@ -122,42 +120,34 @@ local spec_files = {}
 if test_file then
     table.insert(spec_files, test_file)
 else
-    local function find_specs(dir, specs)
-        local attributes = lfs.attributes(dir)
-        if not attributes then return specs end
-
-        if attributes.mode == "directory" then
+    local function find_specs(dir)
+        local attr = lfs.attributes(dir)
+        if attr and attr.mode == "directory" then
             for file in lfs.dir(dir) do
                 if file ~= "." and file ~= ".." then
                     local path = dir .. "/" .. file
                     local f_attr = lfs.attributes(path)
                     if f_attr then
                         if f_attr.mode == "directory" then
-                            find_specs(path, specs)
+                            find_specs(path)
                         elseif f_attr.mode == "file" and file:match("_spec%.lua$") then
-                            table.insert(specs, path)
+                            table.insert(spec_files, path)
                         end
                     end
                 end
             end
         end
-        return specs
     end
 
-    find_specs("base/spec/unit", spec_files)
-    find_specs("spec/unit", spec_files)
+    find_specs("base/spec/unit")
+    find_specs("spec/unit")
 
-    -- Dynamically find and include plugin specs
     local plugins_dir = "plugins"
     local plugins_attr = lfs.attributes(plugins_dir)
     if plugins_attr and plugins_attr.mode == "directory" then
         for plugin in lfs.dir(plugins_dir) do
             if plugin ~= "." and plugin ~= ".." then
-                local spec_dir = plugins_dir .. "/" .. plugin .. "/spec/unit"
-                local spec_attr = lfs.attributes(spec_dir)
-                if spec_attr and spec_attr.mode == "directory" then
-                    find_specs(spec_dir, spec_files)
-                end
+                find_specs(plugins_dir .. "/" .. plugin .. "/spec/unit")
             end
         end
     end
@@ -182,7 +172,6 @@ if nproc_p then
 end
 
 local lua_flags = os.getenv("LUAFLAGS") or ""
-
 print_verbose("[*] Running with parallelism limit: " .. max_jobs)
 print_verbose("")
 
@@ -199,26 +188,18 @@ local next_spec_idx = 1
 -- Helper to spawn a job with isolated environment
 local function spawn_job(idx)
     local spec_path = spec_files[idx]
-    local use_isolated_env = not env_exemptions[spec_path]
-
-    local cmd
-    local worker_config_dir
+    local multi_user = (not env_exemptions[spec_path]) and "KO_MULTIUSER=1 " or ""
     local luacov_env = ""
     if lua_flags:find("luacov") then
         luacov_env = string.format("LUACOV_STATS_FILE=%q ", lfs.currentdir() .. "/luacov.stats.worker_" .. idx .. ".out")
     end
 
-    worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
+    local worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
     lfs.mkdir(worker_config_dir)
     local worker_tmp_dir = worker_config_dir .. "/tmp"
     lfs.mkdir(worker_tmp_dir)
 
-    if use_isolated_env then
-        cmd = string.format("%sTMPDIR=%q KO_MULTIUSER=1 KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
-    else
-        cmd = string.format("%sTMPDIR=%q KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
-    end
-
+    local cmd = string.format("%sTMPDIR=%q %sKO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, multi_user, worker_config_dir, lua_flags, spec_path)
     local pipe = io.popen(cmd)
     if pipe then
         active_jobs[idx] = {
@@ -272,14 +253,21 @@ for i = 1, #spec_files do
         local file_failed = tonumber(output:match("\n%[%s+FAILED%s+%] (%d+) tests?, listed below:\n")) or 0
 
         if file_total == 0 then
-            if exit_code ~= 0 then file_total = 1 file_failed = 1 end
+            if exit_code ~= 0 then
+                file_total = 1
+                file_failed = 1
+            end
         else
             if exit_code == 0 then
                 file_passed = file_total
                 file_failed = 0
             else
-                if file_failed == 0 then file_failed = file_total - file_passed end
-                if file_failed <= 0 then file_failed = 1 end
+                if file_failed == 0 then
+                    file_failed = file_total - file_passed
+                end
+                if file_failed <= 0 then
+                    file_failed = 1
+                end
             end
         end
 
@@ -366,8 +354,8 @@ print("=========================================================================
 
 if #failed_cases_details > 0 then
     print("[!] Failed test cases:")
-    for _, failed_case in ipairs(failed_cases_details) do
-        print("    - " .. failed_case)
+    for _, case in ipairs(failed_cases_details) do
+        print("    - " .. case)
     end
     print("")
 end
