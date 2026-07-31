@@ -1,5 +1,5 @@
-describe("Weather plugin and WeatherApi", function()
-  local Weather, WeatherApi, http
+describe("Weather plugin, WeatherApi, and Composer", function()
+  local Weather, WeatherApi, Composer, http
 
   setup(function()
     require("commonrequire")
@@ -9,6 +9,7 @@ describe("Weather plugin and WeatherApi", function()
     http = require("socket.http")
     Weather = require("plugins/weather.koplugin/main")
     WeatherApi = require("plugins/weather.koplugin/weatherapi")
+    Composer = require("plugins/weather.koplugin/composer")
   end)
 
   describe("Weather Main Plugin", function()
@@ -91,6 +92,121 @@ describe("Weather plugin and WeatherApi", function()
         condition = { text = "Sunny" },
       })
       assert.is_table(Weather.kv)
+    end)
+  end)
+
+  describe("Composer Module", function()
+    local mock_settings_celsius = {
+      celsius = function() return true end,
+      clock_12 = function() return true end,
+    }
+    local mock_settings_fahrenheit = {
+      celsius = function() return false end,
+      clock_12 = function() return false end,
+    }
+
+    it("should create current forecast for C and F scales", function()
+      local comp_c = Composer:new({ settings = mock_settings_celsius })
+      local comp_f = Composer:new({ settings = mock_settings_fahrenheit })
+
+      local data = {
+        condition = { text = "Sunny" },
+        feelslike_c = 22,
+        feelslike_f = 71.6,
+      }
+
+      local res_c = comp_c:createCurrentForecast(data)
+      assert.is_table(res_c)
+
+      local res_f = comp_f:createCurrentForecast(data)
+      assert.is_table(res_f)
+    end)
+
+    it("should create forecast from day for C and F scales", function()
+      local comp_c = Composer:new({ settings = mock_settings_celsius })
+      local comp_f = Composer:new({ settings = mock_settings_fahrenheit })
+
+      local day_data = {
+        day = {
+          condition = { text = "Cloudy" },
+          avgtemp_c = 18, maxtemp_c = 22, mintemp_c = 14,
+          avgtemp_f = 64.4, maxtemp_f = 71.6, mintemp_f = 57.2,
+        },
+        astro = {
+          moon_phase = "Full Moon",
+          moon_illumination = "100",
+          moonrise = "08:00 PM",
+          moonset = "06:00 AM",
+          sunrise = "06:30 AM",
+          sunset = "07:30 PM",
+        },
+      }
+
+      assert.is_table(comp_c:createForecastFromDay(day_data))
+      assert.is_table(comp_f:createForecastFromDay(day_data))
+    end)
+
+    it("should generate hourly view data structure", function()
+      local comp_c = Composer:new({ settings = mock_settings_celsius })
+      local comp_f = Composer:new({ settings = mock_settings_fahrenheit })
+
+      local hourly = {}
+      for i = 1, 24 do
+        hourly[i] = {
+          feelslike_c = 20,
+          feelslike_f = 68,
+          condition = { text = "Clear" },
+        }
+      end
+
+      local callback_called = false
+      local view_c = comp_c:hourlyView(hourly, function(item)
+        callback_called = true
+      end)
+      assert.is_table(view_c)
+      view_c[1].callback()
+      assert.is_true(callback_called)
+
+      local view_f = comp_f:hourlyView(hourly, function() end)
+      assert.is_table(view_f)
+    end)
+
+    it("should create forecast for specific hour details", function()
+      local comp = Composer:new({ settings = mock_settings_celsius })
+      local hour_data = {
+        time = "12:00",
+        condition = { text = "Sunny" },
+        uv = 5,
+        feelslike_c = 25, windchill_c = 24, heatindex_c = 26, dewpoint_c = 15, temp_c = 25, precip_mm = 0, wind_kph = 10,
+      }
+
+      local res = comp:forecastForHour(hour_data)
+      assert.is_table(res)
+    end)
+
+    it("should create weekly forecast structure", function()
+      local comp = Composer:new({ settings = mock_settings_celsius })
+      local weekly_data = {
+        current = {},
+        location = {},
+        forecast = {
+          forecastday = {
+            {
+              date = "2024-05-15",
+              day = {
+                condition = { text = "Sunny" },
+                avgtemp_c = 20, maxtemp_c = 25, mintemp_c = 15,
+              },
+            },
+          },
+        },
+      }
+
+      local clicked = false
+      local weekly = comp:createWeeklyForecast(weekly_data, function()
+        clicked = true
+      end)
+      assert.is_table(weekly)
     end)
   end)
 
