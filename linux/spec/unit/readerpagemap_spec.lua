@@ -45,13 +45,15 @@ describe("ReaderPageMap module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
     ReaderPageMap = require("apps/reader/modules/readerpagemap")
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
     Screen = require("device").screen
   end)
 
-  it("should initialize pagemap module", function()
+  it("should initialize pagemap module and handle layout reset", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
     local readerui = ReaderUI:new({
       dimen = Screen:getSize(),
@@ -60,7 +62,6 @@ describe("ReaderPageMap module", function()
 
     local pagemap = readerui.pagemap
     assert.is_table(pagemap)
-    assert.is_function(pagemap.resetLayout)
 
     pagemap:resetLayout()
 
@@ -68,25 +69,27 @@ describe("ReaderPageMap module", function()
     readerui:onClose()
   end)
 
-  describe("Menu & Dispatcher Integration", function()
-    it("should register dispatcher actions", function()
+  describe("Settings and Toggles", function()
+    it("should handle reading settings and check pagemap availability", function()
       local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
+        document = {
+          configurable = { h_page_margins = { 10, 10 } },
+          hasPageMap = function() return false end,
+          info = { has_pages = false },
+        },
+        menu = { registerToMainMenu = function() end },
+        view = { registerViewModule = function() end },
+        doc_settings = {
+          has = function() return false end,
+          isTrue = function() return false end,
+          save = function() end,
         },
       }
-      local pagemap = ReaderPageMap:new({
-        ui = mock_ui,
-      })
-      if type(pagemap.onDispatcherRegisterActions) == "function" then
-        pagemap:onDispatcherRegisterActions()
-      end
-      if type(pagemap.getPageMap) == "function" then
-        pagemap:getPageMap()
-      end
-      if type(pagemap.hasPageMap) == "function" then
-        assert.is_boolean(pagemap:hasPageMap())
-      end
+      local pagemap = ReaderPageMap:new({ ui = mock_ui })
+      pagemap:init()
+
+      pagemap:onReadSettings(mock_ui.doc_settings)
+      assert.is_boolean(pagemap.has_pagemap)
     end)
   end)
 end)

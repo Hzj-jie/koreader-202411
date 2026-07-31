@@ -6,6 +6,8 @@ describe("WpaSupplicant network module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
 
     mock_wpaclient = {
       new = function()
@@ -14,54 +16,119 @@ describe("WpaSupplicant network module", function()
     }
     package.loaded["lj-wpaclient/wpaclient"] = mock_wpaclient
     WpaSupplicant = require("ui/network/wpa_supplicant")
-    WpaSupplicant.wpa_supplicant =
-      { ctrl_interface = "/var/run/wpa_supplicant" }
+    WpaSupplicant.wpa_supplicant = { ctrl_interface = "/var/run/wpa_supplicant" }
   end)
 
   it("should expose WpaSupplicant helper module", function()
     assert.is_table(WpaSupplicant)
   end)
 
-  it(
-    "should handle error when WpaClient fails to initialize in getNetworkList",
-    function()
-      stub(mock_wpaclient, "new", function()
-        return nil, "Control socket failed"
-      end)
+  it("should handle error when WpaClient fails to initialize in getNetworkList", function()
+    stub(mock_wpaclient, "new", function()
+      return nil, "Control socket failed"
+    end)
 
-      local list, err = WpaSupplicant:getNetworkList()
-      assert.is_nil(list)
-      assert.is_not_nil(err)
+    local list, err = WpaSupplicant:getNetworkList()
+    assert.is_nil(list)
+    assert.is_not_nil(err)
 
-      mock_wpaclient.new:revert()
-    end
-  )
+    mock_wpaclient.new:revert()
+  end)
 
-  it(
-    "should handle error when WpaClient fails in scanThenGetResults",
-    function()
-      local mock_cli = {
-        scanThenGetResults = function()
-          return nil, "Scan error"
-        end,
-        close = function() end,
+  it("should handle scanning results with saved networks and decoded SSIDs", function()
+    local mock_nw = {
+      ssid = "\\x54\\x65\\x73\\x74", -- "Test"
+      bssid = "00:11:22:33:44:55",
+      getSignalQuality = function() return 80 end,
+    }
+
+    local mock_cli = {
+      scanThenGetResults = function()
+        return { mock_nw }
+      end,
+      close = function() end,
+    }
+
+    stub(mock_wpaclient, "new", function() return mock_cli end)
+    stub(WpaSupplicant, "getAllSavedNetworks", function()
+      return {
+        read = function() return { password = "pass", psk = "123456" } end,
       }
-      stub(mock_wpaclient, "new", function()
-        return mock_cli
-      end)
+    end)
+    stub(WpaSupplicant, "getCurrentNetwork", function()
+      return { ssid = "Test", bssid = "00:11:22:33:44:55", id = 1 }
+    end)
 
-      local list, err = WpaSupplicant:getNetworkList()
-      assert.is_nil(list)
-      assert.is_not_nil(err)
+    local list = WpaSupplicant:getNetworkList()
+    assert.is_table(list)
+    assert.are.equal("Test", list[1].ssid)
+    assert.is_true(list[1].connected)
 
-      mock_wpaclient.new:revert()
+    WpaSupplicant.getCurrentNetwork:revert()
+    WpaSupplicant.getAllSavedNetworks:revert()
+    mock_wpaclient.new:revert()
+  end)
+
+  it("should authenticate network with open AP and WPA AP", function()
+    local mock_cli = {
+      addNetwork = function() return 1 end,
+      setNetwork = function() return "OK" end,
+      removeNetwork = function() return "OK" end,
+      enableNetworkByID = function() return "OK" end,
+      attach = function() end,
+      getConnectedNetwork = function()
+        return { id = 1, ssid = "TestNet" }
+      end,
+      readEvent = function() return nil end,
+      waitForEvent = function() end,
+      close = function() end,
+    }
+
+    stub(mock_wpaclient, "new", function() return mock_cli end)
+    stub(WpaSupplicant, "saveNetwork", function() end)
+
+    local success, msg = WpaSupplicant:authenticateNetwork({
+      ssid = "TestNet",
+      password = "",
+    })
+    assert.is_true(success)
+
+    local success_wpa, _ = WpaSupplicant:authenticateNetwork({
+      ssid = "TestNet",
+      password = "secretpassword",
+    })
+    assert.is_true(success_wpa)
+
+    WpaSupplicant.saveNetwork:revert()
+    mock_wpaclient.new:revert()
+  end)
+
+  it("should disconnect network by wpa_supplicant_id", function()
+    local removed_id = nil
+    local mock_cli = {
+      removeNetwork = function(self, id) removed_id = id; return "OK" end,
+      close = function() end,
+    }
+
+    stub(mock_wpaclient, "new", function() return mock_cli end)
+
+    WpaSupplicant:disconnectNetwork({ wpa_supplicant_id = 42 })
+    assert.are.equal(42, removed_id)
+
+    mock_wpaclient.new:revert()
+  end)
+
+  it("should handle forgetting network", function()
+    local mock_settings = {
+      del = function() end,
+      save = function() end,
+    }
+    stub(WpaSupplicant, "getAllSavedNetworks", function() return mock_settings end)
+
+    if type(WpaSupplicant.forgetNetwork) == "function" then
+      WpaSupplicant:forgetNetwork({ ssid = "TestNet" })
     end
-  )
 
-  it("should handle error handling when disconnecting or getting current network", function()
-    if type(WpaSupplicant.disconnectNetwork) == "function" then
-      local ok, err = WpaSupplicant:disconnectNetwork({ ssid = "test_ssid" })
-      assert.is_nil(ok)
-    end
+    WpaSupplicant.getAllSavedNetworks:revert()
   end)
 end)

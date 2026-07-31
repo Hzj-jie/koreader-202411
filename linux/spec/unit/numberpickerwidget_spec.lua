@@ -3,6 +3,9 @@ local NumberPickerWidget
 describe("NumberPickerWidget module", function()
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
+
     NumberPickerWidget = require("ui/widget/numberpickerwidget")
   end)
 
@@ -10,35 +13,28 @@ describe("NumberPickerWidget module", function()
     local val = NumberPickerWidget:changeValue(0, 1, 23, 0, true)
     assert.is_equal(val, 1)
 
-    -- Wrapping around min -> max
     val = NumberPickerWidget:changeValue(0, -1, 23, 0, true)
     assert.is_equal(val, 23)
 
-    -- Wrapping around max -> min
     val = NumberPickerWidget:changeValue(23, 1, 23, 0, true)
     assert.is_equal(val, 0)
   end)
 
   it("should change value within min/max without wrapping", function()
-    -- Clamped at min
     local val = NumberPickerWidget:changeValue(0, -1, 23, 0, false)
     assert.is_equal(val, 0)
 
-    -- Clamped at max
     val = NumberPickerWidget:changeValue(23, 1, 23, 0, false)
     assert.is_equal(val, 23)
   end)
 
   it("should calculate correct number of days in month", function()
-    -- February in leap year
     local days = NumberPickerWidget:getDaysInMonth(2, 2024)
     assert.is_equal(days, 29)
 
-    -- February in non-leap year
     days = NumberPickerWidget:getDaysInMonth(2, 2023)
     assert.is_equal(days, 28)
 
-    -- April
     days = NumberPickerWidget:getDaysInMonth(4, 2024)
     assert.is_equal(days, 30)
   end)
@@ -56,16 +52,19 @@ describe("NumberPickerWidget module", function()
     assert.is_equal(picker:getValue(), 15)
   end)
 
-  it("should handle step increment and decrement operations", function()
+  it("should handle table value indexing", function()
+    local val_table = { "Small", "Medium", "Large" }
     local picker = NumberPickerWidget:new({
-      value = 5,
-      value_min = 0,
-      value_max = 10,
-      value_step = 2,
+      value_table = val_table,
+      value_index = 1,
     })
-    if type(picker.setValue) == "function" then
-      picker:setValue(7)
-      assert.is_equal(picker:getValue(), 7)
+
+    assert.is_table(picker)
+    assert.are.equal("Small", picker:getValue())
+
+    if type(picker.changeTableIndex) == "function" then
+      local idx = picker:changeTableIndex(1, 1, #val_table, 1, true)
+      assert.are.equal(2, idx)
     end
   end)
 end)

@@ -5,6 +5,8 @@ describe("Readerpaging module", function()
 
   setup(function()
     require("commonrequire")
+    require("document/canvascontext"):init(require("device"))
+
     UIManager = require("ui/uimanager")
     stub(UIManager, "getNthTopWidget")
     UIManager.getNthTopWidget.returns({})

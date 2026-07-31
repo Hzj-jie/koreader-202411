@@ -294,6 +294,12 @@ describe("Readerrolling module", function()
       rolling:onRestoreBookLocation(loc)
       assert.are.same(15, rolling.current_page)
     end)
+
+    it("should handle relative page navigation boundary jumps", function()
+      rolling:onGotoPage(10)
+      rolling:onGotoRelativePage(-100)
+      assert.is_true(rolling.current_page >= 1)
+    end)
   end)
 
   describe("test scroll settings and panning", function()

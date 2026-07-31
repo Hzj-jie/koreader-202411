@@ -1,5 +1,5 @@
 describe("Readerdictionary module", function()
-  local DocumentRegistry, ReaderUI, UIManager, Screen
+  local DocumentRegistry, ReaderUI, UIManager, Screen, ReaderDictionary
 
   setup(function()
     require("commonrequire")
@@ -7,6 +7,7 @@ describe("Readerdictionary module", function()
     ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     Screen = require("device").screen
+    ReaderDictionary = require("apps/reader/modules/readerdictionary")
   end)
 
   local readerui, rolling, dictionary
@@ -19,10 +20,12 @@ describe("Readerdictionary module", function()
     rolling = readerui.rolling
     dictionary = readerui.dictionary
   end)
+
   teardown(function()
     readerui:onExit()
     readerui:onClose()
   end)
+
   it("should show quick lookup window", function()
     UIManager:quit()
     UIManager:show(readerui)
@@ -31,12 +34,12 @@ describe("Readerdictionary module", function()
     UIManager:scheduleIn(1, function()
       UIManager:close(dictionary.dict_window)
       UIManager:close(readerui)
-      -- We haven't torn it down yet
       ReaderUI.instance = readerui
     end)
     UIManager:run()
     Screen:shot("screenshots/reader_dictionary.png")
   end)
+
   it("should attempt to deinflect (Japanese) word on lookup", function()
     UIManager:quit()
     UIManager:show(readerui)
@@ -45,15 +48,11 @@ describe("Readerdictionary module", function()
     local word = "喋っている"
     local s = spy.on(readerui.languagesupport, "extraDictionaryFormCandidates")
 
-    -- We can't use onLookupWord because we need to check whether
-    -- extraDictionaryFormCandidates was called synchronously.
     dictionary:stardictLookup(word)
 
     assert.spy(s).was_called()
     assert.spy(s).was_called_with(match.is_ref(readerui.languagesupport), word)
     if readerui.languagesupport.plugins["japanese_support"] then
-      --- @todo This should probably check against a set or sorted list
-      --       of the candidates we'd expect.
       assert.spy(s).was_returned_with(match.is_not_nil())
     end
     readerui.languagesupport.extraDictionaryFormCandidates:revert()
@@ -61,7 +60,6 @@ describe("Readerdictionary module", function()
     UIManager:scheduleIn(1, function()
       UIManager:close(dictionary.dict_window)
       UIManager:close(readerui)
-      -- We haven't torn it down yet
       ReaderUI.instance = readerui
     end)
     UIManager:run()
@@ -125,20 +123,27 @@ describe("Readerdictionary module", function()
     UIManager:close(readerui)
   end)
 
-  it("should register dispatcher actions", function()
+  it("should register dispatcher actions and handle settings persistence", function()
     if type(dictionary.onDispatcherRegisterActions) == "function" then
       dictionary:onDispatcherRegisterActions()
     end
+
+    if type(dictionary.onReadSettings) == "function" then
+      dictionary:onReadSettings(readerui.doc_settings)
+    end
+    if type(dictionary.onSaveSettings) == "function" then
+      dictionary:onSaveSettings()
+    end
   end)
 
-  it("should handle dictionary settings and lookup input callbacks", function()
-    if type(dictionary.onLookupInput) == "function" then
-      dictionary:onLookupInput("sample")
+  it("should handle word cleaning and main menu items", function()
+    if type(dictionary.cleanWord) == "function" then
+      local cleaned = dictionary:cleanWord("  testing!  ")
+      assert.is_string(cleaned)
     end
 
-    if type(dictionary.getDicts) == "function" then
-      local dicts = dictionary:getDicts()
-      assert.is_table(dicts)
-    end
+    local menu_items = {}
+    dictionary:addToMainMenu(menu_items)
+    assert.is_table(menu_items)
   end)
 end)

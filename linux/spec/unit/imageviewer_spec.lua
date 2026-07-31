@@ -9,41 +9,28 @@ describe("ImageViewer", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
+
     ImageViewer = require("ui/widget/imageviewer")
     UIManager = require("ui/uimanager")
     ImageWidget = require("ui/widget/imagewidget")
     Widget = require("ui/widget/widget")
     Geom = require("ui/geometry")
 
-    -- Mock ImageWidget to avoid loading real images / FFI stuff
     local DummyImageWidget = Widget:extend()
     function DummyImageWidget:init()
       self.dimen = Geom:new({ w = 100, h = 100 })
     end
-    function DummyImageWidget:getCurrentHeight()
-      return 100
-    end
-    function DummyImageWidget:getCurrentWidth()
-      return 100
-    end
-    function DummyImageWidget:getScaleFactor()
-      return 1
-    end
-    function DummyImageWidget:getOriginalHeight()
-      return 100
-    end
-    function DummyImageWidget:getOriginalWidth()
-      return 100
-    end
-    function DummyImageWidget:getScaleFactorExtrema()
-      return 0.5, 2.0
-    end
-    function DummyImageWidget:getPanByCenterRatio()
-      return 0, 0
-    end
-    function DummyImageWidget:getCurrentDiagonal()
-      return 141
-    end
+    function DummyImageWidget:getCurrentHeight() return 100 end
+    function DummyImageWidget:getCurrentWidth() return 100 end
+    function DummyImageWidget:getScaleFactor() return 1 end
+    function DummyImageWidget:getOriginalHeight() return 100 end
+    function DummyImageWidget:getOriginalWidth() return 100 end
+    function DummyImageWidget:getScaleFactorExtrema() return 0.5, 2.0 end
+    function DummyImageWidget:getPanByCenterRatio() return 0, 0 end
+    function DummyImageWidget:getCurrentDiagonal() return 141 end
+    function DummyImageWidget:free() end
 
     stub(ImageWidget, "new", function(self, _args)
       return DummyImageWidget:new()
@@ -68,23 +55,50 @@ describe("ImageViewer", function()
     UIManager.show:revert()
   end)
 
-  it("should register dispatcher actions", function()
-    local viewer = ImageViewer:new({})
-    if type(viewer.onDispatcherRegisterActions) == "function" then
-      viewer:onDispatcherRegisterActions()
+  it("should handle navigation across image list", function()
+    local viewer = ImageViewer:new({
+      image = { "img1", "img2", "img3" },
+      image_index = 1,
+    })
+
+    if type(viewer.onShowNextImage) == "function" then
+      viewer:onShowNextImage()
+    end
+    if type(viewer.onShowPrevImage) == "function" then
+      viewer:onShowPrevImage()
     end
   end)
 
-  it("should handle zoom and rotation actions", function()
-    local viewer = ImageViewer:new({})
-    if type(viewer.zoomIn) == "function" then
-      viewer:zoomIn()
+  it("should toggle fullscreen and buttons visibility", function()
+    local viewer = ImageViewer:new({
+      file = "dummy.png",
+      fullscreen = false,
+      buttons_visible = false,
+    })
+
+    if type(viewer.onToggleFullscreen) == "function" then
+      viewer:onToggleFullscreen()
+      assert.is_true(viewer.fullscreen)
     end
-    if type(viewer.zoomOut) == "function" then
-      viewer:zoomOut()
+
+    if type(viewer.onToggleButtons) == "function" then
+      viewer:onToggleButtons()
+      assert.is_true(viewer.buttons_visible)
     end
-    if type(viewer.rotateClockwise) == "function" then
-      viewer:rotateClockwise()
+  end)
+
+  it("should handle dispatcher actions and zoom operations", function()
+    local viewer = ImageViewer:new({ file = "dummy.png" })
+
+    if type(viewer.onDispatcherRegisterActions) == "function" then
+      viewer:onDispatcherRegisterActions()
+    end
+
+    if type(viewer.onZoomIn) == "function" then
+      viewer:onZoomIn()
+    end
+    if type(viewer.onZoomOut) == "function" then
+      viewer:onZoomOut()
     end
   end)
 end)

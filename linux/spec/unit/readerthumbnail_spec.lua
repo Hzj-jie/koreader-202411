@@ -31,6 +31,8 @@ describe("ReaderThumbnail module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
     ReaderThumbnail = require("apps/reader/modules/readerthumbnail")
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
@@ -56,10 +58,11 @@ describe("ReaderThumbnail module", function()
   end)
 
   describe("Capabilities & Actions", function()
-    it("should check page browser and book map availability", function()
+    it("should setup color, cache, and collect subprocess pids", function()
       local mock_ui = {
         document = {
-          info = {},
+          info = { number_of_pages = 100 },
+          render_color = false,
         },
         menu = {
           registerToMainMenu = function() end,
@@ -69,12 +72,30 @@ describe("ReaderThumbnail module", function()
         ui = mock_ui,
       })
 
-      if type(thumb.hasBookMap) == "function" then
-        assert.is_boolean(thumb:hasBookMap())
-      end
+      thumb:setupColor()
+      thumb:setupCache()
 
-      if type(thumb.onDispatcherRegisterActions) == "function" then
-        thumb:onDispatcherRegisterActions()
+      assert.is_table(thumb.tile_cache)
+      assert.is_boolean(thumb:collectPids())
+    end)
+
+    it("should manage thumbnail requests and cancellation", function()
+      local mock_ui = {
+        document = {
+          info = { number_of_pages = 10 },
+          getPageCount = function() return 10 end,
+        },
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local thumb = ReaderThumbnail:new({
+        ui = mock_ui,
+        thumbnails_requests = {},
+      })
+
+      if type(thumb.cancelThumbnails) == "function" then
+        thumb:cancelThumbnails()
       end
     end)
   end)

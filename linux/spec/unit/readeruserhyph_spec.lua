@@ -1,12 +1,16 @@
 describe("ReaderUserHyph module", function()
-  local ReaderUserHyph, DocumentRegistry, ReaderUI, Screen
+  local ReaderUserHyph, DocumentRegistry, ReaderUI, Screen, lfs
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
+
     ReaderUserHyph = require("apps/reader/modules/readeruserhyph")
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
     Screen = require("device").screen
+    lfs = require("libs/libkoreader-lfs")
   end)
 
   it("should initialize user hyph module", function()
@@ -37,16 +41,38 @@ describe("ReaderUserHyph module", function()
     assert.is_false(ReaderUserHyph:checkHyphenation("different", "hyphenation"))
   end)
 
-  it("should handle dispatcher registration and main menu items", function()
+  it("should build menu entry and check availability", function()
     local hyph = ReaderUserHyph:new({
       ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
+        typography = { hyphenation = true },
       },
     })
-    if type(hyph.onDispatcherRegisterActions) == "function" then
-      hyph:onDispatcherRegisterActions()
-    end
+    G_reader_settings:save("hyph_user_dict", true)
+    assert.is_true(hyph:isAvailable())
+
+    local entry = hyph:getMenuEntry()
+    assert.is_table(entry)
+    assert.is_function(entry.callback)
+    assert.is_function(entry.checked_func)
+  end)
+
+  it("should update and scrub dictionary files", function()
+    local tmp_file = os.tmpname()
+
+    local hyph = ReaderUserHyph:new({
+      ui = {
+        typography = { hyphenation = true },
+      },
+      getDictionaryPath = function() return tmp_file end,
+      loadUserDictionary = function() end,
+    })
+
+    hyph:updateDictionary("example", "ex-am-ple")
+    assert.is_true(lfs.attributes(tmp_file, "mode") == "file")
+
+    hyph:updateDictionary("apple", "ap-ple")
+    hyph:scrubDictionary()
+
+    os.remove(tmp_file)
   end)
 end)

@@ -74,7 +74,6 @@ if not test_file then
         ["spec/unit/datastorage_spec.lua"] = true,
         ["spec/unit/screenshoter_spec.lua"] = true,
         ["spec/unit/readerhighlight_spec.lua"] = true,
-        ["spec/unit/readerpaging_spec.lua"] = true,
         ["spec/unit/autosuspend_spec.lua"] = true,
         ["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true,
         ["plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua"] = true,

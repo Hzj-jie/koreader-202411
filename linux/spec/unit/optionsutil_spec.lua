@@ -3,6 +3,9 @@ describe("OptionsUtil module", function()
 
   setup(function()
     require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
+
     OptionsUtil = require("ui/data/optionsutil")
   end)
 
@@ -19,37 +22,37 @@ describe("OptionsUtil module", function()
     assert.is_false(OptionsUtil.enableIfEquals(configurable, "option1", "val2"))
   end)
 
-  it("should retrieve next and previous items safely", function()
-    local list = { "a", "b", "c" }
-    if type(OptionsUtil.getNextItem) == "function" then
-      assert.are.equal("b", OptionsUtil.getNextItem(list, "a"))
-    end
-    if type(OptionsUtil.getPrevItem) == "function" then
-      assert.are.equal("b", OptionsUtil.getPrevItem(list, "c"))
-    end
+  it("should format flex size string across different units", function()
+    local formatted_pt = OptionsUtil.formatFlexSize(12, "pt")
+    assert.is_string(formatted_pt)
+
+    local formatted_mm = OptionsUtil.formatFlexSize(10, "mm")
+    assert.is_string(formatted_mm)
+
+    local formatted_px = OptionsUtil.formatFlexSize(100, "px")
+    assert.is_string(formatted_px)
   end)
 
-  it("should evaluate enableIfNotEquals correctly", function()
-    local configurable = { option1 = "val1", option2 = "val2" }
-    if type(OptionsUtil.enableIfNotEquals) == "function" then
-      assert.is_false(
-        OptionsUtil.enableIfNotEquals(configurable, "option1", "val1")
-      )
-      assert.is_true(
-        OptionsUtil.enableIfNotEquals(configurable, "option1", "val2")
-      )
-    end
+  it("should show values and margin information dialogs", function()
+    local configurable = {
+      font_size = 12,
+      margin = { 10, 10 },
+    }
+    local option = {
+      name = "font_size",
+      name_text = "Font Size",
+    }
+    local margin_option = {
+      name = "margin",
+    }
+
+    OptionsUtil.showValues(configurable, option, "copt", nil, "pt")
+    OptionsUtil.showValuesHMargins(configurable, margin_option)
   end)
 
-  it("should evaluate enableIfIn correctly", function()
-    local configurable = { option1 = "val1" }
-    if type(OptionsUtil.enableIfIn) == "function" then
-      assert.is_true(
-        OptionsUtil.enableIfIn(configurable, "option1", { "val1", "val2" })
-      )
-      assert.is_false(
-        OptionsUtil.enableIfIn(configurable, "option1", { "other" })
-      )
-    end
+  it("should generate and retrieve option text by event and value", function()
+    OptionsUtil:generateOptionText()
+    local text = OptionsUtil:getOptionText("NonExistentEvent", 1)
+    assert.are.equal("", text)
   end)
 end)
