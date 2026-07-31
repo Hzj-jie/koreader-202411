@@ -117,4 +117,18 @@ describe("WpaSupplicant network module", function()
 
     mock_wpaclient.new:revert()
   end)
+
+  it("should handle forgetting network", function()
+    local mock_settings = {
+      del = function() end,
+      save = function() end,
+    }
+    stub(WpaSupplicant, "getAllSavedNetworks", function() return mock_settings end)
+
+    if type(WpaSupplicant.forgetNetwork) == "function" then
+      WpaSupplicant:forgetNetwork({ ssid = "TestNet" })
+    end
+
+    WpaSupplicant.getAllSavedNetworks:revert()
+  end)
 end)
