@@ -673,6 +673,22 @@ describe("CloudStorage", function()
       end
     end)
 
+    it("should handle folder creation and file upload", function()
+      local cs = CloudStorage:new()
+      cs.type = "webdav"
+      cs.address = "http://example.com"
+      cs.username = "user"
+      cs.password = "pass"
+
+      if type(cs.createFolder) == "function" then
+        cs:createFolder("/wd_url", "NewFolder")
+      end
+
+      if type(cs.uploadFile) == "function" then
+        cs:uploadFile("/wd_url", "/tmp/local.epub")
+      end
+    end)
+
     it("should handle dispatcher registration and menu creation", function()
       local cs = CloudStorage:new()
       if type(cs.onDispatcherRegisterActions) == "function" then
