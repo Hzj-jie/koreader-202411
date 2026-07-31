@@ -24,6 +24,29 @@ describe("FindKeyboard module", function()
     io.open = old_open
   end)
 
+  it("should analyze Linux kernel key capabilities correctly", function()
+    local old_open = io.open
+    io.open = function(path, mode)
+      if path:find("capabilities/key") then
+        return {
+          read = function()
+            -- Mock bitmap with >64 keys set in hex format
+            return "ffffffff ffffffff"
+          end,
+          close = function() end,
+        }
+      end
+      return old_open(path, mode)
+    end
+
+    local result = FindKeyboard:check("event_mock")
+    assert.is_table(result)
+    assert.are.equal("/dev/input/event_mock", result.event_path)
+    assert.is_boolean(result.has_dpad)
+
+    io.open = old_open
+  end)
+
   it("should find external keyboards from input events directory", function()
     local old_check = FindKeyboard.check
     FindKeyboard.check = function(self, name)
