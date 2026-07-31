@@ -35,7 +35,6 @@ describe("Readersearch module", function()
         if words then
           for _, word in ipairs(words) do
             local pageno = doc:getPageFromXPointer(word.start)
-            --dbg("found at pageno", pageno)
             assert.truthy(pageno <= i)
           end
         end
@@ -50,7 +49,6 @@ describe("Readersearch module", function()
         if words then
           for _, word in ipairs(words) do
             local pageno = doc:getPageFromXPointer(word.start)
-            --dbg("found at pageno", pageno)
             assert.truthy(pageno >= i)
           end
         end
@@ -71,15 +69,11 @@ describe("Readersearch module", function()
       end
     end)
     it("should find the last occurrence", function()
-      -- local logger = require("logger")
-      -- logger.warn("nb of pages", doc:getPageCount())
-      -- 20190202: currently 242 pages
       for i = 100, 180, 10 do
         rolling:onGotoPage(i)
         local words = search:searchFromEnd("Verona")
         assert.truthy(words)
         local pageno = doc:getPageFromXPointer(words[1].start)
-        -- logger.info("last match on page", pageno)
         assert.truthy(pageno > 185)
       end
       for i = 290, 335, 1 do
@@ -96,21 +90,20 @@ describe("Readersearch module", function()
       while words do
         local new_page = nil
         for _, word in ipairs(words) do
-          --dbg("found word", word.start)
           local word_page = doc:getPageFromXPointer(word.start)
-          if word_page ~= cur_page then -- ignore words on current page
-            if not new_page then -- first word on a new page
+          if word_page ~= cur_page then
+            if not new_page then
               new_page = word_page
               count = count + 1
-              doc:gotoXPointer(word.start) -- go to this new page
-            else -- new page seen
-              if word_page == new_page then -- only count words on this new page
+              doc:gotoXPointer(word.start)
+            else
+              if word_page == new_page then
                 count = count + 1
               end
             end
           end
         end
-        if not new_page then -- no word seen on any new page
+        if not new_page then
           break
         end
         cur_page = doc:getCurrentPage()
@@ -194,7 +187,6 @@ describe("Readersearch module", function()
         paging:onGotoPage(i)
         local words = search:searchFromCurrent("test", 1)
         if words then
-          dbg("search backward: found at page", words.page)
           assert.truthy(words.page <= i)
         end
       end
@@ -206,7 +198,6 @@ describe("Readersearch module", function()
         paging:onGotoPage(i)
         local words = search:searchFromCurrent("test", 0)
         if words then
-          dbg("search forward: found at page", words.page)
           assert.truthy(words.page >= i)
         end
       end
@@ -243,7 +234,6 @@ describe("Readersearch module", function()
       local words = search:searchFromCurrent("test", 0)
       while words do
         count = count + #words
-        --dbg("found words", #words, words.page)
         paging:onGotoPage(words.page)
         words = search:searchNext("test", 0)
       end
@@ -314,8 +304,8 @@ describe("Readersearch module", function()
       rs:addToMainMenu(menu_items)
       assert.is_table(menu_items.fulltext_search_settings)
 
-      if type(rs.onShowSearchDialog) == "function" then
-        assert.is_function(rs.onShowSearchDialog)
+      if type(rs.onFulltextSearchSettings) == "function" then
+        rs:onFulltextSearchSettings()
       end
 
       if type(rs.onDispatcherRegisterActions) == "function" then
