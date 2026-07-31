@@ -5,7 +5,6 @@ describe("Readerpaging module", function()
 
   setup(function()
     require("commonrequire")
-    package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
     UIManager = require("ui/uimanager")
