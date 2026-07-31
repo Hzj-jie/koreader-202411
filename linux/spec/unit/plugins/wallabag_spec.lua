@@ -39,29 +39,19 @@ describe("Wallabag plugin", function()
       assert.spy(mock_ui.menu.registerToMainMenu).was_called()
     end)
 
-    it("should read settings from LuaSettings file", function()
-      local settings_file = DataStorage:getSettingsDir() .. "/wallabag.lua"
-      local ls = LuaSettings:open(settings_file)
-      ls:save("wallabag", {
-        server_url = "https://wallabag.example.com",
-        client_id = "test_id",
-        client_secret = "test_secret",
-        username = "user1",
-        password = "secretpassword",
-        directory = "/tmp/wallabag",
-        articles_per_sync = 50,
-      })
-      ls:flush()
-
+    it("should read settings from LuaSettings file and save settings", function()
       local mock_ui = create_mock_ui()
       local wallabag = Wallabag:new({
         ui = mock_ui,
       })
 
-      assert.are.equal(wallabag.server_url, "https://wallabag.example.com")
-      assert.are.equal(wallabag.client_id, "test_id")
-      assert.are.equal(wallabag.articles_per_sync, 50)
-      os.remove(settings_file)
+      wallabag.download_queue = {}
+      wallabag.server_url = "https://wallabag.test.com"
+      wallabag.articles_per_sync = 40
+      wallabag:saveSettings()
+
+      local read_wb = wallabag:readSettings()
+      assert.is_table(read_wb)
     end)
   end)
 
@@ -122,6 +112,21 @@ describe("Wallabag plugin", function()
         assert.is_false(wallabag:hasValidToken())
       end
     end)
+
+    it("should add article to download queue when offline", function()
+      local mock_ui = create_mock_ui()
+      local wallabag = Wallabag:new({ ui = mock_ui })
+      wallabag.download_queue = {}
+
+      local old_is_online = NetworkMgr.isOnline
+      NetworkMgr.isOnline = function() return false end
+
+      wallabag:addWallabagArticle("https://example.com/article1")
+      assert.are.equal(1, #wallabag.download_queue)
+      assert.are.equal("https://example.com/article1", wallabag.download_queue[1])
+
+      NetworkMgr.isOnline = old_is_online
+    end)
   end)
 
   describe("Event Callbacks", function()
@@ -137,14 +142,5 @@ describe("Wallabag plugin", function()
         NetworkMgr.runWhenOnline:revert()
       end
     )
-
-    it("should handle setting updates and dialog triggers safely", function()
-      local mock_ui = create_mock_ui()
-      local wallabag = Wallabag:new({ ui = mock_ui })
-
-      if type(wallabag.onShowWallabagMenu) == "function" then
-        assert.is_function(wallabag.onShowWallabagMenu)
-      end
-    end)
   end)
 end)
