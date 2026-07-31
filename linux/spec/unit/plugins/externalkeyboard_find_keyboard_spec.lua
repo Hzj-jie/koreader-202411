@@ -47,6 +47,27 @@ describe("FindKeyboard module", function()
     io.open = old_open
   end)
 
+  it("should return nil for non-keyboard input device (keys < 64)", function()
+    local old_open = io.open
+    io.open = function(path, mode)
+      if path:find("capabilities/key") then
+        return {
+          read = function()
+            -- Mock bitmap with <64 keys set
+            return "00000001"
+          end,
+          close = function() end,
+        }
+      end
+      return old_open(path, mode)
+    end
+
+    local result = FindKeyboard:check("event_mouse")
+    assert.is_nil(result)
+
+    io.open = old_open
+  end)
+
   it("should find external keyboards from input events directory", function()
     local old_check = FindKeyboard.check
     FindKeyboard.check = function(self, name)
