@@ -60,6 +60,7 @@ describe("Reading Progress Sync Integration", function()
     sync_instance.manager.page_turn_counter = 0
     sync_instance.manager.last_page = 0
     sync_instance.manager.is_syncing = false
+    sync_instance.manager.has_pending_sync = false
 
     -- Mock Network connected by default
     NetworkMgr.isWifiOn = function()
@@ -826,6 +827,8 @@ describe("Reading Progress Sync Integration", function()
       assert.is_false(sync_instance.manager.has_pending_sync)
 
       remote.push_progress_bg = old_push
+      sync_instance.manager.is_syncing = false
+      sync_instance.manager.has_pending_sync = false
     end
   )
 
