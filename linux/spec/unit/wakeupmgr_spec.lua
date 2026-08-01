@@ -14,6 +14,12 @@ describe("WakeupMgr", function()
       return true
     end)
 
+    -- Freeze secondsFromNowToEpoch to prevent clock tick boundary flakiness
+    local fixed_now = 1700000000
+    stub(RTC, "secondsFromNowToEpoch", function(self, seconds)
+      return fixed_now + seconds
+    end)
+
     epoch1 = RTC:secondsFromNowToEpoch(1234)
     epoch2 = RTC:secondsFromNowToEpoch(123)
     epoch3 = RTC:secondsFromNowToEpoch(9999)
