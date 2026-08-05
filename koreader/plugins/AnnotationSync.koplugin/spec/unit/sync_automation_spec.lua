@@ -93,15 +93,15 @@ describe("AnnotationSync Automation & Settings", function()
           callback(local_path, local_path, local_path)
         end
 
-        local old_nextTick = UIManager.nextTick
-        UIManager.nextTick = function(self_ui, callback)
+        local old_scheduleIn = UIManager.scheduleIn
+        UIManager.scheduleIn = function(self_ui, seconds, callback)
           callback()
         end
 
         sync_instance:onTimesChange_1M()
 
         assert.is_true(sync_triggered)
-        UIManager.nextTick = old_nextTick
+        UIManager.scheduleIn = old_scheduleIn
       end
     )
 
@@ -140,5 +140,54 @@ describe("AnnotationSync Automation & Settings", function()
 
       sync_instance.manager.getDocumentByFile = old_getDoc
     end)
+
+    it(
+      "skips onTimesChange_1M when background sync is already running",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager.is_syncing_pending_bg = true
+
+        local bg_called = false
+        local old_bgFunc = sync_instance.manager._syncPendingDocumentsBg
+        sync_instance.manager._syncPendingDocumentsBg = function()
+          bg_called = true
+        end
+
+        sync_instance:onTimesChange_1M()
+
+        assert.is_false(bg_called)
+        sync_instance.manager._syncPendingDocumentsBg = old_bgFunc
+        sync_instance.manager.is_syncing_pending_bg = false
+      end
+    )
+
+    it("aborts active background sync when Sync All is triggered", function()
+      sync_instance.manager.is_syncing_pending_bg = true
+      sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+      sync_instance.manager:syncAllChangedDocuments()
+      fastforward_ui_events()
+
+      assert.is_false(sync_instance.manager.is_syncing_pending_bg)
+    end)
+
+    it(
+      "uses 1 second pacing intervals in background sync scheduleIn",
+      function()
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local scheduled_seconds = nil
+        local old_scheduleIn = UIManager.scheduleIn
+        UIManager.scheduleIn = function(self_ui, seconds, callback)
+          scheduled_seconds = seconds
+          callback()
+        end
+
+        sync_instance.manager:_syncPendingDocumentsBg()
+
+        assert.is_equal(1, scheduled_seconds)
+        UIManager.scheduleIn = old_scheduleIn
+      end
+    )
   end)
 end)

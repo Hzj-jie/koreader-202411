@@ -47,6 +47,9 @@ end
 
 -- Sync all changed documents listed in changed_documents.lua
 function SyncManager:syncAllChangedDocuments()
+  -- Stop any background sync currently running
+  self.is_syncing_pending_bg = false
+
   local total, changed_docs = self:getPendingChangedDocuments()
   if total == 0 then
     utils.show_msg("No changed documents to sync.")
@@ -109,29 +112,25 @@ function SyncManager:syncAllChangedDocuments()
         local _, name = util.splitFilePathName(file)
         table.insert(filenames, name ~= "" and name or file)
       end
-      local ConfirmBox = require("ui/widget/confirmbox")
       local list_str = "- " .. table.concat(filenames, "\n- ")
-      UIManager:nextTick(function()
-        UIManager:show(ConfirmBox:new({
-          text = T(
-            gettext(
-              "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
-            ),
-            list_str
+      local open_manager = Trapper:confirm(
+        T(
+          gettext(
+            "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
           ),
-          type = "yesno",
-          ok_text = gettext("Open Manager"),
-          ok_callback = function()
-            menus.show_pending_documents(self.plugin)
-          end,
-          cancel_text = gettext("Close"),
-        }))
-      end)
+          list_str
+        ),
+        gettext("Close"),
+        gettext("Open Manager")
+      )
+      if open_manager then
+        menus.show_pending_documents(self.plugin)
+      end
     end
   end)
 end
 
--- Incremental background sync of pending documents (up to 60 per minute) using nextTick
+-- Incremental background sync of pending documents with 1s CPU pacing delay
 function SyncManager:_syncPendingDocumentsBg()
   if self.is_syncing_pending_bg then
     logger.dbg("AnnotationSync: background pending sync already in progress")
@@ -145,9 +144,6 @@ function SyncManager:_syncPendingDocumentsBg()
 
   local files_to_sync = {}
   for file, _ in pairs(changed_docs) do
-    if #files_to_sync >= 60 then
-      break
-    end
     table.insert(files_to_sync, file)
   end
 
@@ -155,7 +151,11 @@ function SyncManager:_syncPendingDocumentsBg()
   local count = 0
 
   local function sync_next(idx)
-    if idx > #files_to_sync or not isConnected() then
+    if
+      idx > #files_to_sync
+      or not isConnected()
+      or not self.is_syncing_pending_bg
+    then
       self.is_syncing_pending_bg = false
       if count > 0 then
         self:updateLastSync("Auto Sync (" .. count .. ")")
@@ -169,7 +169,11 @@ function SyncManager:_syncPendingDocumentsBg()
     end
 
     local file = files_to_sync[idx]
-    UIManager:nextTick(function()
+    -- Pace background sync items by 1s intervals so the event loop yields CPU cycles to UI touch events and rendering
+    UIManager:scheduleIn(1, function()
+      if not self.is_syncing_pending_bg then
+        return
+      end
       if self:_syncFile(file) == true then
         count = count + 1
       end

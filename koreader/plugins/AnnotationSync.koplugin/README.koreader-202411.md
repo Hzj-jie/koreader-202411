@@ -30,9 +30,10 @@ The following changes were made to resolve test failures and runtime compatibili
 7. **Removed unsupported Reading Progress Sync features**:
    - Removed Reading Progress Sync menu options (`Enable Reading Progress Sync`, `Sync using last word of page`, `Sync every %1 pages`, `Push reading progress`, `Jump to device progress`) and the explanation popup (`Why are some options greyed out?`) because they rely on an unsupported upstream cloud storage API (`ui.cloudstorage`) in KOReader v2024.11.
    - Removed all unused backend reading progress sync methods, document hooks, Dispatcher actions, default settings, and obsolete progress sync unit tests (`progress_sync_integration_spec.lua`, `sync_service_silent_repro_spec.lua`).
-8. **Replaced network-connected trigger with 1-minute timer incremental background sync (`onTimesChange_1M`)**:
+8. **Replaced network-connected trigger with 1-minute timer background sync (`onTimesChange_1M`)**:
    - Replaced `_onNetworkConnected` (which only fired on offline-to-online transitions) with periodic 1-minute checks (`onTimesChange_1M`).
-   - Implemented private method `SyncManager:_syncPendingDocumentsBg()` to incrementally sync pending documents (up to 60 per minute) in their own `UIManager:nextTick` calls, preventing UI lag when syncing large numbers of annotated books in the background.
+   - Implemented private method `SyncManager:_syncPendingDocumentsBg()` to sync pending documents sequentially with 1-second CPU pacing delays (`UIManager:scheduleIn(1, ...)`), processing up to 60 files per minute while yielding CPU cycles to user touch events and screen repaints.
+   - `onTimesChange_1M()` ignores background triggers when a background sync is already running, and `syncAllChangedDocuments()` immediately aborts any background sync in progress to prioritize manual user actions.
 9. **Refactored internal helper methods to private and removed dead code**:
    - Prefixed internal `SyncManager` helper methods with an underscore (`_syncPendingDocumentsBg`, `_writeAnnotationsJSON`, `_writeChangedDocumentsFile`, `_writeLocalSettingValue`, `_removeFromChangedDocumentsFile`).
    - Removed dead code `SyncManager:checkPendingSync()`, which was only used by the removed reading progress sync feature.
@@ -40,7 +41,7 @@ The following changes were made to resolve test failures and runtime compatibili
     - Updated `annotations.sync_callback` so that when a remote file is missing (`is_remote_missing` is true) and the local annotation list is empty (`next(local_map) == nil`), it avoids pushing empty JSON files to the server.
 11. **Non-blocking "Sync All" execution using `Trapper`**:
     - Wrapped batch document syncing (`syncAllChangedDocuments`) in KOReader's background scheduler `require("ui/trapper"):wrap` coroutine.
-    - Added live progress updates (`Syncing document X of Y...`), interactive pause dialogs, and cancellation handling to prevent UI freezes during large batch syncs.
+    - Utilized native `Trapper:confirm` dialogs, live progress updates (`Syncing document X of Y...`), interactive pause dialogs, and cancellation handling to prevent UI freezes during large batch syncs.
 12. **Simplified Chinese (`zh_CN`) and Traditional Chinese (`zh_TW`) i18n support**:
     - Added translation files (`l10n/zh_CN/annotation_sync.po` and `l10n/zh_TW/annotation_sync.po`) and generated platform symlinks across `linux`, `kobo`, and `pw2` build targets.
     - Updated `i18n_spec.lua` to test dynamic translation loading for both Chinese locales.

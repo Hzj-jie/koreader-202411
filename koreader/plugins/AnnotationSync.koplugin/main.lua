@@ -416,6 +416,7 @@ function AnnotationSyncPlugin:onTimesChange_1M()
     self.settings.network_auto_sync
     and isConnected()
     and self.manager
+    and not self.manager.is_syncing_pending_bg
     and self.manager:hasPendingChangedDocuments()
   then
     logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
