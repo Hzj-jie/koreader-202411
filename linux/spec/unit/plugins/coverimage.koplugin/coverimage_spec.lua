@@ -160,33 +160,36 @@ describe("CoverImage plugin tests", function()
     G_reader_settings:delete("cover_image_fallback")
   end)
 
-  it("should return disabled table when running on unsupported device", function()
-    stub(Device, "isAndroid")
-    stub(Device, "isEmulator")
-    stub(Device, "isRemarkable")
-    stub(Device, "isPocketBook")
-    stub(Device, "isKindle")
-    stub(Device, "isKobo")
+  it(
+    "should return disabled table when running on unsupported device",
+    function()
+      stub(Device, "isAndroid")
+      stub(Device, "isEmulator")
+      stub(Device, "isRemarkable")
+      stub(Device, "isPocketBook")
+      stub(Device, "isKindle")
+      stub(Device, "isKobo")
 
-    Device.isAndroid.returns(false)
-    Device.isEmulator.returns(false)
-    Device.isRemarkable.returns(false)
-    Device.isPocketBook.returns(false)
-    Device.isKindle.returns(false)
-    Device.isKobo.returns(false)
+      Device.isAndroid.returns(false)
+      Device.isEmulator.returns(false)
+      Device.isRemarkable.returns(false)
+      Device.isPocketBook.returns(false)
+      Device.isKindle.returns(false)
+      Device.isKobo.returns(false)
 
-    package.loaded["plugins/coverimage.koplugin/main"] = nil
-    local plugin = require("plugins/coverimage.koplugin/main")
-    assert.is_table(plugin)
-    assert.is_true(plugin.disabled)
+      package.loaded["plugins/coverimage.koplugin/main"] = nil
+      local plugin = require("plugins/coverimage.koplugin/main")
+      assert.is_table(plugin)
+      assert.is_true(plugin.disabled)
 
-    Device.isAndroid:revert()
-    Device.isEmulator:revert()
-    Device.isRemarkable:revert()
-    Device.isPocketBook:revert()
-    Device.isKindle:revert()
-    Device.isKobo:revert()
-  end)
+      Device.isAndroid:revert()
+      Device.isEmulator:revert()
+      Device.isRemarkable:revert()
+      Device.isPocketBook:revert()
+      Device.isKindle:revert()
+      Device.isKobo:revert()
+    end
+  )
 
   it("should initialize with default and saved settings", function()
     local mock_ui = createMockUI()
@@ -203,18 +206,25 @@ describe("CoverImage plugin tests", function()
     assert.are.equal(5, instance.cover_image_cache_maxsize)
     assert.is_true(instance.cover)
     assert.is_true(instance.fallback)
-    assert.spy(mock_ui.menu.registerToMainMenu).was_called_with(mock_ui.menu, instance)
+    assert
+      .spy(mock_ui.menu.registerToMainMenu)
+      .was_called_with(mock_ui.menu, instance)
   end)
 
-  it("should trigger createCoverImage during init if partial_md5_checksum present", function()
-    local mock_ui = createMockUI({ md5 = "123456" })
-    stub(CoverImage, "createCoverImage")
+  it(
+    "should trigger createCoverImage during init if partial_md5_checksum present",
+    function()
+      local mock_ui = createMockUI({ md5 = "123456" })
+      stub(CoverImage, "createCoverImage")
 
-    local instance = CoverImage:new({ ui = mock_ui })
-    assert.stub(CoverImage.createCoverImage).was_called_with(instance, mock_ui.doc_settings)
+      local instance = CoverImage:new({ ui = mock_ui })
+      assert
+        .stub(CoverImage.createCoverImage)
+        .was_called_with(instance, mock_ui.doc_settings)
 
-    CoverImage.createCoverImage:revert()
-  end)
+      CoverImage.createCoverImage:revert()
+    end
+  )
 
   it("should check coverEnabled and fallbackEnabled correctly", function()
     local instance = CoverImage:new({ ui = createMockUI() })
@@ -264,25 +274,32 @@ describe("CoverImage plugin tests", function()
     assert.is_nil(lfs.attributes(test_cover_file, "mode"))
   end)
 
-  it("should handle event callbacks onCloseDocument, onReaderReady, onSetRotationMode", function()
-    local mock_ui = createMockUI()
-    local instance = CoverImage:new({ ui = mock_ui })
+  it(
+    "should handle event callbacks onCloseDocument, onReaderReady, onSetRotationMode",
+    function()
+      local mock_ui = createMockUI()
+      local instance = CoverImage:new({ ui = mock_ui })
 
-    stub(instance, "cleanUpImage")
-    stub(instance, "createCoverImage")
+      stub(instance, "cleanUpImage")
+      stub(instance, "createCoverImage")
 
-    instance:onCloseDocument()
-    assert.stub(instance.cleanUpImage).was_called()
+      instance:onCloseDocument()
+      assert.stub(instance.cleanUpImage).was_called()
 
-    instance:onReaderReady(mock_ui.doc_settings)
-    assert.stub(instance.createCoverImage).was_called_with(instance, mock_ui.doc_settings)
+      instance:onReaderReady(mock_ui.doc_settings)
+      assert
+        .stub(instance.createCoverImage)
+        .was_called_with(instance, mock_ui.doc_settings)
 
-    instance:onSetRotationMode(0)
-    assert.stub(instance.createCoverImage).was_called_with(instance, mock_ui.doc_settings)
+      instance:onSetRotationMode(0)
+      assert
+        .stub(instance.createCoverImage)
+        .was_called_with(instance, mock_ui.doc_settings)
 
-    instance.cleanUpImage:revert()
-    instance.createCoverImage:revert()
-  end)
+      instance.cleanUpImage:revert()
+      instance.createCoverImage:revert()
+    end
+  )
 
   it("should process createCoverImage with cache hit", function()
     local mock_ui = createMockUI()
@@ -305,22 +322,25 @@ describe("CoverImage plugin tests", function()
     FileManagerBookInfo.getCoverImage:revert()
   end)
 
-  it("should process createCoverImage in background=none or scale_factor=1 mode", function()
-    local mock_ui = createMockUI()
-    local instance = CoverImage:new({ ui = mock_ui })
-    instance.cover_image_background = "none"
+  it(
+    "should process createCoverImage in background=none or scale_factor=1 mode",
+    function()
+      local mock_ui = createMockUI()
+      local instance = CoverImage:new({ ui = mock_ui })
+      instance.cover_image_background = "none"
 
-    local mock_cover = createMockCoverImage(600, 800) -- matches screen size (600x800)
-    stub(FileManagerBookInfo, "getCoverImage")
-    FileManagerBookInfo.getCoverImage.returns(mock_cover, nil)
+      local mock_cover = createMockCoverImage(600, 800) -- matches screen size (600x800)
+      stub(FileManagerBookInfo, "getCoverImage")
+      FileManagerBookInfo.getCoverImage.returns(mock_cover, nil)
 
-    instance:createCoverImage(mock_ui.doc_settings)
+      instance:createCoverImage(mock_ui.doc_settings)
 
-    assert.is_true(mock_cover.written)
-    assert.is_true(mock_cover.freed)
+      assert.is_true(mock_cover.written)
+      assert.is_true(mock_cover.freed)
 
-    FileManagerBookInfo.getCoverImage:revert()
-  end)
+      FileManagerBookInfo.getCoverImage:revert()
+    end
+  )
 
   it("should handle error when cover_image:writeToFile fails", function()
     local mock_ui = createMockUI()
@@ -368,44 +388,51 @@ describe("CoverImage plugin tests", function()
     RenderImage.scaleBlitBuffer:revert()
   end)
 
-  it("should process createCoverImage scale & fit mode with background colors", function()
-    local mock_ui = createMockUI()
-    local instance = CoverImage:new({ ui = mock_ui })
+  it(
+    "should process createCoverImage scale & fit mode with background colors",
+    function()
+      local mock_ui = createMockUI()
+      local instance = CoverImage:new({ ui = mock_ui })
 
-    local backgrounds = { "black", "white", "gray" }
-    for _, bg in ipairs(backgrounds) do
-      instance.cover_image_background = bg
-      instance.cover_image_stretch_limit = 1 -- low stretch limit forces scale & blit
+      local backgrounds = { "black", "white", "gray" }
+      for _, bg in ipairs(backgrounds) do
+        instance.cover_image_background = bg
+        instance.cover_image_stretch_limit = 1 -- low stretch limit forces scale & blit
 
-      local mock_cover = createMockCoverImage(300, 600)
-      local mock_scaled = createMockCoverImage(300, 400)
-      local mock_buffer = createMockCoverImage(600, 800)
-      stub(mock_buffer, "fill")
-      stub(mock_buffer, "blitFrom")
+        local mock_cover = createMockCoverImage(300, 600)
+        local mock_scaled = createMockCoverImage(300, 400)
+        local mock_buffer = createMockCoverImage(600, 800)
+        stub(mock_buffer, "fill")
+        stub(mock_buffer, "blitFrom")
 
-      stub(FileManagerBookInfo, "getCoverImage")
-      FileManagerBookInfo.getCoverImage.returns(mock_cover, nil)
-      stub(RenderImage, "scaleBlitBuffer")
-      RenderImage.scaleBlitBuffer.returns(mock_scaled)
-      stub(Blitbuffer, "new")
-      Blitbuffer.new.returns(mock_buffer)
+        stub(FileManagerBookInfo, "getCoverImage")
+        FileManagerBookInfo.getCoverImage.returns(mock_cover, nil)
+        stub(RenderImage, "scaleBlitBuffer")
+        RenderImage.scaleBlitBuffer.returns(mock_scaled)
+        stub(Blitbuffer, "new")
+        Blitbuffer.new.returns(mock_buffer)
 
-      instance:createCoverImage(mock_ui.doc_settings)
+        instance:createCoverImage(mock_ui.doc_settings)
 
-      assert.stub(Blitbuffer.new).was_called_with(600, 800, 1)
-      if bg == "white" then
-        assert.stub(mock_buffer.fill).was_called_with(match.ref(mock_buffer), Blitbuffer.COLOR_WHITE)
-      elseif bg == "gray" then
-        assert.stub(mock_buffer.fill).was_called_with(match.ref(mock_buffer), Blitbuffer.COLOR_GRAY)
+        assert.stub(Blitbuffer.new).was_called_with(600, 800, 1)
+        if bg == "white" then
+          assert
+            .stub(mock_buffer.fill)
+            .was_called_with(match.ref(mock_buffer), Blitbuffer.COLOR_WHITE)
+        elseif bg == "gray" then
+          assert
+            .stub(mock_buffer.fill)
+            .was_called_with(match.ref(mock_buffer), Blitbuffer.COLOR_GRAY)
+        end
+        assert.stub(mock_buffer.blitFrom).was_called()
+        assert.is_true(mock_buffer.written)
+
+        FileManagerBookInfo.getCoverImage:revert()
+        RenderImage.scaleBlitBuffer:revert()
+        Blitbuffer.new:revert()
       end
-      assert.stub(mock_buffer.blitFrom).was_called()
-      assert.is_true(mock_buffer.written)
-
-      FileManagerBookInfo.getCoverImage:revert()
-      RenderImage.scaleBlitBuffer:revert()
-      Blitbuffer.new:revert()
     end
-  end)
+  )
 
   it("should handle rotated screen cover creation", function()
     local mock_ui = createMockUI()
@@ -424,63 +451,72 @@ describe("CoverImage plugin tests", function()
 
     instance:createCoverImage(mock_ui.doc_settings)
 
-    assert.stub(mock_cover.rotatedCopy).was_called_with(match.ref(mock_cover), 180)
+    assert
+      .stub(mock_cover.rotatedCopy)
+      .was_called_with(match.ref(mock_cover), 180)
     assert.is_true(mock_cover.freed)
 
     Screen.getRotationMode:revert()
     FileManagerBookInfo.getCoverImage:revert()
   end)
 
-  it("should perform cache operations emptyCache, getCacheFiles, cleanCache, migrateCache, migrateCover", function()
-    local instance = CoverImage:new({ ui = createMockUI() })
+  it(
+    "should perform cache operations emptyCache, getCacheFiles, cleanCache, migrateCache, migrateCover",
+    function()
+      local instance = CoverImage:new({ ui = createMockUI() })
 
-    -- Create test cache files
-    local f1 = io.open(test_cache_dir .. "cover_test1.png", "w")
-    f1:write("cache1")
-    f1:close()
-    local f2 = io.open(test_cache_dir .. "cover_test2.png", "w")
-    f2:write("cache2")
-    f2:close()
+      -- Create test cache files
+      local f1 = io.open(test_cache_dir .. "cover_test1.png", "w")
+      f1:write("cache1")
+      f1:close()
+      local f2 = io.open(test_cache_dir .. "cover_test2.png", "w")
+      f2:write("cache2")
+      f2:close()
 
-    local count, size, files = instance:getCacheFiles(test_cache_dir, "cover_")
-    assert.are.equal(2, count)
-    assert.is_number(size)
-    assert.are.equal(2, #files)
+      local count, size, files =
+        instance:getCacheFiles(test_cache_dir, "cover_")
+      assert.are.equal(2, count)
+      assert.is_number(size)
+      assert.are.equal(2, #files)
 
-    -- Test cleanCache with maxfiles limit
-    instance.cover_image_cache_maxfiles = 1
-    instance.cover_image_cache_maxsize = 0
-    instance:cleanCache()
-    local new_count = instance:getCacheFiles(test_cache_dir, "cover_")
-    assert.are.equal(1, new_count)
+      -- Test cleanCache with maxfiles limit
+      instance.cover_image_cache_maxfiles = 1
+      instance.cover_image_cache_maxsize = 0
+      instance:cleanCache()
+      local new_count = instance:getCacheFiles(test_cache_dir, "cover_")
+      assert.are.equal(1, new_count)
 
-    -- Test emptyCache
-    instance:emptyCache()
-    local empty_count = instance:getCacheFiles(test_cache_dir, "cover_")
-    assert.are.equal(0, empty_count)
+      -- Test emptyCache
+      instance:emptyCache()
+      local empty_count = instance:getCacheFiles(test_cache_dir, "cover_")
+      assert.are.equal(0, empty_count)
 
-    -- Test migrateCache
-    local old_cache = test_dir .. "/old_cache/"
-    lfs.mkdir(old_cache)
-    local fo = io.open(old_cache .. "cover_old.png", "w")
-    fo:write("oldcache")
-    fo:close()
+      -- Test migrateCache
+      local old_cache = test_dir .. "/old_cache/"
+      lfs.mkdir(old_cache)
+      local fo = io.open(old_cache .. "cover_old.png", "w")
+      fo:write("oldcache")
+      fo:close()
 
-    instance:migrateCache(old_cache, test_cache_dir)
-    assert.are.equal("file", lfs.attributes(test_cache_dir .. "cover_old.png", "mode"))
-    lfs.rmdir(old_cache)
+      instance:migrateCache(old_cache, test_cache_dir)
+      assert.are.equal(
+        "file",
+        lfs.attributes(test_cache_dir .. "cover_old.png", "mode")
+      )
+      lfs.rmdir(old_cache)
 
-    -- Test migrateCover
-    local old_cover = test_dir .. "/old_cover.png"
-    local new_cover = test_dir .. "/new_cover.png"
-    local fc = io.open(old_cover, "w")
-    fc:write("oldcover")
-    fc:close()
+      -- Test migrateCover
+      local old_cover = test_dir .. "/old_cover.png"
+      local new_cover = test_dir .. "/new_cover.png"
+      local fc = io.open(old_cover, "w")
+      fc:write("oldcover")
+      fc:close()
 
-    instance:migrateCover(old_cover, new_cover)
-    assert.are.equal("file", lfs.attributes(new_cover, "mode"))
-    os.remove(new_cover)
-  end)
+      instance:migrateCover(old_cover, new_cover)
+      assert.are.equal("file", lfs.attributes(new_cover, "mode"))
+      os.remove(new_cover)
+    end
+  )
 
   it("should build main menu items and handle callbacks", function()
     local mock_ui = createMockUI()
@@ -596,10 +632,17 @@ describe("CoverImage plugin tests", function()
     local dummy_menu = { updateItems = spy.new(function() end) }
 
     -- choosePathFile folder_only
-    instance:choosePathFile(dummy_menu, "cover_image_cache_path", true, false, nil)
+    instance:choosePathFile(
+      dummy_menu,
+      "cover_image_cache_path",
+      true,
+      false,
+      nil
+    )
     assert.stub(UIManager.show).was_called()
 
-    local path_chooser_widget = UIManager.show.calls[#UIManager.show.calls].refs[2]
+    local path_chooser_widget =
+      UIManager.show.calls[#UIManager.show.calls].refs[2]
     assert.is_table(path_chooser_widget)
 
     -- Simulate directory confirm in PathChooser callback
@@ -609,7 +652,8 @@ describe("CoverImage plugin tests", function()
 
     -- choosePathFile existing file
     instance:choosePathFile(dummy_menu, "cover_image_path", false, false, nil)
-    local file_chooser_widget = UIManager.show.calls[#UIManager.show.calls].refs[2]
+    local file_chooser_widget =
+      UIManager.show.calls[#UIManager.show.calls].refs[2]
     file_chooser_widget.onConfirm(test_cover_file)
     assert.are.equal(test_cover_file, instance.cover_image_path)
 
@@ -642,13 +686,15 @@ describe("CoverImage plugin tests", function()
     local dummy_menu = { updateItems = spy.new(function() end) }
 
     instance:choosePathFile(dummy_menu, "cover_image_path", false, true, nil)
-    local path_chooser_widget = UIManager.show.calls[#UIManager.show.calls].refs[2]
+    local path_chooser_widget =
+      UIManager.show.calls[#UIManager.show.calls].refs[2]
 
     -- Confirm directory path triggers InputDialog creation
     path_chooser_widget.onConfirm(test_dir)
     assert.stub(UIManager.show).was_called()
 
-    local input_dialog_widget = UIManager.show.calls[#UIManager.show.calls].refs[2]
+    local input_dialog_widget =
+      UIManager.show.calls[#UIManager.show.calls].refs[2]
     assert.is_table(input_dialog_widget)
 
     local save_btn = input_dialog_widget.buttons[1][2]

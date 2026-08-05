@@ -22,7 +22,8 @@ describe("Newsdownloader XML parser module", function()
       local handler = Handler.simpleTreeHandler()
       local parser = XmlParser.xmlParser(handler)
 
-      local xml_str = "<?xml version=\"1.0\"?><root><title attr=\"value\">Headline &amp; More</title><![CDATA[cdata block]]></root>"
+      local xml_str =
+        '<?xml version="1.0"?><root><title attr="value">Headline &amp; More</title><![CDATA[cdata block]]></root>'
       parser:parse(xml_str)
 
       assert.is_table(handler.root)
@@ -37,15 +38,19 @@ describe("Newsdownloader XML parser module", function()
       assert.are.equal("<", parser:_parseEntities("&lt;"))
       assert.are.equal(">", parser:_parseEntities("&gt;"))
       assert.are.equal("&", parser:_parseEntities("&amp;"))
-      assert.are.equal("\"", parser:_parseEntities("&quot;"))
+      assert.are.equal('"', parser:_parseEntities("&quot;"))
       assert.are.equal("'", parser:_parseEntities("&apos;"))
     end)
 
     it("should handle comments, PIs, and DTDs", function()
       local pi_called, comment_called = false, false
       local handler = {
-        pi = function() pi_called = true end,
-        comment = function() comment_called = true end,
+        pi = function()
+          pi_called = true
+        end,
+        comment = function()
+          comment_called = true
+        end,
         starttag = function() end,
         endtag = function() end,
       }

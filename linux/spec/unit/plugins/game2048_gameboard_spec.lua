@@ -36,24 +36,27 @@ describe("GameBoard module for 2048 game", function()
     assert.are.equal(2, copy_board:getElement(1, 1))
   end)
 
-  it("should shift tiles left/right/up/down and combine matching numbers", function()
-    local board = GameBoard:new()
-    board:setSize(4)
-    local field = board:getField()
+  it(
+    "should shift tiles left/right/up/down and combine matching numbers",
+    function()
+      local board = GameBoard:new()
+      board:setSize(4)
+      local field = board:getField()
 
-    -- Set top row to [1, 1, 0, 0] (powers of 2 index: 1 + 1 = 2)
-    field[1] = 1
-    field[2] = 1
+      -- Set top row to [1, 1, 0, 0] (powers of 2 index: 1 + 1 = 2)
+      field[1] = 1
+      field[2] = 1
 
-    local merged_value = nil
-    local shifted = board:shift("left", function(val)
-      merged_value = val
-    end)
+      local merged_value = nil
+      local shifted = board:shift("left", function(val)
+        merged_value = val
+      end)
 
-    assert.is_true(shifted)
-    assert.are.equal(2, board:getElement(1, 1))
-    assert.are.equal(2, merged_value)
-  end)
+      assert.is_true(shifted)
+      assert.are.equal(2, board:getElement(1, 1))
+      assert.are.equal(2, merged_value)
+    end
+  )
 
   it("should place new random tile and detect mergeable tiles", function()
     local board = GameBoard:new()

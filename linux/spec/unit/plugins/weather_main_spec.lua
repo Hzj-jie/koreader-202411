@@ -29,29 +29,32 @@ describe("Weather main plugin module", function()
     assert.is_true(#sub_items >= 2)
   end)
 
-  it("should load settings and verify temperature/clock helper methods", function()
-    local mock_ui = {
-      menu = {
-        registerToMainMenu = function() end,
-      },
-    }
+  it(
+    "should load settings and verify temperature/clock helper methods",
+    function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
 
-    local inst = Weather:new({ ui = mock_ui, settings_file = os.tmpname() })
-    inst:loadSettings()
+      local inst = Weather:new({ ui = mock_ui, settings_file = os.tmpname() })
+      inst:loadSettings()
 
-    assert.is_true(inst:celsius())
-    assert.is_false(inst:fahrenheit())
-    assert.is_true(inst:clock_12())
-    assert.is_false(inst:clock_24())
+      assert.is_true(inst:celsius())
+      assert.is_false(inst:fahrenheit())
+      assert.is_true(inst:clock_12())
+      assert.is_false(inst:clock_24())
 
-    inst.temp_scale = "F"
-    inst.clock_style = "24"
+      inst.temp_scale = "F"
+      inst.clock_style = "24"
 
-    assert.is_false(inst:celsius())
-    assert.is_true(inst:fahrenheit())
-    assert.is_false(inst:clock_12())
-    assert.is_true(inst:clock_24())
+      assert.is_false(inst:celsius())
+      assert.is_true(inst:fahrenheit())
+      assert.is_false(inst:clock_12())
+      assert.is_true(inst:clock_24())
 
-    os.remove(inst.settings_file)
-  end)
+      os.remove(inst.settings_file)
+    end
+  )
 end)

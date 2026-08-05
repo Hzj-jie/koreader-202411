@@ -7,7 +7,8 @@ describe("EpubDownloadBackend module", function()
     require("document/canvascontext"):init(require("device"))
 
     http = require("socket.http")
-    EpubDownloadBackend = require("plugins/newsdownloader.koplugin/epubdownloadbackend")
+    EpubDownloadBackend =
+      require("plugins/newsdownloader.koplugin/epubdownloadbackend")
   end)
 
   it("should set and reset trap widget", function()
@@ -18,23 +19,29 @@ describe("EpubDownloadBackend module", function()
     assert.is_nil(EpubDownloadBackend.trap_widget)
   end)
 
-  it("should download page content via loadPage and getResponseAsString", function()
-    local old_request = http.request
-    http.request = function(req)
-      local body = "<html><body>Sample content</body></html>"
-      req.sink(body)
-      return 1, 200, { ["content-length"] = tostring(#body) }, "200 OK"
+  it(
+    "should download page content via loadPage and getResponseAsString",
+    function()
+      local old_request = http.request
+      http.request = function(req)
+        local body = "<html><body>Sample content</body></html>"
+        req.sink(body)
+        return 1, 200, { ["content-length"] = tostring(#body) }, "200 OK"
+      end
+
+      local content =
+        EpubDownloadBackend:loadPage("http://example.com/article.html")
+      assert.is_string(content)
+      assert.is_true(content:find("Sample content") ~= nil)
+
+      local str_content = EpubDownloadBackend:getResponseAsString(
+        "http://example.com/article.html"
+      )
+      assert.is_string(str_content)
+
+      http.request = old_request
     end
-
-    local content = EpubDownloadBackend:loadPage("http://example.com/article.html")
-    assert.is_string(content)
-    assert.is_true(content:find("Sample content") ~= nil)
-
-    local str_content = EpubDownloadBackend:getResponseAsString("http://example.com/article.html")
-    assert.is_string(str_content)
-
-    http.request = old_request
-  end)
+  )
 
   it("should raise error on loadPage failure", function()
     local old_request = http.request
@@ -52,13 +59,17 @@ describe("EpubDownloadBackend module", function()
   it("should parse cookies from connection response", function()
     local old_request = http.request
     http.request = function(req)
-      return 1, 200, { ["set-cookie"] = "session=abc12345; Path=/; HttpOnly" }, "200 OK"
+      return 1,
+        200,
+        { ["set-cookie"] = "session=abc12345; Path=/; HttpOnly" },
+        "200 OK"
     end
 
-    local cookies = EpubDownloadBackend:getConnectionCookies("http://example.com/login", {
-      user = "test",
-      pass = "secret",
-    })
+    local cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {
+        user = "test",
+        pass = "secret",
+      })
     assert.is_table(cookies)
     assert.is_true(#cookies > 0)
     assert.are.equal("session", cookies[1].name)
@@ -69,7 +80,8 @@ describe("EpubDownloadBackend module", function()
 
   it("should create an epub file from HTML string", function()
     local tmp_epub = os.tmpname() .. ".epub"
-    local html = "<html><head><title>Test Article</title></head><body><div class=\"content\">Article body</div></body></html>"
+    local html =
+      '<html><head><title>Test Article</title></head><body><div class="content">Article body</div></body></html>'
 
     local old_request = http.request
     http.request = function(req)

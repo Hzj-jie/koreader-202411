@@ -22,7 +22,9 @@ describe("Memos Exporter target module", function()
   end)
 
   it("should build menu table with configuration callbacks", function()
-    MemosExporter.isEnabled = function() return true end
+    MemosExporter.isEnabled = function()
+      return true
+    end
     local menu = MemosExporter:getMenuTable()
 
     assert.is_table(menu)

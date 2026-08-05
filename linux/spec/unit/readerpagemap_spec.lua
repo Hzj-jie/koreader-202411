@@ -28,26 +28,35 @@ describe("ReaderPageMap module", function()
   end)
 
   describe("Settings and Toggles", function()
-    it("should handle reading settings and check pagemap availability", function()
-      local mock_ui = {
-        document = {
-          configurable = { h_page_margins = { 10, 10 } },
-          hasPageMap = function() return false end,
-          info = { has_pages = false },
-        },
-        menu = { registerToMainMenu = function() end },
-        view = { registerViewModule = function() end },
-        doc_settings = {
-          has = function() return false end,
-          isTrue = function() return false end,
-          save = function() end,
-        },
-      }
-      local pagemap = ReaderPageMap:new({ ui = mock_ui })
-      pagemap:init()
+    it(
+      "should handle reading settings and check pagemap availability",
+      function()
+        local mock_ui = {
+          document = {
+            configurable = { h_page_margins = { 10, 10 } },
+            hasPageMap = function()
+              return false
+            end,
+            info = { has_pages = false },
+          },
+          menu = { registerToMainMenu = function() end },
+          view = { registerViewModule = function() end },
+          doc_settings = {
+            has = function()
+              return false
+            end,
+            isTrue = function()
+              return false
+            end,
+            save = function() end,
+          },
+        }
+        local pagemap = ReaderPageMap:new({ ui = mock_ui })
+        pagemap:init()
 
-      pagemap:onReadSettings(mock_ui.doc_settings)
-      assert.is_boolean(pagemap.has_pagemap)
-    end)
+        pagemap:onReadSettings(mock_ui.doc_settings)
+        assert.is_boolean(pagemap.has_pagemap)
+      end
+    )
   end)
 end)

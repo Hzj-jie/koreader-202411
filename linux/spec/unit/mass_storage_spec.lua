@@ -30,7 +30,9 @@ describe("MassStorage element", function()
 
   it("should handle start and dismiss lifecycle", function()
     local old_can = Device.canToggleMassStorage
-    Device.canToggleMassStorage = function() return true end
+    Device.canToggleMassStorage = function()
+      return true
+    end
 
     -- Trigger start with confirmation
     MassStorage:start(true)
@@ -41,7 +43,9 @@ describe("MassStorage element", function()
     assert.is_nil(MassStorage.usbms_widget)
 
     -- When toggle is disabled, start should return early without creating widget
-    Device.canToggleMassStorage = function() return false end
+    Device.canToggleMassStorage = function()
+      return false
+    end
     MassStorage:start(true)
     assert.is_nil(MassStorage.usbms_widget)
 

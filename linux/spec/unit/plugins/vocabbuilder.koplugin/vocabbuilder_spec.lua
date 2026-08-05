@@ -77,7 +77,9 @@ describe("VocabBuilder plugin unit tests", function()
   local function getMenuDialog(builder)
     builder:onShowVocabBuilder()
     builder.widget:onShowMenu()
-    return findShownWidget(function(w) return w.setupPluginMenu ~= nil end)
+    return findShownWidget(function(w)
+      return w.setupPluginMenu ~= nil
+    end)
   end
 
   describe("Plugin initialization & registration", function()
@@ -91,7 +93,9 @@ describe("VocabBuilder plugin unit tests", function()
       builder:init()
 
       assert.stub(Dispatcher.registerAction).was_called()
-      assert.spy(mock_ui.menu.registerToMainMenu).was_called_with(mock_ui.menu, builder)
+      assert
+        .spy(mock_ui.menu.registerToMainMenu)
+        .was_called_with(mock_ui.menu, builder)
     end)
 
     it("adds vocabulary builder item to main menu", function()
@@ -125,10 +129,14 @@ describe("VocabBuilder plugin unit tests", function()
       })
 
       local conn = SQ3.open(db_location)
-      local word_count = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='testword';"))
+      local word_count = tonumber(
+        conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='testword';")
+      )
       assert.are.equal(1, word_count)
 
-      local title_count = tonumber(conn:rowexec("SELECT count(0) FROM title WHERE name='Test Book';"))
+      local title_count = tonumber(
+        conn:rowexec("SELECT count(0) FROM title WHERE name='Test Book';")
+      )
       assert.are.equal(1, title_count)
       conn:close()
     end)
@@ -147,11 +155,13 @@ describe("VocabBuilder plugin unit tests", function()
 
       DB:resetProgress()
       local conn = SQ3.open(db_location)
-      local rev_count = tonumber(conn:rowexec("SELECT sum(review_count) FROM vocabulary;"))
+      local rev_count =
+        tonumber(conn:rowexec("SELECT sum(review_count) FROM vocabulary;"))
       assert.are.equal(0, rev_count)
 
       DB:purge()
-      local total_words = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
+      local total_words =
+        tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
       assert.are.equal(0, total_words)
       conn:close()
     end)
@@ -181,7 +191,9 @@ describe("VocabBuilder plugin unit tests", function()
       assert.is_true(res)
 
       local conn = SQ3.open(db_location)
-      local count = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='apple';"))
+      local count = tonumber(
+        conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='apple';")
+      )
       conn:close()
       assert.are.equal(1, count)
     end)
@@ -196,7 +208,9 @@ describe("VocabBuilder plugin unit tests", function()
       assert.is_true(res)
 
       local conn = SQ3.open(db_location)
-      local row = conn:rowexec("SELECT prev_context, next_context, highlight FROM vocabulary WHERE word='banana';")
+      local row = conn:rowexec(
+        "SELECT prev_context, next_context, highlight FROM vocabulary WHERE word='banana';"
+      )
       conn:close()
       assert.is_not_nil(row)
     end)
@@ -297,16 +311,30 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("handles search dialog and filtering", function()
-      DB:insertOrUpdate({ word = "apple", book_title = "Fruit", time = os.time() })
-      DB:insertOrUpdate({ word = "apricot", book_title = "Fruit", time = os.time() })
-      DB:insertOrUpdate({ word = "banana", book_title = "Fruit", time = os.time() })
+      DB:insertOrUpdate({
+        word = "apple",
+        book_title = "Fruit",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "apricot",
+        book_title = "Fruit",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "banana",
+        book_title = "Fruit",
+        time = os.time(),
+      })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
 
       widget:showSearchDialog()
-      local dialog = findShownWidget(function(w) return w.input ~= nil end)
+      local dialog = findShownWidget(function(w)
+        return w.input ~= nil
+      end)
       assert.is_table(dialog)
 
       widget.search_text = "ap"
@@ -317,7 +345,11 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("handles item study callbacks (gotIt and forgot)", function()
-      DB:insertOrUpdate({ word = "memorize", book_title = "Study", time = os.time() })
+      DB:insertOrUpdate({
+        word = "memorize",
+        book_title = "Study",
+        time = os.time(),
+      })
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
@@ -337,8 +369,16 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("handles widget removal and reset items", function()
-      DB:insertOrUpdate({ word = "rem1", book_title = "Book A", time = os.time() })
-      DB:insertOrUpdate({ word = "rem2", book_title = "Book A", time = os.time() })
+      DB:insertOrUpdate({
+        word = "rem1",
+        book_title = "Book A",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "rem2",
+        book_title = "Book A",
+        time = os.time(),
+      })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
@@ -353,7 +393,11 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("handles swipe and multi-swipe gestures", function()
-      DB:insertOrUpdate({ word = "swipe1", book_title = "Book A", time = os.time() })
+      DB:insertOrUpdate({
+        word = "swipe1",
+        book_title = "Book A",
+        time = os.time(),
+      })
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
@@ -363,15 +407,26 @@ describe("VocabBuilder plugin unit tests", function()
       widget:onSwipe(nil, { direction = "south" })
       assert.stub(UIManager.close).was_called()
 
-      local res = widget:onMultiSwipe(nil, { multiswipe_directions = "east south west north" })
+      local res = widget:onMultiSwipe(
+        nil,
+        { multiswipe_directions = "east south west north" }
+      )
       assert.is_true(res)
     end)
   end)
 
   describe("Book management & title filtering", function()
     it("toggles book filter and changes book titles", function()
-      DB:insertOrUpdate({ word = "wordA", book_title = "Book A", time = os.time() })
-      DB:insertOrUpdate({ word = "wordB", book_title = "Book B", time = os.time() })
+      DB:insertOrUpdate({
+        word = "wordA",
+        book_title = "Book A",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "wordB",
+        book_title = "Book B",
+        time = os.time(),
+      })
 
       local books = DB:selectBooks()
       assert.are.equal(2, #books)
@@ -381,7 +436,9 @@ describe("VocabBuilder plugin unit tests", function()
       books = DB:selectBooks()
       local found = false
       for _, b in ipairs(books) do
-        if b.name == "Renamed Book A" then found = true end
+        if b.name == "Renamed Book A" then
+          found = true
+        end
       end
       assert.is_true(found)
 
@@ -394,7 +451,11 @@ describe("VocabBuilder plugin unit tests", function()
 
   describe("MenuDialog and WordInfoDialog components", function()
     it("sets up plugin menu dialog and toggles settings", function()
-      DB:insertOrUpdate({ word = "dialog_word", book_title = "Book", time = os.time() })
+      DB:insertOrUpdate({
+        word = "dialog_word",
+        book_title = "Book",
+        time = os.time(),
+      })
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
@@ -402,7 +463,9 @@ describe("VocabBuilder plugin unit tests", function()
       widget:onShowMenu()
       assert.stub(UIManager.show).was_called()
 
-      local menu_widget = findShownWidget(function(w) return w.setupPluginMenu ~= nil end)
+      local menu_widget = findShownWidget(function(w)
+        return w.setupPluginMenu ~= nil
+      end)
       assert.is_table(menu_widget)
     end)
   end)

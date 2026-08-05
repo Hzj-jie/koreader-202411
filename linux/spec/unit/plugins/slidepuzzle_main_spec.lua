@@ -26,29 +26,32 @@ describe("SlidePuzzle main plugin module", function()
     assert.is_table(plugin.stats)
   end)
 
-  it("should manage game instances, active size, and persistence state", function()
-    local mock_ui = {
-      menu = {
-        registerToMainMenu = function() end,
-      },
-    }
-    local plugin = SlidePuzzle:new({
-      ui = mock_ui,
-    })
+  it(
+    "should manage game instances, active size, and persistence state",
+    function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = SlidePuzzle:new({
+        ui = mock_ui,
+      })
 
-    plugin:setActiveSize(4)
-    assert.are.equal(4, plugin.active_size)
+      plugin:setActiveSize(4)
+      assert.are.equal(4, plugin.active_size)
 
-    local game = plugin:getCurrentGame()
-    assert.is_table(game)
-    assert.are.equal(4, game:getSize())
+      local game = plugin:getCurrentGame()
+      assert.is_table(game)
+      assert.are.equal(4, game:getSize())
 
-    plugin:saveCurrentState(game)
-    assert.is_table(plugin.states["4"])
+      plugin:saveCurrentState(game)
+      assert.is_table(plugin.states["4"])
 
-    plugin:startNewGame(3)
-    assert.are.equal(3, plugin.active_size)
-  end)
+      plugin:startNewGame(3)
+      assert.are.equal(3, plugin.active_size)
+    end
+  )
 
   it("should record game results and compute stats", function()
     local mock_ui = {

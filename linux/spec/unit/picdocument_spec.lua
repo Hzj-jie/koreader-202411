@@ -13,7 +13,8 @@ describe("PicDocument module", function()
     local mock_registry = {
       providers = {},
       addProvider = function(self, ext, mime, provider, priority)
-        self.providers[ext] = { mime = mime, provider = provider, priority = priority }
+        self.providers[ext] =
+          { mime = mime, provider = provider, priority = priority }
       end,
     }
 

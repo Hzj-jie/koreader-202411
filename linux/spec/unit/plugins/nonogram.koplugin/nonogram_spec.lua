@@ -10,8 +10,8 @@ describe("Nonogram board logic unit tests", function()
     Nonogram = dofile("plugins/nonogram.koplugin/main.lua")
     Nonogram.ui = {
       menu = {
-        registerToMainMenu = function() end
-      }
+        registerToMainMenu = function() end,
+      },
     }
     plugin = Nonogram:new()
     board = plugin:getBoard()
@@ -33,8 +33,8 @@ describe("Nonogram board logic unit tests", function()
       solution = {
         { true, false, false },
         { true, true, false },
-        { true, true, true }
-      }
+        { true, true, true },
+      },
     }
   end
 

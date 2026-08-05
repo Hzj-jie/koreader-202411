@@ -44,26 +44,33 @@ describe("ReaderScrolling module", function()
     end
   end)
 
-  it("should calculate default scroll activation delay and handle settings", function()
-    local mock_doc_settings = {
-      read = function() return nil end,
-      nilOrTrue = function() return true end,
-      save = function() end,
-    }
-    local scrolling = ReaderScrolling:new({
-      ui = {
-        menu = { registerToMainMenu = function() end },
-        doc_settings = mock_doc_settings,
-      },
-    })
+  it(
+    "should calculate default scroll activation delay and handle settings",
+    function()
+      local mock_doc_settings = {
+        read = function()
+          return nil
+        end,
+        nilOrTrue = function()
+          return true
+        end,
+        save = function() end,
+      }
+      local scrolling = ReaderScrolling:new({
+        ui = {
+          menu = { registerToMainMenu = function() end },
+          doc_settings = mock_doc_settings,
+        },
+      })
 
-    if type(scrolling.getDefaultScrollActivationDelay_ms) == "function" then
-      local delay = scrolling:getDefaultScrollActivationDelay_ms()
-      assert.is_number(delay)
-    end
+      if type(scrolling.getDefaultScrollActivationDelay_ms) == "function" then
+        local delay = scrolling:getDefaultScrollActivationDelay_ms()
+        assert.is_number(delay)
+      end
 
-    if type(scrolling.onReadSettings) == "function" then
-      scrolling:onReadSettings(mock_doc_settings)
+      if type(scrolling.onReadSettings) == "function" then
+        scrolling:onReadSettings(mock_doc_settings)
+      end
     end
-  end)
+  )
 end)

@@ -55,7 +55,9 @@ describe("ReaderThumbnail module", function()
       local mock_ui = {
         document = {
           info = { number_of_pages = 10 },
-          getPageCount = function() return 10 end,
+          getPageCount = function()
+            return 10
+          end,
         },
         menu = {
           registerToMainMenu = function() end,

@@ -55,9 +55,19 @@ describe("ExternalKeyboard main plugin module", function()
     local old_open = io.open
     io.open = function(path, mode)
       if path:find("ci_hdrc") then
-        return { read = function() return "host" end, close = function() end }
+        return {
+          read = function()
+            return "host"
+          end,
+          close = function() end,
+        }
       elseif path:find("usbc0") then
-        return { read = function() return "usb_device" end, close = function() end }
+        return {
+          read = function()
+            return "usb_device"
+          end,
+          close = function() end,
+        }
       end
       return old_open(path, mode)
     end
@@ -76,7 +86,9 @@ describe("ExternalKeyboard main plugin module", function()
     }
 
     local inst = ExternalKeyboard:new({ ui = mock_ui })
-    inst.getOTGRole = function() return "device" end
+    inst.getOTGRole = function()
+      return "device"
+    end
     inst.setOTGRole = function() end
 
     local menu_items = {}

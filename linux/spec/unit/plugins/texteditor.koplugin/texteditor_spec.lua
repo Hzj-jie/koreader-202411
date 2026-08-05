@@ -231,7 +231,9 @@ describe("TextEditor plugin unit tests", function()
       assert.is_true(clean_hist_item.enabled_func())
       clean_hist_item.callback({ updateItems = function() end })
       assert.stub(UIManager.show).was_called()
-      local confirm_box = findShownWidget(function(w) return w.ok_callback ~= nil end)
+      local confirm_box = findShownWidget(function(w)
+        return w.ok_callback ~= nil
+      end)
       assert.is_table(confirm_box)
       confirm_box.ok_callback()
       assert.are.same({}, editor.history)
@@ -239,30 +241,35 @@ describe("TextEditor plugin unit tests", function()
       UIManager.show:clear()
     end)
 
-    it("handles history item hold_callback to remove item from history", function()
-      local hist_file = temp_dir .. "/exist_hist.txt"
-      local f = io.open(hist_file, "w")
-      if f then
-        f:write("hello")
-        f:close()
+    it(
+      "handles history item hold_callback to remove item from history",
+      function()
+        local hist_file = temp_dir .. "/exist_hist.txt"
+        local f = io.open(hist_file, "w")
+        if f then
+          f:write("hello")
+          f:close()
+        end
+
+        editor:addToHistory(hist_file)
+
+        local items = editor:getSubMenuItems()
+        local hist_item = items[4]
+        local mock_menu = { updateItems = spy.new(function() end) }
+        hist_item.hold_callback(mock_menu)
+
+        local confirm_box = findShownWidget(function(w)
+          return w.ok_callback ~= nil
+        end)
+        assert.is_table(confirm_box)
+        confirm_box.ok_callback()
+
+        assert.are.same({}, editor.history)
+        assert.spy(mock_menu.updateItems).was_called()
+
+        os.remove(hist_file)
       end
-
-      editor:addToHistory(hist_file)
-
-      local items = editor:getSubMenuItems()
-      local hist_item = items[4]
-      local mock_menu = { updateItems = spy.new(function() end) }
-      hist_item.hold_callback(mock_menu)
-
-      local confirm_box = findShownWidget(function(w) return w.ok_callback ~= nil end)
-      assert.is_table(confirm_box)
-      confirm_box.ok_callback()
-
-      assert.are.same({}, editor.history)
-      assert.spy(mock_menu.updateItems).was_called()
-
-      os.remove(hist_file)
-    end)
+    )
   end)
 
   describe("File creation and selection", function()
@@ -270,21 +277,27 @@ describe("TextEditor plugin unit tests", function()
       stub(editor, "checkEditFile")
 
       editor:newFile()
-      local confirm_box = findShownWidget(function(w) return w.ok_callback ~= nil end)
+      local confirm_box = findShownWidget(function(w)
+        return w.ok_callback ~= nil
+      end)
       assert.is_table(confirm_box)
 
       UIManager.show:clear()
       confirm_box.ok_callback()
 
       -- Should show PathChooser
-      local path_chooser = findShownWidget(function(w) return type(w.onConfirm) == "function" end)
+      local path_chooser = findShownWidget(function(w)
+        return type(w.onConfirm) == "function"
+      end)
       assert.is_table(path_chooser)
 
       UIManager.show:clear()
       -- Confirm path in PathChooser -> shows InputDialog for filename
       path_chooser.onConfirm(temp_dir)
 
-      local input_dialog = findShownWidget(function(w) return type(w.getInputText) == "function" end)
+      local input_dialog = findShownWidget(function(w)
+        return type(w.getInputText) == "function"
+      end)
       assert.is_table(input_dialog)
 
       -- Find buttons in input_dialog
@@ -304,14 +317,18 @@ describe("TextEditor plugin unit tests", function()
 
       -- Test Cancel button callback
       cancel_btn.callback()
-      assert.stub(UIManager.close).was_called_with(match.ref(UIManager), match.ref(input_dialog))
+      assert
+        .stub(UIManager.close)
+        .was_called_with(match.ref(UIManager), match.ref(input_dialog))
 
       -- Test Edit button callback
       stub(input_dialog, "getInputText")
       input_dialog.getInputText.returns(temp_dir .. "/new_test.txt")
 
       edit_btn.callback()
-      assert.stub(editor.checkEditFile).was_called_with(match.ref(editor), temp_dir .. "/new_test.txt", false, true)
+      assert
+        .stub(editor.checkEditFile)
+        .was_called_with(match.ref(editor), temp_dir .. "/new_test.txt", false, true)
       assert.are.equal(temp_dir, editor.last_path)
 
       editor.checkEditFile:revert()
@@ -321,44 +338,62 @@ describe("TextEditor plugin unit tests", function()
       stub(editor, "checkEditFile")
 
       editor:chooseFile()
-      local path_chooser = findShownWidget(function(w) return type(w.onConfirm) == "function" end)
+      local path_chooser = findShownWidget(function(w)
+        return type(w.onConfirm) == "function"
+      end)
       assert.is_table(path_chooser)
 
       path_chooser.onConfirm(temp_dir .. "/chosen.txt")
 
       assert.are.equal(temp_dir, editor.last_path)
-      assert.stub(editor.checkEditFile).was_called_with(match.ref(editor), temp_dir .. "/chosen.txt")
+      assert
+        .stub(editor.checkEditFile)
+        .was_called_with(match.ref(editor), temp_dir .. "/chosen.txt")
 
       editor.checkEditFile:revert()
     end)
   end)
 
   describe("File checking and edit validation", function()
-    it("prompts to create non-existent file when possibly_new_file is false", function()
-      local non_exist = temp_dir .. "/non_exist.txt"
-      editor:checkEditFile(non_exist, false, false)
+    it(
+      "prompts to create non-existent file when possibly_new_file is false",
+      function()
+        local non_exist = temp_dir .. "/non_exist.txt"
+        editor:checkEditFile(non_exist, false, false)
 
-      local confirm_box = findShownWidget(function(w) return w.ok_callback ~= nil end)
-      assert.is_table(confirm_box)
+        local confirm_box = findShownWidget(function(w)
+          return w.ok_callback ~= nil
+        end)
+        assert.is_table(confirm_box)
 
-      stub(editor, "checkEditFile")
-      confirm_box.ok_callback()
-      assert.stub(editor.checkEditFile).was_called_with(match.ref(editor), non_exist, false, true)
-      editor.checkEditFile:revert()
-    end)
+        stub(editor, "checkEditFile")
+        confirm_box.ok_callback()
+        assert
+          .stub(editor.checkEditFile)
+          .was_called_with(match.ref(editor), non_exist, false, true)
+        editor.checkEditFile:revert()
+      end
+    )
 
-    it("shows error message when non-existent file cannot be created", function()
-      local invalid_path = "/invalid_dir_xyz/test.txt"
-      editor:checkEditFile(invalid_path, false, true)
+    it(
+      "shows error message when non-existent file cannot be created",
+      function()
+        local invalid_path = "/invalid_dir_xyz/test.txt"
+        editor:checkEditFile(invalid_path, false, true)
 
-      local info_msg = findShownWidget(function(w) return type(w.text) == "string" end)
-      assert.is_table(info_msg)
-    end)
+        local info_msg = findShownWidget(function(w)
+          return type(w.text) == "string"
+        end)
+        assert.is_table(info_msg)
+      end
+    )
 
     it("shows error message when file is a directory", function()
       editor:checkEditFile(temp_dir, false, false)
 
-      local info_msg = findShownWidget(function(w) return type(w.text) == "string" end)
+      local info_msg = findShownWidget(function(w)
+        return type(w.text) == "string"
+      end)
       assert.is_table(info_msg)
     end)
 
@@ -373,7 +408,9 @@ describe("TextEditor plugin unit tests", function()
       editor.min_file_size_warn = 200000
       editor:checkEditFile(large_file, false, false)
 
-      local confirm_box = findShownWidget(function(w) return w.ok_callback ~= nil end)
+      local confirm_box = findShownWidget(function(w)
+        return w.ok_callback ~= nil
+      end)
       assert.is_table(confirm_box)
 
       stub(editor, "editFile")
@@ -418,33 +455,36 @@ describe("TextEditor plugin unit tests", function()
       assert.is_nil(del_err)
     end)
 
-    it("sets up InputDialog and handles save_callback for non-Lua file", function()
-      local test_file = temp_dir .. "/doc.txt"
-      local f = io.open(test_file, "w")
-      if f then
-        f:write("initial content")
-        f:close()
+    it(
+      "sets up InputDialog and handles save_callback for non-Lua file",
+      function()
+        local test_file = temp_dir .. "/doc.txt"
+        local f = io.open(test_file, "w")
+        if f then
+          f:write("initial content")
+          f:close()
+        end
+
+        editor:editFile(test_file, false)
+        assert.stub(UIManager.show).was_called()
+        assert.is_table(editor.input)
+
+        local save_cb = editor.input.save_callback
+        assert.is_function(save_cb)
+
+        -- Saving non-empty text
+        local ok, msg = save_cb("new content", false)
+        assert.is_true(ok)
+        assert.is_string(msg)
+
+        local rf = io.open(test_file, "r")
+        local read_content = rf:read("*a")
+        rf:close()
+        assert.are.equal("new content", read_content)
+
+        os.remove(test_file)
       end
-
-      editor:editFile(test_file, false)
-      assert.stub(UIManager.show).was_called()
-      assert.is_table(editor.input)
-
-      local save_cb = editor.input.save_callback
-      assert.is_function(save_cb)
-
-      -- Saving non-empty text
-      local ok, msg = save_cb("new content", false)
-      assert.is_true(ok)
-      assert.is_string(msg)
-
-      local rf = io.open(test_file, "r")
-      local read_content = rf:read("*a")
-      rf:close()
-      assert.are.equal("new content", read_content)
-
-      os.remove(test_file)
-    end)
+    )
 
     it("handles save_callback when readonly is true", function()
       local test_file = temp_dir .. "/readonly.txt"
@@ -464,110 +504,119 @@ describe("TextEditor plugin unit tests", function()
       os.remove(test_file)
     end)
 
-    it("handles save_callback for Lua syntax check success and failure", function()
-      local lua_file = temp_dir .. "/test.lua"
-      local f = io.open(lua_file, "w")
-      if f then
-        f:write("local a = 1")
-        f:close()
+    it(
+      "handles save_callback for Lua syntax check success and failure",
+      function()
+        local lua_file = temp_dir .. "/test.lua"
+        local f = io.open(lua_file, "w")
+        if f then
+          f:write("local a = 1")
+          f:close()
+        end
+
+        editor:editFile(lua_file, false)
+        local save_cb = editor.input.save_callback
+
+        -- Valid Lua syntax
+        local ok, msg = save_cb("local x = 42", false)
+        assert.is_true(ok)
+        assert.is_string(msg)
+
+        -- Invalid Lua syntax with Trapper confirm "Save anyway"
+        Trapper.confirm.returns(true)
+        local ok_anyway, msg_anyway = save_cb("local x =", false)
+        assert.is_true(ok_anyway)
+        assert.is_string(msg_anyway)
+        assert.stub(Trapper.confirm).was_called()
+
+        -- Invalid Lua syntax with Trapper confirm "Do not save"
+        Trapper.confirm.returns(false)
+        local ok_nosave, msg_nosave = save_cb("local x =", false)
+        assert.is_false(ok_nosave)
+        assert.is_false(msg_nosave)
+
+        os.remove(lua_file)
       end
+    )
 
-      editor:editFile(lua_file, false)
-      local save_cb = editor.input.save_callback
+    it(
+      "handles save_callback for empty content (delete or keep empty)",
+      function()
+        local empty_test_file = temp_dir .. "/empty_test.txt"
+        local f = io.open(empty_test_file, "w")
+        if f then
+          f:write("some text")
+          f:close()
+        end
 
-      -- Valid Lua syntax
-      local ok, msg = save_cb("local x = 42", false)
-      assert.is_true(ok)
-      assert.is_string(msg)
+        editor:editFile(empty_test_file, false)
+        local save_cb = editor.input.save_callback
 
-      -- Invalid Lua syntax with Trapper confirm "Save anyway"
-      Trapper.confirm.returns(true)
-      local ok_anyway, msg_anyway = save_cb("local x =", false)
-      assert.is_true(ok_anyway)
-      assert.is_string(msg_anyway)
-      assert.stub(Trapper.confirm).was_called()
+        -- Trapper confirm -> Delete file
+        Trapper.confirm.returns(true)
+        local ok_del, msg_del = save_cb("", false)
+        assert.is_true(ok_del)
+        assert.is_string(msg_del)
 
-      -- Invalid Lua syntax with Trapper confirm "Do not save"
-      Trapper.confirm.returns(false)
-      local ok_nosave, msg_nosave = save_cb("local x =", false)
-      assert.is_false(ok_nosave)
-      assert.is_false(msg_nosave)
+        -- Re-create file for keep empty test
+        f = io.open(empty_test_file, "w")
+        if f then
+          f:write("some text")
+          f:close()
+        end
 
-      os.remove(lua_file)
-    end)
+        -- Trapper confirm -> Keep empty file
+        Trapper.confirm.returns(false)
+        local ok_keep, msg_keep = save_cb("", false)
+        assert.is_true(ok_keep)
+        assert.is_string(msg_keep)
 
-    it("handles save_callback for empty content (delete or keep empty)", function()
-      local empty_test_file = temp_dir .. "/empty_test.txt"
-      local f = io.open(empty_test_file, "w")
-      if f then
-        f:write("some text")
-        f:close()
+        os.remove(empty_test_file)
       end
+    )
 
-      editor:editFile(empty_test_file, false)
-      local save_cb = editor.input.save_callback
+    it(
+      "handles view_pos_callback, reset_callback, and close_callback",
+      function()
+        local test_file = temp_dir .. "/callbacks.txt"
+        local f = io.open(test_file, "w")
+        if f then
+          f:write("content for callbacks")
+          f:close()
+        end
 
-      -- Trapper confirm -> Delete file
-      Trapper.confirm.returns(true)
-      local ok_del, msg_del = save_cb("", false)
-      assert.is_true(ok_del)
-      assert.is_string(msg_del)
+        editor:editFile(test_file, false)
+        local input = editor.input
 
-      -- Re-create file for keep empty test
-      f = io.open(empty_test_file, "w")
-      if f then
-        f:write("some text")
-        f:close()
+        -- View position callback
+        assert.is_function(input.view_pos_callback)
+        local top, char = input.view_pos_callback()
+        assert.is_nil(top)
+        assert.is_nil(char)
+
+        input.view_pos_callback(12, 34)
+        top, char = input.view_pos_callback()
+        assert.are.equal(12, top)
+        assert.are.equal(34, char)
+
+        -- Reset callback
+        assert.is_function(input.reset_callback)
+        local res_text, res_msg = input.reset_callback()
+        assert.are.equal("content for callbacks", res_text)
+        assert.is_string(res_msg)
+
+        -- Close callback
+        local done_called = false
+        editor.whenDoneFunc = function()
+          done_called = true
+        end
+        input.close_callback()
+        assert.is_true(done_called)
+        assert.is_nil(editor.whenDoneFunc)
+
+        os.remove(test_file)
       end
-
-      -- Trapper confirm -> Keep empty file
-      Trapper.confirm.returns(false)
-      local ok_keep, msg_keep = save_cb("", false)
-      assert.is_true(ok_keep)
-      assert.is_string(msg_keep)
-
-      os.remove(empty_test_file)
-    end)
-
-    it("handles view_pos_callback, reset_callback, and close_callback", function()
-      local test_file = temp_dir .. "/callbacks.txt"
-      local f = io.open(test_file, "w")
-      if f then
-        f:write("content for callbacks")
-        f:close()
-      end
-
-      editor:editFile(test_file, false)
-      local input = editor.input
-
-      -- View position callback
-      assert.is_function(input.view_pos_callback)
-      local top, char = input.view_pos_callback()
-      assert.is_nil(top)
-      assert.is_nil(char)
-
-      input.view_pos_callback(12, 34)
-      top, char = input.view_pos_callback()
-      assert.are.equal(12, top)
-      assert.are.equal(34, char)
-
-      -- Reset callback
-      assert.is_function(input.reset_callback)
-      local res_text, res_msg = input.reset_callback()
-      assert.are.equal("content for callbacks", res_text)
-      assert.is_string(res_msg)
-
-      -- Close callback
-      local done_called = false
-      editor.whenDoneFunc = function()
-        done_called = true
-      end
-      input.close_callback()
-      assert.is_true(done_called)
-      assert.is_nil(editor.whenDoneFunc)
-
-      os.remove(test_file)
-    end)
+    )
 
     it("handles Lua check and QR extra buttons in editFile", function()
       local lua_file = temp_dir .. "/button_test.lua"
@@ -631,7 +680,9 @@ describe("TextEditor plugin unit tests", function()
       -- With history -> calls checkEditFile
       editor.history = { "/last_file.txt" }
       editor:onOpenLastEditedFile()
-      assert.stub(editor.checkEditFile).was_called_with(match.ref(editor), "/last_file.txt", true)
+      assert
+        .stub(editor.checkEditFile)
+        .was_called_with(match.ref(editor), "/last_file.txt", true)
 
       editor.checkEditFile:revert()
       editor.chooseFile:revert()
@@ -640,7 +691,9 @@ describe("TextEditor plugin unit tests", function()
     it("openFile delegates to checkEditFile", function()
       stub(editor, "checkEditFile")
       editor:openFile("/some/file.txt")
-      assert.stub(editor.checkEditFile).was_called_with(match.ref(editor), "/some/file.txt")
+      assert
+        .stub(editor.checkEditFile)
+        .was_called_with(match.ref(editor), "/some/file.txt")
       editor.checkEditFile:revert()
     end)
 
@@ -657,7 +710,9 @@ describe("TextEditor plugin unit tests", function()
 
       editor:showMenu()
       assert.stub(UIManager.show).was_called()
-      local dialog = findShownWidget(function(w) return type(w.buttons) == "table" end)
+      local dialog = findShownWidget(function(w)
+        return type(w.buttons) == "table"
+      end)
       assert.is_table(dialog)
 
       os.remove(test_file)

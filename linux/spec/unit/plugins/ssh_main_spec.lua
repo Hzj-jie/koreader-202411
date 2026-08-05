@@ -10,7 +10,9 @@ describe("SSH plugin main module", function()
 
     local old_pathExists = util.pathExists
     util.pathExists = function(path)
-      if path and path:find("dropbear") then return true end
+      if path and path:find("dropbear") then
+        return true
+      end
       return old_pathExists(path)
     end
 

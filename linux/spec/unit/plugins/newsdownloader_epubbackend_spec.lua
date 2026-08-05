@@ -6,13 +6,17 @@ describe("EpubDownloadBackend module", function()
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
-    EpubDownloadBackend = require("plugins/newsdownloader.koplugin/epubdownloadbackend")
+    EpubDownloadBackend =
+      require("plugins/newsdownloader.koplugin/epubdownloadbackend")
   end)
 
   describe("Initialization & Defaults", function()
     it("should expose dismiss error code and default properties", function()
       assert.is_table(EpubDownloadBackend)
-      assert.are.equal(EpubDownloadBackend.dismissed_error_code, "Interrupted by user")
+      assert.are.equal(
+        EpubDownloadBackend.dismissed_error_code,
+        "Interrupted by user"
+      )
     end)
 
     it("should expose backend table functions", function()

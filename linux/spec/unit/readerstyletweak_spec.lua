@@ -25,10 +25,16 @@ describe("ReaderStyleTweak module", function()
         },
         menu = { registerToMainMenu = function() end },
         doc_settings = {
-          readTableRef = function() return {} end,
-          readTable = function() return {} end,
+          readTableRef = function()
+            return {}
+          end,
+          readTable = function()
+            return {}
+          end,
           read = function() end,
-          nilOrTrue = function() return true end,
+          nilOrTrue = function()
+            return true
+          end,
           save = function() end,
           delete = function() end,
         },
@@ -46,10 +52,16 @@ describe("ReaderStyleTweak module", function()
         },
         menu = { registerToMainMenu = function() end },
         doc_settings = {
-          readTableRef = function() return {} end,
-          readTable = function() return {} end,
+          readTableRef = function()
+            return {}
+          end,
+          readTable = function()
+            return {}
+          end,
           read = function() end,
-          nilOrTrue = function() return true end,
+          nilOrTrue = function()
+            return true
+          end,
           save = function() end,
           delete = function() end,
         },

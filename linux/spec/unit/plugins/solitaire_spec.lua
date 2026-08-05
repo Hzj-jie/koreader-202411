@@ -179,7 +179,9 @@ describe("Solitaire game engine unit tests", function()
     it("should initialize SolitaireUI widget container", function()
       local Device = require("device")
       if not Device.isKindle then
-        Device.isKindle = function() return false end
+        Device.isKindle = function()
+          return false
+        end
       end
       local SolitaireUI = require("plugins/solitaire.koplugin/solitaireui")
       assert.is_table(SolitaireUI)

@@ -27,23 +27,32 @@ describe("PhysicalButtons element", function()
     item.callback()
   end)
 
-  it("should include DPad and key repeat items when supported by device", function()
-    local old_hasDPad = Device.hasDPad
-    local old_useDPad = Device.useDPadAsActionKeys
-    local old_canKeyRepeat = Device.canKeyRepeat
+  it(
+    "should include DPad and key repeat items when supported by device",
+    function()
+      local old_hasDPad = Device.hasDPad
+      local old_useDPad = Device.useDPadAsActionKeys
+      local old_canKeyRepeat = Device.canKeyRepeat
 
-    Device.hasDPad = function() return true end
-    Device.useDPadAsActionKeys = function() return true end
-    Device.canKeyRepeat = function() return true end
+      Device.hasDPad = function()
+        return true
+      end
+      Device.useDPadAsActionKeys = function()
+        return true
+      end
+      Device.canKeyRepeat = function()
+        return true
+      end
 
-    package.loaded["ui/elements/physical_buttons"] = nil
-    local PhysicalButtonsDPad = require("ui/elements/physical_buttons")
+      package.loaded["ui/elements/physical_buttons"] = nil
+      local PhysicalButtonsDPad = require("ui/elements/physical_buttons")
 
-    assert.is_table(PhysicalButtonsDPad.sub_item_table)
-    assert.is_true(#PhysicalButtonsDPad.sub_item_table >= 4)
+      assert.is_table(PhysicalButtonsDPad.sub_item_table)
+      assert.is_true(#PhysicalButtonsDPad.sub_item_table >= 4)
 
-    Device.hasDPad = old_hasDPad
-    Device.useDPadAsActionKeys = old_useDPad
-    Device.canKeyRepeat = old_canKeyRepeat
-  end)
+      Device.hasDPad = old_hasDPad
+      Device.useDPadAsActionKeys = old_useDPad
+      Device.canKeyRepeat = old_canKeyRepeat
+    end
+  )
 end)

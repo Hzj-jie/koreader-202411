@@ -40,7 +40,9 @@ describe("ReaderCropping module", function()
 
     local mock_config = {
       readTable = function(self, key)
-        if key == "bbox" then return { [1] = { x0 = 0, y0 = 0, x1 = 100, y1 = 100 } } end
+        if key == "bbox" then
+          return { [1] = { x0 = 0, y0 = 0, x1 = 100, y1 = 100 } }
+        end
       end,
     }
 

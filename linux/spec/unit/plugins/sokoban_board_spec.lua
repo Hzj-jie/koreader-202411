@@ -64,7 +64,11 @@ describe("Sokoban Board widget module", function()
     b:init()
 
     local freed = false
-    b._img_cache["test"] = { free = function() freed = true end }
+    b._img_cache["test"] = {
+      free = function()
+        freed = true
+      end,
+    }
 
     b:freeImages()
     assert.is_true(freed)

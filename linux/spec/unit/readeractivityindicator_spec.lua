@@ -10,7 +10,8 @@ describe("ReaderActivityIndicator module", function()
   end)
 
   it("should return stub implementation on non-Kindle devices", function()
-    local ReaderActivityIndicatorStub = require("apps/reader/modules/readeractivityindicator")
+    local ReaderActivityIndicatorStub =
+      require("apps/reader/modules/readeractivityindicator")
     assert.is_table(ReaderActivityIndicatorStub)
     assert.is_true(ReaderActivityIndicatorStub:isStub())
 
@@ -22,11 +23,16 @@ describe("ReaderActivityIndicator module", function()
     local old_isKindle = Device.isKindle
     local old_isTouch = Device.isTouchDevice
 
-    Device.isKindle = function() return true end
-    Device.isTouchDevice = function() return true end
+    Device.isKindle = function()
+      return true
+    end
+    Device.isTouchDevice = function()
+      return true
+    end
 
     package.loaded["apps/reader/modules/readeractivityindicator"] = nil
-    local ActiveIndicator = require("apps/reader/modules/readeractivityindicator")
+    local ActiveIndicator =
+      require("apps/reader/modules/readeractivityindicator")
 
     assert.is_table(ActiveIndicator)
     assert.is_false(ActiveIndicator:isStub())

@@ -39,20 +39,23 @@ describe("Wallabag plugin", function()
       assert.spy(mock_ui.menu.registerToMainMenu).was_called()
     end)
 
-    it("should read settings from LuaSettings file and save settings", function()
-      local mock_ui = create_mock_ui()
-      local wallabag = Wallabag:new({
-        ui = mock_ui,
-      })
+    it(
+      "should read settings from LuaSettings file and save settings",
+      function()
+        local mock_ui = create_mock_ui()
+        local wallabag = Wallabag:new({
+          ui = mock_ui,
+        })
 
-      wallabag.download_queue = {}
-      wallabag.server_url = "https://wallabag.test.com"
-      wallabag.articles_per_sync = 40
-      wallabag:saveSettings()
+        wallabag.download_queue = {}
+        wallabag.server_url = "https://wallabag.test.com"
+        wallabag.articles_per_sync = 40
+        wallabag:saveSettings()
 
-      local read_wb = wallabag:readSettings()
-      assert.is_table(read_wb)
-    end)
+        local read_wb = wallabag:readSettings()
+        assert.is_table(read_wb)
+      end
+    )
   end)
 
   describe("Menu & Action Dispatching", function()
@@ -119,11 +122,16 @@ describe("Wallabag plugin", function()
       wallabag.download_queue = {}
 
       local old_is_online = NetworkMgr.isOnline
-      NetworkMgr.isOnline = function() return false end
+      NetworkMgr.isOnline = function()
+        return false
+      end
 
       wallabag:addWallabagArticle("https://example.com/article1")
       assert.are.equal(1, #wallabag.download_queue)
-      assert.are.equal("https://example.com/article1", wallabag.download_queue[1])
+      assert.are.equal(
+        "https://example.com/article1",
+        wallabag.download_queue[1]
+      )
 
       NetworkMgr.isOnline = old_is_online
     end)

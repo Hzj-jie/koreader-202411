@@ -65,8 +65,16 @@ describe("ReaderCoptListener module", function()
       },
     }
     local mock_ui = {
-      rolling = { updateBatteryState = function() return 100 end },
-      doc_settings = { read = function() return nil end },
+      rolling = {
+        updateBatteryState = function()
+          return 100
+        end,
+      },
+      doc_settings = {
+        read = function()
+          return nil
+        end,
+      },
     }
     local listener = ReaderCoptListener:new({
       document = mock_doc,

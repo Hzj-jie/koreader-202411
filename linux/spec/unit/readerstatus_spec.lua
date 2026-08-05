@@ -44,7 +44,9 @@ describe("ReaderStatus module", function()
 
     it("should handle book marking", function()
       local mock_doc_settings = {
-        readTableRef = function() return { status = "reading" } end,
+        readTableRef = function()
+          return { status = "reading" }
+        end,
         save = function() end,
         flush = function() end,
       }

@@ -7,7 +7,8 @@ describe("NewsDownloader InternalDownloadBackend module", function()
 
     http = require("socket.http")
     socket = require("socket")
-    InternalDownloadBackend = require("plugins/newsdownloader.koplugin/internaldownloadbackend")
+    InternalDownloadBackend =
+      require("plugins/newsdownloader.koplugin/internaldownloadbackend")
   end)
 
   it("should handle maximum redirect limits", function()
@@ -23,7 +24,8 @@ describe("NewsDownloader InternalDownloadBackend module", function()
       return 1, 200, {}, "200 OK"
     end
 
-    local result = InternalDownloadBackend:getResponseAsString("http://example.com/feed")
+    local result =
+      InternalDownloadBackend:getResponseAsString("http://example.com/feed")
     assert.are.equal("Sample Response Body", result)
 
     http.request = old_request
@@ -35,14 +37,18 @@ describe("NewsDownloader InternalDownloadBackend module", function()
     http.request = function(req)
       calls = calls + 1
       if calls == 1 then
-        return 1, 302, { location = "http://example.com/redirected" }, "302 Found"
+        return 1,
+          302,
+          { location = "http://example.com/redirected" },
+          "302 Found"
       else
         req.sink("Redirected Content")
         return 1, 200, {}, "200 OK"
       end
     end
 
-    local result = InternalDownloadBackend:getResponseAsString("http://example.com/initial")
+    local result =
+      InternalDownloadBackend:getResponseAsString("http://example.com/initial")
     assert.are.equal("Redirected Content", result)
     assert.are.equal(2, calls)
 

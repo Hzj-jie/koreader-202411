@@ -35,7 +35,8 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       nb_rows_landscape = opts.nb_rows_landscape or 3,
       item_table = opts.item_table or {},
       page = opts.page or 1,
-      inner_dimen = opts.inner_dimen or Geom:new({ x = 0, y = 0, w = 600, h = 800 }),
+      inner_dimen = opts.inner_dimen
+        or Geom:new({ x = 0, y = 0, w = 600, h = 800 }),
       layout = {},
       item_group = {},
       items_to_update = {},
@@ -63,9 +64,15 @@ describe("Coverbrowser MosaicMenu unit tests", function()
 
   describe("Grid & Item Sizing Calculations (_recalculateDimen)", function()
     it("should calculate dimensions in portrait mode", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 25 do
@@ -93,31 +100,46 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       assert.are.equal(menu.item_height, menu.item_dimen.h)
     end)
 
-    it("should calculate exact item width and height from inner_dimen", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+    it(
+      "should calculate exact item width and height from inner_dimen",
+      function()
+        Screen.getWidth = function()
+          return 600
+        end
+        Screen.getHeight = function()
+          return 800
+        end
+        Screen.scaleBySize = function(_, size)
+          return size
+        end
 
-      local menu = createMockMenu({
-        nb_cols_portrait = 2,
-        nb_rows_portrait = 3,
-        inner_dimen = Geom:new({ x = 0, y = 0, w = 600, h = 900 }),
-        no_title = true,
-      })
+        local menu = createMockMenu({
+          nb_cols_portrait = 2,
+          nb_rows_portrait = 3,
+          inner_dimen = Geom:new({ x = 0, y = 0, w = 600, h = 900 }),
+          no_title = true,
+        })
 
-      menu:_recalculateDimen()
+        menu:_recalculateDimen()
 
-      -- margin = 10
-      -- item_width = floor((600 - (1 + 2) * 10) / 2) = floor(570 / 2) = 285
-      -- item_height = floor((900 - 0 - (1 + 3) * 10) / 3) = floor(860 / 3) = 286
-      assert.are.equal(285, menu.item_width)
-      assert.are.equal(286, menu.item_height)
-    end)
+        -- margin = 10
+        -- item_width = floor((600 - (1 + 2) * 10) / 2) = floor(570 / 2) = 285
+        -- item_height = floor((900 - 0 - (1 + 3) * 10) / 3) = floor(860 / 3) = 286
+        assert.are.equal(285, menu.item_width)
+        assert.are.equal(286, menu.item_height)
+      end
+    )
 
     it("should calculate dimensions in landscape mode", function()
-      Screen.getWidth = function() return 1024 end
-      Screen.getHeight = function() return 768 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 1024
+      end
+      Screen.getHeight = function()
+        return 768
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 20 do
@@ -143,9 +165,15 @@ describe("Coverbrowser MosaicMenu unit tests", function()
     end)
 
     it("should adjust page number if current page exceeds page_num", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 10 do
@@ -165,40 +193,70 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       assert.are.equal(2, menu.page)
     end)
 
-    it("should account for title bar and page info in available height", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+    it(
+      "should account for title bar and page info in available height",
+      function()
+        Screen.getWidth = function()
+          return 600
+        end
+        Screen.getHeight = function()
+          return 800
+        end
+        Screen.scaleBySize = function(_, size)
+          return size
+        end
 
-      local mock_title = { getSize = function() return { h = 40 } end }
-      local mock_page_info = { getSize = function() return { h = 30 } end }
+        local mock_title = {
+          getSize = function()
+            return { h = 40 }
+          end,
+        }
+        local mock_page_info = {
+          getSize = function()
+            return { h = 30 }
+          end,
+        }
 
-      local menu = createMockMenu({
-        nb_cols_portrait = 2,
-        nb_rows_portrait = 2,
-        inner_dimen = Geom:new({ x = 0, y = 0, w = 600, h = 800 }),
-        title_bar = mock_title,
-        page_info = mock_page_info,
-        is_borderless = false,
-        no_title = false,
-      })
+        local menu = createMockMenu({
+          nb_cols_portrait = 2,
+          nb_rows_portrait = 2,
+          inner_dimen = Geom:new({ x = 0, y = 0, w = 600, h = 800 }),
+          title_bar = mock_title,
+          page_info = mock_page_info,
+          is_borderless = false,
+          no_title = false,
+        })
 
-      menu:_recalculateDimen()
+        menu:_recalculateDimen()
 
-      -- others_height = 2 (border) + 40 (title) + 30 (page_info) = 72
-      assert.are.equal(72, menu.others_height)
-    end)
+        -- others_height = 2 (border) + 40 (title) + 30 (page_info) = 72
+        assert.are.equal(72, menu.others_height)
+      end
+    )
   end)
 
   describe("Grid Layout Generation (_updateItemsBuildUI)", function()
     it("should build grid layout for page 1", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 15 do
-        table.insert(items, { text = "Book " .. i, path = "/tmp/book" .. i .. ".epub", is_file = true })
+        table.insert(
+          items,
+          {
+            text = "Book " .. i,
+            path = "/tmp/book" .. i .. ".epub",
+            is_file = true,
+          }
+        )
       end
 
       local menu = createMockMenu({
@@ -223,13 +281,26 @@ describe("Coverbrowser MosaicMenu unit tests", function()
     end)
 
     it("should build grid layout for page navigation (page 2)", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 15 do
-        table.insert(items, { text = "Book " .. i, path = "/tmp/book" .. i .. ".epub", is_file = true })
+        table.insert(
+          items,
+          {
+            text = "Book " .. i,
+            path = "/tmp/book" .. i .. ".epub",
+            is_file = true,
+          }
+        )
       end
 
       local menu = createMockMenu({
@@ -252,13 +323,26 @@ describe("Coverbrowser MosaicMenu unit tests", function()
     end)
 
     it("should handle partial row on last page", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 7 do
-        table.insert(items, { text = "Book " .. i, path = "/tmp/book" .. i .. ".epub", is_file = true })
+        table.insert(
+          items,
+          {
+            text = "Book " .. i,
+            path = "/tmp/book" .. i .. ".epub",
+            is_file = true,
+          }
+        )
       end
 
       local menu = createMockMenu({
@@ -277,13 +361,26 @@ describe("Coverbrowser MosaicMenu unit tests", function()
     end)
 
     it("should calculate select_number for focused item", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {}
       for i = 1, 12 do
-        table.insert(items, { text = "Book " .. i, path = "/tmp/book" .. i .. ".epub", is_file = true })
+        table.insert(
+          items,
+          {
+            text = "Book " .. i,
+            path = "/tmp/book" .. i .. ".epub",
+            is_file = true,
+          }
+        )
       end
 
       local menu = createMockMenu({
@@ -301,9 +398,15 @@ describe("Coverbrowser MosaicMenu unit tests", function()
     end)
 
     it("should handle directory items in grid", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+      Screen.getWidth = function()
+        return 600
+      end
+      Screen.getHeight = function()
+        return 800
+      end
+      Screen.scaleBySize = function(_, size)
+        return size
+      end
 
       local items = {
         { text = "Folder 1/", mandatory = "5 items", is_file = false },
@@ -326,29 +429,42 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       assert.False(menu.layout[1][2].is_directory)
     end)
 
-    it("should register items in items_to_update if book info is missing", function()
-      Screen.getWidth = function() return 600 end
-      Screen.getHeight = function() return 800 end
-      Screen.scaleBySize = function(_, size) return size end
+    it(
+      "should register items in items_to_update if book info is missing",
+      function()
+        Screen.getWidth = function()
+          return 600
+        end
+        Screen.getHeight = function()
+          return 800
+        end
+        Screen.scaleBySize = function(_, size)
+          return size
+        end
 
-      local items = {
-        { text = "Book Untracked", path = "/nonexistent/test_book.epub", is_file = true },
-      }
+        local items = {
+          {
+            text = "Book Untracked",
+            path = "/nonexistent/test_book.epub",
+            is_file = true,
+          },
+        }
 
-      local menu = createMockMenu({
-        nb_cols_portrait = 2,
-        nb_rows_portrait = 1,
-        item_table = items,
-        page = 1,
-        do_covers = true,
-      })
+        local menu = createMockMenu({
+          nb_cols_portrait = 2,
+          nb_rows_portrait = 1,
+          item_table = items,
+          page = 1,
+          do_covers = true,
+        })
 
-      menu:_recalculateDimen()
-      menu:_updateItemsBuildUI()
+        menu:_recalculateDimen()
+        menu:_updateItemsBuildUI()
 
-      assert.are.equal(1, #menu.items_to_update)
-      assert.are.equal("Book Untracked", menu.items_to_update[1].text)
-    end)
+        assert.are.equal(1, #menu.items_to_update)
+        assert.are.equal("Book Untracked", menu.items_to_update[1].text)
+      end
+    )
 
     it("should handle empty item table gracefully", function()
       local menu = createMockMenu({

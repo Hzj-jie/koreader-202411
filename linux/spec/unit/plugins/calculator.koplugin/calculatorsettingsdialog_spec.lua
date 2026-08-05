@@ -19,7 +19,8 @@ describe("CalculatorSettingsDialog unit tests", function()
   end)
 
   local function createMockParent()
-    local mock_input_dialog = Widget:new({ dimen = Geom:new({ w = 100, h = 100 }) })
+    local mock_input_dialog =
+      Widget:new({ dimen = Geom:new({ w = 100, h = 100 }) })
     UIManager:show(mock_input_dialog)
     return {
       angle_mode = "degree",
@@ -132,10 +133,7 @@ describe("CalculatorSettingsDialog unit tests", function()
       "scientific",
       G_reader_settings:read("calculator_number_format")
     )
-    assert.are.equal(
-      8,
-      G_reader_settings:read("calculator_significant_places")
-    )
+    assert.are.equal(8, G_reader_settings:read("calculator_significant_places"))
     assert.are.equal("no", G_reader_settings:read("calculator_use_init_file"))
 
     -- Verify status line refreshed and calculator restarted

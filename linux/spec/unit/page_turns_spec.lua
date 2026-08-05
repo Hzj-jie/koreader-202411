@@ -24,19 +24,22 @@ describe("PageTurns element", function()
     assert.is_true(#PageTurns.sub_item_table >= 4)
   end)
 
-  it("should handle page turn toggle callbacks and checked functions", function()
-    local sub_items = PageTurns.sub_item_table
+  it(
+    "should handle page turn toggle callbacks and checked functions",
+    function()
+      local sub_items = PageTurns.sub_item_table
 
-    assert.is_boolean(sub_items[1].checked_func())
-    sub_items[1].callback()
+      assert.is_boolean(sub_items[1].checked_func())
+      sub_items[1].callback()
 
-    assert.is_boolean(sub_items[2].checked_func())
-    sub_items[2].callback()
+      assert.is_boolean(sub_items[2].checked_func())
+      sub_items[2].callback()
 
-    assert.is_string(sub_items[3].text_func())
-    assert.is_boolean(sub_items[3].enabled_func())
-    assert.is_table(sub_items[3].sub_item_table)
-  end)
+      assert.is_string(sub_items[3].text_func())
+      assert.is_boolean(sub_items[3].enabled_func())
+      assert.is_table(sub_items[3].sub_item_table)
+    end
+  )
 
   it("should handle tap zone configuration subitems", function()
     local tap_sub_items = PageTurns.sub_item_table[3].sub_item_table

@@ -10,25 +10,31 @@ describe("NewsDownloader main plugin module", function()
     NewsDownloader.path = "plugins/newsdownloader.koplugin"
   end)
 
-  it("should initialize NewsDownloader plugin and register to main menu", function()
-    local mock_ui = {
-      menu = {
-        registerToMainMenu = function() end,
-      },
-    }
+  it(
+    "should initialize NewsDownloader plugin and register to main menu",
+    function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
 
-    local inst = NewsDownloader:new({ ui = mock_ui, path = "plugins/newsdownloader.koplugin" })
-    inst:init()
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+      })
+      inst:init()
 
-    local menu_items = {}
-    inst:addToMainMenu(menu_items)
-    assert.is_table(menu_items.news_downloader)
-    assert.is_function(menu_items.news_downloader.sub_item_table_func)
+      local menu_items = {}
+      inst:addToMainMenu(menu_items)
+      assert.is_table(menu_items.news_downloader)
+      assert.is_function(menu_items.news_downloader.sub_item_table_func)
 
-    local sub_items = menu_items.news_downloader.sub_item_table_func()
-    assert.is_table(sub_items)
-    assert.is_true(#sub_items >= 3)
-  end)
+      local sub_items = menu_items.news_downloader.sub_item_table_func()
+      assert.is_table(sub_items)
+      assert.is_true(#sub_items >= 3)
+    end
+  )
 
   it("should perform lazy initialization and configure paths", function()
     local mock_ui = {
@@ -37,7 +43,10 @@ describe("NewsDownloader main plugin module", function()
       },
     }
 
-    local inst = NewsDownloader:new({ ui = mock_ui, path = "plugins/newsdownloader.koplugin" })
+    local inst = NewsDownloader:new({
+      ui = mock_ui,
+      path = "plugins/newsdownloader.koplugin",
+    })
     inst:lazyInitialization()
 
     assert.is_true(inst.initialized)
@@ -60,7 +69,10 @@ describe("NewsDownloader main plugin module", function()
       },
     }
 
-    local inst = NewsDownloader:new({ ui = mock_ui, path = "plugins/newsdownloader.koplugin" })
+    local inst = NewsDownloader:new({
+      ui = mock_ui,
+      path = "plugins/newsdownloader.koplugin",
+    })
     inst:lazyInitialization()
     inst:openDownloadsFolder()
 
@@ -81,7 +93,10 @@ describe("NewsDownloader main plugin module", function()
       setLastDirForFileBrowser = function() end,
     }
 
-    local inst = NewsDownloader:new({ ui = mock_ui, path = "plugins/newsdownloader.koplugin" })
+    local inst = NewsDownloader:new({
+      ui = mock_ui,
+      path = "plugins/newsdownloader.koplugin",
+    })
     inst.download_dir = "/tmp/news/"
 
     inst:onCloseDocument()

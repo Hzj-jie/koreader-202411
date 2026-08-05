@@ -25,7 +25,8 @@ describe("OPDSPSE Kavita page stream module", function()
       end
     end
 
-    local remote_url = "http://example.com/api/opds/abc123key/image?chapterId=42"
+    local remote_url =
+      "http://example.com/api/opds/abc123key/image?chapterId=42"
     local page = OPDSPSE:getLastPage(remote_url, "user", "pass")
     assert.are.equal("5", page)
 
@@ -38,7 +39,8 @@ describe("OPDSPSE Kavita page stream module", function()
       return nil
     end
 
-    local remote_url = "http://example.com/api/opds/abc123key/image?chapterId=42"
+    local remote_url =
+      "http://example.com/api/opds/abc123key/image?chapterId=42"
     local page = OPDSPSE:getLastPage(remote_url, "user", "pass")
     assert.are.equal(0, page)
 

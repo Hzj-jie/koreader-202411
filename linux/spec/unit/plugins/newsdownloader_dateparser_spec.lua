@@ -24,27 +24,35 @@ describe("NewsDownloader dateparser module", function()
     assert.is_number(ts_frac)
   end)
 
-  it("should parse RFC2822 / RFC822 date strings with timezone names and offsets", function()
-    local ts1 = dateparser.parse("Wed, 15 May 2024 12:34:56 GMT", "RFC2822")
-    assert.is_number(ts1)
+  it(
+    "should parse RFC2822 / RFC822 date strings with timezone names and offsets",
+    function()
+      local ts1 = dateparser.parse("Wed, 15 May 2024 12:34:56 GMT", "RFC2822")
+      assert.is_number(ts1)
 
-    local ts2 = dateparser.parse("15 May 2024 12:34:56 +0000", "RFC822")
-    assert.is_number(ts2)
+      local ts2 = dateparser.parse("15 May 2024 12:34:56 +0000", "RFC822")
+      assert.is_number(ts2)
 
-    local ts3 = dateparser.parse("Wed, 15 May 2024 12:34:56 EST")
-    assert.is_number(ts3)
-  end)
+      local ts3 = dateparser.parse("Wed, 15 May 2024 12:34:56 EST")
+      assert.is_number(ts3)
+    end
+  )
 
-  it("should register custom date format handlers and handle invalid registration", function()
-    local ok, err = dateparser.register_format("custom", function(s)
-      if s == "valid_custom" then return 1234567890 end
-    end)
-    assert.is_true(ok)
+  it(
+    "should register custom date format handlers and handle invalid registration",
+    function()
+      local ok, err = dateparser.register_format("custom", function(s)
+        if s == "valid_custom" then
+          return 1234567890
+        end
+      end)
+      assert.is_true(ok)
 
-    assert.are.equal(1234567890, dateparser.parse("valid_custom", "custom"))
+      assert.are.equal(1234567890, dateparser.parse("valid_custom", "custom"))
 
-    local bad_ok, bad_err = dateparser.register_format(123, nil)
-    assert.is_nil(bad_ok)
-    assert.is_string(bad_err)
-  end)
+      local bad_ok, bad_err = dateparser.register_format(123, nil)
+      assert.is_nil(bad_ok)
+      assert.is_string(bad_err)
+    end
+  )
 end)

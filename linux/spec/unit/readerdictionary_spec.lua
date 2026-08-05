@@ -123,18 +123,21 @@ describe("Readerdictionary module", function()
     UIManager:close(readerui)
   end)
 
-  it("should register dispatcher actions and handle settings persistence", function()
-    if type(dictionary.onDispatcherRegisterActions) == "function" then
-      dictionary:onDispatcherRegisterActions()
-    end
+  it(
+    "should register dispatcher actions and handle settings persistence",
+    function()
+      if type(dictionary.onDispatcherRegisterActions) == "function" then
+        dictionary:onDispatcherRegisterActions()
+      end
 
-    if type(dictionary.onReadSettings) == "function" then
-      dictionary:onReadSettings(readerui.doc_settings)
+      if type(dictionary.onReadSettings) == "function" then
+        dictionary:onReadSettings(readerui.doc_settings)
+      end
+      if type(dictionary.onSaveSettings) == "function" then
+        dictionary:onSaveSettings()
+      end
     end
-    if type(dictionary.onSaveSettings) == "function" then
-      dictionary:onSaveSettings()
-    end
-  end)
+  )
 
   it("should handle word cleaning and main menu items", function()
     if type(dictionary.cleanWord) == "function" then

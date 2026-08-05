@@ -6,7 +6,8 @@ describe("CalculatorUnitsDialog widget", function()
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
-    CalculatorUnitsDialog = require("plugins/calculator.koplugin/calculatorunitsdialog")
+    CalculatorUnitsDialog =
+      require("plugins/calculator.koplugin/calculatorunitsdialog")
   end)
 
   it("should initialize CalculatorUnitsDialog widget", function()

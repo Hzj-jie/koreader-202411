@@ -11,7 +11,9 @@ describe("My Clippings Exporter target module", function()
 
   it("should format and export clippings to file", function()
     local tmp_file = os.tmpname()
-    ClippingsExporter.getFilePath = function() return tmp_file end
+    ClippingsExporter.getFilePath = function()
+      return tmp_file
+    end
 
     local notes = {
       {

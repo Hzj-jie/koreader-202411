@@ -23,7 +23,9 @@ describe("Nextcloud Exporter target module", function()
   end)
 
   it("should build menu table with configuration callbacks", function()
-    NextcloudExporter.isEnabled = function() return true end
+    NextcloudExporter.isEnabled = function()
+      return true
+    end
     local menu = NextcloudExporter:getMenuTable()
 
     assert.is_table(menu)
@@ -62,7 +64,12 @@ describe("Nextcloud Exporter target module", function()
         title = "Test Book",
         author = "Author",
         {
-          { text = "Sample clipping", page = 1, time = 1715774400, chapter = "Ch 1" },
+          {
+            text = "Sample clipping",
+            page = 1,
+            time = 1715774400,
+            chapter = "Ch 1",
+          },
         },
       },
     }

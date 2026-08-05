@@ -17,7 +17,8 @@ describe("slt2 template engine module", function()
   end)
 
   it("should load template string and render with env", function()
-    local tmpl = "Hello #{= name }#! Count: #{ for i = 1, 2 do }##{= i }# #{ end }#"
+    local tmpl =
+      "Hello #{= name }#! Count: #{ for i = 1, 2 do }##{= i }# #{ end }#"
     local t = slt2.loadstring(tmpl)
     assert.is_table(t)
     assert.is_function(t.code)

@@ -15,7 +15,12 @@ describe("HTML Exporter target module", function()
       title = "HTML Book",
       author = "Author Name",
       {
-        { chapter = "Chapter 1", text = "HTML Clipping", page = 1, time = 1715774400 },
+        {
+          chapter = "Chapter 1",
+          text = "HTML Clipping",
+          page = 1,
+          time = 1715774400,
+        },
       },
     }
 
@@ -26,7 +31,9 @@ describe("HTML Exporter target module", function()
 
   it("should export HTML content to file", function()
     local tmp_file = os.tmpname()
-    HtmlExporter.getFilePath = function() return tmp_file end
+    HtmlExporter.getFilePath = function()
+      return tmp_file
+    end
 
     local notes = {
       {

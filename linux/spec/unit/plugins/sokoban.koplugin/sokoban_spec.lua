@@ -79,22 +79,25 @@ describe("Sokoban game logic unit tests", function()
     assert.are.equal(Game.BOX, g.grid[5][5])
   end)
 
-  it("should not allow pushing two boxes or pushing a box into a wall", function()
-    -- Construct a level with two adjacent boxes:
-    -- @ $ $ .
-    local level = "####\n#@$$.#\n####"
-    local g = Game.from_xsb(level)
-    assert.are.equal(2, g.player_r)
-    assert.are.equal(2, g.player_c)
-    -- Try to push right (0,1): should fail because two boxes ($ at 2,3 and $ at 2,4)
-    assert.False(g:move(0, 1))
+  it(
+    "should not allow pushing two boxes or pushing a box into a wall",
+    function()
+      -- Construct a level with two adjacent boxes:
+      -- @ $ $ .
+      local level = "####\n#@$$.#\n####"
+      local g = Game.from_xsb(level)
+      assert.are.equal(2, g.player_r)
+      assert.are.equal(2, g.player_c)
+      -- Try to push right (0,1): should fail because two boxes ($ at 2,3 and $ at 2,4)
+      assert.False(g:move(0, 1))
 
-    -- Try to push a box into a wall:
-    -- @ $ #
-    local level2 = "####\n#@$#\n####"
-    local g2 = Game.from_xsb(level2)
-    assert.False(g2:move(0, 1))
-  end)
+      -- Try to push a box into a wall:
+      -- @ $ #
+      local level2 = "####\n#@$#\n####"
+      local g2 = Game.from_xsb(level2)
+      assert.False(g2:move(0, 1))
+    end
+  )
 
   it("should support undoing moves and pushes", function()
     local g = buildSimpleLevel()
