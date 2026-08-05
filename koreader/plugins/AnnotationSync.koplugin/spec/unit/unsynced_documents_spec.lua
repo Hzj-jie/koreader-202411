@@ -208,9 +208,13 @@ describe("Unsynced / Pending Documents Feature", function()
       os.execute("touch " .. scan_dir .. "/book1.epub")
       os.execute("touch " .. scan_dir .. "/book1.sdr/metadata.epub.lua")
 
-      table.insert(readhistory.hist, { file = scan_dir .. "/book1.epub", time = os.time() })
+      table.insert(
+        readhistory.hist,
+        { file = scan_dir .. "/book1.epub", time = os.time() }
+      )
 
-      local count, added = sync_instance.manager:scanLibraryForUnsyncedDocuments()
+      local count, added =
+        sync_instance.manager:scanLibraryForUnsyncedDocuments()
       assert.is_true(count >= 1)
       assert.is_true(added[scan_dir .. "/book1.epub"])
       assert.is_true(sync_instance.manager:hasPendingChangedDocuments())

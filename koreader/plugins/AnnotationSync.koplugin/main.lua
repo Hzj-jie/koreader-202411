@@ -1,3 +1,4 @@
+local ConfirmBox = require("ui/widget/confirmbox")
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
@@ -26,10 +27,6 @@ local manual_sync_description =
   "Sync annotations and bookmarks of the active document."
 local sync_all_description =
   "Sync annotations and bookmarks of all unsynced documents with pending modifications."
-local jump_to_device_progress_description =
-  "Jump to the reading progress of another device."
-local push_progress_description =
-  "Push the reading progress of the active document to the cloud."
 
 local AnnotationSyncPlugin = WidgetContainer:extend({
   -- see also: _meta.lua
@@ -43,9 +40,6 @@ AnnotationSyncPlugin.default_settings = {
   last_sync = "Never",
   use_filename = false,
   network_auto_sync = false,
-  progress_sync = false,
-  progress_sync_interval = 1,
-  progress_sync_last_word = false,
   device_name = "",
   selected_settings = {},
 }
@@ -86,11 +80,6 @@ function AnnotationSyncPlugin:init()
   end
 
   -- Sanitize corrupted settings
-  if type(self.settings.progress_sync_interval) ~= "number" then
-    self.settings.progress_sync_interval =
-      self.default_settings.progress_sync_interval
-  end
-
   self.manager = SyncManager:new(self)
 
   -- Migrate old annotation_sync_use_filename setting
@@ -262,66 +251,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               UIManager:close()
             end,
           },
-          {
-            text = gettext("Enable Reading Progress Sync"),
-            enabled_func = function()
-              return self.ui.cloudstorage ~= nil
-            end,
-            checked_func = function()
-              return self.settings.progress_sync
-            end,
-            callback = function()
-              self.settings.progress_sync = not self.settings.progress_sync
-              self:saveSettings()
-              UIManager:close()
-            end,
-          },
-          {
-            text = gettext("Sync using last word of page"),
-            enabled_func = function()
-              return self.ui.cloudstorage ~= nil and self.settings.progress_sync
-            end,
-            checked_func = function()
-              return self.settings.progress_sync_last_word
-            end,
-            callback = function()
-              self.settings.progress_sync_last_word =
-                not self.settings.progress_sync_last_word
-              self:saveSettings()
-              UIManager:close()
-            end,
-          },
-          {
-            text_func = function()
-              return T(
-                gettext("Sync every %1 pages"),
-                self.settings.progress_sync_interval
-              )
-            end,
-            enabled_func = function()
-              return self.ui.cloudstorage ~= nil and self.settings.progress_sync
-            end,
-            callback = function()
-              local input
-              input = InputDialog:new({
-                title = gettext("Sync every # pages"),
-                input = tostring(self.settings.progress_sync_interval),
-                input_type = "number",
-                save_callback = function(val)
-                  local n = tonumber(val)
-                  if n and n > 0 then
-                    self.settings.progress_sync_interval = math.floor(n)
-                    self:saveSettings()
-                    if self.ui.menu and self.ui.menu.showMainMenu then
-                      self.ui.menu:showMainMenu()
-                    end
-                    return true
-                  end
-                end,
-              })
-              UIManager:show(input)
-            end,
-          },
+
           {
             text_func = function()
               local dev_name = self.settings.device_name
@@ -405,28 +335,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Push reading progress"),
-        enabled_func = function()
-          return self.ui.cloudstorage ~= nil
-            and ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
-            and ((self.ui and self.ui.document) ~= nil)
-        end,
-        callback = function()
-          self:onAnnotationSyncPushProgress()
-        end,
-      },
-      {
-        text = gettext("Jump to device progress"),
-        enabled_func = function()
-          return self.ui.cloudstorage ~= nil
-            and ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
-            and ((self.ui and self.ui.document) ~= nil)
-        end,
-        callback = function()
-          self.manager:pullProgress()
-        end,
-      },
-      {
         text = gettext("Sync All"),
         enabled = true,
         hold_callback = function()
@@ -501,19 +409,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       },
     },
   }
-
-  if self.ui.cloudstorage == nil then
-    table.insert(menu_items.annotation_sync_plugin.sub_item_table, {
-      text = gettext("Why are some options greyed out?"),
-      callback = function()
-        UIManager:show(InfoMessage:new({
-          text = gettext(
-            "Reading progress sync features are disabled because your KOReader version does not support the cloudstorage plugin.\n\nThese features require a newer KOReader release (not yet available in stable releases)."
-          ),
-        }))
-      end,
-    })
-  end
 end
 
 function AnnotationSyncPlugin:registerEvents()
@@ -586,83 +481,6 @@ function AnnotationSyncPlugin:onAnnotationSyncPullSettings()
   return true
 end
 
-function AnnotationSyncPlugin:onAnnotationSyncJumpToDeviceProgress()
-  if not self.ui.cloudstorage then
-    utils.show_msg(
-      gettext(
-        "Reading progress sync is not supported on this version of KOReader."
-      )
-    )
-    return true
-  end
-  local document = self.ui and self.ui.document
-  if not document or not document.file then
-    utils.show_msg(
-      gettext("A document must be active to jump to device progress.")
-    )
-    return true
-  end
-  self.manager:pullProgress()
-  return true
-end
-
-function AnnotationSyncPlugin:onAnnotationSyncPushProgress()
-  if not self.ui.cloudstorage then
-    utils.show_msg(
-      gettext(
-        "Reading progress sync is not supported on this version of KOReader."
-      )
-    )
-    return true
-  end
-  local document = self.ui and self.ui.document
-  if not document or not document.file then
-    utils.show_msg(
-      gettext("A document must be active to push reading progress.")
-    )
-    return true
-  end
-  utils.show_msg(gettext("Pushing reading progress..."))
-  self.manager:syncProgress(function(success)
-    if success then
-      utils.show_msg(gettext("Reading progress pushed successfully."))
-    else
-      utils.show_msg(gettext("Failed to push reading progress."))
-    end
-  end)
-  return true
-end
-
-function AnnotationSyncPlugin:onPageUpdate(page_pos)
-  if self.manager then
-    self.manager:onPageUpdate(page_pos)
-  end
-end
-
-function AnnotationSyncPlugin:onPosUpdate(page_pos)
-  if self.manager then
-    self.manager:onPageUpdate(page_pos)
-  end
-end
-
-function AnnotationSyncPlugin:onPagePositionUpdated(page_pos)
-  if self.manager then
-    self.manager:onPageUpdate(page_pos)
-  end
-end
-
-function AnnotationSyncPlugin:onCloseDocument()
-  if self.manager then
-    self.manager:onCloseDocument()
-  end
-end
-
-function AnnotationSyncPlugin:onSuspend()
-  if self.manager then
-    self.manager:onSuspend()
-  end
-end
-
 function AnnotationSyncPlugin:onDispatcherRegisterActions()
   Dispatcher:registerAction("annotation_sync_manual_sync", {
     category = "none",
@@ -687,22 +505,6 @@ function AnnotationSyncPlugin:onDispatcherRegisterActions()
     text = gettext("Pull the selected settings from the cloud."),
     separator = true,
     general = true,
-  })
-  Dispatcher:registerAction("annotation_sync_push_progress", {
-    category = "none",
-    event = "AnnotationSyncPushProgress",
-    title = gettext("AnnotationSync: Push reading progress"),
-    text = gettext(push_progress_description),
-    separator = true,
-    reader = true,
-  })
-  Dispatcher:registerAction("annotation_sync_jump_to_device_progress", {
-    category = "none",
-    event = "AnnotationSyncJumpToDeviceProgress",
-    title = gettext("AnnotationSync: Jump to device progress"),
-    text = gettext(jump_to_device_progress_description),
-    separator = true,
-    reader = true,
   })
   Dispatcher:registerAction("annotation_sync_sync_all", {
     category = "none",

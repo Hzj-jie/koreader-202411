@@ -159,7 +159,7 @@ The project includes a comprehensive integration test suite. To run them, you ne
 2. **Execute Tests**: Run all tests or a specific suite using `./kodev`:
    ```bash
    # Run all AnnotationSync integration tests
-   ./kodev test front sync_integration sync_pdf_integration sync_bookmark sync_mixed_offline sync_protection sync_trash error_handling progress_sync_integration settings_persistence background_sync backward_compatibility
+   ./kodev test front sync_integration sync_pdf_integration sync_bookmark sync_mixed_offline sync_protection sync_trash error_handling settings_persistence background_sync backward_compatibility
    ```
 
 ## 🤝 Contributing

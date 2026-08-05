@@ -23,59 +23,12 @@ local SyncManager = {}
 function SyncManager:new(plugin)
   local o = {
     plugin = plugin,
-    page_turn_counter = 0,
-    last_page = 0,
     is_syncing = false,
-    sync_progress_scheduled = false,
     has_pending_sync = false,
   }
-  o.sync_progress_task = function()
-    o.sync_progress_scheduled = false
-    o:syncProgress()
-  end
   setmetatable(o, self)
   self.__index = self
   return o
-end
-
-function SyncManager:onPageUpdate(_)
-  if
-    not self.plugin.ui.cloudstorage or not self.plugin.settings.progress_sync
-  then
-    return
-  end
-  logger.dbg("AnnotationSync: onPageUpdate event received")
-
-  local current_page = self.plugin.ui:getCurrentPage()
-  if current_page ~= self.last_page then
-    self.page_turn_counter = self.page_turn_counter + 1
-    self.last_page = current_page
-  end
-
-  if self.page_turn_counter >= self.plugin.settings.progress_sync_interval then
-    self.page_turn_counter = 0
-    if self.sync_progress_scheduled then
-      UIManager:unschedule(self.sync_progress_task)
-    end
-    UIManager:scheduleIn(3, self.sync_progress_task)
-    self.sync_progress_scheduled = true
-  end
-end
-
-function SyncManager:onCloseDocument()
-  if self.sync_progress_scheduled then
-    UIManager:unschedule(self.sync_progress_task)
-    self.sync_progress_scheduled = false
-    self:syncProgress()
-  end
-end
-
-function SyncManager:onSuspend()
-  if self.sync_progress_scheduled then
-    UIManager:unschedule(self.sync_progress_task)
-    self.sync_progress_scheduled = false
-    self:syncProgress()
-  end
 end
 
 function SyncManager:checkPendingSync()
@@ -95,226 +48,6 @@ function SyncManager:getDeviceName()
     return self.plugin.settings.device_name
   end
   return Device.model or "unknown"
-end
-
-function SyncManager:saveLocalProgress(document, json_path)
-  local file = document.file
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    return false
-  end
-
-  -- Ensure the local sidecar directory exists
-  if not lfs.attributes(sdr_dir, "mode") then
-    logger.info(
-      "AnnotationSync: creating missing sidecar directory: " .. sdr_dir
-    )
-    util.makePath(sdr_dir)
-  end
-
-  local device_id = self:getDeviceName()
-  local page = self.plugin.ui:getCurrentPage()
-  local total = 0
-  if self.plugin.ui.paging then
-    total = self.plugin.ui.paging.number_of_pages or 0
-  end
-  if total <= 0 and self.plugin.ui.document then
-    total = self.plugin.ui.document:getPageCount() or 0
-  end
-
-  local percentage = 0
-  local paging_module = self.plugin.ui.paging or self.plugin.ui.rolling
-  if paging_module then
-    percentage = paging_module:getLastPercent() or 0
-  end
-
-  if percentage <= 0 and total > 0 then
-    percentage = page / total
-  end
-
-  local pos = paging_module
-    and paging_module.getLastProgress
-    and paging_module:getLastProgress()
-  if type(pos) == "string" and self.plugin.settings.progress_sync_last_word then
-    local view = self.plugin.ui.view
-    if view and view.view_mode == "page" then
-      local doc = self.plugin.ui.document
-      if doc and doc.isXPointerInDocument and doc:isXPointerInDocument(pos) then
-        if doc.getPageXPointer and doc.getPrevVisibleWordStart then
-          local next_page_xp = doc:getPageXPointer(page + 1)
-          if next_page_xp then
-            local xp = next_page_xp
-            for i = 1, 3 do
-              local prev_xp = doc:getPrevVisibleWordStart(xp)
-              if prev_xp then
-                xp = prev_xp
-              else
-                break
-              end
-            end
-            if xp ~= next_page_xp then
-              pos = xp
-            end
-          end
-        end
-      end
-    end
-  end
-
-  local current_progress = {
-    page = page,
-    percentage = percentage,
-    pos = pos,
-    timestamp = os.date("%Y-%m-%d %H:%M:%S"),
-  }
-
-  local local_data = utils.read_json(json_path) or {}
-  -- Normalize if old format
-  if local_data.device and local_data.page then
-    local old_device = local_data.device
-    local_data = {
-      [old_device] = {
-        page = local_data.page,
-        percentage = local_data.percentage,
-        pos = local_data.pos,
-        timestamp = local_data.timestamp,
-      },
-    }
-  end
-
-  local_data[device_id] = current_progress
-
-  return util.writeToFile(json.encode(local_data), json_path)
-end
-
-function SyncManager:syncProgress(on_complete)
-  if self.is_syncing then
-    self.has_pending_sync = true
-    if on_complete then
-      on_complete(false)
-    end
-    return
-  end
-  self.is_syncing = true
-  self.has_pending_sync = false
-
-  if not NetworkMgr:isConnected() then
-    logger.info(
-      "AnnotationSync: network is disconnected, skipping progress sync"
-    )
-    self.is_syncing = false
-    self:checkPendingSync()
-    if on_complete then
-      on_complete(false)
-    end
-    return
-  end
-
-  logger.info("AnnotationSync: starting progress sync")
-
-  local document = self.plugin.ui and self.plugin.ui.document
-  if not document then
-    self.is_syncing = false
-    self:checkPendingSync()
-    if on_complete then
-      on_complete(false)
-    end
-    return
-  end
-
-  local file = document.file
-  if not file then
-    self.is_syncing = false
-    self:checkPendingSync()
-    if on_complete then
-      on_complete(false)
-    end
-    return
-  end
-
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    self.is_syncing = false
-    self:checkPendingSync()
-    if on_complete then
-      on_complete(false)
-    end
-    return
-  end
-
-  local filename = self:_getProgressFilename(file)
-  local json_path = sdr_dir .. "/" .. filename
-
-  if self:saveLocalProgress(document, json_path) then
-    logger.dbg("AnnotationSync: pushing progress to remote: " .. json_path)
-    UIManager:scheduleIn(0.1, function()
-      remote.push_progress_bg(self.plugin, json_path, function(success)
-        self.is_syncing = false
-        if success then
-          logger.dbg("AnnotationSync: progress sync successful")
-        else
-          logger.warn("AnnotationSync: progress sync failed")
-        end
-        if on_complete then
-          on_complete(success)
-        end
-        self:checkPendingSync()
-      end)
-    end)
-  else
-    logger.warn("AnnotationSync: failed to write progress JSON: " .. json_path)
-    self.is_syncing = false
-    self:checkPendingSync()
-    if on_complete then
-      on_complete(false)
-    end
-  end
-end
-
-function SyncManager:pullProgress()
-  if not self.plugin.ui.cloudstorage then
-    utils.show_msg(
-      gettext(
-        "Reading progress sync is not supported on this version of KOReader."
-      )
-    )
-    return
-  end
-
-  if not NetworkMgr:isConnected() then
-    utils.show_msg(gettext("Network is disconnected, cannot pull progress"))
-    return
-  end
-
-  local document = self.plugin.ui and self.plugin.ui.document
-  if not document then
-    return
-  end
-
-  local file = document.file
-  if not file then
-    return
-  end
-
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    return
-  end
-
-  local filename = self:_getProgressFilename(file)
-  local json_path = sdr_dir .. "/" .. filename
-
-  -- Ensure local progress is saved so local file and sidecar dir exist before pulling
-  self:saveLocalProgress(document, json_path)
-
-  utils.show_msg(gettext("Fetching remote progress..."))
-  remote.pull_progress(self.plugin, json_path, function(success, merged_data)
-    if success and merged_data then
-      menus.show_jump_menu(self.plugin, merged_data)
-    else
-      utils.show_msg(gettext("Failed to fetch remote progress"))
-    end
-  end)
 end
 
 -- Sync all changed documents listed in changed_documents.lua
@@ -539,7 +272,9 @@ function SyncManager:scanLibraryForUnsyncedDocuments()
   if readhistory and type(readhistory.hist) == "table" then
     for _, item in ipairs(readhistory.hist) do
       if item and item.file and lfs.attributes(item.file, "mode") == "file" then
-        if docsettings:hasSidecarFile(item.file) and not added_files[item.file] then
+        if
+          docsettings:hasSidecarFile(item.file) and not added_files[item.file]
+        then
           added_files[item.file] = true
           count = count + 1
         end
@@ -669,16 +404,6 @@ function SyncManager:_getAnnotationFilename(file)
   local hash = file and type(file) == "string" and util.partialMD5(file)
     or gettext("No hash")
   return hash .. ".json"
-end
-
-function SyncManager:_getProgressFilename(file)
-  if self.plugin.settings.use_filename then
-    local filename = file:match("([^/]+)$") or file
-    return filename .. ".progress.json"
-  end
-  local hash = file and type(file) == "string" and util.partialMD5(file)
-    or gettext("No hash")
-  return hash .. ".progress.json"
 end
 
 function SyncManager:_onSyncComplete(document, success, merged_list)

@@ -1,5 +1,4 @@
 local ConfirmBox = require("ui/widget/confirmbox")
-local Event = require("ui/event")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
@@ -82,74 +81,6 @@ function M.show_deleted_annotations(plugin, document)
     item_table = menu_items,
   })
   UIManager:show(deleted_menu)
-end
-
-function M.show_jump_menu(plugin, progress_map)
-  local menu_items = {}
-  local jump_menu
-
-  local device_id = plugin.manager:getDeviceName()
-
-  -- Sort devices by percentage descending, breaking ties alphabetically by device name
-  local devices = {}
-  for dev_id, data in pairs(progress_map) do
-    table.insert(devices, { id = dev_id, data = data })
-  end
-  table.sort(devices, function(a, b)
-    local a_pct = a.data.percentage or 0
-    local b_pct = b.data.percentage or 0
-    if a_pct ~= b_pct then
-      return a_pct > b_pct
-    end
-    return a.id < b.id
-  end)
-
-  for __, dev in ipairs(devices) do
-    local is_current = (dev.id == device_id)
-    local percentage = (dev.data.percentage or 0) * 100
-    local text = string.format(
-      "%s: Page %d (%d%%)",
-      dev.id,
-      dev.data.page or 0,
-      math.floor(percentage + 0.5)
-    )
-    if is_current then
-      text = text .. " " .. gettext("(this device)")
-    end
-
-    table.insert(menu_items, {
-      text = text,
-      sub_text = dev.data.timestamp,
-      callback = function()
-        if dev.data.pos then
-          if plugin.ui.link then
-            plugin.ui.link:onGotoLink({ xpointer = dev.data.pos })
-          else
-            plugin.ui:handleEvent(Event:new("GotoPos", dev.data.pos))
-            UIManager:broadcastEvent(Event:new("GotoPos", dev.data.pos))
-          end
-        else
-          plugin.ui:handleEvent(Event:new("GotoPage", dev.data.page))
-          UIManager:broadcastEvent(Event:new("JumpToPage", dev.data.page))
-        end
-        utils.show_msg(
-          T(gettext("Jumped to page %1 from %2"), dev.data.page, dev.id)
-        )
-        UIManager:close(jump_menu)
-      end,
-    })
-  end
-
-  if #menu_items == 0 then
-    utils.show_msg(gettext("No remote progress found."))
-    return
-  end
-
-  jump_menu = Menu:new({
-    title = gettext("Jump to device progress"),
-    item_table = menu_items,
-  })
-  UIManager:show(jump_menu)
 end
 
 function M.show_devices_menu(plugin, settings_map)

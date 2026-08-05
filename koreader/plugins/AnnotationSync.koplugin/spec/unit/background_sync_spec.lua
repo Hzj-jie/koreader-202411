@@ -65,62 +65,6 @@ describe("Background Sync Behavior", function()
     }
   end)
 
-  it("push_progress_bg uses Trapper for background execution", function()
-    local wrap_called = false
-    local subprocess_called = false
-
-    Trapper.wrap = function(this, func)
-      wrap_called = true
-      func()
-    end
-    Trapper.dismissableRunInSubprocess = function(this, func, is_blocking)
-      subprocess_called = true
-      local success = func()
-      return true, success
-    end
-
-    local on_complete_called = false
-    remote.push_progress_bg(mock_widget, "dummy.json", function(success)
-      on_complete_called = true
-      assert.is_true(success)
-    end)
-
-    assert.is_true(wrap_called)
-    assert.is_true(subprocess_called)
-    assert.is_true(on_complete_called)
-  end)
-
-  it("push_progress_bg fails silently (no UI) on error", function()
-    -- Simulate sync failure
-    SyncService.sync = function(server, local_path, callback, upload_only)
-      return false
-    end
-
-    local on_complete_called = false
-    remote.push_progress_bg(mock_widget, "dummy.json", function(success)
-      on_complete_called = true
-      assert.is_false(success)
-    end)
-
-    assert.is_true(on_complete_called)
-    -- Verify no InfoMessage was shown
-    assert.spy(UIManager.show).was_not_called()
-  end)
-
-  it("pull_progress remains synchronous and does NOT use Trapper", function()
-    local wrap_called = false
-    Trapper.wrap = function(this, func)
-      wrap_called = true
-      func()
-    end
-
-    remote.pull_progress(mock_widget, "dummy.json", function(success)
-      assert.is_true(success)
-    end)
-
-    assert.is_false(wrap_called)
-  end)
-
   it("sync_annotations remains synchronous and does NOT use Trapper", function()
     local wrap_called = false
     Trapper.wrap = function(this, func)
@@ -141,20 +85,5 @@ describe("Background Sync Behavior", function()
 
     assert.is_false(wrap_called)
     annotations.sync_callback = old_sync_callback
-  end)
-
-  it("push_progress_bg handles subprocess crash/interruption", function()
-    Trapper.dismissableRunInSubprocess = function(this, func, is_blocking)
-      -- completed = false, success = nil
-      return false, nil
-    end
-
-    local on_complete_called = false
-    remote.push_progress_bg(mock_widget, "dummy.json", function(success)
-      on_complete_called = true
-      assert.is_false(success)
-    end)
-
-    assert.is_true(on_complete_called)
   end)
 end)
