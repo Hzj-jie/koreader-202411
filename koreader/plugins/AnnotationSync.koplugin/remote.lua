@@ -36,20 +36,6 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
   end
 
   local server = widget.settings.sync_server
-  if not server then
-    local LuaSettings = require("luasettings")
-    local DataStorage = require("datastorage")
-    local cs_settings = LuaSettings:open(
-      DataStorage:getSettingsDir() .. "/cloudstorage.lua"
-    )
-    local added_servers = cs_settings:readTableRef("cs_servers")
-    if added_servers and #added_servers > 0 then
-      server = added_servers[1]
-      widget.settings.sync_server = server
-      widget:saveSettings()
-    end
-  end
-
   if server then
     if widget.ui.cloudstorage then
       widget.ui.cloudstorage:sync(server, json_path, sync_cb, is_silent)

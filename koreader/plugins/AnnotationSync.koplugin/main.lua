@@ -222,15 +222,15 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
             end,
             callback = function()
               if has_syncservice then
-                local sync_service = SyncService:new({
-                  onConfirm = function(server)
-                    self:onSyncServiceConfirm(server)
-                  end,
-                })
+                local sync_service = SyncService:new({})
+                sync_service.onConfirm = function(server)
+                  self:onSyncServiceConfirm(server)
+                end
                 UIManager:show(sync_service)
               else
-                local cloud_storage = require("apps/cloudstorage/cloudstorage"):new()
-                UIManager:show(cloud_storage)
+                utils.show_msg(
+                  gettext("Cloud storage service is not available.")
+                )
               end
             end,
           },
