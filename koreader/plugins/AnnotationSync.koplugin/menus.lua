@@ -201,7 +201,7 @@ function M.show_differing_settings_menu(
       for __, diff in ipairs(differing) do
         if checked[diff.key] then
           if
-            plugin.manager:writeLocalSettingValue(diff.key, diff.remote_val)
+            plugin.manager:_writeLocalSettingValue(diff.key, diff.remote_val)
           then
             count = count + 1
           end

@@ -423,7 +423,7 @@ function AnnotationSyncPlugin:onTimesChange_1M()
     and self.manager:hasPendingChangedDocuments()
   then
     logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
-    self.manager:syncPendingDocumentsBg(60)
+    self.manager:_syncPendingDocumentsBg(60)
   end
 end
 
@@ -577,7 +577,7 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   self:applySyncedAnnotations(document, current)
 
   -- 4. Flush to local sync JSON immediately (Fix for Issue #39 delayed flush)
-  self.manager:writeAnnotationsJSON(document)
+  self.manager:_writeAnnotationsJSON(document)
 
   if not silent then
     if #anns == 1 then

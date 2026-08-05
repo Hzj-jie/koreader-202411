@@ -31,15 +31,6 @@ function SyncManager:new(plugin)
   return o
 end
 
-function SyncManager:checkPendingSync()
-  if self.has_pending_sync then
-    self.has_pending_sync = false
-    UIManager:nextTick(function()
-      self:syncProgress()
-    end)
-  end
-end
-
 function SyncManager:getDeviceName()
   if
     self.plugin.settings.device_name
@@ -134,7 +125,7 @@ function SyncManager:syncAllChangedDocuments()
 end
 
 -- Incremental background sync of pending documents (e.g. up to max_count per minute) using nextTick
-function SyncManager:syncPendingDocumentsBg(max_count, on_complete)
+function SyncManager:_syncPendingDocumentsBg(max_count, on_complete)
   if self.is_syncing_pending_bg then
     logger.dbg("AnnotationSync: background pending sync already in progress")
     if on_complete then
@@ -221,7 +212,7 @@ function SyncManager:syncDocument(document, is_manual)
   self:_flushSettings()
   logger.dbg("AnnotationSync: syncing document: " .. file)
 
-  local json_path = self:writeAnnotationsJSON(document)
+  local json_path = self:_writeAnnotationsJSON(document)
   if not json_path then
     return false
   end
@@ -248,7 +239,7 @@ function SyncManager:syncDocument(document, is_manual)
 end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state
-function SyncManager:writeAnnotationsJSON(document)
+function SyncManager:_writeAnnotationsJSON(document)
   local file = document and document.file
   if not file then
     return false
@@ -307,7 +298,7 @@ function SyncManager:addToChangedDocumentsFile(file)
   end
   if file and type(file) == "string" then
     changed_docs[file] = true
-    self:writeChangedDocumentsFile(changed_docs)
+    self:_writeChangedDocumentsFile(changed_docs)
   end
 end
 
@@ -324,11 +315,11 @@ function SyncManager:removeFromChangedDocumentsFileByPath(file)
   local ok, changed_docs = pcall(dofile, track_path)
   if ok and type(changed_docs) == "table" and changed_docs[file] then
     changed_docs[file] = nil
-    self:writeChangedDocumentsFile(changed_docs)
+    self:_writeChangedDocumentsFile(changed_docs)
   end
 end
 
-function SyncManager:writeChangedDocumentsFile(changed_docs)
+function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
   local ok, err =
     util.writeToFile(self:_serialize_table(changed_docs), track_path, true)
@@ -370,7 +361,7 @@ function SyncManager:scanLibraryForUnsyncedDocuments()
     for book_path in pairs(added_files) do
       changed_docs[book_path] = true
     end
-    self:writeChangedDocumentsFile(changed_docs)
+    self:_writeChangedDocumentsFile(changed_docs)
   end
 
   return count, added_files
@@ -679,7 +670,7 @@ local function save_nested_setting(settings_obj, parts, value)
   settings_obj:flush()
 end
 
-function SyncManager:writeLocalSettingValue(key, value)
+function SyncManager:_writeLocalSettingValue(key, value)
   local domain, full_key = key:match("^([^:]+):(.*)$")
   if not domain or not full_key then
     return false
