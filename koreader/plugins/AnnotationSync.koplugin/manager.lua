@@ -125,24 +125,18 @@ function SyncManager:syncAllChangedDocuments()
 end
 
 -- Incremental background sync of pending documents (e.g. up to max_count per minute) using nextTick
-function SyncManager:_syncPendingDocumentsBg(max_count, on_complete)
+function SyncManager:_syncPendingDocumentsBg()
   if self.is_syncing_pending_bg then
     logger.dbg("AnnotationSync: background pending sync already in progress")
-    if on_complete then
-      on_complete(0)
-    end
     return
   end
 
   local total, changed_docs = self:getPendingChangedDocuments()
   if total == 0 then
-    if on_complete then
-      on_complete(0)
-    end
     return
   end
 
-  max_count = max_count or 60
+  local max_count = 60
   local files_to_sync = {}
   for file, _ in pairs(changed_docs) do
     if #files_to_sync >= max_count then
@@ -168,9 +162,6 @@ function SyncManager:_syncPendingDocumentsBg(max_count, on_complete)
             .. count
             .. " document(s)"
         )
-      end
-      if on_complete then
-        on_complete(count)
       end
       return
     end

@@ -423,7 +423,7 @@ function AnnotationSyncPlugin:onTimesChange_1M()
     and self.manager:hasPendingChangedDocuments()
   then
     logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
-    self.manager:_syncPendingDocumentsBg(60)
+    self.manager:_syncPendingDocumentsBg()
   end
 end
 
