@@ -11,6 +11,7 @@ local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
 local lfs = require("libs/libkoreader-lfs")
+local readhistory = require("readhistory")
 
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
@@ -529,6 +530,37 @@ function SyncManager:writeChangedDocumentsFile(changed_docs)
         .. ")"
     )
   end
+end
+
+function SyncManager:scanLibraryForUnsyncedDocuments()
+  local added_files = {}
+  local count = 0
+
+  if readhistory and type(readhistory.hist) == "table" then
+    for _, item in ipairs(readhistory.hist) do
+      if item and item.file and lfs.attributes(item.file, "mode") == "file" then
+        if docsettings:hasSidecarFile(item.file) and not added_files[item.file] then
+          added_files[item.file] = true
+          count = count + 1
+        end
+      end
+    end
+  end
+
+  if count > 0 then
+    local track_path = self:changedDocumentsFile()
+    local changed_docs = {}
+    local ok, loaded = pcall(dofile, track_path)
+    if ok and type(loaded) == "table" then
+      changed_docs = loaded
+    end
+    for book_path in pairs(added_files) do
+      changed_docs[book_path] = true
+    end
+    self:writeChangedDocumentsFile(changed_docs)
+  end
+
+  return count, added_files
 end
 
 -- Get annotations associated with given document

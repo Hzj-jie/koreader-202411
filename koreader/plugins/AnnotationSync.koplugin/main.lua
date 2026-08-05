@@ -438,6 +438,32 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         separator = true,
       },
       {
+        text = gettext("Scan library for unsynced annotations"),
+        enabled = true,
+        callback = function()
+          UIManager:show(ConfirmBox:new({
+            text = gettext(
+              "Scan your library for existing annotations and add them to the pending sync list?\n\nNote: This may take a long time depending on your library size."
+            ),
+            ok_text = gettext("Scan now"),
+            cancel_text = gettext("Cancel"),
+            ok_callback = function()
+              utils.show_msg(gettext("Scanning library for annotations..."))
+              UIManager:scheduleIn(0.1, function()
+                utils.show_msg(
+                  T(
+                    gettext(
+                      "Scan complete: added %1 books with annotations to sync list."
+                    ),
+                    self.manager:scanLibraryForUnsyncedDocuments()
+                  )
+                )
+              end)
+            end,
+          }))
+        end,
+      },
+      {
         text = gettext("Show pending/unsynced documents"),
         enabled = true,
         callback = function()

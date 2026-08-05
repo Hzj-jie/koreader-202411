@@ -198,4 +198,24 @@ describe("Unsynced / Pending Documents Feature", function()
       ConfirmBox.new = old_ConfirmBox_new
     end
   )
+
+  it(
+    "can scan opened books in readhistory across all sidecar storage methods",
+    function()
+      local readhistory = require("readhistory")
+      local scan_dir = test_data_dir .. "/test_scan_lib"
+      os.execute("mkdir -p " .. scan_dir .. "/book1.sdr")
+      os.execute("touch " .. scan_dir .. "/book1.epub")
+      os.execute("touch " .. scan_dir .. "/book1.sdr/metadata.epub.lua")
+
+      table.insert(readhistory.hist, { file = scan_dir .. "/book1.epub", time = os.time() })
+
+      local count, added = sync_instance.manager:scanLibraryForUnsyncedDocuments()
+      assert.is_true(count >= 1)
+      assert.is_true(added[scan_dir .. "/book1.epub"])
+      assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+
+      os.execute("rm -rf " .. scan_dir)
+    end
+  )
 end)
