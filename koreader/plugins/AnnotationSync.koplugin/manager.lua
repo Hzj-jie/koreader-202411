@@ -184,6 +184,11 @@ end
 
 -- Orchestrates the sync process for a single document
 function SyncManager:syncDocument(document, is_manual)
+  if not require("ui/network/manager"):isConnected() then
+    logger.dbg("AnnotationSync: cannot sync document, network is offline")
+    return false
+  end
+
   local file = document and document.file
   if not file then
     return false
