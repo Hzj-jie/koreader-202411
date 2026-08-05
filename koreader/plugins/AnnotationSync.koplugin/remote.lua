@@ -2,9 +2,14 @@ local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local json = require("json")
 local T = require("ffi/util").template
+local NetworkMgr = require("ui/network/manager")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
+
+local function isConnected()
+  return NetworkMgr:isConnected()
+end
 
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
@@ -55,7 +60,7 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
 end
 
 function M.sync_annotations(widget, document, json_path, on_complete, force)
-  if not require("ui/network/manager"):isConnected() then
+  if not isConnected() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
     if on_complete then
       on_complete(false)

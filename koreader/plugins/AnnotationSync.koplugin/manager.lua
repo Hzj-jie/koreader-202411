@@ -18,6 +18,10 @@ local menus = require("plugins/AnnotationSync.koplugin/menus")
 local remote = require("plugins/AnnotationSync.koplugin/remote")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
+local function isConnected()
+  return NetworkMgr:isConnected()
+end
+
 local SyncManager = {}
 
 function SyncManager:new(plugin)
@@ -115,10 +119,7 @@ function SyncManager:_syncPendingDocumentsBg()
   local count = 0
 
   local function sync_next(idx)
-    if
-      idx > #files_to_sync
-      or not require("ui/network/manager"):isConnected()
-    then
+    if idx > #files_to_sync or not isConnected() then
       self.is_syncing_pending_bg = false
       if count > 0 then
         self:updateLastSync("Auto Sync (" .. count .. ")")
@@ -185,7 +186,7 @@ end
 
 -- Orchestrates the sync process for a single document
 function SyncManager:syncDocument(document, is_manual)
-  if not require("ui/network/manager"):isConnected() then
+  if not isConnected() then
     logger.dbg("AnnotationSync: cannot sync document, network is offline")
     return false
   end
@@ -690,7 +691,7 @@ function SyncManager:_writeLocalSettingValue(key, value)
 end
 
 function SyncManager:pullSettings()
-  if not NetworkMgr:isConnected() then
+  if not isConnected() then
     utils.show_msg(gettext("Network is disconnected, cannot pull settings"))
     return
   end

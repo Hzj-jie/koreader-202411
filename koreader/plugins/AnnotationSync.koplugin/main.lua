@@ -8,10 +8,15 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
 local T = require("ffi/util").template
 local DataStorage = require("datastorage")
+local NetworkMgr = require("ui/network/manager")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
+
+local function isConnected()
+  return NetworkMgr:isConnected()
+end
 
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
@@ -409,7 +414,7 @@ end
 function AnnotationSyncPlugin:onTimesChange_1M()
   if
     self.settings.network_auto_sync
-    and require("ui/network/manager"):isConnected()
+    and isConnected()
     and self.manager
     and self.manager:hasPendingChangedDocuments()
   then
