@@ -123,9 +123,9 @@ function SyncManager:_syncPendingDocumentsBg()
       if count > 0 then
         self:updateLastSync("Auto Sync (" .. count .. ")")
         logger.info(
-          "AnnotationSync: background sync completed for "
-            .. count
-            .. " document(s)"
+          "AnnotationSync: background sync completed for",
+          count,
+          "document(s)"
         )
       end
       return
@@ -206,7 +206,9 @@ function SyncManager:syncDocument(document, is_manual)
   logger.dbg(
     "AnnotationSync: remote sync of",
     json_path,
-    "(force=" .. tostring(is_manual) .. ")"
+    "(force=",
+    is_manual,
+    ")"
   )
   local sync_success = false
   remote.sync_annotations(
