@@ -24,6 +24,8 @@ local M = {}
 
 local current_readerui
 local old_isConnected
+local old_runWhenConnected
+local old_runWhenOnline
 
 local old_G_reader_settings
 
@@ -43,8 +45,24 @@ function M.setup_test_env(test_data_dir)
 
   local NetworkMgr = require("ui/network/manager")
   old_isConnected = NetworkMgr.isConnected
+  old_runWhenConnected = NetworkMgr.runWhenConnected
+  old_runWhenOnline = NetworkMgr.runWhenOnline
   NetworkMgr.isConnected = function()
     return true
+  end
+  NetworkMgr.runWhenConnected = function(self, callback)
+    if self:isConnected() then
+      callback()
+      return true
+    end
+    return false
+  end
+  NetworkMgr.runWhenOnline = function(self, callback)
+    if self:isConnected() then
+      callback()
+      return true
+    end
+    return false
   end
 
   return old_getDataDir
@@ -78,6 +96,16 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
     local NetworkMgr = require("ui/network/manager")
     NetworkMgr.isConnected = old_isConnected
     old_isConnected = nil
+  end
+  if old_runWhenConnected then
+    local NetworkMgr = require("ui/network/manager")
+    NetworkMgr.runWhenConnected = old_runWhenConnected
+    old_runWhenConnected = nil
+  end
+  if old_runWhenOnline then
+    local NetworkMgr = require("ui/network/manager")
+    NetworkMgr.runWhenOnline = old_runWhenOnline
+    old_runWhenOnline = nil
   end
 end
 

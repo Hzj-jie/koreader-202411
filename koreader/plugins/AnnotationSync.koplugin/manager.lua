@@ -1,17 +1,18 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local DocumentRegistry = require("document/documentregistry")
-local NetworkMgr = require("ui/network/manager")
-local gettext = require("gettext")
-local json = require("json")
-local logger = require("logger")
-local util = require("util")
-local T = require("ffi/util").template
 local Event = require("ui/event")
+local NetworkMgr = require("ui/network/manager")
+local T = require("ffi/util").template
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
+local gettext = require("gettext")
+local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local readhistory = require("readhistory")
+local util = require("util")
 
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
@@ -56,77 +57,65 @@ function SyncManager:syncAllChangedDocuments()
     return
   end
 
-  local Trapper = require("ui/trapper")
-  Trapper:wrap(function()
-    Trapper:setPausedText(
-      gettext(
-        "Sync All paused.\nDo you want to continue or abort syncing documents?"
-      )
-    )
-    local count = 0
-    local failed_files = {}
-    local current_idx = 0
+  NetworkMgr:runWhenOnline(function()
+    Trapper:wrap(function()
+      local count = 0
+      local failed_files = {}
+      local current_idx = 0
 
-    for file, _ in pairs(changed_docs) do
-      current_idx = current_idx + 1
-      local _, filename = util.splitFilePathName(file)
-      if filename == "" then
-        filename = file
+      for file, _ in pairs(changed_docs) do
+        current_idx = current_idx + 1
+        local _, filename = util.splitFilePathName(file)
+        if not Trapper:info(
+          T(
+            gettext("Syncing document %1 of %2...\n%3"),
+            current_idx,
+            total,
+            filename ~= "" and filename or file
+          )
+        ) then
+          break
+        end
+
+        local res = self:_syncFile(file)
+        if res == true or res == "skip_upload" then
+          count = count + 1
+        elseif res == false then
+          table.insert(failed_files, file)
+        end
       end
 
-      local go_on = Trapper:info(
-        T(
-          gettext("Syncing document %1 of %2...\n%3"),
-          current_idx,
-          total,
-          filename
-        )
-      )
-      if not go_on then
-        logger.info("AnnotationSync: Sync All aborted by user")
-        break
+      Trapper:reset()
+
+      if count > 0 then
+        self:recordSyncState("Sync All")
+        utils.show_msg("Successfully synced modified documents: " .. count)
+      elseif #failed_files > 0 then
+        utils.show_msg("Unable to sync modified documents: " .. total)
       end
 
-      local res = self:_syncFile(file)
-      if res == true or res == "skip_upload" then
-        count = count + 1
-      elseif res == false then
-        table.insert(failed_files, file)
-      end
-    end
-
-    Trapper:reset()
-
-    if count == 0 and #failed_files == 0 then
-      utils.show_msg("Sync All cancelled.")
-    elseif count == 0 then
-      utils.show_msg("Unable to sync modified documents: " .. total)
-    else
-      self:updateLastSync("Sync All")
-      utils.show_msg("Successfully synced modified documents: " .. count)
-    end
-
-    if #failed_files > 0 then
-      local filenames = {}
-      for _, file in ipairs(failed_files) do
-        local _, name = util.splitFilePathName(file)
-        table.insert(filenames, name ~= "" and name or file)
-      end
-      local list_str = "- " .. table.concat(filenames, "\n- ")
-      local open_manager = Trapper:confirm(
-        T(
-          gettext(
-            "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
+      if #failed_files > 0 then
+        local filenames = {}
+        for _, file in ipairs(failed_files) do
+          local _, name = util.splitFilePathName(file)
+          table.insert(filenames, name ~= "" and name or file)
+        end
+        local list_str = "- " .. table.concat(filenames, "\n- ")
+        UIManager:show(require("ui/widget/confirmbox"):new({
+          text = T(
+            gettext(
+              "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
+            ),
+            list_str
           ),
-          list_str
-        ),
-        gettext("Close"),
-        gettext("Open Manager")
-      )
-      if open_manager then
-        menus.show_pending_documents(self.plugin)
+          ok_text = gettext("Open Manager"),
+          ok_callback = function()
+            menus.show_pending_documents(self.plugin)
+          end,
+          cancel_text = gettext("Close"),
+        }))
       end
-    end
+    end)
   end)
 end
 
@@ -159,7 +148,7 @@ function SyncManager:_syncPendingDocumentsBg()
     then
       self.is_syncing_pending_bg = false
       if count > 0 then
-        self:updateLastSync("Auto Sync (" .. count .. ")")
+        self:recordSyncState("Auto Sync (" .. count .. ")")
         logger.info(
           "AnnotationSync: background sync completed for",
           count,
@@ -475,14 +464,14 @@ function SyncManager:getDocumentByFile(file)
   return document
 end
 
-function SyncManager:updateLastSync(descriptor)
+function SyncManager:recordSyncState(descriptor)
   local parenthetical = ""
   if descriptor and type(descriptor) == "string" then
     parenthetical = " (" .. descriptor .. ")"
   end
   self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S") .. parenthetical
   logger.dbg(
-    "AnnotationSync: updateLastSync: updated at",
+    "AnnotationSync: recordSyncState: updated at",
     self.plugin.settings.last_sync
   )
 end

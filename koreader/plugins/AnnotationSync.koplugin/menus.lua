@@ -33,7 +33,6 @@ function M.show_deleted_annotations(plugin, document)
           ),
           #deleted
         ),
-        type = "yesno",
         ok_text = gettext("Restore All"),
         ok_callback = function()
           plugin:restoreAnnotations(deleted, true) -- true = silent
@@ -65,7 +64,6 @@ function M.show_deleted_annotations(plugin, document)
             ann.page,
             ann.text or ann.notes or ""
           ),
-          type = "yesno",
           ok_text = gettext("Restore"),
           cancel_text = gettext("Close"),
           ok_callback = function()

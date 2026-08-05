@@ -55,7 +55,7 @@ describe("AnnotationSync internationalization", function()
       for k in pairs(_.translation) do
         _.translation[k] = nil
       end
-      sync_instance:initI18n()
+      sync_instance:init()
       assert.are.equal("标注同步", _("Annotation Sync"))
       assert.are.equal("全部同步", _("Sync All"))
       assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
@@ -65,7 +65,7 @@ describe("AnnotationSync internationalization", function()
       for k in pairs(_.translation) do
         _.translation[k] = nil
       end
-      sync_instance:initI18n()
+      sync_instance:init()
       assert.are.equal("標註同步", _("Annotation Sync"))
       assert.are.equal("全部同步", _("Sync All"))
       assert.are.equal("全部同步已取消。", _("Sync All cancelled."))

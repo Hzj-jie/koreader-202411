@@ -1,4 +1,3 @@
-local ConfirmBox = require("ui/widget/confirmbox")
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
@@ -8,14 +7,13 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
 local T = require("ffi/util").template
 local DataStorage = require("datastorage")
-local NetworkMgr = require("ui/network/manager")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
 
 local function isConnected()
-  return NetworkMgr:isConnected()
+  return require("ui/network/manager"):isConnected()
 end
 
 local SettingsSelection =
@@ -103,6 +101,9 @@ function AnnotationSyncPlugin:init()
         return
       end
 
+      local translation = gettext.translation
+      local context = gettext.context
+
       local function addTranslation(msgctxt, msgid, msgstr)
         local unescaped =
           msgstr:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
@@ -111,12 +112,12 @@ function AnnotationSyncPlugin:init()
         end
 
         if msgctxt and msgctxt ~= "" then
-          if not gettext.context[msgctxt] then
-            gettext.context[msgctxt] = {}
+          if not context[msgctxt] then
+            context[msgctxt] = {}
           end
-          gettext.context[msgctxt][msgid] = unescaped
+          context[msgctxt][msgid] = unescaped
         else
-          gettext.translation[msgid] = unescaped
+          translation[msgid] = unescaped
         end
       end
 
@@ -162,10 +163,6 @@ function AnnotationSyncPlugin:init()
     end
   end
 
-  self:initI18n()
-end
-
-function AnnotationSyncPlugin:initI18n()
   local lang = gettext.current_lang
   if lang and lang ~= "C" and lang ~= "" then
     local path = self.path or "plugins/AnnotationSync.koplugin"
@@ -349,7 +346,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         text = gettext("Scan library for unsynced annotations"),
         enabled = true,
         callback = function()
-          UIManager:show(ConfirmBox:new({
+          UIManager:show(require("ui/widget/confirmbox"):new({
             text = gettext(
               "Scan your library for existing annotations and add them to the pending sync list?\n\nNote: This may take a long time depending on your library size."
             ),
@@ -541,7 +538,7 @@ function AnnotationSyncPlugin:manualSync()
     return
   end
   self.manager:syncDocument(document, true)
-  self.manager:updateLastSync("Manual Sync")
+  self.manager:recordSyncState("Manual Sync")
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()

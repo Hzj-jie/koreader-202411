@@ -2,13 +2,12 @@ local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local json = require("json")
 local T = require("ffi/util").template
-local NetworkMgr = require("ui/network/manager")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
 
 local function isConnected()
-  return NetworkMgr:isConnected()
+  return require("ui/network/manager"):isConnected()
 end
 
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
