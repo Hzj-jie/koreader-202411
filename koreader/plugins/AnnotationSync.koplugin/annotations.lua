@@ -21,6 +21,7 @@ function M.sync_callback(
   local last_sync_map = utils.read_json(last_sync_file)
   local income_map = utils.read_json(income_file)
 
+  local is_remote_missing = false
   if not local_map or not last_sync_map then
     logger.warn(
       "AnnotationSync: Failed to load local sync files. Aborting to prevent data loss."
@@ -63,7 +64,7 @@ function M.sync_callback(
     -- We only assume empty state if it's NOT valid JSON at all and looks like a 404 error body.
     local is_likely_404 = false
     local content_snippet = ""
-    local f = io.open(income_file, "r")
+    local f = income_file and io.open(income_file, "r")
     if f then
       local content = f:read(1024)
       f:close()
@@ -100,6 +101,7 @@ function M.sync_callback(
         "AnnotationSync: income_file invalid/text, assuming empty remote state (likely 404)."
       )
       income_map = {}
+      is_remote_missing = true
     else
       logger.warn(
         "AnnotationSync: income_file appears corrupted or server error. Aborting. Snippet:",
@@ -163,6 +165,14 @@ function M.sync_callback(
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
   local merged_list = M.map_to_list(merged)
+
+  if is_remote_missing and next(local_map) == nil then
+    logger.dbg(
+      "AnnotationSync: remote file does not exist and local file is empty, skipping push to server"
+    )
+    util.writeToFile(json.encode(merged), local_file)
+    return "skip_upload", merged_list
+  end
 
   util.writeToFile(json.encode(merged), local_file)
   return true, merged_list

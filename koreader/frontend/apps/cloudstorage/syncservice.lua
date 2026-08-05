@@ -199,19 +199,21 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
         end
         return
       end
-      if server.type == "dropbox" then
-        local url_base = server.url == "/" and "" or server.url
-        code_response = api:uploadFile(url_base, token, file_path, etag, true)
-      elseif server.type == "webdav" then
-        local path = api:getJoinedPath(server.address, server.url)
-        path = api:getJoinedPath(path, file_name)
-        code_response = api:uploadFile(
-          path,
-          server.username,
-          server.password,
-          file_path,
-          etag
-        )
+      if cb_return ~= "skip_upload" then
+        if server.type == "dropbox" then
+          local url_base = server.url == "/" and "" or server.url
+          code_response = api:uploadFile(url_base, token, file_path, etag, true)
+        elseif server.type == "webdav" then
+          local path = api:getJoinedPath(server.address, server.url)
+          path = api:getJoinedPath(path, file_name)
+          code_response = api:uploadFile(
+            path,
+            server.username,
+            server.password,
+            file_path,
+            etag
+          )
+        end
       end
     end
     os.remove(income_file_path)

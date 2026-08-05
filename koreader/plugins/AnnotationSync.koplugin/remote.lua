@@ -76,7 +76,7 @@ function M.sync_annotations(widget, document, json_path, on_complete, force)
       force
     )
     if on_complete then
-      on_complete(success, merged_list)
+      on_complete(success ~= false, merged_list)
     end
     return success
   end

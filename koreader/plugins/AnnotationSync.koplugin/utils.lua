@@ -6,6 +6,9 @@ local reader_order = require("ui/elements/reader_menu_order")
 local M = {}
 
 function M.read_json(path)
+  if not path or type(path) ~= "string" then
+    return nil
+  end
   local f = io.open(path, "r")
   if not f then
     return {}

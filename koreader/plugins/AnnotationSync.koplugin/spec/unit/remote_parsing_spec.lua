@@ -44,7 +44,7 @@ describe("Remote Response Parsing (Issue #39)", function()
     local html_404 =
       "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>"
     local ok, merged = run_sync_callback(html_404)
-    assert.is_true(ok, "Should accept 404 HTML")
+    assert.truthy(ok, "Should accept 404 HTML")
     assert.is_table(merged)
   end)
 
@@ -52,7 +52,7 @@ describe("Remote Response Parsing (Issue #39)", function()
     local sabre_xml =
       '<?xml version="1.0" encoding="utf-8"?> <d:error xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns"> <s:exception>Sabre\\DAV\\Exception\\NotFound</s:exception> <s:message>File with name annots/9b6b3500ac06199cb8a8b3a46c73d963.json could not be located</s:message> </d:error>'
     local ok, merged = run_sync_callback(sabre_xml)
-    assert.is_true(ok, "Should accept SabreDAV XML as 404")
+    assert.truthy(ok, "Should accept SabreDAV XML as 404")
     assert.is_table(merged)
   end)
 
@@ -96,6 +96,6 @@ describe("Remote Response Parsing (Issue #39)", function()
     local dropbox_error =
       '{"error_summary": "path/not_found/...", "error": {".tag": "path", "path": {".tag": "not_found"}}}'
     local ok, merged = run_sync_callback(dropbox_error)
-    assert.is_true(ok, "Should accept Dropbox path not found")
+    assert.truthy(ok, "Should accept Dropbox path not found")
   end)
 end)

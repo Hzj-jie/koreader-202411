@@ -248,5 +248,23 @@ describe("AnnotationSync Core Integration", function()
       sync_instance:manualSync()
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
+
+    it(
+      "should return 'skip_upload' from sync_callback when remote file is missing and local file is empty",
+      function()
+        local local_path =
+          test_utils.write_mock_json(test_data_dir, "empty_local.json", {})
+        local last_sync_path =
+          test_utils.write_mock_json(test_data_dir, "empty_last.json", {})
+        local res = annotations_mod.sync_callback(
+          readerui.document,
+          local_path,
+          last_sync_path,
+          nil,
+          false
+        )
+        assert.is_equal("skip_upload", res)
+      end
+    )
   end)
 end)
