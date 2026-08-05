@@ -957,7 +957,7 @@ function Menu:init()
 
   -- Initialize FileChooser.font_size and perpage, coverbrowser.koplugin will
   -- override _recalculateDimen.
-  assert(self:_calculateLayout()) -- No idea how it could return false.
+  self:_calculateLayout()
   self:_recalculateDimen(false)
   self.content_group = VerticalGroup:new({
     align = "left",
