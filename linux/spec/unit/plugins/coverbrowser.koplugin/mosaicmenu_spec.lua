@@ -249,14 +249,11 @@ describe("Coverbrowser MosaicMenu unit tests", function()
 
       local items = {}
       for i = 1, 15 do
-        table.insert(
-          items,
-          {
-            text = "Book " .. i,
-            path = "/tmp/book" .. i .. ".epub",
-            is_file = true,
-          }
-        )
+        table.insert(items, {
+          text = "Book " .. i,
+          path = "/tmp/book" .. i .. ".epub",
+          is_file = true,
+        })
       end
 
       local menu = createMockMenu({
@@ -293,14 +290,11 @@ describe("Coverbrowser MosaicMenu unit tests", function()
 
       local items = {}
       for i = 1, 15 do
-        table.insert(
-          items,
-          {
-            text = "Book " .. i,
-            path = "/tmp/book" .. i .. ".epub",
-            is_file = true,
-          }
-        )
+        table.insert(items, {
+          text = "Book " .. i,
+          path = "/tmp/book" .. i .. ".epub",
+          is_file = true,
+        })
       end
 
       local menu = createMockMenu({
@@ -335,14 +329,11 @@ describe("Coverbrowser MosaicMenu unit tests", function()
 
       local items = {}
       for i = 1, 7 do
-        table.insert(
-          items,
-          {
-            text = "Book " .. i,
-            path = "/tmp/book" .. i .. ".epub",
-            is_file = true,
-          }
-        )
+        table.insert(items, {
+          text = "Book " .. i,
+          path = "/tmp/book" .. i .. ".epub",
+          is_file = true,
+        })
       end
 
       local menu = createMockMenu({
@@ -373,14 +364,11 @@ describe("Coverbrowser MosaicMenu unit tests", function()
 
       local items = {}
       for i = 1, 12 do
-        table.insert(
-          items,
-          {
-            text = "Book " .. i,
-            path = "/tmp/book" .. i .. ".epub",
-            is_file = true,
-          }
-        )
+        table.insert(items, {
+          text = "Book " .. i,
+          path = "/tmp/book" .. i .. ".epub",
+          is_file = true,
+        })
       end
 
       local menu = createMockMenu({
