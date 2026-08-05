@@ -30,3 +30,6 @@ The following changes were made to resolve test failures and runtime compatibili
 7. **Removed unsupported Reading Progress Sync features**:
    - Removed Reading Progress Sync menu options (`Enable Reading Progress Sync`, `Sync using last word of page`, `Sync every %1 pages`, `Push reading progress`, `Jump to device progress`) and the explanation popup (`Why are some options greyed out?`) because they rely on an unsupported upstream cloud storage API (`ui.cloudstorage`) in KOReader v2024.11.
    - Removed all unused backend reading progress sync methods, document hooks, Dispatcher actions, default settings, and obsolete progress sync unit tests (`progress_sync_integration_spec.lua`, `sync_service_silent_repro_spec.lua`).
+8. **Replaced network-connected trigger with 1-minute timer incremental background sync (`onTimesChange_1M`)**:
+   - Replaced `_onNetworkConnected` (which only fired on offline-to-online transitions) with periodic 1-minute checks (`onTimesChange_1M`).
+   - Implemented `SyncManager:syncPendingDocumentsBg(max_count)` to incrementally sync pending documents (up to 60 per minute) in their own `UIManager:nextTick` calls, preventing UI lag when syncing large numbers of annotated books in the background.

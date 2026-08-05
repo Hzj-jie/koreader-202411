@@ -133,6 +133,84 @@ function SyncManager:syncAllChangedDocuments()
   end
 end
 
+-- Incremental background sync of pending documents (e.g. up to max_count per minute) using nextTick
+function SyncManager:syncPendingDocumentsBg(max_count, on_complete)
+  if self.is_syncing_pending_bg then
+    logger.dbg("AnnotationSync: background pending sync already in progress")
+    if on_complete then
+      on_complete(0)
+    end
+    return
+  end
+
+  local total, changed_docs = self:getPendingChangedDocuments()
+  if total == 0 then
+    if on_complete then
+      on_complete(0)
+    end
+    return
+  end
+
+  max_count = max_count or 60
+  local files_to_sync = {}
+  for file, _ in pairs(changed_docs) do
+    if #files_to_sync >= max_count then
+      break
+    end
+    table.insert(files_to_sync, file)
+  end
+
+  self.is_syncing_pending_bg = true
+  local count = 0
+  local ui_document = self.plugin.ui and self.plugin.ui.document
+
+  local function sync_next(idx)
+    if
+      idx > #files_to_sync
+      or not require("ui/network/manager"):isConnected()
+    then
+      self.is_syncing_pending_bg = false
+      if count > 0 then
+        self:updateLastSync("Auto Sync (" .. count .. ")")
+        logger.info(
+          "AnnotationSync: background sync completed for "
+            .. count
+            .. " document(s)"
+        )
+      end
+      if on_complete then
+        on_complete(count)
+      end
+      return
+    end
+
+    local file = files_to_sync[idx]
+    UIManager:nextTick(function()
+      local document = self:getDocumentByFile(file)
+      if document then
+        logger.dbg("AnnotationSync: background syncing document: " .. file)
+        local is_temporary = (document ~= ui_document)
+        local ok, success = pcall(self.syncDocument, self, document, false)
+        if ok and success then
+          count = count + 1
+        else
+          logger.warn("AnnotationSync: background sync failed for " .. file)
+        end
+        if is_temporary then
+          document:close()
+        end
+      else
+        if not util.fileExists(file) then
+          self:removeFromChangedDocumentsFileByPath(file)
+        end
+      end
+      sync_next(idx + 1)
+    end)
+  end
+
+  sync_next(1)
+end
+
 -- Orchestrates the sync process for a single document
 function SyncManager:syncDocument(document, is_manual)
   local file = document and document.file

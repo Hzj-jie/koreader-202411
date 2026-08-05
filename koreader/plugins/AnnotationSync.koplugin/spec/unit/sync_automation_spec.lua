@@ -81,27 +81,29 @@ describe("AnnotationSync Automation & Settings", function()
   end)
 
   describe("Automation", function()
-    it("triggers sync on NetworkConnected", function()
-      sync_instance.settings.network_auto_sync = true
-      sync_instance:registerEvents()
-      sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+    it(
+      "triggers background incremental sync on onTimesChange_1M when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
-      local sync_triggered = false
-      SyncService.sync = function(server, local_path, callback, upload_only)
-        sync_triggered = true
-        callback(local_path, local_path, local_path)
+        local sync_triggered = false
+        SyncService.sync = function(server, local_path, callback, upload_only)
+          sync_triggered = true
+          callback(local_path, local_path, local_path)
+        end
+
+        local old_nextTick = UIManager.nextTick
+        UIManager.nextTick = function(self_ui, callback)
+          callback()
+        end
+
+        sync_instance:onTimesChange_1M()
+
+        assert.is_true(sync_triggered)
+        UIManager.nextTick = old_nextTick
       end
-
-      local old_schedule = UIManager.scheduleIn
-      UIManager.scheduleIn = function(self_ui, time, callback)
-        callback()
-      end
-
-      sync_instance:onNetworkConnected()
-
-      assert.is_true(sync_triggered)
-      UIManager.scheduleIn = old_schedule
-    end)
+    )
 
     it("batch processes multiple documents correctly", function()
       local doc1 = readerui.document.file

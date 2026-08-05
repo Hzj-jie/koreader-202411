@@ -412,22 +412,18 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
 end
 
 function AnnotationSyncPlugin:registerEvents()
-  if self.settings.network_auto_sync then
-    self.onNetworkConnected = self._onNetworkConnected
-  else
-    self.onNetworkConnected = nil
-  end
+  -- No-op: automatic syncing is handled periodically via onTimesChange_1M
 end
 
-function AnnotationSyncPlugin:_onNetworkConnected()
-  logger.dbg("AnnotationSync: handling event: NetworkConnected")
-  if self.manager:hasPendingChangedDocuments() then
-    utils.show_msg(
-      "AnnotationSync: Network available, syncing all changed documents"
-    )
-    UIManager:scheduleIn(1, function()
-      self.manager:syncAllChangedDocuments()
-    end)
+function AnnotationSyncPlugin:onTimesChange_1M()
+  if
+    self.settings.network_auto_sync
+    and require("ui/network/manager"):isConnected()
+    and self.manager
+    and self.manager:hasPendingChangedDocuments()
+  then
+    logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
+    self.manager:syncPendingDocumentsBg(60)
   end
 end
 
