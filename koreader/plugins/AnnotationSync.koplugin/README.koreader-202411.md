@@ -36,3 +36,11 @@ The following changes were made to resolve test failures and runtime compatibili
 9. **Refactored internal helper methods to private and removed dead code**:
    - Prefixed internal `SyncManager` helper methods with an underscore (`_syncPendingDocumentsBg`, `_writeAnnotationsJSON`, `_writeChangedDocumentsFile`, `_writeLocalSettingValue`, `_removeFromChangedDocumentsFile`).
    - Removed dead code `SyncManager:checkPendingSync()`, which was only used by the removed reading progress sync feature.
+10. **Skip uploading empty annotation JSON when remote file is missing**:
+    - Updated `annotations.sync_callback` so that when a remote file is missing (`is_remote_missing` is true) and the local annotation list is empty (`next(local_map) == nil`), it avoids pushing empty JSON files to the server.
+11. **Non-blocking "Sync All" execution using `Trapper`**:
+    - Wrapped batch document syncing (`syncAllChangedDocuments`) in KOReader's background scheduler `require("ui/trapper"):wrap` coroutine.
+    - Added live progress updates (`Syncing document X of Y...`), interactive pause dialogs, and cancellation handling to prevent UI freezes during large batch syncs.
+12. **Simplified Chinese (`zh_CN`) and Traditional Chinese (`zh_TW`) i18n support**:
+    - Added translation files (`l10n/zh_CN/annotation_sync.po` and `l10n/zh_TW/annotation_sync.po`) and generated platform symlinks across `linux`, `kobo`, and `pw2` build targets.
+    - Updated `i18n_spec.lua` to test dynamic translation loading for both Chinese locales.
