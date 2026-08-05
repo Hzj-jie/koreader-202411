@@ -65,7 +65,7 @@ function SyncManager:syncAllChangedDocuments()
   if count == 0 then
     utils.show_msg("Unable to sync modified documents: " .. total)
   else
-    self:updateLastSync("Sync All")
+    self:_updateLastSync("Sync All")
     utils.show_msg("Successfully synced modified documents: " .. count)
   end
 
@@ -122,7 +122,7 @@ function SyncManager:_syncPendingDocumentsBg()
     if idx > #files_to_sync or not isConnected() then
       self.is_syncing_pending_bg = false
       if count > 0 then
-        self:updateLastSync("Auto Sync (" .. count .. ")")
+        self:_updateLastSync("Auto Sync (" .. count .. ")")
         logger.info(
           "AnnotationSync: background sync completed for",
           count,
@@ -430,7 +430,7 @@ function SyncManager:getDocumentByFile(file)
   return document
 end
 
-function SyncManager:updateLastSync(descriptor)
+function SyncManager:_updateLastSync(descriptor)
   local parenthetical = ""
   if descriptor and type(descriptor) == "string" then
     parenthetical = " (" .. descriptor .. ")"
