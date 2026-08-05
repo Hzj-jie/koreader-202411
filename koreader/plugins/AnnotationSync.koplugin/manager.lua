@@ -53,8 +53,8 @@ function SyncManager:syncAllChangedDocuments()
     return
   end
 
-  local Trapper = require("ui/trapper")
-  Trapper:wrap(function()
+  require("ui/trapper"):wrap(function()
+    local Trapper = require("ui/trapper")
     Trapper:setPausedText(
       gettext(
         "Sync All paused.\nDo you want to continue or abort syncing documents?"
