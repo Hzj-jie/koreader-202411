@@ -80,12 +80,17 @@ describe("ReadTimer plugin main module", function()
       local h, m, s = rt:remainingTime(-1) -- round down
       assert.is_number(h)
       assert.is_number(m)
+      assert.is_number(s)
 
       h, m, s = rt:remainingTime(0) -- round nearest
       assert.is_number(h)
+      assert.is_number(m)
+      assert.is_number(s)
 
       h, m, s = rt:remainingTime(1) -- round up
       assert.is_number(h)
+      assert.is_number(m)
+      assert.is_number(s)
 
       rt:unschedule()
     end)
