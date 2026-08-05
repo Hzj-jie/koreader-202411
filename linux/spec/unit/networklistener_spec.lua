@@ -18,7 +18,9 @@ describe("NetworkListener module", function()
     end
 
     local old_hasWifiToggle = Device.hasWifiToggle
-    Device.hasWifiToggle = function() return true end
+    Device.hasWifiToggle = function()
+      return true
+    end
 
     NetworkListener = require("ui/network/networklistener")
     Device.hasWifiToggle = old_hasWifiToggle
@@ -63,9 +65,15 @@ describe("NetworkListener module", function()
     local toggled_on = false
     local toggled_off = false
 
-    NetworkMgr.isConnected = function() return false end
-    NetworkMgr.toggleWifiOn = function() toggled_on = true end
-    NetworkMgr.toggleWifiOff = function() toggled_off = true end
+    NetworkMgr.isConnected = function()
+      return false
+    end
+    NetworkMgr.toggleWifiOn = function()
+      toggled_on = true
+    end
+    NetworkMgr.toggleWifiOff = function()
+      toggled_off = true
+    end
 
     listener:onToggleWifi()
     assert.is_true(toggled_on)

@@ -10,17 +10,28 @@ describe("ReadwiseExporter plugin target module", function()
     ReadwiseExporter = require("plugins/exporter.koplugin/target/readwise")
   end)
 
-  it("should check ready to export state based on authorization token", function()
-    local exp = setmetatable({ settings = {} }, { __index = ReadwiseExporter })
-    assert.is_false(exp:isReadyToExport())
+  it(
+    "should check ready to export state based on authorization token",
+    function()
+      local exp = setmetatable(
+        { settings = {} },
+        { __index = ReadwiseExporter }
+      )
+      assert.is_false(exp:isReadyToExport())
 
-    exp.settings.token = "test_auth_token"
-    assert.is_true(exp:isReadyToExport())
-  end)
+      exp.settings.token = "test_auth_token"
+      assert.is_true(exp:isReadyToExport())
+    end
+  )
 
   it("should generate menu table for Readwise exporter", function()
-    local exp = setmetatable({ settings = { token = "token123" } }, { __index = ReadwiseExporter })
-    exp.isEnabled = function() return true end
+    local exp = setmetatable(
+      { settings = { token = "token123" } },
+      { __index = ReadwiseExporter }
+    )
+    exp.isEnabled = function()
+      return true
+    end
     exp.toggleEnabled = function() end
 
     local menu = exp:getMenuTable()
@@ -30,7 +41,10 @@ describe("ReadwiseExporter plugin target module", function()
   end)
 
   it("should format highlights and export booknotes to Readwise API", function()
-    local exp = setmetatable({ settings = { token = "test_token" } }, { __index = ReadwiseExporter })
+    local exp = setmetatable(
+      { settings = { token = "test_token" } },
+      { __index = ReadwiseExporter }
+    )
 
     local old_request = http.request
     http.request = function(req)
@@ -42,7 +56,12 @@ describe("ReadwiseExporter plugin target module", function()
       title = "Test Book",
       author = "Author One\nAuthor Two",
       {
-        { text = "Highlight content", note = "Some note", page = 42, time = 1600000000 },
+        {
+          text = "Highlight content",
+          note = "Some note",
+          page = 42,
+          time = 1600000000,
+        },
       },
     }
 

@@ -63,7 +63,9 @@ describe("ReaderUserHyph module", function()
       ui = {
         typography = { hyphenation = true },
       },
-      getDictionaryPath = function() return tmp_file end,
+      getDictionaryPath = function()
+        return tmp_file
+      end,
       loadUserDictionary = function() end,
     })
 

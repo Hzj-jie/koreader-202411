@@ -64,25 +64,28 @@ describe("Joplin Exporter target", function()
   end)
 
   describe("notebook and note operations via makeRequest", function()
-    it("findNoteByTitle: returns note id when title and notebook match", function()
-      stub(http, "request", function(req)
-        assert.is_not_nil(req.url:find("notes%?token=secret_token_123"))
-        assert.is_not_nil(req.url:find("fields=id,title,parent_id"))
-        assert.are.equal("GET", req.method)
-        local body = json.encode({
-          has_more = false,
-          items = {
-            { id = "note_111", title = "Test Book", parent_id = "nb_999" },
-            { id = "note_222", title = "Other Book", parent_id = "nb_999" },
-          },
-        })
-        req.sink(body)
-        return 1, 200, {}
-      end)
+    it(
+      "findNoteByTitle: returns note id when title and notebook match",
+      function()
+        stub(http, "request", function(req)
+          assert.is_not_nil(req.url:find("notes%?token=secret_token_123"))
+          assert.is_not_nil(req.url:find("fields=id,title,parent_id"))
+          assert.are.equal("GET", req.method)
+          local body = json.encode({
+            has_more = false,
+            items = {
+              { id = "note_111", title = "Test Book", parent_id = "nb_999" },
+              { id = "note_222", title = "Other Book", parent_id = "nb_999" },
+            },
+          })
+          req.sink(body)
+          return 1, 200, {}
+        end)
 
-      local note_id = JoplinExporter:findNoteByTitle("Test Book", "nb_999")
-      assert.are.equal("note_111", note_id)
-    end)
+        local note_id = JoplinExporter:findNoteByTitle("Test Book", "nb_999")
+        assert.are.equal("note_111", note_id)
+      end
+    )
 
     it(
       "findNoteByTitle: handles pagination and returns nil if not found",
@@ -143,27 +146,24 @@ describe("Joplin Exporter target", function()
       assert.is_nil(JoplinExporter:findNoteByTitle("Title", "nb_id"))
     end)
 
-    it(
-      "findNotebookByTitle: returns notebook id when title matches",
-      function()
-        stub(http, "request", function(req)
-          assert.is_not_nil(req.url:find("folders%?token=secret_token_123"))
-          assert.is_not_nil(req.url:find("query=title"))
-          assert.are.equal("GET", req.method)
-          local body = json.encode({
-            has_more = false,
-            items = {
-              { id = "folder_100", title = "KOReader Notes" },
-            },
-          })
-          req.sink(body)
-          return 1, 200, {}
-        end)
+    it("findNotebookByTitle: returns notebook id when title matches", function()
+      stub(http, "request", function(req)
+        assert.is_not_nil(req.url:find("folders%?token=secret_token_123"))
+        assert.is_not_nil(req.url:find("query=title"))
+        assert.are.equal("GET", req.method)
+        local body = json.encode({
+          has_more = false,
+          items = {
+            { id = "folder_100", title = "KOReader Notes" },
+          },
+        })
+        req.sink(body)
+        return 1, 200, {}
+      end)
 
-        local folder_id = JoplinExporter:findNotebookByTitle("KOReader Notes")
-        assert.are.equal("folder_100", folder_id)
-      end
-    )
+      local folder_id = JoplinExporter:findNotebookByTitle("KOReader Notes")
+      assert.are.equal("folder_100", folder_id)
+    end)
 
     it(
       "notebookExist: returns notebook id if found or false if not found",

@@ -24,28 +24,31 @@ describe("AlphaContainer widget", function()
     assert.are.equal(0.5, container.alpha)
   end)
 
-  it("should paint to target blitbuffer and reuse/free private blitbuffer on close", function()
-    local child = Widget:new({
-      dimen = Geom:new({ x = 0, y = 0, w = 100, h = 100 }),
-      paintTo = function(self, target_bb, x, y) end,
-    })
+  it(
+    "should paint to target blitbuffer and reuse/free private blitbuffer on close",
+    function()
+      local child = Widget:new({
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 100 }),
+        paintTo = function(self, target_bb, x, y) end,
+      })
 
-    local container = AlphaContainer:new({
-      [1] = child,
-      alpha = 0.8,
-    })
+      local container = AlphaContainer:new({
+        [1] = child,
+        alpha = 0.8,
+      })
 
-    local target_bb = Blitbuffer.new(200, 200)
-    container:paintTo(target_bb, 10, 10)
+      local target_bb = Blitbuffer.new(200, 200)
+      container:paintTo(target_bb, 10, 10)
 
-    assert.is_not_nil(container.private_bb)
-    assert.are.equal(100, container.private_bb:getWidth())
-    assert.are.equal(100, container.private_bb:getHeight())
+      assert.is_not_nil(container.private_bb)
+      assert.are.equal(100, container.private_bb:getWidth())
+      assert.are.equal(100, container.private_bb:getHeight())
 
-    -- Close container and free private blitbuffer
-    container:onClose()
-    assert.is_nil(container.private_bb)
+      -- Close container and free private blitbuffer
+      container:onClose()
+      assert.is_nil(container.private_bb)
 
-    target_bb:free()
-  end)
+      target_bb:free()
+    end
+  )
 end)

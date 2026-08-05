@@ -8,7 +8,9 @@ describe("AutoSuspend main plugin module", function()
 
     Device = require("device")
     local old_canSuspend = Device.canSuspend
-    Device.canSuspend = function() return true end
+    Device.canSuspend = function()
+      return true
+    end
 
     AutoSuspend = require("plugins/autosuspend.koplugin/main")
     Device.canSuspend = old_canSuspend

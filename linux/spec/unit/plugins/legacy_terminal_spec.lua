@@ -24,7 +24,10 @@ describe("Legacy Terminal plugin main module", function()
   end)
 
   it("should format commands with trailing newline", function()
-    assert.are.equal("ls -la\n", Terminal:ensureWhitelineAfterCommands("ls -la"))
+    assert.are.equal(
+      "ls -la\n",
+      Terminal:ensureWhitelineAfterCommands("ls -la")
+    )
     assert.are.equal("pwd\n", Terminal:ensureWhitelineAfterCommands("pwd\n"))
   end)
 

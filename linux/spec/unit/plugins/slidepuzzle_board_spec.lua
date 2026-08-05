@@ -7,7 +7,9 @@ describe("SlidePuzzle BoardWidget module", function()
     require("document/canvascontext"):init(require("device"))
 
     Device = require("device")
-    Device.isTouchDevice = function() return false end
+    Device.isTouchDevice = function()
+      return false
+    end
 
     Font = require("ui/font")
     Font.getFace = function(self, name, size)
@@ -19,7 +21,9 @@ describe("SlidePuzzle BoardWidget module", function()
 
   it("should instantiate BoardWidget and compute metrics", function()
     local mock_game = {
-      getSize = function() return 3 end,
+      getSize = function()
+        return 3
+      end,
       getGrid = function()
         return {
           { 1, 2, 3 },
@@ -40,7 +44,9 @@ describe("SlidePuzzle BoardWidget module", function()
 
   it("should calculate cell coordinates from touch point", function()
     local mock_game = {
-      getSize = function() return 3 end,
+      getSize = function()
+        return 3
+      end,
     }
 
     local widget = BoardWidget:new({ game = mock_game, max_size = 300 })
@@ -55,7 +61,9 @@ describe("SlidePuzzle BoardWidget module", function()
 
   it("should handle tap and swipe gestures", function()
     local mock_game = {
-      getSize = function() return 3 end,
+      getSize = function()
+        return 3
+      end,
     }
 
     local tapped_cell = nil
@@ -64,8 +72,12 @@ describe("SlidePuzzle BoardWidget module", function()
     local widget = BoardWidget:new({
       game = mock_game,
       max_size = 300,
-      onTileTap = function(r, c) tapped_cell = { r, c } end,
-      onSwipeDir = function(dir) swiped_dir = dir end,
+      onTileTap = function(r, c)
+        tapped_cell = { r, c }
+      end,
+      onSwipeDir = function(dir)
+        swiped_dir = dir
+      end,
     })
     widget.dimen = { w = 300, h = 300 }
     widget:_computeMetrics()
@@ -82,7 +94,9 @@ describe("SlidePuzzle BoardWidget module", function()
 
   it("should update font preferences and max size", function()
     local mock_game = {
-      getSize = function() return 3 end,
+      getSize = function()
+        return 3
+      end,
     }
 
     local widget = BoardWidget:new({ game = mock_game, max_size = 300 })

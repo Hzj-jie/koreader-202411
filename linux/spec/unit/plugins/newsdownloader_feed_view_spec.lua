@@ -65,7 +65,12 @@ describe("NewsDownloader FeedView module", function()
       clicked_content = content
     end
 
-    local list = FeedView:getList(feed_config, list_cb, function() end, function() end)
+    local list = FeedView:getList(
+      feed_config,
+      list_cb,
+      function() end,
+      function() end
+    )
     assert.is_table(list)
     assert.is_true(#list > 0)
 

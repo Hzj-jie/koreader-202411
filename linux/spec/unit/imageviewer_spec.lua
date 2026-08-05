@@ -22,14 +22,30 @@ describe("ImageViewer", function()
     function DummyImageWidget:init()
       self.dimen = Geom:new({ w = 100, h = 100 })
     end
-    function DummyImageWidget:getCurrentHeight() return 100 end
-    function DummyImageWidget:getCurrentWidth() return 100 end
-    function DummyImageWidget:getScaleFactor() return 1 end
-    function DummyImageWidget:getOriginalHeight() return 100 end
-    function DummyImageWidget:getOriginalWidth() return 100 end
-    function DummyImageWidget:getScaleFactorExtrema() return 0.5, 2.0 end
-    function DummyImageWidget:getPanByCenterRatio() return 0, 0 end
-    function DummyImageWidget:getCurrentDiagonal() return 141 end
+    function DummyImageWidget:getCurrentHeight()
+      return 100
+    end
+    function DummyImageWidget:getCurrentWidth()
+      return 100
+    end
+    function DummyImageWidget:getScaleFactor()
+      return 1
+    end
+    function DummyImageWidget:getOriginalHeight()
+      return 100
+    end
+    function DummyImageWidget:getOriginalWidth()
+      return 100
+    end
+    function DummyImageWidget:getScaleFactorExtrema()
+      return 0.5, 2.0
+    end
+    function DummyImageWidget:getPanByCenterRatio()
+      return 0, 0
+    end
+    function DummyImageWidget:getCurrentDiagonal()
+      return 141
+    end
     function DummyImageWidget:free() end
 
     stub(ImageWidget, "new", function(self, _args)

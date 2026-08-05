@@ -49,20 +49,23 @@ describe("OPDSBrowser module", function()
   end)
 
   describe("Browser Instance & Navigation", function()
-    it("should create OPDSBrowser menu instance and generate root item table", function()
-      local browser = OPDSBrowser:new({
-        title = "OPDS Catalogs",
-      })
+    it(
+      "should create OPDSBrowser menu instance and generate root item table",
+      function()
+        local browser = OPDSBrowser:new({
+          title = "OPDS Catalogs",
+        })
 
-      assert.is_table(browser)
-      assert.are.equal(browser.title, "OPDS Catalogs")
+        assert.is_table(browser)
+        assert.are.equal(browser.title, "OPDS Catalogs")
 
-      if type(browser.genItemTableFromRoot) == "function" then
-        local item_tbl = browser:genItemTableFromRoot()
-        assert.is_table(item_tbl)
-        assert.truthy(#item_tbl > 0)
+        if type(browser.genItemTableFromRoot) == "function" then
+          local item_tbl = browser:genItemTableFromRoot()
+          assert.is_table(item_tbl)
+          assert.truthy(#item_tbl > 0)
+        end
       end
-    end)
+    )
 
     it("should handle dispatcher registration", function()
       local browser = OPDSBrowser:new({

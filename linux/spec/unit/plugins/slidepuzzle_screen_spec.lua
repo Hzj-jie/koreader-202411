@@ -16,13 +16,23 @@ describe("SlidePuzzle Screen module", function()
   local function create_mock_plugin(game)
     return {
       settings = {
-        read = function() return nil end,
-        readTable = function() return {} end,
-        readTableRef = function() return {} end,
+        read = function()
+          return nil
+        end,
+        readTable = function()
+          return {}
+        end,
+        readTableRef = function()
+          return {}
+        end,
       },
-      getStats = function() return { moves = 0, time = 0, solved = 0 } end,
+      getStats = function()
+        return { moves = 0, time = 0, solved = 0 }
+      end,
       startNewGame = function() end,
-      getCurrentGame = function() return game end,
+      getCurrentGame = function()
+        return game
+      end,
       saveCurrentState = function() end,
       onScreenClosed = function() end,
     }

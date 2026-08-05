@@ -33,7 +33,8 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local rgoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local rgoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
     assert.is_true(rgoto:onGoToBeginning())
     assert.is_true(rgoto:onGoToEnd())
     assert.is_true(rgoto:onGoToRandomPage())
@@ -49,12 +50,17 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local rgoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local rgoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
     rgoto:onShowGotoDialog()
     assert.is_table(rgoto.goto_dialog)
 
-    rgoto.goto_dialog.getInputValue = function() return 50 end
-    rgoto.goto_dialog.getInputText = function() return "3" end
+    rgoto.goto_dialog.getInputValue = function()
+      return 50
+    end
+    rgoto.goto_dialog.getInputText = function()
+      return "3"
+    end
 
     rgoto:gotoPercent()
     rgoto:gotoPage()

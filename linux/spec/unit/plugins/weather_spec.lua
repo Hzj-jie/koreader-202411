@@ -66,7 +66,9 @@ describe("Weather plugin, WeatherApi, and Composer", function()
 
       Weather.kv = {
         close = function() end,
-        debugStr = function() return "mock" end,
+        debugStr = function()
+          return "mock"
+        end,
       }
       Weather:createForecastForHour({
         time_epoch = 1715774400,
@@ -97,12 +99,20 @@ describe("Weather plugin, WeatherApi, and Composer", function()
 
   describe("Composer Module", function()
     local mock_settings_celsius = {
-      celsius = function() return true end,
-      clock_12 = function() return true end,
+      celsius = function()
+        return true
+      end,
+      clock_12 = function()
+        return true
+      end,
     }
     local mock_settings_fahrenheit = {
-      celsius = function() return false end,
-      clock_12 = function() return false end,
+      celsius = function()
+        return false
+      end,
+      clock_12 = function()
+        return false
+      end,
     }
 
     it("should create current forecast for C and F scales", function()
@@ -129,8 +139,12 @@ describe("Weather plugin, WeatherApi, and Composer", function()
       local day_data = {
         day = {
           condition = { text = "Cloudy" },
-          avgtemp_c = 18, maxtemp_c = 22, mintemp_c = 14,
-          avgtemp_f = 64.4, maxtemp_f = 71.6, mintemp_f = 57.2,
+          avgtemp_c = 18,
+          maxtemp_c = 22,
+          mintemp_c = 14,
+          avgtemp_f = 64.4,
+          maxtemp_f = 71.6,
+          mintemp_f = 57.2,
         },
         astro = {
           moon_phase = "Full Moon",
@@ -177,7 +191,13 @@ describe("Weather plugin, WeatherApi, and Composer", function()
         time = "12:00",
         condition = { text = "Sunny" },
         uv = 5,
-        feelslike_c = 25, windchill_c = 24, heatindex_c = 26, dewpoint_c = 15, temp_c = 25, precip_mm = 0, wind_kph = 10,
+        feelslike_c = 25,
+        windchill_c = 24,
+        heatindex_c = 26,
+        dewpoint_c = 15,
+        temp_c = 25,
+        precip_mm = 0,
+        wind_kph = 10,
       }
 
       local res = comp:forecastForHour(hour_data)
@@ -195,7 +215,9 @@ describe("Weather plugin, WeatherApi, and Composer", function()
               date = "2024-05-15",
               day = {
                 condition = { text = "Sunny" },
-                avgtemp_c = 20, maxtemp_c = 25, mintemp_c = 15,
+                avgtemp_c = 20,
+                maxtemp_c = 25,
+                mintemp_c = 15,
               },
             },
           },

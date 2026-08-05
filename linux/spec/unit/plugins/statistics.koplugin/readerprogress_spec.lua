@@ -30,15 +30,16 @@ describe("ReaderProgress module", function()
 
   local function createSampleProgress(opts)
     opts = opts or {}
-    local sample_dates = opts.dates or {
-      { 20, 2400, "2026-07-25" },
-      { 30, 3600, "2026-07-24" },
-      { 15, 1800, "2026-07-23" },
-      { 0, 0, "2026-07-22" },
-      { 25, 3000, "2026-07-21" },
-      { 40, 4800, "2026-07-20" },
-      { 10, 1200, "2026-07-19" },
-    }
+    local sample_dates = opts.dates
+      or {
+        { 20, 2400, "2026-07-25" },
+        { 30, 3600, "2026-07-24" },
+        { 15, 1800, "2026-07-23" },
+        { 0, 0, "2026-07-22" },
+        { 25, 3000, "2026-07-21" },
+        { 40, 4800, "2026-07-20" },
+        { 10, 1200, "2026-07-19" },
+      }
     return ReaderProgress:new({
       current_pages = opts.current_pages or 15,
       today_pages = opts.today_pages or 45,
@@ -49,15 +50,18 @@ describe("ReaderProgress module", function()
     })
   end
 
-  it("should initialize ReaderProgress instance with string numbers and dimensions", function()
-    local progress = createSampleProgress()
-    assert.is_table(progress)
-    assert.are.equal("15", progress.current_pages)
-    assert.are.equal("45", progress.today_pages)
-    assert.is_table(progress.dimen)
-    assert.are.equal(Screen:getWidth(), progress.dimen.w)
-    assert.are.equal(Screen:getHeight(), progress.dimen.h)
-  end)
+  it(
+    "should initialize ReaderProgress instance with string numbers and dimensions",
+    function()
+      local progress = createSampleProgress()
+      assert.is_table(progress)
+      assert.are.equal("15", progress.current_pages)
+      assert.are.equal("45", progress.today_pages)
+      assert.is_table(progress.dimen)
+      assert.are.equal(Screen:getWidth(), progress.dimen.w)
+      assert.are.equal(Screen:getHeight(), progress.dimen.h)
+    end
+  )
 
   it("should set stats_span correctly based on screen orientation", function()
     stub(Screen, "getWidth")
@@ -137,7 +141,9 @@ describe("ReaderProgress module", function()
     -- Swipe south should trigger onExit and return true
     local res_south = progress:onSwipe(nil, { direction = "south" })
     assert.is_true(res_south)
-    assert.stub(UIManager.close).was_called_with(match.ref(UIManager), match.ref(progress))
+    assert
+      .stub(UIManager.close)
+      .was_called_with(match.ref(UIManager), match.ref(progress))
 
     -- Swipe east/west/north should return false without scheduleRefresh
     local res_east = progress:onSwipe(nil, { direction = "east" })
@@ -149,7 +155,9 @@ describe("ReaderProgress module", function()
     -- Diagonal swipe should schedule refresh and return false
     local res_diag = progress:onSwipe(nil, { direction = "south_east" })
     assert.is_false(res_diag)
-    assert.stub(UIManager.scheduleRefresh).was_called_with(match.ref(UIManager), "full")
+    assert
+      .stub(UIManager.scheduleRefresh)
+      .was_called_with(match.ref(UIManager), "full")
   end)
 
   it("should exit on close and handle key or multiswipe events", function()
@@ -157,19 +165,25 @@ describe("ReaderProgress module", function()
 
     local res_exit = progress:onExit()
     assert.is_true(res_exit)
-    assert.stub(UIManager.close).was_called_with(match.ref(UIManager), match.ref(progress))
+    assert
+      .stub(UIManager.close)
+      .was_called_with(match.ref(UIManager), match.ref(progress))
 
     UIManager.close:clear()
 
     local res_key = progress:onAnyKeyPressed()
     assert.is_true(res_key)
-    assert.stub(UIManager.close).was_called_with(match.ref(UIManager), match.ref(progress))
+    assert
+      .stub(UIManager.close)
+      .was_called_with(match.ref(UIManager), match.ref(progress))
 
     UIManager.close:clear()
 
     local res_mswipe = progress:onMultiSwipe()
     assert.is_true(res_mswipe)
-    assert.stub(UIManager.close).was_called_with(match.ref(UIManager), match.ref(progress))
+    assert
+      .stub(UIManager.close)
+      .was_called_with(match.ref(UIManager), match.ref(progress))
   end)
 
   it("should handle custom stats_span setting gracefully", function()

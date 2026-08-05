@@ -6,7 +6,8 @@ describe("ParserHelp module for Calculator", function()
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
-    package.path = "plugins/calculator.koplugin/formulaparser/?.lua;" .. package.path
+    package.path = "plugins/calculator.koplugin/formulaparser/?.lua;"
+      .. package.path
     ParserHelp = require("plugins/calculator.koplugin/formulaparser/parserhelp")
   end)
 

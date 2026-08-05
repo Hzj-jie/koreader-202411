@@ -18,15 +18,18 @@ describe("BiDi UI and text module", function()
     assert.is_true(Bidi.flipIfMirroredUILayout(true))
   end)
 
-  it("should setup RTL language configuration and direction flipping", function()
-    Bidi.setup("ar")
-    assert.is_true(Bidi.mirroredUILayout())
-    assert.is_true(Bidi.rtlUIText())
+  it(
+    "should setup RTL language configuration and direction flipping",
+    function()
+      Bidi.setup("ar")
+      assert.is_true(Bidi.mirroredUILayout())
+      assert.is_true(Bidi.rtlUIText())
 
-    assert.are.equal("west", Bidi.flipDirectionIfMirroredUILayout("east"))
-    assert.are.equal("east", Bidi.flipDirectionIfMirroredUILayout("west"))
-    assert.is_false(Bidi.flipIfMirroredUILayout(true))
-  end)
+      assert.are.equal("west", Bidi.flipDirectionIfMirroredUILayout("east"))
+      assert.are.equal("east", Bidi.flipDirectionIfMirroredUILayout("west"))
+      assert.is_false(Bidi.flipIfMirroredUILayout(true))
+    end
+  )
 
   it("should handle layout inversion and reset", function()
     Bidi.setup("en")

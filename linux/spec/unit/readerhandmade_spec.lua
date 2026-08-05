@@ -36,9 +36,15 @@ describe("ReaderHandmade module", function()
     local mock_ui = {
       menu = { registerToMainMenu = function() end },
       doc_settings = {
-        isTrue = function() return false end,
-        nilOrTrue = function() return true end,
-        readTableRef = function() return {} end,
+        isTrue = function()
+          return false
+        end,
+        nilOrTrue = function()
+          return true
+        end,
+        readTableRef = function()
+          return {}
+        end,
         save = function() end,
         delete = function() end,
       },

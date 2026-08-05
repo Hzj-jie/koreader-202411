@@ -188,58 +188,44 @@ describe("Calibre Search module", function()
       local catalog = CalibreSearch:bookCatalog({ sample_books[4] })
       assert.are.same(#catalog, 1)
       assert.are.same(catalog[1].text, "The Hobbit - J.R.R. Tolkien")
-      assert.are.same(
-        catalog[1].path,
-        "/mnt/calibre/Tolkien/The Hobbit.epub"
-      )
+      assert.are.same(catalog[1].path, "/mnt/calibre/Tolkien/The Hobbit.epub")
       assert.is_string(catalog[1].info)
       assert.is_not_nil(string.find(catalog[1].info, "The Hobbit"))
       assert.is_not_nil(string.find(catalog[1].info, "J.R.R. Tolkien"))
       assert.is_not_nil(string.find(catalog[1].info, "Fantasy"))
     end)
 
-    it(
-      "should format series index without subseries (.00 stripped)",
-      function()
-        local catalog =
-          CalibreSearch:bookCatalog({ sample_books[1] }, "series")
-        assert.are.same(#catalog, 1)
-        assert.are.same("01 | Dune - Frank Herbert", catalog[1].text)
-      end
-    )
+    it("should format series index without subseries (.00 stripped)", function()
+      local catalog = CalibreSearch:bookCatalog({ sample_books[1] }, "series")
+      assert.are.same(#catalog, 1)
+      assert.are.same("01 | Dune - Frank Herbert", catalog[1].text)
+    end)
 
     it("should retain subseries index when non-zero decimal", function()
       local catalog = CalibreSearch:bookCatalog({ sample_books[2] }, "series")
       assert.are.same(#catalog, 1)
-      assert.are.same(
-        "02.50 | Dune Messiah - Frank Herbert",
-        catalog[1].text
-      )
+      assert.are.same("02.50 | Dune Messiah - Frank Herbert", catalog[1].text)
     end)
 
-    it(
-      "should execute callback to open reader when entry selected",
-      function()
-        local catalog = CalibreSearch:bookCatalog({ sample_books[1] })
-        stub(UIManager, "broadcastEvent")
-        stub(ReaderUI, "showReader")
+    it("should execute callback to open reader when entry selected", function()
+      local catalog = CalibreSearch:bookCatalog({ sample_books[1] })
+      stub(UIManager, "broadcastEvent")
+      stub(ReaderUI, "showReader")
 
-        CalibreSearch.search_menu = {
-          onExit = function() end,
-        }
+      CalibreSearch.search_menu = {
+        onExit = function() end,
+      }
 
-        catalog[1].callback()
+      catalog[1].callback()
 
-        assert.spy(UIManager.broadcastEvent).was_called(1)
-        assert.spy(ReaderUI.showReader).was_called_with(
-          ReaderUI,
-          "/mnt/calibre/Frank Herbert/Dune.epub"
-        )
+      assert.spy(UIManager.broadcastEvent).was_called(1)
+      assert
+        .spy(ReaderUI.showReader)
+        .was_called_with(ReaderUI, "/mnt/calibre/Frank Herbert/Dune.epub")
 
-        UIManager.broadcastEvent:revert()
-        ReaderUI.showReader:revert()
-      end
-    )
+      UIManager.broadcastEvent:revert()
+      ReaderUI.showReader:revert()
+    end)
   end)
 
   describe("browse and search criteria", function()
@@ -336,14 +322,11 @@ describe("Calibre Search module", function()
       UIManager.show:revert()
     end)
 
-    it(
-      "should expand nested tag search results into catalog items",
-      function()
-        CalibreSearch:expandSearchResults("tags", "Sci-Fi")
-        assert.is_not_nil(CalibreSearch.search_menu)
-        assert.are.same(#CalibreSearch.search_menu.item_table, 3)
-      end
-    )
+    it("should expand nested tag search results into catalog items", function()
+      CalibreSearch:expandSearchResults("tags", "Sci-Fi")
+      assert.is_not_nil(CalibreSearch.search_menu)
+      assert.are.same(#CalibreSearch.search_menu.item_table, 3)
+    end)
 
     it(
       "should expand field series search results into catalog items",
@@ -478,10 +461,9 @@ describe("Calibre Search module", function()
 
       CalibreSearch:close()
 
-      assert.spy(UIManager.close).was_called_with(
-        UIManager,
-        CalibreSearch.search_dialog
-      )
+      assert
+        .spy(UIManager.close)
+        .was_called_with(UIManager, CalibreSearch.search_dialog)
       assert.spy(CalibreSearch.find).was_called_with(CalibreSearch, "find")
 
       UIManager.close:revert()

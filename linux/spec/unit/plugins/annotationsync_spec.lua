@@ -13,7 +13,7 @@ describe("AnnotationSync plugin unit tests", function()
   describe("Utils Module Functions", function()
     it("should correctly identify potential JSON strings", function()
       assert.is_true(utils.isPossiblyJson('{"key": "value"}'))
-      assert.is_true(utils.isPossiblyJson('[1, 2, 3]'))
+      assert.is_true(utils.isPossiblyJson("[1, 2, 3]"))
       assert.is_false(utils.isPossiblyJson("<html>404 Not Found</html>"))
       assert.is_false(utils.isPossiblyJson("plain text string"))
     end)
@@ -28,44 +28,54 @@ describe("AnnotationSync plugin unit tests", function()
         },
       }
 
-      assert.are.equal(true, utils.get_nested_value(data, "settings.sync.enabled"))
-      assert.are.equal(60, utils.get_nested_value(data, "settings.sync.interval"))
+      assert.are.equal(
+        true,
+        utils.get_nested_value(data, "settings.sync.enabled")
+      )
+      assert.are.equal(
+        60,
+        utils.get_nested_value(data, "settings.sync.interval")
+      )
       assert.is_nil(utils.get_nested_value(data, "settings.sync.nonexistent"))
       assert.is_nil(utils.get_nested_value(data, "invalid.path.key"))
       assert.is_nil(utils.get_nested_value(nil, "any.path"))
     end)
 
-    it("should safely read valid JSON files and handle errors/invalid content", function()
-      local tmp_file = os.tmpname()
+    it(
+      "should safely read valid JSON files and handle errors/invalid content",
+      function()
+        local tmp_file = os.tmpname()
 
-      -- Test non-existent file
-      local missing_data = utils.read_json("/tmp/non_existent_file_annotationsync.json")
-      assert.is_table(missing_data)
-      assert.are.equal(0, #missing_data)
+        -- Test non-existent file
+        local missing_data =
+          utils.read_json("/tmp/non_existent_file_annotationsync.json")
+        assert.is_table(missing_data)
+        assert.are.equal(0, #missing_data)
 
-      -- Test valid JSON
-      local f = io.open(tmp_file, "w")
-      f:write('{"anno1": {"page": 1, "text": "hello"}}')
-      f:close()
-      local data = utils.read_json(tmp_file)
-      assert.is_table(data)
-      assert.is_table(data.anno1)
-      assert.are.equal("hello", data.anno1.text)
+        -- Test valid JSON
+        local f = io.open(tmp_file, "w")
+        f:write('{"anno1": {"page": 1, "text": "hello"}}')
+        f:close()
+        local data = utils.read_json(tmp_file)
+        assert.is_table(data)
+        assert.is_table(data.anno1)
+        assert.are.equal("hello", data.anno1.text)
 
-      -- Test HTML / non-JSON content
-      f = io.open(tmp_file, "w")
-      f:write("<html>500 Internal Error</html>")
-      f:close()
-      assert.is_nil(utils.read_json(tmp_file))
+        -- Test HTML / non-JSON content
+        f = io.open(tmp_file, "w")
+        f:write("<html>500 Internal Error</html>")
+        f:close()
+        assert.is_nil(utils.read_json(tmp_file))
 
-      -- Test Dropbox error payload
-      f = io.open(tmp_file, "w")
-      f:write('{"error_summary": "path/not_found/..."}')
-      f:close()
-      assert.is_nil(utils.read_json(tmp_file))
+        -- Test Dropbox error payload
+        f = io.open(tmp_file, "w")
+        f:write('{"error_summary": "path/not_found/..."}')
+        f:close()
+        assert.is_nil(utils.read_json(tmp_file))
 
-      os.remove(tmp_file)
-    end)
+        os.remove(tmp_file)
+      end
+    )
   end)
 
   describe("Annotations Schema Validation", function()

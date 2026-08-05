@@ -69,15 +69,18 @@ describe("Screensaver module", function()
   end)
 
   describe("Screensaver Resolution & Message", function()
-    it("should handle screensaver message retrieval and close safely", function()
-      if type(Screensaver.getScreensaverMessage) == "function" then
-        local msg = Screensaver:getScreensaverMessage()
-        assert.is_string(msg)
-      end
+    it(
+      "should handle screensaver message retrieval and close safely",
+      function()
+        if type(Screensaver.getScreensaverMessage) == "function" then
+          local msg = Screensaver:getScreensaverMessage()
+          assert.is_string(msg)
+        end
 
-      if type(Screensaver.close) == "function" then
-        Screensaver:close()
+        if type(Screensaver.close) == "function" then
+          Screensaver:close()
+        end
       end
-    end)
+    )
   end)
 end)

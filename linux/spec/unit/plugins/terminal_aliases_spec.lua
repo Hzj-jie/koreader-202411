@@ -14,8 +14,8 @@ describe("Terminal Aliases plugin module", function()
     local tmp_file = os.tmpname()
     local f = io.open(tmp_file, "w")
     f:write("# Comment line\n")
-    f:write("alias ll=\"ls -la\"\n")
-    f:write("alias gs=\"git status\"\n")
+    f:write('alias ll="ls -la"\n')
+    f:write('alias gs="git status"\n')
     f:close()
 
     local inst = {

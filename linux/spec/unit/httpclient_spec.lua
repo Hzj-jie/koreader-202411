@@ -30,7 +30,9 @@ describe("HttpClient module", function()
     local old_set_to = UIManager.setInputTimeout
     local old_reset_to = UIManager.resetInputTimeout
 
-    UIManager.initLooper = function() UIManager.looper = mock_looper end
+    UIManager.initLooper = function()
+      UIManager.looper = mock_looper
+    end
     UIManager.setInputTimeout = function() end
     UIManager.resetInputTimeout = function() end
 

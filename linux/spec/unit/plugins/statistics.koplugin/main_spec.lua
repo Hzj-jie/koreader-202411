@@ -140,31 +140,21 @@ describe("ReaderStatistics plugin main spec", function()
   it("should register dispatcher actions", function()
     local stats = createInstance()
     stats:onDispatcherRegisterActions()
-    assert.stub(Dispatcher.registerAction).was_called_with(
-      match.ref(Dispatcher),
-      "toggle_statistics",
-      match.is_table()
-    )
-    assert.stub(Dispatcher.registerAction).was_called_with(
-      match.ref(Dispatcher),
-      "stats_calendar_view",
-      match.is_table()
-    )
-    assert.stub(Dispatcher.registerAction).was_called_with(
-      match.ref(Dispatcher),
-      "stats_calendar_day_view",
-      match.is_table()
-    )
-    assert.stub(Dispatcher.registerAction).was_called_with(
-      match.ref(Dispatcher),
-      "stats_sync",
-      match.is_table()
-    )
-    assert.stub(Dispatcher.registerAction).was_called_with(
-      match.ref(Dispatcher),
-      "book_statistics",
-      match.is_table()
-    )
+    assert
+      .stub(Dispatcher.registerAction)
+      .was_called_with(match.ref(Dispatcher), "toggle_statistics", match.is_table())
+    assert
+      .stub(Dispatcher.registerAction)
+      .was_called_with(match.ref(Dispatcher), "stats_calendar_view", match.is_table())
+    assert
+      .stub(Dispatcher.registerAction)
+      .was_called_with(match.ref(Dispatcher), "stats_calendar_day_view", match.is_table())
+    assert
+      .stub(Dispatcher.registerAction)
+      .was_called_with(match.ref(Dispatcher), "stats_sync", match.is_table())
+    assert
+      .stub(Dispatcher.registerAction)
+      .was_called_with(match.ref(Dispatcher), "book_statistics", match.is_table())
   end)
 
   it("should return enabled and frozen statuses accurately", function()
@@ -195,7 +185,9 @@ describe("ReaderStatistics plugin main spec", function()
     local conn = SQ3.open(test_db)
 
     ReaderStatistics:createDB(conn)
-    local row = conn:rowexec("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='book';")
+    local row = conn:rowexec(
+      "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='book';"
+    )
     assert.are.equal(1, tonumber(row))
 
     local version = tonumber(conn:rowexec("PRAGMA user_version;"))
@@ -342,80 +334,83 @@ describe("ReaderStatistics plugin main spec", function()
     assert.are.equal("New Series #2", stats.data.series)
   end)
 
-  it("should populate main menu items correctly and trigger callbacks", function()
-    local stats = createInstance()
-    local menu_items = {}
-    stats:addToMainMenu(menu_items)
+  it(
+    "should populate main menu items correctly and trigger callbacks",
+    function()
+      local stats = createInstance()
+      local menu_items = {}
+      stats:addToMainMenu(menu_items)
 
-    assert.is_table(menu_items.statistics)
-    assert.are.equal("Reading statistics", menu_items.statistics.text)
-    local sub = menu_items.statistics.sub_item_table
-    assert.is_table(sub)
-    assert.is_true(#sub > 0)
+      assert.is_table(menu_items.statistics)
+      assert.are.equal("Reading statistics", menu_items.statistics.text)
+      local sub = menu_items.statistics.sub_item_table
+      assert.is_table(sub)
+      assert.is_true(#sub > 0)
 
-    -- Test sub-item callbacks and checked functions
-    local enabled_item = sub[1]
-    assert.is_true(enabled_item.checked_func())
-    enabled_item.callback()
-    assert.is_false(stats.settings.is_enabled)
-    enabled_item.callback()
-    assert.is_true(stats.settings.is_enabled)
+      -- Test sub-item callbacks and checked functions
+      local enabled_item = sub[1]
+      assert.is_true(enabled_item.checked_func())
+      enabled_item.callback()
+      assert.is_false(stats.settings.is_enabled)
+      enabled_item.callback()
+      assert.is_true(stats.settings.is_enabled)
 
-    -- Settings sub-items
-    local settings_sub = sub[2].sub_item_table
-    assert.is_table(settings_sub)
+      -- Settings sub-items
+      local settings_sub = sub[2].sub_item_table
+      assert.is_table(settings_sub)
 
-    local dummy_menu = { updateItems = spy.new(function() end) }
+      local dummy_menu = { updateItems = spy.new(function() end) }
 
-    -- Read page duration limits
-    local duration_item = settings_sub[1]
-    assert.is_string(duration_item.text_func())
-    duration_item.callback(dummy_menu)
-    assert.stub(UIManager.show).was_called()
+      -- Read page duration limits
+      local duration_item = settings_sub[1]
+      assert.is_string(duration_item.text_func())
+      duration_item.callback(dummy_menu)
+      assert.stub(UIManager.show).was_called()
 
-    -- Freeze finished books
-    local freeze_item = settings_sub[2]
-    assert.is_false(freeze_item.checked_func())
-    freeze_item.callback()
-    assert.is_true(stats.settings.freeze_finished_books)
-    assert.is_true(freeze_item.checked_func())
+      -- Freeze finished books
+      local freeze_item = settings_sub[2]
+      assert.is_false(freeze_item.checked_func())
+      freeze_item.callback()
+      assert.is_true(stats.settings.freeze_finished_books)
+      assert.is_true(freeze_item.checked_func())
 
-    -- Calendar week start day
-    local calendar_start_item = settings_sub[3]
-    assert.is_string(calendar_start_item.text_func())
-    local days_sub = calendar_start_item.sub_item_table
-    assert.is_table(days_sub)
-    days_sub[1].callback()
-    assert.are.equal(6, stats.settings.calendar_start_day_of_week)
-    assert.is_true(days_sub[1].checked_func())
+      -- Calendar week start day
+      local calendar_start_item = settings_sub[3]
+      assert.is_string(calendar_start_item.text_func())
+      local days_sub = calendar_start_item.sub_item_table
+      assert.is_table(days_sub)
+      days_sub[1].callback()
+      assert.are.equal(6, stats.settings.calendar_start_day_of_week)
+      assert.is_true(days_sub[1].checked_func())
 
-    -- Books per calendar day
-    local books_per_day_item = settings_sub[4]
-    assert.is_string(books_per_day_item.text_func())
-    books_per_day_item.callback(dummy_menu)
+      -- Books per calendar day
+      local books_per_day_item = settings_sub[4]
+      assert.is_string(books_per_day_item.text_func())
+      books_per_day_item.callback(dummy_menu)
 
-    -- Hourly histogram
-    local histo_item = settings_sub[5]
-    assert.is_true(histo_item.checked_func())
-    histo_item.callback()
-    assert.is_false(stats.settings.calendar_show_histogram)
+      -- Hourly histogram
+      local histo_item = settings_sub[5]
+      assert.is_true(histo_item.checked_func())
+      histo_item.callback()
+      assert.is_false(stats.settings.calendar_show_histogram)
 
-    -- Browse future months
-    local future_item = settings_sub[6]
-    assert.is_false(future_item.checked_func())
-    future_item.callback()
-    assert.is_true(stats.settings.calendar_browse_future_months)
+      -- Browse future months
+      local future_item = settings_sub[6]
+      assert.is_false(future_item.checked_func())
+      future_item.callback()
+      assert.is_true(stats.settings.calendar_browse_future_months)
 
-    -- Daily timeline start
-    local timeline_start_item = settings_sub[7]
-    assert.is_string(timeline_start_item.text_func())
-    timeline_start_item.callback(dummy_menu)
+      -- Daily timeline start
+      local timeline_start_item = settings_sub[7]
+      assert.is_string(timeline_start_item.text_func())
+      timeline_start_item.callback(dummy_menu)
 
-    -- Use day time shift
-    local time_shift_item = settings_sub[8]
-    time_shift_item.callback()
-    assert.is_true(stats.settings.calendar_use_day_time_shift)
-  end)
+      -- Use day time shift
+      local time_shift_item = settings_sub[8]
+      time_shift_item.callback()
+      assert.is_true(stats.settings.calendar_use_day_time_shift)
+    end
+  )
 
   it("should handle toggle statistics action", function()
     local stats = createInstance()
@@ -426,7 +421,9 @@ describe("ReaderStatistics plugin main spec", function()
 
     stats:onToggleStatistics(true)
     assert.is_true(stats.settings.is_enabled)
-    assert.stub(UIManager.broadcastEvent).was_called_with(match.ref(UIManager), "UpdateFooter")
+    assert
+      .stub(UIManager.broadcastEvent)
+      .was_called_with(match.ref(UIManager), "UpdateFooter")
   end)
 
   it("should open statistics sub-views and menus", function()
@@ -569,7 +566,9 @@ describe("ReaderStatistics plugin main spec", function()
     stats:deleteBook(id)
 
     local conn = SQ3.open(db_location)
-    local count = conn:rowexec(string.format("SELECT count(*) FROM book WHERE id = %d;", id))
+    local count = conn:rowexec(
+      string.format("SELECT count(*) FROM book WHERE id = %d;", id)
+    )
     conn:close()
     assert.are.equal(0, tonumber(count))
   end)
