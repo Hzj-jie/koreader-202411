@@ -227,10 +227,8 @@ end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state
 function SyncManager:_writeAnnotationsJSON(document)
-  local file = document and document.file
-  if not file then
-    return false
-  end
+  assert(document and document.file, "document and document.file must exist")
+  local file = document.file
 
   local sdr_dir = docsettings:getSidecarDir(file)
   if not sdr_dir or sdr_dir == "" then
