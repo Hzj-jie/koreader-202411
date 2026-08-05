@@ -586,9 +586,9 @@ end
 function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
   if not modified_annotations and type(modified_annotations) == "table" then
     logger.warn(
-      "AnnotationSync: Document annotations modification detected, but could not process provided annotations payload (of type: "
-        .. type(modified_annotations)
-        .. ")"
+      "AnnotationSync: Document annotations modification detected, but could not process provided annotations payload (of type:",
+      type(modified_annotations),
+      ")"
     )
     return
   end
@@ -616,17 +616,17 @@ function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
     if changed_file == unknown_file then
       if changes > 0 then
         logger.warn(
-          "AnnotationSync: Document annotations modification detected, but could not determine file for "
-            .. changes
-            .. " annotations"
+          "AnnotationSync: Document annotations modification detected, but could not determine file for",
+          changes,
+          "annotations"
         )
       end
     else
       logger.dbg(
-        "AnnotationSync: "
-          .. changes
-          .. " Document annotations modified: "
-          .. changed_file
+        "AnnotationSync:",
+        changes,
+        "Document annotations modified:",
+        changed_file
       )
       self.manager:addToChangedDocumentsFile(changed_file)
     end

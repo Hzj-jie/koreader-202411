@@ -13,9 +13,9 @@ function M.sync_callback(
   income_file,
   force
 )
-  logger.dbg("AnnotationSync:sync_callback: local_file: " .. local_file)
-  logger.dbg("AnnotationSync:sync_callback: last_sync_file: " .. last_sync_file)
-  logger.dbg("AnnotationSync:sync_callback: income_file: " .. income_file)
+  logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
+  logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
+  logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
 
   local local_map = utils.read_json(local_file)
   local last_sync_map = utils.read_json(last_sync_file)
@@ -35,9 +35,9 @@ function M.sync_callback(
     for k, v in pairs(income_map) do
       if type(v) ~= "table" then
         logger.warn(
-          "AnnotationSync: income_map contains non-table value for key "
-            .. tostring(k)
-            .. ". Aborting."
+          "AnnotationSync: income_map contains non-table value for key",
+          tostring(k),
+          ". Aborting."
         )
         is_valid_schema = false
         break
@@ -45,9 +45,9 @@ function M.sync_callback(
       -- Schema check: values should have at least one of these keys
       if not (v.datetime_updated or v.datetime or v.page or v.text) then
         logger.warn(
-          "AnnotationSync: income_map value for key "
-            .. tostring(k)
-            .. " lacks annotation metadata. Aborting."
+          "AnnotationSync: income_map value for key",
+          tostring(k),
+          "lacks annotation metadata. Aborting."
         )
         is_valid_schema = false
         break
@@ -102,8 +102,8 @@ function M.sync_callback(
       income_map = {}
     else
       logger.warn(
-        "AnnotationSync: income_file appears corrupted or server error. Aborting. Snippet: "
-          .. content_snippet
+        "AnnotationSync: income_file appears corrupted or server error. Aborting. Snippet:",
+        content_snippet
       )
       return false
     end
@@ -203,9 +203,9 @@ function M.get_deleted_annotations(
     -- We bypass this safety if 'force' is true (manual sync).
     if not force and #local_keys == 0 and #uploaded_keys > 0 then
       logger.warn(
-        "AnnotationSync: Local annotations empty but last sync had "
-          .. #uploaded_keys
-          .. ". Skipping deletions to protect data."
+        "AnnotationSync: Local annotations empty but last sync had",
+        #uploaded_keys,
+        ". Skipping deletions to protect data."
       )
       return
     end

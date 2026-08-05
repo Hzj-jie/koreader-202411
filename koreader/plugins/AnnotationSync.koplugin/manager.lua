@@ -149,34 +149,35 @@ function SyncManager:_syncFile(file)
   local ui_document = self.plugin.ui and self.plugin.ui.document
   local document = self:getDocumentByFile(file)
   if document then
-    logger.info("AnnotationSync: syncing document: " .. file)
+    logger.info("AnnotationSync: syncing document:", file)
     local is_temporary = (document ~= ui_document)
     local ok, success = pcall(self.syncDocument, self, document, false)
     if not ok then
       logger.warn(
-        "AnnotationSync: syncDocument CRASHED for "
-          .. file
-          .. ": "
-          .. tostring(success)
+        "AnnotationSync: syncDocument CRASHED for",
+        file,
+        ":",
+        tostring(success)
       )
     elseif not success then
-      logger.warn("AnnotationSync: syncDocument failed for " .. file)
+      logger.warn("AnnotationSync: syncDocument failed for", file)
     end
 
     if is_temporary then
-      logger.info("AnnotationSync: closing temporary document: " .. file)
+      logger.info("AnnotationSync: closing temporary document:", file)
       document:close()
     end
     return ok and success
   else
     if not util.fileExists(file) then
       logger.warn(
-        "AnnotationSync: file missing, removing from sync list: " .. file
+        "AnnotationSync: file missing, removing from sync list:",
+        file
       )
       self:removeFromChangedDocumentsFileByPath(file)
       return nil
     else
-      logger.warn("AnnotationSync: could not open document for sync: " .. file)
+      logger.warn("AnnotationSync: could not open document for sync:", file)
       return false
     end
   end
@@ -195,7 +196,7 @@ function SyncManager:syncDocument(document, is_manual)
   end
 
   self:_flushSettings()
-  logger.dbg("AnnotationSync: syncing document: " .. file)
+  logger.dbg("AnnotationSync: syncing document:", file)
 
   local json_path = self:_writeAnnotationsJSON(document)
   if not json_path then
@@ -203,11 +204,9 @@ function SyncManager:syncDocument(document, is_manual)
   end
 
   logger.dbg(
-    "AnnotationSync: remote sync of "
-      .. json_path
-      .. " (force="
-      .. tostring(is_manual)
-      .. ")"
+    "AnnotationSync: remote sync of",
+    json_path,
+    "(force=" .. tostring(is_manual) .. ")"
   )
   local sync_success = false
   remote.sync_annotations(
@@ -237,9 +236,7 @@ function SyncManager:_writeAnnotationsJSON(document)
 
   -- Fix for Issue #34: Ensure the local sidecar directory exists
   if not lfs.attributes(sdr_dir, "mode") then
-    logger.info(
-      "AnnotationSync: creating missing sidecar directory: " .. sdr_dir
-    )
+    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
     util.makePath(sdr_dir)
   end
 
@@ -310,11 +307,11 @@ function SyncManager:_writeChangedDocumentsFile(changed_docs)
     util.writeToFile(self:_serialize_table(changed_docs), track_path, true)
   if not ok then
     logger.warn(
-      "AnnotationSync: Failed to write changed documents file: "
-        .. track_path
-        .. " ("
-        .. tostring(err)
-        .. ")"
+      "AnnotationSync: Failed to write changed documents file:",
+      track_path,
+      "(",
+      tostring(err),
+      ")"
     )
   end
 end
@@ -418,15 +415,13 @@ function SyncManager:getDocumentByFile(file)
   local document
   local provider = DocumentRegistry:getProvider(file)
   if provider then
-    logger.dbg(
-      "AnnotationSync: provider for " .. file .. ": " .. provider.provider
-    )
+    logger.dbg("AnnotationSync: provider for", file, ":", provider.provider)
     document = DocumentRegistry:openDocument(file, provider)
     -- A document provided by crengine must be rendered in order to use
     -- any functions that rely on XPointers.
     if provider.provider == "crengine" then
       if document then
-        logger.dbg("AnnotationSync: rendering: " .. file)
+        logger.dbg("AnnotationSync: rendering:", file)
         document:render()
       end
     end
@@ -441,8 +436,8 @@ function SyncManager:updateLastSync(descriptor)
   end
   self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S") .. parenthetical
   logger.dbg(
-    "AnnotationSync: updateLastSync: updated at "
-      .. self.plugin.settings.last_sync
+    "AnnotationSync: updateLastSync: updated at",
+    self.plugin.settings.last_sync
   )
 end
 
@@ -468,9 +463,9 @@ function SyncManager:_onSyncComplete(document, success, merged_list)
     self:removeFromChangedDocumentsFile(document)
   else
     logger.warn(
-      "AnnotationSync: sync failed for "
-        .. (document.file or "unknown")
-        .. ", keeping in changed list"
+      "AnnotationSync: sync failed for",
+      (document.file or "unknown"),
+      ", keeping in changed list"
     )
   end
 end
@@ -569,17 +564,17 @@ function SyncManager:pushSettings()
   local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
-      "AnnotationSync: failed to write settings JSON: "
-        .. json_path
-        .. " ("
-        .. tostring(err)
-        .. ")"
+      "AnnotationSync: failed to write settings JSON:",
+      json_path,
+      "(",
+      tostring(err),
+      ")"
     )
     utils.show_msg(gettext("Failed to write settings to local storage."))
     return
   end
 
-  logger.dbg("AnnotationSync: pushing settings to remote: " .. json_path)
+  logger.dbg("AnnotationSync: pushing settings to remote:", json_path)
   utils.show_msg(gettext("Pushing settings to cloud..."))
   remote.sync_settings(self.plugin, json_path, function(success)
     if success then
