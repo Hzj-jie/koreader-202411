@@ -171,8 +171,6 @@ function AnnotationSyncPlugin:init()
       gettext.loadPO(po_path)
     end
   end
-
-  self:registerEvents()
 end
 
 function AnnotationSyncPlugin:saveSettings()
@@ -245,9 +243,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               self.settings.network_auto_sync =
                 not self.settings.network_auto_sync
               self:saveSettings()
-              if self.settings.network_auto_sync then
-                self:registerEvents()
-              end
               UIManager:close()
             end,
           },
@@ -409,10 +404,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       },
     },
   }
-end
-
-function AnnotationSyncPlugin:registerEvents()
-  -- No-op: automatic syncing is handled periodically via onTimesChange_1M
 end
 
 function AnnotationSyncPlugin:onTimesChange_1M()
