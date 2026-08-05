@@ -1,5 +1,4 @@
 local ConfirmBox = require("ui/widget/confirmbox")
-local Event = require("ui/event")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
@@ -209,7 +208,7 @@ function M.show_differing_settings_menu(
         end
       end
       if count > 0 then
-        UIManager:broadcastEvent(Event:new("FlushSettings"))
+        plugin.manager:flushSettings()
         utils.show_msg(T(gettext("Successfully imported %1 settings."), count))
       else
         utils.show_msg(gettext("No settings imported."))

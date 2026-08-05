@@ -540,7 +540,7 @@ function AnnotationSyncPlugin:manualSync()
     return
   end
   self.manager:syncDocument(document, true)
-  self.manager:_updateLastSync("Manual Sync")
+  self.manager:updateLastSync("Manual Sync")
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()

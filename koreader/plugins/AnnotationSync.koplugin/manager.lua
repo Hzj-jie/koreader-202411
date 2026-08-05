@@ -65,7 +65,7 @@ function SyncManager:syncAllChangedDocuments()
   if count == 0 then
     utils.show_msg("Unable to sync modified documents: " .. total)
   else
-    self:_updateLastSync("Sync All")
+    self:updateLastSync("Sync All")
     utils.show_msg("Successfully synced modified documents: " .. count)
   end
 
@@ -122,7 +122,7 @@ function SyncManager:_syncPendingDocumentsBg()
     if idx > #files_to_sync or not isConnected() then
       self.is_syncing_pending_bg = false
       if count > 0 then
-        self:_updateLastSync("Auto Sync (" .. count .. ")")
+        self:updateLastSync("Auto Sync (" .. count .. ")")
         logger.info(
           "AnnotationSync: background sync completed for",
           count,
@@ -196,7 +196,7 @@ function SyncManager:syncDocument(document, is_manual)
     return false
   end
 
-  UIManager:broadcastEvent(Event:new("FlushSettings"))
+  self:flushSettings()
   logger.dbg("AnnotationSync: syncing document:", file)
 
   local json_path = self:_writeAnnotationsJSON(document)
@@ -430,7 +430,7 @@ function SyncManager:getDocumentByFile(file)
   return document
 end
 
-function SyncManager:_updateLastSync(descriptor)
+function SyncManager:updateLastSync(descriptor)
   local parenthetical = ""
   if descriptor and type(descriptor) == "string" then
     parenthetical = " (" .. descriptor .. ")"
@@ -442,10 +442,14 @@ function SyncManager:_updateLastSync(descriptor)
   )
 end
 
+function SyncManager:flushSettings()
+  UIManager:broadcastEvent(Event:new("FlushSettings"))
+end
+
 function SyncManager:_getAnnotationFilename(file)
   if self.plugin.settings.use_filename then
-    local filename = file:match("([^/]+)$") or file
-    return filename .. ".json"
+    local _, filename = util.splitFilePathName(file)
+    return (filename ~= "" and filename or file) .. ".json"
   end
   local hash = file and type(file) == "string" and util.partialMD5(file)
     or gettext("No hash")
