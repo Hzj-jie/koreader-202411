@@ -50,45 +50,12 @@ function SyncManager:syncAllChangedDocuments()
   end
   local count = 0
   local failed_files = {}
-  local ui_document = self.plugin.ui and self.plugin.ui.document
   for file, _ in pairs(changed_docs) do
-    -- Try to get a document object for this file, open if needed
-    local document = self:getDocumentByFile(file)
-    if document then
-      logger.info("AnnotationSync: syncing document: " .. file)
-      local is_temporary = (document ~= ui_document)
-      local ok, success = pcall(self.syncDocument, self, document, false)
-      if ok and success then
-        count = count + 1
-      else
-        if not ok then
-          logger.warn(
-            "AnnotationSync: syncDocument CRASHED for "
-              .. file
-              .. ": "
-              .. tostring(success)
-          )
-        end
-        table.insert(failed_files, file)
-      end
-
-      if is_temporary then
-        logger.info("AnnotationSync: closing temporary document: " .. file)
-        document:close()
-      end
-    else
-      -- Check if file still exists
-      if not util.fileExists(file) then
-        logger.warn(
-          "AnnotationSync: file missing, removing from sync list: " .. file
-        )
-        self:removeFromChangedDocumentsFileByPath(file)
-      else
-        logger.warn(
-          "AnnotationSync: could not open document for sync: " .. file
-        )
-        table.insert(failed_files, file)
-      end
+    local res = self:_syncFile(file, false)
+    if res == true then
+      count = count + 1
+    elseif res == false then
+      table.insert(failed_files, file)
     end
   end
   if count == 0 then
@@ -147,7 +114,6 @@ function SyncManager:_syncPendingDocumentsBg()
 
   self.is_syncing_pending_bg = true
   local count = 0
-  local ui_document = self.plugin.ui and self.plugin.ui.document
 
   local function sync_next(idx)
     if
@@ -168,29 +134,53 @@ function SyncManager:_syncPendingDocumentsBg()
 
     local file = files_to_sync[idx]
     UIManager:nextTick(function()
-      local document = self:getDocumentByFile(file)
-      if document then
-        logger.dbg("AnnotationSync: background syncing document: " .. file)
-        local is_temporary = (document ~= ui_document)
-        local ok, success = pcall(self.syncDocument, self, document, false)
-        if ok and success then
-          count = count + 1
-        else
-          logger.warn("AnnotationSync: background sync failed for " .. file)
-        end
-        if is_temporary then
-          document:close()
-        end
-      else
-        if not util.fileExists(file) then
-          self:removeFromChangedDocumentsFileByPath(file)
-        end
+      if self:_syncFile(file, false) == true then
+        count = count + 1
       end
       sync_next(idx + 1)
     end)
   end
 
   sync_next(1)
+end
+
+-- Helper to sync a single file by path, handling opening, temporary document closing, and cleanup.
+-- Returns true on success, false on failure (file exists but sync failed), or nil if the file is missing.
+function SyncManager:_syncFile(file, is_manual)
+  local ui_document = self.plugin.ui and self.plugin.ui.document
+  local document = self:getDocumentByFile(file)
+  if document then
+    logger.info("AnnotationSync: syncing document: " .. file)
+    local is_temporary = (document ~= ui_document)
+    local ok, success = pcall(self.syncDocument, self, document, is_manual)
+    if not ok then
+      logger.warn(
+        "AnnotationSync: syncDocument CRASHED for "
+          .. file
+          .. ": "
+          .. tostring(success)
+      )
+    elseif not success then
+      logger.warn("AnnotationSync: syncDocument failed for " .. file)
+    end
+
+    if is_temporary then
+      logger.info("AnnotationSync: closing temporary document: " .. file)
+      document:close()
+    end
+    return ok and success
+  else
+    if not util.fileExists(file) then
+      logger.warn(
+        "AnnotationSync: file missing, removing from sync list: " .. file
+      )
+      self:removeFromChangedDocumentsFileByPath(file)
+      return nil
+    else
+      logger.warn("AnnotationSync: could not open document for sync: " .. file)
+      return false
+    end
+  end
 end
 
 -- Orchestrates the sync process for a single document
