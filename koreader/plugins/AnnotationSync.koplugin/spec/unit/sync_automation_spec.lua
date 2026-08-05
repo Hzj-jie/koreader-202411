@@ -135,6 +135,7 @@ describe("AnnotationSync Automation & Settings", function()
       end
 
       sync_instance.manager:syncAllChangedDocuments()
+      fastforward_ui_events()
       assert.is_equal(2, #synced_files)
 
       sync_instance.manager.getDocumentByFile = old_getDoc

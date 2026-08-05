@@ -164,6 +164,7 @@ describe("Sync Missing File Handling", function()
 
     -- Execute Sync All
     manager:syncAllChangedDocuments()
+    fastforward_ui_events()
 
     -- Assertions
     assert.is_equal(1, open_calls[doc1], "doc1 should have been opened")

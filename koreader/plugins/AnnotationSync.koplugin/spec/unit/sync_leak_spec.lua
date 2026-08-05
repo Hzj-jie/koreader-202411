@@ -33,6 +33,7 @@ require("commonrequire")
 
 local DocumentRegistry = require("document/documentregistry")
 local SyncService = require("apps/cloudstorage/syncservice")
+local UIManager = require("ui/uimanager")
 
 describe("Sync Document Leak Verification", function()
   local manager
@@ -160,6 +161,13 @@ describe("Sync Document Leak Verification", function()
 
     -- Execute Sync All
     manager:syncAllChangedDocuments()
+    for _ = 1, 5 do
+      fastforward_ui_events()
+    end
+    local top = UIManager:getTopmostVisibleWidget()
+    if top and top ~= readerui then
+      UIManager:close(top)
+    end
 
     -- Diagnostics
     print("\n--- Sync Leak Diagnostics ---")
@@ -199,6 +207,13 @@ describe("Sync Document Leak Verification", function()
       end
 
       manager:syncAllChangedDocuments()
+      for _ = 1, 5 do
+        fastforward_ui_events()
+      end
+      local top = UIManager:getTopmostVisibleWidget()
+      if top and top ~= readerui then
+        UIManager:close(top)
+      end
 
       -- Restore
       manager.syncDocument = old_syncDoc

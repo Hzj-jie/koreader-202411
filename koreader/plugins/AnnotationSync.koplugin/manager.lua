@@ -52,47 +52,83 @@ function SyncManager:syncAllChangedDocuments()
     utils.show_msg("No changed documents to sync.")
     return
   end
-  local count = 0
-  local failed_files = {}
-  for file, _ in pairs(changed_docs) do
-    local res = self:_syncFile(file)
-    if res == true then
-      count = count + 1
-    elseif res == false then
-      table.insert(failed_files, file)
-    end
-  end
-  if count == 0 then
-    utils.show_msg("Unable to sync modified documents: " .. total)
-  else
-    self:updateLastSync("Sync All")
-    utils.show_msg("Successfully synced modified documents: " .. count)
-  end
 
-  if #failed_files > 0 then
-    local filenames = {}
-    for _, file in ipairs(failed_files) do
-      table.insert(filenames, file:match("([^/]+)$") or file)
+  local Trapper = require("ui/trapper")
+  Trapper:wrap(function()
+    Trapper:setPausedText(
+      gettext(
+        "Sync All paused.\nDo you want to continue or abort syncing documents?"
+      )
+    )
+    local count = 0
+    local failed_files = {}
+    local current_idx = 0
+
+    for file, _ in pairs(changed_docs) do
+      current_idx = current_idx + 1
+      local _, filename = util.splitFilePathName(file)
+      if filename == "" then
+        filename = file
+      end
+
+      local go_on = Trapper:info(
+        T(
+          gettext("Syncing document %1 of %2...\n%3"),
+          current_idx,
+          total,
+          filename
+        )
+      )
+      if not go_on then
+        logger.info("AnnotationSync: Sync All aborted by user")
+        break
+      end
+
+      local res = self:_syncFile(file)
+      if res == true or res == "skip_upload" then
+        count = count + 1
+      elseif res == false then
+        table.insert(failed_files, file)
+      end
     end
-    local ConfirmBox = require("ui/widget/confirmbox")
-    local list_str = "- " .. table.concat(filenames, "\n- ")
-    UIManager:nextTick(function()
-      UIManager:show(ConfirmBox:new({
-        text = T(
-          gettext(
-            "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
+
+    Trapper:reset()
+
+    if count == 0 and #failed_files == 0 then
+      utils.show_msg("Sync All cancelled.")
+    elseif count == 0 then
+      utils.show_msg("Unable to sync modified documents: " .. total)
+    else
+      self:updateLastSync("Sync All")
+      utils.show_msg("Successfully synced modified documents: " .. count)
+    end
+
+    if #failed_files > 0 then
+      local filenames = {}
+      for _, file in ipairs(failed_files) do
+        local _, name = util.splitFilePathName(file)
+        table.insert(filenames, name ~= "" and name or file)
+      end
+      local ConfirmBox = require("ui/widget/confirmbox")
+      local list_str = "- " .. table.concat(filenames, "\n- ")
+      UIManager:nextTick(function()
+        UIManager:show(ConfirmBox:new({
+          text = T(
+            gettext(
+              "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
+            ),
+            list_str
           ),
-          list_str
-        ),
-        type = "yesno",
-        ok_text = gettext("Open Manager"),
-        ok_callback = function()
-          menus.show_pending_documents(self.plugin)
-        end,
-        cancel_text = gettext("Close"),
-      }))
-    end)
-  end
+          type = "yesno",
+          ok_text = gettext("Open Manager"),
+          ok_callback = function()
+            menus.show_pending_documents(self.plugin)
+          end,
+          cancel_text = gettext("Close"),
+        }))
+      end)
+    end
+  end)
 end
 
 -- Incremental background sync of pending documents (up to 60 per minute) using nextTick

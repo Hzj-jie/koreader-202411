@@ -91,6 +91,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 3. Trigger Sync All
       sync_instance.manager:syncAllChangedDocuments()
+      fastforward_ui_events()
 
       -- Should have attempted to sync both
       assert.is_equal(2, sync_calls)
@@ -109,6 +110,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 6. Trigger Sync All again
       sync_instance.manager:syncAllChangedDocuments()
+      fastforward_ui_events()
 
       -- 7. Verify both are now clean
       assert.is_equal(
@@ -184,6 +186,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 4. Sync All
       sync_instance.manager:syncAllChangedDocuments()
+      fastforward_ui_events()
 
       -- 5. Verify EPUB (Active UI updated)
       assert.is_equal(2, #readerui.annotation.annotations)
