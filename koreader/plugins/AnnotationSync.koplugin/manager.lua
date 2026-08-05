@@ -196,7 +196,7 @@ function SyncManager:syncDocument(document, is_manual)
     return false
   end
 
-  self:_flushSettings()
+  UIManager:broadcastEvent(Event:new("FlushSettings"))
   logger.dbg("AnnotationSync: syncing document:", file)
 
   local json_path = self:_writeAnnotationsJSON(document)
@@ -440,10 +440,6 @@ function SyncManager:_updateLastSync(descriptor)
     "AnnotationSync: updateLastSync: updated at",
     self.plugin.settings.last_sync
   )
-end
-
-function SyncManager:_flushSettings()
-  UIManager:broadcastEvent(Event:new("FlushSettings"))
 end
 
 function SyncManager:_getAnnotationFilename(file)
