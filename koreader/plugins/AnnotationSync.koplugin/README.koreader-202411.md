@@ -24,3 +24,9 @@ The following changes were made to resolve test failures and runtime compatibili
    - Corrected the page number in `highlight_db.lua` for the entry `"SCENE I. Verona..."` from `8` to `7` to match the current rendering pagination layout in this version of KOReader, resolving `highlight_ground_truth_spec.lua` failure.
 5. **Adjusted `util.writeToFile` calls**:
    - Replaced multi-argument calls of `util.writeToFile(..., true, false, true)` with `util.writeToFile(...)` to match the core utility signature.
+6. **Added library scanning feature (`Scan library for unsynced annotations`)**:
+   - Implemented `SyncManager:scanLibraryForUnsyncedDocuments()` to scan KOReader's opened book history (`require("readhistory").hist`) across all four sidecar storage layouts (`doc` in book folder, `dir` in central `docsettings/`, `hash` in `docsettings/b3/`, and legacy `hist` in `history/`) for existing `.sdr` settings with annotations, queueing them into the pending sync list (`changed_documents.lua`).
+   - Added a menu option `"Scan library for unsynced annotations"` with a confirmation dialog so users can populate pending syncs for existing annotated books without immediately uploading.
+7. **Removed unsupported Reading Progress Sync features**:
+   - Removed Reading Progress Sync menu options (`Enable Reading Progress Sync`, `Sync using last word of page`, `Sync every %1 pages`, `Push reading progress`, `Jump to device progress`) and the explanation popup (`Why are some options greyed out?`) because they rely on an unsupported upstream cloud storage API (`ui.cloudstorage`) in KOReader v2024.11.
+   - Removed all unused backend reading progress sync methods, document hooks, Dispatcher actions, default settings, and obsolete progress sync unit tests (`progress_sync_integration_spec.lua`, `sync_service_silent_repro_spec.lua`).
