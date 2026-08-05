@@ -189,5 +189,31 @@ describe("AnnotationSync Automation & Settings", function()
         UIManager.scheduleIn = old_scheduleIn
       end
     )
+
+    it(
+      "halts background sync if network_auto_sync is disabled during execution",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local old_scheduleIn = UIManager.scheduleIn
+        local scheduled_cb = nil
+        UIManager.scheduleIn = function(self_ui, seconds, callback)
+          scheduled_cb = callback
+        end
+
+        sync_instance.manager:_syncPendingDocumentsBg()
+        assert.is_true(sync_instance.manager.is_syncing_pending_bg)
+
+        -- User turns off network_auto_sync while sync is pending
+        sync_instance.settings.network_auto_sync = false
+        if scheduled_cb then
+          scheduled_cb()
+        end
+
+        assert.is_false(sync_instance.manager.is_syncing_pending_bg)
+        UIManager.scheduleIn = old_scheduleIn
+      end
+    )
   end)
 end)

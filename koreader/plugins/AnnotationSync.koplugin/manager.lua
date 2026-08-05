@@ -155,6 +155,7 @@ function SyncManager:_syncPendingDocumentsBg()
       idx > #files_to_sync
       or not isConnected()
       or not self.is_syncing_pending_bg
+      or not self.plugin.settings.network_auto_sync
     then
       self.is_syncing_pending_bg = false
       if count > 0 then
@@ -171,7 +172,11 @@ function SyncManager:_syncPendingDocumentsBg()
     local file = files_to_sync[idx]
     -- Pace background sync items by 1s intervals so the event loop yields CPU cycles to UI touch events and rendering
     UIManager:scheduleIn(1, function()
-      if not self.is_syncing_pending_bg then
+      if
+        not self.is_syncing_pending_bg
+        or not self.plugin.settings.network_auto_sync
+      then
+        self.is_syncing_pending_bg = false
         return
       end
       if self:_syncFile(file) == true then
