@@ -124,7 +124,7 @@ function SyncManager:syncAllChangedDocuments()
   end
 end
 
--- Incremental background sync of pending documents (e.g. up to max_count per minute) using nextTick
+-- Incremental background sync of pending documents (up to 60 per minute) using nextTick
 function SyncManager:_syncPendingDocumentsBg()
   if self.is_syncing_pending_bg then
     logger.dbg("AnnotationSync: background pending sync already in progress")
