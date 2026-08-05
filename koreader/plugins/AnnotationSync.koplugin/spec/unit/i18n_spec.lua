@@ -50,6 +50,26 @@ describe("AnnotationSync internationalization", function()
       assert.are.equal("Sincronizzazione Annotazioni", _("Annotation Sync"))
       assert.are.equal("Impostazioni", _("Settings"))
 
+      -- Set language to Simplified Chinese (zh_CN)
+      _.current_lang = "zh_CN"
+      for k in pairs(_.translation) do
+        _.translation[k] = nil
+      end
+      sync_instance:initI18n()
+      assert.are.equal("标注同步", _("Annotation Sync"))
+      assert.are.equal("全部同步", _("Sync All"))
+      assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
+
+      -- Set language to Traditional Chinese (zh_TW)
+      _.current_lang = "zh_TW"
+      for k in pairs(_.translation) do
+        _.translation[k] = nil
+      end
+      sync_instance:initI18n()
+      assert.are.equal("標註同步", _("Annotation Sync"))
+      assert.are.equal("全部同步", _("Sync All"))
+      assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
+
       -- Restore original language
       _.current_lang = old_lang
     end

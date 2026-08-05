@@ -103,9 +103,6 @@ function AnnotationSyncPlugin:init()
         return
       end
 
-      local translation = gettext.translation
-      local context = gettext.context
-
       local function addTranslation(msgctxt, msgid, msgstr)
         local unescaped =
           msgstr:gsub("\\n", "\n"):gsub('\\"', '"'):gsub("\\\\", "\\")
@@ -114,12 +111,12 @@ function AnnotationSyncPlugin:init()
         end
 
         if msgctxt and msgctxt ~= "" then
-          if not context[msgctxt] then
-            context[msgctxt] = {}
+          if not gettext.context[msgctxt] then
+            gettext.context[msgctxt] = {}
           end
-          context[msgctxt][msgid] = unescaped
+          gettext.context[msgctxt][msgid] = unescaped
         else
-          translation[msgid] = unescaped
+          gettext.translation[msgid] = unescaped
         end
       end
 
@@ -165,7 +162,10 @@ function AnnotationSyncPlugin:init()
     end
   end
 
-  -- Load plugin translations dynamically if available for the active locale
+  self:initI18n()
+end
+
+function AnnotationSyncPlugin:initI18n()
   local lang = gettext.current_lang
   if lang and lang ~= "C" and lang ~= "" then
     local path = self.path or "plugins/AnnotationSync.koplugin"
