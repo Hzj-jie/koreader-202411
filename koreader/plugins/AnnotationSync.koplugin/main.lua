@@ -221,16 +221,16 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               return self.ui.cloudstorage ~= nil or has_syncservice
             end,
             callback = function()
-              if self.ui.cloudstorage then
-                self.ui.cloudstorage:onShowCloudStorageList(function(server)
-                  self:onSyncServiceConfirm(server)
-                end)
-              elseif has_syncservice then
+              if has_syncservice then
                 local sync_service = SyncService:new({})
                 sync_service.onConfirm = function(server)
                   self:onSyncServiceConfirm(server)
                 end
                 UIManager:show(sync_service)
+              else
+                utils.show_msg(
+                  gettext("Cloud storage service is not available.")
+                )
               end
             end,
           },
