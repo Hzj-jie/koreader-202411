@@ -32,4 +32,7 @@ The following changes were made to resolve test failures and runtime compatibili
    - Removed all unused backend reading progress sync methods, document hooks, Dispatcher actions, default settings, and obsolete progress sync unit tests (`progress_sync_integration_spec.lua`, `sync_service_silent_repro_spec.lua`).
 8. **Replaced network-connected trigger with 1-minute timer incremental background sync (`onTimesChange_1M`)**:
    - Replaced `_onNetworkConnected` (which only fired on offline-to-online transitions) with periodic 1-minute checks (`onTimesChange_1M`).
-   - Implemented `SyncManager:syncPendingDocumentsBg(max_count)` to incrementally sync pending documents (up to 60 per minute) in their own `UIManager:nextTick` calls, preventing UI lag when syncing large numbers of annotated books in the background.
+   - Implemented private method `SyncManager:_syncPendingDocumentsBg()` to incrementally sync pending documents (up to 60 per minute) in their own `UIManager:nextTick` calls, preventing UI lag when syncing large numbers of annotated books in the background.
+9. **Refactored internal helper methods to private and removed dead code**:
+   - Prefixed internal `SyncManager` helper methods with an underscore (`_syncPendingDocumentsBg`, `_writeAnnotationsJSON`, `_writeChangedDocumentsFile`, `_writeLocalSettingValue`, `_removeFromChangedDocumentsFile`).
+   - Removed dead code `SyncManager:checkPendingSync()`, which was only used by the removed reading progress sync feature.
