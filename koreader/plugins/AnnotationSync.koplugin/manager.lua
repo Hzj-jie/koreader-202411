@@ -51,7 +51,7 @@ function SyncManager:syncAllChangedDocuments()
   local count = 0
   local failed_files = {}
   for file, _ in pairs(changed_docs) do
-    local res = self:_syncFile(file, false)
+    local res = self:_syncFile(file)
     if res == true then
       count = count + 1
     elseif res == false then
@@ -134,7 +134,7 @@ function SyncManager:_syncPendingDocumentsBg()
 
     local file = files_to_sync[idx]
     UIManager:nextTick(function()
-      if self:_syncFile(file, false) == true then
+      if self:_syncFile(file) == true then
         count = count + 1
       end
       sync_next(idx + 1)
@@ -146,13 +146,13 @@ end
 
 -- Helper to sync a single file by path, handling opening, temporary document closing, and cleanup.
 -- Returns true on success, false on failure (file exists but sync failed), or nil if the file is missing.
-function SyncManager:_syncFile(file, is_manual)
+function SyncManager:_syncFile(file)
   local ui_document = self.plugin.ui and self.plugin.ui.document
   local document = self:getDocumentByFile(file)
   if document then
     logger.info("AnnotationSync: syncing document: " .. file)
     local is_temporary = (document ~= ui_document)
-    local ok, success = pcall(self.syncDocument, self, document, is_manual)
+    local ok, success = pcall(self.syncDocument, self, document, false)
     if not ok then
       logger.warn(
         "AnnotationSync: syncDocument CRASHED for "
