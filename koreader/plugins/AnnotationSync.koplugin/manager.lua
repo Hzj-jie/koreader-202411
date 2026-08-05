@@ -103,10 +103,9 @@ function SyncManager:_syncPendingDocumentsBg()
     return
   end
 
-  local max_count = 60
   local files_to_sync = {}
   for file, _ in pairs(changed_docs) do
-    if #files_to_sync >= max_count then
+    if #files_to_sync >= 60 then
       break
     end
     table.insert(files_to_sync, file)
