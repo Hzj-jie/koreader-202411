@@ -100,17 +100,10 @@ function PluginLoader:loadPlugins()
             self:pluginsDisabled()[plugin_code_name] = true
           end
         end
-        local main_exists = lfs.attributes(mainfile .. ".lua", "mode") == "file"
-        local meta_exists = lfs.attributes(metafile .. ".lua", "mode") == "file"
-
         if
-          meta_exists
-          and (self:pluginsDisabled()[plugin_code_name] or main_exists)
+          lfs.attributes(metafile .. ".lua", "mode") == "file"
+          and lfs.attributes(mainfile .. ".lua", "mode") == "file"
         then
-          if self:pluginsDisabled()[plugin_code_name] then
-            mainfile = metafile
-          end
-
           local plugin_module = require(mainfile)
           assert(plugin_module ~= nil)
           assert(
@@ -123,14 +116,16 @@ function PluginLoader:loadPlugins()
             -- name: internally-used Lua class/module name of the plugin instance
             plugin_module.code_name = plugin_code_name
             plugin_module.name = plugin_module.name or plugin_code_name
+
+            local plugin_metamodule = require(metafile)
+            assert(plugin_metamodule)
+            for k, v in pairs(plugin_metamodule) do
+              plugin_module[k] = v
+            end
+
             if self:pluginsDisabled()[plugin_code_name] then
               table.insert(self.disabled_plugins, plugin_module)
             else
-              local plugin_metamodule = require(metafile)
-              assert(plugin_metamodule)
-              for k, v in pairs(plugin_metamodule) do
-                plugin_module[k] = v
-              end
               table.insert(self.enabled_plugins, plugin_module)
             end
           else
