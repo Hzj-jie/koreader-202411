@@ -220,16 +220,11 @@ describe("PluginLoader module", function()
     end)
   end)
 
-  describe("menuItem", function()
+  describe("genPluginManagerSubItem", function()
     it("should generate menu items for plugins", function()
       mock_disabled_plugins["checkers"] = false
       mock_disabled_plugins["mock2"] = true
-      local item = PluginLoader:menuItem()
-      assert.truthy(item)
-      assert.are.equal("Plugin management", item.text)
-      assert.truthy(item.onClose)
-
-      local menu = item.sub_item_table
+      local menu = PluginLoader:genPluginManagerSubItem()
       assert.truthy(menu)
       -- checkers and mock2 should be in the menu
       assert.are.equal(2, #menu)
@@ -242,60 +237,6 @@ describe("PluginLoader module", function()
       assert.is_true(menu[1].checked_func())
       assert.is_false(menu[2].checked_func())
     end)
-
-    it(
-      "should correctly clear caches and broadcast RefreshMenu on onClose",
-      function()
-        local UIManager = require("ui/uimanager")
-        local orig_ask = UIManager.askForRestart
-        local orig_broadcast = UIManager.broadcastEvent
-        local orig_nextTick = UIManager.nextTick
-
-        local broadcasted_events = {}
-        UIManager.askForRestart = function() end
-        UIManager.broadcastEvent = function(self, event)
-          table.insert(broadcasted_events, event.handler or event)
-        end
-        UIManager.nextTick = function(self, func)
-          func()
-        end
-
-        -- Populate caches first by generating a menu item
-        mock_disabled_plugins["checkers"] = false
-        local item = PluginLoader:menuItem()
-
-        -- If nothing changed, plugin_enabled/plugin_disabled remains false
-        assert.is_false(PluginLoader.plugin_enabled)
-        item.onClose()
-
-        -- Caches should NOT be cleared if no plugins were toggled
-        assert.truthy(PluginLoader.all_plugins)
-        assert.are.equal(0, #broadcasted_events)
-
-        -- Simulate toggling a plugin to toggled/disabled
-        item.sub_item_table[1].callback()
-        assert.is_true(
-          PluginLoader.plugin_disabled or PluginLoader.plugin_enabled
-        )
-
-        -- Call onClose again, which should now trigger a reload and RefreshMenu
-        item.onClose()
-
-        -- Caches SHOULD be cleared now
-        assert.is_nil(PluginLoader.all_plugins)
-        assert.is_nil(PluginLoader.enabled_plugins)
-        assert.is_nil(PluginLoader.disabled_plugins)
-
-        -- Should have broadcast RefreshMenu
-        assert.are.equal(1, #broadcasted_events)
-        assert.are.equal("RefreshMenu", broadcasted_events[1])
-
-        -- Restore mocks
-        UIManager.askForRestart = orig_ask
-        UIManager.broadcastEvent = orig_broadcast
-        UIManager.nextTick = orig_nextTick
-      end
-    )
   end)
 
   describe("default-disable via list", function()
@@ -319,7 +260,7 @@ describe("PluginLoader module", function()
         assert.are.equal("checkers", disabled[1].name)
 
         -- 2. Simulate User toggles it to enable in the Plugin Manager
-        local menu = PluginLoader:menuItem().sub_item_table
+        local menu = PluginLoader:genPluginManagerSubItem()
         -- menu[1] is checkers (since it is sorted: "Checkers Game" vs "Mock2")
         assert.are.equal("Checkers Game", menu[1].text)
         assert.is_false(menu[1].checked_func()) -- Currently disabled
@@ -376,7 +317,7 @@ describe("PluginLoader module", function()
         mock_disabled_plugins["checkers"] = true
         mock_disabled_plugins["mock2"] = nil -- nil means default (enabled)
 
-        local menu_items = PluginLoader:menuItem().sub_item_table
+        local menu_items = PluginLoader:genPluginManagerSubItem()
         local checkers_item, mock2_item
         for _, item in ipairs(menu_items) do
           if item.text == "Checkers Game" then

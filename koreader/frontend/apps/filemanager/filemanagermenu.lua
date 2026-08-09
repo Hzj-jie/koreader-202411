@@ -535,7 +535,10 @@ To:
   }
 
   -- tools tab
-  self.menu_items.plugin_management = PluginLoader:menuItem()
+  self.menu_items.plugin_management = {
+    text = gettext("Plugin management"),
+    sub_item_table = PluginLoader:genPluginManagerSubItem(),
+  }
 
   self.menu_items.cloud_storage =
     require("ui/elements/cloud_storage_menu_table")
@@ -803,11 +806,6 @@ end
 function FileManagerMenu:onMenuSearch()
   self:onShowMenu()
   UIManager:broadcastEvent(Event:new("ShowMenuSearch"))
-end
-
-function FileManagerMenu:onRefreshMenu()
-  self.tab_item_table = nil
-  return true
 end
 
 function FileManagerMenu:registerToMainMenu(widget)
