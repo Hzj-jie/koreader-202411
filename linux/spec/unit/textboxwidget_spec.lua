@@ -158,4 +158,27 @@ describe("TextBoxWidget widget", function()
     assert.is_equal("New Multi\nLine Text", tw.text)
     assert.is_true(#tw.vertical_string_list >= 2)
   end)
+
+  it(
+    "should handle moveCursorToCharPos gracefully when virtual_line_num is out of bounds (Issue #478)",
+    function()
+      local tw = TextBoxWidget:new({
+        dimen = { x = 0, y = 0 },
+        width = 200,
+        height = 100,
+        editable = true,
+        text = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5",
+      })
+      tw.virtual_line_num = 5
+      tw.text = "A"
+      tw.charlist = { "A" }
+      tw:_computeTextDimensions()
+      tw:update()
+
+      assert.has_no.errors(function()
+        tw:_getXYForCharPos(1)
+        tw:moveCursorToCharPos(1)
+      end)
+    end
+  )
 end)

@@ -1693,11 +1693,21 @@ function TextBoxWidget:_getXYForCharPos(charpos)
   if not charpos then
     charpos = self.charpos
   end
-  if self.text == nil or string.len(self.text) == 0 then
+  if
+    self.text == nil
+    or string.len(self.text) == 0
+    or not self.vertical_string_list
+    or #self.vertical_string_list == 0
+  then
     return 0, 0, 1
   end
   -- Find the line number: scan up/down from current virtual_line_num
   local ln = self.height == nil and 1 or self.virtual_line_num
+  if ln > #self.vertical_string_list then
+    ln = #self.vertical_string_list
+  elseif ln < 1 then
+    ln = 1
+  end
   if charpos > self.vertical_string_list[ln].offset then -- after first line
     while ln < #self.vertical_string_list do
       if self.vertical_string_list[ln + 1].offset > charpos then
