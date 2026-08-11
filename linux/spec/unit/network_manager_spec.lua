@@ -232,15 +232,23 @@ describe("network_manager module", function()
         assert.is_false(Checker:running())
       end
     )
+  end)
 
+  describe("ConnectivityChecker background fork job", function()
     it(
       "should update online state when background fork job queries _returnOnlineState",
       function()
+        local NetworkMgr = require("ui/network/manager")
+        local orig_wait = Device.input.waitEvent
+        Device.input.waitEvent = function() end
+
+        local orig_runForever = UIManager._run_forever
+        UIManager:setRunForeverMode()
+
         local MockTime = require("mock_time")
         MockTime:install()
 
-        local BackgroundRunnerWidget =
-          require("plugins/backgroundrunner.koplugin/main")
+        local BackgroundRunnerWidget = requireBackgroundRunner()
         BackgroundRunnerWidget:init()
         BackgroundRunnerWidget:allowBlockingJobs(true)
 
@@ -254,23 +262,23 @@ describe("network_manager module", function()
           return mock_online
         end
 
-        require("util").clearTable(PluginShare.backgroundJobs)
+        local callback_count = 0
         require("background_jobs").insert({
-          when = "asap",
-          repeated = true,
+          when = 1,
+          repeated = 2,
           executable = "fork",
           action = function()
             return NetworkMgr:_returnOnlineState()
           end,
           callback = function(job)
             NetworkMgr:_setOnlineState(job.result == true, job.start_time)
+            callback_count = callback_count + 1
           end,
         })
+        notifyBackgroundJobsUpdated()
 
         local ffi = require("ffi")
-        local count = 0
-        while not NetworkMgr.was_online and count < 20 do
-          count = count + 1
+        while callback_count < 1 do
           ffi.C.poll(nil, 0, 50)
           MockTime:increase(2)
           UIManager:handleInput()
@@ -281,9 +289,7 @@ describe("network_manager module", function()
         mock_online = false
         NetworkMgr.last_online_check_time = 0
 
-        count = 0
-        while NetworkMgr.was_online and count < 20 do
-          count = count + 1
+        while callback_count < 2 do
           ffi.C.poll(nil, 0, 50)
           MockTime:increase(2)
           UIManager:handleInput()
@@ -291,6 +297,9 @@ describe("network_manager module", function()
 
         assert.is_false(NetworkMgr.was_online)
         MockTime:uninstall()
+        UIManager._run_forever = orig_runForever
+        stopBackgroundRunner()
+        Device.input.waitEvent = orig_wait
       end
     )
   end)
