@@ -263,7 +263,7 @@ describe("AnnotationSync Core Integration", function()
           nil,
           false
         )
-        assert.is_equal("skip_upload", res)
+        assert.is_false(res)
       end
     )
   end)

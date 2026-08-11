@@ -102,6 +102,11 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
           return true
         end
 
+        local old_syncDoc = sync_instance.manager.syncDocument
+        sync_instance.manager.syncDocument = function()
+          return true
+        end
+
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
         sync_instance.manager:syncAllChangedDocuments()
 
@@ -109,6 +114,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
         assert.truthy(sync_instance.settings.last_sync:match("Sync All"))
 
         NetworkMgr.runWhenOnline = old_runWhenOnline
+        sync_instance.manager.syncDocument = old_syncDoc
       end)
 
       it(

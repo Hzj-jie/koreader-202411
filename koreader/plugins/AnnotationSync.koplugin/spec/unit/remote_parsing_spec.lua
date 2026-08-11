@@ -21,8 +21,13 @@ describe("Remote Response Parsing (Issue #39)", function()
 
   local function run_sync_callback(income_content)
     local document = { file = "test.epub" }
-    local local_path =
-      test_utils.write_mock_json(test_data_dir, "local.json", {})
+    local local_path = test_utils.write_mock_json(test_data_dir, "local.json", {
+      ["annot_1"] = {
+        datetime = "2024-01-01 12:00:00",
+        text = "sample text",
+        page = 1,
+      },
+    })
     local last_sync_path =
       test_utils.write_mock_json(test_data_dir, "last.json", {})
     local income_path = test_data_dir .. "/income.json"

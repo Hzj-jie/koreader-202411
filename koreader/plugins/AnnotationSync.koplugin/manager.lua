@@ -307,7 +307,7 @@ function SyncManager:addToChangedDocumentsFile(file)
   if ok and type(loaded) == "table" then
     changed_docs = loaded
   end
-  if file and type(file) == "string" then
+  if type(file) == "string" then
     changed_docs[file] = true
     self:_writeChangedDocumentsFile(changed_docs)
   end
@@ -434,7 +434,7 @@ end
 
 function SyncManager:recordSyncState(descriptor)
   local parenthetical = ""
-  if descriptor and type(descriptor) == "string" then
+  if type(descriptor) == "string" and descriptor ~= "" then
     parenthetical = " (" .. descriptor .. ")"
   end
   self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S") .. parenthetical
@@ -453,7 +453,7 @@ function SyncManager:_getAnnotationFilename(file)
     local _, filename = util.splitFilePathName(file)
     return (filename ~= "" and filename or file) .. ".json"
   end
-  local hash = file and type(file) == "string" and util.partialMD5(file)
+  local hash = type(file) == "string" and util.partialMD5(file)
     or gettext("No hash")
   return hash .. ".json"
 end
