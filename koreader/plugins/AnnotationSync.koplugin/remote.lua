@@ -75,7 +75,11 @@ function M.sync_annotations(widget, document, json_path, on_complete, force)
       force
     )
     if on_complete then
-      on_complete(success ~= false, merged_list)
+      -- This is a hacky to ignore both local and remote empty annotations.
+      -- In the case, the sync won't happen (success == false), but shouldn't be
+      -- treated as failure in the complete callback, i.e. the file shouldn't be
+      -- retried.
+      on_complete((success ~= false) or (merged_list ~= nil), merged_list)
     end
     return success
   end
