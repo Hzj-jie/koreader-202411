@@ -347,7 +347,7 @@ function ReaderZooming:onToggleFreeZoom(arg, ges)
       xpos = ges.pos.x * self.zoom / self.orig_zoom
       ypos = ges.pos.y * self.zoom / self.orig_zoom
     end
-    self.view:SetZoomCenter(xpos, ypos)
+    self.ui.view:SetZoomCenter(xpos, ypos)
   else
     UIManager:broadcastEvent(Event:new("SetZoomMode", "page"))
   end
@@ -380,7 +380,7 @@ function ReaderZooming:onZoom(direction)
   end
   logger.info("zoom is now at", self.zoom)
   self:onSetZoomMode("free")
-  self.view:onZoomUpdate(self.zoom)
+  self.ui.view:onZoomUpdate(self.zoom)
   return true
 end
 
@@ -485,7 +485,7 @@ function ReaderZooming:onDefineZoom(btn, when_applied_callback)
 end
 
 function ReaderZooming:onSetZoomMode(new_mode)
-  self.view.zoom_mode = new_mode
+  self.ui.view.zoom_mode = new_mode
   if self.zoom_mode ~= new_mode then
     logger.info("setting zoom mode to", new_mode)
     UIManager:broadcastEvent(Event:new("ZoomModeUpdate", new_mode))
@@ -586,13 +586,13 @@ function ReaderZooming:getZoom(pageno)
     -- See discussion in koreader/koreader#970.
     if ubbox_dimen.w <= page_size.w and ubbox_dimen.h <= page_size.h then
       page_size = ubbox_dimen
-      self.view:onBBoxUpdate(ubbox_dimen)
+      self.ui.view:onBBoxUpdate(ubbox_dimen)
     else
-      self.view:onBBoxUpdate(nil)
+      self.ui.view:onBBoxUpdate(nil)
     end
   else
     -- otherwise, operate on full page
-    self.view:onBBoxUpdate(nil)
+    self.ui.view:onBBoxUpdate(nil)
   end
   -- calculate zoom value:
   local zoom_w = self:getSize().w
@@ -667,7 +667,7 @@ function ReaderZooming:getZoom(pageno)
 end
 
 function ReaderZooming:getRegionalZoomCenter(pageno, pos)
-  local p_pos = self.view:getSinglePagePosition(pos)
+  local p_pos = self.ui.view:getSinglePagePosition(pos)
   local page_size = self.ui.document:getNativePageDimensions(pageno)
   local pos_x = p_pos.x / page_size.w
   local pos_y = p_pos.y / page_size.h

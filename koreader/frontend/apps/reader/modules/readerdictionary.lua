@@ -1113,7 +1113,7 @@ function ReaderDictionary:showDict(word, results, boxes, link)
   self.dict_window = DictQuickLookup:new({
     ui = self.ui,
     highlight = self.highlight,
-    dialog = self.dialog,
+    dialog = self.ui,
     -- original lookup word
     word = word,
     -- selected link, if any

@@ -19,7 +19,7 @@ function ReaderCropping:onPageCrop(mode)
   UIManager:broadcastEvent(Event:new("CloseConfigMenu"))
 
   -- backup original zoom mode as cropping use "page" zoom mode
-  self.orig_zoom_mode = self.view.zoom_mode
+  self.orig_zoom_mode = self.ui.view.zoom_mode
   if mode == "auto" then
     if self.document.configurable.text_wrap ~= 1 then
       self:setCropZoomMode(true)
@@ -30,16 +30,16 @@ function ReaderCropping:onPageCrop(mode)
   end
   -- backup original view dimen
   self.orig_view_dimen =
-    Geom:new({ w = self.view:getSize().w, h = self.view:getSize().h })
+    Geom:new({ w = self.ui.view:getSize().w, h = self.ui.view:getSize().h })
   -- backup original view bgcolor
-  self.orig_view_bgcolor = self.view.outer_page_color
-  self.view.outer_page_color = Blitbuffer.COLOR_DARK_GRAY
+  self.orig_view_bgcolor = self.ui.view.outer_page_color
+  self.ui.view.outer_page_color = Blitbuffer.COLOR_DARK_GRAY
   -- backup original footer visibility
-  self.orig_view_footer_visibility = self.view.footer_visible
-  self.view.footer_visible = false
+  self.orig_view_footer_visibility = self.ui.view.footer_visible
+  self.ui.view.footer_visible = false
   -- backup original page scroll
-  self.orig_page_scroll = self.view.page_scroll
-  self.view.page_scroll = false
+  self.orig_page_scroll = self.ui.view.page_scroll
+  self.ui.view.page_scroll = false
   -- backup and disable original hinting state
   UIManager:broadcastEvent(Event:new("DisableHinting"))
   -- backup original reflow mode as cropping use non-reflow mode
@@ -48,7 +48,7 @@ function ReaderCropping:onPageCrop(mode)
     self.document.configurable.text_wrap = 0
     -- if we are in reflow mode, then we are already in page
     -- mode, just force readerview to recalculate visible_area
-    self.view:recalculate()
+    self.ui.view:recalculate()
   else
     UIManager:broadcastEvent(Event:new("SetZoomMode", "page"))
   end
@@ -103,7 +103,7 @@ function ReaderCropping:onPageCrop(mode)
   -- finalize crop dialog
   self.bbox_widget = BBoxWidget:new({
     ui = self.ui,
-    view = self.view,
+    view = self.ui.view,
     document = self.document,
   })
   self.crop_dialog = VerticalGroup:new({
@@ -120,7 +120,7 @@ function ReaderCropping:onConfirmPageCrop()
   UIManager:close(self.crop_dialog)
   local new_bbox = self.bbox_widget:getModifiedPageBBox()
   UIManager:broadcastEvent(Event:new("BBoxUpdate", new_bbox))
-  local pageno = self.view.state.page
+  local pageno = self.ui.view.state.page
   self.document.bbox[pageno] = new_bbox
   self.document.bbox[Math.oddEven(pageno)] = new_bbox
   self:exitPageCrop(true)
@@ -137,16 +137,16 @@ function ReaderCropping:exitPageCrop(confirmed)
   -- restore hinting state
   UIManager:broadcastEvent(Event:new("RestoreHinting"))
   -- restore page scroll
-  self.view.page_scroll = self.orig_page_scroll
+  self.ui.view.page_scroll = self.orig_page_scroll
   -- restore footer visibility
-  self.view.footer_visible = self.orig_view_footer_visibility
+  self.ui.view.footer_visible = self.orig_view_footer_visibility
   -- restore view bgcolor
-  self.view.outer_page_color = self.orig_view_bgcolor
+  self.ui.view.outer_page_color = self.orig_view_bgcolor
   -- restore reflow mode
   self.document.configurable.text_wrap = self.orig_reflow_mode
   -- restore view dimens
   UIManager:broadcastEvent(Event:new("RestoreDimensions", self.orig_view_dimen))
-  self.view:recalculate()
+  self.ui.view:recalculate()
   -- Exiting should have the same look and feel with entering.
   if self.orig_reflow_mode == 1 then
     UIManager:broadcastEvent(Event:new("RestoreZoomMode"))

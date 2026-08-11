@@ -300,4 +300,63 @@ describe("InputContainer widget", function()
     assert.is_falsy(no_stop_res)
     assert.is_true(with_stop_res)
   end)
+
+  it(
+    "should consume gestures inside window widget bounds and propagate outside",
+    function()
+      local UIManager = require("ui/uimanager")
+      local Geom = require("ui/geometry")
+      local ic = InputContainer:new({
+        dimen = Geom:new({ x = 100, y = 100, w = 200, h = 200 }),
+      })
+
+      local old_stack = UIManager._window_stack
+      UIManager._window_stack = { { widget = ic } }
+
+      -- Tap inside
+      local ev_inside = {
+        ges = "tap",
+        pos = Geom:new({ x = 150, y = 150, w = 0, h = 0 }),
+      }
+      -- Tap outside
+      local ev_outside = {
+        ges = "tap",
+        pos = Geom:new({ x = 50, y = 50, w = 0, h = 0 }),
+      }
+
+      local res_inside = ic:onGesture(ev_inside)
+      local res_outside = ic:onGesture(ev_outside)
+
+      UIManager._window_stack = old_stack
+
+      assert.is_true(res_inside)
+      assert.is_falsy(res_outside)
+    end
+  )
+
+  it(
+    "should support getSize, mergeSize, mergePosition, and dirtyRegion",
+    function()
+      local Geom = require("ui/geometry")
+      local ic = InputContainer:new({
+        dimen = Geom:new({ x = 0, y = 0, w = 300, h = 400 }),
+      })
+
+      local size = ic:getSize()
+      assert.is_not_nil(size)
+      assert.are.equal(300, size.w)
+      assert.are.equal(400, size.h)
+
+      ic:mergeSize(350, 450)
+      assert.are.equal(350, ic:getSize().w)
+      assert.are.equal(450, ic:getSize().h)
+
+      ic:mergePosition(10, 20)
+      assert.are.equal(10, ic:getSize().x)
+      assert.are.equal(20, ic:getSize().y)
+
+      local region = ic:dirtyRegion()
+      assert.is_not_nil(region)
+    end
+  )
 end)
