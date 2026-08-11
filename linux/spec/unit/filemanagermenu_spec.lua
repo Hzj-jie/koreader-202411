@@ -218,6 +218,9 @@ describe("filemanagermenu", function()
       menuItem = function()
         return {}
       end,
+      genPluginManagerSubItem = function()
+        return {}
+      end,
     }
 
     package.loaded["ui/size"] = {
