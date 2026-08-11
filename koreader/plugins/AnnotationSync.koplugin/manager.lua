@@ -390,7 +390,7 @@ function SyncManager:getAnnotationsForDocument(document)
   end
   -- Handle inactive document
   local annotation_sidecar = docsettings:open(document.file)
-  local result = annotation_sidecar:read("annotations")
+  local result = annotation_sidecar:readTableRef("annotations")
   return result or {}
 end
 

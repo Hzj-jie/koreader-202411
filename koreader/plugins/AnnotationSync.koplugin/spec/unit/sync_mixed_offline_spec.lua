@@ -193,7 +193,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 6. Verify PDF (Sidecar updated)
       local ds_pdf_after = require("frontend/docsettings"):open(doc_pdf)
-      local ann_pdf_after = ds_pdf_after:read("annotations")
+      local ann_pdf_after = ds_pdf_after:readTableRef("annotations")
       assert.is_equal(2, #ann_pdf_after)
 
       assert.is_equal(
