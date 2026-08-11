@@ -23811,3 +23811,11 @@ msgstr "註釋"
 
 #~ msgid "Every %1 mn"
 #~ msgstr "每 %1 分鐘"
+
+#: plugins/AnnotationSync.koplugin/annotations.lua:34
+msgid "AnnotationSync: Failed to load local sync files. Sync aborted."
+msgstr "標註同步：無法載入本地同步檔案。同步已中止。"
+
+#: plugins/AnnotationSync.koplugin/annotations.lua:119
+msgid "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
+msgstr "標註同步：遠端檔案損壞或伺服器錯誤。同步已中止。"
