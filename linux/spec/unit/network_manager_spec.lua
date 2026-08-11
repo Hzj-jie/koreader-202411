@@ -232,6 +232,67 @@ describe("network_manager module", function()
         assert.is_false(Checker:running())
       end
     )
+
+    it(
+      "should update online state when background fork job queries _returnOnlineState",
+      function()
+        local MockTime = require("mock_time")
+        MockTime:install()
+
+        local BackgroundRunnerWidget =
+          require("plugins/backgroundrunner.koplugin/main")
+        BackgroundRunnerWidget:init()
+        BackgroundRunnerWidget:allowBlockingJobs(true)
+
+        local PluginShare = require("pluginshare")
+        PluginShare.stopBackgroundRunner = false
+        NetworkMgr.last_online_check_time = 0
+        NetworkMgr.was_online = nil
+
+        local mock_online = true
+        NetworkMgr._returnOnlineState = function()
+          return mock_online
+        end
+
+        require("util").clearTable(PluginShare.backgroundJobs)
+        require("background_jobs").insert({
+          when = "asap",
+          repeated = true,
+          executable = "fork",
+          action = function()
+            return NetworkMgr:_returnOnlineState()
+          end,
+          callback = function(job)
+            NetworkMgr:_setOnlineState(job.result == true, job.start_time)
+          end,
+        })
+
+        local ffi = require("ffi")
+        local count = 0
+        while not NetworkMgr.was_online and count < 20 do
+          count = count + 1
+          ffi.C.poll(nil, 0, 50)
+          MockTime:increase(2)
+          UIManager:handleInput()
+        end
+
+        assert.is_true(NetworkMgr.was_online)
+
+        mock_online = false
+        NetworkMgr.last_online_check_time = 0
+
+        count = 0
+        while NetworkMgr.was_online and count < 20 do
+          count = count + 1
+          ffi.C.poll(nil, 0, 50)
+          MockTime:increase(2)
+          UIManager:handleInput()
+        end
+
+        assert.is_false(NetworkMgr.was_online)
+        MockTime:uninstall()
+      end
+    )
   end)
 
   describe("reconnect and showNetworkMenu", function()

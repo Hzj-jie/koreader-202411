@@ -103,6 +103,7 @@ local function _clone(job)
   result.when = job.when
   result.repeated = job.repeated
   result.executable = job.executable
+  result.action = job.action
   result.callback = job.callback
   result.environment = job.environment
   result.insert_time = time.monotonic()
@@ -180,10 +181,14 @@ function BackgroundRunner:_executeJob(job)
   end
 
   if type(job.executable) == "string" then
-    if not CommandRunner:pending() then
-      -- Full background CommandRunner supports only one job.
-      CommandRunner:start(job)
+    if not CommandRunner:isJobSupported(job) then
+      logger.warn(
+        "BackgroundRunner: job not supported by CommandRunner, ",
+        _debugJobStr(job)
+      )
+      return false
     end
+    CommandRunner:start(job)
     return true
   end
   if type(job.executable) == "function" then
@@ -220,12 +225,12 @@ function BackgroundRunner:_poll()
   if not CommandRunner:pending() then
     return
   end
-  local result = CommandRunner:poll()
-  if result == nil then
-    return
+  local results = CommandRunner:poll()
+  if results then
+    for _, res in ipairs(results) do
+      self:_finishJob(res)
+    end
   end
-
-  self:_finishJob(result)
 end
 
 function BackgroundRunner:_execute()
@@ -281,6 +286,15 @@ function BackgroundRunner:_execute()
     else
       logger.warn("ignore job without .when, ", _debugJobStr(job))
       should_ignore = true
+    end
+
+    -- Gated check: string executable commands also require available CommandRunner slots
+    if
+      should_execute
+      and not should_ignore
+      and type(job.executable) == "string"
+    then
+      should_execute = CommandRunner:canStart()
     end
 
     if should_execute then

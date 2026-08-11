@@ -118,9 +118,13 @@ function NetworkMgr:wrapCallback(complete_callback)
   end
 end
 
+function NetworkMgr:_returnOnlineState()
+  return self:_isWifiConnected() and self:_isOnline()
+end
+
 function NetworkMgr:queryOnlineState()
   -- This function is blocking, so only the start time needs to be recorded.
-  self:_setOnlineState(self:_isWifiConnected() and self:_isOnline())
+  self:_setOnlineState(self:_returnOnlineState())
 end
 
 function NetworkMgr:_networkDisconnected()
@@ -239,12 +243,12 @@ function NetworkMgr:init()
     require("background_jobs").insert({
       when = "best-effort",
       repeated = true,
-      -- Technically speaking, the behavior is different than
-      -- self:_networkConnected, the results should be consistent in the
-      -- normal network condition.
-      executable = "ping -c 1 www.microsoft.com",
+      executable = "fork",
+      action = function()
+        return self:_returnOnlineState()
+      end,
       callback = function(job)
-        self:_setOnlineState(job.result == 0, job.start_time)
+        self:_setOnlineState(job.result == true, job.start_time)
       end,
     })
   end)
