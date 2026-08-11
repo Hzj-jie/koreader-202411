@@ -94,10 +94,16 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local mock_ds = {
         open = function(this, file)
           return {
-            read = function(self_ds, key)
+            readTable = function(self_ds, key)
               if key == "annotations" then
                 return { { page = "test_page", pos0 = "p0", pos1 = "p1" } }
               end
+            end,
+            readTableRef = function(self_ds, key)
+              if key == "annotations" then
+                return { { page = "test_page", pos0 = "p0", pos1 = "p1" } }
+              end
+              return {}
             end,
           }
         end,
