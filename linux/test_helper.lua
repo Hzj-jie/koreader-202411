@@ -1,5 +1,5 @@
 -- Load the original loadlib helper first
-dofile("ffi/loadlib.lua")
+require("ffi/loadlib")
 
 -- Intercept require globally to force-disable system fonts for all unit tests,
 -- ensuring layout and font rendering determinism across different host workstations.
