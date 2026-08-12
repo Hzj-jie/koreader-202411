@@ -33,3 +33,17 @@ pcall(function()
     end
 end)
 
+local max_jobs = 4
+local nproc_p = io.popen("nproc 2>/dev/null")
+if nproc_p then
+    local cores = tonumber(nproc_p:read("*l"))
+    nproc_p:close()
+    if cores and cores > 0 then
+        max_jobs = cores
+    end
+end
+
+return {
+    max_jobs = max_jobs,
+}
+

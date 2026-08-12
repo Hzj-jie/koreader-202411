@@ -27,6 +27,8 @@ end
 package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
 package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
+local test_env = require("test_helper")
+
 -- WORKER PROCESS EXECUTION MODE
 if os.getenv("KO_TEST_WORKER") == "1" then
     local test_file = arg[1]
@@ -45,10 +47,6 @@ if os.getenv("KO_TEST_WORKER") == "1" then
                 end
             end
         end
-    end
-
-    if not pcall(dofile, "test_helper.lua") then
-        dofile("ffi/loadlib.lua")
     end
 
     pcall(function()
@@ -160,16 +158,8 @@ if #spec_files == 0 then
     original_os_exit(1, false)
 end
 
--- Determine optimal parallelism (number of CPU cores, default to 4)
-local max_jobs = 4
-local nproc_p = io.popen("nproc 2>/dev/null")
-if nproc_p then
-    local cores = tonumber(nproc_p:read("*l"))
-    nproc_p:close()
-    if cores and cores > 0 then
-        max_jobs = cores
-    end
-end
+assert(test_env and test_env.max_jobs ~= nil, "test_helper must define max_jobs")
+local max_jobs = test_env.max_jobs
 
 local lua_flags = os.getenv("LUAFLAGS") or ""
 print_verbose("[*] Running with parallelism limit: " .. max_jobs)
