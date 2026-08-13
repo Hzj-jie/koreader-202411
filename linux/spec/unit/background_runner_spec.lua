@@ -599,4 +599,44 @@ describe("BackgroundRunner widget tests", function()
       assert.is_true(callback_job.end_time >= callback_job.start_time)
     end
   )
+
+  it("should broadcast ForkedProcess event in subprocess", function()
+    local Widget = require("ui/widget/widget")
+    local Geom = require("ui/geometry")
+    local device_fork_called = false
+    local test_widget = Widget:extend({
+      dimen = Geom:new({ w = 100, h = 100 }),
+      onForkedProcess = function()
+        device_fork_called = true
+      end,
+    })
+    local widget_instance = test_widget:new({})
+    UIManager:show(widget_instance)
+
+    local child_saw_fork_called = false
+    local job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        -- In the child subprocess, onForkedProcess was executed on widget
+        return device_fork_called
+      end,
+      callback = function(j)
+        child_saw_fork_called = j.result
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, job)
+    notifyBackgroundJobsUpdated()
+
+    while job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.is_true(child_saw_fork_called)
+    -- In parent, onForkedProcess was not called
+    assert.is_false(device_fork_called)
+
+    UIManager:close(widget_instance)
+  end)
 end)
