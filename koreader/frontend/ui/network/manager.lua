@@ -635,7 +635,6 @@ end
 -- It's not expected to override this function, it provides platform independent ways of checking
 -- internet access.
 function NetworkMgr:_isOnline()
-  assert(Device:hasWifiToggle())
   --return self:_canPingMicrosoftCom()
   local dr = self:_hasDefaultRoute()
   local rh = self:_canResolveHostnames()

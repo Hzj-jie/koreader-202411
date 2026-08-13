@@ -563,4 +563,40 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(12, completed_count)
     end
   )
+
+  it(
+    "should execute fork job in isolated subprocess and deliver result and timestamps to callback",
+    function()
+      local parent_state = "unmodified"
+      local callback_job = nil
+
+      local job = {
+        when = 1,
+        executable = "fork",
+        action = function()
+          parent_state = "modified_in_subprocess"
+          return true
+        end,
+        callback = function(j)
+          callback_job = j
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job)
+      notifyBackgroundJobsUpdated()
+
+      while callback_job == nil do
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      -- Memory in parent process is not modified by child
+      assert.are.equal("unmodified", parent_state)
+      -- Result was communicated through pipe
+      assert.is_true(callback_job.result)
+      assert.is_false(callback_job.timeout)
+      assert.is_not_nil(callback_job.start_time)
+      assert.is_not_nil(callback_job.end_time)
+      assert.is_true(callback_job.end_time >= callback_job.start_time)
+    end
+  )
 end)

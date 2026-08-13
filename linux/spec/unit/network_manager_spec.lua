@@ -447,6 +447,197 @@ describe("network_manager module", function()
     end)
   end)
 
+  describe("queryOnlineState and _returnOnlineState", function()
+    local NetworkMgr
+
+    setup(function()
+      package.loaded["ui/network/manager"] = nil
+      NetworkMgr = require("ui/network/manager")
+    end)
+
+    it("should check _isOnline in _returnOnlineState when hasWifiToggle is false", function()
+      local orig_hasWifiToggle = Device.hasWifiToggle
+      Device.hasWifiToggle = function()
+        return false
+      end
+
+      local orig_hasDefaultRoute = NetworkMgr._hasDefaultRoute
+      local orig_canResolve = NetworkMgr._canResolveHostnames
+      NetworkMgr._hasDefaultRoute = function()
+        return true
+      end
+      NetworkMgr._canResolveHostnames = function()
+        return true
+      end
+
+      assert.is_true(NetworkMgr:_returnOnlineState())
+
+      NetworkMgr._hasDefaultRoute = function()
+        return false
+      end
+      NetworkMgr._canResolveHostnames = function()
+        return false
+      end
+
+      assert.is_false(NetworkMgr:_returnOnlineState())
+
+      NetworkMgr._hasDefaultRoute = orig_hasDefaultRoute
+      NetworkMgr._canResolveHostnames = orig_canResolve
+      Device.hasWifiToggle = orig_hasWifiToggle
+    end)
+
+    it("should check _isWifiConnected and _isOnline when hasWifiToggle is true", function()
+      local orig_hasWifiToggle = Device.hasWifiToggle
+      Device.hasWifiToggle = function()
+        return true
+      end
+
+      local orig_isWifiConnected = NetworkMgr._isWifiConnected
+      local orig_hasDefaultRoute = NetworkMgr._hasDefaultRoute
+      local orig_canResolve = NetworkMgr._canResolveHostnames
+
+      NetworkMgr._isWifiConnected = function()
+        return false
+      end
+      assert.is_false(NetworkMgr:_returnOnlineState())
+
+      NetworkMgr._isWifiConnected = function()
+        return true
+      end
+      NetworkMgr._hasDefaultRoute = function()
+        return true
+      end
+      NetworkMgr._canResolveHostnames = function()
+        return true
+      end
+      assert.is_true(NetworkMgr:_returnOnlineState())
+
+      NetworkMgr._hasDefaultRoute = function()
+        return false
+      end
+      NetworkMgr._canResolveHostnames = function()
+        return false
+      end
+      assert.is_false(NetworkMgr:_returnOnlineState())
+
+      NetworkMgr._isWifiConnected = orig_isWifiConnected
+      NetworkMgr._hasDefaultRoute = orig_hasDefaultRoute
+      NetworkMgr._canResolveHostnames = orig_canResolve
+      Device.hasWifiToggle = orig_hasWifiToggle
+    end)
+
+    it("should process subprocess _returnOnlineState result end-to-end via CommandRunner", function()
+      local orig_wait = Device.input.waitEvent
+      Device.input.waitEvent = function() end
+
+      local orig_runForever = UIManager._run_forever
+      UIManager:setRunForeverMode()
+
+      local MockTime = require("mock_time")
+      MockTime:install()
+
+      local BackgroundRunnerWidget = requireBackgroundRunner()
+      BackgroundRunnerWidget:init()
+      BackgroundRunnerWidget:allowBlockingJobs(true)
+
+      local PluginShare = require("pluginshare")
+      PluginShare.stopBackgroundRunner = false
+      NetworkMgr.last_online_check_time = 0
+      NetworkMgr.was_online = nil
+
+      -- Use REAL NetworkMgr:_returnOnlineState with mock network layer
+      local mock_route = true
+      local mock_resolve = true
+      local orig_hasDefaultRoute = NetworkMgr._hasDefaultRoute
+      local orig_canResolve = NetworkMgr._canResolveHostnames
+      local orig_isWifiOn = NetworkMgr.isWifiOn
+      local orig_isConnected = NetworkMgr.isConnected
+      NetworkMgr.isWifiOn = function()
+        return true
+      end
+      NetworkMgr.isConnected = function()
+        return true
+      end
+      NetworkMgr._hasDefaultRoute = function()
+        return mock_route
+      end
+      NetworkMgr._canResolveHostnames = function()
+        return mock_resolve
+      end
+
+      local callback_count = 0
+      require("background_jobs").insert({
+        when = 1,
+        repeated = 2,
+        executable = "fork",
+        action = function()
+          return NetworkMgr:_returnOnlineState()
+        end,
+        callback = function(job)
+          NetworkMgr:_setOnlineState(job.result == true, job.start_time)
+          callback_count = callback_count + 1
+        end,
+      })
+      notifyBackgroundJobsUpdated()
+
+      local ffi = require("ffi")
+      while callback_count < 1 do
+        ffi.C.poll(nil, 0, 50)
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      assert.is_true(NetworkMgr.was_online)
+
+      mock_route = false
+      mock_resolve = false
+      NetworkMgr.last_online_check_time = 0
+
+      while callback_count < 2 do
+        ffi.C.poll(nil, 0, 50)
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      assert.is_false(NetworkMgr.was_online)
+
+      NetworkMgr._hasDefaultRoute = orig_hasDefaultRoute
+      NetworkMgr._canResolveHostnames = orig_canResolve
+      NetworkMgr.isWifiOn = orig_isWifiOn
+      NetworkMgr.isConnected = orig_isConnected
+      MockTime:uninstall()
+      UIManager._run_forever = orig_runForever
+      stopBackgroundRunner()
+      Device.input.waitEvent = orig_wait
+    end)
+  end)
+
+  describe("background online check job scheduling in init", function()
+    it("should insert background fork job for online state checking", function()
+      local background_jobs = require("background_jobs")
+      local orig_insert = background_jobs.insert
+      local inserted_jobs = {}
+      background_jobs.insert = function(job)
+        table.insert(inserted_jobs, job)
+      end
+
+      package.loaded["ui/network/manager"] = nil
+      local NetworkMgr = require("ui/network/manager") --luacheck: ignore
+      UIManager:_checkTasks()
+
+      assert.is_true(#inserted_jobs >= 1)
+      local found_fork_job = false
+      for _, job in ipairs(inserted_jobs) do
+        if job.executable == "fork" and type(job.action) == "function" then
+          found_fork_job = true
+        end
+      end
+      assert.is_true(found_fork_job)
+
+      background_jobs.insert = orig_insert
+    end)
+  end)
+
   teardown(function()
     function Device:initNetworkManager() end
     function Device:hasWifiRestore()
@@ -455,3 +646,5 @@ describe("network_manager module", function()
     package.loaded["ui/network/manager"] = nil
   end)
 end)
+
+
