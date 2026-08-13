@@ -1,14 +1,30 @@
 -- Load the original loadlib helper first
 require("ffi/loadlib")
 
--- Intercept require globally to force-disable system fonts for all unit tests,
--- ensuring layout and font rendering determinism across different host workstations.
+-- Intercept require globally to ensure determinism across different host workstations
+-- and avoid relying on physical hardware state (such as system fonts, battery charging state, etc.).
 local orig_require = _G.require
 _G.require = function(name)
     local res = orig_require(name)
     if name == "device" then
         if type(res) == "table" then
             res.hasSystemFonts = function() return false end
+            res.powerd.isChargingHW = function() return false end
+            res.powerd.isChargedHW = function() return false end
+            res.powerd.getCapacityHW = function() return 100 end
+        end
+    elseif name == "ffi/SDL2_0" then
+        if type(res) == "table" and res.getPowerInfo then
+            res.getPowerInfo = function()
+                -- Return deterministic power state: has battery, not charging, not plugged, 100% capacity
+                return true, false, false, 100
+            end
+        end
+    elseif name == "device/sdl/powerd" or name == "device/generic/powerd" then
+        if type(res) == "table" then
+            res.isChargingHW = function() return false end
+            res.isChargedHW = function() return false end
+            res.getCapacityHW = function() return 100 end
         end
     end
     return res
