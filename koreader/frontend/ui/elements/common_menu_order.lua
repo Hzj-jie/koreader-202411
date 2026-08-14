@@ -37,6 +37,9 @@ local function mergeWith(b)
       "----------------------------",
       "opening_page_location_stack",
       "skim_dialog_position",
+      "----------------------------",
+      "progress_sync",
+      "annotation_sync_plugin",
     },
     network = {
       "network_wifi",
