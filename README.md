@@ -70,6 +70,9 @@ Modifications address specific application behavior, layout improvements, and ad
 ### 🌐 Web-Based Remote Control
 Provides a browser-based remote control interface, allowing users to drive application actions and states directly over a regular browser.
 
+### ☁️ Annotation Cloud Synchronization
+*   **AnnotationSync Plugin**: Cloud synchronization of book annotations, bookmarks, and highlights across devices using integrated storage providers (such as WebDAV, Dropbox, and FTP), featuring dirty tracking, conflict handling, and optimized upload-skipping when remote and local states match.
+
 ### 📶 Network Management Component
 Refined network state monitoring and wifi manager to simplify logic and prevent runtime crashes:
 *   **Network Manager Rework ([PR #144](https://github.com/Hzj-jie/koreader-202411/pull/144))**: Simplified network connection management to prevent crashes when transitioning between different network states (like connecting or disconnecting).
