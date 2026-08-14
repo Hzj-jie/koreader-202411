@@ -24186,3 +24186,11 @@ msgstr "注释"
 
 #~ msgid "%1/%2"
 #~ msgstr "%1/%2"
+
+#: plugins/AnnotationSync.koplugin/annotations.lua:34
+msgid "AnnotationSync: Failed to load local sync files. Sync aborted."
+msgstr "标注同步：无法加载本地同步文件。同步已中止。"
+
+#: plugins/AnnotationSync.koplugin/annotations.lua:119
+msgid "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
+msgstr "标注同步：远程文件损坏或服务器错误。同步已中止。"
