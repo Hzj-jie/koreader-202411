@@ -334,7 +334,13 @@ function util.runInSubProcess(func, with_pipe, double_fork)
   end
   local pid = C.fork()
   if pid == 0 then -- child process
-    require("ui/uimanager"):broadcastEvent("ForkedProcess")
+    -- In production, UIManager is always loaded before any subprocess fork.
+    -- The package.loaded check protects low-level base tests (e.g. util_spec)
+    -- that test C fork/pipes in isolation without bootstrapping the full UI stack.
+    local UIManager = package.loaded["ui/uimanager"]
+    if UIManager then
+      UIManager:broadcastEvent("ForkedProcess")
+    end
     if double_fork then
       pid = C.fork()
       if pid ~= 0 then
