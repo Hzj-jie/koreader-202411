@@ -9,22 +9,24 @@ _G.require = function(name)
     if name == "device" then
         if type(res) == "table" then
             res.hasSystemFonts = function() return false end
-            res.powerd.isChargingHW = function() return false end
-            res.powerd.isChargedHW = function() return false end
-            res.powerd.getCapacityHW = function() return 100 end
+            if res.powerd then
+                res.powerd.isChargingHW = function() return false end
+                res.powerd.isChargedHW = function() return false end
+                res.powerd.getCapacityHW = function() return 0 end
+            end
         end
     elseif name == "ffi/SDL2_0" then
         if type(res) == "table" and res.getPowerInfo then
             res.getPowerInfo = function()
-                -- Return deterministic power state: has battery, not charging, not plugged, 100% capacity
-                return true, false, false, 100
+                -- Return deterministic power state: has battery, not charging, not plugged, 0% capacity
+                return true, false, false, 0
             end
         end
     elseif name == "device/sdl/powerd" or name == "device/generic/powerd" then
         if type(res) == "table" then
             res.isChargingHW = function() return false end
             res.isChargedHW = function() return false end
-            res.getCapacityHW = function() return 100 end
+            res.getCapacityHW = function() return 0 end
         end
     end
     return res
