@@ -376,4 +376,267 @@ describe("BackgroundRunner widget tests", function()
     UIManager:handleInput()
     assert.are.equal(3, executed)
   end)
+
+  it("should support fork executable lambda in subprocess", function()
+    local result_val
+    local job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return 0
+      end,
+      callback = function(j)
+        result_val = j.result
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, job)
+    notifyBackgroundJobsUpdated()
+
+    while job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.are.equal(0, result_val)
+    assert.are.equal(0, job.result)
+    assert.is_false(job.timeout)
+  end)
+
+  it("should support multiple concurrent background tasks", function()
+    local done1, done2 = false, false
+    local job1 = {
+      when = 1,
+      executable = "echo task1",
+      callback = function()
+        done1 = true
+      end,
+    }
+    local job2 = {
+      when = 1,
+      executable = "echo task2",
+      callback = function()
+        done2 = true
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, job1)
+    table.insert(PluginShare.backgroundJobs, job2)
+    notifyBackgroundJobsUpdated()
+
+    while not (done1 and done2) do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.is_true(done1)
+    assert.is_true(done2)
+    assert.are.equal(0, job1.result)
+    assert.are.equal(0, job2.result)
+  end)
+
+  it("should validate job support via CommandRunner:isJobSupported", function()
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    assert.is_true(
+      CommandRunner:isJobSupported({ executable = "ping -c 1 www.google.com" })
+    )
+    assert.is_true(CommandRunner:isJobSupported({
+      executable = "fork",
+      action = function()
+        return 0
+      end,
+    }))
+    assert.is_false(CommandRunner:isJobSupported({ executable = "fork" }))
+    assert.is_false(
+      CommandRunner:isJobSupported({
+        executable = "fork",
+        action = "not_a_func",
+      })
+    )
+    assert.is_false(
+      CommandRunner:isJobSupported({ executable = function() end })
+    )
+  end)
+
+  it("should handle error and return value status in fork action", function()
+    local error_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        error("something went wrong")
+      end,
+    }
+    local ret_val_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return 42
+      end,
+    }
+    local false_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return false
+      end,
+    }
+
+    local true_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return true
+      end,
+    }
+
+    table.insert(PluginShare.backgroundJobs, error_job)
+    table.insert(PluginShare.backgroundJobs, ret_val_job)
+    table.insert(PluginShare.backgroundJobs, false_job)
+    table.insert(PluginShare.backgroundJobs, true_job)
+    notifyBackgroundJobsUpdated()
+
+    while
+      error_job.end_time == nil
+      or ret_val_job.end_time == nil
+      or false_job.end_time == nil
+      or true_job.end_time == nil
+    do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.is_false(error_job.result)
+    assert.are.equal(42, ret_val_job.result)
+    assert.is_false(false_job.result)
+    assert.is_true(true_job.result)
+  end)
+
+  it("should support repeating fork mode jobs with cloned action", function()
+    local callback_count = 0
+    local job = {
+      when = 1,
+      repeated = 2,
+      executable = "fork",
+      action = function()
+        return 0
+      end,
+      callback = function()
+        callback_count = callback_count + 1
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, job)
+    notifyBackgroundJobsUpdated()
+
+    while callback_count < 2 do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.are.equal(2, callback_count)
+  end)
+
+  it(
+    "should respect MAX_JOBS capacity limit and keep excess jobs queued",
+    function()
+      local completed_count = 0
+      local jobs = {}
+      for i = 1, 12 do
+        local j = {
+          when = 1,
+          executable = "fork",
+          action = function()
+            return 0
+          end,
+          callback = function()
+            completed_count = completed_count + 1
+          end,
+        }
+        table.insert(jobs, j)
+        table.insert(PluginShare.backgroundJobs, j)
+      end
+      notifyBackgroundJobsUpdated()
+
+      while completed_count < 12 do
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      assert.are.equal(12, completed_count)
+    end
+  )
+
+  it(
+    "should execute fork job in isolated subprocess and deliver result and timestamps to callback",
+    function()
+      local parent_state = "unmodified"
+      local callback_job = nil
+
+      local job = {
+        when = 1,
+        executable = "fork",
+        action = function()
+          parent_state = "modified_in_subprocess"
+          return true
+        end,
+        callback = function(j)
+          callback_job = j
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job)
+      notifyBackgroundJobsUpdated()
+
+      while callback_job == nil do
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      -- Memory in parent process is not modified by child
+      assert.are.equal("unmodified", parent_state)
+      -- Result was communicated through pipe
+      assert.is_true(callback_job.result)
+      assert.is_false(callback_job.timeout)
+      assert.is_not_nil(callback_job.start_time)
+      assert.is_not_nil(callback_job.end_time)
+      assert.is_true(callback_job.end_time >= callback_job.start_time)
+    end
+  )
+
+  it("should broadcast ForkedProcess event in subprocess", function()
+    local Widget = require("ui/widget/widget")
+    local Geom = require("ui/geometry")
+    local device_fork_called = false
+    local test_widget = Widget:extend({
+      dimen = Geom:new({ w = 100, h = 100 }),
+      onForkedProcess = function()
+        device_fork_called = true
+      end,
+    })
+    local widget_instance = test_widget:new({})
+    UIManager:show(widget_instance)
+
+    local child_saw_fork_called = false
+    local job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        -- In the child subprocess, onForkedProcess was executed on widget
+        return device_fork_called
+      end,
+      callback = function(j)
+        child_saw_fork_called = j.result
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, job)
+    notifyBackgroundJobsUpdated()
+
+    while job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.is_true(child_saw_fork_called)
+    -- In parent, onForkedProcess was not called
+    assert.is_false(device_fork_called)
+
+    UIManager:close(widget_instance)
+  end)
 end)

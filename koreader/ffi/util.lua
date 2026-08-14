@@ -275,6 +275,14 @@ function util.purgeDir(dir)
   return ok, err
 end
 
+--- Returns the current process ID.
+-- Wraps C.getpid() so callers do not need to explicitly require "ffi/posix_h"
+-- and "ffi" to declare and invoke getpid.
+-- @treturn number Process ID
+function util.getpid()
+  return tonumber(C.getpid())
+end
+
 --- Executes child process.
 function util.execute(...)
   if util.isAndroid() then
@@ -290,16 +298,6 @@ function util.execute(...)
     C.waitpid(pid, status, 0)
     return status[0]
   end
-end
-
--- Frontend can register functions to be run in all subprocesses
--- just after the fork, ie. for some cleanup work.
-local _run_in_subprocess_after_fork_funcs = {}
-function util.addRunInSubProcessAfterForkFunc(id, func)
-  _run_in_subprocess_after_fork_funcs[id] = func
-end
-function util.removeRunInSubProcessAfterForkFunc(id)
-  _run_in_subprocess_after_fork_funcs[id] = nil
 end
 
 --- Run lua code (func) in a forked subprocess
@@ -336,9 +334,7 @@ function util.runInSubProcess(func, with_pipe, double_fork)
   end
   local pid = C.fork()
   if pid == 0 then -- child process
-    for _, f in pairs(_run_in_subprocess_after_fork_funcs) do
-      f()
-    end
+    require("ui/uimanager"):broadcastEvent("ForkedProcess")
     if double_fork then
       pid = C.fork()
       if pid ~= 0 then
@@ -380,7 +376,7 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       -- We pass child pid to func, which can serve as a key
       -- to communicate with parent process.
       -- We pass child_write_fd (if with_pipe) so 'func' can write to it
-      pid = C.getpid()
+      pid = util.getpid()
       func(pid, child_write_fd)
     end, debug.traceback)
     if not ok then

@@ -1,13 +1,15 @@
 local UIManager = require("ui/uimanager")
+local ffiUtil = require("ffi/util")
 local logger = require("logger")
 local time = require("ui/time")
 
+local MAX_JOBS = 10
+
 local CommandRunner = {
-  pio = nil,
-  job = nil,
+  running_jobs = {},
 }
 
-function CommandRunner:createEnvironmentFromTable(t)
+function CommandRunner:_createEnvironmentFromTable(t)
   if t == nil then
     return ""
   end
@@ -23,76 +25,147 @@ function CommandRunner:createEnvironmentFromTable(t)
   return r
 end
 
-function CommandRunner:createEnvironment()
-  if type(self.job.environment) == "table" then
-    return self:createEnvironmentFromTable(self.job.environment)
+function CommandRunner:_createEnvironment(job)
+  local env_table = job and job.environment
+  if type(env_table) == "table" then
+    return self:_createEnvironmentFromTable(env_table)
   end
-  if type(self.job.environment) == "function" then
-    local status, result = pcall(self.job.environment)
+  if type(env_table) == "function" then
+    local status, result = pcall(env_table)
     if status then
-      return self:createEnvironmentFromTable(result)
+      return self:_createEnvironmentFromTable(result)
     end
   end
   return ""
 end
 
-function CommandRunner:start(job)
-  assert(self.pio == nil)
-  assert(self.job == nil)
-  self.job = job
-  self.job.start_time = time.monotonic()
-  assert(type(self.job.executable) == "string")
-  local command = self:createEnvironment()
-    .. " "
-    .. "sh plugins/backgroundrunner.koplugin/luawrapper.sh "
-    .. '"'
-    .. self.job.executable
-    .. '"'
-  logger.dbg("CommandRunner: Will execute command " .. command)
-  UIManager:preventStandby()
-  self.pio = io.popen(command)
+function CommandRunner:canStart()
+  return #self.running_jobs < MAX_JOBS
 end
 
---- Polls the status of self.pio.
--- @return a table contains the result from luawrapper.sh. Returns nil if the
---         command has not been finished.
-function CommandRunner:poll()
-  assert(self.pio ~= nil)
-  assert(self.job ~= nil)
-  local line = self.pio:read()
-  if line == "" then
-    return nil
+function CommandRunner:isJobSupported(job)
+  if type(job.executable) ~= "string" then
+    return false
+  end
+  if job.executable == "fork" and type(job.action) ~= "function" then
+    return false
+  end
+  return true
+end
+
+function CommandRunner:start(job)
+  assert(#self.running_jobs < MAX_JOBS, "CommandRunner limit reached")
+  assert(type(job.executable) == "string")
+  job.start_time = time.monotonic()
+
+  local entry
+  if job.executable == "fork" then
+    assert(
+      type(job.action) == "function",
+      "CommandRunner fork mode requires job.action function"
+    )
+    local pid, parent_read_fd = ffiUtil.runInSubProcess(
+      function(_pid, child_write_fd)
+        local res = false
+        local ok, ret = pcall(job.action)
+        if ok then
+          res = ret
+        end
+        -- TODO: Implement timeout in "fork" mode.
+        local output = string.format(
+          "return { result = %s, timeout = false }\n",
+          tostring(res)
+        )
+        ffiUtil.writeToFD(child_write_fd, output, true)
+      end,
+      true
+    )
+
+    entry = {
+      job = job,
+      poll = function(self)
+        return (ffiUtil.getNonBlockingReadSize(parent_read_fd) or 0) > 0
+          or ffiUtil.isSubProcessDone(pid)
+      end,
+      readAll = function(self)
+        return ffiUtil.readAllFromFD(parent_read_fd) or ""
+      end,
+      close = function(self)
+        ffiUtil.isSubProcessDone(pid, true)
+      end,
+    }
   else
-    if line == nil then
-      -- The binary crashes without output. This should not happen.
-      self.job.result = 223
-    else
-      line = line .. self.pio:read("*a")
-      logger.dbg("CommandRunner: Receive output " .. line)
-      local status, result = pcall(loadstring(line))
+    local command = self:_createEnvironment(job)
+      .. " "
+      .. "sh plugins/backgroundrunner.koplugin/luawrapper.sh "
+      .. '"'
+      .. job.executable
+      .. '"'
+    logger.dbg("CommandRunner: Will execute command " .. command)
+    local pio = io.popen(command)
+
+    entry = {
+      job = job,
+      poll = function(self)
+        return (ffiUtil.getNonBlockingReadSize(pio) or 0) > 0
+      end,
+      readAll = function(self)
+        return pio:read("*a") or ""
+      end,
+      close = function(self)
+        pio:close()
+      end,
+    }
+  end
+
+  if #self.running_jobs == 0 then
+    UIManager:preventStandby()
+  end
+  table.insert(self.running_jobs, entry)
+end
+
+--- Polls the status of running jobs in self.running_jobs.
+-- @return a table of completed jobs, or nil if no jobs completed.
+function CommandRunner:poll()
+  if #self.running_jobs == 0 then
+    return nil
+  end
+
+  local completed = {}
+  local i = 1
+  while i <= #self.running_jobs do
+    local entry = self.running_jobs[i]
+    if entry:poll() then
+      local output = entry:readAll()
+      logger.dbg("CommandRunner: Receive output " .. output)
+      local status, result = pcall(loadstring(output))
       if status and result ~= nil then
         for k, v in pairs(result) do
-          self.job[k] = v
+          entry.job[k] = v
         end
       else
-        -- The output from binary is invalid.
-        self.job.result = 222
+        entry.job.result = 222
       end
+      entry:close()
+      entry.job.end_time = time.monotonic()
+      table.insert(completed, entry.job)
+      table.remove(self.running_jobs, i)
+    else
+      i = i + 1
     end
-    UIManager:allowStandby()
-    self.pio:close()
-    self.pio = nil
-    self.job.end_time = time.monotonic()
-    local job = self.job
-    self.job = nil
-    return job
   end
+
+  if #self.running_jobs == 0 then
+    UIManager:allowStandby()
+  end
+
+  return #completed > 0 and completed or nil
 end
 
---- Whether this is a running job.
+--- Whether there are running jobs.
 -- @treturn boolean
 function CommandRunner:pending()
-  return self.pio ~= nil
+  return #self.running_jobs > 0
 end
 
 return CommandRunner

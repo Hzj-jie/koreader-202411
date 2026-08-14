@@ -125,12 +125,22 @@ function LibLipcs:_check(v)
   return v
 end
 
+-- Clears cached LIPC handles in forked child subprocesses. LIPC connection sockets
+-- cannot be safely shared across processes after fork(); resetting them ensures the
+-- child acquires its own fresh, independent handle.
+function LibLipcs:resetLipcs()
+  self._ins = nil
+  self._no_name = nil
+end
+
 function LibLipcs:accessor()
   if not haslipc then
     return Fake
   end
   if not self._ins then
-    self._ins = self:_check(lipc.init("com.github.koreader"))
+    self._ins = self:_check(
+      lipc.init("com.github.koreader-" .. tostring(require("ffi/util").getpid()))
+    )
   end
   return self._ins
 end
