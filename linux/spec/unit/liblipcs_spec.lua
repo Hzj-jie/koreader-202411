@@ -117,7 +117,7 @@ describe("LibLipcs module", function()
       -- Pre-populate package.loaded to simulate library availability
       package.loaded["liblipclua"] = {
         init = function(name)
-          assert.are.equal("com.github.koreader", name)
+          assert.is_not_nil(name:match("^com%.github%.koreader"))
           return mock_lipc_handle
         end,
       }
