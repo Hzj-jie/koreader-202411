@@ -273,8 +273,8 @@ for i = 1, #spec_files do
             local file_failed_list = {}
             local seen_cases = {}
             for line in output:gmatch("[^\r\n]+") do
-                local failed_case = line:match("^%[%s+FAILED%s+%] (.-%_spec%.lua%:%d+%:.+)$")
-                if failed_case then
+                local status, failed_case = line:match("^%[%s+([A-Z]+)%s+%] (.-%_spec%.lua%:%d+%:.+)$")
+                if status == "FAILED" or status == "ERROR" then
                     failed_case = failed_case:gsub(" %(%d+%.%d+ ms%)$", "")
                     if not seen_cases[failed_case] then
                         seen_cases[failed_case] = true

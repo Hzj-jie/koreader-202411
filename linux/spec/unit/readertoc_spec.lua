@@ -9,7 +9,10 @@ describe("Readertoc module", function()
     Screen = require("device").screen
     DEBUG = require("dbg")
 
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local DataStorage = require("datastorage")
+    local sample_epub = DataStorage:getDataDir() .. "/readertoc_juliet.epub"
+    require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", sample_epub)
+
     -- Clear settings from previous tests
     local DocSettings = require("docsettings")
     local doc_settings = DocSettings:open(sample_epub)
@@ -23,6 +26,15 @@ describe("Readertoc module", function()
     -- reset book to first page
     readerui.rolling:onGotoPage(0)
     toc = readerui.toc
+  end)
+
+  teardown(function()
+    if readerui then
+      readerui:onExit()
+    end
+    local sample_epub = require("datastorage"):getDataDir() .. "/readertoc_juliet.epub"
+    require("docsettings"):open(sample_epub):purge()
+    os.remove(sample_epub)
   end)
 
   it("should get max toc depth", function()
