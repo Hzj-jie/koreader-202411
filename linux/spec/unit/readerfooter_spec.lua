@@ -1,6 +1,7 @@
 describe("Readerfooter module", function()
   local DocumentRegistry, ReaderUI, ReaderFooter, DocSettings, UIManager
   local purgeDir, Screen, copyFile
+  local footer_sample_pdf, footer_sample_epub, footer_sample_txt
   local tapFooterMenu
 
   local original_os_date = os.date
@@ -86,6 +87,14 @@ describe("Readerfooter module", function()
     purgeDir = require("ffi/util").purgeDir
     Screen = require("device").screen
 
+    local DataStorage = require("datastorage")
+    footer_sample_pdf = DataStorage:getDataDir() .. "/readerfooter_2col.pdf"
+    footer_sample_epub = DataStorage:getDataDir() .. "/readerfooter_juliet.epub"
+    footer_sample_txt = DataStorage:getDataDir() .. "/readerfooter_sample.txt"
+    copyFile("spec/front/unit/data/2col.pdf", footer_sample_pdf)
+    copyFile("spec/front/unit/data/juliet.epub", footer_sample_epub)
+    copyFile("spec/front/unit/data/sample.txt", footer_sample_txt)
+
     function tapFooterMenu(menu_items, menu_title)
       local status_bar = menu_items.status_bar
 
@@ -127,6 +136,22 @@ describe("Readerfooter module", function()
     G_reader_settings:delete("reader_footer_mode")
     G_reader_settings:delete("footer")
     G_reader_settings:flush()
+
+    if footer_sample_pdf then
+      purgeDir(DocSettings:getSidecarDir(footer_sample_pdf))
+      os.remove(DocSettings:getHistoryPath(footer_sample_pdf))
+      os.remove(footer_sample_pdf)
+    end
+    if footer_sample_epub then
+      purgeDir(DocSettings:getSidecarDir(footer_sample_epub))
+      os.remove(DocSettings:getHistoryPath(footer_sample_epub))
+      os.remove(footer_sample_epub)
+    end
+    if footer_sample_txt then
+      purgeDir(DocSettings:getSidecarDir(footer_sample_txt))
+      os.remove(DocSettings:getHistoryPath(footer_sample_txt))
+      os.remove(footer_sample_txt)
+    end
   end)
 
   before_each(function()
@@ -168,7 +193,7 @@ describe("Readerfooter module", function()
     settings.all_at_once = true
     G_reader_settings:save("footer", settings)
 
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     purgeDir(DocSettings:getSidecarDir(sample_pdf))
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
@@ -186,7 +211,7 @@ describe("Readerfooter module", function()
     G_reader_settings:save("reader_footer_mode", 1)
     -- default settings
 
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     purgeDir(DocSettings:getSidecarDir(sample_pdf))
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
@@ -206,7 +231,7 @@ describe("Readerfooter module", function()
     -- default settings
 
     local isolated_pdf =
-      get_isolated_file("spec/front/unit/data/2col.pdf", "test3")
+      get_isolated_file(footer_sample_pdf, "test3")
 
     local cfg = DocSettings:open(isolated_pdf)
     cfg:save("kopt_full_screen", 0)
@@ -229,7 +254,7 @@ describe("Readerfooter module", function()
     -- default settings
 
     local isolated_pdf =
-      get_isolated_file("spec/front/unit/data/2col.pdf", "test4")
+      get_isolated_file(footer_sample_pdf, "test4")
 
     local cfg = DocSettings:open(isolated_pdf)
     cfg:delete("kopt_full_screen")
@@ -252,7 +277,7 @@ describe("Readerfooter module", function()
     -- default settings
 
     local isolated_epub =
-      get_isolated_file("spec/front/unit/data/juliet.epub", "test5")
+      get_isolated_file(footer_sample_epub, "test5")
 
     local cfg = DocSettings:open(isolated_epub)
     cfg:save("copt_status_line", 1)
@@ -275,7 +300,7 @@ describe("Readerfooter module", function()
     settings.all_at_once = true
     G_reader_settings:save("footer", settings)
 
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -306,7 +331,7 @@ describe("Readerfooter module", function()
     settings.all_at_once = true
     G_reader_settings:save("footer", settings)
 
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     purgeDir(DocSettings:getSidecarDir(sample_pdf))
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
@@ -330,7 +355,7 @@ describe("Readerfooter module", function()
     settings.all_at_once = true
     G_reader_settings:save("footer", settings)
 
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     purgeDir(DocSettings:getSidecarDir(sample_pdf))
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
@@ -391,7 +416,7 @@ describe("Readerfooter module", function()
   it("should rotate through different modes", function()
     -- default settings (we'll poke at footer.settings directly post-instantiation)
 
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     local readerui = ReaderUI:new({
       dimen = Screen:getSize(),
       document = DocumentRegistry:openDocument(sample_pdf),
@@ -437,7 +462,7 @@ describe("Readerfooter module", function()
     settings.all_at_once = true
     G_reader_settings:save("footer", settings)
 
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     purgeDir(DocSettings:getSidecarDir(sample_pdf))
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
@@ -483,7 +508,7 @@ describe("Readerfooter module", function()
     settings.all_at_once = true
     G_reader_settings:save("footer", settings)
 
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -510,7 +535,7 @@ describe("Readerfooter module", function()
   it("should support chapter markers", function()
     -- default settings (we'll poke at footer.settings directly post-instantiation)
 
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -540,7 +565,7 @@ describe("Readerfooter module", function()
       DTAP_ZONE_MINIBAR.h = 0
       G_defaults:save("DTAP_ZONE_MINIBAR", DTAP_ZONE_MINIBAR)
 
-      local sample_pdf = "spec/front/unit/data/2col.pdf"
+      local sample_pdf = footer_sample_pdf
       purgeDir(DocSettings:getSidecarDir(sample_pdf))
       os.remove(DocSettings:getHistoryPath(sample_pdf))
       UIManager:quit()
@@ -584,7 +609,7 @@ describe("Readerfooter module", function()
   it(
     "should remove and add modes to footer text in all_at_once mode",
     function()
-      local sample_pdf = "spec/front/unit/data/2col.pdf"
+      local sample_pdf = footer_sample_pdf
       purgeDir(DocSettings:getSidecarDir(sample_pdf))
       os.remove(DocSettings:getHistoryPath(sample_pdf))
       UIManager:quit()
@@ -623,7 +648,7 @@ describe("Readerfooter module", function()
   )
 
   it("should initialize text mode in all_at_once mode", function()
-    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local sample_pdf = footer_sample_pdf
     purgeDir(DocSettings:getSidecarDir(sample_pdf))
     os.remove(DocSettings:getHistoryPath(sample_pdf))
     UIManager:quit()
@@ -649,7 +674,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should support disabling all the modes", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
     UIManager:quit()
@@ -700,7 +725,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should return correct footer height in time mode", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
     UIManager:quit()
@@ -724,7 +749,7 @@ describe("Readerfooter module", function()
   it(
     "should return correct footer height when all modes are disabled",
     function()
-      local sample_epub = "spec/front/unit/data/juliet.epub"
+      local sample_epub = footer_sample_epub
       purgeDir(DocSettings:getSidecarDir(sample_epub))
       os.remove(DocSettings:getHistoryPath(sample_epub))
       UIManager:quit()
@@ -757,7 +782,7 @@ describe("Readerfooter module", function()
   it(
     "should disable footer when all modes + progressbar are disabled",
     function()
-      local sample_epub = "spec/front/unit/data/juliet.epub"
+      local sample_epub = footer_sample_epub
       purgeDir(DocSettings:getSidecarDir(sample_epub))
       os.remove(DocSettings:getHistoryPath(sample_epub))
       UIManager:quit()
@@ -789,7 +814,7 @@ describe("Readerfooter module", function()
 
   --[[ This toggling behaviour has been removed:
     it("should toggle between full and min progress bar for cre documents", function()
-        local sample_txt = "spec/front/unit/data/sample.txt"
+        local sample_txt = footer_sample_txt
         local readerui = ReaderUI:new{
             dimen = Screen:getSize(),
             document = DocumentRegistry:openDocument(sample_txt),
@@ -820,7 +845,7 @@ describe("Readerfooter module", function()
   it(
     "should update footer when NetworkStateChanged event is broadcasted",
     function()
-      local sample_epub = "spec/front/unit/data/juliet.epub"
+      local sample_epub = footer_sample_epub
       local settings = G_reader_settings:read("footer")
       settings.wifi_status = true
       settings.item_prefix = "icons"
@@ -884,7 +909,7 @@ describe("Readerfooter module", function()
   )
 
   it("should test frontlight and frontlight_warmth text generators", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -934,7 +959,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should test page_turning_inverted generator and symbols", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -962,7 +987,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should test book metadata and getFittedText", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -991,7 +1016,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should test custom_text generator and set_custom_text", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -1018,7 +1043,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should test add and remove additional footer content", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -1042,7 +1067,7 @@ describe("Readerfooter module", function()
   end)
 
   it("should test menu item generators", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+    local sample_epub = footer_sample_epub
     purgeDir(DocSettings:getSidecarDir(sample_epub))
     os.remove(DocSettings:getHistoryPath(sample_epub))
 
@@ -1091,7 +1116,7 @@ describe("Readerfooter module", function()
   it(
     "should test event handlers onResume, onSetPageHorizMargins, flipping mode",
     function()
-      local sample_epub = "spec/front/unit/data/juliet.epub"
+      local sample_epub = footer_sample_epub
       purgeDir(DocSettings:getSidecarDir(sample_epub))
       os.remove(DocSettings:getHistoryPath(sample_epub))
 
