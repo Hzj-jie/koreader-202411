@@ -1,10 +1,7 @@
 describe("CoverImage plugin tests", function()
   local CoverImage, Device, UIManager, DataStorage, lfs, ffiutil, util, Screen
   local FileManagerBookInfo, RenderImage, Blitbuffer, ConfirmBox, InputDialog, PathChooser, SpinWidget, InfoMessage
-  local test_dir = "/tmp/coverimage_test_dir"
-  local test_cover_file = test_dir .. "/cover.png"
-  local test_fallback_file = test_dir .. "/fallback.png"
-  local test_cache_dir = test_dir .. "/cache/"
+  local test_dir, test_cover_file, test_fallback_file, test_cache_dir
 
   local function createMockCoverImage(w, h)
     local mock = {
@@ -77,10 +74,18 @@ describe("CoverImage plugin tests", function()
   setup(function()
     require("commonrequire")
     package.unloadAll()
+    DataStorage = require("datastorage")
+    test_dir = DataStorage:getDataDir() .. "/coverimage_test_dir"
+    test_cover_file = test_dir .. "/cover.png"
+    test_fallback_file = test_dir .. "/fallback.png"
+    test_cache_dir = test_dir .. "/cache/"
     require("document/canvascontext"):init(require("device"))
   end)
 
   teardown(function()
+    if test_dir then
+      require("ffi/util").purgeDir(test_dir)
+    end
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
   end)

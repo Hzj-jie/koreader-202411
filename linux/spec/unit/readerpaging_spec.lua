@@ -1,11 +1,15 @@
 describe("Readerpaging module", function()
-  local sample_pdf = "spec/front/unit/data/sample.pdf"
-  local readerui, UIManager, Event, DocumentRegistry, ReaderUI, Screen
+  local sample_pdf
+  local readerui, UIManager, Event, DocumentRegistry, ReaderUI, Screen, DataStorage
   local paging
 
   setup(function()
     require("commonrequire")
     require("document/canvascontext"):init(require("device"))
+
+    DataStorage = require("datastorage")
+    sample_pdf = DataStorage:getDataDir() .. "/readerpaging_sample.pdf"
+    require("ffi/util").copyFile("spec/front/unit/data/sample.pdf", sample_pdf)
 
     UIManager = require("ui/uimanager")
     stub(UIManager, "getNthTopWidget")
@@ -18,6 +22,10 @@ describe("Readerpaging module", function()
 
   teardown(function()
     UIManager.getNthTopWidget:revert()
+    if sample_pdf then
+      require("docsettings"):open(sample_pdf):purge()
+      os.remove(sample_pdf)
+    end
   end)
 
   describe("Page mode", function()
@@ -29,8 +37,12 @@ describe("Readerpaging module", function()
       paging = readerui.paging
     end)
     teardown(function()
-      readerui:onExit()
-      readerui:onClose()
+      if readerui then
+        if ReaderUI.instance == readerui then
+          readerui:onExit()
+        end
+        ReaderUI.instance = nil
+      end
     end)
 
     it("should calculate progress and percent correctly", function()
@@ -262,8 +274,6 @@ describe("Readerpaging module", function()
           UIManager:close(dialog)
         end
         UIManager:close(readerui)
-        -- We haven't torn it down yet
-        ReaderUI.instance = readerui
       end)
       UIManager:run()
       assert.is.truthy(called)
@@ -286,8 +296,12 @@ describe("Readerpaging module", function()
       paging = readerui.paging
     end)
     teardown(function()
-      readerui:onExit()
-      readerui:onClose()
+      if readerui then
+        if ReaderUI.instance == readerui then
+          readerui:onExit()
+        end
+        ReaderUI.instance = nil
+      end
     end)
 
     it("should emit EndOfBook event at the end", function()
@@ -309,8 +323,6 @@ describe("Readerpaging module", function()
           UIManager:close(dialog)
         end
         UIManager:close(readerui)
-        -- We haven't torn it down yet
-        ReaderUI.instance = readerui
       end)
       UIManager:run()
       assert.is.truthy(called)
@@ -328,7 +340,6 @@ describe("Readerpaging module", function()
       })
       tmp_readerui.paging:onScrollPanRel(-100)
       tmp_readerui:onExit()
-      tmp_readerui:onClose()
       -- Restore the ref to the original ReaderUI instance
       ReaderUI.instance = readerui
     end)
@@ -341,13 +352,12 @@ describe("Readerpaging module", function()
         dimen = Screen:getSize(),
         document = DocumentRegistry:openDocument(sample_djvu),
       })
-      paging = tmp_readerui.paging
-      paging:onGotoPage(tmp_readerui.document:getPageCount())
-      paging:onScrollPanRel(120)
-      paging:onScrollPanRel(-1)
-      paging:onScrollPanRel(120)
+      local tmp_paging = tmp_readerui.paging
+      tmp_paging:onGotoPage(tmp_readerui.document:getPageCount())
+      tmp_paging:onScrollPanRel(120)
+      tmp_paging:onScrollPanRel(-1)
+      tmp_paging:onScrollPanRel(120)
       tmp_readerui:onExit()
-      tmp_readerui:onClose()
       -- Restore the ref to the original ReaderUI instance
       ReaderUI.instance = readerui
     end)

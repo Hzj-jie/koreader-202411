@@ -13,10 +13,22 @@ describe("ReaderBookmark module", function()
     Geom = require("ui/geometry")
     Util = require("ffi/util")
 
-    sample_epub = "spec/front/unit/data/juliet.epub"
+    sample_epub = DataStorage:getDataDir() .. "/readerbookmark.epub"
     sample_pdf = DataStorage:getDataDir() .. "/readerbookmark.pdf"
 
+    Util.copyFile("spec/front/unit/data/juliet.epub", sample_epub)
     Util.copyFile("spec/front/unit/data/sample.pdf", sample_pdf)
+  end)
+
+  teardown(function()
+    if sample_epub then
+      DocSettings:open(sample_epub):purge()
+      os.remove(sample_epub)
+    end
+    if sample_pdf then
+      DocSettings:open(sample_pdf):purge()
+      os.remove(sample_pdf)
+    end
   end)
 
   local function highlight_text(readerui, pos0, pos1)

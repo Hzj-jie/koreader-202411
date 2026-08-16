@@ -495,8 +495,8 @@ describe("Wikipedia module", function()
   end)
 
   describe("createEpub and createEpubWithUI", function()
-    local temp_epub_path = "/tmp/test_wikipedia_article.epub"
-    local temp_epub_ui_path = "/tmp/test_wikipedia_article_ui.epub"
+    local temp_epub_path = require("datastorage"):getDataDir() .. "/test_wikipedia_article.epub"
+    local temp_epub_ui_path = require("datastorage"):getDataDir() .. "/test_wikipedia_article_ui.epub"
 
     after_each(function()
       http.request = orig_http_request
