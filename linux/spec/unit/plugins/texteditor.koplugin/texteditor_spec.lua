@@ -2,18 +2,22 @@ describe("TextEditor plugin unit tests", function()
   local Dispatcher, DocumentRegistry, UIManager, Trapper, LuaSettings
   local TextEditor, editor
   local mock_ui
-  local temp_dir = "/tmp/texteditor_spec_tmp"
-  local temp_settings_path = temp_dir .. "/text_editor.lua"
+  local temp_dir, temp_settings_path
 
   setup(function()
     require("commonrequire")
     package.unloadAll()
+    local DataStorage = require("datastorage")
+    temp_dir = DataStorage:getDataDir() .. "/texteditor_spec_tmp"
+    temp_settings_path = temp_dir .. "/text_editor.lua"
     require("document/canvascontext"):init(require("device"))
     os.execute("mkdir -p " .. temp_dir)
   end)
 
   teardown(function()
-    os.execute("rm -rf " .. temp_dir)
+    if temp_dir then
+      os.execute("rm -rf " .. temp_dir)
+    end
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
   end)
