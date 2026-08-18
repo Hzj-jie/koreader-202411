@@ -2,7 +2,7 @@ describe("Unsynced / Pending Documents Feature", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, test_utils, json, util
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_unsynced_docs_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_unsynced_docs_tmp"
   local old_getDataDir
 
   setup(function()

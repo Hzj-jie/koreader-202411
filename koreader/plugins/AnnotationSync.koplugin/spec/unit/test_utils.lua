@@ -122,9 +122,20 @@ function M.mock_image_viewer()
 end
 
 function M.init_integration_context(file, AnnotationSyncPlugin)
+  local target_file = file
+  if file and (file:find("^spec/front/unit/data/") or file:find("^linux/spec/front/unit/data/")) then
+    local filename = file:match("([^/]+)$")
+    local data_dir = DataStorage.getDataDir()
+    target_file = data_dir .. "/" .. filename
+    local util = require("ffi/util")
+    util.copyFile(file, target_file)
+    local sdr_dir = target_file:gsub("%.%w+$", ".sdr")
+    os.execute("rm -rf " .. sdr_dir)
+  end
+
   local readerui = ReaderUI:new({
     dimen = Geom:new({ w = 1200, h = 1600 }),
-    document = DocumentRegistry:openDocument(file),
+    document = DocumentRegistry:openDocument(target_file),
   })
   current_readerui = readerui
 

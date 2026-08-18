@@ -2,7 +2,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
   local ReaderUI, UIManager, SyncService, Geom, DataStorage
   local AnnotationSyncPlugin, test_utils, json, util, annotations_mod
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_sync_bookmark_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_bookmark_tmp"
   local old_getDataDir
   local sample_epub = "spec/front/unit/data/juliet.epub"
 

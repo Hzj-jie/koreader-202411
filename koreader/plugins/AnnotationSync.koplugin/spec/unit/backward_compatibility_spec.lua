@@ -1,7 +1,7 @@
 describe("AnnotationSync Backward Compatibility", function()
   local SyncService, UIManager, AnnotationSyncPlugin, test_utils, remote
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_compat_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_compat_tmp"
   local old_getDataDir
 
   setup(function()

@@ -1,7 +1,7 @@
 describe("AnnotationSync Settings Persistence", function()
   local UIManager, AnnotationSyncPlugin, test_utils, json
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_settings_persistence_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_settings_persistence_tmp"
   local old_getDataDir
 
   setup(function()

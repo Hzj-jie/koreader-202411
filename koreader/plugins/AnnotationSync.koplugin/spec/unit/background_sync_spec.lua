@@ -1,7 +1,7 @@
 describe("Background Sync Behavior", function()
   local SyncService, UIManager, Trapper
   local remote, json, test_utils
-  local test_data_dir = os.getenv("PWD") .. "/test_bg_sync_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_bg_sync_tmp"
   local old_getDataDir
 
   setup(function()

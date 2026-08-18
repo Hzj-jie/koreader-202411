@@ -2,7 +2,7 @@ describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
   local ReaderUI, UIManager, Geom, DataStorage
   local AnnotationSyncPlugin, highlight_pdf_db, test_utils
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_sync_pdf_ground_truth_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_pdf_ground_truth_tmp"
   local old_getDataDir
   local sample_pdf
 

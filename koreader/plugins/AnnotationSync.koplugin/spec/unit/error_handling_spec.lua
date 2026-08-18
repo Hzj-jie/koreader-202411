@@ -2,7 +2,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
   local ReaderUI, UIManager, Geom, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_sync_error_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_error_tmp"
   local old_getDataDir
 
   setup(function()
