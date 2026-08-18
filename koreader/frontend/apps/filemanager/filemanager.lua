@@ -826,6 +826,11 @@ function FileManager:getCurrentDir()
 end
 
 function FileManager:onExit()
+  -- file_chooser.close_callback will call onExit directly during an Exit broadcast,
+  -- avoid double execution and redundant settings flush / UIManager:close.
+  self.onExit = function()
+    return true
+  end
   logger.dbg("close filemanager")
   -- See ReaderUI:onFlushSettings, this should only impact the widget and its
   -- sub widget.
