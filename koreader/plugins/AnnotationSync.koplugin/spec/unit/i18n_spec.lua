@@ -2,7 +2,7 @@ describe("AnnotationSync internationalization", function()
   local UIManager, AnnotationSyncPlugin, test_utils, json
   local _
   local readerui, sync_instance
-  local test_data_dir = "test_sync_i18n"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_i18n"
   local old_getDataDir
 
   setup(function()

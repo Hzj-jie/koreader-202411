@@ -2,7 +2,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   local ReaderUI, UIManager, Geom, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_sync_protection_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_protection_tmp"
   local old_getDataDir
 
   setup(function()

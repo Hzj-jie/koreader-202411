@@ -2,7 +2,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util, annotations_mod
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_issue_39_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_issue_39_tmp"
   local old_getDataDir
 
   setup(function()

@@ -2,7 +2,7 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
   local ReaderUI, UIManager, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_sync_ground_truth_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_ground_truth_tmp"
   local old_getDataDir
   setup(function()
     require("commonrequire")

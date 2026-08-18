@@ -2,7 +2,7 @@ describe("Issue #34 Reproduction & Fix Verification", function()
   local ReaderUI, UIManager, SyncService, Geom, HTTPClient
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
-  local test_data_dir = os.getenv("PWD") .. "/test_issue_34_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_issue_34_tmp"
   local old_getDataDir
 
   setup(function()

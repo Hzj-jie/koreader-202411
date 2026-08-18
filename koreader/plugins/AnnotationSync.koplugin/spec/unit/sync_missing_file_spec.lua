@@ -1,4 +1,4 @@
-local test_data_dir = os.getenv("PWD") .. "/test_sync_missing_tmp"
+local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_missing_tmp"
 os.execute("mkdir -p " .. test_data_dir .. "/cache")
 
 -- Fix for DocCache requiring G_defaults and DataStorage during module load
@@ -7,6 +7,7 @@ _G.G_defaults = {
     return {}
   end,
 }
+local old_datastorage = package.loaded["datastorage"]
 local DataStorage = {
   getDataDir = function()
     return test_data_dir
@@ -129,6 +130,7 @@ describe("Sync Missing File Handling", function()
     DocumentRegistry.openDocument = old_open
     DocumentRegistry.getProvider = old_getProvider
     util.fileExists = _G.old_util_fileExists
+    package.loaded["datastorage"] = old_datastorage
     package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
     package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
     package.loaded["plugins/AnnotationSync.koplugin/annotations"] = nil

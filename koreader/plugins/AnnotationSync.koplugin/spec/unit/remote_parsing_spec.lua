@@ -1,6 +1,6 @@
 describe("Remote Response Parsing (Issue #39)", function()
   local annotations_mod, test_utils, json
-  local test_data_dir = os.getenv("PWD") .. "/test_remote_parsing_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_remote_parsing_tmp"
   local old_getDataDir
 
   setup(function()

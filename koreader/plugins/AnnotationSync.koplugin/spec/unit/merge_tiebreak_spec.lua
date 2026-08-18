@@ -1,6 +1,6 @@
 describe("Merge Logic Tie-Break (Issue #39)", function()
   local annotations_mod, test_utils, docsettings, json
-  local test_data_dir = os.getenv("PWD") .. "/test_tiebreak_tmp"
+  local test_data_dir = require("datastorage"):getDataDir() .. "/test_tiebreak_tmp"
   local old_getDataDir
 
   setup(function()
