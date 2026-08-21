@@ -535,6 +535,147 @@ describe("Wikipedia module", function()
         end
       end
     )
+
+    it(
+      "should boost aspect ratio for thin images and apply correct thumbnail sizes",
+      function()
+        -- Thin portrait image: width < height / 2
+        local portrait_page = {
+          thumbnail = {
+            source = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/portrait.jpg/50px-portrait.jpg",
+            width = 40,
+            height = 100,
+          },
+          pageimage = "portrait.jpg",
+        }
+        Wikipedia:addImages(portrait_page, "en", false, 1.0, 4.0)
+        local portrait_img = portrait_page.images[1]
+        -- width was boosted from 40 -> floor(40*1.3) = 52, snapped to 60px
+        assert.is.same(52, portrait_img.width)
+        assert.is.same(130, portrait_img.height)
+        assert.is.same(
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/portrait.jpg/60px-portrait.jpg",
+          portrait_img.source
+        )
+        -- hi_width = 52 * 4 = 208, snapped to 250px
+        assert.is.same(
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/portrait.jpg/250px-portrait.jpg",
+          portrait_img.hi_source
+        )
+
+        -- Thin landscape image: height < width / 2
+        local landscape_page = {
+          thumbnail = {
+            source = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/landscape.jpg/50px-landscape.jpg",
+            width = 100,
+            height = 40,
+          },
+          pageimage = "landscape.jpg",
+        }
+        Wikipedia:addImages(landscape_page, "en", false, 1.0, 4.0)
+        local landscape_img = landscape_page.images[1]
+        -- width was boosted from 100 -> floor(100*1.3) = 130, snapped to 250px
+        assert.is.same(130, landscape_img.width)
+        assert.is.same(52, landscape_img.height)
+        assert.is.same(
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/landscape.jpg/250px-landscape.jpg",
+          landscape_img.source
+        )
+      end
+    )
+
+    it(
+      "should handle default dimensions when width or height is nil",
+      function()
+        local page = {
+          thumbnail = {
+            source = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/default.jpg/50px-default.jpg",
+          },
+          pageimage = "default.jpg",
+        }
+        Wikipedia:addImages(page, "en", false, 1.0, 4.0)
+        local img = page.images[1]
+        -- Default width/height = 100, snapped to 120px for source and 500px for hi_source
+        assert.is.same(100, img.width)
+        assert.is.same(100, img.height)
+        assert.is.same(
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/default.jpg/120px-default.jpg",
+          img.source
+        )
+        assert.is.same(
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/default.jpg/500px-default.jpg",
+          img.hi_source
+        )
+      end
+    )
+
+    it(
+      "should handle image_load_bb_func errors gracefully (HTTP 400, 404, 500, corrupt data)",
+      function()
+        local page = {
+          thumbnail = {
+            source = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/test.jpg/100px-test.jpg",
+            width = 100,
+            height = 100,
+          },
+          pageimage = "test.jpg",
+        }
+        Wikipedia:addImages(page, "en", false, 1.0, 4.0)
+        local img = page.images[1]
+
+        -- 1. HTTP 400 Bad Request (e.g. invalid thumbnail requested)
+        http.request = function(_)
+          return 1,
+            400,
+            { ["content-length"] = "0" },
+            "HTTP/1.1 400 Bad Request"
+        end
+        img.load_bb_func(false)
+        assert.is.falsy(img.bb)
+
+        -- 2. HTTP 404 Not Found
+        http.request = function(_)
+          return 1, 404, { ["content-length"] = "0" }, "HTTP/1.1 404 Not Found"
+        end
+        img.load_bb_func(false)
+        assert.is.falsy(img.bb)
+
+        -- 3. HTTP 500 Internal Server Error
+        http.request = function(_)
+          return 1,
+            500,
+            { ["content-length"] = "0" },
+            "HTTP/1.1 500 Internal Server Error"
+        end
+        img.load_bb_func(false)
+        assert.is.falsy(img.bb)
+
+        -- 4. Network error / nil return
+        http.request = function(_)
+          return nil, "connection timed out"
+        end
+        img.load_bb_func(false)
+        assert.is.falsy(img.bb)
+
+        -- 5. Corrupted image binary data (RenderImage fails to decode)
+        http.request = function(request)
+          if request.sink then
+            request.sink("CORRUPTED_BYTES")
+          end
+          return 1, 200, { ["content-length"] = "15" }, "HTTP/1.1 200 OK"
+        end
+        local RenderImage = require("ui/renderimage")
+        local orig_render = RenderImage.renderImageData
+        RenderImage.renderImageData = function()
+          return nil
+        end
+
+        img.load_bb_func(false)
+        assert.is.falsy(img.bb)
+
+        RenderImage.renderImageData = orig_render
+      end
+    )
   end)
 
   describe("createEpub and createEpubWithUI", function()
