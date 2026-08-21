@@ -471,6 +471,22 @@ local function image_load_bb_func(image, highres)
   end
 end
 
+-- Wikimedia requires standard thumbnail sizes (https://w.wiki/GHai), otherwise
+-- direct requests are rejected with HTTP 400.
+local function getThumbnailSize(requested_width)
+  local WIKIMEDIA_THUMBNAIL_SIZES =
+    { 20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840 }
+  if not requested_width or requested_width <= 0 then
+    return WIKIMEDIA_THUMBNAIL_SIZES[1]
+  end
+  for _, size in ipairs(WIKIMEDIA_THUMBNAIL_SIZES) do
+    if requested_width <= size then
+      return size
+    end
+  end
+  return WIKIMEDIA_THUMBNAIL_SIZES[#WIKIMEDIA_THUMBNAIL_SIZES]
+end
+
 function Wikipedia:addImages(
   page,
   lang,
@@ -541,14 +557,18 @@ function Wikipedia:addImages(
     -- .jpg or .gif to it)
     -- The resize is so done on Wikipedia servers from the source image for
     -- the best quality.
-    local source =
-      wimage.source:gsub("(.*/)%d+(px-[^/]*)", "%1" .. width .. "%2")
+    local source = wimage.source:gsub(
+      "(.*/)%d+(px-[^/]*)",
+      "%1" .. getThumbnailSize(width) .. "%2"
+    )
     -- We build values for a high resolution version of the image, to be displayed
     -- with ImageViewer (x 4 by default)
     local hi_width = width * (hi_image_size_factor or 4)
     local hi_height = height * (hi_image_size_factor or 4)
-    local hi_source =
-      wimage.source:gsub("(.*/)%d+(px-[^/]*)", "%1" .. hi_width .. "%2")
+    local hi_source = wimage.source:gsub(
+      "(.*/)%d+(px-[^/]*)",
+      "%1" .. getThumbnailSize(hi_width) .. "%2"
+    )
     local title = wimage.filename
     if title then
       title = title:gsub("_", " ")

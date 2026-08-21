@@ -460,8 +460,14 @@ describe("Wikipedia module", function()
 
       local img = page.images[1]
       assert.is.same("test.jpg", img.title)
-      assert.is.truthy(img.source)
-      assert.is.truthy(img.hi_source)
+      assert.is.same(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/test.jpg/120px-test.jpg",
+        img.source
+      )
+      assert.is.same(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/test.jpg/500px-test.jpg",
+        img.hi_source
+      )
       assert.is.same(100, img.width)
       assert.is.same(150, img.height)
       assert.is.same(400, img.hi_width)
@@ -492,11 +498,50 @@ describe("Wikipedia module", function()
 
       RenderImage.renderImageData = orig_render
     end)
+
+    it(
+      "should snap requested widths to standard Wikimedia thumbnail sizes",
+      function()
+        local test_cases = {
+          { width = 15, expected_url_w = 20 },
+          { width = 35, expected_url_w = 40 },
+          { width = 55, expected_url_w = 60 },
+          { width = 100, expected_url_w = 120 },
+          { width = 210, expected_url_w = 250 },
+          { width = 300, expected_url_w = 330 },
+          { width = 400, expected_url_w = 500 },
+          { width = 800, expected_url_w = 960 },
+          { width = 1000, expected_url_w = 1280 },
+          { width = 1500, expected_url_w = 1920 },
+          { width = 3000, expected_url_w = 3840 },
+          { width = 5000, expected_url_w = 3840 },
+        }
+        for _, tc in ipairs(test_cases) do
+          local page = {
+            thumbnail = {
+              source = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/test.jpg/50px-test.jpg",
+              width = tc.width,
+              height = tc.width,
+            },
+            pageimage = "test.jpg",
+          }
+          Wikipedia:addImages(page, "en", false, 1.0, 1.0)
+          assert.is.same(
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/test.jpg/"
+              .. tc.expected_url_w
+              .. "px-test.jpg",
+            page.images[1].source
+          )
+        end
+      end
+    )
   end)
 
   describe("createEpub and createEpubWithUI", function()
-    local temp_epub_path = require("datastorage"):getDataDir() .. "/test_wikipedia_article.epub"
-    local temp_epub_ui_path = require("datastorage"):getDataDir() .. "/test_wikipedia_article_ui.epub"
+    local temp_epub_path = require("datastorage"):getDataDir()
+      .. "/test_wikipedia_article.epub"
+    local temp_epub_ui_path = require("datastorage"):getDataDir()
+      .. "/test_wikipedia_article_ui.epub"
 
     after_each(function()
       http.request = orig_http_request
