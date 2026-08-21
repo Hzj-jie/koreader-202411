@@ -2,7 +2,8 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
   local ReaderUI, UIManager, SyncService
   local AnnotationSyncPlugin, test_utils, json, util
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_record_state_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_sync_record_state_tmp"
   local old_getDataDir
 
   setup(function()

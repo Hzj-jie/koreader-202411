@@ -1,10 +1,10 @@
+local InfoMessage = require("ui/widget/infomessage")
+local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
-local InfoMessage = require("ui/widget/infomessage")
-local UIManager = require("ui/uimanager")
 
 local M = {}
 
@@ -31,7 +31,9 @@ function M.sync_callback(
     )
     if force then
       UIManager:show(InfoMessage:new({
-        text = gettext("AnnotationSync: Failed to load local sync files. Sync aborted."),
+        text = gettext(
+          "AnnotationSync: Failed to load local sync files. Sync aborted."
+        ),
         timeout = 3,
       }))
     end
@@ -116,7 +118,9 @@ function M.sync_callback(
       )
       if force then
         UIManager:show(InfoMessage:new({
-          text = gettext("AnnotationSync: Remote file appears corrupted or server error. Sync aborted."),
+          text = gettext(
+            "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
+          ),
           timeout = 3,
         }))
       end

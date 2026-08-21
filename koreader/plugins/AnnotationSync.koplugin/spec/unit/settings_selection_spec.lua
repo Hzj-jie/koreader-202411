@@ -1,7 +1,8 @@
 describe("AnnotationSync Settings Selection", function()
   local UIManager, AnnotationSyncPlugin, test_utils, util
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_settings_selection_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_settings_selection_tmp"
   local old_getDataDir
 
   setup(function()

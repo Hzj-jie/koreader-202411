@@ -2,7 +2,8 @@ describe("AnnotationSync Trash & Restore", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils, json, annotations_mod
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_trash_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_sync_trash_tmp"
   local old_getDataDir
 
   setup(function()

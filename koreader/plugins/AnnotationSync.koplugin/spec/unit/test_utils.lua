@@ -123,7 +123,13 @@ end
 
 function M.init_integration_context(file, AnnotationSyncPlugin)
   local target_file = file
-  if file and (file:find("^spec/front/unit/data/") or file:find("^linux/spec/front/unit/data/")) then
+  if
+    file
+    and (
+      file:find("^spec/front/unit/data/")
+      or file:find("^linux/spec/front/unit/data/")
+    )
+  then
     local filename = file:match("([^/]+)$")
     local data_dir = DataStorage.getDataDir()
     target_file = data_dir .. "/" .. filename

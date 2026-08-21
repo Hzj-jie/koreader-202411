@@ -2,7 +2,8 @@ describe("AnnotationSync Core Integration", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util, annotations_mod
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_integration_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_sync_integration_tmp"
   local old_getDataDir
 
   setup(function()
