@@ -230,8 +230,7 @@ describe("Readerfooter module", function()
     G_reader_settings:save("reader_footer_mode", 1)
     -- default settings
 
-    local isolated_pdf =
-      get_isolated_file(footer_sample_pdf, "test3")
+    local isolated_pdf = get_isolated_file(footer_sample_pdf, "test3")
 
     local cfg = DocSettings:open(isolated_pdf)
     cfg:save("kopt_full_screen", 0)
@@ -253,8 +252,7 @@ describe("Readerfooter module", function()
     G_reader_settings:save("reader_footer_mode", 1)
     -- default settings
 
-    local isolated_pdf =
-      get_isolated_file(footer_sample_pdf, "test4")
+    local isolated_pdf = get_isolated_file(footer_sample_pdf, "test4")
 
     local cfg = DocSettings:open(isolated_pdf)
     cfg:delete("kopt_full_screen")
@@ -276,8 +274,7 @@ describe("Readerfooter module", function()
     G_reader_settings:save("reader_footer_mode", 1)
     -- default settings
 
-    local isolated_epub =
-      get_isolated_file(footer_sample_epub, "test5")
+    local isolated_epub = get_isolated_file(footer_sample_epub, "test5")
 
     local cfg = DocSettings:open(isolated_epub)
     cfg:save("copt_status_line", 1)

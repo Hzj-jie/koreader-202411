@@ -11,7 +11,10 @@ describe("Readertoc module", function()
 
     local DataStorage = require("datastorage")
     local sample_epub = DataStorage:getDataDir() .. "/readertoc_juliet.epub"
-    require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", sample_epub)
+    require("ffi/util").copyFile(
+      "spec/front/unit/data/juliet.epub",
+      sample_epub
+    )
 
     -- Clear settings from previous tests
     local DocSettings = require("docsettings")
@@ -32,7 +35,8 @@ describe("Readertoc module", function()
     if readerui then
       readerui:onExit()
     end
-    local sample_epub = require("datastorage"):getDataDir() .. "/readertoc_juliet.epub"
+    local sample_epub = require("datastorage"):getDataDir()
+      .. "/readertoc_juliet.epub"
     require("docsettings"):open(sample_epub):purge()
     os.remove(sample_epub)
   end)
