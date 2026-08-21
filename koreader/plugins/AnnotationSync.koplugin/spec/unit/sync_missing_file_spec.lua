@@ -1,4 +1,5 @@
-local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_missing_tmp"
+local test_data_dir = require("datastorage"):getDataDir()
+  .. "/test_sync_missing_tmp"
 os.execute("mkdir -p " .. test_data_dir .. "/cache")
 
 -- Fix for DocCache requiring G_defaults and DataStorage during module load

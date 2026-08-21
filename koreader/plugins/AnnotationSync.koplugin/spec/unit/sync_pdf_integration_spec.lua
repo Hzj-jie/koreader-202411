@@ -2,7 +2,8 @@ describe("AnnotationSync PDF Core Integration", function()
   local ReaderUI, UIManager, SyncService, Geom, DataStorage
   local AnnotationSyncPlugin, highlight_pdf_db, test_utils, json, util, annotations_mod
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_sync_pdf_integration_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_sync_pdf_integration_tmp"
   local old_getDataDir
   local sample_pdf
   setup(function()

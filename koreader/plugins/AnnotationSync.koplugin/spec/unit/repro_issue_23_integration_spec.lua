@@ -2,7 +2,8 @@ describe("AnnotationSync Issue 23 Integration Reproduction", function()
   local ReaderUI, UIManager, Geom, SyncService
   local AnnotationSyncPlugin, test_utils, json
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_repro_23_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_repro_23_tmp"
   local old_getDataDir
 
   setup(function()
