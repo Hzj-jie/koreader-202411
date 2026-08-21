@@ -411,6 +411,14 @@ describe("Readerhighlight module", function()
     end)
 
     after_each(function()
+      while #UIManager._window_stack > 0 do
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= readerui then
+          UIManager:close(top.widget)
+        else
+          break
+        end
+      end
       readerui.highlight:clear()
       readerui.annotation.annotations = {}
       readerui:onExit()
@@ -731,6 +739,7 @@ describe("Readerhighlight module", function()
       -- Single highlight edit dialog
       highlight:onShowHighlightDialog(1)
       assert.truthy(highlight.edit_highlight_dialog)
+      highlight.edit_highlight_dialog = nil
 
       highlight.showWidget:revert()
     end)
@@ -799,5 +808,130 @@ describe("Readerhighlight module", function()
 
       highlight.ui.rolling = saved_rolling
     end)
+
+    it(
+      "should layer Wikipedia lookup window above modal highlight_dialog",
+      function()
+        local highlight = readerui.highlight
+        highlight.selected_text = {
+          text = "Juliet",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:10",
+        }
+        highlight:onShowHighlightMenu()
+        assert.is_truthy(highlight.highlight_dialog)
+        assert.is_true(highlight.highlight_dialog.modal)
+
+        local NetworkMgr = require("ui/network/manager")
+        local orig_runWhenOnline = NetworkMgr.runWhenOnline
+        NetworkMgr.runWhenOnline = function(_, cb)
+          cb()
+          return true
+        end
+        local Wikipedia = require("ui/wikipedia")
+        local orig_search = Wikipedia.searchAndGetIntros
+        Wikipedia.searchAndGetIntros = function()
+          return {
+            {
+              title = "Juliet",
+              extract = "Juliet Capulet is the female protagonist in Shakespeare's tragedy.",
+              pageid = 1,
+              length = 500,
+            },
+          }
+        end
+
+        local highlight_dialog_index = nil
+        for idx, win in ipairs(UIManager._window_stack) do
+          if win.widget == highlight.highlight_dialog then
+            highlight_dialog_index = idx
+            break
+          end
+        end
+        assert.is_not_nil(highlight_dialog_index)
+
+        highlight:lookupWikipedia()
+
+        assert.is_truthy(readerui.wikipedia.dict_window)
+        local wiki_window_index = nil
+        for idx, win in ipairs(UIManager._window_stack) do
+          if win.widget == readerui.wikipedia.dict_window then
+            wiki_window_index = idx
+            break
+          end
+        end
+        assert.is_not_nil(wiki_window_index)
+        assert.is_true(wiki_window_index > highlight_dialog_index)
+
+        Wikipedia.searchAndGetIntros = orig_search
+        NetworkMgr.runWhenOnline = orig_runWhenOnline
+        UIManager:close(readerui.wikipedia.dict_window)
+        readerui.wikipedia.dict_window = nil
+        UIManager:close(highlight.highlight_dialog)
+        highlight.highlight_dialog = nil
+      end
+    )
+
+    it(
+      "should layer Dictionary lookup window above modal highlight_dialog",
+      function()
+        local highlight = readerui.highlight
+        highlight.selected_text = {
+          text = "Juliet",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:10",
+        }
+        highlight:onShowHighlightMenu()
+        assert.is_truthy(highlight.highlight_dialog)
+        assert.is_true(highlight.highlight_dialog.modal)
+
+        local highlight_dialog_index = nil
+        for idx, win in ipairs(UIManager._window_stack) do
+          if win.widget == highlight.highlight_dialog then
+            highlight_dialog_index = idx
+            break
+          end
+        end
+        assert.is_not_nil(highlight_dialog_index)
+
+        highlight:highlightDictLookup()
+
+        assert.is_truthy(readerui.dictionary.dict_window)
+        local dict_window_index = nil
+        for idx, win in ipairs(UIManager._window_stack) do
+          if win.widget == readerui.dictionary.dict_window then
+            dict_window_index = idx
+            break
+          end
+        end
+        assert.is_not_nil(dict_window_index)
+        assert.is_true(dict_window_index > highlight_dialog_index)
+
+        UIManager:close(readerui.dictionary.dict_window)
+        readerui.dictionary.dict_window = nil
+        UIManager:close(highlight.highlight_dialog)
+        highlight.highlight_dialog = nil
+      end
+    )
+
+    it(
+      "should dismiss highlight_dialog on select and highlight actions",
+      function()
+        local highlight = readerui.highlight
+        highlight.hold_pos = { page = 1 }
+        highlight.selected_text = {
+          text = "Juliet",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:10",
+        }
+        highlight:onShowHighlightMenu()
+        assert.is_truthy(highlight.highlight_dialog)
+
+        local btn_select = highlight._highlight_buttons["01_select"](highlight)
+        assert.is_true(btn_select.enabled)
+        btn_select.callback()
+        assert.is_nil(highlight.highlight_dialog)
+      end
+    )
   end)
 end)
