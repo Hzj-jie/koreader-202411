@@ -639,5 +639,57 @@ describe("DictQuickLookup", function()
 
       assert.truthy(lookup.region)
     end)
+
+    it("should be modal by default", function()
+      local lookup = DictQuickLookup:new({
+        word = "test",
+        results = createDummyResults(),
+      })
+      assert.is_true(lookup.modal)
+    end)
+
+    it(
+      "should be placed above modal widgets in the UIManager window stack",
+      function()
+        local Widget = require("ui/widget/widget")
+        local mock_modal = Widget:new({
+          modal = true,
+          dimen = Geom:new({ w = 100, h = 100 }),
+        })
+        local lookup = DictQuickLookup:new({
+          word = "test",
+          results = createDummyResults(),
+        })
+
+        -- Restore orig_show and orig_close temporarily for stack test
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+
+        UIManager:show(mock_modal)
+        UIManager:show(lookup)
+
+        local modal_idx, lookup_idx
+        for idx, win in ipairs(UIManager._window_stack) do
+          if win.widget == mock_modal then
+            modal_idx = idx
+          elseif win.widget == lookup then
+            lookup_idx = idx
+          end
+        end
+
+        UIManager:close(lookup)
+        UIManager:close(mock_modal)
+
+        assert.is_not_nil(modal_idx, "mock_modal should be in the window stack")
+        assert.is_not_nil(
+          lookup_idx,
+          "DictQuickLookup should be in the window stack"
+        )
+        assert.is_true(
+          lookup_idx > modal_idx,
+          "DictQuickLookup should be above mock_modal in the stack"
+        )
+      end
+    )
   end)
 end)
