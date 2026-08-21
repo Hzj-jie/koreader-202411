@@ -446,12 +446,10 @@ describe("BackgroundRunner widget tests", function()
       end,
     }))
     assert.is_false(CommandRunner:isJobSupported({ executable = "fork" }))
-    assert.is_false(
-      CommandRunner:isJobSupported({
-        executable = "fork",
-        action = "not_a_func",
-      })
-    )
+    assert.is_false(CommandRunner:isJobSupported({
+      executable = "fork",
+      action = "not_a_func",
+    }))
     assert.is_false(
       CommandRunner:isJobSupported({ executable = function() end })
     )

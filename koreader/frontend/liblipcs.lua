@@ -139,7 +139,9 @@ function LibLipcs:accessor()
   end
   if not self._ins then
     self._ins = self:_check(
-      lipc.init("com.github.koreader-" .. tostring(require("ffi/util").getpid()))
+      lipc.init(
+        "com.github.koreader-" .. tostring(require("ffi/util").getpid())
+      )
     )
   end
   return self._ins
