@@ -142,23 +142,26 @@ describe("AutoFrontlight widget tests", function()
     assertFrontlightLevel(2)
   end)
 
-  it("should return { disabled = true } when Device.isEmulator() and Device:isKindle() are false", function()
-    local orig_isEmulator = Device.isEmulator
-    local orig_isKindle = Device.isKindle
+  it(
+    "should return { disabled = true } when Device.isEmulator() and Device:isKindle() are false",
+    function()
+      local orig_isEmulator = Device.isEmulator
+      local orig_isKindle = Device.isKindle
 
-    Device.isEmulator = function()
-      return false
+      Device.isEmulator = function()
+        return false
+      end
+      Device.isKindle = function()
+        return false
+      end
+
+      package.loaded["plugins/autofrontlight.koplugin/main"] = nil
+      local res = dofile("plugins/autofrontlight.koplugin/main.lua")
+
+      assert.are.same({ disabled = true }, res)
+
+      Device.isEmulator = orig_isEmulator
+      Device.isKindle = orig_isKindle
     end
-    Device.isKindle = function()
-      return false
-    end
-
-    package.loaded["plugins/autofrontlight.koplugin/main"] = nil
-    local res = dofile("plugins/autofrontlight.koplugin/main.lua")
-
-    assert.are.same({ disabled = true }, res)
-
-    Device.isEmulator = orig_isEmulator
-    Device.isKindle = orig_isKindle
-  end)
+  )
 end)
