@@ -82,8 +82,8 @@ Generator.MODES = {
   },
   {
     id = "three_term_100",
-    title = _("3-Term Mental Math (5 problems)"),
-    description = _("Order of operations with 3 numbers (5 problems)"),
+    title = _("3-Term Mental Math"),
+    description = _("Order of operations with 3 numbers"),
     type = "three_term",
     max = 100,
     question_count = 5,
