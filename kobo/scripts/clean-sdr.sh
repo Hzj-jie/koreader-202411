@@ -1,0 +1,1 @@
+../../koreader/scripts/clean-sdr.sh
