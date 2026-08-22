@@ -107,6 +107,8 @@ describe("MathPuzzle Screen and Plugin", function()
       local menu = UIManager._window_stack[#UIManager._window_stack].widget
       assert.is_table(menu.item_table)
       assert.are.equal(#Generator.getModes(), #menu.item_table)
+      assert.is_true(menu.covers_fullscreen)
+      assert.is_true(menu.is_borderless)
 
       -- Select a mode from the menu
       menu.item_table[2].callback()
@@ -135,6 +137,7 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_string(plugin.screen:getFormattedTime())
       assert.is_truthy(plugin.screen:getHeaderStatsText():find("Correct: 7"))
       assert.is_truthy(plugin.screen:getHeaderStatsText():find("Wrong: 3"))
+      assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 70%%"))
 
       -- Start a new round and answer 10 correctly
       plugin.screen:generateNewProblems()
@@ -147,6 +150,7 @@ describe("MathPuzzle Screen and Plugin", function()
 
       assert.are.equal(17, plugin.session_correct)
       assert.are.equal(3, plugin.session_wrong)
+      assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 85%%"))
 
       UIManager:close(plugin.screen)
     end
