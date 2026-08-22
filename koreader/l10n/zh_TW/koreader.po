@@ -23819,3 +23819,59 @@ msgstr "標註同步：無法載入本地同步檔案。同步已中止。"
 #: plugins/AnnotationSync.koplugin/annotations.lua:119
 msgid "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
 msgstr "標註同步：遠端檔案損壞或伺服器錯誤。同步已中止。"
+
+# --- AnnotationSync plugin translations ---
+
+msgid "Annotation Sync"
+msgstr "標註同步"
+
+msgid "Sync annotations and bookmarks between devices."
+msgstr "在多台裝置間同步標註與書籤。"
+
+msgid "Cloud settings"
+msgstr "雲端設定"
+
+msgid "Manual Sync"
+msgstr "手動同步"
+
+msgid "Sync All"
+msgstr "全部同步"
+
+msgid "No changed documents to sync."
+msgstr "沒有需要同步的已修改文檔。"
+
+msgid "Sync All paused.\nDo you want to continue or abort syncing documents?"
+msgstr "全部同步已暫停。\n是否繼續或放棄同步文檔？"
+
+msgid "Syncing document %1 of %2...\n%3"
+msgstr "正在同步文檔 (%1/%2)...\n%3"
+
+msgid "Sync All cancelled."
+msgstr "全部同步已取消。"
+
+msgid "Unable to sync modified documents: %1"
+msgstr "無法同步已修改的文檔: %1"
+
+msgid "Successfully synced modified documents: %1"
+msgstr "成功同步已修改的文檔: %1"
+
+msgid "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
+msgstr "無法同步以下文檔:\n%1\n\n是否開啟待處理文檔管理器？"
+
+msgid "Open Manager"
+msgstr "開啟管理器"
+
+msgid "Show pending/unsynced documents"
+msgstr "顯示待處理/未同步的文檔"
+
+msgid "Show Deleted"
+msgstr "顯示已刪除項目"
+
+msgid "Scan library for unsynced annotations"
+msgstr "掃描藏書館尋找未同步的標註"
+
+msgid "Scanning library for annotations...\nThis may take a while if the library is large."
+msgstr "正在掃描藏書館中的標註...\n藏書館較大時可能需要較長時間。"
+
+msgid "Scan complete: added %1 book(s) with annotations to sync list.\nBackground syncing all files may take some time, during which KOReader performance may be reduced."
+msgstr "掃描完成：已將 %1 本包含標註的圖書新增至同步列表。\n背景同步所有檔案可能需要一段時間，在此期間 KOReader 效能可能會有所降低。"

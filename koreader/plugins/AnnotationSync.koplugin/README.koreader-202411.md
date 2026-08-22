@@ -22,7 +22,7 @@ The following changes were made to resolve test failures, optimize runtime perfo
 4. **Library-wide annotation discovery**:
    - Adds a "Scan library for unsynced annotations" feature to automatically discover and queue existing annotations across all previously read books.
 5. **Localization & Chinese translation support**:
-   - Includes Simplified and Traditional Chinese UI translations and robust locale support.
+   - Integrated into KOReader's central `l10n/` catalog (including Simplified Chinese, Traditional Chinese, Italian, and Hungarian) for native gettext localization.
 
 ### Improvements & Bug Fixes
 
