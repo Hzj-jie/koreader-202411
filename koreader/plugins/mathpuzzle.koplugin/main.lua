@@ -62,9 +62,16 @@ function MathPuzzle:showModeSelection(existing_screen)
   menu = Menu:new({
     title = _("Math Puzzle - Select Mode"),
     item_table = items,
-    width = math.floor(Screen:getWidth() * 0.85),
-    height = math.floor(Screen:getHeight() * 0.85),
+    width = Screen:getWidth(),
+    height = Screen:getHeight(),
+    is_borderless = true,
+    is_popout = false,
+    covers_fullscreen = true,
+    fullscreen = true,
     disable_footer_padding = true,
+    close_callback = function()
+      UIManager:close(menu)
+    end,
   })
   UIManager:show(menu)
   return menu

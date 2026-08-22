@@ -72,11 +72,17 @@ end
 function MathPuzzleScreen:getHeaderStatsText()
   local session_correct = (self.plugin and self.plugin.session_correct) or 0
   local session_wrong = (self.plugin and self.plugin.session_wrong) or 0
+  local total_attempted = session_correct + session_wrong
+  local score_str = "-"
+  if total_attempted > 0 then
+    local pct = math.floor((session_correct / total_attempted) * 100)
+    score_str = string.format("%d%%", pct)
+  end
   return string.format(
-    _("%s  ·  Correct: %d  ·  Wrong: %d  ·  Time: %s"),
-    self.mode.title,
+    _("Correct: %d  ·  Wrong: %d  ·  Score: %s  ·  Time: %s"),
     session_correct,
     session_wrong,
+    score_str,
     self:getFormattedTime()
   )
 end
@@ -104,10 +110,10 @@ end
 function MathPuzzleScreen:buildUI()
   local Screen = Device.screen
   local content_width = math.min(Screen:getWidth(), Screen:getHeight())
-  if content_width > Screen:scaleBySize(600) then
-    content_width = Screen:scaleBySize(600)
+  if content_width > Screen:scaleBySize(680) then
+    content_width = Screen:scaleBySize(680)
   else
-    content_width = math.floor(content_width * 0.95)
+    content_width = math.floor(content_width * 0.96)
   end
 
   -- Clean up existing input widgets if rebuilding
@@ -124,7 +130,7 @@ function MathPuzzleScreen:buildUI()
 
   self.title_bar = TitleBar:new({
     width = content_width,
-    title = _("Math Puzzle"),
+    title = self.mode.title,
     subtitle = self:getHeaderStatsText(),
     fullscreen = true,
     show_parent = self,
@@ -137,17 +143,19 @@ function MathPuzzleScreen:buildUI()
     end,
   })
 
-  local rows_group = VerticalGroup:new({
-    align = "center",
-  })
+  local col_gap = Screen:scaleBySize(16)
+  local idx_width = Screen:scaleBySize(24)
+  local expr_width = Screen:scaleBySize(105)
+  local input_width = Screen:scaleBySize(65)
+  local mark_width = Screen:scaleBySize(68)
+  local row_padding = Screen:scaleBySize(4)
 
-  local expr_width = Screen:scaleBySize(160)
-  local input_width = Screen:scaleBySize(110)
-  local mark_width = Screen:scaleBySize(120)
-  local idx_width = Screen:scaleBySize(35)
-  local row_padding = Screen:scaleBySize(3)
+  local half = math.ceil(#self.problems / 2)
+  local left_col = VerticalGroup:new({ align = "left" })
+  local right_col = VerticalGroup:new({ align = "left" })
 
-  for i, prob in ipairs(self.problems) do
+  local function buildRow(i)
+    local prob = self.problems[i]
     local idx_widget = TextWidget:new({
       text = string.format("%2d.", i),
       face = self.font_face,
@@ -173,7 +181,7 @@ function MathPuzzleScreen:buildUI()
       focused = (i == self.focused_idx),
       scroll = false,
       parent = self,
-      padding = Screen:scaleBySize(4),
+      padding = Screen:scaleBySize(3),
       margin = 0,
       alignment = "center",
       enter_callback = function()
@@ -185,7 +193,7 @@ function MathPuzzleScreen:buildUI()
         end
       end,
     })
-    table.insert(self.input_fields, input_field)
+    self.input_fields[i] = input_field
 
     local mark_text = ""
     if prob.checked then
@@ -202,31 +210,39 @@ function MathPuzzleScreen:buildUI()
       width = mark_width,
       alignment = "left",
     })
-    table.insert(self.mark_widgets, mark_widget)
+    self.mark_widgets[i] = mark_widget
 
-    local row = HorizontalGroup:new({
+    return HorizontalGroup:new({
       idx_widget,
-      HorizontalSpan:new({ width = Screen:scaleBySize(8) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
       expr_widget,
-      HorizontalSpan:new({ width = Screen:scaleBySize(12) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(5) }),
       input_field,
-      HorizontalSpan:new({ width = Screen:scaleBySize(10) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(5) }),
       mark_widget,
     })
+  end
 
-    table.insert(rows_group, row)
-    if i < #self.problems then
-      table.insert(rows_group, VerticalSpan:new({ height = row_padding }))
+  for i = 1, half do
+    table.insert(left_col, buildRow(i))
+    if i < half then
+      table.insert(left_col, VerticalSpan:new({ height = row_padding }))
     end
   end
 
-  self.score_text = TextWidget:new({
-    text = "",
-    face = self.font_face,
-    width = content_width,
-    alignment = "center",
+  for i = half + 1, #self.problems do
+    table.insert(right_col, buildRow(i))
+    if i < #self.problems then
+      table.insert(right_col, VerticalSpan:new({ height = row_padding }))
+    end
+  end
+
+  local columns_group = HorizontalGroup:new({
+    align = "top",
+    left_col,
+    HorizontalSpan:new({ width = col_gap }),
+    right_col,
   })
-  self:updateScoreDisplay()
 
   self.button_table = ButtonTable:new({
     width = content_width,
@@ -264,12 +280,10 @@ function MathPuzzleScreen:buildUI()
     align = "center",
     self.title_bar,
     VerticalSpan:new({ height = Screen:scaleBySize(10) }),
-    rows_group,
-    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
-    self.score_text,
-    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
+    columns_group,
+    VerticalSpan:new({ height = Screen:scaleBySize(12) }),
     self.button_table,
-    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(6) }),
   })
 
   self.dialog_frame = FrameContainer:new({
@@ -290,41 +304,6 @@ function MathPuzzleScreen:buildUI()
   })
 
   self._input_widget = self.input_fields[self.focused_idx]
-end
-
-function MathPuzzleScreen:updateScoreDisplay()
-  local checked_count = 0
-  for _, prob in ipairs(self.problems) do
-    if prob.checked then
-      checked_count = checked_count + 1
-    end
-  end
-
-  if checked_count == 0 then
-    self.score_text:setText(_("Enter your answers and tap Check"))
-  else
-    local result = Generator.checkAnswers(self.problems)
-    if result.all_correct then
-      self.score_text:setText(
-        string.format(
-          _("🎉 Perfect Score! %d / %d Correct! (100%%)"),
-          result.correct_count,
-          result.total
-        )
-      )
-    else
-      local pct = math.floor((result.correct_count / result.total) * 100)
-      self.score_text:setText(
-        string.format(
-          _("Score: %d / %d Correct (%d%%) · %d Wrong"),
-          result.correct_count,
-          result.total,
-          pct,
-          result.total - result.correct_count
-        )
-      )
-    end
-  end
 end
 
 function MathPuzzleScreen:onSwitchFocus(inputbox)
@@ -383,7 +362,6 @@ function MathPuzzleScreen:checkAnswers()
       + self.round_wrong
   end
 
-  self:updateScoreDisplay()
   if self.title_bar then
     self.title_bar:setSubTitle(self:getHeaderStatsText())
   end
