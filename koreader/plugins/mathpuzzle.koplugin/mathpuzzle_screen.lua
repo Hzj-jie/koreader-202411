@@ -255,7 +255,7 @@ function MathPuzzleScreen:buildUI()
   local expr_width = Screen:scaleBySize(125)
   local input_width = Screen:scaleBySize(80)
   local mark_width = Screen:scaleBySize(75)
-  local row_padding = Screen:scaleBySize(10)
+  local row_padding = Screen:scaleBySize(22)
 
   local half = math.ceil(#self.problems / 2)
   local left_col = VerticalGroup:new({ align = "left" })
@@ -282,7 +282,7 @@ function MathPuzzleScreen:buildUI()
       bordersize = is_focused and Size.border.bold or Size.border.thin,
       background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
         or Blitbuffer.COLOR_WHITE,
-      padding_v = Screen:scaleBySize(2),
+      padding_v = Screen:scaleBySize(4),
       padding_h = Screen:scaleBySize(4),
       margin = 0,
       callback = function()
@@ -348,12 +348,12 @@ function MathPuzzleScreen:buildUI()
   })
 
   local keypad_width =
-    math.min(screen_w - Screen:scaleBySize(40), Screen:scaleBySize(460))
+    math.min(screen_w - Screen:scaleBySize(30), Screen:scaleBySize(480))
   local btn_gap_h = Screen:scaleBySize(10)
   local btn_gap_v = Screen:scaleBySize(8)
   local action_btn_w = math.floor((keypad_width - btn_gap_h) / 2)
   local num_btn_w = math.floor((keypad_width - 2 * btn_gap_h) / 3)
-  local btn_h = Screen:scaleBySize(46)
+  local btn_h = Screen:scaleBySize(50)
 
   local function createButton(text, callback, w, h)
     return Button:new({
@@ -458,11 +458,11 @@ function MathPuzzleScreen:buildUI()
   local main_layout = VerticalGroup:new({
     align = "center",
     self.title_bar,
-    VerticalSpan:new({ height = Screen:scaleBySize(16) }),
-    columns_group,
-    VerticalSpan:new({ height = Screen:scaleBySize(24) }),
-    keypad_group,
     VerticalSpan:new({ height = Screen:scaleBySize(20) }),
+    columns_group,
+    VerticalSpan:new({ height = Screen:scaleBySize(28) }),
+    keypad_group,
+    VerticalSpan:new({ height = Screen:scaleBySize(16) }),
   })
 
   self[1] = main_layout
