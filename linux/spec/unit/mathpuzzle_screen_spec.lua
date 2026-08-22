@@ -81,6 +81,25 @@ describe("MathPuzzle Screen and Plugin", function()
     screen:onFieldEnter(1)
     assert.are.equal(2, screen.focused_idx)
 
+    -- Test keypad input and backspace
+    screen:selectField(3)
+    assert.are.equal(3, screen.focused_idx)
+    screen.input_fields[3]:setText("")
+    screen:inputDigit("4")
+    screen:inputDigit("2")
+    assert.are.equal("42", screen.problems[3].user_answer)
+    screen:backspace()
+    assert.are.equal("4", screen.problems[3].user_answer)
+
+    -- Test keyboard navigation
+    screen:onKeyDown("9")
+    assert.are.equal("49", screen.problems[3].user_answer)
+    screen:onKeyDown("Tab")
+    assert.are.equal(4, screen.focused_idx)
+    screen:onKeyDown("BackSpace")
+    screen:prevField()
+    assert.are.equal(3, screen.focused_idx)
+
     UIManager:close(screen)
   end)
 
