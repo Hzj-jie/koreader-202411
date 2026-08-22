@@ -242,7 +242,7 @@ function MathPuzzleScreen:handleKey(key)
     return false
   end
 
-  if key_str:match("^%d$") then
+  if key_str:match("^[0-9/]$") then
     self:inputDigit(key_str)
     return true
   elseif key_str == "BackSpace" or key_str == "Delete" then
@@ -276,7 +276,7 @@ function MathPuzzleScreen:onKeyRepeat(key)
 end
 
 function MathPuzzleScreen:onTextInput(text)
-  if type(text) == "string" and text:match("^%d$") then
+  if type(text) == "string" and text:match("^[0-9/]$") then
     self:inputDigit(text)
     return true
   end
@@ -515,9 +515,7 @@ function MathPuzzleScreen:buildUI()
 
   local num_row4 = HorizontalGroup:new({
     align = "center",
-    createButton(_("Next ❯"), function()
-      self:nextField()
-    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = num_btn_w }),
     HorizontalSpan:new({ width = btn_gap_h }),
     createButton("0", function()
       self:inputDigit("0")
