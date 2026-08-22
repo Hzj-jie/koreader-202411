@@ -122,9 +122,11 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.are.equal(4, screen.focused_idx)
     screen.input_fields[4]:setText("")
     screen:onTextInput("7")
-    assert.are.equal("7", screen.problems[4].user_answer)
+    screen:onKeyPress("/")
+    screen:inputDigit("8")
+    assert.are.equal("7/8", screen.problems[4].user_answer)
     screen:onKeyRepeat("BackSpace")
-    assert.are.equal("", screen.problems[4].user_answer)
+    assert.are.equal("7/", screen.problems[4].user_answer)
 
     -- Test wrap-around navigation
     screen:selectField(10)
