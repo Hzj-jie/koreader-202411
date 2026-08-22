@@ -88,12 +88,15 @@ function MathPuzzleScreen:getHeaderStatsText()
     score_str = string.format("%d%%", pct)
   end
   return string.format(
-    _("Correct: %d  ·  Wrong: %d  ·  Score: %s  ·  Time: %s"),
+    _("Correct: %d  ·  Wrong: %d  ·  Score: %s"),
     session_correct,
     session_wrong,
-    score_str,
-    self:getFormattedTime()
+    score_str
   )
+end
+
+function MathPuzzleScreen:getTimeText()
+  return string.format(_("Time: %s"), self:getFormattedTime())
 end
 
 function MathPuzzleScreen:startTicker()
@@ -101,10 +104,10 @@ function MathPuzzleScreen:startTicker()
     return
   end
   self._ticker_action = function()
-    if self.title_bar then
-      self.title_bar:setSubTitle(self:getHeaderStatsText(), true)
+    if self.time_widget then
+      self.time_widget:setText(self:getTimeText())
       UIManager:setDirty(self, function()
-        return "ui", self.title_bar.dimen
+        return "ui", self.time_widget.dimen
       end)
     end
     UIManager:scheduleIn(1, self._ticker_action)
@@ -256,6 +259,12 @@ function MathPuzzleScreen:buildUI()
     close_callback = function()
       UIManager:close(self)
     end,
+  })
+
+  self.time_widget = TextWidget:new({
+    text = self:getTimeText(),
+    face = self.subtitle_font_face,
+    alignment = "center",
   })
 
   local count = #self.problems
@@ -484,9 +493,11 @@ function MathPuzzleScreen:buildUI()
   local main_layout = VerticalGroup:new({
     align = "center",
     self.title_bar,
-    VerticalSpan:new({ height = Screen:scaleBySize(20) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(4) }),
+    self.time_widget,
+    VerticalSpan:new({ height = Screen:scaleBySize(16) }),
     columns_group,
-    VerticalSpan:new({ height = Screen:scaleBySize(28) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(24) }),
     keypad_group,
     VerticalSpan:new({ height = Screen:scaleBySize(16) }),
   })
