@@ -80,6 +80,57 @@ describe("MathPuzzle Generator module", function()
     end
   end)
 
+  it(
+    "should generate valid problems for advanced multiplication and division",
+    function()
+      local adv_problems = Generator.generateProblems("mul_div_advanced", 10)
+      assert.are.equal(10, #adv_problems)
+      for _, prob in ipairs(adv_problems) do
+        assert.is_number(prob.answer)
+        assert.is_string(prob.text)
+        assert.is_true(prob.answer > 0)
+      end
+    end
+  )
+
+  it(
+    "should generate valid problems for mixed operations and squares",
+    function()
+      local mixed_problems = Generator.generateProblems("mixed_100", 10)
+      assert.are.equal(10, #mixed_problems)
+      for _, prob in ipairs(mixed_problems) do
+        assert.is_number(prob.answer)
+        assert.is_string(prob.text)
+      end
+
+      local squares_problems = Generator.generateProblems("squares_400", 10)
+      assert.are.equal(10, #squares_problems)
+      for _, prob in ipairs(squares_problems) do
+        assert.is_number(prob.answer)
+        assert.is_true(prob.answer >= 4 and prob.answer <= 400)
+      end
+    end
+  )
+
+  it("should generate valid missing operand and 3-term problems", function()
+    local missing_problems = Generator.generateProblems("missing_100", 10)
+    assert.are.equal(10, #missing_problems)
+    for _, prob in ipairs(missing_problems) do
+      assert.is_number(prob.answer)
+      assert.is_true(prob.text:find("___") ~= nil)
+    end
+
+    local three_mode = Generator.getModeById("three_term_100")
+    assert.are.equal(5, three_mode.question_count)
+    local three_problems =
+      Generator.generateProblems(three_mode, three_mode.question_count)
+    assert.are.equal(5, #three_problems)
+    for _, prob in ipairs(three_problems) do
+      assert.is_number(prob.answer)
+      assert.is_true(prob.answer >= 0)
+    end
+  end)
+
   it("should verify answers accurately and calculate scores", function()
     local problems = Generator.generateProblems("add_sub_100", 10)
 

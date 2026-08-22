@@ -180,4 +180,30 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:close(plugin.screen)
     end
   )
+
+  it(
+    "should support 5-question single column layout for 3-term mental math",
+    function()
+      local three_mode = Generator.getModeById("three_term_100")
+      local screen = MathPuzzleScreen:new({
+        mode = three_mode,
+      })
+      UIManager:show(screen)
+
+      assert.are.equal(5, #screen.problems)
+      assert.are.equal(5, #screen.input_fields)
+      assert.are.equal(5, #screen.mark_widgets)
+
+      for i, field in ipairs(screen.input_fields) do
+        field:setText(tostring(screen.problems[i].answer))
+      end
+      screen:checkAnswers()
+
+      for _, prob in ipairs(screen.problems) do
+        assert.is_true(prob.is_correct)
+      end
+
+      UIManager:close(screen)
+    end
+  )
 end)
