@@ -54,6 +54,12 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.are.equal("add_sub_1000", screen.mode.id)
     assert.are.equal(10, #screen.problems)
 
+    -- Verify paintTo clears background and renders without errors
+    local Device = require("device")
+    local Blitbuffer = require("ffi/blitbuffer")
+    local test_bb = Device.screen.bb or Blitbuffer.new(600, 800)
+    screen:paintTo(test_bb, 0, 0)
+
     UIManager:close(screen)
   end)
 
