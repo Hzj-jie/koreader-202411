@@ -54,8 +54,14 @@ function MathPuzzleScreen:init()
     self.problems = Generator.generateProblems(self.mode, self.question_count)
   end
 
-  self.start_time = (self.plugin and self.plugin.session_start_time)
-    or os.time()
+  if self.plugin then
+    if not self.plugin.session_start_time then
+      self.plugin.session_start_time = os.time()
+    end
+    self.start_time = self.plugin.session_start_time
+  else
+    self.start_time = self.start_time or os.time()
+  end
   self.font_face = Font:getFace("cfont")
   self.subtitle_font_face = Font:getFace("smallinfofont")
 
@@ -625,6 +631,7 @@ function MathPuzzleScreen:onClose()
   self:onExit()
   if self.plugin then
     self.plugin.screen = nil
+    self.plugin.session_start_time = nil
   end
 end
 
