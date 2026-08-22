@@ -208,6 +208,16 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.are.equal(3, plugin.session_wrong)
       assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 85%%"))
 
+      -- Close screen and verify timer state is reset
+      UIManager:close(plugin.screen)
+      assert.is_nil(plugin.screen)
+      assert.is_nil(plugin.session_start_time)
+
+      -- Reopen puzzle and verify new session timer starts fresh
+      plugin:showPuzzle()
+      assert.is_table(plugin.screen)
+      assert.is_number(plugin.session_start_time)
+      assert.are.equal("00:00", plugin.screen:getFormattedTime())
       UIManager:close(plugin.screen)
     end
   )

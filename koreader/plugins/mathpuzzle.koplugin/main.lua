@@ -22,7 +22,7 @@ function MathPuzzle:init()
   self.active_mode = self.settings:read("last_mode") or "add_sub_100"
   self.session_correct = 0
   self.session_wrong = 0
-  self.session_start_time = os.time()
+  self.session_start_time = nil
   self.ui.menu:registerToMainMenu(self)
 end
 
@@ -82,6 +82,7 @@ function MathPuzzle:showPuzzle(mode)
     UIManager:close(self.screen)
   end
 
+  self.session_start_time = os.time()
   mode = mode or Generator.getModeById(self.active_mode)
   self.screen = MathPuzzleScreen:new({
     plugin = self,
