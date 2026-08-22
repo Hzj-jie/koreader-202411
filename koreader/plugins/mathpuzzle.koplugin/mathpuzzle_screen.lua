@@ -1,6 +1,5 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
-local ButtonTable = require("ui/widget/buttontable")
 local Device = require("device")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -100,7 +99,10 @@ function MathPuzzleScreen:startTicker()
   end
   self._ticker_action = function()
     if self.title_bar then
-      self.title_bar:setSubTitle(self:getHeaderStatsText())
+      self.title_bar:setSubTitle(self:getHeaderStatsText(), true)
+      UIManager:setDirty(self, function()
+        return "ui", self.title_bar.dimen
+      end)
     end
     UIManager:scheduleIn(1, self._ticker_action)
   end
@@ -249,11 +251,11 @@ function MathPuzzleScreen:buildUI()
     end,
   })
 
-  local col_gap = Screen:scaleBySize(30)
-  local expr_width = Screen:scaleBySize(120)
-  local input_width = Screen:scaleBySize(75)
-  local mark_width = Screen:scaleBySize(70)
-  local row_padding = Screen:scaleBySize(8)
+  local col_gap = Screen:scaleBySize(36)
+  local expr_width = Screen:scaleBySize(125)
+  local input_width = Screen:scaleBySize(80)
+  local mark_width = Screen:scaleBySize(75)
+  local row_padding = Screen:scaleBySize(10)
 
   local half = math.ceil(#self.problems / 2)
   local left_col = VerticalGroup:new({ align = "left" })
@@ -346,124 +348,121 @@ function MathPuzzleScreen:buildUI()
   })
 
   local keypad_width =
-    math.min(screen_w - Screen:scaleBySize(40), Screen:scaleBySize(340))
+    math.min(screen_w - Screen:scaleBySize(40), Screen:scaleBySize(460))
+  local btn_gap_h = Screen:scaleBySize(10)
+  local btn_gap_v = Screen:scaleBySize(8)
+  local action_btn_w = math.floor((keypad_width - btn_gap_h) / 2)
+  local num_btn_w = math.floor((keypad_width - 2 * btn_gap_h) / 3)
+  local btn_h = Screen:scaleBySize(46)
 
-  local action_table = ButtonTable:new({
-    width = keypad_width,
-    buttons = {
-      {
-        {
-          text = _("Check"),
-          callback = function()
-            self:checkAnswers()
-          end,
-        },
-        {
-          text = _("New"),
-          callback = function()
-            self:generateNewProblems()
-          end,
-        },
-      },
-    },
+  local function createButton(text, callback, w, h)
+    return Button:new({
+      text = text,
+      bordersize = Size.border.thin,
+      background = Blitbuffer.COLOR_WHITE,
+      width = w,
+      height = h or btn_h,
+      text_font_face = "smalltfont",
+      text_font_size = 20,
+      text_font_bold = true,
+      margin = 0,
+      padding = 0,
+      callback = callback,
+    })
+  end
+
+  local action_row = HorizontalGroup:new({
+    align = "center",
+    createButton(_("Check"), function()
+      self:checkAnswers()
+    end, action_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton(_("New"), function()
+      self:generateNewProblems()
+    end, action_btn_w, btn_h),
   })
 
-  local keypad_table = ButtonTable:new({
-    width = keypad_width,
-    buttons = {
-      {
-        {
-          text = "1",
-          callback = function()
-            self:inputDigit("1")
-          end,
-        },
-        {
-          text = "2",
-          callback = function()
-            self:inputDigit("2")
-          end,
-        },
-        {
-          text = "3",
-          callback = function()
-            self:inputDigit("3")
-          end,
-        },
-      },
-      {
-        {
-          text = "4",
-          callback = function()
-            self:inputDigit("4")
-          end,
-        },
-        {
-          text = "5",
-          callback = function()
-            self:inputDigit("5")
-          end,
-        },
-        {
-          text = "6",
-          callback = function()
-            self:inputDigit("6")
-          end,
-        },
-      },
-      {
-        {
-          text = "7",
-          callback = function()
-            self:inputDigit("7")
-          end,
-        },
-        {
-          text = "8",
-          callback = function()
-            self:inputDigit("8")
-          end,
-        },
-        {
-          text = "9",
-          callback = function()
-            self:inputDigit("9")
-          end,
-        },
-      },
-      {
-        {
-          text = _("Next ❯"),
-          callback = function()
-            self:nextField()
-          end,
-        },
-        {
-          text = "0",
-          callback = function()
-            self:inputDigit("0")
-          end,
-        },
-        {
-          text = "⌫",
-          callback = function()
-            self:backspace()
-          end,
-        },
-      },
-    },
+  local num_row1 = HorizontalGroup:new({
+    align = "center",
+    createButton("1", function()
+      self:inputDigit("1")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("2", function()
+      self:inputDigit("2")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("3", function()
+      self:inputDigit("3")
+    end, num_btn_w, btn_h),
+  })
+
+  local num_row2 = HorizontalGroup:new({
+    align = "center",
+    createButton("4", function()
+      self:inputDigit("4")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("5", function()
+      self:inputDigit("5")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("6", function()
+      self:inputDigit("6")
+    end, num_btn_w, btn_h),
+  })
+
+  local num_row3 = HorizontalGroup:new({
+    align = "center",
+    createButton("7", function()
+      self:inputDigit("7")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("8", function()
+      self:inputDigit("8")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("9", function()
+      self:inputDigit("9")
+    end, num_btn_w, btn_h),
+  })
+
+  local num_row4 = HorizontalGroup:new({
+    align = "center",
+    createButton(_("Next ❯"), function()
+      self:nextField()
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("0", function()
+      self:inputDigit("0")
+    end, num_btn_w, btn_h),
+    HorizontalSpan:new({ width = btn_gap_h }),
+    createButton("⌫", function()
+      self:backspace()
+    end, num_btn_w, btn_h),
+  })
+
+  local keypad_group = VerticalGroup:new({
+    align = "center",
+    action_row,
+    VerticalSpan:new({ height = btn_gap_v + Screen:scaleBySize(4) }),
+    num_row1,
+    VerticalSpan:new({ height = btn_gap_v }),
+    num_row2,
+    VerticalSpan:new({ height = btn_gap_v }),
+    num_row3,
+    VerticalSpan:new({ height = btn_gap_v }),
+    num_row4,
   })
 
   local main_layout = VerticalGroup:new({
     align = "center",
     self.title_bar,
-    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(16) }),
     columns_group,
-    VerticalSpan:new({ height = Screen:scaleBySize(14) }),
-    action_table,
-    VerticalSpan:new({ height = Screen:scaleBySize(6) }),
-    keypad_table,
-    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(24) }),
+    keypad_group,
+    VerticalSpan:new({ height = Screen:scaleBySize(20) }),
   })
 
   self[1] = main_layout
