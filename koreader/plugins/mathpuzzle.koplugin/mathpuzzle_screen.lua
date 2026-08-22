@@ -539,6 +539,15 @@ function MathPuzzleScreen:onClose()
   end
 end
 
+function MathPuzzleScreen:paintTo(bb, x, y)
+  self.dimen.x = x
+  self.dimen.y = y
+  bb:paintRect(x, y, self.dimen.w, self.dimen.h, Blitbuffer.COLOR_WHITE)
+  if self[1] then
+    self[1]:paintTo(bb, x, y)
+  end
+end
+
 function MathPuzzleScreen:onExit()
   self:stopTicker()
 end
