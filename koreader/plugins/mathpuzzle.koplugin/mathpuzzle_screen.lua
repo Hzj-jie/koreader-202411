@@ -261,11 +261,11 @@ function MathPuzzleScreen:buildUI()
   local count = #self.problems
   local is_single_column = (count <= 5)
 
-  local col_gap = Screen:scaleBySize(36)
+  local col_gap = Screen:scaleBySize(28)
   local expr_width = is_single_column and Screen:scaleBySize(175)
-    or Screen:scaleBySize(125)
+    or Screen:scaleBySize(150)
   local input_width = Screen:scaleBySize(80)
-  local mark_width = Screen:scaleBySize(75)
+  local mark_width = Screen:scaleBySize(25)
   local row_padding = is_single_column and Screen:scaleBySize(16)
     or Screen:scaleBySize(22)
 
@@ -316,7 +316,7 @@ function MathPuzzleScreen:buildUI()
       if prob.is_correct then
         mark_text = " ✓"
       else
-        mark_text = string.format(" ✗ (%d)", prob.answer)
+        mark_text = " ✗"
       end
     end
 
@@ -330,9 +330,9 @@ function MathPuzzleScreen:buildUI()
 
     return HorizontalGroup:new({
       expr_widget,
-      HorizontalSpan:new({ width = Screen:scaleBySize(8) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
       input_btn,
-      HorizontalSpan:new({ width = Screen:scaleBySize(8) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
       mark_widget,
     })
   end
@@ -501,7 +501,7 @@ function MathPuzzleScreen:checkAnswers()
     if prob.is_correct then
       self.mark_widgets[i]:setText(" ✓")
     else
-      self.mark_widgets[i]:setText(string.format(" ✗ (%d)", prob.answer))
+      self.mark_widgets[i]:setText(" ✗")
     end
   end
 
