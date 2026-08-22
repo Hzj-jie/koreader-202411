@@ -165,6 +165,13 @@ function MathPuzzleScreen:updateInputButton(idx)
 end
 
 function MathPuzzleScreen:inputDigit(digit_char)
+  if
+    not self.focused_idx
+    or self.focused_idx < 1
+    or self.focused_idx > #self.problems
+  then
+    self.focused_idx = 1
+  end
   local prob = self.problems[self.focused_idx]
   if not prob then
     return
@@ -180,6 +187,13 @@ function MathPuzzleScreen:inputDigit(digit_char)
 end
 
 function MathPuzzleScreen:backspace()
+  if
+    not self.focused_idx
+    or self.focused_idx < 1
+    or self.focused_idx > #self.problems
+  then
+    self.focused_idx = 1
+  end
   local prob = self.problems[self.focused_idx]
   if not prob then
     return
@@ -195,15 +209,19 @@ function MathPuzzleScreen:backspace()
 end
 
 function MathPuzzleScreen:nextField()
-  if self.focused_idx < #self.problems then
+  if not self.focused_idx or self.focused_idx < 1 then
+    self:selectField(1)
+  elseif self.focused_idx < #self.problems then
     self:selectField(self.focused_idx + 1)
   else
-    self:checkAnswers()
+    self:selectField(1)
   end
 end
 
 function MathPuzzleScreen:prevField()
-  if self.focused_idx > 1 then
+  if not self.focused_idx or self.focused_idx <= 1 then
+    self:selectField(#self.problems)
+  else
     self:selectField(self.focused_idx - 1)
   end
 end
@@ -212,15 +230,25 @@ function MathPuzzleScreen:onFieldEnter(_)
   self:nextField()
 end
 
-function MathPuzzleScreen:onKeyDown(key)
-  local key_str = tostring(key)
+function MathPuzzleScreen:handleKey(key)
+  local key_str
+  if type(key) == "table" then
+    key_str = key.key or key.symbol or tostring(key)
+  else
+    key_str = tostring(key)
+  end
+
+  if not key_str then
+    return false
+  end
+
   if key_str:match("^%d$") then
     self:inputDigit(key_str)
     return true
   elseif key_str == "BackSpace" or key_str == "Delete" then
     self:backspace()
     return true
-  elseif key_str == "Return" or key_str == "KP_Enter" then
+  elseif key_str == "Return" or key_str == "KP_Enter" or key_str == "Enter" then
     self:nextField()
     return true
   elseif key_str == "Tab" then
@@ -232,8 +260,31 @@ function MathPuzzleScreen:onKeyDown(key)
   elseif key_str == "Down" or key_str == "Right" then
     self:nextField()
     return true
+  elseif key_str == "Escape" or key_str == "Close" then
+    UIManager:close(self)
+    return true
   end
   return false
+end
+
+function MathPuzzleScreen:onKeyPress(key)
+  return self:handleKey(key)
+end
+
+function MathPuzzleScreen:onKeyRepeat(key)
+  return self:handleKey(key)
+end
+
+function MathPuzzleScreen:onTextInput(text)
+  if type(text) == "string" and text:match("^%d$") then
+    self:inputDigit(text)
+    return true
+  end
+  return false
+end
+
+function MathPuzzleScreen:onKeyDown(key)
+  return self:handleKey(key)
 end
 
 function MathPuzzleScreen:buildUI()
