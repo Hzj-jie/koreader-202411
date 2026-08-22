@@ -25,7 +25,7 @@ local MathPuzzleScreen = FrameContainer:extend({
   margin = 0,
   plugin = nil,
   mode = nil,
-  question_count = 10,
+  question_count = nil,
   focused_idx = 1,
   round_correct = 0,
   round_wrong = 0,
@@ -46,6 +46,9 @@ function MathPuzzleScreen:init()
   if not self.mode then
     self.mode = Generator.getModeById("add_sub_100")
   end
+  self.question_count = self.question_count
+    or (self.mode and self.mode.question_count)
+    or 10
 
   if not self.problems then
     self.problems = Generator.generateProblems(self.mode, self.question_count)
@@ -251,13 +254,17 @@ function MathPuzzleScreen:buildUI()
     end,
   })
 
+  local count = #self.problems
+  local is_single_column = (count <= 5)
+
   local col_gap = Screen:scaleBySize(36)
-  local expr_width = Screen:scaleBySize(125)
+  local expr_width = is_single_column and Screen:scaleBySize(175)
+    or Screen:scaleBySize(125)
   local input_width = Screen:scaleBySize(80)
   local mark_width = Screen:scaleBySize(75)
-  local row_padding = Screen:scaleBySize(22)
+  local row_padding = is_single_column and Screen:scaleBySize(16)
+    or Screen:scaleBySize(22)
 
-  local half = math.ceil(#self.problems / 2)
   local left_col = VerticalGroup:new({ align = "left" })
   local right_col = VerticalGroup:new({ align = "left" })
 
@@ -326,26 +333,41 @@ function MathPuzzleScreen:buildUI()
     })
   end
 
-  for i = 1, half do
-    table.insert(left_col, buildRow(i))
-    if i < half then
-      table.insert(left_col, VerticalSpan:new({ height = row_padding }))
+  local columns_group
+  if is_single_column then
+    for i = 1, count do
+      table.insert(left_col, buildRow(i))
+      if i < count then
+        table.insert(left_col, VerticalSpan:new({ height = row_padding }))
+      end
     end
-  end
-
-  for i = half + 1, #self.problems do
-    table.insert(right_col, buildRow(i))
-    if i < #self.problems then
-      table.insert(right_col, VerticalSpan:new({ height = row_padding }))
+    columns_group = HorizontalGroup:new({
+      align = "center",
+      left_col,
+    })
+  else
+    local half = math.ceil(count / 2)
+    for i = 1, half do
+      table.insert(left_col, buildRow(i))
+      if i < half then
+        table.insert(left_col, VerticalSpan:new({ height = row_padding }))
+      end
     end
-  end
 
-  local columns_group = HorizontalGroup:new({
-    align = "top",
-    left_col,
-    HorizontalSpan:new({ width = col_gap }),
-    right_col,
-  })
+    for i = half + 1, count do
+      table.insert(right_col, buildRow(i))
+      if i < count then
+        table.insert(right_col, VerticalSpan:new({ height = row_padding }))
+      end
+    end
+
+    columns_group = HorizontalGroup:new({
+      align = "top",
+      left_col,
+      HorizontalSpan:new({ width = col_gap }),
+      right_col,
+    })
+  end
 
   local keypad_width =
     math.min(screen_w - Screen:scaleBySize(30), Screen:scaleBySize(480))
@@ -505,6 +527,7 @@ end
 function MathPuzzleScreen:generateNewProblems()
   self.round_correct = 0
   self.round_wrong = 0
+  self.question_count = (self.mode and self.mode.question_count) or 10
   self.problems = Generator.generateProblems(self.mode, self.question_count)
   self.focused_idx = 1
   self:buildUI()
@@ -516,6 +539,7 @@ end
 
 function MathPuzzleScreen:setMode(mode)
   self.mode = mode
+  self.question_count = mode.question_count or 10
   self.round_correct = 0
   self.round_wrong = 0
   self.problems = Generator.generateProblems(self.mode, self.question_count)
