@@ -155,6 +155,10 @@ function MathPuzzleScreen:updateInputButton(idx)
   btn.bordersize = is_focused and Size.border.bold or Size.border.thin
   btn.background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
     or Blitbuffer.COLOR_WHITE
+  if btn.frame then
+    btn.frame.bordersize = btn.bordersize
+    btn.frame.background = btn.background
+  end
 end
 
 function MathPuzzleScreen:inputDigit(digit_char)

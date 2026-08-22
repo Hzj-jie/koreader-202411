@@ -1,4 +1,5 @@
 describe("MathPuzzle Screen and Plugin", function()
+  local Blitbuffer
   local MathPuzzle
   local MathPuzzleScreen
   local Generator
@@ -6,6 +7,7 @@ describe("MathPuzzle Screen and Plugin", function()
 
   setup(function()
     require("commonrequire")
+    Blitbuffer = require("ffi/blitbuffer")
     UIManager = require("ui/uimanager")
     Generator = require("plugins/mathpuzzle.koplugin/mathpuzzle_generator")
     MathPuzzleScreen = require("plugins/mathpuzzle.koplugin/mathpuzzle_screen")
@@ -86,10 +88,26 @@ describe("MathPuzzle Screen and Plugin", function()
     -- Test field enter advancement
     screen:onFieldEnter(1)
     assert.are.equal(2, screen.focused_idx)
+    assert.are.equal(
+      Blitbuffer.COLOR_WHITE,
+      screen.input_fields[1].frame.background
+    )
+    assert.are.equal(
+      Blitbuffer.COLOR_LIGHT_GRAY,
+      screen.input_fields[2].frame.background
+    )
 
     -- Test keypad input and backspace
     screen:selectField(3)
     assert.are.equal(3, screen.focused_idx)
+    assert.are.equal(
+      Blitbuffer.COLOR_WHITE,
+      screen.input_fields[2].frame.background
+    )
+    assert.are.equal(
+      Blitbuffer.COLOR_LIGHT_GRAY,
+      screen.input_fields[3].frame.background
+    )
     screen.input_fields[3]:setText("")
     screen:inputDigit("4")
     screen:inputDigit("2")
