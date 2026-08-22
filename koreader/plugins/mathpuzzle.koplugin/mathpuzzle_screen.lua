@@ -3,10 +3,10 @@ local Button = require("ui/widget/button")
 local ButtonTable = require("ui/widget/buttontable")
 local Device = require("device")
 local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
-local InputContainer = require("ui/widget/container/inputcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TitleBar = require("ui/widget/titlebar")
@@ -18,7 +18,12 @@ local _ = gettext
 
 local Generator = require("plugins/mathpuzzle.koplugin/mathpuzzle_generator")
 
-local MathPuzzleScreen = InputContainer:extend({
+local MathPuzzleScreen = FrameContainer:extend({
+  name = "mathpuzzle_screen",
+  background = Blitbuffer.COLOR_WHITE,
+  bordersize = 0,
+  padding = 0,
+  margin = 0,
   plugin = nil,
   mode = nil,
   question_count = 10,
@@ -35,6 +40,8 @@ function MathPuzzleScreen:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
+  self.width = Screen:getWidth()
+  self.height = Screen:getHeight()
   self.covers_fullscreen = true
 
   if not self.mode then
@@ -48,6 +55,7 @@ function MathPuzzleScreen:init()
   self.start_time = (self.plugin and self.plugin.session_start_time)
     or os.time()
   self.font_face = Font:getFace("cfont")
+  self.subtitle_font_face = Font:getFace("smallinfofont")
 
   self.input_buttons = {}
   self.input_fields = self.input_buttons
@@ -229,6 +237,7 @@ function MathPuzzleScreen:buildUI()
     width = screen_w,
     title = self.mode.title,
     subtitle = self:getHeaderStatsText(),
+    subtitle_face = self.subtitle_font_face,
     fullscreen = true,
     show_parent = self,
     left_icon = "chevron.left",
@@ -240,12 +249,11 @@ function MathPuzzleScreen:buildUI()
     end,
   })
 
-  local col_gap = Screen:scaleBySize(20)
-  local idx_width = Screen:scaleBySize(26)
-  local expr_width = Screen:scaleBySize(110)
-  local input_width = Screen:scaleBySize(70)
+  local col_gap = Screen:scaleBySize(30)
+  local expr_width = Screen:scaleBySize(120)
+  local input_width = Screen:scaleBySize(75)
   local mark_width = Screen:scaleBySize(70)
-  local row_padding = Screen:scaleBySize(4)
+  local row_padding = Screen:scaleBySize(8)
 
   local half = math.ceil(#self.problems / 2)
   local left_col = VerticalGroup:new({ align = "left" })
@@ -253,12 +261,6 @@ function MathPuzzleScreen:buildUI()
 
   local function buildRow(i)
     local prob = self.problems[i]
-    local idx_widget = TextWidget:new({
-      text = string.format("%2d.", i),
-      face = self.font_face,
-      width = idx_width,
-      alignment = "right",
-    })
 
     local expr_widget = TextWidget:new({
       text = prob.text,
@@ -314,12 +316,10 @@ function MathPuzzleScreen:buildUI()
     self.mark_widgets[i] = mark_widget
 
     return HorizontalGroup:new({
-      idx_widget,
-      HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
       expr_widget,
-      HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(8) }),
       input_btn,
-      HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
+      HorizontalSpan:new({ width = Screen:scaleBySize(8) }),
       mark_widget,
     })
   end
@@ -345,7 +345,29 @@ function MathPuzzleScreen:buildUI()
     right_col,
   })
 
-  local keypad_width = math.min(screen_w, Screen:scaleBySize(580))
+  local keypad_width =
+    math.min(screen_w - Screen:scaleBySize(40), Screen:scaleBySize(340))
+
+  local action_table = ButtonTable:new({
+    width = keypad_width,
+    buttons = {
+      {
+        {
+          text = _("Check"),
+          callback = function()
+            self:checkAnswers()
+          end,
+        },
+        {
+          text = _("New"),
+          callback = function()
+            self:generateNewProblems()
+          end,
+        },
+      },
+    },
+  })
+
   local keypad_table = ButtonTable:new({
     width = keypad_width,
     buttons = {
@@ -368,6 +390,8 @@ function MathPuzzleScreen:buildUI()
             self:inputDigit("3")
           end,
         },
+      },
+      {
         {
           text = "4",
           callback = function()
@@ -381,19 +405,13 @@ function MathPuzzleScreen:buildUI()
           end,
         },
         {
-          text = "⌫",
-          callback = function()
-            self:backspace()
-          end,
-        },
-      },
-      {
-        {
           text = "6",
           callback = function()
             self:inputDigit("6")
           end,
         },
+      },
+      {
         {
           text = "7",
           callback = function()
@@ -412,6 +430,14 @@ function MathPuzzleScreen:buildUI()
             self:inputDigit("9")
           end,
         },
+      },
+      {
+        {
+          text = _("Next ❯"),
+          callback = function()
+            self:nextField()
+          end,
+        },
         {
           text = "0",
           callback = function()
@@ -419,35 +445,9 @@ function MathPuzzleScreen:buildUI()
           end,
         },
         {
-          text = _("Next ❯"),
+          text = "⌫",
           callback = function()
-            self:nextField()
-          end,
-        },
-      },
-      {
-        {
-          text = _("Check"),
-          callback = function()
-            self:checkAnswers()
-          end,
-        },
-        {
-          text = _("New"),
-          callback = function()
-            self:generateNewProblems()
-          end,
-        },
-        {
-          text = _("Modes"),
-          callback = function()
-            self:showModeMenu()
-          end,
-        },
-        {
-          text = _("Close"),
-          callback = function()
-            UIManager:close(self)
+            self:backspace()
           end,
         },
       },
@@ -457,11 +457,13 @@ function MathPuzzleScreen:buildUI()
   local main_layout = VerticalGroup:new({
     align = "center",
     self.title_bar,
-    VerticalSpan:new({ height = Screen:scaleBySize(12) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
     columns_group,
-    VerticalSpan:new({ height = Screen:scaleBySize(16) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(14) }),
+    action_table,
+    VerticalSpan:new({ height = Screen:scaleBySize(6) }),
     keypad_table,
-    VerticalSpan:new({ height = Screen:scaleBySize(12) }),
+    VerticalSpan:new({ height = Screen:scaleBySize(10) }),
   })
 
   self[1] = main_layout
@@ -536,15 +538,6 @@ function MathPuzzleScreen:onClose()
   self:onExit()
   if self.plugin then
     self.plugin.screen = nil
-  end
-end
-
-function MathPuzzleScreen:paintTo(bb, x, y)
-  self.dimen.x = x
-  self.dimen.y = y
-  bb:paintRect(x, y, self.dimen.w, self.dimen.h, Blitbuffer.COLOR_WHITE)
-  if self[1] then
-    self[1]:paintTo(bb, x, y)
   end
 end
 
