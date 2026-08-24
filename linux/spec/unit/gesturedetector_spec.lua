@@ -186,4 +186,54 @@ describe("gesturedetector module", function()
       assert.is_nil(gd:getContact(0))
     end
   )
+
+  it("should drop all contacts cleanly via dropContacts", function()
+    local gd = GestureDetector:new({
+      screen = mock_screen,
+      input = mock_input,
+      active_contacts = {},
+      contact_count = 0,
+    })
+
+    local c0 = gd:newContact(0)
+    c0.current_tev = { slot = 0, timev = 1000, x = 10, y = 10, id = 1 }
+    local c1 = gd:newContact(1)
+    c1.current_tev = { slot = 1, timev = 1001, x = 20, y = 20, id = 2 }
+    assert.are.equal(2, gd.contact_count)
+
+    gd:dropContacts()
+    assert.are.equal(0, gd.contact_count)
+    assert.is_nil(gd:getContact(0))
+    assert.is_nil(gd:getContact(1))
+  end)
+
+  it("should map directions correctly in DIRECTION_TABLE", function()
+    assert.are.equal("horizontal", GestureDetector.DIRECTION_TABLE.east)
+    assert.are.equal("horizontal", GestureDetector.DIRECTION_TABLE.west)
+    assert.are.equal("vertical", GestureDetector.DIRECTION_TABLE.north)
+    assert.are.equal("vertical", GestureDetector.DIRECTION_TABLE.south)
+    assert.are.equal("diagonal", GestureDetector.DIRECTION_TABLE.northeast)
+    assert.are.equal("diagonal", GestureDetector.DIRECTION_TABLE.southwest)
+  end)
+
+  it("should calculate rotate angles and path directions correctly", function()
+    local p_orig = { x = 0, y = 0 }
+    local p_start = { x = 10, y = 0 }
+    local p_end = { x = 0, y = 10 }
+    local angle = GestureDetector:getRotate(p_orig, p_start, p_end)
+    assert.are.equal(90, math.floor(angle + 0.5))
+
+    local gd = GestureDetector:new({
+      screen = mock_screen,
+      input = mock_input,
+      active_contacts = {},
+      contact_count = 0,
+    })
+    local contact = gd:newContact(0)
+    contact.initial_tev = { x = 100, y = 100 }
+    contact.current_tev = { x = 100, y = 200 }
+    local dir, dist = contact:getPath(true, false)
+    assert.are.equal("south", dir)
+    assert.are.equal(100, dist)
+  end)
 end)

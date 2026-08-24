@@ -73,4 +73,68 @@ describe("ReaderScrolling module", function()
       end
     end
   )
+
+  it(
+    "should handle menu callbacks, touch zones, and inertial scrolling",
+    function()
+      local sample_pdf = "spec/front/unit/data/sample.pdf"
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_pdf),
+      })
+      local scrolling = readerui.scrolling
+      assert.truthy(scrolling)
+
+      -- Test addToMainMenu items
+      local menu_items = {}
+      scrolling:addToMainMenu(menu_items)
+      assert.truthy(menu_items.scrolling)
+      for _, item in ipairs(menu_items.scrolling.sub_item_table) do
+        if item.callback then
+          item.callback()
+        end
+      end
+
+      -- Test scrolling methods
+      scrolling.scroll_method = scrolling.SCROLL_METHOD_TURBO
+      scrolling:applyScrollSettings()
+      assert.is.same(scrolling.SCROLL_METHOD_TURBO, scrolling.scroll_method)
+
+      scrolling.scroll_method = scrolling.SCROLL_METHOD_ON_RELEASE
+      scrolling:applyScrollSettings()
+      assert.is.same(
+        scrolling.SCROLL_METHOD_ON_RELEASE,
+        scrolling.scroll_method
+      )
+
+      scrolling.scroll_method = scrolling.SCROLL_METHOD_CLASSIC
+      scrolling.inertial_scroll = true
+      scrolling:applyScrollSettings()
+      assert.is.same(scrolling.SCROLL_METHOD_CLASSIC, scrolling.scroll_method)
+      assert.is_true(scrolling._inertial_scroll_enabled)
+
+      -- Test setInertialScrollCallbacks
+      local scroll_called = false
+      local done_called = false
+      scrolling:setInertialScrollCallbacks(function()
+        scroll_called = true
+        return true
+      end, function()
+        done_called = true
+      end)
+
+      -- Test accountManualScroll and inertial scroll
+      local time = require("ui/time")
+      local now = time.monotonic()
+      scrolling:accountManualScroll(50, now)
+      scrolling:accountManualScroll(100, now + time.ms(20))
+      assert.is_boolean(scrolling:startInertialScroll())
+      scrolling:cancelInertialScroll()
+
+      scrolling:setInertialScrollCallbacks(nil, nil)
+
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
 end)

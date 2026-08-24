@@ -298,6 +298,15 @@ describe("Readersearch module", function()
           menu = {
             registerToMainMenu = function() end,
           },
+          document = {
+            info = { has_crengine = true },
+            search = function()
+              return {}
+            end,
+            getAndClearRegexSearchError = function()
+              return nil
+            end,
+          },
         },
       })
       local menu_items = {}
@@ -310,6 +319,138 @@ describe("Readersearch module", function()
 
       if type(rs.onDispatcherRegisterActions) == "function" then
         rs:onDispatcherRegisterActions()
+      end
+
+      rs:showErrorNotification(0, false, 100)
+      rs:showErrorNotification(0, true, 100)
+      rs:showErrorNotification(150, false, 100)
+    end)
+  end)
+
+  describe("ReaderSearch UI & Dialog Workflows", function()
+    local readerui, doc, search, rolling, UIManager
+    setup(function()
+      UIManager = require("ui/uimanager")
+      readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      doc = readerui.document
+      search = readerui.search
+      rolling = readerui.rolling
+    end)
+    teardown(function()
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should handle onShowFulltextSearchInput and input callback", function()
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
+      search:onShowFulltextSearchInput("Verona")
+      assert.is_not_nil(search.input_dialog)
+      assert.is_not_nil(shown_widget)
+
+      -- Trigger forward button callback
+      local orig_search_cb = search.searchCallback
+      local cb_called = false
+      search.searchCallback = function(self, reverse, text)
+        cb_called = true
+        assert.are.equal(0, reverse)
+      end
+
+      search.input_dialog.buttons[1][4].callback()
+      assert.is_true(cb_called)
+
+      search.searchCallback = orig_search_cb
+      UIManager.show = orig_show
+      search:uimanagedCleanUp()
+    end)
+
+    it("should handle searchCallback and update search_dialog", function()
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
+      rolling:onGotoPage(10)
+      search:searchCallback(0, "Verona")
+      assert.is_not_nil(search.search_dialog)
+
+      -- Search next backward and forward
+      search:searchCallback(1, "Verona")
+      assert.is_not_nil(search.search_dialog)
+
+      -- Search non-existent text
+      search:searchCallback(0, "NON_EXISTENT_STRING_XYZ")
+
+      UIManager.show = orig_show
+      search:uimanagedCleanUp()
+    end)
+
+    it("should handle searchText from highlight selection", function()
+      local orig_search_cb = search.searchCallback
+      local cb_text
+      search.searchCallback = function(self, reverse, text)
+        cb_text = text
+      end
+
+      search:searchText("selected text")
+      assert.are.equal("selected text", cb_text)
+      search.searchCallback = orig_search_cb
+    end)
+
+    it("should handle findAllText and onShowFindAllResults menu", function()
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
+      search:findAllText("Verona")
+      assert.is_table(search.findall_results)
+      assert.truthy(#search.findall_results > 0)
+
+      search:onShowFindAllResults()
+      assert.is_not_nil(search.result_menu)
+
+      -- Test result menu item selection callback
+      local first_item = search.result_menu.item_table[1]
+      assert.is_not_nil(first_item)
+      if first_item.callback then
+        first_item.callback()
+      end
+
+      -- Test showAllResultsMenuDialog
+      search:showAllResultsMenuDialog()
+      assert.is_not_nil(shown_widget)
+
+      -- Close and clean up
+      UIManager.show = orig_show
+      search:uimanagedCleanUp()
+    end)
+
+    it("should handle main menu settings callbacks", function()
+      local menu_items = {}
+      search:addToMainMenu(menu_items)
+      assert.is_table(menu_items.fulltext_search_settings)
+
+      local settings = menu_items.fulltext_search_settings.sub_item_table
+      assert.is_table(settings)
+
+      for _, item in ipairs(settings) do
+        if item.checked_func then
+          local state = item.checked_func()
+          assert.is_boolean(state)
+        end
+        if item.callback and not item.sub_item_table then
+          item.callback()
+        end
       end
     end)
   end)

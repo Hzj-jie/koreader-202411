@@ -23,6 +23,31 @@ describe("ReaderTypeset module", function()
     typeset:addToMainMenu(menu_items)
     assert.is_table(menu_items.set_render_style)
 
+    -- Margin setters
+    typeset:onSetPageHorizMargins({ 10, 10 })
+    typeset:onSetPageTopMargin(15)
+    typeset:onSetPageBottomMargin(15)
+    typeset:onSetPageTopAndBottomMargin({ 20, 20 })
+    typeset:onSyncPageTopBottomMargins(true)
+    typeset:onSetPageMargins({ 10, 20, 10, 20 })
+
+    -- Feature toggles
+    typeset:onToggleEmbeddedStyleSheet(true)
+    typeset:onToggleEmbeddedFonts(true)
+    typeset:onToggleImageScaling(true)
+    typeset:onToggleNightmodeImages(true)
+    typeset:onSetBlockRenderingMode(0)
+    typeset:onSetRenderDPI(96)
+
+    -- Stylesheet menu generation and application
+    local sheet_menu = typeset:genStyleSheetMenu()
+    assert.is_table(sheet_menu)
+    typeset:onApplyStyleSheet()
+
+    -- Settings persistence
+    typeset:onSaveSettings()
+    typeset:onReadSettings(readerui.doc_settings)
+
     readerui:onExit()
     readerui:onClose()
   end)

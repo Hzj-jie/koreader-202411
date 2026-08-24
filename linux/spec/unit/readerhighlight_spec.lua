@@ -933,5 +933,46 @@ describe("Readerhighlight module", function()
         assert.is_nil(highlight.highlight_dialog)
       end
     )
+
+    it(
+      "should handle copy, note, and search buttons in highlight dialog",
+      function()
+        local highlight = readerui.highlight
+        highlight.hold_pos = { page = 1 }
+        highlight.selected_text = {
+          text = "Sample highlighted phrase",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:20",
+        }
+        highlight:onShowHighlightMenu()
+        assert.is_truthy(highlight.highlight_dialog)
+
+        -- Copy button
+        local btn_copy = highlight._highlight_buttons["03_copy"](highlight)
+        assert.is_not_nil(btn_copy)
+        if btn_copy.enabled then
+          btn_copy.callback()
+        end
+
+        -- Search button
+        local btn_search = highlight._highlight_buttons["12_search"](highlight)
+        assert.is_not_nil(btn_search)
+        assert.is_function(btn_search.callback)
+
+        if highlight.highlight_dialog then
+          UIManager:close(highlight.highlight_dialog)
+          highlight.highlight_dialog = nil
+        end
+      end
+    )
+
+    it("should populate highlight menu items in main menu", function()
+      local highlight = readerui.highlight
+      local menu_items = {}
+      highlight:addToMainMenu(menu_items)
+      assert.is_table(menu_items.highlight_options)
+      assert.is_table(menu_items.highlight_options.sub_item_table)
+      assert.is_true(#menu_items.highlight_options.sub_item_table > 0)
+    end)
   end)
 end)

@@ -467,5 +467,59 @@ describe("ReaderLink module", function()
       local link_mod = readerui.link
       assert.is_false(link_mod:showAsFootnotePopup({ xpointer = "/test" }))
     end)
+
+    it("should execute built-in external link buttons", function()
+      local link_mod = readerui.link
+      local Device = require("device")
+      local opened_url = nil
+      local orig_openLink = Device.openLink
+      Device.openLink = function(self_dev, link)
+        opened_url = link
+      end
+      local orig_setClip = Device.input.setClipboardText
+      Device.input.setClipboardText = function() end
+
+      local url = "https://en.wikipedia.org/wiki/Test"
+      local buttons, _ = link_mod:getButtonsForExternalLinkDialog(url)
+      assert.truthy(buttons)
+
+      -- Open dialog
+      link_mod:onGoToExternalLink(url)
+      assert.truthy(link_mod.external_link_dialog)
+
+      -- Test 10_copy
+      local copy_btn = link_mod._external_link_buttons["10_copy"](link_mod, url)
+      copy_btn.callback()
+
+      -- Test 20_qrcode
+      link_mod:onGoToExternalLink(url)
+      local qr_btn = link_mod._external_link_buttons["20_qrcode"](link_mod, url)
+      qr_btn.callback()
+
+      -- Test 30_browser
+      link_mod:onGoToExternalLink(url)
+      local browser_btn =
+        link_mod._external_link_buttons["30_browser"](link_mod, url)
+      browser_btn.callback()
+      assert.is.same(url, opened_url)
+
+      -- Test 90_cancel
+      link_mod:onGoToExternalLink(url)
+      local cancel_btn =
+        link_mod._external_link_buttons["90_cancel"](link_mod, url)
+      cancel_btn.callback()
+
+      Device.openLink = orig_openLink
+      Device.input.setClipboardText = orig_setClip
+    end)
+
+    it("should test isXpointerCoherent and onGoToInternalPageLink", function()
+      local link_mod = readerui.link
+      local coherent =
+        link_mod:isXpointerCoherent("/body/DocFragment/body/div/p[1]")
+      assert.truthy(coherent == true or coherent == false)
+
+      link_mod:onGoToInternalPageLink({ pos = { x = 320, y = 190 } })
+    end)
   end)
 end)

@@ -140,13 +140,133 @@ describe("Readerdictionary module", function()
   )
 
   it("should handle word cleaning and main menu items", function()
-    if type(dictionary.cleanWord) == "function" then
-      local cleaned = dictionary:cleanWord("  testing!  ")
-      assert.is_string(cleaned)
-    end
+    local cleaned =
+      dictionary:cleanSelection("  “Testing”—words!  ", true)
+    assert.is_string(cleaned)
+    assert.is_truthy(cleaned:find("Testing"))
 
     local menu_items = {}
     dictionary:addToMainMenu(menu_items)
     assert.is_table(menu_items)
+    assert.is_table(menu_items.dictionary_lookup)
+  end)
+
+  it(
+    "should handle dictionary metadata, markup tidying, and options",
+    function()
+      local num_dicts = dictionary:getNumberOfDictionaries()
+      assert.is_number(num_dicts)
+
+      local ifos = dictionary:_getAvailableIfos()
+      assert.is_table(ifos)
+
+      local results = {
+        {
+          dict = "test_dict",
+          definition = "<b>Word</b>: definition <br/> text",
+        },
+      }
+      local tidied = dictionary:_tidyMarkup(results)
+      assert.is_table(tidied)
+
+      dictionary:updateSdcvDictNamesOptions()
+      if type(dictionary.onTogglePreferredDict) == "function" then
+        dictionary:onTogglePreferredDict("dummy_dict")
+      end
+    end
+  )
+
+  describe("Dictionary Dialogs & Link Handling", function()
+    it("should handle onShowDictionaryLookup and search submission", function()
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
+      dictionary:onShowDictionaryLookup()
+      assert.is_not_nil(dictionary.dictionary_lookup_dialog)
+      assert.is_not_nil(shown_widget)
+
+      local lookup_called_with
+      local orig_lookup = dictionary.onLookupWord
+      dictionary.onLookupWord = function(self, word, is_sane)
+        lookup_called_with = word
+      end
+
+      -- Input empty text -> no lookup
+      dictionary.dictionary_lookup_dialog._input_widget:setText("")
+      dictionary.dictionary_lookup_dialog.buttons[1][2].callback()
+      assert.is_nil(lookup_called_with)
+
+      -- Input valid text -> triggers lookup
+      dictionary.dictionary_lookup_dialog._input_widget:setText("example")
+      dictionary.dictionary_lookup_dialog.buttons[1][2].callback()
+      assert.are.equal("example", lookup_called_with)
+
+      dictionary.onLookupWord = orig_lookup
+      UIManager.show = orig_show
+      dictionary:uimanagedCleanUp()
+    end)
+
+    it("should handle onHtmlDictionaryLinkTapped", function()
+      local lookup_word
+      local orig_stardict = dictionary.stardictLookup
+      dictionary.stardictLookup = function(self, word)
+        lookup_word = word
+      end
+
+      -- Ignore external URLs with other protocols
+      dictionary:onHtmlDictionaryLinkTapped(
+        "dict",
+        { uri = "http://example.com" }
+      )
+      assert.is_nil(lookup_word)
+
+      -- Handle bword:// protocol
+      dictionary:onHtmlDictionaryLinkTapped("dict", {
+        uri = "bword://hyperlink",
+        x0 = 10,
+        y0 = 10,
+        x1 = 50,
+        y1 = 30,
+      })
+      assert.are.equal("hyperlink", lookup_word)
+
+      -- Handle plain word link
+      dictionary:onHtmlDictionaryLinkTapped("dict", {
+        uri = "simpleword",
+        x0 = 10,
+        y0 = 10,
+        x1 = 50,
+        y1 = 30,
+      })
+      assert.are.equal("simpleword", lookup_word)
+
+      dictionary.stardictLookup = orig_stardict
+    end)
+
+    it(
+      "should handle cleanSelection with various punctuation and formatting",
+      function()
+        -- Normal clean with sane flag
+        assert.are.equal("Hello", dictionary:cleanSelection("Hello", true))
+        assert.are.equal(
+          "Hello",
+          dictionary:cleanSelection("  “Hello”  ", false)
+        )
+        assert.are.equal(
+          "Multiple   words",
+          dictionary:cleanSelection("  Multiple   words.  ", false)
+        )
+        assert.are.equal("word", dictionary:cleanSelection("(word)...", false))
+      end
+    )
+
+    it("should generate download dictionary menus", function()
+      local dl_menu = dictionary:_genDownloadDictionariesMenu()
+      assert.is_table(dl_menu)
+      assert.truthy(#dl_menu > 0)
+    end)
   end)
 end)

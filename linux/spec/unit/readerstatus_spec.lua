@@ -42,24 +42,50 @@ describe("ReaderStatus module", function()
       end
     end)
 
-    it("should handle book marking", function()
-      local mock_doc_settings = {
-        readTableRef = function()
-          return { status = "reading" }
-        end,
-        save = function() end,
-        flush = function() end,
-      }
-      local mock_ui = {
-        menu = { registerToMainMenu = function() end },
-        doc_settings = mock_doc_settings,
-        setBookmarkStatus = function() end,
-      }
-      local status = ReaderStatus:new({ ui = mock_ui })
+    it("should handle book marking and end of book dialog", function()
+      local sample_epub = "spec/front/unit/data/leaves.epub"
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
 
-      if type(status.markBook) == "function" then
-        status:markBook(true)
+      local status = readerui.status
+      local UIManager = require("ui/uimanager")
+
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
       end
+
+      -- Book status page
+      local callback_called = false
+      status:onShowBookStatus(function()
+        callback_called = true
+      end)
+      assert.is_true(callback_called)
+      assert.is_not_nil(shown_widget)
+
+      -- Mark book as complete
+      status:markBook(true)
+      local summary = readerui.doc_settings:readTableRef("summary")
+      assert.are.equal("complete", summary.status)
+
+      -- Toggle book status
+      status:markBook()
+      assert.are.equal("reading", summary.status)
+
+      -- End of book popup
+      status:onEndOfBook()
+      assert.is_not_nil(shown_widget)
+
+      -- Delete file confirmation dialog
+      status:deleteFile()
+      assert.is_not_nil(shown_widget)
+
+      UIManager.show = orig_show
+      readerui:onExit()
+      readerui:onClose()
     end)
   end)
 end)

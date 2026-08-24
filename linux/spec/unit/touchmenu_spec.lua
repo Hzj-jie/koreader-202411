@@ -129,4 +129,129 @@ describe("TouchMenu", function()
     })
     assert.is_not_nil(menu)
   end)
+
+  it("handles submenu navigation and backToUpperMenu", function()
+    local sub_item = { text = "Sub 1" }
+    local root_item = {
+      text = "Open Submenu",
+      sub_item_table = {
+        sub_item,
+      },
+    }
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          root_item,
+        },
+      },
+    })
+
+    assert.are.equal(0, #menu.item_table_stack)
+    menu:onMenuSelect(root_item)
+    assert.are.equal(1, #menu.item_table_stack)
+    assert.are.equal(sub_item, menu.item_table[1])
+
+    -- Return to upper menu
+    local returned = menu:backToUpperMenu()
+    assert.is_true(returned)
+    assert.are.equal(0, #menu.item_table_stack)
+    assert.are.equal(root_item, menu.item_table[1])
+  end)
+
+  it("handles tab switching and pagination", function()
+    local items_tab1 = {}
+    for i = 1, 25 do
+      table.insert(items_tab1, { text = "Tab1 Item " .. i })
+    end
+    local items_tab2 = {
+      { text = "Tab2 Item 1" },
+    }
+    local tab_table = {
+      items_tab1,
+      items_tab2,
+    }
+    tab_table[1].icon = "icon1"
+    tab_table[1].text = "Tab 1"
+    tab_table[2].icon = "icon2"
+    tab_table[2].text = "Tab 2"
+
+    local menu = TouchMenu:new({
+      tab_item_table = tab_table,
+    })
+
+    assert.are.equal(1, menu.cur_tab)
+    assert.is_true(menu.page_num > 1)
+    assert.are.equal(1, menu.page)
+
+    -- Next page
+    menu:onNextPage()
+    assert.are.equal(2, menu.page)
+
+    -- Prev page
+    menu:onPrevPage()
+    assert.are.equal(1, menu.page)
+
+    -- Goto last and first page
+    menu:onLastPage()
+    assert.are.equal(menu.page_num, menu.page)
+    menu:onFirstPage()
+    assert.are.equal(1, menu.page)
+
+    -- Switch tab
+    menu:switchMenuTab(2)
+    assert.are.equal(2, menu.cur_tab)
+    assert.are.equal(1, menu.page)
+  end)
+
+  it("handles swipe gestures for page navigation and closing", function()
+    local closed = false
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          { text = "Item 1" },
+        },
+      },
+      close_callback = function()
+        closed = true
+      end,
+    })
+
+    -- North swipe closes menu
+    menu:onSwipe(nil, { direction = "north" })
+    assert.is_true(closed)
+  end)
+
+  it("triggers item callback and checkmark_callback", function()
+    local item_called = false
+    local checkmark_called = false
+    local item = {
+      text = "Checkable Item",
+      checked = false,
+      callback = function()
+        item_called = true
+      end,
+      checkmark_callback = function()
+        checkmark_called = true
+      end,
+    }
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          item,
+        },
+      },
+    })
+
+    menu:onMenuSelect(item, false)
+    assert.is_true(item_called)
+
+    menu:onMenuSelect(item, true)
+    assert.is_true(checkmark_called)
+  end)
 end)

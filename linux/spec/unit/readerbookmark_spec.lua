@@ -584,5 +584,65 @@ describe("ReaderBookmark module", function()
         end
       end
     )
+
+    it("should handle bookmark removal, notes, and text extraction", function()
+      local bookmark_mod = readerui.bookmark
+      local test_item = {
+        page = 12,
+        type = "bookmark",
+        text = "Test Bookmark Text",
+        text_orig = "Test Bookmark Text",
+        note = "Sample Note",
+        datetime = "2026-08-24 10:00:00",
+      }
+      table.insert(bookmark_mod.ui.annotation.annotations, test_item)
+
+      local item_text = bookmark_mod:getBookmarkItemText(test_item)
+      assert.is_string(item_text)
+
+      bookmark_mod:deleteItemNote(test_item)
+      assert.is_nil(test_item.note)
+
+      test_item.note = "New note content"
+      assert.are.equal("New note content", test_item.note)
+
+      local is_auto = bookmark_mod:isBookmarkAutoText(test_item)
+      assert.is_boolean(is_auto)
+
+      local in_order = bookmark_mod:isBookmarkInPageOrder(
+        { page = 5 },
+        { page = 10 }
+      )
+      assert.is_boolean(in_order)
+
+      bookmark_mod.match_table = { bookmark = true }
+      local match = bookmark_mod:doesBookmarkMatchTable(test_item)
+      assert.is_truthy(match)
+
+      local initial_count = #bookmark_mod.ui.annotation.annotations
+      bookmark_mod:removeItem(test_item)
+      assert.are.equal(
+        initial_count - 1,
+        #bookmark_mod.ui.annotation.annotations
+      )
+    end)
+
+    it("should handle bookmark navigation and menu generation", function()
+      local bookmark_mod = readerui.bookmark
+      local pages = bookmark_mod:getBookmarkedPages()
+      assert.is_table(pages)
+
+      local latest = bookmark_mod:getLatestBookmark()
+      assert.is_not_nil(latest)
+
+      bookmark_mod:onGotoFirstBookmark()
+      bookmark_mod:onGotoLastBookmark()
+
+      local show_items = bookmark_mod:genShowInItemsMenuItems("notes")
+      assert.is_table(show_items)
+
+      local sort_items = bookmark_mod:genSortByMenuItems("page", "separator")
+      assert.is_table(sort_items)
+    end)
   end)
 end)

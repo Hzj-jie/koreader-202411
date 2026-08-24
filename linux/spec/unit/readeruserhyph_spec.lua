@@ -75,6 +75,40 @@ describe("ReaderUserHyph module", function()
     hyph:updateDictionary("apple", "ap-ple")
     hyph:scrubDictionary()
 
+    -- Multiple hyphen modifications
+    hyph:updateDictionary("apple", "ap-p-le")
+    hyph:updateDictionary("apple", nil) -- deletion
+
     os.remove(tmp_file)
+  end)
+
+  it("should handle modifyUserEntry dialog workflow", function()
+    local sample_epub = "spec/front/unit/data/leaves.epub"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+
+    local userhyph = readerui.userhyph or ReaderUserHyph:new({ ui = readerui })
+
+    local shown_widget
+    local UIManager = require("ui/uimanager")
+    local orig_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    userhyph:modifyUserEntry("multi word test") -- space -> ignored
+    assert.is_nil(shown_widget)
+
+    userhyph:modifyUserEntry("hyphenation")
+    assert.is_not_nil(shown_widget)
+
+    -- Test language change event
+    userhyph:onTypographyLanguageChanged()
+
+    UIManager.show = orig_show
+    readerui:onExit()
+    readerui:onClose()
   end)
 end)

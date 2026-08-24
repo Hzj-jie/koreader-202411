@@ -82,12 +82,77 @@ describe("ReaderCoptListener module", function()
       ui = mock_ui,
     })
 
-    if type(listener.onReadSettings) == "function" then
-      listener:onReadSettings({})
-    end
-
     if type(listener.onReaderReady) == "function" then
       listener:onReaderReady()
     end
+  end)
+
+  it("should test getAltStatusBarMenu items and callbacks", function()
+    local sample_epub = "spec/front/unit/data/leaves.epub"
+    local doc = DocumentRegistry:openDocument(sample_epub)
+    local listener = ReaderCoptListener:new({
+      document = doc,
+      view = { view_mode = "page" },
+      showWidget = function() end,
+      ui = {
+        view = {
+          footer = {
+            pageno = 1,
+            settings = { progress_pct_format = "0" },
+          },
+        },
+        document = doc,
+        rolling = {
+          updateBatteryState = function()
+            return 100
+          end,
+        },
+        doc_settings = {
+          read = function()
+            return nil
+          end,
+        },
+        doc_props = {},
+      },
+    })
+    listener:onReadSettings({})
+
+    local menu = listener:getAltStatusBarMenu()
+    assert.truthy(menu)
+    assert.truthy(menu.sub_item_table)
+
+    -- Toggle each menu item
+    for _, item in ipairs(menu.sub_item_table) do
+      if item.callback then
+        item.callback()
+      end
+      if item.sub_item_table then
+        for _, sub in ipairs(item.sub_item_table) do
+          if sub.callback then
+            sub.callback()
+          end
+        end
+      end
+    end
+
+    -- Additional header content
+    local test_fn = function()
+      return "HEADER"
+    end
+    assert.is_true(listener:addAdditionalHeaderContent(test_fn))
+    assert.is_false(listener:addAdditionalHeaderContent(test_fn))
+    assert.is_true(listener:removeAdditionalHeaderContent(test_fn))
+    assert.is_false(listener:removeAdditionalHeaderContent(test_fn))
+
+    -- Charging and screensaver handlers
+    listener:onCharging()
+    listener:onResume()
+    listener:onOutOfScreenSaver()
+
+    -- Config change
+    listener:onConfigChange("font_size", 20)
+    listener:onConfigChange("font_size", 2) -- ignored when < 5
+
+    doc:close()
   end)
 end)

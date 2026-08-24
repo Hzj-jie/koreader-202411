@@ -178,4 +178,100 @@ describe("Readerview module", function()
     readerui:onExit()
     readerui:onClose()
   end)
+
+  describe("ReaderView Panning, Coordinates & Events", function()
+    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local readerui, view, Geom
+
+    before_each(function()
+      Geom = require("ui/geometry")
+      readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_pdf),
+      })
+      view = readerui.view
+    end)
+
+    after_each(function()
+      if readerui then
+        readerui:onExit()
+        readerui:onClose()
+      end
+    end)
+
+    it("should handle Panning operations and zoom center", function()
+      view:PanningStart(100, 100)
+      assert.is_not_nil(view.panning_visible_area)
+
+      view:PanningUpdate(15, -25)
+      view:PanningStop()
+      assert.is_nil(view.panning_visible_area)
+
+      view:SetZoomCenter(200, 300)
+      assert.is_not_nil(view.visible_area)
+    end)
+
+    it("should transform coordinates between screen and page", function()
+      local screen_pos = Geom:new({ x = 100, y = 100 })
+      local page_pos = view:screenToPageTransform(screen_pos)
+      assert.is_not_nil(page_pos)
+
+      local page_rect = Geom:new({ x = 10, y = 10, w = 100, h = 50 })
+      local screen_rect = view:pageToScreenTransform(1, page_rect)
+      assert.is_not_nil(screen_rect)
+
+      local page_area = view:getScreenPageArea(1)
+      assert.is_not_nil(page_area)
+      assert.is_number(page_area.w)
+      assert.is_number(page_area.h)
+
+      local computed_area = view:getPageArea(1, 1.0, 0)
+      assert.is_not_nil(computed_area)
+    end)
+
+    it("should handle updates and view state events", function()
+      view:onPageUpdate(2)
+      assert.are.equal(2, view.state.page)
+
+      view:onPosUpdate(50)
+      view:onZoomUpdate(1.1)
+      assert.is_near(1.1, view.state.zoom, 0.001)
+
+      view:onRotationUpdate(90)
+      assert.are.equal(90, view.state.rotation)
+
+      local orig_swipe = G_reader_settings:isTrue("swipe_animations")
+      view:onTogglePageChangeAnimation()
+      assert.are_not.equal(
+        orig_swipe,
+        G_reader_settings:isTrue("swipe_animations")
+      )
+      view:onTogglePageChangeAnimation()
+
+      view:onSetFullScreen(true)
+      assert.is_false(view.footer_visible)
+      view:onSetFullScreen(false)
+      assert.is_true(view.footer_visible)
+
+      view:onReaderFooterVisibilityChange()
+      view:onSetDimensions(Screen:getSize())
+    end)
+
+    it("should draw view and page components without error", function()
+      local bb = Blitbuffer.new(800, 600)
+      view:paintTo(bb, 0, 0)
+      view:drawPageBackground(bb, 0, 0)
+      view:drawPageSurround(bb, 0, 0)
+
+      view.highlight = {
+        indicator = Geom:new({ x = 50, y = 50, w = 20, h = 20 }),
+        temp = {
+          [1] = { Geom:new({ x = 10, y = 10, w = 40, h = 20 }) },
+        },
+      }
+      view:drawHighlightIndicator(bb, 0, 0)
+      view:drawTempHighlight(bb, 0, 0)
+      view:drawSavedHighlight(bb, 0, 0)
+    end)
+  end)
 end)
