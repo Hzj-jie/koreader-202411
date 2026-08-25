@@ -3,7 +3,6 @@ describe("ReaderThumbnail module", function()
 
   setup(function()
     require("commonrequire")
-    package.unloadAll()
     require("document/canvascontext"):init(require("device"))
     ReaderThumbnail = require("apps/reader/modules/readerthumbnail")
     DocumentRegistry = require("document/documentregistry")
@@ -161,6 +160,9 @@ describe("ReaderThumbnail module", function()
       thumb_pdf._ensureTileGeneration_action(false)
       thumb_pdf._ensureTileGeneration_action(false)
       thumb_pdf._ensureTileGeneration_action(false)
+
+      thumb_pdf:cancelPageThumbnailRequests("batch_pdf")
+      thumb_pdf:cancelPageThumbnailRequests()
 
       readerui_pdf:onExit()
       readerui_pdf:onClose()
