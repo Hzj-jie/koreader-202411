@@ -224,14 +224,10 @@ for i = 1, #spec_files do
 
         local exit_code = 0
         local clean_output = output
-        local status_pattern = "\nEXIT_STATUS:(%d+)\n$"
-        if not output:match(status_pattern) then
-            status_pattern = "EXIT_STATUS:(%d+)$"
-        end
-        local status_str = output:match(status_pattern)
+        local status_str = output:match("\nEXIT_STATUS:(%d+)") or output:match("^EXIT_STATUS:(%d+)")
         if status_str then
             exit_code = tonumber(status_str)
-            clean_output = output:gsub("\n?EXIT_STATUS:%d+\n?$", "")
+            clean_output = output:gsub("\n?EXIT_STATUS:%d+\n?", "\n")
         else
             io.stderr:write("[!] Warning: Could not parse exit status for: " .. job.spec_path .. "\n")
             exit_code = 1

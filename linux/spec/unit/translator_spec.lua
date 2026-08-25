@@ -15,7 +15,7 @@ describe("Translator module", function()
       if url_str and string.find(url_str, "error_test") then
         return nil, "Connection refused"
       end
-      if url_str and string.find(url_str, "translate.googleapis.com") then
+      if url_str and (string.find(url_str, "translate.google") or string.find(url_str, "googleapis.com")) then
         local response_json =
           [=[[[["Wikipedia is a multilingual encyclopedia, the content of which is freely available. Anyone can add knowledge here!", "Wikipedia is een meertalige encyclopedie, waarvan de inhoud vrij beschikbaar is. Iedereen kan hier kennis toevoegen!", null, null, 3]], null, "nl"]]=]
         if type(request) == "table" and request.sink then
@@ -26,7 +26,7 @@ describe("Translator module", function()
           { ["content-type"] = "application/json" },
           "HTTP/1.1 200 OK"
       end
-      return orig_http_request(request)
+      return 1, 200, {}, "OK"
     end
   end)
 
