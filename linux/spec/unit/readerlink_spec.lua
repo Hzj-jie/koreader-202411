@@ -467,5 +467,144 @@ describe("ReaderLink module", function()
       local link_mod = readerui.link
       assert.is_false(link_mod:showAsFootnotePopup({ xpointer = "/test" }))
     end)
+
+    it("should execute built-in external link buttons", function()
+      local link_mod = readerui.link
+      local Device = require("device")
+      local opened_url = nil
+      local orig_openLink = Device.openLink
+      Device.openLink = function(self_dev, link)
+        opened_url = link
+      end
+      local orig_setClip = Device.input.setClipboardText
+      Device.input.setClipboardText = function() end
+
+      local url = "https://en.wikipedia.org/wiki/Test"
+      local buttons, _ = link_mod:getButtonsForExternalLinkDialog(url)
+      assert.truthy(buttons)
+
+      -- Open dialog
+      link_mod:onGoToExternalLink(url)
+      assert.truthy(link_mod.external_link_dialog)
+
+      -- Test 10_copy
+      local copy_btn = link_mod._external_link_buttons["10_copy"](link_mod, url)
+      copy_btn.callback()
+
+      -- Test 20_qrcode
+      link_mod:onGoToExternalLink(url)
+      local qr_btn = link_mod._external_link_buttons["20_qrcode"](link_mod, url)
+      qr_btn.callback()
+
+      -- Test 30_browser
+      link_mod:onGoToExternalLink(url)
+      local browser_btn =
+        link_mod._external_link_buttons["30_browser"](link_mod, url)
+      browser_btn.callback()
+      assert.is.same(url, opened_url)
+
+      -- Test 90_cancel
+      link_mod:onGoToExternalLink(url)
+      local cancel_btn =
+        link_mod._external_link_buttons["90_cancel"](link_mod, url)
+      cancel_btn.callback()
+
+      Device.openLink = orig_openLink
+      Device.input.setClipboardText = orig_setClip
+    end)
+
+    it("should test isXpointerCoherent and onGoToInternalPageLink", function()
+      local link_mod = readerui.link
+      local coherent =
+        link_mod:isXpointerCoherent("/body/DocFragment/body/div/p[1]")
+      assert.truthy(coherent == true or coherent == false)
+
+      link_mod:onGoToInternalPageLink({ pos = { x = 320, y = 190 } })
+    end)
+
+    it("should exercise main menu items, settings sub-menus, and spin widgets", function()
+      local link_mod = readerui.link
+      local menu_items = {}
+      link_mod:addToMainMenu(menu_items)
+
+      local function walk_menu(tbl)
+        for _, item in ipairs(tbl) do
+          if item.text_func then pcall(item.text_func) end
+          if item.checked_func then pcall(item.checked_func) end
+          if item.enabled_func then pcall(item.enabled_func) end
+          if item.callback then
+            pcall(item.callback, { closeMenu = function() end })
+            local top = UIManager._window_stack[#UIManager._window_stack]
+            if top and top.widget and top.widget ~= readerui then
+              if top.widget.ok_callback then pcall(top.widget.ok_callback) end
+              if top.widget.callback then pcall(top.widget.callback, top.widget) end
+              if top.widget.extra_callback then pcall(top.widget.extra_callback) end
+              UIManager:close(top.widget)
+            end
+          end
+          if item.hold_callback then
+            pcall(item.hold_callback, { closeMenu = function() end })
+            local top = UIManager._window_stack[#UIManager._window_stack]
+            if top and top.widget and top.widget ~= readerui then
+              if top.widget.ok_callback then pcall(top.widget.ok_callback) end
+              UIManager:close(top.widget)
+            end
+          end
+          if item.sub_item_table then
+            walk_menu(item.sub_item_table)
+          end
+        end
+      end
+
+      if menu_items.follow_links and menu_items.follow_links.sub_item_table then
+        walk_menu(menu_items.follow_links.sub_item_table)
+      end
+    end)
+
+    it("should exercise bookmark jump, keyboard actions, and location stack", function()
+      local link_mod = readerui.link
+      -- Test onGoToLatestBookmark
+      link_mod:onGoToLatestBookmark()
+
+      -- Add annotation and test jump
+      readerui.rolling:onGotoPage(10)
+      table.insert(readerui.annotation.annotations, {
+        datetime = "2026-08-24 12:00:00",
+        page = readerui.rolling:getBookLocation(),
+      })
+      link_mod:onGoToLatestBookmark()
+
+      -- Test location stack methods
+      link_mod:onAddCurrentLocationToStack(true)
+      link_mod:onAddCurrentLocationToStackNonTouch()
+      local prev_pages = link_mod:getPreviousLocationPages()
+      assert.is_table(prev_pages)
+      link_mod:onGoBackLink(true)
+      link_mod:onGoForwardLink()
+      link_mod:onClearLocationStack(true)
+      link_mod:onClearForwardLocationStack()
+
+      -- Test onSelectNextPageLink / onSelectPrevPageLink
+      link_mod:onSelectNextPageLink()
+      link_mod:onSelectPrevPageLink()
+      link_mod:onPageUpdate()
+      link_mod:onPosUpdate()
+
+      -- Test onGotoSelectedPageLink
+      link_mod.cur_selected_link = { xpointer = readerui.rolling:getBookLocation() }
+      link_mod:onGotoSelectedPageLink()
+
+      -- Test event handlers
+      link_mod:onGesture()
+      link_mod:onPhysicalKeyboardConnected()
+      link_mod:registerKeyEvents()
+      link_mod:onReadSettings()
+
+      -- Test gestures
+      link_mod:onSwipe(nil, { direction = "east", pos = { x = 100, y = 100 } })
+      link_mod:onSwipe(nil, { direction = "west", pos = { x = 100, y = 100 } })
+    end)
   end)
 end)
+
+

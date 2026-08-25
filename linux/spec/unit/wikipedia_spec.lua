@@ -819,3 +819,104 @@ describe("Wikipedia module", function()
     )
   end)
 end)
+
+describe("Wikipedia HTML with Images & Math", function()
+  local Wikipedia = require("ui/wikipedia")
+  local http = require("socket.http")
+  local temp_epub_img = "/tmp/test_wiki_images.epub"
+
+  it(
+    "should process html with img tags, srcset, math svg/png and create epub",
+    function()
+      os.remove(temp_epub_img)
+      os.remove(temp_epub_img .. ".tmp")
+
+      local parse_response = {
+        parse = {
+          title = "Complex Page",
+          pageid = 12345,
+          revid = 67890,
+          displaytitle = "Complex Page",
+          text = {
+            ["*"] = [[
+                        <div>
+                            <h1>Complex Page</h1>
+                            <p>Here is an image: <img src="//upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Test.jpg/300px-Test.jpg" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Test.jpg/600px-Test.jpg 2x" width="300" height="200" /></p>
+                            <p>Math SVG: <img src="/math/render/svg/abcdef123456" width="50" height="20" /></p>
+                            <p>Math PNG: <img src="/math/render/png/123456abcdef" width="50" height="20" /></p>
+                            <p>Relative image: <img src="/w/extensions/wikihiero/img/hiero_D22.png?0b8f1" width="30" height="30" /></p>
+                            <p>No src: <img></img></p>
+                        </div>
+                    ]],
+          },
+          sections = {},
+        },
+      }
+
+      local json_resp = require("json").encode(parse_response)
+      local sample_img_data =
+        "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+
+      local orig_req = http.request
+      http.request = function(request)
+        if type(request) == "table" and request.url then
+          if request.url:find("action=parse") then
+            if request.sink then
+              request.sink(json_resp)
+            end
+            return 1,
+              200,
+              { ["content-length"] = tostring(#json_resp) },
+              "HTTP/1.1 200 OK"
+          elseif request.url:find("action=query") then
+            local query_resp = require("json").encode({
+              query = {
+                pages = {
+                  ["1"] = {
+                    title = "File:Test.jpg",
+                    imageinfo = {
+                      {
+                        thumburl = "https://upload.wikimedia.org/test.jpg",
+                        thumbwidth = 300,
+                        thumbheight = 200,
+                        descriptionurl = "https://commons.wikimedia.org/wiki/File:Test.jpg",
+                        extmetadata = {
+                          ImageDescription = { value = "A test caption" },
+                          Artist = { value = "Photographer" },
+                          LicenseShortName = { value = "CC-BY-SA-4.0" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            })
+            if request.sink then
+              request.sink(query_resp)
+            end
+            return 1,
+              200,
+              { ["content-length"] = tostring(#query_resp) },
+              "HTTP/1.1 200 OK"
+          else
+            if request.sink then
+              request.sink(sample_img_data)
+            end
+            return 1,
+              200,
+              { ["content-length"] = tostring(#sample_img_data) },
+              "HTTP/1.1 200 OK"
+          end
+        end
+        return 1, 200, {}, "HTTP/1.1 200 OK"
+      end
+
+      G_reader_settings:save("wikipedia_epub_include_images", true)
+      local res =
+        Wikipedia:createEpub(temp_epub_img, "Complex_Page", "en", false)
+      http.request = orig_req
+      os.remove(temp_epub_img)
+      assert.is_true(res)
+    end
+  )
+end)

@@ -280,6 +280,53 @@ describe("Readerpaging module", function()
       readerui.onEndOfBook = nil
       UIManager:quit()
     end)
+
+    it("should exercise page and bookmark flipping in all directions", function()
+      paging:updateFlippingPage(2)
+      assert.are.equal(2, paging.flipping_page)
+
+      local ges_east = { direction = "east", distance = 50 }
+      local ges_west = { direction = "west", distance = 50 }
+      local ges_north = { direction = "north", distance = 50 }
+      local ges_south = { direction = "south", distance = 50 }
+
+      paging:pageFlipping(2, ges_east)
+      paging:pageFlipping(2, ges_west)
+      paging:pageFlipping(2, ges_north)
+      paging:pageFlipping(2, ges_south)
+
+      paging:bookmarkFlipping(2, ges_east)
+      paging:bookmarkFlipping(2, ges_west)
+
+      -- On pan in flipping mode
+      paging.page_flipping_mode = true
+      paging.view.zoom_mode = "page"
+      paging:onPan(nil, ges_east)
+      paging.view.zoom_mode = "content"
+      paging:onPan(nil, { direction = "east", relative = { x = 10, y = 10 } })
+
+      -- On pan in bookmark mode
+      paging.page_flipping_mode = false
+      paging.bookmark_flipping_mode = true
+      assert.is_true(paging:onPan(nil, ges_east))
+      paging.bookmark_flipping_mode = false
+    end)
+
+    it("should exercise touch zones and key event bindings", function()
+      paging:setupTouchZones()
+      paging:registerKeyEvents()
+      paging:onReaderReady()
+
+      -- Test tap forward and backward handlers
+      paging:onGotoViewRel(1)
+      paging:onGotoViewRel(-1)
+      paging:onGotoPosRel(1)
+      paging:onGotoPosRel(-1)
+
+      -- Inertial scroll callback execution
+      paging:onScrollSettingsUpdated("classic", true, 100)
+    end)
+
   end)
 
   describe("Scroll mode", function()

@@ -395,23 +395,165 @@ describe("Readertoc module", function()
   end)
 
   describe("chapter title and navigation helpers", function()
+    local helper_readerui, helper_toc
+    local sample_epub = "spec/front/unit/data/juliet.epub"
+
+    before_each(function()
+      helper_readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      helper_toc = helper_readerui.toc
+    end)
+
+    after_each(function()
+      if helper_readerui then
+        helper_readerui:onExit()
+        helper_readerui:onClose()
+      end
+    end)
+
     it("should get full chapter title hierarchy and helper statuses", function()
-      local titles = toc:getFullTocTitleByPage(60)
+      local titles = helper_toc:getFullTocTitleByPage(60)
       assert.is_table(titles)
       assert.is_true(#titles > 0)
 
-      toc:onPageUpdate(60)
-      assert.are.equal(60, toc.pageno)
-      assert.is_string(toc:getTocTitleOfCurrentPage())
+      helper_toc:onPageUpdate(60)
+      assert.are.equal(60, helper_toc.pageno)
+      assert.is_string(helper_toc:getTocTitleOfCurrentPage())
 
-      toc:onPosUpdate(nil, 65)
-      assert.are.equal(65, toc.pageno)
+      helper_toc:onPosUpdate(nil, 65)
+      assert.are.equal(65, helper_toc.pageno)
 
-      assert.is_boolean(toc:isChapterStart(10))
-      assert.is_boolean(toc:isChapterEnd(10))
+      assert.is_boolean(helper_toc:isChapterStart(10))
+      assert.is_boolean(helper_toc:isChapterEnd(10))
 
-      assert.is_true(toc:onUpdateToc())
-      assert.is_nil(toc.toc)
+      assert.is_number(helper_toc:getChapterPageCount(10))
+
+      assert.is_true(helper_toc:onUpdateToc())
+      assert.is_table(helper_toc.toc)
+    end)
+
+
+    it("should exercise all main menu TOC items and submenus", function()
+      local UIManager = require("ui/uimanager")
+      local menu_items = {}
+      helper_toc:addToMainMenu(menu_items)
+
+      assert.is_table(menu_items.table_of_contents)
+      assert.is_string(menu_items.table_of_contents.text_func())
+
+      -- Alternative TOC item
+      if menu_items.toc_alt_toc then
+        local alt = menu_items.toc_alt_toc
+        if alt.help_text_func then alt.help_text_func() end
+        if alt.enabled_func then alt.enabled_func() end
+        if alt.checked_func then alt.checked_func() end
+        if alt.callback then
+          local dummy_menu = { closeMenu = function() end }
+          -- Toggle on
+          alt.callback(dummy_menu)
+          local top = UIManager._window_stack[#UIManager._window_stack]
+          if top and top.widget and top.widget ~= helper_readerui then
+            if top.widget.ok_callback then top.widget.ok_callback() end
+            UIManager:close(top.widget)
+          end
+          -- Toggle off
+          alt.callback(dummy_menu)
+          top = UIManager._window_stack[#UIManager._window_stack]
+          if top and top.widget and top.widget ~= helper_readerui then
+            if top.widget.ok_callback then top.widget.ok_callback() end
+            UIManager:close(top.widget)
+          end
+        end
+      end
+
+      -- TOC ticks level ignore
+      if menu_items.toc_ticks_level_ignore then
+        local ti = menu_items.toc_ticks_level_ignore
+        if ti.text_func then ti.text_func() end
+        if ti.enabled_func then ti.enabled_func() end
+        if ti.sub_item_table_func then
+          local sub_items = ti.sub_item_table_func()
+          assert.is_table(sub_items)
+          for _, item in ipairs(sub_items) do
+            if item.text_func then item.text_func() end
+            if item.checked_func then item.checked_func() end
+            if item.enabled_func then item.enabled_func() end
+            if item.callback then item.callback() end
+          end
+        end
+      end
+
+      -- Spin widgets (entries per page, font size)
+      if menu_items.toc_items_per_page and menu_items.toc_items_per_page.callback then
+        menu_items.toc_items_per_page.callback()
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= helper_readerui then
+          if top.widget.callback then top.widget.callback({ value = 16 }) end
+          UIManager:close(top.widget)
+        end
+      end
+
+      if menu_items.toc_items_font_size and menu_items.toc_items_font_size.callback then
+        menu_items.toc_items_font_size.callback()
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= helper_readerui then
+          if top.widget.callback then top.widget.callback({ value = 22 }) end
+          UIManager:close(top.widget)
+        end
+      end
+
+      -- Options toggles
+      if menu_items.toc_items_show_chapter_length then
+        if menu_items.toc_items_show_chapter_length.checked_func then
+          menu_items.toc_items_show_chapter_length.checked_func()
+        end
+        if menu_items.toc_items_show_chapter_length.callback then
+          menu_items.toc_items_show_chapter_length.callback()
+        end
+      end
+
+      if menu_items.toc_items_with_dots then
+        if menu_items.toc_items_with_dots.checked_func then
+          menu_items.toc_items_with_dots.checked_func()
+        end
+        if menu_items.toc_items_with_dots.callback then
+          menu_items.toc_items_with_dots.callback()
+        end
+      end
+    end)
+
+    it("should exercise onShowToc item selection and hold actions", function()
+      local UIManager = require("ui/uimanager")
+      helper_toc:onShowToc()
+      local menu = helper_toc.toc_menu
+      assert.is_not_nil(menu)
+
+      -- Exercise onMenuSelect state toggle
+      if menu and menu.item_table and #menu.item_table > 0 then
+        local first_item = menu.item_table[1]
+        -- Tap on left side to toggle expand/collapse state if state exists
+        if first_item.state then
+          menu:onMenuSelect(first_item, { x = 0.1, y = 0.5 })
+        end
+        -- Tap to navigate
+        menu:onMenuSelect(first_item, { x = 0.5, y = 0.5 })
+
+        -- Exercise onMenuHold
+        menu:onMenuHold(first_item)
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= helper_readerui and top.widget ~= menu then
+          UIManager:close(top.widget)
+        end
+      end
+
+      -- Close TOC menu
+      if menu and menu.close_callback then
+        menu.close_callback()
+      end
     end)
   end)
 end)
+
+

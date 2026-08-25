@@ -161,6 +161,11 @@ describe("filemanagercollection", function()
           onMenuSelect = args.onMenuSelect,
           onMenuChoice = args.onMenuChoice,
           onMenuHold = args.onMenuHold,
+          onLeftButtonTap = args.onLeftButtonTap,
+          onRightButtonTap = args.onRightButtonTap,
+          onReturn = args.onReturn,
+          _recreate_func = args._recreate_func,
+          close_callback = args.close_callback,
           ui = args.ui,
           _manager = args._manager,
           collection_name = args.collection_name,
@@ -615,6 +620,453 @@ describe("filemanagercollection", function()
       assert.are.equal(1, #manager.coll_list.item_table)
       assert.are.equal("New Coll", manager.coll_list.item_table[1].name)
     end)
+  end)
+
+  describe("menu item callbacks and refreshFileManager", function()
+    it(
+      "should trigger favorites and collections callbacks from main menu",
+      function()
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        local menu_items = {}
+        manager:addToMainMenu(menu_items)
+
+        local show_coll_called = false
+        manager.onShowColl = function()
+          show_coll_called = true
+        end
+        menu_items.favorites.callback()
+        assert.is_true(show_coll_called)
+
+        local show_coll_list_called = false
+        manager.onShowCollList = function()
+          show_coll_list_called = true
+        end
+        menu_items.collections.callback()
+        assert.is_true(show_coll_list_called)
+      end
+    )
+
+    it("should refresh file manager when files_updated is true", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.files_updated = true
+      manager:refreshFileManager()
+      assert.spy(mock_ui.file_chooser.refreshPath).was.called()
+      assert.is_nil(manager.files_updated)
+    end)
+  end)
+
+  describe("coll_menu and coll_list lifecycle callbacks", function()
+    it("should test coll_menu buttons and recreate func", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager:onShowColl("favorites")
+      local menu = manager.coll_menu
+      assert.truthy(menu)
+
+      local dialog_shown = false
+      manager.showCollDialog = function()
+        dialog_shown = true
+      end
+      menu.onLeftButtonTap()
+      assert.is_true(dialog_shown)
+
+      local show_list = false
+      manager.onShowCollList = function()
+        show_list = true
+      end
+      menu.onReturn()
+      assert.is_true(show_list)
+
+      local recreated = false
+      manager.onShowColl = function(_self, name)
+        if name == "favorites" then
+          recreated = true
+        end
+      end
+      menu._recreate_func()
+      assert.is_true(recreated)
+
+      menu.close_callback()
+      assert.is_nil(manager.coll_menu)
+    end)
+
+    it("should test onCollListHold", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.selected_collections = nil
+      local mock_menu_inst = {
+        _manager = manager,
+        showWidget = function(self, w)
+          require("ui/uimanager"):show(w)
+        end,
+      }
+
+      -- Favorites is default and shouldn't show hold menu
+      local res = manager.onCollListHold(
+        mock_menu_inst,
+        { name = "favorites", text = "Favorites" }
+      )
+      assert.is_nil(res)
+
+      -- Select mode should also return
+      manager.selected_collections = { favorites = true }
+      res = manager.onCollListHold(
+        mock_menu_inst,
+        { name = "Sci-Fi", text = "Sci-Fi" }
+      )
+      assert.is_nil(res)
+
+      -- Normal mode for custom collection
+      manager.selected_collections = nil
+      local UIManager = require("ui/uimanager")
+      UIManager.show:clear()
+      manager.onCollListHold(
+        mock_menu_inst,
+        { name = "Sci-Fi", text = "Sci-Fi", idx = 2 }
+      )
+      assert.spy(UIManager.show).was.called(1)
+      local dialog = UIManager.getLastShownWidget()
+      assert.is_true(dialog.is_button_dialog)
+
+      -- Test remove collection button callback
+      local removed_item
+      manager.removeCollection = function(_self, itm)
+        removed_item = itm
+      end
+      dialog.buttons[1][1].callback()
+      assert.are.equal("Sci-Fi", removed_item.name)
+
+      -- Test rename collection button callback
+      local renamed_item
+      manager.renameCollection = function(_self, itm)
+        renamed_item = itm
+      end
+      dialog.buttons[1][2].callback()
+      assert.are.equal("Sci-Fi", renamed_item.name)
+    end)
+  end)
+
+  describe("showCollListDialog in various modes", function()
+    it("should handle no_dialog mode", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.selected_collections = { favorites = true }
+      local closed = false
+      manager.coll_list = {
+        close_callback = function(force)
+          if force then
+            closed = true
+          end
+        end,
+      }
+
+      local result
+      manager:showCollListDialog(function(sel)
+        result = sel
+      end, true)
+
+      assert.is_true(closed)
+      assert.are.same({ favorites = true }, result)
+    end)
+
+    it(
+      "should handle select mode dialog buttons: deselect, select all, apply, new collection",
+      function()
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        manager.selected_collections = { favorites = true }
+        local closed = false
+        manager.coll_list = {
+          item_table = {},
+          switchItemTable = spy.new(function() end),
+          close_callback = function(force)
+            if force then
+              closed = true
+            end
+          end,
+        }
+
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
+
+        local applied_sel
+        manager:showCollListDialog(function(sel)
+          applied_sel = sel
+        end, false)
+
+        local dialog = UIManager.getLastShownWidget()
+        assert.truthy(dialog)
+
+        -- New collection button
+        local add_called = false
+        manager.addCollection = function()
+          add_called = true
+        end
+        dialog.buttons[1][1].callback()
+        assert.is_true(add_called)
+
+        -- Deselect all button
+        dialog.buttons[3][1].callback()
+        assert.are.same({}, manager.selected_collections)
+
+        -- Select all button
+        dialog.buttons[3][2].callback()
+        assert.is_true(manager.selected_collections.favorites)
+        assert.is_true(manager.selected_collections["Sci-Fi"])
+
+        -- Apply selection button
+        dialog.buttons[4][1].callback()
+        assert.is_true(closed)
+        assert.truthy(applied_sel)
+      end
+    )
+
+    it(
+      "should handle normal mode dialog buttons: arrange collections",
+      function()
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        manager.selected_collections = nil
+        manager.coll_list = {
+          item_table = {},
+          switchItemTable = spy.new(function() end),
+        }
+
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
+
+        manager:showCollListDialog(nil, false)
+        local dialog = UIManager.getLastShownWidget()
+
+        local sort_called = false
+        manager.sortCollections = function()
+          sort_called = true
+        end
+        dialog.buttons[2][1].callback()
+        assert.is_true(sort_called)
+      end
+    )
+  end)
+
+  describe("rename, remove, sort and editCollectionName", function()
+    it("should handle renameCollection", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.coll_list = {
+        item_table = {
+          { name = "favorites", text = "Favorites", idx = 1 },
+          { name = "Sci-Fi", text = "Sci-Fi", idx = 2 },
+        },
+        switchItemTable = spy.new(function() end),
+      }
+
+      manager:renameCollection({ name = "Sci-Fi", idx = 2 })
+      local dialog = require("ui/uimanager").getLastShownWidget()
+      assert.truthy(dialog.is_input_dialog)
+
+      dialog.mock_input_value = "Science Fiction"
+      dialog.buttons[1][2].callback() -- Save
+
+      assert
+        .spy(mock_read_collection.renameCollection).was
+        .called_with(match._, "Sci-Fi", "Science Fiction")
+      assert.are.equal("Science Fiction", manager.coll_list.item_table[2].name)
+    end)
+
+    it("should handle removeCollection with confirmation", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.coll_list = {
+        item_table = {
+          { name = "favorites", text = "Favorites", idx = 1 },
+          { name = "Sci-Fi", text = "Sci-Fi", idx = 2 },
+        },
+        switchItemTable = spy.new(function() end),
+      }
+
+      manager:removeCollection({ name = "Sci-Fi", text = "Sci-Fi", idx = 2 })
+      local confirm = require("ui/uimanager").getLastShownWidget()
+      assert.truthy(confirm.is_confirm_box)
+      confirm.ok_callback()
+
+      assert
+        .spy(mock_read_collection.removeCollection).was
+        .called_with(match._, "Sci-Fi")
+      assert.are.equal(1, #manager.coll_list.item_table)
+      assert.is_true(manager.files_updated)
+    end)
+
+    it("should handle sortCollections", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.coll_list = {
+        item_table = {
+          { name = "favorites", order = 1 },
+          { name = "Sci-Fi", order = 2 },
+        },
+        switchItemTable = spy.new(function() end),
+      }
+
+      manager:sortCollections()
+      local sort_w = require("ui/uimanager").getLastShownWidget()
+      assert.truthy(sort_w.is_sort_widget)
+      sort_w.callback()
+      assert.spy(mock_read_collection.updateCollectionListOrder).was.called()
+    end)
+
+    it(
+      "should handle editCollectionName cancel and validation errors",
+      function()
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        local called_name = nil
+
+        manager:editCollectionName(function(n)
+          called_name = n
+        end, "Existing")
+
+        local dialog = require("ui/uimanager").getLastShownWidget()
+        -- Cancel button
+        dialog.buttons[1][1].callback()
+
+        -- Save with empty name (should do nothing)
+        dialog.mock_input_value = ""
+        dialog.buttons[1][2].callback()
+        assert.is_nil(called_name)
+
+        -- Save with same name (should do nothing)
+        dialog.mock_input_value = "Existing"
+        dialog.buttons[1][2].callback()
+        assert.is_nil(called_name)
+
+        -- Save with already existing collection
+        dialog.mock_input_value = "favorites"
+        dialog.buttons[1][2].callback()
+        local info = require("ui/uimanager").getLastShownWidget()
+        assert.truthy(info.is_info_message)
+        assert.is_nil(called_name)
+      end
+    )
+  end)
+
+  describe("genAddToCollectionButton", function()
+    it("should generate button and handle single file callback", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      local pre_called = false
+      local post_called = false
+      local btn = manager:genAddToCollectionButton(
+        "/books/book1.epub",
+        function()
+          pre_called = true
+        end,
+        function()
+          post_called = true
+        end
+      )
+
+      assert.truthy(btn)
+      assert.are.equal("Collections…", btn.text)
+
+      -- Mock onShowCollList to immediately invoke callback
+      manager.onShowCollList = function(_self, f, cb)
+        cb({ favorites = true, ["Sci-Fi"] = true })
+      end
+
+      btn.callback()
+      assert.is_true(pre_called)
+      assert.is_true(post_called)
+      assert.spy(mock_read_collection.addRemoveItemMultiple).was.called()
+    end)
+
+    it("should generate button and handle multiple files callback", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      local pre_called = false
+      local post_called = false
+      local files = { "/books/book1.epub", "/books/book2.pdf" }
+      local btn = manager:genAddToCollectionButton(files, function()
+        pre_called = true
+      end, function()
+        post_called = true
+      end)
+
+      manager.onShowCollList = function(_self, f, cb)
+        cb({ favorites = true })
+      end
+
+      btn.callback()
+      assert.is_true(pre_called)
+      assert.is_true(post_called)
+      assert.spy(mock_read_collection.addItemsMultiple).was.called()
+    end)
+  end)
+
+  describe("sortCollection and showCollDialog extra buttons", function()
+    it("should test sortCollection", function()
+      local manager = FileManagerCollection:new({ ui = mock_ui })
+      manager.coll_menu = mock_menu:new({
+        collection_name = "favorites",
+        updateItems = spy.new(function() end),
+      })
+
+      manager:sortCollection()
+      local sort_w = require("ui/uimanager").getLastShownWidget()
+      assert.truthy(sort_w.is_sort_widget)
+      sort_w.callback()
+      assert.spy(mock_read_collection.updateCollectionOrder).was.called()
+    end)
+
+    it(
+      "should test showCollDialog with open document and PathChooser",
+      function()
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        mock_ui.document = { file = "/books/book1.epub" }
+        mock_ui.doc_settings = {}
+        mock_ui.doc_props = { title = "Book 1" }
+        manager.coll_menu = mock_menu:new({
+          collection_name = "favorites",
+          close_callback = spy.new(function() end),
+          updateItems = spy.new(function() end),
+        })
+
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
+        manager:showCollDialog()
+
+        local dialog = UIManager.getLastShownWidget()
+        assert.truthy(dialog.is_button_dialog)
+
+        -- Check Collections button
+        local coll_list_shown = false
+        manager.onShowCollList = function()
+          coll_list_shown = true
+        end
+        dialog.buttons[1][1].callback()
+        assert.is_true(coll_list_shown)
+
+        -- Check Arrange books button
+        local sort_called = false
+        manager.sortCollection = function()
+          sort_called = true
+        end
+        dialog.buttons[3][1].callback()
+        assert.is_true(sort_called)
+
+        -- Check Add a book button
+        local PathChooser = {
+          new = function(self, args)
+            return {
+              is_path_chooser = true,
+              onConfirm = args.onConfirm,
+            }
+          end,
+        }
+        package.loaded["ui/widget/pathchooser"] = PathChooser
+        dialog.buttons[4][1].callback()
+        local chooser = UIManager.getLastShownWidget()
+        assert.truthy(chooser.is_path_chooser)
+        chooser.onConfirm("/books/book4.epub")
+        assert
+          .spy(mock_read_collection.addItem).was
+          .called_with(match._, "/books/book4.epub", "favorites")
+
+        -- Check Add/Remove current book button
+        local cur_book_btn = dialog.buttons[5][1]
+        assert.truthy(cur_book_btn)
+        cur_book_btn.callback()
+        assert.spy(mock_read_collection.removeItem).was.called()
+      end
+    )
   end)
 
   describe("uimanagedCleanUp", function()

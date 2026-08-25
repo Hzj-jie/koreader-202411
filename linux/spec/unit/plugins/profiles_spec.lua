@@ -508,5 +508,367 @@ describe("Profiles plugin", function()
       assert.is_table(sub_items)
       assert.is_true(#sub_items >= 4)
     end)
+
+    it("should test editProfileName dialog actions", function()
+      local show_stub = stub(UIManager, "show")
+      local close_stub = stub(UIManager, "close")
+      local edited_name
+      local edit_cb = function(name) edited_name = name end
+
+      profiles_instance.data = {
+        ["ExistingProfile"] = { settings = { name = "ExistingProfile" } }
+      }
+      profiles_instance.profiles.data = profiles_instance.data
+
+      profiles_instance:editProfileName(edit_cb, "OldName")
+      assert.stub(show_stub).was.called(1)
+      local dialog = show_stub.calls[1].vals[2]
+      assert.is_table(dialog)
+
+      -- Cancel button
+      dialog.buttons[1][1].callback()
+      assert.stub(close_stub).was.called(1)
+
+      -- Save button with same name (no-op)
+      dialog:setInputText("OldName")
+      dialog.buttons[1][2].callback()
+      assert.is_nil(edited_name)
+
+      -- Save button with existing name -> InfoMessage shown
+      local cb = dialog.buttons[1][2].callback
+      local _, captured_input = debug.getupvalue(cb, 1)
+      captured_input:setInputText("ExistingProfile")
+      dialog.buttons[1][2].callback()
+      assert.stub(show_stub).was.called(2) -- 1 for dialog, 1 for InfoMessage
+
+      -- Save button with new valid name -> calls editCallback
+      captured_input:setInputText("BrandNewProfile")
+      dialog.buttons[1][2].callback()
+      assert.are.equal("BrandNewProfile", edited_name)
+
+      show_stub:revert()
+      close_stub:revert()
+    end)
+
+    it("should exercise all getSubMenuItems callbacks and actions", function()
+      profiles_instance.profiles.data = {
+        ["P1"] = {
+          settings = { name = "P1", registered = true, notify = true, auto_exec_ask = true },
+          action1 = true,
+        },
+      }
+      profiles_instance.data = profiles_instance.profiles.data
+      profiles_instance.autoexec = {
+        Start = { P1 = true },
+      }
+
+      local mock_menu = {
+        item_table = {},
+        item_table_stack = { {} },
+        updateItems = stub(),
+        onExit = stub(),
+      }
+
+      local sub_items = profiles_instance:getSubMenuItems()
+      assert.is_table(sub_items)
+
+      local show_stub = stub(UIManager, "show")
+      local close_stub = stub(UIManager, "close")
+
+      -- 1. "New" button callback
+      sub_items[1].callback(mock_menu)
+      local new_dialog = show_stub.calls[#show_stub.calls].vals[2]
+      local _, new_input = debug.getupvalue(new_dialog.buttons[1][2].callback, 1)
+      new_input:setInputText("CreatedProfile")
+      new_dialog.buttons[1][2].callback()
+      assert.is_not_nil(profiles_instance.data["CreatedProfile"])
+
+      -- 2. "New with current book settings" callback
+      profiles_instance.ui.document = {
+        configurable = { rotation_mode = "portrait", contrast = 1.0, quality = 1 }
+      }
+      profiles_instance.document = profiles_instance.ui.document
+      sub_items[2].callback(mock_menu)
+      local book_dialog = show_stub.calls[#show_stub.calls].vals[2]
+      local _, book_input = debug.getupvalue(book_dialog.buttons[1][2].callback, 1)
+      book_input:setInputText("BookSettingProfile")
+      book_dialog.buttons[1][2].callback()
+      assert.is_not_nil(profiles_instance.data["BookSettingProfile"])
+
+      -- 3. Profile "P1" subitems
+      local p1_item = sub_items[#sub_items]
+      assert.is_table(p1_item.sub_item_table)
+
+      local p1_sub = p1_item.sub_item_table
+      -- Execute
+      p1_sub[1].callback(mock_menu)
+      -- Show as QuickMenu
+      p1_sub[2].callback(mock_menu)
+      -- Auto-execute checked & hold
+      assert.is_true(p1_sub[3].checked_func())
+      p1_sub[3].hold_callback(mock_menu)
+      assert.is_nil(profiles_instance.autoexec.Start)
+      -- Auto-execute sub-item table func
+      local auto_sub = p1_sub[3].sub_item_table_func()
+      assert.is_table(auto_sub)
+      assert.is_true(auto_sub[1].checked_func())
+      auto_sub[1].callback() -- toggle ask
+      assert.is_nil(profiles_instance.data.P1.settings.auto_exec_ask)
+
+      -- Show notification toggle
+      assert.is_true(p1_sub[4].checked_func())
+      p1_sub[4].callback()
+      assert.is_nil(profiles_instance.data.P1.settings.notify)
+
+      -- Show in action list toggle
+      assert.is_true(p1_sub[5].checked_func())
+      p1_sub[5].callback()
+      assert.is_nil(profiles_instance.data.P1.settings.registered)
+      p1_sub[5].callback()
+      assert.is_true(profiles_instance.data.P1.settings.registered)
+
+      -- Duplicate
+      profiles_instance.data["P1_Copy"] = nil
+      sub_items = profiles_instance:getSubMenuItems()
+      local p1_item_copy = sub_items[#sub_items]
+      if p1_item_copy and p1_item_copy.sub_item_table and p1_item_copy.sub_item_table[8] then
+        p1_item_copy.sub_item_table[8].callback(mock_menu)
+        local dup_dialog = show_stub.calls[#show_stub.calls].vals[2]
+        local _, dup_input = debug.getupvalue(dup_dialog.buttons[1][2].callback, 1)
+        dup_input:setInputText("P1_Copy")
+        dup_dialog.buttons[1][2].callback()
+        assert.is_not_nil(profiles_instance.data["P1_Copy"])
+      end
+
+      -- Rename
+      p1_sub[7].callback(mock_menu)
+      local rename_dialog = show_stub.calls[#show_stub.calls].vals[2]
+      local _, rename_input = debug.getupvalue(rename_dialog.buttons[1][2].callback, 1)
+      rename_input:setInputText("P1_Renamed")
+      rename_dialog.buttons[1][2].callback()
+      assert.is_nil(profiles_instance.data.P1)
+      assert.is_not_nil(profiles_instance.data.P1_Renamed)
+
+      -- Delete
+      local updated_sub_items = profiles_instance:getSubMenuItems()
+      local p1_renamed_item = updated_sub_items[#updated_sub_items]
+      p1_renamed_item.sub_item_table[9].callback(mock_menu)
+      local del_box = show_stub.calls[#show_stub.calls].vals[2]
+      assert.is_table(del_box)
+      del_box.ok_callback()
+      assert.is_nil(profiles_instance.data.P1_Renamed)
+
+      show_stub:revert()
+      close_stub:revert()
+    end)
+  end)
+
+  describe("AutoExec Triggers and Conditions", function()
+    it("should handle onStart, onResume, onSetRotationMode, and onPathChanged", function()
+      local show_stub = stub(UIManager, "show")
+      local next_tick_stub = stub(UIManager, "nextTick", function(self, fn) if type(self) == "function" then self() elseif fn then fn() end end)
+      local exec_stub = stub(Dispatcher, "execute")
+
+      profiles_instance.data = {
+        ["P_Rot"] = { settings = { name = "P_Rot" } },
+        ["P_Path"] = { settings = { name = "P_Path" } },
+        ["P_Ask"] = { settings = { name = "P_Ask", auto_exec_ask = true } },
+      }
+
+      profiles_instance.autoexec = {
+        Start = { P_Rot = true },
+        Resume = { P_Rot = true },
+        SetRotationMode = {
+          P_Rot = { [0] = true },
+          P_Ask = { [1] = true },
+        },
+        PathChanged = {
+          P_Path = { has = "books,novels", has_not = "ignore" },
+        },
+      }
+
+      -- onStart & onResume
+      profiles_instance:onStart()
+      profiles_instance:onResume()
+      profiles_instance:executeAutoExecEvent("Start")
+
+      -- onSetRotationMode
+      profiles_instance:onSetRotationMode(0)
+
+      -- onSetRotationMode with auto_exec_ask -> opens ConfirmBox
+      profiles_instance:onSetRotationMode(1)
+      local confirm_box = show_stub.calls[#show_stub.calls].vals[2]
+      if confirm_box and confirm_box.ok_callback then
+        confirm_box.ok_callback()
+      end
+
+      -- onPathChanged match
+      profiles_instance:onPathChanged("/sdcard/books/fiction")
+
+      show_stub:revert()
+      next_tick_stub:revert()
+      exec_stub:revert()
+    end)
+
+    it("should handle onReaderReady and onCloseDocument with all condition types", function()
+      local next_tick_stub = stub(UIManager, "nextTick", function(self, fn) if type(self) == "function" then self() elseif fn then fn() end end)
+      local exec_stub = stub(Dispatcher, "execute")
+      local ReadCollection = require("readcollection")
+      local coll_stub = stub(ReadCollection, "isFileInCollection", function(self, file, coll)
+        return coll == "Favorites"
+      end)
+
+      profiles_instance.data = {
+        ["P_Cond"] = { settings = { name = "P_Cond" } },
+      }
+
+      profiles_instance.ui.document = { file = "/books/test.epub" }
+      profiles_instance.ui.doc_props = { display_title = "My Novel", authors = "Author X" }
+      local rot_stub = stub(Screen, "getRotationMode", function() return 0 end)
+
+      profiles_instance.autoexec = {
+        ReaderReadyAll = {
+          P_Cond = {
+            orientation = { [0] = true },
+            doc_props = { title = "Novel" },
+            filepath = "test.epub",
+            collections = { Favorites = true },
+          },
+        },
+        CloseDocumentAll = {
+          P_Cond = {
+            filepath = "test.epub",
+          },
+        },
+      }
+
+      profiles_instance:onReaderReady()
+      profiles_instance:onCloseDocument()
+
+      rot_stub:revert()
+      coll_stub:revert()
+      next_tick_stub:revert()
+      exec_stub:revert()
+    end)
+
+    it("should generate and exercise all autoexec menu item types", function()
+      local show_stub = stub(UIManager, "show")
+      local mock_menu = { updateItems = stub() }
+
+      profiles_instance.autoexec = {}
+      profiles_instance.ui.bookinfo = {
+        props = { "title", "authors" },
+        prop_text = { title = "Title:", authors = "Authors:" },
+      }
+      profiles_instance.ui.collections = {
+        getCollectionTitle = function(self, id) return "Col_" .. id end,
+        onShowCollList = function(self, selected, cb) cb({ col1 = true }) end,
+      }
+      profiles_instance.ui.file_chooser = { path = "/sdcard/books" }
+      profiles_instance.ui.document = { file = "/sdcard/books/book.epub" }
+      profiles_instance.ui.doc_props = { display_title = "Book Title", authors = "Author" }
+
+      -- 1. SetRotationMode menu
+      local rot_item = profiles_instance:genAutoExecMenuItem("Rotation", "SetRotationMode", "P1")
+      assert.is_table(rot_item)
+      local rot_subs = rot_item.sub_item_table_func()
+      assert.is_table(rot_subs)
+      rot_subs[1].callback()
+      rot_subs[1].callback()
+      rot_item.hold_callback(mock_menu)
+
+      -- 2. PathChanged menu
+      local path_item = profiles_instance:genAutoExecMenuItem("Path", "PathChanged", "P1")
+      assert.is_table(path_item)
+      local path_subs = path_item.sub_item_table_func()
+      assert.is_table(path_subs)
+      assert.is_string(path_subs[1].text_func())
+      path_subs[1].callback(mock_menu)
+      local path_dlg = show_stub.calls[#show_stub.calls].vals[2]
+      -- Current folder button
+      path_dlg.buttons[1][1].callback()
+      -- Save button with text
+      path_dlg.getInputText = function() return "/sdcard/books" end
+      path_dlg.buttons[2][2].callback()
+      -- Save button empty (removes)
+      path_subs[1].callback(mock_menu)
+      path_dlg = show_stub.calls[#show_stub.calls].vals[2]
+      path_dlg.getInputText = function() return "" end
+      path_dlg.buttons[2][2].callback()
+      path_item.hold_callback(mock_menu)
+
+      -- 3. ReaderReadyAll doc conditional menu
+      local doc_item = profiles_instance:genAutoExecMenuItem("Reader Ready", "ReaderReadyAll", "P1")
+      assert.is_table(doc_item)
+      local doc_subs = doc_item.sub_item_table_func()
+      assert.is_table(doc_subs)
+
+      -- 3a. orientation
+      local orient_subs = doc_subs[2].sub_item_table_func()
+      orient_subs[1].callback()
+      orient_subs[1].callback()
+      doc_subs[2].hold_callback(mock_menu)
+
+      -- 3b. doc_props
+      local props_subs = doc_subs[3].sub_item_table_func()
+      assert.is_string(props_subs[1].text_func())
+      props_subs[1].callback(mock_menu)
+      local prop_dlg = show_stub.calls[#show_stub.calls].vals[2]
+      prop_dlg.buttons[1][1].callback() -- current book button
+      prop_dlg.getInputText = function() return "Novel" end
+      prop_dlg.buttons[2][2].callback()
+      props_subs[1].hold_callback(mock_menu)
+      doc_subs[3].hold_callback(mock_menu)
+
+      -- 3c. filepath
+      assert.is_string(doc_subs[4].text_func())
+      doc_subs[4].callback(mock_menu)
+      local file_dlg = show_stub.calls[#show_stub.calls].vals[2]
+      file_dlg.buttons[1][1].callback() -- current book
+      file_dlg.getInputText = function() return "book.epub" end
+      file_dlg.buttons[2][2].callback()
+      doc_subs[4].hold_callback(mock_menu)
+
+      -- 3d. collections
+      assert.is_string(doc_subs[5].text_func())
+      doc_subs[5].callback(mock_menu)
+      doc_subs[5].hold_callback(mock_menu)
+
+      -- Parent hold callback
+      doc_item.hold_callback(mock_menu)
+
+      show_stub:revert()
+    end)
+
+    it("should handle getProfileFromCurrentBookSettings and updateProfiles with gestures", function()
+      profiles_instance.ui.rolling = true
+      profiles_instance.ui.font = { font_face = "FreeSerif" }
+      profiles_instance.document = {
+        configurable = {
+          rotation_mode = 0,
+          font_size = 20,
+          line_spacing = 100,
+          render_dpi = 300,
+        },
+      }
+
+      local rolling_prof = profiles_instance:getProfileFromCurrentBookSettings("RollingProfile")
+      assert.is_table(rolling_prof)
+      assert.are.equal("FreeSerif", rolling_prof.set_font)
+
+      -- updateProfiles with gestures
+      local gesture_stub = stub()
+      profiles_instance.ui.gestures = { updateProfiles = gesture_stub }
+      profiles_instance.data = {
+        ["ProfA"] = {
+          settings = { order = { "action_old" } },
+          action_old = true,
+        },
+      }
+      profiles_instance:updateProfiles("action_old", "action_new")
+      assert.is_true(profiles_instance.data.ProfA.action_new)
+      assert.is_nil(profiles_instance.data.ProfA.action_old)
+      assert.stub(gesture_stub).was.called()
+    end)
   end)
 end)

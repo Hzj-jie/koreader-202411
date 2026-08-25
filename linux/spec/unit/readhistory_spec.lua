@@ -388,4 +388,98 @@ describe("ReadHistory module", function()
       G_reader_settings:delete("autoremove_deleted_items_from_history")
     end
   )
+
+  it("handles getPreviousFile and getFileByDirectory", function()
+    rm(file("history.lua"))
+    local h = reload()
+    touch(test_file("book1.epub"))
+    touch(test_file("book2.epub"))
+    h:addItem(test_file("book1.epub"), now)
+    now = now + 61
+    h:addItem(test_file("book2.epub"), now)
+
+    -- getPreviousFile
+    local prev = h:getPreviousFile(test_file("book2.epub"))
+    assert.is_truthy(prev)
+    assert.are.equal(realpath(test_file("book1.epub")), prev)
+
+    -- getFileByDirectory
+    local found = h:getFileByDirectory(test_data_dir(), false)
+    assert.is_truthy(found)
+
+    rm(test_file("book1.epub"))
+    rm(test_file("book2.epub"))
+  end)
+
+  it("handles updateItem, updateItems, and updateItemsByPath", function()
+    rm(file("history.lua"))
+    local h = reload()
+    touch(test_file("orig1.epub"))
+    touch(test_file("orig2.epub"))
+    h:addItem(test_file("orig1.epub"), now)
+    h:addItem(test_file("orig2.epub"), now)
+
+    -- updateItem
+    h:updateItem(test_file("orig1.epub"), test_file("renamed1.epub"))
+    assert.are.equal(1, h:getIndexByFile(test_file("renamed1.epub")) or 2)
+
+    -- updateItems
+    local file_map = {}
+    file_map[test_file("orig2.epub")] = true
+    h:updateItems(file_map, test_data_dir())
+
+    -- updateItemsByPath
+    h:updateItemsByPath(test_data_dir(), test_data_dir())
+
+    rm(test_file("orig1.epub"))
+    rm(test_file("orig2.epub"))
+  end)
+
+  it("handles fileDeleted, folderDeleted, removeItems, fileSettingsPurged, clearMissing", function()
+    rm(file("history.lua"))
+    local h = reload()
+    touch(test_file("del1.epub"))
+    touch(test_file("del2.epub"))
+    h:addItem(test_file("del1.epub"), now)
+    h:addItem(test_file("del2.epub"), now)
+
+    -- fileSettingsPurged
+    h:fileSettingsPurged(test_file("del1.epub"))
+
+    -- removeItems
+    local to_del = {}
+    to_del[test_file("del2.epub")] = true
+    h:removeItems(to_del)
+
+    -- folderDeleted
+    touch(test_file("folder_doc.epub"))
+    h:addItem(test_file("folder_doc.epub"), now)
+    h:folderDeleted(test_data_dir())
+
+    -- clearMissing
+    h:clearMissing()
+
+    rm(test_file("del1.epub"))
+    rm(test_file("del2.epub"))
+    rm(test_file("folder_doc.epub"))
+  end)
+
+  it("handles ignoreFile, updateLastBookTime, and updateDateTimeString", function()
+    rm(file("history.lua"))
+    local h = reload()
+    touch(test_file("ignore_me.epub"))
+    h:addItem(test_file("ignore_me.epub"), now)
+    assert.are.equal(1, #h.hist)
+
+    assert.is_true(h:ignoreFile("crash.log"))
+    assert.is_true(h:ignoreFile("quickstart-guide.html"))
+    assert.is_false(h:ignoreFile("regular_book.epub"))
+
+    h:updateLastBookTime(true)
+    h:updateDateTimeString()
+
+    rm(test_file("ignore_me.epub"))
+  end)
 end)
+
+

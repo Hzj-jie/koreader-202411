@@ -642,4 +642,37 @@ describe("ConfigDialog", function()
       dialog:closeDialog()
     end
   )
+
+  it("should handle direct tap and hold events on config panel option items", function()
+    local dialog = ConfigDialog:new({
+      config_options = mock_options,
+      configurable = mock_configurable,
+    })
+
+    UIManager:show(dialog)
+    UIManager:forceRepaint()
+
+    -- Helper to recursively trigger onTapSelect and onHoldSelect on option items
+    local function triggerItemEvents(widget)
+      if type(widget) ~= "table" then return end
+      if widget.onTapSelect then
+        pcall(function() widget:onTapSelect(true) end)
+      end
+      if widget.onHoldSelect then
+        pcall(function() widget:onHoldSelect() end)
+      end
+      for _, child in ipairs(widget) do
+        triggerItemEvents(child)
+      end
+    end
+
+    triggerItemEvents(dialog.config_panel)
+
+    -- Switch to tab 2 and trigger
+    dialog:showConfigPanel(2)
+    triggerItemEvents(dialog.config_panel)
+
+    dialog:closeDialog()
+  end)
 end)
+

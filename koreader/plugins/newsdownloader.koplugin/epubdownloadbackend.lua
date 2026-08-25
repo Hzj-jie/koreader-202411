@@ -178,7 +178,7 @@ local function getUrlContent(url, cookies, timeout, maxtime, redirectCount)
   if not redirectCount then
     redirectCount = 0
   elseif redirectCount == max_redirects then
-    error("EpubDownloadBackend: reached max redirects: ", redirectCount)
+    error("EpubDownloadBackend: reached max redirects: " .. tostring(redirectCount))
   end
 
   if not timeout then
@@ -231,12 +231,7 @@ local function getUrlContent(url, cookies, timeout, maxtime, redirectCount)
         redirected_url = socket_url.build(parsed_redirect_location)
       end
       logger.dbg("getUrlContent: Redirecting to url: ", redirected_url)
-      return getUrlContent(redirected_url, timeout, maxtime, redirectCount + 1)
-    else
-      error(
-        "EpubDownloadBackend: Don't know how to handle HTTP response status:",
-        status or code
-      )
+      return getUrlContent(redirected_url, cookies, timeout, maxtime, redirectCount + 1)
     end
     logger.warn("HTTP status not okay:", status or code)
     return false, "Remote server error or unavailable"
@@ -288,7 +283,7 @@ function EpubDownloadBackend:getResponseAsString(url, cookies)
   if success then
     return content
   else
-    error("Failed to download content for url:", url)
+    error("Failed to download content for url: " .. tostring(url))
   end
 end
 

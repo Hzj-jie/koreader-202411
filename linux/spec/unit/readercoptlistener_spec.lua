@@ -82,12 +82,107 @@ describe("ReaderCoptListener module", function()
       ui = mock_ui,
     })
 
-    if type(listener.onReadSettings) == "function" then
-      listener:onReadSettings({})
-    end
-
     if type(listener.onReaderReady) == "function" then
       listener:onReaderReady()
     end
   end)
+
+  it("should test getAltStatusBarMenu items and callbacks", function()
+    local sample_epub = "spec/front/unit/data/leaves.epub"
+    local doc = DocumentRegistry:openDocument(sample_epub)
+    local listener = ReaderCoptListener:new({
+      document = doc,
+      view = { view_mode = "page" },
+      showWidget = function() end,
+      ui = {
+        view = {
+          footer = {
+            pageno = 1,
+            settings = { progress_pct_format = "0" },
+          },
+        },
+        document = doc,
+        rolling = {
+          updateBatteryState = function()
+            return 100
+          end,
+        },
+        doc_settings = {
+          read = function()
+            return nil
+          end,
+        },
+        doc_props = {},
+      },
+    })
+    listener:onReadSettings({})
+
+    local menu = listener:getAltStatusBarMenu()
+    assert.truthy(menu)
+    assert.truthy(menu.sub_item_table)
+
+    -- Toggle each menu item and test checked_func/text_func
+    for _, item in ipairs(menu.sub_item_table) do
+      if item.checked_func then
+        pcall(item.checked_func)
+      end
+      if item.text_func then
+        pcall(item.text_func)
+      end
+      if item.callback then
+        pcall(item.callback)
+      end
+      if item.sub_item_table then
+        for _, sub in ipairs(item.sub_item_table) do
+          if sub.checked_func then
+            pcall(sub.checked_func)
+          end
+          if sub.callback then
+            pcall(sub.callback)
+          end
+        end
+      end
+    end
+
+    -- Additional header content
+    local test_fn = function()
+      return "HEADER"
+    end
+    assert.is_true(listener:addAdditionalHeaderContent(test_fn))
+    assert.is_false(listener:addAdditionalHeaderContent(test_fn))
+
+    -- Test page_info_override
+    listener.page_number = 1
+    listener.page_count = 1
+    listener.reading_percent = 1
+    listener.battery = 1
+    listener.battery_percent = 1
+    listener.clock = 1
+    local pinfo = listener:page_info_override()
+    assert.is_boolean(pinfo)
+    listener:page_info_override(1)
+
+    -- Test header update and clock/battery events
+    listener:_updateHeader(true)
+    listener:onUpdateHeader()
+    listener:onTimeFormatChanged()
+    listener:onBookMetadataChanged("title")
+    listener:onPageUpdate(1)
+    listener:onPosUpdate(1, 1)
+
+    assert.is_true(listener:removeAdditionalHeaderContent(test_fn))
+    assert.is_false(listener:removeAdditionalHeaderContent(test_fn))
+
+    -- Charging and screensaver handlers
+    listener:onCharging()
+    listener:onResume()
+    listener:onOutOfScreenSaver()
+
+    -- Config change
+    listener:onConfigChange("font_size", 20)
+    listener:onConfigChange("font_size", 2) -- ignored when < 5
+
+    doc:close()
+  end)
 end)
+

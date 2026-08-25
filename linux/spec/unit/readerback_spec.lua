@@ -71,4 +71,64 @@ describe("ReaderBack module", function()
     table.insert(readerback.location_stack, { { page = 1 } })
     assert.is_true(readerback:onBack())
   end)
+
+  it("should test different back_in_reader and back_to_exit options", function()
+    local mock_ui = {
+      document = { info = { has_pages = false } },
+      rolling = {
+        getBookLocation = function()
+          return "/1/2"
+        end,
+      },
+      link = {
+        onGoBackLink = function(notify)
+          return false
+        end,
+      },
+      showWidget = function() end,
+      key_events = {},
+    }
+    local readerback = ReaderBack:new({
+      ui = mock_ui,
+      showWidget = function() end,
+    })
+    readerback:onReadSettings()
+
+    -- Test _addPreviousLocationToStack and stack capping
+    readerback.cur_location = { xpointer = "/1/1" }
+    readerback:_addPreviousLocationToStack()
+    assert.is.same(1, #readerback.location_stack)
+
+    -- Test adding same location (should be ignored)
+    readerback:_addPreviousLocationToStack()
+    assert.is.same(1, #readerback.location_stack)
+
+    -- Test event hooks
+    readerback:onReaderReady()
+    readerback:onPageUpdate()
+    readerback:onPosUpdate()
+    readerback:onViewRecalculate()
+    readerback:onPagePositionUpdated()
+
+    -- Test back_in_reader == "previous_location"
+    G_reader_settings:save("back_in_reader", "previous_location")
+    G_reader_settings:save("back_to_exit", "disable")
+    assert.is_true(readerback:onBack())
+
+    -- Test back_in_reader == "filebrowser"
+    G_reader_settings:save("back_in_reader", "filebrowser")
+    assert.is_true(readerback:onBack())
+
+    -- Test back_to_exit == "prompt"
+    G_reader_settings:save("back_in_reader", "default")
+    G_reader_settings:save("back_to_exit", "prompt")
+    assert.is_true(readerback:onBack())
+
+    -- Test back_to_exit == "always"
+    G_reader_settings:save("back_to_exit", "always")
+    assert.is_true(readerback:onBack())
+
+    G_reader_settings:delete("back_in_reader")
+    G_reader_settings:delete("back_to_exit")
+  end)
 end)

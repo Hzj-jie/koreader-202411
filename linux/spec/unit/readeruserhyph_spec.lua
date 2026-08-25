@@ -75,6 +75,106 @@ describe("ReaderUserHyph module", function()
     hyph:updateDictionary("apple", "ap-ple")
     hyph:scrubDictionary()
 
+    -- Multiple hyphen modifications
+    hyph:updateDictionary("apple", "ap-p-le")
+    hyph:updateDictionary("apple", nil) -- deletion
+
     os.remove(tmp_file)
+  end)
+
+  it("should handle modifyUserEntry dialog workflow", function()
+    local sample_epub = "spec/front/unit/data/leaves.epub"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+
+    local userhyph = readerui.userhyph or ReaderUserHyph:new({ ui = readerui })
+
+    local shown_widget
+    local UIManager = require("ui/uimanager")
+    local orig_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    userhyph:modifyUserEntry("multi word test") -- space -> ignored
+    assert.is_nil(shown_widget)
+
+    userhyph:modifyUserEntry("hyphenation")
+    assert.is_not_nil(shown_widget)
+
+    -- Test buttons in InputDialog
+    if shown_widget and shown_widget.buttons then
+      local btn_cancel = shown_widget.buttons[1][1]
+      local btn_remove = shown_widget.buttons[1][2]
+      local btn_save = shown_widget.buttons[1][3]
+
+      -- Cancel
+      if btn_cancel and btn_cancel.callback then
+        btn_cancel.callback()
+      end
+
+      -- Remove
+      if btn_remove and btn_remove.callback then
+        btn_remove.callback()
+      end
+
+      -- Save valid changed suggestion
+      shown_widget._input_text = "hy-phen-a-tion"
+      shown_widget.getInputText = function() return "hy-phen-a-tion" end
+      if btn_save and btn_save.callback then
+        btn_save.callback()
+      end
+
+      -- Save unchanged suggestion
+      shown_widget._input_text = shown_widget.old_hyph_lowercase
+      shown_widget.getInputText = function() return shown_widget.old_hyph_lowercase end
+      if btn_save and btn_save.callback then
+        btn_save.callback()
+      end
+
+      -- Save invalid suggestion
+      shown_widget._input_text = "invalid--word"
+      shown_widget.getInputText = function() return "invalid--word" end
+      if btn_save and btn_save.callback then
+        btn_save.callback()
+      end
+    end
+
+    -- Test loadDictionary error handling
+    local credoc = require("document/credocument")
+    local cre = credoc:engineInit()
+    local orig_set = cre.setUserHyphenationDict
+
+    local tmp_hyph = os.tmpname()
+    local f = io.open(tmp_hyph, "w")
+    f:write("word;w-ord\n")
+    f:close()
+
+    G_reader_settings:save("hyph_user_dict", true)
+
+    -- Test USER_DICT_ERROR_NOT_SORTED
+    cre.setUserHyphenationDict = function() return userhyph.USER_DICT_ERROR_NOT_SORTED end
+    userhyph:loadDictionary(tmp_hyph, true, false)
+    userhyph:loadDictionary(tmp_hyph, true, true)
+
+    -- Test USER_DICT_MALFORMED
+    cre.setUserHyphenationDict = function() return userhyph.USER_DICT_MALFORMED end
+    userhyph:loadDictionary(tmp_hyph, true, false)
+
+    -- Test reset user hyphenation dict
+    G_reader_settings:save("hyph_user_dict", false)
+    userhyph:loadDictionary(tmp_hyph, true, false)
+
+    cre.setUserHyphenationDict = orig_set
+    os.remove(tmp_hyph)
+
+    -- Test language change event
+    userhyph:onTypographyLanguageChanged()
+
+    UIManager.show = orig_show
+    readerui:onExit()
+    readerui:onClose()
   end)
 end)

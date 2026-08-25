@@ -49,7 +49,7 @@ describe("ReaderDeviceStatus", function()
       total_standby_time = 0,
       total_suspend_time = 0,
       _UIManagerReady = function() end,
-      input = {},
+      input = { group = { Any = "Any" } },
       screen = {
         getSize = function()
           return { w = 600, h = 800 }
@@ -124,6 +124,10 @@ describe("ReaderDeviceStatus", function()
       scheduleIn = spy.new(function(self, delay, func)
         scheduled_funcs[delay] = func
       end),
+      nextTick = spy.new(function(self, func)
+        func()
+      end),
+      broadcastEvent = spy.new(function(self, event) end),
       unschedule = spy.new(function(self, func)
         for delay, f in pairs(scheduled_funcs) do
           if f == func then
@@ -145,6 +149,9 @@ describe("ReaderDeviceStatus", function()
       end,
       isWindowWidget = function()
         return true
+      end,
+      topdown_windows_iter = function()
+        return function() return nil end
       end,
     }
     package.loaded["ui/uimanager"] = UIManager
@@ -298,4 +305,108 @@ describe("ReaderDeviceStatus", function()
       io.open = original_io_open
     end
   )
+
+  it("should handle critical battery and high battery alerts", function()
+    local rds = ReaderDeviceStatus:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+
+    -- Critical battery (<= 5) with canSuspend
+    mock_device.canSuspend = function() return true end
+    mock_powerd.getCapacity = function() return 3 end
+    mock_powerd.isCharging = function() return false end
+    UIManager.suspend = spy.new(function() end)
+
+    rds:_checkBatteryStatus()
+    local crit_dialog = UIManager.getLastShownWidget()
+    assert.truthy(crit_dialog)
+    local scheduled = UIManager.getScheduledFuncs()
+    assert.truthy(scheduled[3])
+    scheduled[3]()
+    assert.spy(UIManager.suspend).was.called(1)
+    mock_device.canSuspend = function() return false end
+
+    -- Reset dismissed state with normal battery
+    mock_powerd.getCapacity = function() return 50 end
+    mock_powerd.isCharging = function() return false end
+    rds:_checkBatteryStatus()
+
+    -- High battery (> threshold_high = 95) while charging
+    mock_powerd.isCharging = function() return true end
+    mock_powerd.getCapacity = function() return 98 end
+    rds:_checkBatteryStatus()
+    local high_dialog = UIManager.getLastShownWidget()
+    assert.truthy(high_dialog)
+    if high_dialog.ok_callback then
+      high_dialog.ok_callback()
+    end
+
+    -- Reset dismissed when charge <= 95
+    mock_powerd.getCapacity = function() return 90 end
+    rds:_checkBatteryStatus()
+
+    -- onTimesChange_5M
+    _G.G_reader_settings.isTrue = function(self, key) return true end
+    rds:onTimesChange_5M()
+  end)
+
+  it("should handle memory auto-restart and menu callbacks", function()
+    local rds = ReaderDeviceStatus:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+
+    can_restart = true
+    local original_io_open = io.open
+    io.open = function(path, mode)
+      if path == "/proc/self/statm" then
+        return {
+          read = function() return 100000, 51200 end,
+          close = function() end,
+        }
+      end
+      return original_io_open(path, mode)
+    end
+
+    -- Test auto-restart when top widget is ReaderUI
+    UIManager.getTopmostVisibleWidget = function() return { name = "ReaderUI" } end
+    _G.G_reader_settings.isTrue = function(self, key) return true end
+    rds:_checkMemoryStatus()
+    local restart_dialog = UIManager.getLastShownWidget()
+    assert.truthy(restart_dialog)
+    local scheduled = UIManager.getScheduledFuncs()
+    if scheduled[3] then scheduled[3]() end
+
+    -- Test addToMainMenu items
+    local menu_items = {}
+    rds:addToMainMenu(menu_items)
+    assert.truthy(menu_items.device_status_alarm)
+
+    _G.G_reader_settings.flipNilOrFalse = spy.new(function() end)
+    _G.G_reader_settings.save = spy.new(function() end)
+    local mock_menu = { updateItems = function() end }
+
+    for _, item in ipairs(menu_items.device_status_alarm.sub_item_table) do
+      if item.text_func then item:text_func() end
+      if item.enabled_func then item:enabled_func() end
+      if item.checked_func then item:checked_func() end
+      if item.callback then
+        item.callback(mock_menu)
+        local top = UIManager.getLastShownWidget()
+        if top and top.callback then
+          if top.left_value then
+            top.callback(15, 90)
+          elseif top.value then
+            top.callback({ value = 150 })
+          end
+        end
+      end
+    end
+
+    can_restart = false
+    io.open = original_io_open
+  end)
 end)

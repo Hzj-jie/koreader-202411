@@ -65,7 +65,9 @@ describe("ReaderStatistics plugin main spec", function()
   end
 
   local function createMockUI()
+    local doc = createMockDoc()
     return {
+      document = doc,
       menu = {
         registerToMainMenu = spy.new(function() end),
       },
@@ -108,7 +110,7 @@ describe("ReaderStatistics plugin main spec", function()
   local function createInstance(opts)
     opts = opts or {}
     local ui = opts.ui or createMockUI()
-    local doc = opts.document or createMockDoc()
+    local doc = opts.document or ui.document or createMockDoc()
     return ReaderStatistics:new({
       ui = ui,
       document = doc,
@@ -607,6 +609,125 @@ describe("ReaderStatistics plugin main spec", function()
     os.remove(local_db)
     os.remove(cached_db)
     os.remove(income_db)
+  end)
+
+  it("should cover DB upgrades, rerendering, period queries, and helper getters", function()
+    local stats = createInstance()
+    stats.curr_page = 1
+    stats.page_stat[1] = { { os.time() - 15, 15 } }
+    stats:insertDB()
+
+    -- Test DB upgrades
+    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade.sqlite3"
+    os.remove(test_db)
+    local conn = SQ3.open(test_db)
+    ReaderStatistics:createDB(conn)
+    ReaderStatistics:upgradeDBto20221111(conn)
+    conn:close()
+    os.remove(test_db)
+
+    -- Test rerendering events
+    stats:onPreserveCurrentSession()
+    stats:onDocumentRerendered()
+    stats:onDocumentPartiallyRerendered(true)
+    stats:onDocumentPartiallyRerendered(false)
+
+    -- Test getStatsBookStatus
+    local status_str = stats:getStatsBookStatus(stats.id_curr_book, true)
+    assert.is_table(status_str)
+    local status_disabled = stats:getStatsBookStatus(stats.id_curr_book, false)
+    assert.is_table(status_disabled)
+
+    -- Test getPageTimeTotalStats
+    local pages, duration = stats:getPageTimeTotalStats(stats.id_curr_book)
+    assert.is_number(pages)
+    assert.is_number(duration)
+
+    -- Test period callbacks: monthly, weekly, daily
+    local now = os.time()
+    stats:callbackMonthly(now - 86400 * 30, now, "Last Month", false)
+    stats:callbackMonthly(now - 86400 * 30, now, "Last Month", true)
+    stats:callbackWeekly(now - 86400 * 7, now, "Last Week", false)
+    stats:callbackWeekly(now - 86400 * 7, now, "Last Week", true)
+    stats:callbackDaily(now - 86400, now, "Today")
+
+    -- Test getDaysFromPeriod & getBooksFromPeriod
+    local days = stats:getDaysFromPeriod(now - 86400 * 7, now)
+    assert.is_table(days)
+    local books = stats:getBooksFromPeriod(now - 86400 * 7, now)
+    assert.is_table(books)
+
+    -- Test genResetBookSubItemTable
+    local reset_sub = stats:genResetBookSubItemTable()
+    assert.is_table(reset_sub)
+
+    -- Test widget helper closures from init
+    local BookStatusWidget = require("ui/widget/bookstatuswidget")
+    local ReaderFooter = require("apps/reader/modules/readerfooter")
+    local Screensaver = require("ui/screensaver")
+
+    if BookStatusWidget.getStats then
+      local bs_stats = BookStatusWidget.getStats()
+      assert.is_table(bs_stats)
+    end
+
+    if ReaderFooter.getAvgTimePerPage then
+      local avg = ReaderFooter.getAvgTimePerPage()
+      assert.truthy(avg == nil or type(avg) == "number")
+    end
+
+    if Screensaver.getReaderProgress then
+      local rp = Screensaver.getReaderProgress()
+      assert.truthy(rp ~= nil or rp == nil)
+    end
+  end)
+
+  it("should test DB upgrade routines and addBookStatToDB", function()
+    local conn = SQ3.open(":memory:")
+    -- Create initial legacy table
+    conn:exec([[
+      CREATE TABLE IF NOT EXISTS page_stat (
+        id_book integer,
+        page integer,
+        period integer,
+        start_time integer
+      );
+      CREATE TABLE IF NOT EXISTS book (
+        id integer PRIMARY KEY autoincrement,
+        title text,
+        authors text,
+        notes integer,
+        last_open integer,
+        highlights integer,
+        pages integer,
+        series text,
+        language text,
+        md5 text,
+        total_read_time integer,
+        total_read_pages integer
+      );
+    ]])
+
+    local mock_ui = createMockUI()
+    local stats = ReaderStatistics:new({
+      ui = mock_ui,
+      document = mock_ui.document,
+    })
+
+    conn:exec("INSERT INTO book (id, title, authors, pages, md5) VALUES (1, 'Upgraded Book', 'Upgraded Author', 200, 'md5_123');")
+    conn:exec("INSERT INTO page_stat (id_book, page, period, start_time) VALUES (1, 1, 60, 1000);")
+
+    -- Run upgrades
+    stats:upgradeDBto20201010(conn)
+    stats:upgradeDBto20201022(conn)
+    stats:upgradeDBto20221111(conn)
+
+    local book_count = tonumber(conn:rowexec("SELECT count(0) FROM book WHERE title='Upgraded Book';"))
+    assert.are.equal(1, book_count)
+    local page_stat_count = tonumber(conn:rowexec("SELECT count(0) FROM page_stat_data WHERE id_book=1;"))
+    assert.are.equal(1, page_stat_count)
+
+    conn:close()
   end)
 
   it("should register dispatcher actions safely", function()

@@ -153,5 +153,62 @@ describe("ReadCollection module", function()
       assert.are.equal("/mock/path/mock-file-a.epub", new_ordered[1].file)
       assert.are.equal("/mock/path/mock-file-b.epub", new_ordered[2].file)
     end)
+
+    it("should update collection list order", function()
+      ReadCollection:addCollection("coll_x")
+      ReadCollection:addCollection("coll_y")
+      local list = { { name = "coll_y" }, { name = "coll_x" } }
+      ReadCollection:updateCollectionListOrder(list)
+      assert.are.equal(1, ReadCollection.coll_order["coll_y"])
+      assert.are.equal(2, ReadCollection.coll_order["coll_x"])
+    end)
+  end)
+
+  describe("Batch Operations", function()
+    before_each(function()
+      ReadCollection:addCollection("batch_coll1")
+      ReadCollection:addCollection("batch_coll2")
+    end)
+
+    it("should addRemoveItemMultiple and addItemsMultiple", function()
+      local mock_file = "mock-batch-1.epub"
+      ReadCollection:addRemoveItemMultiple(mock_file, { batch_coll1 = true, batch_coll2 = true })
+      assert.is_true(ReadCollection:isFileInCollection(mock_file, "batch_coll1"))
+      assert.is_true(ReadCollection:isFileInCollection(mock_file, "batch_coll2"))
+
+      -- Remove from batch_coll2 by omitting it from table
+      ReadCollection:addRemoveItemMultiple(mock_file, { batch_coll1 = true })
+      assert.is_true(ReadCollection:isFileInCollection(mock_file, "batch_coll1"))
+      assert.is_false(ReadCollection:isFileInCollection(mock_file, "batch_coll2"))
+
+      -- addItemsMultiple
+      local files = { ["mock-batch-2.epub"] = true, ["mock-batch-3.epub"] = true }
+      ReadCollection:addItemsMultiple(files, { batch_coll2 = true })
+      assert.is_true(ReadCollection:isFileInCollection("mock-batch-2.epub", "batch_coll2"))
+      assert.is_true(ReadCollection:isFileInCollection("mock-batch-3.epub", "batch_coll2"))
+    end)
+
+    it("should removeItems and removeItemsByPath", function()
+      ReadCollection:addItem("mock-del-1.epub", "batch_coll1")
+      ReadCollection:addItem("mock-del-2.epub", "batch_coll1")
+
+      local files = { ["mock-del-1.epub"] = true }
+      ReadCollection:removeItems(files)
+      assert.is_false(ReadCollection:isFileInCollection("mock-del-1.epub", "batch_coll1"))
+      assert.is_true(ReadCollection:isFileInCollection("mock-del-2.epub", "batch_coll1"))
+
+      ReadCollection:removeItemsByPath("/mock/path")
+      assert.is_false(ReadCollection:isFileInCollection("mock-del-2.epub", "batch_coll1"))
+    end)
+
+    it("should updateItems and updateItemsByPath", function()
+      ReadCollection:addItem("mock-mv-1.epub", "batch_coll1")
+      local files = { ["mock-mv-1.epub"] = true }
+      ReadCollection:updateItems(files, "/mock/new_path")
+
+      ReadCollection:addItem("mock-mv-2.epub", "batch_coll1")
+      ReadCollection:updateItemsByPath("/mock/path", "/mock/folder_path")
+    end)
   end)
 end)
+
