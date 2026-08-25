@@ -12,18 +12,19 @@ describe("Translator module", function()
     orig_http_request = http.request
     http.request = function(request)
       local url_str = type(request) == "table" and request.url or request
-      if type(request) == "table" and url_str then
-        if string.find(url_str, "translate.googleapis.com") then
-          local response_json =
-            [=[[[["Wikipedia is a multilingual encyclopedia, the content of which is freely available. Anyone can add knowledge here!", "Wikipedia is een meertalige encyclopedie, waarvan de inhoud vrij beschikbaar is. Iedereen kan hier kennis toevoegen!", null, null, 3]], null, "nl"]]=]
-          if request.sink then
-            request.sink(response_json)
-          end
-          return 1,
-            200,
-            { ["content-type"] = "application/json" },
-            "HTTP/1.1 200 OK"
+      if url_str and string.find(url_str, "error_test") then
+        return nil, "Connection refused"
+      end
+      if url_str and string.find(url_str, "translate.googleapis.com") then
+        local response_json =
+          [=[[[["Wikipedia is a multilingual encyclopedia, the content of which is freely available. Anyone can add knowledge here!", "Wikipedia is een meertalige encyclopedie, waarvan de inhoud vrij beschikbaar is. Iedereen kan hier kennis toevoegen!", null, null, 3]], null, "nl"]]=]
+        if type(request) == "table" and request.sink then
+          request.sink(response_json)
         end
+        return 1,
+          200,
+          { ["content-type"] = "application/json" },
+          "HTTP/1.1 200 OK"
       end
       return orig_http_request(request)
     end
@@ -33,6 +34,7 @@ describe("Translator module", function()
     local http = require("socket.http")
     http.request = orig_http_request
   end)
+
   it("should return server", function()
     assert.is.same(
       "https://translate.googleapis.com/",
@@ -44,16 +46,115 @@ describe("Translator module", function()
     G_reader_settings:delete("trans_server")
     G_reader_settings:flush()
   end)
-  -- add " #notest #nocov" to the it("description string") when it does not work anymore
-  it("should return translation", function()
+
+  it("should return translation and handle errors", function()
     local translation_result = Translator:translate(dutch_wikipedia_text, "en")
     assert.is.truthy(translation_result)
-    -- while some minor variation in the translation is possible it should
-    -- be between about 100 and 130 characters
     assert.is_true(#translation_result > 50 and #translation_result < 200)
+
+    -- Test error handling with custom from and to
+    local orig_server = Translator.getTransServer
+    Translator.getTransServer = function()
+      return "https://error_test.com/"
+    end
+    local ok, err = pcall(function()
+      return Translator:translate(dutch_wikipedia_text, "en", "nl")
+    end)
+    assert.is_false(ok)
+    assert.is_not_nil(err)
+    Translator.getTransServer = orig_server
   end)
-  it("should autodetect language", function()
+
+  it("should autodetect language and handle errors", function()
     local detect_result = Translator:detect(dutch_wikipedia_text)
     assert.is.same("nl", detect_result)
+
+    local orig_server = Translator.getTransServer
+    Translator.getTransServer = function()
+      return "https://error_test.com/"
+    end
+    local ok, err = pcall(function()
+      return Translator:detect(dutch_wikipedia_text)
+    end)
+    assert.is_false(ok)
+    Translator.getTransServer = orig_server
+  end)
+
+  it("should map language codes and names correctly", function()
+    local name1, supported1 = Translator:getLanguageName("en", "Default")
+    assert.is_true(supported1)
+    assert.is_string(name1)
+
+    local name2, supported2 = Translator:getLanguageName("zh-CN", "Default")
+    assert.is_true(supported2)
+    assert.is_string(name2)
+
+    local name3, supported3 =
+      Translator:getLanguageName("unknown_xyz", "Default")
+    assert.is_false(supported3)
+    assert.are.equal("UNKNOWN_XYZ", name3)
+
+    local name4, supported4 = Translator:getLanguageName(nil, "Default")
+    assert.is_false(supported4)
+    assert.are.equal("Default", name4)
+  end)
+
+  it("should get document language and target language", function()
+    local ReaderUI = require("apps/reader/readerui")
+    local orig_instance = ReaderUI.instance
+    ReaderUI.instance = {
+      doc_props = { language = "fr-FR" },
+    }
+
+    local lang1, name1 = Translator:getDocumentLanguage()
+    assert.are.equal("fr", lang1)
+    assert.is_string(name1)
+
+    -- Test typography alias fallback
+    ReaderUI.instance.doc_props.language = "fra"
+    local lang2, name2 = Translator:getDocumentLanguage()
+    assert.are.equal("fr", lang2)
+    assert.is_string(name2)
+
+    -- When nil
+    ReaderUI.instance.doc_props.language = nil
+    local lang3 = Translator:getDocumentLanguage()
+    assert.is_nil(lang3)
+
+    ReaderUI.instance = orig_instance
+  end)
+
+  it("should build and exercise settings menu table", function()
+    local menu_entry = Translator:genSettingsMenu()
+    assert.is_table(menu_entry)
+    assert.is_table(menu_entry.sub_item_table)
+
+    for _, item in ipairs(menu_entry.sub_item_table) do
+      if item.text_func then
+        assert.is_string(item.text_func())
+      end
+      if item.enabled_func then
+        item.enabled_func()
+      end
+      if item.callback then
+        item.callback()
+      end
+      if item.checked_func then
+        item.checked_func()
+      end
+      if item.sub_item_table then
+        for _, sub in ipairs(item.sub_item_table) do
+          if sub.text_func then
+            sub.text_func()
+          end
+          if sub.callback then
+            sub.callback()
+          end
+          if sub.checked_func then
+            sub.checked_func()
+          end
+        end
+      end
+    end
   end)
 end)

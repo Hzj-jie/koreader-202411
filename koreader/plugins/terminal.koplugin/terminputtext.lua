@@ -466,8 +466,10 @@ function TermInputText:interpretAnsiSeq(text)
     elseif self.sequence_state == "CSI1" then
       if next_byte == "s" then -- save cursor pos
         self.store_pos_sco = self.charpos
+        self.sequence_state = ""
       elseif next_byte == "u" then -- restore cursor pos
         self:_updateCharPos(self.store_pos_sco)
+        self.sequence_state = ""
       elseif next_byte == "?" then
         self.sequence_mode = "?"
         self.sequence_state = "escParam2"

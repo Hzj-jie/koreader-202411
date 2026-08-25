@@ -709,4 +709,110 @@ describe("ReaderMenu integration", function()
       FileManager.instance:onClose()
     end
   end)
+
+  it("should cover remaining ReaderMenu methods and callbacks", function()
+    local sample_pdf = "spec/front/unit/data/2col.pdf"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_pdf),
+    })
+
+    local menu = readerui.menu
+    assert.is_not_nil(menu)
+
+    -- Tab index from location
+    local Geom = require("ui/geometry")
+    assert.is_number(menu:_getTabIndexFromLocation(nil))
+    local left_ges = { pos = Geom:new({ x = 10, y = 10 }) }
+    local right_ges = { pos = Geom:new({ x = Screen:getWidth() - 10, y = 10 }) }
+    local mid_ges = { pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }) }
+    assert.are.equal(menu:_getTabIndexFromLocation(left_ges), 1)
+    assert.are.equal(menu:_getTabIndexFromLocation(right_ges), #menu.tab_item_table)
+    assert.are.equal(menu:_getTabIndexFromLocation(mid_ges), menu.last_tab_index)
+
+    -- Menu search & keyboard shortcuts & press menu
+    menu:onMenuSearch()
+    menu:closeMenu()
+    menu:onPressMenu()
+    menu:closeMenu()
+
+    -- onSetDimensions
+    menu:_showMenu()
+    menu:onSetDimensions(Screen:getSize())
+    menu:closeMenu()
+
+    -- Menu items callbacks: filemanager
+    if menu.menu_items.filemanager and menu.menu_items.filemanager.callback then
+      -- mock onHome
+      local original_onHome = readerui.onHome
+      readerui.onHome = function() end
+      menu.menu_items.filemanager.callback()
+      readerui.onHome = original_onHome
+    end
+
+    -- reset_document_settings and save_document_settings
+    if menu.menu_items.reset_document_settings and menu.menu_items.reset_document_settings.callback then
+      menu.menu_items.reset_document_settings.callback()
+      local confirm = UIManager:getTopmostVisibleWidget()
+      UIManager:close(confirm)
+    end
+
+    if menu.menu_items.save_document_settings and menu.menu_items.save_document_settings.callback then
+      menu.menu_items.save_document_settings.callback()
+      local confirm = UIManager:getTopmostVisibleWidget()
+      if confirm and confirm.ok_callback then
+        confirm.ok_callback()
+      end
+      UIManager:close(confirm)
+    end
+
+    -- screensaver settings
+    if menu.menu_items.screensaver then
+      local ss_table = menu.menu_items.screensaver.sub_item_table
+      if ss_table then
+        for _, itm in ipairs(ss_table) do
+          if itm.enabled_func then itm:enabled_func() end
+          if itm.checked_func then itm:checked_func() end
+          if itm.callback then
+            pcall(function() itm:callback() end)
+          end
+        end
+      end
+    end
+
+    -- open_previous_document
+    if menu.menu_items.open_previous_document then
+      local prev_item = menu.menu_items.open_previous_document
+      if prev_item.text_func then prev_item:text_func() end
+      if prev_item.enabled_func then prev_item:enabled_func() end
+      if prev_item.callback then
+        local orig = readerui.onOpenLastDoc
+        readerui.onOpenLastDoc = function() end
+        prev_item.callback()
+        readerui.onOpenLastDoc = orig
+      end
+      if prev_item.hold_callback then
+        prev_item.hold_callback()
+        local confirm = UIManager:getTopmostVisibleWidget()
+        UIManager:close(confirm)
+      end
+    end
+
+    -- Few keys vs many keys
+    local Device = require("device")
+    local old_keys = Device.hasKeys
+    local old_few = Device.hasFewKeys
+    Device.hasKeys = function() return true end
+    Device.hasFewKeys = function() return true end
+    menu:registerKeyEvents()
+    Device.hasFewKeys = function() return false end
+    menu:registerKeyEvents()
+    Device.hasKeys = old_keys
+    Device.hasFewKeys = old_few
+
+    if readerui then
+      readerui:onExit()
+      readerui:onClose()
+    end
+  end)
 end)

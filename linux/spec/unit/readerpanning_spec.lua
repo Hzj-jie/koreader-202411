@@ -9,18 +9,32 @@ describe("ReaderPanning module", function()
     Screen = require("device").screen
   end)
 
-  it("should initialize panning module", function()
-    local sample_pdf = "spec/front/unit/data/sample.pdf"
-    local readerui = ReaderUI:new({
-      dimen = Screen:getSize(),
-      document = DocumentRegistry:openDocument(sample_pdf),
-    })
+  it(
+    "should initialize panning module and handle panning operations",
+    function()
+      local sample_pdf = "spec/front/unit/data/sample.pdf"
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_pdf),
+      })
 
-    local readerpanning = readerui.panning
-      or ReaderPanning:new({ ui = readerui })
-    assert.is_table(readerpanning)
+      local readerpanning = readerui.panning
+        or ReaderPanning:new({ ui = readerui, view = readerui.view })
+      assert.is_table(readerpanning)
 
-    readerui:onExit()
-    readerui:onClose()
-  end)
+      -- Test onPanning in 4 directions
+      readerpanning:onPanning({ 1, 0 })
+      readerpanning:onPanning({ -1, 0 })
+      readerpanning:onPanning({ 0, 1 })
+      readerpanning:onPanning({ 0, -1 })
+
+      -- Test key events registration & connection
+      readerpanning:registerKeyEvents()
+      readerpanning:onPhysicalKeyboardConnected()
+      readerpanning:onGesture()
+
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
 end)

@@ -613,3 +613,45 @@ describe("Trapper module", function()
     end)
   end)
 end)
+
+describe("Trapper confirmation, pause, and popen", function()
+  local Trapper = require("ui/trapper")
+  local UIManager = require("ui/uimanager")
+
+  it("should handle setPausedText and confirm dialog", function()
+    local shown_confirm
+    local orig_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_confirm = w
+    end
+
+    Trapper:wrap(function()
+      Trapper:setPausedText("Pause Title", "Abort Now", "Keep Going")
+      assert.are_equal("Pause Title", Trapper.paused_text)
+      assert.are_equal("Abort Now", Trapper.paused_abort_text)
+      assert.are_equal("Keep Going", Trapper.paused_continue_text)
+
+      UIManager.scheduleIn = function(_, _, cb)
+        if shown_confirm and shown_confirm.ok_callback then
+          shown_confirm.ok_callback()
+        end
+      end
+      local ans = Trapper:confirm("Are you sure?", "Yes", "No")
+      assert.is_true(ans)
+    end)
+
+    UIManager.show = orig_show
+  end)
+
+  it("should handle info widget text update", function()
+    local InfoMessage = require("ui/widget/infomessage")
+
+    Trapper:wrap(function()
+      local ok = Trapper:info("Initial Text")
+      assert.is_true(ok)
+      assert.is_not_nil(Trapper.current_widget)
+      Trapper:info("Updated Text", true)
+    end)
+    Trapper:clear()
+  end)
+end)

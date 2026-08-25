@@ -138,13 +138,63 @@ describe("ScrollableContainer module", function()
     })
     container:initState()
 
-    if type(container.resetScroll) == "function" then
-      container:resetScroll()
-      assert.are.same({ x = 0, y = 0 }, container:getScrolledOffset())
-    end
+    -- Test _scrollBy and setScrolledOffset
+    container:_scrollBy(50, 50)
+    assert.is_table(container:getScrolledOffset())
+    container:setScrolledOffset({ x = 10, y = 10 })
+    assert.are.equal(10, container._scroll_offset_x)
+    assert.are.equal(10, container._scroll_offset_y)
 
-    if type(container.onSwipe) == "function" then
-      container:onSwipe({ direction = "south", distance = 50 }, {})
-    end
+    -- Test scrollToRatio
+    container:scrollToRatio(0.5, 0.5)
+    assert.is_table(container:getScrolledOffset())
+
+    local Geom = require("ui/geometry")
+    container.dimen = Geom:new({ x = 0, y = 0, w = 200, h = 200 })
+
+    -- Test pan gestures
+    container:onScrollablePan(nil, { pos = Geom:new({ x = 50, y = 50 }), relative = { x = -20, y = -20 } })
+    container:onScrollablePanRelease(nil, {})
+
+    -- Test hold gestures
+    container:onScrollableHold(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+    container:onScrollableHoldPan(nil, { pos = Geom:new({ x = 60, y = 60 }) })
+    container:onScrollableHoldRelease(nil, { pos = Geom:new({ x = 60, y = 60 }) })
+
+    -- Test swipe gestures
+    container:onScrollableSwipe(nil, { pos = Geom:new({ x = 50, y = 50 }), direction = "north", distance = 30 })
+    container:onScrollableSwipe(nil, { pos = Geom:new({ x = 50, y = 50 }), direction = "south", distance = 30 })
+    container:onScrollableSwipe(nil, { pos = Geom:new({ x = 50, y = 50 }), direction = "west", distance = 30 })
+    container:onScrollableSwipe(nil, { pos = Geom:new({ x = 50, y = 50 }), direction = "east", distance = 30 })
+
+    -- Page up/down
+    container:onScrollPageUp()
+    container:onScrollPageDown()
+  end)
+
+  it("handles step scroll grid functionality", function()
+    local content = createContent(200, 1000)
+    local step_grid = {
+      { top = 0, bottom = 100, content_top = 0, content_bottom = 90 },
+      { top = 101, bottom = 200, content_top = 105, content_bottom = 195 },
+      { top = 201, bottom = 300, content_top = 205, content_bottom = 295 },
+      { top = 301, bottom = 400, content_top = 305, content_bottom = 395 },
+      { top = 401, bottom = 500, content_top = 405, content_bottom = 495 },
+    }
+    local container = ScrollableContainer:new({
+      width = 200,
+      height = 200,
+      step_scroll_grid_func = function() return step_grid end,
+      [1] = content,
+    })
+    container:initState()
+
+    -- Scroll up/down with step grid
+    container:_scrollBy(0, 50)
+    container:_scrollBy(0, -50)
+    container:_scrollBy(0, 150)
+    container:_scrollBy(0, -150)
   end)
 end)
+
+

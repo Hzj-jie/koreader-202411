@@ -634,5 +634,88 @@ describe("AutoWarmth plugin tests", function()
         AutoWarmth:onDispatcherRegisterActions()
       end
     end)
+
+    it("should generate and exercise menus, submenus, and dialog callbacks", function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      UIManager.show = function() end
+      UIManager.close = function() end
+
+      -- Add to main menu
+      local menu_items = {}
+      AutoWarmth:addToMainMenu(menu_items)
+      assert.is_table(menu_items.autowarmth)
+
+      -- Submenu items
+      local sub_items = AutoWarmth:getSubMenuItems()
+      assert.is_table(sub_items)
+
+      -- Activate Menu
+      local act_menu = AutoWarmth:getActivateMenu()
+      assert.is_table(act_menu)
+      for _, item in ipairs(act_menu) do
+        assert.is_boolean(item.checked_func())
+        item.callback()
+      end
+
+      -- Location Menu
+      local loc_menu = AutoWarmth:getLocationMenu()
+      assert.is_table(loc_menu)
+      for _, item in ipairs(loc_menu) do
+        assert.is_string(item.text_func())
+        item.callback({ updateItems = function() end })
+      end
+
+      -- Schedule Menu
+      local sched_menu = AutoWarmth:getScheduleMenu()
+      assert.is_table(sched_menu)
+      for _, item in ipairs(sched_menu) do
+        if item.text_func then
+          assert.is_string(item.text_func())
+        end
+        if item.checked_func then
+          assert.is_boolean(item.checked_func())
+        end
+        if item.callback then
+          item.callback({ updateItems = function() end })
+        end
+      end
+
+      -- Warmth Menu
+      local warmth_menu = AutoWarmth:getWarmthMenu()
+      assert.is_table(warmth_menu)
+      for _, item in ipairs(warmth_menu) do
+        if item.text_func then
+          assert.is_string(item.text_func())
+        end
+        if item.callback then
+          item.callback({ updateItems = function() end })
+        end
+      end
+
+      -- Frontlight off during day menu
+      local fl_menu = AutoWarmth:getFlOffDuringDayMenu()
+      assert.is_table(fl_menu)
+      assert.is_string(fl_menu.text_func())
+      fl_menu.callback({ updateItems = function() end })
+      fl_menu.hold_callback()
+
+      -- Times menus and info
+      local times_menu = AutoWarmth:getTimesMenu("Currently active parameters")
+      assert.is_table(times_menu)
+      times_menu.callback()
+
+      AutoWarmth:showTimesInfo("Sun times", true, 1, false)
+
+      -- Hours to clock
+      assert.is_string(AutoWarmth:hoursToClock(12.5))
+
+      -- Night mode and frontlight event toggles
+      AutoWarmth:_onToggleNightMode()
+      AutoWarmth:_onToggleFrontlight()
+
+      UIManager.show = orig_show
+      UIManager.close = orig_close
+    end)
   end)
 end)

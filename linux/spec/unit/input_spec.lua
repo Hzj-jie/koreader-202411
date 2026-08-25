@@ -219,4 +219,76 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       Input:init()
     end)
   end)
+
+  describe("Keyboard and modifier events", function()
+    it("should handle key press, repeat, and release", function()
+      Input.event_map[100] = "A"
+      local ev_press = { type = C.EV_KEY, code = 100, value = 1 }
+      local res_press = Input:handleKeyBoardEv(ev_press)
+      assert.is_table(res_press)
+      assert.are.equal("onKeyPress", res_press.handler)
+      assert.are.equal("A", res_press.args[1].key)
+
+      local ev_release = { type = C.EV_KEY, code = 100, value = 0 }
+      local res_release = Input:handleKeyBoardEv(ev_release)
+      assert.is_table(res_release)
+      assert.are.equal("onKeyRelease", res_release.handler)
+      assert.are.equal("A", res_release.args[1].key)
+    end)
+
+    it("should update modifier state on Shift/Ctrl/Alt keys", function()
+      Input.event_map[42] = "Shift"
+      Input.event_map[29] = "Ctrl"
+      Input.event_map[56] = "Alt"
+
+      assert.is_false(Input.modifiers.Shift)
+      Input:handleKeyBoardEv({ type = C.EV_KEY, code = 42, value = 1 })
+      assert.is_true(Input.modifiers.Shift)
+      Input:handleKeyBoardEv({ type = C.EV_KEY, code = 42, value = 0 })
+      assert.is_false(Input.modifiers.Shift)
+
+      assert.is_false(Input.modifiers.Ctrl)
+      Input:handleKeyBoardEv({ type = C.EV_KEY, code = 29, value = 1 })
+      assert.is_true(Input.modifiers.Ctrl)
+      Input:handleKeyBoardEv({ type = C.EV_KEY, code = 29, value = 0 })
+      assert.is_false(Input.modifiers.Ctrl)
+    end)
+
+    it("should handle Power key events", function()
+      Input.event_map[116] = "Power"
+      local press =
+        Input:handleKeyBoardEv({ type = C.EV_KEY, code = 116, value = 1 })
+      assert.are.equal("PowerPress", press)
+      local release =
+        Input:handleKeyBoardEv({ type = C.EV_KEY, code = 116, value = 0 })
+      assert.are.equal("PowerRelease", release)
+    end)
+
+    it("should handle fake events like IntoSS and Charging", function()
+      local ev_ss = { type = C.EV_KEY, code = 10000, value = 1 }
+      local res_ss = Input:handleKeyBoardEv(ev_ss)
+      assert.are.equal("IntoSS", res_ss)
+
+      local ev_chg = { type = C.EV_KEY, code = 10020, value = 1 }
+      local res_chg = Input:handleKeyBoardEv(ev_chg)
+      assert.are.equal("Charging", res_chg)
+    end)
+  end)
+
+  describe("Clipboard & State Management", function()
+    it("should get, set, and query clipboard text", function()
+      assert.has_no.errors(function()
+        Input.setClipboardText("KORTestClip")
+        local _ = Input.hasClipboardText()
+        local _ = Input.getClipboardText()
+      end)
+    end)
+
+    it("should reset state and disable rotation map", function()
+      assert.has_no.errors(function()
+        Input:resetState()
+        Input:disableRotationMap()
+      end)
+    end)
+  end)
 end)

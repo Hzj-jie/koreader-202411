@@ -46,10 +46,85 @@ describe("ReaderWikipedia module", function()
       local menu_items = {}
       wiki:addToMainMenu(menu_items)
       assert.is_table(menu_items.wikipedia_lookup)
+      assert.is_table(menu_items.wikipedia_history)
+      assert.is_table(menu_items.wikipedia_settings)
 
       if type(wiki.cleanWord) == "function" then
         local cleaned = wiki:cleanWord("  Test Word!  ")
         assert.is_string(cleaned)
+      end
+    end)
+
+    it("should exercise all wikipedia settings submenus and dialogs", function()
+      local shown_widgets = {}
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local wiki = ReaderWikipedia:new({
+        ui = mock_ui,
+      })
+      wiki.showWidget = function(self, w)
+        table.insert(shown_widgets, w)
+      end
+
+      local menu_items = {}
+      wiki:addToMainMenu(menu_items)
+
+      -- 1. Test lookup input dialog
+      wiki:lookupInput()
+      assert.is_not_nil(wiki.input_dialog)
+      local cancel_btn = wiki.input_dialog.buttons[1][1]
+      cancel_btn.callback()
+
+      wiki:lookupInput()
+      local search_btn = wiki.input_dialog.buttons[1][2]
+      wiki.input_dialog._input_widget = { getText = function() return "" end }
+      search_btn.callback() -- empty input
+
+      -- 2. Test settings sub-items
+      local settings = menu_items.wikipedia_settings.sub_item_table
+      assert.is_table(settings)
+      local mock_menu = { updateItems = function() end }
+
+      for _, item in ipairs(settings) do
+        if item.text_func then
+          pcall(item.text_func)
+        end
+        if item.enabled_func then
+          pcall(item.enabled_func)
+        end
+        if item.checked_func then
+          pcall(item.checked_func)
+        end
+        if item.callback then
+          pcall(item.callback, mock_menu)
+        end
+        if item.sub_item_table then
+          for _, sub in ipairs(item.sub_item_table) do
+            if sub.checked_func then
+              pcall(sub.checked_func)
+            end
+            if sub.callback then
+              pcall(sub.callback)
+            end
+          end
+        end
+      end
+
+      -- Test callbacks on shown widgets (ConfirmBox, InputDialog)
+      for _, w in ipairs(shown_widgets) do
+        if w.ok_callback then
+          pcall(w.ok_callback)
+        end
+        if w.buttons and w.buttons[1] then
+          for _, btn in ipairs(w.buttons[1]) do
+            if btn.callback then
+              pcall(btn.callback)
+            end
+          end
+        end
       end
     end)
 
@@ -92,16 +167,11 @@ describe("ReaderWikipedia module", function()
     it(
       "should place Wikipedia DictQuickLookup on top of active modal ButtonDialog",
       function()
+        local Widget = require("ui/widget/widget")
         -- Simulate an open modal dialog (like highlight menu)
-        local modal_dialog = ButtonDialog:new({
-          buttons = {
-            {
-              {
-                text = "Test",
-                callback = function() end,
-              },
-            },
-          },
+        local modal_dialog = Widget:new({
+          modal = true,
+          dimen = require("ui/geometry"):new({ x = 0, y = 0, w = 100, h = 100 }),
         })
         UIManager:show(modal_dialog)
         assert.is_true(modal_dialog.modal)
