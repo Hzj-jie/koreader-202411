@@ -308,7 +308,8 @@ describe("filemanagerfilesearcher", function()
     })
     package.loaded["gettext"] = mock_gettext
 
-    package.loaded["util"] = {
+    local real_util = package.loaded["util"] or {}
+    package.loaded["util"] = setmetatable({
       fixUtf8 = function(s)
         return s
       end,
@@ -322,7 +323,13 @@ describe("filemanagerfilesearcher", function()
         end
         return count
       end,
-    }
+      splitFilePathName = function(path)
+        local dir, name = path:match("^(.-)([^/]*)$")
+        return dir, name
+      end,
+    }, {
+      __index = real_util,
+    })
 
     mock_ui = {
       file_chooser = setmetatable({
@@ -718,6 +725,132 @@ describe("filemanagerfilesearcher", function()
 
         -- Cleanup mock
         mock_ui.title_bar = nil
+      end
+    )
+
+    it("should handle onMenuChoice for files and directories", function()
+      searcher:onShowSearchResults(false)
+      local menu = UIManager.getLastShownWidget()
+      assert.truthy(menu)
+
+      local opened_file
+      package.loaded["apps/filemanager/filemanager"] = {
+        openFile = function(_ui, f)
+          opened_file = f
+        end,
+      }
+
+      -- File choice
+      local file_item = {
+        path = "/books/book1.epub",
+        is_file = true,
+      }
+      local res = menu:onMenuSelect(file_item)
+      assert.is_true(res)
+      assert.are.equal("/books/book1.epub", opened_file)
+
+      -- Directory choice
+      local dir_item = {
+        path = "/books/subdir",
+        is_file = false,
+      }
+      res = menu:onMenuSelect(dir_item)
+      assert.is_true(res)
+      assert.spy(mock_ui.file_chooser.changeToPath).was.called()
+
+      -- Directory choice in Reader mode (no file_chooser)
+      mock_ui.file_chooser = nil
+      local exited = false
+      local shown_fm_path
+      mock_ui.onExit = function()
+        exited = true
+      end
+      mock_ui.showFileManager = function(_self, p)
+        shown_fm_path = p
+      end
+
+      res = menu:onMenuSelect(dir_item)
+      assert.is_true(res)
+      assert.is_true(exited)
+      assert.are.equal("/books/subdir", shown_fm_path)
+
+      -- Restore
+      package.loaded["apps/filemanager/filemanager"] = nil
+    end)
+
+    it(
+      "should handle select mode Deselect all, Select all, and Close actions",
+      function()
+        searcher:onShowSearchResults(false)
+        searcher.search_menu.setTitleBarLeftIcon = spy.new(function() end)
+
+        -- Enter select mode
+        searcher:setSelectMode()
+        assert.truthy(searcher.selected_files)
+
+        -- Show select mode actions dialog
+        searcher:setSelectMode()
+        local select_dialog = UIManager.getLastShownWidget()
+        assert.truthy(select_dialog)
+
+        -- Deselect all button: row 1 button 1
+        local deselect_btn = select_dialog.buttons[1][1]
+        assert.are.equal("Deselect all", deselect_btn.text)
+        deselect_btn.callback()
+        assert.are.same({}, searcher.selected_files)
+
+        -- Select all button: row 1 button 2
+        searcher:setSelectMode()
+        select_dialog = UIManager.getLastShownWidget()
+        local select_all_btn = select_dialog.buttons[1][2]
+        assert.are.equal("Select all", select_all_btn.text)
+        select_all_btn.callback()
+        assert.truthy(searcher.selected_files["/books/book1.epub"])
+
+        -- Close (exit select mode): row 2 button 1
+        searcher:setSelectMode()
+        select_dialog = UIManager.getLastShownWidget()
+        local close_btn = select_dialog.buttons[2][1]
+        assert.are.equal("Exit select mode", close_btn.text)
+        close_btn.callback()
+        assert.is_nil(searcher.selected_files)
+      end
+    )
+
+    it(
+      "should test Home folder search button and metadata search with coverbrowser",
+      function()
+        searcher.ui = mock_ui
+        mock_ui.coverbrowser = {
+          getBookInfo = function()
+            return { title = "Found In CoverBrowser" }
+          end,
+          extractBooksInDirectory = spy.new(function() end),
+        }
+        mock_ui.bookinfo.findInProps = function()
+          return true
+        end
+
+        searcher:onShowFileSearch("query")
+        local dialog = UIManager.getLastShownWidget()
+        assert.truthy(dialog)
+
+        -- Test Home folder button (row 1, button 2)
+        stub(searcher, "doSearch")
+        local home_btn = dialog.buttons[1][2]
+        assert.are.equal("Home folder", home_btn.text)
+        home_btn.callback()
+        assert.are.equal("/home/user", searcher.path)
+        assert.stub(searcher.doSearch).was.called()
+
+        -- Test metadata check in doSearch
+        searcher.path = "/books"
+        FileSearcher.search_string = "CoverBrowser"
+        searcher.include_metadata = true
+        searcher.case_sensitive = false
+        searcher.include_subfolders = false
+        local _, files = searcher:getList()
+        assert.truthy(files)
       end
     )
   end)

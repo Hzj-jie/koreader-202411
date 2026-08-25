@@ -1152,4 +1152,224 @@ describe("Readerfooter module", function()
       readerui:onClose()
     end
   )
+
+  it("should handle hold on footer and flipping tap correctly", function()
+    local sample_epub = footer_sample_epub
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    local Geom = require("ui/geometry")
+
+    -- Hold footer when skim_widget_on_hold is false
+    footer.settings.skim_widget_on_hold = false
+    assert.is_nil(footer:onHoldFooter({ pos = Geom:new({ x = 10, y = 10 }) }))
+
+    -- Hold footer when skim_widget_on_hold is true but outside footer dimen
+    footer.settings.skim_widget_on_hold = true
+    footer.footer_content.dimen = Geom:new({ x = 0, y = 500, w = 600, h = 100 })
+    assert.is_nil(footer:onHoldFooter({ pos = Geom:new({ x = 10, y = 10 }) }))
+
+    -- Hold footer within footer dimen
+    local broadcasted_event = nil
+    local orig_broadcast = UIManager.broadcastEvent
+    UIManager.broadcastEvent = function(self_ui, ev)
+      broadcasted_event = ev
+    end
+    assert.is_true(footer:onHoldFooter({ pos = Geom:new({ x = 50, y = 550 }) }))
+    assert.is_truthy(broadcasted_event)
+    assert.is.same(
+      "ShowSkimtoDialog",
+      broadcasted_event.handler:gsub("^on", "")
+    )
+    UIManager.broadcastEvent = orig_broadcast
+
+    -- TapFooter when locked
+    footer.settings.lock_tap = true
+    assert.is_nil(footer:TapFooter())
+    footer.settings.lock_tap = false
+
+    -- TapFooter in flipping mode
+    readerui.view.flipping_visible = true
+    footer.progress_bar.dimen = Geom:new({ x = 100, y = 500, w = 400, h = 20 })
+    local goto_pct = nil
+    orig_broadcast = UIManager.broadcastEvent
+    UIManager.broadcastEvent = function(self_ui, ev)
+      if ev.handler == "onGotoPercentage" then
+        goto_pct = ev.args[1]
+      end
+    end
+    assert.is_true(footer:TapFooter({ pos = Geom:new({ x = 300, y = 510 }) }))
+    assert.is.same(0.5, goto_pct)
+    UIManager.broadcastEvent = orig_broadcast
+    readerui.view.flipping_visible = false
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should handle chapter progress bar and separators", function()
+    local sample_epub = footer_sample_epub
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+
+    -- onToggleChapterProgressBar
+    footer.settings.chapter_progress_bar = false
+    footer:onToggleChapterProgressBar()
+    assert.is_true(footer.settings.chapter_progress_bar)
+    footer:onToggleChapterProgressBar()
+    assert.is_false(footer.settings.chapter_progress_bar)
+
+    -- genSeparator
+    footer.settings.items_separator = "bar"
+    assert.is.same(" | ", footer:genSeparator())
+    footer.settings.items_separator = "bullet"
+    assert.is.same(" • ", footer:genSeparator())
+    footer.settings.items_separator = "dot"
+    assert.is.same(" · ", footer:genSeparator())
+    footer.settings.items_separator = "none"
+    footer.settings.item_prefix = "icons"
+    assert.is.same("  ", footer:genSeparator())
+    footer.settings.item_prefix = "compact_items"
+    assert.is.same(" ", footer:genSeparator())
+
+    -- onTocReset, onTimesChange_1M, onSetDimensions, onClose
+    footer:onTocReset()
+    footer.settings.time = true
+    footer:onTimesChange_1M()
+    footer:onSetDimensions()
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should exercise all text generators across all prefix modes", function()
+    local sample_epub = footer_sample_epub
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    footer.pageno = 10
+    footer.page = 10
+    footer.pages = 100
+    footer.total_pages = 100
+    footer.custom_text = "abc"
+    footer.custom_text_repetitions = 1
+
+    local prefix_modes = { "icons", "compact_items", "letters", "none" }
+    for _, mode in ipairs(prefix_modes) do
+      footer.settings.item_prefix = mode
+      footer.settings.all_at_once = true
+      footer.settings.pages_left_includes_current_page = true
+
+      for gen_name, gen_func in pairs(footer.textGeneratorMap) do
+        pcall(gen_func, footer)
+      end
+
+      footer.settings.pages_left_includes_current_page = false
+      for gen_name, gen_func in pairs(footer.textGeneratorMap) do
+        pcall(gen_func, footer)
+      end
+    end
+
+    -- Test frontlight text generators
+    local Device = require("device")
+    local orig_hasFrontlight = Device.hasFrontlight
+    Device.hasFrontlight = function() return true end
+    local orig_powerd = Device.powerd
+    Device.powerd = {
+      frontlightIntensity = function() return 50 end,
+      frontlightWarmth = function() return 30 end,
+      frontlightColor = function() return 20 end,
+      getCapacity = function() return 85 end,
+      getCapacityHW = function() return 85 end,
+      isCharging = function() return true end,
+      isChargingHW = function() return true end,
+      hasAuxBattery = function() return true end,
+      isAuxBatteryConnected = function() return true end,
+      getAuxCapacity = function() return 90 end,
+      isAuxCharging = function() return false end,
+      isAuxCharged = function() return true end,
+      getBatterySymbol = function() return "🔋" end,
+    }
+
+    for _, mode in ipairs(prefix_modes) do
+      footer.settings.item_prefix = mode
+      if footer.textGeneratorMap.frontlight then
+        pcall(footer.textGeneratorMap.frontlight, footer)
+      end
+      if footer.textGeneratorMap.frontlight_warmth then
+        pcall(footer.textGeneratorMap.frontlight_warmth, footer)
+      end
+      if footer.textGeneratorMap.frontlight_color then
+        pcall(footer.textGeneratorMap.frontlight_color, footer)
+      end
+      if footer.textGeneratorMap.battery then
+        pcall(footer.textGeneratorMap.battery, footer)
+      end
+    end
+
+    Device.hasFrontlight = orig_hasFrontlight
+    Device.powerd = orig_powerd
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should exercise main menu items, settings sub-menus, and callbacks", function()
+    local sample_epub = footer_sample_epub
+    purgeDir(DocSettings:getSidecarDir(sample_epub))
+    os.remove(DocSettings:getHistoryPath(sample_epub))
+
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    local footer = readerui.view.footer
+    local fake_menu = { setting = {} }
+    footer:addToMainMenu(fake_menu)
+
+    local function walk_menu(tbl)
+      for _, item in ipairs(tbl) do
+        if item.text_func then pcall(item.text_func) end
+        if item.checked_func then pcall(item.checked_func) end
+        if item.enabled_func then pcall(item.enabled_func) end
+        if item.callback then
+          pcall(item.callback, fake_menu)
+          local top = UIManager._window_stack[#UIManager._window_stack]
+          if top and top.widget and top.widget ~= readerui then
+            if top.widget.ok_callback then pcall(top.widget.ok_callback) end
+            if top.widget.callback then pcall(top.widget.callback, top.widget) end
+            UIManager:close(top.widget)
+          end
+        end
+        if item.sub_item_table then
+          walk_menu(item.sub_item_table)
+        end
+      end
+    end
+
+    if fake_menu.status_bar and fake_menu.status_bar.sub_item_table then
+      walk_menu(fake_menu.status_bar.sub_item_table)
+    end
+
+    footer:onUpdateFooter()
+
+    readerui:onExit()
+    readerui:onClose()
+  end)
 end)

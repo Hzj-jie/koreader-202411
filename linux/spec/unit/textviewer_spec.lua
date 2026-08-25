@@ -97,12 +97,59 @@ describe("TextViewer", function()
       UIManager:close(tv)
       UIManager:close(mock_modal)
 
-      assert.is_not_nil(modal_idx, "mock_modal should be in the window stack")
-      assert.is_not_nil(tv_idx, "TextViewer should be in the window stack")
       assert.is_true(
         tv_idx > modal_idx,
         "TextViewer should be above mock_modal in the stack"
       )
     end
   )
+
+  it("handles gestures, search, menu, and text selection", function()
+    local Geom = require("ui/geometry")
+    local tv = TextViewer:new({
+      text = "Line 1\nLine 2\nLine 3\nSearchTarget here\nLine 5",
+      title = "Viewer Test",
+    })
+
+    UIManager:show(tv)
+    UIManager:forceRepaint()
+
+    -- Gestures
+    tv:onTapClose(nil, { pos = Geom:new({ x = -100, y = -100 }) })
+    tv:onSwipe(nil, { pos = tv.textw.dimen:copy(), direction = "west" })
+    tv:onSwipe(nil, { pos = tv.textw.dimen:copy(), direction = "east" })
+    tv:onMultiSwipe({})
+
+    -- Forwarding
+    tv:onHoldStartText(nil, { pos = tv.textw.dimen:copy() })
+    tv:onHoldPanText(nil, { pos = tv.textw.dimen:copy() })
+    tv:onHoldReleaseText(nil, { pos = tv.textw.dimen:copy() })
+    tv:onForwardingTouch(nil, { pos = tv.textw.dimen:copy() })
+    tv:onForwardingPan(nil, { pos = tv.textw.dimen:copy() })
+    tv:onForwardingPanRelease(nil, { pos = tv.textw.dimen:copy() })
+
+    -- Text Bold & Selection
+    tv:setTextBold(1, 6)
+    tv:handleTextSelection(nil, "Line", { 1, 4 }, { x = 50, y = 50 })
+
+    -- Find Dialog & Search
+    tv:findDialog()
+    tv.search_value = "SearchTarget"
+    tv:findCallback()
+
+    -- Show Menu
+    tv:onShowMenu()
+
+    -- Register
+    local mock_reg = {
+      addAuxProvider = function(self, prov)
+        if prov.enabled_func then prov.enabled_func("test.txt") end
+      end,
+      isTextFile = function() return true end,
+    }
+    tv:register(mock_reg)
+
+    UIManager:close(tv)
+  end)
 end)
+

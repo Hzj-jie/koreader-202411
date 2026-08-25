@@ -691,5 +691,35 @@ describe("DictQuickLookup", function()
         )
       end
     )
+
+    it("handles saveWikipediaArticle", function()
+      local results = createDummyResults()
+      local lookup = DictQuickLookup:new({
+        word = "WikiTopic",
+        lookupword = "WikiTopic",
+        results = results,
+        is_wiki = true,
+        ui = dummy_ui,
+        lang = "en",
+      })
+
+      if lookup.saveWikipediaArticle then
+        lookup:saveWikipediaArticle()
+      end
+    end)
+
+    it("handles key events (prev dict, next dict, lookup word)", function()
+      local lookup = DictQuickLookup:new({
+        word = "KeyTest",
+        results = createDummyResults(),
+      })
+
+      lookup:onChangeToPrevDict()
+      lookup:onChangeToNextDict()
+      lookup:changeToFirstDict()
+      lookup:changeToLastDict()
+    end)
+
   end)
 end)
+

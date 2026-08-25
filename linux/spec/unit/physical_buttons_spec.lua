@@ -50,6 +50,16 @@ describe("PhysicalButtons element", function()
       assert.is_table(PhysicalButtonsDPad.sub_item_table)
       assert.is_true(#PhysicalButtonsDPad.sub_item_table >= 4)
 
+      for _, item in ipairs(PhysicalButtonsDPad.sub_item_table) do
+        if item.enabled_func then
+          item.enabled_func()
+        end
+        item.callback()
+        if item.checked_func then
+          item.checked_func()
+        end
+      end
+
       Device.hasDPad = old_hasDPad
       Device.useDPadAsActionKeys = old_useDPad
       Device.canKeyRepeat = old_canKeyRepeat
