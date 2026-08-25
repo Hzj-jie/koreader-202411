@@ -497,8 +497,59 @@ describe("VirtualKeyboard component", function()
     vk:setVisibility(false)
   end)
 
+  it("should handle VirtualKeyPopup hold, pan, and release on keys with variants", function()
+    local mock_inputbox, actions = createMockInputbox()
+    local vk = VirtualKeyboard:new({
+      inputbox = mock_inputbox,
+      width = 600,
+      height = 300,
+    })
+    vk:showKeyboard()
+
+    local key_a = findKey(vk, "a")
+    assert.is_not_nil(key_a)
+
+    -- Test hold select to open popup
+    key_a:onHoldSelect()
+    if key_a.popup then
+      local popup = key_a.popup
+      assert.is_not_nil(popup)
+      -- Test hold pan select
+      key_a:onHoldPanSelect(nil, { pos = { x = key_a.dimen.x + 5, y = key_a.dimen.y - 10 } })
+      -- Test hold release select
+      key_a:onHoldReleaseSelect(nil, { pos = { x = key_a.dimen.x + 5, y = key_a.dimen.y - 10 } })
+    end
+
+    vk:hideKeyboard()
+  end)
+
+  it("should handle globe layout key tap and hold", function()
+    local mock_inputbox = createMockInputbox()
+    settings_store.keyboard_layouts = { "en", "es" }
+    settings_store.keyboard_layout = "en"
+
+    local vk = VirtualKeyboard:new({
+      inputbox = mock_inputbox,
+      width = 600,
+      height = 300,
+    })
+    vk:showKeyboard()
+
+    local globe_key = findKey(vk, "🌐") or findKey(vk, "󰌌") or findKey(vk, "en") or findKey(vk, "es")
+    if globe_key then
+      globe_key:onTapSelect(true)
+      globe_key:onHoldSelect()
+      if globe_key.popup then
+        UIManager:close(globe_key.popup)
+      end
+    end
+
+    vk:hideKeyboard()
+  end)
+
   it("should expose PhysicalKeyboard class safely", function()
     local PhysicalKeyboard = require("ui/widget/physicalkeyboard")
     assert.is_table(PhysicalKeyboard)
   end)
 end)
+

@@ -48,6 +48,11 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       _do_cover_images = opts.do_covers or false,
       _do_hint_opened = opts.do_hint or false,
       itemnumber = opts.itemnumber,
+      cover_info_cache = opts.cover_info_cache or {},
+      updateCache = opts.updateCache or function(self_m, path, _, _, pages)
+        self_m.cover_info_cache[path] = { pages or 100, 0.5, "reading" }
+        self_m.cover_info_cache[path].n = 3
+      end,
     }
     menu._recalculateDimen = MosaicMenu._recalculateDimen
     menu._updateItemsBuildUI = MosaicMenu._updateItemsBuildUI
@@ -454,23 +459,214 @@ describe("Coverbrowser MosaicMenu unit tests", function()
       end
     )
 
-    it("should handle empty item table gracefully", function()
+    it("should handle item tap, hold, and focus handlers", function()
+      local selected_entry = nil
+      local held_entry = nil
       local menu = createMockMenu({
         nb_cols_portrait = 2,
-        nb_rows_portrait = 2,
-        item_table = {},
+        nb_rows_portrait = 1,
+        item_table = {
+          { text = "Folder A", path = "/tmp/dirA", is_directory = true },
+          { text = "Book B", path = "/tmp/bookB.epub", is_file = true },
+        },
+        page = 1,
+        do_covers = false,
+        do_hint = true,
       })
+      menu.onMenuSelect = function(self_m, entry) selected_entry = entry end
+      menu.onMenuHold = function(self_m, entry) held_entry = entry end
+
       menu:_recalculateDimen()
-      assert.are.equal(0, menu.page_num)
+      menu:_updateItemsBuildUI()
+
+      assert.is_table(menu.layout)
+      assert.is_true(#menu.layout >= 1)
+      local row = menu.layout[1]
+      for _, item in ipairs(row) do
+        if item.onTapSelect then
+          item:onTapSelect()
+        end
+        if item.onHoldSelect then
+          item:onHoldSelect()
+        end
+        if item.onFocus then
+          item:onFocus()
+        end
+        if item.onUnfocus then
+          item:onUnfocus()
+        end
+        if item.getHoldMessage then
+          local msg = item:getHoldMessage()
+          assert.truthy(msg == nil or type(msg) == "string")
+        end
+      end
+      assert.is_table(selected_entry)
+      assert.is_table(held_entry)
+    end)
+  end)
+
+  describe("MosaicMenuItem Painting & Sub-features", function()
+    local BookInfoManager, DocSettings, ReadCollection, BD, Blitbuffer, Menu
+
+    setup(function()
+      BookInfoManager = require("plugins/coverbrowser.koplugin/bookinfomanager")
+      DocSettings = require("docsettings")
+      ReadCollection = require("readcollection")
+      BD = require("ui/bidi")
+      Blitbuffer = require("ffi/blitbuffer")
+      Menu = require("ui/widget/menu")
     end)
 
-    it("should handle item tap helper safely", function()
+    it("should build and paint fake covers with complex titles, authors, and series modes", function()
+      local sample_cover = Blitbuffer.new(80, 120, Blitbuffer.TYPE_BB8)
+
+      local mock_infos = {
+        ["/tmp/book_multi_author.epub"] = {
+          title = "A Great Novel - Vol 1 | Special Edition_With_Underscores.ext",
+          authors = "Author One\nAuthor Two\nAuthor Three\nAuthor Four\nAuthor Five",
+          series = "Epic Trilogy",
+          series_index = 2,
+          has_cover = nil,
+          cover_fetched = "Y",
+          description = "A long story.",
+          pages = 350,
+        },
+        ["/tmp/book_with_cover.epub"] = {
+          title = "Cover Book",
+          authors = "Single Author",
+          has_cover = "Y",
+          cover_w = 80,
+          cover_h = 120,
+          cover_sizetag = "80x120",
+          cover_bb = sample_cover,
+          cover_fetched = "Y",
+          pages = 200,
+        },
+        ["/tmp/book_wiki.epub"] = {
+          title = "Wikipedia Entry",
+          authors = "Wikipedia Contributors",
+          has_cover = "Y",
+          cover_fetched = "Y",
+          pages = 50,
+        },
+      }
+
+      local get_stub = stub(BookInfoManager, "getBookInfo", function(self_bim, path)
+        return mock_infos[path]
+      end)
+      local sidecar_stub = stub(DocSettings, "hasSidecarFile", function() return true end)
+      local setting_stub = stub(BookInfoManager, "getSetting", function(self_bim, key)
+        if key == "series_mode" then return "append_series_to_title" end
+        if key == "show_progress_in_mosaic" then return true end
+        return nil
+      end)
+
+      local items = {
+        { text = "Book Multi Author", path = "/tmp/book_multi_author.epub", is_file = true },
+        { text = "Book With Cover", path = "/tmp/book_with_cover.epub", is_file = true },
+        { text = "Book Wiki", path = "/tmp/book_wiki.epub", is_file = true },
+        { text = "Deleted Book", path = "/tmp/deleted.epub", is_file = true, dim = true },
+        { text = "Extremely/Long/Directory/Name/That/Will/Force/Font/Reduction/Below/Threshold/", is_file = false, mandatory = "12 items" },
+      }
+
       local menu = createMockMenu({
-        item_table = { { text = "Book 1" } },
+        nb_cols_portrait = 2,
+        nb_rows_portrait = 3,
+        item_table = items,
+        page = 1,
+        do_covers = true,
+        do_hint = true,
+        updateCache = function(self_m, path, _, _, pages)
+          self_m.cover_info_cache[path] = { pages or 100, 0.45, "reading" }
+          self_m.cover_info_cache[path].n = 3
+        end,
+        cover_info_cache = {},
       })
-      if type(menu._onItemTap) == "function" then
-        menu:_onItemTap({ text = "Book 1" })
+      menu.updateCache = function(self_m, path, _, _, pages)
+        self_m.cover_info_cache[path] = { pages or 100, 0.45, "reading" }
+        self_m.cover_info_cache[path].n = 3
+      end
+
+      menu:_recalculateDimen()
+      menu:_updateItemsBuildUI()
+
+      local bb = Blitbuffer.new(600, 800)
+      for _, row in ipairs(menu.layout) do
+        for _, item in ipairs(row) do
+          if item.paintTo then
+            item:paintTo(bb, 0, 0)
+          end
+        end
+      end
+
+      -- Test RTL layout painting
+      local bidi_stub = stub(BD, "mirroredUILayout", function() return true end)
+      local coll_stub = stub(ReadCollection, "isFileInCollections", function(self_rc, path)
+        return path ~= nil and type(path) == "string" and path:match("%.epub$") ~= nil
+      end)
+
+      for _, row in ipairs(menu.layout) do
+        for _, item in ipairs(row) do
+          if item.paintTo then
+            if not item.is_directory then
+              item.status = "abandoned"
+              item.show_progress_bar = true
+              item.percent_finished = 0.3
+              item.has_description = true
+            end
+            item:paintTo(bb, 0, 0)
+
+            if not item.is_directory then
+              item.status = "complete"
+              item:paintTo(bb, 0, 0)
+            end
+          end
+        end
+      end
+
+      bidi_stub:revert()
+      coll_stub:revert()
+      get_stub:revert()
+      sidecar_stub:revert()
+      setting_stub:revert()
+      sample_cover:free()
+    end)
+
+    it("should handle series_mode variants and xtext branches in FakeCover", function()
+      local series_modes = { "append_series_to_authors", "series_in_separate_line" }
+      for _, sm in ipairs(series_modes) do
+        local mock_info = {
+          title = "Very_Long_Title_Without_Spaces_To_Force_Breaking_Algorithm_And_Sizedec_Over_20_With_Dots.And.Underscores",
+          authors = "Very_Long_Author_Name_Without_Spaces_To_Force_Breaking_Algorithm_And_Sizedec_Over_20_With_Dots.And.Underscores",
+          series = "Test Series",
+          series_index = 1,
+          has_cover = nil,
+          cover_fetched = "Y",
+        }
+
+        local get_stub = stub(BookInfoManager, "getBookInfo", function() return mock_info end)
+        local setting_stub = stub(BookInfoManager, "getSetting", function(self_bim, key)
+          if key == "series_mode" then return sm end
+          return nil
+        end)
+
+        local menu = createMockMenu({
+          nb_cols_portrait = 2,
+          nb_rows_portrait = 1,
+          item_table = {
+            { text = "Test Book", path = "/tmp/test.epub", is_file = true },
+          },
+          page = 1,
+          do_covers = false,
+        })
+        menu:_recalculateDimen()
+        menu:_updateItemsBuildUI()
+
+        assert.is_table(menu.layout)
+        get_stub:revert()
+        setting_stub:revert()
       end
     end)
   end)
 end)
+

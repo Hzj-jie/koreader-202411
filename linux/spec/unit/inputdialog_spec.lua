@@ -234,4 +234,53 @@ describe("InputDialog widget", function()
       UIManager:close(dialog_override)
     end
   )
+
+  it("handles number input, getInputValue, and button enablement", function()
+    local dialog = InputDialog:new({
+      title = "Number Test",
+      input = "42",
+      input_type = "number",
+    })
+
+    assert.are.equal(42, dialog:getInputValue())
+
+    -- Test button enable / disable
+    local btn = dialog:button("close")
+    if btn then
+      dialog:disableButton("close")
+      assert.is_false(btn.enabled)
+      dialog:enableButton("close")
+      assert.is_true(btn.enabled)
+    end
+  end)
+
+  it("handles addWidget, addTextToInput, editable checks, and keyboard toggles", function()
+    local UIManager = require("ui/uimanager")
+    local Widget = require("ui/widget/widget")
+    local dialog = InputDialog:new({
+      title = "Widget Test",
+      input = "initial",
+      add_scroll_buttons = true,
+    })
+
+    -- addWidget
+    local dummy_w = Widget:new({ dimen = require("ui/geometry"):new({ w = 10, h = 10 }) })
+    dialog:addWidget(dummy_w)
+
+    -- text ops
+    dialog:addTextToInput(" extra")
+    assert.is_true(dialog:isTextEditable())
+    assert.is_true(dialog:isTextEdited())
+
+    -- Toggle keyboard
+    dialog:closeKeyboard()
+    assert.is_falsy(dialog:isKeyboardVisible())
+    dialog:showKeyboard()
+    assert.is_true(dialog:isKeyboardVisible())
+
+    dialog:onCloseDialog()
+
+  end)
 end)
+
+

@@ -852,4 +852,61 @@ describe("UIManager spec", function()
       ReaderUI.instance = nil
     end)
   end)
+  describe("UIManager Device Power and Control utilities", function()
+    it("should handle askForReboot and askForPowerOff dialogs", function()
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
+      UIManager:askForReboot("Reboot now?")
+      UIManager:_checkTasks()
+      assert.is_table(shown_widget)
+      assert.are_equal("Reboot now?", shown_widget.text)
+
+      shown_widget = nil
+      UIManager:askForPowerOff("Power off now?")
+      UIManager:_checkTasks()
+      assert.is_table(shown_widget)
+      assert.are_equal("Power off now?", shown_widget.text)
+
+      UIManager.show = orig_show
+    end)
+
+    it("should handle debounce functions", function()
+      local count = 0
+      local fn = function()
+        count = count + 1
+      end
+      local debounced = UIManager:debounce(0.05, false, fn)
+
+      debounced()
+      debounced()
+      UIManager:_checkTasks()
+    end)
+
+    it("should handle touch ignore state and fast refresh toggles", function()
+      UIManager:setIgnoreTouchInput(true)
+      UIManager:setIgnoreTouchInput(false)
+
+      UIManager:forceFastRefresh()
+      assert.is_true(UIManager:duringForceFastRefresh())
+      UIManager:resetForceFastRefresh()
+      assert.is_false(UIManager:duringForceFastRefresh())
+    end)
+
+    it(
+      "should handle input timeouts and closeIfShown / closeIfNotNil",
+      function()
+        UIManager:setInputTimeout(500)
+        UIManager:resetInputTimeout()
+
+        local dummy_widget = { dimen = { x = 0, y = 0, w = 10, h = 10 } }
+        UIManager:closeIfShown(dummy_widget)
+        UIManager:closeIfNotNil(nil)
+        assert.is_nil(UIManager:getTopmostVisibleWidget())
+      end
+    )
+  end)
 end)
