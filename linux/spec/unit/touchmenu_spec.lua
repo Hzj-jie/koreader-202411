@@ -254,4 +254,101 @@ describe("TouchMenu", function()
     menu:onMenuSelect(item, true)
     assert.is_true(checkmark_called)
   end)
+
+  it("searches menu items recursively and opens a found item via openMenu", function()
+    local sub_item = { text = "Target Sub Item" }
+    local root_item = {
+      text = "Parent Menu",
+      sub_item_table = {
+        sub_item,
+      },
+    }
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          root_item,
+        },
+      },
+    })
+
+    local results = menu:search("target")
+    assert.is_table(results)
+    assert.are.equal(1, #results)
+    assert.are.equal("Target Sub Item", results[1][1])
+    local path = results[1][3]
+    assert.are.equal("1.1.1", path)
+
+    -- Open menu item path without animation
+    assert.has_no.errors(function()
+      menu:openMenu(path, false)
+    end)
+  end)
+
+  it("handles onGotoPage and onTapCloseAllMenus", function()
+    local Geom = require("ui/geometry")
+    local closed = false
+    local items = {}
+    for i = 1, 30 do
+      table.insert(items, { text = "Item " .. i })
+    end
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          unpack(items),
+        },
+      },
+      close_callback = function()
+        closed = true
+      end,
+    })
+
+    -- Go to page 2
+    menu:onGotoPage(2)
+    assert.are.equal(2, menu.page)
+
+    menu.dimen = Geom:new({ x = 0, y = 0, w = 600, h = 300 })
+    -- Tap outside to close all menus
+    menu:onTapCloseAllMenus(nil, { pos = Geom:new({ x = 0, y = 500, w = 1, h = 1 }) })
+    assert.is_true(closed)
+  end)
+
+  it("handles custom tap_input and hold_input on items", function()
+    local tapped_input
+    local held_input
+    local item = {
+      text = "Input Item",
+      tap_input = "CustomTap",
+      hold_input = "CustomHold",
+    }
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          item,
+        },
+      },
+    })
+    menu.onInput = function(self, input)
+      if input == "CustomTap" then
+        tapped_input = true
+      elseif input == "CustomHold" then
+        held_input = true
+      end
+    end
+
+    local item_widget = menu.item_group[1]
+    if item_widget and item_widget.onTap then
+      item_widget:onTap()
+      assert.is_true(tapped_input)
+    end
+    if item_widget and item_widget.onHold then
+      item_widget:onHold()
+      assert.is_true(held_input)
+    end
+  end)
 end)

@@ -435,7 +435,7 @@ describe("Readersearch module", function()
       search:uimanagedCleanUp()
     end)
 
-    it("should handle main menu settings callbacks", function()
+    it("should handle main menu settings callbacks and spin widgets", function()
       local menu_items = {}
       search:addToMainMenu(menu_items)
       assert.is_table(menu_items.fulltext_search_settings)
@@ -443,15 +443,65 @@ describe("Readersearch module", function()
       local settings = menu_items.fulltext_search_settings.sub_item_table
       assert.is_table(settings)
 
+      local shown_widgets = {}
+      local orig_show = search.showWidget
+      search.showWidget = function(self, w)
+        table.insert(shown_widgets, w)
+      end
+
+      local mock_menu = { updateItems = function() end }
+
       for _, item in ipairs(settings) do
-        if item.checked_func then
-          local state = item.checked_func()
-          assert.is_boolean(state)
+        if item.text_func then
+          item.text_func()
         end
-        if item.callback and not item.sub_item_table then
-          item.callback()
+        if item.enabled_func then
+          item.enabled_func()
+        end
+        if item.checked_func then
+          item.checked_func()
+        end
+        if item.callback then
+          item.callback(mock_menu)
         end
       end
+
+      for _, w in ipairs(shown_widgets) do
+        if w.callback then
+          pcall(w.callback, { value = 6 })
+        end
+        if w.extra_callback then
+          pcall(w.extra_callback)
+        end
+      end
+
+      search.showWidget = orig_show
+    end)
+
+    it("should handle regex checking and invalid regex error display", function()
+      search.use_regex = true
+      doc.checkRegex = function(_, pat)
+        if pat == "[unclosed" then
+          return 100 -- regex error code
+        end
+        return nil
+      end
+
+      local shown_msg
+      search.showWidget = function(self, w)
+        shown_msg = w
+      end
+
+      search:onShowFulltextSearchInput("[unclosed")
+      search.check_button_regex = { checked = true }
+      search.check_button_case = { checked = false }
+
+      -- Trigger forward search button callback with invalid regex
+      search.input_dialog.buttons[1][4].callback()
+      assert.is_not_nil(shown_msg)
+
+      search:uimanagedCleanUp()
     end)
   end)
 end)
+

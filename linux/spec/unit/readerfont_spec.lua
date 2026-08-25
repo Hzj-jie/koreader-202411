@@ -26,6 +26,7 @@ describe("ReaderFont module", function()
 
   local function create_mock_ui()
     return {
+      broadcastEvent = spy.new(function() end),
       menu = {
         registerToMainMenu = spy.new(function() end),
       },
@@ -352,5 +353,191 @@ describe("ReaderFont module", function()
         end
       end
     end)
+
+    it("should handle full main menu and face menu interactions", function()
+      local mock_ui = create_mock_ui()
+      mock_ui.document.setupFallbackFontFaces = spy.new(function() end)
+      mock_ui.document.setAdjustedFallbackFontSizes = spy.new(function() end)
+      mock_ui.document.setMonospaceFontScaling = spy.new(function() end)
+      mock_ui.switchDocument = spy.new(function() end)
+
+      local font_mod = ReaderFont:new({
+        font_face = "Noto Serif",
+        ui = mock_ui,
+        configurable = create_default_configurable(),
+      })
+      font_mod:setupFaceMenuTable()
+
+      -- onReaderInited and onSetDimensions
+      font_mod:onReaderInited()
+      font_mod:onSetDimensions({ w = 800, h = 600 })
+      assert.are.same({ w = 800, h = 600 }, font_mod.dimen)
+
+      -- addToMainMenu sub_item_table_func
+      local menu_items = {}
+      font_mod:addToMainMenu(menu_items)
+      assert.is_table(menu_items.change_font)
+      local title = menu_items.change_font.text_func()
+      assert.is_string(title)
+
+      font_mod.face_table.needs_refresh = true
+      local tbl = menu_items.change_font.sub_item_table_func()
+      assert.is_table(tbl)
+
+      -- Iterate through all items in face_table
+      for _, item in ipairs(font_mod.face_table) do
+        if item.text_func then
+          local t = item.text_func()
+          assert.is_string(t)
+        end
+        if item.font_func then
+          pcall(item.font_func, 20)
+        end
+        if item.checked_func then
+          pcall(item.checked_func)
+        end
+        if item.callback then
+          pcall(item.callback)
+        end
+        if item.hold_callback then
+          pcall(item.hold_callback, { updateItems = function() end })
+        end
+        if item.sub_item_table_func then
+          local sub = item.sub_item_table_func()
+          assert.is_table(sub)
+        end
+      end
+    end)
+
+    it("should handle font families menu callbacks and checkmark toggles", function()
+      local mock_ui = create_mock_ui()
+      local font_mod = ReaderFont:new({
+        font_face = "Noto Serif",
+        font_family_fonts = {},
+        ui = mock_ui,
+        configurable = create_default_configurable(),
+      })
+
+      G_reader_settings:save("cre_font_family_fonts", {
+        ["serif"] = "Noto Serif",
+        ["monospace"] = "Courier",
+      })
+
+      local fam_table = font_mod:getFontFamiliesTable()
+      -- Ignore publisher fonts toggle
+      fam_table[1].checked_func()
+      fam_table[1].callback()
+
+      for i = 2, #fam_table do
+        local fam_item = fam_table[i]
+        if fam_item.text_func then
+          fam_item.text_func()
+        end
+        if fam_item.font_func then
+          pcall(fam_item.font_func, 20)
+        end
+        if fam_item.checked_func then
+          fam_item.checked_func()
+        end
+        if fam_item.checkmark_callback then
+          fam_item.checkmark_callback()
+        end
+
+        if fam_item.sub_item_table then
+          if fam_item.sub_item_table.open_on_menu_item_id_func then
+            fam_item.sub_item_table.open_on_menu_item_id_func()
+          end
+          for _, sub in ipairs(fam_item.sub_item_table) do
+            if sub.text_func then
+              sub.text_func()
+            end
+            if sub.font_func then
+              pcall(sub.font_func, 20)
+            end
+            if sub.checked_func then
+              sub.checked_func()
+            end
+            if sub.callback then
+              pcall(sub.callback)
+            end
+            if sub.hold_callback then
+              pcall(sub.hold_callback, { updateItems = function() end })
+            end
+          end
+        end
+      end
+    end)
+
+    it("should handle font settings table actions and widgets", function()
+      local mock_ui = create_mock_ui()
+      mock_ui.document.setupFallbackFontFaces = spy.new(function() end)
+      mock_ui.document.setAdjustedFallbackFontSizes = spy.new(function() end)
+      mock_ui.document.setMonospaceFontScaling = spy.new(function() end)
+      mock_ui.switchDocument = spy.new(function() end)
+
+      local font_mod = ReaderFont:new({
+        font_face = "Noto Serif",
+        ui = mock_ui,
+        configurable = create_default_configurable(),
+      })
+      font_mod:setupFaceMenuTable()
+
+      local shown_widgets = {}
+      font_mod.showWidget = function(self, w)
+        table.insert(shown_widgets, w)
+      end
+
+      local settings = font_mod:getFontSettingsTable()
+      for _, item in ipairs(settings) do
+        if item.checked_func then
+          item.checked_func()
+        end
+        if item.text_func then
+          item.text_func()
+        end
+        if item.callback then
+          item.callback()
+        end
+        if item.hold_callback then
+          item.hold_callback()
+        end
+      end
+
+      -- Verify widgets triggered and test their callbacks
+      for _, w in ipairs(shown_widgets) do
+        if w.ok_callback then
+          pcall(w.ok_callback)
+        end
+        if w.callback then
+          pcall(w.callback, { value = 110 })
+        end
+      end
+    end)
+
+    it("should handle sortFaceList with new and removed fonts", function()
+      local mock_ui = create_mock_ui()
+      local font_mod = ReaderFont:new({
+        font_face = "Noto Serif",
+        ui = mock_ui,
+        configurable = create_default_configurable(),
+      })
+
+      -- When setting is missing
+      G_reader_settings:delete("cre_fonts_recently_selected")
+      local list1 = font_mod:sortFaceList({ "FontB", "FontA" })
+      assert.are.same({ "FontB", "FontA" }, list1)
+
+      -- With setting, new font added
+      G_reader_settings:save("cre_fonts_recently_selected", { "FontA" })
+      G_reader_settings:save("font_menu_sort_by_recently_selected", true)
+      local list2 = font_mod:sortFaceList({ "FontA", "FontB", "FontC" })
+      assert.is_table(list2)
+
+      -- Without sort by recently selected
+      G_reader_settings:save("font_menu_sort_by_recently_selected", false)
+      local list3 = font_mod:sortFaceList({ "FontA", "FontB", "FontC" })
+      assert.is_table(list3)
+    end)
   end)
 end)
+

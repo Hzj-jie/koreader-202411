@@ -88,65 +88,89 @@ describe("Sudoku plugin unit tests", function()
     end
   end)
 
-  describe("Menu & Dispatcher Integration", function()
-    it("should populate main menu items", function()
+  describe("Serialization and Verification Helpers", function()
+    it("should serialize and restore board state", function()
       local class = dofile("plugins/sudoku.koplugin/main.lua")
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local plugin = class:new({ ui = mock_ui })
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-      assert.is_table(menu_items.sudoku)
-    end)
-
-    it("should register dispatcher actions", function()
-      local class = dofile("plugins/sudoku.koplugin/main.lua")
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local plugin = class:new({ ui = mock_ui })
-      if type(plugin.onDispatcherRegisterActions) == "function" then
-        plugin:onDispatcherRegisterActions()
-      end
-    end)
-
-    it("should populate main menu items", function()
-      local class = dofile("plugins/sudoku.koplugin/main.lua")
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local plugin = class:new({ ui = mock_ui })
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-      assert.is_table(menu_items.sudoku)
-    end)
-
-    it("should register dispatcher actions safely", function()
-      local class = dofile("plugins/sudoku.koplugin/main.lua")
-      if type(class.onDispatcherRegisterActions) == "function" then
-        class:onDispatcherRegisterActions()
-      end
-    end)
-
-    it("should check board isSolved status safely", function()
-      local class = dofile("plugins/sudoku.koplugin/main.lua")
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
+      local mock_ui = { menu = { registerToMainMenu = function() end } }
       local Sudoku = class:new({ ui = mock_ui })
       local board = Sudoku:getBoard()
-      if type(board.isSolved) == "function" then
-        assert.is_boolean(board:isSolved())
+      board:generate("medium")
+
+      local serialized = board:serialize()
+      assert.is_table(serialized)
+
+      local loaded = board:load(serialized)
+      assert.is_true(loaded)
+      assert.is_false(board:load(nil))
+      assert.is_false(board:load({}))
+
+      board:toggleSolution()
+      assert.is_true(board:isShowingSolution())
+      board:toggleSolution()
+
+      board:updateWrongMarks()
+      assert.is_boolean(board:hasWrongMark(1, 1))
+      board:clearWrongMarks()
+      assert.is_false(board:hasWrongMark(1, 1))
+
+      local rem = board:getRemainingCells()
+      assert.is_number(rem)
+    end)
+  end)
+
+  describe("SudokuBoardWidget and SudokuScreen UI", function()
+    it("should initialize screen, handle inputs, notes mode, and paintTo", function()
+      local Blitbuffer = require("ffi/blitbuffer")
+      local UIManager = require("ui/uimanager")
+      local class = dofile("plugins/sudoku.koplugin/main.lua")
+      local mock_ui = { menu = { registerToMainMenu = function() end } }
+      local plugin = class:new({ ui = mock_ui })
+      plugin:init()
+
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.sudoku)
+
+      local orig_show = UIManager.show
+      UIManager.show = function(self_uim, widget) end
+
+      plugin:showGame()
+      assert.is_table(plugin.screen)
+      local screen = plugin.screen
+
+      -- Test input actions
+      screen:inputDigit(1)
+      screen:toggleNoteMode()
+      screen:inputDigit(2)
+      screen:toggleNoteMode()
+      screen:eraseDigit()
+      screen:undoMove()
+      screen:checkProgress()
+      screen:toggleSolution()
+      screen:toggleSolution()
+      screen:startNewGame()
+      screen:openDifficultyMenu()
+
+      -- Test board widget
+      local board_widget = screen.board_widget
+      assert.is_table(board_widget)
+      if board_widget.paint_rect then
+        local r, c = board_widget:getCellFromPoint(board_widget.paint_rect.x + 20, board_widget.paint_rect.y + 20)
+        if r and c then
+          assert.is_number(r)
+          assert.is_number(c)
+        end
+        board_widget:onTap(nil, { pos = { x = board_widget.paint_rect.x + 20, y = board_widget.paint_rect.y + 20 } })
       end
+
+      -- Paint to real blitbuffer
+      local bb = Blitbuffer.new(600, 800)
+      screen:paintTo(bb, 0, 0)
+      bb:free()
+
+      screen:onClose()
+      assert.is_nil(plugin.screen)
+      UIManager.show = orig_show
     end)
   end)
 end)

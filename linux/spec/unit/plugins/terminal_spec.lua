@@ -747,20 +747,354 @@ describe("Terminal plugin button tap integration", function()
     end
   )
 
-  it("should populate main menu entries", function()
+  it("should exercise all main menu callbacks and dialogs", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    local mock_menu = { updateItems = stub() }
+    local mock_ui = {
+      menu = { registerToMainMenu = function() end },
+    }
+    local terminal = Terminal:new({ ui = mock_ui })
+    local menu_items = {}
+    terminal:addToMainMenu(menu_items)
+
+    local sub_items = menu_items.terminal.sub_item_table
+    assert.is_table(sub_items)
+
+    local show_stub = stub(UIManager, "show")
+    local close_stub = stub(UIManager, "close")
+
+    -- 1. About
+    sub_items[1].callback()
+    assert.stub(show_stub).was.called(1)
+
+    -- 2. Open session text_func
+    assert.is_string(sub_items[2].text_func())
+
+    -- 3. End session
+    assert.is_boolean(sub_items[3].enabled_func())
+    sub_items[3].callback(mock_menu)
+
+    -- 4. Font size
+    assert.is_string(sub_items[4].text_func())
+    sub_items[4].callback(mock_menu)
+    local font_spin = show_stub.calls[#show_stub.calls].vals[2]
+    assert.is_table(font_spin)
+    font_spin.value = 16
+    font_spin.callback(font_spin)
+    assert.are.equal(16, G_reader_settings:read("terminal_font_size"))
+
+    -- 5. Buffer size
+    assert.is_string(sub_items[5].text_func())
+    sub_items[5].callback(mock_menu)
+    local buf_spin = show_stub.calls[#show_stub.calls].vals[2]
+    assert.is_table(buf_spin)
+    buf_spin.value = 24
+    buf_spin.callback(buf_spin)
+    assert.are.equal(24, G_reader_settings:read("terminal_buffer_size"))
+
+    -- 6. Shell executable
+    assert.is_string(sub_items[6].text_func())
+    sub_items[6].callback(mock_menu)
+    local shell_dlg = show_stub.calls[#show_stub.calls].vals[2]
+    assert.is_table(shell_dlg)
+
+    -- Cancel button
+    shell_dlg.buttons[1][1].callback()
+    assert.stub(close_stub).was.called(1)
+
+    -- Default button
+    shell_dlg.buttons[1][2].callback()
+    assert.stub(close_stub).was.called(2)
+
+    -- Save button
+    shell_dlg.buttons[1][3].callback()
+
+    show_stub:revert()
+    close_stub:revert()
+  end)
+
+  it("should test generateInputDialog callbacks and enter/strike handlers", function()
     local Terminal = require("plugins/terminal.koplugin/main")
     local mock_ui = {
-      menu = {
-        registerToMainMenu = function() end,
-      },
+      menu = { registerToMainMenu = function() end },
     }
-    local terminal = Terminal:new({
-      ui = mock_ui,
-    })
-    local menu_items = {}
+    local terminal = Terminal:new({ ui = mock_ui })
+    terminal.input_face = require("ui/font"):getFace("smallinfont", 14)
 
-    terminal:addToMainMenu(menu_items)
-    assert.is_table(menu_items.terminal)
+    local transmitted = {}
+    terminal.transmit = function(self, chars)
+      table.insert(transmitted, chars)
+    end
+
+    local dialog = terminal:generateInputDialog()
+    assert.is_table(dialog)
+    terminal.input_dialog = dialog
+
+    -- Test enter_callback
+    dialog.enter_callback()
+    assert.are.equal("\r", transmitted[#transmitted])
+
+    -- Test strike_callback
+    dialog.strike_callback("a")
+    assert.are.equal("a", transmitted[#transmitted])
+
+    -- Test strike_callback with Ctrl
+    terminal.ctrl = true
+    dialog.strike_callback("c")
+    assert.are.equal("\003", transmitted[#transmitted])
+
+    -- Test strike_callback newline
+    dialog.strike_callback("\n")
+    assert.are.equal("\r\n", transmitted[#transmitted])
+
+    -- Test cancel button (MultiConfirmBox)
+    local show_stub = stub(UIManager, "show")
+    local close_stub = stub(UIManager, "close")
+    local cancel_btn = dialog.button_table.buttons_layout[1][9]
+    cancel_btn.callback()
+    assert.stub(show_stub).was.called(1)
+    local confirm_box = show_stub.calls[1].vals[2]
+    assert.is_table(confirm_box)
+
+    -- Close choice
+    confirm_box.choice1_callback()
+    assert.stub(close_stub).was.called(1)
+
+    -- Quit choice
+    confirm_box.choice2_callback()
+    assert.stub(close_stub).was.called(2)
+
+    show_stub:revert()
+    close_stub:revert()
+  end)
+
+  it("should test TermInputText buffer operations and ANSI sequences", function()
+    local TermInputText = require("plugins/terminal.koplugin/terminputtext")
+    local widget = TermInputText:new({
+      width = 400,
+      height = 300,
+      scroll = true,
+      face = require("ui/font"):getFace("smallinfont", 14),
+      parent = { setDirty = function() end },
+    })
+
+    -- 1. Test saveBuffer and restoreBuffer
+    widget:interpretAnsiSeq("First Buffer Text")
+    assert.are.equal("First Buffer Text", table.concat(widget.charlist))
+
+    widget:saveBuffer("alternate_buffer")
+    assert.are.equal(0, #widget.charlist)
+    assert.are.equal(1, widget.charpos)
+
+    widget:interpretAnsiSeq("Alternate Buffer Text")
+    assert.are.equal("Alternate Buffer Text", table.concat(widget.charlist))
+
+    widget:restoreBuffer("alternate_buffer")
+    assert.are.equal("First Buffer Text", table.concat(widget.charlist))
+
+    -- 2. Test trimBuffer
+    widget.min_buffer_size = 5
+    widget:interpretAnsiSeq("\nline 1\nline 2\nline 3\n")
+    widget:trimBuffer(10)
+    assert.is_true(#widget.charlist <= 20)
+
+    -- 3. Test ANSI sequences: Colors, Cursor movement, Clearing
+    -- SGR color
+    widget:interpretAnsiSeq("\027[31;1mRed Bold\027[0m")
+    -- Cursor UP / DOWN / LEFT / RIGHT
+    widget:interpretAnsiSeq("\027[2A\027[2B\027[3C\027[3D")
+    -- CUP cursor position
+    widget:interpretAnsiSeq("\027[2;5H")
+    -- ED erase in display
+    widget:interpretAnsiSeq("\027[2J")
+    -- EL erase in line
+    widget:interpretAnsiSeq("\027[0K\027[1K\027[2K")
+    -- DECSET / DECRST alternate screen
+    widget:interpretAnsiSeq("\027[?1049h")
+    widget:interpretAnsiSeq("\027[?1049l")
+
+    -- 4. Test scrolling & line navigation
+    widget:upLine()
+    widget:downLine()
+    widget:scrollUp()
+    widget:scrollDown()
+
+    -- 5. Test escape Y row col positioning
+    widget:interpretAnsiSeq(string.format("\027Y%c%c", 32 + 2, 32 + 5))
+
+    -- 6. Test save and restore cursor pos via DEC and SCO escape codes
+    widget:interpretAnsiSeq("Hello World")
+    widget:interpretAnsiSeq("\0277") -- DEC save
+    widget:interpretAnsiSeq("\027[2D")
+    widget:interpretAnsiSeq("\0278") -- DEC restore
+    widget:interpretAnsiSeq("\027[s") -- SCO save
+    widget:interpretAnsiSeq("\027[3D")
+    widget:interpretAnsiSeq("\027[u") -- SCO restore
+
+    -- 7. Test identify callback \027Z
+    local identified = nil
+    widget.strike_callback = function(seq) identified = seq end
+    widget:interpretAnsiSeq("\027Z")
+    assert.are.equal("\027/K", identified)
+    widget.strike_callback = nil
+
+    -- 8. Test alternate keypad
+    widget:interpretAnsiSeq("\027=")
+    widget:interpretAnsiSeq("Alternate Keypad Mode")
+    widget:interpretAnsiSeq("\027>")
+
+    -- 9. Test reverse line feed and scroll regions
+    widget:interpretAnsiSeq("\027[1;10r")
+    widget:interpretAnsiSeq("\027I")
+    widget:interpretAnsiSeq("\027[r") -- reset scroll region
+
+    -- 10. Test line navigation and deletion methods
+    widget:goToStartOfLine(true)
+    widget:goToEndOfLine(true)
+    widget:goToStartOfLine(false)
+    widget:goToEndOfLine(false)
+    widget:delToEndOfLine()
+    widget:delToStartOfLine()
+    widget:delChar()
+    assert.is_true(widget:onTapTextBox())
+
+    -- 11. Test addChars with wrap=false and wide CJK replacement
+    widget.wrap = false
+    widget:addChars("Wide replacement: 中文字符测试")
+    widget.wrap = true
+    widget:addChars("\r\nNew line text\b\b")
+  end)
+
+  it("should test Terminal menu items and settings dialogs", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    local inst = Terminal:new({
+      ui = { menu = { registerToMainMenu = function() end } },
+    })
+    inst:init()
+
+    local menu_items = {}
+    inst:addToMainMenu(menu_items)
+    local t_menu = menu_items.terminal
+    assert.is_table(t_menu)
+    assert.is_table(t_menu.sub_item_table)
+
+    local shown_dialogs = {}
+    local orig_show = UIManager.show
+    local orig_close = UIManager.close
+    UIManager.show = function(self_uim, d) table.insert(shown_dialogs, d) end
+    UIManager.close = function() end
+
+    -- 1. About dialog
+    local about_item = t_menu.sub_item_table[1]
+    assert.are.equal("About terminal emulator", about_item.text)
+    about_item.callback()
+    assert.is_true(#shown_dialogs >= 1)
+
+    -- 2. Open terminal session
+    local open_item = t_menu.sub_item_table[2]
+    local open_text = open_item.text_func()
+    assert.is_string(open_text)
+
+    -- 3. End terminal session
+    local end_item = t_menu.sub_item_table[3]
+    local is_enabled = end_item.enabled_func()
+    assert.is_boolean(is_enabled)
+    end_item.callback({ updateItems = function() end })
+
+    -- 4. Font size SpinWidget
+    local font_item = t_menu.sub_item_table[4]
+    local font_text = font_item.text_func()
+    assert.is_string(font_text)
+    font_item.callback({ updateItems = function() end })
+    local font_spin = shown_dialogs[#shown_dialogs]
+    if font_spin and font_spin.callback then
+      font_spin.value = 16
+      font_spin.callback(font_spin)
+      assert.are.equal(16, G_reader_settings:read("terminal_font_size"))
+    end
+
+    -- 5. Buffer size SpinWidget
+    local buffer_item = t_menu.sub_item_table[5]
+    local buffer_text = buffer_item.text_func()
+    assert.is_string(buffer_text)
+    buffer_item.callback({ updateItems = function() end })
+    local buffer_spin = shown_dialogs[#shown_dialogs]
+    if buffer_spin and buffer_spin.callback then
+      buffer_spin.value = 24
+      buffer_spin.callback(buffer_spin)
+      assert.are.equal(24, G_reader_settings:read("terminal_buffer_size"))
+    end
+
+    -- 6. Shell executable dialog
+    local shell_item = t_menu.sub_item_table[6]
+    local shell_text = shell_item.text_func()
+    assert.is_string(shell_text)
+    shell_item.callback({ updateItems = function() end })
+    local shell_dialog = shown_dialogs[#shown_dialogs]
+    assert.is_table(shell_dialog)
+    if shell_dialog and shell_dialog.buttons then
+      local btn_row = shell_dialog.buttons[1]
+      -- Cancel button
+      btn_row[1].callback()
+      -- Default button
+      btn_row[2].callback()
+      -- Save button with valid shell
+      inst.shell_dialog = {
+        getInputText = function() return "sh" end,
+      }
+      btn_row[3].callback()
+      -- Save button with non-executable shell
+      inst.shell_dialog = {
+        getInputText = function() return "non_existent_shell_xyz_123" end,
+      }
+      btn_row[3].callback()
+    end
+
+    -- 7. Test helper methods
+    assert.is_string(inst:getDefaultShellExecutable())
+    assert.is_boolean(inst:isExecutable("sh"))
+    assert.is_false(inst:isExecutable("non_existent_binary_xyz_123"))
+
+    -- 8. Test lifecycle methods
+    inst:onExit()
+    inst:onClose()
+
+    UIManager.show = orig_show
+    UIManager.close = orig_close
+  end)
+
+  it("should test Terminal input dialog strike and enter callbacks", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    local inst = Terminal:new({
+      ui = { menu = { registerToMainMenu = function() end } },
+    })
+    inst:init()
+
+    local transmitted = {}
+    inst.transmit = function(self, s) table.insert(transmitted, s) end
+    inst.receive = function() return "" end
+    inst.refresh = function() end
+
+    local dialog = inst:generateInputDialog()
+    assert.is_table(dialog)
+
+    -- Test enter_callback
+    dialog.enter_callback()
+    assert.are.equal("\r", transmitted[#transmitted])
+
+    -- Test strike_callback normal
+    dialog.strike_callback("a")
+    assert.are.equal("a", transmitted[#transmitted])
+
+    -- Test strike_callback with newline
+    dialog.strike_callback("\n")
+    assert.are.equal("\r\n", transmitted[#transmitted])
+
+    -- Test strike_callback with ctrl active
+    inst.ctrl = true
+    dialog.strike_callback("c")
+    assert.are.equal("\003", transmitted[#transmitted])
+    assert.is_false(inst.ctrl)
   end)
 
   it("should register dispatcher actions for terminal plugin", function()

@@ -149,4 +149,61 @@ describe("docsettings module", function()
     local name_from_history = docsettings:getNameFromHistory(history_path)
     assert.is.same(file, path_from_history .. "/" .. name_from_history)
   end)
+
+  it("handles hash sidecar location and hash directory", function()
+    G_reader_settings:save("document_metadata_folder", "hash")
+    local file = "/tmp/test_hash_doc.pdf"
+    local sidecar_dir = docsettings:getSidecarDir(file, "hash")
+    assert.is_truthy(sidecar_dir)
+    assert.is_truthy(sidecar_dir:match("%.sdr$"))
+
+    local d = docsettings:open(file)
+    assert.is_not_nil(d)
+    d:save("title", "Hash Book")
+    d:flush()
+
+    local sidecar_file = docsettings:findSidecarFile(file)
+    assert.is_truthy(sidecar_file)
+    local loaded = docsettings.openSettingsFile(sidecar_file)
+    assert.is_not_nil(loaded)
+    assert.are.equal("Hash Book", loaded.data.title)
+
+    local hash_files = docsettings.findSidecarFilesInHashLocation()
+    assert.is_table(hash_files)
+
+    d:close()
+    d:purge()
+    G_reader_settings:delete("document_metadata_folder")
+  end)
+
+  it("handles custom cover, custom metadata, and updateLocation", function()
+    local file = "/tmp/test_custom_doc.epub"
+    local d = docsettings:open(file)
+    d:save("author", "Test Author")
+    d:flush()
+
+    local tmp_cover = "/tmp/test_cover.jpg"
+    local f = io.open(tmp_cover, "w")
+    if f then f:write("cover data"); f:close() end
+
+    d:flushCustomCover(file, tmp_cover)
+    d:flushCustomMetadata(file)
+
+    local found_cover = d:findCustomCoverFile(file)
+    local found_meta = d:findCustomMetadataFile(file)
+    assert.is_truthy(found_cover)
+    assert.is_truthy(found_meta)
+
+    -- Test updateLocation copy and move
+    local new_file = "/tmp/test_custom_doc_moved.epub"
+    docsettings.updateLocation(file, new_file, true) -- copy
+    assert.is_true(docsettings:hasSidecarFile(new_file))
+
+    -- cleanup
+    docsettings.updateLocation(new_file, nil) -- delete
+    docsettings.updateLocation(file, nil) -- delete
+    os.remove(tmp_cover)
+  end)
 end)
+
+

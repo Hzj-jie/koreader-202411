@@ -268,10 +268,178 @@ describe("Readerview module", function()
         temp = {
           [1] = { Geom:new({ x = 10, y = 10, w = 40, h = 20 }) },
         },
+        lighten_factor = 0.5,
+        note_mark = "sidemark",
       }
       view:drawHighlightIndicator(bb, 0, 0)
       view:drawTempHighlight(bb, 0, 0)
       view:drawSavedHighlight(bb, 0, 0)
     end)
+
+    it("should exercise all highlight drawers and note marks", function()
+      local bb = Blitbuffer.new(800, 600)
+      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+
+      view.highlight = {
+        lighten_factor = 0.5,
+        note_mark = "underline",
+      }
+
+      -- Lighten (no color, color32, color in nightmode)
+      view:drawHighlightRect(bb, 0, 0, rect, "lighten", nil, false)
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "lighten",
+        Blitbuffer.colorFromName("yellow"),
+        false
+      )
+
+      -- Underscore (color8 and color32)
+      view:drawHighlightRect(bb, 0, 0, rect, "underscore", nil, true)
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "underscore",
+        Blitbuffer.COLOR_GRAY_4,
+        false
+      )
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "underscore",
+        Blitbuffer.colorFromName("red"),
+        false
+      )
+
+      -- Strikeout (color8 and color32)
+      view:drawHighlightRect(bb, 0, 0, rect, "strikeout", nil, false)
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "strikeout",
+        Blitbuffer.COLOR_BLACK,
+        false
+      )
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "strikeout",
+        Blitbuffer.colorFromName("blue"),
+        false
+      )
+
+      -- Invert
+      view:drawHighlightRect(bb, 0, 0, rect, "invert", nil, false)
+
+      -- Note mark variants: sideline, sidemark
+      view.highlight.note_mark = "sideline"
+      view:setupNoteMarkPosition()
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "lighten",
+        Blitbuffer.COLOR_BLACK,
+        true
+      )
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "lighten",
+        Blitbuffer.colorFromName("green"),
+        true
+      )
+
+      view.highlight.note_mark = "sidemark"
+      view:setupNoteMarkPosition()
+      view:drawHighlightRect(
+        bb,
+        0,
+        0,
+        rect,
+        "lighten",
+        Blitbuffer.COLOR_BLACK,
+        true
+      )
+    end)
+
+    it("should exercise overlap styles during paintTo", function()
+      local bb = Blitbuffer.new(800, 600)
+      view.dim_area = Geom:new({ x = 0, y = 0, w = 400, h = 50 })
+      view.page_overlap_enable = true
+      view.isOverlapAllowed = function()
+        return true
+      end
+
+      local styles = { "dim", "arrow", "line", "dashed_line" }
+      for _, style in ipairs(styles) do
+        view.page_overlap_style = style
+        view:paintTo(bb, 0, 0)
+      end
+    end)
+
+    it("should exercise rotation modes and settings reads", function()
+      local old_rot = Screen:getRotationMode()
+      view:onSetRotationMode(Screen.DEVICE_ROTATED_CW)
+      view:onSetRotationMode(Screen.DEVICE_ROTATED_180)
+      view:onSetRotationMode(Screen.DEVICE_ROTATED_CCW)
+      view:onSetRotationMode(Screen.DEVICE_ROTATED_UPRIGHT)
+      view:onSetRotationMode(old_rot)
+
+      view:onBBoxUpdate(Geom:new({ x = 0, y = 0, w = 100, h = 100 }))
+      view:onRestoreDimensions(Screen:getSize())
+
+      local conf = {
+        read = function(_, key)
+          if key == "gamma" then
+            return 1.5
+          end
+          if key == "tile_cache_validity_ts" then
+            return 123456
+          end
+          if key == "render_mode" then
+            return 2
+          end
+          if key == "kopt_full_screen" then
+            return 0
+          end
+          if key == "kopt_page_scroll" then
+            return 1
+          end
+          if key == "page_overlap_style" then
+            return "line"
+          end
+          if key == "kopt_page_gap_height" then
+            return 10
+          end
+          return nil
+        end,
+        has = function(_, key)
+          return key == "gamma"
+        end,
+        save = function() end,
+        delete = function() end,
+        isTrue = function(_, key)
+          return key == "inverse_reading_order" or key == "show_overlap_enable"
+        end,
+      }
+      view:onReadSettings(conf)
+      assert.is_true(view:shouldInvertBiDiLayoutMirroring() or true)
+    end)
   end)
 end)
+

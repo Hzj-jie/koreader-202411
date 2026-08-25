@@ -315,4 +315,128 @@ describe("TextBoxWidget widget", function()
     assert.is_false(tw.editable)
     tw:onClose()
   end)
+
+  it("should handle onHoldWord and single word extraction", function()
+    local tw = TextBoxWidget:new({
+      width = 300,
+      use_xtext = false,
+      face = Font:getFace("cfont", 20),
+      text = "Apple banana cherry date elderberry",
+    })
+    local extracted_word
+    tw:onHoldWord(function(w)
+      extracted_word = w
+    end, { pos = { x = 20, y = 5 } })
+    assert.truthy(extracted_word)
+  end)
+
+  it("should handle onHoldPanText and _findWordEdge with use_xtext = false", function()
+    local tw = TextBoxWidget:new({
+      width = 300,
+      use_xtext = false,
+      face = Font:getFace("cfont", 20),
+      text = "First word and second word in a sentence.",
+    })
+    -- Start hold
+    local res = tw:onHoldStartText(nil, { pos = { x = 10, y = 5 } })
+    assert.is_true(res)
+
+    -- Pan across text
+    res = tw:onHoldPanText(nil, { pos = { x = 100, y = 5 } })
+    assert.is_true(res)
+    assert.is_not_nil(tw.sel_start_idx)
+    assert.is_not_nil(tw.sel_end_idx)
+
+    -- Out-of-bounds hold start returns false
+    res = tw:onHoldStartText(nil, { pos = { x = -10, y = -10 } })
+    assert.is_false(res)
+  end)
+
+  it("should handle cursor movements in all directions", function()
+    local tw = TextBoxWidget:new({
+      width = 200,
+      height = 100,
+      face = Font:getFace("cfont", 20),
+      text = "Line One\nLine Two\nLine Three\nLine Four",
+      editable = true,
+    })
+    tw:moveCursorToCharPos(1)
+    assert.are.equal(1, tw.charpos)
+
+    tw:moveCursorRight()
+    assert.are.equal(2, tw.charpos)
+
+    tw:moveCursorLeft()
+    assert.are.equal(1, tw.charpos)
+
+    tw:moveCursorEnd()
+    assert.is_true(tw.charpos > 1)
+
+    tw:moveCursorHome()
+    assert.are.equal(1, tw.charpos)
+
+    tw:moveCursorDown()
+    assert.is_true(tw.charpos > 1)
+
+    tw:moveCursorUp()
+    assert.are.equal(1, tw.charpos)
+
+    -- moveCursorToXY
+    tw:moveCursorToXY(50, 10, true)
+    assert.is_number(tw.charpos)
+
+    -- moveCursorToCharPosKeepingViewCentered
+    tw:moveCursorToCharPosKeepingViewCentered(15, 2)
+    assert.is_number(tw.virtual_line_num)
+
+    -- scrollViewToCharPos with top_line_num
+    tw.top_line_num = 2
+    tw:scrollViewToCharPos()
+    assert.are.equal(2, tw.virtual_line_num)
+  end)
+
+  it("should handle embedded images and onTapImage", function()
+    local Blitbuffer = require("ffi/blitbuffer")
+    local UIManager = require("ui/uimanager")
+    local img_bb = Blitbuffer.new(40, 40, Blitbuffer.TYPE_BBRGB32)
+    local tw = TextBoxWidget:new({
+      width = 300,
+      height = 200,
+      face = Font:getFace("cfont", 20),
+      text = "Text with an embedded image next to it.\nSecond line of text.",
+      images = {
+        {
+          width = 40,
+          height = 40,
+          bb = img_bb,
+          alt_text = "Image Alt",
+        },
+      },
+    })
+    UIManager:show(tw)
+    assert.is_table(tw.line_num_to_image)
+    assert.is_not_nil(tw.line_num_to_image[1])
+
+    -- Test onTapImage
+    local res = tw:onTapImage(nil, { pos = { x = 280, y = 10 } })
+    assert.is_true(res)
+
+    UIManager:close(tw)
+    img_bb:free()
+  end)
+
+  it("should handle non-xtext text layout, shaping, and options", function()
+    local tw = TextBoxWidget:new({
+      width = 250,
+      use_xtext = false,
+      auto_cut_at_newline = true,
+      keep_spaces = true,
+      face = Font:getFace("cfont", 20),
+      text = "Some words with spaces   and a very long sentence that wraps across lines properly.",
+    })
+    assert.is_true(#tw.vertical_string_list >= 2)
+    local size = tw:getSize()
+    assert.is_true(size.w > 0)
+    assert.is_true(size.h > 0)
+  end)
 end)

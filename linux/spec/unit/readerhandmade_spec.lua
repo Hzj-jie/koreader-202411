@@ -253,4 +253,110 @@ describe("ReaderHandmade module", function()
     handmade:onToggleHandmadeFlows()
     assert.is_true(handmade.flows_enabled)
   end)
+
+  it("should handle main menu items and submenus", function()
+    local mock_doc = {
+      getPageCount = function()
+        return 50
+      end,
+      getPageXPointer = function(_, p)
+        return "/xp/" .. p
+      end,
+      getPageFromXPointer = function(_, xp)
+        return 1
+      end,
+      compareXPointers = function()
+        return 0
+      end,
+    }
+    local mock_ui = {
+      menu = { registerToMainMenu = function() end },
+      document = mock_doc,
+      annotation = { setNeedsUpdateFlag = function() end },
+      highlight = {
+        addToHighlightDialog = function() end,
+        removeFromHighlightDialog = function() end,
+      },
+    }
+    local handmade = ReaderHandmade:new({
+      ui = mock_ui,
+      document = mock_doc,
+    })
+    handmade.toc = { { title = "Ch1", page = 1 } }
+    handmade.flow_points = { { page = 10, hidden = true } }
+    handmade.inactive_flow_points = {}
+    handmade.toc_enabled = true
+    handmade.flows_enabled = true
+
+    local shown_widgets = {}
+    handmade.showWidget = function(self, w)
+      table.insert(shown_widgets, w)
+    end
+
+    local menu_items = {}
+    handmade:addToMainMenu(menu_items)
+    assert.is_table(menu_items.handmade_toc)
+    assert.is_table(menu_items.handmade_hidden_flows)
+    assert.is_table(menu_items.handmade_settings)
+
+    menu_items.handmade_toc.checked_func()
+    menu_items.handmade_toc.callback()
+
+    menu_items.handmade_hidden_flows.checked_func()
+    menu_items.handmade_hidden_flows.callback()
+
+    -- Test submenus
+    local settings_sub = menu_items.handmade_settings.sub_item_table_func()
+    assert.is_table(settings_sub)
+    for _, item in ipairs(settings_sub) do
+      if item.checked_func then
+        pcall(item.checked_func)
+      end
+      if item.enabled_func then
+        pcall(item.enabled_func)
+      end
+      if item.callback then
+        pcall(item.callback, { updateItems = function() end })
+      end
+    end
+
+    -- Trigger callbacks on shown widgets (ConfirmBox / InfoMessage)
+    for _, w in ipairs(shown_widgets) do
+      if w.ok_callback then
+        pcall(w.ok_callback)
+      end
+    end
+  end)
+
+  it("should handle settings migrations between rolling and paging", function()
+    local mock_doc = { getPageCount = function() return 10 end }
+    local mock_ui_rolling = {
+      rolling = true,
+      menu = { registerToMainMenu = function() end },
+      document = mock_doc,
+      highlight = { addToHighlightDialog = function() end, removeFromHighlightDialog = function() end },
+      annotation = { setNeedsUpdateFlag = function() end },
+    }
+    local handmade = ReaderHandmade:new({ ui = mock_ui_rolling, document = mock_doc })
+
+    local data = {
+      handmade_toc = { { title = "PagingItem", page = 2 } },
+      handmade_flow_points = { { page = 2, hidden = true } },
+      handmade_toc_rolling = { { title = "RollingItem", page = 2, xpointer = "/xp/2" } },
+      handmade_flow_points_rolling = { { page = 2, xpointer = "/xp/2", hidden = true } },
+    }
+    local config = {
+      read = function(self, k) return data[k] end,
+      readTableRef = function(self, k) return data[k] end,
+      save = function(self, k, v) data[k] = v end,
+      delete = function(self, k) data[k] = nil end,
+      isTrue = function() return false end,
+      nilOrTrue = function() return true end,
+    }
+
+    handmade:onReadSettings(config)
+    assert.is_not_nil(handmade.toc)
+    assert.is_not_nil(handmade.flow_points)
+  end)
 end)
+

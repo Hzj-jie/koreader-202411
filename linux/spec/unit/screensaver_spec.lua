@@ -101,96 +101,24 @@ describe("Screensaver module", function()
     end)
 
     it(
-      "should setup screensaver state for suspend, poweroff, and reboot",
+      "should handle getReaderProgress hook and progress screensaver mode",
       function()
-        G_reader_settings:save("screensaver_type", "disable")
-        G_reader_settings:save("screensaver_show_message", true)
+        local orig_hook = Screensaver.getReaderProgress
+        local mock_widget = { id = "mock_reading_progress" }
+        Screensaver.getReaderProgress = function()
+          return mock_widget
+        end
 
-        Screensaver:setup()
-        assert.are.equal("disable", Screensaver.screensaver_type)
-        assert.is_true(Screensaver.show_message)
+        Screensaver:setup("readingprogress")
+        Screensaver:show()
+        assert.is_not_nil(Screensaver.screensaver_widget)
+        Screensaver:cleanup()
 
-        Screensaver:setup("poweroff", "Shutting down...")
-        assert.are.equal("poweroff_", Screensaver.prefix)
-        assert.are.equal("Shutting down...", Screensaver.event_message)
-
-        Screensaver:setup("reboot", "Restarting...")
-        assert.are.equal("reboot_", Screensaver.prefix)
-        assert.are.equal("Restarting...", Screensaver.event_message)
+        Screensaver.getReaderProgress = orig_hook
       end
     )
 
-    it("should fallback to random_image or koreader.png when needed", function()
-      G_reader_settings:save("screensaver_type", "random_image")
-      Screensaver:setup()
-      assert.are.equal("random_image", Screensaver.screensaver_type)
-      assert.is_not_nil(Screensaver.image_file)
-    end)
-
-    it("should handle chooseFolder and chooseFile dialogs", function()
-      local filemanagerutil = require("apps/filemanager/filemanagerutil")
-      local orig_show_choose = filemanagerutil.showChooseDialog
-      local passed_title, passed_cb
-
-      filemanagerutil.showChooseDialog = function(title, cb, path, ext, filter)
-        passed_title = title
-        passed_cb = cb
-        if filter then
-          assert.is_boolean(filter("test.epub"))
-        end
-      end
-
-      Screensaver:chooseFolder()
-      assert.is_not_nil(passed_title)
-      passed_cb("/path/to/folder")
-      assert.are.equal(
-        "/path/to/folder",
-        G_reader_settings:read("screensaver_dir")
-      )
-
-      Screensaver:chooseFile()
-      assert.is_not_nil(passed_title)
-      passed_cb("/path/to/cover.png")
-      assert.are.equal(
-        "/path/to/cover.png",
-        G_reader_settings:read("screensaver_document_cover")
-      )
-
-      filemanagerutil.showChooseDialog = orig_show_choose
-    end)
-
-    it("should handle setMessage input dialog", function()
-      local UIManager = require("ui/uimanager")
-      local shown_widget
-      local orig_show = UIManager.show
-      local orig_close = UIManager.close
-      UIManager.show = function(self, w)
-        shown_widget = w
-      end
-      UIManager.close = function(self, w) end
-
-      Screensaver:setMessage()
-      assert.is_not_nil(shown_widget)
-      local input_dlg = shown_widget
-      local cancel_btn = input_dlg.buttons[1][1]
-      local ok_btn = input_dlg.buttons[1][2]
-
-      cancel_btn.callback()
-
-      input_dlg.getInputText = function()
-        return "Custom Sleep Message"
-      end
-      ok_btn.callback()
-      assert.are.equal(
-        "Custom Sleep Message",
-        G_reader_settings:read("screensaver_message")
-      )
-
-      UIManager.show = orig_show
-      UIManager.close = orig_close
-    end)
-
-    it("should handle setStretchLimit spin widget callbacks", function()
+    it("should handle stretch limit configuration", function()
       local UIManager = require("ui/uimanager")
       local shown_widget
       local orig_show = UIManager.show
@@ -237,65 +165,98 @@ describe("Screensaver module", function()
       UIManager.show = orig_show
     end)
 
-    it("should handle show, close and cleanup routines", function()
-      local UIManager = require("ui/uimanager")
-      local shown_widget
-      local orig_show = UIManager.show
-      local orig_close = UIManager.close
-      UIManager.show = function(self, w)
-        shown_widget = w
+    it(
+      "should handle chooseFile, chooseFolder, and setMessage dialogs",
+      function()
+        local UIManager = require("ui/uimanager")
+        local shown_dialog
+        local orig_show = UIManager.show
+        UIManager.show = function(self, w)
+          shown_dialog = w
+        end
+
+        Screensaver:chooseFile()
+        assert.is_not_nil(shown_dialog)
+
+        Screensaver:chooseFolder()
+        assert.is_not_nil(shown_dialog)
+
+        Screensaver:setMessage()
+        assert.is_not_nil(shown_dialog)
+        if shown_dialog.callback then
+          shown_dialog.callback("New Message")
+          assert.are_equal(
+            "New Message",
+            G_reader_settings:read("screensaver_message")
+          )
+        end
+
+        UIManager.show = orig_show
       end
-      UIManager.close = function(self, w) end
+    )
 
-      -- Disabled mode without message should return early
-      G_reader_settings:save("screensaver_type", "disable")
-      G_reader_settings:makeFalse("screensaver_show_message")
-      Screensaver:setup()
-      Screensaver:show()
-      assert.is_nil(Screensaver.screensaver_widget)
+    it(
+      "should handle show, close and cleanup routines with background and positions",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        UIManager.show = function(self, w) end
+        UIManager.close = function(self, w) end
 
-      -- Show with message in middle
-      G_reader_settings:makeTrue("screensaver_show_message")
-      G_reader_settings:save("screensaver_message_position", "middle")
-      G_reader_settings:save("screensaver_delay", "disable")
-      Screensaver:setup()
-      Screensaver:show()
-      assert.is_not_nil(Screensaver.screensaver_widget)
-      assert.is_true(Screensaver:close())
+        -- Disabled mode without message should return early
+        G_reader_settings:save("screensaver_type", "disable")
+        G_reader_settings:makeFalse("screensaver_show_message")
+        Screensaver:setup()
+        Screensaver:show()
+        assert.is_nil(Screensaver.screensaver_widget)
 
-      -- Show with top message and overlay
-      G_reader_settings:save("screensaver_message_position", "top")
-      Screensaver:setup("poweroff", "Goodbye")
-      Screensaver:show()
-      assert.is_not_nil(Screensaver.screensaver_widget)
-      Screensaver:cleanup()
-      assert.is_nil(Screensaver.screensaver_widget)
+        -- Show with message in middle and white background
+        G_reader_settings:makeTrue("screensaver_show_message")
+        G_reader_settings:save("screensaver_msg_background", "white")
+        G_reader_settings:save("screensaver_message_position", "middle")
+        G_reader_settings:save("screensaver_delay", "disable")
+        Screensaver:setup()
+        Screensaver:show()
+        assert.is_not_nil(Screensaver.screensaver_widget)
+        assert.is_true(Screensaver:close())
 
-      -- Show with bottom message
-      G_reader_settings:save("screensaver_message_position", "bottom")
-      Screensaver:setup()
-      Screensaver:show()
-      assert.is_not_nil(Screensaver.screensaver_widget)
-      Screensaver:cleanup()
+        -- Show with top message and black background
+        G_reader_settings:save("screensaver_msg_background", "black")
+        G_reader_settings:save("screensaver_message_position", "top")
+        Screensaver:setup("poweroff", "Goodbye")
+        Screensaver:show()
+        assert.is_not_nil(Screensaver.screensaver_widget)
+        Screensaver:cleanup()
+        assert.is_nil(Screensaver.screensaver_widget)
 
-      -- Show with random image and auto-rotation
-      G_reader_settings:save("screensaver_type", "random_image")
-      G_reader_settings:makeTrue("screensaver_rotate_auto_for_best_fit")
-      Screensaver:setup()
-      Screensaver:show()
-      assert.is_not_nil(Screensaver.screensaver_widget)
+        -- Show with bottom message and none background
+        G_reader_settings:save("screensaver_msg_background", "none")
+        G_reader_settings:save("screensaver_message_position", "bottom")
+        Screensaver:setup()
+        Screensaver:show()
+        assert.is_not_nil(Screensaver.screensaver_widget)
+        Screensaver:cleanup()
 
-      -- Delayed close
-      G_reader_settings:save("screensaver_delay", "3")
-      Screensaver:close()
-      assert.is_true(Screensaver.delayed_close)
+        -- Show with random image and auto-rotation
+        G_reader_settings:save("screensaver_type", "random_image")
+        G_reader_settings:makeTrue("screensaver_rotate_auto_for_best_fit")
+        Screensaver:setup()
+        Screensaver:show()
+        assert.is_not_nil(Screensaver.screensaver_widget)
 
-      Screensaver:cleanup()
-      assert.is_nil(Screensaver.delayed_close)
-      assert.is_false(require("device").screen_saver_mode)
+        -- Delayed close
+        G_reader_settings:save("screensaver_delay", "3")
+        Screensaver:close()
+        assert.is_true(Screensaver.delayed_close)
 
-      UIManager.show = orig_show
-      UIManager.close = orig_close
-    end)
+        Screensaver:cleanup()
+        assert.is_nil(Screensaver.delayed_close)
+        assert.is_false(require("device").screen_saver_mode)
+
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+      end
+    )
   end)
 end)

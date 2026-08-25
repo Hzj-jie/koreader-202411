@@ -89,9 +89,28 @@ describe("ReaderScrolling module", function()
       local menu_items = {}
       scrolling:addToMainMenu(menu_items)
       assert.truthy(menu_items.scrolling)
+      if menu_items.scrolling.enabled_func then
+        scrolling.view = { view_mode = "scroll" }
+        assert.is_true(menu_items.scrolling.enabled_func())
+        scrolling.view = { view_mode = "page" }
+        assert.is_false(menu_items.scrolling.enabled_func())
+      end
+
+      local mock_menu = { updateItems = function() end }
       for _, item in ipairs(menu_items.scrolling.sub_item_table) do
+        if item.text_func then item:text_func() end
+        if item.enabled_func then item:enabled_func() end
+        if item.checked_func then item:checked_func() end
         if item.callback then
-          item.callback()
+          item.callback(mock_menu)
+          local UIManager = require("ui/uimanager")
+          local top = UIManager:getTopmostVisibleWidget()
+          if top and top.callback then
+            top.callback({ value = 300 })
+          end
+          if top then
+            UIManager:close(top)
+          end
         end
       end
 
@@ -113,6 +132,9 @@ describe("ReaderScrolling module", function()
       assert.is.same(scrolling.SCROLL_METHOD_CLASSIC, scrolling.scroll_method)
       assert.is_true(scrolling._inertial_scroll_enabled)
 
+      -- Test onReaderReady
+      scrolling:onReaderReady()
+
       -- Test setInertialScrollCallbacks
       local scroll_called = false
       local done_called = false
@@ -129,7 +151,30 @@ describe("ReaderScrolling module", function()
       scrolling:accountManualScroll(50, now)
       scrolling:accountManualScroll(100, now + time.ms(20))
       assert.is_boolean(scrolling:startInertialScroll())
+
+      -- Run inertial scroll action steps directly to cover simulation
+      if scrolling._inertial_scroll_action then
+        scrolling._inertial_scroll_action()
+        if scrolling._just_reschedule then
+          scrolling._inertial_scroll_action()
+        end
+        -- Simulate deceleration down to stop
+        scrolling._velocity = 5
+        scrolling._inertial_scroll_action()
+      end
+
       scrolling:cancelInertialScroll()
+      assert.is_boolean(scrolling:cancelledByTouch() or false)
+
+      -- Test touch zones
+      scrolling._cancelled_by_touch = true
+      local zones = {
+        {
+          id = "inertial_scrolling_touch",
+          handler = function(ges) end,
+        }
+      }
+      scrolling:setupTouchZones()
 
       scrolling:setInertialScrollCallbacks(nil, nil)
 

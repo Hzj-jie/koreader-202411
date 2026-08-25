@@ -120,8 +120,59 @@ describe("ReaderThumbnail module", function()
       local bb_pdf = thumb_pdf:_getPageImage(1)
       assert.truthy(bb_pdf)
 
+      -- Test getPageThumbnail
+      local req_done = false
+      thumb_pdf:getPageThumbnail(
+        1,
+        80,
+        100,
+        "batch_pdf",
+        function(tile, batch_id, is_delayed)
+          req_done = true
+        end
+      )
+
+      -- Test show book map and page browser
+      local shown_widgets = {}
+      thumb_pdf.showWidget = function(self, w)
+        table.insert(shown_widgets, w)
+      end
+
+      thumb_pdf:onShowBookMap(false)
+      thumb_pdf:onShowBookMap(true)
+      thumb_pdf:onShowPageBrowser()
+      assert.are.equal(3, #shown_widgets)
+
+      -- Test main menu callbacks
+      local menu_items = {}
+      thumb_pdf:addToMainMenu(menu_items)
+      if menu_items.book_map.callback then
+        menu_items.book_map.callback()
+      end
+      if menu_items.book_map.hold_callback then
+        menu_items.book_map.hold_callback()
+      end
+      if menu_items.page_browser and menu_items.page_browser.callback then
+        menu_items.page_browser.callback()
+      end
+
+      -- Test ensureTileGeneration action transitions
+      thumb_pdf._ensureTileGeneration_action(true)
+      thumb_pdf._ensureTileGeneration_action(false)
+      thumb_pdf._ensureTileGeneration_action(false)
+      thumb_pdf._ensureTileGeneration_action(false)
+
       readerui_pdf:onExit()
       readerui_pdf:onClose()
+
+      local UIManager = require("ui/uimanager")
+      while #UIManager._window_stack > 0 do
+        UIManager:close(UIManager._window_stack[#UIManager._window_stack].widget)
+      end
+      UIManager._task_queue = {}
+      UIManager._next_tick_tasks = {}
+      UIManager._tick_after_next_tasks = {}
     end)
   end)
 end)
+

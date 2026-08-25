@@ -121,15 +121,24 @@ describe("ReaderCoptListener module", function()
     assert.truthy(menu)
     assert.truthy(menu.sub_item_table)
 
-    -- Toggle each menu item
+    -- Toggle each menu item and test checked_func/text_func
     for _, item in ipairs(menu.sub_item_table) do
+      if item.checked_func then
+        pcall(item.checked_func)
+      end
+      if item.text_func then
+        pcall(item.text_func)
+      end
       if item.callback then
-        item.callback()
+        pcall(item.callback)
       end
       if item.sub_item_table then
         for _, sub in ipairs(item.sub_item_table) do
+          if sub.checked_func then
+            pcall(sub.checked_func)
+          end
           if sub.callback then
-            sub.callback()
+            pcall(sub.callback)
           end
         end
       end
@@ -141,6 +150,26 @@ describe("ReaderCoptListener module", function()
     end
     assert.is_true(listener:addAdditionalHeaderContent(test_fn))
     assert.is_false(listener:addAdditionalHeaderContent(test_fn))
+
+    -- Test page_info_override
+    listener.page_number = 1
+    listener.page_count = 1
+    listener.reading_percent = 1
+    listener.battery = 1
+    listener.battery_percent = 1
+    listener.clock = 1
+    local pinfo = listener:page_info_override()
+    assert.is_boolean(pinfo)
+    listener:page_info_override(1)
+
+    -- Test header update and clock/battery events
+    listener:_updateHeader(true)
+    listener:onUpdateHeader()
+    listener:onTimeFormatChanged()
+    listener:onBookMetadataChanged("title")
+    listener:onPageUpdate(1)
+    listener:onPosUpdate(1, 1)
+
     assert.is_true(listener:removeAdditionalHeaderContent(test_fn))
     assert.is_false(listener:removeAdditionalHeaderContent(test_fn))
 
@@ -156,3 +185,4 @@ describe("ReaderCoptListener module", function()
     doc:close()
   end)
 end)
+

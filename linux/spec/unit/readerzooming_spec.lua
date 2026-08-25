@@ -62,6 +62,30 @@ describe("ReaderZooming module", function()
     local actions = zooming:getZoomModeActions()
     assert.is_table(actions)
 
+    -- Test genSetZoomModeCallBack for all available zoom modes
+    local modes = { "contentwidth", "contentheight", "content", "page", "pagewidth", "pageheight", "free", "columns", "rows" }
+    for _, m in ipairs(modes) do
+      local cb = zooming:genSetZoomModeCallBack(m)
+      assert.is_function(cb)
+      cb()
+    end
+
+    -- Test onToggleFreeZoom
+    zooming:setZoomMode("page")
+    zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
+    zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
+
+    -- Test onRotationUpdate
+    zooming:onRotationUpdate(90)
+    zooming:onRotationUpdate(0)
+
+    -- Test onDefineZoom
+    zooming:onDefineZoom("columns")
+    zooming:onDefineZoom("rows")
+    zooming:onDefineZoom("manual")
+    zooming:onDefineZoom("set_zoom_overlap_h")
+    zooming:onDefineZoom("set_zoom_overlap_v")
+
     -- Settings persistence
     zooming:onSaveSettings()
     zooming:onReadSettings(readerui.doc_settings)
@@ -70,3 +94,4 @@ describe("ReaderZooming module", function()
     readerui:onClose()
   end)
 end)
+
