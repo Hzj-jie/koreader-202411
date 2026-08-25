@@ -13,7 +13,10 @@ describe("FileManager module", function()
   end)
   after_each(function()
     if FileManager.instance then
-      FileManager.instance:onExit()
+      pcall(function()
+        FileManager.instance:onExit()
+      end)
+      FileManager.instance = nil
     end
     UIManager:quit()
   end)
@@ -803,6 +806,111 @@ describe("FileManager module", function()
 
     filemanager:setHome("spec/unit/data")
     assert.is_not_nil(shown_widget)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
+
+  it("should handle renameFile conflict logic and dialogs", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+
+    local tmp_dir = "spec/unit/data/tmp_existing_dir"
+    lfs.mkdir(tmp_dir)
+
+    local shown_widgets = {}
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      table.insert(shown_widgets, w)
+    end
+
+    -- Conflict: file to existing directory
+    filemanager:renameFile("spec/unit/data/2col.pdf", "tmp_existing_dir", true)
+    assert.is_true(#shown_widgets > 0)
+
+    -- Conflict: directory to existing file
+    shown_widgets = {}
+    filemanager:renameFile(tmp_dir, "2col.pdf", false)
+    assert.is_true(#shown_widgets > 0)
+
+    -- Conflict: file to existing file (asks for overwrite)
+    local tmp_fn1 = "spec/unit/data/tmp_rename1.pdf"
+    local tmp_fn2 = "spec/unit/data/tmp_rename2.pdf"
+    util.copyFile("spec/unit/data/2col.pdf", tmp_fn1)
+    util.copyFile("spec/unit/data/2col.pdf", tmp_fn2)
+
+    shown_widgets = {}
+    filemanager:renameFile(tmp_fn1, "tmp_rename2.pdf", true)
+    assert.is_true(#shown_widgets > 0)
+    local confirm = shown_widgets[#shown_widgets]
+    if confirm and confirm.ok_callback then
+      confirm.ok_callback()
+    end
+    assert.is_nil(lfs.attributes(tmp_fn1))
+    assert.is_not_nil(lfs.attributes(tmp_fn2))
+    os.remove(tmp_fn2)
+    lfs.rmdir(tmp_dir)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
+
+  it("should handle showSelectedFilesList menu choices and holds", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    filemanager.selected_files = {
+      ["spec/unit/data/2col.pdf"] = true,
+    }
+
+    local shown_menu
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_menu = w
+    end
+
+    filemanager:showSelectedFilesList()
+    assert.is_not_nil(shown_menu)
+    assert.is_not_nil(shown_menu.item_table)
+    assert.are.equal(1, #shown_menu.item_table)
+
+    -- Test select callback
+    local changed_path
+    filemanager.file_chooser.changeToPath = function(_self, p)
+      changed_path = p
+    end
+    shown_menu.onMenuSelect(shown_menu, shown_menu.item_table[1])
+    assert.is_not_nil(changed_path)
+
+    UIManager.show = old_show
+    filemanager:onExit()
+  end)
+
+  it("should handle showOpenWithDialog and file associations", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+
+    local shown_widget
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    filemanager:showOpenWithDialog("spec/unit/data/2col.pdf")
+    assert.is_not_nil(shown_widget)
+
+    -- Close dialog safely
+    if shown_widget.buttons and shown_widget.buttons[#shown_widget.buttons] then
+      local cancel_btn = shown_widget.buttons[#shown_widget.buttons][1]
+      if cancel_btn and cancel_btn.callback then
+        cancel_btn.callback()
+      end
+    end
 
     UIManager.show = old_show
     filemanager:onExit()

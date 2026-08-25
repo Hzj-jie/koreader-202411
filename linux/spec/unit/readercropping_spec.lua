@@ -106,12 +106,30 @@ describe("ReaderCropping module", function()
     local cropping = ReaderCropping:new({
       ui = readerui,
       document = readerui.document,
+      view = readerui.view,
       orig_zoom_mode = "page",
       setZoomMode = function(self, mode) end,
     })
 
     cropping:setCropZoomMode(true)
     cropping:setCropZoomMode(false)
+
+    -- Test page crop modes
+    cropping:onPageCrop("none")
+    cropping:onPageCrop("auto")
+
+    -- Test interactive crop session
+    cropping:onPageCrop("semi-auto")
+    assert.truthy(cropping.crop_dialog)
+    cropping.bbox_widget.screen_bbox =
+      cropping.bbox_widget:getScreenBBox(cropping.bbox_widget.page_bbox)
+
+    -- Test confirm crop
+    cropping:onConfirmPageCrop()
+
+    -- Test cancel crop
+    cropping:onPageCrop("semi-auto")
+    cropping:onCancelPageCrop()
 
     readerui:onExit()
     readerui:onClose()

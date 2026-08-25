@@ -111,6 +111,7 @@ local env_exemptions = {
     ["spec/unit/eink_optimization_spec.lua"] = true,
     ["spec/unit/network_manager_spec.lua"] = true,
     ["spec/unit/readerfooter_spec.lua"] = true,
+    ["spec/unit/readerthumbnail_spec.lua"] = true,
 }
 
 -- Collect spec files to execute

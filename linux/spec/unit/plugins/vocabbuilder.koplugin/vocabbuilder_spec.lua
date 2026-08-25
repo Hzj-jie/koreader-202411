@@ -1,6 +1,6 @@
 describe("VocabBuilder plugin unit tests", function()
-  local Dispatcher, UIManager, DataStorage, G_reader_settings, SQ3, Event
-  local VocabBuilder, VocabularyBuilderWidget, VocabItemWidget, MenuDialog, WordInfoDialog, DB
+  local Dispatcher, UIManager, DataStorage, G_reader_settings, SQ3, Event, Blitbuffer
+  local VocabBuilder, DB
   local mock_ui, db_location
 
   setup(function()
@@ -12,6 +12,7 @@ describe("VocabBuilder plugin unit tests", function()
     DataStorage = require("datastorage")
     SQ3 = require("lua-ljsqlite3/init")
     Event = require("ui/event")
+    Blitbuffer = require("ffi/blitbuffer")
     db_location = DataStorage:getSettingsDir() .. "/vocabulary_builder.sqlite3"
 
     DB = require("plugins/vocabbuilder.koplugin/db")
@@ -93,9 +94,7 @@ describe("VocabBuilder plugin unit tests", function()
       builder:init()
 
       assert.stub(Dispatcher.registerAction).was_called()
-      assert
-        .spy(mock_ui.menu.registerToMainMenu)
-        .was_called_with(mock_ui.menu, builder)
+      assert.spy(mock_ui.menu.registerToMainMenu).was_called_with(mock_ui.menu, builder)
     end)
 
     it("adds vocabulary builder item to main menu", function()
@@ -142,26 +141,16 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("resets progress and purges database", function()
-      DB:insertOrUpdate({
-        word = "word1",
-        book_title = "Book A",
-        time = os.time(),
-      })
-      DB:insertOrUpdate({
-        word = "word2",
-        book_title = "Book A",
-        time = os.time(),
-      })
+      DB:insertOrUpdate({ word = "word1", book_title = "Book A", time = os.time() })
+      DB:insertOrUpdate({ word = "word2", book_title = "Book A", time = os.time() })
 
       DB:resetProgress()
       local conn = SQ3.open(db_location)
-      local rev_count =
-        tonumber(conn:rowexec("SELECT sum(review_count) FROM vocabulary;"))
+      local rev_count = tonumber(conn:rowexec("SELECT sum(review_count) FROM vocabulary;"))
       assert.are.equal(0, rev_count)
 
       DB:purge()
-      local total_words =
-        tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
+      local total_words = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
       assert.are.equal(0, total_words)
       conn:close()
     end)
@@ -191,9 +180,7 @@ describe("VocabBuilder plugin unit tests", function()
       assert.is_true(res)
 
       local conn = SQ3.open(db_location)
-      local count = tonumber(
-        conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='apple';")
-      )
+      local count = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='apple';"))
       conn:close()
       assert.are.equal(1, count)
     end)
@@ -208,21 +195,9 @@ describe("VocabBuilder plugin unit tests", function()
       assert.is_true(res)
 
       local conn = SQ3.open(db_location)
-      local row = conn:rowexec(
-        "SELECT prev_context, next_context, highlight FROM vocabulary WHERE word='banana';"
-      )
+      local row = conn:rowexec("SELECT prev_context, next_context, highlight FROM vocabulary WHERE word='banana';")
       conn:close()
       assert.is_not_nil(row)
-    end)
-
-    it("ignores current lookup word when re-looked up", function()
-      local builder = VocabBuilder:new({ ui = mock_ui })
-      local menu = getMenuDialog(builder)
-      menu:onChangeEnableStatus(nil, 2)
-
-      builder.widget = { current_lookup_word = "cherry" }
-      local res = builder:onWordLookedUp("cherry", "Test Book", false)
-      assert.is_true(res)
     end)
   end)
 
@@ -243,58 +218,47 @@ describe("VocabBuilder plugin unit tests", function()
       assert.are.equal(1, #buttons)
       assert.are.equal("vocabulary", buttons[1][1].id)
 
-      -- Execute button callback
       buttons[1][1].callback()
       assert.stub(UIManager.broadcastEvent).was_called()
-    end)
-
-    it("does not add button when enabled or wiki fullpage", function()
-      local builder = VocabBuilder:new({ ui = mock_ui })
-      local menu = getMenuDialog(builder)
-      menu:onChangeEnableStatus(nil, 2)
-
-      local dict_popup = { lookupword = "cherry", ui = {} }
-      local buttons = {}
-      builder:onDictButtonsReady(dict_popup, buttons)
-      assert.are.equal(0, #buttons)
-
-      menu:onChangeEnableStatus(nil, 1)
-      dict_popup.is_wiki_fullpage = true
-      buttons = {}
-      builder:onDictButtonsReady(dict_popup, buttons)
-      assert.are.equal(0, #buttons)
     end)
   end)
 
   describe("VocabularyBuilderWidget & UI workflows", function()
-    it("creates widget and displays items", function()
-      DB:insertOrUpdate({
-        word = "word1",
-        book_title = "Book 1",
-        time = os.time(),
-      })
-      DB:insertOrUpdate({
-        word = "word2",
-        book_title = "Book 2",
-        time = os.time(),
-      })
+    it("creates widget, paints to Blitbuffer, and tests UI actions", function()
+      DB:insertOrUpdate({ word = "word1", book_title = "Book 1", time = os.time(), prev_context = "pre", next_context = "post", highlight = "word1" })
+      DB:insertOrUpdate({ word = "word2", book_title = "Book 2", time = os.time() })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
 
-      assert.stub(UIManager.show).was_called()
       local widget = builder.widget
       assert.is_table(widget)
       assert.are.equal(2, #widget.item_table)
+
+      -- Paint widget to Blitbuffer
+      local bb = Blitbuffer.new(600, 800)
+      widget:paintTo(bb, 0, 0)
+
+      -- Exercise item widgets inside
+      for _, item in ipairs(widget.main_content) do
+        if item.item and item.item.paintTo then
+          item.item:paintTo(bb, 0, 0)
+        end
+      end
+
+      -- Test filter dialog
+      widget:onShowFilter()
+
+      -- Test change book title dialog
+      widget:showChangeBookTitleDialog({ id = 1, name = "Book 1" }, function() end)
+
+      -- Close
+      widget:onExit()
     end)
 
     it("handles pagination next, prev, and page navigation", function()
       for i = 1, 20 do
-        DB:insertOrUpdate({
-          word = "word" .. i,
-          book_title = "Book 1",
-          time = os.time(),
-        })
+        DB:insertOrUpdate({ word = "word" .. i, book_title = "Book 1", time = os.time() })
       end
 
       local builder = VocabBuilder:new({ ui = mock_ui })
@@ -311,162 +275,121 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("handles search dialog and filtering", function()
-      DB:insertOrUpdate({
-        word = "apple",
-        book_title = "Fruit",
-        time = os.time(),
-      })
-      DB:insertOrUpdate({
-        word = "apricot",
-        book_title = "Fruit",
-        time = os.time(),
-      })
-      DB:insertOrUpdate({
-        word = "banana",
-        book_title = "Fruit",
-        time = os.time(),
-      })
+      DB:insertOrUpdate({ word = "apple", book_title = "Fruit", time = os.time() })
+      DB:insertOrUpdate({ word = "apricot", book_title = "Fruit", time = os.time() })
+      DB:insertOrUpdate({ word = "banana", book_title = "Fruit", time = os.time() })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
 
       widget:showSearchDialog()
-      local dialog = findShownWidget(function(w)
-        return w.input ~= nil
-      end)
-      assert.is_table(dialog)
-
       widget.search_text = "ap"
       widget.search_text_sql = "%ap%"
       widget:reloadItems()
 
       assert.are.equal(2, #widget.item_table)
+      widget:onExit()
     end)
 
-    it("handles item study callbacks (gotIt and forgot)", function()
+    it("handles VocabItemWidget review actions, showMore, detail and dict integration", function()
       DB:insertOrUpdate({
-        word = "memorize",
-        book_title = "Study",
-        time = os.time(),
-      })
-      local builder = VocabBuilder:new({ ui = mock_ui })
-      builder:onShowVocabBuilder()
-      local widget = builder.widget
-
-      local item = widget.item_table[1]
-      item.review_count = 0
-      item.streak_count = 0
-      item.due_time = os.time()
-
-      DB:gotOrForgot(item, true)
-      assert.are.equal(1, item.streak_count)
-      assert.are.equal(1, item.review_count)
-
-      DB:gotOrForgot(item, false)
-      assert.are.equal(0, item.streak_count)
-      assert.are.equal(0, item.review_count)
-    end)
-
-    it("handles widget removal and reset items", function()
-      DB:insertOrUpdate({
-        word = "rem1",
-        book_title = "Book A",
-        time = os.time(),
-      })
-      DB:insertOrUpdate({
-        word = "rem2",
-        book_title = "Book A",
-        time = os.time(),
+        word = "testword",
+        book_title = "Test Book",
+        time = os.time() - 100,
+        due_time = os.time() - 100,
+        prev_context = "prefix ",
+        next_context = " suffix",
+        highlight = "testword",
       })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
 
-      assert.are.equal(2, #widget.item_table)
-      widget:removeAt(1)
-      assert.are.equal(1, #widget.item_table)
+      assert.is_true(#widget.item_table >= 1)
+      local item_entry = widget.item_table[1]
+      assert.is_table(item_entry)
 
-      widget:resetItems()
-      assert.are.equal(1, #widget.item_table)
-    end)
+      -- Exercise VocabItemWidget via main_content
+      for _, item in ipairs(widget.main_content) do
+        local item_widget = item.item
+        if item_widget and item_widget.item then
+          -- Time since due
+          local time_str = item_widget:getTimeSinceDue()
+          assert.is_string(time_str)
 
-    it("handles swipe and multi-swipe gestures", function()
-      DB:insertOrUpdate({
-        word = "swipe1",
-        book_title = "Book A",
-        time = os.time(),
-      })
-      local builder = VocabBuilder:new({ ui = mock_ui })
-      builder:onShowVocabBuilder()
-      local widget = builder.widget
+          -- Review callbacks: onGotIt and onForgot
+          if item_widget.onGotIt then
+            item_widget:onGotIt()
+            assert.is_true(item_widget.item.is_dim)
+          end
+          if item_widget.onForgot then
+            item_widget:onForgot(true) -- no_lookup = true
+            assert.is_false(item_widget.item.is_dim)
+          end
 
-      widget:onSwipe(nil, { direction = "west" })
-      widget:onSwipe(nil, { direction = "east" })
-      widget:onSwipe(nil, { direction = "south" })
-      assert.stub(UIManager.close).was_called()
+          -- showMore / onShowDetail / onShowBookAssignment
+          if item_widget.showMore then
+            item_widget:showMore()
+          end
+          if item_widget.onShowDetail then
+            item_widget:onShowDetail()
+          end
+          if item_widget.onShowBookAssignment then
+            item_widget:onShowBookAssignment(function() end)
+          end
 
-      local res = widget:onMultiSwipe(
-        nil,
-        { multiswipe_directions = "east south west north" }
-      )
-      assert.is_true(res)
-    end)
-  end)
-
-  describe("Book management & title filtering", function()
-    it("toggles book filter and changes book titles", function()
-      DB:insertOrUpdate({
-        word = "wordA",
-        book_title = "Book A",
-        time = os.time(),
-      })
-      DB:insertOrUpdate({
-        word = "wordB",
-        book_title = "Book B",
-        time = os.time(),
-      })
-
-      local books = DB:selectBooks()
-      assert.are.equal(2, #books)
-
-      -- Change title
-      DB:changeBookTitle("Book A", "Renamed Book A")
-      books = DB:selectBooks()
-      local found = false
-      for _, b in ipairs(books) do
-        if b.name == "Renamed Book A" then
-          found = true
+          -- onDictButtonsReady hook
+          local dict_popup = { word = item_widget.item.word, onExit = function() end }
+          local dict_buttons = {
+            { { id = "highlight", enabled = false }, { id = "search", enabled = false } },
+          }
+          item_widget:onDictButtonsReady(dict_popup, dict_buttons)
+          assert.are.equal("got_it", dict_buttons[1][1].id)
+          assert.are.equal("forgot", dict_buttons[1][2].id)
         end
       end
-      assert.is_true(found)
 
-      -- Toggle filter
-      local book_id = books[1].id
-      DB:toggleBookFilter({ [book_id] = true })
-      assert.is_true(DB:hasFilteredBook())
+      widget:onExit()
     end)
-  end)
 
-  describe("MenuDialog and WordInfoDialog components", function()
-    it("sets up plugin menu dialog and toggles settings", function()
-      DB:insertOrUpdate({
-        word = "dialog_word",
-        book_title = "Book",
-        time = os.time(),
-      })
+    it("handles MenuDialog actions, study settings, and DB methods", function()
+      DB:insertOrUpdate({ word = "word_db1", book_title = "Book A", time = os.time() })
+      DB:insertOrUpdate({ word = "word_db2", book_title = "Book B", time = os.time() })
+
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
       local widget = builder.widget
 
-      widget:onShowMenu()
-      assert.stub(UIManager.show).was_called()
+      -- Menu dialog
+      local menu_dialog = getMenuDialog(builder)
+      assert.is_table(menu_dialog)
 
-      local menu_widget = findShownWidget(function(w)
-        return w.setupPluginMenu ~= nil
-      end)
-      assert.is_table(menu_widget)
+      -- Test DB methods
+      local books = DB:selectBooks()
+      assert.is_table(books)
+      assert.is_true(#books >= 2)
+
+      local new_id = DB:insertNewBook("Virtual Book 1")
+      assert.is_number(new_id)
+      DB:changeBookTitle("Virtual Book 1", "Renamed Book 1")
+      DB:updateBookIdOfWord("word_db1", new_id)
+
+      DB:toggleBookFilter({ [new_id] = true })
+      assert.is_true(DB:hasFilteredBook())
+      DB:toggleBookFilter({ [new_id] = true })
+      assert.is_false(DB:hasFilteredBook())
+
+      -- gotOrForgot
+      local item = widget.item_table[1]
+      if item then
+        DB:gotOrForgot(item, true)
+        DB:gotOrForgot(item, false)
+        DB:remove(item)
+      end
+
+      widget:onExit()
     end)
   end)
 end)

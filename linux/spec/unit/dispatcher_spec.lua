@@ -276,5 +276,276 @@ describe("dispatcher", function()
       assert.are.equal("onBatchedUpdate", captured_broadcasts[1].handler)
       assert.are.equal("onBatchedUpdateDone", captured_broadcasts[2].handler)
     end)
+
+    it("handles configurable and notification in execute", function()
+      local Notification = require("ui/widget/notification")
+      local old_notify = Notification.notify
+      local notified_text
+      Notification.notify = function(_, text)
+        notified_text = text
+      end
+
+      Dispatcher:registerAction("test_conf", {
+        category = "string",
+        event = "SetMargin",
+        reader = true,
+        args = { "small", "large" },
+        configurable = {
+          name = "margin_size",
+          values = { 10, 50 },
+        },
+      })
+
+      local settings = {
+        test_conf = "large",
+        settings = {
+          notify = true,
+          name = "My Profile",
+          order = { "test_conf" },
+        },
+      }
+
+      Dispatcher:execute(settings)
+
+      Dispatcher:removeAction("test_conf")
+      Notification.notify = old_notify
+
+      assert.is_truthy(notified_text)
+      -- Check ConfigChange input event
+      local config_change = false
+      for _, ev in ipairs(captured_inputs) do
+        if ev.handler == "onConfigChange" then
+          config_change = true
+          assert.are.equal("margin_size", ev.args[1])
+          assert.are.equal(50, ev.args[2])
+        end
+      end
+      assert.is_true(config_change)
+    end)
+  end)
+
+  describe("helper and UI methods", function()
+    setup(function()
+      Dispatcher:init()
+    end)
+
+    it("getNameFromItem formats titles correctly", function()
+      assert.are.equal("Unknown item", Dispatcher:getNameFromItem("non_existent_key"))
+
+      -- none category
+      assert.are.equal("Reading progress", Dispatcher:getNameFromItem("reading_progress"))
+
+      -- string / configurable category with table
+      Dispatcher:registerAction("test_table_val", {
+        category = "string",
+        title = "Table Option",
+        unit = "pt",
+      })
+      assert.are.equal("Table Option: 10 / 20 pt", Dispatcher:getNameFromItem("test_table_val", { test_table_val = { 10, 20 } }))
+      Dispatcher:removeAction("test_table_val")
+
+      -- string with args_func
+      Dispatcher:registerAction("test_dynamic_args", {
+        category = "string",
+        title = "Dynamic",
+        args_func = function()
+          return { "opt1", "opt2" }, { "Option One", "Option Two" }
+        end,
+      })
+      assert.are.equal("Dynamic: Option One", Dispatcher:getNameFromItem("test_dynamic_args", { test_dynamic_args = "opt1" }))
+      Dispatcher:removeAction("test_dynamic_args")
+
+      -- absolutenumber
+      Dispatcher:registerAction("test_abs_num", {
+        category = "absolutenumber",
+        title = "Brightness",
+        unit = "%",
+      })
+      assert.are.equal("Brightness: 75 %", Dispatcher:getNameFromItem("test_abs_num", { test_abs_num = 75 }))
+      Dispatcher:removeAction("test_abs_num")
+
+      -- incrementalnumber
+      Dispatcher:registerAction("test_inc_num", {
+        category = "incrementalnumber",
+        title = "Scroll",
+      })
+      assert.are.equal("Scroll: gesture distance", Dispatcher:getNameFromItem("test_inc_num", { test_inc_num = 0 }))
+      assert.are.equal("Scroll: 10", Dispatcher:getNameFromItem("test_inc_num", { test_inc_num = 10 }))
+      Dispatcher:removeAction("test_inc_num")
+    end)
+
+    it("getArgFromValue maps configurable values to args", function()
+      Dispatcher:registerAction("test_map", {
+        category = "string",
+        args = { "small", "medium", "large" },
+        configurable = {
+          values = { 10, 20, 30 },
+        },
+      })
+      assert.are.equal("medium", Dispatcher:getArgFromValue("test_map", 20))
+      Dispatcher:removeAction("test_map")
+    end)
+
+    it("manages order via _addToOrder and _removeFromOrder", function()
+      local loc = {
+        prof = {
+          reading_progress = true,
+          history = true,
+        },
+      }
+      -- add all
+      Dispatcher:_addToOrder(loc, "prof", nil)
+      assert.is_not_nil(loc.prof.settings.order)
+      assert.are.equal(2, #loc.prof.settings.order)
+
+      -- add specific
+      Dispatcher:_addToOrder(loc, "prof", "favorites")
+      assert.is_true(require("util").arrayContains(loc.prof.settings.order, "favorites") ~= false)
+
+      -- remove specific
+      Dispatcher:_removeFromOrder(loc, "prof", "favorites")
+      assert.is_false(require("util").arrayContains(loc.prof.settings.order, "favorites") ~= false)
+
+      -- remove all
+      Dispatcher:_removeFromOrder(loc, "prof", nil)
+      assert.is_nil(loc.prof.settings)
+    end)
+
+    it("menuTextFunc returns correct strings", function()
+      assert.are.equal("Pass through", Dispatcher:menuTextFunc(nil))
+      assert.are.equal("Nothing", Dispatcher:menuTextFunc({}))
+      assert.are.equal("Reading progress", Dispatcher:menuTextFunc({ reading_progress = true }))
+      local multi = Dispatcher:menuTextFunc({ reading_progress = true, history = true })
+      assert.is_truthy(multi:match("actions"))
+    end)
+
+    it("getDisplayList returns items matching conditions", function()
+      Dispatcher:registerAction("test_cond_true", {
+        category = "none",
+        title = "Enabled Cond",
+        condition = true,
+      })
+      Dispatcher:registerAction("test_cond_false", {
+        category = "none",
+        title = "Disabled Cond",
+        condition = false,
+      })
+
+      local list = Dispatcher:getDisplayList({
+        test_cond_true = true,
+        test_cond_false = true,
+        settings = { order = { "test_cond_true", "test_cond_false" } },
+      })
+
+      assert.are.equal(1, #list)
+      assert.are.equal("Enabled Cond", list[1].text)
+      assert.are.equal("test_cond_true", list[1].key)
+
+      Dispatcher:removeAction("test_cond_true")
+      Dispatcher:removeAction("test_cond_false")
+    end)
+
+    it("builds menus with addSubMenu and _addItem callbacks", function()
+      local caller = { updated = false }
+      local menus = {}
+      local location = {
+        my_prof = {
+          reading_progress = true,
+          font_size = 20,
+        },
+      }
+
+      Dispatcher:addSubMenu(caller, menus, location, "my_prof")
+      assert.is_true(#menus > 0)
+
+      -- Find Nothing item
+      local nothing_item = menus[1]
+      assert.are.equal("Nothing", nothing_item.text)
+      nothing_item.callback({ updateItems = function() end })
+      assert.is_true(caller.updated)
+      assert.are.equal(0, Dispatcher:_itemsCount(location.my_prof))
+
+      -- Trigger section submenu callbacks and checked_func
+      for _, m in ipairs(menus) do
+        if m.sub_item_table then
+          if m.checked_func then m.checked_func() end
+          if m.hold_callback then m.hold_callback({ updateItems = function() end }) end
+          for _, sub in ipairs(m.sub_item_table) do
+            if sub.checked_func then sub.checked_func() end
+            if sub.callback then
+              -- mock UIManager:show for spin/sort widgets
+              local old_show = UIManager.show
+              UIManager.show = function(_, widget)
+                if widget and widget.callback then
+                  widget.value = widget.value or 10
+                  widget.callback(widget)
+                end
+              end
+              pcall(sub.callback, { updateItems = function() end })
+              UIManager.show = old_show
+            end
+            if sub.hold_callback then
+              pcall(sub.hold_callback, { updateItems = function() end })
+            end
+            if sub.sub_item_table then
+              for _, subsub in ipairs(sub.sub_item_table) do
+                if subsub.checked_func then subsub.checked_func() end
+                if subsub.callback then pcall(subsub.callback) end
+              end
+            end
+          end
+        end
+        if m.text == "Arrange actions" then
+          if m.checked_func then m.checked_func() end
+          local old_show = UIManager.show
+          UIManager.show = function(_, widget)
+            if widget and widget.callback then widget.callback() end
+          end
+          pcall(m.callback, { updateItems = function() end })
+          if m.hold_callback then pcall(m.hold_callback, { updateItems = function() end }) end
+          UIManager.show = old_show
+        elseif m.text == "Show as QuickMenu" then
+          m.callback()
+          assert.is_true(location.my_prof.settings.show_as_quickmenu)
+          m.callback()
+          assert.is_nil(location.my_prof.settings and location.my_prof.settings.show_as_quickmenu)
+        elseif m.text == "Keep QuickMenu open" then
+          m.callback()
+          assert.is_true(location.my_prof.settings.keep_open_on_apply)
+          m.callback()
+          assert.is_nil(location.my_prof.settings and location.my_prof.settings.keep_open_on_apply)
+        end
+      end
+    end)
+
+    it("_showAsMenu opens QuickMenu and executes actions", function()
+      local shown_dialog
+      local old_show = UIManager.show
+      local old_close = UIManager.close
+      UIManager.show = function(_, w) shown_dialog = w end
+      UIManager.close = function(_, w) end
+
+      local settings = {
+        reading_progress = true,
+        settings = {
+          name = "Test QM",
+          show_as_quickmenu = true,
+          order = { "reading_progress" },
+        },
+      }
+
+      Dispatcher:execute(settings, { qm_show = true })
+      assert.is_not_nil(shown_dialog)
+      assert.are.equal("Test QM", shown_dialog.title)
+
+      -- Test button callback in quickmenu
+      assert.is_truthy(#shown_dialog.buttons >= 1)
+      local exec_all_btn = shown_dialog.buttons[1][1]
+      exec_all_btn.callback()
+
+      UIManager.show = old_show
+      UIManager.close = old_close
+    end)
   end)
 end)
+
