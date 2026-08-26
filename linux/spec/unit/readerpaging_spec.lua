@@ -300,9 +300,9 @@ describe("Readerpaging module", function()
 
       -- On pan in flipping mode
       paging.page_flipping_mode = true
-      paging.view.zoom_mode = "page"
+      readerui.view.zoom_mode = "page"
       paging:onPan(nil, ges_east)
-      paging.view.zoom_mode = "content"
+      readerui.view.zoom_mode = "content"
       paging:onPan(nil, { direction = "east", relative = { x = 10, y = 10 } })
 
       -- On pan in bookmark mode

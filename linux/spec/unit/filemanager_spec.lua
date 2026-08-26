@@ -1,8 +1,7 @@
 describe("FileManager module", function()
-  local FileManager, lfs, docsettings, UIManager, Screen, util
+  local FileManager, lfs, docsettings, UIManager, Screen, util, ffi
   setup(function()
     require("commonrequire")
-    package.unloadAll()
     require("document/canvascontext"):init(require("device"))
     FileManager = require("apps/filemanager/filemanager")
     Screen = require("device").screen
@@ -10,6 +9,7 @@ describe("FileManager module", function()
     docsettings = require("docsettings")
     lfs = require("libs/libkoreader-lfs")
     util = require("ffi/util")
+    ffi = require("ffi")
   end)
   after_each(function()
     if FileManager.instance then
@@ -52,14 +52,14 @@ describe("FileManager module", function()
       root_path = "spec/unit/data",
     })
 
-    local tmp_fn = "spec/unit/data/2col.test.tmp.foo"
+    local tmp_fn = util.realpath("spec/unit/data") .. "/2col.test.tmp." .. tostring(ffi.C.getpid()) .. ".foo"
     util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
 
-    local tmp_sidecar = docsettings:getSidecarDir(util.realpath(tmp_fn))
-    lfs.mkdir(tmp_sidecar)
-    local tmp_sidecar_file = docsettings:getSidecarDir(util.realpath(tmp_fn))
+    local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
+    require("util").makePath(tmp_sidecar)
+    local tmp_sidecar_file = tmp_sidecar
       .. "/"
-      .. docsettings.getSidecarFilename(util.realpath(tmp_fn))
+      .. docsettings.getSidecarFilename(tmp_fn)
     local tmp_sidecar_file_foo = tmp_sidecar_file .. ".foo" -- non-docsettings file
     local tmpsf = io.open(tmp_sidecar_file, "w")
     tmpsf:write("{}")
@@ -83,8 +83,10 @@ describe("FileManager module", function()
     -- make sure sdr folder exists
     assert.is_nil(lfs.attributes(tmp_fn))
     assert.is_not_nil(lfs.attributes(tmp_sidecar))
+    os.remove(tmp_sidecar_file)
     os.remove(tmp_sidecar_file_foo)
     os.remove(tmp_sidecar)
+    os.remove(tmp_fn)
   end)
   it("should delete document with its settings", function()
     local filemanager = FileManager:new({
@@ -92,14 +94,14 @@ describe("FileManager module", function()
       root_path = "spec/unit/data",
     })
 
-    local tmp_fn = "spec/unit/data/2col.test.tmp.pdf"
+    local tmp_fn = util.realpath("spec/unit/data") .. "/2col.test.tmp." .. tostring(ffi.C.getpid()) .. ".pdf"
     util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
 
-    local tmp_sidecar = docsettings:getSidecarDir(util.realpath(tmp_fn))
-    lfs.mkdir(tmp_sidecar)
-    local tmp_sidecar_file = docsettings:getSidecarDir(util.realpath(tmp_fn))
+    local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
+    require("util").makePath(tmp_sidecar)
+    local tmp_sidecar_file = tmp_sidecar
       .. "/"
-      .. docsettings.getSidecarFilename(util.realpath(tmp_fn))
+      .. docsettings.getSidecarFilename(tmp_fn)
     local tmpsf = io.open(tmp_sidecar_file, "w")
     tmpsf:write("{}")
     tmpsf:close()
