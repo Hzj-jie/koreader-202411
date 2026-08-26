@@ -60,7 +60,7 @@ describe("ReaderTypeset module", function()
     assert.is_false(typeset.sync_t_b_page_margins)
 
     -- Page margins with callback and reclaim_height
-    typeset.view.footer.reclaim_height = true
+    readerui.view.footer.reclaim_height = true
     local callback_called = false
     typeset:onSetPageMargins({ 10, 20, 10, 20 }, function() callback_called = true end)
     local top_w = UIManager:getTopmostVisibleWidget()
@@ -70,7 +70,7 @@ describe("ReaderTypeset module", function()
     UIManager:close(top_w)
     assert.is_true(callback_called)
 
-    typeset.view.footer.reclaim_height = false
+    readerui.view.footer.reclaim_height = false
     typeset:onSetPageMargins({ 10, 20, 10, 20 })
 
     -- Feature toggles

@@ -90,9 +90,11 @@ describe("ReaderScrolling module", function()
       scrolling:addToMainMenu(menu_items)
       assert.truthy(menu_items.scrolling)
       if menu_items.scrolling.enabled_func then
-        scrolling.view = { view_mode = "scroll" }
+        readerui.view.page_scroll = false
+        readerui.view.view_mode = "scroll"
         assert.is_true(menu_items.scrolling.enabled_func())
-        scrolling.view = { view_mode = "page" }
+        readerui.view.page_scroll = false
+        readerui.view.view_mode = "page"
         assert.is_false(menu_items.scrolling.enabled_func())
       end
 
