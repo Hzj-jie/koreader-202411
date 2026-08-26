@@ -1,12 +1,13 @@
 describe("ReaderStatistics plugin main spec", function()
   local DataStorage, Device, Dispatcher, ReaderStatistics, UIManager
-  local SQ3
+  local SQ3, ffi
   local db_location
 
   setup(function()
     require("commonrequire")
     DataStorage = require("datastorage")
     SQ3 = require("lua-ljsqlite3/init")
+    ffi = require("ffi")
     db_location = DataStorage:getSettingsDir() .. "/statistics.sqlite3"
   end)
 
@@ -182,7 +183,7 @@ describe("ReaderStatistics plugin main spec", function()
   end)
 
   it("should create DB schema on a new connection", function()
-    local test_db = DataStorage:getSettingsDir() .. "/test_schema.sqlite3"
+    local test_db = DataStorage:getSettingsDir() .. "/test_schema_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
     os.remove(test_db)
     local conn = SQ3.open(test_db)
 
@@ -199,7 +200,7 @@ describe("ReaderStatistics plugin main spec", function()
   end)
 
   it("should handle DB schema upgrade routines from older versions", function()
-    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade.sqlite3"
+    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
     os.remove(test_db)
     local conn = SQ3.open(test_db)
 
@@ -587,9 +588,9 @@ describe("ReaderStatistics plugin main spec", function()
     assert.stub(UIManager.nextTick).was_called()
 
     -- Test onSync function
-    local local_db = DataStorage:getSettingsDir() .. "/sync_local.sqlite3"
-    local cached_db = DataStorage:getSettingsDir() .. "/sync_cached.sqlite3"
-    local income_db = DataStorage:getSettingsDir() .. "/sync_income.sqlite3"
+    local local_db = DataStorage:getSettingsDir() .. "/sync_local_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
+    local cached_db = DataStorage:getSettingsDir() .. "/sync_cached_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
+    local income_db = DataStorage:getSettingsDir() .. "/sync_income_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
 
     os.remove(local_db)
     os.remove(cached_db)
@@ -618,7 +619,7 @@ describe("ReaderStatistics plugin main spec", function()
     stats:insertDB()
 
     -- Test DB upgrades
-    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade.sqlite3"
+    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade2_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
     os.remove(test_db)
     local conn = SQ3.open(test_db)
     ReaderStatistics:createDB(conn)
