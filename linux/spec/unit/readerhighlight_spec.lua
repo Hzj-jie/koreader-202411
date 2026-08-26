@@ -1178,7 +1178,7 @@ describe("Readerhighlight module", function()
         save = function() end,
       }
       highlight:onReadSettings(dummy_cfg)
-      assert.are.equal("underscore", highlight.view.highlight.saved_drawer)
+      assert.are.equal("underscore", highlight.ui.view.highlight.saved_drawer)
       highlight:onSaveSettings()
 
       -- Hold timer reset
