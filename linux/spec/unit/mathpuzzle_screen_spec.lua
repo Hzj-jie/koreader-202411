@@ -371,7 +371,7 @@ describe("MathPuzzle Screen and Plugin", function()
   )
 
   it(
-    "should show confirmation when exiting unchecked and close directly when checked",
+    "should show confirmation only when there is unchecked entered progress",
     function()
       local dummy_ui = { menu = { registerToMainMenu = function() end } }
       local plugin = MathPuzzle:new({ ui = dummy_ui })
@@ -382,50 +382,59 @@ describe("MathPuzzle Screen and Plugin", function()
       })
       UIManager:show(screen)
 
-      assert.is_false(screen.is_checked)
+      -- 1. Fresh screen (nothing entered): hasUncheckedProgress is false
+      assert.is_false(screen:hasUncheckedProgress())
 
-      -- 1. Unchecked: close_callback shows ConfirmBox
+      -- When nothing is entered, left_icon_tap_callback directly calls mode menu without ConfirmBox
+      local mode_menu_shown = false
+      screen._showModeMenu = function()
+        mode_menu_shown = true
+      end
       local initial_stack_size = #UIManager._window_stack
+      screen.title_bar.left_icon_tap_callback()
+      assert.is_true(mode_menu_shown)
+      assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+      -- 2. User enters an answer: hasUncheckedProgress becomes true
+      screen:inputDigit("5")
+      assert.is_true(screen:hasUncheckedProgress())
+
+      -- Unchecked with input: close_callback shows ConfirmBox
       screen.title_bar.close_callback()
       assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
       local confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
       assert.is_truthy(confirm_box.text:find("progress will be lost"))
-      -- Dismiss confirmation box
       UIManager:close(confirm_box)
       assert.are.equal(initial_stack_size, #UIManager._window_stack)
 
-      -- 2. Unchecked: onBack shows ConfirmBox
+      -- Unchecked with input: onBack shows ConfirmBox
       screen:onBack()
       assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
       confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
       assert.is_truthy(confirm_box.text:find("progress will be lost"))
       UIManager:close(confirm_box)
 
-      -- 3. Unchecked: left_icon_tap_callback shows ConfirmBox
-      local mode_menu_shown = false
-      screen._showModeMenu = function()
-        mode_menu_shown = true
-      end
+      -- Unchecked with input: left_icon_tap_callback shows ConfirmBox
+      mode_menu_shown = false
       screen.title_bar.left_icon_tap_callback()
       assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
       confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
       assert.is_truthy(confirm_box.text:find("progress will be lost"))
-      -- Confirming exit triggers mode menu callback
       confirm_box.ok_callback()
       assert.is_true(mode_menu_shown)
       UIManager:close(confirm_box)
 
-      -- 4. Check answers -> is_checked becomes true
+      -- 3. Check answers -> hasUncheckedProgress becomes false
       screen:checkAnswers()
-      assert.is_true(screen.is_checked)
+      assert.is_false(screen:hasUncheckedProgress())
 
-      -- 5. Checked: left_icon_tap_callback directly calls mode menu without ConfirmBox
+      -- Checked: left_icon_tap_callback directly calls mode menu without ConfirmBox
       mode_menu_shown = false
       screen.title_bar.left_icon_tap_callback()
       assert.is_true(mode_menu_shown)
       assert.are.equal(initial_stack_size, #UIManager._window_stack)
 
-      -- 6. Checked: close_callback directly closes screen without ConfirmBox
+      -- Checked: close_callback directly closes screen without ConfirmBox
       screen.title_bar.close_callback()
       assert.are.equal(initial_stack_size - 1, #UIManager._window_stack)
     end

@@ -32,7 +32,6 @@ local MathPuzzleScreen = InputContainer:extend({
   focused_idx = 1,
   round_correct = 0,
   round_wrong = 0,
-  is_checked = false,
 })
 
 function MathPuzzleScreen:init()
@@ -44,8 +43,6 @@ function MathPuzzleScreen:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
-
-  self.is_checked = false
 
   if Device:hasKeys() then
     self.key_events.Back = { { Device.input.group.Back } }
@@ -232,7 +229,7 @@ function MathPuzzleScreen:_handleKey(key)
     self:nextField()
     return true
   elseif key_str == "Escape" or key_str == "Close" or key_str == "Back" then
-    UIManager:close(self)
+    self:confirmExit()
     return true
   end
   return false
@@ -536,7 +533,6 @@ function MathPuzzleScreen:_buildUI()
 end
 
 function MathPuzzleScreen:checkAnswers()
-  self.is_checked = true
   local result = Generator.checkAnswers(self.problems)
 
   for i, prob in ipairs(self.problems) do
@@ -558,7 +554,6 @@ function MathPuzzleScreen:checkAnswers()
 end
 
 function MathPuzzleScreen:generateNewProblems()
-  self.is_checked = false
   self.round_correct = 0
   self.round_wrong = 0
   self.question_count = (self.mode and self.mode.question_count) or 10
@@ -569,7 +564,6 @@ function MathPuzzleScreen:generateNewProblems()
 end
 
 function MathPuzzleScreen:setMode(mode)
-  self.is_checked = false
   self.mode = mode
   self.question_count = mode.question_count or 10
   self.round_correct = 0
@@ -586,8 +580,23 @@ function MathPuzzleScreen:_showModeMenu()
   end
 end
 
+function MathPuzzleScreen:hasUncheckedProgress()
+  if not self.problems then
+    return false
+  end
+  if self.problems[1] and self.problems[1].checked then
+    return false
+  end
+  for _, prob in ipairs(self.problems) do
+    if prob.user_answer and prob.user_answer ~= "" then
+      return true
+    end
+  end
+  return false
+end
+
 function MathPuzzleScreen:confirmExit(callback)
-  if self.is_checked then
+  if not self:hasUncheckedProgress() then
     if callback then
       callback()
     else
