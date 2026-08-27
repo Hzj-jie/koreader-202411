@@ -433,9 +433,8 @@ function Generator.generateProblems(mode_id, count)
     while attempts < 20 do
       attempts = attempts + 1
       prob = generateSingleProblem(mode)
-      local key = prob.text
-      if not seen[key] or attempts >= 15 then
-        seen[key] = true
+      if not seen[prob.text] or attempts >= 15 then
+        seen[prob.text] = true
         break
       end
     end

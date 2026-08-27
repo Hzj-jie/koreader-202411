@@ -1,5 +1,4 @@
 local DataStorage = require("datastorage")
-local Device = require("device")
 local LuaSettings = require("luasettings")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
@@ -17,8 +16,7 @@ local MathPuzzle = WidgetContainer:extend({
 })
 
 function MathPuzzle:init()
-  self.settings_file = DataStorage:getSettingsDir() .. "/mathpuzzle.lua"
-  self.settings = LuaSettings:open(self.settings_file)
+  self.settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/mathpuzzle.lua")
   self.active_mode = self.settings:read("last_mode") or "add_sub_100"
   self.session_correct = 0
   self.session_wrong = 0
@@ -37,11 +35,9 @@ function MathPuzzle:addToMainMenu(menu_items)
 end
 
 function MathPuzzle:showModeSelection(existing_screen)
-  local Screen = Device.screen
-  local modes = Generator.getModes()
   local items = {}
 
-  for _, mode in ipairs(modes) do
+  for _, mode in ipairs(Generator.getModes()) do
     table.insert(items, {
       text = mode.title,
       subtext = mode.description,
@@ -62,11 +58,8 @@ function MathPuzzle:showModeSelection(existing_screen)
   menu = Menu:new({
     title = _("Math Puzzle - Select Mode"),
     item_table = items,
-    width = Screen:getWidth(),
-    height = Screen:getHeight(),
     is_borderless = true,
     is_popout = false,
-    covers_fullscreen = true,
     fullscreen = true,
     disable_footer_padding = true,
     close_callback = function()
@@ -83,10 +76,9 @@ function MathPuzzle:showPuzzle(mode)
   end
 
   self.session_start_time = os.time()
-  mode = mode or Generator.getModeById(self.active_mode)
   self.screen = MathPuzzleScreen:new({
     plugin = self,
-    mode = mode,
+    mode = mode or Generator.getModeById(self.active_mode),
   })
   UIManager:show(self.screen)
 end
