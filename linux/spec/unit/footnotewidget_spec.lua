@@ -6,39 +6,39 @@ describe("FootnoteWidget module", function()
     FootnoteWidget = require("ui/widget/footnotewidget")
   end)
 
-  it(
-    "should initialize with correct sizes and handle callbacks on exit and follow",
-    function()
-      local close_called = false
-      local follow_called = false
+  it("should initialize with positive dimensions", function()
+    local footnote = FootnoteWidget:new({
+      html = "<html><body><p>Test footnote content</p></body></html>",
+    })
+    assert.is_not_nil(footnote)
+    local size = footnote:getSize()
+    assert.is_not_nil(size)
+    assert.is_true(size.w > 0)
+    assert.is_true(size.h > 0)
+  end)
 
-      local footnote = FootnoteWidget:new({
-        html = "<html><body><p>Test footnote content</p></body></html>",
-        close_callback = function(_h)
-          close_called = true
-        end,
-        follow_callback = function()
-          follow_called = true
-        end,
-      })
+  it("should trigger follow and close callbacks on onFollow and onExit", function()
+    local close_called = false
+    local follow_called = false
 
-      assert.is_not_nil(footnote)
-      local size = footnote:getSize()
-      assert.is_not_nil(size)
-      assert.is_true(size.w > 0)
-      assert.is_true(size.h > 0)
+    local footnote = FootnoteWidget:new({
+      html = "<html><body><p>Test footnote content</p></body></html>",
+      close_callback = function(_h)
+        close_called = true
+      end,
+      follow_callback = function()
+        follow_called = true
+      end,
+    })
 
-      -- Test onFollow callback
-      footnote:onFollow()
-      assert.is_true(follow_called)
-      assert.is_true(close_called)
+    footnote:onFollow()
+    assert.is_true(follow_called)
+    assert.is_true(close_called)
 
-      -- Test onExit callback
-      close_called = false
-      footnote:onExit()
-      assert.is_true(close_called)
-    end
-  )
+    close_called = false
+    footnote:onExit()
+    assert.is_true(close_called)
+  end)
 end)
 
 describe("FootnoteWidget", function()

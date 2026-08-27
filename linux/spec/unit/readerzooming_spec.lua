@@ -43,7 +43,7 @@ describe("ReaderZooming module", function()
     assert.are.equal(4, ReaderZooming.zoom_mode_to_genus["page"])
   end)
 
-  it("should handle zoom mode changes and getter/setter", function()
+  it("should set zoom modes and convert zoom mode combos", function()
     local sample_pdf = "spec/front/unit/data/sample.pdf"
     local readerui = ReaderUI:new({
       dimen = Screen:getSize(),
@@ -57,19 +57,28 @@ describe("ReaderZooming module", function()
     zooming:setZoomMode("contentwidth")
     assert.are.equal("contentwidth", zooming.zoom_mode)
 
-    -- Combo conversions
     local genus, z_type = zooming:mode_to_combo("page")
     assert.is_number(genus)
     assert.is_number(z_type)
     local recovered_mode = zooming:combo_to_mode(genus, z_type)
     assert.are.equal("page", recovered_mode)
 
-    -- Zoom calculation
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should calculate zoom and configure columns and rows", function()
+    local sample_pdf = "spec/front/unit/data/sample.pdf"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_pdf),
+    })
+
+    local zooming = readerui.zooming
     local zoom_val = zooming:getZoom(1)
     assert.is_number(zoom_val)
     assert.truthy(zoom_val > 0)
 
-    -- Number of columns and rows
     local cols = zooming:setNumberOf("columns", 2, nil)
     assert.is_number(cols)
     assert.is_number(zooming:getNumberOf("columns", false))
@@ -77,19 +86,27 @@ describe("ReaderZooming module", function()
     assert.is_number(rows)
     assert.is_number(zooming:getNumberOf("rows", true))
 
-    -- Pinch and spread gestures
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should handle pinch, spread, zoom in/out, and zoom callbacks", function()
+    local sample_pdf = "spec/front/unit/data/sample.pdf"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_pdf),
+    })
+
+    local zooming = readerui.zooming
     zooming:onPinch(nil, { scale = 0.8 })
     zooming:onSpread(nil, { scale = 1.2 })
 
-    -- Zoom direction
     zooming:onZoom("in")
     zooming:onZoom("out")
 
-    -- Dispatcher actions
     local actions = zooming:getZoomModeActions()
     assert.is_table(actions)
 
-    -- Test genSetZoomModeCallBack for all available zoom modes
     local modes = { "contentwidth", "contentheight", "content", "page", "pagewidth", "pageheight", "free", "columns", "rows" }
     for _, m in ipairs(modes) do
       local cb = zooming:genSetZoomModeCallBack(m)
@@ -97,23 +114,31 @@ describe("ReaderZooming module", function()
       cb()
     end
 
-    -- Test onToggleFreeZoom
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should handle free zoom, rotation updates, define zoom, and settings persistence", function()
+    local sample_pdf = "spec/front/unit/data/sample.pdf"
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_pdf),
+    })
+
+    local zooming = readerui.zooming
     zooming:setZoomMode("page")
     zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
     zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
 
-    -- Test onRotationUpdate
     zooming:onRotationUpdate(90)
     zooming:onRotationUpdate(0)
 
-    -- Test onDefineZoom
     zooming:onDefineZoom("columns")
     zooming:onDefineZoom("rows")
     zooming:onDefineZoom("manual")
     zooming:onDefineZoom("set_zoom_overlap_h")
     zooming:onDefineZoom("set_zoom_overlap_v")
 
-    -- Settings persistence
     zooming:onSaveSettings()
     zooming:onReadSettings(readerui.doc_settings)
 

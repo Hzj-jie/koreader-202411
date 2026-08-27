@@ -93,33 +93,34 @@ describe("MathPuzzle Generator module", function()
     end
   )
 
-  it(
-    "should generate valid problems for mixed operations and squares",
-    function()
-      local mixed_problems = Generator.generateProblems("mixed_100", 10)
-      assert.are.equal(10, #mixed_problems)
-      for _, prob in ipairs(mixed_problems) do
-        assert.is_number(prob.answer)
-        assert.is_string(prob.text)
-      end
-
-      local squares_problems = Generator.generateProblems("squares_400", 10)
-      assert.are.equal(10, #squares_problems)
-      for _, prob in ipairs(squares_problems) do
-        assert.is_number(prob.answer)
-        assert.is_true(prob.answer >= 4 and prob.answer <= 400)
-      end
+  it("should generate valid problems for mixed operations", function()
+    local mixed_problems = Generator.generateProblems("mixed_100", 10)
+    assert.are.equal(10, #mixed_problems)
+    for _, prob in ipairs(mixed_problems) do
+      assert.is_number(prob.answer)
+      assert.is_string(prob.text)
     end
-  )
+  end)
 
-  it("should generate valid missing operand and 3-term problems", function()
+  it("should generate valid problems for squares", function()
+    local squares_problems = Generator.generateProblems("squares_400", 10)
+    assert.are.equal(10, #squares_problems)
+    for _, prob in ipairs(squares_problems) do
+      assert.is_number(prob.answer)
+      assert.is_true(prob.answer >= 4 and prob.answer <= 400)
+    end
+  end)
+
+  it("should generate valid missing operand problems", function()
     local missing_problems = Generator.generateProblems("missing_100", 10)
     assert.are.equal(10, #missing_problems)
     for _, prob in ipairs(missing_problems) do
       assert.is_number(prob.answer)
       assert.is_true(prob.text:find("___") ~= nil)
     end
+  end)
 
+  it("should generate valid 3-term mental math problems", function()
     local three_mode = Generator.getModeById("three_term_100")
     assert.are.equal(5, three_mode.question_count)
     local three_problems =
@@ -131,10 +132,8 @@ describe("MathPuzzle Generator module", function()
     end
   end)
 
-  it("should verify answers accurately and calculate scores", function()
+  it("should calculate score when all problems are unanswered", function()
     local problems = Generator.generateProblems("add_sub_100", 10)
-
-    -- Initially unanswered
     for _, prob in ipairs(problems) do
       prob.user_answer = ""
     end
@@ -143,8 +142,10 @@ describe("MathPuzzle Generator module", function()
     assert.are.equal(0, result.correct_count)
     assert.are.equal(0, result.answered_count)
     assert.is_false(result.all_correct)
+  end)
 
-    -- Answer all correctly
+  it("should verify when all problems are answered correctly", function()
+    local problems = Generator.generateProblems("add_sub_100", 10)
     for _, prob in ipairs(problems) do
       prob.user_answer = tostring(prob.answer)
     end
@@ -155,8 +156,13 @@ describe("MathPuzzle Generator module", function()
     for _, prob in ipairs(problems) do
       assert.is_true(prob.is_correct)
     end
+  end)
 
-    -- Answer some wrong and test whitespace trimming
+  it("should handle incorrect answers and whitespace trimming in checkAnswers", function()
+    local problems = Generator.generateProblems("add_sub_100", 10)
+    for _, prob in ipairs(problems) do
+      prob.user_answer = tostring(prob.answer)
+    end
     problems[1].user_answer = "  " .. tostring(problems[1].answer) .. "  "
     problems[2].user_answer = tostring(problems[2].answer + 1)
     problems[3].user_answer = ""

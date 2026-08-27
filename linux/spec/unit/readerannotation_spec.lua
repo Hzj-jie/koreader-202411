@@ -158,8 +158,8 @@ describe("ReaderAnnotation module", function()
             pos1 = "/body/div/p[2]",
             drawer = "lighten",
             color = "yellow",
-          }
-        }
+          },
+        },
       }
 
       local item = ann:buildAnnotation(bm, highlights, true)
@@ -168,18 +168,33 @@ describe("ReaderAnnotation module", function()
       assert.are.equal("My Note", item.note)
       assert.are.equal("Chapter 1", item.chapter)
       assert.are.equal(5, item.pageno)
+    end)
 
-      -- Add item and verify insertion & indexing
+    it("should add item and find item index with binary and linear search fallback", function()
+      local item = {
+        page = 5,
+        pageno = 5,
+        pos0 = "/body/div/p[1]",
+        pos1 = "/body/div/p[2]",
+        datetime = "2026-08-25 00:00:00",
+      }
       local idx = ann:addItem(item)
       assert.are.equal(1, idx)
       assert.are.equal(1, ann:getItemIndex(item))
-      assert.are.equal(1, ann:getItemIndex(item, true)) -- linear search fallback
+      assert.are.equal(1, ann:getItemIndex(item, true))
+    end)
 
-      -- Update item by xpointer
+    it("should update item chapter by xpointer", function()
+      local item = {
+        page = "/body/div/p[1]",
+        pos0 = "/body/div/p[1]",
+        pos1 = "/body/div/p[2]",
+      }
       ann:updateItemByXPointer(item)
       assert.are.equal("Chapter 1", item.chapter)
+    end)
 
-      -- Page reference string
+    it("should compute page reference strings for normal and hidden flows", function()
       local pref = ann:getPageRef("/body/div/p[1]", 10)
       assert.are.equal("[10]1", pref)
       local pref0 = ann:getPageRef("/body/div/p[1]", 5)
