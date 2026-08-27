@@ -92,9 +92,9 @@ function MathPuzzleScreen:getTimeText()
 end
 
 function MathPuzzleScreen:onTimesChange_1M()
-  if self.time_widget then
+  if self.time_widget and self.time_container then
     self.time_widget:setText(self:getTimeText())
-    self.time_widget:scheduleRepaint()
+    self.time_container:scheduleRepaint()
   end
 end
 
@@ -261,6 +261,7 @@ function MathPuzzleScreen:_buildUI()
 
   self.input_buttons = {}
   self.mark_widgets = {}
+  self.mark_containers = {}
 
   self.title_bar = TitleBar:new({
     width = screen_w,
@@ -276,11 +277,25 @@ function MathPuzzleScreen:_buildUI()
       UIManager:close(self)
     end,
   })
+  self.title_bar_container = FrameContainer:new({
+    background = Blitbuffer.COLOR_WHITE,
+    bordersize = 0,
+    padding = 0,
+    margin = 0,
+    self.title_bar,
+  })
 
   self.time_widget = TextWidget:new({
     text = self:getTimeText(),
     face = Font:getFace("smallinfofont"),
     alignment = "center",
+  })
+  self.time_container = FrameContainer:new({
+    background = Blitbuffer.COLOR_WHITE,
+    bordersize = 0,
+    padding = 0,
+    margin = 0,
+    self.time_widget,
   })
 
   local count = #self.problems
@@ -339,7 +354,15 @@ function MathPuzzleScreen:_buildUI()
       width = mark_width,
       alignment = "left",
     })
+    local mark_container = FrameContainer:new({
+      background = Blitbuffer.COLOR_WHITE,
+      bordersize = 0,
+      padding = 0,
+      margin = 0,
+      mark_widget,
+    })
     self.mark_widgets[i] = mark_widget
+    self.mark_containers[i] = mark_container
 
     return HorizontalGroup:new({
       TextWidget:new({
@@ -351,7 +374,7 @@ function MathPuzzleScreen:_buildUI()
       HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
       input_btn,
       HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
-      mark_widget,
+      mark_container,
     })
   end
 
@@ -424,9 +447,9 @@ function MathPuzzleScreen:_buildUI()
     height = Screen:getHeight(),
     VerticalGroup:new({
       align = "center",
-      self.title_bar,
+      self.title_bar_container,
       VerticalSpan:new({ height = Screen:scaleBySize(4) }),
-      self.time_widget,
+      self.time_container,
       VerticalSpan:new({ height = Screen:scaleBySize(16) }),
       columns_group,
       VerticalSpan:new({ height = Screen:scaleBySize(24) }),
@@ -511,7 +534,7 @@ function MathPuzzleScreen:checkAnswers()
 
   for i, prob in ipairs(self.problems) do
     self.mark_widgets[i]:setText(prob.is_correct and " ✓" or " ✗")
-    self.mark_widgets[i]:scheduleRepaint()
+    self.mark_containers[i]:scheduleRepaint()
   end
 
   self.plugin.session_correct = (self.plugin.session_correct or 0)
@@ -523,10 +546,8 @@ function MathPuzzleScreen:checkAnswers()
 
   self.round_correct = result.correct_count
   self.round_wrong = result.total - result.correct_count
-
-  if self.title_bar then
-    self.title_bar:setSubTitle(self:getHeaderStatsText())
-  end
+  self.title_bar:setSubTitle(self:getHeaderStatsText(), true)
+  self.title_bar_container:scheduleRepaint()
 end
 
 function MathPuzzleScreen:generateNewProblems()

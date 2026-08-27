@@ -47,6 +47,9 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.are.equal(10, #screen.problems)
     assert.are.equal(10, #screen.input_buttons)
     assert.are.equal(10, #screen.mark_widgets)
+    assert.are.equal(10, #screen.mark_containers)
+    assert.is_table(screen.title_bar_container)
+    assert.is_table(screen.time_container)
 
     -- Verify answer checking
     for i, field in ipairs(screen.input_buttons) do
@@ -225,6 +228,7 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 85%%"))
 
       -- Test 1-minute time update event
+      assert.is_table(plugin.screen.time_container)
       assert.is_table(plugin.screen.time_widget)
       plugin.session_start_time = os.time() - 60
       plugin.screen:onTimesChange_1M()
