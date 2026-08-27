@@ -364,7 +364,6 @@ function Game2048Screen:init()
     w = Screen:getWidth(),
     h = Screen:getHeight(),
   })
-  self.covers_fullscreen = true -- hint for UIManager:_repaint()
   self.layout = {}
 
   self._config = Game2048Config:new({

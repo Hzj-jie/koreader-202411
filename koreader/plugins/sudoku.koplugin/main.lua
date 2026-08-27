@@ -922,7 +922,6 @@ local SudokuScreen = InputContainer:extend({})
 function SudokuScreen:init()
   self.dimen =
     Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() })
-  self.covers_fullscreen = true
   self.vertical_align = "center"
   self.note_mode = false
   self.undo_button = nil
