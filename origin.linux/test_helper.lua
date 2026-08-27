@@ -55,6 +55,47 @@ table.insert(package.loaders, 1, function(modname)
     return function() return res end
 end)
 
+-- Helper stub for DocSettings in origin/ unhardened codebase to isolate sidecar dirs
+local intercepting_docsettings = false
+table.insert(package.loaders, 1, function(modname)
+    if intercepting_docsettings or modname ~= "docsettings" then
+        return nil
+    end
+    intercepting_docsettings = true
+    local ok, res = pcall(require, modname)
+    intercepting_docsettings = false
+    if ok and type(res) == "table" and res.getSidecarDir then
+        local orig_getSidecarDir = res.getSidecarDir
+        res.getSidecarDir = function(self, doc_path, force_location)
+            local worker_dir = os.getenv("XDG_CONFIG_HOME") or os.getenv("TMPDIR")
+            if (force_location == nil or force_location == "doc") and worker_dir and type(doc_path) == "string" then
+                local test_subpath = doc_path:match("spec/[%w/]*unit/data/(.+)")
+                    or doc_path:match("spec/[^/]+/data/(.+)")
+                    or doc_path:match("base/[^/]+/data/(.+)")
+                    or doc_path:match("[%/]test/(.+)")
+                    or doc_path:match("^test/(.+)")
+                if test_subpath then
+                    local sdr_parent = worker_dir .. "/sdr"
+                    local base_name = test_subpath:match("(.*)%.") or test_subpath
+                    local sdr_dir = sdr_parent .. "/" .. base_name .. ".sdr"
+                    local u_ok, util = pcall(require, "util")
+                    if u_ok and util and util.makePath then
+                        util.makePath(sdr_dir)
+                    else
+                        local l_ok, lfs_mod = pcall(require, "libs/libkoreader-lfs")
+                        if l_ok and lfs_mod and lfs_mod.mkdir then
+                            lfs_mod.mkdir(sdr_parent)
+                        end
+                    end
+                    return sdr_dir
+                end
+            end
+            return orig_getSidecarDir(self, doc_path, force_location)
+        end
+    end
+    return function() return res end
+end)
+
 return {
     max_jobs = 1,
 }
