@@ -10,13 +10,24 @@ describe("ReaderTypeset module", function()
     UIManager = require("ui/uimanager")
   end)
 
-  it("should initialize typeset module and handle settings", function()
+  local function createReaderUI()
     local sample_epub = "spec/front/unit/data/leaves.epub"
-    local readerui = ReaderUI:new({
+    return ReaderUI:new({
       dimen = Screen:getSize(),
       document = DocumentRegistry:openDocument(sample_epub),
     })
+  end
 
+  after_each(function()
+    while #UIManager._window_stack > 0 do
+      local top = UIManager._window_stack[#UIManager._window_stack]
+      UIManager:close(top.widget)
+    end
+    UIManager._dirty = {}
+  end)
+
+  it("should initialize typeset module and register to main menu", function()
+    local readerui = createReaderUI()
     local typeset = readerui.typeset
     assert.is_table(typeset)
 
@@ -24,7 +35,14 @@ describe("ReaderTypeset module", function()
     typeset:addToMainMenu(menu_items)
     assert.is_table(menu_items.set_render_style)
 
-    -- Margin setters
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should handle horizontal and top/bottom page margin settings", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     local applied = false
     typeset:onSetPageHorizMargins({ 10, 10 }, function() applied = true end)
     local info_msg = UIManager:getTopmostVisibleWidget()
@@ -34,32 +52,42 @@ describe("ReaderTypeset module", function()
     UIManager:close(info_msg)
     assert.is_true(applied)
 
-    -- Top/bottom margin with sync enabled
     typeset.sync_t_b_page_margins = true
     typeset:onSetPageTopMargin(15)
     assert.are.equal(typeset.unscaled_margins[4], 15)
     typeset:onSetPageBottomMargin(18)
     assert.are.equal(typeset.unscaled_margins[2], 18)
 
-    -- Top and bottom margins different
     typeset:onSetPageTopAndBottomMargin({ 20, 25 })
     assert.is_false(typeset.sync_t_b_page_margins)
 
-    -- Top and bottom margins equal
     typeset:onSetPageTopAndBottomMargin({ 22, 22 })
 
-    -- Sync margins toggle
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should synchronize top and bottom page margins when toggled", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     typeset.unscaled_margins = { 10, 10, 10, 20 }
     typeset:onSyncPageTopBottomMargins(true)
     assert.is_true(typeset.sync_t_b_page_margins)
     assert.are.equal(typeset.unscaled_margins[2], 15)
     assert.are.equal(typeset.unscaled_margins[4], 15)
 
-    -- Sync margins toggle off
     typeset:onSyncPageTopBottomMargins(false)
     assert.is_false(typeset.sync_t_b_page_margins)
 
-    -- Page margins with callback and reclaim_height
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should handle page margins with callback and reclaim_height", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     readerui.view.footer.reclaim_height = true
     local callback_called = false
     typeset:onSetPageMargins({ 10, 20, 10, 20 }, function() callback_called = true end)
@@ -73,7 +101,14 @@ describe("ReaderTypeset module", function()
     readerui.view.footer.reclaim_height = false
     typeset:onSetPageMargins({ 10, 20, 10, 20 })
 
-    -- Feature toggles
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should toggle rendering and styling feature flags", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     typeset:onToggleEmbeddedStyleSheet(true)
     typeset:onToggleEmbeddedStyleSheet(false)
     typeset:onToggleEmbeddedFonts(true)
@@ -91,7 +126,14 @@ describe("ReaderTypeset module", function()
     typeset:onSetRenderDPI(96)
     typeset:onSetRenderDPI(120)
 
-    -- Stylesheet menu generation and application
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should generate stylesheet menu and handle item callbacks", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     local sheet_menu = typeset:genStyleSheetMenu()
     assert.is_table(sheet_menu)
 
@@ -127,8 +169,16 @@ describe("ReaderTypeset module", function()
       end
     end
 
-    -- FB2 mode
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should generate stylesheet menu for FB2 documents", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     readerui.document.is_fb2 = true
+    local mock_menu = { updateItems = function() end }
     local fb2_menu = typeset:genStyleSheetMenu()
     for _, item in ipairs(fb2_menu) do
       if item.text_func then item:text_func() end
@@ -145,11 +195,18 @@ describe("ReaderTypeset module", function()
     end
     readerui.document.is_fb2 = false
 
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should apply stylesheets and persist settings", function()
+    local readerui = createReaderUI()
+    local typeset = readerui.typeset
+
     typeset:setStyleSheet("data/epub.css")
-    typeset:setStyleSheet("data/epub.css") -- no-op branch
+    typeset:setStyleSheet("data/epub.css")
     typeset:onApplyStyleSheet()
 
-    -- Settings persistence
     typeset:onSaveSettings()
     typeset:onReadSettings(readerui.doc_settings)
 

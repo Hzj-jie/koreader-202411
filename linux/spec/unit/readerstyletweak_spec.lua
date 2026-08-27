@@ -388,8 +388,7 @@ describe("ReaderStyleTweak module", function()
       lfs.rmdir(test_subdir)
     end)
 
-    it("should exercise editBookTweak and all its interactive callbacks", function()
-      local UIManager = require("ui/uimanager")
+    local function createMockStyleTweak()
       local mock_ui = {
         document = {
           info = { has_crengine = true },
@@ -407,28 +406,30 @@ describe("ReaderStyleTweak module", function()
       }
       local tweak = ReaderStyleTweak:new({ ui = mock_ui })
       tweak:onReadSettings(mock_ui.doc_settings)
+      return tweak
+    end
 
-      local mock_menu = {
-        closeMenu = function() end,
-        updateItems = function() end,
-      }
+    local function getEditorWidget()
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if w and w.button_table then
+          return w
+        end
+      end
+      return nil
+    end
 
-      -- Test editBookTweak when empty
+    it("should open editBookTweak and handle view pos and reset callbacks", function()
+      local tweak = createMockStyleTweak()
+      local mock_menu = { closeMenu = function() end, updateItems = function() end }
+
       tweak.book_style_tweak = nil
       tweak.book_style_tweak_enabled = false
       tweak:editBookTweak(mock_menu)
 
-      local editor
-      for i = #UIManager._window_stack, 1, -1 do
-        local w = UIManager._window_stack[i].widget
-        if w and w.button_table then
-          editor = w
-          break
-        end
-      end
+      local editor = getEditorWidget()
       assert.is_not_nil(editor)
 
-      -- Exercise view_pos_callback
       if editor.view_pos_callback then
         editor.view_pos_callback(5, 10)
         local l, c = editor.view_pos_callback()
@@ -436,13 +437,20 @@ describe("ReaderStyleTweak module", function()
         assert.are.equal(10, c)
       end
 
-      -- Exercise reset_callback
       if editor.reset_callback then
-        local reset_text, reset_msg = editor.reset_callback("")
+        local _, reset_msg = editor.reset_callback("")
         assert.is_string(reset_msg)
       end
+    end)
 
-      -- Exercise button table callbacks (Use sample / Prettify / Condense)
+    it("should handle editBookTweak formatting buttons and input edits", function()
+      local tweak = createMockStyleTweak()
+      local mock_menu = { closeMenu = function() end, updateItems = function() end }
+
+      tweak:editBookTweak(mock_menu)
+      local editor = getEditorWidget()
+      assert.is_not_nil(editor)
+
       if editor.button_table then
         local tweak_btn = editor.button_table:getButtonById("editBookTweakButton")
         if tweak_btn and tweak_btn.callback then
@@ -452,15 +460,22 @@ describe("ReaderStyleTweak module", function()
         end
       end
 
-      -- Exercise edited_callback
       if editor.edited_callback then
         editor:setInputText("")
         editor.edited_callback()
         editor:setInputText("p { color: red; }")
         editor.edited_callback()
       end
+    end)
 
-      -- Exercise CSS suggestions button
+    it("should handle CSS suggestions buttons and popups in editBookTweak", function()
+      local tweak = createMockStyleTweak()
+      local mock_menu = { closeMenu = function() end, updateItems = function() end }
+
+      tweak:editBookTweak(mock_menu)
+      local editor = getEditorWidget()
+      assert.is_not_nil(editor)
+
       if editor.button_table then
         local css_btn = editor.button_table:getButtonById("css_suggestions_button_id")
         if css_btn and css_btn.callback then
@@ -509,42 +524,39 @@ describe("ReaderStyleTweak module", function()
           end
         end
       end
+    end)
 
+    it("should handle editBookTweak save and close callbacks", function()
+      local tweak = createMockStyleTweak()
+      local mock_menu = { closeMenu = function() end, updateItems = function() end }
 
-      -- Exercise save_callback with creation
+      tweak.book_style_tweak = nil
+      tweak.book_style_tweak_enabled = false
+      tweak:editBookTweak(mock_menu)
+
+      local editor = getEditorWidget()
+      assert.is_not_nil(editor)
+
       if editor.save_callback then
-        local ok, msg = editor.save_callback("body { font-size: 16px; }", false)
+        local ok, _ = editor.save_callback("body { font-size: 16px; }", false)
         assert.is_true(ok)
         assert.is_true(tweak.book_style_tweak_enabled)
 
-        -- Update existing
-        ok, msg = editor.save_callback("body { font-size: 18px; }", false)
+        ok, _ = editor.save_callback("body { font-size: 18px; }", false)
         assert.is_true(ok)
 
-        -- Save unmodified
-        ok, msg = editor.save_callback("body { font-size: 18px; }", false)
+        ok, _ = editor.save_callback("body { font-size: 18px; }", false)
         assert.is_true(ok)
 
-        -- Empty and remove
-        ok, msg = editor.save_callback("", false)
+        ok, _ = editor.save_callback("", false)
         assert.is_true(ok)
         assert.is_false(tweak.book_style_tweak_enabled)
       end
 
-      -- Exercise close_callback
       if editor.close_callback then
         editor.save_callback_called = false
         editor.close_callback(true)
         editor.close_callback(false)
-      end
-
-      while #UIManager._window_stack > 0 do
-        local top = UIManager._window_stack[#UIManager._window_stack].widget
-        if top then
-          UIManager:close(top)
-        else
-          break
-        end
       end
     end)
 
