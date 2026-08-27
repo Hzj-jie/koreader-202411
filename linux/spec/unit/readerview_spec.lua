@@ -276,7 +276,7 @@ describe("Readerview module", function()
       view:drawSavedHighlight(bb, 0, 0)
     end)
 
-    it("should exercise all highlight drawers and note marks", function()
+    it("should draw lighten highlight rects with default and custom colors", function()
       local bb = Blitbuffer.new(800, 600)
       local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
 
@@ -285,7 +285,6 @@ describe("Readerview module", function()
         note_mark = "underline",
       }
 
-      -- Lighten (no color, color32, color in nightmode)
       view:drawHighlightRect(bb, 0, 0, rect, "lighten", nil, false)
       view:drawHighlightRect(
         bb,
@@ -296,8 +295,17 @@ describe("Readerview module", function()
         Blitbuffer.colorFromName("yellow"),
         false
       )
+    end)
 
-      -- Underscore (color8 and color32)
+    it("should draw underscore highlight rects in color8, color32, and nightmode", function()
+      local bb = Blitbuffer.new(800, 600)
+      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+
+      view.highlight = {
+        lighten_factor = 0.5,
+        note_mark = "underline",
+      }
+
       view:drawHighlightRect(bb, 0, 0, rect, "underscore", nil, true)
       view:drawHighlightRect(
         bb,
@@ -317,8 +325,17 @@ describe("Readerview module", function()
         Blitbuffer.colorFromName("red"),
         false
       )
+    end)
 
-      -- Strikeout (color8 and color32)
+    it("should draw strikeout and invert highlight rects", function()
+      local bb = Blitbuffer.new(800, 600)
+      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+
+      view.highlight = {
+        lighten_factor = 0.5,
+        note_mark = "underline",
+      }
+
       view:drawHighlightRect(bb, 0, 0, rect, "strikeout", nil, false)
       view:drawHighlightRect(
         bb,
@@ -338,12 +355,17 @@ describe("Readerview module", function()
         Blitbuffer.colorFromName("blue"),
         false
       )
-
-      -- Invert
       view:drawHighlightRect(bb, 0, 0, rect, "invert", nil, false)
+    end)
 
-      -- Note mark variants: sideline, sidemark
-      view.highlight.note_mark = "sideline"
+    it("should draw highlight rects with sideline and sidemark note marks", function()
+      local bb = Blitbuffer.new(800, 600)
+      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+
+      view.highlight = {
+        lighten_factor = 0.5,
+        note_mark = "sideline",
+      }
       view:setupNoteMarkPosition()
       view:drawHighlightRect(
         bb,
