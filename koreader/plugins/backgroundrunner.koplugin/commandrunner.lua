@@ -74,7 +74,7 @@ function CommandRunner:start(job)
         -- TODO: Implement timeout in "fork" mode.
         local output = string.format(
           "return { result = %s, timeout = false }\n",
-          tostring(res)
+          require("dump")(res)
         )
         ffiUtil.writeToFD(child_write_fd, output, true)
       end,
