@@ -120,11 +120,20 @@ function MathPuzzleScreen:_updateInputButton(idx)
   btn:scheduleRepaint()
 end
 
+function MathPuzzleScreen:_clearMark(idx)
+  local prob = self.problems[idx]
+  prob.checked = false
+  prob.is_correct = nil
+  self.mark_widgets[idx]:setText("")
+  self.mark_containers[idx]:scheduleRepaint()
+end
+
 function MathPuzzleScreen:inputDigit(digit_char)
   local prob = self.problems[self.focused_idx]
   local current = prob.user_answer
   if #current < 6 then
     prob.user_answer = current .. digit_char
+    self:_clearMark(self.focused_idx)
     self:_updateInputButton(self.focused_idx)
   end
 end
@@ -134,6 +143,7 @@ function MathPuzzleScreen:backspace()
   local current = prob.user_answer
   if #current > 0 then
     prob.user_answer = current:sub(1, -2)
+    self:_clearMark(self.focused_idx)
     self:_updateInputButton(self.focused_idx)
   end
 end
@@ -301,6 +311,7 @@ function MathPuzzleScreen:_buildUI()
     end
     input_btn.setText = function(_, txt)
       prob.user_answer = tostring(txt)
+      self:_clearMark(i)
       self:_updateInputButton(i)
     end
 
@@ -539,11 +550,8 @@ function MathPuzzleScreen:_showModeMenu()
 end
 
 function MathPuzzleScreen:hasUncheckedProgress()
-  if self.problems[1].checked then
-    return false
-  end
   for _, prob in ipairs(self.problems) do
-    if prob.user_answer ~= "" then
+    if not prob.checked and prob.user_answer ~= "" then
       return true
     end
   end

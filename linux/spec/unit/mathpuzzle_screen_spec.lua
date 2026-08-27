@@ -475,4 +475,77 @@ describe("MathPuzzle Screen and Plugin", function()
     screen.title_bar.close_callback()
     assert.are.equal(initial_stack_size - 1, #UIManager._window_stack)
   end)
+
+  it("should remove mark and reset checked state when user changes answer via inputDigit", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+    screen:checkAnswers()
+    assert.are.equal(" ✓", screen.mark_widgets[1].text)
+    assert.is_true(screen.problems[1].checked)
+
+    screen:selectField(1)
+    screen:inputDigit("9")
+    assert.are.equal("", screen.mark_widgets[1].text)
+    assert.is_false(screen.problems[1].checked)
+    assert.is_nil(screen.problems[1].is_correct)
+
+    UIManager:close(screen)
+  end)
+
+  it("should remove mark and reset checked state when user changes answer via backspace", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+    screen:checkAnswers()
+    assert.are.equal(" ✓", screen.mark_widgets[1].text)
+    assert.is_true(screen.problems[1].checked)
+
+    screen:selectField(1)
+    screen:backspace()
+    assert.are.equal("", screen.mark_widgets[1].text)
+    assert.is_false(screen.problems[1].checked)
+    assert.is_nil(screen.problems[1].is_correct)
+
+    UIManager:close(screen)
+  end)
+
+  it("should remove mark and reset checked state when user changes answer via setText", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+    screen:checkAnswers()
+    assert.are.equal(" ✓", screen.mark_widgets[1].text)
+    assert.is_true(screen.problems[1].checked)
+
+    screen.input_buttons[1]:setText("123")
+    assert.are.equal("", screen.mark_widgets[1].text)
+    assert.is_false(screen.problems[1].checked)
+    assert.is_nil(screen.problems[1].is_correct)
+
+    UIManager:close(screen)
+  end)
+
+  it("should report unchecked progress when modifying an answer after checking", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    for i, field in ipairs(screen.input_buttons) do
+      field:setText(tostring(screen.problems[i].answer))
+    end
+    screen:checkAnswers()
+    assert.is_false(screen:hasUncheckedProgress())
+
+    screen:selectField(2)
+    screen:inputDigit("1")
+    assert.is_true(screen:hasUncheckedProgress())
+
+    screen:checkAnswers()
+    assert.is_false(screen:hasUncheckedProgress())
+
+    UIManager:close(screen)
+  end)
 end)
