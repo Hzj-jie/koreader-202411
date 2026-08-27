@@ -60,14 +60,27 @@ describe("ReaderPageMap module", function()
       end
     )
 
-    it("should test cleanPageLabel, label getters, and menu actions", function()
+    local function createReaderUI()
       local sample_epub = "spec/front/unit/data/leaves.epub"
       local readerui = ReaderUI:new({
         dimen = Screen:getSize(),
         document = DocumentRegistry:openDocument(sample_epub),
       })
+      readerui.pagemap.has_pagemap = true
+      return readerui
+    end
+
+    after_each(function()
+      while #UIManager._window_stack > 0 do
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        UIManager:close(top.widget)
+      end
+      UIManager._dirty = {}
+    end)
+
+    it("should clean page labels and verify page label preferences", function()
+      local readerui = createReaderUI()
       local pagemap = readerui.pagemap
-      pagemap.has_pagemap = true
 
       assert.is.same("123", pagemap:cleanPageLabel("Page 123"))
       assert.is.same("iv", pagemap:cleanPageLabel("page iv"))
@@ -75,7 +88,14 @@ describe("ReaderPageMap module", function()
       pagemap.use_page_labels = true
       assert.is_true(pagemap:wantsPageLabels())
 
-      -- Mock document pagemap methods for testing getters
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should retrieve formatted and raw page labels from document pagemap", function()
+      local readerui = createReaderUI()
+      local pagemap = readerui.pagemap
+
       readerui.document.getPageMapCurrentPageLabel = function()
         return "Page 1", 1, 2
       end
@@ -110,10 +130,16 @@ describe("ReaderPageMap module", function()
       assert.is.same(2, pagemap:getRenderedPageNumber("Page 2", false))
       assert.is_nil(pagemap:getRenderedPageNumber("999", true))
 
-      -- Test onSetPageMargins
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should update visible page labels and handle position updates", function()
+      local readerui = createReaderUI()
+      local pagemap = readerui.pagemap
+
       pagemap:onSetPageMargins({ 15, 10, 15, 10 })
 
-      -- Test updateVisibleLabels in various configurations
       pagemap.show_page_labels = true
       pagemap.initialized = true
       pagemap.has_pagemap = true
@@ -122,8 +148,8 @@ describe("ReaderPageMap module", function()
       readerui.document.getPageMapVisiblePageLabels = function()
         return {
           { label = "Page 1", screen_page = 1, screen_y = 50 },
-          { label = "Page 2", screen_page = 1, screen_y = 60 }, -- consecutive overlap
-          { label = "Page 3", screen_page = 2, screen_y = 700 }, -- near bottom
+          { label = "Page 2", screen_page = 1, screen_y = 60 },
+          { label = "Page 3", screen_page = 2, screen_y = 700 },
         }
       end
       readerui.document.getVisiblePageCount = function() return 2 end
@@ -131,13 +157,19 @@ describe("ReaderPageMap module", function()
       readerui.view.footer.settings.reclaim_height = false
       pagemap:updateVisibleLabels()
 
-      -- Test events triggering updateVisibleLabels
       pagemap:onPageUpdate()
       pagemap:onPosUpdate()
       pagemap:onChangeViewMode()
       pagemap:onSetStatusLine()
 
-      -- Test addToMainMenu
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should build main menu items and handle settings callbacks", function()
+      local readerui = createReaderUI()
+      local pagemap = readerui.pagemap
+
       local menu_items = {}
       pagemap:addToMainMenu(menu_items)
       assert.truthy(menu_items.page_map)
@@ -170,7 +202,14 @@ describe("ReaderPageMap module", function()
         end
       end
 
-      -- Test onShowPageList
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should handle page list dialog and selection", function()
+      local readerui = createReaderUI()
+      local pagemap = readerui.pagemap
+
       pagemap:onShowPageList()
       local list_container = pagemap.pagelist_menu
       assert.is_not_nil(list_container)
@@ -185,7 +224,14 @@ describe("ReaderPageMap module", function()
         pl_menu.close_callback()
       end
 
-      -- Test _postInit when has_pages is true or hasPageMap is false
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should handle post-initialization with various document capabilities", function()
+      local readerui = createReaderUI()
+      local pagemap = readerui.pagemap
+
       readerui.document.info.has_pages = true
       pagemap:_postInit()
       readerui.document.info.has_pages = false
