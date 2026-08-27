@@ -130,6 +130,15 @@ Plugins can be enabled dynamically at runtime without restarting KOReader. In th
    end
    ```
 
+### F. Fullscreen & Modal Screens (Avoid `covers_fullscreen`)
+The legacy `covers_fullscreen` property (e.g., `self.covers_fullscreen = true` or `covers_fullscreen = true`) was a hint previously used for full-screen repaint optimization, but is deprecated and unused in KOReader v2024.11+. Modern KOReader manages window stacking and repainting via `UIManager` and container dimensions.
+
+1. **Remove `covers_fullscreen`**:
+   - Always remove `self.covers_fullscreen = true` or `covers_fullscreen = true` from imported plugin screens, dialogs, and menus.
+2. **Proper Fullscreen & Modal Configuration**:
+   - Set the widget dimensions to cover the display using `Screen:getWidth()` and `Screen:getHeight()` (or `Screen:getSize()`).
+   - If the screen or overlay should capture input exclusively and prevent touch or key events from propagating to underlying views (such as reading views or the file manager), set `modal = true` on the `InputContainer` / `WidgetContainer` class.
+
 ---
 
 ## 3. Testing & Verification

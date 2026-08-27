@@ -933,7 +933,6 @@ local NonogramScreen = InputContainer:extend({})
 function NonogramScreen:init()
   self.dimen =
     Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() })
-  self.covers_fullscreen = true
   if Device:hasKeys() then
     self.key_events.Close = { { Device.input.group.Back } }
   end
