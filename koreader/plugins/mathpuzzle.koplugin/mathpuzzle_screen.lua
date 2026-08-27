@@ -1,5 +1,6 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
+local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -31,6 +32,7 @@ local MathPuzzleScreen = InputContainer:extend({
   focused_idx = 1,
   round_correct = 0,
   round_wrong = 0,
+  is_checked = false,
 })
 
 function MathPuzzleScreen:init()
@@ -43,8 +45,10 @@ function MathPuzzleScreen:init()
     h = Screen:getHeight(),
   })
 
+  self.is_checked = false
+
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Back = { { Device.input.group.Back } }
   end
 
   if not self.mode then
@@ -271,10 +275,12 @@ function MathPuzzleScreen:_buildUI()
     fullscreen = true,
     left_icon = "chevron.left",
     left_icon_tap_callback = function()
-      self:_showModeMenu()
+      self:confirmExit(function()
+        self:_showModeMenu()
+      end)
     end,
     close_callback = function()
-      UIManager:close(self)
+      self:confirmExit()
     end,
   })
   self.title_bar_container = FrameContainer:new({
@@ -530,6 +536,7 @@ function MathPuzzleScreen:_buildUI()
 end
 
 function MathPuzzleScreen:checkAnswers()
+  self.is_checked = true
   local result = Generator.checkAnswers(self.problems)
 
   for i, prob in ipairs(self.problems) do
@@ -551,6 +558,7 @@ function MathPuzzleScreen:checkAnswers()
 end
 
 function MathPuzzleScreen:generateNewProblems()
+  self.is_checked = false
   self.round_correct = 0
   self.round_wrong = 0
   self.question_count = (self.mode and self.mode.question_count) or 10
@@ -561,6 +569,7 @@ function MathPuzzleScreen:generateNewProblems()
 end
 
 function MathPuzzleScreen:setMode(mode)
+  self.is_checked = false
   self.mode = mode
   self.question_count = mode.question_count or 10
   self.round_correct = 0
@@ -575,6 +584,36 @@ function MathPuzzleScreen:_showModeMenu()
   if self.plugin.showModeSelection then
     self.plugin:showModeSelection(self)
   end
+end
+
+function MathPuzzleScreen:confirmExit(callback)
+  if self.is_checked then
+    if callback then
+      callback()
+    else
+      UIManager:close(self)
+    end
+    return
+  end
+
+  UIManager:show(ConfirmBox:new({
+    text = _(
+      "Your progress will be lost if you exit. Are you sure you want to exit?"
+    ),
+    ok_text = _("Exit"),
+    ok_callback = function()
+      if callback then
+        callback()
+      else
+        UIManager:close(self)
+      end
+    end,
+  }))
+end
+
+function MathPuzzleScreen:onBack()
+  self:confirmExit()
+  return true
 end
 
 function MathPuzzleScreen:onClose()

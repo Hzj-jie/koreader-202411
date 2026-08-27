@@ -369,4 +369,65 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:close(underlying)
     end
   )
+
+  it(
+    "should show confirmation when exiting unchecked and close directly when checked",
+    function()
+      local dummy_ui = { menu = { registerToMainMenu = function() end } }
+      local plugin = MathPuzzle:new({ ui = dummy_ui })
+      plugin:init()
+      local screen = MathPuzzleScreen:new({
+        plugin = plugin,
+        mode = Generator.getModeById("add_sub_100"),
+      })
+      UIManager:show(screen)
+
+      assert.is_false(screen.is_checked)
+
+      -- 1. Unchecked: close_callback shows ConfirmBox
+      local initial_stack_size = #UIManager._window_stack
+      screen.title_bar.close_callback()
+      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+      local confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_truthy(confirm_box.text:find("progress will be lost"))
+      -- Dismiss confirmation box
+      UIManager:close(confirm_box)
+      assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+      -- 2. Unchecked: onBack shows ConfirmBox
+      screen:onBack()
+      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+      confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_truthy(confirm_box.text:find("progress will be lost"))
+      UIManager:close(confirm_box)
+
+      -- 3. Unchecked: left_icon_tap_callback shows ConfirmBox
+      local mode_menu_shown = false
+      screen._showModeMenu = function()
+        mode_menu_shown = true
+      end
+      screen.title_bar.left_icon_tap_callback()
+      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+      confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_truthy(confirm_box.text:find("progress will be lost"))
+      -- Confirming exit triggers mode menu callback
+      confirm_box.ok_callback()
+      assert.is_true(mode_menu_shown)
+      UIManager:close(confirm_box)
+
+      -- 4. Check answers -> is_checked becomes true
+      screen:checkAnswers()
+      assert.is_true(screen.is_checked)
+
+      -- 5. Checked: left_icon_tap_callback directly calls mode menu without ConfirmBox
+      mode_menu_shown = false
+      screen.title_bar.left_icon_tap_callback()
+      assert.is_true(mode_menu_shown)
+      assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+      -- 6. Checked: close_callback directly closes screen without ConfirmBox
+      screen.title_bar.close_callback()
+      assert.are.equal(initial_stack_size - 1, #UIManager._window_stack)
+    end
+  )
 end)
