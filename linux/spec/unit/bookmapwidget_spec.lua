@@ -129,7 +129,7 @@ describe("BookMapWidget ReaderUI Integration", function()
     sample_epub = "spec/front/unit/data/juliet.epub"
   end)
 
-  it("should allow showing BookMap and transitioning to PageBrowser", function()
+  it("should show BookMap from ReaderThumbnail with root exit handler", function()
     DocSettings:open(sample_epub):purge()
     local readerui = ReaderUI:new({
       dimen = Screen:getSize(),
@@ -137,10 +137,35 @@ describe("BookMapWidget ReaderUI Integration", function()
     })
     readerui.status.enabled = false
 
-    -- Initially, the topmost widget on the stack is ReaderUI
     assert.truthy(UIManager:isWindowWidget(readerui))
 
-    -- 1. Show BookMap
+    readerui.thumbnail:onShowBookMap()
+    local bookmap
+    for i = #UIManager._window_stack, 1, -1 do
+      local w = UIManager._window_stack[i].widget
+      if getmetatable(w) == BookMapWidget then
+        bookmap = w
+        break
+      end
+    end
+    assert.truthy(bookmap)
+    assert.falsy(bookmap.on_exit)
+    assert.falsy(bookmap.on_update)
+    assert.truthy(bookmap.on_root_exit)
+
+    UIManager:close(bookmap)
+    UIManager:close(readerui)
+    UIManager:quit()
+  end)
+
+  it("should transition from BookMap to PageBrowser and return on exit", function()
+    DocSettings:open(sample_epub):purge()
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    readerui.status.enabled = false
+
     readerui.thumbnail:onShowBookMap()
     local bookmap
     for i = #UIManager._window_stack, 1, -1 do
@@ -152,12 +177,6 @@ describe("BookMapWidget ReaderUI Integration", function()
     end
     assert.truthy(bookmap)
 
-    -- Verify it does NOT have on_exit or on_update callbacks because it was opened from ReaderThumbnail
-    assert.falsy(bookmap.on_exit)
-    assert.falsy(bookmap.on_update)
-    assert.truthy(bookmap.on_root_exit)
-
-    -- Mock getVGroupRowAtY and getPageAtX to bypass coordinate calculations
     bookmap.getVGroupRowAtY = function()
       return {
         start_page = 10,
@@ -167,13 +186,11 @@ describe("BookMapWidget ReaderUI Integration", function()
       }
     end
 
-    -- Ensure tap to page browser is enabled
     local original_settings_nilOrTrue = G_reader_settings.nilOrTrue
     G_reader_settings.nilOrTrue = function()
       return true
     end
 
-    -- Tap to open PageBrowser
     local Geom = require("ui/geometry")
     bookmap:onTap(nil, { pos = Geom:new({ x = 100, y = 100 }) })
 
@@ -186,16 +203,11 @@ describe("BookMapWidget ReaderUI Integration", function()
       end
     end
     assert.truthy(pagebrowser)
-
-    -- Verify it HAS on_exit and on_update callbacks because it was opened from BookMap!
     assert.truthy(pagebrowser.on_exit)
     assert.truthy(pagebrowser.on_update)
 
-    -- 3. Close PageBrowser
-    -- We expect PageBrowser to exit and return back to BookMap
     pagebrowser:onExit(false)
 
-    -- BookMap should still be in the stack
     local found_bookmap = false
     for i = #UIManager._window_stack, 1, -1 do
       local w = UIManager._window_stack[i].widget
@@ -206,10 +218,7 @@ describe("BookMapWidget ReaderUI Integration", function()
     end
     assert.is_true(found_bookmap)
 
-    -- Restore settings mock
     G_reader_settings.nilOrTrue = original_settings_nilOrTrue
-
-    -- Clean up
     UIManager:close(bookmap)
     UIManager:close(readerui)
     UIManager:quit()
