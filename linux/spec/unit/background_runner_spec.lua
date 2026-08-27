@@ -152,7 +152,7 @@ describe("BackgroundRunner widget tests", function()
     assert.is_true(executed)
   end)
 
-  it("should forward string environment to the executable", function()
+  it("should forward matching string environment to the executable", function()
     local job = {
       when = 1,
       repeated = false,
@@ -170,16 +170,21 @@ describe("BackgroundRunner widget tests", function()
       UIManager:handleInput()
     end
 
-    -- grep should return 0 when there is a match.
     assert.are.equal(0, job.result)
     assert.is_false(job.timeout)
     assert.is_false(job.bad_command)
+  end)
 
-    job.environment = {
-      ENV1 = "yes",
-      ENV2 = "no",
+  it("should forward non-matching string environment to executable without leaking to parent environment", function()
+    local job = {
+      when = 1,
+      repeated = false,
+      executable = "echo $ENV1 | grep $ENV2",
+      environment = {
+        ENV1 = "yes",
+        ENV2 = "no",
+      },
     }
-    job.end_time = nil
     table.insert(PluginShare.backgroundJobs, job)
     notifyBackgroundJobsUpdated()
 
@@ -188,18 +193,15 @@ describe("BackgroundRunner widget tests", function()
       UIManager:handleInput()
     end
 
-    -- grep should return 1 when there is no match.
     assert.are.equal(1, job.result)
     assert.is_false(job.timeout)
     assert.is_false(job.bad_command)
-
     assert.are.not_equal(os.getenv("ENV1"), "yes")
     assert.are.not_equal(os.getenv("ENV2"), "yes")
     assert.are.not_equal(os.getenv("ENV2"), "no")
   end)
 
-  it("should forward function environment to the executable", function()
-    local env2 = "yes"
+  it("should forward dynamic function environment to executable when matching", function()
     local job = {
       when = 1,
       repeated = false,
@@ -207,7 +209,7 @@ describe("BackgroundRunner widget tests", function()
       environment = function()
         return {
           ENV1 = "yes",
-          ENV2 = env2,
+          ENV2 = "yes",
         }
       end,
     }
@@ -219,13 +221,23 @@ describe("BackgroundRunner widget tests", function()
       UIManager:handleInput()
     end
 
-    -- grep should return 0 when there is a match.
     assert.are.equal(0, job.result)
     assert.is_false(job.timeout)
     assert.is_false(job.bad_command)
+  end)
 
-    job.end_time = nil
-    env2 = "no"
+  it("should forward dynamic function environment to executable when non-matching", function()
+    local job = {
+      when = 1,
+      repeated = false,
+      executable = "echo $ENV1 | grep $ENV2",
+      environment = function()
+        return {
+          ENV1 = "yes",
+          ENV2 = "no",
+        }
+      end,
+    }
     table.insert(PluginShare.backgroundJobs, job)
     notifyBackgroundJobsUpdated()
 
@@ -234,7 +246,6 @@ describe("BackgroundRunner widget tests", function()
       UIManager:handleInput()
     end
 
-    -- grep should return 1 when there is no match.
     assert.are.equal(1, job.result)
     assert.is_false(job.timeout)
     assert.is_false(job.bad_command)
@@ -455,7 +466,7 @@ describe("BackgroundRunner widget tests", function()
     )
   end)
 
-  it("should handle error and return value status in fork action", function()
+  it("should handle error in fork action and return false result", function()
     local error_job = {
       when = 1,
       executable = "fork",
@@ -463,6 +474,18 @@ describe("BackgroundRunner widget tests", function()
         error("something went wrong")
       end,
     }
+    table.insert(PluginShare.backgroundJobs, error_job)
+    notifyBackgroundJobsUpdated()
+
+    while error_job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.is_false(error_job.result)
+  end)
+
+  it("should return integer result from fork action", function()
     local ret_val_job = {
       when = 1,
       executable = "fork",
@@ -470,6 +493,18 @@ describe("BackgroundRunner widget tests", function()
         return 42
       end,
     }
+    table.insert(PluginShare.backgroundJobs, ret_val_job)
+    notifyBackgroundJobsUpdated()
+
+    while ret_val_job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.are.equal(42, ret_val_job.result)
+  end)
+
+  it("should return boolean results from fork action", function()
     local false_job = {
       when = 1,
       executable = "fork",
@@ -477,7 +512,6 @@ describe("BackgroundRunner widget tests", function()
         return false
       end,
     }
-
     local true_job = {
       when = 1,
       executable = "fork",
@@ -485,25 +519,15 @@ describe("BackgroundRunner widget tests", function()
         return true
       end,
     }
-
-    table.insert(PluginShare.backgroundJobs, error_job)
-    table.insert(PluginShare.backgroundJobs, ret_val_job)
     table.insert(PluginShare.backgroundJobs, false_job)
     table.insert(PluginShare.backgroundJobs, true_job)
     notifyBackgroundJobsUpdated()
 
-    while
-      error_job.end_time == nil
-      or ret_val_job.end_time == nil
-      or false_job.end_time == nil
-      or true_job.end_time == nil
-    do
+    while false_job.end_time == nil or true_job.end_time == nil do
       MockTime:increase(2)
       UIManager:handleInput()
     end
 
-    assert.is_false(error_job.result)
-    assert.are.equal(42, ret_val_job.result)
     assert.is_false(false_job.result)
     assert.is_true(true_job.result)
   end)

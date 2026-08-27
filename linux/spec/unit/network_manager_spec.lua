@@ -456,7 +456,7 @@ describe("network_manager module", function()
     end)
 
     it(
-      "should check _isOnline in _returnOnlineState when hasWifiToggle is false",
+      "should return true in _returnOnlineState when hasWifiToggle is false and network is online",
       function()
         local orig_hasWifiToggle = Device.hasWifiToggle
         Device.hasWifiToggle = function()
@@ -474,6 +474,22 @@ describe("network_manager module", function()
 
         assert.is_true(NetworkMgr:_returnOnlineState())
 
+        NetworkMgr._hasDefaultRoute = orig_hasDefaultRoute
+        NetworkMgr._canResolveHostnames = orig_canResolve
+        Device.hasWifiToggle = orig_hasWifiToggle
+      end
+    )
+
+    it(
+      "should return false in _returnOnlineState when hasWifiToggle is false and route or DNS fails",
+      function()
+        local orig_hasWifiToggle = Device.hasWifiToggle
+        Device.hasWifiToggle = function()
+          return false
+        end
+
+        local orig_hasDefaultRoute = NetworkMgr._hasDefaultRoute
+        local orig_canResolve = NetworkMgr._canResolveHostnames
         NetworkMgr._hasDefaultRoute = function()
           return false
         end
@@ -490,7 +506,27 @@ describe("network_manager module", function()
     )
 
     it(
-      "should check _isWifiConnected and _isOnline when hasWifiToggle is true",
+      "should return false in _returnOnlineState when hasWifiToggle is true and wifi is disconnected",
+      function()
+        local orig_hasWifiToggle = Device.hasWifiToggle
+        Device.hasWifiToggle = function()
+          return true
+        end
+
+        local orig_isWifiConnected = NetworkMgr._isWifiConnected
+        NetworkMgr._isWifiConnected = function()
+          return false
+        end
+
+        assert.is_false(NetworkMgr:_returnOnlineState())
+
+        NetworkMgr._isWifiConnected = orig_isWifiConnected
+        Device.hasWifiToggle = orig_hasWifiToggle
+      end
+    )
+
+    it(
+      "should return true in _returnOnlineState when hasWifiToggle is true, wifi is connected, and network is online",
       function()
         local orig_hasWifiToggle = Device.hasWifiToggle
         Device.hasWifiToggle = function()
@@ -502,27 +538,46 @@ describe("network_manager module", function()
         local orig_canResolve = NetworkMgr._canResolveHostnames
 
         NetworkMgr._isWifiConnected = function()
-          return false
+          return true
         end
-        assert.is_false(NetworkMgr:_returnOnlineState())
+        NetworkMgr._hasDefaultRoute = function()
+          return true
+        end
+        NetworkMgr._canResolveHostnames = function()
+          return true
+        end
+
+        assert.is_true(NetworkMgr:_returnOnlineState())
+
+        NetworkMgr._isWifiConnected = orig_isWifiConnected
+        NetworkMgr._hasDefaultRoute = orig_hasDefaultRoute
+        NetworkMgr._canResolveHostnames = orig_canResolve
+        Device.hasWifiToggle = orig_hasWifiToggle
+      end
+    )
+
+    it(
+      "should return false in _returnOnlineState when hasWifiToggle is true, wifi is connected, but route/DNS fails",
+      function()
+        local orig_hasWifiToggle = Device.hasWifiToggle
+        Device.hasWifiToggle = function()
+          return true
+        end
+
+        local orig_isWifiConnected = NetworkMgr._isWifiConnected
+        local orig_hasDefaultRoute = NetworkMgr._hasDefaultRoute
+        local orig_canResolve = NetworkMgr._canResolveHostnames
 
         NetworkMgr._isWifiConnected = function()
           return true
         end
         NetworkMgr._hasDefaultRoute = function()
-          return true
+          return false
         end
         NetworkMgr._canResolveHostnames = function()
-          return true
+          return false
         end
-        assert.is_true(NetworkMgr:_returnOnlineState())
 
-        NetworkMgr._hasDefaultRoute = function()
-          return false
-        end
-        NetworkMgr._canResolveHostnames = function()
-          return false
-        end
         assert.is_false(NetworkMgr:_returnOnlineState())
 
         NetworkMgr._isWifiConnected = orig_isWifiConnected
