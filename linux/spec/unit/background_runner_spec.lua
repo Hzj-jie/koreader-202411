@@ -175,81 +175,90 @@ describe("BackgroundRunner widget tests", function()
     assert.is_false(job.bad_command)
   end)
 
-  it("should forward non-matching string environment to executable without leaking to parent environment", function()
-    local job = {
-      when = 1,
-      repeated = false,
-      executable = "echo $ENV1 | grep $ENV2",
-      environment = {
-        ENV1 = "yes",
-        ENV2 = "no",
-      },
-    }
-    table.insert(PluginShare.backgroundJobs, job)
-    notifyBackgroundJobsUpdated()
-
-    while job.end_time == nil do
-      MockTime:increase(2)
-      UIManager:handleInput()
-    end
-
-    assert.are.equal(1, job.result)
-    assert.is_false(job.timeout)
-    assert.is_false(job.bad_command)
-    assert.are.not_equal(os.getenv("ENV1"), "yes")
-    assert.are.not_equal(os.getenv("ENV2"), "yes")
-    assert.are.not_equal(os.getenv("ENV2"), "no")
-  end)
-
-  it("should forward dynamic function environment to executable when matching", function()
-    local job = {
-      when = 1,
-      repeated = false,
-      executable = "echo $ENV1 | grep $ENV2",
-      environment = function()
-        return {
-          ENV1 = "yes",
-          ENV2 = "yes",
-        }
-      end,
-    }
-    table.insert(PluginShare.backgroundJobs, job)
-    notifyBackgroundJobsUpdated()
-
-    while job.end_time == nil do
-      MockTime:increase(2)
-      UIManager:handleInput()
-    end
-
-    assert.are.equal(0, job.result)
-    assert.is_false(job.timeout)
-    assert.is_false(job.bad_command)
-  end)
-
-  it("should forward dynamic function environment to executable when non-matching", function()
-    local job = {
-      when = 1,
-      repeated = false,
-      executable = "echo $ENV1 | grep $ENV2",
-      environment = function()
-        return {
+  it(
+    "should forward non-matching string environment to executable without leaking to parent environment",
+    function()
+      local job = {
+        when = 1,
+        repeated = false,
+        executable = "echo $ENV1 | grep $ENV2",
+        environment = {
           ENV1 = "yes",
           ENV2 = "no",
-        }
-      end,
-    }
-    table.insert(PluginShare.backgroundJobs, job)
-    notifyBackgroundJobsUpdated()
+        },
+      }
+      table.insert(PluginShare.backgroundJobs, job)
+      notifyBackgroundJobsUpdated()
 
-    while job.end_time == nil do
-      MockTime:increase(2)
-      UIManager:handleInput()
+      while job.end_time == nil do
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      assert.are.equal(1, job.result)
+      assert.is_false(job.timeout)
+      assert.is_false(job.bad_command)
+      assert.are.not_equal(os.getenv("ENV1"), "yes")
+      assert.are.not_equal(os.getenv("ENV2"), "yes")
+      assert.are.not_equal(os.getenv("ENV2"), "no")
     end
+  )
 
-    assert.are.equal(1, job.result)
-    assert.is_false(job.timeout)
-    assert.is_false(job.bad_command)
-  end)
+  it(
+    "should forward dynamic function environment to executable when matching",
+    function()
+      local job = {
+        when = 1,
+        repeated = false,
+        executable = "echo $ENV1 | grep $ENV2",
+        environment = function()
+          return {
+            ENV1 = "yes",
+            ENV2 = "yes",
+          }
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job)
+      notifyBackgroundJobsUpdated()
+
+      while job.end_time == nil do
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      assert.are.equal(0, job.result)
+      assert.is_false(job.timeout)
+      assert.is_false(job.bad_command)
+    end
+  )
+
+  it(
+    "should forward dynamic function environment to executable when non-matching",
+    function()
+      local job = {
+        when = 1,
+        repeated = false,
+        executable = "echo $ENV1 | grep $ENV2",
+        environment = function()
+          return {
+            ENV1 = "yes",
+            ENV2 = "no",
+          }
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job)
+      notifyBackgroundJobsUpdated()
+
+      while job.end_time == nil do
+        MockTime:increase(2)
+        UIManager:handleInput()
+      end
+
+      assert.are.equal(1, job.result)
+      assert.is_false(job.timeout)
+      assert.is_false(job.bad_command)
+    end
+  )
 
   it("should block long binary job", function()
     requireBackgroundRunner():allowBlockingJobs(true)
@@ -661,4 +670,91 @@ describe("BackgroundRunner widget tests", function()
 
     UIManager:close(widget_instance)
   end)
+
+  it("should return string result from fork action", function()
+    local str_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return "hello world"
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, str_job)
+    notifyBackgroundJobsUpdated()
+
+    while str_job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.are.equal("hello world", str_job.result)
+  end)
+
+  it("should return table result from fork action", function()
+    local tbl_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return { count = 5, status = "ok", items = { 1, 2, 3 } }
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, tbl_job)
+    notifyBackgroundJobsUpdated()
+
+    while tbl_job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.are.same(
+      { count = 5, status = "ok", items = { 1, 2, 3 } },
+      tbl_job.result
+    )
+  end)
+
+  it("should return nil result from fork action", function()
+    local nil_job = {
+      when = 1,
+      executable = "fork",
+      action = function()
+        return nil
+      end,
+    }
+    table.insert(PluginShare.backgroundJobs, nil_job)
+    notifyBackgroundJobsUpdated()
+
+    while nil_job.end_time == nil do
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end
+
+    assert.is_nil(nil_job.result)
+  end)
+
+  it(
+    "should handle invalid child output gracefully in CommandRunner",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      UIManager:preventStandby()
+      local mock_job = {
+        executable = "mock",
+      }
+      table.insert(CommandRunner.running_jobs, {
+        job = mock_job,
+        poll = function()
+          return true
+        end,
+        readAll = function()
+          return "this is not valid lua code !!!"
+        end,
+        close = function() end,
+      })
+
+      local completed = CommandRunner:poll()
+      assert.is_not_nil(completed)
+      assert.are.equal(1, #completed)
+      assert.are.equal(222, completed[1].result)
+    end
+  )
 end)
