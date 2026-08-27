@@ -710,17 +710,19 @@ describe("ReaderMenu integration", function()
     end
   end)
 
-  it("should cover remaining ReaderMenu methods and callbacks", function()
+  local function createReaderUI()
     local sample_pdf = "spec/front/unit/data/2col.pdf"
-    local readerui = ReaderUI:new({
+    return ReaderUI:new({
       dimen = Screen:getSize(),
       document = DocumentRegistry:openDocument(sample_pdf),
     })
+  end
 
+  it("should compute tab index from touch position correctly", function()
+    local readerui = createReaderUI()
     local menu = readerui.menu
     assert.is_not_nil(menu)
 
-    -- Tab index from location
     local Geom = require("ui/geometry")
     assert.is_number(menu:_getTabIndexFromLocation(nil))
     local left_ges = { pos = Geom:new({ x = 10, y = 10 }) }
@@ -730,27 +732,38 @@ describe("ReaderMenu integration", function()
     assert.are.equal(menu:_getTabIndexFromLocation(right_ges), #menu.tab_item_table)
     assert.are.equal(menu:_getTabIndexFromLocation(mid_ges), menu.last_tab_index)
 
-    -- Menu search & keyboard shortcuts & press menu
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should handle menu search, press menu, and dimensions updates", function()
+    local readerui = createReaderUI()
+    local menu = readerui.menu
+
     menu:onMenuSearch()
     menu:closeMenu()
     menu:onPressMenu()
     menu:closeMenu()
 
-    -- onSetDimensions
     menu:_showMenu()
     menu:onSetDimensions(Screen:getSize())
     menu:closeMenu()
 
-    -- Menu items callbacks: filemanager
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should execute filemanager and document settings menu callbacks", function()
+    local readerui = createReaderUI()
+    local menu = readerui.menu
+
     if menu.menu_items.filemanager and menu.menu_items.filemanager.callback then
-      -- mock onHome
       local original_onHome = readerui.onHome
       readerui.onHome = function() end
       menu.menu_items.filemanager.callback()
       readerui.onHome = original_onHome
     end
 
-    -- reset_document_settings and save_document_settings
     if menu.menu_items.reset_document_settings and menu.menu_items.reset_document_settings.callback then
       menu.menu_items.reset_document_settings.callback()
       local confirm = UIManager:getTopmostVisibleWidget()
@@ -766,7 +779,14 @@ describe("ReaderMenu integration", function()
       UIManager:close(confirm)
     end
 
-    -- screensaver settings
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should exercise screensaver and open previous document menu items", function()
+    local readerui = createReaderUI()
+    local menu = readerui.menu
+
     if menu.menu_items.screensaver then
       local ss_table = menu.menu_items.screensaver.sub_item_table
       if ss_table then
@@ -780,7 +800,6 @@ describe("ReaderMenu integration", function()
       end
     end
 
-    -- open_previous_document
     if menu.menu_items.open_previous_document then
       local prev_item = menu.menu_items.open_previous_document
       if prev_item.text_func then prev_item:text_func() end
@@ -798,7 +817,14 @@ describe("ReaderMenu integration", function()
       end
     end
 
-    -- Few keys vs many keys
+    readerui:onExit()
+    readerui:onClose()
+  end)
+
+  it("should register key events for devices with few keys or standard keyboard", function()
+    local readerui = createReaderUI()
+    local menu = readerui.menu
+
     local Device = require("device")
     local old_keys = Device.hasKeys
     local old_few = Device.hasFewKeys
@@ -810,9 +836,8 @@ describe("ReaderMenu integration", function()
     Device.hasKeys = old_keys
     Device.hasFewKeys = old_few
 
-    if readerui then
-      readerui:onExit()
-      readerui:onClose()
-    end
+    readerui:onExit()
+    readerui:onClose()
   end)
+end)
 end)
