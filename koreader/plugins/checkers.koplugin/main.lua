@@ -114,7 +114,6 @@ function Checkers:handleEvent(event)
 end
 
 function Checkers:init()
-  self.covers_fullscreen = true
   Dispatcher:registerAction("checkers_start", {
     category = "none",
     event = "CheckersStart",

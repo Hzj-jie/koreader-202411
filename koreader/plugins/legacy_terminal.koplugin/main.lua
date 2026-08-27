@@ -71,7 +71,6 @@ function Terminal:manageShortcuts()
     show_parent = self.ui,
     width = Screen:getWidth(),
     height = Screen:getHeight(),
-    covers_fullscreen = true, -- hint for UIManager:_repaint()
     is_borderless = true,
     is_popout = false,
     perpage = self.items_per_page,
