@@ -67,6 +67,34 @@ describe("ReaderPageMap module", function()
         document = DocumentRegistry:openDocument(sample_epub),
       })
       readerui.pagemap.has_pagemap = true
+      readerui.document.getPageMapCurrentPageLabel = function()
+        return "Page 1", 1, 2
+      end
+      readerui.document.getPageMapFirstPageLabel = function()
+        return "Page 1"
+      end
+      readerui.document.getPageMapLastPageLabel = function()
+        return "Page 2"
+      end
+      readerui.document.getPageMapXPointerPageLabel = function()
+        return "Page 1"
+      end
+      readerui.document.getPageMapSource = function()
+        return "First Edition 1920"
+      end
+      readerui.document.getPageMap = function()
+        return {
+          { label = "Page 1", page = 1, xpointer = "/1" },
+          { label = "Page 2", page = 2, xpointer = "/2" },
+        }
+      end
+      readerui.document.getPageMapVisiblePageLabels = function()
+        return {
+          { label = "Page 1", screen_page = 1, screen_y = 50 },
+          { label = "Page 2", screen_page = 1, screen_y = 60 },
+        }
+      end
+      readerui.pagemap:resetLayout()
       return readerui
     end
 

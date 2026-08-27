@@ -388,6 +388,19 @@ describe("ReaderStyleTweak module", function()
       lfs.rmdir(test_subdir)
     end)
 
+    local UIManager = require("ui/uimanager")
+
+    after_each(function()
+      while #UIManager._window_stack > 0 do
+        local top = UIManager._window_stack[#UIManager._window_stack].widget
+        if top then
+          UIManager:close(top)
+        else
+          table.remove(UIManager._window_stack, #UIManager._window_stack)
+        end
+      end
+    end)
+
     local function createMockStyleTweak()
       local mock_ui = {
         document = {
