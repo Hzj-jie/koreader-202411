@@ -42,13 +42,16 @@ describe("ReaderStatus module", function()
       end
     end)
 
-    it("should handle book marking and end of book dialog", function()
+    local function createReaderUI()
       local sample_epub = "spec/front/unit/data/leaves.epub"
-      local readerui = ReaderUI:new({
+      return ReaderUI:new({
         dimen = Screen:getSize(),
         document = DocumentRegistry:openDocument(sample_epub),
       })
+    end
 
+    it("should display book status and toggle reading/complete status", function()
+      local readerui = createReaderUI()
       local status = readerui.status
       local UIManager = require("ui/uimanager")
 
@@ -58,7 +61,6 @@ describe("ReaderStatus module", function()
         shown_widget = w
       end
 
-      -- Book status page
       local callback_called = false
       status:onShowBookStatus(function()
         callback_called = true
@@ -75,11 +77,25 @@ describe("ReaderStatus module", function()
       status:markBook()
       assert.are.equal("reading", summary.status)
 
-      -- End of book popup
+      UIManager.show = orig_show
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should handle end of book popup and button actions", function()
+      local readerui = createReaderUI()
+      local status = readerui.status
+      local UIManager = require("ui/uimanager")
+
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
       status:onEndOfBook()
       assert.is_not_nil(shown_widget)
 
-      -- Exercise button dialog callbacks in pop-up
       if shown_widget and shown_widget.buttons then
         for _, row in ipairs(shown_widget.buttons) do
           for _, btn in ipairs(row) do
@@ -91,6 +107,19 @@ describe("ReaderStatus module", function()
         end
       end
 
+      UIManager.show = orig_show
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should handle quickstart file and different end_document_action settings", function()
+      local readerui = createReaderUI()
+      local status = readerui.status
+      local UIManager = require("ui/uimanager")
+
+      local orig_show = UIManager.show
+      UIManager.show = function() end
+
       -- Quickstart file end of book
       local QuickStart = require("ui/quickstart")
       local orig_read = G_reader_settings.read
@@ -100,7 +129,6 @@ describe("ReaderStatus module", function()
       end
       status:onEndOfBook()
 
-      -- Different end_document_action settings
       local actions = {
         "book_status",
         "next_file",
@@ -119,7 +147,6 @@ describe("ReaderStatus module", function()
         status:onEndOfBook()
       end
 
-      -- next_file when sort by date/access
       local orig_collate = G_named_settings.collate
       G_named_settings.collate = function() return "date" end
       G_reader_settings.read = function(self, k)
@@ -129,14 +156,28 @@ describe("ReaderStatus module", function()
       status:onEndOfBook()
       G_named_settings.collate = orig_collate
 
-      -- onOpenNextDocumentInFolder
+      G_reader_settings.read = orig_read
+      UIManager.show = orig_show
+      readerui:onExit()
+      readerui:onClose()
+    end)
+
+    it("should handle open next document and delete file workflows", function()
+      local readerui = createReaderUI()
+      local status = readerui.status
+      local UIManager = require("ui/uimanager")
+
+      local shown_widget
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
       status:onOpenNextDocumentInFolder()
 
-      -- Delete file confirmation dialog
       status:deleteFile()
       assert.is_not_nil(shown_widget)
 
-      G_reader_settings.read = orig_read
       UIManager.show = orig_show
       readerui:onExit()
       readerui:onClose()
