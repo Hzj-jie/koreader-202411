@@ -71,7 +71,6 @@ function MathPuzzleScreen:init()
   self.expr_widgets = {}
 
   self:buildUI()
-  self:startTicker()
 end
 
 function MathPuzzleScreen:getFormattedTime()
@@ -105,26 +104,10 @@ function MathPuzzleScreen:getTimeText()
   return string.format(_("Time: %s"), self:getFormattedTime())
 end
 
-function MathPuzzleScreen:startTicker()
-  if self._ticker_action then
-    return
-  end
-  self._ticker_action = function()
-    if self.time_widget then
-      self.time_widget:setText(self:getTimeText())
-      UIManager:setDirty(self, function()
-        return "ui", self.time_widget.dimen
-      end)
-    end
-    UIManager:scheduleIn(1, self._ticker_action)
-  end
-  UIManager:scheduleIn(1, self._ticker_action)
-end
-
-function MathPuzzleScreen:stopTicker()
-  if self._ticker_action then
-    UIManager:unschedule(self._ticker_action)
-    self._ticker_action = nil
+function MathPuzzleScreen:onTimesChange_1M()
+  if self.time_widget and self.time_container then
+    self.time_widget:setText(self:getTimeText())
+    self.time_container:scheduleRepaint()
   end
 end
 
@@ -322,6 +305,13 @@ function MathPuzzleScreen:buildUI()
     text = self:getTimeText(),
     face = self.subtitle_font_face,
     alignment = "center",
+  })
+  self.time_container = FrameContainer:new({
+    background = Blitbuffer.COLOR_WHITE,
+    bordersize = 0,
+    padding = 0,
+    margin = 0,
+    self.time_widget,
   })
 
   local count = #self.problems
@@ -549,7 +539,7 @@ function MathPuzzleScreen:buildUI()
     align = "center",
     self.title_bar,
     VerticalSpan:new({ height = Screen:scaleBySize(4) }),
-    self.time_widget,
+    self.time_container,
     VerticalSpan:new({ height = Screen:scaleBySize(16) }),
     columns_group,
     VerticalSpan:new({ height = Screen:scaleBySize(24) }),
@@ -628,15 +618,10 @@ function MathPuzzleScreen:showModeMenu()
 end
 
 function MathPuzzleScreen:onClose()
-  self:onExit()
   if self.plugin then
     self.plugin.screen = nil
     self.plugin.session_start_time = nil
   end
-end
-
-function MathPuzzleScreen:onExit()
-  self:stopTicker()
 end
 
 return MathPuzzleScreen
