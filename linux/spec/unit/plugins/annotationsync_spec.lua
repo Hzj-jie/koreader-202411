@@ -41,41 +41,42 @@ describe("AnnotationSync plugin unit tests", function()
       assert.is_nil(utils.get_nested_value(nil, "any.path"))
     end)
 
-    it(
-      "should safely read valid JSON files and handle errors/invalid content",
-      function()
-        local tmp_file = os.tmpname()
+    it("should return empty table when reading non-existent JSON file", function()
+      local missing_data =
+        utils.read_json("/tmp/non_existent_file_annotationsync.json")
+      assert.is_table(missing_data)
+      assert.are.equal(0, #missing_data)
+    end)
 
-        -- Test non-existent file
-        local missing_data =
-          utils.read_json("/tmp/non_existent_file_annotationsync.json")
-        assert.is_table(missing_data)
-        assert.are.equal(0, #missing_data)
+    it("should parse valid JSON file contents", function()
+      local tmp_file = os.tmpname()
+      local f = io.open(tmp_file, "w")
+      f:write('{"anno1": {"page": 1, "text": "hello"}}')
+      f:close()
 
-        -- Test valid JSON
-        local f = io.open(tmp_file, "w")
-        f:write('{"anno1": {"page": 1, "text": "hello"}}')
-        f:close()
-        local data = utils.read_json(tmp_file)
-        assert.is_table(data)
-        assert.is_table(data.anno1)
-        assert.are.equal("hello", data.anno1.text)
+      local data = utils.read_json(tmp_file)
+      assert.is_table(data)
+      assert.is_table(data.anno1)
+      assert.are.equal("hello", data.anno1.text)
 
-        -- Test HTML / non-JSON content
-        f = io.open(tmp_file, "w")
-        f:write("<html>500 Internal Error</html>")
-        f:close()
-        assert.is_nil(utils.read_json(tmp_file))
+      os.remove(tmp_file)
+    end)
 
-        -- Test Dropbox error payload
-        f = io.open(tmp_file, "w")
-        f:write('{"error_summary": "path/not_found/..."}')
-        f:close()
-        assert.is_nil(utils.read_json(tmp_file))
+    it("should return nil when reading HTML or Dropbox error JSON payload", function()
+      local tmp_file = os.tmpname()
 
-        os.remove(tmp_file)
-      end
-    )
+      local f = io.open(tmp_file, "w")
+      f:write("<html>500 Internal Error</html>")
+      f:close()
+      assert.is_nil(utils.read_json(tmp_file))
+
+      f = io.open(tmp_file, "w")
+      f:write('{"error_summary": "path/not_found/..."}')
+      f:close()
+      assert.is_nil(utils.read_json(tmp_file))
+
+      os.remove(tmp_file)
+    end)
   end)
 
   describe("Annotations Schema Validation", function()
