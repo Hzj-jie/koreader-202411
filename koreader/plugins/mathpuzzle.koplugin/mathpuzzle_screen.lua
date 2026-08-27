@@ -51,13 +51,8 @@ function MathPuzzleScreen:init()
   if not self.mode then
     self.mode = Generator.getModeById("add_sub_100")
   end
-  self.question_count = self.question_count
-    or (self.mode and self.mode.question_count)
-    or 10
-
-  if not self.problems then
-    self.problems = Generator.generateProblems(self.mode, self.question_count)
-  end
+  self.question_count = self.question_count or self.mode.question_count or 10
+  self.problems = Generator.generateProblems(self.mode, self.question_count)
 
   if not self.plugin.session_start_time then
     self.plugin.session_start_time = os.time()
@@ -67,8 +62,8 @@ function MathPuzzleScreen:init()
 end
 
 function MathPuzzleScreen:getHeaderStatsText()
-  local session_correct = self.plugin.session_correct or 0
-  local session_wrong = self.plugin.session_wrong or 0
+  local session_correct = self.plugin.session_correct
+  local session_wrong = self.plugin.session_wrong
   local total_attempted = session_correct + session_wrong
   local score_str = "-"
   if total_attempted > 0 then
@@ -84,7 +79,7 @@ function MathPuzzleScreen:getHeaderStatsText()
 end
 
 function MathPuzzleScreen:getTimeText()
-  local start_time = self.plugin.session_start_time or os.time()
+  local start_time = self.plugin.session_start_time
   local mins = math.floor(math.max(0, os.time() - start_time) / 60)
   return string.format(
     _("Time: %s"),
@@ -100,31 +95,18 @@ function MathPuzzleScreen:onTimesChange_1M()
 end
 
 function MathPuzzleScreen:selectField(idx)
-  if idx < 1 then
-    idx = 1
-  elseif idx > #self.problems then
-    idx = #self.problems
-  end
-
   local prev_idx = self.focused_idx
   self.focused_idx = idx
 
-  if self.input_buttons[prev_idx] then
-    self:_updateInputButton(prev_idx)
-  end
-  if self.input_buttons[idx] then
-    self:_updateInputButton(idx)
-  end
+  self:_updateInputButton(prev_idx)
+  self:_updateInputButton(idx)
 end
 
 function MathPuzzleScreen:_updateInputButton(idx)
   local btn = self.input_buttons[idx]
-  if not btn then
-    return
-  end
   local prob = self.problems[idx]
   local is_focused = (idx == self.focused_idx)
-  local val = prob.user_answer or ""
+  local val = prob.user_answer
   local display_text = val ~= "" and val or (is_focused and "_" or " ")
 
   Button.setText(btn, display_text, btn.width)
@@ -139,18 +121,8 @@ function MathPuzzleScreen:_updateInputButton(idx)
 end
 
 function MathPuzzleScreen:inputDigit(digit_char)
-  if
-    not self.focused_idx
-    or self.focused_idx < 1
-    or self.focused_idx > #self.problems
-  then
-    self.focused_idx = 1
-  end
   local prob = self.problems[self.focused_idx]
-  if not prob then
-    return
-  end
-  local current = prob.user_answer or ""
+  local current = prob.user_answer
   if #current < 6 then
     prob.user_answer = current .. digit_char
     self:_updateInputButton(self.focused_idx)
@@ -158,18 +130,8 @@ function MathPuzzleScreen:inputDigit(digit_char)
 end
 
 function MathPuzzleScreen:backspace()
-  if
-    not self.focused_idx
-    or self.focused_idx < 1
-    or self.focused_idx > #self.problems
-  then
-    self.focused_idx = 1
-  end
   local prob = self.problems[self.focused_idx]
-  if not prob then
-    return
-  end
-  local current = prob.user_answer or ""
+  local current = prob.user_answer
   if #current > 0 then
     prob.user_answer = current:sub(1, -2)
     self:_updateInputButton(self.focused_idx)
@@ -177,9 +139,7 @@ function MathPuzzleScreen:backspace()
 end
 
 function MathPuzzleScreen:nextField()
-  if not self.focused_idx or self.focused_idx < 1 then
-    self:selectField(1)
-  elseif self.focused_idx < #self.problems then
+  if self.focused_idx < #self.problems then
     self:selectField(self.focused_idx + 1)
   else
     self:selectField(1)
@@ -187,7 +147,7 @@ function MathPuzzleScreen:nextField()
 end
 
 function MathPuzzleScreen:prevField()
-  if not self.focused_idx or self.focused_idx <= 1 then
+  if self.focused_idx <= 1 then
     self:selectField(#self.problems)
   else
     self:selectField(self.focused_idx - 1)
@@ -540,11 +500,11 @@ function MathPuzzleScreen:checkAnswers()
     self.mark_containers[i]:scheduleRepaint()
   end
 
-  self.plugin.session_correct = (self.plugin.session_correct or 0)
-    - (self.round_correct or 0)
+  self.plugin.session_correct = self.plugin.session_correct
+    - self.round_correct
     + result.correct_count
-  self.plugin.session_wrong = (self.plugin.session_wrong or 0)
-    - (self.round_wrong or 0)
+  self.plugin.session_wrong = self.plugin.session_wrong
+    - self.round_wrong
     + (result.total - result.correct_count)
 
   self.round_correct = result.correct_count
@@ -556,7 +516,7 @@ end
 function MathPuzzleScreen:generateNewProblems()
   self.round_correct = 0
   self.round_wrong = 0
-  self.question_count = (self.mode and self.mode.question_count) or 10
+  self.question_count = self.mode.question_count or 10
   self.problems = Generator.generateProblems(self.mode, self.question_count)
   self.focused_idx = 1
   self:_buildUI()
@@ -575,20 +535,15 @@ function MathPuzzleScreen:setMode(mode)
 end
 
 function MathPuzzleScreen:_showModeMenu()
-  if self.plugin.showModeSelection then
-    self.plugin:showModeSelection(self)
-  end
+  self.plugin:showModeSelection(self)
 end
 
 function MathPuzzleScreen:hasUncheckedProgress()
-  if not self.problems then
-    return false
-  end
-  if self.problems[1] and self.problems[1].checked then
+  if self.problems[1].checked then
     return false
   end
   for _, prob in ipairs(self.problems) do
-    if prob.user_answer and prob.user_answer ~= "" then
+    if prob.user_answer ~= "" then
       return true
     end
   end
