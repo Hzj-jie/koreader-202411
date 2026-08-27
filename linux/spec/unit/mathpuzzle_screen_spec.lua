@@ -23,6 +23,23 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager._dirty = {}
   end)
 
+  local function createMockPlugin()
+    local dummy_ui = { menu = { registerToMainMenu = function() end } }
+    local plugin = MathPuzzle:new({ ui = dummy_ui })
+    plugin:init()
+    return plugin
+  end
+
+  local function createScreen(plugin, mode_id, question_count)
+    plugin = plugin or createMockPlugin()
+    local mode = Generator.getModeById(mode_id or "add_sub_100")
+    return MathPuzzleScreen:new({
+      plugin = plugin,
+      mode = mode,
+      question_count = question_count or 10,
+    })
+  end
+
   it("should assert when plugin is nil", function()
     assert.has_error(function()
       MathPuzzleScreen:new({
@@ -32,15 +49,7 @@ describe("MathPuzzle Screen and Plugin", function()
   end)
 
   it("should initialize MathPuzzleScreen and build 10 question rows", function()
-    local dummy_ui = { menu = { registerToMainMenu = function() end } }
-    local plugin = MathPuzzle:new({ ui = dummy_ui })
-    plugin:init()
-    local mode = Generator.getModeById("add_sub_100")
-    local screen = MathPuzzleScreen:new({
-      plugin = plugin,
-      mode = mode,
-      question_count = 10,
-    })
+    local screen = createScreen(nil, "add_sub_100", 10)
     UIManager:show(screen)
 
     assert.is_table(screen.problems)
@@ -51,7 +60,13 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.is_table(screen.title_bar_container)
     assert.is_table(screen.time_container)
 
-    -- Verify answer checking
+    UIManager:close(screen)
+  end)
+
+  it("should verify correct answers and update question marks", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
     for i, field in ipairs(screen.input_buttons) do
       field:setText(tostring(screen.problems[i].answer))
     end
@@ -61,39 +76,40 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_true(prob.is_correct)
     end
 
-    -- Verify new problem generation
+    UIManager:close(screen)
+  end)
+
+  it("should generate new problems and switch modes", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
     screen:generateNewProblems()
     assert.are.equal(10, #screen.problems)
     assert.are.equal(10, #screen.input_buttons)
 
-    -- Verify mode switching
     local mode_1000 = Generator.getModeById("add_sub_1000")
     screen:setMode(mode_1000)
     assert.are.equal("add_sub_1000", screen.mode.id)
     assert.are.equal(10, #screen.problems)
 
-    -- Verify paintTo clears background and renders without errors
+    UIManager:close(screen)
+  end)
+
+  it("should paint screen to blitbuffer without errors", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
     local Device = require("device")
-    local Blitbuffer = require("ffi/blitbuffer")
     local test_bb = Device.screen.bb or Blitbuffer.new(600, 800)
     screen:paintTo(test_bb, 0, 0)
 
     UIManager:close(screen)
   end)
 
-  it("should display wrong marks and allow focus advancement", function()
-    local dummy_ui = { menu = { registerToMainMenu = function() end } }
-    local plugin = MathPuzzle:new({ ui = dummy_ui })
-    plugin:init()
-    local mode = Generator.getModeById("add_sub_10")
-    local screen = MathPuzzleScreen:new({
-      plugin = plugin,
-      mode = mode,
-      question_count = 10,
-    })
+  it("should display correct and wrong marks on answer check", function()
+    local screen = createScreen(nil, "add_sub_10", 10)
     UIManager:show(screen)
 
-    -- Answer first question correctly and rest wrongly
     screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
     for i = 2, 10 do
       screen.input_buttons[i]:setText(tostring(screen.problems[i].answer + 1))
@@ -105,7 +121,13 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.is_false(screen.problems[2].is_correct)
     assert.is_truthy(screen.mark_widgets[2].text:find("✗"))
 
-    -- Test field enter advancement
+    UIManager:close(screen)
+  end)
+
+  it("should advance focused field on enter and update button styles", function()
+    local screen = createScreen(nil, "add_sub_10", 10)
+    UIManager:show(screen)
+
     screen:onFieldEnter(1)
     assert.are.equal(2, screen.focused_idx)
     assert.are.equal(
@@ -117,7 +139,13 @@ describe("MathPuzzle Screen and Plugin", function()
       screen.input_buttons[2].frame.background
     )
 
-    -- Test keypad input and backspace
+    UIManager:close(screen)
+  end)
+
+  it("should handle keypad digit input and backspace", function()
+    local screen = createScreen(nil, "add_sub_10", 10)
+    UIManager:show(screen)
+
     screen:selectField(3)
     assert.are.equal(3, screen.focused_idx)
     assert.are.equal(
@@ -135,7 +163,15 @@ describe("MathPuzzle Screen and Plugin", function()
     screen:backspace()
     assert.are.equal("4", screen.problems[3].user_answer)
 
-    -- Test keyboard navigation and input
+    UIManager:close(screen)
+  end)
+
+  it("should handle keyboard navigation, slashes, and repeat backspace", function()
+    local screen = createScreen(nil, "add_sub_10", 10)
+    UIManager:show(screen)
+
+    screen:selectField(3)
+    screen.input_buttons[3]:setText("4")
     screen:onKeyPress({ key = "9" })
     assert.are.equal("49", screen.problems[3].user_answer)
     screen:onKeyPress("Tab")
@@ -148,7 +184,13 @@ describe("MathPuzzle Screen and Plugin", function()
     screen:onKeyRepeat("BackSpace")
     assert.are.equal("7/", screen.problems[4].user_answer)
 
-    -- Test wrap-around navigation
+    UIManager:close(screen)
+  end)
+
+  it("should wrap around field navigation at boundaries", function()
+    local screen = createScreen(nil, "add_sub_10", 10)
+    UIManager:show(screen)
+
     screen:selectField(10)
     screen:nextField()
     assert.are.equal(1, screen.focused_idx)
@@ -158,111 +200,107 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it(
-    "should initialize MathPuzzle plugin, register menu, and show mode selection",
-    function()
-      local ui = {
-        menu = {
-          registerToMainMenu = spy.new(function() end),
-        },
-      }
-      local plugin = MathPuzzle:new({ ui = ui })
-      plugin:init()
-      assert.spy(ui.menu.registerToMainMenu).was_called_with(ui.menu, plugin)
+  it("should register MathPuzzle to main menu and open mode selection menu", function()
+    local ui = {
+      menu = {
+        registerToMainMenu = spy.new(function() end),
+      },
+    }
+    local plugin = MathPuzzle:new({ ui = ui })
+    plugin:init()
+    assert.spy(ui.menu.registerToMainMenu).was_called_with(ui.menu, plugin)
 
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-      assert.is_table(menu_items.mathpuzzle)
-      assert.is_function(menu_items.mathpuzzle.callback)
+    local menu_items = {}
+    plugin:addToMainMenu(menu_items)
+    assert.is_table(menu_items.mathpuzzle)
+    assert.is_function(menu_items.mathpuzzle.callback)
 
-      -- Trigger callback to open mode selection
-      menu_items.mathpuzzle.callback()
-      assert.is_true(#UIManager._window_stack > 0)
-      local menu = UIManager._window_stack[#UIManager._window_stack].widget
-      assert.is_table(menu.item_table)
-      assert.are.equal(#Generator.getModes(), #menu.item_table)
-      assert.is_true(menu.is_borderless)
+    menu_items.mathpuzzle.callback()
+    assert.is_true(#UIManager._window_stack > 0)
+    local menu = UIManager._window_stack[#UIManager._window_stack].widget
+    assert.is_table(menu.item_table)
+    assert.are.equal(#Generator.getModes(), #menu.item_table)
+    assert.is_true(menu.is_borderless)
 
-      -- Select a mode from the menu
-      menu.item_table[2].callback()
-      assert.is_table(plugin.screen)
-      assert.are.equal("add_sub_100", plugin.active_mode)
+    menu.item_table[2].callback()
+    assert.is_table(plugin.screen)
+    assert.are.equal("add_sub_100", plugin.active_mode)
+    assert.are.equal("chevron.left", plugin.screen.title_bar.left_icon)
+    assert.is_function(plugin.screen.title_bar.left_icon_tap_callback)
 
-      -- Verify TitleBar back button and session stats
-      assert.are.equal("chevron.left", plugin.screen.title_bar.left_icon)
-      assert.is_function(plugin.screen.title_bar.left_icon_tap_callback)
+    UIManager:close(plugin.screen)
+  end)
 
-      -- Answer 7 correctly, 3 wrongly
-      for i = 1, 7 do
-        plugin.screen.input_buttons[i]:setText(
-          tostring(plugin.screen.problems[i].answer)
-        )
-      end
-      for i = 8, 10 do
-        plugin.screen.input_buttons[i]:setText(
-          tostring(plugin.screen.problems[i].answer + 1)
-        )
-      end
-      plugin.screen:checkAnswers()
+  it("should track session correct/wrong statistics across rounds", function()
+    local plugin = createMockPlugin()
+    plugin:showPuzzle(Generator.getModeById("add_sub_100"))
 
-      assert.are.equal(7, plugin.session_correct)
-      assert.are.equal(3, plugin.session_wrong)
-      assert.is_string(plugin.screen:getTimeText())
-      assert.is_table(plugin.screen.time_widget)
-      assert.is_truthy(plugin.screen.time_widget.text:find("Time:"))
-      assert.is_truthy(plugin.screen:getHeaderStatsText():find("Correct: 7"))
-      assert.is_truthy(plugin.screen:getHeaderStatsText():find("Wrong: 3"))
-      assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 70%%"))
-
-      -- Start a new round and answer 10 correctly
-      plugin.screen:generateNewProblems()
-      for i = 1, 10 do
-        plugin.screen.input_buttons[i]:setText(
-          tostring(plugin.screen.problems[i].answer)
-        )
-      end
-      plugin.screen:checkAnswers()
-
-      assert.are.equal(17, plugin.session_correct)
-      assert.are.equal(3, plugin.session_wrong)
-      assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 85%%"))
-
-      -- Test 1-minute time update event
-      assert.is_table(plugin.screen.time_container)
-      assert.is_table(plugin.screen.time_widget)
-      plugin.session_start_time = os.time() - 60
-      plugin.screen:onTimesChange_1M()
-      assert.are.equal("Time: 1 minute", plugin.screen.time_widget.text)
-
-      plugin.session_start_time = os.time() - 120
-      plugin.screen:onTimesChange_1M()
-      assert.are.equal("Time: 2 minutes", plugin.screen.time_widget.text)
-
-      -- Close screen and verify timer state is reset
-      UIManager:close(plugin.screen)
-      assert.is_nil(plugin.screen)
-      assert.is_nil(plugin.session_start_time)
-
-      -- Reopen puzzle and verify new session timer starts fresh
-      plugin:showPuzzle()
-      assert.is_table(plugin.screen)
-      assert.is_number(plugin.session_start_time)
-      assert.are.equal("Time: 0 minutes", plugin.screen:getTimeText())
-      UIManager:close(plugin.screen)
+    for i = 1, 7 do
+      plugin.screen.input_buttons[i]:setText(
+        tostring(plugin.screen.problems[i].answer)
+      )
     end
-  )
+    for i = 8, 10 do
+      plugin.screen.input_buttons[i]:setText(
+        tostring(plugin.screen.problems[i].answer + 1)
+      )
+    end
+    plugin.screen:checkAnswers()
+
+    assert.are.equal(7, plugin.session_correct)
+    assert.are.equal(3, plugin.session_wrong)
+    assert.is_string(plugin.screen:getTimeText())
+    assert.is_table(plugin.screen.time_widget)
+    assert.is_truthy(plugin.screen.time_widget.text:find("Time:"))
+    assert.is_truthy(plugin.screen:getHeaderStatsText():find("Correct: 7"))
+    assert.is_truthy(plugin.screen:getHeaderStatsText():find("Wrong: 3"))
+    assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 70%%"))
+
+    -- Start a new round and answer 10 correctly
+    plugin.screen:generateNewProblems()
+    for i = 1, 10 do
+      plugin.screen.input_buttons[i]:setText(
+        tostring(plugin.screen.problems[i].answer)
+      )
+    end
+    plugin.screen:checkAnswers()
+
+    assert.are.equal(17, plugin.session_correct)
+    assert.are.equal(3, plugin.session_wrong)
+    assert.is_truthy(plugin.screen:getHeaderStatsText():find("Score: 85%%"))
+
+    UIManager:close(plugin.screen)
+  end)
+
+  it("should update session timer on 1-minute ticks and reset on close", function()
+    local plugin = createMockPlugin()
+    plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+
+    assert.is_table(plugin.screen.time_container)
+    assert.is_table(plugin.screen.time_widget)
+    plugin.session_start_time = os.time() - 60
+    plugin.screen:onTimesChange_1M()
+    assert.are.equal("Time: 1 minute", plugin.screen.time_widget.text)
+
+    plugin.session_start_time = os.time() - 120
+    plugin.screen:onTimesChange_1M()
+    assert.are.equal("Time: 2 minutes", plugin.screen.time_widget.text)
+
+    UIManager:close(plugin.screen)
+    assert.is_nil(plugin.screen)
+    assert.is_nil(plugin.session_start_time)
+
+    plugin:showPuzzle()
+    assert.is_table(plugin.screen)
+    assert.is_number(plugin.session_start_time)
+    assert.are.equal("Time: 0 minutes", plugin.screen:getTimeText())
+    UIManager:close(plugin.screen)
+  end)
 
   it(
     "should support 5-question single column layout for 3-term mental math",
     function()
-      local dummy_ui = { menu = { registerToMainMenu = function() end } }
-      local plugin = MathPuzzle:new({ ui = dummy_ui })
-      plugin:init()
-      local three_mode = Generator.getModeById("three_term_100")
-      local screen = MathPuzzleScreen:new({
-        plugin = plugin,
-        mode = three_mode,
-      })
+      local screen = createScreen(nil, "three_term_100", 5)
       UIManager:show(screen)
 
       assert.are.equal(5, #screen.problems)
@@ -311,19 +349,13 @@ describe("MathPuzzle Screen and Plugin", function()
       local underlying = DummyUnderlyingWindow:new()
       UIManager:show(underlying)
 
-      local dummy_ui = { menu = { registerToMainMenu = function() end } }
-      local plugin = MathPuzzle:new({ ui = dummy_ui })
-      plugin:init()
-      local screen = MathPuzzleScreen:new({
-        plugin = plugin,
-        mode = Generator.getModeById("add_sub_100"),
-      })
+      local screen = createScreen(nil, "add_sub_100", 10)
       UIManager:show(screen)
 
       local test_bb = Device.screen.bb or Blitbuffer.new(600, 800)
       screen:paintTo(test_bb, 0, 0)
 
-      -- Top of screen tap gesture on empty title area (e.g. x = 300, y = 10)
+      -- Top of screen tap gesture on empty title area
       local top_tap = Event:new("Gesture", {
         ges = "tap",
         pos = Geom:new({ x = 300, y = 10 }),
@@ -331,7 +363,7 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:userInput(top_tap)
       assert.is_false(underlying_tapped)
 
-      -- Bottom of screen tap gesture on empty margin (e.g. y = Device.screen:getHeight() - 5)
+      -- Bottom of screen tap gesture on empty margin
       local bottom_tap = Event:new("Gesture", {
         ges = "tap",
         pos = Geom:new({ x = 50, y = Device.screen:getHeight() - 5 }),
@@ -364,79 +396,83 @@ describe("MathPuzzle Screen and Plugin", function()
         assert.is_false(underlying_tapped)
       end
 
-      -- Close screen
       UIManager:close(screen)
       UIManager:close(underlying)
     end
   )
 
-  it(
-    "should show confirmation only when there is unchecked entered progress",
-    function()
-      local dummy_ui = { menu = { registerToMainMenu = function() end } }
-      local plugin = MathPuzzle:new({ ui = dummy_ui })
-      plugin:init()
-      local screen = MathPuzzleScreen:new({
-        plugin = plugin,
-        mode = Generator.getModeById("add_sub_100"),
-      })
-      UIManager:show(screen)
+  it("should exit immediately without confirmation when no input has been entered", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
 
-      -- 1. Fresh screen (nothing entered): hasUncheckedProgress is false
-      assert.is_false(screen:hasUncheckedProgress())
+    assert.is_false(screen:hasUncheckedProgress())
 
-      -- When nothing is entered, left_icon_tap_callback directly calls mode menu without ConfirmBox
-      local mode_menu_shown = false
-      screen._showModeMenu = function()
-        mode_menu_shown = true
-      end
-      local initial_stack_size = #UIManager._window_stack
-      screen.title_bar.left_icon_tap_callback()
-      assert.is_true(mode_menu_shown)
-      assert.are.equal(initial_stack_size, #UIManager._window_stack)
-
-      -- 2. User enters an answer: hasUncheckedProgress becomes true
-      screen:inputDigit("5")
-      assert.is_true(screen:hasUncheckedProgress())
-
-      -- Unchecked with input: close_callback shows ConfirmBox
-      screen.title_bar.close_callback()
-      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
-      local confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
-      assert.is_truthy(confirm_box.text:find("progress will be lost"))
-      UIManager:close(confirm_box)
-      assert.are.equal(initial_stack_size, #UIManager._window_stack)
-
-      -- Unchecked with input: onBack shows ConfirmBox
-      screen:onBack()
-      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
-      confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
-      assert.is_truthy(confirm_box.text:find("progress will be lost"))
-      UIManager:close(confirm_box)
-
-      -- Unchecked with input: left_icon_tap_callback shows ConfirmBox
-      mode_menu_shown = false
-      screen.title_bar.left_icon_tap_callback()
-      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
-      confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
-      assert.is_truthy(confirm_box.text:find("progress will be lost"))
-      confirm_box.ok_callback()
-      assert.is_true(mode_menu_shown)
-      UIManager:close(confirm_box)
-
-      -- 3. Check answers -> hasUncheckedProgress becomes false
-      screen:checkAnswers()
-      assert.is_false(screen:hasUncheckedProgress())
-
-      -- Checked: left_icon_tap_callback directly calls mode menu without ConfirmBox
-      mode_menu_shown = false
-      screen.title_bar.left_icon_tap_callback()
-      assert.is_true(mode_menu_shown)
-      assert.are.equal(initial_stack_size, #UIManager._window_stack)
-
-      -- Checked: close_callback directly closes screen without ConfirmBox
-      screen.title_bar.close_callback()
-      assert.are.equal(initial_stack_size - 1, #UIManager._window_stack)
+    local mode_menu_shown = false
+    screen._showModeMenu = function()
+      mode_menu_shown = true
     end
-  )
+    local initial_stack_size = #UIManager._window_stack
+    screen.title_bar.left_icon_tap_callback()
+    assert.is_true(mode_menu_shown)
+    assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+    UIManager:close(screen)
+  end)
+
+  it("should show exit confirmation on close, back, and mode switch when input is entered", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen:inputDigit("5")
+    assert.is_true(screen:hasUncheckedProgress())
+
+    local initial_stack_size = #UIManager._window_stack
+    screen.title_bar.close_callback()
+    assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+    local confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+    assert.is_truthy(confirm_box.text:find("progress will be lost"))
+    UIManager:close(confirm_box)
+    assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+    screen:onBack()
+    assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+    confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+    assert.is_truthy(confirm_box.text:find("progress will be lost"))
+    UIManager:close(confirm_box)
+
+    local mode_menu_shown = false
+    screen._showModeMenu = function()
+      mode_menu_shown = true
+    end
+    screen.title_bar.left_icon_tap_callback()
+    assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+    confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+    assert.is_truthy(confirm_box.text:find("progress will be lost"))
+    confirm_box.ok_callback()
+    assert.is_true(mode_menu_shown)
+    UIManager:close(confirm_box)
+
+    UIManager:close(screen)
+  end)
+
+  it("should exit without confirmation once answers are checked", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen:inputDigit("5")
+    screen:checkAnswers()
+    assert.is_false(screen:hasUncheckedProgress())
+
+    local mode_menu_shown = false
+    screen._showModeMenu = function()
+      mode_menu_shown = true
+    end
+    local initial_stack_size = #UIManager._window_stack
+    screen.title_bar.left_icon_tap_callback()
+    assert.is_true(mode_menu_shown)
+    assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+    screen.title_bar.close_callback()
+    assert.are.equal(initial_stack_size - 1, #UIManager._window_stack)
+  end)
 end)
