@@ -23,7 +23,6 @@ local Stats = require("plugins/solitaire.koplugin/stats")
 local SolitaireUI = InputContainer:extend({
   name = "solitaire_ui",
   modal = true,
-  covers_fullscreen = true,
 })
 
 function SolitaireUI:init()

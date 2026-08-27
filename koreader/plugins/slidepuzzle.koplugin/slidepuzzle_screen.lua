@@ -63,7 +63,6 @@ function Screen:init()
     w = screen_dev:getWidth(),
     h = screen_dev:getHeight(),
   })
-  self.covers_fullscreen = true
   self.live_tick_accum = 0 -- seconds ticked during current run (not yet folded into game.elapsed)
   self.tick_scheduled = false
   if Device:hasKeys() then
