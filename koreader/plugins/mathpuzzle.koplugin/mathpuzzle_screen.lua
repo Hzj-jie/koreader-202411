@@ -325,10 +325,10 @@ function MathPuzzleScreen:_buildUI()
     local mark_widget = TextWidget:new({
       text = mark_text,
       face = font_face,
-      width = mark_width,
-      alignment = "left",
+      max_width = mark_width,
     })
     local mark_container = FrameContainer:new({
+      width = mark_width,
       background = Blitbuffer.COLOR_WHITE,
       bordersize = 0,
       padding = 0,
