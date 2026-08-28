@@ -30,8 +30,6 @@ local MathPuzzleScreen = InputContainer:extend({
   mode = nil,
   question_count = nil,
   focused_idx = 1,
-  round_correct = 0,
-  round_wrong = 0,
 })
 
 function MathPuzzleScreen:init()
@@ -512,21 +510,15 @@ function MathPuzzleScreen:checkAnswers()
   end
 
   self.plugin.session_correct = self.plugin.session_correct
-    - self.round_correct
     + result.correct_count
   self.plugin.session_wrong = self.plugin.session_wrong
-    - self.round_wrong
     + (result.total - result.correct_count)
 
-  self.round_correct = result.correct_count
-  self.round_wrong = result.total - result.correct_count
   self.title_bar:setSubTitle(self:getHeaderStatsText(), true)
   self.title_bar_container:scheduleRepaint()
 end
 
 function MathPuzzleScreen:generateNewProblems()
-  self.round_correct = 0
-  self.round_wrong = 0
   self.question_count = self.mode.question_count or 10
   self.problems = Generator.generateProblems(self.mode, self.question_count)
   self.focused_idx = 1
@@ -537,8 +529,6 @@ end
 function MathPuzzleScreen:setMode(mode)
   self.mode = mode
   self.question_count = mode.question_count or 10
-  self.round_correct = 0
-  self.round_wrong = 0
   self.problems = Generator.generateProblems(self.mode, self.question_count)
   self.focused_idx = 1
   self:_buildUI()
