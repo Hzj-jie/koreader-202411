@@ -603,4 +603,39 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:close(screen)
     end
   )
+
+  it(
+    "should accumulate session correct and wrong counts on each check button click",
+    function()
+      local plugin = createMockPlugin()
+      plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+
+      for i = 1, 8 do
+        plugin.screen.input_buttons[i]:setText(
+          tostring(plugin.screen.problems[i].answer)
+        )
+      end
+      for i = 9, 10 do
+        plugin.screen.input_buttons[i]:setText(
+          tostring(plugin.screen.problems[i].answer + 1)
+        )
+      end
+      plugin.screen:checkAnswers()
+
+      assert.are.equal(8, plugin.session_correct)
+      assert.are.equal(2, plugin.session_wrong)
+
+      -- Change one wrong answer to correct and check again: results should accumulate
+      plugin.screen.input_buttons[9]:setText(
+        tostring(plugin.screen.problems[9].answer)
+      )
+      plugin.screen:checkAnswers()
+
+      -- Previous (8, 2) + new check (9, 1) = (17, 3)
+      assert.are.equal(17, plugin.session_correct)
+      assert.are.equal(3, plugin.session_wrong)
+
+      UIManager:close(plugin.screen)
+    end
+  )
 end)
