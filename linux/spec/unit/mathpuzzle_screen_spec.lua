@@ -124,23 +124,26 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should advance focused field on enter and update button styles", function()
-    local screen = createScreen(nil, "add_sub_10", 10)
-    UIManager:show(screen)
+  it(
+    "should advance focused field on enter and update button styles",
+    function()
+      local screen = createScreen(nil, "add_sub_10", 10)
+      UIManager:show(screen)
 
-    screen:onFieldEnter(1)
-    assert.are.equal(2, screen.focused_idx)
-    assert.are.equal(
-      Blitbuffer.COLOR_WHITE,
-      screen.input_buttons[1].frame.background
-    )
-    assert.are.equal(
-      Blitbuffer.COLOR_LIGHT_GRAY,
-      screen.input_buttons[2].frame.background
-    )
+      screen:onFieldEnter(1)
+      assert.are.equal(2, screen.focused_idx)
+      assert.are.equal(
+        Blitbuffer.COLOR_WHITE,
+        screen.input_buttons[1].frame.background
+      )
+      assert.are.equal(
+        Blitbuffer.COLOR_LIGHT_GRAY,
+        screen.input_buttons[2].frame.background
+      )
 
-    UIManager:close(screen)
-  end)
+      UIManager:close(screen)
+    end
+  )
 
   it("should handle keypad digit input and backspace", function()
     local screen = createScreen(nil, "add_sub_10", 10)
@@ -166,26 +169,29 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should handle keyboard navigation, slashes, and repeat backspace", function()
-    local screen = createScreen(nil, "add_sub_10", 10)
-    UIManager:show(screen)
+  it(
+    "should handle keyboard navigation, slashes, and repeat backspace",
+    function()
+      local screen = createScreen(nil, "add_sub_10", 10)
+      UIManager:show(screen)
 
-    screen:selectField(3)
-    screen.input_buttons[3]:setText("4")
-    screen:onKeyPress({ key = "9" })
-    assert.are.equal("49", screen.problems[3].user_answer)
-    screen:onKeyPress("Tab")
-    assert.are.equal(4, screen.focused_idx)
-    screen.input_buttons[4]:setText("")
-    screen:onTextInput("7")
-    screen:onKeyPress("/")
-    screen:inputDigit("8")
-    assert.are.equal("7/8", screen.problems[4].user_answer)
-    screen:onKeyRepeat("BackSpace")
-    assert.are.equal("7/", screen.problems[4].user_answer)
+      screen:selectField(3)
+      screen.input_buttons[3]:setText("4")
+      screen:onKeyPress({ key = "9" })
+      assert.are.equal("49", screen.problems[3].user_answer)
+      screen:onKeyPress("Tab")
+      assert.are.equal(4, screen.focused_idx)
+      screen.input_buttons[4]:setText("")
+      screen:onTextInput("7")
+      screen:onKeyPress("/")
+      screen:inputDigit("8")
+      assert.are.equal("7/8", screen.problems[4].user_answer)
+      screen:onKeyRepeat("BackSpace")
+      assert.are.equal("7/", screen.problems[4].user_answer)
 
-    UIManager:close(screen)
-  end)
+      UIManager:close(screen)
+    end
+  )
 
   it("should wrap around field navigation at boundaries", function()
     local screen = createScreen(nil, "add_sub_10", 10)
@@ -200,36 +206,39 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should register MathPuzzle to main menu and open mode selection menu", function()
-    local ui = {
-      menu = {
-        registerToMainMenu = spy.new(function() end),
-      },
-    }
-    local plugin = MathPuzzle:new({ ui = ui })
-    plugin:init()
-    assert.spy(ui.menu.registerToMainMenu).was_called_with(ui.menu, plugin)
+  it(
+    "should register MathPuzzle to main menu and open mode selection menu",
+    function()
+      local ui = {
+        menu = {
+          registerToMainMenu = spy.new(function() end),
+        },
+      }
+      local plugin = MathPuzzle:new({ ui = ui })
+      plugin:init()
+      assert.spy(ui.menu.registerToMainMenu).was_called_with(ui.menu, plugin)
 
-    local menu_items = {}
-    plugin:addToMainMenu(menu_items)
-    assert.is_table(menu_items.mathpuzzle)
-    assert.is_function(menu_items.mathpuzzle.callback)
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.mathpuzzle)
+      assert.is_function(menu_items.mathpuzzle.callback)
 
-    menu_items.mathpuzzle.callback()
-    assert.is_true(#UIManager._window_stack > 0)
-    local menu = UIManager._window_stack[#UIManager._window_stack].widget
-    assert.is_table(menu.item_table)
-    assert.are.equal(#Generator.getModes(), #menu.item_table)
-    assert.is_true(menu.is_borderless)
+      menu_items.mathpuzzle.callback()
+      assert.is_true(#UIManager._window_stack > 0)
+      local menu = UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_table(menu.item_table)
+      assert.are.equal(#Generator.getModes(), #menu.item_table)
+      assert.is_true(menu.is_borderless)
 
-    menu.item_table[2].callback()
-    assert.is_table(plugin.screen)
-    assert.are.equal("add_sub_100", plugin.active_mode)
-    assert.are.equal("chevron.left", plugin.screen.title_bar.left_icon)
-    assert.is_function(plugin.screen.title_bar.left_icon_tap_callback)
+      menu.item_table[2].callback()
+      assert.is_table(plugin.screen)
+      assert.are.equal("add_sub_100", plugin.active_mode)
+      assert.are.equal("chevron.left", plugin.screen.title_bar.left_icon)
+      assert.is_function(plugin.screen.title_bar.left_icon_tap_callback)
 
-    UIManager:close(plugin.screen)
-  end)
+      UIManager:close(plugin.screen)
+    end
+  )
 
   it("should track session correct/wrong statistics across rounds", function()
     local plugin = createMockPlugin()
@@ -272,30 +281,33 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(plugin.screen)
   end)
 
-  it("should update session timer on 1-minute ticks and reset on close", function()
-    local plugin = createMockPlugin()
-    plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+  it(
+    "should update session timer on 1-minute ticks and reset on close",
+    function()
+      local plugin = createMockPlugin()
+      plugin:showPuzzle(Generator.getModeById("add_sub_100"))
 
-    assert.is_table(plugin.screen.time_container)
-    assert.is_table(plugin.screen.time_widget)
-    plugin.session_start_time = os.time() - 60
-    plugin.screen:onTimesChange_1M()
-    assert.are.equal("Time: 1 minute", plugin.screen.time_widget.text)
+      assert.is_table(plugin.screen.time_container)
+      assert.is_table(plugin.screen.time_widget)
+      plugin.session_start_time = os.time() - 60
+      plugin.screen:onTimesChange_1M()
+      assert.are.equal("Time: 1 minute", plugin.screen.time_widget.text)
 
-    plugin.session_start_time = os.time() - 120
-    plugin.screen:onTimesChange_1M()
-    assert.are.equal("Time: 2 minutes", plugin.screen.time_widget.text)
+      plugin.session_start_time = os.time() - 120
+      plugin.screen:onTimesChange_1M()
+      assert.are.equal("Time: 2 minutes", plugin.screen.time_widget.text)
 
-    UIManager:close(plugin.screen)
-    assert.is_nil(plugin.screen)
-    assert.is_nil(plugin.session_start_time)
+      UIManager:close(plugin.screen)
+      assert.is_nil(plugin.screen)
+      assert.is_nil(plugin.session_start_time)
 
-    plugin:showPuzzle()
-    assert.is_table(plugin.screen)
-    assert.is_number(plugin.session_start_time)
-    assert.are.equal("Time: 0 minutes", plugin.screen:getTimeText())
-    UIManager:close(plugin.screen)
-  end)
+      plugin:showPuzzle()
+      assert.is_table(plugin.screen)
+      assert.is_number(plugin.session_start_time)
+      assert.are.equal("Time: 0 minutes", plugin.screen:getTimeText())
+      UIManager:close(plugin.screen)
+    end
+  )
 
   it(
     "should support 5-question single column layout for 3-term mental math",
@@ -401,59 +413,66 @@ describe("MathPuzzle Screen and Plugin", function()
     end
   )
 
-  it("should exit immediately without confirmation when no input has been entered", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
-    UIManager:show(screen)
+  it(
+    "should exit immediately without confirmation when no input has been entered",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
 
-    assert.is_false(screen:hasUncheckedProgress())
+      assert.is_false(screen:hasUncheckedProgress())
 
-    local mode_menu_shown = false
-    screen._showModeMenu = function()
-      mode_menu_shown = true
+      local mode_menu_shown = false
+      screen._showModeMenu = function()
+        mode_menu_shown = true
+      end
+      local initial_stack_size = #UIManager._window_stack
+      screen.title_bar.left_icon_tap_callback()
+      assert.is_true(mode_menu_shown)
+      assert.are.equal(initial_stack_size, #UIManager._window_stack)
+
+      UIManager:close(screen)
     end
-    local initial_stack_size = #UIManager._window_stack
-    screen.title_bar.left_icon_tap_callback()
-    assert.is_true(mode_menu_shown)
-    assert.are.equal(initial_stack_size, #UIManager._window_stack)
+  )
 
-    UIManager:close(screen)
-  end)
+  it(
+    "should show exit confirmation on close, back, and mode switch when input is entered",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
 
-  it("should show exit confirmation on close, back, and mode switch when input is entered", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
-    UIManager:show(screen)
+      screen:inputDigit("5")
+      assert.is_true(screen:hasUncheckedProgress())
 
-    screen:inputDigit("5")
-    assert.is_true(screen:hasUncheckedProgress())
+      local initial_stack_size = #UIManager._window_stack
+      screen.title_bar.close_callback()
+      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+      local confirm_box =
+        UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_truthy(confirm_box.text:find("progress will be lost"))
+      UIManager:close(confirm_box)
+      assert.are.equal(initial_stack_size, #UIManager._window_stack)
 
-    local initial_stack_size = #UIManager._window_stack
-    screen.title_bar.close_callback()
-    assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
-    local confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
-    assert.is_truthy(confirm_box.text:find("progress will be lost"))
-    UIManager:close(confirm_box)
-    assert.are.equal(initial_stack_size, #UIManager._window_stack)
+      screen:onBack()
+      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+      confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_truthy(confirm_box.text:find("progress will be lost"))
+      UIManager:close(confirm_box)
 
-    screen:onBack()
-    assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
-    confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
-    assert.is_truthy(confirm_box.text:find("progress will be lost"))
-    UIManager:close(confirm_box)
+      local mode_menu_shown = false
+      screen._showModeMenu = function()
+        mode_menu_shown = true
+      end
+      screen.title_bar.left_icon_tap_callback()
+      assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
+      confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
+      assert.is_truthy(confirm_box.text:find("progress will be lost"))
+      confirm_box.ok_callback()
+      assert.is_true(mode_menu_shown)
+      UIManager:close(confirm_box)
 
-    local mode_menu_shown = false
-    screen._showModeMenu = function()
-      mode_menu_shown = true
+      UIManager:close(screen)
     end
-    screen.title_bar.left_icon_tap_callback()
-    assert.are.equal(initial_stack_size + 1, #UIManager._window_stack)
-    confirm_box = UIManager._window_stack[#UIManager._window_stack].widget
-    assert.is_truthy(confirm_box.text:find("progress will be lost"))
-    confirm_box.ok_callback()
-    assert.is_true(mode_menu_shown)
-    UIManager:close(confirm_box)
-
-    UIManager:close(screen)
-  end)
+  )
 
   it("should exit without confirmation once answers are checked", function()
     local screen = createScreen(nil, "add_sub_100", 10)
@@ -476,76 +495,112 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.are.equal(initial_stack_size - 1, #UIManager._window_stack)
   end)
 
-  it("should remove mark and reset checked state when user changes answer via inputDigit", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
-    UIManager:show(screen)
+  it(
+    "should remove mark and reset checked state when user changes answer via inputDigit",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
 
-    screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
-    screen:checkAnswers()
-    assert.are.equal(" ✓", screen.mark_widgets[1].text)
-    assert.is_true(screen.problems[1].checked)
+      screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+      screen:checkAnswers()
+      assert.are.equal(" ✓", screen.mark_widgets[1].text)
+      assert.is_true(screen.problems[1].checked)
 
-    screen:selectField(1)
-    screen:inputDigit("9")
-    assert.are.equal("", screen.mark_widgets[1].text)
-    assert.is_false(screen.problems[1].checked)
-    assert.is_nil(screen.problems[1].is_correct)
+      screen:selectField(1)
+      screen:inputDigit("9")
+      assert.are.equal("", screen.mark_widgets[1].text)
+      assert.is_false(screen.problems[1].checked)
+      assert.is_nil(screen.problems[1].is_correct)
 
-    UIManager:close(screen)
-  end)
-
-  it("should remove mark and reset checked state when user changes answer via backspace", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
-    UIManager:show(screen)
-
-    screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
-    screen:checkAnswers()
-    assert.are.equal(" ✓", screen.mark_widgets[1].text)
-    assert.is_true(screen.problems[1].checked)
-
-    screen:selectField(1)
-    screen:backspace()
-    assert.are.equal("", screen.mark_widgets[1].text)
-    assert.is_false(screen.problems[1].checked)
-    assert.is_nil(screen.problems[1].is_correct)
-
-    UIManager:close(screen)
-  end)
-
-  it("should remove mark and reset checked state when user changes answer via setText", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
-    UIManager:show(screen)
-
-    screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
-    screen:checkAnswers()
-    assert.are.equal(" ✓", screen.mark_widgets[1].text)
-    assert.is_true(screen.problems[1].checked)
-
-    screen.input_buttons[1]:setText("123")
-    assert.are.equal("", screen.mark_widgets[1].text)
-    assert.is_false(screen.problems[1].checked)
-    assert.is_nil(screen.problems[1].is_correct)
-
-    UIManager:close(screen)
-  end)
-
-  it("should report unchecked progress when modifying an answer after checking", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
-    UIManager:show(screen)
-
-    for i, field in ipairs(screen.input_buttons) do
-      field:setText(tostring(screen.problems[i].answer))
+      UIManager:close(screen)
     end
-    screen:checkAnswers()
-    assert.is_false(screen:hasUncheckedProgress())
+  )
 
-    screen:selectField(2)
-    screen:inputDigit("1")
-    assert.is_true(screen:hasUncheckedProgress())
+  it(
+    "should remove mark and reset checked state when user changes answer via backspace",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
 
-    screen:checkAnswers()
-    assert.is_false(screen:hasUncheckedProgress())
+      screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+      screen:checkAnswers()
+      assert.are.equal(" ✓", screen.mark_widgets[1].text)
+      assert.is_true(screen.problems[1].checked)
 
-    UIManager:close(screen)
-  end)
+      screen:selectField(1)
+      screen:backspace()
+      assert.are.equal("", screen.mark_widgets[1].text)
+      assert.is_false(screen.problems[1].checked)
+      assert.is_nil(screen.problems[1].is_correct)
+
+      UIManager:close(screen)
+    end
+  )
+
+  it(
+    "should remove mark and reset checked state when user changes answer via setText",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
+
+      screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+      screen:checkAnswers()
+      assert.are.equal(" ✓", screen.mark_widgets[1].text)
+      assert.is_true(screen.problems[1].checked)
+
+      screen.input_buttons[1]:setText("123")
+      assert.are.equal("", screen.mark_widgets[1].text)
+      assert.is_false(screen.problems[1].checked)
+      assert.is_nil(screen.problems[1].is_correct)
+
+      UIManager:close(screen)
+    end
+  )
+
+  it(
+    "should report unchecked progress when modifying an answer after checking",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
+
+      for i, field in ipairs(screen.input_buttons) do
+        field:setText(tostring(screen.problems[i].answer))
+      end
+      screen:checkAnswers()
+      assert.is_false(screen:hasUncheckedProgress())
+
+      screen:selectField(2)
+      screen:inputDigit("1")
+      assert.is_true(screen:hasUncheckedProgress())
+
+      screen:checkAnswers()
+      assert.is_false(screen:hasUncheckedProgress())
+
+      UIManager:close(screen)
+    end
+  )
+
+  it(
+    "should clear mark widget text and retain non-zero container width to clear mark from screen",
+    function()
+      local screen = createScreen(nil, "add_sub_100", 10)
+      UIManager:show(screen)
+
+      screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
+      screen:checkAnswers()
+      assert.are.equal(" ✓", screen.mark_widgets[1].text)
+      assert.is_true(screen.mark_containers[1]:getSize().w > 0)
+
+      screen:selectField(1)
+      screen:inputDigit("9")
+      assert.are.equal("", screen.mark_widgets[1].text)
+      assert.is_true(screen.mark_containers[1]:getSize().w > 0)
+
+      local Device = require("device")
+      local test_bb = Device.screen.bb or Blitbuffer.new(600, 800)
+      screen.mark_containers[1]:paintTo(test_bb, 0, 0)
+
+      UIManager:close(screen)
+    end
+  )
 end)
