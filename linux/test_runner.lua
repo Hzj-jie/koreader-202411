@@ -101,17 +101,6 @@ print_verbose("=================================================================
 -- List of spec files that must be exempted from environment isolation (KO_MULTIUSER)
 local env_exemptions = {
     ["spec/unit/datastorage_spec.lua"] = true,
-    ["spec/unit/screenshoter_spec.lua"] = true,
-    ["spec/unit/readerhighlight_spec.lua"] = true,
-    ["spec/unit/autosuspend_spec.lua"] = true,
-    ["plugins/autosuspend.koplugin/spec/unit/autosuspend_spec.lua"] = true,
-    ["plugins/autowarmth.koplugin/spec/unit/autowarmth_spec.lua"] = true,
-    ["plugins/clock.koplugin/spec/unit/clock_spec.lua"] = true,
-    ["spec/unit/device_spec.lua"] = true,
-    ["spec/unit/eink_optimization_spec.lua"] = true,
-    ["spec/unit/network_manager_spec.lua"] = true,
-    ["spec/unit/readerfooter_spec.lua"] = true,
-    ["spec/unit/readerthumbnail_spec.lua"] = true,
 }
 
 -- Collect spec files to execute
