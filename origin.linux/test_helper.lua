@@ -96,6 +96,24 @@ table.insert(package.loaders, 1, function(modname)
     return function() return res end
 end)
 
+-- Helper stub for RTC in origin/ unhardened codebase to provide deterministic secondsFromNowToEpoch
+local intercepting_rtc = false
+table.insert(package.loaders, 1, function(modname)
+    if intercepting_rtc or modname ~= "ffi/rtc" then
+        return nil
+    end
+    intercepting_rtc = true
+    local ok, res = pcall(require, modname)
+    intercepting_rtc = false
+    if ok and type(res) == "table" then
+        local fixed_now = 1700000000
+        res.secondsFromNowToEpoch = function(self, seconds_from_now)
+            return fixed_now + (seconds_from_now or 0)
+        end
+    end
+    return function() return res end
+end)
+
 return {
     max_jobs = 1,
 }
