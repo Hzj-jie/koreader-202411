@@ -1832,9 +1832,7 @@ end
 Computes a deterministic MD5 fingerprint of a function and its captured lexical upvalues.
 --]]
 function util.functionFingerprint(fn, visited)
-  if type(fn) ~= "function" then
-    return tostring(fn)
-  end
+  assert(type(fn) == "function", "util.functionFingerprint expects a function")
 
   visited = visited or {}
   if visited[fn] then
