@@ -319,5 +319,20 @@ describe("background_jobs", function()
         )
       end
     )
+
+    it(
+      "should not use action for key calculation if executable is not fork",
+      function()
+        local action = function() end
+        local res = background_jobs.insertKeyed({
+          executable = "tar -czf /tmp/backup.tar.gz /sdcard/books",
+          action = action,
+        })
+        assert.is_true(res)
+        assert.is_true(
+          background_jobs.hasKey("tar -czf /tmp/backup.tar.gz /sdcard/books")
+        )
+      end
+    )
   end)
 end)

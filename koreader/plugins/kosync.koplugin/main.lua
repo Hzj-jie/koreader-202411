@@ -1,3 +1,4 @@
+local BackgroundJobs = require("background_jobs")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
@@ -619,6 +620,10 @@ function KOSync:_getDocumentDigest()
   return md5(file_name)
 end
 
+function KOSync:_isCurrentDocument(doc_digest)
+  return self.ui == ReaderUI.instance and self:_getDocumentDigest() == doc_digest
+end
+
 function KOSync:_syncToProgress(progress)
   logger.dbg("KOSync: [Sync] progress to", progress)
   if self.ui.document == nil then
@@ -654,10 +659,7 @@ function KOSync:_applyPullUI(
   local_progress,
   local_percentage
 )
-  if self.ui ~= ReaderUI.instance then
-    return
-  end
-  if self:_getDocumentDigest() ~= doc_digest then
+  if not self:_isCurrentDocument(doc_digest) then
     return
   end
 
@@ -670,7 +672,7 @@ function KOSync:_applyPullUI(
     return
   end
 
-  local showInfo = function(msg)
+  local function showInfo(msg)
     if interactive then
       UIManager:show(InfoMessage:new({
         text = msg,
@@ -732,7 +734,7 @@ function KOSync:_applyPullUI(
     UIManager:show(ConfirmBox:new({
       text = prompt_text,
       ok_callback = function()
-        if self.ui ~= ReaderUI.instance or self:_getDocumentDigest() ~= doc_digest then
+        if not self:_isCurrentDocument(doc_digest) then
           return
         end
         self:_syncToProgress(body.progress)
@@ -770,19 +772,24 @@ function KOSync:_updateProgress(interactive)
   local userkey = self.settings.userkey
   local device_id = self.device_id
 
-  -- No self in this function, the execution may be delayed.
-  local function exec()
-    local ok, body = client:update_progress(
-      username,
-      userkey,
-      doc_digest,
-      progress,
-      percentage,
-      Device.model,
-      device_id
-    )
+  local function send()
+    return {
+      ok = client:update_progress(
+        username,
+        userkey,
+        doc_digest,
+        progress,
+        percentage,
+        Device.model,
+        device_id
+      ),
+    }
+  end
+
+  local function apply(res)
+    assert(res ~= nil)
     applyPushUI(
-      ok,
+      res.ok,
       doc_digest,
       interactive
     )
@@ -790,10 +797,18 @@ function KOSync:_updateProgress(interactive)
 
   if interactive then
     UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(exec)
+      NetworkMgr:runWhenOnline(function()
+        apply(send())
+      end)
     end, gettext("Pushing progress…"))
   else
-    NetworkMgr:willRerunWhenOnline(exec)
+    BackgroundJobs.insertKeyed({
+      executable = "fork",
+      action = send,
+      callback = function(job)
+        apply(job and job.result)
+      end,
+    })
   end
 end
 
@@ -825,11 +840,11 @@ function KOSync:_getProgress(interactive)
   local progress = self:_getLastProgress()
   local percentage = self:_getLastPercent()
 
-  local function exec()
+  local function send()
     -- Unlike pushProgress, it's unreasonable to get the progress as a pending
     -- job after user closing the document. In the case, ignore the request.
-    if self.ui ~= ReaderUI.instance or self:_getDocumentDigest() ~= doc_digest then
-      return
+    if not self:_isCurrentDocument(doc_digest) then
+      return { skipped = true }
     end
 
     local ok, body = client:get_progress(
@@ -837,9 +852,18 @@ function KOSync:_getProgress(interactive)
       userkey,
       doc_digest
     )
+    return { ok = ok, body = body }
+  end
+
+  local function apply(res)
+    assert(res ~= nil)
+    if res.skipped then
+      return
+    end
+
     self:_applyPullUI(
-      ok,
-      body,
+      res.ok,
+      res.body,
       doc_digest,
       interactive,
       progress,
@@ -849,10 +873,18 @@ function KOSync:_getProgress(interactive)
 
   if interactive then
     UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(exec)
+      NetworkMgr:runWhenOnline(function()
+        apply(send())
+      end)
     end, gettext("Pulling progress…"))
   else
-    NetworkMgr:willRerunWhenOnline(exec)
+    BackgroundJobs.insertKeyed({
+      executable = "fork",
+      action = send,
+      callback = function(job)
+        apply(job and job.result)
+      end,
+    })
   end
 end
 

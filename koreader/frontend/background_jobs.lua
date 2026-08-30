@@ -25,7 +25,7 @@ function BackgroundJobs.insertKeyed(job)
   local key = job.key
   if key == nil then
     local util = require("util")
-    if type(job.action) == "function" then
+    if job.executable == "fork" and type(job.action) == "function" then
       key = util.functionFingerprint(job.action)
     elseif type(job.executable) == "string" then
       key = job.executable

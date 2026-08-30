@@ -1,6 +1,6 @@
 describe("KOSync plugin tests", function()
   local KOSyncClass, kosync, mock_ui, mock_client
-  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog
+  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs
   local match
 
   setup(function()
@@ -155,6 +155,18 @@ describe("KOSync plugin tests", function()
     ReaderUI = require("apps/reader/readerui")
     ReaderUI.instance = mock_ui
 
+    BackgroundJobs = require("background_jobs")
+    stub(BackgroundJobs, "insertKeyed", function(job)
+      if job.action then
+        local res = job.action()
+        job.result = res
+      end
+      if job.callback then
+        job.callback(job)
+      end
+      return true
+    end)
+
     kosync = KOSyncClass:new({
       ui = mock_ui,
       path = "plugins/kosync.koplugin",
@@ -166,6 +178,10 @@ describe("KOSync plugin tests", function()
 
   after_each(function()
     ReaderUI.instance = nil
+
+    if BackgroundJobs and BackgroundJobs.insertKeyed.revert then
+      BackgroundJobs.insertKeyed:revert()
+    end
 
     NetworkMgr.isOnline:revert()
     NetworkMgr.runWhenOnline:revert()
@@ -619,6 +635,19 @@ describe("KOSync plugin tests", function()
       -- FILENAME when document.file is nil
       mock_ui.document.file = nil
       assert.is_nil(kosync:_getDocumentDigest())
+    end)
+
+    it("checks if current document matches", function()
+      kosync:init()
+      kosync.settings.checksum_method = 0
+
+      assert.is_true(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      assert.is_false(kosync:_isCurrentDocument("other_checksum"))
+
+      -- UI instance mismatch
+      ReaderUI.instance = {}
+      assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      ReaderUI.instance = mock_ui
     end)
 
     it("syncs to progress for paged and rolling documents", function()
