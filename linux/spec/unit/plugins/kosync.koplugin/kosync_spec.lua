@@ -71,10 +71,10 @@ describe("KOSync plugin tests", function()
 
     mock_client = {
       register = spy.new(function(_, username, userkey)
-        return true, 201, { message = "Registered" }
+        return true, { message = "Registered" }
       end),
       authorize = spy.new(function(_, username, userkey)
-        return true, 200, { message = "Authorized" }
+        return true, { message = "Authorized" }
       end),
       update_progress = spy.new(
         function(
@@ -85,27 +85,20 @@ describe("KOSync plugin tests", function()
           progress,
           percentage,
           device_model,
-          device_id,
-          callback
+          device_id
         )
-          if callback then
-            callback(true, { message = "Progress updated" })
-          end
-          return true
+          return true, { message = "Progress updated" }
         end
       ),
       get_progress = spy.new(
-        function(self_arg, username, userkey, doc_digest, callback)
-          if callback then
-            callback(true, {
-              progress = "60",
-              percentage = 0.6,
-              device = "OtherDevice",
-              device_id = "other_id",
-              timestamp = 1000,
-            })
-          end
-          return true
+        function(self_arg, username, userkey, doc_digest)
+          return true, {
+            progress = "60",
+            percentage = 0.6,
+            device = "OtherDevice",
+            device_id = "other_id",
+            timestamp = 1000,
+          }
         end
       ),
     }
@@ -685,25 +678,10 @@ describe("KOSync plugin tests", function()
       kosync.settings.username = "user"
       kosync.settings.userkey = "key"
 
-      -- Client returns ok = false in callback
-      mock_client.update_progress = spy.new(
-        function(
-          self_arg,
-          username,
-          userkey,
-          doc_digest,
-          progress,
-          percentage,
-          device_model,
-          device_id,
-          callback
-        )
-          if callback then
-            callback(false, nil)
-          end
-          return true
-        end
-      )
+      -- Client returns ok = false
+      mock_client.update_progress = spy.new(function()
+        return false, nil
+      end)
       kosync:_updateProgress(true)
       assert.stub(UIManager.show).was_called()
 
@@ -746,38 +724,38 @@ describe("KOSync plugin tests", function()
         kosync.settings.userkey = "key"
 
         -- Response without body/ok
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(false, nil)
+        mock_client.get_progress = spy.new(function()
+          return false, nil
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response without percentage
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {})
+        mock_client.get_progress = spy.new(function()
+          return true, {}
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response from same device
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.8,
             device = Device.model,
             device_id = kosync.device_id,
-          })
+          }
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response with same progress / percentage
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.5,
             progress = "50",
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
@@ -789,13 +767,13 @@ describe("KOSync plugin tests", function()
       kosync.settings.username = "user"
       kosync.settings.userkey = "key"
 
-      mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-        cb(true, {
+      mock_client.get_progress = spy.new(function()
+        return true, {
           percentage = 0.8,
           progress = "80",
           device = "OtherDevice",
           device_id = "other_id",
-        })
+        }
       end)
 
       stub(kosync, "_syncToProgress")
@@ -817,14 +795,14 @@ describe("KOSync plugin tests", function()
         -- Forward sync strategy: SILENT
         kosync.settings.sync_forward = 2 -- SILENT
         kosync.last_page_turn_timestamp = 100
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.8,
             progress = "80",
             timestamp = 200, -- newer
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         stub(kosync, "_syncToProgress")
         kosync.pull_timestamp = 0
@@ -848,14 +826,14 @@ describe("KOSync plugin tests", function()
         -- Backward sync strategy: SILENT
         kosync.settings.sync_backward = 2 -- SILENT
         kosync.last_page_turn_timestamp = 300
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.2,
             progress = "20",
             timestamp = 200, -- older
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         kosync.pull_timestamp = 0
         kosync:_getProgress(false)
@@ -876,14 +854,14 @@ describe("KOSync plugin tests", function()
           .was_called_with(match.is_table(), "20")
 
         -- When timestamp is nil (legacy server), uses percentage comparison
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.8,
             progress = "80",
             timestamp = nil,
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         kosync.settings.sync_forward = 2 -- SILENT
         kosync.pull_timestamp = 0
@@ -911,28 +889,25 @@ describe("KOSync plugin tests", function()
         kosync.settings.username = "user"
         kosync.settings.userkey = "key"
 
-        local saved_cb
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          saved_cb = cb
+        mock_client.get_progress = spy.new(function()
+          return true, {
+            percentage = 0.8,
+            progress = "80",
+            timestamp = 200,
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
         end)
         stub(kosync, "_syncToProgress")
 
-        -- Case 1: document closed before response (prompt strategy should avoid confirmation window)
+        -- Case 1: document closed before response
         kosync.settings.sync_forward = 1 -- PROMPT
         kosync.pull_timestamp = 0
         UIManager.show:clear()
-        kosync:_getProgress(false)
-        assert.is_function(saved_cb)
 
         local original_doc = kosync.ui.document
         kosync.ui.document = nil
-        saved_cb(true, {
-          percentage = 0.8,
-          progress = "80",
-          timestamp = 200,
-          device = "OtherDevice",
-          device_id = "other_id",
-        })
+        kosync:_getProgress(false)
         assert.stub(kosync._syncToProgress).was_not_called()
         assert.stub(UIManager.show).was_not_called()
 
@@ -941,26 +916,24 @@ describe("KOSync plugin tests", function()
           file = "/path/to/another.epub",
           info = { has_pages = true },
         }
-        saved_cb(true, {
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        kosync:_applyPullUI(true, {
           percentage = 0.8,
           progress = "80",
           timestamp = 200,
           device = "OtherDevice",
           device_id = "other_id",
-        })
+        }, "stale_digest", false, "50", 0.5)
         assert.stub(kosync._syncToProgress).was_not_called()
         assert.stub(UIManager.show).was_not_called()
 
         -- Case 3: ReaderUI.instance closed or changed
         kosync.ui.document = original_doc
         ReaderUI.instance = nil
-        saved_cb(true, {
-          percentage = 0.8,
-          progress = "80",
-          timestamp = 200,
-          device = "OtherDevice",
-          device_id = "other_id",
-        })
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        kosync:_getProgress(false)
         assert.stub(kosync._syncToProgress).was_not_called()
         assert.stub(UIManager.show).was_not_called()
 

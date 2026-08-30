@@ -632,41 +632,6 @@ function KOSync:_syncToProgress(progress)
   end
 end
 
-local function sendPushRequest(
-  client,
-  username,
-  userkey,
-  doc_digest,
-  progress,
-  percentage,
-  device_model,
-  device_id
-)
-  if not NetworkMgr:isOnline() then
-    return false, "offline"
-  end
-  local push_ok, push_body
-  local ok, err = pcall(
-    client.update_progress,
-    client,
-    username,
-    userkey,
-    doc_digest,
-    progress,
-    percentage,
-    device_model,
-    device_id,
-    function(res_ok, body)
-      push_ok = res_ok
-      push_body = body
-    end
-  )
-  if not ok then
-    return false, err
-  end
-  return push_ok, push_body
-end
-
 local function applyPushUI(ok, doc_digest, interactive)
   logger.dbg("KOSync: [Push] ok:", ok, "doc_digest:", doc_digest)
   if interactive then
@@ -679,28 +644,6 @@ local function applyPushUI(ok, doc_digest, interactive)
       showSyncError()
     end
   end
-end
-
-local function sendPullRequest(client, username, userkey, doc_digest)
-  if not NetworkMgr:isOnline() then
-    return false, "offline"
-  end
-  local pull_ok, pull_body
-  local ok, err = pcall(
-    client.get_progress,
-    client,
-    username,
-    userkey,
-    doc_digest,
-    function(res_ok, body)
-      pull_ok = res_ok
-      pull_body = body
-    end
-  )
-  if not ok then
-    return false, err
-  end
-  return pull_ok, pull_body
 end
 
 function KOSync:_applyPullUI(
@@ -829,8 +772,7 @@ function KOSync:_updateProgress(interactive)
 
   -- No self in this function, the execution may be delayed.
   local function exec()
-    local ok, body = sendPushRequest(
-      client,
+    local ok, body = client:update_progress(
       username,
       userkey,
       doc_digest,
@@ -890,8 +832,7 @@ function KOSync:_getProgress(interactive)
       return
     end
 
-    local ok, body = sendPullRequest(
-      client,
+    local ok, body = client:get_progress(
       username,
       userkey,
       doc_digest
