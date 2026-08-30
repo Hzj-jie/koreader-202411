@@ -32,19 +32,23 @@ describe("NetworkListener module", function()
     local cb_connected_called = false
     local cb_online_called = false
 
-    listener:onPendingConnected(function()
+    local job1 = function()
       cb_connected_called = true
-    end, "job1")
+    end
 
-    listener:onPendingOnline(function()
+    local job2 = function()
       cb_online_called = true
-    end, "job2")
+    end
+
+    listener:onPendingConnected(job1)
+    listener:onPendingOnline(job2)
 
     assert.are.equal("1 / 1", listener:countsOfPendingJobs())
 
     local c_keys, o_keys = listener:pendingJobKeys()
-    assert.are.same({ "job1" }, c_keys)
-    assert.are.same({ "job2" }, o_keys)
+    local util = require("util")
+    assert.are.same({ util.functionFingerprint(job1) }, c_keys)
+    assert.are.same({ util.functionFingerprint(job2) }, o_keys)
 
     listener:onNetworkConnected()
     assert.is_true(cb_connected_called)
