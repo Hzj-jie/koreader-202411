@@ -19,10 +19,38 @@ local bor = bit.bor
 local util = {}
 
 function util.isTesting()
-  return package.loaded["busted"] ~= nil
-    or package.loaded["busted.luajit"] ~= nil
-    or _G.busted ~= nil
-    or _G.describe ~= nil
+  return package.loaded["busted.luajit"] ~= nil
+end
+
+function util.isLuaCov()
+  return package.loaded["luacov"] ~= nil
+end
+
+function util.isMonkeyTest()
+  return os.getenv("KO_MONKEY_TEST") ~= nil
+end
+
+-- Under monkey test mode, we block file system modifications
+-- EXCEPT for the following allowed paths:
+-- 1. quickstart: help documentation generated on first boot; blocking it causes a modal retry dialog that gets the monkey stuck.
+-- 2. httpinspector.port: written by the plugin to communicate the dynamic port to the test runner script.
+-- 3. cache/, /tmp/ and help: temporary caches/logs that do not affect the persistent reader settings or history.
+function util.isMonkeyTestAllowedPath(path)
+  if not util.isMonkeyTest() then
+    return true
+  end
+  if not path then
+    return false
+  end
+  return path:find("quickstart")
+    or path:find("httpinspector%.port")
+    or path:find("cache/")
+    or path:find("/tmp/")
+    or path:find("help")
+end
+
+function util.getSourceDir()
+  return assert(debug.getinfo(2, "S").source:match("^@(.+)/[^/]+$"))
 end
 
 if util.isTesting() then
@@ -473,7 +501,7 @@ end
 function util.splitToChars(text)
   local tab = {}
   if text ~= nil then
-    local prevcharcode, charcode = 0
+    local charcode
     -- Supports WTF-8 : https://en.wikipedia.org/wiki/UTF-8#WTF-8
     -- a superset of UTF-8, that includes UTF-16 surrogates
     -- in UTF-8 bytes (forbidden in well-formed UTF-8).
@@ -492,39 +520,35 @@ function util.splitToChars(text)
     --   characters directly, but only as a pair.
     local hi_surrogate
     local hi_surrogate_uchar
+
     for uchar in text:gmatch(util.UTF8_CHAR_PATTERN) do
       charcode = ffiUtil.utf8charcode(uchar)
-      -- (not sure why we need this prevcharcode check; we could get
-      -- charcode=nil with invalid UTF-8, but should we then really
-      -- ignore the following charcode ?)
-      if prevcharcode then -- utf8
-        if charcode and charcode >= 0xD800 and charcode <= 0xDBFF then
-          if hi_surrogate then -- previous unconsumed one, add it even if invalid
-            table.insert(tab, hi_surrogate_uchar)
-          end
-          hi_surrogate = charcode
-          hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
-        elseif
-          hi_surrogate
-          and charcode
-          and charcode >= 0xDC00
-          and charcode <= 0xDFFF
-        then
-          -- low surrogate following a high surrogate, good, let's make them a single char
-          charcode = lshift((hi_surrogate - 0xD800), 10)
-            + (charcode - 0xDC00)
-            + 0x10000
-          table.insert(tab, util.unicodeCodepointToUtf8(charcode))
-          hi_surrogate = nil
-        else
-          if hi_surrogate then -- previous unconsumed one, add it even if invalid
-            table.insert(tab, hi_surrogate_uchar)
-          end
-          hi_surrogate = nil
-          table.insert(tab, uchar)
+
+      if charcode and charcode >= 0xD800 and charcode <= 0xDBFF then
+        if hi_surrogate then -- previous unconsumed one, add it even if invalid
+          table.insert(tab, hi_surrogate_uchar)
         end
+        hi_surrogate = charcode
+        hi_surrogate_uchar = uchar -- will be added if not followed by low surrogate
+      elseif
+        hi_surrogate
+        and charcode
+        and charcode >= 0xDC00
+        and charcode <= 0xDFFF
+      then
+        -- low surrogate following a high surrogate, good, let's make them a single char
+        charcode = lshift((hi_surrogate - 0xD800), 10)
+          + (charcode - 0xDC00)
+          + 0x10000
+        table.insert(tab, util.unicodeCodepointToUtf8(charcode))
+        hi_surrogate = nil
+      else
+        if hi_surrogate then -- previous unconsumed one, add it even if invalid
+          table.insert(tab, hi_surrogate_uchar)
+        end
+        hi_surrogate = nil
+        table.insert(tab, uchar)
       end
-      prevcharcode = charcode
     end
   end
   return tab
@@ -542,6 +566,9 @@ function util.isCJKChar(c)
     return false
   end
   local code = ffiUtil.utf8charcode(c)
+  if not code then
+    return false
+  end
   -- The weird bracketing is intentional -- we use the lowest possible
   -- codepoint as a shortcut so if the codepoint is below U+1100 we
   -- immediately return false.
@@ -869,6 +896,10 @@ end
 -- @string path the directory to create
 -- @treturn bool true on success; nil, err_message on error
 function util.makePath(path)
+  if not util.isMonkeyTestAllowedPath(path) then
+    logger.warn("Skipping makePath in monkey test mode: " .. tostring(path))
+    return true
+  end
   if lfs.attributes(path, "mode") == "directory" then
     return true
   end
@@ -1193,6 +1224,12 @@ function util.readFromFile(filepath, mode)
 end
 
 function util.writeToFile(data, filepath, lua_dofile_ready)
+  if not util.isMonkeyTestAllowedPath(filepath) then
+    logger.warn(
+      "Skipping file write in monkey test mode: " .. tostring(filepath)
+    )
+    return true
+  end
   if not data then
     return false, "data"
   end

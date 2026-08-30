@@ -27,14 +27,29 @@ local ScrollHtmlWidget = InputContainer:extend({
   dimen = nil,
   width = 0,
   height = 0,
-  scroll_bar_width = Screen:scaleBySize(6),
-  text_scroll_span = Screen:scaleBySize(12),
+  DEFAULT_SCROLL_BAR_WIDTH = 6,
+  scroll_bar_width = nil,
+  text_scroll_span = nil,
 })
 
 function ScrollHtmlWidget:init()
+  self.scroll_bar_width = self.scroll_bar_width
+    or Screen:scaleBySize(self.DEFAULT_SCROLL_BAR_WIDTH)
+
+  self.v_scroll_bar = VerticalScrollBar:new({
+    width = self.scroll_bar_width,
+    scroll_callback = function(ratio)
+      self:scrollToRatio(ratio)
+    end,
+  })
+
+  self.reserved_width = self.text_scroll_span
+      and (self.text_scroll_span + self.scroll_bar_width)
+    or self.v_scroll_bar:getRequiredWidth()
+
   self.htmlbox_widget = HtmlBoxWidget:new({
     dimen = Geom:new({
-      w = self.width - self.scroll_bar_width - self.text_scroll_span,
+      w = self.width - self.reserved_width,
       h = self.height,
     }),
     html_link_tapped_callback = self.html_link_tapped_callback,
@@ -47,14 +62,8 @@ function ScrollHtmlWidget:init()
     self.is_xhtml
   )
 
-  self.v_scroll_bar = VerticalScrollBar:new({
-    enable = self.htmlbox_widget.page_count > 1,
-    width = self.scroll_bar_width,
-    height = self.height,
-    scroll_callback = function(ratio)
-      self:scrollToRatio(ratio)
-    end,
-  })
+  self.v_scroll_bar.height = self.height
+  self.v_scroll_bar.enable = self.htmlbox_widget.page_count > 1
 
   self:_updateScrollBar()
 
@@ -62,7 +71,7 @@ function ScrollHtmlWidget:init()
   table.insert(horizontal_group, self.htmlbox_widget)
   table.insert(
     horizontal_group,
-    HorizontalSpan:new({ width = self.text_scroll_span })
+    HorizontalSpan:new({ width = self.reserved_width - self.scroll_bar_width })
   )
   table.insert(horizontal_group, self.v_scroll_bar)
   self[1] = horizontal_group
@@ -90,12 +99,10 @@ function ScrollHtmlWidget:init()
     }
   end
 
-  if Device:hasKeys() then
-    self.key_events = {
-      ScrollDown = { { Input.group.PgFwd } },
-      ScrollUp = { { Input.group.PgBack } },
-    }
-  end
+  self.key_events = {
+    ScrollDown = { { Input.group.PgFwd } },
+    ScrollUp = { { Input.group.PgBack } },
+  }
 end
 
 -- Not to be confused with ScrollTextWidget's updateScrollBar, which has user-visible effects.

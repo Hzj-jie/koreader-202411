@@ -74,6 +74,7 @@ function SyncService:generateItemTable()
   table.insert(item_table, {
     text = gettext("Add service"),
     bold = true,
+    keep_menu_open = true,
     callback = function()
       local cloud_storage = require("apps/cloudstorage/cloudstorage"):new()
       local onExit = cloud_storage.onExit
@@ -81,7 +82,7 @@ function SyncService:generateItemTable()
         onExit(this)
         self:switchItemTable(nil, self:generateItemTable())
       end
-      self:showWidget(cloud_storage)
+      UIManager:show(cloud_storage)
     end,
   })
   return item_table

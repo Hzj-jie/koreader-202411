@@ -56,4 +56,16 @@ if Device:canPowerOff() then
   }
 end
 
+if require("luadefaults"):open():isTrue("DO_NOT_EXIT") then
+  exit_settings.exit = nil
+  exit_settings.sleep = nil
+  exit_settings.reboot = nil
+  exit_settings.poweroff = nil
+  if not Device:canRestart() then
+    exit_settings.exit_menu = nil
+  else
+    exit_settings.exit_menu.hold_callback = nil
+  end
+end
+
 return exit_settings

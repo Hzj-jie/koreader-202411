@@ -325,11 +325,9 @@ function KeyValuePage:init()
     w = self.width or Screen:getWidth(),
     h = self.height or Screen:getHeight(),
   })
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Input.group.Back } }
-    self.key_events.NextPage = { { Input.group.PgFwd } }
-    self.key_events.PrevPage = { { Input.group.PgBack } }
-  end
+  self.key_events.Exit = { { Input.group.Back } }
+  self.key_events.NextPage = { { Input.group.PgFwd } }
+  self.key_events.PrevPage = { { Input.group.PgBack } }
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {
       GestureRange:new({

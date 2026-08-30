@@ -130,17 +130,6 @@ function CreDocument:engineInit()
   if not engine_initialized then
     cre = require("libs/libkoreader-cre")
 
-    -- When forking to execute any stuff in a sub-process,
-    -- as that stuff may not care about properly closing
-    -- the document, skip cre.cpp finalizer to avoid any
-    -- assertion failure.
-    require("ffi/util").addRunInSubProcessAfterForkFunc(
-      "cre_skip_teardown",
-      function()
-        cre.setSkipTearDown(true)
-      end
-    )
-
     -- initialize cache
     self:cacheInit()
 

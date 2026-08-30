@@ -14,9 +14,7 @@ local ScreenSaverWidget = InputContainer:extend({
 })
 
 function ScreenSaverWidget:init()
-  if Device:hasKeys() then
-    self.key_events.AnyKeyPressed = { { Device.input.group.Any } }
-  end
+  self.key_events.AnyKeyPressed = { { Device.input.group.Any } }
   if Device:isTouchDevice() then
     local range = Geom:new({
       x = 0,

@@ -62,7 +62,8 @@ describe("FileManagerHistory", function()
     local Widget = require("ui/widget/widget")
     mock_widget_container.showWidget = Widget.showWidget
     mock_widget_container.uimanagedCleanUp = Widget.uimanagedCleanUp
-    package.loaded["ui/widget/container/widgetcontainer"] = mock_widget_container
+    package.loaded["ui/widget/container/widgetcontainer"] =
+      mock_widget_container
 
     clear_table(mock_menu)
     mock_menu.new = function(self, args)
@@ -70,10 +71,12 @@ describe("FileManagerHistory", function()
       setmetatable(args, { __index = self })
       return args
     end
-    mock_menu.switchItemTable = spy.new(function(self, _nil, item_table, _minus_one, _nil2, subtitle)
-      self.item_table = item_table
-      self.subtitle = subtitle
-    end)
+    mock_menu.switchItemTable = spy.new(
+      function(self, _nil, item_table, _minus_one, _nil2, subtitle)
+        self.item_table = item_table
+        self.subtitle = subtitle
+      end
+    )
     mock_menu.registerToMainMenu = spy.new(function(self, manager)
       self.registered_manager = manager
     end)
@@ -106,10 +109,16 @@ describe("FileManagerHistory", function()
     package.loaded["ui/uimanager"] = mock_uimanager
 
     clear_table(mock_gettext)
-    mock_gettext.pgettext = function(_, text) return text end
-    mock_gettext.ngettext = function(sing, plur, n) return n == 1 and sing or plur end
+    mock_gettext.pgettext = function(_, text)
+      return text
+    end
+    mock_gettext.ngettext = function(sing, plur, n)
+      return n == 1 and sing or plur
+    end
     setmetatable(mock_gettext, {
-      __call = function(_, text) return text end,
+      __call = function(_, text)
+        return text
+      end,
     })
     package.loaded["gettext"] = mock_gettext
 
@@ -145,24 +154,36 @@ describe("FileManagerHistory", function()
       end
       return "new"
     end)
-    mock_filemanagerutil.genStatusButtonsRow = spy.new(function(_doc_settings, callback)
-      return { type = "status_row", callback = callback }
-    end)
-    mock_filemanagerutil.genResetSettingsButton = spy.new(function(_doc_settings, callback, _is_currently_opened)
-      return { type = "reset_button", callback = callback }
-    end)
-    mock_filemanagerutil.genShowFolderButton = spy.new(function(_file, callback, _dim)
-      return { type = "show_folder", callback = callback }
-    end)
-    mock_filemanagerutil.genBookInformationButton = spy.new(function(_doc_settings, _book_props, callback, _dim)
-      return { type = "book_info", callback = callback }
-    end)
-    mock_filemanagerutil.genBookCoverButton = spy.new(function(_file, _book_props, callback, _dim)
-      return { type = "book_cover", callback = callback }
-    end)
-    mock_filemanagerutil.genBookDescriptionButton = spy.new(function(_file, _book_props, callback, _dim)
-      return { type = "book_description", callback = callback }
-    end)
+    mock_filemanagerutil.genStatusButtonsRow = spy.new(
+      function(_doc_settings, callback)
+        return { type = "status_row", callback = callback }
+      end
+    )
+    mock_filemanagerutil.genResetSettingsButton = spy.new(
+      function(_doc_settings, callback, _is_currently_opened)
+        return { type = "reset_button", callback = callback }
+      end
+    )
+    mock_filemanagerutil.genShowFolderButton = spy.new(
+      function(_file, callback, _dim)
+        return { type = "show_folder", callback = callback }
+      end
+    )
+    mock_filemanagerutil.genBookInformationButton = spy.new(
+      function(_doc_settings, _book_props, callback, _dim)
+        return { type = "book_info", callback = callback }
+      end
+    )
+    mock_filemanagerutil.genBookCoverButton = spy.new(
+      function(_file, _book_props, callback, _dim)
+        return { type = "book_cover", callback = callback }
+      end
+    )
+    mock_filemanagerutil.genBookDescriptionButton = spy.new(
+      function(_file, _book_props, callback, _dim)
+        return { type = "book_description", callback = callback }
+      end
+    )
     package.loaded["apps/filemanager/filemanagerutil"] = mock_filemanagerutil
 
     clear_table(mock_docsettings)
@@ -171,7 +192,9 @@ describe("FileManagerHistory", function()
     end)
     mock_docsettings.open = spy.new(function(self, _file)
       return {
-        read = function() return nil end,
+        read = function()
+          return nil
+        end,
       }
     end)
     package.loaded["docsettings"] = mock_docsettings
@@ -180,9 +203,11 @@ describe("FileManagerHistory", function()
     mock_readcollection.isFileInCollections = spy.new(function(self, _file)
       return false
     end)
-    mock_readcollection.isFileInCollection = spy.new(function(self, _file, _name)
-      return false
-    end)
+    mock_readcollection.isFileInCollection = spy.new(
+      function(self, _file, _name)
+        return false
+      end
+    )
     package.loaded["readcollection"] = mock_readcollection
 
     clear_table(mock_button_dialog)
@@ -225,7 +250,9 @@ describe("FileManagerHistory", function()
         input = args.input,
         buttons = args.buttons,
         addWidget = function() end,
-        getInputText = function(s) return s.input_text or s.input or "" end,
+        getInputText = function(s)
+          return s.input_text or s.input or ""
+        end,
       }
     end)
     package.loaded["ui/widget/inputdialog"] = mock_input_dialog
@@ -237,7 +264,9 @@ describe("FileManagerHistory", function()
     package.loaded["ffi/utf8proc"] = mock_utf8proc
 
     package.loaded["ui/bidi"] = {
-      filename = function(p) return p end,
+      filename = function(p)
+        return p
+      end,
     }
 
     FileManagerHistory = require("apps/filemanager/filemanagerhistory")
@@ -261,7 +290,6 @@ describe("FileManagerHistory", function()
     package.loaded["ui/bidi"] = nil
     _G.G_reader_settings = nil
   end)
-
 
   describe("init", function()
     it("registers to main menu on init", function()
@@ -341,8 +369,12 @@ describe("FileManagerHistory", function()
       local ui_mock = {
         menu = mock_menu,
         bookinfo = {
-          getDocProps = spy.new(function(_file) return {} end),
-          findInProps = spy.new(function() return false end),
+          getDocProps = spy.new(function(_file)
+            return {}
+          end),
+          findInProps = spy.new(function()
+            return false
+          end),
         },
       }
       fmh = FileManagerHistory:new({ ui = ui_mock })
@@ -394,7 +426,9 @@ describe("FileManagerHistory", function()
       local fmh = FileManagerHistory:new({ ui = ui_mock })
       fmh:onMenuChoice({ file = "/path/to/book1.epub" })
 
-      assert.spy(ui_mock.switchDocument).was_called_with(ui_mock, "/path/to/book1.epub")
+      assert
+        .spy(ui_mock.switchDocument)
+        .was_called_with(ui_mock, "/path/to/book1.epub")
       assert.spy(ui_mock.openFile).was_not_called()
     end)
 
@@ -408,15 +442,18 @@ describe("FileManagerHistory", function()
       fmh:onMenuChoice({ file = "/path/to/book1.epub" })
 
       assert.spy(ui_mock.switchDocument).was_not_called()
-      assert.spy(ui_mock.openFile).was_called_with(ui_mock, "/path/to/book1.epub")
+      assert
+        .spy(ui_mock.openFile)
+        .was_called_with(ui_mock, "/path/to/book1.epub")
     end)
   end)
-
 
   describe("onMenuHold", function()
     it("creates and shows a button dialog with actions", function()
       local mock_collections = {
-        genAddToCollectionButton = spy.new(function() return { type = "add_to_coll" } end)
+        genAddToCollectionButton = spy.new(function()
+          return { type = "add_to_coll" }
+        end),
       }
       local ui_mock = {
         menu = mock_menu,
@@ -433,10 +470,11 @@ describe("FileManagerHistory", function()
         ui = ui_mock,
         showWidget = function(self, widget, ...)
           mock_uimanager:show(widget, ...)
-        end
+        end,
       }
 
-      local item = { file = "/path/to/book1.epub", text = "Book 1", dim = false, idx = 2 }
+      local item =
+        { file = "/path/to/book1.epub", text = "Book 1", dim = false, idx = 2 }
 
       -- Call onMenuHold with menu_context as self
       local result = fmh.onMenuHold(menu_context, item)
@@ -444,7 +482,12 @@ describe("FileManagerHistory", function()
       assert.is_true(result)
       assert.is_not_nil(menu_context.histfile_dialog)
       assert.spy(mock_button_dialog.new).was_called(1)
-      assert.spy(mock_uimanager.show).was_called_with(match.is_ref(mock_uimanager), match.is_ref(menu_context.histfile_dialog))
+      assert
+        .spy(mock_uimanager.show)
+        .was_called_with(
+          match.is_ref(mock_uimanager),
+          match.is_ref(menu_context.histfile_dialog)
+        )
 
       -- Let's verify some buttons are present in the dialog buttons structure
       local buttons = menu_context.histfile_dialog.buttons
@@ -473,7 +516,9 @@ describe("FileManagerHistory", function()
       assert.spy(mock_readhistory.removeItem).was_called(1)
       -- removeItem should be called with (item, index)
       -- Since fmh.filter is "all" and search_string/selected_collections are nil, index should be item.idx (2)
-      assert.spy(mock_readhistory.removeItem).was_called_with(match.is_ref(mock_readhistory), match.is_ref(item), 2)
+      assert
+        .spy(mock_readhistory.removeItem)
+        .was_called_with(match.is_ref(mock_readhistory), match.is_ref(item), 2)
     end)
   end)
 
@@ -500,7 +545,7 @@ describe("FileManagerHistory", function()
       mock_collections = {
         onShowCollList = spy.new(function(self, _selected, _callback, _flag)
           -- We can manually trigger callback in the test
-        end)
+        end),
       }
 
       ui_mock = {
@@ -544,7 +589,10 @@ describe("FileManagerHistory", function()
       assert.is_equal("Filter by collections", buttons[3][1].text)
 
       -- Row 4: Search
-      assert.is_equal("Search in filename and book metadata", buttons[4][1].text)
+      assert.is_equal(
+        "Search in filename and book metadata",
+        buttons[4][1].text
+      )
 
       -- Since count.deleted = 1 > 0, we have:
       -- Row 5: separator (empty table)
@@ -557,7 +605,9 @@ describe("FileManagerHistory", function()
       fmh.updateItemTable = spy.new(function() end)
       buttons[2][1].callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(hist_dialog))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
       assert.is_equal("reading", fmh.filter)
       assert.spy(fmh.updateItemTable).was_called(1)
     end)
@@ -587,13 +637,17 @@ describe("FileManagerHistory", function()
       fmh.updateItemTable = spy.new(function() end)
 
       -- Override onShowCollList to execute caller_callback immediately
-      mock_collections.onShowCollList = spy.new(function(self, _selected, callback, _flag)
-        callback({ collection1 = true })
-      end)
+      mock_collections.onShowCollList = spy.new(
+        function(self, _selected, callback, _flag)
+          callback({ collection1 = true })
+        end
+      )
 
       buttons[3][1].callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(hist_dialog))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
       assert.spy(mock_collections.onShowCollList).was_called(1)
       assert.is_same({ collection1 = true }, fmh.selected_collections)
       assert.spy(fmh.updateItemTable).was_called(1)
@@ -608,7 +662,9 @@ describe("FileManagerHistory", function()
 
       buttons[4][1].callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(hist_dialog))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
       assert.spy(fmh.onSearchHistory).was_called(1)
     end)
 
@@ -631,7 +687,9 @@ describe("FileManagerHistory", function()
       -- Trigger ok_callback
       confirmbox.ok_callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(hist_dialog))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
       assert.spy(mock_readhistory.clearMissing).was_called(1)
       assert.spy(fmh.updateItemTable).was_called(1)
     end)
@@ -664,25 +722,28 @@ describe("FileManagerHistory", function()
       fmh.case_sensitive = true
     end)
 
-    it("creates and shows search input dialog and case-sensitive checkbutton", function()
-      fmh:onSearchHistory()
+    it(
+      "creates and shows search input dialog and case-sensitive checkbutton",
+      function()
+        fmh:onSearchHistory()
 
-      assert.spy(mock_input_dialog.new).was_called(1)
-      assert.spy(mock_check_button.new).was_called(1)
+        assert.spy(mock_input_dialog.new).was_called(1)
+        assert.spy(mock_check_button.new).was_called(1)
 
-      local search_dialog = shown_dialogs[1]
-      assert.is_not_nil(search_dialog)
-      assert.is_equal("Enter text to search history for", search_dialog.title)
-      assert.is_equal("initial search", search_dialog.input)
+        local search_dialog = shown_dialogs[1]
+        assert.is_not_nil(search_dialog)
+        assert.is_equal("Enter text to search history for", search_dialog.title)
+        assert.is_equal("initial search", search_dialog.input)
 
-      assert.spy(mock_check_button.new).was_called(1)
-      local call = mock_check_button.new.calls[1]
-      local args = call.refs[2]
-      assert.is_equal("Case sensitive", args.text)
-      assert.is_true(args.checked)
-      assert.is_equal(search_dialog, args.parent)
-      assert.is_function(args.callback)
-    end)
+        assert.spy(mock_check_button.new).was_called(1)
+        local call = mock_check_button.new.calls[1]
+        local args = call.refs[2]
+        assert.is_equal("Case sensitive", args.text)
+        assert.is_true(args.checked)
+        assert.is_equal(search_dialog, args.parent)
+        assert.is_function(args.callback)
+      end
+    )
 
     it("handles Cancel button callback", function()
       fmh:onSearchHistory()
@@ -693,44 +754,54 @@ describe("FileManagerHistory", function()
       assert.is_equal("Cancel", cancel_btn.text)
 
       cancel_btn.callback()
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(search_dialog))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(search_dialog))
     end)
 
-    it("handles Search button callback (case-sensitive, called from History)", function()
-      fmh.hist_menu = mock_menu
-      fmh.updateItemTable = spy.new(function() end)
+    it(
+      "handles Search button callback (case-sensitive, called from History)",
+      function()
+        fmh.hist_menu = mock_menu
+        fmh.updateItemTable = spy.new(function() end)
 
-      fmh:onSearchHistory()
-      local search_dialog = shown_dialogs[1]
+        fmh:onSearchHistory()
+        local search_dialog = shown_dialogs[1]
 
-      -- Row 1, Col 2: Search button
-      local search_btn = search_dialog.buttons[1][2]
-      assert.is_equal("Search", search_btn.text)
+        -- Row 1, Col 2: Search button
+        local search_btn = search_dialog.buttons[1][2]
+        assert.is_equal("Search", search_btn.text)
 
-      -- Set input text in mock
-      search_dialog.input_text = "Test Query"
-      search_btn.callback()
+        -- Set input text in mock
+        search_dialog.input_text = "Test Query"
+        search_btn.callback()
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(search_dialog))
-      assert.is_equal("Test Query", fmh.search_string)
-      assert.spy(fmh.updateItemTable).was_called(1)
-    end)
+        assert
+          .spy(mock_uimanager.close)
+          .was_called_with(mock_uimanager, match.is_ref(search_dialog))
+        assert.is_equal("Test Query", fmh.search_string)
+        assert.spy(fmh.updateItemTable).was_called(1)
+      end
+    )
 
-    it("handles Search button callback (case-insensitive, called from History)", function()
-      fmh.hist_menu = mock_menu
-      fmh.case_sensitive = false
-      fmh.updateItemTable = spy.new(function() end)
+    it(
+      "handles Search button callback (case-insensitive, called from History)",
+      function()
+        fmh.hist_menu = mock_menu
+        fmh.case_sensitive = false
+        fmh.updateItemTable = spy.new(function() end)
 
-      fmh:onSearchHistory()
-      local search_dialog = shown_dialogs[1]
+        fmh:onSearchHistory()
+        local search_dialog = shown_dialogs[1]
 
-      local search_btn = search_dialog.buttons[1][2]
-      search_dialog.input_text = "Test Query"
-      search_btn.callback()
+        local search_btn = search_dialog.buttons[1][2]
+        search_dialog.input_text = "Test Query"
+        search_btn.callback()
 
-      assert.is_equal("test query", fmh.search_string)
-      assert.spy(fmh.updateItemTable).was_called(1)
-    end)
+        assert.is_equal("test query", fmh.search_string)
+        assert.spy(fmh.updateItemTable).was_called(1)
+      end
+    )
 
     it("handles Search button callback (called from Dispatcher)", function()
       fmh.hist_menu = nil
@@ -825,13 +896,12 @@ describe("FileManagerHistory", function()
       assert.is_nil(fmh.histfile_dialog)
       assert.is_nil(fmh.hist_menu)
 
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(dummy_dialog))
-      assert.spy(mock_uimanager.close).was_called_with(mock_uimanager, match.is_ref(dummy_menu))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(dummy_dialog))
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(dummy_menu))
     end)
   end)
 end)
-
-
-
-
-

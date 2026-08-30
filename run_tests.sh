@@ -64,11 +64,11 @@ source ./prepare_sandbox_env.sh "$PLATFORM_DIR"
 # Run the test runner
 export SDL_VIDEODRIVER=dummy
 if [ -n "$TEST_FILE" ]; then
-    ./lua test_runner.lua "$TEST_FILE" || true
+    ./lua $LUAFLAGS test_runner.lua "$TEST_FILE" || true
 else
     exit_code=0
     start_time=$(date +%s)
-    ./lua test_runner.lua || exit_code=$?
+    ./lua $LUAFLAGS test_runner.lua || exit_code=$?
     end_time=$(date +%s)
     elapsed=$((end_time - start_time))
     echo "========================================================================="

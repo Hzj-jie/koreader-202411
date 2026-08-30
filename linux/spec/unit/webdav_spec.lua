@@ -195,7 +195,8 @@ describe("WebDav", function()
 
   describe("run", function()
     it("should call WebDavApi:listFolder", function()
-      local res = WebDav:run("http://example.com", "user", "pass", "/path", true)
+      local res =
+        WebDav:run("http://example.com", "user", "pass", "/path", true)
       assert.are.same({ "file1", "file2" }, res)
     end)
   end)
@@ -308,10 +309,7 @@ describe("WebDav", function()
       assert.are.equal(1, #mock_uimanager.shown_widgets)
       local widget = mock_uimanager.shown_widgets[1]
       assert.is_true(widget.is_info_message)
-      assert.are.equal(
-        "File uploaded:\nhttp://example.com",
-        widget.text
-      )
+      assert.are.equal("File uploaded:\nhttp://example.com", widget.text)
       assert.is_true(callback_called)
     end)
 
@@ -373,10 +371,7 @@ describe("WebDav", function()
       assert.are.equal(1, #mock_uimanager.shown_widgets)
       local widget = mock_uimanager.shown_widgets[1]
       assert.is_true(widget.is_info_message)
-      assert.are.equal(
-        "Could not create folder:\nnew_folder",
-        widget.text
-      )
+      assert.are.equal("Could not create folder:\nnew_folder", widget.text)
     end)
   end)
 

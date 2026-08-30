@@ -126,7 +126,7 @@ function FileSearcher:doSearch()
     local Trapper = require("ui/trapper")
     local info =
       InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
-    self:showWidget(info)
+    UIManager:show(info)
     UIManager:forceRepaint()
     local completed, dirs, files, no_metadata_count = Trapper:dismissableRunInSubprocess(
       function()

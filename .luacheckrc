@@ -6,10 +6,31 @@ globals = {
   "G_defaults",
   "G_named_settings",
   "G_reader_settings",
+  "assert.is_true",
+  "assert.truthy",
+  "describe",
+  "einkfb",
+  "io.open",
+  "io.write",
   "math.e",
   "math.finite",
+  "mock_cache_save_called",
+  "notifyBackgroundJobsUpdated",
+  "os.clock",
+  "os.date",
+  "os.getenv",
+  "os.remove",
+  "os.time",
+  "package.reload",
+  "package.replace",
+  "package.unload",
+  "package.unloadAll",
+  "readerui",
+  "requireBackgroundRunner",
+  "stopBackgroundRunner",
   "table.pack",
   "table.unpack",
+  "time",
 }
 -- TODO: Remove in favor of default 80, stylua doesn't work very well and
 -- sometimes leaves the line longer than the 80.
@@ -29,4 +50,14 @@ ignore = {
   "423/__", -- shadowing definition of loop variable __: avoid conflicting with _
   "431/__", -- shadowing upvalue __: avoid conflicting with _
   "432/self", -- shadowing upvalue argument self: allow self being reused.
+}
+
+files["**/spec/unit/**"] = {
+  std = "+busted",
+  ignore = {
+    "211", -- unused variable in test specs
+    "212", -- unused argument in test mocks/callbacks
+    "231", -- variable never accessed in test specs
+    "431", -- shadowing upvalue in test blocks
+  },
 }

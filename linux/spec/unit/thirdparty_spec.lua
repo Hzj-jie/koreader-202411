@@ -26,31 +26,40 @@ describe("thirdparty", function()
   end)
 
   describe("new", function()
-    it("should initialize with default settings when no user files exist", function()
-      local tp = ThirdParty:new{
-        dicts = {
-          {"Dict1", "Dict 1", false, "app.dict1", "action.dict1"},
-          {"Dict2", "Dict 2", false, "app.dict2", "action.dict2"},
-        },
-        translators = {
-          {"Trans1", "Trans 1", false, "app.trans1", "action.trans1"},
-        },
-        check = function(_, app)
-          return app == "app.dict1"
-        end
-      }
+    it(
+      "should initialize with default settings when no user files exist",
+      function()
+        local tp = ThirdParty:new({
+          dicts = {
+            { "Dict1", "Dict 1", false, "app.dict1", "action.dict1" },
+            { "Dict2", "Dict 2", false, "app.dict2", "action.dict2" },
+          },
+          translators = {
+            { "Trans1", "Trans 1", false, "app.trans1", "action.trans1" },
+          },
+          check = function(_, app)
+            return app == "app.dict1"
+          end,
+        })
 
-      assert.is_nil(tp.is_user_list)
-      assert.is_true(tp.dicts[1][3]) -- Dict1 should be available because check returned true
-      assert.is_false(tp.dicts[2][3]) -- Dict2 should not be available
-      assert.is_false(tp.translators[1][3]) -- Trans1 should not be available
-    end)
+        assert.is_nil(tp.is_user_list)
+        assert.is_true(tp.dicts[1][3]) -- Dict1 should be available because check returned true
+        assert.is_false(tp.dicts[2][3]) -- Dict2 should not be available
+        assert.is_false(tp.translators[1][3]) -- Trans1 should not be available
+      end
+    )
 
     it("should load user settings if dictionaries.lua exists", function()
       -- Mock dofile to return user dictionaries
       local old_dofile = _G.dofile
       local mock_user_dicts = {
-        {"UserDict1", "User Dict 1", false, "app.userdict1", "action.userdict1"},
+        {
+          "UserDict1",
+          "User Dict 1",
+          false,
+          "app.userdict1",
+          "action.userdict1",
+        },
       }
 
       _G.dofile = function(path)
@@ -60,11 +69,11 @@ describe("thirdparty", function()
         return old_dofile(path)
       end
 
-      local tp = ThirdParty:new{
+      local tp = ThirdParty:new({
         check = function(_, app)
           return app == "app.userdict1"
-        end
-      }
+        end,
+      })
 
       _G.dofile = old_dofile -- Restore dofile
 
@@ -77,11 +86,11 @@ describe("thirdparty", function()
 
   describe("checkMethod", function()
     it("should return true and details if method exists", function()
-      local tp = ThirdParty:new{
+      local tp = ThirdParty:new({
         dicts = {
-          {"Dict1", "Dict 1", false, "app.dict1", "action.dict1"},
-        }
-      }
+          { "Dict1", "Dict 1", false, "app.dict1", "action.dict1" },
+        },
+      })
 
       local ok, tool, action = tp:checkMethod("dict", "Dict1")
       assert.is_true(ok)
@@ -90,11 +99,11 @@ describe("thirdparty", function()
     end)
 
     it("should return false if method does not exist", function()
-      local tp = ThirdParty:new{
+      local tp = ThirdParty:new({
         dicts = {
-          {"Dict1", "Dict 1", false, "app.dict1", "action.dict1"},
-        }
-      }
+          { "Dict1", "Dict 1", false, "app.dict1", "action.dict1" },
+        },
+      })
 
       local ok = tp:checkMethod("dict", "NonExistent")
       assert.is_false(ok)
@@ -103,18 +112,18 @@ describe("thirdparty", function()
 
   describe("dump", function()
     it("should return formatted string of apps", function()
-      local tp = ThirdParty:new{
+      local tp = ThirdParty:new({
         dicts = {
-          {"Dict1", "Dict 1", true, "app.dict1", "action.dict1"},
+          { "Dict1", "Dict 1", true, "app.dict1", "action.dict1" },
         },
         translators = {
-          {"Trans1", "Trans 1", false, "app.trans1", "action.trans1"},
-        }
-      }
+          { "Trans1", "Trans 1", false, "app.trans1", "action.trans1" },
+        },
+      })
 
-      local expected_dump = "user defined third-party apps\n" ..
-        "-> Dict1 (app.dict1), role: dict, available: true\n" ..
-        "-> Trans1 (app.trans1), role: translator, available: false\n"
+      local expected_dump = "user defined third-party apps\n"
+        .. "-> Dict1 (app.dict1), role: dict, available: true\n"
+        .. "-> Trans1 (app.trans1), role: translator, available: false\n"
 
       assert.are.equal(expected_dump, tp:dump())
     end)

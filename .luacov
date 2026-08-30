@@ -1,0 +1,54 @@
+return {
+  statsfile = os.getenv("LUACOV_STATS_FILE") or ((os.getenv("KO_WORKSPACE_DIR") or ".") .. "/luacov.stats.out"),
+  reportfile = (os.getenv("KO_WORKSPACE_DIR") or ".") .. "/luacov.report.out",
+
+  modules = {
+    ["apps.*"] = "koreader/frontend",
+    ["apps.*.*"] = "koreader/frontend",
+    ["apps.*.*.*"] = "koreader/frontend",
+    ["apps.*.*.*.*"] = "koreader/frontend",
+    ["device.*"] = "koreader/frontend",
+    ["device.*.*"] = "koreader/frontend",
+    ["device.*.*.*"] = "koreader/frontend",
+    ["device.*.*.*.*"] = "koreader/frontend",
+    ["ui.*"] = "koreader/frontend",
+    ["ui.*.*"] = "koreader/frontend",
+    ["ui.*.*.*"] = "koreader/frontend",
+    ["ui.*.*.*.*"] = "koreader/frontend",
+    ["ui.*.*.*.*.*"] = "koreader/frontend",
+    ["ui.*.*.*.*.*.*"] = "koreader/frontend",
+    ["frontend.*"] = "koreader",
+    ["frontend.*.*"] = "koreader",
+    ["frontend.*.*.*"] = "koreader",
+    ["frontend.*.*.*.*"] = "koreader",
+    ["frontend.*.*.*.*.*"] = "koreader",
+    ["frontend.*.*.*.*.*.*"] = "koreader",
+    ["document.*"] = "koreader/frontend",
+    ["document.*.*"] = "koreader/frontend",
+    ["document.*.*.*"] = "koreader/frontend",
+    ["plugins.*"] = "koreader",
+    ["plugins.*.*"] = "koreader",
+    ["plugins.*.*.*"] = "koreader",
+    ["plugins.*.*.*.*"] = "koreader",
+    ["plugins.*.*.*.*.*"] = "koreader",
+  },
+
+  include = {
+    "^koreader/frontend/",
+    "^koreader/plugins/",
+  },
+
+  exclude = {
+    "^linux/spec/",
+    "^koreader/ffi/",
+    "^koreader/common/",
+    "^koreader/jit/",
+    "_spec$",
+    "_meta$",
+  },
+
+  includeuntestedfiles = {
+    "koreader/frontend",
+    "koreader/plugins",
+  },
+}

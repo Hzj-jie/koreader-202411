@@ -53,6 +53,7 @@ local OverlapGroup = require("ui/widget/overlapgroup")
 local RightContainer = require("ui/widget/container/rightcontainer")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
+local TitleBar = require("ui/widget/titlebar")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local Widget = require("ui/widget/widget")
@@ -66,7 +67,7 @@ local band = bit.band
 local function obtainIP()
   --- @todo check for DHCP result
   local info = InfoMessage:new({ text = gettext("Obtaining IP address…") })
-  self:showWidget(info)
+  UIManager:show(info)
   UIManager:forceRepaint()
   NetworkMgr:obtainIP()
   UIManager:close(info)
@@ -276,7 +277,7 @@ function NetworkItem:disconnect(will_reconnect)
       NetworkMgr:releaseIP()
     else
       local info = InfoMessage:new({ text = gettext("Disconnecting…") })
-      self:showWidget(info)
+      UIManager:show(info)
       UIManager:forceRepaint()
 
       NetworkMgr:disconnectNetwork(self.info)
@@ -417,6 +418,7 @@ function NetworkItem:onTapSelect(arg, ges_ev)
 end
 
 local NetworkSetting = InputContainer:extend({
+  modal = true,
   width = nil,
   height = nil,
   -- sample network_list entry: {
@@ -478,6 +480,24 @@ function NetworkSetting:init()
     progress = 0,
   })
 
+  local title_bar = TitleBar:new({
+    title = gettext("Wi-Fi networks"),
+    width = self.width,
+    align = "center",
+    with_bottom_line = true,
+    left_icon = "close",
+    left_icon_size_ratio = 0.8,
+    left_icon_tap_callback = function()
+      UIManager:close(self)
+    end,
+    right_icon = "cre.render.reload",
+    right_icon_size_ratio = 0.8,
+    right_icon_tap_callback = function()
+      UIManager:close(self)
+      NetworkMgr:showNetworkMenu(self.connect_callback)
+    end,
+  })
+
   self.height = self.height
     or math.min(Screen:getHeight() * 3 / 4, Screen:scaleBySize(800))
   self.popup = FrameContainer:new({
@@ -486,15 +506,25 @@ function NetworkSetting:init()
     bordersize = Size.border.window,
     VerticalGroup:new({
       align = "left",
+      title_bar,
       self.pagination,
       ListView:new({
         padding = 0,
         items = items,
         width = self.width,
-        height = self.height - self.pagination:getSize().h,
+        height = self.height
+          - self.pagination:getSize().h
+          - title_bar:getSize().h,
         page_update_cb = function(curr_page, total_pages)
           self.pagination:setProgress(curr_page / total_pages)
-          -- self.page_text:setText(curr_page .. "/" .. total_pages)
+          title_bar:setTitle(
+            string.format(
+              "%s (%d/%d)",
+              gettext("Wi-Fi networks"),
+              curr_page,
+              total_pages
+            )
+          )
           self:scheduleRepaint()
         end,
       }),

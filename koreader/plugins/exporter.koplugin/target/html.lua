@@ -1,8 +1,8 @@
 local logger = require("logger")
-local slt2 = require("template/slt2")
+local slt2 = require("plugins/exporter.koplugin/template/slt2")
 
 -- html exporter
-local HtmlExporter = require("base"):new({
+local HtmlExporter = require("plugins/exporter.koplugin/base"):new({
   name = "html",
   mimetype = "text/html",
 })

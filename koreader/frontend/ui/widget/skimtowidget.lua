@@ -29,9 +29,7 @@ function SkimToWidget:init()
   local screen_width = Screen:getWidth()
   local screen_height = Screen:getHeight()
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
   if Device:isTouchDevice() then
     self.ges_events.TapProgress = {
       GestureRange:new({

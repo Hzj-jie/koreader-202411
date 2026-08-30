@@ -130,7 +130,7 @@ local InputDialog = FocusManager:extend({
   description = nil,
   buttons = nil,
   input_type = nil,
-  deny_keyboard_hiding = false, -- don't hide keyboard on tap outside
+
   enter_callback = nil,
   strike_callback = nil, -- call this on every keystroke
   inputtext_class = InputText, -- (Terminal plugin provides TermInputText)
@@ -143,7 +143,7 @@ local InputDialog = FocusManager:extend({
   add_scroll_buttons = false, -- add scroll Up/Down buttons to first row of buttons
   add_nav_bar = false, -- append a row of page navigation buttons
   -- note that the text widget can be scrolled with Swipe North/South even when no button
-  keyboard_visible = true, -- whether we start with the keyboard visible or not (i.e., our caller skipped onShowKeyboard)
+  _should_show_keyboard = true, -- whether we start with the keyboard visible or not (i.e., our caller skipped onShowKeyboard)
   -- needs add_nav_bar to have a Show keyboard button to get it back
   scroll_by_pan = false, -- allow scrolling by lines with Pan (= Swipe, but wait a bit at end
   -- of gesture before releasing) (may conflict with movable)
@@ -192,7 +192,7 @@ local InputDialog = FocusManager:extend({
   alignment_strict = false,
 
   -- for internal use
-  _keyboard_was_visible = nil, -- previous kb visibility state
+
   _text_modified = false, -- previous known modified status
   _top_line_num = nil,
   _charpos = nil,
@@ -203,6 +203,11 @@ local InputDialog = FocusManager:extend({
 })
 
 function InputDialog:init()
+  if self.keyboard_visible ~= nil then
+    self._should_show_keyboard = self.keyboard_visible
+    self.keyboard_visible = nil
+  end
+
   self.layout = { {} }
   self.screen_width = Screen:getWidth()
   self.screen_height = Screen:getHeight()
@@ -221,10 +226,7 @@ function InputDialog:init()
     self.text_width = self.text_width or math.floor(self.width * 0.9)
   end
   if self.readonly then -- hide keyboard if we can't edit
-    self.keyboard_visible = false
-  end
-  if self.fullscreen or self.add_nav_bar then
-    self.deny_keyboard_hiding = true
+    self._should_show_keyboard = false
   end
 
   -- Title & description
@@ -302,7 +304,7 @@ function InputDialog:init()
     local text_height = input_widget:getTextHeight()
     local line_height = input_widget:getLineHeight()
     local input_pad_height = input_widget:getSize().h - text_height
-    local keyboard_height = self.keyboard_visible
+    local keyboard_height = self._should_show_keyboard
         and input_widget:getKeyboardDimen().h
       or 0
     input_widget:closeKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
@@ -389,6 +391,7 @@ function InputDialog:init()
     scroll_by_pan = self.scroll_by_pan,
     cursor_at_end = self.cursor_at_end,
     readonly = self.readonly,
+    disable_auto_keyboard = self.add_nav_bar,
     parent = self,
     is_text_edited = self._text_modified,
     top_line_num = self._top_line_num,
@@ -456,7 +459,7 @@ function InputDialog:init()
     end
     frame = self.movable
   end
-  local keyboard_height = self.keyboard_visible
+  local keyboard_height = self._should_show_keyboard
       and self._input_widget:getKeyboardDimen().h
     or 0
   self[1] = CenterContainer:new({
@@ -475,18 +478,11 @@ function InputDialog:init()
       }),
     }
   end
-  if Device:hasKeys() then
-    self.key_events.CloseDialog = { { Device.input.group.Back } }
-  end
+  self.key_events.CloseDialog = { { Device.input.group.Dismiss } }
   if self._added_widgets then
     for _, widget in ipairs(self._added_widgets) do
       self:addWidget(widget, true)
     end
-  end
-
-  -- If we're fullscreen without the virtual keyboard, make sure only the toggle button can bring back the keyboard...
-  if self.fullscreen and not self.keyboard_visible then
-    self:lockKeyboard(true)
   end
 end
 
@@ -507,9 +503,9 @@ function InputDialog:reinit()
   self.text_height = self.orig_text_height or nil
 
   -- Same deal as in toggleKeyboard...
-  self.keyboard_visible = visible and true or false
+  self._should_show_keyboard = visible and true or false
   self:init()
-  if self.keyboard_visible then
+  if self._should_show_keyboard then
     self:showKeyboard()
   end
   -- Our position on screen has probably changed, so have the full screen refreshed
@@ -543,9 +539,7 @@ end
 -- If the keyboard is hidden, tap outside of the dialog to close the dialog.
 function InputDialog:onTap(arg, ges)
   -- This is slightly more fine-grained than VK's own visibility lock, hence the duplication...
-  if self.deny_keyboard_hiding then
-    return
-  end
+
   if self:isKeyboardVisible() then
     -- NOTE: While VirtualKey will attempt to cover the gap between keys in its hitbox (i.e., the grey border),
     --       a tap *may* still fall outside of the ges_events range of a VirtualKey (e.g., on the very edges of the board's frame).
@@ -617,86 +611,81 @@ function InputDialog:onClose()
     active_instances >= 0,
     "InputDialog active instances count went negative!"
   )
+  self._is_closing = true
   self:onExit()
+  self._is_closing = nil
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
-  -- NOTE: There's no VirtualKeyboard widget instantiated at all when readonly,
-  --       and our input widget handles that itself, so we don't need any guards here.
-  --       (In which case, isKeyboardVisible will return `nil`, same as if we had a VK instantiated but *never* shown).
-  self._input_widget:showKeyboard(ignore_first_hold_release)
-  -- There's a bit of a chicken or egg issue in init where we would like to check the actual keyboard's visibility state,
-  -- but the widget might not exist or be shown yet, so we'll just have to keep this in sync...
-  self.keyboard_visible = self._input_widget:isKeyboardVisible()
+  if not self._should_show_keyboard then
+    self.input = self:getInputText()
+    self:onExit()
+    self:free()
+    self._should_show_keyboard = true
+    self:init()
+
+    local keyboard_button = self.button_table:getButtonById("keyboard")
+    if keyboard_button then
+      keyboard_button:setText("↓⌨")
+      keyboard_button:onUnfocus()
+      keyboard_button:scheduleRepaint()
+    end
+    self:refreshButtons()
+  end
+  self:_showKeyboard(ignore_first_hold_release)
 end
 
 function InputDialog:closeKeyboard()
-  self._input_widget:closeKeyboard()
-  self.keyboard_visible = self._input_widget:isKeyboardVisible()
+  if self._in_close_keyboard then
+    return
+  end
+  self._in_close_keyboard = true
+
+  if self._should_show_keyboard then
+    self.input = self:getInputText()
+    self:_closeKeyboard() -- Close it on the OLD widget before freeing it!
+    self:onExit()
+    self:free()
+    self._should_show_keyboard = false
+    if not self._is_closing then
+      self:init()
+    end
+
+    local keyboard_button = self.button_table:getButtonById("keyboard")
+    if keyboard_button then
+      keyboard_button:setText("↑⌨")
+      keyboard_button:onUnfocus()
+      keyboard_button:scheduleRepaint()
+    end
+    self:refreshButtons()
+  else
+    self:_closeKeyboard()
+  end
+
+  self._in_close_keyboard = nil
 end
 
 function InputDialog:isKeyboardVisible()
   return self._input_widget:isKeyboardVisible()
 end
 
-function InputDialog:lockKeyboard(toggle)
-  return self._input_widget:lockKeyboard(toggle)
+function InputDialog:_showKeyboard(ignore_first_hold_release)
+  -- NOTE: There's no VirtualKeyboard widget instantiated at all when readonly,
+  --       and our input widget handles that itself, so we don't need any guards here.
+  --       (In which case, isKeyboardVisible will return `nil`, same as if we had a VK instantiated but *never* shown).
+  self._input_widget:showKeyboard(ignore_first_hold_release)
+  -- There's a bit of a chicken or egg issue in init where we would like to check the actual keyboard's visibility state,
+  -- but the widget might not exist or be shown yet, so we'll just have to keep this in sync...
+  self._should_show_keyboard = self:isKeyboardVisible()
+end
+
+function InputDialog:_closeKeyboard()
+  self._input_widget:closeKeyboard()
+  self._should_show_keyboard = self:isKeyboardVisible()
 end
 
 -- NOTE: Only called by fullscreen and/or add_nav_bar codepaths
 --       We do not currently have !fullscreen add_nav_bar callers...
-function InputDialog:toggleKeyboard(force_toggle)
-  -- Remember the *current* visibility, as the following close will reset it
-  local visible = self:isKeyboardVisible()
-
-  -- When we forcibly close the keyboard, remember its current visiblity state, so that we can properly restore it later.
-  -- (This is used by some buttons in fullscreen mode, where we might want to keep the original keyboard hidden when popping up a new one for another InputDialog).
-  if force_toggle == false then
-    -- NOTE: visible will be nil between our own init and a show of the keyboard, which is precisely what happens when we *hide* the keyboard.
-    self._keyboard_was_visible = visible == true
-  end
-
-  self.input = self:getInputText() -- re-init with up-to-date text
-  self:onExit() -- will close keyboard and save view position
-  self:free()
-
-  if force_toggle == false and not visible then
-    -- Already hidden, bye!
-    return
-  end
-
-  -- Init needs to know the keyboard's visibility state *before* the widget is actually shown...
-  if force_toggle == true then
-    self.keyboard_visible = true
-  elseif force_toggle == false then
-    self.keyboard_visible = false
-  elseif self._keyboard_was_visible ~= nil then
-    self.keyboard_visible = self._keyboard_was_visible
-    self._keyboard_was_visible = nil
-  else
-    self.keyboard_visible = not visible
-  end
-  self:init()
-
-  -- NOTE: If we ever have non-fullscreen add_nav_bar callers, it might make sense *not* to lock the keyboard there?
-  if self.keyboard_visible then
-    self:lockKeyboard(false)
-    self:showKeyboard()
-  else
-    self:closeKeyboard()
-    -- Prevent InputText:onTapTextBox from opening the keyboard back up on top of our buttons
-    self:lockKeyboard(true)
-  end
-
-  local keyboard_button = self.button_table:getButtonById("keyboard")
-  if keyboard_button then
-    -- Clear the FocusManager highlight, because that gets lost in the mess somehow...
-    keyboard_button:onUnfocus()
-  end
-
-  -- Make sure we refresh the nav bar, as it will have moved, and it belongs to us, not to VK or our input widget...
-  self:refreshButtons()
-end
 
 -- fullscreen mode & add_nav_bar breaks some of our usual assumptions about what should happen on "Back" input events...
 function InputDialog:onKeyboardClosed()
@@ -948,10 +937,14 @@ function InputDialog:_addScrollButtons(nav_bar)
     -- Also add Keyboard hide/show button if we can
     if self.fullscreen and not self.readonly then
       table.insert(row, {
-        text = self.keyboard_visible and "↓⌨" or "↑⌨",
+        text = self._should_show_keyboard and "↓⌨" or "↑⌨",
         id = "keyboard",
         callback = function()
-          self:toggleKeyboard()
+          if self:isKeyboardVisible() then
+            self:closeKeyboard()
+          else
+            self:showKeyboard()
+          end
         end,
       })
     end
@@ -960,7 +953,8 @@ function InputDialog:_addScrollButtons(nav_bar)
       table.insert(row, {
         text = gettext("Find"),
         callback = function()
-          self:toggleKeyboard(false) -- hide text editor keyboard
+          local was_visible = self:isKeyboardVisible()
+          self:closeKeyboard() -- hide text editor keyboard
           local input_dialog
           input_dialog = InputDialog:new({
             title = gettext("Enter text to search for"),
@@ -973,20 +967,24 @@ function InputDialog:_addScrollButtons(nav_bar)
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
-                    self:toggleKeyboard()
+                    if was_visible then
+                      self:showKeyboard()
+                    else
+                      self:closeKeyboard()
+                    end
                   end,
                 },
                 {
                   text = gettext("Find first"),
                   callback = function()
-                    self:findCallback(input_dialog, true)
+                    self:findCallback(input_dialog, true, was_visible)
                   end,
                 },
                 {
                   text = gettext("Find next"),
                   is_enter_default = true,
                   callback = function()
-                    self:findCallback(input_dialog)
+                    self:findCallback(input_dialog, nil, was_visible)
                   end,
                 },
               },
@@ -1013,7 +1011,8 @@ function InputDialog:_addScrollButtons(nav_bar)
         font_bold = false,
         id = "go",
         callback = function()
-          self:toggleKeyboard(false) -- hide text editor keyboard
+          local was_visible = self:isKeyboardVisible()
+          self:closeKeyboard() -- hide text editor keyboard
           local curr_line_num, last_line_num = self._input_widget:getLineNums()
           local input_dialog
           input_dialog = InputDialog:new({
@@ -1033,7 +1032,11 @@ function InputDialog:_addScrollButtons(nav_bar)
                   id = "close",
                   callback = function()
                     UIManager:close(input_dialog)
-                    self:toggleKeyboard()
+                    if was_visible then
+                      self:showKeyboard()
+                    else
+                      self:closeKeyboard()
+                    end
                   end,
                 },
                 {
@@ -1047,7 +1050,11 @@ function InputDialog:_addScrollButtons(nav_bar)
                       and new_line_num <= last_line_num
                     then
                       UIManager:close(input_dialog)
-                      self:toggleKeyboard()
+                      if was_visible then
+                        self:showKeyboard()
+                      else
+                        self:closeKeyboard()
+                      end
                       self._input_widget:moveCursorToCharPos(
                         self._input_widget:getLineCharPos(new_line_num)
                       )
@@ -1142,13 +1149,17 @@ function InputDialog:_addScrollButtons(nav_bar)
   end
 end
 
-function InputDialog:findCallback(input_dialog, find_first)
+function InputDialog:findCallback(input_dialog, find_first, was_visible)
   self.search_value = input_dialog:getInputText()
   if self.search_value == "" then
     return
   end
   UIManager:close(input_dialog)
-  self:toggleKeyboard()
+  if was_visible then
+    self:showKeyboard()
+  else
+    self:closeKeyboard()
+  end
   local start_pos = find_first and 1 or self._charpos + 1
   local char_pos = util.stringSearch(
     self.input,

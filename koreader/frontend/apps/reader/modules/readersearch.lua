@@ -532,7 +532,7 @@ function ReaderSearch:onShowSearchDialog(
         self.wait_button.movable:setMovedOffset(
           self.search_dialog.movable:getMovedOffset()
         )
-        self:showWidget(self.wait_button)
+        UIManager:show(self.wait_button)
         UIManager:tickAfterNext(function()
           do_search(func, pattern, param)()
           UIManager:close(self.wait_button)
@@ -582,7 +582,7 @@ function ReaderSearch:onShowSearchDialog(
   if regex and isSlowRegex(text) then
     self.wait_button.alpha = nil
     -- initial position: center of the screen
-    self:showWidget(self.wait_button)
+    UIManager:show(self.wait_button)
     UIManager:tickAfterNext(function()
       do_search(self.searchFromCurrent, text, direction)()
       UIManager:close(self.wait_button)
@@ -686,7 +686,7 @@ function ReaderSearch:findAllText(search_text)
     local Trapper = require("ui/trapper")
     local info =
       InfoMessage:new({ text = gettext("Searching… (tap to cancel)") })
-    self:showWidget(info)
+    UIManager:show(info)
     UIManager:forceRepaint()
     local completed, res = Trapper:dismissableRunInSubprocess(function()
       return self.ui.document:findAllText(

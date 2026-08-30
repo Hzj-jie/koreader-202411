@@ -73,12 +73,15 @@ Provides a browser-based remote control interface, allowing users to drive appli
 ### 📶 Network Management Component
 Refined network state monitoring and wifi manager to simplify logic and prevent runtime crashes:
 *   **Network Manager Rework ([PR #144](https://github.com/Hzj-jie/koreader-202411/pull/144))**: Simplified network connection management to prevent crashes when transitioning between different network states (like connecting or disconnecting).
-*   **Background Connection Checker ([PR #216](https://github.com/Hzj-jie/koreader-202411/pull/216))**: Replaced blocking network status checks with an asynchronous background checker to monitor Wi-Fi status smoothly without freezing the user interface.
+*   **Background Connection Checker ([PR #216](https://github.com/Hzj-jie/koreader-202411/pull/216))**: Replaced blocking network status checks with an asynchronous, forked background worker to monitor online status smoothly and without UI lag across all device platforms (including devices without hardware Wi-Fi toggles).
 
 ### 🛡️ Stability & Hardening
 Improvements to event handling, resource management, and core systems to ensure a more robust and responsive experience:
+*   **Concurrent Background Task Runner & Subprocess Isolation**: Enhanced the BackgroundRunner framework to support concurrent background tasks, queue capacity limits, and isolated forked subprocess execution. Integrated a post-fork `ForkedProcess` event broadcast to automatically clean up LIPC handles (with process-specific service names) and safely skip document engine teardown in background workers.
 *   **Background Operations**: Refactored background operations ([Commit 2a6c63a9](https://github.com/Hzj-jie/koreader-202411/commit/2a6c63a9), [Commit c7fbdc64](https://github.com/Hzj-jie/koreader-202411/commit/c7fbdc64), [Commit d8592e1b](https://github.com/Hzj-jie/koreader-202411/commit/d8592e1b), [Commit d22a5a99](https://github.com/Hzj-jie/koreader-202411/commit/d22a5a99)) to use a unified task runner for automated jobs (such as automatic frontlight adjustments, clock updates, and network connectivity checks), separating background tasks from user interface elements to improve system responsiveness and reliability.
 *   **Settings & Storage**: Upgraded the settings framework to improve storage efficiency and data safety, optimizing disk write operations to prevent configuration data loss or file corruption during saves ([Commit 7a0cc257](https://github.com/Hzj-jie/koreader-202411/commit/7a0cc257), [Commit 452c9a04](https://github.com/Hzj-jie/koreader-202411/commit/452c9a04)).
+*   **Deterministic Test & Hardware Isolation**: Hardened test automation with automatic worker concurrency scaling, isolated sidecar directories per parallel worker, and mock isolation for host system fonts and physical battery/charging states to ensure fully reproducible, flake-free test execution across workstations.
+*   **Text Box & Plugin Loader Reliability**: Prevented index out-of-bounds crashes during cursor position calculations in multiline text box widgets, and added validation checks to the plugin loader before processing user-disabled plugins.
 *   **Various crash preventions**: In components like image views, input dialogs, book map, Table of Contents navigation, synchronization, network listener, statistics plugin, date/time utility, reading history, and dictionary quick lookup.
 
 ### ⚡ Performance & Efficiency
@@ -94,4 +97,5 @@ This build incorporates logic and binaries from the following critical upstream 
 *   **Platform Distributions**: Bundled resources derived from official release packages (`koreader-kindlepw2-v2024.11.zip`, `koreader-kindle-legacy-v2024.11.zip`, `koreader-kobo-v2024.11.zip`).
 *   **SortedIteration**: Embedded ordered traversal utilities sourced from [Lua-Users SortedIteration](http://lua-users.org/wiki/SortedIteration).
 *   **Formatting & Linting**: Integration powered by **StyLua v2.1.0** and **Luacheck v1.2.0**.
+*   **Code Coverage**: Integration powered by **LuaCov v0.17.0** (sourced via `luarocks unpack luacov 0.17.0` / [lunarmodules/luacov](https://github.com/lunarmodules/luacov)).
 *   **Embedded Server**: SSH server operations backed by **Dropbearmulti 2024.85** static binaries.

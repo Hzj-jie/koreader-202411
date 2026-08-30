@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/game2048.koplugin/ui/theme/game2048widgettheme.lua

@@ -67,9 +67,7 @@ function BookStatusWidget:init()
     readonly = self.readonly,
   })
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {
       GestureRange:new({

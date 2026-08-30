@@ -77,6 +77,27 @@ function KOSync:init()
   end
 
   self.ui.menu:registerToMainMenu(self)
+
+  if
+    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+  then
+    self:initDocumentState()
+  end
+end
+
+function KOSync:initDocumentState()
+  if self.data_initialized then
+    return
+  end
+  self.data_initialized = true
+
+  if self.settings.auto_sync then
+    UIManager:scheduleIn(0.1, function()
+      self.last_page_turn_timestamp = 0
+      self:_getProgress(false)
+    end)
+  end
+  self:onDispatcherRegisterActions()
 end
 
 local function getNameStrategy(type)
@@ -149,7 +170,7 @@ local function validateUser(user, pass)
 end
 
 function KOSync:_createClient()
-  return require("KOSyncClient"):new({
+  return require("plugins/kosync.koplugin/KOSyncClient"):new({
     custom_url = self.settings.custom_server,
     service_spec = self.path .. "/api.json",
   })
@@ -172,16 +193,7 @@ function KOSync:onDispatcherRegisterActions()
 end
 
 function KOSync:onReaderReady()
-  if self.settings.auto_sync then
-    UIManager:scheduleIn(0.1, function()
-      -- Opening a book will trigger onPageUpdated, but the page isn't "updated"
-      -- when the book is opened. So reset the last_page_turn_timestamp in
-      -- onReaderReady event to force a pull if any.
-      self.last_page_turn_timestamp = 0
-      self:_getProgress(false)
-    end)
-  end
-  self:onDispatcherRegisterActions()
+  self:initDocumentState()
 end
 
 function KOSync:addToMainMenu(menu_items)
@@ -648,7 +660,7 @@ function KOSync:_updateProgress(interactive)
   local username = self.settings.username
   local userkey = self.settings.userkey
   local device_id = self.device_id
-  local filename = self.view.document.file
+  local filename = self.ui.view.document.file
 
   -- No self in this function, the execution may be delayed.
   local function exec()
@@ -738,7 +750,7 @@ function KOSync:_getProgress(interactive)
       self.settings.userkey,
       doc_digest,
       function(ok, body)
-        logger.dbg("KOSync: [Pull] progress for", self.view.document.file)
+        logger.dbg("KOSync: [Pull] progress for", self.ui.view.document.file)
         logger.dbg("KOSync: ok:", ok, "body:", body)
         if not ok or not body then
           if interactive then

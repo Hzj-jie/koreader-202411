@@ -27,7 +27,7 @@ Maximal errors from 2020-2050 (compared to https://midcdmz.nrel.gov/spa/) are:
 **) A few days after and before midnight sun (error <1200s)
 
 @usage
-    local SunTime = require("suntime")
+    local SunTime = require("plugins/autowarmth.koplugin/suntime")
 
     time_zone = 0
     altitude = 50

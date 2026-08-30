@@ -165,7 +165,7 @@ function MenuSorter:_sort(item_table, order)
   -- remove top level reference before orphan handling
   item_table["KOMenu:menu_buttons"] = nil
 
-  -- attach orphans based on sorting_hint, or with a NEW prefix in the first menu if none found
+  -- attach orphans based on sorting_hint
   for k, v in FFIUtil.orderedPairs(item_table) do
     assert(v.sorting_hint, k)
 
@@ -196,6 +196,23 @@ function MenuSorter:_sort(item_table, order)
       )
     end
   end
+
+  -- Remove empty submenus
+  for i = #sub_menus, 1, -1 do
+    local sub_menu = sub_menus[i]
+    local sub_menu_pos =
+      self:findById(menu_table["KOMenu:menu_buttons"], sub_menu)
+    if
+      sub_menu_pos
+      and sub_menu_pos.sub_item_table
+      and #sub_menu_pos.sub_item_table == 0
+    then
+      self:removeMenuButton(menu_table["KOMenu:menu_buttons"], sub_menu)
+    end
+  end
+
+  self:_flattenSingleItemSubmenus(menu_table["KOMenu:menu_buttons"])
+
   return menu_table["KOMenu:menu_buttons"]
 end
 
@@ -204,6 +221,9 @@ end
 ---- @tparam string needle_id Menu item ID string
 ---- @treturn table a reference to the table item if found
 function MenuSorter:findById(tbl, needle_id)
+  if tbl == nil then
+    return nil
+  end
   local items = {}
 
   for _, item in pairs(tbl) do
@@ -228,6 +248,77 @@ function MenuSorter:findById(tbl, needle_id)
       end
     end
     k, v = next(items, k)
+  end
+end
+
+function MenuSorter:removeMenuButton(tbl, needle_id)
+  local items = {}
+  for _, item in pairs(tbl) do
+    if item ~= "KOMenu:menu_buttons" then
+      table.insert(items, item)
+    end
+  end
+
+  local k, v
+  k, v = next(items, nil)
+  while k do
+    local sub_table = v.sub_item_table or type(v) == "table" and v
+    if sub_table then
+      for idx, item in ipairs(sub_table) do
+        if type(item) == "table" and item.id == needle_id then
+          table.remove(sub_table, idx)
+          return true
+        elseif type(item) == "table" and item.id then
+          table.insert(items, item)
+        end
+      end
+    end
+    k, v = next(items, k)
+  end
+end
+
+function MenuSorter:_flattenSingleItemSubmenus(item)
+  if not item or type(item) ~= "table" then
+    return
+  end
+
+  local children = item.sub_item_table
+  if not children and type(item) == "table" and #item > 0 then
+    children = item
+  end
+  if children then
+    -- First, process all children recursively
+    for idx = 1, #children do
+      self:_flattenSingleItemSubmenus(children[idx])
+    end
+
+    -- Now check if any child is a submenu with exactly 1 item
+    local idx = 1
+    while idx <= #children do
+      local submenu = children[idx]
+      if
+        type(submenu) == "table"
+        and submenu.sub_item_table
+        and #submenu.sub_item_table == 1
+      then
+        local only_item = submenu.sub_item_table[1]
+
+        -- Merge texts
+        local submenu_text = submenu.text or ""
+        local item_text = only_item.text or ""
+
+        assert(
+          not only_item.radio,
+          "Cannot merge single-item submenu containing a radio button"
+        )
+        local flat_item = util.tableDeepCopy(only_item)
+        flat_item.text = submenu_text .. " - " .. item_text
+
+        -- Replace the submenu with the merged flat item
+        children[idx] = flat_item
+      end
+      idx = idx + 1
+    end
   end
 end
 

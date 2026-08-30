@@ -13,7 +13,7 @@ local ButtonDialog = require("ui/widget/buttondialog")
 local ButtonTable = require("ui/widget/buttontable")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
-local DB = require("db")
+local DB = require("plugins/vocabbuilder.koplugin/db")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
@@ -819,7 +819,7 @@ function VocabItemWidget:init()
     height = math.floor((self.height - word_height - subtitle_height) / 2),
   })
   self.point_v_spacer = VerticalSpan:new({
-    height = (self.v_spacer.width + word_height / 2) - point_widget_height / 2,
+    height = (self.v_spacer.height + word_height / 2) - point_widget_height / 2,
   })
   self.margin_span = HorizontalSpan:new({ width = Size.padding.large })
   self:initItemWidget()
@@ -829,7 +829,9 @@ function VocabItemWidget:initItemWidget()
   for i = 1, #self.layout do
     self.layout[i] = nil
   end
-  if not self:showParent().is_edit_mode then
+  local parent = self:showParent()
+  local is_edit_mode = parent and parent.is_edit_mode
+  if not is_edit_mode then
     self.more_button = Button:new({
       text = (self.item.prev_context or self.item.next_context) and "⋯"
         or "⋮",
@@ -855,7 +857,7 @@ function VocabItemWidget:initItemWidget()
 
   local right_side_width
   local right_widget
-  if not self:showParent().is_edit_mode and self.item.due_time <= os.time() then
+  if not is_edit_mode and self.item.due_time <= os.time() then
     self.has_review_buttons = true
     right_side_width = self.review_button_width * 2
       + Size.padding.large * 2
@@ -989,7 +991,7 @@ function VocabItemWidget:initItemWidget()
           VerticalSpan:new({
             height = self.height
               - point_widget_height
-              - self.point_v_spacer.width,
+              - self.point_v_spacer.height,
           }),
         }),
         VerticalGroup:new({
@@ -1006,7 +1008,7 @@ function VocabItemWidget:initItemWidget()
             dimen = Geom:new({
               w = text_max_width,
               h = math.floor(
-                self.height - word_height - self.v_spacer.width * 2.2
+                self.height - word_height - self.v_spacer.height * 2.2
               ),
             }),
             HorizontalGroup:new({

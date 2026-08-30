@@ -28,7 +28,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-12 23:26-0700\n"
+"POT-Creation-Date: 2026-06-23 13:29-0700\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Artem Kaznelson <nook.artem@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/koreader/"
@@ -61,7 +61,7 @@ msgstr ""
 "Это может вызывать некоторые проблемы и ухудшать производительность."
 
 #: reader.lua:223 frontend/apps/reader/modules/readertypography.lua:617
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/network/manager.lua:880
 msgid "Ignore"
 msgstr "Игнорировать"
 
@@ -202,25 +202,25 @@ msgstr "Введите имя файла"
 #: frontend/ui/elements/timeout_android.lua:65 frontend/ui/screensaver.lua:366
 #: frontend/ui/widget/bookstatuswidget.lua:586
 #: frontend/ui/widget/confirmbox.lua:50
-#: frontend/ui/widget/container/inputcontainer.lua:326
+#: frontend/ui/widget/container/inputcontainer.lua:324
 #: frontend/ui/widget/dictquicklookup.lua:1364
-#: frontend/ui/widget/inputdialog.lua:891
-#: frontend/ui/widget/inputdialog.lua:977
-#: frontend/ui/widget/inputdialog.lua:1037
-#: frontend/ui/widget/keyboardlayoutdialog.lua:75
+#: frontend/ui/widget/inputdialog.lua:886
+#: frontend/ui/widget/inputdialog.lua:972
+#: frontend/ui/widget/inputdialog.lua:1032
+#: frontend/ui/widget/keyboardlayoutdialog.lua:73
 #: frontend/ui/widget/menu.lua:819 frontend/ui/widget/multiconfirmbox.lua:49
 #: frontend/ui/widget/networksetting.lua:329
 #: frontend/ui/widget/networksetting.lua:371
 #: frontend/ui/widget/numberpickerwidget.lua:182
 #: frontend/ui/widget/pathchooser.lua:142 frontend/ui/widget/textviewer.lua:500
-#: frontend/ui/widget/touchmenu.lua:1420
+#: frontend/ui/widget/touchmenu.lua:1416
 #: plugins/autowarmth.koplugin/main.lua:929
 #: plugins/autowarmth.koplugin/main.lua:1268
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:379
 #: plugins/calibre.koplugin/main.lua:385
 #: plugins/calibre.koplugin/search.lua:247
 #: plugins/calibre.koplugin/wireless.lua:453
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:877
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:890
 #: plugins/coverimage.koplugin/main.lua:492
 #: plugins/exporter.koplugin/target/flomo.lua:75
 #: plugins/exporter.koplugin/target/joplin.lua:256
@@ -410,7 +410,7 @@ msgstr "Выбрать локальную папку"
 #: frontend/ui/widget/dictquicklookup.lua:564
 #: frontend/ui/widget/doublespinwidget.lua:42
 #: frontend/ui/widget/imageviewer.lua:214
-#: frontend/ui/widget/inputdialog.lua:884
+#: frontend/ui/widget/inputdialog.lua:879
 #: frontend/ui/widget/radiobuttonwidget.lua:56
 #: frontend/ui/widget/spinwidget.lua:36 frontend/ui/widget/textviewer.lua:276
 #: plugins/keepalive.koplugin/main.lua:29
@@ -585,8 +585,8 @@ msgstr "Папка Dropbox (/ для корневой)"
 #: frontend/apps/reader/modules/readerstyletweak.lua:1169
 #: frontend/apps/reader/modules/readeruserhyph.lua:343
 #: frontend/apps/reader/modules/readerwikipedia.lua:203
-#: frontend/ui/widget/inputdialog.lua:858
-#: frontend/ui/widget/inputdialog.lua:903
+#: frontend/ui/widget/inputdialog.lua:853
+#: frontend/ui/widget/inputdialog.lua:898
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:385
 #: plugins/coverimage.koplugin/main.lua:499
 #: plugins/gestures.koplugin/main.lua:437
@@ -980,7 +980,7 @@ msgstr "Сбросить пользовательские метаданные �
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
 #: frontend/apps/reader/modules/readermenu.lua:211
-#: frontend/ui/widget/inputdialog.lua:832
+#: frontend/ui/widget/inputdialog.lua:827
 #: plugins/statistics.koplugin/main.lua:3178
 #: plugins/statistics.koplugin/main.lua:3220
 #: plugins/vocabbuilder.koplugin/main.lua:200
@@ -1223,8 +1223,7 @@ msgstr "Папка книги"
 #: frontend/apps/filemanager/filemanagerhistory.lua:466
 #: frontend/apps/reader/modules/readerbookmark.lua:1563
 #: frontend/apps/reader/modules/readersearch.lua:352
-#: frontend/ui/widget/inputdialog.lua:1002
-#: frontend/ui/widget/textviewer.lua:525
+#: frontend/ui/widget/inputdialog.lua:997 frontend/ui/widget/textviewer.lua:525
 msgid "Case sensitive"
 msgstr "С учётом регистра"
 
@@ -1288,7 +1287,7 @@ msgstr "Результаты поиска (%1)"
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:440
 #: frontend/apps/filemanager/filemanager.lua:924
 #: frontend/apps/filemanager/filemanager.lua:1637
-#: frontend/ui/widget/textviewer.lua:763 frontend/ui/widget/touchmenu.lua:1338
+#: frontend/ui/widget/textviewer.lua:765 frontend/ui/widget/touchmenu.lua:1334
 #: plugins/texteditor.koplugin/main.lua:495
 msgid "Open"
 msgstr "Открыть"
@@ -1423,7 +1422,7 @@ msgstr "Введите текст для поиска в истории"
 #: frontend/apps/reader/modules/readerbookmark.lua:1526
 #: frontend/apps/reader/modules/readerhighlight.lua:160
 #: frontend/ui/widget/dictquicklookup.lua:546
-#: frontend/ui/widget/touchmenu.lua:1427
+#: frontend/ui/widget/touchmenu.lua:1423
 #: plugins/opds.koplugin/opdsbrowser.lua:405
 #: plugins/opds.koplugin/opdsbrowser.lua:420
 #: plugins/opds.koplugin/opdsbrowser.lua:601
@@ -1515,7 +1514,7 @@ msgstr ""
 "Отменить удаление файлов будет невозможно."
 
 #: frontend/apps/filemanager/filemanager.lua:652
-#: plugins/exporter.koplugin/main.lua:329 plugins/exporter.koplugin/_meta.lua:4
+#: plugins/exporter.koplugin/main.lua:450 plugins/exporter.koplugin/_meta.lua:4
 msgid "Export highlights"
 msgstr "Экспорт выделений"
 
@@ -1985,7 +1984,7 @@ msgstr "Открыть последний документ: %1?"
 #: frontend/apps/reader/readerui.lua:852 frontend/device/android/device.lua:589
 #: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:49
-#: frontend/ui/widget/container/inputcontainer.lua:333
+#: frontend/ui/widget/container/inputcontainer.lua:331
 #: frontend/ui/widget/numberpickerwidget.lua:189
 #: plugins/autowarmth.koplugin/main.lua:936
 #: plugins/calibre.koplugin/main.lua:392
@@ -2027,7 +2026,7 @@ msgstr "последнего файла"
 msgid "Start with: %1"
 msgstr "Старт с: %1"
 
-#: frontend/apps/filemanager/filemanagermenu.lua:729
+#: frontend/apps/filemanager/filemanagermenu.lua:730
 msgid "File manager menu"
 msgstr "Меню просмотра файлов"
 
@@ -4896,7 +4895,7 @@ msgstr "Предыдущий: %1"
 msgid "Would you like to open the previous document: %1?"
 msgstr "Вы хотите открыть предыдущий документ: %1?"
 
-#: frontend/apps/reader/modules/readermenu.lua:410
+#: frontend/apps/reader/modules/readermenu.lua:411
 msgid "Document menu"
 msgstr "Меню документа"
 
@@ -5414,7 +5413,7 @@ msgid "Invalid regular expression."
 msgstr "Недопустимое регулярное выражение."
 
 #: frontend/apps/reader/modules/readersearch.lua:313
-#: frontend/ui/widget/inputdialog.lua:971 frontend/ui/widget/textviewer.lua:495
+#: frontend/ui/widget/inputdialog.lua:966 frontend/ui/widget/textviewer.lua:495
 msgid "Enter text to search for"
 msgstr "Введите текст поискового запроса"
 
@@ -7775,12 +7774,12 @@ msgid "Light settings"
 msgstr "Настройки освещения"
 
 #: frontend/device/android/device.lua:587
-#: frontend/ui/widget/frontlightwidget.lua:153
+#: frontend/ui/widget/frontlightwidget.lua:152
 msgid "Brightness"
 msgstr "Яркость"
 
 #: frontend/device/android/device.lua:588
-#: frontend/ui/widget/frontlightwidget.lua:268
+#: frontend/ui/widget/frontlightwidget.lua:267
 msgid "Warmth"
 msgstr "Теплота"
 
@@ -7876,8 +7875,8 @@ msgstr "Кнопки листания страниц более не инвер�
 msgid "Page-turn buttons inverted."
 msgstr "Кнопки листания страниц инвертированы."
 
-#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1755
-#: frontend/ui/uimanager.lua:1777
+#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1738
 msgid "Later"
 msgstr "Позже"
 
@@ -8013,7 +8012,7 @@ msgstr "Перезагрузить устройство"
 
 #: frontend/dispatcher.lua:171
 #: frontend/ui/elements/common_exit_menu_table.lua:51
-#: frontend/ui/uimanager.lua:1735
+#: frontend/ui/uimanager.lua:1696
 msgid "Power off"
 msgstr "Выключить устройство"
 
@@ -10987,14 +10986,14 @@ msgid "Set how the page should be resized to fit the screen."
 msgstr "Задать такое изменение размера страницы, чтобы она вписалась в экран."
 
 #: frontend/ui/data/koptoptions.lua:243
-#: plugins/coverbrowser.koplugin/main.lua:206
-#: plugins/coverbrowser.koplugin/main.lua:261
+#: plugins/coverbrowser.koplugin/main.lua:205
+#: plugins/coverbrowser.koplugin/main.lua:260
 msgid "Rows"
 msgstr "Рядов"
 
 #: frontend/ui/data/koptoptions.lua:243
-#: plugins/coverbrowser.koplugin/main.lua:200
-#: plugins/coverbrowser.koplugin/main.lua:255
+#: plugins/coverbrowser.koplugin/main.lua:199
+#: plugins/coverbrowser.koplugin/main.lua:254
 msgid "Columns"
 msgstr "Колонок"
 
@@ -11444,7 +11443,7 @@ msgid "Advanced settings"
 msgstr "Расширенные настройки"
 
 #: frontend/ui/elements/common_info_menu_table.lua:23
-#: frontend/ui/widget/touchmenu.lua:1416 frontend/ui/widget/touchmenu.lua:1435
+#: frontend/ui/widget/touchmenu.lua:1412 frontend/ui/widget/touchmenu.lua:1431
 #: plugins/exporter.koplugin/target/joplin.lua:323
 #: plugins/exporter.koplugin/target/nextcloud.lua:153
 #: plugins/exporter.koplugin/target/xmnote.lua:71
@@ -11558,7 +11557,7 @@ msgid "Start %1 reader app"
 msgstr "Пуск приложения %1 программы чтения"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:30
-#: frontend/ui/widget/frontlightwidget.lua:377
+#: frontend/ui/widget/frontlightwidget.lua:376
 msgid "Frontlight"
 msgstr "Подсветка"
 
@@ -11678,13 +11677,13 @@ msgid "Navigation"
 msgstr "Навигация"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:285
-#: frontend/ui/network/manager.lua:862 plugins/kosync.koplugin/main.lua:84
+#: frontend/ui/network/manager.lua:877 plugins/kosync.koplugin/main.lua:84
 #: plugins/kosync.koplugin/main.lua:285 plugins/kosync.koplugin/main.lua:322
 msgid "Prompt"
 msgstr "Напомнить"
 
 #: frontend/ui/elements/common_settings_menu_table.lua:285
-#: frontend/ui/network/manager.lua:862
+#: frontend/ui/network/manager.lua:877
 msgid "prompt"
 msgstr "напомнить"
 
@@ -12148,7 +12147,7 @@ msgid "Share storage via USB?"
 msgstr "Дать доступ к хранилищу через USB?"
 
 #: frontend/ui/elements/mass_storage.lua:80
-#: plugins/exporter.koplugin/base.lua:161
+#: plugins/exporter.koplugin/base.lua:164
 msgid "Share"
 msgstr "Дать доступ"
 
@@ -12958,59 +12957,71 @@ msgstr ""
 msgid "Language"
 msgstr "Язык"
 
-#: frontend/ui/network/manager.lua:71 frontend/ui/network/manager.lua:528
+#: frontend/ui/network/manager.lua:71 frontend/ui/network/manager.lua:537
 msgid "Error connecting to the network"
 msgstr "Ошибка подключения к сети"
 
-#: frontend/ui/network/manager.lua:493
+#: frontend/ui/network/manager.lua:502
 msgid "Turning on Wi-Fi…"
 msgstr "Включение Wi-Fi…"
 
-#: frontend/ui/network/manager.lua:537
+#: frontend/ui/network/manager.lua:546
 msgid ""
 "A previous connection attempt is still ongoing, this one will be ignored!"
 msgstr ""
 "Предыдущая попытка подключения ещё не завершена, поэтому новые игнорируются!"
 
-#: frontend/ui/network/manager.lua:552
+#: frontend/ui/network/manager.lua:561
 msgid "Turning off Wi-Fi…"
 msgstr "Выключение Wi-Fi…"
 
-#: frontend/ui/network/manager.lua:598
+#: frontend/ui/network/manager.lua:586
+msgid "You are connected to Wi-Fi, but have no Internet access."
+msgstr ""
+
+#: frontend/ui/network/manager.lua:588
+msgid "Do you want to select another Wi-Fi network?"
+msgstr ""
+
+#: frontend/ui/network/manager.lua:589
+msgid "Select Wi-Fi"
+msgstr ""
+
+#: frontend/ui/network/manager.lua:619
 msgid "Network connection is required to perform the action."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:600
+#: frontend/ui/network/manager.lua:621
 msgid "Do you want to turn on Wi-Fi?"
 msgstr "Вы хотите включить Wi-Fi?"
 
-#: frontend/ui/network/manager.lua:601 frontend/ui/network/manager.lua:861
+#: frontend/ui/network/manager.lua:622 frontend/ui/network/manager.lua:876
 #: plugins/autowarmth.koplugin/main.lua:1241
 #: plugins/gestures.koplugin/main.lua:1324
 msgid "Turn on"
 msgstr "Включить"
 
-#: frontend/ui/network/manager.lua:657
+#: frontend/ui/network/manager.lua:678
 msgid "Action will be performed after network being online"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:672
+#: frontend/ui/network/manager.lua:693
 msgid "Action will be performed after network being connected"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:711
+#: frontend/ui/network/manager.lua:732
 msgid "Wi-Fi settings"
 msgstr "Настройки Wi-Fi"
 
-#: frontend/ui/network/manager.lua:723
+#: frontend/ui/network/manager.lua:744
 msgid "Wi-Fi connection"
 msgstr "Wi-Fi подключение"
 
-#: frontend/ui/network/manager.lua:769
+#: frontend/ui/network/manager.lua:784
 msgid "HTTP proxy %1"
 msgstr "HTTP-прокси %1"
 
-#: frontend/ui/network/manager.lua:785
+#: frontend/ui/network/manager.lua:800
 msgid ""
 "Tip:\n"
 "Long press on this menu entry to configure HTTP proxy."
@@ -13018,15 +13029,15 @@ msgstr ""
 "Подсказка:\n"
 "Коснитесь и удерживайте данный пункт меню, чтобы настроить HTTP-прокси."
 
-#: frontend/ui/network/manager.lua:791
+#: frontend/ui/network/manager.lua:806
 msgid "Enter proxy address"
 msgstr "Введите адрес прокси-сервера"
 
-#: frontend/ui/network/manager.lua:802
+#: frontend/ui/network/manager.lua:817
 msgid "Disable Wi-Fi connection when inactive"
 msgstr "Отключать Wi-Fi при отсутствии сетевой активности"
 
-#: frontend/ui/network/manager.lua:805
+#: frontend/ui/network/manager.lua:820
 msgid ""
 "This is unlikely to function properly on a stock Kindle, given how much "
 "network activity the framework generates."
@@ -13034,7 +13045,7 @@ msgstr ""
 "На Kindle это вряд ли будет работать корректно - его сетевая активность "
 "весьма велика."
 
-#: frontend/ui/network/manager.lua:808
+#: frontend/ui/network/manager.lua:823
 msgid ""
 "This will automatically turn Wi-Fi off after a generous period of network "
 "inactivity, without disrupting workflows that require a network connection, "
@@ -13044,11 +13055,11 @@ msgstr ""
 "сохранением требующих сетевого подключения рабочих процессов. Вы можете "
 "просто продолжать чтение, не беспокоясь о разряде батареи."
 
-#: frontend/ui/network/manager.lua:821
+#: frontend/ui/network/manager.lua:836
 msgid "Restore Wi-Fi connection on resume"
 msgstr "Восстанавливать подключение Wi-Fi при возобновлении работы"
 
-#: frontend/ui/network/manager.lua:824
+#: frontend/ui/network/manager.lua:839
 msgid ""
 "This will attempt to automatically and silently re-connect to Wi-Fi on "
 "startup or on resume if Wi-Fi used to be enabled the last time you used "
@@ -13059,45 +13070,45 @@ msgstr ""
 "если Wi-Fi был включён при последнем использовании KOReader'а и вы не "
 "отключали его вручную."
 
-#: frontend/ui/network/manager.lua:840
+#: frontend/ui/network/manager.lua:855
 msgid "Network info"
 msgstr "Информация о сети"
 
-#: frontend/ui/network/manager.lua:861
+#: frontend/ui/network/manager.lua:876
 msgid "turn on"
 msgstr "включить"
 
-#: frontend/ui/network/manager.lua:865
+#: frontend/ui/network/manager.lua:880
 msgid "ignore"
 msgstr "игнорировать"
 
-#: frontend/ui/network/manager.lua:883
+#: frontend/ui/network/manager.lua:898
 msgid "Action when Wi-Fi is off: %1"
 msgstr "Действие при отключенном Wi-Fi: %1"
 
-#: frontend/ui/network/manager.lua:901
+#: frontend/ui/network/manager.lua:916
 msgid "Automatically connect to the known Wi-Fi"
 msgstr ""
 
-#: frontend/ui/network/manager.lua:903
+#: frontend/ui/network/manager.lua:918
 msgid ""
 "Instead of showing a list of Wi-Fi SSIDs, KOReader will connect to a known "
 "network automatically after turning on Wi-Fi."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:969
+#: frontend/ui/network/manager.lua:980
 msgid "No available wifi networks found."
 msgstr ""
 
-#: frontend/ui/network/manager.lua:978
+#: frontend/ui/network/manager.lua:989
 msgid "Scanning for networks…"
 msgstr "Поиск сетей…"
 
-#: frontend/ui/network/manager.lua:1080
+#: frontend/ui/network/manager.lua:1086
 msgid "Connecting to network %1…"
 msgstr "Подключение к сети %1…"
 
-#: frontend/ui/network/manager.lua:1081
+#: frontend/ui/network/manager.lua:1087
 msgid "Connected to network %1"
 msgstr "Подключено к сети %1"
 
@@ -14253,14 +14264,14 @@ msgstr "Приостановлено"
 
 #: frontend/ui/trapper.lua:162 frontend/ui/wikipedia.lua:1706
 #: plugins/calibre.koplugin/wireless.lua:230
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:878
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:891
 #: plugins/newsdownloader.koplugin/epubdownloadbackend.lua:721
 #: plugins/newsdownloader.koplugin/main.lua:329
 msgid "Continue"
 msgstr "Продолжить"
 
 #: frontend/ui/trapper.lua:164
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:917
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:930
 msgid "Abort"
 msgstr "Прервать"
 
@@ -14272,28 +14283,28 @@ msgstr "Выключено"
 msgid "Rebooting…"
 msgstr "Перезагрузка…"
 
-#: frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1677
 msgid "Are you sure you want to reboot the device?"
 msgstr "Вы уверены, что хотите перезагрузить устройство?"
 
-#: frontend/ui/uimanager.lua:1717
+#: frontend/ui/uimanager.lua:1678
 msgid "Reboot"
 msgstr "Перезагрузить"
 
-#: frontend/ui/uimanager.lua:1734
+#: frontend/ui/uimanager.lua:1695
 msgid "Are you sure you want to power off the device?"
 msgstr "Вы уверены, что хотите отключить устройство?"
 
-#: frontend/ui/uimanager.lua:1750 frontend/ui/uimanager.lua:1760
+#: frontend/ui/uimanager.lua:1711 frontend/ui/uimanager.lua:1721
 #: plugins/calibre.koplugin/main.lua:227
 msgid "This will take effect on next restart."
 msgstr "Изменение вступит в силу только после перезапуска."
 
-#: frontend/ui/uimanager.lua:1751
+#: frontend/ui/uimanager.lua:1712
 msgid "Restart now"
 msgstr "Перезапустить сейчас"
 
-#: frontend/ui/uimanager.lua:1776
+#: frontend/ui/uimanager.lua:1737
 msgid "Settings changed. Reload document to take effect?"
 msgstr ""
 
@@ -14594,11 +14605,11 @@ msgstr ""
 msgid "no text"
 msgstr "нет текста"
 
-#: frontend/ui/widget/container/inputcontainer.lua:301
+#: frontend/ui/widget/container/inputcontainer.lua:299
 msgid "Disabled touch input"
 msgstr "Сенсорный ввод отключен"
 
-#: frontend/ui/widget/container/inputcontainer.lua:305
+#: frontend/ui/widget/container/inputcontainer.lua:303
 msgid "Restored touch input"
 msgstr "Сенсорный ввод восстановлен"
 
@@ -14698,25 +14709,25 @@ msgstr ""
 msgid "Loading contents in %1"
 msgstr ""
 
-#: frontend/ui/widget/frontlightwidget.lua:187
-#: frontend/ui/widget/frontlightwidget.lua:302
+#: frontend/ui/widget/frontlightwidget.lua:186
+#: frontend/ui/widget/frontlightwidget.lua:301
 #: plugins/statistics.koplugin/main.lua:1318
 msgctxt "Extrema"
 msgid "Min"
 msgstr "Мин"
 
-#: frontend/ui/widget/frontlightwidget.lua:195
-#: frontend/ui/widget/frontlightwidget.lua:310
+#: frontend/ui/widget/frontlightwidget.lua:194
+#: frontend/ui/widget/frontlightwidget.lua:309
 #: plugins/statistics.koplugin/main.lua:1325
 msgctxt "Extrema"
 msgid "Max"
 msgstr "Макс"
 
-#: frontend/ui/widget/frontlightwidget.lua:203
+#: frontend/ui/widget/frontlightwidget.lua:202
 msgid "Toggle"
 msgstr "Вкл/выкл"
 
-#: frontend/ui/widget/frontlightwidget.lua:322
+#: frontend/ui/widget/frontlightwidget.lua:321
 msgid "Configure"
 msgstr "Конфигурация"
 
@@ -14748,76 +14759,76 @@ msgstr "Повернуть"
 msgid "Image viewer"
 msgstr "Просмотр изображений"
 
-#: frontend/ui/widget/inputdialog.lua:413
+#: frontend/ui/widget/inputdialog.lua:408
 msgid "Read only"
 msgstr "Только для чтения"
 
-#: frontend/ui/widget/inputdialog.lua:415
+#: frontend/ui/widget/inputdialog.lua:410
 msgid "Not editable"
 msgstr "Не редактируемое"
 
-#: frontend/ui/widget/inputdialog.lua:844
+#: frontend/ui/widget/inputdialog.lua:839
 msgid "Text reset"
 msgstr "Сброс текста"
 
-#: frontend/ui/widget/inputdialog.lua:849
+#: frontend/ui/widget/inputdialog.lua:844
 msgid "Resetting failed."
 msgstr "Сброс не выполнен."
 
-#: frontend/ui/widget/inputdialog.lua:870
-#: frontend/ui/widget/inputdialog.lua:912
+#: frontend/ui/widget/inputdialog.lua:865
+#: frontend/ui/widget/inputdialog.lua:907
 msgid "Saving failed."
 msgstr "Сохранение не удалось."
 
-#: frontend/ui/widget/inputdialog.lua:876
-#: frontend/ui/widget/inputdialog.lua:921
+#: frontend/ui/widget/inputdialog.lua:871
+#: frontend/ui/widget/inputdialog.lua:916
 msgid "Saved"
 msgstr "Сохранено"
 
-#: frontend/ui/widget/inputdialog.lua:890
+#: frontend/ui/widget/inputdialog.lua:885
 msgid "You have unsaved changes."
 msgstr "У вас есть несохранённые изменения."
 
-#: frontend/ui/widget/inputdialog.lua:892
+#: frontend/ui/widget/inputdialog.lua:887
 msgid "Discard"
 msgstr "Отказаться"
 
-#: frontend/ui/widget/inputdialog.lua:900
+#: frontend/ui/widget/inputdialog.lua:895
 msgid "Changes discarded"
 msgstr "Изменения отменены"
 
-#: frontend/ui/widget/inputdialog.lua:966 frontend/ui/widget/textviewer.lua:238
+#: frontend/ui/widget/inputdialog.lua:961 frontend/ui/widget/textviewer.lua:238
 #: frontend/ui/widget/textviewer.lua:589
 msgid "Find"
 msgstr "Найти"
 
-#: frontend/ui/widget/inputdialog.lua:985 frontend/ui/widget/textviewer.lua:507
+#: frontend/ui/widget/inputdialog.lua:980 frontend/ui/widget/textviewer.lua:507
 msgid "Find first"
 msgstr "Найти первое"
 
-#: frontend/ui/widget/inputdialog.lua:991 frontend/ui/widget/textviewer.lua:514
+#: frontend/ui/widget/inputdialog.lua:986 frontend/ui/widget/textviewer.lua:514
 #: frontend/ui/widget/textviewer.lua:588
 msgid "Find next"
 msgstr "Искать далее"
 
-#: frontend/ui/widget/inputdialog.lua:1025
+#: frontend/ui/widget/inputdialog.lua:1020
 msgid "Enter line number"
 msgstr "Введите номер строки"
 
 #. @translators %1 is the current line number, %2 is the last line number
-#: frontend/ui/widget/inputdialog.lua:1028
+#: frontend/ui/widget/inputdialog.lua:1023
 msgid "%1 (1 - %2)"
 msgstr "%1 (1 - %2)"
 
-#: frontend/ui/widget/inputdialog.lua:1045
+#: frontend/ui/widget/inputdialog.lua:1040
 msgid "Go to line"
 msgstr "Перейти к строке"
 
-#: frontend/ui/widget/inputdialog.lua:1167
+#: frontend/ui/widget/inputdialog.lua:1162
 msgid "Found in line %1."
 msgstr "Найдено в строке %1."
 
-#: frontend/ui/widget/inputdialog.lua:1169
+#: frontend/ui/widget/inputdialog.lua:1164
 #: frontend/ui/widget/textviewer.lua:579
 msgid "Not found."
 msgstr "Не найдено."
@@ -14875,11 +14886,11 @@ msgstr "Текст может иметь двоичное содержимое �
 msgid "Show password"
 msgstr "Показывать пароль"
 
-#: frontend/ui/widget/keyboardlayoutdialog.lua:41
+#: frontend/ui/widget/keyboardlayoutdialog.lua:39
 msgid "Keyboard layout"
 msgstr "Раскладка клавиатуры"
 
-#: frontend/ui/widget/keyboardlayoutdialog.lua:82
+#: frontend/ui/widget/keyboardlayoutdialog.lua:80
 msgid "Switch to layout"
 msgstr "Переключиться на раскладку"
 
@@ -14892,7 +14903,7 @@ msgstr "Введите номер страницы"
 
 #. @translators %1 is the current page. %2 is the total number of pages. In some languages a good translation might need to reverse this order, for instance: "Total %2, page %1".
 #: frontend/ui/widget/keyvaluepage.lua:764 frontend/ui/widget/menu.lua:1101
-#: frontend/ui/widget/touchmenu.lua:797
+#: frontend/ui/widget/touchmenu.lua:793
 #: plugins/coverbrowser.koplugin/listmenu.lua:384
 #: plugins/statistics.koplugin/calendarview.lua:885
 #: plugins/vocabbuilder.koplugin/main.lua:1830
@@ -15250,7 +15261,7 @@ msgstr "По ширине"
 msgid "Text viewer"
 msgstr "Просмотр текста"
 
-#: frontend/ui/widget/textviewer.lua:758
+#: frontend/ui/widget/textviewer.lua:760
 #: plugins/texteditor.koplugin/main.lua:490
 msgid ""
 "This file is %2:\n"
@@ -15269,29 +15280,29 @@ msgstr ""
 "\n"
 "Открытие больших файлов может занять некоторое время."
 
-#: frontend/ui/widget/touchmenu.lua:1283
+#: frontend/ui/widget/touchmenu.lua:1279
 msgid "Walking you there…"
 msgstr "Идём к пункту меню…"
 
-#: frontend/ui/widget/touchmenu.lua:1346
+#: frontend/ui/widget/touchmenu.lua:1342
 msgid "Walk me there"
 msgstr "Провести к этому пункту"
 
-#: frontend/ui/widget/touchmenu.lua:1375
+#: frontend/ui/widget/touchmenu.lua:1371
 #: plugins/calibre.koplugin/search.lua:530
 #: plugins/opds.koplugin/opdsbrowser.lua:605
 msgid "Search results"
 msgstr "Результаты поиска"
 
-#: frontend/ui/widget/touchmenu.lua:1405
+#: frontend/ui/widget/touchmenu.lua:1401
 msgid "No menus containing '%1' found."
 msgstr "Содержащие «%1» меню не найдены."
 
-#: frontend/ui/widget/touchmenu.lua:1412
+#: frontend/ui/widget/touchmenu.lua:1408
 msgid "Search menu entry"
 msgstr "Найти пункт меню"
 
-#: frontend/ui/widget/touchmenu.lua:1414
+#: frontend/ui/widget/touchmenu.lua:1410
 msgid ""
 "Search for a menu entry containing the following text (case insensitive)."
 msgstr "Поиск пункта меню, содержащего следующий текст (без учёта регистра)."
@@ -16721,23 +16732,23 @@ msgstr "слишком много прерываний или сбоев"
 msgid "Book info cache database updated."
 msgstr "База данных кэша информации о книгах обновлена."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:261
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:274
 msgid "Failed compacting database: %1"
 msgstr "Не удалось сжать базу данных: %1"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:265
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:278
 msgid "Cache database size reduced from %1 to %2."
 msgstr "Размер базы данных кэша уменьшен с %1 до %2."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:662
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:675
 msgid "Cache is empty. Nothing to prune."
 msgstr "Кэш пуст. Нечего очищать."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:680
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:693
 msgid "Removed %1 / %2 entries from cache."
 msgstr "Удалено %1 / %2 записей из кэша."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:868
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:881
 msgid ""
 "This will extract metadata and cover images from books in the current "
 "directory.\n"
@@ -16762,34 +16773,34 @@ msgstr ""
 "Процесс извлечения может занимать некоторое время, потребляя заряд батареи: "
 "вы можете оставить устройство подключённым."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:885
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:898
 msgid "Also extract book information from books in subdirectories?"
 msgstr "Также извлечь информацию из книг в подпапках?"
 
 #. @translators Extract book information only for books in this directory.
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:888
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:901
 msgid "Here only"
 msgstr "Только здесь"
 
 #. @translators Extract book information for books in this directory as well as in subdirectories.
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:890
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:903
 msgid "Here and under"
 msgstr "Здесь и ниже"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:895
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:908
 msgid ""
 "Do you want to refresh metadata and covers that have already been extracted?"
 msgstr "Вы хотите обновить метаданные и обложки, которые уже были извлечены?"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:898
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:911
 msgid "Don't refresh"
 msgstr "Не обновлять"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:899
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:912
 msgid "Refresh"
 msgstr "Обновить"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:903
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:916
 msgid ""
 "If you have removed many books, or have renamed some directories, it is good "
 "to remove them from the cache database.\n"
@@ -16801,37 +16812,37 @@ msgstr ""
 "\n"
 "Вы хотите очистить кэш удалённых книг?"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:907
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:920
 msgid "Don't prune"
 msgstr "Не очищать"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:908
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:921
 msgid "Prune"
 msgstr "Очистить"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:915
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:928
 msgid "Do you want to abort extraction?"
 msgstr "Вы хотите прервать извлечение?"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:916
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:929
 msgid "Don't abort"
 msgstr "Не прерывать"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:929
-#: plugins/coverbrowser.koplugin/main.lua:512
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:942
+#: plugins/coverbrowser.koplugin/main.lua:511
 msgid "Pruning cache of removed books…"
 msgstr "Очистка кэша от удалённых книг…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:953
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:966
 msgid "Looking for books to index…"
 msgstr "Поиск книг для индексирования…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:967
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:980
 msgid "No books were found."
 msgstr "Книги не найдены."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:979
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1041
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:992
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1054
 msgid "Found 1 book to index."
 msgid_plural "Found %1 books to index."
 msgstr[0] "Найдена %1 книга для индексации."
@@ -16839,7 +16850,7 @@ msgstr[1] "Найдено %1 книги для индексации."
 msgstr[2] "Найдено %1 книг для индексации."
 msgstr[3] "Найдено книг для индексации: %1."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:992
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1005
 msgid ""
 "Found %1 books.\n"
 "Looking for those not already present in the cache database…"
@@ -16847,11 +16858,11 @@ msgstr ""
 "Найдено %1 книг.\n"
 "Идёт поиск тех, которые ещё не присутствуют в базе данных кэша…"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1030
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1043
 msgid "No books were found that need to be indexed."
 msgstr "Не найдены книги, которые нужно индексировать."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1070
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1083
 msgid ""
 "Indexing %1 / %2…\n"
 "\n"
@@ -16861,11 +16872,11 @@ msgstr ""
 "\n"
 "%3"
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1119
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1132
 msgid "Processed %1 / %2 books."
 msgstr "Обработано %1 / %2 книг."
 
-#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1123
+#: plugins/coverbrowser.koplugin/bookinfomanager.lua:1136
 msgid "One extracted successfully."
 msgid_plural "%1 extracted successfully."
 msgstr[0] "%1 успешно извлечена."
@@ -16982,119 +16993,119 @@ msgstr "Подробный список с метаданными, без обл
 msgid "Detailed list with cover images and filenames"
 msgstr "Подробный список с обложками и именами файлов"
 
-#: plugins/coverbrowser.koplugin/main.lua:144
+#: plugins/coverbrowser.koplugin/main.lua:143
 msgid "Use this mode everywhere"
 msgstr "Использовать данный режим везде"
 
-#: plugins/coverbrowser.koplugin/main.lua:156
+#: plugins/coverbrowser.koplugin/main.lua:155
 msgid "History display mode"
 msgstr "Режим отображения истории"
 
-#: plugins/coverbrowser.koplugin/main.lua:163
+#: plugins/coverbrowser.koplugin/main.lua:162
 msgid "Collections display mode"
 msgstr "Режим отображения подборок"
 
-#: plugins/coverbrowser.koplugin/main.lua:170
+#: plugins/coverbrowser.koplugin/main.lua:169
 msgid "Display mode"
 msgstr "Режим отображения"
 
-#: plugins/coverbrowser.koplugin/main.lua:181
+#: plugins/coverbrowser.koplugin/main.lua:180
 msgid "Mosaic and detailed list settings"
 msgstr "Настройки мозаики и подробного списка"
 
-#: plugins/coverbrowser.koplugin/main.lua:187
+#: plugins/coverbrowser.koplugin/main.lua:186
 msgid "Items per page in portrait mosaic mode: %1 × %2"
 msgstr "Элементов на странице для портретной мозаики: %1 × %2"
 
-#: plugins/coverbrowser.koplugin/main.lua:198
+#: plugins/coverbrowser.koplugin/main.lua:197
 msgid "Portrait mosaic mode"
 msgstr "Режим мозаики (портретный)"
 
-#: plugins/coverbrowser.koplugin/main.lua:243
+#: plugins/coverbrowser.koplugin/main.lua:242
 msgid "Items per page in landscape mosaic mode: %1 × %2"
 msgstr "Элементов на странице для альбомной мозаики: %1 × %2"
 
-#: plugins/coverbrowser.koplugin/main.lua:253
+#: plugins/coverbrowser.koplugin/main.lua:252
 msgid "Landscape mosaic mode"
 msgstr "Режим мозаики (альбомный)"
 
-#: plugins/coverbrowser.koplugin/main.lua:302
+#: plugins/coverbrowser.koplugin/main.lua:301
 msgid "Items per page in portrait list mode: %1"
 msgstr "Элементов на странице для портретного списка: %1"
 
-#: plugins/coverbrowser.koplugin/main.lua:310
+#: plugins/coverbrowser.koplugin/main.lua:309
 msgid "Portrait list mode"
 msgstr "Режим списка (портретный)"
 
-#: plugins/coverbrowser.koplugin/main.lua:339
+#: plugins/coverbrowser.koplugin/main.lua:338
 msgid "Progress"
 msgstr "Прогресс"
 
-#: plugins/coverbrowser.koplugin/main.lua:342
+#: plugins/coverbrowser.koplugin/main.lua:341
 msgid "Show progress in mosaic mode"
 msgstr "Показывать прогресс в режиме мозаики"
 
-#: plugins/coverbrowser.koplugin/main.lua:353
+#: plugins/coverbrowser.koplugin/main.lua:352
 msgid "Show progress in detailed list mode"
 msgstr "Показывать прогресс в режиме подробного списка"
 
-#: plugins/coverbrowser.koplugin/main.lua:363
+#: plugins/coverbrowser.koplugin/main.lua:362
 msgid "Show number of pages read instead of progress %"
 msgstr "Показывать прочитанное в страницах вместо %"
 
-#: plugins/coverbrowser.koplugin/main.lua:376
+#: plugins/coverbrowser.koplugin/main.lua:375
 msgid "Show number of pages left to read"
 msgstr "Показывать сколько страниц осталось прочитать"
 
-#: plugins/coverbrowser.koplugin/main.lua:391
+#: plugins/coverbrowser.koplugin/main.lua:390
 msgid "Display hints"
 msgstr "Показывать подсказки"
 
-#: plugins/coverbrowser.koplugin/main.lua:394
+#: plugins/coverbrowser.koplugin/main.lua:393
 msgid "Show hint for books with description"
 msgstr "Подсказка для книг с описанием"
 
-#: plugins/coverbrowser.koplugin/main.lua:404
+#: plugins/coverbrowser.koplugin/main.lua:403
 msgid "Show hint for book status in history"
 msgstr "Подсказка по статусу книг в «истории»"
 
-#: plugins/coverbrowser.koplugin/main.lua:414
+#: plugins/coverbrowser.koplugin/main.lua:413
 msgid "Show hint for book status in collections"
 msgstr "Показать статус книги в подборках как подсказку"
 
-#: plugins/coverbrowser.koplugin/main.lua:426
+#: plugins/coverbrowser.koplugin/main.lua:425
 msgid "Series"
 msgstr "Серии"
 
-#: plugins/coverbrowser.koplugin/main.lua:429
+#: plugins/coverbrowser.koplugin/main.lua:428
 msgid "Append series metadata to authors"
 msgstr "Добавлять метаданные серии к авторам"
 
-#: plugins/coverbrowser.koplugin/main.lua:444
+#: plugins/coverbrowser.koplugin/main.lua:443
 msgid "Append series metadata to title"
 msgstr "Добавлять метаданные серии к названию"
 
-#: plugins/coverbrowser.koplugin/main.lua:459
+#: plugins/coverbrowser.koplugin/main.lua:458
 msgid "Show series metadata in separate line"
 msgstr "Показывать метаданные серии отдельной строкой"
 
-#: plugins/coverbrowser.koplugin/main.lua:476
+#: plugins/coverbrowser.koplugin/main.lua:475
 msgid "Show file properties"
 msgstr "Показать свойства файла"
 
-#: plugins/coverbrowser.koplugin/main.lua:487
+#: plugins/coverbrowser.koplugin/main.lua:486
 msgid "Book info cache management"
 msgstr "Управление кэшем информации о книгах"
 
-#: plugins/coverbrowser.koplugin/main.lua:492
+#: plugins/coverbrowser.koplugin/main.lua:491
 msgid "Current cache size: "
 msgstr "Текущий размер кэша: "
 
-#: plugins/coverbrowser.koplugin/main.lua:498
+#: plugins/coverbrowser.koplugin/main.lua:497
 msgid "Prune cache of removed books"
 msgstr "Очистить кэш от удалённых книг"
 
-#: plugins/coverbrowser.koplugin/main.lua:506
+#: plugins/coverbrowser.koplugin/main.lua:505
 msgid ""
 "Are you sure that you want to prune cache of removed books?\n"
 "(This may take a while.)"
@@ -17102,15 +17113,15 @@ msgstr ""
 "Вы уверены, что хотите очистить кэш от удалённых книг?\n"
 "(Это может занять некоторое время.)"
 
-#: plugins/coverbrowser.koplugin/main.lua:508
+#: plugins/coverbrowser.koplugin/main.lua:507
 msgid "Prune cache"
 msgstr "Очистить кэш"
 
-#: plugins/coverbrowser.koplugin/main.lua:525
+#: plugins/coverbrowser.koplugin/main.lua:524
 msgid "Compact cache database"
 msgstr "Сжать базу данных кэша"
 
-#: plugins/coverbrowser.koplugin/main.lua:532
+#: plugins/coverbrowser.koplugin/main.lua:531
 msgid ""
 "Are you sure that you want to compact cache database?\n"
 "(This may take a while.)"
@@ -17118,19 +17129,19 @@ msgstr ""
 "Вы уверены, что хотите сжать базу данных кэша?\n"
 "(Это может занять некоторое время.)"
 
-#: plugins/coverbrowser.koplugin/main.lua:534
+#: plugins/coverbrowser.koplugin/main.lua:533
 msgid "Compact database"
 msgstr "Сжать базу данных"
 
-#: plugins/coverbrowser.koplugin/main.lua:538
+#: plugins/coverbrowser.koplugin/main.lua:537
 msgid "Compacting cache database…"
 msgstr "Сжатие базы данных кэша…"
 
-#: plugins/coverbrowser.koplugin/main.lua:551
+#: plugins/coverbrowser.koplugin/main.lua:550
 msgid "Delete cache database"
 msgstr "Удалить базу данных кэша"
 
-#: plugins/coverbrowser.koplugin/main.lua:558
+#: plugins/coverbrowser.koplugin/main.lua:557
 msgid ""
 "Are you sure that you want to delete cover and metadata cache?\n"
 "(This will also reset your display mode settings.)"
@@ -17138,7 +17149,7 @@ msgstr ""
 "Вы уверены, что хотите удалить кэш обложек и метаданных?\n"
 "(Это также сбросит ваши настройки режима отображения.)"
 
-#: plugins/coverbrowser.koplugin/main.lua:560
+#: plugins/coverbrowser.koplugin/main.lua:559
 msgid "Purge"
 msgstr "Очистить"
 
@@ -17457,59 +17468,63 @@ msgstr "Неизвестная книга"
 msgid "Unknown Author"
 msgstr "Неизвестный автор"
 
-#: plugins/exporter.koplugin/main.lua:137
+#: plugins/exporter.koplugin/main.lua:138
 #: plugins/exporter.koplugin/main.lua:332
 msgid "Export all notes in current book"
 msgstr "Экспортировать все заметки из данной книги"
 
-#: plugins/exporter.koplugin/main.lua:143
+#: plugins/exporter.koplugin/main.lua:144
 #: plugins/exporter.koplugin/main.lua:341
 msgid "Export all notes in all books in history"
 msgstr "Экспортировать все заметки из всех книг в истории"
 
-#: plugins/exporter.koplugin/main.lua:189
-#: plugins/exporter.koplugin/main.lua:211
-#: plugins/exporter.koplugin/main.lua:226
+#: plugins/exporter.koplugin/main.lua:190
+#: plugins/exporter.koplugin/main.lua:212
+#: plugins/exporter.koplugin/main.lua:227
 msgid "Exporting may take several seconds…"
 msgstr "Экспорт может занять несколько секунд…"
 
-#: plugins/exporter.koplugin/main.lua:248
+#: plugins/exporter.koplugin/main.lua:249
 msgid "%1: Exported successfully."
 msgstr "%1: экспортировано успешно."
 
-#: plugins/exporter.koplugin/main.lua:254
+#: plugins/exporter.koplugin/main.lua:255
 msgid "%1: Exported to %2."
 msgstr "%1: экспортировано в %2."
 
-#: plugins/exporter.koplugin/main.lua:261
+#: plugins/exporter.koplugin/main.lua:262
 msgid "%1: Failed to export."
 msgstr "%1: экспорт не удался."
 
-#: plugins/exporter.koplugin/main.lua:284
+#: plugins/exporter.koplugin/main.lua:285
 msgid "Share as %1"
 msgstr "Поделиться как %1"
 
-#: plugins/exporter.koplugin/main.lua:351
-msgid "Choose formats and services"
-msgstr "Выбрать форматы и сервисы"
-
-#: plugins/exporter.koplugin/main.lua:355
-msgid "Choose highlight styles"
-msgstr "Выбрать стили выделения"
-
-#: plugins/exporter.koplugin/main.lua:360
-msgid "Choose export folder"
-msgstr "Выбрать папку для экспорта"
-
-#: plugins/exporter.koplugin/main.lua:367
-msgid "Use book folder for single export"
-msgstr "Использовать папку книги для отдельного экспорта"
-
-#: plugins/exporter.koplugin/main.lua:382
+#: plugins/exporter.koplugin/main.lua:357
 msgid "Share all notes in this book"
 msgstr "Поделиться всеми заметками из данной книги"
 
-#: plugins/exporter.koplugin/main.lua:395
+#: plugins/exporter.koplugin/main.lua:406
+msgid "More..."
+msgstr ""
+
+#: plugins/exporter.koplugin/main.lua:419
+msgid "Choose formats and services"
+msgstr "Выбрать форматы и сервисы"
+
+#: plugins/exporter.koplugin/main.lua:423
+msgid "Choose highlight styles"
+msgstr "Выбрать стили выделения"
+
+#: plugins/exporter.koplugin/main.lua:428
+msgid "Choose export folder"
+msgstr "Выбрать папку для экспорта"
+
+#: plugins/exporter.koplugin/main.lua:435
+msgid "Use book folder for single export"
+msgstr "Использовать папку книги для отдельного экспорта"
+
+#: plugins/exporter.koplugin/main.lua:471
 msgid "Current export folder:"
 msgstr "Текущая папка для экспорта:"
 
@@ -20298,17 +20313,17 @@ msgid "Last resume time"
 msgstr "Последнее пробуждение"
 
 #: plugins/systemstat.koplugin/main.lua:202
-#: plugins/systemstat.koplugin/main.lua:298
+#: plugins/systemstat.koplugin/main.lua:305
 msgid "Up time"
 msgstr "Время работы"
 
 #: plugins/systemstat.koplugin/main.lua:208
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:312
 msgid "Time spent awake"
 msgstr "Время бодрствования"
 
 #: plugins/systemstat.koplugin/main.lua:217
-#: plugins/systemstat.koplugin/main.lua:315
+#: plugins/systemstat.koplugin/main.lua:322
 msgid "Time in suspend"
 msgstr "Время в состоянии приостановки"
 
@@ -20357,116 +20372,120 @@ msgstr ""
 msgid "Pending jobs after being online"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:292
+#: plugins/systemstat.koplugin/main.lua:286
+msgid "Indexed files"
+msgstr ""
+
+#: plugins/systemstat.koplugin/main.lua:299
 msgid "System information"
 msgstr "Информация о системе"
 
-#: plugins/systemstat.koplugin/main.lua:294
+#: plugins/systemstat.koplugin/main.lua:301
 msgid "  Number of processes"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:322
+#: plugins/systemstat.koplugin/main.lua:329
 msgid "Number of processors"
 msgstr ""
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:325
+#: plugins/systemstat.koplugin/main.lua:332
 msgid "  Total ticks (million)"
 msgstr "  Всего тактов (млн.)"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:330
+#: plugins/systemstat.koplugin/main.lua:337
 msgid "  Idle ticks (million)"
 msgstr "  Тактов простоя (млн.)"
 
-#: plugins/systemstat.koplugin/main.lua:335
-#: plugins/systemstat.koplugin/main.lua:413
+#: plugins/systemstat.koplugin/main.lua:342
+#: plugins/systemstat.koplugin/main.lua:420
 msgid "  Processor usage %"
 msgstr "  Загрузка процессора в %"
 
-#: plugins/systemstat.koplugin/main.lua:341
+#: plugins/systemstat.koplugin/main.lua:348
 msgid "5 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:347
+#: plugins/systemstat.koplugin/main.lua:354
 msgid "15 minutes usage %"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:352
+#: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % during awake"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:359
+#: plugins/systemstat.koplugin/main.lua:366
 msgid "Usage % since boot"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:369
+#: plugins/systemstat.koplugin/main.lua:376
 msgid "  Total memory (MB)"
 msgstr "  Всего памяти (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:373
+#: plugins/systemstat.koplugin/main.lua:380
 msgid "  Free memory (MB)"
 msgstr "  Свободная память (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:377
+#: plugins/systemstat.koplugin/main.lua:384
 msgid "  Available memory (MB)"
 msgstr "  Доступная память (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:394
+#: plugins/systemstat.koplugin/main.lua:401
 msgid "Process"
 msgstr "Процесс"
 
-#: plugins/systemstat.koplugin/main.lua:396
+#: plugins/systemstat.koplugin/main.lua:403
 msgid "  ID"
 msgstr "  Идентификатор"
 
-#: plugins/systemstat.koplugin/main.lua:409
+#: plugins/systemstat.koplugin/main.lua:416
 msgid "Total ticks"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:422
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "Priority / nice"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:429
+#: plugins/systemstat.koplugin/main.lua:436
 msgid "  Threads"
 msgstr "  Потоков"
 
-#: plugins/systemstat.koplugin/main.lua:438
+#: plugins/systemstat.koplugin/main.lua:445
 msgid "  Virtual memory (MB)"
 msgstr "  Виртуальная память (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:448
+#: plugins/systemstat.koplugin/main.lua:455
 msgid "  RAM usage (MB)"
 msgstr "  Использование ОЗУ (МБ)"
 
-#: plugins/systemstat.koplugin/main.lua:464
+#: plugins/systemstat.koplugin/main.lua:471
 msgid "Storage information"
 msgstr "Информация о хранилище"
 
-#: plugins/systemstat.koplugin/main.lua:468
+#: plugins/systemstat.koplugin/main.lua:475
 msgid "  Unexpected"
 msgstr "  Неожиданно"
 
-#: plugins/systemstat.koplugin/main.lua:470
+#: plugins/systemstat.koplugin/main.lua:477
 msgid "  Mount point"
 msgstr "  Точка монтирования"
 
-#: plugins/systemstat.koplugin/main.lua:471
+#: plugins/systemstat.koplugin/main.lua:478
 msgid "  Available"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:472
+#: plugins/systemstat.koplugin/main.lua:479
 msgid "  Total"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:473
+#: plugins/systemstat.koplugin/main.lua:480
 msgid "  Used percentage"
 msgstr ""
 
-#: plugins/systemstat.koplugin/main.lua:499
-#: plugins/systemstat.koplugin/main.lua:514
-#: plugins/systemstat.koplugin/main.lua:527
+#: plugins/systemstat.koplugin/main.lua:506
+#: plugins/systemstat.koplugin/main.lua:521
+#: plugins/systemstat.koplugin/main.lua:534
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "Статистика системы"

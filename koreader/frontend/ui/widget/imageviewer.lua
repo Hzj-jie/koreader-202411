@@ -80,22 +80,20 @@ local ImageViewer = InputContainer:extend({
 })
 
 function ImageViewer:init()
-  if Device:hasKeys() then
-    if type(self.image) == "table" then
-      -- if self.image is a table, then use hardware keys to change image
-      self.key_events = {
-        Close = { { Device.input.group.Back } },
-        ShowPrevImage = { { Device.input.group.PgBack } },
-        ShowNextImage = { { Device.input.group.PgFwd } },
-      }
-    else
-      -- otherwise, use hardware keys to zoom in/out
-      self.key_events = {
-        Close = { { Device.input.group.Back } },
-        ZoomIn = { { Device.input.group.PgBack } },
-        ZoomOut = { { Device.input.group.PgFwd } },
-      }
-    end
+  if type(self.image) == "table" then
+    -- if self.image is a table, then use hardware keys to change image
+    self.key_events = {
+      Close = { { Device.input.group.Back } },
+      ShowPrevImage = { { Device.input.group.PgBack } },
+      ShowNextImage = { { Device.input.group.PgFwd } },
+    }
+  else
+    -- otherwise, use hardware keys to zoom in/out
+    self.key_events = {
+      Close = { { Device.input.group.Back } },
+      ZoomIn = { { Device.input.group.PgBack } },
+      ZoomOut = { { Device.input.group.PgFwd } },
+    }
   end
   if Device:isTouchDevice() then
     local range = Geom:new({
@@ -920,13 +918,15 @@ function ImageViewer:register(registry)
     enabled_func = function(file)
       return registry:isImageFile(file)
     end,
-    callback = ImageViewer.openFile,
+    callback = function(file)
+      self:openFile(file)
+    end,
     disable_file = true,
     disable_type = false,
   })
 end
 
-function ImageViewer.openFile(file)
+function ImageViewer:openFile(file)
   self:showWidget(ImageViewer:new({
     file = file,
     fullscreen = true,

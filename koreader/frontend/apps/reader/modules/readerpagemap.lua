@@ -369,7 +369,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           -- Reset a few stuff that may use page labels
           UIManager:broadcastEvent("UpdateToc")
           self.ui.annotation:updatePageNumbers(true)
-          UIManager:setDirty(self.view.dialog, "partial")
+          UIManager:setDirty(self.ui.dialog, "partial")
         end,
         hold_callback = function(menu)
           local use_page_labels =
@@ -419,7 +419,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
           )
           self:resetLayout()
           self:updateVisibleLabels()
-          UIManager:setDirty(self.view.dialog, "partial")
+          UIManager:setDirty(self.ui.dialog, "partial")
         end,
         hold_callback = function(menu)
           local show_page_labels =
@@ -482,7 +482,7 @@ function ReaderPageMap:addToMainMenu(menu_items)
               end
               self:resetLayout()
               self:updateVisibleLabels()
-              UIManager:setDirty(self.view.dialog, "partial")
+              UIManager:setDirty(self.ui.dialog, "partial")
             end,
           })
           self:showWidget(spin_w)

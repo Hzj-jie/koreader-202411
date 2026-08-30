@@ -179,8 +179,6 @@ function PhysicalKeyboard:setupNumericMappingUI()
   self.dimen = keyboard_frame:getSize()
 end
 
--- Match VirtualKeyboard's API to ease caller's life
-function PhysicalKeyboard:lockVisibility() end
 function PhysicalKeyboard:setVisibility() end
 function PhysicalKeyboard:isVisible()
   return true

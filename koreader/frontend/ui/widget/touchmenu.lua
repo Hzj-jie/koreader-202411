@@ -171,7 +171,11 @@ function TouchMenuItem:init()
 
   for k, v in pairs(self.item) do
     -- on event handlers.
-    if k:sub(1, 2) == "on" and type(v) == "function" then
+    if
+      type(k) == "string"
+      and k:sub(1, 2) == "on"
+      and type(v) == "function"
+    then
       self[k] = function(...)
         local r = v(self.menu, ...)
         -- This event isn't triggered by an user interaction, and the update may
@@ -193,16 +197,12 @@ function TouchMenuItem:onUnfocus()
   return true
 end
 
-function TouchMenuItem:_showHelpText()
-  return TouchMenuItem.showHelpText(self.item)
-end
-
-function TouchMenuItem.showHelpText(item)
+function TouchMenuItem:showHelpText()
   local help_text
-  if item.help_text then
-    help_text = item.help_text
-  elseif type(item.help_text_func) == "function" then
-    help_text = item.help_text_func()
+  if self.item.help_text then
+    help_text = self.item.help_text
+  elseif type(self.item.help_text_func) == "function" then
+    help_text = self.item.help_text_func()
   else
     return false
   end
@@ -217,7 +217,7 @@ function TouchMenuItem:_tapEventHandler(f)
     enabled = self.item.enabled_func()
   end
   if enabled == false then
-    self:_showHelpText()
+    self:showHelpText()
     return true
   end -- don't propagate
 
@@ -717,7 +717,7 @@ end
 
 function TouchMenu:onTimesChange_1M()
   self:_updateTimeInfo()
-  UIManager:scheduleWidgetRepaint(self.time_info)
+  self.time_info:scheduleRepaint()
 end
 
 function TouchMenu:_updateTimeInfo()
@@ -1057,7 +1057,7 @@ function TouchMenu:onMenuHold(item, text_truncated) --> None
     end
     return
   end
-  if TouchMenuItem.showHelpText(item) then
+  if TouchMenuItem:extend({ item = item, menu = self }):showHelpText() then
     return
   end
   if text_truncated then

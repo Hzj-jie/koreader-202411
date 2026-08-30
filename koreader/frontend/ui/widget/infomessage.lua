@@ -79,9 +79,7 @@ function InfoMessage:init()
   end
 
   if self.dismissable then
-    if Device:hasKeys() then
-      self.key_events.AnyKeyPressed = { { Input.group.Any } }
-    end
+    self.key_events.AnyKeyPressed = { { Input.group.Any } }
     if Device:isTouchDevice() then
       self.ges_events.TapClose = {
         GestureRange:new({
