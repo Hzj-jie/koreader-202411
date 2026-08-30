@@ -39,18 +39,25 @@ describe("LibLipcs module", function()
       assert.is_true(LibLipcs:isFake(accessor))
     end)
 
-    it("Fake methods should be safe to call", function()
+    it("Fake string and int property methods should return nil", function()
       local Fake = LibLipcs:accessor()
-      -- Should not crash, just return nil or do nothing
       assert.is_nil(Fake:get_string_property())
       assert.is_nil(Fake:set_string_property())
       assert.is_nil(Fake:get_int_property())
       assert.is_nil(Fake:set_int_property())
+    end)
+
+    it("Fake hash and hasharray property methods should return nil", function()
+      local Fake = LibLipcs:accessor()
       assert.is_nil(Fake:access_hash_property())
       assert.is_nil(Fake:new_hasharray())
+      assert.is_nil(Fake:read_hash_property())
+    end)
+
+    it("Fake register and lifecycle methods should return nil", function()
+      local Fake = LibLipcs:accessor()
       assert.is_nil(Fake:register_int_property())
       assert.is_nil(Fake:close())
-      assert.is_nil(Fake:read_hash_property())
     end)
   end)
 
@@ -63,11 +70,13 @@ describe("LibLipcs module", function()
     local input_destroyed = false
     local result_destroyed = false
     local access_hash_property_called = false
+    local last_lipc_init_name = nil
 
     before_each(function()
       input_destroyed = false
       result_destroyed = false
       access_hash_property_called = false
+      last_lipc_init_name = nil
 
       -- Setup mock hasharrays
       mock_hasharray_input = {
@@ -117,7 +126,8 @@ describe("LibLipcs module", function()
       -- Pre-populate package.loaded to simulate library availability
       package.loaded["liblipclua"] = {
         init = function(name)
-          assert.are.equal("com.github.koreader", name)
+          last_lipc_init_name = name
+          assert.is_not_nil(name:match("^com%.github%.koreader"))
           return mock_lipc_handle
         end,
       }
@@ -134,19 +144,27 @@ describe("LibLipcs module", function()
       assert.is_true(LibLipcs:supported())
     end)
 
-    it("accessor should return wrapped mock handle", function()
-      local accessor = LibLipcs:accessor()
-      assert.truthy(accessor)
-      assert.is_false(LibLipcs:isFake(accessor))
+    it(
+      "accessor should return wrapped mock handle and safely read properties",
+      function()
+        local accessor = LibLipcs:accessor()
+        assert.truthy(accessor)
+        assert.is_false(LibLipcs:isFake(accessor))
+        assert.are.equal("hello", accessor:get_string_property("valid_prop"))
+        assert.is_nil(accessor:get_string_property("error_prop"))
+      end
+    )
 
-      -- Test wrapped methods
-      assert.are.equal("hello", accessor:get_string_property("valid_prop"))
-      assert.is_nil(accessor:get_string_property("error_prop")) -- should handle error gracefully
-
-      -- Test set (should not crash even if it errors internally due to pcall wrapper)
-      accessor:set_string_property("valid_prop", "world")
-      accessor:set_string_property("error_prop", "world")
-    end)
+    it(
+      "accessor should safely handle valid and error string property writes",
+      function()
+        local accessor = LibLipcs:accessor()
+        assert.truthy(accessor)
+        -- Test set (should not crash even if it errors internally due to pcall wrapper)
+        accessor:set_string_property("valid_prop", "world")
+        accessor:set_string_property("error_prop", "world")
+      end
+    )
 
     it("hash_accessor should return wrapped mock handle", function()
       local accessor = LibLipcs:hash_accessor()
@@ -165,5 +183,35 @@ describe("LibLipcs module", function()
       assert.is_true(input_destroyed)
       assert.is_true(result_destroyed)
     end)
+
+    it("should clear cached handles on resetLipcs", function()
+      local accessor1 = LibLipcs:accessor()
+      local hash_accessor1 = LibLipcs:hash_accessor()
+      assert.is_not_nil(accessor1)
+      assert.is_not_nil(hash_accessor1)
+
+      LibLipcs:resetLipcs()
+      assert.is_nil(LibLipcs._ins)
+      assert.is_nil(LibLipcs._no_name)
+
+      local accessor2 = LibLipcs:accessor()
+      local hash_accessor2 = LibLipcs:hash_accessor()
+      assert.is_not_nil(accessor2)
+      assert.is_not_nil(hash_accessor2)
+    end)
+
+    it(
+      "should construct LIPC instance name with current process PID",
+      function()
+        LibLipcs:resetLipcs()
+        LibLipcs:accessor()
+
+        local current_pid = require("ffi/util").getpid()
+        assert.are.equal(
+          "com.github.koreader-" .. tostring(current_pid),
+          last_lipc_init_name
+        )
+      end
+    )
   end)
 end)

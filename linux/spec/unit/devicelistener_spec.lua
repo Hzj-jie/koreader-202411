@@ -822,5 +822,69 @@ describe("devicelistener", function()
         end
       )
     end)
+
+    describe("onForkedProcess", function()
+      local mock_lipcs
+      local orig_isKindle
+
+      before_each(function()
+        mock_lipcs = {
+          resetLipcs = spy.new(function() end),
+        }
+        package.loaded["liblipcs"] = mock_lipcs
+        orig_isKindle = mock_device.isKindle
+        mock_device.isKindle = spy.new(function()
+          return false
+        end)
+      end)
+
+      after_each(function()
+        package.loaded["liblipcs"] = nil
+        package.loaded["libs/libkoreader-cre"] = nil
+        mock_device.isKindle = orig_isKindle
+      end)
+
+      it("should call resetLipcs when device is Kindle", function()
+        mock_device.isKindle = spy.new(function()
+          return true
+        end)
+        local listener = DeviceListener:new({})
+        listener:onForkedProcess()
+
+        assert.spy(mock_lipcs.resetLipcs).was.called(1)
+      end)
+
+      it("should not call resetLipcs when device is not Kindle", function()
+        mock_device.isKindle = spy.new(function()
+          return false
+        end)
+        local listener = DeviceListener:new({})
+        listener:onForkedProcess()
+
+        assert.spy(mock_lipcs.resetLipcs).was_not.called()
+      end)
+
+      it(
+        "should call setSkipTearDown on cre when cre is already loaded",
+        function()
+          local mock_cre = {
+            setSkipTearDown = spy.new(function() end),
+          }
+          package.loaded["libs/libkoreader-cre"] = mock_cre
+          local listener = DeviceListener:new({})
+          listener:onForkedProcess()
+
+          assert.spy(mock_cre.setSkipTearDown).was.called_with(true)
+        end
+      )
+
+      it("should not call cre when cre is not loaded", function()
+        package.loaded["libs/libkoreader-cre"] = nil
+        local listener = DeviceListener:new({})
+        listener:onForkedProcess()
+
+        assert.is_nil(package.loaded["libs/libkoreader-cre"])
+      end)
+    end)
   end)
 end)
