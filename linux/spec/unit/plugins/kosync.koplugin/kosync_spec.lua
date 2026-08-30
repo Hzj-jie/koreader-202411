@@ -159,6 +159,9 @@ describe("KOSync plugin tests", function()
       return s
     end)
 
+    ReaderUI = require("apps/reader/readerui")
+    ReaderUI.instance = mock_ui
+
     kosync = KOSyncClass:new({
       ui = mock_ui,
       path = "plugins/kosync.koplugin",
@@ -169,6 +172,8 @@ describe("KOSync plugin tests", function()
   end)
 
   after_each(function()
+    ReaderUI.instance = nil
+
     NetworkMgr.isOnline:revert()
     NetworkMgr.runWhenOnline:revert()
     NetworkMgr.willRerunWhenOnline:revert()
@@ -895,6 +900,73 @@ describe("KOSync plugin tests", function()
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
+        kosync._syncToProgress:revert()
+      end
+    )
+
+    it(
+      "does not sync progress if document changed or closed before pull completion",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+
+        local saved_cb
+        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
+          saved_cb = cb
+        end)
+        stub(kosync, "_syncToProgress")
+
+        -- Case 1: document closed before response (prompt strategy should avoid confirmation window)
+        kosync.settings.sync_forward = 1 -- PROMPT
+        kosync.pull_timestamp = 0
+        UIManager.show:clear()
+        kosync:_getProgress(false)
+        assert.is_function(saved_cb)
+
+        local original_doc = kosync.ui.document
+        kosync.ui.document = nil
+        saved_cb(true, {
+          percentage = 0.8,
+          progress = "80",
+          timestamp = 200,
+          device = "OtherDevice",
+          device_id = "other_id",
+        })
+        assert.stub(kosync._syncToProgress).was_not_called()
+        assert.stub(UIManager.show).was_not_called()
+
+        -- Case 2: document changed before response
+        kosync.ui.document = {
+          file = "/path/to/another.epub",
+          info = { has_pages = true },
+        }
+        saved_cb(true, {
+          percentage = 0.8,
+          progress = "80",
+          timestamp = 200,
+          device = "OtherDevice",
+          device_id = "other_id",
+        })
+        assert.stub(kosync._syncToProgress).was_not_called()
+        assert.stub(UIManager.show).was_not_called()
+
+        -- Case 3: ReaderUI.instance closed or changed
+        kosync.ui.document = original_doc
+        ReaderUI.instance = nil
+        saved_cb(true, {
+          percentage = 0.8,
+          progress = "80",
+          timestamp = 200,
+          device = "OtherDevice",
+          device_id = "other_id",
+        })
+        assert.stub(kosync._syncToProgress).was_not_called()
+        assert.stub(UIManager.show).was_not_called()
+
+        -- Restore
+        ReaderUI.instance = mock_ui
+        kosync.ui.document = original_doc
         kosync._syncToProgress:revert()
       end
     )
