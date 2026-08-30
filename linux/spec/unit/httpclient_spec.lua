@@ -1,41 +1,62 @@
-describe("HTTP client module #notest #nocov", function()
-    local UIManager
-    setup(function()
-        require("commonrequire")
-        UIManager = require("ui/uimanager")
-        -- Set true to test httpclient
-        G_defaults:makeFalse("DUSE_TURBO_LIB")
-    end)
-    teardown(function()
-        G_defaults:delete("DUSE_TURBO_LIB")
-    end)
+describe("HttpClient module", function()
+  local HttpClient, UIManager
 
-    local requests = 0
-    local function response_callback(res)
-        requests = requests - 1
-        if requests == 0 then UIManager:quit() end
-        assert(not res.error, "error occurs")
-        assert(res.body)
+  setup(function()
+    require("commonrequire")
+    package.unloadAll()
+    require("document/canvascontext"):init(require("device"))
+
+    UIManager = require("ui/uimanager")
+    HttpClient = require("httpclient")
+  end)
+
+  it("should instantiate HttpClient instance", function()
+    local client = HttpClient:new()
+    assert.is_table(client)
+    assert.are.equal(0, client.input_timeouts)
+  end)
+
+  it("should handle request submission and looper callback", function()
+    local cb_called = false
+    local mock_looper = {
+      add_callback = function(self, func)
+        -- execute callback within coroutine context
+        local co = coroutine.create(func)
+        coroutine.resume(co)
+      end,
+    }
+
+    local old_init = UIManager.initLooper
+    local old_set_to = UIManager.setInputTimeout
+    local old_reset_to = UIManager.resetInputTimeout
+
+    UIManager.initLooper = function()
+      UIManager.looper = mock_looper
     end
+    UIManager.setInputTimeout = function() end
+    UIManager.resetInputTimeout = function() end
 
-    it("should get response from async GET request", function()
-        local HTTPClient = require("httpclient")
-        local async_client = HTTPClient:new()
-        UIManager:quit()
-        local urls = {
-            "http://www.example.com",
-            "http://www.example.org",
-            "http://www.example.net",
-            "https://www.example.com",
-            "https://www.example.org",
-        }
-        requests = #urls
-        for _, url in ipairs(urls) do
-            async_client:request({
-                url = url,
-            }, response_callback)
-        end
-        UIManager:setRunForeverMode()
-        UIManager:run()
+    package.loaded.turbo = {
+      log = { categories = {} },
+      async = {
+        HTTPClient = function()
+          return {
+            fetch = function()
+              return { code = 200, body = "OK" }
+            end,
+          }
+        end,
+      },
+    }
+
+    local client = HttpClient:new()
+    client:request({ url = "http://example.com" }, function(res)
+      cb_called = true
     end)
+
+    UIManager.initLooper = old_init
+    UIManager.setInputTimeout = old_set_to
+    UIManager.resetInputTimeout = old_reset_to
+    package.loaded.turbo = nil
+  end)
 end)

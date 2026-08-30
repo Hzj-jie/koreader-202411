@@ -12,7 +12,7 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
 local ReadHistory = require("readhistory")
 local ReaderFooter = require("apps/reader/modules/readerfooter")
-local ReaderProgress = require("readerprogress")
+local ReaderProgress = require("plugins/statistics.koplugin/readerprogress")
 local SQ3 = require("lua-ljsqlite3/init")
 local Screensaver = require("ui/screensaver")
 local SyncService = require("frontend/apps/cloudstorage/syncservice")
@@ -120,7 +120,7 @@ function ReaderStatistics:init()
   self.is_doc = false
   self.is_doc_not_frozen = false -- freeze finished books statistics
 
-  -- Placeholder until onReaderReady
+  -- Placeholder until onPostReaderReady
   self.data = {
     title = "",
     authors = "N/A",
@@ -184,6 +184,35 @@ function ReaderStatistics:init()
     end
     return readingprogress
   end
+
+  -- If the document is already fully loaded (e.g. during late loading
+  -- when a user dynamically enables the plugin from settings), we can
+  -- initialize document state immediately. Otherwise (during standard startup),
+  -- we must defer initialization until onPostReaderReady is broadcasted
+  -- because metadata (self.ui.doc_props) is not yet populated in init().
+  if self:_isDocReady() then
+    self:_initDocState(self.ui.doc_settings)
+  end
+end
+
+function ReaderStatistics:_isDocReady()
+  return self.ui.doc_props
+    and self.ui.doc_settings
+    and self.ui.doc_settings:read("partial_md5_checksum") ~= nil
+end
+
+function ReaderStatistics:_initDocState(config)
+  assert(self:_isDocReady())
+  if self.data_initialized then
+    return
+  end
+  self.data_initialized = true
+
+  self.data = config:readTableRef("stats", { performance_in_pages = {} })
+  self.doc_md5 = config:read("partial_md5_checksum")
+
+  self:_checkInitDatabase()
+  self:_initData()
 end
 
 function ReaderStatistics:_updateFrozen()
@@ -355,7 +384,7 @@ function ReaderStatistics:getStatsBookStatus(id_curr_book, stat_enable)
   }
 end
 
-function ReaderStatistics:checkInitDatabase()
+function ReaderStatistics:_checkInitDatabase()
   local convert_to_db = (
     lfs.attributes(db_location, "mode") == "file"
     and lfs.attributes(db_location, "size") > 0
@@ -1959,9 +1988,9 @@ function ReaderStatistics:getCurrentStat()
   local total_pages
   local page_progress_string
   local percent_read
-  if self.document:hasHiddenFlows() and self.view.state.page then
-    local flow = self.document:getPageFlow(self.view.state.page)
-    current_page = self.document:getPageNumberInFlow(self.view.state.page)
+  if self.document:hasHiddenFlows() and self.ui.view.state.page then
+    local flow = self.document:getPageFlow(self.ui.view.state.page)
+    current_page = self.document:getPageNumberInFlow(self.ui.view.state.page)
     total_pages = self.document:getTotalPagesInFlow(flow)
     percent_read = Math.round(100 * current_page / total_pages)
     if flow == 0 then
@@ -2111,7 +2140,7 @@ function ReaderStatistics:getCurrentStat()
         false
       ),
       callback = function()
-        local CalendarView = require("calendarview")
+        local CalendarView = require("plugins/statistics.koplugin/calendarview")
         local title_callback = function(_this)
           return T(gettext("Today (%1)"), datetime.secondsToDate(now_ts, true))
         end
@@ -3508,21 +3537,14 @@ function ReaderStatistics:onReadingResumed()
   self._reading_paused_ts = nil
 end
 
-function ReaderStatistics:onReaderReady(config)
-  self.data = config:readTableRef("stats", { performance_in_pages = {} })
-  self.doc_md5 = config:read("partial_md5_checksum")
-end
-
 function ReaderStatistics:onPostReaderReady()
-  self:checkInitDatabase()
-  -- we have correct page count now, do the actual initialization work
-  self:_initData()
+  self:_initDocState(self.ui.doc_settings)
 end
 
 function ReaderStatistics:onShowCalendarView()
   self:insertDB()
   self.kv = nil -- clean left over stack link
-  local CalendarView = require("calendarview")
+  local CalendarView = require("plugins/statistics.koplugin/calendarview")
   UIManager:show(CalendarView:new({
     reader_statistics = self,
     start_day_of_week = self.settings.calendar_start_day_of_week,
@@ -3535,7 +3557,7 @@ end
 function ReaderStatistics:onShowCalendarDayView()
   self:insertDB()
   self.kv = nil -- clean left over stack link
-  local CalendarView = require("calendarview")
+  local CalendarView = require("plugins/statistics.koplugin/calendarview")
   CalendarView:showCalendarDayView(self)
 end
 

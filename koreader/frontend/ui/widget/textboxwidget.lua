@@ -50,8 +50,11 @@ local TextBoxWidget = InputContainer:extend({
   height = nil, -- nil value indicates unscrollable text widget
   height_adjust = false, -- if true, reduce height to a multiple of line_height (for nicer centering)
   height_overflow_show_ellipsis = false, -- if height overflow, append ellipsis to last shown line
+  no_line_breaking_rules = false,
   top_line_num = nil, -- original virtual_line_num to scroll to
   charpos = nil, -- idx of char to draw the cursor on its left (can exceed #charlist by 1)
+  sel_start_idx = nil,
+  sel_end_idx = nil,
 
   -- for internal use
   charlist = nil, -- idx => char
@@ -204,13 +207,12 @@ function TextBoxWidget:init()
     self.text = table.concat(charlist, "")
   end
 
-  self:_computeTextDimensions()
-  self:_updateLayout()
+  self:_setText()
   if self.editable then
-    self:moveCursorToCharPos(self.charpos or 1)
+    self.charpos = self.charpos or 1
+    -- Force moving the cursor pos.
+    self:moveCursorToCharPos(self:_resetCharPos())
   end
-  -- Populate self:getSize().
-  self:getSize()
 
   if Device:isTouchDevice() then
     self.ges_events.TapImage = {
@@ -408,7 +410,7 @@ function TextBoxWidget:_splitToLines()
       local line = self._xtext:makeLine(
         offset,
         targeted_width,
-        false,
+        self.no_line_breaking_rules,
         self.tabstop_nb_space_width
       )
       -- logger.dbg("makeLine", ln, line)
@@ -486,7 +488,10 @@ function TextBoxWidget:_splitToLines()
         local adjusted_idx = idx
         local adjusted_width = cur_line_width
         while
-          adjusted_idx > offset and not util.isSplittable(c, next_c, prev_c)
+          adjusted_idx > offset
+          and not (
+            self.no_line_breaking_rules or util.isSplittable(c, next_c, prev_c)
+          )
         do
           adjusted_width = adjusted_width
             - self.char_width[self.charlist[adjusted_idx]]
@@ -890,6 +895,19 @@ function TextBoxWidget:_shapeLine(line)
   -- at the expense of recomputing it when back to this page?
 end
 
+function TextBoxWidget:_paintHighlightRect(x0, x1, y)
+  local hx = x0
+  local hy = y - self.line_glyph_baseline
+  local hw = x1 - x0
+  local hh = self.line_height_px
+  local color = self._bb:getHighlightColor(255)
+  if self._bb:isRGB() then
+    self._bb:paintRectRGB32(hx, hy, hw, hh, color)
+  else
+    self._bb:paintRect(hx, hy, hw, hh, color)
+  end
+end
+
 ---- Lays out text.
 function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
   if start_row_idx < 1 then
@@ -950,7 +968,7 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
           line = self._xtext:makeLine(
             line.offset,
             line.targeted_width - ellipsis_width,
-            false,
+            self.no_line_breaking_rules,
             self._tabstop_width
           )
           self.vertical_string_list[i] = line -- replace the former one
@@ -964,6 +982,38 @@ function TextBoxWidget:_renderText(start_row_idx, end_row_idx)
       end
       self:_shapeLine(line)
       if line.xglyphs then -- non-empty line
+        if self.sel_start_idx and self.sel_end_idx then
+          local start_x = nil
+          local end_x = nil
+          for _, xglyph in ipairs(line.xglyphs) do
+            if not xglyph.no_drawing then
+              local is_selected = xglyph.text_index >= self.sel_start_idx
+                and xglyph.text_index <= self.sel_end_idx
+              if is_selected then
+                if not start_x then
+                  start_x = xglyph.x0
+                  end_x = xglyph.x1
+                else
+                  if xglyph.x0 < start_x then
+                    start_x = xglyph.x0
+                  end
+                  if xglyph.x1 > end_x then
+                    end_x = xglyph.x1
+                  end
+                end
+              else
+                if start_x and end_x then
+                  self:_paintHighlightRect(start_x, end_x, y)
+                  start_x = nil
+                  end_x = nil
+                end
+              end
+            end
+          end
+          if start_x and end_x then
+            self:_paintHighlightRect(start_x, end_x, y)
+          end
+        end
         for _, xglyph in ipairs(line.xglyphs) do
           if not xglyph.no_drawing then
             local face = self.face.getFallbackFont(xglyph.font_num) -- callback (not a method)
@@ -1398,6 +1448,12 @@ function TextBoxWidget:free(full)
   UIManager:ignoreWidgetRepaint(self)
 end
 
+function TextBoxWidget:_resetCharPos(charpos)
+  charpos = charpos or self.charpos
+  self.charpos = nil
+  return charpos
+end
+
 function TextBoxWidget:update(scheduled_update)
   self:free(false)
   -- We set this flag so :_renderText() can know we were called from a
@@ -1407,17 +1463,34 @@ function TextBoxWidget:update(scheduled_update)
   self.scheduled_update = nil
 end
 
-function TextBoxWidget:setText(text)
-  if text == self.text then
-    return
-  end
-
-  self.text = text
+function TextBoxWidget:_setText(text, charlist, fgcolor)
+  self.text = text or self.text
+  self.charlist = charlist or self.charlist
+  -- Technically speaking we shouldn't consider fgcolor when _setText, but we
+  -- want to be a little bit optimized to avoid calling update twice when both
+  -- fgcolor and text change.
+  self.fgcolor = fgcolor or self.fgcolor
   self:_computeTextDimensions()
   self:update()
 
   -- Don't break the reference, update self.dimen
   self:getSize()
+end
+
+function TextBoxWidget:setText(text, charlist, charpos, fgcolor)
+  if (text ~= self.text) or (charlist ~= self.charlist) then
+    self:_setText(text, charlist, fgcolor)
+    -- Fallback to current pos or 1 if editable, then reset to force update
+    charpos = self:_resetCharPos(charpos or self.charpos)
+  elseif fgcolor and self.fgcolor ~= fgcolor then
+    -- Unfortunately if fgcolor is changed, we still need to run self:update().
+    self.fgcolor = fgcolor
+    self:update()
+  end
+
+  if self.editable or charpos then
+    self:moveCursorToCharPos(charpos)
+  end
 end
 dbg:guard(TextBoxWidget, "setText", function(self, text)
   assert(type(text) == "string", "Wrong text type (expected string)")
@@ -1620,11 +1693,21 @@ function TextBoxWidget:_getXYForCharPos(charpos)
   if not charpos then
     charpos = self.charpos
   end
-  if self.text == nil or string.len(self.text) == 0 then
+  if
+    self.text == nil
+    or string.len(self.text) == 0
+    or not self.vertical_string_list
+    or #self.vertical_string_list == 0
+  then
     return 0, 0, 1
   end
   -- Find the line number: scan up/down from current virtual_line_num
   local ln = self.height == nil and 1 or self.virtual_line_num
+  if ln > #self.vertical_string_list then
+    ln = #self.vertical_string_list
+  elseif ln < 1 then
+    ln = 1
+  end
   if charpos > self.vertical_string_list[ln].offset then -- after first line
     while ln < #self.vertical_string_list do
       if self.vertical_string_list[ln + 1].offset > charpos then
@@ -1828,6 +1911,13 @@ local CURSOR_USE_REFRESH_FUNCS =
 -- Update charpos to the one provided; if out of current view, update
 -- virtual_line_num to move it to view, and draw the cursor
 function TextBoxWidget:moveCursorToCharPos(charpos)
+  if not charpos or self.charpos == charpos then
+    return
+  end
+
+  if self.charlist and charpos > #self.charlist + 1 then
+    charpos = #self.charlist + 1
+  end
   self.charpos = charpos
   self.prev_virtual_line_num = self.virtual_line_num
   local x, y, screen_line_num = self:_getXYForCharPos() -- we can get y outside current view
@@ -2227,13 +2317,57 @@ function TextBoxWidget:onHoldStartText(_, ges)
   return true
 end
 
-function TextBoxWidget:onHoldPanText(_arg, _ges)
-  -- We don't highlight the currently selected text, but just let this
-  -- event pop up if we are not currently selecting text
+function TextBoxWidget:onHoldPanText(_arg, ges)
   if not self.hold_start_time then
     return false
   end
-  -- Don't let that event be processed by other widget
+
+  local hold_end_x = ges.pos.x - self:getSize().x
+  local hold_end_y = ges.pos.y - self:getSize().y
+
+  local p0, p1 = Geom.sortPoints(
+    { x = self.hold_start_x, y = self.hold_start_y },
+    { x = hold_end_x, y = hold_end_y }
+  )
+  local x0, y0, x1, y1 = p0.x, p0.y, p1.x, p1.y
+
+  if self.use_xtext then
+    local sel_start_idx = self:getCharPosAtXY(x0, y0)
+    local sel_end_idx = self:getCharPosAtXY(x1, y1)
+    if sel_start_idx and sel_end_idx then
+      if sel_start_idx > sel_end_idx then
+        sel_start_idx, sel_end_idx = sel_end_idx, sel_start_idx
+      end
+      if sel_start_idx <= #self._xtext then
+        if sel_end_idx > #self._xtext then
+          sel_end_idx = #self._xtext
+        end
+        if
+          self.sel_start_idx ~= sel_start_idx
+          or self.sel_end_idx ~= sel_end_idx
+        then
+          self.sel_start_idx = sel_start_idx
+          self.sel_end_idx = sel_end_idx
+          self:update()
+          self:setDirty()
+        end
+      end
+    end
+  else
+    local sel_start_idx = self:_findWordEdge(x0, y0, FIND_START)
+    local sel_end_idx = self:_findWordEdge(x1, y1, FIND_END)
+    if sel_start_idx and sel_end_idx then
+      if
+        self.sel_start_idx ~= sel_start_idx or self.sel_end_idx ~= sel_end_idx
+      then
+        self.sel_start_idx = sel_start_idx
+        self.sel_end_idx = sel_end_idx
+        self:update()
+        self:setDirty()
+      end
+    end
+  end
+
   return true
 end
 
@@ -2330,6 +2464,13 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
   self.hold_start_x = nil
   self.hold_start_y = nil
   self.hold_start_time = nil
+
+  if self.sel_start_idx or self.sel_end_idx then
+    self.sel_start_idx = nil
+    self.sel_end_idx = nil
+    self:update()
+    self:setDirty()
+  end
 
   if self.use_xtext then
     -- With xtext and fribidi, words may not be laid out in logical order,

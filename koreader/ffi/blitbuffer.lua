@@ -994,6 +994,18 @@ function BB_mt.__index:isRGB()
   end
   return false
 end
+
+function BB_mt.__index:getHighlightColor(alpha)
+  alpha = alpha or 128
+  local bb_type = self:getType()
+  if self:isRGB() then
+    return ColorRGB32(200, 200, 200, alpha)
+  elseif bb_type == TYPE_BB8A then
+    return Color8A(136, alpha)
+  else
+    return Color8(136)
+  end
+end
 function BB_mt.__index:setType(type_id)
   self.config =
     bor(band(self.config, bxor(MASK_TYPE, 0xFF)), lshift(type_id, SHIFT_TYPE))

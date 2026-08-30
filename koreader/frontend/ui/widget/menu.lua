@@ -957,7 +957,7 @@ function Menu:init()
 
   -- Initialize FileChooser.font_size and perpage, coverbrowser.koplugin will
   -- override _recalculateDimen.
-  assert(self:_calculateLayout()) -- No idea how it could return false.
+  self:_calculateLayout()
   self:_recalculateDimen(false)
   self.content_group = VerticalGroup:new({
     align = "left",
@@ -1024,26 +1024,24 @@ function Menu:init()
   }
   self.ges_events.Exit = self.on_close_ges
 
-  if Device:hasKeys() then
-    -- set up keyboard events
-    self.key_events.FocusLeft = nil
-    if Device:hasFewKeys() then
-      self.key_events.Exit = { { "Left" } }
-    else
-      self.key_events.Exit = { { Input.group.Back } }
-      self.key_events.LeftButtonTap = { { "Left" } }
-    end
-    self.key_events.NextPage = { { Input.group.PgFwd } }
-    self.key_events.PrevPage = { { Input.group.PgBack } }
-    if Device:hasKeyboard() then
-      self.key_events.FirstPage = { { "Shift", { "LPgBack", "RPgBack" } } }
-      self.key_events.LastPage = { { "Shift", { "LPgFwd", "RPgFwd" } } }
-      self.key_events.ShowGotoDialog = { { "Shift", "Down" } }
-    elseif Device:hasScreenKB() then
-      self.key_events.FirstPage = { { "ScreenKB", { "LPgBack", "RPgBack" } } }
-      self.key_events.LastPage = { { "ScreenKB", { "LPgFwd", "RPgFwd" } } }
-      self.key_events.ShowGotoDialog = { { "ScreenKB", "Down" } }
-    end
+  -- set up keyboard events
+  self.key_events.FocusLeft = nil
+  if Device:hasFewKeys() then
+    self.key_events.Exit = { { "Left" } }
+  else
+    self.key_events.Exit = { { Input.group.Back } }
+    self.key_events.LeftButtonTap = { { "Left" } }
+  end
+  self.key_events.NextPage = { { Input.group.PgFwd } }
+  self.key_events.PrevPage = { { Input.group.PgBack } }
+  if Device:hasKeyboard() then
+    self.key_events.FirstPage = { { "Shift", { "LPgBack", "RPgBack" } } }
+    self.key_events.LastPage = { { "Shift", { "LPgFwd", "RPgFwd" } } }
+    self.key_events.ShowGotoDialog = { { "Shift", "Down" } }
+  elseif Device:hasScreenKB() then
+    self.key_events.FirstPage = { { "ScreenKB", { "LPgBack", "RPgBack" } } }
+    self.key_events.LastPage = { { "ScreenKB", { "LPgFwd", "RPgFwd" } } }
+    self.key_events.ShowGotoDialog = { { "ScreenKB", "Down" } }
   end
 
   if Device:hasDPad() then
@@ -1222,6 +1220,9 @@ end
 
 -- merge TitleBar layout into self FocusManager layout
 function Menu:mergeTitleBarIntoLayout()
+  if not self.title_bar then
+    return
+  end
   if Device:hasSymKey() or Device:hasScreenKB() then
     -- Title bar items can be accessed through key mappings on kindle
     return

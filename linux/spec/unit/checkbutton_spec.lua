@@ -1,41 +1,41 @@
 describe("CheckButton widget", function()
-    local CheckButton, Font, Blitbuffer
-    setup(function()
-        require("commonrequire")
-        CheckButton = require("ui/widget/checkbutton")
-        Font = require("ui/font")
-        Blitbuffer = require("ffi/blitbuffer")
-    end)
+  local CheckButton
+  setup(function()
+    require("commonrequire")
+    CheckButton = require("ui/widget/checkbutton")
+  end)
 
-    it("should preserve checked state when disabled and re-enabled", function()
-        local mock_parent = {
-            getAddedWidgetAvailableWidth = function() return 200 end,
-        }
+  it("should preserve checked state when disabled and re-enabled", function()
+    local mock_parent = {
+      getAddedWidgetAvailableWidth = function()
+        return 200
+      end,
+    }
 
-        local UIManager = require("ui/uimanager")
-        local original_setDirty = UIManager.setDirty
-        UIManager.setDirty = function() end
+    local UIManager = require("ui/uimanager")
+    local original_setDirty = UIManager.setDirty
+    UIManager.setDirty = function() end
 
-        local cb = CheckButton:new({
-            text = "Test CheckBox",
-            checked = true,
-            parent = mock_parent,
-        })
+    local cb = CheckButton:new({
+      text = "Test CheckBox",
+      checked = true,
+      parent = mock_parent,
+    })
 
-        assert.is_true(cb.checked)
+    assert.is_true(cb.checked)
 
-        -- Disable it
-        cb:disable()
+    -- Disable it
+    cb:disable()
 
-        -- It should STILL be checked!
-        assert.is_true(cb.checked)
+    -- It should STILL be checked!
+    assert.is_true(cb.checked)
 
-        -- Re-enable it
-        cb:enable()
+    -- Re-enable it
+    cb:enable()
 
-        -- It should still be checked
-        assert.is_true(cb.checked)
+    -- It should still be checked
+    assert.is_true(cb.checked)
 
-        UIManager.setDirty = original_setDirty
-    end)
+    UIManager.setDirty = original_setDirty
+  end)
 end)

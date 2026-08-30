@@ -1,15 +1,40 @@
 -- Load the original loadlib helper first
-dofile("ffi/loadlib.lua")
+require("ffi/loadlib")
 
--- Intercept require globally to force-disable system fonts for all unit tests,
--- ensuring layout and font rendering determinism across different host workstations.
+-- Intercept require globally to ensure determinism across different host workstations
+-- and avoid relying on physical hardware state (such as system fonts, battery charging state, etc.).
 local orig_require = _G.require
 _G.require = function(name)
     local res = orig_require(name)
-    if name == "device" then
+    if name == "ffi/SDL2_0" then
+        if type(res) == "table" and res.getPowerInfo and not res._orig_getPowerInfo then
+            res._orig_getPowerInfo = res.getPowerInfo
+            res.getPowerInfo = function()
+                -- Return deterministic power state: has battery, not charging, not plugged, 0% capacity
+                return true, false, false, 0
+            end
+        end
+    elseif name == "device/sdl/device" then
         if type(res) == "table" then
             res.hasSystemFonts = function() return false end
         end
     end
     return res
 end
+
+
+
+local max_jobs = 4
+local nproc_p = io.popen("nproc 2>/dev/null")
+if nproc_p then
+    local cores = tonumber(nproc_p:read("*l"))
+    nproc_p:close()
+    if cores and cores > 0 then
+        max_jobs = cores
+    end
+end
+
+return {
+    max_jobs = max_jobs,
+}
+

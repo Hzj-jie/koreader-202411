@@ -1,3 +1,4 @@
+local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
 local Geom = require("ui/geometry")
@@ -19,14 +20,10 @@ local VerticalScrollBar = InputContainer:extend({
   -- view size and position relative to the whole scrollable height):
   min_thumb_size = Size.line.thick,
   scroll_callback = nil,
-  -- extra touchable width (for scrolling with pan) can be larger than
-  -- the provided width (this is added on each side)
-  extra_touch_on_side_width_ratio = 1, -- make it 3 x width
+  SAFETY_MARGIN = 5,
 })
 
 function VerticalScrollBar:init()
-  self.extra_touch_on_side =
-    math.ceil(self.extra_touch_on_side_width_ratio * self.width)
   if Device:isTouchDevice() then
     local pan_rate = G_named_settings.low_pan_rate_or_scroll()
     self.ges_events = {
@@ -102,17 +99,34 @@ function VerticalScrollBar:set(low, high)
   self.high = high < 1 and high or 1
 end
 
+function VerticalScrollBar:getRequiredWidth()
+  -- We need to reserve space for the scrollbar itself (1x width),
+  -- the touch zone extensions on both sides (2x width),
+  -- and a safety margin (SAFETY_MARGIN) on the inner side next to the content.
+  return 3 * self.width
+    + Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
+end
+
 function VerticalScrollBar:paintTo(bb, x, y)
   self:mergePosition(x, y)
   if not self.enable then
     return
   end
   self.touch_dimen = Geom:new({
-    x = x - self.extra_touch_on_side,
+    x = x - self.width,
     y = y,
-    w = self.width + 2 * self.extra_touch_on_side,
+    w = 3 * self.width,
     h = self.height,
   })
+  if self.width > 0 and self.bordersize > 0 then
+    local line_x
+    if BD.mirroredUILayout() then
+      line_x = x + 2 * self.width - self.bordersize
+    else
+      line_x = x - self.width
+    end
+    bb:paintRect(line_x, y, self.bordersize, self.height, self.bordercolor)
+  end
   -- Reset the area first.
   bb:paintRect(x, y, self.width, self.height, Blitbuffer.COLOR_WHITE)
   bb:paintBorder(

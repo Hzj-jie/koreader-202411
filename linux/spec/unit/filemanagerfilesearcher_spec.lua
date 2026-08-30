@@ -22,8 +22,10 @@ describe("filemanagerfilesearcher", function()
         return key == "home_dir"
       end,
       read = function(self, key)
-        if key == "home_dir" then return "/home/user" end
-      end
+        if key == "home_dir" then
+          return "/home/user"
+        end
+      end,
     }
 
     mock_fs = {
@@ -39,7 +41,7 @@ describe("filemanagerfilesearcher", function()
       ["/books/subdir"] = {
         { name = "book2.pdf", mode = "file" },
         { name = "ANOTHER.EPUB", mode = "file" },
-      }
+      },
     }
 
     mock_lfs = {
@@ -55,7 +57,9 @@ describe("filemanagerfilesearcher", function()
       end,
       attributes = function(path, field)
         local parent, name = path:match("^(.*)/([^/]+)$")
-        if parent == "" then parent = "/" end
+        if parent == "" then
+          parent = "/"
+        end
         local items = mock_fs[parent] or {}
         for _, item in ipairs(items) do
           if item.name == name then
@@ -63,12 +67,14 @@ describe("filemanagerfilesearcher", function()
               mode = item.mode,
               size = 100,
             }
-            if field then return attrs[field] end
+            if field then
+              return attrs[field]
+            end
             return attrs
           end
         end
         return nil
-      end
+      end,
     }
     package.loaded["libs/libkoreader-lfs"] = mock_lfs
 
@@ -78,28 +84,38 @@ describe("filemanagerfilesearcher", function()
         return tmpl:gsub("%%(%d+)", function(n)
           return tostring(args[tonumber(n)])
         end)
-      end
+      end,
     }
     package.loaded["ffi/util"] = mock_ffiutil
 
     mock_device = {
-      hasKeyboard = function() return true end,
+      hasKeyboard = function()
+        return true
+      end,
     }
     package.loaded["device"] = mock_device
 
     package.loaded["docsettings"] = {
-      hasSidecarFile = function() return false end,
-      open = function() return {} end,
+      hasSidecarFile = function()
+        return false
+      end,
+      open = function()
+        return {}
+      end,
     }
 
     package.loaded["document/documentregistry"] = {
       hasProvider = function(self, path)
-        return path:match("%.epub$") or path:match("%.pdf$") or path:match("%.EPUB$")
-      end
+        return path:match("%.epub$")
+          or path:match("%.pdf$")
+          or path:match("%.EPUB$")
+      end,
     }
 
     package.loaded["ffi/utf8proc"] = {
-      lowercase = function(s) return s:lower() end
+      lowercase = function(s)
+        return s:lower()
+      end,
     }
 
     local mock_input_container = {
@@ -108,7 +124,9 @@ describe("filemanagerfilesearcher", function()
         setmetatable(subclass, { __index = self })
         subclass.new = function(cls, ...)
           local inst = setmetatable({ key_events = {} }, { __index = cls })
-          if inst.init then inst:init(...) end
+          if inst.init then
+            inst:init(...)
+          end
           return inst
         end
         return subclass
@@ -119,34 +137,61 @@ describe("filemanagerfilesearcher", function()
     package.loaded["ui/widget/container/inputcontainer"] = mock_input_container
 
     package.loaded["ui/trapper"] = {
-      wrap = function(self, fn) fn() end,
+      wrap = function(self, fn)
+        fn()
+      end,
       dismissableRunInSubprocess = function(self, fn, _info)
         return true, fn()
-      end
+      end,
     }
 
     package.loaded["ui/widget/filechooser"] = {
       show_hidden = false,
       show_unsupported = false,
-      show_dir = function() return true end,
-      show_file = function() return true end,
-      getCollate = function() return function(a, b) return a < b end end,
+      show_dir = function()
+        return true
+      end,
+      show_file = function()
+        return true
+      end,
+      getCollate = function()
+        return function(a, b)
+          return a < b
+        end
+      end,
       getListItem = function(self, _, f, fullpath, attributes, _collate)
-        return { f = f, path = fullpath, attr = attributes, is_file = attributes.mode == "file" }
+        return {
+          f = f,
+          path = fullpath,
+          attr = attributes,
+          is_file = attributes.mode == "file",
+        }
       end,
       genItemTable = function(self, dirs, files)
         local res = {}
-        for _, d in ipairs(dirs) do table.insert(res, d) end
-        for _, f in ipairs(files) do table.insert(res, f) end
+        for _, d in ipairs(dirs) do
+          table.insert(res, d)
+        end
+        for _, f in ipairs(files) do
+          table.insert(res, f)
+        end
         return res
-      end
+      end,
     }
 
     package.loaded["apps/filemanager/filemanagerutil"] = {
-      genStatusButtonsRow = function() return { text = "Mock Status Row" } end,
-      genResetSettingsButton = function() return { text = "Mock Reset Button" } end,
-      genBookInformationButton = function() return { text = "Mock Info Button" } end,
-      genShowFolderButton = function() return { text = "Mock Show Folder Button" } end,
+      genStatusButtonsRow = function()
+        return { text = "Mock Status Row" }
+      end,
+      genResetSettingsButton = function()
+        return { text = "Mock Reset Button" }
+      end,
+      genBookInformationButton = function()
+        return { text = "Mock Info Button" }
+      end,
+      genShowFolderButton = function()
+        return { text = "Mock Show Folder Button" }
+      end,
     }
 
     mock_menu = {
@@ -164,7 +209,7 @@ describe("filemanagerfilesearcher", function()
           end),
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/menu"] = mock_menu
 
@@ -176,7 +221,7 @@ describe("filemanagerfilesearcher", function()
           ok_text = args.ok_text,
           ok_callback = args.ok_callback,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/confirmbox"] = mock_confirm_box
 
@@ -186,7 +231,7 @@ describe("filemanagerfilesearcher", function()
           is_info_message = true,
           text = args.text,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/infomessage"] = mock_info_message
 
@@ -199,11 +244,15 @@ describe("filemanagerfilesearcher", function()
           input = args.input,
           buttons = args.buttons,
           widgets = {},
-          addWidget = function(s, w) table.insert(s.widgets, w) end,
-          getInputText = function() return obj.mock_input_value or args.input or "" end,
+          addWidget = function(s, w)
+            table.insert(s.widgets, w)
+          end,
+          getInputText = function()
+            return obj.mock_input_value or args.input or ""
+          end,
         }
         return obj
-      end)
+      end),
     }
     package.loaded["ui/widget/inputdialog"] = mock_input_dialog
 
@@ -214,7 +263,7 @@ describe("filemanagerfilesearcher", function()
           title = args.title,
           buttons = args.buttons,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/buttondialog"] = mock_button_dialog
 
@@ -225,7 +274,7 @@ describe("filemanagerfilesearcher", function()
           text = args.text,
           checked = args.checked,
         }
-      end)
+      end),
     }
     package.loaded["ui/widget/checkbutton"] = mock_check_button
 
@@ -240,28 +289,47 @@ describe("filemanagerfilesearcher", function()
         last_closed_widget = widget
       end),
       forceRepaint = spy.new(function() end),
-      getLastShownWidget = function() return last_shown_widget end,
-      getLastClosedWidget = function() return last_closed_widget end,
+      getLastShownWidget = function()
+        return last_shown_widget
+      end,
+      getLastClosedWidget = function()
+        return last_closed_widget
+      end,
     }
 
     local mock_gettext = setmetatable({
-      ngettext = function(sing, plur, n) return n == 1 and sing or plur end,
+      ngettext = function(sing, plur, n)
+        return n == 1 and sing or plur
+      end,
     }, {
       __call = function(self, text)
         return text
-      end
+      end,
     })
     package.loaded["gettext"] = mock_gettext
 
-    package.loaded["util"] = {
-      fixUtf8 = function(s) return s end,
-      stringStartsWith = function(s, prefix) return s:sub(1, #prefix) == prefix end,
+    local real_util = package.loaded["util"] or {}
+    package.loaded["util"] = setmetatable({
+      fixUtf8 = function(s)
+        return s
+      end,
+      stringStartsWith = function(s, prefix)
+        return s:sub(1, #prefix) == prefix
+      end,
       tableSize = function(t)
         local count = 0
-        for _ in pairs(t) do count = count + 1 end
+        for _ in pairs(t) do
+          count = count + 1
+        end
         return count
       end,
-    }
+      splitFilePathName = function(path)
+        local dir, name = path:match("^(.-)([^/]*)$")
+        return dir, name
+      end,
+    }, {
+      __index = real_util,
+    })
 
     mock_ui = {
       file_chooser = setmetatable({
@@ -269,16 +337,22 @@ describe("filemanagerfilesearcher", function()
         refreshPath = spy.new(function() end),
         changeToPath = spy.new(function() end),
       }, {
-        __index = package.loaded["ui/widget/filechooser"]
+        __index = package.loaded["ui/widget/filechooser"],
       }),
       collections = {
-        genAddToCollectionButton = function() return { text = "Mock Add to Collection" } end,
+        genAddToCollectionButton = function()
+          return { text = "Mock Add to Collection" }
+        end,
       },
       coverbrowser = nil,
       bookinfo = {
-        getDocProps = function() return {} end,
-        findInProps = function() return false end,
-      }
+        getDocProps = function()
+          return {}
+        end,
+        findInProps = function()
+          return false
+        end,
+      },
     }
 
     package.loaded["apps/filemanager/filemanagerfilesearcher"] = nil
@@ -316,50 +390,53 @@ describe("filemanagerfilesearcher", function()
   end)
 
   describe("onShowFileSearch", function()
-    it("should show InputDialog with checkbuttons and handle search trigger", function()
-      local searcher = FileSearcher:new()
-      searcher.ui = mock_ui
+    it(
+      "should show InputDialog with checkbuttons and handle search trigger",
+      function()
+        local searcher = FileSearcher:new()
+        searcher.ui = mock_ui
 
-      local UIManager = require("ui/uimanager")
-      UIManager.show:clear()
+        local UIManager = require("ui/uimanager")
+        UIManager.show:clear()
 
-      searcher:onShowFileSearch("test_query")
+        searcher:onShowFileSearch("test_query")
 
-      assert.spy(UIManager.show).was.called(1)
-      local dialog = UIManager.getLastShownWidget()
-      assert.is_true(dialog.is_input_dialog)
-      assert.are.equal("Enter text to search for in filename", dialog.title)
-      assert.are.equal("test_query", dialog.input)
+        assert.spy(UIManager.show).was.called(1)
+        local dialog = UIManager.getLastShownWidget()
+        assert.is_true(dialog.is_input_dialog)
+        assert.are.equal("Enter text to search for in filename", dialog.title)
+        assert.are.equal("test_query", dialog.input)
 
-      -- Check checkbuttons added
-      assert.are.equal(2, #dialog.widgets)
-      assert.is_true(dialog.widgets[1].is_check_button)
-      assert.are.equal("Case sensitive", dialog.widgets[1].text)
-      assert.is_true(dialog.widgets[2].is_check_button)
-      assert.are.equal("Include subfolders", dialog.widgets[2].text)
+        -- Check checkbuttons added
+        assert.are.equal(2, #dialog.widgets)
+        assert.is_true(dialog.widgets[1].is_check_button)
+        assert.are.equal("Case sensitive", dialog.widgets[1].text)
+        assert.is_true(dialog.widgets[2].is_check_button)
+        assert.are.equal("Include subfolders", dialog.widgets[2].text)
 
-      -- Trigger Current folder callback (button 3 in group 1)
-      local buttons = dialog.buttons[1]
-      assert.are.equal("Current folder", buttons[3].text)
+        -- Trigger Current folder callback (button 3 in group 1)
+        local buttons = dialog.buttons[1]
+        assert.are.equal("Current folder", buttons[3].text)
 
-      dialog.mock_input_value = "book"
-      dialog.widgets[1].checked = true -- Case sensitive
-      dialog.widgets[2].checked = false -- Exclude subfolders
+        dialog.mock_input_value = "book"
+        dialog.widgets[1].checked = true -- Case sensitive
+        dialog.widgets[2].checked = false -- Exclude subfolders
 
-      stub(searcher, "doSearch")
-      UIManager.close:clear()
+        stub(searcher, "doSearch")
+        UIManager.close:clear()
 
-      buttons[3].callback()
+        buttons[3].callback()
 
-      assert.spy(UIManager.close).was.called(1)
-      assert.are.equal(dialog, UIManager.getLastClosedWidget())
-      assert.are.equal("book", FileSearcher.search_string)
-      assert.is_true(searcher.case_sensitive)
-      assert.is_false(searcher.include_subfolders)
-      assert.are.equal("/books", searcher.path)
+        assert.spy(UIManager.close).was.called(1)
+        assert.are.equal(dialog, UIManager.getLastClosedWidget())
+        assert.are.equal("book", FileSearcher.search_string)
+        assert.is_true(searcher.case_sensitive)
+        assert.is_false(searcher.include_subfolders)
+        assert.are.equal("/books", searcher.path)
 
-      assert.stub(searcher.doSearch).was.called(1)
-    end)
+        assert.stub(searcher.doSearch).was.called(1)
+      end
+    )
   end)
 
   describe("doSearch", function()
@@ -409,7 +486,10 @@ describe("filemanagerfilesearcher", function()
       assert.is_true(FileSearcher.search_results[1].is_file)
 
       assert.are.equal("book2.pdf", FileSearcher.search_results[2].f)
-      assert.are.equal("/books/subdir/book2.pdf", FileSearcher.search_results[2].path)
+      assert.are.equal(
+        "/books/subdir/book2.pdf",
+        FileSearcher.search_results[2].path
+      )
       assert.is_true(FileSearcher.search_results[2].is_file)
     end)
 
@@ -561,7 +641,12 @@ describe("filemanagerfilesearcher", function()
       searcher.ui = mock_ui
       FileSearcher.search_string = "book"
       FileSearcher.search_results = {
-        { f = "book1.epub", path = "/books/book1.epub", is_file = true, idx = 1 }
+        {
+          f = "book1.epub",
+          path = "/books/book1.epub",
+          is_file = true,
+          idx = 1,
+        },
       }
       UIManager = require("ui/uimanager")
       mock_ui.file_chooser.refreshPath:clear()
@@ -590,9 +675,9 @@ describe("filemanagerfilesearcher", function()
       assert.are.equal("Delete", delete_btn.text)
 
       package.loaded["apps/filemanager/filemanager"] = {
-        showDeleteFileDialog = function(self, file, callback)
+        showDeleteFileDialog = function(self, _file, callback)
           callback()
-        end
+        end,
       }
 
       delete_btn.callback()
@@ -606,38 +691,167 @@ describe("filemanagerfilesearcher", function()
       package.loaded["apps/filemanager/filemanager"] = nil
     end)
 
-    it("should refresh path on 'Select in file browser' even if not modified", function()
+    it(
+      "should refresh path on 'Select in file browser' even if not modified",
+      function()
+        searcher:onShowSearchResults(false)
+        searcher.search_menu.setTitleBarLeftIcon = spy.new(function() end)
+
+        -- Mock title_bar
+        mock_ui.title_bar = {
+          setRightIcon = spy.new(function() end),
+        }
+
+        searcher:setSelectMode()
+        assert.truthy(searcher.selected_files)
+
+        local item = FileSearcher.search_results[1]
+        local mock_menu_inst = {
+          _manager = searcher,
+        }
+        searcher.onMenuHold(mock_menu_inst, item)
+        assert.truthy(searcher.selected_files[item.path])
+
+        searcher:setSelectMode()
+        local select_dialog = UIManager.getLastShownWidget()
+
+        local select_btn = select_dialog.buttons[2][2]
+        assert.are.equal("Select in file browser", select_btn.text)
+
+        select_btn.callback()
+
+        assert.spy(mock_ui.file_chooser.refreshPath).was.called(1)
+        assert.spy(mock_ui.title_bar.setRightIcon).was.called(1)
+
+        -- Cleanup mock
+        mock_ui.title_bar = nil
+      end
+    )
+
+    it("should handle onMenuChoice for files and directories", function()
       searcher:onShowSearchResults(false)
-      searcher.search_menu.setTitleBarLeftIcon = spy.new(function() end)
+      local menu = UIManager.getLastShownWidget()
+      assert.truthy(menu)
 
-      -- Mock title_bar
-      mock_ui.title_bar = {
-        setRightIcon = spy.new(function() end)
+      local opened_file
+      package.loaded["apps/filemanager/filemanager"] = {
+        openFile = function(_ui, f)
+          opened_file = f
+        end,
       }
 
-      searcher:setSelectMode()
-      assert.truthy(searcher.selected_files)
-
-      local item = FileSearcher.search_results[1]
-      local mock_menu_inst = {
-        _manager = searcher
+      -- File choice
+      local file_item = {
+        path = "/books/book1.epub",
+        is_file = true,
       }
-      searcher.onMenuHold(mock_menu_inst, item)
-      assert.truthy(searcher.selected_files[item.path])
+      local res = menu:onMenuSelect(file_item)
+      assert.is_true(res)
+      assert.are.equal("/books/book1.epub", opened_file)
 
-      searcher:setSelectMode()
-      local select_dialog = UIManager.getLastShownWidget()
+      -- Directory choice
+      local dir_item = {
+        path = "/books/subdir",
+        is_file = false,
+      }
+      res = menu:onMenuSelect(dir_item)
+      assert.is_true(res)
+      assert.spy(mock_ui.file_chooser.changeToPath).was.called()
 
-      local select_btn = select_dialog.buttons[2][2]
-      assert.are.equal("Select in file browser", select_btn.text)
+      -- Directory choice in Reader mode (no file_chooser)
+      mock_ui.file_chooser = nil
+      local exited = false
+      local shown_fm_path
+      mock_ui.onExit = function()
+        exited = true
+      end
+      mock_ui.showFileManager = function(_self, p)
+        shown_fm_path = p
+      end
 
-      select_btn.callback()
+      res = menu:onMenuSelect(dir_item)
+      assert.is_true(res)
+      assert.is_true(exited)
+      assert.are.equal("/books/subdir", shown_fm_path)
 
-      assert.spy(mock_ui.file_chooser.refreshPath).was.called(1)
-      assert.spy(mock_ui.title_bar.setRightIcon).was.called(1)
-
-      -- Cleanup mock
-      mock_ui.title_bar = nil
+      -- Restore
+      package.loaded["apps/filemanager/filemanager"] = nil
     end)
+
+    it(
+      "should handle select mode Deselect all, Select all, and Close actions",
+      function()
+        searcher:onShowSearchResults(false)
+        searcher.search_menu.setTitleBarLeftIcon = spy.new(function() end)
+
+        -- Enter select mode
+        searcher:setSelectMode()
+        assert.truthy(searcher.selected_files)
+
+        -- Show select mode actions dialog
+        searcher:setSelectMode()
+        local select_dialog = UIManager.getLastShownWidget()
+        assert.truthy(select_dialog)
+
+        -- Deselect all button: row 1 button 1
+        local deselect_btn = select_dialog.buttons[1][1]
+        assert.are.equal("Deselect all", deselect_btn.text)
+        deselect_btn.callback()
+        assert.are.same({}, searcher.selected_files)
+
+        -- Select all button: row 1 button 2
+        searcher:setSelectMode()
+        select_dialog = UIManager.getLastShownWidget()
+        local select_all_btn = select_dialog.buttons[1][2]
+        assert.are.equal("Select all", select_all_btn.text)
+        select_all_btn.callback()
+        assert.truthy(searcher.selected_files["/books/book1.epub"])
+
+        -- Close (exit select mode): row 2 button 1
+        searcher:setSelectMode()
+        select_dialog = UIManager.getLastShownWidget()
+        local close_btn = select_dialog.buttons[2][1]
+        assert.are.equal("Exit select mode", close_btn.text)
+        close_btn.callback()
+        assert.is_nil(searcher.selected_files)
+      end
+    )
+
+    it(
+      "should test Home folder search button and metadata search with coverbrowser",
+      function()
+        searcher.ui = mock_ui
+        mock_ui.coverbrowser = {
+          getBookInfo = function()
+            return { title = "Found In CoverBrowser" }
+          end,
+          extractBooksInDirectory = spy.new(function() end),
+        }
+        mock_ui.bookinfo.findInProps = function()
+          return true
+        end
+
+        searcher:onShowFileSearch("query")
+        local dialog = UIManager.getLastShownWidget()
+        assert.truthy(dialog)
+
+        -- Test Home folder button (row 1, button 2)
+        stub(searcher, "doSearch")
+        local home_btn = dialog.buttons[1][2]
+        assert.are.equal("Home folder", home_btn.text)
+        home_btn.callback()
+        assert.are.equal("/home/user", searcher.path)
+        assert.stub(searcher.doSearch).was.called()
+
+        -- Test metadata check in doSearch
+        searcher.path = "/books"
+        FileSearcher.search_string = "CoverBrowser"
+        searcher.include_metadata = true
+        searcher.case_sensitive = false
+        searcher.include_subfolders = false
+        local _, files = searcher:getList()
+        assert.truthy(files)
+      end
+    )
   end)
 end)

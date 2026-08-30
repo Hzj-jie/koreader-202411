@@ -75,9 +75,7 @@ function ConfirmBox:init()
         }),
       }
     end
-    if Device:hasKeys() then
-      self.key_events.Exit = { { Device.input.group.Dismiss } }
-    end
+    self.key_events.Exit = { { Device.input.group.Dismiss } }
   end
 
   self.text_widget_width =

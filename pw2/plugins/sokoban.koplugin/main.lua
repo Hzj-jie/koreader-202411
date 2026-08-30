@@ -1,0 +1,1 @@
+../../../koreader/plugins/sokoban.koplugin/main.lua

@@ -37,6 +37,9 @@ function ReaderMenu:init()
     tools = {
       icon = "appbar.tools",
     },
+    games = {
+      text = gettext("Games"),
+    },
     search = {
       icon = "appbar.search",
     },
@@ -260,7 +263,7 @@ function ReaderMenu:setUpdateItemTable()
   -- insert DjVu render mode submenu just before the last entry (show advanced)
   -- this is a bit of a hack
   if self.ui.document.is_djvu then
-    self.menu_items.djvu_render_mode = self.view:getRenderModeMenuTable()
+    self.menu_items.djvu_render_mode = self.ui.view:getRenderModeMenuTable()
   end
 
   if Device:supportsScreensaver() then

@@ -352,7 +352,7 @@ function ReaderBookmark:onToggleBookmark()
   self:toggleBookmark()
   self.view.dogear:onSetDogearVisibility(not self.view.dogear_visible)
   -- Refresh the dogear first, because it might inherit ReaderUI refresh hints.
-  UIManager:setDirty(self.view.dialog, function()
+  UIManager:setDirty(self.ui.dialog, function()
     return "ui", self.view.dogear:getRefreshRegion()
   end)
   -- And ask for a footer refresh, in case we have bookmark_count enabled.

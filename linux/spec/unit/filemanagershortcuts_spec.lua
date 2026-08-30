@@ -47,7 +47,8 @@ describe("FileManagerShortcuts", function()
       showWidget = require("ui/widget/widget").showWidget,
       uimanagedCleanUp = require("ui/widget/widget").uimanagedCleanUp,
     }
-    package.loaded["ui/widget/container/widgetcontainer"] = mock_widget_container
+    package.loaded["ui/widget/container/widgetcontainer"] =
+      mock_widget_container
 
     mock_menu = {
       new = function(self, args)
@@ -214,8 +215,16 @@ describe("FileManagerShortcuts", function()
       fms:updateItemTable()
 
       local expected = {
-        { text = "Folder 1 (/path/to/folder1)", folder = "/path/to/folder1", name = "Folder 1" },
-        { text = "Folder 2 (/path/to/folder2)", folder = "/path/to/folder2", name = "Folder 2" },
+        {
+          text = "Folder 1 (/path/to/folder1)",
+          folder = "/path/to/folder1",
+          name = "Folder 1",
+        },
+        {
+          text = "Folder 2 (/path/to/folder2)",
+          folder = "/path/to/folder2",
+          name = "Folder 2",
+        },
       }
       assert.are.same(expected, fms.shortcuts_menu.item_table)
     end)
@@ -246,29 +255,32 @@ describe("FileManagerShortcuts", function()
       assert.are.equal("/path/to/folder1", selected_folder)
     end)
 
-    it("should change path in file_chooser if select_callback is nil and file_chooser exists", function()
-      local fms = FileManagerShortcuts:new()
-      local changed_to_path
-      fms._manager = {
-        ui = {
-          file_chooser = {
-            changeToPath = function(_self, path)
-              changed_to_path = path
-            end,
+    it(
+      "should change path in file_chooser if select_callback is nil and file_chooser exists",
+      function()
+        local fms = FileManagerShortcuts:new()
+        local changed_to_path
+        fms._manager = {
+          ui = {
+            file_chooser = {
+              changeToPath = function(_self, path)
+                changed_to_path = path
+              end,
+            },
           },
-        },
-      }
+        }
 
-      -- We need to call it as shortcuts_menu would call it, but here we can just set _manager on fms
-      -- Wait, if we call fms:onMenuChoice directly, self is fms.
-      -- In onMenuChoice:
-      --   if self.select_callback then ...
-      --   else if self._manager.ui.file_chooser then ...
-      -- So if self is fms, and fms._manager is defined, it works.
-      fms:onMenuChoice({ folder = "/path/to/folder1" })
+        -- We need to call it as shortcuts_menu would call it, but here we can just set _manager on fms
+        -- Wait, if we call fms:onMenuChoice directly, self is fms.
+        -- In onMenuChoice:
+        --   if self.select_callback then ...
+        --   else if self._manager.ui.file_chooser then ...
+        -- So if self is fms, and fms._manager is defined, it works.
+        fms:onMenuChoice({ folder = "/path/to/folder1" })
 
-      assert.are.equal("/path/to/folder1", changed_to_path)
-    end)
+        assert.are.equal("/path/to/folder1", changed_to_path)
+      end
+    )
   end)
 
   describe("removeShortcut", function()
@@ -282,7 +294,11 @@ describe("FileManagerShortcuts", function()
       assert.is_true(fms.fm_updated)
       -- Should have updated item table (only folder2 remains)
       local expected = {
-        { text = "Folder 2 (/path/to/folder2)", folder = "/path/to/folder2", name = "Folder 2" },
+        {
+          text = "Folder 2 (/path/to/folder2)",
+          folder = "/path/to/folder2",
+          name = "Folder 2",
+        },
       }
       assert.are.same(expected, fms.shortcuts_menu.item_table)
     end)
@@ -324,7 +340,10 @@ describe("FileManagerShortcuts", function()
       -- Trigger Save
       save_btn.callback()
 
-      assert.are.equal("New Folder 1 Name", fms.folder_shortcuts["/path/to/folder1"].text)
+      assert.are.equal(
+        "New Folder 1 Name",
+        fms.folder_shortcuts["/path/to/folder1"].text
+      )
       assert.is_true(fms.fm_updated)
     end)
 
@@ -357,7 +376,10 @@ describe("FileManagerShortcuts", function()
       dialog.input_text = "New Folder"
       save_btn.callback()
 
-      assert.are.equal("New Folder", fms.folder_shortcuts["/path/to/new_folder"].text)
+      assert.are.equal(
+        "New Folder",
+        fms.folder_shortcuts["/path/to/new_folder"].text
+      )
       assert.is_true(post_callback_called)
       assert.is_true(fms.fm_updated)
     end)
@@ -367,7 +389,9 @@ describe("FileManagerShortcuts", function()
     it("should show PathChooser and then editShortcut if new", function()
       local fms = FileManagerShortcuts:new()
       fms.ui = {
-        getLastDirFile = function() return "/path/to" end
+        getLastDirFile = function()
+          return "/path/to"
+        end,
       }
 
       fms:addShortcut()
@@ -411,7 +435,9 @@ describe("FileManagerShortcuts", function()
     it("should show InfoMessage if shortcut already exists", function()
       local fms = FileManagerShortcuts:new()
       fms.ui = {
-        getLastDirFile = function() return "/path/to" end
+        getLastDirFile = function()
+          return "/path/to"
+        end,
       }
 
       fms:addShortcut()
@@ -431,6 +457,233 @@ describe("FileManagerShortcuts", function()
     end)
   end)
 
+  describe("onMenuChoice reader mode", function()
+    it(
+      "should handle Reader mode in onMenuChoice when file_chooser is nil",
+      function()
+        local fms = FileManagerShortcuts:new()
+        local exit_called = false
+        local shown_path
+        fms._manager = {
+          ui = {
+            file_chooser = nil,
+            onExit = function()
+              exit_called = true
+            end,
+            showFileManager = function(_self, p)
+              shown_path = p
+            end,
+          },
+        }
+
+        fms:onMenuChoice({ folder = "/path/to/folder1" })
+        assert.is_true(exit_called)
+        assert.are.equal("/path/to/folder1/", shown_path)
+      end
+    )
+  end)
+
+  describe("onMenuHold", function()
+    it(
+      "should show hold dialog with remove, rename, and paste actions",
+      function()
+        local fms = FileManagerShortcuts:new()
+        local removed_folder, edited_folder, pasted_folder
+        fms._manager = {
+          ui = {
+            file_chooser = {},
+            clipboard = { "/some/clip" },
+            pasteFileFromClipboard = function(_self, folder)
+              pasted_folder = folder
+            end,
+          },
+          removeShortcut = function(_self, folder)
+            removed_folder = folder
+          end,
+          editShortcut = function(_self, folder)
+            edited_folder = folder
+          end,
+        }
+
+        local item = { name = "Folder 1", folder = "/path/to/folder1" }
+        local res = fms:onMenuHold(item)
+        assert.is_true(res)
+
+        local dialog =
+          mock_uimanager.shown_widgets[#mock_uimanager.shown_widgets]
+        assert.truthy(dialog)
+        assert.truthy(dialog.is_button_dialog)
+
+        -- Button rows:
+        -- row 1: remove, rename
+        local remove_btn = dialog.buttons[1][1]
+        local rename_btn = dialog.buttons[1][2]
+        local paste_btn = dialog.buttons[2][1]
+
+        assert.are.equal("Remove shortcut", remove_btn.text)
+        assert.are.equal("Rename shortcut", rename_btn.text)
+        assert.are.equal("Paste to folder", paste_btn.text)
+
+        remove_btn.callback()
+        assert.are.equal("/path/to/folder1", removed_folder)
+
+        rename_btn.callback()
+        assert.are.equal("/path/to/folder1", edited_folder)
+
+        paste_btn.callback()
+        assert.are.equal("/path/to/folder1", pasted_folder)
+      end
+    )
+  end)
+
+  describe("editShortcut dialog callbacks", function()
+    it("should handle cancel button and input edit validation", function()
+      local fms = FileManagerShortcuts:new()
+      fms.shortcuts_menu = mock_menu:new()
+
+      -- Test cancel button
+      fms:editShortcut("/path/to/folder1")
+      local dialog = mock_uimanager.shown_widgets[#mock_uimanager.shown_widgets]
+      local cancel_btn = dialog.buttons[1][1]
+      assert.are.equal("Cancel", cancel_btn.text)
+      cancel_btn.callback()
+    end)
+  end)
+
+  describe(
+    "genShowFolderShortcutsButton and genAddRemoveShortcutButton",
+    function()
+      it("should generate show folder shortcuts button", function()
+        local fms = FileManagerShortcuts:new()
+        local pre_called = false
+        local show_called = false
+        fms.onShowFolderShortcutsDialog = function()
+          show_called = true
+        end
+
+        local btn = fms:genShowFolderShortcutsButton(function()
+          pre_called = true
+        end)
+        assert.are.equal(fms.title, btn.text)
+        btn.callback()
+        assert.is_true(pre_called)
+        assert.is_true(show_called)
+      end)
+
+      it(
+        "should generate remove button when folder exists in shortcuts",
+        function()
+          local fms = FileManagerShortcuts:new()
+          local pre_called = false
+          local post_called = false
+          local removed_folder
+
+          fms.removeShortcut = function(_self, f)
+            removed_folder = f
+          end
+
+          local btn = fms:genAddRemoveShortcutButton(
+            "/path/to/folder1",
+            function()
+              pre_called = true
+            end,
+            function()
+              post_called = true
+            end
+          )
+          assert.are.equal("Remove from folder shortcuts", btn.text)
+          btn.callback()
+          assert.is_true(pre_called)
+          assert.is_true(post_called)
+          assert.are.equal("/path/to/folder1", removed_folder)
+        end
+      )
+
+      it(
+        "should generate add button when folder is not in shortcuts",
+        function()
+          local fms = FileManagerShortcuts:new()
+          local pre_called = false
+          local post_called = false
+          local edited_folder, callback_passed
+
+          fms.editShortcut = function(_self, f, cb)
+            edited_folder = f
+            callback_passed = cb
+          end
+
+          local btn = fms:genAddRemoveShortcutButton(
+            "/path/to/new_folder",
+            function()
+              pre_called = true
+            end,
+            function()
+              post_called = true
+            end
+          )
+          assert.are.equal("Add to folder shortcuts", btn.text)
+          btn.callback()
+          assert.is_true(pre_called)
+          assert.are.equal("/path/to/new_folder", edited_folder)
+          assert.are.equal(post_called, false)
+          callback_passed()
+          assert.is_true(post_called)
+        end
+      )
+    end
+  )
+
+  describe("onSetDimensions and onShowFolderShortcutsDialog", function()
+    it("should set dimensions", function()
+      local fms = FileManagerShortcuts:new()
+      fms:onSetDimensions({ w = 100, h = 200 })
+      assert.are.same({ w = 100, h = 200 }, fms.dimen)
+    end)
+
+    it("should show folder shortcuts dialog and test menu lifecycle", function()
+      local fms = FileManagerShortcuts:new()
+      local refreshed_path = false
+      local updated_title = false
+      fms.ui = {
+        file_chooser = {
+          refreshPath = function()
+            refreshed_path = true
+          end,
+        },
+        updateTitleBarPath = function()
+          updated_title = true
+        end,
+      }
+
+      fms:onShowFolderShortcutsDialog()
+      assert.truthy(fms.shortcuts_menu)
+
+      -- Test onLeftButtonTap
+      local added = false
+      fms.addShortcut = function()
+        added = true
+      end
+      fms.shortcuts_menu.onLeftButtonTap()
+      assert.is_true(added)
+
+      -- Test recreate
+      local recreated = false
+      fms.onShowFolderShortcutsDialog = function()
+        recreated = true
+      end
+      fms.shortcuts_menu._recreate_func()
+      assert.is_true(recreated)
+
+      -- Test close callback with fm_updated
+      fms.fm_updated = true
+      fms.shortcuts_menu.close_callback()
+      assert.is_nil(fms.shortcuts_menu)
+      assert.is_true(refreshed_path)
+      assert.is_true(updated_title)
+      assert.is_nil(fms.fm_updated)
+    end)
+  end)
+
   describe("uimanagedCleanUp", function()
     it("closes shortcuts_menu automatically", function()
       local fms = FileManagerShortcuts:new()
@@ -445,7 +698,9 @@ describe("FileManagerShortcuts", function()
       fms:uimanagedCleanUp()
 
       assert.is_nil(fms.shortcuts_menu)
-      assert.stub(mock_uimanager.closeIfShown).was_called_with(mock_uimanager, dummy_menu)
+      assert
+        .stub(mock_uimanager.closeIfShown)
+        .was_called_with(mock_uimanager, dummy_menu)
 
       mock_uimanager.closeIfShown:revert()
     end)

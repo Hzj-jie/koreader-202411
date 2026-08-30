@@ -37,6 +37,7 @@ local util = require("util")
 local Screen = Device.screen
 
 local TextViewer = InputContainer:extend({
+  modal = true,
   title = nil,
   text = nil,
   charlist = nil, -- internal
@@ -111,10 +112,8 @@ function TextViewer:init(reinit)
   self._find_next_button = false
   self._old_virtual_line_num = 1
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-    self.key_events.ShowMenu = { { "Menu" } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
+  self.key_events.ShowMenu = { { "Menu" } }
 
   if Device:isTouchDevice() then
     local range = Geom:new({
@@ -727,13 +726,15 @@ function TextViewer:register(registry)
     enabled_func = function()
       return true -- all files
     end,
-    callback = TextViewer.openFile,
+    callback = function(file)
+      self:openFile(file)
+    end,
     disable_file = true,
     disable_type = false,
   })
 end
 
-function TextViewer.openFile(file)
+function TextViewer:openFile(file)
   local function _openFile(file_path)
     local file_handle = io.open(file_path, "rb")
     if not file_handle then

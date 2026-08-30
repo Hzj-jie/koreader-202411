@@ -19,13 +19,31 @@ local INVISIBLE_PLUGINS = {
   backgroundrunner = true,
 }
 
+local DEFAULT_DISABLED_PLUGINS = {
+  AnnotationSync = true,
+  checkers = true,
+  game2048 = true,
+  nonogram = true,
+  slidepuzzle = true,
+  sokoban = true,
+  solitaire = true,
+  sudoku = true,
+}
+
 local PluginLoader = {
   show_info = true,
   enabled_plugins = nil,
   disabled_plugins = nil,
-  loaded_plugins = nil,
   all_plugins = nil,
+  plugins_disabled = nil,
 }
+
+function PluginLoader:pluginsDisabled()
+  if not self.plugins_disabled then
+    self.plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
+  end
+  return self.plugins_disabled
+end
 
 function PluginLoader:loadPlugins()
   if self.enabled_plugins then
@@ -34,7 +52,6 @@ function PluginLoader:loadPlugins()
 
   self.enabled_plugins = {}
   self.disabled_plugins = {}
-  self.loaded_plugins = {}
   local lookup_path_list = { DEFAULT_PLUGIN_PATH }
   local data_dir = require("datastorage"):getDataDir()
   if data_dir ~= "." then
@@ -62,67 +79,67 @@ function PluginLoader:loadPlugins()
     end
   end
 
-  -- keep reference to old value so they can be restored later
-  local package_path = package.path
-  local package_cpath = package.cpath
-
-  local plugins_disabled = G_reader_settings:readTableRef("plugins_disabled")
   for entry in pairs(INVISIBLE_PLUGINS) do
-    plugins_disabled[entry] = false
+    self:pluginsDisabled()[entry] = false
   end
   for _, lookup_path in ipairs(lookup_path_list) do
     logger.info("Loading plugins from directory:", lookup_path)
     for entry in lfs.dir(lookup_path) do
       local plugin_root = lookup_path .. "/" .. entry
-      local mode = lfs.attributes(plugin_root, "mode")
-      local plugin_name = entry:sub(1, -10)
+      local plugin_code_name = entry:sub(1, -10)
       -- valid koreader plugin directory
       if
-        mode == "directory"
+        lfs.attributes(plugin_root, "mode") == "directory"
         and entry:find(".+%.koplugin$")
-        and not OBSOLETE_PLUGINS[plugin_name]
+        and not OBSOLETE_PLUGINS[plugin_code_name]
       then
-        local mainfile = plugin_root .. "/main.lua"
-        local metafile = plugin_root .. "/_meta.lua"
-        if plugins_disabled[plugin_name] then
-          mainfile = metafile
+        local mainfile = plugin_root .. "/main"
+        local metafile = plugin_root .. "/_meta"
+        if self:pluginsDisabled()[plugin_code_name] == nil then
+          if DEFAULT_DISABLED_PLUGINS[plugin_code_name] then
+            self:pluginsDisabled()[plugin_code_name] = true
+          end
         end
-        package.path = string.format("%s/?.lua;%s", plugin_root, package_path)
-        package.cpath =
-          string.format("%s/lib/?.so;%s", plugin_root, package_cpath)
-        local plugin_module = dofile(mainfile)
-        assert(plugin_module ~= nil)
-        assert(
-          plugin_module.disabled == nil
-            or type(plugin_module.disabled) == "boolean"
-        )
-        if not plugin_module.disabled then
-          plugin_module.path = plugin_root
-          plugin_module.name = plugin_module.name
-            or plugin_root:match("/(.-)%.koplugin")
-          if plugins_disabled[plugin_name] then
-            table.insert(self.disabled_plugins, plugin_module)
-          else
-            local plugin_metamodule = dofile(metafile)
+        if
+          lfs.attributes(metafile .. ".lua", "mode") == "file"
+          and lfs.attributes(mainfile .. ".lua", "mode") == "file"
+        then
+          local plugin_module = require(mainfile)
+          assert(plugin_module ~= nil)
+          assert(
+            plugin_module.disabled == nil
+              or type(plugin_module.disabled) == "boolean"
+          )
+          if not plugin_module.disabled then
+            plugin_module.path = plugin_root
+            -- code_name: unique identifier matching the folder name (used for settings storage keys)
+            -- name: internally-used Lua class/module name of the plugin instance
+            plugin_module.code_name = plugin_code_name
+            plugin_module.name = plugin_module.name or plugin_code_name
+
+            local plugin_metamodule = require(metafile)
             assert(plugin_metamodule)
             for k, v in pairs(plugin_metamodule) do
               plugin_module[k] = v
             end
-            table.insert(self.enabled_plugins, plugin_module)
+
+            if self:pluginsDisabled()[plugin_code_name] then
+              table.insert(self.disabled_plugins, plugin_module)
+            else
+              table.insert(self.enabled_plugins, plugin_module)
+            end
+          else
+            logger.dbg("Plugin", entry, "has been disabled.")
           end
         else
-          logger.dbg("Plugin", mainfile, "has been disabled.")
+          logger.warn(
+            "Plugin directory",
+            entry,
+            "is missing required files (main.lua or _meta.lua), skipping."
+          )
         end
-        package.path = package_path
-        package.cpath = package_cpath
       end
     end
-  end
-
-  -- set package path for all loaded plugins
-  for _, plugin in ipairs(self.enabled_plugins) do
-    package.path = string.format("%s;%s/?.lua", package.path, plugin.path)
-    package.cpath = string.format("%s;%s/lib/?.so", package.cpath, plugin.path)
   end
 
   table.sort(self.enabled_plugins, function(v1, v2)
@@ -139,6 +156,7 @@ function PluginLoader:_addPluginsToMenu(plugins, enable)
       fullname = plugin.fullname or plugin.name,
       description = plugin.description,
       enable = enable,
+      code_name = plugin.code_name,
     })
   end
 end
@@ -165,48 +183,32 @@ function PluginLoader:genPluginManagerSubItem()
           return plugin.enable
         end,
         callback = function()
-          local UIManager = require("ui/uimanager")
-          local plugins_disabled =
-            G_reader_settings:readTableRef("plugins_disabled")
           plugin.enable = not plugin.enable
+          local is_default_disabled = DEFAULT_DISABLED_PLUGINS[plugin.code_name]
           if plugin.enable then
-            plugins_disabled[plugin.name] = nil
+            if is_default_disabled then
+              self:pluginsDisabled()[plugin.code_name] = false
+            else
+              self:pluginsDisabled()[plugin.code_name] = nil
+            end
           else
-            plugins_disabled[plugin.name] = true
+            if is_default_disabled then
+              self:pluginsDisabled()[plugin.code_name] = nil
+            else
+              self:pluginsDisabled()[plugin.code_name] = true
+            end
           end
           if self.show_info then
             self.show_info = false
-            UIManager:askForRestart()
+            require("ui/uimanager"):askForRestart()
           end
         end,
         help_text = plugin.description,
       })
     end
   end
+
   return plugin_table
-end
-
-function PluginLoader:createPluginInstance(plugin, attr)
-  return true, plugin:new(attr)
-end
-
---- Checks if a specific plugin is instantiated
-if util.isTesting() then
-  function PluginLoader:isPluginLoaded(name)
-    return self.loaded_plugins[name] ~= nil
-  end
-
-  --- Returns the current instance of a specific Plugin (if any)
-  --- (NOTE: You can also usually access it via self.ui[plugin_name])
-  function PluginLoader:getPluginInstance(name)
-    return self.loaded_plugins[name]
-  end
-end
-
--- *MUST* be called on destruction of whatever called createPluginInstance!
-function PluginLoader:finalize()
-  -- Unpin stale references
-  self.loaded_plugins = {}
 end
 
 return PluginLoader

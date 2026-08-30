@@ -164,7 +164,11 @@ function KoptInterface:createContext(doc, pageno, bbox)
   kc:setLineSpacing(doc.configurable.line_spacing)
   kc:setWordSpacing(doc.configurable.word_spacing)
   if bbox then
-    if bbox.x0 >= bbox.x1 or bbox.y0 >= bbox.y1 then
+    if
+      not (bbox.x0 and bbox.x1 and bbox.y0 and bbox.y1)
+      or bbox.x0 >= bbox.x1
+      or bbox.y0 >= bbox.y1
+    then
       local page_size = Document.getNativePageDimensions(doc, pageno)
       bbox.x0, bbox.y0 = 0, 0
       bbox.x1, bbox.y1 = page_size.w, page_size.h

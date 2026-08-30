@@ -159,12 +159,10 @@ function SortWidget:init()
     h = self.height or Screen:getHeight(),
   })
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-    self.key_events.NextPage = { { Device.input.group.PgFwd } }
-    self.key_events.PrevPage = { { Device.input.group.PgBack } }
-    self.key_events.ShowWidgetMenu = { { "Menu" } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
+  self.key_events.NextPage = { { Device.input.group.PgFwd } }
+  self.key_events.PrevPage = { { Device.input.group.PgBack } }
+  self.key_events.ShowWidgetMenu = { { "Menu" } }
   if Device:isTouchDevice() then
     self.ges_events.Swipe = {
       GestureRange:new({

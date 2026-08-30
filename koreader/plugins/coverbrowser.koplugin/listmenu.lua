@@ -34,7 +34,7 @@ local N_ = gettext.ngettext
 local Screen = Device.screen
 local T = require("ffi/util").template
 
-local BookInfoManager = require("bookinfomanager")
+local BookInfoManager = require("plugins/coverbrowser.koplugin/bookinfomanager")
 
 -- Here is the specific UI implementation for "list" display modes
 -- (see covermenu.lua for the generic code)

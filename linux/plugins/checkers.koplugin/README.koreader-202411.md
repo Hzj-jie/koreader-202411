@@ -1,0 +1,1 @@
+../../../koreader/plugins/checkers.koplugin/README.koreader-202411.md

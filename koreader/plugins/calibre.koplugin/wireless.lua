@@ -4,9 +4,9 @@
 --]]
 
 local BD = require("ui/bidi")
-local CalibreExtensions = require("extensions")
-local CalibreMetadata = require("metadata")
-local CalibreSearch = require("search")
+local CalibreExtensions = require("plugins/calibre.koplugin/extensions")
+local CalibreMetadata = require("plugins/calibre.koplugin/metadata")
+local CalibreSearch = require("plugins/calibre.koplugin/search")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local FFIUtil = require("ffi/util")

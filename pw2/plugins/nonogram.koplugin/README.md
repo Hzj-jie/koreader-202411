@@ -1,0 +1,1 @@
+../../../koreader/plugins/nonogram.koplugin/README.md

@@ -395,4 +395,16 @@ function DeviceListener:onResume()
   UIManager:setIgnoreTouchInput(false)
 end
 
+function DeviceListener:onForkedProcess()
+  if Device:isKindle() then
+    require("liblipcs"):resetLipcs()
+  end
+  -- Avoid eagerly loading libkoreader-cre if it hasn't been initialized in this
+  -- process, as we only need to bypass teardown when it is already active.
+  local cre = package.loaded["libs/libkoreader-cre"]
+  if cre then
+    cre.setSkipTearDown(true)
+  end
+end
+
 return DeviceListener

@@ -27,11 +27,17 @@ for entry in "$PLATFORM_PATH"/* "$PLATFORM_PATH"/.*; do
 done
 
 ln -s "$PLATFORM_PATH/test" "$SANDBOX_ROOT/test"
+if [ -f "${KO_WORKSPACE_DIR:-$PLATFORM_PATH/..}/.luacov" ]; then
+    ln -s "${KO_WORKSPACE_DIR:-$PLATFORM_PATH/..}/.luacov" "$SANDBOX_DIR/.luacov" 2>/dev/null || true
+fi
 
 pushd "$SANDBOX_DIR" > /dev/null
 
 cleanup() {
     echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
+    if [ -f "$SANDBOX_DIR/luacov.stats.out" ]; then
+        cp "$SANDBOX_DIR/luacov.stats.out" "${KO_WORKSPACE_DIR:-$PLATFORM_PATH/..}/luacov.stats.out" 2>/dev/null || true
+    fi
     if [ -d "$SANDBOX_DIR/screenshots" ]; then
         mkdir -p "$PLATFORM_PATH/screenshots"
         cp -r "$SANDBOX_DIR/screenshots"/* "$PLATFORM_PATH/screenshots/" 2>/dev/null || true

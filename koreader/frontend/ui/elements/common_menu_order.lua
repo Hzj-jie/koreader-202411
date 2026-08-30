@@ -141,8 +141,12 @@ local function mergeWith(b)
       "clock",
       "weather",
       "calculator",
+      "games",
       "----------------------------",
       "plugin_management",
+    },
+    games = {
+      -- Coming from plugins
     },
     search = {
       "search_settings",

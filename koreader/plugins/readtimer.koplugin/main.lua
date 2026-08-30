@@ -89,6 +89,12 @@ function ReadTimer:init()
     G_reader_settings:read("readtimer_show_value_in_footer")
 
   self.ui.menu:registerToMainMenu(self)
+
+  if
+    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+  then
+    self:onPostReaderReady()
+  end
 end
 
 function ReadTimer:onPostReaderReady()

@@ -80,12 +80,9 @@ function FrontLightWidget:init()
   end
 
   -- Input
-  if Device:hasKeys() then
-    local close_keys = Device:hasFewKeys()
-        and { Device.input.group.Back, "Left" }
-      or Device.input.group.Back
-    self.key_events.Exit = { { close_keys } }
-  end
+  local close_keys = Device:hasFewKeys() and { Device.input.group.Back, "Left" }
+    or Device.input.group.Back
+  self.key_events.Exit = { { close_keys } }
   if Device:isTouchDevice() then
     self.ges_events = {
       TapProgress = {

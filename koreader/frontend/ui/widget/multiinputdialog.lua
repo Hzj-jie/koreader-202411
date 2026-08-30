@@ -104,8 +104,9 @@ function MultiInputDialog:init()
   -- Kick InputDialog's own field out of the layout, we're not using it
   table.remove(self.layout, 1)
   -- Also murder said input field *and* its VK, or we get two of them and shit gets hilariously broken real fast...
-  self:closeKeyboard()
+  self:_closeKeyboard()
   self._input_widget:onClose()
+  self._should_show_keyboard = true
 
   local VerticalGroupData = VerticalGroup:new({
     align = "left",
@@ -256,7 +257,7 @@ function MultiInputDialog:onSwitchFocus(inputbox)
   -- unfocus current inputbox
   self._input_widget:unfocus()
   -- and close its existing keyboard (via InputDialog's thin wrapper around _input_widget's own method)
-  self:closeKeyboard()
+  self:_closeKeyboard()
 
   UIManager:setDirty(nil, function()
     return "ui", self.dialog_frame.dimen
@@ -267,6 +268,7 @@ function MultiInputDialog:onSwitchFocus(inputbox)
   self._input_widget:focus()
   self.focused_field_idx = inputbox.idx
 
+  self._should_show_keyboard = true
   self:showKeyboard()
 end
 
@@ -283,13 +285,13 @@ function MultiInputDialog:onKeyboardHeightChanged()
     end
   end
   self:free()
-  self.keyboard_visible = visible
+  self._should_show_keyboard = visible
   for i, field in ipairs(self.fields) do -- restore entered text and type
     field.text = fields[i].text
     field.text_type = fields[i].text_type
   end
   self:init()
-  if self.keyboard_visible then
+  if self._should_show_keyboard then
     self:showKeyboard()
   end
   UIManager:setDirty("all", "flashui")

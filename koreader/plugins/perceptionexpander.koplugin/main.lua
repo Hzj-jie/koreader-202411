@@ -33,6 +33,13 @@ function PerceptionExpander:init()
   end
 
   self.is_enabled = self.settings:isTrue("is_enabled")
+
+  if
+    self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+  then
+    self:onReaderReady()
+  end
+
   if not self.is_enabled then
     return
   end
@@ -100,7 +107,7 @@ end
 
 function PerceptionExpander:onReaderReady()
   self.ui.menu:registerToMainMenu(self)
-  self.view:registerViewModule("perception_expander", self)
+  self.ui.view:registerViewModule("perception_expander", self)
 end
 
 function PerceptionExpander:resetLayout()

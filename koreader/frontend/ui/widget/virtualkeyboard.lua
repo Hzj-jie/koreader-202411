@@ -737,9 +737,7 @@ function VirtualKeyPopup:init()
   self.tap_interval_override =
     time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
 
-  if Device:hasKeys() then
-    self.key_events.Exit = { { Device.input.group.Back } }
-  end
+  self.key_events.Exit = { { Device.input.group.Back } }
 
   local offset_x = 2 * keyboard_frame.bordersize
     + keyboard_frame.padding
@@ -784,8 +782,8 @@ end
 
 local VirtualKeyboard = FocusManager:extend({
   name = "VirtualKeyboard",
+  modal = false,
   visible = nil,
-  lock_visibility = false,
   covers_footer = true,
   disable_double_tap = true,
   inputbox = nil,
@@ -874,9 +872,7 @@ function VirtualKeyboard:init()
   self:initLayer(self.keyboard_layer)
   self.tap_interval_override =
     time.ms(G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0)
-  if Device:hasKeys() then
-    self.key_events.KeyboardBack = { { Device.input.group.Back } }
-  end
+  self.key_events.KeyboardBack = { { Device.input.group.Back } }
   if keyboard.wrapInputBox then
     self.uwrap_func = keyboard.wrapInputBox(self.inputbox) or self.uwrap_func
   end
@@ -958,14 +954,6 @@ function VirtualKeyboard:setKeyboardLayout(layout)
 end
 
 function VirtualKeyboard:onKeyboardBack()
-  if
-    Device:hasDPad()
-    and self.inputbox ~= nil
-    and self.inputbox.parent ~= nil
-    and self.inputbox.parent.deny_keyboard_hiding
-  then
-    return false
-  end
   self:onExit()
   return true
 end
@@ -1027,15 +1015,7 @@ function VirtualKeyboard:onClose()
   active_instances = active_instances - 1
 end
 
-function VirtualKeyboard:lockVisibility(toggle)
-  self.lock_visibility = toggle
-end
-
 function VirtualKeyboard:setVisibility(toggle)
-  if self.lock_visibility then
-    return
-  end
-
   if toggle then
     UIManager:show(self)
   else

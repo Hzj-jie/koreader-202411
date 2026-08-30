@@ -72,9 +72,7 @@ function MultiConfirmBox:init()
         }),
       }
     end
-    if Device:hasKeys() then
-      self.key_events.Exit = { { Device.input.group.Back } }
-    end
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   local content = HorizontalGroup:new({
     align = "center",
