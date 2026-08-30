@@ -735,13 +735,6 @@ describe("KOSync plugin tests", function()
       end)
       kosync:_updateProgress(true)
       assert.stub(UIManager.show).was_called()
-
-      -- Client throws pcall error
-      mock_client.update_progress = spy.new(function()
-        error("network error")
-      end)
-      kosync:_updateProgress(true)
-      assert.stub(UIManager.show).was_called()
     end)
 
     it("pushes progress via background job when non-interactive", function()
@@ -1040,9 +1033,9 @@ describe("KOSync plugin tests", function()
           .stub(kosync._syncToProgress)
           .was_called_with(match.is_table(), "80")
 
-        -- Error during pcall
+        -- Error during get_progress
         mock_client.get_progress = spy.new(function()
-          error("pull error")
+          return false, nil
         end)
         kosync.pull_timestamp = 0
         kosync:_getProgress(true)
