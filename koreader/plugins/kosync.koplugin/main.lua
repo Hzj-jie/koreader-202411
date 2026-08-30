@@ -727,34 +727,28 @@ function KOSync:_applyPullUI(
     return
   end
 
-  if not body.percentage then
+  local showInfo = function(msg)
     if interactive then
       UIManager:show(InfoMessage:new({
-        text = gettext("No progress found for this document."),
+        text = msg,
         timeout = 3,
       }))
     end
+  end
+
+  if not body.percentage then
+    showInfo(gettext("No progress found for this document."))
     return
   end
 
   if body.device == Device.model and body.device_id == self.device_id then
-    if interactive then
-      UIManager:show(InfoMessage:new({
-        text = gettext("Latest progress is coming from this device."),
-        timeout = 3,
-      }))
-    end
+    showInfo(gettext("Latest progress is coming from this device."))
     return
   end
 
   local remote_percentage = Math.roundPercent(body.percentage)
   if local_percentage == remote_percentage or body.progress == local_progress then
-    if interactive then
-      UIManager:show(InfoMessage:new({
-        text = gettext("The progress has already been synchronized."),
-        timeout = 3,
-      }))
-    end
+    showInfo(gettext("The progress has already been synchronized."))
     return
   end
 
