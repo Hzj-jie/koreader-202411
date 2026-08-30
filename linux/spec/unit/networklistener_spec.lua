@@ -85,4 +85,40 @@ describe("NetworkListener module", function()
     NetworkMgr.toggleWifiOn = old_toggleWifiOn
     NetworkMgr.toggleWifiOff = old_toggleWifiOff
   end)
+
+  it(
+    "should automatically fingerprint and deduplicate identical closures without explicit keys",
+    function()
+      local listener = NetworkListener:new()
+
+      local count1 = 0
+      local count2 = 0
+
+      local function makeTask(doc)
+        return function()
+          if doc == "docA" then
+            count1 = count1 + 1
+          else
+            count2 = count2 + 1
+          end
+        end
+      end
+
+      -- Register same task closure twice without key
+      listener:onPendingOnline(makeTask("docA"))
+      listener:onPendingOnline(makeTask("docA"))
+
+      -- Register different task closure without key
+      listener:onPendingOnline(makeTask("docB"))
+
+      -- Should have 2 unique pending jobs (docA deduped to 1, docB is 1)
+      assert.are.equal("0 / 2", listener:countsOfPendingJobs())
+
+      listener:onNetworkOnline()
+
+      assert.is_equal(1, count1)
+      assert.is_equal(1, count2)
+      assert.are.equal("0 / 0", listener:countsOfPendingJobs())
+    end
+  )
 end)
