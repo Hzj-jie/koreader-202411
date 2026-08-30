@@ -15,6 +15,26 @@ function BackgroundJobs.clearKeys()
   _active_keys = {}
 end
 
+local function calculateKey(job)
+  if job.key ~= nil then
+    return job.key
+  end
+  local util = require("util")
+  if job.executable == "fork" then
+    if type(job.action) == "function" then
+      return util.functionFingerprint(job.action)
+    end
+    return nil
+  end
+  if type(job.executable) == "string" then
+    return job.executable
+  end
+  if type(job.executable) == "function" then
+    return util.functionFingerprint(job.executable)
+  end
+  return nil
+end
+
 function BackgroundJobs.insertKeyed(job)
   assert(type(job) == "table", "BackgroundJobs.insertKeyed expects a table")
   assert(job.repeated == nil, "BackgroundJobs.insertKeyed does not support repeated jobs")
@@ -22,18 +42,7 @@ function BackgroundJobs.insertKeyed(job)
 
   job.when = "asap"
 
-  local key = job.key
-  if key == nil then
-    local util = require("util")
-    if job.executable == "fork" and type(job.action) == "function" then
-      key = util.functionFingerprint(job.action)
-    elseif type(job.executable) == "string" then
-      key = job.executable
-    elseif type(job.executable) == "function" then
-      key = util.functionFingerprint(job.executable)
-    end
-  end
-
+  local key = calculateKey(job)
   assert(type(key) == "string", "BackgroundJobs.insertKeyed expects a valid key")
 
   if _active_keys[key] then
