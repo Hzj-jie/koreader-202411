@@ -3,6 +3,57 @@ Helper to manage background jobs.
 --]]
 
 local BackgroundJobs = {}
+local _active_keys = {}
+
+-- For testing purposes only.
+function BackgroundJobs.hasKey(key)
+  return _active_keys[key] == true
+end
+
+-- For testing purposes only.
+function BackgroundJobs.clearKeys()
+  _active_keys = {}
+end
+
+function BackgroundJobs.insertKeyed(job)
+  assert(type(job) == "table", "BackgroundJobs.insertKeyed expects a table")
+  assert(job.repeated == nil, "BackgroundJobs.insertKeyed does not support repeated jobs")
+  assert(job.when == nil, "BackgroundJobs.insertKeyed does not support custom when")
+
+  job.when = "asap"
+
+  local key = job.key
+  if key == nil then
+    local util = require("util")
+    if type(job.action) == "function" then
+      key = util.functionFingerprint(job.action)
+    elseif type(job.executable) == "string" then
+      key = job.executable
+    elseif type(job.executable) == "function" then
+      key = util.functionFingerprint(job.executable)
+    end
+  end
+
+  assert(type(key) == "string", "BackgroundJobs.insertKeyed expects a valid key")
+
+  if _active_keys[key] then
+    require("logger").dbg("BackgroundJobs: filtered duplicate job with key:", key)
+    return false
+  end
+
+  _active_keys[key] = true
+
+  local orig_callback = job.callback
+  job.callback = function(res_job)
+    _active_keys[key] = nil
+    if orig_callback then
+      orig_callback(res_job)
+    end
+  end
+
+  BackgroundJobs.insert(job)
+  return true
+end
 
 function BackgroundJobs.insert(job)
   local jobs = require("pluginshare").backgroundJobs
