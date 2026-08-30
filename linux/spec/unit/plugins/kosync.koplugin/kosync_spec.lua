@@ -648,6 +648,28 @@ describe("KOSync plugin tests", function()
       ReaderUI.instance = {}
       assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
       ReaderUI.instance = mock_ui
+
+      -- self.ui is nil
+      local original_ui = kosync.ui
+      kosync.ui = nil
+      assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      kosync.ui = original_ui
+
+      -- self.ui.document is nil
+      local original_doc = mock_ui.document
+      mock_ui.document = nil
+      assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      mock_ui.document = original_doc
+
+      -- doc_digest is nil
+      assert.is_false(kosync:_isCurrentDocument(nil))
+
+      -- FILENAME checksum method
+      kosync.settings.checksum_method = 1
+      local filename_digest = kosync:_getDocumentDigest()
+      assert.is_string(filename_digest)
+      assert.is_true(kosync:_isCurrentDocument(filename_digest))
+      assert.is_false(kosync:_isCurrentDocument("wrong_digest"))
     end)
 
     it("syncs to progress for paged and rolling documents", function()
@@ -721,6 +743,71 @@ describe("KOSync plugin tests", function()
       kosync:_updateProgress(true)
       assert.stub(UIManager.show).was_called()
     end)
+
+    it("pushes progress via background job when non-interactive", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.push_timestamp = 0
+
+      local insert_keyed_called = false
+      stub(BackgroundJobs, "insertKeyed", function(job)
+        insert_keyed_called = true
+        assert.are.equal("fork", job.executable)
+        assert.is_function(job.action)
+        assert.is_function(job.callback)
+        local res = job.action()
+        assert.is_table(res)
+        assert.is_true(res.ok)
+        job.result = res
+        job.callback(job)
+        return true
+      end)
+
+      UIManager.show:clear()
+      kosync:_updateProgress(false)
+
+      assert.is_true(insert_keyed_called)
+      assert.spy(mock_client.update_progress).was_called()
+      assert.stub(UIManager.show).was_not_called()
+      BackgroundJobs.insertKeyed:revert()
+    end)
+
+    it(
+      "pushes progress in background even if document was closed before action executes",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.push_timestamp = 0
+
+        local action_executed = false
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          -- Simulate document closing before subprocess action runs
+          mock_ui.document = nil
+          ReaderUI.instance = nil
+          local res = job.action()
+          action_executed = true
+          assert.is_table(res)
+          assert.is_true(res.ok)
+          job.result = res
+          job.callback(job)
+          return true
+        end)
+
+        kosync:_updateProgress(false)
+        assert.is_true(action_executed)
+        assert.spy(mock_client.update_progress).was_called()
+
+        -- Restore
+        ReaderUI.instance = mock_ui
+        mock_ui.document = {
+          file = "/path/to/test.epub",
+          info = { has_pages = true },
+        }
+        BackgroundJobs.insertKeyed:revert()
+      end
+    )
   end)
 
   describe("Pull Progress", function()
@@ -972,6 +1059,107 @@ describe("KOSync plugin tests", function()
         kosync._syncToProgress:revert()
       end
     )
+
+    it("pulls progress via background job when non-interactive", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.pull_timestamp = 0
+      kosync.settings.sync_forward = 2 -- SILENT
+
+      mock_client.get_progress = spy.new(function()
+        return true, {
+          percentage = 0.9,
+          progress = "90",
+          timestamp = 200,
+          device = "OtherDevice",
+          device_id = "other_id",
+        }
+      end)
+
+      local insert_keyed_called = false
+      stub(BackgroundJobs, "insertKeyed", function(job)
+        insert_keyed_called = true
+        assert.are.equal("fork", job.executable)
+        local res = job.action()
+        job.result = res
+        job.callback(job)
+        return true
+      end)
+
+      stub(kosync, "_syncToProgress")
+      kosync:_getProgress(false)
+
+      assert.is_true(insert_keyed_called)
+      assert.spy(mock_client.get_progress).was_called()
+      assert.stub(kosync._syncToProgress).was_called_with(match.is_table(), "90")
+
+      kosync._syncToProgress:revert()
+      BackgroundJobs.insertKeyed:revert()
+    end)
+
+    it(
+      "skips background pull action if document was closed or changed before action executes",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.pull_timestamp = 0
+
+        mock_client.get_progress:clear()
+        stub(kosync, "_syncToProgress")
+
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          -- Simulate document closing before action executes
+          ReaderUI.instance = nil
+          local res = job.action()
+          assert.is_table(res)
+          assert.is_true(res.skipped)
+          job.result = res
+          job.callback(job)
+          return true
+        end)
+
+        kosync:_getProgress(false)
+        assert.spy(mock_client.get_progress).was_not_called()
+        assert.stub(kosync._syncToProgress).was_not_called()
+
+        -- Restore
+        ReaderUI.instance = mock_ui
+        kosync._syncToProgress:revert()
+        BackgroundJobs.insertKeyed:revert()
+      end
+    )
+
+    it("ignores pull when sync strategy is disabled", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.pull_timestamp = 0
+      kosync.settings.sync_forward = 3 -- DISABLE
+      kosync.settings.sync_backward = 3 -- DISABLE
+      kosync.last_page_turn_timestamp = 100
+
+      mock_client.get_progress = spy.new(function()
+        return true, {
+          percentage = 0.9,
+          progress = "90",
+          timestamp = 200, -- newer
+          device = "OtherDevice",
+          device_id = "other_id",
+        }
+      end)
+
+      stub(kosync, "_syncToProgress")
+      UIManager.show:clear()
+
+      kosync:_getProgress(false)
+
+      assert.stub(kosync._syncToProgress).was_not_called()
+      assert.stub(UIManager.show).was_not_called()
+
+      kosync._syncToProgress:revert()
+    end)
   end)
 
   describe("Event Handlers", function()

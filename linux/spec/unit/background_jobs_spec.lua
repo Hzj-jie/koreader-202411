@@ -334,5 +334,98 @@ describe("background_jobs", function()
         )
       end
     )
+
+    it(
+      "should automatically derive key from function executable and filter duplicates",
+      function()
+        local function makeFunc(tag)
+          return function()
+            return tag
+          end
+        end
+
+        local fn1 = makeFunc("tagA")
+        local fn2 = makeFunc("tagA")
+        local fn3 = makeFunc("tagB")
+
+        local res1 = background_jobs.insertKeyed({
+          executable = fn1,
+        })
+        local res2 = background_jobs.insertKeyed({
+          executable = fn2,
+        })
+        local res3 = background_jobs.insertKeyed({
+          executable = fn3,
+        })
+
+        assert.is_true(res1)
+        assert.is_false(res2)
+        assert.is_true(res3)
+      end
+    )
+
+    it(
+      "should raise error if executable is fork but action is not a function",
+      function()
+        assert.has_error(function()
+          background_jobs.insertKeyed({
+            executable = "fork",
+            action = "not-a-function",
+          })
+        end)
+        assert.has_error(function()
+          background_jobs.insertKeyed({
+            executable = "fork",
+          })
+        end)
+      end
+    )
+
+    it(
+      "should handle job without callback and release key on completion",
+      function()
+        local res = background_jobs.insertKeyed({
+          key = "no-callback-job",
+          executable = "echo 1",
+        })
+        assert.is_true(res)
+        assert.is_true(background_jobs.hasKey("no-callback-job"))
+
+        local job = mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
+        assert.is_function(job.callback)
+        job.callback({ result = 0 })
+
+        assert.is_false(background_jobs.hasKey("no-callback-job"))
+      end
+    )
+
+    it(
+      "should track multiple concurrent keys independently",
+      function()
+        local res1 = background_jobs.insertKeyed({
+          key = "job-alpha",
+          executable = "echo alpha",
+        })
+        local res2 = background_jobs.insertKeyed({
+          key = "job-beta",
+          executable = "echo beta",
+        })
+
+        assert.is_true(res1)
+        assert.is_true(res2)
+        assert.is_true(background_jobs.hasKey("job-alpha"))
+        assert.is_true(background_jobs.hasKey("job-beta"))
+
+        local job1 = mock_pluginshare.backgroundJobs[4]
+        local job2 = mock_pluginshare.backgroundJobs[5]
+
+        job1.callback({ result = 1 })
+        assert.is_false(background_jobs.hasKey("job-alpha"))
+        assert.is_true(background_jobs.hasKey("job-beta"))
+
+        job2.callback({ result = 2 })
+        assert.is_false(background_jobs.hasKey("job-beta"))
+      end
+    )
   end)
 end)
