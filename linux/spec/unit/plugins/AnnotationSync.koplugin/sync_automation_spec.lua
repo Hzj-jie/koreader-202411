@@ -55,6 +55,7 @@ describe("AnnotationSync Automation & Settings", function()
     readerui.annotation.annotations = {}
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    require("background_jobs").clearKeys()
   end)
 
   describe("Settings", function()
@@ -101,22 +102,20 @@ describe("AnnotationSync Automation & Settings", function()
 
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
-        assert.is_equal("best-effort", job.when)
+        assert.is_equal("asap", job.when)
         assert.is_equal("fork", job.executable)
         assert.is_function(job.action)
         assert.is_function(job.callback)
-        assert.is_true(sync_instance.manager.is_syncing_pending_bg)
 
         -- Execute action in child process context
         local action_results = job.action()
         assert.is_true(sync_triggered)
         assert.is_table(action_results)
-        assert.is_equal(1, #action_results)
-        assert.is_equal(readerui.document.file, action_results[1].file)
+        assert.is_equal(readerui.document.file, action_results.file)
+        assert.is_true(action_results.success)
 
         -- Execute callback in parent process context
         job.callback({ result = action_results })
-        assert.is_false(sync_instance.manager.is_syncing_pending_bg)
         assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
       end
     )
@@ -140,34 +139,20 @@ describe("AnnotationSync Automation & Settings", function()
     end)
 
     it(
-      "skips onTimesChange_1M when background sync is already running",
+      "deduplicates onTimesChange_1M triggers when background sync is active",
       function()
         sync_instance.settings.network_auto_sync = true
-        sync_instance.manager.is_syncing_pending_bg = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
-        local bg_called = false
-        local old_bgFunc = sync_instance.manager.syncPendingDocumentsBg
-        sync_instance.manager.syncPendingDocumentsBg = function()
-          bg_called = true
-        end
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
 
         sync_instance:onTimesChange_1M()
+        sync_instance:onTimesChange_1M()
 
-        assert.is_false(bg_called)
-        sync_instance.manager.syncPendingDocumentsBg = old_bgFunc
-        sync_instance.manager.is_syncing_pending_bg = false
+        assert.is_equal(initial_count + 1, #jobs)
       end
     )
-
-    it("aborts active background sync when Sync All is triggered", function()
-      sync_instance.manager.is_syncing_pending_bg = true
-      sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-      sync_instance.manager:syncAllChangedDocuments()
-      fastforward_ui_events()
-
-      assert.is_false(sync_instance.manager.is_syncing_pending_bg)
-    end)
 
     it(
       "prunes missing files in main thread and applies synced annotations in background callback",

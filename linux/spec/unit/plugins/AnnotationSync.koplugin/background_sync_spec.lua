@@ -59,15 +59,20 @@ describe("Background Sync Behavior", function()
     readerui.annotation.annotations = {}
     os.remove(sync_manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
-    sync_manager.is_syncing_pending_bg = false
+    require("background_jobs").clearKeys()
     plugin_instance.settings.network_auto_sync = true
   end)
 
   describe("Main thread preparation and validation", function()
-    it("skips background sync when network is offline", function()
+    it("defers background sync via NetworkListener when network is offline", function()
       local NetworkMgr = require("ui/network/manager")
+      local NetworkListener = require("ui/network/networklistener")
       local old_isConn = NetworkMgr.isConnected
+      local old_isOnline = NetworkMgr.isOnline
       NetworkMgr.isConnected = function()
+        return false
+      end
+      NetworkMgr.isOnline = function()
         return false
       end
 
@@ -77,9 +82,14 @@ describe("Background Sync Behavior", function()
 
       sync_manager:syncPendingDocumentsBg()
 
+      -- No background runner job queued directly
       assert.is_equal(initial_count, #jobs)
-      assert.is_false(sync_manager.is_syncing_pending_bg)
+      -- But queued in NetworkListener for when online
+      assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+
       NetworkMgr.isConnected = old_isConn
+      NetworkMgr.isOnline = old_isOnline
+      NetworkListener:onNetworkOnline()
     end)
 
     it("skips background sync when changed_documents is empty", function()
@@ -89,7 +99,6 @@ describe("Background Sync Behavior", function()
       sync_manager:syncPendingDocumentsBg()
 
       assert.is_equal(initial_count, #jobs)
-      assert.is_false(sync_manager.is_syncing_pending_bg)
     end)
 
     it("prunes missing files on disk immediately in main thread", function()
@@ -125,7 +134,6 @@ describe("Background Sync Behavior", function()
         local total, _ = sync_manager:getPendingChangedDocuments()
         assert.is_equal(0, total)
         assert.is_equal(initial_count, #jobs)
-        assert.is_false(sync_manager.is_syncing_pending_bg)
       end
     )
 
@@ -150,7 +158,7 @@ describe("Background Sync Behavior", function()
 
   describe("BackgroundJobs fork dispatching and execution", function()
     it(
-      "registers a best-effort fork job in pluginshare.backgroundJobs",
+      "registers an asap fork job in pluginshare.backgroundJobs via insertKeyed",
       function()
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
@@ -161,11 +169,44 @@ describe("Background Sync Behavior", function()
 
         assert.is_equal(initial_count + 1, #jobs)
         local job = jobs[#jobs]
-        assert.is_equal("best-effort", job.when)
+        assert.is_equal("asap", job.when)
         assert.is_equal("fork", job.executable)
         assert.is_function(job.action)
         assert.is_function(job.callback)
-        assert.is_true(sync_manager.is_syncing_pending_bg)
+      end
+    )
+
+    it(
+      "deduplicates concurrent sync requests while a background job is in-flight",
+      function()
+        sync_manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
+        sync_manager:syncPendingDocumentsBg()
+        sync_manager:syncPendingDocumentsBg()
+
+        -- Only 1 job is inserted thanks to insertKeyed
+        assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "queues distinct fork jobs for multiple changed documents",
+      function()
+        local doc1 = readerui.document.file
+        local doc2 = "spec/front/unit/data/leaves.epub"
+        sync_manager:addToChangedDocumentsFile(doc1)
+        sync_manager:addToChangedDocumentsFile(doc2)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
+        sync_manager:syncPendingDocumentsBg()
+
+        -- Queues 2 separate background jobs
+        assert.is_equal(initial_count + 2, #jobs)
       end
     )
 
@@ -196,9 +237,8 @@ describe("Background Sync Behavior", function()
         assert.is_true(sync_called_silent)
         assert.is_false(show_called)
         assert.is_table(action_res)
-        assert.is_equal(1, #action_res)
-        assert.is_equal(readerui.document.file, action_res[1].file)
-        assert.is_true(action_res[1].success)
+        assert.is_equal(readerui.document.file, action_res.file)
+        assert.is_true(action_res.success)
 
         UIManager.show = old_show
       end
@@ -220,7 +260,8 @@ describe("Background Sync Behavior", function()
 
         local action_res = job.action()
         assert.is_table(action_res)
-        assert.is_equal(0, #action_res)
+        assert.is_equal(readerui.document.file, action_res.file)
+        assert.is_false(action_res.success)
       end
     )
   end)
@@ -238,16 +279,15 @@ describe("Background Sync Behavior", function()
 
         job.callback({
           result = {
-            { file = readerui.document.file, success = true, merged_list = {} },
+            file = readerui.document.file,
+            success = true,
+            merged_list = {},
           },
         })
 
-        assert.is_false(sync_manager.is_syncing_pending_bg)
         local total, _ = sync_manager:getPendingChangedDocuments()
         assert.is_equal(0, total)
-        assert.truthy(
-          plugin_instance.settings.last_sync:match("Auto Sync %(1%)")
-        )
+        assert.truthy(plugin_instance.settings.last_sync:match("Auto Sync"))
       end
     )
 
@@ -261,11 +301,9 @@ describe("Background Sync Behavior", function()
 
       job.callback({
         result = {
-          {
-            file = readerui.document.file,
-            success = true,
-            merged_list = dummy_ann,
-          },
+          file = readerui.document.file,
+          success = true,
+          merged_list = dummy_ann,
         },
       })
 
@@ -290,7 +328,9 @@ describe("Background Sync Behavior", function()
 
         job.callback({
           result = {
-            { file = inactive_doc, success = true, merged_list = dummy_ann },
+            file = inactive_doc,
+            success = true,
+            merged_list = dummy_ann,
           },
         })
 
@@ -301,9 +341,8 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "safely resets is_syncing_pending_bg on nil or malformed job result",
+      "safely handles nil or malformed job result in callback",
       function()
-        sync_manager.is_syncing_pending_bg = true
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
         sync_manager:syncPendingDocumentsBg()
@@ -311,12 +350,13 @@ describe("Background Sync Behavior", function()
           "pluginshare"
         ).backgroundJobs]
 
+        -- Malformed results should not throw errors
         job.callback({ result = nil })
-        assert.is_false(sync_manager.is_syncing_pending_bg)
-
-        sync_manager.is_syncing_pending_bg = true
         job.callback({ result = "invalid_string" })
-        assert.is_false(sync_manager.is_syncing_pending_bg)
+
+        -- The changed document remains pending
+        local total, _ = sync_manager:getPendingChangedDocuments()
+        assert.is_equal(1, total)
       end
     )
   end)

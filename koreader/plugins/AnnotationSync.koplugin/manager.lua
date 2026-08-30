@@ -47,9 +47,6 @@ end
 
 -- Sync all changed documents listed in changed_documents.lua
 function SyncManager:syncAllChangedDocuments()
-  -- Stop any background sync currently running
-  self.is_syncing_pending_bg = false
-
   local total, changed_docs = self:getPendingChangedDocuments()
   if total == 0 then
     utils.show_msg("No changed documents to sync.")
@@ -122,117 +119,89 @@ end
 
 -- Incremental background sync of pending documents using BackgroundJobs fork mode
 function SyncManager:syncPendingDocumentsBg()
-  if self.is_syncing_pending_bg then
-    logger.dbg("AnnotationSync: background pending sync already in progress")
-    return
-  end
-
-  if not isConnected() then
-    return
-  end
-
-  local total, changed_docs = self:getPendingChangedDocuments()
+  local total, _ = self:getPendingChangedDocuments()
   if total == 0 then
     return
   end
 
-  self:flushSettings()
-
-  -- Prepare sync items and generate local JSON files in the main thread
-  local items_to_sync = {}
-  for file, _ in pairs(changed_docs) do
-    if not util.fileExists(file) then
-      logger.warn(
-        "AnnotationSync: file missing, removing from sync list:",
-        file
-      )
-      self:removeFromChangedDocumentsFileByPath(file)
-    else
-      local document
-      local ui_document = self.plugin.ui and self.plugin.ui.document
-      if ui_document and ui_document.file == file then
-        document = ui_document
-      else
-        document = { file = file }
-      end
-      local json_path = self:_writeAnnotationsJSON(document)
-      if json_path then
-        table.insert(items_to_sync, {
-          file = file,
-          json_path = json_path,
-        })
-      end
+  NetworkMgr:runWhenOnline(function()
+    local pending_total, pending_changed_docs =
+      self:getPendingChangedDocuments()
+    if pending_total == 0 then
+      return
     end
-  end
 
-  if #items_to_sync == 0 then
-    return
-  end
+    self:flushSettings()
 
-  self.is_syncing_pending_bg = true
-
-  require("background_jobs").insert({
-    when = "best-effort",
-    executable = "fork",
-    action = function()
-      local results = {}
-      for _, item in ipairs(items_to_sync) do
-        local document = { file = item.file }
-        local sync_success = false
-        local final_merged = nil
-        local ok, _ = pcall(function()
-          remote.sync_annotations(
-            self.plugin,
-            document,
-            item.json_path,
-            function(success, merged_list)
-              sync_success = success
-              final_merged = merged_list
+    for file, _ in pairs(pending_changed_docs) do
+      if not util.fileExists(file) then
+        logger.warn(
+          "AnnotationSync: file missing, removing from sync list:",
+          file
+        )
+        self:removeFromChangedDocumentsFileByPath(file)
+      else
+        local ui_doc = self.plugin.ui and self.plugin.ui.document
+        local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
+        local json_path = self:_writeAnnotationsJSON(doc)
+        if json_path then
+          require("background_jobs").insertKeyed({
+            executable = "fork",
+            action = function()
+              local sync_success = false
+              local final_merged = nil
+              local ok, _ = pcall(function()
+                remote.sync_annotations(
+                  self.plugin,
+                  file,
+                  json_path,
+                  function(success, merged_list)
+                    sync_success = success
+                    final_merged = merged_list
+                  end,
+                  false
+                )
+              end)
+              return {
+                file = file,
+                success = ok and (sync_success == true or sync_success == "skip_upload"),
+                merged_list = final_merged,
+              }
             end,
-            false
-          )
-        end)
-        if ok and (sync_success == true or sync_success == "skip_upload") then
-          table.insert(results, {
-            file = item.file,
-            success = true,
-            merged_list = final_merged,
+            callback = function(job)
+              if not job.result or type(job.result) ~= "table" then
+                logger.warn(
+                  "AnnotationSync: background sync returned invalid result for",
+                  file
+                )
+                return
+              end
+              local item = job.result
+              if item.success and item.file then
+                self:removeFromChangedDocumentsFileByPath(item.file)
+                local current_ui_doc = self.plugin.ui and self.plugin.ui.document
+                if
+                  current_ui_doc
+                  and current_ui_doc.file == item.file
+                  and item.merged_list
+                then
+                  self.plugin:applySyncedAnnotations(
+                    current_ui_doc,
+                    item.merged_list
+                  )
+                end
+                self:recordSyncState("Auto Sync")
+                logger.info(
+                  "AnnotationSync: background sync completed for",
+                  item.file
+                )
+              end
+            end,
           })
         end
       end
-      return results
-    end,
-    callback = function(job)
-      self.is_syncing_pending_bg = false
-      if not job.result or type(job.result) ~= "table" then
-        logger.warn("AnnotationSync: background sync returned invalid result")
-        return
-      end
-      local count = 0
-      for _, item in ipairs(job.result) do
-        if item.success and item.file then
-          count = count + 1
-          self:removeFromChangedDocumentsFileByPath(item.file)
-          local ui_document = self.plugin.ui and self.plugin.ui.document
-          if
-            ui_document
-            and ui_document.file == item.file
-            and item.merged_list
-          then
-            self.plugin:applySyncedAnnotations(ui_document, item.merged_list)
-          end
-        end
-      end
-      if count > 0 then
-        self:recordSyncState("Auto Sync (" .. count .. ")")
-        logger.info(
-          "AnnotationSync: background sync completed for",
-          count,
-          "document(s)"
-        )
-      end
-    end,
-  })
+    end
+  end)
 end
 
 -- Orchestrates the sync process for a single document (accepts active document object OR file path string)
@@ -311,8 +280,9 @@ end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state
 function SyncManager:_writeAnnotationsJSON(document)
-  assert(document and document.file, "document and document.file must exist")
-  local file = document.file
+  local file = type(document) == "string" and document
+    or (document and document.file)
+  assert(file, "document and document.file must exist")
 
   local sdr_dir = docsettings:getSidecarDir(file)
   if not sdr_dir or sdr_dir == "" then
@@ -436,21 +406,27 @@ end
 
 -- Get annotations associated with given document
 function SyncManager:getAnnotationsForDocument(document)
+  local file = type(document) == "string" and document
+    or (document and document.file)
   -- Handle active document
   if
-    document == self.plugin.ui.document
+    self.plugin.ui
+    and document == self.plugin.ui.document
     and self.plugin.ui.annotation
     and self.plugin.ui.annotation.annotations
   then
     return self.plugin.ui.annotation.annotations
   end
   -- Handle inactive document
-  local annotation_sidecar = docsettings:open(document.file)
-  -- Note, the merged annotations will be rewritten back to the settings from a
-  -- different Docsettings instance, read or readTableRef shouldn't be used
-  -- here.
-  local result = annotation_sidecar:readTable("annotations")
-  return result or {}
+  if file then
+    local annotation_sidecar = docsettings:open(file)
+    -- Note, the merged annotations will be rewritten back to the settings from a
+    -- different Docsettings instance, read or readTableRef shouldn't be used
+    -- here.
+    local result = annotation_sidecar:readTable("annotations")
+    return result or {}
+  end
+  return {}
 end
 
 -- Get only annotations marked as deleted in the local sync JSON
