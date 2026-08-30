@@ -795,4 +795,79 @@ describe("util module", function()
       assert.is_equal("1,048,576", util.getFormattedSize(1024 * 1024))
     end)
   end)
+
+  describe("functionFingerprint()", function()
+    it("should return string for non-functions", function()
+      assert.is_equal("hello", util.functionFingerprint("hello"))
+      assert.is_equal("123", util.functionFingerprint(123))
+    end)
+
+    it(
+      "should compute identical fingerprint for same static closure",
+      function()
+        local f1 = function()
+          return "test"
+        end
+        local f2 = function()
+          return "test"
+        end
+        assert.is_equal(
+          util.functionFingerprint(f1),
+          util.functionFingerprint(f2)
+        )
+      end
+    )
+
+    it(
+      "should differentiate closures capturing different primitive arguments",
+      function()
+        local function factory(param)
+          return function()
+            return param
+          end
+        end
+        local fn_a = factory("file_a.epub")
+        local fn_b = factory("file_b.epub")
+        local fn_a_duplicate = factory("file_a.epub")
+
+        assert.is_equal(
+          util.functionFingerprint(fn_a),
+          util.functionFingerprint(fn_a_duplicate)
+        )
+        assert.is_not_equal(
+          util.functionFingerprint(fn_a),
+          util.functionFingerprint(fn_b)
+        )
+      end
+    )
+
+    it("should handle closures with table and object instances", function()
+      local obj1 = { name = "my_plugin" }
+      local obj2 = { name = "other_plugin" }
+      local fn_obj1 = function()
+        return obj1.name
+      end
+      local fn_obj2 = function()
+        return obj2.name
+      end
+
+      assert.is_not_equal(
+        util.functionFingerprint(fn_obj1),
+        util.functionFingerprint(fn_obj2)
+      )
+    end)
+
+    it(
+      "should handle nested closures and prevent infinite recursion on self-reference",
+      function()
+        local rec_fn
+        rec_fn = function()
+          return rec_fn
+        end
+        local fp = util.functionFingerprint(rec_fn)
+        assert.is_string(fp)
+        assert.is_equal(32, #fp)
+      end
+    )
+  end)
 end)

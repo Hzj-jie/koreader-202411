@@ -85,4 +85,56 @@ describe("NetworkListener module", function()
     NetworkMgr.toggleWifiOn = old_toggleWifiOn
     NetworkMgr.toggleWifiOff = old_toggleWifiOff
   end)
+
+  it(
+    "should automatically fingerprint and deduplicate identical closures without explicit key",
+    function()
+      local listener = NetworkListener:new()
+
+      local count = 0
+      local target = "doc1.epub"
+      local function make_callback()
+        return function()
+          count = count + 1
+          return target
+        end
+      end
+
+      local cb1 = make_callback()
+      local cb2 = make_callback()
+
+      listener:onPendingOnline(cb1)
+      listener:onPendingOnline(cb2)
+
+      -- Both closures capture identical upvalues, so only 1 pending job is recorded
+      assert.are.equal("0 / 1", listener:countsOfPendingJobs())
+
+      listener:onNetworkOnline()
+      assert.are.equal(1, count)
+    end
+  )
+
+  it(
+    "should distinguish closures with different upvalues when key is omitted",
+    function()
+      local listener = NetworkListener:new()
+
+      local function make_callback(doc)
+        return function()
+          return doc
+        end
+      end
+
+      local cb_a = make_callback("book_a.epub")
+      local cb_b = make_callback("book_b.epub")
+
+      listener:onPendingOnline(cb_a)
+      listener:onPendingOnline(cb_b)
+
+      -- Capturing distinct parameters creates distinct keys
+      assert.are.equal("0 / 2", listener:countsOfPendingJobs())
+
+      listener:onNetworkOnline()
+    end
+  )
 end)
