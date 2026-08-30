@@ -708,10 +708,10 @@ function KOSync:_updateProgress(interactive)
 
   if interactive then
     UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(exec, "kosync-push-" .. doc_digest)
+      NetworkMgr:runWhenOnline(exec)
     end, gettext("Pushing progress…"))
   else
-    NetworkMgr:willRerunWhenOnline(exec, "kosync-push-" .. doc_digest)
+    NetworkMgr:willRerunWhenOnline(exec)
   end
 end
 
@@ -864,10 +864,10 @@ function KOSync:_getProgress(interactive)
 
   if interactive then
     UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(exec, "kosync-pull-" .. doc_digest)
+      NetworkMgr:runWhenOnline(exec)
     end, gettext("Pulling progress…"))
   else
-    NetworkMgr:willRerunWhenOnline(exec, "kosync-pull-" .. doc_digest)
+    NetworkMgr:willRerunWhenOnline(exec)
   end
 end
 

@@ -795,4 +795,106 @@ describe("util module", function()
       assert.is_equal("1,048,576", util.getFormattedSize(1024 * 1024))
     end)
   end)
+
+  describe("functionFingerprint()", function()
+    it("should raise error for non-functions", function()
+      assert.has_error(function()
+        util.functionFingerprint("hello")
+      end)
+      assert.has_error(function()
+        util.functionFingerprint(123)
+      end)
+      assert.has_error(function()
+        util.functionFingerprint(nil)
+      end)
+    end)
+
+    it(
+      "should distinguish functions with different bytecode implementations",
+      function()
+        local f1 = function()
+          return 1
+        end
+        local f2 = function()
+          return 2
+        end
+        assert.is_not_equal(
+          util.functionFingerprint(f1),
+          util.functionFingerprint(f2)
+        )
+      end
+    )
+
+    it(
+      "should generate identical fingerprints for closures capturing identical upvalues",
+      function()
+        local function makeClosure(x, y)
+          return function()
+            return x + y
+          end
+        end
+        local c1 = makeClosure(10, 20)
+        local c2 = makeClosure(10, 20)
+        assert.is_equal(
+          util.functionFingerprint(c1),
+          util.functionFingerprint(c2)
+        )
+      end
+    )
+
+    it("should distinguish closures capturing different upvalues", function()
+      local function makeClosure(doc)
+        return function()
+          return doc
+        end
+      end
+      local c1 = makeClosure("book1.epub")
+      local c2 = makeClosure("book2.epub")
+      assert.is_not_equal(
+        util.functionFingerprint(c1),
+        util.functionFingerprint(c2)
+      )
+    end)
+
+    it("should handle closures capturing tables with name property", function()
+      local obj1 = { name = "PluginA", id = 1 }
+      local obj2 = { name = "PluginB", id = 2 }
+
+      local function makeAction(target)
+        return function()
+          return target.name
+        end
+      end
+
+      local a1 = makeAction(obj1)
+      local a2 = makeAction(obj2)
+      assert.is_not_equal(
+        util.functionFingerprint(a1),
+        util.functionFingerprint(a2)
+      )
+    end)
+
+    it("should handle nested closures recursively", function()
+      local function makeCurried(a)
+        return function(b)
+          return function()
+            return a + b
+          end
+        end
+      end
+
+      local nested1 = makeCurried(1)(2)
+      local nested2 = makeCurried(1)(2)
+      local nested3 = makeCurried(1)(3)
+
+      assert.is_equal(
+        util.functionFingerprint(nested1),
+        util.functionFingerprint(nested2)
+      )
+      assert.is_not_equal(
+        util.functionFingerprint(nested1),
+        util.functionFingerprint(nested3)
+      )
+    end)
+  end)
 end)
