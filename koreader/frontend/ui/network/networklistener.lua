@@ -136,18 +136,14 @@ function NetworkListener:onNetworkOnline()
   _pending_online = {}
 end
 
-function NetworkListener:_pendingKeyOf(callback)
-  return require("ffi/sha2").md5(string.dump(callback, true))
+function NetworkListener:onPendingConnected(callback)
+  assert(callback ~= nil)
+  _pending_connected[util.functionFingerprint(callback)] = callback
 end
 
-function NetworkListener:onPendingConnected(callback, key)
+function NetworkListener:onPendingOnline(callback)
   assert(callback ~= nil)
-  _pending_connected[key or self:_pendingKeyOf(callback)] = callback
-end
-
-function NetworkListener:onPendingOnline(callback, key)
-  assert(callback ~= nil)
-  _pending_online[key or self:_pendingKeyOf(callback)] = callback
+  _pending_online[util.functionFingerprint(callback)] = callback
 end
 
 -- Returns a human readable string to indicate the # of pending jobs.
