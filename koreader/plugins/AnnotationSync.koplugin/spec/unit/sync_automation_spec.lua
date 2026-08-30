@@ -83,10 +83,13 @@ describe("AnnotationSync Automation & Settings", function()
 
   describe("Automation", function()
     it(
-      "triggers background incremental sync on onTimesChange_1M when network_auto_sync is enabled",
+      "triggers background incremental fork sync on onTimesChange_1M when network_auto_sync is enabled",
       function()
         sync_instance.settings.network_auto_sync = true
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
 
         local sync_triggered = false
         SyncService.sync = function(server, local_path, callback, upload_only)
@@ -94,15 +97,27 @@ describe("AnnotationSync Automation & Settings", function()
           callback(local_path, local_path, local_path)
         end
 
-        local old_scheduleIn = UIManager.scheduleIn
-        UIManager.scheduleIn = function(self_ui, seconds, callback)
-          callback()
-        end
-
         sync_instance:onTimesChange_1M()
 
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+        local job = jobs[#jobs]
+        assert.is_equal("best-effort", job.when)
+        assert.is_equal("fork", job.executable)
+        assert.is_function(job.action)
+        assert.is_function(job.callback)
+        assert.is_true(sync_instance.manager.is_syncing_pending_bg)
+
+        -- Execute action in child process context
+        local action_results = job.action()
         assert.is_true(sync_triggered)
-        UIManager.scheduleIn = old_scheduleIn
+        assert.is_table(action_results)
+        assert.is_equal(1, #action_results)
+        assert.is_equal(readerui.document.file, action_results[1].file)
+
+        -- Execute callback in parent process context
+        job.callback({ result = action_results })
+        assert.is_false(sync_instance.manager.is_syncing_pending_bg)
+        assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
       end
     )
 
@@ -155,47 +170,42 @@ describe("AnnotationSync Automation & Settings", function()
     end)
 
     it(
-      "uses 5 second pacing intervals in background sync scheduleIn",
+      "prunes missing files in main thread and applies synced annotations in background callback",
       function()
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+        local missing_file = "/path/to/nonexistent/book.epub"
+        local active_file = readerui.document.file
 
-        local scheduled_seconds = nil
-        local old_scheduleIn = UIManager.scheduleIn
-        UIManager.scheduleIn = function(self_ui, seconds, callback)
-          scheduled_seconds = seconds
-          callback()
-        end
+        sync_instance.manager:addToChangedDocumentsFile(missing_file)
+        sync_instance.manager:addToChangedDocumentsFile(active_file)
 
         sync_instance.manager:syncPendingDocumentsBg()
 
-        assert.is_equal(5, scheduled_seconds)
-        UIManager.scheduleIn = old_scheduleIn
-      end
-    )
+        -- Missing file is pruned on main thread immediately
+        local _, remaining = sync_instance.manager:getPendingChangedDocuments()
+        assert.is_nil(remaining[missing_file])
+        assert.is_true(remaining[active_file])
 
-    it(
-      "halts background sync if network_auto_sync is disabled during execution",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+        -- Active file was queued into background jobs
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+        local job = jobs[#jobs]
 
-        local old_scheduleIn = UIManager.scheduleIn
-        local scheduled_cb = nil
-        UIManager.scheduleIn = function(self_ui, seconds, callback)
-          scheduled_cb = callback
-        end
-
-        sync_instance.manager:syncPendingDocumentsBg()
-        assert.is_true(sync_instance.manager.is_syncing_pending_bg)
-
-        -- User turns off network_auto_sync while sync is pending
-        sync_instance.settings.network_auto_sync = false
-        if scheduled_cb then
-          scheduled_cb()
-        end
+        local dummy_merged = { { text = "Sample Annotation", page = 1 } }
+        job.callback({
+          result = {
+            { file = active_file, success = true, merged_list = dummy_merged },
+          },
+        })
 
         assert.is_false(sync_instance.manager.is_syncing_pending_bg)
-        UIManager.scheduleIn = old_scheduleIn
+        local total, _ = sync_instance.manager:getPendingChangedDocuments()
+        assert.is_equal(0, total)
+        assert.is_equal(1, #readerui.annotation.annotations)
+        assert.is_equal(
+          "Sample Annotation",
+          readerui.annotation.annotations[1].text
+        )
       end
     )
   end)
