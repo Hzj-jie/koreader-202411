@@ -136,14 +136,14 @@ function NetworkListener:onNetworkOnline()
   _pending_online = {}
 end
 
-function NetworkListener:onPendingConnected(callback, key)
+function NetworkListener:onPendingConnected(callback)
   assert(callback ~= nil)
-  _pending_connected[key or util.functionFingerprint(callback)] = callback
+  _pending_connected[util.functionFingerprint(callback)] = callback
 end
 
-function NetworkListener:onPendingOnline(callback, key)
+function NetworkListener:onPendingOnline(callback)
   assert(callback ~= nil)
-  _pending_online[key or util.functionFingerprint(callback)] = callback
+  _pending_online[util.functionFingerprint(callback)] = callback
 end
 
 -- Returns a human readable string to indicate the # of pending jobs.

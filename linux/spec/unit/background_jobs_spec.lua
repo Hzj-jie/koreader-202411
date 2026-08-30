@@ -115,4 +115,209 @@ describe("background_jobs", function()
         .called_with(mock_uimanager, "BackgroundJobsUpdated")
     end
   )
+
+  describe("insertKeyed()", function()
+    before_each(function()
+      background_jobs.clearKeys()
+    end)
+
+    it("should raise error for nil or non-table job", function()
+      assert.has_error(function()
+        background_jobs.insertKeyed(nil)
+      end)
+      assert.has_error(function()
+        background_jobs.insertKeyed("not-a-table")
+      end)
+    end)
+
+    it("should raise error for repeated jobs", function()
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          repeated = true,
+          executable = "fork",
+        })
+      end)
+    end)
+
+    it("should raise error for any job.when field provided", function()
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          when = "asap",
+          executable = "fork",
+        })
+      end)
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          when = 60,
+          executable = "fork",
+        })
+      end)
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          when = "best-effort",
+          executable = "fork",
+        })
+      end)
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          when = function()
+            return true
+          end,
+          executable = "fork",
+        })
+      end)
+    end)
+
+    it("should raise error if key cannot be determined or is not a string", function()
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          executable = 12345, -- not a string or function, no key or action
+        })
+      end)
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          key = 12345,
+          executable = "fork",
+        })
+      end)
+    end)
+
+    it(
+      "should insert job, set when to asap, and track key when key is explicitly provided",
+      function()
+        local callback_called = false
+        local res = background_jobs.insertKeyed({
+          executable = "fork",
+          key = "test-explicit-key",
+          action = function()
+            return true
+          end,
+          callback = function(job)
+            callback_called = true
+          end,
+        })
+
+        assert.is_true(res)
+        assert.is_true(background_jobs.hasKey("test-explicit-key"))
+        assert.are.equal(4, #mock_pluginshare.backgroundJobs)
+        assert.are.equal("asap", mock_pluginshare.backgroundJobs[4].when)
+
+        -- Simulate job completion via callback
+        local job = mock_pluginshare.backgroundJobs[4]
+        job.callback({ result = true })
+
+        assert.is_true(callback_called)
+        assert.is_false(background_jobs.hasKey("test-explicit-key"))
+      end
+    )
+
+    it(
+      "should filter out duplicate job with same key while first is active",
+      function()
+        local res1 = background_jobs.insertKeyed({
+          executable = "fork",
+          key = "duplicate-key",
+          action = function()
+            return 1
+          end,
+        })
+        local res2 = background_jobs.insertKeyed({
+          executable = "fork",
+          key = "duplicate-key",
+          action = function()
+            return 2
+          end,
+        })
+
+        assert.is_true(res1)
+        assert.is_false(res2)
+        assert.are.equal(4, #mock_pluginshare.backgroundJobs)
+      end
+    )
+
+    it(
+      "should allow inserting new job with same key after previous finishes",
+      function()
+        background_jobs.insertKeyed({
+          executable = "fork",
+          key = "reuse-key",
+          action = function()
+            return "first"
+          end,
+        })
+
+        local job1 = mock_pluginshare.backgroundJobs[4]
+        job1.callback({ result = "first" })
+
+        local res2 = background_jobs.insertKeyed({
+          executable = "fork",
+          key = "reuse-key",
+          action = function()
+            return "second"
+          end,
+        })
+
+        assert.is_true(res2)
+        assert.are.equal(5, #mock_pluginshare.backgroundJobs)
+      end
+    )
+
+    it(
+      "should automatically derive key from action closure and filter duplicates",
+      function()
+        local function makeAction(doc)
+          return function()
+            return doc
+          end
+        end
+
+        local action1 = makeAction("docA")
+        local action2 = makeAction("docA")
+        local action3 = makeAction("docB")
+
+        local res1 = background_jobs.insertKeyed({
+          executable = "fork",
+          action = action1,
+        })
+        local res2 = background_jobs.insertKeyed({
+          executable = "fork",
+          action = action2,
+        })
+        local res3 = background_jobs.insertKeyed({
+          executable = "fork",
+          action = action3,
+        })
+
+        assert.is_true(res1)
+        assert.is_false(res2)
+        assert.is_true(res3)
+        assert.are.equal(5, #mock_pluginshare.backgroundJobs)
+      end
+    )
+
+    it(
+      "should automatically derive key from string executable command and filter duplicates",
+      function()
+        local res1 = background_jobs.insertKeyed({
+          executable = "tar -czf /tmp/backup.tar.gz /sdcard/books",
+        })
+        local res2 = background_jobs.insertKeyed({
+          executable = "tar -czf /tmp/backup.tar.gz /sdcard/books",
+        })
+        local res3 = background_jobs.insertKeyed({
+          executable = "tar -czf /tmp/other.tar.gz /sdcard/books",
+        })
+
+        assert.is_true(res1)
+        assert.is_false(res2)
+        assert.is_true(res3)
+        assert.is_true(
+          background_jobs.hasKey("tar -czf /tmp/backup.tar.gz /sdcard/books")
+        )
+        assert.is_true(
+          background_jobs.hasKey("tar -czf /tmp/other.tar.gz /sdcard/books")
+        )
+      end
+    )
+  end)
 end)

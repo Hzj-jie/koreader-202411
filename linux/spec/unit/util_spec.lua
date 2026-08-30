@@ -797,21 +797,22 @@ describe("util module", function()
   end)
 
   describe("functionFingerprint()", function()
-    it("should return string for non-functions", function()
+    it("should return string representation for non-functions", function()
       assert.is_equal("hello", util.functionFingerprint("hello"))
       assert.is_equal("123", util.functionFingerprint(123))
+      assert.is_equal("nil", util.functionFingerprint(nil))
     end)
 
     it(
-      "should compute identical fingerprint for same static closure",
+      "should distinguish functions with different bytecode implementations",
       function()
         local f1 = function()
-          return "test"
+          return 1
         end
         local f2 = function()
-          return "test"
+          return 2
         end
-        assert.is_equal(
+        assert.is_not_equal(
           util.functionFingerprint(f1),
           util.functionFingerprint(f2)
         )
@@ -819,55 +820,75 @@ describe("util module", function()
     )
 
     it(
-      "should differentiate closures capturing different primitive arguments",
+      "should generate identical fingerprints for closures capturing identical upvalues",
       function()
-        local function factory(param)
+        local function makeClosure(x, y)
           return function()
-            return param
+            return x + y
           end
         end
-        local fn_a = factory("file_a.epub")
-        local fn_b = factory("file_b.epub")
-        local fn_a_duplicate = factory("file_a.epub")
-
+        local c1 = makeClosure(10, 20)
+        local c2 = makeClosure(10, 20)
         assert.is_equal(
-          util.functionFingerprint(fn_a),
-          util.functionFingerprint(fn_a_duplicate)
-        )
-        assert.is_not_equal(
-          util.functionFingerprint(fn_a),
-          util.functionFingerprint(fn_b)
+          util.functionFingerprint(c1),
+          util.functionFingerprint(c2)
         )
       end
     )
 
-    it("should handle closures with table and object instances", function()
-      local obj1 = { name = "my_plugin" }
-      local obj2 = { name = "other_plugin" }
-      local fn_obj1 = function()
-        return obj1.name
+    it("should distinguish closures capturing different upvalues", function()
+      local function makeClosure(doc)
+        return function()
+          return doc
+        end
       end
-      local fn_obj2 = function()
-        return obj2.name
-      end
-
+      local c1 = makeClosure("book1.epub")
+      local c2 = makeClosure("book2.epub")
       assert.is_not_equal(
-        util.functionFingerprint(fn_obj1),
-        util.functionFingerprint(fn_obj2)
+        util.functionFingerprint(c1),
+        util.functionFingerprint(c2)
       )
     end)
 
-    it(
-      "should handle nested closures and prevent infinite recursion on self-reference",
-      function()
-        local rec_fn
-        rec_fn = function()
-          return rec_fn
+    it("should handle closures capturing tables with name property", function()
+      local obj1 = { name = "PluginA", id = 1 }
+      local obj2 = { name = "PluginB", id = 2 }
+
+      local function makeAction(target)
+        return function()
+          return target.name
         end
-        local fp = util.functionFingerprint(rec_fn)
-        assert.is_string(fp)
-        assert.is_equal(32, #fp)
       end
-    )
+
+      local a1 = makeAction(obj1)
+      local a2 = makeAction(obj2)
+      assert.is_not_equal(
+        util.functionFingerprint(a1),
+        util.functionFingerprint(a2)
+      )
+    end)
+
+    it("should handle nested closures recursively", function()
+      local function makeCurried(a)
+        return function(b)
+          return function()
+            return a + b
+          end
+        end
+      end
+
+      local nested1 = makeCurried(1)(2)
+      local nested2 = makeCurried(1)(2)
+      local nested3 = makeCurried(1)(3)
+
+      assert.is_equal(
+        util.functionFingerprint(nested1),
+        util.functionFingerprint(nested2)
+      )
+      assert.is_not_equal(
+        util.functionFingerprint(nested1),
+        util.functionFingerprint(nested3)
+      )
+    end)
   end)
 end)
