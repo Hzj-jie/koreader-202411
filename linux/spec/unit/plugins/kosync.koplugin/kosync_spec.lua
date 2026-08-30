@@ -878,6 +878,60 @@ describe("KOSync plugin tests", function()
       end
     )
 
+    it(
+      "remains silent during non-interactive pull for missing progress, same device, or already synchronized",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+
+        -- 1. No percentage
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return true, {}
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+
+        -- 2. Same device
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return true, {
+            percentage = 0.8,
+            device = Device.model,
+            device_id = kosync.device_id,
+          }
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+
+        -- 3. Already synchronized
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return true, {
+            percentage = 0.5,
+            progress = "50",
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+
+        -- 4. Failure/error
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return false, nil
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+      end
+    )
+
     it("pulls and syncs progress in interactive mode", function()
       kosync:init()
       kosync.settings.username = "user"
