@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/dropbox_sync_repro_spec.lua
