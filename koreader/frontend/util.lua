@@ -1828,4 +1828,61 @@ function util.copyRequire(f)
   return util.tableDeepCopy(v)
 end
 
+--[[--
+Computes a deterministic MD5 fingerprint of a function and its captured lexical upvalues.
+--]]
+function util.functionFingerprint(fn, visited)
+  assert(type(fn) == "function", "util.functionFingerprint expects a function")
+
+  visited = visited or {}
+  if visited[fn] then
+    return "rec:" .. tostring(fn)
+  end
+  visited[fn] = true
+
+  local md5 = require("ffi/sha2").md5
+  local parts = {}
+  local ok, bytecode = pcall(string.dump, fn, true)
+  if ok then
+    table.insert(parts, "proto:" .. md5(bytecode))
+  else
+    table.insert(parts, "cfunc:" .. tostring(fn))
+  end
+
+  local i = 1
+  while true do
+    local name, val = debug.getupvalue(fn, i)
+    if not name then
+      break
+    end
+
+    local val_type = type(val)
+    table.insert(parts, "uv:" .. name .. "=" .. val_type .. ":")
+
+    if
+      val_type == "string"
+      or val_type == "number"
+      or val_type == "boolean"
+      or val_type == "nil"
+    then
+      table.insert(parts, tostring(val))
+    elseif val_type == "table" then
+      if val.name and type(val.name) == "string" then
+        table.insert(parts, "instance:" .. val.name .. "@" .. tostring(val))
+      else
+        local dump = require("dump")
+        table.insert(parts, "tbl:" .. md5(dump(val)))
+      end
+    elseif val_type == "function" then
+      table.insert(parts, util.functionFingerprint(val, visited))
+    else
+      table.insert(parts, tostring(val))
+    end
+
+    i = i + 1
+  end
+
+  return md5(table.concat(parts, "|"))
+end
+
 return util
