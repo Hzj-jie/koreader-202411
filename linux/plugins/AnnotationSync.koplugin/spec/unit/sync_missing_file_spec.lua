@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/sync_missing_file_spec.lua

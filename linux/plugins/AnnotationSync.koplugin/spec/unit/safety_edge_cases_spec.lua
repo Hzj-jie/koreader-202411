@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/AnnotationSync.koplugin/spec/unit/safety_edge_cases_spec.lua
