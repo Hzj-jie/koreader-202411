@@ -30,10 +30,16 @@ end
 local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
   local provider = get_sync_provider(widget)
   if not provider then
-    UIManager:show(InfoMessage:new({
-      text = gettext("Cloud Storage plugin is not enabled or available."),
-      timeout = 4,
-    }))
+    if not is_silent then
+      UIManager:show(InfoMessage:new({
+        text = gettext("Cloud Storage plugin is not enabled or available."),
+        timeout = 4,
+      }))
+    else
+      logger.warn(
+        "AnnotationSync: Cloud Storage plugin is not enabled or available."
+      )
+    end
     if on_complete then
       on_complete(false)
     end
@@ -48,10 +54,14 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
       SyncService.sync(server, json_path, sync_cb, is_silent)
     end
   else
-    UIManager:show(InfoMessage:new({
-      text = T(gettext("No cloud destination set in settings.")),
-      timeout = 4,
-    }))
+    if not is_silent then
+      UIManager:show(InfoMessage:new({
+        text = T(gettext("No cloud destination set in settings.")),
+        timeout = 4,
+      }))
+    else
+      logger.warn("AnnotationSync: No cloud destination set in settings.")
+    end
     if on_complete then
       on_complete(false)
     end

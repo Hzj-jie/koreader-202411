@@ -120,10 +120,14 @@ function SyncManager:syncAllChangedDocuments()
   end)
 end
 
--- Incremental background sync of pending documents with 5s CPU pacing delay
+-- Incremental background sync of pending documents using BackgroundJobs fork mode
 function SyncManager:syncPendingDocumentsBg()
   if self.is_syncing_pending_bg then
     logger.dbg("AnnotationSync: background pending sync already in progress")
+    return
+  end
+
+  if not isConnected() then
     return
   end
 
@@ -132,22 +136,93 @@ function SyncManager:syncPendingDocumentsBg()
     return
   end
 
-  local files_to_sync = {}
+  self:flushSettings()
+
+  -- Prepare sync items and generate local JSON files in the main thread
+  local items_to_sync = {}
   for file, _ in pairs(changed_docs) do
-    table.insert(files_to_sync, file)
+    if not util.fileExists(file) then
+      logger.warn(
+        "AnnotationSync: file missing, removing from sync list:",
+        file
+      )
+      self:removeFromChangedDocumentsFileByPath(file)
+    else
+      local document
+      local ui_document = self.plugin.ui and self.plugin.ui.document
+      if ui_document and ui_document.file == file then
+        document = ui_document
+      else
+        document = { file = file }
+      end
+      local json_path = self:_writeAnnotationsJSON(document)
+      if json_path then
+        table.insert(items_to_sync, {
+          file = file,
+          json_path = json_path,
+        })
+      end
+    end
+  end
+
+  if #items_to_sync == 0 then
+    return
   end
 
   self.is_syncing_pending_bg = true
-  local count = 0
 
-  local function sync_next(idx)
-    if
-      idx > #files_to_sync
-      or not isConnected()
-      or not self.is_syncing_pending_bg
-      or not self.plugin.settings.network_auto_sync
-    then
+  require("background_jobs").insert({
+    when = "best-effort",
+    executable = "fork",
+    action = function()
+      local results = {}
+      for _, item in ipairs(items_to_sync) do
+        local document = { file = item.file }
+        local sync_success = false
+        local final_merged = nil
+        local ok, _ = pcall(function()
+          remote.sync_annotations(
+            self.plugin,
+            document,
+            item.json_path,
+            function(success, merged_list)
+              sync_success = success
+              final_merged = merged_list
+            end,
+            false
+          )
+        end)
+        if ok and (sync_success == true or sync_success == "skip_upload") then
+          table.insert(results, {
+            file = item.file,
+            success = true,
+            merged_list = final_merged,
+          })
+        end
+      end
+      return results
+    end,
+    callback = function(job)
       self.is_syncing_pending_bg = false
+      if not job.result or type(job.result) ~= "table" then
+        logger.warn("AnnotationSync: background sync returned invalid result")
+        return
+      end
+      local count = 0
+      for _, item in ipairs(job.result) do
+        if item.success and item.file then
+          count = count + 1
+          self:removeFromChangedDocumentsFileByPath(item.file)
+          local ui_document = self.plugin.ui and self.plugin.ui.document
+          if
+            ui_document
+            and ui_document.file == item.file
+            and item.merged_list
+          then
+            self.plugin:applySyncedAnnotations(ui_document, item.merged_list)
+          end
+        end
+      end
       if count > 0 then
         self:recordSyncState("Auto Sync (" .. count .. ")")
         logger.info(
@@ -156,27 +231,8 @@ function SyncManager:syncPendingDocumentsBg()
           "document(s)"
         )
       end
-      return
-    end
-
-    local file = files_to_sync[idx]
-    -- Pace background sync items by 5s intervals so the event loop yields CPU cycles to UI touch events and rendering
-    UIManager:scheduleIn(5, function()
-      if
-        not self.is_syncing_pending_bg
-        or not self.plugin.settings.network_auto_sync
-      then
-        self.is_syncing_pending_bg = false
-        return
-      end
-      if self:syncDocument(file, false) == true then
-        count = count + 1
-      end
-      sync_next(idx + 1)
-    end)
-  end
-
-  sync_next(1)
+    end,
+  })
 end
 
 -- Orchestrates the sync process for a single document (accepts active document object OR file path string)

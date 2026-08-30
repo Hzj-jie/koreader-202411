@@ -27,13 +27,19 @@ local old_isConnected
 local old_runWhenConnected
 local old_runWhenOnline
 
+local old_getSettingsDir
 local old_G_reader_settings
 
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
+  os.execute("mkdir -p " .. test_data_dir .. "/settings")
   local old_getDataDir = DataStorage.getDataDir
+  old_getSettingsDir = DataStorage.getSettingsDir
   DataStorage.getDataDir = function()
     return test_data_dir
+  end
+  DataStorage.getSettingsDir = function()
+    return test_data_dir .. "/settings"
   end
 
   if _G.G_reader_settings then
@@ -70,6 +76,9 @@ end
 
 function M.teardown_test_env(test_data_dir, old_getDataDir)
   DataStorage.getDataDir = old_getDataDir
+  if old_getSettingsDir then
+    DataStorage.getSettingsDir = old_getSettingsDir
+  end
   os.execute("rm -rf " .. test_data_dir)
 
   local DocumentRegistry = require("document/documentregistry")
