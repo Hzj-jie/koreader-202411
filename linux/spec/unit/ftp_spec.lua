@@ -121,7 +121,13 @@ describe("Ftp", function()
       new = function(self, args)
         return {
           is_multi_input_dialog = true,
+          title = args.title,
+          fields = args.fields,
+          buttons = args.buttons,
           args = args,
+          getFields = function(s)
+            return s.field_values or { "Name", "ftp://example.com", "user", "pass", "/" }
+          end,
           onExit = function(self) end,
         }
       end,
@@ -338,6 +344,61 @@ describe("Ftp", function()
         "Type: FTP\nName: My FTP\nAddress: ftp://example.com",
         widget.text
       )
+    end)
+  end)
+
+  describe("config", function()
+    it("shows dialog for adding new FTP account and handles submission", function()
+      local submitted_fields = nil
+      Ftp:config(nil, function(fields)
+        submitted_fields = fields
+      end)
+
+      assert.is_not_nil(Ftp.settings_dialog)
+      assert.is_equal("Add FTP account", Ftp.settings_dialog.title)
+
+      local buttons = Ftp.settings_dialog.buttons[1]
+      local cancel_btn = buttons[1]
+      local info_btn = buttons[2]
+      local add_btn = buttons[3]
+
+      -- Test Info button
+      info_btn.callback()
+      assert.is_true(#mock_uimanager.shown_widgets >= 1)
+
+      -- Test empty fields validation
+      Ftp.settings_dialog.field_values = { "", "", "", "", "/" }
+      add_btn.callback()
+      assert.is_nil(submitted_fields)
+
+      -- Test successful add
+      Ftp.settings_dialog.field_values = { "New FTP", "ftp://test.com", "user", "pass", "/" }
+      add_btn.callback()
+      assert.is_same({ "New FTP", "ftp://test.com", "user", "pass", "/" }, submitted_fields)
+    end)
+
+    it("shows dialog for editing existing FTP account", function()
+      local edited_item = nil
+      local edited_fields = nil
+      local existing = {
+        text = "Existing FTP",
+        address = "ftp://old.com",
+        username = "old_user",
+        password = "old_pass",
+        url = "/old",
+      }
+
+      Ftp:config(existing, function(item, fields)
+        edited_item = item
+        edited_fields = fields
+      end)
+
+      assert.is_equal("Edit FTP account", Ftp.settings_dialog.title)
+      local add_btn = Ftp.settings_dialog.buttons[1][3]
+      Ftp.settings_dialog.field_values = { "Edited FTP", "ftp://new.com", "user", "pass", "/" }
+      add_btn.callback()
+      assert.is_equal(existing, edited_item)
+      assert.is_same({ "Edited FTP", "ftp://new.com", "user", "pass", "/" }, edited_fields)
     end)
   end)
 end)

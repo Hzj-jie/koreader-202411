@@ -36,4 +36,19 @@ describe("StreamMessageQueueServer module", function()
       server:start()
     end)
   end)
+
+  it("should handle waitEvent with nil/empty poller safely", function()
+    local server = StreamMessageQueueServer:new({
+      host = "127.0.0.1",
+      port = 8080,
+    })
+    local received = nil
+    server.receiveCallback = function(req, id)
+      received = req
+    end
+    assert.has_no.errors(function()
+      server:waitEvent()
+    end)
+    assert.is_nil(received)
+  end)
 end)
