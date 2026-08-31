@@ -908,5 +908,64 @@ describe("UIManager spec", function()
         assert.is_nil(UIManager:getTopmostVisibleWidget())
       end
     )
+
+    it("should handle shiftScheduledTasksBy and task time queries", function()
+      UIManager:quit()
+      local now_time = time.monotonic()
+      UIManager:scheduleIn(10, "task10")
+      UIManager:scheduleIn(20, "task20")
+
+      local next_time = UIManager:getNextTaskTime()
+      assert.is_not_nil(next_time)
+
+      local next_times = UIManager:getNextTaskTimes(2)
+      assert.is_table(next_times)
+      assert.are.equal(2, #next_times)
+
+      UIManager:shiftScheduledTasksBy(5)
+      assert.is_true(UIManager:getNextTaskTime() > next_time)
+
+      -- User action timing
+      UIManager:updateLastUserActionTime()
+      assert.is_number(UIManager:lastUserActionTime())
+      assert.is_number(UIManager:timeSinceLastUserAction())
+      assert.is_number(UIManager:getElapsedTimeSinceBoot())
+    end)
+
+    it("should handle run forever mode, window stack debug list and topdown iterator", function()
+      UIManager:setRunForeverMode()
+      UIManager:unsetRunForeverMode()
+
+      local w1 = Widget:new({ id = "w1" })
+      local w2 = Widget:new({ id = "w2" })
+      UIManager:show(w1)
+      UIManager:show(w2)
+
+      local list = UIManager:_windowStackDebugList()
+      assert.is_table(list)
+
+      local iter_count = 0
+      for window in UIManager:topdown_windows_iter() do
+        iter_count = iter_count + 1
+        assert.is_not_nil(window)
+      end
+      assert.are.equal(2, iter_count)
+
+      UIManager:close(w1)
+      UIManager:close(w2)
+    end)
+
+    it("should handle ZMQ registration, refresh schedule, and night mode toggle", function()
+      local dummy_zmq = { id = "zmq1" }
+      UIManager:insertZMQ(dummy_zmq)
+      UIManager:removeZMQ(dummy_zmq)
+
+      UIManager:scheduleRefresh("fast", nil, false)
+      UIManager:ignoreNextRefreshPromote()
+      assert.is_boolean(UIManager:fullRefreshPromoteEnabled())
+
+      UIManager:clearRenderStack()
+      UIManager:toggleNightMode()
+    end)
   end)
 end)

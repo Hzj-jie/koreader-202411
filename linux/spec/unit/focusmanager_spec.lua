@@ -323,4 +323,95 @@ describe("FocusManager module", function()
     Right(focusmanager)
     assert.are.same({ y = 1, x = 3 }, focusmanager.selected)
   end)
+
+  it("should send tap and hold gesture events on onPress and onHold", function()
+    local Geom = require("ui/geometry")
+    local UIManager = require("ui/uimanager")
+    local TextWidget = require("ui/widget/textwidget")
+    local w = TextWidget:new({ text = "Focused", dimen = Geom:new({ x = 10, y = 20, w = 100, h = 40 }) })
+
+    local focusmanager = FocusManager:new({})
+    focusmanager.layout = { { w } }
+    focusmanager.selected = { y = 1, x = 1 }
+
+    local user_input_event = nil
+    local old_userInput = UIManager.userInput
+    UIManager.userInput = function(self, ev)
+      user_input_event = ev
+    end
+
+    -- onPress sends "tap"
+    assert.is_true(focusmanager:onPress())
+    assert.is_not_nil(user_input_event)
+    assert.are.equal("tap", user_input_event.args.ges)
+    assert.are.equal(60, user_input_event.args.pos.x)
+    assert.are.equal(40, user_input_event.args.pos.y)
+
+    -- onHold sends "hold"
+    assert.is_true(focusmanager:onHold())
+    assert.are.equal("hold", user_input_event.args.ges)
+
+    -- layout nil returns false
+    focusmanager.layout = nil
+    assert.is_false(focusmanager:onPress())
+    assert.is_false(focusmanager:onHold())
+
+    UIManager.userInput = old_userInput
+  end)
+
+  it("should handle refocusWidget with RENDER_NOW, RENDER_IN_NEXT_TICK, and parent delegation", function()
+    local UIManager = require("ui/uimanager")
+    local TextWidget = require("ui/widget/textwidget")
+    local w = TextWidget:new({ text = "Item" })
+
+    local focusmanager = FocusManager:new({})
+    focusmanager.layout = { { w } }
+    focusmanager.selected = { y = 1, x = 1 }
+
+    local moved_x, moved_y
+    focusmanager.moveFocusTo = function(self, x, y, flags)
+      moved_x = x
+      moved_y = y
+    end
+
+    -- RENDER_NOW
+    focusmanager:refocusWidget(FocusManager.RENDER_NOW)
+    assert.are.equal(1, moved_x)
+    assert.are.equal(1, moved_y)
+
+    -- RENDER_IN_NEXT_TICK
+    local next_tick_cb = nil
+    local old_nextTick = UIManager.nextTick
+    UIManager.nextTick = function(self, cb)
+      next_tick_cb = cb
+    end
+    moved_x, moved_y = nil, nil
+    focusmanager:refocusWidget(FocusManager.RENDER_IN_NEXT_TICK)
+    assert.is_function(next_tick_cb)
+    next_tick_cb()
+    assert.are.equal(1, moved_x)
+    assert.are.equal(1, moved_y)
+
+    -- Parent delegation
+    local parent_refocused = false
+    local parent_mock = {
+      refocusWidget = function()
+        parent_refocused = true
+      end,
+    }
+    focusmanager._parent = parent_mock
+    focusmanager:refocusWidget(FocusManager.RENDER_NOW)
+    assert.is_true(parent_refocused)
+    assert.is_nil(focusmanager._parent)
+
+    UIManager.nextTick = old_nextTick
+  end)
+
+  it("should handle onPhysicalKeyboardConnected and onPhysicalKeyboardDisconnected", function()
+    local focusmanager = FocusManager:new({})
+    assert.has_no.errors(function()
+      focusmanager:onPhysicalKeyboardConnected()
+      focusmanager:onPhysicalKeyboardDisconnected()
+    end)
+  end)
 end)
