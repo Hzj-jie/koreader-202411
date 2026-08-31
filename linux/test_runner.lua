@@ -306,8 +306,8 @@ if lua_flags:find("luacov") then
                     merged_data[filename] = filedata
                 end
             end
-            os.remove(wfile)
         end
+        os.remove(wfile)
     end
     stats.save(lfs.currentdir() .. "/luacov.stats.out", merged_data)
     print_verbose("[*] Successfully merged parallel coverage statistics into luacov.stats.out")
