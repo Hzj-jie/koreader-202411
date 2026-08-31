@@ -890,6 +890,34 @@ function util.directoryExists(path)
   return lfs.attributes(path, "mode") == "directory"
 end
 
+--- Checks if a directory exists (or can be created) and is readable and writable.
+-- @string dir the directory path to check
+-- @bool[opt] create whether to create the directory if it doesn't exist
+-- @treturn bool true if the directory exists and is readable and writable, false otherwise
+function util.isDirRW(dir, create)
+  if not dir or dir == "" then
+    return false
+  end
+  if create then
+    util.makePath(dir)
+  end
+  if lfs.attributes(dir, "mode") ~= "directory" then
+    return false
+  end
+  local ok, iter = pcall(lfs.dir, dir)
+  if not ok or not iter then
+    return false
+  end
+  local probe_file = (dir:gsub("/+$", "")) .. "/.rw_probe_" .. tostring(os.time()) .. "_" .. tostring(math.random(1, 100000))
+  local f = io.open(probe_file, "w")
+  if not f then
+    return false
+  end
+  f:close()
+  pcall(os.remove, probe_file)
+  return true
+end
+
 --- As `mkdir -p`.
 -- Unlike [lfs.mkdir](https://keplerproject.github.io/luafilesystem/manual.html#mkdir)(),
 -- does not error if the directory already exists, and creates intermediate directories as needed.
