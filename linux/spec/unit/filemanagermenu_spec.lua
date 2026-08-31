@@ -674,6 +674,7 @@ describe("filemanagermenu", function()
 
   describe("filebrowser sub_item_table callbacks and spin widgets", function()
     it("should test all filebrowser settings callbacks", function()
+      local old_readhistory = package.loaded["readhistory"]
       package.loaded["readhistory"] = {
         updateDateTimeString = function() end,
         clearMissing = function() end,
@@ -701,6 +702,7 @@ describe("filemanagermenu", function()
           item.callback()
         end
       end
+      package.loaded["readhistory"] = old_readhistory
     end)
 
     it("should test sorting and start with menu generators", function()
