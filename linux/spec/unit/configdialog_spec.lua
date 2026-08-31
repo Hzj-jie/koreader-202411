@@ -672,6 +672,30 @@ describe("ConfigDialog", function()
     dialog:showConfigPanel(2)
     triggerItemEvents(dialog.config_panel)
 
+    -- Test onFocus / onUnfocus and disabled tap on OptionTextItem
+    local function findItemWithUnderline(widget)
+      if type(widget) ~= "table" then return end
+      if widget.underline_container and widget.onFocus and widget.onUnfocus then
+        return widget
+      end
+      for _, child in ipairs(widget) do
+        local res = findItemWithUnderline(child)
+        if res then return res end
+      end
+    end
+
+    dialog:showConfigPanel(1)
+    local item = findItemWithUnderline(dialog.config_panel)
+    if item then
+      item:onFocus()
+      assert.are.equal(require("ffi/blitbuffer").COLOR_BLACK, item.underline_container.color)
+      item:onUnfocus()
+      assert.are.equal(require("ffi/blitbuffer").COLOR_WHITE, item.underline_container.color)
+
+      item.enabled = false
+      assert.is_true(item:onTapSelect())
+    end
+
     dialog:closeDialog()
   end)
 end)

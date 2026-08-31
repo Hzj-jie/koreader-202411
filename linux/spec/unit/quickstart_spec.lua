@@ -47,4 +47,35 @@ describe("QuickStart module", function()
     )
     assert.is.same(expected_quickstart_filename, QuickStart:getQuickStart())
   end)
+
+  it("generates quickstart guide for RTL and various device input capabilities", function()
+    local Device = require("device")
+    local stub = require("luassert.stub")
+
+    -- Test RTL language
+    G_reader_settings:save("language", "ar")
+    package.loaded["ui/quickstart"] = nil
+    local QuickStart = require("ui/quickstart")
+    local fn_rtl = QuickStart:getQuickStart()
+    assert.is_string(fn_rtl)
+
+    -- Test ScreenKB device
+    local screenkb_stub = stub(Device, "hasScreenKB", function() return true end)
+    package.loaded["ui/quickstart"] = nil
+    QuickStart = require("ui/quickstart")
+    local fn_screenkb = QuickStart:getQuickStart()
+    assert.is_string(fn_screenkb)
+    screenkb_stub:revert()
+
+    -- Test SymKey device
+    local symkey_stub = stub(Device, "hasSymKey", function() return true end)
+    package.loaded["ui/quickstart"] = nil
+    QuickStart = require("ui/quickstart")
+    local fn_symkey = QuickStart:getQuickStart()
+    assert.is_string(fn_symkey)
+    symkey_stub:revert()
+
+    -- Reset language
+    G_reader_settings:save("language", "en")
+  end)
 end)
