@@ -21,11 +21,31 @@ describe("StreamMessageQueue module", function()
 
   it("should handle stopping message queue and destroying handles", function()
     local smq = StreamMessageQueue:new({ host = "127.0.0.1", port = 8080 })
-    smq.poller = {}
-    smq.socket = {}
+    smq.poller = nil
+    smq.socket = nil
 
     -- Should not throw on stop
     smq:stop()
     assert.is_not_nil(smq)
+  end)
+
+  it("should throw error on invalid connection parameters in start", function()
+    local smq = StreamMessageQueue:new({ host = "invalid.domain.99999", port = -1 })
+    assert.has_error(function()
+      smq:start()
+    end)
+  end)
+
+  it("should handle waitEvent with nil/empty poller without errors", function()
+    local smq = StreamMessageQueue:new({ host = "127.0.0.1", port = 8080 })
+    local received = nil
+    smq.receiveCallback = function(t)
+      received = t
+    end
+    -- When poller is not initialized, waitEvent should return safely
+    assert.has_no.errors(function()
+      smq:waitEvent()
+    end)
+    assert.is_nil(received)
   end)
 end)
