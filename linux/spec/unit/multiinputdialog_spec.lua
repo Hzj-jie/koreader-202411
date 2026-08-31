@@ -172,4 +172,44 @@ describe("MultiInputDialog widget", function()
 
     UIManager:close(dialog)
   end)
+
+  it("handles getFields, onSwitchFocus, descriptions, and addWidget", function()
+    local Widget = require("ui/widget/widget")
+    local Geom = require("ui/geometry")
+    local Screen = require("device").screen
+
+    local dialog = MultiInputDialog:new({
+      title = "Multi Test",
+      fields = {
+        { description = "Desc 1", text = "First", hint = "H1" },
+        { description = "Desc 2", text = "Second", hint = "H2" },
+      },
+      width = Screen:getWidth(),
+    })
+
+    UIManager:show(dialog)
+    UIManager:forceRepaint()
+
+    -- getFields
+    local fields = dialog:getFields()
+    assert.are.same({ "First", "Second" }, fields)
+
+    -- onSwitchFocus
+    assert.are.equal(1, dialog.focused_field_idx)
+    dialog:onSwitchFocus(dialog.input_fields[2])
+    assert.are.equal(2, dialog.focused_field_idx)
+    assert.are.equal(dialog.input_fields[2], dialog._input_widget)
+
+    -- addWidget
+    local dummy_widget = Widget:new({ dimen = Geom:new({ w = 10, h = 10 }) })
+    dialog:addWidget(dummy_widget)
+    assert.is_not_nil(dialog._added_widgets)
+    assert.are.equal(1, #dialog._added_widgets)
+
+    -- Test recreation preserving added widgets
+    dialog:onKeyboardHeightChanged()
+    assert.are.equal(1, #dialog._added_widgets)
+
+    UIManager:close(dialog)
+  end)
 end)
