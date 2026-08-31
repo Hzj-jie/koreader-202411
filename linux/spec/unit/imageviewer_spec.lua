@@ -153,6 +153,28 @@ describe("ImageViewer", function()
     -- Tap gestures
     viewer:onTap(nil, { pos = Geom:new({ x = 50, y = 50 }) })
 
+    -- Rotate, Invert, ToggleScale, DoubleTap
+    viewer:onRotate()
+    viewer:onInvert()
+    viewer:onToggleScale()
+    viewer:onDoubleTap(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+
+    -- Spread & Pinch gestures across all directions
+    viewer:onSpread(nil, { direction = "vertical", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onSpread(nil, { direction = "horizontal", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onSpread(nil, { direction = "diagonal", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })
+
+    viewer:onPinch(nil, { direction = "vertical", distance = 20, pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onPinch(nil, { direction = "horizontal", distance = 20, pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onPinch(nil, { direction = "diagonal", distance = 20, pos = Geom:new({ x = 50, y = 50 }) })
+
+    -- MultiSwipe
+    assert.is_true(viewer:onMultiSwipe())
+
+    -- Exit & Close
+    assert.is_true(viewer:onExit())
+    viewer:onClose()
+
     -- Registry
     local mock_registry = {
       addAuxProvider = function(self, prov)

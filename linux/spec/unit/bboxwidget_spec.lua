@@ -53,6 +53,24 @@ describe("BBoxWidget widget module", function()
     assert.is_table(widget.dimen)
   end)
 
+  it("should initialize key_events when Device:isTouchDevice() is false", function()
+    local old_isTouch = Device.isTouchDevice
+    Device.isTouchDevice = function() return false end
+    local mock_document, mock_view = createMockViewAndDoc()
+    local widget = BBoxWidget:new({
+      document = mock_document,
+      view = mock_view,
+    })
+    assert.are.equal(1, widget._confirm_stage)
+    assert.is_not_nil(widget.key_events.MoveIndicatorUp)
+    assert.is_not_nil(widget.key_events.MoveIndicatorDown)
+    assert.is_not_nil(widget.key_events.MoveIndicatorLeft)
+    assert.is_not_nil(widget.key_events.MoveIndicatorRight)
+    assert.is_not_nil(widget.key_events.Exit)
+    assert.is_not_nil(widget.key_events.Select)
+    Device.isTouchDevice = old_isTouch
+  end)
+
   describe("coordinate transformations", function()
     it(
       "should transform page bbox to screen bbox with zoom and offset",
@@ -291,6 +309,14 @@ describe("BBoxWidget widget module", function()
         }
         widget:onSwipeAdjust(nil, ges_south)
         assert.are.equal(506, widget.screen_bbox.y1)
+
+        local ges_north = {
+          pos = Geom:new({ x = 300, y = 506 }),
+          direction = "north",
+          distance = 40,
+        }
+        widget:onSwipeAdjust(nil, ges_north)
+        assert.are.equal(502, widget.screen_bbox.y1)
       end
     )
 
@@ -304,6 +330,14 @@ describe("BBoxWidget widget module", function()
         }
         widget:onSwipeAdjust(nil, ges_east)
         assert.are.equal(107, widget.screen_bbox.x0)
+
+        local ges_west = {
+          pos = Geom:new({ x = 107, y = 300 }),
+          direction = "west",
+          distance = 50,
+        }
+        widget:onSwipeAdjust(nil, ges_west)
+        assert.are.equal(102, widget.screen_bbox.x0)
       end
     )
   end)
@@ -351,14 +385,22 @@ describe("BBoxWidget widget module", function()
     end)
 
     it(
-      "should clamp bottom-right indicator to min bounds when _confirm_stage is 2",
+      "should clamp top-left indicator to 0 when moved negatively",
+      function()
+        widget._confirm_stage = 1
+        widget:onMoveIndicator({ -1000, -1000 })
+        assert.are.equal(0, widget.screen_bbox.x0)
+        assert.are.equal(0, widget.screen_bbox.y0)
+      end
+    )
+
+    it(
+      "should clamp bottom-right indicator to Screen dimensions when moved beyond",
       function()
         widget._confirm_stage = 2
-        widget:onMoveIndicator({ -1000, -1000 })
-        local min_x = widget.screen_bbox.x0 + Size.item.height_default
-        local min_y = widget.screen_bbox.y0 + Size.item.height_default
-        assert.are.equal(min_x, widget.screen_bbox.x1)
-        assert.are.equal(min_y, widget.screen_bbox.y1)
+        widget:onMoveIndicator({ 10000, 10000 })
+        assert.are.equal(Device.screen:getWidth(), widget.screen_bbox.x1)
+        assert.are.equal(Device.screen:getHeight(), widget.screen_bbox.y1)
       end
     )
   end)
@@ -396,6 +438,15 @@ describe("BBoxWidget widget module", function()
       assert.are.equal("onConfirmPageCrop", ev.handler)
     end)
 
+    it("should broadcast ConfirmPageCrop on onSelect if stage is nil", function()
+      widget._confirm_stage = nil
+      local res = widget:onSelect()
+      assert.is_true(res)
+      assert.stub(UIManager.broadcastEvent).was_called(1)
+      local ev = UIManager.broadcastEvent.calls[1].refs[2]
+      assert.are.equal("onConfirmPageCrop", ev.handler)
+    end)
+
     it(
       "should broadcast ConfirmPageCrop on onConfirmAdjust when in page area",
       function()
@@ -405,6 +456,16 @@ describe("BBoxWidget widget module", function()
         assert.stub(UIManager.broadcastEvent).was_called(1)
         local ev = UIManager.broadcastEvent.calls[1].refs[2]
         assert.are.equal("onConfirmPageCrop", ev.handler)
+      end
+    )
+
+    it(
+      "should not broadcast ConfirmPageCrop on onConfirmAdjust when outside page area",
+      function()
+        local ges = { pos = Geom:new({ x = 700, y = 900 }) }
+        local res = widget:onConfirmAdjust(nil, ges)
+        assert.is_true(res)
+        assert.stub(UIManager.broadcastEvent).was_called(0)
       end
     )
 
@@ -440,6 +501,26 @@ describe("BBoxWidget widget module", function()
         view = mock_view,
       })
       widget._confirm_stage = 1
+
+      local invert_rect_calls = {}
+      local mock_bb = {
+        invertRect = function(self, x, y, w, h)
+          table.insert(invert_rect_calls, { x = x, y = y, w = w, h = h })
+        end,
+      }
+
+      widget:paintTo(mock_bb, 0, 0)
+
+      assert.is_true(#invert_rect_calls >= 6)
+    end)
+
+    it("should render stage 2 indicator in paintTo", function()
+      local mock_document, mock_view = createMockViewAndDoc()
+      local widget = BBoxWidget:new({
+        document = mock_document,
+        view = mock_view,
+      })
+      widget._confirm_stage = 2
 
       local invert_rect_calls = {}
       local mock_bb = {

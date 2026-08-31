@@ -163,4 +163,122 @@ describe("WpaSupplicant network module", function()
 
     WpaSupplicant.getAllSavedNetworks:revert()
   end)
+
+  describe("WpaSupplicant Initialization and Network Queries", function()
+    it("initializes network manager bindings via WpaSupplicant.init", function()
+      local mock_mgr = {}
+      WpaSupplicant.init(mock_mgr, { ctrl_interface = "/var/run/wpa_test" })
+      assert.is_equal("/var/run/wpa_test", mock_mgr.wpa_supplicant.ctrl_interface)
+      assert.is_equal(WpaSupplicant.getNetworkList, mock_mgr.getNetworkList)
+      assert.is_equal(WpaSupplicant.getCurrentNetwork, mock_mgr.getCurrentNetwork)
+      assert.is_equal(WpaSupplicant.authenticateNetwork, mock_mgr.authenticateNetwork)
+      assert.is_equal(WpaSupplicant.disconnectNetwork, mock_mgr.disconnectNetwork)
+      assert.is_equal(WpaSupplicant.getConfiguredNetworks, mock_mgr.getConfiguredNetworks)
+    end)
+
+    it("retrieves configured networks via getConfiguredNetworks", function()
+      local mock_cli = {
+        listNetworks = function()
+          return { { id = 0, ssid = "ConfiguredNet" } }
+        end,
+        close = function() end,
+      }
+      stub(mock_wpaclient, "new", function()
+        return mock_cli
+      end)
+
+      local list, err = WpaSupplicant:getConfiguredNetworks()
+      assert.is_table(list)
+      assert.is_equal("ConfiguredNet", list[1].ssid)
+      assert.is_nil(err)
+
+      mock_wpaclient.new:revert()
+    end)
+
+    it("retrieves current network with decoded SSID and fallback", function()
+      local mock_cli = {
+        getConnectedNetwork = function()
+          return nil, "Not connected"
+        end,
+        getCurrentNetwork = function()
+          return { id = 2, ssid = "\\x57\\x69\\x46\\x69" } -- "WiFi"
+        end,
+        close = function() end,
+      }
+      stub(mock_wpaclient, "new", function()
+        return mock_cli
+      end)
+
+      local curr = WpaSupplicant:getCurrentNetwork()
+      assert.is_table(curr)
+      assert.is_equal("WiFi", curr.ssid)
+      assert.is_equal(2, curr.id)
+
+      mock_wpaclient.new:revert()
+    end)
+
+    it("handles authentication failure when setNetwork fails", function()
+      local mock_cli = {
+        addNetwork = function()
+          return 1
+        end,
+        setNetwork = function()
+          return "FAIL"
+        end,
+        removeNetwork = function()
+          return "OK"
+        end,
+        close = function() end,
+      }
+      stub(mock_wpaclient, "new", function()
+        return mock_cli
+      end)
+
+      local success, msg = WpaSupplicant:authenticateNetwork({
+        ssid = "FailingNet",
+        password = "pwd",
+      })
+      assert.is_false(success)
+      assert.is_truthy(msg:find("error occurred", 1, true))
+
+      mock_wpaclient.new:revert()
+    end)
+
+    it("handles auth events with auth failure limit and timeouts", function()
+      local event_idx = 0
+      local mock_cli = {
+        addNetwork = function() return 1 end,
+        setNetwork = function() return "OK" end,
+        enableNetworkByID = function() return "OK" end,
+        attach = function() end,
+        getConnectedNetwork = function() return nil end,
+        readEvent = function()
+          event_idx = event_idx + 1
+          return {
+            isScanEvent = function() return false end,
+            isAuthSuccessful = function() return false end,
+            isAuthFailed = function() return true end,
+            msg = "Auth failed",
+          }
+        end,
+        waitForEvent = function() end,
+        removeNetwork = function() return "OK" end,
+        close = function() end,
+      }
+      stub(mock_wpaclient, "new", function()
+        return mock_cli
+      end)
+      stub(WpaSupplicant, "saveNetwork", function() end)
+
+      local success, msg = WpaSupplicant:authenticateNetwork({
+        ssid = "BadPwdNet",
+        password = "wrong",
+      })
+      assert.is_false(success)
+      assert.is_equal("Failed to authenticate", msg)
+
+      WpaSupplicant.saveNetwork:revert()
+      mock_wpaclient.new:revert()
+    end)
+  end)
 end)
