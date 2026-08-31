@@ -12,9 +12,11 @@ if [ ! -d "$PLATFORM_DIR" ]; then
 fi
 
 PLATFORM_PATH="$(cd "$PLATFORM_DIR" && pwd)"
-SANDBOX_ROOT="/tmp/koreader_sandbox_$$"
+SANDBOX_ROOT="$(mktemp -d /tmp/koreader_sandbox_XXXXXX)"
 SANDBOX_DIR="$SANDBOX_ROOT/run/context"
-mkdir -p "$SANDBOX_DIR"
+SANDBOX_TMP="$SANDBOX_ROOT/tmp"
+mkdir -p "$SANDBOX_DIR" "$SANDBOX_TMP"
+export TMPDIR="$SANDBOX_TMP"
 
 # Symlink all files and directories except user/test storage directories
 for entry in "$PLATFORM_PATH"/* "$PLATFORM_PATH"/.*; do
@@ -34,6 +36,8 @@ fi
 pushd "$SANDBOX_DIR" > /dev/null
 
 cleanup() {
+    local exit_status=$?
+    trap - EXIT INT TERM HUP
     echo "[*] Purging sandbox environment folder at $SANDBOX_ROOT..."
     if [ -f "$SANDBOX_DIR/luacov.stats.out" ]; then
         cp "$SANDBOX_DIR/luacov.stats.out" "${KO_WORKSPACE_DIR:-$PLATFORM_PATH/..}/luacov.stats.out" 2>/dev/null || true
@@ -42,7 +46,8 @@ cleanup() {
         mkdir -p "$PLATFORM_PATH/screenshots"
         cp -r "$SANDBOX_DIR/screenshots"/* "$PLATFORM_PATH/screenshots/" 2>/dev/null || true
     fi
-    popd > /dev/null 2>&1
+    popd > /dev/null 2>&1 || true
     rm -rf "$SANDBOX_ROOT"
+    exit $exit_status
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
