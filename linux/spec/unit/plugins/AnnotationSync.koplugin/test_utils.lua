@@ -29,10 +29,16 @@ local old_runWhenOnline
 
 local old_getSettingsDir
 local old_G_reader_settings
+local old_tmp_dir
 
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
   os.execute("mkdir -p " .. test_data_dir .. "/settings")
+  os.execute("mkdir -p " .. test_data_dir .. "/tmp")
+  local Device = require("device")
+  old_tmp_dir = Device.tmp_dir
+  Device.tmp_dir = test_data_dir .. "/tmp"
+
   local old_getDataDir = DataStorage.getDataDir
   old_getSettingsDir = DataStorage.getSettingsDir
   DataStorage.getDataDir = function()
@@ -75,6 +81,9 @@ function M.setup_test_env(test_data_dir)
 end
 
 function M.teardown_test_env(test_data_dir, old_getDataDir)
+  local Device = require("device")
+  Device.tmp_dir = old_tmp_dir
+
   DataStorage.getDataDir = old_getDataDir
   if old_getSettingsDir then
     DataStorage.getSettingsDir = old_getSettingsDir
