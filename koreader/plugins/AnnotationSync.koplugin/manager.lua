@@ -143,62 +143,63 @@ function SyncManager:syncPendingDocumentsBg()
       else
         local ui_doc = self.plugin.ui and self.plugin.ui.document
         local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
-        local json_path = self:_writeAnnotationsJSON(doc)
-        if json_path then
-          require("background_jobs").insertKeyed({
-            executable = "fork",
-            action = function()
-              local sync_success = false
-              local final_merged = nil
-              local ok, _ = pcall(function()
-                remote.sync_annotations(
-                  self.plugin,
-                  file,
-                  json_path,
-                  function(success, merged_list)
-                    sync_success = success
-                    final_merged = merged_list
-                  end,
-                  false
-                )
-              end)
-              return {
-                file = file,
-                success = ok and (sync_success == true or sync_success == "skip_upload"),
-                merged_list = final_merged,
-              }
-            end,
-            callback = function(job)
-              if not job.result or type(job.result) ~= "table" then
-                logger.warn(
-                  "AnnotationSync: background sync returned invalid result for",
-                  file
-                )
-                return
-              end
-              local item = job.result
-              if item.success and item.file then
-                self:removeFromChangedDocumentsFileByPath(item.file)
-                local current_ui_doc = self.plugin.ui and self.plugin.ui.document
-                if
-                  current_ui_doc
-                  and current_ui_doc.file == item.file
-                  and item.merged_list
-                then
-                  self.plugin:applySyncedAnnotations(
-                    current_ui_doc,
-                    item.merged_list
-                  )
-                end
-                self:recordSyncState("Auto Sync")
-                logger.info(
-                  "AnnotationSync: background sync completed for",
-                  item.file
+        require("background_jobs").insertKeyed({
+          executable = "fork",
+          action = function()
+            local json_path = self:_writeAnnotationsJSON(doc)
+            if not json_path then
+              return { file = file, success = false }
+            end
+            local sync_success = false
+            local final_merged = nil
+            local ok, _ = pcall(function()
+              remote.sync_annotations(
+                self.plugin,
+                file,
+                json_path,
+                function(success, merged_list)
+                  sync_success = success
+                  final_merged = merged_list
+                end,
+                false
+              )
+            end)
+            return {
+              file = file,
+              success = ok and (sync_success == true or sync_success == "skip_upload"),
+              merged_list = final_merged,
+            }
+          end,
+          callback = function(job)
+            if not job.result or type(job.result) ~= "table" then
+              logger.warn(
+                "AnnotationSync: background sync returned invalid result for",
+                file
+              )
+              return
+            end
+            local item = job.result
+            if item.success and item.file then
+              self:removeFromChangedDocumentsFileByPath(item.file)
+              local current_ui_doc = self.plugin.ui and self.plugin.ui.document
+              if
+                current_ui_doc
+                and current_ui_doc.file == item.file
+                and item.merged_list
+              then
+                self.plugin:applySyncedAnnotations(
+                  current_ui_doc,
+                  item.merged_list
                 )
               end
-            end,
-          })
-        end
+              self:recordSyncState("Auto Sync")
+              logger.info(
+                "AnnotationSync: background sync completed for",
+                item.file
+              )
+            end
+          end,
+        })
       end
     end
   end)
@@ -284,22 +285,12 @@ function SyncManager:_writeAnnotationsJSON(document)
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    return false
-  end
-
-  -- Fix for Issue #34: Ensure the local sidecar directory exists
-  if not lfs.attributes(sdr_dir, "mode") then
-    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
-    util.makePath(sdr_dir)
-  end
-
+  local tmp_dir = Device:getTmpDir()
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     document,
     self:getAnnotationsForDocument(document),
-    sdr_dir,
+    tmp_dir,
     filename
   )
 end
@@ -436,13 +427,9 @@ function SyncManager:getDeletedAnnotations(document)
     return {}
   end
 
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    return {}
-  end
-
+  local tmp_dir = Device:getTmpDir()
   local filename = self:_getAnnotationFilename(file)
-  local json_path = sdr_dir .. "/" .. filename
+  local json_path = tmp_dir .. "/" .. filename
 
   local map = utils.read_json(json_path)
   if not map then
@@ -595,7 +582,7 @@ function SyncManager:pushSettings()
     },
   }
 
-  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
+  local json_path = Device:getTmpDir() .. "/settings_sync.json"
   local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
@@ -728,7 +715,7 @@ function SyncManager:pullSettings()
     return
   end
 
-  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
+  local json_path = Device:getTmpDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
   remote.sync_settings(self.plugin, json_path, function(success, merged_data)
     if success and merged_data then
