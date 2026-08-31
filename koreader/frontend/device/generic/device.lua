@@ -11,6 +11,7 @@ local UIManager -- Updated on UIManager init
 local ffi = require("ffi")
 local ffiUtil = require("ffi/util")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
@@ -137,6 +138,26 @@ local Device = {
   openLink = util.no,
   canExternalDictLookup = util.no,
 }
+
+function Device:_getTmpDir()
+  local tmp = os.getenv("TMPDIR")
+  if util.isDirRW(tmp) then
+    return tmp
+  end
+  if util.isDirRW("/tmp") then
+    return "/tmp"
+  end
+  return nil
+end
+
+function Device:getTmpDir()
+  if self.tmp_dir then
+    return self.tmp_dir
+  end
+  self.tmp_dir = self:_getTmpDir()
+  assert(self.tmp_dir, "No temporary directory found")
+  return self.tmp_dir
+end
 
 function Device:extend(o)
   o = o or {}

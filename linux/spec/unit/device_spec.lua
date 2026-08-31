@@ -562,6 +562,23 @@ describe("device module", function()
       Device.screen_saver_mode = false
       readerui:onClose()
     end)
+
+    describe("getTmpDir()", function()
+      it("returns tmp directory string", function()
+        local tmp_dir = Device:getTmpDir()
+        assert.is_string(tmp_dir)
+        assert.is_true(#tmp_dir > 0)
+      end)
+
+      it("respects TMPDIR environment variable if present", function()
+        local old_tmp = Device.tmp_dir
+        Device.tmp_dir = nil
+        local custom_tmp = os.getenv("TMPDIR") or "/tmp"
+        local res = Device:_getTmpDir()
+        assert.is_string(res)
+        Device.tmp_dir = old_tmp
+      end)
+    end)
   end)
   -- luacheck: pop
 end)
