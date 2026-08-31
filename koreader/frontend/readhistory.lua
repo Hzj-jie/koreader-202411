@@ -122,6 +122,9 @@ function ReadHistory:_read(force_read)
       table.insert(self.hist, buildEntry(v.time, v.file))
     end
     local function sort(a, b)
+      if a.time == b.time then
+        return a.file:gsub(".*/", "") < b.file:gsub(".*/", "")
+      end
       return a.time > b.time
     end
     table.sort(self.hist, sort)
