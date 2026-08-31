@@ -1,6 +1,14 @@
 -- Load the original loadlib helper first
 require("ffi/loadlib")
 
+local ffi = require("ffi")
+
+pcall(function()
+    ffi.cdef[[
+        int getpid(void);
+    ]]
+end)
+
 -- Intercept require globally to ensure determinism across different host workstations
 -- and avoid relying on physical hardware state (such as system fonts, battery charging state, etc.).
 local orig_require = _G.require
@@ -20,6 +28,25 @@ _G.require = function(name)
         end
     end
     return res
+end
+
+-- Override os.tmpname to generate temporary files inside the isolated worker/sandbox temp folder
+-- instead of writing directly into system /tmp (which ignores TMPDIR in glibc).
+local orig_tmpname = os.tmpname
+local tmp_seq = 0
+os.tmpname = function()
+    local tmp_dir = os.getenv("TMPDIR") or os.getenv("XDG_CONFIG_HOME")
+    if not tmp_dir or tmp_dir == "" then
+        return orig_tmpname()
+    end
+    tmp_seq = tmp_seq + 1
+    local pid = ffi.C.getpid()
+    local fn = string.format("%s/lua_tmp_%d_%d", tmp_dir, pid, tmp_seq)
+    local f = io.open(fn, "w")
+    if f then
+        f:close()
+    end
+    return fn
 end
 
 
