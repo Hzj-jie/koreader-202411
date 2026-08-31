@@ -351,4 +351,83 @@ describe("TouchMenu", function()
       assert.is_true(held_input)
     end
   end)
+
+  it("handles TouchMenuItem focus, unfocus, isEnabled, and helpText", function()
+    local item = {
+      text = "Test Item",
+      help_text = "Detailed info",
+      enabled = false,
+      radio = true,
+      font_func = function(size)
+        return Font:getFace("cfont", size)
+      end,
+    }
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          item,
+        },
+      },
+    })
+    local item_widget = menu.item_group[1]
+    assert.is_not_nil(item_widget)
+    assert.is_false(item_widget:isEnabled())
+
+    assert.is_true(item_widget:onFocus())
+    assert.is_true(item_widget:onUnfocus())
+    assert.is_true(item_widget:showHelpText())
+  end)
+
+  it("handles onExit, onBack, updateItems, and onTimesChange_1M", function()
+    local closed = false
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          { text = "Item 1" },
+        },
+      },
+      close_callback = function()
+        closed = true
+      end,
+    })
+
+    -- onTimesChange_1M
+    assert.has_no.errors(function()
+      menu:onTimesChange_1M()
+      menu:updateItems()
+    end)
+
+    -- onBack and onExit
+    menu:onBack()
+    menu:onExit()
+    assert.is_true(closed)
+  end)
+
+  it("handles onSwipe in east, west, south directions", function()
+    local items = {}
+    for i = 1, 30 do
+      table.insert(items, { text = "Item " .. i })
+    end
+    local menu = TouchMenu:new({
+      tab_item_table = {
+        {
+          text = "Tab 1",
+          icon = "dummy",
+          unpack(items),
+        },
+      },
+    })
+    assert.are.equal(1, menu.page)
+    -- East / West swipe page navigation
+    menu:onSwipe(nil, { direction = "west" })
+    assert.are.equal(2, menu.page)
+    menu:onSwipe(nil, { direction = "east" })
+    assert.are.equal(1, menu.page)
+    -- South swipe
+    menu:onSwipe(nil, { direction = "south" })
+  end)
 end)
