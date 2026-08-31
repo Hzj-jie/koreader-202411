@@ -266,6 +266,7 @@ describe("ReadHistory module", function()
   end)
 
   local function testReduceTotalCount(no_flush)
+    G_reader_settings:save("history_size", 500)
     local function to_file(i)
       return test_file(string.format("%04d", i))
     end
@@ -280,6 +281,7 @@ describe("ReadHistory module", function()
       h:_flush()
     end
 
+    assert.is.same(500, #h.hist)
     for i = 1, 500 do -- at most 500 items are stored
       assert_item_is(h, i, string.format("%04d", i))
     end
@@ -287,6 +289,8 @@ describe("ReadHistory module", function()
     for i = 1, 1000 do
       rm(to_file(i))
     end
+    rm(file("history.lua"))
+    G_reader_settings:delete("history_size")
   end
 
   it("should reduce the total count", function()
