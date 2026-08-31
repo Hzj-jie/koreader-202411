@@ -204,4 +204,115 @@ describe("NetworkSetting module", function()
       UIManager.close:revert()
     end
   )
+
+  it("handles MinimalPaginator painting and setProgress", function()
+    local Blitbuffer = require("ffi/blitbuffer")
+    local ns = NetworkSetting:new({ network_list = {} })
+    local paginator = ns.pagination
+    assert.is_not_nil(paginator)
+
+    paginator:setProgress(0.5)
+    assert.are.equal(0.5, paginator.progress)
+
+    local bb = Blitbuffer.new(100, 20)
+    assert.has_no.errors(function()
+      paginator:paintTo(bb, 0, 0)
+    end)
+  end)
+
+  it("handles NetworkItem onTapSelect, WEP check, edit, add, and saveAndConnectToNetwork", function()
+    stub(NetworkMgr, "saveNetwork")
+    stub(NetworkMgr, "deleteNetwork")
+    stub(NetworkMgr, "authenticateNetwork", function() return true end)
+    stub(NetworkMgr, "obtainIP")
+
+    local network_list = {
+      {
+        ssid = "wep_net",
+        signal_level = -50,
+        flags = "[WEP][ESS]",
+        signal_quality = 90,
+      },
+      {
+        ssid = "wpa_net",
+        signal_level = -60,
+        flags = "[WPA2-PSK-CCMP][ESS]",
+        signal_quality = 60,
+        password = "secret_password",
+      },
+      {
+        ssid = "open_net",
+        signal_level = -70,
+        flags = "[ESS]",
+        signal_quality = 20,
+      },
+    }
+
+    local ns = NetworkSetting:new({ network_list = network_list })
+    local items = ns[1][1][1][3].items
+    local wep_item = items[1]
+    local wpa_item = items[2]
+    local open_item = items[3]
+
+    -- Test WEP onTapSelect
+    local shown_widget
+    wep_item.showWidget = function(self, w) shown_widget = w end
+    wep_item:onTapSelect(nil, {})
+    assert.is_not_nil(shown_widget)
+
+    -- Test WPA onTapSelect edit button tap
+    local edit_dialog
+    wpa_item.showWidget = function(self, w) edit_dialog = w end
+    wpa_item:onTapSelect(nil, { pos = wpa_item.btn_edit_nw.dimen })
+    assert.is_not_nil(edit_dialog)
+
+    -- Test forget button in edit_dialog
+    local forget_btn = edit_dialog.buttons[1][2]
+    forget_btn.callback()
+    assert.stub(NetworkMgr.deleteNetwork).was_called()
+
+    -- Test open net onAddNetwork
+    local add_dialog
+    open_item.showWidget = function(self, w) add_dialog = w end
+    open_item:onTapSelect(nil, {})
+    assert.is_not_nil(add_dialog)
+
+    -- Test saveAndConnectToNetwork with empty password on WPA
+    local mock_pw_input = {
+      getInputText = function() return "" end,
+    }
+    wep_item.info.flags = "[WPA2-PSK-CCMP][ESS]"
+    wep_item:saveAndConnectToNetwork(mock_pw_input)
+
+    -- Test saveAndConnectToNetwork with valid password
+    local mock_valid_pw = {
+      getInputText = function() return "new_valid_password" end,
+    }
+    wpa_item:saveAndConnectToNetwork(mock_valid_pw)
+    assert.stub(NetworkMgr.saveNetwork).was_called()
+
+    NetworkMgr.saveNetwork:revert()
+    NetworkMgr.deleteNetwork:revert()
+    NetworkMgr.authenticateNetwork:revert()
+    NetworkMgr.obtainIP:revert()
+  end)
+
+  it("handles onTapClose and onClose", function()
+    local Geom = require("ui/geometry")
+    local ns = NetworkSetting:new({ network_list = {} })
+
+    -- Inside popup
+    local inside_ev = { pos = ns.popup.dimen }
+    assert.is_nil(ns:onTapClose(nil, inside_ev))
+
+    -- Outside popup
+    local outside_ev = { pos = Geom:new({ x = -100, y = -100 }) }
+    assert.is_true(ns:onTapClose(nil, outside_ev))
+
+    -- onClose resets pending connection
+    NetworkMgr.pending_connectivity_check = nil
+    NetworkMgr.pending_connection = true
+    ns:onClose()
+    assert.is_false(NetworkMgr.pending_connection)
+  end)
 end)
