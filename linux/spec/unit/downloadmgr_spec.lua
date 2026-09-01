@@ -1,11 +1,17 @@
 describe("DownloadMgr module", function()
   local DownloadMgr
   local UIManager
+  local lfs = require("libs/libkoreader-lfs")
 
   setup(function()
     require("commonrequire")
     DownloadMgr = require("ui/downloadmgr")
     UIManager = require("ui/uimanager")
+    lfs.mkdir("/tmp/test_dir")
+  end)
+
+  teardown(function()
+    lfs.rmdir("/tmp/test_dir")
   end)
 
   it("should initialize DownloadMgr instance", function()
@@ -44,19 +50,20 @@ describe("DownloadMgr module", function()
       shown_widget = widget
     end
 
-    G_reader_settings:save("download_dir", "/tmp")
+    G_reader_settings:save("download_dir", "/tmp/test_dir")
     local mgr = DownloadMgr:new()
     mgr:chooseDir()
     assert.truthy(shown_widget)
+    assert.are.equal("/tmp", shown_widget.path)
 
+    local orig_lastdir = G_named_settings.lastdir
     G_reader_settings:save("download_dir", nil)
-    _G.G_named_settings = {
-      lastdir = function() return "/tmp/last" end,
-    }
+    G_named_settings.lastdir = function() return "/tmp/test_dir" end
     mgr:chooseDir()
     assert.truthy(shown_widget)
-    assert.are.equal("/tmp/last", shown_widget.path)
+    assert.are.equal("/tmp/test_dir", shown_widget.path)
 
+    G_named_settings.lastdir = orig_lastdir
     UIManager.show = orig_show
   end)
 
@@ -66,6 +73,10 @@ describe("DownloadMgr module", function()
     UIManager.show = function(self, widget)
       shown_widget = widget
     end
+
+    local CloudStorage = require("apps/cloudstorage/cloudstorage")
+    local orig_init = CloudStorage.init
+    CloudStorage.init = function(self) end
 
     local confirmed_path = nil
     local mgr = DownloadMgr:new({
@@ -80,6 +91,7 @@ describe("DownloadMgr module", function()
     shown_widget.onConfirm("/cloud/path")
     assert.are.equal("/cloud/path", confirmed_path)
 
+    CloudStorage.init = orig_init
     UIManager.show = orig_show
   end)
 end)

@@ -27,9 +27,10 @@ describe("Font module", function()
     end)
 
     it("should use default cfont size if size is unknown", function()
-      local f = Font:getFace("unknown_font_key")
+      local f = Font:getFace("NotoSans-Regular.ttf")
       assert.is_not_nil(f)
-      assert.are.equal("unknown_font_key", f.orig_font)
+      assert.are.equal("NotoSans-Regular.ttf", f.orig_font)
+      assert.are.equal(Font.sizemap.cfont, f.orig_size)
     end)
 
     it("should update orig_size in cached face when orig_size changes", function()

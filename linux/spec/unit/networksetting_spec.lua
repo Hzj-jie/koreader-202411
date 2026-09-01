@@ -254,16 +254,20 @@ describe("NetworkSetting module", function()
     local wpa_item = items[2]
     local open_item = items[3]
 
+    local Geom = require("ui/geometry")
+    local dummy_pos = Geom:new({ x = 10, y = 10 })
+
     -- Test WEP onTapSelect
     local shown_widget
     wep_item.showWidget = function(self, w) shown_widget = w end
-    wep_item:onTapSelect(nil, {})
+    wep_item:onTapSelect(nil, { pos = dummy_pos })
     assert.is_not_nil(shown_widget)
 
     -- Test WPA onTapSelect edit button tap
     local edit_dialog
     wpa_item.showWidget = function(self, w) edit_dialog = w end
-    wpa_item:onTapSelect(nil, { pos = wpa_item.btn_edit_nw.dimen })
+    wpa_item.btn_edit_nw.dimen = Geom:new({ x = 50, y = 50, w = 40, h = 40 })
+    wpa_item:onTapSelect(nil, { pos = Geom:new({ x = 55, y = 55 }) })
     assert.is_not_nil(edit_dialog)
 
     -- Test forget button in edit_dialog
@@ -274,20 +278,21 @@ describe("NetworkSetting module", function()
     -- Test open net onAddNetwork
     local add_dialog
     open_item.showWidget = function(self, w) add_dialog = w end
-    open_item:onTapSelect(nil, {})
+    open_item:onTapSelect(nil, { pos = dummy_pos })
     assert.is_not_nil(add_dialog)
 
     -- Test saveAndConnectToNetwork with empty password on WPA
-    local mock_pw_input = {
-      getInputText = function() return "" end,
-    }
+    local InputDialog = require("ui/widget/inputdialog")
+    local mock_pw_input = InputDialog:new({
+      input = "",
+    })
     wep_item.info.flags = "[WPA2-PSK-CCMP][ESS]"
     wep_item:saveAndConnectToNetwork(mock_pw_input)
 
     -- Test saveAndConnectToNetwork with valid password
-    local mock_valid_pw = {
-      getInputText = function() return "new_valid_password" end,
-    }
+    local mock_valid_pw = InputDialog:new({
+      input = "new_valid_password",
+    })
     wpa_item:saveAndConnectToNetwork(mock_valid_pw)
     assert.stub(NetworkMgr.saveNetwork).was_called()
 
@@ -300,9 +305,10 @@ describe("NetworkSetting module", function()
   it("handles onTapClose and onClose", function()
     local Geom = require("ui/geometry")
     local ns = NetworkSetting:new({ network_list = {} })
+    ns.popup.dimen = Geom:new({ x = 50, y = 50, w = 500, h = 600 })
 
     -- Inside popup
-    local inside_ev = { pos = ns.popup.dimen }
+    local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
     assert.is_nil(ns:onTapClose(nil, inside_ev))
 
     -- Outside popup

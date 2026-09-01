@@ -33,6 +33,15 @@ describe("FrontLightWidget UI component", function()
       fl_warmth_max = 10,
       is_fl_on = true,
       device = Device,
+      fl = {
+        white_gain = 1,
+        white_offset = 0,
+        red_gain = 1,
+        red_offset = 0,
+        green_gain = 1,
+        green_offset = 0,
+        exponent = 1,
+      },
     })
     powerd_mock.frontlightIntensity = function() return current_intensity end
     powerd_mock.setIntensity = function(self, val) current_intensity = val end

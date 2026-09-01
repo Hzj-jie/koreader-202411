@@ -8,6 +8,7 @@ describe("DataStorage module", function()
   end)
 
   before_each(function()
+    package.loaded["datastorage"] = nil
     env_mock = {}
     os.getenv = function(var)
       if env_mock[var] ~= nil then
@@ -26,6 +27,10 @@ describe("DataStorage module", function()
   end)
 
   it("should return correct default paths", function()
+    env_mock["KO_MULTIUSER"] = false
+    env_mock["APPIMAGE"] = false
+    env_mock["FLATPAK"] = false
+    env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
     DataStorage = require("datastorage")
 
     assert.are.equal(".", DataStorage:getDataDir())
