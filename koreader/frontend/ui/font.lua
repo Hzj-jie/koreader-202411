@@ -197,22 +197,12 @@ end
 -- local bold_strength_factor = 1/2 -- bold enough
 local bold_strength_factor = 3 / 8 -- as crengine, lighter
 
--- Add some properties to a face object as needed
-local _completeFaceProperties = function(face_obj)
-  if not face_obj.embolden_half_strength then
-    -- Cache this value in case we use bold, to avoid recomputation
-    face_obj.embolden_half_strength =
-      face_obj.ftsize:getEmboldenHalfStrength(bold_strength_factor)
-  end
-end
-
 -- Callback to be used by libkoreader-xtext.so to get Freetype
 -- instantiated fallback fonts when needed for shaping text
 -- (Beware: any error in this code won't be noticed when this
 -- is called from the C module...)
 local _getFallbackFont = function(face_obj, num)
   if not num or num == 0 then -- return the main font
-    _completeFaceProperties(face_obj)
     return face_obj
   end
   if not face_obj.fallbacks then
@@ -244,7 +234,6 @@ local _getFallbackFont = function(face_obj, num)
           if fb_face ~= nil then -- valid font
             cur_num = cur_num + 1
             if cur_num == next_num then
-              _completeFaceProperties(fb_face)
               face_obj.fallbacks[next_num] = fb_face
               return fb_face
             end
@@ -256,7 +245,6 @@ local _getFallbackFont = function(face_obj, num)
       if fb_face ~= nil then -- valid font
         cur_num = cur_num + 1
         if cur_num == next_num then
-          _completeFaceProperties(fb_face)
           face_obj.fallbacks[next_num] = fb_face
           return fb_face
         end
@@ -362,8 +350,10 @@ function Font:getFace(font, size, faceindex)
       ftsize = ftsize,
       hash = hash,
       is_real_bold = is_real_bold,
+      embolden_half_strength = ftsize:getEmboldenHalfStrength(
+        bold_strength_factor
+      ),
     }
-    _completeFaceProperties(face_obj)
     self.faces[hash] = face_obj
 
     -- Callback to be used by libkoreader-xtext.so to get Freetype
