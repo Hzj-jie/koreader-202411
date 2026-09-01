@@ -363,6 +363,7 @@ function Font:getFace(font, size, faceindex)
       hash = hash,
       is_real_bold = is_real_bold,
     }
+    _completeFaceProperties(face_obj)
     self.faces[hash] = face_obj
 
     -- Callback to be used by libkoreader-xtext.so to get Freetype
