@@ -823,6 +823,8 @@ describe("CloudStorage", function()
   describe("Navigation & Path Stack", function()
     it("manages path traversal with onReturn and onHoldReturn", function()
       local cs = CloudStorage:new()
+      cs.openCloudServer = function() return true end
+      cs.init = function() end
       cs.paths = {
         { url = "/folder1" },
         { url = "/folder1/folder2" },

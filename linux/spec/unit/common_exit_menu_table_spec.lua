@@ -67,10 +67,16 @@ describe("common_exit_menu_table", function()
 
     -- Test when canRestart is false
     local can_restart_stub = stub(Device, "canRestart", function() return false end)
+    local LuaDefaults = require("luadefaults")
+    local do_not_exit_stub = stub(LuaDefaults, "isTrue", function(self, key)
+      if key == "DO_NOT_EXIT" then return false end
+      return false
+    end)
     package.loaded["ui/elements/common_exit_menu_table"] = nil
     local exit_no_restart = require("ui/elements/common_exit_menu_table")
     assert.is_not_nil(exit_no_restart.exit_menu)
     can_restart_stub:revert()
+    do_not_exit_stub:revert()
 
     -- Clean up
     UIManager.broadcastEvent = orig_broadcast

@@ -451,19 +451,20 @@ describe("gesturedetector module", function()
     it(
       "detects pan and pan_release when lift occurs after swipe interval",
       function()
+        local time = require("ui/time")
         local gd = createGD()
-        gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = 1000 } })
+        gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = time.s(1) } })
         local g_pan = gd:feedEvent({
-          { slot = 0, id = 1, x = 160, y = 100, timev = 1100 },
+          { slot = 0, id = 1, x = 160, y = 100, timev = time.s(1) + time.ms(100) },
         })
         assert.is_equal(1, #g_pan)
         assert.is_equal("pan", g_pan[1].ges)
         assert.is_equal("east", g_pan[1].direction)
         assert.is_equal(60, g_pan[1].distance)
 
-        -- Lift > 900ms after start (1000 + 1500 = 2500)
+        -- Lift > 900ms after start (1s + 1.5s = 2.5s)
         local g_rel = gd:feedEvent({
-          { slot = 0, id = -1, x = 160, y = 100, timev = 2500 },
+          { slot = 0, id = -1, x = 160, y = 100, timev = time.s(1) + time.ms(1500) },
         })
         assert.is_equal(1, #g_rel)
         assert.is_equal("pan_release", g_rel[1].ges)
@@ -683,6 +684,9 @@ describe("gesturedetector module", function()
       function()
         local gd = GestureDetector:new({
           screen = {
+            scaleByDPI = function(self, v)
+              return v
+            end,
             getWidth = function()
               return 600
             end,

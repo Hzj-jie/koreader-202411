@@ -533,7 +533,7 @@ describe("Menu widget", function()
       local UIManager = require("ui/uimanager")
       local orig_broadcast = UIManager.broadcastEvent
       UIManager.broadcastEvent = function(_, ev)
-        if ev and ev.name == "ShowFileSearch" then
+        if ev and ev.handler == "onShowFileSearch" then
           searched_file = ev.args[1]
         end
       end
@@ -642,7 +642,7 @@ describe("Menu widget", function()
       local item_widget = m.item_group[1]
       item_widget[1].dimen = Geom:new({ x = 0, y = 0, w = 100, h = 30 })
 
-      item_widget:onSelect(nil, { pos = Geom:new({ x = 10, y = 10 }) })
+      item_widget:onTapSelect(nil, { pos = Geom:new({ x = 10, y = 10 }) })
       assert.truthy(selected_entry)
       assert.are.equal(42, selected_entry.value)
 
@@ -667,7 +667,7 @@ describe("Menu widget", function()
       }
 
       m:switchItemTable("New Title", new_table, 1)
-      assert.are.equal("New Title", m.title)
+      assert.are.equal("New Title", m.title_bar.title_widget.text)
       assert.are.equal(3, #m.item_table)
 
       m:updateItems(2)

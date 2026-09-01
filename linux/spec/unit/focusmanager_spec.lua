@@ -343,13 +343,13 @@ describe("FocusManager module", function()
     -- onPress sends "tap"
     assert.is_true(focusmanager:onPress())
     assert.is_not_nil(user_input_event)
-    assert.are.equal("tap", user_input_event.args.ges)
-    assert.are.equal(60, user_input_event.args.pos.x)
-    assert.are.equal(40, user_input_event.args.pos.y)
+    assert.are.equal("tap", user_input_event.args[1].ges)
+    assert.are.equal(60, user_input_event.args[1].pos.x)
+    assert.are.equal(40, user_input_event.args[1].pos.y)
 
     -- onHold sends "hold"
     assert.is_true(focusmanager:onHold())
-    assert.are.equal("hold", user_input_event.args.ges)
+    assert.are.equal("hold", user_input_event.args[1].ges)
 
     -- layout nil returns false
     focusmanager.layout = nil
