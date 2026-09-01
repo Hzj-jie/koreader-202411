@@ -1441,7 +1441,9 @@ end
 function ReaderRolling:onSetStatusLine(status_line)
   -- Enable or disable crengine header status line
   -- Note that for crengine, 0=header enabled, 1=header disabled
-  self.ui.document:setStatusLineProp(status_line)
+  if self.ui.document and self.ui.document.setStatusLineProp then
+    self.ui.document:setStatusLineProp(status_line)
+  end
   self.cre_top_bar_enabled = status_line == 0
   -- (We used to toggle the footer when toggling the top status bar,
   -- but people seem to like having them both, and it feels more

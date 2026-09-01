@@ -64,6 +64,9 @@ function StreamMessageQueue:handleZframe(frame)
 end
 
 function StreamMessageQueue:waitEvent()
+  if not self.poller then
+    return
+  end
   -- Successive zframes may come in batches of tens or hundreds in some cases.
   -- Since we buffer each frame's data in a Lua string,
   -- and then let the caller concatenate those,

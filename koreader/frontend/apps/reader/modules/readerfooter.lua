@@ -2390,7 +2390,7 @@ ReaderFooter.onNotCharging = ReaderFooter.onUpdateFooter
 
 function ReaderFooter:onPageUpdate(pageno)
   local toc_markers_update = false
-  if self.ui.document:hasHiddenFlows() then
+  if self.ui.document and self.ui.document.hasHiddenFlows and self.ui.document:hasHiddenFlows() then
     local flow = self.pageno and self.ui.document:getPageFlow(self.pageno)
     local new_flow = pageno and self.ui.document:getPageFlow(pageno)
     if pageno and new_flow ~= flow then
@@ -2402,7 +2402,9 @@ function ReaderFooter:onPageUpdate(pageno)
   if not self.initial_pageno then
     self.initial_pageno = pageno
   end
-  self.pages = self.ui.document:getPageCount()
+  if self.ui.document and self.ui.document.getPageCount then
+    self.pages = self.ui.document:getPageCount()
+  end
   if toc_markers_update then
     self:setTocMarkers(true)
   end
@@ -2556,13 +2558,13 @@ function ReaderFooter:onToggleChapterProgressBar()
 end
 
 function ReaderFooter:getBookProgress()
-  if self.ui.document:hasHiddenFlows() then
+  if self.ui.document and self.ui.document.hasHiddenFlows and self.ui.document:hasHiddenFlows() then
     local flow = self.ui.document:getPageFlow(self.pageno)
     local page = self.ui.document:getPageNumberInFlow(self.pageno)
     local pages = self.ui.document:getTotalPagesInFlow(flow)
     return page / pages
   end
-  return self.pageno / self.pages
+  return (self.pageno or 0) / (self.pages or 1)
 end
 
 function ReaderFooter:getChapterProgress(get_percentage, pageno)

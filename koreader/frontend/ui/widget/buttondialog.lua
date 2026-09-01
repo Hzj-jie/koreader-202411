@@ -245,7 +245,7 @@ function ButtonDialog:init()
 end
 
 function ButtonDialog:getContentSize()
-  return self.movable.dimen
+  return self.movable.dimen or self.movable:getSize()
 end
 
 function ButtonDialog:getButtonById(id)

@@ -340,7 +340,7 @@ function RenderText:getGlyphByIndex(face, glyphindex, bold, bolder)
   end
   local embolden_strength
   if bold or bolder then
-    embolden_strength = face.embolden_half_strength
+    embolden_strength = face.embolden_half_strength or 1
     if bolder then
       -- Even if not bold, get it bolder than the strength we'd use for bold
       embolden_strength = embolden_strength * 1.5

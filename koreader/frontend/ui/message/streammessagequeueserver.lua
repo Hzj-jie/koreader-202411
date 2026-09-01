@@ -51,6 +51,9 @@ function StreamMessageQueueServer:handleZframe(frame)
 end
 
 function StreamMessageQueueServer:waitEvent()
+  if not self.poller then
+    return
+  end
   local request, id
   while czmq.zpoller_wait(self.poller, 0) ~= nil do
     -- See about ZMQ_STREAM and these 2 frames at http://hintjens.com/blog:42

@@ -256,7 +256,7 @@ function ButtonTable:setupGridScrollBehaviour()
   )
   table.insert(
     self.container._offsets,
-    { x = self.width, y = self.container._size.h + self.sep_width }
+    { x = self.width, y = self.container:getSize().h + self.sep_width }
   )
 end
 

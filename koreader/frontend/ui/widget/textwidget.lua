@@ -191,6 +191,14 @@ function TextWidget:updateSize()
         true,
         self.bold
       )
+    else
+      self._text_to_draw = RenderText:getSubTextByWidth(
+        self._text_to_draw,
+        self.face,
+        self.max_width,
+        true,
+        self.bold
+      )
     end
     -- Get the adjusted width when limiting to max_width (it might be
     -- smaller than max_width when dropping the truncated glyph).

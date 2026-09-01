@@ -618,7 +618,7 @@ function S.waitForEvent(sec, usec)
 end
 
 function S.hasClipboardText()
-  return SDL.SDL_HasClipboardText()
+  return SDL.SDL_HasClipboardText() == SDL.SDL_TRUE
 end
 
 function S.getClipboardText()
