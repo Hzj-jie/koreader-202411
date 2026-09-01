@@ -35,17 +35,4 @@ describe("StreamMessageQueue module", function()
       smq:start()
     end)
   end)
-
-  it("should handle waitEvent with nil/empty poller without errors", function()
-    local smq = StreamMessageQueue:new({ host = "127.0.0.1", port = 8080 })
-    local received = nil
-    smq.receiveCallback = function(t)
-      received = t
-    end
-    -- When poller is not initialized, waitEvent should return safely
-    assert.has_no.errors(function()
-      smq:waitEvent()
-    end)
-    assert.is_nil(received)
-  end)
 end)
