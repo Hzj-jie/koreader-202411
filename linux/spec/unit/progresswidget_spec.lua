@@ -291,7 +291,6 @@ describe("ProgressWidget", function()
         height = 20,
         margin_h = 3,
       })
-      pw:dimen()
       pw.dimen = Geom:new({ x = 10, y = 10, w = 106, h = 20 })
 
       -- Inner width = 106 - 2*3 = 100

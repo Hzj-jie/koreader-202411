@@ -21,7 +21,7 @@ describe("IconWidget", function()
     })
 
     assert.truthy(icon.file)
-    assert.truthy(icon.file:find("icon-not-found"))
+    assert.truthy(icon.file:find("icon-not-found", 1, true))
   end)
 
   it("should pass through existing image or file attribute", function()

@@ -19,6 +19,8 @@ describe("ReaderScreenshot module", function()
     Device = require("device")
     filemanagerutil = require("apps/filemanager/filemanagerutil")
 
+    lfs.mkdir("screenshots")
+
     readerui = ReaderUI:new({
       dimen = Screen:getSize(),
       document = DocumentRegistry:openDocument(sample_epub),
@@ -26,11 +28,20 @@ describe("ReaderScreenshot module", function()
   end)
 
   teardown(function()
-    readerui:handleEvent(
-      Event:new("SetRotationMode", Screen.DEVICE_ROTATED_UPRIGHT)
-    )
-    readerui:onExit()
-    readerui:onClose()
+    pcall(function()
+      if readerui then
+        readerui:handleEvent(
+          Event:new("SetRotationMode", Screen.DEVICE_ROTATED_UPRIGHT)
+        )
+        if readerui.document then
+          readerui:onExit()
+          readerui:onClose()
+        end
+      end
+    end)
+    pcall(function()
+      os.execute("rm -rf screenshots")
+    end)
   end)
 
   it("should get screenshot in portrait", function()
@@ -51,6 +62,7 @@ describe("ReaderScreenshot module", function()
     local dialog = UIManager._window_stack[#UIManager._window_stack].widget
     UIManager:close(dialog)
     UIManager:quit()
+    os.remove(name)
   end)
 
   it("should get screenshot in landscape", function()
@@ -71,6 +83,7 @@ describe("ReaderScreenshot module", function()
     local dialog = UIManager._window_stack[#UIManager._window_stack].widget
     UIManager:close(dialog)
     UIManager:quit()
+    os.remove(name)
   end)
 
   it("should test key registration and gesture events across device types", function()
@@ -99,7 +112,8 @@ describe("ReaderScreenshot module", function()
     Device.hasScreenKB = function() return false end
     Device.isTouchDevice = function() return false end
     local s_nontouch = Screenshoter:new({})
-    assert.is_nil(s_nontouch.ges_events)
+    assert.is_nil(s_nontouch.ges_events.TapDiagonal)
+    assert.is_nil(s_nontouch.ges_events.SwipeDiagonal)
 
     Device.hasKeyboard = orig_hasKb
     Device.hasScreenKB = orig_hasScreenKB

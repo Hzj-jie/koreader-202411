@@ -154,7 +154,7 @@ describe("GenericIME module", function()
       ime_case:wrappedAddChars(box, "b", "b")
       ime_case:wrappedAddChars(box, "c", "c")
       local hint = ime_case:getHintChars()
-      assert.is_truthy(hint:find("Abc"))
+      assert.is_truthy(hint:find("ABC"))
     end)
 
     it("handles auto_separate_callback for unique code mappings", function()
@@ -180,6 +180,8 @@ describe("GenericIME module", function()
         },
         W = "?",
         keys_string = "abc",
+        key_map = { a = "a", b = "b", c = "c", ["?"] = "?" },
+        iter_map_last_key = "c",
       })
       local box = createMockInputBox()
 

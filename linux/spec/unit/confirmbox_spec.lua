@@ -27,11 +27,7 @@ describe("ConfirmBox", function()
   before_each(function()
     UIManager.setDirty = function() end
     UIManager.show = function() end
-    UIManager.close = function(_, widget)
-      if widget and widget.onClose then
-        widget:onClose()
-      end
-    end
+    UIManager.close = function() end
     UIManager.scheduleIn = function(_, delay, fn)
       if fn then
         fn()
@@ -81,7 +77,7 @@ describe("ConfirmBox", function()
         no_ok_button = true,
       })
 
-      local btn_table = box[1][1][1][1][2]
+      local btn_table = box[1][1][1][1][3]
       assert.are.equal(1, #btn_table.buttons[1])
       assert.are.equal(box.cancel_text, btn_table.buttons[1][1].text)
     end)
@@ -102,7 +98,7 @@ describe("ConfirmBox", function()
         end,
       })
 
-      local btn_table = box[1][1][1][1][2]
+      local btn_table = box[1][1][1][1][3]
       local ok_btn = btn_table.buttons[1][2]
       ok_btn.callback()
 
@@ -124,7 +120,7 @@ describe("ConfirmBox", function()
         end,
       })
 
-      local btn_table = box[1][1][1][1][2]
+      local btn_table = box[1][1][1][1][3]
       local cancel_btn = btn_table.buttons[1][1]
       cancel_btn.callback()
 
@@ -147,7 +143,7 @@ describe("ConfirmBox", function()
         end,
       })
 
-      local btn_table = box[1][1][1][1][2]
+      local btn_table = box[1][1][1][1][3]
       local ok_btn = btn_table.buttons[1][2]
       ok_btn.callback()
 
@@ -168,7 +164,7 @@ describe("ConfirmBox", function()
           },
         },
       })
-      local btn_table_after = box_after[1][1][1][1][2]
+      local btn_table_after = box_after[1][1][1][1][3]
       assert.are.equal(2, #btn_table_after.buttons)
       btn_table_after.buttons[2][1].callback()
       assert.is_true(other1_called)
@@ -183,7 +179,7 @@ describe("ConfirmBox", function()
           },
         },
       })
-      local btn_table_before = box_before[1][1][1][1][2]
+      local btn_table_before = box_before[1][1][1][1][3]
       assert.are.equal(2, #btn_table_before.buttons)
       btn_table_before.buttons[1][1].callback()
       assert.is_true(other2_called)

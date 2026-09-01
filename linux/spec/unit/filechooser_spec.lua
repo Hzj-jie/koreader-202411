@@ -265,16 +265,16 @@ describe("FileChooser module", function()
     assert.is_true(closed)
 
     -- onMenuSelect for folder
-    assert.is_true(fc:onMenuSelect({ is_file = false, path = "/tmp/sub", is_go_up = true }))
+    assert.is_true(fc:onMenuSelect({ is_file = false, path = "/tmp", is_go_up = true }))
 
     -- onMenuHold
     assert.is_true(fc:onMenuHold({ is_file = true, path = "/tmp/a.epub" }))
 
     -- selectAllFilesInFolder
     fc.item_table = {
-      { is_file = true, path = "/tmp/1.epub" },
-      { is_file = true, path = "/tmp/2.epub" },
-      { is_file = false, path = "/tmp/sub" },
+      { text = "1.epub", is_file = true, path = "/tmp/1.epub" },
+      { text = "2.epub", is_file = true, path = "/tmp/2.epub" },
+      { text = "sub", is_file = false, path = "/tmp/sub" },
     }
     fc:selectAllFilesInFolder(true)
     assert.is_true(fc.filemanager.selected_files["/tmp/1.epub"])

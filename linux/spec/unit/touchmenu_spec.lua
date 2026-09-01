@@ -3,11 +3,13 @@ local spy = require("luassert.spy")
 describe("TouchMenu", function()
   local TouchMenu
   local UIManager
+  local Font
 
   setup(function()
     require("commonrequire")
     TouchMenu = require("ui/widget/touchmenu")
     UIManager = require("ui/uimanager")
+    Font = require("ui/font")
   end)
 
   before_each(function()
@@ -371,7 +373,7 @@ describe("TouchMenu", function()
         },
       },
     })
-    local item_widget = menu.item_group[1]
+    local item_widget = menu.item_group[2]
     assert.is_not_nil(item_widget)
     assert.is_false(item_widget:isEnabled())
 

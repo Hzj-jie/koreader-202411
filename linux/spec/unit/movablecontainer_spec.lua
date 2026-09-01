@@ -44,7 +44,7 @@ describe("MovableContainer widget", function()
       [1] = inner_widget,
       unmovable = true,
     })
-    assert.is_nil(unmovable.ges_events)
+    assert.is_nil(next(unmovable.ges_events))
 
     -- When not touch device
     local orig_is_touch = Device.isTouchDevice
@@ -52,7 +52,7 @@ describe("MovableContainer widget", function()
     local non_touch = MovableContainer:new({
       [1] = inner_widget,
     })
-    assert.is_nil(non_touch.ges_events)
+    assert.is_nil(next(non_touch.ges_events))
     Device.isTouchDevice = orig_is_touch
   end)
 

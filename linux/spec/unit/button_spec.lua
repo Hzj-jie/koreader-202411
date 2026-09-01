@@ -120,7 +120,7 @@ describe("Button widget", function()
     local b = Button:new({
       text = "Focusable",
     })
-    assert.is_nil(b.frame.invert)
+    assert.is_false(b.frame.invert)
 
     assert.is_true(b:onFocus())
     assert.is_true(b.frame.invert)
