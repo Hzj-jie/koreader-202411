@@ -277,6 +277,15 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
 
   describe("Clipboard & State Management", function()
     it("should get, set, and query clipboard text", function()
+      local clip_storage = ""
+      local orig_has = Input.hasClipboardText
+      local orig_get = Input.getClipboardText
+      local orig_set = Input.setClipboardText
+
+      Input.hasClipboardText = function() return clip_storage ~= "" end
+      Input.getClipboardText = function() return clip_storage end
+      Input.setClipboardText = function(t) clip_storage = t or "" end
+
       Input.setClipboardText("KORTestClip")
       assert.is_true(Input.hasClipboardText())
       assert.is_equal("KORTestClip", Input.getClipboardText())
@@ -284,12 +293,19 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       Input.setClipboardText("")
       assert.is_false(Input.hasClipboardText())
       assert.is_equal("", Input.getClipboardText())
+
+      Input.hasClipboardText = orig_has
+      Input.getClipboardText = orig_get
+      Input.setClipboardText = orig_set
     end)
 
     it("should reset state and disable rotation map", function()
       assert.has_no.errors(function()
-        Input:resetState()
-        Input:disableRotationMap()
+        local custom_input = Input:new({
+          device = require("device"),
+        })
+        custom_input:resetState()
+        custom_input:disableRotationMap()
       end)
     end)
   end)
@@ -369,6 +385,9 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       local custom_input = Input:new({
         device = require("device"),
       })
+      custom_input.gesture_detector = {
+        getClockSource = function() return C.CLOCK_MONOTONIC end,
+      }
       custom_input:clearTimeouts()
       assert.is_equal(0, #custom_input.timer_callbacks)
 
@@ -376,9 +395,9 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       local cb2 = function() end
       local cb3 = function() end
 
-      custom_input:setTimeout(0, "tap", cb1, 1000, 0.5)
-      custom_input:setTimeout(0, "double_tap", cb2, 1000, 0.2)
-      custom_input:setTimeout(1, "tap", cb3, 1000, 0.8)
+      custom_input:setTimeout(0, "tap", cb1, 1000, 500)
+      custom_input:setTimeout(0, "double_tap", cb2, 1000, 200)
+      custom_input:setTimeout(1, "tap", cb3, 1000, 800)
 
       assert.is_equal(3, #custom_input.timer_callbacks)
       assert.is_equal("double_tap", custom_input.timer_callbacks[1].gesture)
@@ -407,9 +426,12 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       local Screen = require("device").screen
       stub(Screen, "getRotationMode").returns(fb.DEVICE_ROTATED_CLOCKWISE)
 
-      Input.event_map[103] = "Up"
+      local custom_input = Input:new({
+        device = require("device"),
+      })
+      custom_input.event_map[103] = "Up"
       local res =
-        Input:handleKeyBoardEv({ type = C.EV_KEY, code = 103, value = 1 })
+        custom_input:handleKeyBoardEv({ type = C.EV_KEY, code = 103, value = 1 })
       assert.is_table(res)
       assert.is_equal("Right", res.args[1].key)
 
@@ -464,7 +486,7 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
         code = C.BTN_TOOL_PEN,
         value = 0,
       })
-      assert.is_equal(0, custom_input:getCurrentMtSlotData("tool"))
+      assert.is_equal(0, custom_input.ev_slots[custom_input.pen_slot].tool)
     end)
 
     it("handles snow protocol contact lift", function()

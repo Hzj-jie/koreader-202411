@@ -4,6 +4,7 @@ describe("DictQuickLookup", function()
   local Event
   local Geom
   local util
+  local Device
 
   local orig_setDirty
   local orig_show
@@ -27,6 +28,7 @@ describe("DictQuickLookup", function()
     Event = require("ui/event")
     Geom = require("ui/geometry")
     util = require("util")
+    Device = require("device")
 
     orig_setDirty = UIManager.setDirty
     orig_show = UIManager.show
@@ -43,15 +45,12 @@ describe("DictQuickLookup", function()
     -- Safe default stubs for UI management during unit tests
     UIManager.setDirty = function() end
     UIManager.show = function() end
-    UIManager.close = function(_, widget)
-      if widget and type(widget) == "table" and widget.onClose then
-        widget:onClose()
-      end
-    end
+    UIManager.close = function() end
     UIManager.broadcastEvent = function() end
-    UIManager.scheduleIn = function(_, fn)
-      if fn then
-        fn()
+    UIManager.scheduleIn = function(_, delay_or_fn, fn, ...)
+      local callback = type(delay_or_fn) == "function" and delay_or_fn or fn
+      if callback then
+        callback(...)
       end
     end
     UIManager.scheduleRefresh = function() end
@@ -718,8 +717,8 @@ describe("DictQuickLookup", function()
 
       local old_save_in_book = G_reader_settings:read("wikipedia_save_in_book_dir")
       local old_last_file = G_reader_settings:read("lastfile")
-      G_reader_settings:saveSetting("wikipedia_save_in_book_dir", true)
-      G_reader_settings:saveSetting("lastfile", "/tmp/books/test_book.epub")
+      G_reader_settings:save("wikipedia_save_in_book_dir", true)
+      G_reader_settings:save("lastfile", "/tmp/books/test_book.epub")
 
       local lookup = DictQuickLookup:new({
         word = "WikiTopic",
@@ -742,6 +741,11 @@ describe("DictQuickLookup", function()
 
       local epub_created_path = nil
       local epub_shown_path = nil
+      local shown_confirm = nil
+
+      UIManager.show = function(_, w)
+        shown_confirm = w
+      end
 
       Wikipedia.createEpubWithUI = function(_, path, word, lang, callback)
         epub_created_path = path
@@ -753,10 +757,13 @@ describe("DictQuickLookup", function()
         epub_shown_path = path
       end
 
-      -- Trigger save button callback
+      -- Trigger save button callback (shows initial ConfirmBox)
       save_btn:callback()
+      assert.truthy(shown_confirm)
+      assert.truthy(shown_confirm.ok_callback)
 
-      -- Check if confirm box was created and triggered
+      -- Confirm saving -> triggers Wikipedia:createEpubWithUI
+      shown_confirm.ok_callback()
       assert.truthy(epub_created_path)
 
       -- Test failed branch of createEpubWithUI
@@ -764,12 +771,14 @@ describe("DictQuickLookup", function()
         callback(false)
       end
       save_btn:callback()
+      shown_confirm.ok_callback()
 
       -- Restore mocks and settings
       Wikipedia.createEpubWithUI = orig_createEpub
       ReaderUI.showReader = orig_showReader
-      G_reader_settings:saveSetting("wikipedia_save_in_book_dir", old_save_in_book)
-      G_reader_settings:saveSetting("lastfile", old_last_file)
+      UIManager.show = function() end
+      G_reader_settings:save("wikipedia_save_in_book_dir", old_save_in_book)
+      G_reader_settings:save("lastfile", old_last_file)
     end)
 
     it("handles search and rotate buttons in wiki and non-wiki modes", function()
@@ -794,7 +803,7 @@ describe("DictQuickLookup", function()
       -- Non-wiki mode search callback broadcasts HighlightSearch
       local highlight_searched = false
       UIManager.broadcastEvent = function(_, ev)
-        if ev and ev.name == "HighlightSearch" then
+        if ev and ev.handler == "onHighlightSearch" then
           highlight_searched = true
         end
       end
@@ -914,16 +923,19 @@ describe("DictQuickLookup", function()
       local menu1 = next(lookup.menu_opened)
       assert.truthy(menu1)
       assert.truthy(menu1.buttons)
-      -- Execute word callback and hold callback
-      menu1.buttons[1][1].callback()
-      assert.are.equal(1, lookup.dict_index)
       local hold_broadcast = nil
       UIManager.broadcastEvent = function(_, ev)
         hold_broadcast = ev
       end
       menu1.buttons[1][1].hold_callback()
       assert.truthy(hold_broadcast)
-      -- Execute dict callback
+      -- Execute word callback (closes menu1)
+      menu1.buttons[1][1].callback()
+      assert.are.equal(1, lookup.dict_index)
+
+      -- Re-open menu1 for dict callback
+      lookup:onShowResultsMenu()
+      menu1 = next(lookup.menu_opened)
       menu1.buttons[2][2].callback()
       assert.are.equal(2, lookup.dict_index)
 
@@ -932,10 +944,12 @@ describe("DictQuickLookup", function()
       local alt_menu = next(lookup.menu_opened)
       assert.truthy(alt_menu)
       -- Dict 1 has 2 results, Dict 2 has 1 result
-      alt_menu.buttons[1][1].callback() -- Dict 1 label
+      alt_menu.buttons[1][1].callback() -- Dict 1 label (closes alt_menu)
       assert.are.equal(1, lookup.dict_index)
 
-      -- Right button for Dict 1 (multi-result -> opens subdialog)
+      -- Re-open for right button of Dict 1 (multi-result -> opens subdialog)
+      lookup:showResultsAltMenu()
+      alt_menu = next(lookup.menu_opened)
       alt_menu.buttons[1][2].callback()
       local sub_menu = nil
       for m in pairs(lookup.menu_opened) do
@@ -945,11 +959,19 @@ describe("DictQuickLookup", function()
         end
       end
       assert.truthy(sub_menu)
-      -- Submenu callbacks
+      -- Submenu callbacks (closes sub_menu)
       sub_menu.buttons[2][1].callback()
       assert.are.equal(2, lookup.dict_index)
 
-      -- Right button for Dict 2 (single result -> direct switch if not truncated)
+      -- Close any leftover alt_menu if still open
+      for m in pairs(lookup.menu_opened) do
+        lookup.menu_opened[m] = nil
+        UIManager:close(m)
+      end
+
+      -- Re-open for right button of Dict 2 (single result -> direct switch if not truncated)
+      lookup:showResultsAltMenu()
+      alt_menu = next(lookup.menu_opened)
       alt_menu.buttons[2][2].callback()
       assert.are.equal(3, lookup.dict_index)
 
@@ -963,9 +985,9 @@ describe("DictQuickLookup", function()
       wiki_lookup:showWikiResultsMenu()
       local wiki_menu = next(wiki_lookup.menu_opened)
       assert.truthy(wiki_menu)
+      wiki_menu.buttons[1][1].hold_callback()
       wiki_menu.buttons[1][1].callback()
       assert.are.equal(1, wiki_lookup.dict_index)
-      wiki_menu.buttons[1][1].hold_callback()
     end)
 
     it("handles onLookupInputWord and dialog actions", function()
@@ -973,9 +995,6 @@ describe("DictQuickLookup", function()
         word = "test",
         results = createDummyResults(),
       })
-
-      lookup:onLookupInputWord("hint")
-      assert.truthy(lookup.input_dialog)
 
       -- Mock translation and broadcast
       local Translator = require("ui/translator")
@@ -990,26 +1009,37 @@ describe("DictQuickLookup", function()
         broadcast_ev = ev
       end
 
+      -- Translate button (row 1, button 1)
+      lookup:onLookupInputWord("hint")
+      assert.truthy(lookup.input_dialog)
       lookup.input_dialog.getInputText = function()
         return "searched_text"
       end
-
-      -- Translate button (row 1, button 1)
       local btn_translate = lookup.input_dialog.buttons[1][1]
       btn_translate.callback()
       assert.are.equal("searched_text", trans_text)
 
       -- Search Wikipedia button (row 1, button 2)
+      lookup:onLookupInputWord("hint")
+      lookup.input_dialog.getInputText = function()
+        return "searched_text"
+      end
       local btn_wiki = lookup.input_dialog.buttons[1][2]
       btn_wiki.callback()
       assert.truthy(broadcast_ev)
 
       -- Search dictionary button (row 2, button 2)
+      broadcast_ev = nil
+      lookup:onLookupInputWord("hint")
+      lookup.input_dialog.getInputText = function()
+        return "searched_text"
+      end
       local btn_dict = lookup.input_dialog.buttons[2][2]
       btn_dict.callback()
       assert.truthy(broadcast_ev)
 
       -- Cancel button (row 2, button 1)
+      lookup:onLookupInputWord("hint")
       local btn_cancel = lookup.input_dialog.buttons[2][1]
       btn_cancel.callback()
 
@@ -1022,6 +1052,7 @@ describe("DictQuickLookup", function()
         broadcast_ev = ev
       end
 
+      local time = require("ui/time")
       local lookup = DictQuickLookup:new({
         word = "text_to_hold",
         results = createDummyResults(),
@@ -1031,15 +1062,15 @@ describe("DictQuickLookup", function()
       local hold_release_args = lookup.ges_events.HoldReleaseText.args
 
       -- Short hold in dict mode -> LookupWord
-      hold_release_args("selected_word", 1)
+      hold_release_args("selected_word", time.s(1))
       assert.truthy(broadcast_ev)
-      assert.are.equal("LookupWord", broadcast_ev.name)
+      assert.are.equal("onLookupWord", broadcast_ev.handler)
 
       -- Long hold (>= 3s) in dict mode -> switches domain to Wikipedia
       broadcast_ev = nil
-      hold_release_args("selected_word", 3)
+      hold_release_args("selected_word", time.s(3))
       assert.truthy(broadcast_ev)
-      assert.are.equal("LookupWikipedia", broadcast_ev.name)
+      assert.are.equal("onLookupWikipedia", broadcast_ev.handler)
     end)
 
     it("handles preferred dictionaries with index > 20", function()

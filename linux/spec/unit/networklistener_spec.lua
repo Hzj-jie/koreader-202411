@@ -215,8 +215,11 @@ describe("NetworkListener module", function()
       stub(Device, "retrieveNetworkInfo").returns({ "IP: 192.168.1.50" })
       stub(NetworkMgr, "queryOnlineState")
       stub(NetworkMgr, "isOnline").returns(true)
-      stub(UIManager, "runWith").invokes(function(fn)
-        fn()
+      stub(UIManager, "runWith").invokes(function(a, b)
+        local callback = type(a) == "function" and a or b
+        if callback then
+          callback()
+        end
       end)
 
       listener:onShowNetworkInfo()

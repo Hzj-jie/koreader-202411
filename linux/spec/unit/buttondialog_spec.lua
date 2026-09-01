@@ -48,20 +48,22 @@ describe("ButtonDialog", function()
         end,
       },
     }
+    UIManager = require("ui/uimanager")
     package.loaded["device"] = mock_device
-
-    UIManager = {
-      setDirty = spy.new(function() end),
-    }
-    package.loaded["ui/uimanager"] = UIManager
 
     package.loaded["ui/widget/buttondialog"] = nil
     ButtonDialog = require("ui/widget/buttondialog")
   end)
 
+  local orig_close = UIManager and UIManager.close
+  after_each(function()
+    if UIManager and orig_close then
+      UIManager.close = orig_close
+    end
+  end)
+
   teardown(function()
     package.loaded["device"] = nil
-    package.loaded["ui/uimanager"] = nil
   end)
 
   it(
@@ -113,6 +115,7 @@ describe("ButtonDialog", function()
 
       assert.are.equal("Info Title", dialog.title)
       assert.truthy(dialog:getButtonById("btn1"))
+      dialog:getSize()
       assert.truthy(dialog:getContentSize())
     end)
 

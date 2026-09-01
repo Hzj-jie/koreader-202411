@@ -113,8 +113,8 @@ describe("CreOptions", function()
     optionsutil.showValues = orig_show
   end)
 
-  it("should handle font_weight_class help_text_func", function()
-    local opt = findOption("font_weight_class")
+  it("should handle font_base_weight help_text_func", function()
+    local opt = findOption("font_base_weight")
     assert.truthy(opt)
 
     local orig_init = credocument.engineInit
