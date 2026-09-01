@@ -1,9 +1,10 @@
 describe("ScrollHtmlWidget module", function()
-  local ScrollHtmlWidget, Screen
+  local ScrollHtmlWidget, Screen, UIManager
   setup(function()
     require("commonrequire")
     Screen = require("device").screen
     ScrollHtmlWidget = require("ui/widget/scrollhtmlwidget")
+    UIManager = require("ui/uimanager")
   end)
 
   teardown(function()
@@ -57,8 +58,12 @@ describe("ScrollHtmlWidget module", function()
 
   describe("Scrolling and Gestures", function()
     local widget
+    local orig_setDirty
 
     before_each(function()
+      orig_setDirty = UIManager.setDirty
+      UIManager.setDirty = function() end
+
       widget = ScrollHtmlWidget:new({
         html_body = "<p>Line 1</p><p>Line 2</p><p>Line 3</p><p>Line 4</p><p>Line 5</p>",
         width = 300,
@@ -76,9 +81,15 @@ describe("ScrollHtmlWidget module", function()
       widget.v_scroll_bar.enable = true
     end)
 
+    after_each(function()
+      UIManager.setDirty = orig_setDirty
+    end)
+
     it("gets single page height and resets scroll", function()
+      widget.htmlbox_widget.page_count = 1
       assert.is_number(widget:getSinglePageHeight())
 
+      widget.htmlbox_widget.page_count = 5
       widget.htmlbox_widget.page_number = 3
       widget:resetScroll()
       assert.is_equal(1, widget.htmlbox_widget.page_number)

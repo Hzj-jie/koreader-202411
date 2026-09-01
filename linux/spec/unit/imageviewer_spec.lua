@@ -151,13 +151,17 @@ describe("ImageViewer", function()
     viewer:onSwipe(nil, { direction = "southeast", distance = 20, pos = { x = 200, y = 200 } })
     viewer:onSwipe(nil, { direction = "southwest", distance = 20, pos = { x = 200, y = 200 } })
     -- Tap gestures
-    viewer:onTap(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onTap(nil, { pos = Geom:new({ x = 300, y = 400 }) })
 
-    -- Rotate, Invert, ToggleScale, DoubleTap
-    viewer:onRotate()
-    viewer:onInvert()
-    viewer:onToggleScale()
-    viewer:onDoubleTap(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+    -- Rotate, Scale via button callbacks
+    local rotate_btn = viewer.button_table:getButtonById("rotate")
+    if rotate_btn and rotate_btn.callback then
+      rotate_btn.callback()
+    end
+    local scale_btn = viewer.button_table:getButtonById("scale_to_fit")
+    if scale_btn and scale_btn.callback then
+      scale_btn.callback()
+    end
 
     -- Spread & Pinch gestures across all directions
     viewer:onSpread(nil, { direction = "vertical", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })

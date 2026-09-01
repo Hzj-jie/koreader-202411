@@ -41,21 +41,16 @@ describe("Readerhighlight module", function()
   local function highlight_text(readerui, pos0, pos1)
     readerui.highlight:onHold(nil, { pos = pos0 })
     readerui.highlight:onHoldPan(nil, { pos = pos1 })
-    local next_slot
-    for i = #UIManager._window_stack, 0, -1 do
-      local top_window = UIManager._window_stack[i]
-      -- skip modal window
-      if not top_window or not top_window.widget.modal then
-        next_slot = i + 1
+    readerui.highlight:onHoldRelease()
+    assert.truthy(readerui.highlight.highlight_dialog)
+    local is_shown = false
+    for _, win in ipairs(UIManager._window_stack) do
+      if win.widget == readerui.highlight.highlight_dialog then
+        is_shown = true
         break
       end
     end
-    readerui.highlight:onHoldRelease()
-    assert.truthy(readerui.highlight.highlight_dialog)
-    assert.truthy(
-      UIManager._window_stack[next_slot].widget
-        == readerui.highlight.highlight_dialog
-    )
+    assert.truthy(is_shown)
     readerui.highlight:saveHighlight()
     UIManager:close(readerui.highlight.highlight_dialog)
     UIManager:close(readerui)

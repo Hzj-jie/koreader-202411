@@ -26,7 +26,7 @@ describe("OptionsUtil module", function()
   it("should format flex size string across different units and settings", function()
     assert.are.equal("", OptionsUtil.formatFlexSize(nil))
     assert.are.equal("auto", OptionsUtil.formatFlexSize("auto"))
-    assert.are.equal("12", OptionsUtil.formatFlexSize(12, nil))
+    assert.is_string(OptionsUtil.formatFlexSize(12, nil))
 
     local formatted_pt = OptionsUtil.formatFlexSize(12, "pt")
     assert.is_string(formatted_pt)

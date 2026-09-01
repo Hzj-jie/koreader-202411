@@ -682,6 +682,12 @@ describe("BookMapWidget widget", function()
             },
           },
         },
+        bookmarked_pages = {},
+        previous_locations = {},
+        extra_symbols_pages = {},
+        hidden_flows = {},
+        read_pages = {},
+        page_texts = {},
       })
 
       assert.is_table(row)

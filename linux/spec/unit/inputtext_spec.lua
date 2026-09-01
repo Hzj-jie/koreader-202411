@@ -550,18 +550,16 @@ describe("InputText widget module", function()
       Device.input.setClipboardText = orig_set_cb
     end)
 
-    it("should handle onPanTextBox when scroll_by_pan is true and test strike_callback", function()
+    it("should handle onSwipeTextBox and test strike_callback", function()
       local struck = false
-      local scrolled = false
+      local refreshed = false
       local input = require("ui/widget/inputtext"):new({
         text = "line1\nline2\nline3\nline4\nline5",
-        scroll = true,
-        scroll_by_pan = true,
         strike_callback = function()
           struck = true
         end,
-        scroll_callback = function(low, high)
-          scrolled = true
+        refresh_callback = function()
+          refreshed = true
         end,
       })
 
@@ -569,11 +567,12 @@ describe("InputText widget module", function()
       assert.is_true(struck)
 
       local ges = {
-        direction = "north",
+        direction = "northeast",
         distance = 30,
         pos = { x = 50, y = 50 },
       }
-      assert.is_true(input:onPanTextBox(nil, ges))
+      assert.is_false(input:onSwipeTextBox(nil, ges))
+      assert.is_true(refreshed)
     end)
   end)
 end)

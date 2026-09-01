@@ -1,25 +1,13 @@
-local Language = require("ui/language")
-local gettext = require("gettext")
-local UIManager = require("ui/uimanager")
-
 describe("Language module", function()
-  setup(function()
-    _G.G_reader_settings = {
-      settings = {},
-      read = function(self, key)
-        return self.settings[key]
-      end,
-      save = function(self, key, val)
-        self.settings[key] = val
-      end,
-      nilOrTrue = function()
-        return true
-      end,
-    }
-  end)
+  local Language
+  local gettext
+  local UIManager
 
-  teardown(function()
-    _G.G_reader_settings = nil
+  setup(function()
+    require("commonrequire")
+    Language = require("ui/language")
+    gettext = require("gettext")
+    UIManager = require("ui/uimanager")
   end)
 
   it("should map en locale to English", function()
@@ -87,24 +75,24 @@ describe("Language module", function()
       local item_en = Language:genLanguageSubItem("en")
 
       -- 1. Default (no setting) -> defaults to "en", so checked_func should return true
-      G_reader_settings.settings = {}
+      G_reader_settings:save("language", nil)
       assert.is_true(item_en.checked_func())
 
       -- 2. Setting is "en" -> should return true
-      G_reader_settings.settings = { language = "en" }
+      G_reader_settings:save("language", "en")
       assert.is_true(item_en.checked_func())
 
       -- 3. Setting is "C" (backwards compatibility) -> should return true
-      G_reader_settings.settings = { language = "C" }
+      G_reader_settings:save("language", "C")
       assert.is_true(item_en.checked_func())
 
       -- 4. Setting is other language -> should return false
-      G_reader_settings.settings = { language = "fr" }
+      G_reader_settings:save("language", "fr")
       assert.is_false(item_en.checked_func())
 
       -- 5. Subitem with "C" target code
       local item_c = Language:genLanguageSubItem("C")
-      G_reader_settings.settings = { language = "en" }
+      G_reader_settings:save("language", "en")
       assert.is_true(item_c.checked_func())
 
       -- 6. Trigger item callback

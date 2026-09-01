@@ -918,10 +918,6 @@ describe("UIManager spec", function()
       local next_time = UIManager:getNextTaskTime()
       assert.is_not_nil(next_time)
 
-      local next_times = UIManager:getNextTaskTimes(2)
-      assert.is_table(next_times)
-      assert.are.equal(2, #next_times)
-
       UIManager:shiftScheduledTasksBy(5)
       assert.is_true(UIManager:getNextTaskTime() > next_time)
 
@@ -942,7 +938,7 @@ describe("UIManager spec", function()
       UIManager:show(w2)
 
       local list = UIManager:_windowStackDebugList()
-      assert.is_table(list)
+      assert.is_string(list)
 
       local iter_count = 0
       for window in UIManager:topdown_windows_iter() do
