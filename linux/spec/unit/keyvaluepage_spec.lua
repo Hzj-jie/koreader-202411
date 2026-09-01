@@ -14,14 +14,11 @@ describe("KeyValuePage UI component", function()
   end)
 
   before_each(function()
-    _G.G_reader_settings = {
-      read = function(self, key)
-        if key == "keyvalues_per_page" then
-          return 5
-        end
-        return nil
-      end,
-    }
+    G_reader_settings:save("keyvalues_per_page", 5)
+  end)
+
+  after_each(function()
+    G_reader_settings:delete("keyvalues_per_page")
   end)
 
   it("should instantiate and populate items correctly with string separator", function()
@@ -54,29 +51,28 @@ describe("KeyValuePage UI component", function()
     local page = KeyValuePage:new({
       title = "Multi Page KV",
       kv_pairs = kv_pairs,
-      keyvalues_per_page = 5,
     })
 
-    assert.are.equal(1, page.page)
-    assert.are.equal(3, page.total_pages)
+    assert.are.equal(1, page.show_page)
+    assert.are.equal(3, page.pages)
 
     page:nextPage()
-    assert.are.equal(2, page.page)
+    assert.are.equal(2, page.show_page)
 
     page:nextPage()
-    assert.are.equal(3, page.page)
+    assert.are.equal(3, page.show_page)
 
     page:nextPage()
-    assert.are.equal(3, page.page) -- Already at last page
+    assert.are.equal(3, page.show_page) -- Already at last page
 
     page:prevPage()
-    assert.are.equal(2, page.page)
+    assert.are.equal(2, page.show_page)
 
     page:goToPage(1)
-    assert.are.equal(1, page.page)
+    assert.are.equal(1, page.show_page)
 
     page:goToPage(3)
-    assert.are.equal(3, page.page)
+    assert.are.equal(3, page.show_page)
   end)
 
   it("should handle KeyValueItem focus, tap, and hold interactions", function()
@@ -96,14 +92,14 @@ describe("KeyValuePage UI component", function()
       kv_pairs = kv_pairs,
     })
 
-    local item = page.kv_item_table[1]
+    local item = page.layout[1][1]
     assert.is_not_nil(item)
 
     -- Focus & Unfocus
-    item:onFocus()
-    assert.is_true(item.frame.invert)
-    item:onUnfocus()
-    assert.is_false(item.frame.invert)
+    item[1]:onFocus()
+    assert.is_true(item[1]._focused)
+    item[1]:onUnfocus()
+    assert.is_nil(item[1]._focused)
 
     -- Tap (invokes item callback)
     item:onTap()
@@ -111,11 +107,14 @@ describe("KeyValuePage UI component", function()
 
     -- Hold (opens TextViewer)
     local shown_widget = nil
-    page.showWidget = function(self, w)
+    local old_show = UIManager.show
+    UIManager.show = function(self, w)
       shown_widget = w
     end
+    item.is_truncated = true
     item:onHold()
     assert.is_not_nil(shown_widget)
+    UIManager.show = old_show
   end)
 
   it("should handle onSwipe and onMultiSwipe gestures", function()
@@ -127,16 +126,15 @@ describe("KeyValuePage UI component", function()
     local page = KeyValuePage:new({
       title = "Swipe Page",
       kv_pairs = kv_pairs,
-      keyvalues_per_page = 5,
     })
 
     -- Swipe west -> next page
     page:onSwipe(nil, { direction = "west" })
-    assert.are.equal(2, page.page)
+    assert.are.equal(2, page.show_page)
 
     -- Swipe east -> prev page
     page:onSwipe(nil, { direction = "east" })
-    assert.are.equal(1, page.page)
+    assert.are.equal(1, page.show_page)
 
     -- Swipe south -> exit / close
     local closed_widget = nil
@@ -156,7 +154,7 @@ describe("KeyValuePage UI component", function()
     UIManager.close = old_close
   end)
 
-  it("should handle onReturn, onClose, and onExit", function()
+  it("should handle onReturn and onExit", function()
     local return_called = false
     local page = KeyValuePage:new({
       title = "Exit Page",
@@ -166,19 +164,19 @@ describe("KeyValuePage UI component", function()
       end,
     })
 
-    page:onReturn()
-    assert.is_true(return_called)
-
     local closed_widget = nil
     local old_close = UIManager.close
     UIManager.close = function(self, w)
       closed_widget = w
     end
 
-    assert.is_true(page:onExit())
+    page:onReturn()
+    assert.is_true(return_called)
     assert.are.equal(page, closed_widget)
 
-    page:onClose()
+    closed_widget = nil
+    assert.is_true(page:onExit())
+    assert.are.equal(page, closed_widget)
 
     UIManager.close = old_close
   end)

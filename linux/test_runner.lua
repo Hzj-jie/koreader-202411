@@ -169,11 +169,12 @@ local function spawn_job(idx)
     end
 
     local worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
+    os.execute("rm -rf " .. string.format("%q", worker_config_dir))
     lfs.mkdir(worker_config_dir)
     local worker_tmp_dir = worker_config_dir .. "/tmp"
     lfs.mkdir(worker_tmp_dir)
 
-    local cmd = string.format("%sTMPDIR=%q KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
+    local cmd = string.format("%sTMPDIR=%q KO_MULTIUSER=1 KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
     local pipe = io.popen(cmd)
     if pipe then
         active_jobs[idx] = {

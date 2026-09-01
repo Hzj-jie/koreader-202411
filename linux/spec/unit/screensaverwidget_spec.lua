@@ -54,6 +54,7 @@ describe("ScreenSaverWidget", function()
 
   it("should handle onTap when inside frame", function()
     local ssw = ScreenSaverWidget:new()
+    ssw.main_frame.dimen = Geom:new({ x = 0, y = 0, w = ssw.width, h = ssw.height })
     local closed_widget = nil
     local orig_close = UIManager.close
     UIManager.close = function(self, widget)
@@ -140,7 +141,7 @@ describe("ScreenSaverWidget", function()
     assert.is_nil(Device.orig_rotation_mode)
     assert.are.equal("full", refreshed_mode)
     assert.truthy(broadcasted_event)
-    assert.are.equal("OutOfScreenSaver", broadcasted_event.type)
+    assert.are.equal("onOutOfScreenSaver", broadcasted_event.handler)
     assert.is_true(cleanup_called)
 
     UIManager.scheduleRefresh = orig_scheduleRefresh

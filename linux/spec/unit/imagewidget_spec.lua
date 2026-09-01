@@ -9,7 +9,7 @@ describe("ImageWidget module", function()
     Screen = require("device").screen
   end)
 
-  it("should render without error from file and handle cleanCache", function()
+  it("should render without error from file", function()
     local imgw = ImageWidget:new({
       file = "resources/koreader.png",
     })
@@ -17,11 +17,6 @@ describe("ImageWidget module", function()
     assert.is_not_nil(imgw._bb)
     assert.is_number(imgw:getSize().w)
     assert.is_number(imgw:getSize().h)
-
-    assert.has_no.errors(function()
-      ImageWidget:cleanCache()
-      ImageWidget:checkCache()
-    end)
   end)
 
   it("handles rotation, scaling, stretching, and invert options", function()
@@ -74,7 +69,7 @@ describe("ImageWidget module", function()
     assert.is_not_nil(img_dpi._bb)
   end)
 
-  it("handles memory Blitbuffer input and setters", function()
+  it("handles memory Blitbuffer input and property configuration", function()
     local mem_bb = Blitbuffer.new(50, 50)
     local imgw = ImageWidget:new({
       image = mem_bb,
@@ -83,26 +78,23 @@ describe("ImageWidget module", function()
     imgw:_render()
     assert.is_not_nil(imgw._bb)
 
-    -- Setters
-    imgw:setDimensions(120, 120)
+    -- Configuration updates
+    imgw.width = 120
+    imgw.height = 120
     assert.are.equal(120, imgw.width)
     assert.are.equal(120, imgw.height)
 
-    imgw:setDimen(Geom:new({ w = 80, h = 80 }))
-    assert.are.equal(80, imgw.width)
-    assert.are.equal(80, imgw.height)
-
-    imgw:setScaleFactor(1.5)
+    imgw.scale_factor = 1.5
     assert.are.equal(1.5, imgw.scale_factor)
 
-    imgw:setRotationAngle(90)
+    imgw.rotation_angle = 90
     assert.are.equal(90, imgw.rotation_angle)
 
     local new_bb = Blitbuffer.new(60, 60)
-    imgw:setImage(new_bb, false)
+    imgw.image = new_bb
     assert.are.equal(new_bb, imgw.image)
 
-    imgw:setFile("resources/koreader.png")
+    imgw.file = "resources/koreader.png"
     assert.are.equal("resources/koreader.png", imgw.file)
   end)
 

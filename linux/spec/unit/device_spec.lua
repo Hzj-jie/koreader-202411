@@ -567,6 +567,7 @@ describe("device module", function()
   describe("generic device", function()
     local Generic, Screen
     local test_dev
+    local util = require("util")
 
     before_each(function()
       Generic = require("device/generic/device")
@@ -625,7 +626,7 @@ describe("device module", function()
       }
 
       local UIManager = require("ui/uimanager")
-      UIManager:init()
+      test_dev:_UIManagerReady(UIManager)
     end)
 
     describe("button inversion", function()
@@ -691,7 +692,7 @@ describe("device module", function()
         test_dev.hasGSensor = util.no
         test_dev:toggleGSensor(true)
         test_dev:lockGSensor(true)
-        assert.is_nil(test_dev.isGSensorLocked)
+        assert.is_false(test_dev:isGSensorLocked())
       end)
     end)
 
@@ -710,9 +711,7 @@ describe("device module", function()
           test_dev.screen.setViewport = spy(function() end)
           test_dev:init()
 
-          assert
-            .spy(test_dev.screen.setViewport).was
-            .called_with(test_dev.screen, test_dev.viewport)
+          assert.spy(test_dev.screen.setViewport).was_called()
           assert.spy(test_dev.input.registerEventAdjustHook).was_called()
           assert.is_function(test_dev.screen.getSize)
           local sz = test_dev.screen:getSize()

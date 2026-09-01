@@ -107,8 +107,9 @@ describe("Notification", function()
     end)
 
     it("should clean expired entries (> 30s) during stack cleanup", function()
-      table.insert(Notification._shown_list, time.monotonic() - 35)
-      table.insert(Notification._shown_list, time.monotonic() - 31)
+      local time = require("ui/time")
+      table.insert(Notification._shown_list, time.monotonic() - time.s(35))
+      table.insert(Notification._shown_list, time.monotonic() - time.s(31))
 
       local notif = Notification:new({ text = "Fresh" })
       assert.are.equal(1, notif._shown_idx)

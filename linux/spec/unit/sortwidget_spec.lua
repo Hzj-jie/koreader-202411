@@ -66,23 +66,28 @@ describe("SortWidget widget", function()
     }))
 
     local item1 = widget.main_content[2]
-    local item2 = widget.main_content[4]
+    item1.checkmark_widget.dimen = Geom:new({ x = 0, y = 0, w = 20, h = 20 })
 
     -- 1. Tap on checkmark area triggers item callback
-    local checkmark_pos = item1.checkmark_widget.dimen:findCenter()
+    local checkmark_pos = Geom:new({ x = 10, y = 10 })
     item1:onTap({}, { pos = checkmark_pos })
     assert.is_true(callback_called)
 
     -- 2. Tap on item body marks item
     callback_called = false
+    item1 = widget.main_content[2]
+    item1.checkmark_widget.dimen = Geom:new({ x = 0, y = 0, w = 20, h = 20 })
     item1:onTap({}, { pos = Geom:new({ x = 300, y = item1.dimen.y + 10 }) })
     assert.are_equal(1, widget.marked)
 
     -- 3. Tap on marked item unmarks it
+    item1 = widget.main_content[2]
+    item1.checkmark_widget.dimen = Geom:new({ x = 0, y = 0, w = 20, h = 20 })
     item1:onTap({}, { pos = Geom:new({ x = 300, y = item1.dimen.y + 10 }) })
     assert.are_equal(0, widget.marked)
 
     -- 4. Hold callback on item2
+    local item2 = widget.main_content[4]
     item2:onHold()
     assert.is_true(hold_called)
 

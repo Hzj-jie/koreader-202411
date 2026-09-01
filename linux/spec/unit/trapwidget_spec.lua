@@ -12,7 +12,7 @@ describe("TrapWidget", function()
 
   it("should initialize invisible TrapWidget without text", function()
     local tw = TrapWidget:new({
-      text = nil,
+      text = false,
     })
 
     assert.is_true(tw.invisible)
@@ -119,8 +119,8 @@ describe("TrapWidget", function()
     assert.truthy(scheduled_tick)
     scheduled_tick()
     assert.truthy(handled_event)
-    assert.are.equal("KeyPress", handled_event.type)
-    assert.are.same(mock_ev, handled_event.args)
+    assert.are.equal("onKeyPress", handled_event.handler)
+    assert.are.same(mock_ev, handled_event.args[1])
 
     UIManager.nextTick = orig_nextTick
     UIManager.handleInputEvent = orig_handleInputEvent
@@ -152,7 +152,7 @@ describe("TrapWidget", function()
     assert.are.equal("ui", mode)
 
     -- Without frame:
-    local tw_no_frame = TrapWidget:new({ text = nil })
+    local tw_no_frame = TrapWidget:new({ text = false })
     dirty_widget = nil
     tw_no_frame:onShow()
     assert.is_nil(dirty_widget)

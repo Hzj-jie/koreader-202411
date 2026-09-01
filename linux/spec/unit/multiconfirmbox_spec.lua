@@ -154,8 +154,11 @@ describe("MultiConfirmBox", function()
   describe("lifecycle and event handlers", function()
     it("should handle onShow and onClose setting dirty regions", function()
       local dirty_regions = {}
-      UIManager.setDirty = function(_, fn)
-        if fn then
+      UIManager.setDirty = function(_, widget, fn)
+        if type(widget) == "function" then
+          fn = widget
+        end
+        if type(fn) == "function" then
           local _, region = fn()
           table.insert(dirty_regions, region)
         end
@@ -164,6 +167,7 @@ describe("MultiConfirmBox", function()
       local box = MultiConfirmBox:new({
         text = "Lifecycle test",
       })
+      box[1][1].dimen = Geom:new({ x = 10, y = 10, w = 200, h = 100 })
 
       box:onShow()
       assert.are.equal(1, #dirty_regions)
