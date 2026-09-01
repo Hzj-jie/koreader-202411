@@ -237,6 +237,7 @@ function HtmlBoxWidget:getSelectedWordsAndRects(lines, start_pos, end_pos)
         end
       end
     end
+    -- line[1] can be nil if the line is empty (e.g., whitespace-only paragraph or blank line)
     if found_start and line[1] ~= nil and p1.y < line[1].y0 then
       break
     end
