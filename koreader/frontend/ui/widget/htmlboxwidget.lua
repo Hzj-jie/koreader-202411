@@ -237,7 +237,7 @@ function HtmlBoxWidget:getSelectedWordsAndRects(lines, start_pos, end_pos)
         end
       end
     end
-    if found_start and type(line[1]) == "table" and line[1].y0 and p1.y < line[1].y0 then
+    if found_start and line[1] ~= nil and p1.y < line[1].y0 then
       break
     end
   end
