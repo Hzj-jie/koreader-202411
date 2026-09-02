@@ -1898,8 +1898,7 @@ function util.functionFingerprint(fn, visited)
       if val.name and type(val.name) == "string" then
         table.insert(parts, "instance:" .. val.name .. "@" .. tostring(val))
       else
-        local dump = require("dump")
-        table.insert(parts, "tbl:" .. md5(dump(val)))
+        table.insert(parts, "tbl:" .. tostring(val))
       end
     elseif val_type == "function" then
       table.insert(parts, util.functionFingerprint(val, visited))
