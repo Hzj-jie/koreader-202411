@@ -17,9 +17,10 @@ describe("Koptinterface module", function()
   end)
 
   teardown(function()
-    doc:close()
-    complex_doc:close()
-    paper_doc:close()
+    DocCache:clear()
+    if doc then doc:close() end
+    if complex_doc then complex_doc:close() end
+    if paper_doc then paper_doc:close() end
   end)
 
   before_each(function()
@@ -202,6 +203,8 @@ describe("Koptinterface module", function()
 
     doc.configurable.text_wrap = 1
     Koptinterface:hintPage(doc, 1, 1.0, 0, 1.0)
+    local kc = Koptinterface:getCachedContext(doc, 1)
+    assert.truthy(kc)
   end)
 
   it("should render page in fallback, optimized, and reflow modes", function()
