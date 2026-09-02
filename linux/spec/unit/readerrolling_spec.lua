@@ -729,6 +729,87 @@ describe("Readerrolling module", function()
       })
     end)
 
+    it("should exercise onGotoViewRel and dim_area in scroll mode with page overlap", function()
+      readerui.view.view_mode = "scroll"
+      readerui.view.footer_visible = true
+      readerui.view.footer.settings.reclaim_height = false
+      readerui.view.page_overlap_enable = true
+
+      rolling.current_pos = 500
+      rolling:onGotoViewRel(1)
+      assert.is_not_nil(readerui.view.dim_area)
+
+      rolling:onGotoViewRel(-1)
+      assert.is_not_nil(readerui.view.dim_area)
+
+      -- End of document dim_area clear
+      local max_pos = readerui.document.info.doc_height - readerui:getSize().h + readerui.view.footer:getHeight()
+      rolling.current_pos = max_pos - 10
+      rolling:onGotoViewRel(1)
+
+      -- Page mode reset
+      readerui.view.view_mode = "page"
+      rolling:onGotoViewRel(1)
+      rolling:onGotoViewRel(-1)
+    end)
+
+    it("should exercise handlePartialRerendering and setupRerenderingAutomation", function()
+      readerui.view.view_mode = "page"
+      rolling:handlePartialRerendering()
+
+      readerui.view.view_mode = "scroll"
+      rolling:handlePartialRerendering()
+      readerui.view.view_mode = "page"
+
+      -- setupRerenderingAutomation
+      rolling:setupRerenderingAutomation()
+      if rolling._stepRerenderingAutomation then
+        rolling.rendering_state = "rendering"
+        rolling._stepRerenderingAutomation()
+      end
+      rolling:tearDownRerenderingAutomation()
+    end)
+
+    it("should exercise addToMainMenu hide_nonlinear_flows enabled_func", function()
+      local orig_hasNonLinear = readerui.document.hasNonLinearFlows
+      readerui.document.hasNonLinearFlows = function() return true end
+
+      local menu_items = {}
+      rolling:addToMainMenu(menu_items)
+      assert.is_not_nil(menu_items.hide_nonlinear_flows)
+      if menu_items.hide_nonlinear_flows and menu_items.hide_nonlinear_flows.enabled_func then
+        readerui.view.view_mode = "page"
+        local enabled = menu_items.hide_nonlinear_flows.enabled_func()
+        assert.is_boolean(enabled)
+      end
+
+      readerui.document.hasNonLinearFlows = orig_hasNonLinear
+    end)
+
+    it("should exercise setupXpointer in page and scroll view modes", function()
+      readerui.view.view_mode = "page"
+      if rolling.setupXpointer then
+        rolling.setupXpointer()
+      end
+
+      -- Test with last_percent setting branch in onReadSettings
+      local orig_read = readerui.doc_settings.read
+      readerui.doc_settings.read = function(self, key)
+        if key == "last_percent" then
+          return 0.5
+        elseif key == "last_xpointer" then
+          return nil
+        end
+        return orig_read(self, key)
+      end
+      rolling:onReadSettings(readerui.doc_settings)
+      rolling.ui.view.view_mode = "page"
+      if rolling.setupXpointer then
+        rolling.setupXpointer()
+      end
+      readerui.doc_settings.read = orig_read
+    end)
+
     it("should exercise document close lifecycle", function()
       rolling:onCloseDocument()
     end)

@@ -198,6 +198,15 @@ describe("ReaderLink module", function()
         assert.are.same(expected_page_states, readerui.view.page_states)
       end
     )
+
+    it("should go to nearest link on page with onGoToPageLink", function()
+      readerui:handleEvent(Event:new("SetScrollMode", false))
+      readerui:handleEvent(Event:new("SetZoomMode", "page"))
+      readerui.paging:onGotoPage(1)
+      readerui.link:onGoToPageLink({ pos = { x = 363, y = 565 } })
+      fastforward_ui_events()
+      assert.is.same(22, readerui.paging.current_page)
+    end)
   end)
 
   describe("location stack management", function()
@@ -274,6 +283,32 @@ describe("ReaderLink module", function()
       local res2 = link_mod:onAddCurrentLocationToStackNonTouch()
       assert.is_true(res2)
       assert.is.same(2, #link_mod.location_stack)
+    end)
+
+    it("should handle showAsFootnotePopup and close_callback dirty updates", function()
+      local link_mod = readerui.link
+      readerui.rolling:onGotoPage(5)
+      local loc = readerui.rolling:getBookLocation()
+      local orig_isLinkToFootnote = readerui.document.isLinkToFootnote
+      readerui.document.isLinkToFootnote = function()
+        return true, "test footnote", nil, nil, nil
+      end
+      local popup = link_mod:showAsFootnotePopup({
+        from_xpointer = loc,
+        xpointer = loc,
+        link_y = 100,
+      })
+      assert.is_true(popup)
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if w ~= readerui then
+          if w.close_callback then
+            w.close_callback(50)
+          end
+          UIManager:close(w)
+        end
+      end
+      readerui.document.isLinkToFootnote = orig_isLinkToFootnote
     end)
   end)
 

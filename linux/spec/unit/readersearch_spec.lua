@@ -239,6 +239,37 @@ describe("Readersearch module", function()
       end
       assert.are.equal(11, count)
     end)
+
+    it("should handle onShowSearchDialog with results and onShowFindAllResults in PDF mode", function()
+      paging:onGotoPage(1)
+      search:onShowSearchDialog(
+        "test",
+        0,
+        false,
+        true
+      )
+      assert.is_not_nil(search.search_dialog)
+      assert.is_not_nil(readerui.view.highlight.temp[10])
+
+      -- Test onShowFindAllResults menu choice in PDF mode
+      search.last_search_hash = "sample_hash"
+      search.findall_results = {
+        {
+          start = 10,
+          ["end"] = 10,
+          mandatory = 10,
+          text = "test occurrence",
+          boxes = { { x = 0, y = 0, w = 50, h = 10 } },
+        },
+      }
+      search:onShowFindAllResults()
+      if search.result_menu and search.result_menu.onMenuChoice then
+        search.result_menu:onMenuChoice(search.findall_results[1])
+        assert.is_not_nil(readerui.view.highlight.temp[10])
+      end
+
+      search:uimanagedCleanUp()
+    end)
   end)
 
   describe("uimanagedCleanUp", function()
@@ -534,6 +565,38 @@ describe("Readersearch module", function()
       search.ui.highlight.clear = orig_clear
       UIManager.setDirty = orig_setDirty
       search:uimanagedCleanUp()
+    end)
+
+    it("should handle slow regex in onShowSearchDialog and trigger scheduled dirty update", function()
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if w ~= readerui then
+          UIManager:close(w)
+        end
+      end
+      local dirty_called = false
+      local orig_setDirty = UIManager.setDirty
+      UIManager.setDirty = function(self, target, mode)
+        dirty_called = true
+        return orig_setDirty(self, target, mode)
+      end
+
+      search:onShowSearchDialog(
+        "Ver.*na",
+        0,
+        true,
+        true
+      )
+      assert.is_not_nil(search.wait_button)
+      -- Execute scheduled tick
+      UIManager:handleInput()
+      assert.is_true(dirty_called)
+
+      UIManager.setDirty = orig_setDirty
+      search:uimanagedCleanUp()
+      if search.wait_button then
+        UIManager:closeIfShown(search.wait_button)
+      end
     end)
   end)
 end)
