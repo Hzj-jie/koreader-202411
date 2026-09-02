@@ -150,8 +150,8 @@ describe("HtmlBoxWidget module", function()
       getPageText = function()
         return {
           {
-            "non-table item",
             { word = "Hello", x0 = 0, y0 = 0, x1 = 50, y1 = 20 },
+            "non-table item",
             { word = "World", x0 = 60, y0 = 0, x1 = 110, y1 = 20 },
           },
           {
