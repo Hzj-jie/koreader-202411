@@ -434,32 +434,53 @@ describe("PageBrowserWidget widget", function()
     widget:saveSettings(true)
   end)
 
-  it("should handle editable stuff updates and exit", function()
+  it("should handle editable stuff updates and exit callbacks", function()
+    local root_exit_called = false
     local widget = PageBrowserWidget:new({
       ui = mock_ui,
+      on_root_exit = function()
+        root_exit_called = true
+      end,
     })
     make_mock_window(widget)
 
     widget:updateEditableStuff(true)
     assert.is_true(widget.editable_stuff_edited)
 
-    -- Test exit without launcher
+    -- Test exit as root widget
     assert.is_true(widget:onExit(false))
+    assert.is_true(root_exit_called)
 
-    -- Test exit with launcher
-    local mock_launcher = Widget:new({
-      dimen = Geom:new({ w = 600, h = 800 }),
-      onExit = function() end,
-      updateEditableStuff = function() end,
-    })
-    make_mock_window(mock_launcher)
-
-    local widget_with_launcher = PageBrowserWidget:new({
+    -- Test exit with on_exit and on_update callbacks
+    local exit_called = false
+    local update_called = false
+    local child_widget = PageBrowserWidget:new({
       ui = mock_ui,
-      launcher = mock_launcher,
+      on_exit = function(close_all)
+        exit_called = close_all
+      end,
+      on_update = function()
+        update_called = true
+      end,
     })
-    make_mock_window(widget_with_launcher)
-    assert.is_true(widget_with_launcher:onExit(false))
+    make_mock_window(child_widget)
+
+    child_widget:updateEditableStuff(true)
+    assert.is_true(child_widget:onExit(false))
+    assert.is_true(update_called)
+
+    child_widget = PageBrowserWidget:new({
+      ui = mock_ui,
+      on_exit = function(close_all)
+        exit_called = close_all
+      end,
+      on_update = function()
+        update_called = true
+      end,
+    })
+    make_mock_window(child_widget)
+    assert.is_true(child_widget:onExit(true))
+    assert.is_true(exit_called)
   end)
 
   it(

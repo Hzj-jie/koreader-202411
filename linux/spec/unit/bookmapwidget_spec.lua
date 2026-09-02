@@ -842,31 +842,47 @@ describe("BookMapWidget widget", function()
   end)
 
   describe("Exit behavior", function()
-    it("should handle exit without launcher", function()
+    it("should handle exit without parent callbacks", function()
+      local root_exit_called = false
       local widget = BookMapWidget:new({
         ui = mock_ui,
+        on_root_exit = function()
+          root_exit_called = true
+        end,
       })
       make_mock_window(widget)
 
       assert.is_true(widget:onExit(false))
+      assert.is_true(root_exit_called)
     end)
 
-    it("should handle exit with launcher", function()
-      local mock_launcher = Widget:new({
-        dimen = Geom:new({ w = 600, h = 800 }),
-        onExit = function() end,
-        updateEditableStuff = function() end,
-      })
-      make_mock_window(mock_launcher)
-
+    it("should handle exit with on_exit and on_update callbacks", function()
+      local exit_called = false
+      local update_called = false
       local widget = BookMapWidget:new({
         ui = mock_ui,
-        launcher = mock_launcher,
+        on_exit = function(close_all)
+          exit_called = close_all
+        end,
+        on_update = function()
+          update_called = true
+        end,
       })
       make_mock_window(widget)
 
       widget.editable_stuff_edited = true
       assert.is_true(widget:onExit(false))
+      assert.is_true(update_called)
+
+      local widget2 = BookMapWidget:new({
+        ui = mock_ui,
+        on_exit = function(close_all)
+          exit_called = close_all
+        end,
+      })
+      make_mock_window(widget2)
+      assert.is_true(widget2:onExit(true))
+      assert.is_true(exit_called)
     end)
   end)
 
