@@ -3,11 +3,10 @@ describe("KeyedJobFilter", function()
 
   before_each(function()
     require("commonrequire")
-    PluginShare = require("pluginshare")
-    PluginShare.backgroundJobs = {}
-
     UIManager = require("ui/uimanager")
     BackgroundJobs = require("background_jobs")
+    PluginShare = require("pluginshare")
+    PluginShare.backgroundJobs = {}
 
     package.loaded["plugins/backgroundrunner.koplugin/keyed_job_filter"] = nil
     KeyedJobFilter =

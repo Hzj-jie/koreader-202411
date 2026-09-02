@@ -393,13 +393,13 @@ function FootnoteWidget:init()
 end
 
 function FootnoteWidget:onShow()
-  self:setDirty(function()
+  UIManager:setDirty(self.dialog, function()
     return "ui", self.container.dimen
   end)
 end
 
 function FootnoteWidget:onClose()
-  self:setDirty(function()
+  UIManager:setDirty(self.dialog, function()
     return "partial", self.container.dimen
   end)
 end
