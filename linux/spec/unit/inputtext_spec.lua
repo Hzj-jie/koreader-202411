@@ -549,5 +549,30 @@ describe("InputText widget module", function()
       Device.input.getClipboardText = orig_get_cb
       Device.input.setClipboardText = orig_set_cb
     end)
+
+    it("should handle onSwipeTextBox and test strike_callback", function()
+      local struck = false
+      local refreshed = false
+      local input = require("ui/widget/inputtext"):new({
+        text = "line1\nline2\nline3\nline4\nline5",
+        strike_callback = function()
+          struck = true
+        end,
+        refresh_callback = function()
+          refreshed = true
+        end,
+      })
+
+      input:resyncPos()
+      assert.is_true(struck)
+
+      local ges = {
+        direction = "northeast",
+        distance = 30,
+        pos = { x = 50, y = 50 },
+      }
+      assert.is_false(input:onSwipeTextBox(nil, ges))
+      assert.is_true(refreshed)
+    end)
   end)
 end)

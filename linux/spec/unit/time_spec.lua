@@ -25,6 +25,12 @@ describe("Time module", function()
     assert.is.same(12, time3)
   end)
 
+  it("should handle timeval", function()
+    local tv = { sec = 5, usec = 250000 }
+    local t = time.timeval(tv)
+    assert.are.equal(5250000, t)
+  end)
+
   it("should convert", function()
     local time1 = 12000000
     local time2 = 12000
@@ -77,17 +83,13 @@ describe("Time module", function()
     tv = time.s(-6) + time.us(101)
     assert.is.is_true(math.abs(-5.9999 - time.to_number(tv)) < 1e-9) -- ns precision
     assert.is.same(time.s(-6) + time.us(100), time.s(-5.9999))
-    --                                 ^ precision loss
 
     tv = time.s(-6) + time.us(11)
     assert.is.same(-6, time.to_number(tv))
-    --              ^ precision loss
     assert.is.same(time.s(-6) + time.us(10), time.s(-5.99999))
-    --                                ^ precision loss
 
     tv = time.s(-6) + time.us(1)
     assert.is.same(-6, time.to_number(tv))
-    --              ^ precision loss
     assert.is.same(time.s(-6) + time.us(1), time.s(-5.999999))
   end)
 
@@ -95,6 +97,16 @@ describe("Time module", function()
     local time1 = time.s(5) + time.us(5000000)
 
     assert.is.same(time.s(10), time1)
+  end)
+
+  it("should split s and us", function()
+    local sec, usec = time.split_s_us(time.s(5) + time.us(123456))
+    assert.are.equal(5, sec)
+    assert.are.equal(123456, usec)
+
+    local n1, n2 = time.split_s_us(nil)
+    assert.is_nil(n1)
+    assert.is_nil(n2)
   end)
 
   it("should compare", function()
@@ -141,5 +153,34 @@ describe("Time module", function()
       time.to_us(time.since(time1))
     )
     time.monotonic = now_save
+  end)
+
+  it("should retrieve system clock times and format time", function()
+    local rt = time.realtime()
+    assert.is_number(rt)
+    assert.is_true(rt > 0)
+
+    local mono = time.monotonic()
+    assert.is_number(mono)
+    assert.is_true(mono > 0)
+
+    local mono_c = time.monotonic_coarse()
+    assert.is_number(mono_c)
+    assert.is_true(mono_c > 0)
+
+    local rt_c = time.realtime_coarse()
+    assert.is_number(rt_c)
+    assert.is_true(rt_c > 0)
+
+    local bt = time.boottime()
+    assert.is_number(bt)
+
+    assert.is_number(time.boottime_or_monotonic())
+    assert.is_number(time.boottime_or_monotonic_coarse())
+    assert.is_number(time.boottime_or_realtime())
+    assert.is_number(time.boottime_or_realtime_coarse())
+
+    local formatted = time.format_time(time.s(12) + time.us(345678))
+    assert.are.equal("12.345678", formatted)
   end)
 end)

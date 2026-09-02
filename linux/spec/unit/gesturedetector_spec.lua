@@ -236,4 +236,524 @@ describe("gesturedetector module", function()
     assert.are.equal("south", dir)
     assert.are.equal(100, dist)
   end)
+
+  describe("Tap, Double Tap & Bounce Detection", function()
+    local timeouts
+    local createGD = function(disable_double_tap, tap_interval_override)
+      timeouts = {}
+      local input = {
+        main_finger_slot = 0,
+        disable_double_tap = disable_double_tap,
+        tap_interval_override = tap_interval_override,
+        setTimeout = function(self, slot, gesture, callback, timev, delay)
+          table.insert(timeouts, {
+            slot = slot,
+            gesture = gesture,
+            cb = callback,
+            timev = timev,
+            delay = delay,
+          })
+        end,
+        clearTimeout = function(self, slot, gesture)
+          for i = #timeouts, 1, -1 do
+            if
+              timeouts[i].slot == slot
+              and (not gesture or timeouts[i].gesture == gesture)
+            then
+              table.remove(timeouts, i)
+            end
+          end
+        end,
+      }
+      local gd = GestureDetector:new({
+        screen = mock_screen,
+        input = input,
+        active_contacts = {},
+        contact_count = 0,
+        previous_tap = {},
+      })
+      gd:init()
+      return gd, input
+    end
+
+    it(
+      "emits single tap immediately when disable_double_tap is true",
+      function()
+        local gd = createGD(true)
+        local gestures = gd:feedEvent({
+          { slot = 0, id = 1, x = 100, y = 100, timev = 1000 },
+        })
+        assert.is_equal(1, #gestures)
+        assert.is_equal("touch", gestures[1].ges)
+
+        gestures = gd:feedEvent({
+          { slot = 0, id = -1, x = 100, y = 100, timev = 1010 },
+        })
+        assert.is_equal(1, #gestures)
+        assert.is_equal("tap", gestures[1].ges)
+        assert.is_equal(100, gestures[1].pos.x)
+        assert.is_equal(100, gestures[1].pos.y)
+        assert.is_equal(1010, gestures[1].time)
+        assert.is_nil(gd:getContact(0))
+      end
+    )
+
+    it("emits double_tap on two quick consecutive taps", function()
+      local gd = createGD(false)
+      -- First tap down and up
+      gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = 1000 } })
+      local g_up1 = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 100, timev = 1020 },
+      })
+      assert.is_equal(0, #g_up1)
+      assert.is_equal(1, #timeouts)
+      assert.is_equal("double_tap", timeouts[1].gesture)
+
+      -- Second tap down and up within interval
+      gd:feedEvent({ { slot = 0, id = 2, x = 105, y = 105, timev = 1100 } })
+      local g_up2 = gd:feedEvent({
+        { slot = 0, id = -1, x = 105, y = 105, timev = 1120 },
+      })
+      assert.is_equal(1, #g_up2)
+      assert.is_equal("double_tap", g_up2[1].ges)
+      assert.is_equal(105, g_up2[1].pos.x)
+      assert.is_equal(105, g_up2[1].pos.y)
+    end)
+
+    it("emits single tap when double_tap timer expires", function()
+      local gd = createGD(false)
+      gd:feedEvent({ { slot = 0, id = 1, x = 150, y = 150, timev = 1000 } })
+      gd:feedEvent({ { slot = 0, id = -1, x = 150, y = 150, timev = 1020 } })
+      assert.is_equal(1, #timeouts)
+
+      -- Trigger double tap timeout callback
+      local timer_ges = timeouts[1].cb()
+      assert.is_table(timer_ges)
+      assert.is_equal("tap", timer_ges.ges)
+      assert.is_equal(150, timer_ges.pos.x)
+      assert.is_equal(150, timer_ges.pos.y)
+      assert.is_nil(gd:getContact(0))
+    end)
+
+    it("filters out bounced taps within tap interval", function()
+      local gd = createGD(true, 100) -- 100ms bounce interval
+      gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = 1000 } })
+      local g1 = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 100, timev = 1010 },
+      })
+      assert.is_equal(1, #g1)
+      assert.is_equal("tap", g1[1].ges)
+
+      -- Bounced tap arrives 20ms later at nearby position
+      gd:feedEvent({ { slot = 0, id = 2, x = 102, y = 102, timev = 1030 } })
+      local g2 = gd:feedEvent({
+        { slot = 0, id = -1, x = 102, y = 102, timev = 1040 },
+      })
+      assert.is_equal(0, #g2)
+    end)
+  end)
+
+  describe("Hold & Hold Pan Gestures", function()
+    local timeouts
+    local createGD = function()
+      timeouts = {}
+      local input = {
+        main_finger_slot = 0,
+        disable_double_tap = true,
+        setTimeout = function(self, slot, gesture, callback, timev, delay)
+          table.insert(timeouts, {
+            slot = slot,
+            gesture = gesture,
+            cb = callback,
+            timev = timev,
+            delay = delay,
+          })
+        end,
+        clearTimeout = function(self, slot, gesture)
+          for i = #timeouts, 1, -1 do
+            if
+              timeouts[i].slot == slot
+              and (not gesture or timeouts[i].gesture == gesture)
+            then
+              table.remove(timeouts, i)
+            end
+          end
+        end,
+      }
+      local gd = GestureDetector:new({
+        screen = mock_screen,
+        input = input,
+        active_contacts = {},
+        contact_count = 0,
+        previous_tap = {},
+      })
+      gd:init()
+      return gd
+    end
+
+    it("detects hold, hold_pan, and hold_release", function()
+      local gd = createGD()
+      -- 1. Contact down
+      local g1 = gd:feedEvent({
+        { slot = 0, id = 1, x = 200, y = 200, timev = 1000 },
+      })
+      assert.is_equal(1, #g1)
+      assert.is_equal("touch", g1[1].ges)
+      assert.is_equal(1, #timeouts)
+      assert.is_equal("hold", timeouts[1].gesture)
+
+      -- 2. Hold timer fires
+      local hold_cb = timeouts[1].cb
+      local g_hold = hold_cb()
+      assert.is_table(g_hold)
+      assert.is_equal("hold", g_hold.ges)
+      assert.is_equal(200, g_hold.pos.x)
+      assert.is_equal(200, g_hold.pos.y)
+
+      -- 3. Move after hold triggers hold_pan
+      local g2 = gd:feedEvent({
+        { slot = 0, id = 1, x = 260, y = 200, timev = 1600 },
+      })
+      assert.is_equal(1, #g2)
+      assert.is_equal("hold_pan", g2[1].ges)
+      assert.is_equal("east", g2[1].direction)
+
+      -- 4. Contact lift triggers hold_release
+      local g3 = gd:feedEvent({
+        { slot = 0, id = -1, x = 260, y = 200, timev = 1700 },
+      })
+      assert.is_equal(1, #g3)
+      assert.is_equal("hold_release", g3[1].ges)
+      assert.is_equal(260, g3[1].pos.x)
+      assert.is_nil(gd:getContact(0))
+    end)
+  end)
+
+  describe("Pan, Swipe & Multi-swipe Gestures", function()
+    local createGD = function()
+      local input = {
+        main_finger_slot = 0,
+        disable_double_tap = true,
+        setTimeout = function() end,
+        clearTimeout = function() end,
+      }
+      local gd = GestureDetector:new({
+        screen = mock_screen,
+        input = input,
+        active_contacts = {},
+        contact_count = 0,
+        previous_tap = {},
+      })
+      gd:init()
+      return gd
+    end
+
+    it(
+      "detects pan and pan_release when lift occurs after swipe interval",
+      function()
+        local time = require("ui/time")
+        local gd = createGD()
+        gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = time.s(1) } })
+        local g_pan = gd:feedEvent({
+          { slot = 0, id = 1, x = 160, y = 100, timev = time.s(1) + time.ms(100) },
+        })
+        assert.is_equal(1, #g_pan)
+        assert.is_equal("pan", g_pan[1].ges)
+        assert.is_equal("east", g_pan[1].direction)
+        assert.is_equal(60, g_pan[1].distance)
+
+        -- Lift > 900ms after start (1s + 1.5s = 2.5s)
+        local g_rel = gd:feedEvent({
+          { slot = 0, id = -1, x = 160, y = 100, timev = time.s(1) + time.ms(1500) },
+        })
+        assert.is_equal(1, #g_rel)
+        assert.is_equal("pan_release", g_rel[1].ges)
+        assert.is_equal(160, g_rel[1].pos.x)
+        assert.is_nil(gd:getContact(0))
+      end
+    )
+
+    it("detects swipe when lift occurs within swipe interval", function()
+      local gd = createGD()
+      gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = 1000 } })
+      gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 200, timev = 1050 } })
+      local g_swipe = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 200, timev = 1100 },
+      })
+      assert.is_equal(1, #g_swipe)
+      assert.is_equal("swipe", g_swipe[1].ges)
+      assert.is_equal("south", g_swipe[1].direction)
+      assert.is_equal(100, g_swipe[1].pos.y)
+      assert.is_equal(200, g_swipe[1].end_pos.y)
+      assert.is_nil(gd:getContact(0))
+    end)
+
+    it("detects multiswipe with direction changes", function()
+      local gd = createGD()
+      gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = 1000 } })
+      -- Leg 1: East
+      gd:feedEvent({ { slot = 0, id = 1, x = 200, y = 100, timev = 1050 } })
+      -- Leg 2: South
+      gd:feedEvent({ { slot = 0, id = 1, x = 200, y = 200, timev = 1100 } })
+      -- Leg 3: West
+      gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 200, timev = 1150 } })
+
+      local g_ms = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 200, timev = 1200 },
+      })
+      assert.is_equal(1, #g_ms)
+      assert.is_equal("multiswipe", g_ms[1].ges)
+      assert.is_equal("east south west", g_ms[1].multiswipe_directions)
+    end)
+  end)
+
+  describe("Multi-touch Gestures", function()
+    local timeouts
+    local createGD = function()
+      timeouts = {}
+      local input = {
+        main_finger_slot = 0,
+        disable_double_tap = true,
+        setTimeout = function(self, slot, gesture, callback, timev, delay)
+          table.insert(timeouts, {
+            slot = slot,
+            gesture = gesture,
+            cb = callback,
+            timev = timev,
+            delay = delay,
+          })
+        end,
+        clearTimeout = function(self, slot, gesture)
+          for i = #timeouts, 1, -1 do
+            if
+              timeouts[i].slot == slot
+              and (not gesture or timeouts[i].gesture == gesture)
+            then
+              table.remove(timeouts, i)
+            end
+          end
+        end,
+      }
+      local gd = GestureDetector:new({
+        screen = mock_screen,
+        input = input,
+        active_contacts = {},
+        contact_count = 0,
+        previous_tap = {},
+      })
+      gd:init()
+      return gd
+    end
+
+    it("detects two_finger_tap", function()
+      local gd = createGD()
+      gd:feedEvent({
+        { slot = 0, id = 1, x = 100, y = 100, timev = 1000 },
+        { slot = 1, id = 2, x = 120, y = 100, timev = 1000 },
+      })
+      local g_up = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 100, timev = 1050 },
+        { slot = 1, id = -1, x = 120, y = 100, timev = 1050 },
+      })
+      assert.is_equal(1, #g_up)
+      assert.is_equal("two_finger_tap", g_up[1].ges)
+      assert.is_equal(110, g_up[1].pos.x)
+      assert.is_equal(20, g_up[1].span)
+      assert.is_nil(gd:getContact(0))
+      assert.is_nil(gd:getContact(1))
+    end)
+
+    it("detects two_finger_hold and two_finger_hold_release", function()
+      local gd = createGD()
+      gd:feedEvent({
+        { slot = 0, id = 1, x = 100, y = 100, timev = 1000 },
+        { slot = 1, id = 2, x = 200, y = 100, timev = 1000 },
+      })
+      assert.is_true(#timeouts >= 1)
+      local hold_cb = timeouts[1].cb
+      local g_hold = hold_cb()
+      assert.is_table(g_hold)
+      assert.is_equal("two_finger_hold", g_hold.ges)
+      assert.is_equal(150, g_hold.pos.x)
+      assert.is_equal(100, g_hold.span)
+
+      local g_rel = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 100, timev = 1700 },
+        { slot = 1, id = -1, x = 200, y = 100, timev = 1700 },
+      })
+      assert.is_equal(1, #g_rel)
+      assert.is_equal("two_finger_hold_release", g_rel[1].ges)
+      assert.is_equal(150, g_rel[1].pos.x)
+    end)
+
+    it("detects two_finger_pan and two_finger_swipe", function()
+      local gd = createGD()
+      gd:feedEvent({
+        { slot = 0, id = 1, x = 100, y = 100, timev = 1000 },
+        { slot = 1, id = 2, x = 100, y = 200, timev = 1000 },
+      })
+      -- Move both south
+      local g_pan = gd:feedEvent({
+        { slot = 0, id = 1, x = 100, y = 160, timev = 1050 },
+        { slot = 1, id = 2, x = 100, y = 260, timev = 1050 },
+      })
+      assert.is_equal(1, #g_pan)
+      assert.is_equal("two_finger_pan", g_pan[1].ges)
+      assert.is_equal("south", g_pan[1].direction)
+
+      -- Lift both
+      local g_swipe = gd:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 160, timev = 1100 },
+        { slot = 1, id = -1, x = 100, y = 260, timev = 1100 },
+      })
+      assert.is_equal(1, #g_swipe)
+      assert.is_equal("two_finger_swipe", g_swipe[1].ges)
+      assert.is_equal("south", g_swipe[1].direction)
+    end)
+
+    it("detects pinch and spread gestures", function()
+      local gd_pinch = createGD()
+      -- Pinch: start span 200 -> end span 80
+      gd_pinch:feedEvent({
+        { slot = 0, id = 1, x = 100, y = 200, timev = 1000 },
+        { slot = 1, id = 2, x = 300, y = 200, timev = 1000 },
+      })
+      gd_pinch:feedEvent({
+        { slot = 0, id = 1, x = 160, y = 200, timev = 1050 },
+        { slot = 1, id = 2, x = 240, y = 200, timev = 1050 },
+      })
+      local g_pinch = gd_pinch:feedEvent({
+        { slot = 0, id = -1, x = 160, y = 200, timev = 1100 },
+        { slot = 1, id = -1, x = 240, y = 200, timev = 1100 },
+      })
+      assert.is_equal(1, #g_pinch)
+      assert.is_equal("pinch", g_pinch[1].ges)
+      assert.is_equal("horizontal", g_pinch[1].direction)
+
+      -- Spread: start span 40 -> end span 200
+      local gd_spread = createGD()
+      gd_spread:feedEvent({
+        { slot = 0, id = 1, x = 180, y = 200, timev = 1000 },
+        { slot = 1, id = 2, x = 220, y = 200, timev = 1000 },
+      })
+      gd_spread:feedEvent({
+        { slot = 0, id = 1, x = 100, y = 200, timev = 1050 },
+        { slot = 1, id = 2, x = 300, y = 200, timev = 1050 },
+      })
+      local g_spread = gd_spread:feedEvent({
+        { slot = 0, id = -1, x = 100, y = 200, timev = 1100 },
+        { slot = 1, id = -1, x = 300, y = 200, timev = 1100 },
+      })
+      assert.is_equal(1, #g_spread)
+      assert.is_equal("spread", g_spread[1].ges)
+      assert.is_equal("horizontal", g_spread[1].direction)
+    end)
+  end)
+
+  describe("Clock Source Probing", function()
+    it("probes realtime and monotonic clock sources", function()
+      local time = require("ui/time")
+      local ffi = require("ffi")
+      local C = ffi.C
+      local gd = GestureDetector:new({
+        screen = mock_screen,
+        input = mock_input,
+        active_contacts = {},
+        contact_count = 0,
+      })
+
+      gd:resetClockSource()
+      assert.is_nil(gd:getClockSource())
+
+      gd:probeClockSource(time.realtime_coarse())
+      assert.is_equal(C.CLOCK_REALTIME, gd:getClockSource())
+
+      gd:resetClockSource()
+      gd:probeClockSource(time.monotonic_coarse())
+      assert.is_equal(C.CLOCK_MONOTONIC, gd:getClockSource())
+
+      gd:resetClockSource()
+      gd:probeClockSource(0)
+      assert.is_equal(-1, gd:getClockSource())
+    end)
+  end)
+
+  describe("Coordinate and Relative Adjustments", function()
+    it(
+      "adjusts relative pan offsets and pinch/spread orientations for rotations",
+      function()
+        local gd = GestureDetector:new({
+          screen = {
+            scaleByDPI = function(self, v)
+              return v
+            end,
+            getWidth = function()
+              return 600
+            end,
+            getHeight = function()
+              return 800
+            end,
+            getTouchRotation = function()
+              return 1
+            end, -- DEVICE_ROTATED_CLOCKWISE (90)
+            DEVICE_ROTATED_UPRIGHT = 0,
+            DEVICE_ROTATED_CLOCKWISE = 1,
+            DEVICE_ROTATED_UPSIDE_DOWN = 2,
+            DEVICE_ROTATED_COUNTER_CLOCKWISE = 3,
+          },
+          input = mock_input,
+        })
+
+        -- Test pinch direction rotation in 90 deg
+        local ges_pinch = { ges = "pinch", direction = "horizontal" }
+        gd:adjustGesCoordinate(ges_pinch)
+        assert.is_equal("vertical", ges_pinch.direction)
+
+        -- Test pan relative offset and pos in 90 deg
+        local ges_pan = {
+          ges = "pan",
+          direction = "north",
+          pos = { x = 100, y = 150 },
+          relative = { x = 10, y = 20 },
+        }
+        gd:adjustGesCoordinate(ges_pan)
+        assert.is_equal(600 - 150, ges_pan.pos.x)
+        assert.is_equal(100, ges_pan.pos.y)
+        assert.is_equal(-20, ges_pan.relative.x)
+        assert.is_equal(10, ges_pan.relative.y)
+
+        -- Test 270 deg
+        gd.screen.getTouchRotation = function()
+          return 3
+        end
+        local ges_pan270 = {
+          ges = "pan",
+          direction = "north",
+          pos = { x = 100, y = 150 },
+          relative = { x = 10, y = 20 },
+        }
+        gd:adjustGesCoordinate(ges_pan270)
+        assert.is_equal(150, ges_pan270.pos.x)
+        assert.is_equal(800 - 100, ges_pan270.pos.y)
+        assert.is_equal(20, ges_pan270.relative.x)
+        assert.is_equal(-10, ges_pan270.relative.y)
+
+        -- Test 180 deg
+        gd.screen.getTouchRotation = function()
+          return 2
+        end
+        local ges_pan180 = {
+          ges = "pan",
+          direction = "north",
+          pos = { x = 100, y = 150 },
+          relative = { x = 10, y = 20 },
+        }
+        gd:adjustGesCoordinate(ges_pan180)
+        assert.is_equal(600 - 100, ges_pan180.pos.x)
+        assert.is_equal(800 - 150, ges_pan180.pos.y)
+        assert.is_equal(-10, ges_pan180.relative.x)
+        assert.is_equal(-20, ges_pan180.relative.y)
+      end
+    )
+  end)
 end)

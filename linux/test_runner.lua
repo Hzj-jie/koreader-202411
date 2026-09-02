@@ -104,11 +104,6 @@ print_verbose("=================================================================
 print_verbose("[*] Test Runner: Orchestrating tests in worker process pool...")
 print_verbose("=========================================================================")
 
--- List of spec files that must be exempted from environment isolation (KO_MULTIUSER)
-local env_exemptions = {
-    ["spec/unit/datastorage_spec.lua"] = true,
-}
-
 -- Collect spec files to execute
 local spec_files = {}
 if test_file then
@@ -174,18 +169,18 @@ local next_spec_idx = 1
 -- Helper to spawn a job with isolated environment
 local function spawn_job(idx)
     local spec_path = spec_files[idx]
-    local multi_user = (not env_exemptions[spec_path]) and "KO_MULTIUSER=1 " or ""
     local luacov_env = ""
     if lua_flags:find("luacov") then
         luacov_env = string.format("LUACOV_STATS_FILE=%q ", lfs.currentdir() .. "/luacov.stats.worker_" .. idx .. ".out")
     end
 
     local worker_config_dir = lfs.currentdir() .. "/worker_" .. idx
+    os.execute("rm -rf " .. string.format("%q", worker_config_dir))
     lfs.mkdir(worker_config_dir)
     local worker_tmp_dir = worker_config_dir .. "/tmp"
     lfs.mkdir(worker_tmp_dir)
 
-    local cmd = string.format("%sTMPDIR=%q %sKO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./lua %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, multi_user, worker_config_dir, lua_flags, spec_path)
+    local cmd = string.format("%sTMPDIR=%q KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./lua %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
     local pipe = io.popen(cmd)
     if pipe then
         active_jobs[idx] = {
@@ -312,8 +307,8 @@ if lua_flags:find("luacov") then
                     merged_data[filename] = filedata
                 end
             end
-            os.remove(wfile)
         end
+        os.remove(wfile)
     end
     stats.save(lfs.currentdir() .. "/luacov.stats.out", merged_data)
     print_verbose("[*] Successfully merged parallel coverage statistics into luacov.stats.out")

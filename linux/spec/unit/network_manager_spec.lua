@@ -702,6 +702,88 @@ describe("network_manager module", function()
     end)
   end)
 
+  describe("Menu tables, Proxy and Power settings", function()
+    local NetworkMgr
+    setup(function()
+      package.loaded["ui/network/manager"] = nil
+      NetworkMgr = require("ui/network/manager")
+    end)
+
+    it("configures HTTP proxy and updates menu table", function()
+      NetworkMgr:setHTTPProxy("http://proxy.example.com:8080")
+      assert.is_equal(
+        "http://proxy.example.com:8080",
+        G_reader_settings:read("http_proxy")
+      )
+      assert.is_true(G_reader_settings:isTrue("http_proxy_enabled"))
+
+      local proxy_menu = NetworkMgr:getProxyMenuTable()
+      assert.is_true(proxy_menu.checked_func())
+      assert.is_truthy(
+        proxy_menu.text_func():find("http://proxy.example.com:8080", 1, true)
+      )
+
+      -- Disable proxy
+      proxy_menu.callback()
+      assert.is_false(G_reader_settings:isTrue("http_proxy_enabled"))
+
+      -- Reset proxy via nil
+      NetworkMgr:setHTTPProxy(nil)
+      assert.is_false(G_reader_settings:isTrue("http_proxy_enabled"))
+    end)
+
+    it("generates power save, restore, and wifi toggle menu tables", function()
+      local powersave = NetworkMgr:getPowersaveMenuTable()
+      assert.is_not_nil(powersave)
+      local initial_val = powersave.checked_func()
+      powersave.callback()
+      assert.is_not_equal(initial_val, powersave.checked_func())
+
+      local restore = NetworkMgr:getRestoreMenuTable()
+      assert.is_not_nil(restore)
+      assert.is_true(restore.enabled_func())
+      local initial_restore = restore.checked_func()
+      restore.callback()
+      assert.is_not_equal(initial_restore, restore.checked_func())
+
+      local toggle = NetworkMgr:getWifiToggleMenuTable()
+      assert.is_not_nil(toggle)
+      assert.is_true(toggle.enabled_func())
+    end)
+
+    it("generates beforeWifiAction and info menu tables", function()
+      local before_action = NetworkMgr:getBeforeWifiActionMenuTable()
+      assert.is_not_nil(before_action)
+      assert.is_truthy(before_action.text_func())
+
+      local orig_isWifiOn = NetworkMgr.isWifiOn
+      local orig_isConnected = NetworkMgr.isConnected
+      NetworkMgr.isWifiOn = function() return false end
+      NetworkMgr.isConnected = function() return false end
+
+      local info_menu = NetworkMgr:getInfoMenuTable()
+      assert.is_not_nil(info_menu)
+      assert.is_false(info_menu.enabled_func())
+
+      NetworkMgr.isWifiOn = function() return true end
+      assert.is_true(info_menu.enabled_func())
+
+      NetworkMgr.isWifiOn = orig_isWifiOn
+      NetworkMgr.isConnected = orig_isConnected
+    end)
+
+    it("wraps callbacks and triggers connection events", function()
+      local ran = false
+      local wrapped = NetworkMgr:wrapCallback(function()
+        ran = true
+      end)
+      stub(NetworkMgr, "queryOnlineState")
+      wrapped()
+      assert.is_true(ran)
+      NetworkMgr.queryOnlineState:revert()
+    end)
+  end)
+
   teardown(function()
     function Device:initNetworkManager() end
     function Device:hasWifiRestore()

@@ -157,4 +157,74 @@ describe("Translator module", function()
       end
     end
   end)
+
+  it("should get source and target languages properly", function()
+    G_reader_settings:save("translator_from_doc_lang", false)
+    G_reader_settings:save("translator_from_auto_detect", false)
+    G_reader_settings:save("translator_from_language", "es")
+    G_reader_settings:save("translator_to_language", "de")
+    assert.are.equal("es", Translator:getSourceLanguage())
+    assert.are.equal("de", Translator:getTargetLanguage())
+
+    G_reader_settings:delete("translator_from_language")
+    G_reader_settings:delete("translator_to_language")
+    G_reader_settings:delete("translator_from_auto_detect")
+    G_reader_settings:delete("translator_from_doc_lang")
+    assert.is_string(Translator:getSourceLanguage())
+    assert.is_string(Translator:getTargetLanguage())
+  end)
+
+  it("should handle _showTranslation with detailed view, alternates, and definitions", function()
+    local UIManager = require("ui/uimanager")
+    local Trapper = require("ui/trapper")
+    local shown_widget = nil
+    local orig_show = UIManager.show
+    UIManager.show = function(self, w)
+      shown_widget = w
+    end
+
+    local mock_result = {
+      [1] = {
+        { "Hello", "Bonjour" },
+      },
+      [3] = "fr",
+      [6] = {
+        { "Bonjour", nil, { { "Hi" }, { "Hello" } } },
+      },
+      [13] = {
+        { "greeting", { { "an expression of greeting", nil, "hello there" } } },
+      },
+    }
+
+    local orig_loadPage = Translator.loadPage
+    Translator.loadPage = function()
+      return mock_result
+    end
+
+    -- Detailed view = true
+    Translator:_showTranslation("Bonjour", true, "fr", "en", false, nil)
+    assert.is_not_nil(shown_widget)
+    if shown_widget and shown_widget.free then
+      shown_widget:free()
+    end
+
+    -- Detailed view = false
+    shown_widget = nil
+    Translator:_showTranslation("Bonjour", false, "fr", "en", false, nil)
+    assert.is_not_nil(shown_widget)
+    if shown_widget and shown_widget.free then
+      shown_widget:free()
+    end
+
+    -- Failure path
+    Translator.loadPage = function()
+      return nil
+    end
+    shown_widget = nil
+    Translator:_showTranslation("Bonjour", false, "fr", "en", false, nil)
+    assert.is_not_nil(shown_widget)
+
+    Translator.loadPage = orig_loadPage
+    UIManager.show = orig_show
+  end)
 end)

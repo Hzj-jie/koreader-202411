@@ -514,5 +514,166 @@ describe("Menu widget", function()
         assert.is_true(min_width > 0)
       end
     )
+
+    it("should handle goto_letter and file search callbacks", function()
+      local searched_file = nil
+      local UIManager = require("ui/uimanager")
+      local orig_broadcast = UIManager.broadcastEvent
+      UIManager.broadcastEvent = function(_, ev)
+        if ev and ev.handler == "onShowFileSearch" then
+          searched_file = ev.args[1]
+        end
+      end
+
+      local items = {
+        { text = "Alpha File", path = "/books/Alpha.epub" },
+        { text = "Beta File", path = "/books/Beta.epub" },
+        { text = "Gamma File", path = "/books/Gamma.epub" },
+      }
+
+      local m = Menu:new({
+        title = "Letter Search",
+        goto_letter = true,
+        item_table = items,
+      })
+
+      local hold_input = m.page_info_text.hold_input
+      assert.truthy(hold_input)
+      assert.truthy(hold_input.buttons)
+
+      -- File search button (row 1, button 1)
+      m.page_info_text.input_dialog = {
+        getInputText = function()
+          return "query_test"
+        end,
+      }
+      m.page_info_text.closeInputDialog = function() end
+
+      local btn_file_search = hold_input.buttons[1][1]
+      btn_file_search.callback()
+      assert.are.equal("query_test", searched_file)
+
+      -- Go to letter button (row 1, button 2)
+      m.page_info_text.input_dialog = {
+        getInputText = function()
+          return "b"
+        end,
+      }
+      local btn_goto_letter = hold_input.buttons[1][2]
+      btn_goto_letter.callback()
+
+      UIManager.broadcastEvent = orig_broadcast
+    end)
+
+    it("should handle chevron pagination callbacks and return arrow", function()
+      local returned = false
+      local hold_returned = false
+
+      local items = {}
+      for i = 1, 50 do
+        table.insert(items, { text = "Item " .. i })
+      end
+
+      local m = Menu:new({
+        title = "Pagination Menu",
+        item_table = items,
+        onReturn = function()
+          returned = true
+        end,
+        onHoldReturn = function()
+          hold_returned = true
+        end,
+      })
+
+      assert.is_true(m.page_num > 1)
+
+      -- Chevrons
+      m.page_info_right_chev.callback()
+      assert.are.equal(2, m.page)
+
+      m.page_info_left_chev.callback()
+      assert.are.equal(1, m.page)
+
+      m.page_info_last_chev.callback()
+      assert.are.equal(m.page_num, m.page)
+
+      m.page_info_first_chev.callback()
+      assert.are.equal(1, m.page)
+
+      -- Return arrow
+      m.page_return_arrow.callback()
+      assert.is_true(returned)
+
+      m.page_return_arrow.hold_callback()
+      assert.is_true(hold_returned)
+    end)
+
+    it("should handle MenuItem onSelect and onHoldSelect", function()
+      local selected_entry = nil
+      local held_entry = nil
+
+      local m = Menu:new({
+        title = "Select Test",
+        item_table = {
+          { text = "Clickable Item", value = 42 },
+        },
+      })
+
+      m.onMenuSelect = function(self, entry, pos)
+        selected_entry = entry
+      end
+      m.onMenuHold = function(self, entry, pos)
+        held_entry = entry
+      end
+
+      local item_widget = m.item_group[1]
+      item_widget[1].dimen = Geom:new({ x = 0, y = 0, w = 100, h = 30 })
+
+      item_widget:onTapSelect(nil, { pos = Geom:new({ x = 10, y = 10 }) })
+      assert.truthy(selected_entry)
+      assert.are.equal(42, selected_entry.value)
+
+      item_widget:onHoldSelect(nil, { pos = Geom:new({ x = 10, y = 10 }) })
+      assert.truthy(held_entry)
+      assert.are.equal(42, held_entry.value)
+    end)
+
+    it("should support switchItemTable and updateItems", function()
+      local m = Menu:new({
+        title = "Original Table",
+        item_table = {
+          { text = "Old 1" },
+          { text = "Old 2" },
+        },
+      })
+
+      local new_table = {
+        { text = "New A" },
+        { text = "New B" },
+        { text = "New C" },
+      }
+
+      m:switchItemTable("New Title", new_table, 1)
+      assert.are.equal("New Title", m.title_bar.title_widget.text)
+      assert.are.equal(3, #m.item_table)
+
+      m:updateItems(2)
+      assert.truthy(m.item_group)
+    end)
+
+    it("should support FM titlebar style and left icon", function()
+      local m = Menu:new({
+        title = "FM Style Menu",
+        title_bar_fm_style = true,
+        title_bar_left_icon = "appbar.menu",
+        subtitle = "Path info",
+        item_table = {
+          { text = "File 1" },
+        },
+      })
+
+      assert.truthy(m.title_bar)
+      assert.is_true(m.title_bar_fm_style)
+    end)
   end)
 end)
