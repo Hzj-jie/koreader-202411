@@ -172,4 +172,53 @@ describe("MathPuzzle Generator module", function()
     assert.is_false(problems[3].is_correct)
     assert.are.equal(8, result_mixed.correct_count)
   end)
+
+  it("should fallback to default mode when mode ID is unknown", function()
+    local fallback_mode = Generator.getModeById("non_existent_mode_xyz")
+    assert.is_table(fallback_mode)
+    assert.are.equal("add_sub_100", fallback_mode.id)
+  end)
+
+  it("should generate valid problems for all registered modes", function()
+    for _, mode in ipairs(Generator.getModes()) do
+      local count = mode.question_count or 10
+      local problems = Generator.generateProblems(mode.id, count)
+      assert.are.equal(count, #problems)
+      for i, prob in ipairs(problems) do
+        assert.are.equal(i, prob.id)
+        assert.is_number(prob.answer)
+        assert.is_string(prob.text)
+        assert.is_false(prob.checked)
+        assert.is_nil(prob.is_correct)
+        assert.are.equal("", prob.user_answer)
+      end
+    end
+  end)
+
+  it("should generate valid problems for mixed_1000 mode", function()
+    local mixed_1000 = Generator.generateProblems("mixed_1000", 20)
+    assert.are.equal(20, #mixed_1000)
+    for _, prob in ipairs(mixed_1000) do
+      assert.is_number(prob.answer)
+      assert.is_string(prob.text)
+    end
+  end)
+
+  it("should handle non-numeric or invalid input gracefully in checkAnswers", function()
+    local problems = Generator.generateProblems("add_sub_100", 4)
+    problems[1].user_answer = "abc"
+    problems[2].user_answer = nil
+    problems[3].user_answer = "12/34"
+    problems[4].user_answer = tostring(problems[4].answer)
+
+    local res = Generator.checkAnswers(problems)
+    assert.are.equal(4, res.total)
+    assert.are.equal(1, res.correct_count)
+    assert.are.equal(3, res.answered_count)
+    assert.is_false(res.all_correct)
+    assert.is_false(problems[1].is_correct)
+    assert.is_false(problems[2].is_correct)
+    assert.is_false(problems[3].is_correct)
+    assert.is_true(problems[4].is_correct)
+  end)
 end)
