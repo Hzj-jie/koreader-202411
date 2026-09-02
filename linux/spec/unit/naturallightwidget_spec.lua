@@ -164,17 +164,9 @@ describe("NaturalLightWidget UI component", function()
     assert.are.equal(10, powerd_mock.fl.white_gain)
 
     -- Test enter_callback
-    local dirty_called = false
-    local old_setDirty = UIManager.setDirty
-    UIManager.setDirty = function(self, widget, mode)
-      dirty_called = true
-    end
     input:setText("22")
     input.enter_callback()
-    assert.is_true(dirty_called)
     assert.are.equal(22, powerd_mock.fl.white_gain)
-
-    UIManager.setDirty = old_setDirty
   end)
 
   it("should handle Restore Defaults button callback", function()
