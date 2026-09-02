@@ -141,6 +141,9 @@ describe("CloudStorage", function()
       info = function(self, _pass)
         self.info_called = true
       end,
+      config = function(self, _item, callback)
+        self.config_callback = callback
+      end,
     }
     package.loaded["apps/cloudstorage/dropbox"] = mock_dropbox
 
@@ -428,6 +431,35 @@ describe("CloudStorage", function()
       err = function() end,
     }
 
+    package.loaded["ui/trapper"] = {
+      wrap = function(self, fn)
+        fn()
+      end,
+      setPausedText = function() end,
+      info = function(self, _msg)
+        return true
+      end,
+      clear = function() end,
+      reset = function() end,
+    }
+
+    package.loaded["ui/downloadmgr"] = {
+      new = function(self, args)
+        return {
+          chooseDir = function(s, dir)
+            if args.onConfirm then
+              args.onConfirm("/confirmed/local/dir")
+            end
+          end,
+          chooseCloudDir = function(s)
+            if args.onConfirm then
+              args.onConfirm("/confirmed/cloud/dir")
+            end
+          end,
+        }
+      end,
+    }
+
     CloudStorage = require("apps/cloudstorage/cloudstorage")
   end)
 
@@ -454,6 +486,8 @@ describe("CloudStorage", function()
     package.loaded["ui/bidi"] = nil
     package.loaded["gettext"] = nil
     package.loaded["logger"] = nil
+    package.loaded["ui/trapper"] = nil
+    package.loaded["ui/downloadmgr"] = nil
     _G.G_reader_settings = nil
     _G.G_named_settings = nil
   end)
@@ -694,6 +728,162 @@ describe("CloudStorage", function()
       if type(cs.onDispatcherRegisterActions) == "function" then
         cs:onDispatcherRegisterActions()
       end
+    end)
+  end)
+
+  describe("Server Configuration & Management", function()
+    it("adds and configures a new server for each type", function()
+      local cs = CloudStorage:new()
+      mock_settings_obj.cs_servers = {}
+
+      -- Dropbox config callback
+      cs:configCloud("dropbox")
+      assert.is_truthy(mock_dropbox.config_callback)
+      mock_dropbox.config_callback({
+        "My Dropbox",
+        "token123",
+        "app_key",
+        "/root",
+      })
+      assert.is_equal(1, #mock_settings_obj.cs_servers)
+      assert.is_equal("My Dropbox", mock_settings_obj.cs_servers[1].name)
+      assert.is_equal("dropbox", mock_settings_obj.cs_servers[1].type)
+
+      -- FTP config callback
+      cs:configCloud("ftp")
+      mock_ftp.config_callback({
+        "My FTP",
+        "ftp.example.com",
+        "user",
+        "pass",
+        "/files",
+      })
+      assert.is_equal(2, #mock_settings_obj.cs_servers)
+      assert.is_equal("My FTP", mock_settings_obj.cs_servers[2].name)
+      assert.is_equal("ftp", mock_settings_obj.cs_servers[2].type)
+
+      -- WebDAV config callback
+      cs:configCloud("webdav")
+      mock_webdav.config_callback({
+        "My WebDAV",
+        "dav.example.com",
+        "user",
+        "pass",
+        "/dav",
+      })
+      assert.is_equal(3, #mock_settings_obj.cs_servers)
+      assert.is_equal("My WebDAV", mock_settings_obj.cs_servers[3].name)
+      assert.is_equal("webdav", mock_settings_obj.cs_servers[3].type)
+    end)
+
+    it("edits an existing server configuration", function()
+      local cs = CloudStorage:new()
+      mock_settings_obj.cs_servers = {
+        {
+          name = "Old Dropbox",
+          type = "dropbox",
+          password = "pass1",
+          address = "key1",
+          url = "/old",
+        },
+      }
+
+      cs:editCloudServer({
+        text = "Old Dropbox",
+        type = "dropbox",
+        password = "pass1",
+      })
+      assert.is_truthy(mock_dropbox.config_callback)
+      mock_dropbox.config_callback(
+        { text = "Old Dropbox", password = "pass1" },
+        { "New Dropbox", "pass2", "key2", "/new" }
+      )
+      assert.is_equal("New Dropbox", mock_settings_obj.cs_servers[1].name)
+      assert.is_equal("pass2", mock_settings_obj.cs_servers[1].password)
+      assert.is_equal("/new", mock_settings_obj.cs_servers[1].url)
+    end)
+
+    it("requests server info for each cloud type", function()
+      local cs = CloudStorage:new()
+      mock_dropbox.info_called = false
+      mock_ftp.info_called = false
+      mock_webdav.info_called = false
+
+      cs:infoServer({ type = "dropbox", password = "token" })
+      assert.is_true(mock_dropbox.info_called)
+
+      cs:infoServer({ type = "ftp", address = "ftp.example.com" })
+      assert.is_true(mock_ftp.info_called)
+
+      cs:infoServer({ type = "webdav", address = "dav.example.com" })
+      assert.is_true(mock_webdav.info_called)
+    end)
+  end)
+
+  describe("Navigation & Path Stack", function()
+    it("manages path traversal with onReturn and onHoldReturn", function()
+      local cs = CloudStorage:new()
+      cs.openCloudServer = function() return true end
+      cs.init = function() end
+      cs.paths = {
+        { url = "/folder1" },
+        { url = "/folder1/folder2" },
+        { url = "/folder1/folder2/folder3" },
+      }
+
+      cs:onReturn()
+      assert.is_equal(2, #cs.paths)
+      assert.is_equal("/folder1/folder2", cs.paths[#cs.paths].url)
+
+      cs:onHoldReturn()
+      assert.is_equal(1, #cs.paths)
+      assert.is_equal("/folder1", cs.paths[1].url)
+
+      cs:onReturn()
+      assert.is_equal(0, #cs.paths)
+    end)
+  end)
+
+  describe("Synchronization & Folder Settings", function()
+    it("updates sync folders in settings", function()
+      local cs = CloudStorage:new()
+      mock_settings_obj.cs_servers = {
+        { name = "SyncServer", type = "dropbox", password = "token" },
+      }
+
+      cs:updateSyncFolder(
+        { text = "SyncServer", type = "dropbox", password = "token" },
+        "/remote/books",
+        "/local/books"
+      )
+      assert.is_equal(
+        "/remote/books",
+        mock_settings_obj.cs_servers[1].sync_source_folder
+      )
+      assert.is_equal(
+        "/local/books",
+        mock_settings_obj.cs_servers[1].sync_dest_folder
+      )
+    end)
+
+    it("synchronizes Dropbox files using Trapper", function()
+      local cs = CloudStorage:new()
+      mock_dropbox.show_files_response = {
+        { text = "book1.epub", size = 1000, url = "/remote/book1.epub" },
+      }
+      mock_lfs.dirs["/local/sync"] = {}
+      mock_lfs.files["/local/sync/book1.epub"] = nil
+
+      local item = {
+        name = "DropboxSync",
+        type = "dropbox",
+        password = "token",
+        sync_source_folder = "/remote",
+        sync_dest_folder = "/local/sync",
+      }
+
+      cs:synchronizeCloud(item)
+      assert.is_true(#mock_uimanager.shown_widgets >= 1)
     end)
   end)
 end)

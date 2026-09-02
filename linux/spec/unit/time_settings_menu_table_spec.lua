@@ -145,4 +145,20 @@ describe("time_settings_menu_table module", function()
     Device.setDateTime = orig_set_dt
     package.loaded["ui/elements/time_settings_menu_table"] = nil
   end)
+
+  it("should handle synchronize time callback when present", function()
+    local custom_menu = require("ui/elements/time_settings_menu_table")
+    local sync_item = nil
+    for _, item in ipairs(custom_menu.sub_item_table) do
+      if item.text == "Synchronize time" then
+        sync_item = item
+        break
+      end
+    end
+    if sync_item and sync_item.callback then
+      assert.has_no.errors(function()
+        sync_item.callback()
+      end)
+    end
+  end)
 end)

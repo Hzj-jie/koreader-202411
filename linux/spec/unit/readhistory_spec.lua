@@ -266,6 +266,7 @@ describe("ReadHistory module", function()
   end)
 
   local function testReduceTotalCount(no_flush)
+    G_reader_settings:save("history_size", 500)
     local function to_file(i)
       return test_file(string.format("%04d", i))
     end
@@ -280,6 +281,7 @@ describe("ReadHistory module", function()
       h:_flush()
     end
 
+    assert.is.same(500, #h.hist)
     for i = 1, 500 do -- at most 500 items are stored
       assert_item_is(h, i, string.format("%04d", i))
     end
@@ -287,6 +289,8 @@ describe("ReadHistory module", function()
     for i = 1, 1000 do
       rm(to_file(i))
     end
+    rm(file("history.lua"))
+    G_reader_settings:delete("history_size")
   end
 
   it("should reduce the total count", function()
@@ -399,12 +403,12 @@ describe("ReadHistory module", function()
     h:addItem(test_file("book2.epub"), now)
 
     -- getPreviousFile
-    local prev = h:getPreviousFile(test_file("book2.epub"))
+    local prev = h:getPreviousFile(realpath(test_file("book2.epub")))
     assert.is_truthy(prev)
     assert.are.equal(realpath(test_file("book1.epub")), prev)
 
     -- getFileByDirectory
-    local found = h:getFileByDirectory(test_data_dir(), false)
+    local found = h:getFileByDirectory(realpath(test_data_dir()), false)
     assert.is_truthy(found)
 
     rm(test_file("book1.epub"))
@@ -420,16 +424,17 @@ describe("ReadHistory module", function()
     h:addItem(test_file("orig2.epub"), now)
 
     -- updateItem
-    h:updateItem(test_file("orig1.epub"), test_file("renamed1.epub"))
-    assert.are.equal(1, h:getIndexByFile(test_file("renamed1.epub")) or 2)
+    local renamed1_path = joinPath(realpath(test_data_dir()), "renamed1.epub")
+    h:updateItem(realpath(test_file("orig1.epub")), renamed1_path)
+    assert.are.equal(1, h:getIndexByFile(renamed1_path) or 2)
 
     -- updateItems
     local file_map = {}
-    file_map[test_file("orig2.epub")] = true
-    h:updateItems(file_map, test_data_dir())
+    file_map[realpath(test_file("orig2.epub"))] = true
+    h:updateItems(file_map, realpath(test_data_dir()))
 
     -- updateItemsByPath
-    h:updateItemsByPath(test_data_dir(), test_data_dir())
+    h:updateItemsByPath(realpath(test_data_dir()), realpath(test_data_dir()))
 
     rm(test_file("orig1.epub"))
     rm(test_file("orig2.epub"))
@@ -444,17 +449,17 @@ describe("ReadHistory module", function()
     h:addItem(test_file("del2.epub"), now)
 
     -- fileSettingsPurged
-    h:fileSettingsPurged(test_file("del1.epub"))
+    h:fileSettingsPurged(realpath(test_file("del1.epub")))
 
     -- removeItems
     local to_del = {}
-    to_del[test_file("del2.epub")] = true
+    to_del[realpath(test_file("del2.epub"))] = true
     h:removeItems(to_del)
 
     -- folderDeleted
     touch(test_file("folder_doc.epub"))
     h:addItem(test_file("folder_doc.epub"), now)
-    h:folderDeleted(test_data_dir())
+    h:folderDeleted(realpath(test_data_dir()))
 
     -- clearMissing
     h:clearMissing()

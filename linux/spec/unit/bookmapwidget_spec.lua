@@ -642,4 +642,84 @@ describe("BookMapWidget widget", function()
       assert.is_true(widget:onExit(false))
     end)
   end)
+
+  describe("RTL mirrored UI layout support", function()
+    local BD
+
+    before_each(function()
+      BD = require("ui/bidi")
+      stub(BD, "mirroredUILayout", function()
+        return true
+      end)
+    end)
+
+    after_each(function()
+      if BD and BD.mirroredUILayout.revert then
+        BD.mirroredUILayout:revert()
+      end
+    end)
+
+    it("should calculate page coordinates correctly in RTL mode for BookMapRow", function()
+      local font_face = Font:getFace("infofont", 14)
+      local row = BookMapRow:new({
+        width = 400,
+        height = 60,
+        left_spacing = 20,
+        span_height = 15,
+        font_face = font_face,
+        start_page_text = "1",
+        start_page = 1,
+        end_page = 20,
+        pages_per_row = 20,
+        cur_page = 10,
+        toc_items = {
+          [1] = {
+            {
+              title = "Chap 1",
+              p_start = 1,
+              p_end = 10,
+              seq_in_level = 1,
+            },
+          },
+        },
+        bookmarked_pages = {},
+        previous_locations = {},
+        extra_symbols_pages = {},
+        hidden_flows = {},
+        read_pages = {},
+        page_texts = {},
+      })
+
+      assert.is_table(row)
+      local x_start = row:getPageX(1)
+      local x_end = row:getPageX(20)
+      local x_start_right = row:getPageX(1, true)
+      local x_middle_right = row:getPageX(10, true)
+      assert.is_number(x_start)
+      assert.is_number(x_end)
+      assert.is_number(x_start_right)
+      assert.is_number(x_middle_right)
+
+      local page_at_x = row:getPageAtX(row.pages_frame_offset_x + 5)
+      assert.is_number(page_at_x)
+
+      local bb = Blitbuffer.new(400, 60)
+      row:paintTo(bb, 0, 0)
+    end)
+
+    it("should paint swipe hints correctly in RTL mode for BookMapWidget", function()
+      local widget = BookMapWidget:new({
+        ui = mock_ui,
+      })
+      local bb = Blitbuffer.new(600, 800)
+      widget:paintTo(bb, 0, 0)
+
+      -- Test last unit in vertical swipe hint
+      widget.toc_depth = widget.max_toc_depth
+      widget.flat_map = false
+      widget.vs_hint_info = nil
+      widget:paintLeftVerticalSwipeHint(bb)
+      widget:paintBottomHorizontalSwipeHint(bb)
+    end)
+  end)
 end)

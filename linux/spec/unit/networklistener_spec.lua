@@ -125,4 +125,113 @@ describe("NetworkListener module", function()
       assert.are.equal("0 / 0", listener:countsOfPendingJobs())
     end
   )
+
+  describe("Wi-Fi Activity Monitoring & Power Management", function()
+    it("checks activity on 5M timer and toggles wifi off on idle", function()
+      local listener = NetworkListener:new()
+      local old_isTrue = G_reader_settings.isTrue
+      local old_isWifiOn = NetworkMgr.isWifiOn
+      local old_toggleWifiOff = NetworkMgr.toggleWifiOff
+
+      local toggled_off = false
+      G_reader_settings.isTrue = function(self, key)
+        return key == "auto_disable_wifi"
+      end
+      NetworkMgr.isWifiOn = function()
+        return true
+      end
+      NetworkMgr.toggleWifiOff = function()
+        toggled_off = true
+      end
+
+      stub(listener, "_getTxPackets").returns(100)
+
+      -- First check records initial packet count
+      listener:onTimesChange_5M()
+      assert.is_false(toggled_off)
+
+      -- Second check with no activity (< margin) triggers toggleWifiOff
+      listener._getTxPackets.returns(105)
+      listener:onTimesChange_5M()
+      assert.is_true(toggled_off)
+
+      listener._getTxPackets:revert()
+      G_reader_settings.isTrue = old_isTrue
+      NetworkMgr.isWifiOn = old_isWifiOn
+      NetworkMgr.toggleWifiOff = old_toggleWifiOff
+    end)
+
+    it("handles onInfoWifiOn when already connected", function()
+      local listener = NetworkListener:new()
+      stub(NetworkMgr, "isConnected").returns(true)
+      stub(NetworkMgr, "getCurrentNetwork").returns({ ssid = "TestWiFi" })
+      stub(UIManager, "show")
+
+      listener:onInfoWifiOn()
+      assert.stub(UIManager.show).was_called()
+
+      -- When SSID is nil
+      NetworkMgr.getCurrentNetwork.returns(nil)
+      listener:onInfoWifiOn()
+      assert.stub(UIManager.show).was_called()
+
+      NetworkMgr.isConnected:revert()
+      NetworkMgr.getCurrentNetwork:revert()
+      UIManager.show:revert()
+    end)
+
+    it("handles onSuspend and onResume", function()
+      local listener = NetworkListener:new()
+      stub(Device, "hasWifiManager").returns(true)
+      stub(NetworkMgr, "toggleWifiOff")
+
+      listener:onSuspend()
+      assert.stub(NetworkMgr.toggleWifiOff).was_called()
+
+      Device.hasWifiManager:revert()
+      NetworkMgr.toggleWifiOff:revert()
+    end)
+
+    it("handles onShowNetworkInfo for various network states", function()
+      local listener = NetworkListener:new()
+      stub(UIManager, "show")
+
+      -- 1. Wi-Fi off
+      stub(NetworkMgr, "isWifiOn").returns(false)
+      listener:onShowNetworkInfo()
+      assert.stub(UIManager.show).was_called()
+      NetworkMgr.isWifiOn:revert()
+
+      -- 2. Wi-Fi on, but disconnected -> calls reconnect
+      stub(NetworkMgr, "isWifiOn").returns(true)
+      stub(NetworkMgr, "isConnected").returns(false)
+      stub(NetworkMgr, "reconnect")
+      listener:onShowNetworkInfo()
+      assert.stub(NetworkMgr.reconnect).was_called()
+      NetworkMgr.reconnect:revert()
+
+      -- 3. Connected with retrieveNetworkInfo available
+      NetworkMgr.isConnected.returns(true)
+      stub(Device, "retrieveNetworkInfo").returns({ "IP: 192.168.1.50" })
+      stub(NetworkMgr, "queryOnlineState")
+      stub(NetworkMgr, "isOnline").returns(true)
+      stub(UIManager, "runWith").invokes(function(a, b)
+        local callback = type(a) == "function" and a or b
+        if callback then
+          callback()
+        end
+      end)
+
+      listener:onShowNetworkInfo()
+      assert.stub(UIManager.show).was_called()
+
+      NetworkMgr.isWifiOn:revert()
+      NetworkMgr.isConnected:revert()
+      Device.retrieveNetworkInfo:revert()
+      NetworkMgr.queryOnlineState:revert()
+      NetworkMgr.isOnline:revert()
+      UIManager.runWith:revert()
+      UIManager.show:revert()
+    end)
+  end)
 end)
