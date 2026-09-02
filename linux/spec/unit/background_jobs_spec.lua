@@ -168,10 +168,11 @@ describe("background_jobs", function()
       end)
     end)
 
-    it("should raise error if key cannot be determined or is not a string", function()
+    it("should raise error if custom key is provided", function()
       assert.has_error(function()
         background_jobs.insertKeyed({
-          executable = 12345, -- not a string or function, no key or action
+          key = "custom-key",
+          executable = "echo 1",
         })
       end)
       assert.has_error(function()
@@ -182,23 +183,32 @@ describe("background_jobs", function()
       end)
     end)
 
+    it("should raise error if key cannot be determined or is not a string", function()
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          executable = 12345, -- not a string or function, no action
+        })
+      end)
+    end)
+
     it(
-      "should insert job, set when to asap, and track key when key is explicitly provided",
+      "should insert job, set when to asap, and track key when job is inserted",
       function()
         local callback_called = false
+        local function action_fn()
+          return true
+        end
         local res = background_jobs.insertKeyed({
           executable = "fork",
-          key = "test-explicit-key",
-          action = function()
-            return true
-          end,
+          action = action_fn,
           callback = function(job)
             callback_called = true
           end,
         })
 
+        local expected_key = require("util").functionFingerprint(action_fn)
         assert.is_true(res)
-        assert.is_true(background_jobs.hasKey("test-explicit-key"))
+        assert.is_true(background_jobs.hasKey(expected_key))
         assert.are.equal(4, #mock_pluginshare.backgroundJobs)
         assert.are.equal("asap", mock_pluginshare.backgroundJobs[4].when)
 
@@ -207,26 +217,18 @@ describe("background_jobs", function()
         job.callback({ result = true })
 
         assert.is_true(callback_called)
-        assert.is_false(background_jobs.hasKey("test-explicit-key"))
+        assert.is_false(background_jobs.hasKey(expected_key))
       end
     )
 
     it(
-      "should filter out duplicate job with same key while first is active",
+      "should filter out duplicate job while first is active",
       function()
         local res1 = background_jobs.insertKeyed({
-          executable = "fork",
-          key = "duplicate-key",
-          action = function()
-            return 1
-          end,
+          executable = "sync-command",
         })
         local res2 = background_jobs.insertKeyed({
-          executable = "fork",
-          key = "duplicate-key",
-          action = function()
-            return 2
-          end,
+          executable = "sync-command",
         })
 
         assert.is_true(res1)
@@ -236,25 +238,17 @@ describe("background_jobs", function()
     )
 
     it(
-      "should allow inserting new job with same key after previous finishes",
+      "should allow inserting new job with same executable after previous finishes",
       function()
         background_jobs.insertKeyed({
-          executable = "fork",
-          key = "reuse-key",
-          action = function()
-            return "first"
-          end,
+          executable = "reuse-command",
         })
 
         local job1 = mock_pluginshare.backgroundJobs[4]
         job1.callback({ result = "first" })
 
         local res2 = background_jobs.insertKeyed({
-          executable = "fork",
-          key = "reuse-key",
-          action = function()
-            return "second"
-          end,
+          executable = "reuse-command",
         })
 
         assert.is_true(res2)
@@ -385,17 +379,16 @@ describe("background_jobs", function()
       "should handle job without callback and release key on completion",
       function()
         local res = background_jobs.insertKeyed({
-          key = "no-callback-job",
           executable = "echo 1",
         })
         assert.is_true(res)
-        assert.is_true(background_jobs.hasKey("no-callback-job"))
+        assert.is_true(background_jobs.hasKey("echo 1"))
 
         local job = mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
         assert.is_function(job.callback)
         job.callback({ result = 0 })
 
-        assert.is_false(background_jobs.hasKey("no-callback-job"))
+        assert.is_false(background_jobs.hasKey("echo 1"))
       end
     )
 
@@ -403,28 +396,26 @@ describe("background_jobs", function()
       "should track multiple concurrent keys independently",
       function()
         local res1 = background_jobs.insertKeyed({
-          key = "job-alpha",
           executable = "echo alpha",
         })
         local res2 = background_jobs.insertKeyed({
-          key = "job-beta",
           executable = "echo beta",
         })
 
         assert.is_true(res1)
         assert.is_true(res2)
-        assert.is_true(background_jobs.hasKey("job-alpha"))
-        assert.is_true(background_jobs.hasKey("job-beta"))
+        assert.is_true(background_jobs.hasKey("echo alpha"))
+        assert.is_true(background_jobs.hasKey("echo beta"))
 
         local job1 = mock_pluginshare.backgroundJobs[4]
         local job2 = mock_pluginshare.backgroundJobs[5]
 
         job1.callback({ result = 1 })
-        assert.is_false(background_jobs.hasKey("job-alpha"))
-        assert.is_true(background_jobs.hasKey("job-beta"))
+        assert.is_false(background_jobs.hasKey("echo alpha"))
+        assert.is_true(background_jobs.hasKey("echo beta"))
 
         job2.callback({ result = 2 })
-        assert.is_false(background_jobs.hasKey("job-beta"))
+        assert.is_false(background_jobs.hasKey("echo beta"))
       end
     )
   end)
