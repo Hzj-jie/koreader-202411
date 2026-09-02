@@ -16,9 +16,6 @@ function BackgroundJobs.clearKeys()
 end
 
 local function calculateKey(job)
-  if job.key ~= nil then
-    return job.key
-  end
   local util = require("util")
   if job.executable == "fork" then
     if type(job.action) == "function" then
@@ -37,6 +34,7 @@ end
 
 function BackgroundJobs.insertKeyed(job)
   assert(type(job) == "table", "BackgroundJobs.insertKeyed expects a table")
+  assert(job.key == nil, "BackgroundJobs.insertKeyed does not support custom key")
   assert(job.repeated == nil, "BackgroundJobs.insertKeyed does not support repeated jobs")
   assert(job.when == nil, "BackgroundJobs.insertKeyed does not support custom when")
 
