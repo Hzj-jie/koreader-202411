@@ -638,4 +638,133 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:close(plugin.screen)
     end
   )
+
+  it("should limit input digit length to 6 characters", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen:selectField(1)
+    for _ = 1, 10 do
+      screen:inputDigit("8")
+    end
+    assert.are.equal("888888", screen.problems[1].user_answer)
+    assert.are.equal(6, #screen.problems[1].user_answer)
+
+    UIManager:close(screen)
+  end)
+
+  it("should wrap around field navigation with nextField and prevField", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    assert.are.equal(1, screen.focused_idx)
+
+    screen:prevField()
+    assert.are.equal(10, screen.focused_idx)
+
+    screen:nextField()
+    assert.are.equal(1, screen.focused_idx)
+
+    screen:selectField(5)
+    screen:onFieldEnter(nil)
+    assert.are.equal(6, screen.focused_idx)
+
+    UIManager:close(screen)
+  end)
+
+  it("should filter non-digit characters in onTextInput", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen:selectField(1)
+    assert.is_false(screen:onTextInput("abc"))
+    assert.is_false(screen:onTextInput("+"))
+    assert.is_false(screen:onTextInput(" "))
+    assert.are.equal("", screen.problems[1].user_answer)
+
+    assert.is_true(screen:onTextInput("7"))
+    assert.are.equal("7", screen.problems[1].user_answer)
+
+    UIManager:close(screen)
+  end)
+
+  it("should handle navigation and deletion keys via onKeyPress and onKeyRepeat", function()
+    local screen = createScreen(nil, "add_sub_100", 10)
+    UIManager:show(screen)
+
+    screen:selectField(1)
+    screen:inputDigit("1")
+    screen:inputDigit("2")
+
+    assert.is_true(screen:onKeyPress("Delete"))
+    assert.are.equal("1", screen.problems[1].user_answer)
+
+    assert.is_true(screen:onKeyRepeat("BackSpace"))
+    assert.are.equal("", screen.problems[1].user_answer)
+
+    assert.is_true(screen:onKeyPress("Tab"))
+    assert.are.equal(2, screen.focused_idx)
+
+    assert.is_true(screen:onKeyPress({ key = "Right" }))
+    assert.are.equal(3, screen.focused_idx)
+
+    assert.is_true(screen:onKeyPress({ key = "Left" }))
+    assert.are.equal(2, screen.focused_idx)
+
+    assert.is_true(screen:onKeyPress({ key = "Up" }))
+    assert.are.equal(1, screen.focused_idx)
+
+    assert.is_true(screen:onKeyPress({ key = "Down" }))
+    assert.are.equal(2, screen.focused_idx)
+
+    assert.is_true(screen:onKeyPress({ key = "Return" }))
+    assert.are.equal(3, screen.focused_idx)
+
+    assert.is_true(screen:onKeyPress({ key = "KP_Enter" }))
+    assert.are.equal(4, screen.focused_idx)
+
+    UIManager:close(screen)
+  end)
+
+  it("should reset plugin screen and session start time on onClose", function()
+    local plugin = createMockPlugin()
+    plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+
+    assert.is_not_nil(plugin.screen)
+    assert.is_not_nil(plugin.session_start_time)
+
+    local screen = plugin.screen
+    screen:onClose()
+    assert.is_nil(plugin.screen)
+    assert.is_nil(plugin.session_start_time)
+
+    UIManager:close(screen)
+  end)
+
+  it("should trigger mode switch callback when selected from showModeSelection", function()
+    local plugin = createMockPlugin()
+    plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+
+    local menu = plugin:showModeSelection(plugin.screen)
+    assert.is_table(menu)
+    assert.is_table(menu.item_table)
+
+    -- Select 3-Term Mental Math (item 12)
+    local target_item
+    for _, item in ipairs(menu.item_table) do
+      if item.text == Generator.getModeById("three_term_100").title then
+        target_item = item
+        break
+      end
+    end
+    assert.is_not_nil(target_item)
+    target_item.callback()
+
+    assert.are.equal("three_term_100", plugin.active_mode)
+    assert.are.equal("three_term_100", plugin.screen.mode.id)
+    assert.are.equal(5, #plugin.screen.problems)
+
+    UIManager:close(menu)
+    UIManager:close(plugin.screen)
+  end)
 end)
