@@ -185,6 +185,20 @@ describe("ReaderThumbnail module", function()
       thumb_pdf:onShowPageBrowser()
       assert.are.equal(3, #shown_widgets)
 
+      local dirty_called = 0
+      local orig_setDirty = readerui_pdf.setDirty
+      readerui_pdf.setDirty = function(self, widget, mode)
+        dirty_called = dirty_called + 1
+      end
+
+      for _, w in ipairs(shown_widgets) do
+        if w.on_root_exit then
+          w.on_root_exit()
+        end
+      end
+      assert.are.equal(3, dirty_called)
+      readerui_pdf.setDirty = orig_setDirty
+
       local menu_items = {}
       thumb_pdf:addToMainMenu(menu_items)
       if menu_items.book_map.callback then

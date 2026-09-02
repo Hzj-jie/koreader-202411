@@ -502,6 +502,39 @@ describe("Readersearch module", function()
 
       search:uimanagedCleanUp()
     end)
+
+    it("should handle search dialog tap_close_callback and dirty UI update", function()
+      local highlight_cleared = false
+      local orig_clear = search.ui.highlight.clear
+      search.ui.highlight.clear = function(self)
+        highlight_cleared = true
+      end
+
+      local dirty_called = false
+      local orig_setDirty = UIManager.setDirty
+      UIManager.setDirty = function(self, target, mode)
+        dirty_called = true
+        return orig_setDirty(self, target, mode)
+      end
+
+      search:onShowFulltextSearchInput("Sample")
+      search.check_button_regex = { checked = false }
+      search.check_button_case = { checked = false }
+
+      -- Trigger forward search button callback
+      local fwd_btn = search.input_dialog.buttons[1][4]
+      fwd_btn.callback()
+
+      if search.search_dialog and search.search_dialog.tap_close_callback then
+        search.search_dialog.tap_close_callback()
+        assert.is_true(highlight_cleared)
+        assert.is_true(dirty_called)
+      end
+
+      search.ui.highlight.clear = orig_clear
+      UIManager.setDirty = orig_setDirty
+      search:uimanagedCleanUp()
+    end)
   end)
 end)
 

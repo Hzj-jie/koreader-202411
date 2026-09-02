@@ -238,6 +238,38 @@ describe("ReaderCoptListener module", function()
       listener:onConfigChange("font_size", 20)
       listener:onConfigChange("font_size", 2)
     end)
+
+    it("should handle headerRefresh and updatePageInfoOverride with page and scroll view_modes", function()
+      local listener = createMockListener()
+      listener.document.configurable.status_line = 0
+      listener.ui.view.view_mode = "page"
+      listener.clock = 1
+      listener.battery = 1
+
+      local header_updated = false
+      listener._updateHeader = function()
+        header_updated = true
+      end
+
+      -- _headerRefresh in page mode with clock
+      listener:_headerRefresh()
+      assert.is_true(header_updated)
+
+      -- _headerRefresh in scroll mode
+      header_updated = false
+      listener.ui.view.view_mode = "scroll"
+      listener:_headerRefresh()
+      assert.is_false(header_updated)
+
+      -- updatePageInfoOverride in scroll mode (resets override)
+      listener:updatePageInfoOverride(5)
+
+      -- updatePageInfoOverride in page mode with header content
+      listener.ui.view.view_mode = "page"
+      listener:addAdditionalHeaderContent(function() return "EXTRA" end)
+      listener.page_info_override = function() return true end
+      listener:updatePageInfoOverride(5)
+    end)
   end)
 end)
 

@@ -964,5 +964,37 @@ describe("BookMapWidget widget", function()
       widget:paintLeftVerticalSwipeHint(bb)
       widget:paintBottomHorizontalSwipeHint(bb)
     end)
+
+    it("should instantiate PageBrowserWidget with on_exit and on_update callbacks on page tap", function()
+      G_reader_settings:save("book_map_tap_to_page_browser", true)
+      local widget = BookMapWidget:new({
+        ui = mock_ui,
+      })
+      make_mock_window(widget)
+      local shown_subwidget
+      widget.showWidget = function(self, w)
+        shown_subwidget = w
+      end
+      local exited_parents, updated_editable
+      widget.onExit = function(self, close_all)
+        exited_parents = close_all
+      end
+      widget.updateEditableStuff = function(self, param)
+        updated_editable = param
+      end
+
+      local tap_y = widget.title_bar_h + 50
+      local res = widget:onTap(nil, { pos = Geom:new({ x = 200, y = tap_y }) })
+      assert.is_true(res)
+      assert.is_not_nil(shown_subwidget)
+      assert.is_function(shown_subwidget.on_exit)
+      assert.is_function(shown_subwidget.on_update)
+
+      shown_subwidget.on_exit(true)
+      assert.is_true(exited_parents)
+
+      shown_subwidget.on_update()
+      assert.is_true(updated_editable)
+    end)
   end)
 end)

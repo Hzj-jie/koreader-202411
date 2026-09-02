@@ -142,6 +142,22 @@ describe("ReaderZooming module", function()
     zooming:onSaveSettings()
     zooming:onReadSettings(readerui.doc_settings)
 
+    -- Test oversized bbox triggering onBBoxUpdate(nil)
+    local bbox_updated = false
+    readerui.view.onBBoxUpdate = function(self, bbox)
+      if bbox == nil then
+        bbox_updated = true
+      end
+    end
+    local orig_getUsedBBox = readerui.document.getUsedBBoxDimensions
+    readerui.document.getUsedBBoxDimensions = function()
+      return { x = 0, y = 0, w = 99999, h = 99999 }
+    end
+    zooming:setZoomMode("contentwidth")
+    zooming:getZoom(1)
+    assert.is_true(bbox_updated)
+    readerui.document.getUsedBBoxDimensions = orig_getUsedBBox
+
     readerui:onExit()
     readerui:onClose()
   end)
