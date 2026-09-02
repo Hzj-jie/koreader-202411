@@ -564,6 +564,7 @@ describe("device module", function()
     end)
 
     describe("getTmpDir()", function()
+      local Device = require("device/generic/device")
       it("returns tmp directory string", function()
         local tmp_dir = Device:getTmpDir()
         assert.is_string(tmp_dir)
