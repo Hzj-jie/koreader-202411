@@ -34,9 +34,24 @@ describe("Background Sync Behavior", function()
       json.encode({ url = "http://mock-server", type = "webdav" })
     )
 
+    local Device = require("device")
+    local old_hasWifiToggle = Device.hasWifiToggle
+    Device.hasWifiToggle = function() return true end
+    package.loaded["ui/network/networklistener"] = nil
+    local NetworkListener = require("ui/network/networklistener")
+    Device.hasWifiToggle = old_hasWifiToggle
+
     readerui, plugin_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",
       AnnotationSyncPlugin
+    )
+    readerui:registerModule(
+      "networklistener",
+      NetworkListener:new({
+        document = readerui.document,
+        view = readerui.view,
+        ui = readerui,
+      })
     )
     sync_manager = plugin_instance.manager
   end)
@@ -60,6 +75,8 @@ describe("Background Sync Behavior", function()
     os.remove(sync_manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
     require("background_jobs").clearKeys()
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do jobs[k] = nil end
     plugin_instance.settings.network_auto_sync = true
   end)
 
@@ -69,27 +86,43 @@ describe("Background Sync Behavior", function()
       local NetworkListener = require("ui/network/networklistener")
       local old_isConn = NetworkMgr.isConnected
       local old_isOnline = NetworkMgr.isOnline
+      local old_runOnline = NetworkMgr.runWhenOnline
       NetworkMgr.isConnected = function()
         return false
       end
       NetworkMgr.isOnline = function()
         return false
       end
+      NetworkMgr.runWhenOnline = function(self, callback)
+        if self:willRerunWhenOnline(callback) then
+          return false
+        end
+        return true
+      end
 
-      sync_manager:addToChangedDocumentsFile(readerui.document.file)
-      local jobs = require("pluginshare").backgroundJobs
-      local initial_count = #jobs
+      local ok, err = pcall(function()
+        sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
 
-      sync_manager:syncPendingDocumentsBg()
+        sync_manager:syncPendingDocumentsBg()
 
-      -- No background runner job queued directly
-      assert.is_equal(initial_count, #jobs)
-      -- But queued in NetworkListener for when online
-      assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+        -- No background runner job queued directly
+        assert.is_equal(initial_count, #jobs)
+        -- But queued in NetworkListener for when online
+        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+
+        NetworkListener:onNetworkOnline()
+        fastforward_ui_events()
+      end)
 
       NetworkMgr.isConnected = old_isConn
       NetworkMgr.isOnline = old_isOnline
-      NetworkListener:onNetworkOnline()
+      NetworkMgr.runWhenOnline = old_runOnline
+
+      if not ok then
+        error(err)
+      end
     end)
 
     it("skips background sync when changed_documents is empty", function()
@@ -196,7 +229,8 @@ describe("Background Sync Behavior", function()
       "queues distinct fork jobs for multiple changed documents",
       function()
         local doc1 = readerui.document.file
-        local doc2 = "spec/front/unit/data/leaves.epub"
+        local doc2 = test_data_dir .. "/doc2.epub"
+        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
         sync_manager:addToChangedDocumentsFile(doc1)
         sync_manager:addToChangedDocumentsFile(doc2)
 
@@ -317,7 +351,8 @@ describe("Background Sync Behavior", function()
     it(
       "does not alter active ReaderUI annotations for unrelated inactive synced documents",
       function()
-        local inactive_doc = "spec/front/unit/data/leaves.epub"
+        local inactive_doc = test_data_dir .. "/doc2.epub"
+        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", inactive_doc)
         sync_manager:addToChangedDocumentsFile(inactive_doc)
         sync_manager:syncPendingDocumentsBg()
 

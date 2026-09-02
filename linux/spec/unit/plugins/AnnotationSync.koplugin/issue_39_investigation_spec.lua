@@ -131,18 +131,18 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       restored_ann.datetime_updated = "2026-01-01 13:00:00"
       restored_ann.datetime = "2026-01-01 13:00:00"
 
-      local sdr_dir =
-        require("frontend/docsettings"):getSidecarDir(readerui.document.file)
+      local Device = require("device")
+      local tmp_dir = Device:getTmpDir()
       local filename =
         sync_instance.manager:_getAnnotationFilename(readerui.document.file)
-      local local_path = sdr_dir .. "/" .. filename
+      local local_path = tmp_dir .. "/" .. filename
       local sync_path = local_path .. ".sync"
 
       -- IMPORTANT: sync_callback reads from DISK, so we must flush the mock timestamp to JSON
       annotations_mod.write_annotations_json(
         readerui.document,
         { restored_ann },
-        sdr_dir,
+        tmp_dir,
         filename
       )
 
@@ -205,11 +205,11 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     assert.is_equal(1, #readerui.annotation.annotations)
 
     -- 3. Verify sidecar JSON on disk
-    local sdr_dir =
-      require("frontend/docsettings"):getSidecarDir(readerui.document.file)
+    local Device = require("device")
+    local tmp_dir = Device:getTmpDir()
     local filename =
       sync_instance.manager:_getAnnotationFilename(readerui.document.file)
-    local json_path = sdr_dir .. "/" .. filename
+    local json_path = tmp_dir .. "/" .. filename
 
     local f = io.open(json_path, "r")
     local disk_map = json.decode(f:read("*a"))
@@ -227,14 +227,14 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     -- 1. Setup a deleted annotation
     local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
     ann.deleted = true
-    local sdr_dir =
-      require("frontend/docsettings"):getSidecarDir(readerui.document.file)
+    local Device = require("device")
+    local tmp_dir = Device:getTmpDir()
     local filename =
       sync_instance.manager:_getAnnotationFilename(readerui.document.file)
     annotations_mod.write_annotations_json(
       readerui.document,
       { ann },
-      sdr_dir,
+      tmp_dir,
       filename
     )
 

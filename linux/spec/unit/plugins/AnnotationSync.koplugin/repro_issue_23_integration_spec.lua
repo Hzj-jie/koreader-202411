@@ -96,11 +96,11 @@ describe("AnnotationSync Issue 23 Integration Reproduction", function()
       assert.is_equal("Remote Note", readerui.annotation.annotations[1].text)
 
       -- Check the actual JSON file written back to disk
-      local sdr_dir =
-        require("frontend/docsettings"):getSidecarDir(readerui.document.file)
+      local Device = require("device")
+      local tmp_dir = Device:getTmpDir()
       local filename =
         sync_instance.manager:_getAnnotationFilename(readerui.document.file)
-      local json_path = sdr_dir .. "/" .. filename
+      local json_path = tmp_dir .. "/" .. filename
 
       local f = io.open(json_path, "r")
       local saved_data = json.decode(f:read("*all"))

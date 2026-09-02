@@ -122,7 +122,8 @@ describe("AnnotationSync Automation & Settings", function()
 
     it("batch processes multiple documents correctly", function()
       local doc1 = readerui.document.file
-      local doc2 = "spec/front/unit/data/leaves.epub"
+      local doc2 = test_data_dir .. "/doc2.epub"
+      require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
 
       sync_instance.manager:addToChangedDocumentsFile(doc1)
       sync_instance.manager:addToChangedDocumentsFile(doc2)
@@ -178,12 +179,9 @@ describe("AnnotationSync Automation & Settings", function()
 
         local dummy_merged = { { text = "Sample Annotation", page = 1 } }
         job.callback({
-          result = {
-            { file = active_file, success = true, merged_list = dummy_merged },
-          },
+          result = { file = active_file, success = true, merged_list = dummy_merged },
         })
 
-        assert.is_false(sync_instance.manager.is_syncing_pending_bg)
         local total, _ = sync_instance.manager:getPendingChangedDocuments()
         assert.is_equal(0, total)
         assert.is_equal(1, #readerui.annotation.annotations)

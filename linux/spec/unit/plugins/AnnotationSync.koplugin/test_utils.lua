@@ -98,9 +98,9 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
   for _, file in ipairs(files) do
     local reg = DocumentRegistry.registry[file]
     if reg and reg.doc and reg.doc.is_open then
-      while DocumentRegistry.registry[file] do
+      pcall(function()
         reg.doc:close()
-      end
+      end)
     end
   end
   DocumentRegistry.registry = {}
@@ -302,7 +302,7 @@ function M.mock_sync_service(SyncService)
       caller_pre_callback
     )
       print("MOCK cloudstorage.sync called! file_path:", file_path)
-      return SyncService.sync(server, file_path, sync_cb)
+      return SyncService.sync(server, file_path, sync_cb, is_silent)
     end
   end
 
