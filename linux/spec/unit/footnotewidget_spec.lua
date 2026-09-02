@@ -67,10 +67,25 @@ describe("FootnoteWidget", function()
     G_reader_settings:save("footnote_popup_absolute_font_size", nil)
   end)
 
+  it("should subtract VerticalScrollBar.SAFETY_MARGIN from doc_margins.right on init", function()
+    local VerticalScrollBar = require("ui/widget/verticalscrollbar")
+    local custom_right = 40
+    local widget = FootnoteWidget:new({
+      html = "<p>Test footnote with custom doc margins</p>",
+      doc_margins = { left = 10, right = custom_right, top = 5, bottom = 5 },
+    })
+    local expected_right = custom_right - Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
+    assert.are.equal(expected_right, widget.doc_margins.right)
+    assert.are.equal(10, widget.doc_margins.left)
+    assert.are.equal(5, widget.doc_margins.top)
+    assert.are.equal(5, widget.doc_margins.bottom)
+  end)
+
   it("should handle onShow and onClose dirty regions", function()
     local widget = FootnoteWidget:new({
       html = "<p>Sample</p>",
     })
+    UIManager:show(widget)
 
     local dirty_widget, dirty_func
     local orig_setDirty = UIManager.setDirty
@@ -90,6 +105,7 @@ describe("FootnoteWidget", function()
     assert.are.equal("partial", mode_c)
 
     UIManager.setDirty = orig_setDirty
+    UIManager:close(widget)
   end)
 
   it("should handle close and follow callbacks", function()

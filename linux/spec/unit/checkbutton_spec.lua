@@ -241,4 +241,39 @@ describe("CheckButton widget", function()
     assert.is_false(cb:onFocus())
     assert.is_false(cb:onUnfocus())
   end)
+
+  it("should toggle checked state and invoke setDirty via toggleCheck, enable, and disable", function()
+    local dirty_calls = 0
+    local cb = CheckButton:new({
+      text = "Toggle Test",
+      checked = false,
+      parent = mockParent(200),
+    })
+    UIManager:show(cb)
+
+    local orig_setDirty = UIManager.setDirty
+    UIManager.setDirty = function(self, w, f)
+      dirty_calls = dirty_calls + 1
+      if type(f) == "function" then
+        local mode, dimen = f()
+        assert.are.equal("ui", mode)
+      end
+    end
+
+    cb:toggleCheck()
+    assert.is_true(cb.checked)
+    assert.is_true(dirty_calls >= 1)
+
+    cb:toggleCheck()
+    assert.is_false(cb.checked)
+
+    cb:disable()
+    assert.is_false(cb.enabled)
+
+    cb:enable()
+    assert.is_true(cb.enabled)
+
+    UIManager.setDirty = orig_setDirty
+    UIManager:close(cb)
+  end)
 end)

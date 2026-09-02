@@ -369,6 +369,8 @@ describe("Button widget", function()
 
     -- painted button
     b[1].dimen = Geom:new({ x = 0, y = 0, w = 100, h = 40 })
+    UIManager:show(b)
+
     local dirty_widget, dirty_mode
     local old_setDirty = UIManager.setDirty
     UIManager.setDirty = function(self, w, mode)
@@ -377,7 +379,7 @@ describe("Button widget", function()
     end
 
     b:refresh()
-    assert.are.equal(b[1], dirty_widget)
+    assert.are.equal(b, dirty_widget)
     assert.are.equal("fast", dirty_mode)
 
     b:disable()
@@ -385,5 +387,6 @@ describe("Button widget", function()
     assert.are.equal("ui", dirty_mode)
 
     UIManager.setDirty = old_setDirty
+    UIManager:close(b)
   end)
 end)
