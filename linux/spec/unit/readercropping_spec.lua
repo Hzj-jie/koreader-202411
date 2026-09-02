@@ -131,6 +131,17 @@ describe("ReaderCropping module", function()
     cropping:onPageCrop("semi-auto")
     cropping:onCancelPageCrop()
 
+    -- Test onPageCrop with reflow mode text_wrap == 1
+    local recalculated = false
+    readerui.view.recalculate = function()
+      recalculated = true
+    end
+    readerui.document.configurable.text_wrap = 1
+    cropping:onPageCrop("semi-auto")
+    assert.is_true(recalculated)
+    assert.are.equal(0, readerui.document.configurable.text_wrap)
+    cropping:onCancelPageCrop()
+
     readerui:onExit()
     readerui:onClose()
   end)
