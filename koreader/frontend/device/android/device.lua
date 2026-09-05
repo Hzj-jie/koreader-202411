@@ -667,6 +667,22 @@ function Device:getDefaultCoverPath()
   end
 end
 
+function Device:getTmpDir()
+  if self.tmp_dir then
+    return self.tmp_dir
+  end
+  local tmp = self:_getTmpDir()
+  if not tmp then
+    local datadir_tmp = require("datastorage"):getDataDir() .. "/tmp"
+    if util.isDirRW(datadir_tmp, true) then
+      tmp = datadir_tmp
+    end
+  end
+  self.tmp_dir = tmp
+  assert(self.tmp_dir, "No temporary directory found")
+  return self.tmp_dir
+end
+
 android.LOGI(
   string.format(
     "Android %s - %s (API %d) - flavor: %s",
