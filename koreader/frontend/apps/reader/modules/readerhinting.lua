@@ -11,16 +11,16 @@ function ReaderHinting:init()
 end
 
 function ReaderHinting:onHintPage()
-  if not self.view.hinting then
+  if not self.ui.view.hinting then
     return true
   end
   for i = 1, DHINTCOUNT do
-    if self.view.state.page + i <= self.document.info.number_of_pages then
+    if self.ui.view.state.page + i <= self.document.info.number_of_pages then
       self.document:hintPage(
-        self.view.state.page + i,
-        self.zoom:getZoom(self.view.state.page + i),
-        self.view.state.rotation,
-        self.view.state.gamma
+        self.ui.view.state.page + i,
+        self.zoom:getZoom(self.ui.view.state.page + i),
+        self.ui.view.state.rotation,
+        self.ui.view.state.gamma
       )
     end
   end
@@ -28,17 +28,17 @@ function ReaderHinting:onHintPage()
 end
 
 function ReaderHinting:onSetHinting(hinting)
-  self.view.hinting = hinting
+  self.ui.view.hinting = hinting
 end
 
 function ReaderHinting:onDisableHinting()
-  table.insert(self.hinting_states, self.view.hinting)
-  self.view.hinting = false
+  table.insert(self.hinting_states, self.ui.view.hinting)
+  self.ui.view.hinting = false
   return true
 end
 
 function ReaderHinting:onRestoreHinting()
-  self.view.hinting = table.remove(self.hinting_states)
+  self.ui.view.hinting = table.remove(self.hinting_states)
   return true
 end
 

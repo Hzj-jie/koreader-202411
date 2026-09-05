@@ -56,9 +56,9 @@ ReaderPanning.onPhysicalKeyboardConnected = ReaderPanning.registerKeyEvents
 function ReaderPanning:onPanning(args, _)
   local dx, dy = unpack(args)
   -- for now, bounds checking/calculation is done in the view
-  self.view:PanningUpdate(
-    dx * self.panning_steps.normal * self.view.visible_area.w * (1 / 100),
-    dy * self.panning_steps.normal * self.view.visible_area.h * (1 / 100)
+  self.ui.view:PanningUpdate(
+    dx * self.panning_steps.normal * self.ui.view.visible_area.w * (1 / 100),
+    dy * self.panning_steps.normal * self.ui.view.visible_area.h * (1 / 100)
   )
   return true
 end

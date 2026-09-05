@@ -760,7 +760,7 @@ function ReaderToc:expandParentNode(index)
 end
 
 function ReaderToc:onShowToc()
-  if self.view:shouldInvertBiDiLayoutMirroring() then
+  if self.ui.view:shouldInvertBiDiLayoutMirroring() then
     BD.invert()
   end
 
@@ -1175,7 +1175,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
               self.ui.document:buildAlternativeToc()
               self.ui.doc_settings:makeTrue("alternative_toc")
               self:onShowToc()
-              self.view.footer:setTocMarkers(true)
+              self.ui.view.footer:setTocMarkers(true)
               UIManager:broadcastEvent("UpdateFooter")
               UIManager:broadcastEvent(Event:new("UpdateTopStatusBarMarkers"))
             end,
