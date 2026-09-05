@@ -379,7 +379,7 @@ describe("Button widget", function()
     end
 
     b:refresh()
-    assert.are.equal(b[1], dirty_widget)
+    assert.are.equal(b, dirty_widget)
     assert.are.equal("fast", dirty_mode)
 
     b:disable()

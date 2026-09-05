@@ -24194,7 +24194,6 @@ msgstr "标注同步：无法加载本地同步文件。同步已中止。"
 #: plugins/AnnotationSync.koplugin/annotations.lua:119
 msgid "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
 msgstr "标注同步：远程文件损坏或服务器错误。同步已中止。"
-
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算练习"
@@ -24366,4 +24365,3 @@ msgstr "正在扫描藏书馆中的标注...\n藏书量较大时可能需要较�
 
 msgid "Scan complete: added %1 book(s) with annotations to sync list.\nBackground syncing all files may take some time, during which KOReader performance may be reduced."
 msgstr "扫描完成：已将 %1 本包含标注的图书添加到同步列表。\n后台同步所有文件可能需要一段时间，在此期间 KOReader 性能可能会有所降低。"
-
