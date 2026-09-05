@@ -684,7 +684,7 @@ end
 -- document type, so this function provides a wrapper.
 function ReaderLink:getLinkFromGes(ges)
   if self.ui.paging then
-    local pos = self.view:screenToPageTransform(ges.pos)
+    local pos = self.ui.view:screenToPageTransform(ges.pos)
     if pos then
       -- link box in native page
       local link, lbox = self.document:getLinkFromPosition(pos.page, pos)
@@ -742,7 +742,7 @@ end
 function ReaderLink:showLinkBox(link, allow_footnote_popup)
   if link and link.lbox then -- pdfdocument
     -- screen box that holds the link
-    local sbox = self.view:pageToScreenTransform(
+    local sbox = self.ui.view:pageToScreenTransform(
       link.pos.page,
       self.document:nativeToPageRectTransform(link.pos.page, link.lbox)
     )
@@ -938,7 +938,7 @@ function ReaderLink:onGotoLink(
           -- current page that addCurrentLocationToStack() would give, and
           -- we may be able to show a marker when back
           local saved_location
-          if self.view.view_mode == "scroll" then
+          if self.ui.view.view_mode == "scroll" then
             -- In scroll mode, we still use the top of page as the
             -- xpointer to go back to, so we get back to the same view.
             -- We can still show the marker at the link position
@@ -1124,7 +1124,7 @@ function ReaderLink:onGoToPageLink(ges, internal_links_only, max_distance)
   -- We use squared distances throughout the computations,
   -- no need to math.sqrt() anything for comparisons.
   if self.ui.paging then
-    local pos = self.view:screenToPageTransform(ges.pos)
+    local pos = self.ui.view:screenToPageTransform(ges.pos)
     if not pos then
       return
     end
@@ -1364,7 +1364,7 @@ function ReaderLink:selectRelPageLink(rel)
   if not self.cur_selected_page_link_num then
     self.cur_selected_link = nil
     self.document:highlightXPointer()
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     return
   end
   local selected_link = links[self.cur_selected_page_link_num]
@@ -1397,7 +1397,7 @@ function ReaderLink:selectRelPageLink(rel)
   }
   self.document:highlightXPointer() -- clear any previous one
   self.document:highlightXPointer(self.cur_selected_link.from_xpointer)
-  UIManager:setDirty(self.dialog, "ui")
+  UIManager:setDirty(self.ui, "ui")
   return true
 end
 
@@ -1609,7 +1609,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
     self.document:highlightXPointer(link.from_xpointer)
     -- Don't let a previous footnote popup clear our highlight
     self._footnote_popup_discard_previous_close_callback = true
-    UIManager:setDirty(self.dialog, "ui")
+    UIManager:setDirty(self.ui, "ui")
     close_callback = function(footnote_height)
       -- remove this highlight (actually all) on close
       local highlight_page = self.document:getCurrentPage()
@@ -1619,7 +1619,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
         -- this could remove too early a marker on the target page
         -- after this footnote is followed
         if self.document:getCurrentPage() == highlight_page then
-          UIManager:setDirty(self.dialog, "ui")
+          UIManager:setDirty(self.ui, "ui")
         end
       end
       if footnote_height then
@@ -1669,7 +1669,7 @@ function ReaderLink:showAsFootnotePopup(link, neglect_current_location)
       end
       self._footnote_popup_discard_previous_close_callback = nil
     end,
-    dialog = self.dialog,
+    dialog = self.ui,
   })
   self:showWidget(popup)
   return true

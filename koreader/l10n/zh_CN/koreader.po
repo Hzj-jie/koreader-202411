@@ -24250,3 +24250,119 @@ msgstr "正在扫描藏书馆中的标注...\n藏书量较大时可能需要较�
 
 msgid "Scan complete: added %1 book(s) with annotations to sync list.\nBackground syncing all files may take some time, during which KOReader performance may be reduced."
 msgstr "扫描完成：已将 %1 本包含标注的图书添加到同步列表。\n后台同步所有文件可能需要一段时间，在此期间 KOReader 性能可能会有所降低。"
+
+#: plugins/mathpuzzle.koplugin/main.lua:31
+msgid "Math puzzle"
+msgstr "口算练习"
+
+#: plugins/mathpuzzle.koplugin/main.lua:63
+msgid "Math Puzzle - Select Mode"
+msgstr "口算练习 - 选择题型"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:9
+msgid "Addition & Subtraction within 10"
+msgstr "10以内加减法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:10
+msgid "Add and subtract numbers up to 10"
+msgstr "10以内的加法与减法运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:16
+msgid "Addition & Subtraction within 100"
+msgstr "100以内加减法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:17
+msgid "Add and subtract numbers up to 100"
+msgstr "100以内的加法与减法运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:23
+msgid "Addition & Subtraction within 1,000"
+msgstr "1,000以内加减法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:24
+msgid "Add and subtract numbers up to 1,000"
+msgstr "1,000以内的加法与减法运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:30
+msgid "Addition & Subtraction within 10,000"
+msgstr "10,000以内加减法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:31
+msgid "Add and subtract numbers up to 10,000"
+msgstr "10,000以内的加法与减法运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:37
+msgid "Multiplication within 100"
+msgstr "100以内乘法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:38
+msgid "Multiplication table up to 10 × 10"
+msgstr "九九乘法表（10 × 10 以内）"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:44
+msgid "Division within 100"
+msgstr "100以内除法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:45
+msgid "Division with whole number results up to 100"
+msgstr "整除运算（商在 100 以内）"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:51
+msgid "2-Digit × 1-Digit & Division within 1,000"
+msgstr "两位数乘一位数与千以内除法"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:52
+msgid "Multiplication and division with 2-digit numbers"
+msgstr "两位数乘除法运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:57
+msgid "Mixed Operations within 100"
+msgstr "100以内四则混合运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:58
+msgid "Random +, -, ×, ÷ operations within 100"
+msgstr "100以内的随机加减乘除运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:64
+msgid "Mixed Operations within 1,000"
+msgstr "1,000以内四则混合运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:65
+msgid "Random +, -, ×, ÷ operations within 1,000"
+msgstr "1,000以内的随机加减乘除运算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:71
+msgid "Fill-in-the-Blank within 100"
+msgstr "100以内填空题"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:72
+msgid "Find the missing number in equations"
+msgstr "求算式中的未知数"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:78
+msgid "Square Numbers within 400"
+msgstr "400以内平方数"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:79
+msgid "Squares of numbers up to 20²"
+msgstr "20² 以内的平方计算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:85
+msgid "3-Term Mental Math"
+msgstr "三数连算心算"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:86
+msgid "Order of operations with 3 numbers"
+msgstr "三数四则运算法则"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:91
+msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
+msgstr "正确：%d  ·  错误：%d  ·  正确率：%s"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:99
+msgid "Time: %s"
+msgstr "用时：%s"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:462
+msgid "Check"
+msgstr "检查"

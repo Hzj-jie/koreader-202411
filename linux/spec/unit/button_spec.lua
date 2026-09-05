@@ -63,6 +63,40 @@ describe("Button widget", function()
     assert.is_equal("Back to text", b.label_widget.text)
   end)
 
+  it(
+    "should calculate size via getSize and support geometry merge methods",
+    function()
+      local b = Button:new({
+        text = "Geometry test",
+        width = 100,
+        height = 40,
+      })
+
+      local size = b:getSize()
+      assert.is_not_nil(size)
+      assert.are.equal(100, size.w)
+      assert.is_true(size.h >= 40)
+
+      b:mergeSize(120, 50)
+      local new_size = b:getSize()
+      assert.are.equal(120, new_size.w)
+      assert.are.equal(50, new_size.h)
+
+      b:mergePosition(10, 20)
+      local pos_size = b:getSize()
+      assert.are.equal(10, pos_size.x)
+      assert.are.equal(20, pos_size.y)
+    end
+  )
+
+  it("should support dirtyRegion", function()
+    local b = Button:new({
+      text = "Region test",
+    })
+    local region = b:dirtyRegion()
+    assert.is_not_nil(region)
+  end)
+
   it("should initialize Button with text_func, shortcut, and alignment", function()
     local b_text_func = Button:new({
       text_func = function()
@@ -335,6 +369,8 @@ describe("Button widget", function()
 
     -- painted button
     b[1].dimen = Geom:new({ x = 0, y = 0, w = 100, h = 40 })
+    UIManager:show(b)
+
     local dirty_widget, dirty_mode
     local old_setDirty = UIManager.setDirty
     UIManager.setDirty = function(self, w, mode)
@@ -343,7 +379,7 @@ describe("Button widget", function()
     end
 
     b:refresh()
-    assert.are.equal(b[1], dirty_widget)
+    assert.are.equal(b, dirty_widget)
     assert.are.equal("fast", dirty_mode)
 
     b:disable()
@@ -351,5 +387,6 @@ describe("Button widget", function()
     assert.are.equal("ui", dirty_mode)
 
     UIManager.setDirty = old_setDirty
+    UIManager:close(b)
   end)
 end)

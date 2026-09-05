@@ -136,7 +136,7 @@ local function initTouchEvents()
     -- InputText.onPanReleaseTextBox = _disableEvent
     -- InputText.onTouchTextBox = _disableEvent
 
-    function InputText:onTapTextBox(arg, ges)
+    function InputText:onTapTextBox(_arg, ges)
       if self.parent.onSwitchFocus then
         self.parent:onSwitchFocus(self)
       else
@@ -306,7 +306,7 @@ local function initTouchEvents()
       return false
     end
 
-    function InputText:onSwipeTextBox(arg, ges)
+    function InputText:onSwipeTextBox(_arg, ges)
       -- Allow refreshing the widget (actually, the screen) with the classic
       -- Diagonal Swipe, as we're only using the quick "ui" mode while editing
       if
