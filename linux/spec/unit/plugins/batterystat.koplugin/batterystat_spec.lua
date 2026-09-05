@@ -253,6 +253,7 @@ describe("BatteryState plugin tests #nocov", function()
     local widget = stat()
     local UIManager = require("ui/uimanager")
     stub(UIManager, "show")
+    stub(UIManager, "close")
 
     local file = io.open(widget.dump_file, "w")
     if file then
@@ -282,11 +283,13 @@ describe("BatteryState plugin tests #nocov", function()
 
     log_entry.callback()
 
+    assert.stub(UIManager.close).was_called_with(UIManager, kv_page)
     assert
       .stub(mock_readerui.showReader)
       .was_called_with(mock_readerui, widget.dump_file)
 
     package.loaded["apps/reader/readerui"] = nil
+    UIManager.close:revert()
     UIManager.show:revert()
     os.remove(widget.dump_file)
   end)

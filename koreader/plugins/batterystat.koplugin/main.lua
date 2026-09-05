@@ -255,6 +255,7 @@ function BatteryStat:showStatistics()
       gettext("Tap to open batterystat.log."),
       "",
       callback = function()
+        UIManager:close(self.kv_page)
         require("apps/reader/readerui"):showReader(self.dump_file)
       end,
     })
