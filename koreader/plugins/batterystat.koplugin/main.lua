@@ -9,6 +9,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local dbg = require("dbg")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local time = require("ui/time")
 local T = require("ffi/util").template
@@ -249,6 +250,15 @@ function BatteryStat:showStatistics()
       UIManager:scheduleIn(0.1, askResetData)
     end,
   })
+  if lfs.attributes(self.dump_file, "mode") == "file" then
+    table.insert(kv_pairs, {
+      gettext("Tap to open batterystat.log."),
+      "",
+      callback = function()
+        require("apps/reader/readerui"):showReader(self.dump_file)
+      end,
+    })
+  end
   self.kv_page = KeyValuePage:new({
     title = T(
       gettext("Battery statistics (now %1%)"),

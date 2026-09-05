@@ -215,4 +215,79 @@ describe("BatteryState plugin tests #nocov", function()
       assert.are.equal(0, widget.charging.time)
     end
   )
+
+  it(
+    "should not include link to open log file when it does not exist",
+    function()
+      local widget = stat()
+      local UIManager = require("ui/uimanager")
+      stub(UIManager, "show")
+
+      os.remove(widget.dump_file)
+
+      widget:showStatistics()
+
+      assert.stub(UIManager.show).was.called(1)
+      local kv_page = widget.kv_page
+      assert.is_not_nil(kv_page)
+      assert.is_table(kv_page.kv_pairs)
+
+      local log_entry = nil
+      for _, pair in ipairs(kv_page.kv_pairs) do
+        if
+          type(pair) == "table"
+          and pair[1]
+          and pair[1]:find("battery.*log")
+        then
+          log_entry = pair
+          break
+        end
+      end
+      assert.is_nil(log_entry)
+
+      UIManager.show:revert()
+    end
+  )
+
+  it("should include link to open log file when it exists", function()
+    local widget = stat()
+    local UIManager = require("ui/uimanager")
+    stub(UIManager, "show")
+
+    local file = io.open(widget.dump_file, "w")
+    if file then
+      file:write("dummy log\n")
+      file:close()
+    end
+
+    widget:showStatistics()
+
+    assert.stub(UIManager.show).was.called(1)
+    local kv_page = widget.kv_page
+    assert.is_not_nil(kv_page)
+    assert.is_table(kv_page.kv_pairs)
+
+    local log_entry = nil
+    for _, pair in ipairs(kv_page.kv_pairs) do
+      if type(pair) == "table" and pair[1] and pair[1]:find("battery.*log") then
+        log_entry = pair
+        break
+      end
+    end
+    assert.is_not_nil(log_entry)
+    assert.is_function(log_entry.callback)
+
+    local mock_readerui = { showReader = stub() }
+    package.loaded["apps/reader/readerui"] = mock_readerui
+
+    log_entry.callback()
+
+    assert
+      .stub(mock_readerui.showReader)
+      .was_called_with(mock_readerui, widget.dump_file)
+
+    package.loaded["apps/reader/readerui"] = nil
+    UIManager.show:revert()
+    os.remove(widget.dump_file)
+  end)
 end)
