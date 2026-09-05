@@ -23,6 +23,7 @@ local DEFAULT_DISABLED_PLUGINS = {
   AnnotationSync = true,
   checkers = true,
   game2048 = true,
+  mathpuzzle = true,
   nonogram = true,
   slidepuzzle = true,
   sokoban = true,

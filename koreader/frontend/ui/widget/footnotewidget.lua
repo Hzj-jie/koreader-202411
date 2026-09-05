@@ -15,6 +15,7 @@ local ScrollHtmlWidget = require("ui/widget/scrollhtmlwidget")
 local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
+local VerticalScrollBar = require("ui/widget/verticalscrollbar")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local T = require("ffi/util").template
@@ -138,6 +139,14 @@ local FootnoteWidget = InputContainer:extend({
 })
 
 function FootnoteWidget:init()
+  -- Subtract SAFETY_MARGIN as it is already included in the scrollbar's required width.
+  self.doc_margins = {
+    left = self.doc_margins.left,
+    right = self.doc_margins.right
+      - Screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN),
+    top = self.doc_margins.top,
+    bottom = self.doc_margins.bottom,
+  }
   -- Set widget size
   self.width = Screen:getWidth()
   self.height = math.floor(Screen:getHeight() * 1 / 3) -- will be decreased when content is smaller
@@ -384,13 +393,13 @@ function FootnoteWidget:init()
 end
 
 function FootnoteWidget:onShow()
-  UIManager:setDirty(self.dialog, function()
+  self:setDirty(function()
     return "ui", self.container.dimen
   end)
 end
 
 function FootnoteWidget:onClose()
-  UIManager:setDirty(self.dialog, function()
+  self:setDirty(function()
     return "partial", self.container.dimen
   end)
 end

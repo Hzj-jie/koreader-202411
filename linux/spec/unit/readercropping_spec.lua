@@ -1,4 +1,44 @@
 describe("ReaderCropping module", function()
+  local ReaderCropping
+
+  setup(function()
+    require("commonrequire")
+    ReaderCropping = require("apps/reader/modules/readercropping")
+  end)
+
+  it(
+    "should backup and restore view dimensions using self.ui.view:getSize()",
+    function()
+      local mock_ui = {
+        view = {
+          zoom_mode = "page",
+          outer_page_color = 0,
+          footer_visible = true,
+          getSize = function()
+            return { w = 600, h = 800 }
+          end,
+        },
+        document = {
+          configurable = { text_wrap = 0 },
+        },
+      }
+
+      local cropping = ReaderCropping:new({
+        ui = mock_ui,
+        document = {
+          configurable = { text_wrap = 0 },
+        },
+      })
+
+      assert.is_not_nil(cropping)
+
+      cropping:onPageCrop("auto")
+      assert.are.equal("page", cropping.orig_zoom_mode)
+    end
+  )
+end)
+
+describe("ReaderCropping module", function()
   local ReaderCropping, DocumentRegistry, ReaderUI, Screen
 
   setup(function()
@@ -89,6 +129,17 @@ describe("ReaderCropping module", function()
 
     -- Test cancel crop
     cropping:onPageCrop("semi-auto")
+    cropping:onCancelPageCrop()
+
+    -- Test onPageCrop with reflow mode text_wrap == 1
+    local recalculated = false
+    readerui.view.recalculate = function()
+      recalculated = true
+    end
+    readerui.document.configurable.text_wrap = 1
+    cropping:onPageCrop("semi-auto")
+    assert.is_true(recalculated)
+    assert.are.equal(0, readerui.document.configurable.text_wrap)
     cropping:onCancelPageCrop()
 
     readerui:onExit()

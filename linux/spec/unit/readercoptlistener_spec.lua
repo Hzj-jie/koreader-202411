@@ -12,6 +12,40 @@ describe("ReaderCoptListener module", function()
     Screen = require("device").screen
   end)
 
+  it("should update view_mode using self.ui.view on read settings", function()
+    local mock_doc = {
+      configurable = { view_mode = 0, status_line = 0 },
+      setViewMode = function() end,
+      setPageInfoOverride = function() end,
+      prop_to_cre_prop = {},
+      _document = {
+        setIntProperty = function() end,
+        setStringProperty = function() end,
+      },
+    }
+    local mock_ui = {
+      view = { view_mode = "page" },
+      rolling = {
+        updateBatteryState = function()
+          return 100
+        end,
+      },
+      doc_settings = {
+        read = function()
+          return nil
+        end,
+      },
+    }
+    local listener = ReaderCoptListener:new({
+      document = mock_doc,
+      ui = mock_ui,
+    })
+
+    if type(listener.onReadSettings) == "function" then
+      listener:onReadSettings({})
+    end
+  end)
+
   it("should instantiate copt listener module", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
     local doc = DocumentRegistry:openDocument(sample_epub)
@@ -65,6 +99,7 @@ describe("ReaderCoptListener module", function()
       },
     }
     local mock_ui = {
+      view = { view_mode = "page" },
       rolling = {
         updateBatteryState = function()
           return 100
@@ -78,111 +113,163 @@ describe("ReaderCoptListener module", function()
     }
     local listener = ReaderCoptListener:new({
       document = mock_doc,
-      view = {},
       ui = mock_ui,
     })
 
+    if type(listener.onReadSettings) == "function" then
+      listener:onReadSettings({})
+    end
     if type(listener.onReaderReady) == "function" then
       listener:onReaderReady()
     end
   end)
 
-  it("should test getAltStatusBarMenu items and callbacks", function()
+  describe("getAltStatusBarMenu and Header lifecycle", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
-    local doc = DocumentRegistry:openDocument(sample_epub)
-    local listener = ReaderCoptListener:new({
-      document = doc,
-      view = { view_mode = "page" },
-      showWidget = function() end,
-      ui = {
-        view = {
-          footer = {
-            pageno = 1,
-            settings = { progress_pct_format = "0" },
-          },
-        },
+    local doc
+
+    local function createMockListener()
+      local listener = ReaderCoptListener:new({
         document = doc,
-        rolling = {
-          updateBatteryState = function()
-            return 100
-          end,
+        view = { view_mode = "page" },
+        showWidget = function() end,
+        ui = {
+          view = {
+            footer = {
+              pageno = 1,
+              settings = { progress_pct_format = "0" },
+            },
+          },
+          document = doc,
+          rolling = {
+            updateBatteryState = function()
+              return 100
+            end,
+          },
+          doc_settings = {
+            read = function()
+              return nil
+            end,
+          },
+          doc_props = {},
         },
-        doc_settings = {
-          read = function()
-            return nil
-          end,
-        },
-        doc_props = {},
-      },
-    })
-    listener:onReadSettings({})
+      })
+      listener:onReadSettings({})
+      return listener
+    end
 
-    local menu = listener:getAltStatusBarMenu()
-    assert.truthy(menu)
-    assert.truthy(menu.sub_item_table)
+    before_each(function()
+      doc = DocumentRegistry:openDocument(sample_epub)
+    end)
 
-    -- Toggle each menu item and test checked_func/text_func
-    for _, item in ipairs(menu.sub_item_table) do
-      if item.checked_func then
-        pcall(item.checked_func)
+    after_each(function()
+      if doc then
+        doc:close()
       end
-      if item.text_func then
-        pcall(item.text_func)
-      end
-      if item.callback then
-        pcall(item.callback)
-      end
-      if item.sub_item_table then
-        for _, sub in ipairs(item.sub_item_table) do
-          if sub.checked_func then
-            pcall(sub.checked_func)
-          end
-          if sub.callback then
-            pcall(sub.callback)
+    end)
+
+    it("should populate getAltStatusBarMenu items and exercise callbacks", function()
+      local listener = createMockListener()
+      local menu = listener:getAltStatusBarMenu()
+      assert.truthy(menu)
+      assert.truthy(menu.sub_item_table)
+
+      for _, item in ipairs(menu.sub_item_table) do
+        if item.checked_func then
+          pcall(item.checked_func)
+        end
+        if item.text_func then
+          pcall(item.text_func)
+        end
+        if item.callback then
+          pcall(item.callback)
+        end
+        if item.sub_item_table then
+          for _, sub in ipairs(item.sub_item_table) do
+            if sub.checked_func then
+              pcall(sub.checked_func)
+            end
+            if sub.callback then
+              pcall(sub.callback)
+            end
           end
         end
       end
-    end
+    end)
 
-    -- Additional header content
-    local test_fn = function()
-      return "HEADER"
-    end
-    assert.is_true(listener:addAdditionalHeaderContent(test_fn))
-    assert.is_false(listener:addAdditionalHeaderContent(test_fn))
+    it("should add and remove additional header content", function()
+      local listener = createMockListener()
+      local test_fn = function()
+        return "HEADER"
+      end
+      assert.is_true(listener:addAdditionalHeaderContent(test_fn))
+      assert.is_false(listener:addAdditionalHeaderContent(test_fn))
+      assert.is_true(listener:removeAdditionalHeaderContent(test_fn))
+      assert.is_false(listener:removeAdditionalHeaderContent(test_fn))
+    end)
 
-    -- Test page_info_override
-    listener.page_number = 1
-    listener.page_count = 1
-    listener.reading_percent = 1
-    listener.battery = 1
-    listener.battery_percent = 1
-    listener.clock = 1
-    local pinfo = listener:page_info_override()
-    assert.is_boolean(pinfo)
-    listener:page_info_override(1)
+    it("should calculate page_info_override and handle header update events", function()
+      local listener = createMockListener()
+      listener.page_number = 1
+      listener.page_count = 1
+      listener.reading_percent = 1
+      listener.battery = 1
+      listener.battery_percent = 1
+      listener.clock = 1
 
-    -- Test header update and clock/battery events
-    listener:_updateHeader(true)
-    listener:onUpdateHeader()
-    listener:onTimeFormatChanged()
-    listener:onBookMetadataChanged("title")
-    listener:onPageUpdate(1)
-    listener:onPosUpdate(1, 1)
+      local pinfo = listener:page_info_override()
+      assert.is_boolean(pinfo)
+      listener:page_info_override(1)
 
-    assert.is_true(listener:removeAdditionalHeaderContent(test_fn))
-    assert.is_false(listener:removeAdditionalHeaderContent(test_fn))
+      listener:_updateHeader(true)
+      listener:onUpdateHeader()
+      listener:onTimeFormatChanged()
+      listener:onBookMetadataChanged("title")
+      listener:onPageUpdate(1)
+      listener:onPosUpdate(1, 1)
+    end)
 
-    -- Charging and screensaver handlers
-    listener:onCharging()
-    listener:onResume()
-    listener:onOutOfScreenSaver()
+    it("should handle battery, resume, screensaver, and config change events", function()
+      local listener = createMockListener()
+      listener:onCharging()
+      listener:onResume()
+      listener:onOutOfScreenSaver()
 
-    -- Config change
-    listener:onConfigChange("font_size", 20)
-    listener:onConfigChange("font_size", 2) -- ignored when < 5
+      listener:onConfigChange("font_size", 20)
+      listener:onConfigChange("font_size", 2)
+    end)
 
-    doc:close()
+    it("should handle headerRefresh and updatePageInfoOverride with page and scroll view_modes", function()
+      local listener = createMockListener()
+      listener.document.configurable.status_line = 0
+      listener.ui.view.view_mode = "page"
+      listener.clock = 1
+      listener.battery = 1
+
+      local header_updated = false
+      listener._updateHeader = function()
+        header_updated = true
+      end
+
+      -- _headerRefresh in page mode with clock
+      listener:_headerRefresh()
+      assert.is_true(header_updated)
+
+      -- _headerRefresh in scroll mode
+      header_updated = false
+      listener.ui.view.view_mode = "scroll"
+      listener:_headerRefresh()
+      assert.is_false(header_updated)
+
+      -- updatePageInfoOverride in scroll mode (resets override)
+      listener:updatePageInfoOverride(5)
+
+      -- updatePageInfoOverride in page mode with header content
+      listener.ui.view.view_mode = "page"
+      listener:addAdditionalHeaderContent(function() return "EXTRA" end)
+      listener.page_info_override = function() return true end
+      listener:updatePageInfoOverride(5)
+    end)
   end)
 end)
 

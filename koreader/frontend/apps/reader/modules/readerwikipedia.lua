@@ -404,7 +404,7 @@ function ReaderWikipedia:initLanguages(word)
       end
     end
     -- use book and UI languages
-    if self.view then
+    if self.ui.view then
       addLanguage(self.ui.doc_props.language)
     end
     addLanguage(G_reader_settings:read("language"))
