@@ -220,11 +220,15 @@ describe("PluginLoader module", function()
     end)
   end)
 
-  describe("genPluginManagerSubItem", function()
+  describe("genPluginManagerMenu", function()
     it("should generate menu items for plugins", function()
       mock_disabled_plugins["checkers"] = false
       mock_disabled_plugins["mock2"] = true
-      local menu = PluginLoader:genPluginManagerSubItem()
+      local menu_item = PluginLoader:genPluginManagerMenu()
+      assert.truthy(menu_item)
+      assert.are.equal("Plugin management", menu_item.text)
+      assert.is_function(menu_item.onMenuSwitched)
+      local menu = menu_item.sub_item_table
       assert.truthy(menu)
       -- checkers and mock2 should be in the menu
       assert.are.equal(2, #menu)
@@ -260,7 +264,7 @@ describe("PluginLoader module", function()
         assert.are.equal("checkers", disabled[1].name)
 
         -- 2. Simulate User toggles it to enable in the Plugin Manager
-        local menu = PluginLoader:genPluginManagerSubItem()
+        local menu = PluginLoader:genPluginManagerMenu().sub_item_table
         -- menu[1] is checkers (since it is sorted: "Checkers Game" vs "Mock2")
         assert.are.equal("Checkers Game", menu[1].text)
         assert.is_false(menu[1].checked_func()) -- Currently disabled
@@ -317,7 +321,7 @@ describe("PluginLoader module", function()
         mock_disabled_plugins["checkers"] = true
         mock_disabled_plugins["mock2"] = nil -- nil means default (enabled)
 
-        local menu_items = PluginLoader:genPluginManagerSubItem()
+        local menu_items = PluginLoader:genPluginManagerMenu().sub_item_table
         local checkers_item, mock2_item
         for _, item in ipairs(menu_items) do
           if item.text == "Checkers Game" then
@@ -346,6 +350,84 @@ describe("PluginLoader module", function()
         -- Toggle checkers back to disabled (default state) -> should store nil
         checkers_item.callback()
         assert.is_nil(mock_disabled_plugins["checkers"])
+      end
+    )
+  end)
+
+  describe("onMenuSwitched and deferred reload prompt", function()
+    local orig_ask_reload, orig_ask_restart
+    local reload_prompt_msg = nil
+    local reload_called = false
+    local restart_called = false
+
+    setup(function()
+      local UIManager = require("ui/uimanager")
+      orig_ask_reload = UIManager.askForRestartOrReload
+      orig_ask_restart = UIManager.askForRestart
+
+      UIManager.askForRestartOrReload = function(self, msg)
+        reload_called = true
+        reload_prompt_msg = msg
+      end
+
+      UIManager.askForRestart = function(self, msg)
+        restart_called = true
+      end
+    end)
+
+    teardown(function()
+      local UIManager = require("ui/uimanager")
+      UIManager.askForRestartOrReload = orig_ask_reload
+      UIManager.askForRestart = orig_ask_restart
+    end)
+
+    before_each(function()
+      reload_called = false
+      restart_called = false
+      reload_prompt_msg = nil
+    end)
+
+    it(
+      "does not prompt immediately on item toggle, and prompts on onMenuSwitched",
+      function()
+        local menu_item = PluginLoader:genPluginManagerMenu()
+        assert.is_not_nil(menu_item)
+        assert.is_function(menu_item.onMenuSwitched)
+        assert.are.equal("Plugin management", menu_item.text)
+        local plugin_table = menu_item.sub_item_table
+        assert.is_not_nil(plugin_table)
+
+        -- Prior to toggle, onMenuSwitched should not prompt
+        menu_item:onMenuSwitched()
+        assert.is_false(reload_called)
+
+        -- Toggle first item
+        plugin_table[1].callback()
+
+        -- Immediately after toggle, NO prompt should have been shown!
+        assert.is_false(reload_called)
+        assert.is_false(restart_called)
+        assert.is_nil(PluginLoader.enabled_plugins)
+        assert.is_nil(PluginLoader.disabled_plugins)
+
+        -- Toggle second item as well
+        plugin_table[2].callback()
+        assert.is_false(reload_called)
+
+        -- Now trigger onMenuSwitched (e.g. user navigated away from submenu)
+        menu_item:onMenuSwitched()
+
+        -- Should prompt now!
+        assert.is_true(reload_called)
+        assert.are.equal(
+          "Plugin configuration changed. Reload to make changes take effect?",
+          reload_prompt_msg
+        )
+
+        -- Calling onMenuSwitched again without further changes should NOT prompt again
+        reload_called = false
+        menu_item:onMenuSwitched()
+        assert.is_false(reload_called)
       end
     )
   end)

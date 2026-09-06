@@ -1,3 +1,4 @@
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -162,7 +163,7 @@ function PluginLoader:_addPluginsToMenu(plugins, enable)
   end
 end
 
-function PluginLoader:genPluginManagerSubItem()
+function PluginLoader:genPluginManagerMenu()
   if not self.all_plugins then
     local enabled_plugins, disabled_plugins = self:loadPlugins()
     self.all_plugins = {}
@@ -173,6 +174,20 @@ function PluginLoader:genPluginManagerSubItem()
     table.sort(self.all_plugins, function(v1, v2)
       return v1.fullname < v2.fullname
     end)
+  end
+
+  local has_changes = false
+  local onMenuSwitched = function()
+    if not has_changes then
+      return
+    end
+    has_changes = false
+
+    require("ui/uimanager"):askForRestartOrReload(
+      gettext(
+        "Plugin configuration changed. Reload to make changes take effect?"
+      )
+    )
   end
 
   local plugin_table = {}
@@ -199,17 +214,21 @@ function PluginLoader:genPluginManagerSubItem()
               self:pluginsDisabled()[plugin.code_name] = true
             end
           end
-          if self.show_info then
-            self.show_info = false
-            require("ui/uimanager"):askForRestart()
-          end
+          has_changes = true
+          self.enabled_plugins = nil
+          self.disabled_plugins = nil
         end,
         help_text = plugin.description,
+        onMenuSwitched = onMenuSwitched,
       })
     end
   end
 
-  return plugin_table
+  return {
+    text = gettext("Plugin management"),
+    sub_item_table = plugin_table,
+    onMenuSwitched = onMenuSwitched,
+  }
 end
 
 return PluginLoader
