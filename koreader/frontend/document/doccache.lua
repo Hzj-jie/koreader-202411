@@ -64,11 +64,14 @@ local DocCache = Cache:new({
   -- Rely on CacheItem's eviction callback to free resources *immediately* on eviction.
   enable_eviction_cb = true,
   disk_cache = true,
-  cache_path = DataStorage:getDataDir() .. "/cache/",
+  cache_path = DataStorage:getCacheDir() .. "/",
 })
 
 function DocCache:serialize(doc_path)
   if not self.disk_cache then
+    return
+  end
+  if not util.isDirRW(self.cache_path, true) then
     return
   end
 

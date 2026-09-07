@@ -187,12 +187,12 @@ local CalibreSearch = WidgetContainer:extend({
     "find_by_path",
   },
 
-  cache_dir = DataStorage:getDataDir() .. "/cache/calibre",
+  cache_dir = DataStorage:getCacheDir() .. "/calibre",
   cache_libs = Persist:new({
-    path = DataStorage:getDataDir() .. "/cache/calibre/libraries.lua",
+    path = DataStorage:getCacheDir() .. "/calibre/libraries.lua",
   }),
   cache_books = Persist:new({
-    path = DataStorage:getDataDir() .. "/cache/calibre/books.dat",
+    path = DataStorage:getCacheDir() .. "/calibre/books.dat",
     codec = "zstd",
   }),
 })

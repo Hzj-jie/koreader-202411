@@ -47,7 +47,39 @@ function Cache:init()
   end
 
   if self.disk_cache then
-    self.cached = self:_getDiskCache()
+    if not self.cache_path or not util.isDirRW(self.cache_path, true) then
+      local ok_ds, DataStorage = pcall(require, "datastorage")
+      local fallback_path
+      if ok_ds and DataStorage and DataStorage.getCacheDir then
+        local dir = DataStorage:getCacheDir()
+        if dir and util.isDirRW(dir, true) then
+          fallback_path = dir:gsub("/+$", "") .. "/"
+        end
+      end
+      if not fallback_path then
+        local ok_dev, dev = pcall(require, "device")
+        local tmp = (ok_dev and dev and dev.getTmpDir and dev:getTmpDir())
+          or os.getenv("TMPDIR")
+          or "/tmp"
+        local tmp_path = tmp .. "/cache/"
+        if util.isDirRW(tmp_path, true) then
+          fallback_path = tmp_path
+        end
+      end
+      if fallback_path then
+        self.cache_path = fallback_path
+      else
+        logger.warn(
+          "Cache: no writable cache directory found, disabling disk cache"
+        )
+        self.disk_cache = false
+      end
+    end
+    if self.disk_cache then
+      self.cached = self:_getDiskCache()
+    else
+      self.check = self.cache.get
+    end
   else
     -- No need to go through our own check or even get methods if there's no disk cache, hit lru directly
     self.check = self.cache.get
@@ -68,7 +100,14 @@ end
 --]]
 function Cache:_getDiskCache()
   local cached = {}
-  for key_md5 in lfs.dir(self.cache_path) do
+  if not self.cache_path or not util.isDirRW(self.cache_path, true) then
+    return cached
+  end
+  local ok, iter, dir_obj = pcall(lfs.dir, self.cache_path)
+  if not ok or not iter then
+    return cached
+  end
+  for key_md5 in iter, dir_obj do
     local file = self.cache_path .. key_md5
     if lfs.attributes(file, "mode") == "file" then
       cached[key_md5] = file

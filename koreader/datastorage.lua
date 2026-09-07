@@ -7,6 +7,7 @@ local DataStorage = {}
 
 local data_dir
 local full_data_dir
+local cache_dir
 local is_storage_temporary = false
 local is_storage_readonly = false
 local storage_warning_shown = false
@@ -30,6 +31,7 @@ end
 function DataStorage:reset()
   data_dir = nil
   full_data_dir = nil
+  cache_dir = nil
   is_storage_temporary = false
   is_storage_readonly = false
   storage_warning_shown = false
@@ -149,6 +151,30 @@ end
 
 function DataStorage:getDocSettingsHashDir()
   return self:getDataDir() .. "/hashdocsettings"
+end
+
+function DataStorage:getCacheDir()
+  if cache_dir then
+    return cache_dir
+  end
+
+  local preferred = self:getDataDir() .. "/cache"
+  if util.isDirRW(preferred, true) then
+    cache_dir = preferred
+    return cache_dir
+  end
+
+  local tmp = getFallbackTmpDir()
+  if tmp then
+    local tmp_cache = tmp .. "/koreader_cache"
+    if util.isDirRW(tmp_cache, true) then
+      cache_dir = tmp_cache
+      return cache_dir
+    end
+  end
+
+  cache_dir = preferred
+  return cache_dir
 end
 
 function DataStorage:getFullDataDir()

@@ -266,4 +266,36 @@ describe("DataStorage module", function()
       UIManager.quit = orig_quit
     end
   )
+
+  it("should return preferred cache dir when writable", function()
+    DataStorage = require("datastorage")
+    local expected = DataStorage:getDataDir() .. "/cache"
+    isDirRW_mock = function(dir)
+      return dir == expected or dir == DataStorage:getDataDir()
+    end
+
+    assert.are.equal(expected, DataStorage:getCacheDir())
+  end)
+
+  it(
+    "should fallback to temporary cache dir when preferred cache is not writable",
+    function()
+      DataStorage = require("datastorage")
+      env_mock["TMPDIR"] = "/tmp/mock_tmp"
+      isDirRW_mock = function(dir)
+        if dir == "./cache" then
+          return false
+        end
+        if dir == "/tmp/mock_tmp" or dir == "/tmp/mock_tmp/koreader_cache" then
+          return true
+        end
+        return dir == "."
+      end
+
+      assert.are.equal(
+        "/tmp/mock_tmp/koreader_cache",
+        DataStorage:getCacheDir()
+      )
+    end
+  )
 end)

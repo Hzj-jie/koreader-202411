@@ -50,4 +50,50 @@ describe("Cache module", function()
     end
     DocCache:clear()
   end)
+
+  describe("disk cache fallback", function()
+    local Cache = require("cache")
+    local util = require("util")
+    local original_isDirRW = util.isDirRW
+
+    after_each(function()
+      util.isDirRW = original_isDirRW
+    end)
+
+    it(
+      "falls back to temporary cache dir when configured cache_path is not writable",
+      function()
+        util.isDirRW = function(dir)
+          if dir == "/nonexistent/cache/" then
+            return false
+          end
+          return true
+        end
+
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = true,
+          cache_path = "/nonexistent/cache/",
+        })
+
+        assert.is_true(c.disk_cache)
+        assert.are_not.equal("/nonexistent/cache/", c.cache_path)
+        assert.is_truthy(c.cache_path:find("cache"))
+      end
+    )
+
+    it("disables disk cache when no writable cache dir exists", function()
+      util.isDirRW = function()
+        return false
+      end
+
+      local c = Cache:new({
+        slots = 10,
+        disk_cache = true,
+        cache_path = "/nonexistent/cache/",
+      })
+
+      assert.is_false(c.disk_cache)
+    end)
+  end)
 end)
