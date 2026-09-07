@@ -184,7 +184,10 @@ describe("docsettings module", function()
 
     local tmp_cover = "/tmp/test_cover.jpg"
     local f = io.open(tmp_cover, "w")
-    if f then f:write("cover data"); f:close() end
+    if f then
+      f:write("cover data")
+      f:close()
+    end
 
     d:flushCustomCover(file, tmp_cover)
     d:flushCustomMetadata(file)
@@ -204,6 +207,148 @@ describe("docsettings module", function()
     docsettings.updateLocation(file, nil) -- delete
     os.remove(tmp_cover)
   end)
+
+  describe("read-only storage fallbacks and notifications", function()
+    local util = require("util")
+    local UIManager = require("ui/uimanager")
+    local original_isDirRW = util.isDirRW
+    local orig_show = UIManager.show
+    local shown_notifications
+
+    local function createDummyFile(path)
+      local f = io.open(path, "w")
+      if f then
+        f:write("dummy epub content")
+        f:close()
+      end
+    end
+
+    before_each(function()
+      shown_notifications = {}
+      UIManager.show = function(_, widget)
+        table.insert(shown_notifications, widget)
+      end
+    end)
+
+    after_each(function()
+      util.isDirRW = original_isDirRW
+      UIManager.show = orig_show
+      G_reader_settings:delete("document_metadata_folder")
+      os.remove("/tmp/test_ro_doc_1.epub")
+      os.remove("/tmp/test_ro_doc_2.epub")
+      os.remove("/tmp/test_ro_doc_3.epub")
+      os.remove("/tmp/test_ro_doc_4.epub")
+    end)
+
+    it(
+      "falls back to dir location when doc location is read-only and notifies once",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local file = "/tmp/test_ro_doc_1.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if dir == d.doc_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 42)
+        local saved_dir = d:flush()
+        assert.are.equal(d.dir_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("internal storage"))
+
+        -- Second flush should not re-notify
+        d:save("page", 43)
+        d:flush()
+        assert.are.equal(1, #shown_notifications)
+
+        d:close()
+        d:purge()
+      end
+    )
+
+    it(
+      "falls back to hash location when both doc and dir locations are read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local file = "/tmp/test_ro_doc_2.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if dir == d.doc_sidecar_dir or dir == d.dir_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 100)
+        local saved_dir = d:flush()
+        assert.are.equal(d.hash_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("internal storage"))
+
+        d:close()
+        d:purge()
+      end
+    )
+
+    it(
+      "falls back to temporary location when all permanent locations are read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local file = "/tmp/test_ro_doc_3.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if
+            dir == d.doc_sidecar_dir
+            or dir == d.dir_sidecar_dir
+            or dir == d.hash_sidecar_dir
+          then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 200)
+        local saved_dir = d:flush()
+        assert.are.equal(d.tmp_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("temporary storage"))
+
+        d:close()
+        d:purge()
+      end
+    )
+
+    it(
+      "falls back to in-memory mode when all storage locations are read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local file = "/tmp/test_ro_doc_4.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function()
+          return false
+        end
+
+        d:save("page", 300)
+        local saved_dir = d:flush()
+        assert.is_nil(saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(
+          shown_notifications[1].text:find("completely read%-only")
+        )
+
+        d:close()
+      end
+    )
+  end)
 end)
-
-
