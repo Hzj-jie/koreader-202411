@@ -2,6 +2,7 @@ local BD = require("ui/bidi")
 local ButtonDialog = require("ui/widget/buttondialog")
 local Device = require("device")
 local FileChooser = require("ui/widget/filechooser")
+local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
 local gettext = require("gettext")
@@ -21,6 +22,7 @@ local PathChooser = FileChooser:extend({
   show_files = true, -- show files, even if select_file=false
   -- (directories are always shown, to allow navigation)
   detailed_file_info = true, -- show size and last mod time in Select message (if select_file=true only)
+  require_writable = false, -- require selected paths to be writable
 })
 
 function PathChooser:init()
@@ -93,6 +95,32 @@ function PathChooser:onMenuSelect(item)
   return true
 end
 
+function PathChooser:genItemTable(dirs, files, path)
+  local item_table = FileChooser.genItemTable(self, dirs, files, path)
+  if self.require_writable then
+    for _, item in ipairs(item_table) do
+      if item.path and not item.is_go_up and not item.is_readonly then
+        local check_path = item.path
+        if check_path:sub(-2, -1) == "/." then
+          check_path = check_path:sub(1, -3)
+          if check_path == "" then
+            check_path = "/"
+          end
+        end
+        local attr = item.attr or lfs.attributes(check_path)
+        if attr and attr.mode == "directory" then
+          if not util.isDirRW(check_path) then
+            item.dim = true
+            item.is_readonly = true
+            item.text = item.text .. " (" .. gettext("readonly") .. ")"
+          end
+        end
+      end
+    end
+  end
+  return item_table
+end
+
 function PathChooser:onMenuHold(item)
   local path = item.path
   if path:sub(-2, -1) == "/." then -- with show_current_dir_for_hold
@@ -111,6 +139,18 @@ function PathChooser:onMenuHold(item)
   end
   if attr.mode == "directory" and not self.select_directory then
     return
+  end
+  if self.require_writable then
+    local test_dir = attr.mode == "directory" and path
+      or util.splitFilePathName(path)
+    if not util.isDirRW(test_dir) then
+      UIManager:show(Notification:new({
+        text = gettext(
+          "Selected folder is read-only. Please choose a writable folder."
+        ),
+      }))
+      return
+    end
   end
   local title
   if attr.mode == "file" then
@@ -183,6 +223,14 @@ function PathChooser:showPlusMenu()
           text = gettext("New folder"),
           callback = function()
             UIManager:close(button_dialog)
+            if self.require_writable and not util.isDirRW(self.path) then
+              UIManager:show(Notification:new({
+                text = gettext(
+                  "Current folder is read-only. Cannot create a new folder."
+                ),
+              }))
+              return
+            end
             local FileManager = require("apps/filemanager/filemanager")
             FileManager.file_chooser = self
             FileManager:createFolder()
