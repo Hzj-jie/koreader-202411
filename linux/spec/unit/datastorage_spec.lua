@@ -298,4 +298,131 @@ describe("DataStorage module", function()
       )
     end
   )
+
+  it("should cache getCacheDir result on repeated calls", function()
+    DataStorage = require("datastorage")
+    local expected = DataStorage:getDataDir() .. "/cache"
+    local count = 0
+    isDirRW_mock = function(dir)
+      if dir == expected then
+        count = count + 1
+        return true
+      end
+      return true
+    end
+
+    local first = DataStorage:getCacheDir()
+    local second = DataStorage:getCacheDir()
+    assert.are.equal(first, second)
+    assert.are.equal(1, count)
+  end)
+
+  it(
+    "should fallback getCacheDir through device.getTmpDir when TMPDIR is unset",
+    function()
+      env_mock["TMPDIR"] = false
+      DataStorage = require("datastorage")
+
+      package.loaded["device"] = {
+        getTmpDir = function()
+          return "/mock/device/tmp"
+        end,
+      }
+
+      local preferred = DataStorage:getDataDir() .. "/cache"
+      isDirRW_mock = function(dir)
+        if dir == preferred then
+          return false
+        end
+        if
+          dir == "/mock/device/tmp"
+          or dir == "/mock/device/tmp/koreader_cache"
+        then
+          return true
+        end
+        return dir == DataStorage:getDataDir()
+      end
+
+      assert.are.equal(
+        "/mock/device/tmp/koreader_cache",
+        DataStorage:getCacheDir()
+      )
+      package.loaded["device"] = nil
+    end
+  )
+
+  it(
+    "should fallback getCacheDir to preferred when even temporary fallback is unwritable",
+    function()
+      DataStorage = require("datastorage")
+      local preferred = DataStorage:getDataDir() .. "/cache"
+      isDirRW_mock = function(dir)
+        if dir == DataStorage:getDataDir() then
+          return true
+        end
+        return false
+      end
+
+      assert.are.equal(preferred, DataStorage:getCacheDir())
+    end
+  )
+
+  it("should reset all cached directories and flags on reset()", function()
+    DataStorage = require("datastorage")
+    DataStorage:setStorageTemporary(true)
+    DataStorage:setStorageReadOnly(true)
+    DataStorage:getDataDir()
+    DataStorage:getCacheDir()
+    DataStorage:getFullDataDir()
+
+    DataStorage:reset()
+
+    assert.is_false(DataStorage:isStorageTemporary())
+    assert.is_false(DataStorage:isStorageReadOnly())
+  end)
+
+  it("should handle relative subdirectory in getFullDataDir()", function()
+    env_mock["KO_MULTIUSER"] = "true"
+    env_mock["XDG_CONFIG_HOME"] = "relative/config"
+    isDirRW_mock = function(dir)
+      return dir == "relative/config/koreader"
+    end
+    DataStorage = require("datastorage")
+
+    local lfs = require("libs/libkoreader-lfs")
+    local full = DataStorage:getFullDataDir()
+    assert.are.equal(lfs.currentdir() .. "/relative/config/koreader", full)
+    -- Verify cached return
+    assert.are.equal(full, DataStorage:getFullDataDir())
+  end)
+
+  it(
+    "should not show storage warning if storage is normal or already shown",
+    function()
+      DataStorage = require("datastorage")
+      DataStorage:setStorageTemporary(false)
+      DataStorage:setStorageReadOnly(false)
+
+      local UIManager = require("ui/uimanager")
+      local show_called = false
+      local orig_show = UIManager.show
+      UIManager.show = function()
+        show_called = true
+      end
+
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_false(show_called)
+
+      -- Now trigger warning once, then verify second call is a no-op
+      DataStorage:setStorageTemporary(true)
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_true(show_called)
+
+      show_called = false
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_false(show_called)
+
+      UIManager.show = orig_show
+    end
+  )
 end)
