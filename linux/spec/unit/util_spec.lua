@@ -1,9 +1,10 @@
 describe("util module", function()
-  local DataStorage, util
+  local DataStorage, util, lfs
   setup(function()
     require("commonrequire")
     DataStorage = require("datastorage")
     util = require("util")
+    lfs = require("libs/libkoreader-lfs")
   end)
 
   it("should strip punctuation marks around word", function()
@@ -916,6 +917,38 @@ describe("util module", function()
       local test_dir = "/tmp/koreader_test_isdirrw_" .. tostring(os.time())
       assert.is_true(util.isDirRW(test_dir, true))
       os.remove(test_dir)
+    end)
+
+    it("returns false when path points to a regular file", function()
+      local test_file = "/tmp/koreader_test_file_" .. tostring(os.time())
+      local f = io.open(test_file, "w")
+      f:write("test")
+      f:close()
+      assert.is_false(util.isDirRW(test_file))
+      os.remove(test_file)
+    end)
+
+    it("handles trailing slashes and ensures no probe files remain", function()
+      local test_dir = "/tmp/koreader_test_trailing_" .. tostring(os.time())
+      lfs.mkdir(test_dir)
+      assert.is_true(util.isDirRW(test_dir .. "///"))
+      for file in lfs.dir(test_dir) do
+        assert.is_not_match("^%.rw_probe_", file)
+      end
+      lfs.rmdir(test_dir)
+    end)
+
+    it("returns false for directories without write permission", function()
+      local ro_dir = "/tmp/koreader_test_ro_" .. tostring(os.time())
+      lfs.mkdir(ro_dir)
+      os.execute("chmod 0500 " .. ro_dir)
+      assert.is_false(util.isDirRW(ro_dir))
+      os.execute("chmod 0700 " .. ro_dir)
+      lfs.rmdir(ro_dir)
+    end)
+
+    it("returns false when directory creation fails", function()
+      assert.is_false(util.isDirRW("/proc/koreader_impossible_dir", true))
     end)
   end)
 end)
