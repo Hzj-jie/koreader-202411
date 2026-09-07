@@ -1,5 +1,5 @@
 describe("docsettings module", function()
-  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs
+  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs, util
   local getSidecarFile = function(doc_path)
     return docsettings:getSidecarDir(doc_path)
       .. "/"
@@ -12,6 +12,7 @@ describe("docsettings module", function()
     docsettings = require("docsettings")
     ffiutil = require("ffi/util")
     lfs = require("libs/libkoreader-lfs")
+    util = require("util")
 
     docsettings_dir = DataStorage:getDocSettingsDir()
   end)
@@ -348,6 +349,120 @@ describe("docsettings module", function()
         )
 
         d:close()
+      end
+    )
+
+    it(
+      "falls back to next writable location for flushCustomCover and flushCustomMetadata",
+      function()
+        local file = "/tmp/test_ro_custom.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+        local tmp_cover = "/tmp/test_ro_cover.jpg"
+        local f = io.open(tmp_cover, "w")
+        if f then
+          f:write("cover data")
+          f:close()
+        end
+
+        util.isDirRW = function(dir, create)
+          if dir == d.doc_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        assert.is_true(d:flushCustomCover(file, tmp_cover))
+        assert.is_true(d:flushCustomMetadata(file))
+
+        d:close()
+        d:purge()
+        os.remove(tmp_cover)
+        os.remove(file)
+      end
+    )
+  end)
+
+  describe("getLocationCandidates ordering", function()
+    after_each(function()
+      G_reader_settings:delete("document_metadata_folder")
+    end)
+
+    it(
+      "orders candidates correctly when document_metadata_folder is doc",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local candidates =
+          docsettings:getLocationCandidates("/books/sample.epub")
+        assert.are.equal(4, #candidates)
+        assert.are.equal("doc", candidates[1].location)
+        assert.are.equal("dir", candidates[2].location)
+        assert.are.equal("hash", candidates[3].location)
+        assert.are.equal("tmp", candidates[4].location)
+      end
+    )
+
+    it(
+      "orders candidates correctly when document_metadata_folder is dir",
+      function()
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local candidates =
+          docsettings:getLocationCandidates("/books/sample.epub")
+        assert.are.equal(4, #candidates)
+        assert.are.equal("dir", candidates[1].location)
+        assert.are.equal("hash", candidates[2].location)
+        assert.are.equal("doc", candidates[3].location)
+        assert.are.equal("tmp", candidates[4].location)
+      end
+    )
+
+    it(
+      "orders candidates correctly when document_metadata_folder is hash",
+      function()
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local candidates =
+          docsettings:getLocationCandidates("/books/sample.epub")
+        assert.are.equal(4, #candidates)
+        assert.are.equal("hash", candidates[1].location)
+        assert.are.equal("dir", candidates[2].location)
+        assert.are.equal("doc", candidates[3].location)
+        assert.are.equal("tmp", candidates[4].location)
+      end
+    )
+  end)
+
+  describe("removeSidecarDir", function()
+    it(
+      "prunes empty parent directories when sidecar path contains /docsettings/",
+      function()
+        local base_dir = "/tmp/koreader_test_docsettings_"
+          .. tostring(os.time())
+        local sub_dir = base_dir .. "/docsettings/nested"
+        local sdr_dir = sub_dir .. "/book.sdr"
+        util.makePath(sdr_dir)
+        assert.are.equal("directory", lfs.attributes(sdr_dir, "mode"))
+
+        docsettings.removeSidecarDir(sdr_dir)
+
+        assert.is_nil(lfs.attributes(sdr_dir, "mode"))
+        assert.is_nil(lfs.attributes(sub_dir, "mode"))
+        util.removePath(base_dir)
+      end
+    )
+
+    it(
+      "keeps parent directory when removing standard sidecar directory",
+      function()
+        local parent_dir = "/tmp/koreader_test_standard_" .. tostring(os.time())
+        local sdr_dir = parent_dir .. "/book.sdr"
+        util.makePath(sdr_dir)
+        assert.are.equal("directory", lfs.attributes(sdr_dir, "mode"))
+
+        docsettings.removeSidecarDir(sdr_dir)
+
+        assert.is_nil(lfs.attributes(sdr_dir, "mode"))
+        assert.are.equal("directory", lfs.attributes(parent_dir, "mode"))
+        lfs.rmdir(parent_dir)
       end
     )
   end)
