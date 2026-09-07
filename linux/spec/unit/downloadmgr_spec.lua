@@ -43,29 +43,34 @@ describe("DownloadMgr module", function()
     UIManager.show = orig_show
   end)
 
-  it("should handle chooseDir with settings download_dir and fallback", function()
-    local shown_widget = nil
-    local orig_show = UIManager.show
-    UIManager.show = function(self, widget)
-      shown_widget = widget
+  it(
+    "should handle chooseDir with settings download_dir and fallback",
+    function()
+      local shown_widget = nil
+      local orig_show = UIManager.show
+      UIManager.show = function(self, widget)
+        shown_widget = widget
+      end
+
+      G_reader_settings:save("download_dir", "/tmp/test_dir")
+      local mgr = DownloadMgr:new()
+      mgr:chooseDir()
+      assert.truthy(shown_widget)
+      assert.are.equal("/tmp", shown_widget.path)
+
+      local orig_lastdir = G_named_settings.lastdir
+      G_reader_settings:save("download_dir", nil)
+      G_named_settings.lastdir = function()
+        return "/tmp/test_dir"
+      end
+      mgr:chooseDir()
+      assert.truthy(shown_widget)
+      assert.are.equal("/tmp/test_dir", shown_widget.path)
+
+      G_named_settings.lastdir = orig_lastdir
+      UIManager.show = orig_show
     end
-
-    G_reader_settings:save("download_dir", "/tmp/test_dir")
-    local mgr = DownloadMgr:new()
-    mgr:chooseDir()
-    assert.truthy(shown_widget)
-    assert.are.equal("/tmp", shown_widget.path)
-
-    local orig_lastdir = G_named_settings.lastdir
-    G_reader_settings:save("download_dir", nil)
-    G_named_settings.lastdir = function() return "/tmp/test_dir" end
-    mgr:chooseDir()
-    assert.truthy(shown_widget)
-    assert.are.equal("/tmp/test_dir", shown_widget.path)
-
-    G_named_settings.lastdir = orig_lastdir
-    UIManager.show = orig_show
-  end)
+  )
 
   it("should handle chooseCloudDir", function()
     local shown_widget = nil
@@ -92,6 +97,59 @@ describe("DownloadMgr module", function()
     assert.are.equal("/cloud/path", confirmed_path)
 
     CloudStorage.init = orig_init
+    UIManager.show = orig_show
+  end)
+
+  it("should pass require_writable=true to PathChooser in chooseDir", function()
+    local shown_widget = nil
+    local orig_show = UIManager.show
+    UIManager.show = function(_, widget)
+      shown_widget = widget
+    end
+
+    local mgr = DownloadMgr:new()
+    mgr:chooseDir("/tmp/test_dir")
+    assert.truthy(shown_widget)
+    assert.is_true(shown_widget.require_writable)
+
+    UIManager.show = orig_show
+  end)
+
+  it("should check if download directory is writable", function()
+    local util = require("util")
+    local orig_isDirRW = util.isDirRW
+
+    util.isDirRW = function(dir)
+      return dir == "/tmp/rw_dir"
+    end
+
+    assert.is_true(DownloadMgr.isDownloadDirWritable("/tmp/rw_dir"))
+    assert.is_false(DownloadMgr.isDownloadDirWritable("/tmp/ro_dir"))
+
+    util.isDirRW = orig_isDirRW
+  end)
+
+  it("should pre-flight checkDownloadDir and notify when read-only", function()
+    local util = require("util")
+    local orig_isDirRW = util.isDirRW
+    local shown_notifications = {}
+    local orig_show = UIManager.show
+    UIManager.show = function(_, widget)
+      table.insert(shown_notifications, widget)
+    end
+
+    util.isDirRW = function(dir)
+      return dir == "/tmp/rw_dir"
+    end
+
+    assert.is_true(DownloadMgr.checkDownloadDir("/tmp/rw_dir"))
+    assert.are.equal(0, #shown_notifications)
+
+    assert.is_false(DownloadMgr.checkDownloadDir("/tmp/ro_dir"))
+    assert.are.equal(1, #shown_notifications)
+    assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
+
+    util.isDirRW = orig_isDirRW
     UIManager.show = orig_show
   end)
 end)
