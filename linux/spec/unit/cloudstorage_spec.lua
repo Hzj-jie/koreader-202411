@@ -458,6 +458,12 @@ describe("CloudStorage", function()
           end,
         }
       end,
+      isDownloadDirWritable = function()
+        return true
+      end,
+      checkDownloadDir = function()
+        return true
+      end,
     }
 
     CloudStorage = require("apps/cloudstorage/cloudstorage")
@@ -639,6 +645,46 @@ describe("CloudStorage", function()
 
       assert.is_true(mock_ftp.download_called)
     end)
+
+    it(
+      "should block download and not schedule when download directory is read-only",
+      function()
+        local cs = CloudStorage:new()
+        cs.type = "ftp"
+        cs.address = "ftp://example.com"
+        cs.username = "user"
+        cs.password = "pass"
+
+        mock_lfs.files["/default/download/dir/file.epub"] = nil
+
+        local DownloadMgr = require("ui/downloadmgr")
+        local orig_check = DownloadMgr.checkDownloadDir
+        DownloadMgr.checkDownloadDir = function()
+          return false
+        end
+
+        cs:downloadFile({ text = "file.epub", url = "/remote/file.epub" })
+
+        local dialog = mock_uimanager.shown_widgets[1]
+        local download_btn
+        for _, row in ipairs(dialog.buttons) do
+          for _, btn in ipairs(row) do
+            if btn.text == "Download" then
+              download_btn = btn
+              break
+            end
+          end
+        end
+        assert.truthy(download_btn)
+
+        download_btn.callback()
+
+        assert.are.equal(0, #mock_uimanager.scheduled_funcs)
+        assert.is_falsy(mock_ftp.download_called)
+
+        DownloadMgr.checkDownloadDir = orig_check
+      end
+    )
 
     it("should show ConfirmBox if file already exists", function()
       local cs = CloudStorage:new()
@@ -823,7 +869,9 @@ describe("CloudStorage", function()
   describe("Navigation & Path Stack", function()
     it("manages path traversal with onReturn and onHoldReturn", function()
       local cs = CloudStorage:new()
-      cs.openCloudServer = function() return true end
+      cs.openCloudServer = function()
+        return true
+      end
       cs.init = function() end
       cs.paths = {
         { url = "/folder1" },
