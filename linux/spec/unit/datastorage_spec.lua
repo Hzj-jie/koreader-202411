@@ -2,6 +2,9 @@ describe("DataStorage module", function()
   local DataStorage
   local original_getenv = os.getenv
   local env_mock = {}
+  local util = require("util")
+  local original_isDirRW = util.isDirRW
+  local isDirRW_mock
 
   setup(function()
     require("commonrequire")
@@ -10,6 +13,7 @@ describe("DataStorage module", function()
   before_each(function()
     package.loaded["datastorage"] = nil
     env_mock = {}
+    isDirRW_mock = nil
     os.getenv = function(var)
       if env_mock[var] ~= nil then
         if env_mock[var] == false then
@@ -19,10 +23,20 @@ describe("DataStorage module", function()
       end
       return original_getenv(var)
     end
+    util.isDirRW = function(dir, create)
+      if isDirRW_mock ~= nil then
+        if type(isDirRW_mock) == "function" then
+          return isDirRW_mock(dir, create)
+        end
+        return isDirRW_mock
+      end
+      return original_isDirRW(dir, create)
+    end
   end)
 
   after_each(function()
     os.getenv = original_getenv
+    util.isDirRW = original_isDirRW
     package.loaded["datastorage"] = nil
   end)
 
@@ -47,6 +61,9 @@ describe("DataStorage module", function()
   it("should honor KO_MULTIUSER and XDG_CONFIG_HOME", function()
     env_mock["KO_MULTIUSER"] = "true"
     env_mock["XDG_CONFIG_HOME"] = "/tmp/my_xdg_config"
+    isDirRW_mock = function(dir)
+      return dir == "/tmp/my_xdg_config/koreader"
+    end
 
     local lfs = require("libs/libkoreader-lfs")
     local original_mkdir = lfs.mkdir
@@ -75,6 +92,9 @@ describe("DataStorage module", function()
     env_mock["KO_MULTIUSER"] = "true"
     env_mock["XDG_CONFIG_HOME"] = false
     env_mock["HOME"] = "/home/testuser"
+    isDirRW_mock = function(dir)
+      return dir == "/home/testuser/.config/koreader"
+    end
 
     local lfs = require("libs/libkoreader-lfs")
     local original_mkdir = lfs.mkdir
@@ -107,6 +127,9 @@ describe("DataStorage module", function()
     env_mock["UBUNTU_APPLICATION_ISOLATION"] = "true"
     env_mock["APP_ID"] = "com.koreader.app_12345"
     env_mock["XDG_DATA_HOME"] = "/xdg/data"
+    isDirRW_mock = function(dir)
+      return dir == "/xdg/data/com.koreader.app"
+    end
 
     local lfs = require("libs/libkoreader-lfs")
     local original_mkdir = lfs.mkdir
@@ -128,4 +151,119 @@ describe("DataStorage module", function()
     lfs.mkdir = original_mkdir
     lfs.attributes = original_attributes
   end)
+
+  it(
+    "should fallback to secondary candidate if preferred is unwritable",
+    function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      env_mock["HOME"] = "/fake/home"
+      isDirRW_mock = function(dir)
+        return dir == "/fake/home/.config/koreader"
+      end
+
+      DataStorage = require("datastorage")
+      assert.are.equal("/fake/home/.config/koreader", DataStorage:getDataDir())
+      assert.is_false(DataStorage:isStorageTemporary())
+      assert.is_false(DataStorage:isStorageReadOnly())
+    end
+  )
+
+  it(
+    "should fallback to temporary storage if all standard candidates are unwritable",
+    function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      env_mock["HOME"] = "/fake/home"
+      env_mock["TMPDIR"] = "/fake/tmp"
+      isDirRW_mock = function(dir)
+        return dir == "/fake/tmp/koreader" or dir == "/fake/tmp"
+      end
+
+      DataStorage = require("datastorage")
+      assert.are.equal("/fake/tmp/koreader", DataStorage:getDataDir())
+      assert.is_true(DataStorage:isStorageTemporary())
+      assert.is_false(DataStorage:isStorageReadOnly())
+    end
+  )
+
+  it(
+    "should enter read-only mode if even temporary storage is unwritable",
+    function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      isDirRW_mock = function()
+        return false
+      end
+
+      DataStorage = require("datastorage")
+      assert.are.equal("/fake/xdg/koreader", DataStorage:getDataDir())
+      assert.is_true(DataStorage:isStorageReadOnly())
+      assert.is_false(DataStorage:isStorageTemporary())
+    end
+  )
+
+  it("should show modal confirmation when storage is temporary", function()
+    DataStorage = require("datastorage")
+    DataStorage:setStorageTemporary(true)
+    DataStorage:setStorageReadOnly(false)
+
+    local UIManager = require("ui/uimanager")
+    local quit_called = false
+    local shown_widget = nil
+    local orig_show = UIManager.show
+    local orig_quit = UIManager.quit
+
+    UIManager.show = function(_, widget)
+      shown_widget = widget
+    end
+    UIManager.quit = function()
+      quit_called = true
+    end
+
+    DataStorage:showStorageWarningIfNeeded()
+    assert.is_not_nil(shown_widget)
+    assert.is_truthy(shown_widget.text:find("temporary storage"))
+    assert.is_truthy(shown_widget.ok_text)
+    assert.is_truthy(shown_widget.cancel_text)
+
+    -- Test cancel callback calls quit
+    shown_widget.cancel_callback()
+    assert.is_true(quit_called)
+
+    UIManager.show = orig_show
+    UIManager.quit = orig_quit
+  end)
+
+  it(
+    "should show modal confirmation when storage is completely read-only",
+    function()
+      DataStorage = require("datastorage")
+      DataStorage:setStorageTemporary(false)
+      DataStorage:setStorageReadOnly(true)
+
+      local UIManager = require("ui/uimanager")
+      local quit_called = false
+      local shown_widget = nil
+      local orig_show = UIManager.show
+      local orig_quit = UIManager.quit
+
+      UIManager.show = function(_, widget)
+        shown_widget = widget
+      end
+      UIManager.quit = function()
+        quit_called = true
+      end
+
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_not_nil(shown_widget)
+      assert.is_truthy(shown_widget.text:find("completely read%-only"))
+
+      shown_widget.cancel_callback()
+      assert.is_true(quit_called)
+
+      UIManager.show = orig_show
+      UIManager.quit = orig_quit
+    end
+  )
 end)
