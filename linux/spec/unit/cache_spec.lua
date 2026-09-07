@@ -95,5 +95,102 @@ describe("Cache module", function()
 
       assert.is_false(c.disk_cache)
     end)
+
+    it("skips serialization safely when disk_cache is disabled", function()
+      local orig_disk_cache = DocCache.disk_cache
+      DocCache.disk_cache = false
+      assert.has_no_errors(function()
+        DocCache:serialize()
+      end)
+      DocCache.disk_cache = orig_disk_cache
+    end)
+
+    it("skips serialization safely when cache_path is unwritable", function()
+      util.isDirRW = function(dir)
+        if dir == DocCache.cache_path then
+          return false
+        end
+        return true
+      end
+      assert.has_no_errors(function()
+        DocCache:serialize()
+      end)
+    end)
+
+    it(
+      "returns empty table in _getDiskCache when cache_path is unwritable",
+      function()
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = false,
+          cache_path = "/nonexistent/cache/",
+        })
+        util.isDirRW = function()
+          return false
+        end
+        local cached = c:_getDiskCache()
+        assert.is_table(cached)
+        assert.are.same({}, cached)
+      end
+    )
+
+    it("handles lfs.dir error in _getDiskCache gracefully", function()
+      local lfs = require("libs/libkoreader-lfs")
+      local c = Cache:new({
+        slots = 10,
+        disk_cache = false,
+        cache_path = "/nonexistent/cache/",
+      })
+      util.isDirRW = function()
+        return true
+      end
+      local orig_dir = lfs.dir
+      lfs.dir = function()
+        error("permission denied")
+      end
+      local cached = c:_getDiskCache()
+      assert.is_table(cached)
+      assert.are.same({}, cached)
+      lfs.dir = orig_dir
+    end)
+
+    it(
+      "falls back to device:getTmpDir when DataStorage cache dir is unwritable",
+      function()
+        local orig_ds = package.loaded["datastorage"]
+        package.loaded["datastorage"] = {
+          getCacheDir = function()
+            return "/unwritable/ds/cache"
+          end,
+        }
+        package.loaded["device"] = {
+          getTmpDir = function()
+            return "/mock/device/tmp"
+          end,
+        }
+
+        util.isDirRW = function(dir)
+          if dir == "/nonexistent/cache/" or dir == "/unwritable/ds/cache" then
+            return false
+          end
+          if dir == "/mock/device/tmp/cache/" then
+            return true
+          end
+          return false
+        end
+
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = true,
+          cache_path = "/nonexistent/cache/",
+        })
+
+        assert.is_true(c.disk_cache)
+        assert.are.equal("/mock/device/tmp/cache/", c.cache_path)
+
+        package.loaded["datastorage"] = orig_ds
+        package.loaded["device"] = nil
+      end
+    )
   end)
 end)
