@@ -562,6 +562,24 @@ describe("device module", function()
       Device.screen_saver_mode = false
       readerui:onClose()
     end)
+
+    describe("getTmpDir()", function()
+      local Device = require("device/generic/device")
+      it("returns tmp directory string", function()
+        local tmp_dir = Device:getTmpDir()
+        assert.is_string(tmp_dir)
+        assert.is_true(#tmp_dir > 0)
+      end)
+
+      it("respects TMPDIR environment variable if present", function()
+        local old_tmp = Device.tmp_dir
+        Device.tmp_dir = nil
+        local custom_tmp = os.getenv("TMPDIR") or "/tmp"
+        local res = Device:_getTmpDir()
+        assert.is_string(res)
+        Device.tmp_dir = old_tmp
+      end)
+    end)
   end)
 
   describe("generic device", function()
@@ -857,19 +875,16 @@ describe("device module", function()
         assert.is_false(test_dev:supportsScreensaver())
       end)
 
-      it(
-        "checks unpackArchive supported and unsupported formats",
-        function()
-          os.execute.returns(0)
-          local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
-          assert.is_true(ok)
+      it("checks unpackArchive supported and unsupported formats", function()
+        os.execute.returns(0)
+        local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
+        assert.is_true(ok)
 
-          local bad_ok, err =
-            test_dev:unpackArchive("archive.zip", "/tmp/extracted")
-          assert.is_false(bad_ok)
-          assert.is_string(err)
-        end
-      )
+        local bad_ok, err =
+          test_dev:unpackArchive("archive.zip", "/tmp/extracted")
+        assert.is_false(bad_ok)
+        assert.is_string(err)
+      end)
 
       it("executes exit teardown cleanly", function()
         test_dev.orig_hw_nightmode = false
