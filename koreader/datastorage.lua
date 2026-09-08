@@ -102,6 +102,7 @@ local function initDataDir()
     "screenshots",
     "settings",
     "styletweaks",
+    "tmp",
   }
   local datadir = DataStorage:getDataDir()
   for _, dir in ipairs(sub_data_dirs) do
