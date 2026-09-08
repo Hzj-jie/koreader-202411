@@ -461,7 +461,7 @@ describe("DataStorage module", function()
     end)
 
     it(
-      "falls back to data_dir /tmp on Android when /tmp is unavailable",
+      "falls back to /data/local/tmp on Android when TMPDIR is unset",
       function()
         package.loaded["android"] = {
           getExternalStoragePath = function()
@@ -471,10 +471,29 @@ describe("DataStorage module", function()
         package.loaded["datastorage"] = nil
         env_mock["TMPDIR"] = false
         isDirRW_mock = function(dir)
-          return dir == "/sdcard/koreader" or dir == "/sdcard/koreader/tmp"
+          return dir == "/data/local/tmp"
         end
         DataStorage = require("datastorage")
-        assert.are.equal("/sdcard/koreader/tmp", DataStorage:getTmpDir())
+        assert.are.equal("/data/local/tmp", DataStorage:getTmpDir())
+        package.loaded["android"] = nil
+      end
+    )
+
+    it(
+      "falls back to /tmp on Android when /data/local/tmp is unwritable",
+      function()
+        package.loaded["android"] = {
+          getExternalStoragePath = function()
+            return "/sdcard"
+          end,
+        }
+        package.loaded["datastorage"] = nil
+        env_mock["TMPDIR"] = false
+        isDirRW_mock = function(dir)
+          return dir == "/tmp"
+        end
+        DataStorage = require("datastorage")
+        assert.are.equal("/tmp", DataStorage:getTmpDir())
         package.loaded["android"] = nil
       end
     )

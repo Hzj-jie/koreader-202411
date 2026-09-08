@@ -56,26 +56,10 @@ function DataStorage:getTmpDir()
     table.insert(candidates, env_tmp)
   end
 
-  if not isAndroid then
-    table.insert(candidates, "/tmp")
-  end
-
   if isAndroid then
-    if data_dir then
-      table.insert(candidates, data_dir .. "/tmp")
-    elseif android and android.getExternalStoragePath then
-      table.insert(
-        candidates,
-        android.getExternalStoragePath() .. "/koreader/tmp"
-      )
-    end
     table.insert(candidates, "/data/local/tmp")
-    table.insert(candidates, "/tmp")
-  else
-    if data_dir then
-      table.insert(candidates, data_dir .. "/tmp")
-    end
   end
+  table.insert(candidates, "/tmp")
 
   for _, cand in ipairs(candidates) do
     if cand and util.isDirRW(cand, true) then
