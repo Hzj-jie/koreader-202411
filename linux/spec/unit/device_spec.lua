@@ -875,19 +875,16 @@ describe("device module", function()
         assert.is_false(test_dev:supportsScreensaver())
       end)
 
-      it(
-        "checks unpackArchive supported and unsupported formats",
-        function()
-          os.execute.returns(0)
-          local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
-          assert.is_true(ok)
+      it("checks unpackArchive supported and unsupported formats", function()
+        os.execute.returns(0)
+        local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
+        assert.is_true(ok)
 
-          local bad_ok, err =
-            test_dev:unpackArchive("archive.zip", "/tmp/extracted")
-          assert.is_false(bad_ok)
-          assert.is_string(err)
-        end
-      )
+        local bad_ok, err =
+          test_dev:unpackArchive("archive.zip", "/tmp/extracted")
+        assert.is_false(bad_ok)
+        assert.is_string(err)
+      end)
 
       it("executes exit teardown cleanly", function()
         test_dev.orig_hw_nightmode = false

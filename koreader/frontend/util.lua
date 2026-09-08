@@ -908,7 +908,11 @@ function util.isDirRW(dir, create)
   if not ok or not iter then
     return false
   end
-  local probe_file = (dir:gsub("/+$", "")) .. "/.rw_probe_" .. tostring(os.time()) .. "_" .. tostring(math.random(1, 100000))
+  local probe_file = (dir:gsub("/+$", ""))
+    .. "/.rw_probe_"
+    .. tostring(os.time())
+    .. "_"
+    .. tostring(math.random(1, 100000))
   local f = io.open(probe_file, "w")
   if not f then
     return false
@@ -1868,7 +1872,6 @@ function util.functionFingerprint(fn, visited)
   end
   visited[fn] = true
 
-  local md5 = require("ffi/sha2").md5
   local parts = {}
   local ok, bytecode = pcall(string.dump, fn, true)
   if ok then
