@@ -20,14 +20,20 @@ function DataStorage:isStorageReadOnly()
   return is_storage_readonly == true
 end
 
+-- For testing purposes only; do not use in production code.
+-- Overrides the temporary storage flag to simulate fallback storage state.
 function DataStorage:setStorageTemporary(val)
   is_storage_temporary = val
 end
 
+-- For testing purposes only; do not use in production code.
+-- Overrides the read-only storage flag to simulate unwritable storage state.
 function DataStorage:setStorageReadOnly(val)
   is_storage_readonly = val
 end
 
+-- For testing purposes only; do not use in production code.
+-- Resets cached directories and storage state flags across test scenarios.
 function DataStorage:reset()
   data_dir = nil
   full_data_dir = nil
