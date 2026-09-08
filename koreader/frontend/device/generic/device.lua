@@ -139,6 +139,13 @@ local Device = {
 }
 
 function Device:_getTmpDir()
+  local ok, ds = pcall(require, "datastorage")
+  if ok and ds and ds.getTmpDir then
+    local ok_tmp, tmp = pcall(ds.getTmpDir, ds)
+    if ok_tmp and tmp then
+      return tmp
+    end
+  end
   local tmp = os.getenv("TMPDIR")
   if util.isDirRW(tmp) then
     return tmp

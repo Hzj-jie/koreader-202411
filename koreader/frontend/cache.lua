@@ -57,10 +57,18 @@ function Cache:init()
         end
       end
       if not fallback_path then
-        local ok_dev, dev = pcall(require, "device")
-        local tmp = (ok_dev and dev and dev.getTmpDir and dev:getTmpDir())
-          or os.getenv("TMPDIR")
-          or "/tmp"
+        local tmp = (
+          ok_ds
+          and DataStorage
+          and DataStorage.getTmpDir
+          and DataStorage:getTmpDir()
+        )
+        if not tmp then
+          local ok_dev, dev = pcall(require, "device")
+          tmp = (ok_dev and dev and dev.getTmpDir and dev:getTmpDir())
+            or os.getenv("TMPDIR")
+            or "/tmp"
+        end
         local tmp_path = tmp .. "/cache/"
         if util.isDirRW(tmp_path, true) then
           fallback_path = tmp_path

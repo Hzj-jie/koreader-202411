@@ -318,36 +318,23 @@ describe("DataStorage module", function()
   end)
 
   it(
-    "should fallback getCacheDir through device.getTmpDir when TMPDIR is unset",
+    "should fallback getCacheDir to getTmpDir when preferred is unwritable",
     function()
-      env_mock["TMPDIR"] = false
+      env_mock["TMPDIR"] = "/mock/tmp"
       DataStorage = require("datastorage")
-
-      package.loaded["device"] = {
-        getTmpDir = function()
-          return "/mock/device/tmp"
-        end,
-      }
 
       local preferred = DataStorage:getDataDir() .. "/cache"
       isDirRW_mock = function(dir)
         if dir == preferred then
           return false
         end
-        if
-          dir == "/mock/device/tmp"
-          or dir == "/mock/device/tmp/koreader_cache"
-        then
+        if dir == "/mock/tmp" or dir == "/mock/tmp/koreader_cache" then
           return true
         end
         return dir == DataStorage:getDataDir()
       end
 
-      assert.are.equal(
-        "/mock/device/tmp/koreader_cache",
-        DataStorage:getCacheDir()
-      )
-      package.loaded["device"] = nil
+      assert.are.equal("/mock/tmp/koreader_cache", DataStorage:getCacheDir())
     end
   )
 
@@ -374,6 +361,7 @@ describe("DataStorage module", function()
     DataStorage:getDataDir()
     DataStorage:getCacheDir()
     DataStorage:getFullDataDir()
+    DataStorage:getTmpDir()
 
     DataStorage:reset()
 
@@ -425,4 +413,84 @@ describe("DataStorage module", function()
       UIManager.show = orig_show
     end
   )
+
+  describe("getTmpDir()", function()
+    it("returns tmp directory string", function()
+      DataStorage = require("datastorage")
+      local tmp = DataStorage:getTmpDir()
+      assert.is_string(tmp)
+      assert.is_true(#tmp > 0)
+    end)
+
+    it("respects TMPDIR environment variable if present", function()
+      env_mock["TMPDIR"] = "/custom/env/tmp"
+      isDirRW_mock = function(dir)
+        return dir == "/custom/env/tmp"
+      end
+      DataStorage = require("datastorage")
+      assert.are.equal("/custom/env/tmp", DataStorage:getTmpDir())
+    end)
+
+    it("falls back to /tmp when TMPDIR is unset or unwritable", function()
+      env_mock["TMPDIR"] = "/unwritable/tmp"
+      isDirRW_mock = function(dir)
+        return dir == "/tmp"
+      end
+      DataStorage = require("datastorage")
+      assert.are.equal("/tmp", DataStorage:getTmpDir())
+    end)
+
+    it("caches result on subsequent calls", function()
+      DataStorage = require("datastorage")
+      local first = DataStorage:getTmpDir()
+      local second = DataStorage:getTmpDir()
+      assert.are.equal(first, second)
+    end)
+
+    it("clears cached tmp_dir on reset()", function()
+      env_mock["TMPDIR"] = "/first/tmp"
+      isDirRW_mock = function(dir)
+        return dir == "/first/tmp" or dir == "/second/tmp"
+      end
+      DataStorage = require("datastorage")
+      assert.are.equal("/first/tmp", DataStorage:getTmpDir())
+
+      DataStorage:reset()
+      env_mock["TMPDIR"] = "/second/tmp"
+      assert.are.equal("/second/tmp", DataStorage:getTmpDir())
+    end)
+
+    it(
+      "falls back to data_dir /tmp on Android when /tmp is unavailable",
+      function()
+        package.loaded["android"] = {
+          getExternalStoragePath = function()
+            return "/sdcard"
+          end,
+        }
+        package.loaded["datastorage"] = nil
+        env_mock["TMPDIR"] = false
+        isDirRW_mock = function(dir)
+          return dir == "/sdcard/koreader" or dir == "/sdcard/koreader/tmp"
+        end
+        DataStorage = require("datastorage")
+        assert.are.equal("/sdcard/koreader/tmp", DataStorage:getTmpDir())
+        package.loaded["android"] = nil
+      end
+    )
+
+    it(
+      "raises error when no candidate temporary directory is writable",
+      function()
+        env_mock["TMPDIR"] = false
+        isDirRW_mock = function()
+          return false
+        end
+        DataStorage = require("datastorage")
+        assert.has_error(function()
+          DataStorage:getTmpDir()
+        end, "No temporary directory found")
+      end
+    )
+  end)
 end)

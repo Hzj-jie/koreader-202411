@@ -8,6 +8,7 @@ local DataStorage = {}
 local data_dir
 local full_data_dir
 local cache_dir
+local tmp_dir
 local is_storage_temporary = false
 local is_storage_readonly = false
 local storage_warning_shown = false
@@ -38,30 +39,52 @@ function DataStorage:reset()
   data_dir = nil
   full_data_dir = nil
   cache_dir = nil
+  tmp_dir = nil
   is_storage_temporary = false
   is_storage_readonly = false
   storage_warning_shown = false
 end
 
-local function getFallbackTmpDir()
-  local ok, dev = pcall(require, "device")
-  if ok and dev and dev.getTmpDir then
-    local ok_tmp, tmp = pcall(dev.getTmpDir, dev)
-    if ok_tmp and tmp and util.isDirRW(tmp, true) then
-      return tmp
+function DataStorage:getTmpDir()
+  if tmp_dir then
+    return tmp_dir
+  end
+
+  local candidates = {}
+  local env_tmp = os.getenv("TMPDIR")
+  if env_tmp then
+    table.insert(candidates, env_tmp)
+  end
+
+  if not isAndroid then
+    table.insert(candidates, "/tmp")
+  end
+
+  if isAndroid then
+    if data_dir then
+      table.insert(candidates, data_dir .. "/tmp")
+    elseif android and android.getExternalStoragePath then
+      table.insert(
+        candidates,
+        android.getExternalStoragePath() .. "/koreader/tmp"
+      )
+    end
+    table.insert(candidates, "/data/local/tmp")
+    table.insert(candidates, "/tmp")
+  else
+    if data_dir then
+      table.insert(candidates, data_dir .. "/tmp")
     end
   end
-  local tmp = os.getenv("TMPDIR")
-  if tmp and util.isDirRW(tmp, true) then
-    return tmp
+
+  for _, cand in ipairs(candidates) do
+    if cand and util.isDirRW(cand, true) then
+      tmp_dir = cand
+      return tmp_dir
+    end
   end
-  if util.isDirRW("/tmp", true) then
-    return "/tmp"
-  end
-  if isAndroid and util.isDirRW("/data/local/tmp", true) then
-    return "/data/local/tmp"
-  end
-  return nil
+
+  error("No temporary directory found")
 end
 
 function DataStorage:getDataDir()
@@ -127,9 +150,9 @@ function DataStorage:getDataDir()
   end
 
   -- All standard candidates failed write check; fall back to temporary directory
-  local tmp_dir = getFallbackTmpDir()
-  if tmp_dir then
-    local tmp_data_dir = tmp_dir .. "/koreader"
+  local ok_tmp, fallback_tmp = pcall(self.getTmpDir, self)
+  if ok_tmp and fallback_tmp then
+    local tmp_data_dir = fallback_tmp .. "/koreader"
     if util.isDirRW(tmp_data_dir, true) then
       data_dir = tmp_data_dir
       is_storage_temporary = true
@@ -170,9 +193,9 @@ function DataStorage:getCacheDir()
     return cache_dir
   end
 
-  local tmp = getFallbackTmpDir()
-  if tmp then
-    local tmp_cache = tmp .. "/koreader_cache"
+  local ok_tmp_cache, fallback_tmp_cache = pcall(self.getTmpDir, self)
+  if ok_tmp_cache and fallback_tmp_cache then
+    local tmp_cache = fallback_tmp_cache .. "/koreader_cache"
     if util.isDirRW(tmp_cache, true) then
       cache_dir = tmp_cache
       return cache_dir

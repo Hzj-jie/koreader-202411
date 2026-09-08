@@ -164,10 +164,14 @@ function DocSettings:getSidecarDir(doc_path, force_location)
     local subpath = string.format("/%s/", hsh:sub(1, 2))
     path = DOCSETTINGS_HASH_DIR .. subpath .. hsh
   elseif location == "tmp" then
-    local ok_dev, dev = pcall(require, "device")
-    local tmp = (ok_dev and dev and dev.getTmpDir and dev:getTmpDir())
-      or os.getenv("TMPDIR")
-      or "/tmp"
+    local ok_ds, ds = pcall(require, "datastorage")
+    local tmp = (ok_ds and ds and ds.getTmpDir and ds:getTmpDir())
+    if not tmp then
+      local ok_dev, dev = pcall(require, "device")
+      tmp = (ok_dev and dev and dev.getTmpDir and dev:getTmpDir())
+        or os.getenv("TMPDIR")
+        or "/tmp"
+    end
     path = tmp .. "/docsettings" .. path
   end
   return path .. ".sdr"
