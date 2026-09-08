@@ -155,17 +155,15 @@ describe("Cache module", function()
     end)
 
     it(
-      "falls back to device:getTmpDir when DataStorage cache dir is unwritable",
+      "falls back to DataStorage:getTmpDir when DataStorage cache dir is unwritable",
       function()
         local orig_ds = package.loaded["datastorage"]
         package.loaded["datastorage"] = {
           getCacheDir = function()
             return "/unwritable/ds/cache"
           end,
-        }
-        package.loaded["device"] = {
           getTmpDir = function()
-            return "/mock/device/tmp"
+            return "/mock/ds/tmp"
           end,
         }
 
@@ -173,7 +171,7 @@ describe("Cache module", function()
           if dir == "/nonexistent/cache/" or dir == "/unwritable/ds/cache" then
             return false
           end
-          if dir == "/mock/device/tmp/cache/" then
+          if dir == "/mock/ds/tmp/cache/" then
             return true
           end
           return false
@@ -186,10 +184,9 @@ describe("Cache module", function()
         })
 
         assert.is_true(c.disk_cache)
-        assert.are.equal("/mock/device/tmp/cache/", c.cache_path)
+        assert.are.equal("/mock/ds/tmp/cache/", c.cache_path)
 
         package.loaded["datastorage"] = orig_ds
-        package.loaded["device"] = nil
       end
     )
   end)

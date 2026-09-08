@@ -46,6 +46,19 @@ describe("docsettings module", function()
     )
   end)
 
+  it(
+    "should generate sidecar folder path in tmp folder via DataStorage:getTmpDir",
+    function()
+      local orig_getTmpDir = DataStorage.getTmpDir
+      DataStorage.getTmpDir = function()
+        return "/custom/datastorage/tmp"
+      end
+      local dir = docsettings:getSidecarDir("/foo/bar.pdf", "tmp")
+      DataStorage.getTmpDir = orig_getTmpDir
+      assert.are.equal("/custom/datastorage/tmp/docsettings/foo/bar.sdr", dir)
+    end
+  )
+
   it("should generate sidecar metadata file (book folder)", function()
     G_reader_settings:save("document_metadata_folder", "doc")
     assert.Equals(
