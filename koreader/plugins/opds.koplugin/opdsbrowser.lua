@@ -815,8 +815,7 @@ end
 -- Downloads a book (with "File already exists" dialog)
 function OPDSBrowser:downloadFile(filename, remote_url)
   local download_dir = self.getCurrentDownloadDir()
-  local DownloadMgr = require("ui/downloadmgr")
-  if not DownloadMgr.checkDownloadDir(download_dir) then
+  if not require("ui/downloadmgr").checkDownloadDir(download_dir) then
     return
   end
 
