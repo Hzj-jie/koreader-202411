@@ -56,6 +56,7 @@ describe("DataStorage module", function()
     local full_dir = DataStorage:getFullDataDir()
     assert.truthy(full_dir)
     assert.are.equal("/", string.sub(full_dir, 1, 1))
+    assert.are.equal(require("libs/libkoreader-lfs").currentdir(), full_dir)
   end)
 
   it("should honor KO_MULTIUSER and XDG_CONFIG_HOME", function()

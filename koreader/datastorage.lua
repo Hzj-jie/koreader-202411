@@ -195,12 +195,11 @@ function DataStorage:getFullDataDir()
     return full_data_dir
   end
 
-  if string.sub(self:getDataDir(), 1, 1) == "/" then
-    full_data_dir = self:getDataDir()
-  elseif self:getDataDir() == "." then
-    full_data_dir = lfs.currentdir()
+  local dir = self:getDataDir()
+  if string.sub(dir, 1, 1) == "/" then
+    full_data_dir = dir
   else
-    full_data_dir = lfs.currentdir() .. "/" .. self:getDataDir()
+    full_data_dir = (lfs.currentdir() .. "/" .. dir):gsub("/%.$", "")
   end
 
   return full_data_dir
