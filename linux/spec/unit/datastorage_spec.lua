@@ -234,8 +234,6 @@ describe("DataStorage module", function()
 
       DataStorage = require("datastorage")
       assert.are.equal("/fake/home/.config/koreader", DataStorage:getDataDir())
-      assert.is_false(DataStorage:isStorageTemporary())
-      assert.is_false(DataStorage:isStorageReadOnly())
     end
   )
 
@@ -252,8 +250,6 @@ describe("DataStorage module", function()
 
       DataStorage = require("datastorage")
       assert.are.equal("/fake/tmp/koreader", DataStorage:getDataDir())
-      assert.is_true(DataStorage:isStorageTemporary())
-      assert.is_false(DataStorage:isStorageReadOnly())
     end
   )
 
@@ -268,15 +264,19 @@ describe("DataStorage module", function()
 
       DataStorage = require("datastorage")
       assert.are.equal("/fake/xdg/koreader", DataStorage:getDataDir())
-      assert.is_true(DataStorage:isStorageReadOnly())
-      assert.is_false(DataStorage:isStorageTemporary())
     end
   )
 
   it("should show modal confirmation when storage is temporary", function()
+    env_mock["KO_MULTIUSER"] = "true"
+    env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+    env_mock["HOME"] = "/fake/home"
+    env_mock["TMPDIR"] = "/fake/tmp"
+    isDirRW_mock = function(dir)
+      return dir == "/fake/tmp/koreader" or dir == "/fake/tmp"
+    end
     DataStorage = require("datastorage")
-    DataStorage:setStorageTemporary(true)
-    DataStorage:setStorageReadOnly(false)
+    DataStorage:getDataDir()
 
     local UIManager = require("ui/uimanager")
     local quit_called = false
@@ -308,9 +308,13 @@ describe("DataStorage module", function()
   it(
     "should show modal confirmation when storage is completely read-only",
     function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      isDirRW_mock = function()
+        return false
+      end
       DataStorage = require("datastorage")
-      DataStorage:setStorageTemporary(false)
-      DataStorage:setStorageReadOnly(true)
+      DataStorage:getDataDir()
 
       local UIManager = require("ui/uimanager")
       local quit_called = false
@@ -424,19 +428,18 @@ describe("DataStorage module", function()
     end
   )
 
-  it("should reset all cached directories and flags on reset()", function()
+  it("should reset all cached directories on reset()", function()
+    env_mock["KO_MULTIUSER"] = "true"
+    env_mock["XDG_CONFIG_HOME"] = "/first/xdg"
+    isDirRW_mock = function(dir)
+      return dir == "/first/xdg/koreader" or dir == "/second/xdg/koreader"
+    end
     DataStorage = require("datastorage")
-    DataStorage:setStorageTemporary(true)
-    DataStorage:setStorageReadOnly(true)
-    DataStorage:getDataDir()
-    DataStorage:getCacheDir()
-    DataStorage:getFullDataDir()
-    DataStorage:getTmpDir()
+    assert.are.equal("/first/xdg/koreader", DataStorage:getDataDir())
 
     DataStorage:reset()
-
-    assert.is_false(DataStorage:isStorageTemporary())
-    assert.is_false(DataStorage:isStorageReadOnly())
+    env_mock["XDG_CONFIG_HOME"] = "/second/xdg"
+    assert.are.equal("/second/xdg/koreader", DataStorage:getDataDir())
   end)
 
   it("should handle relative subdirectory in getFullDataDir()", function()
@@ -457,9 +460,14 @@ describe("DataStorage module", function()
   it(
     "should not show storage warning if storage is normal or already shown",
     function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      env_mock["HOME"] = "/fake/home"
+      isDirRW_mock = function(dir)
+        return dir == "/fake/xdg/koreader"
+      end
       DataStorage = require("datastorage")
-      DataStorage:setStorageTemporary(false)
-      DataStorage:setStorageReadOnly(false)
+      DataStorage:getDataDir()
 
       local UIManager = require("ui/uimanager")
       local show_called = false
@@ -471,8 +479,14 @@ describe("DataStorage module", function()
       DataStorage:showStorageWarningIfNeeded()
       assert.is_false(show_called)
 
-      -- Now trigger warning once, then verify second call is a no-op
-      DataStorage:setStorageTemporary(true)
+      -- Now trigger warning once with temporary storage, then verify second call is a no-op
+      DataStorage:reset()
+      env_mock["TMPDIR"] = "/fake/tmp"
+      isDirRW_mock = function(dir)
+        return dir == "/fake/tmp/koreader" or dir == "/fake/tmp"
+      end
+      DataStorage:getDataDir()
+
       DataStorage:showStorageWarningIfNeeded()
       assert.is_true(show_called)
 

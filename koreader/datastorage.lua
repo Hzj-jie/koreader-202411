@@ -13,26 +13,6 @@ local is_storage_temporary = false
 local is_storage_readonly = false
 local storage_warning_shown = false
 
-function DataStorage:isStorageTemporary()
-  return is_storage_temporary == true
-end
-
-function DataStorage:isStorageReadOnly()
-  return is_storage_readonly == true
-end
-
--- For testing purposes only; do not use in production code.
--- Overrides the temporary storage flag to simulate fallback storage state.
-function DataStorage:setStorageTemporary(val)
-  is_storage_temporary = val
-end
-
--- For testing purposes only; do not use in production code.
--- Overrides the read-only storage flag to simulate unwritable storage state.
-function DataStorage:setStorageReadOnly(val)
-  is_storage_readonly = val
-end
-
 -- For testing purposes only; do not use in production code.
 -- Resets cached directories and storage state flags across test scenarios.
 function DataStorage:reset()
@@ -196,7 +176,7 @@ function DataStorage:showStorageWarningIfNeeded()
   if storage_warning_shown then
     return
   end
-  if not (self:isStorageTemporary() or self:isStorageReadOnly()) then
+  if not (is_storage_temporary or is_storage_readonly) then
     return
   end
   local UIManager = require("ui/uimanager")
@@ -206,7 +186,7 @@ function DataStorage:showStorageWarningIfNeeded()
   storage_warning_shown = true
 
   local text
-  if self:isStorageReadOnly() then
+  if is_storage_readonly then
     text = _(
       "Storage is completely read-only. Settings and reading history cannot be saved to disk."
     )
@@ -246,7 +226,7 @@ local function initDataDir()
     "tmp",
   }
   local datadir = DataStorage:getDataDir()
-  if not DataStorage:isStorageReadOnly() then
+  if not is_storage_readonly then
     for _, dir in ipairs(sub_data_dirs) do
       local sub_data_dir = string.format("%s/%s", datadir, dir)
       if lfs.attributes(sub_data_dir, "mode") ~= "directory" then
