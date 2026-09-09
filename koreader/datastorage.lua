@@ -82,13 +82,11 @@ function DataStorage:getDataDir()
     table.insert(candidates, android.getExternalStoragePath() .. "/koreader")
   elseif os.getenv("UBUNTU_APPLICATION_ISOLATION") then
     local app_id = os.getenv("APP_ID")
-    local package_name = app_id and app_id:match("^(.-)_")
-    if package_name and os.getenv("XDG_DATA_HOME") then
-      table.insert(
-        candidates,
-        string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
-      )
-    end
+    local package_name = app_id:match("^(.-)_")
+    table.insert(
+      candidates,
+      string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
+    )
   elseif
     os.getenv("APPIMAGE")
     or os.getenv("FLATPAK")

@@ -154,6 +154,17 @@ describe("DataStorage module", function()
   end)
 
   it(
+    "should fail if APP_ID is missing when UBUNTU_APPLICATION_ISOLATION is set",
+    function()
+      env_mock["UBUNTU_APPLICATION_ISOLATION"] = "true"
+      env_mock["APP_ID"] = false
+      assert.has_error(function()
+        require("datastorage")
+      end)
+    end
+  )
+
+  it(
     "should fallback to secondary candidate if preferred is unwritable",
     function()
       env_mock["KO_MULTIUSER"] = "true"
