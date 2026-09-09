@@ -11,7 +11,6 @@ local cache_dir
 local tmp_dir
 local is_storage_temporary = false
 local is_storage_readonly = false
-local storage_warning_shown = false
 
 -- For testing purposes only; do not use in production code.
 -- Resets cached directories and storage state flags across test scenarios.
@@ -22,7 +21,6 @@ function DataStorage:reset()
   tmp_dir = nil
   is_storage_temporary = false
   is_storage_readonly = false
-  storage_warning_shown = false
 end
 
 function DataStorage:getTmpDir()
@@ -184,17 +182,11 @@ function DataStorage:getFullDataDir()
 end
 
 function DataStorage:showStorageWarningIfNeeded()
-  if storage_warning_shown then
-    return
-  end
   if not (is_storage_temporary or is_storage_readonly) then
     return
   end
   local UIManager = require("ui/uimanager")
-  local ConfirmBox = require("ui/widget/confirmbox")
   local _ = require("gettext")
-
-  storage_warning_shown = true
 
   local text
   if is_storage_readonly then
@@ -207,7 +199,7 @@ function DataStorage:showStorageWarningIfNeeded()
     )
   end
 
-  UIManager:show(ConfirmBox:new({
+  UIManager:show(require("ui/widget/confirmbox"):new({
     text = text,
     ok_text = _("Continue"),
     ok_callback = function() end,

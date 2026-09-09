@@ -482,46 +482,28 @@ describe("DataStorage module", function()
     assert.are.equal(full, DataStorage:getFullDataDir())
   end)
 
-  it(
-    "should not show storage warning if storage is normal or already shown",
-    function()
-      env_mock["KO_MULTIUSER"] = "true"
-      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
-      env_mock["HOME"] = "/fake/home"
-      isDirRW_mock = function(dir)
-        return dir == "/fake/xdg/koreader"
-      end
-      DataStorage = require("datastorage")
-      DataStorage:getDataDir()
-
-      local UIManager = require("ui/uimanager")
-      local show_called = false
-      local orig_show = UIManager.show
-      UIManager.show = function()
-        show_called = true
-      end
-
-      DataStorage:showStorageWarningIfNeeded()
-      assert.is_false(show_called)
-
-      -- Now trigger warning once with temporary storage, then verify second call is a no-op
-      DataStorage:reset()
-      env_mock["TMPDIR"] = "/fake/tmp"
-      isDirRW_mock = function(dir)
-        return dir == "/fake/tmp/koreader" or dir == "/fake/tmp"
-      end
-      DataStorage:getDataDir()
-
-      DataStorage:showStorageWarningIfNeeded()
-      assert.is_true(show_called)
-
-      show_called = false
-      DataStorage:showStorageWarningIfNeeded()
-      assert.is_false(show_called)
-
-      UIManager.show = orig_show
+  it("should not show storage warning if storage is normal", function()
+    env_mock["KO_MULTIUSER"] = "true"
+    env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+    env_mock["HOME"] = "/fake/home"
+    isDirRW_mock = function(dir)
+      return dir == "/fake/xdg/koreader"
     end
-  )
+    DataStorage = require("datastorage")
+    DataStorage:getDataDir()
+
+    local UIManager = require("ui/uimanager")
+    local show_called = false
+    local orig_show = UIManager.show
+    UIManager.show = function()
+      show_called = true
+    end
+
+    DataStorage:showStorageWarningIfNeeded()
+    assert.is_false(show_called)
+
+    UIManager.show = orig_show
+  end)
 
   describe("getTmpDir()", function()
     it("returns tmp directory string", function()
