@@ -391,6 +391,43 @@ describe("DataStorage module", function()
     assert.are.equal(1, count)
   end)
 
+  it("should cache getCacheDirOrNil result on repeated calls", function()
+    DataStorage = require("datastorage")
+    local expected = DataStorage:getDataDir() .. "/cache"
+    local count = 0
+    isDirRW_mock = function(dir)
+      if dir == expected then
+        count = count + 1
+        return true
+      end
+      return true
+    end
+
+    local first = DataStorage:getCacheDirOrNil()
+    local second = DataStorage:getCacheDirOrNil()
+    assert.are.equal(first, second)
+    assert.are.equal(1, count)
+  end)
+
+  it(
+    "should cache unwritable status in getCacheDirOrNil on repeated calls",
+    function()
+      DataStorage = require("datastorage")
+      local count = 0
+      isDirRW_mock = function(dir)
+        count = count + 1
+        return dir == DataStorage:getDataDir()
+      end
+
+      local first = DataStorage:getCacheDirOrNil()
+      local initial_count = count
+      local second = DataStorage:getCacheDirOrNil()
+      assert.is_nil(first)
+      assert.is_nil(second)
+      assert.are.equal(initial_count, count)
+    end
+  )
+
   it(
     "should fallback getCacheDir to getTmpDir when preferred is unwritable",
     function()

@@ -8,6 +8,7 @@ local DataStorage = {}
 local data_dir
 local full_data_dir
 local cache_dir
+local is_cache_dir_writable = false
 local tmp_dir
 local is_storage_temporary = false
 local is_storage_readonly = false
@@ -18,6 +19,7 @@ function DataStorage:reset()
   data_dir = nil
   full_data_dir = nil
   cache_dir = nil
+  is_cache_dir_writable = false
   tmp_dir = nil
   is_storage_temporary = false
   is_storage_readonly = false
@@ -133,13 +135,14 @@ end
 
 -- Returns a writable cache directory, or nil if no writable cache directory exists.
 function DataStorage:getCacheDirOrNil()
-  if cache_dir and util.isDirRW(cache_dir, true) then
-    return cache_dir
+  if cache_dir then
+    return is_cache_dir_writable and cache_dir or nil
   end
 
   local preferred = self:getDataDir() .. "/cache"
   if util.isDirRW(preferred, true) then
     cache_dir = preferred
+    is_cache_dir_writable = true
     return cache_dir
   end
 
@@ -148,21 +151,22 @@ function DataStorage:getCacheDirOrNil()
     local tmp_cache = fallback_tmp .. "/koreader_cache"
     if util.isDirRW(tmp_cache, true) then
       cache_dir = tmp_cache
+      is_cache_dir_writable = true
       return cache_dir
     end
   end
 
+  cache_dir = preferred
+  is_cache_dir_writable = false
   return nil
 end
 
 -- Returns a cache directory. Always returns a directory even if it is not writable.
 -- Callers should take care of an unwritable directory themselves.
 function DataStorage:getCacheDir()
-  if cache_dir then
-    return cache_dir
+  if not cache_dir then
+    self:getCacheDirOrNil()
   end
-
-  cache_dir = self:getCacheDirOrNil() or (self:getDataDir() .. "/cache")
   return cache_dir
 end
 
