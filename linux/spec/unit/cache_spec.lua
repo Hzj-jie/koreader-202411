@@ -56,8 +56,13 @@ describe("Cache module", function()
     local util = require("util")
     local original_isDirRW = util.isDirRW
 
+    before_each(function()
+      require("datastorage"):reset()
+    end)
+
     after_each(function()
       util.isDirRW = original_isDirRW
+      require("datastorage"):reset()
     end)
 
     it(
@@ -155,26 +160,20 @@ describe("Cache module", function()
     end)
 
     it(
-      "falls back to DataStorage:getTmpDir when DataStorage cache dir is unwritable",
+      "falls back to DataStorage:getCacheDirOrNil when configured cache_path is unwritable",
       function()
         local orig_ds = package.loaded["datastorage"]
         package.loaded["datastorage"] = {
-          getCacheDir = function()
-            return "/unwritable/ds/cache"
-          end,
-          getTmpDir = function()
-            return "/mock/ds/tmp"
+          getCacheDirOrNil = function()
+            return "/mock/ds/cache"
           end,
         }
 
         util.isDirRW = function(dir)
-          if dir == "/nonexistent/cache/" or dir == "/unwritable/ds/cache" then
+          if dir == "/nonexistent/cache/" then
             return false
           end
-          if dir == "/mock/ds/tmp/cache/" then
-            return true
-          end
-          return false
+          return true
         end
 
         local c = Cache:new({
@@ -184,7 +183,7 @@ describe("Cache module", function()
         })
 
         assert.is_true(c.disk_cache)
-        assert.are.equal("/mock/ds/tmp/cache/", c.cache_path)
+        assert.are.equal("/mock/ds/cache/", c.cache_path)
 
         package.loaded["datastorage"] = orig_ds
       end

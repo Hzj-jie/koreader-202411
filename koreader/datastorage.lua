@@ -133,8 +133,9 @@ function DataStorage:getDocSettingsHashDir()
   return self:getDataDir() .. "/hashdocsettings"
 end
 
-function DataStorage:getCacheDir()
-  if cache_dir then
+-- Returns a writable cache directory, or nil if no writable cache directory exists.
+function DataStorage:getCacheDirOrNil()
+  if cache_dir and util.isDirRW(cache_dir, true) then
     return cache_dir
   end
 
@@ -144,16 +145,26 @@ function DataStorage:getCacheDir()
     return cache_dir
   end
 
-  local fallback_tmp_cache = self:getTmpDir()
-  if fallback_tmp_cache then
-    local tmp_cache = fallback_tmp_cache .. "/koreader_cache"
+  local fallback_tmp = self:getTmpDir()
+  if fallback_tmp then
+    local tmp_cache = fallback_tmp .. "/koreader_cache"
     if util.isDirRW(tmp_cache, true) then
       cache_dir = tmp_cache
       return cache_dir
     end
   end
 
-  cache_dir = preferred
+  return nil
+end
+
+-- Returns a cache directory. Always returns a directory even if it is not writable.
+-- Callers should take care of an unwritable directory themselves.
+function DataStorage:getCacheDir()
+  if cache_dir then
+    return cache_dir
+  end
+
+  cache_dir = self:getCacheDirOrNil() or (self:getDataDir() .. "/cache")
   return cache_dir
 end
 

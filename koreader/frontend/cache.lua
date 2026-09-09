@@ -50,31 +50,19 @@ function Cache:init()
   -- Caller prefers a persistent on-disk cache; verify or resolve a writable directory,
   -- or disable disk caching if no writable path can be found.
   if self.disk_cache then
-    if not self.cache_path or not util.isDirRW(self.cache_path, true) then
-      local DataStorage = require("datastorage")
-      local fallback_path
-      local dir = DataStorage:getCacheDir()
-      if dir and util.isDirRW(dir, true) then
-        fallback_path = dir:gsub("/+$", "") .. "/"
-      else
-        local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
-        local tmp_path = tmp .. "/cache/"
-        if util.isDirRW(tmp_path, true) then
-          fallback_path = tmp_path
-        end
-      end
-      if fallback_path then
-        self.cache_path = fallback_path
-      else
-        logger.warn(
-          "Cache: no writable cache directory found, disabling disk cache"
-        )
-        self.disk_cache = false
-      end
-    end
-    if self.disk_cache then
+    local dir = (
+      self.cache_path
+      and util.isDirRW(self.cache_path, true)
+      and self.cache_path
+    ) or require("datastorage"):getCacheDirOrNil()
+    if dir then
+      self.cache_path = dir:gsub("/+$", "") .. "/"
       self.cached = self:_getDiskCache()
     else
+      logger.warn(
+        "Cache: no writable cache directory found, disabling disk cache"
+      )
+      self.disk_cache = false
       self.check = self.cache.get
     end
   else

@@ -425,6 +425,31 @@ describe("DataStorage module", function()
       end
 
       assert.are.equal(preferred, DataStorage:getCacheDir())
+      assert.is_nil(DataStorage:getCacheDirOrNil())
+    end
+  )
+
+  it(
+    "should return temporary fallback in getCacheDirOrNil when preferred is unwritable",
+    function()
+      env_mock["TMPDIR"] = "/mock/tmp"
+      DataStorage = require("datastorage")
+
+      local preferred = DataStorage:getDataDir() .. "/cache"
+      isDirRW_mock = function(dir)
+        if dir == preferred then
+          return false
+        end
+        if dir == "/mock/tmp" or dir == "/mock/tmp/koreader_cache" then
+          return true
+        end
+        return dir == DataStorage:getDataDir()
+      end
+
+      assert.are.equal(
+        "/mock/tmp/koreader_cache",
+        DataStorage:getCacheDirOrNil()
+      )
     end
   )
 
