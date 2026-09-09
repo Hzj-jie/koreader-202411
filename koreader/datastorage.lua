@@ -88,40 +88,28 @@ function DataStorage:getDataDir()
       string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
     )
   elseif
-    os.getenv("APPIMAGE")
-    or os.getenv("FLATPAK")
-    or os.getenv("KO_MULTIUSER")
+    not (
+      os.getenv("APPIMAGE")
+      or os.getenv("FLATPAK")
+      or os.getenv("KO_MULTIUSER")
+    )
   then
-    if os.getenv("XDG_CONFIG_HOME") then
-      table.insert(
-        candidates,
-        string.format("%s/%s", os.getenv("XDG_CONFIG_HOME"), "koreader")
-      )
-    end
-    if os.getenv("HOME") then
-      local user_rw = string.format(
-        "%s/%s",
-        os.getenv("HOME"),
-        jit.os == "OSX" and "Library/Application Support" or ".config"
-      )
-      table.insert(candidates, string.format("%s/%s", user_rw, "koreader"))
-    end
-  else
     table.insert(candidates, ".")
-    if os.getenv("XDG_CONFIG_HOME") then
-      table.insert(
-        candidates,
-        string.format("%s/%s", os.getenv("XDG_CONFIG_HOME"), "koreader")
-      )
-    end
-    if os.getenv("HOME") then
-      local user_rw = string.format(
-        "%s/%s",
-        os.getenv("HOME"),
-        jit.os == "OSX" and "Library/Application Support" or ".config"
-      )
-      table.insert(candidates, string.format("%s/%s", user_rw, "koreader"))
-    end
+  end
+
+  if os.getenv("XDG_CONFIG_HOME") then
+    table.insert(
+      candidates,
+      string.format("%s/%s", os.getenv("XDG_CONFIG_HOME"), "koreader")
+    )
+  end
+  if os.getenv("HOME") then
+    local user_rw = string.format(
+      "%s/%s",
+      os.getenv("HOME"),
+      jit.os == "OSX" and "Library/Application Support" or ".config"
+    )
+    table.insert(candidates, string.format("%s/%s", user_rw, "koreader"))
   end
 
   for _, cand in ipairs(candidates) do
