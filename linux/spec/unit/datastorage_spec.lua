@@ -569,16 +569,14 @@ describe("DataStorage module", function()
     )
 
     it(
-      "raises error when no candidate temporary directory is writable",
+      "returns nil when no candidate temporary directory is writable",
       function()
         env_mock["TMPDIR"] = false
         isDirRW_mock = function()
           return false
         end
         DataStorage = require("datastorage")
-        assert.has_error(function()
-          DataStorage:getTmpDir()
-        end, "No temporary directory found")
+        assert.is_nil(DataStorage:getTmpDir())
       end
     )
   end)

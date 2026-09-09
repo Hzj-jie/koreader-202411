@@ -48,20 +48,13 @@ function Cache:init()
 
   if self.disk_cache then
     if not self.cache_path or not util.isDirRW(self.cache_path, true) then
-      local ok_ds, DataStorage = pcall(require, "datastorage")
+      local DataStorage = require("datastorage")
       local fallback_path
-      if ok_ds and DataStorage and DataStorage.getCacheDir then
-        local dir = DataStorage:getCacheDir()
-        if dir and util.isDirRW(dir, true) then
-          fallback_path = dir:gsub("/+$", "") .. "/"
-        end
-      end
-      if not fallback_path then
-        local ok_tmp, tmp
-        if ok_ds and DataStorage and DataStorage.getTmpDir then
-          ok_tmp, tmp = pcall(DataStorage.getTmpDir, DataStorage)
-        end
-        tmp = (ok_tmp and tmp) or os.getenv("TMPDIR") or "/tmp"
+      local dir = DataStorage:getCacheDir()
+      if dir and util.isDirRW(dir, true) then
+        fallback_path = dir:gsub("/+$", "") .. "/"
+      else
+        local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
         local tmp_path = tmp .. "/cache/"
         if util.isDirRW(tmp_path, true) then
           fallback_path = tmp_path

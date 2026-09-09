@@ -68,7 +68,7 @@ function DataStorage:getTmpDir()
     end
   end
 
-  error("No temporary directory found")
+  return nil
 end
 
 function DataStorage:getDataDir()
@@ -121,8 +121,8 @@ function DataStorage:getDataDir()
   end
 
   -- All standard candidates failed write check; fall back to temporary directory
-  local ok_tmp, fallback_tmp = pcall(self.getTmpDir, self)
-  if ok_tmp and fallback_tmp then
+  local fallback_tmp = self:getTmpDir()
+  if fallback_tmp then
     local tmp_data_dir = fallback_tmp .. "/koreader"
     if util.isDirRW(tmp_data_dir, true) then
       data_dir = tmp_data_dir
@@ -164,8 +164,8 @@ function DataStorage:getCacheDir()
     return cache_dir
   end
 
-  local ok_tmp_cache, fallback_tmp_cache = pcall(self.getTmpDir, self)
-  if ok_tmp_cache and fallback_tmp_cache then
+  local fallback_tmp_cache = self:getTmpDir()
+  if fallback_tmp_cache then
     local tmp_cache = fallback_tmp_cache .. "/koreader_cache"
     if util.isDirRW(tmp_cache, true) then
       cache_dir = tmp_cache
@@ -199,18 +199,9 @@ function DataStorage:showStorageWarningIfNeeded()
   if not (self:isStorageTemporary() or self:isStorageReadOnly()) then
     return
   end
-  local ok_uimgr, UIManager = pcall(require, "ui/uimanager")
-  if not ok_uimgr or not UIManager or not UIManager.show then
-    return
-  end
-  local ok_confirm, ConfirmBox = pcall(require, "ui/widget/confirmbox")
-  if not ok_confirm or not ConfirmBox then
-    return
-  end
-  local ok_gettext, gettext = pcall(require, "gettext")
-  local _ = ok_gettext and gettext or function(s)
-    return s
-  end
+  local UIManager = require("ui/uimanager")
+  local ConfirmBox = require("ui/widget/confirmbox")
+  local _ = require("gettext")
 
   storage_warning_shown = true
 
