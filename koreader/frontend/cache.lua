@@ -21,7 +21,8 @@ local Cache = {
   -- Should LRU call the object's onFree method on eviction? Implies using CacheItem instead of plain tables/objects.
   -- c.f., DocCache
   enable_eviction_cb = false,
-  -- Generally, only DocCache uses this
+  -- Whether caller prefers a persistent on-disk cache (generally, only DocCache uses this).
+  -- Note: acts as a preference; if no writable cache directory is available, Cache will disable it (self.disk_cache = false).
   disk_cache = false,
   cache_path = nil,
 }
@@ -46,6 +47,8 @@ function Cache:init()
     self.cache = lru.new(self.slots, self.size, self.enable_eviction_cb)
   end
 
+  -- Caller prefers a persistent on-disk cache; verify or resolve a writable directory,
+  -- or disable disk caching if no writable path can be found.
   if self.disk_cache then
     if not self.cache_path or not util.isDirRW(self.cache_path, true) then
       local DataStorage = require("datastorage")
