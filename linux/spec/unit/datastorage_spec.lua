@@ -45,6 +45,8 @@ describe("DataStorage module", function()
     env_mock["APPIMAGE"] = false
     env_mock["FLATPAK"] = false
     env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+    env_mock["XDG_CONFIG_HOME"] = false
+    env_mock["HOME"] = false
     DataStorage = require("datastorage")
 
     assert.are.equal(".", DataStorage:getDataDir())
@@ -58,6 +60,62 @@ describe("DataStorage module", function()
     assert.are.equal("/", string.sub(full_dir, 1, 1))
     assert.are.equal(require("libs/libkoreader-lfs").currentdir(), full_dir)
   end)
+
+  it(
+    "should prefer XDG_CONFIG_HOME and HOME over dot even without KO_MULTIUSER",
+    function()
+      env_mock["KO_MULTIUSER"] = false
+      env_mock["APPIMAGE"] = false
+      env_mock["FLATPAK"] = false
+      env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+      env_mock["XDG_CONFIG_HOME"] = "/tmp/test_xdg_config"
+      isDirRW_mock = function(dir)
+        return dir == "/tmp/test_xdg_config/koreader"
+      end
+
+      DataStorage = require("datastorage")
+      assert.are.equal(
+        "/tmp/test_xdg_config/koreader",
+        DataStorage:getDataDir()
+      )
+    end
+  )
+
+  it("should prefer HOME over dot when XDG_CONFIG_HOME is unset", function()
+    env_mock["KO_MULTIUSER"] = false
+    env_mock["APPIMAGE"] = false
+    env_mock["FLATPAK"] = false
+    env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+    env_mock["XDG_CONFIG_HOME"] = false
+    env_mock["HOME"] = "/home/testuser"
+    isDirRW_mock = function(dir)
+      return dir == "/home/testuser/.config/koreader"
+    end
+
+    DataStorage = require("datastorage")
+    assert.are.equal(
+      "/home/testuser/.config/koreader",
+      DataStorage:getDataDir()
+    )
+  end)
+
+  it(
+    "should fall back to dot when XDG_CONFIG_HOME and HOME are unwritable",
+    function()
+      env_mock["KO_MULTIUSER"] = false
+      env_mock["APPIMAGE"] = false
+      env_mock["FLATPAK"] = false
+      env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+      env_mock["XDG_CONFIG_HOME"] = "/tmp/test_xdg_config"
+      env_mock["HOME"] = "/home/testuser"
+      isDirRW_mock = function(dir)
+        return dir == "."
+      end
+
+      DataStorage = require("datastorage")
+      assert.are.equal(".", DataStorage:getDataDir())
+    end
+  )
 
   it("should honor KO_MULTIUSER and XDG_CONFIG_HOME", function()
     env_mock["KO_MULTIUSER"] = "true"

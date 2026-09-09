@@ -87,16 +87,7 @@ function DataStorage:getDataDir()
       candidates,
       string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
     )
-  elseif
-    not (
-      os.getenv("APPIMAGE")
-      or os.getenv("FLATPAK")
-      or os.getenv("KO_MULTIUSER")
-    )
-  then
-    table.insert(candidates, ".")
   end
-
   if os.getenv("XDG_CONFIG_HOME") then
     table.insert(
       candidates,
@@ -110,6 +101,16 @@ function DataStorage:getDataDir()
       jit.os == "OSX" and "Library/Application Support" or ".config"
     )
     table.insert(candidates, string.format("%s/%s", user_rw, "koreader"))
+  end
+
+  if
+    not (
+      os.getenv("APPIMAGE")
+      or os.getenv("FLATPAK")
+      or os.getenv("KO_MULTIUSER")
+    )
+  then
+    table.insert(candidates, ".")
   end
 
   for _, cand in ipairs(candidates) do
