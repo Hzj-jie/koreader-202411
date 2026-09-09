@@ -132,7 +132,7 @@ function DataStorage:getDataDir()
   end
 
   -- If even temporary storage is not writable, fall back to first candidate in read-only mode
-  data_dir = candidates[1] or "."
+  data_dir = candidates[1]
   is_storage_readonly = true
   return data_dir
 end
