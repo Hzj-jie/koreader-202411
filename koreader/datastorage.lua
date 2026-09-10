@@ -190,24 +190,24 @@ function DataStorage:showStorageWarningIfNeeded()
     return
   end
   local UIManager = require("ui/uimanager")
-  local _ = require("gettext")
+  local gettext = require("gettext")
 
   local text
   if is_storage_readonly then
-    text = _(
+    text = gettext(
       "Storage is completely read-only. Settings and reading history cannot be saved to disk."
     )
   else
-    text = _(
+    text = gettext(
       "Primary storage is read-only. Settings will be saved to temporary storage and may be lost when the device is restarted."
     )
   end
 
   UIManager:show(require("ui/widget/confirmbox"):new({
     text = text,
-    ok_text = _("Continue"),
+    ok_text = gettext("Continue"),
     ok_callback = function() end,
-    cancel_text = _("Quit"),
+    cancel_text = gettext("Quit"),
     cancel_callback = function()
       UIManager:quit()
     end,

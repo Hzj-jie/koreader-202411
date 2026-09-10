@@ -6,6 +6,8 @@ in the so-called sidecar directory
 
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
+local Notification = require("ui/widget/notification")
+local UIManager = require("ui/uimanager")
 local dump = require("dump")
 local ffiutil = require("ffi/util")
 local gettext = require("gettext")
@@ -82,14 +84,6 @@ local function buildCandidates(list)
 end
 
 local function notifyUser(text)
-  local ok_uimgr, UIManager = pcall(require, "ui/uimanager")
-  if not ok_uimgr or not UIManager or not UIManager.show then
-    return
-  end
-  local ok_notif, Notification = pcall(require, "ui/widget/notification")
-  if not ok_notif or not Notification then
-    return
-  end
   UIManager:show(Notification:new({ text = text }))
 end
 
