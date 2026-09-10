@@ -29,20 +29,12 @@ function DocSettings.getSidecarStorage(location)
   end
 end
 
-local function isDir(dir)
-  return lfs.attributes(dir, "mode") == "directory"
-end
-
-local function isFile(file)
-  return lfs.attributes(file, "mode") == "file"
-end
-
-local is_history_location_enabled = isDir(HISTORY_DIR)
+local is_history_location_enabled = util.directoryExists(HISTORY_DIR)
 
 local doc_hash_cache = {}
 
 function DocSettings.isHashLocationEnabled()
-  if not isDir(DOCSETTINGS_HASH_DIR) then
+  if not util.directoryExists(DOCSETTINGS_HASH_DIR) then
     return false
   end
   local has_file = false
@@ -62,7 +54,7 @@ local function buildCandidates(list)
 
   for i, file_path in ipairs(list) do
     -- Ignore missing files.
-    if file_path ~= "" and isFile(file_path) then
+    if file_path ~= "" and util.fileExists(file_path) then
       local mtime = lfs.attributes(file_path, "modification")
       table.insert(candidates, {
         path = file_path,
@@ -212,13 +204,13 @@ function DocSettings:findSidecarFile(doc_path, no_legacy)
     sidecar_file = self:getSidecarDir(doc_path, location)
       .. "/"
       .. sidecar_filename
-    if isFile(sidecar_file) then
+    if util.fileExists(sidecar_file) then
       return sidecar_file, location
     end
   end
   if is_history_location_enabled and not no_legacy then
     sidecar_file = self:getHistoryPath(doc_path)
-    if isFile(sidecar_file) then
+    if util.fileExists(sidecar_file) then
       return sidecar_file, "hist" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
     end
   end
@@ -295,7 +287,7 @@ function DocSettings:open(doc_path)
   local candidates_list = {}
   for _, cand in ipairs(new:getLocationCandidates(doc_path)) do
     new[cand.location .. "_sidecar_dir"] = cand.dir
-    if isDir(cand.dir) then
+    if util.directoryExists(cand.dir) then
       table.insert(candidates_list, cand.dir .. "/" .. new.sidecar_filename)
       if cand.location == "doc" then
         table.insert(
@@ -433,7 +425,7 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
   if data_to_purge.doc_settings and self.candidates then
     for _, t in ipairs(self.candidates) do
       local candidate_path = t.path
-      if isFile(candidate_path) then
+      if util.fileExists(candidate_path) then
         if not sidecar_to_keep or candidate_path ~= sidecar_to_keep then
           os.remove(candidate_path)
           logger.dbg("DocSettings: purged:", candidate_path)
@@ -466,7 +458,7 @@ end
 
 --- Removes sidecar dir iff empty.
 function DocSettings.removeSidecarDir(dir)
-  if dir and isDir(dir) then
+  if dir and util.directoryExists(dir) then
     if
       dir:match("^" .. DOCSETTINGS_DIR)
       or dir:match("^" .. DOCSETTINGS_HASH_DIR)
@@ -610,7 +602,7 @@ function DocSettings:findCustomMetadataFile(doc_path)
   for _, location in ipairs(getOrderedLocationCandidates()) do
     local sidecar_dir = self:getSidecarDir(doc_path, location)
     local custom_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-    if isFile(custom_metadata_file) then
+    if util.fileExists(custom_metadata_file) then
       return custom_metadata_file
     end
   end
@@ -649,7 +641,7 @@ function DocSettings.findSidecarFilesInHashLocation()
     if name:match("metadata%..+%.lua$") then
       local sdr = { fullpath }
       local custom_metadata_file = fullpath:gsub(name, custom_metadata_filename)
-      if isFile(custom_metadata_file) then
+      if util.fileExists(custom_metadata_file) then
         table.insert(sdr, custom_metadata_file)
       end
       table.insert(res, sdr)
