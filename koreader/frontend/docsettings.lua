@@ -189,7 +189,7 @@ end
 -- @treturn string (or nil on failure)
 function DocSettings:findSidecarFile(doc_path, no_legacy)
   if doc_path == nil or doc_path == "" then
-    return nil
+    return
   end
   local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
   for _, cand in ipairs(self:getLocationCandidates(doc_path)) do
