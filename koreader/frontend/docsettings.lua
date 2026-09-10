@@ -487,8 +487,12 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
       end
       if not new_sidecar_dir then
-        new_sidecar_dir = DocSettings:getSidecarDir(new_doc_path)
-        util.makePath(new_sidecar_dir)
+        for _, cand in ipairs(DocSettings:getLocationCandidates(new_doc_path)) do
+          if util.isDirRW(cand.dir, true) then
+            new_sidecar_dir = cand.dir
+            break
+          end
+        end
       end
       if custom_cover_file then
         local _, filename = util.splitFilePathName(custom_cover_file)
