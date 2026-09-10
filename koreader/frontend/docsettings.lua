@@ -109,11 +109,11 @@ function DocSettings:getLocationCandidates(doc_path)
   local preferred_location = G_named_settings.document_metadata_folder()
   local locations
   if preferred_location == "hash" then
-    locations = { "hash", "dir", "doc", "" }
+    locations = { "hash", "dir", "doc" }
   elseif preferred_location == "dir" then
-    locations = { "dir", "hash", "doc", "" }
+    locations = { "dir", "hash", "doc" }
   else
-    locations = { "doc", "dir", "hash", "" }
+    locations = { "doc", "dir", "hash" }
   end
   local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
   local candidates = {}
@@ -151,9 +151,6 @@ function DocSettings:getLocationCandidates(doc_path)
       else -- fallback to "doc"
         path = stem
       end
-    elseif loc == "" then
-      local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
-      path = tmp .. "/docsettings" .. stem
     else
       assert(false, "Invalid sidecar location: " .. tostring(loc))
     end
@@ -162,6 +159,11 @@ function DocSettings:getLocationCandidates(doc_path)
       dir = path .. ".sdr",
     })
   end
+  local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
+  table.insert(candidates, {
+    location = "",
+    dir = tmp .. "/docsettings" .. stem .. ".sdr",
+  })
   return candidates
 end
 
