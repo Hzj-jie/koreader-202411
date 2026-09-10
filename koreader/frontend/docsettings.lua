@@ -137,16 +137,19 @@ function DocSettings:getSidecarDir(doc_path, force_location)
   if doc_path == nil or doc_path == "" then
     return ""
   end
-  local path = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
+  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
   local location = force_location or G_named_settings.document_metadata_folder()
-  if location == "dir" then
-    path = DOCSETTINGS_DIR .. path
+  local path
+  if location == "doc" then
+    path = stem
+  elseif location == "dir" then
+    path = DOCSETTINGS_DIR .. stem
   elseif location == "hash" then
     local hsh = doc_hash_cache[doc_path]
     if not hsh then
       hsh = util.partialMD5(doc_path)
       if not hsh then -- fallback to "doc"
-        return path .. ".sdr"
+        return stem .. ".sdr"
       end
       doc_hash_cache[doc_path] = hsh
       logger.dbg(
@@ -168,7 +171,9 @@ function DocSettings:getSidecarDir(doc_path, force_location)
     path = DOCSETTINGS_HASH_DIR .. subpath .. hsh
   elseif location == "tmp" then
     local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
-    path = tmp .. "/docsettings" .. path
+    path = tmp .. "/docsettings" .. stem
+  else
+    assert(false, "Invalid sidecar location: " .. tostring(location))
   end
   return path .. ".sdr"
 end

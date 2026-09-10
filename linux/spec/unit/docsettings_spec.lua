@@ -32,6 +32,16 @@ describe("docsettings module", function()
     assert.Equals("../../foo.sdr", docsettings:getSidecarDir("../../foo.pdf"))
     assert.Equals("/foo/bar.sdr", docsettings:getSidecarDir("/foo/bar.pdf"))
     assert.Equals("baz.sdr", docsettings:getSidecarDir("baz.pdf"))
+    assert.Equals(
+      "/foo/bar.sdr",
+      docsettings:getSidecarDir("/foo/bar.pdf", "doc")
+    )
+  end)
+
+  it("should assert on invalid location in getSidecarDir", function()
+    assert.has_error(function()
+      docsettings:getSidecarDir("/foo/bar.pdf", "invalid")
+    end)
   end)
 
   it("should generate sidecar folder path in docsettings folder", function()
