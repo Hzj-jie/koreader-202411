@@ -121,12 +121,15 @@ end
 
 function DocSettings:getLocationCandidates(doc_path)
   doc_path = doc_path or (self.data and self.data.doc_path)
+  if not doc_path or doc_path == "" then
+    return {}
+  end
   local candidates = {}
   for _, loc in ipairs(getOrderedLocationCandidates()) do
-    local dir = self:getSidecarDir(doc_path, loc)
-    if dir and dir ~= "" then
-      table.insert(candidates, { location = loc, dir = dir })
-    end
+    table.insert(candidates, {
+      location = loc,
+      dir = self:getSidecarDir(doc_path, loc),
+    })
   end
   return candidates
 end
