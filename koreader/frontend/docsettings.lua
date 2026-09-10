@@ -6,11 +6,8 @@ in the so-called sidecar directory
 
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
-local Notification = require("ui/widget/notification")
-local UIManager = require("ui/uimanager")
 local dump = require("dump")
 local ffiutil = require("ffi/util")
-local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -83,7 +80,27 @@ local function buildCandidates(list)
   return candidates
 end
 
-local function notifyUser(text)
+local function notifyUser(reason)
+  local Notification = require("ui/widget/notification")
+  local UIManager = require("ui/uimanager")
+  local gettext = require("gettext")
+
+  local text
+  if reason == "tmp" then
+    text = gettext(
+      "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost when restarted."
+    )
+  elseif reason == "fallback" then
+    text = gettext(
+      "The selected storage for book settings is read-only. Settings for this book will be saved to KOReader internal storage instead."
+    )
+  elseif reason == "readonly" then
+    text = gettext(
+      "Storage is completely read-only. Reading progress for this book cannot be saved to disk."
+    )
+  else
+    text = reason
+  end
   UIManager:show(Notification:new({ text = text }))
 end
 
@@ -366,19 +383,7 @@ function DocSettings:flush(data, no_custom_metadata)
       logger.dbg("DocSettings: Writing to", sidecar_file)
       if util.writeToFile(ser_data, sidecar_file, true) then
         if loc ~= preferred_location and not self.fallback_notified then
-          if loc == "tmp" then
-            notifyUser(
-              gettext(
-                "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost when restarted."
-              )
-            )
-          else
-            notifyUser(
-              gettext(
-                "The selected storage for book settings is read-only. Settings for this book will be saved to KOReader internal storage instead."
-              )
-            )
-          end
+          notifyUser(loc == "tmp" and "tmp" or "fallback")
           self.fallback_notified = true
         end
 
@@ -415,11 +420,7 @@ function DocSettings:flush(data, no_custom_metadata)
   end
 
   if not self.fallback_notified then
-    notifyUser(
-      gettext(
-        "Storage is completely read-only. Reading progress for this book cannot be saved to disk."
-      )
-    )
+    notifyUser("readonly")
     self.fallback_notified = true
   end
   return nil
