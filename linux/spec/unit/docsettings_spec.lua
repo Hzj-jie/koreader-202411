@@ -32,16 +32,6 @@ describe("docsettings module", function()
     assert.Equals("../../foo.sdr", docsettings:getSidecarDir("../../foo.pdf"))
     assert.Equals("/foo/bar.sdr", docsettings:getSidecarDir("/foo/bar.pdf"))
     assert.Equals("baz.sdr", docsettings:getSidecarDir("baz.pdf"))
-    assert.Equals(
-      "/foo/bar.sdr",
-      docsettings:getSidecarDir("/foo/bar.pdf", "doc")
-    )
-  end)
-
-  it("should assert on invalid location in getSidecarDir", function()
-    assert.has_error(function()
-      docsettings:getSidecarDir("/foo/bar.pdf", "invalid")
-    end)
   end)
 
   it("should generate sidecar folder path in docsettings folder", function()
@@ -63,9 +53,20 @@ describe("docsettings module", function()
       DataStorage.getTmpDir = function()
         return "/custom/datastorage/tmp"
       end
-      local dir = docsettings:getSidecarDir("/foo/bar.pdf", "tmp")
+      local candidates = docsettings:getLocationCandidates("/foo/bar.pdf")
+      local tmp_cand
+      for _, cand in ipairs(candidates) do
+        if cand.location == "tmp" then
+          tmp_cand = cand
+          break
+        end
+      end
       DataStorage.getTmpDir = orig_getTmpDir
-      assert.are.equal("/custom/datastorage/tmp/docsettings/foo/bar.sdr", dir)
+      assert.is_not_nil(tmp_cand)
+      assert.are.equal(
+        "/custom/datastorage/tmp/docsettings/foo/bar.sdr",
+        tmp_cand.dir
+      )
     end
   )
 
@@ -197,7 +198,7 @@ describe("docsettings module", function()
   it("handles hash sidecar location and hash directory", function()
     G_reader_settings:save("document_metadata_folder", "hash")
     local file = "/tmp/test_hash_doc.pdf"
-    local sidecar_dir = docsettings:getSidecarDir(file, "hash")
+    local sidecar_dir = docsettings:getSidecarDir(file)
     assert.is_truthy(sidecar_dir)
     assert.is_truthy(sidecar_dir:match("%.sdr$"))
 

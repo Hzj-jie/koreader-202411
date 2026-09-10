@@ -167,10 +167,7 @@ function DocSettings:getLocationCandidates(doc_path)
 end
 
 -- TODO: For testing purposes only, should be removed once external tests are migrated.
-function DocSettings:getSidecarDir(doc_path, force_location)
-  if force_location then
-    return getSidecarDir(doc_path, force_location)
-  end
+function DocSettings:getSidecarDir(doc_path)
   local candidates = self:getLocationCandidates(doc_path)
   return candidates[1] and candidates[1].dir or ""
 end
