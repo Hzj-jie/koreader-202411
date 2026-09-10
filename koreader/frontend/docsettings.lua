@@ -24,6 +24,8 @@ function DocSettings.getSidecarStorage(location)
     return DOCSETTINGS_DIR
   elseif location == "hash" then
     return DOCSETTINGS_HASH_DIR
+  else
+    assert(false, "Invalid sidecar storage location: " .. tostring(location))
   end
 end
 

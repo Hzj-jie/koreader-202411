@@ -59,6 +59,26 @@ describe("docsettings module", function()
     end
   )
 
+  it(
+    "should return root storage dir for dir and hash, and assert on other locations",
+    function()
+      assert.Equals(docsettings_dir, docsettings.getSidecarStorage("dir"))
+      assert.Equals(
+        DataStorage:getDocSettingsHashDir(),
+        docsettings.getSidecarStorage("hash")
+      )
+      assert.has_error(function()
+        docsettings.getSidecarStorage("doc")
+      end)
+      assert.has_error(function()
+        docsettings.getSidecarStorage("tmp")
+      end)
+      assert.has_error(function()
+        docsettings.getSidecarStorage("unknown")
+      end)
+    end
+  )
+
   it("should generate sidecar metadata file (book folder)", function()
     G_reader_settings:save("document_metadata_folder", "doc")
     assert.Equals(
