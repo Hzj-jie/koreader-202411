@@ -101,24 +101,22 @@ local function notifyUser(reason)
   UIManager:show(Notification:new({ text = text }))
 end
 
-local function getOrderedLocationCandidates()
-  local preferred_location = G_named_settings.document_metadata_folder()
-  if preferred_location == "hash" then
-    return { "hash", "dir", "doc", "tmp" }
-  elseif preferred_location == "dir" then
-    return { "dir", "hash", "doc", "tmp" }
-  else
-    return { "doc", "dir", "hash", "tmp" }
-  end
-end
-
 function DocSettings:getLocationCandidates(doc_path)
   doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
   if not doc_path or doc_path == "" then
     return {}
   end
+  local preferred_location = G_named_settings.document_metadata_folder()
+  local locations
+  if preferred_location == "hash" then
+    locations = { "hash", "dir", "doc", "tmp" }
+  elseif preferred_location == "dir" then
+    locations = { "dir", "hash", "doc", "tmp" }
+  else
+    locations = { "doc", "dir", "hash", "tmp" }
+  end
   local candidates = {}
-  for _, loc in ipairs(getOrderedLocationCandidates()) do
+  for _, loc in ipairs(locations) do
     table.insert(candidates, {
       location = loc,
       dir = self:getSidecarDir(doc_path, loc),
@@ -199,17 +197,14 @@ function DocSettings:findSidecarFile(doc_path, no_legacy)
     return nil
   end
   local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
-  local sidecar_file
-  for _, location in ipairs(getOrderedLocationCandidates()) do
-    sidecar_file = self:getSidecarDir(doc_path, location)
-      .. "/"
-      .. sidecar_filename
+  for _, cand in ipairs(self:getLocationCandidates(doc_path)) do
+    local sidecar_file = cand.dir .. "/" .. sidecar_filename
     if util.fileExists(sidecar_file) then
-      return sidecar_file, location
+      return sidecar_file, cand.location
     end
   end
   if is_history_location_enabled and not no_legacy then
-    sidecar_file = self:getHistoryPath(doc_path)
+    local sidecar_file = self:getHistoryPath(doc_path)
     if util.fileExists(sidecar_file) then
       return sidecar_file, "hist" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
     end
@@ -555,10 +550,8 @@ end
 
 --- Returns path to book custom cover file if it exists, or nil.
 function DocSettings:findCustomCoverFile(doc_path)
-  doc_path = doc_path or self.data.doc_path
-  for _, location in ipairs(getOrderedLocationCandidates()) do
-    local sidecar_dir = self:getSidecarDir(doc_path, location)
-    local custom_cover_file = findCustomCoverFileInDir(sidecar_dir)
+  for _, cand in ipairs(self:getLocationCandidates(doc_path)) do
+    local custom_cover_file = findCustomCoverFileInDir(cand.dir)
     if custom_cover_file then
       return custom_cover_file
     end
@@ -598,10 +591,8 @@ end
 
 --- Returns path to book custom metadata file if it exists, or nil.
 function DocSettings:findCustomMetadataFile(doc_path)
-  doc_path = doc_path or self.data.doc_path
-  for _, location in ipairs(getOrderedLocationCandidates()) do
-    local sidecar_dir = self:getSidecarDir(doc_path, location)
-    local custom_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
+  for _, cand in ipairs(self:getLocationCandidates(doc_path)) do
+    local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
     if util.fileExists(custom_metadata_file) then
       return custom_metadata_file
     end
