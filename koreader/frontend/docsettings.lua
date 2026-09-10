@@ -34,9 +34,6 @@ local is_history_location_enabled = util.directoryExists(HISTORY_DIR)
 local doc_hash_cache = {}
 
 function DocSettings.isHashLocationEnabled()
-  if not util.directoryExists(DOCSETTINGS_HASH_DIR) then
-    return false
-  end
   local has_file = false
   pcall(util.findFiles, DOCSETTINGS_HASH_DIR, function(_, name)
     if name:match("^metadata%..+%.lua$") then
