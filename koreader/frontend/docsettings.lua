@@ -46,9 +46,11 @@ function DocSettings.isHashLocationEnabled()
     return false
   end
   local has_file = false
-  pcall(util.findFiles, DOCSETTINGS_HASH_DIR, function()
-    has_file = true
-    error()
+  pcall(util.findFiles, DOCSETTINGS_HASH_DIR, function(_, name)
+    if name:match("^metadata%..+%.lua$") then
+      has_file = true
+      error()
+    end
   end)
   return has_file
 end

@@ -225,9 +225,18 @@ describe("docsettings module", function()
       util.makePath(hash_dir .. "/ab/sub.sdr")
       assert.False(docsettings.isHashLocationEnabled())
 
-      -- Create a file inside
-      local test_file = hash_dir .. "/ab/sub.sdr/test.lua"
-      local f = io.open(test_file, "w")
+      -- Create an unrelated file inside (should NOT enable)
+      local unrelated_file = hash_dir .. "/ab/sub.sdr/test.lua"
+      local f = io.open(unrelated_file, "w")
+      if f then
+        f:write("return {}")
+        f:close()
+      end
+      assert.False(docsettings.isHashLocationEnabled())
+
+      -- Create a metadata file inside (should enable)
+      local metadata_file = hash_dir .. "/ab/sub.sdr/metadata.epub.lua"
+      f = io.open(metadata_file, "w")
       if f then
         f:write("return {}")
         f:close()
