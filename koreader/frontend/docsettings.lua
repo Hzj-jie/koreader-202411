@@ -40,18 +40,20 @@ end
 local is_history_location_enabled = isDir(HISTORY_DIR)
 
 local doc_hash_cache = {}
-local is_hash_location_enabled
 
 function DocSettings.isHashLocationEnabled()
-  if is_hash_location_enabled == nil then
-    is_hash_location_enabled = isDir(DOCSETTINGS_HASH_DIR)
+  if not isDir(DOCSETTINGS_HASH_DIR) then
+    return false
   end
-  return is_hash_location_enabled
+  local has_file = false
+  pcall(util.findFiles, DOCSETTINGS_HASH_DIR, function()
+    has_file = true
+    error()
+  end)
+  return has_file
 end
 
-function DocSettings.setIsHashLocationEnabled(value)
-  is_hash_location_enabled = value
-end
+function DocSettings.setIsHashLocationEnabled() end
 
 local function buildCandidates(list)
   local candidates = {}
@@ -458,8 +460,6 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
       DocSettings.removeSidecarDir(cand.dir)
     end
   end
-
-  DocSettings.setIsHashLocationEnabled(nil) -- reset this in case last hash book is purged
 end
 
 --- Removes sidecar dir iff empty.

@@ -210,6 +210,36 @@ describe("docsettings module", function()
     G_reader_settings:delete("document_metadata_folder")
   end)
 
+  it(
+    "isHashLocationEnabled returns true only when files exist in hash directory",
+    function()
+      local hash_dir = DataStorage:getDocSettingsHashDir()
+      ffiutil.purgeDir(hash_dir)
+      assert.False(docsettings.isHashLocationEnabled())
+
+      -- Create empty hash dir
+      util.makePath(hash_dir)
+      assert.False(docsettings.isHashLocationEnabled())
+
+      -- Create empty subdirectories
+      util.makePath(hash_dir .. "/ab/sub.sdr")
+      assert.False(docsettings.isHashLocationEnabled())
+
+      -- Create a file inside
+      local test_file = hash_dir .. "/ab/sub.sdr/test.lua"
+      local f = io.open(test_file, "w")
+      if f then
+        f:write("return {}")
+        f:close()
+      end
+      assert.True(docsettings.isHashLocationEnabled())
+
+      -- Cleanup
+      ffiutil.purgeDir(hash_dir)
+      assert.False(docsettings.isHashLocationEnabled())
+    end
+  )
+
   it("handles custom cover, custom metadata, and updateLocation", function()
     local file = "/tmp/test_custom_doc.epub"
     local d = docsettings:open(file)
