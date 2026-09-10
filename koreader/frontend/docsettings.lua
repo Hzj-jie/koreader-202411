@@ -92,28 +92,6 @@ local function notifyUser(text)
   UIManager:show(Notification:new({ text = text }))
 end
 
-function DocSettings:getLocationCandidates(doc_path)
-  doc_path = doc_path or (self.data and self.data.doc_path)
-  local preferred = G_named_settings.document_metadata_folder()
-  local order
-  if preferred == "dir" then
-    order = { "dir", "hash", "doc", "tmp" }
-  elseif preferred == "hash" then
-    order = { "hash", "dir", "doc", "tmp" }
-  else -- "doc"
-    order = { "doc", "dir", "hash", "tmp" }
-  end
-
-  local candidates = {}
-  for _, loc in ipairs(order) do
-    local dir = self:getSidecarDir(doc_path, loc)
-    if dir and dir ~= "" then
-      table.insert(candidates, { location = loc, dir = dir })
-    end
-  end
-  return candidates
-end
-
 local function getOrderedLocationCandidates()
   local preferred_location = G_named_settings.document_metadata_folder()
   if preferred_location == "hash" then
@@ -123,6 +101,18 @@ local function getOrderedLocationCandidates()
   else
     return { "doc", "dir", "hash", "tmp" }
   end
+end
+
+function DocSettings:getLocationCandidates(doc_path)
+  doc_path = doc_path or (self.data and self.data.doc_path)
+  local candidates = {}
+  for _, loc in ipairs(getOrderedLocationCandidates()) do
+    local dir = self:getSidecarDir(doc_path, loc)
+    if dir and dir ~= "" then
+      table.insert(candidates, { location = loc, dir = dir })
+    end
+  end
+  return candidates
 end
 
 --- Returns path to sidecar directory (`filename.sdr`).
