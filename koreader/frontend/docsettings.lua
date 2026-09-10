@@ -159,10 +159,9 @@ function DocSettings:getLocationCandidates(doc_path)
       dir = path .. ".sdr",
     })
   end
-  local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
   table.insert(candidates, {
     location = "",
-    dir = tmp .. "/docsettings" .. stem .. ".sdr",
+    dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr",
   })
   return candidates
 end
