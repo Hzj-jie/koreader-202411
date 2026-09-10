@@ -871,11 +871,14 @@ end
 ---- @string path
 ---- @treturn bool
 function util.fileExists(path)
-  local file = io.open(path, "r")
-  if file ~= nil then
-    file:close()
-    return true
+  if not util.directoryExists(path) then
+    local file = io.open(path, "r")
+    if file ~= nil then
+      file:close()
+      return true
+    end
   end
+  return false
 end
 
 --- Checks if the given path exists. Doesn't care if it's a file or directory.

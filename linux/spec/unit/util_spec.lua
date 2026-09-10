@@ -918,4 +918,32 @@ describe("util module", function()
       os.remove(test_dir)
     end)
   end)
+
+  describe("fileExists()", function()
+    local test_file = "/tmp/koreader_test_file_" .. tostring(os.time())
+
+    before_each(function()
+      local f = io.open(test_file, "w")
+      if f then
+        f:write("test")
+        f:close()
+      end
+    end)
+
+    after_each(function()
+      os.remove(test_file)
+    end)
+
+    it("returns true for an existing readable file", function()
+      assert.is_true(util.fileExists(test_file))
+    end)
+
+    it("returns false for a non-existent path", function()
+      assert.is_false(util.fileExists(test_file .. "_non_existent"))
+    end)
+
+    it("returns false for a directory", function()
+      assert.is_false(util.fileExists("/tmp"))
+    end)
+  end)
 end)
