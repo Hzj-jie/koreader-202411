@@ -136,6 +136,7 @@ end
 
 --- Returns path to sidecar directory (`filename.sdr`).
 -- Sidecar directory is the file without _last_ suffix.
+-- Note: Outside of DocSettings internal usage, this method is exposed for testing purposes only.
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @string force_location prefer e.g., "hash" or "dir" location over standard "doc", if available
 -- @treturn string path to the sidecar directory (e.g., `/foo/bar.sdr`)
