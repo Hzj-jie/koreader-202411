@@ -506,13 +506,11 @@ local function genMetadataFolderMenuItem(value)
       if value ~= old_value then
         G_reader_settings:save("document_metadata_folder", value)
         if value == "hash" then
-          DocSettings.setIsHashLocationEnabled(true)
           UIManager:show(InfoMessage:new({
             text = hash_filemod_warn,
             icon = "notice-warning",
           }))
         else
-          DocSettings.setIsHashLocationEnabled(nil) -- reset
           if DocSettings.isHashLocationEnabled() then
             UIManager:show(InfoMessage:new({
               text = leaving_hash_sdr_warn,

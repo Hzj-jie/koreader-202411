@@ -44,8 +44,6 @@ function DocSettings.isHashLocationEnabled()
   return has_file
 end
 
-function DocSettings.setIsHashLocationEnabled() end
-
 local function buildCandidates(list)
   local candidates = {}
 
