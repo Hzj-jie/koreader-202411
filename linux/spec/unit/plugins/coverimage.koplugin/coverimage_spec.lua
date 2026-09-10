@@ -231,6 +231,18 @@ describe("CoverImage plugin tests", function()
     end
   )
 
+  it(
+    "defaults cover_image_cache_path to DataStorage:getCacheDir() when setting is unset",
+    function()
+      G_reader_settings:delete("cover_image_cache_path")
+      local instance = CoverImage:new({ ui = createMockUI() })
+      assert.are.equal(
+        DataStorage:getCacheDir() .. "/cover_image.cache/",
+        instance.cover_image_cache_path
+      )
+    end
+  )
+
   it("should check coverEnabled and fallbackEnabled correctly", function()
     local instance = CoverImage:new({ ui = createMockUI() })
 

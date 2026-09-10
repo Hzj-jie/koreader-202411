@@ -58,6 +58,26 @@ describe("CreDocument unit tests", function()
       end
     end)
 
+    it(
+      "should initialize crengine cache using DataStorage:getCacheDir",
+      function()
+        local cre_lib = require("libs/libkoreader-cre")
+        local orig_initCache = cre_lib.initCache
+        local captured_dir = nil
+        cre_lib.initCache = function(dir)
+          captured_dir = dir
+        end
+
+        doc:cacheInit()
+        assert.are.equal(
+          require("datastorage"):getCacheDir() .. "/cr3cache",
+          captured_dir
+        )
+
+        cre_lib.initCache = orig_initCache
+      end
+    )
+
     it("should get DOM versions once engine is initialized", function()
       assert.is_number(doc:getDomVersionWithNormalizedXPointers())
       assert.is_number(doc:getLatestDomVersion())

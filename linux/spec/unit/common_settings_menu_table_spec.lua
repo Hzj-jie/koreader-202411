@@ -217,6 +217,72 @@ describe("Common Settings Menu Table Spec", function()
     end
   )
 
+  it(
+    "should show warning when switching to hash and when leaving hash with hash files present",
+    function()
+      local shown_messages = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(_, widget)
+        table.insert(shown_messages, widget)
+      end
+
+      local sub_items =
+        common_settings.document_metadata_location.sub_item_table
+      local doc_item = sub_items[2]
+      local dir_item = sub_items[3]
+      local hash_item = sub_items[4]
+
+      local orig_doc_meta_folder = G_named_settings.document_metadata_folder
+      G_named_settings.document_metadata_folder = function()
+        return G_reader_settings:read("document_metadata_folder") or "doc"
+      end
+
+      -- Switch to hash location
+      G_reader_settings:save("document_metadata_folder", "doc")
+      hash_item.callback()
+      assert.are.equal(
+        "hash",
+        G_reader_settings:read("document_metadata_folder")
+      )
+      assert.are.equal(1, #shown_messages)
+      assert.is_not_nil(
+        shown_messages[1].text:find("calculating partial file hashes")
+      )
+
+      -- Switch from hash to doc when hash files exist
+      local orig_isHashEnabled = DocSettings.isHashLocationEnabled
+      DocSettings.isHashLocationEnabled = function()
+        return true
+      end
+      shown_messages = {}
+      doc_item.callback()
+      assert.are.equal(
+        "doc",
+        G_reader_settings:read("document_metadata_folder")
+      )
+      assert.are.equal(1, #shown_messages)
+      assert.is_not_nil(shown_messages[1].text:find("hash%-based metadata"))
+
+      -- Switch from hash to dir when no hash files exist
+      G_reader_settings:save("document_metadata_folder", "hash")
+      DocSettings.isHashLocationEnabled = function()
+        return false
+      end
+      shown_messages = {}
+      dir_item.callback()
+      assert.are.equal(
+        "dir",
+        G_reader_settings:read("document_metadata_folder")
+      )
+      assert.are.equal(0, #shown_messages)
+
+      DocSettings.isHashLocationEnabled = orig_isHashEnabled
+      G_named_settings.document_metadata_folder = orig_doc_meta_folder
+      UIManager.show = orig_show
+      G_reader_settings:delete("document_metadata_folder")
+    end
+  )
+
   it("should handle document auto save and end of document actions", function()
     assert.is_table(common_settings.document_auto_save)
     assert.is_string(common_settings.document_auto_save.help_text)

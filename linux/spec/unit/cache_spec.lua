@@ -18,6 +18,14 @@ describe("Cache module", function()
     DocCache:clear()
   end)
 
+  it(
+    "initializes DocCache.cache_path using DataStorage:getCacheDir()",
+    function()
+      local DataStorage = require("datastorage")
+      assert.are.equal(DataStorage:getCacheDir() .. "/", DocCache.cache_path)
+    end
+  )
+
   it("should serialize blitbuffer", function()
     for pageno = 1, math.min(max_page, doc.info.number_of_pages) do
       doc:renderPage(pageno, nil, 1, 0, 1.0)
