@@ -101,47 +101,6 @@ local function notifyUser(reason)
   UIManager:show(Notification:new({ text = text }))
 end
 
-local function getSidecarDir(doc_path, location)
-  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
-  local path
-  if location == "doc" then
-    path = stem
-  elseif location == "dir" then
-    path = DOCSETTINGS_DIR .. stem
-  elseif location == "hash" then
-    local hsh = doc_hash_cache[doc_path]
-    if not hsh then
-      hsh = util.partialMD5(doc_path)
-      if not hsh then -- fallback to "doc"
-        return stem .. ".sdr"
-      end
-      doc_hash_cache[doc_path] = hsh
-      logger.dbg(
-        "DocSettings: Caching new partial MD5 hash for",
-        doc_path,
-        "as",
-        hsh
-      )
-    else
-      logger.dbg(
-        "DocSettings: Using cached partial MD5 hash for",
-        doc_path,
-        "as",
-        hsh
-      )
-    end
-    -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
-    local subpath = string.format("/%s/", hsh:sub(1, 2))
-    path = DOCSETTINGS_HASH_DIR .. subpath .. hsh
-  elseif location == "tmp" then
-    local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
-    path = tmp .. "/docsettings" .. stem
-  else
-    assert(false, "Invalid sidecar location: " .. tostring(location))
-  end
-  return path .. ".sdr"
-end
-
 function DocSettings:getLocationCandidates(doc_path)
   doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
   if not doc_path or doc_path == "" then
@@ -156,11 +115,51 @@ function DocSettings:getLocationCandidates(doc_path)
   else
     locations = { "doc", "dir", "hash", "tmp" }
   end
+  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
   local candidates = {}
   for _, loc in ipairs(locations) do
+    local path
+    if loc == "doc" then
+      path = stem
+    elseif loc == "dir" then
+      path = DOCSETTINGS_DIR .. stem
+    elseif loc == "hash" then
+      local hsh = doc_hash_cache[doc_path]
+      if not hsh then
+        hsh = util.partialMD5(doc_path)
+        if hsh then
+          doc_hash_cache[doc_path] = hsh
+          logger.dbg(
+            "DocSettings: Caching new partial MD5 hash for",
+            doc_path,
+            "as",
+            hsh
+          )
+        end
+      else
+        logger.dbg(
+          "DocSettings: Using cached partial MD5 hash for",
+          doc_path,
+          "as",
+          hsh
+        )
+      end
+      if hsh then
+        -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
+        local subpath = string.format("/%s/", hsh:sub(1, 2))
+        path = DOCSETTINGS_HASH_DIR .. subpath .. hsh
+      else -- fallback to "doc"
+        path = stem
+      end
+    elseif loc == "tmp" then
+      local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
+      path = tmp .. "/docsettings" .. stem
+    else
+      assert(false, "Invalid sidecar location: " .. tostring(loc))
+    end
     table.insert(candidates, {
       location = loc,
-      dir = getSidecarDir(doc_path, loc),
+      dir = path .. ".sdr",
     })
   end
   return candidates
@@ -168,8 +167,7 @@ end
 
 -- TODO: For testing purposes only, should be removed once external tests are migrated.
 function DocSettings:getSidecarDir(doc_path)
-  local candidates = self:getLocationCandidates(doc_path)
-  return candidates[1] and candidates[1].dir or ""
+  return self:getLocationCandidates(doc_path)[1].dir
 end
 
 function DocSettings.getSidecarFilename(doc_path)
