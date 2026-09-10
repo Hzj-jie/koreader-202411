@@ -89,11 +89,7 @@ function Cache:_getDiskCache()
   if not self.cache_path or not util.isDirRW(self.cache_path, true) then
     return cached
   end
-  local ok, iter, dir_obj = pcall(lfs.dir, self.cache_path)
-  if not ok or not iter then
-    return cached
-  end
-  for key_md5 in iter, dir_obj do
+  for key_md5 in lfs.dir(self.cache_path) do
     local file = self.cache_path .. key_md5
     if lfs.attributes(file, "mode") == "file" then
       cached[key_md5] = file

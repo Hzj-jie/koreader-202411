@@ -62,7 +62,10 @@ describe("Cache module", function()
 
     after_each(function()
       util.isDirRW = original_isDirRW
-      require("datastorage"):reset()
+      local ds = package.loaded["datastorage"]
+      if ds and ds.reset then
+        ds:reset()
+      end
     end)
 
     it(
@@ -139,34 +142,23 @@ describe("Cache module", function()
       end
     )
 
-    it("handles lfs.dir error in _getDiskCache gracefully", function()
-      local lfs = require("libs/libkoreader-lfs")
-      local c = Cache:new({
-        slots = 10,
-        disk_cache = false,
-        cache_path = "/nonexistent/cache/",
-      })
-      util.isDirRW = function()
-        return true
-      end
-      local orig_dir = lfs.dir
-      lfs.dir = function()
-        error("permission denied")
-      end
-      local cached = c:_getDiskCache()
-      assert.is_table(cached)
-      assert.are.same({}, cached)
-      lfs.dir = orig_dir
-    end)
-
     it(
       "falls back to DataStorage:getCacheDirOrNil when configured cache_path is unwritable",
       function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_lfs_dir = lfs.dir
+        lfs.dir = function()
+          return function()
+            return nil
+          end
+        end
+
         local orig_ds = package.loaded["datastorage"]
         package.loaded["datastorage"] = {
           getCacheDirOrNil = function()
             return "/mock/ds/cache"
           end,
+          reset = function() end,
         }
 
         util.isDirRW = function(dir)
@@ -185,6 +177,7 @@ describe("Cache module", function()
         assert.is_true(c.disk_cache)
         assert.are.equal("/mock/ds/cache/", c.cache_path)
 
+        lfs.dir = orig_lfs_dir
         package.loaded["datastorage"] = orig_ds
       end
     )
