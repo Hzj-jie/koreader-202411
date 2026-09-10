@@ -80,6 +80,10 @@ local function buildCandidates(list)
   return candidates
 end
 
+-- Lazily requires UI components to prevent cyclic dependencies when DocSettings
+-- is loaded early or in headless environments.
+-- String literals are kept directly inside gettext() calls here so that
+-- xgettext (update-po.sh) can statically extract them into translation templates.
 local function notifyUser(reason)
   local Notification = require("ui/widget/notification")
   local UIManager = require("ui/uimanager")
