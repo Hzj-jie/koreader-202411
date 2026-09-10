@@ -56,7 +56,7 @@ describe("docsettings module", function()
       local candidates = docsettings:getLocationCandidates("/foo/bar.pdf")
       local tmp_cand
       for _, cand in ipairs(candidates) do
-        if cand.location == "tmp" then
+        if cand.location == "" then
           tmp_cand = cand
           break
         end
@@ -402,7 +402,7 @@ describe("docsettings module", function()
 
         d:save("page", 200)
         local saved_dir = d:flush()
-        assert.are.equal(d.tmp_sidecar_dir, saved_dir)
+        assert.are.equal(d:getLocationCandidates()[4].dir, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("temporary storage"))
 
@@ -481,7 +481,7 @@ describe("docsettings module", function()
         assert.are.equal("doc", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("hash", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.are.equal("", candidates[4].location)
       end
     )
 
@@ -495,7 +495,7 @@ describe("docsettings module", function()
         assert.are.equal("dir", candidates[1].location)
         assert.are.equal("hash", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.are.equal("", candidates[4].location)
       end
     )
 
@@ -509,7 +509,7 @@ describe("docsettings module", function()
         assert.are.equal("hash", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.are.equal("", candidates[4].location)
       end
     )
   end)

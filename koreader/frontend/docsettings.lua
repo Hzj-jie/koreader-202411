@@ -109,11 +109,11 @@ function DocSettings:getLocationCandidates(doc_path)
   local preferred_location = G_named_settings.document_metadata_folder()
   local locations
   if preferred_location == "hash" then
-    locations = { "hash", "dir", "doc", "tmp" }
+    locations = { "hash", "dir", "doc", "" }
   elseif preferred_location == "dir" then
-    locations = { "dir", "hash", "doc", "tmp" }
+    locations = { "dir", "hash", "doc", "" }
   else
-    locations = { "doc", "dir", "hash", "tmp" }
+    locations = { "doc", "dir", "hash", "" }
   end
   local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
   local candidates = {}
@@ -151,7 +151,7 @@ function DocSettings:getLocationCandidates(doc_path)
       else -- fallback to "doc"
         path = stem
       end
-    elseif loc == "tmp" then
+    elseif loc == "" then
       local tmp = DataStorage:getTmpDir() or os.getenv("TMPDIR") or "/tmp"
       path = tmp .. "/docsettings" .. stem
     else
@@ -200,14 +200,15 @@ function DocSettings:findSidecarFile(doc_path, no_legacy)
   if is_history_location_enabled and not no_legacy then
     local sidecar_file = self:getHistoryPath(doc_path)
     if util.fileExists(sidecar_file) then
-      return sidecar_file, "hist" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
+      return sidecar_file, "" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
     end
   end
 end
 
 function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
   local _, location = DocSettings:findSidecarFile(doc_path)
-  return location and location ~= G_named_settings.document_metadata_folder()
+  return location ~= nil
+    and location ~= G_named_settings.document_metadata_folder()
 end
 
 function DocSettings:getHistoryPath(doc_path)
@@ -275,7 +276,9 @@ function DocSettings:open(doc_path)
 
   local candidates_list = {}
   for _, cand in ipairs(new:getLocationCandidates(doc_path)) do
-    new[cand.location .. "_sidecar_dir"] = cand.dir
+    if cand.location ~= "" then
+      new[cand.location .. "_sidecar_dir"] = cand.dir
+    end
     if util.directoryExists(cand.dir) then
       table.insert(candidates_list, cand.dir .. "/" .. new.sidecar_filename)
       if cand.location == "doc" then
@@ -352,7 +355,7 @@ function DocSettings:flush(data, no_custom_metadata)
       logger.dbg("DocSettings: Writing to", sidecar_file)
       if util.writeToFile(ser_data, sidecar_file, true) then
         if loc ~= preferred_location and not self.fallback_notified then
-          notifyUser(loc == "tmp" and "tmp" or "fallback")
+          notifyUser(loc == "" and "tmp" or "fallback")
           self.fallback_notified = true
         end
 
