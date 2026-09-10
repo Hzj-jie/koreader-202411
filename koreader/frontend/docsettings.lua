@@ -8,6 +8,7 @@ local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local dump = require("dump")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -371,20 +372,15 @@ function DocSettings:flush(data, no_custom_metadata)
       logger.dbg("DocSettings: Writing to", sidecar_file)
       if util.writeToFile(ser_data, sidecar_file, true) then
         if loc ~= preferred_location and not self.fallback_notified then
-          local ok_gettext, gettext = pcall(require, "gettext")
-          local _ = ok_gettext and gettext
-            or function(s)
-              return s
-            end
           if loc == "tmp" then
             notifyUser(
-              _(
+              gettext(
                 "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost when restarted."
               )
             )
           else
             notifyUser(
-              _(
+              gettext(
                 "The selected storage for book settings is read-only. Settings for this book will be saved to KOReader internal storage instead."
               )
             )
@@ -425,12 +421,8 @@ function DocSettings:flush(data, no_custom_metadata)
   end
 
   if not self.fallback_notified then
-    local ok_gettext, gettext = pcall(require, "gettext")
-    local _ = ok_gettext and gettext or function(s)
-      return s
-    end
     notifyUser(
-      _(
+      gettext(
         "Storage is completely read-only. Reading progress for this book cannot be saved to disk."
       )
     )
