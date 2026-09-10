@@ -101,42 +101,8 @@ local function notifyUser(reason)
   UIManager:show(Notification:new({ text = text }))
 end
 
-function DocSettings:getLocationCandidates(doc_path)
-  doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
-  if not doc_path or doc_path == "" then
-    return {}
-  end
-  local preferred_location = G_named_settings.document_metadata_folder()
-  local locations
-  if preferred_location == "hash" then
-    locations = { "hash", "dir", "doc", "tmp" }
-  elseif preferred_location == "dir" then
-    locations = { "dir", "hash", "doc", "tmp" }
-  else
-    locations = { "doc", "dir", "hash", "tmp" }
-  end
-  local candidates = {}
-  for _, loc in ipairs(locations) do
-    table.insert(candidates, {
-      location = loc,
-      dir = self:getSidecarDir(doc_path, loc),
-    })
-  end
-  return candidates
-end
-
---- Returns path to sidecar directory (`filename.sdr`).
--- Sidecar directory is the file without _last_ suffix.
--- Note: Outside of DocSettings internal usage, this method is exposed for testing purposes only.
--- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @string force_location prefer e.g., "hash" or "dir" location over standard "doc", if available
--- @treturn string path to the sidecar directory (e.g., `/foo/bar.sdr`)
-function DocSettings:getSidecarDir(doc_path, force_location)
-  if doc_path == nil or doc_path == "" then
-    return ""
-  end
+local function getSidecarDir(doc_path, location)
   local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
-  local location = force_location or G_named_settings.document_metadata_folder()
   local path
   if location == "doc" then
     path = stem
@@ -174,6 +140,39 @@ function DocSettings:getSidecarDir(doc_path, force_location)
     assert(false, "Invalid sidecar location: " .. tostring(location))
   end
   return path .. ".sdr"
+end
+
+function DocSettings:getLocationCandidates(doc_path)
+  doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
+  if not doc_path or doc_path == "" then
+    return {}
+  end
+  local preferred_location = G_named_settings.document_metadata_folder()
+  local locations
+  if preferred_location == "hash" then
+    locations = { "hash", "dir", "doc", "tmp" }
+  elseif preferred_location == "dir" then
+    locations = { "dir", "hash", "doc", "tmp" }
+  else
+    locations = { "doc", "dir", "hash", "tmp" }
+  end
+  local candidates = {}
+  for _, loc in ipairs(locations) do
+    table.insert(candidates, {
+      location = loc,
+      dir = getSidecarDir(doc_path, loc),
+    })
+  end
+  return candidates
+end
+
+-- TODO: For testing purposes only, should be removed once external tests are migrated.
+function DocSettings:getSidecarDir(doc_path, force_location)
+  if force_location then
+    return getSidecarDir(doc_path, force_location)
+  end
+  local candidates = self:getLocationCandidates(doc_path)
+  return candidates[1] and candidates[1].dir or ""
 end
 
 function DocSettings.getSidecarFilename(doc_path)
