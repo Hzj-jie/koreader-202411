@@ -120,7 +120,7 @@ local function getOrderedLocationCandidates()
 end
 
 function DocSettings:getLocationCandidates(doc_path)
-  doc_path = doc_path or (self.data and self.data.doc_path)
+  doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
   if not doc_path or doc_path == "" then
     return {}
   end
@@ -283,52 +283,26 @@ function DocSettings:open(doc_path)
   -- NOTE: Beware, our new instance is new, but self is still DocSettings!
   local new = DocSettings:extend({})
 
+  new.doc_path = doc_path
   new.sidecar_filename = DocSettings.getSidecarFilename(doc_path)
 
-  new.doc_sidecar_dir = new:getSidecarDir(doc_path, "doc")
-  local doc_sidecar_file, legacy_sidecar_file
-  if isDir(new.doc_sidecar_dir) then
-    doc_sidecar_file = new.doc_sidecar_dir .. "/" .. new.sidecar_filename
-    legacy_sidecar_file = new.doc_sidecar_dir
-      .. "/"
-      .. ffiutil.basename(doc_path)
-      .. ".lua"
+  local candidates_list = {}
+  for _, cand in ipairs(new:getLocationCandidates(doc_path)) do
+    new[cand.location .. "_sidecar_dir"] = cand.dir
+    if isDir(cand.dir) then
+      table.insert(candidates_list, cand.dir .. "/" .. new.sidecar_filename)
+      if cand.location == "doc" then
+        table.insert(
+          candidates_list,
+          cand.dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
+        )
+      end
+    end
   end
-  new.dir_sidecar_dir = new:getSidecarDir(doc_path, "dir")
-  local dir_sidecar_file
-  if isDir(new.dir_sidecar_dir) then
-    dir_sidecar_file = new.dir_sidecar_dir .. "/" .. new.sidecar_filename
+  if is_history_location_enabled then
+    table.insert(candidates_list, new:getHistoryPath(doc_path))
   end
-  new.hash_sidecar_dir = new:getSidecarDir(doc_path, "hash")
-  local hash_sidecar_file
-  if isDir(new.hash_sidecar_dir) then
-    hash_sidecar_file = new.hash_sidecar_dir .. "/" .. new.sidecar_filename
-  end
-  new.tmp_sidecar_dir = new:getSidecarDir(doc_path, "tmp")
-  local tmp_sidecar_file
-  if isDir(new.tmp_sidecar_dir) then
-    tmp_sidecar_file = new.tmp_sidecar_dir .. "/" .. new.sidecar_filename
-  end
-  local history_file = is_history_location_enabled
-    and new:getHistoryPath(doc_path)
-
-  -- Candidates list, in order of priority:
-  local candidates_list = {
-    -- New sidecar file in doc folder
-    doc_sidecar_file or "",
-    -- Legacy sidecar file
-    legacy_sidecar_file or "",
-    -- New sidecar file in docsettings folder
-    dir_sidecar_file or "",
-    -- New sidecar file in hashdocsettings folder
-    hash_sidecar_file or "",
-    -- New sidecar file in temporary folder
-    tmp_sidecar_file or "",
-    -- Legacy history folder
-    history_file or "",
-    -- Legacy kpdfview setting
-    doc_path .. ".kpdfview.lua",
-  }
+  table.insert(candidates_list, doc_path .. ".kpdfview.lua")
   -- We get back an array of tables for *existing* candidates, sorted MRU first (insertion order breaks ties).
   local candidates = buildCandidates(candidates_list)
 
@@ -478,13 +452,8 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
     or data_to_purge.custom_cover_file
     or data_to_purge.custom_metadata_file
   then
-    for _, dir in ipairs({
-      self.doc_sidecar_dir,
-      self.dir_sidecar_dir,
-      self.hash_sidecar_dir,
-      self.tmp_sidecar_dir,
-    }) do
-      DocSettings.removeSidecarDir(dir)
+    for _, cand in ipairs(self:getLocationCandidates()) do
+      DocSettings.removeSidecarDir(cand.dir)
     end
   end
 
