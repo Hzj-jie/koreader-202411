@@ -138,26 +138,6 @@ local Device = {
   canExternalDictLookup = util.no,
 }
 
-function Device:_getTmpDir()
-  local tmp = os.getenv("TMPDIR")
-  if util.isDirRW(tmp) then
-    return tmp
-  end
-  if util.isDirRW("/tmp") then
-    return "/tmp"
-  end
-  return nil
-end
-
-function Device:getTmpDir()
-  if self.tmp_dir then
-    return self.tmp_dir
-  end
-  self.tmp_dir = self:_getTmpDir()
-  assert(self.tmp_dir, "No temporary directory found")
-  return self.tmp_dir
-end
-
 function Device:extend(o)
   o = o or {}
   setmetatable(o, self)
