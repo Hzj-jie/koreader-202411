@@ -1,6 +1,6 @@
 describe("KOSync plugin tests", function()
   local KOSyncClass, kosync, mock_ui, mock_client
-  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog
+  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs
   local match
 
   setup(function()
@@ -71,10 +71,10 @@ describe("KOSync plugin tests", function()
 
     mock_client = {
       register = spy.new(function(_, username, userkey)
-        return true, 201, { message = "Registered" }
+        return true, { message = "Registered" }
       end),
       authorize = spy.new(function(_, username, userkey)
-        return true, 200, { message = "Authorized" }
+        return true, { message = "Authorized" }
       end),
       update_progress = spy.new(
         function(
@@ -85,27 +85,20 @@ describe("KOSync plugin tests", function()
           progress,
           percentage,
           device_model,
-          device_id,
-          callback
+          device_id
         )
-          if callback then
-            callback(true, { message = "Progress updated" })
-          end
-          return true
+          return true, { message = "Progress updated" }
         end
       ),
       get_progress = spy.new(
-        function(self_arg, username, userkey, doc_digest, callback)
-          if callback then
-            callback(true, {
-              progress = "60",
-              percentage = 0.6,
-              device = "OtherDevice",
-              device_id = "other_id",
-              timestamp = 1000,
-            })
-          end
-          return true
+        function(self_arg, username, userkey, doc_digest)
+          return true, {
+            progress = "60",
+            percentage = 0.6,
+            device = "OtherDevice",
+            device_id = "other_id",
+            timestamp = 1000,
+          }
         end
       ),
     }
@@ -159,6 +152,21 @@ describe("KOSync plugin tests", function()
       return s
     end)
 
+    ReaderUI = require("apps/reader/readerui")
+    ReaderUI.instance = mock_ui
+
+    BackgroundJobs = require("background_jobs")
+    stub(BackgroundJobs, "insertKeyed", function(job)
+      if job.action then
+        local res = job.action()
+        job.result = res
+      end
+      if job.callback then
+        job.callback(job)
+      end
+      return true
+    end)
+
     kosync = KOSyncClass:new({
       ui = mock_ui,
       path = "plugins/kosync.koplugin",
@@ -169,6 +177,12 @@ describe("KOSync plugin tests", function()
   end)
 
   after_each(function()
+    ReaderUI.instance = nil
+
+    if BackgroundJobs and BackgroundJobs.insertKeyed.revert then
+      BackgroundJobs.insertKeyed:revert()
+    end
+
     NetworkMgr.isOnline:revert()
     NetworkMgr.runWhenOnline:revert()
     NetworkMgr.willRerunWhenOnline:revert()
@@ -623,6 +637,41 @@ describe("KOSync plugin tests", function()
       assert.is_nil(kosync:_getDocumentDigest())
     end)
 
+    it("checks if current document matches", function()
+      kosync:init()
+      kosync.settings.checksum_method = 0
+
+      assert.is_true(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      assert.is_false(kosync:_isCurrentDocument("other_checksum"))
+
+      -- UI instance mismatch
+      ReaderUI.instance = {}
+      assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      ReaderUI.instance = mock_ui
+
+      -- self.ui is nil
+      local original_ui = kosync.ui
+      kosync.ui = nil
+      assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      kosync.ui = original_ui
+
+      -- self.ui.document is nil
+      local original_doc = mock_ui.document
+      mock_ui.document = nil
+      assert.is_false(kosync:_isCurrentDocument("dummy_md5_checksum"))
+      mock_ui.document = original_doc
+
+      -- doc_digest is nil
+      assert.is_false(kosync:_isCurrentDocument(nil))
+
+      -- FILENAME checksum method
+      kosync.settings.checksum_method = 1
+      local filename_digest = kosync:_getDocumentDigest()
+      assert.is_string(filename_digest)
+      assert.is_true(kosync:_isCurrentDocument(filename_digest))
+      assert.is_false(kosync:_isCurrentDocument("wrong_digest"))
+    end)
+
     it("syncs to progress for paged and rolling documents", function()
       kosync:init()
 
@@ -680,35 +729,78 @@ describe("KOSync plugin tests", function()
       kosync.settings.username = "user"
       kosync.settings.userkey = "key"
 
-      -- Client returns ok = false in callback
-      mock_client.update_progress = spy.new(
-        function(
-          self_arg,
-          username,
-          userkey,
-          doc_digest,
-          progress,
-          percentage,
-          device_model,
-          device_id,
-          callback
-        )
-          if callback then
-            callback(false, nil)
-          end
-          return true
-        end
-      )
-      kosync:_updateProgress(true)
-      assert.stub(UIManager.show).was_called()
-
-      -- Client throws pcall error
+      -- Client returns ok = false
       mock_client.update_progress = spy.new(function()
-        error("network error")
+        return false, nil
       end)
       kosync:_updateProgress(true)
       assert.stub(UIManager.show).was_called()
     end)
+
+    it("pushes progress via background job when non-interactive", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.push_timestamp = 0
+
+      local insert_keyed_called = false
+      stub(BackgroundJobs, "insertKeyed", function(job)
+        insert_keyed_called = true
+        assert.are.equal("fork", job.executable)
+        assert.is_function(job.action)
+        assert.is_function(job.callback)
+        local res = job.action()
+        assert.is_table(res)
+        assert.is_true(res.ok)
+        job.result = res
+        job.callback(job)
+        return true
+      end)
+
+      UIManager.show:clear()
+      kosync:_updateProgress(false)
+
+      assert.is_true(insert_keyed_called)
+      assert.spy(mock_client.update_progress).was_called()
+      assert.stub(UIManager.show).was_not_called()
+      BackgroundJobs.insertKeyed:revert()
+    end)
+
+    it(
+      "pushes progress in background even if document was closed before action executes",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.push_timestamp = 0
+
+        local action_executed = false
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          -- Simulate document closing before subprocess action runs
+          mock_ui.document = nil
+          ReaderUI.instance = nil
+          local res = job.action()
+          action_executed = true
+          assert.is_table(res)
+          assert.is_true(res.ok)
+          job.result = res
+          job.callback(job)
+          return true
+        end)
+
+        kosync:_updateProgress(false)
+        assert.is_true(action_executed)
+        assert.spy(mock_client.update_progress).was_called()
+
+        -- Restore
+        ReaderUI.instance = mock_ui
+        mock_ui.document = {
+          file = "/path/to/test.epub",
+          info = { has_pages = true },
+        }
+        BackgroundJobs.insertKeyed:revert()
+      end
+    )
   end)
 
   describe("Pull Progress", function()
@@ -741,41 +833,95 @@ describe("KOSync plugin tests", function()
         kosync.settings.userkey = "key"
 
         -- Response without body/ok
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(false, nil)
+        mock_client.get_progress = spy.new(function()
+          return false, nil
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response without percentage
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {})
+        mock_client.get_progress = spy.new(function()
+          return true, {}
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response from same device
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.8,
             device = Device.model,
             device_id = kosync.device_id,
-          })
+          }
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response with same progress / percentage
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.5,
             progress = "50",
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
+      end
+    )
+
+    it(
+      "remains silent during non-interactive pull for missing progress, same device, or already synchronized",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+
+        -- 1. No percentage
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return true, {}
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+
+        -- 2. Same device
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return true, {
+            percentage = 0.8,
+            device = Device.model,
+            device_id = kosync.device_id,
+          }
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+
+        -- 3. Already synchronized
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return true, {
+            percentage = 0.5,
+            progress = "50",
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
+
+        -- 4. Failure/error
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        mock_client.get_progress = spy.new(function()
+          return false, nil
+        end)
+        kosync:_getProgress(false)
+        assert.stub(UIManager.show).was_not_called()
       end
     )
 
@@ -784,13 +930,13 @@ describe("KOSync plugin tests", function()
       kosync.settings.username = "user"
       kosync.settings.userkey = "key"
 
-      mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-        cb(true, {
+      mock_client.get_progress = spy.new(function()
+        return true, {
           percentage = 0.8,
           progress = "80",
           device = "OtherDevice",
           device_id = "other_id",
-        })
+        }
       end)
 
       stub(kosync, "_syncToProgress")
@@ -812,14 +958,14 @@ describe("KOSync plugin tests", function()
         -- Forward sync strategy: SILENT
         kosync.settings.sync_forward = 2 -- SILENT
         kosync.last_page_turn_timestamp = 100
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.8,
             progress = "80",
             timestamp = 200, -- newer
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         stub(kosync, "_syncToProgress")
         kosync.pull_timestamp = 0
@@ -843,14 +989,14 @@ describe("KOSync plugin tests", function()
         -- Backward sync strategy: SILENT
         kosync.settings.sync_backward = 2 -- SILENT
         kosync.last_page_turn_timestamp = 300
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.2,
             progress = "20",
             timestamp = 200, -- older
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         kosync.pull_timestamp = 0
         kosync:_getProgress(false)
@@ -871,14 +1017,14 @@ describe("KOSync plugin tests", function()
           .was_called_with(match.is_table(), "20")
 
         -- When timestamp is nil (legacy server), uses percentage comparison
-        mock_client.get_progress = spy.new(function(self_arg, u, k, d, cb)
-          cb(true, {
+        mock_client.get_progress = spy.new(function()
+          return true, {
             percentage = 0.8,
             progress = "80",
             timestamp = nil,
             device = "OtherDevice",
             device_id = "other_id",
-          })
+          }
         end)
         kosync.settings.sync_forward = 2 -- SILENT
         kosync.pull_timestamp = 0
@@ -887,9 +1033,9 @@ describe("KOSync plugin tests", function()
           .stub(kosync._syncToProgress)
           .was_called_with(match.is_table(), "80")
 
-        -- Error during pcall
+        -- Error during get_progress
         mock_client.get_progress = spy.new(function()
-          error("pull error")
+          return false, nil
         end)
         kosync.pull_timestamp = 0
         kosync:_getProgress(true)
@@ -898,6 +1044,169 @@ describe("KOSync plugin tests", function()
         kosync._syncToProgress:revert()
       end
     )
+
+    it(
+      "does not sync progress if document changed or closed before pull completion",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+
+        mock_client.get_progress = spy.new(function()
+          return true, {
+            percentage = 0.8,
+            progress = "80",
+            timestamp = 200,
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
+        end)
+        stub(kosync, "_syncToProgress")
+
+        -- Case 1: document closed before response
+        kosync.settings.sync_forward = 1 -- PROMPT
+        kosync.pull_timestamp = 0
+        UIManager.show:clear()
+
+        local original_doc = kosync.ui.document
+        kosync.ui.document = nil
+        kosync:_getProgress(false)
+        assert.stub(kosync._syncToProgress).was_not_called()
+        assert.stub(UIManager.show).was_not_called()
+
+        -- Case 2: document changed before response
+        kosync.ui.document = {
+          file = "/path/to/another.epub",
+          info = { has_pages = true },
+        }
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        kosync:_applyPullUI(true, {
+          percentage = 0.8,
+          progress = "80",
+          timestamp = 200,
+          device = "OtherDevice",
+          device_id = "other_id",
+        }, "stale_digest", false, "50", 0.5)
+        assert.stub(kosync._syncToProgress).was_not_called()
+        assert.stub(UIManager.show).was_not_called()
+
+        -- Case 3: ReaderUI.instance closed or changed
+        kosync.ui.document = original_doc
+        ReaderUI.instance = nil
+        UIManager.show:clear()
+        kosync.pull_timestamp = 0
+        kosync:_getProgress(false)
+        assert.stub(kosync._syncToProgress).was_not_called()
+        assert.stub(UIManager.show).was_not_called()
+
+        -- Restore
+        ReaderUI.instance = mock_ui
+        kosync.ui.document = original_doc
+        kosync._syncToProgress:revert()
+      end
+    )
+
+    it("pulls progress via background job when non-interactive", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.pull_timestamp = 0
+      kosync.settings.sync_forward = 2 -- SILENT
+
+      mock_client.get_progress = spy.new(function()
+        return true, {
+          percentage = 0.9,
+          progress = "90",
+          timestamp = 200,
+          device = "OtherDevice",
+          device_id = "other_id",
+        }
+      end)
+
+      local insert_keyed_called = false
+      stub(BackgroundJobs, "insertKeyed", function(job)
+        insert_keyed_called = true
+        assert.are.equal("fork", job.executable)
+        local res = job.action()
+        job.result = res
+        job.callback(job)
+        return true
+      end)
+
+      stub(kosync, "_syncToProgress")
+      kosync:_getProgress(false)
+
+      assert.is_true(insert_keyed_called)
+      assert.spy(mock_client.get_progress).was_called()
+      assert.stub(kosync._syncToProgress).was_called_with(match.is_table(), "90")
+
+      kosync._syncToProgress:revert()
+      BackgroundJobs.insertKeyed:revert()
+    end)
+
+    it(
+      "skips background pull action if document was closed or changed before action executes",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.pull_timestamp = 0
+
+        mock_client.get_progress:clear()
+        stub(kosync, "_syncToProgress")
+
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          -- Simulate document closing before action executes
+          ReaderUI.instance = nil
+          local res = job.action()
+          assert.is_table(res)
+          assert.is_true(res.skipped)
+          job.result = res
+          job.callback(job)
+          return true
+        end)
+
+        kosync:_getProgress(false)
+        assert.spy(mock_client.get_progress).was_not_called()
+        assert.stub(kosync._syncToProgress).was_not_called()
+
+        -- Restore
+        ReaderUI.instance = mock_ui
+        kosync._syncToProgress:revert()
+        BackgroundJobs.insertKeyed:revert()
+      end
+    )
+
+    it("ignores pull when sync strategy is disabled", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.pull_timestamp = 0
+      kosync.settings.sync_forward = 3 -- DISABLE
+      kosync.settings.sync_backward = 3 -- DISABLE
+      kosync.last_page_turn_timestamp = 100
+
+      mock_client.get_progress = spy.new(function()
+        return true, {
+          percentage = 0.9,
+          progress = "90",
+          timestamp = 200, -- newer
+          device = "OtherDevice",
+          device_id = "other_id",
+        }
+      end)
+
+      stub(kosync, "_syncToProgress")
+      UIManager.show:clear()
+
+      kosync:_getProgress(false)
+
+      assert.stub(kosync._syncToProgress).was_not_called()
+      assert.stub(UIManager.show).was_not_called()
+
+      kosync._syncToProgress:revert()
+    end)
   end)
 
   describe("Event Handlers", function()
