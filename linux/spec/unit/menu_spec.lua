@@ -285,6 +285,13 @@ describe("Menu widget", function()
               end,
               callback = function() end,
             },
+            {
+              text = "Keep Open Item",
+              keep_menu_open = true,
+              callback = function()
+                callback_called = true
+              end,
+            },
             { text = "Submenu Item", sub_item_table = sub_table },
           },
         })
@@ -297,8 +304,14 @@ describe("Menu widget", function()
         m:onMenuSelect(m.item_table[2])
         assert.is_false(closed)
 
-        -- Select submenu item
+        -- Select keep_menu_open item
         m:onMenuSelect(m.item_table[3])
+        assert.is_true(callback_called)
+        assert.is_false(closed)
+        callback_called = false
+
+        -- Select submenu item
+        m:onMenuSelect(m.item_table[4])
         assert.are.equal(1, #m.item_table_stack)
         assert.are.equal("Submenu Item", m.title_bar.title_widget.text)
         assert.are.equal(1, #m.item_table)

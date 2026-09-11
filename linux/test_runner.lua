@@ -33,11 +33,6 @@ local test_env = require("test_helper")
 if os.getenv("KO_TEST_WORKER") == "1" then
     local test_file = arg[1]
     if test_file then
-        local plugin = test_file:match("^plugins/([%w%.%-_]+)/")
-        if plugin then
-            package.path = string.format("./plugins/%s/?.lua;%s", plugin, package.path)
-        end
-
         local is_settings_test = test_file:match("docsettings_spec%.lua$") or test_file:match("named_settings_spec%.lua$")
         if not is_settings_test then
             local ok, named_settings = pcall(require, "named_settings")
@@ -124,16 +119,6 @@ else
 
     find_specs("base/spec/unit")
     find_specs("spec/unit")
-
-    local plugins_dir = "plugins"
-    local plugins_attr = lfs.attributes(plugins_dir)
-    if plugins_attr and plugins_attr.mode == "directory" then
-        for plugin in lfs.dir(plugins_dir) do
-            if plugin ~= "." and plugin ~= ".." then
-                find_specs(plugins_dir .. "/" .. plugin .. "/spec/unit")
-            end
-        end
-    end
 
     table.sort(spec_files)
 end

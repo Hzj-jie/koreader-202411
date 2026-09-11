@@ -24675,3 +24675,227 @@ msgstr "megjegyzések"
 
 #~ msgid "Keep file"
 #~ msgstr "Fájl megtartása"
+
+# --- AnnotationSync plugin translations ---
+
+msgid "Annotation Sync"
+msgstr "Kiemelések szinkronizálása"
+
+msgid "annotation_sync_plugin"
+msgstr "annotation_sync_plugin"
+
+msgid "Sync annotations and bookmarks between devices."
+msgstr "Kiemelések és könyvjelzők szinkronizációja több eszköz között."
+
+msgid "Cloud settings"
+msgstr "Felhőbeállítások"
+
+msgid "Use filename instead of hash"
+msgstr "Fájlnév használata hash helyett"
+
+msgid "Automatically Sync All when network becomes available"
+msgstr "Minden szinkronizációja amikor a hálózat elérhetővé válik"
+
+msgid "Enable Reading Progress Sync"
+msgstr "Olvasási állapot szinkronizáció engedélyezése"
+
+msgid "Sync using last word of page"
+msgstr "Szinkronizáció oldal utolsó szava alapján"
+
+msgid "Sync every %1 pages"
+msgstr "Szinkronizáció %1 oldalanként"
+
+msgid "Sync every # pages"
+msgstr "Szinkronizáció ennyi oldalanként"
+
+msgid "Device name: %1"
+msgstr "Eszköznév: %1"
+
+msgid "Set device name"
+msgstr "Eszköznév beállítása"
+
+msgid "Leave empty to use the default device name."
+msgstr "Üresen hagyva az alap eszköznév lesz használatban."
+
+msgid "Show changed settings"
+msgstr "Módosított beállítások mutatása"
+
+msgid "Current cloud: %1"
+msgstr "Jelenlegi felhő: %1"
+
+msgid "Push settings to cloud"
+msgstr "Beállítások felszinkronizálása"
+
+msgid "Pull settings from cloud"
+msgstr "Beállítások leszinkronizálása"
+
+msgid "Manual Sync"
+msgstr "Kézi szinkronizáció"
+
+msgid "Jump to device progress"
+msgstr "Olvasási állapothoz ugrás"
+
+msgid "Sync All"
+msgstr "Minden szinkronizálása"
+
+msgid "Show pending/unsynced documents"
+msgstr "Sorba állítottak/nem szinkronizáltak mutatása"
+
+msgid "Show Deleted"
+msgstr "Töröltek mutatása"
+
+msgid "Last sync: %1"
+msgstr "Utolsó szinkronizáció: %1"
+
+msgid "Plugin version: %1"
+msgstr "Bővítmény verzió: %1"
+
+msgid "Why are some options greyed out?"
+msgstr "Miért van néhány opció kiszürkítve?"
+
+msgid "Reading progress sync is not supported on this version of KOReader."
+msgstr ""
+
+msgid "A document must be active to jump to device progress."
+msgstr "Egy dokumentumnak aktívnak kell lennie állapothoz ugráshoz."
+
+msgid "AnnotationSync: Manual Sync"
+msgstr "Kiemelések szinkronizálása: Kézi szinkronizálás"
+
+msgid "AnnotationSync: Push settings to cloud"
+msgstr "Kiemelések szinkronizálása: Beállítások felszinkronizálása"
+
+msgid "Push the selected settings to the cloud."
+msgstr "A kiválasztott beállítások felszinkronizálása a felhőbe."
+
+msgid "AnnotationSync: Pull settings from cloud"
+msgstr "Kiemelések szinkronizálása: Beállítások leszinkronizálása"
+
+msgid "Pull the selected settings from the cloud."
+msgstr "A kiválasztott beállítások leszinkronizálása a felhőből."
+
+msgid "AnnotationSync: Jump to device progress"
+msgstr "Kiemelések szinkronizálása: Olvasási állapothoz ugrás"
+
+msgid "AnnotationSync: Sync All"
+msgstr "Kiemelések szinkronizálása: Minden szinkronizálása"
+
+msgid "Annotation restored."
+msgstr "Kiemelés visszaállítva."
+
+msgid "Restored %1 annotations."
+msgstr "%1 kiemelés visszaállítva."
+
+msgid "Network is disconnected, cannot pull progress"
+msgstr "Hálózat nem elérhető, nem lehet állapotot lekérni"
+
+msgid "Fetching remote progress..."
+msgstr "Távoli állapot lekérése..."
+
+msgid "Failed to fetch remote progress"
+msgstr "Nem sikerült a távoli állapot lekérése"
+
+msgid "Open Manager"
+msgstr "Kezelő megnyitása"
+
+msgid "No hash"
+msgstr "Nincs hash"
+
+msgid "Failed to write settings to local storage."
+msgstr "Nem sikerült a beállításokat a helyi tárolóba menteni."
+
+msgid "Pushing settings to cloud..."
+msgstr "Beállítások felszinkronizálása..."
+
+msgid "Network is disconnected, cannot pull settings"
+msgstr "Hálózat nem elérhető, nem lehet beállításokat leszinkronizálni"
+
+msgid "Fetching settings from cloud..."
+msgstr "Beállítások leszinkronizálása..."
+
+msgid "Failed to fetch settings from cloud"
+msgstr "Nem sikerült leszinkronizálni a beállításokat"
+
+msgid "No deleted annotations found for this document."
+msgstr "Nem található törölt kiemelés ehhez a dokumentumhoz."
+
+msgid "Restore All"
+msgstr "Minden visszaállítása"
+
+msgid "Are you sure you want to restore all %1 deleted annotations?"
+msgstr "Vissza legyen állítva %1 törölt kiemelés?"
+
+msgid "Deleted Annotations"
+msgstr "Törölt kiemelések"
+
+msgid "(this device)"
+msgstr "(ez az eszköz)"
+
+msgid "Jumped to page %1 from %2"
+msgstr "%2. oldalról %1. oldalra ugorva"
+
+msgid "No remote progress found."
+msgstr "Nem található távoli állapot."
+
+msgid "No other devices found in cloud settings."
+msgstr "Nem található más eszköz beállításai a felhőben."
+
+msgid "No differing settings found for this device."
+msgstr "Nem található eltérő beállítás ehhez az eszközhöz."
+
+msgid "Import Selected Settings"
+msgstr "Kivélasztott beállítások importálása"
+
+msgid "Successfully imported %1 settings."
+msgstr "Sikeresen importálva %1 beállítás."
+
+msgid "No settings imported."
+msgstr "Nem lett beállítás importálva."
+
+msgid "Select All"
+msgstr "Minden kiválasztása"
+
+msgid "Clear Selection"
+msgstr "Kiválasztás megszünetése"
+
+msgid "Settings from %1"
+msgstr "Beállítások innen: %1"
+
+msgid "No pending documents to sync."
+msgstr "Nem található szinkronizációhoz sorba állított dokumentum."
+
+msgid "Sync now"
+msgstr "Szinkronizáció most"
+
+msgid "Syncing %1..."
+msgstr "Szinkronizálás %1..."
+
+msgid "Successfully synced %1"
+msgstr "Sikeresen szinkronizálva: %1"
+
+msgid "Failed to sync %1"
+msgstr "Nem sikerült szinkronizálni: %1"
+
+msgid "Could not open %1 for sync"
+msgstr "Nem lehet megnyitni szinkronizációhoz: %1"
+
+msgid "Remove from list"
+msgstr "Eltávolítás a listából"
+
+msgid "Removed %1 from sync list"
+msgstr "%1 eltávolítva a szinkronizációs listából"
+
+msgid "Pending Documents"
+msgstr "Sorba állított dokumentumok"
+
+msgid "Cloud Storage plugin is not enabled or available."
+msgstr "Felhőtárhely bővítmény nem engedélyezett vagy nem elérhető."
+
+msgid "No cloud destination set in settings."
+msgstr "Nincs beállítva felhő cél a beállításokban."
+
+msgid "No changed settings found."
+msgstr "Nem található módosított beállítás."
+
+msgid "Changed Settings"
+msgstr "Módosított beállítások"
