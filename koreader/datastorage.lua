@@ -1,11 +1,47 @@
 -- need low-level mechanism to detect android to avoid recursive dependency
 local isAndroid, android = pcall(require, "android")
 local lfs = require("libs/libkoreader-lfs")
+local util = require("util")
 
 local DataStorage = {}
 
 local data_dir
 local full_data_dir
+local tmp_dir
+
+-- For testing purposes only; do not use in production code.
+-- Resets cached directories and storage state flags across test scenarios.
+function DataStorage:reset()
+  data_dir = nil
+  full_data_dir = nil
+  tmp_dir = nil
+end
+
+function DataStorage:getTmpDir()
+  if tmp_dir then
+    return tmp_dir
+  end
+
+  local candidates = {}
+  local env_tmp = os.getenv("TMPDIR")
+  if env_tmp then
+    table.insert(candidates, env_tmp)
+  end
+
+  if isAndroid then
+    table.insert(candidates, "/data/local/tmp")
+  end
+  table.insert(candidates, "/tmp")
+
+  for _, cand in ipairs(candidates) do
+    if util.isDirRW(cand, true) then
+      tmp_dir = cand
+      return tmp_dir
+    end
+  end
+
+  return nil
+end
 
 function DataStorage:getDataDir()
   if data_dir then
