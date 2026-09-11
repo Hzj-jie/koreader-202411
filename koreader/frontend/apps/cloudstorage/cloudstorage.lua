@@ -337,6 +337,9 @@ function CloudStorage:downloadFile(item)
       {
         text = gettext("Download"),
         callback = function()
+          if not require("ui/downloadmgr").checkDownloadDir(download_dir) then
+            return
+          end
           UIManager:close(self.download_dialog)
           local path_dir = (download_dir ~= "/" and download_dir or "")
             .. "/"

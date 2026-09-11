@@ -457,4 +457,306 @@ describe("PathChooser widget", function()
       create_folder_stub:revert()
     end)
   end)
+
+  describe("require_writable option", function()
+    local util = require("util")
+    local original_isDirRW = util.isDirRW
+
+    after_each(function()
+      util.isDirRW = original_isDirRW
+    end)
+
+    it(
+      "dims and appends (readonly) to read-only directories in genItemTable",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+
+        util.isDirRW = function(path)
+          if path:find("ro_dir") then
+            return false
+          end
+          return true
+        end
+
+        local dirs = {
+          {
+            text = "ro_dir/",
+            path = "/tmp/ro_dir",
+            attr = { mode = "directory" },
+          },
+          {
+            text = "rw_dir/",
+            path = "/tmp/rw_dir",
+            attr = { mode = "directory" },
+          },
+        }
+        local files = {}
+        local items = pc:genItemTable(dirs, files, "/tmp")
+
+        local ro_item, rw_item
+        for _, item in ipairs(items) do
+          if item.path == "/tmp/ro_dir" then
+            ro_item = item
+          elseif item.path == "/tmp/rw_dir" then
+            rw_item = item
+          end
+        end
+
+        assert.is_not_nil(ro_item)
+        assert.is_true(ro_item.dim)
+        assert.is_not_nil(ro_item.text:find("%(readonly%)"))
+
+        assert.is_not_nil(rw_item)
+        assert.is_falsy(rw_item.dim)
+        assert.is_nil(rw_item.text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "blocks selection of read-only directory in onMenuHold when require_writable=true",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local shown_notifications = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_notifications, widget)
+        end
+
+        util.isDirRW = function()
+          return false
+        end
+
+        local item = { path = sample_dir }
+        pc:onMenuHold(item)
+
+        assert.are.equal(1, #shown_notifications)
+        assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
+        assert.is_nil(pc.button_dialog)
+
+        UIManager.show = orig_show
+      end
+    )
+
+    it(
+      "allows selection of writable directory in onMenuHold when require_writable=true",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local orig_show = UIManager.show
+        UIManager.show = function() end
+
+        util.isDirRW = function()
+          return true
+        end
+
+        local item = { path = sample_dir }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+
+        UIManager.show = orig_show
+        if pc.button_dialog then
+          UIManager:close(pc.button_dialog)
+        end
+      end
+    )
+
+    it(
+      "blocks New folder when require_writable=true and current directory is read-only",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local shown_notifications = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_notifications, widget)
+        end
+
+        util.isDirRW = function()
+          return false
+        end
+
+        local FileManager = require("apps/filemanager/filemanager")
+        local create_folder_stub = stub(FileManager, "createFolder")
+
+        local dialog_captured = nil
+        local show_widget_stub = stub(pc, "showWidget", function(_, widget)
+          dialog_captured = widget
+        end)
+
+        pc:showPlusMenu()
+        assert.is_table(dialog_captured)
+        local new_folder_btn = dialog_captured.buttons[2][1]
+        new_folder_btn.callback()
+
+        assert.stub(create_folder_stub).was_not_called()
+        assert.are.equal(1, #shown_notifications)
+        assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
+
+        show_widget_stub:revert()
+        create_folder_stub:revert()
+        UIManager.show = orig_show
+      end
+    )
+
+    it(
+      "does not dim or mark readonly items when require_writable is false",
+      function()
+        local pc = createChooser({
+          require_writable = false,
+        })
+        local dirs = {
+          {
+            text = "ro_dir/",
+            path = "/tmp/ro_dir",
+            attr = { mode = "directory" },
+          },
+        }
+        local files = {}
+        util.isDirRW = function()
+          return false
+        end
+
+        local items = pc:genItemTable(dirs, files, "/tmp")
+        assert.is_falsy(items[1].dim)
+        assert.is_falsy(items[1].is_readonly)
+        assert.is_nil(items[1].text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "allows selection of read-only directory in onMenuHold when require_writable is false",
+      function()
+        local pc = createChooser({
+          require_writable = false,
+        })
+        local show_stub = stub(UIManager, "show")
+
+        util.isDirRW = function()
+          return false
+        end
+
+        local item = { path = sample_dir }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+        show_stub:revert()
+      end
+    )
+
+    it(
+      "blocks file selection when require_writable=true and parent folder is read-only",
+      function()
+        local pc = createChooser({
+          select_file = true,
+          select_directory = false,
+          require_writable = true,
+        })
+        local shown_notifications = {}
+        local show_stub = stub(UIManager, "show", function(_, widget)
+          table.insert(shown_notifications, widget)
+        end)
+
+        util.isDirRW = function()
+          return false
+        end
+
+        local item = { path = sample_file }
+        pc:onMenuHold(item)
+
+        assert.are.equal(1, #shown_notifications)
+        assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
+        assert.is_nil(pc.button_dialog)
+
+        show_stub:revert()
+      end
+    )
+
+    it(
+      "allows file selection when require_writable=true and parent folder is writable",
+      function()
+        local pc = createChooser({
+          select_file = true,
+          select_directory = false,
+          require_writable = true,
+        })
+        local show_stub = stub(UIManager, "show")
+
+        util.isDirRW = function()
+          return true
+        end
+
+        local item = { path = sample_file }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+        show_stub:revert()
+      end
+    )
+
+    it(
+      "handles root directory '/.' in genItemTable with require_writable=true",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local dirs = {
+          {
+            text = "./",
+            path = "/.",
+            attr = { mode = "directory" },
+          },
+        }
+        local files = {}
+        local checked_path = nil
+        util.isDirRW = function(p)
+          checked_path = p
+          return false
+        end
+
+        local items = pc:genItemTable(dirs, files, "/")
+        assert.are.equal("/", checked_path)
+        assert.is_true(items[1].dim)
+        assert.is_not_nil(items[1].text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "allows New folder when require_writable is false even if directory is read-only",
+      function()
+        local pc = createChooser({
+          require_writable = false,
+        })
+        util.isDirRW = function()
+          return false
+        end
+
+        local FileManager = require("apps/filemanager/filemanager")
+        local create_folder_stub = stub(FileManager, "createFolder")
+        local close_stub = stub(UIManager, "close")
+
+        local dialog_captured = nil
+        local show_widget_stub = stub(pc, "showWidget", function(_, widget)
+          dialog_captured = widget
+        end)
+
+        pc:showPlusMenu()
+        assert.is_table(dialog_captured)
+        local new_folder_btn = dialog_captured.buttons[2][1]
+        new_folder_btn.callback()
+
+        assert.stub(create_folder_stub).was_called()
+
+        show_widget_stub:revert()
+        close_stub:revert()
+        create_folder_stub:revert()
+      end
+    )
+  end)
 end)
