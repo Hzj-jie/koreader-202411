@@ -35,6 +35,7 @@ describe("DataStorage module", function()
   end)
 
   after_each(function()
+    util.isDirRW = original_isDirRW
     os.getenv = original_getenv
     util.isDirRW = original_isDirRW
     package.loaded["datastorage"] = nil
@@ -591,6 +592,15 @@ describe("DataStorage module", function()
     it(
       "falls back to /data/local/tmp on Android when TMPDIR is unset",
       function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_mkdir = lfs.mkdir
+        local orig_attrs = lfs.attributes
+        lfs.mkdir = function()
+          return true
+        end
+        lfs.attributes = function()
+          return "directory"
+        end
         package.loaded["android"] = {
           getExternalStoragePath = function()
             return "/sdcard"
@@ -604,12 +614,23 @@ describe("DataStorage module", function()
         DataStorage = require("datastorage")
         assert.are.equal("/data/local/tmp", DataStorage:getTmpDir())
         package.loaded["android"] = nil
+        lfs.mkdir = orig_mkdir
+        lfs.attributes = orig_attrs
       end
     )
 
     it(
       "falls back to /tmp on Android when /data/local/tmp is unwritable",
       function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_mkdir = lfs.mkdir
+        local orig_attrs = lfs.attributes
+        lfs.mkdir = function()
+          return true
+        end
+        lfs.attributes = function()
+          return "directory"
+        end
         package.loaded["android"] = {
           getExternalStoragePath = function()
             return "/sdcard"
@@ -623,6 +644,8 @@ describe("DataStorage module", function()
         DataStorage = require("datastorage")
         assert.are.equal("/tmp", DataStorage:getTmpDir())
         package.loaded["android"] = nil
+        lfs.mkdir = orig_mkdir
+        lfs.attributes = orig_attrs
       end
     )
 
