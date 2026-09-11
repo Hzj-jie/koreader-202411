@@ -34,7 +34,7 @@ function DataStorage:getTmpDir()
   table.insert(candidates, "/tmp")
 
   for _, cand in ipairs(candidates) do
-    if cand and util.isDirRW(cand, true) then
+    if util.isDirRW(cand, true) then
       tmp_dir = cand
       return tmp_dir
     end
