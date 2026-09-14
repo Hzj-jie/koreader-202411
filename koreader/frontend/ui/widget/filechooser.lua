@@ -539,7 +539,7 @@ function FileChooser:genItemTable(dirs, files, path)
         text = gettext("Long-press to choose current folder")
           .. (is_ro and (" (" .. gettext("readonly") .. ")") or ""),
         path = path .. "/.",
-        dim = is_ro or nil,
+        dim = is_ro,
       })
     end
   end
