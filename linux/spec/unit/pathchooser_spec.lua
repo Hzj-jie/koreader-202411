@@ -467,7 +467,7 @@ describe("PathChooser widget", function()
     end)
 
     it(
-      "dims and appends (readonly) to read-only directories in genItemTable",
+      "dims and appends (readonly) to read-only directories in getListItem",
       function()
         local pc = createChooser({
           require_writable = true,
@@ -480,29 +480,21 @@ describe("PathChooser widget", function()
           return true
         end
 
-        local dirs = {
-          {
-            text = "ro_dir/",
-            path = "/tmp/ro_dir",
-            attr = { mode = "directory" },
-          },
-          {
-            text = "rw_dir/",
-            path = "/tmp/rw_dir",
-            attr = { mode = "directory" },
-          },
-        }
-        local files = {}
-        local items = pc:genItemTable(dirs, files, "/tmp")
-
-        local ro_item, rw_item
-        for _, item in ipairs(items) do
-          if item.path == "/tmp/ro_dir" then
-            ro_item = item
-          elseif item.path == "/tmp/rw_dir" then
-            rw_item = item
-          end
-        end
+        local collate = pc:getCollate()
+        local ro_item = pc:getListItem(
+          "/tmp",
+          "ro_dir",
+          "/tmp/ro_dir",
+          { mode = "directory" },
+          collate
+        )
+        local rw_item = pc:getListItem(
+          "/tmp",
+          "rw_dir",
+          "/tmp/rw_dir",
+          { mode = "directory" },
+          collate
+        )
 
         assert.is_not_nil(ro_item)
         assert.is_true(ro_item.dim)
@@ -511,6 +503,59 @@ describe("PathChooser widget", function()
         assert.is_not_nil(rw_item)
         assert.is_falsy(rw_item.dim)
         assert.is_nil(rw_item.text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "dims and appends (readonly) to read-only directories in getList",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+
+        util.isDirRW = function(path)
+          return not path:find("ro_dir")
+        end
+
+        local orig_dir = lfs.dir
+        local orig_attr = lfs.attributes
+        lfs.dir = function(p)
+          if p == "/tmp" then
+            local idx = 0
+            local items = { "ro_dir", "rw_dir" }
+            return function()
+              idx = idx + 1
+              return items[idx]
+            end,
+              nil
+          end
+          return function()
+            return nil
+          end, nil
+        end
+        lfs.attributes = function()
+          return { mode = "directory" }
+        end
+
+        local ok, err = pcall(function()
+          local collate = pc:getCollate()
+          local dirs, files = pc:getList("/tmp", collate)
+
+          assert.are.equal(2, #dirs)
+          assert.are.equal(0, #files)
+          assert.is_true(dirs[1].dim)
+          assert.is_not_nil(dirs[1].text:find("%(readonly%)"))
+
+          assert.is_falsy(dirs[2].dim)
+          assert.is_nil(dirs[2].text:find("%(readonly%)"))
+        end)
+
+        lfs.dir = orig_dir
+        lfs.attributes = orig_attr
+
+        if not ok then
+          error(err)
+        end
       end
     )
 
@@ -611,22 +656,20 @@ describe("PathChooser widget", function()
         local pc = createChooser({
           require_writable = false,
         })
-        local dirs = {
-          {
-            text = "ro_dir/",
-            path = "/tmp/ro_dir",
-            attr = { mode = "directory" },
-          },
-        }
-        local files = {}
         util.isDirRW = function()
           return false
         end
 
-        local items = pc:genItemTable(dirs, files, "/tmp")
-        assert.is_falsy(items[1].dim)
-        assert.is_falsy(items[1].is_readonly)
-        assert.is_nil(items[1].text:find("%(readonly%)"))
+        local collate = pc:getCollate()
+        local item = pc:getListItem(
+          "/tmp",
+          "ro_dir",
+          "/tmp/ro_dir",
+          { mode = "directory" },
+          collate
+        )
+        assert.is_falsy(item.dim)
+        assert.is_nil(item.text:find("%(readonly%)"))
       end
     )
 
@@ -701,26 +744,19 @@ describe("PathChooser widget", function()
     )
 
     it(
-      "handles root directory '/.' in genItemTable with require_writable=true",
+      "handles root directory '/' in genItemTable with require_writable=true",
       function()
         local pc = createChooser({
           require_writable = true,
+          select_directory = true,
         })
-        local dirs = {
-          {
-            text = "./",
-            path = "/.",
-            attr = { mode = "directory" },
-          },
-        }
-        local files = {}
         local checked_path = nil
         util.isDirRW = function(p)
           checked_path = p
           return false
         end
 
-        local items = pc:genItemTable(dirs, files, "/")
+        local items = pc:genItemTable({}, {}, "/")
         assert.are.equal("/", checked_path)
         assert.is_true(items[1].dim)
         assert.is_not_nil(items[1].text:find("%(readonly%)"))
@@ -786,7 +822,7 @@ describe("PathChooser widget", function()
     )
 
     it(
-      "fast-path blocks selection in onMenuHold when item.is_readonly is true",
+      "fast-path blocks selection in onMenuHold when item.dim is true",
       function()
         local pc = createChooser({
           require_writable = true,
@@ -802,7 +838,7 @@ describe("PathChooser widget", function()
           table.insert(shown_notifications, widget)
         end
 
-        local item = { path = sample_dir, is_readonly = true }
+        local item = { path = sample_dir, dim = true }
         pc:onMenuHold(item)
 
         assert.is_false(isDirRW_called)
@@ -835,7 +871,6 @@ describe("PathChooser widget", function()
         end
         assert.is_not_nil(current_dir_item)
         assert.is_true(current_dir_item.dim)
-        assert.is_true(current_dir_item.is_readonly)
         assert.is_not_nil(current_dir_item.text:find("%(readonly%)"))
       end
     )

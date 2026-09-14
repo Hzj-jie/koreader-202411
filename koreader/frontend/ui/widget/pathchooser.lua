@@ -101,32 +101,6 @@ function PathChooser:onMenuSelect(item)
   return true
 end
 
-function PathChooser:genItemTable(dirs, files, path)
-  local item_table = FileChooser.genItemTable(self, dirs, files, path)
-  if self.require_writable then
-    for _, item in ipairs(item_table) do
-      if item.path and not item.is_go_up and not item.is_readonly then
-        local check_path = item.path
-        if check_path:sub(-2, -1) == "/." then
-          check_path = check_path:sub(1, -3)
-          if check_path == "" then
-            check_path = "/"
-          end
-        end
-        local attr = item.attr or lfs.attributes(check_path)
-        if attr and attr.mode == "directory" then
-          if not util.isDirRW(check_path) then
-            item.dim = true
-            item.is_readonly = true
-            item.text = item.text .. " (" .. gettext("readonly") .. ")"
-          end
-        end
-      end
-    end
-  end
-  return item_table
-end
-
 function PathChooser:onMenuHold(item)
   local path = item.path
   if path:sub(-2, -1) == "/." then -- with show_current_dir_for_hold
@@ -149,7 +123,8 @@ function PathChooser:onMenuHold(item)
   if self.require_writable then
     local test_dir = attr.mode == "directory" and path
       or util.splitFilePathName(path)
-    if item.is_readonly or not util.isDirRW(test_dir) then
+    -- dim means read-only when require_writable is true
+    if item.dim or not util.isDirRW(test_dir) then
       UIManager:show(Notification:new({
         text = gettext(
           "Selected folder is read-only. Please choose a writable folder."

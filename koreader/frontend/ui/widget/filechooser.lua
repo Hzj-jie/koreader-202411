@@ -27,6 +27,7 @@ local FileChooser = Menu:extend({
   show_hidden = G_reader_settings:isTrue("show_hidden"), -- folders/files starting with "."
   show_unsupported = G_reader_settings:isTrue("show_unsupported"), -- set to true to ignore file_filter
   file_filter = nil, -- function defined in the caller, returns true for files to be shown
+  require_writable = false, -- require selected paths to be writable
   path_items = nil, -- hash, store last browsed location (item index) for each path
   goto_letter = true,
   collates = {
@@ -439,6 +440,10 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
     else
       item.text = item.text .. "/"
       item.bidi_wrap_func = BD.directory
+      if self.require_writable and not util.isDirRW(fullpath) then
+        item.dim = true -- dim means read-only when require_writable is true
+        item.text = item.text .. " (" .. gettext("readonly") .. ")"
+      end
       if collate.can_collate_mixed and collate.item_func ~= nil then
         collate.item_func(item)
       end
@@ -526,9 +531,12 @@ function FileChooser:genItemTable(dirs, files, path)
       })
     end
     if self.show_current_dir_for_hold then
+      local is_ro = self.require_writable and not util.isDirRW(path)
       table.insert(item_table, 1, {
-        text = gettext("Long-press to choose current folder"),
+        text = gettext("Long-press to choose current folder")
+          .. (is_ro and (" (" .. gettext("readonly") .. ")") or ""),
         path = path .. "/.",
+        dim = is_ro or nil,
       })
     end
   end
