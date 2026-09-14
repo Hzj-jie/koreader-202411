@@ -461,9 +461,11 @@ describe("PathChooser widget", function()
   describe("require_writable option", function()
     local util = require("util")
     local original_isDirRW = util.isDirRW
+    local original_isFileRW = util.isFileRW
 
     after_each(function()
       util.isDirRW = original_isDirRW
+      util.isFileRW = original_isFileRW
     end)
 
     it(
@@ -872,6 +874,110 @@ describe("PathChooser widget", function()
         assert.is_not_nil(current_dir_item)
         assert.is_true(current_dir_item.dim)
         assert.is_not_nil(current_dir_item.text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "dims and marks file as readonly in getListItem when require_writable=true and file is not writable",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+          select_file = true,
+        })
+        util.isFileRW = function(p)
+          return p ~= sample_file
+        end
+        local collate = pc:getCollate()
+        local item = pc:getListItem(
+          sample_dir,
+          "2col.pdf",
+          sample_file,
+          { mode = "file" },
+          collate
+        )
+        assert.is_true(item.dim)
+        assert.is_not_nil(item.text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "does not dim or mark file as readonly in getListItem when require_writable=true and file is writable",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+          select_file = true,
+        })
+        util.isFileRW = function()
+          return true
+        end
+        local collate = pc:getCollate()
+        local item = pc:getListItem(
+          sample_dir,
+          "2col.pdf",
+          sample_file,
+          { mode = "file" },
+          collate
+        )
+        assert.is_nil(item.dim)
+        assert.is_nil(item.text:find("%(readonly%)"))
+      end
+    )
+
+    it(
+      "blocks file selection in onMenuHold when file itself is read-only",
+      function()
+        local pc = createChooser({
+          select_file = true,
+          select_directory = false,
+          require_writable = true,
+        })
+        local shown_notifications = {}
+        local show_stub = stub(UIManager, "show", function(_, widget)
+          table.insert(shown_notifications, widget)
+        end)
+
+        util.isDirRW = function()
+          return true
+        end
+        util.isFileRW = function()
+          return false
+        end
+
+        local item = { path = sample_file }
+        pc:onMenuHold(item)
+
+        assert.are.equal(1, #shown_notifications)
+        assert.is_not_nil(
+          shown_notifications[1].text:find("file is read%-only")
+        )
+        assert.is_nil(pc.button_dialog)
+
+        show_stub:revert()
+      end
+    )
+
+    it(
+      "allows file selection in onMenuHold when both file and parent folder are writable",
+      function()
+        local pc = createChooser({
+          select_file = true,
+          select_directory = false,
+          require_writable = true,
+        })
+        local show_stub = stub(UIManager, "show")
+
+        util.isDirRW = function()
+          return true
+        end
+        util.isFileRW = function()
+          return true
+        end
+
+        local item = { path = sample_file }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+        show_stub:revert()
       end
     )
   end)

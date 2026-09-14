@@ -429,6 +429,10 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
     item.dim = self.filemanager
       and self.filemanager.selected_files
       and self.filemanager.selected_files[item.path]
+    if self.require_writable and not util.isFileRW(fullpath) then
+      item.dim = true -- dim means read-only when require_writable is true
+      item.text = item.text .. " (" .. gettext("readonly") .. ")"
+    end
     if collate.item_func ~= nil then
       collate.item_func(item)
     end

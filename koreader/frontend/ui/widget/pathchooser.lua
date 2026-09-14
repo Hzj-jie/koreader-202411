@@ -121,16 +121,28 @@ function PathChooser:onMenuHold(item)
     return
   end
   if self.require_writable then
-    local test_dir = attr.mode == "directory" and path
-      or util.splitFilePathName(path)
-    -- dim means read-only when require_writable is true
-    if item.dim or not util.isDirRW(test_dir) then
-      UIManager:show(Notification:new({
-        text = gettext(
-          "Selected folder is read-only. Please choose a writable folder."
-        ),
-      }))
-      return
+    local is_file = attr.mode == "file"
+    local test_dir = is_file and util.splitFilePathName(path) or path
+    if is_file then
+      -- dim means read-only when require_writable is true
+      if item.dim or not util.isFileRW(path) or not util.isDirRW(test_dir) then
+        UIManager:show(Notification:new({
+          text = gettext(
+            "Selected file is read-only. Please choose a writable file."
+          ),
+        }))
+        return
+      end
+    else
+      -- dim means read-only when require_writable is true
+      if item.dim or not util.isDirRW(test_dir) then
+        UIManager:show(Notification:new({
+          text = gettext(
+            "Selected folder is read-only. Please choose a writable folder."
+          ),
+        }))
+        return
+      end
     end
   end
   local title
