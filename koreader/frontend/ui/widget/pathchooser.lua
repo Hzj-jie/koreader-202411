@@ -27,12 +27,22 @@ local PathChooser = FileChooser:extend({
 
 function PathChooser:init()
   if self.title == true then -- default title depending on options
-    if self.select_directory and not self.select_file then
-      self.title = gettext("Long-press to choose a folder")
-    elseif not self.select_directory and self.select_file then
-      self.title = gettext("Long-press to choose a file")
+    if self.require_writable then
+      if self.select_directory and not self.select_file then
+        self.title = gettext("Long-press to choose a writable folder")
+      elseif not self.select_directory and self.select_file then
+        self.title = gettext("Long-press to choose a writable file")
+      else
+        self.title = gettext("Long-press to choose a writable path")
+      end
     else
-      self.title = gettext("Long-press to choose")
+      if self.select_directory and not self.select_file then
+        self.title = gettext("Long-press to choose a folder")
+      elseif not self.select_directory and self.select_file then
+        self.title = gettext("Long-press to choose a file")
+      else
+        self.title = gettext("Long-press to choose")
+      end
     end
   end
   if not self.show_files then
@@ -143,7 +153,7 @@ function PathChooser:onMenuHold(item)
   if self.require_writable then
     local test_dir = attr.mode == "directory" and path
       or util.splitFilePathName(path)
-    if not util.isDirRW(test_dir) then
+    if item.is_readonly or not util.isDirRW(test_dir) then
       UIManager:show(Notification:new({
         text = gettext(
           "Selected folder is read-only. Please choose a writable folder."

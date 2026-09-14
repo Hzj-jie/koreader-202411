@@ -758,5 +758,86 @@ describe("PathChooser widget", function()
         create_folder_stub:revert()
       end
     )
+
+    it(
+      "sets title bar title to writable variants when require_writable is true",
+      function()
+        local pc_dir = createChooser({
+          require_writable = true,
+          select_directory = true,
+          select_file = false,
+        })
+        assert.are.equal("Long-press to choose a writable folder", pc_dir.title)
+
+        local pc_file = createChooser({
+          require_writable = true,
+          select_directory = false,
+          select_file = true,
+        })
+        assert.are.equal("Long-press to choose a writable file", pc_file.title)
+
+        local pc_both = createChooser({
+          require_writable = true,
+          select_directory = true,
+          select_file = true,
+        })
+        assert.are.equal("Long-press to choose a writable path", pc_both.title)
+      end
+    )
+
+    it(
+      "fast-path blocks selection in onMenuHold when item.is_readonly is true",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local isDirRW_called = false
+        util.isDirRW = function()
+          isDirRW_called = true
+          return true
+        end
+        local shown_notifications = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_notifications, widget)
+        end
+
+        local item = { path = sample_dir, is_readonly = true }
+        pc:onMenuHold(item)
+
+        assert.is_false(isDirRW_called)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
+
+        UIManager.show = orig_show
+      end
+    )
+
+    it(
+      "dims and marks current folder item as readonly in genItemTable when current folder is read-only",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+          select_directory = true,
+        })
+        util.isDirRW = function(p)
+          return p ~= sample_dir
+        end
+        local dirs = {}
+        local files = {}
+        local items = pc:genItemTable(dirs, files, sample_dir)
+        local current_dir_item
+        for _, item in ipairs(items) do
+          if item.path == sample_dir .. "/." then
+            current_dir_item = item
+            break
+          end
+        end
+        assert.is_not_nil(current_dir_item)
+        assert.is_true(current_dir_item.dim)
+        assert.is_true(current_dir_item.is_readonly)
+        assert.is_not_nil(current_dir_item.text:find("%(readonly%)"))
+      end
+    )
   end)
 end)
