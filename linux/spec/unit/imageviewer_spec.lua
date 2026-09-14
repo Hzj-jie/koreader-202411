@@ -74,6 +74,12 @@ describe("ImageViewer", function()
     UIManager.show:revert()
   end)
 
+  it("is modal by default to display on top of other modal windows", function()
+    local viewer = ImageViewer:new({ file = "dummy.png" })
+    assert.is_true(viewer.modal)
+    assert.is_true(viewer:isAlwaysOnTop())
+  end)
+
   it("should handle navigation across image list", function()
     local viewer = ImageViewer:new({
       image = { "img1", "img2", "img3" },
@@ -142,14 +148,38 @@ describe("ImageViewer", function()
     viewer:onHold(nil, { pos = { x = 50, y = 50 } })
     viewer:onHoldRelease(nil, { pos = { x = 50, y = 50 } })
 
-    viewer:onSwipe(nil, { direction = "west", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "east", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "north", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "south", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "northeast", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "northwest", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "southeast", distance = 20, pos = { x = 200, y = 200 } })
-    viewer:onSwipe(nil, { direction = "southwest", distance = 20, pos = { x = 200, y = 200 } })
+    viewer:onSwipe(
+      nil,
+      { direction = "west", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "east", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "north", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "south", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "northeast", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "northwest", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "southeast", distance = 20, pos = { x = 200, y = 200 } }
+    )
+    viewer:onSwipe(
+      nil,
+      { direction = "southwest", distance = 20, pos = { x = 200, y = 200 } }
+    )
     -- Tap gestures
     viewer:onTap(nil, { pos = Geom:new({ x = 300, y = 400 }) })
 
@@ -164,13 +194,37 @@ describe("ImageViewer", function()
     end
 
     -- Spread & Pinch gestures across all directions
-    viewer:onSpread(nil, { direction = "vertical", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })
-    viewer:onSpread(nil, { direction = "horizontal", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })
-    viewer:onSpread(nil, { direction = "diagonal", distance = 30, pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onSpread(nil, {
+      direction = "vertical",
+      distance = 30,
+      pos = Geom:new({ x = 50, y = 50 }),
+    })
+    viewer:onSpread(nil, {
+      direction = "horizontal",
+      distance = 30,
+      pos = Geom:new({ x = 50, y = 50 }),
+    })
+    viewer:onSpread(nil, {
+      direction = "diagonal",
+      distance = 30,
+      pos = Geom:new({ x = 50, y = 50 }),
+    })
 
-    viewer:onPinch(nil, { direction = "vertical", distance = 20, pos = Geom:new({ x = 50, y = 50 }) })
-    viewer:onPinch(nil, { direction = "horizontal", distance = 20, pos = Geom:new({ x = 50, y = 50 }) })
-    viewer:onPinch(nil, { direction = "diagonal", distance = 20, pos = Geom:new({ x = 50, y = 50 }) })
+    viewer:onPinch(nil, {
+      direction = "vertical",
+      distance = 20,
+      pos = Geom:new({ x = 50, y = 50 }),
+    })
+    viewer:onPinch(nil, {
+      direction = "horizontal",
+      distance = 20,
+      pos = Geom:new({ x = 50, y = 50 }),
+    })
+    viewer:onPinch(nil, {
+      direction = "diagonal",
+      distance = 20,
+      pos = Geom:new({ x = 50, y = 50 }),
+    })
 
     -- MultiSwipe
     assert.is_true(viewer:onMultiSwipe())
@@ -182,14 +236,17 @@ describe("ImageViewer", function()
     -- Registry
     local mock_registry = {
       addAuxProvider = function(self, prov)
-        if prov.enabled_func then prov.enabled_func("test.png") end
-        if prov.callback then prov.callback("test.png") end
+        if prov.enabled_func then
+          prov.enabled_func("test.png")
+        end
+        if prov.callback then
+          prov.callback("test.png")
+        end
       end,
-      isImageFile = function(self, f) return true end,
+      isImageFile = function(self, f)
+        return true
+      end,
     }
     ImageViewer:register(mock_registry)
   end)
 end)
-
-
-

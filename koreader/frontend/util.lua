@@ -3,6 +3,7 @@ This module contains miscellaneous helper functions for the KOReader frontend.
 ]]
 
 local Utf8Proc = require("ffi/utf8proc")
+local C = require("ffi").C
 local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -867,27 +868,89 @@ function util.isEmptyDir(path)
   return true
 end
 
---- check if the given path is a file
+--- Checks if the given path is a regular file and is readable.
 ---- @string path
 ---- @treturn bool
 function util.fileExists(path)
+  if not util.pathNotExistsOrIs(path, "file") then
+    return false
+  end
   local file = io.open(path, "r")
   if file ~= nil then
     file:close()
     return true
   end
+  return false
 end
 
 --- Checks if the given path exists. Doesn't care if it's a file or directory.
+-- TODO: This function should be removed
 ---- @string path
 ---- @treturn bool
 function util.pathExists(path)
   return lfs.attributes(path, "mode") ~= nil
 end
 
---- Checks if the given directory exists.
+--- Checks if a path either does not exist, or exists as the specified inode mode.
+---- @string path
+---- @string mode (e.g., "file", "directory")
+---- @treturn bool
+function util.pathNotExistsOrIs(path, mode)
+  if not path or path == "" or not mode then
+    return false
+  end
+  local actual_mode = lfs.attributes(path, "mode")
+  return actual_mode == nil or actual_mode == mode
+end
+
+--- Checks if the given directory exists and is readable.
+---- @string path
+---- @treturn bool
 function util.directoryExists(path)
-  return lfs.attributes(path, "mode") == "directory"
+  if not util.pathNotExistsOrIs(path, "directory") then
+    return false
+  end
+  return C.access(path, 5) == 0 -- R_OK (4) | X_OK (1)
+end
+
+--- Checks if a directory exists (or can be created) and is readable and writable.
+-- @string dir the directory path to check
+-- @bool[opt] create whether to create the directory if it doesn't exist
+-- @treturn bool true if the directory exists and is readable and writable, false otherwise
+function util.isDirRW(dir, create)
+  if not util.pathNotExistsOrIs(dir, "directory") then
+    return false
+  end
+  if create then
+    util.makePath(dir)
+  end
+  if not util.directoryExists(dir) then
+    return false
+  end
+  return C.access(dir, 7) == 0 -- R_OK (4) | W_OK (2) | X_OK (1)
+end
+
+--- Checks if a file exists (or can be created) and is readable and writable.
+-- @string file the file path to check
+-- @bool[opt] create whether to create the file if it doesn't exist
+-- @treturn bool true if the file exists and is readable and writable, false otherwise
+function util.isFileRW(file, create)
+  if not util.pathNotExistsOrIs(file, "file") then
+    return false
+  end
+  if create then
+    local f = io.open(file, "a")
+    if not f then
+      return false
+    end
+    f:close()
+  end
+  local f = io.open(file, "r+")
+  if f then
+    f:close()
+    return true
+  end
+  return false
 end
 
 --- As `mkdir -p`.
@@ -899,6 +962,9 @@ function util.makePath(path)
   if not util.isMonkeyTestAllowedPath(path) then
     logger.warn("Skipping makePath in monkey test mode: " .. tostring(path))
     return true
+  end
+  if not util.pathNotExistsOrIs(path, "directory") then
+    return nil, path .. " exists and is not a directory"
   end
   if lfs.attributes(path, "mode") == "directory" then
     return true
@@ -1235,6 +1301,9 @@ function util.writeToFile(data, filepath, lua_dofile_ready)
   end
   if not filepath then
     return false, "filepath"
+  end
+  if not util.pathNotExistsOrIs(filepath, "file") then
+    return false, filepath .. " is not a file"
   end
   if lua_dofile_ready then
     local t = { "-- ", filepath, "\nreturn ", data, "\n" }
@@ -1840,7 +1909,6 @@ function util.functionFingerprint(fn, visited)
   end
   visited[fn] = true
 
-  local md5 = require("ffi/sha2").md5
   local parts = {}
   local ok, bytecode = pcall(string.dump, fn, true)
   if ok then

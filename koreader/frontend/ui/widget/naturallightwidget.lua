@@ -73,7 +73,6 @@ function NaturalLightWidget:adaptableNumber(initial, step)
     enter_callback = function()
       self:closeKeyboard()
       self:applyValues()
-      UIManager:setDirty(self._current_input, "fast")
     end,
   })
   input_text:unfocus()
@@ -387,8 +386,6 @@ function NaturalLightWidget:closeKeyboard()
   if self._current_input then
     self._current_input:closeKeyboard()
     self._current_input:unfocus()
-    -- Make sure the cursor is deleted
-    UIManager:setDirty(self._current_input, "fast")
   end
 end
 

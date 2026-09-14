@@ -95,7 +95,7 @@ function ReaderDogear:updateDogearOffset()
     return
   end
   self.dogear_y_offset = 0
-  if self.view.view_mode == "page" then
+  if self.ui.view.view_mode == "page" then
     self.dogear_y_offset = self.ui.document:getHeaderHeight()
   end
   -- Update components heights and positionnings
@@ -133,7 +133,7 @@ function ReaderDogear:getRefreshRegion()
 end
 
 function ReaderDogear:onSetDogearVisibility(visible)
-  self.view.dogear_visible = visible
+  self.ui.view.dogear_visible = visible
   return true
 end
 

@@ -53,6 +53,7 @@ Redesigned the rendering and screen refresh paths to optimize display updates, s
 
 ### 🧱 Better UI Element Management
 Centralized and hardened the user interface lifecycle to fix unexpected persistent UI elements (such as menus, search panels, and dialogs remaining on screen after closing their parent views) and eliminate associated memory leaks. By automatically tearing down child widgets when their parents exit, the interface remains clean and responsive ([Commit 74d4700a](https://github.com/Hzj-jie/koreader-202411/commit/74d4700a)).
+*   **Reader Module Hardening & Widget Test Suite**: Hardened lifecycle management and error recovery across all core reader modules (paging, rolling, annotations, highlighting, cropping, and zooming) while expanding automated unit test suites for foundational UI widgets (CheckButton, Button, FootnoteWidget, BookMapWidget, and InputContainer).
 
 ### ✏️ Other Core & UI Enhancements
 Modifications address specific application behavior, layout improvements, and advanced rendering logic:

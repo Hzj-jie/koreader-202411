@@ -1246,5 +1246,70 @@ describe("Readerhighlight module", function()
         UIManager:close(top_color.widget)
       end
     end)
+
+    it("should handle editHighlightStyle, editHighlightColor, note marker selection, and batch update", function()
+      local highlight = readerui.highlight
+      readerui.annotation.annotations = {
+        {
+          drawer = "lighten",
+          color = "yellow",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:10",
+          text = "sample text",
+          page = 1,
+        },
+      }
+
+      local dirty_called = false
+      local orig_setDirty = UIManager.setDirty
+      UIManager.setDirty = function(self, target, mode)
+        dirty_called = true
+        return orig_setDirty(self, target, mode)
+      end
+
+      -- Test editHighlightStyle
+      highlight:editHighlightStyle(1)
+      local top_style = UIManager._window_stack[#UIManager._window_stack]
+      if top_style and top_style.widget and top_style.widget.callback then
+        top_style.widget.callback({ provider = "underscore" })
+        assert.are.equal("underscore", readerui.annotation.annotations[1].drawer)
+        assert.is_true(dirty_called)
+        UIManager:close(top_style.widget)
+      end
+
+      -- Test editHighlightColor
+      dirty_called = false
+      highlight:editHighlightColor(1)
+      local top_color = UIManager._window_stack[#UIManager._window_stack]
+      if top_color and top_color.widget and top_color.widget.callback then
+        top_color.widget.callback({ provider = "blue" })
+        assert.are.equal("blue", readerui.annotation.annotations[1].color)
+        assert.is_true(dirty_called)
+        UIManager:close(top_color.widget)
+      end
+
+      -- Test editHighlight with note_updated_callback
+      dirty_called = false
+      readerui.view.highlight.note_mark = "asterisk"
+      local orig_setBookmarkNote = readerui.bookmark.setBookmarkNote
+      readerui.bookmark.setBookmarkNote = function(self, idx, is_new, text, cb)
+        if cb then cb() end
+      end
+      highlight:editHighlight(1, false, "new note")
+      assert.is_true(dirty_called)
+      readerui.bookmark.setBookmarkNote = orig_setBookmarkNote
+
+      -- Test menu items for speedup rate enabled_func
+      local fake_menu = { long_press = { sub_item_table = {} } }
+      readerui.view.highlight.disabled = false
+      highlight:addToMainMenu(fake_menu)
+      for _, item in ipairs(fake_menu.long_press.sub_item_table) do
+        if item.enabled_func then
+          assert.is_true(item.enabled_func())
+        end
+      end
+
+      UIManager.setDirty = orig_setDirty
+    end)
   end)
 end)

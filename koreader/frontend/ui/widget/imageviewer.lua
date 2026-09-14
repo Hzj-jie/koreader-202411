@@ -34,6 +34,8 @@ local ImageViewer = InputContainer:extend({
   -- unless our caller wants to reuse the image it provided
   image_disposable = true,
 
+  modal = true,
+
   -- 'image' can alternatively be a table (list) of multiple BlitBuffers
   -- (or functions returning BlitBuffers).
   -- The table will have its .free() called onExit according to

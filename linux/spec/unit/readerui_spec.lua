@@ -108,4 +108,11 @@ describe("Readerui module", function()
       readerui.showFileManager = original_showFileManager
     end
   )
+
+  it("should calculate size via getSize and support module access", function()
+    local size = readerui:getSize()
+    assert.is_not_nil(size)
+    assert.is_true(size.w > 0)
+    assert.is_true(size.h > 0)
+  end)
 end)

@@ -501,7 +501,7 @@ function Button:refresh()
     )
     return
   end
-  UIManager:setDirty(self[1], self.enabled and "fast" or "ui")
+  self:setDirty(self.enabled and "fast" or "ui")
 end
 
 function Button:onHoldSelectButton()

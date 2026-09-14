@@ -408,5 +408,39 @@ describe("Readerpaging module", function()
       -- Restore the ref to the original ReaderUI instance
       ReaderUI.instance = readerui
     end)
+
+    it("should handle inverse reading order, mousewheel pan, and PanningStop in page zoom mode", function()
+      -- Test onPanRelease with page_flipping_mode
+      local flipping_updated = false
+      paging.updateFlippingPage = function(self, p)
+        flipping_updated = true
+      end
+      paging.page_flipping_mode = true
+      paging.ui.view.zoom_mode = "page"
+      paging:onPanRelease(nil, {})
+      assert.is_true(flipping_updated)
+
+      local panning_stopped = false
+      paging.ui.view.zoom_mode = "contentwidth"
+      paging.ui.view.PanningStop = function()
+        panning_stopped = true
+      end
+      paging:onPanRelease(nil, {})
+      assert.is_true(panning_stopped)
+      paging.page_flipping_mode = false
+
+      -- Test inverse reading order swipe
+      paging.ui.view.inverse_reading_order = true
+      paging:onSwipe(nil, { direction = "west" })
+      paging:onSwipe(nil, { direction = "east" })
+      paging.ui.view.inverse_reading_order = false
+
+      -- Test onPan with mousewheel_direction and page_scroll
+      paging.ui.view.page_scroll = false
+      paging:onPan(nil, { mousewheel_direction = 1, distance = { x = 0, y = 10 } })
+
+      paging.ui.view.page_scroll = true
+      paging:onPan(nil, { mousewheel_direction = -1, distance = { x = 0, y = -10 } })
+    end)
   end)
 end)

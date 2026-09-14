@@ -4,6 +4,7 @@ describe("PageBrowserWidget widget", function()
   local Geom
   local UIManager
   local Widget
+  local Device, Screen
   local mock_ui
 
   local function make_mock_window(w)
@@ -19,6 +20,8 @@ describe("PageBrowserWidget widget", function()
     require("commonrequire")
     PageBrowserWidget = require("ui/widget/pagebrowserwidget")
     Blitbuffer = require("ffi/blitbuffer")
+    Device = require("device")
+    Screen = Device.screen
     Geom = require("ui/geometry")
     UIManager = require("ui/uimanager")
     Widget = require("ui/widget/widget")
@@ -434,32 +437,53 @@ describe("PageBrowserWidget widget", function()
     widget:saveSettings(true)
   end)
 
-  it("should handle editable stuff updates and exit", function()
+  it("should handle editable stuff updates and exit callbacks", function()
+    local root_exit_called = false
     local widget = PageBrowserWidget:new({
       ui = mock_ui,
+      on_root_exit = function()
+        root_exit_called = true
+      end,
     })
     make_mock_window(widget)
 
     widget:updateEditableStuff(true)
     assert.is_true(widget.editable_stuff_edited)
 
-    -- Test exit without launcher
+    -- Test exit as root widget
     assert.is_true(widget:onExit(false))
+    assert.is_true(root_exit_called)
 
-    -- Test exit with launcher
-    local mock_launcher = Widget:new({
-      dimen = Geom:new({ w = 600, h = 800 }),
-      onExit = function() end,
-      updateEditableStuff = function() end,
-    })
-    make_mock_window(mock_launcher)
-
-    local widget_with_launcher = PageBrowserWidget:new({
+    -- Test exit with on_exit and on_update callbacks
+    local exit_called = false
+    local update_called = false
+    local child_widget = PageBrowserWidget:new({
       ui = mock_ui,
-      launcher = mock_launcher,
+      on_exit = function(close_all)
+        exit_called = close_all
+      end,
+      on_update = function()
+        update_called = true
+      end,
     })
-    make_mock_window(widget_with_launcher)
-    assert.is_true(widget_with_launcher:onExit(false))
+    make_mock_window(child_widget)
+
+    child_widget:updateEditableStuff(true)
+    assert.is_true(child_widget:onExit(false))
+    assert.is_true(update_called)
+
+    child_widget = PageBrowserWidget:new({
+      ui = mock_ui,
+      on_exit = function(close_all)
+        exit_called = close_all
+      end,
+      on_update = function()
+        update_called = true
+      end,
+    })
+    make_mock_window(child_widget)
+    assert.is_true(child_widget:onExit(true))
+    assert.is_true(exit_called)
   end)
 
   it(
@@ -501,4 +525,37 @@ describe("PageBrowserWidget widget", function()
       assert.is_table(widget.page_labels)
     end
   )
+
+  it("should instantiate BookMapWidget with on_exit and on_update callbacks on bottom row hold", function()
+    local widget = PageBrowserWidget:new({
+      ui = mock_ui,
+      focus_page = 10,
+    })
+    make_mock_window(widget)
+    local shown_subwidget
+    widget.showWidget = function(self, w)
+      shown_subwidget = w
+    end
+    local exited_parents, updated_editable
+    widget.onExit = function(self, close_all)
+      exited_parents = close_all
+    end
+    widget.updateEditableStuff = function(self, param)
+      updated_editable = param
+    end
+
+    local hold_y = Screen:getHeight() - widget.row_height / 2
+    local hold_x = widget.row[1].pages_frame_offset_x + 10
+    local res = widget:onHold(nil, { pos = Geom:new({ x = hold_x, y = hold_y }) })
+    assert.is_true(res)
+    assert.is_not_nil(shown_subwidget)
+    assert.is_function(shown_subwidget.on_exit)
+    assert.is_function(shown_subwidget.on_update)
+
+    shown_subwidget.on_exit(true)
+    assert.is_true(exited_parents)
+
+    shown_subwidget.on_update()
+    assert.is_true(updated_editable)
+  end)
 end)
