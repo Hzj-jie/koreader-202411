@@ -27,22 +27,18 @@ local PathChooser = FileChooser:extend({
 
 function PathChooser:init()
   if self.title == true then -- default title depending on options
-    if self.require_writable then
-      if self.select_directory and not self.select_file then
-        self.title = gettext("Long-press to choose a writable folder")
-      elseif not self.select_directory and self.select_file then
-        self.title = gettext("Long-press to choose a writable file")
-      else
-        self.title = gettext("Long-press to choose a writable path")
-      end
+    if self.select_directory and not self.select_file then
+      self.title = self.require_writable
+          and gettext("Long-press to choose a writable folder")
+        or gettext("Long-press to choose a folder")
+    elseif not self.select_directory and self.select_file then
+      self.title = self.require_writable
+          and gettext("Long-press to choose a writable file")
+        or gettext("Long-press to choose a file")
     else
-      if self.select_directory and not self.select_file then
-        self.title = gettext("Long-press to choose a folder")
-      elseif not self.select_directory and self.select_file then
-        self.title = gettext("Long-press to choose a file")
-      else
-        self.title = gettext("Long-press to choose")
-      end
+      self.title = self.require_writable
+          and gettext("Long-press to choose a writable path")
+        or gettext("Long-press to choose")
     end
   end
   if not self.show_files then
