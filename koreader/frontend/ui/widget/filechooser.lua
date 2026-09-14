@@ -448,7 +448,7 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
       end
     end
   end
-  if self.require_writable and f ~= "./." then
+  if self.require_writable and attributes.mode then
     local check = attributes.mode == "file" and util.isFileRW or util.isDirRW
     if not check(fullpath) then
       item.dim = true -- dim means read-only when require_writable is true
