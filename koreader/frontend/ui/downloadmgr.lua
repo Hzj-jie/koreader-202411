@@ -36,16 +36,6 @@ function DownloadMgr:new(from_o)
   return o
 end
 
---- Checks whether the download directory is valid and writable.
--- @tparam[opt] string dir directory to check, defaults to saved download_dir
--- @treturn bool true if directory exists and is writable
-function DownloadMgr.isDownloadDirWritable(dir)
-  dir = dir
-    or G_reader_settings:read("download_dir")
-    or G_named_settings.lastdir()
-  return util.isDirRW(dir, true)
-end
-
 --- Pre-flight check for download directory before starting a download.
 -- If directory is read-only or unwritable, notifies the user and returns false.
 -- @tparam[opt] string dir directory to check

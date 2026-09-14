@@ -115,20 +115,6 @@ describe("DownloadMgr module", function()
     UIManager.show = orig_show
   end)
 
-  it("should check if download directory is writable", function()
-    local util = require("util")
-    local orig_isDirRW = util.isDirRW
-
-    util.isDirRW = function(dir)
-      return dir == "/tmp/rw_dir"
-    end
-
-    assert.is_true(DownloadMgr.isDownloadDirWritable("/tmp/rw_dir"))
-    assert.is_false(DownloadMgr.isDownloadDirWritable("/tmp/ro_dir"))
-
-    util.isDirRW = orig_isDirRW
-  end)
-
   it("should pre-flight checkDownloadDir and notify when read-only", function()
     local util = require("util")
     local orig_isDirRW = util.isDirRW
@@ -164,11 +150,9 @@ describe("DownloadMgr module", function()
       end
 
       G_reader_settings:save("download_dir", "/custom/download_path")
-      assert.is_true(DownloadMgr.isDownloadDirWritable())
       assert.is_true(DownloadMgr.checkDownloadDir())
 
       G_reader_settings:save("download_dir", "/custom/ro_path")
-      assert.is_false(DownloadMgr.isDownloadDirWritable())
       assert.is_false(DownloadMgr.checkDownloadDir())
 
       G_reader_settings:delete("download_dir")
@@ -192,7 +176,6 @@ describe("DownloadMgr module", function()
         return dir == "/custom/last_dir"
       end
 
-      assert.is_true(DownloadMgr.isDownloadDirWritable())
       assert.is_true(DownloadMgr.checkDownloadDir())
 
       G_named_settings.lastdir = orig_lastdir
