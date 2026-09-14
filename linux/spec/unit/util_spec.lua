@@ -919,12 +919,16 @@ describe("util module", function()
       os.remove(test_dir)
     end)
 
-    it("returns false when path points to a regular file", function()
-      local test_file = "/tmp/koreader_test_file_" .. tostring(os.time())
+    it("returns false if path exists as a regular file", function()
+      local test_file = "/tmp/koreader_test_isdirrw_file_"
+        .. tostring(os.time())
       local f = io.open(test_file, "w")
-      f:write("test")
-      f:close()
+      if f then
+        f:write("test")
+        f:close()
+      end
       assert.is_false(util.isDirRW(test_file))
+      assert.is_false(util.isDirRW(test_file, true))
       os.remove(test_file)
     end)
 
@@ -936,6 +940,13 @@ describe("util module", function()
         assert.is_not_match("^%.rw_probe_", file)
       end
       lfs.rmdir(test_dir)
+    end)
+
+    it("returns false for a read-only directory", function()
+      local test_dir = "/tmp/koreader_test_isdirrw_ro_" .. tostring(os.time())
+      os.execute("mkdir -p " .. test_dir .. " && chmod 555 " .. test_dir)
+      assert.is_false(util.isDirRW(test_dir))
+      os.execute("chmod 755 " .. test_dir .. " && rmdir " .. test_dir)
     end)
 
     it("returns false for directories without write permission", function()
@@ -952,31 +963,60 @@ describe("util module", function()
     end)
   end)
 
-  describe("fileExists()", function()
-    local test_file = "/tmp/koreader_test_file_" .. tostring(os.time())
-
-    before_each(function()
-      local f = io.open(test_file, "w")
-      if f then
-        f:write("test")
-        f:close()
-      end
-    end)
+  describe("isFileRW()", function()
+    local test_file = "/tmp/koreader_test_isfilerw_" .. tostring(os.time())
 
     after_each(function()
+      os.execute("chmod 644 " .. test_file .. " 2>/dev/null")
       os.remove(test_file)
     end)
 
-    it("returns true for an existing readable file", function()
-      assert.is_true(util.fileExists(test_file))
-    end)
-
-    it("returns false for a non-existent path", function()
-      assert.is_false(util.fileExists(test_file .. "_non_existent"))
+    it("returns false on nil, empty path, or path ending with slash", function()
+      assert.is_false(util.isFileRW(nil))
+      assert.is_false(util.isFileRW(""))
+      assert.is_false(util.isFileRW("/tmp/"))
     end)
 
     it("returns false for a directory", function()
-      assert.is_false(util.fileExists("/tmp"))
+      assert.is_false(util.isFileRW("/tmp"))
+      assert.is_false(util.isFileRW("/tmp", true))
+    end)
+
+    it("returns false for non-existent path without create", function()
+      assert.is_false(util.isFileRW(test_file))
+    end)
+
+    it("returns true for an existing readable and writable file", function()
+      local f = io.open(test_file, "w")
+      assert.is_not_nil(f)
+      f:write("hello world")
+      f:close()
+
+      assert.is_true(util.isFileRW(test_file))
+
+      -- verify content is intact and not truncated
+      f = io.open(test_file, "r")
+      assert.is_not_nil(f)
+      local content = f:read("*all")
+      f:close()
+      assert.are.equal("hello world", content)
+    end)
+
+    it("returns false for an existing read-only file", function()
+      local f = io.open(test_file, "w")
+      assert.is_not_nil(f)
+      f:write("readonly content")
+      f:close()
+
+      os.execute("chmod 444 " .. test_file)
+
+      assert.is_false(util.isFileRW(test_file))
+      assert.is_false(util.isFileRW(test_file, true))
+    end)
+
+    it("creates and verifies new file when create is true", function()
+      assert.is_true(util.isFileRW(test_file, true))
+      assert.is_true(util.fileExists(test_file))
     end)
   end)
 
@@ -1005,6 +1045,128 @@ describe("util module", function()
 
     it("returns false for a directory", function()
       assert.is_false(util.fileExists("/tmp"))
+    end)
+
+    it("returns false for an unreadable file", function()
+      os.execute("chmod 000 " .. test_file)
+      assert.is_false(util.fileExists(test_file))
+      os.execute("chmod 644 " .. test_file)
+    end)
+  end)
+
+  describe("pathNotExistsOrIs()", function()
+    local test_file = "/tmp/koreader_test_pathnotexists_" .. tostring(os.time())
+    local test_dir = "/tmp/koreader_test_pathnotexists_dir_"
+      .. tostring(os.time())
+
+    before_each(function()
+      local f = io.open(test_file, "w")
+      if f then
+        f:write("test")
+        f:close()
+      end
+      os.execute("mkdir -p " .. test_dir)
+    end)
+
+    after_each(function()
+      os.remove(test_file)
+      os.remove(test_dir)
+    end)
+
+    it("returns false for invalid inputs", function()
+      assert.is_false(util.pathNotExistsOrIs(nil, "file"))
+      assert.is_false(util.pathNotExistsOrIs("", "file"))
+      assert.is_false(util.pathNotExistsOrIs(test_file, nil))
+      assert.is_false(util.pathNotExistsOrIs(test_file, ""))
+    end)
+
+    it("returns true for non-existent paths", function()
+      assert.is_true(
+        util.pathNotExistsOrIs("/nonexistent_path_xyz_123", "file")
+      )
+      assert.is_true(
+        util.pathNotExistsOrIs("/nonexistent_path_xyz_123", "directory")
+      )
+    end)
+
+    it("returns true when mode matches existing path", function()
+      assert.is_true(util.pathNotExistsOrIs(test_file, "file"))
+      assert.is_true(util.pathNotExistsOrIs(test_dir, "directory"))
+    end)
+
+    it("returns false when mode does not match existing path", function()
+      assert.is_false(util.pathNotExistsOrIs(test_file, "directory"))
+      assert.is_false(util.pathNotExistsOrIs(test_dir, "file"))
+    end)
+  end)
+
+  describe("directoryExists()", function()
+    local test_dir = "/tmp/koreader_test_direxists_" .. tostring(os.time())
+    local test_file = "/tmp/koreader_test_direxists_file_"
+      .. tostring(os.time())
+
+    before_each(function()
+      os.execute("mkdir -p " .. test_dir)
+      local f = io.open(test_file, "w")
+      if f then
+        f:write("file")
+        f:close()
+      end
+    end)
+
+    after_each(function()
+      os.execute("chmod 755 " .. test_dir .. " 2>/dev/null")
+      os.remove(test_dir)
+      os.remove(test_file)
+    end)
+
+    it("returns false for nil, empty, or non-existent path", function()
+      assert.is_false(util.directoryExists(nil))
+      assert.is_false(util.directoryExists(""))
+      assert.is_false(util.directoryExists("/nonexistent_dir_xyz_123"))
+    end)
+
+    it("returns true for an existing readable directory", function()
+      assert.is_true(util.directoryExists(test_dir))
+      assert.is_true(util.directoryExists("/tmp"))
+    end)
+
+    it("returns false for a regular file", function()
+      assert.is_false(util.directoryExists(test_file))
+    end)
+
+    it("returns false for an unreadable directory", function()
+      os.execute("chmod 000 " .. test_dir)
+      assert.is_false(util.directoryExists(test_dir))
+    end)
+
+    it("returns false for a directory without execute permission", function()
+      os.execute("chmod 444 " .. test_dir)
+      assert.is_false(util.directoryExists(test_dir))
+    end)
+  end)
+
+  describe("makePath() with existing files", function()
+    it("returns error if path exists as a regular file", function()
+      local test_file = "/tmp/koreader_test_makepath_file_"
+        .. tostring(os.time())
+      local f = io.open(test_file, "w")
+      if f then
+        f:write("test")
+        f:close()
+      end
+      local ok, err = util.makePath(test_file)
+      assert.is_nil(ok)
+      assert.is_truthy(err)
+      os.remove(test_file)
+    end)
+  end)
+
+  describe("writeToFile() with directory targets", function()
+    it("returns false if path exists as a directory", function()
+      local ok, err = util.writeToFile("some content", "/tmp")
+      assert.is_false(ok)
+      assert.is_truthy(err)
     end)
   end)
 end)
