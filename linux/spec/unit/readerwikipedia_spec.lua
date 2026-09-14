@@ -1,4 +1,32 @@
 describe("ReaderWikipedia module", function()
+  local ReaderWikipedia
+
+  setup(function()
+    require("commonrequire")
+    ReaderWikipedia = require("apps/reader/modules/readerwikipedia")
+  end)
+
+  it("should initialize and register to main menu via self.ui.menu", function()
+    local registered = false
+    local mock_ui = {
+      menu = {
+        registerToMainMenu = function(_self_menu, _target)
+          registered = true
+        end,
+      },
+    }
+
+    local wiki = ReaderWikipedia:new({
+      ui = mock_ui,
+    })
+
+    assert.is_not_nil(wiki)
+    assert.is_true(wiki.is_wiki)
+    assert.is_true(registered)
+  end)
+end)
+
+describe("ReaderWikipedia module", function()
   local ReaderWikipedia, DocumentRegistry, ReaderUI, Screen
 
   setup(function()
@@ -55,7 +83,28 @@ describe("ReaderWikipedia module", function()
       end
     end)
 
-    it("should exercise all wikipedia settings submenus and dialogs", function()
+    it("should open lookup input dialog and handle cancel and search buttons", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local wiki = ReaderWikipedia:new({
+        ui = mock_ui,
+      })
+
+      wiki:lookupInput()
+      assert.is_not_nil(wiki.input_dialog)
+      local cancel_btn = wiki.input_dialog.buttons[1][1]
+      cancel_btn.callback()
+
+      wiki:lookupInput()
+      local search_btn = wiki.input_dialog.buttons[1][2]
+      wiki.input_dialog._input_widget = { getText = function() return "" end }
+      search_btn.callback()
+    end)
+
+    it("should exercise wikipedia settings submenus and widget callbacks", function()
       local shown_widgets = {}
       local mock_ui = {
         menu = {
@@ -72,18 +121,6 @@ describe("ReaderWikipedia module", function()
       local menu_items = {}
       wiki:addToMainMenu(menu_items)
 
-      -- 1. Test lookup input dialog
-      wiki:lookupInput()
-      assert.is_not_nil(wiki.input_dialog)
-      local cancel_btn = wiki.input_dialog.buttons[1][1]
-      cancel_btn.callback()
-
-      wiki:lookupInput()
-      local search_btn = wiki.input_dialog.buttons[1][2]
-      wiki.input_dialog._input_widget = { getText = function() return "" end }
-      search_btn.callback() -- empty input
-
-      -- 2. Test settings sub-items
       local settings = menu_items.wikipedia_settings.sub_item_table
       assert.is_table(settings)
       local mock_menu = { updateItems = function() end }
@@ -113,7 +150,6 @@ describe("ReaderWikipedia module", function()
         end
       end
 
-      -- Test callbacks on shown widgets (ConfirmBox, InputDialog)
       for _, w in ipairs(shown_widgets) do
         if w.ok_callback then
           pcall(w.ok_callback)

@@ -1,3 +1,230 @@
+describe("BookMapWidget callbacks", function()
+  local BookMapWidget, UIManager
+  local mock_ui
+
+  setup(function()
+    require("commonrequire")
+    BookMapWidget = require("ui/widget/bookmapwidget")
+    UIManager = require("ui/uimanager")
+
+    mock_ui = {
+      view = {
+        shouldInvertBiDiLayoutMirroring = function()
+          return false
+        end,
+      },
+      document = {
+        getPageCount = function()
+          return 100
+        end,
+        getPageMap = function() end,
+        hasHiddenFlows = function()
+          return false
+        end,
+        flows = {},
+      },
+      toc = {
+        pageno = 1,
+        toc_depth = 1,
+        fillToc = function() end,
+        toc_items_per_page_default = 10,
+        toc = {},
+      },
+      bookmark = {
+        getBookmarkedPages = function()
+          return {}
+        end,
+      },
+      doc_settings = {
+        isTrue = function()
+          return false
+        end,
+        read = function()
+          return nil
+        end,
+      },
+      handmade = {
+        isHandmadeTocEnabled = function()
+          return false
+        end,
+      },
+      link = {
+        getPreviousLocationPages = function()
+          return {}
+        end,
+        addCurrentLocationToStack = function() end,
+      },
+    }
+  end)
+
+  it("should trigger on_exit callback when onExit is called", function()
+    local exit_called = false
+    local bm = BookMapWidget:new({
+      ui = mock_ui,
+      on_exit = function(_close_all)
+        exit_called = true
+      end,
+    })
+
+    -- Stub UIManager.close since we don't need to close windows
+    local original_close = UIManager.close
+    UIManager.close = function() end
+
+    bm:onExit(true)
+    assert.is_true(exit_called)
+
+    UIManager.close = original_close
+  end)
+
+  it(
+    "should trigger on_update callback when exiting after editable stuff was edited",
+    function()
+      local update_called = false
+      local bm = BookMapWidget:new({
+        ui = mock_ui,
+        on_update = function()
+          update_called = true
+        end,
+      })
+
+      -- Stub UIManager.close since we don't need to close windows
+      local original_close = UIManager.close
+      UIManager.close = function() end
+
+      bm:updateEditableStuff(true)
+      bm:onExit(false)
+      assert.is_true(update_called)
+
+      UIManager.close = original_close
+    end
+  )
+
+  it("should calculate dimensions via getSize", function()
+    local bm = BookMapWidget:new({
+      ui = mock_ui,
+    })
+    local size = bm:getSize()
+    assert.is_not_nil(size)
+  end)
+
+  it("should expose BookMapRow subwidget", function()
+    assert.is_table(BookMapWidget.BookMapRow)
+  end)
+end)
+
+describe("BookMapWidget ReaderUI Integration", function()
+  local DocumentRegistry, ReaderUI, UIManager, Screen, DocSettings, BookMapWidget, PageBrowserWidget
+  local sample_epub
+
+  setup(function()
+    require("commonrequire")
+    DocSettings = require("docsettings")
+    DocumentRegistry = require("document/documentregistry")
+    ReaderUI = require("apps/reader/readerui")
+    UIManager = require("ui/uimanager")
+    Screen = require("device").screen
+    BookMapWidget = require("ui/widget/bookmapwidget")
+    PageBrowserWidget = require("ui/widget/pagebrowserwidget")
+
+    sample_epub = "spec/front/unit/data/juliet.epub"
+  end)
+
+  it("should show BookMap from ReaderThumbnail with root exit handler", function()
+    DocSettings:open(sample_epub):purge()
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    readerui.status.enabled = false
+
+    assert.truthy(UIManager:isWindowWidget(readerui))
+
+    readerui.thumbnail:onShowBookMap()
+    local bookmap
+    for i = #UIManager._window_stack, 1, -1 do
+      local w = UIManager._window_stack[i].widget
+      if getmetatable(w) == BookMapWidget then
+        bookmap = w
+        break
+      end
+    end
+    assert.truthy(bookmap)
+    assert.falsy(bookmap.on_exit)
+    assert.falsy(bookmap.on_update)
+    assert.truthy(bookmap.on_root_exit)
+
+    UIManager:close(bookmap)
+    UIManager:close(readerui)
+    UIManager:quit()
+  end)
+
+  it("should transition from BookMap to PageBrowser and return on exit", function()
+    DocSettings:open(sample_epub):purge()
+    local readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(sample_epub),
+    })
+    readerui.status.enabled = false
+
+    readerui.thumbnail:onShowBookMap()
+    local bookmap
+    for i = #UIManager._window_stack, 1, -1 do
+      local w = UIManager._window_stack[i].widget
+      if getmetatable(w) == BookMapWidget then
+        bookmap = w
+        break
+      end
+    end
+    assert.truthy(bookmap)
+
+    bookmap.getVGroupRowAtY = function()
+      return {
+        start_page = 10,
+        getPageAtX = function()
+          return 10
+        end,
+      }
+    end
+
+    local original_settings_nilOrTrue = G_reader_settings.nilOrTrue
+    G_reader_settings.nilOrTrue = function()
+      return true
+    end
+
+    local Geom = require("ui/geometry")
+    bookmap:onTap(nil, { pos = Geom:new({ x = 100, y = 100 }) })
+
+    local pagebrowser
+    for i = #UIManager._window_stack, 1, -1 do
+      local w = UIManager._window_stack[i].widget
+      if getmetatable(w) == PageBrowserWidget then
+        pagebrowser = w
+        break
+      end
+    end
+    assert.truthy(pagebrowser)
+    assert.truthy(pagebrowser.on_exit)
+    assert.truthy(pagebrowser.on_update)
+
+    pagebrowser:onExit(false)
+
+    local found_bookmap = false
+    for i = #UIManager._window_stack, 1, -1 do
+      local w = UIManager._window_stack[i].widget
+      if getmetatable(w) == BookMapWidget then
+        found_bookmap = true
+        break
+      end
+    end
+    assert.is_true(found_bookmap)
+
+    G_reader_settings.nilOrTrue = original_settings_nilOrTrue
+    UIManager:close(bookmap)
+    UIManager:close(readerui)
+    UIManager:quit()
+  end)
+end)
+
 describe("BookMapWidget widget", function()
   local BookMapWidget
   local BookMapRow
@@ -615,31 +842,47 @@ describe("BookMapWidget widget", function()
   end)
 
   describe("Exit behavior", function()
-    it("should handle exit without launcher", function()
+    it("should handle exit without parent callbacks", function()
+      local root_exit_called = false
       local widget = BookMapWidget:new({
         ui = mock_ui,
+        on_root_exit = function()
+          root_exit_called = true
+        end,
       })
       make_mock_window(widget)
 
       assert.is_true(widget:onExit(false))
+      assert.is_true(root_exit_called)
     end)
 
-    it("should handle exit with launcher", function()
-      local mock_launcher = Widget:new({
-        dimen = Geom:new({ w = 600, h = 800 }),
-        onExit = function() end,
-        updateEditableStuff = function() end,
-      })
-      make_mock_window(mock_launcher)
-
+    it("should handle exit with on_exit and on_update callbacks", function()
+      local exit_called = false
+      local update_called = false
       local widget = BookMapWidget:new({
         ui = mock_ui,
-        launcher = mock_launcher,
+        on_exit = function(close_all)
+          exit_called = close_all
+        end,
+        on_update = function()
+          update_called = true
+        end,
       })
       make_mock_window(widget)
 
       widget.editable_stuff_edited = true
       assert.is_true(widget:onExit(false))
+      assert.is_true(update_called)
+
+      local widget2 = BookMapWidget:new({
+        ui = mock_ui,
+        on_exit = function(close_all)
+          exit_called = close_all
+        end,
+      })
+      make_mock_window(widget2)
+      assert.is_true(widget2:onExit(true))
+      assert.is_true(exit_called)
     end)
   end)
 
@@ -720,6 +963,38 @@ describe("BookMapWidget widget", function()
       widget.vs_hint_info = nil
       widget:paintLeftVerticalSwipeHint(bb)
       widget:paintBottomHorizontalSwipeHint(bb)
+    end)
+
+    it("should instantiate PageBrowserWidget with on_exit and on_update callbacks on page tap", function()
+      G_reader_settings:save("book_map_tap_to_page_browser", true)
+      local widget = BookMapWidget:new({
+        ui = mock_ui,
+      })
+      make_mock_window(widget)
+      local shown_subwidget
+      widget.showWidget = function(self, w)
+        shown_subwidget = w
+      end
+      local exited_parents, updated_editable
+      widget.onExit = function(self, close_all)
+        exited_parents = close_all
+      end
+      widget.updateEditableStuff = function(self, param)
+        updated_editable = param
+      end
+
+      local tap_y = widget.title_bar_h + 50
+      local res = widget:onTap(nil, { pos = Geom:new({ x = 200, y = tap_y }) })
+      assert.is_true(res)
+      assert.is_not_nil(shown_subwidget)
+      assert.is_function(shown_subwidget.on_exit)
+      assert.is_function(shown_subwidget.on_update)
+
+      shown_subwidget.on_exit(true)
+      assert.is_true(exited_parents)
+
+      shown_subwidget.on_update()
+      assert.is_true(updated_editable)
     end)
   end)
 end)

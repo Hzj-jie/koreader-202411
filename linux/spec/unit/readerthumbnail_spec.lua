@@ -1,4 +1,32 @@
 describe("ReaderThumbnail module", function()
+  local ReaderThumbnail
+
+  setup(function()
+    require("commonrequire")
+    ReaderThumbnail = require("apps/reader/modules/readerthumbnail")
+  end)
+
+  it("should initialize and register to main menu via self.ui.menu", function()
+    local registered = false
+    local mock_ui = {
+      menu = {
+        registerToMainMenu = function(_self_menu, _target)
+          registered = true
+        end,
+      },
+      document = {},
+    }
+
+    local thumbnail = ReaderThumbnail:new({
+      ui = mock_ui,
+    })
+
+    assert.is_not_nil(thumbnail)
+    assert.is_true(registered)
+  end)
+end)
+
+describe("ReaderThumbnail module", function()
   local ReaderThumbnail, DocumentRegistry, ReaderUI, Screen
 
   setup(function()
@@ -88,7 +116,7 @@ describe("ReaderThumbnail module", function()
       assert.is_nil(thumb.tile_cache)
     end)
 
-    it("should handle bookmark cache invalidation for epub and pdf", function()
+    it("should invalidate cached pages for bookmarks with epub documents", function()
       local sample_epub = "spec/front/unit/data/leaves.epub"
       local readerui_epub = ReaderUI:new({
         dimen = Screen:getSize(),
@@ -102,7 +130,9 @@ describe("ReaderThumbnail module", function()
       })
       readerui_epub:onExit()
       readerui_epub:onClose()
+    end)
 
+    it("should invalidate cached pages, fetch page images, and get page thumbnails with pdf documents", function()
       local sample_pdf = "spec/front/unit/data/paper.pdf"
       local readerui_pdf = ReaderUI:new({
         dimen = Screen:getSize(),
@@ -115,11 +145,9 @@ describe("ReaderThumbnail module", function()
         { page = 1, pos0 = { page = 1 }, pos1 = { page = 2 } },
       })
 
-      -- Test _getPageImage
       local bb_pdf = thumb_pdf:_getPageImage(1)
       assert.truthy(bb_pdf)
 
-      -- Test getPageThumbnail
       local req_done = false
       thumb_pdf:getPageThumbnail(
         1,
@@ -131,7 +159,22 @@ describe("ReaderThumbnail module", function()
         end
       )
 
-      -- Test show book map and page browser
+      thumb_pdf:cancelPageThumbnailRequests("batch_pdf")
+      thumb_pdf:cancelPageThumbnailRequests()
+
+      readerui_pdf:onExit()
+      readerui_pdf:onClose()
+    end)
+
+    it("should handle show BookMap, PageBrowser, and main menu callbacks with pdf documents", function()
+      local sample_pdf = "spec/front/unit/data/paper.pdf"
+      local readerui_pdf = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_pdf),
+      })
+      local thumb_pdf = readerui_pdf.thumbnail
+      thumb_pdf:setupCache()
+
       local shown_widgets = {}
       thumb_pdf.showWidget = function(self, w)
         table.insert(shown_widgets, w)
@@ -142,7 +185,20 @@ describe("ReaderThumbnail module", function()
       thumb_pdf:onShowPageBrowser()
       assert.are.equal(3, #shown_widgets)
 
-      -- Test main menu callbacks
+      local dirty_called = 0
+      local orig_setDirty = readerui_pdf.setDirty
+      readerui_pdf.setDirty = function(self, widget, mode)
+        dirty_called = dirty_called + 1
+      end
+
+      for _, w in ipairs(shown_widgets) do
+        if w.on_root_exit then
+          w.on_root_exit()
+        end
+      end
+      assert.are.equal(3, dirty_called)
+      readerui_pdf.setDirty = orig_setDirty
+
       local menu_items = {}
       thumb_pdf:addToMainMenu(menu_items)
       if menu_items.book_map.callback then
@@ -155,14 +211,10 @@ describe("ReaderThumbnail module", function()
         menu_items.page_browser.callback()
       end
 
-      -- Test ensureTileGeneration action transitions
       thumb_pdf._ensureTileGeneration_action(true)
       thumb_pdf._ensureTileGeneration_action(false)
       thumb_pdf._ensureTileGeneration_action(false)
       thumb_pdf._ensureTileGeneration_action(false)
-
-      thumb_pdf:cancelPageThumbnailRequests("batch_pdf")
-      thumb_pdf:cancelPageThumbnailRequests()
 
       readerui_pdf:onExit()
       readerui_pdf:onClose()

@@ -57,6 +57,37 @@ describe("ReaderPageMap module", function()
 
         pagemap:onReadSettings(mock_ui.doc_settings)
         assert.is_boolean(pagemap.has_pagemap)
+
+        local registered_mod
+        local mock_ui_pagemap = {
+          document = {
+            configurable = { h_page_margins = { 10, 10 } },
+            hasPageMap = function()
+              return true
+            end,
+            info = { has_pages = false },
+          },
+          menu = { registerToMainMenu = function() end },
+          view = {
+            registerViewModule = function(self, name, mod)
+              registered_mod = name
+            end,
+          },
+          doc_settings = {
+            has = function()
+              return false
+            end,
+            isTrue = function()
+              return false
+            end,
+            save = function() end,
+          },
+        }
+        local pagemap2 = ReaderPageMap:new({ ui = mock_ui_pagemap })
+        pagemap2:init()
+        pagemap2:onReaderInited()
+        assert.are.equal("pagemap", registered_mod)
+        assert.is_true(pagemap2.has_pagemap)
       end
     )
 

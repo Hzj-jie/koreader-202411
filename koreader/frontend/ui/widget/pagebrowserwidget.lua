@@ -37,8 +37,9 @@ local PageBrowserWidget = InputContainer:extend({
   -- (that is, the grid will pick thumbnails from pages before and
   -- after it, and more pages after than before)
   focus_page = nil,
-  -- Should only be nil on the first launch via ReaderThumbnail
-  launcher = nil,
+  on_exit = nil,
+  on_update = nil,
+  on_root_exit = nil,
 })
 
 function PageBrowserWidget:init()
@@ -1179,17 +1180,16 @@ function PageBrowserWidget:onExit(close_all_parents)
   -- Close this widget
   logger.dbg("closing PageBrowserWidget")
   UIManager:close(self)
-  if self.launcher then
-    -- We were launched by a BookMapWidget, don't do any cleanup.
+  if self.on_exit or self.on_update then
+    -- We were launched by another widget, don't do any cleanup.
     if close_all_parents then
-      -- The last one of these (which has no launcher attribute)
-      -- will do the cleanup below.
-      self.launcher:onExit(true)
-    else
-      if self.editable_stuff_edited then
-        self.launcher:updateEditableStuff(true)
+      if self.on_exit then
+        self.on_exit(true)
       end
-      UIManager:setDirty(self.launcher, "ui")
+    else
+      if self.editable_stuff_edited and self.on_update then
+        self.on_update()
+      end
     end
   else
     BD.resetInvert()
@@ -1209,7 +1209,9 @@ function PageBrowserWidget:onExit(close_all_parents)
     -- refresh to remove any ghost trace of thumbnails or black page slots
     UIManager:broadcastEvent("UpdateFooter")
     self.ui.bookmark:onPageUpdate(self.ui:getCurrentPage())
-    UIManager:setDirty(self.ui.dialog, "full")
+    if self.on_root_exit then
+      self.on_root_exit()
+    end
   end
   return true
 end
@@ -1630,10 +1632,15 @@ function PageBrowserWidget:onHold(arg, ges)
       local extra_symbols_pages = {}
       extra_symbols_pages[self.focus_page] = 0x25A2 -- white square with rounder corners
       self:showWidget(BookMapWidget:new({
-        launcher = self,
         ui = self.ui,
         focus_page = page,
         extra_symbols_pages = extra_symbols_pages,
+        on_exit = function(close_all_parents)
+          self:onExit(close_all_parents)
+        end,
+        on_update = function()
+          self:updateEditableStuff(true)
+        end,
       }))
     end
     return true

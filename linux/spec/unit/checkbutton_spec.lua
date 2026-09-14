@@ -43,6 +43,55 @@ describe("CheckButton widget", function()
     UIManager.setDirty = original_setDirty
   end)
 
+  it(
+    "should calculate size via getSize and support geometry merge methods",
+    function()
+      local mock_parent = {
+        getAddedWidgetAvailableWidth = function()
+          return 200
+        end,
+      }
+
+      local cb = CheckButton:new({
+        text = "Geometry CheckBox",
+        parent = mock_parent,
+        width = 150,
+        height = 40,
+      })
+
+      local size = cb:getSize()
+      assert.is_not_nil(size)
+      assert.is_true(size.w > 0)
+      assert.is_true(size.h > 0)
+
+      cb:mergeSize(180, 60)
+      local new_size = cb:getSize()
+      assert.are.equal(180, new_size.w)
+      assert.are.equal(60, new_size.h)
+    end
+  )
+
+  it("should support mergePosition and dirtyRegion", function()
+    local mock_parent = {
+      getAddedWidgetAvailableWidth = function()
+        return 200
+      end,
+    }
+
+    local cb = CheckButton:new({
+      text = "Position CheckBox",
+      parent = mock_parent,
+    })
+
+    cb:mergePosition(15, 25)
+    local pos_size = cb:getSize()
+    assert.are.equal(15, pos_size.x)
+    assert.are.equal(25, pos_size.y)
+
+    local region = cb:dirtyRegion()
+    assert.is_not_nil(region)
+  end)
+
   it("should support radio mode and custom width", function()
     local cb = CheckButton:new({
       text = "Radio Option",
@@ -191,5 +240,40 @@ describe("CheckButton widget", function()
     cb.enabled = false
     assert.is_false(cb:onFocus())
     assert.is_false(cb:onUnfocus())
+  end)
+
+  it("should toggle checked state and invoke setDirty via toggleCheck, enable, and disable", function()
+    local dirty_calls = 0
+    local cb = CheckButton:new({
+      text = "Toggle Test",
+      checked = false,
+      parent = mockParent(200),
+    })
+    UIManager:show(cb)
+
+    local orig_setDirty = UIManager.setDirty
+    UIManager.setDirty = function(self, w, f)
+      dirty_calls = dirty_calls + 1
+      if type(f) == "function" then
+        local mode, dimen = f()
+        assert.are.equal("ui", mode)
+      end
+    end
+
+    cb:toggleCheck()
+    assert.is_true(cb.checked)
+    assert.is_true(dirty_calls >= 1)
+
+    cb:toggleCheck()
+    assert.is_false(cb.checked)
+
+    cb:disable()
+    assert.is_false(cb.enabled)
+
+    cb:enable()
+    assert.is_true(cb.enabled)
+
+    UIManager.setDirty = orig_setDirty
+    UIManager:close(cb)
   end)
 end)

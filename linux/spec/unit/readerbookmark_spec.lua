@@ -660,6 +660,14 @@ describe("ReaderBookmark module", function()
     end)
 
     teardown(function()
+      while #UIManager._window_stack > 1 do
+        local top_w = UIManager._window_stack[#UIManager._window_stack].widget
+        if top_w ~= readerui then
+          UIManager:close(top_w)
+        else
+          break
+        end
+      end
       readerui:onExit()
       readerui:onClose()
     end)
@@ -886,6 +894,44 @@ describe("ReaderBookmark module", function()
         local idx = bookmark_mod:getBookmarkItemIndex(first_item)
         assert.is_number(idx)
       end
+    end)
+
+    it("should handle onToggleBookmark refresh region and setBookmarkNote note_mark dirty refresh", function()
+      local dirty_called, dirty_func
+      local orig_setDirty = UIManager.setDirty
+      UIManager.setDirty = function(self, target, mode_or_func)
+        dirty_called = true
+        if type(mode_or_func) == "function" then
+          dirty_func = mode_or_func
+        end
+        return orig_setDirty(self, target, mode_or_func)
+      end
+
+      -- onToggleBookmark dirty func execution
+      bookmark_mod:onToggleBookmark()
+      assert.is_true(dirty_called)
+      if dirty_func then
+        local mode, region = dirty_func()
+        assert.are.equal("ui", mode)
+      end
+
+      -- showBookmarkDetails with details_updated and note_mark without bm_menu
+      readerui.view.highlight.note_mark = "asterisk"
+      bookmark_mod.details_updated = true
+      bookmark_mod:showBookmarkDetails(1)
+      while #UIManager._window_stack > 1 do
+        local top_w = UIManager._window_stack[#UIManager._window_stack].widget
+        if top_w ~= readerui then
+          if top_w.dismiss_callback then
+            pcall(top_w.dismiss_callback)
+          end
+          UIManager:close(top_w)
+        else
+          break
+        end
+      end
+
+      UIManager.setDirty = orig_setDirty
     end)
   end)
 end)

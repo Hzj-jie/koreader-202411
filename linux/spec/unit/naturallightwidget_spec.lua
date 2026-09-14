@@ -326,4 +326,10 @@ describe("NaturalLightWidget UI component", function()
 
     UIManager.close = old_close
   end)
+
+  it("should return dimensions via getSize", function()
+    local nlw = NaturalLightWidget:new({})
+    local size = nlw:getSize()
+    assert.is_not_nil(size)
+  end)
 end)
