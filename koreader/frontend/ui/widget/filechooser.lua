@@ -429,10 +429,6 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
     item.dim = self.filemanager
       and self.filemanager.selected_files
       and self.filemanager.selected_files[item.path]
-    if self.require_writable and not util.isFileRW(fullpath) then
-      item.dim = true -- dim means read-only when require_writable is true
-      item.text = item.text .. " (" .. gettext("readonly") .. ")"
-    end
     if collate.item_func ~= nil then
       collate.item_func(item)
     end
@@ -444,16 +440,19 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
     else
       item.text = item.text .. "/"
       item.bidi_wrap_func = BD.directory
-      if self.require_writable and not util.isDirRW(fullpath) then
-        item.dim = true -- dim means read-only when require_writable is true
-        item.text = item.text .. " (" .. gettext("readonly") .. ")"
-      end
       if collate.can_collate_mixed and collate.item_func ~= nil then
         collate.item_func(item)
       end
       if dirpath then -- file browser or PathChooser
         item.mandatory = self:getMenuItemMandatory(item)
       end
+    end
+  end
+  if self.require_writable and f ~= "./." then
+    local check = attributes.mode == "file" and util.isFileRW or util.isDirRW
+    if not check(fullpath) then
+      item.dim = true -- dim means read-only when require_writable is true
+      item.text = item.text .. " (" .. gettext("readonly") .. ")"
     end
   end
   return item
