@@ -199,24 +199,4 @@ describe("DownloadMgr module", function()
       util.isDirRW = orig_isDirRW
     end
   )
-
-  it(
-    "should support method invocation syntax mgr:checkDownloadDir()",
-    function()
-      local util = require("util")
-      local orig_isDirRW = util.isDirRW
-      local mgr = DownloadMgr:new()
-
-      G_reader_settings:save("download_dir", "/mgr/download_path")
-      util.isDirRW = function(dir)
-        return dir == "/mgr/download_path"
-      end
-
-      assert.is_true(mgr:isDownloadDirWritable())
-      assert.is_true(mgr:checkDownloadDir())
-
-      G_reader_settings:delete("download_dir")
-      util.isDirRW = orig_isDirRW
-    end
-  )
 end)

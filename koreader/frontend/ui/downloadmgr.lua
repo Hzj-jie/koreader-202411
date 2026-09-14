@@ -40,9 +40,6 @@ end
 -- @tparam[opt] string dir directory to check, defaults to saved download_dir
 -- @treturn bool true if directory exists and is writable
 function DownloadMgr.isDownloadDirWritable(dir)
-  if type(dir) == "table" then
-    dir = nil
-  end
   dir = dir
     or G_reader_settings:read("download_dir")
     or G_named_settings.lastdir()
@@ -54,9 +51,6 @@ end
 -- @tparam[opt] string dir directory to check
 -- @treturn bool true if download directory is writable
 function DownloadMgr.checkDownloadDir(dir)
-  if type(dir) == "table" then
-    dir = nil
-  end
   dir = dir
     or G_reader_settings:read("download_dir")
     or G_named_settings.lastdir()
