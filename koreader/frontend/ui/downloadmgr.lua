@@ -46,8 +46,7 @@ end
 -- @tparam[opt] string dir directory to check
 -- @treturn bool true if download directory is writable
 function DownloadMgr.checkDownloadDir(dir)
-  dir = getDownloadDir(dir)
-  if not util.isDirRW(dir, true) then
+  if not util.isDirRW(getDownloadDir(dir), true) then
     UIManager:show(Notification:new({
       text = gettext(
         "Download directory is read-only. Please choose a writable directory."
