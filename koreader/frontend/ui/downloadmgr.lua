@@ -21,7 +21,6 @@ Example:
 local Notification = require("ui/widget/notification")
 local PathChooser = require("ui/widget/pathchooser")
 local UIManager = require("ui/uimanager")
-local ffiutil = require("ffi/util")
 local gettext = require("gettext")
 local util = require("util")
 
@@ -62,19 +61,11 @@ end
 --- Displays a PathChooser widget for picking a (download) directory.
 -- @treturn string path chosen by the user
 function DownloadMgr:chooseDir(dir)
-  local path
-  if dir then
-    path = dir
-  else
-    local download_dir = getDownloadDir()
-    path = download_dir and ffiutil.realpath(download_dir .. "/..")
-      or download_dir
-  end
   local path_chooser = PathChooser:new({
     select_file = false,
     show_files = false,
     require_writable = true,
-    path = path,
+    path = getDownloadDir(dir),
     onConfirm = function(dir_path)
       self.onConfirm(dir_path)
     end,
