@@ -448,6 +448,7 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
       end
     end
   end
+  -- If attributes.mode is not nil, the file or directory exists.
   if self.require_writable and attributes.mode then
     local check = attributes.mode == "file" and util.isFileRW or util.isDirRW
     if not check(fullpath) then
