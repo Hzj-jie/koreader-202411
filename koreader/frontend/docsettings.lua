@@ -147,8 +147,10 @@ function DocSettings:getLocationCandidates(doc_path)
       return stem .. ".sdr"
     end)(),
   }
+  -- Note: "tmp" (and "hist" in findSidecarFile) are internal location identifiers
+  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
   local tmp_cand = {
-    location = "",
+    location = "tmp",
     dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr",
   }
 
@@ -197,7 +199,9 @@ function DocSettings:findSidecarFile(doc_path, no_legacy)
   if is_history_location_enabled and not no_legacy then
     local sidecar_file = self:getHistoryPath(doc_path)
     if util.fileExists(sidecar_file) then
-      return sidecar_file, "" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
+      -- Note: "hist" is an internal location identifier indicating legacy history,
+      -- not a configurable user option in G_named_settings.
+      return sidecar_file, "hist" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
     end
   end
 end
@@ -273,7 +277,7 @@ function DocSettings:open(doc_path)
 
   local candidates_list = {}
   for _, cand in ipairs(new:getLocationCandidates(doc_path)) do
-    if cand.location ~= "" then
+    if cand.location ~= "tmp" then
       new[cand.location .. "_sidecar_dir"] = cand.dir
     end
     if util.directoryExists(cand.dir) then
@@ -352,7 +356,7 @@ function DocSettings:flush(data, no_custom_metadata)
       logger.dbg("DocSettings: Writing to", sidecar_file)
       if util.writeToFile(ser_data, sidecar_file, true) then
         if loc ~= preferred_location and not self.fallback_notified then
-          notifyUser(loc == "" and "tmp" or "fallback")
+          notifyUser(loc == "tmp" and "tmp" or "fallback")
           self.fallback_notified = true
         end
 

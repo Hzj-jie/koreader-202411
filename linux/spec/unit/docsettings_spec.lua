@@ -56,7 +56,7 @@ describe("docsettings module", function()
       local candidates = docsettings:getLocationCandidates("/foo/bar.pdf")
       local tmp_cand
       for _, cand in ipairs(candidates) do
-        if cand.location == "" then
+        if cand.location == "tmp" then
           tmp_cand = cand
           break
         end
@@ -706,7 +706,7 @@ describe("docsettings module", function()
         assert.are.equal("doc", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("hash", candidates[3].location)
-        assert.are.equal("", candidates[4].location)
+        assert.are.equal("tmp", candidates[4].location)
       end
     )
 
@@ -720,7 +720,7 @@ describe("docsettings module", function()
         assert.are.equal("dir", candidates[1].location)
         assert.are.equal("hash", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
-        assert.are.equal("", candidates[4].location)
+        assert.are.equal("tmp", candidates[4].location)
       end
     )
 
@@ -734,7 +734,7 @@ describe("docsettings module", function()
         assert.are.equal("hash", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
-        assert.are.equal("", candidates[4].location)
+        assert.are.equal("tmp", candidates[4].location)
       end
     )
 
@@ -753,14 +753,14 @@ describe("docsettings module", function()
         assert.are.equal("doc", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("hash", candidates[3].location)
-        assert.are.equal("", candidates[4].location)
+        assert.are.equal("tmp", candidates[4].location)
       end
     )
 
     it("appends temporary storage directory as 4th candidate", function()
       local candidates = docsettings:getLocationCandidates("/books/sample.epub")
       assert.are.equal(4, #candidates)
-      assert.are.equal("", candidates[4].location)
+      assert.are.equal("tmp", candidates[4].location)
       assert.are.equal(
         DataStorage:getTmpDir() .. "/docsettings/books/sample.sdr",
         candidates[4].dir
@@ -986,7 +986,7 @@ describe("docsettings module", function()
 
       local f, loc = docsettings:findSidecarFile(test_file)
       assert.are.equal(hist_file, f)
-      assert.are.equal("", loc)
+      assert.are.equal("hist", loc)
       assert.is_true(docsettings.isSidecarFileNotInPreferredLocation(test_file))
 
       local f_no_legacy = docsettings:findSidecarFile(test_file, true)
