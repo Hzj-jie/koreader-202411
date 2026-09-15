@@ -101,69 +101,67 @@ local function notifyUser(reason)
   )
 end
 
+local function getHashSidecarDir(doc_path, stem)
+  local hsh = doc_hash_cache[doc_path]
+  if not hsh then
+    hsh = util.partialMD5(doc_path)
+    if hsh then
+      doc_hash_cache[doc_path] = hsh
+      logger.dbg(
+        "DocSettings: Caching new partial MD5 hash for",
+        doc_path,
+        "as",
+        hsh
+      )
+    end
+  else
+    logger.dbg(
+      "DocSettings: Using cached partial MD5 hash for",
+      doc_path,
+      "as",
+      hsh
+    )
+  end
+  if hsh then
+    -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
+    local subpath = string.format("/%s/", hsh:sub(1, 2))
+    return DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+  end
+  return stem .. ".sdr"
+end
+
 function DocSettings:getLocationCandidates(doc_path)
   doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
   if not doc_path or doc_path == "" then
     return {}
   end
-  local preferred_location = G_named_settings.document_metadata_folder()
-  local locations
-  if preferred_location == "hash" then
-    locations = { "hash", "dir", "doc" }
-  elseif preferred_location == "dir" then
-    locations = { "dir", "hash", "doc" }
-  else
-    locations = { "doc", "dir", "hash" }
-  end
+
   local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
-  local candidates = {}
-  for _, loc in ipairs(locations) do
-    local path
-    if loc == "doc" then
-      path = stem
-    elseif loc == "dir" then
-      path = DOCSETTINGS_DIR .. stem
-    elseif loc == "hash" then
-      local hsh = doc_hash_cache[doc_path]
-      if not hsh then
-        hsh = util.partialMD5(doc_path)
-        if hsh then
-          doc_hash_cache[doc_path] = hsh
-          logger.dbg(
-            "DocSettings: Caching new partial MD5 hash for",
-            doc_path,
-            "as",
-            hsh
-          )
-        end
-      else
-        logger.dbg(
-          "DocSettings: Using cached partial MD5 hash for",
-          doc_path,
-          "as",
-          hsh
-        )
-      end
-      if hsh then
-        -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
-        local subpath = string.format("/%s/", hsh:sub(1, 2))
-        path = DOCSETTINGS_HASH_DIR .. subpath .. hsh
-      else -- fallback to "doc"
-        path = stem
-      end
-    else
-      assert(false, "Invalid sidecar location: " .. tostring(loc))
-    end
-    table.insert(candidates, {
-      location = loc,
-      dir = path .. ".sdr",
-    })
-  end
-  table.insert(candidates, {
+  local doc_cand = {
+    location = "doc",
+    dir = stem .. ".sdr",
+  }
+  local dir_cand = {
+    location = "dir",
+    dir = DOCSETTINGS_DIR .. stem .. ".sdr",
+  }
+  local hash_cand = {
+    location = "hash",
+    dir = getHashSidecarDir(doc_path, stem),
+  }
+  local tmp_cand = {
     location = "",
     dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr",
-  })
-  return candidates
+  }
+
+  local preferred_location = G_named_settings.document_metadata_folder()
+  if preferred_location == "hash" then
+    return { hash_cand, dir_cand, doc_cand, tmp_cand }
+  elseif preferred_location == "dir" then
+    return { dir_cand, hash_cand, doc_cand, tmp_cand }
+  else
+    return { doc_cand, dir_cand, hash_cand, tmp_cand }
+  end
 end
 
 -- TODO: For testing purposes only, should be removed once external tests are migrated.
