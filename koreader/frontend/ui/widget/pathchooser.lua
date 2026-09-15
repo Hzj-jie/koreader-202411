@@ -185,9 +185,17 @@ function PathChooser:onMenuHold(item)
   self:showWidget(self.button_dialog)
 end
 
+-- Checks whether a directory path is considered unwritable when require_writable is enabled.
+-- If require_writable is false, writability is not enforced and false is returned.
+-- @param[opt] path string: the directory path to check, defaults to self.path
+-- @return boolean: true if require_writable is enabled and path is not writable
+function PathChooser:_pathUnwritable(path)
+  return self.require_writable and not util.isDirRW(path or self.path)
+end
+
 function PathChooser:showPlusMenu()
   local button_dialog
-  local is_ro = self.require_writable and not util.isDirRW(self.path)
+  local is_ro = self:_pathUnwritable()
   button_dialog = ButtonDialog:new({
     buttons = {
       {
@@ -211,7 +219,7 @@ function PathChooser:showPlusMenu()
           ) .. ")") or ""),
           enabled = not is_ro,
           callback = function()
-            if self.require_writable and not util.isDirRW(self.path) then
+            if self:_pathUnwritable() then
               UIManager:show(Notification:new({
                 text = gettext(
                   "Current folder is read-only. Cannot create a new folder."

@@ -468,6 +468,65 @@ describe("PathChooser widget", function()
       util.isFileRW = original_isFileRW
     end)
 
+    describe("_pathUnwritable()", function()
+      it(
+        "returns false when require_writable is false even if directory is unwritable",
+        function()
+          local pc = createChooser({
+            require_writable = false,
+          })
+          util.isDirRW = function()
+            return false
+          end
+          assert.is_false(pc:_pathUnwritable())
+          assert.is_false(pc:_pathUnwritable("/some/other/path"))
+        end
+      )
+
+      it(
+        "returns true when require_writable is true and directory is unwritable",
+        function()
+          local pc = createChooser({
+            require_writable = true,
+          })
+          util.isDirRW = function()
+            return false
+          end
+          assert.is_true(pc:_pathUnwritable())
+          assert.is_true(pc:_pathUnwritable("/some/other/path"))
+        end
+      )
+
+      it(
+        "returns false when require_writable is true and directory is writable",
+        function()
+          local pc = createChooser({
+            require_writable = true,
+          })
+          util.isDirRW = function()
+            return true
+          end
+          assert.is_false(pc:_pathUnwritable())
+          assert.is_false(pc:_pathUnwritable("/some/other/path"))
+        end
+      )
+
+      it("passes given path or defaults to self.path", function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local checked_paths = {}
+        util.isDirRW = function(path)
+          table.insert(checked_paths, path)
+          return true
+        end
+        pc.path = "/my/current/dir"
+        pc:_pathUnwritable()
+        pc:_pathUnwritable("/explicit/path")
+        assert.are.same({ "/my/current/dir", "/explicit/path" }, checked_paths)
+      end)
+    end)
+
     it(
       "dims and appends (readonly) to read-only directories in getListItem",
       function()
