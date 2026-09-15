@@ -695,6 +695,53 @@ describe("PathChooser widget", function()
     )
 
     it(
+      "re-checks current folder writability in New folder callback even if initially writable",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        local is_writable = true
+        util.isDirRW = function()
+          return is_writable
+        end
+
+        local shown_notifications = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_notifications, widget)
+        end
+
+        local FileManager = require("apps/filemanager/filemanager")
+        local create_folder_stub = stub(FileManager, "createFolder")
+        local close_ui_spy = stub(UIManager, "close")
+
+        local dialog_captured = nil
+        local show_widget_stub = stub(pc, "showWidget", function(_, widget)
+          dialog_captured = widget
+        end)
+
+        pc:showPlusMenu()
+        assert.is_table(dialog_captured)
+        local new_folder_btn = dialog_captured.buttons[2][1]
+        assert.is_true(new_folder_btn.enabled)
+
+        -- Directory becomes read-only before callback executes
+        is_writable = false
+        new_folder_btn.callback()
+
+        assert.stub(create_folder_stub).was_not_called()
+        assert.stub(close_ui_spy).was_not_called()
+        assert.are.equal(1, #shown_notifications)
+        assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
+
+        show_widget_stub:revert()
+        close_ui_spy:revert()
+        create_folder_stub:revert()
+        UIManager.show = orig_show
+      end
+    )
+
+    it(
       "does not dim or mark readonly items when require_writable is false",
       function()
         local pc = createChooser({

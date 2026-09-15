@@ -211,7 +211,7 @@ function PathChooser:showPlusMenu()
           ) .. ")") or ""),
           enabled = not is_ro,
           callback = function()
-            if is_ro then
+            if self.require_writable and not util.isDirRW(self.path) then
               UIManager:show(Notification:new({
                 text = gettext(
                   "Current folder is read-only. Cannot create a new folder."
