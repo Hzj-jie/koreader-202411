@@ -187,6 +187,7 @@ end
 
 function PathChooser:showPlusMenu()
   local button_dialog
+  local is_ro = self.require_writable and not util.isDirRW(self.path)
   button_dialog = ButtonDialog:new({
     buttons = {
       {
@@ -205,10 +206,12 @@ function PathChooser:showPlusMenu()
       },
       {
         {
-          text = gettext("New folder"),
+          text = gettext("New folder") .. (is_ro and (" (" .. gettext(
+            "current folder is read-only"
+          ) .. ")") or ""),
+          enabled = not is_ro,
           callback = function()
-            UIManager:close(button_dialog)
-            if self.require_writable and not util.isDirRW(self.path) then
+            if is_ro then
               UIManager:show(Notification:new({
                 text = gettext(
                   "Current folder is read-only. Cannot create a new folder."
@@ -216,6 +219,7 @@ function PathChooser:showPlusMenu()
               }))
               return
             end
+            UIManager:close(button_dialog)
             local FileManager = require("apps/filemanager/filemanager")
             FileManager.file_chooser = self
             FileManager:createFolder()

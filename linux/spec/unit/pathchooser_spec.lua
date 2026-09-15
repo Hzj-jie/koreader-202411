@@ -631,6 +631,7 @@ describe("PathChooser widget", function()
 
         local FileManager = require("apps/filemanager/filemanager")
         local create_folder_stub = stub(FileManager, "createFolder")
+        local close_ui_spy = stub(UIManager, "close")
 
         local dialog_captured = nil
         local show_widget_stub = stub(pc, "showWidget", function(_, widget)
@@ -640,15 +641,56 @@ describe("PathChooser widget", function()
         pc:showPlusMenu()
         assert.is_table(dialog_captured)
         local new_folder_btn = dialog_captured.buttons[2][1]
+        assert.is_false(new_folder_btn.enabled)
+        assert.is_not_nil(
+          new_folder_btn.text:find("current folder is read%-only")
+        )
         new_folder_btn.callback()
 
         assert.stub(create_folder_stub).was_not_called()
+        assert.stub(close_ui_spy).was_not_called()
         assert.are.equal(1, #shown_notifications)
         assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
 
         show_widget_stub:revert()
+        close_ui_spy:revert()
         create_folder_stub:revert()
         UIManager.show = orig_show
+      end
+    )
+
+    it(
+      "enables New folder when require_writable=true and current directory is writable",
+      function()
+        local pc = createChooser({
+          require_writable = true,
+        })
+        util.isDirRW = function()
+          return true
+        end
+
+        local FileManager = require("apps/filemanager/filemanager")
+        local create_folder_stub = stub(FileManager, "createFolder")
+        local close_ui_spy = stub(UIManager, "close")
+
+        local dialog_captured = nil
+        local show_widget_stub = stub(pc, "showWidget", function(_, widget)
+          dialog_captured = widget
+        end)
+
+        pc:showPlusMenu()
+        assert.is_table(dialog_captured)
+        local new_folder_btn = dialog_captured.buttons[2][1]
+        assert.is_true(new_folder_btn.enabled)
+        assert.are.equal("New folder", new_folder_btn.text)
+        new_folder_btn.callback()
+
+        assert.stub(close_ui_spy).was_called_with(UIManager, dialog_captured)
+        assert.stub(create_folder_stub).was_called()
+
+        show_widget_stub:revert()
+        close_ui_spy:revert()
+        create_folder_stub:revert()
       end
     )
 
