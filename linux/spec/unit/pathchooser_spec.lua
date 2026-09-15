@@ -1128,5 +1128,99 @@ describe("PathChooser widget", function()
         show_stub:revert()
       end
     )
+
+    it(
+      "invokes onConfirm and closes dialog when choosing writable file in onMenuHold with require_writable=true",
+      function()
+        local confirmed_path = nil
+        local pc = createChooser({
+          select_file = true,
+          select_directory = false,
+          require_writable = true,
+          onConfirm = function(p)
+            confirmed_path = p
+          end,
+        })
+        local show_stub = stub(UIManager, "show")
+        local close_spy = stub(UIManager, "close")
+
+        util.isFileRW = function()
+          return true
+        end
+
+        local item = { path = sample_file }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+        local choose_btn = pc.button_dialog.buttons[1][2]
+        assert.are.equal("Choose", choose_btn.text)
+        choose_btn.callback()
+
+        assert.are.equal(sample_file, confirmed_path)
+        assert.stub(close_spy).was_called_with(UIManager, pc.button_dialog)
+        assert.stub(close_spy).was_called_with(UIManager, pc)
+
+        show_stub:revert()
+        close_spy:revert()
+      end
+    )
+
+    it(
+      "invokes onConfirm and closes dialog when choosing writable directory in onMenuHold with require_writable=true",
+      function()
+        local confirmed_path = nil
+        local pc = createChooser({
+          select_file = false,
+          select_directory = true,
+          require_writable = true,
+          onConfirm = function(p)
+            confirmed_path = p
+          end,
+        })
+        local show_stub = stub(UIManager, "show")
+        local close_spy = stub(UIManager, "close")
+
+        util.isDirRW = function()
+          return true
+        end
+
+        local item = { path = sample_dir }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+        local choose_btn = pc.button_dialog.buttons[1][2]
+        assert.are.equal("Choose", choose_btn.text)
+        choose_btn.callback()
+
+        assert.are.equal(sample_dir, confirmed_path)
+        assert.stub(close_spy).was_called_with(UIManager, pc.button_dialog)
+        assert.stub(close_spy).was_called_with(UIManager, pc)
+
+        show_stub:revert()
+        close_spy:revert()
+      end
+    )
+
+    it(
+      "allows selection of read-only file in onMenuHold when require_writable is false",
+      function()
+        local pc = createChooser({
+          select_file = true,
+          select_directory = false,
+          require_writable = false,
+        })
+        local show_stub = stub(UIManager, "show")
+
+        util.isFileRW = function()
+          return false
+        end
+
+        local item = { path = sample_file }
+        pc:onMenuHold(item)
+
+        assert.is_not_nil(pc.button_dialog)
+        show_stub:revert()
+      end
+    )
   end)
 end)

@@ -472,4 +472,145 @@ describe("FileChooser module", function()
 
     util.isDirRW = orig_isDirRW
   end)
+
+  it(
+    "should test getListItem decoration with require_writable option",
+    function()
+      local util = require("util")
+      local orig_isDirRW = util.isDirRW
+      local orig_isFileRW = util.isFileRW
+
+      local fc = FileChooser:new({
+        dimen = Screen:getSize(),
+        path = "/tmp",
+        require_writable = true,
+      })
+      local collate = fc:getCollate()
+
+      -- Directory unwritable
+      util.isDirRW = function()
+        return false
+      end
+      local ro_dir = fc:getListItem(
+        "/tmp",
+        "ro_dir",
+        "/tmp/ro_dir",
+        { mode = "directory" },
+        collate
+      )
+      assert.is_true(ro_dir.dim)
+      assert.is_not_nil(ro_dir.text:find("%(readonly%)"))
+
+      -- Directory writable
+      util.isDirRW = function()
+        return true
+      end
+      local rw_dir = fc:getListItem(
+        "/tmp",
+        "rw_dir",
+        "/tmp/rw_dir",
+        { mode = "directory" },
+        collate
+      )
+      assert.is_nil(rw_dir.dim)
+      assert.is_nil(rw_dir.text:find("%(readonly%)"))
+
+      -- File unwritable
+      util.isFileRW = function()
+        return false
+      end
+      local ro_file = fc:getListItem(
+        "/tmp",
+        "ro.epub",
+        "/tmp/ro.epub",
+        { mode = "file", size = 100 },
+        collate
+      )
+      assert.is_true(ro_file.dim)
+      assert.is_not_nil(ro_file.text:find("%(readonly%)"))
+
+      -- File writable
+      util.isFileRW = function()
+        return true
+      end
+      local rw_file = fc:getListItem(
+        "/tmp",
+        "rw.epub",
+        "/tmp/rw.epub",
+        { mode = "file", size = 100 },
+        collate
+      )
+      assert.is_nil(rw_file.dim)
+      assert.is_nil(rw_file.text:find("%(readonly%)"))
+
+      -- Mode nil or other
+      local unknown =
+        fc:getListItem("/tmp", "unknown", "/tmp/unknown", {}, collate)
+      assert.is_nil(unknown.dim)
+      assert.is_nil(unknown.text:find("%(readonly%)"))
+
+      -- When require_writable is false
+      fc.require_writable = false
+      util.isDirRW = function()
+        return false
+      end
+      util.isFileRW = function()
+        return false
+      end
+      local non_ro_dir = fc:getListItem(
+        "/tmp",
+        "ro_dir",
+        "/tmp/ro_dir",
+        { mode = "directory" },
+        collate
+      )
+      assert.is_nil(non_ro_dir.dim)
+      assert.is_nil(non_ro_dir.text:find("%(readonly%)"))
+
+      util.isDirRW = orig_isDirRW
+      util.isFileRW = orig_isFileRW
+    end
+  )
+
+  it(
+    "should test genItemTable with show_current_dir_for_hold and require_writable",
+    function()
+      local util = require("util")
+      local orig_isDirRW = util.isDirRW
+
+      local fc = FileChooser:new({
+        dimen = Screen:getSize(),
+        path = "/tmp/testdir",
+        show_current_dir_for_hold = true,
+        require_writable = true,
+      })
+
+      -- When current folder is unwritable
+      util.isDirRW = function(p)
+        return p ~= "/tmp/testdir"
+      end
+      local items_ro = fc:genItemTable({}, {}, "/tmp/testdir")
+      assert.is_true(items_ro[1].dim)
+      assert.is_not_nil(items_ro[1].text:find("%(readonly%)"))
+
+      -- When current folder is writable
+      util.isDirRW = function()
+        return true
+      end
+      local items_rw = fc:genItemTable({}, {}, "/tmp/testdir")
+      assert.is_false(items_rw[1].dim)
+      assert.is_nil(items_rw[1].text:find("%(readonly%)"))
+
+      -- When require_writable is false
+      fc.require_writable = false
+      util.isDirRW = function()
+        return false
+      end
+      local items_disabled = fc:genItemTable({}, {}, "/tmp/testdir")
+      assert.is_false(items_disabled[1].dim)
+      assert.is_nil(items_disabled[1].text:find("%(readonly%)"))
+
+      util.isDirRW = orig_isDirRW
+    end
+  )
 end)
