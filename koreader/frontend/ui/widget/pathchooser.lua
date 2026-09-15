@@ -185,13 +185,6 @@ function PathChooser:onMenuHold(item)
   self:showWidget(self.button_dialog)
 end
 
--- Checks whether the current path is considered unwritable when require_writable is enabled.
--- If require_writable is false, writability is not enforced and false is returned.
--- @return boolean: true if require_writable is enabled and self.path is not writable
-function PathChooser:_pathUnwritable()
-  return self.require_writable and not util.isDirRW(self.path)
-end
-
 function PathChooser:showPlusMenu()
   local button_dialog
   local is_ro = self:_pathUnwritable()

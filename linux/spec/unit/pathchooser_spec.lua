@@ -479,6 +479,7 @@ describe("PathChooser widget", function()
             return false
           end
           assert.is_false(pc:_pathUnwritable())
+          assert.is_false(pc:_pathUnwritable("/some/other/path"))
         end
       )
 
@@ -492,6 +493,7 @@ describe("PathChooser widget", function()
             return false
           end
           assert.is_true(pc:_pathUnwritable())
+          assert.is_true(pc:_pathUnwritable("/some/other/path"))
         end
       )
 
@@ -505,21 +507,23 @@ describe("PathChooser widget", function()
             return true
           end
           assert.is_false(pc:_pathUnwritable())
+          assert.is_false(pc:_pathUnwritable("/some/other/path"))
         end
       )
 
-      it("checks self.path", function()
+      it("checks given path or defaults to self.path", function()
         local pc = createChooser({
           require_writable = true,
         })
-        local checked_path = nil
+        local checked_paths = {}
         util.isDirRW = function(path)
-          checked_path = path
+          table.insert(checked_paths, path)
           return true
         end
         pc.path = "/my/current/dir"
         pc:_pathUnwritable()
-        assert.are.equal("/my/current/dir", checked_path)
+        pc:_pathUnwritable("/explicit/path")
+        assert.are.same({ "/my/current/dir", "/explicit/path" }, checked_paths)
       end)
     end)
 

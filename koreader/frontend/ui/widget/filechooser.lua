@@ -493,6 +493,14 @@ function FileChooser:clearSortingCache()
   self.sort_cache = nil
 end
 
+-- Checks whether a directory path is considered unwritable when require_writable is enabled.
+-- If require_writable is false, writability is not enforced and false is returned.
+-- @param[opt] path string: the directory path to check, defaults to self.path
+-- @return boolean: true if require_writable is enabled and path is not writable
+function FileChooser:_pathUnwritable(path)
+  return self.require_writable and not util.isDirRW(path or self.path)
+end
+
 function FileChooser:genItemTableFromPath(path)
   local collate = self:getCollate()
   local dirs, files = self:getList(path, collate)
@@ -535,7 +543,7 @@ function FileChooser:genItemTable(dirs, files, path)
       })
     end
     if self.show_current_dir_for_hold then
-      local is_ro = self.require_writable and not util.isDirRW(path)
+      local is_ro = self:_pathUnwritable(path)
       table.insert(item_table, 1, {
         text = gettext("Long-press to choose current folder")
           .. (is_ro and (" (" .. gettext("readonly") .. ")") or ""),
