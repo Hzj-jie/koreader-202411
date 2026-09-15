@@ -18,9 +18,11 @@ Example:
   end
 ]]
 
+local Notification = require("ui/widget/notification")
 local PathChooser = require("ui/widget/pathchooser")
 local UIManager = require("ui/uimanager")
-local util = require("ffi/util")
+local gettext = require("gettext")
+local util = require("util")
 
 local DownloadMgr = {
   onConfirm = function() end,
@@ -33,21 +35,36 @@ function DownloadMgr:new(from_o)
   return o
 end
 
+local function getDownloadDir(dir)
+  return dir
+    or G_reader_settings:read("download_dir")
+    or G_named_settings.lastdir()
+end
+
+--- Pre-flight check for download directory before starting a download.
+-- If directory is read-only or unwritable, notifies the user and returns false.
+-- @tparam[opt] string dir directory to check
+-- @treturn bool true if download directory is writable
+function DownloadMgr.checkDownloadDir(dir)
+  if not util.isDirRW(getDownloadDir(dir), true) then
+    UIManager:show(Notification:new({
+      text = gettext(
+        "Download directory is read-only. Please choose a writable directory."
+      ),
+    }))
+    return false
+  end
+  return true
+end
+
 --- Displays a PathChooser widget for picking a (download) directory.
 -- @treturn string path chosen by the user
 function DownloadMgr:chooseDir(dir)
-  local path
-  if dir then
-    path = dir
-  else
-    local download_dir = G_reader_settings:read("download_dir")
-    path = download_dir and util.realpath(download_dir .. "/..")
-      or G_named_settings.lastdir()
-  end
   local path_chooser = PathChooser:new({
     select_file = false,
     show_files = false,
-    path = path,
+    require_writable = true,
+    path = getDownloadDir(dir),
     onConfirm = function(dir_path)
       self.onConfirm(dir_path)
     end,

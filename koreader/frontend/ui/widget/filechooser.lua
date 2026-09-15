@@ -27,6 +27,7 @@ local FileChooser = Menu:extend({
   show_hidden = G_reader_settings:isTrue("show_hidden"), -- folders/files starting with "."
   show_unsupported = G_reader_settings:isTrue("show_unsupported"), -- set to true to ignore file_filter
   file_filter = nil, -- function defined in the caller, returns true for files to be shown
+  require_writable = false, -- require selected paths to be writable
   path_items = nil, -- hash, store last browsed location (item index) for each path
   goto_letter = true,
   collates = {
@@ -447,6 +448,14 @@ function FileChooser:getListItem(dirpath, f, fullpath, attributes, collate)
       end
     end
   end
+  -- If attributes.mode is not nil, the file or directory exists.
+  if self.require_writable and attributes.mode then
+    local check = attributes.mode == "file" and util.isFileRW or util.isDirRW
+    if not check(fullpath) then
+      item.dim = true -- dim means read-only when require_writable is true
+      item.text = item.text .. " (" .. gettext("readonly") .. ")"
+    end
+  end
   return item
 end
 
@@ -482,6 +491,14 @@ end
 
 function FileChooser:clearSortingCache()
   self.sort_cache = nil
+end
+
+-- Checks whether a directory path is considered unwritable when require_writable is enabled.
+-- If require_writable is false, writability is not enforced and false is returned.
+-- @param[opt] path string: the directory path to check, defaults to self.path
+-- @return boolean: true if require_writable is enabled and path is not writable
+function FileChooser:_pathUnwritable(path)
+  return self.require_writable and not util.isDirRW(path or self.path)
 end
 
 function FileChooser:genItemTableFromPath(path)
@@ -526,9 +543,12 @@ function FileChooser:genItemTable(dirs, files, path)
       })
     end
     if self.show_current_dir_for_hold then
+      local is_ro = self:_pathUnwritable(path)
       table.insert(item_table, 1, {
-        text = gettext("Long-press to choose current folder"),
+        text = gettext("Long-press to choose current folder")
+          .. (is_ro and (" (" .. gettext("readonly") .. ")") or ""),
         path = path .. "/.",
+        dim = is_ro,
       })
     end
   end
