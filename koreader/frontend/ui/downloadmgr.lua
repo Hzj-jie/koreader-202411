@@ -36,14 +36,18 @@ function DownloadMgr:new(from_o)
   return o
 end
 
+local function getDownloadDir(dir)
+  return dir
+    or G_reader_settings:read("download_dir")
+    or G_named_settings.lastdir()
+end
+
 --- Pre-flight check for download directory before starting a download.
 -- If directory is read-only or unwritable, notifies the user and returns false.
 -- @tparam[opt] string dir directory to check
 -- @treturn bool true if download directory is writable
 function DownloadMgr.checkDownloadDir(dir)
-  dir = dir
-    or G_reader_settings:read("download_dir")
-    or G_named_settings.lastdir()
+  dir = getDownloadDir(dir)
   if not util.isDirRW(dir, true) then
     UIManager:show(Notification:new({
       text = gettext(
@@ -62,9 +66,9 @@ function DownloadMgr:chooseDir(dir)
   if dir then
     path = dir
   else
-    local download_dir = G_reader_settings:read("download_dir")
+    local download_dir = getDownloadDir()
     path = download_dir and ffiutil.realpath(download_dir .. "/..")
-      or G_named_settings.lastdir()
+      or download_dir
   end
   local path_chooser = PathChooser:new({
     select_file = false,

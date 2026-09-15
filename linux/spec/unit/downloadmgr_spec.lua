@@ -65,7 +65,7 @@ describe("DownloadMgr module", function()
       end
       mgr:chooseDir()
       assert.truthy(shown_widget)
-      assert.are.equal("/tmp/test_dir", shown_widget.path)
+      assert.are.equal("/tmp", shown_widget.path)
 
       G_named_settings.lastdir = orig_lastdir
       UIManager.show = orig_show
