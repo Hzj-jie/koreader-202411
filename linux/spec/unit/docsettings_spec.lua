@@ -555,6 +555,140 @@ describe("docsettings module", function()
         os.remove(file)
       end
     )
+
+    it(
+      "falls back to hash location when dir is preferred and dir location is read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local file = "/tmp/test_ro_doc_dir_pref.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if dir == d.dir_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 50)
+        local saved_dir = d:flush()
+        assert.are.equal(d.hash_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("internal storage"))
+
+        d:close()
+        d:purge()
+        os.remove(file)
+      end
+    )
+
+    it(
+      "falls back to doc location when dir is preferred and both dir and hash are read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local file = "/tmp/test_ro_doc_dir_pref2.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if dir == d.dir_sidecar_dir or dir == d.hash_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 60)
+        local saved_dir = d:flush()
+        assert.are.equal(d.doc_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("internal storage"))
+
+        d:close()
+        d:purge()
+        os.remove(file)
+      end
+    )
+
+    it(
+      "falls back to dir location when hash is preferred and hash location is read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local file = "/tmp/test_ro_doc_hash_pref.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if dir == d.hash_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 70)
+        local saved_dir = d:flush()
+        assert.are.equal(d.dir_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("internal storage"))
+
+        d:close()
+        d:purge()
+        os.remove(file)
+      end
+    )
+
+    it(
+      "falls back to doc location when hash is preferred and both hash and dir are read-only",
+      function()
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local file = "/tmp/test_ro_doc_hash_pref2.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+
+        util.isDirRW = function(dir, create)
+          if dir == d.hash_sidecar_dir or dir == d.dir_sidecar_dir then
+            return false
+          end
+          return original_isDirRW(dir, create)
+        end
+
+        d:save("page", 80)
+        local saved_dir = d:flush()
+        assert.are.equal(d.doc_sidecar_dir, saved_dir)
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(shown_notifications[1].text:find("internal storage"))
+
+        d:close()
+        d:purge()
+        os.remove(file)
+      end
+    )
+
+    it(
+      "returns nil for flushCustomCover and flushCustomMetadata when all locations are read-only",
+      function()
+        local file = "/tmp/test_ro_all_custom.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+        local tmp_cover = "/tmp/test_ro_cov_fail.jpg"
+        local f = io.open(tmp_cover, "w")
+        if f then
+          f:write("cover data")
+          f:close()
+        end
+
+        util.isDirRW = function()
+          return false
+        end
+
+        assert.is_nil(d:flushCustomCover(file, tmp_cover))
+        assert.is_nil(d:flushCustomMetadata(file))
+
+        d:close()
+        os.remove(tmp_cover)
+        os.remove(file)
+      end
+    )
   end)
 
   describe("getLocationCandidates ordering", function()
@@ -632,6 +766,69 @@ describe("docsettings module", function()
         candidates[4].dir
       )
     end)
+
+    it(
+      "resolves candidates using instance self.data.doc_path when parameter is omitted",
+      function()
+        local d = docsettings:open("/tmp/test_candidate_instance.epub")
+        local candidates = d:getLocationCandidates()
+        assert.are.equal(4, #candidates)
+        assert.is_truthy(candidates[1].dir:find("test_candidate_instance"))
+        d:close()
+      end
+    )
+
+    it("handles document paths without file extension", function()
+      local candidates =
+        docsettings:getLocationCandidates("/tmp/book_without_ext")
+      assert.are.equal(4, #candidates)
+      assert.are.equal("/tmp/book_without_ext.sdr", candidates[1].dir)
+      assert.are.equal(
+        docsettings_dir .. "/tmp/book_without_ext.sdr",
+        candidates[2].dir
+      )
+    end)
+
+    it(
+      "falls back to stem in hash location when util.partialMD5 returns nil",
+      function()
+        local orig_partialMD5 = util.partialMD5
+        util.partialMD5 = function()
+          return nil
+        end
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local candidates =
+          docsettings:getLocationCandidates("/tmp/unhashable_doc.pdf")
+        util.partialMD5 = orig_partialMD5
+        assert.are.equal(4, #candidates)
+        assert.are.equal("/tmp/unhashable_doc.sdr", candidates[1].dir)
+      end
+    )
+
+    it("reuses cached partial MD5 hash on repeated calls", function()
+      local file = "/tmp/test_hash_cache.pdf"
+      local f = io.open(file, "w")
+      if f then
+        f:write("%PDF-1.4 test content for md5 cache")
+        f:close()
+      end
+
+      local hash_call_count = 0
+      local orig_partialMD5 = util.partialMD5
+      util.partialMD5 = function(p)
+        hash_call_count = hash_call_count + 1
+        return orig_partialMD5(p)
+      end
+
+      G_reader_settings:save("document_metadata_folder", "hash")
+      local cands1 = docsettings:getLocationCandidates(file)
+      local cands2 = docsettings:getLocationCandidates(file)
+      util.partialMD5 = orig_partialMD5
+
+      assert.are.equal(1, hash_call_count)
+      assert.are.equal(cands1[1].dir, cands2[1].dir)
+      os.remove(file)
+    end)
   end)
 
   describe("removeSidecarDir", function()
@@ -668,6 +865,37 @@ describe("docsettings module", function()
         lfs.rmdir(parent_dir)
       end
     )
+
+    it(
+      "handles nil, empty string, and non-existent path without error",
+      function()
+        assert.has_no_errors(function()
+          docsettings.removeSidecarDir(nil)
+          docsettings.removeSidecarDir("")
+          docsettings.removeSidecarDir("/tmp/nonexistent_dir_path_12345")
+        end)
+      end
+    )
+
+    it("does not delete non-empty directory", function()
+      local test_dir = "/tmp/koreader_nonempty_" .. tostring(os.time())
+      local sdr_dir = test_dir .. "/book.sdr"
+      util.makePath(sdr_dir)
+      local test_file = sdr_dir .. "/keepme.txt"
+      local f = io.open(test_file, "w")
+      if f then
+        f:write("keep")
+        f:close()
+      end
+
+      docsettings.removeSidecarDir(sdr_dir)
+      assert.are.equal("directory", lfs.attributes(sdr_dir, "mode"))
+
+      os.remove(test_file)
+      docsettings.removeSidecarDir(sdr_dir)
+      assert.is_nil(lfs.attributes(sdr_dir, "mode"))
+      lfs.rmdir(test_dir)
+    end)
   end)
 
   describe("getSidecarFilename", function()
@@ -796,6 +1024,80 @@ describe("docsettings module", function()
         local hist_name = ffiutil.basename(hist_path)
         assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_name))
         assert.is_nil(docsettings:getFileFromHistory("invalid.lua"))
+      end
+    )
+  end)
+
+  describe("getCustomLocationCandidates", function()
+    local test_doc = "/tmp/test_custom_cand.epub"
+
+    after_each(function()
+      docsettings.updateLocation(test_doc, nil)
+      os.remove(test_doc)
+      G_reader_settings:delete("document_metadata_folder")
+    end)
+
+    it(
+      "returns all candidate directories when no sidecar file exists",
+      function()
+        local cands = docsettings:getCustomLocationCandidates(test_doc)
+        assert.are.equal(4, #cands)
+        assert.are.equal("/tmp/test_custom_cand.sdr", cands[1])
+      end
+    )
+
+    it("returns only existing sidecar dir when sidecar file exists", function()
+      local d = docsettings:open(test_doc)
+      d:save("page", 1)
+      d:flush()
+      d:close()
+
+      local cands = docsettings:getCustomLocationCandidates(test_doc)
+      assert.are.equal(1, #cands)
+      assert.are.equal(d.doc_sidecar_dir, cands[1])
+    end)
+  end)
+
+  describe("updateLocation with read-only fallback", function()
+    it(
+      "falls back to next writable directory when new doc directory is read-only",
+      function()
+        local orig_file = "/tmp/test_upd_ro_orig.epub"
+        local new_file = "/tmp/test_upd_ro_new.epub"
+        local tmp_cover = "/tmp/test_upd_ro_cov.jpg"
+
+        local f = io.open(tmp_cover, "w")
+        if f then
+          f:write("cover data")
+          f:close()
+        end
+
+        local d = docsettings:open(orig_file)
+        d:save("title", "Update RO Test")
+        d:flush()
+        d:flushCustomCover(orig_file, tmp_cover)
+        d:close()
+
+        local orig_isDirRW = util.isDirRW
+        local new_doc_sdr = docsettings:getLocationCandidates(new_file)[1].dir
+        util.isDirRW = function(dir, create)
+          if dir == new_doc_sdr then
+            return false
+          end
+          return orig_isDirRW(dir, create)
+        end
+
+        docsettings.updateLocation(orig_file, new_file, true)
+        util.isDirRW = orig_isDirRW
+
+        local found_cover = docsettings:findCustomCoverFile(new_file)
+        assert.is_truthy(found_cover)
+        assert.is_nil(found_cover:find("^" .. new_doc_sdr))
+
+        docsettings.updateLocation(new_file, nil)
+        docsettings.updateLocation(orig_file, nil)
+        os.remove(tmp_cover)
+        os.remove(orig_file)
       end
     )
   end)
