@@ -78,8 +78,6 @@ end
 -- String literals are kept directly inside gettext() calls here so that
 -- xgettext (update-po.sh) can statically extract them into translation templates.
 local function notifyUser(reason)
-  local Notification = require("ui/widget/notification")
-  local UIManager = require("ui/uimanager")
   local gettext = require("gettext")
 
   local text
@@ -98,7 +96,9 @@ local function notifyUser(reason)
   else
     text = reason
   end
-  UIManager:show(Notification:new({ text = text }))
+  require("ui/uimanager"):show(
+    require("ui/widget/notification"):new({ text = text })
+  )
 end
 
 function DocSettings:getLocationCandidates(doc_path)
