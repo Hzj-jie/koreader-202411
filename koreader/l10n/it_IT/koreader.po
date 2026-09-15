@@ -24078,3 +24078,227 @@ msgstr "annotazioni"
 
 #~ msgid "10 deg"
 #~ msgstr "10°"
+
+# --- AnnotationSync plugin translations ---
+
+msgid "Annotation Sync"
+msgstr "Sincronizzazione Annotazioni"
+
+msgid "annotation_sync_plugin"
+msgstr "annotation_sync_plugin"
+
+msgid "Sync annotations and bookmarks between devices."
+msgstr "Sincronizza annotazioni e segnalibri tra dispositivi."
+
+msgid "Cloud settings"
+msgstr "Impostazioni cloud"
+
+msgid "Use filename instead of hash"
+msgstr "Usa il nome del file invece dell'hash"
+
+msgid "Automatically Sync All when network becomes available"
+msgstr "Sincronizza tutto automaticamente quando la rete diventa disponibile"
+
+msgid "Enable Reading Progress Sync"
+msgstr "Abilita sincronizzazione progresso di lettura"
+
+msgid "Sync using last word of page"
+msgstr "Sincronizza usando l'ultima parola della pagina"
+
+msgid "Sync every %1 pages"
+msgstr "Sincronizza ogni %1 pagine"
+
+msgid "Sync every # pages"
+msgstr "Sincronizza ogni # pagine"
+
+msgid "Device name: %1"
+msgstr "Nome dispositivo: %1"
+
+msgid "Set device name"
+msgstr "Imposta nome dispositivo"
+
+msgid "Leave empty to use the default device name."
+msgstr "Lascia vuoto per usare il nome dispositivo predefinito."
+
+msgid "Show changed settings"
+msgstr "Mostra impostazioni modificate"
+
+msgid "Current cloud: %1"
+msgstr "Cloud corrente: %1"
+
+msgid "Push settings to cloud"
+msgstr "Invia impostazioni al cloud"
+
+msgid "Pull settings from cloud"
+msgstr "Ricevi impostazioni dal cloud"
+
+msgid "Manual Sync"
+msgstr "Sincronizzazione manuale"
+
+msgid "Jump to device progress"
+msgstr "Vai al progresso del dispositivo"
+
+msgid "Sync All"
+msgstr "Sincronizza tutto"
+
+msgid "Show pending/unsynced documents"
+msgstr "Mostra documenti in attesa/non sincronizzati"
+
+msgid "Show Deleted"
+msgstr "Mostra eliminati"
+
+msgid "Last sync: %1"
+msgstr "Ultima sincronizzazione: %1"
+
+msgid "Plugin version: %1"
+msgstr "Versione plugin: %1"
+
+msgid "Why are some options greyed out?"
+msgstr "Perché alcune opzioni sono disattivate?"
+
+msgid "Reading progress sync is not supported on this version of KOReader."
+msgstr "La sincronizzazione del progresso di lettura non è supportata su questa versione di KOReader."
+
+msgid "A document must be active to jump to device progress."
+msgstr "Un documento deve essere attivo per passare al progresso del dispositivo."
+
+msgid "AnnotationSync: Manual Sync"
+msgstr "AnnotationSync: Sincronizzazione manuale"
+
+msgid "AnnotationSync: Push settings to cloud"
+msgstr "AnnotationSync: Invia impostazioni al cloud"
+
+msgid "Push the selected settings to the cloud."
+msgstr "Invia le impostazioni selezionate al cloud."
+
+msgid "AnnotationSync: Pull settings from cloud"
+msgstr "AnnotationSync: Ricevi impostazioni dal cloud"
+
+msgid "Pull the selected settings from the cloud."
+msgstr "Ricevi le impostazioni selezionate dal cloud."
+
+msgid "AnnotationSync: Jump to device progress"
+msgstr "AnnotationSync: Vai al progresso del dispositivo"
+
+msgid "AnnotationSync: Sync All"
+msgstr "AnnotationSync: Sincronizza tutto"
+
+msgid "Annotation restored."
+msgstr "Annotazione ripristinata."
+
+msgid "Restored %1 annotations."
+msgstr "Ripristinate %1 annotazioni."
+
+msgid "Network is disconnected, cannot pull progress"
+msgstr "La rete è disconnessa, impossibile ricevere i progressi"
+
+msgid "Fetching remote progress..."
+msgstr "Recupero dei progressi remoti in corso..."
+
+msgid "Failed to fetch remote progress"
+msgstr "Impossibile recuperare i progressi remoti"
+
+msgid "Open Manager"
+msgstr "Apri gestore"
+
+msgid "No hash"
+msgstr "Nessun hash"
+
+msgid "Failed to write settings to local storage."
+msgstr "Impossibile scrivere le impostazioni nella memoria locale."
+
+msgid "Pushing settings to cloud..."
+msgstr "Invio delle impostazioni al cloud in corso..."
+
+msgid "Network is disconnected, cannot pull settings"
+msgstr "La rete è disconnessa, impossibile ricevere le impostazioni"
+
+msgid "Fetching settings from cloud..."
+msgstr "Recupero delle impostazioni dal cloud in corso..."
+
+msgid "Failed to fetch settings from cloud"
+msgstr "Impossibile recuperare le impostazioni dal cloud"
+
+msgid "No deleted annotations found for this document."
+msgstr "Nessuna annotazione eliminata trovata per questo documento."
+
+msgid "Restore All"
+msgstr "Ripristina tutto"
+
+msgid "Are you sure you want to restore all %1 deleted annotations?"
+msgstr "Sei sicuro di voler ripristinare tutte le %1 annotazioni eliminate?"
+
+msgid "Deleted Annotations"
+msgstr "Annotazioni eliminate"
+
+msgid "(this device)"
+msgstr "(questo dispositivo)"
+
+msgid "Jumped to page %1 from %2"
+msgstr "Passato alla pagina %1 da %2"
+
+msgid "No remote progress found."
+msgstr "Nessun progresso remoto trovato."
+
+msgid "No other devices found in cloud settings."
+msgstr "Nessun altro dispositivo trovato nelle impostazioni cloud."
+
+msgid "No differing settings found for this device."
+msgstr "Nessuna impostazione differente trovata per questo dispositivo."
+
+msgid "Import Selected Settings"
+msgstr "Importa impostazioni selezionate"
+
+msgid "Successfully imported %1 settings."
+msgstr "Importate con successo %1 impostazioni."
+
+msgid "No settings imported."
+msgstr "Nessuna impostazione importata."
+
+msgid "Select All"
+msgstr "Seleziona tutto"
+
+msgid "Clear Selection"
+msgstr "Cancella selezione"
+
+msgid "Settings from %1"
+msgstr "Impostazioni da %1"
+
+msgid "No pending documents to sync."
+msgstr "Nessun documento in attesa da sincronizzare."
+
+msgid "Sync now"
+msgstr "Sincronizza ora"
+
+msgid "Syncing %1..."
+msgstr "Sincronizzazione di %1 in corso..."
+
+msgid "Successfully synced %1"
+msgstr "%1 sincronizzato con successo"
+
+msgid "Failed to sync %1"
+msgstr "Impossibile sincronizzare %1"
+
+msgid "Could not open %1 for sync"
+msgstr "Impossibile aprire %1 per la sincronizzazione"
+
+msgid "Remove from list"
+msgstr "Rimuovi dalla lista"
+
+msgid "Removed %1 from sync list"
+msgstr "Rimosso %1 dall'elenco di sincronizzazione"
+
+msgid "Pending Documents"
+msgstr "Documenti in attesa"
+
+msgid "Cloud Storage plugin is not enabled or available."
+msgstr "Il plugin Cloud Storage non è abilitato o disponibile."
+
+msgid "No cloud destination set in settings."
+msgstr "Nessuna destinazione cloud impostata nelle impostazioni."
+
+msgid "No changed settings found."
+msgstr "Nessuna impostazione modificata trovata."
+
+msgid "Changed Settings"
+msgstr "Impostazioni modificate"
