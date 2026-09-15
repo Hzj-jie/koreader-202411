@@ -101,35 +101,6 @@ local function notifyUser(reason)
   )
 end
 
-local function getHashSidecarDir(doc_path, stem)
-  local hsh = doc_hash_cache[doc_path]
-  if not hsh then
-    hsh = util.partialMD5(doc_path)
-    if hsh then
-      doc_hash_cache[doc_path] = hsh
-      logger.dbg(
-        "DocSettings: Caching new partial MD5 hash for",
-        doc_path,
-        "as",
-        hsh
-      )
-    end
-  else
-    logger.dbg(
-      "DocSettings: Using cached partial MD5 hash for",
-      doc_path,
-      "as",
-      hsh
-    )
-  end
-  if hsh then
-    -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
-    local subpath = string.format("/%s/", hsh:sub(1, 2))
-    return DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
-  end
-  return stem .. ".sdr"
-end
-
 function DocSettings:getLocationCandidates(doc_path)
   doc_path = doc_path or self.doc_path or (self.data and self.data.doc_path)
   if not doc_path or doc_path == "" then
@@ -147,7 +118,34 @@ function DocSettings:getLocationCandidates(doc_path)
   }
   local hash_cand = {
     location = "hash",
-    dir = getHashSidecarDir(doc_path, stem),
+    dir = (function()
+      local hsh = doc_hash_cache[doc_path]
+      if not hsh then
+        hsh = util.partialMD5(doc_path)
+        if hsh then
+          doc_hash_cache[doc_path] = hsh
+          logger.dbg(
+            "DocSettings: Caching new partial MD5 hash for",
+            doc_path,
+            "as",
+            hsh
+          )
+        end
+      else
+        logger.dbg(
+          "DocSettings: Using cached partial MD5 hash for",
+          doc_path,
+          "as",
+          hsh
+        )
+      end
+      if hsh then
+        -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
+        local subpath = string.format("/%s/", hsh:sub(1, 2))
+        return DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+      end
+      return stem .. ".sdr"
+    end)(),
   }
   local tmp_cand = {
     location = "",
