@@ -21,7 +21,6 @@ Example:
 local Notification = require("ui/widget/notification")
 local PathChooser = require("ui/widget/pathchooser")
 local UIManager = require("ui/uimanager")
-local ffiutil = require("ffi/util")
 local gettext = require("gettext")
 local util = require("util")
 
@@ -36,17 +35,10 @@ function DownloadMgr:new(from_o)
   return o
 end
 
---- Checks whether the download directory is valid and writable.
--- @tparam[opt] string dir directory to check, defaults to saved download_dir
--- @treturn bool true if directory exists and is writable
-function DownloadMgr.isDownloadDirWritable(dir)
-  if type(dir) == "table" then
-    dir = nil
-  end
-  dir = dir
+local function getDownloadDir(dir)
+  return dir
     or G_reader_settings:read("download_dir")
     or G_named_settings.lastdir()
-  return util.isDirRW(dir, true)
 end
 
 --- Pre-flight check for download directory before starting a download.
@@ -54,13 +46,7 @@ end
 -- @tparam[opt] string dir directory to check
 -- @treturn bool true if download directory is writable
 function DownloadMgr.checkDownloadDir(dir)
-  if type(dir) == "table" then
-    dir = nil
-  end
-  dir = dir
-    or G_reader_settings:read("download_dir")
-    or G_named_settings.lastdir()
-  if not util.isDirRW(dir, true) then
+  if not util.isDirRW(getDownloadDir(dir), true) then
     UIManager:show(Notification:new({
       text = gettext(
         "Download directory is read-only. Please choose a writable directory."
@@ -74,19 +60,11 @@ end
 --- Displays a PathChooser widget for picking a (download) directory.
 -- @treturn string path chosen by the user
 function DownloadMgr:chooseDir(dir)
-  local path
-  if dir then
-    path = dir
-  else
-    local download_dir = G_reader_settings:read("download_dir")
-    path = download_dir and ffiutil.realpath(download_dir .. "/..")
-      or G_named_settings.lastdir()
-  end
   local path_chooser = PathChooser:new({
     select_file = false,
     show_files = false,
     require_writable = true,
-    path = path,
+    path = getDownloadDir(dir),
     onConfirm = function(dir_path)
       self.onConfirm(dir_path)
     end,

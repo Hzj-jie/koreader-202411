@@ -458,9 +458,6 @@ describe("CloudStorage", function()
           end,
         }
       end,
-      isDownloadDirWritable = function()
-        return true
-      end,
       checkDownloadDir = function()
         return true
       end,

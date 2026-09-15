@@ -28,11 +28,17 @@ local PathChooser = FileChooser:extend({
 function PathChooser:init()
   if self.title == true then -- default title depending on options
     if self.select_directory and not self.select_file then
-      self.title = gettext("Long-press to choose a folder")
+      self.title = self.require_writable
+          and gettext("Long-press to choose a writable folder")
+        or gettext("Long-press to choose a folder")
     elseif not self.select_directory and self.select_file then
-      self.title = gettext("Long-press to choose a file")
+      self.title = self.require_writable
+          and gettext("Long-press to choose a writable file")
+        or gettext("Long-press to choose a file")
     else
-      self.title = gettext("Long-press to choose")
+      self.title = self.require_writable
+          and gettext("Long-press to choose a writable path")
+        or gettext("Long-press to choose")
     end
   end
   if not self.show_files then
@@ -95,32 +101,6 @@ function PathChooser:onMenuSelect(item)
   return true
 end
 
-function PathChooser:genItemTable(dirs, files, path)
-  local item_table = FileChooser.genItemTable(self, dirs, files, path)
-  if self.require_writable then
-    for _, item in ipairs(item_table) do
-      if item.path and not item.is_go_up and not item.is_readonly then
-        local check_path = item.path
-        if check_path:sub(-2, -1) == "/." then
-          check_path = check_path:sub(1, -3)
-          if check_path == "" then
-            check_path = "/"
-          end
-        end
-        local attr = item.attr or lfs.attributes(check_path)
-        if attr and attr.mode == "directory" then
-          if not util.isDirRW(check_path) then
-            item.dim = true
-            item.is_readonly = true
-            item.text = item.text .. " (" .. gettext("readonly") .. ")"
-          end
-        end
-      end
-    end
-  end
-  return item_table
-end
-
 function PathChooser:onMenuHold(item)
   local path = item.path
   if path:sub(-2, -1) == "/." then -- with show_current_dir_for_hold
@@ -141,13 +121,18 @@ function PathChooser:onMenuHold(item)
     return
   end
   if self.require_writable then
-    local test_dir = attr.mode == "directory" and path
-      or util.splitFilePathName(path)
-    if not util.isDirRW(test_dir) then
+    local is_file = attr.mode == "file"
+    local check = is_file and util.isFileRW or util.isDirRW
+    -- dim means read-only when require_writable is true
+    if item.dim or not check(path) then
       UIManager:show(Notification:new({
-        text = gettext(
-          "Selected folder is read-only. Please choose a writable folder."
-        ),
+        text = is_file
+            and gettext(
+              "Selected file is read-only. Please choose a writable file."
+            )
+          or gettext(
+            "Selected folder is read-only. Please choose a writable folder."
+          ),
       }))
       return
     end
@@ -202,6 +187,7 @@ end
 
 function PathChooser:showPlusMenu()
   local button_dialog
+  local is_ro = self:_pathUnwritable()
   button_dialog = ButtonDialog:new({
     buttons = {
       {
@@ -220,10 +206,12 @@ function PathChooser:showPlusMenu()
       },
       {
         {
-          text = gettext("New folder"),
+          text = gettext("New folder") .. (is_ro and (" (" .. gettext(
+            "current folder is read-only"
+          ) .. ")") or ""),
+          enabled = not is_ro,
           callback = function()
-            UIManager:close(button_dialog)
-            if self.require_writable and not util.isDirRW(self.path) then
+            if self:_pathUnwritable() then
               UIManager:show(Notification:new({
                 text = gettext(
                   "Current folder is read-only. Cannot create a new folder."
@@ -231,6 +219,7 @@ function PathChooser:showPlusMenu()
               }))
               return
             end
+            UIManager:close(button_dialog)
             local FileManager = require("apps/filemanager/filemanager")
             FileManager.file_chooser = self
             FileManager:createFolder()
