@@ -696,11 +696,11 @@ describe("PathChooser widget", function()
     )
 
     it(
-      "blocks file selection when require_writable=true and parent folder is read-only",
+      "blocks directory selection in onMenuHold when require_writable=true and directory is read-only",
       function()
         local pc = createChooser({
-          select_file = true,
-          select_directory = false,
+          select_file = false,
+          select_directory = true,
           require_writable = true,
         })
         local shown_notifications = {}
@@ -712,7 +712,7 @@ describe("PathChooser widget", function()
           return false
         end
 
-        local item = { path = sample_file }
+        local item = { path = sample_dir }
         pc:onMenuHold(item)
 
         assert.are.equal(1, #shown_notifications)
@@ -724,11 +724,11 @@ describe("PathChooser widget", function()
     )
 
     it(
-      "allows file selection when require_writable=true and parent folder is writable",
+      "allows directory selection in onMenuHold when require_writable=true and directory is writable",
       function()
         local pc = createChooser({
-          select_file = true,
-          select_directory = false,
+          select_file = false,
+          select_directory = true,
           require_writable = true,
         })
         local show_stub = stub(UIManager, "show")
@@ -737,7 +737,7 @@ describe("PathChooser widget", function()
           return true
         end
 
-        local item = { path = sample_file }
+        local item = { path = sample_dir }
         pc:onMenuHold(item)
 
         assert.is_not_nil(pc.button_dialog)
@@ -957,7 +957,7 @@ describe("PathChooser widget", function()
     )
 
     it(
-      "allows file selection in onMenuHold when both file and parent folder are writable",
+      "allows file selection in onMenuHold when file is writable even if parent folder is read-only",
       function()
         local pc = createChooser({
           select_file = true,
@@ -967,7 +967,7 @@ describe("PathChooser widget", function()
         local show_stub = stub(UIManager, "show")
 
         util.isDirRW = function()
-          return true
+          return false
         end
         util.isFileRW = function()
           return true
