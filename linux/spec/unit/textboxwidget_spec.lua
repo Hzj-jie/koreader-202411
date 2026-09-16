@@ -330,27 +330,30 @@ describe("TextBoxWidget widget", function()
     assert.truthy(extracted_word)
   end)
 
-  it("should handle onHoldPanText and _findWordEdge with use_xtext = false", function()
-    local tw = TextBoxWidget:new({
-      width = 300,
-      use_xtext = false,
-      face = Font:getFace("cfont", 20),
-      text = "First word and second word in a sentence.",
-    })
-    -- Start hold
-    local res = tw:onHoldStartText(nil, { pos = { x = 10, y = 5 } })
-    assert.is_true(res)
+  it(
+    "should handle onHoldPanText and _findWordEdge with use_xtext = false",
+    function()
+      local tw = TextBoxWidget:new({
+        width = 300,
+        use_xtext = false,
+        face = Font:getFace("cfont", 20),
+        text = "First word and second word in a sentence.",
+      })
+      -- Start hold
+      local res = tw:onHoldStartText(nil, { pos = { x = 10, y = 5 } })
+      assert.is_true(res)
 
-    -- Pan across text
-    res = tw:onHoldPanText(nil, { pos = { x = 100, y = 5 } })
-    assert.is_true(res)
-    assert.is_not_nil(tw.sel_start_idx)
-    assert.is_not_nil(tw.sel_end_idx)
+      -- Pan across text
+      res = tw:onHoldPanText(nil, { pos = { x = 100, y = 5 } })
+      assert.is_true(res)
+      assert.is_not_nil(tw.sel_start_idx)
+      assert.is_not_nil(tw.sel_end_idx)
 
-    -- Out-of-bounds hold start returns false
-    res = tw:onHoldStartText(nil, { pos = { x = -10, y = -10 } })
-    assert.is_false(res)
-  end)
+      -- Out-of-bounds hold start returns false
+      res = tw:onHoldStartText(nil, { pos = { x = -10, y = -10 } })
+      assert.is_false(res)
+    end
+  )
 
   it("should handle cursor movements in all directions", function()
     local tw = TextBoxWidget:new({
@@ -439,4 +442,35 @@ describe("TextBoxWidget widget", function()
     assert.is_true(size.w > 0)
     assert.is_true(size.h > 0)
   end)
+
+  it(
+    "should ensure _bb is generated and blitted in paintTo when _bb is nil",
+    function()
+      local Blitbuffer = require("ffi/blitbuffer")
+      local tw = TextBoxWidget:new({
+        width = 200,
+        text = "Test text for paintTo",
+      })
+      local canvas = Blitbuffer.new(300, 300)
+
+      -- Invalidate _bb
+      tw._bb = nil
+      assert.has_no.errors(function()
+        tw:paintTo(canvas, 0, 0)
+      end)
+      assert.is_not_nil(tw._bb)
+      assert.is_true(tw._bb:getHeight() > 0)
+
+      -- Free widget and paint again
+      tw:free()
+      assert.is_nil(tw._bb)
+      assert.has_no.errors(function()
+        tw:paintTo(canvas, 0, 0)
+      end)
+      assert.is_not_nil(tw._bb)
+      assert.is_true(tw._bb:getHeight() > 0)
+
+      canvas:free()
+    end
+  )
 end)
