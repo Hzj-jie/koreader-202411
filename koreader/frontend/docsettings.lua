@@ -280,6 +280,9 @@ function DocSettings:open(doc_path)
     if util.directoryExists(cand.dir) then
       table.insert(candidates_list, cand.dir .. "/" .. new.sidecar_filename)
       if cand.location == "doc" then
+        -- Legacy sidecar format: early KOReader versions stored settings as
+        -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
+        -- This legacy format only ever existed directly next to the document.
         table.insert(
           candidates_list,
           cand.dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
