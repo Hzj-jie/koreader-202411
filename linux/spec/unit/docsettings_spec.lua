@@ -53,7 +53,7 @@ describe("docsettings module", function()
       DataStorage.getTmpDir = function()
         return "/custom/datastorage/tmp"
       end
-      local candidates = docsettings:getLocationCandidates("/foo/bar.pdf")
+      local candidates = docsettings:open("/foo/bar.pdf").candidates
       local tmp_cand
       for _, cand in ipairs(candidates) do
         if cand.location == "tmp" then
@@ -355,8 +355,10 @@ describe("docsettings module", function()
 
     local function getCandsMap(file)
       local map = {}
-      for _, cand in ipairs(docsettings:getLocationCandidates(file)) do
-        map[cand.location] = cand.dir
+      for _, cand in ipairs(docsettings:open(file).candidates) do
+        if cand.dir and not map[cand.location] then
+          map[cand.location] = cand.dir
+        end
       end
       return map
     end
@@ -709,7 +711,7 @@ describe("docsettings module", function()
     )
   end)
 
-  describe("getLocationCandidates ordering", function()
+  describe("candidates ordering in open", function()
     after_each(function()
       G_reader_settings:delete("document_metadata_folder")
     end)
@@ -718,13 +720,15 @@ describe("docsettings module", function()
       "orders candidates correctly when document_metadata_folder is doc",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
-        local candidates =
-          docsettings:getLocationCandidates("/books/sample.epub")
-        assert.are.equal(4, #candidates)
+        local d = docsettings:open("/books/sample.epub")
+        local candidates = d.candidates
         assert.are.equal("doc", candidates[1].location)
-        assert.are.equal("dir", candidates[2].location)
-        assert.are.equal("hash", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.is_nil(candidates[1].legacy)
+        assert.are.equal("doc", candidates[2].location)
+        assert.is_true(candidates[2].legacy)
+        assert.are.equal("dir", candidates[3].location)
+        assert.are.equal("hash", candidates[4].location)
+        assert.are.equal("tmp", candidates[5].location)
       end
     )
 
@@ -732,13 +736,15 @@ describe("docsettings module", function()
       "orders candidates correctly when document_metadata_folder is dir",
       function()
         G_reader_settings:save("document_metadata_folder", "dir")
-        local candidates =
-          docsettings:getLocationCandidates("/books/sample.epub")
-        assert.are.equal(4, #candidates)
+        local d = docsettings:open("/books/sample.epub")
+        local candidates = d.candidates
         assert.are.equal("dir", candidates[1].location)
         assert.are.equal("hash", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.is_nil(candidates[3].legacy)
+        assert.are.equal("doc", candidates[4].location)
+        assert.is_true(candidates[4].legacy)
+        assert.are.equal("tmp", candidates[5].location)
       end
     )
 
@@ -746,64 +752,73 @@ describe("docsettings module", function()
       "orders candidates correctly when document_metadata_folder is hash",
       function()
         G_reader_settings:save("document_metadata_folder", "hash")
-        local candidates =
-          docsettings:getLocationCandidates("/books/sample.epub")
-        assert.are.equal(4, #candidates)
+        local d = docsettings:open("/books/sample.epub")
+        local candidates = d.candidates
         assert.are.equal("hash", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.is_nil(candidates[3].legacy)
+        assert.are.equal("doc", candidates[4].location)
+        assert.is_true(candidates[4].legacy)
+        assert.are.equal("tmp", candidates[5].location)
       end
     )
 
     it("returns empty table when doc_path is nil or empty", function()
-      assert.are.same({}, docsettings:getLocationCandidates(nil))
-      assert.are.same({}, docsettings:getLocationCandidates(""))
+      assert.are.same({}, docsettings:open(nil).candidates)
+      assert.are.same({}, docsettings:open("").candidates)
     end)
 
     it(
       "falls back to default doc ordering when document_metadata_folder is unrecognized",
       function()
         G_reader_settings:save("document_metadata_folder", "invalid_val")
-        local candidates =
-          docsettings:getLocationCandidates("/books/sample.epub")
-        assert.are.equal(4, #candidates)
+        local d = docsettings:open("/books/sample.epub")
+        local candidates = d.candidates
         assert.are.equal("doc", candidates[1].location)
-        assert.are.equal("dir", candidates[2].location)
-        assert.are.equal("hash", candidates[3].location)
-        assert.are.equal("tmp", candidates[4].location)
+        assert.are.equal("dir", candidates[3].location)
+        assert.are.equal("hash", candidates[4].location)
+        assert.are.equal("tmp", candidates[5].location)
       end
     )
 
-    it("appends temporary storage directory as 4th candidate", function()
-      local candidates = docsettings:getLocationCandidates("/books/sample.epub")
-      assert.are.equal(4, #candidates)
-      assert.are.equal("tmp", candidates[4].location)
+    it("appends temporary storage directory as candidate", function()
+      local d = docsettings:open("/books/sample.epub")
+      local tmp_cand
+      for _, cand in ipairs(d.candidates) do
+        if cand.location == "tmp" then
+          tmp_cand = cand
+          break
+        end
+      end
+      assert.is_not_nil(tmp_cand)
       assert.are.equal(
         DataStorage:getTmpDir() .. "/docsettings/books/sample.sdr",
-        candidates[4].dir
+        tmp_cand.dir
       )
     end)
 
     it(
-      "resolves candidates using instance self.data.doc_path when parameter is omitted",
+      "populates candidates on instance when opened",
       function()
         local d = docsettings:open("/tmp/test_candidate_instance.epub")
-        local candidates = d:getLocationCandidates()
-        assert.are.equal(4, #candidates)
-        assert.is_truthy(candidates[1].dir:find("test_candidate_instance"))
+        assert.is_not_nil(d.candidates)
+        assert.is_truthy(d.candidates[1].dir:find("test_candidate_instance"))
         d:close()
       end
     )
 
     it("handles document paths without file extension", function()
-      local candidates =
-        docsettings:getLocationCandidates("/tmp/book_without_ext")
-      assert.are.equal(4, #candidates)
+      local d = docsettings:open("/tmp/book_without_ext")
+      local candidates = d.candidates
       assert.are.equal("/tmp/book_without_ext.sdr", candidates[1].dir)
       assert.are.equal(
+        "/tmp/book_without_ext.sdr/metadata._.lua",
+        candidates[1].file
+      )
+      assert.are.equal(
         docsettings_dir .. "/tmp/book_without_ext.sdr",
-        candidates[2].dir
+        candidates[3].dir
       )
     end)
 
@@ -815,11 +830,10 @@ describe("docsettings module", function()
           return nil
         end
         G_reader_settings:save("document_metadata_folder", "hash")
-        local candidates =
-          docsettings:getLocationCandidates("/tmp/unhashable_doc.pdf")
+        local d = docsettings:open("/tmp/unhashable_doc.pdf")
         util.partialMD5 = orig_partialMD5
-        assert.are.equal(4, #candidates)
-        assert.are.equal("/tmp/unhashable_doc.sdr", candidates[1].dir)
+        assert.are.equal("hash", d.candidates[1].location)
+        assert.are.equal("/tmp/unhashable_doc.sdr", d.candidates[1].dir)
       end
     )
 
@@ -839,12 +853,12 @@ describe("docsettings module", function()
       end
 
       G_reader_settings:save("document_metadata_folder", "hash")
-      local cands1 = docsettings:getLocationCandidates(file)
-      local cands2 = docsettings:getLocationCandidates(file)
+      local d1 = docsettings:open(file)
+      local d2 = docsettings:open(file)
       util.partialMD5 = orig_partialMD5
 
       assert.are.equal(1, hash_call_count)
-      assert.are.equal(cands1[1].dir, cands2[1].dir)
+      assert.are.equal(d1.candidates[1].dir, d2.candidates[1].dir)
       os.remove(file)
     end)
   end)
@@ -1097,7 +1111,7 @@ describe("docsettings module", function()
         d:close()
 
         local orig_isDirRW = util.isDirRW
-        local new_doc_sdr = docsettings:getLocationCandidates(new_file)[1].dir
+        local new_doc_sdr = docsettings:getSidecarDir(new_file)
         util.isDirRW = function(dir, create)
           if dir == new_doc_sdr then
             return false
