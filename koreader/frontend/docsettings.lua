@@ -144,19 +144,6 @@ local function getCandidates(doc_path)
     dir = doc_dir,
     location = "doc",
   }
-  -- Legacy sidecar format: early KOReader versions stored settings as
-  -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
-  -- This legacy format only ever existed directly next to the document.
-  -- If doc_path is named metadata.<ext>, basename.lua is identical to
-  -- metadata.<ext>.lua, so omit doc_legacy_cand to prevent duplicates.
-  local doc_legacy_file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
-  local doc_legacy_cand = doc_legacy_file ~= doc_cand.file
-      and {
-        file = doc_legacy_file,
-        dir = doc_dir,
-        location = "doc",
-      }
-    or nil
   local dir_dir = DOCSETTINGS_DIR .. stem .. ".sdr"
   local dir_cand = {
     file = dir_dir .. "/" .. sidecar_filename,
@@ -204,45 +191,52 @@ local function getCandidates(doc_path)
     location = "tmp",
   }
 
-  local candidates = {}
-  local function addCandidate(cand)
-    if cand then
-      table.insert(candidates, cand)
+  local candidates
+  local preferred_location = G_named_settings.document_metadata_folder()
+  if hash_cand ~= nil then
+    if preferred_location == "hash" then
+      candidates = { hash_cand, dir_cand, doc_cand }
+    elseif preferred_location == "dir" then
+      candidates = { dir_cand, hash_cand, doc_cand }
+    else
+      candidates = { doc_cand, dir_cand, hash_cand }
+    end
+  else
+    if preferred_location == "dir" or preferred_location == "hash" then
+      candidates = { dir_cand, doc_cand }
+    else
+      candidates = { doc_cand, dir_cand }
     end
   end
 
-  local preferred_location = G_named_settings.document_metadata_folder()
-  if preferred_location == "hash" then
-    addCandidate(hash_cand)
-    addCandidate(dir_cand)
-    addCandidate(doc_cand)
-    addCandidate(doc_legacy_cand)
-  elseif preferred_location == "dir" then
-    addCandidate(dir_cand)
-    addCandidate(hash_cand)
-    addCandidate(doc_cand)
-    addCandidate(doc_legacy_cand)
-  else
-    addCandidate(doc_cand)
-    addCandidate(doc_legacy_cand)
-    addCandidate(dir_cand)
-    addCandidate(hash_cand)
+  -- Legacy sidecar format: early KOReader versions stored settings as
+  -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
+  -- This legacy format only ever existed directly next to the document.
+  -- If doc_path is named metadata.<ext>, basename.lua is identical to
+  -- metadata.<ext>.lua, so omit doc_legacy_file to prevent duplicates.
+  local doc_legacy_file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
+  if doc_legacy_file ~= doc_cand.file then
+    table.insert(candidates, {
+      file = doc_legacy_file,
+      dir = doc_dir,
+      location = "doc",
+    })
   end
 
   if is_history_location_enabled then
     local hist_path = DocSettings:getHistoryPath(doc_path)
     if hist_path and hist_path ~= "" then
-      addCandidate({
+      table.insert(candidates, {
         file = hist_path,
         location = "hist",
       })
     end
   end
-  addCandidate({
+  table.insert(candidates, {
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
   })
-  addCandidate(tmp_cand)
+  table.insert(candidates, tmp_cand)
 
   local seen_files = {}
   for _, cand in ipairs(candidates) do

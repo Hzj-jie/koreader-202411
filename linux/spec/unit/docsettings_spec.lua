@@ -722,10 +722,10 @@ describe("docsettings module", function()
         local candidates = d.candidates
         assert.are.equal("doc", candidates[1].location)
         assert.is_truthy(candidates[1].file:match("metadata%.epub%.lua$"))
-        assert.are.equal("doc", candidates[2].location)
-        assert.is_truthy(candidates[2].file:match("sample%.epub%.lua$"))
-        assert.are.equal("dir", candidates[3].location)
-        assert.are.equal("hash", candidates[4].location)
+        assert.are.equal("dir", candidates[2].location)
+        assert.are.equal("hash", candidates[3].location)
+        assert.are.equal("doc", candidates[4].location)
+        assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
     )
@@ -774,8 +774,10 @@ describe("docsettings module", function()
         local d = docsettings:open("/books/sample.epub")
         local candidates = d.candidates
         assert.are.equal("doc", candidates[1].location)
-        assert.are.equal("dir", candidates[3].location)
-        assert.are.equal("hash", candidates[4].location)
+        assert.are.equal("dir", candidates[2].location)
+        assert.are.equal("hash", candidates[3].location)
+        assert.are.equal("doc", candidates[4].location)
+        assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
     )
@@ -808,7 +810,7 @@ describe("docsettings module", function()
       )
       assert.are.equal(
         docsettings_dir .. "/tmp/book_without_ext.sdr",
-        candidates[3].dir
+        candidates[2].dir
       )
     end)
 
