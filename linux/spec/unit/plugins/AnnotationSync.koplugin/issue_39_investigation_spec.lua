@@ -131,8 +131,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       restored_ann.datetime_updated = "2026-01-01 13:00:00"
       restored_ann.datetime = "2026-01-01 13:00:00"
 
-      local Device = require("device")
-      local tmp_dir = Device:getTmpDir()
+      local tmp_dir = require("datastorage"):getTmpDir()
       local filename =
         sync_instance.manager:_getAnnotationFilename(readerui.document.file)
       local local_path = tmp_dir .. "/" .. filename
@@ -205,8 +204,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     assert.is_equal(1, #readerui.annotation.annotations)
 
     -- 3. Verify sidecar JSON on disk
-    local Device = require("device")
-    local tmp_dir = Device:getTmpDir()
+    local tmp_dir = require("datastorage"):getTmpDir()
     local filename =
       sync_instance.manager:_getAnnotationFilename(readerui.document.file)
     local json_path = tmp_dir .. "/" .. filename
@@ -227,8 +225,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     -- 1. Setup a deleted annotation
     local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
     ann.deleted = true
-    local Device = require("device")
-    local tmp_dir = Device:getTmpDir()
+    local tmp_dir = require("datastorage"):getTmpDir()
     local filename =
       sync_instance.manager:_getAnnotationFilename(readerui.document.file)
     annotations_mod.write_annotations_json(

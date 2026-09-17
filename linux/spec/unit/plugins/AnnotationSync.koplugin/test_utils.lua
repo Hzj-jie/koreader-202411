@@ -35,9 +35,10 @@ function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
   os.execute("mkdir -p " .. test_data_dir .. "/settings")
   os.execute("mkdir -p " .. test_data_dir .. "/tmp")
-  local Device = require("device")
-  old_tmp_dir = Device.tmp_dir
-  Device.tmp_dir = test_data_dir .. "/tmp"
+  old_tmp_dir = DataStorage.getTmpDir
+  DataStorage.getTmpDir = function()
+    return test_data_dir .. "/tmp"
+  end
 
   local old_getDataDir = DataStorage.getDataDir
   old_getSettingsDir = DataStorage.getSettingsDir
@@ -81,8 +82,7 @@ function M.setup_test_env(test_data_dir)
 end
 
 function M.teardown_test_env(test_data_dir, old_getDataDir)
-  local Device = require("device")
-  Device.tmp_dir = old_tmp_dir
+  DataStorage.getTmpDir = old_tmp_dir
 
   DataStorage.getDataDir = old_getDataDir
   if old_getSettingsDir then
