@@ -728,7 +728,7 @@ describe("docsettings module", function()
         assert.is_truthy(candidates[2].file:match("sample%.epub%.lua$"))
         assert.are.equal("dir", candidates[3].location)
         assert.are.equal("hash", candidates[4].location)
-        assert.are.equal("tmp", candidates[5].location)
+        assert.are.equal("tmp", candidates[#candidates].location)
       end
     )
 
@@ -744,7 +744,7 @@ describe("docsettings module", function()
         assert.is_truthy(candidates[3].file:match("metadata%.epub%.lua$"))
         assert.are.equal("doc", candidates[4].location)
         assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
-        assert.are.equal("tmp", candidates[5].location)
+        assert.are.equal("tmp", candidates[#candidates].location)
       end
     )
 
@@ -760,7 +760,7 @@ describe("docsettings module", function()
         assert.is_truthy(candidates[3].file:match("metadata%.epub%.lua$"))
         assert.are.equal("doc", candidates[4].location)
         assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
-        assert.are.equal("tmp", candidates[5].location)
+        assert.are.equal("tmp", candidates[#candidates].location)
       end
     )
 
@@ -778,20 +778,15 @@ describe("docsettings module", function()
         assert.are.equal("doc", candidates[1].location)
         assert.are.equal("dir", candidates[3].location)
         assert.are.equal("hash", candidates[4].location)
-        assert.are.equal("tmp", candidates[5].location)
+        assert.are.equal("tmp", candidates[#candidates].location)
       end
     )
 
-    it("appends temporary storage directory as candidate", function()
+    it("appends temporary storage directory as last candidate", function()
       local d = docsettings:open("/books/sample.epub")
-      local tmp_cand
-      for _, cand in ipairs(d.candidates) do
-        if cand.location == "tmp" then
-          tmp_cand = cand
-          break
-        end
-      end
+      local tmp_cand = d.candidates[#d.candidates]
       assert.is_not_nil(tmp_cand)
+      assert.are.equal("tmp", tmp_cand.location)
       assert.are.equal(
         DataStorage:getTmpDir() .. "/docsettings/books/sample.sdr",
         tmp_cand.dir

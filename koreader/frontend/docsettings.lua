@@ -203,11 +203,11 @@ local function getCandidates(doc_path)
   local candidates
   local preferred_location = G_named_settings.document_metadata_folder()
   if preferred_location == "hash" then
-    candidates = { hash_cand, dir_cand, doc_cand, doc_legacy_cand, tmp_cand }
+    candidates = { hash_cand, dir_cand, doc_cand, doc_legacy_cand }
   elseif preferred_location == "dir" then
-    candidates = { dir_cand, hash_cand, doc_cand, doc_legacy_cand, tmp_cand }
+    candidates = { dir_cand, hash_cand, doc_cand, doc_legacy_cand }
   else
-    candidates = { doc_cand, doc_legacy_cand, dir_cand, hash_cand, tmp_cand }
+    candidates = { doc_cand, doc_legacy_cand, dir_cand, hash_cand }
   end
 
   if is_history_location_enabled then
@@ -220,6 +220,7 @@ local function getCandidates(doc_path)
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
   })
+  table.insert(candidates, tmp_cand)
 
   return candidates
 end
