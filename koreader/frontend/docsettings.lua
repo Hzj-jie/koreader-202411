@@ -151,7 +151,6 @@ local function getCandidates(doc_path)
     file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua",
     dir = doc_dir,
     location = "doc",
-    legacy = true,
   }
   local dir_dir = DOCSETTINGS_DIR .. stem .. ".sdr"
   local dir_cand = {
@@ -215,13 +214,11 @@ local function getCandidates(doc_path)
     table.insert(candidates, {
       file = DocSettings:getHistoryPath(doc_path),
       location = "hist",
-      legacy = true,
     })
   end
   table.insert(candidates, {
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
-    legacy = true,
   })
 
   return candidates
@@ -240,16 +237,16 @@ function DocSettings:hasSidecarFile(doc_path)
   return self:findSidecarFile(doc_path) and true or false
 end
 
---- Returns path of `metadata.lua` file if it exists, or nil.
+--- Returns path of sidecar file if it exists, or nil.
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @bool no_legacy set to true to skip check of legacy sidecar files
 -- @treturn string (or nil on failure)
-function DocSettings:findSidecarFile(doc_path, no_legacy)
+-- @treturn string location identifier
+function DocSettings:findSidecarFile(doc_path)
   if doc_path == nil or doc_path == "" then
     return
   end
   for _, cand in ipairs(getCandidates(doc_path)) do
-    if (not no_legacy or not cand.legacy) and util.fileExists(cand.file) then
+    if util.fileExists(cand.file) then
       return cand.file, cand.location
     end
   end
@@ -353,8 +350,10 @@ function DocSettings:flush(data, no_custom_metadata)
   local preferred_location = G_named_settings.document_metadata_folder()
   local ser_data = dump(data)
 
+  local seen_locations = {}
   for _, cand in ipairs(self.candidates) do
-    if not cand.legacy and cand.dir then
+    if cand.dir and not seen_locations[cand.location] then
+      seen_locations[cand.location] = true
       local sidecar_dir = cand.dir
       local loc = cand.location
       local sidecar_dir_slash = sidecar_dir .. "/"
@@ -498,10 +497,14 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
       end
       if not new_sidecar_dir then
+        local seen_locations = {}
         for _, cand in ipairs(getCandidates(new_doc_path)) do
-          if not cand.legacy and cand.dir and util.isDirRW(cand.dir, true) then
-            new_sidecar_dir = cand.dir
-            break
+          if cand.dir and not seen_locations[cand.location] then
+            seen_locations[cand.location] = true
+            if util.isDirRW(cand.dir, true) then
+              new_sidecar_dir = cand.dir
+              break
+            end
           end
         end
       end
@@ -537,15 +540,19 @@ end
 -- custom section
 
 function DocSettings:getCustomLocationCandidates(doc_path)
-  local sidecar_dir
-  local sidecar_file = self:findSidecarFile(doc_path, true) -- new locations only
-  if sidecar_file then -- book was opened, write custom metadata to its sidecar dir
-    sidecar_dir = util.splitFilePathName(sidecar_file):sub(1, -2)
-    return { sidecar_dir }
+  local sidecar_file = self:findSidecarFile(doc_path)
+  if sidecar_file then
+    for _, cand in ipairs(getCandidates(doc_path)) do
+      if cand.file == sidecar_file and cand.dir then
+        return { cand.dir }
+      end
+    end
   end
+  local seen_locations = {}
   local candidates = {}
   for _, cand in ipairs(getCandidates(doc_path)) do
-    if not cand.legacy and cand.dir then
+    if cand.dir and not seen_locations[cand.location] then
+      seen_locations[cand.location] = true
       table.insert(candidates, cand.dir)
     end
   end
