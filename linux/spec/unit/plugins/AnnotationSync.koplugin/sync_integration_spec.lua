@@ -251,7 +251,7 @@ describe("AnnotationSync Core Integration", function()
     end)
 
     it(
-      "should return 'skip_upload' from sync_callback when remote file is missing and local file is empty",
+      "should return false from sync_callback when remote file is missing and local file is empty",
       function()
         local local_path =
           test_utils.write_mock_json(test_data_dir, "empty_local.json", {})

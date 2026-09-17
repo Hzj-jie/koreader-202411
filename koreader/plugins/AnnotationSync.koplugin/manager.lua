@@ -76,7 +76,7 @@ function SyncManager:syncAllChangedDocuments()
         end
 
         local res = self:syncDocument(file, false)
-        if res == true or res == "skip_upload" then
+        if res == true then
           count = count + 1
         elseif res == false then
           table.insert(failed_files, file)
@@ -166,8 +166,7 @@ function SyncManager:syncPendingDocumentsBg()
             end)
             return {
               file = file,
-              success = ok
-                and (sync_success == true or sync_success == "skip_upload"),
+              success = ok and sync_success == true,
               merged_list = final_merged,
             }
           end,
