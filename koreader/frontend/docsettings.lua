@@ -4,6 +4,7 @@ in the so-called sidecar directory
 ([Wikipedia definition](https://en.wikipedia.org/wiki/Sidecar_file)).
 ]]
 
+local CachedTable = require("cachedtable")
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local dump = require("dump")
@@ -58,7 +59,7 @@ local function notifyUser(reason)
     )
   elseif reason == "fallback" then
     text = gettext(
-      "The selected storage for book settings is read-only. Settings for this book will be saved to KOReader internal storage instead."
+      "The selected storage for book settings is read-only. Settings for this book will be saved to an alternate storage location instead."
     )
   elseif reason == "readonly" then
     text = gettext(
@@ -150,49 +151,59 @@ local function getCandidates(doc_path)
     dir = dir_dir,
     location = "dir",
   }
-  local hash_cand = (function()
-    local hsh = doc_hash_cache[doc_path]
-    if not hsh then
-      hsh = util.partialMD5(doc_path)
-      if hsh then
-        doc_hash_cache[doc_path] = hsh
+  local preferred_location = G_named_settings.document_metadata_folder()
+  local hash_cand
+  if preferred_location == "hash" or DocSettings.isHashLocationEnabled() then
+    hash_cand = CachedTable:new(function()
+      local hsh = doc_hash_cache[doc_path]
+      if not hsh then
+        hsh = util.partialMD5(doc_path)
+        if hsh then
+          doc_hash_cache[doc_path] = hsh
+          logger.dbg(
+            "DocSettings: Caching new partial MD5 hash for",
+            doc_path,
+            "as",
+            hsh
+          )
+        end
+      else
         logger.dbg(
-          "DocSettings: Caching new partial MD5 hash for",
+          "DocSettings: Using cached partial MD5 hash for",
           doc_path,
           "as",
           hsh
         )
       end
-    else
-      logger.dbg(
-        "DocSettings: Using cached partial MD5 hash for",
-        doc_path,
-        "as",
-        hsh
-      )
-    end
-    if hsh then
-      -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
-      local subpath = string.format("/%s/", hsh:sub(1, 2))
-      local hash_dir = DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
-      return {
-        file = hash_dir .. "/" .. sidecar_filename,
-        dir = hash_dir,
-        location = "hash",
-      }
-    end
-  end)()
+      if hsh then
+        -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
+        local subpath = string.format("/%s/", hsh:sub(1, 2))
+        local hash_dir = DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+        return {
+          file = hash_dir .. "/" .. sidecar_filename,
+          dir = hash_dir,
+        }
+      end
+    end, { location = "hash" })
+  end
+
   -- Note: "tmp" (and "hist" / "kpdfview") are internal location identifiers
   -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
-  local tmp_dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr"
-  local tmp_cand = {
-    file = tmp_dir .. "/" .. sidecar_filename,
-    dir = tmp_dir,
-    location = "tmp",
-  }
+  local base_tmp = DataStorage:getTmpDir()
+  local tmp_cand
+  if base_tmp and base_tmp ~= DataStorage:getDataDir() then
+    local tmp_dir = base_tmp
+      .. "/docsettings"
+      .. (stem:sub(1, 1) == "/" and stem or ("/" .. stem))
+      .. ".sdr"
+    tmp_cand = {
+      file = tmp_dir .. "/" .. sidecar_filename,
+      dir = tmp_dir,
+      location = "tmp",
+    }
+  end
 
   local candidates
-  local preferred_location = G_named_settings.document_metadata_folder()
   if preferred_location == "hash" then
     candidates = hash_cand and { hash_cand, dir_cand, doc_cand }
       or { dir_cand, doc_cand }
@@ -228,19 +239,23 @@ local function getCandidates(doc_path)
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
   })
-  table.insert(candidates, tmp_cand)
+  if tmp_cand then
+    table.insert(candidates, tmp_cand)
+  end
 
   local seen_files = {}
   for _, cand in ipairs(candidates) do
-    assert(
-      cand.file and cand.file ~= "",
-      "DocSettings: candidate file must not be nil or empty"
-    )
-    assert(
-      not seen_files[cand.file],
-      "DocSettings: duplicate candidate file: " .. tostring(cand.file)
-    )
-    seen_files[cand.file] = true
+    if cand.location ~= "hash" then
+      assert(
+        cand.file and cand.file ~= "",
+        "DocSettings: candidate file must not be nil or empty"
+      )
+      assert(
+        not seen_files[cand.file],
+        "DocSettings: duplicate candidate file: " .. tostring(cand.file)
+      )
+      seen_files[cand.file] = true
+    end
   end
 
   return candidates
@@ -365,6 +380,9 @@ function DocSettings:flush(data, no_custom_metadata)
   local preferred_location = G_named_settings.document_metadata_folder()
   local ser_data = dump(data)
 
+  -- Always refresh candidates so order reflects current settings
+  self.candidates = getCandidates(self.doc_path)
+
   for _, cand in ipairs(self.candidates) do
     if cand.dir and util.isDirRW(cand.dir, true) then
       logger.dbg("DocSettings: Writing to", cand.file)
@@ -473,7 +491,6 @@ function DocSettings.removeSidecarDir(dir)
     if
       dir:match("^" .. DOCSETTINGS_DIR)
       or dir:match("^" .. DOCSETTINGS_HASH_DIR)
-      or dir:find("/docsettings/")
     then
       util.removePath(dir) -- remove empty parent folders
     else
@@ -510,17 +527,32 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
           end
         end
       end
-      if custom_cover_file then
-        local _, filename = util.splitFilePathName(custom_cover_file)
-        ffiutil.copyFile(custom_cover_file, new_sidecar_dir .. "/" .. filename)
+      if new_sidecar_dir then
+        if custom_cover_file then
+          local _, filename = util.splitFilePathName(custom_cover_file)
+          ffiutil.copyFile(
+            custom_cover_file,
+            new_sidecar_dir .. "/" .. filename
+          )
+        end
+        if custom_metadata_file then
+          ffiutil.copyFile(
+            custom_metadata_file,
+            new_sidecar_dir .. "/" .. custom_metadata_filename
+          )
+        end
+        do_purge = not copy
+      else
+        local InfoMessage = require("ui/widget/infomessage")
+        local UIManager = require("ui/uimanager")
+        local gettext = require("gettext")
+        UIManager:show(InfoMessage:new({
+          text = gettext(
+            "Failed to save book settings to the new location. Original settings have been preserved."
+          ),
+          icon = "notice-warning",
+        }))
       end
-      if custom_metadata_file then
-        ffiutil.copyFile(
-          custom_metadata_file,
-          new_sidecar_dir .. "/" .. custom_metadata_filename
-        )
-      end
-      do_purge = not copy
     end
   else -- delete
     if has_sidecar_file then
