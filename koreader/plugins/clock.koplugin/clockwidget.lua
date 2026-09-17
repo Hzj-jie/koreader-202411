@@ -11,7 +11,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
 local date
 date = os.date
-local PLUGIN_ROOT = package.path:match("([^;]*clock%.koplugin/)")
+local PLUGIN_ROOT = debug.getinfo(1, "S").source:match("^@?(.*[/\\])")
 local rotate_point
 rotate_point = function(point_x, point_y, center_x, center_y, angle_rad)
   local sin, cos, floor
@@ -53,17 +53,16 @@ ClockWidget.init = function(self)
   self.face = CenterContainer:new({
     dimen = self:getSize(),
     ImageWidget:new({
-      file = tostring(PLUGIN_ROOT) .. "face.png",
+      file = PLUGIN_ROOT .. "face.png",
       width = width,
       height = height,
       scale_factor = self.scale_factor,
       alpha = true,
     }),
   })
-  self._hours_hand_bb =
-    RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "hours.png")
+  self._hours_hand_bb = RenderImage:renderImageFile(PLUGIN_ROOT .. "hours.png")
   self._minutes_hand_bb =
-    RenderImage:renderImageFile(tostring(PLUGIN_ROOT) .. "minutes.png")
+    RenderImage:renderImageFile(PLUGIN_ROOT .. "minutes.png")
   self.autoRefreshTime = function()
     UIManager:setDirty("all", function()
       return "ui", self.dimen, true

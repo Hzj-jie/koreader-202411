@@ -60,4 +60,28 @@ describe("ClockWidget plugin module", function()
     widget:onResume()
     widget:onClose()
   end)
+
+  it("should load real hand images and paint clock without error", function()
+    local widget = ClockWidget:new()
+    widget:init()
+
+    -- Verify that PLUGIN_ROOT successfully resolved and images loaded
+    assert.is_not_nil(widget._hours_hand_bb)
+    assert.is_not_nil(widget._minutes_hand_bb)
+    assert.is_true(widget._hours_hand_bb:getWidth() > 0)
+    assert.is_true(widget._minutes_hand_bb:getWidth() > 0)
+
+    -- Verify preparing hands and rotation uses real loaded buffers
+    local hands = widget:_prepareHands(10, 15)
+    assert.is_table(hands)
+    assert.is_table(hands.hours)
+    assert.is_table(hands.minutes)
+
+    -- Verify paintTo renders face and hands onto destination canvas
+    local canvas = Blitbuffer.new(300, 300)
+    assert.has_no.errors(function()
+      widget:paintTo(canvas, 10, 10)
+    end)
+    canvas:free()
+  end)
 end)

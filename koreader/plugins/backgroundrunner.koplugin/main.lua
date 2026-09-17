@@ -61,7 +61,7 @@ local util = require("util")
 --   nil: ignore.
 --
 -- catch_exception: boolean
---   allow capturing the exception instead of crashing. Default false.
+--   allow capturing the exception instead of crashing. Default true.
 --
 -- If a job does not contain enough information, it will be ignored.
 --
@@ -106,6 +106,7 @@ local function _clone(job)
   result.action = job.action
   result.callback = job.callback
   result.environment = job.environment
+  result.catch_exception = job.catch_exception
   result.insert_time = time.monotonic()
   return result
 end
@@ -206,7 +207,7 @@ function BackgroundRunner:_executeJob(job)
       job.result = 1
       job.exception = err
       -- trigger the exception at the end to preserve the logs.
-      assert(job.catch_exception == true)
+      assert(job.catch_exception ~= false, err)
     end
     job.end_time = time.monotonic()
     self:_finishJob(job)
