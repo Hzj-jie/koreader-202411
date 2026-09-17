@@ -124,7 +124,7 @@ function SyncManager:syncPendingDocumentsBg()
     return
   end
 
-  NetworkMgr:runWhenOnline(function()
+  NetworkMgr:willRerunWhenOnline(function()
     local pending_total, pending_changed_docs =
       self:getPendingChangedDocuments()
     if pending_total == 0 then
@@ -166,7 +166,8 @@ function SyncManager:syncPendingDocumentsBg()
             end)
             return {
               file = file,
-              success = ok and (sync_success == true or sync_success == "skip_upload"),
+              success = ok
+                and (sync_success == true or sync_success == "skip_upload"),
               merged_list = final_merged,
             }
           end,
