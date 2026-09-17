@@ -136,7 +136,7 @@ describe("AnnotationSync Settings Persistence", function()
     assert.is_nil(G_reader_settings:read("cloud_provider_type"))
 
     -- 6. Verify the tracking file is deleted
-    assert.is_nil(util.fileExists(track_path))
+    assert.is_false(util.fileExists(track_path))
   end)
 
   it("should show current cloud in the settings menu", function()
