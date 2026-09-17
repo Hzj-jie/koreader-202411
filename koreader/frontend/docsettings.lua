@@ -193,20 +193,15 @@ local function getCandidates(doc_path)
 
   local candidates
   local preferred_location = G_named_settings.document_metadata_folder()
-  if hash_cand ~= nil then
-    if preferred_location == "hash" then
-      candidates = { hash_cand, dir_cand, doc_cand }
-    elseif preferred_location == "dir" then
-      candidates = { dir_cand, hash_cand, doc_cand }
-    else
-      candidates = { doc_cand, dir_cand, hash_cand }
-    end
+  if preferred_location == "hash" then
+    candidates = hash_cand and { hash_cand, dir_cand, doc_cand }
+      or { dir_cand, doc_cand }
+  elseif preferred_location == "dir" then
+    candidates = hash_cand and { dir_cand, hash_cand, doc_cand }
+      or { dir_cand, doc_cand }
   else
-    if preferred_location == "dir" or preferred_location == "hash" then
-      candidates = { dir_cand, doc_cand }
-    else
-      candidates = { doc_cand, dir_cand }
-    end
+    candidates = hash_cand and { doc_cand, dir_cand, hash_cand }
+      or { doc_cand, dir_cand }
   end
 
   -- Legacy sidecar format: early KOReader versions stored settings as
