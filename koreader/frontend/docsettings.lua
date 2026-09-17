@@ -147,18 +147,23 @@ local function getCandidates(doc_path)
   -- Legacy sidecar format: early KOReader versions stored settings as
   -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
   -- This legacy format only ever existed directly next to the document.
-  local doc_legacy_cand = {
-    file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua",
-    dir = doc_dir,
-    location = "doc",
-  }
+  -- If doc_path is named metadata.<ext>, basename.lua is identical to
+  -- metadata.<ext>.lua, so omit doc_legacy_cand to prevent duplicates.
+  local doc_legacy_file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
+  local doc_legacy_cand = doc_legacy_file ~= doc_cand.file
+      and {
+        file = doc_legacy_file,
+        dir = doc_dir,
+        location = "doc",
+      }
+    or nil
   local dir_dir = DOCSETTINGS_DIR .. stem .. ".sdr"
   local dir_cand = {
     file = dir_dir .. "/" .. sidecar_filename,
     dir = dir_dir,
     location = "dir",
   }
-  local hash_dir = (function()
+  local hash_cand = (function()
     local hsh = doc_hash_cache[doc_path]
     if not hsh then
       hsh = util.partialMD5(doc_path)
@@ -182,15 +187,14 @@ local function getCandidates(doc_path)
     if hsh then
       -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
       local subpath = string.format("/%s/", hsh:sub(1, 2))
-      return DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+      local hash_dir = DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+      return {
+        file = hash_dir .. "/" .. sidecar_filename,
+        dir = hash_dir,
+        location = "hash",
+      }
     end
-    return stem .. ".sdr"
   end)()
-  local hash_cand = {
-    file = hash_dir .. "/" .. sidecar_filename,
-    dir = hash_dir,
-    location = "hash",
-  }
   -- Note: "tmp" (and "hist" / "kpdfview") are internal location identifiers
   -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
   local tmp_dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr"
@@ -200,27 +204,58 @@ local function getCandidates(doc_path)
     location = "tmp",
   }
 
-  local candidates
+  local candidates = {}
+  local function addCandidate(cand)
+    if cand then
+      table.insert(candidates, cand)
+    end
+  end
+
   local preferred_location = G_named_settings.document_metadata_folder()
   if preferred_location == "hash" then
-    candidates = { hash_cand, dir_cand, doc_cand, doc_legacy_cand }
+    addCandidate(hash_cand)
+    addCandidate(dir_cand)
+    addCandidate(doc_cand)
+    addCandidate(doc_legacy_cand)
   elseif preferred_location == "dir" then
-    candidates = { dir_cand, hash_cand, doc_cand, doc_legacy_cand }
+    addCandidate(dir_cand)
+    addCandidate(hash_cand)
+    addCandidate(doc_cand)
+    addCandidate(doc_legacy_cand)
   else
-    candidates = { doc_cand, doc_legacy_cand, dir_cand, hash_cand }
+    addCandidate(doc_cand)
+    addCandidate(doc_legacy_cand)
+    addCandidate(dir_cand)
+    addCandidate(hash_cand)
   end
 
   if is_history_location_enabled then
-    table.insert(candidates, {
-      file = DocSettings:getHistoryPath(doc_path),
-      location = "hist",
-    })
+    local hist_path = DocSettings:getHistoryPath(doc_path)
+    if hist_path and hist_path ~= "" then
+      addCandidate({
+        file = hist_path,
+        location = "hist",
+      })
+    end
   end
-  table.insert(candidates, {
+  addCandidate({
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
   })
-  table.insert(candidates, tmp_cand)
+  addCandidate(tmp_cand)
+
+  local seen_files = {}
+  for _, cand in ipairs(candidates) do
+    assert(
+      cand.file and cand.file ~= "",
+      "DocSettings: candidate file must not be nil or empty"
+    )
+    assert(
+      not seen_files[cand.file],
+      "DocSettings: duplicate candidate file: " .. tostring(cand.file)
+    )
+    seen_files[cand.file] = true
+  end
 
   return candidates
 end
@@ -277,15 +312,8 @@ function DocSettings:open(doc_path)
   new.candidates = getCandidates(doc_path)
 
   local existing = {}
-  local seen = {}
   for i, cand in ipairs(new.candidates) do
-    if
-      cand.file
-      and cand.file ~= ""
-      and not seen[cand.file]
-      and util.fileExists(cand.file)
-    then
-      seen[cand.file] = true
+    if util.fileExists(cand.file) then
       local mtime = lfs.attributes(cand.file, "modification")
       table.insert(existing, {
         cand = cand,
@@ -575,7 +603,11 @@ end
 
 --- Returns path to book custom cover file if it exists, or nil.
 function DocSettings:findCustomCoverFile(doc_path)
-  local candidates = (self and self.candidates and (not doc_path or doc_path == self.doc_path))
+  local candidates = (
+    self
+    and self.candidates
+    and (not doc_path or doc_path == self.doc_path)
+  )
       and self.candidates
     or getCandidates(doc_path)
   local checked_dirs = {}
@@ -625,7 +657,11 @@ end
 
 --- Returns path to book custom metadata file if it exists, or nil.
 function DocSettings:findCustomMetadataFile(doc_path)
-  local candidates = (self and self.candidates and (not doc_path or doc_path == self.doc_path))
+  local candidates = (
+    self
+    and self.candidates
+    and (not doc_path or doc_path == self.doc_path)
+  )
       and self.candidates
     or getCandidates(doc_path)
   local checked_dirs = {}

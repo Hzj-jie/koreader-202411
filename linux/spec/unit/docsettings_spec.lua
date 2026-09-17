@@ -132,13 +132,9 @@ describe("docsettings module", function()
     }
 
     for _, f in ipairs(legacy_files) do
-      assert.False(
-        os.rename(doc_dir .. "/" .. d.sidecar_filename, f) == nil
-      )
+      assert.False(os.rename(doc_dir .. "/" .. d.sidecar_filename, f) == nil)
       d = docsettings:open(file)
-      assert.True(
-        os.remove(doc_dir .. "/" .. d.sidecar_filename) == nil
-      )
+      assert.True(os.remove(doc_dir .. "/" .. d.sidecar_filename) == nil)
       -- Legacy history files should not be removed before flush has been
       -- called.
       assert.Equals(lfs.attributes(f, "mode"), "file")
@@ -151,9 +147,7 @@ describe("docsettings module", function()
       assert.True(os.remove(f) == nil)
     end
 
-    assert.False(
-      os.remove(doc_dir .. "/" .. d.sidecar_filename) == nil
-    )
+    assert.False(os.remove(doc_dir .. "/" .. d.sidecar_filename) == nil)
     d:purge()
   end)
 
@@ -173,8 +167,7 @@ describe("docsettings module", function()
       d:save("a", i)
       d:flush()
       assert.False(
-        os.rename(doc_dir .. "/" .. d.sidecar_filename, v .. "1")
-          == nil
+        os.rename(doc_dir .. "/" .. d.sidecar_filename, v .. "1") == nil
       )
     end
 
@@ -450,11 +443,7 @@ describe("docsettings module", function()
         local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if
-            dir == cands.doc
-            or dir == cands.dir
-            or dir == cands.hash
-          then
+          if dir == cands.doc or dir == cands.dir or dir == cands.hash then
             return false
           end
           return original_isDirRW(dir, create)
@@ -712,7 +701,16 @@ describe("docsettings module", function()
   end)
 
   describe("candidates ordering in open", function()
+    local orig_partialMD5
+    before_each(function()
+      orig_partialMD5 = util.partialMD5
+      util.partialMD5 = function()
+        return "b3fb8f4f8448160365087d6ca05c7fa2"
+      end
+    end)
+
     after_each(function()
+      util.partialMD5 = orig_partialMD5
       G_reader_settings:delete("document_metadata_folder")
     end)
 
@@ -793,15 +791,12 @@ describe("docsettings module", function()
       )
     end)
 
-    it(
-      "populates candidates on instance when opened",
-      function()
-        local d = docsettings:open("/tmp/test_candidate_instance.epub")
-        assert.is_not_nil(d.candidates)
-        assert.is_truthy(d.candidates[1].dir:find("test_candidate_instance"))
-        d:close()
-      end
-    )
+    it("populates candidates on instance when opened", function()
+      local d = docsettings:open("/tmp/test_candidate_instance.epub")
+      assert.is_not_nil(d.candidates)
+      assert.is_truthy(d.candidates[1].dir:find("test_candidate_instance"))
+      d:close()
+    end)
 
     it("handles document paths without file extension", function()
       local d = docsettings:open("/tmp/book_without_ext")
@@ -818,19 +813,34 @@ describe("docsettings module", function()
     end)
 
     it(
-      "falls back to stem in hash location when util.partialMD5 returns nil",
+      "handles documents named metadata.<ext> without duplicate candidates",
       function()
-        local orig_partialMD5 = util.partialMD5
-        util.partialMD5 = function()
-          return nil
+        local d = docsettings:open("/tmp/metadata.epub")
+        assert.is_not_nil(d.candidates)
+        local seen = {}
+        for _, cand in ipairs(d.candidates) do
+          assert.is_not_nil(cand.file)
+          assert.are_not.equal("", cand.file)
+          assert.is_nil(seen[cand.file])
+          seen[cand.file] = true
         end
-        G_reader_settings:save("document_metadata_folder", "hash")
-        local d = docsettings:open("/tmp/unhashable_doc.pdf")
-        util.partialMD5 = orig_partialMD5
-        assert.are.equal("hash", d.candidates[1].location)
-        assert.are.equal("/tmp/unhashable_doc.sdr", d.candidates[1].dir)
+        d:close()
       end
     )
+
+    it("omits hash candidate when util.partialMD5 returns nil", function()
+      local orig_partialMD5 = util.partialMD5
+      util.partialMD5 = function()
+        return nil
+      end
+      G_reader_settings:save("document_metadata_folder", "hash")
+      local d = docsettings:open("/tmp/unhashable_doc.pdf")
+      util.partialMD5 = orig_partialMD5
+      for _, cand in ipairs(d.candidates) do
+        assert.are_not.equal("hash", cand.location)
+      end
+      assert.are.equal("dir", d.candidates[1].location)
+    end)
 
     it("reuses cached partial MD5 hash on repeated calls", function()
       local file = "/tmp/test_hash_cache.pdf"
@@ -1054,6 +1064,14 @@ describe("docsettings module", function()
 
   describe("getCustomLocationCandidates", function()
     local test_doc = "/tmp/test_custom_cand.epub"
+
+    before_each(function()
+      local f = io.open(test_doc, "w")
+      if f then
+        f:write("dummy test epub")
+        f:close()
+      end
+    end)
 
     after_each(function()
       docsettings.updateLocation(test_doc, nil)
