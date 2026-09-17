@@ -119,6 +119,7 @@ describe("docsettings module", function()
     G_reader_settings:delete("document_metadata_folder")
     local file = "file.pdf"
     local d = docsettings:open(file)
+    local doc_dir = docsettings:getSidecarDir(file, "doc")
     d:save("a", "b")
     d:save("c", "d")
     d:close()
@@ -126,17 +127,17 @@ describe("docsettings module", function()
 
     local legacy_files = {
       docsettings:getHistoryPath(file),
-      d.doc_sidecar_dir .. "/file.pdf.lua",
+      doc_dir .. "/file.pdf.lua",
       "file.pdf.kpdfview.lua",
     }
 
     for _, f in ipairs(legacy_files) do
       assert.False(
-        os.rename(d.doc_sidecar_dir .. "/" .. d.sidecar_filename, f) == nil
+        os.rename(doc_dir .. "/" .. d.sidecar_filename, f) == nil
       )
       d = docsettings:open(file)
       assert.True(
-        os.remove(d.doc_sidecar_dir .. "/" .. d.sidecar_filename) == nil
+        os.remove(doc_dir .. "/" .. d.sidecar_filename) == nil
       )
       -- Legacy history files should not be removed before flush has been
       -- called.
@@ -151,7 +152,7 @@ describe("docsettings module", function()
     end
 
     assert.False(
-      os.remove(d.doc_sidecar_dir .. "/" .. d.sidecar_filename) == nil
+      os.remove(doc_dir .. "/" .. d.sidecar_filename) == nil
     )
     d:purge()
   end)
@@ -159,10 +160,11 @@ describe("docsettings module", function()
   it("should respect newest history file", function()
     local file = "file.pdf"
     local d = docsettings:open(file)
+    local doc_dir = docsettings:getSidecarDir(file, "doc")
 
     local legacy_files = {
       docsettings:getHistoryPath(file),
-      d.doc_sidecar_dir .. "/file.pdf.lua",
+      doc_dir .. "/file.pdf.lua",
       "file.pdf.kpdfview.lua",
     }
 
@@ -171,7 +173,7 @@ describe("docsettings module", function()
       d:save("a", i)
       d:flush()
       assert.False(
-        os.rename(d.doc_sidecar_dir .. "/" .. d.sidecar_filename, v .. "1")
+        os.rename(doc_dir .. "/" .. d.sidecar_filename, v .. "1")
           == nil
       )
     end
@@ -351,6 +353,14 @@ describe("docsettings module", function()
       end
     end
 
+    local function getCandsMap(file)
+      local map = {}
+      for _, cand in ipairs(docsettings:getLocationCandidates(file)) do
+        map[cand.location] = cand.dir
+      end
+      return map
+    end
+
     before_each(function()
       shown_notifications = {}
       UIManager.show = function(_, widget)
@@ -376,9 +386,10 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_1.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if dir == d.doc_sidecar_dir then
+          if dir == cands.doc then
             return false
           end
           return original_isDirRW(dir, create)
@@ -386,7 +397,7 @@ describe("docsettings module", function()
 
         d:save("page", 42)
         local saved_dir = d:flush()
-        assert.are.equal(d.dir_sidecar_dir, saved_dir)
+        assert.are.equal(cands.dir, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("internal storage"))
 
@@ -407,9 +418,10 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if dir == d.doc_sidecar_dir or dir == d.dir_sidecar_dir then
+          if dir == cands.doc or dir == cands.dir then
             return false
           end
           return original_isDirRW(dir, create)
@@ -417,7 +429,7 @@ describe("docsettings module", function()
 
         d:save("page", 100)
         local saved_dir = d:flush()
-        assert.are.equal(d.hash_sidecar_dir, saved_dir)
+        assert.are.equal(cands.hash, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("internal storage"))
 
@@ -433,12 +445,13 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_3.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
           if
-            dir == d.doc_sidecar_dir
-            or dir == d.dir_sidecar_dir
-            or dir == d.hash_sidecar_dir
+            dir == cands.doc
+            or dir == cands.dir
+            or dir == cands.hash
           then
             return false
           end
@@ -447,7 +460,7 @@ describe("docsettings module", function()
 
         d:save("page", 200)
         local saved_dir = d:flush()
-        assert.are.equal(d:getLocationCandidates()[4].dir, saved_dir)
+        assert.are.equal(cands.tmp, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("temporary storage"))
 
@@ -523,6 +536,7 @@ describe("docsettings module", function()
         end
 
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
         d:save("page", 5)
         d:flushCustomCover(file, tmp_cover)
         d:flushCustomMetadata(file)
@@ -530,11 +544,11 @@ describe("docsettings module", function()
 
         local orig_cover = d:findCustomCoverFile()
         local orig_meta = d:findCustomMetadataFile()
-        assert.is_truthy(orig_cover:find("^" .. d.doc_sidecar_dir))
-        assert.is_truthy(orig_meta:find("^" .. d.doc_sidecar_dir))
+        assert.is_truthy(orig_cover:find("^" .. cands.doc))
+        assert.is_truthy(orig_meta:find("^" .. cands.doc))
 
         util.isDirRW = function(dir, create)
-          if dir == d.doc_sidecar_dir then
+          if dir == cands.doc then
             return false
           end
           return original_isDirRW(dir, create)
@@ -542,12 +556,12 @@ describe("docsettings module", function()
 
         d:save("page", 10)
         local saved_dir = d:flush()
-        assert.are.equal(d.dir_sidecar_dir, saved_dir)
+        assert.are.equal(cands.dir, saved_dir)
 
         local new_cover = d:findCustomCoverFile()
         local new_meta = d:findCustomMetadataFile()
-        assert.is_truthy(new_cover:find("^" .. d.dir_sidecar_dir))
-        assert.is_truthy(new_meta:find("^" .. d.dir_sidecar_dir))
+        assert.is_truthy(new_cover:find("^" .. cands.dir))
+        assert.is_truthy(new_meta:find("^" .. cands.dir))
 
         d:close()
         d:purge()
@@ -563,9 +577,10 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_dir_pref.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if dir == d.dir_sidecar_dir then
+          if dir == cands.dir then
             return false
           end
           return original_isDirRW(dir, create)
@@ -573,7 +588,7 @@ describe("docsettings module", function()
 
         d:save("page", 50)
         local saved_dir = d:flush()
-        assert.are.equal(d.hash_sidecar_dir, saved_dir)
+        assert.are.equal(cands.hash, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("internal storage"))
 
@@ -590,9 +605,10 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_dir_pref2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if dir == d.dir_sidecar_dir or dir == d.hash_sidecar_dir then
+          if dir == cands.dir or dir == cands.hash then
             return false
           end
           return original_isDirRW(dir, create)
@@ -600,7 +616,7 @@ describe("docsettings module", function()
 
         d:save("page", 60)
         local saved_dir = d:flush()
-        assert.are.equal(d.doc_sidecar_dir, saved_dir)
+        assert.are.equal(cands.doc, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("internal storage"))
 
@@ -617,9 +633,10 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_hash_pref.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if dir == d.hash_sidecar_dir then
+          if dir == cands.hash then
             return false
           end
           return original_isDirRW(dir, create)
@@ -627,7 +644,7 @@ describe("docsettings module", function()
 
         d:save("page", 70)
         local saved_dir = d:flush()
-        assert.are.equal(d.dir_sidecar_dir, saved_dir)
+        assert.are.equal(cands.dir, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("internal storage"))
 
@@ -644,9 +661,10 @@ describe("docsettings module", function()
         local file = "/tmp/test_ro_doc_hash_pref2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
+        local cands = getCandsMap(file)
 
         util.isDirRW = function(dir, create)
-          if dir == d.hash_sidecar_dir or dir == d.dir_sidecar_dir then
+          if dir == cands.hash or dir == cands.dir then
             return false
           end
           return original_isDirRW(dir, create)
@@ -654,7 +672,7 @@ describe("docsettings module", function()
 
         d:save("page", 80)
         local saved_dir = d:flush()
-        assert.are.equal(d.doc_sidecar_dir, saved_dir)
+        assert.are.equal(cands.doc, saved_dir)
         assert.are.equal(1, #shown_notifications)
         assert.is_truthy(shown_notifications[1].text:find("internal storage"))
 
@@ -1054,7 +1072,7 @@ describe("docsettings module", function()
 
       local cands = docsettings:getCustomLocationCandidates(test_doc)
       assert.are.equal(1, #cands)
-      assert.are.equal(d.doc_sidecar_dir, cands[1])
+      assert.are.equal(docsettings:getSidecarDir(test_doc, "doc"), cands[1])
     end)
   end)
 

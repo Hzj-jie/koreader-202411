@@ -277,9 +277,6 @@ function DocSettings:open(doc_path)
 
   local candidates_list = {}
   for _, cand in ipairs(new:getLocationCandidates(doc_path)) do
-    if cand.location ~= "tmp" then
-      new[cand.location .. "_sidecar_dir"] = cand.dir
-    end
     if util.directoryExists(cand.dir) then
       table.insert(candidates_list, cand.dir .. "/" .. new.sidecar_filename)
       if cand.location == "doc" then
