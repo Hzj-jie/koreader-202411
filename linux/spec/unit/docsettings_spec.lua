@@ -509,7 +509,7 @@ describe("docsettings module", function()
         end
 
         util.isDirRW = function(dir, create)
-          if dir == d.doc_sidecar_dir then
+          if dir == d.candidates[1].dir then
             return false
           end
           return original_isDirRW(dir, create)

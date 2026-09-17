@@ -72,114 +72,9 @@ local function notifyUser(reason)
   )
 end
 
-local function getLocationCandidates(doc_path)
-  if not doc_path or doc_path == "" then
-    return {}
-  end
-
-  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
-  local doc_cand = {
-    location = "doc",
-    dir = stem .. ".sdr",
-  }
-  local dir_cand = {
-    location = "dir",
-    dir = DOCSETTINGS_DIR .. stem .. ".sdr",
-  }
-  local hash_cand = {
-    location = "hash",
-    dir = (function()
-      local hsh = doc_hash_cache[doc_path]
-      if not hsh then
-        hsh = util.partialMD5(doc_path)
-        if hsh then
-          doc_hash_cache[doc_path] = hsh
-          logger.dbg(
-            "DocSettings: Caching new partial MD5 hash for",
-            doc_path,
-            "as",
-            hsh
-          )
-        end
-      else
-        logger.dbg(
-          "DocSettings: Using cached partial MD5 hash for",
-          doc_path,
-          "as",
-          hsh
-        )
-      end
-      if hsh then
-        -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
-        local subpath = string.format("/%s/", hsh:sub(1, 2))
-        return DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
-      end
-      return stem .. ".sdr"
-    end)(),
-  }
-  -- Note: "tmp" (and "hist" in findSidecarFile) are internal location identifiers
-  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
-  local tmp_cand = {
-    location = "tmp",
-    dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr",
-  }
-
-  local preferred_location = G_named_settings.document_metadata_folder()
-  if preferred_location == "hash" then
-    return { hash_cand, dir_cand, doc_cand, tmp_cand }
-  elseif preferred_location == "dir" then
-    return { dir_cand, hash_cand, doc_cand, tmp_cand }
-  else
-    return { doc_cand, dir_cand, hash_cand, tmp_cand }
-  end
-end
-
--- TODO: For testing purposes only, should be removed once external tests are migrated.
-function DocSettings:getSidecarDir(doc_path)
-  return getLocationCandidates(doc_path)[1].dir
-end
-
 function DocSettings.getSidecarFilename(doc_path)
   local suffix = doc_path:match(".*%.(.+)") or "_"
   return "metadata." .. suffix .. ".lua"
-end
-
---- Returns `true` if there is a `metadata.lua` file.
--- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @treturn bool
-function DocSettings:hasSidecarFile(doc_path)
-  return self:findSidecarFile(doc_path) and true or false
-end
-
---- Returns path of `metadata.lua` file if it exists, or nil.
--- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @bool no_legacy set to true to skip check of the legacy history file
--- @treturn string (or nil on failure)
-function DocSettings:findSidecarFile(doc_path, no_legacy)
-  if doc_path == nil or doc_path == "" then
-    return
-  end
-  local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
-  for _, cand in ipairs(getLocationCandidates(doc_path)) do
-    local sidecar_file = cand.dir .. "/" .. sidecar_filename
-    if util.fileExists(sidecar_file) then
-      return sidecar_file, cand.location
-    end
-  end
-  if is_history_location_enabled and not no_legacy then
-    local sidecar_file = self:getHistoryPath(doc_path)
-    if util.fileExists(sidecar_file) then
-      -- Note: "hist" is an internal location identifier indicating legacy history,
-      -- not a configurable user option in G_named_settings.
-      return sidecar_file, "hist" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
-    end
-  end
-end
-
-function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
-  local _, location = DocSettings:findSidecarFile(doc_path)
-  return location ~= nil
-    and location ~= G_named_settings.document_metadata_folder()
 end
 
 function DocSettings:getHistoryPath(doc_path)
@@ -235,6 +130,137 @@ function DocSettings:getFileFromHistory(hist_name)
   end
 end
 
+local function getCandidates(doc_path)
+  if not doc_path or doc_path == "" then
+    return {}
+  end
+
+  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
+  local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
+
+  local doc_dir = stem .. ".sdr"
+  local doc_cand = {
+    file = doc_dir .. "/" .. sidecar_filename,
+    dir = doc_dir,
+    location = "doc",
+  }
+  -- Legacy sidecar format: early KOReader versions stored settings as
+  -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
+  -- This legacy format only ever existed directly next to the document.
+  local doc_legacy_cand = {
+    file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua",
+    dir = doc_dir,
+    location = "doc",
+    legacy = true,
+  }
+  local dir_dir = DOCSETTINGS_DIR .. stem .. ".sdr"
+  local dir_cand = {
+    file = dir_dir .. "/" .. sidecar_filename,
+    dir = dir_dir,
+    location = "dir",
+  }
+  local hash_dir = (function()
+    local hsh = doc_hash_cache[doc_path]
+    if not hsh then
+      hsh = util.partialMD5(doc_path)
+      if hsh then
+        doc_hash_cache[doc_path] = hsh
+        logger.dbg(
+          "DocSettings: Caching new partial MD5 hash for",
+          doc_path,
+          "as",
+          hsh
+        )
+      end
+    else
+      logger.dbg(
+        "DocSettings: Using cached partial MD5 hash for",
+        doc_path,
+        "as",
+        hsh
+      )
+    end
+    if hsh then
+      -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
+      local subpath = string.format("/%s/", hsh:sub(1, 2))
+      return DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+    end
+    return stem .. ".sdr"
+  end)()
+  local hash_cand = {
+    file = hash_dir .. "/" .. sidecar_filename,
+    dir = hash_dir,
+    location = "hash",
+  }
+  -- Note: "tmp" (and "hist" / "kpdfview") are internal location identifiers
+  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
+  local tmp_dir = DataStorage:getTmpDir() .. "/docsettings" .. stem .. ".sdr"
+  local tmp_cand = {
+    file = tmp_dir .. "/" .. sidecar_filename,
+    dir = tmp_dir,
+    location = "tmp",
+  }
+
+  local candidates
+  local preferred_location = G_named_settings.document_metadata_folder()
+  if preferred_location == "hash" then
+    candidates = { hash_cand, dir_cand, doc_cand, doc_legacy_cand, tmp_cand }
+  elseif preferred_location == "dir" then
+    candidates = { dir_cand, hash_cand, doc_cand, doc_legacy_cand, tmp_cand }
+  else
+    candidates = { doc_cand, doc_legacy_cand, dir_cand, hash_cand, tmp_cand }
+  end
+
+  if is_history_location_enabled then
+    table.insert(candidates, {
+      file = DocSettings:getHistoryPath(doc_path),
+      location = "hist",
+      legacy = true,
+    })
+  end
+  table.insert(candidates, {
+    file = doc_path .. ".kpdfview.lua",
+    location = "kpdfview",
+    legacy = true,
+  })
+
+  return candidates
+end
+
+-- TODO: For testing purposes only, should be removed once external tests are migrated.
+function DocSettings:getSidecarDir(doc_path)
+  local cands = getCandidates(doc_path)
+  return cands[1] and cands[1].dir
+end
+
+--- Returns `true` if there is a `metadata.lua` file.
+-- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
+-- @treturn bool
+function DocSettings:hasSidecarFile(doc_path)
+  return self:findSidecarFile(doc_path) and true or false
+end
+
+--- Returns path of `metadata.lua` file if it exists, or nil.
+-- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
+-- @bool no_legacy set to true to skip check of legacy sidecar files
+-- @treturn string (or nil on failure)
+function DocSettings:findSidecarFile(doc_path, no_legacy)
+  if doc_path == nil or doc_path == "" then
+    return
+  end
+  for _, cand in ipairs(getCandidates(doc_path)) do
+    if (not no_legacy or not cand.legacy) and util.fileExists(cand.file) then
+      return cand.file, cand.location
+    end
+  end
+end
+
+function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
+  local _, location = DocSettings:findSidecarFile(doc_path)
+  return location ~= nil
+    and location ~= G_named_settings.document_metadata_folder()
+end
+
 --- Opens a document's individual settings (font, margin, dictionary, etc.)
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn DocSettings object
@@ -250,43 +276,11 @@ function DocSettings:open(doc_path)
 
   new.doc_path = doc_path
   new.sidecar_filename = DocSettings.getSidecarFilename(doc_path)
-
-  local candidates = {}
-  for _, cand in ipairs(getLocationCandidates(doc_path)) do
-    table.insert(candidates, {
-      file = cand.dir .. "/" .. new.sidecar_filename,
-      dir = cand.dir,
-      location = cand.location,
-    })
-    if cand.location == "doc" then
-      -- Legacy sidecar format: early KOReader versions stored settings as
-      -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
-      -- This legacy format only ever existed directly next to the document.
-      table.insert(candidates, {
-        file = cand.dir .. "/" .. ffiutil.basename(doc_path) .. ".lua",
-        dir = cand.dir,
-        location = "doc",
-        legacy = true,
-      })
-    end
-  end
-  if is_history_location_enabled then
-    table.insert(candidates, {
-      file = new:getHistoryPath(doc_path),
-      location = "hist",
-      legacy = true,
-    })
-  end
-  table.insert(candidates, {
-    file = doc_path .. ".kpdfview.lua",
-    location = "kpdfview",
-    legacy = true,
-  })
-  new.candidates = candidates
+  new.candidates = getCandidates(doc_path)
 
   local existing = {}
   local seen = {}
-  for i, cand in ipairs(candidates) do
+  for i, cand in ipairs(new.candidates) do
     if
       cand.file
       and cand.file ~= ""
@@ -504,8 +498,8 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
       end
       if not new_sidecar_dir then
-        for _, cand in ipairs(getLocationCandidates(new_doc_path)) do
-          if util.isDirRW(cand.dir, true) then
+        for _, cand in ipairs(getCandidates(new_doc_path)) do
+          if not cand.legacy and cand.dir and util.isDirRW(cand.dir, true) then
             new_sidecar_dir = cand.dir
             break
           end
@@ -550,8 +544,10 @@ function DocSettings:getCustomLocationCandidates(doc_path)
     return { sidecar_dir }
   end
   local candidates = {}
-  for _, cand in ipairs(getLocationCandidates(doc_path)) do
-    table.insert(candidates, cand.dir)
+  for _, cand in ipairs(getCandidates(doc_path)) do
+    if not cand.legacy and cand.dir then
+      table.insert(candidates, cand.dir)
+    end
   end
   return candidates
 end
@@ -571,21 +567,19 @@ end
 
 --- Returns path to book custom cover file if it exists, or nil.
 function DocSettings:findCustomCoverFile(doc_path)
-  if self and self.candidates and (not doc_path or doc_path == self.doc_path) then
-    for _, cand in ipairs(self.candidates) do
-      if cand.dir and util.directoryExists(cand.dir) then
+  local candidates = (self and self.candidates and (not doc_path or doc_path == self.doc_path))
+      and self.candidates
+    or getCandidates(doc_path)
+  local checked_dirs = {}
+  for _, cand in ipairs(candidates) do
+    if cand.dir and not checked_dirs[cand.dir] then
+      checked_dirs[cand.dir] = true
+      if util.directoryExists(cand.dir) then
         local custom_cover_file = findCustomCoverFileInDir(cand.dir)
         if custom_cover_file then
           return custom_cover_file
         end
       end
-    end
-    return
-  end
-  for _, cand in ipairs(getLocationCandidates(doc_path)) do
-    local custom_cover_file = findCustomCoverFileInDir(cand.dir)
-    if custom_cover_file then
-      return custom_cover_file
     end
   end
 end
@@ -623,21 +617,17 @@ end
 
 --- Returns path to book custom metadata file if it exists, or nil.
 function DocSettings:findCustomMetadataFile(doc_path)
-  if self and self.candidates and (not doc_path or doc_path == self.doc_path) then
-    for _, cand in ipairs(self.candidates) do
-      if cand.dir then
-        local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
-        if util.fileExists(custom_metadata_file) then
-          return custom_metadata_file
-        end
+  local candidates = (self and self.candidates and (not doc_path or doc_path == self.doc_path))
+      and self.candidates
+    or getCandidates(doc_path)
+  local checked_dirs = {}
+  for _, cand in ipairs(candidates) do
+    if cand.dir and not checked_dirs[cand.dir] then
+      checked_dirs[cand.dir] = true
+      local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
+      if util.fileExists(custom_metadata_file) then
+        return custom_metadata_file
       end
-    end
-    return
-  end
-  for _, cand in ipairs(getLocationCandidates(doc_path)) do
-    local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
-    if util.fileExists(custom_metadata_file) then
-      return custom_metadata_file
     end
   end
 end
