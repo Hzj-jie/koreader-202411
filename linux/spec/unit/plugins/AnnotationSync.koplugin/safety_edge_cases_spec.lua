@@ -108,8 +108,7 @@ describe("AnnotationSync Safety Edge Cases", function()
 
       -- 5. Verify local state
       -- Remote 2 should be marked as deleted now
-      local Device = require("device")
-      local tmp_dir = Device:getTmpDir()
+      local tmp_dir = require("datastorage"):getTmpDir()
       local filename =
         sync_instance.manager:_getAnnotationFilename(readerui.document.file)
       local json_path = tmp_dir .. "/" .. filename

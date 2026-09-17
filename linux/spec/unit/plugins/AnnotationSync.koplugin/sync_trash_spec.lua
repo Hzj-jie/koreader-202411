@@ -51,8 +51,7 @@ describe("AnnotationSync Trash & Restore", function()
     function()
       -- 1. Setup a sync JSON with one deleted item
       local file = readerui.document.file
-      local Device = require("device")
-      local tmp_dir = Device:getTmpDir()
+      local tmp_dir = require("datastorage"):getTmpDir()
 
       sync_instance.settings.use_filename = false -- use hash
       local filename = sync_instance.manager:_getAnnotationFilename(file)

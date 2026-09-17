@@ -36,7 +36,9 @@ describe("Background Sync Behavior", function()
 
     local Device = require("device")
     local old_hasWifiToggle = Device.hasWifiToggle
-    Device.hasWifiToggle = function() return true end
+    Device.hasWifiToggle = function()
+      return true
+    end
     package.loaded["ui/network/networklistener"] = nil
     local NetworkListener = require("ui/network/networklistener")
     Device.hasWifiToggle = old_hasWifiToggle
@@ -76,54 +78,71 @@ describe("Background Sync Behavior", function()
     test_utils.mock_sync_service(SyncService)
     require("background_jobs").clearKeys()
     local jobs = require("pluginshare").backgroundJobs
-    for k in pairs(jobs) do jobs[k] = nil end
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
     plugin_instance.settings.network_auto_sync = true
   end)
 
   describe("Main thread preparation and validation", function()
-    it("defers background sync via NetworkListener when network is offline", function()
-      local NetworkMgr = require("ui/network/manager")
-      local NetworkListener = require("ui/network/networklistener")
-      local old_isConn = NetworkMgr.isConnected
-      local old_isOnline = NetworkMgr.isOnline
-      local old_runOnline = NetworkMgr.runWhenOnline
-      NetworkMgr.isConnected = function()
-        return false
-      end
-      NetworkMgr.isOnline = function()
-        return false
-      end
-      NetworkMgr.runWhenOnline = function(self, callback)
-        if self:willRerunWhenOnline(callback) then
+    it(
+      "defers background sync via NetworkListener without notification when network is offline (Issue #492)",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local NetworkListener = require("ui/network/networklistener")
+        local Notification = require("ui/widget/notification")
+        local old_isConn = NetworkMgr.isConnected
+        local old_isOnline = NetworkMgr.isOnline
+        local old_runOnline = NetworkMgr.runWhenOnline
+        local old_notify = Notification.notify
+
+        local notify_called = false
+        Notification.notify = function()
+          notify_called = true
+        end
+
+        local run_online_called = false
+        NetworkMgr.runWhenOnline = function()
+          run_online_called = true
+        end
+
+        NetworkMgr.isConnected = function()
           return false
         end
-        return true
+        NetworkMgr.isOnline = function()
+          return false
+        end
+
+        local ok, err = pcall(function()
+          sync_manager:addToChangedDocumentsFile(readerui.document.file)
+          local jobs = require("pluginshare").backgroundJobs
+          local initial_count = #jobs
+
+          sync_manager:syncPendingDocumentsBg()
+
+          -- Whisper sync must NOT call runWhenOnline or trigger notification popup
+          assert.is_false(run_online_called)
+          assert.is_false(notify_called)
+
+          -- No background runner job queued directly while offline
+          assert.is_equal(initial_count, #jobs)
+          -- But queued silently in NetworkListener for when online
+          assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+
+          NetworkListener:onNetworkOnline()
+          fastforward_ui_events()
+        end)
+
+        NetworkMgr.isConnected = old_isConn
+        NetworkMgr.isOnline = old_isOnline
+        NetworkMgr.runWhenOnline = old_runOnline
+        Notification.notify = old_notify
+
+        if not ok then
+          error(err)
+        end
       end
-
-      local ok, err = pcall(function()
-        sync_manager:addToChangedDocumentsFile(readerui.document.file)
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_count = #jobs
-
-        sync_manager:syncPendingDocumentsBg()
-
-        -- No background runner job queued directly
-        assert.is_equal(initial_count, #jobs)
-        -- But queued in NetworkListener for when online
-        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
-
-        NetworkListener:onNetworkOnline()
-        fastforward_ui_events()
-      end)
-
-      NetworkMgr.isConnected = old_isConn
-      NetworkMgr.isOnline = old_isOnline
-      NetworkMgr.runWhenOnline = old_runOnline
-
-      if not ok then
-        error(err)
-      end
-    end)
+    )
 
     it("skips background sync when changed_documents is empty", function()
       local jobs = require("pluginshare").backgroundJobs
@@ -225,24 +244,21 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "queues distinct fork jobs for multiple changed documents",
-      function()
-        local doc1 = readerui.document.file
-        local doc2 = test_data_dir .. "/doc2.epub"
-        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
-        sync_manager:addToChangedDocumentsFile(doc1)
-        sync_manager:addToChangedDocumentsFile(doc2)
+    it("queues distinct fork jobs for multiple changed documents", function()
+      local doc1 = readerui.document.file
+      local doc2 = test_data_dir .. "/doc2.epub"
+      require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+      sync_manager:addToChangedDocumentsFile(doc1)
+      sync_manager:addToChangedDocumentsFile(doc2)
 
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_count = #jobs
+      local jobs = require("pluginshare").backgroundJobs
+      local initial_count = #jobs
 
-        sync_manager:syncPendingDocumentsBg()
+      sync_manager:syncPendingDocumentsBg()
 
-        -- Queues 2 separate background jobs
-        assert.is_equal(initial_count + 2, #jobs)
-      end
-    )
+      -- Queues 2 separate background jobs
+      assert.is_equal(initial_count + 2, #jobs)
+    end)
 
     it(
       "executes remote sync inside action without showing UI modals in silent mode",
@@ -352,7 +368,10 @@ describe("Background Sync Behavior", function()
       "does not alter active ReaderUI annotations for unrelated inactive synced documents",
       function()
         local inactive_doc = test_data_dir .. "/doc2.epub"
-        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", inactive_doc)
+        require("ffi/util").copyFile(
+          "spec/front/unit/data/juliet.epub",
+          inactive_doc
+        )
         sync_manager:addToChangedDocumentsFile(inactive_doc)
         sync_manager:syncPendingDocumentsBg()
 
@@ -375,25 +394,21 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "safely handles nil or malformed job result in callback",
-      function()
-        sync_manager:addToChangedDocumentsFile(readerui.document.file)
+    it("safely handles nil or malformed job result in callback", function()
+      sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
-        sync_manager:syncPendingDocumentsBg()
-        local job = require("pluginshare").backgroundJobs[#require(
-          "pluginshare"
-        ).backgroundJobs]
+      sync_manager:syncPendingDocumentsBg()
+      local job =
+        require("pluginshare").backgroundJobs[#require("pluginshare").backgroundJobs]
 
-        -- Malformed results should not throw errors
-        job.callback({ result = nil })
-        job.callback({ result = "invalid_string" })
+      -- Malformed results should not throw errors
+      job.callback({ result = nil })
+      job.callback({ result = "invalid_string" })
 
-        -- The changed document remains pending
-        local total, _ = sync_manager:getPendingChangedDocuments()
-        assert.is_equal(1, total)
-      end
-    )
+      -- The changed document remains pending
+      local total, _ = sync_manager:getPendingChangedDocuments()
+      assert.is_equal(1, total)
+    end)
   end)
 
   describe("Silent remote sync warnings", function()

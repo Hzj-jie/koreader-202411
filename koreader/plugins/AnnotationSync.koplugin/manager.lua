@@ -76,7 +76,7 @@ function SyncManager:syncAllChangedDocuments()
         end
 
         local res = self:syncDocument(file, false)
-        if res == true or res == "skip_upload" then
+        if res == true then
           count = count + 1
         elseif res == false then
           table.insert(failed_files, file)
@@ -124,7 +124,7 @@ function SyncManager:syncPendingDocumentsBg()
     return
   end
 
-  NetworkMgr:runWhenOnline(function()
+  NetworkMgr:willRerunWhenOnline(function()
     local pending_total, pending_changed_docs =
       self:getPendingChangedDocuments()
     if pending_total == 0 then
@@ -166,7 +166,7 @@ function SyncManager:syncPendingDocumentsBg()
             end)
             return {
               file = file,
-              success = ok and (sync_success == true or sync_success == "skip_upload"),
+              success = ok and sync_success == true,
               merged_list = final_merged,
             }
           end,
@@ -285,7 +285,7 @@ function SyncManager:_writeAnnotationsJSON(document)
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
-  local tmp_dir = Device:getTmpDir()
+  local tmp_dir = DataStorage:getTmpDir()
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     document,
@@ -427,7 +427,7 @@ function SyncManager:getDeletedAnnotations(document)
     return {}
   end
 
-  local tmp_dir = Device:getTmpDir()
+  local tmp_dir = DataStorage:getTmpDir()
   local filename = self:_getAnnotationFilename(file)
   local json_path = tmp_dir .. "/" .. filename
 
@@ -582,7 +582,7 @@ function SyncManager:pushSettings()
     },
   }
 
-  local json_path = Device:getTmpDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getTmpDir() .. "/settings_sync.json"
   local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
@@ -715,7 +715,7 @@ function SyncManager:pullSettings()
     return
   end
 
-  local json_path = Device:getTmpDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getTmpDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
   remote.sync_settings(self.plugin, json_path, function(success, merged_data)
     if success and merged_data then
