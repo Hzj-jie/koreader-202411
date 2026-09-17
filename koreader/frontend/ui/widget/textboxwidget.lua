@@ -1402,6 +1402,9 @@ end
 
 function TextBoxWidget:paintTo(bb, x, y)
   self:mergePosition(x, y)
+  if not self._bb then
+    self:_updateLayout()
+  end
   bb:blitFrom(self._bb, x, y, 0, 0, self.width, self._bb:getHeight())
 end
 
