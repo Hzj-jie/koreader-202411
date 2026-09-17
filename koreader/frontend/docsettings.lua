@@ -218,7 +218,6 @@ local function getCandidates(doc_path)
   if doc_legacy_file ~= doc_cand.file then
     table.insert(candidates, {
       file = doc_legacy_file,
-      dir = doc_dir,
       location = "doc",
     })
   end
@@ -373,10 +372,8 @@ function DocSettings:flush(data, no_custom_metadata)
   local preferred_location = G_named_settings.document_metadata_folder()
   local ser_data = dump(data)
 
-  local seen_locations = {}
   for _, cand in ipairs(self.candidates) do
-    if cand.dir and not seen_locations[cand.location] then
-      seen_locations[cand.location] = true
+    if cand.dir then
       local sidecar_dir = cand.dir
       local loc = cand.location
       local sidecar_dir_slash = sidecar_dir .. "/"
@@ -518,14 +515,10 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
       end
       if not new_sidecar_dir then
-        local seen_locations = {}
         for _, cand in ipairs(getCandidates(new_doc_path)) do
-          if cand.dir and not seen_locations[cand.location] then
-            seen_locations[cand.location] = true
-            if util.isDirRW(cand.dir, true) then
-              new_sidecar_dir = cand.dir
-              break
-            end
+          if cand.dir and util.isDirRW(cand.dir, true) then
+            new_sidecar_dir = cand.dir
+            break
           end
         end
       end
@@ -569,11 +562,9 @@ function DocSettings:getCustomLocationCandidates(doc_path)
       end
     end
   end
-  local seen_locations = {}
   local candidates = {}
   for _, cand in ipairs(getCandidates(doc_path)) do
-    if cand.dir and not seen_locations[cand.location] then
-      seen_locations[cand.location] = true
+    if cand.dir then
       table.insert(candidates, cand.dir)
     end
   end
@@ -602,15 +593,11 @@ function DocSettings:findCustomCoverFile(doc_path)
   )
       and self.candidates
     or getCandidates(doc_path)
-  local checked_dirs = {}
   for _, cand in ipairs(candidates) do
-    if cand.dir and not checked_dirs[cand.dir] then
-      checked_dirs[cand.dir] = true
-      if util.directoryExists(cand.dir) then
-        local custom_cover_file = findCustomCoverFileInDir(cand.dir)
-        if custom_cover_file then
-          return custom_cover_file
-        end
+    if cand.dir and util.directoryExists(cand.dir) then
+      local custom_cover_file = findCustomCoverFileInDir(cand.dir)
+      if custom_cover_file then
+        return custom_cover_file
       end
     end
   end
@@ -656,10 +643,8 @@ function DocSettings:findCustomMetadataFile(doc_path)
   )
       and self.candidates
     or getCandidates(doc_path)
-  local checked_dirs = {}
   for _, cand in ipairs(candidates) do
-    if cand.dir and not checked_dirs[cand.dir] then
-      checked_dirs[cand.dir] = true
+    if cand.dir then
       local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
       if util.fileExists(custom_metadata_file) then
         return custom_metadata_file
