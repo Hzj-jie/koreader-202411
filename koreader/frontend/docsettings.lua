@@ -219,13 +219,10 @@ local function getCandidates(doc_path)
   end
 
   if is_history_location_enabled then
-    local hist_path = DocSettings:getHistoryPath(doc_path)
-    if hist_path and hist_path ~= "" then
-      table.insert(candidates, {
-        file = hist_path,
-        location = "hist",
-      })
-    end
+    table.insert(candidates, {
+      file = DocSettings:getHistoryPath(doc_path),
+      location = "hist",
+    })
   end
   table.insert(candidates, {
     file = doc_path .. ".kpdfview.lua",
