@@ -618,7 +618,7 @@ describe("Calibre Wireless module", function()
 
         wireless_inst:deleteBook({ lpaths = { "delete_me.txt" } })
 
-        assert.is_nil(util.fileExists(file_to_delete))
+        assert.is_false(util.fileExists(file_to_delete))
         assert
           .spy(CalibreMetadata.removeBook)
           .was_called_with(CalibreMetadata, "delete_me.txt")
