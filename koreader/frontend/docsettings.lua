@@ -373,49 +373,45 @@ function DocSettings:flush(data, no_custom_metadata)
   local ser_data = dump(data)
 
   for _, cand in ipairs(self.candidates) do
-    if cand.dir then
-      local sidecar_dir = cand.dir
-      local loc = cand.location
-      local sidecar_dir_slash = sidecar_dir .. "/"
-      local sidecar_file = cand.file
-
-      if util.isDirRW(sidecar_dir, true) then
-        logger.dbg("DocSettings: Writing to", sidecar_file)
-        if util.writeToFile(ser_data, sidecar_file, true) then
-          if loc ~= preferred_location and not self.fallback_notified then
-            notifyUser(loc == "tmp" and "tmp" or "fallback")
-            self.fallback_notified = true
-          end
-
-          -- move custom cover file and custom metadata file to the metadata file location
-          if not no_custom_metadata then
-            local metadata_file, filepath, filename
-            -- custom cover
-            metadata_file = self:getCustomCoverFile()
-            if metadata_file then
-              filepath, filename = util.splitFilePathName(metadata_file)
-              if filepath ~= sidecar_dir_slash then
-                ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-                os.remove(metadata_file)
-                self:getCustomCoverFile(true) -- reset cache
-              end
-            end
-            -- custom metadata
-            metadata_file = self:getCustomMetadataFile()
-            if metadata_file then
-              filepath, filename = util.splitFilePathName(metadata_file)
-              if filepath ~= sidecar_dir_slash then
-                ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-                os.remove(metadata_file)
-                self:getCustomMetadataFile(true) -- reset cache
-              end
-            end
-          end
-
-          self:purge(sidecar_file) -- remove old candidates and empty sidecar folders
-
-          return sidecar_dir
+    if cand.dir and util.isDirRW(cand.dir, true) then
+      logger.dbg("DocSettings: Writing to", cand.file)
+      if util.writeToFile(ser_data, cand.file, true) then
+        if
+          cand.location ~= preferred_location and not self.fallback_notified
+        then
+          notifyUser(cand.location == "tmp" and "tmp" or "fallback")
+          self.fallback_notified = true
         end
+
+        -- move custom cover file and custom metadata file to the metadata file location
+        if not no_custom_metadata then
+          local sidecar_dir_slash = cand.dir .. "/"
+          local metadata_file, filepath, filename
+          -- custom cover
+          metadata_file = self:getCustomCoverFile()
+          if metadata_file then
+            filepath, filename = util.splitFilePathName(metadata_file)
+            if filepath ~= sidecar_dir_slash then
+              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+              os.remove(metadata_file)
+              self:getCustomCoverFile(true) -- reset cache
+            end
+          end
+          -- custom metadata
+          metadata_file = self:getCustomMetadataFile()
+          if metadata_file then
+            filepath, filename = util.splitFilePathName(metadata_file)
+            if filepath ~= sidecar_dir_slash then
+              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+              os.remove(metadata_file)
+              self:getCustomMetadataFile(true) -- reset cache
+            end
+          end
+        end
+
+        self:purge(cand.file) -- remove old candidates and empty sidecar folders
+
+        return cand.dir
       end
     end
   end
@@ -445,11 +441,10 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
   -- Remove any of the old ones we may consider as candidates in DocSettings:open()
   if data_to_purge.doc_settings then
     for _, cand in ipairs(self.candidates) do
-      local candidate_path = cand.file
-      if util.fileExists(candidate_path) then
-        if not sidecar_to_keep or candidate_path ~= sidecar_to_keep then
-          os.remove(candidate_path)
-          logger.dbg("DocSettings: purged:", candidate_path)
+      if util.fileExists(cand.file) then
+        if not sidecar_to_keep or cand.file ~= sidecar_to_keep then
+          os.remove(cand.file)
+          logger.dbg("DocSettings: purged:", cand.file)
         end
       end
     end
