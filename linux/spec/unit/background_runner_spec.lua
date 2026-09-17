@@ -757,4 +757,85 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(222, completed[1].result)
     end
   )
+
+  it(
+    "should catch exception by default when function executable fails",
+    function()
+      local callback_job = nil
+      table.insert(PluginShare.backgroundJobs, {
+        when = 1,
+        executable = function()
+          error("something broke in job")
+        end,
+        callback = function(j)
+          callback_job = j
+        end,
+      })
+      notifyBackgroundJobsUpdated()
+
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+
+      assert.is_not_nil(callback_job)
+      assert.are.equal(1, callback_job.result)
+      assert.is_not_nil(callback_job.exception)
+      assert.is_not_nil(callback_job.end_time)
+    end
+  )
+
+  it("should raise exception if catch_exception is false", function()
+    table.insert(PluginShare.backgroundJobs, {
+      when = 1,
+      catch_exception = false,
+      executable = function()
+        error("fatal job error")
+      end,
+    })
+    notifyBackgroundJobsUpdated()
+
+    MockTime:increase(2)
+    UIManager:handleInput()
+    assert.has_error(function()
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end)
+  end)
+
+  it(
+    "should preserve catch_exception across repeating function executions",
+    function()
+      local results = {}
+      table.insert(PluginShare.backgroundJobs, {
+        when = 1,
+        repeated = 2,
+        executable = function()
+          error("repeating job error")
+        end,
+        callback = function(j)
+          table.insert(results, { result = j.result, exception = j.exception })
+        end,
+      })
+      notifyBackgroundJobsUpdated()
+
+      -- First execution
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.are.equal(1, #results)
+      assert.are.equal(1, results[1].result)
+      assert.is_not_nil(results[1].exception)
+
+      -- Second execution of the cloned repeating job
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.are.equal(2, #results)
+      assert.are.equal(1, results[2].result)
+      assert.is_not_nil(results[2].exception)
+    end
+  )
 end)
