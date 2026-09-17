@@ -452,10 +452,10 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
   end
 
   -- Remove any of the old ones we may consider as candidates in DocSettings:open()
-  if data_to_purge.doc_settings and self.candidates then
+  if data_to_purge.doc_settings then
     for _, cand in ipairs(self.candidates) do
       local candidate_path = cand.file
-      if candidate_path and util.fileExists(candidate_path) then
+      if util.fileExists(candidate_path) then
         if not sidecar_to_keep or candidate_path ~= sidecar_to_keep then
           os.remove(candidate_path)
           logger.dbg("DocSettings: purged:", candidate_path)
@@ -480,11 +480,9 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
     or data_to_purge.custom_cover_file
     or data_to_purge.custom_metadata_file
   then
-    if self.candidates then
-      for _, cand in ipairs(self.candidates) do
-        if cand.dir then
-          DocSettings.removeSidecarDir(cand.dir)
-        end
+    for _, cand in ipairs(self.candidates) do
+      if cand.dir then
+        DocSettings.removeSidecarDir(cand.dir)
       end
     end
   end
