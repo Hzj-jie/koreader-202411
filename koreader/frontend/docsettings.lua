@@ -213,6 +213,7 @@ local function getCandidates(doc_path)
   if doc_legacy_file ~= doc_cand.file then
     table.insert(candidates, {
       file = doc_legacy_file,
+      -- Note: without `dir`, the candidate is read-only.
       location = "doc",
     })
   end
