@@ -1516,8 +1516,15 @@ describe("BookInfo", function()
       end)
       mock_docsettings.findSidecarFilesInHashLocation = spy.new(function()
         return {
-          { "/hash_path/book1_sidecar.lua", "/hash_path/book1_custom.lua" },
-          { "/hash_path/book2_sidecar.lua", nil },
+          {
+            dir = "/hash_path/book1.sdr",
+            metadata = "/hash_path/book1_sidecar.lua",
+            custom_metadata = "/hash_path/book1_custom.lua",
+          },
+          {
+            dir = "/hash_path/book2.sdr",
+            metadata = "/hash_path/book2_sidecar.lua",
+          },
         }
       end)
 
@@ -1603,6 +1610,71 @@ describe("BookInfo", function()
         assert.truthy(
           viewer_args.text:find(
             "2. Title: Orig Title 2; Author: Author 2\nDocument: N/A",
+            1,
+            true
+          )
+        )
+      end
+    )
+
+    it(
+      "handles custom-only and cover-only sidecar directories gracefully",
+      function()
+        mock_docsettings.findSidecarFilesInHashLocation = spy.new(function()
+          return {
+            {
+              dir = "/hash_path/book3.sdr",
+              custom_metadata = "/hash_path/book3_custom.lua",
+            },
+            {
+              dir = "/hash_path/book4.sdr",
+              cover = "/hash_path/book4.sdr/cover.jpg",
+            },
+          }
+        end)
+        mock_docsettings.openSettingsFile = spy.new(function(file)
+          if file == "/hash_path/book3_custom.lua" then
+            return {
+              readTableRef = function(_, key)
+                if key == "custom_props" then
+                  return {
+                    title = "Custom Only Title",
+                    authors = "Custom Author",
+                  }
+                end
+                return {}
+              end,
+              read = function()
+                return {}
+              end,
+            }
+          end
+          return {
+            read = function() end,
+            readTableRef = function()
+              return {}
+            end,
+          }
+        end)
+
+        BookInfo.showBooksWithHashBasedMetadata()
+
+        assert.spy(mock_text_viewer.new).was_called(1)
+        local viewer_args = mock_text_viewer.new.calls[1].refs[2]
+        assert.are.equal(
+          "2 documents with hash-based metadata",
+          viewer_args.title
+        )
+        assert.truthy(
+          viewer_args.text:find(
+            "1. Title: Custom Only Title; Author: Custom Author\nDocument: N/A",
+            1,
+            true
+          )
+        )
+        assert.truthy(
+          viewer_args.text:find(
+            "2. Title: Custom cover only; Author: N/A\nDocument: N/A",
             1,
             true
           )
