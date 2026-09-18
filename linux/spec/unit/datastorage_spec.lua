@@ -250,6 +250,28 @@ describe("DataStorage module", function()
     )
 
     it(
+      "falls back to getDataDir()/tmp when env TMPDIR and /tmp are unwritable",
+      function()
+        env_mock["TMPDIR"] = false
+        DataStorage = require("datastorage")
+        local expected_dir = DataStorage:getDataDir() .. "/tmp"
+        isDirRW_mock = function(dir)
+          return dir == expected_dir
+        end
+        assert.are.equal(expected_dir, DataStorage:getTmpDir())
+      end
+    )
+
+    it("falls back to ./tmp when getDataDir()/tmp is unwritable", function()
+      env_mock["TMPDIR"] = false
+      DataStorage = require("datastorage")
+      isDirRW_mock = function(dir)
+        return dir == "./tmp"
+      end
+      assert.are.equal("./tmp", DataStorage:getTmpDir())
+    end)
+
+    it(
       "returns nil when no candidate temporary directory is writable",
       function()
         env_mock["TMPDIR"] = false
