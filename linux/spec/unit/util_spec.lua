@@ -863,6 +863,90 @@ describe("util module", function()
     end)
   end)
 
+  describe(
+    "isDirContainingFiles() + removeEmptyTree() on inaccessible dirs",
+    function()
+      local base = "/tmp/test_inaccessible_dir_sweep_xyz"
+
+      local function cleanup()
+        os.execute("chmod -R 755 '" .. base .. "' 2>/dev/null")
+        os.execute("rm -rf '" .. base .. "'")
+      end
+
+      before_each(function()
+        cleanup()
+        util.makePath(base .. "/locked_empty")
+        util.makePath(base .. "/locked_with_file")
+        local f = io.open(base .. "/locked_with_file/precious.lua", "w")
+        f:write("return {}")
+        f:close()
+        util.makePath(base .. "/ordinary_empty")
+        os.execute(
+          "chmod 000 '"
+            .. base
+            .. "/locked_empty' '"
+            .. base
+            .. "/locked_with_file'"
+        )
+      end)
+
+      after_each(cleanup)
+
+      it("does not delete a directory it cannot read", function()
+        -- Guard: root ignores permission bits, which would make this vacuous.
+        if util.directoryExists(base .. "/locked_empty") then
+          pending("running as root; chmod 000 does not restrict access")
+          return
+        end
+
+        -- The probe cannot see into the locked directories, so it reports no files.
+        -- That is a false negative, and the sweep must still be safe.
+        assert.is_false(util.isDirContainingFiles(base))
+
+        util.removeEmptyTree(base)
+
+        -- An unreadable *empty* directory must survive. rmdir(2) authorises against
+        -- the parent's write bit, not the target's own mode, so it would otherwise
+        -- be removable -- this is what the early return in removeEmptyTree protects.
+        assert.is_not_nil(lfs.attributes(base .. "/locked_empty", "mode"))
+
+        -- An unreadable directory holding a file must survive, with its contents.
+        assert.is_not_nil(lfs.attributes(base .. "/locked_with_file", "mode"))
+
+        -- The root must survive, since it is not empty.
+        assert.is_not_nil(lfs.attributes(base, "mode"))
+
+        -- ...and the sweep did run: an ordinary empty sibling was pruned.
+        assert.is_nil(lfs.attributes(base .. "/ordinary_empty", "mode"))
+      end)
+
+      it("preserves files inside an unreadable directory", function()
+        if util.directoryExists(base .. "/locked_empty") then
+          pending("running as root; chmod 000 does not restrict access")
+          return
+        end
+
+        util.removeEmptyTree(base)
+
+        os.execute("chmod 755 '" .. base .. "/locked_with_file'")
+        assert.is_not_nil(
+          lfs.attributes(base .. "/locked_with_file/precious.lua", "mode")
+        )
+      end)
+
+      it("reports failure rather than claiming success", function()
+        if util.directoryExists(base .. "/locked_empty") then
+          pending("running as root; chmod 000 does not restrict access")
+          return
+        end
+
+        local ok, err = util.removeEmptyTree(base)
+        assert.is_nil(ok)
+        assert.is_not_nil(err)
+      end)
+    end
+  )
+
   describe("getFriendlySize()", function()
     describe("should convert bytes to friendly size as string", function()
       it("to 100.0 GB", function()
