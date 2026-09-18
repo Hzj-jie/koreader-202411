@@ -857,20 +857,37 @@ function BookInfo.showBooksWithHashBasedMetadata()
   local file_info = { header .. "\n" }
   local sdrs = DocSettings.findSidecarFilesInHashLocation()
   for i, sdr in ipairs(sdrs) do
-    local sidecar_file, custom_metadata_file = unpack(sdr)
-    local doc_settings = DocSettings.openSettingsFile(sidecar_file)
-    local doc_props = doc_settings:read("doc_props")
-    local custom_props = custom_metadata_file
-        and DocSettings.openSettingsFile(custom_metadata_file)
-          :readTableRef("custom_props")
-      or {}
-    local doc_path = doc_settings:read("doc_path")
-    local title = custom_props.title
-      or doc_props.title
-      or filemanagerutil.splitFileNameType(doc_path)
-    local author = custom_props.authors or doc_props.authors or gettext("N/A")
-    doc_path = lfs.attributes(doc_path, "mode") == "file" and doc_path
-      or gettext("N/A")
+    local title, author, doc_path
+    if sdr.metadata then
+      local doc_settings = DocSettings.openSettingsFile(sdr.metadata)
+      local doc_props = doc_settings:read("doc_props") or {}
+      local custom_props = sdr.custom_metadata
+          and DocSettings.openSettingsFile(sdr.custom_metadata)
+            :readTableRef("custom_props")
+        or {}
+      doc_path = doc_settings:read("doc_path")
+      title = custom_props.title
+        or doc_props.title
+        or (doc_path and filemanagerutil.splitFileNameType(doc_path))
+        or gettext("N/A")
+      author = custom_props.authors or doc_props.authors or gettext("N/A")
+      doc_path = (doc_path and lfs.attributes(doc_path, "mode") == "file")
+          and doc_path
+        or gettext("N/A")
+    elseif sdr.custom_metadata then
+      local custom_doc_settings =
+        DocSettings.openSettingsFile(sdr.custom_metadata)
+      local custom_props = custom_doc_settings:readTableRef("custom_props")
+        or {}
+      local doc_props = custom_doc_settings:read("doc_props") or {}
+      title = custom_props.title or doc_props.title or gettext("N/A")
+      author = custom_props.authors or doc_props.authors or gettext("N/A")
+      doc_path = gettext("N/A")
+    else
+      title = gettext("Custom cover only")
+      author = gettext("N/A")
+      doc_path = gettext("N/A")
+    end
     local text = T(
       gettext("%1. Title: %2; Author: %3\nDocument: %4"),
       i,
