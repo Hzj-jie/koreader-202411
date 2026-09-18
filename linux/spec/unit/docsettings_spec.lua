@@ -580,8 +580,8 @@ describe("docsettings module", function()
 
         local orig_cover = d:findCustomCoverFile()
         local orig_meta = d:findCustomMetadataFile()
-        assert.is_truthy(orig_cover:find("^" .. cands.doc))
-        assert.is_truthy(orig_meta:find("^" .. cands.doc))
+        assert.is_true(util.stringStartsWith(orig_cover, cands.doc))
+        assert.is_true(util.stringStartsWith(orig_meta, cands.doc))
 
         util.isDirRW = function(dir, create)
           if dir == cands.doc then
@@ -596,8 +596,8 @@ describe("docsettings module", function()
 
         local new_cover = d:findCustomCoverFile()
         local new_meta = d:findCustomMetadataFile()
-        assert.is_truthy(new_cover:find("^" .. cands.dir))
-        assert.is_truthy(new_meta:find("^" .. cands.dir))
+        assert.is_true(util.stringStartsWith(new_cover, cands.dir))
+        assert.is_true(util.stringStartsWith(new_meta, cands.dir))
 
         d:close()
         d:purge()
@@ -1318,7 +1318,7 @@ describe("docsettings module", function()
 
         local found_cover = docsettings:findCustomCoverFile(new_file)
         assert.is_truthy(found_cover)
-        assert.is_nil(found_cover:find("^" .. new_doc_sdr))
+        assert.is_false(util.stringStartsWith(found_cover, new_doc_sdr))
 
         docsettings.updateLocation(new_file, nil)
         docsettings.updateLocation(orig_file, nil)
