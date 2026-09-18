@@ -697,20 +697,33 @@ end
 
 -- "hash" section
 
--- Returns the list of pairs {sidecar_file, custom_metadata_file}.
+-- Returns the list of tables { dir = ..., metadata = ..., custom_metadata = ..., cover = ... }.
 function DocSettings.findSidecarFilesInHashLocation()
-  local res = {}
+  local by_dir = {}
+  local dir_list = {}
   local callback = function(fullpath, name)
-    if name:match("metadata%..+%.lua$") then
-      local sdr = { fullpath }
-      local custom_metadata_file = fullpath:gsub(name, custom_metadata_filename)
-      if util.fileExists(custom_metadata_file) then
-        table.insert(sdr, custom_metadata_file)
-      end
-      table.insert(res, sdr)
+    local dir = fullpath:match("(.*)/[^/]*$")
+    local entry = by_dir[dir]
+    if not entry then
+      entry = { dir = dir }
+      by_dir[dir] = entry
+      table.insert(dir_list, entry)
+    end
+    if name:match("^metadata%..+%.lua$") then
+      entry.metadata = fullpath
+    elseif name == custom_metadata_filename then
+      entry.custom_metadata = fullpath
+    elseif name:match("^cover%.") then
+      entry.cover = fullpath
     end
   end
   util.findFiles(DOCSETTINGS_HASH_DIR, callback)
+  local res = {}
+  for _, entry in ipairs(dir_list) do
+    if entry.metadata or entry.custom_metadata or entry.cover then
+      table.insert(res, entry)
+    end
+  end
   return res
 end
 
