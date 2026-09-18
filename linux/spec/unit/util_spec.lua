@@ -735,6 +735,64 @@ describe("util module", function()
     )
   end)
 
+  describe("removeEmptyTree()", function()
+    it("returns true on non-existent directory", function()
+      assert.is_true(
+        util.removeEmptyTree("/tmp/nonexistent_dir_for_remove_empty_tree_xyz")
+      )
+    end)
+
+    it(
+      "removes empty directory tree bottom-up and preserves parent directory",
+      function()
+        local base_dir = "/tmp/test_remove_empty_tree_base"
+        local target_dir = base_dir .. "/target"
+        local nested_empty = target_dir .. "/sub1/sub2/sub3"
+        util.makePath(nested_empty)
+        assert.is_true(util.directoryExists(nested_empty))
+
+        local ok, err = util.removeEmptyTree(target_dir)
+        assert.is_true(ok)
+        assert.is_nil(err)
+        assert.is_nil(lfs.attributes(target_dir, "mode"))
+        -- Parent directory should remain intact
+        assert.is_equal("directory", lfs.attributes(base_dir, "mode"))
+
+        -- Cleanup base dir
+        lfs.rmdir(base_dir)
+      end
+    )
+
+    it(
+      "does not delete non-empty directories or files and returns error",
+      function()
+        local base_dir = "/tmp/test_remove_non_empty_tree"
+        local nested = base_dir .. "/a/b"
+        util.makePath(nested)
+        local file = nested .. "/sample.txt"
+        local f = io.open(file, "w")
+        if f then
+          f:write("content")
+          f:close()
+        end
+
+        local ok, err = util.removeEmptyTree(base_dir)
+        assert.is_nil(ok)
+        assert.is_truthy(err)
+        -- Files and directories should still exist
+        assert.is_equal("file", lfs.attributes(file, "mode"))
+        assert.is_equal("directory", lfs.attributes(nested, "mode"))
+        assert.is_equal("directory", lfs.attributes(base_dir, "mode"))
+
+        -- Cleanup
+        os.remove(file)
+        lfs.rmdir(nested)
+        lfs.rmdir(base_dir .. "/a")
+        lfs.rmdir(base_dir)
+      end
+    )
+  end)
+
   describe("getFriendlySize()", function()
     describe("should convert bytes to friendly size as string", function()
       it("to 100.0 GB", function()
