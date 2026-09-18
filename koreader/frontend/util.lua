@@ -1027,6 +1027,34 @@ function util.removePath(path)
   return true, nil
 end
 
+--- Removes an empty directory tree bottom-up.
+-- Recursively removes empty subdirectories, and removes dir itself if empty.
+-- Does not remove non-empty directories or files, and does not touch parent directories.
+-- @string dir the directory tree root to prune
+-- @treturn bool true on success; nil, err_message on error
+function util.removeEmptyTree(dir)
+  local ok, iter, dir_obj = pcall(lfs.dir, dir)
+  if not ok then
+    if lfs.attributes(dir, "mode") == nil then
+      return true
+    end
+    return nil, "Cannot open directory: " .. tostring(dir)
+  end
+  -- Buffer child entries first to avoid mutating the directory while iterating
+  -- with lfs.dir, ensuring underlying filesystem behavior (such as readdir offset
+  -- handling on FAT32 or network shares) won't break traversal.
+  local subdirs = {}
+  for f in iter, dir_obj do
+    if f ~= "." and f ~= ".." then
+      table.insert(subdirs, f)
+    end
+  end
+  for _, f in ipairs(subdirs) do
+    util.removeEmptyTree(dir .. "/" .. f)
+  end
+  return lfs.rmdir(dir)
+end
+
 --- As `rm`
 -- @string path of the file to remove
 -- @treturn bool true on success; nil, err_message on error
