@@ -1041,6 +1041,43 @@ describe("docsettings module", function()
       assert.are.equal(d1.candidates[1].dir, d2.candidates[1].dir)
       os.remove(file)
     end)
+
+    it(
+      "removes corrupted or empty candidate file and falls back to next candidate",
+      function()
+        local file = "/tmp/test_corrupt.epub"
+        local doc_sdr = "/tmp/test_corrupt.sdr"
+        local dir_sdr = docsettings_dir .. "/tmp/test_corrupt.sdr"
+        local f = io.open(file, "w")
+        if f then
+          f:write("dummy")
+          f:close()
+        end
+        util.makePath(doc_sdr)
+        util.makePath(dir_sdr)
+
+        -- doc candidate has corrupted/empty file
+        local f1 = io.open(doc_sdr .. "/metadata.epub.lua", "w")
+        f1:write("return {}\n")
+        f1:close()
+
+        -- dir candidate has valid settings
+        local f2 = io.open(dir_sdr .. "/metadata.epub.lua", "w")
+        f2:write('return { ["page"] = 42, ["doc_path"] = "' .. file .. '" }\n')
+        f2:close()
+
+        local d = docsettings:open(file)
+        assert.are.equal(42, d:read("page"))
+        -- Corrupt/empty file was cleaned up from disk
+        assert.is_nil(lfs.attributes(doc_sdr .. "/metadata.epub.lua", "mode"))
+
+        d:close()
+        d:purge()
+        docsettings.removeSidecarDir(doc_sdr)
+        docsettings.removeSidecarDir(dir_sdr)
+        os.remove(file)
+      end
+    )
   end)
 
   describe("removeSidecarDir", function()
@@ -1383,6 +1420,64 @@ describe("docsettings module", function()
         os.remove(orig_file)
       end
     )
+
+    it(
+      "removes referenced cache_file_path when deleting via updateLocation",
+      function()
+        local file = "/tmp/test_cache_del.epub"
+        local dummy_cache = "/tmp/test_extracted_cache.bin"
+        local f = io.open(file, "w")
+        if f then
+          f:write("dummy")
+          f:close()
+        end
+        local fc = io.open(dummy_cache, "w")
+        if fc then
+          fc:write("cached data")
+          fc:close()
+        end
+
+        local d = docsettings:open(file)
+        d:save("cache_file_path", dummy_cache)
+        d:flush()
+        d:close()
+
+        assert.is_truthy(lfs.attributes(dummy_cache, "mode"))
+        docsettings.updateLocation(file, nil) -- delete
+        assert.is_nil(lfs.attributes(dummy_cache, "mode"))
+        os.remove(file)
+      end
+    )
+
+    it(
+      "preserves hash-based sidecar on rename/move when hash location is preferred",
+      function()
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local file1 = "/tmp/test_hash_move_1.pdf"
+        local file2 = "/tmp/test_hash_move_2.pdf"
+        local f = io.open(file1, "w")
+        if f then
+          f:write("%PDF-1.4 dummy pdf content")
+          f:close()
+        end
+
+        local d = docsettings:open(file1)
+        d:save("page", 15)
+        d:flush()
+        d:close()
+
+        local sidecar_before = docsettings:findSidecarFile(file1)
+        assert.is_truthy(sidecar_before)
+
+        -- Move operation should keep hash sidecar unchanged
+        docsettings.updateLocation(file1, file2, false)
+        assert.is_truthy(util.fileExists(sidecar_before))
+
+        docsettings.updateLocation(file1, nil)
+        os.remove(file1)
+        G_reader_settings:delete("document_metadata_folder")
+      end
+    )
   end)
 
   describe("flush dynamic settings change", function()
@@ -1432,6 +1527,46 @@ describe("docsettings module", function()
         d:purge()
         os.remove(file)
         G_reader_settings:delete("document_metadata_folder")
+      end
+    )
+  end)
+
+  describe("selective purge", function()
+    it(
+      "selectively purges custom cover without deleting metadata.lua",
+      function()
+        local file = "/tmp/test_sel_purge.epub"
+        local tmp_cover = "/tmp/test_sel_cov.jpg"
+        local f1 = io.open(file, "w")
+        if f1 then
+          f1:write("dummy book")
+          f1:close()
+        end
+        local f2 = io.open(tmp_cover, "w")
+        if f2 then
+          f2:write("cover data")
+          f2:close()
+        end
+
+        local d = docsettings:open(file)
+        d:save("title", "Selective Purge Test")
+        d:flush()
+        d:flushCustomCover(file, tmp_cover)
+
+        local cover_file = d:findCustomCoverFile()
+        local sidecar_file = docsettings:findSidecarFile(file)
+        assert.is_truthy(cover_file)
+        assert.is_truthy(sidecar_file)
+
+        -- Purge ONLY custom cover
+        d:purge(nil, { custom_cover_file = cover_file })
+        assert.is_nil(d:findCustomCoverFile())
+        assert.is_truthy(util.fileExists(sidecar_file))
+
+        d:close()
+        d:purge()
+        os.remove(file)
+        os.remove(tmp_cover)
       end
     )
   end)
