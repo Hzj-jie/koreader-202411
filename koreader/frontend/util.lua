@@ -868,6 +868,28 @@ function util.isEmptyDir(path)
   return true
 end
 
+local SENTINEL = {}
+
+--- Checks if a directory tree contains any regular files or links.
+-- Uses an early-exit probe that stops immediately on the first file found.
+-- @string dir the directory tree to search
+-- @treturn bool true if the directory contains at least one file, false otherwise
+function util.isDirContainingFiles(dir)
+  if not util.directoryExists(dir) then
+    return false
+  end
+  local ok, err = pcall(util.findFiles, dir, function()
+    error(SENTINEL)
+  end)
+  if not ok then
+    if err ~= SENTINEL then
+      error(err, 0)
+    end
+    return true
+  end
+  return false
+end
+
 --- Checks if the given path is a regular file and is readable.
 ---- @string path
 ---- @treturn bool
