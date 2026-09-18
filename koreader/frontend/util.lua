@@ -1052,9 +1052,13 @@ end
 --- Removes an empty directory tree bottom-up.
 -- Recursively removes empty subdirectories, and removes dir itself if empty.
 -- Does not remove non-empty directories or files, and does not touch parent directories.
+-- Does not prune through directory symlinks.
 -- @string dir the directory tree root to prune
 -- @treturn bool true on success; nil, err_message on error
 function util.removeEmptyTree(dir)
+  if lfs.symlinkattributes(dir, "mode") == "link" then
+    return nil, "Cannot remove empty tree through a symlink: " .. tostring(dir)
+  end
   local ok, iter, dir_obj = pcall(lfs.dir, dir)
   if not ok then
     if lfs.attributes(dir, "mode") == nil then
@@ -1072,7 +1076,11 @@ function util.removeEmptyTree(dir)
     end
   end
   for _, f in ipairs(subdirs) do
-    util.removeEmptyTree(dir .. "/" .. f)
+    local child = dir .. "/" .. f
+    -- lfs.dir follows symlinks; never recurse (and never delete) through one.
+    if lfs.symlinkattributes(child, "mode") ~= "link" then
+      util.removeEmptyTree(child)
+    end
   end
   return lfs.rmdir(dir)
 end
