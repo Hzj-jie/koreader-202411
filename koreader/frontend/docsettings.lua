@@ -213,6 +213,8 @@ local function getCandidates(doc_path)
     })
   end
 
+  -- Note: "hist", "kpdfview", and "tmp" are internal location identifiers
+  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
   if is_history_location_enabled then
     table.insert(candidates, {
       file = DocSettings:getHistoryPath(doc_path),
@@ -223,8 +225,6 @@ local function getCandidates(doc_path)
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
   })
-  -- Note: "tmp" (and "hist" / "kpdfview") are internal location identifiers
-  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
   local base_tmp = DataStorage:getTmpDir()
   if base_tmp and base_tmp ~= DataStorage:getDataDir() then
     local tmp_dir = base_tmp
