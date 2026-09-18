@@ -43,7 +43,10 @@ end
 -- If no files exist in the tree at all, removes the empty directory tree bottom-up.
 function DocSettings.cleanHashLocationIfEmpty()
   if not util.isDirContainingFiles(DOCSETTINGS_HASH_DIR) then
-    util.removeEmptyTree(DOCSETTINGS_HASH_DIR)
+    local ok, err = util.removeEmptyTree(DOCSETTINGS_HASH_DIR)
+    if not ok and err then
+      logger.warn("DocSettings: failed to clean empty hash directory:", err)
+    end
   end
 end
 
