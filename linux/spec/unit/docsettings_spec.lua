@@ -1100,6 +1100,23 @@ describe("docsettings module", function()
     )
 
     it(
+      "prunes empty parent directories when removing sidecar directory inside DOCSETTINGS_DIR",
+      function()
+        local sub_dir = docsettings_dir .. "/test_author/test_book"
+        local sdr_dir = sub_dir .. "/book.sdr"
+        util.makePath(sdr_dir)
+        assert.are.equal("directory", lfs.attributes(sdr_dir, "mode"))
+
+        docsettings.removeSidecarDir(sdr_dir)
+
+        assert.is_nil(lfs.attributes(sdr_dir, "mode"))
+        -- Empty parent directories inside DOCSETTINGS_DIR should be pruned
+        assert.is_nil(lfs.attributes(sub_dir, "mode"))
+        assert.is_nil(lfs.attributes(docsettings_dir .. "/test_author", "mode"))
+      end
+    )
+
+    it(
       "keeps parent directory when removing standard sidecar directory",
       function()
         local parent_dir = "/tmp/koreader_test_standard_" .. tostring(os.time())
