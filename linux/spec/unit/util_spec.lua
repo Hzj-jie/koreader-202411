@@ -630,6 +630,44 @@ describe("util module", function()
     end)
   end)
 
+  describe("isDirContainingFiles()", function()
+    it("returns false on non-existent directory", function()
+      assert.is_false(
+        util.isDirContainingFiles("/tmp/nonexistent_dir_for_files_xyz")
+      )
+    end)
+
+    it("returns false on empty directory", function()
+      local dir = "/tmp/test_dir_containing_files_empty"
+      util.makePath(dir)
+      assert.is_false(util.isDirContainingFiles(dir))
+      lfs.rmdir(dir)
+    end)
+
+    it("returns false on directory with only empty subdirectories", function()
+      local base_dir = "/tmp/test_dir_containing_empty_subdirs"
+      local nested = base_dir .. "/sub1/sub2/sub3"
+      util.makePath(nested)
+      assert.is_false(util.isDirContainingFiles(base_dir))
+      util.removeEmptyTree(base_dir)
+    end)
+
+    it("returns true on directory containing a file", function()
+      local base_dir = "/tmp/test_dir_containing_file"
+      local nested = base_dir .. "/a/b"
+      util.makePath(nested)
+      local file = nested .. "/hello.txt"
+      local f = io.open(file, "w")
+      if f then
+        f:write("content")
+        f:close()
+      end
+      assert.is_true(util.isDirContainingFiles(base_dir))
+      os.remove(file)
+      util.removeEmptyTree(base_dir)
+    end)
+  end)
+
   describe("findFiles()", function()
     it("returns nil and does not error on non-existent dir", function()
       local count = 0
