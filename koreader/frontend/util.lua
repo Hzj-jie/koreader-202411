@@ -872,8 +872,9 @@ local SENTINEL = {}
 
 --- Checks if a directory tree contains any regular files or links.
 -- Uses an early-exit probe that stops immediately on the first file found.
+-- Returns false if no files are reachable (e.g., if empty or unreadable).
 -- @string dir the directory tree to search
--- @treturn bool true if the directory contains at least one file, false otherwise
+-- @treturn bool true if the directory contains at least one reachable file, false otherwise
 function util.isDirContainingFiles(dir)
   if not util.directoryExists(dir) then
     return false
