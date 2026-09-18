@@ -829,6 +829,38 @@ describe("util module", function()
         lfs.rmdir(base_dir)
       end
     )
+
+    it("does not prune through a directory symlink", function()
+      local base_dir = "/tmp/test_remove_empty_tree_symlink_base"
+      local outside_dir = "/tmp/test_remove_empty_tree_symlink_outside"
+      local outside_nested = outside_dir .. "/a/b"
+      util.makePath(outside_nested)
+      util.makePath(base_dir)
+
+      local link_path = base_dir .. "/link_to_outside"
+      os.execute(string.format("ln -s '%s' '%s'", outside_dir, link_path))
+      assert.is_equal("link", lfs.symlinkattributes(link_path, "mode"))
+
+      local ok, err = util.removeEmptyTree(base_dir)
+      assert.is_nil(ok)
+      assert.is_truthy(err)
+
+      -- Outside directory structure must remain completely intact
+      assert.is_equal("directory", lfs.attributes(outside_nested, "mode"))
+      assert.is_equal("directory", lfs.attributes(outside_dir, "mode"))
+      assert.is_equal("link", lfs.symlinkattributes(link_path, "mode"))
+
+      -- Direct call on the symlink must also refuse to prune the target
+      local link_ok, link_err = util.removeEmptyTree(link_path)
+      assert.is_nil(link_ok)
+      assert.is_truthy(link_err)
+      assert.is_equal("directory", lfs.attributes(outside_nested, "mode"))
+
+      -- Cleanup
+      os.remove(link_path)
+      lfs.rmdir(base_dir)
+      os.execute(string.format("rm -rf '%s'", outside_dir))
+    end)
   end)
 
   describe("getFriendlySize()", function()
