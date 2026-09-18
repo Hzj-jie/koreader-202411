@@ -836,15 +836,15 @@ function util.findFiles(dir, cb)
       return
     end
     for f in iter, dir_obj do
-      local path = current .. "/" .. f
-      -- lfs can return nil here, as it will follow symlinks!
-      local attr = lfs.attributes(path) or {}
-      if attr.mode == "directory" then
-        if f ~= "." and f ~= ".." then
+      if f ~= "." and f ~= ".." then
+        local path = current .. "/" .. f
+        -- lfs can return nil here, as it will follow symlinks!
+        local attr = lfs.attributes(path) or {}
+        if attr.mode == "directory" then
           scan(path)
+        elseif attr.mode == "file" or attr.mode == "link" then
+          cb(path, f, attr)
         end
-      elseif attr.mode == "file" or attr.mode == "link" then
-        cb(path, f, attr)
       end
     end
   end

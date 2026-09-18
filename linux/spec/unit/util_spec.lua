@@ -1,8 +1,9 @@
 describe("util module", function()
-  local DataStorage, util
+  local DataStorage, lfs, util
   setup(function()
     require("commonrequire")
     DataStorage = require("datastorage")
+    lfs = require("libs/libkoreader-lfs")
     util = require("util")
   end)
 
@@ -627,6 +628,111 @@ describe("util module", function()
         )
       )
     end)
+  end)
+
+  describe("findFiles()", function()
+    it("returns nil and does not error on non-existent dir", function()
+      local count = 0
+      assert.has_no_errors(function()
+        util.findFiles("/nonexistent_findfiles_dir_xyz", function()
+          count = count + 1
+        end)
+      end)
+      assert.is_equal(0, count)
+    end)
+
+    it(
+      "recursively finds files, ignores . and .., and never calls lfs.attributes on . or ..",
+      function()
+        local orig_dir = lfs.dir
+        local orig_attr = lfs.attributes
+
+        local mock_fs = {
+          ["/mock/root"] = {
+            entries = { ".", "..", "sub", "file1.txt" },
+          },
+          ["/mock/root/sub"] = {
+            entries = { ".", "..", "empty_sub", "file2.txt" },
+          },
+          ["/mock/root/sub/empty_sub"] = {
+            entries = { ".", ".." },
+          },
+        }
+
+        lfs.dir = function(current)
+          local node = mock_fs[current]
+          if not node then
+            error("directory not found: " .. tostring(current))
+          end
+          local idx = 0
+          return function()
+            idx = idx + 1
+            return node.entries[idx]
+          end,
+            nil
+        end
+
+        local queried_attributes = {}
+        lfs.attributes = function(path)
+          table.insert(queried_attributes, path)
+          if path == "/mock/root/sub" or path == "/mock/root/sub/empty_sub" then
+            return { mode = "directory" }
+          elseif
+            path == "/mock/root/file1.txt"
+            or path == "/mock/root/sub/file2.txt"
+          then
+            return { mode = "file" }
+          end
+          return nil
+        end
+
+        local found = {}
+        local ok, err = pcall(function()
+          util.findFiles("/mock/root", function(path, name, attr)
+            found[name] = { path = path, mode = attr.mode }
+          end)
+        end)
+
+        lfs.dir = orig_dir
+        lfs.attributes = orig_attr
+
+        assert.is_true(ok, "findFiles encountered error: " .. tostring(err))
+
+        -- Ensure lfs.attributes was never called on '.' or '..' entries
+        for _, path in ipairs(queried_attributes) do
+          assert.is_falsy(
+            path:match("/%.$"),
+            "lfs.attributes called on '.': " .. path
+          )
+          assert.is_falsy(
+            path:match("/%..$"),
+            "lfs.attributes called on '..': " .. path
+          )
+        end
+
+        -- Verify expected attribute queries took place
+        assert.are_same({
+          "/mock/root/sub",
+          "/mock/root/sub/empty_sub",
+          "/mock/root/sub/file2.txt",
+          "/mock/root/file1.txt",
+        }, queried_attributes)
+
+        -- Verify callback received expected files
+        assert.is_truthy(found["file1.txt"])
+        assert.is_equal("file", found["file1.txt"].mode)
+        assert.is_equal("/mock/root/file1.txt", found["file1.txt"].path)
+
+        assert.is_truthy(found["file2.txt"])
+        assert.is_equal("file", found["file2.txt"].mode)
+        assert.is_equal("/mock/root/sub/file2.txt", found["file2.txt"].path)
+
+        assert.is_nil(found["."])
+        assert.is_nil(found[".."])
+        assert.is_nil(found["sub"])
+        assert.is_nil(found["empty_sub"])
+      end
+    )
   end)
 
   describe("getFriendlySize()", function()
