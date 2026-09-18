@@ -1587,4 +1587,11 @@ describe("docsettings module", function()
       end
     )
   end)
+
+  it("purge() succeeds on objects created by openSettingsFile", function()
+    local obj = docsettings.openSettingsFile()
+    assert.has_no_errors(function()
+      obj:purge()
+    end)
+  end)
 end)

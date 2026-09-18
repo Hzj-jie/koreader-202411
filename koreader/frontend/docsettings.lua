@@ -366,6 +366,7 @@ function DocSettings.openSettingsFile(sidecar_file)
     new.data = {}
   end
   new.file = sidecar_file
+  new.candidates = {}
   return new
 end
 
