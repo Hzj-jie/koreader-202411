@@ -35,14 +35,7 @@ local is_history_location_enabled = util.directoryExists(HISTORY_DIR)
 local doc_hash_cache = {}
 
 function DocSettings.isHashLocationEnabled()
-  local has_file = false
-  pcall(util.findFiles, DOCSETTINGS_HASH_DIR, function(_, name)
-    if name:match("^metadata%..+%.lua$") then
-      has_file = true
-      error()
-    end
-  end)
-  return has_file
+  return util.directoryExists(DOCSETTINGS_HASH_DIR)
 end
 
 -- Lazily requires UI components to prevent cyclic dependencies when DocSettings

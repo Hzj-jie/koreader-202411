@@ -226,42 +226,64 @@ describe("docsettings module", function()
     G_reader_settings:delete("document_metadata_folder")
   end)
 
+  it("isHashLocationEnabled returns true when hash directory exists", function()
+    local hash_dir = DataStorage:getDocSettingsHashDir()
+    ffiutil.purgeDir(hash_dir)
+    assert.False(docsettings.isHashLocationEnabled())
+
+    -- Create hash dir
+    util.makePath(hash_dir)
+    assert.True(docsettings.isHashLocationEnabled())
+
+    -- Create empty subdirectories
+    util.makePath(hash_dir .. "/ab/sub.sdr")
+    assert.True(docsettings.isHashLocationEnabled())
+
+    -- Cleanup
+    ffiutil.purgeDir(hash_dir)
+    assert.False(docsettings.isHashLocationEnabled())
+  end)
+
   it(
-    "isHashLocationEnabled returns true only when files exist in hash directory",
+    "finds hash-located custom metadata with no metadata.*.lua in the tree",
     function()
+      local orig_pref = G_reader_settings:read("document_metadata_folder")
+      G_reader_settings:save("document_metadata_folder", "doc")
+
       local hash_dir = DataStorage:getDocSettingsHashDir()
       ffiutil.purgeDir(hash_dir)
-      assert.False(docsettings.isHashLocationEnabled())
 
-      -- Create empty hash dir
-      util.makePath(hash_dir)
-      assert.False(docsettings.isHashLocationEnabled())
-
-      -- Create empty subdirectories
-      util.makePath(hash_dir .. "/ab/sub.sdr")
-      assert.False(docsettings.isHashLocationEnabled())
-
-      -- Create an unrelated file inside (should NOT enable)
-      local unrelated_file = hash_dir .. "/ab/sub.sdr/test.lua"
-      local f = io.open(unrelated_file, "w")
+      local file = "/tmp/test_hash_custom_doc.epub"
+      local f = io.open(file, "w")
       if f then
-        f:write("return {}")
+        f:write("dummy book")
         f:close()
       end
-      assert.False(docsettings.isHashLocationEnabled())
 
-      -- Create a metadata file inside (should enable)
-      local metadata_file = hash_dir .. "/ab/sub.sdr/metadata.epub.lua"
-      f = io.open(metadata_file, "w")
-      if f then
-        f:write("return {}")
-        f:close()
+      local hsh = util.partialMD5(file)
+      local subpath = string.format("/%s/", hsh:sub(1, 2))
+      local hash_sidecar = hash_dir .. subpath .. hsh .. ".sdr"
+      util.makePath(hash_sidecar)
+
+      local custom_metadata_file = hash_sidecar .. "/custom_metadata.lua"
+      local f_custom = io.open(custom_metadata_file, "w")
+      if f_custom then
+        f_custom:write("return { title = 'Hash Custom Title' }")
+        f_custom:close()
       end
-      assert.True(docsettings.isHashLocationEnabled())
+
+      local found = docsettings:findCustomMetadataFile(file)
+      assert.are_equal(custom_metadata_file, found)
 
       -- Cleanup
+      os.remove(custom_metadata_file)
+      os.remove(file)
       ffiutil.purgeDir(hash_dir)
-      assert.False(docsettings.isHashLocationEnabled())
+      if orig_pref ~= nil then
+        G_reader_settings:save("document_metadata_folder", orig_pref)
+      else
+        G_reader_settings:delete("document_metadata_folder")
+      end
     end
   )
 
