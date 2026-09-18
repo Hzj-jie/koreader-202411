@@ -288,10 +288,12 @@ describe("docsettings module", function()
   )
 
   describe("cleanHashLocationIfEmpty", function()
+    local hash_dir = DataStorage:getDocSettingsHashDir()
+
     it("does nothing when hash directory does not exist", function()
-      local hash_dir = "/tmp/test_clean_hash_nonexistent"
+      ffiutil.purgeDir(hash_dir)
       assert.has_no_errors(function()
-        docsettings.cleanHashLocationIfEmpty(hash_dir)
+        docsettings.cleanHashLocationIfEmpty()
       end)
       assert.is_false(util.directoryExists(hash_dir))
     end)
@@ -299,7 +301,7 @@ describe("docsettings module", function()
     it(
       "keeps hash directory intact when regular metadata file exists",
       function()
-        local hash_dir = "/tmp/test_clean_hash_healthy"
+        ffiutil.purgeDir(hash_dir)
         local sdr_dir = hash_dir .. "/ab/sample.sdr"
         util.makePath(sdr_dir)
         local file = sdr_dir .. "/metadata.epub.lua"
@@ -309,7 +311,7 @@ describe("docsettings module", function()
           f:close()
         end
 
-        docsettings.cleanHashLocationIfEmpty(hash_dir)
+        docsettings.cleanHashLocationIfEmpty()
         assert.is_true(util.directoryExists(hash_dir))
         assert.is_true(util.fileExists(file))
 
@@ -320,7 +322,7 @@ describe("docsettings module", function()
     )
 
     it("keeps hash directory intact when only custom assets exist", function()
-      local hash_dir = "/tmp/test_clean_hash_custom"
+      ffiutil.purgeDir(hash_dir)
       local sdr_dir = hash_dir .. "/ab/sample.sdr"
       util.makePath(sdr_dir)
       local custom_file = sdr_dir .. "/custom_metadata.lua"
@@ -330,7 +332,7 @@ describe("docsettings module", function()
         f:close()
       end
 
-      docsettings.cleanHashLocationIfEmpty(hash_dir)
+      docsettings.cleanHashLocationIfEmpty()
       assert.is_true(util.directoryExists(hash_dir))
       assert.is_true(util.fileExists(custom_file))
 
@@ -342,20 +344,17 @@ describe("docsettings module", function()
     it(
       "removes hash directory and empty subdirectories when no files exist",
       function()
-        local base_dir = "/tmp/test_clean_hash_base"
-        local hash_dir = base_dir .. "/hashdocsettings"
+        ffiutil.purgeDir(hash_dir)
         local sdr_dir = hash_dir .. "/ab/empty.sdr"
         util.makePath(sdr_dir)
         assert.is_true(util.directoryExists(sdr_dir))
 
-        docsettings.cleanHashLocationIfEmpty(hash_dir)
+        docsettings.cleanHashLocationIfEmpty()
         -- hash_dir and all subdirectories should be removed
         assert.is_false(util.directoryExists(hash_dir))
-        -- base_dir parent directory must not be removed
-        assert.is_true(util.directoryExists(base_dir))
 
         -- Cleanup
-        ffiutil.purgeDir(base_dir)
+        ffiutil.purgeDir(hash_dir)
       end
     )
   end)
