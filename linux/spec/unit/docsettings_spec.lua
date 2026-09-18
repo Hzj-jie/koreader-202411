@@ -223,7 +223,9 @@ describe("docsettings module", function()
     local hash_files = docsettings.findSidecarFilesInHashLocation()
     assert.is_table(hash_files)
     assert.are.equal(1, #hash_files)
-    assert.are.equal(2, #hash_files[1])
+    assert.is_string(hash_files[1].dir)
+    assert.is_string(hash_files[1].metadata)
+    assert.is_string(hash_files[1].custom_metadata)
 
     d:close()
     d:purge()
@@ -270,6 +272,51 @@ describe("docsettings module", function()
     end
   )
 
+  it(
+    "findSidecarFilesInHashLocation lists custom-only and cover-only sidecars",
+    function()
+      local hash_dir = DataStorage:getDocSettingsHashDir()
+      ffiutil.purgeDir(hash_dir)
+      local custom_sdr = hash_dir .. "/ab/custom_only.sdr"
+      util.makePath(custom_sdr)
+      local custom_file = custom_sdr .. "/custom_metadata.lua"
+      local f1 = io.open(custom_file, "w")
+      if f1 then
+        f1:write("return {}")
+        f1:close()
+      end
+
+      local cover_sdr = hash_dir .. "/cd/cover_only.sdr"
+      util.makePath(cover_sdr)
+      local cover_file = cover_sdr .. "/cover.jpg"
+      local f2 = io.open(cover_file, "w")
+      if f2 then
+        f2:write("dummy cover")
+        f2:close()
+      end
+
+      local hash_files = docsettings.findSidecarFilesInHashLocation()
+      assert.are.equal(2, #hash_files)
+
+      local by_dir = {}
+      for _, e in ipairs(hash_files) do
+        by_dir[e.dir] = e
+      end
+
+      assert.is_not_nil(by_dir[custom_sdr])
+      assert.is_nil(by_dir[custom_sdr].metadata)
+      assert.is_equal(custom_file, by_dir[custom_sdr].custom_metadata)
+      assert.is_nil(by_dir[custom_sdr].cover)
+
+      assert.is_not_nil(by_dir[cover_sdr])
+      assert.is_nil(by_dir[cover_sdr].metadata)
+      assert.is_nil(by_dir[cover_sdr].custom_metadata)
+      assert.is_equal(cover_file, by_dir[cover_sdr].cover)
+
+      -- Cleanup
+      ffiutil.purgeDir(hash_dir)
+    end
+  )
   it("handles custom cover, custom metadata, and updateLocation", function()
     local file = "/tmp/test_custom_doc.epub"
     local d = docsettings:open(file)
