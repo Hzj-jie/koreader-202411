@@ -1040,6 +1040,9 @@ function util.removeEmptyTree(dir)
     end
     return nil, "Cannot open directory: " .. tostring(dir)
   end
+  -- Buffer child entries first to avoid mutating the directory while iterating
+  -- with lfs.dir, ensuring underlying filesystem behavior (such as readdir offset
+  -- handling on FAT32 or network shares) won't break traversal.
   local subdirs = {}
   for f in iter, dir_obj do
     if f ~= "." and f ~= ".." then
