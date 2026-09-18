@@ -187,22 +187,6 @@ local function getCandidates(doc_path)
     end, { location = "hash" })
   end
 
-  -- Note: "tmp" (and "hist" / "kpdfview") are internal location identifiers
-  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
-  local base_tmp = DataStorage:getTmpDir()
-  local tmp_cand
-  if base_tmp and base_tmp ~= DataStorage:getDataDir() then
-    local tmp_dir = base_tmp
-      .. "/docsettings"
-      .. (stem:sub(1, 1) == "/" and stem or ("/" .. stem))
-      .. ".sdr"
-    tmp_cand = {
-      file = tmp_dir .. "/" .. sidecar_filename,
-      dir = tmp_dir,
-      location = "tmp",
-    }
-  end
-
   local candidates
   if preferred_location == "hash" then
     candidates = hash_cand and { hash_cand, dir_cand, doc_cand }
@@ -239,8 +223,19 @@ local function getCandidates(doc_path)
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
   })
-  if tmp_cand then
-    table.insert(candidates, tmp_cand)
+  -- Note: "tmp" (and "hist" / "kpdfview") are internal location identifiers
+  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
+  local base_tmp = DataStorage:getTmpDir()
+  if base_tmp and base_tmp ~= DataStorage:getDataDir() then
+    local tmp_dir = base_tmp
+      .. "/docsettings"
+      .. (stem:sub(1, 1) == "/" and stem or ("/" .. stem))
+      .. ".sdr"
+    table.insert(candidates, {
+      file = tmp_dir .. "/" .. sidecar_filename,
+      dir = tmp_dir,
+      location = "tmp",
+    })
   end
 
   local seen_files = {}
