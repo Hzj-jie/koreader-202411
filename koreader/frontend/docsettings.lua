@@ -55,7 +55,7 @@ local function notifyUser(reason)
   local text
   if reason == "tmp" then
     text = gettext(
-      "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost when restarted."
+      "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost."
     )
   elseif reason == "fallback" then
     text = gettext(
