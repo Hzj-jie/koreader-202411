@@ -1,6 +1,7 @@
 -- need low-level mechanism to detect android to avoid recursive dependency
 local isAndroid, android = pcall(require, "android")
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local util = require("util")
 
 local DataStorage = {}
@@ -40,6 +41,8 @@ function DataStorage:getTmpDir()
     table.insert(candidates, "/data/local/tmp")
   end
   table.insert(candidates, "/tmp")
+  table.insert(candidates, self:getDataDir() .. "/tmp")
+  table.insert(candidates, "./tmp")
 
   for _, cand in ipairs(candidates) do
     if util.isDirRW(cand, true) then
@@ -48,6 +51,7 @@ function DataStorage:getTmpDir()
     end
   end
 
+  logger.warn("DataStorage: No writable temporary directory found.")
   return nil
 end
 
