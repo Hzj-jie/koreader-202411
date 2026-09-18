@@ -287,6 +287,79 @@ describe("docsettings module", function()
     end
   )
 
+  describe("cleanHashLocationIfEmpty", function()
+    it("does nothing when hash directory does not exist", function()
+      local hash_dir = "/tmp/test_clean_hash_nonexistent"
+      assert.has_no_errors(function()
+        docsettings.cleanHashLocationIfEmpty(hash_dir)
+      end)
+      assert.is_false(util.directoryExists(hash_dir))
+    end)
+
+    it(
+      "keeps hash directory intact when regular metadata file exists",
+      function()
+        local hash_dir = "/tmp/test_clean_hash_healthy"
+        local sdr_dir = hash_dir .. "/ab/sample.sdr"
+        util.makePath(sdr_dir)
+        local file = sdr_dir .. "/metadata.epub.lua"
+        local f = io.open(file, "w")
+        if f then
+          f:write("return {}")
+          f:close()
+        end
+
+        docsettings.cleanHashLocationIfEmpty(hash_dir)
+        assert.is_true(util.directoryExists(hash_dir))
+        assert.is_true(util.fileExists(file))
+
+        -- Cleanup
+        os.remove(file)
+        ffiutil.purgeDir(hash_dir)
+      end
+    )
+
+    it("keeps hash directory intact when only custom assets exist", function()
+      local hash_dir = "/tmp/test_clean_hash_custom"
+      local sdr_dir = hash_dir .. "/ab/sample.sdr"
+      util.makePath(sdr_dir)
+      local custom_file = sdr_dir .. "/custom_metadata.lua"
+      local f = io.open(custom_file, "w")
+      if f then
+        f:write("return {}")
+        f:close()
+      end
+
+      docsettings.cleanHashLocationIfEmpty(hash_dir)
+      assert.is_true(util.directoryExists(hash_dir))
+      assert.is_true(util.fileExists(custom_file))
+
+      -- Cleanup
+      os.remove(custom_file)
+      ffiutil.purgeDir(hash_dir)
+    end)
+
+    it(
+      "removes hash directory and empty subdirectories when no files exist",
+      function()
+        local base_dir = "/tmp/test_clean_hash_base"
+        local hash_dir = base_dir .. "/hashdocsettings"
+        local sdr_dir = hash_dir .. "/ab/empty.sdr"
+        util.makePath(sdr_dir)
+        assert.is_true(util.directoryExists(sdr_dir))
+
+        docsettings.cleanHashLocationIfEmpty(hash_dir)
+        -- hash_dir and all subdirectories should be removed
+        assert.is_false(util.directoryExists(hash_dir))
+        -- base_dir parent directory must not be removed
+        assert.is_true(util.directoryExists(base_dir))
+
+        -- Cleanup
+        ffiutil.purgeDir(base_dir)
+      end
+    )
+  end)
+
   it("handles custom cover, custom metadata, and updateLocation", function()
     local file = "/tmp/test_custom_doc.epub"
     local d = docsettings:open(file)

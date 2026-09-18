@@ -38,6 +38,29 @@ function DocSettings.isHashLocationEnabled()
   return util.directoryExists(DOCSETTINGS_HASH_DIR)
 end
 
+local SENTINEL = {}
+
+--- Cleans up DOCSETTINGS_HASH_DIR if it contains no files.
+-- Uses an early-exit probe that stops immediately on the first regular file.
+-- If no files exist in the tree at all, removes the empty directory tree bottom-up.
+-- @string[opt] hash_dir directory to clean (defaults to DOCSETTINGS_HASH_DIR)
+function DocSettings.cleanHashLocationIfEmpty(hash_dir)
+  hash_dir = hash_dir or DOCSETTINGS_HASH_DIR
+  if not util.directoryExists(hash_dir) then
+    return
+  end
+  local ok, err = pcall(util.findFiles, hash_dir, function()
+    error(SENTINEL)
+  end)
+  if not ok then
+    if err ~= SENTINEL then
+      error(err, 0)
+    end
+    return
+  end
+  util.removeEmptyTree(hash_dir)
+end
+
 -- Lazily requires UI components to prevent cyclic dependencies when DocSettings
 -- is loaded early or in headless environments.
 -- String literals are kept directly inside gettext() calls here so that
