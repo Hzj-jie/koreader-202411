@@ -1,5 +1,5 @@
 describe("docsettings module", function()
-  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs
+  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs, util
   local getSidecarFile = function(doc_path)
     return docsettings:getSidecarDir(doc_path)
       .. "/"
@@ -12,6 +12,7 @@ describe("docsettings module", function()
     docsettings = require("docsettings")
     ffiutil = require("ffi/util")
     lfs = require("libs/libkoreader-lfs")
+    util = require("util")
 
     docsettings_dir = DataStorage:getDocSettingsDir()
   end)
@@ -176,6 +177,51 @@ describe("docsettings module", function()
     G_reader_settings:delete("document_metadata_folder")
   end)
 
+  it(
+    "findSidecarFilesInHashLocation lists custom-only and cover-only sidecars",
+    function()
+      local hash_dir = DataStorage:getDocSettingsHashDir()
+      ffiutil.purgeDir(hash_dir)
+      local custom_sdr = hash_dir .. "/ab/custom_only.sdr"
+      util.makePath(custom_sdr)
+      local custom_file = custom_sdr .. "/custom_metadata.lua"
+      local f1 = io.open(custom_file, "w")
+      if f1 then
+        f1:write("return {}")
+        f1:close()
+      end
+
+      local cover_sdr = hash_dir .. "/cd/cover_only.sdr"
+      util.makePath(cover_sdr)
+      local cover_file = cover_sdr .. "/cover.jpg"
+      local f2 = io.open(cover_file, "w")
+      if f2 then
+        f2:write("dummy cover")
+        f2:close()
+      end
+
+      local hash_files = docsettings.findSidecarFilesInHashLocation()
+      assert.are.equal(2, #hash_files)
+
+      local by_dir = {}
+      for _, e in ipairs(hash_files) do
+        by_dir[e.dir] = e
+      end
+
+      assert.is_not_nil(by_dir[custom_sdr])
+      assert.is_nil(by_dir[custom_sdr].metadata)
+      assert.is_equal(custom_file, by_dir[custom_sdr].custom_metadata)
+      assert.is_nil(by_dir[custom_sdr].cover)
+
+      assert.is_not_nil(by_dir[cover_sdr])
+      assert.is_nil(by_dir[cover_sdr].metadata)
+      assert.is_nil(by_dir[cover_sdr].custom_metadata)
+      assert.is_equal(cover_file, by_dir[cover_sdr].cover)
+
+      -- Cleanup
+      ffiutil.purgeDir(hash_dir)
+    end
+  )
   it("handles custom cover, custom metadata, and updateLocation", function()
     local file = "/tmp/test_custom_doc.epub"
     local d = docsettings:open(file)
@@ -184,7 +230,10 @@ describe("docsettings module", function()
 
     local tmp_cover = "/tmp/test_cover.jpg"
     local f = io.open(tmp_cover, "w")
-    if f then f:write("cover data"); f:close() end
+    if f then
+      f:write("cover data")
+      f:close()
+    end
 
     d:flushCustomCover(file, tmp_cover)
     d:flushCustomMetadata(file)
@@ -205,5 +254,3 @@ describe("docsettings module", function()
     os.remove(tmp_cover)
   end)
 end)
-
-
