@@ -1031,6 +1031,58 @@ describe("docsettings module", function()
         os.remove(file)
       end
     )
+
+    it(
+      "shows info message when custom cover or metadata falls back to tmp storage",
+      function()
+        local file = "/tmp/test_custom_tmp_fallback.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+        local tmp_cover = "/tmp/test_cov_tmp.jpg"
+        local f = io.open(tmp_cover, "w")
+        if f then
+          f:write("cover data")
+          f:close()
+        end
+
+        local UIManager = require("ui/uimanager")
+        local shown_messages = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_messages, widget.text)
+        end
+
+        -- Mock all locations as unwritable except tmp
+        local base_tmp = DataStorage:getTmpDir()
+        local orig_isDirRW = util.isDirRW
+        util.isDirRW = function(dir, create)
+          if base_tmp and util.stringStartsWith(dir, base_tmp) then
+            return orig_isDirRW(dir, create)
+          end
+          return false
+        end
+
+        assert.is_true(d:flushCustomCover(file, tmp_cover))
+        assert.are.equal(1, #shown_messages)
+        assert.is_truthy(
+          shown_messages[1]:match("saved to temporary storage and may be lost")
+        )
+
+        assert.is_true(d:flushCustomMetadata(file))
+        assert.are.equal(2, #shown_messages)
+        assert.is_truthy(
+          shown_messages[2]:match("saved to temporary storage and may be lost")
+        )
+
+        util.isDirRW = orig_isDirRW
+        UIManager.show = orig_show
+        d:close()
+        d:purge()
+        docsettings.updateLocation(file, nil)
+        os.remove(tmp_cover)
+        os.remove(file)
+      end
+    )
   end)
 
   describe("candidates ordering in open", function()

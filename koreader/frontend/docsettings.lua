@@ -654,7 +654,7 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     return
   end
   if reason == "tmp" then
-    showNotification(
+    showInfoMessage(
       gettext(
         "Storage is read-only. Custom cover was saved to temporary storage and may be lost."
       )
@@ -713,7 +713,7 @@ function DocSettings:flushCustomMetadata(doc_path)
     return
   end
   if reason == "tmp" then
-    showNotification(
+    showInfoMessage(
       gettext(
         "Storage is read-only. Custom metadata was saved to temporary storage and may be lost."
       )
