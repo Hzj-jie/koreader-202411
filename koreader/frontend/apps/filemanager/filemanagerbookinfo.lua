@@ -860,10 +860,10 @@ function BookInfo.showBooksWithHashBasedMetadata()
     local title, author, doc_path
     if sdr.metadata then
       local doc_settings = DocSettings.openSettingsFile(sdr.metadata)
-      local doc_props = doc_settings:read("doc_props") or {}
+      local doc_props = doc_settings:readTable("doc_props") or {}
       local custom_props = sdr.custom_metadata
           and DocSettings.openSettingsFile(sdr.custom_metadata)
-            :readTableRef("custom_props")
+            :readTable("custom_props")
         or {}
       doc_path = doc_settings:read("doc_path")
       title = custom_props.title
@@ -877,9 +877,8 @@ function BookInfo.showBooksWithHashBasedMetadata()
     elseif sdr.custom_metadata then
       local custom_doc_settings =
         DocSettings.openSettingsFile(sdr.custom_metadata)
-      local custom_props = custom_doc_settings:readTableRef("custom_props")
-        or {}
-      local doc_props = custom_doc_settings:read("doc_props") or {}
+      local custom_props = custom_doc_settings:readTable("custom_props") or {}
+      local doc_props = custom_doc_settings:readTable("doc_props") or {}
       title = custom_props.title or doc_props.title or gettext("N/A")
       author = custom_props.authors or doc_props.authors or gettext("N/A")
       doc_path = gettext("N/A")
