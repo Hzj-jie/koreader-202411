@@ -11,7 +11,7 @@ This document outlines architectural patterns, widget sizing rules, and dialog h
 
 ---
 
-## 2. Dialogs and TitleBar Close Callbacks
+## 2. Modality (`modal = true`)
 
-*   **Immediate Close on TitleBar "X"**: In full-screen game and plugin screens, the TitleBar close button (`close_callback`), hardware back handlers, and close key handlers (`Escape`, `Close`, `Back`) should immediately invoke `UIManager:close(self)` without prompting through modal confirmation dialogs (`ConfirmBox`).
-*   **Modal Dialog Trapping**: Attempting to display modal confirmation dialogs upon clicking "X" can cause modal layering conflicts, input traps, and unresponsiveness on touch or e-ink screens where dismissing the prompt returns to the view while tapping "X" repeatedly re-triggers the dialog.
+*   **Full-Screen Screens Must Not Be Modal**: Full-screen interactive application and game screens (extending `InputContainer` or `WidgetContainer`, such as `Game2048`, `SudokuScreen`, `MathPuzzleScreen`, etc.) must not declare `modal = true`. Marking a base screen as modal breaks `UIManager`'s window stack layering for non-modal sub-menus and causes `isShownModal()` to intercept and swallow unhandled gesture events.
+*   **Modals Reserved for Popups & Dialogs**: The `modal = true` attribute is strictly reserved for transient overlays, dialogs, and popups (e.g., `ConfirmBox`, `InputDialog`, `VirtualKeyboard`) to ensure they stay on top of base screens and capture user focus.
