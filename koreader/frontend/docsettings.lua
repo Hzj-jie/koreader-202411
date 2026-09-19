@@ -12,6 +12,7 @@ local ffiutil = require("ffi/util")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local lru = require("ffi/lru")
 local util = require("util")
 
 local DocSettings = LuaSettings:extend({})
@@ -31,7 +32,7 @@ function DocSettings.getSidecarStorage(location)
   end
 end
 
-local doc_hash_cache = {}
+local doc_hash_cache = lru.new(1024, nil, false)
 
 function DocSettings.isHashLocationEnabled()
   return util.directoryExists(DOCSETTINGS_HASH_DIR)
@@ -160,11 +161,11 @@ local function getCandidates(doc_path)
   local hash_cand
   if preferred_location == "hash" or DocSettings.isHashLocationEnabled() then
     hash_cand = CachedTable:new(function()
-      local hsh = doc_hash_cache[doc_path]
+      local hsh = doc_hash_cache:get(doc_path)
       if not hsh then
         hsh = util.partialMD5(doc_path)
         if hsh then
-          doc_hash_cache[doc_path] = hsh
+          doc_hash_cache:set(doc_path, hsh)
           logger.dbg(
             "DocSettings: Caching new partial MD5 hash for",
             doc_path,
