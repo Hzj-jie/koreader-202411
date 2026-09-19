@@ -89,11 +89,22 @@ Generator.MODES = {
     question_count = 5,
   },
   {
-    id = "arithmetic_progression",
-    title = _("Arithmetic Progression"),
-    description = _("Fill in the missing numbers in arithmetic sequences"),
+    id = "arithmetic_progression_50",
+    title = _("Arithmetic Progression within 50"),
+    description = _("Step up to 4, numbers up to 50"),
+    type = "arithmetic_progression",
+    max = 50,
+    max_step = 4,
+    question_count = 5,
+    single_column = true,
+  },
+  {
+    id = "arithmetic_progression_100",
+    title = _("Arithmetic Progression within 100"),
+    description = _("Step up to 10, numbers up to 100"),
     type = "arithmetic_progression",
     max = 100,
+    max_step = 10,
     question_count = 5,
     single_column = true,
   },
@@ -109,8 +120,11 @@ function Generator.getModeById(mode_id)
       return mode
     end
   end
-  if mode_id == "arithmetic_progression_100" or mode_id == "ap_100" then
-    return Generator.getModeById("arithmetic_progression")
+  if mode_id == "arithmetic_progression" or mode_id == "arithmetic_progression_100" or mode_id == "ap_100" then
+    return Generator.getModeById("arithmetic_progression_100")
+  end
+  if mode_id == "arithmetic_progression_50" or mode_id == "ap_50" then
+    return Generator.getModeById("arithmetic_progression_50")
   end
   return Generator.MODES[2] -- default to add_sub_100
 end
@@ -432,7 +446,8 @@ local function generateSingleProblem(mode)
   elseif mode_type == "arithmetic_progression" then
     local terms_count = 8
     local is_addition = math.random(1, 2) == 1
-    local d = math.random(1, 10)
+    local max_d = mode.max_step or (max_val <= 50 and 4 or 10)
+    local d = math.random(1, max_d)
     local span = (terms_count - 1) * d
     local terms = {}
 

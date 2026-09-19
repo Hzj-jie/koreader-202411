@@ -133,24 +133,53 @@ describe("MathPuzzle Generator module", function()
   end)
 
   it(
-    "should generate valid arithmetic progression problems with addition and subtraction",
+    "should generate valid arithmetic progression problems with addition and subtraction across two levels",
     function()
-      local ap_mode = Generator.getModeById("arithmetic_progression")
-      assert.is_table(ap_mode)
-      assert.are.equal("arithmetic_progression", ap_mode.id)
-      assert.are.equal(100, ap_mode.max)
-      assert.are.equal(5, ap_mode.question_count)
-      assert.is_true(ap_mode.single_column)
+      local ap50 = Generator.getModeById("arithmetic_progression_50")
+      assert.is_table(ap50)
+      assert.are.equal("arithmetic_progression_50", ap50.id)
+      assert.are.equal(50, ap50.max)
+      assert.are.equal(4, ap50.max_step)
+      assert.are.equal(5, ap50.question_count)
+      assert.is_true(ap50.single_column)
 
-      local problems = Generator.generateProblems("arithmetic_progression", 20)
-      assert.are.equal(20, #problems)
+      local ap100 = Generator.getModeById("arithmetic_progression_100")
+      assert.is_table(ap100)
+      assert.are.equal("arithmetic_progression_100", ap100.id)
+      assert.are.equal(100, ap100.max)
+      assert.are.equal(10, ap100.max_step)
+      assert.are.equal(5, ap100.question_count)
+      assert.is_true(ap100.single_column)
+
+      -- Alias check
+      assert.are.equal(ap100, Generator.getModeById("arithmetic_progression"))
+      assert.are.equal(ap100, Generator.getModeById("ap_100"))
+      assert.are.equal(ap50, Generator.getModeById("ap_50"))
+
+      -- Test Level 1 (max 50, step up to 4)
+      local problems_50 = Generator.generateProblems("arithmetic_progression_50", 20)
+      assert.are.equal(20, #problems_50)
+      for _, prob in ipairs(problems_50) do
+        assert.is_true(prob.step >= 1 and prob.step <= 4)
+        assert.are.equal(8, #prob.terms)
+        for _, term in ipairs(prob.terms) do
+          assert.is_true(term >= 0 and term <= 50)
+        end
+        for _, b_idx in ipairs(prob.blank_indices) do
+          assert.is_true(prob.answers[b_idx] >= 0 and prob.answers[b_idx] <= 50)
+        end
+      end
+
+      -- Test Level 2 (max 100, step up to 10)
+      local problems_100 = Generator.generateProblems("arithmetic_progression_100", 20)
+      assert.are.equal(20, #problems_100)
 
       local saw_addition = false
       local saw_subtraction = false
       local saw_4_blanks = false
       local saw_5_blanks = false
 
-      for _, prob in ipairs(problems) do
+      for _, prob in ipairs(problems_100) do
         assert.is_string(prob.text)
         assert.is_true(prob.text:find("___") ~= nil)
         assert.is_number(prob.step)
@@ -192,7 +221,7 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(saw_5_blanks)
 
       -- Verify checkAnswers with correct answers
-      local test_problems = Generator.generateProblems("arithmetic_progression", 5)
+      local test_problems = Generator.generateProblems("arithmetic_progression_50", 5)
       for _, p in ipairs(test_problems) do
         for _, b_idx in ipairs(p.blank_indices) do
           p.user_answers[b_idx] = tostring(p.answers[b_idx])
