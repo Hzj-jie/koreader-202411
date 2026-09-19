@@ -31,12 +31,14 @@ function DocSettings.getSidecarStorage(location)
   end
 end
 
-local is_history_location_enabled = util.directoryExists(HISTORY_DIR)
-
 local doc_hash_cache = {}
 
 function DocSettings.isHashLocationEnabled()
   return util.directoryExists(DOCSETTINGS_HASH_DIR)
+end
+
+function DocSettings.isHistoryLocationEnabled()
+  return util.directoryExists(HISTORY_DIR)
 end
 
 --- Cleans up DOCSETTINGS_HASH_DIR if it contains no files.
@@ -222,7 +224,7 @@ local function getCandidates(doc_path)
 
   -- Note: "hist", "kpdfview", and "tmp" are internal location identifiers
   -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
-  if is_history_location_enabled then
+  if DocSettings.isHistoryLocationEnabled() then
     table.insert(candidates, {
       file = DocSettings:getHistoryPath(doc_path),
       location = "hist",

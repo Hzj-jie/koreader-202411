@@ -290,6 +290,26 @@ describe("docsettings module", function()
   end)
 
   it(
+    "isHistoryLocationEnabled returns true when history directory exists",
+    function()
+      local hist_dir = DataStorage:getHistoryDir()
+      ffiutil.purgeDir(hist_dir)
+      assert.False(docsettings.isHistoryLocationEnabled())
+
+      -- Create history dir
+      util.makePath(hist_dir)
+      assert.True(docsettings.isHistoryLocationEnabled())
+
+      -- Cleanup
+      ffiutil.purgeDir(hist_dir)
+      assert.False(docsettings.isHistoryLocationEnabled())
+
+      -- Restore history dir for subsequent tests
+      util.makePath(hist_dir)
+    end
+  )
+
+  it(
     "finds hash-located custom metadata with no metadata.*.lua in the tree",
     function()
       local orig_pref = G_reader_settings:read("document_metadata_folder")
