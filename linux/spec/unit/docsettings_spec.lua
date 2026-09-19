@@ -209,9 +209,9 @@ describe("docsettings module", function()
     d:save("title", "Hash Book")
     d:flush()
 
-    local sidecar_file = docsettings:findSidecarFile(file)
-    assert.is_truthy(sidecar_file)
-    local loaded = docsettings.openSettingsFile(sidecar_file)
+    local sidecar_cand = docsettings:_findSidecarFile(file)
+    assert.is_truthy(sidecar_cand)
+    local loaded = docsettings.openSettingsFile(sidecar_cand.file)
     assert.is_not_nil(loaded)
     assert.are.equal("Hash Book", loaded.data.title)
 
@@ -1093,18 +1093,19 @@ describe("docsettings module", function()
           sf:close()
         end
 
-        -- Calling findSidecarFile / hasSidecarFile should find doc sidecar without hashing
-        local found_file, loc = docsettings:findSidecarFile(file)
-        assert.are.equal(sidecar_file, found_file)
-        assert.are.equal("doc", loc)
+        -- Calling _findSidecarFile / hasSidecarFile should find doc sidecar without hashing
+        local found_cand = docsettings:_findSidecarFile(file)
+        assert.is_not_nil(found_cand)
+        assert.are.equal(sidecar_file, found_cand.file)
+        assert.are.equal("doc", found_cand.location)
         assert.are.equal(0, md5_calls)
 
-        -- When sidecar does not exist in doc or dir, findSidecarFile falls through to hash
+        -- When sidecar does not exist in doc or dir, _findSidecarFile falls through to hash
         os.remove(sidecar_file)
         util.removePath(doc_sdr)
 
-        found_file = docsettings:findSidecarFile(file)
-        assert.is_nil(found_file)
+        found_cand = docsettings:_findSidecarFile(file)
+        assert.is_nil(found_cand)
         -- Fallback to hash invoked partialMD5
         assert.are.equal(1, md5_calls)
 
@@ -1343,80 +1344,84 @@ describe("docsettings module", function()
     end)
   end)
 
-  describe("findSidecarFile and isSidecarFileNotInPreferredLocation", function()
-    local test_file = "/tmp/test_find_sidecar.epub"
+  describe(
+    "_findSidecarFile and isSidecarFileNotInPreferredLocation",
+    function()
+      local test_file = "/tmp/test_find_sidecar.epub"
 
-    after_each(function()
-      G_reader_settings:delete("document_metadata_folder")
-      docsettings.updateLocation(test_file, nil)
-      os.remove(test_file)
-    end)
+      after_each(function()
+        G_reader_settings:delete("document_metadata_folder")
+        docsettings.updateLocation(test_file, nil)
+        os.remove(test_file)
+      end)
 
-    it("returns nil when doc_path is nil or empty", function()
-      local f, loc = docsettings:findSidecarFile(nil)
-      assert.is_nil(f)
-      assert.is_nil(loc)
-      f, loc = docsettings:findSidecarFile("")
-      assert.is_nil(f)
-      assert.is_nil(loc)
-    end)
+      it("returns nil when doc_path is nil or empty", function()
+        assert.is_nil(docsettings:_findSidecarFile(nil))
+        assert.is_nil(docsettings:_findSidecarFile(""))
+      end)
 
-    it(
-      "returns false for isSidecarFileNotInPreferredLocation when file does not exist",
-      function()
-        assert.is_false(
-          docsettings.isSidecarFileNotInPreferredLocation(
-            "/nonexistent/file.epub"
+      it(
+        "returns false for isSidecarFileNotInPreferredLocation when file does not exist",
+        function()
+          assert.is_false(
+            docsettings.isSidecarFileNotInPreferredLocation(
+              "/nonexistent/file.epub"
+            )
           )
-        )
-      end
-    )
-
-    it("detects sidecar file in preferred location", function()
-      G_reader_settings:save("document_metadata_folder", "doc")
-      local d = docsettings:open(test_file)
-      d:save("title", "Preferred Location Test")
-      d:flush()
-      d:close()
-
-      local f, loc = docsettings:findSidecarFile(test_file)
-      assert.is_not_nil(f)
-      assert.are.equal("doc", loc)
-      assert.is_false(
-        docsettings.isSidecarFileNotInPreferredLocation(test_file)
+        end
       )
-    end)
 
-    it("detects sidecar file in non-preferred location", function()
-      G_reader_settings:save("document_metadata_folder", "dir")
-      local d = docsettings:open(test_file)
-      d:save("title", "Non-preferred Test")
-      d:flush()
-      d:close()
+      it("detects sidecar file in preferred location", function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local d = docsettings:open(test_file)
+        d:save("title", "Preferred Location Test")
+        d:flush()
+        d:close()
 
-      G_reader_settings:save("document_metadata_folder", "doc")
-      local f, loc = docsettings:findSidecarFile(test_file)
-      assert.is_not_nil(f)
-      assert.are.equal("dir", loc)
-      assert.is_true(docsettings.isSidecarFileNotInPreferredLocation(test_file))
-    end)
+        local cand = docsettings:_findSidecarFile(test_file)
+        assert.is_not_nil(cand)
+        assert.are.equal("doc", cand.location)
+        assert.is_false(
+          docsettings.isSidecarFileNotInPreferredLocation(test_file)
+        )
+      end)
 
-    it("finds sidecar in legacy history", function()
-      local hist_file = docsettings:getHistoryPath(test_file)
-      local f_out = io.open(hist_file, "w")
-      if f_out then
-        f_out:write("return { ['title'] = 'Legacy' }\n")
-        f_out:close()
-      end
+      it("detects sidecar file in non-preferred location", function()
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local d = docsettings:open(test_file)
+        d:save("title", "Non-preferred Test")
+        d:flush()
+        d:close()
 
-      local f, loc = docsettings:findSidecarFile(test_file)
-      assert.are.equal(hist_file, f)
-      assert.are.equal("hist", loc)
-      assert.is_true(docsettings.isSidecarFileNotInPreferredLocation(test_file))
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local cand = docsettings:_findSidecarFile(test_file)
+        assert.is_not_nil(cand)
+        assert.are.equal("dir", cand.location)
+        assert.is_true(
+          docsettings.isSidecarFileNotInPreferredLocation(test_file)
+        )
+      end)
 
-      os.remove(hist_file)
-    end)
-  end)
+      it("finds sidecar in legacy history", function()
+        local hist_file = docsettings:getHistoryPath(test_file)
+        local f_out = io.open(hist_file, "w")
+        if f_out then
+          f_out:write("return { ['title'] = 'Legacy' }\n")
+          f_out:close()
+        end
+
+        local cand = docsettings:_findSidecarFile(test_file)
+        assert.is_not_nil(cand)
+        assert.are.equal(hist_file, cand.file)
+        assert.are.equal("hist", cand.location)
+        assert.is_true(
+          docsettings.isSidecarFileNotInPreferredLocation(test_file)
+        )
+
+        os.remove(hist_file)
+      end)
+    end
+  )
 
   describe("history path conversion", function()
     it("handles getHistoryPath with nil and empty string", function()
@@ -1450,7 +1455,7 @@ describe("docsettings module", function()
     )
   end)
 
-  describe("getCustomLocationCandidates", function()
+  describe("_getCustomLocationCandidate", function()
     local test_doc = "/tmp/test_custom_cand.epub"
 
     before_each(function()
@@ -1468,33 +1473,53 @@ describe("docsettings module", function()
     end)
 
     it(
-      "returns all candidate directories when no sidecar file exists",
+      "returns first writable candidate directory when no sidecar file exists",
       function()
-        local cands = docsettings:getCustomLocationCandidates(test_doc)
-        assert.are.equal(3, #cands)
-        assert.are.equal("/tmp/test_custom_cand.sdr", cands[1])
+        local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
+        assert.are.equal("/tmp/test_custom_cand.sdr", cand_dir)
       end
     )
 
-    it(
-      "returns all candidate directories including hash when hash is preferred",
-      function()
-        G_reader_settings:save("document_metadata_folder", "hash")
-        local cands = docsettings:getCustomLocationCandidates(test_doc)
-        assert.are.equal(4, #cands)
-      end
-    )
+    it("returns hash directory when hash is preferred", function()
+      G_reader_settings:save("document_metadata_folder", "hash")
+      local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
+      assert.are.equal(docsettings:getSidecarDir(test_doc), cand_dir)
+    end)
 
-    it("returns only existing sidecar dir when sidecar file exists", function()
+    it("returns existing sidecar dir when sidecar file exists", function()
       local d = docsettings:open(test_doc)
       d:save("page", 1)
       d:flush()
       d:close()
 
-      local cands = docsettings:getCustomLocationCandidates(test_doc)
-      assert.are.equal(1, #cands)
-      assert.are.equal(docsettings:getSidecarDir(test_doc), cands[1])
+      local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
+      assert.are.equal(docsettings:getSidecarDir(test_doc), cand_dir)
     end)
+
+    it(
+      "falls back to next writable directory when existing sidecar dir is not writable",
+      function()
+        local d = docsettings:open(test_doc)
+        d:save("page", 1)
+        d:flush()
+        d:close()
+
+        local existing_sdr = docsettings:getSidecarDir(test_doc)
+        local orig_isDirRW = util.isDirRW
+        util.isDirRW = function(dir, create)
+          if dir == existing_sdr then
+            return false
+          end
+          return orig_isDirRW(dir, create)
+        end
+
+        local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
+        util.isDirRW = orig_isDirRW
+
+        assert.is_not_nil(cand_dir)
+        assert.are_not.equal(existing_sdr, cand_dir)
+      end
+    )
   end)
 
   describe("updateLocation with read-only fallback", function()
@@ -1642,12 +1667,12 @@ describe("docsettings module", function()
         d:flush()
         d:close()
 
-        local sidecar_before = docsettings:findSidecarFile(file1)
+        local sidecar_before = docsettings:_findSidecarFile(file1)
         assert.is_truthy(sidecar_before)
 
         -- Move operation should keep hash sidecar unchanged
         docsettings.updateLocation(file1, file2, false)
-        assert.is_truthy(util.fileExists(sidecar_before))
+        assert.is_truthy(util.fileExists(sidecar_before.file))
 
         docsettings.updateLocation(file1, nil)
         os.remove(file1)
@@ -1730,14 +1755,14 @@ describe("docsettings module", function()
         d:flushCustomCover(file, tmp_cover)
 
         local cover_file = d:findCustomCoverFile()
-        local sidecar_file = docsettings:findSidecarFile(file)
+        local sidecar_cand = docsettings:_findSidecarFile(file)
         assert.is_truthy(cover_file)
-        assert.is_truthy(sidecar_file)
+        assert.is_truthy(sidecar_cand)
 
         -- Purge ONLY custom cover
         d:purge(nil, { custom_cover_file = cover_file })
         assert.is_nil(d:findCustomCoverFile())
-        assert.is_truthy(util.fileExists(sidecar_file))
+        assert.is_truthy(util.fileExists(sidecar_cand.file))
 
         d:close()
         d:purge()

@@ -271,28 +271,27 @@ end
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn bool
 function DocSettings:hasSidecarFile(doc_path)
-  return self:findSidecarFile(doc_path) and true or false
+  return self:_findSidecarFile(doc_path) and true or false
 end
 
---- Returns path of sidecar file if it exists, or nil.
+--- Returns candidate of sidecar file if it exists, or nil.
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @treturn string (or nil on failure)
--- @treturn string location identifier
-function DocSettings:findSidecarFile(doc_path)
+-- @treturn table candidate (or nil on failure)
+function DocSettings:_findSidecarFile(doc_path)
   if doc_path == nil or doc_path == "" then
     return
   end
   for _, cand in ipairs(getCandidates(doc_path)) do
     if util.fileExists(cand.file) then
-      return cand.file, cand.location
+      return cand
     end
   end
 end
 
 function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
-  local _, location = DocSettings:findSidecarFile(doc_path)
-  return location ~= nil
-    and location ~= G_named_settings.document_metadata_folder()
+  local cand = DocSettings:_findSidecarFile(doc_path)
+  return cand ~= nil
+    and cand.location ~= G_named_settings.document_metadata_folder()
 end
 
 --- Opens a document's individual settings (font, margin, dictionary, etc.)
@@ -572,22 +571,20 @@ end
 
 -- custom section
 
-function DocSettings:getCustomLocationCandidates(doc_path)
-  local sidecar_file = self:findSidecarFile(doc_path)
-  if sidecar_file then
-    for _, cand in ipairs(getCandidates(doc_path)) do
-      if cand.file == sidecar_file and cand.dir then
-        return { cand.dir }
-      end
-    end
+function DocSettings:_getCustomLocationCandidate(doc_path)
+  local sidecar_cand = self:_findSidecarFile(doc_path)
+  if
+    sidecar_cand
+    and sidecar_cand.dir
+    and util.isDirRW(sidecar_cand.dir, true)
+  then
+    return sidecar_cand.dir
   end
-  local candidates = {}
   for _, cand in ipairs(getCandidates(doc_path)) do
-    if cand.dir then
-      table.insert(candidates, cand.dir)
+    if cand.dir and util.isDirRW(cand.dir, true) then
+      return cand.dir
     end
   end
-  return candidates
 end
 
 -- custom cover
@@ -632,15 +629,13 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     logger.warn("Skipping custom cover flush in monkey test mode.")
     return
   end
-  local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
-  local new_cover_filename = "/cover."
-    .. util.getFileNameSuffix(image_file):lower()
-  for _, sidecar_dir in ipairs(sidecar_dirs) do
-    if util.isDirRW(sidecar_dir, true) then
-      local new_cover_file = sidecar_dir .. new_cover_filename
-      if ffiutil.copyFile(image_file, new_cover_file) == nil then
-        return true
-      end
+  local sidecar_dir = self:_getCustomLocationCandidate(doc_path)
+  if sidecar_dir then
+    local new_cover_filename = "/cover."
+      .. util.getFileNameSuffix(image_file):lower()
+    local new_cover_file = sidecar_dir .. new_cover_filename
+    if ffiutil.copyFile(image_file, new_cover_file) == nil then
+      return true
     end
   end
 end
@@ -672,14 +667,12 @@ function DocSettings:getCustomMetadataFile(reset_cache)
 end
 
 function DocSettings:flushCustomMetadata(doc_path)
-  local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
-  local s_out = dump(self.data)
-  for _, sidecar_dir in ipairs(sidecar_dirs) do
-    if util.isDirRW(sidecar_dir, true) then
-      local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-      if util.writeToFile(s_out, new_metadata_file, true) then
-        return true
-      end
+  local sidecar_dir = self:_getCustomLocationCandidate(doc_path)
+  if sidecar_dir then
+    local s_out = dump(self.data)
+    local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
+    if util.writeToFile(s_out, new_metadata_file, true) then
+      return true
     end
   end
 end
