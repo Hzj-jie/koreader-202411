@@ -60,11 +60,6 @@ end
 -- @tparam[opt] table initial_fields Statically initialized fields that can be read without triggering resolution.
 -- @treturn table A table with lazy-evaluation behavior.
 function CachedTable:new(resolver, initial_fields)
-  if type(self) == "function" then
-    -- Support being called as CachedTable.new(resolver, initial_fields)
-    initial_fields = resolver
-    resolver = self
-  end
   assert(
     type(resolver) == "function",
     "CachedTable: resolver must be a function"

@@ -106,22 +106,13 @@ describe("CachedTable module", function()
     assert.are.equal(1, call_count)
   end)
 
-  it(
-    "supports dot notation CachedTable.new as well as colon notation",
-    function()
-      local t1 = CachedTable:new(function()
-        return { x = 10 }
-      end, { type = "colon" })
-      local t2 = CachedTable.new(function()
+  it("asserts when called with dot notation instead of colon", function()
+    assert.has_error(function()
+      CachedTable.new(function()
         return { x = 20 }
       end, { type = "dot" })
-
-      assert.are.equal("colon", t1.type)
-      assert.are.equal(10, t1.x)
-      assert.are.equal("dot", t2.type)
-      assert.are.equal(20, t2.x)
-    end
-  )
+    end)
+  end)
 
   it("asserts when resolver is not a function", function()
     assert.has_error(function()
