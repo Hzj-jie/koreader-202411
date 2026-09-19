@@ -46,6 +46,8 @@ function CachedTable.resolve(t)
 end
 
 --- Iterates over key-value pairs of a CachedTable, resolving it first if needed.
+-- Note: In Lua 5.1 / standard KOReader LuaJIT, standard pairs() does not invoke
+-- the __pairs metamethod. Use CachedTable.pairs(t) instead to iterate lazy tables.
 -- @tparam table t The CachedTable instance.
 -- @treturn function iterator
 -- @treturn table t
@@ -89,6 +91,9 @@ function CachedTable:new(resolver, initial_fields)
       do_resolve(t)
       return rawget(t, k)
     end,
+    -- __pairs is supported in Lua 5.2+ (or LuaJIT with 5.2 compat enabled).
+    -- In Lua 5.1 / standard KOReader LuaJIT, pairs() ignores __pairs,
+    -- so CachedTable.pairs(t) must be used instead.
     __pairs = function(t)
       do_resolve(t)
       return next, t, nil
