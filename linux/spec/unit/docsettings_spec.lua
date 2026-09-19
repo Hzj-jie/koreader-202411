@@ -237,19 +237,15 @@ describe("docsettings module", function()
       util.makePath(custom_sdr)
       local custom_file = custom_sdr .. "/custom_metadata.lua"
       local f1 = io.open(custom_file, "w")
-      if f1 then
-        f1:write("return {}")
-        f1:close()
-      end
+      f1:write("return {}")
+      f1:close()
 
       local cover_sdr = hash_dir .. "/cd/cover_only.sdr"
       util.makePath(cover_sdr)
       local cover_file = cover_sdr .. "/cover.jpg"
       local f2 = io.open(cover_file, "w")
-      if f2 then
-        f2:write("dummy cover")
-        f2:close()
-      end
+      f2:write("dummy cover")
+      f2:close()
 
       local hash_files = docsettings.findSidecarFilesInHashLocation()
       assert.are.equal(2, #hash_files)
@@ -415,10 +411,8 @@ describe("docsettings module", function()
 
     local tmp_cover = "/tmp/test_cover.jpg"
     local f = io.open(tmp_cover, "w")
-    if f then
-      f:write("cover data")
-      f:close()
-    end
+    f:write("cover data")
+    f:close()
 
     d:flushCustomCover(file, tmp_cover)
     d:flushCustomMetadata(file)
