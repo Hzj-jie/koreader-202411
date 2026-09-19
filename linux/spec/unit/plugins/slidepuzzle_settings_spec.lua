@@ -10,6 +10,15 @@ describe("SlidePuzzle Settings module", function()
     LuaSettings = require("luasettings")
   end)
 
+  local tmp_settings_file
+
+  after_each(function()
+    if tmp_settings_file then
+      os.remove(tmp_settings_file)
+      tmp_settings_file = nil
+    end
+  end)
+
   it("should compute auto font size based on active size", function()
     local mock_plugin = {
       active_size = 3,
@@ -21,7 +30,8 @@ describe("SlidePuzzle Settings module", function()
   end)
 
   it("should retrieve default font and font size from settings", function()
-    local mock_settings = LuaSettings:open(":memory:")
+    tmp_settings_file = os.tmpname()
+    local mock_settings = LuaSettings:open(tmp_settings_file)
     local mock_plugin = {
       settings = mock_settings,
     }
@@ -35,7 +45,8 @@ describe("SlidePuzzle Settings module", function()
   end)
 
   it("should build settings sub menu with all options and callbacks", function()
-    local mock_settings = LuaSettings:open(":memory:")
+    tmp_settings_file = os.tmpname()
+    local mock_settings = LuaSettings:open(tmp_settings_file)
     local mock_plugin = {
       settings = mock_settings,
       stats = { [3] = { best_moves = 10 } },

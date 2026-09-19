@@ -249,21 +249,21 @@ function GestureDetector:feedEvent(tevs)
     local contact = self:getContact(slot)
     if not contact then
       contact = self:newContact(slot)
-      -- NOTE: tev is actually a simple reference to Input's self.ev_slots[slot],
-      --       which means a Contact's current_tev doesn't actually point to the *previous*
-      --       input frame for a given slot, but always points to the *current* input frame for that slot!
-      --       Meaning the tev we feed the state function *always* matches that Contact's current_tev.
-      --       Compare to initial_tev below, which does create a copy...
-      -- This is what allows us to only do this once on contact creation ;).
-      contact.current_tev = tev
     end
+    contact.current_tev = tev
     -- Universal safe-guard to heal contacts with missing initial event logs before executing state logic
     if not contact.initial_tev and contact.current_tev then
       contact.initial_tev = deepCopyEv(contact.current_tev)
     end
-    local ges = contact.state(contact)
-    if ges then
-      table.insert(gestures, ges)
+  end
+  for _, tev in ipairs(tevs) do
+    local slot = tev.slot
+    local contact = self:getContact(slot)
+    if contact then
+      local ges = contact.state(contact)
+      if ges then
+        table.insert(gestures, ges)
+      end
     end
   end
   return gestures
@@ -645,6 +645,11 @@ function Contact:handleDoubleTap()
   if self.pending_double_tap_timer and self.down == false then
     logger.dbg("Contact:handleDoubleTap Ignored a hover event")
     return
+  end
+
+  if self.pending_hold_timer then
+    gesture_detector.input:clearTimeout(slot, "hold")
+    self.pending_hold_timer = nil
   end
 
   -- cur_tap is used for double tap and bounce detection
