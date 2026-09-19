@@ -386,9 +386,9 @@ function DocSettings:flush(data, no_custom_metadata)
     if cand.dir and util.isDirRW(cand.dir, true) then
       logger.dbg("DocSettings: Writing to", cand.file)
       if util.writeToFile(ser_data, cand.file, true) then
-        local fallback_status = getFallbackStatus(cand)
-        if fallback_status and not self.fallback_notified then
-          if fallback_status == "tmp" then
+        local reason = getFallbackStatus(cand)
+        if reason and not self.fallback_notified then
+          if reason == "tmp" then
             showNotification(
               gettext(
                 "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost."
@@ -642,8 +642,8 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     return
   end
   local cand = self:_getCustomLocationCandidate(doc_path)
-  local fallback_status = getFallbackStatus(cand)
-  if fallback_status == "readonly" then
+  local reason = getFallbackStatus(cand)
+  if reason == "readonly" then
     showInfoMessage(
       gettext(
         "Storage is completely read-only. Custom cover cannot be saved to disk."
@@ -658,13 +658,13 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     showInfoMessage(gettext("Failed to save custom cover to disk."))
     return
   end
-  if fallback_status == "tmp" then
+  if reason == "tmp" then
     showInfoMessage(
       gettext(
         "Storage is read-only. Custom cover was saved to temporary storage and may be lost."
       )
     )
-  elseif fallback_status == "fallback" then
+  elseif reason == "fallback" then
     showNotification(
       gettext(
         "The selected storage for book settings is read-only. Custom cover was saved to an alternate storage location instead."
@@ -702,8 +702,8 @@ end
 
 function DocSettings:flushCustomMetadata(doc_path)
   local cand = self:_getCustomLocationCandidate(doc_path)
-  local fallback_status = getFallbackStatus(cand)
-  if fallback_status == "readonly" then
+  local reason = getFallbackStatus(cand)
+  if reason == "readonly" then
     showInfoMessage(
       gettext(
         "Storage is completely read-only. Custom metadata cannot be saved to disk."
@@ -717,13 +717,13 @@ function DocSettings:flushCustomMetadata(doc_path)
     showInfoMessage(gettext("Failed to save custom metadata to disk."))
     return
   end
-  if fallback_status == "tmp" then
+  if reason == "tmp" then
     showInfoMessage(
       gettext(
         "Storage is read-only. Custom metadata was saved to temporary storage and may be lost."
       )
     )
-  elseif fallback_status == "fallback" then
+  elseif reason == "fallback" then
     showNotification(
       gettext(
         "The selected storage for book settings is read-only. Custom metadata was saved to an alternate storage location instead."
