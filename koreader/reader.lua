@@ -196,6 +196,7 @@ end
 local UIManager = require("ui/uimanager")
 
 require("background_jobs") -- Inject must-have background jobs.
+require("docsettings").cleanHashLocationIfEmpty()
 
 DataStorage:showStorageWarningIfNeeded()
 
