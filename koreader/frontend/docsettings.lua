@@ -355,6 +355,10 @@ end
 --- Light version of open(). Opens a sidecar file or a custom metadata file.
 -- Returned object cannot be used to save changes to the sidecar file (flush()).
 -- Must be used to save changes to the custom metadata file (flushCustomMetadata()).
+-- TODO: Clean up or remove openSettingsFile. The returned object violates DocSettings invariants
+-- (doc_path is nil, flush() asserts, and purge() is a no-op that cannot find or remove custom metadata).
+-- Callers reading standalone files should use LuaSettings:open(), and custom metadata should have
+-- a dedicated helper/lifecycle rather than pretending to be a DocSettings instance.
 function DocSettings.openSettingsFile(sidecar_file)
   local new = DocSettings:extend({})
   local ok, stored
