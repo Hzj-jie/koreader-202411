@@ -63,6 +63,28 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
+  it("should initialize MathPuzzleScreen for arithmetic_progression and check answers", function()
+    local screen = createScreen(nil, "arithmetic_progression", 10)
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(10, #screen.problems)
+    assert.are.equal(10, #screen.input_buttons)
+
+    for i, field in ipairs(screen.input_buttons) do
+      field:setText(tostring(screen.problems[i].answer))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+      assert.is_string(prob.text)
+      assert.is_true(prob.text:find("___") ~= nil)
+    end
+
+    UIManager:close(screen)
+  end)
+
   it("should verify correct answers and update question marks", function()
     local screen = createScreen(nil, "add_sub_100", 10)
     UIManager:show(screen)

@@ -88,6 +88,13 @@ Generator.MODES = {
     max = 100,
     question_count = 5,
   },
+  {
+    id = "arithmetic_progression",
+    title = _("Arithmetic Progression"),
+    description = _("Fill in the missing numbers in arithmetic sequences"),
+    type = "arithmetic_progression",
+    max = 100,
+  },
 }
 
 function Generator.getModes()
@@ -99,6 +106,9 @@ function Generator.getModeById(mode_id)
     if mode.id == mode_id then
       return mode
     end
+  end
+  if mode_id == "arithmetic_progression_100" or mode_id == "ap_100" then
+    return Generator.getModeById("arithmetic_progression")
   end
   return Generator.MODES[2] -- default to add_sub_100
 end
@@ -417,6 +427,47 @@ local function generateSingleProblem(mode)
         text = string.format("%d - %d × %d =", a, b, c),
       }
     end
+  elseif mode_type == "arithmetic_progression" then
+    local terms_count = mode.terms_count or 4
+    local is_addition = math.random(1, 2) == 1
+    local d = math.random(1, 10)
+    local span = (terms_count - 1) * d
+    local terms = {}
+
+    if is_addition then
+      local min_start = 1
+      local max_start = math.max(1, max_val - span)
+      local start_val = math.random(min_start, max_start)
+      for i = 1, terms_count do
+        table.insert(terms, start_val + (i - 1) * d)
+      end
+    else
+      local min_start = span
+      local max_start = math.max(min_start, max_val)
+      local start_val = math.random(min_start, max_start)
+      for i = 1, terms_count do
+        table.insert(terms, start_val - (i - 1) * d)
+      end
+    end
+
+    local blank_pos = math.random(1, terms_count)
+    local display_terms = {}
+    for idx, val in ipairs(terms) do
+      if idx == blank_pos then
+        table.insert(display_terms, "___")
+      else
+        table.insert(display_terms, tostring(val))
+      end
+    end
+
+    return {
+      op = is_addition and "+" or "-",
+      answer = terms[blank_pos],
+      text = table.concat(display_terms, ", "),
+      step = d,
+      terms = terms,
+      blank_pos = blank_pos,
+    }
   end
 end
 

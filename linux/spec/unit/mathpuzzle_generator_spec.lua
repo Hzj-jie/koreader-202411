@@ -132,6 +132,52 @@ describe("MathPuzzle Generator module", function()
     end
   end)
 
+  it(
+    "should generate valid arithmetic progression problems with addition and subtraction",
+    function()
+      local ap_mode = Generator.getModeById("arithmetic_progression")
+      assert.is_table(ap_mode)
+      assert.are.equal("arithmetic_progression", ap_mode.id)
+      assert.are.equal(100, ap_mode.max)
+
+      local problems = Generator.generateProblems("arithmetic_progression", 20)
+      assert.are.equal(20, #problems)
+
+      local saw_addition = false
+      local saw_subtraction = false
+
+      for _, prob in ipairs(problems) do
+        assert.is_number(prob.answer)
+        assert.is_true(prob.answer >= 0)
+        assert.is_true(prob.answer <= 100)
+        assert.is_string(prob.text)
+        assert.is_true(prob.text:find("___") ~= nil)
+        assert.is_number(prob.step)
+        assert.is_true(prob.step >= 1 and prob.step <= 10)
+        assert.is_table(prob.terms)
+        assert.are.equal(4, #prob.terms)
+        assert.is_number(prob.blank_pos)
+        assert.is_true(prob.blank_pos >= 1 and prob.blank_pos <= 4)
+        assert.are.equal(prob.terms[prob.blank_pos], prob.answer)
+
+        if prob.op == "+" then
+          saw_addition = true
+          for i = 1, #prob.terms - 1 do
+            assert.are.equal(prob.step, prob.terms[i + 1] - prob.terms[i])
+          end
+        elseif prob.op == "-" then
+          saw_subtraction = true
+          for i = 1, #prob.terms - 1 do
+            assert.are.equal(prob.step, prob.terms[i] - prob.terms[i + 1])
+          end
+        end
+      end
+
+      assert.is_true(saw_addition)
+      assert.is_true(saw_subtraction)
+    end
+  )
+
   it("should calculate score when all problems are unanswered", function()
     local problems = Generator.generateProblems("add_sub_100", 10)
     for _, prob in ipairs(problems) do
