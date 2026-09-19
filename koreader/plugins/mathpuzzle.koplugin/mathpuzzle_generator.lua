@@ -89,6 +89,17 @@ Generator.MODES = {
     question_count = 5,
   },
   {
+    id = "arithmetic_progression_50_easy",
+    title = _("Arithmetic Progression within 50 (Easy)"),
+    description = _("Alternating blanks, step up to 4, numbers up to 50"),
+    type = "arithmetic_progression",
+    max = 50,
+    max_step = 4,
+    alternating_blanks = true,
+    question_count = 5,
+    single_column = true,
+  },
+  {
     id = "arithmetic_progression_50",
     title = _("Arithmetic Progression within 50"),
     description = _("Step up to 4, numbers up to 50"),
@@ -119,6 +130,9 @@ function Generator.getModeById(mode_id)
     if mode.id == mode_id then
       return mode
     end
+  end
+  if mode_id == "arithmetic_progression_50_easy" or mode_id == "arithmetic_progression_easy" or mode_id == "ap_easy" or mode_id == "ap_50_easy" then
+    return Generator.getModeById("arithmetic_progression_50_easy")
   end
   if mode_id == "arithmetic_progression" or mode_id == "arithmetic_progression_100" or mode_id == "ap_100" then
     return Generator.getModeById("arithmetic_progression_100")
@@ -467,31 +481,41 @@ local function generateSingleProblem(mode)
       end
     end
 
-    -- Randomly remove 4 or 5 numbers from the pattern
-    local num_blanks = math.random(4, 5)
-
-    -- Pick an adjacent pair (anchor, anchor+1) from 1..(terms_count-1) to remain visible, guaranteeing solvable pattern
-    local anchor = math.random(1, terms_count - 1)
-    local candidate_indices = {}
-    for i = 1, terms_count do
-      if i ~= anchor and i ~= (anchor + 1) then
-        table.insert(candidate_indices, i)
-      end
-    end
-    -- Fisher-Yates shuffle
-    for i = #candidate_indices, 2, -1 do
-      local j = math.random(1, i)
-      candidate_indices[i], candidate_indices[j] = candidate_indices[j], candidate_indices[i]
-    end
-
     local blanks = {}
     local blank_indices = {}
-    for i = 1, num_blanks do
-      local idx = candidate_indices[i]
-      blanks[idx] = true
-      table.insert(blank_indices, idx)
+
+    if mode.alternating_blanks then
+      -- Strictly in either 1 3 5 7 or 2 4 6 8 (one number one gap)
+      local start_idx = math.random(1, 2)
+      for i = start_idx, terms_count, 2 do
+        blanks[i] = true
+        table.insert(blank_indices, i)
+      end
+    else
+      -- Randomly remove 4 or 5 numbers from the pattern
+      local num_blanks = math.random(4, 5)
+
+      -- Pick an adjacent pair (anchor, anchor+1) from 1..(terms_count-1) to remain visible, guaranteeing solvable pattern
+      local anchor = math.random(1, terms_count - 1)
+      local candidate_indices = {}
+      for i = 1, terms_count do
+        if i ~= anchor and i ~= (anchor + 1) then
+          table.insert(candidate_indices, i)
+        end
+      end
+      -- Fisher-Yates shuffle
+      for i = #candidate_indices, 2, -1 do
+        local j = math.random(1, i)
+        candidate_indices[i], candidate_indices[j] = candidate_indices[j], candidate_indices[i]
+      end
+
+      for i = 1, num_blanks do
+        local idx = candidate_indices[i]
+        blanks[idx] = true
+        table.insert(blank_indices, idx)
+      end
+      table.sort(blank_indices)
     end
-    table.sort(blank_indices)
 
     local answers = {}
     local user_answers = {}

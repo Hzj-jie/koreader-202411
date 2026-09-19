@@ -133,8 +133,17 @@ describe("MathPuzzle Generator module", function()
   end)
 
   it(
-    "should generate valid arithmetic progression problems with addition and subtraction across two levels",
+    "should generate valid arithmetic progression problems with addition and subtraction across three levels",
     function()
+      local ap_easy = Generator.getModeById("arithmetic_progression_50_easy")
+      assert.is_table(ap_easy)
+      assert.are.equal("arithmetic_progression_50_easy", ap_easy.id)
+      assert.are.equal(50, ap_easy.max)
+      assert.are.equal(4, ap_easy.max_step)
+      assert.is_true(ap_easy.alternating_blanks)
+      assert.are.equal(5, ap_easy.question_count)
+      assert.is_true(ap_easy.single_column)
+
       local ap50 = Generator.getModeById("arithmetic_progression_50")
       assert.is_table(ap50)
       assert.are.equal("arithmetic_progression_50", ap50.id)
@@ -152,11 +161,41 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(ap100.single_column)
 
       -- Alias check
+      assert.are.equal(ap_easy, Generator.getModeById("arithmetic_progression_easy"))
+      assert.are.equal(ap_easy, Generator.getModeById("ap_easy"))
+      assert.are.equal(ap_easy, Generator.getModeById("ap_50_easy"))
       assert.are.equal(ap100, Generator.getModeById("arithmetic_progression"))
       assert.are.equal(ap100, Generator.getModeById("ap_100"))
       assert.are.equal(ap50, Generator.getModeById("ap_50"))
 
-      -- Test Level 1 (max 50, step up to 4)
+      -- Test Easy Level (alternating blanks strictly at {1,3,5,7} or {2,4,6,8})
+      local problems_easy = Generator.generateProblems("arithmetic_progression_50_easy", 20)
+      assert.are.equal(20, #problems_easy)
+      local saw_odd_blanks = false
+      local saw_even_blanks = false
+
+      for _, prob in ipairs(problems_easy) do
+        assert.is_true(prob.step >= 1 and prob.step <= 4)
+        assert.are.equal(8, #prob.terms)
+        for _, term in ipairs(prob.terms) do
+          assert.is_true(term >= 0 and term <= 50)
+        end
+        assert.are.equal(4, #prob.blank_indices)
+        local indices_str = table.concat(prob.blank_indices, ",")
+        assert.is_true(indices_str == "1,3,5,7" or indices_str == "2,4,6,8")
+        if indices_str == "1,3,5,7" then
+          saw_odd_blanks = true
+        elseif indices_str == "2,4,6,8" then
+          saw_even_blanks = true
+        end
+        for _, b_idx in ipairs(prob.blank_indices) do
+          assert.is_true(prob.answers[b_idx] >= 0 and prob.answers[b_idx] <= 50)
+        end
+      end
+      assert.is_true(saw_odd_blanks)
+      assert.is_true(saw_even_blanks)
+
+      -- Test Level 1 (max 50, step up to 4, random blanks)
       local problems_50 = Generator.generateProblems("arithmetic_progression_50", 20)
       assert.are.equal(20, #problems_50)
       for _, prob in ipairs(problems_50) do
@@ -170,7 +209,7 @@ describe("MathPuzzle Generator module", function()
         end
       end
 
-      -- Test Level 2 (max 100, step up to 10)
+      -- Test Level 2 (max 100, step up to 10, random blanks)
       local problems_100 = Generator.generateProblems("arithmetic_progression_100", 20)
       assert.are.equal(20, #problems_100)
 
