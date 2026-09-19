@@ -102,9 +102,11 @@ end
 
 function MathPuzzleScreen:_updateInputButton(idx)
   local btn = self.input_buttons[idx]
-  local prob = self.problems[idx]
+  if not btn then
+    return
+  end
   local is_focused = (idx == self.focused_idx)
-  local val = prob.user_answer
+  local val = btn:getText()
   local display_text = val ~= "" and val or (is_focused and "_" or " ")
 
   Button.setText(btn, display_text, btn.width)
@@ -127,27 +129,29 @@ function MathPuzzleScreen:_clearMark(idx)
 end
 
 function MathPuzzleScreen:inputDigit(digit_char)
-  local prob = self.problems[self.focused_idx]
-  local current = prob.user_answer
+  local btn = self.input_buttons[self.focused_idx]
+  if not btn then
+    return
+  end
+  local current = btn:getText()
   if #current < 6 then
-    prob.user_answer = current .. digit_char
-    self:_clearMark(self.focused_idx)
-    self:_updateInputButton(self.focused_idx)
+    btn:setText(current .. digit_char)
   end
 end
 
 function MathPuzzleScreen:backspace()
-  local prob = self.problems[self.focused_idx]
-  local current = prob.user_answer
+  local btn = self.input_buttons[self.focused_idx]
+  if not btn then
+    return
+  end
+  local current = btn:getText()
   if #current > 0 then
-    prob.user_answer = current:sub(1, -2)
-    self:_clearMark(self.focused_idx)
-    self:_updateInputButton(self.focused_idx)
+    btn:setText(current:sub(1, -2))
   end
 end
 
 function MathPuzzleScreen:nextField()
-  if self.focused_idx < #self.problems then
+  if self.focused_idx < #self.input_buttons then
     self:selectField(self.focused_idx + 1)
   else
     self:selectField(1)
@@ -156,7 +160,7 @@ end
 
 function MathPuzzleScreen:prevField()
   if self.focused_idx <= 1 then
-    self:selectField(#self.problems)
+    self:selectField(#self.input_buttons)
   else
     self:selectField(self.focused_idx - 1)
   end
@@ -270,7 +274,7 @@ function MathPuzzleScreen:_buildUI()
   })
 
   local count = #self.problems
-  local is_single_column = (count <= 5)
+  local is_single_column = (count <= 5) or (self.mode and self.mode.single_column)
 
   local col_gap = Screen:scaleBySize(28)
   local expr_width = is_single_column and Screen:scaleBySize(175)
@@ -280,40 +284,13 @@ function MathPuzzleScreen:_buildUI()
   local row_padding = is_single_column and Screen:scaleBySize(16)
     or Screen:scaleBySize(22)
 
-  local left_col = VerticalGroup:new({ align = "left" })
+  local left_col = VerticalGroup:new({ align = is_single_column and "center" or "left" })
   local right_col = VerticalGroup:new({ align = "left" })
 
   local font_face = Font:getFace("cfont")
 
   local function buildRow(i)
     local prob = self.problems[i]
-    local is_focused = (i == self.focused_idx)
-    local val = prob.user_answer or ""
-
-    local input_btn = Button:new({
-      text = val ~= "" and val or (is_focused and "_" or " "),
-      width = input_width,
-      bordersize = is_focused and Size.border.bold or Size.border.thin,
-      background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
-        or Blitbuffer.COLOR_WHITE,
-      padding_v = Screen:scaleBySize(4),
-      padding_h = Screen:scaleBySize(4),
-      margin = 0,
-      callback = function()
-        self:selectField(i)
-      end,
-    })
-
-    input_btn.getText = function()
-      return prob.user_answer or ""
-    end
-    input_btn.setText = function(_, txt)
-      prob.user_answer = tostring(txt)
-      self:_clearMark(i)
-      self:_updateInputButton(i)
-    end
-
-    self.input_buttons[i] = input_btn
 
     local mark_text = ""
     if prob.checked then
@@ -336,18 +313,112 @@ function MathPuzzleScreen:_buildUI()
     self.mark_widgets[i] = mark_widget
     self.mark_containers[i] = mark_container
 
-    return HorizontalGroup:new({
-      TextWidget:new({
-        text = prob.text,
-        face = font_face,
-        width = expr_width,
-        alignment = "right",
-      }),
-      HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
-      input_btn,
-      HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
-      mark_container,
-    })
+    if prob.inline_blanks then
+      local row_group = HorizontalGroup:new({ align = "center" })
+      local btn_w = Screen:scaleBySize(44)
+      local btn_h = Screen:scaleBySize(34)
+      local span_w = Screen:scaleBySize(3)
+
+      for k = 1, #prob.terms do
+        if prob.blanks[k] then
+          local btn_idx = #self.input_buttons + 1
+          local is_focused = (btn_idx == self.focused_idx)
+          local val = prob.user_answers[k] or ""
+
+          local input_btn = Button:new({
+            text = val ~= "" and val or (is_focused and "_" or " "),
+            width = btn_w,
+            height = btn_h,
+            bordersize = is_focused and Size.border.bold or Size.border.thin,
+            background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
+              or Blitbuffer.COLOR_WHITE,
+            padding_v = Screen:scaleBySize(2),
+            padding_h = Screen:scaleBySize(2),
+            margin = 0,
+            callback = function()
+              self:selectField(btn_idx)
+            end,
+          })
+
+          input_btn.prob_id = i
+          input_btn.blank_idx = k
+          input_btn.getText = function()
+            return prob.user_answers[k] or ""
+          end
+          input_btn.setText = function(_, txt)
+            prob.user_answers[k] = tostring(txt)
+            self:_clearMark(i)
+            self:_updateInputButton(btn_idx)
+          end
+
+          self.input_buttons[btn_idx] = input_btn
+          table.insert(row_group, input_btn)
+        else
+          local num_widget = TextWidget:new({
+            text = tostring(prob.terms[k]),
+            face = font_face,
+          })
+          table.insert(row_group, num_widget)
+        end
+
+        if k < #prob.terms then
+          local comma_widget = TextWidget:new({
+            text = ",",
+            face = font_face,
+          })
+          table.insert(row_group, comma_widget)
+          table.insert(row_group, HorizontalSpan:new({ width = span_w }))
+        end
+      end
+
+      table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(8) }))
+      table.insert(row_group, mark_container)
+
+      return row_group
+    else
+      local btn_idx = #self.input_buttons + 1
+      local is_focused = (btn_idx == self.focused_idx)
+      local val = prob.user_answer or ""
+
+      local input_btn = Button:new({
+        text = val ~= "" and val or (is_focused and "_" or " "),
+        width = input_width,
+        bordersize = is_focused and Size.border.bold or Size.border.thin,
+        background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
+          or Blitbuffer.COLOR_WHITE,
+        padding_v = Screen:scaleBySize(4),
+        padding_h = Screen:scaleBySize(4),
+        margin = 0,
+        callback = function()
+          self:selectField(btn_idx)
+        end,
+      })
+
+      input_btn.prob_id = i
+      input_btn.getText = function()
+        return prob.user_answer or ""
+      end
+      input_btn.setText = function(_, txt)
+        prob.user_answer = tostring(txt)
+        self:_clearMark(i)
+        self:_updateInputButton(btn_idx)
+      end
+
+      self.input_buttons[btn_idx] = input_btn
+
+      return HorizontalGroup:new({
+        TextWidget:new({
+          text = prob.text,
+          face = font_face,
+          width = expr_width,
+          alignment = "right",
+        }),
+        HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
+        input_btn,
+        HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
+        mark_container,
+      })
+    end
   end
 
   local columns_group
@@ -541,7 +612,13 @@ end
 
 function MathPuzzleScreen:hasUncheckedProgress()
   for _, prob in ipairs(self.problems) do
-    if not prob.checked and prob.user_answer ~= "" then
+    if prob.user_answers then
+      for _, ans in pairs(prob.user_answers) do
+        if not prob.checked and ans ~= "" then
+          return true
+        end
+      end
+    elseif not prob.checked and prob.user_answer ~= "" then
       return true
     end
   end

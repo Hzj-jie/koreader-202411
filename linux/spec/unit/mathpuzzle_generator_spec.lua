@@ -139,26 +139,39 @@ describe("MathPuzzle Generator module", function()
       assert.is_table(ap_mode)
       assert.are.equal("arithmetic_progression", ap_mode.id)
       assert.are.equal(100, ap_mode.max)
+      assert.are.equal(5, ap_mode.question_count)
+      assert.is_true(ap_mode.single_column)
 
       local problems = Generator.generateProblems("arithmetic_progression", 20)
       assert.are.equal(20, #problems)
 
       local saw_addition = false
       local saw_subtraction = false
+      local saw_4_blanks = false
+      local saw_5_blanks = false
 
       for _, prob in ipairs(problems) do
-        assert.is_number(prob.answer)
-        assert.is_true(prob.answer >= 0)
-        assert.is_true(prob.answer <= 100)
         assert.is_string(prob.text)
         assert.is_true(prob.text:find("___") ~= nil)
         assert.is_number(prob.step)
         assert.is_true(prob.step >= 1 and prob.step <= 10)
         assert.is_table(prob.terms)
-        assert.are.equal(4, #prob.terms)
-        assert.is_number(prob.blank_pos)
-        assert.is_true(prob.blank_pos >= 1 and prob.blank_pos <= 4)
-        assert.are.equal(prob.terms[prob.blank_pos], prob.answer)
+        assert.are.equal(8, #prob.terms)
+        assert.is_true(prob.inline_blanks)
+        assert.is_table(prob.blank_indices)
+        local num_blanks = #prob.blank_indices
+        assert.is_true(num_blanks == 4 or num_blanks == 5)
+        if num_blanks == 4 then
+          saw_4_blanks = true
+        elseif num_blanks == 5 then
+          saw_5_blanks = true
+        end
+
+        for _, b_idx in ipairs(prob.blank_indices) do
+          assert.is_true(prob.blanks[b_idx])
+          assert.are.equal(prob.terms[b_idx], prob.answers[b_idx])
+          assert.is_true(prob.answers[b_idx] >= 0 and prob.answers[b_idx] <= 100)
+        end
 
         if prob.op == "+" then
           saw_addition = true
@@ -175,6 +188,27 @@ describe("MathPuzzle Generator module", function()
 
       assert.is_true(saw_addition)
       assert.is_true(saw_subtraction)
+      assert.is_true(saw_4_blanks)
+      assert.is_true(saw_5_blanks)
+
+      -- Verify checkAnswers with correct answers
+      local test_problems = Generator.generateProblems("arithmetic_progression", 5)
+      for _, p in ipairs(test_problems) do
+        for _, b_idx in ipairs(p.blank_indices) do
+          p.user_answers[b_idx] = tostring(p.answers[b_idx])
+        end
+      end
+      local check_res = Generator.checkAnswers(test_problems)
+      assert.are.equal(5, check_res.total)
+      assert.are.equal(5, check_res.correct_count)
+      assert.are.equal(5, check_res.answered_count)
+      assert.is_true(check_res.all_correct)
+
+      -- Verify checkAnswers with one wrong blank
+      test_problems[1].user_answers[test_problems[1].blank_indices[1]] = "999"
+      local check_res2 = Generator.checkAnswers(test_problems)
+      assert.are.equal(4, check_res2.correct_count)
+      assert.is_false(check_res2.all_correct)
     end
   )
 

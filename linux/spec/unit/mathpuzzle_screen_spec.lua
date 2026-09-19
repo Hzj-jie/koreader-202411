@@ -36,7 +36,7 @@ describe("MathPuzzle Screen and Plugin", function()
     return MathPuzzleScreen:new({
       plugin = plugin,
       mode = mode,
-      question_count = question_count or 10,
+      question_count = question_count or (mode and mode.question_count) or 10,
     })
   end
 
@@ -63,24 +63,36 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should initialize MathPuzzleScreen for arithmetic_progression and check answers", function()
-    local screen = createScreen(nil, "arithmetic_progression", 10)
+  it("should initialize MathPuzzleScreen for arithmetic_progression in single column with inline answer blocks", function()
+    local screen = createScreen(nil, "arithmetic_progression")
     UIManager:show(screen)
 
     assert.is_table(screen.problems)
-    assert.are.equal(10, #screen.problems)
-    assert.are.equal(10, #screen.input_buttons)
+    assert.are.equal(5, #screen.problems)
+    assert.is_true(screen.mode.single_column)
+    assert.is_true(#screen.input_buttons >= 20 and #screen.input_buttons <= 25)
 
-    for i, field in ipairs(screen.input_buttons) do
-      field:setText(tostring(screen.problems[i].answer))
+    for _, prob in ipairs(screen.problems) do
+      assert.are.equal(8, #prob.terms)
+      assert.is_true(prob.inline_blanks)
+      assert.is_true(#prob.blank_indices >= 4 and #prob.blank_indices <= 5)
+    end
+
+    -- Fill all inline answer buttons with correct answers
+    for _, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[btn.prob_id]
+      btn:setText(tostring(prob.answers[btn.blank_idx]))
     end
     screen:checkAnswers()
 
     for _, prob in ipairs(screen.problems) do
       assert.is_true(prob.is_correct)
-      assert.is_string(prob.text)
-      assert.is_true(prob.text:find("___") ~= nil)
     end
+
+    -- Modifying an answer clears mark
+    local first_btn = screen.input_buttons[1]
+    first_btn:setText("999")
+    assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
 
     UIManager:close(screen)
   end)

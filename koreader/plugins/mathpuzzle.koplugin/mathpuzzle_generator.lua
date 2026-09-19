@@ -94,6 +94,8 @@ Generator.MODES = {
     description = _("Fill in the missing numbers in arithmetic sequences"),
     type = "arithmetic_progression",
     max = 100,
+    question_count = 5,
+    single_column = true,
   },
 }
 
@@ -428,7 +430,7 @@ local function generateSingleProblem(mode)
       }
     end
   elseif mode_type == "arithmetic_progression" then
-    local terms_count = mode.terms_count or 4
+    local terms_count = 8
     local is_addition = math.random(1, 2) == 1
     local d = math.random(1, 10)
     local span = (terms_count - 1) * d
@@ -450,10 +452,42 @@ local function generateSingleProblem(mode)
       end
     end
 
-    local blank_pos = math.random(1, terms_count)
+    -- Randomly remove 4 or 5 numbers from the pattern
+    local num_blanks = math.random(4, 5)
+
+    -- Pick an adjacent pair (anchor, anchor+1) from 1..(terms_count-1) to remain visible, guaranteeing solvable pattern
+    local anchor = math.random(1, terms_count - 1)
+    local candidate_indices = {}
+    for i = 1, terms_count do
+      if i ~= anchor and i ~= (anchor + 1) then
+        table.insert(candidate_indices, i)
+      end
+    end
+    -- Fisher-Yates shuffle
+    for i = #candidate_indices, 2, -1 do
+      local j = math.random(1, i)
+      candidate_indices[i], candidate_indices[j] = candidate_indices[j], candidate_indices[i]
+    end
+
+    local blanks = {}
+    local blank_indices = {}
+    for i = 1, num_blanks do
+      local idx = candidate_indices[i]
+      blanks[idx] = true
+      table.insert(blank_indices, idx)
+    end
+    table.sort(blank_indices)
+
+    local answers = {}
+    local user_answers = {}
+    for _, idx in ipairs(blank_indices) do
+      answers[idx] = terms[idx]
+      user_answers[idx] = ""
+    end
+
     local display_terms = {}
     for idx, val in ipairs(terms) do
-      if idx == blank_pos then
+      if blanks[idx] then
         table.insert(display_terms, "___")
       else
         table.insert(display_terms, tostring(val))
@@ -462,19 +496,24 @@ local function generateSingleProblem(mode)
 
     return {
       op = is_addition and "+" or "-",
-      answer = terms[blank_pos],
-      text = table.concat(display_terms, ", "),
       step = d,
       terms = terms,
-      blank_pos = blank_pos,
+      blanks = blanks,
+      blank_indices = blank_indices,
+      answers = answers,
+      user_answers = user_answers,
+      answer = answers[blank_indices[1]],
+      user_answer = "",
+      text = table.concat(display_terms, ", "),
+      inline_blanks = true,
     }
   end
 end
 
 function Generator.generateProblems(mode_id, count)
-  count = count or 10
   local mode = type(mode_id) == "table" and mode_id
     or Generator.getModeById(mode_id)
+  count = count or (mode and mode.question_count) or 10
   local problems = {}
   local seen = {}
 
@@ -505,17 +544,41 @@ function Generator.checkAnswers(problems)
   local answered_count = 0
 
   for _, prob in ipairs(problems) do
-    local uans_str = tostring(prob.user_answer or ""):gsub("^%s*(.-)%s*$", "%1")
-    local uans = tonumber(uans_str)
     prob.checked = true
-    if uans_str ~= "" then
-      answered_count = answered_count + 1
-    end
-    if uans ~= nil and uans == prob.answer then
-      prob.is_correct = true
-      correct_count = correct_count + 1
+    if prob.inline_blanks or prob.user_answers then
+      local all_blanks_correct = true
+      local any_answered = false
+      for _, b_idx in ipairs(prob.blank_indices) do
+        local uans_str = tostring(prob.user_answers[b_idx] or ""):gsub("^%s*(.-)%s*$", "%1")
+        local uans = tonumber(uans_str)
+        if uans_str ~= "" then
+          any_answered = true
+        end
+        if uans == nil or uans ~= prob.answers[b_idx] then
+          all_blanks_correct = false
+        end
+      end
+      if any_answered then
+        answered_count = answered_count + 1
+      end
+      if all_blanks_correct then
+        prob.is_correct = true
+        correct_count = correct_count + 1
+      else
+        prob.is_correct = false
+      end
     else
-      prob.is_correct = false
+      local uans_str = tostring(prob.user_answer or ""):gsub("^%s*(.-)%s*$", "%1")
+      local uans = tonumber(uans_str)
+      if uans_str ~= "" then
+        answered_count = answered_count + 1
+      end
+      if uans ~= nil and uans == prob.answer then
+        prob.is_correct = true
+        correct_count = correct_count + 1
+      else
+        prob.is_correct = false
+      end
     end
   end
 
