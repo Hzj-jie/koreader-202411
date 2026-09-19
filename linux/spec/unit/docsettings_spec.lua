@@ -900,14 +900,133 @@ describe("docsettings module", function()
           f:close()
         end
 
+        local UIManager = require("ui/uimanager")
+        local shown_messages = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_messages, widget.text)
+        end
+
         util.isDirRW = function()
           return false
         end
 
         assert.is_nil(d:flushCustomCover(file, tmp_cover))
-        assert.is_nil(d:flushCustomMetadata(file))
+        assert.are.equal(1, #shown_messages)
+        assert.is_truthy(
+          shown_messages[1]:match("Storage is completely read%-only")
+        )
 
+        assert.is_nil(d:flushCustomMetadata(file))
+        assert.are.equal(2, #shown_messages)
+        assert.is_truthy(
+          shown_messages[2]:match("Storage is completely read%-only")
+        )
+
+        UIManager.show = orig_show
         d:close()
+        os.remove(tmp_cover)
+        os.remove(file)
+      end
+    )
+
+    it(
+      "shows error message when copyFile or writeToFile fails in custom flush",
+      function()
+        local file = "/tmp/test_fail_custom_write.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+        local tmp_cover = "/tmp/test_fail_cov.jpg"
+        local f = io.open(tmp_cover, "w")
+        if f then
+          f:write("cover data")
+          f:close()
+        end
+
+        local UIManager = require("ui/uimanager")
+        local shown_messages = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_messages, widget.text)
+        end
+
+        local orig_copyFile = ffiutil.copyFile
+        ffiutil.copyFile = function()
+          return "simulated copy failure"
+        end
+
+        assert.is_nil(d:flushCustomCover(file, tmp_cover))
+        assert.are.equal(1, #shown_messages)
+        assert.is_truthy(shown_messages[1]:match("Failed to save custom cover"))
+
+        ffiutil.copyFile = orig_copyFile
+
+        local orig_writeToFile = util.writeToFile
+        util.writeToFile = function()
+          return false
+        end
+
+        assert.is_nil(d:flushCustomMetadata(file))
+        assert.are.equal(2, #shown_messages)
+        assert.is_truthy(
+          shown_messages[2]:match("Failed to save custom metadata")
+        )
+
+        util.writeToFile = orig_writeToFile
+        UIManager.show = orig_show
+        d:close()
+        os.remove(tmp_cover)
+        os.remove(file)
+      end
+    )
+
+    it(
+      "shows notification when custom cover or metadata falls back to alternate or tmp storage",
+      function()
+        local file = "/tmp/test_custom_fallback.epub"
+        createDummyFile(file)
+        local d = docsettings:open(file)
+        local tmp_cover = "/tmp/test_cov_fallback.jpg"
+        local f = io.open(tmp_cover, "w")
+        if f then
+          f:write("cover data")
+          f:close()
+        end
+
+        local UIManager = require("ui/uimanager")
+        local shown_notifications = {}
+        local orig_show = UIManager.show
+        UIManager.show = function(_, widget)
+          table.insert(shown_notifications, widget.text)
+        end
+
+        -- Mock doc location as unwritable so it falls back to dir location
+        local doc_sdr = docsettings:getSidecarDir(file)
+        local orig_isDirRW = util.isDirRW
+        util.isDirRW = function(dir, create)
+          if dir == doc_sdr then
+            return false
+          end
+          return orig_isDirRW(dir, create)
+        end
+
+        assert.is_true(d:flushCustomCover(file, tmp_cover))
+        assert.are.equal(1, #shown_notifications)
+        assert.is_truthy(
+          shown_notifications[1]:match("alternate storage location")
+        )
+
+        assert.is_true(d:flushCustomMetadata(file))
+        assert.are.equal(2, #shown_notifications)
+        assert.is_truthy(
+          shown_notifications[2]:match("alternate storage location")
+        )
+
+        util.isDirRW = orig_isDirRW
+        UIManager.show = orig_show
+        d:close()
+        d:purge()
+        docsettings.updateLocation(file, nil)
         os.remove(tmp_cover)
         os.remove(file)
       end
@@ -1475,15 +1594,17 @@ describe("docsettings module", function()
     it(
       "returns first writable candidate directory when no sidecar file exists",
       function()
-        local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
-        assert.are.equal("/tmp/test_custom_cand.sdr", cand_dir)
+        local cand = docsettings:_getCustomLocationCandidate(test_doc)
+        assert.is_table(cand)
+        assert.are.equal("/tmp/test_custom_cand.sdr", cand.dir)
       end
     )
 
     it("returns hash directory when hash is preferred", function()
       G_reader_settings:save("document_metadata_folder", "hash")
-      local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
-      assert.are.equal(docsettings:getSidecarDir(test_doc), cand_dir)
+      local cand = docsettings:_getCustomLocationCandidate(test_doc)
+      assert.is_table(cand)
+      assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
     end)
 
     it("returns existing sidecar dir when sidecar file exists", function()
@@ -1492,8 +1613,9 @@ describe("docsettings module", function()
       d:flush()
       d:close()
 
-      local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
-      assert.are.equal(docsettings:getSidecarDir(test_doc), cand_dir)
+      local cand = docsettings:_getCustomLocationCandidate(test_doc)
+      assert.is_table(cand)
+      assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
     end)
 
     it(
@@ -1513,11 +1635,11 @@ describe("docsettings module", function()
           return orig_isDirRW(dir, create)
         end
 
-        local cand_dir = docsettings:_getCustomLocationCandidate(test_doc)
+        local cand = docsettings:_getCustomLocationCandidate(test_doc)
         util.isDirRW = orig_isDirRW
 
-        assert.is_not_nil(cand_dir)
-        assert.are_not.equal(existing_sdr, cand_dir)
+        assert.is_table(cand)
+        assert.are_not.equal(existing_sdr, cand.dir)
       end
     )
   end)

@@ -9,6 +9,7 @@ local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local dump = require("dump")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -52,30 +53,26 @@ end
 
 -- Lazily requires UI components to prevent cyclic dependencies when DocSettings
 -- is loaded early or in headless environments.
--- String literals are kept directly inside gettext() calls here so that
--- xgettext (update-po.sh) can statically extract them into translation templates.
-local function notifyUser(reason)
-  local gettext = require("gettext")
-
-  local text
-  if reason == "tmp" then
-    text = gettext(
-      "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost."
-    )
-  elseif reason == "fallback" then
-    text = gettext(
-      "The selected storage for book settings is read-only. Settings for this book will be saved to an alternate storage location instead."
-    )
-  elseif reason == "readonly" then
-    text = gettext(
-      "Storage is completely read-only. Reading progress for this book cannot be saved to disk."
-    )
-  else
-    text = reason
-  end
+local function showNotification(text)
   require("ui/uimanager"):show(
     require("ui/widget/notification"):new({ text = text })
   )
+end
+
+local function showInfoMessage(text)
+  require("ui/uimanager"):show(
+    require("ui/widget/infomessage"):new({ text = text })
+  )
+end
+
+local function getStorageReason(cand)
+  if not cand then
+    return "readonly"
+  elseif cand.location == "tmp" then
+    return "tmp"
+  elseif cand.location ~= G_named_settings.document_metadata_folder() then
+    return "fallback"
+  end
 end
 
 function DocSettings.getSidecarFilename(doc_path)
@@ -375,7 +372,6 @@ end
 --- Serializes settings and writes them to `metadata.lua`.
 function DocSettings:flush(data, no_custom_metadata)
   data = data or self.data
-  local preferred_location = G_named_settings.document_metadata_folder()
   local ser_data = dump(data)
 
   -- Always refresh candidates so order reflects current settings
@@ -385,10 +381,21 @@ function DocSettings:flush(data, no_custom_metadata)
     if cand.dir and util.isDirRW(cand.dir, true) then
       logger.dbg("DocSettings: Writing to", cand.file)
       if util.writeToFile(ser_data, cand.file, true) then
-        if
-          cand.location ~= preferred_location and not self.fallback_notified
-        then
-          notifyUser(cand.location == "tmp" and "tmp" or "fallback")
+        local reason = getStorageReason(cand)
+        if reason and not self.fallback_notified then
+          if reason == "tmp" then
+            showNotification(
+              gettext(
+                "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost."
+              )
+            )
+          else
+            showNotification(
+              gettext(
+                "The selected storage for book settings is read-only. Settings for this book will be saved to an alternate storage location instead."
+              )
+            )
+          end
           self.fallback_notified = true
         end
 
@@ -426,7 +433,11 @@ function DocSettings:flush(data, no_custom_metadata)
   end
 
   if not self.fallback_notified then
-    notifyUser("readonly")
+    showNotification(
+      gettext(
+        "Storage is completely read-only. Reading progress for this book cannot be saved to disk."
+      )
+    )
     self.fallback_notified = true
   end
   return nil
@@ -541,15 +552,11 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         end
         do_purge = not copy
       else
-        local InfoMessage = require("ui/widget/infomessage")
-        local UIManager = require("ui/uimanager")
-        local gettext = require("gettext")
-        UIManager:show(InfoMessage:new({
-          text = gettext(
+        showInfoMessage(
+          gettext(
             "Failed to save book settings to the new location. Original settings have been preserved."
-          ),
-          icon = "notice-warning",
-        }))
+          )
+        )
       end
     end
   else -- delete
@@ -578,11 +585,11 @@ function DocSettings:_getCustomLocationCandidate(doc_path)
     and sidecar_cand.dir
     and util.isDirRW(sidecar_cand.dir, true)
   then
-    return sidecar_cand.dir
+    return sidecar_cand
   end
   for _, cand in ipairs(getCandidates(doc_path)) do
     if cand.dir and util.isDirRW(cand.dir, true) then
-      return cand.dir
+      return cand
     end
   end
 end
@@ -629,15 +636,37 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     logger.warn("Skipping custom cover flush in monkey test mode.")
     return
   end
-  local sidecar_dir = self:_getCustomLocationCandidate(doc_path)
-  if sidecar_dir then
-    local new_cover_filename = "/cover."
-      .. util.getFileNameSuffix(image_file):lower()
-    local new_cover_file = sidecar_dir .. new_cover_filename
-    if ffiutil.copyFile(image_file, new_cover_file) == nil then
-      return true
-    end
+  local cand = self:_getCustomLocationCandidate(doc_path)
+  local reason = getStorageReason(cand)
+  if reason == "readonly" then
+    showInfoMessage(
+      gettext(
+        "Storage is completely read-only. Custom cover cannot be saved to disk."
+      )
+    )
+    return
   end
+  local new_cover_filename = "/cover."
+    .. util.getFileNameSuffix(image_file):lower()
+  local new_cover_file = cand.dir .. new_cover_filename
+  if ffiutil.copyFile(image_file, new_cover_file) ~= nil then
+    showInfoMessage(gettext("Failed to save custom cover to disk."))
+    return
+  end
+  if reason == "tmp" then
+    showNotification(
+      gettext(
+        "Storage is read-only. Custom cover was saved to temporary storage and may be lost."
+      )
+    )
+  elseif reason == "fallback" then
+    showNotification(
+      gettext(
+        "The selected storage for book settings is read-only. Custom cover was saved to an alternate storage location instead."
+      )
+    )
+  end
+  return true
 end
 
 -- custom metadata
@@ -667,14 +696,36 @@ function DocSettings:getCustomMetadataFile(reset_cache)
 end
 
 function DocSettings:flushCustomMetadata(doc_path)
-  local sidecar_dir = self:_getCustomLocationCandidate(doc_path)
-  if sidecar_dir then
-    local s_out = dump(self.data)
-    local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-    if util.writeToFile(s_out, new_metadata_file, true) then
-      return true
-    end
+  local cand = self:_getCustomLocationCandidate(doc_path)
+  local reason = getStorageReason(cand)
+  if reason == "readonly" then
+    showInfoMessage(
+      gettext(
+        "Storage is completely read-only. Custom metadata cannot be saved to disk."
+      )
+    )
+    return
   end
+  local s_out = dump(self.data)
+  local new_metadata_file = cand.dir .. "/" .. custom_metadata_filename
+  if not util.writeToFile(s_out, new_metadata_file, true) then
+    showInfoMessage(gettext("Failed to save custom metadata to disk."))
+    return
+  end
+  if reason == "tmp" then
+    showNotification(
+      gettext(
+        "Storage is read-only. Custom metadata was saved to temporary storage and may be lost."
+      )
+    )
+  elseif reason == "fallback" then
+    showNotification(
+      gettext(
+        "The selected storage for book settings is read-only. Custom metadata was saved to an alternate storage location instead."
+      )
+    )
+  end
+  return true
 end
 
 -- "hash" section
