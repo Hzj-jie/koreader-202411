@@ -299,14 +299,12 @@ end
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn DocSettings object
 function DocSettings:open(doc_path)
+  assert(
+    doc_path and doc_path ~= "",
+    "DocSettings: doc_path must not be nil or empty"
+  )
   -- NOTE: Beware, our new instance is new, but self is still DocSettings!
   local new = DocSettings:extend({})
-
-  if not doc_path or doc_path == "" then
-    new.data = {}
-    new.candidates = {}
-    return new
-  end
 
   new.doc_path = doc_path
   new.sidecar_filename = DocSettings.getSidecarFilename(doc_path)

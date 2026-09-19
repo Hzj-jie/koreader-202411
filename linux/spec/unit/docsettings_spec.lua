@@ -997,9 +997,13 @@ describe("docsettings module", function()
       end
     )
 
-    it("returns empty table when doc_path is nil or empty", function()
-      assert.are.same({}, docsettings:open(nil).candidates)
-      assert.are.same({}, docsettings:open("").candidates)
+    it("asserts when doc_path is nil or empty", function()
+      assert.has_error(function()
+        docsettings:open(nil)
+      end)
+      assert.has_error(function()
+        docsettings:open("")
+      end)
     end)
 
     it(
