@@ -628,6 +628,9 @@ end
 -- "hash" section
 
 -- Returns the list of tables { dir = ..., metadata = ..., custom_metadata = ..., cover = ... }.
+-- Note: entries are grouped by content-hash directory (<partialMD5>.sdr). If multiple
+-- documents share the same content hash (or have identical content under different extensions),
+-- they resolve to the same sidecar directory and are reported as a single entry.
 function DocSettings.findSidecarFilesInHashLocation()
   local by_dir = {}
   local dir_list = {}
@@ -643,7 +646,7 @@ function DocSettings.findSidecarFilesInHashLocation()
       entry.metadata = fullpath
     elseif name == custom_metadata_filename then
       entry.custom_metadata = fullpath
-    elseif name:match("^cover%.") then
+    elseif util.splitFileNameSuffix(name) == "cover" then
       entry.cover = fullpath
     end
   end

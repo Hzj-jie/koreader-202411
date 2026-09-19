@@ -1077,11 +1077,7 @@ function util.removeEmptyTree(dir)
     end
   end
   for _, f in ipairs(subdirs) do
-    local child = dir .. "/" .. f
-    -- lfs.dir follows symlinks; never recurse (and never delete) through one.
-    if lfs.symlinkattributes(child, "mode") ~= "link" then
-      util.removeEmptyTree(child)
-    end
+    util.removeEmptyTree(dir .. "/" .. f)
   end
   return lfs.rmdir(dir)
 end
