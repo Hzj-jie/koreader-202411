@@ -1,5 +1,5 @@
 describe("docsettings module", function()
-  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs, util
+  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs, logger, util
   local getSidecarFile = function(doc_path)
     return docsettings:getSidecarDir(doc_path)
       .. "/"
@@ -12,6 +12,7 @@ describe("docsettings module", function()
     docsettings = require("docsettings")
     ffiutil = require("ffi/util")
     lfs = require("libs/libkoreader-lfs")
+    logger = require("logger")
     util = require("util")
 
     docsettings_dir = DataStorage:getDocSettingsDir()
@@ -401,6 +402,24 @@ describe("docsettings module", function()
         ffiutil.purgeDir(hash_dir)
       end
     )
+
+    it("logs warning when removeEmptyTree fails", function()
+      local orig_removeEmptyTree = util.removeEmptyTree
+      local warn_called = false
+      local orig_warn = logger.warn
+      logger.warn = function(...)
+        warn_called = true
+      end
+      util.removeEmptyTree = function()
+        return nil, "permission denied"
+      end
+
+      docsettings.cleanHashLocationIfEmpty()
+      assert.is_true(warn_called)
+
+      util.removeEmptyTree = orig_removeEmptyTree
+      logger.warn = orig_warn
+    end)
   end)
 
   it("handles custom cover, custom metadata, and updateLocation", function()

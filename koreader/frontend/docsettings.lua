@@ -44,7 +44,7 @@ end
 function DocSettings.cleanHashLocationIfEmpty()
   if not util.isDirContainingFiles(DOCSETTINGS_HASH_DIR) then
     local ok, err = util.removeEmptyTree(DOCSETTINGS_HASH_DIR)
-    if not ok and err then
+    if not ok then
       logger.warn("DocSettings: failed to clean empty hash directory:", err)
     end
   end
