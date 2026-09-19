@@ -25,7 +25,6 @@ local Generator = require("plugins/mathpuzzle.koplugin/mathpuzzle_generator")
 
 local MathPuzzleScreen = InputContainer:extend({
   name = "mathpuzzle_screen",
-  modal = true,
   plugin = nil,
   mode = nil,
   question_count = nil,
