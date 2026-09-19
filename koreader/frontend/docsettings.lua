@@ -65,12 +65,17 @@ local function showInfoMessage(text)
   )
 end
 
+local function isCandidateInPreferredLocation(cand)
+  return cand ~= nil
+    and cand.location == G_named_settings.document_metadata_folder()
+end
+
 local function getFallbackStatus(cand)
   if not cand then
     return "readonly"
   elseif cand.location == "tmp" then
     return "tmp"
-  elseif cand.location ~= G_named_settings.document_metadata_folder() then
+  elseif not isCandidateInPreferredLocation(cand) then
     return "fallback"
   end
 end
@@ -287,8 +292,7 @@ end
 
 function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
   local cand = DocSettings:_findSidecarFile(doc_path)
-  return cand ~= nil
-    and cand.location ~= G_named_settings.document_metadata_folder()
+  return cand ~= nil and not isCandidateInPreferredLocation(cand)
 end
 
 --- Opens a document's individual settings (font, margin, dictionary, etc.)
