@@ -1,5 +1,6 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
+local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
@@ -200,7 +201,7 @@ function MathPuzzleScreen:_handleKey(key)
     self:nextField()
     return true
   elseif key_str == "Escape" or key_str == "Close" or key_str == "Back" then
-    UIManager:close(self)
+    self:confirmExit()
     return true
   end
   return false
@@ -243,10 +244,12 @@ function MathPuzzleScreen:_buildUI()
     fullscreen = true,
     left_icon = "chevron.left",
     left_icon_tap_callback = function()
-      self:_showModeMenu()
+      self:confirmExit(function()
+        self:_showModeMenu()
+      end)
     end,
     close_callback = function()
-      UIManager:close(self)
+      self:confirmExit()
     end,
   })
   self.title_bar_container = FrameContainer:new({
@@ -271,8 +274,7 @@ function MathPuzzleScreen:_buildUI()
   })
 
   local count = #self.problems
-  local is_single_column = (count <= 5)
-    or (self.mode and self.mode.single_column)
+  local is_single_column = (count <= 5) or (self.mode and self.mode.single_column)
 
   local col_gap = Screen:scaleBySize(28)
   local expr_width = is_single_column and Screen:scaleBySize(175)
@@ -282,8 +284,7 @@ function MathPuzzleScreen:_buildUI()
   local row_padding = is_single_column and Screen:scaleBySize(16)
     or Screen:scaleBySize(22)
 
-  local left_col =
-    VerticalGroup:new({ align = is_single_column and "center" or "left" })
+  local left_col = VerticalGroup:new({ align = is_single_column and "center" or "left" })
   local right_col = VerticalGroup:new({ align = "left" })
 
   local font_face = Font:getFace("cfont")
@@ -370,10 +371,7 @@ function MathPuzzleScreen:_buildUI()
         end
       end
 
-      table.insert(
-        row_group,
-        HorizontalSpan:new({ width = Screen:scaleBySize(8) })
-      )
+      table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(8) }))
       table.insert(row_group, mark_container)
 
       return row_group
@@ -612,8 +610,48 @@ function MathPuzzleScreen:_showModeMenu()
   self.plugin:showModeSelection(self)
 end
 
+function MathPuzzleScreen:hasUncheckedProgress()
+  for _, prob in ipairs(self.problems) do
+    if prob.user_answers then
+      for _, ans in pairs(prob.user_answers) do
+        if not prob.checked and ans ~= "" then
+          return true
+        end
+      end
+    elseif not prob.checked and prob.user_answer ~= "" then
+      return true
+    end
+  end
+  return false
+end
+
+function MathPuzzleScreen:confirmExit(callback)
+  if not self:hasUncheckedProgress() then
+    if callback then
+      callback()
+    else
+      UIManager:close(self)
+    end
+    return
+  end
+
+  UIManager:show(ConfirmBox:new({
+    text = _(
+      "Your progress will be lost if you exit. Are you sure you want to exit?"
+    ),
+    ok_text = _("Exit"),
+    ok_callback = function()
+      if callback then
+        callback()
+      else
+        UIManager:close(self)
+      end
+    end,
+  }))
+end
+
 function MathPuzzleScreen:onBack()
-  UIManager:close(self)
+  self:confirmExit()
   return true
 end
 
