@@ -131,6 +131,13 @@ end
 -- After merging, the income file is no longer needed and is deleted. The local file is uploaded and then a copy of it is saved
 -- and renamed to replace the old cached file (thus the naming). The cached file stays (in the same folder) till being replaced
 -- in the next round.
+-- Syncs local file with server file using sync_cb callback.
+-- @param server table server configuration
+-- @param file_path string path to local file
+-- @param sync_cb function callback(file_path, cached_file_path, income_file_path):
+--        Should return true to proceed with uploading local file to server, or
+--        false to ignore uploading (caller/callback should handle reporting errors/messages to end users).
+-- @param is_silent boolean whether to suppress notification messages
 function SyncService.sync(server, file_path, sync_cb, is_silent)
   local function exec()
     local file_name = ffiutil.basename(file_path)
@@ -181,6 +188,8 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
           server.password,
           income_file_path
         )
+      else
+        assert(false, "Unknown server.type: " .. tostring(server.type))
       end
       if
         code_response ~= 200
@@ -192,11 +201,12 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
       end
       local ok, cb_return =
         pcall(sync_cb, file_path, cached_file_path, income_file_path)
-      if not ok or not cb_return then
+      if not ok then
         show_msg()
-        if not ok then
-          require("logger").err("sync service callback failed:", cb_return)
-        end
+        require("logger").err("sync service callback failed:", cb_return)
+        return
+      end
+      if not cb_return then
         return
       end
       if server.type == "dropbox" then
@@ -212,6 +222,8 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
           file_path,
           etag
         )
+      else
+        assert(false, "Unknown server.type: " .. tostring(server.type))
       end
     end
     os.remove(income_file_path)
@@ -222,10 +234,12 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
     then
       os.remove(cached_file_path)
       ffiutil.copyFile(file_path, cached_file_path)
-      UIManager:show(Notification:new({
-        text = gettext("Successfully synchronized."),
-        timeout = 2,
-      }))
+      if not is_silent then
+        UIManager:show(Notification:new({
+          text = gettext("Successfully synchronized."),
+          timeout = 2,
+        }))
+      end
     else
       show_msg()
     end
