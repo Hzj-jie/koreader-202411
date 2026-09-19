@@ -634,7 +634,7 @@ function DocSettings.findSidecarFilesInHashLocation()
       entry.metadata = fullpath
     elseif name == custom_metadata_filename then
       entry.custom_metadata = fullpath
-    elseif name:match("^cover%.") then
+    elseif util.splitFileNameSuffix(name) == "cover" then
       entry.cover = fullpath
     end
   end
