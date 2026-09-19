@@ -1156,7 +1156,7 @@ describe("PathChooser widget", function()
         assert.are.equal("Choose", choose_btn.text)
         choose_btn.callback()
 
-        assert.are.equal(sample_file, confirmed_path)
+        assert.are.equal(ffiutil.realpath(sample_file), confirmed_path)
         assert.stub(close_spy).was_called_with(UIManager, pc.button_dialog)
         assert.stub(close_spy).was_called_with(UIManager, pc)
 
@@ -1192,7 +1192,7 @@ describe("PathChooser widget", function()
         assert.are.equal("Choose", choose_btn.text)
         choose_btn.callback()
 
-        assert.are.equal(sample_dir, confirmed_path)
+        assert.are.equal(ffiutil.realpath(sample_dir), confirmed_path)
         assert.stub(close_spy).was_called_with(UIManager, pc.button_dialog)
         assert.stub(close_spy).was_called_with(UIManager, pc)
 
