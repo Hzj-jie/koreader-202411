@@ -1132,7 +1132,7 @@ describe("docsettings module", function()
         assert.is_truthy(candidates[1].file:match("metadata%.epub%.lua$"))
         assert.are.equal("dir", candidates[2].location)
         -- When hash location is not enabled, hash candidate is omitted
-        assert.are.equal("doc", candidates[3].location)
+        assert.are.equal("doc_legacy", candidates[3].location)
         assert.is_truthy(candidates[3].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
@@ -1151,7 +1151,7 @@ describe("docsettings module", function()
         assert.is_truthy(candidates[1].file:match("metadata%.epub%.lua$"))
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("hash", candidates[3].location)
-        assert.are.equal("doc", candidates[4].location)
+        assert.are.equal("doc_legacy", candidates[4].location)
         assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
@@ -1166,7 +1166,7 @@ describe("docsettings module", function()
         assert.are.equal("dir", candidates[1].location)
         assert.are.equal("doc", candidates[2].location)
         assert.is_truthy(candidates[2].file:match("metadata%.epub%.lua$"))
-        assert.are.equal("doc", candidates[3].location)
+        assert.are.equal("doc_legacy", candidates[3].location)
         assert.is_truthy(candidates[3].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
@@ -1185,7 +1185,7 @@ describe("docsettings module", function()
         assert.are.equal("hash", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
         assert.is_truthy(candidates[3].file:match("metadata%.epub%.lua$"))
-        assert.are.equal("doc", candidates[4].location)
+        assert.are.equal("doc_legacy", candidates[4].location)
         assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
@@ -1201,7 +1201,7 @@ describe("docsettings module", function()
         assert.are.equal("dir", candidates[2].location)
         assert.are.equal("doc", candidates[3].location)
         assert.is_truthy(candidates[3].file:match("metadata%.epub%.lua$"))
-        assert.are.equal("doc", candidates[4].location)
+        assert.are.equal("doc_legacy", candidates[4].location)
         assert.is_truthy(candidates[4].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
@@ -1224,7 +1224,7 @@ describe("docsettings module", function()
         local candidates = d.candidates
         assert.are.equal("doc", candidates[1].location)
         assert.are.equal("dir", candidates[2].location)
-        assert.are.equal("doc", candidates[3].location)
+        assert.are.equal("doc_legacy", candidates[3].location)
         assert.is_truthy(candidates[3].file:match("sample%.epub%.lua$"))
         assert.are.equal("tmp", candidates[#candidates].location)
       end
@@ -1610,6 +1610,33 @@ describe("docsettings module", function()
         )
 
         os.remove(hist_file)
+      end)
+
+      it("finds sidecar in legacy doc format", function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local stem = test_file:match("(.*)%.") or test_file
+        local doc_sdr = stem .. ".sdr"
+        util.makePath(doc_sdr)
+        local doc_legacy_file = doc_sdr
+          .. "/"
+          .. ffiutil.basename(test_file)
+          .. ".lua"
+        local f_out = io.open(doc_legacy_file, "w")
+        if f_out then
+          f_out:write("return { ['title'] = 'Legacy Doc' }\n")
+          f_out:close()
+        end
+
+        local cand = docsettings:_findSidecarFile(test_file)
+        assert.is_not_nil(cand)
+        assert.are.equal(doc_legacy_file, cand.file)
+        assert.are.equal("doc_legacy", cand.location)
+        assert.is_true(
+          docsettings.isSidecarFileNotInPreferredLocation(test_file)
+        )
+
+        os.remove(doc_legacy_file)
+        util.removePath(doc_sdr)
       end)
     end
   )
