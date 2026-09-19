@@ -607,13 +607,7 @@ end
 
 --- Returns path to book custom cover file if it exists, or nil.
 function DocSettings:findCustomCoverFile(doc_path)
-  local candidates = (
-    self
-    and self.candidates
-    and (not doc_path or doc_path == self.doc_path)
-  )
-      and self.candidates
-    or getCandidates(doc_path)
+  local candidates = doc_path and getCandidates(doc_path) or self.candidates
   for _, cand in ipairs(candidates) do
     if cand.dir and util.directoryExists(cand.dir) then
       local custom_cover_file = findCustomCoverFileInDir(cand.dir)
@@ -657,13 +651,7 @@ end
 
 --- Returns path to book custom metadata file if it exists, or nil.
 function DocSettings:findCustomMetadataFile(doc_path)
-  local candidates = (
-    self
-    and self.candidates
-    and (not doc_path or doc_path == self.doc_path)
-  )
-      and self.candidates
-    or getCandidates(doc_path)
+  local candidates = doc_path and getCandidates(doc_path) or self.candidates
   for _, cand in ipairs(candidates) do
     if cand.dir then
       local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
