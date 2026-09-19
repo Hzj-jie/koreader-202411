@@ -4,10 +4,12 @@ in the so-called sidecar directory
 ([Wikipedia definition](https://en.wikipedia.org/wiki/Sidecar_file)).
 ]]
 
+local CachedTable = require("cachedtable")
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local dump = require("dump")
 local ffiutil = require("ffi/util")
+local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
@@ -24,158 +26,58 @@ function DocSettings.getSidecarStorage(location)
     return DOCSETTINGS_DIR
   elseif location == "hash" then
     return DOCSETTINGS_HASH_DIR
+  else
+    assert(false, "Invalid sidecar storage location: " .. tostring(location))
   end
 end
 
-local function isDir(dir)
-  return lfs.attributes(dir, "mode") == "directory"
-end
-
-local function isFile(file)
-  return lfs.attributes(file, "mode") == "file"
-end
-
-local is_history_location_enabled = isDir(HISTORY_DIR)
+local is_history_location_enabled = util.directoryExists(HISTORY_DIR)
 
 local doc_hash_cache = {}
-local is_hash_location_enabled
 
 function DocSettings.isHashLocationEnabled()
-  if is_hash_location_enabled == nil then
-    is_hash_location_enabled = isDir(DOCSETTINGS_HASH_DIR)
-  end
-  return is_hash_location_enabled
+  return util.directoryExists(DOCSETTINGS_HASH_DIR)
 end
 
-function DocSettings.setIsHashLocationEnabled(value)
-  is_hash_location_enabled = value
-end
-
-local function buildCandidates(list)
-  local candidates = {}
-
-  for i, file_path in ipairs(list) do
-    -- Ignore missing files.
-    if file_path ~= "" and isFile(file_path) then
-      local mtime = lfs.attributes(file_path, "modification")
-      table.insert(candidates, {
-        path = file_path,
-        mtime = mtime,
-        prio = i,
-      })
+--- Cleans up DOCSETTINGS_HASH_DIR if it contains no files.
+-- Uses util.isDirContainingFiles to probe for any files in the tree.
+-- If no files exist in the tree at all, removes the empty directory tree bottom-up.
+function DocSettings.cleanHashLocationIfEmpty()
+  if not util.isDirContainingFiles(DOCSETTINGS_HASH_DIR) then
+    local ok, err = util.removeEmptyTree(DOCSETTINGS_HASH_DIR)
+    if not ok then
+      logger.warn("DocSettings: failed to clean empty hash directory:", err)
     end
   end
-
-  -- MRU sort, tie breaker is insertion order (higher priority locations were inserted first).
-  -- Iff a primary/backup pair of file both exist, of the two of them, the primary one *always* has priority,
-  -- regardless of mtime (c.f., NOTE above).
-  table.sort(candidates, function(l, r)
-    if l.mtime == r.mtime then
-      return l.prio < r.prio
-    else
-      return l.mtime > r.mtime
-    end
-  end)
-
-  return candidates
 end
 
-local function getOrderedLocationCandidates()
-  local preferred_location = G_named_settings.document_metadata_folder()
-  if preferred_location == "hash" then
-    return { "hash", "doc", "dir" }
-  end
-  local candidates = preferred_location == "doc" and { "doc", "dir" }
-    or { "dir", "doc" }
-  if DocSettings.isHashLocationEnabled() then
-    table.insert(candidates, "hash")
-  end
-  return candidates
+-- Lazily requires UI components to prevent cyclic dependencies when DocSettings
+-- is loaded early or in headless environments.
+local function showNotification(text)
+  require("ui/uimanager"):show(
+    require("ui/widget/notification"):new({ text = text })
+  )
 end
 
---- Returns path to sidecar directory (`filename.sdr`).
--- Sidecar directory is the file without _last_ suffix.
--- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @string force_location prefer e.g., "hash" or "dir" location over standard "doc", if available
--- @treturn string path to the sidecar directory (e.g., `/foo/bar.sdr`)
-function DocSettings:getSidecarDir(doc_path, force_location)
-  if doc_path == nil or doc_path == "" then
-    return ""
+local function showInfoMessage(text)
+  require("ui/uimanager"):show(
+    require("ui/widget/infomessage"):new({ text = text })
+  )
+end
+
+local function getStorageReason(cand)
+  if not cand then
+    return "readonly"
+  elseif cand.location == "tmp" then
+    return "tmp"
+  elseif cand.location ~= G_named_settings.document_metadata_folder() then
+    return "fallback"
   end
-  local path = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
-  local location = force_location or G_named_settings.document_metadata_folder()
-  if location == "dir" then
-    path = DOCSETTINGS_DIR .. path
-  elseif location == "hash" then
-    local hsh = doc_hash_cache[doc_path]
-    if not hsh then
-      hsh = util.partialMD5(doc_path)
-      if not hsh then -- fallback to "doc"
-        return path .. ".sdr"
-      end
-      doc_hash_cache[doc_path] = hsh
-      logger.dbg(
-        "DocSettings: Caching new partial MD5 hash for",
-        doc_path,
-        "as",
-        hsh
-      )
-    else
-      logger.dbg(
-        "DocSettings: Using cached partial MD5 hash for",
-        doc_path,
-        "as",
-        hsh
-      )
-    end
-    -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
-    local subpath = string.format("/%s/", hsh:sub(1, 2))
-    path = DOCSETTINGS_HASH_DIR .. subpath .. hsh
-  end
-  return path .. ".sdr"
 end
 
 function DocSettings.getSidecarFilename(doc_path)
   local suffix = doc_path:match(".*%.(.+)") or "_"
   return "metadata." .. suffix .. ".lua"
-end
-
---- Returns `true` if there is a `metadata.lua` file.
--- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @treturn bool
-function DocSettings:hasSidecarFile(doc_path)
-  return self:findSidecarFile(doc_path) and true or false
-end
-
---- Returns path of `metadata.lua` file if it exists, or nil.
--- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
--- @bool no_legacy set to true to skip check of the legacy history file
--- @treturn string (or nil on failure)
-function DocSettings:findSidecarFile(doc_path, no_legacy)
-  if doc_path == nil or doc_path == "" then
-    return nil
-  end
-  local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
-  local sidecar_file
-  for _, location in ipairs(getOrderedLocationCandidates()) do
-    sidecar_file = self:getSidecarDir(doc_path, location)
-      .. "/"
-      .. sidecar_filename
-    if isFile(sidecar_file) then
-      return sidecar_file, location
-    end
-  end
-  if is_history_location_enabled and not no_legacy then
-    sidecar_file = self:getHistoryPath(doc_path)
-    if isFile(sidecar_file) then
-      return sidecar_file, "hist" -- for isSidecarFileNotInPreferredLocation() used in moveBookMetadata
-    end
-  end
-end
-
-function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
-  local _, location = DocSettings:findSidecarFile(doc_path)
-  return location and location ~= G_named_settings.document_metadata_folder()
 end
 
 function DocSettings:getHistoryPath(doc_path)
@@ -231,58 +133,203 @@ function DocSettings:getFileFromHistory(hist_name)
   end
 end
 
+local function getCandidates(doc_path)
+  if not doc_path or doc_path == "" then
+    return {}
+  end
+
+  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
+  local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
+
+  local doc_dir = stem .. ".sdr"
+  local doc_cand = {
+    file = doc_dir .. "/" .. sidecar_filename,
+    dir = doc_dir,
+    location = "doc",
+  }
+  local dir_dir = DOCSETTINGS_DIR .. stem .. ".sdr"
+  local dir_cand = {
+    file = dir_dir .. "/" .. sidecar_filename,
+    dir = dir_dir,
+    location = "dir",
+  }
+  local preferred_location = G_named_settings.document_metadata_folder()
+  local hash_cand
+  if preferred_location == "hash" or DocSettings.isHashLocationEnabled() then
+    hash_cand = CachedTable:new(function()
+      local hsh = doc_hash_cache[doc_path]
+      if not hsh then
+        hsh = util.partialMD5(doc_path)
+        if hsh then
+          doc_hash_cache[doc_path] = hsh
+          logger.dbg(
+            "DocSettings: Caching new partial MD5 hash for",
+            doc_path,
+            "as",
+            hsh
+          )
+        end
+      else
+        logger.dbg(
+          "DocSettings: Using cached partial MD5 hash for",
+          doc_path,
+          "as",
+          hsh
+        )
+      end
+      if hsh then
+        -- converts b3fb8f4f8448160365087d6ca05c7fa2 to b3/ to avoid too many files in one dir
+        local subpath = string.format("/%s/", hsh:sub(1, 2))
+        local hash_dir = DOCSETTINGS_HASH_DIR .. subpath .. hsh .. ".sdr"
+        return {
+          file = hash_dir .. "/" .. sidecar_filename,
+          dir = hash_dir,
+        }
+      end
+    end, { location = "hash" })
+  end
+
+  local candidates
+  if preferred_location == "hash" then
+    candidates = hash_cand and { hash_cand, dir_cand, doc_cand }
+      or { dir_cand, doc_cand }
+  elseif preferred_location == "dir" then
+    candidates = hash_cand and { dir_cand, hash_cand, doc_cand }
+      or { dir_cand, doc_cand }
+  else
+    candidates = hash_cand and { doc_cand, dir_cand, hash_cand }
+      or { doc_cand, dir_cand }
+  end
+
+  -- Legacy sidecar format: early KOReader versions stored settings as
+  -- `<stem>.sdr/<basename>.lua` before standardizing on `metadata.<ext>.lua`.
+  -- This legacy format only ever existed directly next to the document.
+  -- If doc_path is named metadata.<ext>, basename.lua is identical to
+  -- metadata.<ext>.lua, so omit doc_legacy_file to prevent duplicates.
+  local doc_legacy_file = doc_dir .. "/" .. ffiutil.basename(doc_path) .. ".lua"
+  if doc_legacy_file ~= doc_cand.file then
+    table.insert(candidates, {
+      file = doc_legacy_file,
+      -- Note: without `dir`, the candidate is read-only.
+      location = "doc",
+    })
+  end
+
+  -- Note: "hist", "kpdfview", and "tmp" are internal location identifiers
+  -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
+  if is_history_location_enabled then
+    table.insert(candidates, {
+      file = DocSettings:getHistoryPath(doc_path),
+      location = "hist",
+    })
+  end
+  table.insert(candidates, {
+    file = doc_path .. ".kpdfview.lua",
+    location = "kpdfview",
+  })
+  local base_tmp = DataStorage:getTmpDir()
+  if base_tmp and base_tmp ~= DataStorage:getDataDir() then
+    local tmp_dir = base_tmp
+      .. "/docsettings"
+      .. (stem:sub(1, 1) == "/" and stem or ("/" .. stem))
+      .. ".sdr"
+    table.insert(candidates, {
+      file = tmp_dir .. "/" .. sidecar_filename,
+      dir = tmp_dir,
+      location = "tmp",
+    })
+  end
+
+  local seen_files = {}
+  for _, cand in ipairs(candidates) do
+    if cand.location ~= "hash" then
+      assert(
+        cand.file and cand.file ~= "",
+        "DocSettings: candidate file must not be nil or empty"
+      )
+      assert(
+        not seen_files[cand.file],
+        "DocSettings: duplicate candidate file: " .. tostring(cand.file)
+      )
+      seen_files[cand.file] = true
+    end
+  end
+
+  return candidates
+end
+
+-- TODO: For testing purposes only, should be removed once external tests are migrated.
+function DocSettings:getSidecarDir(doc_path)
+  local cands = getCandidates(doc_path)
+  return cands[1] and cands[1].dir
+end
+
+--- Returns `true` if there is a `metadata.lua` file.
+-- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
+-- @treturn bool
+function DocSettings:hasSidecarFile(doc_path)
+  return self:_findSidecarFile(doc_path) and true or false
+end
+
+--- Returns candidate of sidecar file if it exists, or nil.
+-- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
+-- @treturn table candidate (or nil on failure)
+function DocSettings:_findSidecarFile(doc_path)
+  if doc_path == nil or doc_path == "" then
+    return
+  end
+  for _, cand in ipairs(getCandidates(doc_path)) do
+    if util.fileExists(cand.file) then
+      return cand
+    end
+  end
+end
+
+function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
+  local cand = DocSettings:_findSidecarFile(doc_path)
+  return cand ~= nil
+    and cand.location ~= G_named_settings.document_metadata_folder()
+end
+
 --- Opens a document's individual settings (font, margin, dictionary, etc.)
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn DocSettings object
 function DocSettings:open(doc_path)
+  assert(
+    doc_path and doc_path ~= "",
+    "DocSettings: doc_path must not be nil or empty"
+  )
   -- NOTE: Beware, our new instance is new, but self is still DocSettings!
   local new = DocSettings:extend({})
 
+  new.doc_path = doc_path
   new.sidecar_filename = DocSettings.getSidecarFilename(doc_path)
+  new.candidates = getCandidates(doc_path)
 
-  new.doc_sidecar_dir = new:getSidecarDir(doc_path, "doc")
-  local doc_sidecar_file, legacy_sidecar_file
-  if isDir(new.doc_sidecar_dir) then
-    doc_sidecar_file = new.doc_sidecar_dir .. "/" .. new.sidecar_filename
-    legacy_sidecar_file = new.doc_sidecar_dir
-      .. "/"
-      .. ffiutil.basename(doc_path)
-      .. ".lua"
+  local existing = {}
+  for i, cand in ipairs(new.candidates) do
+    if util.fileExists(cand.file) then
+      local mtime = lfs.attributes(cand.file, "modification")
+      table.insert(existing, {
+        cand = cand,
+        mtime = mtime,
+        prio = i,
+      })
+    end
   end
-  new.dir_sidecar_dir = new:getSidecarDir(doc_path, "dir")
-  local dir_sidecar_file
-  if isDir(new.dir_sidecar_dir) then
-    dir_sidecar_file = new.dir_sidecar_dir .. "/" .. new.sidecar_filename
-  end
-  local hash_sidecar_file
-  if DocSettings.isHashLocationEnabled() then
-    new.hash_sidecar_dir = new:getSidecarDir(doc_path, "hash")
-    hash_sidecar_file = new.hash_sidecar_dir .. "/" .. new.sidecar_filename
-  end
-  local history_file = is_history_location_enabled
-    and new:getHistoryPath(doc_path)
 
-  -- Candidates list, in order of priority:
-  local candidates_list = {
-    -- New sidecar file in doc folder
-    doc_sidecar_file or "",
-    -- Legacy sidecar file
-    legacy_sidecar_file or "",
-    -- New sidecar file in docsettings folder
-    dir_sidecar_file or "",
-    -- New sidecar file in hashdocsettings folder
-    hash_sidecar_file or "",
-    -- Legacy history folder
-    history_file or "",
-    -- Legacy kpdfview setting
-    doc_path .. ".kpdfview.lua",
-  }
-  -- We get back an array of tables for *existing* candidates, sorted MRU first (insertion order breaks ties).
-  local candidates = buildCandidates(candidates_list)
+  -- MRU sort, tie breaker is insertion order (higher priority locations were inserted first).
+  table.sort(existing, function(l, r)
+    if l.mtime == r.mtime then
+      return l.prio < r.prio
+    else
+      return l.mtime > r.mtime
+    end
+  end)
 
   local candidate_path, ok, stored
-  for _, t in ipairs(candidates) do
-    candidate_path = t.path
+  for _, t in ipairs(existing) do
+    candidate_path = t.cand.file
     stored, ok = LuaSettings:load(candidate_path)
     -- Ignore empty tables
     if ok and next(stored) ~= nil then
@@ -294,7 +341,6 @@ function DocSettings:open(doc_path)
   end
   if ok and next(stored) then
     new.data = stored
-    new.candidates = candidates
     new.file = candidate_path
   else
     new.data = {}
@@ -319,62 +365,82 @@ function DocSettings.openSettingsFile(sidecar_file)
     new.data = {}
   end
   new.file = sidecar_file
+  new.candidates = {}
   return new
 end
 
 --- Serializes settings and writes them to `metadata.lua`.
 function DocSettings:flush(data, no_custom_metadata)
   data = data or self.data
-  local sidecar_dirs
-  local preferred_location = G_named_settings.document_metadata_folder()
-  if preferred_location == "doc" then
-    sidecar_dirs = { self.doc_sidecar_dir, self.dir_sidecar_dir } -- fallback for read-only book storage
-  elseif preferred_location == "dir" then
-    sidecar_dirs = { self.dir_sidecar_dir }
-  elseif preferred_location == "hash" then
-    if self.hash_sidecar_dir == nil then
-      self.hash_sidecar_dir = self:getSidecarDir(data.doc_path, "hash")
-    end
-    sidecar_dirs = { self.hash_sidecar_dir }
-  end
-
   local ser_data = dump(data)
-  for _, sidecar_dir in ipairs(sidecar_dirs) do
-    local sidecar_dir_slash = sidecar_dir .. "/"
-    local sidecar_file = sidecar_dir_slash .. self.sidecar_filename
-    util.makePath(sidecar_dir)
-    logger.dbg("DocSettings: Writing to", sidecar_file)
-    if util.writeToFile(ser_data, sidecar_file, true) then
-      -- move custom cover file and custom metadata file to the metadata file location
-      if not no_custom_metadata then
-        local metadata_file, filepath, filename
-        -- custom cover
-        metadata_file = self:getCustomCoverFile()
-        if metadata_file then
-          filepath, filename = util.splitFilePathName(metadata_file)
-          if filepath ~= sidecar_dir_slash then
-            ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-            os.remove(metadata_file)
-            self:getCustomCoverFile(true) -- reset cache
+
+  -- Always refresh candidates so order reflects current settings
+  self.candidates = getCandidates(self.doc_path)
+
+  for _, cand in ipairs(self.candidates) do
+    if cand.dir and util.isDirRW(cand.dir, true) then
+      logger.dbg("DocSettings: Writing to", cand.file)
+      if util.writeToFile(ser_data, cand.file, true) then
+        local reason = getStorageReason(cand)
+        if reason and not self.fallback_notified then
+          if reason == "tmp" then
+            showNotification(
+              gettext(
+                "Storage is read-only. Reading progress for this book will be saved to temporary storage and may be lost."
+              )
+            )
+          else
+            showNotification(
+              gettext(
+                "The selected storage for book settings is read-only. Settings for this book will be saved to an alternate storage location instead."
+              )
+            )
+          end
+          self.fallback_notified = true
+        end
+
+        -- move custom cover file and custom metadata file to the metadata file location
+        if not no_custom_metadata then
+          local sidecar_dir_slash = cand.dir .. "/"
+          local metadata_file, filepath, filename
+          -- custom cover
+          metadata_file = self:getCustomCoverFile()
+          if metadata_file then
+            filepath, filename = util.splitFilePathName(metadata_file)
+            if filepath ~= sidecar_dir_slash then
+              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+              os.remove(metadata_file)
+              self:getCustomCoverFile(true) -- reset cache
+            end
+          end
+          -- custom metadata
+          metadata_file = self:getCustomMetadataFile()
+          if metadata_file then
+            filepath, filename = util.splitFilePathName(metadata_file)
+            if filepath ~= sidecar_dir_slash then
+              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+              os.remove(metadata_file)
+              self:getCustomMetadataFile(true) -- reset cache
+            end
           end
         end
-        -- custom metadata
-        metadata_file = self:getCustomMetadataFile()
-        if metadata_file then
-          filepath, filename = util.splitFilePathName(metadata_file)
-          if filepath ~= sidecar_dir_slash then
-            ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-            os.remove(metadata_file)
-            self:getCustomMetadataFile(true) -- reset cache
-          end
-        end
+
+        self:purge(cand.file) -- remove old candidates and empty sidecar folders
+
+        return cand.dir
       end
-
-      self:purge(sidecar_file) -- remove old candidates and empty sidecar folders
-
-      return sidecar_dir
     end
   end
+
+  if not self.fallback_notified then
+    showNotification(
+      gettext(
+        "Storage is completely read-only. Reading progress for this book cannot be saved to disk."
+      )
+    )
+    self.fallback_notified = true
+  end
+  return nil
 end
 
 --- Purges (removes) sidecar directory.
@@ -393,13 +459,12 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
   end
 
   -- Remove any of the old ones we may consider as candidates in DocSettings:open()
-  if data_to_purge.doc_settings and self.candidates then
-    for _, t in ipairs(self.candidates) do
-      local candidate_path = t.path
-      if isFile(candidate_path) then
-        if not sidecar_to_keep or candidate_path ~= sidecar_to_keep then
-          os.remove(candidate_path)
-          logger.dbg("DocSettings: purged:", candidate_path)
+  if data_to_purge.doc_settings then
+    for _, cand in ipairs(self.candidates) do
+      if util.fileExists(cand.file) then
+        if not sidecar_to_keep or cand.file ~= sidecar_to_keep then
+          os.remove(cand.file)
+          logger.dbg("DocSettings: purged:", cand.file)
         end
       end
     end
@@ -421,24 +486,20 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
     or data_to_purge.custom_cover_file
     or data_to_purge.custom_metadata_file
   then
-    for _, dir in ipairs({
-      self.doc_sidecar_dir,
-      self.dir_sidecar_dir,
-      self.hash_sidecar_dir,
-    }) do
-      DocSettings.removeSidecarDir(dir)
+    for _, cand in ipairs(self.candidates) do
+      if cand.dir then
+        DocSettings.removeSidecarDir(cand.dir)
+      end
     end
   end
-
-  DocSettings.setIsHashLocationEnabled(nil) -- reset this in case last hash book is purged
 end
 
 --- Removes sidecar dir iff empty.
 function DocSettings.removeSidecarDir(dir)
-  if dir and isDir(dir) then
+  if dir and util.directoryExists(dir) then
     if
-      dir:match("^" .. DOCSETTINGS_DIR)
-      or dir:match("^" .. DOCSETTINGS_HASH_DIR)
+      util.stringStartsWith(dir, DOCSETTINGS_DIR)
+      or util.stringStartsWith(dir, DOCSETTINGS_HASH_DIR)
     then
       util.removePath(dir) -- remove empty parent folders
     else
@@ -468,20 +529,35 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
       end
       if not new_sidecar_dir then
-        new_sidecar_dir = DocSettings:getSidecarDir(new_doc_path)
-        util.makePath(new_sidecar_dir)
+        for _, cand in ipairs(getCandidates(new_doc_path)) do
+          if cand.dir and util.isDirRW(cand.dir, true) then
+            new_sidecar_dir = cand.dir
+            break
+          end
+        end
       end
-      if custom_cover_file then
-        local _, filename = util.splitFilePathName(custom_cover_file)
-        ffiutil.copyFile(custom_cover_file, new_sidecar_dir .. "/" .. filename)
-      end
-      if custom_metadata_file then
-        ffiutil.copyFile(
-          custom_metadata_file,
-          new_sidecar_dir .. "/" .. custom_metadata_filename
+      if new_sidecar_dir then
+        if custom_cover_file then
+          local _, filename = util.splitFilePathName(custom_cover_file)
+          ffiutil.copyFile(
+            custom_cover_file,
+            new_sidecar_dir .. "/" .. filename
+          )
+        end
+        if custom_metadata_file then
+          ffiutil.copyFile(
+            custom_metadata_file,
+            new_sidecar_dir .. "/" .. custom_metadata_filename
+          )
+        end
+        do_purge = not copy
+      else
+        showInfoMessage(
+          gettext(
+            "Failed to save book settings to the new location. Original settings have been preserved."
+          )
         )
       end
-      do_purge = not copy
     end
   else -- delete
     if has_sidecar_file then
@@ -502,25 +578,20 @@ end
 
 -- custom section
 
-function DocSettings:getCustomLocationCandidates(doc_path)
-  local sidecar_dir
-  local sidecar_file = self:findSidecarFile(doc_path, true) -- new locations only
-  if sidecar_file then -- book was opened, write custom metadata to its sidecar dir
-    sidecar_dir = util.splitFilePathName(sidecar_file):sub(1, -2)
-    return { sidecar_dir }
+function DocSettings:_getCustomLocationCandidate(doc_path)
+  local sidecar_cand = self:_findSidecarFile(doc_path)
+  if
+    sidecar_cand
+    and sidecar_cand.dir
+    and util.isDirRW(sidecar_cand.dir, true)
+  then
+    return sidecar_cand
   end
-  -- new book, create sidecar dir in accordance with sdr location setting
-  local preferred_location = G_named_settings.document_metadata_folder()
-  if preferred_location ~= "hash" then
-    sidecar_dir = self:getSidecarDir(doc_path, "dir")
-    if preferred_location == "doc" then
-      local doc_sidecar_dir = self:getSidecarDir(doc_path, "doc")
-      return { doc_sidecar_dir, sidecar_dir } -- fallback for read-only book storage
+  for _, cand in ipairs(getCandidates(doc_path)) do
+    if cand.dir and util.isDirRW(cand.dir, true) then
+      return cand
     end
-  else -- "hash"
-    sidecar_dir = self:getSidecarDir(doc_path, "hash")
   end
-  return { sidecar_dir }
 end
 
 -- custom cover
@@ -538,12 +609,13 @@ end
 
 --- Returns path to book custom cover file if it exists, or nil.
 function DocSettings:findCustomCoverFile(doc_path)
-  doc_path = doc_path or self.data.doc_path
-  for _, location in ipairs(getOrderedLocationCandidates()) do
-    local sidecar_dir = self:getSidecarDir(doc_path, location)
-    local custom_cover_file = findCustomCoverFileInDir(sidecar_dir)
-    if custom_cover_file then
-      return custom_cover_file
+  local candidates = doc_path and getCandidates(doc_path) or self.candidates
+  for _, cand in ipairs(candidates) do
+    if cand.dir and util.directoryExists(cand.dir) then
+      local custom_cover_file = findCustomCoverFileInDir(cand.dir)
+      if custom_cover_file then
+        return custom_cover_file
+      end
     end
   end
 end
@@ -564,28 +636,50 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     logger.warn("Skipping custom cover flush in monkey test mode.")
     return
   end
-  local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
+  local cand = self:_getCustomLocationCandidate(doc_path)
+  local reason = getStorageReason(cand)
+  if reason == "readonly" then
+    showInfoMessage(
+      gettext(
+        "Storage is completely read-only. Custom cover cannot be saved to disk."
+      )
+    )
+    return
+  end
   local new_cover_filename = "/cover."
     .. util.getFileNameSuffix(image_file):lower()
-  for _, sidecar_dir in ipairs(sidecar_dirs) do
-    util.makePath(sidecar_dir)
-    local new_cover_file = sidecar_dir .. new_cover_filename
-    if ffiutil.copyFile(image_file, new_cover_file) == nil then
-      return true
-    end
+  local new_cover_file = cand.dir .. new_cover_filename
+  if ffiutil.copyFile(image_file, new_cover_file) ~= nil then
+    showInfoMessage(gettext("Failed to save custom cover to disk."))
+    return
   end
+  if reason == "tmp" then
+    showInfoMessage(
+      gettext(
+        "Storage is read-only. Custom cover was saved to temporary storage and may be lost."
+      )
+    )
+  elseif reason == "fallback" then
+    showNotification(
+      gettext(
+        "The selected storage for book settings is read-only. Custom cover was saved to an alternate storage location instead."
+      )
+    )
+  end
+  return true
 end
 
 -- custom metadata
 
 --- Returns path to book custom metadata file if it exists, or nil.
 function DocSettings:findCustomMetadataFile(doc_path)
-  doc_path = doc_path or self.data.doc_path
-  for _, location in ipairs(getOrderedLocationCandidates()) do
-    local sidecar_dir = self:getSidecarDir(doc_path, location)
-    local custom_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-    if isFile(custom_metadata_file) then
-      return custom_metadata_file
+  local candidates = doc_path and getCandidates(doc_path) or self.candidates
+  for _, cand in ipairs(candidates) do
+    if cand.dir then
+      local custom_metadata_file = cand.dir .. "/" .. custom_metadata_filename
+      if util.fileExists(custom_metadata_file) then
+        return custom_metadata_file
+      end
     end
   end
 end
@@ -602,15 +696,36 @@ function DocSettings:getCustomMetadataFile(reset_cache)
 end
 
 function DocSettings:flushCustomMetadata(doc_path)
-  local sidecar_dirs = self:getCustomLocationCandidates(doc_path)
-  local s_out = dump(self.data)
-  for _, sidecar_dir in ipairs(sidecar_dirs) do
-    util.makePath(sidecar_dir)
-    local new_metadata_file = sidecar_dir .. "/" .. custom_metadata_filename
-    if util.writeToFile(s_out, new_metadata_file, true) then
-      return true
-    end
+  local cand = self:_getCustomLocationCandidate(doc_path)
+  local reason = getStorageReason(cand)
+  if reason == "readonly" then
+    showInfoMessage(
+      gettext(
+        "Storage is completely read-only. Custom metadata cannot be saved to disk."
+      )
+    )
+    return
   end
+  local s_out = dump(self.data)
+  local new_metadata_file = cand.dir .. "/" .. custom_metadata_filename
+  if not util.writeToFile(s_out, new_metadata_file, true) then
+    showInfoMessage(gettext("Failed to save custom metadata to disk."))
+    return
+  end
+  if reason == "tmp" then
+    showInfoMessage(
+      gettext(
+        "Storage is read-only. Custom metadata was saved to temporary storage and may be lost."
+      )
+    )
+  elseif reason == "fallback" then
+    showNotification(
+      gettext(
+        "The selected storage for book settings is read-only. Custom metadata was saved to an alternate storage location instead."
+      )
+    )
+  end
+  return true
 end
 
 -- "hash" section
