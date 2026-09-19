@@ -1532,38 +1532,41 @@ describe("BookInfo", function()
         if file == "/hash_path/book1_sidecar.lua" then
           return {
             read = function(_, key)
+              if key == "doc_path" then
+                return "/books/book1.epub"
+              end
+            end,
+            readTable = function(_, key)
               if key == "doc_props" then
                 return { title = "Orig Title 1", authors = "Author 1" }
-              elseif key == "doc_path" then
-                return "/books/book1.epub"
               end
             end,
           }
         elseif file == "/hash_path/book1_custom.lua" then
           return {
-            readTableRef = function(_, key)
+            readTable = function(_, key)
               if key == "custom_props" then
                 return { title = "Custom Title 1" }
               end
-              return {}
             end,
           }
         elseif file == "/hash_path/book2_sidecar.lua" then
           return {
             read = function(_, key)
+              if key == "doc_path" then
+                return "/books/book2.epub"
+              end
+            end,
+            readTable = function(_, key)
               if key == "doc_props" then
                 return { title = "Orig Title 2", authors = "Author 2" }
-              elseif key == "doc_path" then
-                return "/books/book2.epub"
               end
             end,
           }
         end
         return {
           read = function() end,
-          readTableRef = function()
-            return {}
-          end,
+          readTable = function() end,
         }
       end)
 
@@ -1632,28 +1635,23 @@ describe("BookInfo", function()
             },
           }
         end)
+        local orig_openSettingsFile = mock_docsettings.openSettingsFile
         mock_docsettings.openSettingsFile = spy.new(function(file)
           if file == "/hash_path/book3_custom.lua" then
             return {
-              readTableRef = function(_, key)
+              readTable = function(_, key)
                 if key == "custom_props" then
                   return {
                     title = "Custom Only Title",
                     authors = "Custom Author",
                   }
                 end
-                return {}
-              end,
-              read = function()
-                return {}
               end,
             }
           end
           return {
             read = function() end,
-            readTableRef = function()
-              return {}
-            end,
+            readTable = function() end,
           }
         end)
 
@@ -1679,6 +1677,7 @@ describe("BookInfo", function()
             true
           )
         )
+        mock_docsettings.openSettingsFile = orig_openSettingsFile
       end
     )
   end)
