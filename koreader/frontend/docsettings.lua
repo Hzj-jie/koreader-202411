@@ -37,10 +37,6 @@ function DocSettings.isHashLocationEnabled()
   return util.directoryExists(DOCSETTINGS_HASH_DIR)
 end
 
-function DocSettings.isHistoryLocationEnabled()
-  return util.directoryExists(HISTORY_DIR)
-end
-
 --- Cleans up DOCSETTINGS_HASH_DIR if it contains no files.
 -- Uses util.isDirContainingFiles to probe for any files in the tree.
 -- If no files exist in the tree at all, removes the empty directory tree bottom-up.
@@ -224,12 +220,10 @@ local function getCandidates(doc_path)
 
   -- Note: "doc_legacy", "hist", "kpdfview", and "tmp" are internal location identifiers
   -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
-  if DocSettings.isHistoryLocationEnabled() then
-    table.insert(candidates, {
-      file = DocSettings:getHistoryPath(doc_path),
-      location = "hist",
-    })
-  end
+  table.insert(candidates, {
+    file = DocSettings:getHistoryPath(doc_path),
+    location = "hist",
+  })
   table.insert(candidates, {
     file = doc_path .. ".kpdfview.lua",
     location = "kpdfview",
