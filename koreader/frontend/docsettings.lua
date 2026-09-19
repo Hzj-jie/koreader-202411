@@ -218,11 +218,11 @@ local function getCandidates(doc_path)
     table.insert(candidates, {
       file = doc_legacy_file,
       -- Note: without `dir`, the candidate is read-only.
-      location = "doc",
+      location = "doc_legacy",
     })
   end
 
-  -- Note: "hist", "kpdfview", and "tmp" are internal location identifiers
+  -- Note: "doc_legacy", "hist", "kpdfview", and "tmp" are internal location identifiers
   -- used for code clarity and diagnostics, not configurable user options in G_named_settings.
   if DocSettings.isHistoryLocationEnabled() then
     table.insert(candidates, {
