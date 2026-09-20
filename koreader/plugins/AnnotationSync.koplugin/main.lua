@@ -62,7 +62,6 @@ function AnnotationSyncPlugin:init()
     table.insert(self.ui, self)
   end
 
-  utils.insert_after_statistics(self.plugin_id)
   self:onDispatcherRegisterActions()
 
   self.settings = G_reader_settings:readTableRef(
