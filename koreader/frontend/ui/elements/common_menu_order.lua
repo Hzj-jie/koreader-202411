@@ -39,7 +39,6 @@ local function mergeWith(b)
       "skim_dialog_position",
       "----------------------------",
       "progress_sync",
-      "annotation_sync_plugin",
     },
     network = {
       "network_wifi",
@@ -97,6 +96,7 @@ local function mergeWith(b)
       "document_end_action",
       "language_support",
       "----------------------------",
+      "annotation_sync_plugin",
     },
     screen = {
       "screensaver",

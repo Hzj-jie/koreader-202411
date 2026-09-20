@@ -119,7 +119,7 @@ end
 function AnnotationSyncPlugin:addToMainMenu(menu_items)
   menu_items.annotation_sync_plugin = {
     text = gettext("Annotation Sync"),
-    sorting_hint = "tools",
+    sorting_hint = "document",
     sub_item_table = {
       {
         text = gettext("Settings"),
