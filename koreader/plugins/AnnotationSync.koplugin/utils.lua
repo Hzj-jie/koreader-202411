@@ -1,7 +1,6 @@
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local json = require("json")
-local reader_order = require("ui/elements/reader_menu_order")
 
 local M = {}
 
@@ -32,17 +31,6 @@ function M.read_json(path)
     return data
   end
   return nil
-end
-
-function M.insert_after_statistics(key)
-  local pos = 1
-  for index, value in ipairs(reader_order.tools) do
-    if value == "statistics" then
-      pos = index + 1
-      break
-    end
-  end
-  table.insert(reader_order.tools, pos, key)
 end
 
 function M.isPossiblyJson(content)

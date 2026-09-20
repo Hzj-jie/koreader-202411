@@ -62,7 +62,6 @@ function AnnotationSyncPlugin:init()
     table.insert(self.ui, self)
   end
 
-  utils.insert_after_statistics(self.plugin_id)
   self:onDispatcherRegisterActions()
 
   self.settings = G_reader_settings:readTableRef(
@@ -119,7 +118,7 @@ end
 function AnnotationSyncPlugin:addToMainMenu(menu_items)
   menu_items.annotation_sync_plugin = {
     text = gettext("Annotation Sync"),
-    sorting_hint = "tools",
+    sorting_hint = "document",
     sub_item_table = {
       {
         text = gettext("Settings"),

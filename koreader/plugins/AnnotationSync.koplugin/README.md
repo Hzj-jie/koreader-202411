@@ -37,24 +37,24 @@
 
 AnnotationSync integrates directly with KOReader's native Cloud Storage plugin:
 1. Ensure your cloud storage provider is configured in KOReader.
-2. Go to **Tools** -> **Annotation Sync** -> **Settings** -> **Cloud settings**.
+2. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Cloud settings**.
 3. Select your desired cloud storage service.
 4. Restart KOReader as indicated.
 
 *By default, sync files are named after a hash of the document content. To use actual filenames instead (useful if you organize files with Calibre):*
-- **Tools** -> **Annotation Sync** -> **Settings** -> **Use filename instead of hash**
+- **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Use filename instead of hash**
 
 ### 🔄 Reading Progress Sync
 
 To configure multi-device reading progress synchronization:
-1. Go to **Tools** -> **Annotation Sync** -> **Settings**.
+1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings**.
 2. Enable **Enable Reading Progress Sync**.
 3. Customize your progress sync preferences:
    - **Device name:** Give your device a friendly name under **Device name: [Name]** (e.g. `Bedside Kobo`, `Phone`). Defaults to hardware model name if left blank.
    - **Sync using last word of page:** Recommended for reflowable formats like EPUB. Keeps tracking consistent even if font sizes or margins differ between devices.
    - **Sync every # pages:** Customize how frequently progress syncs in the background (default: 1 page turn).
 4. To jump to the progress of another device:
-   - Go to **Tools** -> **Annotation Sync** -> **Jump to device progress**.
+   - Go to **Settings** -> **Document** -> **Annotation Sync** -> **Jump to device progress**.
    - Select a device from the menu (sorted by progress percentage descending, with alphabetical tie-breaking by device name) to jump directly to its reading position.
 
 ### ⚙️ Settings Synchronization
@@ -62,7 +62,7 @@ To configure multi-device reading progress synchronization:
 Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchronized across devices.
 
 #### 1. Selecting Settings to Sync
-1. Go to **Tools** -> **Annotation Sync** -> **Settings** -> **Show changed settings**.
+1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Show changed settings**.
 2. This displays a hierarchical list of settings that differ from their default/vanilla configuration, categorized by domains (e.g., `[reader]`, `[defaults]`, `[settings/hotkeys]`).
 3. Dictionary settings open submenus, and list arrays are compared as single entities.
 4. Tap items to toggle their sync status. A checkmark `[✓]` indicates it will be synchronized:
@@ -73,11 +73,11 @@ Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchr
 5. You can use **Select All** or **Clear Selection** at any menu level to easily batch-configure settings. Your selections are automatically saved.
 
 #### 2. Pushing Settings to the Cloud
-1. Go to **Tools** -> **Annotation Sync** -> **Push settings to cloud**.
+1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Push settings to cloud**.
 2. The selected settings will be uploaded, keyed by your customized device name.
 
 #### 3. Pulling Settings from the Cloud
-1. Go to **Tools** -> **Annotation Sync** -> **Pull settings from cloud**.
+1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Pull settings from cloud**.
 2. Select the device whose settings you want to import from the list of available devices (showing their upload timestamps).
 3. The plugin will display the differences between that device's settings and your local configuration.
 4. Select which settings you want to import and select **Import Selected Settings**. The plugin will automatically update the corresponding configurations and apply them.
@@ -97,17 +97,17 @@ Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchr
 ### 💾 Manual & Bulk Annotation Sync
 
 - **Manual Sync:** Sync only the current document's annotations and bookmarks.
-  - **Tools** -> **Annotation Sync** -> **Manual Sync**
+  - **Settings** -> **Document** -> **Annotation Sync** -> **Manual Sync**
 - **Sync All:** Mass-upload/download pending changes from all your offline reading sessions.
-  - **Tools** -> **Annotation Sync** -> **Sync All**
+  - **Settings** -> **Document** -> **Annotation Sync** -> **Sync All**
 - **Automatic Syncing:** Automatically mass-sync all modified documents as soon as a network connection becomes available.
-  - **Tools** -> **Annotation Sync** -> **Settings** -> **Automatically Sync All when network becomes available**
+  - **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Automatically Sync All when network becomes available**
 - **Shortcuts:** You can bind "Annotation Sync: Manual Sync" or "Annotation Sync: Jump to device progress" to any gesture or add them to a profile action list in KOReader.
 
 ### 🗑 Managing Deletions (Trash Bin)
 
 AnnotationSync keeps track of deleted annotations so you can recover them:
-- **Tools** -> **Annotation Sync** -> **Show Deleted**
+- **Settings** -> **Document** -> **Annotation Sync** -> **Show Deleted**
 - Tap on any deleted item to restore it, or use **Restore All** to recover everything.
 - Restored items will be re-synced to the cloud on the next sync.
 
