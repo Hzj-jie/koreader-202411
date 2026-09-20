@@ -82,11 +82,12 @@ function Cache:init()
 
   if self.disk_cache then
     self.cache_path = self.cache_path:gsub("/+$", "") .. "/"
-    self.cached = self:_getDiskCache()
   else
     -- No need to go through our own check or even get methods if there's no disk cache, hit lru directly
     self.check = self.cache.get
   end
+
+  self:refreshSnapshot()
 
   if not self.enable_eviction_cb or not self.size then
     -- We won't be using CacheItem here, so we can pass the size manually if necessary.
@@ -96,23 +97,6 @@ function Cache:init()
     -- With debug info (c.f., below)
     --self.insert = self.set
   end
-end
-
---[[
--- return a snapshot of disk cached items for subsequent check
---]]
-function Cache:_getDiskCache()
-  local cached = {}
-  if not self.cache_path or not util.isDirRW(self.cache_path, true) then
-    return cached
-  end
-  for key_md5 in lfs.dir(self.cache_path) do
-    local file = self.cache_path .. key_md5
-    if lfs.attributes(file, "mode") == "file" then
-      cached[key_md5] = file
-    end
-  end
-  return cached
 end
 
 function Cache:insert(key, object)
@@ -220,7 +204,15 @@ function Cache:refreshSnapshot()
     return
   end
 
-  self.cached = self:_getDiskCache()
+  assert(self.cache_path ~= nil)
+
+  self.cached = {}
+  for key_md5 in lfs.dir(self.cache_path) do
+    local file = self.cache_path .. key_md5
+    if lfs.attributes(file, "mode") == "file" then
+      self.cached[key_md5] = file
+    end
+  end
 end
 
 return Cache

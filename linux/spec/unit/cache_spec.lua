@@ -134,19 +134,73 @@ describe("Cache module", function()
     end)
 
     it(
-      "returns empty table in _getDiskCache when cache_path is unwritable",
+      "skips refreshSnapshot when disk_cache is disabled",
       function()
         local c = Cache:new({
           slots = 10,
           disk_cache = false,
           cache_path = "/nonexistent/cache/",
         })
+        c:refreshSnapshot()
+        assert.is_nil(c.cached)
+      end
+    )
+
+    it(
+      "asserts in refreshSnapshot when disk_cache is enabled but cache_path is nil",
+      function()
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = false,
+        })
+        c.disk_cache = true
+        c.cache_path = nil
+        assert.has_error(function()
+          c:refreshSnapshot()
+        end)
+      end
+    )
+
+    it(
+      "populates self.cached from existing cache even if cache_path is not writable",
+      function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_lfs_dir = lfs.dir
+        local orig_lfs_attributes = lfs.attributes
+
+        lfs.dir = function(path)
+          local items = { "abc", "def" }
+          local i = 0
+          return function()
+            i = i + 1
+            return items[i]
+          end
+        end
+
+        lfs.attributes = function(path, request)
+          if request == "mode" then
+            return "file"
+          end
+          return nil
+        end
+
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = false,
+          cache_path = "/readonly/cache/",
+        })
+        c.disk_cache = true
         util.isDirRW = function()
           return false
         end
-        local cached = c:_getDiskCache()
-        assert.is_table(cached)
-        assert.are.same({}, cached)
+
+        c:refreshSnapshot()
+        assert.is_not_nil(c.cached)
+        assert.are.equal("/readonly/cache/abc", c.cached["abc"])
+        assert.are.equal("/readonly/cache/def", c.cached["def"])
+
+        lfs.dir = orig_lfs_dir
+        lfs.attributes = orig_lfs_attributes
       end
     )
 
