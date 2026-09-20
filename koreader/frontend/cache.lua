@@ -51,14 +51,31 @@ function Cache:init()
   -- or disable disk caching if no writable path can be found.
   if self.disk_cache then
     if not (self.cache_path and util.isDirRW(self.cache_path, true)) then
+      local preferred_path = self.cache_path
       local dir = require("datastorage"):getCacheDirOrNil()
       if dir then
         self.cache_path = dir
+        if preferred_path then
+          logger.warn(
+            "Cache: preferred cache path",
+            preferred_path,
+            "is not writable, fallback to default cache path",
+            dir
+          )
+        end
       else
-        logger.warn(
-          "Cache: no writable cache directory found, disabling disk cache"
-        )
         self.disk_cache = false
+        if preferred_path then
+          logger.warn(
+            "Cache: preferred cache path",
+            preferred_path,
+            "is not writable; default cache path is also not writable, disabling disk cache"
+          )
+        else
+          logger.warn(
+            "Cache: default cache path is not writable, disabling disk cache"
+          )
+        end
       end
     end
   end
