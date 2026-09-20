@@ -133,8 +133,18 @@ describe("MathPuzzle Generator module", function()
   end)
 
   it(
-    "should generate valid arithmetic progression problems with addition and subtraction across three levels",
+    "should generate valid arithmetic progression problems with addition and subtraction across four levels",
     function()
+      local ap_entry = Generator.getModeById("arithmetic_progression_20_entry")
+      assert.is_table(ap_entry)
+      assert.are.equal("arithmetic_progression_20_entry", ap_entry.id)
+      assert.are.equal(20, ap_entry.max)
+      assert.are.equal(3, ap_entry.max_step)
+      assert.are.equal(6, ap_entry.terms_count)
+      assert.is_true(ap_entry.alternating_blanks)
+      assert.are.equal(5, ap_entry.question_count)
+      assert.is_true(ap_entry.single_column)
+
       local ap_easy = Generator.getModeById("arithmetic_progression_50_easy")
       assert.is_table(ap_easy)
       assert.are.equal("arithmetic_progression_50_easy", ap_easy.id)
@@ -161,12 +171,61 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(ap100.single_column)
 
       -- Alias check
+      assert.are.equal(ap_entry, Generator.getModeById("arithmetic_progression_entry"))
+      assert.are.equal(ap_entry, Generator.getModeById("ap_entry"))
+      assert.are.equal(ap_entry, Generator.getModeById("ap_20_entry"))
+      assert.are.equal(ap_entry, Generator.getModeById("ap_20"))
+      assert.are.equal(ap_entry, Generator.getModeById("arithmetic_progression_20"))
+      assert.are.equal(ap_entry, Generator.getModeById("arithmetic_progression_20_easy"))
       assert.are.equal(ap_easy, Generator.getModeById("arithmetic_progression_easy"))
       assert.are.equal(ap_easy, Generator.getModeById("ap_easy"))
       assert.are.equal(ap_easy, Generator.getModeById("ap_50_easy"))
       assert.are.equal(ap100, Generator.getModeById("arithmetic_progression"))
       assert.are.equal(ap100, Generator.getModeById("ap_100"))
       assert.are.equal(ap50, Generator.getModeById("ap_50"))
+
+      -- Test Entry Level (max 20, step up to 3, 6 terms, alternating blanks strictly at {1,3,5} or {2,4,6})
+      local problems_entry = Generator.generateProblems("arithmetic_progression_20_entry", 20)
+      assert.are.equal(20, #problems_entry)
+      local saw_entry_odd_blanks = false
+      local saw_entry_even_blanks = false
+      local saw_entry_addition = false
+      local saw_entry_subtraction = false
+
+      for _, prob in ipairs(problems_entry) do
+        assert.is_true(prob.step >= 1 and prob.step <= 3)
+        assert.are.equal(6, #prob.terms)
+        for _, term in ipairs(prob.terms) do
+          assert.is_true(term >= 0 and term <= 20)
+        end
+        assert.are.equal(3, #prob.blank_indices)
+        local indices_str = table.concat(prob.blank_indices, ",")
+        assert.is_true(indices_str == "1,3,5" or indices_str == "2,4,6")
+        if indices_str == "1,3,5" then
+          saw_entry_odd_blanks = true
+        elseif indices_str == "2,4,6" then
+          saw_entry_even_blanks = true
+        end
+        for _, b_idx in ipairs(prob.blank_indices) do
+          assert.is_true(prob.answers[b_idx] >= 0 and prob.answers[b_idx] <= 20)
+          assert.are.equal(prob.terms[b_idx], prob.answers[b_idx])
+        end
+        if prob.op == "+" then
+          saw_entry_addition = true
+          for i = 1, #prob.terms - 1 do
+            assert.are.equal(prob.step, prob.terms[i + 1] - prob.terms[i])
+          end
+        elseif prob.op == "-" then
+          saw_entry_subtraction = true
+          for i = 1, #prob.terms - 1 do
+            assert.are.equal(prob.step, prob.terms[i] - prob.terms[i + 1])
+          end
+        end
+      end
+      assert.is_true(saw_entry_odd_blanks)
+      assert.is_true(saw_entry_even_blanks)
+      assert.is_true(saw_entry_addition)
+      assert.is_true(saw_entry_subtraction)
 
       -- Test Easy Level (alternating blanks strictly at {1,3,5,7} or {2,4,6,8})
       local problems_easy = Generator.generateProblems("arithmetic_progression_50_easy", 20)

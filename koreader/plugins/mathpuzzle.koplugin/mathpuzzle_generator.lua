@@ -89,6 +89,18 @@ Generator.MODES = {
     question_count = 5,
   },
   {
+    id = "arithmetic_progression_20_entry",
+    title = _("Arithmetic Progression within 20 (Entry Level)"),
+    description = _("Alternating blanks, step up to 3, numbers up to 20"),
+    type = "arithmetic_progression",
+    max = 20,
+    max_step = 3,
+    terms_count = 6,
+    alternating_blanks = true,
+    question_count = 5,
+    single_column = true,
+  },
+  {
     id = "arithmetic_progression_50_easy",
     title = _("Arithmetic Progression within 50 (Easy)"),
     description = _("Alternating blanks, step up to 4, numbers up to 50"),
@@ -130,6 +142,9 @@ function Generator.getModeById(mode_id)
     if mode.id == mode_id then
       return mode
     end
+  end
+  if mode_id == "arithmetic_progression_20_entry" or mode_id == "arithmetic_progression_entry" or mode_id == "ap_entry" or mode_id == "ap_20_entry" or mode_id == "ap_20" or mode_id == "arithmetic_progression_20" or mode_id == "arithmetic_progression_20_easy" then
+    return Generator.getModeById("arithmetic_progression_20_entry")
   end
   if mode_id == "arithmetic_progression_50_easy" or mode_id == "arithmetic_progression_easy" or mode_id == "ap_easy" or mode_id == "ap_50_easy" then
     return Generator.getModeById("arithmetic_progression_50_easy")
@@ -458,7 +473,7 @@ local function generateSingleProblem(mode)
       }
     end
   elseif mode_type == "arithmetic_progression" then
-    local terms_count = 8
+    local terms_count = mode.terms_count or 8
     local is_addition = math.random(1, 2) == 1
     local max_d = mode.max_step or (max_val <= 50 and 4 or 10)
     local d = math.random(1, max_d)
