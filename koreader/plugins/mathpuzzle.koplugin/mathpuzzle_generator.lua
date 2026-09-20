@@ -89,13 +89,12 @@ Generator.MODES = {
     question_count = 5,
   },
   {
-    id = "arithmetic_progression_20_entry",
-    title = _("Arithmetic Progression within 20 (Entry Level)"),
-    description = _("Alternating blanks, step up to 3, numbers up to 20"),
+    id = "arithmetic_progression_30_entry",
+    title = _("Arithmetic Progression within 30 (Entry Level)"),
+    description = _("Alternating blanks, step up to 3, numbers up to 30"),
     type = "arithmetic_progression",
-    max = 20,
+    max = 30,
     max_step = 3,
-    terms_count = 6,
     alternating_blanks = true,
     question_count = 5,
     single_column = true,
@@ -143,8 +142,8 @@ function Generator.getModeById(mode_id)
       return mode
     end
   end
-  if mode_id == "arithmetic_progression_20_entry" or mode_id == "arithmetic_progression_entry" or mode_id == "ap_entry" or mode_id == "ap_20_entry" or mode_id == "ap_20" or mode_id == "arithmetic_progression_20" or mode_id == "arithmetic_progression_20_easy" then
-    return Generator.getModeById("arithmetic_progression_20_entry")
+  if mode_id == "arithmetic_progression_30_entry" or mode_id == "arithmetic_progression_entry" or mode_id == "ap_entry" or mode_id == "ap_30_entry" or mode_id == "ap_30" or mode_id == "arithmetic_progression_30" or mode_id == "arithmetic_progression_30_easy" or mode_id == "arithmetic_progression_20" or mode_id == "ap_20" or mode_id == "arithmetic_progression_20_entry" then
+    return Generator.getModeById("arithmetic_progression_30_entry")
   end
   if mode_id == "arithmetic_progression_50_easy" or mode_id == "arithmetic_progression_easy" or mode_id == "ap_easy" or mode_id == "ap_50_easy" then
     return Generator.getModeById("arithmetic_progression_50_easy")

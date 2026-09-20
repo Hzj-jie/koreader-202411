@@ -97,28 +97,27 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should initialize MathPuzzleScreen for arithmetic_progression_20_entry with strictly alternating blanks", function()
-    local screen = createScreen(nil, "arithmetic_progression_20_entry")
+  it("should initialize MathPuzzleScreen for arithmetic_progression_30_entry with strictly alternating blanks", function()
+    local screen = createScreen(nil, "arithmetic_progression_30_entry")
     UIManager:show(screen)
 
     assert.is_table(screen.problems)
     assert.are.equal(5, #screen.problems)
     assert.is_true(screen.mode.single_column)
-    assert.are.equal(20, screen.mode.max)
+    assert.are.equal(30, screen.mode.max)
     assert.are.equal(3, screen.mode.max_step)
-    assert.are.equal(6, screen.mode.terms_count)
     assert.is_true(screen.mode.alternating_blanks)
-    assert.are.equal(15, #screen.input_buttons)
+    assert.are.equal(20, #screen.input_buttons)
 
     for _, prob in ipairs(screen.problems) do
-      assert.are.equal(6, #prob.terms)
+      assert.are.equal(8, #prob.terms)
       assert.is_true(prob.inline_blanks)
       assert.is_true(prob.step >= 1 and prob.step <= 3)
-      assert.are.equal(3, #prob.blank_indices)
+      assert.are.equal(4, #prob.blank_indices)
       local str = table.concat(prob.blank_indices, ",")
-      assert.is_true(str == "1,3,5" or str == "2,4,6")
+      assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
       for _, term in ipairs(prob.terms) do
-        assert.is_true(term >= 0 and term <= 20)
+        assert.is_true(term >= 0 and term <= 30)
       end
     end
 
