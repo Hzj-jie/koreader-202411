@@ -374,6 +374,67 @@ function MathPuzzleScreen:_buildUI()
       table.insert(row_group, mark_container)
 
       return row_group
+    elseif prob.text and prob.text:find("___") then
+      local btn_idx = #self.input_buttons + 1
+      local is_focused = (btn_idx == self.focused_idx)
+      local val = prob.user_answer or ""
+      local btn_w = Screen:scaleBySize(44)
+      local btn_h = Screen:scaleBySize(34)
+
+      local input_btn = Button:new({
+        text = val ~= "" and val or (is_focused and "_" or " "),
+        width = btn_w,
+        height = btn_h,
+        bordersize = is_focused and Size.border.bold or Size.border.thin,
+        background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
+          or Blitbuffer.COLOR_WHITE,
+        padding_v = Screen:scaleBySize(2),
+        padding_h = Screen:scaleBySize(2),
+        margin = 0,
+        callback = function()
+          self:selectField(btn_idx)
+        end,
+      })
+
+      input_btn.prob_id = i
+      input_btn.getText = function()
+        return prob.user_answer or ""
+      end
+      input_btn.setText = function(_, txt)
+        prob.user_answer = tostring(txt)
+        self:_clearMark(i)
+        self:_updateInputButton(btn_idx)
+      end
+
+      self.input_buttons[btn_idx] = input_btn
+
+      local prefix, suffix = prob.text:match("^(.-)___(.*)$")
+      local row_group = HorizontalGroup:new({ align = "center" })
+
+      prefix = prefix:match("^(.-)%s*$")
+      if prefix ~= "" then
+        table.insert(row_group, TextWidget:new({
+          text = prefix,
+          face = font_face,
+        }))
+        table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(4) }))
+      end
+
+      table.insert(row_group, input_btn)
+
+      suffix = suffix:match("^%s*(.-)$")
+      if suffix ~= "" then
+        table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(4) }))
+        table.insert(row_group, TextWidget:new({
+          text = suffix,
+          face = font_face,
+        }))
+      end
+
+      table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(8) }))
+      table.insert(row_group, mark_container)
+
+      return row_group
     else
       local btn_idx = #self.input_buttons + 1
       local is_focused = (btn_idx == self.focused_idx)

@@ -120,6 +120,19 @@ describe("MathPuzzle Generator module", function()
     end
   end)
 
+  it("should generate valid missing operand problems for addition and subtraction only", function()
+    local problems = Generator.generateProblems("missing_100_add_sub", 30)
+    assert.are.equal(30, #problems)
+    for _, prob in ipairs(problems) do
+      assert.is_number(prob.answer)
+      assert.is_true(prob.text:find("___") ~= nil)
+      assert.is_true(prob.op == "+" or prob.op == "-")
+      assert.is_nil(prob.text:find("×"))
+      assert.is_nil(prob.text:find("÷"))
+      assert.is_true(prob.answer >= 0 and prob.answer <= 100)
+    end
+  end)
+
   it("should generate valid 3-term mental math problems", function()
     local three_mode = Generator.getModeById("three_term_100")
     assert.are.equal(5, three_mode.question_count)

@@ -194,6 +194,74 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
+  it("should initialize MathPuzzleScreen for missing_100 with inline blank button", function()
+    local screen = createScreen(nil, "missing_100")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(10, #screen.problems)
+    assert.are.equal(10, #screen.input_buttons)
+
+    for i, prob in ipairs(screen.problems) do
+      assert.is_true(prob.text:find("___") ~= nil)
+      local btn = screen.input_buttons[i]
+      assert.are.equal(i, btn.prob_id)
+      assert.is_true(btn.width > 0)
+      assert.is_true(btn.height > 0)
+    end
+
+    -- Fill all answer buttons with correct answers
+    for i, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[i]
+      btn:setText(tostring(prob.answer))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
+
+    -- Modifying an answer clears mark
+    local first_btn = screen.input_buttons[1]
+    first_btn:setText("999")
+    assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for missing_100_add_sub with inline blank button", function()
+    local screen = createScreen(nil, "missing_100_add_sub")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(10, #screen.problems)
+    assert.are.equal(10, #screen.input_buttons)
+
+    for i, prob in ipairs(screen.problems) do
+      assert.is_true(prob.text:find("___") ~= nil)
+      assert.is_true(prob.op == "+" or prob.op == "-")
+      assert.is_nil(prob.text:find("×"))
+      assert.is_nil(prob.text:find("÷"))
+      local btn = screen.input_buttons[i]
+      assert.are.equal(i, btn.prob_id)
+      assert.is_true(btn.width > 0)
+      assert.is_true(btn.height > 0)
+    end
+
+    -- Fill all answer buttons with correct answers
+    for i, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[i]
+      btn:setText(tostring(prob.answer))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
+
+    UIManager:close(screen)
+  end)
+
   it("should verify correct answers and update question marks", function()
     local screen = createScreen(nil, "add_sub_100", 10)
     UIManager:show(screen)

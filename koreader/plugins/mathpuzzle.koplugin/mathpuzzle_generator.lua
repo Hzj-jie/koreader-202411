@@ -67,6 +67,14 @@ Generator.MODES = {
     max = 1000,
   },
   {
+    id = "missing_100_add_sub",
+    title = _("Fill-in-the-Blank (+, -) within 100"),
+    description = _("Find the missing number in addition and subtraction equations"),
+    type = "missing",
+    max = 100,
+    ops = "add_sub",
+  },
+  {
     id = "missing_100",
     title = _("Fill-in-the-Blank within 100"),
     description = _("Find the missing number in equations"),
@@ -153,6 +161,9 @@ function Generator.getModeById(mode_id)
   end
   if mode_id == "arithmetic_progression_50" or mode_id == "ap_50" then
     return Generator.getModeById("arithmetic_progression_50")
+  end
+  if mode_id == "missing_100_add_sub" or mode_id == "missing_add_sub_100" or mode_id == "missing_add_sub" then
+    return Generator.getModeById("missing_100_add_sub")
   end
   return Generator.MODES[2] -- default to add_sub_100
 end
@@ -326,7 +337,12 @@ local function generateSingleProblem(mode)
       end
     end
   elseif mode_type == "missing" then
-    local op_roll = math.random(1, 4)
+    local op_roll
+    if mode.ops == "add_sub" or mode.only_add_sub then
+      op_roll = math.random(1, 2)
+    else
+      op_roll = math.random(1, 4)
+    end
     if op_roll == 1 then
       -- a + b = c
       local a = math.random(5, 50)
