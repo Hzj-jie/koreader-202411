@@ -179,6 +179,9 @@ describe("Cache module", function()
 
         lfs.attributes = function(path, request)
           if request == "mode" then
+            if path == "/readonly/cache/" then
+              return "directory"
+            end
             return "file"
           end
           return nil
@@ -201,6 +204,99 @@ describe("Cache module", function()
 
         lfs.dir = orig_lfs_dir
         lfs.attributes = orig_lfs_attributes
+      end
+    )
+
+    it(
+      "creates cache directory via lfs.mkdir in refreshSnapshot if it does not exist",
+      function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_lfs_dir = lfs.dir
+        local orig_lfs_attributes = lfs.attributes
+        local orig_lfs_mkdir = lfs.mkdir
+
+        local dir_created = false
+        lfs.mkdir = function(path)
+          if path == "/missing/cache/" then
+            dir_created = true
+            return true
+          end
+          return nil
+        end
+
+        lfs.attributes = function(path, request)
+          if request == "mode" then
+            if path == "/missing/cache/" then
+              return dir_created and "directory" or nil
+            end
+          end
+          return nil
+        end
+
+        lfs.dir = function(path)
+          return function() return nil end
+        end
+
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = false,
+          cache_path = "/missing/cache/",
+        })
+        c.disk_cache = true
+
+        c:refreshSnapshot()
+        assert.is_true(dir_created)
+        assert.is_table(c.cached)
+        assert.are.same({}, c.cached)
+
+        lfs.dir = orig_lfs_dir
+        lfs.attributes = orig_lfs_attributes
+        lfs.mkdir = orig_lfs_mkdir
+      end
+    )
+
+    it(
+      "safely returns empty table in refreshSnapshot if directory does not exist and cannot be created",
+      function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_lfs_dir = lfs.dir
+        local orig_lfs_attributes = lfs.attributes
+        local orig_lfs_mkdir = lfs.mkdir
+
+        lfs.mkdir = function()
+          return nil, "Permission denied"
+        end
+
+        lfs.attributes = function(path, request)
+          if request == "mode" and path == "/unwritable/cache/" then
+            return nil
+          end
+          return nil
+        end
+
+        local dir_called = false
+        lfs.dir = function(path)
+          dir_called = true
+          error("lfs.dir should not be called on nonexistent directory")
+        end
+
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = false,
+          cache_path = "/unwritable/cache/",
+        })
+        c.disk_cache = true
+
+        assert.has_no_errors(function()
+          c:refreshSnapshot()
+        end)
+        assert.is_false(dir_called)
+        assert.is_table(c.cached)
+        assert.are.same({}, c.cached)
+
+        lfs.dir = orig_lfs_dir
+        lfs.attributes = orig_lfs_attributes
+        lfs.mkdir = orig_lfs_mkdir
       end
     )
 

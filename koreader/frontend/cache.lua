@@ -207,6 +207,13 @@ function Cache:refreshSnapshot()
   assert(self.cache_path ~= nil)
 
   self.cached = {}
+  if lfs.attributes(self.cache_path, "mode") ~= "directory" then
+    lfs.mkdir(self.cache_path)
+    if lfs.attributes(self.cache_path, "mode") ~= "directory" then
+      return
+    end
+  end
+
   for key_md5 in lfs.dir(self.cache_path) do
     local file = self.cache_path .. key_md5
     if lfs.attributes(file, "mode") == "file" then
