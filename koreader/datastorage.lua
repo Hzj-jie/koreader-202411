@@ -41,7 +41,6 @@ function DataStorage:getTmpDir()
     table.insert(candidates, "/data/local/tmp")
   end
   table.insert(candidates, "/tmp")
-  table.insert(candidates, self:getDataDir() .. "/tmp")
   table.insert(candidates, "./tmp")
 
   for _, cand in ipairs(candidates) do
@@ -71,6 +70,14 @@ function DataStorage:getDataDir()
       candidates,
       string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
     )
+  elseif
+    not (
+      os.getenv("APPIMAGE")
+      or os.getenv("FLATPAK")
+      or os.getenv("KO_MULTIUSER")
+    )
+  then
+    table.insert(candidates, ".")
   end
   if os.getenv("XDG_CONFIG_HOME") then
     table.insert(
@@ -85,16 +92,6 @@ function DataStorage:getDataDir()
       jit.os == "OSX" and "Library/Application Support" or ".config"
     )
     table.insert(candidates, string.format("%s/%s", user_rw, "koreader"))
-  end
-
-  if
-    not (
-      os.getenv("APPIMAGE")
-      or os.getenv("FLATPAK")
-      or os.getenv("KO_MULTIUSER")
-    )
-  then
-    table.insert(candidates, ".")
   end
 
   for _, cand in ipairs(candidates) do
@@ -116,6 +113,7 @@ function DataStorage:getDataDir()
   end
 
   -- If even temporary storage is not writable, fall back to first candidate in read-only mode
+  assert(candidates[1], "DataStorage: no data directory candidate available")
   data_dir = candidates[1]
   is_storage_readonly = true
   return data_dir

@@ -63,7 +63,25 @@ describe("DataStorage module", function()
   end)
 
   it(
-    "should prefer XDG_CONFIG_HOME and HOME over dot even without KO_MULTIUSER",
+    "should prefer dot over XDG_CONFIG_HOME and HOME when not in multi-user mode",
+    function()
+      env_mock["KO_MULTIUSER"] = false
+      env_mock["APPIMAGE"] = false
+      env_mock["FLATPAK"] = false
+      env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+      env_mock["XDG_CONFIG_HOME"] = "/tmp/test_xdg_config"
+      env_mock["HOME"] = "/home/testuser"
+      isDirRW_mock = function(dir)
+        return true
+      end
+
+      DataStorage = require("datastorage")
+      assert.are.equal(".", DataStorage:getDataDir())
+    end
+  )
+
+  it(
+    "should fall back to XDG_CONFIG_HOME when dot is unwritable without KO_MULTIUSER",
     function()
       env_mock["KO_MULTIUSER"] = false
       env_mock["APPIMAGE"] = false
@@ -82,23 +100,26 @@ describe("DataStorage module", function()
     end
   )
 
-  it("should prefer HOME over dot when XDG_CONFIG_HOME is unset", function()
-    env_mock["KO_MULTIUSER"] = false
-    env_mock["APPIMAGE"] = false
-    env_mock["FLATPAK"] = false
-    env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
-    env_mock["XDG_CONFIG_HOME"] = false
-    env_mock["HOME"] = "/home/testuser"
-    isDirRW_mock = function(dir)
-      return dir == "/home/testuser/.config/koreader"
-    end
+  it(
+    "should fall back to HOME when dot and XDG_CONFIG_HOME are unwritable",
+    function()
+      env_mock["KO_MULTIUSER"] = false
+      env_mock["APPIMAGE"] = false
+      env_mock["FLATPAK"] = false
+      env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+      env_mock["XDG_CONFIG_HOME"] = false
+      env_mock["HOME"] = "/home/testuser"
+      isDirRW_mock = function(dir)
+        return dir == "/home/testuser/.config/koreader"
+      end
 
-    DataStorage = require("datastorage")
-    assert.are.equal(
-      "/home/testuser/.config/koreader",
-      DataStorage:getDataDir()
-    )
-  end)
+      DataStorage = require("datastorage")
+      assert.are.equal(
+        "/home/testuser/.config/koreader",
+        DataStorage:getDataDir()
+      )
+    end
+  )
 
   it(
     "should fall back to dot when XDG_CONFIG_HOME and HOME are unwritable",
@@ -265,6 +286,25 @@ describe("DataStorage module", function()
 
       DataStorage = require("datastorage")
       assert.are.equal("/fake/xdg/koreader", DataStorage:getDataDir())
+    end
+  )
+
+  it(
+    "should assert when no data directory candidate is available",
+    function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["APPIMAGE"] = false
+      env_mock["FLATPAK"] = false
+      env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+      env_mock["XDG_CONFIG_HOME"] = false
+      env_mock["HOME"] = false
+      isDirRW_mock = function()
+        return false
+      end
+
+      assert.has_error(function()
+        require("datastorage")
+      end)
     end
   )
 
@@ -649,20 +689,7 @@ describe("DataStorage module", function()
       end
     )
 
-    it(
-      "falls back to getDataDir()/tmp when env TMPDIR and /tmp are unwritable",
-      function()
-        env_mock["TMPDIR"] = false
-        DataStorage = require("datastorage")
-        local expected_dir = DataStorage:getDataDir() .. "/tmp"
-        isDirRW_mock = function(dir)
-          return dir == expected_dir
-        end
-        assert.are.equal(expected_dir, DataStorage:getTmpDir())
-      end
-    )
-
-    it("falls back to ./tmp when getDataDir()/tmp is unwritable", function()
+    it("falls back to ./tmp when env TMPDIR and /tmp are unwritable", function()
       env_mock["TMPDIR"] = false
       DataStorage = require("datastorage")
       isDirRW_mock = function(dir)
