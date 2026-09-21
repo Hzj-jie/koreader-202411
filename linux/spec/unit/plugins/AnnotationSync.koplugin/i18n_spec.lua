@@ -39,12 +39,18 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal("标注同步", _("Annotation Sync"))
     assert.are.equal("全部同步", _("Sync All"))
     assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
+    assert.are.equal("推送设置到云端", _("Push settings to cloud"))
+    assert.are.equal("从云端拉取设置", _("Pull settings from cloud"))
+    assert.are.equal("设备名称: %1", _("Device name: %1"))
 
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
     assert.are.equal("全部同步", _("Sync All"))
     assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
+    assert.are.equal("推送設定至雲端", _("Push settings to cloud"))
+    assert.are.equal("從雲端拉取設定", _("Pull settings from cloud"))
+    assert.are.equal("裝置名稱: %1", _("Device name: %1"))
 
     -- Restore language to default
     _.changeLang("C")

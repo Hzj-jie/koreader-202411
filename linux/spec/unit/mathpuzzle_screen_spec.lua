@@ -966,4 +966,29 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(menu)
     UIManager:close(plugin.screen)
   end)
+
+  it("verifies localized titles and descriptions for new modes", function()
+    local gettext = require("gettext")
+    gettext.changeLang("zh_CN")
+    assert.are.equal(
+      "100以内填空题（仅加减法）",
+      gettext("Fill-in-the-Blank (+, -) within 100")
+    )
+    assert.are.equal(
+      "30以内等差数列（入门）",
+      gettext("Arithmetic Progression within 30 (Entry Level)")
+    )
+
+    gettext.changeLang("zh_TW")
+    assert.are.equal(
+      "100以內填空題（僅加減法）",
+      gettext("Fill-in-the-Blank (+, -) within 100")
+    )
+    assert.are.equal(
+      "30以內等差數列（入門）",
+      gettext("Arithmetic Progression within 30 (Entry Level)")
+    )
+
+    gettext.changeLang("C")
+  end)
 end)

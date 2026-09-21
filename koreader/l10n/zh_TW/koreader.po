@@ -23991,3 +23991,291 @@ msgstr "用時：%s"
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:462
 msgid "Check"
 msgstr "檢查"
+
+msgid "Fill-in-the-Blank (+, -) within 100"
+msgstr "100以內填空題（僅加減法）"
+
+msgid "Find the missing number in addition and subtraction equations"
+msgstr "求加減法算式中的未知數"
+
+msgid "Arithmetic Progression within 30 (Entry Level)"
+msgstr "30以內等差數列（入門）"
+
+msgid "Alternating blanks, step up to 3, numbers up to 30"
+msgstr "隔項填空，公差不超過3，數值不超過30"
+
+msgid "Arithmetic Progression within 50 (Easy)"
+msgstr "50以內等差數列（簡單）"
+
+msgid "Alternating blanks, step up to 4, numbers up to 50"
+msgstr "隔項填空，公差不超過4，數值不超過50"
+
+msgid "Arithmetic Progression within 50"
+msgstr "50以內等差數列"
+
+msgid "Step up to 4, numbers up to 50"
+msgstr "公差不超過4，數值不超過50"
+
+msgid "Arithmetic Progression within 100"
+msgstr "100以內等差數列"
+
+msgid "Step up to 10, numbers up to 100"
+msgstr "公差不超過10，數值不超過100"
+
+msgid "Your progress will be lost if you exit. Are you sure you want to exit?"
+msgstr "退出後目前進度將遺失。確定要退出嗎？"
+
+msgid "Storage is completely read-only. Settings and reading history cannot be saved to disk."
+msgstr "儲存空間完全唯讀。設定和閱讀歷史無法儲存至磁碟。"
+
+msgid "Primary storage is read-only. Settings will be saved to temporary storage and may be lost when the device is restarted."
+msgstr "主要儲存空間為唯讀。設定將儲存至暫存空間中，並在裝置重新啟動後可能遺失。"
+
+msgid "Settings changed. Reload file manager to take effect?"
+msgstr "設定已變更。重新載入檔案管理器使其生效？"
+
+msgid "Tap to open batterystat.log."
+msgstr "點擊開啟 batterystat.log。"
+
+msgid "annotation_sync_plugin"
+msgstr "annotation_sync_plugin"
+
+msgid "Use filename instead of hash"
+msgstr "使用檔案名稱代替雜湊值"
+
+msgid "Automatically Sync All when network becomes available"
+msgstr "網路可用時自動全部同步"
+
+msgid "Enable Reading Progress Sync"
+msgstr "啟用閱讀進度同步"
+
+msgid "Sync using last word of page"
+msgstr "使用頁面最後一個詞同步"
+
+msgid "Sync every %1 pages"
+msgstr "每 %1 頁同步一次"
+
+msgid "Sync every # pages"
+msgstr "每 # 頁同步一次"
+
+msgid "Device name: %1"
+msgstr "裝置名稱: %1"
+
+msgid "Set device name"
+msgstr "設定裝置名稱"
+
+msgid "Leave empty to use the default device name."
+msgstr "留空以使用預設裝置名稱。"
+
+msgid "Show changed settings"
+msgstr "顯示已變更的設定"
+
+msgid "Current cloud: %1"
+msgstr "目前雲端: %1"
+
+msgid "Push settings to cloud"
+msgstr "推送設定至雲端"
+
+msgid "Pull settings from cloud"
+msgstr "從雲端拉取設定"
+
+msgid "Jump to device progress"
+msgstr "跳轉至裝置進度"
+
+msgid "Last sync: %1"
+msgstr "上次同步: %1"
+
+msgid "Plugin version: %1"
+msgstr "外掛版本: %1"
+
+msgid "Why are some options greyed out?"
+msgstr "為什麼部分選項顯示為灰色？"
+
+msgid "Reading progress sync is not supported on this version of KOReader."
+msgstr "目前版本的 KOReader 不支援閱讀進度同步。"
+
+msgid "A document must be active to jump to device progress."
+msgstr "必須開啟文檔才能跳轉至裝置進度。"
+
+msgid "AnnotationSync: Manual Sync"
+msgstr "AnnotationSync: 手動同步"
+
+msgid "AnnotationSync: Push settings to cloud"
+msgstr "AnnotationSync: 推送設定至雲端"
+
+msgid "Push the selected settings to the cloud."
+msgstr "將所選設定推送至雲端。"
+
+msgid "AnnotationSync: Pull settings from cloud"
+msgstr "AnnotationSync: 從雲端拉取設定"
+
+msgid "Pull the selected settings from the cloud."
+msgstr "從雲端拉取所選設定。"
+
+msgid "AnnotationSync: Jump to device progress"
+msgstr "AnnotationSync: 跳轉至裝置進度"
+
+msgid "AnnotationSync: Sync All"
+msgstr "AnnotationSync: 全部同步"
+
+msgid "Annotation restored."
+msgstr "標註已復原。"
+
+msgid "Restored %1 annotations."
+msgstr "已復原 %1 條標註。"
+
+msgid "Network is disconnected, cannot pull progress"
+msgstr "網路已中斷，無法拉取進度"
+
+msgid "Fetching remote progress..."
+msgstr "正在獲取遠端進度..."
+
+msgid "Failed to fetch remote progress"
+msgstr "獲取遠端進度失敗"
+
+msgid "No hash"
+msgstr "無雜湊值"
+
+msgid "Failed to write settings to local storage."
+msgstr "無法將設定寫入本機儲存。"
+
+msgid "Pushing settings to cloud..."
+msgstr "正在推送設定至雲端..."
+
+msgid "Network is disconnected, cannot pull settings"
+msgstr "網路已中斷，無法拉取設定"
+
+msgid "Fetching settings from cloud..."
+msgstr "正在從雲端獲取設定..."
+
+msgid "Failed to fetch settings from cloud"
+msgstr "從雲端獲取設定失敗"
+
+msgid "No deleted annotations found for this document."
+msgstr "未找到此文檔已刪除的標註。"
+
+msgid "Restore All"
+msgstr "全部復原"
+
+msgid "Are you sure you want to restore all %1 deleted annotations?"
+msgstr "確定要復原全部 %1 條已刪除的標註嗎？"
+
+msgid "Deleted Annotations"
+msgstr "已刪除的標註"
+
+msgid "(this device)"
+msgstr "(本機裝置)"
+
+msgid "Jumped to page %1 from %2"
+msgstr "已從 %2 跳轉至第 %1 頁"
+
+msgid "No remote progress found."
+msgstr "未找到遠端進度。"
+
+msgid "No other devices found in cloud settings."
+msgstr "雲端設定中未找到其他裝置。"
+
+msgid "No differing settings found for this device."
+msgstr "未發現此裝置有不同的設定。"
+
+msgid "Import Selected Settings"
+msgstr "匯入所選設定"
+
+msgid "Successfully imported %1 settings."
+msgstr "成功匯入 %1 項設定。"
+
+msgid "No settings imported."
+msgstr "未匯入任何設定。"
+
+msgid "Select All"
+msgstr "全選"
+
+msgid "Clear Selection"
+msgstr "清除選擇"
+
+msgid "Settings from %1"
+msgstr "來自 %1 的設定"
+
+msgid "No pending documents to sync."
+msgstr "沒有待處理的同步文檔。"
+
+msgid "Sync now"
+msgstr "立即同步"
+
+msgid "Syncing %1..."
+msgstr "正在同步 %1..."
+
+msgid "Successfully synced %1"
+msgstr "成功同步 %1"
+
+msgid "Failed to sync %1"
+msgstr "同步 %1 失敗"
+
+msgid "Could not open %1 for sync"
+msgstr "無法開啟 %1 進行同步"
+
+msgid "Remove from list"
+msgstr "從列表中移除"
+
+msgid "Removed %1 from sync list"
+msgstr "已從同步列表中移除 %1"
+
+msgid "Pending Documents"
+msgstr "待處理文檔"
+
+msgid "Cloud Storage plugin is not enabled or available."
+msgstr "雲端儲存外掛未啟用或不可用。"
+
+msgid "No cloud destination set in settings."
+msgstr "設定中未配置雲端目標。"
+
+msgid "No changed settings found."
+msgstr "未發現已變更的設定。"
+
+msgid "Changed Settings"
+msgstr "已變更的設定"
+
+msgid "Plugin configuration changed. Reload to make changes take effect?"
+msgstr "外掛設定已變更。重新載入使其生效？"
+
+msgid ""
+"Cloud destination set to:\n"
+"%1\n"
+"Provider: %2"
+msgstr ""
+"雲端目標設定為:\n"
+"%1\n"
+"提供商: %2"
+
+msgid ""
+"Do you want to restore this annotation?\n"
+"\n"
+"Page %1: %2"
+msgstr ""
+"是否復原此標註？\n"
+"\n"
+"第 %1 頁: %2"
+
+msgid ""
+"Do you want to sync this document?\n"
+"\n"
+"%1"
+msgstr ""
+"是否同步此文檔？\n"
+"\n"
+"%1"
+
+msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
+msgstr "未選擇任何設定。請在「顯示已變更的設定」中選擇要同步的設定。"
+
+msgid ""
+"%1 (%4)\n"
+"Version: %2\n"
+"\n"
+"%3"
+msgstr ""
+"%1 (%4)\n"
+"版本: %2\n"
+"\n"
+"%3"
+
