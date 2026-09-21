@@ -21,9 +21,6 @@ local developer_options = {
               FFIUtil.purgeDir(cachedir)
             end
             lfs.mkdir(cachedir)
-            -- Also remove from the Cache object references to the cache files we've just deleted
-            local Cache = require("cache")
-            Cache.cached = {}
             UIManager:askForRestart(
               gettext("Caches cleared. Please restart KOReader.")
             )
