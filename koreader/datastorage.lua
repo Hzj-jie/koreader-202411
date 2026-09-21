@@ -183,6 +183,7 @@ function DataStorage:getFullDataDir()
 end
 
 function DataStorage:showStorageWarningIfNeeded()
+  self:getDataDir()
   local is_readonly = isStorageReadOnly()
   if not (is_storage_temporary or is_readonly) then
     return

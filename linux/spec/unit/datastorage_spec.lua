@@ -585,6 +585,32 @@ describe("DataStorage module", function()
     UIManager.show = orig_show
   end)
 
+  it(
+    "should initialize data_dir if showStorageWarningIfNeeded is called before getDataDir",
+    function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      isDirRW_mock = function()
+        return false
+      end
+      DataStorage = require("datastorage")
+      -- Note: DataStorage:getDataDir() is intentionally NOT called beforehand
+
+      local UIManager = require("ui/uimanager")
+      local shown_widget = nil
+      local orig_show = UIManager.show
+      UIManager.show = function(_, widget)
+        shown_widget = widget
+      end
+
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_not_nil(shown_widget)
+      assert.is_truthy(shown_widget.text:find("completely read%-only"))
+
+      UIManager.show = orig_show
+    end
+  )
+
   describe("getTmpDir()", function()
     it("returns tmp directory string", function()
       DataStorage = require("datastorage")
