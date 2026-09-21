@@ -9,7 +9,7 @@ local util = require("util")
 
 local FontList = {
   fontdir = "./fonts",
-  cachedir = DataStorage:getDataDir() .. "/cache/fontlist", -- in a subdirectory, so as not to mess w/ the Cache module.
+  cachedir = DataStorage:getCacheDir() .. "/fontlist", -- in a subdirectory, so as not to mess w/ the Cache module.
   fontlist = {},
   fontinfo = {},
   fontnames = {},

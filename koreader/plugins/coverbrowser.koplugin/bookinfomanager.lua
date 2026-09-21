@@ -152,7 +152,7 @@ function BookInfoManager:init()
   self.use_legacy_image_scaling =
     G_reader_settings:isTrue("legacy_image_scaling")
   -- We will use a temporary directory for crengine cache while indexing
-  self.tmpcr3cache = DataStorage:getDataDir() .. "/cache/tmpcr3cache"
+  self.tmpcr3cache = DataStorage:getCacheDir() .. "/tmpcr3cache"
 end
 
 -- DB management

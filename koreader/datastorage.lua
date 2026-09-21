@@ -8,14 +8,22 @@ local DataStorage = {}
 
 local data_dir
 local full_data_dir
+local cache_dir
 local tmp_dir
+local is_storage_temporary = false
+
+local function isStorageReadOnly()
+  return data_dir ~= nil and not util.isDirRW(data_dir, true)
+end
 
 -- For testing purposes only; do not use in production code.
 -- Resets cached directories and storage state flags across test scenarios.
 function DataStorage:reset()
   data_dir = nil
   full_data_dir = nil
+  cache_dir = nil
   tmp_dir = nil
+  is_storage_temporary = false
 end
 
 function DataStorage:getTmpDir()
@@ -33,7 +41,6 @@ function DataStorage:getTmpDir()
     table.insert(candidates, "/data/local/tmp")
   end
   table.insert(candidates, "/tmp")
-  table.insert(candidates, self:getDataDir() .. "/tmp")
   table.insert(candidates, "./tmp")
 
   for _, cand in ipairs(candidates) do
@@ -52,47 +59,62 @@ function DataStorage:getDataDir()
     return data_dir
   end
 
+  local candidates = {}
+
   if isAndroid then
-    data_dir = android.getExternalStoragePath() .. "/koreader"
+    table.insert(candidates, android.getExternalStoragePath() .. "/koreader")
   elseif os.getenv("UBUNTU_APPLICATION_ISOLATION") then
     local app_id = os.getenv("APP_ID")
     local package_name = app_id:match("^(.-)_")
-    -- confined ubuntu app has write access to this dir
-    data_dir = string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
+    table.insert(
+      candidates,
+      string.format("%s/%s", os.getenv("XDG_DATA_HOME"), package_name)
+    )
   elseif
-    os.getenv("APPIMAGE")
-    or os.getenv("FLATPAK")
-    or os.getenv("KO_MULTIUSER")
+    not (
+      os.getenv("APPIMAGE")
+      or os.getenv("FLATPAK")
+      or os.getenv("KO_MULTIUSER")
+    )
   then
-    if os.getenv("XDG_CONFIG_HOME") then
-      data_dir =
-        string.format("%s/%s", os.getenv("XDG_CONFIG_HOME"), "koreader")
-      if
-        lfs.attributes(os.getenv("XDG_CONFIG_HOME"), "mode") ~= "directory"
-      then
-        lfs.mkdir(os.getenv("XDG_CONFIG_HOME"))
-      end
-    else
-      local user_rw = string.format(
-        "%s/%s",
-        os.getenv("HOME"),
-        jit.os == "OSX" and "Library/Application Support" or ".config"
-      )
-      if lfs.attributes(user_rw, "mode") ~= "directory" then
-        lfs.mkdir(user_rw)
-      end
-      data_dir = string.format("%s/%s", user_rw, "koreader")
-    end
-  else
-    data_dir = "."
+    table.insert(candidates, ".")
   end
-  if lfs.attributes(data_dir, "mode") ~= "directory" then
-    local ok, err = lfs.mkdir(data_dir)
-    if not ok then
-      error(err .. " " .. data_dir)
+  if os.getenv("XDG_CONFIG_HOME") then
+    table.insert(
+      candidates,
+      string.format("%s/%s", os.getenv("XDG_CONFIG_HOME"), "koreader")
+    )
+  end
+  if os.getenv("HOME") then
+    local user_rw = string.format(
+      "%s/%s",
+      os.getenv("HOME"),
+      jit.os == "OSX" and "Library/Application Support" or ".config"
+    )
+    table.insert(candidates, string.format("%s/%s", user_rw, "koreader"))
+  end
+
+  for _, cand in ipairs(candidates) do
+    if cand and util.isDirRW(cand, true) then
+      data_dir = cand
+      return data_dir
     end
   end
 
+  -- All standard candidates failed write check; fall back to temporary directory
+  local fallback_tmp = self:getTmpDir()
+  if fallback_tmp then
+    local tmp_data_dir = fallback_tmp .. "/koreader"
+    if util.isDirRW(tmp_data_dir, true) then
+      data_dir = tmp_data_dir
+      is_storage_temporary = true
+      return data_dir
+    end
+  end
+
+  -- If even temporary storage is not writable, fall back to first candidate in read-only mode
+  assert(candidates[1], "DataStorage: no data directory candidate available")
+  data_dir = candidates[1]
   return data_dir
 end
 
@@ -112,18 +134,82 @@ function DataStorage:getDocSettingsHashDir()
   return self:getDataDir() .. "/hashdocsettings"
 end
 
+-- Returns a writable cache directory, or nil if no writable cache directory exists.
+function DataStorage:getCacheDirOrNil()
+  if cache_dir then
+    return cache_dir
+  end
+
+  local preferred = self:getDataDir() .. "/cache"
+  if util.isDirRW(preferred, true) then
+    cache_dir = preferred
+    return cache_dir
+  end
+
+  local fallback_tmp = self:getTmpDir()
+  if fallback_tmp then
+    local tmp_cache = fallback_tmp .. "/koreader_cache"
+    if util.isDirRW(tmp_cache, true) then
+      cache_dir = tmp_cache
+      return cache_dir
+    end
+  end
+
+  return nil
+end
+
+-- Returns a cache directory. Always returns a directory even if it is not writable.
+-- Callers should take care of an unwritable directory themselves.
+function DataStorage:getCacheDir()
+  if not cache_dir then
+    self:getCacheDirOrNil()
+  end
+  return cache_dir or (self:getDataDir() .. "/cache")
+end
+
 function DataStorage:getFullDataDir()
   if full_data_dir then
     return full_data_dir
   end
 
-  if string.sub(self:getDataDir(), 1, 1) == "/" then
-    full_data_dir = self:getDataDir()
-  elseif self:getDataDir() == "." then
-    full_data_dir = lfs.currentdir()
+  local dir = self:getDataDir()
+  if string.sub(dir, 1, 1) == "/" then
+    full_data_dir = dir
+  else
+    full_data_dir = (lfs.currentdir() .. "/" .. dir):gsub("/%.$", "")
   end
 
   return full_data_dir
+end
+
+function DataStorage:showStorageWarningIfNeeded()
+  self:getDataDir()
+  local is_readonly = isStorageReadOnly()
+  if not (is_storage_temporary or is_readonly) then
+    return
+  end
+  local UIManager = require("ui/uimanager")
+  local gettext = require("gettext")
+
+  local text
+  if is_readonly then
+    text = gettext(
+      "Storage is completely read-only. Settings and reading history cannot be saved to disk."
+    )
+  else
+    text = gettext(
+      "Primary storage is read-only. Settings will be saved to temporary storage and may be lost when the device is restarted."
+    )
+  end
+
+  UIManager:show(require("ui/widget/confirmbox"):new({
+    text = text,
+    ok_text = gettext("Continue"),
+    cancel_text = gettext("Quit"),
+    cancel_callback = function()
+      UIManager:quit()
+    end,
+  }))
 end
 
 local function initDataDir()
@@ -145,10 +231,12 @@ local function initDataDir()
     "tmp",
   }
   local datadir = DataStorage:getDataDir()
-  for _, dir in ipairs(sub_data_dirs) do
-    local sub_data_dir = string.format("%s/%s", datadir, dir)
-    if lfs.attributes(sub_data_dir, "mode") ~= "directory" then
-      lfs.mkdir(sub_data_dir)
+  if not isStorageReadOnly() then
+    for _, dir in ipairs(sub_data_dirs) do
+      local sub_data_dir = string.format("%s/%s", datadir, dir)
+      if lfs.attributes(sub_data_dir, "mode") ~= "directory" then
+        lfs.mkdir(sub_data_dir)
+      end
     end
   end
 end

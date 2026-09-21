@@ -483,5 +483,21 @@ describe("Calibre Search module", function()
 
       UIManager.show:revert()
     end)
+
+    it(
+      "should configure cache_dir and persist paths with DataStorage:getCacheDir()",
+      function()
+        local expected_cache_dir = DataStorage:getCacheDir() .. "/calibre"
+        assert.are.equal(expected_cache_dir, CalibreSearch.cache_dir)
+        assert.are.equal(
+          expected_cache_dir .. "/libraries.lua",
+          CalibreSearch.cache_libs.path
+        )
+        assert.are.equal(
+          expected_cache_dir .. "/books.dat",
+          CalibreSearch.cache_books.path
+        )
+      end
+    )
   end)
 end)
