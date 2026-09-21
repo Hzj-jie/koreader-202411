@@ -9,10 +9,12 @@ local DataStorage = {}
 local data_dir
 local full_data_dir
 local cache_dir
-local is_cache_dir_writable = false
 local tmp_dir
 local is_storage_temporary = false
-local is_storage_readonly = false
+
+local function isStorageReadOnly()
+  return data_dir ~= nil and not util.isDirRW(data_dir, true)
+end
 
 -- For testing purposes only; do not use in production code.
 -- Resets cached directories and storage state flags across test scenarios.
@@ -20,10 +22,8 @@ function DataStorage:reset()
   data_dir = nil
   full_data_dir = nil
   cache_dir = nil
-  is_cache_dir_writable = false
   tmp_dir = nil
   is_storage_temporary = false
-  is_storage_readonly = false
 end
 
 function DataStorage:getTmpDir()
@@ -115,7 +115,6 @@ function DataStorage:getDataDir()
   -- If even temporary storage is not writable, fall back to first candidate in read-only mode
   assert(candidates[1], "DataStorage: no data directory candidate available")
   data_dir = candidates[1]
-  is_storage_readonly = true
   return data_dir
 end
 
@@ -138,13 +137,12 @@ end
 -- Returns a writable cache directory, or nil if no writable cache directory exists.
 function DataStorage:getCacheDirOrNil()
   if cache_dir then
-    return is_cache_dir_writable and cache_dir or nil
+    return cache_dir
   end
 
   local preferred = self:getDataDir() .. "/cache"
   if util.isDirRW(preferred, true) then
     cache_dir = preferred
-    is_cache_dir_writable = true
     return cache_dir
   end
 
@@ -153,13 +151,10 @@ function DataStorage:getCacheDirOrNil()
     local tmp_cache = fallback_tmp .. "/koreader_cache"
     if util.isDirRW(tmp_cache, true) then
       cache_dir = tmp_cache
-      is_cache_dir_writable = true
       return cache_dir
     end
   end
 
-  cache_dir = preferred
-  is_cache_dir_writable = false
   return nil
 end
 
@@ -169,7 +164,7 @@ function DataStorage:getCacheDir()
   if not cache_dir then
     self:getCacheDirOrNil()
   end
-  return cache_dir
+  return cache_dir or (self:getDataDir() .. "/cache")
 end
 
 function DataStorage:getFullDataDir()
@@ -188,14 +183,15 @@ function DataStorage:getFullDataDir()
 end
 
 function DataStorage:showStorageWarningIfNeeded()
-  if not (is_storage_temporary or is_storage_readonly) then
+  local is_readonly = isStorageReadOnly()
+  if not (is_storage_temporary or is_readonly) then
     return
   end
   local UIManager = require("ui/uimanager")
   local gettext = require("gettext")
 
   local text
-  if is_storage_readonly then
+  if is_readonly then
     text = gettext(
       "Storage is completely read-only. Settings and reading history cannot be saved to disk."
     )
@@ -208,7 +204,6 @@ function DataStorage:showStorageWarningIfNeeded()
   UIManager:show(require("ui/widget/confirmbox"):new({
     text = text,
     ok_text = gettext("Continue"),
-    ok_callback = function() end,
     cancel_text = gettext("Quit"),
     cancel_callback = function()
       UIManager:quit()
@@ -235,7 +230,7 @@ local function initDataDir()
     "tmp",
   }
   local datadir = DataStorage:getDataDir()
-  if not is_storage_readonly then
+  if not isStorageReadOnly() then
     for _, dir in ipairs(sub_data_dirs) do
       local sub_data_dir = string.format("%s/%s", datadir, dir)
       if lfs.attributes(sub_data_dir, "mode") ~= "directory" then

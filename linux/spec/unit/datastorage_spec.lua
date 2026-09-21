@@ -451,21 +451,23 @@ describe("DataStorage module", function()
   end)
 
   it(
-    "should cache unwritable status in getCacheDirOrNil on repeated calls",
+    "should re-probe and return cache dir when storage becomes writable",
     function()
       DataStorage = require("datastorage")
-      local count = 0
+      local writable = false
       isDirRW_mock = function(dir)
-        count = count + 1
+        if dir == DataStorage:getDataDir() .. "/cache" then
+          return writable
+        end
         return dir == DataStorage:getDataDir()
       end
 
       local first = DataStorage:getCacheDirOrNil()
-      local initial_count = count
-      local second = DataStorage:getCacheDirOrNil()
       assert.is_nil(first)
-      assert.is_nil(second)
-      assert.are.equal(initial_count, count)
+
+      writable = true
+      local second = DataStorage:getCacheDirOrNil()
+      assert.are.equal(DataStorage:getDataDir() .. "/cache", second)
     end
   )
 
