@@ -196,7 +196,7 @@ function TextWidget:updateSize()
         self._text_to_draw,
         self.face,
         self.max_width,
-        true,
+        false,
         self.bold
       )
     end
