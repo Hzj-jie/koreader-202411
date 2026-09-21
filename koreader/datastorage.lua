@@ -33,7 +33,6 @@ function DataStorage:getTmpDir()
     table.insert(candidates, "/data/local/tmp")
   end
   table.insert(candidates, "/tmp")
-  table.insert(candidates, self:getDataDir() .. "/tmp")
   table.insert(candidates, "./tmp")
 
   for _, cand in ipairs(candidates) do
