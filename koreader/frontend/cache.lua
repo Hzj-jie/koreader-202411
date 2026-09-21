@@ -21,7 +21,8 @@ local Cache = {
   -- Should LRU call the object's onFree method on eviction? Implies using CacheItem instead of plain tables/objects.
   -- c.f., DocCache
   enable_eviction_cb = false,
-  -- Generally, only DocCache uses this
+  -- Whether caller prefers a persistent on-disk cache (generally, only DocCache uses this).
+  -- Note: acts as a preference; if no writable cache directory is available, Cache will disable it (self.disk_cache = false).
   disk_cache = false,
   cache_path = nil,
 }
@@ -46,12 +47,47 @@ function Cache:init()
     self.cache = lru.new(self.slots, self.size, self.enable_eviction_cb)
   end
 
+  -- Caller prefers a persistent on-disk cache; verify or resolve a writable directory,
+  -- or disable disk caching if no writable path can be found.
   if self.disk_cache then
-    self.cached = self:_getDiskCache()
+    if not (self.cache_path and util.isDirRW(self.cache_path, true)) then
+      local preferred_path = self.cache_path
+      local dir = require("datastorage"):getCacheDirOrNil()
+      if dir then
+        self.cache_path = dir
+        if preferred_path then
+          logger.warn(
+            "Cache: preferred cache path",
+            preferred_path,
+            "is not writable, fallback to default cache path",
+            dir
+          )
+        end
+      else
+        self.disk_cache = false
+        if preferred_path then
+          logger.warn(
+            "Cache: preferred cache path",
+            preferred_path,
+            "is not writable; default cache path is also not writable, disabling disk cache"
+          )
+        else
+          logger.warn(
+            "Cache: default cache path is not writable, disabling disk cache"
+          )
+        end
+      end
+    end
+  end
+
+  if self.disk_cache then
+    self.cache_path = self.cache_path:gsub("/+$", "") .. "/"
   else
     -- No need to go through our own check or even get methods if there's no disk cache, hit lru directly
     self.check = self.cache.get
   end
+
+  self:refreshSnapshot()
 
   if not self.enable_eviction_cb or not self.size then
     -- We won't be using CacheItem here, so we can pass the size manually if necessary.
@@ -61,20 +97,6 @@ function Cache:init()
     -- With debug info (c.f., below)
     --self.insert = self.set
   end
-end
-
---[[
--- return a snapshot of disk cached items for subsequent check
---]]
-function Cache:_getDiskCache()
-  local cached = {}
-  for key_md5 in lfs.dir(self.cache_path) do
-    local file = self.cache_path .. key_md5
-    if lfs.attributes(file, "mode") == "file" then
-      cached[key_md5] = file
-    end
-  end
-  return cached
 end
 
 function Cache:insert(key, object)
@@ -182,7 +204,24 @@ function Cache:refreshSnapshot()
     return
   end
 
-  self.cached = self:_getDiskCache()
+  assert(self.cache_path ~= nil)
+
+  self.cached = {}
+  if lfs.attributes(self.cache_path, "mode") ~= "directory" and not lfs.mkdir(self.cache_path) then
+    return
+  end
+
+  local ok, iter, dir_obj = pcall(lfs.dir, self.cache_path)
+  if not ok or not iter then
+    return
+  end
+
+  for key_md5 in iter, dir_obj do
+    local file = self.cache_path .. key_md5
+    if lfs.attributes(file, "mode") == "file" then
+      self.cached[key_md5] = file
+    end
+  end
 end
 
 return Cache
