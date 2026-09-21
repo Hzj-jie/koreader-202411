@@ -211,7 +211,12 @@ function Cache:refreshSnapshot()
     return
   end
 
-  for key_md5 in lfs.dir(self.cache_path) do
+  local ok, iter, dir_obj = pcall(lfs.dir, self.cache_path)
+  if not ok or not iter then
+    return
+  end
+
+  for key_md5 in iter, dir_obj do
     local file = self.cache_path .. key_md5
     if lfs.attributes(file, "mode") == "file" then
       self.cached[key_md5] = file

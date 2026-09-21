@@ -301,6 +301,42 @@ describe("Cache module", function()
     )
 
     it(
+      "handles lfs.dir error in refreshSnapshot gracefully",
+      function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_lfs_dir = lfs.dir
+        local orig_lfs_attributes = lfs.attributes
+
+        lfs.attributes = function(path, request)
+          if request == "mode" then
+            return "directory"
+          end
+          return nil
+        end
+
+        lfs.dir = function()
+          error("permission denied")
+        end
+
+        local c = Cache:new({
+          slots = 10,
+          disk_cache = false,
+          cache_path = "/unreadable/cache/",
+        })
+        c.disk_cache = true
+
+        assert.has_no_errors(function()
+          c:refreshSnapshot()
+        end)
+        assert.is_table(c.cached)
+        assert.are.same({}, c.cached)
+
+        lfs.dir = orig_lfs_dir
+        lfs.attributes = orig_lfs_attributes
+      end
+    )
+
+    it(
       "falls back to DataStorage:getCacheDirOrNil when configured cache_path is unwritable",
       function()
         local lfs = require("libs/libkoreader-lfs")
