@@ -831,8 +831,8 @@ end
 -- @func callback(fullpath, name, attr)
 function util.findFiles(dir, cb)
   local function scan(current)
-    local ok, iter, dir_obj = pcall(lfs.dir, current)
-    if not ok then
+    local iter, dir_obj = lfs.dir(current)
+    if not iter then
       return
     end
     for f in iter, dir_obj do
@@ -855,9 +855,8 @@ end
 ---- @string path
 ---- @treturn bool
 function util.isEmptyDir(path)
-  -- lfs.dir will crash rather than return nil if directory doesn't exist O_o
-  local ok, iter, dir_obj = pcall(lfs.dir, path)
-  if not ok then
+  local iter, dir_obj = lfs.dir(path)
+  if not iter then
     return
   end
   for filename in iter, dir_obj do
@@ -1060,8 +1059,8 @@ function util.removeEmptyTree(dir)
   if lfs.symlinkattributes(dir, "mode") == "link" then
     return nil, "Cannot remove empty tree through a symlink: " .. tostring(dir)
   end
-  local ok, iter, dir_obj = pcall(lfs.dir, dir)
-  if not ok then
+  local iter, dir_obj = lfs.dir(dir)
+  if not iter then
     if lfs.attributes(dir, "mode") == nil then
       return true
     end

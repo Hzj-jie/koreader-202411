@@ -603,8 +603,8 @@ end
 -- custom cover
 
 local function findCustomCoverFileInDir(dir)
-  local ok, iter, dir_obj = pcall(lfs.dir, dir)
-  if ok then
+  local iter, dir_obj = lfs.dir(dir)
+  if iter then
     for f in iter, dir_obj do
       if util.splitFileNameSuffix(f) == "cover" then
         return dir .. "/" .. f

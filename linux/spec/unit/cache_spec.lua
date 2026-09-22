@@ -315,7 +315,7 @@ describe("Cache module", function()
         end
 
         lfs.dir = function()
-          error("permission denied")
+          return nil, nil, "permission denied"
         end
 
         local c = Cache:new({

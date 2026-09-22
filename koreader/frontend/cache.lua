@@ -211,8 +211,8 @@ function Cache:refreshSnapshot()
     return
   end
 
-  local ok, iter, dir_obj = pcall(lfs.dir, self.cache_path)
-  if not ok or not iter then
+  local iter, dir_obj = lfs.dir(self.cache_path)
+  if not iter then
     return
   end
 

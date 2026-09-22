@@ -557,8 +557,8 @@ function CloudStorage:downloadListFiles(item)
   local UI = require("ui/trapper")
   UI:info(gettext("Retrieving files…"))
 
-  local ok, iter, dir_obj = pcall(lfs.dir, path)
-  if ok then
+  local iter, dir_obj = lfs.dir(path)
+  if iter then
     for f in iter, dir_obj do
       local filename = path .. "/" .. f
       local attributes = lfs.attributes(filename)

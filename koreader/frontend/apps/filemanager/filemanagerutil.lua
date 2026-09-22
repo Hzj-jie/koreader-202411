@@ -55,8 +55,8 @@ function filemanagerutil.getRandomFile(dir, match_func)
     dir = dir .. "/"
   end
   local files = {}
-  local ok, iter, dir_obj = pcall(lfs.dir, dir)
-  if ok then
+  local iter, dir_obj = lfs.dir(dir)
+  if iter then
     for entry in iter, dir_obj do
       local file = dir .. entry
       if lfs.attributes(file, "mode") == "file" and match_func(file) then

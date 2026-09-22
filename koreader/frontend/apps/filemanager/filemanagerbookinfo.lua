@@ -772,8 +772,8 @@ function BookInfo:moveBookMetadata()
     while #dirs ~= 0 do
       local new_dirs = {}
       for _, d in ipairs(dirs) do
-        local ok, iter, dir_obj = pcall(lfs.dir, d)
-        if ok then
+        local iter, dir_obj = lfs.dir(d)
+        if iter then
           for f in iter, dir_obj do
             local fullpath = "/" .. f
             if d ~= "/" then

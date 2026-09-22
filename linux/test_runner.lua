@@ -1,3 +1,8 @@
+-- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
+package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
+package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
+
+local test_env = require("test_helper")
 local ffi = require("ffi")
 local lfs = require("libs/libkoreader-lfs")
 
@@ -22,12 +27,6 @@ os.exit = function(code, close)
         exit_code = code or 0
     end
 end
-
--- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
-package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
-package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
-
-local test_env = require("test_helper")
 
 -- WORKER PROCESS EXECUTION MODE
 if os.getenv("KO_TEST_WORKER") == "1" then

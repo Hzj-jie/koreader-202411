@@ -615,10 +615,9 @@ end
 
 -- find all calibre libraries under a given root dir
 function CalibreSearch:findCalibre(root)
-  -- protect lfs.dir which will raise error on no-permission directory
-  local ok, iter, dir_obj = pcall(lfs.dir, root)
+  local iter, dir_obj = lfs.dir(root)
   local contains_metadata = false
-  if ok then
+  if iter then
     for entity in iter, dir_obj do
       -- nested libraries aren't allowed
       if not contains_metadata then

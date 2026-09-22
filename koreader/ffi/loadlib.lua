@@ -202,3 +202,21 @@ _G.require = function(name)
   package.loaded[name] = loaded_module
   return loaded_module
 end
+
+-- Wrap libs/libkoreader-lfs to ensure lfs.dir returns (iter, dir_obj) on success, or (nil, nil, err) on failure.
+local function wrapLfs(lfs_mod)
+  if type(lfs_mod) == "table" and lfs_mod.dir and not lfs_mod._orig_dir then
+    local orig_dir = lfs_mod.dir
+    lfs_mod._orig_dir = orig_dir
+    lfs_mod.dir = function(path)
+      local ok, iter, dir_obj = pcall(orig_dir, path)
+      if not ok then
+        return nil, nil, iter
+      end
+      return iter, dir_obj
+    end
+  end
+  return lfs_mod
+end
+
+package.loaded["libs/libkoreader-lfs"] = wrapLfs(require("libs/libkoreader-lfs"))

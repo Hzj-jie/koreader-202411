@@ -38,8 +38,8 @@ local function getIfosInDir(path)
   -- may contain possibly many resource files (image, audio files...)
   -- that could slow down our walk here.
   local ifos = {}
-  local ok, iter, dir_obj = pcall(lfs.dir, path)
-  if ok then
+  local iter, dir_obj = lfs.dir(path)
+  if iter then
     for name in iter, dir_obj do
       if name ~= "." and name ~= ".." and name ~= "res" then
         local fullpath = path .. "/" .. name
