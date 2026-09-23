@@ -90,17 +90,16 @@ describe("KOSync plugin tests", function()
           return true, { message = "Progress updated" }
         end
       ),
-      get_progress = spy.new(
-        function(self_arg, username, userkey, doc_digest)
-          return true, {
+      get_progress = spy.new(function(self_arg, username, userkey, doc_digest)
+        return true,
+          {
             progress = "60",
             percentage = 0.6,
             device = "OtherDevice",
             device_id = "other_id",
             timestamp = 1000,
           }
-        end
-      ),
+      end),
     }
 
     stub(NetworkMgr, "isOnline")
@@ -801,6 +800,30 @@ describe("KOSync plugin tests", function()
         BackgroundJobs.insertKeyed:revert()
       end
     )
+
+    it(
+      "handles background push failure gracefully when job.result is non-table",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.push_timestamp = 0
+
+        for _, bad_res in ipairs({ false, 222 }) do
+          stub(BackgroundJobs, "insertKeyed", function(job)
+            job.result = bad_res
+            job.callback(job)
+            return true
+          end)
+
+          assert.has_no.errors(function()
+            kosync:_updateProgress(false)
+          end)
+          BackgroundJobs.insertKeyed:revert()
+          kosync.push_timestamp = 0
+        end
+      end
+    )
   end)
 
   describe("Pull Progress", function()
@@ -848,23 +871,25 @@ describe("KOSync plugin tests", function()
 
         -- Response from same device
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.8,
-            device = Device.model,
-            device_id = kosync.device_id,
-          }
+          return true,
+            {
+              percentage = 0.8,
+              device = Device.model,
+              device_id = kosync.device_id,
+            }
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
 
         -- Response with same progress / percentage
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.5,
-            progress = "50",
-            device = "OtherDevice",
-            device_id = "other_id",
-          }
+          return true,
+            {
+              percentage = 0.5,
+              progress = "50",
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
         end)
         kosync:_getProgress(true)
         assert.stub(UIManager.show).was_called()
@@ -891,11 +916,12 @@ describe("KOSync plugin tests", function()
         UIManager.show:clear()
         kosync.pull_timestamp = 0
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.8,
-            device = Device.model,
-            device_id = kosync.device_id,
-          }
+          return true,
+            {
+              percentage = 0.8,
+              device = Device.model,
+              device_id = kosync.device_id,
+            }
         end)
         kosync:_getProgress(false)
         assert.stub(UIManager.show).was_not_called()
@@ -904,12 +930,13 @@ describe("KOSync plugin tests", function()
         UIManager.show:clear()
         kosync.pull_timestamp = 0
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.5,
-            progress = "50",
-            device = "OtherDevice",
-            device_id = "other_id",
-          }
+          return true,
+            {
+              percentage = 0.5,
+              progress = "50",
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
         end)
         kosync:_getProgress(false)
         assert.stub(UIManager.show).was_not_called()
@@ -931,12 +958,13 @@ describe("KOSync plugin tests", function()
       kosync.settings.userkey = "key"
 
       mock_client.get_progress = spy.new(function()
-        return true, {
-          percentage = 0.8,
-          progress = "80",
-          device = "OtherDevice",
-          device_id = "other_id",
-        }
+        return true,
+          {
+            percentage = 0.8,
+            progress = "80",
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
       end)
 
       stub(kosync, "_syncToProgress")
@@ -959,13 +987,14 @@ describe("KOSync plugin tests", function()
         kosync.settings.sync_forward = 2 -- SILENT
         kosync.last_page_turn_timestamp = 100
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.8,
-            progress = "80",
-            timestamp = 200, -- newer
-            device = "OtherDevice",
-            device_id = "other_id",
-          }
+          return true,
+            {
+              percentage = 0.8,
+              progress = "80",
+              timestamp = 200, -- newer
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
         end)
         stub(kosync, "_syncToProgress")
         kosync.pull_timestamp = 0
@@ -990,13 +1019,14 @@ describe("KOSync plugin tests", function()
         kosync.settings.sync_backward = 2 -- SILENT
         kosync.last_page_turn_timestamp = 300
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.2,
-            progress = "20",
-            timestamp = 200, -- older
-            device = "OtherDevice",
-            device_id = "other_id",
-          }
+          return true,
+            {
+              percentage = 0.2,
+              progress = "20",
+              timestamp = 200, -- older
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
         end)
         kosync.pull_timestamp = 0
         kosync:_getProgress(false)
@@ -1018,13 +1048,14 @@ describe("KOSync plugin tests", function()
 
         -- When timestamp is nil (legacy server), uses percentage comparison
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.8,
-            progress = "80",
-            timestamp = nil,
-            device = "OtherDevice",
-            device_id = "other_id",
-          }
+          return true,
+            {
+              percentage = 0.8,
+              progress = "80",
+              timestamp = nil,
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
         end)
         kosync.settings.sync_forward = 2 -- SILENT
         kosync.pull_timestamp = 0
@@ -1053,13 +1084,14 @@ describe("KOSync plugin tests", function()
         kosync.settings.userkey = "key"
 
         mock_client.get_progress = spy.new(function()
-          return true, {
-            percentage = 0.8,
-            progress = "80",
-            timestamp = 200,
-            device = "OtherDevice",
-            device_id = "other_id",
-          }
+          return true,
+            {
+              percentage = 0.8,
+              progress = "80",
+              timestamp = 200,
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
         end)
         stub(kosync, "_syncToProgress")
 
@@ -1115,13 +1147,14 @@ describe("KOSync plugin tests", function()
       kosync.settings.sync_forward = 2 -- SILENT
 
       mock_client.get_progress = spy.new(function()
-        return true, {
-          percentage = 0.9,
-          progress = "90",
-          timestamp = 200,
-          device = "OtherDevice",
-          device_id = "other_id",
-        }
+        return true,
+          {
+            percentage = 0.9,
+            progress = "90",
+            timestamp = 200,
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
       end)
 
       local insert_keyed_called = false
@@ -1139,7 +1172,9 @@ describe("KOSync plugin tests", function()
 
       assert.is_true(insert_keyed_called)
       assert.spy(mock_client.get_progress).was_called()
-      assert.stub(kosync._syncToProgress).was_called_with(match.is_table(), "90")
+      assert
+        .stub(kosync._syncToProgress)
+        .was_called_with(match.is_table(), "90")
 
       kosync._syncToProgress:revert()
       BackgroundJobs.insertKeyed:revert()
@@ -1178,6 +1213,30 @@ describe("KOSync plugin tests", function()
       end
     )
 
+    it(
+      "handles background pull failure gracefully when job.result is non-table",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.pull_timestamp = 0
+
+        for _, bad_res in ipairs({ false, 222 }) do
+          stub(BackgroundJobs, "insertKeyed", function(job)
+            job.result = bad_res
+            job.callback(job)
+            return true
+          end)
+
+          assert.has_no.errors(function()
+            kosync:_getProgress(false)
+          end)
+          BackgroundJobs.insertKeyed:revert()
+          kosync.pull_timestamp = 0
+        end
+      end
+    )
+
     it("ignores pull when sync strategy is disabled", function()
       kosync:init()
       kosync.settings.username = "user"
@@ -1188,13 +1247,14 @@ describe("KOSync plugin tests", function()
       kosync.last_page_turn_timestamp = 100
 
       mock_client.get_progress = spy.new(function()
-        return true, {
-          percentage = 0.9,
-          progress = "90",
-          timestamp = 200, -- newer
-          device = "OtherDevice",
-          device_id = "other_id",
-        }
+        return true,
+          {
+            percentage = 0.9,
+            progress = "90",
+            timestamp = 200, -- newer
+            device = "OtherDevice",
+            device_id = "other_id",
+          }
       end)
 
       stub(kosync, "_syncToProgress")

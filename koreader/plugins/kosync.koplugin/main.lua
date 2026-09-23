@@ -609,7 +609,8 @@ function KOSync:_getDocumentDigest()
     return nil
   end
   if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
-    return self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+    return self.ui.doc_settings
+      and self.ui.doc_settings:read("partial_md5_checksum")
   end
   local file = self.ui.document.file
   if not file then
@@ -621,7 +622,8 @@ function KOSync:_getDocumentDigest()
 end
 
 function KOSync:_isCurrentDocument(doc_digest)
-  return self.ui == ReaderUI.instance and self:_getDocumentDigest() == doc_digest
+  return self.ui == ReaderUI.instance
+    and self:_getDocumentDigest() == doc_digest
 end
 
 function KOSync:_syncToProgress(progress)
@@ -692,7 +694,9 @@ function KOSync:_applyPullUI(
   end
 
   local remote_percentage = Math.roundPercent(body.percentage)
-  if local_percentage == remote_percentage or body.progress == local_progress then
+  if
+    local_percentage == remote_percentage or body.progress == local_progress
+  then
     showInfo(gettext("The progress has already been synchronized."))
     return
   end
@@ -711,7 +715,8 @@ function KOSync:_applyPullUI(
     is_newer = (body.percentage > local_percentage)
   end
 
-  local strategy = is_newer and self.settings.sync_forward or self.settings.sync_backward
+  local strategy = is_newer and self.settings.sync_forward
+    or self.settings.sync_backward
 
   if strategy == SYNC_STRATEGY.SILENT then
     self:_syncToProgress(body.progress)
@@ -787,12 +792,11 @@ function KOSync:_updateProgress(interactive)
   end
 
   local function apply(res)
-    assert(res ~= nil)
-    applyPushUI(
-      res.ok,
-      doc_digest,
-      interactive
-    )
+    if type(res) ~= "table" then
+      logger.warn("KOSync: [Push] background job failed, result:", res)
+      res = { ok = false }
+    end
+    applyPushUI(res.ok, doc_digest, interactive)
   end
 
   if interactive then
@@ -806,7 +810,7 @@ function KOSync:_updateProgress(interactive)
       executable = "fork",
       action = send,
       callback = function(job)
-        apply(job and job.result)
+        apply(job.result)
       end,
     })
   end
@@ -847,16 +851,15 @@ function KOSync:_getProgress(interactive)
       return { skipped = true }
     end
 
-    local ok, body = client:get_progress(
-      username,
-      userkey,
-      doc_digest
-    )
+    local ok, body = client:get_progress(username, userkey, doc_digest)
     return { ok = ok, body = body }
   end
 
   local function apply(res)
-    assert(res ~= nil)
+    if type(res) ~= "table" then
+      logger.warn("KOSync: [Pull] background job failed, result:", res)
+      res = { ok = false }
+    end
     if res.skipped then
       return
     end
@@ -882,7 +885,7 @@ function KOSync:_getProgress(interactive)
       executable = "fork",
       action = send,
       callback = function(job)
-        apply(job and job.result)
+        apply(job.result)
       end,
     })
   end
