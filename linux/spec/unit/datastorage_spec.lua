@@ -289,24 +289,21 @@ describe("DataStorage module", function()
     end
   )
 
-  it(
-    "should assert when no data directory candidate is available",
-    function()
-      env_mock["KO_MULTIUSER"] = "true"
-      env_mock["APPIMAGE"] = false
-      env_mock["FLATPAK"] = false
-      env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
-      env_mock["XDG_CONFIG_HOME"] = false
-      env_mock["HOME"] = false
-      isDirRW_mock = function()
-        return false
-      end
-
-      assert.has_error(function()
-        require("datastorage")
-      end)
+  it("should assert when no data directory candidate is available", function()
+    env_mock["KO_MULTIUSER"] = "true"
+    env_mock["APPIMAGE"] = false
+    env_mock["FLATPAK"] = false
+    env_mock["UBUNTU_APPLICATION_ISOLATION"] = false
+    env_mock["XDG_CONFIG_HOME"] = false
+    env_mock["HOME"] = false
+    isDirRW_mock = function()
+      return false
     end
-  )
+
+    assert.has_error(function()
+      require("datastorage")
+    end)
+  end)
 
   it("should show modal confirmation when storage is temporary", function()
     env_mock["KO_MULTIUSER"] = "true"
@@ -718,12 +715,13 @@ describe("DataStorage module", function()
     )
 
     it("falls back to ./tmp when env TMPDIR and /tmp are unwritable", function()
+      local lfs = require("libs/libkoreader-lfs")
       env_mock["TMPDIR"] = false
       DataStorage = require("datastorage")
       isDirRW_mock = function(dir)
         return dir == "./tmp"
       end
-      assert.are.equal("./tmp", DataStorage:getTmpDir())
+      assert.are.equal(lfs.currentdir() .. "/tmp", DataStorage:getTmpDir())
     end)
 
     it(
