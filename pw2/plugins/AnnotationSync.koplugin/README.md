@@ -1,0 +1,1 @@
+../../../koreader/plugins/AnnotationSync.koplugin/README.md

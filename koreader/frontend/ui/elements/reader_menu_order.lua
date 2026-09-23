@@ -30,8 +30,6 @@ local order = require("ui/elements/common_menu_order")({
   navi_settings = {
     "toc_ticks_level_ignore",
     "----------------------------",
-    "progress_sync",
-    "----------------------------",
     "bookmarks_settings",
     "----------------------------",
     "toc_items_per_page",
