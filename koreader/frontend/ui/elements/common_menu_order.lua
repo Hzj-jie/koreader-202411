@@ -97,6 +97,7 @@ local function mergeWith(b)
       "language_support",
       "----------------------------",
       "annotation_sync_plugin",
+      "----------------------------",
     },
     screen = {
       "screensaver",
