@@ -45,7 +45,14 @@ function DataStorage:getTmpDir()
 
   for _, cand in ipairs(candidates) do
     if util.isDirRW(cand, true) then
-      tmp_dir = cand
+      if string.sub(cand, 1, 1) == "/" then
+        tmp_dir = cand
+      else
+        tmp_dir = (lfs.currentdir() .. "/" .. cand:gsub("^%./", "")):gsub(
+          "/%.$",
+          ""
+        )
+      end
       return tmp_dir
     end
   end

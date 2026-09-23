@@ -207,7 +207,10 @@ function Cache:refreshSnapshot()
   assert(self.cache_path ~= nil)
 
   self.cached = {}
-  if lfs.attributes(self.cache_path, "mode") ~= "directory" and not lfs.mkdir(self.cache_path) then
+  if
+    lfs.attributes(self.cache_path, "mode") ~= "directory"
+    and not lfs.mkdir(self.cache_path)
+  then
     return
   end
 
