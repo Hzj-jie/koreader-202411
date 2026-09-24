@@ -176,7 +176,10 @@ describe("KOSync plugin tests", function()
   after_each(function()
     ReaderUI.instance = nil
 
-    if BackgroundJobs and BackgroundJobs.insertKeyed.revert then
+    if
+      type(BackgroundJobs.insertKeyed) == "table"
+      and BackgroundJobs.insertKeyed.revert
+    then
       BackgroundJobs.insertKeyed:revert()
     end
 
@@ -302,6 +305,17 @@ describe("KOSync plugin tests", function()
       assert.are.equal("invalid_url", kosync.last_custom_server_attempt)
       assert.stub(UIManager.show).was_called()
       KOSyncClient.new:revert()
+    end)
+
+    it("updates custom server and recreates client when valid", function()
+      kosync:init()
+      kosync:setCustomServer("https://sync.example.com")
+      assert.are.equal(
+        "https://sync.example.com",
+        kosync.settings.custom_server
+      )
+      -- Restore mock client for remaining tests
+      kosync:_setClientForTesting(mock_client)
     end)
 
     it("sets sync strategies and checksum method", function()
