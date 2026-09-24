@@ -135,8 +135,8 @@ function M.sync_callback(
   M.get_deleted_annotations(local_map, last_sync_map, document, force)
   local merged = {}
 
-  local local_keys = M.sort_keys_by_position(local_map, document)
-  local income_keys = M.sort_keys_by_position(income_map, document)
+  local local_keys = M.sort_keys_by_position(local_map)
+  local income_keys = M.sort_keys_by_position(income_map)
   local l = 1
   local i = 1
 
@@ -229,8 +229,8 @@ function M.get_deleted_annotations(
   force
 )
   if type(last_uploaded_map) == "table" and type(local_map) == "table" then
-    local local_keys = M.sort_keys_by_position(local_map, document)
-    local uploaded_keys = M.sort_keys_by_position(last_uploaded_map, document)
+    local local_keys = M.sort_keys_by_position(local_map)
+    local uploaded_keys = M.sort_keys_by_position(last_uploaded_map)
 
     -- SAFETY (Issue 23): If local is empty but last sync was not,
     -- it's likely a docsettings failure or fresh device state.
@@ -393,7 +393,7 @@ function M.is_before(a, b)
   return a_time <= b_time
 end
 
-function M.sort_keys_by_position(t, document)
+function M.sort_keys_by_position(t)
   local keys = {}
   for k in pairs(t) do
     table.insert(keys, k)
