@@ -156,15 +156,7 @@ function M.sync_callback(
       i = i + 1
       l = l + 1
     else
-      local local_p = local_v.pos0 or local_v.page
-      local income_p = income_v.pos0 or income_v.page
-      if type(local_p) == "table" and not local_p.page and local_v.page then
-        local_p = { x = local_p.x, y = local_p.y, page = local_v.page }
-      end
-      if type(income_p) == "table" and not income_p.page and income_v.page then
-        income_p = { x = income_p.x, y = income_p.y, page = income_v.page }
-      end
-      local cmp = M.compare_positions(local_p, income_p)
+      local cmp = M.compare_positions(local_v, income_v)
       if (cmp or 0) > 0 then
         merged[local_k] = local_v
         l = l + 1
@@ -254,7 +246,7 @@ function M.get_deleted_annotations(
           local_and_uploaded = true
           break
         end
-        if M.compare_positions(local_v.page, uploaded_v.page) < 0 then
+        if M.compare_positions(local_v, uploaded_v) < 0 then
           break
         end
       end
@@ -267,58 +259,76 @@ function M.get_deleted_annotations(
   end
 end
 
--- Universal comparison logic for various annotation position types
+-- Universal comparison logic for annotation position tables
 function M.compare_positions(a, b)
-  if not a or not b then
-    return 0
-  end
+  assert(
+    type(a) == "table" and type(b) == "table",
+    "compare_positions requires table arguments"
+  )
 
-  -- Case 1: Both are numbers (paging bookmarks)
-  if type(a) == "number" and type(b) == "number" then
-    return b - a
-  end
+  -- Check if both are rolling XPointers (either in pos0 or page)
+  local xp_a = (type(a.pos0) == "string" and a.pos0)
+    or (type(a.page) == "string" and a.page)
+  local xp_b = (type(b.pos0) == "string" and b.pos0)
+    or (type(b.page) == "string" and b.page)
 
-  -- Case 2: Both are strings (rolling XPointers)
-  if type(a) == "string" and type(b) == "string" then
-    if a == b then
+  if xp_a and xp_b then
+    if xp_a == xp_b then
       return 0
     end
-    if natsort(a, b) then
+    if natsort(xp_a, xp_b) then
       return 1
-    elseif natsort(b, a) then
+    elseif natsort(xp_b, xp_a) then
       return -1
     else
       return 0
     end
   end
 
-  -- Case 3: Both are tables (paging highlights)
-  if type(a) == "table" and type(b) == "table" then
-    local page_a = a.page or 0
-    local page_b = b.page or 0
-    if page_a ~= page_b then
+  local page_a = a.page or (type(a.pos0) == "table" and a.pos0.page)
+  local page_b = b.page or (type(b.pos0) == "table" and b.pos0.page)
+
+  assert(
+    page_a ~= nil and page_b ~= nil,
+    "compare_positions requires page or pos0 in arguments"
+  )
+
+  if page_a ~= page_b then
+    if type(page_a) == "number" and type(page_b) == "number" then
       return page_b - page_a
     end
-    -- Same page: compare coordinates (top-to-bottom, left-to-right)
-    if a.y and b.y and a.y ~= b.y then
-      return b.y - a.y
+
+    local str_a = tostring(page_a)
+    local str_b = tostring(page_b)
+    if natsort(str_a, str_b) then
+      return 1
+    elseif natsort(str_b, str_a) then
+      return -1
+    else
+      return 0
     end
-    if a.x and b.x and a.x ~= b.x then
-      return b.x - a.x
-    end
-    return 0
   end
 
-  -- Case 4: Mixed types (bookmark page number vs highlight table position)
-  local page_a = type(a) == "table" and (a.page or 0) or a
-  local page_b = type(b) == "table" and (b.page or 0) or b
+  -- Same page: compare sub-page position / coordinates
+  local pos_a = type(a.pos0) == "table" and a.pos0 or a
+  local pos_b = type(b.pos0) == "table" and b.pos0 or b
 
-  if type(page_a) == "number" and type(page_b) == "number" then
-    if page_a ~= page_b then
-      return page_b - page_a
+  local has_coords_a = (pos_a.x ~= nil or pos_a.y ~= nil)
+  local has_coords_b = (pos_b.x ~= nil or pos_b.y ~= nil)
+
+  if not has_coords_a and has_coords_b then
+    -- Bookmark on same page is strictly ordered before highlight
+    return 1
+  elseif has_coords_a and not has_coords_b then
+    return -1
+  elseif has_coords_a and has_coords_b then
+    if pos_a.y and pos_b.y and pos_a.y ~= pos_b.y then
+      return pos_b.y - pos_a.y
     end
-    -- Same page: bookmark number is before highlight table
-    return type(a) == "number" and 1 or -1
+    if pos_a.x and pos_b.x and pos_a.x ~= pos_b.x then
+      return pos_b.x - pos_a.x
+    end
+    return 0
   end
 
   return 0
@@ -399,18 +409,7 @@ function M.sort_keys_by_position(t)
     table.insert(keys, k)
   end
   table.sort(keys, function(a, b)
-    local ann_a = t[a]
-    local ann_b = t[b]
-    local pos_a = ann_a.pos0 or ann_a.page
-    local pos_b = ann_b.pos0 or ann_b.page
-    if type(pos_a) == "table" and not pos_a.page and ann_a.page then
-      pos_a = { x = pos_a.x, y = pos_a.y, page = ann_a.page }
-    end
-    if type(pos_b) == "table" and not pos_b.page and ann_b.page then
-      pos_b = { x = pos_b.x, y = pos_b.y, page = ann_b.page }
-    end
-    local cmp = M.compare_positions(pos_a, pos_b)
-    return (cmp or 0) > 0
+    return M.compare_positions(t[a], t[b]) > 0
   end)
   return keys
 end
@@ -438,18 +437,31 @@ function M.positions_intersect(a, b, document)
     return false
   end
 
+  local a_end = {
+    page = (type(a.pos1) == "table" and (a.pos1.page or a.page))
+      or (type(a.pos1) == "string" and a.pos1)
+      or a.page,
+    pos0 = a.pos1,
+  }
+  local b_end = {
+    page = (type(b.pos1) == "table" and (b.pos1.page or b.page))
+      or (type(b.pos1) == "string" and b.pos1)
+      or b.page,
+    pos0 = b.pos1,
+  }
+
   -- A_Start <= B_Start <= A_End
   if
-    M.compare_positions(a.pos0, b.pos0) >= 0
-    and M.compare_positions(b.pos0, a.pos1) >= 0
+    M.compare_positions(a, b) >= 0
+    and M.compare_positions(b, a_end) >= 0
   then
     return true
   end
 
   -- B_Start <= A_Start <= B_End
   if
-    M.compare_positions(b.pos0, a.pos0) >= 0
-    and M.compare_positions(a.pos0, b.pos1) >= 0
+    M.compare_positions(b, a) >= 0
+    and M.compare_positions(a, b_end) >= 0
   then
     return true
   end

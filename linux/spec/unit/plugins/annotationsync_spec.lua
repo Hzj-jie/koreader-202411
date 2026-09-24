@@ -93,43 +93,50 @@ describe("AnnotationSync plugin unit tests", function()
 
   describe("Position Comparison and Sorting", function()
     it(
-      "should compare positions correctly across numbers, strings, and tables",
+      "should compare positions correctly across position and annotation tables",
       function()
-        -- Numbers (page bookmarks)
-        assert.is_true(annotations.compare_positions(1, 2) > 0)
-        assert.is_true(annotations.compare_positions(2, 1) < 0)
-        assert.are.equal(0, annotations.compare_positions(2, 2))
+        -- Page bookmarks
+        assert.is_true(
+          annotations.compare_positions({ page = 1 }, { page = 2 }) > 0
+        )
+        assert.is_true(
+          annotations.compare_positions({ page = 2 }, { page = 1 }) < 0
+        )
+        assert.are.equal(
+          0,
+          annotations.compare_positions({ page = 2 }, { page = 2 })
+        )
 
         -- Strings (XPointers with natural sort)
         assert.is_true(
           annotations.compare_positions(
-            "/body/DocFragment[1]",
-            "/body/DocFragment[2]"
+            { page = "/body/DocFragment[1]" },
+            { page = "/body/DocFragment[2]" }
           ) > 0
         )
         assert.is_true(
           annotations.compare_positions(
-            "/body/DocFragment[2]",
-            "/body/DocFragment[1]"
+            { page = "/body/DocFragment[2]" },
+            { page = "/body/DocFragment[1]" }
           ) < 0
         )
         assert.is_true(
           annotations.compare_positions(
-            "/body/DocFragment[2]",
-            "/body/DocFragment[10]"
+            { page = "/body/DocFragment[2]" },
+            { page = "/body/DocFragment[10]" }
           ) > 0
         )
         assert.is_true(
           annotations.compare_positions(
-            "/body/DocFragment[3]/text().72",
-            "/body/DocFragment[3]/text().210"
+            { page = "/body/DocFragment[3]/text().72" },
+            { page = "/body/DocFragment[3]/text().210" }
           ) > 0
         )
         assert.are.equal(
           0,
           annotations.compare_positions(
-            "/body/DocFragment[1]",
-            "/body/DocFragment[1]"
+            { page = "/body/DocFragment[1]" },
+            { page = "/body/DocFragment[1]" }
           )
         )
 
@@ -151,13 +158,33 @@ describe("AnnotationSync plugin unit tests", function()
         assert.is_true(annotations.compare_positions(t_left, t_right) > 0)
         assert.is_true(annotations.compare_positions(t_right, t_left) < 0)
 
-        -- Mixed types: number bookmark vs table highlight on different pages
-        assert.is_true(annotations.compare_positions(1, t_p2) > 0)
-        assert.is_true(annotations.compare_positions(t_p2, 1) < 0)
+        -- Bookmark vs highlight on different pages
+        assert.is_true(annotations.compare_positions({ page = 1 }, t_p2) > 0)
+        assert.is_true(annotations.compare_positions(t_p2, { page = 1 }) < 0)
 
-        -- Mixed types: number bookmark vs table highlight on same page (bookmark is smaller)
-        assert.is_true(annotations.compare_positions(1, t_p1) > 0)
-        assert.is_true(annotations.compare_positions(t_p1, 1) < 0)
+        -- Bookmark vs highlight on same page (bookmark is ordered before highlight)
+        assert.is_true(annotations.compare_positions({ page = 1 }, t_p1) > 0)
+        assert.is_true(annotations.compare_positions(t_p1, { page = 1 }) < 0)
+
+        -- Annotations with nested pos0
+        local ann_top = { page = 1, pos0 = { x = 10, y = 20 } }
+        local ann_bottom = { page = 1, pos0 = { x = 10, y = 80 } }
+        assert.is_true(annotations.compare_positions(ann_top, ann_bottom) > 0)
+        assert.is_true(annotations.compare_positions(ann_bottom, ann_top) < 0)
+
+        -- Assertions: non-table arguments must error
+        assert.has_error(function()
+          annotations.compare_positions(1, 2)
+        end)
+        assert.has_error(function()
+          annotations.compare_positions(nil, {})
+        end)
+        assert.has_error(function()
+          annotations.compare_positions({}, nil)
+        end)
+        assert.has_error(function()
+          annotations.compare_positions("foo", "bar")
+        end)
       end
     )
 
