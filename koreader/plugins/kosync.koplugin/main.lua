@@ -605,25 +605,27 @@ function KOSync:_getLastProgress()
 end
 
 function KOSync:_getDocumentDigest()
-  if not self.ui or not self.ui.document then
-    return nil
-  end
+  assert(self.ui and self.ui.document, "KOSync: no document open")
+  local digest
   if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
-    return self.ui.doc_settings
-      and self.ui.doc_settings:read("partial_md5_checksum")
+    assert(self.ui.doc_settings, "KOSync: missing doc_settings")
+    digest = self.ui.doc_settings:read("partial_md5_checksum")
+  else
+    local file = self.ui.document.file
+    assert(file, "KOSync: missing document file")
+    local _, file_name = util.splitFilePathName(file)
+    digest = md5(file_name)
   end
-  local file = self.ui.document.file
-  if not file then
-    return nil
-  end
-
-  local _, file_name = util.splitFilePathName(file)
-  return md5(file_name)
+  assert(digest ~= nil, "KOSync: document digest is nil")
+  return digest
 end
 
 function KOSync:_isCurrentDocument(doc_digest)
-  return self.ui == ReaderUI.instance
-    and self:_getDocumentDigest() == doc_digest
+  assert(doc_digest ~= nil, "KOSync: doc_digest must not be nil")
+  if self.ui ~= ReaderUI.instance or not self.ui or not self.ui.document then
+    return false
+  end
+  return self:_getDocumentDigest() == doc_digest
 end
 
 function KOSync:_syncToProgress(progress)

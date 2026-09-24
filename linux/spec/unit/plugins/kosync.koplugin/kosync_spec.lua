@@ -633,7 +633,20 @@ describe("KOSync plugin tests", function()
 
       -- FILENAME when document.file is nil
       mock_ui.document.file = nil
-      assert.is_nil(kosync:_getDocumentDigest())
+      assert.has_error(function()
+        kosync:_getDocumentDigest()
+      end)
+      mock_ui.document.file = "/path/to/test.epub"
+
+      -- When self.ui.document is nil
+      mock_ui.document = nil
+      assert.has_error(function()
+        kosync:_getDocumentDigest()
+      end)
+      mock_ui.document = {
+        file = "/path/to/test.epub",
+        info = { has_pages = true },
+      }
     end)
 
     it("checks if current document matches", function()
@@ -661,7 +674,9 @@ describe("KOSync plugin tests", function()
       mock_ui.document = original_doc
 
       -- doc_digest is nil
-      assert.is_false(kosync:_isCurrentDocument(nil))
+      assert.has_error(function()
+        kosync:_isCurrentDocument(nil)
+      end)
 
       -- FILENAME checksum method
       kosync.settings.checksum_method = 1
