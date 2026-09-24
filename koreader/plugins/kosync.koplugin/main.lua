@@ -92,8 +92,6 @@ function KOSync:init()
 
   self.ui.menu:registerToMainMenu(self)
 
-  getClient(self.path, self.settings.custom_server)
-
   if
     self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
   then
