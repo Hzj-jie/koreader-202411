@@ -15,6 +15,21 @@ describe("KOSync plugin tests", function()
     require("document/canvascontext"):init(require("device"))
   end)
 
+  local function forkLikeInsertKeyed(job)
+    local res = false
+    if job.action then
+      local ok, ret = pcall(job.action)
+      if ok then
+        res = ret
+      end
+    end
+    job.result = res
+    if job.callback then
+      job.callback(job)
+    end
+    return true
+  end
+
   before_each(function()
     Device = require("device")
     UIManager = require("ui/uimanager")
@@ -155,16 +170,7 @@ describe("KOSync plugin tests", function()
     ReaderUI.instance = mock_ui
 
     BackgroundJobs = require("background_jobs")
-    stub(BackgroundJobs, "insertKeyed", function(job)
-      if job.action then
-        local res = job.action()
-        job.result = res
-      end
-      if job.callback then
-        job.callback(job)
-      end
-      return true
-    end)
+    stub(BackgroundJobs, "insertKeyed", forkLikeInsertKeyed)
 
     kosync = KOSyncClass:new({
       ui = mock_ui,
@@ -775,7 +781,11 @@ describe("KOSync plugin tests", function()
         assert.are.equal("fork", job.executable)
         assert.is_function(job.action)
         assert.is_function(job.callback)
-        local res = job.action()
+        local res = false
+        local ok, ret = pcall(job.action)
+        if ok then
+          res = ret
+        end
         assert.is_table(res)
         assert.is_true(res.ok)
         job.result = res
@@ -805,7 +815,11 @@ describe("KOSync plugin tests", function()
           -- Simulate document closing before subprocess action runs
           mock_ui.document = nil
           ReaderUI.instance = nil
-          local res = job.action()
+          local res = false
+          local ok, ret = pcall(job.action)
+          if ok then
+            res = ret
+          end
           action_executed = true
           assert.is_table(res)
           assert.is_true(res.ok)
@@ -853,6 +867,25 @@ describe("KOSync plugin tests", function()
     )
 
     it(
+      "handles background push subprocess action exception gracefully",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.push_timestamp = 0
+
+        mock_client.update_progress = function()
+          error("subprocess crashed: socket closed")
+        end
+
+        assert.has_no.errors(function()
+          kosync:_updateProgress(false)
+        end)
+        assert.are.equal(0, kosync.push_timestamp)
+      end
+    )
+
+    it(
       "defers background push via NetworkMgr:willRerunWhenOnline when offline",
       function()
         kosync:init()
@@ -871,7 +904,12 @@ describe("KOSync plugin tests", function()
         local insert_keyed_called = false
         stub(BackgroundJobs, "insertKeyed", function(job)
           insert_keyed_called = true
-          job.result = job.action()
+          local res = false
+          local ok, ret = pcall(job.action)
+          if ok then
+            res = ret
+          end
+          job.result = res
           job.callback(job)
           return true
         end)
@@ -946,16 +984,7 @@ describe("KOSync plugin tests", function()
 
         BackgroundJobs.insert:revert()
         BackgroundJobs.clearKeys()
-        stub(BackgroundJobs, "insertKeyed", function(j)
-          if j.action then
-            local res = j.action()
-            j.result = res
-          end
-          if j.callback then
-            j.callback(j)
-          end
-          return true
-        end)
+        stub(BackgroundJobs, "insertKeyed", forkLikeInsertKeyed)
       end
     )
   end)
@@ -1295,7 +1324,11 @@ describe("KOSync plugin tests", function()
       stub(BackgroundJobs, "insertKeyed", function(job)
         insert_keyed_called = true
         assert.are.equal("fork", job.executable)
-        local res = job.action()
+        local res = false
+        local ok, ret = pcall(job.action)
+        if ok then
+          res = ret
+        end
         job.result = res
         job.callback(job)
         return true
@@ -1350,7 +1383,12 @@ describe("KOSync plugin tests", function()
           -- User advances to 90% while request is in flight
           current_percent = 0.9
           current_progress = "90"
-          job.result = job.action()
+          local res = false
+          local ok, ret = pcall(job.action)
+          if ok then
+            res = ret
+          end
+          job.result = res
           job.callback(job)
           return true
         end)
@@ -1386,7 +1424,11 @@ describe("KOSync plugin tests", function()
         stub(BackgroundJobs, "insertKeyed", function(job)
           -- Simulate document closing before action executes
           ReaderUI.instance = nil
-          local res = job.action()
+          local res = false
+          local ok, ret = pcall(job.action)
+          if ok then
+            res = ret
+          end
           assert.is_table(res)
           assert.is_true(res.skipped)
           job.result = res
@@ -1426,6 +1468,24 @@ describe("KOSync plugin tests", function()
           BackgroundJobs.insertKeyed:revert()
           kosync.pull_timestamp = 0
         end
+      end
+    )
+
+    it(
+      "handles background pull subprocess action exception gracefully",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.pull_timestamp = 0
+
+        mock_client.get_progress = function()
+          error("subprocess crashed: connection refused")
+        end
+
+        assert.has_no.errors(function()
+          kosync:_getProgress(false)
+        end)
       end
     )
 

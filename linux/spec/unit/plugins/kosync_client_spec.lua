@@ -1,5 +1,5 @@
 describe("KOSyncClient plugin module", function()
-  local KOSyncClient, NetworkMgr, socketutil
+  local KOSyncClient, NetworkMgr, socketutil, orig_service_spec
 
   setup(function()
     require("commonrequire")
@@ -9,7 +9,14 @@ describe("KOSyncClient plugin module", function()
     NetworkMgr = require("ui/network/manager")
     socketutil = require("socketutil")
     KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
+    orig_service_spec = KOSyncClient.service_spec
     KOSyncClient.service_spec = "{}"
+  end)
+
+  teardown(function()
+    if KOSyncClient then
+      KOSyncClient.service_spec = orig_service_spec
+    end
   end)
 
   before_each(function()
@@ -53,6 +60,7 @@ describe("KOSyncClient plugin module", function()
   end)
 
   it("should initialize with Spore spec safely", function()
+    local orig_spore = package.loaded["Spore"]
     local mock_spore = {
       new_from_spec = function()
         return {
@@ -65,6 +73,8 @@ describe("KOSyncClient plugin module", function()
 
     local client = KOSyncClient:new({ service_spec = "{}" })
     assert.is_table(client)
+
+    package.loaded["Spore"] = orig_spore
   end)
 
   describe("register", function()
