@@ -1,3 +1,4 @@
+local BackgroundJobs = require("background_jobs")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
@@ -7,6 +8,7 @@ local Math = require("optmath")
 local MultiInputDialog = require("ui/widget/multiinputdialog")
 local NetworkMgr = require("ui/network/manager")
 local Notification = require("ui/widget/notification")
+local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local logger = require("logger")
@@ -46,6 +48,18 @@ local CHECKSUM_METHOD = {
 
 -- Debounce push/pull attempts
 local API_CALL_DEBOUNCE_DELAY = time.s(25)
+
+local client
+
+local function getClient(path, custom_server)
+  if not client or client.custom_url ~= custom_server then
+    client = require("plugins/kosync.koplugin/KOSyncClient"):new({
+      custom_url = custom_server,
+      service_spec = path .. "/api.json",
+    })
+  end
+  return client
+end
 
 function KOSync:init()
   self.push_timestamp = 0
@@ -169,11 +183,12 @@ local function validateUser(user, pass)
   end
 end
 
-function KOSync:_createClient()
-  return require("plugins/kosync.koplugin/KOSyncClient"):new({
-    custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json",
-  })
+function KOSync:_setClientForTesting(test_client)
+  client = test_client
+end
+
+function KOSync:_resetClientForTesting()
+  client = nil
 end
 
 function KOSync:onDispatcherRegisterActions()
@@ -404,9 +419,10 @@ end
 function KOSync:setCustomServer(server)
   logger.dbg("KOSync: Setting custom server to:", server)
   local prev_server = self.settings.custom_server
-  self.settings.custom_server = server ~= "" and server or nil
-  local ok, err = pcall(KOSync._createClient, self)
+  local target_server = server ~= "" and server or nil
+  local ok, res = pcall(getClient, self.path, target_server)
   if ok then
+    self.settings.custom_server = target_server
     return
   end
   self.settings.custom_server = prev_server
@@ -419,7 +435,7 @@ function KOSync:setCustomServer(server)
       ),
       server,
       prev_server or "default server",
-      err
+      res
     ),
     timeout = 3,
   }))
@@ -510,7 +526,7 @@ function KOSync:_login(menu)
 end
 
 function KOSync:_doRegister(username, password, menu)
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   -- on Android to avoid ANR (no-op on other platforms)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
@@ -545,7 +561,7 @@ function KOSync:_doRegister(username, password, menu)
 end
 
 function KOSync:_doLogin(username, password, menu)
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
   local ok, status, body = pcall(client.authorize, client, username, userkey)
@@ -603,20 +619,27 @@ function KOSync:_getLastProgress()
 end
 
 function KOSync:_getDocumentDigest()
+  assert(self.ui and self.ui.document, "KOSync: no document open")
+  local digest
   if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
-    return self.ui.doc_settings:read("partial_md5_checksum")
+    assert(self.ui.doc_settings, "KOSync: missing doc_settings")
+    digest = self.ui.doc_settings:read("partial_md5_checksum")
+  else
+    local file = self.ui.document.file
+    assert(file, "KOSync: missing document file")
+    local _, file_name = util.splitFilePathName(file)
+    digest = md5(file_name)
   end
-  local file = self.ui.document.file
-  if not file then
-    return nil
-  end
+  assert(digest ~= nil, "KOSync: document digest is nil")
+  return digest
+end
 
-  local _, file_name = util.splitFilePathName(file)
-  if not file_name then
-    return nil
+function KOSync:_isCurrentDocument(doc_digest)
+  assert(doc_digest ~= nil, "KOSync: doc_digest must not be nil")
+  if self.ui ~= ReaderUI.instance or not self.ui or not self.ui.document then
+    return false
   end
-
-  return md5(file_name)
+  return self:_getDocumentDigest() == doc_digest
 end
 
 function KOSync:_syncToProgress(progress)
@@ -629,6 +652,109 @@ function KOSync:_syncToProgress(progress)
     UIManager:broadcastEvent(Event:new("GotoPage", tonumber(progress)))
   else
     UIManager:broadcastEvent(Event:new("GotoXPointer", progress))
+  end
+end
+
+local function applyPushUI(ok, doc_digest, interactive)
+  logger.dbg("KOSync: [Push] ok:", ok, "doc_digest:", doc_digest)
+  if interactive then
+    if ok then
+      UIManager:show(InfoMessage:new({
+        text = gettext("Progress has been pushed."),
+        timeout = 3,
+      }))
+    else
+      showSyncError()
+    end
+  end
+end
+
+function KOSync:_applyPullUI(ok, body, doc_digest, interactive)
+  if not self:_isCurrentDocument(doc_digest) then
+    return
+  end
+
+  logger.dbg("KOSync: [Pull] progress for", self.ui.document.file)
+  if not ok or not body then
+    logger.dbg("KOSync: error body:", body)
+    if interactive then
+      showSyncError()
+    end
+    return
+  end
+
+  local function showInfo(msg)
+    if interactive then
+      UIManager:show(InfoMessage:new({
+        text = msg,
+        timeout = 3,
+      }))
+    end
+  end
+
+  if not body.percentage then
+    showInfo(gettext("No progress found for this document."))
+    return
+  end
+
+  if body.device == Device.model and body.device_id == self.device_id then
+    showInfo(gettext("Latest progress is coming from this device."))
+    return
+  end
+
+  local remote_percentage = Math.roundPercent(body.percentage)
+  if
+    self:_getLastPercent() == remote_percentage
+    or body.progress == self:_getLastProgress()
+  then
+    showInfo(gettext("The progress has already been synchronized."))
+    return
+  end
+
+  if interactive then
+    self:_syncToProgress(body.progress)
+    showSyncedMessage()
+    return
+  end
+
+  local is_newer
+  if body.timestamp ~= nil then
+    is_newer = (body.timestamp > self.last_page_turn_timestamp)
+  else
+    -- If we are working with an old sync server, we can only use the percentage field.
+    is_newer = (body.percentage > self:_getLastPercent())
+  end
+
+  local strategy = is_newer and self.settings.sync_forward
+    or self.settings.sync_backward
+
+  if strategy == SYNC_STRATEGY.SILENT then
+    self:_syncToProgress(body.progress)
+    showSyncedMessage()
+  elseif strategy == SYNC_STRATEGY.PROMPT then
+    local prompt_text
+    if is_newer then
+      prompt_text = T(
+        gettext("Sync to latest location %1% from device '%2'?"),
+        Math.round(remote_percentage * 100),
+        body.device
+      )
+    else
+      prompt_text = T(
+        gettext("Sync to previous location %1% from device '%2'?"),
+        Math.round(remote_percentage * 100),
+        body.device
+      )
+    end
+    UIManager:show(ConfirmBox:new({
+      text = prompt_text,
+      ok_callback = function()
+        if not self:_isCurrentDocument(doc_digest) then
+          return
+        end
+        self:_syncToProgress(body.progress)
+      end,
+    }))
   end
 end
 
@@ -653,65 +779,55 @@ function KOSync:_updateProgress(interactive)
   end
   self.push_timestamp = now
 
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   local doc_digest = self:_getDocumentDigest()
   local progress = self:_getLastProgress()
   local percentage = self:_getLastPercent()
   local username = self.settings.username
   local userkey = self.settings.userkey
   local device_id = self.device_id
-  local filename = self.ui.view.document.file
 
-  -- No self in this function, the execution may be delayed.
-  local function exec()
-    local ok, err = pcall(
-      client.update_progress,
-      client,
-      username,
-      userkey,
-      doc_digest,
-      progress,
-      percentage,
-      Device.model,
-      device_id,
-      function(ok, body)
-        logger.dbg(
-          "KOSync: [Push] progress to",
-          percentage * 100,
-          "% =>",
-          progress,
-          "for",
-          filename
-        )
-        logger.dbg("KOSync: ok:", ok, "body:", body)
-        if interactive then
-          if ok then
-            UIManager:show(InfoMessage:new({
-              text = gettext("Progress has been pushed."),
-              timeout = 3,
-            }))
-          else
-            showSyncError()
-          end
-        end
-      end
-    )
-    if not ok then
-      if interactive then
-        showSyncError()
-      end
-      if err then
-        logger.dbg("err:", err)
-      end
+  local function send()
+    return {
+      ok = client:update_progress(
+        username,
+        userkey,
+        doc_digest,
+        progress,
+        percentage,
+        Device.model,
+        device_id
+      ),
+    }
+  end
+
+  local function apply(res)
+    if type(res) ~= "table" then
+      logger.warn("KOSync: [Push] background job failed, result:", res)
+      res = { ok = false }
     end
+    if not res.ok then
+      self.push_timestamp = 0
+    end
+    applyPushUI(res.ok, doc_digest, interactive)
   end
 
   if interactive then
     UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(exec)
+      NetworkMgr:runWhenOnline(function()
+        apply(send())
+      end)
     end, gettext("Pushing progress…"))
   else
-    NetworkMgr:willRerunWhenOnline(exec)
+    NetworkMgr:willRerunWhenOnline(function()
+      BackgroundJobs.insertKeyed({
+        executable = "fork",
+        action = send,
+        callback = function(job)
+          apply(job.result)
+        end,
+      })
+    end)
   end
 end
 
@@ -734,140 +850,50 @@ function KOSync:_getProgress(interactive)
     logger.dbg("KOSync: We've already pulled progress less than 25s ago!")
     return
   end
+  self.pull_timestamp = now
 
+  local client = getClient(self.path, self.settings.custom_server)
   local doc_digest = self:_getDocumentDigest()
-  local function exec()
+  local username = self.settings.username
+  local userkey = self.settings.userkey
+
+  local function send()
     -- Unlike pushProgress, it's unreasonable to get the progress as a pending
     -- job after user closing the document. In the case, ignore the request.
-    if self.ui.document == nil then
+    if not self:_isCurrentDocument(doc_digest) then
+      return { skipped = true }
+    end
+
+    local ok, body = client:get_progress(username, userkey, doc_digest)
+    return { ok = ok, body = body }
+  end
+
+  local function apply(res)
+    if type(res) ~= "table" then
+      logger.warn("KOSync: [Pull] background job failed, result:", res)
+      res = { ok = false }
+    end
+    if res.skipped then
       return
     end
-    local client = self:_createClient()
-    local ok, err = pcall(
-      client.get_progress,
-      client,
-      self.settings.username,
-      self.settings.userkey,
-      doc_digest,
-      function(ok, body)
-        logger.dbg("KOSync: [Pull] progress for", self.ui.view.document.file)
-        logger.dbg("KOSync: ok:", ok, "body:", body)
-        if not ok or not body then
-          if interactive then
-            showSyncError()
-          end
-          return
-        end
 
-        if not body.percentage then
-          if interactive then
-            UIManager:show(InfoMessage:new({
-              text = gettext("No progress found for this document."),
-              timeout = 3,
-            }))
-          end
-          return
-        end
-
-        if body.device == Device.model and body.device_id == self.device_id then
-          if interactive then
-            UIManager:show(InfoMessage:new({
-              text = gettext("Latest progress is coming from this device."),
-              timeout = 3,
-            }))
-          end
-          return
-        end
-
-        body.percentage = Math.roundPercent(body.percentage)
-        local progress = self:_getLastProgress()
-        local percentage = self:_getLastPercent()
-        logger.dbg(
-          "KOSync: Current progress:",
-          percentage * 100,
-          "% =>",
-          progress
-        )
-
-        if percentage == body.percentage or body.progress == progress then
-          if interactive then
-            UIManager:show(InfoMessage:new({
-              text = gettext("The progress has already been synchronized."),
-              timeout = 3,
-            }))
-          end
-          return
-        end
-
-        -- The progress needs to be updated.
-        if interactive then
-          -- If user actively pulls progress from other devices,
-          -- we always update the progress without further confirmation.
-          self:_syncToProgress(body.progress)
-          showSyncedMessage()
-          return
-        end
-
-        local self_older
-        if body.timestamp ~= nil then
-          self_older = (body.timestamp > self.last_page_turn_timestamp)
-        else
-          -- If we are working with an old sync server, we can only use the percentage field.
-          self_older = (body.percentage > percentage)
-        end
-        if self_older then
-          if self.settings.sync_forward == SYNC_STRATEGY.SILENT then
-            self:_syncToProgress(body.progress)
-            showSyncedMessage()
-          elseif self.settings.sync_forward == SYNC_STRATEGY.PROMPT then
-            UIManager:show(ConfirmBox:new({
-              text = T(
-                gettext("Sync to latest location %1% from device '%2'?"),
-                Math.round(body.percentage * 100),
-                body.device
-              ),
-              ok_callback = function()
-                self:_syncToProgress(body.progress)
-              end,
-            }))
-          end
-        else -- if not self_older then
-          if self.settings.sync_backward == SYNC_STRATEGY.SILENT then
-            self:_syncToProgress(body.progress)
-            showSyncedMessage()
-          elseif self.settings.sync_backward == SYNC_STRATEGY.PROMPT then
-            UIManager:show(ConfirmBox:new({
-              text = T(
-                gettext("Sync to previous location %1% from device '%2'?"),
-                Math.round(body.percentage * 100),
-                body.device
-              ),
-              ok_callback = function()
-                self:_syncToProgress(body.progress)
-              end,
-            }))
-          end
-        end
-      end
-    )
-    if not ok then
-      if interactive then
-        showSyncError()
-      end
-      if err then
-        logger.dbg("err:", err)
-      end
-    end
-
-    self.pull_timestamp = now
+    self:_applyPullUI(res.ok, res.body, doc_digest, interactive)
   end
 
   if interactive then
     UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(exec)
+      NetworkMgr:runWhenOnline(function()
+        apply(send())
+      end)
     end, gettext("Pulling progress…"))
   else
-    NetworkMgr:willRerunWhenOnline(exec)
+    BackgroundJobs.insertKeyed({
+      executable = "fork",
+      action = send,
+      callback = function(job)
+        apply(job.result)
+      end,
+    })
   end
 end
 
