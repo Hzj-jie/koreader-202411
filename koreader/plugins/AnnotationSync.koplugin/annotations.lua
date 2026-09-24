@@ -164,7 +164,7 @@ function M.sync_callback(
       if type(income_p) == "table" and not income_p.page and income_v.page then
         income_p = { x = income_p.x, y = income_p.y, page = income_v.page }
       end
-      local cmp = M.compare_positions(local_p, income_p, document)
+      local cmp = M.compare_positions(local_p, income_p)
       if (cmp or 0) > 0 then
         merged[local_k] = local_v
         l = l + 1
@@ -254,7 +254,7 @@ function M.get_deleted_annotations(
           local_and_uploaded = true
           break
         end
-        if M.compare_positions(local_v.page, uploaded_v.page, document) < 0 then
+        if M.compare_positions(local_v.page, uploaded_v.page) < 0 then
           break
         end
       end
@@ -268,7 +268,7 @@ function M.get_deleted_annotations(
 end
 
 -- Universal comparison logic for various annotation position types
-function M.compare_positions(a, b, _document)
+function M.compare_positions(a, b)
   if not a or not b then
     return 0
   end
@@ -409,7 +409,7 @@ function M.sort_keys_by_position(t, document)
     if type(pos_b) == "table" and not pos_b.page and ann_b.page then
       pos_b = { x = pos_b.x, y = pos_b.y, page = ann_b.page }
     end
-    local cmp = M.compare_positions(pos_a, pos_b, document)
+    local cmp = M.compare_positions(pos_a, pos_b)
     return (cmp or 0) > 0
   end)
   return keys
@@ -440,16 +440,16 @@ function M.positions_intersect(a, b, document)
 
   -- A_Start <= B_Start <= A_End
   if
-    M.compare_positions(a.pos0, b.pos0, document) >= 0
-    and M.compare_positions(b.pos0, a.pos1, document) >= 0
+    M.compare_positions(a.pos0, b.pos0) >= 0
+    and M.compare_positions(b.pos0, a.pos1) >= 0
   then
     return true
   end
 
   -- B_Start <= A_Start <= B_End
   if
-    M.compare_positions(b.pos0, a.pos0, document) >= 0
-    and M.compare_positions(a.pos0, b.pos1, document) >= 0
+    M.compare_positions(b.pos0, a.pos0) >= 0
+    and M.compare_positions(a.pos0, b.pos1) >= 0
   then
     return true
   end

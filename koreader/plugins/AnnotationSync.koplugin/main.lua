@@ -352,7 +352,7 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   if self.ui and self.ui.annotation and self.ui.document == document then
     -- 1. Sort for UI consistency
     table.sort(merged_list, function(a, b)
-      local cmp = annotations.compare_positions(a.page, b.page, document)
+      local cmp = annotations.compare_positions(a.page, b.page)
       return (cmp or 0) > 0
     end)
     -- 2. Update active widget state
