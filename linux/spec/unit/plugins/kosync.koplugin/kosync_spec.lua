@@ -170,9 +170,7 @@ describe("KOSync plugin tests", function()
       ui = mock_ui,
       path = "plugins/kosync.koplugin",
     })
-    stub(kosync, "_createClient", function()
-      return mock_client
-    end)
+    kosync:_setClientForTesting(mock_client)
   end)
 
   after_each(function()
@@ -195,9 +193,7 @@ describe("KOSync plugin tests", function()
 
     MultiInputDialog.new:revert()
 
-    if kosync._createClient.revert then
-      kosync._createClient:revert()
-    end
+    kosync:_resetClientForTesting()
 
     package.unload("plugins/kosync.koplugin/main")
     G_reader_settings:delete("kosync")
@@ -295,7 +291,8 @@ describe("KOSync plugin tests", function()
     it("reverts custom server and shows warning when invalid", function()
       kosync:init()
       kosync.settings.custom_server = "https://old.example.com"
-      kosync._createClient.invokes(function()
+      local KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
+      stub(KOSyncClient, "new", function()
         error("invalid url")
       end)
 
@@ -304,6 +301,7 @@ describe("KOSync plugin tests", function()
       assert.are.equal("https://old.example.com", kosync.settings.custom_server)
       assert.are.equal("invalid_url", kosync.last_custom_server_attempt)
       assert.stub(UIManager.show).was_called()
+      KOSyncClient.new:revert()
     end)
 
     it("sets sync strategies and checksum method", function()
@@ -902,6 +900,50 @@ describe("KOSync plugin tests", function()
       assert.are.equal(0, kosync.push_timestamp)
       BackgroundJobs.insertKeyed:revert()
     end)
+
+    it(
+      "deduplicates concurrent background push jobs with identical state",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+
+        BackgroundJobs.insertKeyed:revert()
+        stub(BackgroundJobs, "insert", function() end)
+
+        kosync.push_timestamp = 0
+        kosync:_updateProgress(false)
+        assert.stub(BackgroundJobs.insert).was_called(1)
+
+        -- Reset push_timestamp to simulate another trigger while the first job is in flight
+        kosync.push_timestamp = 0
+        kosync:_updateProgress(false)
+        -- Second insertKeyed must be filtered out as duplicate
+        assert.stub(BackgroundJobs.insert).was_called(1)
+
+        -- Completing the in-flight job clears its key from BackgroundJobs
+        local job = BackgroundJobs.insert.calls[1].vals[1]
+        job.callback({ result = { ok = true } })
+
+        -- Now that the job finished, the next push should be accepted
+        kosync.push_timestamp = 0
+        kosync:_updateProgress(false)
+        assert.stub(BackgroundJobs.insert).was_called(2)
+
+        BackgroundJobs.insert:revert()
+        BackgroundJobs.clearKeys()
+        stub(BackgroundJobs, "insertKeyed", function(j)
+          if j.action then
+            local res = j.action()
+            j.result = res
+          end
+          if j.callback then
+            j.callback(j)
+          end
+          return true
+        end)
+      end
+    )
   end)
 
   describe("Pull Progress", function()

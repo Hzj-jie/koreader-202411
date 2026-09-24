@@ -49,6 +49,22 @@ local CHECKSUM_METHOD = {
 -- Debounce push/pull attempts
 local API_CALL_DEBOUNCE_DELAY = time.s(25)
 
+local client
+
+local function createClient(path, custom_server)
+  return require("plugins/kosync.koplugin/KOSyncClient"):new({
+    custom_url = custom_server,
+    service_spec = path .. "/api.json",
+  })
+end
+
+local function getClient(self)
+  if not client then
+    client = createClient(self.path, self.settings.custom_server)
+  end
+  return client
+end
+
 function KOSync:init()
   self.push_timestamp = 0
   self.pull_timestamp = 0
@@ -79,6 +95,10 @@ function KOSync:init()
   end
 
   self.ui.menu:registerToMainMenu(self)
+
+  if not client then
+    client = createClient(self.path, self.settings.custom_server)
+  end
 
   if
     self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
@@ -171,11 +191,12 @@ local function validateUser(user, pass)
   end
 end
 
-function KOSync:_createClient()
-  return require("plugins/kosync.koplugin/KOSyncClient"):new({
-    custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json",
-  })
+function KOSync:_setClientForTesting(test_client)
+  client = test_client
+end
+
+function KOSync:_resetClientForTesting()
+  client = nil
 end
 
 function KOSync:onDispatcherRegisterActions()
@@ -406,9 +427,11 @@ end
 function KOSync:setCustomServer(server)
   logger.dbg("KOSync: Setting custom server to:", server)
   local prev_server = self.settings.custom_server
-  self.settings.custom_server = server ~= "" and server or nil
-  local ok, err = pcall(KOSync._createClient, self)
+  local target_server = server ~= "" and server or nil
+  local ok, res = pcall(createClient, self.path, target_server)
   if ok then
+    self.settings.custom_server = target_server
+    client = res
     return
   end
   self.settings.custom_server = prev_server
@@ -421,7 +444,7 @@ function KOSync:setCustomServer(server)
       ),
       server,
       prev_server or "default server",
-      err
+      res
     ),
     timeout = 3,
   }))
@@ -512,7 +535,7 @@ function KOSync:_login(menu)
 end
 
 function KOSync:_doRegister(username, password, menu)
-  local client = self:_createClient()
+  local client = getClient(self)
   -- on Android to avoid ANR (no-op on other platforms)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
@@ -547,7 +570,7 @@ function KOSync:_doRegister(username, password, menu)
 end
 
 function KOSync:_doLogin(username, password, menu)
-  local client = self:_createClient()
+  local client = getClient(self)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
   local ok, status, body = pcall(client.authorize, client, username, userkey)
@@ -765,7 +788,7 @@ function KOSync:_updateProgress(interactive)
   end
   self.push_timestamp = now
 
-  local client = self:_createClient()
+  local client = getClient(self)
   local doc_digest = self:_getDocumentDigest()
   local progress = self:_getLastProgress()
   local percentage = self:_getLastPercent()
@@ -838,7 +861,7 @@ function KOSync:_getProgress(interactive)
   end
   self.pull_timestamp = now
 
-  local client = self:_createClient()
+  local client = getClient(self)
   local doc_digest = self:_getDocumentDigest()
   local username = self.settings.username
   local userkey = self.settings.userkey
