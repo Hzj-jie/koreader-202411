@@ -886,12 +886,7 @@ function KOSync:_getProgress(interactive)
       return
     end
 
-    self:_applyPullUI(
-      res.ok,
-      res.body,
-      doc_digest,
-      interactive
-    )
+    self:_applyPullUI(res.ok, res.body, doc_digest, interactive)
   end
 
   if interactive then
