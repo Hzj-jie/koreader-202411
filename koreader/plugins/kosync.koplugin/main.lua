@@ -796,6 +796,9 @@ function KOSync:_updateProgress(interactive)
       logger.warn("KOSync: [Push] background job failed, result:", res)
       res = { ok = false }
     end
+    if not res.ok then
+      self.push_timestamp = 0
+    end
     applyPushUI(res.ok, doc_digest, interactive)
   end
 
@@ -806,13 +809,15 @@ function KOSync:_updateProgress(interactive)
       end)
     end, gettext("Pushing progress…"))
   else
-    BackgroundJobs.insertKeyed({
-      executable = "fork",
-      action = send,
-      callback = function(job)
-        apply(job.result)
-      end,
-    })
+    NetworkMgr:willRerunWhenOnline(function()
+      BackgroundJobs.insertKeyed({
+        executable = "fork",
+        action = send,
+        callback = function(job)
+          apply(job.result)
+        end,
+      })
+    end)
   end
 end
 
