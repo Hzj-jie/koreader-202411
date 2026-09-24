@@ -1,5 +1,5 @@
 describe("KOSyncClient plugin module", function()
-  local KOSyncClient, NetworkMgr, socketutil
+  local KOSyncClient, NetworkMgr, socketutil, orig_service_spec
 
   setup(function()
     require("commonrequire")
@@ -9,7 +9,14 @@ describe("KOSyncClient plugin module", function()
     NetworkMgr = require("ui/network/manager")
     socketutil = require("socketutil")
     KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
+    orig_service_spec = KOSyncClient.service_spec
     KOSyncClient.service_spec = "{}"
+  end)
+
+  teardown(function()
+    if KOSyncClient then
+      KOSyncClient.service_spec = orig_service_spec
+    end
   end)
 
   before_each(function()
@@ -53,6 +60,7 @@ describe("KOSyncClient plugin module", function()
   end)
 
   it("should initialize with Spore spec safely", function()
+    local orig_spore = package.loaded["Spore"]
     local mock_spore = {
       new_from_spec = function()
         return {
@@ -65,55 +73,63 @@ describe("KOSyncClient plugin module", function()
 
     local client = KOSyncClient:new({ service_spec = "{}" })
     assert.is_table(client)
+
+    package.loaded["Spore"] = orig_spore
   end)
 
   describe("register", function()
-    it("returns true and body on successful registration (status 201)", function()
-      local mock_client = {
-        reset_middlewares = function() end,
-        enable = function() end,
-        register = function(self, args)
-          assert.are.equal("testuser", args.username)
-          assert.are.equal("password123", args.password)
-          return {
-            status = 201,
-            body = { username = "testuser" },
-          }
-        end,
-      }
+    it(
+      "returns true and body on successful registration (status 201)",
+      function()
+        local mock_client = {
+          reset_middlewares = function() end,
+          enable = function() end,
+          register = function(self, args)
+            assert.are.equal("testuser", args.username)
+            assert.are.equal("password123", args.password)
+            return {
+              status = 201,
+              body = { username = "testuser" },
+            }
+          end,
+        }
 
-      local inst = setmetatable(
-        { client = mock_client },
-        { __index = KOSyncClient }
-      )
-      local success, body = inst:register("testuser", "password123")
-      assert.is_true(success)
-      assert.is_table(body)
-      assert.are.equal("testuser", body.username)
-      assert.stub(socketutil.set_timeout).was_called()
-      assert.stub(socketutil.reset_timeout).was_called()
-    end)
+        local inst = setmetatable(
+          { client = mock_client },
+          { __index = KOSyncClient }
+        )
+        local success, body = inst:register("testuser", "password123")
+        assert.is_true(success)
+        assert.is_table(body)
+        assert.are.equal("testuser", body.username)
+        assert.stub(socketutil.set_timeout).was_called()
+        assert.stub(socketutil.reset_timeout).was_called()
+      end
+    )
 
-    it("returns false when registration returns status other than 201", function()
-      local mock_client = {
-        reset_middlewares = function() end,
-        enable = function() end,
-        register = function()
-          return {
-            status = 402,
-            body = { message = "Username taken" },
-          }
-        end,
-      }
+    it(
+      "returns false when registration returns status other than 201",
+      function()
+        local mock_client = {
+          reset_middlewares = function() end,
+          enable = function() end,
+          register = function()
+            return {
+              status = 402,
+              body = { message = "Username taken" },
+            }
+          end,
+        }
 
-      local inst = setmetatable(
-        { client = mock_client },
-        { __index = KOSyncClient }
-      )
-      local success, body = inst:register("existing", "pass")
-      assert.is_false(success)
-      assert.are.equal("Username taken", body.message)
-    end)
+        local inst = setmetatable(
+          { client = mock_client },
+          { __index = KOSyncClient }
+        )
+        local success, body = inst:register("existing", "pass")
+        assert.is_false(success)
+        assert.are.equal("Username taken", body.message)
+      end
+    )
 
     it("returns false when register throws error", function()
       local mock_client = {
@@ -136,10 +152,7 @@ describe("KOSyncClient plugin module", function()
 
     it("returns false and offline when network is offline", function()
       NetworkMgr.isOnline.returns(false)
-      local inst = setmetatable(
-        { client = {} },
-        { __index = KOSyncClient }
-      )
+      local inst = setmetatable({ client = {} }, { __index = KOSyncClient })
       local success, err = inst:register("testuser", "pass")
       assert.is_false(success)
       assert.are.equal("offline", err)
@@ -147,25 +160,28 @@ describe("KOSyncClient plugin module", function()
   end)
 
   describe("authorize", function()
-    it("returns true and body on successful authorization (status 200)", function()
-      local mock_client = {
-        reset_middlewares = function() end,
-        enable = function() end,
-        authorize = function()
-          return { status = 200, body = { key = "auth_key" } }
-        end,
-      }
+    it(
+      "returns true and body on successful authorization (status 200)",
+      function()
+        local mock_client = {
+          reset_middlewares = function() end,
+          enable = function() end,
+          authorize = function()
+            return { status = 200, body = { key = "auth_key" } }
+          end,
+        }
 
-      local inst = setmetatable(
-        { client = mock_client },
-        { __index = KOSyncClient }
-      )
-      local success, body = inst:authorize("testuser", "auth_key")
-      assert.is_true(success)
-      assert.are.equal("auth_key", body.key)
-      assert.stub(socketutil.set_timeout).was_called()
-      assert.stub(socketutil.reset_timeout).was_called()
-    end)
+        local inst = setmetatable(
+          { client = mock_client },
+          { __index = KOSyncClient }
+        )
+        local success, body = inst:authorize("testuser", "auth_key")
+        assert.is_true(success)
+        assert.are.equal("auth_key", body.key)
+        assert.stub(socketutil.set_timeout).was_called()
+        assert.stub(socketutil.reset_timeout).was_called()
+      end
+    )
 
     it("returns false when authorization returns non-200 status", function()
       local mock_client = {
@@ -205,10 +221,7 @@ describe("KOSyncClient plugin module", function()
 
     it("returns false and offline when network is offline", function()
       NetworkMgr.isOnline.returns(false)
-      local inst = setmetatable(
-        { client = {} },
-        { __index = KOSyncClient }
-      )
+      local inst = setmetatable({ client = {} }, { __index = KOSyncClient })
       local success, err = inst:authorize("testuser", "key")
       assert.is_false(success)
       assert.are.equal("offline", err)
@@ -216,39 +229,45 @@ describe("KOSyncClient plugin module", function()
   end)
 
   describe("update_progress", function()
-    it("returns true and body on successful progress update (status 200)", function()
-      local captured_args
-      local mock_client = {
-        reset_middlewares = function() end,
-        enable = function() end,
-        update_progress = function(self, args)
-          captured_args = args
-          return { status = 200, body = { document = args.document, timestamp = 12345 } }
-        end,
-      }
+    it(
+      "returns true and body on successful progress update (status 200)",
+      function()
+        local captured_args
+        local mock_client = {
+          reset_middlewares = function() end,
+          enable = function() end,
+          update_progress = function(self, args)
+            captured_args = args
+            return {
+              status = 200,
+              body = { document = args.document, timestamp = 12345 },
+            }
+          end,
+        }
 
-      local inst = setmetatable(
-        { client = mock_client },
-        { __index = KOSyncClient }
-      )
-      local success, body = inst:update_progress(
-        "testuser",
-        "testkey",
-        "doc123",
-        50,
-        0.5,
-        "Kobo",
-        "dev1"
-      )
-      assert.is_true(success)
-      assert.are.equal("doc123", body.document)
-      assert.are.equal("50", captured_args.progress) -- tostring conversion
-      assert.are.equal(0.5, captured_args.percentage)
-      assert.are.equal("Kobo", captured_args.device)
-      assert.are.equal("dev1", captured_args.device_id)
-      assert.stub(socketutil.set_timeout).was_called()
-      assert.stub(socketutil.reset_timeout).was_called()
-    end)
+        local inst = setmetatable(
+          { client = mock_client },
+          { __index = KOSyncClient }
+        )
+        local success, body = inst:update_progress(
+          "testuser",
+          "testkey",
+          "doc123",
+          50,
+          0.5,
+          "Kobo",
+          "dev1"
+        )
+        assert.is_true(success)
+        assert.are.equal("doc123", body.document)
+        assert.are.equal("50", captured_args.progress) -- tostring conversion
+        assert.are.equal(0.5, captured_args.percentage)
+        assert.are.equal("Kobo", captured_args.device)
+        assert.are.equal("dev1", captured_args.device_id)
+        assert.stub(socketutil.set_timeout).was_called()
+        assert.stub(socketutil.reset_timeout).was_called()
+      end
+    )
 
     it("returns false on update_progress error status or exception", function()
       local mock_client = {
@@ -263,9 +282,8 @@ describe("KOSyncClient plugin module", function()
         { client = mock_client },
         { __index = KOSyncClient }
       )
-      local success, body = inst:update_progress(
-        "testuser", "key", "doc", 1, 0.1, "d", "id"
-      )
+      local success, body =
+        inst:update_progress("testuser", "key", "doc", 1, 0.1, "d", "id")
       assert.is_false(success)
       assert.are.equal("Unauthorized", body.message)
 
@@ -273,59 +291,57 @@ describe("KOSyncClient plugin module", function()
       mock_client.update_progress = function()
         error("connection reset")
       end
-      local err_success, _ = inst:update_progress(
-        "testuser", "key", "doc", 1, 0.1, "d", "id"
-      )
+      local err_success, _ =
+        inst:update_progress("testuser", "key", "doc", 1, 0.1, "d", "id")
       assert.is_false(err_success)
     end)
 
     it("returns false and offline when network is offline", function()
       NetworkMgr.isOnline.returns(false)
-      local inst = setmetatable(
-        { client = {} },
-        { __index = KOSyncClient }
-      )
-      local success, err = inst:update_progress(
-        "testuser", "key", "doc", 1, 0.1, "d", "id"
-      )
+      local inst = setmetatable({ client = {} }, { __index = KOSyncClient })
+      local success, err =
+        inst:update_progress("testuser", "key", "doc", 1, 0.1, "d", "id")
       assert.is_false(success)
       assert.are.equal("offline", err)
     end)
   end)
 
   describe("get_progress", function()
-    it("returns true and body on successful get_progress (status 200)", function()
-      local captured_args
-      local mock_client = {
-        reset_middlewares = function() end,
-        enable = function() end,
-        get_progress = function(self, args)
-          captured_args = args
-          return {
-            status = 200,
-            body = {
-              progress = "80",
-              percentage = 0.8,
-              device = "DeviceB",
-              timestamp = 54321,
-            },
-          }
-        end,
-      }
+    it(
+      "returns true and body on successful get_progress (status 200)",
+      function()
+        local captured_args
+        local mock_client = {
+          reset_middlewares = function() end,
+          enable = function() end,
+          get_progress = function(self, args)
+            captured_args = args
+            return {
+              status = 200,
+              body = {
+                progress = "80",
+                percentage = 0.8,
+                device = "DeviceB",
+                timestamp = 54321,
+              },
+            }
+          end,
+        }
 
-      local inst = setmetatable(
-        { client = mock_client },
-        { __index = KOSyncClient }
-      )
-      local success, body = inst:get_progress("testuser", "testkey", "doc123")
-      assert.is_true(success)
-      assert.are.equal("doc123", captured_args.document)
-      assert.are.equal("80", body.progress)
-      assert.are.equal(0.8, body.percentage)
-      assert.are.equal("DeviceB", body.device)
-      assert.stub(socketutil.set_timeout).was_called()
-      assert.stub(socketutil.reset_timeout).was_called()
-    end)
+        local inst = setmetatable(
+          { client = mock_client },
+          { __index = KOSyncClient }
+        )
+        local success, body = inst:get_progress("testuser", "testkey", "doc123")
+        assert.is_true(success)
+        assert.are.equal("doc123", captured_args.document)
+        assert.are.equal("80", body.progress)
+        assert.are.equal(0.8, body.percentage)
+        assert.are.equal("DeviceB", body.device)
+        assert.stub(socketutil.set_timeout).was_called()
+        assert.stub(socketutil.reset_timeout).was_called()
+      end
+    )
 
     it("returns false on get_progress error status or exception", function()
       local mock_client = {
@@ -354,10 +370,7 @@ describe("KOSyncClient plugin module", function()
 
     it("returns false and offline when network is offline", function()
       NetworkMgr.isOnline.returns(false)
-      local inst = setmetatable(
-        { client = {} },
-        { __index = KOSyncClient }
-      )
+      local inst = setmetatable({ client = {} }, { __index = KOSyncClient })
       local success, err = inst:get_progress("testuser", "key", "doc")
       assert.is_false(success)
       assert.are.equal("offline", err)

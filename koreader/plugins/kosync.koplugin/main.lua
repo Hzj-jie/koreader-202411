@@ -49,6 +49,18 @@ local CHECKSUM_METHOD = {
 -- Debounce push/pull attempts
 local API_CALL_DEBOUNCE_DELAY = time.s(25)
 
+local client
+
+local function getClient(path, custom_server)
+  if not client or client.custom_url ~= custom_server then
+    client = require("plugins/kosync.koplugin/KOSyncClient"):new({
+      custom_url = custom_server,
+      service_spec = path .. "/api.json",
+    })
+  end
+  return client
+end
+
 function KOSync:init()
   self.push_timestamp = 0
   self.pull_timestamp = 0
@@ -171,11 +183,12 @@ local function validateUser(user, pass)
   end
 end
 
-function KOSync:_createClient()
-  return require("plugins/kosync.koplugin/KOSyncClient"):new({
-    custom_url = self.settings.custom_server,
-    service_spec = self.path .. "/api.json",
-  })
+function KOSync:_setClientForTesting(test_client)
+  client = test_client
+end
+
+function KOSync:_resetClientForTesting()
+  client = nil
 end
 
 function KOSync:onDispatcherRegisterActions()
@@ -406,9 +419,10 @@ end
 function KOSync:setCustomServer(server)
   logger.dbg("KOSync: Setting custom server to:", server)
   local prev_server = self.settings.custom_server
-  self.settings.custom_server = server ~= "" and server or nil
-  local ok, err = pcall(KOSync._createClient, self)
+  local target_server = server ~= "" and server or nil
+  local ok, res = pcall(getClient, self.path, target_server)
   if ok then
+    self.settings.custom_server = target_server
     return
   end
   self.settings.custom_server = prev_server
@@ -421,7 +435,7 @@ function KOSync:setCustomServer(server)
       ),
       server,
       prev_server or "default server",
-      err
+      res
     ),
     timeout = 3,
   }))
@@ -512,7 +526,7 @@ function KOSync:_login(menu)
 end
 
 function KOSync:_doRegister(username, password, menu)
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   -- on Android to avoid ANR (no-op on other platforms)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
@@ -547,7 +561,7 @@ function KOSync:_doRegister(username, password, menu)
 end
 
 function KOSync:_doLogin(username, password, menu)
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
   local ok, status, body = pcall(client.authorize, client, username, userkey)
@@ -605,23 +619,27 @@ function KOSync:_getLastProgress()
 end
 
 function KOSync:_getDocumentDigest()
-  if not self.ui or not self.ui.document then
-    return nil
-  end
+  assert(self.ui and self.ui.document, "KOSync: no document open")
+  local digest
   if self.settings.checksum_method ~= CHECKSUM_METHOD.FILENAME then
-    return self.ui.doc_settings and self.ui.doc_settings:read("partial_md5_checksum")
+    assert(self.ui.doc_settings, "KOSync: missing doc_settings")
+    digest = self.ui.doc_settings:read("partial_md5_checksum")
+  else
+    local file = self.ui.document.file
+    assert(file, "KOSync: missing document file")
+    local _, file_name = util.splitFilePathName(file)
+    digest = md5(file_name)
   end
-  local file = self.ui.document.file
-  if not file then
-    return nil
-  end
-
-  local _, file_name = util.splitFilePathName(file)
-  return md5(file_name)
+  assert(digest ~= nil, "KOSync: document digest is nil")
+  return digest
 end
 
 function KOSync:_isCurrentDocument(doc_digest)
-  return self.ui == ReaderUI.instance and self:_getDocumentDigest() == doc_digest
+  assert(doc_digest ~= nil, "KOSync: doc_digest must not be nil")
+  if self.ui ~= ReaderUI.instance or not self.ui or not self.ui.document then
+    return false
+  end
+  return self:_getDocumentDigest() == doc_digest
 end
 
 function KOSync:_syncToProgress(progress)
@@ -651,14 +669,7 @@ local function applyPushUI(ok, doc_digest, interactive)
   end
 end
 
-function KOSync:_applyPullUI(
-  ok,
-  body,
-  doc_digest,
-  interactive,
-  local_progress,
-  local_percentage
-)
+function KOSync:_applyPullUI(ok, body, doc_digest, interactive)
   if not self:_isCurrentDocument(doc_digest) then
     return
   end
@@ -692,7 +703,10 @@ function KOSync:_applyPullUI(
   end
 
   local remote_percentage = Math.roundPercent(body.percentage)
-  if local_percentage == remote_percentage or body.progress == local_progress then
+  if
+    self:_getLastPercent() == remote_percentage
+    or body.progress == self:_getLastProgress()
+  then
     showInfo(gettext("The progress has already been synchronized."))
     return
   end
@@ -708,10 +722,11 @@ function KOSync:_applyPullUI(
     is_newer = (body.timestamp > self.last_page_turn_timestamp)
   else
     -- If we are working with an old sync server, we can only use the percentage field.
-    is_newer = (body.percentage > local_percentage)
+    is_newer = (body.percentage > self:_getLastPercent())
   end
 
-  local strategy = is_newer and self.settings.sync_forward or self.settings.sync_backward
+  local strategy = is_newer and self.settings.sync_forward
+    or self.settings.sync_backward
 
   if strategy == SYNC_STRATEGY.SILENT then
     self:_syncToProgress(body.progress)
@@ -764,7 +779,7 @@ function KOSync:_updateProgress(interactive)
   end
   self.push_timestamp = now
 
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   local doc_digest = self:_getDocumentDigest()
   local progress = self:_getLastProgress()
   local percentage = self:_getLastPercent()
@@ -787,12 +802,14 @@ function KOSync:_updateProgress(interactive)
   end
 
   local function apply(res)
-    assert(res ~= nil)
-    applyPushUI(
-      res.ok,
-      doc_digest,
-      interactive
-    )
+    if type(res) ~= "table" then
+      logger.warn("KOSync: [Push] background job failed, result:", res)
+      res = { ok = false }
+    end
+    if not res.ok then
+      self.push_timestamp = 0
+    end
+    applyPushUI(res.ok, doc_digest, interactive)
   end
 
   if interactive then
@@ -802,13 +819,15 @@ function KOSync:_updateProgress(interactive)
       end)
     end, gettext("Pushing progress…"))
   else
-    BackgroundJobs.insertKeyed({
-      executable = "fork",
-      action = send,
-      callback = function(job)
-        apply(job and job.result)
-      end,
-    })
+    NetworkMgr:willRerunWhenOnline(function()
+      BackgroundJobs.insertKeyed({
+        executable = "fork",
+        action = send,
+        callback = function(job)
+          apply(job.result)
+        end,
+      })
+    end)
   end
 end
 
@@ -833,12 +852,10 @@ function KOSync:_getProgress(interactive)
   end
   self.pull_timestamp = now
 
-  local client = self:_createClient()
+  local client = getClient(self.path, self.settings.custom_server)
   local doc_digest = self:_getDocumentDigest()
   local username = self.settings.username
   local userkey = self.settings.userkey
-  local progress = self:_getLastProgress()
-  local percentage = self:_getLastPercent()
 
   local function send()
     -- Unlike pushProgress, it's unreasonable to get the progress as a pending
@@ -847,28 +864,20 @@ function KOSync:_getProgress(interactive)
       return { skipped = true }
     end
 
-    local ok, body = client:get_progress(
-      username,
-      userkey,
-      doc_digest
-    )
+    local ok, body = client:get_progress(username, userkey, doc_digest)
     return { ok = ok, body = body }
   end
 
   local function apply(res)
-    assert(res ~= nil)
+    if type(res) ~= "table" then
+      logger.warn("KOSync: [Pull] background job failed, result:", res)
+      res = { ok = false }
+    end
     if res.skipped then
       return
     end
 
-    self:_applyPullUI(
-      res.ok,
-      res.body,
-      doc_digest,
-      interactive,
-      progress,
-      percentage
-    )
+    self:_applyPullUI(res.ok, res.body, doc_digest, interactive)
   end
 
   if interactive then
@@ -882,7 +891,7 @@ function KOSync:_getProgress(interactive)
       executable = "fork",
       action = send,
       callback = function(job)
-        apply(job and job.result)
+        apply(job.result)
       end,
     })
   end
