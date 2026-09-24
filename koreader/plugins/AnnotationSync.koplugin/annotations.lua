@@ -438,31 +438,25 @@ function M.positions_intersect(a, b, document)
   end
 
   local a_end = {
-    page = (type(a.pos1) == "table" and (a.pos1.page or a.page))
-      or (type(a.pos1) == "string" and a.pos1)
-      or a.page,
+    page = (type(a.pos1) == "table" and (a.pos1.page or a.page)) or (type(
+      a.pos1
+    ) == "string" and a.pos1) or a.page,
     pos0 = a.pos1,
   }
   local b_end = {
-    page = (type(b.pos1) == "table" and (b.pos1.page or b.page))
-      or (type(b.pos1) == "string" and b.pos1)
-      or b.page,
+    page = (type(b.pos1) == "table" and (b.pos1.page or b.page)) or (type(
+      b.pos1
+    ) == "string" and b.pos1) or b.page,
     pos0 = b.pos1,
   }
 
   -- A_Start <= B_Start <= A_End
-  if
-    M.compare_positions(a, b) >= 0
-    and M.compare_positions(b, a_end) >= 0
-  then
+  if M.compare_positions(a, b) >= 0 and M.compare_positions(b, a_end) >= 0 then
     return true
   end
 
   -- B_Start <= A_Start <= B_End
-  if
-    M.compare_positions(b, a) >= 0
-    and M.compare_positions(a, b_end) >= 0
-  then
+  if M.compare_positions(b, a) >= 0 and M.compare_positions(a, b_end) >= 0 then
     return true
   end
 
