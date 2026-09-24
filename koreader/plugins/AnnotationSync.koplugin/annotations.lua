@@ -3,8 +3,11 @@ local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
+local sort = require("sort")
 local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
+
+local natsort = sort.natsort_cmp()
 
 local M = {}
 
@@ -155,6 +158,12 @@ function M.sync_callback(
     else
       local local_p = local_v.pos0 or local_v.page
       local income_p = income_v.pos0 or income_v.page
+      if type(local_p) == "table" and not local_p.page and local_v.page then
+        local_p = { x = local_p.x, y = local_p.y, page = local_v.page }
+      end
+      if type(income_p) == "table" and not income_p.page and income_v.page then
+        income_p = { x = income_p.x, y = income_p.y, page = income_v.page }
+      end
       local cmp = M.compare_positions(local_p, income_p, document)
       if (cmp or 0) > 0 then
         merged[local_k] = local_v
@@ -259,29 +268,59 @@ function M.get_deleted_annotations(
 end
 
 -- Universal comparison logic for various annotation position types
-function M.compare_positions(a, b, document)
+function M.compare_positions(a, b, _document)
   if not a or not b then
     return 0
   end
+
+  -- Case 1: Both are numbers (paging bookmarks)
   if type(a) == "number" and type(b) == "number" then
     return b - a
   end
+
+  -- Case 2: Both are strings (rolling XPointers)
   if type(a) == "string" and type(b) == "string" then
-    if document and type(document.compareXPointers) == "function" then
-      return document:compareXPointers(a, b) or 0
+    if a == b then
+      return 0
     end
-    return 0
+    if natsort(a, b) then
+      return 1
+    elseif natsort(b, a) then
+      return -1
+    else
+      return 0
+    end
   end
+
+  -- Case 3: Both are tables (paging highlights)
   if type(a) == "table" and type(b) == "table" then
-    if document and type(document.comparePositions) == "function" then
-      return document:comparePositions(a, b) or 0
+    local page_a = a.page or 0
+    local page_b = b.page or 0
+    if page_a ~= page_b then
+      return page_b - page_a
     end
-    if type(a.page) == "number" and type(b.page) == "number" then
-      return b.page - a.page
+    -- Same page: compare coordinates (top-to-bottom, left-to-right)
+    if a.y and b.y and a.y ~= b.y then
+      return b.y - a.y
+    end
+    if a.x and b.x and a.x ~= b.x then
+      return b.x - a.x
     end
     return 0
   end
-  -- Fallback for mixed types
+
+  -- Case 4: Mixed types (bookmark page number vs highlight table position)
+  local page_a = type(a) == "table" and (a.page or 0) or a
+  local page_b = type(b) == "table" and (b.page or 0) or b
+
+  if type(page_a) == "number" and type(page_b) == "number" then
+    if page_a ~= page_b then
+      return page_b - page_a
+    end
+    -- Same page: bookmark number is before highlight table
+    return type(a) == "number" and 1 or -1
+  end
+
   return 0
 end
 
@@ -364,6 +403,12 @@ function M.sort_keys_by_position(t, document)
     local ann_b = t[b]
     local pos_a = ann_a.pos0 or ann_a.page
     local pos_b = ann_b.pos0 or ann_b.page
+    if type(pos_a) == "table" and not pos_a.page and ann_a.page then
+      pos_a = { x = pos_a.x, y = pos_a.y, page = ann_a.page }
+    end
+    if type(pos_b) == "table" and not pos_b.page and ann_b.page then
+      pos_b = { x = pos_b.x, y = pos_b.y, page = ann_b.page }
+    end
     local cmp = M.compare_positions(pos_a, pos_b, document)
     return (cmp or 0) > 0
   end)
