@@ -653,14 +653,7 @@ local function applyPushUI(ok, doc_digest, interactive)
   end
 end
 
-function KOSync:_applyPullUI(
-  ok,
-  body,
-  doc_digest,
-  interactive,
-  local_progress,
-  local_percentage
-)
+function KOSync:_applyPullUI(ok, body, doc_digest, interactive)
   if not self:_isCurrentDocument(doc_digest) then
     return
   end
@@ -695,7 +688,8 @@ function KOSync:_applyPullUI(
 
   local remote_percentage = Math.roundPercent(body.percentage)
   if
-    local_percentage == remote_percentage or body.progress == local_progress
+    self:_getLastPercent() == remote_percentage
+    or body.progress == self:_getLastProgress()
   then
     showInfo(gettext("The progress has already been synchronized."))
     return
@@ -712,7 +706,7 @@ function KOSync:_applyPullUI(
     is_newer = (body.timestamp > self.last_page_turn_timestamp)
   else
     -- If we are working with an old sync server, we can only use the percentage field.
-    is_newer = (body.percentage > local_percentage)
+    is_newer = (body.percentage > self:_getLastPercent())
   end
 
   local strategy = is_newer and self.settings.sync_forward
@@ -846,8 +840,6 @@ function KOSync:_getProgress(interactive)
   local doc_digest = self:_getDocumentDigest()
   local username = self.settings.username
   local userkey = self.settings.userkey
-  local progress = self:_getLastProgress()
-  local percentage = self:_getLastPercent()
 
   local function send()
     -- Unlike pushProgress, it's unreasonable to get the progress as a pending
@@ -873,9 +865,7 @@ function KOSync:_getProgress(interactive)
       res.ok,
       res.body,
       doc_digest,
-      interactive,
-      progress,
-      percentage
+      interactive
     )
   end
 

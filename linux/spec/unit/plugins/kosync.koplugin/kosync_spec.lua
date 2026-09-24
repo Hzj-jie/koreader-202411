@@ -1182,7 +1182,7 @@ describe("KOSync plugin tests", function()
           timestamp = 200,
           device = "OtherDevice",
           device_id = "other_id",
-        }, "stale_digest", false, "50", 0.5)
+        }, "stale_digest", false)
         assert.stub(kosync._syncToProgress).was_not_called()
         assert.stub(UIManager.show).was_not_called()
 
@@ -1242,6 +1242,64 @@ describe("KOSync plugin tests", function()
       kosync._syncToProgress:revert()
       BackgroundJobs.insertKeyed:revert()
     end)
+
+    it(
+      "samples local progress live in _applyPullUI, avoiding backward sync when reading in flight",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.settings.sync_forward = 2 -- SILENT
+        kosync.settings.sync_backward = 3 -- DISABLE
+        kosync.pull_timestamp = 0
+
+        -- Server has 80% without timestamp (legacy server)
+        mock_client.get_progress = spy.new(function()
+          return true,
+            {
+              percentage = 0.8,
+              progress = "80",
+              timestamp = nil,
+              device = "OtherDevice",
+              device_id = "other_id",
+            }
+        end)
+
+        stub(kosync, "_syncToProgress")
+        local current_percent = 0.5
+        local current_progress = "50"
+        mock_ui.paging.getLastPercent = function()
+          return current_percent
+        end
+        mock_ui.paging.getLastProgress = function()
+          return current_progress
+        end
+
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          -- User advances to 90% while request is in flight
+          current_percent = 0.9
+          current_progress = "90"
+          job.result = job.action()
+          job.callback(job)
+          return true
+        end)
+
+        kosync:_getProgress(false)
+
+        -- Since local is now 90% and remote is 80%, remote is older.
+        -- sync_backward is DISABLE, so it should NOT jump backwards.
+        assert.stub(kosync._syncToProgress).was_not_called()
+
+        BackgroundJobs.insertKeyed:revert()
+        kosync._syncToProgress:revert()
+        mock_ui.paging.getLastPercent = function()
+          return 0.5
+        end
+        mock_ui.paging.getLastProgress = function()
+          return "50"
+        end
+      end
+    )
 
     it(
       "skips background pull action if document was closed or changed before action executes",
