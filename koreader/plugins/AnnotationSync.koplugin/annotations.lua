@@ -437,8 +437,8 @@ function M.filter_valid_annotations(map, map_name)
 end
 
 function M.is_before(a, b)
-  local a_time = a.datetime_updated or a.datetime or 0
-  local b_time = b.datetime_updated or b.datetime or 0
+  local a_time = a.datetime_updated or a.datetime or ""
+  local b_time = b.datetime_updated or b.datetime or ""
   return a_time <= b_time
 end
 

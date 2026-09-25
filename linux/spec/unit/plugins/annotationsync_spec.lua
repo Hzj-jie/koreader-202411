@@ -168,6 +168,24 @@ describe("AnnotationSync plugin unit tests", function()
       assert.is_nil(filtered.bad_empty_pos)
       assert.is_nil(filtered.bad_non_table)
     end)
+
+    it(
+      "should compare timestamps cleanly without crashing on missing datetime",
+      function()
+        local t1 = { datetime = "2026-01-01 12:00:00" }
+        local t2 = { datetime = "2026-01-01 12:00:01" }
+        local no_time = { page = 1 }
+
+        assert.is_true(annotations.is_before(t1, t2))
+        assert.is_false(annotations.is_before(t2, t1))
+        assert.is_true(annotations.is_before(t1, t1))
+
+        -- Missing datetime fallback to empty string
+        assert.is_true(annotations.is_before(no_time, t1))
+        assert.is_false(annotations.is_before(t1, no_time))
+        assert.is_true(annotations.is_before(no_time, no_time))
+      end
+    )
   end)
 
   describe("Position Comparison and Sorting", function()
