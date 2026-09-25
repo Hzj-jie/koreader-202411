@@ -349,22 +349,22 @@ end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
+  table.sort(merged_list, function(a, b)
+    local cmp = annotations.compare_positions(a, b)
+    return (cmp or 0) > 0
+  end)
+
   if self.ui and self.ui.annotation and self.ui.document == document then
-    -- 1. Sort for UI consistency
-    table.sort(merged_list, function(a, b)
-      local cmp = annotations.compare_positions(a, b)
-      return (cmp or 0) > 0
-    end)
-    -- 2. Update active widget state
+    -- 1. Update active widget state
     self.ui.annotation.annotations = merged_list
     self.ui.annotation:onSaveSettings()
 
-    -- 3. Notify system
+    -- 2. Notify system
     if #merged_list > 0 then
       UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
     end
 
-    -- 4. Trigger Refreshes
+    -- 3. Trigger Refreshes
     if not document.is_pdf then
       document:render()
       self.ui.view:recalculate()

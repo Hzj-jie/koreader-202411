@@ -354,6 +354,9 @@ function M.map_to_list(map)
         end
       end
     end
+    table.sort(list, function(a, b)
+      return M.compare_positions(a, b) > 0
+    end)
   end
   return list
 end
