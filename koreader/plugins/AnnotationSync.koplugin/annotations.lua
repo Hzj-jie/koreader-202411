@@ -9,6 +9,19 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local natsort = sort.natsort_cmp()
 
+local function has_valid_coords(pos)
+  return type(pos) == "table"
+    and type(pos.x) == "number"
+    and type(pos.y) == "number"
+end
+
+local function has_valid_page(ann)
+  local page = ann.page
+    or (type(ann.pos0) == "table" and ann.pos0.page)
+    or (type(ann.pos0) == "string" and ann.pos0)
+  return type(page) == "number" or (type(page) == "string" and page ~= "")
+end
+
 local M = {}
 
 -- Main orchestration for merging local and remote annotations
@@ -43,32 +56,16 @@ function M.sync_callback(
     return false
   end
 
+  local_map = M.filter_valid_annotations(local_map, "local_map")
+  last_sync_map = M.filter_valid_annotations(last_sync_map, "last_sync_map")
+
   if income_map then
-    -- Validate it's an annotation map (heuristic: values must be tables)
-    -- AND for non-empty maps, at least one entry must have annotation-like keys.
-    local is_valid_schema = true
-    for k, v in pairs(income_map) do
-      if type(v) ~= "table" then
-        logger.warn(
-          "AnnotationSync: income_map contains non-table value for key",
-          tostring(k),
-          ". Aborting."
-        )
-        is_valid_schema = false
-        break
-      end
-      -- Schema check: values should have at least one of these keys
-      if not (v.datetime_updated or v.datetime or v.page or v.text) then
-        logger.warn(
-          "AnnotationSync: income_map value for key",
-          tostring(k),
-          "lacks annotation metadata. Aborting."
-        )
-        is_valid_schema = false
-        break
-      end
-    end
-    if not is_valid_schema then
+    local had_entries = next(income_map) ~= nil
+    income_map = M.filter_valid_annotations(income_map, "income_map")
+    if had_entries and next(income_map) == nil then
+      logger.warn(
+        "AnnotationSync: income_map contains no valid annotations. Aborting."
+      )
       income_map = nil
     end
   end
@@ -277,7 +274,7 @@ function M.compare_positions(a, b)
   end
 
   local function has_coords(pos)
-    return pos and (pos.x ~= nil or pos.y ~= nil) or false
+    return has_valid_coords(pos)
   end
 
   local page_a = get_page(a)
@@ -399,12 +396,54 @@ function M.annotation_key(annotation)
   end
 end
 
-function M.is_annotation(candidate)
-  return candidate and candidate.pos0 and candidate.pos1
+function M.is_bookmark(candidate)
+  if type(candidate) ~= "table" or not has_valid_page(candidate) then
+    return false
+  end
+  return candidate.pos0 == nil and candidate.pos1 == nil
 end
 
-function M.is_bookmark(candidate)
-  return candidate and candidate.page and not M.is_annotation(candidate)
+function M.is_annotation(candidate)
+  if type(candidate) ~= "table" or not has_valid_page(candidate) then
+    return false
+  end
+  if not candidate.pos0 or not candidate.pos1 then
+    return false
+  end
+
+  if has_valid_coords(candidate.pos0) and has_valid_coords(candidate.pos1) then
+    return true
+  end
+
+  if type(candidate.pos0) == "string" and type(candidate.pos1) == "string" then
+    return candidate.pos0 ~= "" and candidate.pos1 ~= ""
+  end
+
+  return false
+end
+
+function M.is_valid(candidate)
+  return M.is_annotation(candidate) or M.is_bookmark(candidate)
+end
+
+function M.filter_valid_annotations(map, map_name)
+  if type(map) ~= "table" then
+    return {}
+  end
+  local valid = {}
+  for k, v in pairs(map) do
+    if M.is_valid(v) then
+      valid[k] = v
+    else
+      logger.warn(
+        "AnnotationSync: dropping invalid entry in",
+        map_name or "map",
+        "key:",
+        tostring(k)
+      )
+    end
+  end
+  return valid
 end
 
 function M.is_before(a, b)

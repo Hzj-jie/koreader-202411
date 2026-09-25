@@ -89,6 +89,83 @@ describe("AnnotationSync plugin unit tests", function()
     it("should expose sync_callback function", function()
       assert.is_function(annotations.sync_callback)
     end)
+
+    it("should correctly validate bookmarks", function()
+      assert.is_true(annotations.is_bookmark({ page = 1 }))
+      assert.is_true(annotations.is_bookmark({ page = "chapter1" }))
+      -- Invalid bookmarks
+      assert.is_false(annotations.is_bookmark(nil))
+      assert.is_false(annotations.is_bookmark(1))
+      assert.is_false(annotations.is_bookmark({ text = "note without page" }))
+      assert.is_false(annotations.is_bookmark({ page = "" }))
+      -- Cannot have highlight positions
+      assert.is_false(annotations.is_bookmark({ page = 1, pos0 = { x = 10, y = 20 } }))
+    end)
+
+    it("should correctly validate highlights", function()
+      -- Valid paging highlight
+      assert.is_true(annotations.is_annotation({
+        page = 1,
+        pos0 = { x = 10, y = 20 },
+        pos1 = { x = 30, y = 40 },
+      }))
+      -- Valid rolling highlight
+      assert.is_true(annotations.is_annotation({
+        page = 1,
+        pos0 = "p1",
+        pos1 = "p2",
+      }))
+      -- Invalid: missing page
+      assert.is_false(annotations.is_annotation({
+        pos0 = { x = 10, y = 20 },
+        pos1 = { x = 30, y = 40 },
+      }))
+      -- Invalid: missing pos1
+      assert.is_false(annotations.is_annotation({
+        page = 1,
+        pos0 = { x = 10, y = 20 },
+      }))
+      -- Invalid: pos0 is empty table without coords
+      assert.is_false(annotations.is_annotation({
+        page = 1,
+        pos0 = {},
+        pos1 = {},
+      }))
+      -- Invalid: non-numeric coordinates
+      assert.is_false(annotations.is_annotation({
+        page = 1,
+        pos0 = { x = "bad", y = 20 },
+        pos1 = { x = 30, y = 40 },
+      }))
+      -- Invalid: empty string xpointers
+      assert.is_false(annotations.is_annotation({
+        page = 1,
+        pos0 = "",
+        pos1 = "p2",
+      }))
+    end)
+
+    it("should filter out invalid entries from annotation maps", function()
+      local mixed_map = {
+        valid_bm = { page = 1, text = "Valid Bookmark" },
+        valid_hl = {
+          page = 2,
+          pos0 = { x = 10, y = 20 },
+          pos1 = { x = 50, y = 20 },
+          text = "Valid Highlight",
+        },
+        bad_no_page = { text = "Corrupt no page" },
+        bad_empty_pos = { page = 3, pos0 = {}, pos1 = {} },
+        bad_non_table = "corrupted string",
+      }
+
+      local filtered = annotations.filter_valid_annotations(mixed_map, "test")
+      assert.is_not_nil(filtered.valid_bm)
+      assert.is_not_nil(filtered.valid_hl)
+      assert.is_nil(filtered.bad_no_page)
+      assert.is_nil(filtered.bad_empty_pos)
+      assert.is_nil(filtered.bad_non_table)
+    end)
   end)
 
   describe("Position Comparison and Sorting", function()
