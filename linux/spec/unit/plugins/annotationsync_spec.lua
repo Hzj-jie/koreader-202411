@@ -141,20 +141,20 @@ describe("AnnotationSync plugin unit tests", function()
         )
 
         -- Tables on different pages
-        local t_p1 = { page = 1, x = 10, y = 20 }
-        local t_p2 = { page = 2, x = 10, y = 20 }
+        local t_p1 = { page = 1, pos0 = { x = 10, y = 20 } }
+        local t_p2 = { page = 2, pos0 = { x = 10, y = 20 } }
         assert.is_true(annotations.compare_positions(t_p1, t_p2) > 0)
         assert.is_true(annotations.compare_positions(t_p2, t_p1) < 0)
 
         -- Tables on same page with coordinates
-        local t_top = { page = 1, x = 10, y = 20 }
-        local t_bottom = { page = 1, x = 10, y = 80 }
+        local t_top = { page = 1, pos0 = { x = 10, y = 20 } }
+        local t_bottom = { page = 1, pos0 = { x = 10, y = 80 } }
         assert.is_true(annotations.compare_positions(t_top, t_bottom) > 0)
         assert.is_true(annotations.compare_positions(t_bottom, t_top) < 0)
 
         -- Tables on same page, same y, different x
-        local t_left = { page = 1, x = 10, y = 20 }
-        local t_right = { page = 1, x = 50, y = 20 }
+        local t_left = { page = 1, pos0 = { x = 10, y = 20 } }
+        local t_right = { page = 1, pos0 = { x = 50, y = 20 } }
         assert.is_true(annotations.compare_positions(t_left, t_right) > 0)
         assert.is_true(annotations.compare_positions(t_right, t_left) < 0)
 
@@ -165,12 +165,6 @@ describe("AnnotationSync plugin unit tests", function()
         -- Bookmark vs highlight on same page (bookmark is ordered before highlight)
         assert.is_true(annotations.compare_positions({ page = 1 }, t_p1) > 0)
         assert.is_true(annotations.compare_positions(t_p1, { page = 1 }) < 0)
-
-        -- Annotations with nested pos0
-        local ann_top = { page = 1, pos0 = { x = 10, y = 20 } }
-        local ann_bottom = { page = 1, pos0 = { x = 10, y = 80 } }
-        assert.is_true(annotations.compare_positions(ann_top, ann_bottom) > 0)
-        assert.is_true(annotations.compare_positions(ann_bottom, ann_top) < 0)
 
         -- Assertions: non-table arguments must error
         assert.has_error(function()

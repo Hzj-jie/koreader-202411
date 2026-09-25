@@ -273,11 +273,11 @@ function M.compare_positions(a, b)
   end
 
   local function get_pos(item)
-    return type(item.pos0) == "table" and item.pos0 or item
+    return type(item.pos0) == "table" and item.pos0
   end
 
   local function has_coords(pos)
-    return pos.x ~= nil or pos.y ~= nil
+    return pos and (pos.x ~= nil or pos.y ~= nil) or false
   end
 
   local page_a = get_page(a)
