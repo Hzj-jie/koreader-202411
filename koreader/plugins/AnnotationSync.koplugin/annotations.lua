@@ -9,6 +9,14 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local natsort = sort.natsort_cmp()
 
+local function natcmp(a, b)
+  if a == b then
+    return 0
+  end
+  local is_before = natsort(a, b)
+  return is_before and 1 or -1
+end
+
 local function has_valid_coords(pos)
   return type(pos) == "table"
     and type(pos.x) == "number"
@@ -292,13 +300,7 @@ function M.compare_positions(a, b)
 
     local str_a = tostring(page_a)
     local str_b = tostring(page_b)
-    if natsort(str_a, str_b) then
-      return 1
-    elseif natsort(str_b, str_a) then
-      return -1
-    else
-      return 0
-    end
+    return natcmp(str_a, str_b)
   end
 
   -- Same page: compare sub-page position / coordinates
@@ -324,18 +326,8 @@ function M.compare_positions(a, b)
   end
 
   -- Same page: rolling XPointers within the page
-  if
-    type(a.pos0) == "string"
-    and type(b.pos0) == "string"
-    and a.pos0 ~= b.pos0
-  then
-    if natsort(a.pos0, b.pos0) then
-      return 1
-    elseif natsort(b.pos0, a.pos0) then
-      return -1
-    else
-      return 0
-    end
+  if type(a.pos0) == "string" and type(b.pos0) == "string" then
+    return natcmp(a.pos0, b.pos0)
   end
 
   return 0
