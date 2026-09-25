@@ -298,9 +298,7 @@ function M.compare_positions(a, b)
       return page_b - page_a
     end
 
-    local str_a = tostring(page_a)
-    local str_b = tostring(page_b)
-    return natcmp(str_a, str_b)
+    return natcmp(tostring(page_a), tostring(page_b))
   end
 
   -- Same page: compare sub-page position / coordinates
