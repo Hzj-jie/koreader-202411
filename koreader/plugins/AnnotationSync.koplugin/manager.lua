@@ -444,8 +444,7 @@ function SyncManager:getDeletedAnnotations(document)
   end
 
   table.sort(deleted, function(a, b)
-    local cmp = annotations.compare_positions(a, b)
-    return (cmp or 0) > 0
+    return annotations.compare_positions(a, b) > 0
   end)
 
   return deleted

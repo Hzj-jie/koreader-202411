@@ -350,8 +350,7 @@ end
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
   table.sort(merged_list, function(a, b)
-    local cmp = annotations.compare_positions(a, b)
-    return (cmp or 0) > 0
+    return annotations.compare_positions(a, b) > 0
   end)
 
   if self.ui and self.ui.annotation and self.ui.document == document then

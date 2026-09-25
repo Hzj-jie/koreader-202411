@@ -161,8 +161,7 @@ function M.sync_callback(
       i = i + 1
       l = l + 1
     else
-      local cmp = M.compare_positions(local_v, income_v)
-      if (cmp or 0) > 0 then
+      if M.compare_positions(local_v, income_v) > 0 then
         merged[local_k] = local_v
         l = l + 1
       else
