@@ -266,27 +266,12 @@ function M.compare_positions(a, b)
     "compare_positions requires table arguments"
   )
 
-  -- Check if both are rolling XPointers (either in pos0 or page)
-  local xp_a = (type(a.pos0) == "string" and a.pos0)
-    or (type(a.page) == "string" and a.page)
-  local xp_b = (type(b.pos0) == "string" and b.pos0)
-    or (type(b.page) == "string" and b.page)
-
-  if xp_a and xp_b then
-    if xp_a == xp_b then
-      return 0
-    end
-    if natsort(xp_a, xp_b) then
-      return 1
-    elseif natsort(xp_b, xp_a) then
-      return -1
-    else
-      return 0
-    end
-  end
-
-  local page_a = a.page or (type(a.pos0) == "table" and a.pos0.page)
-  local page_b = b.page or (type(b.pos0) == "table" and b.pos0.page)
+  local page_a = a.page
+    or (type(a.pos0) == "table" and a.pos0.page)
+    or (type(a.pos0) == "string" and a.pos0)
+  local page_b = b.page
+    or (type(b.pos0) == "table" and b.pos0.page)
+    or (type(b.pos0) == "string" and b.pos0)
 
   assert(
     page_a ~= nil and page_b ~= nil,
@@ -329,6 +314,21 @@ function M.compare_positions(a, b)
       return pos_b.x - pos_a.x
     end
     return 0
+  end
+
+  -- Same page: rolling XPointers within the page
+  if
+    type(a.pos0) == "string"
+    and type(b.pos0) == "string"
+    and a.pos0 ~= b.pos0
+  then
+    if natsort(a.pos0, b.pos0) then
+      return 1
+    elseif natsort(b.pos0, a.pos0) then
+      return -1
+    else
+      return 0
+    end
   end
 
   return 0
@@ -438,15 +438,11 @@ function M.positions_intersect(a, b, document)
   end
 
   local a_end = {
-    page = (type(a.pos1) == "table" and (a.pos1.page or a.page)) or (type(
-      a.pos1
-    ) == "string" and a.pos1) or a.page,
+    page = (type(a.pos1) == "table" and a.pos1.page) or a.page,
     pos0 = a.pos1,
   }
   local b_end = {
-    page = (type(b.pos1) == "table" and (b.pos1.page or b.page)) or (type(
-      b.pos1
-    ) == "string" and b.pos1) or b.page,
+    page = (type(b.pos1) == "table" and b.pos1.page) or b.page,
     pos0 = b.pos1,
   }
 
