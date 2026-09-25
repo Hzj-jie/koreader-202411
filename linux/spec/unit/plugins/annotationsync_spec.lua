@@ -99,7 +99,9 @@ describe("AnnotationSync plugin unit tests", function()
       assert.is_false(annotations.is_bookmark({ text = "note without page" }))
       assert.is_false(annotations.is_bookmark({ page = "" }))
       -- Cannot have highlight positions
-      assert.is_false(annotations.is_bookmark({ page = 1, pos0 = { x = 10, y = 20 } }))
+      assert.is_false(
+        annotations.is_bookmark({ page = 1, pos0 = { x = 10, y = 20 } })
+      )
     end)
 
     it("should correctly validate highlights", function()
