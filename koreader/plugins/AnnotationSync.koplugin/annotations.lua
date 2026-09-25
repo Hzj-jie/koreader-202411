@@ -259,26 +259,26 @@ function M.get_deleted_annotations(
   end
 end
 
-local function get_page(item)
-  return item.page
-    or (type(item.pos0) == "table" and item.pos0.page)
-    or (type(item.pos0) == "string" and item.pos0)
-end
-
-local function get_pos(item)
-  return type(item.pos0) == "table" and item.pos0 or item
-end
-
-local function has_coords(pos)
-  return pos.x ~= nil or pos.y ~= nil
-end
-
 -- Universal comparison logic for annotation position tables
 function M.compare_positions(a, b)
   assert(
     type(a) == "table" and type(b) == "table",
     "compare_positions requires table arguments"
   )
+
+  local function get_page(item)
+    return item.page
+      or (type(item.pos0) == "table" and item.pos0.page)
+      or (type(item.pos0) == "string" and item.pos0)
+  end
+
+  local function get_pos(item)
+    return type(item.pos0) == "table" and item.pos0 or item
+  end
+
+  local function has_coords(pos)
+    return pos.x ~= nil or pos.y ~= nil
+  end
 
   local page_a = get_page(a)
   local page_b = get_page(b)
