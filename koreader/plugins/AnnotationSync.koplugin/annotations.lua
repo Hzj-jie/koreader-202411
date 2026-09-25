@@ -259,6 +259,20 @@ function M.get_deleted_annotations(
   end
 end
 
+local function get_page(item)
+  return item.page
+    or (type(item.pos0) == "table" and item.pos0.page)
+    or (type(item.pos0) == "string" and item.pos0)
+end
+
+local function get_pos(item)
+  return type(item.pos0) == "table" and item.pos0 or item
+end
+
+local function has_coords(pos)
+  return pos.x ~= nil or pos.y ~= nil
+end
+
 -- Universal comparison logic for annotation position tables
 function M.compare_positions(a, b)
   assert(
@@ -266,12 +280,8 @@ function M.compare_positions(a, b)
     "compare_positions requires table arguments"
   )
 
-  local page_a = a.page
-    or (type(a.pos0) == "table" and a.pos0.page)
-    or (type(a.pos0) == "string" and a.pos0)
-  local page_b = b.page
-    or (type(b.pos0) == "table" and b.pos0.page)
-    or (type(b.pos0) == "string" and b.pos0)
+  local page_a = get_page(a)
+  local page_b = get_page(b)
 
   assert(
     page_a ~= nil and page_b ~= nil,
@@ -295,11 +305,11 @@ function M.compare_positions(a, b)
   end
 
   -- Same page: compare sub-page position / coordinates
-  local pos_a = type(a.pos0) == "table" and a.pos0 or a
-  local pos_b = type(b.pos0) == "table" and b.pos0 or b
+  local pos_a = get_pos(a)
+  local pos_b = get_pos(b)
 
-  local has_coords_a = (pos_a.x ~= nil or pos_a.y ~= nil)
-  local has_coords_b = (pos_b.x ~= nil or pos_b.y ~= nil)
+  local has_coords_a = has_coords(pos_a)
+  local has_coords_b = has_coords(pos_b)
 
   if not has_coords_a and has_coords_b then
     -- Bookmark on same page is strictly ordered before highlight
