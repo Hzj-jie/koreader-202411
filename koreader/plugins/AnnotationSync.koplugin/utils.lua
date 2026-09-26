@@ -10,12 +10,14 @@ function M.read_json(path)
   end
   local f = io.open(path, "r")
   if not f then
-    return {}
+    -- No file, likely 404
+    return nil
   end
   local content = f:read("*a")
   f:close()
   if not content or content == "" then
-    return {}
+    -- Unexpected file, any json should at least have {} or [].
+    return nil
   end
 
   -- json.decode can cause a panic and crash KOReader on some platforms if it

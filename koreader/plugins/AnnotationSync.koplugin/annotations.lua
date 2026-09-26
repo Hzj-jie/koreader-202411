@@ -32,12 +32,13 @@ end
 
 local M = {}
 
-local function to_annotations_array(raw_data)
-  if type(raw_data) ~= "table" then
-    return {}
+local function read_to_array(file)
+  local raw = utils.read_json(file)
+  if type(raw) ~= "table" then
+    return nil
   end
   local valid = {}
-  for _, v in pairs(raw_data) do
+  for _, v in pairs(raw) do
     if M.is_valid(v) then
       table.insert(valid, v)
     end
@@ -57,12 +58,10 @@ function M.sync_callback(
   logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
   logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
 
-  local local_raw = utils.read_json(local_file)
-  local last_sync_raw = utils.read_json(last_sync_file)
-  local income_raw = utils.read_json(income_file)
+  local local_list = read_to_array(local_file)
+  local last_sync_list = read_to_array(last_sync_file)
 
-  local is_likely_404 = false
-  if not local_raw or not last_sync_raw then
+  if not local_list and not last_sync_list then
     logger.warn(
       "AnnotationSync: Failed to load local sync files. Aborting to prevent data loss."
     )
@@ -77,149 +76,88 @@ function M.sync_callback(
     return false
   end
 
-  local local_list = to_annotations_array(local_raw)
-  local last_sync_list = to_annotations_array(last_sync_raw)
-  local income_list = nil
-
-  if income_raw then
-    local had_entries = next(income_raw) ~= nil
-    local filtered = to_annotations_array(income_raw)
-    if had_entries and #filtered == 0 then
-      logger.warn(
-        "AnnotationSync: income_file contains no valid annotations. Aborting."
-      )
-      income_raw = nil
-    else
-      income_list = filtered
-    end
-  end
-
-  if not income_raw then
-    -- If income_file is not a valid JSON table, it might be a 404 error page from WebDAV (first sync)
-    -- We only assume empty state if it's NOT valid JSON at all and looks like a 404 error body.
-    local content_snippet = ""
-    local f = income_file and io.open(income_file, "r")
-    if f then
-      local content = f:read(1024)
-      f:close()
-      content_snippet = content and content:sub(1, 100):gsub("%s+", " ") or ""
-      local ok_json, data = pcall(json.decode, content)
-      if not ok_json then
-        -- Not valid JSON. Check for explicit 404/Not Found markers.
-        if content then
-          local lower_content = content:lower()
-          if
-            lower_content:find("404")
-            or lower_content:find("not found")
-            or lower_content:find("notfound")
-            or lower_content:find("could not be located")
-          then
-            is_likely_404 = true
-          end
-        end
-      elseif
-        type(data) == "table"
-        and data.error_summary
-        and data.error_summary:find("path/not_found")
-      then
-        -- Dropbox error: path not found (new book)
-        is_likely_404 = true
-      end
-    else
-      -- File doesn't exist at all (SyncService handles this, but just in case)
-      is_likely_404 = true
-    end
-
-    if is_likely_404 then
-      logger.info(
-        "AnnotationSync: income_file invalid/text, assuming empty remote state (likely 404)."
-      )
-      income_list = {}
-    else
-      logger.warn(
-        "AnnotationSync: income_file appears corrupted or server error. Aborting. Snippet:",
-        content_snippet
-      )
-      if force then
-        UIManager:show(InfoMessage:new({
-          text = gettext(
-            "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
-          ),
-          timeout = 3,
-        }))
-      end
-      return false
-    end
-  end
+  local_list = local_list or {}
+  last_sync_list = last_sync_list or {}
+  local income_list = read_to_array(income_file) or {}
 
   local merged = {}
+  local active = {}
 
-  for _, income_v in ipairs(income_list) do
-    local matched_local = nil
-    for _, local_v in ipairs(local_list) do
-      if M.is_same_annotation(income_v, local_v) then
-        matched_local = local_v
-        break
+  -- TODO: Improve the perf with binary search.
+  local function is_in_list(list, v)
+    assert(type(list) == "table")
+    for _, r in ipairs(list) do
+      if M.is_same_annotation(v, r) then
+        return r
       end
     end
-    if matched_local then
-      if M.is_before(income_v, matched_local) then
-        table.insert(merged, matched_local)
-      else
-        table.insert(merged, income_v)
+    return nil
+  end
+
+  for _, v in ipairs(local_list) do
+    table.insert(merged, v)
+  end
+  for _, v in ipairs(income_list) do
+    local r = is_in_list(local_list, v)
+    if r then
+      -- In both local and income, update any fields to the later one.
+      if M.is_before(r, v) then
+        for key, value in pairs(v) do
+          r[key] = value
+        end
       end
     else
-      local was_in_last_sync = false
-      if not (not force and #local_list == 0 and #last_sync_list > 0) then
-        for _, last_v in ipairs(last_sync_list) do
-          if M.is_same_annotation(income_v, last_v) then
-            was_in_last_sync = true
-            break
+      -- Explicitly make a copy so that we can tell if remote deleted it.
+      table.insert(merged, v)
+    end
+  end
+  -- Since we loop through multiple lists, the order isn't guaranteed.
+  M.sort(merged)
+
+  for _, v in ipairs(merged) do
+    local is_income = is_in_list(income_list, v)
+    local is_local = is_in_list(local_list, v)
+    assert(is_income or is_local)
+    if not v.deleted then
+      if is_income and is_local then
+        -- No matter if it's in last_sync_list, it's active.
+        table.insert(active, v)
+      else
+        local is_last_sync = is_in_list(last_sync_list, v)
+        if is_income then
+          if is_last_sync then
+            -- local deleted
+            v.deleted = true
+            v.datetime_updated = os.date("%Y-%m-%d %H:%M:%S")
+          else
+            -- remote add
+            table.insert(active, v)
+          end
+        else  -- is_local then
+          if is_last_sync then
+            -- remote deleted, but we don't need to update the timestamp anymore
+            -- since it will be removed locally immediately.
+            v.deleted = true
+          else
+            -- local add
+            table.insert(active, v)
           end
         end
       end
-      if was_in_last_sync then
-        income_v.deleted = true
-        income_v.datetime_updated = os.date("%Y-%m-%d %H:%M:%S")
-        table.insert(merged, income_v)
-      else
-        table.insert(merged, income_v)
-      end
     end
   end
-
-  for _, local_v in ipairs(local_list) do
-    local found = false
-    for _, income_v in ipairs(income_list) do
-      if M.is_same_annotation(local_v, income_v) then
-        found = true
-        break
-      end
-    end
-    if not found then
-      table.insert(merged, local_v)
-    end
-  end
-
-  M.sort(merged)
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
-  local active_list = {}
-  for _, ann in ipairs(merged) do
-    if not ann.deleted then
-      table.insert(active_list, ann)
-    end
-  end
 
-  if is_likely_404 and #local_list == 0 then
+  if #merged == 0 then
     logger.dbg(
       "AnnotationSync: remote file does not exist and local file is empty, skipping push to server"
     )
-    return false, active_list
+    return false, active
   end
 
   util.writeToFile(json.encode(M.list_to_map(merged)), local_file)
-  return true, active_list
+  return true, active
 end
 
 -- Prepares the local sidecar data for syncing
@@ -418,7 +356,7 @@ end
 function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""
   local b_time = b.datetime_updated or b.datetime or ""
-  return a_time <= b_time
+  return a_time < b_time
 end
 
 function M.sort_keys_by_position(t)
