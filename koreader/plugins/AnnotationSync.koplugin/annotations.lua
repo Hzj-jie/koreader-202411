@@ -78,7 +78,25 @@ function M.sync_callback(
 
   local_list = local_list or {}
   last_sync_list = last_sync_list or {}
-  local income_list = read_to_array(income_file) or {}
+  local income_list = read_to_array(income_file)
+  if not income_list then
+    -- No remote file found, early return to prefer anything locally.
+    util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
+    return true, local_list
+  end
+
+  -- SAFETY (Issue 23): If local is empty but last sync was not,
+  -- it's likely a docsettings failure or fresh device state.
+  -- We skip deletion propagation to avoid wiping remote data.
+  -- We bypass this safety if 'force' is true (manual sync).
+  if not force and #local_list == 0 and #last_sync_list > 0 then
+    logger.warn(
+      "AnnotationSync: Local annotations empty but last sync had",
+      #last_sync_list,
+      ". Skipping deletions to protect data."
+    )
+    return false
+  end
 
   local merged = {}
   local active = {}
@@ -102,6 +120,9 @@ function M.sync_callback(
     if r then
       -- In both local and income, update any fields to the later one.
       if M.is_before(r, v) then
+        for key, _ in pairs(r) do
+          r[key] = nil
+        end
         for key, value in pairs(v) do
           r[key] = value
         end
