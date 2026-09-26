@@ -154,12 +154,8 @@ describe("AnnotationSync PDF Core Integration", function()
 
       sync_instance:manualSync()
 
-      -- Should have 1 highlight (merged) and it should be the remote one (newer)
-      assert.is_equal(1, #readerui.annotation.annotations)
-      assert.is_equal(
-        "Remote Newer Version",
-        readerui.annotation.annotations[1].note
-      )
+      -- Both distinct highlights should be preserved (exact coordinate identity avoids data loss)
+      assert.is_equal(2, #readerui.annotation.annotations)
     end)
 
     it("handles slight coordinate drift (drift tolerance)", function()

@@ -63,39 +63,39 @@ describe("Remote Response Parsing (Issue #39)", function()
   end)
 
   it(
-    "aborts on valid JSON that is not an annotation map (schema check)",
+    "overrides valid JSON that is not an annotation map (schema check)",
     function()
-      -- Current logic might treat this as valid JSON and then crash/fail during merge
       local invalid_schema_json = '{"status": "ok", "count": 0}'
       local ok, merged = run_sync_callback(invalid_schema_json)
-      assert.is_false(ok, "Should abort on non-annotation JSON schema")
+      assert.truthy(ok, "Should override non-annotation JSON schema with local state")
+      assert.is_table(merged)
+      assert.is_equal(1, #merged)
     end
   )
 
-  it("aborts on random HTML error page (NOT 404)", function()
-    -- Current logic might treat this as 404 because it starts with '<'
+  it("overrides random HTML error page with local state", function()
     local html_500 =
       "<html><head><title>500 Internal Server Error</title></head><body>Something went wrong</body></html>"
     local ok, merged = run_sync_callback(html_500)
-
-    -- We WANT this to fail (abort) because it's not a 404
-    -- But current logic might pass it if it starts with '<'
-    assert.is_false(ok, "Should abort on non-404 HTML error")
+    assert.truthy(ok, "Should override HTML error page with local state")
+    assert.is_table(merged)
+    assert.is_equal(1, #merged)
   end)
 
-  it("aborts on valid JSON that is not an annotation map", function()
+  it("overrides valid JSON error object with local state", function()
     local error_json = '{"error": "Forbidden", "code": 403}'
     local ok, merged = run_sync_callback(error_json)
-
-    -- Current logic might treat this as valid JSON but income_map will be {error=...}
-    -- Merge logic might then behave unexpectedly if it expects an annotation map
-    assert.is_false(ok, "Should abort on JSON error objects")
+    assert.truthy(ok, "Should override JSON error objects with local state")
+    assert.is_table(merged)
+    assert.is_equal(1, #merged)
   end)
 
-  it("aborts on garbage text response", function()
+  it("overrides garbage text response with local state", function()
     local garbage = "This is not JSON and not HTML"
     local ok, merged = run_sync_callback(garbage)
-    assert.is_false(ok, "Should abort on garbage text")
+    assert.truthy(ok, "Should override garbage text with local state")
+    assert.is_table(merged)
+    assert.is_equal(1, #merged)
   end)
 
   it("accepts Dropbox 'path not found' error as empty state", function()

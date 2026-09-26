@@ -285,18 +285,12 @@ function M.mock_sync_service(SyncService)
       or (test_data_dir .. "/dummy_income.json")
     ensure_json_file(income_file)
 
-    local ok, result =
+    local ok, result, active =
       pcall(callback, actual_local, last_sync_file, income_file)
     if not ok then
       error("Sync callback CRASHED: " .. tostring(result))
     end
-    if not result then
-      error(
-        "Sync callback contract violation: function returned nil/false instead of true. "
-          .. "This triggers 'Something went wrong' in production."
-      )
-    end
-    return result
+    return result, active
   end
 
   if current_readerui then

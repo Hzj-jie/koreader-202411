@@ -235,9 +235,16 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
   it("Case 5: detects local deletion and turns it into a tombstone", function()
     local h_synced = create_highlight(1, 10, 20, 100, 40, "deleted locally")
-    write_json(local_file, {}) -- user deleted from KOReader
-    write_json(last_sync_file, { ["1|10|20||100|40"] = h_synced })
-    write_json(income_file, { ["1|10|20||100|40"] = h_synced })
+    local h_kept = create_highlight(1, 10, 50, 100, 70, "kept locally")
+    write_json(local_file, { ["1|10|50||100|70"] = h_kept }) -- user deleted h_synced
+    write_json(last_sync_file, {
+      ["1|10|20||100|40"] = h_synced,
+      ["1|10|50||100|70"] = h_kept,
+    })
+    write_json(income_file, {
+      ["1|10|20||100|40"] = h_synced,
+      ["1|10|50||100|70"] = h_kept,
+    })
 
     local success, active = annotations_mod.sync_callback(
       dummy_doc,
@@ -248,12 +255,14 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     )
 
     assert.is_true(success)
-    assert.are.equal(0, #active)
+    assert.are.equal(1, #active)
+    assert.are.equal("kept locally", active[1].notes)
 
     local written = utils_mod.read_json(local_file)
     assert.is_table(written["1|10|20||100|40"])
     assert.is_true(written["1|10|20||100|40"].deleted)
     assert.is_string(written["1|10|20||100|40"].datetime_updated)
+    assert.is_nil(written["1|10|50||100|70"].deleted)
   end)
 
   it(

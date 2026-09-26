@@ -108,34 +108,56 @@ describe("AnnotationSync Bookmark Synchronization", function()
   end)
 
   it("identifies deleted bookmarks correctly (unit test)", function()
-    local local_map = {
-      ["BOOKMARK|page2"] = { page = "page2", text = "I am still here" },
-    }
-    local last_sync_map = {
-      ["BOOKMARK|page1"] = { page = "page1", text = "I was deleted" },
-      ["BOOKMARK|page2"] = { page = "page2", text = "I am still here" },
-    }
-    local mock_doc = {
-      compareXPointers = function(this, a, b)
-        if a == b then
-          return 0
-        end
-        return a < b and 1 or -1
-      end,
-    }
+    local local_file = test_utils.write_mock_json(
+      test_data_dir,
+      "bm_local.json",
+      {
+        ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
+      }
+    )
+    local last_sync_file = test_utils.write_mock_json(
+      test_data_dir,
+      "bm_last.json",
+      {
+        ["BOOKMARK|1"] = { page = 1, text = "I was deleted" },
+        ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
+      }
+    )
+    local income_file = test_utils.write_mock_json(
+      test_data_dir,
+      "bm_income.json",
+      {
+        ["BOOKMARK|1"] = { page = 1, text = "I was deleted" },
+        ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
+      }
+    )
 
-    annotations_mod.get_deleted_annotations(local_map, last_sync_map, mock_doc)
+    local ok, active = annotations_mod.sync_callback(
+      readerui.document,
+      local_file,
+      last_sync_file,
+      income_file,
+      false
+    )
+
+    assert.is_true(ok)
+    assert.is_equal(1, #active)
+    assert.is_equal(2, active[1].page)
+
+    local f = io.open(local_file, "r")
+    local disk_map = json.decode(f:read("*a"))
+    f:close()
 
     assert.truthy(
-      local_map["BOOKMARK|page1"],
-      "Deleted bookmark should be added to local_map"
+      disk_map["BOOKMARK|1"],
+      "Deleted bookmark should be added to local file"
     )
     assert.is_true(
-      local_map["BOOKMARK|page1"].deleted,
+      disk_map["BOOKMARK|1"].deleted,
       "Deleted bookmark should be marked deleted"
     )
     assert.falsy(
-      local_map["BOOKMARK|page2"].deleted,
+      disk_map["BOOKMARK|2"].deleted,
       "Active bookmark should NOT be marked deleted"
     )
   end)

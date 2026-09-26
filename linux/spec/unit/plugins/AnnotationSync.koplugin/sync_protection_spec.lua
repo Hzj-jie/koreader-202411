@@ -142,25 +142,44 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")
-      local local_map = {} -- EMPTY
-      local last_sync_map = {
-        ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },
-      }
-      local mock_doc = {
-        compareXPointers = function()
-          return 0
-        end,
-      }
-
-      -- This should NOT mark anything as deleted because local_map is empty
-      annotations_mod.get_deleted_annotations(
-        local_map,
-        last_sync_map,
-        mock_doc
+      local local_file = test_utils.write_mock_json(
+        test_data_dir,
+        "prot_local.json",
+        {}
+      )
+      local last_sync_file = test_utils.write_mock_json(
+        test_data_dir,
+        "prot_last.json",
+        {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        }
+      )
+      local income_file = test_utils.write_mock_json(
+        test_data_dir,
+        "prot_income.json",
+        {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        }
       )
 
-      assert.is_equal(0, #annotations_mod.map_to_list(local_map))
-      assert.is_nil(local_map["p1|p2"])
+      local ok, active = annotations_mod.sync_callback(
+        readerui.document,
+        local_file,
+        last_sync_file,
+        income_file,
+        false
+      )
+
+      assert.is_true(ok)
+      -- Issue 23 Protection: remote annotation is preserved, NOT deleted
+      assert.is_equal(1, #active)
+      assert.is_equal("Gone?", active[1].text)
+
+      local f = io.open(local_file, "r")
+      local disk_map = json.decode(f:read("*a"))
+      f:close()
+      assert.is_not_nil(disk_map["p1||p2"])
+      assert.falsy(disk_map["p1||p2"].deleted)
     end
   )
 
@@ -169,28 +188,43 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")
-      local local_map = {} -- EMPTY
-      local last_sync_map = {
-        ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },
-      }
-      local mock_doc = {
-        compareXPointers = function()
-          return 0
-        end,
-      }
+      local local_file = test_utils.write_mock_json(
+        test_data_dir,
+        "prot_local_force.json",
+        {}
+      )
+      local last_sync_file = test_utils.write_mock_json(
+        test_data_dir,
+        "prot_last_force.json",
+        {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        }
+      )
+      local income_file = test_utils.write_mock_json(
+        test_data_dir,
+        "prot_income_force.json",
+        {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        }
+      )
 
-      -- This SHOULD mark as deleted because force is true
-      annotations_mod.get_deleted_annotations(
-        local_map,
-        last_sync_map,
-        mock_doc,
+      local ok, active = annotations_mod.sync_callback(
+        readerui.document,
+        local_file,
+        last_sync_file,
+        income_file,
         true
       )
 
-      local list = annotations_mod.map_to_list(local_map)
-      assert.is_equal(0, #list) -- map_to_list filters out .deleted = true
-      assert.is_not_nil(local_map["p1|p2"])
-      assert.is_true(local_map["p1|p2"].deleted)
+      assert.is_true(ok)
+      -- Manual override allows deletion propagation
+      assert.is_equal(0, #active)
+
+      local f = io.open(local_file, "r")
+      local disk_map = json.decode(f:read("*a"))
+      f:close()
+      assert.is_not_nil(disk_map["p1||p2"])
+      assert.is_true(disk_map["p1||p2"].deleted)
     end
   )
 end)

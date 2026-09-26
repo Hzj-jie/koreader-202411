@@ -180,12 +180,17 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         { [key_pdf_r] = ann_pdf_r }
       )
 
+      local empty_cache = test_utils.write_mock_json(
+        test_data_dir,
+        "empty_cache.json",
+        {}
+      )
       local epub_filename =
         sync_instance.manager:_getAnnotationFilename(doc_epub)
       SyncService.sync = function(server, local_path, callback, upload_only)
         local income = local_path:find(epub_filename, 1, true) and income_epub
           or income_pdf
-        return callback(local_path, local_path, income)
+        return callback(local_path, empty_cache, income)
       end
 
       -- 4. Sync All
