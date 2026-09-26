@@ -424,7 +424,10 @@ end
 function M.sort_keys_by_position(t)
   local items = {}
   for k, v in pairs(t) do
-    table.insert(items, { key = k, page = v.page, pos0 = v.pos0, pos1 = v.pos1 })
+    table.insert(
+      items,
+      { key = k, page = v.page, pos0 = v.pos0, pos1 = v.pos1 }
+    )
   end
   M.sort(items)
   local keys = {}
