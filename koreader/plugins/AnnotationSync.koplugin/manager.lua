@@ -443,11 +443,7 @@ function SyncManager:getDeletedAnnotations(document)
     end
   end
 
-  table.sort(deleted, function(a, b)
-    return annotations.compare_positions(a, b) > 0
-  end)
-
-  return deleted
+  return annotations.sort(deleted)
 end
 
 function SyncManager:recordSyncState(descriptor)

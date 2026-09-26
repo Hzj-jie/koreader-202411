@@ -349,9 +349,7 @@ end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
-  table.sort(merged_list, function(a, b)
-    return annotations.compare_positions(a, b) > 0
-  end)
+  annotations.sort(merged_list)
 
   if self.ui and self.ui.annotation and self.ui.document == document then
     -- 1. Update active widget state
