@@ -131,7 +131,8 @@ function M.sync_callback(
     local r = is_in_list(local_list, v)
     if r then
       -- In both local and income, update any fields to the later one.
-      if M.is_before(r, v) then
+      -- Note, if timestamp equals, local (r) is preferred.
+      if not M.is_before(v, r) then
         for key, _ in pairs(r) do
           r[key] = nil
         end
