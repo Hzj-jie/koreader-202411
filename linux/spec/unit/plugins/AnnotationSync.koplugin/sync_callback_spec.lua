@@ -42,7 +42,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     y0,
     x1,
     y1,
-    notes,
+    note,
     datetime,
     datetime_updated,
     deleted
@@ -52,7 +52,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       pos0 = { page = page, x = x0, y = y0 },
       pos1 = { page = page, x = x1, y = y1 },
       text = "Sample text",
-      notes = notes,
+      note = note,
       datetime = datetime or "2026-01-01 10:00:00",
       datetime_updated = datetime_updated or datetime or "2026-01-01 10:00:00",
       deleted = deleted,
@@ -87,7 +87,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
       assert.is_true(success)
       assert.are.equal(1, #active)
-      assert.are.equal("note1", active[1].notes)
+      assert.are.equal("note1", active[1].note)
     end
   )
 
@@ -126,7 +126,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
     assert.is_true(success)
     assert.are.equal(1, #active)
-    assert.are.equal("remote note", active[1].notes)
+    assert.are.equal("remote note", active[1].note)
   end)
 
   it("Case 1 (LWW): Local newer update wins over remote older", function()
@@ -164,7 +164,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
     assert.is_true(success)
     assert.are.equal(1, #active)
-    assert.are.equal("local newer", active[1].notes)
+    assert.are.equal("local newer", active[1].note)
   end)
 
   it("Case 2: keeps local additions and prepares them for upload", function()
@@ -183,7 +183,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
     assert.is_true(success)
     assert.are.equal(1, #active)
-    assert.are.equal("added locally", active[1].notes)
+    assert.are.equal("added locally", active[1].note)
 
     local written = utils_mod.read_json(local_file)
     assert.is_table(written["2|5|10||50|30"])
@@ -206,7 +206,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
     assert.is_true(success)
     assert.are.equal(1, #active)
-    assert.are.equal("added remotely", active[1].notes)
+    assert.are.equal("added remotely", active[1].note)
   end)
 
   it(
@@ -256,7 +256,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
     assert.is_true(success)
     assert.are.equal(1, #active)
-    assert.are.equal("kept locally", active[1].notes)
+    assert.are.equal("kept locally", active[1].note)
 
     local written = utils_mod.read_json(local_file)
     assert.is_table(written["1|10|20||100|40"])
