@@ -426,12 +426,26 @@ describe("Background Sync Behavior", function()
           settings = { sync_server = { url = "http://mock" } },
         }
 
+        local old_preload = package.preload["apps/cloudstorage/syncservice"]
+        package.preload["apps/cloudstorage/syncservice"] = function()
+          error("SyncService disabled for test")
+        end
+        local old_loaded_ss = package.loaded["apps/cloudstorage/syncservice"]
         package.loaded["apps/cloudstorage/syncservice"] = nil
-        remote.sync_annotations(mock_w, {}, "test.json", function() end, false)
+
+        package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
+        local test_remote = require("plugins/AnnotationSync.koplugin/remote")
+
+        local dummy_json = test_data_dir .. "/test_silent_provider.json"
+        test_remote.sync_annotations(mock_w, {}, dummy_json, function() end, false)
 
         assert.is_false(show_called)
         UIManager.show = old_show
-        package.loaded["apps/cloudstorage/syncservice"] = SyncService
+
+        package.preload["apps/cloudstorage/syncservice"] = old_preload
+        package.loaded["apps/cloudstorage/syncservice"] = old_loaded_ss
+        package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
+        remote = require("plugins/AnnotationSync.koplugin/remote")
       end
     )
 
@@ -453,7 +467,8 @@ describe("Background Sync Behavior", function()
           settings = {},
         }
 
-        remote.sync_annotations(mock_w, {}, "test.json", function() end, false)
+        local dummy_json = test_data_dir .. "/test_silent_dest.json"
+        remote.sync_annotations(mock_w, {}, dummy_json, function() end, false)
 
         assert.is_false(show_called)
         UIManager.show = old_show
