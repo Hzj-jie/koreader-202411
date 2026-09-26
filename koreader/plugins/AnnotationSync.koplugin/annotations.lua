@@ -37,11 +37,18 @@ local function read_to_array(file)
   if type(raw) ~= "table" then
     return nil
   end
+  local c = 0
   local valid = {}
   for _, v in pairs(raw) do
+    c = c + 1
     if M.is_valid(v) then
       table.insert(valid, v)
     end
+  end
+  if c > 0 and #valid == 0 then
+    -- No single valid bookmark, though the file is json, it's still unexpected,
+    -- trigger it as an invalid file.
+    return nil
   end
   return M.sort(valid)
 end
@@ -78,12 +85,6 @@ function M.sync_callback(
 
   local_list = local_list or {}
   last_sync_list = last_sync_list or {}
-  local income_list = read_to_array(income_file)
-  if not income_list then
-    -- No remote file found, early return to prefer anything locally.
-    util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
-    return true, local_list
-  end
 
   -- SAFETY (Issue 23): If local is empty but last sync was not,
   -- it's likely a docsettings failure or fresh device state.
@@ -95,7 +96,23 @@ function M.sync_callback(
       #last_sync_list,
       ". Skipping deletions to protect data."
     )
-    return false
+    last_sync_list = {}
+  end
+
+  -- force mode
+  if #local_list == 0 and #last_sync_list > 0 then
+    local_list = last_sync_list
+  end
+
+  local income_list = read_to_array(income_file)
+  if not income_list then
+    -- No remote file found, early return to prefer anything locally.
+    if #local_list == 0 then
+      return false, {}
+    end
+
+    util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
+    return true, local_list
   end
 
   local merged = {}
@@ -377,7 +394,7 @@ end
 function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""
   local b_time = b.datetime_updated or b.datetime or ""
-  return a_time < b_time
+  return a_time <= b_time
 end
 
 function M.sort_keys_by_position(t)
