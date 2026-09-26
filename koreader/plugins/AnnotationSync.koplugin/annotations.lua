@@ -99,11 +99,6 @@ function M.sync_callback(
     last_sync_list = {}
   end
 
-  -- force mode
-  if #local_list == 0 and #last_sync_list > 0 then
-    local_list = last_sync_list
-  end
-
   local income_list = read_to_array(income_file)
   if not income_list then
     -- No remote file found, early return to prefer anything locally.
