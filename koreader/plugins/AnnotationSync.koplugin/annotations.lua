@@ -133,7 +133,7 @@ function M.sync_callback(
             -- remote add
             table.insert(active, v)
           end
-        else  -- is_local then
+        else -- is_local then
           if is_last_sync then
             -- remote deleted, but we don't need to update the timestamp anymore
             -- since it will be removed locally immediately.
