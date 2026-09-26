@@ -59,6 +59,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     sync_instance.settings.last_sync = "Never"
 
     os.remove(sync_instance.manager:changedDocumentsFile())
+    test_utils.mock_sync_service(SyncService)
   end)
 
   describe("4.1 Network & Server Errors", function()
@@ -107,22 +108,36 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
 
   describe("4.2 File System Errors", function()
     it("should handle read-only sidecar directory gracefully", function()
-      local docsettings = require("frontend/docsettings")
-      local old_getSidecarDir = docsettings.getSidecarDir
-      docsettings.getSidecarDir = function()
+      local DataStorage = require("datastorage")
+      local old_getTmpDir = DataStorage.getTmpDir
+      DataStorage.getTmpDir = function()
         return "/read-only-dir"
       end
 
-      sync_instance:manualSync()
+      local ok = sync_instance.manager:syncDocument(readerui.document, true)
+      assert.is_false(
+        ok,
+        "syncDocument should fail gracefully on read-only sidecar directory"
+      )
 
-      docsettings.getSidecarDir = old_getSidecarDir
+      DataStorage.getTmpDir = old_getTmpDir
     end)
   end)
 
   describe("4.3 Concurrency", function()
     it("should handle concurrent sync requests safely", function()
+      local call_count = 0
+      local old_sync = SyncService.sync
+      SyncService.sync = function(server, local_path, callback, is_silent)
+        call_count = call_count + 1
+        return true
+      end
+
       sync_instance:manualSync()
       sync_instance:manualSync()
+
+      assert.is_true(call_count >= 1, "SyncService should be invoked safely")
+      SyncService.sync = old_sync
     end)
   end)
 
@@ -130,15 +145,21 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle special characters in highlights (Emojis)", function()
       local emoji_text = "Emoji highlight 🌟"
       local ann = {
-        page = "/test/pos",
-        pos0 = "/test/pos0",
-        pos1 = "/test/pos1",
+        page = 1,
+        pos0 = "pos0",
+        pos1 = "pos1",
         text = emoji_text,
         datetime = "2026-01-01 12:00:00",
       }
       table.insert(readerui.annotation.annotations, ann)
 
-      sync_instance:manualSync()
+      local ok = sync_instance.manager:syncDocument(readerui.document, true)
+      assert.is_true(
+        ok,
+        "syncDocument should succeed with emojis in highlight text"
+      )
+      assert.is_equal(1, #readerui.annotation.annotations)
+      assert.is_equal(emoji_text, readerui.annotation.annotations[1].text)
     end)
   end)
 end)
