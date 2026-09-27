@@ -74,6 +74,10 @@ describe("AnnotationSync Issue 23 Integration Reproduction", function()
 
         -- Trigger the callback
         local result = callback(local_path, cached_path, income_path)
+        if result then
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, local_path .. ".sync")
+        end
         return result
       end
 
@@ -100,8 +104,9 @@ describe("AnnotationSync Issue 23 Integration Reproduction", function()
       local filename =
         sync_instance.manager:_getAnnotationFilename(readerui.document.file)
       local json_path = tmp_dir .. "/" .. filename
+      local cached_path = json_path .. ".sync"
 
-      local f = io.open(json_path, "r")
+      local f = io.open(cached_path, "r") or io.open(json_path, "r")
       local saved_data = json.decode(f:read("*all"))
       f:close()
 

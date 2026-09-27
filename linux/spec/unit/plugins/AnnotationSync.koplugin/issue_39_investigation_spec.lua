@@ -94,8 +94,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       table.insert(readerui.annotation.annotations, ann)
 
       SyncService.sync = function(server, local_path, callback)
-        callback(local_path, local_path, local_path)
-        return true
+        local result = callback(local_path, local_path, local_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, local_path .. ".sync")
+        return result
       end
       sync_instance:manualSync()
 
@@ -113,8 +115,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
         test_utils.write_mock_json(test_data_dir, "last.json", { [key] = ann })
 
       SyncService.sync = function(server, local_path, callback)
-        callback(local_path, last_sync_path, income_path)
-        return true
+        local result = callback(local_path, last_sync_path, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, local_path .. ".sync")
+        return result
       end
       sync_instance:manualSync()
       assert.is_equal(0, #readerui.annotation.annotations)
@@ -172,8 +176,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     table.insert(readerui.annotation.annotations, ann)
 
     SyncService.sync = function(server, local_path, callback)
-      callback(local_path, local_path, local_path)
-      return true
+      local result = callback(local_path, local_path, local_path)
+      local ffiutil = require("ffi/util")
+      ffiutil.copyFile(local_path, local_path .. ".sync")
+      return result
     end
     sync_instance:manualSync()
 
@@ -190,8 +196,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       test_utils.write_mock_json(test_data_dir, "last.json", { [key] = ann })
 
     SyncService.sync = function(server, local_path, callback)
-      callback(local_path, last_sync_path, income_path)
-      return true
+      local result = callback(local_path, last_sync_path, income_path)
+      local ffiutil = require("ffi/util")
+      ffiutil.copyFile(local_path, local_path .. ".sync")
+      return result
     end
     sync_instance:manualSync()
     assert.is_equal(0, #readerui.annotation.annotations)

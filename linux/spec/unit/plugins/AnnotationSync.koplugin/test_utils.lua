@@ -290,6 +290,8 @@ function M.mock_sync_service(SyncService)
     if not ok then
       error("Sync callback CRASHED: " .. tostring(result))
     end
+    local ffiutil = require("ffi/util")
+    ffiutil.copyFile(actual_local, local_path .. ".sync")
     return result, active
   end
 
