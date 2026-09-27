@@ -164,6 +164,12 @@ function SyncManager:syncPendingDocumentsBg()
                 false
               )
             end)
+            local is_active_doc = self.plugin.ui
+              and self.plugin.ui.document
+              and self.plugin.ui.document.file == file
+            if not is_active_doc then
+              self:cleanSyncFile(file)
+            end
             return {
               file = file,
               success = ok and sync_success == true,
@@ -263,6 +269,13 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
       is_manual
     )
   end)
+
+  local is_active_doc = self.plugin.ui
+    and self.plugin.ui.document
+    and self.plugin.ui.document.file == file
+  if not is_active_doc then
+    self:cleanSyncFile(file)
+  end
 
   if not ok then
     logger.warn(
@@ -481,6 +494,42 @@ function SyncManager:_getAnnotationFilename(file)
   local hash = type(file) == "string" and util.partialMD5(file)
     or gettext("No hash")
   return hash .. ".json"
+end
+
+function SyncManager:cleanSyncFile(doc_or_file)
+  local file = type(doc_or_file) == "string" and doc_or_file
+    or (doc_or_file and doc_or_file.file)
+  if not file then
+    return
+  end
+  local tmp_dir = DataStorage:getTmpDir()
+  local filename = self:_getAnnotationFilename(file)
+  os.remove(tmp_dir .. "/" .. filename)
+  os.remove(tmp_dir .. "/" .. filename .. ".sync")
+end
+
+function SyncManager:cleanOrphanSyncFiles()
+  local tmp_dir = DataStorage:getTmpDir()
+  if not tmp_dir or lfs.attributes(tmp_dir, "mode") ~= "directory" then
+    return
+  end
+  local active_file = self.plugin.ui
+    and self.plugin.ui.document
+    and self.plugin.ui.document.file
+  local active_sync_name = active_file
+    and (self:_getAnnotationFilename(active_file) .. ".sync")
+
+  pcall(function()
+    for entry in lfs.dir(tmp_dir) do
+      if
+        entry:match("%.json%.sync$")
+        and entry ~= "settings_sync.json.sync"
+        and entry ~= active_sync_name
+      then
+        os.remove(tmp_dir .. "/" .. entry)
+      end
+    end
+  end)
 end
 
 function SyncManager:_onSyncComplete(document, success, merged_list)

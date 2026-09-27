@@ -83,6 +83,7 @@ function AnnotationSyncPlugin:init()
 
   -- Sanitize corrupted settings
   self.manager = SyncManager:new(self)
+  self.manager:cleanOrphanSyncFiles()
 
   -- Migrate old annotation_sync_use_filename setting
   if G_reader_settings:has("annotation_sync_use_filename") then
@@ -566,6 +567,12 @@ end
 
 function AnnotationSyncPlugin:showChangedSettings()
   SettingsSelection.show(self)
+end
+
+function AnnotationSyncPlugin:onCloseDocument()
+  if self.ui and self.ui.document and self.manager then
+    self.manager:cleanSyncFile(self.ui.document)
+  end
 end
 
 return AnnotationSyncPlugin
