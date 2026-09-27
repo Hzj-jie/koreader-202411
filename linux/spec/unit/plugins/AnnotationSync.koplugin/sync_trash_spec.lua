@@ -20,8 +20,7 @@ describe("AnnotationSync Trash & Restore", function()
     json = require("json")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -154,5 +153,99 @@ describe("AnnotationSync Trash & Restore", function()
 
     -- Cleanup
     require("ui/event").new = old_event_new
+  end)
+
+  it("should clean up sync file for a document", function()
+    local tmp_dir = require("datastorage"):getTmpDir()
+    local file = readerui.document.file
+    local filename = sync_instance.manager:_getAnnotationFilename(file)
+    local json_path = tmp_dir .. "/" .. filename
+    local sync_path = json_path .. ".sync"
+
+    local f = io.open(json_path, "w")
+    f:write("{}")
+    f:close()
+    f = io.open(sync_path, "w")
+    f:write("{}")
+    f:close()
+
+    local check_json = io.open(json_path, "r")
+    assert.is_not_nil(check_json)
+    if check_json then
+      check_json:close()
+    end
+    local check_sync = io.open(sync_path, "r")
+    assert.is_not_nil(check_sync)
+    if check_sync then
+      check_sync:close()
+    end
+
+    sync_instance.manager:cleanSyncFile(file)
+
+    assert.is_nil(io.open(json_path, "r"))
+    assert.is_nil(io.open(sync_path, "r"))
+  end)
+
+  it(
+    "should clean orphan sync files while preserving active document and settings",
+    function()
+      local tmp_dir = require("datastorage"):getTmpDir()
+      local active_file = readerui.document.file
+      local active_filename =
+        sync_instance.manager:_getAnnotationFilename(active_file)
+      local active_sync_path = tmp_dir .. "/" .. active_filename .. ".sync"
+      local settings_sync_path = tmp_dir .. "/settings_sync.json.sync"
+      local orphan_sync_path = tmp_dir
+        .. "/deadbeef12345678deadbeef12345678.json.sync"
+
+      local f = io.open(active_sync_path, "w")
+      f:write("{}")
+      f:close()
+      f = io.open(settings_sync_path, "w")
+      f:write("{}")
+      f:close()
+      f = io.open(orphan_sync_path, "w")
+      f:write("{}")
+      f:close()
+
+      sync_instance.manager:cleanOrphanSyncFiles()
+
+      -- Orphan removed
+      local orphan_f = io.open(orphan_sync_path, "r")
+      assert.is_nil(orphan_f)
+
+      -- Active and settings preserved
+      local active_f = io.open(active_sync_path, "r")
+      assert.is_not_nil(active_f)
+      if active_f then
+        active_f:close()
+      end
+
+      local settings_f = io.open(settings_sync_path, "r")
+      assert.is_not_nil(settings_f)
+      if settings_f then
+        settings_f:close()
+      end
+
+      -- Cleanup
+      os.remove(active_sync_path)
+      os.remove(settings_sync_path)
+    end
+  )
+
+  it("should clean sync file on onCloseDocument", function()
+    local tmp_dir = require("datastorage"):getTmpDir()
+    local file = readerui.document.file
+    local filename = sync_instance.manager:_getAnnotationFilename(file)
+    local sync_path = tmp_dir .. "/" .. filename .. ".sync"
+
+    local f = io.open(sync_path, "w")
+    f:write("{}")
+    f:close()
+
+    sync_instance:onCloseDocument()
+
+    local check_f = io.open(sync_path, "r")
+    assert.is_nil(check_f)
   end)
 end)
