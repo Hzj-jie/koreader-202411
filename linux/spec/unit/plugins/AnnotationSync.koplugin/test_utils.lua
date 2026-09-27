@@ -304,10 +304,8 @@ function M.mock_sync_service(SyncService)
       server,
       file_path,
       sync_cb,
-      is_silent,
-      caller_pre_callback
+      is_silent
     )
-      print("MOCK cloudstorage.sync called! file_path:", file_path)
       return SyncService.sync(server, file_path, sync_cb, is_silent)
     end
   end

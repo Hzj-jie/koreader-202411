@@ -342,12 +342,6 @@ describe("AnnotationSync PDF Core Integration", function()
       assert.truthy(index)
       local ann = readerui.annotation.annotations[index]
 
-      -- In reflow mode, PDF highlights might use XPointers (strings)
-      print("REFLOW TEST: pos0 type=" .. type(ann.pos0))
-      if type(ann.pos0) == "string" then
-        print("REFLOW TEST: pos0=" .. ann.pos0)
-      end
-
       local key = annotations_mod.annotation_key(ann)
       assert.truthy(key)
       assert.truthy(#key > 0)
@@ -388,7 +382,6 @@ describe("AnnotationSync PDF Core Integration", function()
       -- PAGE coordinates for the SAME text.
 
       -- We'll mock a shift in the view's transform if we can't easily trigger a real crop
-      local old_s2p = readerui.view.screenToPageTransform
       readerui.view.screenToPageTransform = function(this, pos)
         local p = old_s2p(this, pos)
         -- Simulate a shift: if we click at (x,y), it's as if we clicked at (x+50, y+50)
