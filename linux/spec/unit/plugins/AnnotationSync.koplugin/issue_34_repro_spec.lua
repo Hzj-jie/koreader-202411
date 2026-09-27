@@ -134,7 +134,10 @@ describe("Issue #34 Reproduction & Fix Verification", function()
   it(
     "verifies that 404 error bodies (non-JSON) are handled gracefully",
     function()
-      -- 1. Setup a "changed" document
+      -- 1. Setup a "changed" document with an annotation
+      readerui.annotation.annotations = {
+        { page = 1, pos0 = "p0", pos1 = "p1", text = "hello" },
+      }
       sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
       -- 2. Mock SyncService to simulate a 404 with a non-JSON body
@@ -148,7 +151,7 @@ describe("Issue #34 Reproduction & Fix Verification", function()
 
         -- Call the callback
         local cached_file = local_path .. ".sync"
-        local success = callback(local_path, cached_file, income_file)
+        local success = callback(local_path, cached_file, income_file, 404)
 
         os.remove(income_file)
         return success and 200 or 500

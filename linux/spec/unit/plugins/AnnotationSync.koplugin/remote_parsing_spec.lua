@@ -20,7 +20,7 @@ describe("Remote Response Parsing (Issue #39)", function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
   end)
 
-  local function run_sync_callback(income_content)
+  local function run_sync_callback(income_content, code_response)
     local document = { file = "test.epub" }
     local local_path = test_utils.write_mock_json(test_data_dir, "local.json", {
       ["annot_1"] = {
@@ -42,14 +42,15 @@ describe("Remote Response Parsing (Issue #39)", function()
       local_path,
       last_sync_path,
       income_path,
-      false
+      false,
+      code_response
     )
   end
 
   it("accepts valid 404 HTML as empty remote state", function()
     local html_404 =
       "<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>"
-    local ok, merged = run_sync_callback(html_404)
+    local ok, merged = run_sync_callback(html_404, 404)
     assert.truthy(ok, "Should accept 404 HTML")
     assert.is_table(merged)
   end)
@@ -57,51 +58,43 @@ describe("Remote Response Parsing (Issue #39)", function()
   it("accepts SabreDAV XML error as empty remote state", function()
     local sabre_xml =
       '<?xml version="1.0" encoding="utf-8"?> <d:error xmlns:d="DAV:" xmlns:s="http://sabredav.org/ns"> <s:exception>Sabre\\DAV\\Exception\\NotFound</s:exception> <s:message>File with name annots/9b6b3500ac06199cb8a8b3a46c73d963.json could not be located</s:message> </d:error>'
-    local ok, merged = run_sync_callback(sabre_xml)
+    local ok, merged = run_sync_callback(sabre_xml, 404)
     assert.truthy(ok, "Should accept SabreDAV XML as 404")
     assert.is_table(merged)
   end)
 
   it(
-    "overrides valid JSON that is not an annotation map (schema check)",
+    "aborts on valid JSON that is not an annotation map (schema check)",
     function()
       local invalid_schema_json = '{"status": "ok", "count": 0}'
-      local ok, merged = run_sync_callback(invalid_schema_json)
-      assert.truthy(ok, "Should override non-annotation JSON schema with local state")
-      assert.is_table(merged)
-      assert.is_equal(1, #merged)
+      local ok, merged = run_sync_callback(invalid_schema_json, 200)
+      assert.is_false(ok, "Should abort on non-annotation JSON schema")
     end
   )
 
-  it("overrides random HTML error page with local state", function()
+  it("aborts on random HTML error page (NOT 404)", function()
     local html_500 =
       "<html><head><title>500 Internal Server Error</title></head><body>Something went wrong</body></html>"
-    local ok, merged = run_sync_callback(html_500)
-    assert.truthy(ok, "Should override HTML error page with local state")
-    assert.is_table(merged)
-    assert.is_equal(1, #merged)
+    local ok, merged = run_sync_callback(html_500, 500)
+    assert.is_false(ok, "Should abort on non-404 HTML error")
   end)
 
-  it("overrides valid JSON error object with local state", function()
+  it("aborts on valid JSON error object with local state", function()
     local error_json = '{"error": "Forbidden", "code": 403}'
-    local ok, merged = run_sync_callback(error_json)
-    assert.truthy(ok, "Should override JSON error objects with local state")
-    assert.is_table(merged)
-    assert.is_equal(1, #merged)
+    local ok, merged = run_sync_callback(error_json, 403)
+    assert.is_false(ok, "Should abort on JSON error objects")
   end)
 
-  it("overrides garbage text response with local state", function()
+  it("aborts on garbage text response", function()
     local garbage = "This is not JSON and not HTML"
-    local ok, merged = run_sync_callback(garbage)
-    assert.truthy(ok, "Should override garbage text with local state")
-    assert.is_table(merged)
-    assert.is_equal(1, #merged)
+    local ok, merged = run_sync_callback(garbage, 200)
+    assert.is_false(ok, "Should abort on garbage text")
   end)
 
   it("accepts Dropbox 'path not found' error as empty state", function()
     local dropbox_error =
       '{"error_summary": "path/not_found/...", "error": {".tag": "path", "path": {".tag": "not_found"}}}'
-    local ok, merged = run_sync_callback(dropbox_error)
+    local ok, merged = run_sync_callback(dropbox_error, 409)
     assert.truthy(ok, "Should accept Dropbox path not found")
   end)
 end)

@@ -50,7 +50,10 @@ describe("Dropbox Sync Reproduction", function()
   it(
     "verifies that Dropbox 'path not found' error is now handled gracefully",
     function()
-      -- 1. Setup a "changed" document
+      -- 1. Setup a "changed" document with an annotation
+      readerui.annotation.annotations = {
+        { page = 1, pos0 = "p0", pos1 = "p1", text = "hello" },
+      }
       sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
       -- 2. Mock SyncService to return the Dropbox error JSON in income_file
@@ -77,7 +80,7 @@ describe("Dropbox Sync Reproduction", function()
           fc:close()
         end
 
-        local success = callback(local_path, cached_file, income_file)
+        local success = callback(local_path, cached_file, income_file, 409)
         os.remove(income_file)
         return success
       end
