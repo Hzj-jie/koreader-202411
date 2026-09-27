@@ -76,13 +76,14 @@ function M.sync_annotations(widget, document, json_path, on_complete, force)
     end
     return
   end
-  local sync_cb = function(local_file, cached_file, income_file)
+  local sync_cb = function(local_file, cached_file, income_file, code_response)
     local success, merged_list = annotations.sync_callback(
       document,
       local_file,
       cached_file,
       income_file,
-      force
+      force,
+      code_response
     )
     if on_complete then
       -- This is a hacky to ignore both local and remote empty annotations.
@@ -97,9 +98,33 @@ function M.sync_annotations(widget, document, json_path, on_complete, force)
   os.remove(json_path)
 end
 
-function M._sync_settings_callback(widget, local_file, _, income_file)
+function M._sync_settings_callback(
+  widget,
+  local_file,
+  _,
+  income_file,
+  code_response
+)
+  local is_not_found = code_response == 404
+    or code_response == 409
+    or (
+      code_response == nil
+      and (not income_file or not io.open(income_file, "r"))
+    )
+
   local local_data = utils.read_json(local_file) or {}
-  local income_data = utils.read_json(income_file) or {}
+  if is_not_found then
+    util.writeToFile(json.encode(local_data), local_file)
+    return true, local_data
+  end
+
+  local income_data = utils.read_json(income_file)
+  if not income_data then
+    logger.warn(
+      "AnnotationSync: Failed to parse remote settings from server. Aborting sync."
+    )
+    return false
+  end
 
   -- Merge incoming settings from other devices
   for device_id, data in pairs(income_data) do
@@ -113,9 +138,14 @@ function M._sync_settings_callback(widget, local_file, _, income_file)
 end
 
 function M.sync_settings(widget, json_path, on_complete)
-  local sync_cb = function(local_file, cached_file, income_file)
-    local success, local_data =
-      M._sync_settings_callback(widget, local_file, cached_file, income_file)
+  local sync_cb = function(local_file, cached_file, income_file, code_response)
+    local success, local_data = M._sync_settings_callback(
+      widget,
+      local_file,
+      cached_file,
+      income_file,
+      code_response
+    )
     if on_complete then
       on_complete(success, local_data)
     end

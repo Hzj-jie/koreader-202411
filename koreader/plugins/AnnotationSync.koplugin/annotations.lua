@@ -59,7 +59,8 @@ function M.sync_callback(
   local_file,
   last_sync_file,
   income_file,
-  force
+  force,
+  code_response
 )
   logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
   logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
@@ -99,8 +100,14 @@ function M.sync_callback(
     last_sync_list = {}
   end
 
-  local income_list = read_to_array(income_file)
-  if not income_list then
+  local is_not_found = code_response == 404
+    or code_response == 409
+    or (
+      code_response == nil
+      and (not income_file or not io.open(income_file, "r"))
+    )
+
+  if is_not_found then
     -- No remote file found, early return to prefer anything locally.
     if #local_list == 0 then
       return false, {}
@@ -108,6 +115,14 @@ function M.sync_callback(
 
     util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
     return true, local_list
+  end
+
+  local income_list = read_to_array(income_file)
+  if not income_list then
+    logger.warn(
+      "AnnotationSync: Failed to parse remote annotations from server. Aborting sync."
+    )
+    return false
   end
 
   local merged = {}

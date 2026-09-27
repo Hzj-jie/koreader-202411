@@ -199,8 +199,13 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
         show_msg()
         return
       end
-      local ok, cb_return =
-        pcall(sync_cb, file_path, cached_file_path, income_file_path)
+      local ok, cb_return = pcall(
+        sync_cb,
+        file_path,
+        cached_file_path,
+        income_file_path,
+        code_response
+      )
       if not ok then
         show_msg()
         require("logger").err("sync service callback failed:", cb_return)
