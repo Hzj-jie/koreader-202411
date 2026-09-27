@@ -41,15 +41,11 @@ describe("AnnotationSync plugin unit tests", function()
       assert.is_nil(utils.get_nested_value(nil, "any.path"))
     end)
 
-    it(
-      "should return empty table when reading non-existent JSON file",
-      function()
-        local missing_data =
-          utils.read_json("/tmp/non_existent_file_annotationsync.json")
-        assert.is_table(missing_data)
-        assert.are.equal(0, #missing_data)
-      end
-    )
+    it("should return nil when reading non-existent JSON file", function()
+      local missing_data =
+        utils.read_json("/tmp/non_existent_file_annotationsync.json")
+      assert.is_nil(missing_data)
+    end)
 
     it("should parse valid JSON file contents", function()
       local tmp_file = os.tmpname()
@@ -231,91 +227,75 @@ describe("AnnotationSync plugin unit tests", function()
 
   describe("Position Comparison and Sorting", function()
     it(
-      "should compare positions correctly across position and annotation tables",
+      "should sort annotations correctly across pages, coordinates, and types",
       function()
         -- Page bookmarks
-        assert.is_true(
-          annotations.compare_positions({ page = 1 }, { page = 2 }) > 0
-        )
-        assert.is_true(
-          annotations.compare_positions({ page = 2 }, { page = 1 }) < 0
-        )
-        assert.are.equal(
-          0,
-          annotations.compare_positions({ page = 2 }, { page = 2 })
-        )
+        local b1 = { page = 1 }
+        local b2 = { page = 2 }
+        local sorted_b = annotations.sort({ b2, b1 })
+        assert.are.equal(1, sorted_b[1].page)
+        assert.are.equal(2, sorted_b[2].page)
 
         -- Strings (XPointers with natural sort)
-        assert.is_true(
-          annotations.compare_positions(
-            { page = "/body/DocFragment[1]" },
-            { page = "/body/DocFragment[2]" }
-          ) > 0
-        )
-        assert.is_true(
-          annotations.compare_positions(
-            { page = "/body/DocFragment[2]" },
-            { page = "/body/DocFragment[1]" }
-          ) < 0
-        )
-        assert.is_true(
-          annotations.compare_positions(
-            { page = "/body/DocFragment[2]" },
-            { page = "/body/DocFragment[10]" }
-          ) > 0
-        )
-        assert.is_true(
-          annotations.compare_positions(
-            { page = "/body/DocFragment[3]/text().72" },
-            { page = "/body/DocFragment[3]/text().210" }
-          ) > 0
-        )
-        assert.are.equal(
-          0,
-          annotations.compare_positions(
-            { page = "/body/DocFragment[1]" },
-            { page = "/body/DocFragment[1]" }
-          )
-        )
+        local xp1 = { page = "/body/DocFragment[1]" }
+        local xp2 = { page = "/body/DocFragment[2]" }
+        local xp10 = { page = "/body/DocFragment[10]" }
+        local xp_text72 = { page = 1, pos0 = "/body/DocFragment[3]/text().72" }
+        local xp_text210 =
+          { page = 1, pos0 = "/body/DocFragment[3]/text().210" }
+
+        local sorted_xp = annotations.sort({ xp10, xp2, xp1 })
+        assert.are.equal("/body/DocFragment[1]", sorted_xp[1].page)
+        assert.are.equal("/body/DocFragment[2]", sorted_xp[2].page)
+        assert.are.equal("/body/DocFragment[10]", sorted_xp[3].page)
+
+        local sorted_text = annotations.sort({ xp_text210, xp_text72 })
+        assert.are.equal("/body/DocFragment[3]/text().72", sorted_text[1].pos0)
+        assert.are.equal("/body/DocFragment[3]/text().210", sorted_text[2].pos0)
 
         -- Tables on different pages
         local t_p1 = { page = 1, pos0 = { x = 10, y = 20 } }
         local t_p2 = { page = 2, pos0 = { x = 10, y = 20 } }
-        assert.is_true(annotations.compare_positions(t_p1, t_p2) > 0)
-        assert.is_true(annotations.compare_positions(t_p2, t_p1) < 0)
+        local sorted_p = annotations.sort({ t_p2, t_p1 })
+        assert.are.equal(1, sorted_p[1].page)
+        assert.are.equal(2, sorted_p[2].page)
 
-        -- Tables on same page with coordinates
+        -- Tables on same page with coordinates (top-to-bottom)
         local t_top = { page = 1, pos0 = { x = 10, y = 20 } }
         local t_bottom = { page = 1, pos0 = { x = 10, y = 80 } }
-        assert.is_true(annotations.compare_positions(t_top, t_bottom) > 0)
-        assert.is_true(annotations.compare_positions(t_bottom, t_top) < 0)
+        local sorted_tb = annotations.sort({ t_bottom, t_top })
+        assert.are.equal(20, sorted_tb[1].pos0.y)
+        assert.are.equal(80, sorted_tb[2].pos0.y)
 
-        -- Tables on same page, same y, different x
+        -- Tables on same page, same y, different x (left-to-right)
         local t_left = { page = 1, pos0 = { x = 10, y = 20 } }
         local t_right = { page = 1, pos0 = { x = 50, y = 20 } }
-        assert.is_true(annotations.compare_positions(t_left, t_right) > 0)
-        assert.is_true(annotations.compare_positions(t_right, t_left) < 0)
+        local sorted_lr = annotations.sort({ t_right, t_left })
+        assert.are.equal(10, sorted_lr[1].pos0.x)
+        assert.are.equal(50, sorted_lr[2].pos0.x)
 
         -- Bookmark vs highlight on different pages
-        assert.is_true(annotations.compare_positions({ page = 1 }, t_p2) > 0)
-        assert.is_true(annotations.compare_positions(t_p2, { page = 1 }) < 0)
+        local sorted_bp = annotations.sort({ t_p2, b1 })
+        assert.are.equal(1, sorted_bp[1].page)
+        assert.are.equal(2, sorted_bp[2].page)
 
         -- Bookmark vs highlight on same page (bookmark is ordered before highlight)
-        assert.is_true(annotations.compare_positions({ page = 1 }, t_p1) > 0)
-        assert.is_true(annotations.compare_positions(t_p1, { page = 1 }) < 0)
+        local sorted_same = annotations.sort({ t_p1, b1 })
+        assert.are.same(b1, sorted_same[1])
+        assert.are.same(t_p1, sorted_same[2])
 
         -- Assertions: non-table arguments must error
         assert.has_error(function()
-          annotations.compare_positions(1, 2)
+          annotations.sort(1)
         end)
         assert.has_error(function()
-          annotations.compare_positions(nil, {})
+          annotations.sort(nil)
         end)
         assert.has_error(function()
-          annotations.compare_positions({}, nil)
+          annotations.sort("foo")
         end)
         assert.has_error(function()
-          annotations.compare_positions("foo", "bar")
+          annotations.sort({ 1, 2 })
         end)
       end
     )
@@ -337,46 +317,52 @@ describe("AnnotationSync plugin unit tests", function()
     it(
       "should not mark annotations as deleted on no-op sync with mixed PDF bookmarks and highlights",
       function()
-        local local_map = {
+        local json = require("json")
+        local util = require("util")
+        local local_path = os.tmpname()
+        local last_path = os.tmpname()
+        local income_path = os.tmpname()
+
+        local data = {
           b1 = { page = 1 },
           h1 = {
             page = 1,
-            pos0 = { x = 10, y = 20 },
-            pos1 = { x = 50, y = 20 },
+            pos0 = { page = 1, x = 10, y = 20 },
+            pos1 = { page = 1, x = 50, y = 20 },
+            datetime = "2026-01-01 10:00:00",
           },
           b2 = { page = 2 },
           h2 = {
             page = 2,
-            pos0 = { x = 10, y = 20 },
-            pos1 = { x = 50, y = 20 },
-          },
-        }
-        local last_uploaded_map = {
-          b1 = { page = 1 },
-          h1 = {
-            page = 1,
-            pos0 = { x = 10, y = 20 },
-            pos1 = { x = 50, y = 20 },
-          },
-          b2 = { page = 2 },
-          h2 = {
-            page = 2,
-            pos0 = { x = 10, y = 20 },
-            pos1 = { x = 50, y = 20 },
+            pos0 = { page = 2, x = 10, y = 20 },
+            pos1 = { page = 2, x = 50, y = 20 },
+            datetime = "2026-01-01 10:00:00",
           },
         }
 
-        annotations.get_deleted_annotations(
-          local_map,
-          last_uploaded_map,
+        util.writeToFile(json.encode(data), local_path)
+        util.writeToFile(json.encode(data), last_path)
+        util.writeToFile(json.encode(data), income_path)
+
+        local success, active = annotations.sync_callback(
           nil,
+          local_path,
+          last_path,
+          income_path,
           false
         )
 
-        assert.is_nil(last_uploaded_map.b1.deleted)
-        assert.is_nil(last_uploaded_map.h1.deleted)
-        assert.is_nil(last_uploaded_map.b2.deleted)
-        assert.is_nil(last_uploaded_map.h2.deleted)
+        assert.is_true(success)
+        assert.are.equal(4, #active)
+
+        local written = utils.read_json(local_path)
+        for _, ann in pairs(written) do
+          assert.is_nil(ann.deleted)
+        end
+
+        os.remove(local_path)
+        os.remove(last_path)
+        os.remove(income_path)
       end
     )
   end)
