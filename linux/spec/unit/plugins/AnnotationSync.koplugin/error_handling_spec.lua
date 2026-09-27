@@ -130,13 +130,20 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       local old_sync = SyncService.sync
       SyncService.sync = function(server, local_path, callback, is_silent)
         call_count = call_count + 1
-        return true
+        local result = callback(local_path, local_path, local_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, local_path .. ".sync")
+        return result
       end
 
       sync_instance:manualSync()
       sync_instance:manualSync()
 
-      assert.is_true(call_count >= 1, "SyncService should be invoked safely")
+      assert.are.equal(
+        2,
+        call_count,
+        "Both manualSync calls should execute safely"
+      )
       SyncService.sync = old_sync
     end)
   end)
@@ -160,6 +167,28 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       )
       assert.is_equal(1, #readerui.annotation.annotations)
       assert.is_equal(emoji_text, readerui.annotation.annotations[1].text)
+
+      -- Verify on-disk serialization and persistence preserves emoji
+      local filename =
+        sync_instance.manager:_getAnnotationFilename(readerui.document.file)
+      local sync_path = require("datastorage"):getTmpDir()
+        .. "/"
+        .. filename
+        .. ".sync"
+      local on_disk_data =
+        require("plugins/AnnotationSync.koplugin/utils").read_json(sync_path)
+      assert.is_table(on_disk_data)
+      local found_emoji = false
+      for _, item in pairs(on_disk_data) do
+        if item.text == emoji_text then
+          found_emoji = true
+          break
+        end
+      end
+      assert.is_true(
+        found_emoji,
+        "On-disk sync cache should contain properly preserved emoji text"
+      )
     end)
   end)
 end)
