@@ -430,15 +430,26 @@ function SyncManager:getDeletedAnnotations(document)
   local tmp_dir = DataStorage:getTmpDir()
   local filename = self:_getAnnotationFilename(file)
   local json_path = tmp_dir .. "/" .. filename
+  local cached_path = json_path .. ".sync"
 
-  local map = utils.read_json(json_path)
+  local map = utils.read_json(cached_path) or utils.read_json(json_path)
   if not map then
     return {}
   end
 
+  local active = self:getAnnotationsForDocument(document)
+  local function is_active(item)
+    for _, a in ipairs(active) do
+      if annotations.is_same_annotation(item, a) then
+        return true
+      end
+    end
+    return false
+  end
+
   local deleted = {}
   for _, v in pairs(map) do
-    if v.deleted then
+    if v.deleted and not is_active(v) then
       table.insert(deleted, v)
     end
   end

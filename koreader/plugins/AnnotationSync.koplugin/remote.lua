@@ -94,6 +94,7 @@ function M.sync_annotations(widget, document, json_path, on_complete, force)
     return success
   end
   perform_sync(widget, json_path, sync_cb, not force, on_complete)
+  os.remove(json_path)
 end
 
 function M._sync_settings_callback(widget, local_file, _, income_file)
