@@ -183,14 +183,10 @@ function M.sync_callback(
             table.insert(active, v)
           end
         else -- is_local then
-          if is_last_sync then
-            -- remote deleted, but we don't need to update the timestamp anymore
-            -- since it will be removed locally immediately.
-            v.deleted = true
-          else
-            -- local add
-            table.insert(active, v)
-          end
+          -- Item exists locally, but is omitted from remote (no tombstone).
+          -- Deletions across devices require explicit tombstones (deleted = true),
+          -- so mere absence from the remote file does not delete local data.
+          table.insert(active, v)
         end
       end
     end
