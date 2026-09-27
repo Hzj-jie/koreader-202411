@@ -354,7 +354,7 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   if self.ui and self.ui.annotation and self.ui.document == document then
     -- 1. Update active widget state
     self.ui.annotation.annotations = merged_list
-    self.ui.annotation:onSaveSettings()
+    self.ui.annotation:updatePageNumbers(true)
 
     -- 2. Notify system
     if #merged_list > 0 then
