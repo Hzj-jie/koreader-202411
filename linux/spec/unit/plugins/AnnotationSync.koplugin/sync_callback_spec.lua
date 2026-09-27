@@ -266,12 +266,12 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   end)
 
   it(
-    "Case 6: detects remote deletion and removes highlight from local active",
+    "Case 6: preserves local highlight and does not delete on remote omission",
     function()
-      local h_synced = create_highlight(1, 10, 20, 100, 40, "deleted remotely")
+      local h_synced = create_highlight(1, 10, 20, 100, 40, "synced highlight")
       write_json(local_file, { ["1|10|20||100|40"] = h_synced })
       write_json(last_sync_file, { ["1|10|20||100|40"] = h_synced })
-      write_json(income_file, {}) -- remote deleted it by omission
+      write_json(income_file, {}) -- remote does not have it (omitted, no tombstone)
 
       local success, active = annotations_mod.sync_callback(
         dummy_doc,
@@ -282,11 +282,12 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       )
 
       assert.is_true(success)
-      assert.are.equal(0, #active)
+      assert.are.equal(1, #active)
+      assert.are.equal("synced highlight", active[1].note)
 
       local written = utils_mod.read_json(local_file)
       assert.is_table(written["1|10|20||100|40"])
-      assert.is_true(written["1|10|20||100|40"].deleted)
+      assert.is_nil(written["1|10|20||100|40"].deleted)
     end
   )
 
