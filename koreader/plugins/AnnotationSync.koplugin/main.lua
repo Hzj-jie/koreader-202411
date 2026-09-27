@@ -2,6 +2,7 @@ local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
+local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
@@ -13,7 +14,7 @@ local logger = require("logger")
 local util = require("util")
 
 local function isConnected()
-  return require("ui/network/manager"):isConnected()
+  return NetworkMgr:isConnected()
 end
 
 local SettingsSelection =
@@ -337,13 +338,61 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
   }
 end
 
-function AnnotationSyncPlugin:onTimesChange_1M()
-  if
-    self.settings.network_auto_sync
-    and self.manager
-    and self.manager:hasPendingChangedDocuments()
-  then
-    logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
+function AnnotationSyncPlugin:onSaveSettings()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  UIManager:scheduleIn(0.1, function()
+    if self.manager and self.manager:hasPendingChangedDocuments() then
+      logger.dbg("AnnotationSync: onSaveSettings triggered background sync")
+      self.manager:syncPendingDocumentsBg()
+    end
+  end)
+end
+
+function AnnotationSyncPlugin:onSuspend()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if self.manager and self.manager:hasPendingChangedDocuments() then
+    logger.dbg("AnnotationSync: onSuspend triggered background sync")
+    self.manager:syncPendingDocumentsBg()
+  end
+end
+
+function AnnotationSyncPlugin:onResume()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if NetworkMgr:shouldRestoreWifi() then
+    return
+  end
+  UIManager:scheduleIn(0.1, function()
+    if self.manager and self.manager:hasPendingChangedDocuments() then
+      logger.dbg("AnnotationSync: onResume triggered background sync")
+      self.manager:syncPendingDocumentsBg()
+    end
+  end)
+end
+
+function AnnotationSyncPlugin:onNetworkOnline()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if self.manager and self.manager:hasPendingChangedDocuments() then
+    logger.dbg("AnnotationSync: onNetworkOnline triggered background sync")
+    self.manager:syncPendingDocumentsBg()
+  end
+end
+
+function AnnotationSyncPlugin:onNetworkDisconnecting()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if self.manager and self.manager:hasPendingChangedDocuments() then
+    logger.dbg(
+      "AnnotationSync: onNetworkDisconnecting triggered background sync"
+    )
     self.manager:syncPendingDocumentsBg()
   end
 end
@@ -567,12 +616,6 @@ end
 
 function AnnotationSyncPlugin:showChangedSettings()
   SettingsSelection.show(self)
-end
-
-function AnnotationSyncPlugin:onCloseDocument()
-  if self.ui and self.ui.document and self.manager then
-    self.manager:cleanSyncFile(self.ui.document)
-  end
 end
 
 return AnnotationSyncPlugin

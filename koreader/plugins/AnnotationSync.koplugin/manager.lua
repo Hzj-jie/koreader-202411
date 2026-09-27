@@ -164,12 +164,6 @@ function SyncManager:syncPendingDocumentsBg()
                 false
               )
             end)
-            local is_active_doc = self.plugin.ui
-              and self.plugin.ui.document
-              and self.plugin.ui.document.file == file
-            if not is_active_doc then
-              self:cleanSyncFile(file)
-            end
             return {
               file = file,
               success = ok and sync_success == true,
@@ -270,13 +264,6 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     )
   end)
 
-  local is_active_doc = self.plugin.ui
-    and self.plugin.ui.document
-    and self.plugin.ui.document.file == file
-  if not is_active_doc then
-    self:cleanSyncFile(file)
-  end
-
   if not ok then
     logger.warn(
       "AnnotationSync: syncDocument CRASHED for",
@@ -298,12 +285,22 @@ function SyncManager:_writeAnnotationsJSON(document)
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
-  local tmp_dir = DataStorage:getTmpDir()
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if not sdr_dir or sdr_dir == "" then
+    return false
+  end
+
+  -- Ensure the local sidecar directory exists
+  if not lfs.attributes(sdr_dir, "mode") then
+    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
+    util.makePath(sdr_dir)
+  end
+
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     document,
     self:getAnnotationsForDocument(document),
-    tmp_dir,
+    sdr_dir,
     filename
   )
 end
@@ -440,9 +437,13 @@ function SyncManager:getDeletedAnnotations(document)
     return {}
   end
 
-  local tmp_dir = DataStorage:getTmpDir()
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if not sdr_dir or sdr_dir == "" then
+    return {}
+  end
+
   local filename = self:_getAnnotationFilename(file)
-  local json_path = tmp_dir .. "/" .. filename
+  local json_path = sdr_dir .. "/" .. filename
   local cached_path = json_path .. ".sync"
 
   local map = utils.read_json(cached_path) or utils.read_json(json_path)
@@ -502,10 +503,13 @@ function SyncManager:cleanSyncFile(doc_or_file)
   if not file then
     return
   end
-  local tmp_dir = DataStorage:getTmpDir()
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if not sdr_dir or sdr_dir == "" then
+    return
+  end
   local filename = self:_getAnnotationFilename(file)
-  os.remove(tmp_dir .. "/" .. filename)
-  os.remove(tmp_dir .. "/" .. filename .. ".sync")
+  os.remove(sdr_dir .. "/" .. filename)
+  os.remove(sdr_dir .. "/" .. filename .. ".sync")
 end
 
 function SyncManager:cleanOrphanSyncFiles()
@@ -637,7 +641,7 @@ function SyncManager:pushSettings()
     },
   }
 
-  local json_path = DataStorage:getTmpDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
@@ -770,7 +774,7 @@ function SyncManager:pullSettings()
     return
   end
 
-  local json_path = DataStorage:getTmpDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
   remote.sync_settings(self.plugin, json_path, function(success, merged_data)
     if success and merged_data then
