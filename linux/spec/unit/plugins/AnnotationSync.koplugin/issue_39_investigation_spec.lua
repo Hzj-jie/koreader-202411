@@ -67,6 +67,7 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
   end)
 
@@ -89,7 +90,6 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     function()
       -- 1. Initial State: Sync an annotation
       local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
-      print("Expected Key: " .. key)
       table.insert(readerui.annotation.annotations, ann)
 
       SyncService.sync = function(server, local_path, callback)
@@ -160,7 +160,6 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       )
 
       assert.is_true(ok)
-      -- FAILURE EXPECTED HERE: if timestamps are identical, remote win (deletion)
       assert.is_equal(
         1,
         #merged_list,
@@ -265,8 +264,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     table.insert(readerui.annotation.annotations, ann)
 
     SyncService.sync = function(server, local_path, callback)
-      callback(local_path, local_path, local_path)
-      return true
+      local result = callback(local_path, local_path, local_path)
+      local ffiutil = require("ffi/util")
+      ffiutil.copyFile(local_path, local_path .. ".sync")
+      return result
     end
     sync_instance:manualSync()
 
@@ -282,8 +283,10 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       test_utils.write_mock_json(test_data_dir, "last.json", { [key] = ann })
 
     SyncService.sync = function(server, local_path, callback)
-      callback(local_path, last_sync_path, income_path)
-      return true
+      local result = callback(local_path, last_sync_path, income_path)
+      local ffiutil = require("ffi/util")
+      ffiutil.copyFile(local_path, local_path .. ".sync")
+      return result
     end
     sync_instance:manualSync()
 
