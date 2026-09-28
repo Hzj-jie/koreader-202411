@@ -452,14 +452,7 @@ function SyncManager:getDeletedAnnotations(document)
   end
 
   local cached_path = self:getSyncCachePath(file)
-  local filename = self:_getAnnotationFilename(file)
-  local tmp_dir = DataStorage:getTmpDir()
-  local tmp_path = tmp_dir and (tmp_dir .. "/" .. filename)
-
-  local map = (cached_path and utils.read_json(cached_path))
-    or (cached_path and utils.read_json(cached_path:gsub("%.sync$", "")))
-    or (tmp_path and utils.read_json(tmp_path))
-    or (tmp_path and utils.read_json(tmp_path .. ".sync"))
+  local map = cached_path and utils.read_json(cached_path)
   if not map then
     return {}
   end
