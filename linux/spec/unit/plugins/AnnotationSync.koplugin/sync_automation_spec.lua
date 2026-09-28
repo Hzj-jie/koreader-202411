@@ -84,7 +84,7 @@ describe("AnnotationSync Automation & Settings", function()
 
   describe("Automation", function()
     it(
-      "triggers background incremental fork sync on onTimesChange_1M when network_auto_sync is enabled",
+      "triggers background incremental fork sync on onSuspend when network_auto_sync is enabled",
       function()
         sync_instance.settings.network_auto_sync = true
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -98,7 +98,7 @@ describe("AnnotationSync Automation & Settings", function()
           callback(local_path, local_path, local_path)
         end
 
-        sync_instance:onTimesChange_1M()
+        sync_instance:onSuspend()
 
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
@@ -140,7 +140,7 @@ describe("AnnotationSync Automation & Settings", function()
     end)
 
     it(
-      "deduplicates onTimesChange_1M triggers when background sync is active",
+      "deduplicates onSuspend triggers when background sync is active",
       function()
         sync_instance.settings.network_auto_sync = true
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -148,8 +148,8 @@ describe("AnnotationSync Automation & Settings", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
-        sync_instance:onTimesChange_1M()
-        sync_instance:onTimesChange_1M()
+        sync_instance:onSuspend()
+        sync_instance:onSuspend()
 
         assert.is_equal(initial_count + 1, #jobs)
       end

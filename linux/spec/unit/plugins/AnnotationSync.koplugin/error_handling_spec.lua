@@ -169,12 +169,8 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       assert.is_equal(emoji_text, readerui.annotation.annotations[1].text)
 
       -- Verify on-disk serialization and persistence preserves emoji
-      local filename =
-        sync_instance.manager:_getAnnotationFilename(readerui.document.file)
-      local sync_path = require("datastorage"):getTmpDir()
-        .. "/"
-        .. filename
-        .. ".sync"
+      local sync_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
       local on_disk_data =
         require("plugins/AnnotationSync.koplugin/utils").read_json(sync_path)
       assert.is_table(on_disk_data)

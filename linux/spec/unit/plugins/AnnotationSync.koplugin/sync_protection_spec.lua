@@ -42,6 +42,14 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
 
+  before_each(function()
+    UIManager:show(readerui)
+    fastforward_ui_events()
+    readerui.annotation.annotations = {}
+    os.remove(sync_instance.manager:changedDocumentsFile())
+    test_utils.mock_sync_service(SyncService)
+  end)
+
   it(
     "should preserve annotations during bulk sync even if export file is missing (Issue 23)",
     function()

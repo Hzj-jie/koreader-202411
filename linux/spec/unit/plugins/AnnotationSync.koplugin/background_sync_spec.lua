@@ -71,10 +71,10 @@ describe("Background Sync Behavior", function()
   end)
 
   before_each(function()
+    os.remove(sync_manager:changedDocumentsFile())
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
-    os.remove(sync_manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
     require("background_jobs").clearKeys()
     local jobs = require("pluginshare").backgroundJobs
@@ -82,6 +82,15 @@ describe("Background Sync Behavior", function()
       jobs[k] = nil
     end
     plugin_instance.settings.network_auto_sync = true
+  end)
+
+  after_each(function()
+    os.remove(sync_manager:changedDocumentsFile())
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
+    require("background_jobs").clearKeys()
   end)
 
   describe("Main thread preparation and validation", function()
@@ -258,6 +267,7 @@ describe("Background Sync Behavior", function()
 
       -- Queues 2 separate background jobs
       assert.is_equal(initial_count + 2, #jobs)
+      os.remove(doc2)
     end)
 
     it(

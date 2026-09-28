@@ -233,7 +233,13 @@ end
 
 function M.mock_sync_service(SyncService)
   local old_sync = SyncService.sync
-  SyncService.sync = function(server, local_path, callback, upload_only)
+  SyncService.sync = function(
+    server,
+    local_path,
+    callback,
+    upload_only,
+    custom_cached_path
+  )
     -- Robustness: ensure we have valid paths and files
     local test_data_dir = DataStorage.getDataDir()
     local function ensure_json_file(path)
@@ -291,7 +297,8 @@ function M.mock_sync_service(SyncService)
       error("Sync callback CRASHED: " .. tostring(result))
     end
     local ffiutil = require("ffi/util")
-    ffiutil.copyFile(actual_local, local_path .. ".sync")
+    local cached_dest = custom_cached_path or (local_path .. ".sync")
+    ffiutil.copyFile(actual_local, cached_dest)
     return result, active
   end
 
@@ -304,9 +311,16 @@ function M.mock_sync_service(SyncService)
       server,
       file_path,
       sync_cb,
-      is_silent
+      is_silent,
+      custom_cached_path
     )
-      return SyncService.sync(server, file_path, sync_cb, is_silent)
+      return SyncService.sync(
+        server,
+        file_path,
+        sync_cb,
+        is_silent,
+        custom_cached_path
+      )
     end
   end
 

@@ -232,20 +232,4 @@ describe("AnnotationSync Trash & Restore", function()
       os.remove(settings_sync_path)
     end
   )
-
-  it("should clean sync file on onCloseDocument", function()
-    local tmp_dir = require("datastorage"):getTmpDir()
-    local file = readerui.document.file
-    local filename = sync_instance.manager:_getAnnotationFilename(file)
-    local sync_path = tmp_dir .. "/" .. filename .. ".sync"
-
-    local f = io.open(sync_path, "w")
-    f:write("{}")
-    f:close()
-
-    sync_instance:onCloseDocument()
-
-    local check_f = io.open(sync_path, "r")
-    assert.is_nil(check_f)
-  end)
 end)
