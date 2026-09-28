@@ -238,13 +238,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       }
 
       local old_sync = SyncService.sync
-      SyncService.sync = function(
-        server,
-        local_path,
-        callback,
-        upload_only,
-        custom_cached_path
-      )
+      SyncService.sync = function(server, local_path, callback, upload_only)
         local cached_path = test_data_dir .. "/cached_partial.json"
         local income_path = test_data_dir .. "/income_partial.json"
 
@@ -259,7 +253,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         local result = callback(local_path, cached_path, income_path)
         if result then
           local ffiutil = require("ffi/util")
-          local cached_dest = custom_cached_path or (local_path .. ".sync")
+          local cached_dest = local_path .. ".sync"
           ffiutil.copyFile(local_path, cached_dest)
         end
         return result
@@ -309,13 +303,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     }
 
     local old_sync = SyncService.sync
-    SyncService.sync = function(
-      server,
-      local_path,
-      callback,
-      upload_only,
-      custom_cached_path
-    )
+    SyncService.sync = function(server, local_path, callback, upload_only)
       local cached_path = test_data_dir .. "/cached_pdf.json"
       local income_path = test_data_dir .. "/income_pdf.json"
 
@@ -330,7 +318,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local result = callback(local_path, cached_path, income_path)
       if result then
         local ffiutil = require("ffi/util")
-        local cached_dest = custom_cached_path or (local_path .. ".sync")
+        local cached_dest = local_path .. ".sync"
         ffiutil.copyFile(local_path, cached_dest)
       end
       return result

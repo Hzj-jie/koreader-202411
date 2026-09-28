@@ -138,14 +138,7 @@ end
 --        Should return true to proceed with uploading local file to server, or
 --        false to ignore uploading (caller/callback should handle reporting errors/messages to end users).
 -- @param is_silent boolean whether to suppress notification messages
--- @param custom_cached_path string optional custom path to cached sync file
-function SyncService.sync(
-  server,
-  file_path,
-  sync_cb,
-  is_silent,
-  custom_cached_path
-)
+function SyncService.sync(server, file_path, sync_cb, is_silent)
   local sync_success = false
   local function exec()
     local file_name = ffiutil.basename(file_path)
@@ -153,7 +146,7 @@ function SyncService.sync(
       .. "/"
       .. file_name
       .. ".temp" -- file downloaded from server
-    local cached_file_path = custom_cached_path or (file_path .. ".sync") -- file uploaded to server last time
+    local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
 
     local fail_msg = gettext(
       "Something went wrong when syncing, please check your network connection and try again later."

@@ -291,13 +291,7 @@ describe("AnnotationSync Trash & Restore", function()
 
       local uploaded_content
       local old_sync = SyncService.sync
-      SyncService.sync = function(
-        server,
-        local_path,
-        callback,
-        upload_only,
-        custom_cached_path
-      )
+      SyncService.sync = function(server, local_path, callback, upload_only)
         local f_local = io.open(local_path, "r")
         uploaded_content = json.decode(f_local:read("*all"))
         f_local:close()
