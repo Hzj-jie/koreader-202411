@@ -545,9 +545,6 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   -- 3. Apply changes once (saves to sidecar and refreshes UI)
   self:applySyncedAnnotations(document, current)
 
-  -- 4. Flush to local sync JSON immediately (Fix for Issue #39 delayed flush)
-  self.manager:_writeAnnotationsJSON(document)
-
   if not silent then
     if #anns == 1 then
       utils.show_msg(gettext("Annotation restored."))
