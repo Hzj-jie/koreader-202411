@@ -45,6 +45,10 @@ describe("AnnotationSync Trash & Restore", function()
     package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
 
+  before_each(function()
+    readerui.annotation.annotations = {}
+  end)
+
   it(
     "should correctly identify deleted annotations in the sync JSON",
     function()
@@ -228,6 +232,86 @@ describe("AnnotationSync Trash & Restore", function()
       -- Cleanup
       os.remove(active_sync_path)
       os.remove(settings_sync_path)
+    end
+  )
+
+  it(
+    "should not list restored annotations as deleted (menu ghosting prevention)",
+    function()
+      local sync_cache_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local mock_data = {
+        ["p1||p2"] = {
+          page = 1,
+          pos0 = "p1",
+          pos1 = "p2",
+          text = "Restored Item",
+          deleted = true,
+        },
+      }
+      local f = io.open(sync_cache_path, "w")
+      f:write(json.encode(mock_data))
+      f:close()
+
+      local deleted =
+        sync_instance.manager:getDeletedAnnotations(readerui.document)
+      assert.is_equal(1, #deleted)
+
+      sync_instance:restoreAnnotation(deleted[1], true)
+
+      local still_deleted =
+        sync_instance.manager:getDeletedAnnotations(readerui.document)
+      assert.is_equal(0, #still_deleted)
+
+      os.remove(sync_cache_path)
+    end
+  )
+
+  it(
+    "should flush restored annotations into upload payload during next sync",
+    function()
+      local ann = {
+        page = 1,
+        pos0 = "p1",
+        pos1 = "p2",
+        text = "Restored Note",
+        deleted = true,
+        datetime_updated = "2026-01-01 12:00:00",
+      }
+      local sync_cache_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local f = io.open(sync_cache_path, "w")
+      f:write(json.encode({ ["p1||p2"] = ann }))
+      f:close()
+
+      local deleted =
+        sync_instance.manager:getDeletedAnnotations(readerui.document)
+      assert.is_equal(1, #deleted)
+      sync_instance:restoreAnnotation(deleted[1], true)
+
+      local uploaded_content
+      local old_sync = SyncService.sync
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        custom_cached_path
+      )
+        local f_local = io.open(local_path, "r")
+        uploaded_content = json.decode(f_local:read("*all"))
+        f_local:close()
+        return true
+      end
+
+      sync_instance:manualSync()
+
+      assert.is_not_nil(uploaded_content)
+      assert.is_not_nil(uploaded_content["p1||p2"])
+      assert.is_false(uploaded_content["p1||p2"].deleted)
+
+      SyncService.sync = old_sync
+      os.remove(sync_cache_path)
     end
   )
 end)

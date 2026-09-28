@@ -216,4 +216,136 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.is_true(disk_map["p1||p2"].deleted)
     end
   )
+
+  it(
+    "should STILL propagate deletions if local list is NOT completely empty",
+    function()
+      local remote_ann = {
+        ["p1||p1"] = {
+          page = 1,
+          pos0 = "p1",
+          pos1 = "p1",
+          text = "Remote 1",
+          datetime_updated = "2026-01-01 00:00:00",
+        },
+        ["p2||p2"] = {
+          page = 2,
+          pos0 = "p2",
+          pos1 = "p2",
+          text = "Remote 2",
+          datetime_updated = "2026-01-01 00:00:00",
+        },
+      }
+
+      local old_sync = SyncService.sync
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        custom_cached_path
+      )
+        local cached_path = test_data_dir .. "/cached_partial.json"
+        local income_path = test_data_dir .. "/income_partial.json"
+
+        local f = io.open(cached_path, "w")
+        f:write(json.encode(remote_ann))
+        f:close()
+
+        f = io.open(income_path, "w")
+        f:write(json.encode(remote_ann))
+        f:close()
+
+        local result = callback(local_path, cached_path, income_path)
+        if result then
+          local ffiutil = require("ffi/util")
+          local cached_dest = custom_cached_path or (local_path .. ".sync")
+          ffiutil.copyFile(local_path, cached_dest)
+        end
+        return result
+      end
+
+      G_reader_settings:save("cloud_download_dir", "mock")
+      G_reader_settings:save(
+        "cloud_server_object",
+        json.encode({ url = "mock" })
+      )
+
+      readerui.annotation.annotations = {
+        {
+          page = 1,
+          pos0 = "p1",
+          pos1 = "p1",
+          text = "Remote 1",
+          datetime_updated = "2026-01-01 00:00:00",
+        },
+      }
+
+      sync_instance.manager:syncDocument(readerui.document, false)
+
+      local cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+
+      local f = io.open(cached_path, "r")
+      local saved_data = json.decode(f:read("*all"))
+      f:close()
+
+      assert.is_not_nil(saved_data["p2||p2"])
+      assert.is_true(saved_data["p2||p2"].deleted)
+
+      SyncService.sync = old_sync
+    end
+  )
+
+  it("should protect PDF annotations similarly (geometry keys)", function()
+    local remote_ann = {
+      ["1|10|10||20|20"] = {
+        page = 1,
+        pos0 = { x = 10, y = 10 },
+        pos1 = { x = 20, y = 20 },
+        text = "PDF Note",
+        datetime_updated = "2026-01-01 00:00:00",
+      },
+    }
+
+    local old_sync = SyncService.sync
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
+      local cached_path = test_data_dir .. "/cached_pdf.json"
+      local income_path = test_data_dir .. "/income_pdf.json"
+
+      local f = io.open(cached_path, "w")
+      f:write(json.encode(remote_ann))
+      f:close()
+
+      f = io.open(income_path, "w")
+      f:write(json.encode(remote_ann))
+      f:close()
+
+      local result = callback(local_path, cached_path, income_path)
+      if result then
+        local ffiutil = require("ffi/util")
+        local cached_dest = custom_cached_path or (local_path .. ".sync")
+        ffiutil.copyFile(local_path, cached_dest)
+      end
+      return result
+    end
+
+    G_reader_settings:save("cloud_download_dir", "mock")
+    G_reader_settings:save("cloud_server_object", json.encode({ url = "mock" }))
+
+    readerui.annotation.annotations = {}
+
+    sync_instance.manager:syncDocument(readerui.document, false)
+
+    assert.is_equal(1, #readerui.annotation.annotations)
+    assert.is_equal("PDF Note", readerui.annotation.annotations[1].text)
+
+    SyncService.sync = old_sync
+  end)
 end)

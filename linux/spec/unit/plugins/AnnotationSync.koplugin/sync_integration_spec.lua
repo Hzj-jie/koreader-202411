@@ -257,5 +257,82 @@ describe("AnnotationSync Core Integration", function()
         assert.is_false(res)
       end
     )
+
+    it(
+      "verifies that Dropbox 'path not found' error is handled gracefully",
+      function()
+        readerui.annotation.annotations = {
+          { page = 1, pos0 = "p0", pos1 = "p1", text = "hello" },
+        }
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local dropbox_error = {
+          error_summary = "path/not_found/.",
+          error = {
+            [".tag"] = "path",
+            path = { [".tag"] = "not_found" },
+          },
+        }
+
+        local old_sync = SyncService.sync
+        SyncService.sync = function(server, local_path, callback, is_silent)
+          local income_file = local_path .. ".temp"
+          local f = io.open(income_file, "w")
+          f:write(json.encode(dropbox_error))
+          f:close()
+
+          local cached_file = local_path .. ".sync"
+          if not io.open(cached_file, "r") then
+            local fc = io.open(cached_file, "w")
+            fc:write("{}")
+            fc:close()
+          end
+
+          local success = callback(local_path, cached_file, income_file, 409)
+          os.remove(income_file)
+          return success
+        end
+
+        local success =
+          sync_instance.manager:syncDocument(readerui.document, true)
+
+        assert.is_true(
+          success,
+          "Sync should succeed by treating Dropbox path/not_found as empty state"
+        )
+
+        SyncService.sync = old_sync
+      end
+    )
+
+    it("verifies sidecar directory creation for new books", function()
+      local file = readerui.document.file
+      sync_instance.manager:addToChangedDocumentsFile(file)
+      local sdr_dir = require("frontend/docsettings"):getSidecarDir(file)
+      os.execute("rm -rf " .. sdr_dir)
+
+      local lfs = require("libs/libkoreader-lfs")
+      assert.is_nil(
+        lfs.attributes(sdr_dir),
+        "Sidecar directory should be missing for test"
+      )
+
+      local old_sync = SyncService.sync
+      SyncService.sync = function(server, local_path, callback, is_silent)
+        callback(local_path, local_path, local_path)
+        return 200
+      end
+
+      sync_instance.manager:syncAllChangedDocuments()
+
+      assert.is_not_nil(
+        lfs.attributes(sdr_dir),
+        "Sidecar directory should have been created automatically"
+      )
+
+      SyncService.sync = old_sync
+      local count, _ = sync_instance.manager:getPendingChangedDocuments()
+      assert.is_equal(0, count, "Document should have been successfully synced")
+    end)
   end)
 end)
