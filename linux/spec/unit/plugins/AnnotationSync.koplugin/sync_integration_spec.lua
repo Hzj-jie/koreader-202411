@@ -319,8 +319,11 @@ describe("AnnotationSync Core Integration", function()
 
       local old_sync = SyncService.sync
       SyncService.sync = function(server, local_path, callback, is_silent)
-        callback(local_path, local_path, local_path)
-        return 200
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, local_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance.manager:syncAllChangedDocuments()
