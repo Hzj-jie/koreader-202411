@@ -498,13 +498,7 @@ describe("Background Sync Behavior", function()
       function()
         local order = {}
         local old_sync = SyncService.sync
-        SyncService.sync = function(
-          server,
-          local_path,
-          callback,
-          silent,
-          custom_cached
-        )
+        SyncService.sync = function(server, local_path, callback, silent)
           table.insert(order, "sync_start")
           local cb_res = callback(local_path, local_path, local_path, 200)
           table.insert(order, "upload")
@@ -563,13 +557,7 @@ describe("Background Sync Behavior", function()
       "calls on_complete(false) if sync execution fails after sync_cb",
       function()
         local old_sync = SyncService.sync
-        SyncService.sync = function(
-          server,
-          local_path,
-          callback,
-          silent,
-          custom_cached
-        )
+        SyncService.sync = function(server, local_path, callback, silent)
           local cb_res = callback(local_path, local_path, local_path, 200)
           return false
         end
