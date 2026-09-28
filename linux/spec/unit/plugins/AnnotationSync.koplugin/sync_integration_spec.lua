@@ -144,14 +144,17 @@ describe("AnnotationSync Core Integration", function()
         "income_disjoint.json",
         { [key2] = ann2 }
       )
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last_disjoint.json", {})
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
 
       assert.is_equal(2, #readerui.annotation.annotations)
     end)
@@ -168,17 +171,23 @@ describe("AnnotationSync Core Integration", function()
         "income_conflict.json",
         { [key] = ann_r }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_conflict.json",
-        { [key] = ann_r }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann_r }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal("Local Newer", readerui.annotation.annotations[1].note)
     end)
 
@@ -196,17 +205,23 @@ describe("AnnotationSync Core Integration", function()
         "income_zombie.json",
         { [key] = ann_r }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_zombie.json",
-        { [key] = ann_r }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann_r }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(1, #readerui.annotation.annotations)
       assert.is_equal("Revived", readerui.annotation.annotations[1].note)
     end)
@@ -226,17 +241,23 @@ describe("AnnotationSync Core Integration", function()
         "income_del.json",
         { [key] = ann_del }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_del.json",
-        { [key] = ann }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
 
