@@ -76,6 +76,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
 
       -- Fixed: It should now remain dirty because the callback (which triggers removal) was never called
       assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_equal("Never", sync_instance.settings.last_sync)
     end)
 
     it(
@@ -101,8 +102,24 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
           upload_called,
           "Sync should have aborted and not proceeded to upload"
         )
+        assert.is_equal("Never", sync_instance.settings.last_sync)
       end
     )
+
+    it("updates last_sync timestamp when manualSync succeeds", function()
+      SyncService.sync = function(server, local_path, callback, upload_only)
+        local cached_dest = local_path .. ".sync"
+        local success = callback(local_path, cached_dest, local_path)
+        if success then
+          require("ffi/util").copyFile(local_path, cached_dest)
+        end
+        return true
+      end
+
+      sync_instance:manualSync()
+
+      assert.truthy(sync_instance.settings.last_sync:find("%(Manual Sync%)"))
+    end)
   end)
 
   describe("4.2 File System Errors", function()
