@@ -561,14 +561,6 @@ function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
   if self.is_applying_sync then
     return
   end
-  if not modified_annotations and type(modified_annotations) == "table" then
-    logger.warn(
-      "AnnotationSync: Document annotations modification detected, but could not process provided annotations payload (of type:",
-      type(modified_annotations),
-      ")"
-    )
-    return
-  end
 
   -- only want to handle each changed file once, so let's keep track
   local changed_files = {}
