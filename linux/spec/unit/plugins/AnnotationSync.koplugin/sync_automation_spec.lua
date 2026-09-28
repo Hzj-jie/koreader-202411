@@ -20,8 +20,7 @@ describe("AnnotationSync Automation & Settings", function()
     json = require("json")
     util = require("util")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -179,7 +178,11 @@ describe("AnnotationSync Automation & Settings", function()
 
         local dummy_merged = { { text = "Sample Annotation", page = 1 } }
         job.callback({
-          result = { file = active_file, success = true, merged_list = dummy_merged },
+          result = {
+            file = active_file,
+            success = true,
+            merged_list = dummy_merged,
+          },
         })
 
         local total, _ = sync_instance.manager:getPendingChangedDocuments()

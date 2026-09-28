@@ -26,8 +26,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     highlight_pdf_db =
       require("plugins/AnnotationSync.koplugin/highlight_pdf_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
@@ -180,11 +179,8 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         { [key_pdf_r] = ann_pdf_r }
       )
 
-      local empty_cache = test_utils.write_mock_json(
-        test_data_dir,
-        "empty_cache.json",
-        {}
-      )
+      local empty_cache =
+        test_utils.write_mock_json(test_data_dir, "empty_cache.json", {})
       local epub_filename =
         sync_instance.manager:_getAnnotationFilename(doc_epub)
       SyncService.sync = function(server, local_path, callback, upload_only)

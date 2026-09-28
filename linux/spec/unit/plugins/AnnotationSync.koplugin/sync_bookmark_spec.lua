@@ -108,29 +108,20 @@ describe("AnnotationSync Bookmark Synchronization", function()
   end)
 
   it("identifies deleted bookmarks correctly (unit test)", function()
-    local local_file = test_utils.write_mock_json(
-      test_data_dir,
-      "bm_local.json",
-      {
+    local local_file =
+      test_utils.write_mock_json(test_data_dir, "bm_local.json", {
         ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
-      }
-    )
-    local last_sync_file = test_utils.write_mock_json(
-      test_data_dir,
-      "bm_last.json",
-      {
+      })
+    local last_sync_file =
+      test_utils.write_mock_json(test_data_dir, "bm_last.json", {
         ["BOOKMARK|1"] = { page = 1, text = "I was deleted" },
         ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
-      }
-    )
-    local income_file = test_utils.write_mock_json(
-      test_data_dir,
-      "bm_income.json",
-      {
+      })
+    local income_file =
+      test_utils.write_mock_json(test_data_dir, "bm_income.json", {
         ["BOOKMARK|1"] = { page = 1, text = "I was deleted" },
         ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
-      }
-    )
+      })
 
     local ok, active = annotations_mod.sync_callback(
       readerui.document,

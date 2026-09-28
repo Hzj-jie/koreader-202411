@@ -19,8 +19,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -150,25 +149,16 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")
-      local local_file = test_utils.write_mock_json(
-        test_data_dir,
-        "prot_local.json",
-        {}
-      )
-      local last_sync_file = test_utils.write_mock_json(
-        test_data_dir,
-        "prot_last.json",
-        {
+      local local_file =
+        test_utils.write_mock_json(test_data_dir, "prot_local.json", {})
+      local last_sync_file =
+        test_utils.write_mock_json(test_data_dir, "prot_last.json", {
           ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
-        }
-      )
-      local income_file = test_utils.write_mock_json(
-        test_data_dir,
-        "prot_income.json",
-        {
+        })
+      local income_file =
+        test_utils.write_mock_json(test_data_dir, "prot_income.json", {
           ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
-        }
-      )
+        })
 
       local ok, active = annotations_mod.sync_callback(
         readerui.document,
@@ -196,25 +186,16 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")
-      local local_file = test_utils.write_mock_json(
-        test_data_dir,
-        "prot_local_force.json",
-        {}
-      )
-      local last_sync_file = test_utils.write_mock_json(
-        test_data_dir,
-        "prot_last_force.json",
-        {
+      local local_file =
+        test_utils.write_mock_json(test_data_dir, "prot_local_force.json", {})
+      local last_sync_file =
+        test_utils.write_mock_json(test_data_dir, "prot_last_force.json", {
           ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
-        }
-      )
-      local income_file = test_utils.write_mock_json(
-        test_data_dir,
-        "prot_income_force.json",
-        {
+        })
+      local income_file =
+        test_utils.write_mock_json(test_data_dir, "prot_income_force.json", {
           ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
-        }
-      )
+        })
 
       local ok, active = annotations_mod.sync_callback(
         readerui.document,

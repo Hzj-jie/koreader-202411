@@ -447,7 +447,13 @@ describe("Background Sync Behavior", function()
         local test_remote = require("plugins/AnnotationSync.koplugin/remote")
 
         local dummy_json = test_data_dir .. "/test_silent_provider.json"
-        test_remote.sync_annotations(mock_w, {}, dummy_json, function() end, false)
+        test_remote.sync_annotations(
+          mock_w,
+          {},
+          dummy_json,
+          function() end,
+          false
+        )
 
         assert.is_false(show_called)
         UIManager.show = old_show

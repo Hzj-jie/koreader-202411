@@ -20,8 +20,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     json = require("json")
     util = require("util")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
