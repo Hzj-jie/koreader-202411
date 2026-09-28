@@ -512,8 +512,9 @@ function AnnotationSyncPlugin:manualSync()
     utils.show_msg("A document must be active to do a manual sync.")
     return
   end
-  self.manager:syncDocument(document, true)
-  self.manager:recordSyncState("Manual Sync")
+  if self.manager:syncDocument(document, true) then
+    self.manager:recordSyncState("Manual Sync")
+  end
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()
