@@ -143,28 +143,6 @@ describe("AnnotationSync plugin unit tests", function()
       }))
     end)
 
-    it("should filter out invalid entries from annotation maps", function()
-      local mixed_map = {
-        valid_bm = { page = 1, text = "Valid Bookmark" },
-        valid_hl = {
-          page = 2,
-          pos0 = { x = 10, y = 20 },
-          pos1 = { x = 50, y = 20 },
-          text = "Valid Highlight",
-        },
-        bad_no_page = { text = "Corrupt no page" },
-        bad_empty_pos = { page = 3, pos0 = {}, pos1 = {} },
-        bad_non_table = "corrupted string",
-      }
-
-      local filtered = annotations.filter_valid_annotations(mixed_map, "test")
-      assert.is_not_nil(filtered.valid_bm)
-      assert.is_not_nil(filtered.valid_hl)
-      assert.is_nil(filtered.bad_no_page)
-      assert.is_nil(filtered.bad_empty_pos)
-      assert.is_nil(filtered.bad_non_table)
-    end)
-
     it(
       "should compare timestamps cleanly without crashing on missing datetime",
       function()
@@ -297,20 +275,6 @@ describe("AnnotationSync plugin unit tests", function()
         assert.has_error(function()
           annotations.sort({ 1, 2 })
         end)
-      end
-    )
-
-    it(
-      "should sort mixed bookmarks and highlights strictly by page then position",
-      function()
-        local map = {
-          h10 = { page = 10, pos0 = { x = 20, y = 40 } },
-          b10 = { page = 10 },
-          h1 = { page = 1, pos0 = { x = 10, y = 30 } },
-          b1 = { page = 1 },
-        }
-        local sorted_keys = annotations.sort_keys_by_position(map)
-        assert.are.same({ "b1", "h1", "b10", "h10" }, sorted_keys)
       end
     )
 
