@@ -45,6 +45,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
   end)
@@ -304,25 +305,27 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       },
     }
 
+    local sdr_cached_path =
+      sync_instance.manager:getSyncCachePath(readerui.document.file)
+    local fc = io.open(sdr_cached_path, "w")
+    fc:write(json.encode(remote_ann))
+    fc:close()
+
     local old_sync = SyncService.sync
     SyncService.sync = function(server, local_path, callback, upload_only)
-      local cached_path = test_data_dir .. "/cached_pdf.json"
       local income_path = test_data_dir .. "/income_pdf.json"
 
-      local f = io.open(cached_path, "w")
+      local f = io.open(income_path, "w")
       f:write(json.encode(remote_ann))
       f:close()
 
-      f = io.open(income_path, "w")
-      f:write(json.encode(remote_ann))
-      f:close()
-
-      local result = callback(local_path, cached_path, income_path)
+      local cached_dest = local_path .. ".sync"
+      local result = callback(local_path, cached_dest, income_path)
       if result then
         local ffiutil = require("ffi/util")
-        local cached_dest = local_path .. ".sync"
         ffiutil.copyFile(local_path, cached_dest)
       end
+      os.remove(income_path)
       return result
     end
 
