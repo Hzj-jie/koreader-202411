@@ -151,7 +151,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
             callback = function()
               self.settings.use_filename = not self.settings.use_filename
               self:saveSettings()
-              UIManager:close()
             end,
           },
           {
@@ -165,7 +164,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               self.settings.network_auto_sync =
                 not self.settings.network_auto_sync
               self:saveSettings()
-              UIManager:close()
             end,
           },
 
