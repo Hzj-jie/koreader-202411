@@ -528,21 +528,10 @@ function SyncManager:cleanOrphanSyncFiles()
   if not tmp_dir or lfs.attributes(tmp_dir, "mode") ~= "directory" then
     return
   end
-  local active_file = self.plugin.ui
-    and self.plugin.ui.document
-    and self.plugin.ui.document.file
-  local active_sync_name = active_file
-    and (self:_getAnnotationFilename(active_file) .. ".sync")
 
   pcall(function()
     for entry in lfs.dir(tmp_dir) do
-      if
-        (
-          entry:match("%.json%.sync$")
-          and entry ~= "settings_sync.json.sync"
-          and entry ~= active_sync_name
-        ) or entry:match("%.json%.temp$")
-      then
+      if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
         os.remove(tmp_dir .. "/" .. entry)
       end
     end
