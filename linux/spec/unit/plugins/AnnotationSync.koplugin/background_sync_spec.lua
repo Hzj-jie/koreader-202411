@@ -491,4 +491,125 @@ describe("Background Sync Behavior", function()
       end
     )
   end)
+
+  describe("Remote sync completion and perform_sync lifecycle", function()
+    it(
+      "calls on_complete strictly after sync finishes, passing captured merged_list",
+      function()
+        local order = {}
+        local old_sync = SyncService.sync
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          silent,
+          custom_cached
+        )
+          table.insert(order, "sync_start")
+          local cb_res = callback(local_path, local_path, local_path, 200)
+          table.insert(order, "upload")
+          return true
+        end
+
+        local annotations =
+          require("plugins/AnnotationSync.koplugin/annotations")
+        local old_sync_cb = annotations.sync_callback
+        local dummy_merged = { { page = 1, text = "test" } }
+        annotations.sync_callback = function()
+          table.insert(order, "sync_cb")
+          return true, dummy_merged
+        end
+
+        local mock_w = {
+          ui = {},
+          settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+          manager = {
+            getSyncCachePath = function()
+              return nil
+            end,
+          },
+        }
+
+        local dummy_json = test_data_dir .. "/test_on_complete_order.json"
+        util.writeToFile("[]", dummy_json)
+
+        local on_complete_success = nil
+        local on_complete_merged = nil
+        remote.sync_annotations(
+          mock_w,
+          { file = "dummy.epub" },
+          dummy_json,
+          function(success, merged_list)
+            table.insert(order, "on_complete")
+            on_complete_success = success
+            on_complete_merged = merged_list
+          end,
+          false
+        )
+
+        assert.are.same(
+          { "sync_start", "sync_cb", "upload", "on_complete" },
+          order
+        )
+        assert.is_true(on_complete_success)
+        assert.are.same(dummy_merged, on_complete_merged)
+
+        SyncService.sync = old_sync
+        annotations.sync_callback = old_sync_cb
+      end
+    )
+
+    it(
+      "calls on_complete(false) if sync execution fails after sync_cb",
+      function()
+        local old_sync = SyncService.sync
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          silent,
+          custom_cached
+        )
+          local cb_res = callback(local_path, local_path, local_path, 200)
+          return false
+        end
+
+        local annotations =
+          require("plugins/AnnotationSync.koplugin/annotations")
+        local old_sync_cb = annotations.sync_callback
+        annotations.sync_callback = function()
+          return true, { { page = 1 } }
+        end
+
+        local mock_w = {
+          ui = {},
+          settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+          manager = {
+            getSyncCachePath = function()
+              return nil
+            end,
+          },
+        }
+
+        local dummy_json = test_data_dir .. "/test_on_complete_fail.json"
+        util.writeToFile("[]", dummy_json)
+
+        local on_complete_success = nil
+        remote.sync_annotations(
+          mock_w,
+          { file = "dummy.epub" },
+          dummy_json,
+          function(success)
+            on_complete_success = success
+          end,
+          false
+        )
+
+        assert.is_false(on_complete_success)
+
+        SyncService.sync = old_sync
+        annotations.sync_callback = old_sync_cb
+      end
+    )
+  end)
 end)
