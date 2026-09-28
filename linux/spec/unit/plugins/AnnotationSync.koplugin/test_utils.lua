@@ -31,6 +31,7 @@ local old_runWhenOnline
 local old_getSettingsDir
 local old_G_reader_settings
 local old_tmp_dir
+local old_document_metadata_folder
 
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
@@ -55,6 +56,14 @@ function M.setup_test_env(test_data_dir)
     local LuaSettings = require("luasettings")
     _G.G_reader_settings =
       LuaSettings:open(test_data_dir .. "/settings.reader.lua")
+  end
+
+  local named_settings = require("named_settings")
+  old_document_metadata_folder = named_settings.document_metadata_folder
+  named_settings.document_metadata_folder = function()
+    return (
+      G_reader_settings and G_reader_settings:read("document_metadata_folder")
+    ) or "doc"
   end
 
   local NetworkMgr = require("ui/network/manager")
@@ -134,6 +143,11 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
     local NetworkMgr = require("ui/network/manager")
     NetworkMgr.runWhenOnline = old_runWhenOnline
     old_runWhenOnline = nil
+  end
+  if old_document_metadata_folder then
+    require("named_settings").document_metadata_folder =
+      old_document_metadata_folder
+    old_document_metadata_folder = nil
   end
 end
 
