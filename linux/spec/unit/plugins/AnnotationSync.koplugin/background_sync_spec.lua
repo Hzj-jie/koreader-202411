@@ -199,20 +199,24 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "flushes settings and serializes JSON in main thread before job dispatch",
+      "does not broadcast FlushSettings during background sync to avoid loop",
       function()
-        local flush_called = false
-        local old_flush = sync_manager.flushSettings
-        sync_manager.flushSettings = function(self)
-          flush_called = true
-          old_flush(self)
+        local flush_broadcasted = false
+        local old_broadcast = UIManager.broadcastEvent
+        UIManager.broadcastEvent = function(self, event, ...)
+          local ev_name = type(event) == "string" and event
+            or (event and event.name)
+          if ev_name == "FlushSettings" then
+            flush_broadcasted = true
+          end
+          return old_broadcast(self, event, ...)
         end
 
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
         sync_manager:syncPendingDocumentsBg()
 
-        assert.is_true(flush_called)
-        sync_manager.flushSettings = old_flush
+        assert.is_false(flush_broadcasted)
+        UIManager.broadcastEvent = old_broadcast
       end
     )
   end)
