@@ -27,13 +27,7 @@ local function get_sync_provider(widget)
   return nil
 end
 
-local function perform_sync(
-  widget,
-  json_path,
-  sync_cb,
-  is_silent,
-  custom_cached_path
-)
+local function perform_sync(widget, json_path, sync_cb, is_silent)
   local provider = get_sync_provider(widget)
   if not provider then
     if not is_silent then
@@ -72,21 +66,9 @@ local function perform_sync(
 
   local res
   if widget.ui.cloudstorage and widget.ui.cloudstorage.sync then
-    res = widget.ui.cloudstorage:sync(
-      server,
-      json_path,
-      wrapped_cb,
-      is_silent,
-      custom_cached_path
-    )
+    res = widget.ui.cloudstorage:sync(server, json_path, wrapped_cb, is_silent)
   else
-    res = SyncService.sync(
-      server,
-      json_path,
-      wrapped_cb,
-      is_silent,
-      custom_cached_path
-    )
+    res = SyncService.sync(server, json_path, wrapped_cb, is_silent)
   end
   if res ~= nil then
     return res == true
@@ -100,11 +82,12 @@ function M.sync_annotations(
   json_path,
   on_complete,
   force,
-  custom_cached_path
+  cached_path
 )
   local cleanup_tmp = function()
     os.remove(json_path)
     os.remove(json_path .. ".temp")
+    os.remove(json_path .. ".sync")
   end
   if not isConnected() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
@@ -120,10 +103,14 @@ function M.sync_annotations(
 
   local sync_cb = function(local_file, cached_file, income_file, code_response)
     sync_cb_called = true
+    local actual_cached_file = cached_path or cached_file
+    if cached_file and cached_file ~= (json_path .. ".sync") then
+      actual_cached_file = cached_file
+    end
     local success, merged_list = annotations.sync_callback(
       document,
       local_file,
-      cached_file,
+      actual_cached_file,
       income_file,
       force,
       code_response
@@ -133,14 +120,19 @@ function M.sync_annotations(
     return success
   end
   local ok, sync_success = pcall(function()
-    return perform_sync(
-      widget,
-      json_path,
-      sync_cb,
-      not force,
-      custom_cached_path
-    )
+    return perform_sync(widget, json_path, sync_cb, not force)
   end)
+  if sync_success and cached_path then
+    local tmp_cached = json_path .. ".sync"
+    local f = io.open(tmp_cached, "r")
+    if f then
+      f:close()
+      local ffiutil = require("ffi/util")
+      os.remove(cached_path)
+      ffiutil.copyFile(tmp_cached, cached_path)
+      os.remove(tmp_cached)
+    end
+  end
   cleanup_tmp()
   if not ok then
     if on_complete then
