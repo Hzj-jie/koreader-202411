@@ -148,7 +148,10 @@ function SyncService.sync(
 )
   local function exec()
     local file_name = ffiutil.basename(file_path)
-    local income_file_path = file_path .. ".temp" -- file downloaded from server
+    local income_file_path = DataStorage:getTmpDir()
+      .. "/"
+      .. file_name
+      .. ".temp" -- file downloaded from server
     local cached_file_path = custom_cached_path or (file_path .. ".sync") -- file uploaded to server last time
 
     local fail_msg = gettext(
