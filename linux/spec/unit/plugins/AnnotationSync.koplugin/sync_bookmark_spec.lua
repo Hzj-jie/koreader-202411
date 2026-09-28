@@ -53,6 +53,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
   end)
@@ -95,14 +96,17 @@ describe("AnnotationSync Bookmark Synchronization", function()
       "income_bm.json",
       { [key_r] = bm_r }
     )
-    local last_sync_path =
-      test_utils.write_mock_json(test_data_dir, "last_bm.json", {})
 
     SyncService.sync = function(server, local_path, callback, upload_only)
-      callback(local_path, last_sync_path, income_path)
+      local cached_dest = local_path .. ".sync"
+      callback(local_path, cached_dest, income_path)
+      local ffiutil = require("ffi/util")
+      ffiutil.copyFile(local_path, cached_dest)
+      return true
     end
 
     sync_instance:manualSync()
+    os.remove(income_path)
 
     assert.is_equal(2, #readerui.annotation.annotations)
   end)
@@ -176,25 +180,24 @@ describe("AnnotationSync Bookmark Synchronization", function()
       "income_del_bm.json",
       { [key1] = bm1, [key2] = bm2 }
     )
-    local last_sync_path = test_utils.write_mock_json(
-      test_data_dir,
-      "last_del_bm.json",
-      { [key1] = bm1, [key2] = bm2 }
-    )
 
     local captured_json
     SyncService.sync = function(server, local_path, callback, upload_only)
       -- The callback updates local_path with merged data (including deletions)
-      local success = callback(local_path, last_sync_path, income_path)
+      local cached_dest = local_path .. ".sync"
+      local success = callback(local_path, cached_dest, income_path)
 
       local f = io.open(local_path, "r")
       captured_json = json.decode(f:read("*all"))
       f:close()
 
+      local ffiutil = require("ffi/util")
+      ffiutil.copyFile(local_path, cached_dest)
       return success
     end
 
     sync_instance:manualSync()
+    os.remove(income_path)
 
     -- Verify key1 was marked deleted and uploaded
     assert.truthy(captured_json[key1], "key1 should exist in sync json")
@@ -231,17 +234,25 @@ describe("AnnotationSync Bookmark Synchronization", function()
       "income_rem_del.json",
       { [key] = bm_del }
     )
-    local last_sync_path = test_utils.write_mock_json(
-      test_data_dir,
-      "last_rem_del.json",
-      { [key] = bm }
-    )
+
+    local sdr_cached_path =
+      sync_instance.manager:getSyncCachePath(readerui.document.file)
+    local fc = io.open(sdr_cached_path, "w")
+    fc:write(json.encode({ [key] = bm }))
+    fc:close()
 
     SyncService.sync = function(server, local_path, callback, upload_only)
-      return callback(local_path, last_sync_path, income_path)
+      local cached_dest = local_path .. ".sync"
+      local result = callback(local_path, cached_dest, income_path)
+      if result then
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+      end
+      return result
     end
 
     sync_instance:manualSync()
+    os.remove(income_path)
 
     -- Verify final state is 0 bookmarks (deleted by remote)
     assert.is_equal(0, #readerui.annotation.annotations)
@@ -283,14 +294,22 @@ describe("AnnotationSync Bookmark Synchronization", function()
       "income_pdf_bm.json",
       { [key_r] = bm_r }
     )
-    local last_sync_path =
-      test_utils.write_mock_json(test_data_dir, "last_pdf_bm.json", {})
+
+    sync_instance.manager:cleanSyncFile(readerui.document)
 
     SyncService.sync = function(server, local_path, callback, upload_only)
-      return callback(local_path, last_sync_path, income_path)
+      local cached_dest = local_path .. ".sync"
+      local result = callback(local_path, cached_dest, income_path)
+      if result then
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+      end
+      return result
     end
 
     sync_instance:manualSync()
+    os.remove(income_path)
+    os.remove(sample_pdf)
 
     -- 4. Verify both are present
     assert.is_equal(2, #readerui.annotation.annotations)
