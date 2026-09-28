@@ -60,6 +60,7 @@ describe("AnnotationSync PDF Core Integration", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)
@@ -112,14 +113,16 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_disjoint_pdf.json",
         { [key2] = ann2 }
       )
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last_disjoint_pdf.json", {})
-
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
 
       assert.is_equal(2, #readerui.annotation.annotations)
     end)
@@ -146,14 +149,17 @@ describe("AnnotationSync PDF Core Integration", function()
           "income_overlap_pdf.json",
           { [key_r] = remote_ann }
         )
-        local last_sync_path =
-          test_utils.write_mock_json(test_data_dir, "last_overlap_pdf.json", {})
 
         SyncService.sync = function(server, local_path, callback, upload_only)
-          callback(local_path, last_sync_path, income_path)
+          local cached_dest = local_path .. ".sync"
+          callback(local_path, cached_dest, income_path)
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, cached_dest)
+          return true
         end
 
         sync_instance:manualSync()
+        os.remove(income_path)
 
         -- Both distinct highlights should be preserved (exact coordinate identity avoids data loss)
         assert.is_equal(2, #readerui.annotation.annotations)
@@ -185,14 +191,17 @@ describe("AnnotationSync PDF Core Integration", function()
           "income_drift_pdf.json",
           { [key_r] = remote_ann }
         )
-        local last_sync_path =
-          test_utils.write_mock_json(test_data_dir, "last_drift_pdf.json", {})
 
         SyncService.sync = function(server, local_path, callback, upload_only)
-          callback(local_path, last_sync_path, income_path)
+          local cached_dest = local_path .. ".sync"
+          callback(local_path, cached_dest, income_path)
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, cached_dest)
+          return true
         end
 
         sync_instance:manualSync()
+        os.remove(income_path)
 
         -- Should merge because coordinates map to the same floor-normalized integer bucket
         assert.is_equal(1, #readerui.annotation.annotations)
@@ -215,17 +224,23 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_conflict_pdf.json",
         { [key] = ann_r }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_conflict_pdf.json",
-        { [key] = ann_r }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann_r }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(
         "Local Newer PDF",
         readerui.annotation.annotations[1].note
@@ -247,17 +262,23 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_del_pdf.json",
         { [key] = ann_del }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_del_pdf.json",
-        { [key] = ann }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
   end)
