@@ -27,7 +27,14 @@ local function get_sync_provider(widget)
   return nil
 end
 
-local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
+local function perform_sync(
+  widget,
+  json_path,
+  sync_cb,
+  is_silent,
+  on_complete,
+  custom_cached_path
+)
   local provider = get_sync_provider(widget)
   if not provider then
     if not is_silent then
@@ -49,9 +56,21 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
   local server = widget.settings.sync_server
   if server then
     if widget.ui.cloudstorage then
-      widget.ui.cloudstorage:sync(server, json_path, sync_cb, is_silent)
+      widget.ui.cloudstorage:sync(
+        server,
+        json_path,
+        sync_cb,
+        is_silent,
+        custom_cached_path
+      )
     else
-      SyncService.sync(server, json_path, sync_cb, is_silent)
+      SyncService.sync(
+        server,
+        json_path,
+        sync_cb,
+        is_silent,
+        custom_cached_path
+      )
     end
   else
     if not is_silent then
@@ -68,9 +87,21 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
   end
 end
 
-function M.sync_annotations(widget, document, json_path, on_complete, force)
+function M.sync_annotations(
+  widget,
+  document,
+  json_path,
+  on_complete,
+  force,
+  custom_cached_path
+)
+  local cleanup_tmp = function()
+    os.remove(json_path)
+    os.remove(json_path .. ".temp")
+  end
   if not isConnected() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
+    cleanup_tmp()
     if on_complete then
       on_complete(false)
     end
@@ -94,8 +125,20 @@ function M.sync_annotations(widget, document, json_path, on_complete, force)
     end
     return success
   end
-  perform_sync(widget, json_path, sync_cb, not force, on_complete)
-  os.remove(json_path)
+  local ok, err = pcall(function()
+    perform_sync(
+      widget,
+      json_path,
+      sync_cb,
+      not force,
+      on_complete,
+      custom_cached_path
+    )
+  end)
+  cleanup_tmp()
+  if not ok then
+    error(err)
+  end
 end
 
 function M._sync_settings_callback(

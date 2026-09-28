@@ -138,11 +138,18 @@ end
 --        Should return true to proceed with uploading local file to server, or
 --        false to ignore uploading (caller/callback should handle reporting errors/messages to end users).
 -- @param is_silent boolean whether to suppress notification messages
-function SyncService.sync(server, file_path, sync_cb, is_silent)
+-- @param custom_cached_path string optional custom path to cached sync file
+function SyncService.sync(
+  server,
+  file_path,
+  sync_cb,
+  is_silent,
+  custom_cached_path
+)
   local function exec()
     local file_name = ffiutil.basename(file_path)
     local income_file_path = file_path .. ".temp" -- file downloaded from server
-    local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
+    local cached_file_path = custom_cached_path or (file_path .. ".sync") -- file uploaded to server last time
 
     local fail_msg = gettext(
       "Something went wrong when syncing, please check your network connection and try again later."
@@ -196,6 +203,7 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
         and code_response ~= 404
         and not (server.type == "dropbox" and code_response == 409)
       then
+        os.remove(income_file_path)
         show_msg()
         return
       end
@@ -207,11 +215,13 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
         code_response
       )
       if not ok then
+        os.remove(income_file_path)
         show_msg()
         require("logger").err("sync service callback failed:", cb_return)
         return
       end
       if not cb_return then
+        os.remove(income_file_path)
         return
       end
       if server.type == "dropbox" then

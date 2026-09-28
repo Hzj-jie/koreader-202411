@@ -152,6 +152,7 @@ function SyncManager:syncPendingDocumentsBg()
             end
             local sync_success = false
             local final_merged = nil
+            local cached_path = self:getSyncCachePath(file)
             local ok, _ = pcall(function()
               remote.sync_annotations(
                 self.plugin,
@@ -161,7 +162,8 @@ function SyncManager:syncPendingDocumentsBg()
                   sync_success = success
                   final_merged = merged_list
                 end,
-                false
+                false,
+                cached_path
               )
             end)
             return {
@@ -250,6 +252,7 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     is_manual,
     ")"
   )
+  local cached_path = self:getSyncCachePath(file)
   local sync_success = false
   local ok, err = pcall(function()
     remote.sync_annotations(
@@ -260,7 +263,8 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
         sync_success = success
         self:_onSyncComplete(document, success, merged_list)
       end,
-      is_manual
+      is_manual,
+      cached_path
     )
   end)
 
@@ -279,28 +283,38 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
   return sync_success
 end
 
--- Refreshes the local sync JSON file with latest memory/sidecar state
+function SyncManager:getSyncCachePath(file)
+  if not file then
+    return nil
+  end
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if not sdr_dir or sdr_dir == "" then
+    return nil
+  end
+  if not lfs.attributes(sdr_dir, "mode") then
+    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
+    util.makePath(sdr_dir)
+  end
+  local filename = self:_getAnnotationFilename(file)
+  return sdr_dir .. "/" .. filename .. ".sync"
+end
+
+-- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp
 function SyncManager:_writeAnnotationsJSON(document)
   local file = type(document) == "string" and document
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
+  local tmp_dir = DataStorage:getTmpDir()
+  if not tmp_dir or tmp_dir == "" then
     return false
-  end
-
-  -- Ensure the local sidecar directory exists
-  if not lfs.attributes(sdr_dir, "mode") then
-    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
-    util.makePath(sdr_dir)
   end
 
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     document,
     self:getAnnotationsForDocument(document),
-    sdr_dir,
+    tmp_dir,
     filename
   )
 end
@@ -430,23 +444,22 @@ function SyncManager:getAnnotationsForDocument(document)
   return {}
 end
 
--- Get only annotations marked as deleted in the local sync JSON
+-- Get only annotations marked as deleted in the sync cache JSON
 function SyncManager:getDeletedAnnotations(document)
   local file = document and document.file
   if not file then
     return {}
   end
 
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    return {}
-  end
-
+  local cached_path = self:getSyncCachePath(file)
   local filename = self:_getAnnotationFilename(file)
-  local json_path = sdr_dir .. "/" .. filename
-  local cached_path = json_path .. ".sync"
+  local tmp_dir = DataStorage:getTmpDir()
+  local tmp_path = tmp_dir and (tmp_dir .. "/" .. filename)
 
-  local map = utils.read_json(cached_path) or utils.read_json(json_path)
+  local map = (cached_path and utils.read_json(cached_path))
+    or (cached_path and utils.read_json(cached_path:gsub("%.sync$", "")))
+    or (tmp_path and utils.read_json(tmp_path))
+    or (tmp_path and utils.read_json(tmp_path .. ".sync"))
   if not map then
     return {}
   end
@@ -503,13 +516,18 @@ function SyncManager:cleanSyncFile(doc_or_file)
   if not file then
     return
   end
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
-    return
-  end
   local filename = self:_getAnnotationFilename(file)
-  os.remove(sdr_dir .. "/" .. filename)
-  os.remove(sdr_dir .. "/" .. filename .. ".sync")
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if sdr_dir and sdr_dir ~= "" then
+    os.remove(sdr_dir .. "/" .. filename)
+    os.remove(sdr_dir .. "/" .. filename .. ".sync")
+  end
+  local tmp_dir = DataStorage:getTmpDir()
+  if tmp_dir and tmp_dir ~= "" then
+    os.remove(tmp_dir .. "/" .. filename)
+    os.remove(tmp_dir .. "/" .. filename .. ".sync")
+    os.remove(tmp_dir .. "/" .. filename .. ".temp")
+  end
 end
 
 function SyncManager:cleanOrphanSyncFiles()
@@ -526,9 +544,11 @@ function SyncManager:cleanOrphanSyncFiles()
   pcall(function()
     for entry in lfs.dir(tmp_dir) do
       if
-        entry:match("%.json%.sync$")
-        and entry ~= "settings_sync.json.sync"
-        and entry ~= active_sync_name
+        (
+          entry:match("%.json%.sync$")
+          and entry ~= "settings_sync.json.sync"
+          and entry ~= active_sync_name
+        ) or entry:match("%.json%.temp$")
       then
         os.remove(tmp_dir .. "/" .. entry)
       end
