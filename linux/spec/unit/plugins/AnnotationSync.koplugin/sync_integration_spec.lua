@@ -55,6 +55,7 @@ describe("AnnotationSync Core Integration", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)
@@ -105,12 +106,7 @@ describe("AnnotationSync Core Integration", function()
 
     it("handles first sync of an empty book gracefully", function()
       -- Ensure no previous files exist
-      local file = readerui.document.file
-      local sdr_dir = require("docsettings"):getSidecarDir(file)
-      local hash = require("util").partialMD5(file)
-      os.remove(sdr_dir .. "/" .. hash .. ".json")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.sync")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.temp")
+      sync_instance.manager:cleanSyncFile(readerui.document)
 
       -- Sync an empty book
       sync_instance:manualSync()
@@ -122,12 +118,7 @@ describe("AnnotationSync Core Integration", function()
 
     it("handles first sync with local annotations gracefully", function()
       -- 1. Ensure no previous files exist
-      local file = readerui.document.file
-      local sdr_dir = require("docsettings"):getSidecarDir(file)
-      local hash = require("util").partialMD5(file)
-      os.remove(sdr_dir .. "/" .. hash .. ".json")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.sync")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.temp")
+      sync_instance.manager:cleanSyncFile(readerui.document)
 
       -- 2. Create some local annotations
       test_utils.emulate_highlight(readerui, highlight_db[1])

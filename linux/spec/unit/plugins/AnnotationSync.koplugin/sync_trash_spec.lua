@@ -48,13 +48,9 @@ describe("AnnotationSync Trash & Restore", function()
   it(
     "should correctly identify deleted annotations in the sync JSON",
     function()
-      -- 1. Setup a sync JSON with one deleted item
-      local file = readerui.document.file
-      local tmp_dir = require("datastorage"):getTmpDir()
-
-      sync_instance.settings.use_filename = false -- use hash
-      local filename = sync_instance.manager:_getAnnotationFilename(file)
-      local json_path = tmp_dir .. "/" .. filename
+      -- 1. Setup a sync JSON with one deleted item in persistent sync cache
+      local sync_cache_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
 
       local mock_data = {
         ["p1||p2"] = { page = 1, pos0 = "p1", pos1 = "p2", text = "Active" },
@@ -67,9 +63,9 @@ describe("AnnotationSync Trash & Restore", function()
         },
       }
 
-      local f = io.open(json_path, "w")
+      local f = io.open(sync_cache_path, "w")
       if not f then
-        error("Could not open " .. json_path)
+        error("Could not open " .. sync_cache_path)
       end
       f:write(json.encode(mock_data))
       f:close()
@@ -80,6 +76,8 @@ describe("AnnotationSync Trash & Restore", function()
       assert.is_equal(1, #deleted)
       assert.is_equal("Deleted", deleted[1].text)
       assert.is_true(deleted[1].deleted)
+
+      os.remove(sync_cache_path)
     end
   )
 
@@ -160,12 +158,12 @@ describe("AnnotationSync Trash & Restore", function()
     local file = readerui.document.file
     local filename = sync_instance.manager:_getAnnotationFilename(file)
     local json_path = tmp_dir .. "/" .. filename
-    local sync_path = json_path .. ".sync"
+    local sync_cache_path = sync_instance.manager:getSyncCachePath(file)
 
     local f = io.open(json_path, "w")
     f:write("{}")
     f:close()
-    f = io.open(sync_path, "w")
+    f = io.open(sync_cache_path, "w")
     f:write("{}")
     f:close()
 
@@ -174,7 +172,7 @@ describe("AnnotationSync Trash & Restore", function()
     if check_json then
       check_json:close()
     end
-    local check_sync = io.open(sync_path, "r")
+    local check_sync = io.open(sync_cache_path, "r")
     assert.is_not_nil(check_sync)
     if check_sync then
       check_sync:close()
@@ -183,7 +181,7 @@ describe("AnnotationSync Trash & Restore", function()
     sync_instance.manager:cleanSyncFile(file)
 
     assert.is_nil(io.open(json_path, "r"))
-    assert.is_nil(io.open(sync_path, "r"))
+    assert.is_nil(io.open(sync_cache_path, "r"))
   end)
 
   it(

@@ -57,6 +57,8 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
     os.date = _G.old_os_date
+    local logger = require("logger")
+    logger:setLevel(logger.levels.info)
     UIManager:quit()
     package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
@@ -92,10 +94,17 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
       table.insert(readerui.annotation.annotations, ann)
 
-      SyncService.sync = function(server, local_path, callback)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        custom_cached_path
+      )
         local result = callback(local_path, local_path, local_path)
         local ffiutil = require("ffi/util")
-        ffiutil.copyFile(local_path, local_path .. ".sync")
+        local cached_dest = custom_cached_path or (local_path .. ".sync")
+        ffiutil.copyFile(local_path, cached_dest)
         return result
       end
       sync_instance:manualSync()
@@ -113,10 +122,17 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
       local last_sync_path =
         test_utils.write_mock_json(test_data_dir, "last.json", { [key] = ann })
 
-      SyncService.sync = function(server, local_path, callback)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        custom_cached_path
+      )
         local result = callback(local_path, last_sync_path, income_path)
         local ffiutil = require("ffi/util")
-        ffiutil.copyFile(local_path, local_path .. ".sync")
+        local cached_dest = custom_cached_path or (local_path .. ".sync")
+        ffiutil.copyFile(local_path, cached_dest)
         return result
       end
       sync_instance:manualSync()
@@ -173,10 +189,17 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
     table.insert(readerui.annotation.annotations, ann)
 
-    SyncService.sync = function(server, local_path, callback)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
       local result = callback(local_path, local_path, local_path)
       local ffiutil = require("ffi/util")
-      ffiutil.copyFile(local_path, local_path .. ".sync")
+      local cached_dest = custom_cached_path or (local_path .. ".sync")
+      ffiutil.copyFile(local_path, cached_dest)
       return result
     end
     sync_instance:manualSync()
@@ -193,10 +216,17 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     local last_sync_path =
       test_utils.write_mock_json(test_data_dir, "last.json", { [key] = ann })
 
-    SyncService.sync = function(server, local_path, callback)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
       local result = callback(local_path, last_sync_path, income_path)
       local ffiutil = require("ffi/util")
-      ffiutil.copyFile(local_path, local_path .. ".sync")
+      local cached_dest = custom_cached_path or (local_path .. ".sync")
+      ffiutil.copyFile(local_path, cached_dest)
       return result
     end
     sync_instance:manualSync()
@@ -228,18 +258,14 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
   end)
 
   it("reproduces 'Menu Ghosting' (Metadata Inconsistency)", function()
-    -- 1. Setup a deleted annotation
+    -- 1. Setup a deleted annotation in persistent sync cache
     local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
     ann.deleted = true
-    local tmp_dir = require("datastorage"):getTmpDir()
-    local filename =
-      sync_instance.manager:_getAnnotationFilename(readerui.document.file)
-    annotations_mod.write_annotations_json(
-      readerui.document,
-      { ann },
-      tmp_dir,
-      filename
-    )
+    local sync_cache_path =
+      sync_instance.manager:getSyncCachePath(readerui.document.file)
+    local f = io.open(sync_cache_path, "w")
+    f:write(json.encode({ [key] = ann }))
+    f:close()
 
     -- 2. Restore it
     local deleted =
@@ -263,10 +289,17 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     local ann, key = create_ann_from_db(1, "Initial", "2026-01-01 12:00:00")
     table.insert(readerui.annotation.annotations, ann)
 
-    SyncService.sync = function(server, local_path, callback)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
       local result = callback(local_path, local_path, local_path)
       local ffiutil = require("ffi/util")
-      ffiutil.copyFile(local_path, local_path .. ".sync")
+      local cached_dest = custom_cached_path or (local_path .. ".sync")
+      ffiutil.copyFile(local_path, cached_dest)
       return result
     end
     sync_instance:manualSync()
@@ -282,10 +315,17 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     local last_sync_path =
       test_utils.write_mock_json(test_data_dir, "last.json", { [key] = ann })
 
-    SyncService.sync = function(server, local_path, callback)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
       local result = callback(local_path, last_sync_path, income_path)
       local ffiutil = require("ffi/util")
-      ffiutil.copyFile(local_path, local_path .. ".sync")
+      local cached_dest = custom_cached_path or (local_path .. ".sync")
+      ffiutil.copyFile(local_path, cached_dest)
       return result
     end
     sync_instance:manualSync()
@@ -300,7 +340,13 @@ describe("Issue #39 Investigation: Unintended Deletion", function()
     -- before sending it to the sync service.
 
     -- Mock sync service to check the CONTENT of local_path
-    SyncService.sync = function(server, local_path, callback)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
       local f = io.open(local_path, "r")
       local local_content = json.decode(f:read("*a"))
       f:close()

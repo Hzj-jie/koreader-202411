@@ -63,7 +63,13 @@ describe("AnnotationSync Safety Edge Cases", function()
 
       -- 2. Mock SyncService
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        custom_cached_path
+      )
         local cached_path = test_data_dir .. "/cached_partial.json"
         local income_path = test_data_dir .. "/income_partial.json"
 
@@ -78,7 +84,8 @@ describe("AnnotationSync Safety Edge Cases", function()
         local result = callback(local_path, cached_path, income_path)
         if result then
           local ffiutil = require("ffi/util")
-          ffiutil.copyFile(local_path, local_path .. ".sync")
+          local cached_dest = custom_cached_path or (local_path .. ".sync")
+          ffiutil.copyFile(local_path, cached_dest)
         end
         return result
       end
@@ -113,13 +120,10 @@ describe("AnnotationSync Safety Edge Cases", function()
 
       -- 5. Verify local state
       -- Remote 2 should be marked as deleted now
-      local tmp_dir = require("datastorage"):getTmpDir()
-      local filename =
-        sync_instance.manager:_getAnnotationFilename(readerui.document.file)
-      local json_path = tmp_dir .. "/" .. filename
-      local cached_path = json_path .. ".sync"
+      local cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
 
-      local f = io.open(cached_path, "r") or io.open(json_path, "r")
+      local f = io.open(cached_path, "r")
       local saved_data = json.decode(f:read("*all"))
       f:close()
 
@@ -144,7 +148,13 @@ describe("AnnotationSync Safety Edge Cases", function()
 
     -- 2. Mock SyncService
     local old_sync = SyncService.sync
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      custom_cached_path
+    )
       local cached_path = test_data_dir .. "/cached_pdf.json"
       local income_path = test_data_dir .. "/income_pdf.json"
 
@@ -156,7 +166,13 @@ describe("AnnotationSync Safety Edge Cases", function()
       f:write(json.encode(remote_ann))
       f:close()
 
-      return callback(local_path, cached_path, income_path)
+      local result = callback(local_path, cached_path, income_path)
+      if result then
+        local ffiutil = require("ffi/util")
+        local cached_dest = custom_cached_path or (local_path .. ".sync")
+        ffiutil.copyFile(local_path, cached_dest)
+      end
+      return result
     end
 
     G_reader_settings:save("cloud_download_dir", "mock")

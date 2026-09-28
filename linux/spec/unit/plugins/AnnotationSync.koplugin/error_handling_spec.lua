@@ -127,11 +127,18 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle concurrent sync requests safely", function()
       local call_count = 0
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        is_silent,
+        custom_cached_path
+      )
         call_count = call_count + 1
         local result = callback(local_path, local_path, local_path)
         local ffiutil = require("ffi/util")
-        ffiutil.copyFile(local_path, local_path .. ".sync")
+        local cached_dest = custom_cached_path or (local_path .. ".sync")
+        ffiutil.copyFile(local_path, cached_dest)
         return result
       end
 
