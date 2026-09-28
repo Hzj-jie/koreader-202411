@@ -206,7 +206,6 @@ function M.show_differing_settings_menu(
         end
       end
       if count > 0 then
-        plugin.manager:flushSettings()
         utils.show_msg(T(gettext("Successfully imported %1 settings."), count))
       else
         utils.show_msg(gettext("No settings imported."))

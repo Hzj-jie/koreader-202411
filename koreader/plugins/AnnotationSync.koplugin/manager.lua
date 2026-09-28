@@ -1,6 +1,5 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
-local Event = require("ui/event")
 local NetworkMgr = require("ui/network/manager")
 local T = require("ffi/util").template
 local Trapper = require("ui/trapper")
@@ -131,8 +130,6 @@ function SyncManager:syncPendingDocumentsBg()
       return
     end
 
-    self:flushSettings()
-
     for file, _ in pairs(pending_changed_docs) do
       if not util.fileExists(file) then
         logger.warn(
@@ -237,7 +234,7 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     return nil
   end
 
-  self:flushSettings()
+  UIManager:broadcastEvent("FlushSettings")
   logger.info("AnnotationSync: syncing document:", file)
 
   local json_path = self:_writeAnnotationsJSON(document)
@@ -487,10 +484,6 @@ function SyncManager:recordSyncState(descriptor)
     "AnnotationSync: recordSyncState: updated at",
     self.plugin.settings.last_sync
   )
-end
-
-function SyncManager:flushSettings()
-  UIManager:broadcastEvent(Event:new("FlushSettings"))
 end
 
 function SyncManager:_getAnnotationFilename(file)
