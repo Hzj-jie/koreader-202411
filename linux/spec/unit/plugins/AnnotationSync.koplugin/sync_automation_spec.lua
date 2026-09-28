@@ -55,6 +55,19 @@ describe("AnnotationSync Automation & Settings", function()
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
     require("background_jobs").clearKeys()
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
+  end)
+
+  after_each(function()
+    os.remove(sync_instance.manager:changedDocumentsFile())
+    require("background_jobs").clearKeys()
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
   end)
 
   describe("Settings", function()
@@ -137,6 +150,118 @@ describe("AnnotationSync Automation & Settings", function()
       fastforward_ui_events()
       assert.is_equal(2, #synced_files)
     end)
+
+    it(
+      "triggers background sync on onSaveSettings when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onSaveSettings()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "skips onResume sync when NetworkMgr:shouldRestoreWifi is true",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
+        NetworkMgr.shouldRestoreWifi = function()
+          return true
+        end
+
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onResume()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count, #jobs)
+        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
+      end
+    )
+
+    it(
+      "triggers background sync on onResume when NetworkMgr:shouldRestoreWifi is false",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
+        NetworkMgr.shouldRestoreWifi = function()
+          return false
+        end
+
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onResume()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
+      end
+    )
+
+    it(
+      "triggers background sync on onNetworkOnline when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onNetworkOnline()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "triggers background sync on onNetworkDisconnecting when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onNetworkDisconnecting()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "ignores lifecycle triggers when network_auto_sync is disabled",
+      function()
+        sync_instance.settings.network_auto_sync = false
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onSaveSettings()
+        sync_instance:onSuspend()
+        sync_instance:onResume()
+        sync_instance:onNetworkOnline()
+        sync_instance:onNetworkDisconnecting()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count, #jobs)
+      end
+    )
 
     it(
       "deduplicates onSuspend triggers when background sync is active",
