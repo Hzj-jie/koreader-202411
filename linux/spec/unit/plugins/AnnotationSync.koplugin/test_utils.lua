@@ -275,24 +275,21 @@ function M.mock_sync_service(SyncService)
       or (test_data_dir .. "/dummy_local.json")
     ensure_json_file(actual_local)
 
-    -- Use separate files for last_sync and income to avoid conflicts
-    -- and ensure they are valid JSON.
-    local last_sync_file = ensure_json_file(actual_local .. ".last_sync")
-      or (test_data_dir .. "/dummy_last.json")
-    ensure_json_file(last_sync_file)
-
+    local cached_file = local_path .. ".sync"
     local income_file = ensure_json_file(actual_local .. ".income")
       or (test_data_dir .. "/dummy_income.json")
     ensure_json_file(income_file)
 
     local ok, result, active =
-      pcall(callback, actual_local, last_sync_file, income_file)
+      pcall(callback, actual_local, cached_file, income_file)
     if not ok then
       error("Sync callback CRASHED: " .. tostring(result))
     end
     local ffiutil = require("ffi/util")
-    local cached_dest = local_path .. ".sync"
-    ffiutil.copyFile(actual_local, cached_dest)
+    if result then
+      ffiutil.copyFile(actual_local, cached_file)
+    end
+    os.remove(income_file)
     return result, active
   end
 
