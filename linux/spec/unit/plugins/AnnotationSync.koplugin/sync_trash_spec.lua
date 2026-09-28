@@ -189,49 +189,46 @@ describe("AnnotationSync Trash & Restore", function()
   end)
 
   it(
-    "should clean orphan sync files while preserving active document and settings",
+    "should clean all orphan sync and temp files from tmp directory",
     function()
       local tmp_dir = require("datastorage"):getTmpDir()
-      local active_file = readerui.document.file
-      local active_filename =
-        sync_instance.manager:_getAnnotationFilename(active_file)
-      local active_sync_path = tmp_dir .. "/" .. active_filename .. ".sync"
-      local settings_sync_path = tmp_dir .. "/settings_sync.json.sync"
-      local orphan_sync_path = tmp_dir
-        .. "/deadbeef12345678deadbeef12345678.json.sync"
+      local orphan_sync_1 = tmp_dir .. "/doc1.json.sync"
+      local orphan_sync_2 = tmp_dir .. "/settings_sync.json.sync"
+      local orphan_temp = tmp_dir .. "/doc1.json.temp"
+      local unrelated_file = tmp_dir .. "/keep_me.txt"
 
-      local f = io.open(active_sync_path, "w")
+      local f = io.open(orphan_sync_1, "w")
       f:write("{}")
       f:close()
-      f = io.open(settings_sync_path, "w")
+      f = io.open(orphan_sync_2, "w")
       f:write("{}")
       f:close()
-      f = io.open(orphan_sync_path, "w")
+      f = io.open(orphan_temp, "w")
       f:write("{}")
+      f:close()
+      f = io.open(unrelated_file, "w")
+      f:write("important")
       f:close()
 
       sync_instance.manager:cleanOrphanSyncFiles()
 
-      -- Orphan removed
-      local orphan_f = io.open(orphan_sync_path, "r")
-      assert.is_nil(orphan_f)
+      -- All temporary sync and temp files removed
+      local f1 = io.open(orphan_sync_1, "r")
+      assert.is_nil(f1)
+      local f2 = io.open(orphan_sync_2, "r")
+      assert.is_nil(f2)
+      local ft = io.open(orphan_temp, "r")
+      assert.is_nil(ft)
 
-      -- Active and settings preserved
-      local active_f = io.open(active_sync_path, "r")
-      assert.is_not_nil(active_f)
-      if active_f then
-        active_f:close()
-      end
-
-      local settings_f = io.open(settings_sync_path, "r")
-      assert.is_not_nil(settings_f)
-      if settings_f then
-        settings_f:close()
+      -- Unrelated file preserved
+      local fu = io.open(unrelated_file, "r")
+      assert.is_not_nil(fu)
+      if fu then
+        fu:close()
       end
 
       -- Cleanup
-      os.remove(active_sync_path)
-      os.remove(settings_sync_path)
+      os.remove(unrelated_file)
     end
   )
 
