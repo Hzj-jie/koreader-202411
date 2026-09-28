@@ -3,6 +3,7 @@ local test_data_dir = require("datastorage"):getDataDir()
 os.execute("mkdir -p " .. test_data_dir .. "/cache")
 
 -- Fix for DocCache requiring G_defaults and DataStorage during module load
+local old_G_defaults = _G.G_defaults
 _G.G_defaults = {
   rw = function()
     return {}
@@ -63,21 +64,16 @@ package.loaded["frontend/docsettings"] = {
 }
 
 local DocumentRegistry = require("document/documentregistry")
-local open_calls = {}
-local close_calls = {}
 
 local old_open = DocumentRegistry.openDocument
 DocumentRegistry.openDocument = function(self, file, provider)
   if not existing_files[file] then
     return nil
   end
-  open_calls[file] = (open_calls[file] or 0) + 1
   return {
     file = file,
     info = {},
-    close = function(doc)
-      close_calls[file] = (close_calls[file] or 0) + 1
-    end,
+    close = function(doc) end,
     getAnnotations = function()
       return {}
     end,
@@ -131,6 +127,7 @@ describe("Sync Missing File Handling", function()
     DocumentRegistry.openDocument = old_open
     DocumentRegistry.getProvider = old_getProvider
     util.fileExists = _G.old_util_fileExists
+    _G.G_defaults = old_G_defaults
     package.loaded["datastorage"] = old_datastorage
     package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
     package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
@@ -139,13 +136,7 @@ describe("Sync Missing File Handling", function()
   end)
 
   before_each(function()
-    for k, v in pairs(open_calls) do
-      open_calls[k] = nil
-    end
-    for k, v in pairs(close_calls) do
-      close_calls[k] = nil
-    end
-    for k, v in pairs(existing_files) do
+    for k in pairs(existing_files) do
       existing_files[k] = nil
     end
     -- Clear changed documents
