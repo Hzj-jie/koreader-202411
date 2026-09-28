@@ -146,6 +146,7 @@ function SyncService.sync(
   is_silent,
   custom_cached_path
 )
+  local sync_success = false
   local function exec()
     local file_name = ffiutil.basename(file_path)
     local income_file_path = DataStorage:getTmpDir()
@@ -250,6 +251,7 @@ function SyncService.sync(
       and code_response >= 200
       and code_response < 300
     then
+      sync_success = true
       os.remove(cached_file_path)
       ffiutil.copyFile(file_path, cached_file_path)
       if not is_silent then
@@ -268,6 +270,7 @@ function SyncService.sync(
     -- NOTE: Align behavior with CloudStorage:openCloudServer, where only Dropbox requires isOnline
     NetworkMgr:runWhenConnected(exec)
   end
+  return sync_success
 end
 
 return SyncService
