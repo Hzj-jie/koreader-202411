@@ -104,9 +104,6 @@ function M.sync_annotations(
   local sync_cb = function(local_file, cached_file, income_file, code_response)
     sync_cb_called = true
     local actual_cached_file = cached_path or cached_file
-    if cached_file and cached_file ~= (json_path .. ".sync") then
-      actual_cached_file = cached_file
-    end
     local success, merged_list = annotations.sync_callback(
       document,
       local_file,
