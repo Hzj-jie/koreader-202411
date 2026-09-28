@@ -26,8 +26,6 @@ local SyncManager = {}
 function SyncManager:new(plugin)
   local o = {
     plugin = plugin,
-    is_syncing = false,
-    has_pending_sync = false,
   }
   setmetatable(o, self)
   self.__index = self

@@ -378,46 +378,10 @@ function M.is_valid(candidate)
   return M.is_annotation(candidate) or M.is_bookmark(candidate)
 end
 
-function M.filter_valid_annotations(map, map_name)
-  if type(map) ~= "table" then
-    return {}
-  end
-  local valid = {}
-  for k, v in pairs(map) do
-    if M.is_valid(v) then
-      valid[k] = v
-    else
-      logger.warn(
-        "AnnotationSync: dropping invalid entry in",
-        map_name or "map",
-        "key:",
-        tostring(k)
-      )
-    end
-  end
-  return valid
-end
-
 function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""
   local b_time = b.datetime_updated or b.datetime or ""
   return a_time <= b_time
-end
-
-function M.sort_keys_by_position(t)
-  local items = {}
-  for k, v in pairs(t) do
-    table.insert(
-      items,
-      { key = k, page = v.page, pos0 = v.pos0, pos1 = v.pos1 }
-    )
-  end
-  M.sort(items)
-  local keys = {}
-  for _, item in ipairs(items) do
-    table.insert(keys, item.key)
-  end
-  return keys
 end
 
 function M.is_same_annotation(a, b)
@@ -474,10 +438,6 @@ function M.is_same_annotation(a, b)
   end
 
   return false
-end
-
-function M.positions_intersect(a, b, _document)
-  return M.is_same_annotation(a, b)
 end
 
 return M

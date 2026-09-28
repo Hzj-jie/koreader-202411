@@ -13,10 +13,6 @@ local json = require("json")
 local logger = require("logger")
 local util = require("util")
 
-local function isConnected()
-  return NetworkMgr:isConnected()
-end
-
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
