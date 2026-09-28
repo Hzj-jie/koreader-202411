@@ -611,5 +611,118 @@ describe("Background Sync Behavior", function()
         annotations.sync_callback = old_sync_cb
       end
     )
+
+    it(
+      "passes sdr cached_path to sync_callback and moves tmp cache to sdr post-sync",
+      function()
+        local old_sync = SyncService.sync
+        local received_cached_file = nil
+        SyncService.sync = function(server, local_path, callback, silent)
+          local tmp_cached = local_path .. ".sync"
+          util.writeToFile('{"version":1,"cached":true}', tmp_cached)
+          local cb_res = callback(local_path, tmp_cached, local_path, 200)
+          return true
+        end
+
+        local annotations =
+          require("plugins/AnnotationSync.koplugin/annotations")
+        local old_sync_cb = annotations.sync_callback
+        annotations.sync_callback = function(
+          doc,
+          local_f,
+          cached_f,
+          inc_f,
+          force,
+          code
+        )
+          received_cached_file = cached_f
+          return true, {}
+        end
+
+        local mock_w = {
+          ui = {},
+          settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+        }
+
+        local dummy_json = test_data_dir .. "/test_tmp_cache.json"
+        local sdr_cache = test_data_dir .. "/test_book.sdr/annotations.sync"
+        util.makePath(test_data_dir .. "/test_book.sdr")
+        util.writeToFile('{"initial":true}', sdr_cache)
+        util.writeToFile("[]", dummy_json)
+
+        remote.sync_annotations(
+          mock_w,
+          { file = "dummy.epub" },
+          dummy_json,
+          function() end,
+          false,
+          sdr_cache
+        )
+
+        -- 1. sync_callback should receive the real sdr_cache path, not /tmp cache path
+        assert.are.equal(sdr_cache, received_cached_file)
+
+        -- 2. post-sync, the tmp cache file should have been moved to sdr_cache
+        assert.is_false(lfs.attributes(dummy_json .. ".sync") ~= nil)
+        local f = io.open(sdr_cache, "r")
+        local content = f and f:read("*all")
+        if f then
+          f:close()
+        end
+        assert.are.equal('{"version":1,"cached":true}', content)
+
+        SyncService.sync = old_sync
+        annotations.sync_callback = old_sync_cb
+      end
+    )
+
+    it("does not overwrite sdr cached_path if sync fails", function()
+      local old_sync = SyncService.sync
+      SyncService.sync = function(server, local_path, callback, silent)
+        local tmp_cached = local_path .. ".sync"
+        util.writeToFile('{"corrupted":true}', tmp_cached)
+        callback(local_path, tmp_cached, local_path, 200)
+        return false
+      end
+
+      local annotations = require("plugins/AnnotationSync.koplugin/annotations")
+      local old_sync_cb = annotations.sync_callback
+      annotations.sync_callback = function()
+        return true, {}
+      end
+
+      local mock_w = {
+        ui = {},
+        settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+      }
+
+      local dummy_json = test_data_dir .. "/test_fail_cache.json"
+      local sdr_cache = test_data_dir .. "/test_book.sdr/annotations_fail.sync"
+      util.makePath(test_data_dir .. "/test_book.sdr")
+      util.writeToFile('{"initial":true}', sdr_cache)
+      util.writeToFile("[]", dummy_json)
+
+      remote.sync_annotations(
+        mock_w,
+        { file = "dummy.epub" },
+        dummy_json,
+        function() end,
+        false,
+        sdr_cache
+      )
+
+      -- sdr_cache should remain unchanged
+      local f = io.open(sdr_cache, "r")
+      local content = f and f:read("*all")
+      if f then
+        f:close()
+      end
+      assert.are.equal('{"initial":true}', content)
+      -- tmp cache should be cleaned up
+      assert.is_false(lfs.attributes(dummy_json .. ".sync") ~= nil)
+
+      SyncService.sync = old_sync
+      annotations.sync_callback = old_sync_cb
+    end)
   end)
 end)
