@@ -131,10 +131,21 @@ end
 -- After merging, the income file is no longer needed and is deleted. The local file is uploaded and then a copy of it is saved
 -- and renamed to replace the old cached file (thus the naming). The cached file stays (in the same folder) till being replaced
 -- in the next round.
+-- Syncs local file with server file using sync_cb callback.
+-- @param server table server configuration
+-- @param file_path string path to local file
+-- @param sync_cb function callback(file_path, cached_file_path, income_file_path):
+--        Should return true to proceed with uploading local file to server, or
+--        false to ignore uploading (caller/callback should handle reporting errors/messages to end users).
+-- @param is_silent boolean whether to suppress notification messages
 function SyncService.sync(server, file_path, sync_cb, is_silent)
+  local sync_success = false
   local function exec()
     local file_name = ffiutil.basename(file_path)
-    local income_file_path = file_path .. ".temp" -- file downloaded from server
+    local income_file_path = DataStorage:getTmpDir()
+      .. "/"
+      .. file_name
+      .. ".temp" -- file downloaded from server
     local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
 
     local fail_msg = gettext(
@@ -187,16 +198,25 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
         and code_response ~= 404
         and not (server.type == "dropbox" and code_response == 409)
       then
+        os.remove(income_file_path)
         show_msg()
         return
       end
-      local ok, cb_return =
-        pcall(sync_cb, file_path, cached_file_path, income_file_path)
-      if not ok or not cb_return then
+      local ok, cb_return = pcall(
+        sync_cb,
+        file_path,
+        cached_file_path,
+        income_file_path,
+        code_response
+      )
+      if not ok then
+        os.remove(income_file_path)
         show_msg()
-        if not ok then
-          require("logger").err("sync service callback failed:", cb_return)
-        end
+        require("logger").err("sync service callback failed:", cb_return)
+        return
+      end
+      if not cb_return then
+        os.remove(income_file_path)
         return
       end
       if server.type == "dropbox" then
@@ -220,12 +240,15 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
       and code_response >= 200
       and code_response < 300
     then
+      sync_success = true
       os.remove(cached_file_path)
       ffiutil.copyFile(file_path, cached_file_path)
-      UIManager:show(Notification:new({
-        text = gettext("Successfully synchronized."),
-        timeout = 2,
-      }))
+      if not is_silent then
+        UIManager:show(Notification:new({
+          text = gettext("Successfully synchronized."),
+          timeout = 2,
+        }))
+      end
     else
       show_msg()
     end
@@ -236,6 +259,7 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
     -- NOTE: Align behavior with CloudStorage:openCloudServer, where only Dropbox requires isOnline
     NetworkMgr:runWhenConnected(exec)
   end
+  return sync_success
 end
 
 return SyncService

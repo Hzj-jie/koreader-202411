@@ -1456,7 +1456,9 @@ function Menu:onMenuSelect(item)
       end
     end
     self:onMenuChoice(item)
-    self.close_callback()
+    if not item.keep_menu_open then
+      self.close_callback()
+    end
   else
     -- save menu title for later resume
     self.item_table.title = self.title
