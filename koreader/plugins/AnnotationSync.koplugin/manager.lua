@@ -1,6 +1,5 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
-local Event = require("ui/event")
 local NetworkMgr = require("ui/network/manager")
 local T = require("ffi/util").template
 local Trapper = require("ui/trapper")
@@ -27,8 +26,6 @@ local SyncManager = {}
 function SyncManager:new(plugin)
   local o = {
     plugin = plugin,
-    is_syncing = false,
-    has_pending_sync = false,
   }
   setmetatable(o, self)
   self.__index = self
@@ -131,8 +128,6 @@ function SyncManager:syncPendingDocumentsBg()
       return
     end
 
-    self:flushSettings()
-
     for file, _ in pairs(pending_changed_docs) do
       if not util.fileExists(file) then
         logger.warn(
@@ -152,16 +147,17 @@ function SyncManager:syncPendingDocumentsBg()
             end
             local sync_success = false
             local final_merged = nil
+            local cached_path = self:getSyncCachePath(file)
             local ok, _ = pcall(function()
               remote.sync_annotations(
                 self.plugin,
-                file,
                 json_path,
                 function(success, merged_list)
                   sync_success = success
                   final_merged = merged_list
                 end,
-                false
+                false,
+                cached_path
               )
             end)
             return {
@@ -235,7 +231,6 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     return nil
   end
 
-  self:flushSettings()
   logger.info("AnnotationSync: syncing document:", file)
 
   local json_path = self:_writeAnnotationsJSON(document)
@@ -250,17 +245,18 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     is_manual,
     ")"
   )
+  local cached_path = self:getSyncCachePath(file)
   local sync_success = false
   local ok, err = pcall(function()
     remote.sync_annotations(
       self.plugin,
-      document,
       json_path,
       function(success, merged_list)
         sync_success = success
         self:_onSyncComplete(document, success, merged_list)
       end,
-      is_manual
+      is_manual,
+      cached_path
     )
   end)
 
@@ -279,16 +275,35 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
   return sync_success
 end
 
--- Refreshes the local sync JSON file with latest memory/sidecar state
+function SyncManager:getSyncCachePath(file)
+  if not file then
+    return nil
+  end
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if not sdr_dir or sdr_dir == "" then
+    return nil
+  end
+  if not lfs.attributes(sdr_dir, "mode") then
+    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
+    util.makePath(sdr_dir)
+  end
+  local filename = self:_getAnnotationFilename(file)
+  return sdr_dir .. "/" .. filename .. ".sync"
+end
+
+-- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp
 function SyncManager:_writeAnnotationsJSON(document)
   local file = type(document) == "string" and document
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
   local tmp_dir = DataStorage:getTmpDir()
+  if not tmp_dir or tmp_dir == "" then
+    return false
+  end
+
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
-    document,
     self:getAnnotationsForDocument(document),
     tmp_dir,
     filename
@@ -420,35 +435,37 @@ function SyncManager:getAnnotationsForDocument(document)
   return {}
 end
 
--- Get only annotations marked as deleted in the local sync JSON
+-- Get only annotations marked as deleted in the sync cache JSON
 function SyncManager:getDeletedAnnotations(document)
   local file = document and document.file
   if not file then
     return {}
   end
 
-  local tmp_dir = DataStorage:getTmpDir()
-  local filename = self:_getAnnotationFilename(file)
-  local json_path = tmp_dir .. "/" .. filename
-
-  local map = utils.read_json(json_path)
+  local cached_path = self:getSyncCachePath(file)
+  local map = cached_path and utils.read_json(cached_path)
   if not map then
     return {}
   end
 
+  local active = self:getAnnotationsForDocument(document)
+  local function is_active(item)
+    for _, a in ipairs(active) do
+      if annotations.is_same_annotation(item, a) then
+        return true
+      end
+    end
+    return false
+  end
+
   local deleted = {}
   for _, v in pairs(map) do
-    if v.deleted then
+    if v.deleted and not is_active(v) then
       table.insert(deleted, v)
     end
   end
 
-  table.sort(deleted, function(a, b)
-    local cmp = annotations.compare_positions(a.page, b.page, document)
-    return (cmp or 0) > 0
-  end)
-
-  return deleted
+  return annotations.sort(deleted)
 end
 
 function SyncManager:recordSyncState(descriptor)
@@ -463,10 +480,6 @@ function SyncManager:recordSyncState(descriptor)
   )
 end
 
-function SyncManager:flushSettings()
-  UIManager:broadcastEvent(Event:new("FlushSettings"))
-end
-
 function SyncManager:_getAnnotationFilename(file)
   if self.plugin.settings.use_filename then
     local _, filename = util.splitFilePathName(file)
@@ -475,6 +488,41 @@ function SyncManager:_getAnnotationFilename(file)
   local hash = type(file) == "string" and util.partialMD5(file)
     or gettext("No hash")
   return hash .. ".json"
+end
+
+function SyncManager:cleanSyncFile(doc_or_file)
+  local file = type(doc_or_file) == "string" and doc_or_file
+    or (doc_or_file and doc_or_file.file)
+  if not file then
+    return
+  end
+  local filename = self:_getAnnotationFilename(file)
+  local sdr_dir = docsettings:getSidecarDir(file)
+  if sdr_dir and sdr_dir ~= "" then
+    os.remove(sdr_dir .. "/" .. filename)
+    os.remove(sdr_dir .. "/" .. filename .. ".sync")
+  end
+  local tmp_dir = DataStorage:getTmpDir()
+  if tmp_dir and tmp_dir ~= "" then
+    os.remove(tmp_dir .. "/" .. filename)
+    os.remove(tmp_dir .. "/" .. filename .. ".sync")
+    os.remove(tmp_dir .. "/" .. filename .. ".temp")
+  end
+end
+
+function SyncManager:cleanOrphanSyncFiles()
+  local tmp_dir = DataStorage:getTmpDir()
+  if not tmp_dir or lfs.attributes(tmp_dir, "mode") ~= "directory" then
+    return
+  end
+
+  pcall(function()
+    for entry in lfs.dir(tmp_dir) do
+      if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
+        os.remove(tmp_dir .. "/" .. entry)
+      end
+    end
+  end)
 end
 
 function SyncManager:_onSyncComplete(document, success, merged_list)
@@ -582,7 +630,7 @@ function SyncManager:pushSettings()
     },
   }
 
-  local json_path = DataStorage:getTmpDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
@@ -715,7 +763,7 @@ function SyncManager:pullSettings()
     return
   end
 
-  local json_path = DataStorage:getTmpDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
   remote.sync_settings(self.plugin, json_path, function(success, merged_data)
     if success and merged_data then

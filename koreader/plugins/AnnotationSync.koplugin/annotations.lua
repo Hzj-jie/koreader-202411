@@ -3,29 +3,72 @@ local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
+local sort = require("sort")
 local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
+local natsort = sort.natsort_cmp()
+
+local function natcmp(a, b)
+  if a == b then
+    return 0
+  end
+  local is_before = natsort(a, b)
+  return is_before and 1 or -1
+end
+
+local function has_valid_coords(pos)
+  return type(pos) == "table"
+    and type(pos.x) == "number"
+    and type(pos.y) == "number"
+end
+
+local function has_valid_page(ann)
+  local page = ann.page
+    or (type(ann.pos0) == "table" and ann.pos0.page)
+    or (type(ann.pos0) == "string" and ann.pos0)
+  return type(page) == "number" or (type(page) == "string" and page ~= "")
+end
+
 local M = {}
+
+local function read_to_array(file)
+  local raw = utils.read_json(file)
+  if type(raw) ~= "table" then
+    return nil
+  end
+  local c = 0
+  local valid = {}
+  for _, v in pairs(raw) do
+    c = c + 1
+    if M.is_valid(v) then
+      table.insert(valid, v)
+    end
+  end
+  if c > 0 and #valid == 0 then
+    -- No single valid bookmark, though the file is json, it's still unexpected,
+    -- trigger it as an invalid file.
+    return nil
+  end
+  return M.sort(valid)
+end
 
 -- Main orchestration for merging local and remote annotations
 function M.sync_callback(
-  document,
   local_file,
   last_sync_file,
   income_file,
-  force
+  force,
+  code_response
 )
   logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
   logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
   logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
 
-  local local_map = utils.read_json(local_file)
-  local last_sync_map = utils.read_json(last_sync_file)
-  local income_map = utils.read_json(income_file)
+  local local_list = read_to_array(local_file)
+  local last_sync_list = read_to_array(last_sync_file)
 
-  local is_likely_404 = false
-  if not local_map or not last_sync_map then
+  if not local_list and not last_sync_list then
     logger.warn(
       "AnnotationSync: Failed to load local sync files. Aborting to prevent data loss."
     )
@@ -40,168 +83,134 @@ function M.sync_callback(
     return false
   end
 
-  if income_map then
-    -- Validate it's an annotation map (heuristic: values must be tables)
-    -- AND for non-empty maps, at least one entry must have annotation-like keys.
-    local is_valid_schema = true
-    for k, v in pairs(income_map) do
-      if type(v) ~= "table" then
-        logger.warn(
-          "AnnotationSync: income_map contains non-table value for key",
-          tostring(k),
-          ". Aborting."
-        )
-        is_valid_schema = false
-        break
-      end
-      -- Schema check: values should have at least one of these keys
-      if not (v.datetime_updated or v.datetime or v.page or v.text) then
-        logger.warn(
-          "AnnotationSync: income_map value for key",
-          tostring(k),
-          "lacks annotation metadata. Aborting."
-        )
-        is_valid_schema = false
-        break
-      end
-    end
-    if not is_valid_schema then
-      income_map = nil
-    end
+  local_list = local_list or {}
+  last_sync_list = last_sync_list or {}
+
+  -- SAFETY (Issue 23): If local is empty but last sync was not,
+  -- it's likely a docsettings failure or fresh device state.
+  -- We skip deletion propagation to avoid wiping remote data.
+  -- We bypass this safety if 'force' is true (manual sync).
+  if not force and #local_list == 0 and #last_sync_list > 0 then
+    logger.warn(
+      "AnnotationSync: Local annotations empty but last sync had",
+      #last_sync_list,
+      ". Skipping deletions to protect data."
+    )
+    last_sync_list = {}
   end
 
-  if not income_map then
-    -- If income_file is not a valid JSON table, it might be a 404 error page from WebDAV (first sync)
-    -- We only assume empty state if it's NOT valid JSON at all and looks like a 404 error body.
-    local content_snippet = ""
-    local f = income_file and io.open(income_file, "r")
-    if f then
-      local content = f:read(1024)
-      f:close()
-      content_snippet = content and content:sub(1, 100):gsub("%s+", " ") or ""
-      local ok_json, data = pcall(json.decode, content)
-      if not ok_json then
-        -- Not valid JSON. Check for explicit 404/Not Found markers.
-        if content then
-          local lower_content = content:lower()
-          if
-            lower_content:find("404")
-            or lower_content:find("not found")
-            or lower_content:find("notfound")
-            or lower_content:find("could not be located")
-          then
-            is_likely_404 = true
-          end
-        end
-      elseif
-        type(data) == "table"
-        and data.error_summary
-        and data.error_summary:find("path/not_found")
-      then
-        -- Dropbox error: path not found (new book)
-        is_likely_404 = true
-      end
-    else
-      -- File doesn't exist at all (SyncService handles this, but just in case)
-      is_likely_404 = true
+  local is_not_found = code_response == 404
+    or code_response == 409
+    or (
+      code_response == nil
+      and (not income_file or not io.open(income_file, "r"))
+    )
+
+  if is_not_found then
+    -- No remote file found, early return to prefer anything locally.
+    if #local_list == 0 then
+      return false, {}
     end
 
-    if is_likely_404 then
-      logger.info(
-        "AnnotationSync: income_file invalid/text, assuming empty remote state (likely 404)."
-      )
-      income_map = {}
-    else
-      logger.warn(
-        "AnnotationSync: income_file appears corrupted or server error. Aborting. Snippet:",
-        content_snippet
-      )
-      if force then
-        UIManager:show(InfoMessage:new({
-          text = gettext(
-            "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
-          ),
-          timeout = 3,
-        }))
-      end
-      return false
-    end
+    util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
+    return true, local_list
   end
 
-  -- Mark deleted annotations in local_map
-  M.get_deleted_annotations(local_map, last_sync_map, document, force)
+  local income_list = read_to_array(income_file)
+  if not income_list then
+    logger.warn(
+      "AnnotationSync: Failed to parse remote annotations from server. Aborting sync."
+    )
+    return false
+  end
+
   local merged = {}
+  local active = {}
 
-  local local_keys = M.sort_keys_by_position(local_map, document)
-  local income_keys = M.sort_keys_by_position(income_map, document)
-  local l = 1
-  local i = 1
-
-  logger.dbg("AnnotationSync:sync_callback: comparing income and local")
-  while i <= #income_keys and l <= #local_keys do
-    local income_k = income_keys[i]
-    local local_k = local_keys[l]
-    local income_v = income_map[income_k]
-    local local_v = local_map[local_k]
-
-    if M.positions_intersect(income_v, local_v, document) then
-      if M.is_before(income_v, local_v) then
-        merged[local_k] = local_v
-      else
-        merged[income_k] = income_v
-      end
-      i = i + 1
-      l = l + 1
-    else
-      local local_p = local_v.pos0 or local_v.page
-      local income_p = income_v.pos0 or income_v.page
-      local cmp = M.compare_positions(local_p, income_p, document)
-      if (cmp or 0) > 0 then
-        merged[local_k] = local_v
-        l = l + 1
-      else
-        merged[income_k] = income_v
-        i = i + 1
+  -- TODO: Improve the perf with binary search.
+  local function is_in_list(list, v)
+    assert(type(list) == "table")
+    for _, r in ipairs(list) do
+      if M.is_same_annotation(v, r) then
+        return r
       end
     end
+    return nil
   end
 
-  while l <= #local_keys do
-    local local_k = local_keys[l]
-    local local_v = local_map[local_k]
-    merged[local_k] = local_v
-    l = l + 1
+  for _, v in ipairs(local_list) do
+    table.insert(merged, v)
   end
+  for _, v in ipairs(income_list) do
+    local r = is_in_list(local_list, v)
+    if r then
+      -- In both local and income, update any fields to the later one.
+      -- Note, if timestamp equals, local (r) is preferred.
+      if not M.is_before(v, r) then
+        for key, _ in pairs(r) do
+          r[key] = nil
+        end
+        for key, value in pairs(v) do
+          r[key] = value
+        end
+      end
+    else
+      -- Explicitly make a copy so that we can tell if remote deleted it.
+      table.insert(merged, v)
+    end
+  end
+  -- Since we loop through multiple lists, the order isn't guaranteed.
+  M.sort(merged)
 
-  while i <= #income_keys do
-    local income_k = income_keys[i]
-    local income_v = income_map[income_k]
-    merged[income_k] = income_v
-    i = i + 1
+  for _, v in ipairs(merged) do
+    local is_income = is_in_list(income_list, v)
+    local is_local = is_in_list(local_list, v)
+    assert(is_income or is_local)
+    if not v.deleted then
+      if is_income and is_local then
+        -- No matter if it's in last_sync_list, it's active.
+        table.insert(active, v)
+      else
+        local is_last_sync = is_in_list(last_sync_list, v)
+        if is_income then
+          if is_last_sync then
+            -- local deleted
+            v.deleted = true
+            v.datetime_updated = os.date("%Y-%m-%d %H:%M:%S")
+          else
+            -- remote add
+            table.insert(active, v)
+          end
+        else -- is_local then
+          -- Item exists locally, but is omitted from remote (no tombstone).
+          -- Deletions across devices require explicit tombstones (deleted = true),
+          -- so mere absence from the remote file does not delete local data.
+          table.insert(active, v)
+        end
+      end
+    end
   end
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
-  local merged_list = M.map_to_list(merged)
 
-  if is_likely_404 and next(local_map) == nil then
+  if #merged == 0 then
     logger.dbg(
       "AnnotationSync: remote file does not exist and local file is empty, skipping push to server"
     )
-    return false, merged_list
+    return false, active
   end
 
-  util.writeToFile(json.encode(merged), local_file)
-  return true, merged_list
+  util.writeToFile(json.encode(M.list_to_map(merged)), local_file)
+  return true, active
 end
 
 -- Prepares the local sidecar data for syncing
 function M.write_annotations_json(
-  document,
   stored_annotations,
   sdr_dir,
   annotation_filename
 )
-  if not document or not sdr_dir then
+  if not sdr_dir then
     return false
   end
   local annotation_map = M.list_to_map(stored_annotations)
@@ -212,77 +221,73 @@ function M.write_annotations_json(
   return false
 end
 
--- Detects deletions by comparing local state with last known synced state
-function M.get_deleted_annotations(
-  local_map,
-  last_uploaded_map,
-  document,
-  force
-)
-  if type(last_uploaded_map) == "table" and type(local_map) == "table" then
-    local local_keys = M.sort_keys_by_position(local_map, document)
-    local uploaded_keys = M.sort_keys_by_position(last_uploaded_map, document)
+-- Sorts an array of annotations in place by position order
+function M.sort(array)
+  assert(type(array) == "table", "sort requires a table argument")
 
-    -- SAFETY (Issue 23): If local is empty but last sync was not,
-    -- it's likely a docsettings failure or fresh device state.
-    -- We skip deletion propagation to avoid wiping remote data.
-    -- We bypass this safety if 'force' is true (manual sync).
-    if not force and #local_keys == 0 and #uploaded_keys > 0 then
-      logger.warn(
-        "AnnotationSync: Local annotations empty but last sync had",
-        #uploaded_keys,
-        ". Skipping deletions to protect data."
-      )
-      return
-    end
+  local function get_page(item)
+    return item.page
+      or (type(item.pos0) == "table" and item.pos0.page)
+      or (type(item.pos0) == "string" and item.pos0)
+  end
 
-    for __, uploaded_k in ipairs(uploaded_keys) do
-      local uploaded_v = last_uploaded_map[uploaded_k]
-      local local_and_uploaded = false
-      for __, local_k in ipairs(local_keys) do
-        local local_v = local_map[local_k]
-        if M.positions_intersect(uploaded_v, local_v, document) then
-          local_and_uploaded = true
-          break
-        end
-        if M.compare_positions(local_v.page, uploaded_v.page, document) < 0 then
-          break
-        end
+  local function get_pos(item)
+    return type(item.pos0) == "table" and item.pos0
+  end
+
+  table.sort(array, function(a, b)
+    assert(
+      type(a) == "table" and type(b) == "table",
+      "sort requires table elements"
+    )
+
+    local page_a = get_page(a)
+    local page_b = get_page(b)
+
+    assert(
+      page_a ~= nil and page_b ~= nil,
+      "sort requires page or pos0 in elements"
+    )
+
+    if page_a ~= page_b then
+      if type(page_a) == "number" and type(page_b) == "number" then
+        return page_a < page_b
       end
-      if not local_and_uploaded then
-        uploaded_v.deleted = true
-        uploaded_v.datetime_updated = os.date("%Y-%m-%d %H:%M:%S")
-        local_map[uploaded_k] = uploaded_v
-      end
-    end
-  end
-end
 
--- Universal comparison logic for various annotation position types
-function M.compare_positions(a, b, document)
-  if not a or not b then
-    return 0
-  end
-  if type(a) == "number" and type(b) == "number" then
-    return b - a
-  end
-  if type(a) == "string" and type(b) == "string" then
-    if document and type(document.compareXPointers) == "function" then
-      return document:compareXPointers(a, b) or 0
+      return natcmp(tostring(page_a), tostring(page_b)) > 0
     end
-    return 0
-  end
-  if type(a) == "table" and type(b) == "table" then
-    if document and type(document.comparePositions) == "function" then
-      return document:comparePositions(a, b) or 0
+
+    -- Same page: compare sub-page position / coordinates
+    local pos_a = get_pos(a)
+    local pos_b = get_pos(b)
+
+    local has_coords_a = has_valid_coords(pos_a)
+    local has_coords_b = has_valid_coords(pos_b)
+
+    if not has_coords_a and has_coords_b then
+      -- Bookmark on same page is strictly ordered before highlight
+      return true
+    elseif has_coords_a and not has_coords_b then
+      return false
+    elseif has_coords_a and has_coords_b then
+      if pos_a.y and pos_b.y and pos_a.y ~= pos_b.y then
+        return pos_a.y < pos_b.y
+      end
+      if pos_a.x and pos_b.x and pos_a.x ~= pos_b.x then
+        return pos_a.x < pos_b.x
+      end
+      return false
     end
-    if type(a.page) == "number" and type(b.page) == "number" then
-      return b.page - a.page
+
+    -- Same page: rolling XPointers within the page
+    if type(a.pos0) == "string" and type(b.pos0) == "string" then
+      return natcmp(a.pos0, b.pos0) > 0
     end
-    return 0
-  end
-  -- Fallback for mixed types
-  return 0
+
+    return false
+  end)
+
+  return array
 end
 
 function M.list_to_map(annotations)
@@ -308,6 +313,7 @@ function M.map_to_list(map)
         end
       end
     end
+    return M.sort(list)
   end
   return list
 end
@@ -340,73 +346,93 @@ function M.annotation_key(annotation)
   end
 end
 
-function M.is_annotation(candidate)
-  return candidate and candidate.pos0 and candidate.pos1
+function M.is_bookmark(candidate)
+  if type(candidate) ~= "table" or not has_valid_page(candidate) then
+    return false
+  end
+  return candidate.pos0 == nil and candidate.pos1 == nil
 end
 
-function M.is_bookmark(candidate)
-  return candidate and candidate.page and not M.is_annotation(candidate)
+function M.is_annotation(candidate)
+  if type(candidate) ~= "table" or not has_valid_page(candidate) then
+    return false
+  end
+  if not candidate.pos0 or not candidate.pos1 then
+    return false
+  end
+
+  if has_valid_coords(candidate.pos0) and has_valid_coords(candidate.pos1) then
+    return true
+  end
+
+  if type(candidate.pos0) == "string" and type(candidate.pos1) == "string" then
+    return candidate.pos0 ~= "" and candidate.pos1 ~= ""
+  end
+
+  return false
+end
+
+function M.is_valid(candidate)
+  return M.is_annotation(candidate) or M.is_bookmark(candidate)
 end
 
 function M.is_before(a, b)
-  local a_time = a.datetime_updated or a.datetime or 0
-  local b_time = b.datetime_updated or b.datetime or 0
+  local a_time = a.datetime_updated or a.datetime or ""
+  local b_time = b.datetime_updated or b.datetime or ""
   return a_time <= b_time
 end
 
-function M.sort_keys_by_position(t, document)
-  local keys = {}
-  for k in pairs(t) do
-    table.insert(keys, k)
-  end
-  table.sort(keys, function(a, b)
-    local ann_a = t[a]
-    local ann_b = t[b]
-    local pos_a = ann_a.pos0 or ann_a.page
-    local pos_b = ann_b.pos0 or ann_b.page
-    local cmp = M.compare_positions(pos_a, pos_b, document)
-    return (cmp or 0) > 0
-  end)
-  return keys
-end
-
-function M.positions_intersect(a, b, document)
+function M.is_same_annotation(a, b)
   if not a or not b then
     return false
   end
 
-  if M.annotation_key(a) == M.annotation_key(b) then
-    return true
+  local function get_page(item)
+    return item.page
+      or (type(item.pos0) == "table" and item.pos0.page)
+      or (type(item.pos0) == "string" and item.pos0)
   end
 
-  if not a.pos0 or not a.pos1 or not b.pos0 or not b.pos1 then
+  local function is_bm(item)
+    return item.pos0 == nil and item.pos1 == nil
+  end
+
+  local function norm_coord(pos, coord)
+    local zoom = pos.zoom or 1
+    return math.floor(pos[coord] / zoom)
+  end
+
+  local function same_coords(p1, p2)
+    return norm_coord(p1, "x") == norm_coord(p2, "x")
+      and norm_coord(p1, "y") == norm_coord(p2, "y")
+  end
+
+  if get_page(a) ~= get_page(b) then
     return false
   end
 
-  -- If document comparison functions aren't available, avoid false spatial overlap detection
-  local has_cmp = document
-    and (
-      type(document.comparePositions) == "function"
-      or type(document.compareXPointers) == "function"
-    )
-  if not has_cmp then
+  local a_is_bm = is_bm(a)
+  local b_is_bm = is_bm(b)
+  if a_is_bm ~= b_is_bm then
     return false
   end
-
-  -- A_Start <= B_Start <= A_End
-  if
-    M.compare_positions(a.pos0, b.pos0, document) >= 0
-    and M.compare_positions(b.pos0, a.pos1, document) >= 0
-  then
+  if a_is_bm then
     return true
   end
 
-  -- B_Start <= A_Start <= B_End
+  -- Rolling XPointers (EPUB)
+  if type(a.pos0) == "string" and type(b.pos0) == "string" then
+    return a.pos0 == b.pos0 and a.pos1 == b.pos1
+  end
+
+  -- Paging coordinates (PDF)
   if
-    M.compare_positions(b.pos0, a.pos0, document) >= 0
-    and M.compare_positions(a.pos0, b.pos1, document) >= 0
+    type(a.pos0) == "table"
+    and type(b.pos0) == "table"
+    and type(a.pos1) == "table"
+    and type(b.pos1) == "table"
   then
-    return true
+    return same_coords(a.pos0, b.pos0) and same_coords(a.pos1, b.pos1)
   end
 
   return false

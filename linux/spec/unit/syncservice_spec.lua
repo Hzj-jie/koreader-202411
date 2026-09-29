@@ -30,6 +30,9 @@ describe("SyncService", function()
       getSettingsDir = function()
         return "/tmp"
       end,
+      getTmpDir = function()
+        return "/tmp"
+      end,
     }
     package.loaded["ui/font"] = {
       getFace = function()
@@ -357,15 +360,12 @@ describe("SyncService", function()
         assert.is_true(mock_dropbox_api.downloadFile_called)
         assert.are.equal("/books/book.epub", mock_dropbox_api.download_path)
         assert.are.equal("mypasstoken", mock_dropbox_api.download_token)
-        assert.are.equal(
-          "/path/to/book.epub.temp",
-          mock_dropbox_api.download_dest
-        )
+        assert.are.equal("/tmp/book.epub.temp", mock_dropbox_api.download_dest)
 
         assert.is_true(cb_called)
         assert.are.equal("/path/to/book.epub", cb_args[1])
         assert.are.equal("/path/to/book.epub.sync", cb_args[2])
-        assert.are.equal("/path/to/book.epub.temp", cb_args[3])
+        assert.are.equal("/tmp/book.epub.temp", cb_args[3])
 
         assert.is_true(mock_dropbox_api.uploadFile_called)
         assert.are.equal("/books", mock_dropbox_api.upload_url_base)
@@ -379,8 +379,8 @@ describe("SyncService", function()
         -- And at the end: `os.remove(income_file_path)` again.
         -- Also `os.remove(cached_file_path)` before copy.
         local expected_removed = {
-          "/path/to/book.epub.temp", -- start of loop
-          "/path/to/book.epub.temp", -- end of function
+          "/tmp/book.epub.temp", -- start of loop
+          "/tmp/book.epub.temp", -- end of function
           "/path/to/book.epub.sync", -- before copying to cached
         }
         assert.are.equal(#expected_removed, #mock_os.removed_files)
@@ -500,15 +500,12 @@ describe("SyncService", function()
         )
         assert.are.equal("davuser", mock_webdav_api.download_username)
         assert.are.equal("davpassword", mock_webdav_api.download_password)
-        assert.are.equal(
-          "/path/to/book.epub.temp",
-          mock_webdav_api.download_dest
-        )
+        assert.are.equal("/tmp/book.epub.temp", mock_webdav_api.download_dest)
 
         assert.is_true(cb_called)
         assert.are.equal("/path/to/book.epub", cb_args[1])
         assert.are.equal("/path/to/book.epub.sync", cb_args[2])
-        assert.are.equal("/path/to/book.epub.temp", cb_args[3])
+        assert.are.equal("/tmp/book.epub.temp", cb_args[3])
 
         assert.is_true(mock_webdav_api.uploadFile_called)
         assert.are.equal(

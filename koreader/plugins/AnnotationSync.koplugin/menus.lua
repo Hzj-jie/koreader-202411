@@ -47,7 +47,7 @@ function M.show_deleted_annotations(plugin, document)
   })
 
   for __, ann in ipairs(deleted) do
-    local text = ann.text or ann.notes or gettext("Highlight")
+    local text = ann.text or ann.note or gettext("Highlight")
     if text == "" then
       text = gettext("Highlight")
     end
@@ -62,7 +62,7 @@ function M.show_deleted_annotations(plugin, document)
           text = T(
             gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
             ann.page,
-            ann.text or ann.notes or ""
+            ann.text or ann.note or ""
           ),
           ok_text = gettext("Restore"),
           cancel_text = gettext("Close"),
@@ -206,7 +206,6 @@ function M.show_differing_settings_menu(
         end
       end
       if count > 0 then
-        plugin.manager:flushSettings()
         utils.show_msg(T(gettext("Successfully imported %1 settings."), count))
       else
         utils.show_msg(gettext("No settings imported."))

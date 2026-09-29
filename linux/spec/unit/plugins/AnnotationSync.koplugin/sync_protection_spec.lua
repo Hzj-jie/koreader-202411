@@ -19,8 +19,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -40,6 +39,15 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
     UIManager:quit()
     package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
+  end)
+
+  before_each(function()
+    UIManager:show(readerui)
+    fastforward_ui_events()
+    readerui.annotation.annotations = {}
+    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:changedDocumentsFile())
+    test_utils.mock_sync_service(SyncService)
   end)
 
   it(
@@ -142,25 +150,34 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")
-      local local_map = {} -- EMPTY
-      local last_sync_map = {
-        ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },
-      }
-      local mock_doc = {
-        compareXPointers = function()
-          return 0
-        end,
-      }
+      local local_file =
+        test_utils.write_mock_json(test_data_dir, "prot_local.json", {})
+      local last_sync_file =
+        test_utils.write_mock_json(test_data_dir, "prot_last.json", {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        })
+      local income_file =
+        test_utils.write_mock_json(test_data_dir, "prot_income.json", {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        })
 
-      -- This should NOT mark anything as deleted because local_map is empty
-      annotations_mod.get_deleted_annotations(
-        local_map,
-        last_sync_map,
-        mock_doc
+      local ok, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
+        false
       )
 
-      assert.is_equal(0, #annotations_mod.map_to_list(local_map))
-      assert.is_nil(local_map["p1|p2"])
+      assert.is_true(ok)
+      -- Issue 23 Protection: remote annotation is preserved, NOT deleted
+      assert.is_equal(1, #active)
+      assert.is_equal("Gone?", active[1].text)
+
+      local f = io.open(local_file, "r")
+      local disk_map = json.decode(f:read("*a"))
+      f:close()
+      assert.is_not_nil(disk_map["p1||p2"])
+      assert.falsy(disk_map["p1||p2"].deleted)
     end
   )
 
@@ -169,28 +186,157 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")
-      local local_map = {} -- EMPTY
-      local last_sync_map = {
-        ["p1|p2"] = { pos0 = "p1", pos1 = "p2", text = "Gone?" },
-      }
-      local mock_doc = {
-        compareXPointers = function()
-          return 0
-        end,
-      }
+      local local_file =
+        test_utils.write_mock_json(test_data_dir, "prot_local_force.json", {})
+      local last_sync_file =
+        test_utils.write_mock_json(test_data_dir, "prot_last_force.json", {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        })
+      local income_file =
+        test_utils.write_mock_json(test_data_dir, "prot_income_force.json", {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+        })
 
-      -- This SHOULD mark as deleted because force is true
-      annotations_mod.get_deleted_annotations(
-        local_map,
-        last_sync_map,
-        mock_doc,
+      local ok, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
         true
       )
 
-      local list = annotations_mod.map_to_list(local_map)
-      assert.is_equal(0, #list) -- map_to_list filters out .deleted = true
-      assert.is_not_nil(local_map["p1|p2"])
-      assert.is_true(local_map["p1|p2"].deleted)
+      assert.is_true(ok)
+      -- Manual override allows deletion propagation
+      assert.is_equal(0, #active)
+
+      local f = io.open(local_file, "r")
+      local disk_map = json.decode(f:read("*a"))
+      f:close()
+      assert.is_not_nil(disk_map["p1||p2"])
+      assert.is_true(disk_map["p1||p2"].deleted)
     end
   )
+
+  it(
+    "should STILL propagate deletions if local list is NOT completely empty",
+    function()
+      local remote_ann = {
+        ["p1||p1"] = {
+          page = 1,
+          pos0 = "p1",
+          pos1 = "p1",
+          text = "Remote 1",
+          datetime_updated = "2026-01-01 00:00:00",
+        },
+        ["p2||p2"] = {
+          page = 2,
+          pos0 = "p2",
+          pos1 = "p2",
+          text = "Remote 2",
+          datetime_updated = "2026-01-01 00:00:00",
+        },
+      }
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode(remote_ann))
+      fc:close()
+
+      local old_sync = SyncService.sync
+      SyncService.sync = function(server, local_path, callback, upload_only)
+        local income_path = test_data_dir .. "/income_partial.json"
+
+        local f = io.open(income_path, "w")
+        f:write(json.encode(remote_ann))
+        f:close()
+
+        local cached_dest = local_path .. ".sync"
+        local result = callback(local_path, cached_dest, income_path)
+        if result then
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, cached_dest)
+        end
+        os.remove(income_path)
+        return result
+      end
+
+      G_reader_settings:save("cloud_download_dir", "mock")
+      G_reader_settings:save(
+        "cloud_server_object",
+        json.encode({ url = "mock" })
+      )
+
+      readerui.annotation.annotations = {
+        {
+          page = 1,
+          pos0 = "p1",
+          pos1 = "p1",
+          text = "Remote 1",
+          datetime_updated = "2026-01-01 00:00:00",
+        },
+      }
+
+      sync_instance.manager:syncDocument(readerui.document, false)
+
+      local cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+
+      local f = io.open(cached_path, "r")
+      local saved_data = json.decode(f:read("*all"))
+      f:close()
+
+      assert.is_not_nil(saved_data["p2||p2"])
+      assert.is_true(saved_data["p2||p2"].deleted)
+
+      SyncService.sync = old_sync
+    end
+  )
+
+  it("should protect PDF annotations similarly (geometry keys)", function()
+    local remote_ann = {
+      ["1|10|10||20|20"] = {
+        page = 1,
+        pos0 = { x = 10, y = 10 },
+        pos1 = { x = 20, y = 20 },
+        text = "PDF Note",
+        datetime_updated = "2026-01-01 00:00:00",
+      },
+    }
+
+    local sdr_cached_path =
+      sync_instance.manager:getSyncCachePath(readerui.document.file)
+    local fc = io.open(sdr_cached_path, "w")
+    fc:write(json.encode(remote_ann))
+    fc:close()
+
+    local old_sync = SyncService.sync
+    SyncService.sync = function(server, local_path, callback, upload_only)
+      local income_path = test_data_dir .. "/income_pdf.json"
+
+      local f = io.open(income_path, "w")
+      f:write(json.encode(remote_ann))
+      f:close()
+
+      local cached_dest = local_path .. ".sync"
+      local result = callback(local_path, cached_dest, income_path)
+      if result then
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+      end
+      os.remove(income_path)
+      return result
+    end
+
+    G_reader_settings:save("cloud_download_dir", "mock")
+    G_reader_settings:save("cloud_server_object", json.encode({ url = "mock" }))
+
+    readerui.annotation.annotations = {}
+
+    sync_instance.manager:syncDocument(readerui.document, false)
+
+    assert.is_equal(1, #readerui.annotation.annotations)
+    assert.is_equal("PDF Note", readerui.annotation.annotations[1].text)
+
+    SyncService.sync = old_sync
+  end)
 end)

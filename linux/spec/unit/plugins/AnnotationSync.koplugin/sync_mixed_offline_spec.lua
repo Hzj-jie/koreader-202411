@@ -26,8 +26,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     highlight_pdf_db =
       require("plugins/AnnotationSync.koplugin/highlight_pdf_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
@@ -63,6 +62,8 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
+    sync_instance.manager:cleanSyncFile(readerui.document)
+    sync_instance.manager:cleanSyncFile({ file = sample_pdf_dest })
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
   end)
@@ -185,12 +186,20 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       SyncService.sync = function(server, local_path, callback, upload_only)
         local income = local_path:find(epub_filename, 1, true) and income_epub
           or income_pdf
-        return callback(local_path, local_path, income)
+        local cached_dest = local_path .. ".sync"
+        local result = callback(local_path, cached_dest, income)
+        if result then
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, cached_dest)
+        end
+        return result
       end
 
       -- 4. Sync All
       sync_instance.manager:syncAllChangedDocuments()
       fastforward_ui_events()
+      os.remove(income_epub)
+      os.remove(income_pdf)
 
       -- 5. Verify EPUB (Active UI updated)
       assert.is_equal(2, #readerui.annotation.annotations)

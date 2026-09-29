@@ -5,9 +5,16 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_ground_truth_tmp"
   local old_getDataDir
+  local old_logger_methods
   setup(function()
     require("commonrequire")
     local logger = require("logger")
+    old_logger_methods = {
+      dbg = logger.dbg,
+      info = logger.info,
+      warn = logger.warn,
+      err = logger.err,
+    }
     logger:setLevel(logger.levels.dbg)
     local Device = require("device")
     Device.screen:resize(1200, 800)
@@ -21,8 +28,7 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
     ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -42,6 +48,12 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
     end
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
+    if old_logger_methods then
+      local logger = require("logger")
+      for lvl, fn in pairs(old_logger_methods) do
+        logger[lvl] = fn
+      end
+    end
     UIManager:quit()
     package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)

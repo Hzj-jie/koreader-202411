@@ -12,7 +12,7 @@
 - **Smart page alignment for reflowable documents (EPUB):** Sync progress via the page's last word rather than just page numbers to maintain reading consistency across different screen sizes, font settings, margins, or orientations.
 - **Customizable Device Name:** Assign friendly custom names to your devices (e.g., "Bedside Kobo", "Phone") to easily identify them in sync menus.
 - **Automatic background sync:** Quietly updates your progress in the background (using a dedicated background helper) as you turn pages, preventing intrusive popup messages.
-- **Core Cloud Storage Integration:** Integrates seamlessly with KOReader's native cloud storage plugin (supporting Dropbox, FTP, WebDAV, etc. and showing the active cloud configuration details directly in the settings menu).
+- **Core Cloud Storage Integration:** Integrates seamlessly with KOReader's native cloud storage plugin (supporting Dropbox, WebDAV, etc. and showing the active cloud configuration details directly in the settings menu).
 - **Backward Compatibility:** Safe fallback mode for older KOReader versions, disabling unsupported settings gracefully without breaking core annotation sync.
 - **Smart merging:** Resolves conflicts by comparing update timestamps to preserve your latest annotations.
 - **Failsafe protection:** Prevents accidental remote data loss when setting up a fresh device.
@@ -85,7 +85,7 @@ Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchr
 > [!IMPORTANT]
 > **Exclusions & Failsafes**
 > To prevent settings conflicts, credentials leaks, or infinite sync loops, the following settings are strictly excluded from synchronization:
-> - **Private credentials and server configurations** (e.g., `cloud_server_object`, FTP/WebDAV passwords)
+> - **Private credentials and server configurations** (e.g., `cloud_server_object`, cloud storage / WebDAV passwords)
 > - **Device-specific identifiers and paths** (e.g., `device_id`, `device_name`, `lastfile`, `home_dir`, font maps, cover caches)
 > - **Core plugin settings** (e.g., `annotation_sync_plugin` and `AnnotationSync` preferences)
 > - **Database and statistics logs** (e.g., battery stats, terminal configs, book statistics)
@@ -140,27 +140,18 @@ Koofr is a cloud storage provider that supports WebDAV. Connecting KOReader to K
 
 ## 🧪 Running Tests
 
-The project includes a comprehensive integration test suite. To run them, you need a KOReader development environment (`kodev`).
-
-### Automated script
+The project includes a comprehensive test suite located under `spec/unit/plugins/AnnotationSync.koplugin/`. To run the tests:
 
 ```bash
-./run_tests.sh <path_to_koreader>
+# Run all AnnotationSync unit and integration tests
+./test_runner.lua spec/unit/plugins/AnnotationSync.koplugin
 ```
 
-### Manual run
+Or using the `./kodev` development tool:
 
-1. **Setup**: Symbolically link test files into the KOReader core `spec/unit` directory:
-   ```bash
-   cd /path/to/koreader
-   ln -s ../../plugins/AnnotationSync.koplugin/spec/unit/*.lua spec/unit/
-   ```
-
-2. **Execute Tests**: Run all tests or a specific suite using `./kodev`:
-   ```bash
-   # Run all AnnotationSync integration tests
-   ./kodev test front sync_integration sync_pdf_integration sync_bookmark sync_mixed_offline sync_protection sync_trash error_handling progress_sync_integration settings_persistence background_sync backward_compatibility
-   ```
+```bash
+./kodev test spec/unit/plugins/AnnotationSync.koplugin
+```
 
 ## 🤝 Contributing
 

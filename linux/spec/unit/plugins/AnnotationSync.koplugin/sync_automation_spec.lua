@@ -20,8 +20,7 @@ describe("AnnotationSync Automation & Settings", function()
     json = require("json")
     util = require("util")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -56,6 +55,19 @@ describe("AnnotationSync Automation & Settings", function()
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
     require("background_jobs").clearKeys()
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
+  end)
+
+  after_each(function()
+    os.remove(sync_instance.manager:changedDocumentsFile())
+    require("background_jobs").clearKeys()
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
   end)
 
   describe("Settings", function()
@@ -84,7 +96,7 @@ describe("AnnotationSync Automation & Settings", function()
 
   describe("Automation", function()
     it(
-      "triggers background incremental fork sync on onTimesChange_1M when network_auto_sync is enabled",
+      "triggers background incremental fork sync on onSuspend when network_auto_sync is enabled",
       function()
         sync_instance.settings.network_auto_sync = true
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -98,7 +110,7 @@ describe("AnnotationSync Automation & Settings", function()
           callback(local_path, local_path, local_path)
         end
 
-        sync_instance:onTimesChange_1M()
+        sync_instance:onSuspend()
 
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
@@ -140,7 +152,119 @@ describe("AnnotationSync Automation & Settings", function()
     end)
 
     it(
-      "deduplicates onTimesChange_1M triggers when background sync is active",
+      "triggers background sync on onSaveSettings when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onSaveSettings()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "skips onResume sync when NetworkMgr:shouldRestoreWifi is true",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
+        NetworkMgr.shouldRestoreWifi = function()
+          return true
+        end
+
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onResume()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count, #jobs)
+        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
+      end
+    )
+
+    it(
+      "triggers background sync on onResume when NetworkMgr:shouldRestoreWifi is false",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
+        NetworkMgr.shouldRestoreWifi = function()
+          return false
+        end
+
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onResume()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
+      end
+    )
+
+    it(
+      "triggers background sync on onNetworkOnline when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onNetworkOnline()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "triggers background sync on onNetworkDisconnecting when network_auto_sync is enabled",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onNetworkDisconnecting()
+
+        assert.is_equal(initial_jobs_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "ignores lifecycle triggers when network_auto_sync is disabled",
+      function()
+        sync_instance.settings.network_auto_sync = false
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_jobs_count = #jobs
+
+        sync_instance:onSaveSettings()
+        sync_instance:onSuspend()
+        sync_instance:onResume()
+        sync_instance:onNetworkOnline()
+        sync_instance:onNetworkDisconnecting()
+        fastforward_ui_events()
+
+        assert.is_equal(initial_jobs_count, #jobs)
+      end
+    )
+
+    it(
+      "deduplicates onSuspend triggers when background sync is active",
       function()
         sync_instance.settings.network_auto_sync = true
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -148,8 +272,8 @@ describe("AnnotationSync Automation & Settings", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
-        sync_instance:onTimesChange_1M()
-        sync_instance:onTimesChange_1M()
+        sync_instance:onSuspend()
+        sync_instance:onSuspend()
 
         assert.is_equal(initial_count + 1, #jobs)
       end
@@ -179,7 +303,11 @@ describe("AnnotationSync Automation & Settings", function()
 
         local dummy_merged = { { text = "Sample Annotation", page = 1 } }
         job.callback({
-          result = { file = active_file, success = true, merged_list = dummy_merged },
+          result = {
+            file = active_file,
+            success = true,
+            merged_list = dummy_merged,
+          },
         })
 
         local total, _ = sync_instance.manager:getPendingChangedDocuments()

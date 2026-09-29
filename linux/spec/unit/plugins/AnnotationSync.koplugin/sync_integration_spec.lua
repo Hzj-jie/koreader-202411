@@ -21,8 +21,7 @@ describe("AnnotationSync Core Integration", function()
     util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db =
-      require("plugins/AnnotationSync.koplugin/highlight_db")
+    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -56,6 +55,7 @@ describe("AnnotationSync Core Integration", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)
@@ -106,12 +106,7 @@ describe("AnnotationSync Core Integration", function()
 
     it("handles first sync of an empty book gracefully", function()
       -- Ensure no previous files exist
-      local file = readerui.document.file
-      local sdr_dir = require("docsettings"):getSidecarDir(file)
-      local hash = require("util").partialMD5(file)
-      os.remove(sdr_dir .. "/" .. hash .. ".json")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.sync")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.temp")
+      sync_instance.manager:cleanSyncFile(readerui.document)
 
       -- Sync an empty book
       sync_instance:manualSync()
@@ -123,12 +118,7 @@ describe("AnnotationSync Core Integration", function()
 
     it("handles first sync with local annotations gracefully", function()
       -- 1. Ensure no previous files exist
-      local file = readerui.document.file
-      local sdr_dir = require("docsettings"):getSidecarDir(file)
-      local hash = require("util").partialMD5(file)
-      os.remove(sdr_dir .. "/" .. hash .. ".json")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.sync")
-      os.remove(sdr_dir .. "/" .. hash .. ".json.temp")
+      sync_instance.manager:cleanSyncFile(readerui.document)
 
       -- 2. Create some local annotations
       test_utils.emulate_highlight(readerui, highlight_db[1])
@@ -154,14 +144,17 @@ describe("AnnotationSync Core Integration", function()
         "income_disjoint.json",
         { [key2] = ann2 }
       )
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last_disjoint.json", {})
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
 
       assert.is_equal(2, #readerui.annotation.annotations)
     end)
@@ -178,17 +171,23 @@ describe("AnnotationSync Core Integration", function()
         "income_conflict.json",
         { [key] = ann_r }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_conflict.json",
-        { [key] = ann_r }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann_r }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal("Local Newer", readerui.annotation.annotations[1].note)
     end)
 
@@ -206,17 +205,23 @@ describe("AnnotationSync Core Integration", function()
         "income_zombie.json",
         { [key] = ann_r }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_zombie.json",
-        { [key] = ann_r }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann_r }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(1, #readerui.annotation.annotations)
       assert.is_equal("Revived", readerui.annotation.annotations[1].note)
     end)
@@ -236,17 +241,23 @@ describe("AnnotationSync Core Integration", function()
         "income_del.json",
         { [key] = ann_del }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_del.json",
-        { [key] = ann }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
 
@@ -257,15 +268,90 @@ describe("AnnotationSync Core Integration", function()
           test_utils.write_mock_json(test_data_dir, "empty_local.json", {})
         local last_sync_path =
           test_utils.write_mock_json(test_data_dir, "empty_last.json", {})
-        local res = annotations_mod.sync_callback(
-          readerui.document,
-          local_path,
-          last_sync_path,
-          nil,
-          false
-        )
+        local res =
+          annotations_mod.sync_callback(local_path, last_sync_path, nil, false)
         assert.is_false(res)
       end
     )
+
+    it(
+      "verifies that Dropbox 'path not found' error is handled gracefully",
+      function()
+        readerui.annotation.annotations = {
+          { page = 1, pos0 = "p0", pos1 = "p1", text = "hello" },
+        }
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local dropbox_error = {
+          error_summary = "path/not_found/.",
+          error = {
+            [".tag"] = "path",
+            path = { [".tag"] = "not_found" },
+          },
+        }
+
+        local old_sync = SyncService.sync
+        SyncService.sync = function(server, local_path, callback, is_silent)
+          local income_file = local_path .. ".temp"
+          local f = io.open(income_file, "w")
+          f:write(json.encode(dropbox_error))
+          f:close()
+
+          local cached_file = local_path .. ".sync"
+          if not io.open(cached_file, "r") then
+            local fc = io.open(cached_file, "w")
+            fc:write("{}")
+            fc:close()
+          end
+
+          local success = callback(local_path, cached_file, income_file, 409)
+          os.remove(income_file)
+          return success
+        end
+
+        local success =
+          sync_instance.manager:syncDocument(readerui.document, true)
+
+        assert.is_true(
+          success,
+          "Sync should succeed by treating Dropbox path/not_found as empty state"
+        )
+
+        SyncService.sync = old_sync
+      end
+    )
+
+    it("verifies sidecar directory creation for new books", function()
+      local file = readerui.document.file
+      sync_instance.manager:addToChangedDocumentsFile(file)
+      local sdr_dir = require("frontend/docsettings"):getSidecarDir(file)
+      os.execute("rm -rf " .. sdr_dir)
+
+      local lfs = require("libs/libkoreader-lfs")
+      assert.is_nil(
+        lfs.attributes(sdr_dir),
+        "Sidecar directory should be missing for test"
+      )
+
+      local old_sync = SyncService.sync
+      SyncService.sync = function(server, local_path, callback, is_silent)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, local_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
+      end
+
+      sync_instance.manager:syncAllChangedDocuments()
+
+      assert.is_not_nil(
+        lfs.attributes(sdr_dir),
+        "Sidecar directory should have been created automatically"
+      )
+
+      SyncService.sync = old_sync
+      local count, _ = sync_instance.manager:getPendingChangedDocuments()
+      assert.is_equal(0, count, "Document should have been successfully synced")
+    end)
   end)
 end)

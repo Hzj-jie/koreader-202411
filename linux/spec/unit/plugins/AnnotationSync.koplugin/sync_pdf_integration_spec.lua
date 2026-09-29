@@ -60,6 +60,7 @@ describe("AnnotationSync PDF Core Integration", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
+    sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)
@@ -112,95 +113,104 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_disjoint_pdf.json",
         { [key2] = ann2 }
       )
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last_disjoint_pdf.json", {})
-
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
 
       assert.is_equal(2, #readerui.annotation.annotations)
     end)
 
-    it("merges overlapping PDF highlights (latest wins)", function()
-      -- Local has a highlight
-      local entry = highlight_pdf_db[1]
-      test_utils.emulate_highlight(readerui, entry)
-      local local_ann = readerui.annotation.annotations[1]
-      local_ann.datetime = "2026-02-01 10:00:00"
-      local_ann.note = "Local Version"
+    it(
+      "preserves distinct overlapping PDF highlights without collapsing them",
+      function()
+        -- Local has a highlight
+        local entry = highlight_pdf_db[1]
+        test_utils.emulate_highlight(readerui, entry)
+        local local_ann = readerui.annotation.annotations[1]
+        local_ann.datetime = "2026-02-01 10:00:00"
+        local_ann.note = "Local Version"
 
-      -- Remote has an OVERLAPPING highlight (same page, slightly different coordinates)
-      -- We'll manually construct it to ensure it overlaps
-      local remote_ann = util.tableDeepCopy(local_ann)
-      remote_ann.pos1.x = remote_ann.pos1.x + 10 -- Slightly longer
-      remote_ann.datetime = "2026-02-01 11:00:00" -- Newer
-      remote_ann.note = "Remote Newer Version"
+        -- Remote has a distinct highlight on the same page with different coordinates
+        local remote_ann = util.tableDeepCopy(local_ann)
+        remote_ann.pos1.x = remote_ann.pos1.x + 10 -- Slightly longer
+        remote_ann.datetime = "2026-02-01 11:00:00"
+        remote_ann.note = "Remote Version"
 
-      local key_r = annotations_mod.annotation_key(remote_ann)
-      local income_path = test_utils.write_mock_json(
-        test_data_dir,
-        "income_overlap_pdf.json",
-        { [key_r] = remote_ann }
-      )
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last_overlap_pdf.json", {})
+        local key_r = annotations_mod.annotation_key(remote_ann)
+        local income_path = test_utils.write_mock_json(
+          test_data_dir,
+          "income_overlap_pdf.json",
+          { [key_r] = remote_ann }
+        )
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        SyncService.sync = function(server, local_path, callback, upload_only)
+          local cached_dest = local_path .. ".sync"
+          callback(local_path, cached_dest, income_path)
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, cached_dest)
+          return true
+        end
+
+        sync_instance:manualSync()
+        os.remove(income_path)
+
+        -- Both distinct highlights should be preserved (exact coordinate identity avoids data loss)
+        assert.is_equal(2, #readerui.annotation.annotations)
       end
+    )
 
-      sync_instance:manualSync()
+    it(
+      "normalizes sub-integer coordinate drift within the same integer bucket",
+      function()
+        -- Local has a highlight
+        local entry = highlight_pdf_db[1]
+        test_utils.emulate_highlight(readerui, entry)
+        local local_ann = readerui.annotation.annotations[1]
+        local_ann.datetime = "2026-02-01 10:00:00"
+        local_ann.note = "Local Original"
 
-      -- Should have 1 highlight (merged) and it should be the remote one (newer)
-      assert.is_equal(1, #readerui.annotation.annotations)
-      assert.is_equal(
-        "Remote Newer Version",
-        readerui.annotation.annotations[1].note
-      )
-    end)
+        -- Remote has the same highlight but with slight coordinate drift (e.g. 0.5 units)
+        local remote_ann = util.tableDeepCopy(local_ann)
+        remote_ann.pos0.x = remote_ann.pos0.x + 0.5
+        remote_ann.pos1.x = remote_ann.pos1.x - 0.5
+        remote_ann.datetime = "2026-02-01 11:00:00" -- Newer
+        remote_ann.note = "Drifted Version"
 
-    it("handles slight coordinate drift (drift tolerance)", function()
-      -- Local has a highlight
-      local entry = highlight_pdf_db[1]
-      test_utils.emulate_highlight(readerui, entry)
-      local local_ann = readerui.annotation.annotations[1]
-      local_ann.datetime = "2026-02-01 10:00:00"
-      local_ann.note = "Local Original"
+        local key_l = annotations_mod.annotation_key(local_ann)
+        local key_r = annotations_mod.annotation_key(remote_ann)
 
-      -- Remote has the same highlight but with slight coordinate drift (e.g. 0.5 units)
-      local remote_ann = util.tableDeepCopy(local_ann)
-      remote_ann.pos0.x = remote_ann.pos0.x + 0.5
-      remote_ann.pos1.x = remote_ann.pos1.x - 0.5
-      remote_ann.datetime = "2026-02-01 11:00:00" -- Newer
-      remote_ann.note = "Drifted Version"
+        local income_path = test_utils.write_mock_json(
+          test_data_dir,
+          "income_drift_pdf.json",
+          { [key_r] = remote_ann }
+        )
 
-      local key_l = annotations_mod.annotation_key(local_ann)
-      local key_r = annotations_mod.annotation_key(remote_ann)
+        SyncService.sync = function(server, local_path, callback, upload_only)
+          local cached_dest = local_path .. ".sync"
+          callback(local_path, cached_dest, income_path)
+          local ffiutil = require("ffi/util")
+          ffiutil.copyFile(local_path, cached_dest)
+          return true
+        end
 
-      local income_path = test_utils.write_mock_json(
-        test_data_dir,
-        "income_drift_pdf.json",
-        { [key_r] = remote_ann }
-      )
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last_drift_pdf.json", {})
+        sync_instance:manualSync()
+        os.remove(income_path)
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        -- Should merge because coordinates map to the same floor-normalized integer bucket
+        assert.is_equal(1, #readerui.annotation.annotations)
+        assert.is_equal(
+          "Drifted Version",
+          readerui.annotation.annotations[1].note
+        )
       end
-
-      sync_instance:manualSync()
-
-      -- Should still merge because they intersect significantly
-      assert.is_equal(1, #readerui.annotation.annotations)
-      assert.is_equal(
-        "Drifted Version",
-        readerui.annotation.annotations[1].note
-      )
-    end)
+    )
 
     it("resolves PDF conflicts using timestamps (latest wins)", function()
       local ann_l, key =
@@ -214,17 +224,23 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_conflict_pdf.json",
         { [key] = ann_r }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_conflict_pdf.json",
-        { [key] = ann_r }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann_r }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(
         "Local Newer PDF",
         readerui.annotation.annotations[1].note
@@ -246,17 +262,23 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_del_pdf.json",
         { [key] = ann_del }
       )
-      local last_sync_path = test_utils.write_mock_json(
-        test_data_dir,
-        "last_del_pdf.json",
-        { [key] = ann }
-      )
+
+      local sdr_cached_path =
+        sync_instance.manager:getSyncCachePath(readerui.document.file)
+      local fc = io.open(sdr_cached_path, "w")
+      fc:write(json.encode({ [key] = ann }))
+      fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only)
-        callback(local_path, last_sync_path, income_path)
+        local cached_dest = local_path .. ".sync"
+        callback(local_path, cached_dest, income_path)
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(local_path, cached_dest)
+        return true
       end
 
       sync_instance:manualSync()
+      os.remove(income_path)
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
   end)
@@ -341,12 +363,6 @@ describe("AnnotationSync PDF Core Integration", function()
       assert.truthy(index)
       local ann = readerui.annotation.annotations[index]
 
-      -- In reflow mode, PDF highlights might use XPointers (strings)
-      print("REFLOW TEST: pos0 type=" .. type(ann.pos0))
-      if type(ann.pos0) == "string" then
-        print("REFLOW TEST: pos0=" .. ann.pos0)
-      end
-
       local key = annotations_mod.annotation_key(ann)
       assert.truthy(key)
       assert.truthy(#key > 0)
@@ -387,7 +403,6 @@ describe("AnnotationSync PDF Core Integration", function()
       -- PAGE coordinates for the SAME text.
 
       -- We'll mock a shift in the view's transform if we can't easily trigger a real crop
-      local old_s2p = readerui.view.screenToPageTransform
       readerui.view.screenToPageTransform = function(this, pos)
         local p = old_s2p(this, pos)
         -- Simulate a shift: if we click at (x,y), it's as if we clicked at (x+50, y+50)

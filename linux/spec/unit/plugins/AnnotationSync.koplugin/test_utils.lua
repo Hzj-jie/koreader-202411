@@ -31,6 +31,7 @@ local old_runWhenOnline
 local old_getSettingsDir
 local old_G_reader_settings
 local old_tmp_dir
+local old_document_metadata_folder
 
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
@@ -55,6 +56,14 @@ function M.setup_test_env(test_data_dir)
     local LuaSettings = require("luasettings")
     _G.G_reader_settings =
       LuaSettings:open(test_data_dir .. "/settings.reader.lua")
+  end
+
+  local named_settings = require("named_settings")
+  old_document_metadata_folder = named_settings.document_metadata_folder
+  named_settings.document_metadata_folder = function()
+    return (
+      G_reader_settings and G_reader_settings:read("document_metadata_folder")
+    ) or "doc"
   end
 
   local NetworkMgr = require("ui/network/manager")
@@ -134,6 +143,11 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
     local NetworkMgr = require("ui/network/manager")
     NetworkMgr.runWhenOnline = old_runWhenOnline
     old_runWhenOnline = nil
+  end
+  if old_document_metadata_folder then
+    require("named_settings").document_metadata_folder =
+      old_document_metadata_folder
+    old_document_metadata_folder = nil
   end
 end
 
@@ -275,28 +289,22 @@ function M.mock_sync_service(SyncService)
       or (test_data_dir .. "/dummy_local.json")
     ensure_json_file(actual_local)
 
-    -- Use separate files for last_sync and income to avoid conflicts
-    -- and ensure they are valid JSON.
-    local last_sync_file = ensure_json_file(actual_local .. ".last_sync")
-      or (test_data_dir .. "/dummy_last.json")
-    ensure_json_file(last_sync_file)
-
+    local cached_file = local_path .. ".sync"
     local income_file = ensure_json_file(actual_local .. ".income")
       or (test_data_dir .. "/dummy_income.json")
     ensure_json_file(income_file)
 
-    local ok, result =
-      pcall(callback, actual_local, last_sync_file, income_file)
+    local ok, result, active =
+      pcall(callback, actual_local, cached_file, income_file)
     if not ok then
       error("Sync callback CRASHED: " .. tostring(result))
     end
-    if not result then
-      error(
-        "Sync callback contract violation: function returned nil/false instead of true. "
-          .. "This triggers 'Something went wrong' in production."
-      )
+    local ffiutil = require("ffi/util")
+    if result then
+      ffiutil.copyFile(actual_local, cached_file)
     end
-    return result
+    os.remove(income_file)
+    return result, active
   end
 
   if current_readerui then
@@ -308,10 +316,8 @@ function M.mock_sync_service(SyncService)
       server,
       file_path,
       sync_cb,
-      is_silent,
-      caller_pre_callback
+      is_silent
     )
-      print("MOCK cloudstorage.sync called! file_path:", file_path)
       return SyncService.sync(server, file_path, sync_cb, is_silent)
     end
   end

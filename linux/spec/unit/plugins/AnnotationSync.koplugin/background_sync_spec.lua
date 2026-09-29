@@ -71,10 +71,10 @@ describe("Background Sync Behavior", function()
   end)
 
   before_each(function()
+    os.remove(sync_manager:changedDocumentsFile())
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
-    os.remove(sync_manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
     require("background_jobs").clearKeys()
     local jobs = require("pluginshare").backgroundJobs
@@ -82,6 +82,15 @@ describe("Background Sync Behavior", function()
       jobs[k] = nil
     end
     plugin_instance.settings.network_auto_sync = true
+  end)
+
+  after_each(function()
+    os.remove(sync_manager:changedDocumentsFile())
+    local jobs = require("pluginshare").backgroundJobs
+    for k in pairs(jobs) do
+      jobs[k] = nil
+    end
+    require("background_jobs").clearKeys()
   end)
 
   describe("Main thread preparation and validation", function()
@@ -190,20 +199,45 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "flushes settings and serializes JSON in main thread before job dispatch",
+      "does not broadcast FlushSettings during background sync to avoid loop",
       function()
-        local flush_called = false
-        local old_flush = sync_manager.flushSettings
-        sync_manager.flushSettings = function(self)
-          flush_called = true
-          old_flush(self)
+        local flush_broadcasted = false
+        local old_broadcast = UIManager.broadcastEvent
+        UIManager.broadcastEvent = function(self, event, ...)
+          local ev_name = type(event) == "string" and event
+            or (event and event.name)
+          if ev_name == "FlushSettings" then
+            flush_broadcasted = true
+          end
+          return old_broadcast(self, event, ...)
         end
 
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
         sync_manager:syncPendingDocumentsBg()
 
-        assert.is_true(flush_called)
-        sync_manager.flushSettings = old_flush
+        assert.is_false(flush_broadcasted)
+        UIManager.broadcastEvent = old_broadcast
+      end
+    )
+
+    it(
+      "does not broadcast FlushSettings during single document sync",
+      function()
+        local flush_broadcasted = false
+        local old_broadcast = UIManager.broadcastEvent
+        UIManager.broadcastEvent = function(self, event, ...)
+          local ev_name = type(event) == "string" and event
+            or (event and event.name)
+          if ev_name == "FlushSettings" then
+            flush_broadcasted = true
+          end
+          return old_broadcast(self, event, ...)
+        end
+
+        sync_manager:syncDocument(readerui.document, true)
+
+        assert.is_false(flush_broadcasted)
+        UIManager.broadcastEvent = old_broadcast
       end
     )
   end)
@@ -258,6 +292,7 @@ describe("Background Sync Behavior", function()
 
       -- Queues 2 separate background jobs
       assert.is_equal(initial_count + 2, #jobs)
+      os.remove(doc2)
     end)
 
     it(
@@ -426,12 +461,26 @@ describe("Background Sync Behavior", function()
           settings = { sync_server = { url = "http://mock" } },
         }
 
+        local old_preload = package.preload["apps/cloudstorage/syncservice"]
+        package.preload["apps/cloudstorage/syncservice"] = function()
+          error("SyncService disabled for test")
+        end
+        local old_loaded_ss = package.loaded["apps/cloudstorage/syncservice"]
         package.loaded["apps/cloudstorage/syncservice"] = nil
-        remote.sync_annotations(mock_w, {}, "test.json", function() end, false)
+
+        package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
+        local test_remote = require("plugins/AnnotationSync.koplugin/remote")
+
+        local dummy_json = test_data_dir .. "/test_silent_provider.json"
+        test_remote.sync_annotations(mock_w, dummy_json, function() end, false)
 
         assert.is_false(show_called)
         UIManager.show = old_show
-        package.loaded["apps/cloudstorage/syncservice"] = SyncService
+
+        package.preload["apps/cloudstorage/syncservice"] = old_preload
+        package.loaded["apps/cloudstorage/syncservice"] = old_loaded_ss
+        package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
+        remote = require("plugins/AnnotationSync.koplugin/remote")
       end
     )
 
@@ -453,11 +502,224 @@ describe("Background Sync Behavior", function()
           settings = {},
         }
 
-        remote.sync_annotations(mock_w, {}, "test.json", function() end, false)
+        local dummy_json = test_data_dir .. "/test_silent_dest.json"
+        remote.sync_annotations(mock_w, dummy_json, function() end, false)
 
         assert.is_false(show_called)
         UIManager.show = old_show
       end
     )
+  end)
+
+  describe("Remote sync completion and perform_sync lifecycle", function()
+    it(
+      "calls on_complete strictly after sync finishes, passing captured merged_list",
+      function()
+        local order = {}
+        local old_sync = SyncService.sync
+        SyncService.sync = function(server, local_path, callback, silent)
+          table.insert(order, "sync_start")
+          local cb_res = callback(local_path, local_path, local_path, 200)
+          table.insert(order, "upload")
+          return true
+        end
+
+        local annotations =
+          require("plugins/AnnotationSync.koplugin/annotations")
+        local old_sync_cb = annotations.sync_callback
+        local dummy_merged = { { page = 1, text = "test" } }
+        annotations.sync_callback = function()
+          table.insert(order, "sync_cb")
+          return true, dummy_merged
+        end
+
+        local mock_w = {
+          ui = {},
+          settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+          manager = {
+            getSyncCachePath = function()
+              return nil
+            end,
+          },
+        }
+
+        local dummy_json = test_data_dir .. "/test_on_complete_order.json"
+        util.writeToFile("[]", dummy_json)
+
+        local on_complete_success = nil
+        local on_complete_merged = nil
+        remote.sync_annotations(
+          mock_w,
+          dummy_json,
+          function(success, merged_list)
+            table.insert(order, "on_complete")
+            on_complete_success = success
+            on_complete_merged = merged_list
+          end,
+          false
+        )
+
+        assert.are.same(
+          { "sync_start", "sync_cb", "upload", "on_complete" },
+          order
+        )
+        assert.is_true(on_complete_success)
+        assert.are.same(dummy_merged, on_complete_merged)
+
+        SyncService.sync = old_sync
+        annotations.sync_callback = old_sync_cb
+      end
+    )
+
+    it(
+      "calls on_complete(false) if sync execution fails after sync_cb",
+      function()
+        local old_sync = SyncService.sync
+        SyncService.sync = function(server, local_path, callback, silent)
+          local cb_res = callback(local_path, local_path, local_path, 200)
+          return false
+        end
+
+        local annotations =
+          require("plugins/AnnotationSync.koplugin/annotations")
+        local old_sync_cb = annotations.sync_callback
+        annotations.sync_callback = function()
+          return true, { { page = 1 } }
+        end
+
+        local mock_w = {
+          ui = {},
+          settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+          manager = {
+            getSyncCachePath = function()
+              return nil
+            end,
+          },
+        }
+
+        local dummy_json = test_data_dir .. "/test_on_complete_fail.json"
+        util.writeToFile("[]", dummy_json)
+
+        local on_complete_success = nil
+        remote.sync_annotations(mock_w, dummy_json, function(success)
+          on_complete_success = success
+        end, false)
+
+        assert.is_false(on_complete_success)
+
+        SyncService.sync = old_sync
+        annotations.sync_callback = old_sync_cb
+      end
+    )
+
+    it(
+      "passes sdr cached_path to sync_callback and moves tmp cache to sdr post-sync",
+      function()
+        local old_sync = SyncService.sync
+        local received_cached_file = nil
+        SyncService.sync = function(server, local_path, callback, silent)
+          local tmp_cached = local_path .. ".sync"
+          util.writeToFile('{"version":1,"cached":true}', tmp_cached)
+          local cb_res = callback(local_path, tmp_cached, local_path, 200)
+          return true
+        end
+
+        local annotations =
+          require("plugins/AnnotationSync.koplugin/annotations")
+        local old_sync_cb = annotations.sync_callback
+        annotations.sync_callback = function(
+          local_f,
+          cached_f,
+          inc_f,
+          force,
+          code
+        )
+          received_cached_file = cached_f
+          return true, {}
+        end
+
+        local mock_w = {
+          ui = {},
+          settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+        }
+
+        local dummy_json = test_data_dir .. "/test_tmp_cache.json"
+        local sdr_cache = test_data_dir .. "/test_book.sdr/annotations.sync"
+        util.makePath(test_data_dir .. "/test_book.sdr")
+        util.writeToFile('{"initial":true}', sdr_cache)
+        util.writeToFile("[]", dummy_json)
+
+        remote.sync_annotations(
+          mock_w,
+          dummy_json,
+          function() end,
+          false,
+          sdr_cache
+        )
+
+        -- 1. sync_callback should receive the real sdr_cache path, not /tmp cache path
+        assert.are.equal(sdr_cache, received_cached_file)
+
+        -- 2. post-sync, the tmp cache file should have been moved to sdr_cache
+        assert.is_false(lfs.attributes(dummy_json .. ".sync") ~= nil)
+        local f = io.open(sdr_cache, "r")
+        local content = f and f:read("*all")
+        if f then
+          f:close()
+        end
+        assert.are.equal('{"version":1,"cached":true}', content)
+
+        SyncService.sync = old_sync
+        annotations.sync_callback = old_sync_cb
+      end
+    )
+
+    it("does not overwrite sdr cached_path if sync fails", function()
+      local old_sync = SyncService.sync
+      SyncService.sync = function(server, local_path, callback, silent)
+        local tmp_cached = local_path .. ".sync"
+        util.writeToFile('{"corrupted":true}', tmp_cached)
+        callback(local_path, tmp_cached, local_path, 200)
+        return false
+      end
+
+      local annotations = require("plugins/AnnotationSync.koplugin/annotations")
+      local old_sync_cb = annotations.sync_callback
+      annotations.sync_callback = function()
+        return true, {}
+      end
+
+      local mock_w = {
+        ui = {},
+        settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+      }
+
+      local dummy_json = test_data_dir .. "/test_fail_cache.json"
+      local sdr_cache = test_data_dir .. "/test_book.sdr/annotations_fail.sync"
+      util.makePath(test_data_dir .. "/test_book.sdr")
+      util.writeToFile('{"initial":true}', sdr_cache)
+      util.writeToFile("[]", dummy_json)
+
+      remote.sync_annotations(
+        mock_w,
+        dummy_json,
+        function() end,
+        false,
+        sdr_cache
+      )
+
+      -- sdr_cache should remain unchanged
+      local f = io.open(sdr_cache, "r")
+      local content = f and f:read("*all")
+      if f then
+        f:close()
+      end
+      assert.are.equal('{"initial":true}', content)
+      -- tmp cache should be cleaned up
+      assert.is_false(lfs.attributes(dummy_json .. ".sync") ~= nil)
+
+      SyncService.sync = old_sync
+      annotations.sync_callback = old_sync_cb
+    end)
   end)
 end)

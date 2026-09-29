@@ -2,6 +2,7 @@ local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
+local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
@@ -11,10 +12,6 @@ local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
-
-local function isConnected()
-  return require("ui/network/manager"):isConnected()
-end
 
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
@@ -83,6 +80,7 @@ function AnnotationSyncPlugin:init()
 
   -- Sanitize corrupted settings
   self.manager = SyncManager:new(self)
+  self.manager:cleanOrphanSyncFiles()
 
   -- Migrate old annotation_sync_use_filename setting
   if G_reader_settings:has("annotation_sync_use_filename") then
@@ -149,7 +147,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
             callback = function()
               self.settings.use_filename = not self.settings.use_filename
               self:saveSettings()
-              UIManager:close()
             end,
           },
           {
@@ -163,7 +160,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               self.settings.network_auto_sync =
                 not self.settings.network_auto_sync
               self:saveSettings()
-              UIManager:close()
             end,
           },
 
@@ -336,35 +332,80 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
   }
 end
 
-function AnnotationSyncPlugin:onTimesChange_1M()
-  if
-    self.settings.network_auto_sync
-    and self.manager
-    and self.manager:hasPendingChangedDocuments()
-  then
-    logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
+function AnnotationSyncPlugin:onSaveSettings()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  UIManager:scheduleIn(0.1, function()
+    if self.manager and self.manager:hasPendingChangedDocuments() then
+      logger.dbg("AnnotationSync: onSaveSettings triggered background sync")
+      self.manager:syncPendingDocumentsBg()
+    end
+  end)
+end
+
+function AnnotationSyncPlugin:onSuspend()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if self.manager and self.manager:hasPendingChangedDocuments() then
+    logger.dbg("AnnotationSync: onSuspend triggered background sync")
+    self.manager:syncPendingDocumentsBg()
+  end
+end
+
+function AnnotationSyncPlugin:onResume()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if NetworkMgr:shouldRestoreWifi() then
+    return
+  end
+  UIManager:scheduleIn(0.1, function()
+    if self.manager and self.manager:hasPendingChangedDocuments() then
+      logger.dbg("AnnotationSync: onResume triggered background sync")
+      self.manager:syncPendingDocumentsBg()
+    end
+  end)
+end
+
+function AnnotationSyncPlugin:onNetworkOnline()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if self.manager and self.manager:hasPendingChangedDocuments() then
+    logger.dbg("AnnotationSync: onNetworkOnline triggered background sync")
+    self.manager:syncPendingDocumentsBg()
+  end
+end
+
+function AnnotationSyncPlugin:onNetworkDisconnecting()
+  if not self.settings.network_auto_sync then
+    return
+  end
+  if self.manager and self.manager:hasPendingChangedDocuments() then
+    logger.dbg(
+      "AnnotationSync: onNetworkDisconnecting triggered background sync"
+    )
     self.manager:syncPendingDocumentsBg()
   end
 end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
-  if self.ui and self.ui.annotation and self.ui.document == document then
-    -- 1. Sort for UI consistency
-    table.sort(merged_list, function(a, b)
-      local cmp = annotations.compare_positions(a.page, b.page, document)
-      return (cmp or 0) > 0
-    end)
-    -- 2. Update active widget state
-    self.ui.annotation.annotations = merged_list
-    self.ui.annotation:onSaveSettings()
+  annotations.sort(merged_list)
 
-    -- 3. Notify system
+  if self.ui and self.ui.annotation and self.ui.document == document then
+    -- 1. Update active widget state
+    self.ui.annotation.annotations = merged_list
+    self.ui.annotation:updatePageNumbers(true)
+
+    -- 2. Notify system
     if #merged_list > 0 then
       UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
     end
 
-    -- 4. Trigger Refreshes
+    -- 3. Trigger Refreshes
     if not document.is_pdf then
       document:render()
       self.ui.view:recalculate()
@@ -465,8 +506,11 @@ function AnnotationSyncPlugin:manualSync()
     utils.show_msg("A document must be active to do a manual sync.")
     return
   end
-  self.manager:syncDocument(document, true)
-  self.manager:recordSyncState("Manual Sync")
+  NetworkMgr:runWhenOnline(function()
+    if self.manager:syncDocument(document, true) then
+      self.manager:recordSyncState("Manual Sync")
+    end
+  end)
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()
@@ -498,9 +542,6 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   -- 3. Apply changes once (saves to sidecar and refreshes UI)
   self:applySyncedAnnotations(document, current)
 
-  -- 4. Flush to local sync JSON immediately (Fix for Issue #39 delayed flush)
-  self.manager:_writeAnnotationsJSON(document)
-
   if not silent then
     if #anns == 1 then
       utils.show_msg(gettext("Annotation restored."))
@@ -516,14 +557,6 @@ end
 
 function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
   if self.is_applying_sync then
-    return
-  end
-  if not modified_annotations and type(modified_annotations) == "table" then
-    logger.warn(
-      "AnnotationSync: Document annotations modification detected, but could not process provided annotations payload (of type:",
-      type(modified_annotations),
-      ")"
-    )
     return
   end
 

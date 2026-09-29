@@ -27,7 +27,7 @@ local function get_sync_provider(widget)
   return nil
 end
 
-local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
+local function perform_sync(widget, json_path, sync_cb, is_silent)
   local provider = get_sync_provider(widget)
   if not provider then
     if not is_silent then
@@ -40,20 +40,11 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
         "AnnotationSync: Cloud Storage plugin is not enabled or available."
       )
     end
-    if on_complete then
-      on_complete(false)
-    end
-    return
+    return false
   end
 
   local server = widget.settings.sync_server
-  if server then
-    if widget.ui.cloudstorage then
-      widget.ui.cloudstorage:sync(server, json_path, sync_cb, is_silent)
-    else
-      SyncService.sync(server, json_path, sync_cb, is_silent)
-    end
-  else
+  if not server then
     if not is_silent then
       UIManager:show(InfoMessage:new({
         text = T(gettext("No cloud destination set in settings.")),
@@ -62,43 +53,123 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, on_complete)
     else
       logger.warn("AnnotationSync: No cloud destination set in settings.")
     end
-    if on_complete then
-      on_complete(false)
+    return false
+  end
+
+  local sync_cb_invoked = false
+  local wrapped_cb = function(...)
+    sync_cb_invoked = true
+    if sync_cb then
+      return sync_cb(...)
     end
   end
+
+  local res
+  if widget.ui.cloudstorage and widget.ui.cloudstorage.sync then
+    res = widget.ui.cloudstorage:sync(server, json_path, wrapped_cb, is_silent)
+  else
+    res = SyncService.sync(server, json_path, wrapped_cb, is_silent)
+  end
+  if res ~= nil then
+    return res == true
+  end
+  return sync_cb_invoked
 end
 
-function M.sync_annotations(widget, document, json_path, on_complete, force)
+function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
+  local cleanup_tmp = function()
+    os.remove(json_path)
+    os.remove(json_path .. ".temp")
+    os.remove(json_path .. ".sync")
+  end
   if not isConnected() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
+    cleanup_tmp()
     if on_complete then
       on_complete(false)
     end
     return
   end
-  local sync_cb = function(local_file, cached_file, income_file)
+  local captured_merged_list = nil
+  local sync_cb_called = false
+  local sync_cb_success = false
+
+  local sync_cb = function(local_file, cached_file, income_file, code_response)
+    sync_cb_called = true
+    local actual_cached_file = cached_path or cached_file
     local success, merged_list = annotations.sync_callback(
-      document,
       local_file,
-      cached_file,
+      actual_cached_file,
       income_file,
-      force
+      force,
+      code_response
     )
-    if on_complete then
-      -- This is a hacky to ignore both local and remote empty annotations.
-      -- In the case, the sync won't happen (success == false), but shouldn't be
-      -- treated as failure in the complete callback, i.e. the file shouldn't be
-      -- retried.
-      on_complete((success ~= false) or (merged_list ~= nil), merged_list)
-    end
+    sync_cb_success = success
+    captured_merged_list = merged_list
     return success
   end
-  perform_sync(widget, json_path, sync_cb, not force, on_complete)
+  local ok, sync_success = pcall(function()
+    return perform_sync(widget, json_path, sync_cb, not force)
+  end)
+  if sync_success and cached_path then
+    local tmp_cached = json_path .. ".sync"
+    local f = io.open(tmp_cached, "r")
+    if f then
+      f:close()
+      local ffiutil = require("ffi/util")
+      os.remove(cached_path)
+      ffiutil.copyFile(tmp_cached, cached_path)
+      os.remove(tmp_cached)
+    end
+  end
+  cleanup_tmp()
+  if not ok then
+    if on_complete then
+      on_complete(false)
+    end
+    error(sync_success)
+  end
+
+  if on_complete then
+    -- Successful if sync succeeded, OR if both local and remote were empty
+    -- (in which case sync_cb returned false and skipped upload, but captured_merged_list is empty table)
+    local is_success = (sync_success == true)
+      or (
+        sync_cb_called
+        and sync_cb_success == false
+        and captured_merged_list ~= nil
+      )
+    on_complete(is_success, captured_merged_list)
+  end
 end
 
-function M._sync_settings_callback(widget, local_file, _, income_file)
+function M._sync_settings_callback(
+  widget,
+  local_file,
+  _,
+  income_file,
+  code_response
+)
+  local is_not_found = code_response == 404
+    or code_response == 409
+    or (
+      code_response == nil
+      and (not income_file or not io.open(income_file, "r"))
+    )
+
   local local_data = utils.read_json(local_file) or {}
-  local income_data = utils.read_json(income_file) or {}
+  if is_not_found then
+    util.writeToFile(json.encode(local_data), local_file)
+    return true, local_data
+  end
+
+  local income_data = utils.read_json(income_file)
+  if not income_data then
+    logger.warn(
+      "AnnotationSync: Failed to parse remote settings from server. Aborting sync."
+    )
+    return false
+  end
 
   -- Merge incoming settings from other devices
   for device_id, data in pairs(income_data) do
@@ -112,15 +183,22 @@ function M._sync_settings_callback(widget, local_file, _, income_file)
 end
 
 function M.sync_settings(widget, json_path, on_complete)
-  local sync_cb = function(local_file, cached_file, income_file)
-    local success, local_data =
-      M._sync_settings_callback(widget, local_file, cached_file, income_file)
-    if on_complete then
-      on_complete(success, local_data)
-    end
+  local final_local_data = nil
+  local sync_cb = function(local_file, cached_file, income_file, code_response)
+    local success, local_data = M._sync_settings_callback(
+      widget,
+      local_file,
+      cached_file,
+      income_file,
+      code_response
+    )
+    final_local_data = local_data
     return success
   end
-  perform_sync(widget, json_path, sync_cb, false, on_complete)
+  local sync_success = perform_sync(widget, json_path, sync_cb, false)
+  if on_complete then
+    on_complete(sync_success == true, final_local_data)
+  end
 end
 
 return M
