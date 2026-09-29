@@ -16,7 +16,7 @@ local developer_options = {
           text = gettext("Clear the cache folder?"),
           ok_callback = function()
             local DataStorage = require("datastorage")
-            local cachedir = DataStorage:getDataDir() .. "/cache"
+            local cachedir = DataStorage:getCacheDir()
             if lfs.attributes(cachedir, "mode") == "directory" then
               FFIUtil.purgeDir(cachedir)
             end
