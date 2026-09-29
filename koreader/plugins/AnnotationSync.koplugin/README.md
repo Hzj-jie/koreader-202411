@@ -19,11 +19,6 @@
 - **Trash Bin & Restoration:** Easily view and undelete accidentally removed notes/highlights.
 - **Configurable sync files:** Use hashes or actual filenames for sync storage.
 
-## ⚠️ Warning: KOReader Development Version Required
-
-> [!WARNING]
-> **Reading Progress Sync** and core **Cloud Storage plugin integration** require a **development/nightly version** of KOReader. If you are on a stable release of KOReader, these features will be disabled (greyed out in the menu) and a fallback explanation option will be displayed.
-
 ## 📦 Installation
 
 1. Download or clone this repository.
