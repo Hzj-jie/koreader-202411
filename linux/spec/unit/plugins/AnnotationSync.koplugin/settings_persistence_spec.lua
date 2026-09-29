@@ -160,4 +160,51 @@ describe("AnnotationSync Settings Persistence", function()
       last_item.text_func()
     )
   end)
+
+  it("should open SyncService dialog from Cloud settings menu", function()
+    -- 1. Mock UIManager:show to intercept SyncService instance
+    local opened_syncservice = false
+    local captured_widget = nil
+    local old_show = UIManager.show
+    UIManager.show = function(this, widget)
+      if widget.generateItemTable and widget.title == "Cloud sync settings" then
+        opened_syncservice = true
+        captured_widget = widget
+        return
+      end
+      return old_show(this, widget)
+    end
+
+    -- 2. Generate menu items
+    local menu_items = {}
+    sync_instance:addToMainMenu(menu_items)
+    local settings_menu = menu_items.annotation_sync_plugin.sub_item_table[1]
+
+    local cloud_settings_item
+    for _, item in ipairs(settings_menu.sub_item_table) do
+      if item.text == "Cloud settings" then
+        cloud_settings_item = item
+        break
+      end
+    end
+    assert.is_not_nil(cloud_settings_item)
+
+    -- 3. Trigger callback and verify SyncService dialog is shown
+    cloud_settings_item.callback()
+    assert.is_true(opened_syncservice)
+    assert.is_not_nil(captured_widget)
+
+    -- 4. Verify onConfirm triggers onSyncServiceConfirm
+    local test_server =
+      { url = "http://test-server-cloud-settings", type = "dropbox" }
+    captured_widget.onConfirm(test_server)
+    assert.is_not_nil(sync_instance.settings.sync_server)
+    assert.is_equal(
+      "http://test-server-cloud-settings",
+      sync_instance.settings.sync_server.url
+    )
+
+    -- Cleanup
+    UIManager.show = old_show
+  end)
 end)

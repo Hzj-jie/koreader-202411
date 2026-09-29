@@ -220,7 +220,7 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
     })
   end
 
-  -- Automatically mock cloudstorage if SyncService is available
+  -- Automatically mock SyncService if available
   local ok, SyncService = pcall(require, "apps/cloudstorage/syncservice")
   if ok then
     M.mock_sync_service(SyncService)
