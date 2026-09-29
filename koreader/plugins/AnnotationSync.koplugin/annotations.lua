@@ -55,7 +55,6 @@ end
 
 -- Main orchestration for merging local and remote annotations
 function M.sync_callback(
-  document,
   local_file,
   last_sync_file,
   income_file,
@@ -207,12 +206,11 @@ end
 
 -- Prepares the local sidecar data for syncing
 function M.write_annotations_json(
-  document,
   stored_annotations,
   sdr_dir,
   annotation_filename
 )
-  if not document or not sdr_dir then
+  if not sdr_dir then
     return false
   end
   local annotation_map = M.list_to_map(stored_annotations)

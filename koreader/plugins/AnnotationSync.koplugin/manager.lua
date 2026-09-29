@@ -151,7 +151,6 @@ function SyncManager:syncPendingDocumentsBg()
             local ok, _ = pcall(function()
               remote.sync_annotations(
                 self.plugin,
-                file,
                 json_path,
                 function(success, merged_list)
                   sync_success = success
@@ -251,7 +250,6 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
   local ok, err = pcall(function()
     remote.sync_annotations(
       self.plugin,
-      document,
       json_path,
       function(success, merged_list)
         sync_success = success
@@ -306,7 +304,6 @@ function SyncManager:_writeAnnotationsJSON(document)
 
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
-    document,
     self:getAnnotationsForDocument(document),
     tmp_dir,
     filename

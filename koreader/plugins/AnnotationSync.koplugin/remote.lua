@@ -76,14 +76,7 @@ local function perform_sync(widget, json_path, sync_cb, is_silent)
   return sync_cb_invoked
 end
 
-function M.sync_annotations(
-  widget,
-  document,
-  json_path,
-  on_complete,
-  force,
-  cached_path
-)
+function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
   local cleanup_tmp = function()
     os.remove(json_path)
     os.remove(json_path .. ".temp")
@@ -105,7 +98,6 @@ function M.sync_annotations(
     sync_cb_called = true
     local actual_cached_file = cached_path or cached_file
     local success, merged_list = annotations.sync_callback(
-      document,
       local_file,
       actual_cached_file,
       income_file,
