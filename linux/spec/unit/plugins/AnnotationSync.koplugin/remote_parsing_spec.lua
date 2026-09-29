@@ -21,7 +21,6 @@ describe("Remote Response Parsing (Issue #39)", function()
   end)
 
   local function run_sync_callback(income_content, code_response)
-    local document = { file = "test.epub" }
     local local_path = test_utils.write_mock_json(test_data_dir, "local.json", {
       ["annot_1"] = {
         datetime = "2024-01-01 12:00:00",
@@ -38,7 +37,6 @@ describe("Remote Response Parsing (Issue #39)", function()
     f:close()
 
     return annotations_mod.sync_callback(
-      document,
       local_path,
       last_sync_path,
       income_path,
@@ -128,7 +126,6 @@ describe("Remote Response Parsing (Issue #39)", function()
       os.remove(non_existent_income)
 
       local ok, merged = annotations_mod.sync_callback(
-        document,
         local_path,
         last_sync_path,
         non_existent_income,

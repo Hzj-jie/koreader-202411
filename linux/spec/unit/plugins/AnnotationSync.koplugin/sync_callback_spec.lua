@@ -6,7 +6,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   local local_file = test_data_dir .. "/local.json"
   local last_sync_file = test_data_dir .. "/last_sync.json"
   local income_file = test_data_dir .. "/income.json"
-  local dummy_doc = { file = "dummy.epub" }
 
   setup(function()
     require("commonrequire")
@@ -78,7 +77,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(income_file, { ["1|10|20||100|40"] = h1 })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -117,7 +115,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     write_json(income_file, { ["1|10|20||100|40"] = h_remote })
 
     local success, active = annotations_mod.sync_callback(
-      dummy_doc,
       local_file,
       last_sync_file,
       income_file,
@@ -155,7 +152,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     write_json(income_file, { ["1|10|20||100|40"] = h_remote })
 
     local success, active = annotations_mod.sync_callback(
-      dummy_doc,
       local_file,
       last_sync_file,
       income_file,
@@ -174,7 +170,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     write_json(income_file, {})
 
     local success, active = annotations_mod.sync_callback(
-      dummy_doc,
       local_file,
       last_sync_file,
       income_file,
@@ -197,7 +192,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     write_json(income_file, { ["3|15|25||80|50"] = h_remote })
 
     local success, active = annotations_mod.sync_callback(
-      dummy_doc,
       local_file,
       last_sync_file,
       income_file,
@@ -221,7 +215,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(income_file, { ["1|10|20||100|40"] = h_remote })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -247,7 +240,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     })
 
     local success, active = annotations_mod.sync_callback(
-      dummy_doc,
       local_file,
       last_sync_file,
       income_file,
@@ -274,7 +266,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(income_file, {}) -- remote does not have it (omitted, no tombstone)
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -320,7 +311,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(income_file, { ["1|10|20||100|40"] = h_remote_tombstone })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -355,7 +345,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(income_file, { ["1|10|20||100|40"] = h_remote_tombstone })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -374,7 +363,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       -- income_file intentionally missing (simulating 404 / new book)
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -402,7 +390,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(income_file, {})
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,

@@ -128,7 +128,6 @@ describe("AnnotationSync Bookmark Synchronization", function()
       })
 
     local ok, active = annotations_mod.sync_callback(
-      readerui.document,
       local_file,
       last_sync_file,
       income_file,

@@ -472,13 +472,7 @@ describe("Background Sync Behavior", function()
         local test_remote = require("plugins/AnnotationSync.koplugin/remote")
 
         local dummy_json = test_data_dir .. "/test_silent_provider.json"
-        test_remote.sync_annotations(
-          mock_w,
-          {},
-          dummy_json,
-          function() end,
-          false
-        )
+        test_remote.sync_annotations(mock_w, dummy_json, function() end, false)
 
         assert.is_false(show_called)
         UIManager.show = old_show
@@ -509,7 +503,7 @@ describe("Background Sync Behavior", function()
         }
 
         local dummy_json = test_data_dir .. "/test_silent_dest.json"
-        remote.sync_annotations(mock_w, {}, dummy_json, function() end, false)
+        remote.sync_annotations(mock_w, dummy_json, function() end, false)
 
         assert.is_false(show_called)
         UIManager.show = old_show
@@ -556,7 +550,6 @@ describe("Background Sync Behavior", function()
         local on_complete_merged = nil
         remote.sync_annotations(
           mock_w,
-          { file = "dummy.epub" },
           dummy_json,
           function(success, merged_list)
             table.insert(order, "on_complete")
@@ -608,15 +601,9 @@ describe("Background Sync Behavior", function()
         util.writeToFile("[]", dummy_json)
 
         local on_complete_success = nil
-        remote.sync_annotations(
-          mock_w,
-          { file = "dummy.epub" },
-          dummy_json,
-          function(success)
-            on_complete_success = success
-          end,
-          false
-        )
+        remote.sync_annotations(mock_w, dummy_json, function(success)
+          on_complete_success = success
+        end, false)
 
         assert.is_false(on_complete_success)
 
@@ -641,7 +628,6 @@ describe("Background Sync Behavior", function()
           require("plugins/AnnotationSync.koplugin/annotations")
         local old_sync_cb = annotations.sync_callback
         annotations.sync_callback = function(
-          doc,
           local_f,
           cached_f,
           inc_f,
@@ -665,7 +651,6 @@ describe("Background Sync Behavior", function()
 
         remote.sync_annotations(
           mock_w,
-          { file = "dummy.epub" },
           dummy_json,
           function() end,
           false,
@@ -717,7 +702,6 @@ describe("Background Sync Behavior", function()
 
       remote.sync_annotations(
         mock_w,
-        { file = "dummy.epub" },
         dummy_json,
         function() end,
         false,

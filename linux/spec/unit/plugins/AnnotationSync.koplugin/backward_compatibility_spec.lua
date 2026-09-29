@@ -73,7 +73,7 @@ describe("AnnotationSync Backward Compatibility", function()
 
       -- 4. Execute sync_annotations
       local success_called = false
-      remote.sync_annotations(mock_widget, {}, "dummy.json", function(success)
+      remote.sync_annotations(mock_widget, "dummy.json", function(success)
         success_called = true
       end)
 

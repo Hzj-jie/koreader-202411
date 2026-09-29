@@ -6,7 +6,6 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
   local local_file = test_data_dir .. "/local.json"
   local last_sync_file = test_data_dir .. "/last_sync.json"
   local income_file = test_data_dir .. "/income.json"
-  local dummy_doc = { file = "dummy.pdf" }
 
   setup(function()
     require("commonrequire")
@@ -84,7 +83,6 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(income_file, { [key] = income_ann })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -116,7 +114,6 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(income_file, { [key] = income_ann })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -149,7 +146,6 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(income_file, { [key] = income_bm })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -182,7 +178,6 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(income_file, { [key] = income_ann })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,
@@ -215,7 +210,6 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(income_file, { [key] = income_ann })
 
       local success, active = annotations_mod.sync_callback(
-        dummy_doc,
         local_file,
         last_sync_file,
         income_file,

@@ -162,6 +162,46 @@ describe("AnnotationSync plugin unit tests", function()
     )
 
     it(
+      "should drop invalid entries and retain valid ones during sync_callback",
+      function()
+        local json = require("json")
+        local util = require("util")
+        local local_path = os.tmpname()
+        local last_path = os.tmpname()
+        local income_path = os.tmpname()
+
+        local local_data = {
+          valid_bm = { page = 1, text = "Valid Bookmark" },
+          valid_hl = {
+            page = 2,
+            pos0 = { x = 10, y = 20 },
+            pos1 = { x = 50, y = 20 },
+            text = "Valid Highlight",
+          },
+          bad_no_page = { text = "Corrupt no page" },
+          bad_empty_pos = { page = 3, pos0 = {}, pos1 = {} },
+          bad_non_table = "corrupted string",
+        }
+
+        util.writeToFile(json.encode(local_data), local_path)
+        util.writeToFile("{}", last_path)
+        util.writeToFile("{}", income_path)
+
+        local success, active =
+          annotations.sync_callback(local_path, last_path, income_path, false)
+
+        assert.is_true(success)
+        assert.are.equal(2, #active)
+        assert.are.equal(1, active[1].page)
+        assert.are.equal(2, active[2].page)
+
+        os.remove(local_path)
+        os.remove(last_path)
+        os.remove(income_path)
+      end
+    )
+
+    it(
       "should return annotations sorted ascending by position order from map_to_list",
       function()
         local map = {
@@ -308,13 +348,8 @@ describe("AnnotationSync plugin unit tests", function()
         util.writeToFile(json.encode(data), last_path)
         util.writeToFile(json.encode(data), income_path)
 
-        local success, active = annotations.sync_callback(
-          nil,
-          local_path,
-          last_path,
-          income_path,
-          false
-        )
+        local success, active =
+          annotations.sync_callback(local_path, last_path, income_path, false)
 
         assert.is_true(success)
         assert.are.equal(4, #active)
