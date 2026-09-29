@@ -307,21 +307,6 @@ function M.mock_sync_service(SyncService)
     return result, active
   end
 
-  if current_readerui then
-    if not current_readerui.cloudstorage then
-      current_readerui.cloudstorage = {}
-    end
-    current_readerui.cloudstorage.sync = function(
-      self,
-      server,
-      file_path,
-      sync_cb,
-      is_silent
-    )
-      return SyncService.sync(server, file_path, sync_cb, is_silent)
-    end
-  end
-
   return old_sync
 end
 

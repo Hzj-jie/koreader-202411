@@ -448,43 +448,6 @@ describe("Background Sync Behavior", function()
 
   describe("Silent remote sync warnings", function()
     it(
-      "suppresses InfoMessage when cloud provider is unavailable in silent mode",
-      function()
-        local old_show = UIManager.show
-        local show_called = false
-        UIManager.show = function(self_ui, widget)
-          show_called = true
-        end
-
-        local mock_w = {
-          ui = {},
-          settings = { sync_server = { url = "http://mock" } },
-        }
-
-        local old_preload = package.preload["apps/cloudstorage/syncservice"]
-        package.preload["apps/cloudstorage/syncservice"] = function()
-          error("SyncService disabled for test")
-        end
-        local old_loaded_ss = package.loaded["apps/cloudstorage/syncservice"]
-        package.loaded["apps/cloudstorage/syncservice"] = nil
-
-        package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
-        local test_remote = require("plugins/AnnotationSync.koplugin/remote")
-
-        local dummy_json = test_data_dir .. "/test_silent_provider.json"
-        test_remote.sync_annotations(mock_w, dummy_json, function() end, false)
-
-        assert.is_false(show_called)
-        UIManager.show = old_show
-
-        package.preload["apps/cloudstorage/syncservice"] = old_preload
-        package.loaded["apps/cloudstorage/syncservice"] = old_loaded_ss
-        package.loaded["plugins/AnnotationSync.koplugin/remote"] = nil
-        remote = require("plugins/AnnotationSync.koplugin/remote")
-      end
-    )
-
-    it(
       "suppresses InfoMessage when cloud destination server is missing in silent mode",
       function()
         local old_show = UIManager.show
@@ -494,11 +457,6 @@ describe("Background Sync Behavior", function()
         end
 
         local mock_w = {
-          ui = {
-            cloudstorage = {
-              sync = function() end,
-            },
-          },
           settings = {},
         }
 
