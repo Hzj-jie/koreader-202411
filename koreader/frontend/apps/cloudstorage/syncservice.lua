@@ -192,8 +192,6 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
           server.password,
           income_file_path
         )
-      else
-        assert(false, "Unknown server.type: " .. tostring(server.type))
       end
       if
         code_response ~= 200
@@ -234,8 +232,6 @@ function SyncService.sync(server, file_path, sync_cb, is_silent)
           file_path,
           etag
         )
-      else
-        assert(false, "Unknown server.type: " .. tostring(server.type))
       end
     end
     os.remove(income_file_path)
