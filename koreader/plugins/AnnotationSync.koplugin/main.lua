@@ -20,8 +20,7 @@ local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
-local has_syncservice, SyncService =
-  pcall(require, "apps/cloudstorage/syncservice")
+local SyncService = require("apps/cloudstorage/syncservice")
 
 local manual_sync_description =
   "Sync annotations and bookmarks of the active document."
@@ -122,21 +121,12 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         sub_item_table = {
           {
             text = gettext("Cloud settings"),
-            enabled_func = function()
-              return self.ui.cloudstorage ~= nil or has_syncservice
-            end,
             callback = function()
-              if self.ui.cloudstorage then
-                self.ui.cloudstorage:onShowCloudStorageList(function(server)
-                  self:onSyncServiceConfirm(server)
-                end)
-              elseif has_syncservice then
-                local sync_service = SyncService:new({})
-                sync_service.onConfirm = function(server)
-                  self:onSyncServiceConfirm(server)
-                end
-                UIManager:show(sync_service)
+              local sync_service = SyncService:new({})
+              sync_service.onConfirm = function(server)
+                self:onSyncServiceConfirm(server)
               end
+              UIManager:show(sync_service)
             end,
           },
           {

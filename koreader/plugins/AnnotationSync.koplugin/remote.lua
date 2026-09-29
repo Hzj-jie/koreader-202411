@@ -13,36 +13,11 @@ end
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
-local has_syncservice, SyncService =
-  pcall(require, "apps/cloudstorage/syncservice")
+local SyncService = require("apps/cloudstorage/syncservice")
 
 local M = {}
 
-local function get_sync_provider(widget)
-  if widget.ui.cloudstorage then
-    return widget.ui.cloudstorage
-  elseif has_syncservice then
-    return SyncService
-  end
-  return nil
-end
-
 local function perform_sync(widget, json_path, sync_cb, is_silent)
-  local provider = get_sync_provider(widget)
-  if not provider then
-    if not is_silent then
-      UIManager:show(InfoMessage:new({
-        text = gettext("Cloud Storage plugin is not enabled or available."),
-        timeout = 4,
-      }))
-    else
-      logger.warn(
-        "AnnotationSync: Cloud Storage plugin is not enabled or available."
-      )
-    end
-    return false
-  end
-
   local server = widget.settings.sync_server
   if not server then
     if not is_silent then
@@ -64,12 +39,7 @@ local function perform_sync(widget, json_path, sync_cb, is_silent)
     end
   end
 
-  local res
-  if widget.ui.cloudstorage and widget.ui.cloudstorage.sync then
-    res = widget.ui.cloudstorage:sync(server, json_path, wrapped_cb, is_silent)
-  else
-    res = SyncService.sync(server, json_path, wrapped_cb, is_silent)
-  end
+  local res = SyncService.sync(server, json_path, wrapped_cb, is_silent)
   if res ~= nil then
     return res == true
   end
