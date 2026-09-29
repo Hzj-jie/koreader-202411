@@ -1,8 +1,3 @@
--- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
-package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
-package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
-
-local test_env = require("test_helper")
 local ffi = require("ffi")
 local lfs = require("libs/libkoreader-lfs")
 
@@ -27,6 +22,12 @@ os.exit = function(code, close)
         exit_code = code or 0
     end
 end
+
+-- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
+package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
+package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
+
+local test_env = require("test_helper")
 
 -- WORKER PROCESS EXECUTION MODE
 if os.getenv("KO_TEST_WORKER") == "1" then
@@ -94,33 +95,38 @@ print_verbose("=================================================================
 
 -- Collect spec files to execute
 local spec_files = {}
-if test_file then
-    table.insert(spec_files, test_file)
-else
-    local function find_specs(dir)
-        local attr = lfs.attributes(dir)
-        if attr and attr.mode == "directory" then
-            for file in lfs.dir(dir) do
-                if file ~= "." and file ~= ".." then
-                    local path = dir .. "/" .. file
-                    local f_attr = lfs.attributes(path)
-                    if f_attr then
-                        if f_attr.mode == "directory" then
-                            find_specs(path)
-                        elseif f_attr.mode == "file" and file:match("_spec%.lua$") then
-                            table.insert(spec_files, path)
-                        end
+local function find_specs(dir)
+    local attr = lfs.attributes(dir)
+    if attr and attr.mode == "directory" then
+        for file in lfs.dir(dir) do
+            if file ~= "." and file ~= ".." then
+                local path = dir .. "/" .. file
+                local f_attr = lfs.attributes(path)
+                if f_attr then
+                    if f_attr.mode == "directory" then
+                        find_specs(path)
+                    elseif f_attr.mode == "file" and file:match("_spec%.lua$") then
+                        table.insert(spec_files, path)
                     end
                 end
             end
         end
     end
+end
 
+if test_file then
+    local attr = lfs.attributes(test_file)
+    if attr and attr.mode == "directory" then
+        find_specs(test_file)
+    else
+        table.insert(spec_files, test_file)
+    end
+else
     find_specs("base/spec/unit")
     find_specs("spec/unit")
-
-    table.sort(spec_files)
 end
+
+table.sort(spec_files)
 
 if #spec_files == 0 then
     io.stderr:write("[!] Error: No spec files found.\n")
