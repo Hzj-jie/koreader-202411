@@ -166,6 +166,9 @@ describe("AnnotationSync Settings Persistence", function()
     local opened_syncservice = false
     local captured_widget = nil
     local old_show = UIManager.show
+    finally(function()
+      UIManager.show = old_show
+    end)
     UIManager.show = function(this, widget)
       if widget.generateItemTable and widget.title == "Cloud sync settings" then
         opened_syncservice = true
@@ -203,8 +206,5 @@ describe("AnnotationSync Settings Persistence", function()
       "http://test-server-cloud-settings",
       sync_instance.settings.sync_server.url
     )
-
-    -- Cleanup
-    UIManager.show = old_show
   end)
 end)
