@@ -232,7 +232,6 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     return nil
   end
 
-  UIManager:broadcastEvent("FlushSettings")
   logger.info("AnnotationSync: syncing document:", file)
 
   local json_path = self:_writeAnnotationsJSON(document)
