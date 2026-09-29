@@ -506,9 +506,11 @@ function AnnotationSyncPlugin:manualSync()
     utils.show_msg("A document must be active to do a manual sync.")
     return
   end
-  if self.manager:syncDocument(document, true) then
-    self.manager:recordSyncState("Manual Sync")
-  end
+  NetworkMgr:runWhenOnline(function()
+    if self.manager:syncDocument(document, true) then
+      self.manager:recordSyncState("Manual Sync")
+    end
+  end)
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()
