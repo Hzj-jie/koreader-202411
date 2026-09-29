@@ -219,6 +219,27 @@ describe("Background Sync Behavior", function()
         UIManager.broadcastEvent = old_broadcast
       end
     )
+
+    it(
+      "does not broadcast FlushSettings during single document sync",
+      function()
+        local flush_broadcasted = false
+        local old_broadcast = UIManager.broadcastEvent
+        UIManager.broadcastEvent = function(self, event, ...)
+          local ev_name = type(event) == "string" and event
+            or (event and event.name)
+          if ev_name == "FlushSettings" then
+            flush_broadcasted = true
+          end
+          return old_broadcast(self, event, ...)
+        end
+
+        sync_manager:syncDocument(readerui.document, true)
+
+        assert.is_false(flush_broadcasted)
+        UIManager.broadcastEvent = old_broadcast
+      end
+    )
   end)
 
   describe("BackgroundJobs fork dispatching and execution", function()
