@@ -144,4 +144,53 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
       )
     end
   )
+
+  describe("NetworkMgr runWhenOnline guard in manualSync", function()
+    it("executes sync when network is online", function()
+      local NetworkMgr = require("ui/network/manager")
+      local old_runWhenOnline = NetworkMgr.runWhenOnline
+      local run_online_called = false
+
+      NetworkMgr.runWhenOnline = function(self, callback)
+        run_online_called = true
+        callback()
+        return true
+      end
+
+      local old_syncDoc = sync_instance.manager.syncDocument
+      sync_instance.manager.syncDocument = function()
+        return true
+      end
+
+      sync_instance:manualSync()
+
+      assert.is_true(run_online_called)
+      assert.truthy(sync_instance.settings.last_sync:match("Manual Sync"))
+
+      NetworkMgr.runWhenOnline = old_runWhenOnline
+      sync_instance.manager.syncDocument = old_syncDoc
+    end)
+
+    it(
+      "aborts execution when network is offline and runWhenOnline returns false",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_runWhenOnline = NetworkMgr.runWhenOnline
+        local run_online_called = false
+        local old_last_sync = sync_instance.settings.last_sync
+
+        NetworkMgr.runWhenOnline = function(self, callback)
+          run_online_called = true
+          return false
+        end
+
+        sync_instance:manualSync()
+
+        assert.is_true(run_online_called)
+        assert.are.equal(old_last_sync, sync_instance.settings.last_sync)
+
+        NetworkMgr.runWhenOnline = old_runWhenOnline
+      end
+    )
+  end)
 end)
