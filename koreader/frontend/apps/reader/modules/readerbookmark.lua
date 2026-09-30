@@ -12,6 +12,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local InputDialog = require("ui/widget/inputdialog")
 local LineWidget = require("ui/widget/linewidget")
 local Menu = require("ui/widget/menu")
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local Size = require("ui/size")
 local SpinWidget = require("ui/widget/spinwidget")
 local TextViewer = require("ui/widget/textviewer")
@@ -469,14 +470,17 @@ function ReaderBookmark:removeItemByIndex(index)
 end
 
 function ReaderBookmark:deleteItemNote(item)
-  local index = self:getBookmarkItemIndex(item)
-  self.ui.annotation.annotations[index].note = nil
-  UIManager:broadcastEvent(
-    Event:new(
-      "AnnotationsModified",
-      { item, nb_highlights_added = 1, nb_notes_added = -1 }
+  local ann = self.ui.annotation.annotations[self:getBookmarkItemIndex(item)]
+  if ann.note ~= nil then
+    ann.note = nil
+    ReaderAnnotation.markUpdated(ann)
+    UIManager:broadcastEvent(
+      Event:new(
+        "AnnotationsModified",
+        { ann, nb_highlights_added = 1, nb_notes_added = -1 }
+      )
     )
-  )
+  end
 end
 
 -- navigation
@@ -1398,32 +1402,40 @@ function ReaderBookmark:setBookmarkNote(
             if value == "" then -- blank input deletes note
               value = nil
             end
-            annotation.note = value
-            self.ui.highlight:writePdfAnnotation("content", annotation, value)
-            local type_after = self.getBookmarkType(annotation)
-            if type_before ~= type_after then
-              if type_before == "highlight" then
-                UIManager:broadcastEvent(
-                  Event:new(
-                    "AnnotationsModified",
-                    { annotation, nb_highlights_added = -1, nb_notes_added = 1 }
+            if annotation.note ~= value then
+              annotation.note = value
+              ReaderAnnotation.markUpdated(annotation)
+              self.ui.highlight:writePdfAnnotation("content", annotation, value)
+              local type_after = self.getBookmarkType(annotation)
+              if type_before ~= type_after then
+                if type_before == "highlight" then
+                  UIManager:broadcastEvent(
+                    Event:new(
+                      "AnnotationsModified",
+                      { annotation, nb_highlights_added = -1, nb_notes_added = 1 }
+                    )
                   )
-                )
+                else
+                  UIManager:broadcastEvent(
+                    Event:new(
+                      "AnnotationsModified",
+                      { annotation, nb_highlights_added = 1, nb_notes_added = -1 }
+                    )
+                  )
+                end
               else
                 UIManager:broadcastEvent(
-                  Event:new(
-                    "AnnotationsModified",
-                    { annotation, nb_highlights_added = 1, nb_notes_added = -1 }
-                  )
+                  Event:new("AnnotationsModified", { annotation })
                 )
+              end
+              if item then
+                item.note = value
+                item.type = type_after
+                item.text = self:getBookmarkItemText(item)
+                item.datetime_updated = annotation.datetime_updated
               end
             end
             UIManager:close(input_dialog)
-            if item then
-              item.note = value
-              item.type = type_after
-              item.text = self:getBookmarkItemText(item)
-            end
             caller_callback()
           end,
         },
@@ -1498,12 +1510,17 @@ function ReaderBookmark:setHighlightedText(item_or_index, text, caller_callback)
       ).text
     end
   end
-  annotation.text = text
-  annotation.text_edited = edited
-  if item then
-    item.text_orig = text
-    item.text = self:getBookmarkItemText(item)
-    item.text_edited = edited
+  if annotation.text ~= text or annotation.text_edited ~= edited then
+    annotation.text = text
+    annotation.text_edited = edited
+    ReaderAnnotation.markUpdated(annotation)
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", { annotation }))
+    if item then
+      item.text_orig = text
+      item.text = self:getBookmarkItemText(item)
+      item.text_edited = edited
+      item.datetime_updated = annotation.datetime_updated
+    end
   end
   caller_callback()
 end
