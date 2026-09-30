@@ -369,7 +369,25 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         false
       )
 
-      assert.is_false(success)
+      assert.is_nil(success)
+      assert.are.equal(0, #active)
+    end
+  )
+
+  it(
+    "returns nil from sync_callback when remote exists as empty table and local is empty",
+    function()
+      write_json(local_file, {})
+      write_json(income_file, {})
+
+      local success, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
+        false
+      )
+
+      assert.is_nil(success)
       assert.are.equal(0, #active)
     end
   )

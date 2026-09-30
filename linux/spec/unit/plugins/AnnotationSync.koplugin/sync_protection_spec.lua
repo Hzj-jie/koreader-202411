@@ -67,11 +67,14 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       -- 3. Mock sync to check what's being sent
       local last_uploaded_data
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local result = callback(local_path, local_path, local_path)
         local f = io.open(local_path, "r")
         last_uploaded_data = json.decode(f:read("*all"))
         f:close()
+        if finish_cb then
+          finish_cb(result)
+        end
         return result
       end
 
@@ -243,7 +246,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       fc:close()
 
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local income_path = test_data_dir .. "/income_partial.json"
 
         local f = io.open(income_path, "w")
@@ -257,6 +260,9 @@ describe("AnnotationSync Sync Protection & Regressions", function()
           ffiutil.copyFile(local_path, cached_dest)
         end
         os.remove(income_path)
+        if finish_cb then
+          finish_cb(result)
+        end
         return result
       end
 
@@ -310,7 +316,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     fc:close()
 
     local old_sync = SyncService.sync
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local income_path = test_data_dir .. "/income_pdf.json"
 
       local f = io.open(income_path, "w")
@@ -324,6 +330,9 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         ffiutil.copyFile(local_path, cached_dest)
       end
       os.remove(income_path)
+      if finish_cb then
+        finish_cb(result)
+      end
       return result
     end
 

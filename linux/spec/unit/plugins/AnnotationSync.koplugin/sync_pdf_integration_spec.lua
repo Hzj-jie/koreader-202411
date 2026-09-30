@@ -113,11 +113,14 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_disjoint_pdf.json",
         { [key2] = ann2 }
       )
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
         callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(true)
+        end
         return true
       end
 
@@ -150,11 +153,14 @@ describe("AnnotationSync PDF Core Integration", function()
           { [key_r] = remote_ann }
         )
 
-        SyncService.sync = function(server, local_path, callback, upload_only)
+        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
           local cached_dest = local_path .. ".sync"
           callback(local_path, cached_dest, income_path)
           local ffiutil = require("ffi/util")
           ffiutil.copyFile(local_path, cached_dest)
+          if finish_cb then
+            finish_cb(true)
+          end
           return true
         end
 
@@ -192,11 +198,14 @@ describe("AnnotationSync PDF Core Integration", function()
           { [key_r] = remote_ann }
         )
 
-        SyncService.sync = function(server, local_path, callback, upload_only)
+        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
           local cached_dest = local_path .. ".sync"
           callback(local_path, cached_dest, income_path)
           local ffiutil = require("ffi/util")
           ffiutil.copyFile(local_path, cached_dest)
+          if finish_cb then
+            finish_cb(true)
+          end
           return true
         end
 
@@ -231,11 +240,14 @@ describe("AnnotationSync PDF Core Integration", function()
       fc:write(json.encode({ [key] = ann_r }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
         callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(true)
+        end
         return true
       end
 
@@ -269,11 +281,14 @@ describe("AnnotationSync PDF Core Integration", function()
       fc:write(json.encode({ [key] = ann }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
         callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(true)
+        end
         return true
       end
 

@@ -17,7 +17,7 @@ local SyncService = require("apps/cloudstorage/syncservice")
 
 local M = {}
 
-local function perform_sync(widget, json_path, sync_cb, is_silent)
+local function perform_sync(widget, json_path, sync_cb, is_silent, finish_cb)
   local server = widget.settings.sync_server
   if not server then
     if not is_silent then
@@ -28,22 +28,11 @@ local function perform_sync(widget, json_path, sync_cb, is_silent)
     else
       logger.warn("AnnotationSync: No cloud destination set in settings.")
     end
-    return false
+    finish_cb(false)
+    return
   end
 
-  local sync_cb_invoked = false
-  local wrapped_cb = function(...)
-    sync_cb_invoked = true
-    if sync_cb then
-      return sync_cb(...)
-    end
-  end
-
-  local res = SyncService.sync(server, json_path, wrapped_cb, is_silent)
-  if res ~= nil then
-    return res == true
-  end
-  return sync_cb_invoked
+  SyncService.sync(server, json_path, sync_cb, is_silent, finish_cb)
 end
 
 function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
@@ -61,11 +50,8 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     return
   end
   local captured_merged_list = nil
-  local sync_cb_called = false
-  local sync_cb_success = false
 
   local sync_cb = function(local_file, cached_file, income_file, code_response)
-    sync_cb_called = true
     local actual_cached_file = cached_path or cached_file
     local success, merged_list = annotations.sync_callback(
       local_file,
@@ -74,14 +60,19 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
       force,
       code_response
     )
-    sync_cb_success = success
     captured_merged_list = merged_list
     return success
   end
-  local ok, sync_success = pcall(function()
-    return perform_sync(widget, json_path, sync_cb, not force)
+  local finished, uploaded = false, nil
+  local ok, err = pcall(function()
+    perform_sync(widget, json_path, sync_cb, not force, function(result)
+      finished, uploaded = true, result
+    end)
+    -- The isOnline() gate makes SyncService run exec before returning. A
+    -- postponed exec would merge json_path after cleanup_tmp() removed it.
+    assert(finished, "AnnotationSync: SyncService postponed the sync")
   end)
-  if sync_success and cached_path then
+  if uploaded and cached_path then
     local tmp_cached = json_path .. ".sync"
     local f = io.open(tmp_cached, "r")
     if f then
@@ -97,19 +88,12 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     if on_complete then
       on_complete(false)
     end
-    error(sync_success)
+    error(err)
   end
 
   if on_complete then
-    -- Successful if sync succeeded, OR if both local and remote were empty
-    -- (in which case sync_cb returned false and skipped upload, but captured_merged_list is empty table)
-    local is_success = (sync_success == true)
-      or (
-        sync_cb_called
-        and sync_cb_success == false
-        and captured_merged_list ~= nil
-      )
-    on_complete(is_success, captured_merged_list)
+    -- nil: nothing to upload (e.g. both sides empty), still in sync.
+    on_complete(uploaded ~= false, captured_merged_list)
   end
 end
 
@@ -165,10 +149,11 @@ function M.sync_settings(widget, json_path, on_complete)
     final_local_data = local_data
     return success
   end
-  local sync_success = perform_sync(widget, json_path, sync_cb, false)
-  if on_complete then
-    on_complete(sync_success == true, final_local_data)
-  end
+  perform_sync(widget, json_path, sync_cb, false, function(uploaded)
+    if on_complete then
+      on_complete(uploaded ~= false, final_local_data)
+    end
+  end)
 end
 
 return M

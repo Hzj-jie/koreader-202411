@@ -403,4 +403,57 @@ describe("VocabBuilder plugin", function()
       end
     )
   end)
+
+  describe("Sync finish_cb and reloadItems contract (N5)", function()
+    it(
+      "Case 21: footer manual sync reloads only after DB.onSync has merged (D6)",
+      function()
+        -- vocabbuilder requires this path: a separate package.loaded entry
+        local SyncService =
+          require("frontend/apps/cloudstorage/syncservice")
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        local old_sync, old_on_sync, old_next_tick =
+          SyncService.sync, DB.onSync, UIManager.nextTick
+        finally(function()
+          SyncService.sync, DB.onSync, UIManager.nextTick =
+            old_sync, old_on_sync, old_next_tick
+        end)
+
+        local order, queued_run = {}, nil
+        SyncService.sync = function(_, path, sync_cb, _, finish_cb)
+          table.insert(order, "sync()")
+          queued_run = function()
+            finish_cb(sync_cb(path, path .. ".sync", path .. ".temp"))
+          end
+        end
+        DB.onSync = function()
+          table.insert(order, "DB.onSync")
+          return true
+        end
+        UIManager.nextTick = function(_, f)
+          f()
+        end
+
+        settings.server =
+          { type = "dropbox", url = "/koreader", password = "t", address = "" }
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+        local widget = vb.widget
+        local real_reload = widget.reloadItems
+        widget.reloadItems = function(self)
+          table.insert(order, "reloadItems")
+          return real_reload(self)
+        end
+
+        widget.footer_sync.callback() -- production: manual-sync branch
+        assert.are.same({ "sync()" }, order) -- postponed: no reload yet
+
+        queued_run()
+        assert.are.same({ "sync()", "DB.onSync", "reloadItems" }, order)
+        UIManager:close(widget)
+      end
+    )
+  end)
 end)

@@ -75,9 +75,13 @@ describe("AnnotationSync Automation & Settings", function()
       test_utils.emulate_highlight(readerui, highlight_db[1])
 
       local captured_path
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         captured_path = local_path
-        return callback(local_path, local_path, local_path)
+        local res = callback(local_path, local_path, local_path)
+        if finish_cb then
+          finish_cb(res)
+        end
+        return res
       end
 
       sync_instance.settings.use_filename = false
@@ -105,9 +109,12 @@ describe("AnnotationSync Automation & Settings", function()
         local initial_jobs_count = #jobs
 
         local sync_triggered = false
-        SyncService.sync = function(server, local_path, callback, upload_only)
+        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
           sync_triggered = true
-          callback(local_path, local_path, local_path)
+          local res = callback(local_path, local_path, local_path)
+          if finish_cb then
+            finish_cb(res)
+          end
         end
 
         sync_instance:onSuspend()
@@ -141,9 +148,12 @@ describe("AnnotationSync Automation & Settings", function()
       sync_instance.manager:addToChangedDocumentsFile(doc2)
 
       local synced_files = {}
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         table.insert(synced_files, local_path)
-        callback(local_path, local_path, local_path)
+        local res = callback(local_path, local_path, local_path)
+        if finish_cb then
+          finish_cb(res)
+        end
       end
 
       sync_instance.manager:syncAllChangedDocuments()

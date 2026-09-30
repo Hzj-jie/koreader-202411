@@ -1,7 +1,7 @@
 describe("AnnotationSync Core Integration", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util, annotations_mod
-  local readerui, sync_instance
+  local readerui, sync_instance, real_sync
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_integration_tmp"
   local old_getDataDir
@@ -17,6 +17,7 @@ describe("AnnotationSync Core Integration", function()
     ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
+    real_sync = SyncService.sync
     json = require("json")
     util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
@@ -145,11 +146,14 @@ describe("AnnotationSync Core Integration", function()
         { [key2] = ann2 }
       )
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
-        callback(local_path, cached_dest, income_path)
+        local success = callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(success)
+        end
         return true
       end
 
@@ -178,11 +182,14 @@ describe("AnnotationSync Core Integration", function()
       fc:write(json.encode({ [key] = ann_r }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
-        callback(local_path, cached_dest, income_path)
+        local success = callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(success)
+        end
         return true
       end
 
@@ -212,11 +219,14 @@ describe("AnnotationSync Core Integration", function()
       fc:write(json.encode({ [key] = ann_r }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
-        callback(local_path, cached_dest, income_path)
+        local success = callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(success)
+        end
         return true
       end
 
@@ -248,11 +258,14 @@ describe("AnnotationSync Core Integration", function()
       fc:write(json.encode({ [key] = ann }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
-        callback(local_path, cached_dest, income_path)
+        local success = callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(success)
+        end
         return true
       end
 
@@ -262,7 +275,7 @@ describe("AnnotationSync Core Integration", function()
     end)
 
     it(
-      "should return false from sync_callback when remote file is missing and local file is empty",
+      "should return nil from sync_callback when remote file is missing and local file is empty",
       function()
         local local_path =
           test_utils.write_mock_json(test_data_dir, "empty_local.json", {})
@@ -270,7 +283,7 @@ describe("AnnotationSync Core Integration", function()
           test_utils.write_mock_json(test_data_dir, "empty_last.json", {})
         local res =
           annotations_mod.sync_callback(local_path, last_sync_path, nil, false)
-        assert.is_false(res)
+        assert.is_nil(res)
       end
     )
 
@@ -291,7 +304,7 @@ describe("AnnotationSync Core Integration", function()
         }
 
         local old_sync = SyncService.sync
-        SyncService.sync = function(server, local_path, callback, is_silent)
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           local income_file = local_path .. ".temp"
           local f = io.open(income_file, "w")
           f:write(json.encode(dropbox_error))
@@ -306,6 +319,9 @@ describe("AnnotationSync Core Integration", function()
 
           local success = callback(local_path, cached_file, income_file, 409)
           os.remove(income_file)
+          if finish_cb then
+            finish_cb(success)
+          end
           return success
         end
 
@@ -334,11 +350,14 @@ describe("AnnotationSync Core Integration", function()
       )
 
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
+      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         local cached_dest = local_path .. ".sync"
-        callback(local_path, cached_dest, local_path)
+        local success = callback(local_path, cached_dest, local_path)
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(success)
+        end
         return true
       end
 
@@ -354,4 +373,171 @@ describe("AnnotationSync Core Integration", function()
       assert.is_equal(0, count, "Document should have been successfully synced")
     end)
   end)
+
+  describe(
+    "End-to-end sync with real SyncService.sync and mocked dropboxapi (D1-D3)",
+    function()
+      local ffiutil = require("ffi/util")
+      local DocSettings = require("frontend/docsettings")
+      local remote_store, upload_code, uploads, shown
+      local old_show, old_sync
+
+      local function basename(p)
+        return p:match("([^/]+)$")
+      end
+
+      local function hl(n, text, ts)
+        local p0 = "/body/DocFragment[3]/body/p[" .. n .. "]/text().0"
+        local p1 = "/body/DocFragment[3]/body/p[" .. n .. "]/text().20"
+        return {
+          page = p0,
+          pos0 = p0,
+          pos1 = p1,
+          text = text,
+          datetime = ts,
+          drawer = "lighten",
+          color = "yellow",
+        }
+      end
+
+      local function new_doc(tag)
+        local doc = test_data_dir .. "/" .. tag .. ".epub"
+        ffiutil.copyFile("spec/front/unit/data/juliet.epub", doc)
+        return doc, sync_instance.manager:_getAnnotationFilename(doc)
+      end
+
+      local function is_pending(file)
+        local _, docs = sync_instance.manager:getPendingChangedDocuments()
+        return docs and docs[file] == true
+      end
+
+      before_each(function()
+        remote_store, upload_code, uploads, shown = {}, 200, {}, {}
+        old_show = UIManager.show
+        old_sync = SyncService.sync
+        SyncService.sync = real_sync
+
+        package.loaded["apps/cloudstorage/dropboxapi"] = {
+          downloadFile = function(_, url, _token, dest)
+            local content = remote_store[basename(url)]
+            if not content then
+              return 409
+            end
+            util.writeToFile(content, dest)
+            return 200, "etag-1"
+          end,
+          uploadFile = function(
+            _,
+            _url_base,
+            _token,
+            file_path,
+            _etag,
+            _overwrite
+          )
+            if upload_code ~= 200 then
+              return upload_code
+            end
+            local f = io.open(file_path, "r")
+            local content = f:read("*a")
+            f:close()
+            remote_store[basename(file_path)] = content
+            table.insert(uploads, basename(file_path))
+            return 200
+          end,
+        }
+
+        UIManager.show = function(self, w, ...)
+          if type(w) == "table" and type(w.text) == "string" then
+            table.insert(shown, w.text)
+            return
+          end
+          return old_show(self, w, ...)
+        end
+
+        sync_instance.settings.sync_server = {
+          type = "dropbox",
+          url = "/koreader",
+          password = "token",
+          address = "",
+        }
+      end)
+
+      after_each(function()
+        UIManager.show = old_show
+        SyncService.sync = old_sync
+        package.loaded["apps/cloudstorage/dropboxapi"] = nil
+      end)
+
+      it(
+        "Case 22: manual sync, upload returns 500 -> syncDocument returns false, doc stays pending, merge base unchanged, message shown (D1)",
+        function()
+          local doc, name = new_doc("d1")
+          local A = hl(1, "A_local", "2026-01-01 10:00:00")
+          local R = hl(2, "R_remote", "2026-01-02 10:00:00")
+          local ds = DocSettings:open(doc)
+          ds:save("annotations", { A })
+          ds:flush()
+          local base = json.encode(annotations_mod.list_to_map({ A }))
+          util.writeToFile(base, sync_instance.manager:getSyncCachePath(doc))
+          remote_store[name] =
+            json.encode(annotations_mod.list_to_map({ A, R }))
+          sync_instance.manager:addToChangedDocumentsFile(doc)
+          upload_code = 500
+
+          local ret = sync_instance.manager:syncDocument(doc, true)
+          local f = io.open(sync_instance.manager:getSyncCachePath(doc), "r")
+          local base_after = f:read("*a")
+          f:close()
+
+          assert.is_false(ret)
+          assert.is_true(is_pending(doc))
+          assert.are.equal(base, base_after)
+          assert.is_true(#shown > 0)
+        end
+      )
+
+      it(
+        "Case 23: manual sync with nothing to upload -> success, no longer pending, 0 uploads, no message (D2)",
+        function()
+          local doc, name = new_doc("d2")
+          sync_instance.manager:addToChangedDocumentsFile(doc)
+
+          -- D2a: remote returns 409
+          local ret = sync_instance.manager:syncDocument(doc, true)
+          assert.is_true(ret)
+          assert.is_false(is_pending(doc))
+          assert.are.equal(0, #uploads)
+          assert.are.equal(0, #shown)
+
+          -- D2b: remote returns empty table {}
+          remote_store[name] = "{}"
+          sync_instance.manager:addToChangedDocumentsFile(doc)
+          ret = sync_instance.manager:syncDocument(doc, true)
+          assert.is_true(ret)
+          assert.is_false(is_pending(doc))
+          assert.are.equal(0, #uploads)
+          assert.are.equal(0, #shown)
+        end
+      )
+
+      it(
+        "Case 24: remote file isn't JSON -> false, stays pending, generic message (D3)",
+        function()
+          local doc, name = new_doc("d3")
+          local A = hl(1, "A_local", "2026-01-01 10:00:00")
+          local ds = DocSettings:open(doc)
+          ds:save("annotations", { A })
+          ds:flush()
+          remote_store[name] = "<html>500 Internal Server Error</html>"
+          sync_instance.manager:addToChangedDocumentsFile(doc)
+
+          local ret = sync_instance.manager:syncDocument(doc, true)
+          assert.is_false(ret)
+          assert.is_true(is_pending(doc))
+          assert.is_true(#shown > 0)
+          assert.are.equal(0, #uploads)
+        end
+      )
+    end
+  )
 end)

@@ -520,5 +520,220 @@ describe("SyncService", function()
         assert.is_true(mock_ffiutil.copyFile_called)
       end)
     end)
+
+    describe("exec exits and finish_cb contract (N5)", function()
+      local server
+      before_each(function()
+        server = {
+          type = "dropbox",
+          url = "/books",
+          password = "mypasstoken",
+          address = "",
+        }
+      end)
+
+      it("Case 1: Wrong server type -> false, shows 'Wrong server type.'", function()
+        local wrong_server = { type = "unknown" }
+        local finish_res
+        local ret = SyncService.sync(wrong_server, "/path/to/file", function() end, false, function(res)
+          finish_res = res
+        end)
+        assert.is_nil(ret)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("Wrong server type.", mock_uimanager.shown_widget.text)
+      end)
+
+      it("Case 2: Download fails (e.g. 500) -> false, generic message, sync_cb not called", function()
+        mock_dropbox_api.download_code = 500
+        local cb_called = false
+        local finish_res
+        local ret = SyncService.sync(server, "/path/to/book.epub", function()
+          cb_called = true
+          return true
+        end, false, function(res)
+          finish_res = res
+        end)
+        assert.is_nil(ret)
+        mock_network_mgr.cb()
+        assert.is_false(cb_called)
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+      end)
+
+      it("Case 3: Dropbox 409 or 404 on download -> sync_cb is called with code, file treated as missing", function()
+        for _, code in ipairs({ 409, 404 }) do
+          mock_dropbox_api.download_code = code
+          local cb_called = false
+          local received_code
+          local finish_res
+          SyncService.sync(server, "/path/to/book.epub", function(file, cached, income, resp_code)
+            cb_called = true
+            received_code = resp_code
+            return nil
+          end, false, function(res)
+            finish_res = res
+          end)
+          mock_network_mgr.cb()
+          assert.is_true(cb_called)
+          assert.are.equal(code, received_code)
+          assert.is_nil(finish_res)
+        end
+      end)
+
+      it("Case 4: sync_cb raises -> false, generic message, income temp file removed", function()
+        local finish_res
+        SyncService.sync(server, "/path/to/book.epub", function()
+          error("simulated callback crash")
+        end, false, function(res)
+          finish_res = res
+        end)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+        local removed_income = false
+        for _, f in ipairs(mock_os.removed_files) do
+          if f == "/tmp/book.epub.temp" then
+            removed_income = true
+          end
+        end
+        assert.is_true(removed_income)
+      end)
+
+      it("Case 5: sync_cb returns nil -> nil, no message, no upload, income temp file removed", function()
+        local finish_res = "unset"
+        SyncService.sync(server, "/path/to/book.epub", function()
+          return nil
+        end, false, function(res)
+          finish_res = res
+        end)
+        mock_network_mgr.cb()
+        assert.is_nil(finish_res)
+        assert.is_nil(mock_uimanager.shown_widget)
+        assert.is_false(mock_dropbox_api.uploadFile_called)
+        local removed_income = false
+        for _, f in ipairs(mock_os.removed_files) do
+          if f == "/tmp/book.epub.temp" then
+            removed_income = true
+          end
+        end
+        assert.is_true(removed_income)
+      end)
+
+      it("Case 6: sync_cb returns false -> false, generic message, no upload", function()
+        local finish_res
+        SyncService.sync(server, "/path/to/book.epub", function()
+          return false
+        end, false, function(res)
+          finish_res = res
+        end)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+        assert.is_false(mock_dropbox_api.uploadFile_called)
+      end)
+
+      it("Case 7: Upload 2xx -> true, 'Successfully synchronized.' shown, .sync copy written", function()
+        mock_dropbox_api.upload_code = 200
+        local finish_res
+        local ret = SyncService.sync(server, "/path/to/book.epub", function()
+          return true
+        end, false, function(res)
+          finish_res = res
+        end)
+        assert.is_nil(ret)
+        mock_network_mgr.cb()
+        assert.is_true(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("Successfully synchronized.", mock_uimanager.shown_widget.text)
+        assert.is_true(mock_ffiutil.copyFile_called)
+        assert.are.equal("/path/to/book.epub.sync", mock_ffiutil.copy_dest)
+      end)
+
+      it("Case 8: Upload fails -> false, generic message, .sync untouched", function()
+        mock_dropbox_api.upload_code = 500
+        local finish_res
+        SyncService.sync(server, "/path/to/book.epub", function()
+          return true
+        end, false, function(res)
+          finish_res = res
+        end)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+        assert.is_false(mock_ffiutil.copyFile_called)
+      end)
+
+      it("Case 9: Case 6 or 8 with is_silent = true -> still false, no message", function()
+        -- Case 6 silent
+        local finish_res6
+        SyncService.sync(server, "/path/to/book.epub", function()
+          return false
+        end, true, function(res)
+          finish_res6 = res
+        end)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res6)
+        assert.is_nil(mock_uimanager.shown_widget)
+
+        -- Case 8 silent
+        mock_dropbox_api.upload_code = 500
+        local finish_res8
+        SyncService.sync(server, "/path/to/book.epub", function()
+          return true
+        end, true, function(res)
+          finish_res8 = res
+        end)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res8)
+        assert.is_nil(mock_uimanager.shown_widget)
+      end)
+
+      it("Case 10: No finish_cb passed -> nothing errors, so the statistics caller still works", function()
+        assert.has_no.errors(function()
+          SyncService.sync(server, "/path/to/book.epub", function()
+            return true
+          end, false)
+          mock_network_mgr.cb()
+        end)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("Successfully synchronized.", mock_uimanager.shown_widget.text)
+      end)
+
+      it("Case 11: Postponed (runWhenOnline / runWhenConnected queue callback) -> finish_cb runs once when callback fires", function()
+        local finish_count = 0
+        local finish_res = nil
+        local ret = SyncService.sync(server, "/path/to/book.epub", function()
+          return true
+        end, false, function(res)
+          finish_count = finish_count + 1
+          finish_res = res
+        end)
+        assert.is_nil(ret)
+        assert.are.equal(0, finish_count)
+        assert.is_nil(finish_res)
+
+        mock_network_mgr.cb()
+        assert.are.equal(1, finish_count)
+        assert.is_true(finish_res)
+      end)
+    end)
   end)
 end)

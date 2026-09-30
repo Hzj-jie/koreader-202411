@@ -85,9 +85,12 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 2. Mock OFFLINE server (callback never called)
       local sync_calls = 0
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         sync_calls = sync_calls + 1
         -- OFFLINE: we don't call the callback
+        if finish_cb then
+          finish_cb(false)
+        end
         return
       end
 
@@ -106,8 +109,12 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       assert.truthy(changed_docs[doc_pdf])
 
       -- 5. Mock ONLINE server
-      SyncService.sync = function(server, local_path, callback, upload_only)
-        return callback(local_path, local_path, local_path)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+        local res = callback(local_path, local_path, local_path)
+        if finish_cb then
+          finish_cb(res)
+        end
+        return res
       end
 
       -- 6. Trigger Sync All again
@@ -183,7 +190,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       local epub_filename =
         sync_instance.manager:_getAnnotationFilename(doc_epub)
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local income = local_path:find(epub_filename, 1, true) and income_epub
           or income_pdf
         local cached_dest = local_path .. ".sync"
@@ -191,6 +198,9 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         if result then
           local ffiutil = require("ffi/util")
           ffiutil.copyFile(local_path, cached_dest)
+        end
+        if finish_cb then
+          finish_cb(result)
         end
         return result
       end

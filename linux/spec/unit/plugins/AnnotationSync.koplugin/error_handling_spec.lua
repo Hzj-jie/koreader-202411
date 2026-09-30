@@ -67,8 +67,11 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
 
       -- Mock SyncService.sync to simulate a failure (callback never called)
-      SyncService.sync = function(server, local_path, sync_cb, is_silent)
+      SyncService.sync = function(server, local_path, sync_cb, is_silent, finish_cb)
         -- Failure: callback is not called
+        if finish_cb then
+          finish_cb(false)
+        end
         return
       end
 
@@ -89,10 +92,13 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
         )
 
         local upload_called = false
-        SyncService.sync = function(server, local_path, callback, upload_only)
+        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
           local success = callback(local_path, local_path, income_file)
           if success then
             upload_called = true
+          end
+          if finish_cb then
+            finish_cb(success)
           end
           return success
         end
@@ -107,11 +113,14 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     )
 
     it("updates last_sync timestamp when manualSync succeeds", function()
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
         local success = callback(local_path, cached_dest, local_path)
         if success then
           require("ffi/util").copyFile(local_path, cached_dest)
+        end
+        if finish_cb then
+          finish_cb(true)
         end
         return true
       end
@@ -144,12 +153,15 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle concurrent sync requests safely", function()
       local call_count = 0
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
+      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         call_count = call_count + 1
         local result = callback(local_path, local_path, local_path)
         local ffiutil = require("ffi/util")
         local cached_dest = local_path .. ".sync"
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(result)
+        end
         return result
       end
 

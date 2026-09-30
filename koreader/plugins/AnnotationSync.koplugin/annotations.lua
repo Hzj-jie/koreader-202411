@@ -109,7 +109,7 @@ function M.sync_callback(
   if is_not_found then
     -- No remote file found, early return to prefer anything locally.
     if #local_list == 0 then
-      return false, {}
+      return nil, {}
     end
 
     util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
@@ -197,7 +197,7 @@ function M.sync_callback(
     logger.dbg(
       "AnnotationSync: remote file does not exist and local file is empty, skipping push to server"
     )
-    return false, active
+    return nil, active
   end
 
   util.writeToFile(json.encode(M.list_to_map(merged)), local_file)

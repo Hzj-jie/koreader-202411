@@ -110,7 +110,7 @@ return {
 
       local SyncService = require("apps/cloudstorage/syncservice")
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
+      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         sync_called = true
         -- Create a fake remote/income file with another device's settings
         local income_path = local_path .. ".income"
@@ -136,6 +136,9 @@ return {
         fl:close()
 
         os.remove(income_path)
+        if finish_cb then
+          finish_cb(true)
+        end
         return true
       end
 
@@ -183,7 +186,7 @@ return {
       local sync_called = false
       local SyncService = require("apps/cloudstorage/syncservice")
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
+      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         sync_called = true
         local income_path = local_path .. ".income"
         -- Simulation: OtherDevice has differing auto_standby_timeout_seconds (50 instead of 100)
@@ -205,6 +208,9 @@ return {
         assert.is_true(success)
 
         os.remove(income_path)
+        if finish_cb then
+          finish_cb(true)
+        end
         return true
       end
 
@@ -257,4 +263,92 @@ return {
       assert.is_equal(50, data.auto_standby_timeout_seconds)
     end
   )
+
+  describe("remote.sync_settings finish_cb contract (N5)", function()
+    local SyncService = require("apps/cloudstorage/syncservice")
+    local remote = require("plugins/AnnotationSync.koplugin/remote")
+    local old_sync
+
+    before_each(function()
+      old_sync = SyncService.sync
+    end)
+
+    after_each(function()
+      SyncService.sync = old_sync
+    end)
+
+    it(
+      "Case 18: sync_settings: on_complete is called only from finish_cb; postponed calls it later",
+      function()
+        local dummy_json = test_data_dir .. "/test_settings_case18.json"
+        util.writeToFile("{}", dummy_json)
+
+        local queued_finish = nil
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+          queued_finish = function()
+            callback(
+              local_path,
+              local_path .. ".last_sync",
+              local_path .. ".income"
+            )
+            if finish_cb then
+              finish_cb(true)
+            end
+          end
+        end
+
+        local test_server = { url = "http://mock", type = "dropbox" }
+        sync_instance:onSyncServiceConfirm(test_server)
+
+        local on_complete_called = false
+        local on_complete_success = nil
+        remote.sync_settings(sync_instance, dummy_json, function(success)
+          on_complete_called = true
+          on_complete_success = success
+        end)
+
+        -- When sync_settings returns, on_complete has NOT been called yet
+        assert.is_false(on_complete_called)
+
+        -- When queued callback fires later:
+        queued_finish()
+        assert.is_true(on_complete_called)
+        assert.is_true(on_complete_success)
+
+        os.remove(dummy_json)
+      end
+    )
+
+    it(
+      "Case 19: sync_settings with finish_cb(nil) -> on_complete(true, data)",
+      function()
+        local dummy_json = test_data_dir .. "/test_settings_case19.json"
+        local sample_settings = { reader = { font_size = 20 } }
+        util.writeToFile(json.encode(sample_settings), dummy_json)
+
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+          callback(local_path, local_path .. ".last_sync", nil, 404)
+          if finish_cb then
+            finish_cb(nil)
+          end
+        end
+
+        local test_server = { url = "http://mock", type = "dropbox" }
+        sync_instance:onSyncServiceConfirm(test_server)
+
+        local on_complete_success = nil
+        local on_complete_data = nil
+        remote.sync_settings(sync_instance, dummy_json, function(success, data)
+          on_complete_success = success
+          on_complete_data = data
+        end)
+
+        assert.is_true(on_complete_success)
+        assert.is_table(on_complete_data)
+        assert.are.same(sample_settings, on_complete_data)
+
+        os.remove(dummy_json)
+      end
+    )
+  end)
 end)

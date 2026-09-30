@@ -301,9 +301,13 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
         local sync_called_silent = nil
-        SyncService.sync = function(server, local_path, callback, is_silent)
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           sync_called_silent = is_silent
-          return callback(local_path, local_path, local_path)
+          local res = callback(local_path, local_path, local_path)
+          if finish_cb then
+            finish_cb(res)
+          end
+          return res
         end
 
         local old_show = UIManager.show
@@ -475,10 +479,13 @@ describe("Background Sync Behavior", function()
       function()
         local order = {}
         local old_sync = SyncService.sync
-        SyncService.sync = function(server, local_path, callback, silent)
+        SyncService.sync = function(server, local_path, callback, silent, finish_cb)
           table.insert(order, "sync_start")
           local cb_res = callback(local_path, local_path, local_path, 200)
           table.insert(order, "upload")
+          if finish_cb then
+            finish_cb(true)
+          end
           return true
         end
 
@@ -533,8 +540,11 @@ describe("Background Sync Behavior", function()
       "calls on_complete(false) if sync execution fails after sync_cb",
       function()
         local old_sync = SyncService.sync
-        SyncService.sync = function(server, local_path, callback, silent)
+        SyncService.sync = function(server, local_path, callback, silent, finish_cb)
           local cb_res = callback(local_path, local_path, local_path, 200)
+          if finish_cb then
+            finish_cb(false)
+          end
           return false
         end
 
@@ -575,10 +585,13 @@ describe("Background Sync Behavior", function()
       function()
         local old_sync = SyncService.sync
         local received_cached_file = nil
-        SyncService.sync = function(server, local_path, callback, silent)
+        SyncService.sync = function(server, local_path, callback, silent, finish_cb)
           local tmp_cached = local_path .. ".sync"
           util.writeToFile('{"version":1,"cached":true}', tmp_cached)
           local cb_res = callback(local_path, tmp_cached, local_path, 200)
+          if finish_cb then
+            finish_cb(true)
+          end
           return true
         end
 
@@ -634,10 +647,13 @@ describe("Background Sync Behavior", function()
 
     it("does not overwrite sdr cached_path if sync fails", function()
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, silent)
+      SyncService.sync = function(server, local_path, callback, silent, finish_cb)
         local tmp_cached = local_path .. ".sync"
         util.writeToFile('{"corrupted":true}', tmp_cached)
         callback(local_path, tmp_cached, local_path, 200)
+        if finish_cb then
+          finish_cb(false)
+        end
         return false
       end
 
@@ -679,5 +695,228 @@ describe("Background Sync Behavior", function()
       SyncService.sync = old_sync
       annotations.sync_callback = old_sync_cb
     end)
+  end)
+
+  describe("remote.sync_annotations finish_cb contract (N5)", function()
+    local annotations = require("plugins/AnnotationSync.koplugin/annotations")
+    local old_sync, old_sync_cb, old_show
+    local dummy_json, sdr_cache
+    local mock_w
+
+    before_each(function()
+      old_sync = SyncService.sync
+      old_sync_cb = annotations.sync_callback
+      old_show = UIManager.show
+
+      mock_w = {
+        ui = {},
+        settings = { sync_server = { url = "http://mock", type = "dropbox" } },
+        manager = {
+          getSyncCachePath = function()
+            return nil
+          end,
+        },
+      }
+      dummy_json = test_data_dir .. "/test_n5_dummy.json"
+      sdr_cache = test_data_dir .. "/test_n5_book.sdr/annotations.sync"
+      util.makePath(test_data_dir .. "/test_n5_book.sdr")
+      util.writeToFile('{"initial":true}', sdr_cache)
+      util.writeToFile("[]", dummy_json)
+    end)
+
+    after_each(function()
+      SyncService.sync = old_sync
+      annotations.sync_callback = old_sync_cb
+      UIManager.show = old_show
+      os.remove(dummy_json)
+      os.remove(dummy_json .. ".temp")
+      os.remove(dummy_json .. ".sync")
+      os.remove(sdr_cache)
+    end)
+
+    it(
+      "Case 13: sync_annotations, finish_cb(true) -> on_complete(true, merged), .sync copied to cached_path",
+      function()
+        local dummy_merged = { { page = 1, text = "merged_item" } }
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+          local tmp_sync = local_path .. ".sync"
+          util.writeToFile('{"uploaded":true}', tmp_sync)
+          callback(local_path, tmp_sync, local_path, 200)
+          if finish_cb then
+            finish_cb(true)
+          end
+          return true
+        end
+        annotations.sync_callback = function()
+          return true, dummy_merged
+        end
+
+        local comp_res, comp_data
+        remote.sync_annotations(mock_w, dummy_json, function(success, merged)
+          comp_res = success
+          comp_data = merged
+        end, false, sdr_cache)
+
+        assert.is_true(comp_res)
+        assert.are.same(dummy_merged, comp_data)
+
+        local f = io.open(sdr_cache, "r")
+        local content = f and f:read("*a")
+        if f then
+          f:close()
+        end
+        assert.are.equal('{"uploaded":true}', content)
+        assert.is_nil(io.open(dummy_json .. ".sync", "r"))
+        assert.is_nil(io.open(dummy_json, "r"))
+      end
+    )
+
+    it(
+      "Case 14: finish_cb(nil) (both sides empty) -> on_complete(true, ...), cached_path not replaced",
+      function()
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+          callback(local_path, local_path .. ".sync", local_path, 200)
+          if finish_cb then
+            finish_cb(nil)
+          end
+          return nil
+        end
+        annotations.sync_callback = function()
+          return true, {}
+        end
+
+        local comp_res, comp_data
+        remote.sync_annotations(mock_w, dummy_json, function(success, merged)
+          comp_res = success
+          comp_data = merged
+        end, false, sdr_cache)
+
+        assert.is_true(comp_res)
+        assert.are.same({}, comp_data)
+
+        local f = io.open(sdr_cache, "r")
+        local content = f and f:read("*a")
+        if f then
+          f:close()
+        end
+        assert.are.equal('{"initial":true}', content)
+        assert.is_nil(io.open(dummy_json, "r"))
+      end
+    )
+
+    it(
+      "Case 15: finish_cb(false) -> on_complete(false, ...), cached_path not replaced",
+      function()
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+          local tmp_sync = local_path .. ".sync"
+          util.writeToFile('{"fail":true}', tmp_sync)
+          callback(local_path, tmp_sync, local_path, 200)
+          if finish_cb then
+            finish_cb(false)
+          end
+          return false
+        end
+        annotations.sync_callback = function()
+          return false, nil
+        end
+
+        local comp_res, comp_data
+        remote.sync_annotations(mock_w, dummy_json, function(success, merged)
+          comp_res = success
+          comp_data = merged
+        end, false, sdr_cache)
+
+        assert.is_false(comp_res)
+
+        local f = io.open(sdr_cache, "r")
+        local content = f and f:read("*a")
+        if f then
+          f:close()
+        end
+        assert.are.equal('{"initial":true}', content)
+        assert.is_nil(io.open(dummy_json .. ".sync", "r"))
+        assert.is_nil(io.open(dummy_json, "r"))
+      end
+    )
+
+    it(
+      "Case 16: SyncService postpones (mock never calls finish_cb) -> assert fires, on_complete(false), error rethrown, tmp cleaned",
+      function()
+        local tmp_temp = dummy_json .. ".temp"
+        local tmp_sync = dummy_json .. ".sync"
+        util.writeToFile("temp_data", tmp_temp)
+        util.writeToFile("sync_data", tmp_sync)
+
+        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+          return nil
+        end
+
+        local comp_called = false
+        local comp_res = nil
+        local on_complete = function(success)
+          comp_called = true
+          comp_res = success
+        end
+
+        local ok, err = pcall(function()
+          remote.sync_annotations(mock_w, dummy_json, on_complete, false, sdr_cache)
+        end)
+
+        assert.is_false(ok)
+        assert.is_not_nil(err:find("AnnotationSync: SyncService postponed the sync"))
+        assert.is_true(comp_called)
+        assert.is_false(comp_res)
+
+        assert.is_nil(io.open(dummy_json, "r"))
+        assert.is_nil(io.open(tmp_temp, "r"))
+        assert.is_nil(io.open(tmp_sync, "r"))
+      end
+    )
+
+    it(
+      "Case 17: No sync_server -> on_complete(false), message if not silent, log line if silent",
+      function()
+        local no_server_w = {
+          ui = {},
+          settings = { sync_server = nil },
+        }
+
+        local shown_widget = nil
+        UIManager.show = function(self, widget)
+          shown_widget = widget
+        end
+
+        local comp_res_loud = nil
+        remote.sync_annotations(no_server_w, dummy_json, function(res)
+          comp_res_loud = res
+        end, true, sdr_cache)
+
+        assert.is_false(comp_res_loud)
+        assert.is_not_nil(shown_widget)
+        assert.is_not_nil(shown_widget.text:find("No cloud destination set in settings"))
+
+        shown_widget = nil
+        local logger = require("logger")
+        local old_warn = logger.warn
+        finally(function()
+          logger.warn = old_warn
+        end)
+        local warned_msg = nil
+        logger.warn = function(fmt, ...)
+          warned_msg = string.format(fmt, ...)
+        end
+
+        util.writeToFile("[]", dummy_json)
+        local comp_res_silent = nil
+        remote.sync_annotations(no_server_w, dummy_json, function(res)
+          comp_res_silent = res
+        end, false, sdr_cache)
+
+        assert.is_false(comp_res_silent)
+        assert.is_nil(shown_widget)
+        assert.is_not_nil(warned_msg)
+        assert.is_not_nil(warned_msg:find("No cloud destination set in settings"))
+      end
+    )
   end)
 end)

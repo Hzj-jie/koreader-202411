@@ -247,7 +247,7 @@ end
 
 function M.mock_sync_service(SyncService)
   local old_sync = SyncService.sync
-  SyncService.sync = function(server, local_path, callback, upload_only)
+  SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
     -- Robustness: ensure we have valid paths and files
     local test_data_dir = DataStorage.getDataDir()
     local function ensure_json_file(path)
@@ -304,6 +304,9 @@ function M.mock_sync_service(SyncService)
       ffiutil.copyFile(actual_local, cached_file)
     end
     os.remove(income_file)
+    if finish_cb then
+      finish_cb(result)
+    end
     return result, active
   end
 

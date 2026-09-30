@@ -68,8 +68,11 @@ describe("Unsynced / Pending Documents Feature", function()
 
       -- 2. Mock SyncService to fail for file1, and mock getDocumentByFile to crash or fail for file2
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
-        -- Simulate failure by returning nil
+      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        -- Simulate failure
+        if finish_cb then
+          finish_cb(false)
+        end
         return nil
       end
 

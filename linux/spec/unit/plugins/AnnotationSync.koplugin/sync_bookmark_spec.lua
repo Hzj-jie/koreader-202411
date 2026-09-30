@@ -97,11 +97,14 @@ describe("AnnotationSync Bookmark Synchronization", function()
       { [key_r] = bm_r }
     )
 
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"
       callback(local_path, cached_dest, income_path)
       local ffiutil = require("ffi/util")
       ffiutil.copyFile(local_path, cached_dest)
+      if finish_cb then
+        finish_cb(true)
+      end
       return true
     end
 
@@ -181,7 +184,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     )
 
     local captured_json
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       -- The callback updates local_path with merged data (including deletions)
       local cached_dest = local_path .. ".sync"
       local success = callback(local_path, cached_dest, income_path)
@@ -192,6 +195,9 @@ describe("AnnotationSync Bookmark Synchronization", function()
 
       local ffiutil = require("ffi/util")
       ffiutil.copyFile(local_path, cached_dest)
+      if finish_cb then
+        finish_cb(success)
+      end
       return success
     end
 
@@ -240,12 +246,15 @@ describe("AnnotationSync Bookmark Synchronization", function()
     fc:write(json.encode({ [key] = bm }))
     fc:close()
 
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"
       local result = callback(local_path, cached_dest, income_path)
       if result then
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+      end
+      if finish_cb then
+        finish_cb(result)
       end
       return result
     end
@@ -296,12 +305,15 @@ describe("AnnotationSync Bookmark Synchronization", function()
 
     sync_instance.manager:cleanSyncFile(readerui.document)
 
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"
       local result = callback(local_path, cached_dest, income_path)
       if result then
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+      end
+      if finish_cb then
+        finish_cb(result)
       end
       return result
     end
