@@ -348,4 +348,51 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     SyncService.sync = old_sync
   end)
+
+  it(
+    "should raise error if local sync file is missing or unreadable (N2)",
+    function()
+      local annotations_mod =
+        require("plugins/AnnotationSync.koplugin/annotations")
+      local missing_local_file = test_data_dir .. "/non_existent_local.json"
+      local last_sync_file =
+        test_utils.write_mock_json(test_data_dir, "prot_last_missing.json", {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
+        })
+      local income_file =
+        test_utils.write_mock_json(test_data_dir, "prot_income_missing.json", {
+          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
+        })
+
+      local ok, err = pcall(function()
+        annotations_mod.sync_callback(
+          missing_local_file,
+          last_sync_file,
+          income_file,
+          true
+        )
+      end)
+      assert.is_false(ok)
+      assert.truthy(err:find("missing or unreadable local sync file"))
+
+      -- A corrupt non-JSON local file returns nil from read_to_array and must also error
+      local corrupt_local_file = test_data_dir .. "/corrupt_local.json"
+      local util = require("util")
+      util.writeToFile("not valid json", corrupt_local_file)
+      finally(function()
+        os.remove(corrupt_local_file)
+      end)
+
+      local ok_corrupt, err_corrupt = pcall(function()
+        annotations_mod.sync_callback(
+          corrupt_local_file,
+          last_sync_file,
+          income_file,
+          true
+        )
+      end)
+      assert.is_false(ok_corrupt)
+      assert.truthy(err_corrupt:find("missing or unreadable local sync file"))
+    end
+  )
 end)

@@ -6,8 +6,11 @@ local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
 
-local function isConnected()
-  return require("ui/network/manager"):isConnected()
+-- SyncService runs exec synchronously only when online (Dropbox uses
+-- runWhenOnline, WebDAV runWhenConnected, and isOnline() implies both). A
+-- deferred exec would run after cleanup_tmp() has already deleted json_path.
+local function isOnline()
+  return require("ui/network/manager"):isOnline()
 end
 
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
@@ -41,7 +44,7 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     os.remove(json_path .. ".temp")
     os.remove(json_path .. ".sync")
   end
-  if not isConnected() then
+  if not isOnline() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
     cleanup_tmp()
     if on_complete then

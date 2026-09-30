@@ -193,6 +193,105 @@ describe("Unsynced / Pending Documents Feature", function()
   )
 
   it(
+    "verifies that show_pending_documents 'Sync now' closes menu and delegates to runWhenOnline (N2)",
+    function()
+      local file1 = readerui.document.file
+      sync_instance.manager:addToChangedDocumentsFile(file1)
+
+      local menus = require("plugins/AnnotationSync.koplugin/menus")
+      local Menu = require("ui/widget/menu")
+      local ConfirmBox = require("ui/widget/confirmbox")
+      local NetworkMgr = require("ui/network/manager")
+
+      local old_Menu_new = Menu.new
+      local old_ConfirmBox_new = ConfirmBox.new
+      local old_runWhenOnline = NetworkMgr.runWhenOnline
+      local old_UIManager_close = UIManager.close
+      finally(function()
+        Menu.new = old_Menu_new
+        ConfirmBox.new = old_ConfirmBox_new
+        NetworkMgr.runWhenOnline = old_runWhenOnline
+        UIManager.close = old_UIManager_close
+      end)
+
+      local Widget = require("ui/widget/widget")
+      local Geom = require("ui/geometry")
+      local MockWidget = Widget:extend({
+        dimen = Geom:new({ w = 0, h = 0 }),
+        onShow = function() end,
+        paintTo = function() end,
+        free = function() end,
+        handleEvent = function() end,
+      })
+      local MockMenu = MockWidget:extend({
+        debugStr = function()
+          return "MockMenu"
+        end,
+      })
+      local MockConfirmBox = MockWidget:extend({
+        debugStr = function()
+          return "MockConfirmBox"
+        end,
+      })
+
+      local pending_menu_instance = MockMenu:new({})
+      local confirm_box_instance = MockConfirmBox:new({})
+      local menu_items = {}
+      Menu.new = function(this, o)
+        menu_items = o.item_table or {}
+        return pending_menu_instance
+      end
+
+      local confirm_opts = {}
+      ConfirmBox.new = function(this, o)
+        confirm_opts = o
+        return confirm_box_instance
+      end
+
+      local menu_closed_before_run = false
+      UIManager.close = function(self, widget)
+        if widget == pending_menu_instance then
+          menu_closed_before_run = true
+        end
+      end
+
+      local run_online_called = false
+      local queued_online_cb = nil
+      NetworkMgr.runWhenOnline = function(self, cb)
+        run_online_called = true
+        queued_online_cb = cb
+      end
+
+      local sync_called = false
+      local old_syncDoc = sync_instance.manager.syncDocument
+      finally(function()
+        sync_instance.manager.syncDocument = old_syncDoc
+      end)
+      sync_instance.manager.syncDocument = function(self, file, force)
+        sync_called = true
+        return true
+      end
+
+      menus.show_pending_documents(sync_instance)
+      assert.is_equal(1, #menu_items)
+
+      -- Tap document item to open ConfirmBox
+      menu_items[1].callback()
+      assert.is_not_nil(confirm_opts.ok_callback)
+
+      -- Tap "Sync now"
+      confirm_opts.ok_callback()
+
+      assert.is_true(run_online_called, "runWhenOnline should be called on Sync now")
+      assert.is_true(menu_closed_before_run, "pending_menu should be closed before waiting for network")
+      assert.is_false(sync_called, "syncDocument should not run before online callback fires")
+
+      queued_online_cb()
+      assert.is_true(sync_called, "syncDocument should run when online callback fires")
+    end
+  )
+
+  it(
     "can scan opened books in readhistory across all sidecar storage methods",
     function()
       local readhistory = require("readhistory")

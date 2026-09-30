@@ -918,5 +918,46 @@ describe("Background Sync Behavior", function()
         assert.is_not_nil(warned_msg:find("No cloud destination set in settings"))
       end
     )
+
+    it(
+      "skips remote sync and cleans tmp when network is connected but not online (N2)",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_isConnected = NetworkMgr.isConnected
+        local old_isOnline = NetworkMgr.isOnline
+        finally(function()
+          NetworkMgr.isConnected = old_isConnected
+          NetworkMgr.isOnline = old_isOnline
+        end)
+        NetworkMgr.isConnected = function()
+          return true
+        end
+        NetworkMgr.isOnline = function()
+          return false
+        end
+
+        local dummy_json = test_data_dir .. "/n2_connected_not_online.json"
+        util.writeToFile("[]", dummy_json)
+        local sync_called = false
+        local old_sync = SyncService.sync
+        finally(function()
+          SyncService.sync = old_sync
+        end)
+        SyncService.sync = function()
+          sync_called = true
+        end
+
+        local comp_called, comp_res = false, nil
+        remote.sync_annotations(mock_w, dummy_json, function(res)
+          comp_called = true
+          comp_res = res
+        end, false, sdr_cache)
+
+        assert.is_false(sync_called)
+        assert.is_true(comp_called)
+        assert.is_false(comp_res)
+        assert.is_nil(io.open(dummy_json, "r"))
+      end
+    )
   end)
 end)

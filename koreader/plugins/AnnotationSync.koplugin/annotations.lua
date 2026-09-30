@@ -1,6 +1,3 @@
-local InfoMessage = require("ui/widget/infomessage")
-local UIManager = require("ui/uimanager")
-local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
 local sort = require("sort")
@@ -66,25 +63,15 @@ function M.sync_callback(
   logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
 
   local local_list = read_to_array(local_file)
-  local last_sync_list = read_to_array(last_sync_file)
-
-  if not local_list and not last_sync_list then
-    logger.warn(
-      "AnnotationSync: Failed to load local sync files. Aborting to prevent data loss."
-    )
-    if force then
-      UIManager:show(InfoMessage:new({
-        text = gettext(
-          "AnnotationSync: Failed to load local sync files. Sync aborted."
-        ),
-        timeout = 3,
-      }))
-    end
-    return false
-  end
-
-  local_list = local_list or {}
-  last_sync_list = last_sync_list or {}
+  -- Callers write local_file right before every sync, and
+  -- write_annotations_json always writes at least "{}". A missing or
+  -- unreadable file is a lifecycle bug, not "no local annotations":
+  -- treating it as {} turns every synced entry into a local deletion.
+  assert(
+    local_list,
+    "AnnotationSync: missing or unreadable local sync file: " .. local_file
+  )
+  local last_sync_list = read_to_array(last_sync_file) or {}
 
   -- SAFETY (Issue 23): If local is empty but last sync was not,
   -- it's likely a docsettings failure or fresh device state.

@@ -1,5 +1,6 @@
 local ConfirmBox = require("ui/widget/confirmbox")
 local Menu = require("ui/widget/menu")
+local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local T = require("ffi/util").template
@@ -300,20 +301,24 @@ function M.show_pending_documents(plugin)
           ok_text = gettext("Sync now"),
           cancel_text = gettext("Cancel"),
           ok_callback = function()
-            utils.show_msg(T(gettext("Syncing %1..."), clean_filename))
-            local success = plugin.manager:syncDocument(file, true)
-            if success then
-              utils.show_msg(
-                T(gettext("Successfully synced %1"), clean_filename)
-              )
-            else
-              utils.show_msg(T(gettext("Failed to sync %1"), clean_filename))
-            end
-            -- Close pending menu and reopen to refresh the list
+            -- Close the menu before waiting for the network: when offline,
+            -- the callback below runs later, after this menu may be gone.
             if pending_menu then
               UIManager:close(pending_menu)
             end
-            M.show_pending_documents(plugin)
+            NetworkMgr:runWhenOnline(function()
+              utils.show_msg(T(gettext("Syncing %1..."), clean_filename))
+              local success = plugin.manager:syncDocument(file, true)
+              if success then
+                utils.show_msg(
+                  T(gettext("Successfully synced %1"), clean_filename)
+                )
+              else
+                utils.show_msg(T(gettext("Failed to sync %1"), clean_filename))
+              end
+              -- Reopen to refresh the list
+              M.show_pending_documents(plugin)
+            end)
           end,
           other_buttons = {
             {
