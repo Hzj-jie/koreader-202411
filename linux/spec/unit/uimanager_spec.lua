@@ -797,31 +797,39 @@ describe("UIManager spec", function()
   end)
 
   describe("askForRestartOrReload", function()
-    local old_ReaderUI
+    local old_ReaderUI, old_FileManager
     setup(function()
       old_ReaderUI = package.loaded["apps/reader/readerui"]
       package.loaded["apps/reader/readerui"] = {
+        instance = nil,
+      }
+      old_FileManager = package.loaded["apps/filemanager/filemanager"]
+      package.loaded["apps/filemanager/filemanager"] = {
         instance = nil,
       }
     end)
 
     teardown(function()
       package.loaded["apps/reader/readerui"] = old_ReaderUI
+      package.loaded["apps/filemanager/filemanager"] = old_FileManager
     end)
 
-    it("should call askForRestart if ReaderUI.instance is nil", function()
-      local askForRestart_called = false
-      local old_askForRestart = UIManager.askForRestart
-      UIManager.askForRestart = function(self, _msg)
-        askForRestart_called = true
+    it(
+      "should call askForRestart if ReaderUI.instance and FileManager.instance are nil",
+      function()
+        local askForRestart_called = false
+        local old_askForRestart = UIManager.askForRestart
+        UIManager.askForRestart = function(self, _msg)
+          askForRestart_called = true
+        end
+
+        UIManager:askForRestartOrReload("Test message")
+        UIManager:_checkTasks()
+
+        assert.is_true(askForRestart_called)
+        UIManager.askForRestart = old_askForRestart
       end
-
-      UIManager:askForRestartOrReload("Test message")
-      UIManager:_checkTasks()
-
-      assert.is_true(askForRestart_called)
-      UIManager.askForRestart = old_askForRestart
-    end)
+    )
 
     it("should show reload dialog if ReaderUI.instance is set", function()
       local ReaderUI = package.loaded["apps/reader/readerui"]
@@ -851,6 +859,38 @@ describe("UIManager spec", function()
       UIManager.show = old_show
       ReaderUI.instance = nil
     end)
+
+    it(
+      "should show reload dialog if FileManager.instance is set and ReaderUI.instance is nil",
+      function()
+        local FileManager = package.loaded["apps/filemanager/filemanager"]
+        local restart_called = false
+        FileManager.instance = {
+          restart = function()
+            restart_called = true
+          end,
+        }
+
+        local show_called_with = nil
+        local old_show = UIManager.show
+        UIManager.show = function(self, widget)
+          show_called_with = widget
+        end
+
+        UIManager:askForRestartOrReload("Test message")
+        UIManager:_checkTasks()
+
+        assert.is_not_nil(show_called_with)
+        assert.are.equal("Test message", show_called_with.text)
+        assert.are.equal("Later", show_called_with.cancel_text)
+
+        show_called_with:ok_callback()
+        assert.is_true(restart_called)
+
+        UIManager.show = old_show
+        FileManager.instance = nil
+      end
+    )
   end)
   describe("UIManager Device Power and Control utilities", function()
     it("should handle askForReboot and askForPowerOff dialogs", function()
@@ -928,40 +968,46 @@ describe("UIManager spec", function()
       assert.is_number(UIManager:getElapsedTimeSinceBoot())
     end)
 
-    it("should handle run forever mode, window stack debug list and topdown iterator", function()
-      UIManager:setRunForeverMode()
-      UIManager:unsetRunForeverMode()
+    it(
+      "should handle run forever mode, window stack debug list and topdown iterator",
+      function()
+        UIManager:setRunForeverMode()
+        UIManager:unsetRunForeverMode()
 
-      local w1 = Widget:new({ id = "w1" })
-      local w2 = Widget:new({ id = "w2" })
-      UIManager:show(w1)
-      UIManager:show(w2)
+        local w1 = Widget:new({ id = "w1" })
+        local w2 = Widget:new({ id = "w2" })
+        UIManager:show(w1)
+        UIManager:show(w2)
 
-      local list = UIManager:_windowStackDebugList()
-      assert.is_string(list)
+        local list = UIManager:_windowStackDebugList()
+        assert.is_string(list)
 
-      local iter_count = 0
-      for window in UIManager:topdown_windows_iter() do
-        iter_count = iter_count + 1
-        assert.is_not_nil(window)
+        local iter_count = 0
+        for window in UIManager:topdown_windows_iter() do
+          iter_count = iter_count + 1
+          assert.is_not_nil(window)
+        end
+        assert.are.equal(2, iter_count)
+
+        UIManager:close(w1)
+        UIManager:close(w2)
       end
-      assert.are.equal(2, iter_count)
+    )
 
-      UIManager:close(w1)
-      UIManager:close(w2)
-    end)
+    it(
+      "should handle ZMQ registration, refresh schedule, and night mode toggle",
+      function()
+        local dummy_zmq = { id = "zmq1" }
+        UIManager:insertZMQ(dummy_zmq)
+        UIManager:removeZMQ(dummy_zmq)
 
-    it("should handle ZMQ registration, refresh schedule, and night mode toggle", function()
-      local dummy_zmq = { id = "zmq1" }
-      UIManager:insertZMQ(dummy_zmq)
-      UIManager:removeZMQ(dummy_zmq)
+        UIManager:scheduleRefresh("fast", nil, false)
+        UIManager:ignoreNextRefreshPromote()
+        assert.is_boolean(UIManager:fullRefreshPromoteEnabled())
 
-      UIManager:scheduleRefresh("fast", nil, false)
-      UIManager:ignoreNextRefreshPromote()
-      assert.is_boolean(UIManager:fullRefreshPromoteEnabled())
-
-      UIManager:clearRenderStack()
-      UIManager:toggleNightMode()
-    end)
+        UIManager:clearRenderStack()
+        UIManager:toggleNightMode()
+      end
+    )
   end)
 end)

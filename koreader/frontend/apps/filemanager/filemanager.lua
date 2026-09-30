@@ -853,8 +853,18 @@ function FileManager:onShowingReader()
   self.tearing_down = true
   -- Clear the dither flag to prevent it from infecting the queue and re-inserting a full-screen refresh...
   self.dithered = nil
-
+  if self.menu and self.menu.menu_container then
+    self.menu:onClose()
+  end
   self:onExit()
+end
+
+function FileManager:restart()
+  local path = self:getCurrentDir()
+  local focused_file = self.focused_file
+  local selected_files = self.selected_files
+  self:onShowingReader()
+  FileManager:showFiles(path, focused_file, selected_files)
 end
 
 -- Same as above, except we don't close it yet. Useful for plugins that need to close custom Menus before calling showReader.

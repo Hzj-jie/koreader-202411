@@ -1730,21 +1730,36 @@ end
 
 function UIManager:askForRestartOrReload(message_text)
   local ReaderUI = require("apps/reader/readerui")
-  if not ReaderUI.instance then
-    self:askForRestart(message_text)
+  local FileManager = require("apps/filemanager/filemanager")
+  if ReaderUI.instance then
+    self:nextTick(function()
+      self:show(require("ui/widget/confirmbox"):new({
+        text = message_text
+          or gettext("Settings changed. Reload document to take effect?"),
+        cancel_text = gettext("Later"),
+        ok_callback = function()
+          ReaderUI.instance:reloadDocument()
+        end,
+      }))
+    end)
     return
   end
 
-  self:nextTick(function()
-    self:show(require("ui/widget/confirmbox"):new({
-      text = message_text
-        or gettext("Settings changed. Reload document to take effect?"),
-      cancel_text = gettext("Later"),
-      ok_callback = function()
-        ReaderUI.instance:reloadDocument()
-      end,
-    }))
-  end)
+  if FileManager.instance then
+    self:nextTick(function()
+      self:show(require("ui/widget/confirmbox"):new({
+        text = message_text
+          or gettext("Settings changed. Reload file manager to take effect?"),
+        cancel_text = gettext("Later"),
+        ok_callback = function()
+          FileManager.instance:restart()
+        end,
+      }))
+    end)
+    return
+  end
+
+  self:askForRestart(message_text)
 end
 
 --[[--
