@@ -9,27 +9,81 @@ local ReaderAnnotation = WidgetContainer:extend({
 
 -- build, read, save
 
-function ReaderAnnotation:buildAnnotation(bm, highlights, init)
+local function getPageRef(ui, pn_or_xp, pn)
+  -- same as ReaderBookmark:getBookmarkPageString(page)
+  -- but gets pn (page number already calculated in the caller)
+  -- and returns nil if there are no reference pages and hidden flows
+  if not ui then
+    return
+  end
+  if ui.pagemap and ui.pagemap:wantsPageLabels() then
+    return ui.pagemap:getXPointerPageLabel(pn_or_xp, true)
+  end
+  local document = ui.document
+  if document and document:hasHiddenFlows() then
+    local page = document:getPageNumberInFlow(pn)
+    local flow = document:getPageFlow(pn)
+    if flow > 0 then
+      return T("[%1]%2", page, flow)
+    end
+    return tostring(page)
+  end
+end
+
+local function getHighlightForBookmark(highlights, bookmark)
+  if not bookmark.highlighted then
+    return
+  end -- page bookmark
+  -- Legacy entries: the bookmark marks a highlight with `highlighted`
+  -- instead of `drawer`, and the highlight's page is its key in `highlights`.
+  local bm = {
+    datetime = bookmark.datetime,
+    drawer = true,
+    page = bookmark.page,
+    pos0 = bookmark.pos0,
+    pos1 = bookmark.pos1,
+  }
+  for pageno, page_highlights in pairs(highlights) do
+    for _, highlight in ipairs(page_highlights) do
+      local hl = {
+        datetime = highlight.datetime,
+        drawer = true,
+        page = type(highlight.pos0) == "string" and highlight.pos0
+          or tonumber(pageno)
+          or pageno,
+        pos0 = highlight.pos0,
+        pos1 = highlight.pos1,
+      }
+      if ReaderAnnotation.doesMatch(hl, bm) then
+        return highlight, pageno
+      end
+    end
+  end
+end
+
+local function buildAnnotation(bm, highlights, ui)
   -- bm: associated single bookmark ; highlights: tables with all highlights
   local note = bm.text
   if note == "" then
     note = nil
   end
   local chapter = bm.chapter
-  local hl, pageno = self:getHighlightForBookmark(highlights, bm)
+  local hl, pageno = getHighlightForBookmark(highlights, bm)
   local pageref
-  if init then
-    if note and self.ui.bookmark:isBookmarkAutoText(bm) then
+  if ui then
+    if note and ui.bookmark and ui.bookmark:isBookmarkAutoText(bm) then
       note = nil
     end
-    if chapter == nil then
-      chapter = self.ui.toc:getTocTitleByPage(bm.page)
+    if chapter == nil and ui.toc then
+      chapter = ui.toc:getTocTitleByPage(bm.page)
     end
-    pageno = self.ui.rolling and self.document:getPageFromXPointer(bm.page)
-      or bm.page
-    pageref = self:getPageRef(bm.page, pageno)
+    if ui.document then
+      pageno = ui.rolling and ui.document:getPageFromXPointer(bm.page)
+        or bm.page
+      pageref = getPageRef(ui, bm.page, pageno)
+    end
   end
-  if self.ui.paging and bm.pos0 and not bm.pos0.page then
+  if type(bm.pos0) == "table" and not bm.pos0.page then
     -- old single-page reflow highlights do not have page in position
     bm.pos0.page = bm.page
     bm.pos1.page = bm.page
@@ -37,21 +91,30 @@ function ReaderAnnotation:buildAnnotation(bm, highlights, init)
   if hl == nil then -- page bookmark or orphaned bookmark
     hl = {}
     if bm.highlighted then -- orphaned bookmark
-      hl.drawer = self.ui.view.highlight.saved_drawer
-      hl.color = self.ui.view.highlight.saved_color
-      if self.ui.paging then
+      hl.drawer = ui
+          and ui.view
+          and ui.view.highlight
+          and ui.view.highlight.saved_drawer
+        or "lighten"
+      hl.color = ui
+          and ui.view
+          and ui.view.highlight
+          and ui.view.highlight.saved_color
+        or "yellow"
+      if ui and ui.paging and ui.document and type(bm.pos0) == "table" then
         if bm.pos0.page == bm.pos1.page then
           hl.pboxes =
-            self.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos1)
+            ui.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos1)
         else -- multi-page highlight, restore the first box only
           hl.pboxes =
-            self.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos0)
+            ui.document:getPageBoxesFromPositions(bm.page, bm.pos0, bm.pos0)
         end
       end
     end
   end
   return { -- annotation
     datetime = bm.datetime, -- creation time, not changeable
+    datetime_updated = bm.datetime_updated, -- modification time, nil if not modified
     drawer = hl.drawer, -- highlight drawer
     color = hl.color, -- highlight color
     text = bm.notes, -- highlighted text, editable
@@ -68,93 +131,54 @@ function ReaderAnnotation:buildAnnotation(bm, highlights, init)
   }
 end
 
-function ReaderAnnotation:getHighlightForBookmark(highlights, bookmark)
-  if not bookmark.highlighted then
-    return
-  end -- page bookmark
-  local doesMatch = self:getMatchFunc()
-  for pageno, page_highlights in pairs(highlights) do
-    for _, highlight in ipairs(page_highlights) do
-      if doesMatch(highlight, bookmark) then
-        return highlight, pageno
-      end
-    end
-  end
-end
-
-function ReaderAnnotation:getAnnotationsFromBookmarksHighlights(
-  bookmarks,
-  highlights,
-  init
-)
+local function getAnnotationsFromBookmarksHighlights(bookmarks, highlights, ui)
   local annotations = {}
   for i = #bookmarks, 1, -1 do
-    table.insert(
-      annotations,
-      self:buildAnnotation(bookmarks[i], highlights, init)
-    )
-  end
-  if init then
-    self:sortItems(annotations)
+    table.insert(annotations, buildAnnotation(bookmarks[i], highlights, ui))
   end
   return annotations
 end
 
-function ReaderAnnotation:onReadSettings(config)
-  if config:has("annotations") then
-    local annotations = config:readTableRef("annotations")
-    -- KOHighlights may set this key when it has merged annotations from different sources:
-    -- we want to make sure they are updated and sorted
-    local needs_update = config:isTrue("annotations_externally_modified")
-    local needs_sort -- if incompatible annotations were built of old highlights/bookmarks
-    -- Annotation formats in crengine and mupdf are incompatible.
-    local has_annotations = #annotations > 0
-    local annotations_type = has_annotations and type(annotations[1].page)
-    if self.ui.rolling and annotations_type ~= "string" then -- incompatible format loaded, or empty
-      if has_annotations then -- backup incompatible format if not empty
-        config:save("annotations_paging", annotations)
-      end
-      -- load compatible format
-      annotations = config:readTable("annotations_rolling") or {}
-      config:delete("annotations_rolling")
-      config:save("annotations", annotations)
-      needs_sort = true
-    elseif self.ui.paging and annotations_type ~= "number" then
-      if has_annotations then
-        config:save("annotations_rolling", annotations)
-      end
-      annotations = config:readTable("annotations_paging") or {}
-      config:delete("annotations_paging")
-      config:save("annotations", annotations)
-      needs_sort = true
-    end
-    self.annotations = annotations
-    if needs_update or needs_sort then
-      self.onPostReaderReady = function()
-        self:updateAnnotations(needs_update, needs_sort)
-      end
-      config:delete("annotations_externally_modified")
-    end
-  else -- first run
-    if self.ui.rolling then
-      self.onReaderInited = function()
-        self:migrateToAnnotations(config)
-      end
-    else
-      self:migrateToAnnotations(config)
+local function isRolling(config, ui, items)
+  if type(ui) == "table" then
+    if ui.rolling then
+      return true
+    elseif ui.paging then
+      return false
     end
   end
+  if config and config.doc_path then
+    local DocumentRegistry = require("document/documentregistry")
+    local provider = DocumentRegistry:getProvider(config.doc_path)
+    if provider then
+      return provider.provider == "crengine"
+    end
+  end
+  if items then
+    for _, item in ipairs(items) do
+      if type(item) == "table" then
+        if type(item.page) == "string" then
+          return true
+        elseif type(item.page) == "number" then
+          return false
+        end
+      end
+    end
+  end
+  return false
 end
 
-function ReaderAnnotation:migrateToAnnotations(config)
+local function migrateToAnnotations(config, ui)
   local bookmarks = config:readTable("bookmarks") or {}
   local highlights = config:readTable("highlight") or {}
+
+  local rolling = isRolling(config, ui, bookmarks)
 
   if config:hasNot("highlights_imported") then
     -- before 2014, saved highlights were not added to bookmarks when they were created.
     for page, hls in pairs(highlights) do
       for _, hl in ipairs(hls) do
-        local hl_page = self.ui.paging and page or hl.pos0
+        local hl_page = (rolling == false) and page or hl.pos0
         -- highlights saved by some old versions don't have pos0 field
         -- we just ignore those highlights
         if hl_page then
@@ -166,7 +190,7 @@ function ReaderAnnotation:migrateToAnnotations(config)
             pos0 = hl.pos0,
             pos1 = hl.pos1,
           }
-          if self.ui.paging then
+          if rolling == false and type(item.pos0) == "table" then
             item.pos0.page = page
             item.pos1.page = page
           end
@@ -174,29 +198,31 @@ function ReaderAnnotation:migrateToAnnotations(config)
         end
       end
     end
+    config:save("highlights_imported", true)
   end
 
   -- Bookmarks/highlights formats in crengine and mupdf are incompatible.
   local has_bookmarks = #bookmarks > 0
-  local bookmarks_type = has_bookmarks and type(bookmarks[1].page)
-  if self.ui.rolling then
-    if bookmarks_type == "string" then -- compatible format loaded, check for incompatible old backup
+  local bookmarks_rolling = isRolling(nil, nil, bookmarks)
+
+  if rolling then
+    if has_bookmarks and bookmarks_rolling then -- compatible format loaded, check for incompatible old backup
       if config:has("bookmarks_paging") then -- save incompatible old backup
-        local bookmarks_paging = config:read("bookmarks_paging")
-        local highlights_paging = config:read("highlight_paging")
-        local annotations = self:getAnnotationsFromBookmarksHighlights(
+        local bookmarks_paging = config:readTable("bookmarks_paging") or {}
+        local highlights_paging = config:readTable("highlight_paging") or {}
+        local annotations_paging = getAnnotationsFromBookmarksHighlights(
           bookmarks_paging,
           highlights_paging
         )
-        config:save("annotations_paging", annotations)
+        config:save("annotations_paging", annotations_paging)
         config:delete("bookmarks_paging")
         config:delete("highlight_paging")
       end
     else -- incompatible format loaded, or empty
       if has_bookmarks then -- save incompatible format if not empty
-        local annotations =
-          self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
-        config:save("annotations_paging", annotations)
+        local annotations_paging =
+          getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
+        config:save("annotations_paging", annotations_paging)
       end
       -- load compatible format
       bookmarks = config:readTableRef("bookmarks_rolling")
@@ -204,24 +230,24 @@ function ReaderAnnotation:migrateToAnnotations(config)
       config:delete("bookmarks_rolling")
       config:delete("highlight_rolling")
     end
-  else -- self.ui.paging
-    if bookmarks_type == "number" then
+  else -- paging (rolling == false)
+    if has_bookmarks and not bookmarks_rolling then
       if config:has("bookmarks_rolling") then
-        local bookmarks_rolling = config:read("bookmarks_rolling")
-        local highlights_rolling = config:read("highlight_rolling")
-        local annotations = self:getAnnotationsFromBookmarksHighlights(
-          bookmarks_rolling,
+        local saved_bookmarks_rolling = config:readTable("bookmarks_rolling") or {}
+        local highlights_rolling = config:readTable("highlight_rolling") or {}
+        local annotations_rolling = getAnnotationsFromBookmarksHighlights(
+          saved_bookmarks_rolling,
           highlights_rolling
         )
-        config:save("annotations_rolling", annotations)
+        config:save("annotations_rolling", annotations_rolling)
         config:delete("bookmarks_rolling")
         config:delete("highlight_rolling")
       end
     else
       if has_bookmarks then
-        local annotations =
-          self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
-        config:save("annotations_rolling", annotations)
+        local annotations_rolling =
+          getAnnotationsFromBookmarksHighlights(bookmarks, highlights)
+        config:save("annotations_rolling", annotations_rolling)
       end
       bookmarks = config:readTableRef("bookmarks_paging")
       highlights = config:readTableRef("highlight_paging")
@@ -230,10 +256,35 @@ function ReaderAnnotation:migrateToAnnotations(config)
     end
   end
 
-  self.annotations =
-    self:getAnnotationsFromBookmarksHighlights(bookmarks, highlights, true)
+  local annotations =
+    getAnnotationsFromBookmarksHighlights(bookmarks, highlights, ui)
   -- has("annotations") is meaningful to indicate the finish of migration.
-  config:save("annotations", self.annotations)
+  config:save("annotations", annotations)
+  config:save("annotations_externally_modified", true)
+  return annotations
+end
+
+function ReaderAnnotation:onReadSettings(config)
+  if self.ui.rolling and config:hasNot("annotations") then
+    self.annotations = {}
+    -- During ReaderUI initialization, ReadSettings is broadcast before
+    -- loadDocument renders pages and builds ui.toc. For rolling documents
+    -- (crengine), legacy migration needs ui.document:getPageFromXPointer
+    -- and ui.toc to resolve pages and chapters; querying an unrendered
+    -- document causes crengine to crash/segfault. Defer migration until
+    -- onReaderInited when document and TOC are fully ready.
+    self.onReaderInited = function()
+      self.annotations = ReaderAnnotation.loadFromSettings(config, self.ui)
+    end
+  else
+    self.annotations = ReaderAnnotation.loadFromSettings(config, self.ui)
+  end
+  self.onPostReaderReady = function()
+    if config:isTrue("annotations_externally_modified") then
+      self:updateAnnotations(true, true)
+      config:delete("annotations_externally_modified")
+    end
+  end
 end
 
 function ReaderAnnotation:setNeedsUpdateFlag()
@@ -365,47 +416,146 @@ function ReaderAnnotation:isItemInPositionOrderPaging(a, b)
   return a.page < b.page
 end
 
-function ReaderAnnotation:getMatchFunc()
-  local doesMatch
-  if self.ui.rolling then
-    doesMatch = function(a, b)
+function ReaderAnnotation.doesMatch(a, b)
+  if
+    (a.datetime ~= nil and b.datetime ~= nil and a.datetime ~= b.datetime)
+    or (not a.drawer) ~= not b.drawer
+    or a.page ~= b.page
+  then
+    return false
+  end
+  if type(a.pos0) == "table" then
+    return a.pos0.x == b.pos0.x
+      and a.pos0.y == b.pos0.y
+      and a.pos1.x == b.pos1.x
+      and a.pos1.y == b.pos1.y
+  end
+  return a.pos1 == b.pos1
+end
+
+function ReaderAnnotation.isValidItem(item)
+  if type(item) ~= "table" then
+    return false
+  end
+  local page_type = type(item.page)
+  if page_type ~= "number" and (page_type ~= "string" or item.page == "") then
+    return false
+  end
+  if
+    item.datetime ~= nil
+    and (type(item.datetime) ~= "string" or item.datetime == "")
+  then
+    return false
+  end
+  if
+    item.datetime_updated ~= nil
+    and (type(item.datetime_updated) ~= "string" or item.datetime_updated == "")
+  then
+    return false
+  end
+  if not item.drawer then
+    return item.pos0 == nil and item.pos1 == nil
+  end
+  if not item.pos0 or not item.pos1 then
+    return false
+  end
+  if page_type == "number" then
+    return type(item.pos0) == "table"
+      and type(item.pos1) == "table"
+      and type(item.pos0.x) == "number"
+      and type(item.pos0.y) == "number"
+      and type(item.pos1.x) == "number"
+      and type(item.pos1.y) == "number"
+  else
+    return type(item.pos0) == "string"
+      and item.pos0 ~= ""
+      and type(item.pos1) == "string"
+      and item.pos1 ~= ""
+  end
+end
+
+function ReaderAnnotation.markUpdated(annotation)
+  annotation.datetime_updated = os.date("%Y-%m-%d %H:%M:%S")
+  return annotation
+end
+
+function ReaderAnnotation.loadFromSettings(config, ui)
+  local is_rolling
+  local annotations
+  if config:has("annotations") then
+    annotations = config:readTable("annotations") or {}
+    local has_annotations = #annotations > 0
+    local annotations_rolling = isRolling(nil, nil, annotations)
+    is_rolling = isRolling(config, ui, annotations)
+
+    if is_rolling then
       if
-        (a.datetime ~= nil and b.datetime ~= nil and a.datetime ~= b.datetime)
-        or (not a.drawer) ~= not b.drawer
-        or a.page ~= b.page
-        or a.pos1 ~= b.pos1
+        (has_annotations and not annotations_rolling)
+        or (not has_annotations and config:has("annotations_rolling"))
       then
-        return false
+        if has_annotations then
+          config:save("annotations_paging", annotations)
+        end
+        annotations = config:readTable("annotations_rolling") or {}
+        config:delete("annotations_rolling")
+        config:save("annotations", annotations)
+        config:save("annotations_externally_modified", true)
       end
-      return true
+    else
+      if
+        (has_annotations and annotations_rolling)
+        or (not has_annotations and config:has("annotations_paging"))
+      then
+        if has_annotations then
+          config:save("annotations_rolling", annotations)
+        end
+        annotations = config:readTable("annotations_paging") or {}
+        config:delete("annotations_paging")
+        config:save("annotations", annotations)
+        config:save("annotations_externally_modified", true)
+      end
     end
   else
-    doesMatch = function(a, b)
-      if
-        (a.datetime ~= nil and b.datetime ~= nil and a.datetime ~= b.datetime)
-        or (not a.drawer) ~= not b.drawer
-        or a.page ~= b.page
-        or (
-          a.pos0
-          and (
-            a.pos0.x ~= b.pos0.x
-            or a.pos1.x ~= b.pos1.x
-            or a.pos0.y ~= b.pos0.y
-            or a.pos1.y ~= b.pos1.y
-          )
-        )
-      then
-        return false
+    annotations = migrateToAnnotations(config, ui)
+    is_rolling = isRolling(config, ui, annotations)
+  end
+
+  local valid_annotations = {}
+  local invalid_annotations = nil
+  for _, item in ipairs(annotations) do
+    local is_valid = ReaderAnnotation.isValidItem(item)
+    if is_valid then
+      if is_rolling and type(item.page) ~= "string" then
+        is_valid = false
+      elseif not is_rolling and type(item.page) ~= "number" then
+        is_valid = false
       end
-      return true
+    end
+    if is_valid then
+      table.insert(valid_annotations, item)
+    else
+      if not invalid_annotations then
+        invalid_annotations = config:readTable("annotations_invalid") or {}
+      end
+      table.insert(invalid_annotations, item)
     end
   end
-  return doesMatch
+
+  if invalid_annotations then
+    logger.warn(
+      "ReaderAnnotation.loadFromSettings: quarantined invalid annotations:",
+      #invalid_annotations
+    )
+    config:save("annotations_invalid", invalid_annotations)
+    config:save("annotations", valid_annotations)
+    config:save("annotations_externally_modified", true)
+    annotations = valid_annotations
+  end
+
+  return annotations
 end
 
 function ReaderAnnotation:getItemIndex(item, no_binary)
-  local doesMatch = self:getMatchFunc()
-
   if not no_binary then
     local isInOrder = self.ui.rolling and self.isItemInPositionOrderRolling
       or self.isItemInPositionOrderPaging
@@ -413,7 +563,7 @@ function ReaderAnnotation:getItemIndex(item, no_binary)
     while _start <= _end do
       _middle = bit.rshift(_start + _end, 1)
       local v = self.annotations[_middle]
-      if doesMatch(item, v) then
+      if ReaderAnnotation.doesMatch(item, v) then
         return _middle
       elseif isInOrder(self, item, v) then
         _end = _middle - 1
@@ -424,7 +574,7 @@ function ReaderAnnotation:getItemIndex(item, no_binary)
   end
 
   for i, v in ipairs(self.annotations) do
-    if doesMatch(item, v) then
+    if ReaderAnnotation.doesMatch(item, v) then
       return i
     end
   end
@@ -447,6 +597,7 @@ end
 
 function ReaderAnnotation:addItem(item)
   item.datetime = os.date("%Y-%m-%d %H:%M:%S")
+  item.datetime_updated = nil
   item.pageno = self.ui.rolling and self.document:getPageFromXPointer(item.page)
     or item.page
   item.pageref = self:getPageRef(item.page, item.pageno)
@@ -458,20 +609,7 @@ end
 -- info
 
 function ReaderAnnotation:getPageRef(pn_or_xp, pn)
-  -- same as ReaderBookmark:getBookmarkPageString(page)
-  -- but gets pn (page number already calculated in the caller)
-  -- and returns nil if there are no reference pages and hidden flows
-  if self.ui.pagemap and self.ui.pagemap:wantsPageLabels() then
-    return self.ui.pagemap:getXPointerPageLabel(pn_or_xp, true)
-  end
-  if self.document:hasHiddenFlows() then
-    local page = self.document:getPageNumberInFlow(pn)
-    local flow = self.document:getPageFlow(pn)
-    if flow > 0 then
-      return T("[%1]%2", page, flow)
-    end
-    return tostring(page)
-  end
+  return getPageRef(self.ui, pn_or_xp, pn)
 end
 
 function ReaderAnnotation:hasAnnotations()

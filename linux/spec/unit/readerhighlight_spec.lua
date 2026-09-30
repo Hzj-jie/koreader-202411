@@ -972,48 +972,19 @@ describe("Readerhighlight module", function()
       assert.is_true(#menu_items.highlight_options.sub_item_table > 0)
     end)
 
-    it("should exercise all main menu highlight settings and callbacks", function()
-      local highlight = readerui.highlight
-      local menu_items = {}
-      highlight:addToMainMenu(menu_items)
+    it(
+      "should exercise all main menu highlight settings and callbacks",
+      function()
+        local highlight = readerui.highlight
+        local menu_items = {}
+        highlight:addToMainMenu(menu_items)
 
-      local dummy_menu = {
-        updateItems = function() end,
-      }
+        local dummy_menu = {
+          updateItems = function() end,
+        }
 
-      -- Iterate sub items under highlight_options
-      for _, item in ipairs(menu_items.highlight_options.sub_item_table) do
-        if item.text_func then
-          item.text_func()
-        end
-        if item.checked_func then
-          item.checked_func()
-        end
-        if item.enabled_func then
-          item.enabled_func()
-        end
-        if item.callback then
-          item.callback(dummy_menu)
-          local top = UIManager._window_stack[#UIManager._window_stack]
-          if top and top.widget and top.widget ~= readerui then
-            if top.widget.ok_callback then
-              top.widget.ok_callback()
-            end
-            if top.widget.callback then
-              pcall(top.widget.callback, top.widget)
-            end
-            UIManager:close(top.widget)
-          end
-        end
-        if item.hold_callback then
-          item.hold_callback(dummy_menu)
-        end
-      end
-
-      -- Iterate long_press / selection_text settings
-      local lp_menu = menu_items.long_press or menu_items.selection_text
-      if lp_menu and lp_menu.sub_item_table then
-        for _, item in ipairs(lp_menu.sub_item_table) do
+        -- Iterate sub items under highlight_options
+        for _, item in ipairs(menu_items.highlight_options.sub_item_table) do
           if item.text_func then
             item.text_func()
           end
@@ -1027,289 +998,453 @@ describe("Readerhighlight module", function()
             item.callback(dummy_menu)
             local top = UIManager._window_stack[#UIManager._window_stack]
             if top and top.widget and top.widget ~= readerui then
+              if top.widget.ok_callback then
+                top.widget.ok_callback()
+              end
               if top.widget.callback then
                 pcall(top.widget.callback, top.widget)
               end
               UIManager:close(top.widget)
             end
           end
-          if item.sub_item_table then
-            for _, sub_item in ipairs(item.sub_item_table) do
-              if sub_item.checked_func then
-                sub_item.checked_func()
+          if item.hold_callback then
+            item.hold_callback(dummy_menu)
+          end
+        end
+
+        -- Iterate long_press / selection_text settings
+        local lp_menu = menu_items.long_press or menu_items.selection_text
+        if lp_menu and lp_menu.sub_item_table then
+          for _, item in ipairs(lp_menu.sub_item_table) do
+            if item.text_func then
+              item.text_func()
+            end
+            if item.checked_func then
+              item.checked_func()
+            end
+            if item.enabled_func then
+              item.enabled_func()
+            end
+            if item.callback then
+              item.callback(dummy_menu)
+              local top = UIManager._window_stack[#UIManager._window_stack]
+              if top and top.widget and top.widget ~= readerui then
+                if top.widget.callback then
+                  pcall(top.widget.callback, top.widget)
+                end
+                UIManager:close(top.widget)
               end
-              if sub_item.callback then
-                sub_item.callback(dummy_menu)
+            end
+            if item.sub_item_table then
+              for _, sub_item in ipairs(item.sub_item_table) do
+                if sub_item.checked_func then
+                  sub_item.checked_func()
+                end
+                if sub_item.callback then
+                  sub_item.callback(dummy_menu)
+                end
               end
             end
           end
         end
+
+        -- Translation menu item
+        if
+          menu_items.translate_current_page
+          and menu_items.translate_current_page.callback
+        then
+          local show_spy = spy.on(require("ui/translator"), "showTranslation")
+          menu_items.translate_current_page.callback()
+          require("ui/translator").showTranslation:revert()
+        end
       end
+    )
 
-      -- Translation menu item
-      if menu_items.translate_current_page and menu_items.translate_current_page.callback then
-        local show_spy = spy.on(require("ui/translator"), "showTranslation")
-        menu_items.translate_current_page.callback()
-        require("ui/translator").showTranslation:revert()
+    it(
+      "should exercise updateHighlight in both directions and by word/char",
+      function()
+        local highlight = readerui.highlight
+        readerui.rolling:onGotoPage(10)
+        highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
+        highlight:onHoldPan(nil, { pos = Geom:new({ x = 400, y = 170 }) })
+        highlight:onHoldRelease()
+        local idx = highlight:saveHighlight()
+        assert.is_not_nil(idx)
+
+        -- Move pos0 forward by word and char
+        highlight:updateHighlight(idx, 0, 1, false)
+        highlight:updateHighlight(idx, 0, 1, true)
+        -- Move pos0 backward by word and char
+        highlight:updateHighlight(idx, 0, -1, false)
+        highlight:updateHighlight(idx, 0, -1, true)
+
+        -- Move pos1 forward by word and char
+        highlight:updateHighlight(idx, 1, 1, false)
+        highlight:updateHighlight(idx, 1, 1, true)
+        -- Move pos1 backward by word and char
+        highlight:updateHighlight(idx, 1, -1, false)
+        highlight:updateHighlight(idx, 1, -1, true)
+
+        assert.is_string(readerui.annotation.annotations[idx].text)
+        highlight:clear()
+        readerui.annotation.annotations = {}
       end
-    end)
+    )
 
-    it("should exercise updateHighlight in both directions and by word/char", function()
-      local highlight = readerui.highlight
-      readerui.rolling:onGotoPage(10)
-      highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
-      highlight:onHoldPan(nil, { pos = Geom:new({ x = 400, y = 170 }) })
-      highlight:onHoldRelease()
-      local idx = highlight:saveHighlight()
-      assert.is_not_nil(idx)
+    it(
+      "should exercise dialog buttons and navigation buttons in edit_highlight_dialog",
+      function()
+        local highlight = readerui.highlight
+        readerui.rolling:onGotoPage(10)
 
-      -- Move pos0 forward by word and char
-      highlight:updateHighlight(idx, 0, 1, false)
-      highlight:updateHighlight(idx, 0, 1, true)
-      -- Move pos0 backward by word and char
-      highlight:updateHighlight(idx, 0, -1, false)
-      highlight:updateHighlight(idx, 0, -1, true)
+        highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
+        highlight:onHoldPan(nil, { pos = Geom:new({ x = 400, y = 170 }) })
+        highlight:onHoldRelease()
+        if highlight.highlight_dialog then
+          UIManager:close(highlight.highlight_dialog)
+          highlight.highlight_dialog = nil
+        end
+        local idx = highlight:saveHighlight()
+        assert.is_not_nil(idx)
 
-      -- Move pos1 forward by word and char
-      highlight:updateHighlight(idx, 1, 1, false)
-      highlight:updateHighlight(idx, 1, 1, true)
-      -- Move pos1 backward by word and char
-      highlight:updateHighlight(idx, 1, -1, false)
-      highlight:updateHighlight(idx, 1, -1, true)
+        highlight:onShowHighlightDialog(idx)
+        assert.is_not_nil(highlight.edit_highlight_dialog)
 
-      assert.is_string(readerui.annotation.annotations[idx].text)
-      highlight:clear()
-      readerui.annotation.annotations = {}
-    end)
+        if highlight.edit_highlight_dialog then
+          UIManager:close(highlight.edit_highlight_dialog)
+          highlight.edit_highlight_dialog = nil
+        end
 
-    it("should exercise dialog buttons and navigation buttons in edit_highlight_dialog", function()
-      local highlight = readerui.highlight
-      readerui.rolling:onGotoPage(10)
-
-      highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
-      highlight:onHoldPan(nil, { pos = Geom:new({ x = 400, y = 170 }) })
-      highlight:onHoldRelease()
-      if highlight.highlight_dialog then
-        UIManager:close(highlight.highlight_dialog)
-        highlight.highlight_dialog = nil
+        highlight:clear()
+        readerui.annotation.annotations = {}
       end
-      local idx = highlight:saveHighlight()
-      assert.is_not_nil(idx)
+    )
 
-      highlight:onShowHighlightDialog(idx)
-      assert.is_not_nil(highlight.edit_highlight_dialog)
+    it(
+      "should exercise context extraction, view HTML, translate, and lookup handlers",
+      function()
+        local highlight = readerui.highlight
+        readerui.rolling:onGotoPage(10)
+        highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
+        assert.is_not_nil(highlight.selected_text)
 
-      if highlight.edit_highlight_dialog then
-        UIManager:close(highlight.edit_highlight_dialog)
-        highlight.edit_highlight_dialog = nil
+        -- Context
+        local prev_c, next_c = highlight:getSelectedWordContext(5)
+
+        -- View HTML
+        local view_spy = spy.on(require("ui/viewhtml"), "viewSelectionHTML")
+        highlight:viewSelectionHTML()
+        require("ui/viewhtml").viewSelectionHTML:revert()
+
+        -- Translation
+        local trans_spy = spy.on(highlight, "onTranslateText")
+        highlight:translate(1)
+        assert.spy(trans_spy).was_called()
+        highlight.onTranslateText:revert()
+
+        -- Lookup word
+        local bc_spy = spy.on(UIManager, "broadcastEvent")
+        highlight:lookup(highlight.selected_text)
+        assert.spy(bc_spy).was_called()
+        UIManager.broadcastEvent:revert()
+        highlight:clear()
       end
+    )
 
-      highlight:clear()
-      readerui.annotation.annotations = {}
-    end)
+    it(
+      "should exercise extendSelection and extended highlight helper functions",
+      function()
+        local highlight = readerui.highlight
+        readerui.rolling:onGotoPage(10)
+        highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
+        local idx = highlight:saveHighlight()
+        highlight.highlight_idx = idx
+        highlight.hold_pos = { x = 400, y = 180, page = 10 }
+        highlight.selected_text = readerui.document:getTextFromPositions(
+          { x = 400, y = 160 },
+          { x = 400, y = 200 }
+        )
 
-    it("should exercise context extraction, view HTML, translate, and lookup handlers", function()
-      local highlight = readerui.highlight
-      readerui.rolling:onGotoPage(10)
-      highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
-      assert.is_not_nil(highlight.selected_text)
-
-      -- Context
-      local prev_c, next_c = highlight:getSelectedWordContext(5)
-
-      -- View HTML
-      local view_spy = spy.on(require("ui/viewhtml"), "viewSelectionHTML")
-      highlight:viewSelectionHTML()
-      require("ui/viewhtml").viewSelectionHTML:revert()
-
-      -- Translation
-      local trans_spy = spy.on(highlight, "onTranslateText")
-      highlight:translate(1)
-      assert.spy(trans_spy).was_called()
-      highlight.onTranslateText:revert()
-
-      -- Lookup word
-      local bc_spy = spy.on(UIManager, "broadcastEvent")
-      highlight:lookup(highlight.selected_text)
-      assert.spy(bc_spy).was_called()
-      UIManager.broadcastEvent:revert()
-      highlight:clear()
-    end)
-
-    it("should exercise extendSelection and extended highlight helper functions", function()
-      local highlight = readerui.highlight
-      readerui.rolling:onGotoPage(10)
-      highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
-      local idx = highlight:saveHighlight()
-      highlight.highlight_idx = idx
-      highlight.hold_pos = { x = 400, y = 180, page = 10 }
-      highlight.selected_text = readerui.document:getTextFromPositions({ x = 400, y = 160 }, { x = 400, y = 200 })
-
-      if highlight.selected_text and highlight.selected_text.pos0 then
-        highlight:extendSelection()
-        assert.is_table(highlight.selected_text)
-        assert.is_string(highlight.selected_text.text)
+        if highlight.selected_text and highlight.selected_text.pos0 then
+          highlight:extendSelection()
+          assert.is_table(highlight.selected_text)
+          assert.is_string(highlight.selected_text.text)
+        end
+        highlight:clear()
+        readerui.annotation.annotations = {}
       end
-      highlight:clear()
-      readerui.annotation.annotations = {}
-    end)
+    )
 
-    it("should exercise touch zones, settings read/save, hold timers, and indicators", function()
-      local highlight = readerui.highlight
+    it(
+      "should exercise touch zones, settings read/save, hold timers, and indicators",
+      function()
+        local highlight = readerui.highlight
 
-      highlight:setupTouchZones()
-      highlight:onUpdateHoldPanRate()
-      highlight:onReaderReady()
+        highlight:setupTouchZones()
+        highlight:onUpdateHoldPanRate()
+        highlight:onReaderReady()
 
-      -- Settings read/save
-      local dummy_cfg = {
-        read = function(_, key)
-          if key == "highlight_drawer" then return "underscore" end
-          if key == "highlight_color" then return "blue" end
-          return nil
-        end,
-        has = function() return false end,
-        isTrue = function() return false end,
-        save = function() end,
-      }
-      highlight:onReadSettings(dummy_cfg)
-      assert.are.equal("underscore", highlight.ui.view.highlight.saved_drawer)
-      highlight:onSaveSettings()
+        -- Settings read/save
+        local dummy_cfg = {
+          read = function(_, key)
+            if key == "highlight_drawer" then
+              return "underscore"
+            end
+            if key == "highlight_color" then
+              return "blue"
+            end
+            return nil
+          end,
+          has = function()
+            return false
+          end,
+          isTrue = function()
+            return false
+          end,
+          save = function() end,
+        }
+        highlight:onReadSettings(dummy_cfg)
+        assert.are.equal("underscore", highlight.ui.view.highlight.saved_drawer)
+        highlight:onSaveSettings()
 
-      -- Hold timer reset
-      highlight:_resetHoldTimer()
-      highlight:_resetHoldTimer(true)
+        -- Hold timer reset
+        highlight:_resetHoldTimer()
+        highlight:_resetHoldTimer(true)
 
-      -- Indicator keys
-      highlight:registerKeyEvents()
-      highlight:onPhysicalKeyboardConnected()
-    end)
+        -- Indicator keys
+        highlight:registerKeyEvents()
+        highlight:onPhysicalKeyboardConnected()
+      end
+    )
 
-    it("should exercise tap handling on existing highlights and note display", function()
-      local highlight = readerui.highlight
-      readerui.annotation.annotations = {
-        {
-          drawer = "lighten",
-          pos0 = "/1/4/2/1:0",
-          pos1 = "/1/4/2/1:20",
-          text = "Annotated phrase with note",
-          note = "Detailed annotation note content",
-        },
-      }
+    it(
+      "should exercise tap handling on existing highlights and note display",
+      function()
+        local highlight = readerui.highlight
+        readerui.annotation.annotations = {
+          {
+            drawer = "lighten",
+            pos0 = "/1/4/2/1:0",
+            pos1 = "/1/4/2/1:20",
+            text = "Annotated phrase with note",
+            note = "Detailed annotation note content",
+          },
+        }
 
-      -- Show highlight note dialog with note content
-      highlight:showHighlightNoteOrDialog(1)
-      local top = UIManager._window_stack[#UIManager._window_stack]
-      assert.is_not_nil(top)
-      if top and top.widget and top.widget.buttons_table then
-        for _, row in ipairs(top.widget.buttons_table) do
-          for _, btn in ipairs(row) do
-            if btn.callback then
-              pcall(btn.callback)
+        -- Show highlight note dialog with note content
+        highlight:showHighlightNoteOrDialog(1)
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        assert.is_not_nil(top)
+        if top and top.widget and top.widget.buttons_table then
+          for _, row in ipairs(top.widget.buttons_table) do
+            for _, btn in ipairs(row) do
+              if btn.callback then
+                pcall(btn.callback)
+              end
             end
           end
         end
-      end
-      while #UIManager._window_stack > 0 do
-        local w = UIManager._window_stack[#UIManager._window_stack]
-        if w and w.widget and w.widget ~= readerui then
-          UIManager:close(w.widget)
-        else
-          break
+        while #UIManager._window_stack > 0 do
+          local w = UIManager._window_stack[#UIManager._window_stack]
+          if w and w.widget and w.widget ~= readerui then
+            UIManager:close(w.widget)
+          else
+            break
+          end
         end
       end
-    end)
+    )
 
-    it("should exercise style and color dialogs with direct callbacks", function()
-      local highlight = readerui.highlight
-      local chosen_style = nil
-      highlight:showHighlightStyleDialog(function(style)
-        chosen_style = style
-      end, "lighten")
+    it(
+      "should exercise style and color dialogs with direct callbacks",
+      function()
+        local highlight = readerui.highlight
+        local chosen_style = nil
+        highlight:showHighlightStyleDialog(function(style)
+          chosen_style = style
+        end, "lighten")
 
-      local top_style = UIManager._window_stack[#UIManager._window_stack]
-      if top_style and top_style.widget and top_style.widget.callback then
-        top_style.widget.callback({ provider = "underscore" })
-        assert.are.equal("underscore", chosen_style)
-        UIManager:close(top_style.widget)
-      end
+        local top_style = UIManager._window_stack[#UIManager._window_stack]
+        if top_style and top_style.widget and top_style.widget.callback then
+          top_style.widget.callback({ provider = "underscore" })
+          assert.are.equal("underscore", chosen_style)
+          UIManager:close(top_style.widget)
+        end
 
-      local chosen_color = nil
-      highlight:showHighlightColorDialog(function(color)
-        chosen_color = color
-      end)
+        local chosen_color = nil
+        highlight:showHighlightColorDialog(function(color)
+          chosen_color = color
+        end)
 
-      local top_color = UIManager._window_stack[#UIManager._window_stack]
-      if top_color and top_color.widget and top_color.widget.callback then
-        top_color.widget.callback({ provider = "blue" })
-        assert.are.equal("blue", chosen_color)
-        UIManager:close(top_color.widget)
-      end
-    end)
-
-    it("should handle editHighlightStyle, editHighlightColor, note marker selection, and batch update", function()
-      local highlight = readerui.highlight
-      readerui.annotation.annotations = {
-        {
-          drawer = "lighten",
-          color = "yellow",
-          pos0 = "/1/4/2/1:0",
-          pos1 = "/1/4/2/1:10",
-          text = "sample text",
-          page = 1,
-        },
-      }
-
-      local dirty_called = false
-      local orig_setDirty = UIManager.setDirty
-      UIManager.setDirty = function(self, target, mode)
-        dirty_called = true
-        return orig_setDirty(self, target, mode)
-      end
-
-      -- Test editHighlightStyle
-      highlight:editHighlightStyle(1)
-      local top_style = UIManager._window_stack[#UIManager._window_stack]
-      if top_style and top_style.widget and top_style.widget.callback then
-        top_style.widget.callback({ provider = "underscore" })
-        assert.are.equal("underscore", readerui.annotation.annotations[1].drawer)
-        assert.is_true(dirty_called)
-        UIManager:close(top_style.widget)
-      end
-
-      -- Test editHighlightColor
-      dirty_called = false
-      highlight:editHighlightColor(1)
-      local top_color = UIManager._window_stack[#UIManager._window_stack]
-      if top_color and top_color.widget and top_color.widget.callback then
-        top_color.widget.callback({ provider = "blue" })
-        assert.are.equal("blue", readerui.annotation.annotations[1].color)
-        assert.is_true(dirty_called)
-        UIManager:close(top_color.widget)
-      end
-
-      -- Test editHighlight with note_updated_callback
-      dirty_called = false
-      readerui.view.highlight.note_mark = "asterisk"
-      local orig_setBookmarkNote = readerui.bookmark.setBookmarkNote
-      readerui.bookmark.setBookmarkNote = function(self, idx, is_new, text, cb)
-        if cb then cb() end
-      end
-      highlight:editHighlight(1, false, "new note")
-      assert.is_true(dirty_called)
-      readerui.bookmark.setBookmarkNote = orig_setBookmarkNote
-
-      -- Test menu items for speedup rate enabled_func
-      local fake_menu = { long_press = { sub_item_table = {} } }
-      readerui.view.highlight.disabled = false
-      highlight:addToMainMenu(fake_menu)
-      for _, item in ipairs(fake_menu.long_press.sub_item_table) do
-        if item.enabled_func then
-          assert.is_true(item.enabled_func())
+        local top_color = UIManager._window_stack[#UIManager._window_stack]
+        if top_color and top_color.widget and top_color.widget.callback then
+          top_color.widget.callback({ provider = "blue" })
+          assert.are.equal("blue", chosen_color)
+          UIManager:close(top_color.widget)
         end
       end
+    )
 
-      UIManager.setDirty = orig_setDirty
-    end)
+    it(
+      "should handle editHighlightStyle, editHighlightColor, note marker selection, and batch update",
+      function()
+        local highlight = readerui.highlight
+        readerui.annotation.annotations = {
+          {
+            drawer = "lighten",
+            color = "yellow",
+            pos0 = "/1/4/2/1:0",
+            pos1 = "/1/4/2/1:10",
+            text = "sample text",
+            page = 1,
+          },
+        }
+
+        local dirty_called = false
+        local orig_setDirty = UIManager.setDirty
+        finally(function()
+          UIManager.setDirty = orig_setDirty
+        end)
+        UIManager.setDirty = function(self, target, mode)
+          dirty_called = true
+          return orig_setDirty(self, target, mode)
+        end
+
+        -- Test editHighlightStyle
+        highlight:editHighlightStyle(1)
+        local top_style = UIManager._window_stack[#UIManager._window_stack]
+        if top_style and top_style.widget and top_style.widget.callback then
+          top_style.widget.callback({ provider = "underscore" })
+          assert.are.equal(
+            "underscore",
+            readerui.annotation.annotations[1].drawer
+          )
+          assert.is_not_nil(readerui.annotation.annotations[1].datetime_updated)
+          assert.is_true(dirty_called)
+          dirty_called = false
+          top_style.widget.callback({ provider = "underscore" })
+          assert.is_false(dirty_called)
+          UIManager:close(top_style.widget)
+        end
+
+        -- Test editHighlightColor
+        dirty_called = false
+        highlight:editHighlightColor(1)
+        local top_color = UIManager._window_stack[#UIManager._window_stack]
+        if top_color and top_color.widget and top_color.widget.callback then
+          top_color.widget.callback({ provider = "blue" })
+          assert.are.equal("blue", readerui.annotation.annotations[1].color)
+          assert.is_not_nil(readerui.annotation.annotations[1].datetime_updated)
+          assert.is_true(dirty_called)
+          dirty_called = false
+          top_color.widget.callback({ provider = "blue" })
+          assert.is_false(dirty_called)
+          UIManager:close(top_color.widget)
+        end
+
+        -- Test editHighlight with note_updated_callback
+        dirty_called = false
+        readerui.view.highlight.note_mark = "asterisk"
+        local orig_setBookmarkNote = readerui.bookmark.setBookmarkNote
+        finally(function()
+          readerui.bookmark.setBookmarkNote = orig_setBookmarkNote
+        end)
+        readerui.bookmark.setBookmarkNote = function(
+          self,
+          idx,
+          is_new,
+          text,
+          cb
+        )
+          if cb then
+            cb()
+          end
+        end
+        highlight:editHighlight(1, false, "new note")
+        assert.is_true(dirty_called)
+
+        -- Test menu items for speedup rate enabled_func and batch update
+        local fake_menu = { long_press = { sub_item_table = {} } }
+        readerui.view.highlight.disabled = false
+        highlight:addToMainMenu(fake_menu)
+        for _, item in ipairs(fake_menu.long_press.sub_item_table) do
+          if item.enabled_func then
+            assert.is_true(item.enabled_func())
+          end
+        end
+
+        -- Test batch update "Apply current style and color to all highlights"
+        local broadcast_events = {}
+        local orig_broadcast = UIManager.broadcastEvent
+        finally(function()
+          UIManager.broadcastEvent = orig_broadcast
+        end)
+        UIManager.broadcastEvent = function(self, event, ...)
+          table.insert(broadcast_events, event)
+          return orig_broadcast(self, event, ...)
+        end
+
+        readerui.view.highlight.saved_drawer = "lighten"
+        readerui.view.highlight.saved_color = "yellow"
+        readerui.annotation.annotations[1].datetime_updated = nil
+
+        local batch_item = nil
+        for _, item in ipairs(fake_menu.highlight_options.sub_item_table) do
+          if item.text and item.text:find("Apply current style and color") then
+            batch_item = item
+            break
+          end
+        end
+        assert.is_not_nil(batch_item)
+        batch_item.callback()
+        local confirm_box =
+          UIManager._window_stack[#UIManager._window_stack].widget
+        assert.is_not_nil(confirm_box)
+        confirm_box.ok_callback()
+        UIManager:close(confirm_box)
+        assert.are.equal("lighten", readerui.annotation.annotations[1].drawer)
+        assert.are.equal("yellow", readerui.annotation.annotations[1].color)
+        assert.is_not_nil(readerui.annotation.annotations[1].datetime_updated)
+
+        local found_broadcast = false
+        for _, ev in ipairs(broadcast_events) do
+          if type(ev) == "table" and ev.handler == "onAnnotationsModified" then
+            found_broadcast = true
+            break
+          end
+        end
+        assert.is_true(found_broadcast)
+
+        -- Batch update again when all highlights already match:
+        -- Notification should still be shown, but no event broadcast or timestamp bump
+        local events_count = #broadcast_events
+        local prev_updated = readerui.annotation.annotations[1].datetime_updated
+        local widget_shown = nil
+        local orig_show = highlight.showWidget
+        highlight.showWidget = function(self, widget)
+          widget_shown = widget
+          return orig_show(self, widget)
+        end
+
+        batch_item.callback()
+        local second_confirm =
+          UIManager._window_stack[#UIManager._window_stack].widget
+        assert.is_not_nil(second_confirm)
+        second_confirm.ok_callback()
+        UIManager:close(second_confirm)
+        highlight.showWidget = orig_show
+
+        assert.are.equal(events_count, #broadcast_events)
+        assert.are.equal(
+          prev_updated,
+          readerui.annotation.annotations[1].datetime_updated
+        )
+        assert.is_not_nil(widget_shown)
+        assert.is_not_nil(widget_shown.text)
+        assert.is_true(
+          widget_shown.text:find("Applied style and color to 1 highlight") ~= nil
+        )
+      end
+    )
   end)
 end)
