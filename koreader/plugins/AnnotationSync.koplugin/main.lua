@@ -16,7 +16,6 @@ local util = require("util")
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
-local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
@@ -383,19 +382,22 @@ end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
-  annotations.sort(merged_list)
 
   if self.ui and self.ui.annotation and self.ui.document == document then
-    -- 1. Update active widget state
+    -- 1. Sort using core's comparator (N13)
+    self.ui.annotation:sortItems(merged_list)
+
+    -- 2. Update active widget state and doc_settings (N12)
     self.ui.annotation.annotations = merged_list
+    self.ui.doc_settings:save("annotations", merged_list)
     self.ui.annotation:updatePageNumbers(true)
 
-    -- 2. Notify system
+    -- 3. Notify system
     if #merged_list > 0 then
       UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
     end
 
-    -- 3. Trigger Refreshes
+    -- 4. Trigger Refreshes
     if not document.is_pdf then
       document:render()
       self.ui.view:recalculate()
@@ -405,6 +407,7 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
     -- Update sidecar directly for inactive document
     local annotation_sidecar = docsettings:open(document.file)
     annotation_sidecar:save("annotations", merged_list)
+    annotation_sidecar:save("annotations_externally_modified", true)
     annotation_sidecar:flush()
   end
   self.is_applying_sync = false

@@ -539,4 +539,115 @@ describe("AnnotationSync Core Integration", function()
       )
     end
   )
+
+  describe("Annotation Ordering and Settings Persistence (N12 & N13)", function()
+    it("write_annotations_json does not sort stored_annotations in-place (N13)", function()
+      local ann1 = {
+        page = "/1/4/2/1[p1]/text().2407",
+        pos0 = "/1/4/2/1[p1]/text().2407",
+        pos1 = "/1/4/2/1[p1]/text().2500",
+        datetime = "2026-01-01 10:00:00",
+      }
+      local ann2 = {
+        page = "/1/4/2/1[p1]/strong/text().0",
+        pos0 = "/1/4/2/1[p1]/strong/text().0",
+        pos1 = "/1/4/2/1[p1]/strong/text().10",
+        datetime = "2026-01-01 10:00:00",
+      }
+      local stored = { ann1, ann2 }
+      local path = annotations_mod.write_annotations_json(
+        stored,
+        test_data_dir,
+        "test_n13_order.json"
+      )
+      finally(function()
+        if path then
+          os.remove(path)
+        end
+      end)
+      assert.truthy(path)
+      assert.are_equal(ann1, stored[1])
+      assert.are_equal(ann2, stored[2])
+    end)
+
+    it("applySyncedAnnotations updates active doc_settings and keeps table reference (N12)", function()
+      local xp = readerui.document:getPageXPointer(1)
+      local ann = {
+        page = xp,
+        pos0 = xp,
+        pos1 = xp,
+        text = "Open book synced",
+        datetime = "2026-01-01 12:00:00",
+        drawer = true,
+      }
+      local merged = { ann }
+      sync_instance:applySyncedAnnotations(readerui.document, merged)
+
+      assert.are_equal(merged, readerui.annotation.annotations)
+      assert.are_equal(merged, readerui.doc_settings.data.annotations)
+      assert.are_equal(merged, readerui.doc_settings:readTableRef("annotations"))
+    end)
+
+    it("applySyncedAnnotations on open book sorts using core sortItems (N13)", function()
+      local xp1 = readerui.document:getPageXPointer(1)
+      local xp3 = readerui.document:getPageXPointer(3)
+      local ann_p3 = {
+        page = xp3,
+        pos0 = xp3,
+        pos1 = xp3,
+        datetime = "2026-01-01 10:00:00",
+        drawer = true,
+      }
+      local ann_p1 = {
+        page = xp1,
+        pos0 = xp1,
+        pos1 = xp1,
+        datetime = "2026-01-01 10:00:00",
+        drawer = true,
+      }
+      local merged = { ann_p3, ann_p1 }
+      local sort_called = false
+      local old_sortItems = readerui.annotation.sortItems
+      readerui.annotation.sortItems = function(self, items)
+        sort_called = true
+        old_sortItems(self, items)
+      end
+      finally(function()
+        readerui.annotation.sortItems = old_sortItems
+      end)
+
+      sync_instance:applySyncedAnnotations(readerui.document, merged)
+      assert.is_true(sort_called)
+      assert.are_equal(ann_p1, readerui.annotation.annotations[1])
+      assert.are_equal(ann_p3, readerui.annotation.annotations[2])
+    end)
+
+    it("applySyncedAnnotations on closed book marks annotations_externally_modified (N13)", function()
+      local closed_file = test_data_dir .. "/closed_doc.epub"
+      local DocSettings = require("docsettings")
+      local ds = DocSettings:open(closed_file)
+      ds:save("annotations", {})
+      ds:flush()
+      finally(function()
+        os.remove(closed_file)
+        local sdr = test_data_dir .. "/closed_doc.sdr"
+        os.execute("rm -rf " .. sdr)
+      end)
+
+      local ann = {
+        page = 1,
+        pos0 = "p0",
+        pos1 = "p1",
+        text = "Closed doc note",
+        datetime = "2026-01-01 10:00:00",
+      }
+      sync_instance:applySyncedAnnotations({ file = closed_file }, { ann })
+
+      local reloaded_ds = DocSettings:open(closed_file)
+      assert.is_true(reloaded_ds:isTrue("annotations_externally_modified"))
+      local anns = reloaded_ds:readTable("annotations")
+      assert.are_equal(1, #anns)
+      assert.are_equal("Closed doc note", anns[1].text)
+    end)
+  end)
 end)
