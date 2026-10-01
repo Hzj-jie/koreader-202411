@@ -65,6 +65,7 @@ describe("AnnotationSync Core Integration", function()
   local function create_ann_from_db(index, note, datetime)
     local entry = highlight_db[index]
     local ann = {
+      drawer = "lighten",
       page = entry.p0,
       pos0 = entry.p0,
       pos1 = entry.p1,
@@ -291,7 +292,13 @@ describe("AnnotationSync Core Integration", function()
       "verifies that Dropbox 'path not found' error is handled gracefully",
       function()
         readerui.annotation.annotations = {
-          { page = 1, pos0 = "p0", pos1 = "p1", text = "hello" },
+          {
+            drawer = "lighten",
+            page = "p0",
+            pos0 = "p0",
+            pos1 = "p1",
+            text = "hello",
+          },
         }
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
@@ -540,8 +547,8 @@ describe("AnnotationSync Core Integration", function()
     end
   )
 
-  describe("Annotation Ordering and Settings Persistence (N12 & N13)", function()
-    it("write_annotations_json does not sort stored_annotations in-place (N13)", function()
+  describe("Annotation Ordering and Settings Persistence", function()
+    it("write_annotations_json does not sort stored_annotations in-place", function()
       local ann1 = {
         page = "/1/4/2/1[p1]/text().2407",
         pos0 = "/1/4/2/1[p1]/text().2407",
@@ -570,7 +577,7 @@ describe("AnnotationSync Core Integration", function()
       assert.are_equal(ann2, stored[2])
     end)
 
-    it("applySyncedAnnotations updates active doc_settings and keeps table reference (N12)", function()
+    it("applySyncedAnnotations updates active doc_settings and keeps table reference", function()
       local xp = readerui.document:getPageXPointer(1)
       local ann = {
         page = xp,
@@ -588,7 +595,7 @@ describe("AnnotationSync Core Integration", function()
       assert.are_equal(merged, readerui.doc_settings:readTableRef("annotations"))
     end)
 
-    it("applySyncedAnnotations on open book sorts using core sortItems (N13)", function()
+    it("applySyncedAnnotations on open book sorts using core sortItems", function()
       local xp1 = readerui.document:getPageXPointer(1)
       local xp3 = readerui.document:getPageXPointer(3)
       local ann_p3 = {
@@ -622,7 +629,7 @@ describe("AnnotationSync Core Integration", function()
       assert.are_equal(ann_p3, readerui.annotation.annotations[2])
     end)
 
-    it("applySyncedAnnotations on closed book marks annotations_externally_modified (N13)", function()
+    it("applySyncedAnnotations on closed book marks annotations_externally_modified", function()
       local closed_file = test_data_dir .. "/closed_doc.epub"
       local DocSettings = require("docsettings")
       local ds = DocSettings:open(closed_file)
@@ -648,6 +655,101 @@ describe("AnnotationSync Core Integration", function()
       local anns = reloaded_ds:readTable("annotations")
       assert.are_equal(1, #anns)
       assert.are_equal("Closed doc note", anns[1].text)
+    end)
+  end)
+
+  describe("Closed-book sidecar synchronization", function()
+    it("handles document engine format swap across getAnnotationsForDocument and applySyncedAnnotations", function()
+      local closed_file = test_data_dir .. "/closed_s1.epub"
+      local DocSettings = require("docsettings")
+      os.execute("rm -rf " .. closed_file .. " " .. closed_file .. ".sdr; touch " .. closed_file)
+      local ds = DocSettings:open(closed_file)
+      local P = {
+        datetime = "2026-01-01 11:00:00",
+        drawer = "lighten",
+        page = 3,
+        pos0 = { x = 1, y = 2, page = 3 },
+        pos1 = { x = 9, y = 2, page = 3 },
+        text = "Paging highlight",
+      }
+      local E = {
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+        page = "/body/p[1]/text().0",
+        pos0 = "/body/p[1]/text().0",
+        pos1 = "/body/p[1]/text().9",
+        text = "Rolling highlight",
+      }
+      ds:save("annotations", { P })
+      ds:save("annotations_rolling", { E })
+      ds:flush()
+      finally(function()
+        os.remove(closed_file)
+        os.execute("rm -rf " .. closed_file .. ".sdr")
+      end)
+
+      -- 1. getAnnotationsForDocument loads via loadFromSettings (swaps P into paging, returns E)
+      local list = sync_instance.manager:getAnnotationsForDocument(closed_file)
+      assert.are_equal(1, #list)
+      assert.are_equal("Rolling highlight", list[1].text)
+
+      -- 2. applySyncedAnnotations preserves swapped paging list and clears stale rolling
+      sync_instance:applySyncedAnnotations({ file = closed_file }, list)
+
+      local reloaded_ds = DocSettings:open(closed_file)
+      local anns = reloaded_ds:readTable("annotations")
+      assert.are_equal(1, #anns)
+      assert.are_equal("Rolling highlight", anns[1].text)
+      local paging = reloaded_ds:readTable("annotations_paging")
+      assert.are_equal(1, #paging)
+      assert.are_equal("Paging highlight", paging[1].text)
+      assert.is_nil(reloaded_ds:readTable("annotations_rolling"))
+      assert.is_true(reloaded_ds:isTrue("annotations_externally_modified"))
+    end)
+
+    it("quarantines invalid closed-book annotations across getAnnotationsForDocument and applySyncedAnnotations", function()
+      local closed_file = test_data_dir .. "/closed_s2.epub"
+      local DocSettings = require("docsettings")
+      os.execute("rm -rf " .. closed_file .. " " .. closed_file .. ".sdr; touch " .. closed_file)
+      local ds = DocSettings:open(closed_file)
+      local E = {
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+        page = "/body/p[1]/text().0",
+        pos0 = "/body/p[1]/text().0",
+        pos1 = "/body/p[1]/text().9",
+        text = "Valid highlight",
+      }
+      local Ebad = {
+        datetime = "2026-01-01 12:00:00",
+        page = "/body/p[2]/text().0",
+        pos0 = "/body/p[2]/text().0",
+        pos1 = "/body/p[2]/text().9",
+        text = "Invalid highlight without drawer",
+      }
+      ds:save("annotations", { E, Ebad })
+      ds:flush()
+      finally(function()
+        os.remove(closed_file)
+        os.execute("rm -rf " .. closed_file .. ".sdr")
+      end)
+
+      -- 1. getAnnotationsForDocument filters out invalid items via loadFromSettings
+      local list = sync_instance.manager:getAnnotationsForDocument(closed_file)
+      assert.are_equal(1, #list)
+      assert.are_equal("Valid highlight", list[1].text)
+
+      -- 2. applySyncedAnnotations preserves quarantined invalid list
+      sync_instance:applySyncedAnnotations({ file = closed_file }, list)
+
+      local reloaded_ds = DocSettings:open(closed_file)
+      local anns = reloaded_ds:readTable("annotations")
+      assert.are_equal(1, #anns)
+      assert.are_equal("Valid highlight", anns[1].text)
+      local invalid = reloaded_ds:readTable("annotations_invalid")
+      assert.are_equal(1, #invalid)
+      assert.are_equal("Invalid highlight without drawer", invalid[1].text)
+      assert.is_true(reloaded_ds:isTrue("annotations_externally_modified"))
     end)
   end)
 end)

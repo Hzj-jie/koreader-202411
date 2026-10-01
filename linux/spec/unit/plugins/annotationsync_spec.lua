@@ -1,5 +1,5 @@
 describe("AnnotationSync plugin unit tests", function()
-  local utils, annotations
+  local utils, annotations, ReaderAnnotation
 
   setup(function()
     require("commonrequire")
@@ -8,6 +8,7 @@ describe("AnnotationSync plugin unit tests", function()
 
     utils = require("plugins/AnnotationSync.koplugin/utils")
     annotations = require("plugins/AnnotationSync.koplugin/annotations")
+    ReaderAnnotation = require("apps/reader/modules/readerannotation")
   end)
 
   describe("Utils Module Functions", function()
@@ -87,57 +88,72 @@ describe("AnnotationSync plugin unit tests", function()
     end)
 
     it("should correctly validate bookmarks", function()
-      assert.is_true(annotations.is_bookmark({ page = 1 }))
-      assert.is_true(annotations.is_bookmark({ page = "chapter1" }))
+      assert.is_true(ReaderAnnotation.isValidItem({ page = 1 }))
+      assert.is_true(ReaderAnnotation.isValidItem({ page = "chapter1" }))
       -- Invalid bookmarks
-      assert.is_false(annotations.is_bookmark(nil))
-      assert.is_false(annotations.is_bookmark(1))
-      assert.is_false(annotations.is_bookmark({ text = "note without page" }))
-      assert.is_false(annotations.is_bookmark({ page = "" }))
-      -- Cannot have highlight positions
+      assert.is_false(ReaderAnnotation.isValidItem(nil))
+      assert.is_false(ReaderAnnotation.isValidItem(1))
       assert.is_false(
-        annotations.is_bookmark({ page = 1, pos0 = { x = 10, y = 20 } })
+        ReaderAnnotation.isValidItem({ text = "note without page" })
+      )
+      assert.is_false(ReaderAnnotation.isValidItem({ page = "" }))
+      -- Cannot have highlight positions without drawer
+      assert.is_false(
+        ReaderAnnotation.isValidItem({ page = 1, pos0 = { x = 10, y = 20 } })
       )
     end)
 
     it("should correctly validate highlights", function()
       -- Valid paging highlight
-      assert.is_true(annotations.is_annotation({
+      assert.is_true(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
         page = 1,
         pos0 = { x = 10, y = 20 },
         pos1 = { x = 30, y = 40 },
       }))
       -- Valid rolling highlight
-      assert.is_true(annotations.is_annotation({
-        page = 1,
+      assert.is_true(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
+        page = "p1",
         pos0 = "p1",
         pos1 = "p2",
       }))
+      -- Invalid: missing drawer
+      assert.is_false(ReaderAnnotation.isValidItem({
+        page = 1,
+        pos0 = { x = 10, y = 20 },
+        pos1 = { x = 30, y = 40 },
+      }))
       -- Invalid: missing page
-      assert.is_false(annotations.is_annotation({
+      assert.is_false(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
         pos0 = { x = 10, y = 20 },
         pos1 = { x = 30, y = 40 },
       }))
       -- Invalid: missing pos1
-      assert.is_false(annotations.is_annotation({
+      assert.is_false(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
         page = 1,
         pos0 = { x = 10, y = 20 },
       }))
       -- Invalid: pos0 is empty table without coords
-      assert.is_false(annotations.is_annotation({
+      assert.is_false(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
         page = 1,
         pos0 = {},
         pos1 = {},
       }))
       -- Invalid: non-numeric coordinates
-      assert.is_false(annotations.is_annotation({
+      assert.is_false(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
         page = 1,
         pos0 = { x = "bad", y = 20 },
         pos1 = { x = 30, y = 40 },
       }))
       -- Invalid: empty string xpointers
-      assert.is_false(annotations.is_annotation({
-        page = 1,
+      assert.is_false(ReaderAnnotation.isValidItem({
+        drawer = "lighten",
+        page = "p1",
         pos0 = "",
         pos1 = "p2",
       }))
@@ -173,6 +189,7 @@ describe("AnnotationSync plugin unit tests", function()
         local local_data = {
           valid_bm = { page = 1, text = "Valid Bookmark" },
           valid_hl = {
+            drawer = "lighten",
             page = 2,
             pos0 = { x = 10, y = 20 },
             pos1 = { x = 50, y = 20 },

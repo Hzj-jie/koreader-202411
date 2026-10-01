@@ -21,13 +21,6 @@ local function has_valid_coords(pos)
     and type(pos.y) == "number"
 end
 
-local function has_valid_page(ann)
-  local page = ann.page
-    or (type(ann.pos0) == "table" and ann.pos0.page)
-    or (type(ann.pos0) == "string" and ann.pos0)
-  return type(page) == "number" or (type(page) == "string" and page ~= "")
-end
-
 local M = {}
 
 local function read_to_array(file)
@@ -39,7 +32,7 @@ local function read_to_array(file)
   local valid = {}
   for _, v in pairs(raw) do
     c = c + 1
-    if M.is_valid(v) then
+    if ReaderAnnotation.isValidItem(v) then
       table.insert(valid, v)
     end
   end
@@ -277,36 +270,6 @@ function M.sort(array)
   return array
 end
 
-
-function M.is_bookmark(candidate)
-  if type(candidate) ~= "table" or not has_valid_page(candidate) then
-    return false
-  end
-  return candidate.pos0 == nil and candidate.pos1 == nil
-end
-
-function M.is_annotation(candidate)
-  if type(candidate) ~= "table" or not has_valid_page(candidate) then
-    return false
-  end
-  if not candidate.pos0 or not candidate.pos1 then
-    return false
-  end
-
-  if has_valid_coords(candidate.pos0) and has_valid_coords(candidate.pos1) then
-    return true
-  end
-
-  if type(candidate.pos0) == "string" and type(candidate.pos1) == "string" then
-    return candidate.pos0 ~= "" and candidate.pos1 ~= ""
-  end
-
-  return false
-end
-
-function M.is_valid(candidate)
-  return M.is_annotation(candidate) or M.is_bookmark(candidate)
-end
 
 function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""

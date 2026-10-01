@@ -427,11 +427,7 @@ function SyncManager:getAnnotationsForDocument(document)
   -- Handle inactive document
   if file then
     local annotation_sidecar = docsettings:open(file)
-    -- Note, the merged annotations will be rewritten back to the settings from a
-    -- different Docsettings instance, read or readTableRef shouldn't be used
-    -- here.
-    local result = annotation_sidecar:readTable("annotations")
-    return result or {}
+    return ReaderAnnotation.loadFromSettings(annotation_sidecar)
   end
   return {}
 end

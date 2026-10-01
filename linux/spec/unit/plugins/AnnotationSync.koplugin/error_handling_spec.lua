@@ -181,7 +181,8 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle special characters in highlights (Emojis)", function()
       local emoji_text = "Emoji highlight 🌟"
       local ann = {
-        page = 1,
+        drawer = "lighten",
+        page = "pos0",
         pos0 = "pos0",
         pos1 = "pos1",
         text = emoji_text,

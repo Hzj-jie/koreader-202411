@@ -153,6 +153,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       -- We need to manually add it to changed docs and put something in its sidecar
       local ds_pdf = require("frontend/docsettings"):open(doc_pdf)
       local ann_pdf_l = {
+        drawer = "lighten",
         page = 10,
         pos0 = { x = 36, y = 45, page = 10 },
         pos1 = { x = 92, y = 45, page = 10 },
@@ -166,6 +167,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- Remote PDF addition
       local ann_pdf_r = {
+        drawer = "lighten",
         page = 10,
         pos0 = { x = 186, y = 45, page = 10 },
         pos1 = { x = 242, y = 45, page = 10 },

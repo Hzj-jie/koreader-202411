@@ -42,9 +42,9 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   end)
 
   before_each(function()
+    readerui.annotation.annotations = {}
     UIManager:show(readerui)
     fastforward_ui_events()
-    readerui.annotation.annotations = {}
     sync_instance.manager:cleanSyncFile(readerui.document)
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
@@ -106,14 +106,31 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local mock_ds = {
         open = function(this, file)
           return {
+            has = function(self_ds, key)
+              return key == "annotations"
+            end,
             readTable = function(self_ds, key)
               if key == "annotations" then
-                return { { page = "test_page", pos0 = "p0", pos1 = "p1" } }
+                return {
+                  {
+                    drawer = "lighten",
+                    page = "test_page",
+                    pos0 = "p0",
+                    pos1 = "p1",
+                  },
+                }
               end
             end,
             readTableRef = function(self_ds, key)
               if key == "annotations" then
-                return { { page = "test_page", pos0 = "p0", pos1 = "p1" } }
+                return {
+                  {
+                    drawer = "lighten",
+                    page = "test_page",
+                    pos0 = "p0",
+                    pos1 = "p1",
+                  },
+                }
               end
               return {}
             end,
@@ -157,11 +174,23 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         test_utils.write_mock_json(test_data_dir, "prot_local.json", {})
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last.json", {
-          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income.json", {
-          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
 
       local ok, active = annotations_mod.sync_callback(
@@ -193,11 +222,23 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         test_utils.write_mock_json(test_data_dir, "prot_local_force.json", {})
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last_force.json", {
-          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income_force.json", {
-          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
 
       local ok, active = annotations_mod.sync_callback(
@@ -224,14 +265,16 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     function()
       local remote_ann = {
         {
-          page = 1,
+          drawer = "lighten",
+          page = "p1",
           pos0 = "p1",
           pos1 = "p1",
           text = "Remote 1",
           datetime_updated = "2026-01-01 00:00:00",
         },
         {
-          page = 2,
+          drawer = "lighten",
+          page = "p2",
           pos0 = "p2",
           pos1 = "p2",
           text = "Remote 2",
@@ -274,7 +317,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       readerui.annotation.annotations = {
         {
-          page = 1,
+          drawer = "lighten",
+          page = "p1",
           pos0 = "p1",
           pos1 = "p1",
           text = "Remote 1",
@@ -308,6 +352,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   it("should protect PDF annotations similarly (geometry keys)", function()
     local remote_ann = {
       {
+        drawer = "lighten",
         page = 1,
         pos0 = { x = 10, y = 10 },
         pos1 = { x = 20, y = 20 },

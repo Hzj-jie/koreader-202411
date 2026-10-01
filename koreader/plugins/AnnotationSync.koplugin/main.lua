@@ -13,6 +13,7 @@ local json = require("json")
 local logger = require("logger")
 local util = require("util")
 
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
@@ -406,6 +407,7 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   else
     -- Update sidecar directly for inactive document
     local annotation_sidecar = docsettings:open(document.file)
+    ReaderAnnotation.loadFromSettings(annotation_sidecar)
     annotation_sidecar:save("annotations", merged_list)
     annotation_sidecar:save("annotations_externally_modified", true)
     annotation_sidecar:flush()
