@@ -1,3 +1,4 @@
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local json = require("json")
 local logger = require("logger")
 local sort = require("sort")
@@ -118,7 +119,7 @@ function M.sync_callback(
   local function is_in_list(list, v)
     assert(type(list) == "table")
     for _, r in ipairs(list) do
-      if M.is_same_annotation(v, r) then
+      if ReaderAnnotation.doesMatch(v, r) then
         return r
       end
     end
@@ -311,62 +312,6 @@ function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""
   local b_time = b.datetime_updated or b.datetime or ""
   return a_time <= b_time
-end
-
-function M.is_same_annotation(a, b)
-  if not a or not b then
-    return false
-  end
-
-  local function get_page(item)
-    return item.page
-      or (type(item.pos0) == "table" and item.pos0.page)
-      or (type(item.pos0) == "string" and item.pos0)
-  end
-
-  local function is_bm(item)
-    return item.pos0 == nil and item.pos1 == nil
-  end
-
-  local function norm_coord(pos, coord)
-    local zoom = pos.zoom or 1
-    return math.floor(pos[coord] / zoom)
-  end
-
-  local function same_coords(p1, p2)
-    return norm_coord(p1, "x") == norm_coord(p2, "x")
-      and norm_coord(p1, "y") == norm_coord(p2, "y")
-  end
-
-  if get_page(a) ~= get_page(b) then
-    return false
-  end
-
-  local a_is_bm = is_bm(a)
-  local b_is_bm = is_bm(b)
-  if a_is_bm ~= b_is_bm then
-    return false
-  end
-  if a_is_bm then
-    return true
-  end
-
-  -- Rolling XPointers (EPUB)
-  if type(a.pos0) == "string" and type(b.pos0) == "string" then
-    return a.pos0 == b.pos0 and a.pos1 == b.pos1
-  end
-
-  -- Paging coordinates (PDF)
-  if
-    type(a.pos0) == "table"
-    and type(b.pos0) == "table"
-    and type(a.pos1) == "table"
-    and type(b.pos1) == "table"
-  then
-    return same_coords(a.pos0, b.pos0) and same_coords(a.pos1, b.pos1)
-  end
-
-  return false
 end
 
 return M

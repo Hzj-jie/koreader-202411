@@ -47,6 +47,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     deleted
   )
     return {
+      drawer = "lighten",
       page = page,
       pos0 = { page = page, x = x0, y = y0 },
       pos1 = { page = page, x = x1, y = y1 },
@@ -223,6 +224,103 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
       assert.is_true(success)
       assert.are.equal(1, #active)
+    end
+  )
+
+  it(
+    "preserves two highlights of the same passage with different datetimes as distinct annotations",
+    function()
+      local h1 = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "first highlight",
+        "2026-01-01 10:00:00"
+      )
+      local h2 = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "second highlight",
+        "2026-01-01 11:00:00"
+      )
+      write_json(local_file, { ["1|10|20||100|40@10"] = h1 })
+      write_json(last_sync_file, {})
+      write_json(income_file, { ["1|10|20||100|40@11"] = h2 })
+
+      local success, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
+        false
+      )
+
+      assert.is_true(success)
+      assert.are.equal(2, #active)
+      assert.are.equal("first highlight", active[1].note)
+      assert.are.equal("second highlight", active[2].note)
+
+      local written = utils_mod.read_json(local_file)
+      assert.are.equal(2, #written)
+    end
+  )
+
+  it(
+    "does not delete re-highlighted passage when old highlight at same passage is tombstoned",
+    function()
+      local h_old = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "old highlight",
+        "2026-01-01 10:00:00"
+      )
+      local h_old_tombstone = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "old highlight",
+        "2026-01-01 10:00:00",
+        "2026-01-01 12:00:00",
+        true
+      )
+      local h_new = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "re-highlighted passage",
+        "2026-01-02 09:00:00"
+      )
+
+      write_json(local_file, { ["1|10|20||100|40@new"] = h_new })
+      write_json(last_sync_file, { ["1|10|20||100|40@old"] = h_old })
+      write_json(income_file, { ["1|10|20||100|40@old_del"] = h_old_tombstone })
+
+      local success, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
+        false
+      )
+
+      assert.is_true(success)
+      assert.are.equal(1, #active)
+      assert.are.equal("re-highlighted passage", active[1].note)
+      assert.are.equal("2026-01-02 09:00:00", active[1].datetime)
+      assert.is_nil(active[1].deleted)
+
+      local written = utils_mod.read_json(local_file)
+      assert.are.equal(2, #written)
     end
   )
 

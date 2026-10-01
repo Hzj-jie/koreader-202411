@@ -290,6 +290,7 @@ describe("AnnotationSync plugin unit tests", function()
         local data = {
           b1 = { page = 1 },
           h1 = {
+            drawer = "lighten",
             page = 1,
             pos0 = { page = 1, x = 10, y = 20 },
             pos1 = { page = 1, x = 50, y = 20 },
@@ -297,6 +298,7 @@ describe("AnnotationSync plugin unit tests", function()
           },
           b2 = { page = 2 },
           h2 = {
+            drawer = "lighten",
             page = 2,
             pos0 = { page = 2, x = 10, y = 20 },
             pos1 = { page = 2, x = 50, y = 20 },

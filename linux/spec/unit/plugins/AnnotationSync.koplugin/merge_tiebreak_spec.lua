@@ -43,6 +43,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
     datetime_updated
   )
     return {
+      drawer = "lighten",
       page = page or 1,
       pos0 = { page = page or 1, x = 10, y = 20 },
       pos1 = { page = page or 1, x = 100, y = 40 },
@@ -164,10 +165,20 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
   it(
     "retains 'Latest-Wins' for non-identical timestamps (Remote newer)",
     function()
-      local local_ann =
-        create_mock_ann(1, "Local Old", false, "2026-01-01 12:00:00")
-      local income_ann =
-        create_mock_ann(1, "Remote Newer", false, "2026-01-01 12:00:01")
+      local local_ann = create_mock_ann(
+        1,
+        "Local Old",
+        false,
+        "2026-01-01 12:00:00",
+        "2026-01-01 12:00:00"
+      )
+      local income_ann = create_mock_ann(
+        1,
+        "Remote Newer",
+        false,
+        "2026-01-01 12:00:00",
+        "2026-01-01 12:00:01"
+      )
 
       write_json(local_file, { local_ann })
       write_json(last_sync_file, { local_ann })

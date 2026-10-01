@@ -12,6 +12,7 @@ local logger = require("logger")
 local readhistory = require("readhistory")
 local util = require("util")
 
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local remote = require("plugins/AnnotationSync.koplugin/remote")
@@ -451,7 +452,7 @@ function SyncManager:getDeletedAnnotations(document)
   local active = self:getAnnotationsForDocument(document)
   local function is_active(item)
     for _, a in ipairs(active) do
-      if annotations.is_same_annotation(item, a) then
+      if ReaderAnnotation.doesMatch(item, a) then
         return true
       end
     end

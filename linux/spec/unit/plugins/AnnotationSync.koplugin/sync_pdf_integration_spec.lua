@@ -1,6 +1,6 @@
 describe("AnnotationSync PDF Core Integration", function()
   local ReaderUI, UIManager, SyncService, Geom, DataStorage
-  local AnnotationSyncPlugin, highlight_pdf_db, test_utils, json, util, annotations_mod
+  local AnnotationSyncPlugin, highlight_pdf_db, test_utils, json, util, ReaderAnnotation
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_pdf_integration_tmp"
@@ -21,7 +21,7 @@ describe("AnnotationSync PDF Core Integration", function()
     DataStorage = require("datastorage")
     json = require("json")
     util = require("util")
-    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
+    ReaderAnnotation = require("apps/reader/modules/readerannotation")
 
     highlight_pdf_db =
       require("plugins/AnnotationSync.koplugin/highlight_pdf_db")
@@ -69,6 +69,7 @@ describe("AnnotationSync PDF Core Integration", function()
   local function create_pdf_ann_from_db(index, note, datetime)
     local entry = highlight_pdf_db[index]
     local ann = {
+      drawer = "lighten",
       page = entry.page_num,
       pos0 = util.tableDeepCopy(entry.pos0),
       pos1 = util.tableDeepCopy(entry.pos1),
@@ -77,11 +78,8 @@ describe("AnnotationSync PDF Core Integration", function()
       datetime = datetime or "2026-01-01 12:00:00",
       note = note,
     }
-    -- PDF positions need page and zoom for key generation and comparison
     ann.pos0.page = entry.page_num
     ann.pos1.page = entry.page_num
-    ann.pos0.zoom = ann.pos0.zoom or 1
-    ann.pos1.zoom = ann.pos1.zoom or 1
 
     return ann
   end
@@ -168,52 +166,6 @@ describe("AnnotationSync PDF Core Integration", function()
 
         -- Both distinct highlights should be preserved (exact coordinate identity avoids data loss)
         assert.is_equal(2, #readerui.annotation.annotations)
-      end
-    )
-
-    it(
-      "normalizes sub-integer coordinate drift within the same integer bucket",
-      function()
-        -- Local has a highlight
-        local entry = highlight_pdf_db[1]
-        test_utils.emulate_highlight(readerui, entry)
-        local local_ann = readerui.annotation.annotations[1]
-        local_ann.datetime = "2026-02-01 10:00:00"
-        local_ann.note = "Local Original"
-
-        -- Remote has the same highlight but with slight coordinate drift (e.g. 0.5 units)
-        local remote_ann = util.tableDeepCopy(local_ann)
-        remote_ann.pos0.x = remote_ann.pos0.x + 0.5
-        remote_ann.pos1.x = remote_ann.pos1.x - 0.5
-        remote_ann.datetime = "2026-02-01 11:00:00" -- Newer
-        remote_ann.note = "Drifted Version"
-
-        local income_path = test_utils.write_mock_json(
-          test_data_dir,
-          "income_drift_pdf.json",
-          { remote_ann }
-        )
-
-        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
-          local cached_dest = local_path .. ".sync"
-          callback(local_path, cached_dest, income_path)
-          local ffiutil = require("ffi/util")
-          ffiutil.copyFile(local_path, cached_dest)
-          if finish_cb then
-            finish_cb(true)
-          end
-          return true
-        end
-
-        sync_instance:manualSync()
-        os.remove(income_path)
-
-        -- Should merge because coordinates map to the same floor-normalized integer bucket
-        assert.is_equal(1, #readerui.annotation.annotations)
-        assert.is_equal(
-          "Drifted Version",
-          readerui.annotation.annotations[1].note
-        )
       end
     )
 
@@ -326,7 +278,7 @@ describe("AnnotationSync PDF Core Integration", function()
       ann2.pos0.page = ann2.page
       ann2.pos1.page = ann2.page
 
-      assert.is_false(annotations_mod.is_same_annotation(ann1, ann2))
+      assert.is_false(ReaderAnnotation.doesMatch(ann1, ann2))
     end)
 
     it("distinguishes PDF highlights on different lines with same X", function()
@@ -335,23 +287,7 @@ describe("AnnotationSync PDF Core Integration", function()
       ann2.pos0.y = ann1.pos0.y + 100 -- different line
       ann2.pos1.y = ann1.pos1.y + 100
 
-      assert.is_false(annotations_mod.is_same_annotation(ann1, ann2))
-    end)
-
-    it("normalizes coordinates across different zoom levels", function()
-      local ann1 = create_pdf_ann_from_db(1)
-      ann1.pos0.zoom = 1.0
-      ann1.pos1.zoom = 1.0
-
-      local ann2 = util.tableDeepCopy(ann1)
-      ann2.pos0.x = ann1.pos0.x * 2
-      ann2.pos0.y = ann1.pos0.y * 2
-      ann2.pos1.x = ann1.pos1.x * 2
-      ann2.pos1.y = ann1.pos1.y * 2
-      ann2.pos0.zoom = 2.0
-      ann2.pos1.zoom = 2.0
-
-      assert.is_true(annotations_mod.is_same_annotation(ann1, ann2))
+      assert.is_false(ReaderAnnotation.doesMatch(ann1, ann2))
     end)
 
     it("handles PDF highlights in Reflow Mode", function()
@@ -422,7 +358,7 @@ describe("AnnotationSync PDF Core Integration", function()
 
       -- Highlights should differ because we clicked different text (due to simulated crop shift)
       assert.is_false(
-        annotations_mod.is_same_annotation(ann_uncropped, ann_cropped)
+        ReaderAnnotation.doesMatch(ann_uncropped, ann_cropped)
       )
 
       -- Restore transform
