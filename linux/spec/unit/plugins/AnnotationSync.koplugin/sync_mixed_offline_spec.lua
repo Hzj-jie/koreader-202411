@@ -148,7 +148,6 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       ann_epub_r.pos1 = highlight_db[2].p1
       ann_epub_r.text = highlight_db[2].text
       ann_epub_r.datetime = "2026-02-01 11:00:00"
-      local key_epub_r = annotations_mod.annotation_key(ann_epub_r)
 
       -- 2. Prepare PDF (Inactive)
       -- We need to manually add it to changed docs and put something in its sidecar
@@ -174,18 +173,17 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         datetime = "2026-02-01 11:00:00",
         note = "Remote PDF",
       }
-      local key_pdf_r = annotations_mod.annotation_key(ann_pdf_r)
 
       -- 3. Mock remote files
       local income_epub = test_utils.write_mock_json(
         test_data_dir,
         "income_epub.json",
-        { [key_epub_r] = ann_epub_r }
+        { ann_epub_r }
       )
       local income_pdf = test_utils.write_mock_json(
         test_data_dir,
         "income_pdf.json",
-        { [key_pdf_r] = ann_pdf_r }
+        { ann_pdf_r }
       )
 
       local epub_filename =

@@ -260,8 +260,8 @@ function M.mock_sync_service(SyncService)
         f:close()
       end
 
-      -- If file doesn't exist, is empty, or doesn't start with '{', make it a valid empty JSON object
-      if not content or content == "" or content:sub(1, 1) ~= "{" then
+      -- If file doesn't exist, is empty, or doesn't start with '{' or '[', make it a valid empty JSON object
+      if not content or content == "" or (content:sub(1, 1) ~= "{" and content:sub(1, 1) ~= "[") then
         -- Ensure directory exists
         local dir = path:match("(.*)/")
         if dir then

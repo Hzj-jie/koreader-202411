@@ -83,7 +83,7 @@ describe("AnnotationSync PDF Core Integration", function()
     ann.pos0.zoom = ann.pos0.zoom or 1
     ann.pos1.zoom = ann.pos1.zoom or 1
 
-    return ann, annotations_mod.annotation_key(ann)
+    return ann
   end
 
   describe("Tracking & Persistence (PDF)", function()
@@ -107,11 +107,11 @@ describe("AnnotationSync PDF Core Integration", function()
       fastforward_ui_events()
       test_utils.emulate_highlight(readerui, highlight_pdf_db[1])
 
-      local ann2, key2 = create_pdf_ann_from_db(2)
+      local ann2 = create_pdf_ann_from_db(2)
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_disjoint_pdf.json",
-        { [key2] = ann2 }
+        { ann2 }
       )
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
@@ -146,11 +146,10 @@ describe("AnnotationSync PDF Core Integration", function()
         remote_ann.datetime = "2026-02-01 11:00:00"
         remote_ann.note = "Remote Version"
 
-        local key_r = annotations_mod.annotation_key(remote_ann)
         local income_path = test_utils.write_mock_json(
           test_data_dir,
           "income_overlap_pdf.json",
-          { [key_r] = remote_ann }
+          { remote_ann }
         )
 
         SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -189,13 +188,10 @@ describe("AnnotationSync PDF Core Integration", function()
         remote_ann.datetime = "2026-02-01 11:00:00" -- Newer
         remote_ann.note = "Drifted Version"
 
-        local key_l = annotations_mod.annotation_key(local_ann)
-        local key_r = annotations_mod.annotation_key(remote_ann)
-
         local income_path = test_utils.write_mock_json(
           test_data_dir,
           "income_drift_pdf.json",
-          { [key_r] = remote_ann }
+          { remote_ann }
         )
 
         SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -222,22 +218,22 @@ describe("AnnotationSync PDF Core Integration", function()
     )
 
     it("resolves PDF conflicts using timestamps (latest wins)", function()
-      local ann_l, key =
+      local ann_l =
         create_pdf_ann_from_db(1, "Local Newer PDF", "2026-02-02 12:00:00")
       table.insert(readerui.annotation.annotations, ann_l)
 
-      local ann_r, _ =
+      local ann_r =
         create_pdf_ann_from_db(1, "Remote Older PDF", "2026-02-01 12:00:00")
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_conflict_pdf.json",
-        { [key] = ann_r }
+        { ann_r }
       )
 
       local sdr_cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local fc = io.open(sdr_cached_path, "w")
-      fc:write(json.encode({ [key] = ann_r }))
+      fc:write(json.encode({ ann_r }))
       fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -262,7 +258,7 @@ describe("AnnotationSync PDF Core Integration", function()
 
   describe("Deletion (PDF)", function()
     it("synchronizes PDF deletions bidirectionally", function()
-      local ann, key = create_pdf_ann_from_db(1)
+      local ann = create_pdf_ann_from_db(1)
       table.insert(readerui.annotation.annotations, ann)
 
       local ann_del = util.tableDeepCopy(ann)
@@ -272,13 +268,13 @@ describe("AnnotationSync PDF Core Integration", function()
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_del_pdf.json",
-        { [key] = ann_del }
+        { ann_del }
       )
 
       local sdr_cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local fc = io.open(sdr_cached_path, "w")
-      fc:write(json.encode({ [key] = ann }))
+      fc:write(json.encode({ ann }))
       fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -324,28 +320,26 @@ describe("AnnotationSync PDF Core Integration", function()
     end)
 
     it("distinguishes PDF highlights on different pages with same X", function()
-      local ann1, key1 = create_pdf_ann_from_db(1)
+      local ann1 = create_pdf_ann_from_db(1)
       local ann2 = util.tableDeepCopy(ann1)
       ann2.page = ann1.page + 1
       ann2.pos0.page = ann2.page
       ann2.pos1.page = ann2.page
-      local key2 = annotations_mod.annotation_key(ann2)
 
-      assert.is_not_equal(key1, key2)
+      assert.is_false(annotations_mod.is_same_annotation(ann1, ann2))
     end)
 
     it("distinguishes PDF highlights on different lines with same X", function()
-      local ann1, key1 = create_pdf_ann_from_db(1) -- y=60
+      local ann1 = create_pdf_ann_from_db(1) -- y=60
       local ann2 = util.tableDeepCopy(ann1)
       ann2.pos0.y = ann1.pos0.y + 100 -- different line
       ann2.pos1.y = ann1.pos1.y + 100
-      local key2 = annotations_mod.annotation_key(ann2)
 
-      assert.is_not_equal(key1, key2)
+      assert.is_false(annotations_mod.is_same_annotation(ann1, ann2))
     end)
 
     it("normalizes coordinates across different zoom levels", function()
-      local ann1, key1 = create_pdf_ann_from_db(1)
+      local ann1 = create_pdf_ann_from_db(1)
       ann1.pos0.zoom = 1.0
       ann1.pos1.zoom = 1.0
 
@@ -356,9 +350,8 @@ describe("AnnotationSync PDF Core Integration", function()
       ann2.pos1.y = ann1.pos1.y * 2
       ann2.pos0.zoom = 2.0
       ann2.pos1.zoom = 2.0
-      local key2 = annotations_mod.annotation_key(ann2)
 
-      assert.is_equal(key1, key2)
+      assert.is_true(annotations_mod.is_same_annotation(ann1, ann2))
     end)
 
     it("handles PDF highlights in Reflow Mode", function()
@@ -377,10 +370,7 @@ describe("AnnotationSync PDF Core Integration", function()
       local index = readerui.highlight:saveHighlight()
       assert.truthy(index)
       local ann = readerui.annotation.annotations[index]
-
-      local key = annotations_mod.annotation_key(ann)
-      assert.truthy(key)
-      assert.truthy(#key > 0)
+      assert.truthy(ann)
 
       -- Verify it's tracked
       local count, docs = sync_instance.manager:getPendingChangedDocuments()
@@ -393,16 +383,14 @@ describe("AnnotationSync PDF Core Integration", function()
     end)
 
     it("handles PDF highlights with Cropping enabled", function()
-      -- 1. Get key for uncropped highlight
+      -- 1. Get highlight for uncropped
       local entry = highlight_pdf_db[1]
       readerui.paging:onGotoPage(10)
       fastforward_ui_events()
 
       test_utils.emulate_highlight(readerui, entry)
       local ann_uncropped = readerui.annotation.annotations[1]
-      local key_uncropped = ann_uncropped
-          and annotations_mod.annotation_key(ann_uncropped)
-        or "NIL_KEY"
+      assert.truthy(ann_uncropped)
       readerui.annotation.annotations = {}
       readerui.highlight:clear()
 
@@ -430,12 +418,12 @@ describe("AnnotationSync PDF Core Integration", function()
       -- Highlight again at the SAME screen coordinates
       test_utils.emulate_highlight(readerui, entry)
       local ann_cropped = readerui.annotation.annotations[1]
-      local key_cropped = ann_cropped
-          and annotations_mod.annotation_key(ann_cropped)
-        or "NIL_KEY"
+      assert.truthy(ann_cropped)
 
-      -- Keys should differ because we clicked different text (due to simulated crop shift)
-      assert.is_not_equal(key_uncropped, key_cropped)
+      -- Highlights should differ because we clicked different text (due to simulated crop shift)
+      assert.is_false(
+        annotations_mod.is_same_annotation(ann_uncropped, ann_cropped)
+      )
 
       -- Restore transform
       readerui.view.screenToPageTransform = old_s2p

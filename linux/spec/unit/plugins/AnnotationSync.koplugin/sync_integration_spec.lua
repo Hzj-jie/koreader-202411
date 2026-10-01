@@ -73,7 +73,7 @@ describe("AnnotationSync Core Integration", function()
       datetime = datetime or "2026-01-01 12:00:00",
       note = note,
     }
-    return ann, annotations_mod.annotation_key(ann)
+    return ann
   end
 
   describe("Tracking & Persistence", function()
@@ -139,11 +139,11 @@ describe("AnnotationSync Core Integration", function()
     it("merges disjoint local and remote additions", function()
       test_utils.emulate_highlight(readerui, highlight_db[1])
 
-      local ann2, key2 = create_ann_from_db(2)
+      local ann2 = create_ann_from_db(2)
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_disjoint.json",
-        { [key2] = ann2 }
+        { ann2 }
       )
 
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -164,22 +164,22 @@ describe("AnnotationSync Core Integration", function()
     end)
 
     it("resolves conflicts using timestamps (latest wins)", function()
-      local ann_l, key =
+      local ann_l =
         create_ann_from_db(1, "Local Newer", "2026-02-02 12:00:00")
       table.insert(readerui.annotation.annotations, ann_l)
 
-      local ann_r, _ =
+      local ann_r =
         create_ann_from_db(1, "Remote Older", "2026-02-01 12:00:00")
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_conflict.json",
-        { [key] = ann_r }
+        { ann_r }
       )
 
       local sdr_cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local fc = io.open(sdr_cached_path, "w")
-      fc:write(json.encode({ [key] = ann_r }))
+      fc:write(json.encode({ ann_r }))
       fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -200,23 +200,23 @@ describe("AnnotationSync Core Integration", function()
 
     it("resurrects zombie if modification is newer than deletion", function()
       -- Remote has deletion, but local has a NEWER modification
-      local ann_l, key = create_ann_from_db(1, "Revived", "2026-02-05 12:00:00")
+      local ann_l = create_ann_from_db(1, "Revived", "2026-02-05 12:00:00")
       table.insert(readerui.annotation.annotations, ann_l)
 
-      local ann_r, _ = create_ann_from_db(1)
+      local ann_r = create_ann_from_db(1)
       ann_r.deleted = true
       ann_r.datetime_updated = "2026-02-01 12:00:00"
 
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_zombie.json",
-        { [key] = ann_r }
+        { ann_r }
       )
 
       local sdr_cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local fc = io.open(sdr_cached_path, "w")
-      fc:write(json.encode({ [key] = ann_r }))
+      fc:write(json.encode({ ann_r }))
       fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -239,7 +239,7 @@ describe("AnnotationSync Core Integration", function()
 
   describe("Deletion", function()
     it("synchronizes deletions bidirectionally", function()
-      local ann, key = create_ann_from_db(1)
+      local ann = create_ann_from_db(1)
       table.insert(readerui.annotation.annotations, ann)
 
       local ann_del = util.tableDeepCopy(ann)
@@ -249,13 +249,13 @@ describe("AnnotationSync Core Integration", function()
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_del.json",
-        { [key] = ann_del }
+        { ann_del }
       )
 
       local sdr_cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local fc = io.open(sdr_cached_path, "w")
-      fc:write(json.encode({ [key] = ann }))
+      fc:write(json.encode({ ann }))
       fc:close()
 
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
@@ -477,10 +477,9 @@ describe("AnnotationSync Core Integration", function()
           local ds = DocSettings:open(doc)
           ds:save("annotations", { A })
           ds:flush()
-          local base = json.encode(annotations_mod.list_to_map({ A }))
+          local base = json.encode({ A })
           util.writeToFile(base, sync_instance.manager:getSyncCachePath(doc))
-          remote_store[name] =
-            json.encode(annotations_mod.list_to_map({ A, R }))
+          remote_store[name] = json.encode({ A, R })
           sync_instance.manager:addToChangedDocumentsFile(doc)
           upload_code = 500
 

@@ -99,7 +99,7 @@ function M.sync_callback(
       return nil, {}
     end
 
-    util.writeToFile(json.encode(M.list_to_map(local_list)), local_file)
+    util.writeToFile(json.encode(local_list), local_file)
     return true, local_list
   end
 
@@ -187,7 +187,7 @@ function M.sync_callback(
     return nil, active
   end
 
-  util.writeToFile(json.encode(M.list_to_map(merged)), local_file)
+  util.writeToFile(json.encode(merged), local_file)
   return true, active
 end
 
@@ -200,9 +200,8 @@ function M.write_annotations_json(
   if not sdr_dir then
     return false
   end
-  local annotation_map = M.list_to_map(stored_annotations)
   local json_path = sdr_dir .. "/" .. annotation_filename
-  if util.writeToFile(json.encode(annotation_map), json_path) then
+  if util.writeToFile(json.encode(stored_annotations), json_path) then
     return json_path
   end
   return false
@@ -277,61 +276,6 @@ function M.sort(array)
   return array
 end
 
-function M.list_to_map(annotations)
-  local map = {}
-  if type(annotations) == "table" then
-    for __, ann in ipairs(annotations) do
-      local key = M.annotation_key(ann)
-      if type(key) == "string" then
-        map[key] = ann
-      end
-    end
-  end
-  return map
-end
-
-function M.map_to_list(map)
-  local list = {}
-  if type(map) == "table" then
-    for __, ann in pairs(map) do
-      if ann and not ann.deleted then
-        if M.is_annotation(ann) or M.is_bookmark(ann) then
-          table.insert(list, ann)
-        end
-      end
-    end
-    return M.sort(list)
-  end
-  return list
-end
-
--- Generates a unique key based on geometry or page
-function M.annotation_key(annotation)
-  if M.is_annotation(annotation) then
-    local p0, p1
-    if type(annotation.pos0) == "table" then
-      local zoom = annotation.pos0.zoom or 1
-      local page = annotation.page or annotation.pos0.page or 0
-      p0 = string.format(
-        "%d|%d|%d",
-        page,
-        math.floor(annotation.pos0.x / zoom),
-        math.floor(annotation.pos0.y / zoom)
-      )
-      p1 = string.format(
-        "%d|%d",
-        math.floor(annotation.pos1.x / zoom),
-        math.floor(annotation.pos1.y / zoom)
-      )
-    else
-      p0 = annotation.pos0
-      p1 = annotation.pos1
-    end
-    return p0 .. "||" .. p1
-  elseif M.is_bookmark(annotation) then
-    return "BOOKMARK|" .. tostring(annotation.page)
-  end
-end
 
 function M.is_bookmark(candidate)
   if type(candidate) ~= "table" or not has_valid_page(candidate) then

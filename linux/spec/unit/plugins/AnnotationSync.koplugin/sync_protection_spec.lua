@@ -157,11 +157,11 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         test_utils.write_mock_json(test_data_dir, "prot_local.json", {})
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
         })
 
       local ok, active = annotations_mod.sync_callback(
@@ -177,10 +177,10 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.is_equal("Gone?", active[1].text)
 
       local f = io.open(local_file, "r")
-      local disk_map = json.decode(f:read("*a"))
+      local disk_list = json.decode(f:read("*a"))
       f:close()
-      assert.is_not_nil(disk_map["p1||p2"])
-      assert.falsy(disk_map["p1||p2"].deleted)
+      assert.is_not_nil(disk_list[1])
+      assert.falsy(disk_list[1].deleted)
     end
   )
 
@@ -193,11 +193,11 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         test_utils.write_mock_json(test_data_dir, "prot_local_force.json", {})
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last_force.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income_force.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
         })
 
       local ok, active = annotations_mod.sync_callback(
@@ -212,10 +212,10 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.is_equal(0, #active)
 
       local f = io.open(local_file, "r")
-      local disk_map = json.decode(f:read("*a"))
+      local disk_list = json.decode(f:read("*a"))
       f:close()
-      assert.is_not_nil(disk_map["p1||p2"])
-      assert.is_true(disk_map["p1||p2"].deleted)
+      assert.is_not_nil(disk_list[1])
+      assert.is_true(disk_list[1].deleted)
     end
   )
 
@@ -223,14 +223,14 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     "should STILL propagate deletions if local list is NOT completely empty",
     function()
       local remote_ann = {
-        ["p1||p1"] = {
+        {
           page = 1,
           pos0 = "p1",
           pos1 = "p1",
           text = "Remote 1",
           datetime_updated = "2026-01-01 00:00:00",
         },
-        ["p2||p2"] = {
+        {
           page = 2,
           pos0 = "p2",
           pos1 = "p2",
@@ -291,8 +291,15 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local saved_data = json.decode(f:read("*all"))
       f:close()
 
-      assert.is_not_nil(saved_data["p2||p2"])
-      assert.is_true(saved_data["p2||p2"].deleted)
+      local found_p2
+      for _, ann in ipairs(saved_data) do
+        if ann.pos0 == "p2" then
+          found_p2 = ann
+          break
+        end
+      end
+      assert.is_not_nil(found_p2)
+      assert.is_true(found_p2.deleted)
 
       SyncService.sync = old_sync
     end
@@ -300,7 +307,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
   it("should protect PDF annotations similarly (geometry keys)", function()
     local remote_ann = {
-      ["1|10|10||20|20"] = {
+      {
         page = 1,
         pos0 = { x = 10, y = 10 },
         pos1 = { x = 20, y = 20 },
@@ -357,11 +364,11 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local missing_local_file = test_data_dir .. "/non_existent_local.json"
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last_missing.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income_missing.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
         })
 
       local ok, err = pcall(function()

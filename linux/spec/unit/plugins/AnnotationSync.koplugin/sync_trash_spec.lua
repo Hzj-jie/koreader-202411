@@ -289,7 +289,7 @@ describe("AnnotationSync Trash & Restore", function()
       local sync_cache_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local f = io.open(sync_cache_path, "w")
-      f:write(json.encode({ ["p1||p2"] = ann }))
+      f:write(json.encode({ ann }))
       f:close()
 
       local deleted =
@@ -312,8 +312,8 @@ describe("AnnotationSync Trash & Restore", function()
       sync_instance:manualSync()
 
       assert.is_not_nil(uploaded_content)
-      assert.is_not_nil(uploaded_content["p1||p2"])
-      assert.is_false(uploaded_content["p1||p2"].deleted)
+      assert.is_not_nil(uploaded_content[1])
+      assert.is_false(uploaded_content[1].deleted)
 
       SyncService.sync = old_sync
       os.remove(sync_cache_path)

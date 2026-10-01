@@ -201,46 +201,6 @@ describe("AnnotationSync plugin unit tests", function()
       end
     )
 
-    it(
-      "should return annotations sorted ascending by position order from map_to_list",
-      function()
-        local map = {
-          hl_p3 = {
-            page = 3,
-            pos0 = { x = 10, y = 50 },
-            pos1 = { x = 40, y = 50 },
-            text = "Page 3 highlight",
-          },
-          bm_p1 = { page = 1 },
-          hl_p2_lower = {
-            page = 2,
-            pos0 = { x = 10, y = 200 },
-            pos1 = { x = 40, y = 200 },
-            text = "Page 2 lower",
-          },
-          bm_p2 = { page = 2 },
-          hl_p2_upper = {
-            page = 2,
-            pos0 = { x = 10, y = 50 },
-            pos1 = { x = 40, y = 50 },
-            text = "Page 2 upper",
-          },
-          deleted_bm = { page = 1, deleted = true },
-        }
-
-        local list = annotations.map_to_list(map)
-        assert.is_equal(5, #list)
-        assert.is_equal(1, list[1].page)
-        assert.is_nil(list[1].pos0)
-        assert.is_equal(2, list[2].page)
-        assert.is_nil(list[2].pos0)
-        assert.is_equal(2, list[3].page)
-        assert.is_equal(50, list[3].pos0.y)
-        assert.is_equal(2, list[4].page)
-        assert.is_equal(200, list[4].pos0.y)
-        assert.is_equal(3, list[5].page)
-      end
-    )
   end)
 
   describe("Position Comparison and Sorting", function()

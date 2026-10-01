@@ -181,8 +181,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     assert.are.equal("added locally", active[1].note)
 
     local written = utils_mod.read_json(local_file)
-    assert.is_table(written["2|5|10||50|30"])
-    assert.is_nil(written["2|5|10||50|30"].deleted)
+    assert.is_table(written[1])
+    assert.is_nil(written[1].deleted)
   end)
 
   it("Case 3: pulls remote additions into local active list", function()
@@ -251,10 +251,10 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     assert.are.equal("kept locally", active[1].note)
 
     local written = utils_mod.read_json(local_file)
-    assert.is_table(written["1|10|20||100|40"])
-    assert.is_true(written["1|10|20||100|40"].deleted)
-    assert.is_string(written["1|10|20||100|40"].datetime_updated)
-    assert.is_nil(written["1|10|50||100|70"].deleted)
+    assert.is_table(written[1])
+    assert.is_true(written[1].deleted)
+    assert.is_string(written[1].datetime_updated)
+    assert.is_nil(written[2].deleted)
   end)
 
   it(
@@ -277,8 +277,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       assert.are.equal("synced highlight", active[1].note)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written["1|10|20||100|40"])
-      assert.is_nil(written["1|10|20||100|40"].deleted)
+      assert.is_table(written[1])
+      assert.is_nil(written[1].deleted)
     end
   )
 
@@ -321,8 +321,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       assert.are.equal(0, #active)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written["1|10|20||100|40"])
-      assert.is_true(written["1|10|20||100|40"].deleted)
+      assert.is_table(written[1])
+      assert.is_true(written[1].deleted)
     end
   )
 
