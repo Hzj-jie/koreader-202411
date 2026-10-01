@@ -270,6 +270,97 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   )
 
   it(
+    "propagates updated note from remote when income copy has newer datetime_updated",
+    function()
+      local h_local = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "old note on device B",
+        "2026-01-01 10:00:00"
+      )
+      local h_income = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "edited note on device A",
+        "2026-01-01 10:00:00",
+        "2026-01-01 10:05:00"
+      )
+      write_json(local_file, { ["1|10|20||100|40"] = h_local })
+      write_json(last_sync_file, { ["1|10|20||100|40"] = h_local })
+      write_json(income_file, { ["1|10|20||100|40"] = h_income })
+
+      local success, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
+        false
+      )
+
+      assert.is_true(success)
+      assert.are.equal(1, #active)
+      assert.are.equal("edited note on device A", active[1].note)
+      assert.are.equal("2026-01-01 10:05:00", active[1].datetime_updated)
+
+      local written = utils_mod.read_json(local_file)
+      assert.are.equal(1, #written)
+      assert.are.equal("edited note on device A", written[1].note)
+      assert.are.equal("2026-01-01 10:05:00", written[1].datetime_updated)
+    end
+  )
+
+  it(
+    "preserves local updated note when local copy has newer datetime_updated than remote",
+    function()
+      local h_local = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "newer note on device B",
+        "2026-01-01 10:00:00",
+        "2026-01-01 10:10:00"
+      )
+      local h_income = create_highlight(
+        1,
+        10,
+        20,
+        100,
+        40,
+        "older edit on device A",
+        "2026-01-01 10:00:00",
+        "2026-01-01 10:05:00"
+      )
+      write_json(local_file, { ["1|10|20||100|40"] = h_local })
+      write_json(last_sync_file, { ["1|10|20||100|40"] = h_income })
+      write_json(income_file, { ["1|10|20||100|40"] = h_income })
+
+      local success, active = annotations_mod.sync_callback(
+        local_file,
+        last_sync_file,
+        income_file,
+        false
+      )
+
+      assert.is_true(success)
+      assert.are.equal(1, #active)
+      assert.are.equal("newer note on device B", active[1].note)
+      assert.are.equal("2026-01-01 10:10:00", active[1].datetime_updated)
+
+      local written = utils_mod.read_json(local_file)
+      assert.are.equal(1, #written)
+      assert.are.equal("newer note on device B", written[1].note)
+      assert.are.equal("2026-01-01 10:10:00", written[1].datetime_updated)
+    end
+  )
+
+  it(
     "does not delete re-highlighted passage when old highlight at same passage is tombstoned",
     function()
       local h_old = create_highlight(

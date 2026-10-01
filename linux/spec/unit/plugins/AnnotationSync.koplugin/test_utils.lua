@@ -85,11 +85,7 @@ function M.setup_test_env(test_data_dir)
     return false
   end
   NetworkMgr.runWhenOnline = function(self, callback)
-    if self:isConnected() then
-      callback()
-      return true
-    end
-    return false
+    return not self:willRerunWhenOnline(callback)
   end
 
   return old_getDataDir
