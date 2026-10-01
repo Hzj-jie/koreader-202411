@@ -531,6 +531,9 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
 
   -- 3. Apply changes once (saves to sidecar and refreshes UI)
   self:applySyncedAnnotations(document, current)
+  -- A restore is a user edit, but applySyncedAnnotations suppresses
+  -- onAnnotationsModified (is_applying_sync), so mark the book pending here.
+  self.manager:addToChangedDocumentsFile(document.file)
 
   if not silent then
     if #anns == 1 then

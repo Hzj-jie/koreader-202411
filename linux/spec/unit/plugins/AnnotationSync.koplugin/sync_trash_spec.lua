@@ -47,6 +47,7 @@ describe("AnnotationSync Trash & Restore", function()
 
   before_each(function()
     readerui.annotation.annotations = {}
+    os.remove(sync_instance.manager:changedDocumentsFile())
   end)
 
   it(
@@ -117,6 +118,11 @@ describe("AnnotationSync Trash & Restore", function()
     assert.is_not_equal("old", trash_item.datetime_updated)
     assert.is_equal(2, #readerui.annotation.annotations)
     assert.is_true(event_received)
+    assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+    local count, changed_docs =
+      sync_instance.manager:getPendingChangedDocuments()
+    assert.is_equal(1, count)
+    assert.truthy(changed_docs[readerui.document.file])
 
     -- Cleanup
     require("ui/event").new = old_event_new
@@ -152,6 +158,11 @@ describe("AnnotationSync Trash & Restore", function()
       event_count,
       "AnnotationsModified event should only be broadcasted once"
     )
+    assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+    local count, changed_docs =
+      sync_instance.manager:getPendingChangedDocuments()
+    assert.is_equal(1, count)
+    assert.truthy(changed_docs[readerui.document.file])
 
     -- Cleanup
     require("ui/event").new = old_event_new
