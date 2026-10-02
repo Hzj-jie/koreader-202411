@@ -66,7 +66,7 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     captured_merged_list = merged_list
     return success
   end
-  local finished, uploaded = false, nil
+  local finished, uploaded, uploaded_json = false, nil, nil
   local ok, err = pcall(function()
     perform_sync(widget, json_path, sync_cb, not force, function(result)
       finished, uploaded = true, result
@@ -74,18 +74,13 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     -- The isOnline() gate makes SyncService run exec before returning. A
     -- postponed exec would merge json_path after cleanup_tmp() removed it.
     assert(finished, "AnnotationSync: SyncService postponed the sync")
-  end)
-  if uploaded and cached_path then
-    local tmp_cached = json_path .. ".sync"
-    local f = io.open(tmp_cached, "r")
-    if f then
-      f:close()
-      local ffiutil = require("ffi/util")
-      os.remove(cached_path)
-      ffiutil.copyFile(tmp_cached, cached_path)
-      os.remove(tmp_cached)
+    if uploaded then
+      -- sync_callback wrote the merged list into json_path for the upload.
+      -- The caller makes it the merge base (cached_path) once the merge
+      -- has reached the book.
+      uploaded_json = assert(util.readFromFile(json_path, "r"))
     end
-  end
+  end)
   cleanup_tmp()
   if not ok then
     if on_complete then
@@ -96,7 +91,7 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
 
   if on_complete then
     -- nil: nothing to upload (e.g. both sides empty), still in sync.
-    on_complete(uploaded ~= false, captured_merged_list)
+    on_complete(uploaded ~= false, captured_merged_list, uploaded_json)
   end
 end
 

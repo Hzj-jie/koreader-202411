@@ -146,16 +146,23 @@ function SyncManager:syncPendingDocumentsBg()
             if not json_path then
               return { file = file, success = false }
             end
+            local snapshot_path = json_path .. ".snapshot"
+            local snapshot_content = assert(util.readFromFile(json_path, "r"))
+            assert(util.writeToFile(snapshot_content, snapshot_path))
+
             local sync_success = false
-            local final_merged = nil
+            local uploaded = false
             local cached_path = self:getSyncCachePath(file)
             local ok, _ = pcall(function()
               remote.sync_annotations(
                 self.plugin,
                 json_path,
-                function(success, merged_list)
+                function(success, _, uploaded_json)
                   sync_success = success
-                  final_merged = merged_list
+                  if uploaded_json then
+                    uploaded = true
+                    assert(util.writeToFile(uploaded_json, json_path .. ".uploaded"))
+                  end
                 end,
                 false,
                 cached_path
@@ -163,8 +170,9 @@ function SyncManager:syncPendingDocumentsBg()
             end)
             return {
               file = file,
+              json_path = json_path,
               success = ok and sync_success == true,
-              merged_list = final_merged,
+              uploaded = uploaded,
             }
           end,
           callback = function(job)
@@ -177,29 +185,95 @@ function SyncManager:syncPendingDocumentsBg()
             end
             local item = job.result
             if item.success and item.file then
-              self:removeFromChangedDocumentsFileByPath(item.file)
-              local current_ui_doc = self.plugin.ui and self.plugin.ui.document
-              if
-                current_ui_doc
-                and current_ui_doc.file == item.file
-                and item.merged_list
-              then
-                self.plugin:applySyncedAnnotations(
-                  current_ui_doc,
-                  item.merged_list
-                )
-              end
+              local snapshot_json =
+                assert(util.readFromFile(item.json_path .. ".snapshot"))
+              local uploaded_json = item.uploaded
+                  and assert(util.readFromFile(item.json_path .. ".uploaded"))
+                or nil
+              self:_applyBackgroundSync(
+                item.file,
+                snapshot_json,
+                uploaded_json
+              )
               self:recordSyncState("Auto Sync")
               logger.info(
                 "AnnotationSync: background sync completed for",
                 item.file
               )
             end
+            if item.json_path then
+              os.remove(item.json_path .. ".snapshot")
+              os.remove(item.json_path .. ".uploaded")
+            end
           end,
         })
       end
     end
   end)
+end
+
+-- Applies a background sync that the forked child finished. The child merged
+-- a snapshot of the book (snapshot_json) and uploaded the result
+-- (uploaded_json, nil if there was nothing to upload). The book may have been
+-- edited since the snapshot, so the upload can't replace it: run the same
+-- 3-way merge again, with the book as it is now as the local side, the
+-- snapshot as the base and the upload as the income.
+function SyncManager:_applyBackgroundSync(
+  file,
+  snapshot_json,
+  uploaded_json
+)
+  if not util.fileExists(file) then
+    logger.warn(
+      "AnnotationSync: file missing after background sync, skipping apply:",
+      file
+    )
+    self:removeFromChangedDocumentsFileByPath(file)
+    return
+  end
+
+  local document = { file = file }
+  local ui_document = self.plugin.ui and self.plugin.ui.document
+  if ui_document and ui_document.file == file then
+    document = ui_document
+  end
+
+  local book_now = self:getAnnotationsForDocument(document)
+  -- Round trip through JSON so floating-point coordinates match the precision
+  -- of snapshot_json and uploaded_json across comparisons and matching.
+  local local_list = json.decode(json.encode(book_now))
+  local base_list = json.decode(snapshot_json)
+
+  local unchanged = util.tableEquals(local_list, base_list)
+
+  if uploaded_json then
+    local income_list = json.decode(uploaded_json)
+    local _, active =
+      annotations.merge(local_list, base_list, income_list, false)
+    self.plugin:applySyncedAnnotations(document, active)
+    self:_promoteSyncBase(file, uploaded_json)
+  end
+
+  if unchanged then
+    self:removeFromChangedDocumentsFileByPath(file)
+  end
+end
+
+-- Makes the uploaded list the merge base of `file`. Call it only after the
+-- merge has reached the book: a base ahead of the book makes the next sync
+-- read the remote additions as local deletions and tombstone them.
+function SyncManager:_promoteSyncBase(file, uploaded_json)
+  local cached_path = self:getSyncCachePath(file)
+  local ok, err = util.writeToFile(uploaded_json, cached_path)
+  if not ok then
+    logger.warn(
+      "AnnotationSync: Failed to write merge base:",
+      cached_path,
+      "(",
+      tostring(err),
+      ")"
+    )
+  end
 end
 
 -- Orchestrates the sync process for a single document (accepts active document object OR file path string)
@@ -252,9 +326,14 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
     remote.sync_annotations(
       self.plugin,
       json_path,
-      function(success, merged_list)
+      function(success, merged_list, uploaded_json)
         sync_success = success
-        self:_onSyncComplete(document, success, merged_list)
+        self:_onSyncComplete(
+          document,
+          success,
+          merged_list,
+          uploaded_json
+        )
       end,
       is_manual,
       cached_path
@@ -522,10 +601,18 @@ function SyncManager:cleanOrphanSyncFiles()
   end)
 end
 
-function SyncManager:_onSyncComplete(document, success, merged_list)
+function SyncManager:_onSyncComplete(
+  document,
+  success,
+  merged_list,
+  uploaded_json
+)
   if success then
     if merged_list then
       self.plugin:applySyncedAnnotations(document, merged_list)
+    end
+    if uploaded_json then
+      self:_promoteSyncBase(document.file, uploaded_json)
     end
     self:removeFromChangedDocumentsFile(document)
   else

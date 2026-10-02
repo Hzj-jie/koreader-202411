@@ -44,65 +44,20 @@ local function read_to_array(file)
   return M.sort(valid)
 end
 
--- Main orchestration for merging local and remote annotations
-function M.sync_callback(
-  local_file,
-  last_sync_file,
-  income_file,
-  force,
-  code_response
-)
-  logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
-  logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
-  logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
-
-  local local_list = read_to_array(local_file)
-  -- Callers write local_file right before every sync, and
-  -- write_annotations_json always writes at least "{}". A missing or
-  -- unreadable file is a lifecycle bug, not "no local annotations":
-  -- treating it as {} turns every synced entry into a local deletion.
-  assert(
-    local_list,
-    "AnnotationSync: missing or unreadable local sync file: " .. local_file
-  )
-  local last_sync_list = read_to_array(last_sync_file) or {}
+function M.merge(local_list, base_list, income_list, force)
+  assert(type(local_list) == "table", "local_list must be a table")
 
   -- SAFETY (Issue 23): If local is empty but last sync was not,
   -- it's likely a docsettings failure or fresh device state.
   -- We skip deletion propagation to avoid wiping remote data.
   -- We bypass this safety if 'force' is true (manual sync).
-  if not force and #local_list == 0 and #last_sync_list > 0 then
+  if not force and #local_list == 0 and #base_list > 0 then
     logger.warn(
       "AnnotationSync: Local annotations empty but last sync had",
-      #last_sync_list,
+      #base_list,
       ". Skipping deletions to protect data."
     )
-    last_sync_list = {}
-  end
-
-  local is_not_found = code_response == 404
-    or code_response == 409
-    or (
-      code_response == nil
-      and (not income_file or not io.open(income_file, "r"))
-    )
-
-  if is_not_found then
-    -- No remote file found, early return to prefer anything locally.
-    if #local_list == 0 then
-      return nil, {}
-    end
-
-    util.writeToFile(json.encode(local_list), local_file)
-    return true, local_list
-  end
-
-  local income_list = read_to_array(income_file)
-  if not income_list then
-    logger.warn(
-      "AnnotationSync: Failed to parse remote annotations from server. Aborting sync."
-    )
-    return false
+    base_list = {}
   end
 
   local merged = {}
@@ -149,10 +104,10 @@ function M.sync_callback(
     assert(is_income or is_local)
     if not v.deleted then
       if is_income and is_local then
-        -- No matter if it's in last_sync_list, it's active.
+        -- No matter if it's in base_list, it's active.
         table.insert(active, v)
       else
-        local is_last_sync = is_in_list(last_sync_list, v)
+        local is_last_sync = is_in_list(base_list, v)
         if is_income then
           if is_last_sync then
             -- local deleted
@@ -171,6 +126,58 @@ function M.sync_callback(
       end
     end
   end
+
+  return merged, active
+end
+
+-- Main orchestration for merging local and remote annotations
+function M.sync_callback(
+  local_file,
+  last_sync_file,
+  income_file,
+  force,
+  code_response
+)
+  logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
+  logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
+  logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
+
+  local local_list = read_to_array(local_file)
+  -- Callers write local_file right before every sync, and
+  -- write_annotations_json always writes at least "{}". A missing or
+  -- unreadable file is a lifecycle bug, not "no local annotations":
+  -- treating it as {} turns every synced entry into a local deletion.
+  assert(
+    local_list,
+    "AnnotationSync: missing or unreadable local sync file: " .. local_file
+  )
+  local last_sync_list = read_to_array(last_sync_file) or {}
+
+  local is_not_found = code_response == 404
+    or code_response == 409
+    or (
+      code_response == nil
+      and (not income_file or not util.fileExists(income_file))
+    )
+
+  if is_not_found then
+    -- No remote file found, early return to prefer anything locally.
+    if #local_list == 0 then
+      return nil, {}
+    end
+    return true, local_list
+  end
+
+  local income_list = read_to_array(income_file)
+  if not income_list then
+    logger.warn(
+      "AnnotationSync: Failed to parse remote annotations from server. Aborting sync."
+    )
+    return false
+  end
+
+  local merged, active =
+    M.merge(local_list, last_sync_list, income_list, force)
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
 

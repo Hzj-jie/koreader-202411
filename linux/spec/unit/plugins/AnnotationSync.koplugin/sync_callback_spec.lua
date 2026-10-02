@@ -615,4 +615,116 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       assert.are.equal(2, active[3].page)
     end
   )
+
+  describe("annotations.merge (list-level 3-way merge)", function()
+    it(
+      "merges live edits with the snapshot base and the upload income",
+      function()
+        local s_x = create_highlight(1, 10, 20, 100, 40, "note_orig", "2026-01-01 10:00:00")
+        local s_d = create_highlight(2, 10, 20, 100, 40, "to_delete_local", "2026-01-01 10:00:00")
+        local s_k = create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
+
+        -- Base (Snapshot S)
+        local base = { s_x, s_d, s_k }
+
+        -- Local at callback time: x edited note, d deleted locally, k unchanged, h added locally
+        local l_x = create_highlight(1, 10, 20, 100, 40, "note_edited", "2026-01-01 10:00:00", "2026-01-01 12:00:00")
+        local l_h = create_highlight(4, 10, 20, 100, 40, "new_local_hl", "2026-01-01 12:00:00")
+        local l_k = create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
+        local local_list = { l_x, l_k, l_h }
+
+        -- Income (Uploaded M): remote added r, x has original note, d was in S, k was in S
+        local m_x = create_highlight(1, 10, 20, 100, 40, "note_orig", "2026-01-01 10:00:00")
+        local m_d = create_highlight(2, 10, 20, 100, 40, "to_delete_local", "2026-01-01 10:00:00")
+        local m_k = create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
+        local m_r = create_highlight(5, 10, 20, 100, 40, "remote_added", "2026-01-01 11:00:00")
+        local income = { m_x, m_d, m_k, m_r }
+
+        local merged, active = annotations_mod.merge(local_list, base, income, false)
+
+        -- Active must have: l_x (with edited note), l_k, l_h (new local), m_r (remote added)
+        -- and NOT s_d (which was deleted locally)
+        assert.are.equal(4, #active)
+        local active_texts = {}
+        for _, a in ipairs(active) do
+          table.insert(active_texts, a.note or a.text)
+        end
+        table.sort(active_texts)
+        assert.are.same({ "keep", "new_local_hl", "note_edited", "remote_added" }, active_texts)
+
+        -- Merged must have the tombstone for s_d
+        local has_d_tombstone = false
+        for _, m in ipairs(merged) do
+          if m.page == s_d.page and m.deleted == true then
+            has_d_tombstone = true
+          end
+        end
+        assert.is_true(has_d_tombstone)
+      end
+    )
+
+    it(
+      "Issue-23 guard: protects empty local list when base has items and force is false",
+      function()
+        local base = { create_highlight(1, 10, 20, 100, 40, "item1") }
+        local income = {
+          create_highlight(1, 10, 20, 100, 40, "item1"),
+          create_highlight(2, 10, 20, 100, 40, "item2"),
+        }
+        local local_list = {}
+
+        local merged, active = annotations_mod.merge(local_list, base, income, false)
+        assert.are.equal(2, #active)
+      end
+    )
+
+    it(
+      "Issue-23 guard: bypasses protection when force is true",
+      function()
+        local base = { create_highlight(1, 10, 20, 100, 40, "item1") }
+        local income = { create_highlight(1, 10, 20, 100, 40, "item1") }
+        local local_list = {}
+
+        local merged, active = annotations_mod.merge(local_list, base, income, true)
+        assert.are.equal(0, #active)
+        assert.are.equal(1, #merged)
+        assert.is_true(merged[1].deleted)
+      end
+    )
+
+    it(
+      "returns M minus tombstones in active when local_list == base_list",
+      function()
+        local s_str = json.encode({
+          create_highlight(1, 10, 20, 100, 40, "live1", "2026-01-01 10:00:00"),
+          create_highlight(2, 10, 20, 100, 40, "to_be_deleted", "2026-01-01 10:00:00"),
+        })
+        local local_list = json.decode(s_str)
+        local base_list = json.decode(s_str)
+        local tomb = create_highlight(2, 10, 20, 100, 40, "to_be_deleted", "2026-01-01 10:00:00")
+        tomb.deleted = true
+        tomb.datetime_updated = "2026-01-02 10:00:00"
+        local income_list = {
+          create_highlight(1, 10, 20, 100, 40, "live1", "2026-01-01 10:00:00"),
+          tomb,
+          create_highlight(3, 10, 20, 100, 40, "remote_live", "2026-01-02 10:00:00"),
+        }
+
+        local merged, active =
+          annotations_mod.merge(local_list, base_list, income_list, false)
+        assert.are.equal(2, #active)
+        local active_notes = { active[1].note, active[2].note }
+        table.sort(active_notes)
+        assert.are.same({ "live1", "remote_live" }, active_notes)
+
+        local has_tomb = false
+        for _, m in ipairs(merged) do
+          if m.note == "to_be_deleted" and m.deleted == true then
+            has_tomb = true
+          end
+        end
+        assert.is_true(has_tomb)
+      end
+    )
+  end)
 end)

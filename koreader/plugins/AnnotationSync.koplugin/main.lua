@@ -391,6 +391,7 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
     -- 2. Update active widget state and doc_settings (N12)
     self.ui.annotation.annotations = merged_list
     self.ui.doc_settings:save("annotations", merged_list)
+    self.ui.doc_settings:flush()
     self.ui.annotation:updatePageNumbers(true)
 
     -- 3. Notify system

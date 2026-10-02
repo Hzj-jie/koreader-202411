@@ -2,7 +2,8 @@ describe("AnnotationSync Automation & Settings", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir()
+  local DataStorage = require("datastorage")
+  local test_data_dir = DataStorage:getDataDir()
     .. "/test_sync_automation_tmp"
   local old_getDataDir
 
@@ -312,11 +313,15 @@ describe("AnnotationSync Automation & Settings", function()
         local job = jobs[#jobs]
 
         local dummy_merged = { { text = "Sample Annotation", page = 1 } }
+        local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync_auto.json"
+        util.writeToFile("[]", tmp_json .. ".snapshot")
+        util.writeToFile(json.encode(dummy_merged), tmp_json .. ".uploaded")
         job.callback({
           result = {
             file = active_file,
+            json_path = tmp_json,
             success = true,
-            merged_list = dummy_merged,
+            uploaded = true,
           },
         })
 
