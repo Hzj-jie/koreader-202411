@@ -151,7 +151,7 @@ function SyncManager:syncPendingDocumentsBg()
             local sync_success = false
             local uploaded = false
             local cached_path = self:getSyncCachePath(file)
-            local ok, _ = pcall(function()
+            local ok, err = pcall(function()
               remote.sync_annotations(
                 self.plugin,
                 json_path,
@@ -166,6 +166,9 @@ function SyncManager:syncPendingDocumentsBg()
                 cached_path
               )
             end)
+            if not ok then
+              logger.err("AnnotationSync: background sync failed for", file, err)
+            end
             return {
               file = file,
               json_path = json_path,

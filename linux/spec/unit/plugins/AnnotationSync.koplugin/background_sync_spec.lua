@@ -1079,6 +1079,7 @@ describe("Background Sync Behavior", function()
     local old_show
 
     before_each(function()
+      last_child_res = nil
       NetworkMgr = require("ui/network/manager")
       old_isOnline = NetworkMgr.isOnline
       NetworkMgr.isOnline = function()
@@ -1693,6 +1694,53 @@ describe("Background Sync Behavior", function()
         assert.is_string(json_path)
         assert.is_false(util.fileExists(json_path .. ".snapshot"))
         assert.is_false(util.fileExists(json_path .. ".uploaded"))
+      end
+    )
+
+    it(
+      "logs the error when the background sync throws",
+      function()
+        local doc, name = new_doc("sync_throws")
+        local H = mk(1, "H_throws")
+        local ds = DocSettings:open(doc)
+        ds:save("annotations", { H })
+        ds:flush()
+        sync_manager:addToChangedDocumentsFile(doc)
+
+        local logger = require("logger")
+        local old_err = logger.err
+        local logged_errors = {}
+        logger.err = function(...)
+          local args = { ... }
+          local parts = {}
+          for i = 1, select("#", ...) do
+            table.insert(parts, tostring(args[i]))
+          end
+          table.insert(logged_errors, table.concat(parts, " "))
+        end
+        finally(function()
+          logger.err = old_err
+        end)
+
+        SyncService.sync = function()
+          error("simulated sync failure")
+        end
+
+        fork_like()
+        sync_manager:syncPendingDocumentsBg()
+
+        assert.is_table(last_child_res)
+        assert.is_false(last_child_res.success)
+
+        local found_log = false
+        for _, err_msg in ipairs(logged_errors) do
+          if err_msg:find(doc, 1, true) and err_msg:find("simulated sync failure", 1, true) then
+            found_log = true
+            break
+          end
+        end
+        assert.is_true(found_log)
+        assert.is_true(is_pending(doc))
       end
     )
   end)
