@@ -1,4 +1,5 @@
 local ReaderAnnotation = require("apps/reader/modules/readerannotation")
+local SyncService = require("apps/cloudstorage/syncservice")
 local json = require("json")
 local logger = require("logger")
 local sort = require("sort")
@@ -153,14 +154,7 @@ function M.sync_callback(
   )
   local last_sync_list = read_to_array(last_sync_file) or {}
 
-  local is_not_found = code_response == 404
-    or code_response == 409
-    or (
-      code_response == nil
-      and (not income_file or not util.fileExists(income_file))
-    )
-
-  if is_not_found then
+  if SyncService.notFound(code_response) then
     -- No remote file found, early return to prefer anything locally.
     if #local_list == 0 then
       return nil, {}

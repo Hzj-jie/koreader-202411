@@ -294,6 +294,17 @@ describe("SyncService", function()
     end)
   end)
 
+  describe("notFound", function()
+    it("treats 404 and 409 as a missing remote file", function()
+      assert.is_true(SyncService.notFound(404))
+      assert.is_true(SyncService.notFound(409))
+    end)
+
+    it("does not treat 200 as a missing remote file", function()
+      assert.is_false(SyncService.notFound(200))
+    end)
+  end)
+
   describe("sync", function()
     it("should assert if wrong server type", function()
       local server = {

@@ -282,8 +282,13 @@ describe("AnnotationSync Core Integration", function()
           test_utils.write_mock_json(test_data_dir, "empty_local.json", {})
         local last_sync_path =
           test_utils.write_mock_json(test_data_dir, "empty_last.json", {})
-        local res =
-          annotations_mod.sync_callback(local_path, last_sync_path, nil, false)
+        local res = annotations_mod.sync_callback(
+          local_path,
+          last_sync_path,
+          nil,
+          false,
+          404
+        )
         assert.is_nil(res)
       end
     )

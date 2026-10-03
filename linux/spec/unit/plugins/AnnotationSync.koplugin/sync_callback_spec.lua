@@ -555,7 +555,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         local_file,
         last_sync_file,
         income_file,
-        false
+        false,
+        404
       )
 
       assert.is_nil(success)

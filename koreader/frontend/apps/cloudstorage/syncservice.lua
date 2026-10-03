@@ -111,6 +111,12 @@ function SyncService.removeLastSyncDB(path)
   os.remove(path .. ".sync")
 end
 
+-- Returns true if code_response, as passed to sync_cb, means the remote file
+-- does not exist: 404, or 409 (Dropbox reports a missing path as 409).
+function SyncService.notFound(code_response)
+  return code_response == 404 or code_response == 409
+end
+
 -- Prepares three files for sync_cb to call to do the actual syncing:
 -- * local_file (one that is being used)
 -- * income_file (one that has just been downloaded from Cloud to be merged, then to be deleted)
@@ -134,7 +140,10 @@ end
 -- Syncs local file with server file using sync_cb callback.
 -- @param server table server configuration
 -- @param file_path string path to local file
--- @param sync_cb function callback(file_path, cached_file_path, income_file_path):
+-- @param sync_cb function callback(file_path, cached_file_path, income_file_path, code_response):
+--        code_response is the download's HTTP status: 200, 404, or 409 (Dropbox
+--        only); any other status fails the sync before sync_cb runs. Use
+--        SyncService.notFound(code_response) to tell a missing remote file.
 --        Should return true to proceed with uploading local file to server, nil
 --        if there is nothing to upload, or false if something went wrong.
 -- @param is_silent boolean whether to suppress notification messages

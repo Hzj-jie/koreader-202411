@@ -102,15 +102,8 @@ function M._sync_settings_callback(
   income_file,
   code_response
 )
-  local is_not_found = code_response == 404
-    or code_response == 409
-    or (
-      code_response == nil
-      and (not income_file or not io.open(income_file, "r"))
-    )
-
   local local_data = utils.read_json(local_file) or {}
-  if is_not_found then
+  if SyncService.notFound(code_response) then
     util.writeToFile(json.encode(local_data), local_file)
     return true, local_data
   end
