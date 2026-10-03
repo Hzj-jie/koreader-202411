@@ -151,7 +151,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       -- 3. Instantiate Manager with a dummy plugin interface
       local mock_plugin = { ui = readerui, settings = {} }
-      local manager_instance = SyncManager:new(mock_plugin)
+      SyncManager:setPlugin(mock_plugin)
+      local manager_instance = SyncManager
 
       -- 4. Verify
       local result =

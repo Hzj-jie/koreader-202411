@@ -78,7 +78,8 @@ function AnnotationSyncPlugin:init()
   end
 
   -- Sanitize corrupted settings
-  self.manager = SyncManager:new(self)
+  self.manager = SyncManager
+  self.manager:setPlugin(self)
   self.manager:cleanOrphanSyncFiles()
 
   -- Migrate old annotation_sync_use_filename setting

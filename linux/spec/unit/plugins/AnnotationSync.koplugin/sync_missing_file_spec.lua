@@ -83,7 +83,8 @@ describe("Sync Missing File Handling", function()
       applySyncedAnnotations = function() end,
     }
 
-    manager = SyncManager:new(mock_plugin)
+    SyncManager:setPlugin(mock_plugin)
+    manager = SyncManager
     manager.getAnnotationsForDocument = function()
       return {}
     end

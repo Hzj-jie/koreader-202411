@@ -1357,6 +1357,136 @@ describe("Background Sync Behavior", function()
     )
 
     it(
+      "book reopened in a new ReaderUI while its job runs",
+      function()
+        local old_register = readerui.menu.registerToMainMenu
+        readerui.menu.registerToMainMenu = function() end
+        finally(function()
+          plugin_instance:init()
+          readerui.menu.registerToMainMenu = old_register
+        end)
+
+        local doc = readerui.document
+        local file = doc.file
+        local name = sync_manager:_getAnnotationFilename(file)
+        local A = hl(doc, 21, "A_existing", "2026-01-01 10:00:00")
+        local R = hl(doc, 23, "R_from_other_device", "2026-01-02 10:00:00")
+
+        local fm_ui = { menu = { registerToMainMenu = function() end } }
+        local fm_plugin = AnnotationSyncPlugin:new({
+          ui = fm_ui,
+          plugin_id = plugin_instance.plugin_id,
+          path = "plugins/AnnotationSync.koplugin",
+        })
+        fm_plugin:init()
+
+        local ds = DocSettings:open(file)
+        ds:save("annotations", { A })
+        ds:flush()
+        readerui.annotation.annotations = copy({ A })
+        readerui.annotation:updatePageNumbers(true)
+        util.writeToFile(encode({ A }), sync_manager:getSyncCachePath(file))
+        remote_store[name] = encode({ A, R })
+        sync_manager:addToChangedDocumentsFile(file)
+
+        fork_like(function()
+          plugin_instance:init()
+          local H = hl(doc, 25, "H_added_during_job")
+          readerui.annotation:addItem(H)
+          plugin_instance:onAnnotationsModified({ H })
+        end)
+
+        fm_plugin.manager:syncPendingDocumentsBg()
+
+        assert.are.equal(3, #readerui.annotation.annotations)
+        assert.are.equal(
+          "A_existing, H_added_during_job, R_from_other_device",
+          texts(readerui.annotation.annotations)
+        )
+        assert.are.equal(
+          "A_existing, H_added_during_job, R_from_other_device",
+          texts(DocSettings:open(file):readTable("annotations"))
+        )
+        assert.is_true(is_pending(file))
+      end
+    )
+
+    it(
+      "offline-queued sync uses the book opened before the network came back",
+      function()
+        local NetworkListener = require("ui/network/networklistener")
+        local NetworkMgr = require("ui/network/manager")
+        local old_register = readerui.menu.registerToMainMenu
+        readerui.menu.registerToMainMenu = function() end
+        finally(function()
+          plugin_instance:init()
+          readerui.menu.registerToMainMenu = old_register
+        end)
+
+        local doc = readerui.document
+        local file = doc.file
+        local name = sync_manager:_getAnnotationFilename(file)
+        local A = hl(doc, 21, "A_existing", "2026-01-01 10:00:00")
+        local R = hl(doc, 23, "R_from_other_device", "2026-01-02 10:00:00")
+
+        local fm_ui = { menu = { registerToMainMenu = function() end } }
+        local fm_plugin = AnnotationSyncPlugin:new({
+          ui = fm_ui,
+          plugin_id = plugin_instance.plugin_id,
+          path = "plugins/AnnotationSync.koplugin",
+        })
+        fm_plugin:init()
+
+        local ds = DocSettings:open(file)
+        ds:save("annotations", { A })
+        ds:flush()
+        readerui.annotation.annotations = copy({ A })
+        readerui.annotation:updatePageNumbers(true)
+        util.writeToFile(encode({ A }), sync_manager:getSyncCachePath(file))
+        remote_store[name] = encode({ A, R })
+        sync_manager:addToChangedDocumentsFile(file)
+
+        NetworkMgr.isOnline = function()
+          return false
+        end
+
+        fm_plugin.manager:syncPendingDocumentsBg()
+        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+
+        plugin_instance:init()
+
+        local H = hl(doc, 25, "H_added_offline")
+        readerui.annotation:addItem(H)
+        plugin_instance:onAnnotationsModified({ H })
+
+        NetworkMgr.isOnline = function()
+          return true
+        end
+
+        fork_like()
+        NetworkListener:onNetworkOnline()
+        fastforward_ui_events()
+
+        assert.are.equal(3, #readerui.annotation.annotations)
+        assert.are.equal(
+          "A_existing, H_added_offline, R_from_other_device",
+          texts(readerui.annotation.annotations)
+        )
+        assert.are.equal(
+          "A_existing, H_added_offline, R_from_other_device",
+          texts(DocSettings:open(file):readTable("annotations"))
+        )
+        local remote_after = json.decode(remote_store[name])
+        assert.are.equal(3, #remote_after)
+        assert.are.equal(
+          "A_existing, H_added_offline, R_from_other_device",
+          texts(remote_after)
+        )
+        assert.is_false(is_pending(file))
+      end
+    )
+
+    it(
       "foreground/background sync of open book flushes to disk so disk has remote additions without manual save",
       function()
         local doc = readerui.document

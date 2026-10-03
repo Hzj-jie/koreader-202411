@@ -22,15 +22,13 @@ local function isConnected()
   return NetworkMgr:isConnected()
 end
 
+-- Background job callbacks and offline-queued syncs outlive the ReaderUI or
+-- FileManager whose plugin queued them. Every plugin instance shares this
+-- singleton table, and the latest plugin to init owns it.
 local SyncManager = {}
 
-function SyncManager:new(plugin)
-  local o = {
-    plugin = plugin,
-  }
-  setmetatable(o, self)
-  self.__index = self
-  return o
+function SyncManager:setPlugin(plugin)
+  self.plugin = plugin
 end
 
 function SyncManager:getDeviceName()
