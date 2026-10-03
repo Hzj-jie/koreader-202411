@@ -708,7 +708,7 @@ describe("Background Sync Behavior", function()
     end)
   end)
 
-  describe("remote.sync_annotations finish_cb contract (N5)", function()
+  describe("remote.sync_annotations finish_cb contract", function()
     local annotations = require("plugins/AnnotationSync.koplugin/annotations")
     local old_sync, old_sync_cb, old_show
     local dummy_json, sdr_cache
@@ -934,7 +934,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "skips remote sync and cleans tmp when network is connected but not online (N2)",
+      "skips remote sync and cleans tmp when network is connected but not online",
       function()
         local NetworkMgr = require("ui/network/manager")
         local old_isConnected = NetworkMgr.isConnected

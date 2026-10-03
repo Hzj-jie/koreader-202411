@@ -386,10 +386,10 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
 
   if self.ui and self.ui.annotation and self.ui.document == document then
-    -- 1. Sort using core's comparator (N13)
+    -- 1. Sort using core's comparator
     self.ui.annotation:sortItems(merged_list)
 
-    -- 2. Update active widget state and doc_settings (N12)
+    -- 2. Update active widget state and doc_settings
     self.ui.annotation.annotations = merged_list
     self.ui.doc_settings:save("annotations", merged_list)
     self.ui.doc_settings:flush()

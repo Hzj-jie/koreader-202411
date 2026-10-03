@@ -403,7 +403,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   end)
 
   it(
-    "should raise error if local sync file is missing or unreadable (N2)",
+    "should raise error if local sync file is missing or unreadable",
     function()
       local annotations_mod =
         require("plugins/AnnotationSync.koplugin/annotations")

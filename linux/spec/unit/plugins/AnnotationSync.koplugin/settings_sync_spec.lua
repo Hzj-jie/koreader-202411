@@ -264,7 +264,7 @@ return {
     end
   )
 
-  describe("remote.sync_settings finish_cb contract (N5)", function()
+  describe("remote.sync_settings finish_cb contract", function()
     local SyncService = require("apps/cloudstorage/syncservice")
     local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_sync

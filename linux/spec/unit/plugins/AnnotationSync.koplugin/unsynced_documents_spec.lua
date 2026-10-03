@@ -193,7 +193,7 @@ describe("Unsynced / Pending Documents Feature", function()
   )
 
   it(
-    "verifies that show_pending_documents 'Sync now' closes menu and delegates to runWhenOnline (N2)",
+    "verifies that show_pending_documents 'Sync now' closes menu and delegates to runWhenOnline",
     function()
       local file1 = readerui.document.file
       sync_instance.manager:addToChangedDocumentsFile(file1)
