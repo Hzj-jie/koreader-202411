@@ -727,5 +727,113 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         assert.is_true(has_tomb)
       end
     )
+
+    it(
+      "preserves restored annotations when local is missing them and base holds tombstones",
+      function()
+        local h = create_highlight(1, 10, 20, 100, 40, "live_h", "2026-01-01 10:00:00")
+        local base_a = create_highlight(
+          2,
+          10,
+          20,
+          100,
+          40,
+          "tomb_a",
+          "2026-01-01 10:00:00",
+          "2026-01-02 10:00:00",
+          true
+        )
+        local base_b = create_highlight(
+          3,
+          10,
+          20,
+          100,
+          40,
+          "tomb_b",
+          "2026-01-01 10:00:00",
+          "2026-01-02 10:00:00",
+          true
+        )
+        local base = { base_a, base_b, h }
+
+        local inc_a = create_highlight(
+          2,
+          10,
+          20,
+          100,
+          40,
+          "tomb_a",
+          "2026-01-01 10:00:00",
+          "2026-01-03 10:00:00",
+          false
+        )
+        local inc_b = create_highlight(
+          3,
+          10,
+          20,
+          100,
+          40,
+          "tomb_b",
+          "2026-01-01 10:00:00",
+          "2026-01-03 10:00:00",
+          false
+        )
+        local income = { inc_a, inc_b, h }
+
+        local local_list = { h }
+
+        local merged, active = annotations_mod.merge(local_list, base, income, false)
+
+        assert.are.equal(3, #active)
+        local active_notes = {}
+        for _, a in ipairs(active) do
+          table.insert(active_notes, a.note)
+        end
+        table.sort(active_notes)
+        assert.are.same({ "live_h", "tomb_a", "tomb_b" }, active_notes)
+
+        for _, m in ipairs(merged) do
+          assert.are_not.equal(true, m.deleted)
+        end
+      end
+    )
+
+    it(
+      "preserves restored annotation when force is true and base holds only tombstone",
+      function()
+        local base_a = create_highlight(
+          1,
+          10,
+          20,
+          100,
+          40,
+          "item_a",
+          "2026-01-01 10:00:00",
+          "2026-01-02 10:00:00",
+          true
+        )
+        local inc_a = create_highlight(
+          1,
+          10,
+          20,
+          100,
+          40,
+          "item_a",
+          "2026-01-01 10:00:00",
+          "2026-01-03 10:00:00",
+          false
+        )
+        local base = { base_a }
+        local income = { inc_a }
+        local local_list = {}
+
+        local merged, active = annotations_mod.merge(local_list, base, income, true)
+
+        assert.are.equal(1, #active)
+        assert.are.equal("item_a", active[1].note)
+        assert.are.equal(1, #merged)
+        assert.are_not.equal(true, merged[1].deleted)
+      end
+    )
   end)
 end)

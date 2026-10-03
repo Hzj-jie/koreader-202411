@@ -1206,6 +1206,84 @@ describe("Background Sync Behavior", function()
     )
 
     it(
+      "preserves restored annotations during background sync of inactive document",
+      function()
+        local doc, name = new_doc("restore_inactive_doc")
+        local function mk(n, text, ts, deleted, ts_updated)
+          local p0 = "/body/DocFragment[3]/body/p[" .. n .. "]/text().0"
+          return {
+            page = p0,
+            pos0 = p0,
+            pos1 = (p0:gsub("%.0$", ".20")),
+            text = text,
+            datetime = ts,
+            datetime_updated = ts_updated or ts,
+            deleted = deleted,
+            drawer = "lighten",
+          }
+        end
+
+        local H = mk(1, "H_keep", "2026-01-01 10:00:00")
+        local A_tomb =
+          mk(2, "A_restored", "2026-01-01 10:00:00", true, "2026-01-02 10:00:00")
+        local B_tomb =
+          mk(3, "B_restored", "2026-01-01 10:00:00", true, "2026-01-02 10:00:00")
+
+        local A_restored =
+          mk(2, "A_restored", "2026-01-01 10:00:00", false, "2026-01-03 10:00:00")
+        local B_restored =
+          mk(3, "B_restored", "2026-01-01 10:00:00", false, "2026-01-03 10:00:00")
+
+        local ds = DocSettings:open(doc)
+        ds:save("annotations", { H })
+        ds:flush()
+
+        util.writeToFile(
+          encode({ A_tomb, B_tomb, H }),
+          sync_manager:getSyncCachePath(doc)
+        )
+        remote_store[name] = encode({ A_restored, B_restored, H })
+
+        sync_manager:addToChangedDocumentsFile(doc)
+        fork_like()
+        sync_manager:syncPendingDocumentsBg()
+
+        -- Sidecar must contain A, B, and H with no deleted == true
+        local side = DocSettings:open(doc):readTable("annotations")
+        assert.are.equal(3, #side)
+        local side_texts = {}
+        for _, item in ipairs(side) do
+          table.insert(side_texts, item.text)
+          assert.are_not.equal(true, item.deleted)
+        end
+        table.sort(side_texts)
+        assert.are.same({ "A_restored", "B_restored", "H_keep" }, side_texts)
+
+        -- Remote must contain A, B, and H with no deleted == true
+        local remote = json.decode(remote_store[name])
+        assert.are.equal(3, #remote)
+        local remote_texts = {}
+        for _, item in ipairs(remote) do
+          table.insert(remote_texts, item.text)
+          assert.are_not.equal(true, item.deleted)
+        end
+        table.sort(remote_texts)
+        assert.are.same({ "A_restored", "B_restored", "H_keep" }, remote_texts)
+
+        -- .sync cache must contain A, B, and H with no deleted == true
+        local cache = utils.read_json(sync_manager:getSyncCachePath(doc))
+        assert.are.equal(3, #cache)
+        local cache_texts = {}
+        for _, item in ipairs(cache) do
+          table.insert(cache_texts, item.text)
+          assert.are_not.equal(true, item.deleted)
+        end
+        table.sort(cache_texts)
+        assert.are.same({ "A_restored", "B_restored", "H_keep" }, cache_texts)
+      end
+    )
+
+    it(
       "open book edits made during background sync survive and stay pending",
       function()
         local doc = readerui.document

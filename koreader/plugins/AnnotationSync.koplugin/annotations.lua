@@ -48,6 +48,16 @@ end
 function M.merge(local_list, base_list, income_list, force)
   assert(type(local_list) == "table", "local_list must be a table")
 
+  -- The book never holds tombstones, so a base tombstone missing from it is not
+  -- a local deletion; a live income copy of it is a restore made elsewhere.
+  local live_base = {}
+  for _, v in ipairs(base_list) do
+    if not v.deleted then
+      table.insert(live_base, v)
+    end
+  end
+  base_list = live_base
+
   -- SAFETY (Issue 23): If local is empty but last sync was not,
   -- it's likely a docsettings failure or fresh device state.
   -- We skip deletion propagation to avoid wiping remote data.
