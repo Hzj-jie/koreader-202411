@@ -25,7 +25,10 @@ end
 -- Background job callbacks and offline-queued syncs outlive the ReaderUI or
 -- FileManager whose plugin queued them. Every plugin instance shares this
 -- singleton table, and the latest plugin to init owns it.
-local SyncManager = {}
+local SyncManager = {
+  queue = {},
+  running = nil,
+}
 
 function SyncManager:setPlugin(plugin)
   self.plugin = plugin
@@ -113,104 +116,145 @@ function SyncManager:syncAllChangedDocuments()
   end)
 end
 
+function SyncManager:_enqueueSync(file)
+  for _, queued_file in ipairs(self.queue) do
+    if queued_file == file then
+      return
+    end
+  end
+  table.insert(self.queue, file)
+end
+
+function SyncManager:_finishSync()
+  self.running = nil
+  self:_dispatchNextSync()
+end
+
+function SyncManager:_startSync(file)
+  if not util.fileExists(file) then
+    logger.warn(
+      "AnnotationSync: file missing, removing from sync list:",
+      file
+    )
+    self:removeFromChangedDocumentsFileByPath(file)
+    self:_finishSync()
+    return
+  end
+
+  local _, pending_docs = self:getPendingChangedDocuments()
+  if not (type(pending_docs) == "table" and pending_docs[file]) then
+    self:_finishSync()
+    return
+  end
+
+  local ui_doc = self.plugin.ui and self.plugin.ui.document
+  local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
+  assert(require("background_jobs").insertKeyed({
+    executable = "fork",
+    action = function()
+      local json_path = self:_writeAnnotationsJSON(doc)
+      if not json_path then
+        return { file = file, success = false }
+      end
+      local snapshot_path = json_path .. ".snapshot"
+      local snapshot_content = assert(util.readFromFile(json_path, "r"))
+      assert(util.writeToFile(snapshot_content, snapshot_path))
+
+      local sync_success = false
+      local uploaded = false
+      local cached_path = self:getSyncCachePath(file)
+      local ok, err = pcall(function()
+        remote.sync_annotations(
+          self.plugin,
+          json_path,
+          function(success, _, uploaded_json)
+            sync_success = success
+            if uploaded_json then
+              uploaded = true
+              assert(util.writeToFile(uploaded_json, json_path .. ".uploaded"))
+            end
+          end,
+          false,
+          cached_path
+        )
+      end)
+      if not ok then
+        logger.err("AnnotationSync: background sync failed for", file, err)
+      end
+      return {
+        file = file,
+        json_path = json_path,
+        success = ok and sync_success == true,
+        uploaded = uploaded,
+      }
+    end,
+    callback = function(job)
+      if not job.result or type(job.result) ~= "table" then
+        logger.warn(
+          "AnnotationSync: background sync returned invalid result for",
+          file
+        )
+        self:_finishSync()
+        return
+      end
+      local item = job.result
+      if item.success and item.file then
+        local snapshot_json =
+          assert(util.readFromFile(item.json_path .. ".snapshot"))
+        local uploaded_json = item.uploaded
+            and assert(util.readFromFile(item.json_path .. ".uploaded"))
+          or nil
+        self:_applyBackgroundSync(
+          item.file,
+          snapshot_json,
+          uploaded_json
+        )
+        self:recordSyncState("Auto Sync")
+        logger.info(
+          "AnnotationSync: background sync completed for",
+          item.file
+        )
+      end
+      if item.json_path then
+        os.remove(item.json_path .. ".snapshot")
+        os.remove(item.json_path .. ".uploaded")
+      end
+      self:_finishSync()
+    end,
+  }))
+end
+
+function SyncManager:_dispatchNextSync()
+  if self.running or #self.queue == 0 then
+    return
+  end
+
+  local file = table.remove(self.queue, 1)
+  self.running = file
+  NetworkMgr:willRerunWhenOnline(function()
+    self:_startSync(file)
+  end)
+end
+
 -- Incremental background sync of pending documents using BackgroundJobs fork mode
 function SyncManager:syncPendingDocumentsBg()
-  local total, _ = self:getPendingChangedDocuments()
+  local total, pending_changed_docs = self:getPendingChangedDocuments()
   if total == 0 then
     return
   end
 
-  NetworkMgr:willRerunWhenOnline(function()
-    local pending_total, pending_changed_docs =
-      self:getPendingChangedDocuments()
-    if pending_total == 0 then
-      return
+  for file, _ in pairs(pending_changed_docs) do
+    if not util.fileExists(file) then
+      logger.warn(
+        "AnnotationSync: file missing, removing from sync list:",
+        file
+      )
+      self:removeFromChangedDocumentsFileByPath(file)
+    else
+      self:_enqueueSync(file)
     end
-
-    for file, _ in pairs(pending_changed_docs) do
-      if not util.fileExists(file) then
-        logger.warn(
-          "AnnotationSync: file missing, removing from sync list:",
-          file
-        )
-        self:removeFromChangedDocumentsFileByPath(file)
-      else
-        local ui_doc = self.plugin.ui and self.plugin.ui.document
-        local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
-        require("background_jobs").insertKeyed({
-          executable = "fork",
-          action = function()
-            local json_path = self:_writeAnnotationsJSON(doc)
-            if not json_path then
-              return { file = file, success = false }
-            end
-            local snapshot_path = json_path .. ".snapshot"
-            local snapshot_content = assert(util.readFromFile(json_path, "r"))
-            assert(util.writeToFile(snapshot_content, snapshot_path))
-
-            local sync_success = false
-            local uploaded = false
-            local cached_path = self:getSyncCachePath(file)
-            local ok, err = pcall(function()
-              remote.sync_annotations(
-                self.plugin,
-                json_path,
-                function(success, _, uploaded_json)
-                  sync_success = success
-                  if uploaded_json then
-                    uploaded = true
-                    assert(util.writeToFile(uploaded_json, json_path .. ".uploaded"))
-                  end
-                end,
-                false,
-                cached_path
-              )
-            end)
-            if not ok then
-              logger.err("AnnotationSync: background sync failed for", file, err)
-            end
-            return {
-              file = file,
-              json_path = json_path,
-              success = ok and sync_success == true,
-              uploaded = uploaded,
-            }
-          end,
-          callback = function(job)
-            if not job.result or type(job.result) ~= "table" then
-              logger.warn(
-                "AnnotationSync: background sync returned invalid result for",
-                file
-              )
-              return
-            end
-            local item = job.result
-            if item.success and item.file then
-              local snapshot_json =
-                assert(util.readFromFile(item.json_path .. ".snapshot"))
-              local uploaded_json = item.uploaded
-                  and assert(util.readFromFile(item.json_path .. ".uploaded"))
-                or nil
-              self:_applyBackgroundSync(
-                item.file,
-                snapshot_json,
-                uploaded_json
-              )
-              self:recordSyncState("Auto Sync")
-              logger.info(
-                "AnnotationSync: background sync completed for",
-                item.file
-              )
-            end
-            if item.json_path then
-              os.remove(item.json_path .. ".snapshot")
-              os.remove(item.json_path .. ".uploaded")
-            end
-          end,
-        })
-      end
-    end
-  end)
+  end
+  self:_dispatchNextSync()
 end
 
 -- Applies a background sync that the forked child finished. The child merged

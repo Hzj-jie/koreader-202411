@@ -60,6 +60,8 @@ describe("AnnotationSync Automation & Settings", function()
     for k in pairs(jobs) do
       jobs[k] = nil
     end
+    sync_instance.manager.queue = {}
+    sync_instance.manager.running = nil
   end)
 
   after_each(function()
@@ -69,6 +71,8 @@ describe("AnnotationSync Automation & Settings", function()
     for k in pairs(jobs) do
       jobs[k] = nil
     end
+    sync_instance.manager.queue = {}
+    sync_instance.manager.running = nil
   end)
 
   describe("Settings", function()
