@@ -38,8 +38,6 @@ local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
 local Screen = Device.screen
 
-local active_instances = 0
-
 local ConfirmBox = InputContainer:extend({
   modal = true,
   keep_dialog_open = false,
@@ -233,8 +231,6 @@ function ConfirmBox:getAddedWidgetAvailableWidth()
 end
 
 function ConfirmBox:onShow()
-  active_instances = active_instances + 1
-  assert(active_instances <= 1, "Multiple ConfirmBox instances detected!")
   UIManager:setDirty(self, function()
     return "ui", self.movable.dimen
   end)
@@ -248,11 +244,6 @@ function ConfirmBox:onShow()
 end
 
 function ConfirmBox:onClose()
-  active_instances = active_instances - 1
-  assert(
-    active_instances >= 0,
-    "ConfirmBox active instances count went negative!"
-  )
   if self._timeout_func then
     UIManager:unschedule(self._timeout_func)
     self._timeout_func = nil
