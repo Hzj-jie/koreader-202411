@@ -9,6 +9,7 @@ local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Notification = require("ui/widget/notification")
 local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local Size = require("ui/size")
 local SpinWidget = require("ui/widget/spinwidget")
 local TextViewer = require("ui/widget/textviewer")
@@ -619,24 +620,36 @@ function ReaderHighlight:addToMainMenu(menu_items)
         text = gettext("Are you sure you want to update all highlights?"),
         icon = "texture-box",
         ok_callback = function()
+          local total = 0
           local count = 0
+          local saved_drawer = self.ui.view.highlight.saved_drawer
+          local saved_color = self.ui.view.highlight.saved_color
           for _, item in ipairs(self.ui.annotation.annotations) do
             if item.drawer then
-              count = count + 1
-              item.drawer = self.ui.view.highlight.saved_drawer
-              item.color = self.ui.view.highlight.saved_color
+              total = total + 1
+              if item.drawer ~= saved_drawer or item.color ~= saved_color then
+                count = count + 1
+                item.drawer = saved_drawer
+                item.color = saved_color
+                ReaderAnnotation.markUpdated(item)
+              end
             end
           end
           if count > 0 then
             UIManager:setDirty(self.ui, "ui")
+            UIManager:broadcastEvent(
+              Event:new("AnnotationsModified", self.ui.annotation.annotations)
+            )
+          end
+          if total > 0 then
             self:showWidget(Notification:new({
               text = T(
                 N_(
                   "Applied style and color to 1 highlight",
                   "Applied style and color to %1 highlights",
-                  count
+                  total
                 ),
-                count
+                total
               ),
             }))
           end
@@ -2559,16 +2572,19 @@ end
 function ReaderHighlight:editHighlightStyle(index)
   local item = self.ui.annotation.annotations[index]
   local apply_drawer = function(drawer)
-    self:writePdfAnnotation("delete", item)
-    item.drawer = drawer
-    if self.ui.paging then
-      self:writePdfAnnotation("save", item)
-      if item.note then
-        self:writePdfAnnotation("content", item, item.note)
+    if item.drawer ~= drawer then
+      self:writePdfAnnotation("delete", item)
+      item.drawer = drawer
+      ReaderAnnotation.markUpdated(item)
+      if self.ui.paging then
+        self:writePdfAnnotation("save", item)
+        if item.note then
+          self:writePdfAnnotation("content", item, item.note)
+        end
       end
+      UIManager:setDirty(self.ui, "ui")
+      UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
     end
-    UIManager:setDirty(self.ui, "ui")
-    UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightStyleDialog(apply_drawer, item.drawer, index)
 end
@@ -2576,16 +2592,19 @@ end
 function ReaderHighlight:editHighlightColor(index)
   local item = self.ui.annotation.annotations[index]
   local apply_color = function(color)
-    self:writePdfAnnotation("delete", item)
-    item.color = color
-    if self.ui.paging then
-      self:writePdfAnnotation("save", item)
-      if item.note then
-        self:writePdfAnnotation("content", item, item.note)
+    if item.color ~= color then
+      self:writePdfAnnotation("delete", item)
+      item.color = color
+      ReaderAnnotation.markUpdated(item)
+      if self.ui.paging then
+        self:writePdfAnnotation("save", item)
+        if item.note then
+          self:writePdfAnnotation("content", item, item.note)
+        end
       end
+      UIManager:setDirty(self.ui, "ui")
+      UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
     end
-    UIManager:setDirty(self.ui, "ui")
-    UIManager:broadcastEvent(Event:new("AnnotationsModified", { item }))
   end
   self:showHighlightColorDialog(apply_color, item)
 end

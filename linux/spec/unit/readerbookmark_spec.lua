@@ -644,7 +644,6 @@ describe("ReaderBookmark module", function()
       local sort_items = bookmark_mod:genSortByMenuItems("page", "separator")
       assert.is_table(sort_items)
     end)
-
   end)
 
   describe("Additional ReaderBookmark operations", function()
@@ -672,175 +671,220 @@ describe("ReaderBookmark module", function()
       readerui:onClose()
     end)
 
-    it("should exercise main menu items, settings sub-menus, and callbacks", function()
-      local fake_menu = {}
-      bookmark_mod:addToMainMenu(fake_menu)
+    it(
+      "should exercise main menu items, settings sub-menus, and callbacks",
+      function()
+        local fake_menu = {}
+        bookmark_mod:addToMainMenu(fake_menu)
 
-      local function walk_menu(tbl)
-        for _, item in ipairs(tbl) do
-          if item.text_func then pcall(item.text_func) end
-          if item.checked_func then pcall(item.checked_func) end
-          if item.enabled_func then pcall(item.enabled_func) end
-          if item.callback then
-            pcall(item.callback, { updateItems = function() end, closeMenu = function() end })
+        local function walk_menu(tbl)
+          for _, item in ipairs(tbl) do
+            if item.text_func then
+              pcall(item.text_func)
+            end
+            if item.checked_func then
+              pcall(item.checked_func)
+            end
+            if item.enabled_func then
+              pcall(item.enabled_func)
+            end
+            if item.callback then
+              pcall(
+                item.callback,
+                { updateItems = function() end, closeMenu = function() end }
+              )
+              local top = UIManager._window_stack[#UIManager._window_stack]
+              if top and top.widget and top.widget ~= readerui then
+                if top.widget.ok_callback then
+                  pcall(top.widget.ok_callback)
+                end
+                if top.widget.callback then
+                  pcall(top.widget.callback, top.widget)
+                end
+                if top.widget.extra_callback then
+                  pcall(top.widget.extra_callback)
+                end
+                UIManager:close(top.widget)
+              end
+            end
+            if item.sub_item_table then
+              walk_menu(item.sub_item_table)
+            end
+          end
+        end
+
+        if
+          fake_menu.bookmarks_settings
+          and fake_menu.bookmarks_settings.sub_item_table
+        then
+          walk_menu(fake_menu.bookmarks_settings.sub_item_table)
+        end
+
+        if fake_menu.bookmarks and fake_menu.bookmarks.callback then
+          pcall(fake_menu.bookmarks.callback)
+          if bookmark_mod.bookmark_menu then
+            UIManager:close(bookmark_mod.bookmark_menu)
+            bookmark_mod.bookmark_menu = nil
+          end
+        end
+
+        if fake_menu.toggle_bookmark and fake_menu.toggle_bookmark.callback then
+          pcall(fake_menu.toggle_bookmark.text_func)
+          pcall(fake_menu.toggle_bookmark.callback)
+        end
+
+        if fake_menu.bookmark_browsing_mode then
+          if fake_menu.bookmark_browsing_mode.checked_func then
+            pcall(fake_menu.bookmark_browsing_mode.checked_func)
+          end
+          if fake_menu.bookmark_browsing_mode.callback then
+            pcall(
+              fake_menu.bookmark_browsing_mode.callback,
+              { closeMenu = function() end }
+            )
+          end
+        end
+
+        if fake_menu.bookmark_search then
+          if fake_menu.bookmark_search.enabled_func then
+            pcall(fake_menu.bookmark_search.enabled_func)
+          end
+          if fake_menu.bookmark_search.callback then
+            pcall(fake_menu.bookmark_search.callback)
             local top = UIManager._window_stack[#UIManager._window_stack]
             if top and top.widget and top.widget ~= readerui then
-              if top.widget.ok_callback then pcall(top.widget.ok_callback) end
-              if top.widget.callback then pcall(top.widget.callback, top.widget) end
-              if top.widget.extra_callback then pcall(top.widget.extra_callback) end
               UIManager:close(top.widget)
             end
           end
-          if item.sub_item_table then
-            walk_menu(item.sub_item_table)
-          end
         end
       end
+    )
 
-      if fake_menu.bookmarks_settings and fake_menu.bookmarks_settings.sub_item_table then
-        walk_menu(fake_menu.bookmarks_settings.sub_item_table)
-      end
+    it(
+      "should exercise bookmark list dialog, selection mode, and batch operations",
+      function()
+        -- Create real bookmarks in EPUB
+        readerui.rolling:onGotoPage(2)
+        bookmark_mod:toggleBookmark()
+        readerui.rolling:onGotoPage(5)
+        bookmark_mod:toggleBookmark()
+        readerui.rolling:onGotoPage(8)
+        bookmark_mod:toggleBookmark()
 
-      if fake_menu.bookmarks and fake_menu.bookmarks.callback then
-        pcall(fake_menu.bookmarks.callback)
-        if bookmark_mod.bookmark_menu then
-          UIManager:close(bookmark_mod.bookmark_menu)
-          bookmark_mod.bookmark_menu = nil
-        end
-      end
+        bookmark_mod:onShowBookmark()
+        assert.is_not_nil(bookmark_mod.bookmark_menu)
+        local bm_menu = bookmark_mod.bookmark_menu[1]
 
-      if fake_menu.toggle_bookmark and fake_menu.toggle_bookmark.callback then
-        pcall(fake_menu.toggle_bookmark.text_func)
-        pcall(fake_menu.toggle_bookmark.callback)
-      end
+        -- Test toggle select mode and hold
+        bm_menu:onLeftButtonHold()
+        assert.is_not_nil(bm_menu.select_count)
 
-      if fake_menu.bookmark_browsing_mode then
-        if fake_menu.bookmark_browsing_mode.checked_func then
-          pcall(fake_menu.bookmark_browsing_mode.checked_func)
-        end
-        if fake_menu.bookmark_browsing_mode.callback then
-          pcall(fake_menu.bookmark_browsing_mode.callback, { closeMenu = function() end })
-        end
-      end
+        -- Select item in select mode
+        local item = bm_menu.item_table[1]
+        bm_menu:onMenuSelect(item)
+        assert.is_true(item.dim)
+        bm_menu:onMenuSelect(item)
+        assert.is_nil(item.dim)
 
-      if fake_menu.bookmark_search then
-        if fake_menu.bookmark_search.enabled_func then
-          pcall(fake_menu.bookmark_search.enabled_func)
-        end
-        if fake_menu.bookmark_search.callback then
-          pcall(fake_menu.bookmark_search.callback)
-          local top = UIManager._window_stack[#UIManager._window_stack]
-          if top and top.widget and top.widget ~= readerui then
-            UIManager:close(top.widget)
-          end
-        end
-      end
-    end)
-
-    it("should exercise bookmark list dialog, selection mode, and batch operations", function()
-      -- Create real bookmarks in EPUB
-      readerui.rolling:onGotoPage(2)
-      bookmark_mod:toggleBookmark()
-      readerui.rolling:onGotoPage(5)
-      bookmark_mod:toggleBookmark()
-      readerui.rolling:onGotoPage(8)
-      bookmark_mod:toggleBookmark()
-
-      bookmark_mod:onShowBookmark()
-      assert.is_not_nil(bookmark_mod.bookmark_menu)
-      local bm_menu = bookmark_mod.bookmark_menu[1]
-
-      -- Test toggle select mode and hold
-      bm_menu:onLeftButtonHold()
-      assert.is_not_nil(bm_menu.select_count)
-
-      -- Select item in select mode
-      local item = bm_menu.item_table[1]
-      bm_menu:onMenuSelect(item)
-      assert.is_true(item.dim)
-      bm_menu:onMenuSelect(item)
-      assert.is_nil(item.dim)
-
-      -- Left button tap in select mode
-      bm_menu.select_count = 1
-      bm_menu.item_table[1].dim = true
-      bm_menu:onLeftButtonTap()
-      local top = UIManager._window_stack[#UIManager._window_stack]
-      if top and top.widget and top.widget ~= readerui then
-        local btns = top.widget.buttons
-        for _, row in ipairs(btns) do
-          for _, btn in ipairs(row) do
-            if btn.callback and btn.enabled ~= false then
-              pcall(btn.callback)
-              local confirm = UIManager._window_stack[#UIManager._window_stack]
-              if confirm and confirm.widget and confirm.widget ~= readerui and confirm.widget.ok_callback then
-                pcall(confirm.widget.ok_callback)
-              end
-            end
-          end
-        end
-        UIManager:close(top.widget)
-      end
-
-      -- Exit select mode
-      bm_menu:toggleSelectMode()
-
-      -- Left button tap in normal mode
-      bm_menu:onLeftButtonTap()
-      top = UIManager._window_stack[#UIManager._window_stack]
-      if top and top.widget and top.widget ~= readerui then
-        local btns = top.widget.buttons
-        for _, row in ipairs(btns) do
-          for _, btn in ipairs(row) do
-            if btn.callback and btn.enabled ~= false then
-              pcall(btn.callback)
-            end
-          end
-        end
-        UIManager:close(top.widget)
-      end
-
-      -- Close bookmark menu
-      if bm_menu.close_callback then
-        bm_menu.close_callback()
-      end
-    end)
-
-    it("should exercise bookmark details, text editing, notes, and pagination", function()
-      -- Ensure we have annotations
-      readerui.rolling:onGotoPage(3)
-      bookmark_mod:toggleBookmark()
-
-      bookmark_mod:onShowBookmark()
-      local bm_menu = bookmark_mod.bookmark_menu[1]
-      local item = bm_menu.item_table[1]
-      bm_menu:onMenuHold(item)
-
-      local top = UIManager._window_stack[#UIManager._window_stack]
-      if top and top.widget and top.widget ~= readerui then
-        local details_widget = top.widget
-        if details_widget.buttons_table then
-          for _, row in ipairs(details_widget.buttons_table) do
+        -- Left button tap in select mode
+        bm_menu.select_count = 1
+        bm_menu.item_table[1].dim = true
+        bm_menu:onLeftButtonTap()
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= readerui then
+          local btns = top.widget.buttons
+          for _, row in ipairs(btns) do
             for _, btn in ipairs(row) do
               if btn.callback and btn.enabled ~= false then
                 pcall(btn.callback)
-                local sub = UIManager._window_stack[#UIManager._window_stack]
-                if sub and sub.widget and sub.widget ~= readerui and sub.widget ~= details_widget then
-                  if sub.widget.ok_callback then pcall(sub.widget.ok_callback) end
-                  if sub.widget.callback then pcall(sub.widget.callback, sub.widget) end
-                  UIManager:close(sub.widget)
+                local confirm =
+                  UIManager._window_stack[#UIManager._window_stack]
+                if
+                  confirm
+                  and confirm.widget
+                  and confirm.widget ~= readerui
+                  and confirm.widget.ok_callback
+                then
+                  pcall(confirm.widget.ok_callback)
                 end
               end
             end
           end
+          UIManager:close(top.widget)
         end
-        UIManager:close(details_widget)
-      end
 
-      if bm_menu.close_callback then
-        bm_menu.close_callback()
+        -- Exit select mode
+        bm_menu:toggleSelectMode()
+
+        -- Left button tap in normal mode
+        bm_menu:onLeftButtonTap()
+        top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= readerui then
+          local btns = top.widget.buttons
+          for _, row in ipairs(btns) do
+            for _, btn in ipairs(row) do
+              if btn.callback and btn.enabled ~= false then
+                pcall(btn.callback)
+              end
+            end
+          end
+          UIManager:close(top.widget)
+        end
+
+        -- Close bookmark menu
+        if bm_menu.close_callback then
+          bm_menu.close_callback()
+        end
       end
-    end)
+    )
+
+    it(
+      "should exercise bookmark details, text editing, notes, and pagination",
+      function()
+        -- Ensure we have annotations
+        readerui.rolling:onGotoPage(3)
+        bookmark_mod:toggleBookmark()
+
+        bookmark_mod:onShowBookmark()
+        local bm_menu = bookmark_mod.bookmark_menu[1]
+        local item = bm_menu.item_table[1]
+        bm_menu:onMenuHold(item)
+
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= readerui then
+          local details_widget = top.widget
+          if details_widget.buttons_table then
+            for _, row in ipairs(details_widget.buttons_table) do
+              for _, btn in ipairs(row) do
+                if btn.callback and btn.enabled ~= false then
+                  pcall(btn.callback)
+                  local sub = UIManager._window_stack[#UIManager._window_stack]
+                  if
+                    sub
+                    and sub.widget
+                    and sub.widget ~= readerui
+                    and sub.widget ~= details_widget
+                  then
+                    if sub.widget.ok_callback then
+                      pcall(sub.widget.ok_callback)
+                    end
+                    if sub.widget.callback then
+                      pcall(sub.widget.callback, sub.widget)
+                    end
+                    UIManager:close(sub.widget)
+                  end
+                end
+              end
+            end
+          end
+          UIManager:close(details_widget)
+        end
+
+        if bm_menu.close_callback then
+          bm_menu.close_callback()
+        end
+      end
+    )
 
     it("should exercise search bookmark dialog and filter options", function()
       bookmark_mod:onSearchBookmark()
@@ -868,7 +912,12 @@ describe("ReaderBookmark module", function()
         bookmark_mod:filterByEditedText()
         bookmark_mod:filterByHighlightStyle()
         top = UIManager._window_stack[#UIManager._window_stack]
-        if top and top.widget and top.widget ~= readerui and top.widget ~= bookmark_mod.bookmark_menu then
+        if
+          top
+          and top.widget
+          and top.widget ~= readerui
+          and top.widget ~= bookmark_mod.bookmark_menu
+        then
           UIManager:close(top.widget)
         end
         UIManager:close(bookmark_mod.bookmark_menu)
@@ -876,62 +925,199 @@ describe("ReaderBookmark module", function()
       end
     end)
 
-    it("should exercise misc helpers, key events, and event handlers", function()
-      local xp = readerui.document:getXPointer()
-      bookmark_mod:onGesture()
-      bookmark_mod:onPhysicalKeyboardConnected()
-      bookmark_mod:registerKeyEvents()
-      bookmark_mod:onPageUpdate()
-      bookmark_mod:onPosUpdate()
-      bookmark_mod:setDogearVisibility(xp)
-      bookmark_mod:onGotoPreviousBookmarkFromPage(true)
-      bookmark_mod:onGotoNextBookmarkFromPage(false)
-      bookmark_mod:onGotoPreviousBookmark(xp)
-      bookmark_mod:onGotoNextBookmark(xp)
+    it(
+      "should exercise misc helpers, key events, and event handlers",
+      function()
+        local xp = readerui.document:getXPointer()
+        bookmark_mod:onGesture()
+        bookmark_mod:onPhysicalKeyboardConnected()
+        bookmark_mod:registerKeyEvents()
+        bookmark_mod:onPageUpdate()
+        bookmark_mod:onPosUpdate()
+        bookmark_mod:setDogearVisibility(xp)
+        bookmark_mod:onGotoPreviousBookmarkFromPage(true)
+        bookmark_mod:onGotoNextBookmarkFromPage(false)
+        bookmark_mod:onGotoPreviousBookmark(xp)
+        bookmark_mod:onGotoNextBookmark(xp)
 
-      if #bookmark_mod.ui.annotation.annotations > 0 then
-        local first_item = bookmark_mod.ui.annotation.annotations[1]
-        local idx = bookmark_mod:getBookmarkItemIndex(first_item)
-        assert.is_number(idx)
-      end
-    end)
-
-    it("should handle onToggleBookmark refresh region and setBookmarkNote note_mark dirty refresh", function()
-      local dirty_called, dirty_func
-      local orig_setDirty = UIManager.setDirty
-      UIManager.setDirty = function(self, target, mode_or_func)
-        dirty_called = true
-        if type(mode_or_func) == "function" then
-          dirty_func = mode_or_func
+        if #bookmark_mod.ui.annotation.annotations > 0 then
+          local first_item = bookmark_mod.ui.annotation.annotations[1]
+          local idx = bookmark_mod:getBookmarkItemIndex(first_item)
+          assert.is_number(idx)
         end
-        return orig_setDirty(self, target, mode_or_func)
       end
+    )
 
-      -- onToggleBookmark dirty func execution
-      bookmark_mod:onToggleBookmark()
-      assert.is_true(dirty_called)
-      if dirty_func then
-        local mode, region = dirty_func()
-        assert.are.equal("ui", mode)
-      end
-
-      -- showBookmarkDetails with details_updated and note_mark without bm_menu
-      readerui.view.highlight.note_mark = "asterisk"
-      bookmark_mod.details_updated = true
-      bookmark_mod:showBookmarkDetails(1)
-      while #UIManager._window_stack > 1 do
-        local top_w = UIManager._window_stack[#UIManager._window_stack].widget
-        if top_w ~= readerui then
-          if top_w.dismiss_callback then
-            pcall(top_w.dismiss_callback)
+    it(
+      "should handle onToggleBookmark refresh region and setBookmarkNote note_mark dirty refresh",
+      function()
+        local dirty_called, dirty_func
+        local orig_setDirty = UIManager.setDirty
+        UIManager.setDirty = function(self, target, mode_or_func)
+          dirty_called = true
+          if type(mode_or_func) == "function" then
+            dirty_func = mode_or_func
           end
-          UIManager:close(top_w)
-        else
-          break
+          return orig_setDirty(self, target, mode_or_func)
         end
-      end
 
-      UIManager.setDirty = orig_setDirty
-    end)
+        -- onToggleBookmark dirty func execution
+        bookmark_mod:onToggleBookmark()
+        assert.is_true(dirty_called)
+        if dirty_func then
+          local mode, region = dirty_func()
+          assert.are.equal("ui", mode)
+        end
+
+        -- showBookmarkDetails with details_updated and note_mark without bm_menu
+        readerui.view.highlight.note_mark = "asterisk"
+        bookmark_mod.details_updated = true
+        bookmark_mod:showBookmarkDetails(1)
+        while #UIManager._window_stack > 1 do
+          local top_w = UIManager._window_stack[#UIManager._window_stack].widget
+          if top_w ~= readerui then
+            if top_w.dismiss_callback then
+              pcall(top_w.dismiss_callback)
+            end
+            UIManager:close(top_w)
+          else
+            break
+          end
+        end
+
+        UIManager.setDirty = orig_setDirty
+      end
+    )
+
+    it(
+      "should stamp datetime_updated on note, text edits and broadcast AnnotationsModified",
+      function()
+        local annotation = {
+          datetime = "2026-09-29 10:00:00",
+          notes = "Sample text",
+          note = "Old note",
+          page = "/1/4/2/1:0",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:10",
+        }
+        readerui.annotation.annotations = { annotation }
+
+        local broadcast_events = {}
+        local orig_broadcast = UIManager.broadcastEvent
+        finally(function()
+          UIManager.broadcastEvent = orig_broadcast
+        end)
+        UIManager.broadcastEvent = function(self, event, ...)
+          table.insert(broadcast_events, event)
+          return orig_broadcast(self, event, ...)
+        end
+
+        -- 1. setBookmarkNote: edit existing note text
+        local dlg
+        local orig_show = UIManager.show
+        finally(function()
+          UIManager.show = orig_show
+        end)
+        UIManager.show = function(self, w, ...)
+          if type(w) == "table" and w.title == "Edit note" then
+            dlg = w
+          end
+          return orig_show(self, w, ...)
+        end
+
+        local called = false
+        bookmark_mod:setBookmarkNote(1, false, nil, function()
+          called = true
+        end)
+        assert.is_not_nil(dlg)
+        dlg.getInputText = function()
+          return "Edited note"
+        end
+        for _, row in ipairs(dlg.buttons) do
+          for _, b in ipairs(row) do
+            if b.text == "Save" then
+              b.callback()
+            end
+          end
+        end
+        assert.is_true(called)
+        assert.are.equal("Edited note", annotation.note)
+        assert.is_not_nil(annotation.datetime_updated)
+
+        local found_broadcast = false
+        for _, ev in ipairs(broadcast_events) do
+          if type(ev) == "table" and ev.handler == "onAnnotationsModified" then
+            found_broadcast = true
+            break
+          end
+        end
+        assert.is_true(found_broadcast)
+
+        -- Re-saving the same note should not bump datetime_updated or broadcast
+        local note_ts_before = annotation.datetime_updated
+        broadcast_events = {}
+        dlg.getInputText = function()
+          return "Edited note"
+        end
+        for _, row in ipairs(dlg.buttons) do
+          for _, b in ipairs(row) do
+            if b.text == "Save" then
+              b.callback()
+            end
+          end
+        end
+        assert.are.equal(note_ts_before, annotation.datetime_updated)
+        assert.are.equal(0, #broadcast_events)
+
+        -- 2. deleteItemNote
+        broadcast_events = {}
+        local item = {
+          datetime = annotation.datetime,
+          page = annotation.page,
+          pos0 = annotation.pos0,
+          pos1 = annotation.pos1,
+        }
+        bookmark_mod:deleteItemNote(item)
+        assert.is_nil(annotation.note)
+        assert.is_not_nil(annotation.datetime_updated)
+
+        -- Deleting note on item without note should not bump datetime_updated or broadcast
+        local del_ts_before = annotation.datetime_updated
+        broadcast_events = {}
+        bookmark_mod:deleteItemNote(item)
+        assert.are.equal(del_ts_before, annotation.datetime_updated)
+        assert.are.equal(0, #broadcast_events)
+
+        -- 3. setHighlightedText
+        broadcast_events = {}
+        bookmark_mod:setHighlightedText(
+          1,
+          "Updated highlight text",
+          function() end
+        )
+        assert.are.equal("Updated highlight text", annotation.text)
+        assert.is_true(annotation.text_edited)
+        assert.is_not_nil(annotation.datetime_updated)
+        found_broadcast = false
+        for _, ev in ipairs(broadcast_events) do
+          if type(ev) == "table" and ev.handler == "onAnnotationsModified" then
+            found_broadcast = true
+            break
+          end
+        end
+        assert.is_true(found_broadcast)
+
+        -- Re-setting the same highlight text should not bump datetime_updated or broadcast
+        local text_ts_before = annotation.datetime_updated
+        broadcast_events = {}
+        bookmark_mod:setHighlightedText(
+          1,
+          "Updated highlight text",
+          function() end
+        )
+        assert.are.equal(text_ts_before, annotation.datetime_updated)
+        assert.are.equal(0, #broadcast_events)
+      end
+    )
   end)
 end)

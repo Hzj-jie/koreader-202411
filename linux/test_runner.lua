@@ -39,11 +39,6 @@ local test_env = require("test_helper")
 if os.getenv("KO_TEST_WORKER") == "1" then
     local test_file = arg[1]
     if test_file then
-        local plugin = test_file:match("^plugins/([%w%.%-_]+)/")
-        if plugin then
-            package.path = string.format("./plugins/%s/?.lua;%s", plugin, package.path)
-        end
-
         local is_settings_test = test_file:match("docsettings_spec%.lua$") or test_file:match("named_settings_spec%.lua$")
         if not is_settings_test then
             local ok, named_settings = pcall(require, "named_settings")
@@ -106,43 +101,38 @@ print_verbose("=================================================================
 
 -- Collect spec files to execute
 local spec_files = {}
-if test_file then
-    table.insert(spec_files, test_file)
-else
-    local function find_specs(dir)
-        local attr = lfs.attributes(dir)
-        if attr and attr.mode == "directory" then
-            for file in lfs.dir(dir) do
-                if file ~= "." and file ~= ".." then
-                    local path = dir .. "/" .. file
-                    local f_attr = lfs.attributes(path)
-                    if f_attr then
-                        if f_attr.mode == "directory" then
-                            find_specs(path)
-                        elseif f_attr.mode == "file" and file:match("_spec%.lua$") then
-                            table.insert(spec_files, path)
-                        end
+local function find_specs(dir)
+    local attr = lfs.attributes(dir)
+    if attr and attr.mode == "directory" then
+        for file in lfs.dir(dir) do
+            if file ~= "." and file ~= ".." then
+                local path = dir .. "/" .. file
+                local f_attr = lfs.attributes(path)
+                if f_attr then
+                    if f_attr.mode == "directory" then
+                        find_specs(path)
+                    elseif f_attr.mode == "file" and file:match("_spec%.lua$") then
+                        table.insert(spec_files, path)
                     end
                 end
             end
         end
     end
+end
 
+if test_file then
+    local attr = lfs.attributes(test_file)
+    if attr and attr.mode == "directory" then
+        find_specs(test_file)
+    else
+        table.insert(spec_files, test_file)
+    end
+else
     find_specs("base/spec/unit")
     find_specs("spec/unit")
-
-    local plugins_dir = "plugins"
-    local plugins_attr = lfs.attributes(plugins_dir)
-    if plugins_attr and plugins_attr.mode == "directory" then
-        for plugin in lfs.dir(plugins_dir) do
-            if plugin ~= "." and plugin ~= ".." then
-                find_specs(plugins_dir .. "/" .. plugin .. "/spec/unit")
-            end
-        end
-    end
-
-    table.sort(spec_files)
 end
+
+table.sort(spec_files)
 
 if #spec_files == 0 then
     io.stderr:write("[!] Error: No spec files found.\n")
