@@ -151,6 +151,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               self.settings.network_auto_sync =
                 not self.settings.network_auto_sync
               self:saveSettings()
+              self.manager:_dispatchNextSync()
             end,
           },
 
@@ -323,62 +324,9 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
   }
 end
 
-function AnnotationSyncPlugin:onSaveSettings()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  UIManager:scheduleIn(0.1, function()
-    if self.manager and self.manager:hasPendingChangedDocuments() then
-      logger.dbg("AnnotationSync: onSaveSettings triggered background sync")
-      self.manager:syncPendingDocumentsBg()
-    end
-  end)
-end
-
-function AnnotationSyncPlugin:onSuspend()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if self.manager and self.manager:hasPendingChangedDocuments() then
-    logger.dbg("AnnotationSync: onSuspend triggered background sync")
-    self.manager:syncPendingDocumentsBg()
-  end
-end
-
-function AnnotationSyncPlugin:onResume()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if NetworkMgr:shouldRestoreWifi() then
-    return
-  end
-  UIManager:scheduleIn(0.1, function()
-    if self.manager and self.manager:hasPendingChangedDocuments() then
-      logger.dbg("AnnotationSync: onResume triggered background sync")
-      self.manager:syncPendingDocumentsBg()
-    end
-  end)
-end
-
 function AnnotationSyncPlugin:onNetworkOnline()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if self.manager and self.manager:hasPendingChangedDocuments() then
+  if self.manager:_dispatchNextSync() then
     logger.dbg("AnnotationSync: onNetworkOnline triggered background sync")
-    self.manager:syncPendingDocumentsBg()
-  end
-end
-
-function AnnotationSyncPlugin:onNetworkDisconnecting()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if self.manager and self.manager:hasPendingChangedDocuments() then
-    logger.dbg(
-      "AnnotationSync: onNetworkDisconnecting triggered background sync"
-    )
-    self.manager:syncPendingDocumentsBg()
   end
 end
 

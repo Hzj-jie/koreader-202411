@@ -72,7 +72,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
 
     local count, docs = sync_instance.manager:getPendingChangedDocuments()
     assert.is_equal(1, count)
-    assert.is_true(docs[readerui.document.file])
+    assert.truthy(util.arrayContains(docs, readerui.document.file))
   end)
 
   it("merges disjoint local and remote bookmarks", function()

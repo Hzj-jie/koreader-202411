@@ -279,7 +279,7 @@ function M.show_pending_documents(plugin)
 
   -- Sort the files alphabetically by their clean filename
   local files = {}
-  for file, _ in pairs(changed_docs) do
+  for _, file in ipairs(changed_docs) do
     table.insert(files, file)
   end
   table.sort(files, function(a, b)

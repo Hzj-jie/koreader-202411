@@ -85,7 +85,7 @@ describe("AnnotationSync Core Integration", function()
 
       local count, docs = sync_instance.manager:getPendingChangedDocuments()
       assert.is_equal(1, count)
-      assert.is_true(docs[readerui.document.file])
+      assert.truthy(util.arrayContains(docs, readerui.document.file))
 
       sync_instance:manualSync()
       assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
@@ -420,7 +420,7 @@ describe("AnnotationSync Core Integration", function()
 
       local function is_pending(file)
         local _, docs = sync_instance.manager:getPendingChangedDocuments()
-        return docs and docs[file] == true
+        return not not (docs and util.arrayContains(docs, file))
       end
 
       before_each(function()

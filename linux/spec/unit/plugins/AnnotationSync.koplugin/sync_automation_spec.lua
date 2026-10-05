@@ -60,7 +60,6 @@ describe("AnnotationSync Automation & Settings", function()
     for k in pairs(jobs) do
       jobs[k] = nil
     end
-    sync_instance.manager.queue = {}
     sync_instance.manager.running = nil
   end)
 
@@ -71,7 +70,6 @@ describe("AnnotationSync Automation & Settings", function()
     for k in pairs(jobs) do
       jobs[k] = nil
     end
-    sync_instance.manager.queue = {}
     sync_instance.manager.running = nil
   end)
 
@@ -105,10 +103,11 @@ describe("AnnotationSync Automation & Settings", function()
 
   describe("Automation", function()
     it(
-      "triggers background incremental fork sync on onSuspend when network_auto_sync is enabled",
+      "triggers background incremental fork sync on onNetworkOnline when network_auto_sync is enabled",
       function()
-        sync_instance.settings.network_auto_sync = true
+        sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_instance.settings.network_auto_sync = true
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_jobs_count = #jobs
@@ -122,7 +121,7 @@ describe("AnnotationSync Automation & Settings", function()
           end
         end
 
-        sync_instance:onSuspend()
+        sync_instance:onNetworkOnline()
 
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
@@ -167,99 +166,7 @@ describe("AnnotationSync Automation & Settings", function()
     end)
 
     it(
-      "triggers background sync on onSaveSettings when network_auto_sync is enabled",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onSaveSettings()
-        fastforward_ui_events()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "skips onResume sync when NetworkMgr:shouldRestoreWifi is true",
-      function()
-        local NetworkMgr = require("ui/network/manager")
-        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
-        NetworkMgr.shouldRestoreWifi = function()
-          return true
-        end
-
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onResume()
-        fastforward_ui_events()
-
-        assert.is_equal(initial_jobs_count, #jobs)
-        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
-      end
-    )
-
-    it(
-      "triggers background sync on onResume when NetworkMgr:shouldRestoreWifi is false",
-      function()
-        local NetworkMgr = require("ui/network/manager")
-        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
-        NetworkMgr.shouldRestoreWifi = function()
-          return false
-        end
-
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onResume()
-        fastforward_ui_events()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
-      end
-    )
-
-    it(
-      "triggers background sync on onNetworkOnline when network_auto_sync is enabled",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onNetworkOnline()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "triggers background sync on onNetworkDisconnecting when network_auto_sync is enabled",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onNetworkDisconnecting()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "ignores lifecycle triggers when network_auto_sync is disabled",
+      "ignores onNetworkOnline when network_auto_sync is disabled",
       function()
         sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -267,30 +174,98 @@ describe("AnnotationSync Automation & Settings", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_jobs_count = #jobs
 
-        sync_instance:onSaveSettings()
-        sync_instance:onSuspend()
-        sync_instance:onResume()
         sync_instance:onNetworkOnline()
-        sync_instance:onNetworkDisconnecting()
-        fastforward_ui_events()
 
         assert.is_equal(initial_jobs_count, #jobs)
       end
     )
 
     it(
-      "deduplicates onSuspend triggers when background sync is active",
+      "triggers background sync when addToChangedDocumentsFile is called with network_auto_sync enabled",
       function()
         sync_instance.settings.network_auto_sync = true
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "does not trigger background sync when addToChangedDocumentsFile is called with network_auto_sync disabled",
+      function()
+        sync_instance.settings.network_auto_sync = false
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        assert.is_equal(initial_count, #jobs)
+        assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      end
+    )
+
+    it(
+      "triggers background sync when scanLibraryForUnsyncedDocuments finds new documents",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        local readhistory = require("readhistory")
+        local old_hist = readhistory.hist
+        readhistory.hist = { { file = readerui.document.file } }
+        finally(function()
+          readhistory.hist = old_hist
+        end)
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
-        sync_instance:onSuspend()
-        sync_instance:onSuspend()
+        sync_instance.manager:scanLibraryForUnsyncedDocuments()
 
         assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "switching network_auto_sync toggle on triggers background sync",
+      function()
+        sync_instance.settings.network_auto_sync = false
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+        assert.is_equal(initial_count, #jobs)
+
+        local menu_items = {}
+        sync_instance:addToMainMenu(menu_items)
+        local settings_table =
+          menu_items.annotation_sync_plugin.sub_item_table[1].sub_item_table
+        local menu_item
+        for _, sub in ipairs(settings_table) do
+          if sub.text and sub.text:match("Automatically Sync All") then
+            menu_item = sub
+            break
+          end
+        end
+        assert.is_not_nil(menu_item)
+        menu_item.callback()
+
+        assert.is_true(sync_instance.settings.network_auto_sync)
+        assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "verifies obsolete lifecycle handlers and methods are removed",
+      function()
+        assert.is_nil(sync_instance.onSaveSettings)
+        assert.is_nil(sync_instance.onSuspend)
+        assert.is_nil(sync_instance.onResume)
+        assert.is_nil(sync_instance.onNetworkDisconnecting)
+        assert.is_nil(sync_instance.manager.syncPendingDocumentsBg)
+        assert.is_nil(sync_instance.manager._enqueueSync)
+        assert.is_nil(sync_instance.manager.queue)
       end
     )
 
@@ -305,12 +280,10 @@ describe("AnnotationSync Automation & Settings", function()
         sync_instance.manager:addToChangedDocumentsFile(missing_file)
         sync_instance.manager:addToChangedDocumentsFile(active_file)
 
-        sync_instance.manager:syncPendingDocumentsBg()
-
         -- Missing file is pruned on main thread immediately
         local _, remaining = sync_instance.manager:getPendingChangedDocuments()
-        assert.is_nil(remaining[missing_file])
-        assert.is_true(remaining[active_file])
+        assert.falsy(util.arrayContains(remaining, missing_file))
+        assert.truthy(util.arrayContains(remaining, active_file))
 
         -- Active file was queued into background jobs
         assert.is_equal(initial_jobs_count + 1, #jobs)

@@ -131,12 +131,12 @@ describe("Sync Missing File Handling", function()
 
     -- Check if doc2 was removed from dirty list
     local _, changed_docs_after = manager:getPendingChangedDocuments()
-    assert.is_nil(
-      changed_docs_after[doc2],
+    assert.falsy(
+      util.arrayContains(changed_docs_after, doc2),
       "doc2 should have been removed from the dirty list"
     )
-    assert.is_nil(
-      changed_docs_after[doc1],
+    assert.falsy(
+      util.arrayContains(changed_docs_after, doc1),
       "doc1 should have been removed after successful sync"
     )
   end)

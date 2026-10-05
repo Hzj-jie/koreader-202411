@@ -1,6 +1,7 @@
 describe("AnnotationSync Trash & Restore", function()
   local ReaderUI, UIManager, SyncService, Geom
   local AnnotationSyncPlugin, highlight_db, test_utils, json, annotations_mod
+  local util
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_trash_tmp"
@@ -18,6 +19,7 @@ describe("AnnotationSync Trash & Restore", function()
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
+    util = require("util")
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
     highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
@@ -122,7 +124,7 @@ describe("AnnotationSync Trash & Restore", function()
     local count, changed_docs =
       sync_instance.manager:getPendingChangedDocuments()
     assert.is_equal(1, count)
-    assert.truthy(changed_docs[readerui.document.file])
+    assert.truthy(util.arrayContains(changed_docs, readerui.document.file))
 
     -- Cleanup
     require("ui/event").new = old_event_new
@@ -162,7 +164,7 @@ describe("AnnotationSync Trash & Restore", function()
     local count, changed_docs =
       sync_instance.manager:getPendingChangedDocuments()
     assert.is_equal(1, count)
-    assert.truthy(changed_docs[readerui.document.file])
+    assert.truthy(util.arrayContains(changed_docs, readerui.document.file))
 
     -- Cleanup
     require("ui/event").new = old_event_new

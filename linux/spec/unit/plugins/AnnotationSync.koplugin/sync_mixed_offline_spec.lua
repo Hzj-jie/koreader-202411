@@ -105,8 +105,8 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       local count, changed_docs =
         sync_instance.manager:getPendingChangedDocuments()
       assert.is_equal(2, count)
-      assert.truthy(changed_docs[doc_epub])
-      assert.truthy(changed_docs[doc_pdf])
+      assert.truthy(util.arrayContains(changed_docs, doc_epub))
+      assert.truthy(util.arrayContains(changed_docs, doc_pdf))
 
       -- 5. Mock ONLINE server
       SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)

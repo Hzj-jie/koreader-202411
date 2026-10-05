@@ -5,6 +5,7 @@ local T = require("ffi/util").template
 local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
+local dump = require("dump")
 local gettext = require("gettext")
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
@@ -18,6 +19,8 @@ local menus = require("plugins/AnnotationSync.koplugin/menus")
 local remote = require("plugins/AnnotationSync.koplugin/remote")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
+local ONLINE_RETRY_INTERVAL = 10
+
 local function isConnected()
   return NetworkMgr:isConnected()
 end
@@ -26,7 +29,6 @@ end
 -- FileManager whose plugin queued them. Every plugin instance shares this
 -- singleton table, and the latest plugin to init owns it.
 local SyncManager = {
-  queue = {},
   running = nil,
 }
 
@@ -58,7 +60,7 @@ function SyncManager:syncAllChangedDocuments()
       local failed_files = {}
       local current_idx = 0
 
-      for file, _ in pairs(changed_docs) do
+      for _, file in ipairs(changed_docs) do
         current_idx = current_idx + 1
         local _, filename = util.splitFilePathName(file)
         if
@@ -116,18 +118,33 @@ function SyncManager:syncAllChangedDocuments()
   end)
 end
 
-function SyncManager:_enqueueSync(file)
-  for _, queued_file in ipairs(self.queue) do
-    if queued_file == file then
-      return
-    end
+function SyncManager:_loadChangedDocuments()
+  local ok, docs = pcall(dofile, self:changedDocumentsFile())
+  if not ok or type(docs) ~= "table" then
+    return {}
   end
-  table.insert(self.queue, file)
+  if docs[1] == nil then
+    -- Older versions wrote a map: { [file] = true }.
+    local list = {}
+    for file in pairs(docs) do
+      table.insert(list, file)
+    end
+    return list
+  end
+  return docs
 end
 
-function SyncManager:_finishSync()
-  self.running = nil
-  self:_dispatchNextSync()
+function SyncManager:_movePendingDocumentToBack(file)
+  if not file then
+    return
+  end
+  local list = self:_loadChangedDocuments()
+  local idx = util.arrayContains(list, file)
+  if idx then
+    table.remove(list, idx)
+    table.insert(list, file)
+    self:_writeChangedDocumentsFile(list)
+  end
 end
 
 function SyncManager:_startSync(file)
@@ -137,13 +154,15 @@ function SyncManager:_startSync(file)
       file
     )
     self:removeFromChangedDocumentsFileByPath(file)
-    self:_finishSync()
+    self.running = nil
+    self:_dispatchNextSync()
     return
   end
 
   local _, pending_docs = self:getPendingChangedDocuments()
-  if not (type(pending_docs) == "table" and pending_docs[file]) then
-    self:_finishSync()
+  if not util.arrayContains(pending_docs, file) then
+    self.running = nil
+    self:_dispatchNextSync()
     return
   end
 
@@ -152,6 +171,12 @@ function SyncManager:_startSync(file)
   assert(require("background_jobs").insertKeyed({
     executable = "fork",
     action = function()
+      NetworkMgr:queryOnlineState()
+      while not NetworkMgr:isOnline() do
+        require("ffi/util").sleep(ONLINE_RETRY_INTERVAL)
+        NetworkMgr:queryOnlineState()
+      end
+
       local json_path = self:_writeAnnotationsJSON(doc)
       if not json_path then
         return { file = file, success = false }
@@ -194,7 +219,8 @@ function SyncManager:_startSync(file)
           "AnnotationSync: background sync returned invalid result for",
           file
         )
-        self:_finishSync()
+        self:_movePendingDocumentToBack(file)
+        self.running = nil
         return
       end
       local item = job.result
@@ -209,52 +235,47 @@ function SyncManager:_startSync(file)
           snapshot_json,
           uploaded_json
         )
+        self:_movePendingDocumentToBack(item.file)
         self:recordSyncState("Auto Sync")
         logger.info(
           "AnnotationSync: background sync completed for",
           item.file
         )
+      else
+        self:_movePendingDocumentToBack(item.file or file)
       end
       if item.json_path then
         os.remove(item.json_path .. ".snapshot")
         os.remove(item.json_path .. ".uploaded")
       end
-      self:_finishSync()
+      self.running = nil
+      if item.success and item.file then
+        self:_dispatchNextSync()
+      end
     end,
   }))
 end
 
 function SyncManager:_dispatchNextSync()
-  if self.running or #self.queue == 0 then
-    return
+  if self.running then
+    return false
   end
 
-  local file = table.remove(self.queue, 1)
-  self.running = file
+  if not (self.plugin and self.plugin.settings and self.plugin.settings.network_auto_sync) then
+    return false
+  end
+
+  local list = self:_loadChangedDocuments()
+  local file = list[1]
+  if not file then
+    return false
+  end
+
+  self.running = true
   NetworkMgr:willRerunWhenOnline(function()
     self:_startSync(file)
   end)
-end
-
--- Incremental background sync of pending documents using BackgroundJobs fork mode
-function SyncManager:syncPendingDocumentsBg()
-  local total, pending_changed_docs = self:getPendingChangedDocuments()
-  if total == 0 then
-    return
-  end
-
-  for file, _ in pairs(pending_changed_docs) do
-    if not util.fileExists(file) then
-      logger.warn(
-        "AnnotationSync: file missing, removing from sync list:",
-        file
-      )
-      self:removeFromChangedDocumentsFileByPath(file)
-    else
-      self:_enqueueSync(file)
-    end
-  end
-  self:_dispatchNextSync()
+  return true
 end
 
 -- Applies a background sync that the forked child finished. The child merged
@@ -440,15 +461,8 @@ function SyncManager:changedDocumentsFile()
 end
 
 function SyncManager:getPendingChangedDocuments()
-  local count = 0
-  local track_path = self:changedDocumentsFile()
-  local ok, changed_docs = pcall(dofile, track_path)
-  if ok and type(changed_docs) == "table" then
-    for __ in pairs(changed_docs) do
-      count = count + 1
-    end
-  end
-  return count, changed_docs
+  local list = self:_loadChangedDocuments()
+  return #list, list
 end
 
 function SyncManager:hasPendingChangedDocuments()
@@ -457,17 +471,15 @@ function SyncManager:hasPendingChangedDocuments()
 end
 
 function SyncManager:addToChangedDocumentsFile(file)
-  local track_path = self:changedDocumentsFile()
-  -- Load existing table or create new
-  local changed_docs = {}
-  local ok, loaded = pcall(dofile, track_path)
-  if ok and type(loaded) == "table" then
-    changed_docs = loaded
+  if type(file) ~= "string" then
+    return
   end
-  if type(file) == "string" then
-    changed_docs[file] = true
-    self:_writeChangedDocumentsFile(changed_docs)
+  local list = self:_loadChangedDocuments()
+  if not util.arrayContains(list, file) then
+    table.insert(list, file)
+    self:_writeChangedDocumentsFile(list)
   end
+  self:_dispatchNextSync()
 end
 
 function SyncManager:removeFromChangedDocumentsFile(document)
@@ -479,18 +491,18 @@ function SyncManager:removeFromChangedDocumentsFileByPath(file)
   if not file then
     return
   end
-  local track_path = self:changedDocumentsFile()
-  local ok, changed_docs = pcall(dofile, track_path)
-  if ok and type(changed_docs) == "table" and changed_docs[file] then
-    changed_docs[file] = nil
-    self:_writeChangedDocumentsFile(changed_docs)
+  local list = self:_loadChangedDocuments()
+  local idx = util.arrayContains(list, file)
+  if idx then
+    table.remove(list, idx)
+    self:_writeChangedDocumentsFile(list)
   end
 end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
   local ok, err =
-    util.writeToFile(self:_serialize_table(changed_docs), track_path, true)
+    util.writeToFile(dump(changed_docs), track_path, true)
   if not ok then
     logger.warn(
       "AnnotationSync: Failed to write changed documents file:",
@@ -520,16 +532,14 @@ function SyncManager:scanLibraryForUnsyncedDocuments()
   end
 
   if count > 0 then
-    local track_path = self:changedDocumentsFile()
-    local changed_docs = {}
-    local ok, loaded = pcall(dofile, track_path)
-    if ok and type(loaded) == "table" then
-      changed_docs = loaded
+    local list = self:_loadChangedDocuments()
+    for _, item in ipairs(readhistory.hist) do
+      if added_files[item.file] and not util.arrayContains(list, item.file) then
+        table.insert(list, item.file)
+      end
     end
-    for book_path in pairs(added_files) do
-      changed_docs[book_path] = true
-    end
-    self:_writeChangedDocumentsFile(changed_docs)
+    self:_writeChangedDocumentsFile(list)
+    self:_dispatchNextSync()
   end
 
   return count, added_files

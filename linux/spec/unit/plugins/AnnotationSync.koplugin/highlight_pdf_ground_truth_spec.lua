@@ -1,5 +1,5 @@
 describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
-  local ReaderUI, UIManager, Geom, DataStorage
+  local ReaderUI, UIManager, Geom, DataStorage, util
   local AnnotationSyncPlugin, highlight_pdf_db, test_utils
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -19,6 +19,7 @@ describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
     ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     DataStorage = require("datastorage")
+    util = require("util")
 
     highlight_pdf_db =
       require("plugins/AnnotationSync.koplugin/highlight_pdf_db")
@@ -81,7 +82,7 @@ describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
       local count, changed_docs =
         sync_instance.manager:getPendingChangedDocuments()
       assert.is_equal(1, count)
-      assert.is_true(changed_docs[readerui.document.file])
+      assert.truthy(util.arrayContains(changed_docs, readerui.document.file))
     end
   )
 end)
