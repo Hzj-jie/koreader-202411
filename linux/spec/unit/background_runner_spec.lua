@@ -631,6 +631,104 @@ describe("BackgroundRunner widget tests", function()
     end
   )
 
+  it(
+    "should kill hung fork job exceeding timeout and deliver timeout result to callback",
+    function()
+      local ffi = require("ffi")
+      local ffiUtil = require("ffi/util")
+      local lfs = require("libs/libkoreader-lfs")
+      require("ffi/posix_h")
+      local pid_file =
+        string.format("/tmp/hung_fork_job_test.%d.pid", ffiUtil.getpid())
+      os.remove(pid_file)
+      local child_pid = nil
+      local CommandRunner =
+        package.loaded["plugins/backgroundrunner.koplugin/commandrunner"]
+      finally(function()
+        os.remove(pid_file)
+        -- entry.pid is nil on a CommandRunner without the fork timeout; child_pid below still cleans up.
+        for _, entry in ipairs(CommandRunner.running_jobs) do
+          if entry.pid and not ffiUtil.isSubProcessDone(entry.pid) then
+            ffi.C.kill(entry.pid, 9)
+            ffiUtil.isSubProcessDone(entry.pid, true)
+          end
+        end
+        require("util").clearTable(CommandRunner.running_jobs)
+        if child_pid and not ffiUtil.isSubProcessDone(child_pid) then
+          ffi.C.kill(child_pid, 9)
+          ffiUtil.isSubProcessDone(child_pid, true)
+        end
+      end)
+
+      local callback_job = nil
+      local job = {
+        when = 1,
+        executable = "fork",
+        action = function()
+          local util = require("ffi/util")
+          local f = io.open(pid_file, "w")
+          f:write(tostring(util.getpid()))
+          f:close()
+          while true do
+            util.usleep(100000)
+          end
+        end,
+        callback = function(j)
+          callback_job = j
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job)
+      notifyBackgroundJobsUpdated()
+
+      -- Wait for subprocess to start and record its PID
+      for _ = 1, 300 do
+        if #CommandRunner.running_jobs == 0 then
+          MockTime:increase(1)
+        end
+        UIManager:handleInput()
+        local f = io.open(pid_file, "r")
+        if f then
+          local content = f:read("*a")
+          f:close()
+          child_pid = tonumber(content)
+          if child_pid then
+            break
+          end
+        end
+        ffiUtil.usleep(10000)
+      end
+
+      assert.is_not_nil(child_pid)
+      -- Verify child process is running via /proc/<pid>
+      assert.is_equal(
+        "directory",
+        lfs.attributes("/proc/" .. child_pid, "mode")
+      )
+
+      -- Before timeout (e.g. at 1800s), job is still running and not timed out
+      MockTime:increase(1800)
+      UIManager:handleInput()
+      assert.is_nil(callback_job)
+      assert.is_equal(
+        "directory",
+        lfs.attributes("/proc/" .. child_pid, "mode")
+      )
+
+      -- Advance time past the 1-hour fork timeout (3600 seconds total)
+      MockTime:increase(1800)
+      UIManager:handleInput()
+
+      -- Job should have been terminated and callback invoked with timeout result
+      assert.is_not_nil(callback_job)
+      assert.is_equal(255, callback_job.result)
+      assert.is_true(callback_job.timeout)
+      assert.is_not_nil(callback_job.end_time)
+
+      -- Verify child process has been killed and reaped (no longer in /proc)
+      assert.is_nil(lfs.attributes("/proc/" .. child_pid))
+    end
+  )
+
   it("should broadcast ForkedProcess event in subprocess", function()
     local Widget = require("ui/widget/widget")
     local Geom = require("ui/geometry")

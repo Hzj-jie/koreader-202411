@@ -1,9 +1,12 @@
 local UIManager = require("ui/uimanager")
+local ffi = require("ffi")
 local ffiUtil = require("ffi/util")
 local logger = require("logger")
 local time = require("ui/time")
+require("ffi/posix_h")
 
 local MAX_JOBS = 10
+local FORK_TIMEOUT = 3600
 
 local CommandRunner = {
   running_jobs = {},
@@ -71,7 +74,6 @@ function CommandRunner:start(job)
         if ok then
           res = ret
         end
-        -- TODO: Implement timeout in "fork" mode.
         local output = string.format(
           "return { result = %s, timeout = false }\n",
           require("dump")(res)
@@ -83,14 +85,21 @@ function CommandRunner:start(job)
 
     entry = {
       job = job,
+      pid = pid,
       poll = function(self)
         return (ffiUtil.getNonBlockingReadSize(parent_read_fd) or 0) > 0
           or ffiUtil.isSubProcessDone(pid)
       end,
       readAll = function(self)
-        return ffiUtil.readAllFromFD(parent_read_fd) or ""
+        local res = ffiUtil.readAllFromFD(parent_read_fd) or ""
+        parent_read_fd = nil
+        return res
       end,
       close = function(self)
+        if parent_read_fd then
+          ffi.C.close(parent_read_fd)
+          parent_read_fd = nil
+        end
         ffiUtil.isSubProcessDone(pid, true)
       end,
     }
@@ -147,6 +156,20 @@ function CommandRunner:poll()
         entry.job.result = 222
       end
       entry:close()
+      entry.job.end_time = time.monotonic()
+      table.insert(completed, entry.job)
+      table.remove(self.running_jobs, i)
+    elseif
+      entry.job.executable == "fork"
+      and (time.since(entry.job.start_time) >= time.s(FORK_TIMEOUT))
+    then
+      logger.warn(
+        "CommandRunner: fork job timed out after " .. FORK_TIMEOUT .. "s"
+      )
+      ffiUtil.terminateSubProcess(entry.pid)
+      entry:close()
+      entry.job.result = 255
+      entry.job.timeout = true
       entry.job.end_time = time.monotonic()
       table.insert(completed, entry.job)
       table.remove(self.running_jobs, i)
