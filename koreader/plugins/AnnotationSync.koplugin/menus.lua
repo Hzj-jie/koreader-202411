@@ -4,6 +4,7 @@ local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local T = require("ffi/util").template
+local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local M = {}
@@ -127,17 +128,6 @@ function M.show_devices_menu(plugin, settings_map)
   UIManager:show(devices_menu)
 end
 
-local function values_differ(v1, v2)
-  if type(v1) ~= type(v2) then
-    return true
-  end
-  if type(v1) == "table" then
-    local json = require("json")
-    return json.encode(v1) ~= json.encode(v2)
-  end
-  return v1 ~= v2
-end
-
 function M.show_differing_settings_menu(
   plugin,
   device_name,
@@ -152,7 +142,7 @@ function M.show_differing_settings_menu(
   local caches = {}
   for key, r_val in pairs(remote_settings) do
     local l_val = plugin.manager:getLocalSettingValue(key, caches)
-    if values_differ(l_val, r_val) then
+    if not util.tableEquals(l_val, r_val) then
       -- Format values for display
       local function format_val(val)
         if val == nil then

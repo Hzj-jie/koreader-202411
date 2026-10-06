@@ -265,6 +265,65 @@ return {
     end
   )
 
+  it(
+    "compares pulled map settings by deep equality regardless of key order",
+    function()
+      -- 100 maps x 32 distinct keys per map fail against json.encode key ordering in 20/20 runs
+      -- due to LuaJIT per-process string hash randomization.
+      local local_lines = { "return {" }
+      local remote_json_parts = { "{" }
+      for m = 1, 100 do
+        local map_name = ("map_%03d"):format(m)
+        table.insert(local_lines, ('  ["%s"] = {'):format(map_name))
+        table.insert(
+          remote_json_parts,
+          (m > 1 and ',"reader:%s":{' or '"reader:%s":{'):format(map_name)
+        )
+        for i = 1, 32 do
+          local k = ("m%03d_k%02d"):format(m, i)
+          table.insert(local_lines, ('    ["%s"] = true,'):format(k))
+        end
+        table.insert(local_lines, "  },")
+        for i = 32, 1, -1 do
+          local k = ("m%03d_k%02d"):format(m, i)
+          table.insert(
+            remote_json_parts,
+            (i < 32 and ',"%s":true' or '"%s":true'):format(k)
+          )
+        end
+        table.insert(remote_json_parts, "}")
+      end
+      table.insert(local_lines, "}")
+      table.insert(remote_json_parts, "}")
+
+      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
+      f:write(table.concat(local_lines, "\n"))
+      f:close()
+
+      local remote_settings = json.decode(table.concat(remote_json_parts))
+
+      local shown = {}
+      local old_show = UIManager.show
+      finally(function()
+        UIManager.show = old_show
+      end)
+      UIManager.show = function(_, widget)
+        table.insert(shown, tostring(widget.title or widget.text))
+      end
+
+      local menus = require("plugins/AnnotationSync.koplugin/menus")
+      menus.show_differing_settings_menu(
+        sync_instance,
+        "OtherDevice",
+        remote_settings,
+        nil
+      )
+
+      assert.is_equal(1, #shown)
+      assert.is_equal("No differing settings found for this device.", shown[1])
+    end
+  )
+
   describe("remote.sync_settings finish_cb contract", function()
     local SyncService = require("apps/cloudstorage/syncservice")
     local remote = require("plugins/AnnotationSync.koplugin/remote")
