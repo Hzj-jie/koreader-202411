@@ -462,11 +462,6 @@ function SyncManager:getPendingChangedDocuments()
   return #list, list
 end
 
-function SyncManager:hasPendingChangedDocuments()
-  local count, __ = self:getPendingChangedDocuments()
-  return count > 0
-end
-
 function SyncManager:addToChangedDocumentsFile(file)
   local list = self:_loadChangedDocuments()
   if not util.arrayContains(list, file) then
@@ -668,16 +663,6 @@ function SyncManager:_onSyncComplete(
       ", keeping in changed list"
     )
   end
-end
-
--- Helper to serialize a Lua table as code
-function SyncManager:_serialize_table(tbl)
-  local result = "{\n"
-  for k, v in pairs(tbl) do
-    result = result .. string.format("  [%q] = %s,\n", k, tostring(v))
-  end
-  result = result .. "}"
-  return result
 end
 
 function SyncManager:getSelectedSettingsWithValues()

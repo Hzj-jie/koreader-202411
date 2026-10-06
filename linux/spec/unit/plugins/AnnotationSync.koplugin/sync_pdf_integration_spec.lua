@@ -95,7 +95,7 @@ describe("AnnotationSync PDF Core Integration", function()
       assert.truthy(util.arrayContains(docs, readerui.document.file))
 
       sync_instance:manualSync()
-      assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
     end)
   end)
 

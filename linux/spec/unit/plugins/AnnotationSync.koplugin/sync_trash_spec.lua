@@ -120,7 +120,7 @@ describe("AnnotationSync Trash & Restore", function()
     assert.is_not_equal("old", trash_item.datetime_updated)
     assert.is_equal(2, #readerui.annotation.annotations)
     assert.is_true(event_received)
-    assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+    assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
     local count, changed_docs =
       sync_instance.manager:getPendingChangedDocuments()
     assert.is_equal(1, count)
@@ -160,7 +160,7 @@ describe("AnnotationSync Trash & Restore", function()
       event_count,
       "AnnotationsModified event should only be broadcasted once"
     )
-    assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+    assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
     local count, changed_docs =
       sync_instance.manager:getPendingChangedDocuments()
     assert.is_equal(1, count)

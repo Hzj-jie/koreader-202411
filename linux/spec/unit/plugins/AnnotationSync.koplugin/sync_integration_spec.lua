@@ -88,7 +88,7 @@ describe("AnnotationSync Core Integration", function()
       assert.truthy(util.arrayContains(docs, readerui.document.file))
 
       sync_instance:manualSync()
-      assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
     end)
 
     it("manualSync remains synchronous and does NOT use Trapper", function()
@@ -132,7 +132,7 @@ describe("AnnotationSync Core Integration", function()
       -- 4. Should succeed, mark as clean, and have 1 annotation
       assert.is_not_equal("Never", sync_instance.settings.last_sync)
       assert.is_equal(1, #readerui.annotation.annotations)
-      assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
     end)
   end)
 

@@ -558,7 +558,7 @@ describe("Background Sync Behavior", function()
 
         local track_path = sync_manager:changedDocumentsFile()
         util.writeToFile(
-          sync_manager:_serialize_table({
+          dump({
             [doc1] = true,
             [doc2] = true,
           }),

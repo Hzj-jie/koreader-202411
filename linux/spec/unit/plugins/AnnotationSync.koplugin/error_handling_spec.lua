@@ -64,7 +64,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
   describe("4.1 Network & Server Errors", function()
     it("should keep document dirty if server is offline", function()
       sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-      assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
 
       -- Mock SyncService.sync to simulate a failure (callback never called)
       SyncService.sync = function(server, local_path, sync_cb, is_silent, finish_cb)
@@ -78,7 +78,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       sync_instance:manualSync()
 
       -- Fixed: It should now remain dirty because the callback (which triggers removal) was never called
-      assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
       assert.is_equal("Never", sync_instance.settings.last_sync)
     end)
 

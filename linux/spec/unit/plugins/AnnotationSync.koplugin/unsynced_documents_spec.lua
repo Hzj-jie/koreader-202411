@@ -313,7 +313,7 @@ describe("Unsynced / Pending Documents Feature", function()
         sync_instance.manager:scanLibraryForUnsyncedDocuments()
       assert.is_true(count >= 1)
       assert.is_true(added[scan_dir .. "/book1.epub"])
-      assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
 
       os.execute("rm -rf " .. scan_dir)
       readhistory.hist = old_hist

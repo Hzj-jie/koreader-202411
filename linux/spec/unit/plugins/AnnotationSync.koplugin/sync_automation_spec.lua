@@ -139,7 +139,7 @@ describe("AnnotationSync Automation & Settings", function()
 
         -- Execute callback in parent process context
         job.callback({ result = action_results })
-        assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
+        assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
       end
     )
 
@@ -203,7 +203,7 @@ describe("AnnotationSync Automation & Settings", function()
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
         assert.is_equal(initial_count, #jobs)
-        assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+        assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
       end
     )
 
@@ -253,19 +253,6 @@ describe("AnnotationSync Automation & Settings", function()
 
         assert.is_true(sync_instance.settings.network_auto_sync)
         assert.is_equal(initial_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "verifies obsolete lifecycle handlers and methods are removed",
-      function()
-        assert.is_nil(sync_instance.onSaveSettings)
-        assert.is_nil(sync_instance.onSuspend)
-        assert.is_nil(sync_instance.onResume)
-        assert.is_nil(sync_instance.onNetworkDisconnecting)
-        assert.is_nil(sync_instance.manager.syncPendingDocumentsBg)
-        assert.is_nil(sync_instance.manager._enqueueSync)
-        assert.is_nil(sync_instance.manager.queue)
       end
     )
 

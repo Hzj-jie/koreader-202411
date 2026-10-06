@@ -7,7 +7,6 @@ local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
 local T = require("ffi/util").template
-local DataStorage = require("datastorage")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
@@ -88,29 +87,10 @@ function AnnotationSyncPlugin:init()
       G_reader_settings:isTrue("annotation_sync_use_filename")
     G_reader_settings:delete("annotation_sync_use_filename")
   end
-
-  self.settings_key = self.plugin_id
 end
 
 function AnnotationSyncPlugin:saveSettings()
   G_reader_settings:save(self.plugin_id, self.settings, self.default_settings)
-end
-
-function AnnotationSyncPlugin:deletePluginSettings()
-  G_reader_settings:delete(self.plugin_id)
-  G_reader_settings:delete("cloud_server_object")
-  G_reader_settings:delete("cloud_download_dir")
-  G_reader_settings:delete("cloud_provider_type")
-
-  local track_path
-  if self.manager then
-    track_path = self.manager:changedDocumentsFile()
-  else
-    track_path = DataStorage:getDataDir() .. "/changed_documents.lua"
-  end
-  if track_path and util.fileExists(track_path) then
-    os.remove(track_path)
-  end
 end
 
 function AnnotationSyncPlugin:addToMainMenu(menu_items)
