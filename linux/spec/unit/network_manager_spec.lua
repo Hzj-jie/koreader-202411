@@ -674,6 +674,56 @@ describe("network_manager module", function()
         Device.input.waitEvent = orig_wait
       end
     )
+
+    it(
+      "should raise NetworkOnline or NetworkOffline from queryOnlineState on the next tick and only when the online state flips",
+      function()
+        local orig_returnOnlineState = NetworkMgr._returnOnlineState
+        local orig_broadcastEvent = UIManager.broadcastEvent
+        local orig_nextTick = UIManager.nextTick
+        local orig_was_online = NetworkMgr.was_online
+        local orig_last_check = NetworkMgr.last_online_check_time
+        finally(function()
+          NetworkMgr._returnOnlineState = orig_returnOnlineState
+          UIManager.broadcastEvent = orig_broadcastEvent
+          UIManager.nextTick = orig_nextTick
+          NetworkMgr.was_online = orig_was_online
+          NetworkMgr.last_online_check_time = orig_last_check
+        end)
+        local states = { true, false, false, true, true }
+        local calls = 0
+        NetworkMgr._returnOnlineState = function()
+          calls = calls + 1
+          return states[calls]
+        end
+        local events = {}
+        UIManager.broadcastEvent = function(_, event)
+          table.insert(events, event.handler)
+        end
+        local ticks = {}
+        UIManager.nextTick = function(_, action)
+          table.insert(ticks, action)
+        end
+        NetworkMgr.was_online = true
+        NetworkMgr.last_online_check_time = 0
+
+        for _ = 1, #states do
+          NetworkMgr:queryOnlineState()
+        end
+
+        assert.are.equal(#states, calls)
+        assert.are.same({}, events)
+        for _, action in ipairs(ticks) do
+          action()
+        end
+        assert.are.same({
+          "onNetworkOffline",
+          "onNetworkStateChanged",
+          "onNetworkOnline",
+          "onNetworkStateChanged",
+        }, events)
+      end
+    )
   end)
 
   describe("background online check job scheduling in init", function()
