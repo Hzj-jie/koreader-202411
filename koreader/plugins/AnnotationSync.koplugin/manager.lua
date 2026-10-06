@@ -135,9 +135,6 @@ function SyncManager:_loadChangedDocuments()
 end
 
 function SyncManager:_movePendingDocumentToBack(file)
-  if not file then
-    return
-  end
   local list = self:_loadChangedDocuments()
   local idx = util.arrayContains(list, file)
   if idx then
@@ -224,32 +221,32 @@ function SyncManager:_startSync(file)
         return
       end
       local item = job.result
-      if item.success and item.file then
+      if item.success then
         local snapshot_json =
           assert(util.readFromFile(item.json_path .. ".snapshot"))
         local uploaded_json = item.uploaded
             and assert(util.readFromFile(item.json_path .. ".uploaded"))
           or nil
         self:_applyBackgroundSync(
-          item.file,
+          file,
           snapshot_json,
           uploaded_json
         )
-        self:_movePendingDocumentToBack(item.file)
+        self:_movePendingDocumentToBack(file)
         self:recordSyncState("Auto Sync")
         logger.info(
           "AnnotationSync: background sync completed for",
-          item.file
+          file
         )
       else
-        self:_movePendingDocumentToBack(item.file or file)
+        self:_movePendingDocumentToBack(file)
       end
       if item.json_path then
         os.remove(item.json_path .. ".snapshot")
         os.remove(item.json_path .. ".uploaded")
       end
       self.running = nil
-      if item.success and item.file then
+      if item.success then
         self:_dispatchNextSync()
       end
     end,
@@ -261,7 +258,7 @@ function SyncManager:_dispatchNextSync()
     return false
   end
 
-  if not (self.plugin and self.plugin.settings and self.plugin.settings.network_auto_sync) then
+  if not self.plugin.settings.network_auto_sync then
     return false
   end
 
@@ -471,9 +468,6 @@ function SyncManager:hasPendingChangedDocuments()
 end
 
 function SyncManager:addToChangedDocumentsFile(file)
-  if type(file) ~= "string" then
-    return
-  end
   local list = self:_loadChangedDocuments()
   if not util.arrayContains(list, file) then
     table.insert(list, file)
@@ -483,14 +477,11 @@ function SyncManager:addToChangedDocumentsFile(file)
 end
 
 function SyncManager:removeFromChangedDocumentsFile(document)
-  local file = document and document.file
+  local file = document.file
   self:removeFromChangedDocumentsFileByPath(file)
 end
 
 function SyncManager:removeFromChangedDocumentsFileByPath(file)
-  if not file then
-    return
-  end
   local list = self:_loadChangedDocuments()
   local idx = util.arrayContains(list, file)
   if idx then
