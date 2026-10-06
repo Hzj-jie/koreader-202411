@@ -102,9 +102,8 @@ function M._sync_settings_callback(
   income_file,
   code_response
 )
-  local local_data = utils.read_json(local_file) or {}
+  local local_data = utils.read_json(local_file)
   if SyncService.notFound(code_response) then
-    util.writeToFile(json.encode(local_data), local_file)
     return true, local_data
   end
 
@@ -144,6 +143,29 @@ function M.sync_settings(widget, json_path, on_complete)
     if on_complete then
       on_complete(uploaded ~= false, final_local_data)
     end
+  end)
+end
+
+-- Downloads the cloud settings for the devices menu. sync_cb returns nil,
+-- so SyncService uploads nothing.
+function M.pull_settings(widget, json_path, on_complete)
+  local remote_data = nil
+  local sync_cb = function(_, _, income_file, code_response)
+    if SyncService.notFound(code_response) then
+      remote_data = {}
+      return nil
+    end
+    remote_data = utils.read_json(income_file)
+    if not remote_data then
+      logger.warn(
+        "AnnotationSync: Failed to parse remote settings from server."
+      )
+      return false
+    end
+    return nil
+  end
+  perform_sync(widget, json_path, sync_cb, false, function(result)
+    on_complete(result ~= false, remote_data)
   end)
 end
 

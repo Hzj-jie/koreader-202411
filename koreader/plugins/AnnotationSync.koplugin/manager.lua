@@ -880,9 +880,9 @@ function SyncManager:pullSettings()
 
   local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
-  remote.sync_settings(self.plugin, json_path, function(success, merged_data)
-    if success and merged_data then
-      menus.show_devices_menu(self.plugin, merged_data)
+  remote.pull_settings(self.plugin, json_path, function(success, remote_data)
+    if success then
+      menus.show_devices_menu(self.plugin, remote_data)
     else
       utils.show_msg(gettext("Failed to fetch settings from cloud"))
     end
