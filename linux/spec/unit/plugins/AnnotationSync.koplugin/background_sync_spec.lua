@@ -934,6 +934,63 @@ describe("Background Sync Behavior", function()
     )
 
     it(
+      "dispatches next queued document when held-back book is removed from sync queue while waiting for network",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local NetworkListener = require("ui/network/networklistener")
+        local old_isOnline = NetworkMgr.isOnline
+
+        local doc1 = test_data_dir .. "/doc_rem_wait.epub"
+        local doc2 = test_data_dir .. "/doc_next_after_rem.epub"
+        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc1)
+        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local get_dispatched = track_dispatched_file()
+        finally(function()
+          NetworkMgr.isOnline = old_isOnline
+          os.remove(doc1)
+          os.remove(doc2)
+        end)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
+        -- Network is offline when sync is initiated
+        NetworkMgr.isOnline = function()
+          return false
+        end
+
+        sync_manager:addToChangedDocumentsFile(doc1)
+        sync_manager:addToChangedDocumentsFile(doc2)
+
+        -- Nothing forked directly while offline, doc1 is held waiting for network
+        assert.is_equal(initial_count, #jobs)
+        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+
+        -- While doc1 waits for network, doc1 is removed from queue but stays on disk
+        sync_manager:removeFromChangedDocumentsFileByPath(doc1)
+        assert.truthy(util.fileExists(doc1))
+
+        -- Network comes back online
+        NetworkMgr.isOnline = function()
+          return true
+        end
+        NetworkListener:onNetworkOnline()
+        fastforward_ui_events()
+
+        -- Exactly one new fork job: doc1 was never forked, doc2 was dispatched and forked
+        assert.is_equal(initial_count + 1, #jobs)
+        assert.is_equal(doc2, get_dispatched())
+
+        local _, pending = sync_manager:getPendingChangedDocuments()
+        assert.are.same({ doc2 }, pending)
+
+        local job2 = jobs[#jobs]
+        job2.result = { file = doc2, success = false }
+        job2.callback(job2)
+      end
+    )
+
+    it(
       "executes remote sync inside action without showing UI modals in silent mode",
       function()
         sync_manager:addToChangedDocumentsFile(readerui.document.file)

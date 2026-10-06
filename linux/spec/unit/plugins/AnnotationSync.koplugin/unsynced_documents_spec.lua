@@ -319,4 +319,45 @@ describe("Unsynced / Pending Documents Feature", function()
       readhistory.hist = old_hist
     end
   )
+
+  it(
+    "preserves existing queue order and appends newly discovered books during library scan",
+    function()
+      local readhistory = require("readhistory")
+      local util = require("util")
+      local old_hist = readhistory.hist
+      readhistory.hist = util.tableDeepCopy(old_hist)
+
+      local orig_dispatch = sync_instance.manager._dispatchNextSync
+      sync_instance.manager._dispatchNextSync = function() end
+
+      local scan_dir = test_data_dir .. "/test_scan_order"
+      local doc_a = scan_dir .. "/book_a.epub"
+      local doc_b = scan_dir .. "/book_b.epub"
+      local doc_c = scan_dir .. "/book_c.epub"
+      os.execute("mkdir -p " .. scan_dir .. "/book_b.sdr " .. scan_dir .. "/book_c.sdr")
+      os.execute("touch " .. doc_a .. " " .. doc_b .. " " .. doc_c)
+      os.execute("touch " .. scan_dir .. "/book_b.sdr/metadata.epub.lua " .. scan_dir .. "/book_c.sdr/metadata.epub.lua")
+
+      finally(function()
+        readhistory.hist = old_hist
+        sync_instance.manager._dispatchNextSync = orig_dispatch
+        os.execute("rm -rf " .. scan_dir)
+      end)
+
+      sync_instance.manager:_writeChangedDocumentsFile({ doc_a, doc_b })
+
+      readhistory.hist = {
+        { file = doc_b, time = os.time() },
+        { file = doc_c, time = os.time() },
+      }
+
+      sync_instance.manager:scanLibraryForUnsyncedDocuments()
+
+      assert.are.same(
+        { doc_a, doc_b, doc_c },
+        sync_instance.manager:_loadChangedDocuments()
+      )
+    end
+  )
 end)
