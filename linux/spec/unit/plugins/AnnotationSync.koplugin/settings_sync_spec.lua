@@ -378,38 +378,6 @@ return {
         os.remove(dummy_json)
       end
     )
-
-    it(
-      "Case 19: sync_settings with finish_cb(nil) -> on_complete(true, data)",
-      function()
-        local dummy_json = test_data_dir .. "/test_settings_case19.json"
-        local sample_settings = { reader = { font_size = 20 } }
-        util.writeToFile(json.encode(sample_settings), dummy_json)
-
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
-          callback(local_path, local_path .. ".last_sync", nil, 404)
-          if finish_cb then
-            finish_cb(nil)
-          end
-        end
-
-        local test_server = { url = "http://mock", type = "dropbox" }
-        sync_instance:onSyncServiceConfirm(test_server)
-
-        local on_complete_success = nil
-        local on_complete_data = nil
-        remote.sync_settings(sync_instance, dummy_json, function(success, data)
-          on_complete_success = success
-          on_complete_data = data
-        end)
-
-        assert.is_true(on_complete_success)
-        assert.is_table(on_complete_data)
-        assert.are.same(sample_settings, on_complete_data)
-
-        os.remove(dummy_json)
-      end
-    )
   end)
 
   describe("pullSettings and pushSettings against real SyncService", function()

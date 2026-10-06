@@ -102,9 +102,8 @@ function M._sync_settings_callback(
   income_file,
   code_response
 )
-  local local_data = utils.read_json(local_file)
   if SyncService.notFound(code_response) then
-    return true, local_data
+    return true
   end
 
   local income_data = utils.read_json(income_file)
@@ -115,6 +114,7 @@ function M._sync_settings_callback(
     return false
   end
 
+  local local_data = utils.read_json(local_file)
   -- Merge incoming settings from other devices
   for device_id, data in pairs(income_data) do
     if device_id ~= widget.manager:getDeviceName() then
@@ -123,25 +123,22 @@ function M._sync_settings_callback(
   end
 
   util.writeToFile(json.encode(local_data), local_file)
-  return true, local_data
+  return true
 end
 
 function M.sync_settings(widget, json_path, on_complete)
-  local final_local_data = nil
   local sync_cb = function(local_file, cached_file, income_file, code_response)
-    local success, local_data = M._sync_settings_callback(
+    return M._sync_settings_callback(
       widget,
       local_file,
       cached_file,
       income_file,
       code_response
     )
-    final_local_data = local_data
-    return success
   end
   perform_sync(widget, json_path, sync_cb, false, function(uploaded)
     if on_complete then
-      on_complete(uploaded ~= false, final_local_data)
+      on_complete(uploaded ~= false)
     end
   end)
 end
