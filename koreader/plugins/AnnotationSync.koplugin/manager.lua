@@ -873,11 +873,6 @@ function SyncManager:_writeLocalSettingValue(key, value)
 end
 
 function SyncManager:pullSettings()
-  if not isConnected() then
-    utils.show_msg(gettext("Network is disconnected, cannot pull settings"))
-    return
-  end
-
   local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
   remote.pull_settings(self.plugin, json_path, function(success, remote_data)

@@ -471,6 +471,27 @@ return {
       assert.is_equal(STALE, after)
     end)
 
+    it("pull: offline, waits for the network instead of refusing", function()
+      local old_conn = NetworkMgr.isConnected
+      finally(function()
+        NetworkMgr.isConnected = old_conn
+      end)
+      NetworkMgr.isConnected = function()
+        return false
+      end
+      local pending
+      local uploads, shown = with_cloud(200, REMOTE, nil, function()
+        NetworkMgr.runWhenConnected = function(_, f)
+          pending = f
+        end
+        sync_instance.manager:pullSettings()
+        assert.is_function(pending)
+        pending()
+      end)
+      assert.is_equal(0, #uploads)
+      assert.is_true(has(shown, "Pull settings from cloud"))
+    end)
+
     it("push: cloud file missing (404), one setting selected", function()
       local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
       f:write('return { ["auto_suspend_timeout_seconds"] = 300 }')
