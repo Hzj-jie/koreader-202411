@@ -220,11 +220,15 @@ function NetworkMgr:_setOnlineState(new_state, check_time)
     return
   end
   self.was_online = new_state
-  if new_state then
-    raiseNetworkEvent("Online")
-  else
-    raiseNetworkEvent("Offline")
-  end
+  -- Handlers run on the next UI tick, so a forked child (which exits
+  -- without returning to the UI loop) never runs them.
+  UIManager:nextTick(function()
+    if new_state then
+      raiseNetworkEvent("Online")
+    else
+      raiseNetworkEvent("Offline")
+    end
+  end)
 end
 
 function NetworkMgr:init()
