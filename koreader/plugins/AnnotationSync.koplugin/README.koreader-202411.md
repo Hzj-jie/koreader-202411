@@ -15,8 +15,8 @@ The following changes were made to resolve test failures, optimize runtime perfo
 
 1. **Fast background sync without opening books**:
    - Reads and writes annotations directly from sidecar metadata files, syncing in the background without needing to load document rendering engines or open heavy files into memory.
-2. **Automated periodic sync**:
-   - Synchronizes annotations in the background at regular intervals with paced processing to preserve reader performance and battery life.
+2. **Automatic background sync**:
+   - When "Automatically Sync All when network becomes available" is on, books with changed annotations are queued and synced in the background one at a time, as soon as the device is online.
 3. **Non-blocking batch sync with network prompts**:
    - Automatically prompts to enable Wi-Fi when offline and displays live progress feedback during "Sync All" operations without freezing the user interface.
 4. **Library-wide annotation discovery**:
