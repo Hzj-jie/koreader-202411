@@ -242,6 +242,40 @@ describe("AnnotationSync Trash & Restore", function()
     end
   )
 
+  it("should close Show Deleted after restoring one annotation", function()
+    local sync_cache_path =
+      sync_instance.manager:getSyncCachePath(readerui.document.file)
+    local f = io.open(sync_cache_path, "w")
+    f:write(json.encode({
+      { page = 2, pos0 = "d1", pos1 = "d2", text = "Deleted", deleted = true },
+    }))
+    f:close()
+    local shown = {}
+    local old_show = UIManager.show
+    UIManager.show = function(this, widget)
+      table.insert(shown, widget)
+      return old_show(this, widget)
+    end
+    finally(function()
+      UIManager.show = old_show
+      os.remove(sync_cache_path)
+    end)
+
+    sync_instance:showDeletedAnnotations()
+    local menu = shown[1]
+    assert.is_equal("Deleted Annotations", menu.title)
+    -- Item 1 is Restore All; tap the deleted annotation and confirm.
+    menu.item_table[2].callback()
+    local confirm_box = shown[2]
+    confirm_box.ok_callback()
+    UIManager:close(confirm_box)
+
+    assert.is_equal(1, #readerui.annotation.annotations)
+    -- An open menu would still list the annotation, and restoring it again
+    -- would add a duplicate.
+    assert.is_false(UIManager:isWindowWidget(menu))
+  end)
+
   it(
     "should flush restored annotations into upload payload during next sync",
     function()

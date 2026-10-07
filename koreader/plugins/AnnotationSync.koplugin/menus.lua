@@ -66,6 +66,9 @@ function M.show_deleted_annotations(plugin, document)
           cancel_text = gettext("Close"),
           ok_callback = function()
             plugin:restoreAnnotation(ann)
+            -- The menu still lists the restored annotation, and restoring it
+            -- again would add a duplicate.
+            UIManager:close(deleted_menu)
           end,
         }))
       end,
