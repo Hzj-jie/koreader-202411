@@ -1,7 +1,7 @@
 describe("AnnotationSync Sync Protection & Regressions", function()
   local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_protection_tmp"
   local old_getDataDir
@@ -46,6 +46,11 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   it(
@@ -325,7 +330,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         },
       }
 
-      sync_instance.manager:syncDocument(readerui.document, false)
+      sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+      sync_instance.manager:syncAllChangedDocuments()
 
       local cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
@@ -392,7 +398,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     readerui.annotation.annotations = {}
 
-    sync_instance.manager:syncDocument(readerui.document, false)
+    sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+    sync_instance.manager:syncAllChangedDocuments()
 
     assert.is_equal(1, #readerui.annotation.annotations)
     assert.is_equal("PDF Note", readerui.annotation.annotations[1].text)

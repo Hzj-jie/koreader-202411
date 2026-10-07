@@ -85,6 +85,7 @@ describe("AnnotationSync Automation & Settings", function()
         return res
       end
 
+      finally(test_utils.run_jobs_inline())
       sync_instance.settings.use_filename = false
       sync_instance:manualSync()
       assert.truthy(
@@ -146,6 +147,7 @@ describe("AnnotationSync Automation & Settings", function()
       local doc2 = test_data_dir .. "/doc2.epub"
       require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
 
+      sync_instance.settings.network_auto_sync = false
       sync_instance.manager:addToChangedDocumentsFile(doc1)
       sync_instance.manager:addToChangedDocumentsFile(doc2)
 
@@ -158,6 +160,7 @@ describe("AnnotationSync Automation & Settings", function()
         end
       end
 
+      finally(test_utils.run_jobs_inline())
       sync_instance.manager:syncAllChangedDocuments()
       fastforward_ui_events()
       assert.is_equal(2, #synced_files)

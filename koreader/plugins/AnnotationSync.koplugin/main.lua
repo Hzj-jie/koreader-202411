@@ -2,7 +2,6 @@ local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
-local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
@@ -425,11 +424,7 @@ function AnnotationSyncPlugin:manualSync()
     utils.show_msg("A document must be active to do a manual sync.")
     return
   end
-  NetworkMgr:runWhenOnline(function()
-    if self.manager:syncDocument(document, true) then
-      self.manager:recordSyncState("Manual Sync")
-    end
-  end)
+  self.manager:syncNow(file)
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()

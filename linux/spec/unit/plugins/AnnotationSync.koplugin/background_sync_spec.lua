@@ -83,6 +83,7 @@ describe("Background Sync Behavior", function()
     end
     plugin_instance.settings.network_auto_sync = true
     sync_manager.running = nil
+    sync_manager.requested = {}
   end)
 
   after_each(function()
@@ -216,7 +217,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "does not broadcast FlushSettings during single document sync",
+      "does not broadcast FlushSettings during a manual sync",
       function()
         local flush_broadcasted = false
         local old_broadcast = UIManager.broadcastEvent
@@ -228,10 +229,13 @@ describe("Background Sync Behavior", function()
           end
           return old_broadcast(self, event, ...)
         end
+        local restore_jobs = test_utils.run_jobs_inline()
 
-        sync_manager:syncDocument(readerui.document, true)
+        plugin_instance:manualSync()
 
         assert.is_false(flush_broadcasted)
+        assert.is_equal(0, (sync_manager:getPendingChangedDocuments()))
+        restore_jobs()
         UIManager.broadcastEvent = old_broadcast
       end
     )
@@ -241,9 +245,9 @@ describe("Background Sync Behavior", function()
     local function track_dispatched_file()
       local dispatched = {}
       local old_startSync = sync_manager._startSync
-      sync_manager._startSync = function(self_m, file)
+      sync_manager._startSync = function(self_m, file, ...)
         dispatched.file = file
-        return old_startSync(self_m, file)
+        return old_startSync(self_m, file, ...)
       end
       finally(function()
         sync_manager._startSync = old_startSync
@@ -1569,7 +1573,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 17: No sync_server -> on_complete(false), message if not silent, log line if silent",
+      "Case 17: No sync_server -> on_complete(false) and a log line, no message even when forced",
       function()
         local no_server_w = {
           ui = {},
@@ -1580,17 +1584,6 @@ describe("Background Sync Behavior", function()
         UIManager.show = function(self, widget)
           shown_widget = widget
         end
-
-        local comp_res_loud = nil
-        remote.sync_annotations(no_server_w, dummy_json, function(res)
-          comp_res_loud = res
-        end, true, sdr_cache)
-
-        assert.is_false(comp_res_loud)
-        assert.is_not_nil(shown_widget)
-        assert.is_not_nil(shown_widget.text:find("No cloud destination set in settings"))
-
-        shown_widget = nil
         local logger = require("logger")
         local old_warn = logger.warn
         finally(function()
@@ -1601,13 +1594,12 @@ describe("Background Sync Behavior", function()
           warned_msg = string.format(fmt, ...)
         end
 
-        util.writeToFile("[]", dummy_json)
-        local comp_res_silent = nil
+        local comp_res = nil
         remote.sync_annotations(no_server_w, dummy_json, function(res)
-          comp_res_silent = res
-        end, false, sdr_cache)
+          comp_res = res
+        end, true, sdr_cache)
 
-        assert.is_false(comp_res_silent)
+        assert.is_false(comp_res)
         assert.is_nil(shown_widget)
         assert.is_not_nil(warned_msg)
         assert.is_not_nil(warned_msg:find("No cloud destination set in settings"))
@@ -1620,9 +1612,12 @@ describe("Background Sync Behavior", function()
         local NetworkMgr = require("ui/network/manager")
         local old_isConnected = NetworkMgr.isConnected
         local old_isOnline = NetworkMgr.isOnline
+        local old_sync = SyncService.sync
+        -- One finally: busted keeps only the last one an `it` registers.
         finally(function()
           NetworkMgr.isConnected = old_isConnected
           NetworkMgr.isOnline = old_isOnline
+          SyncService.sync = old_sync
         end)
         NetworkMgr.isConnected = function()
           return true
@@ -1634,10 +1629,6 @@ describe("Background Sync Behavior", function()
         local dummy_json = test_data_dir .. "/n2_connected_not_online.json"
         util.writeToFile("[]", dummy_json)
         local sync_called = false
-        local old_sync = SyncService.sync
-        finally(function()
-          SyncService.sync = old_sync
-        end)
         SyncService.sync = function()
           sync_called = true
         end
@@ -2005,7 +1996,10 @@ describe("Background Sync Behavior", function()
         assert.is_true(is_pending(file))
 
         -- Next sync: performs normal sync and uploads H and X with new_note, plus tombstones for A, D, Q
-        sync_manager:syncDocument(readerui.document, false)
+        -- fork_like dropped the job the callback queued; run it.
+        sync_manager.running = nil
+        fork_like()
+        sync_manager:_dispatchNextSync()
 
         local remote_after = json.decode(remote_store[name])
         local active_remote = {}
@@ -2065,9 +2059,11 @@ describe("Background Sync Behavior", function()
         -- Document remains pending
         assert.is_true(is_pending(doc))
 
-        -- Next sync runs to completion: R must survive
-        BackgroundJobs.insertKeyed = old_insertKeyed
-        sync_manager:syncDocument(doc, false)
+        -- Next sync runs to completion: R must survive. A restart forgets
+        -- the job whose callback was lost.
+        sync_manager.running = nil
+        fork_like()
+        sync_manager:_dispatchNextSync()
 
         local remote_after = json.decode(remote_store[name])
         assert.are.equal(2, #remote_after)
@@ -2558,6 +2554,179 @@ describe("Background Sync Behavior", function()
 
         assert.is_equal(1, jobs_dispatched)
         assert.is_false(is_pending(file))
+      end
+    )
+  end)
+
+  describe("Manual Sync, Sync now and Sync All", function()
+    local restore_jobs, old_sync_annotations, old_use_filename
+    -- synced: the books each job synced, "!" when forced. during[name] runs
+    -- once inside the book's job, failing[name] fails its jobs.
+    local synced, failing, during
+
+    local function new_doc(tag)
+      local doc = test_data_dir .. "/" .. tag .. ".epub"
+      require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc)
+      return doc
+    end
+
+    local function is_pending(file)
+      local _, docs = sync_manager:getPendingChangedDocuments()
+      return not not util.arrayContains(docs, file)
+    end
+
+    before_each(function()
+      restore_jobs = test_utils.run_jobs_inline()
+      plugin_instance.settings.network_auto_sync = false
+      old_use_filename = plugin_instance.settings.use_filename
+      plugin_instance.settings.use_filename = true
+      synced, failing, during = {}, {}, {}
+      old_sync_annotations = remote.sync_annotations
+      remote.sync_annotations = function(
+        widget,
+        json_path,
+        on_complete,
+        force,
+        cached_path
+      )
+        local name = json_path:match("([^/]+)%.json$")
+        table.insert(synced, name .. (force and "!" or ""))
+        local fn = during[name]
+        during[name] = nil
+        if fn then
+          fn()
+        end
+        if failing[name] then
+          return on_complete(false)
+        end
+        return old_sync_annotations(
+          widget,
+          json_path,
+          on_complete,
+          force,
+          cached_path
+        )
+      end
+    end)
+
+    after_each(function()
+      restore_jobs()
+      remote.sync_annotations = old_sync_annotations
+      plugin_instance.settings.use_filename = old_use_filename
+    end)
+
+    it(
+      "Manual Sync queues the book and syncs only it, forced, with auto sync off",
+      function()
+        local juliet = readerui.document.file
+        local a = new_doc("a")
+        sync_manager:addToChangedDocumentsFile(a)
+        local queued
+        during["juliet.epub"] = function()
+          queued = is_pending(juliet)
+        end
+
+        plugin_instance:manualSync()
+
+        assert.is_true(queued)
+        assert.are.same({ "juliet.epub!" }, synced)
+        assert.is_false(is_pending(juliet))
+        assert.is_true(is_pending(a))
+        assert.is_truthy(
+          plugin_instance.settings.last_sync:find("(Manual Sync)", 1, true)
+        )
+      end
+    )
+
+    it("Sync All syncs every pending book once and goes on after a failure", function()
+      local a = new_doc("a")
+      local b = new_doc("b")
+      sync_manager:addToChangedDocumentsFile(a)
+      sync_manager:addToChangedDocumentsFile(b)
+      failing["a.epub"] = true
+
+      sync_manager:syncAllChangedDocuments()
+
+      assert.are.same({ "a.epub", "b.epub" }, synced)
+      assert.is_true(is_pending(a))
+      assert.is_false(is_pending(b))
+      assert.is_truthy(
+        plugin_instance.settings.last_sync:find("(Sync All)", 1, true)
+      )
+    end)
+
+    it("Manual Sync goes before the books Sync All requested", function()
+      sync_manager:addToChangedDocumentsFile(new_doc("a"))
+      sync_manager:addToChangedDocumentsFile(new_doc("b"))
+      sync_manager:addToChangedDocumentsFile(readerui.document.file)
+      during["a.epub"] = function()
+        plugin_instance:manualSync()
+        -- Another Sync All doesn't take the manual request's place.
+        sync_manager:syncAllChangedDocuments()
+      end
+
+      sync_manager:syncAllChangedDocuments()
+
+      assert.are.same({ "a.epub", "juliet.epub!", "b.epub" }, synced)
+    end)
+
+    it("a request ends when its book leaves the queue", function()
+      local juliet = readerui.document.file
+      -- A second tap while the book syncs; the job leaves the book synced.
+      during["juliet.epub"] = function()
+        plugin_instance:manualSync()
+      end
+      plugin_instance:manualSync()
+      assert.are.same({ "juliet.epub!" }, synced)
+      assert.is_false(is_pending(juliet))
+
+      -- Edited later, the book waits: auto sync is off and nobody asked.
+      sync_manager:addToChangedDocumentsFile(juliet)
+
+      assert.are.same({ "juliet.epub!" }, synced)
+      assert.is_true(is_pending(juliet))
+    end)
+
+    it(
+      "a tap during a failing sync syncs the book once more, and no other book",
+      function()
+        local juliet = readerui.document.file
+        sync_manager:addToChangedDocumentsFile(new_doc("a"))
+        failing["juliet.epub"] = true
+        during["juliet.epub"] = function()
+          plugin_instance:manualSync()
+        end
+
+        plugin_instance:manualSync()
+
+        assert.are.same({ "juliet.epub!", "juliet.epub!" }, synced)
+        assert.is_true(is_pending(juliet))
+      end
+    )
+
+    it(
+      "a crashed job counts as a failure and the next requested book runs",
+      function()
+        local a = new_doc("a")
+        local b = new_doc("b")
+        sync_manager:addToChangedDocumentsFile(a)
+        sync_manager:addToChangedDocumentsFile(b)
+        local old_write = sync_manager._writeAnnotationsJSON
+        finally(function()
+          sync_manager._writeAnnotationsJSON = old_write
+        end)
+        sync_manager._writeAnnotationsJSON = function(self, doc)
+          if (type(doc) == "table" and doc.file or doc) == a then
+            error("crash")
+          end
+          return old_write(self, doc)
+        end
+
+        sync_manager:syncAllChangedDocuments()
+
+        assert.are.same({ "b.epub" }, synced)
+        assert.is_true(is_pending(a))
+        assert.is_false(is_pending(b))
       end
     )
   end)

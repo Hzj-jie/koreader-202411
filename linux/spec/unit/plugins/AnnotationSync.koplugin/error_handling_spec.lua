@@ -1,7 +1,7 @@
 describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
   local UIManager, SyncService
   local AnnotationSyncPlugin, test_utils, json
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_error_tmp"
   local old_getDataDir
@@ -55,6 +55,11 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
 
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   describe("4.1 Network & Server Errors", function()
@@ -131,17 +136,19 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle read-only sidecar directory gracefully", function()
       local DataStorage = require("datastorage")
       local old_getTmpDir = DataStorage.getTmpDir
+      finally(function()
+        DataStorage.getTmpDir = old_getTmpDir
+      end)
       DataStorage.getTmpDir = function()
         return "/read-only-dir"
       end
 
-      local ok = sync_instance.manager:syncDocument(readerui.document, true)
-      assert.is_false(
-        ok,
-        "syncDocument should fail gracefully on read-only sidecar directory"
+      sync_instance:manualSync()
+      assert.is_true(
+        sync_instance.manager:getPendingChangedDocuments() > 0,
+        "Manual Sync should fail gracefully on read-only sidecar directory"
       )
-
-      DataStorage.getTmpDir = old_getTmpDir
+      assert.is_equal("Never", sync_instance.settings.last_sync)
     end)
   end)
 
@@ -186,10 +193,11 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       }
       table.insert(readerui.annotation.annotations, ann)
 
-      local ok = sync_instance.manager:syncDocument(readerui.document, true)
-      assert.is_true(
-        ok,
-        "syncDocument should succeed with emojis in highlight text"
+      sync_instance:manualSync()
+      assert.is_equal(
+        0,
+        (sync_instance.manager:getPendingChangedDocuments()),
+        "Manual Sync should succeed with emojis in highlight text"
       )
       assert.is_equal(1, #readerui.annotation.annotations)
       assert.is_equal(emoji_text, readerui.annotation.annotations[1].text)

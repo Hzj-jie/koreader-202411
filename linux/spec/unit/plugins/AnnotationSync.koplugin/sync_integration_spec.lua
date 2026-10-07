@@ -1,7 +1,7 @@
 describe("AnnotationSync Core Integration", function()
   local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util, annotations_mod
-  local readerui, sync_instance, real_sync
+  local readerui, sync_instance, real_sync, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_integration_tmp"
   local old_getDataDir
@@ -58,6 +58,11 @@ describe("AnnotationSync Core Integration", function()
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   local function create_ann_from_db(index, note, datetime)
@@ -87,21 +92,6 @@ describe("AnnotationSync Core Integration", function()
 
       sync_instance:manualSync()
       assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
-    end)
-
-    it("manualSync remains synchronous and does NOT use Trapper", function()
-      local Trapper = require("ui/trapper")
-      local wrap_called = false
-      local old_wrap = Trapper.wrap
-      Trapper.wrap = function(this, func)
-        wrap_called = true
-        func()
-      end
-
-      sync_instance:manualSync()
-
-      assert.is_false(wrap_called)
-      Trapper.wrap = old_wrap
     end)
 
     it("handles first sync of an empty book gracefully", function()
@@ -335,11 +325,11 @@ describe("AnnotationSync Core Integration", function()
           return success
         end
 
-        local success =
-          sync_instance.manager:syncDocument(readerui.document, true)
+        sync_instance:manualSync()
 
-        assert.is_true(
-          success,
+        assert.is_equal(
+          0,
+          (sync_instance.manager:getPendingChangedDocuments()),
           "Sync should succeed by treating Dropbox path/not_found as empty state"
         )
 
@@ -479,7 +469,7 @@ describe("AnnotationSync Core Integration", function()
       end)
 
       it(
-        "Case 22: manual sync, upload returns 500 -> syncDocument returns false, doc stays pending, merge base unchanged, message shown (D1)",
+        "Case 22: manual sync, upload returns 500 -> fails, doc stays pending, merge base unchanged, no message (D1)",
         function()
           local doc, name = new_doc("d1")
           local A = hl(1, "A_local", "2026-01-01 10:00:00")
@@ -493,15 +483,14 @@ describe("AnnotationSync Core Integration", function()
           sync_instance.manager:addToChangedDocumentsFile(doc)
           upload_code = 500
 
-          local ret = sync_instance.manager:syncDocument(doc, true)
+          sync_instance.manager:syncNow(doc)
           local f = io.open(sync_instance.manager:getSyncCachePath(doc), "r")
           local base_after = f:read("*a")
           f:close()
 
-          assert.is_false(ret)
           assert.is_true(is_pending(doc))
           assert.are.equal(base, base_after)
-          assert.is_true(#shown > 0)
+          assert.are.same({}, shown)
         end
       )
 
@@ -512,25 +501,23 @@ describe("AnnotationSync Core Integration", function()
           sync_instance.manager:addToChangedDocumentsFile(doc)
 
           -- D2a: remote returns 409
-          local ret = sync_instance.manager:syncDocument(doc, true)
-          assert.is_true(ret)
+          sync_instance.manager:syncNow(doc)
           assert.is_false(is_pending(doc))
           assert.are.equal(0, #uploads)
-          assert.are.equal(0, #shown)
+          assert.are.same({}, shown)
 
           -- D2b: remote returns empty table {}
           remote_store[name] = "{}"
           sync_instance.manager:addToChangedDocumentsFile(doc)
-          ret = sync_instance.manager:syncDocument(doc, true)
-          assert.is_true(ret)
+          sync_instance.manager:syncNow(doc)
           assert.is_false(is_pending(doc))
           assert.are.equal(0, #uploads)
-          assert.are.equal(0, #shown)
+          assert.are.same({}, shown)
         end
       )
 
       it(
-        "Case 24: remote file isn't JSON -> false, stays pending, generic message (D3)",
+        "Case 24: remote file isn't JSON -> fails, stays pending, no message (D3)",
         function()
           local doc, name = new_doc("d3")
           local A = hl(1, "A_local", "2026-01-01 10:00:00")
@@ -540,10 +527,9 @@ describe("AnnotationSync Core Integration", function()
           remote_store[name] = "<html>500 Internal Server Error</html>"
           sync_instance.manager:addToChangedDocumentsFile(doc)
 
-          local ret = sync_instance.manager:syncDocument(doc, true)
-          assert.is_false(ret)
+          sync_instance.manager:syncNow(doc)
           assert.is_true(is_pending(doc))
-          assert.is_true(#shown > 0)
+          assert.are.same({}, shown)
           assert.are.equal(0, #uploads)
         end
       )

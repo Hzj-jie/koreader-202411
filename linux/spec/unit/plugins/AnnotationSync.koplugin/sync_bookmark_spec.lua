@@ -1,7 +1,7 @@
 describe("AnnotationSync Bookmark Synchronization", function()
   local UIManager, SyncService, DataStorage
   local AnnotationSyncPlugin, test_utils, json, util, annotations_mod
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_bookmark_tmp"
   local old_getDataDir
@@ -54,6 +54,11 @@ describe("AnnotationSync Bookmark Synchronization", function()
     os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   it("tracks dog-ear bookmarks and persists changed state", function()

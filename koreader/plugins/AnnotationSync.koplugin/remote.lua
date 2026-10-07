@@ -68,7 +68,8 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
   end
   local finished, uploaded, uploaded_json = false, nil, nil
   local ok, err = pcall(function()
-    perform_sync(widget, json_path, sync_cb, not force, function(result)
+    -- Runs in the forked background job, so always silent.
+    perform_sync(widget, json_path, sync_cb, true, function(result)
       finished, uploaded = true, result
     end)
     -- The isOnline() gate makes SyncService run exec before returning. A

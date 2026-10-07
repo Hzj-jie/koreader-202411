@@ -50,7 +50,7 @@ describe("Unsynced / Pending Documents Feature", function()
   end)
 
   it(
-    "verifies that Sync All tracks failed files correctly and triggers the UI warning",
+    "verifies that Sync All keeps the files it failed to sync pending",
     function()
       -- 1. Setup two changed documents
       local file1 = readerui.document.file
@@ -64,9 +64,17 @@ describe("Unsynced / Pending Documents Feature", function()
       sync_instance.manager:addToChangedDocumentsFile(file1)
       sync_instance.manager:addToChangedDocumentsFile(file2)
 
-      -- 2. Mock SyncService to fail for file1, and mock getDocumentByFile to crash or fail for file2
+      -- 2. Mock SyncService to fail for both files
       local old_sync = SyncService.sync
+      local restore_jobs = test_utils.run_jobs_inline()
+      finally(function()
+        SyncService.sync = old_sync
+        restore_jobs()
+        os.remove(file2)
+      end)
+      local tries = 0
       SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        tries = tries + 1
         -- Simulate failure
         if finish_cb then
           finish_cb(false)
@@ -74,45 +82,16 @@ describe("Unsynced / Pending Documents Feature", function()
         return nil
       end
 
-      local confirm_shown = false
-      local confirm_text = ""
-      local ConfirmBox = require("ui/widget/confirmbox")
-      local old_ConfirmBox_new = ConfirmBox.new
-      ConfirmBox.new = function(this, o)
-        confirm_shown = true
-        confirm_text = o.text or ""
-        local mock = setmetatable(o or {}, { __index = ConfirmBox })
-        mock.handleEvent = function() end
-        return mock
-      end
-
-      local messages = {}
-      local old_show_msg =
-        require("plugins/AnnotationSync.koplugin/utils").show_msg
-      require("plugins/AnnotationSync.koplugin/utils").show_msg = function(msg)
-        table.insert(messages, msg)
-      end
-
       -- 3. Run Sync All
       sync_instance.manager:syncAllChangedDocuments()
       fastforward_ui_events()
 
       -- 4. Verify results
-      assert.is_true(confirm_shown, "A warning dialog should have been shown")
-      assert.truthy(
-        confirm_text:match("juliet%.epub"),
-        "Popup should list juliet.epub"
-      )
-      assert.truthy(
-        confirm_text:match("missing_file%.epub"),
-        "Popup should list missing_file.epub"
-      )
-
-      -- Cleanup
-      SyncService.sync = old_sync
-      require("ui/widget/confirmbox").new = old_ConfirmBox_new
-      require("plugins/AnnotationSync.koplugin/utils").show_msg = old_show_msg
-      os.remove(file2)
+      assert.is_equal(2, tries)
+      local count, pending = sync_instance.manager:getPendingChangedDocuments()
+      assert.is_equal(2, count)
+      assert.truthy(util.arrayContains(pending, file1))
+      assert.truthy(util.arrayContains(pending, file2))
     end
   )
 
@@ -191,101 +170,53 @@ describe("Unsynced / Pending Documents Feature", function()
   )
 
   it(
-    "verifies that show_pending_documents 'Sync now' closes menu and delegates to runWhenOnline",
+    "'Sync now' syncs the book in the background and leaves the list closed",
     function()
-      local file1 = readerui.document.file
-      sync_instance.manager:addToChangedDocumentsFile(file1)
+      local juliet = readerui.document.file
+      local other = test_data_dir .. "/other.epub"
+      sync_instance.manager:addToChangedDocumentsFile(other)
+      sync_instance.manager:addToChangedDocumentsFile(juliet)
 
       local menus = require("plugins/AnnotationSync.koplugin/menus")
-      local Menu = require("ui/widget/menu")
-      local ConfirmBox = require("ui/widget/confirmbox")
-      local NetworkMgr = require("ui/network/manager")
-
-      local old_Menu_new = Menu.new
-      local old_ConfirmBox_new = ConfirmBox.new
-      local old_runWhenOnline = NetworkMgr.runWhenOnline
-      local old_UIManager_close = UIManager.close
+      local shown = {}
+      local old_show = UIManager.show
+      local restore_jobs = test_utils.run_jobs_inline()
       finally(function()
-        Menu.new = old_Menu_new
-        ConfirmBox.new = old_ConfirmBox_new
-        NetworkMgr.runWhenOnline = old_runWhenOnline
-        UIManager.close = old_UIManager_close
-      end)
-
-      local Widget = require("ui/widget/widget")
-      local Geom = require("ui/geometry")
-      local MockWidget = Widget:extend({
-        dimen = Geom:new({ w = 0, h = 0 }),
-        onShow = function() end,
-        paintTo = function() end,
-        free = function() end,
-        handleEvent = function() end,
-      })
-      local MockMenu = MockWidget:extend({
-        debugStr = function()
-          return "MockMenu"
-        end,
-      })
-      local MockConfirmBox = MockWidget:extend({
-        debugStr = function()
-          return "MockConfirmBox"
-        end,
-      })
-
-      local pending_menu_instance = MockMenu:new({})
-      local confirm_box_instance = MockConfirmBox:new({})
-      local menu_items = {}
-      Menu.new = function(this, o)
-        menu_items = o.item_table or {}
-        return pending_menu_instance
-      end
-
-      local confirm_opts = {}
-      ConfirmBox.new = function(this, o)
-        confirm_opts = o
-        return confirm_box_instance
-      end
-
-      local menu_closed_before_run = false
-      UIManager.close = function(self, widget)
-        if widget == pending_menu_instance then
-          menu_closed_before_run = true
+        UIManager.show = old_show
+        restore_jobs()
+        for _, w in ipairs(shown) do
+          UIManager:closeIfShown(w)
         end
-      end
-
-      local run_online_called = false
-      local queued_online_cb = nil
-      NetworkMgr.runWhenOnline = function(self, cb)
-        run_online_called = true
-        queued_online_cb = cb
-      end
-
-      local sync_called = false
-      local old_syncDoc = sync_instance.manager.syncDocument
-      finally(function()
-        sync_instance.manager.syncDocument = old_syncDoc
       end)
-      sync_instance.manager.syncDocument = function(self, file, force)
-        sync_called = true
-        return true
+      UIManager.show = function(self, w, ...)
+        table.insert(shown, w)
+        return old_show(self, w, ...)
       end
 
       menus.show_pending_documents(sync_instance)
-      assert.is_equal(1, #menu_items)
+      local menu = shown[1]
+      -- Tap juliet.epub, sorted first.
+      menu:onMenuSelect(menu.item_table[1])
+      local box = shown[2]
+      -- Tap "Sync now".
+      box[1][1][1][1][3].buttons[1][2].callback()
 
-      -- Tap document item to open ConfirmBox
-      menu_items[1].callback()
-      assert.is_not_nil(confirm_opts.ok_callback)
-
-      -- Tap "Sync now"
-      confirm_opts.ok_callback()
-
-      assert.is_true(run_online_called, "runWhenOnline should be called on Sync now")
-      assert.is_true(menu_closed_before_run, "pending_menu should be closed before waiting for network")
-      assert.is_false(sync_called, "syncDocument should not run before online callback fires")
-
-      queued_online_cb()
-      assert.is_true(sync_called, "syncDocument should run when online callback fires")
+      assert.is_false(UIManager:isWindowWidget(menu))
+      assert.is_false(UIManager:isWindowWidget(box))
+      local menus_shown, texts = 0, {}
+      for _, w in ipairs(shown) do
+        if w.title == "Pending Documents" then
+          menus_shown = menus_shown + 1
+        elseif type(w.text) == "string" then
+          table.insert(texts, w.text)
+        end
+      end
+      assert.is_equal(1, menus_shown)
+      assert.are.same({
+        "Do you want to sync this document?\n\njuliet.epub",
+      }, texts)
+      local _, pending = sync_instance.manager:getPendingChangedDocuments()
+      assert.are.same({ other }, pending)
     end
   )
 

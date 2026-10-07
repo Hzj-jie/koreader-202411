@@ -317,6 +317,37 @@ function M.mock_sync_service(SyncService)
   return old_sync
 end
 
+-- Runs background jobs as soon as they are queued, one at a time, the way the
+-- fork does: the action under pcall (commandrunner.lua), the callback
+-- unprotected (backgroundrunner.koplugin). A job queued while another one
+-- runs starts after that one's callback returns. Returns a function that
+-- restores BackgroundJobs.insertKeyed.
+function M.run_jobs_inline()
+  local BackgroundJobs = require("background_jobs")
+  local old_insertKeyed = BackgroundJobs.insertKeyed
+  local queue = {}
+  BackgroundJobs.insertKeyed = function(job)
+    table.insert(queue, job)
+    if #queue > 1 then
+      return true
+    end
+    while queue[1] do
+      local res = false
+      local ok, ret = pcall(queue[1].action)
+      if ok then
+        res = ret
+      end
+      queue[1].result = res
+      queue[1].callback(queue[1])
+      table.remove(queue, 1)
+    end
+    return true
+  end
+  return function()
+    BackgroundJobs.insertKeyed = old_insertKeyed
+  end
+end
+
 function M.write_mock_json(test_data_dir, filename, data)
   local path = test_data_dir .. "/" .. filename
   local f = io.open(path, "w")

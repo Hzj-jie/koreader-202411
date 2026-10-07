@@ -17,8 +17,8 @@ The following changes were made to resolve test failures, optimize runtime perfo
    - Reads and writes annotations directly from sidecar metadata files, syncing in the background without needing to load document rendering engines or open heavy files into memory.
 2. **Automatic background sync**:
    - When "Automatically Sync All when network becomes available" is on, books with changed annotations are queued and synced in the background one at a time, as soon as the device is online.
-3. **Non-blocking batch sync with network prompts**:
-   - Automatically prompts to enable Wi-Fi when offline and displays live progress feedback during "Sync All" operations without freezing the user interface.
+3. **Non-blocking manual sync with network prompts**:
+   - "Manual Sync", "Sync now" in the pending documents list and "Sync All" queue their books for the background sync instead of freezing the user interface, and prompt to enable Wi-Fi when offline.
 4. **Library-wide annotation discovery**:
    - Adds a "Scan library for unsynced annotations" feature to automatically discover and queue existing annotations across all previously read books.
 5. **Localization & Chinese translation support**:

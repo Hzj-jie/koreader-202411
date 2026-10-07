@@ -58,7 +58,9 @@ describe("Sync Missing File Handling", function()
 
     package.loaded["plugins/AnnotationSync.koplugin/annotations"] = {
       write_annotations_json = function(_, sdr_dir, filename)
-        return sdr_dir .. "/" .. filename
+        local path = sdr_dir .. "/" .. filename
+        util.writeToFile("[]", path)
+        return path
       end,
     }
 
@@ -128,6 +130,7 @@ describe("Sync Missing File Handling", function()
     manager:addToChangedDocumentsFile(doc2)
 
     -- Execute Sync All
+    finally(test_utils.run_jobs_inline())
     manager:syncAllChangedDocuments()
     fastforward_ui_events()
 
@@ -141,11 +144,5 @@ describe("Sync Missing File Handling", function()
       util.arrayContains(changed_docs_after, doc1),
       "doc1 should have been removed after successful sync"
     )
-  end)
-
-  it("returns nil when syncDocument is called on a missing file", function()
-    existing_files["missing.epub"] = false
-    local res = manager:syncDocument("missing.epub")
-    assert.is_nil(res)
   end)
 end)

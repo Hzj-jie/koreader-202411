@@ -1,7 +1,7 @@
 describe("AnnotationSync PDF Core Integration", function()
   local UIManager, SyncService, Geom, DataStorage
   local AnnotationSyncPlugin, highlight_pdf_db, test_utils, json, util, ReaderAnnotation
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_pdf_integration_tmp"
   local old_getDataDir
@@ -63,6 +63,11 @@ describe("AnnotationSync PDF Core Integration", function()
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   local function create_pdf_ann_from_db(index, note, datetime)

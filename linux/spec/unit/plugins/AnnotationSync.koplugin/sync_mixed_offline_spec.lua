@@ -1,7 +1,7 @@
 describe("AnnotationSync Mixed Documents & Offline Sync All", function()
   local UIManager, SyncService, DataStorage
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_mixed_offline_tmp"
   local old_getDataDir
@@ -61,6 +61,11 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     os.remove(sync_instance.manager:getSyncCachePath(sample_pdf_dest))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   it(
