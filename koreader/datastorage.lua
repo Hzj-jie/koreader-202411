@@ -16,16 +16,6 @@ local function isStorageReadOnly()
   return data_dir ~= nil and not util.isDirRW(data_dir, true)
 end
 
--- For testing purposes only; do not use in production code.
--- Resets cached directories and storage state flags across test scenarios.
-function DataStorage:reset()
-  data_dir = nil
-  full_data_dir = nil
-  cache_dir = nil
-  tmp_dir = nil
-  is_storage_temporary = false
-end
-
 function DataStorage:getTmpDir()
   if tmp_dir then
     return tmp_dir

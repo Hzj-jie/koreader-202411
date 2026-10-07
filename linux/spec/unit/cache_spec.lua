@@ -65,15 +65,12 @@ describe("Cache module", function()
     local original_isDirRW = util.isDirRW
 
     before_each(function()
-      require("datastorage"):reset()
+      package.loaded["datastorage"] = nil
     end)
 
     after_each(function()
       util.isDirRW = original_isDirRW
-      local ds = package.loaded["datastorage"]
-      if ds and ds.reset then
-        ds:reset()
-      end
+      package.loaded["datastorage"] = nil
     end)
 
     it(
@@ -352,7 +349,6 @@ describe("Cache module", function()
           getCacheDirOrNil = function()
             return "/mock/ds/cache"
           end,
-          reset = function() end,
         }
 
         util.isDirRW = function(dir)
