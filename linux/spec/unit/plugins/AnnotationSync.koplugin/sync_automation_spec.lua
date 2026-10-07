@@ -1,5 +1,5 @@
 describe("AnnotationSync Automation & Settings", function()
-  local ReaderUI, UIManager, SyncService, Geom
+  local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
   local DataStorage = require("datastorage")
@@ -14,8 +14,6 @@ describe("AnnotationSync Automation & Settings", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")

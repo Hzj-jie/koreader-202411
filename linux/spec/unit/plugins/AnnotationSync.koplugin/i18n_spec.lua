@@ -18,9 +18,7 @@ describe("AnnotationSync internationalization", function()
   after_each(function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     -- Restore language to default
-    if _ and _.changeLang then
-      _.changeLang("C")
-    end
+    _.changeLang("C")
   end)
 
   it("verifies translation loading for supported locales", function()
@@ -45,8 +43,5 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal("標註同步", _("Annotation Sync"))
     assert.are.equal("全部同步", _("Sync All"))
     assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
-
-    -- Restore language to default
-    _.changeLang("C")
   end)
 end)

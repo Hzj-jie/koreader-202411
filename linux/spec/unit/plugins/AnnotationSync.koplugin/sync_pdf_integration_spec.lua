@@ -1,5 +1,5 @@
 describe("AnnotationSync PDF Core Integration", function()
-  local ReaderUI, UIManager, SyncService, Geom, DataStorage
+  local UIManager, SyncService, Geom, DataStorage
   local AnnotationSyncPlugin, highlight_pdf_db, test_utils, json, util, ReaderAnnotation
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -15,7 +15,6 @@ describe("AnnotationSync PDF Core Integration", function()
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
     Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     DataStorage = require("datastorage")

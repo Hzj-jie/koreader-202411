@@ -1,5 +1,5 @@
 describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
-  local ReaderUI, UIManager, Geom, DataStorage, util
+  local UIManager, DataStorage, util
   local AnnotationSyncPlugin, highlight_pdf_db, test_utils
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -15,8 +15,6 @@ describe("AnnotationSync PDF Highlight Ground Truth Integration", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     DataStorage = require("datastorage")
     util = require("util")

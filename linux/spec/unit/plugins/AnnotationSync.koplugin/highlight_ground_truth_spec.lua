@@ -1,5 +1,5 @@
 describe("AnnotationSync Highlight Ground Truth Integration", function()
-  local ReaderUI, UIManager, Geom
+  local UIManager
   local AnnotationSyncPlugin, highlight_db, test_utils, util
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -24,8 +24,6 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     util = require("util")
 

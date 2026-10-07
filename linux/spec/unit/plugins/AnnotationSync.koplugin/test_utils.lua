@@ -22,7 +22,6 @@ local json = require("json")
 
 local M = {}
 
-local current_readerui
 local old_isConnected
 local old_isOnline
 local old_runWhenConnected
@@ -32,6 +31,7 @@ local old_getSettingsDir
 local old_G_reader_settings
 local old_tmp_dir
 local old_document_metadata_folder
+local old_show
 
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
@@ -86,6 +86,14 @@ function M.setup_test_env(test_data_dir)
   end
   NetworkMgr.runWhenOnline = function(self, callback)
     return not self:willRerunWhenOnline(callback)
+  end
+
+  old_show = UIManager.show
+  UIManager.show = function(self, widget)
+    if self:isWindowWidget(widget) then
+      return
+    end
+    return old_show(self, widget)
   end
 
   return old_getDataDir
@@ -145,6 +153,7 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
       old_document_metadata_folder
     old_document_metadata_folder = nil
   end
+  UIManager.show = old_show
 end
 
 function M.mock_image_viewer()
@@ -181,7 +190,6 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
     dimen = Geom:new({ w = 1200, h = 1600 }),
     document = DocumentRegistry:openDocument(target_file),
   })
-  current_readerui = readerui
 
   local sync_instance = AnnotationSyncPlugin:new({
     ui = readerui,
@@ -320,14 +328,6 @@ function M.write_mock_json(test_data_dir, filename, data)
   f:write(encoded)
   f:close()
   return path
-end
-
-local orig_show = UIManager.show
-UIManager.show = function(self, widget)
-  if self:isWindowWidget(widget) then
-    return
-  end
-  return orig_show(self, widget)
 end
 
 return M

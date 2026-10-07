@@ -1,5 +1,5 @@
 describe("AnnotationSync Bookmark Synchronization", function()
-  local ReaderUI, UIManager, SyncService, Geom, DataStorage
+  local UIManager, SyncService, DataStorage
   local AnnotationSyncPlugin, test_utils, json, util, annotations_mod
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -15,8 +15,6 @@ describe("AnnotationSync Bookmark Synchronization", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     DataStorage = require("datastorage")

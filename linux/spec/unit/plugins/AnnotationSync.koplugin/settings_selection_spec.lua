@@ -1,5 +1,5 @@
 describe("AnnotationSync Settings Selection", function()
-  local UIManager, AnnotationSyncPlugin, test_utils, util, dump
+  local UIManager, AnnotationSyncPlugin, test_utils, dump
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_settings_selection_tmp"
@@ -13,7 +13,6 @@ describe("AnnotationSync Settings Selection", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     UIManager = require("ui/uimanager")
-    util = require("util")
     dump = require("dump")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
@@ -41,6 +40,7 @@ describe("AnnotationSync Settings Selection", function()
 
   after_each(function()
     if readerui then
+      readerui:onExit(true)
       readerui:onClose()
     end
   end)

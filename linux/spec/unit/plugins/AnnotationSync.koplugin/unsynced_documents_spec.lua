@@ -1,5 +1,5 @@
 describe("Unsynced / Pending Documents Feature", function()
-  local ReaderUI, UIManager, SyncService, Geom
+  local UIManager, SyncService
   local AnnotationSyncPlugin, test_utils, json, util
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -13,8 +13,6 @@ describe("Unsynced / Pending Documents Feature", function()
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")

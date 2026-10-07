@@ -42,6 +42,7 @@ describe("AnnotationSync Settings Synchronization", function()
 
   after_each(function()
     if readerui then
+      readerui:onExit(true)
       readerui:onClose()
     end
   end)

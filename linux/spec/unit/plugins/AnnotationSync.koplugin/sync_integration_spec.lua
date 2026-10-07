@@ -1,5 +1,5 @@
 describe("AnnotationSync Core Integration", function()
-  local ReaderUI, UIManager, SyncService, Geom
+  local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util, annotations_mod
   local readerui, sync_instance, real_sync
   local test_data_dir = require("datastorage"):getDataDir()
@@ -13,8 +13,6 @@ describe("AnnotationSync Core Integration", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     real_sync = SyncService.sync

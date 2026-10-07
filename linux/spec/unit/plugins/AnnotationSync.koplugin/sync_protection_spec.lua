@@ -1,5 +1,5 @@
 describe("AnnotationSync Sync Protection & Regressions", function()
-  local ReaderUI, UIManager, Geom, SyncService
+  local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -13,8 +13,6 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")

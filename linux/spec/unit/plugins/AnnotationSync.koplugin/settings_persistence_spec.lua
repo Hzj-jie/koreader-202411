@@ -39,6 +39,7 @@ describe("AnnotationSync Settings Persistence", function()
 
   after_each(function()
     if readerui then
+      readerui:onExit(true)
       readerui:onClose()
     end
     G_reader_settings:delete(sync_instance.plugin_id)

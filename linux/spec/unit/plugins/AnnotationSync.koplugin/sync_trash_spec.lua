@@ -1,6 +1,6 @@
 describe("AnnotationSync Trash & Restore", function()
-  local ReaderUI, UIManager, SyncService, Geom
-  local AnnotationSyncPlugin, highlight_db, test_utils, json, annotations_mod
+  local UIManager, SyncService
+  local AnnotationSyncPlugin, test_utils, json
   local util
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -14,15 +14,11 @@ describe("AnnotationSync Trash & Restore", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
     util = require("util")
-    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)

@@ -1,6 +1,6 @@
 describe("Background Sync Behavior", function()
-  local ReaderUI, UIManager, Trapper, SyncService, Geom
-  local AnnotationSyncPlugin, SyncManager, remote, json, test_utils, util, utils, DataStorage, dump
+  local UIManager, SyncService
+  local AnnotationSyncPlugin, remote, json, test_utils, util, utils, DataStorage, dump
   local readerui, plugin_instance, sync_manager, real_sync
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_bg_sync_tmp"
@@ -13,10 +13,7 @@ describe("Background Sync Behavior", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
-    Trapper = require("ui/trapper")
     SyncService = require("apps/cloudstorage/syncservice")
     real_sync = SyncService.sync
     json = require("json")
@@ -25,7 +22,6 @@ describe("Background Sync Behavior", function()
     dump = require("dump")
 
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
-    SyncManager = require("plugins/AnnotationSync.koplugin/manager")
     remote = require("plugins/AnnotationSync.koplugin/remote")
     utils = require("plugins/AnnotationSync.koplugin/utils")
 
@@ -1049,8 +1045,6 @@ describe("Background Sync Behavior", function()
   end)
 
   describe("Main thread callback processing", function()
-    local DataStorage = require("datastorage")
-
     it(
       "removes successfully synced documents from changed_documents and updates sync timestamp",
       function()
@@ -1467,8 +1461,8 @@ describe("Background Sync Behavior", function()
           f:close()
         end
         assert.are.equal('{"initial":true}', content)
-        assert.is_nil(io.open(dummy_json .. ".sync", "r"))
-        assert.is_nil(io.open(dummy_json, "r"))
+        assert.is_false(util.fileExists(dummy_json .. ".sync"))
+        assert.is_false(util.fileExists(dummy_json))
       end
     )
 
@@ -1501,7 +1495,7 @@ describe("Background Sync Behavior", function()
           f:close()
         end
         assert.are.equal('{"initial":true}', content)
-        assert.is_nil(io.open(dummy_json, "r"))
+        assert.is_false(util.fileExists(dummy_json))
       end
     )
 
@@ -1535,8 +1529,8 @@ describe("Background Sync Behavior", function()
           f:close()
         end
         assert.are.equal('{"initial":true}', content)
-        assert.is_nil(io.open(dummy_json .. ".sync", "r"))
-        assert.is_nil(io.open(dummy_json, "r"))
+        assert.is_false(util.fileExists(dummy_json .. ".sync"))
+        assert.is_false(util.fileExists(dummy_json))
       end
     )
 
@@ -1568,9 +1562,9 @@ describe("Background Sync Behavior", function()
         assert.is_true(comp_called)
         assert.is_false(comp_res)
 
-        assert.is_nil(io.open(dummy_json, "r"))
-        assert.is_nil(io.open(tmp_temp, "r"))
-        assert.is_nil(io.open(tmp_sync, "r"))
+        assert.is_false(util.fileExists(dummy_json))
+        assert.is_false(util.fileExists(tmp_temp))
+        assert.is_false(util.fileExists(tmp_sync))
       end
     )
 
@@ -1657,7 +1651,7 @@ describe("Background Sync Behavior", function()
         assert.is_false(sync_called)
         assert.is_true(comp_called)
         assert.is_false(comp_res)
-        assert.is_nil(io.open(dummy_json, "r"))
+        assert.is_false(util.fileExists(dummy_json))
       end
     )
   end)
@@ -1665,7 +1659,7 @@ describe("Background Sync Behavior", function()
   describe("End-to-end background 3-way merge integration", function()
     local BackgroundJobs, ffiutil, DocSettings, NetworkMgr
     local remote_store = {}
-    local old_insertKeyed, old_sync, old_cloudstorage, old_server, old_isOnline
+    local old_insertKeyed, old_sync, old_server, old_isOnline
 
     local function basename(p)
       return p:match("([^/]+)$")
@@ -1784,9 +1778,6 @@ describe("Background Sync Behavior", function()
       ffiutil = require("ffi/util")
       DocSettings = require("frontend/docsettings")
 
-      old_cloudstorage = readerui.cloudstorage
-      readerui.cloudstorage = nil
-
       old_sync = SyncService.sync
       SyncService.sync = real_sync
 
@@ -1831,7 +1822,6 @@ describe("Background Sync Behavior", function()
     after_each(function()
       NetworkMgr.isOnline = old_isOnline
       BackgroundJobs.insertKeyed = old_insertKeyed
-      readerui.cloudstorage = old_cloudstorage
       SyncService.sync = old_sync
       UIManager.show = old_show
       package.loaded["apps/cloudstorage/dropboxapi"] = nil
@@ -1843,17 +1833,6 @@ describe("Background Sync Behavior", function()
       "inactive doc gains remote additions, advances .sync, next sync preserves them",
       function()
         local doc, name = new_doc("inactive_doc")
-        local function mk(n, text, ts)
-          local p0 = "/body/DocFragment[3]/body/p[" .. n .. "]/text().0"
-          return {
-            page = p0,
-            pos0 = p0,
-            pos1 = (p0:gsub("%.0$", ".20")),
-            text = text,
-            datetime = ts,
-            drawer = "lighten",
-          }
-        end
         local L = mk(1, "L_local", "2026-01-01 10:00:00")
         local R = mk(2, "R_remote", "2026-01-02 10:00:00")
 
@@ -2289,17 +2268,6 @@ describe("Background Sync Behavior", function()
       "skips apply and cleans pending when book was deleted during background job",
       function()
         local doc, name = new_doc("deleted_during_job")
-        local function mk(n, text, ts)
-          local p0 = "/body/DocFragment[3]/body/p[" .. n .. "]/text().0"
-          return {
-            page = p0,
-            pos0 = p0,
-            pos1 = (p0:gsub("%.0$", ".20")),
-            text = text,
-            datetime = ts,
-            drawer = "lighten",
-          }
-        end
         local L = mk(1, "L_del", "2026-01-01 10:00:00")
         local R = mk(2, "R_del", "2026-01-02 10:00:00")
 
@@ -2502,7 +2470,9 @@ describe("Background Sync Behavior", function()
       "re-forks background sync after callback when book is edited during an in-flight job",
       function()
         local file, name = new_doc("doc_retrigger_edited")
+        local old_file = readerui.document.file
         finally(function()
+          readerui.document.file = old_file
           os.remove(file)
         end)
 
@@ -2553,7 +2523,9 @@ describe("Background Sync Behavior", function()
       "does not re-fork background sync if book was not edited during an in-flight job",
       function()
         local file, name = new_doc("doc_retrigger_not_edited")
+        local old_file = readerui.document.file
         finally(function()
+          readerui.document.file = old_file
           os.remove(file)
         end)
 

@@ -1,6 +1,6 @@
 describe("AnnotationSync Mixed Documents & Offline Sync All", function()
-  local ReaderUI, UIManager, SyncService, Geom, DataStorage
-  local AnnotationSyncPlugin, highlight_db, highlight_pdf_db, test_utils, json, util, annotations_mod
+  local UIManager, SyncService, DataStorage
+  local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_mixed_offline_tmp"
@@ -17,18 +17,13 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     DataStorage = require("datastorage")
     json = require("json")
     util = require("util")
-    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
     highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
-    highlight_pdf_db =
-      require("plugins/AnnotationSync.koplugin/highlight_pdf_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
