@@ -17,67 +17,75 @@ function M.show_deleted_annotations(plugin, document)
   end
 
   local deleted_menu
-  local menu_items = {}
+  local function menu_items()
+    local items = {}
 
-  -- Add Restore All button at the top
-  table.insert(menu_items, {
-    text = gettext("Restore All"),
-    bold = true,
-    callback = function()
-      UIManager:show(ConfirmBox:new({
-        text = T(
-          gettext(
-            "Are you sure you want to restore all %1 deleted annotations?"
-          ),
-          #deleted
-        ),
-        ok_text = gettext("Restore All"),
-        ok_callback = function()
-          plugin:restoreAnnotations(deleted, true) -- true = silent
-          utils.show_msg(T(gettext("Restored %1 annotations."), #deleted))
-          if deleted_menu then
-            UIManager:close(deleted_menu)
-          end
-        end,
-      }))
-    end,
-    separator = true,
-  })
-
-  for __, ann in ipairs(deleted) do
-    local text = ann.text or ann.note or gettext("Highlight")
-    if text == "" then
-      text = gettext("Highlight")
-    end
-    -- Truncate long text
-    if #text > 50 then
-      text = text:sub(1, 47) .. "..."
-    end
-    table.insert(menu_items, {
-      text = text,
+    -- Add Restore All button at the top
+    table.insert(items, {
+      text = gettext("Restore All"),
+      bold = true,
+      keep_menu_open = true,
       callback = function()
         UIManager:show(ConfirmBox:new({
           text = T(
-            gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
-            ann.page,
-            ann.text or ann.note or ""
+            gettext(
+              "Are you sure you want to restore all %1 deleted annotations?"
+            ),
+            #deleted
           ),
-          ok_text = gettext("Restore"),
-          cancel_text = gettext("Close"),
+          ok_text = gettext("Restore All"),
           ok_callback = function()
-            plugin:restoreAnnotation(ann)
-            -- The menu still lists the restored annotation, and restoring it
-            -- again would add a duplicate.
+            plugin:restoreAnnotations(deleted, true) -- true = silent
+            utils.show_msg(T(gettext("Restored %1 annotations."), #deleted))
             UIManager:close(deleted_menu)
           end,
         }))
       end,
+      separator = true,
     })
+
+    for i, ann in ipairs(deleted) do
+      local text = ann.text or ann.note or gettext("Highlight")
+      if text == "" then
+        text = gettext("Highlight")
+      end
+      -- Truncate long text
+      if #text > 50 then
+        text = text:sub(1, 47) .. "..."
+      end
+      table.insert(items, {
+        text = text,
+        keep_menu_open = true,
+        callback = function()
+          UIManager:show(ConfirmBox:new({
+            text = T(
+              gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
+              ann.page,
+              ann.text or ann.note or ""
+            ),
+            ok_text = gettext("Restore"),
+            cancel_text = gettext("Close"),
+            ok_callback = function()
+              plugin:restoreAnnotation(ann)
+              table.remove(deleted, i)
+              if #deleted == 0 then
+                UIManager:close(deleted_menu)
+              else
+                -- Item i + 1 follows the restored one (item 1 is Restore All),
+                -- so the menu stays on the same page.
+                deleted_menu:switchItemTable(nil, menu_items(), i + 1)
+              end
+            end,
+          }))
+        end,
+      })
+    end
+    return items
   end
 
   deleted_menu = Menu:new({
     title = gettext("Deleted Annotations"),
-    item_table = menu_items,
+    item_table = menu_items(),
   })
   UIManager:show(deleted_menu)
 end
