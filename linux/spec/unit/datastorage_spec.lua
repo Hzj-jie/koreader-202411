@@ -37,7 +37,6 @@ describe("DataStorage module", function()
   after_each(function()
     util.isDirRW = original_isDirRW
     os.getenv = original_getenv
-    util.isDirRW = original_isDirRW
     package.loaded["datastorage"] = nil
   end)
 
