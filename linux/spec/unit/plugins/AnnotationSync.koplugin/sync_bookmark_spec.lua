@@ -53,7 +53,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
   end)
@@ -302,7 +302,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
       { bm_r }
     )
 
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
 
     SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"

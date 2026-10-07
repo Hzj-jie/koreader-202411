@@ -166,9 +166,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
                   end
                   self.settings.device_name = dev_name
                   self:saveSettings()
-                  if self.ui.menu and self.ui.menu.showMainMenu then
-                    self.ui.menu:showMainMenu()
-                  end
                   return true
                 end,
               })
@@ -214,7 +211,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         text = gettext("Manual Sync"),
         enabled_func = function()
           return ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
-            and ((self.ui and self.ui.document) ~= nil)
+            and self.ui.document ~= nil
         end,
         hold_callback = function()
           utils.show_msg(manual_sync_description)
@@ -272,7 +269,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       {
         text = gettext("Show Deleted"),
         enabled_func = function()
-          return (self.ui and self.ui.document) ~= nil
+          return self.ui.document ~= nil
         end,
         callback = function()
           self:showDeletedAnnotations()
@@ -313,7 +310,7 @@ end
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
 
-  if self.ui and self.ui.annotation and self.ui.document == document then
+  if self.ui.document == document then
     -- 1. Sort using core's comparator
     self.ui.annotation:sortItems(merged_list)
 
@@ -419,13 +416,10 @@ function AnnotationSyncPlugin:onSyncServiceConfirm(server)
     ),
     timeout = 4,
   }))
-  if self and self.ui and self.ui.menu and self.ui.menu.showMainMenu then
-    self.ui.menu:showMainMenu()
-  end
 end
 
 function AnnotationSyncPlugin:manualSync()
-  local document = self.ui and self.ui.document
+  local document = self.ui.document
   local file = document and document.file
   if not file then
     utils.show_msg("A document must be active to do a manual sync.")
@@ -439,18 +433,11 @@ function AnnotationSyncPlugin:manualSync()
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()
-  local document = self.ui and self.ui.document
-  if not document then
-    return
-  end
-  menus.show_deleted_annotations(self, document)
+  menus.show_deleted_annotations(self, self.ui.document)
 end
 
 function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
-  local document = self.ui and self.ui.document
-  if not document or not anns or #anns == 0 then
-    return
-  end
+  local document = self.ui.document
 
   local now = os.date("%Y-%m-%d %H:%M:%S")
   local current = self.manager:getAnnotationsForDocument(document)
@@ -497,7 +484,7 @@ function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
     local changed_file = annotation.book_path
     -- AnnotationsModified event payload does not include book_path for an active document
     if not changed_file then
-      changed_file = self.ui and self.ui.document and self.ui.document.file
+      changed_file = self.ui.document and self.ui.document.file
     end
     if not changed_file then
       changed_file = unknown_file

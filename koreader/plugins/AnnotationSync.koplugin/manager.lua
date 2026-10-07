@@ -163,7 +163,7 @@ function SyncManager:_startSync(file)
     return
   end
 
-  local ui_doc = self.plugin.ui and self.plugin.ui.document
+  local ui_doc = self.plugin.ui.document
   local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
   assert(require("background_jobs").insertKeyed({
     executable = "fork",
@@ -296,7 +296,7 @@ function SyncManager:_applyBackgroundSync(
   end
 
   local document = { file = file }
-  local ui_document = self.plugin.ui and self.plugin.ui.document
+  local ui_document = self.plugin.ui.document
   if ui_document and ui_document.file == file then
     document = ui_document
   end
@@ -348,7 +348,7 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
 
   local document
   if type(doc_or_file) == "string" then
-    local ui_document = self.plugin.ui and self.plugin.ui.document
+    local ui_document = self.plugin.ui.document
     if ui_document and ui_document.file == doc_or_file then
       document = ui_document
     else
@@ -419,9 +419,6 @@ function SyncManager:syncDocument(doc_or_file, is_manual)
 end
 
 function SyncManager:getSyncCachePath(file)
-  if not file then
-    return nil
-  end
   local sdr_dir = docsettings:getSidecarDir(file)
   if not sdr_dir or sdr_dir == "" then
     return nil
@@ -536,30 +533,17 @@ function SyncManager:getAnnotationsForDocument(document)
   local file = type(document) == "string" and document
     or (document and document.file)
   -- Handle active document
-  if
-    self.plugin.ui
-    and document == self.plugin.ui.document
-    and self.plugin.ui.annotation
-    and self.plugin.ui.annotation.annotations
-  then
+  if document == self.plugin.ui.document then
     return self.plugin.ui.annotation.annotations
   end
   -- Handle inactive document
-  if file then
-    local annotation_sidecar = docsettings:open(file)
-    return ReaderAnnotation.loadFromSettings(annotation_sidecar)
-  end
-  return {}
+  local annotation_sidecar = docsettings:open(file)
+  return ReaderAnnotation.loadFromSettings(annotation_sidecar)
 end
 
 -- Get only annotations marked as deleted in the sync cache JSON
 function SyncManager:getDeletedAnnotations(document)
-  local file = document and document.file
-  if not file then
-    return {}
-  end
-
-  local cached_path = self:getSyncCachePath(file)
+  local cached_path = self:getSyncCachePath(document.file)
   local map = cached_path and utils.read_json(cached_path)
   if not map then
     return {}
@@ -602,29 +586,8 @@ function SyncManager:_getAnnotationFilename(file)
     local _, filename = util.splitFilePathName(file)
     return (filename ~= "" and filename or file) .. ".json"
   end
-  local hash = type(file) == "string" and util.partialMD5(file)
-    or gettext("No hash")
+  local hash = util.partialMD5(file) or gettext("No hash")
   return hash .. ".json"
-end
-
-function SyncManager:cleanSyncFile(doc_or_file)
-  local file = type(doc_or_file) == "string" and doc_or_file
-    or (doc_or_file and doc_or_file.file)
-  if not file then
-    return
-  end
-  local filename = self:_getAnnotationFilename(file)
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if sdr_dir and sdr_dir ~= "" then
-    os.remove(sdr_dir .. "/" .. filename)
-    os.remove(sdr_dir .. "/" .. filename .. ".sync")
-  end
-  local tmp_dir = DataStorage:getTmpDir()
-  if tmp_dir and tmp_dir ~= "" then
-    os.remove(tmp_dir .. "/" .. filename)
-    os.remove(tmp_dir .. "/" .. filename .. ".sync")
-    os.remove(tmp_dir .. "/" .. filename .. ".temp")
-  end
 end
 
 function SyncManager:cleanOrphanSyncFiles()

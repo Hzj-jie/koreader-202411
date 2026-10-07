@@ -170,37 +170,6 @@ describe("AnnotationSync Trash & Restore", function()
     require("ui/event").new = old_event_new
   end)
 
-  it("should clean up sync file for a document", function()
-    local tmp_dir = require("datastorage"):getTmpDir()
-    local file = readerui.document.file
-    local filename = sync_instance.manager:_getAnnotationFilename(file)
-    local json_path = tmp_dir .. "/" .. filename
-    local sync_cache_path = sync_instance.manager:getSyncCachePath(file)
-
-    local f = io.open(json_path, "w")
-    f:write("{}")
-    f:close()
-    f = io.open(sync_cache_path, "w")
-    f:write("{}")
-    f:close()
-
-    local check_json = io.open(json_path, "r")
-    assert.is_not_nil(check_json)
-    if check_json then
-      check_json:close()
-    end
-    local check_sync = io.open(sync_cache_path, "r")
-    assert.is_not_nil(check_sync)
-    if check_sync then
-      check_sync:close()
-    end
-
-    sync_instance.manager:cleanSyncFile(file)
-
-    assert.is_nil(io.open(json_path, "r"))
-    assert.is_nil(io.open(sync_cache_path, "r"))
-  end)
-
   it(
     "should clean all orphan sync and temp files from tmp directory",
     function()

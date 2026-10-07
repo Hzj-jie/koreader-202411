@@ -330,8 +330,6 @@ function SettingsSelection.show(plugin)
         text = gettext("Select All"),
         callback = function()
           local keys = get_all_leaf_keys(node)
-          plugin.settings.selected_settings = plugin.settings.selected_settings
-            or {}
           for __, key in ipairs(keys) do
             plugin.settings.selected_settings[key] = true
           end
@@ -345,10 +343,8 @@ function SettingsSelection.show(plugin)
         text = gettext("Clear Selection"),
         callback = function()
           local keys = get_all_leaf_keys(node)
-          if plugin.settings.selected_settings then
-            for __, key in ipairs(keys) do
-              plugin.settings.selected_settings[key] = nil
-            end
+          for __, key in ipairs(keys) do
+            plugin.settings.selected_settings[key] = nil
           end
           plugin:saveSettings()
           if submenu then
@@ -366,10 +362,7 @@ function SettingsSelection.show(plugin)
             local keys = get_all_leaf_keys(child)
             local any_selected = false
             for ___, key in ipairs(keys) do
-              if
-                plugin.settings.selected_settings
-                and plugin.settings.selected_settings[key]
-              then
+              if plugin.settings.selected_settings[key] then
                 any_selected = true
                 break
               end
@@ -390,8 +383,7 @@ function SettingsSelection.show(plugin)
         local setting_id = child.domain .. ":" .. child.full_key
         table.insert(menu_items, {
           text_func = function()
-            local is_selected = plugin.settings.selected_settings
-              and plugin.settings.selected_settings[setting_id]
+            local is_selected = plugin.settings.selected_settings[setting_id]
             local prefix = is_selected and "[✓] " or "[ ] "
             return string.format(
               "%s[%s] %s: %s -> %s",
@@ -403,8 +395,6 @@ function SettingsSelection.show(plugin)
             )
           end,
           callback = function()
-            plugin.settings.selected_settings = plugin.settings.selected_settings
-              or {}
             plugin.settings.selected_settings[setting_id] = not plugin.settings.selected_settings[setting_id]
               or nil
             plugin:saveSettings()

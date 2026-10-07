@@ -45,7 +45,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     readerui.annotation.annotations = {}
     UIManager:show(readerui)
     fastforward_ui_events()
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
   end)

@@ -60,7 +60,7 @@ describe("AnnotationSync PDF Core Integration", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
 
     test_utils.mock_sync_service(SyncService)

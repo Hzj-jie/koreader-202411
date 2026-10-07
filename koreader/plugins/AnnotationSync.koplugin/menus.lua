@@ -10,10 +10,6 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 local M = {}
 
 function M.show_deleted_annotations(plugin, document)
-  if not document then
-    return
-  end
-
   local deleted = plugin.manager:getDeletedAnnotations(document)
   if #deleted == 0 then
     utils.show_msg(gettext("No deleted annotations found for this document."))
