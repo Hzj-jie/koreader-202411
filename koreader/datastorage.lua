@@ -158,10 +158,7 @@ end
 -- Returns a cache directory. Always returns a directory even if it is not writable.
 -- Callers should take care of an unwritable directory themselves.
 function DataStorage:getCacheDir()
-  if not cache_dir then
-    self:getCacheDirOrNil()
-  end
-  return cache_dir or (self:getDataDir() .. "/cache")
+  return self:getCacheDirOrNil() or (self:getDataDir() .. "/cache")
 end
 
 function DataStorage:getFullDataDir()
