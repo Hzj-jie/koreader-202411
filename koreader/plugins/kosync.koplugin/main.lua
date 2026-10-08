@@ -517,25 +517,22 @@ function KOSync:_login(menu)
   end)
 end
 
+local function getErrorMessage(body)
+  if type(body) == "table" and body.message then
+    return body.message
+  elseif type(body) == "string" then
+    return body
+  end
+  return gettext("Unknown server error")
+end
+
 function KOSync:_doRegister(username, password, menu)
   local client = getClient(self.path, self.settings.custom_server)
   -- on Android to avoid ANR (no-op on other platforms)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
-  local ok, status, body = pcall(client.register, client, username, userkey)
-  if not ok then
-    if status then
-      UIManager:show(InfoMessage:new({
-        text = gettext("An error occurred while registering:")
-          .. "\n"
-          .. status,
-      }))
-    else
-      UIManager:show(InfoMessage:new({
-        text = gettext("An unknown error occurred while registering."),
-      }))
-    end
-  elseif status then
+  local ok, body = client:register(username, userkey)
+  if ok then
     self.settings.username = username
     self.settings.userkey = userkey
     if menu then
@@ -546,7 +543,7 @@ function KOSync:_doRegister(username, password, menu)
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = body and body.message or gettext("Unknown server error"),
+      text = getErrorMessage(body),
     }))
   end
   Device:setIgnoreInput(false)
@@ -556,20 +553,8 @@ function KOSync:_doLogin(username, password, menu)
   local client = getClient(self.path, self.settings.custom_server)
   Device:setIgnoreInput(true)
   local userkey = md5(password)
-  local ok, status, body = pcall(client.authorize, client, username, userkey)
-  if not ok then
-    if status then
-      UIManager:show(InfoMessage:new({
-        text = gettext("An error occurred while logging in:") .. "\n" .. status,
-      }))
-    else
-      UIManager:show(InfoMessage:new({
-        text = gettext("An unknown error occurred while logging in."),
-      }))
-    end
-    Device:setIgnoreInput(false)
-    return
-  elseif status then
+  local ok, body = client:authorize(username, userkey)
+  if ok then
     self.settings.username = username
     self.settings.userkey = userkey
     if menu then
@@ -580,7 +565,7 @@ function KOSync:_doLogin(username, password, menu)
     }))
   else
     UIManager:show(InfoMessage:new({
-      text = body and body.message or gettext("Unknown server error"),
+      text = getErrorMessage(body),
     }))
   end
   Device:setIgnoreInput(false)

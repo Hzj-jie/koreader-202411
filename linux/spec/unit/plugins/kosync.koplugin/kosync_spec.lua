@@ -579,6 +579,13 @@ describe("KOSync plugin tests", function()
       kosync:_doLogin("user1", "wrongpass", mock_menu)
       assert.are.equal("Unknown server error", lastShownText())
 
+      -- Request not sent, e.g. offline
+      mock_client.authorize = spy.new(function()
+        return false, "offline"
+      end)
+      kosync:_doLogin("user1", "wrongpass", mock_menu)
+      assert.are.equal("offline", lastShownText())
+
       -- Failures keep the logged-in account
       assert.are.equal(userkey, kosync.settings.userkey)
       assert.spy(mock_menu.updateItems).was_called(1)
@@ -609,6 +616,13 @@ describe("KOSync plugin tests", function()
       end)
       kosync:_doRegister("user3", "pass3", mock_menu)
       assert.are.equal("Unknown server error", lastShownText())
+
+      -- Request not sent, e.g. offline
+      mock_client.register = spy.new(function()
+        return false, "offline"
+      end)
+      kosync:_doRegister("user3", "pass3", mock_menu)
+      assert.are.equal("offline", lastShownText())
 
       -- Failures keep the registered account
       assert.are.equal("user2", kosync.settings.username)
