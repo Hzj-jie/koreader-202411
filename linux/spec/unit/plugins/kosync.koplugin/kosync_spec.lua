@@ -487,6 +487,10 @@ describe("KOSync plugin tests", function()
   end)
 
   describe("Login and Registration", function()
+    local function lastShownText()
+      return UIManager.show.calls[#UIManager.show.calls].refs[2].text
+    end
+
     it("shows login dialog and handles invalid user input", function()
       kosync:init()
       kosync:_login()
@@ -558,25 +562,26 @@ describe("KOSync plugin tests", function()
       assert.are.equal("user1", kosync.settings.username)
       assert.is_string(kosync.settings.userkey)
       assert.spy(mock_menu.updateItems).was_called()
-      assert.stub(UIManager.show).was_called()
+      assert.are.equal("Logged in to KOReader server.", lastShownText())
+      local userkey = kosync.settings.userkey
 
-      -- Client returns ok = false (status error)
+      -- Server rejects the login with a message
       mock_client.authorize = spy.new(function()
-        return false, "Invalid password"
+        return false, { message = "Account suspended" }
       end)
       kosync:_doLogin("user1", "wrongpass", mock_menu)
+      assert.are.equal("Account suspended", lastShownText())
 
-      -- Client returns ok = false (no status)
+      -- Request fails without a response body
       mock_client.authorize = spy.new(function()
         return false, nil
       end)
       kosync:_doLogin("user1", "wrongpass", mock_menu)
+      assert.are.equal("Unknown server error", lastShownText())
 
-      -- Client returns status = false, body = error
-      mock_client.authorize = spy.new(function()
-        return true, false, { message = "Account suspended" }
-      end)
-      kosync:_doLogin("user1", "wrongpass", mock_menu)
+      -- Failures keep the logged-in account
+      assert.are.equal(userkey, kosync.settings.userkey)
+      assert.spy(mock_menu.updateItems).was_called(1)
     end)
 
     it("handles _doRegister success and failure cases", function()
@@ -588,24 +593,27 @@ describe("KOSync plugin tests", function()
       assert.are.equal("user2", kosync.settings.username)
       assert.is_string(kosync.settings.userkey)
       assert.spy(mock_menu.updateItems).was_called()
+      assert.are.equal("Registered to KOReader server.", lastShownText())
+      local userkey = kosync.settings.userkey
 
-      -- Client returns ok = false (status error)
+      -- Server rejects the registration with a message
       mock_client.register = spy.new(function()
-        return false, "User exists"
+        return false, { message = "Registration forbidden" }
       end)
-      kosync:_doRegister("user2", "pass2", mock_menu)
+      kosync:_doRegister("user3", "pass3", mock_menu)
+      assert.are.equal("Registration forbidden", lastShownText())
 
-      -- Client returns ok = false (no status)
+      -- Request fails without a response body
       mock_client.register = spy.new(function()
         return false, nil
       end)
-      kosync:_doRegister("user2", "pass2", mock_menu)
+      kosync:_doRegister("user3", "pass3", mock_menu)
+      assert.are.equal("Unknown server error", lastShownText())
 
-      -- Client returns status = false, body = error
-      mock_client.register = spy.new(function()
-        return true, false, { message = "Registration forbidden" }
-      end)
-      kosync:_doRegister("user2", "pass2", mock_menu)
+      -- Failures keep the registered account
+      assert.are.equal("user2", kosync.settings.username)
+      assert.are.equal(userkey, kosync.settings.userkey)
+      assert.spy(mock_menu.updateItems).was_called(1)
     end)
 
     it("handles _logout", function()
