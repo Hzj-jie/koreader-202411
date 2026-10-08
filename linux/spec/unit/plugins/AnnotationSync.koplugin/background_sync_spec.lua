@@ -242,6 +242,9 @@ describe("Background Sync Behavior", function()
   end)
 
   describe("BackgroundJobs fork dispatching and execution", function()
+    -- Records the file of each _startSync call. Call the returned restore
+    -- function from the test's finally: a test keeps only its last finally,
+    -- so one registered here would replace the test's or be replaced by it.
     local function track_dispatched_file()
       local dispatched = {}
       local old_startSync = sync_manager._startSync
@@ -249,14 +252,9 @@ describe("Background Sync Behavior", function()
         dispatched.file = file
         return old_startSync(self_m, file, ...)
       end
-      finally(function()
+      return dispatched, function()
         sync_manager._startSync = old_startSync
-      end)
-      return setmetatable(dispatched, {
-        __call = function(self)
-          return self.file
-        end,
-      })
+      end
     end
 
     it(
@@ -434,10 +432,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_fail.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
@@ -476,10 +475,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_crash.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         for _, invalid_res in ipairs({ false, 222, 255 }) do
           os.remove(sync_manager:changedDocumentsFile())
@@ -525,10 +525,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_fifo.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         local track_path = sync_manager:changedDocumentsFile()
         util.writeToFile(dump({ doc2, doc1 }), track_path, true)
@@ -637,10 +638,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_mid_edit.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         local track_path = sync_manager:changedDocumentsFile()
         util.writeToFile(dump({ doc1, doc2 }), track_path, true)
@@ -944,8 +946,9 @@ describe("Background Sync Behavior", function()
         local doc2 = test_data_dir .. "/doc_next_after_rem.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc1)
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
-        local get_dispatched = track_dispatched_file()
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           NetworkMgr.isOnline = old_isOnline
           os.remove(doc1)
           os.remove(doc2)
@@ -979,7 +982,7 @@ describe("Background Sync Behavior", function()
 
         -- Exactly one new fork job: doc1 was never forked, doc2 was dispatched and forked
         assert.is_equal(initial_count + 1, #jobs)
-        assert.is_equal(doc2, get_dispatched())
+        assert.is_equal(doc2, dispatched.file)
 
         local _, pending = sync_manager:getPendingChangedDocuments()
         assert.are.same({ doc2 }, pending)
