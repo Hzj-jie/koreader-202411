@@ -53,41 +53,9 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
   end)
 
   describe("recordSyncState unit tests", function()
-    it(
-      "correctly formats and records last_sync timestamp with descriptor",
-      function()
-        sync_instance.manager:recordSyncState("Manual Sync")
-        assert.truthy(
-          sync_instance.settings.last_sync:match(
-            "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d %((Manual Sync)%)"
-          )
-        )
-
-        sync_instance.manager:recordSyncState("Sync All")
-        assert.truthy(
-          sync_instance.settings.last_sync:match(
-            "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d %((Sync All)%)"
-          )
-        )
-
-        sync_instance.manager:recordSyncState("Auto Sync (5)")
-        assert.truthy(
-          sync_instance.settings.last_sync:match(
-            "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d %((Auto Sync %(5%))%)"
-          )
-        )
-      end
-    )
-
-    it("handles nil or empty descriptor gracefully", function()
-      sync_instance.manager:recordSyncState(nil)
-      assert.truthy(
-        sync_instance.settings.last_sync:match(
-          "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"
-        )
-      )
-
-      sync_instance.manager:recordSyncState("")
+    it("records the time of the sync", function()
+      sync_instance.settings.last_sync = "Never"
+      sync_instance.manager:recordSyncState()
       assert.truthy(
         sync_instance.settings.last_sync:match(
           "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"
@@ -111,12 +79,13 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
         end
 
         local restore_jobs = test_utils.run_jobs_inline()
+        sync_instance.settings.last_sync = "Never"
 
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
         sync_instance.manager:syncAllChangedDocuments()
 
         assert.is_true(run_online_called)
-        assert.truthy(sync_instance.settings.last_sync:match("Sync All"))
+        assert.is_not_equal("Never", sync_instance.settings.last_sync)
 
         NetworkMgr.runWhenOnline = old_runWhenOnline
         restore_jobs()
@@ -162,11 +131,12 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
       end
 
       local restore_jobs = test_utils.run_jobs_inline()
+      sync_instance.settings.last_sync = "Never"
 
       sync_instance:manualSync()
 
       assert.is_true(run_online_called)
-      assert.truthy(sync_instance.settings.last_sync:match("Manual Sync"))
+      assert.is_not_equal("Never", sync_instance.settings.last_sync)
 
       NetworkMgr.runWhenOnline = old_runWhenOnline
       restore_jobs()

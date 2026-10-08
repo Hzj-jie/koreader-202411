@@ -1,9 +1,12 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local docsettings = require("frontend/docsettings")
 local dump = require("dump")
 local gettext = require("gettext")
+local N_ = gettext.ngettext
+local T = require("ffi/util").template
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -18,14 +21,22 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local ONLINE_RETRY_INTERVAL = 10
 
+-- The file name of a book, for messages.
+local function book_name(file)
+  local _, name = util.splitFilePathName(file)
+  return name
+end
+
 -- Background job callbacks and offline-queued syncs outlive the ReaderUI or
 -- FileManager whose plugin queued them. Every plugin instance shares this
 -- singleton table, and the latest plugin to init owns it.
 local SyncManager = {
   running = nil,
-  -- Books the user asked to sync: file -> "Manual Sync" or "Sync All". They
-  -- run before the others, even with auto sync off. A request is used up
-  -- when its job starts, or dropped when the book leaves the queue.
+  -- Books the user asked to sync: file -> "Manual Sync" ("Sync current book
+  -- now", or "Sync" in the pending books list) or "Sync All" ("Sync all
+  -- pending books"). They run before the others, even with auto sync off. A
+  -- request is used up when its job starts, or dropped when the book leaves
+  -- the queue.
   requested = {},
 }
 
@@ -43,10 +54,14 @@ function SyncManager:getDeviceName()
   return Device.model or "unknown"
 end
 
--- Manual Sync and "Sync now": queues the book first, its sync is forced.
+-- "Sync current book now" and "Sync" in the pending books list: queues the
+-- book first, its sync is forced.
 function SyncManager:syncNow(file)
   self:_moveToFront(file)
   self.requested[file] = "Manual Sync"
+  Notification:notify(
+    T(gettext("Syncing in the background: %1"), book_name(file))
+  )
   NetworkMgr:runWhenOnline(function()
     self:_dispatchNextSync()
   end)
@@ -56,7 +71,7 @@ end
 function SyncManager:syncAllChangedDocuments()
   local total, changed_docs = self:getPendingChangedDocuments()
   if total == 0 then
-    utils.show_msg("No changed documents to sync.")
+    utils.show_msg(gettext("No pending books."))
     return
   end
 
@@ -64,6 +79,16 @@ function SyncManager:syncAllChangedDocuments()
     -- Keep a Manual Sync request: it is forced.
     self.requested[file] = self.requested[file] or "Sync All"
   end
+  Notification:notify(
+    T(
+      N_(
+        "Syncing 1 book in the background",
+        "Syncing %1 books one by one in the background",
+        total
+      ),
+      total
+    )
+  )
   NetworkMgr:runWhenOnline(function()
     self:_dispatchNextSync()
   end)
@@ -174,6 +199,12 @@ function SyncManager:_startSync(file, trigger)
       }
     end,
     callback = function(job)
+      -- Was a Manual Sync asked for this book? One asked before this job
+      -- started is in trigger (_dispatchNextSync moved requested[file] there),
+      -- one asked while it ran is in requested[file]. Read it now: the queue
+      -- update below can clear it.
+      local asked = trigger == "Manual Sync"
+        or self.requested[file] == "Manual Sync"
       local item = job.result
       if type(item) ~= "table" then
         logger.warn(
@@ -194,7 +225,7 @@ function SyncManager:_startSync(file, trigger)
           uploaded_json
         )
         self:_movePendingDocumentToBack(file)
-        self:recordSyncState(trigger)
+        self:recordSyncState()
         logger.info(
           "AnnotationSync: background sync completed for",
           file
@@ -207,6 +238,15 @@ function SyncManager:_startSync(file, trigger)
         os.remove(item.json_path .. ".uploaded")
       end
       self.running = nil
+      -- A Manual Sync asked while this job ran is still requested if the book
+      -- changed meanwhile or the job failed. The book's next job answers it.
+      if asked and self.requested[file] ~= "Manual Sync" then
+        if item.success then
+          Notification:notify(T(gettext("Synced: %1"), book_name(file)))
+        else
+          utils.show_msg(T(gettext("Failed to sync %1."), book_name(file)))
+        end
+      end
       self:_dispatchNextSync(not item.success)
     end,
   }))
@@ -234,7 +274,7 @@ function SyncManager:_dispatchNextSync(failed)
     return false
   end
 
-  local trigger = self.requested[file] or "Auto Sync"
+  local trigger = self.requested[file]
   self.requested[file] = nil
   self.running = true
   NetworkMgr:willRerunWhenOnline(function()
@@ -455,12 +495,8 @@ function SyncManager:getDeletedAnnotations(document)
   return annotations.sort(deleted)
 end
 
-function SyncManager:recordSyncState(descriptor)
-  local parenthetical = ""
-  if type(descriptor) == "string" and descriptor ~= "" then
-    parenthetical = " (" .. descriptor .. ")"
-  end
-  self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S") .. parenthetical
+function SyncManager:recordSyncState()
+  self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S")
   logger.dbg(
     "AnnotationSync: recordSyncState: updated at",
     self.plugin.settings.last_sync

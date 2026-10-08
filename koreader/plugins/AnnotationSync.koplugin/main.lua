@@ -7,6 +7,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
 local T = require("ffi/util").template
 local gettext = require("gettext")
+local N_ = gettext.ngettext
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
@@ -21,9 +22,9 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 local SyncService = require("apps/cloudstorage/syncservice")
 
 local manual_sync_description =
-  "Sync annotations and bookmarks of the active document."
+  gettext("Sync annotations and bookmarks of the current book.")
 local sync_all_description =
-  "Sync annotations and bookmarks of all unsynced documents with pending modifications."
+  gettext("Sync annotations and bookmarks of all pending books.")
 
 local AnnotationSyncPlugin = WidgetContainer:extend({
   -- see also: _meta.lua
@@ -120,9 +121,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
             end,
           },
           {
-            text = gettext(
-              "Automatically Sync All when network becomes available"
-            ),
+            text = gettext("Sync pending books automatically"),
             checked_func = function()
               return self.settings.network_auto_sync
             end,
@@ -207,7 +206,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Manual Sync"),
+        text = gettext("Sync current book now"),
         enabled_func = function()
           return ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
             and self.ui.document ~= nil
@@ -220,7 +219,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Sync All"),
+        text = gettext("Sync all pending books"),
         enabled_func = function()
           return true
         end,
@@ -233,22 +232,24 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         separator = true,
       },
       {
-        text = gettext("Scan library for unsynced annotations"),
+        text = gettext("Add books from reading history"),
         enabled_func = function()
           return true
         end,
         callback = function()
           utils.show_msg(
             gettext(
-              "Scanning library for annotations...\nThis may take a while if the library is large."
+              "Adding books from reading history…\nThis may take a while if the history is long."
             )
           )
           UIManager:scheduleIn(0.1, function()
             local count = self.manager:scanLibraryForUnsyncedDocuments()
             utils.show_msg(
               T(
-                gettext(
-                  "Scan complete: added %1 book(s) with annotations to sync list.\nBackground syncing all files may take some time, during which KOReader performance may be reduced."
+                N_(
+                  "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down.",
+                  "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down.",
+                  count
                 ),
                 count
               )
@@ -257,7 +258,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Show pending/unsynced documents"),
+        text = gettext("Show pending books"),
         enabled_func = function()
           return true
         end,
@@ -266,7 +267,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Show Deleted"),
+        text = gettext("Show deleted annotations"),
         enabled_func = function()
           return self.ui.document ~= nil
         end,
@@ -365,8 +366,8 @@ function AnnotationSyncPlugin:onDispatcherRegisterActions()
   Dispatcher:registerAction("annotation_sync_manual_sync", {
     category = "none",
     event = "AnnotationSyncManualSync",
-    title = gettext("AnnotationSync: Manual Sync"),
-    text = gettext(manual_sync_description),
+    title = gettext("AnnotationSync: Sync current book now"),
+    text = manual_sync_description,
     separator = true,
     reader = true,
   })
@@ -389,8 +390,8 @@ function AnnotationSyncPlugin:onDispatcherRegisterActions()
   Dispatcher:registerAction("annotation_sync_sync_all", {
     category = "none",
     event = "AnnotationSyncSyncAll",
-    title = gettext("AnnotationSync: Sync All"),
-    text = gettext(sync_all_description),
+    title = gettext("AnnotationSync: Sync all pending books"),
+    text = sync_all_description,
     separator = true,
     general = true,
   })
@@ -421,7 +422,7 @@ function AnnotationSyncPlugin:manualSync()
   local document = self.ui.document
   local file = document and document.file
   if not file then
-    utils.show_msg("A document must be active to do a manual sync.")
+    utils.show_msg(gettext("No book is open."))
     return
   end
   self.manager:syncNow(file)

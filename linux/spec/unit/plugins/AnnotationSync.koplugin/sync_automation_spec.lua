@@ -244,7 +244,7 @@ describe("AnnotationSync Automation & Settings", function()
           menu_items.annotation_sync_plugin.sub_item_table[1].sub_item_table
         local menu_item
         for _, sub in ipairs(settings_table) do
-          if sub.text and sub.text:match("Automatically Sync All") then
+          if sub.text == "Sync pending books automatically" then
             menu_item = sub
             break
           end

@@ -128,7 +128,11 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
 
       sync_instance:manualSync()
 
-      assert.truthy(sync_instance.settings.last_sync:find("%(Manual Sync%)"))
+      assert.truthy(
+        sync_instance.settings.last_sync:match(
+          "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"
+        )
+      )
     end)
   end)
 

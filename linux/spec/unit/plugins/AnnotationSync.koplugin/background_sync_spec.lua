@@ -1052,6 +1052,7 @@ describe("Background Sync Behavior", function()
     it(
       "removes successfully synced documents from changed_documents and updates sync timestamp",
       function()
+        plugin_instance.settings.last_sync = "Never"
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
         local job = require("pluginshare").backgroundJobs[#require(
@@ -1072,7 +1073,11 @@ describe("Background Sync Behavior", function()
 
         local total, _ = sync_manager:getPendingChangedDocuments()
         assert.is_equal(0, total)
-        assert.truthy(plugin_instance.settings.last_sync:match("Auto Sync"))
+        assert.truthy(
+          plugin_instance.settings.last_sync:match(
+            "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"
+          )
+        )
       end
     )
 
@@ -2560,9 +2565,12 @@ describe("Background Sync Behavior", function()
 
   describe("Manual Sync, Sync now and Sync All", function()
     local restore_jobs, old_sync_annotations, old_use_filename
+    local old_notify, old_show_msg
     -- synced: the books each job synced, "!" when forced. during[name] runs
     -- once inside the book's job, failing[name] fails its jobs.
     local synced, failing, during
+    -- toasts and boxes: the texts of the notifications and message boxes.
+    local toasts, boxes
 
     local function new_doc(tag)
       local doc = test_data_dir .. "/" .. tag .. ".epub"
@@ -2607,12 +2615,24 @@ describe("Background Sync Behavior", function()
           cached_path
         )
       end
+      toasts, boxes = {}, {}
+      local Notification = require("ui/widget/notification")
+      old_notify = Notification.notify
+      Notification.notify = function(_, text)
+        table.insert(toasts, text)
+      end
+      old_show_msg = utils.show_msg
+      utils.show_msg = function(text)
+        table.insert(boxes, text)
+      end
     end)
 
     after_each(function()
       restore_jobs()
       remote.sync_annotations = old_sync_annotations
       plugin_instance.settings.use_filename = old_use_filename
+      require("ui/widget/notification").notify = old_notify
+      utils.show_msg = old_show_msg
     end)
 
     it(
@@ -2632,9 +2652,6 @@ describe("Background Sync Behavior", function()
         assert.are.same({ "juliet.epub!" }, synced)
         assert.is_false(is_pending(juliet))
         assert.is_true(is_pending(a))
-        assert.is_truthy(
-          plugin_instance.settings.last_sync:find("(Manual Sync)", 1, true)
-        )
       end
     )
 
@@ -2650,9 +2667,6 @@ describe("Background Sync Behavior", function()
       assert.are.same({ "a.epub", "b.epub" }, synced)
       assert.is_true(is_pending(a))
       assert.is_false(is_pending(b))
-      assert.is_truthy(
-        plugin_instance.settings.last_sync:find("(Sync All)", 1, true)
-      )
     end)
 
     it("Manual Sync goes before the books Sync All requested", function()
@@ -2727,6 +2741,147 @@ describe("Background Sync Behavior", function()
         assert.are.same({ "b.epub" }, synced)
         assert.is_true(is_pending(a))
         assert.is_false(is_pending(b))
+      end
+    )
+
+    it(
+      "Manual Sync shows a notification at the tap and when the book is synced",
+      function()
+        plugin_instance:manualSync()
+
+        assert.are.same({ "juliet.epub!" }, synced)
+        assert.are.same(
+          { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
+          toasts
+        )
+        assert.are.same({}, boxes)
+      end
+    )
+
+    it("a failed Manual Sync shows a message box", function()
+      failing["juliet.epub"] = true
+
+      plugin_instance:manualSync()
+
+      assert.are.same({ "juliet.epub!" }, synced)
+      assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+      assert.are.same({ "Failed to sync juliet.epub." }, boxes)
+    end)
+
+    it(
+      "Sync All shows one notification at the tap and nothing per book",
+      function()
+        local a = new_doc("a")
+        sync_manager:addToChangedDocumentsFile(a)
+        sync_manager:addToChangedDocumentsFile(new_doc("b"))
+        failing["a.epub"] = true
+
+        sync_manager:syncAllChangedDocuments()
+
+        assert.are.same({ "a.epub", "b.epub" }, synced)
+        assert.are.same(
+          { "Syncing 2 books one by one in the background" },
+          toasts
+        )
+        assert.are.same({}, boxes)
+
+        -- The failed book is still pending.
+        failing["a.epub"] = nil
+        toasts = {}
+        sync_manager:syncAllChangedDocuments()
+
+        assert.are.same({ "a.epub", "b.epub", "a.epub" }, synced)
+        assert.are.same({ "Syncing 1 book in the background" }, toasts)
+        assert.is_false(is_pending(a))
+      end
+    )
+
+    it(
+      "a Manual Sync tapped while the book's auto sync runs is answered by it",
+      function()
+        plugin_instance.settings.network_auto_sync = true
+        during["juliet.epub"] = function()
+          plugin_instance:manualSync()
+        end
+
+        sync_manager:addToChangedDocumentsFile(readerui.document.file)
+
+        assert.are.same({ "juliet.epub" }, synced)
+        assert.are.same(
+          { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
+          toasts
+        )
+      end
+    )
+
+    it(
+      "if the book changed during that sync, the next sync answers, once",
+      function()
+        plugin_instance.settings.network_auto_sync = true
+        local doc = readerui.document
+        during["juliet.epub"] = function()
+          table.insert(readerui.annotation.annotations, {
+            page = doc:getPageXPointer(5),
+            pos0 = doc:getPageXPointer(5),
+            pos1 = doc:getPageXPointer(6),
+            text = "added during the sync",
+            datetime = "2026-01-01 10:00:00",
+            drawer = "lighten",
+            color = "yellow",
+          })
+          plugin_instance:manualSync()
+        end
+
+        sync_manager:addToChangedDocumentsFile(doc.file)
+
+        assert.are.same({ "juliet.epub", "juliet.epub!" }, synced)
+        assert.are.same(
+          { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
+          toasts
+        )
+      end
+    )
+
+    it(
+      "a tap during a failing sync gets one message box, after the retry",
+      function()
+        failing["juliet.epub"] = true
+        during["juliet.epub"] = function()
+          plugin_instance:manualSync()
+        end
+
+        plugin_instance:manualSync()
+
+        assert.are.same({ "juliet.epub!", "juliet.epub!" }, synced)
+        assert.are.same({ "Failed to sync juliet.epub." }, boxes)
+      end
+    )
+
+    it(
+      "a Sync All tapped during a Manual Sync leaves it its notification",
+      function()
+        local doc = readerui.document
+        during["juliet.epub"] = function()
+          table.insert(readerui.annotation.annotations, {
+            page = doc:getPageXPointer(5),
+            pos0 = doc:getPageXPointer(5),
+            pos1 = doc:getPageXPointer(6),
+            text = "added during the sync",
+            datetime = "2026-01-01 10:00:00",
+            drawer = "lighten",
+            color = "yellow",
+          })
+          sync_manager:syncAllChangedDocuments()
+        end
+
+        plugin_instance:manualSync()
+
+        assert.are.same({ "juliet.epub!", "juliet.epub" }, synced)
+        assert.are.same({
+          "Syncing in the background: juliet.epub",
+          "Syncing 1 book in the background",
+          "Synced: juliet.epub",
+        }, toasts)
       end
     )
   end)

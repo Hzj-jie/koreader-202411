@@ -266,7 +266,7 @@ end
 function M.show_pending_documents(plugin)
   local total, changed_docs = plugin.manager:getPendingChangedDocuments()
   if total == 0 then
-    utils.show_msg(gettext("No pending documents to sync."))
+    utils.show_msg(gettext("No pending books."))
     return
   end
 
@@ -290,11 +290,8 @@ function M.show_pending_documents(plugin)
       text = clean_filename,
       callback = function()
         UIManager:show(ConfirmBox:new({
-          text = T(
-            gettext("Do you want to sync this document?\n\n%1"),
-            clean_filename
-          ),
-          ok_text = gettext("Sync now"),
+          text = T(gettext("Sync this book now?\n\n%1"), clean_filename),
+          ok_text = gettext("Sync"),
           cancel_text = gettext("Cancel"),
           ok_callback = function()
             plugin.manager:syncNow(file)
@@ -306,7 +303,7 @@ function M.show_pending_documents(plugin)
                 callback = function()
                   plugin.manager:removeFromChangedDocumentsFileByPath(file)
                   utils.show_msg(
-                    T(gettext("Removed %1 from sync list"), clean_filename)
+                    T(gettext("Removed %1 from pending books."), clean_filename)
                   )
                   if pending_menu then
                     UIManager:close(pending_menu)
@@ -322,7 +319,7 @@ function M.show_pending_documents(plugin)
   end
 
   pending_menu = Menu:new({
-    title = gettext("Pending Documents"),
+    title = gettext("Pending books"),
     item_table = menu_items,
   })
   UIManager:show(pending_menu)

@@ -24787,14 +24787,6 @@ msgstr "注释"
 #~ msgid "%1/%2"
 #~ msgstr "%1/%2"
 
-#: plugins/AnnotationSync.koplugin/annotations.lua:34
-msgid "AnnotationSync: Failed to load local sync files. Sync aborted."
-msgstr "标注同步：无法加载本地同步文件。同步已中止。"
-
-#: plugins/AnnotationSync.koplugin/annotations.lua:119
-msgid "AnnotationSync: Remote file appears corrupted or server error. Sync aborted."
-msgstr "标注同步：远程文件损坏或服务器错误。同步已中止。"
-
 # --- AnnotationSync plugin translations ---
 
 msgid "Annotation Sync"
@@ -24806,50 +24798,73 @@ msgstr "在多台设备间同步标注与书签。"
 msgid "Cloud settings"
 msgstr "云端设置"
 
-msgid "Manual Sync"
-msgstr "手动同步"
+msgid "Sync current book now"
+msgstr "立即同步当前书籍"
 
-msgid "Sync All"
-msgstr "全部同步"
+msgid "Sync all pending books"
+msgstr "同步全部待同步书籍"
 
-msgid "No changed documents to sync."
-msgstr "没有需要同步的已修改文档。"
+msgid "Show pending books"
+msgstr "显示待同步书籍"
 
-msgid "Sync All paused.\nDo you want to continue or abort syncing documents?"
-msgstr "全部同步已暂停。\n是否继续或放弃同步文档？"
+msgid "Add books from reading history"
+msgstr "从阅读历史添加书籍"
 
-msgid "Syncing document %1 of %2...\n%3"
-msgstr "正在同步文档 (%1/%2)...\n%3"
+msgid "Show deleted annotations"
+msgstr "显示已删除的标注"
 
-msgid "Sync All cancelled."
-msgstr "全部同步已取消。"
+msgid "Sync pending books automatically"
+msgstr "自动同步待同步书籍"
 
-msgid "Unable to sync modified documents: %1"
-msgstr "无法同步已修改的文档: %1"
+msgid "AnnotationSync: Sync current book now"
+msgstr "标注同步：立即同步当前书籍"
 
-msgid "Successfully synced modified documents: %1"
-msgstr "成功同步已修改的文档: %1"
+msgid "AnnotationSync: Sync all pending books"
+msgstr "标注同步：同步全部待同步书籍"
 
-msgid "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
-msgstr "无法同步以下文档:\n%1\n\n是否打开待处理文档管理器？"
+msgid "Sync annotations and bookmarks of the current book."
+msgstr "同步当前书籍的标注与书签。"
 
-msgid "Open Manager"
-msgstr "打开管理器"
+msgid "Sync annotations and bookmarks of all pending books."
+msgstr "同步全部待同步书籍的标注与书签。"
 
-msgid "Show pending/unsynced documents"
-msgstr "显示待处理/未同步的文档"
+msgid "Adding books from reading history…\nThis may take a while if the history is long."
+msgstr "正在从阅读历史添加书籍…\n阅读历史较长时可能需要一段时间。"
 
-msgid "Show Deleted"
-msgstr "显示已删除项目"
+msgid "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down."
+msgid_plural "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down."
+msgstr[0] "阅读历史中有 %1 本书待同步。\n同步可能需要一段时间，期间 KOReader 可能变慢。"
 
-msgid "Scan library for unsynced annotations"
-msgstr "扫描藏书馆寻找未同步的标注"
+msgid "No book is open."
+msgstr "没有打开的书籍。"
 
-msgid "Scanning library for annotations...\nThis may take a while if the library is large."
-msgstr "正在扫描藏书馆中的标注...\n藏书量较大时可能需要较长时间。"
+msgid "No pending books."
+msgstr "没有待同步的书籍。"
 
-msgid "Scan complete: added %1 book(s) with annotations to sync list.\nBackground syncing all files may take some time, during which KOReader performance may be reduced."
-msgstr "扫描完成：已将 %1 本包含标注的图书添加到同步列表。\n后台同步所有文件可能需要一段时间，在此期间 KOReader 性能可能会有所降低。"
+msgid "Pending books"
+msgstr "待同步书籍"
+
+msgid "Sync this book now?\n\n%1"
+msgstr "立即同步这本书？\n\n%1"
+
+msgid "Sync"
+msgstr "同步"
+
+msgid "Removed %1 from pending books."
+msgstr "已将 %1 从待同步书籍中移除。"
+
+msgid "Syncing in the background: %1"
+msgstr "正在后台同步：%1"
+
+msgid "Syncing 1 book in the background"
+msgid_plural "Syncing %1 books one by one in the background"
+msgstr[0] "正在后台依次同步 %1 本书"
+
+msgid "Synced: %1"
+msgstr "已同步：%1"
+
+msgid "Failed to sync %1."
+msgstr "同步 %1 失败。"
 
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
