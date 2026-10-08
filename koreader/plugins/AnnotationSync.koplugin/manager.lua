@@ -630,55 +630,11 @@ function SyncManager:getSelectedSettingsWithValues()
     return nil
   end
 
-  -- Load active reader settings
-  local active_reader_path = DataStorage:getDataDir() .. "/settings.reader.lua"
-  local ok_a, active_reader = pcall(dofile, active_reader_path)
-  if not ok_a or type(active_reader) ~= "table" then
-    active_reader = {}
-  end
-
-  -- Load active defaults settings
-  local active_defaults_path = DataStorage:getDataDir()
-    .. "/defaults.custom.lua"
-  local ok_ad, active_defaults = pcall(dofile, active_defaults_path)
-  if not ok_ad or type(active_defaults) ~= "table" then
-    active_defaults = {}
-  end
-
-  -- Cache for loaded settings files in settings/ directory
-  local settings_cache = {}
-
+  local caches = {}
   local result = {}
   for key, is_selected in pairs(selected) do
     if is_selected then
-      local domain, full_key = key:match("^([^:]+):(.*)$")
-      if domain and full_key then
-        local val
-        if domain == "reader" then
-          val = utils.get_nested_value(active_reader, full_key)
-        elseif domain == "defaults" then
-          val = utils.get_nested_value(active_defaults, full_key)
-        elseif domain:match("^settings/") then
-          local settings_name = domain:sub(10)
-          if settings_cache[settings_name] == nil then
-            local filepath = DataStorage:getSettingsDir()
-              .. "/"
-              .. settings_name
-              .. ".lua"
-            local ok_s, a_tbl = pcall(dofile, filepath)
-            if ok_s and type(a_tbl) == "table" then
-              settings_cache[settings_name] = a_tbl
-            else
-              settings_cache[settings_name] = false
-            end
-          end
-          local tbl = settings_cache[settings_name]
-          if tbl then
-            val = utils.get_nested_value(tbl, full_key)
-          end
-        end
-        result[key] = val
-      end
+      result[key] = self:getLocalSettingValue(key, caches)
     end
   end
 

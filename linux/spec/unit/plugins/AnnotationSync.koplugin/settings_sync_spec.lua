@@ -82,6 +82,36 @@ return {
   end)
 
   it(
+    "should retrieve selected settings from defaults.custom.lua and settings/*.lua",
+    function()
+      local defaults_path = test_data_dir .. "/defaults.custom.lua"
+      local profiles_path = test_data_dir .. "/settings/profiles.lua"
+      finally(function()
+        os.remove(defaults_path)
+        os.remove(profiles_path)
+      end)
+      local f = io.open(defaults_path, "w")
+      f:write([[return { ["DTAP_ZONE_MENU"] = { ["h"] = 0.25 } }]])
+      f:close()
+      f = io.open(profiles_path, "w")
+      f:write([[return { ["night"] = { ["dark_mode"] = true } }]])
+      f:close()
+
+      sync_instance.settings.selected_settings = {
+        ["defaults:DTAP_ZONE_MENU.h"] = true,
+        ["settings/profiles:night.dark_mode"] = true,
+        ["settings/missing:night.dark_mode"] = true,
+        ["defaults:DTAP_ZONE_MENU"] = false,
+      }
+
+      assert.are.same({
+        ["defaults:DTAP_ZONE_MENU.h"] = 0.25,
+        ["settings/profiles:night.dark_mode"] = true,
+      }, sync_instance.manager:getSelectedSettingsWithValues())
+    end
+  )
+
+  it(
     "should correctly write local file and sync it using remote.push_settings",
     function()
       -- Configure mock sync server
