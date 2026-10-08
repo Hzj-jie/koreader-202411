@@ -33,7 +33,6 @@ local DEFAULT_DISABLED_PLUGINS = {
 }
 
 local PluginLoader = {
-  show_info = true,
   enabled_plugins = nil,
   disabled_plugins = nil,
   all_plugins = nil,

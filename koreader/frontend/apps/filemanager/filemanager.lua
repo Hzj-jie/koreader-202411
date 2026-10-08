@@ -866,7 +866,7 @@ end
 
 function FileManager:restart()
   local path = self:getCurrentDir()
-  local focused_file = self.focused_file
+  local focused_file = self.file_chooser.prev_focused_path
   local selected_files = self.selected_files
   self:onShowingReader()
   FileManager:showFiles(path, focused_file, selected_files)
