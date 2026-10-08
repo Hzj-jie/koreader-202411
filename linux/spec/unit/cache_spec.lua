@@ -61,19 +61,26 @@ describe("Cache module", function()
 
   describe("disk cache fallback", function()
     local Cache = require("cache")
+    local lfs = require("libs/libkoreader-lfs")
     local util = require("util")
     local original_isDirRW = util.isDirRW
+    local original_lfs_dir = lfs.dir
+    local original_lfs_attributes = lfs.attributes
+    local original_lfs_mkdir = lfs.mkdir
+    local original_disk_cache
 
     before_each(function()
-      require("datastorage"):reset()
+      original_disk_cache = DocCache.disk_cache
+      package.loaded["datastorage"] = nil
     end)
 
     after_each(function()
       util.isDirRW = original_isDirRW
-      local ds = package.loaded["datastorage"]
-      if ds and ds.reset then
-        ds:reset()
-      end
+      lfs.dir = original_lfs_dir
+      lfs.attributes = original_lfs_attributes
+      lfs.mkdir = original_lfs_mkdir
+      DocCache.disk_cache = original_disk_cache
+      package.loaded["datastorage"] = nil
     end)
 
     it(
@@ -113,12 +120,10 @@ describe("Cache module", function()
     end)
 
     it("skips serialization safely when disk_cache is disabled", function()
-      local orig_disk_cache = DocCache.disk_cache
       DocCache.disk_cache = false
       assert.has_no_errors(function()
         DocCache:serialize()
       end)
-      DocCache.disk_cache = orig_disk_cache
     end)
 
     it("skips serialization safely when cache_path is unwritable", function()
@@ -164,10 +169,6 @@ describe("Cache module", function()
     it(
       "populates self.cached from existing cache even if cache_path is not writable",
       function()
-        local lfs = require("libs/libkoreader-lfs")
-        local orig_lfs_dir = lfs.dir
-        local orig_lfs_attributes = lfs.attributes
-
         lfs.dir = function(path)
           local items = { "abc", "def" }
           local i = 0
@@ -201,20 +202,12 @@ describe("Cache module", function()
         assert.is_not_nil(c.cached)
         assert.are.equal("/readonly/cache/abc", c.cached["abc"])
         assert.are.equal("/readonly/cache/def", c.cached["def"])
-
-        lfs.dir = orig_lfs_dir
-        lfs.attributes = orig_lfs_attributes
       end
     )
 
     it(
       "creates cache directory via lfs.mkdir in refreshSnapshot if it does not exist",
       function()
-        local lfs = require("libs/libkoreader-lfs")
-        local orig_lfs_dir = lfs.dir
-        local orig_lfs_attributes = lfs.attributes
-        local orig_lfs_mkdir = lfs.mkdir
-
         local dir_created = false
         lfs.mkdir = function(path)
           if path == "/missing/cache/" then
@@ -248,21 +241,12 @@ describe("Cache module", function()
         assert.is_true(dir_created)
         assert.is_table(c.cached)
         assert.are.same({}, c.cached)
-
-        lfs.dir = orig_lfs_dir
-        lfs.attributes = orig_lfs_attributes
-        lfs.mkdir = orig_lfs_mkdir
       end
     )
 
     it(
       "safely returns empty table in refreshSnapshot if directory does not exist and cannot be created",
       function()
-        local lfs = require("libs/libkoreader-lfs")
-        local orig_lfs_dir = lfs.dir
-        local orig_lfs_attributes = lfs.attributes
-        local orig_lfs_mkdir = lfs.mkdir
-
         lfs.mkdir = function()
           return nil, "Permission denied"
         end
@@ -293,20 +277,12 @@ describe("Cache module", function()
         assert.is_false(dir_called)
         assert.is_table(c.cached)
         assert.are.same({}, c.cached)
-
-        lfs.dir = orig_lfs_dir
-        lfs.attributes = orig_lfs_attributes
-        lfs.mkdir = orig_lfs_mkdir
       end
     )
 
     it(
       "handles lfs.dir error in refreshSnapshot gracefully",
       function()
-        local lfs = require("libs/libkoreader-lfs")
-        local orig_lfs_dir = lfs.dir
-        local orig_lfs_attributes = lfs.attributes
-
         lfs.attributes = function(path, request)
           if request == "mode" then
             return "directory"
@@ -330,29 +306,22 @@ describe("Cache module", function()
         end)
         assert.is_table(c.cached)
         assert.are.same({}, c.cached)
-
-        lfs.dir = orig_lfs_dir
-        lfs.attributes = orig_lfs_attributes
       end
     )
 
     it(
       "falls back to DataStorage:getCacheDirOrNil when configured cache_path is unwritable",
       function()
-        local lfs = require("libs/libkoreader-lfs")
-        local orig_lfs_dir = lfs.dir
         lfs.dir = function()
           return function()
             return nil
           end
         end
 
-        local orig_ds = package.loaded["datastorage"]
         package.loaded["datastorage"] = {
           getCacheDirOrNil = function()
             return "/mock/ds/cache"
           end,
-          reset = function() end,
         }
 
         util.isDirRW = function(dir)
@@ -370,9 +339,6 @@ describe("Cache module", function()
 
         assert.is_true(c.disk_cache)
         assert.are.equal("/mock/ds/cache/", c.cache_path)
-
-        lfs.dir = orig_lfs_dir
-        package.loaded["datastorage"] = orig_ds
       end
     )
   end)

@@ -37,7 +37,6 @@ describe("DataStorage module", function()
   after_each(function()
     util.isDirRW = original_isDirRW
     os.getenv = original_getenv
-    util.isDirRW = original_isDirRW
     package.loaded["datastorage"] = nil
   end)
 
@@ -530,20 +529,6 @@ describe("DataStorage module", function()
     end
   )
 
-  it("should reset all cached directories on reset()", function()
-    env_mock["KO_MULTIUSER"] = "true"
-    env_mock["XDG_CONFIG_HOME"] = "/first/xdg"
-    isDirRW_mock = function(dir)
-      return dir == "/first/xdg/koreader" or dir == "/second/xdg/koreader"
-    end
-    DataStorage = require("datastorage")
-    assert.are.equal("/first/xdg/koreader", DataStorage:getDataDir())
-
-    DataStorage:reset()
-    env_mock["XDG_CONFIG_HOME"] = "/second/xdg"
-    assert.are.equal("/second/xdg/koreader", DataStorage:getDataDir())
-  end)
-
   it("should handle relative subdirectory in getFullDataDir()", function()
     env_mock["KO_MULTIUSER"] = "true"
     env_mock["XDG_CONFIG_HOME"] = "relative/config"
@@ -639,19 +624,6 @@ describe("DataStorage module", function()
       local first = DataStorage:getTmpDir()
       local second = DataStorage:getTmpDir()
       assert.are.equal(first, second)
-    end)
-
-    it("clears cached tmp_dir on reset()", function()
-      env_mock["TMPDIR"] = "/first/tmp"
-      isDirRW_mock = function(dir)
-        return dir == "/first/tmp" or dir == "/second/tmp"
-      end
-      DataStorage = require("datastorage")
-      assert.are.equal("/first/tmp", DataStorage:getTmpDir())
-
-      DataStorage:reset()
-      env_mock["TMPDIR"] = "/second/tmp"
-      assert.are.equal("/second/tmp", DataStorage:getTmpDir())
     end)
 
     it(
