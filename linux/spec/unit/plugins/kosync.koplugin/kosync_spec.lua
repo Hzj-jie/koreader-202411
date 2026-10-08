@@ -1,5 +1,5 @@
 describe("KOSync plugin tests", function()
-  local KOSyncClass, kosync, mock_ui, mock_client
+  local KOSyncClass, KOSyncClient, kosync, mock_ui, mock_client
   local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs
   local match
 
@@ -176,7 +176,11 @@ describe("KOSync plugin tests", function()
       ui = mock_ui,
       path = "plugins/kosync.koplugin",
     })
-    kosync:_setClientForTesting(mock_client)
+    KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
+    stub(KOSyncClient, "new", function(_, o)
+      mock_client.custom_url = o.custom_url
+      return mock_client
+    end)
   end)
 
   after_each(function()
@@ -202,7 +206,7 @@ describe("KOSync plugin tests", function()
 
     MultiInputDialog.new:revert()
 
-    kosync:_resetClientForTesting()
+    KOSyncClient.new:revert()
 
     package.unload("plugins/kosync.koplugin/main")
     G_reader_settings:delete("kosync")
@@ -300,7 +304,6 @@ describe("KOSync plugin tests", function()
     it("reverts custom server and shows warning when invalid", function()
       kosync:init()
       kosync.settings.custom_server = "https://old.example.com"
-      local KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
       stub(KOSyncClient, "new", function()
         error("invalid url")
       end)
@@ -320,8 +323,7 @@ describe("KOSync plugin tests", function()
         "https://sync.example.com",
         kosync.settings.custom_server
       )
-      -- Restore mock client for remaining tests
-      kosync:_setClientForTesting(mock_client)
+      assert.are.equal("https://sync.example.com", mock_client.custom_url)
     end)
 
     it("sets sync strategies and checksum method", function()
@@ -485,6 +487,10 @@ describe("KOSync plugin tests", function()
   end)
 
   describe("Login and Registration", function()
+    local function lastShownText()
+      return UIManager.show.calls[#UIManager.show.calls].refs[2].text
+    end
+
     it("shows login dialog and handles invalid user input", function()
       kosync:init()
       kosync:_login()
@@ -545,6 +551,9 @@ describe("KOSync plugin tests", function()
       assert
         .stub(kosync._doRegister)
         .was_called_with(match.is_table(), "newuser", "newpass", nil)
+      assert
+        .stub(UIManager.runWith)
+        .was_called_with(match.is_table(), match.is_function(), "Registering. Please wait…")
     end)
 
     it("handles _doLogin success and failure cases", function()
@@ -556,25 +565,33 @@ describe("KOSync plugin tests", function()
       assert.are.equal("user1", kosync.settings.username)
       assert.is_string(kosync.settings.userkey)
       assert.spy(mock_menu.updateItems).was_called()
-      assert.stub(UIManager.show).was_called()
+      assert.are.equal("Logged in to KOReader server.", lastShownText())
+      local userkey = kosync.settings.userkey
 
-      -- Client returns ok = false (status error)
+      -- Server rejects the login with a message
       mock_client.authorize = spy.new(function()
-        return false, "Invalid password"
+        return false, { message = "Account suspended" }
       end)
       kosync:_doLogin("user1", "wrongpass", mock_menu)
+      assert.are.equal("Account suspended", lastShownText())
 
-      -- Client returns ok = false (no status)
+      -- Request fails without a response body
       mock_client.authorize = spy.new(function()
         return false, nil
       end)
       kosync:_doLogin("user1", "wrongpass", mock_menu)
+      assert.are.equal("Unknown server error", lastShownText())
 
-      -- Client returns status = false, body = error
+      -- Request not sent, e.g. offline
       mock_client.authorize = spy.new(function()
-        return true, false, { message = "Account suspended" }
+        return false, "offline"
       end)
       kosync:_doLogin("user1", "wrongpass", mock_menu)
+      assert.are.equal("offline", lastShownText())
+
+      -- Failures keep the logged-in account
+      assert.are.equal(userkey, kosync.settings.userkey)
+      assert.spy(mock_menu.updateItems).was_called(1)
     end)
 
     it("handles _doRegister success and failure cases", function()
@@ -586,24 +603,34 @@ describe("KOSync plugin tests", function()
       assert.are.equal("user2", kosync.settings.username)
       assert.is_string(kosync.settings.userkey)
       assert.spy(mock_menu.updateItems).was_called()
+      assert.are.equal("Registered to KOReader server.", lastShownText())
+      local userkey = kosync.settings.userkey
 
-      -- Client returns ok = false (status error)
+      -- Server rejects the registration with a message
       mock_client.register = spy.new(function()
-        return false, "User exists"
+        return false, { message = "Registration forbidden" }
       end)
-      kosync:_doRegister("user2", "pass2", mock_menu)
+      kosync:_doRegister("user3", "pass3", mock_menu)
+      assert.are.equal("Registration forbidden", lastShownText())
 
-      -- Client returns ok = false (no status)
+      -- Request fails without a response body
       mock_client.register = spy.new(function()
         return false, nil
       end)
-      kosync:_doRegister("user2", "pass2", mock_menu)
+      kosync:_doRegister("user3", "pass3", mock_menu)
+      assert.are.equal("Unknown server error", lastShownText())
 
-      -- Client returns status = false, body = error
+      -- Request not sent, e.g. offline
       mock_client.register = spy.new(function()
-        return true, false, { message = "Registration forbidden" }
+        return false, "offline"
       end)
-      kosync:_doRegister("user2", "pass2", mock_menu)
+      kosync:_doRegister("user3", "pass3", mock_menu)
+      assert.are.equal("offline", lastShownText())
+
+      -- Failures keep the registered account
+      assert.are.equal("user2", kosync.settings.username)
+      assert.are.equal(userkey, kosync.settings.userkey)
+      assert.spy(mock_menu.updateItems).was_called(1)
     end)
 
     it("handles _logout", function()
@@ -767,6 +794,28 @@ describe("KOSync plugin tests", function()
       end)
       kosync:_updateProgress(true)
       assert.stub(UIManager.show).was_called()
+    end)
+
+    it("shows the interactive push message once online", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      -- Offline: runWhenOnline keeps the callback until the network is up.
+      local on_online
+      NetworkMgr.runWhenOnline:revert()
+      stub(NetworkMgr, "runWhenOnline", function(_, callback)
+        on_online = callback
+      end)
+
+      kosync:_updateProgress(true)
+      assert.stub(UIManager.runWith).was_not_called()
+      assert.spy(mock_client.update_progress).was_not_called()
+
+      on_online()
+      assert
+        .stub(UIManager.runWith)
+        .was_called_with(match.is_table(), match.is_function(), "Pushing progress…")
+      assert.spy(mock_client.update_progress).was_called()
     end)
 
     it("pushes progress via background job when non-interactive", function()
@@ -1137,6 +1186,28 @@ describe("KOSync plugin tests", function()
         .was_called_with(match.is_table(), "80")
 
       kosync._syncToProgress:revert()
+    end)
+
+    it("shows the interactive pull message once online", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      -- Offline: runWhenOnline keeps the callback until the network is up.
+      local on_online
+      NetworkMgr.runWhenOnline:revert()
+      stub(NetworkMgr, "runWhenOnline", function(_, callback)
+        on_online = callback
+      end)
+
+      kosync:_getProgress(true)
+      assert.stub(UIManager.runWith).was_not_called()
+      assert.spy(mock_client.get_progress).was_not_called()
+
+      on_online()
+      assert
+        .stub(UIManager.runWith)
+        .was_called_with(match.is_table(), match.is_function(), "Pulling progress…")
+      assert.spy(mock_client.get_progress).was_called()
     end)
 
     it(
