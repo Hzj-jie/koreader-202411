@@ -529,7 +529,7 @@ return {
       f:close()
       sync_instance.settings.selected_settings =
         { ["reader:auto_suspend_timeout_seconds"] = true }
-      local uploads, shown = with_cloud(404, nil, nil, function()
+      local uploads = with_cloud(404, nil, nil, function()
         sync_instance.manager:pushSettings()
       end)
       assert.is_equal(1, #uploads)
