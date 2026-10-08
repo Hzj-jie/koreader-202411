@@ -18,7 +18,7 @@ The following changes were made to resolve test failures, optimize runtime perfo
 2. **Automatic background sync**:
    - When "Automatically Sync All when network becomes available" is on, books with changed annotations are queued and synced in the background one at a time, as soon as the device is online.
 3. **Non-blocking manual sync with network prompts**:
-   - "Manual Sync", "Sync now" in the pending documents list and "Sync All" queue their books for the background sync instead of freezing the user interface, and prompt to enable Wi-Fi when offline.
+   - "Manual Sync", "Sync now" in the pending documents list and "Sync All" queue their books for the background sync instead of freezing the user interface, and prompt to enable Wi-Fi when offline. A notification confirms each tap; after "Manual Sync" and "Sync now", another one tells when the book is synced, or a message says that its sync failed.
 4. **Library-wide annotation discovery**:
    - Adds a "Scan library for unsynced annotations" feature to automatically discover and queue existing annotations across all previously read books.
 5. **Localization & Chinese translation support**:

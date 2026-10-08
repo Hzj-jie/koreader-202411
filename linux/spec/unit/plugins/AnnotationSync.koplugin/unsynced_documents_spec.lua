@@ -214,6 +214,8 @@ describe("Unsynced / Pending Documents Feature", function()
       assert.is_equal(1, menus_shown)
       assert.are.same({
         "Do you want to sync this document?\n\njuliet.epub",
+        "Syncing in the background: juliet.epub",
+        "Synced: juliet.epub",
       }, texts)
       local _, pending = sync_instance.manager:getPendingChangedDocuments()
       assert.are.same({ other }, pending)

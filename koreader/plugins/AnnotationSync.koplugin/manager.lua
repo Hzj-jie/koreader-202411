@@ -1,9 +1,12 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local docsettings = require("frontend/docsettings")
 local dump = require("dump")
 local gettext = require("gettext")
+local N_ = gettext.ngettext
+local T = require("ffi/util").template
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -17,6 +20,12 @@ local remote = require("plugins/AnnotationSync.koplugin/remote")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local ONLINE_RETRY_INTERVAL = 10
+
+-- The file name of a book, for messages.
+local function book_name(file)
+  local _, name = util.splitFilePathName(file)
+  return name
+end
 
 -- Background job callbacks and offline-queued syncs outlive the ReaderUI or
 -- FileManager whose plugin queued them. Every plugin instance shares this
@@ -47,6 +56,9 @@ end
 function SyncManager:syncNow(file)
   self:_moveToFront(file)
   self.requested[file] = "Manual Sync"
+  Notification:notify(
+    T(gettext("Syncing in the background: %1"), book_name(file))
+  )
   NetworkMgr:runWhenOnline(function()
     self:_dispatchNextSync()
   end)
@@ -64,6 +76,16 @@ function SyncManager:syncAllChangedDocuments()
     -- Keep a Manual Sync request: it is forced.
     self.requested[file] = self.requested[file] or "Sync All"
   end
+  Notification:notify(
+    T(
+      N_(
+        "Syncing 1 book in the background",
+        "Syncing %1 books one by one in the background",
+        total
+      ),
+      total
+    )
+  )
   NetworkMgr:runWhenOnline(function()
     self:_dispatchNextSync()
   end)
@@ -174,6 +196,12 @@ function SyncManager:_startSync(file, trigger)
       }
     end,
     callback = function(job)
+      -- Was a Manual Sync asked for this book? One asked before this job
+      -- started is in trigger (_dispatchNextSync moved requested[file] there),
+      -- one asked while it ran is in requested[file]. Read it now: the queue
+      -- update below can clear it.
+      local asked = trigger == "Manual Sync"
+        or self.requested[file] == "Manual Sync"
       local item = job.result
       if type(item) ~= "table" then
         logger.warn(
@@ -207,6 +235,15 @@ function SyncManager:_startSync(file, trigger)
         os.remove(item.json_path .. ".uploaded")
       end
       self.running = nil
+      -- A Manual Sync asked while this job ran is still requested if the book
+      -- changed meanwhile or the job failed. The book's next job answers it.
+      if asked and self.requested[file] ~= "Manual Sync" then
+        if item.success then
+          Notification:notify(T(gettext("Synced: %1"), book_name(file)))
+        else
+          utils.show_msg(T(gettext("Failed to sync %1."), book_name(file)))
+        end
+      end
       self:_dispatchNextSync(not item.success)
     end,
   }))

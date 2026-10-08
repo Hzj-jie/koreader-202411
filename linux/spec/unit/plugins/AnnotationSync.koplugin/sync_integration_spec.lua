@@ -469,7 +469,7 @@ describe("AnnotationSync Core Integration", function()
       end)
 
       it(
-        "Case 22: manual sync, upload returns 500 -> fails, doc stays pending, merge base unchanged, no message (D1)",
+        "Case 22: manual sync, upload returns 500 -> fails, doc stays pending, merge base unchanged, says it failed (D1)",
         function()
           local doc, name = new_doc("d1")
           local A = hl(1, "A_local", "2026-01-01 10:00:00")
@@ -490,12 +490,15 @@ describe("AnnotationSync Core Integration", function()
 
           assert.is_true(is_pending(doc))
           assert.are.equal(base, base_after)
-          assert.are.same({}, shown)
+          assert.are.same(
+            { "Syncing in the background: d1.epub", "Failed to sync d1.epub." },
+            shown
+          )
         end
       )
 
       it(
-        "Case 23: manual sync with nothing to upload -> success, no longer pending, 0 uploads, no message (D2)",
+        "Case 23: manual sync with nothing to upload -> success, no longer pending, 0 uploads, says it synced (D2)",
         function()
           local doc, name = new_doc("d2")
           sync_instance.manager:addToChangedDocumentsFile(doc)
@@ -504,7 +507,10 @@ describe("AnnotationSync Core Integration", function()
           sync_instance.manager:syncNow(doc)
           assert.is_false(is_pending(doc))
           assert.are.equal(0, #uploads)
-          assert.are.same({}, shown)
+          assert.are.same(
+            { "Syncing in the background: d2.epub", "Synced: d2.epub" },
+            shown
+          )
 
           -- D2b: remote returns empty table {}
           remote_store[name] = "{}"
@@ -512,12 +518,17 @@ describe("AnnotationSync Core Integration", function()
           sync_instance.manager:syncNow(doc)
           assert.is_false(is_pending(doc))
           assert.are.equal(0, #uploads)
-          assert.are.same({}, shown)
+          assert.are.same({
+            "Syncing in the background: d2.epub",
+            "Synced: d2.epub",
+            "Syncing in the background: d2.epub",
+            "Synced: d2.epub",
+          }, shown)
         end
       )
 
       it(
-        "Case 24: remote file isn't JSON -> fails, stays pending, no message (D3)",
+        "Case 24: remote file isn't JSON -> fails, stays pending, says it failed (D3)",
         function()
           local doc, name = new_doc("d3")
           local A = hl(1, "A_local", "2026-01-01 10:00:00")
@@ -529,7 +540,10 @@ describe("AnnotationSync Core Integration", function()
 
           sync_instance.manager:syncNow(doc)
           assert.is_true(is_pending(doc))
-          assert.are.same({}, shown)
+          assert.are.same(
+            { "Syncing in the background: d3.epub", "Failed to sync d3.epub." },
+            shown
+          )
           assert.are.equal(0, #uploads)
         end
       )
