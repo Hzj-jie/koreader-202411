@@ -790,11 +790,11 @@ function KOSync:_updateProgress(interactive)
   end
 
   if interactive then
-    UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(function()
+    NetworkMgr:runWhenOnline(function()
+      UIManager:runWith(function()
         apply(send())
-      end)
-    end, gettext("Pushing progress…"))
+      end, gettext("Pushing progress…"))
+    end)
   else
     NetworkMgr:willRerunWhenOnline(function()
       BackgroundJobs.insertKeyed({
@@ -858,11 +858,11 @@ function KOSync:_getProgress(interactive)
   end
 
   if interactive then
-    UIManager:runWith(function()
-      NetworkMgr:runWhenOnline(function()
+    NetworkMgr:runWhenOnline(function()
+      UIManager:runWith(function()
         apply(send())
-      end)
-    end, gettext("Pulling progress…"))
+      end, gettext("Pulling progress…"))
+    end)
   else
     BackgroundJobs.insertKeyed({
       executable = "fork",

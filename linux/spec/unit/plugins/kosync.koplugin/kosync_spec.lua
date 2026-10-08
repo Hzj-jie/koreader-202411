@@ -793,6 +793,28 @@ describe("KOSync plugin tests", function()
       assert.stub(UIManager.show).was_called()
     end)
 
+    it("shows the interactive push message once online", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      -- Offline: runWhenOnline keeps the callback until the network is up.
+      local on_online
+      NetworkMgr.runWhenOnline:revert()
+      stub(NetworkMgr, "runWhenOnline", function(_, callback)
+        on_online = callback
+      end)
+
+      kosync:_updateProgress(true)
+      assert.stub(UIManager.runWith).was_not_called()
+      assert.spy(mock_client.update_progress).was_not_called()
+
+      on_online()
+      assert
+        .stub(UIManager.runWith)
+        .was_called_with(match.is_table(), match.is_function(), "Pushing progress…")
+      assert.spy(mock_client.update_progress).was_called()
+    end)
+
     it("pushes progress via background job when non-interactive", function()
       kosync:init()
       kosync.settings.username = "user"
@@ -1161,6 +1183,28 @@ describe("KOSync plugin tests", function()
         .was_called_with(match.is_table(), "80")
 
       kosync._syncToProgress:revert()
+    end)
+
+    it("shows the interactive pull message once online", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      -- Offline: runWhenOnline keeps the callback until the network is up.
+      local on_online
+      NetworkMgr.runWhenOnline:revert()
+      stub(NetworkMgr, "runWhenOnline", function(_, callback)
+        on_online = callback
+      end)
+
+      kosync:_getProgress(true)
+      assert.stub(UIManager.runWith).was_not_called()
+      assert.spy(mock_client.get_progress).was_not_called()
+
+      on_online()
+      assert
+        .stub(UIManager.runWith)
+        .was_called_with(match.is_table(), match.is_function(), "Pulling progress…")
+      assert.spy(mock_client.get_progress).was_called()
     end)
 
     it(
