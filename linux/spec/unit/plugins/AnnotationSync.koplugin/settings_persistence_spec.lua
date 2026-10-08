@@ -39,8 +39,13 @@ describe("AnnotationSync Settings Persistence", function()
 
   after_each(function()
     if readerui then
+      readerui:onExit(true)
       readerui:onClose()
     end
+    G_reader_settings:delete(sync_instance.plugin_id)
+    G_reader_settings:delete("cloud_server_object")
+    G_reader_settings:delete("cloud_download_dir")
+    G_reader_settings:delete("cloud_provider_type")
   end)
 
   it("should use default settings if absent", function()
@@ -76,9 +81,6 @@ describe("AnnotationSync Settings Persistence", function()
       sync_instance.settings.sync_server.url
     )
     assert.is_equal("webdav", sync_instance.settings.sync_server.type)
-
-    -- Clean up
-    G_reader_settings:delete("cloud_server_object")
   end)
 
   it(
@@ -110,35 +112,6 @@ describe("AnnotationSync Settings Persistence", function()
     end
   )
 
-  it("should clean up settings and files on deletePluginSettings", function()
-    -- 1. Verify settings_key is exposed
-    assert.is_equal(sync_instance.plugin_id, sync_instance.settings_key)
-
-    -- 2. Setup values in G_reader_settings
-    G_reader_settings:save(sync_instance.plugin_id, { foo = "bar" })
-    G_reader_settings:save("cloud_server_object", "{}")
-    G_reader_settings:save("cloud_download_dir", "http://test")
-    G_reader_settings:save("cloud_provider_type", "dropbox")
-
-    -- 3. Setup a mock changed_documents.lua file
-    local util = require("util")
-    local track_path = sync_instance.manager:changedDocumentsFile()
-    assert.is_true(util.writeToFile("return {}", track_path))
-    assert.is_true(util.fileExists(track_path))
-
-    -- 4. Call deletePluginSettings
-    sync_instance:deletePluginSettings()
-
-    -- 5. Verify settings are deleted
-    assert.is_nil(G_reader_settings:read(sync_instance.plugin_id))
-    assert.is_nil(G_reader_settings:read("cloud_server_object"))
-    assert.is_nil(G_reader_settings:read("cloud_download_dir"))
-    assert.is_nil(G_reader_settings:read("cloud_provider_type"))
-
-    -- 6. Verify the tracking file is deleted
-    assert.is_false(util.fileExists(track_path))
-  end)
-
   it("should show current cloud in the settings menu", function()
     -- 1. Verify default displays "None"
     local menu_items = {}
@@ -158,6 +131,53 @@ describe("AnnotationSync Settings Persistence", function()
     assert.is_equal(
       "Current cloud: https://my-test-cloud.example.com",
       last_item.text_func()
+    )
+  end)
+
+  it("should open SyncService dialog from Cloud settings menu", function()
+    -- 1. Mock UIManager:show to intercept SyncService instance
+    local opened_syncservice = false
+    local captured_widget = nil
+    local old_show = UIManager.show
+    finally(function()
+      UIManager.show = old_show
+    end)
+    UIManager.show = function(this, widget)
+      if widget.generateItemTable and widget.title == "Cloud sync settings" then
+        opened_syncservice = true
+        captured_widget = widget
+        return
+      end
+      return old_show(this, widget)
+    end
+
+    -- 2. Generate menu items
+    local menu_items = {}
+    sync_instance:addToMainMenu(menu_items)
+    local settings_menu = menu_items.annotation_sync_plugin.sub_item_table[1]
+
+    local cloud_settings_item
+    for _, item in ipairs(settings_menu.sub_item_table) do
+      if item.text == "Cloud settings" then
+        cloud_settings_item = item
+        break
+      end
+    end
+    assert.is_not_nil(cloud_settings_item)
+
+    -- 3. Trigger callback and verify SyncService dialog is shown
+    cloud_settings_item.callback()
+    assert.is_true(opened_syncservice)
+    assert.is_not_nil(captured_widget)
+
+    -- 4. Verify onConfirm triggers onSyncServiceConfirm
+    local test_server =
+      { url = "http://test-server-cloud-settings", type = "dropbox" }
+    captured_widget.onConfirm(test_server)
+    assert.is_not_nil(sync_instance.settings.sync_server)
+    assert.is_equal(
+      "http://test-server-cloud-settings",
+      sync_instance.settings.sync_server.url
     )
   end)
 end)

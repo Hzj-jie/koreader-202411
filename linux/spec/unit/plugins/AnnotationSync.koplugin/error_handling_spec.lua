@@ -1,7 +1,7 @@
 describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
-  local ReaderUI, UIManager, Geom, SyncService
-  local AnnotationSyncPlugin, highlight_db, test_utils, json, util
-  local readerui, sync_instance
+  local UIManager, SyncService
+  local AnnotationSyncPlugin, test_utils, json
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_error_tmp"
   local old_getDataDir
@@ -13,14 +13,10 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
-    util = require("util")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -59,23 +55,31 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
 
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   describe("4.1 Network & Server Errors", function()
     it("should keep document dirty if server is offline", function()
       sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-      assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
 
       -- Mock SyncService.sync to simulate a failure (callback never called)
-      SyncService.sync = function(server, local_path, sync_cb, is_silent)
+      SyncService.sync = function(server, local_path, sync_cb, is_silent, finish_cb)
         -- Failure: callback is not called
+        if finish_cb then
+          finish_cb(false)
+        end
         return
       end
 
       sync_instance:manualSync()
 
       -- Fixed: It should now remain dirty because the callback (which triggers removal) was never called
-      assert.is_true(sync_instance.manager:hasPendingChangedDocuments())
+      assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
       assert.is_equal("Never", sync_instance.settings.last_sync)
     end)
 
@@ -89,10 +93,13 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
         )
 
         local upload_called = false
-        SyncService.sync = function(server, local_path, callback, upload_only)
+        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
           local success = callback(local_path, local_path, income_file)
           if success then
             upload_called = true
+          end
+          if finish_cb then
+            finish_cb(success)
           end
           return success
         end
@@ -107,11 +114,14 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     )
 
     it("updates last_sync timestamp when manualSync succeeds", function()
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local cached_dest = local_path .. ".sync"
         local success = callback(local_path, cached_dest, local_path)
         if success then
           require("ffi/util").copyFile(local_path, cached_dest)
+        end
+        if finish_cb then
+          finish_cb(true)
         end
         return true
       end
@@ -126,17 +136,19 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle read-only sidecar directory gracefully", function()
       local DataStorage = require("datastorage")
       local old_getTmpDir = DataStorage.getTmpDir
+      finally(function()
+        DataStorage.getTmpDir = old_getTmpDir
+      end)
       DataStorage.getTmpDir = function()
         return "/read-only-dir"
       end
 
-      local ok = sync_instance.manager:syncDocument(readerui.document, true)
-      assert.is_false(
-        ok,
-        "syncDocument should fail gracefully on read-only sidecar directory"
+      sync_instance:manualSync()
+      assert.is_true(
+        sync_instance.manager:getPendingChangedDocuments() > 0,
+        "Manual Sync should fail gracefully on read-only sidecar directory"
       )
-
-      DataStorage.getTmpDir = old_getTmpDir
+      assert.is_equal("Never", sync_instance.settings.last_sync)
     end)
   end)
 
@@ -144,12 +156,15 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle concurrent sync requests safely", function()
       local call_count = 0
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, is_silent)
+      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         call_count = call_count + 1
         local result = callback(local_path, local_path, local_path)
         local ffiutil = require("ffi/util")
         local cached_dest = local_path .. ".sync"
         ffiutil.copyFile(local_path, cached_dest)
+        if finish_cb then
+          finish_cb(result)
+        end
         return result
       end
 
@@ -169,7 +184,8 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
     it("should handle special characters in highlights (Emojis)", function()
       local emoji_text = "Emoji highlight 🌟"
       local ann = {
-        page = 1,
+        drawer = "lighten",
+        page = "pos0",
         pos0 = "pos0",
         pos1 = "pos1",
         text = emoji_text,
@@ -177,10 +193,11 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       }
       table.insert(readerui.annotation.annotations, ann)
 
-      local ok = sync_instance.manager:syncDocument(readerui.document, true)
-      assert.is_true(
-        ok,
-        "syncDocument should succeed with emojis in highlight text"
+      sync_instance:manualSync()
+      assert.is_equal(
+        0,
+        (sync_instance.manager:getPendingChangedDocuments()),
+        "Manual Sync should succeed with emojis in highlight text"
       )
       assert.is_equal(1, #readerui.annotation.annotations)
       assert.is_equal(emoji_text, readerui.annotation.annotations[1].text)

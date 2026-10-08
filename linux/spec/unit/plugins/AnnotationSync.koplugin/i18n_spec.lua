@@ -18,9 +18,7 @@ describe("AnnotationSync internationalization", function()
   after_each(function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     -- Restore language to default
-    if _ and _.changeLang then
-      _.changeLang("C")
-    end
+    _.changeLang("C")
   end)
 
   it("verifies translation loading for supported locales", function()
@@ -51,8 +49,5 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal("推送設定至雲端", _("Push settings to cloud"))
     assert.are.equal("從雲端拉取設定", _("Pull settings from cloud"))
     assert.are.equal("裝置名稱: %1", _("Device name: %1"))
-
-    -- Restore language to default
-    _.changeLang("C")
   end)
 end)

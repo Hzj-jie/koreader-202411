@@ -1,6 +1,7 @@
 describe("AnnotationSync Trash & Restore", function()
-  local ReaderUI, UIManager, SyncService, Geom
-  local AnnotationSyncPlugin, highlight_db, test_utils, json, annotations_mod
+  local UIManager, SyncService
+  local AnnotationSyncPlugin, test_utils, json
+  local util
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_trash_tmp"
@@ -13,14 +14,11 @@ describe("AnnotationSync Trash & Restore", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
-    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
+    util = require("util")
 
-    highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -47,6 +45,7 @@ describe("AnnotationSync Trash & Restore", function()
 
   before_each(function()
     readerui.annotation.annotations = {}
+    os.remove(sync_instance.manager:changedDocumentsFile())
   end)
 
   it(
@@ -117,6 +116,11 @@ describe("AnnotationSync Trash & Restore", function()
     assert.is_not_equal("old", trash_item.datetime_updated)
     assert.is_equal(2, #readerui.annotation.annotations)
     assert.is_true(event_received)
+    assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
+    local count, changed_docs =
+      sync_instance.manager:getPendingChangedDocuments()
+    assert.is_equal(1, count)
+    assert.truthy(util.arrayContains(changed_docs, readerui.document.file))
 
     -- Cleanup
     require("ui/event").new = old_event_new
@@ -152,40 +156,14 @@ describe("AnnotationSync Trash & Restore", function()
       event_count,
       "AnnotationsModified event should only be broadcasted once"
     )
+    assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
+    local count, changed_docs =
+      sync_instance.manager:getPendingChangedDocuments()
+    assert.is_equal(1, count)
+    assert.truthy(util.arrayContains(changed_docs, readerui.document.file))
 
     -- Cleanup
     require("ui/event").new = old_event_new
-  end)
-
-  it("should clean up sync file for a document", function()
-    local tmp_dir = require("datastorage"):getTmpDir()
-    local file = readerui.document.file
-    local filename = sync_instance.manager:_getAnnotationFilename(file)
-    local json_path = tmp_dir .. "/" .. filename
-    local sync_cache_path = sync_instance.manager:getSyncCachePath(file)
-
-    local f = io.open(json_path, "w")
-    f:write("{}")
-    f:close()
-    f = io.open(sync_cache_path, "w")
-    f:write("{}")
-    f:close()
-
-    local check_json = io.open(json_path, "r")
-    assert.is_not_nil(check_json)
-    if check_json then
-      check_json:close()
-    end
-    local check_sync = io.open(sync_cache_path, "r")
-    assert.is_not_nil(check_sync)
-    if check_sync then
-      check_sync:close()
-    end
-
-    sync_instance.manager:cleanSyncFile(file)
-
-    assert.is_nil(io.open(json_path, "r"))
-    assert.is_nil(io.open(sync_cache_path, "r"))
   end)
 
   it(
@@ -264,6 +242,94 @@ describe("AnnotationSync Trash & Restore", function()
     end
   )
 
+  -- Writes one tombstone per text into the .sync base and opens Show Deleted.
+  local function open_show_deleted(texts)
+    local sync_cache_path =
+      sync_instance.manager:getSyncCachePath(readerui.document.file)
+    local tombstones = {}
+    for i, text in ipairs(texts) do
+      table.insert(tombstones, {
+        page = i,
+        pos0 = "d" .. i,
+        pos1 = "e" .. i,
+        text = text,
+        deleted = true,
+      })
+    end
+    local f = io.open(sync_cache_path, "w")
+    f:write(json.encode(tombstones))
+    f:close()
+    local shown = {}
+    local old_show = UIManager.show
+    UIManager.show = function(this, widget)
+      table.insert(shown, widget)
+      return old_show(this, widget)
+    end
+    local menu
+    finally(function()
+      UIManager.show = old_show
+      UIManager:closeIfShown(menu)
+      os.remove(sync_cache_path)
+    end)
+
+    sync_instance:showDeletedAnnotations()
+    menu = shown[1]
+    assert.is_equal("Deleted Annotations", menu.title)
+    return menu, shown
+  end
+
+  -- Taps menu item `index` (a tap calls Menu:onMenuSelect) and confirms the
+  -- ConfirmBox it opens.
+  local function tap_and_confirm(menu, shown, index)
+    menu:onMenuSelect(menu.item_table[index])
+    assert.is_true(UIManager:isWindowWidget(menu))
+    local confirm_box = shown[#shown]
+    confirm_box.ok_callback()
+    UIManager:close(confirm_box)
+  end
+
+  it("should keep Show Deleted open and drop restored annotations", function()
+    local menu, shown = open_show_deleted({ "One", "Two" })
+
+    -- Item 1 is Restore All.
+    tap_and_confirm(menu, shown, 2)
+    assert.is_equal(1, #readerui.annotation.annotations)
+    assert.is_true(UIManager:isWindowWidget(menu))
+    assert.is_equal(2, #menu.item_table)
+    assert.is_equal("Two", menu.item_table[2].text)
+
+    tap_and_confirm(menu, shown, 2)
+    assert.is_equal(2, #readerui.annotation.annotations)
+    assert.is_false(UIManager:isWindowWidget(menu))
+  end)
+
+  it("should restore only the remaining annotations with Restore All", function()
+    local menu, shown = open_show_deleted({ "One", "Two" })
+    tap_and_confirm(menu, shown, 2)
+
+    tap_and_confirm(menu, shown, 1)
+    local texts = {}
+    for _, ann in ipairs(readerui.annotation.annotations) do
+      table.insert(texts, ann.text)
+    end
+    table.sort(texts)
+    assert.are.same({ "One", "Two" }, texts)
+    assert.is_false(UIManager:isWindowWidget(menu))
+  end)
+
+  it("should stay on the same page of Show Deleted after a restore", function()
+    local texts = {}
+    for i = 1, 40 do
+      table.insert(texts, "Deleted " .. i)
+    end
+    local menu, shown = open_show_deleted(texts)
+    assert.is_true(menu.page_num >= 2)
+    menu:onNextPage()
+
+    tap_and_confirm(menu, shown, menu.perpage + 1)
+    assert.is_equal(2, menu.page)
+  end)
+
   it(
     "should flush restored annotations into upload payload during next sync",
     function()
@@ -278,7 +344,7 @@ describe("AnnotationSync Trash & Restore", function()
       local sync_cache_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
       local f = io.open(sync_cache_path, "w")
-      f:write(json.encode({ ["p1||p2"] = ann }))
+      f:write(json.encode({ ann }))
       f:close()
 
       local deleted =
@@ -288,18 +354,22 @@ describe("AnnotationSync Trash & Restore", function()
 
       local uploaded_content
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local f_local = io.open(local_path, "r")
         uploaded_content = json.decode(f_local:read("*all"))
         f_local:close()
+        if finish_cb then
+          finish_cb(true)
+        end
         return true
       end
 
+      finally(test_utils.run_jobs_inline())
       sync_instance:manualSync()
 
       assert.is_not_nil(uploaded_content)
-      assert.is_not_nil(uploaded_content["p1||p2"])
-      assert.is_false(uploaded_content["p1||p2"].deleted)
+      assert.is_not_nil(uploaded_content[1])
+      assert.is_false(uploaded_content[1].deleted)
 
       SyncService.sync = old_sync
       os.remove(sync_cache_path)

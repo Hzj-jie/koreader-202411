@@ -22,7 +22,6 @@ local json = require("json")
 
 local M = {}
 
-local current_readerui
 local old_isConnected
 local old_isOnline
 local old_runWhenConnected
@@ -32,6 +31,7 @@ local old_getSettingsDir
 local old_G_reader_settings
 local old_tmp_dir
 local old_document_metadata_folder
+local old_show
 
 function M.setup_test_env(test_data_dir)
   os.execute("mkdir -p " .. test_data_dir .. "/cache")
@@ -85,11 +85,15 @@ function M.setup_test_env(test_data_dir)
     return false
   end
   NetworkMgr.runWhenOnline = function(self, callback)
-    if self:isConnected() then
-      callback()
-      return true
+    return not self:willRerunWhenOnline(callback)
+  end
+
+  old_show = UIManager.show
+  UIManager.show = function(self, widget)
+    if self:isWindowWidget(widget) then
+      return
     end
-    return false
+    return old_show(self, widget)
   end
 
   return old_getDataDir
@@ -149,6 +153,7 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
       old_document_metadata_folder
     old_document_metadata_folder = nil
   end
+  UIManager.show = old_show
 end
 
 function M.mock_image_viewer()
@@ -185,7 +190,6 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
     dimen = Geom:new({ w = 1200, h = 1600 }),
     document = DocumentRegistry:openDocument(target_file),
   })
-  current_readerui = readerui
 
   local sync_instance = AnnotationSyncPlugin:new({
     ui = readerui,
@@ -220,7 +224,7 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
     })
   end
 
-  -- Automatically mock cloudstorage if SyncService is available
+  -- Automatically mock SyncService if available
   local ok, SyncService = pcall(require, "apps/cloudstorage/syncservice")
   if ok then
     M.mock_sync_service(SyncService)
@@ -247,7 +251,7 @@ end
 
 function M.mock_sync_service(SyncService)
   local old_sync = SyncService.sync
-  SyncService.sync = function(server, local_path, callback, upload_only)
+  SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
     -- Robustness: ensure we have valid paths and files
     local test_data_dir = DataStorage.getDataDir()
     local function ensure_json_file(path)
@@ -260,8 +264,8 @@ function M.mock_sync_service(SyncService)
         f:close()
       end
 
-      -- If file doesn't exist, is empty, or doesn't start with '{', make it a valid empty JSON object
-      if not content or content == "" or content:sub(1, 1) ~= "{" then
+      -- If file doesn't exist, is empty, or doesn't start with '{' or '[', make it a valid empty JSON object
+      if not content or content == "" or (content:sub(1, 1) ~= "{" and content:sub(1, 1) ~= "[") then
         -- Ensure directory exists
         local dir = path:match("(.*)/")
         if dir then
@@ -304,25 +308,44 @@ function M.mock_sync_service(SyncService)
       ffiutil.copyFile(actual_local, cached_file)
     end
     os.remove(income_file)
+    if finish_cb then
+      finish_cb(result)
+    end
     return result, active
   end
 
-  if current_readerui then
-    if not current_readerui.cloudstorage then
-      current_readerui.cloudstorage = {}
-    end
-    current_readerui.cloudstorage.sync = function(
-      self,
-      server,
-      file_path,
-      sync_cb,
-      is_silent
-    )
-      return SyncService.sync(server, file_path, sync_cb, is_silent)
-    end
-  end
-
   return old_sync
+end
+
+-- Runs background jobs as soon as they are queued, one at a time, the way the
+-- fork does: the action under pcall (commandrunner.lua), the callback
+-- unprotected (backgroundrunner.koplugin). A job queued while another one
+-- runs starts after that one's callback returns. Returns a function that
+-- restores BackgroundJobs.insertKeyed.
+function M.run_jobs_inline()
+  local BackgroundJobs = require("background_jobs")
+  local old_insertKeyed = BackgroundJobs.insertKeyed
+  local queue = {}
+  BackgroundJobs.insertKeyed = function(job)
+    table.insert(queue, job)
+    if #queue > 1 then
+      return true
+    end
+    while queue[1] do
+      local res = false
+      local ok, ret = pcall(queue[1].action)
+      if ok then
+        res = ret
+      end
+      queue[1].result = res
+      queue[1].callback(queue[1])
+      table.remove(queue, 1)
+    end
+    return true
+  end
+  return function()
+    BackgroundJobs.insertKeyed = old_insertKeyed
+  end
 end
 
 function M.write_mock_json(test_data_dir, filename, data)
@@ -336,14 +359,6 @@ function M.write_mock_json(test_data_dir, filename, data)
   f:write(encoded)
   f:close()
   return path
-end
-
-local orig_show = UIManager.show
-UIManager.show = function(self, widget)
-  if self:isWindowWidget(widget) then
-    return
-  end
-  return orig_show(self, widget)
 end
 
 return M

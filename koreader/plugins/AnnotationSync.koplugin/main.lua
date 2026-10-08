@@ -2,26 +2,23 @@ local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
-local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
 local T = require("ffi/util").template
-local DataStorage = require("datastorage")
 local gettext = require("gettext")
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
 
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
-local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
-local has_syncservice, SyncService =
-  pcall(require, "apps/cloudstorage/syncservice")
+local SyncService = require("apps/cloudstorage/syncservice")
 
 local manual_sync_description =
   "Sync annotations and bookmarks of the active document."
@@ -79,7 +76,8 @@ function AnnotationSyncPlugin:init()
   end
 
   -- Sanitize corrupted settings
-  self.manager = SyncManager:new(self)
+  self.manager = SyncManager
+  self.manager:setPlugin(self)
   self.manager:cleanOrphanSyncFiles()
 
   -- Migrate old annotation_sync_use_filename setting
@@ -88,29 +86,10 @@ function AnnotationSyncPlugin:init()
       G_reader_settings:isTrue("annotation_sync_use_filename")
     G_reader_settings:delete("annotation_sync_use_filename")
   end
-
-  self.settings_key = self.plugin_id
 end
 
 function AnnotationSyncPlugin:saveSettings()
   G_reader_settings:save(self.plugin_id, self.settings, self.default_settings)
-end
-
-function AnnotationSyncPlugin:deletePluginSettings()
-  G_reader_settings:delete(self.plugin_id)
-  G_reader_settings:delete("cloud_server_object")
-  G_reader_settings:delete("cloud_download_dir")
-  G_reader_settings:delete("cloud_provider_type")
-
-  local track_path
-  if self.manager then
-    track_path = self.manager:changedDocumentsFile()
-  else
-    track_path = DataStorage:getDataDir() .. "/changed_documents.lua"
-  end
-  if track_path and util.fileExists(track_path) then
-    os.remove(track_path)
-  end
 end
 
 function AnnotationSyncPlugin:addToMainMenu(menu_items)
@@ -122,21 +101,12 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         sub_item_table = {
           {
             text = gettext("Cloud settings"),
-            enabled_func = function()
-              return self.ui.cloudstorage ~= nil or has_syncservice
-            end,
             callback = function()
-              if self.ui.cloudstorage then
-                self.ui.cloudstorage:onShowCloudStorageList(function(server)
-                  self:onSyncServiceConfirm(server)
-                end)
-              elseif has_syncservice then
-                local sync_service = SyncService:new({})
-                sync_service.onConfirm = function(server)
-                  self:onSyncServiceConfirm(server)
-                end
-                UIManager:show(sync_service)
+              local sync_service = SyncService:new({})
+              sync_service.onConfirm = function(server)
+                self:onSyncServiceConfirm(server)
               end
+              UIManager:show(sync_service)
             end,
           },
           {
@@ -160,6 +130,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               self.settings.network_auto_sync =
                 not self.settings.network_auto_sync
               self:saveSettings()
+              self.manager:_dispatchNextSync()
             end,
           },
 
@@ -194,9 +165,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
                   end
                   self.settings.device_name = dev_name
                   self:saveSettings()
-                  if self.ui.menu and self.ui.menu.showMainMenu then
-                    self.ui.menu:showMainMenu()
-                  end
                   return true
                 end,
               })
@@ -242,7 +210,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         text = gettext("Manual Sync"),
         enabled_func = function()
           return ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
-            and ((self.ui and self.ui.document) ~= nil)
+            and self.ui.document ~= nil
         end,
         hold_callback = function()
           utils.show_msg(manual_sync_description)
@@ -300,7 +268,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       {
         text = gettext("Show Deleted"),
         enabled_func = function()
-          return (self.ui and self.ui.document) ~= nil
+          return self.ui.document ~= nil
         end,
         callback = function()
           self:showDeletedAnnotations()
@@ -332,80 +300,31 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
   }
 end
 
-function AnnotationSyncPlugin:onSaveSettings()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  UIManager:scheduleIn(0.1, function()
-    if self.manager and self.manager:hasPendingChangedDocuments() then
-      logger.dbg("AnnotationSync: onSaveSettings triggered background sync")
-      self.manager:syncPendingDocumentsBg()
-    end
-  end)
-end
-
-function AnnotationSyncPlugin:onSuspend()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if self.manager and self.manager:hasPendingChangedDocuments() then
-    logger.dbg("AnnotationSync: onSuspend triggered background sync")
-    self.manager:syncPendingDocumentsBg()
-  end
-end
-
-function AnnotationSyncPlugin:onResume()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if NetworkMgr:shouldRestoreWifi() then
-    return
-  end
-  UIManager:scheduleIn(0.1, function()
-    if self.manager and self.manager:hasPendingChangedDocuments() then
-      logger.dbg("AnnotationSync: onResume triggered background sync")
-      self.manager:syncPendingDocumentsBg()
-    end
-  end)
-end
-
 function AnnotationSyncPlugin:onNetworkOnline()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if self.manager and self.manager:hasPendingChangedDocuments() then
+  if self.manager:_dispatchNextSync() then
     logger.dbg("AnnotationSync: onNetworkOnline triggered background sync")
-    self.manager:syncPendingDocumentsBg()
-  end
-end
-
-function AnnotationSyncPlugin:onNetworkDisconnecting()
-  if not self.settings.network_auto_sync then
-    return
-  end
-  if self.manager and self.manager:hasPendingChangedDocuments() then
-    logger.dbg(
-      "AnnotationSync: onNetworkDisconnecting triggered background sync"
-    )
-    self.manager:syncPendingDocumentsBg()
   end
 end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
-  annotations.sort(merged_list)
 
-  if self.ui and self.ui.annotation and self.ui.document == document then
-    -- 1. Update active widget state
+  if self.ui.document == document then
+    -- 1. Sort using core's comparator
+    self.ui.annotation:sortItems(merged_list)
+
+    -- 2. Update active widget state and doc_settings
     self.ui.annotation.annotations = merged_list
+    self.ui.doc_settings:save("annotations", merged_list)
+    self.ui.doc_settings:flush()
     self.ui.annotation:updatePageNumbers(true)
 
-    -- 2. Notify system
+    -- 3. Notify system
     if #merged_list > 0 then
       UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
     end
 
-    -- 3. Trigger Refreshes
+    -- 4. Trigger Refreshes
     if not document.is_pdf then
       document:render()
       self.ui.view:recalculate()
@@ -414,7 +333,9 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   else
     -- Update sidecar directly for inactive document
     local annotation_sidecar = docsettings:open(document.file)
+    ReaderAnnotation.loadFromSettings(annotation_sidecar)
     annotation_sidecar:save("annotations", merged_list)
+    annotation_sidecar:save("annotations_externally_modified", true)
     annotation_sidecar:flush()
   end
   self.is_applying_sync = false
@@ -494,38 +415,24 @@ function AnnotationSyncPlugin:onSyncServiceConfirm(server)
     ),
     timeout = 4,
   }))
-  if self and self.ui and self.ui.menu and self.ui.menu.showMainMenu then
-    self.ui.menu:showMainMenu()
-  end
 end
 
 function AnnotationSyncPlugin:manualSync()
-  local document = self.ui and self.ui.document
+  local document = self.ui.document
   local file = document and document.file
   if not file then
     utils.show_msg("A document must be active to do a manual sync.")
     return
   end
-  NetworkMgr:runWhenOnline(function()
-    if self.manager:syncDocument(document, true) then
-      self.manager:recordSyncState("Manual Sync")
-    end
-  end)
+  self.manager:syncNow(file)
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()
-  local document = self.ui and self.ui.document
-  if not document then
-    return
-  end
-  menus.show_deleted_annotations(self, document)
+  menus.show_deleted_annotations(self, self.ui.document)
 end
 
 function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
-  local document = self.ui and self.ui.document
-  if not document or not anns or #anns == 0 then
-    return
-  end
+  local document = self.ui.document
 
   local now = os.date("%Y-%m-%d %H:%M:%S")
   local current = self.manager:getAnnotationsForDocument(document)
@@ -541,6 +448,9 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
 
   -- 3. Apply changes once (saves to sidecar and refreshes UI)
   self:applySyncedAnnotations(document, current)
+  -- A restore is a user edit, but applySyncedAnnotations suppresses
+  -- onAnnotationsModified (is_applying_sync), so mark the book pending here.
+  self.manager:addToChangedDocumentsFile(document.file)
 
   if not silent then
     if #anns == 1 then
@@ -569,7 +479,7 @@ function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
     local changed_file = annotation.book_path
     -- AnnotationsModified event payload does not include book_path for an active document
     if not changed_file then
-      changed_file = self.ui and self.ui.document and self.ui.document.file
+      changed_file = self.ui.document and self.ui.document.file
     end
     if not changed_file then
       changed_file = unknown_file

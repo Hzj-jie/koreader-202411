@@ -1,6 +1,6 @@
 describe("AnnotationSync recordSyncState & Network online guards", function()
-  local ReaderUI, UIManager, SyncService
-  local AnnotationSyncPlugin, test_utils, json, util
+  local UIManager, SyncService
+  local AnnotationSyncPlugin, test_utils, json
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_record_state_tmp"
@@ -13,15 +13,19 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
-    util = require("util")
 
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
     _G.old_ImageViewer_new = test_utils.mock_image_viewer()
+
+    G_reader_settings:save("cloud_download_dir", "http://mock-server")
+    G_reader_settings:save(
+      "cloud_server_object",
+      json.encode({ url = "http://mock-server", type = "webdav" })
+    )
 
     readerui, sync_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",
@@ -43,6 +47,9 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     test_utils.mock_sync_service(SyncService)
+    -- The offline tests leave their requests waiting for the network.
+    sync_instance.manager.requested = {}
+    os.remove(sync_instance.manager:changedDocumentsFile())
   end)
 
   describe("recordSyncState unit tests", function()
@@ -103,10 +110,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
           return true
         end
 
-        local old_syncDoc = sync_instance.manager.syncDocument
-        sync_instance.manager.syncDocument = function()
-          return true
-        end
+        local restore_jobs = test_utils.run_jobs_inline()
 
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
         sync_instance.manager:syncAllChangedDocuments()
@@ -115,7 +119,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
         assert.truthy(sync_instance.settings.last_sync:match("Sync All"))
 
         NetworkMgr.runWhenOnline = old_runWhenOnline
-        sync_instance.manager.syncDocument = old_syncDoc
+        restore_jobs()
       end)
 
       it(
@@ -157,10 +161,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
         return true
       end
 
-      local old_syncDoc = sync_instance.manager.syncDocument
-      sync_instance.manager.syncDocument = function()
-        return true
-      end
+      local restore_jobs = test_utils.run_jobs_inline()
 
       sync_instance:manualSync()
 
@@ -168,7 +169,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
       assert.truthy(sync_instance.settings.last_sync:match("Manual Sync"))
 
       NetworkMgr.runWhenOnline = old_runWhenOnline
-      sync_instance.manager.syncDocument = old_syncDoc
+      restore_jobs()
     end)
 
     it(

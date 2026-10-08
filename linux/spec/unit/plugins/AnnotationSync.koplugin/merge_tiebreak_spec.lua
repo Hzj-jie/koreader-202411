@@ -43,6 +43,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
     datetime_updated
   )
     return {
+      drawer = "lighten",
       page = page or 1,
       pos0 = { page = page or 1, x = 10, y = 20 },
       pos1 = { page = page or 1, x = 100, y = 40 },
@@ -76,11 +77,10 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local timestamp = "2026-01-01 12:00:00"
       local local_ann = create_mock_ann(1, "Local Active", false, timestamp)
       local income_ann = create_mock_ann(1, "Remote Deleted", true, timestamp)
-      local key = annotations_mod.annotation_key(local_ann)
 
-      write_json(local_file, { [key] = local_ann })
-      write_json(last_sync_file, { [key] = local_ann })
-      write_json(income_file, { [key] = income_ann })
+      write_json(local_file, { local_ann })
+      write_json(last_sync_file, { local_ann })
+      write_json(income_file, { income_ann })
 
       local success, active = annotations_mod.sync_callback(
         local_file,
@@ -95,9 +95,9 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       assert.is_falsy(active[1].deleted)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written[key])
-      assert.is_falsy(written[key].deleted)
-      assert.are.equal("Local Active", written[key].note)
+      assert.is_table(written[1])
+      assert.is_falsy(written[1].deleted)
+      assert.are.equal("Local Active", written[1].note)
     end
   )
 
@@ -107,11 +107,10 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local timestamp = "2026-01-01 12:00:00"
       local local_ann = create_mock_ann(1, "Local Deleted", true, timestamp)
       local income_ann = create_mock_ann(1, "Remote Active", false, timestamp)
-      local key = annotations_mod.annotation_key(local_ann)
 
-      write_json(local_file, { [key] = local_ann })
-      write_json(last_sync_file, { [key] = income_ann })
-      write_json(income_file, { [key] = income_ann })
+      write_json(local_file, { local_ann })
+      write_json(last_sync_file, { income_ann })
+      write_json(income_file, { income_ann })
 
       local success, active = annotations_mod.sync_callback(
         local_file,
@@ -124,9 +123,9 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       assert.are.equal(0, #active)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written[key])
-      assert.is_true(written[key].deleted)
-      assert.are.equal("Local Deleted", written[key].note)
+      assert.is_table(written[1])
+      assert.is_true(written[1].deleted)
+      assert.are.equal("Local Deleted", written[1].note)
     end
   )
 
@@ -139,11 +138,10 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
         create_mock_bookmark(page, "Local Bookmark", false, timestamp)
       local income_bm =
         create_mock_bookmark(page, "Remote Bookmark", true, timestamp)
-      local key = annotations_mod.annotation_key(local_bm)
 
-      write_json(local_file, { [key] = local_bm })
-      write_json(last_sync_file, { [key] = local_bm })
-      write_json(income_file, { [key] = income_bm })
+      write_json(local_file, { local_bm })
+      write_json(last_sync_file, { local_bm })
+      write_json(income_file, { income_bm })
 
       local success, active = annotations_mod.sync_callback(
         local_file,
@@ -158,24 +156,33 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       assert.is_falsy(active[1].deleted)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written[key])
-      assert.is_falsy(written[key].deleted)
-      assert.are.equal("Local Bookmark", written[key].text)
+      assert.is_table(written[1])
+      assert.is_falsy(written[1].deleted)
+      assert.are.equal("Local Bookmark", written[1].text)
     end
   )
 
   it(
     "retains 'Latest-Wins' for non-identical timestamps (Remote newer)",
     function()
-      local local_ann =
-        create_mock_ann(1, "Local Old", false, "2026-01-01 12:00:00")
-      local income_ann =
-        create_mock_ann(1, "Remote Newer", false, "2026-01-01 12:00:01")
-      local key = annotations_mod.annotation_key(local_ann)
+      local local_ann = create_mock_ann(
+        1,
+        "Local Old",
+        false,
+        "2026-01-01 12:00:00",
+        "2026-01-01 12:00:00"
+      )
+      local income_ann = create_mock_ann(
+        1,
+        "Remote Newer",
+        false,
+        "2026-01-01 12:00:00",
+        "2026-01-01 12:00:01"
+      )
 
-      write_json(local_file, { [key] = local_ann })
-      write_json(last_sync_file, { [key] = local_ann })
-      write_json(income_file, { [key] = income_ann })
+      write_json(local_file, { local_ann })
+      write_json(last_sync_file, { local_ann })
+      write_json(income_file, { income_ann })
 
       local success, active = annotations_mod.sync_callback(
         local_file,
@@ -190,9 +197,9 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       assert.are.equal("2026-01-01 12:00:01", active[1].datetime_updated)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written[key])
-      assert.are.equal("Remote Newer", written[key].note)
-      assert.are.equal("2026-01-01 12:00:01", written[key].datetime_updated)
+      assert.is_table(written[1])
+      assert.are.equal("Remote Newer", written[1].note)
+      assert.are.equal("2026-01-01 12:00:01", written[1].datetime_updated)
     end
   )
 
@@ -203,11 +210,10 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
         create_mock_ann(1, "Local Newer", false, "2026-01-01 12:00:01")
       local income_ann =
         create_mock_ann(1, "Remote Old", false, "2026-01-01 12:00:00")
-      local key = annotations_mod.annotation_key(local_ann)
 
-      write_json(local_file, { [key] = local_ann })
-      write_json(last_sync_file, { [key] = income_ann })
-      write_json(income_file, { [key] = income_ann })
+      write_json(local_file, { local_ann })
+      write_json(last_sync_file, { income_ann })
+      write_json(income_file, { income_ann })
 
       local success, active = annotations_mod.sync_callback(
         local_file,
@@ -222,9 +228,9 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       assert.are.equal("2026-01-01 12:00:01", active[1].datetime_updated)
 
       local written = utils_mod.read_json(local_file)
-      assert.is_table(written[key])
-      assert.are.equal("Local Newer", written[key].note)
-      assert.are.equal("2026-01-01 12:00:01", written[key].datetime_updated)
+      assert.is_table(written[1])
+      assert.are.equal("Local Newer", written[1].note)
+      assert.are.equal("2026-01-01 12:00:01", written[1].datetime_updated)
     end
   )
 

@@ -1,10 +1,8 @@
 local DataStorage = require("datastorage")
 local Device = require("device")
 local NetworkMgr = require("ui/network/manager")
-local T = require("ffi/util").template
-local Trapper = require("ui/trapper")
-local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
+local dump = require("dump")
 local gettext = require("gettext")
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
@@ -12,24 +10,27 @@ local logger = require("logger")
 local readhistory = require("readhistory")
 local util = require("util")
 
+local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local remote = require("plugins/AnnotationSync.koplugin/remote")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
-local function isConnected()
-  return NetworkMgr:isConnected()
-end
+local ONLINE_RETRY_INTERVAL = 10
 
-local SyncManager = {}
+-- Background job callbacks and offline-queued syncs outlive the ReaderUI or
+-- FileManager whose plugin queued them. Every plugin instance shares this
+-- singleton table, and the latest plugin to init owns it.
+local SyncManager = {
+  running = nil,
+  -- Books the user asked to sync: file -> "Manual Sync" or "Sync All". They
+  -- run before the others, even with auto sync off. A request is used up
+  -- when its job starts, or dropped when the book leaves the queue.
+  requested = {},
+}
 
-function SyncManager:new(plugin)
-  local o = {
-    plugin = plugin,
-  }
-  setmetatable(o, self)
-  self.__index = self
-  return o
+function SyncManager:setPlugin(plugin)
+  self.plugin = plugin
 end
 
 function SyncManager:getDeviceName()
@@ -42,6 +43,15 @@ function SyncManager:getDeviceName()
   return Device.model or "unknown"
 end
 
+-- Manual Sync and "Sync now": queues the book first, its sync is forced.
+function SyncManager:syncNow(file)
+  self:_moveToFront(file)
+  self.requested[file] = "Manual Sync"
+  NetworkMgr:runWhenOnline(function()
+    self:_dispatchNextSync()
+  end)
+end
+
 -- Sync all changed documents listed in changed_documents.lua
 function SyncManager:syncAllChangedDocuments()
   local total, changed_docs = self:getPendingChangedDocuments()
@@ -50,235 +60,254 @@ function SyncManager:syncAllChangedDocuments()
     return
   end
 
+  for _, file in ipairs(changed_docs) do
+    -- Keep a Manual Sync request: it is forced.
+    self.requested[file] = self.requested[file] or "Sync All"
+  end
   NetworkMgr:runWhenOnline(function()
-    Trapper:wrap(function()
-      local count = 0
-      local failed_files = {}
-      local current_idx = 0
-
-      for file, _ in pairs(changed_docs) do
-        current_idx = current_idx + 1
-        local _, filename = util.splitFilePathName(file)
-        if
-          not Trapper:info(
-            T(
-              gettext("Syncing document %1 of %2...\n%3"),
-              current_idx,
-              total,
-              filename ~= "" and filename or file
-            )
-          )
-        then
-          break
-        end
-
-        local res = self:syncDocument(file, false)
-        if res == true then
-          count = count + 1
-        elseif res == false then
-          table.insert(failed_files, file)
-        end
-      end
-
-      Trapper:reset()
-
-      if count > 0 then
-        self:recordSyncState("Sync All")
-        utils.show_msg("Successfully synced modified documents: " .. count)
-      elseif #failed_files > 0 then
-        utils.show_msg("Unable to sync modified documents: " .. total)
-      end
-
-      if #failed_files > 0 then
-        local filenames = {}
-        for _, file in ipairs(failed_files) do
-          local _, name = util.splitFilePathName(file)
-          table.insert(filenames, name ~= "" and name or file)
-        end
-        local list_str = "- " .. table.concat(filenames, "\n- ")
-        UIManager:show(require("ui/widget/confirmbox"):new({
-          text = T(
-            gettext(
-              "Unable to sync the following document(s):\n%1\n\nWould you like to open the pending documents manager?"
-            ),
-            list_str
-          ),
-          ok_text = gettext("Open Manager"),
-          ok_callback = function()
-            menus.show_pending_documents(self.plugin)
-          end,
-          cancel_text = gettext("Close"),
-        }))
-      end
-    end)
+    self:_dispatchNextSync()
   end)
 end
 
--- Incremental background sync of pending documents using BackgroundJobs fork mode
-function SyncManager:syncPendingDocumentsBg()
-  local total, _ = self:getPendingChangedDocuments()
-  if total == 0 then
+function SyncManager:_loadChangedDocuments()
+  local ok, docs = pcall(dofile, self:changedDocumentsFile())
+  if not ok or type(docs) ~= "table" then
+    return {}
+  end
+  if docs[1] == nil then
+    -- Older versions wrote a map: { [file] = true }.
+    local list = {}
+    for file in pairs(docs) do
+      table.insert(list, file)
+    end
+    return list
+  end
+  return docs
+end
+
+function SyncManager:_movePendingDocumentToBack(file)
+  local list = self:_loadChangedDocuments()
+  local idx = util.arrayContains(list, file)
+  if idx then
+    table.remove(list, idx)
+    table.insert(list, file)
+    self:_writeChangedDocumentsFile(list)
+  end
+end
+
+function SyncManager:_moveToFront(file)
+  local list = self:_loadChangedDocuments()
+  local idx = util.arrayContains(list, file)
+  if idx then
+    table.remove(list, idx)
+  end
+  table.insert(list, 1, file)
+  self:_writeChangedDocumentsFile(list)
+end
+
+function SyncManager:_startSync(file, trigger)
+  if not util.fileExists(file) then
+    logger.warn(
+      "AnnotationSync: file missing, removing from sync list:",
+      file
+    )
+    self:removeFromChangedDocumentsFileByPath(file)
+    self.running = nil
+    self:_dispatchNextSync()
     return
   end
 
-  NetworkMgr:willRerunWhenOnline(function()
-    local pending_total, pending_changed_docs =
-      self:getPendingChangedDocuments()
-    if pending_total == 0 then
-      return
-    end
+  local _, pending_docs = self:getPendingChangedDocuments()
+  if not util.arrayContains(pending_docs, file) then
+    self.running = nil
+    self:_dispatchNextSync()
+    return
+  end
 
-    for file, _ in pairs(pending_changed_docs) do
-      if not util.fileExists(file) then
+  local ui_doc = self.plugin.ui.document
+  local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
+  -- Manual Sync is forced, see annotations.merge.
+  local force = trigger == "Manual Sync"
+  assert(require("background_jobs").insertKeyed({
+    executable = "fork",
+    action = function()
+      NetworkMgr:queryOnlineState()
+      while not NetworkMgr:isOnline() do
+        require("ffi/util").sleep(ONLINE_RETRY_INTERVAL)
+        NetworkMgr:queryOnlineState()
+      end
+
+      local json_path = self:_writeAnnotationsJSON(doc)
+      if not json_path then
+        return { file = file, success = false }
+      end
+      local snapshot_path = json_path .. ".snapshot"
+      local snapshot_content = assert(util.readFromFile(json_path, "r"))
+      assert(util.writeToFile(snapshot_content, snapshot_path))
+
+      local sync_success = false
+      local uploaded = false
+      local cached_path = self:getSyncCachePath(file)
+      local ok, err = pcall(function()
+        remote.sync_annotations(
+          self.plugin,
+          json_path,
+          function(success, _, uploaded_json)
+            sync_success = success
+            if uploaded_json then
+              uploaded = true
+              assert(util.writeToFile(uploaded_json, json_path .. ".uploaded"))
+            end
+          end,
+          force,
+          cached_path
+        )
+      end)
+      if not ok then
+        logger.err("AnnotationSync: background sync failed for", file, err)
+      end
+      return {
+        file = file,
+        json_path = json_path,
+        success = ok and sync_success == true,
+        uploaded = uploaded,
+      }
+    end,
+    callback = function(job)
+      local item = job.result
+      if type(item) ~= "table" then
         logger.warn(
-          "AnnotationSync: file missing, removing from sync list:",
+          "AnnotationSync: background sync returned invalid result for",
           file
         )
-        self:removeFromChangedDocumentsFileByPath(file)
-      else
-        local ui_doc = self.plugin.ui and self.plugin.ui.document
-        local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
-        require("background_jobs").insertKeyed({
-          executable = "fork",
-          action = function()
-            local json_path = self:_writeAnnotationsJSON(doc)
-            if not json_path then
-              return { file = file, success = false }
-            end
-            local sync_success = false
-            local final_merged = nil
-            local cached_path = self:getSyncCachePath(file)
-            local ok, _ = pcall(function()
-              remote.sync_annotations(
-                self.plugin,
-                json_path,
-                function(success, merged_list)
-                  sync_success = success
-                  final_merged = merged_list
-                end,
-                false,
-                cached_path
-              )
-            end)
-            return {
-              file = file,
-              success = ok and sync_success == true,
-              merged_list = final_merged,
-            }
-          end,
-          callback = function(job)
-            if not job.result or type(job.result) ~= "table" then
-              logger.warn(
-                "AnnotationSync: background sync returned invalid result for",
-                file
-              )
-              return
-            end
-            local item = job.result
-            if item.success and item.file then
-              self:removeFromChangedDocumentsFileByPath(item.file)
-              local current_ui_doc = self.plugin.ui and self.plugin.ui.document
-              if
-                current_ui_doc
-                and current_ui_doc.file == item.file
-                and item.merged_list
-              then
-                self.plugin:applySyncedAnnotations(
-                  current_ui_doc,
-                  item.merged_list
-                )
-              end
-              self:recordSyncState("Auto Sync")
-              logger.info(
-                "AnnotationSync: background sync completed for",
-                item.file
-              )
-            end
-          end,
-        })
+        item = { success = false }
       end
-    end
-  end)
+      if item.success then
+        local snapshot_json =
+          assert(util.readFromFile(item.json_path .. ".snapshot"))
+        local uploaded_json = item.uploaded
+            and assert(util.readFromFile(item.json_path .. ".uploaded"))
+          or nil
+        self:_applyBackgroundSync(
+          file,
+          snapshot_json,
+          uploaded_json
+        )
+        self:_movePendingDocumentToBack(file)
+        self:recordSyncState(trigger)
+        logger.info(
+          "AnnotationSync: background sync completed for",
+          file
+        )
+      else
+        self:_movePendingDocumentToBack(file)
+      end
+      if item.json_path then
+        os.remove(item.json_path .. ".snapshot")
+        os.remove(item.json_path .. ".uploaded")
+      end
+      self.running = nil
+      self:_dispatchNextSync(not item.success)
+    end,
+  }))
 end
 
--- Orchestrates the sync process for a single document (accepts active document object OR file path string)
-function SyncManager:syncDocument(doc_or_file, is_manual)
-  if not isConnected() then
-    logger.dbg("AnnotationSync: cannot sync document, network is offline")
+-- Starts the first book the user asked to sync. Without one, with auto sync
+-- on and unless the last sync failed, starts the first book of the queue.
+function SyncManager:_dispatchNextSync(failed)
+  if self.running then
     return false
   end
 
-  local document
-  if type(doc_or_file) == "string" then
-    local ui_document = self.plugin.ui and self.plugin.ui.document
-    if ui_document and ui_document.file == doc_or_file then
-      document = ui_document
-    else
-      document = { file = doc_or_file }
+  local list = self:_loadChangedDocuments()
+  local file
+  for _, f in ipairs(list) do
+    if self.requested[f] then
+      file = f
+      break
     end
-  else
-    document = doc_or_file
   end
-
-  local file = document and document.file
+  if not file and self.plugin.settings.network_auto_sync and not failed then
+    file = list[1]
+  end
   if not file then
     return false
   end
 
-  if not util.fileExists(file) then
-    logger.warn("AnnotationSync: file missing, removing from sync list:", file)
-    self:removeFromChangedDocumentsFileByPath(file)
-    return nil
-  end
-
-  logger.info("AnnotationSync: syncing document:", file)
-
-  local json_path = self:_writeAnnotationsJSON(document)
-  if not json_path then
-    return false
-  end
-
-  logger.dbg(
-    "AnnotationSync: remote sync of",
-    json_path,
-    "(force=",
-    is_manual,
-    ")"
-  )
-  local cached_path = self:getSyncCachePath(file)
-  local sync_success = false
-  local ok, err = pcall(function()
-    remote.sync_annotations(
-      self.plugin,
-      json_path,
-      function(success, merged_list)
-        sync_success = success
-        self:_onSyncComplete(document, success, merged_list)
-      end,
-      is_manual,
-      cached_path
-    )
+  local trigger = self.requested[file] or "Auto Sync"
+  self.requested[file] = nil
+  self.running = true
+  NetworkMgr:willRerunWhenOnline(function()
+    self:_startSync(file, trigger)
   end)
+  return true
+end
 
+-- Applies a background sync that the forked child finished. The child merged
+-- a snapshot of the book (snapshot_json) and uploaded the result
+-- (uploaded_json, nil if there was nothing to upload). The book may have been
+-- edited since the snapshot, so the upload can't replace it: run the same
+-- 3-way merge again, with the book as it is now as the local side, the
+-- snapshot as the base and the upload as the income.
+function SyncManager:_applyBackgroundSync(
+  file,
+  snapshot_json,
+  uploaded_json
+)
+  if not util.fileExists(file) then
+    logger.warn(
+      "AnnotationSync: file missing after background sync, skipping apply:",
+      file
+    )
+    self:removeFromChangedDocumentsFileByPath(file)
+    return
+  end
+
+  local document = { file = file }
+  local ui_document = self.plugin.ui.document
+  if ui_document and ui_document.file == file then
+    document = ui_document
+  end
+
+  local book_now = self:getAnnotationsForDocument(document)
+  -- Round trip through JSON so floating-point coordinates match the precision
+  -- of snapshot_json and uploaded_json across comparisons and matching.
+  local local_list = json.decode(json.encode(book_now))
+  local base_list = json.decode(snapshot_json)
+
+  local unchanged = util.tableEquals(local_list, base_list)
+
+  if uploaded_json then
+    local income_list = json.decode(uploaded_json)
+    local _, active =
+      annotations.merge(local_list, base_list, income_list, false)
+    self.plugin:applySyncedAnnotations(document, active)
+    self:_promoteSyncBase(file, uploaded_json)
+  end
+
+  if unchanged then
+    self:removeFromChangedDocumentsFileByPath(file)
+  end
+end
+
+-- Makes the uploaded list the merge base of `file`. Call it only after the
+-- merge has reached the book: a base ahead of the book makes the next sync
+-- read the remote additions as local deletions and tombstone them.
+function SyncManager:_promoteSyncBase(file, uploaded_json)
+  local cached_path = self:getSyncCachePath(file)
+  local ok, err = util.writeToFile(uploaded_json, cached_path)
   if not ok then
     logger.warn(
-      "AnnotationSync: syncDocument CRASHED for",
-      file,
-      ":",
-      tostring(err)
+      "AnnotationSync: Failed to write merge base:",
+      cached_path,
+      "(",
+      tostring(err),
+      ")"
     )
-    return false
-  elseif not sync_success then
-    logger.warn("AnnotationSync: syncDocument failed for", file)
   end
-
-  return sync_success
 end
 
 function SyncManager:getSyncCachePath(file)
-  if not file then
-    return nil
-  end
   local sdr_dir = docsettings:getSidecarDir(file)
   if not sdr_dir or sdr_dir == "" then
     return nil
@@ -315,57 +344,34 @@ function SyncManager:changedDocumentsFile()
 end
 
 function SyncManager:getPendingChangedDocuments()
-  local count = 0
-  local track_path = self:changedDocumentsFile()
-  local ok, changed_docs = pcall(dofile, track_path)
-  if ok and type(changed_docs) == "table" then
-    for __ in pairs(changed_docs) do
-      count = count + 1
-    end
-  end
-  return count, changed_docs
-end
-
-function SyncManager:hasPendingChangedDocuments()
-  local count, __ = self:getPendingChangedDocuments()
-  return count > 0
+  local list = self:_loadChangedDocuments()
+  return #list, list
 end
 
 function SyncManager:addToChangedDocumentsFile(file)
-  local track_path = self:changedDocumentsFile()
-  -- Load existing table or create new
-  local changed_docs = {}
-  local ok, loaded = pcall(dofile, track_path)
-  if ok and type(loaded) == "table" then
-    changed_docs = loaded
+  local list = self:_loadChangedDocuments()
+  if not util.arrayContains(list, file) then
+    table.insert(list, file)
+    self:_writeChangedDocumentsFile(list)
   end
-  if type(file) == "string" then
-    changed_docs[file] = true
-    self:_writeChangedDocumentsFile(changed_docs)
-  end
-end
-
-function SyncManager:removeFromChangedDocumentsFile(document)
-  local file = document and document.file
-  self:removeFromChangedDocumentsFileByPath(file)
+  self:_dispatchNextSync()
 end
 
 function SyncManager:removeFromChangedDocumentsFileByPath(file)
-  if not file then
-    return
-  end
-  local track_path = self:changedDocumentsFile()
-  local ok, changed_docs = pcall(dofile, track_path)
-  if ok and type(changed_docs) == "table" and changed_docs[file] then
-    changed_docs[file] = nil
-    self:_writeChangedDocumentsFile(changed_docs)
+  -- A request lives only while its book is queued.
+  self.requested[file] = nil
+  local list = self:_loadChangedDocuments()
+  local idx = util.arrayContains(list, file)
+  if idx then
+    table.remove(list, idx)
+    self:_writeChangedDocumentsFile(list)
   end
 end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
   local ok, err =
-    util.writeToFile(self:_serialize_table(changed_docs), track_path, true)
+    util.writeToFile(dump(changed_docs), track_path, true)
   if not ok then
     logger.warn(
       "AnnotationSync: Failed to write changed documents file:",
@@ -395,16 +401,14 @@ function SyncManager:scanLibraryForUnsyncedDocuments()
   end
 
   if count > 0 then
-    local track_path = self:changedDocumentsFile()
-    local changed_docs = {}
-    local ok, loaded = pcall(dofile, track_path)
-    if ok and type(loaded) == "table" then
-      changed_docs = loaded
+    local list = self:_loadChangedDocuments()
+    for _, item in ipairs(readhistory.hist) do
+      if added_files[item.file] and not util.arrayContains(list, item.file) then
+        table.insert(list, item.file)
+      end
     end
-    for book_path in pairs(added_files) do
-      changed_docs[book_path] = true
-    end
-    self:_writeChangedDocumentsFile(changed_docs)
+    self:_writeChangedDocumentsFile(list)
+    self:_dispatchNextSync()
   end
 
   return count, added_files
@@ -415,34 +419,17 @@ function SyncManager:getAnnotationsForDocument(document)
   local file = type(document) == "string" and document
     or (document and document.file)
   -- Handle active document
-  if
-    self.plugin.ui
-    and document == self.plugin.ui.document
-    and self.plugin.ui.annotation
-    and self.plugin.ui.annotation.annotations
-  then
+  if document == self.plugin.ui.document then
     return self.plugin.ui.annotation.annotations
   end
   -- Handle inactive document
-  if file then
-    local annotation_sidecar = docsettings:open(file)
-    -- Note, the merged annotations will be rewritten back to the settings from a
-    -- different Docsettings instance, read or readTableRef shouldn't be used
-    -- here.
-    local result = annotation_sidecar:readTable("annotations")
-    return result or {}
-  end
-  return {}
+  local annotation_sidecar = docsettings:open(file)
+  return ReaderAnnotation.loadFromSettings(annotation_sidecar)
 end
 
 -- Get only annotations marked as deleted in the sync cache JSON
 function SyncManager:getDeletedAnnotations(document)
-  local file = document and document.file
-  if not file then
-    return {}
-  end
-
-  local cached_path = self:getSyncCachePath(file)
+  local cached_path = self:getSyncCachePath(document.file)
   local map = cached_path and utils.read_json(cached_path)
   if not map then
     return {}
@@ -451,7 +438,7 @@ function SyncManager:getDeletedAnnotations(document)
   local active = self:getAnnotationsForDocument(document)
   local function is_active(item)
     for _, a in ipairs(active) do
-      if annotations.is_same_annotation(item, a) then
+      if ReaderAnnotation.doesMatch(item, a) then
         return true
       end
     end
@@ -485,29 +472,8 @@ function SyncManager:_getAnnotationFilename(file)
     local _, filename = util.splitFilePathName(file)
     return (filename ~= "" and filename or file) .. ".json"
   end
-  local hash = type(file) == "string" and util.partialMD5(file)
-    or gettext("No hash")
+  local hash = util.partialMD5(file) or gettext("No hash")
   return hash .. ".json"
-end
-
-function SyncManager:cleanSyncFile(doc_or_file)
-  local file = type(doc_or_file) == "string" and doc_or_file
-    or (doc_or_file and doc_or_file.file)
-  if not file then
-    return
-  end
-  local filename = self:_getAnnotationFilename(file)
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if sdr_dir and sdr_dir ~= "" then
-    os.remove(sdr_dir .. "/" .. filename)
-    os.remove(sdr_dir .. "/" .. filename .. ".sync")
-  end
-  local tmp_dir = DataStorage:getTmpDir()
-  if tmp_dir and tmp_dir ~= "" then
-    os.remove(tmp_dir .. "/" .. filename)
-    os.remove(tmp_dir .. "/" .. filename .. ".sync")
-    os.remove(tmp_dir .. "/" .. filename .. ".temp")
-  end
 end
 
 function SyncManager:cleanOrphanSyncFiles()
@@ -523,31 +489,6 @@ function SyncManager:cleanOrphanSyncFiles()
       end
     end
   end)
-end
-
-function SyncManager:_onSyncComplete(document, success, merged_list)
-  if success then
-    if merged_list then
-      self.plugin:applySyncedAnnotations(document, merged_list)
-    end
-    self:removeFromChangedDocumentsFile(document)
-  else
-    logger.warn(
-      "AnnotationSync: sync failed for",
-      (document.file or "unknown"),
-      ", keeping in changed list"
-    )
-  end
-end
-
--- Helper to serialize a Lua table as code
-function SyncManager:_serialize_table(tbl)
-  local result = "{\n"
-  for k, v in pairs(tbl) do
-    result = result .. string.format("  [%q] = %s,\n", k, tostring(v))
-  end
-  result = result .. "}"
-  return result
 end
 
 function SyncManager:getSelectedSettingsWithValues()
@@ -758,16 +699,11 @@ function SyncManager:_writeLocalSettingValue(key, value)
 end
 
 function SyncManager:pullSettings()
-  if not isConnected() then
-    utils.show_msg(gettext("Network is disconnected, cannot pull settings"))
-    return
-  end
-
   local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
   utils.show_msg(gettext("Fetching settings from cloud..."))
-  remote.sync_settings(self.plugin, json_path, function(success, merged_data)
-    if success and merged_data then
-      menus.show_devices_menu(self.plugin, merged_data)
+  remote.pull_settings(self.plugin, json_path, function(success, remote_data)
+    if success then
+      menus.show_devices_menu(self.plugin, remote_data)
     else
       utils.show_msg(gettext("Failed to fetch settings from cloud"))
     end

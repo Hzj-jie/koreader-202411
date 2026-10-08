@@ -1,7 +1,7 @@
 describe("AnnotationSync Sync Protection & Regressions", function()
-  local ReaderUI, UIManager, Geom, SyncService
+  local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_protection_tmp"
   local old_getDataDir
@@ -13,8 +13,6 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
@@ -42,12 +40,17 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   end)
 
   before_each(function()
+    readerui.annotation.annotations = {}
     UIManager:show(readerui)
     fastforward_ui_events()
-    readerui.annotation.annotations = {}
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   it(
@@ -67,11 +70,14 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       -- 3. Mock sync to check what's being sent
       local last_uploaded_data
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local result = callback(local_path, local_path, local_path)
         local f = io.open(local_path, "r")
         last_uploaded_data = json.decode(f:read("*all"))
         f:close()
+        if finish_cb then
+          finish_cb(result)
+        end
         return result
       end
 
@@ -103,14 +109,31 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local mock_ds = {
         open = function(this, file)
           return {
+            has = function(self_ds, key)
+              return key == "annotations"
+            end,
             readTable = function(self_ds, key)
               if key == "annotations" then
-                return { { page = "test_page", pos0 = "p0", pos1 = "p1" } }
+                return {
+                  {
+                    drawer = "lighten",
+                    page = "test_page",
+                    pos0 = "p0",
+                    pos1 = "p1",
+                  },
+                }
               end
             end,
             readTableRef = function(self_ds, key)
               if key == "annotations" then
-                return { { page = "test_page", pos0 = "p0", pos1 = "p1" } }
+                return {
+                  {
+                    drawer = "lighten",
+                    page = "test_page",
+                    pos0 = "p0",
+                    pos1 = "p1",
+                  },
+                }
               end
               return {}
             end,
@@ -131,7 +154,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       -- 3. Instantiate Manager with a dummy plugin interface
       local mock_plugin = { ui = readerui, settings = {} }
-      local manager_instance = SyncManager:new(mock_plugin)
+      SyncManager:setPlugin(mock_plugin)
+      local manager_instance = SyncManager
 
       -- 4. Verify
       local result =
@@ -154,11 +178,23 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         test_utils.write_mock_json(test_data_dir, "prot_local.json", {})
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
 
       local ok, active = annotations_mod.sync_callback(
@@ -174,10 +210,10 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.is_equal("Gone?", active[1].text)
 
       local f = io.open(local_file, "r")
-      local disk_map = json.decode(f:read("*a"))
+      local disk_list = json.decode(f:read("*a"))
       f:close()
-      assert.is_not_nil(disk_map["p1||p2"])
-      assert.falsy(disk_map["p1||p2"].deleted)
+      assert.is_not_nil(disk_list[1])
+      assert.falsy(disk_list[1].deleted)
     end
   )
 
@@ -190,11 +226,23 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         test_utils.write_mock_json(test_data_dir, "prot_local_force.json", {})
       local last_sync_file =
         test_utils.write_mock_json(test_data_dir, "prot_last_force.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
       local income_file =
         test_utils.write_mock_json(test_data_dir, "prot_income_force.json", {
-          ["p1||p2"] = { pos0 = "p1", pos1 = "p2", page = 1, text = "Gone?" },
+          {
+            drawer = "lighten",
+            pos0 = "p1",
+            pos1 = "p2",
+            page = "p1",
+            text = "Gone?",
+          },
         })
 
       local ok, active = annotations_mod.sync_callback(
@@ -209,10 +257,10 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.is_equal(0, #active)
 
       local f = io.open(local_file, "r")
-      local disk_map = json.decode(f:read("*a"))
+      local disk_list = json.decode(f:read("*a"))
       f:close()
-      assert.is_not_nil(disk_map["p1||p2"])
-      assert.is_true(disk_map["p1||p2"].deleted)
+      assert.is_not_nil(disk_list[1])
+      assert.is_true(disk_list[1].deleted)
     end
   )
 
@@ -220,15 +268,17 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     "should STILL propagate deletions if local list is NOT completely empty",
     function()
       local remote_ann = {
-        ["p1||p1"] = {
-          page = 1,
+        {
+          drawer = "lighten",
+          page = "p1",
           pos0 = "p1",
           pos1 = "p1",
           text = "Remote 1",
           datetime_updated = "2026-01-01 00:00:00",
         },
-        ["p2||p2"] = {
-          page = 2,
+        {
+          drawer = "lighten",
+          page = "p2",
           pos0 = "p2",
           pos1 = "p2",
           text = "Remote 2",
@@ -243,7 +293,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       fc:close()
 
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local income_path = test_data_dir .. "/income_partial.json"
 
         local f = io.open(income_path, "w")
@@ -257,6 +307,9 @@ describe("AnnotationSync Sync Protection & Regressions", function()
           ffiutil.copyFile(local_path, cached_dest)
         end
         os.remove(income_path)
+        if finish_cb then
+          finish_cb(result)
+        end
         return result
       end
 
@@ -268,7 +321,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       readerui.annotation.annotations = {
         {
-          page = 1,
+          drawer = "lighten",
+          page = "p1",
           pos0 = "p1",
           pos1 = "p1",
           text = "Remote 1",
@@ -276,7 +330,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         },
       }
 
-      sync_instance.manager:syncDocument(readerui.document, false)
+      sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+      sync_instance.manager:syncAllChangedDocuments()
 
       local cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
@@ -285,8 +340,15 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local saved_data = json.decode(f:read("*all"))
       f:close()
 
-      assert.is_not_nil(saved_data["p2||p2"])
-      assert.is_true(saved_data["p2||p2"].deleted)
+      local found_p2
+      for _, ann in ipairs(saved_data) do
+        if ann.pos0 == "p2" then
+          found_p2 = ann
+          break
+        end
+      end
+      assert.is_not_nil(found_p2)
+      assert.is_true(found_p2.deleted)
 
       SyncService.sync = old_sync
     end
@@ -294,7 +356,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
   it("should protect PDF annotations similarly (geometry keys)", function()
     local remote_ann = {
-      ["1|10|10||20|20"] = {
+      {
+        drawer = "lighten",
         page = 1,
         pos0 = { x = 10, y = 10 },
         pos1 = { x = 20, y = 20 },
@@ -310,7 +373,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     fc:close()
 
     local old_sync = SyncService.sync
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local income_path = test_data_dir .. "/income_pdf.json"
 
       local f = io.open(income_path, "w")
@@ -324,6 +387,9 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         ffiutil.copyFile(local_path, cached_dest)
       end
       os.remove(income_path)
+      if finish_cb then
+        finish_cb(result)
+      end
       return result
     end
 
@@ -332,11 +398,59 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     readerui.annotation.annotations = {}
 
-    sync_instance.manager:syncDocument(readerui.document, false)
+    sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+    sync_instance.manager:syncAllChangedDocuments()
 
     assert.is_equal(1, #readerui.annotation.annotations)
     assert.is_equal("PDF Note", readerui.annotation.annotations[1].text)
 
     SyncService.sync = old_sync
   end)
+
+  it(
+    "should raise error if local sync file is missing or unreadable",
+    function()
+      local annotations_mod =
+        require("plugins/AnnotationSync.koplugin/annotations")
+      local missing_local_file = test_data_dir .. "/non_existent_local.json"
+      local last_sync_file =
+        test_utils.write_mock_json(test_data_dir, "prot_last_missing.json", {
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
+        })
+      local income_file =
+        test_utils.write_mock_json(test_data_dir, "prot_income_missing.json", {
+          { pos0 = "p1", pos1 = "p2", page = 1, text = "Keep me" },
+        })
+
+      local ok, err = pcall(function()
+        annotations_mod.sync_callback(
+          missing_local_file,
+          last_sync_file,
+          income_file,
+          true
+        )
+      end)
+      assert.is_false(ok)
+      assert.truthy(err:find("missing or unreadable local sync file"))
+
+      -- A corrupt non-JSON local file returns nil from read_to_array and must also error
+      local corrupt_local_file = test_data_dir .. "/corrupt_local.json"
+      local util = require("util")
+      util.writeToFile("not valid json", corrupt_local_file)
+      finally(function()
+        os.remove(corrupt_local_file)
+      end)
+
+      local ok_corrupt, err_corrupt = pcall(function()
+        annotations_mod.sync_callback(
+          corrupt_local_file,
+          last_sync_file,
+          income_file,
+          true
+        )
+      end)
+      assert.is_false(ok_corrupt)
+      assert.truthy(err_corrupt:find("missing or unreadable local sync file"))
+    end
+  )
 end)

@@ -1,75 +1,79 @@
-local test_data_dir = require("datastorage"):getDataDir()
-  .. "/test_sync_missing_tmp"
-os.execute("mkdir -p " .. test_data_dir .. "/cache")
-
--- Fix for DocCache requiring G_defaults and DataStorage during module load
-local old_G_defaults = _G.G_defaults
-_G.G_defaults = {
-  rw = function()
-    return {}
-  end,
-}
-local old_datastorage = package.loaded["datastorage"]
-local DataStorage = {
-  getDataDir = function()
-    return test_data_dir
-  end,
-  getHistoryDir = function()
-    return test_data_dir
-  end,
-  getSettingsDir = function()
-    return test_data_dir
-  end,
-}
-setmetatable(DataStorage, {
-  __index = function(t, k)
-    if k:match("^get") then
-      return function()
-        return test_data_dir
-      end
-    end
-  end,
-})
-package.loaded["datastorage"] = DataStorage
-
-require("commonrequire")
-
--- Mock modules before requiring manager
-local util = require("util")
-local existing_files = {}
-_G.old_util_fileExists = util.fileExists
-util.fileExists = function(file)
-  return existing_files[file] == true
-end
-
-package.loaded["plugins/AnnotationSync.koplugin/remote"] = {
-  sync_annotations = function(plugin, json_path, on_complete, force)
-    on_complete(true, {})
-  end,
-}
-
-package.loaded["plugins/AnnotationSync.koplugin/annotations"] = {
-  write_annotations_json = function(_, sdr_dir, filename)
-    return sdr_dir .. "/" .. filename
-  end,
-}
-
-package.loaded["frontend/docsettings"] = {
-  getSidecarDir = function()
-    return test_data_dir
-  end,
-}
-
-local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
-package.path = plugin_path .. ";" .. package.path
-local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
-
 describe("Sync Missing File Handling", function()
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_sync_missing_tmp"
   local manager
   local test_utils
   local old_getDataDir
+  local util
+  local existing_files = {}
+  local old_G_defaults, old_datastorage, old_fileExists
 
   setup(function()
+    os.execute("mkdir -p " .. test_data_dir .. "/cache")
+
+    -- Fix for DocCache requiring G_defaults and DataStorage during module load
+    old_G_defaults = _G.G_defaults
+    _G.G_defaults = {
+      rw = function()
+        return {}
+      end,
+    }
+    old_datastorage = package.loaded["datastorage"]
+    local DataStorage = {
+      getDataDir = function()
+        return test_data_dir
+      end,
+      getHistoryDir = function()
+        return test_data_dir
+      end,
+      getSettingsDir = function()
+        return test_data_dir
+      end,
+    }
+    setmetatable(DataStorage, {
+      __index = function(t, k)
+        if k:match("^get") then
+          return function()
+            return test_data_dir
+          end
+        end
+      end,
+    })
+    package.loaded["datastorage"] = DataStorage
+
+    require("commonrequire")
+
+    -- Mock modules before requiring manager
+    util = require("util")
+    old_fileExists = util.fileExists
+    util.fileExists = function(file)
+      return existing_files[file] == true
+    end
+
+    package.loaded["plugins/AnnotationSync.koplugin/remote"] = {
+      sync_annotations = function(plugin, json_path, on_complete, force)
+        on_complete(true, {})
+      end,
+    }
+
+    package.loaded["plugins/AnnotationSync.koplugin/annotations"] = {
+      write_annotations_json = function(_, sdr_dir, filename)
+        local path = sdr_dir .. "/" .. filename
+        util.writeToFile("[]", path)
+        return path
+      end,
+    }
+
+    package.loaded["frontend/docsettings"] = {
+      getSidecarDir = function()
+        return test_data_dir
+      end,
+    }
+
+    local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
+    package.path = plugin_path .. ";" .. package.path
+    local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
+
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
 
     -- Mock Plugin object
@@ -83,7 +87,8 @@ describe("Sync Missing File Handling", function()
       applySyncedAnnotations = function() end,
     }
 
-    manager = SyncManager:new(mock_plugin)
+    SyncManager:setPlugin(mock_plugin)
+    manager = SyncManager
     manager.getAnnotationsForDocument = function()
       return {}
     end
@@ -94,7 +99,7 @@ describe("Sync Missing File Handling", function()
 
   teardown(function()
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
-    util.fileExists = _G.old_util_fileExists
+    util.fileExists = old_fileExists
     _G.G_defaults = old_G_defaults
     package.loaded["datastorage"] = old_datastorage
     package.loaded["plugins/AnnotationSync.koplugin/manager"] = nil
@@ -125,24 +130,19 @@ describe("Sync Missing File Handling", function()
     manager:addToChangedDocumentsFile(doc2)
 
     -- Execute Sync All
+    finally(test_utils.run_jobs_inline())
     manager:syncAllChangedDocuments()
     fastforward_ui_events()
 
     -- Check if doc2 was removed from dirty list
     local _, changed_docs_after = manager:getPendingChangedDocuments()
-    assert.is_nil(
-      changed_docs_after[doc2],
+    assert.falsy(
+      util.arrayContains(changed_docs_after, doc2),
       "doc2 should have been removed from the dirty list"
     )
-    assert.is_nil(
-      changed_docs_after[doc1],
+    assert.falsy(
+      util.arrayContains(changed_docs_after, doc1),
       "doc1 should have been removed after successful sync"
     )
-  end)
-
-  it("returns nil when syncDocument is called on a missing file", function()
-    existing_files["missing.epub"] = false
-    local res = manager:syncDocument("missing.epub")
-    assert.is_nil(res)
   end)
 end)

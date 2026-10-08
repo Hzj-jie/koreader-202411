@@ -1,5 +1,5 @@
 describe("Remote Response Parsing (Issue #39)", function()
-  local annotations_mod, test_utils, json
+  local annotations_mod, test_utils
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_remote_parsing_tmp"
   local old_getDataDir
@@ -11,7 +11,6 @@ describe("Remote Response Parsing (Issue #39)", function()
 
     annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
-    json = require("json")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
   end)
@@ -109,9 +108,8 @@ describe("Remote Response Parsing (Issue #39)", function()
   )
 
   it(
-    "treats missing income file as empty state when code_response is nil",
+    "treats HTTP 404 with no downloaded file as empty remote state",
     function()
-      local document = { file = "test.epub" }
       local local_path =
         test_utils.write_mock_json(test_data_dir, "local.json", {
           ["annot_1"] = {
@@ -130,11 +128,11 @@ describe("Remote Response Parsing (Issue #39)", function()
         last_sync_path,
         non_existent_income,
         false,
-        nil
+        404
       )
       assert.truthy(
         ok,
-        "Should treat missing income file with nil code_response as empty remote"
+        "Should treat missing income file with HTTP 404 as empty remote"
       )
       assert.is_table(merged)
       assert.are.equal(1, #merged)

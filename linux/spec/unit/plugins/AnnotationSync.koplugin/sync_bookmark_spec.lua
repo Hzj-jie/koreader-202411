@@ -1,7 +1,7 @@
 describe("AnnotationSync Bookmark Synchronization", function()
-  local ReaderUI, UIManager, SyncService, Geom, DataStorage
+  local UIManager, SyncService, DataStorage
   local AnnotationSyncPlugin, test_utils, json, util, annotations_mod
-  local readerui, sync_instance
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_bookmark_tmp"
   local old_getDataDir
@@ -15,8 +15,6 @@ describe("AnnotationSync Bookmark Synchronization", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     DataStorage = require("datastorage")
@@ -53,9 +51,14 @@ describe("AnnotationSync Bookmark Synchronization", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   it("tracks dog-ear bookmarks and persists changed state", function()
@@ -72,7 +75,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
 
     local count, docs = sync_instance.manager:getPendingChangedDocuments()
     assert.is_equal(1, count)
-    assert.is_true(docs[readerui.document.file])
+    assert.truthy(util.arrayContains(docs, readerui.document.file))
   end)
 
   it("merges disjoint local and remote bookmarks", function()
@@ -89,19 +92,20 @@ describe("AnnotationSync Bookmark Synchronization", function()
       text = "Remote Bookmark",
       datetime = "2026-02-01 11:00:00",
     }
-    local key_r = annotations_mod.annotation_key(bm_r)
-
     local income_path = test_utils.write_mock_json(
       test_data_dir,
       "income_bm.json",
-      { [key_r] = bm_r }
+      { bm_r }
     )
 
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"
       callback(local_path, cached_dest, income_path)
       local ffiutil = require("ffi/util")
       ffiutil.copyFile(local_path, cached_dest)
+      if finish_cb then
+        finish_cb(true)
+      end
       return true
     end
 
@@ -114,17 +118,17 @@ describe("AnnotationSync Bookmark Synchronization", function()
   it("identifies deleted bookmarks correctly (unit test)", function()
     local local_file =
       test_utils.write_mock_json(test_data_dir, "bm_local.json", {
-        ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
+        { page = 2, text = "I am still here" },
       })
     local last_sync_file =
       test_utils.write_mock_json(test_data_dir, "bm_last.json", {
-        ["BOOKMARK|1"] = { page = 1, text = "I was deleted" },
-        ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
+        { page = 1, text = "I was deleted" },
+        { page = 2, text = "I am still here" },
       })
     local income_file =
       test_utils.write_mock_json(test_data_dir, "bm_income.json", {
-        ["BOOKMARK|1"] = { page = 1, text = "I was deleted" },
-        ["BOOKMARK|2"] = { page = 2, text = "I am still here" },
+        { page = 1, text = "I was deleted" },
+        { page = 2, text = "I am still here" },
       })
 
     local ok, active = annotations_mod.sync_callback(
@@ -139,30 +143,27 @@ describe("AnnotationSync Bookmark Synchronization", function()
     assert.is_equal(2, active[1].page)
 
     local f = io.open(local_file, "r")
-    local disk_map = json.decode(f:read("*a"))
+    local disk_list = json.decode(f:read("*a"))
     f:close()
 
-    assert.truthy(
-      disk_map["BOOKMARK|1"],
-      "Deleted bookmark should be added to local file"
-    )
+    assert.is_equal(2, #disk_list)
+    assert.is_equal(1, disk_list[1].page)
     assert.is_true(
-      disk_map["BOOKMARK|1"].deleted,
+      disk_list[1].deleted,
       "Deleted bookmark should be marked deleted"
     )
+    assert.is_equal(2, disk_list[2].page)
     assert.falsy(
-      disk_map["BOOKMARK|2"].deleted,
+      disk_list[2].deleted,
       "Active bookmark should NOT be marked deleted"
     )
   end)
 
   it("synchronizes bookmark deletions (with safety check bypassed)", function()
     -- 1. Create two bookmarks using XPointers and sync them
-    local key1 = "BOOKMARK|/page1"
     local bm1 =
       { page = "/page1", text = "Bookmark 1", datetime = "2026-02-01 10:00:00" }
 
-    local key2 = "BOOKMARK|/page2"
     local bm2 =
       { page = "/page2", text = "Bookmark 2", datetime = "2026-02-01 10:00:00" }
 
@@ -177,11 +178,11 @@ describe("AnnotationSync Bookmark Synchronization", function()
     local income_path = test_utils.write_mock_json(
       test_data_dir,
       "income_del_bm.json",
-      { [key1] = bm1, [key2] = bm2 }
+      { bm1, bm2 }
     )
 
     local captured_json
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       -- The callback updates local_path with merged data (including deletions)
       local cached_dest = local_path .. ".sync"
       local success = callback(local_path, cached_dest, income_path)
@@ -192,22 +193,34 @@ describe("AnnotationSync Bookmark Synchronization", function()
 
       local ffiutil = require("ffi/util")
       ffiutil.copyFile(local_path, cached_dest)
+      if finish_cb then
+        finish_cb(success)
+      end
       return success
     end
 
     sync_instance:manualSync()
     os.remove(income_path)
 
-    -- Verify key1 was marked deleted and uploaded
-    assert.truthy(captured_json[key1], "key1 should exist in sync json")
+    -- Verify bm1 was marked deleted and uploaded
+    assert.is_equal(2, #captured_json)
+    local c_bm1, c_bm2
+    for _, item in ipairs(captured_json) do
+      if item.page == "/page1" then
+        c_bm1 = item
+      elseif item.page == "/page2" then
+        c_bm2 = item
+      end
+    end
+    assert.truthy(c_bm1, "bm1 should exist in sync json")
     assert.is_true(
-      captured_json[key1].deleted,
-      "key1 should be marked as deleted"
+      c_bm1.deleted,
+      "bm1 should be marked as deleted"
     )
 
-    -- Verify key2 is still there and NOT deleted
-    assert.truthy(captured_json[key2])
-    assert.falsy(captured_json[key2].deleted)
+    -- Verify bm2 is still there and NOT deleted
+    assert.truthy(c_bm2)
+    assert.falsy(c_bm2.deleted)
 
     -- Verify final state in UI is 1 bookmark (bm2)
     assert.is_equal(1, #readerui.annotation.annotations)
@@ -220,7 +233,6 @@ describe("AnnotationSync Bookmark Synchronization", function()
     fastforward_ui_events()
     readerui.bookmark:onToggleBookmark()
     local bm = readerui.annotation.annotations[1]
-    local key = annotations_mod.annotation_key(bm)
     bm.datetime = "2026-02-01 10:00:00"
 
     -- 2. Mock remote DELETION (newer timestamp)
@@ -231,21 +243,24 @@ describe("AnnotationSync Bookmark Synchronization", function()
     local income_path = test_utils.write_mock_json(
       test_data_dir,
       "income_rem_del.json",
-      { [key] = bm_del }
+      { bm_del }
     )
 
     local sdr_cached_path =
       sync_instance.manager:getSyncCachePath(readerui.document.file)
     local fc = io.open(sdr_cached_path, "w")
-    fc:write(json.encode({ [key] = bm }))
+    fc:write(json.encode({ bm }))
     fc:close()
 
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"
       local result = callback(local_path, cached_dest, income_path)
       if result then
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+      end
+      if finish_cb then
+        finish_cb(result)
       end
       return result
     end
@@ -277,31 +292,30 @@ describe("AnnotationSync Bookmark Synchronization", function()
     local bm_l = readerui.annotation.annotations[1]
     assert.is_equal(10, bm_l.page)
 
-    local key_l = annotations_mod.annotation_key(bm_l)
-    assert.is_equal("BOOKMARK|10", key_l)
-
     -- 3. Mock remote bookmark on page 20
     local bm_r = {
       page = 20,
       text = "Remote PDF Bookmark",
       datetime = "2026-02-01 11:00:00",
     }
-    local key_r = annotations_mod.annotation_key(bm_r)
 
     local income_path = test_utils.write_mock_json(
       test_data_dir,
       "income_pdf_bm.json",
-      { [key_r] = bm_r }
+      { bm_r }
     )
 
-    sync_instance.manager:cleanSyncFile(readerui.document)
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
 
-    SyncService.sync = function(server, local_path, callback, upload_only)
+    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
       local cached_dest = local_path .. ".sync"
       local result = callback(local_path, cached_dest, income_path)
       if result then
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(local_path, cached_dest)
+      end
+      if finish_cb then
+        finish_cb(result)
       end
       return result
     end

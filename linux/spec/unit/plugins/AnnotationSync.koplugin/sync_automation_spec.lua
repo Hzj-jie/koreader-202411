@@ -1,8 +1,9 @@
 describe("AnnotationSync Automation & Settings", function()
-  local ReaderUI, UIManager, SyncService, Geom
+  local UIManager, SyncService
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir()
+  local DataStorage = require("datastorage")
+  local test_data_dir = DataStorage:getDataDir()
     .. "/test_sync_automation_tmp"
   local old_getDataDir
 
@@ -13,8 +14,6 @@ describe("AnnotationSync Automation & Settings", function()
 
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     json = require("json")
@@ -59,6 +58,7 @@ describe("AnnotationSync Automation & Settings", function()
     for k in pairs(jobs) do
       jobs[k] = nil
     end
+    sync_instance.manager.running = nil
   end)
 
   after_each(function()
@@ -68,6 +68,7 @@ describe("AnnotationSync Automation & Settings", function()
     for k in pairs(jobs) do
       jobs[k] = nil
     end
+    sync_instance.manager.running = nil
   end)
 
   describe("Settings", function()
@@ -75,11 +76,16 @@ describe("AnnotationSync Automation & Settings", function()
       test_utils.emulate_highlight(readerui, highlight_db[1])
 
       local captured_path
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         captured_path = local_path
-        return callback(local_path, local_path, local_path)
+        local res = callback(local_path, local_path, local_path)
+        if finish_cb then
+          finish_cb(res)
+        end
+        return res
       end
 
+      finally(test_utils.run_jobs_inline())
       sync_instance.settings.use_filename = false
       sync_instance:manualSync()
       assert.truthy(
@@ -96,21 +102,25 @@ describe("AnnotationSync Automation & Settings", function()
 
   describe("Automation", function()
     it(
-      "triggers background incremental fork sync on onSuspend when network_auto_sync is enabled",
+      "triggers background incremental fork sync on onNetworkOnline when network_auto_sync is enabled",
       function()
-        sync_instance.settings.network_auto_sync = true
+        sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_instance.settings.network_auto_sync = true
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_jobs_count = #jobs
 
         local sync_triggered = false
-        SyncService.sync = function(server, local_path, callback, upload_only)
+        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
           sync_triggered = true
-          callback(local_path, local_path, local_path)
+          local res = callback(local_path, local_path, local_path)
+          if finish_cb then
+            finish_cb(res)
+          end
         end
 
-        sync_instance:onSuspend()
+        sync_instance:onNetworkOnline()
 
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
@@ -128,7 +138,7 @@ describe("AnnotationSync Automation & Settings", function()
 
         -- Execute callback in parent process context
         job.callback({ result = action_results })
-        assert.is_false(sync_instance.manager:hasPendingChangedDocuments())
+        assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
       end
     )
 
@@ -137,114 +147,27 @@ describe("AnnotationSync Automation & Settings", function()
       local doc2 = test_data_dir .. "/doc2.epub"
       require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
 
+      sync_instance.settings.network_auto_sync = false
       sync_instance.manager:addToChangedDocumentsFile(doc1)
       sync_instance.manager:addToChangedDocumentsFile(doc2)
 
       local synced_files = {}
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         table.insert(synced_files, local_path)
-        callback(local_path, local_path, local_path)
+        local res = callback(local_path, local_path, local_path)
+        if finish_cb then
+          finish_cb(res)
+        end
       end
 
+      finally(test_utils.run_jobs_inline())
       sync_instance.manager:syncAllChangedDocuments()
       fastforward_ui_events()
       assert.is_equal(2, #synced_files)
     end)
 
     it(
-      "triggers background sync on onSaveSettings when network_auto_sync is enabled",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onSaveSettings()
-        fastforward_ui_events()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "skips onResume sync when NetworkMgr:shouldRestoreWifi is true",
-      function()
-        local NetworkMgr = require("ui/network/manager")
-        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
-        NetworkMgr.shouldRestoreWifi = function()
-          return true
-        end
-
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onResume()
-        fastforward_ui_events()
-
-        assert.is_equal(initial_jobs_count, #jobs)
-        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
-      end
-    )
-
-    it(
-      "triggers background sync on onResume when NetworkMgr:shouldRestoreWifi is false",
-      function()
-        local NetworkMgr = require("ui/network/manager")
-        local old_shouldRestoreWifi = NetworkMgr.shouldRestoreWifi
-        NetworkMgr.shouldRestoreWifi = function()
-          return false
-        end
-
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onResume()
-        fastforward_ui_events()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-        NetworkMgr.shouldRestoreWifi = old_shouldRestoreWifi
-      end
-    )
-
-    it(
-      "triggers background sync on onNetworkOnline when network_auto_sync is enabled",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onNetworkOnline()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "triggers background sync on onNetworkDisconnecting when network_auto_sync is enabled",
-      function()
-        sync_instance.settings.network_auto_sync = true
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
-
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
-
-        sync_instance:onNetworkDisconnecting()
-
-        assert.is_equal(initial_jobs_count + 1, #jobs)
-      end
-    )
-
-    it(
-      "ignores lifecycle triggers when network_auto_sync is disabled",
+      "ignores onNetworkOnline when network_auto_sync is disabled",
       function()
         sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -252,29 +175,84 @@ describe("AnnotationSync Automation & Settings", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_jobs_count = #jobs
 
-        sync_instance:onSaveSettings()
-        sync_instance:onSuspend()
-        sync_instance:onResume()
         sync_instance:onNetworkOnline()
-        sync_instance:onNetworkDisconnecting()
-        fastforward_ui_events()
 
         assert.is_equal(initial_jobs_count, #jobs)
       end
     )
 
     it(
-      "deduplicates onSuspend triggers when background sync is active",
+      "triggers background sync when addToChangedDocumentsFile is called with network_auto_sync enabled",
       function()
         sync_instance.settings.network_auto_sync = true
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "does not trigger background sync when addToChangedDocumentsFile is called with network_auto_sync disabled",
+      function()
+        sync_instance.settings.network_auto_sync = false
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        assert.is_equal(initial_count, #jobs)
+        assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
+      end
+    )
+
+    it(
+      "triggers background sync when scanLibraryForUnsyncedDocuments finds new documents",
+      function()
+        sync_instance.settings.network_auto_sync = true
+        local readhistory = require("readhistory")
+        local old_hist = readhistory.hist
+        readhistory.hist = { { file = readerui.document.file } }
+        finally(function()
+          readhistory.hist = old_hist
+        end)
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
-        sync_instance:onSuspend()
-        sync_instance:onSuspend()
+        sync_instance.manager:scanLibraryForUnsyncedDocuments()
 
+        assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "switching network_auto_sync toggle on triggers background sync",
+      function()
+        sync_instance.settings.network_auto_sync = false
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+
+        local jobs = require("pluginshare").backgroundJobs
+        local initial_count = #jobs
+        assert.is_equal(initial_count, #jobs)
+
+        local menu_items = {}
+        sync_instance:addToMainMenu(menu_items)
+        local settings_table =
+          menu_items.annotation_sync_plugin.sub_item_table[1].sub_item_table
+        local menu_item
+        for _, sub in ipairs(settings_table) do
+          if sub.text and sub.text:match("Automatically Sync All") then
+            menu_item = sub
+            break
+          end
+        end
+        assert.is_not_nil(menu_item)
+        menu_item.callback()
+
+        assert.is_true(sync_instance.settings.network_auto_sync)
         assert.is_equal(initial_count + 1, #jobs)
       end
     )
@@ -290,23 +268,25 @@ describe("AnnotationSync Automation & Settings", function()
         sync_instance.manager:addToChangedDocumentsFile(missing_file)
         sync_instance.manager:addToChangedDocumentsFile(active_file)
 
-        sync_instance.manager:syncPendingDocumentsBg()
-
         -- Missing file is pruned on main thread immediately
         local _, remaining = sync_instance.manager:getPendingChangedDocuments()
-        assert.is_nil(remaining[missing_file])
-        assert.is_true(remaining[active_file])
+        assert.falsy(util.arrayContains(remaining, missing_file))
+        assert.truthy(util.arrayContains(remaining, active_file))
 
         -- Active file was queued into background jobs
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
 
         local dummy_merged = { { text = "Sample Annotation", page = 1 } }
+        local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync_auto.json"
+        util.writeToFile("[]", tmp_json .. ".snapshot")
+        util.writeToFile(json.encode(dummy_merged), tmp_json .. ".uploaded")
         job.callback({
           result = {
             file = active_file,
+            json_path = tmp_json,
             success = true,
-            merged_list = dummy_merged,
+            uploaded = true,
           },
         })
 

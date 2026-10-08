@@ -1,5 +1,5 @@
 describe("AnnotationSync Settings Selection", function()
-  local UIManager, AnnotationSyncPlugin, test_utils, util
+  local UIManager, AnnotationSyncPlugin, test_utils, dump
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_settings_selection_tmp"
@@ -13,7 +13,7 @@ describe("AnnotationSync Settings Selection", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     UIManager = require("ui/uimanager")
-    util = require("util")
+    dump = require("dump")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -40,6 +40,7 @@ describe("AnnotationSync Settings Selection", function()
 
   after_each(function()
     if readerui then
+      readerui:onExit(true)
       readerui:onClose()
     end
   end)
@@ -58,7 +59,7 @@ describe("AnnotationSync Settings Selection", function()
       }
       local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
       f:write(
-        "return " .. sync_instance.manager:_serialize_table(active_reader)
+        "return " .. dump(active_reader)
       )
       f:close()
 
@@ -122,7 +123,7 @@ describe("AnnotationSync Settings Selection", function()
       ["auto_suspend_timeout_seconds"] = 200,
     }
     local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-    f:write("return " .. sync_instance.manager:_serialize_table(active_reader))
+    f:write("return " .. dump(active_reader))
     f:close()
 
     local submenu
@@ -176,12 +177,12 @@ describe("AnnotationSync Settings Selection", function()
       -- 1. Create a mock active reader settings file with changes in a nested table
       local active_reader = {
         ["footer"] = {
-          ["time"] = true, -- changed from default
+          ["time"] = false, -- changed from default
         },
       }
       local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
       f:write(
-        "return " .. sync_instance.manager:_serialize_table(active_reader)
+        "return " .. dump(active_reader)
       )
       f:close()
 
@@ -233,7 +234,7 @@ describe("AnnotationSync Settings Selection", function()
       }
       local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
       f:write(
-        "return " .. sync_instance.manager:_serialize_table(active_reader)
+        "return " .. dump(active_reader)
       )
       f:close()
 

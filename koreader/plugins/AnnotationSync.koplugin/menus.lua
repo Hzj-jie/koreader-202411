@@ -3,15 +3,12 @@ local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local T = require("ffi/util").template
+local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
 local M = {}
 
 function M.show_deleted_annotations(plugin, document)
-  if not document then
-    return
-  end
-
   local deleted = plugin.manager:getDeletedAnnotations(document)
   if #deleted == 0 then
     utils.show_msg(gettext("No deleted annotations found for this document."))
@@ -19,64 +16,75 @@ function M.show_deleted_annotations(plugin, document)
   end
 
   local deleted_menu
-  local menu_items = {}
+  local function menu_items()
+    local items = {}
 
-  -- Add Restore All button at the top
-  table.insert(menu_items, {
-    text = gettext("Restore All"),
-    bold = true,
-    callback = function()
-      UIManager:show(ConfirmBox:new({
-        text = T(
-          gettext(
-            "Are you sure you want to restore all %1 deleted annotations?"
-          ),
-          #deleted
-        ),
-        ok_text = gettext("Restore All"),
-        ok_callback = function()
-          plugin:restoreAnnotations(deleted, true) -- true = silent
-          utils.show_msg(T(gettext("Restored %1 annotations."), #deleted))
-          if deleted_menu then
-            UIManager:close(deleted_menu)
-          end
-        end,
-      }))
-    end,
-    separator = true,
-  })
-
-  for __, ann in ipairs(deleted) do
-    local text = ann.text or ann.note or gettext("Highlight")
-    if text == "" then
-      text = gettext("Highlight")
-    end
-    -- Truncate long text
-    if #text > 50 then
-      text = text:sub(1, 47) .. "..."
-    end
-    table.insert(menu_items, {
-      text = text,
+    -- Add Restore All button at the top
+    table.insert(items, {
+      text = gettext("Restore All"),
+      bold = true,
+      keep_menu_open = true,
       callback = function()
         UIManager:show(ConfirmBox:new({
           text = T(
-            gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
-            ann.page,
-            ann.text or ann.note or ""
+            gettext(
+              "Are you sure you want to restore all %1 deleted annotations?"
+            ),
+            #deleted
           ),
-          ok_text = gettext("Restore"),
-          cancel_text = gettext("Close"),
+          ok_text = gettext("Restore All"),
           ok_callback = function()
-            plugin:restoreAnnotation(ann)
+            plugin:restoreAnnotations(deleted, true) -- true = silent
+            utils.show_msg(T(gettext("Restored %1 annotations."), #deleted))
+            UIManager:close(deleted_menu)
           end,
         }))
       end,
+      separator = true,
     })
+
+    for i, ann in ipairs(deleted) do
+      local text = ann.text or ann.note or gettext("Highlight")
+      if text == "" then
+        text = gettext("Highlight")
+      end
+      -- Truncate long text
+      if #text > 50 then
+        text = text:sub(1, 47) .. "..."
+      end
+      table.insert(items, {
+        text = text,
+        keep_menu_open = true,
+        callback = function()
+          UIManager:show(ConfirmBox:new({
+            text = T(
+              gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
+              ann.page,
+              ann.text or ann.note or ""
+            ),
+            ok_text = gettext("Restore"),
+            cancel_text = gettext("Close"),
+            ok_callback = function()
+              plugin:restoreAnnotation(ann)
+              table.remove(deleted, i)
+              if #deleted == 0 then
+                UIManager:close(deleted_menu)
+              else
+                -- Item i + 1 follows the restored one (item 1 is Restore All),
+                -- so the menu stays on the same page.
+                deleted_menu:switchItemTable(nil, menu_items(), i + 1)
+              end
+            end,
+          }))
+        end,
+      })
+    end
+    return items
   end
 
   deleted_menu = Menu:new({
     title = gettext("Deleted Annotations"),
-    item_table = menu_items,
+    item_table = menu_items(),
   })
   UIManager:show(deleted_menu)
 end
@@ -126,17 +134,6 @@ function M.show_devices_menu(plugin, settings_map)
   UIManager:show(devices_menu)
 end
 
-local function values_differ(v1, v2)
-  if type(v1) ~= type(v2) then
-    return true
-  end
-  if type(v1) == "table" then
-    local json = require("json")
-    return json.encode(v1) ~= json.encode(v2)
-  end
-  return v1 ~= v2
-end
-
 function M.show_differing_settings_menu(
   plugin,
   device_name,
@@ -151,7 +148,7 @@ function M.show_differing_settings_menu(
   local caches = {}
   for key, r_val in pairs(remote_settings) do
     local l_val = plugin.manager:getLocalSettingValue(key, caches)
-    if values_differ(l_val, r_val) then
+    if not util.tableEquals(l_val, r_val) then
       -- Format values for display
       local function format_val(val)
         if val == nil then
@@ -278,7 +275,7 @@ function M.show_pending_documents(plugin)
 
   -- Sort the files alphabetically by their clean filename
   local files = {}
-  for file, _ in pairs(changed_docs) do
+  for _, file in ipairs(changed_docs) do
     table.insert(files, file)
   end
   table.sort(files, function(a, b)
@@ -300,20 +297,7 @@ function M.show_pending_documents(plugin)
           ok_text = gettext("Sync now"),
           cancel_text = gettext("Cancel"),
           ok_callback = function()
-            utils.show_msg(T(gettext("Syncing %1..."), clean_filename))
-            local success = plugin.manager:syncDocument(file, true)
-            if success then
-              utils.show_msg(
-                T(gettext("Successfully synced %1"), clean_filename)
-              )
-            else
-              utils.show_msg(T(gettext("Failed to sync %1"), clean_filename))
-            end
-            -- Close pending menu and reopen to refresh the list
-            if pending_menu then
-              UIManager:close(pending_menu)
-            end
-            M.show_pending_documents(plugin)
+            plugin.manager:syncNow(file)
           end,
           other_buttons = {
             {

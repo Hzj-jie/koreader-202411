@@ -1,7 +1,7 @@
 describe("AnnotationSync Mixed Documents & Offline Sync All", function()
-  local ReaderUI, UIManager, SyncService, Geom, DataStorage
-  local AnnotationSyncPlugin, highlight_db, highlight_pdf_db, test_utils, json, util, annotations_mod
-  local readerui, sync_instance
+  local UIManager, SyncService, DataStorage
+  local AnnotationSyncPlugin, highlight_db, test_utils, json, util
+  local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_mixed_offline_tmp"
   local old_getDataDir
@@ -17,18 +17,13 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     require("document/canvascontext"):init(require("device"))
-    Geom = require("ui/geometry")
-    ReaderUI = require("apps/reader/readerui")
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     DataStorage = require("datastorage")
     json = require("json")
     util = require("util")
-    annotations_mod = require("plugins/AnnotationSync.koplugin/annotations")
 
     highlight_db = require("plugins/AnnotationSync.koplugin/highlight_db")
-    highlight_pdf_db =
-      require("plugins/AnnotationSync.koplugin/highlight_pdf_db")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -62,10 +57,15 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
     UIManager:show(readerui)
     fastforward_ui_events()
     readerui.annotation.annotations = {}
-    sync_instance.manager:cleanSyncFile(readerui.document)
-    sync_instance.manager:cleanSyncFile({ file = sample_pdf_dest })
+    os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
+    os.remove(sync_instance.manager:getSyncCachePath(sample_pdf_dest))
     os.remove(sync_instance.manager:changedDocumentsFile())
     test_utils.mock_sync_service(SyncService)
+    restore_jobs = test_utils.run_jobs_inline()
+  end)
+
+  after_each(function()
+    restore_jobs()
   end)
 
   it(
@@ -85,9 +85,12 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 2. Mock OFFLINE server (callback never called)
       local sync_calls = 0
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         sync_calls = sync_calls + 1
         -- OFFLINE: we don't call the callback
+        if finish_cb then
+          finish_cb(false)
+        end
         return
       end
 
@@ -102,12 +105,16 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       local count, changed_docs =
         sync_instance.manager:getPendingChangedDocuments()
       assert.is_equal(2, count)
-      assert.truthy(changed_docs[doc_epub])
-      assert.truthy(changed_docs[doc_pdf])
+      assert.truthy(util.arrayContains(changed_docs, doc_epub))
+      assert.truthy(util.arrayContains(changed_docs, doc_pdf))
 
       -- 5. Mock ONLINE server
-      SyncService.sync = function(server, local_path, callback, upload_only)
-        return callback(local_path, local_path, local_path)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+        local res = callback(local_path, local_path, local_path)
+        if finish_cb then
+          finish_cb(res)
+        end
+        return res
       end
 
       -- 6. Trigger Sync All again
@@ -141,12 +148,12 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       ann_epub_r.pos1 = highlight_db[2].p1
       ann_epub_r.text = highlight_db[2].text
       ann_epub_r.datetime = "2026-02-01 11:00:00"
-      local key_epub_r = annotations_mod.annotation_key(ann_epub_r)
 
       -- 2. Prepare PDF (Inactive)
       -- We need to manually add it to changed docs and put something in its sidecar
       local ds_pdf = require("frontend/docsettings"):open(doc_pdf)
       local ann_pdf_l = {
+        drawer = "lighten",
         page = 10,
         pos0 = { x = 36, y = 45, page = 10 },
         pos1 = { x = 92, y = 45, page = 10 },
@@ -160,6 +167,7 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- Remote PDF addition
       local ann_pdf_r = {
+        drawer = "lighten",
         page = 10,
         pos0 = { x = 186, y = 45, page = 10 },
         pos1 = { x = 242, y = 45, page = 10 },
@@ -167,23 +175,22 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         datetime = "2026-02-01 11:00:00",
         note = "Remote PDF",
       }
-      local key_pdf_r = annotations_mod.annotation_key(ann_pdf_r)
 
       -- 3. Mock remote files
       local income_epub = test_utils.write_mock_json(
         test_data_dir,
         "income_epub.json",
-        { [key_epub_r] = ann_epub_r }
+        { ann_epub_r }
       )
       local income_pdf = test_utils.write_mock_json(
         test_data_dir,
         "income_pdf.json",
-        { [key_pdf_r] = ann_pdf_r }
+        { ann_pdf_r }
       )
 
       local epub_filename =
         sync_instance.manager:_getAnnotationFilename(doc_epub)
-      SyncService.sync = function(server, local_path, callback, upload_only)
+      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
         local income = local_path:find(epub_filename, 1, true) and income_epub
           or income_pdf
         local cached_dest = local_path .. ".sync"
@@ -191,6 +198,9 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
         if result then
           local ffiutil = require("ffi/util")
           ffiutil.copyFile(local_path, cached_dest)
+        end
+        if finish_cb then
+          finish_cb(result)
         end
         return result
       end

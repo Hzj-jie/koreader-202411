@@ -6,43 +6,21 @@ local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
 
-local function isConnected()
-  return require("ui/network/manager"):isConnected()
+-- SyncService runs exec synchronously only when online (Dropbox uses
+-- runWhenOnline, WebDAV runWhenConnected, and isOnline() implies both). A
+-- deferred exec would run after cleanup_tmp() has already deleted json_path.
+local function isOnline()
+  return require("ui/network/manager"):isOnline()
 end
 
 local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
-local has_syncservice, SyncService =
-  pcall(require, "apps/cloudstorage/syncservice")
+local SyncService = require("apps/cloudstorage/syncservice")
 
 local M = {}
 
-local function get_sync_provider(widget)
-  if widget.ui.cloudstorage then
-    return widget.ui.cloudstorage
-  elseif has_syncservice then
-    return SyncService
-  end
-  return nil
-end
-
-local function perform_sync(widget, json_path, sync_cb, is_silent)
-  local provider = get_sync_provider(widget)
-  if not provider then
-    if not is_silent then
-      UIManager:show(InfoMessage:new({
-        text = gettext("Cloud Storage plugin is not enabled or available."),
-        timeout = 4,
-      }))
-    else
-      logger.warn(
-        "AnnotationSync: Cloud Storage plugin is not enabled or available."
-      )
-    end
-    return false
-  end
-
+local function perform_sync(widget, json_path, sync_cb, is_silent, finish_cb)
   local server = widget.settings.sync_server
   if not server then
     if not is_silent then
@@ -53,27 +31,11 @@ local function perform_sync(widget, json_path, sync_cb, is_silent)
     else
       logger.warn("AnnotationSync: No cloud destination set in settings.")
     end
-    return false
+    finish_cb(false)
+    return
   end
 
-  local sync_cb_invoked = false
-  local wrapped_cb = function(...)
-    sync_cb_invoked = true
-    if sync_cb then
-      return sync_cb(...)
-    end
-  end
-
-  local res
-  if widget.ui.cloudstorage and widget.ui.cloudstorage.sync then
-    res = widget.ui.cloudstorage:sync(server, json_path, wrapped_cb, is_silent)
-  else
-    res = SyncService.sync(server, json_path, wrapped_cb, is_silent)
-  end
-  if res ~= nil then
-    return res == true
-  end
-  return sync_cb_invoked
+  SyncService.sync(server, json_path, sync_cb, is_silent, finish_cb)
 end
 
 function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
@@ -82,7 +44,7 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     os.remove(json_path .. ".temp")
     os.remove(json_path .. ".sync")
   end
-  if not isConnected() then
+  if not isOnline() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
     cleanup_tmp()
     if on_complete then
@@ -91,11 +53,8 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
     return
   end
   local captured_merged_list = nil
-  local sync_cb_called = false
-  local sync_cb_success = false
 
   local sync_cb = function(local_file, cached_file, income_file, code_response)
-    sync_cb_called = true
     local actual_cached_file = cached_path or cached_file
     local success, merged_list = annotations.sync_callback(
       local_file,
@@ -104,42 +63,36 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
       force,
       code_response
     )
-    sync_cb_success = success
     captured_merged_list = merged_list
     return success
   end
-  local ok, sync_success = pcall(function()
-    return perform_sync(widget, json_path, sync_cb, not force)
-  end)
-  if sync_success and cached_path then
-    local tmp_cached = json_path .. ".sync"
-    local f = io.open(tmp_cached, "r")
-    if f then
-      f:close()
-      local ffiutil = require("ffi/util")
-      os.remove(cached_path)
-      ffiutil.copyFile(tmp_cached, cached_path)
-      os.remove(tmp_cached)
+  local finished, uploaded, uploaded_json = false, nil, nil
+  local ok, err = pcall(function()
+    -- Runs in the forked background job, so always silent.
+    perform_sync(widget, json_path, sync_cb, true, function(result)
+      finished, uploaded = true, result
+    end)
+    -- The isOnline() gate makes SyncService run exec before returning. A
+    -- postponed exec would merge json_path after cleanup_tmp() removed it.
+    assert(finished, "AnnotationSync: SyncService postponed the sync")
+    if uploaded then
+      -- sync_callback wrote the merged list into json_path for the upload.
+      -- The caller makes it the merge base (cached_path) once the merge
+      -- has reached the book.
+      uploaded_json = assert(util.readFromFile(json_path, "r"))
     end
-  end
+  end)
   cleanup_tmp()
   if not ok then
     if on_complete then
       on_complete(false)
     end
-    error(sync_success)
+    error(err)
   end
 
   if on_complete then
-    -- Successful if sync succeeded, OR if both local and remote were empty
-    -- (in which case sync_cb returned false and skipped upload, but captured_merged_list is empty table)
-    local is_success = (sync_success == true)
-      or (
-        sync_cb_called
-        and sync_cb_success == false
-        and captured_merged_list ~= nil
-      )
-    on_complete(is_success, captured_merged_list)
+    -- nil: nothing to upload (e.g. both sides empty), still in sync.
+    on_complete(uploaded ~= false, captured_merged_list, uploaded_json)
   end
 end
 
@@ -150,17 +103,8 @@ function M._sync_settings_callback(
   income_file,
   code_response
 )
-  local is_not_found = code_response == 404
-    or code_response == 409
-    or (
-      code_response == nil
-      and (not income_file or not io.open(income_file, "r"))
-    )
-
-  local local_data = utils.read_json(local_file) or {}
-  if is_not_found then
-    util.writeToFile(json.encode(local_data), local_file)
-    return true, local_data
+  if SyncService.notFound(code_response) then
+    return true
   end
 
   local income_data = utils.read_json(income_file)
@@ -171,6 +115,7 @@ function M._sync_settings_callback(
     return false
   end
 
+  local local_data = utils.read_json(local_file)
   -- Merge incoming settings from other devices
   for device_id, data in pairs(income_data) do
     if device_id ~= widget.manager:getDeviceName() then
@@ -179,26 +124,47 @@ function M._sync_settings_callback(
   end
 
   util.writeToFile(json.encode(local_data), local_file)
-  return true, local_data
+  return true
 end
 
 function M.sync_settings(widget, json_path, on_complete)
-  local final_local_data = nil
   local sync_cb = function(local_file, cached_file, income_file, code_response)
-    local success, local_data = M._sync_settings_callback(
+    return M._sync_settings_callback(
       widget,
       local_file,
       cached_file,
       income_file,
       code_response
     )
-    final_local_data = local_data
-    return success
   end
-  local sync_success = perform_sync(widget, json_path, sync_cb, false)
-  if on_complete then
-    on_complete(sync_success == true, final_local_data)
+  perform_sync(widget, json_path, sync_cb, false, function(uploaded)
+    if on_complete then
+      on_complete(uploaded ~= false)
+    end
+  end)
+end
+
+-- Downloads the cloud settings for the devices menu. sync_cb returns nil,
+-- so SyncService uploads nothing.
+function M.pull_settings(widget, json_path, on_complete)
+  local remote_data = nil
+  local sync_cb = function(_, _, income_file, code_response)
+    if SyncService.notFound(code_response) then
+      remote_data = {}
+      return nil
+    end
+    remote_data = utils.read_json(income_file)
+    if not remote_data then
+      logger.warn(
+        "AnnotationSync: Failed to parse remote settings from server."
+      )
+      return false
+    end
+    return nil
   end
+  perform_sync(widget, json_path, sync_cb, false, function(result)
+    on_complete(result ~= false, remote_data)
+  end)
 end
 
 return M

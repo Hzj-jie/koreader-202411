@@ -2,60 +2,38 @@
 
 > **Sync your KOReader annotations everywhere!**
 >
-> Never lose a highlight, note, bookmark, or reading progress again—AnnotationSync keeps your reading life in sync across all your devices.
+> Never lose a highlight, note, or bookmark again—AnnotationSync keeps your reading life in sync across all your devices.
 
 ## 🚀 Features
 
 - **Cloud sync for KOReader annotations** (highlights, notes, bookmarks)
-- **Multi-device Reading Progress Sync:** Keep your active page, percentage, and precise position synchronized between all your reading devices.
 - **Settings Synchronization:** Synchronize your KOReader configuration settings (e.g., gesture configurations, page overlap styles, custom hotkeys) across all your devices selectively via your cloud storage.
-- **Smart page alignment for reflowable documents (EPUB):** Sync progress via the page's last word rather than just page numbers to maintain reading consistency across different screen sizes, font settings, margins, or orientations.
 - **Customizable Device Name:** Assign friendly custom names to your devices (e.g., "Bedside Kobo", "Phone") to easily identify them in sync menus.
-- **Automatic background sync:** Quietly updates your progress in the background (using a dedicated background helper) as you turn pages, preventing intrusive popup messages.
-- **Core Cloud Storage Integration:** Integrates seamlessly with KOReader's native cloud storage plugin (supporting Dropbox, WebDAV, etc. and showing the active cloud configuration details directly in the settings menu).
-- **Backward Compatibility:** Safe fallback mode for older KOReader versions, disabling unsupported settings gracefully without breaking core annotation sync.
+- **Automatic background sync:** When enabled, books with changed annotations are queued and synced quietly in the background, one at a time, as soon as the device is online.
+- **Core Cloud Storage Integration:** Integrates seamlessly with KOReader's built-in cloud storage (supporting Dropbox and WebDAV, and showing the active cloud configuration details directly in the settings menu).
 - **Smart merging:** Resolves conflicts by comparing update timestamps to preserve your latest annotations.
 - **Failsafe protection:** Prevents accidental remote data loss when setting up a fresh device.
 - **Trash Bin & Restoration:** Easily view and undelete accidentally removed notes/highlights.
 - **Configurable sync files:** Use hashes or actual filenames for sync storage.
 
-## ⚠️ Warning: KOReader Development Version Required
-
-> [!WARNING]
-> **Reading Progress Sync** and core **Cloud Storage plugin integration** require a **development/nightly version** of KOReader. If you are on a stable release of KOReader, these features will be disabled (greyed out in the menu) and a fallback explanation option will be displayed.
-
 ## 📦 Installation
 
-1. Download or clone this repository.
-2. Copy this folder to your KOReader `plugins` directory (ensure it is named exactly `AnnotationSync.koplugin`).
-3. Restart KOReader.
-4. Enable AnnotationSync from the plugins menu.
+AnnotationSync ships with this KOReader build but is disabled by default:
+1. Enable **Annotation Sync** in **Tools** -> **Plugin management**.
+2. Restart KOReader.
 
 ## 🛠 Usage & Configuration
 
 ### ⚙️ Cloud Storage Setup
 
-AnnotationSync integrates directly with KOReader's native Cloud Storage plugin:
+AnnotationSync integrates directly with KOReader's built-in cloud storage:
 1. Ensure your cloud storage provider is configured in KOReader.
 2. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Cloud settings**.
 3. Select your desired cloud storage service.
-4. Restart KOReader as indicated.
+4. Browse to the folder for the sync files, long-press **Long-press to choose current folder** and tap **Choose**.
 
 *By default, sync files are named after a hash of the document content. To use actual filenames instead (useful if you organize files with Calibre):*
 - **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Use filename instead of hash**
-
-### 🔄 Reading Progress Sync
-
-To configure multi-device reading progress synchronization:
-1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings**.
-2. Enable **Enable Reading Progress Sync**.
-3. Customize your progress sync preferences:
-   - **Device name:** Give your device a friendly name under **Device name: [Name]** (e.g. `Bedside Kobo`, `Phone`). Defaults to hardware model name if left blank.
-   - **Sync using last word of page:** Recommended for reflowable formats like EPUB. Keeps tracking consistent even if font sizes or margins differ between devices.
-   - **Sync every # pages:** Customize how frequently progress syncs in the background (default: 1 page turn).
-4. To jump to the progress of another device:
-   - Go to **Settings** -> **Document** -> **Annotation Sync** -> **Jump to device progress**.
-   - Select a device from the menu (sorted by progress percentage descending, with alphabetical tie-breaking by device name) to jump directly to its reading position.
 
 ### ⚙️ Settings Synchronization
 
@@ -74,7 +52,7 @@ Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchr
 
 #### 2. Pushing Settings to the Cloud
 1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Push settings to cloud**.
-2. The selected settings will be uploaded, keyed by your customized device name.
+2. The selected settings will be uploaded, keyed by your device name (**Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Device name**, which defaults to the hardware model name if left blank).
 
 #### 3. Pulling Settings from the Cloud
 1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Pull settings from cloud**.
@@ -102,7 +80,7 @@ Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchr
   - **Settings** -> **Document** -> **Annotation Sync** -> **Sync All**
 - **Automatic Syncing:** Automatically mass-sync all modified documents as soon as a network connection becomes available.
   - **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Automatically Sync All when network becomes available**
-- **Shortcuts:** You can bind "Annotation Sync: Manual Sync" or "Annotation Sync: Jump to device progress" to any gesture or add them to a profile action list in KOReader.
+- **Shortcuts:** You can bind "AnnotationSync: Manual Sync", "AnnotationSync: Sync All", "AnnotationSync: Push settings to cloud" or "AnnotationSync: Pull settings from cloud" to any gesture or add them to a profile action list in KOReader.
 
 ### 🗑 Managing Deletions (Trash Bin)
 
@@ -128,29 +106,24 @@ Koofr is a cloud storage provider that supports WebDAV. Connecting KOReader to K
 5. Copy the generated password. *Note: You will not be able to see it again after leaving the page.*
 
 ### 2. Configure WebDAV in KOReader
-1. Go to **Tools** -> **Annotation Sync** -> **Settings** -> **Cloud settings**.
-2. If this is your first time, choose **Add WebDAV server**. Otherwise, select your existing WebDAV configuration.
+1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Cloud settings**.
+2. If this is your first time, choose **Add service**, tap the **+** icon and choose **WebDAV**. Otherwise, select your existing WebDAV configuration and skip to step 5.
 3. Fill in the following connection settings:
    - **Name**: `Koofr` (or any name of your choice)
    - **WebDAV address**: `https://app.koofr.net/dav/Koofr`
    - **Username**: Your Koofr account email address
    - **Password**: The application-specific password generated in Step 1 (do **not** use your primary Koofr login password)
    - **Start folder**: `/koreader` or `/AnnotationSync` (Recommended to keep sync files organized in a dedicated directory. Alternatively, you can use `/` for the root directory, but you must ensure any custom subfolders are created in Koofr beforehand.)
-4. Tap **Save** and restart KOReader if prompted.
+4. Tap **Save**, close the cloud storage list and select your new server.
+5. Browse to the folder for the sync files, long-press **Long-press to choose current folder** and tap **Choose**.
 
 ## 🧪 Running Tests
 
-The project includes a comprehensive test suite located under `spec/unit/plugins/AnnotationSync.koplugin/`. To run the tests:
+The project includes a comprehensive test suite located under `linux/spec/unit/plugins/AnnotationSync.koplugin/`, plus `linux/spec/unit/plugins/annotationsync_spec.lua`. To run the tests from the `linux/` directory:
 
 ```bash
 # Run all AnnotationSync unit and integration tests
-./test_runner.lua spec/unit/plugins/AnnotationSync.koplugin
-```
-
-Or using the `./kodev` development tool:
-
-```bash
-./kodev test spec/unit/plugins/AnnotationSync.koplugin
+./luajit test_runner.lua spec/unit/plugins/AnnotationSync.koplugin spec/unit/plugins/annotationsync_spec.lua
 ```
 
 ## 🤝 Contributing
