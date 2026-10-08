@@ -183,14 +183,6 @@ local function validateUser(user, pass)
   end
 end
 
-function KOSync:_setClientForTesting(test_client)
-  client = test_client
-end
-
-function KOSync:_resetClientForTesting()
-  client = nil
-end
-
 function KOSync:onDispatcherRegisterActions()
   Dispatcher:registerAction("kosync_push_progress", {
     category = "none",

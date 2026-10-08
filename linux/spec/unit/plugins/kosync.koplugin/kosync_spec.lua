@@ -1,5 +1,5 @@
 describe("KOSync plugin tests", function()
-  local KOSyncClass, kosync, mock_ui, mock_client
+  local KOSyncClass, KOSyncClient, kosync, mock_ui, mock_client
   local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs
   local match
 
@@ -176,7 +176,11 @@ describe("KOSync plugin tests", function()
       ui = mock_ui,
       path = "plugins/kosync.koplugin",
     })
-    kosync:_setClientForTesting(mock_client)
+    KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
+    stub(KOSyncClient, "new", function(_, o)
+      mock_client.custom_url = o.custom_url
+      return mock_client
+    end)
   end)
 
   after_each(function()
@@ -202,7 +206,7 @@ describe("KOSync plugin tests", function()
 
     MultiInputDialog.new:revert()
 
-    kosync:_resetClientForTesting()
+    KOSyncClient.new:revert()
 
     package.unload("plugins/kosync.koplugin/main")
     G_reader_settings:delete("kosync")
@@ -300,7 +304,6 @@ describe("KOSync plugin tests", function()
     it("reverts custom server and shows warning when invalid", function()
       kosync:init()
       kosync.settings.custom_server = "https://old.example.com"
-      local KOSyncClient = require("plugins/kosync.koplugin/KOSyncClient")
       stub(KOSyncClient, "new", function()
         error("invalid url")
       end)
@@ -320,8 +323,7 @@ describe("KOSync plugin tests", function()
         "https://sync.example.com",
         kosync.settings.custom_server
       )
-      -- Restore mock client for remaining tests
-      kosync:_setClientForTesting(mock_client)
+      assert.are.equal("https://sync.example.com", mock_client.custom_url)
     end)
 
     it("sets sync strategies and checksum method", function()
