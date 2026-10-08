@@ -617,13 +617,11 @@ function SyncManager:cleanOrphanSyncFiles()
     return
   end
 
-  pcall(function()
-    for entry in lfs.dir(tmp_dir) do
-      if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
-        os.remove(tmp_dir .. "/" .. entry)
-      end
+  for entry in lfs.dir(tmp_dir) do
+    if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
+      os.remove(tmp_dir .. "/" .. entry)
     end
-  end)
+  end
 end
 
 function SyncManager:getSelectedSettingsWithValues()
