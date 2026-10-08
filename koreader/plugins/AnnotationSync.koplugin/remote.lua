@@ -95,46 +95,33 @@ function M.sync_annotations(widget, json_path, on_complete, cached_path)
   end
 end
 
-function M._sync_settings_callback(
-  widget,
-  local_file,
-  _,
-  income_file,
-  code_response
-)
-  if SyncService.notFound(code_response) then
-    return true
-  end
-
-  local income_data = utils.read_json(income_file)
-  if not income_data then
-    logger.warn(
-      "AnnotationSync: Failed to parse remote settings from server. Aborting sync."
-    )
-    return false
-  end
-
-  local local_data = utils.read_json(local_file)
-  -- Merge incoming settings from other devices
-  for device_id, data in pairs(income_data) do
-    if device_id ~= widget.manager:getDeviceName() then
-      local_data[device_id] = data
+-- Uploads json_path, which holds this device's settings. sync_cb first copies
+-- the other devices' entries from the cloud file into it, so the upload
+-- replaces only this device's entry.
+function M.push_settings(widget, json_path, on_complete)
+  local sync_cb = function(local_file, _, income_file, code_response)
+    if SyncService.notFound(code_response) then
+      return true
     end
-  end
 
-  util.writeToFile(json.encode(local_data), local_file)
-  return true
-end
+    local income_data = utils.read_json(income_file)
+    if not income_data then
+      logger.warn(
+        "AnnotationSync: Failed to parse remote settings from server. Aborting sync."
+      )
+      return false
+    end
 
-function M.sync_settings(widget, json_path, on_complete)
-  local sync_cb = function(local_file, cached_file, income_file, code_response)
-    return M._sync_settings_callback(
-      widget,
-      local_file,
-      cached_file,
-      income_file,
-      code_response
-    )
+    local local_data = utils.read_json(local_file)
+    -- Merge incoming settings from other devices
+    for device_id, data in pairs(income_data) do
+      if device_id ~= widget.manager:getDeviceName() then
+        local_data[device_id] = data
+      end
+    end
+
+    util.writeToFile(json.encode(local_data), local_file)
+    return true
   end
   perform_sync(widget, json_path, sync_cb, false, function(uploaded)
     if on_complete then

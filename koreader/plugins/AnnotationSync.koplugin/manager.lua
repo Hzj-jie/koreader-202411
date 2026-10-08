@@ -676,7 +676,7 @@ function SyncManager:pushSettings()
 
   logger.dbg("AnnotationSync: pushing settings to remote:", json_path)
   utils.show_msg(gettext("Pushing settings to cloud..."))
-  remote.sync_settings(self.plugin, json_path, function(success)
+  remote.push_settings(self.plugin, json_path, function(success)
     if success then
       logger.dbg("AnnotationSync: settings push successful")
     else

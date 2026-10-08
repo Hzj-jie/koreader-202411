@@ -355,7 +355,7 @@ return {
     end
   )
 
-  describe("remote.sync_settings finish_cb contract", function()
+  describe("remote.push_settings finish_cb contract", function()
     local SyncService = require("apps/cloudstorage/syncservice")
     local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_sync
@@ -369,7 +369,7 @@ return {
     end)
 
     it(
-      "Case 18: sync_settings: on_complete is called only from finish_cb; postponed calls it later",
+      "Case 18: push_settings: on_complete is called only from finish_cb; postponed calls it later",
       function()
         local dummy_json = test_data_dir .. "/test_settings_case18.json"
         util.writeToFile("{}", dummy_json)
@@ -393,12 +393,12 @@ return {
 
         local on_complete_called = false
         local on_complete_success = nil
-        remote.sync_settings(sync_instance, dummy_json, function(success)
+        remote.push_settings(sync_instance, dummy_json, function(success)
           on_complete_called = true
           on_complete_success = success
         end)
 
-        -- When sync_settings returns, on_complete has NOT been called yet
+        -- When push_settings returns, on_complete has NOT been called yet
         assert.is_false(on_complete_called)
 
         -- When queued callback fires later:
