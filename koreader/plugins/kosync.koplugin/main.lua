@@ -500,13 +500,9 @@ function KOSync:_login(menu)
                 }))
               else
                 UIManager:close(dialog)
-                UIManager:scheduleIn(0.5, function()
+                UIManager:runWith(function()
                   self:_doRegister(username, password, menu)
-                end)
-                UIManager:show(InfoMessage:new({
-                  text = gettext("Registering. Please wait…"),
-                  timeout = 1,
-                }))
+                end, gettext("Registering. Please wait…"))
               end
             end,
           },

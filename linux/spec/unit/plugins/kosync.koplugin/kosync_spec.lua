@@ -551,6 +551,9 @@ describe("KOSync plugin tests", function()
       assert
         .stub(kosync._doRegister)
         .was_called_with(match.is_table(), "newuser", "newpass", nil)
+      assert
+        .stub(UIManager.runWith)
+        .was_called_with(match.is_table(), match.is_function(), "Registering. Please wait…")
     end)
 
     it("handles _doLogin success and failure cases", function()
