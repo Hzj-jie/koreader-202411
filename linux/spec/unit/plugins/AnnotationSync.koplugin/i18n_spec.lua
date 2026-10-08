@@ -37,11 +37,29 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal("标注同步", _("Annotation Sync"))
     assert.are.equal("全部同步", _("Sync All"))
     assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
+    assert.are.equal("同步全部待同步书籍", _("Sync all pending books"))
+    assert.are.equal(
+      "正在后台依次同步 %1 本书",
+      _.ngettext(
+        "Syncing 1 book in the background",
+        "Syncing %1 books one by one in the background",
+        2
+      )
+    )
 
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
     assert.are.equal("全部同步", _("Sync All"))
     assert.are.equal("全部同步已取消。", _("Sync All cancelled."))
+    assert.are.equal("同步全部待同步書籍", _("Sync all pending books"))
+    assert.are.equal(
+      "正在後台依序同步 %1 本書",
+      _.ngettext(
+        "Syncing 1 book in the background",
+        "Syncing %1 books one by one in the background",
+        2
+      )
+    )
   end)
 end)

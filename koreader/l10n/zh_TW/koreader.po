@@ -24476,6 +24476,74 @@ msgstr "正在掃描藏書館中的標註...\n藏書館較大時可能需要較�
 msgid "Scan complete: added %1 book(s) with annotations to sync list.\nBackground syncing all files may take some time, during which KOReader performance may be reduced."
 msgstr "掃描完成：已將 %1 本包含標註的圖書新增至同步列表。\n背景同步所有檔案可能需要一段時間，在此期間 KOReader 效能可能會有所降低。"
 
+msgid "Sync current book now"
+msgstr "立即同步目前書籍"
+
+msgid "Sync all pending books"
+msgstr "同步全部待同步書籍"
+
+msgid "Show pending books"
+msgstr "顯示待同步書籍"
+
+msgid "Add books from reading history"
+msgstr "從閱讀歷史新增書籍"
+
+msgid "Show deleted annotations"
+msgstr "顯示已刪除的標註"
+
+msgid "Sync pending books automatically"
+msgstr "自動同步待同步書籍"
+
+msgid "AnnotationSync: Sync current book now"
+msgstr "標註同步：立即同步目前書籍"
+
+msgid "AnnotationSync: Sync all pending books"
+msgstr "標註同步：同步全部待同步書籍"
+
+msgid "Sync annotations and bookmarks of the current book."
+msgstr "同步目前書籍的標註與書籤。"
+
+msgid "Sync annotations and bookmarks of all pending books."
+msgstr "同步全部待同步書籍的標註與書籤。"
+
+msgid "Adding books from reading history…\nThis may take a while if the history is long."
+msgstr "正在從閱讀歷史新增書籍…\n閱讀歷史較長時可能需要一段時間。"
+
+msgid "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down."
+msgid_plural "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down."
+msgstr[0] "閱讀歷史中有 %1 本書待同步。\n同步可能需要一段時間，期間 KOReader 可能變慢。"
+
+msgid "No book is open."
+msgstr "沒有開啟的書籍。"
+
+msgid "No pending books."
+msgstr "沒有待同步的書籍。"
+
+msgid "Pending books"
+msgstr "待同步書籍"
+
+msgid "Sync this book now?\n\n%1"
+msgstr "立即同步這本書？\n\n%1"
+
+msgid "Sync"
+msgstr "同步"
+
+msgid "Removed %1 from pending books."
+msgstr "已將 %1 從待同步書籍中移除。"
+
+msgid "Syncing in the background: %1"
+msgstr "正在後台同步：%1"
+
+msgid "Syncing 1 book in the background"
+msgid_plural "Syncing %1 books one by one in the background"
+msgstr[0] "正在後台依序同步 %1 本書"
+
+msgid "Synced: %1"
+msgstr "已同步：%1"
+
+msgid "Failed to sync %1."
+msgstr "同步 %1 失敗。"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算練習"
