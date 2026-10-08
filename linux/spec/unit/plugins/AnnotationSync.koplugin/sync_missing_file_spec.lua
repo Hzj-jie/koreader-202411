@@ -51,7 +51,7 @@ describe("Sync Missing File Handling", function()
     end
 
     package.loaded["plugins/AnnotationSync.koplugin/remote"] = {
-      sync_annotations = function(plugin, json_path, on_complete, force)
+      sync_annotations = function(plugin, json_path, on_complete)
         on_complete(true, {})
       end,
     }

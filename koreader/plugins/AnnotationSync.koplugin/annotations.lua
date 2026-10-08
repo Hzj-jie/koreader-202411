@@ -45,7 +45,7 @@ local function read_to_array(file)
   return M.sort(valid)
 end
 
-function M.merge(local_list, base_list, income_list, force)
+function M.merge(local_list, base_list, income_list)
   assert(type(local_list) == "table", "local_list must be a table")
 
   -- The book never holds tombstones, so a base tombstone missing from it is not
@@ -61,8 +61,8 @@ function M.merge(local_list, base_list, income_list, force)
   -- SAFETY (Issue 23): If local is empty but last sync was not,
   -- it's likely a docsettings failure or fresh device state.
   -- We skip deletion propagation to avoid wiping remote data.
-  -- We bypass this safety if 'force' is true (manual sync).
-  if not force and #local_list == 0 and #base_list > 0 then
+  -- The manager asks the user before such a restore reaches the book.
+  if #local_list == 0 and #base_list > 0 then
     logger.warn(
       "AnnotationSync: Local annotations empty but last sync had",
       #base_list,
@@ -146,7 +146,6 @@ function M.sync_callback(
   local_file,
   last_sync_file,
   income_file,
-  force,
   code_response
 )
   logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
@@ -181,7 +180,7 @@ function M.sync_callback(
   end
 
   local merged, active =
-    M.merge(local_list, last_sync_list, income_list, force)
+    M.merge(local_list, last_sync_list, income_list)
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
 

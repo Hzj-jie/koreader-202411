@@ -274,7 +274,6 @@ describe("AnnotationSync Core Integration", function()
           local_path,
           last_sync_path,
           nil,
-          false,
           404
         )
         assert.is_nil(res)

@@ -264,6 +264,9 @@ describe("AnnotationSync Automation & Settings", function()
         local initial_jobs_count = #jobs
         local missing_file = "/path/to/nonexistent/book.epub"
         local active_file = readerui.document.file
+        -- Earlier tests leave a .sync behind. Without one, the empty book
+        -- takes the upload without asking.
+        os.remove(sync_instance.manager:getSyncCachePath(active_file))
 
         sync_instance.manager:addToChangedDocumentsFile(missing_file)
         sync_instance.manager:addToChangedDocumentsFile(active_file)

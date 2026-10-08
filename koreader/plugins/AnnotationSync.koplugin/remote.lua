@@ -38,7 +38,7 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, finish_cb)
   SyncService.sync(server, json_path, sync_cb, is_silent, finish_cb)
 end
 
-function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
+function M.sync_annotations(widget, json_path, on_complete, cached_path)
   local cleanup_tmp = function()
     os.remove(json_path)
     os.remove(json_path .. ".temp")
@@ -60,7 +60,6 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
       local_file,
       actual_cached_file,
       income_file,
-      force,
       code_response
     )
     captured_merged_list = merged_list

@@ -80,8 +80,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -218,8 +217,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -255,8 +253,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -298,8 +295,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -344,8 +340,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -400,8 +395,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -457,8 +451,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -502,8 +495,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -536,8 +528,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -555,7 +546,6 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         local_file,
         last_sync_file,
         income_file,
-        false,
         404
       )
 
@@ -573,8 +563,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_nil(success)
@@ -600,8 +589,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -641,7 +629,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         local m_r = create_highlight(5, 10, 20, 100, 40, "remote_added", "2026-01-01 11:00:00")
         local income = { m_x, m_d, m_k, m_r }
 
-        local merged, active = annotations_mod.merge(local_list, base, income, false)
+        local merged, active = annotations_mod.merge(local_list, base, income)
 
         -- Active must have: l_x (with edited note), l_k, l_h (new local), m_r (remote added)
         -- and NOT s_d (which was deleted locally)
@@ -665,7 +653,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     )
 
     it(
-      "Issue-23 guard: protects empty local list when base has items and force is false",
+      "Issue-23 guard: protects empty local list when base has items",
       function()
         local base = { create_highlight(1, 10, 20, 100, 40, "item1") }
         local income = {
@@ -674,24 +662,11 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         }
         local local_list = {}
 
-        local merged, active = annotations_mod.merge(local_list, base, income, false)
+        local merged, active = annotations_mod.merge(local_list, base, income)
         assert.are.equal(2, #active)
       end
     )
 
-    it(
-      "Issue-23 guard: bypasses protection when force is true",
-      function()
-        local base = { create_highlight(1, 10, 20, 100, 40, "item1") }
-        local income = { create_highlight(1, 10, 20, 100, 40, "item1") }
-        local local_list = {}
-
-        local merged, active = annotations_mod.merge(local_list, base, income, true)
-        assert.are.equal(0, #active)
-        assert.are.equal(1, #merged)
-        assert.is_true(merged[1].deleted)
-      end
-    )
 
     it(
       "returns M minus tombstones in active when local_list == base_list",
@@ -712,7 +687,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         }
 
         local merged, active =
-          annotations_mod.merge(local_list, base_list, income_list, false)
+          annotations_mod.merge(local_list, base_list, income_list)
         assert.are.equal(2, #active)
         local active_notes = { active[1].note, active[2].note }
         table.sort(active_notes)
@@ -782,7 +757,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
 
         local local_list = { h }
 
-        local merged, active = annotations_mod.merge(local_list, base, income, false)
+        local merged, active = annotations_mod.merge(local_list, base, income)
 
         assert.are.equal(3, #active)
         local active_notes = {}
@@ -799,7 +774,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     )
 
     it(
-      "preserves restored annotation when force is true and base holds only tombstone",
+      "preserves restored annotation when local is empty and base holds only tombstone",
       function()
         local base_a = create_highlight(
           1,
@@ -827,7 +802,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
         local income = { inc_a }
         local local_list = {}
 
-        local merged, active = annotations_mod.merge(local_list, base, income, true)
+        local merged, active = annotations_mod.merge(local_list, base, income)
 
         assert.are.equal(1, #active)
         assert.are.equal("item_a", active[1].note)

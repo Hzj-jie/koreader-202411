@@ -134,8 +134,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     local ok, active = annotations_mod.sync_callback(
       local_file,
       last_sync_file,
-      income_file,
-      false
+      income_file
     )
 
     assert.is_true(ok)
@@ -159,7 +158,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     )
   end)
 
-  it("synchronizes bookmark deletions (with safety check bypassed)", function()
+  it("synchronizes bookmark deletions", function()
     -- 1. Create two bookmarks using XPointers and sync them
     local bm1 =
       { page = "/page1", text = "Bookmark 1", datetime = "2026-02-01 10:00:00" }

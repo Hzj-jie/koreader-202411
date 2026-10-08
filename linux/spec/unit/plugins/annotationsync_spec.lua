@@ -205,7 +205,7 @@ describe("AnnotationSync plugin unit tests", function()
         util.writeToFile("{}", income_path)
 
         local success, active =
-          annotations.sync_callback(local_path, last_path, income_path, false)
+          annotations.sync_callback(local_path, last_path, income_path)
 
         assert.is_true(success)
         assert.are.equal(2, #active)
@@ -328,7 +328,7 @@ describe("AnnotationSync plugin unit tests", function()
         util.writeToFile(json.encode(data), income_path)
 
         local success, active =
-          annotations.sync_callback(local_path, last_path, income_path, false)
+          annotations.sync_callback(local_path, last_path, income_path)
 
         assert.is_true(success)
         assert.are.equal(4, #active)

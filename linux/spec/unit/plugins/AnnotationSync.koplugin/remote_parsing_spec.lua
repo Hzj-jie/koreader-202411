@@ -39,7 +39,6 @@ describe("Remote Response Parsing (Issue #39)", function()
       local_path,
       last_sync_path,
       income_path,
-      false,
       code_response
     )
   end
@@ -127,7 +126,6 @@ describe("Remote Response Parsing (Issue #39)", function()
         local_path,
         last_sync_path,
         non_existent_income,
-        false,
         404
       )
       assert.truthy(
