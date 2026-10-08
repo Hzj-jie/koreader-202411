@@ -170,7 +170,7 @@ describe("Unsynced / Pending Documents Feature", function()
   )
 
   it(
-    "'Sync now' syncs the book in the background and leaves the list closed",
+    "'Sync' syncs the book in the background and leaves the list closed",
     function()
       local juliet = readerui.document.file
       local other = test_data_dir .. "/other.epub"
@@ -198,14 +198,14 @@ describe("Unsynced / Pending Documents Feature", function()
       -- Tap juliet.epub, sorted first.
       menu:onMenuSelect(menu.item_table[1])
       local box = shown[2]
-      -- Tap "Sync now".
+      -- Tap "Sync".
       box[1][1][1][1][3].buttons[1][2].callback()
 
       assert.is_false(UIManager:isWindowWidget(menu))
       assert.is_false(UIManager:isWindowWidget(box))
       local menus_shown, texts = 0, {}
       for _, w in ipairs(shown) do
-        if w.title == "Pending Documents" then
+        if w.title == "Pending books" then
           menus_shown = menus_shown + 1
         elseif type(w.text) == "string" then
           table.insert(texts, w.text)
@@ -213,7 +213,7 @@ describe("Unsynced / Pending Documents Feature", function()
       end
       assert.is_equal(1, menus_shown)
       assert.are.same({
-        "Do you want to sync this document?\n\njuliet.epub",
+        "Sync this book now?\n\njuliet.epub",
         "Syncing in the background: juliet.epub",
         "Synced: juliet.epub",
       }, texts)

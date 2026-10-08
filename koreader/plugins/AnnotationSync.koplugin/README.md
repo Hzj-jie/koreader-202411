@@ -74,18 +74,18 @@ Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchr
 
 ### 💾 Manual & Bulk Annotation Sync
 
-- **Manual Sync:** Sync only the current document's annotations and bookmarks.
-  - **Settings** -> **Document** -> **Annotation Sync** -> **Manual Sync**
-- **Sync All:** Mass-upload/download pending changes from all your offline reading sessions.
-  - **Settings** -> **Document** -> **Annotation Sync** -> **Sync All**
+- **Sync current book now:** Sync only the current document's annotations and bookmarks.
+  - **Settings** -> **Document** -> **Annotation Sync** -> **Sync current book now**
+- **Sync all pending books:** Mass-upload/download pending changes from all your offline reading sessions.
+  - **Settings** -> **Document** -> **Annotation Sync** -> **Sync all pending books**
 - **Automatic Syncing:** Automatically mass-sync all modified documents as soon as a network connection becomes available.
-  - **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Automatically Sync All when network becomes available**
-- **Shortcuts:** You can bind "AnnotationSync: Manual Sync", "AnnotationSync: Sync All", "AnnotationSync: Push settings to cloud" or "AnnotationSync: Pull settings from cloud" to any gesture or add them to a profile action list in KOReader.
+  - **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Sync pending books automatically**
+- **Shortcuts:** You can bind "AnnotationSync: Sync current book now", "AnnotationSync: Sync all pending books", "AnnotationSync: Push settings to cloud" or "AnnotationSync: Pull settings from cloud" to any gesture or add them to a profile action list in KOReader.
 
 ### 🗑 Managing Deletions (Trash Bin)
 
 AnnotationSync keeps track of deleted annotations so you can recover them:
-- **Settings** -> **Document** -> **Annotation Sync** -> **Show Deleted**
+- **Settings** -> **Document** -> **Annotation Sync** -> **Show deleted annotations**
 - Tap on any deleted item to restore it, or use **Restore All** to recover everything.
 - Restored items will be re-synced to the cloud on the next sync.
 

@@ -32,9 +32,11 @@ end
 -- singleton table, and the latest plugin to init owns it.
 local SyncManager = {
   running = nil,
-  -- Books the user asked to sync: file -> "Manual Sync" or "Sync All". They
-  -- run before the others, even with auto sync off. A request is used up
-  -- when its job starts, or dropped when the book leaves the queue.
+  -- Books the user asked to sync: file -> "Manual Sync" ("Sync current book
+  -- now", or "Sync" in the pending books list) or "Sync All" ("Sync all
+  -- pending books"). They run before the others, even with auto sync off. A
+  -- request is used up when its job starts, or dropped when the book leaves
+  -- the queue.
   requested = {},
 }
 
@@ -52,7 +54,8 @@ function SyncManager:getDeviceName()
   return Device.model or "unknown"
 end
 
--- Manual Sync and "Sync now": queues the book first, its sync is forced.
+-- "Sync current book now" and "Sync" in the pending books list: queues the
+-- book first, its sync is forced.
 function SyncManager:syncNow(file)
   self:_moveToFront(file)
   self.requested[file] = "Manual Sync"
@@ -68,7 +71,7 @@ end
 function SyncManager:syncAllChangedDocuments()
   local total, changed_docs = self:getPendingChangedDocuments()
   if total == 0 then
-    utils.show_msg("No changed documents to sync.")
+    utils.show_msg(gettext("No pending books."))
     return
   end
 
@@ -222,7 +225,7 @@ function SyncManager:_startSync(file, trigger)
           uploaded_json
         )
         self:_movePendingDocumentToBack(file)
-        self:recordSyncState(trigger)
+        self:recordSyncState()
         logger.info(
           "AnnotationSync: background sync completed for",
           file
@@ -271,7 +274,7 @@ function SyncManager:_dispatchNextSync(failed)
     return false
   end
 
-  local trigger = self.requested[file] or "Auto Sync"
+  local trigger = self.requested[file]
   self.requested[file] = nil
   self.running = true
   NetworkMgr:willRerunWhenOnline(function()
@@ -492,12 +495,8 @@ function SyncManager:getDeletedAnnotations(document)
   return annotations.sort(deleted)
 end
 
-function SyncManager:recordSyncState(descriptor)
-  local parenthetical = ""
-  if type(descriptor) == "string" and descriptor ~= "" then
-    parenthetical = " (" .. descriptor .. ")"
-  end
-  self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S") .. parenthetical
+function SyncManager:recordSyncState()
+  self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S")
   logger.dbg(
     "AnnotationSync: recordSyncState: updated at",
     self.plugin.settings.last_sync

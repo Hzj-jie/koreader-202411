@@ -1052,6 +1052,7 @@ describe("Background Sync Behavior", function()
     it(
       "removes successfully synced documents from changed_documents and updates sync timestamp",
       function()
+        plugin_instance.settings.last_sync = "Never"
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
         local job = require("pluginshare").backgroundJobs[#require(
@@ -1072,7 +1073,11 @@ describe("Background Sync Behavior", function()
 
         local total, _ = sync_manager:getPendingChangedDocuments()
         assert.is_equal(0, total)
-        assert.truthy(plugin_instance.settings.last_sync:match("Auto Sync"))
+        assert.truthy(
+          plugin_instance.settings.last_sync:match(
+            "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"
+          )
+        )
       end
     )
 
@@ -2647,9 +2652,6 @@ describe("Background Sync Behavior", function()
         assert.are.same({ "juliet.epub!" }, synced)
         assert.is_false(is_pending(juliet))
         assert.is_true(is_pending(a))
-        assert.is_truthy(
-          plugin_instance.settings.last_sync:find("(Manual Sync)", 1, true)
-        )
       end
     )
 
@@ -2665,9 +2667,6 @@ describe("Background Sync Behavior", function()
       assert.are.same({ "a.epub", "b.epub" }, synced)
       assert.is_true(is_pending(a))
       assert.is_false(is_pending(b))
-      assert.is_truthy(
-        plugin_instance.settings.last_sync:find("(Sync All)", 1, true)
-      )
     end)
 
     it("Manual Sync goes before the books Sync All requested", function()
