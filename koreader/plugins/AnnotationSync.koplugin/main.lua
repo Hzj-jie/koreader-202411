@@ -325,12 +325,8 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
       UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
     end
 
-    -- 4. Trigger Refreshes
-    if not document.is_pdf then
-      document:render()
-      self.ui.view:recalculate()
-      UIManager:setDirty(self.ui.view.dialog, "partial")
-    end
+    -- 4. Repaint the UI to show synced highlights (drawn from self.ui.annotation.annotations)
+    self.ui:setDirty()
   else
     -- Update sidecar directly for inactive document
     local annotation_sidecar = docsettings:open(document.file)
