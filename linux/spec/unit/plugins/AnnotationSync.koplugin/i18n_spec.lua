@@ -65,6 +65,10 @@ describe("AnnotationSync internationalization", function()
       "已恢复 %1 条标注。",
       _("Restored %1 annotations.")
     )
+    assert.are.equal(
+      "无法读取 %1，已跳过同步。",
+      _("Cannot read %1. Skipped syncing it.")
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -96,6 +100,10 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "已還原 %1 條標註。",
       _("Restored %1 annotations.")
+    )
+    assert.are.equal(
+      "無法讀取 %1，已跳過同步。",
+      _("Cannot read %1. Skipped syncing it.")
     )
   end)
 end)
