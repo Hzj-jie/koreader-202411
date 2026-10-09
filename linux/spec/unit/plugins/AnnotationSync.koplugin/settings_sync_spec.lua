@@ -369,7 +369,7 @@ return {
     end)
 
     it(
-      "Case 18: push_settings: on_complete is called only from finish_cb; postponed calls it later",
+      "push_settings: on_complete is called only from finish_cb; postponed calls it later",
       function()
         local dummy_json = test_data_dir .. "/test_settings_case18.json"
         util.writeToFile("{}", dummy_json)

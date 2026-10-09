@@ -70,7 +70,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   end
 
   it(
-    "Case 1: keeps unchanged annotations present in all three lists",
+    "keeps unchanged annotations present in all three lists",
     function()
       local h1 = create_highlight(1, 10, 20, 100, 40, "note1")
       write_json(local_file, { ["1|10|20||100|40"] = h1 })
@@ -89,7 +89,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     end
   )
 
-  it("Case 1 (LWW): Remote newer update wins over local older", function()
+  it("Remote newer update wins over local older", function()
     local h_local = create_highlight(
       1,
       10,
@@ -126,7 +126,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     assert.are.equal("remote note", active[1].note)
   end)
 
-  it("Case 1 (LWW): Local newer update wins over remote older", function()
+  it("Local newer update wins over remote older", function()
     local h_local = create_highlight(
       1,
       10,
@@ -163,7 +163,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     assert.are.equal("local newer", active[1].note)
   end)
 
-  it("Case 2: keeps local additions and prepares them for upload", function()
+  it("keeps local additions and prepares them for upload", function()
     local h_new = create_highlight(2, 5, 10, 50, 30, "added locally")
     write_json(local_file, { ["2|5|10||50|30"] = h_new })
     write_json(last_sync_file, {})
@@ -185,7 +185,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     assert.is_nil(written[1].deleted)
   end)
 
-  it("Case 3: pulls remote additions into local active list", function()
+  it("pulls remote additions into local active list", function()
     local h_remote = create_highlight(3, 15, 25, 80, 50, "added remotely")
     write_json(local_file, {})
     write_json(last_sync_file, {})
@@ -204,7 +204,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   end)
 
   it(
-    "Case 4: merges concurrent additions of the same highlight without duplicates",
+    "merges concurrent additions of the same highlight without duplicates",
     function()
       local h_local =
         create_highlight(1, 10, 20, 100, 40, "same location local")
@@ -409,7 +409,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     end
   )
 
-  it("Case 5: detects local deletion and turns it into a tombstone", function()
+  it("detects local deletion and turns it into a tombstone", function()
     local h_synced = create_highlight(1, 10, 20, 100, 40, "deleted locally")
     local h_kept = create_highlight(1, 10, 50, 100, 70, "kept locally")
     write_json(local_file, { ["1|10|50||100|70"] = h_kept }) -- user deleted h_synced
@@ -441,7 +441,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   end)
 
   it(
-    "Case 6: preserves local highlight and does not delete on remote omission",
+    "preserves local highlight and does not delete on remote omission",
     function()
       local h_synced = create_highlight(1, 10, 20, 100, 40, "synced highlight")
       write_json(local_file, { ["1|10|20||100|40"] = h_synced })
@@ -465,7 +465,7 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
   )
 
   it(
-    "Case 6 (with tombstone): receives remote tombstone and removes from active",
+    "receives remote tombstone and removes from active",
     function()
       local h_local = create_highlight(
         1,

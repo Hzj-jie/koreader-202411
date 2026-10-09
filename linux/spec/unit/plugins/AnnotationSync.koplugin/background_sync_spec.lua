@@ -1435,7 +1435,7 @@ describe("Background Sync Behavior", function()
     end)
 
     it(
-      "Case 13: sync_annotations, finish_cb(true) -> on_complete(true, merged, uploaded_json), sdr_cache untouched",
+      "sync_annotations, finish_cb(true) -> on_complete(true, merged, uploaded_json), sdr_cache untouched",
       function()
         local dummy_merged = { { page = 1, text = "merged_item" } }
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
@@ -1475,7 +1475,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 14: finish_cb(nil) (both sides empty) -> on_complete(true, ...), cached_path not replaced",
+      "finish_cb(nil) (both sides empty) -> on_complete(true, ...), cached_path not replaced",
       function()
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           callback(local_path, local_path .. ".sync", local_path, 200)
@@ -1508,7 +1508,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 15: finish_cb(false) -> on_complete(false, ...), cached_path not replaced",
+      "finish_cb(false) -> on_complete(false, ...), cached_path not replaced",
       function()
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           local tmp_sync = local_path .. ".sync"
@@ -1543,7 +1543,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 16: SyncService postpones (mock never calls finish_cb) -> assert fires, on_complete(false), error rethrown, tmp cleaned",
+      "SyncService postpones (mock never calls finish_cb) -> assert fires, on_complete(false), error rethrown, tmp cleaned",
       function()
         local tmp_temp = dummy_json .. ".temp"
         local tmp_sync = dummy_json .. ".sync"
@@ -1577,7 +1577,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 17: No sync_server -> on_complete(false) and a log line, no message",
+      "No sync_server -> on_complete(false) and a log line, no message",
       function()
         local no_server_w = {
           ui = {},

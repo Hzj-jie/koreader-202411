@@ -404,9 +404,9 @@ describe("VocabBuilder plugin", function()
     )
   end)
 
-  describe("Sync finish_cb and reloadItems contract (N5)", function()
+  describe("Sync finish_cb and reloadItems contract", function()
     it(
-      "Case 21: footer manual sync reloads only after DB.onSync has merged (D6)",
+      "footer manual sync reloads only after DB.onSync has merged",
       function()
         -- vocabbuilder requires this path: a separate package.loaded entry
         local SyncService =

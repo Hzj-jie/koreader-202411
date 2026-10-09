@@ -374,7 +374,7 @@ describe("AnnotationSync Core Integration", function()
   end)
 
   describe(
-    "End-to-end sync with real SyncService.sync and mocked dropboxapi (D1-D3)",
+    "End-to-end sync with real SyncService.sync and mocked dropboxapi",
     function()
       local ffiutil = require("ffi/util")
       local DocSettings = require("frontend/docsettings")
@@ -468,7 +468,7 @@ describe("AnnotationSync Core Integration", function()
       end)
 
       it(
-        "Case 22: manual sync, upload returns 500 -> fails, doc stays pending, merge base unchanged, says it failed (D1)",
+        "manual sync, upload returns 500 -> fails, doc stays pending, merge base unchanged, says it failed",
         function()
           local doc, name = new_doc("d1")
           local A = hl(1, "A_local", "2026-01-01 10:00:00")
@@ -497,7 +497,7 @@ describe("AnnotationSync Core Integration", function()
       )
 
       it(
-        "Case 23: manual sync with nothing to upload -> success, no longer pending, 0 uploads, says it synced (D2)",
+        "manual sync with nothing to upload -> success, no longer pending, 0 uploads, says it synced",
         function()
           local doc, name = new_doc("d2")
           sync_instance.manager:addToChangedDocumentsFile(doc)
@@ -527,7 +527,7 @@ describe("AnnotationSync Core Integration", function()
       )
 
       it(
-        "Case 24: remote file isn't JSON -> fails, stays pending, says it failed (D3)",
+        "remote file isn't JSON -> fails, stays pending, says it failed",
         function()
           local doc, name = new_doc("d3")
           local A = hl(1, "A_local", "2026-01-01 10:00:00")

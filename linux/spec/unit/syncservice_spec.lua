@@ -532,7 +532,7 @@ describe("SyncService", function()
       end)
     end)
 
-    describe("exec exits and finish_cb contract (N5)", function()
+    describe("exec exits and finish_cb contract", function()
       local server
       before_each(function()
         server = {
@@ -543,7 +543,7 @@ describe("SyncService", function()
         }
       end)
 
-      it("Case 1: Wrong server type -> false, shows 'Wrong server type.'", function()
+      it("Wrong server type -> false, shows 'Wrong server type.'", function()
         local wrong_server = { type = "unknown" }
         local finish_res
         local ret = SyncService.sync(wrong_server, "/path/to/file", function() end, false, function(res)
@@ -556,7 +556,7 @@ describe("SyncService", function()
         assert.are.equal("Wrong server type.", mock_uimanager.shown_widget.text)
       end)
 
-      it("Case 2: Download fails (e.g. 500) -> false, generic message, sync_cb not called", function()
+      it("Download fails (e.g. 500) -> false, generic message, sync_cb not called", function()
         mock_dropbox_api.download_code = 500
         local cb_called = false
         local finish_res
@@ -577,7 +577,7 @@ describe("SyncService", function()
         )
       end)
 
-      it("Case 3: Dropbox 409 or 404 on download -> sync_cb is called with code, file treated as missing", function()
+      it("Dropbox 409 or 404 on download -> sync_cb is called with code, file treated as missing", function()
         for _, code in ipairs({ 409, 404 }) do
           mock_dropbox_api.download_code = code
           local cb_called = false
@@ -597,7 +597,7 @@ describe("SyncService", function()
         end
       end)
 
-      it("Case 4: sync_cb raises -> false, generic message, income temp file removed", function()
+      it("sync_cb raises -> false, generic message, income temp file removed", function()
         local finish_res
         SyncService.sync(server, "/path/to/book.epub", function()
           error("simulated callback crash")
@@ -620,7 +620,7 @@ describe("SyncService", function()
         assert.is_true(removed_income)
       end)
 
-      it("Case 5: sync_cb returns nil -> nil, no message, no upload, income temp file removed", function()
+      it("sync_cb returns nil -> nil, no message, no upload, income temp file removed", function()
         local finish_res = "unset"
         SyncService.sync(server, "/path/to/book.epub", function()
           return nil
@@ -640,7 +640,7 @@ describe("SyncService", function()
         assert.is_true(removed_income)
       end)
 
-      it("Case 6: sync_cb returns false -> false, generic message, no upload", function()
+      it("sync_cb returns false -> false, generic message, no upload", function()
         local finish_res
         SyncService.sync(server, "/path/to/book.epub", function()
           return false
@@ -657,7 +657,7 @@ describe("SyncService", function()
         assert.is_false(mock_dropbox_api.uploadFile_called)
       end)
 
-      it("Case 7: Upload 2xx -> true, 'Successfully synchronized.' shown, .sync copy written", function()
+      it("Upload 2xx -> true, 'Successfully synchronized.' shown, .sync copy written", function()
         mock_dropbox_api.upload_code = 200
         local finish_res
         local ret = SyncService.sync(server, "/path/to/book.epub", function()
@@ -674,7 +674,7 @@ describe("SyncService", function()
         assert.are.equal("/path/to/book.epub.sync", mock_ffiutil.copy_dest)
       end)
 
-      it("Case 8: Upload fails -> false, generic message, .sync untouched", function()
+      it("Upload fails -> false, generic message, .sync untouched", function()
         mock_dropbox_api.upload_code = 500
         local finish_res
         SyncService.sync(server, "/path/to/book.epub", function()
@@ -692,8 +692,8 @@ describe("SyncService", function()
         assert.is_false(mock_ffiutil.copyFile_called)
       end)
 
-      it("Case 9: Case 6 or 8 with is_silent = true -> still false, no message", function()
-        -- Case 6 silent
+      it("is_silent = true: sync_cb returns false or the upload fails -> still false, no message", function()
+        -- sync_cb returns false
         local finish_res6
         SyncService.sync(server, "/path/to/book.epub", function()
           return false
@@ -704,7 +704,7 @@ describe("SyncService", function()
         assert.is_false(finish_res6)
         assert.is_nil(mock_uimanager.shown_widget)
 
-        -- Case 8 silent
+        -- The upload fails
         mock_dropbox_api.upload_code = 500
         local finish_res8
         SyncService.sync(server, "/path/to/book.epub", function()
@@ -717,7 +717,7 @@ describe("SyncService", function()
         assert.is_nil(mock_uimanager.shown_widget)
       end)
 
-      it("Case 10: No finish_cb passed -> nothing errors, so the statistics caller still works", function()
+      it("No finish_cb passed -> nothing errors, so the statistics caller still works", function()
         assert.has_no.errors(function()
           SyncService.sync(server, "/path/to/book.epub", function()
             return true
@@ -728,7 +728,7 @@ describe("SyncService", function()
         assert.are.equal("Successfully synchronized.", mock_uimanager.shown_widget.text)
       end)
 
-      it("Case 11: Postponed (runWhenOnline / runWhenConnected queue callback) -> finish_cb runs once when callback fires", function()
+      it("Postponed (runWhenOnline / runWhenConnected queue callback) -> finish_cb runs once when callback fires", function()
         local finish_count = 0
         local finish_res = nil
         local ret = SyncService.sync(server, "/path/to/book.epub", function()
