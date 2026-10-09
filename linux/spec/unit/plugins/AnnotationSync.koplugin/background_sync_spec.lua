@@ -3264,5 +3264,64 @@ describe("Background Sync Behavior", function()
         assert.are.same({}, boxes)
       end
     )
+
+    -- Makes util.partialMD5 fail for one book, as it does for a book that
+    -- can't be opened. Call the returned function from the test's finally.
+    local function unreadable(file)
+      local old_partialMD5 = util.partialMD5
+      util.partialMD5 = function(path)
+        if path == file then
+          return nil
+        end
+        return old_partialMD5(path)
+      end
+      return function()
+        util.partialMD5 = old_partialMD5
+      end
+    end
+
+    it("a tap on a book that can't be read skips it and says so", function()
+      local juliet = readerui.document.file
+      plugin_instance.settings.use_filename = false
+      finally(unreadable(juliet))
+
+      plugin_instance:manualSync()
+
+      assert.are.same({}, synced)
+      assert.is_true(is_pending(juliet))
+      assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+      assert.are.same({ "Cannot read juliet.epub. Skipped syncing it." }, boxes)
+    end)
+
+    it(
+      "an automatic sync of a book that can't be read fails without a message",
+      function()
+        local juliet = readerui.document.file
+        plugin_instance.settings.use_filename = false
+        plugin_instance.settings.network_auto_sync = true
+        finally(unreadable(juliet))
+
+        sync_manager:addToChangedDocumentsFile(juliet)
+
+        assert.are.same({}, synced)
+        assert.is_true(is_pending(juliet))
+        assert.are.same({}, toasts)
+        assert.are.same({}, boxes)
+      end
+    )
+
+    it("with file names, a book that can't be read still syncs", function()
+      local juliet = readerui.document.file
+      finally(unreadable(juliet))
+
+      plugin_instance:manualSync()
+
+      assert.are.same({ "juliet.epub" }, synced)
+      assert.are.same(
+        { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
+        toasts
+      )
+      assert.are.same({}, boxes)
+    end)
   end)
 end)

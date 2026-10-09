@@ -156,6 +156,9 @@ function SyncManager:_startSync(file, trigger, trash)
   assert(require("background_jobs").insertKeyed({
     executable = "fork",
     action = function()
+      if not self:_getAnnotationFilename(file) then
+        return { file = file, success = false, unreadable = true }
+      end
       NetworkMgr:queryOnlineState()
       while not NetworkMgr:isOnline() do
         require("ffi/util").sleep(ONLINE_RETRY_INTERVAL)
@@ -249,6 +252,10 @@ function SyncManager:_startSync(file, trigger, trash)
         if asked and self.requested[file] ~= "Manual Sync" then
           if item.success then
             Notification:notify(T(gettext("Synced: %1"), book_name(file)))
+          elseif item.unreadable then
+            utils.show_msg(
+              T(gettext("Cannot read %1. Skipped syncing it."), book_name(file))
+            )
           else
             utils.show_msg(T(gettext("Failed to sync %1."), book_name(file)))
           end
@@ -604,13 +611,15 @@ function SyncManager:recordSyncState()
   )
 end
 
+-- nil if the book can't be read: then it has no hash, which names it in the
+-- cloud.
 function SyncManager:_getAnnotationFilename(file)
   if self.plugin.settings.use_filename then
     local _, filename = util.splitFilePathName(file)
     return (filename ~= "" and filename or file) .. ".json"
   end
-  local hash = util.partialMD5(file) or gettext("No hash")
-  return hash .. ".json"
+  local hash = util.partialMD5(file)
+  return hash and hash .. ".json"
 end
 
 function SyncManager:cleanOrphanSyncFiles()
