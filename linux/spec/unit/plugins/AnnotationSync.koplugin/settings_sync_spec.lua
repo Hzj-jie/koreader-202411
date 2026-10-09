@@ -82,6 +82,36 @@ return {
   end)
 
   it(
+    "should retrieve selected settings from defaults.custom.lua and settings/*.lua",
+    function()
+      local defaults_path = test_data_dir .. "/defaults.custom.lua"
+      local profiles_path = test_data_dir .. "/settings/profiles.lua"
+      finally(function()
+        os.remove(defaults_path)
+        os.remove(profiles_path)
+      end)
+      local f = io.open(defaults_path, "w")
+      f:write([[return { ["DTAP_ZONE_MENU"] = { ["h"] = 0.25 } }]])
+      f:close()
+      f = io.open(profiles_path, "w")
+      f:write([[return { ["night"] = { ["dark_mode"] = true } }]])
+      f:close()
+
+      sync_instance.settings.selected_settings = {
+        ["defaults:DTAP_ZONE_MENU.h"] = true,
+        ["settings/profiles:night.dark_mode"] = true,
+        ["settings/missing:night.dark_mode"] = true,
+        ["defaults:DTAP_ZONE_MENU"] = false,
+      }
+
+      assert.are.same({
+        ["defaults:DTAP_ZONE_MENU.h"] = 0.25,
+        ["settings/profiles:night.dark_mode"] = true,
+      }, sync_instance.manager:getSelectedSettingsWithValues())
+    end
+  )
+
+  it(
     "should correctly write local file and sync it using remote.push_settings",
     function()
       -- Configure mock sync server
@@ -325,7 +355,7 @@ return {
     end
   )
 
-  describe("remote.sync_settings finish_cb contract", function()
+  describe("remote.push_settings finish_cb contract", function()
     local SyncService = require("apps/cloudstorage/syncservice")
     local remote = require("plugins/AnnotationSync.koplugin/remote")
     local old_sync
@@ -339,7 +369,7 @@ return {
     end)
 
     it(
-      "Case 18: sync_settings: on_complete is called only from finish_cb; postponed calls it later",
+      "push_settings: on_complete is called only from finish_cb; postponed calls it later",
       function()
         local dummy_json = test_data_dir .. "/test_settings_case18.json"
         util.writeToFile("{}", dummy_json)
@@ -363,12 +393,12 @@ return {
 
         local on_complete_called = false
         local on_complete_success = nil
-        remote.sync_settings(sync_instance, dummy_json, function(success)
+        remote.push_settings(sync_instance, dummy_json, function(success)
           on_complete_called = true
           on_complete_success = success
         end)
 
-        -- When sync_settings returns, on_complete has NOT been called yet
+        -- When push_settings returns, on_complete has NOT been called yet
         assert.is_false(on_complete_called)
 
         -- When queued callback fires later:
@@ -499,7 +529,7 @@ return {
       f:close()
       sync_instance.settings.selected_settings =
         { ["reader:auto_suspend_timeout_seconds"] = true }
-      local uploads, shown = with_cloud(404, nil, nil, function()
+      local uploads = with_cloud(404, nil, nil, function()
         sync_instance.manager:pushSettings()
       end)
       assert.is_equal(1, #uploads)
@@ -507,6 +537,40 @@ return {
       assert.is_not_nil(data.Me)
       assert.is_equal(300, data.Me.settings["reader:auto_suspend_timeout_seconds"])
       assert.is_nil(data.Other)
+    end)
+
+    it("push: a failed write of the merged file uploads nothing", function()
+      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
+      f:write('return { ["auto_suspend_timeout_seconds"] = 300 }')
+      f:close()
+      sync_instance.settings.selected_settings =
+        { ["reader:auto_suspend_timeout_seconds"] = true }
+      local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
+      local old_write = util.writeToFile
+      finally(function()
+        util.writeToFile = old_write
+      end)
+      -- The file with Other's settings merged in can't be written, e.g.
+      -- because the disk is full.
+      util.writeToFile = function(data, path, ...)
+        if path == json_path and data:find('"Other"', 1, true) then
+          return false, "No space left on device"
+        end
+        return old_write(data, path, ...)
+      end
+
+      local uploads, shown = with_cloud(200, REMOTE, nil, function()
+        sync_instance.manager:pushSettings()
+      end)
+
+      assert.is_equal(0, #uploads)
+      assert.is_false(has(shown, "Successfully synchronized."))
+      assert.is_true(
+        has(
+          shown,
+          "Something went wrong when syncing, please check your network connection and try again later."
+        )
+      )
     end)
   end)
 end)

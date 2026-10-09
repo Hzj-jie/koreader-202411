@@ -24491,6 +24491,133 @@ msgstr "已同步：%1"
 msgid "Failed to sync %1."
 msgstr "同步 %1 失敗。"
 
+msgid "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well."
+msgid_plural "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well."
+msgstr[0] "%1 在此裝置上沒有標註，但雲端儲存中有 %2 條。要還原，還是在所有裝置上將其移至垃圾桶？移至垃圾桶的標註可以在「顯示已刪除的標註」中還原。關閉此對話框也會還原。"
+
+msgid "Move to trash"
+msgstr "移至垃圾桶"
+
+msgid "Use filename instead of hash"
+msgstr "使用檔名代替雜湊值"
+
+msgid "Device name: %1"
+msgstr "裝置名稱：%1"
+
+msgid "Set device name"
+msgstr "設定裝置名稱"
+
+msgid "Leave empty to use the default device name."
+msgstr "留空則使用預設裝置名稱。"
+
+msgid "Show changed settings"
+msgstr "顯示已變更的設定"
+
+msgid "Current cloud: %1"
+msgstr "目前雲端：%1"
+
+msgid "Push settings to cloud"
+msgstr "上傳設定至雲端"
+
+msgid "Pull settings from cloud"
+msgstr "從雲端取得設定"
+
+msgid "Last sync: %1"
+msgstr "上次同步：%1"
+
+msgid "Plugin version: %1"
+msgstr "外掛版本：%1"
+
+msgid "%1 (%4)\nVersion: %2\n\n%3"
+msgstr "%1（%4）\n版本：%2\n\n%3"
+
+msgid "AnnotationSync: Push settings to cloud"
+msgstr "標註同步：上傳設定至雲端"
+
+msgid "Push the selected settings to the cloud."
+msgstr "將選取的設定上傳至雲端。"
+
+msgid "AnnotationSync: Pull settings from cloud"
+msgstr "標註同步：從雲端取得設定"
+
+msgid "Pull the selected settings from the cloud."
+msgstr "從雲端取得選取的設定。"
+
+msgid "Cloud destination set to:\n%1\nProvider: %2"
+msgstr "雲端目的地已設為：\n%1\n服務供應商：%2"
+
+msgid "Annotation restored."
+msgstr "標註已還原。"
+
+msgid "Restored %1 annotations."
+msgstr "已還原 %1 條標註。"
+
+msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
+msgstr "未選取任何設定。請在「顯示已變更的設定」中選取要同步的設定。"
+
+msgid "Failed to write settings to local storage."
+msgstr "無法將設定寫入本機儲存空間。"
+
+msgid "Pushing settings to cloud..."
+msgstr "正在上傳設定至雲端…"
+
+msgid "Fetching settings from cloud..."
+msgstr "正在從雲端取得設定…"
+
+msgid "Failed to fetch settings from cloud"
+msgstr "從雲端取得設定失敗"
+
+msgid "No deleted annotations found for this document."
+msgstr "這本書沒有已刪除的標註。"
+
+msgid "Restore All"
+msgstr "全部還原"
+
+msgid "Are you sure you want to restore all %1 deleted annotations?"
+msgstr "確定要還原全部 %1 條已刪除的標註嗎？"
+
+msgid "Do you want to restore this annotation?\n\nPage %1: %2"
+msgstr "要還原這條標註嗎？\n\n第 %1 頁：%2"
+
+msgid "Deleted Annotations"
+msgstr "已刪除的標註"
+
+msgid "No other devices found in cloud settings."
+msgstr "雲端設定中沒有其他裝置。"
+
+msgid "No differing settings found for this device."
+msgstr "該裝置與本機沒有不同的設定。"
+
+msgid "Import Selected Settings"
+msgstr "匯入選取的設定"
+
+msgid "Successfully imported %1 settings."
+msgstr "已成功匯入 %1 項設定。"
+
+msgid "No settings imported."
+msgstr "未匯入任何設定。"
+
+msgid "Select All"
+msgstr "全選"
+
+msgid "Clear Selection"
+msgstr "清除選取"
+
+msgid "Settings from %1"
+msgstr "來自 %1 的設定"
+
+msgid "Remove from list"
+msgstr "從清單中移除"
+
+msgid "No cloud destination set in settings."
+msgstr "設定中未指定雲端目的地。"
+
+msgid "No changed settings found."
+msgstr "沒有已變更的設定。"
+
+msgid "Changed Settings"
+msgstr "已變更的設定"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算練習"
@@ -24655,9 +24782,6 @@ msgstr "點擊開啟 batterystat.log。"
 msgid "annotation_sync_plugin"
 msgstr "annotation_sync_plugin"
 
-msgid "Use filename instead of hash"
-msgstr "使用檔案名稱代替雜湊值"
-
 msgid "Automatically Sync All when network becomes available"
 msgstr "網路可用時自動全部同步"
 
@@ -24673,35 +24797,8 @@ msgstr "每 %1 頁同步一次"
 msgid "Sync every # pages"
 msgstr "每 # 頁同步一次"
 
-msgid "Device name: %1"
-msgstr "裝置名稱: %1"
-
-msgid "Set device name"
-msgstr "設定裝置名稱"
-
-msgid "Leave empty to use the default device name."
-msgstr "留空以使用預設裝置名稱。"
-
-msgid "Show changed settings"
-msgstr "顯示已變更的設定"
-
-msgid "Current cloud: %1"
-msgstr "目前雲端: %1"
-
-msgid "Push settings to cloud"
-msgstr "推送設定至雲端"
-
-msgid "Pull settings from cloud"
-msgstr "從雲端拉取設定"
-
 msgid "Jump to device progress"
 msgstr "跳轉至裝置進度"
-
-msgid "Last sync: %1"
-msgstr "上次同步: %1"
-
-msgid "Plugin version: %1"
-msgstr "外掛版本: %1"
 
 msgid "Why are some options greyed out?"
 msgstr "為什麼部分選項顯示為灰色？"
@@ -24715,29 +24812,11 @@ msgstr "必須開啟文檔才能跳轉至裝置進度。"
 msgid "AnnotationSync: Manual Sync"
 msgstr "AnnotationSync: 手動同步"
 
-msgid "AnnotationSync: Push settings to cloud"
-msgstr "AnnotationSync: 推送設定至雲端"
-
-msgid "Push the selected settings to the cloud."
-msgstr "將所選設定推送至雲端。"
-
-msgid "AnnotationSync: Pull settings from cloud"
-msgstr "AnnotationSync: 從雲端拉取設定"
-
-msgid "Pull the selected settings from the cloud."
-msgstr "從雲端拉取所選設定。"
-
 msgid "AnnotationSync: Jump to device progress"
 msgstr "AnnotationSync: 跳轉至裝置進度"
 
 msgid "AnnotationSync: Sync All"
 msgstr "AnnotationSync: 全部同步"
-
-msgid "Annotation restored."
-msgstr "標註已復原。"
-
-msgid "Restored %1 annotations."
-msgstr "已復原 %1 條標註。"
 
 msgid "Network is disconnected, cannot pull progress"
 msgstr "網路已中斷，無法拉取進度"
@@ -24748,35 +24827,8 @@ msgstr "正在獲取遠端進度..."
 msgid "Failed to fetch remote progress"
 msgstr "獲取遠端進度失敗"
 
-msgid "No hash"
-msgstr "無雜湊值"
-
-msgid "Failed to write settings to local storage."
-msgstr "無法將設定寫入本機儲存。"
-
-msgid "Pushing settings to cloud..."
-msgstr "正在推送設定至雲端..."
-
 msgid "Network is disconnected, cannot pull settings"
 msgstr "網路已中斷，無法拉取設定"
-
-msgid "Fetching settings from cloud..."
-msgstr "正在從雲端獲取設定..."
-
-msgid "Failed to fetch settings from cloud"
-msgstr "從雲端獲取設定失敗"
-
-msgid "No deleted annotations found for this document."
-msgstr "未找到此文檔已刪除的標註。"
-
-msgid "Restore All"
-msgstr "全部復原"
-
-msgid "Are you sure you want to restore all %1 deleted annotations?"
-msgstr "確定要復原全部 %1 條已刪除的標註嗎？"
-
-msgid "Deleted Annotations"
-msgstr "已刪除的標註"
 
 msgid "(this device)"
 msgstr "(本機裝置)"
@@ -24786,30 +24838,6 @@ msgstr "已從 %2 跳轉至第 %1 頁"
 
 msgid "No remote progress found."
 msgstr "未找到遠端進度。"
-
-msgid "No other devices found in cloud settings."
-msgstr "雲端設定中未找到其他裝置。"
-
-msgid "No differing settings found for this device."
-msgstr "未發現此裝置有不同的設定。"
-
-msgid "Import Selected Settings"
-msgstr "匯入所選設定"
-
-msgid "Successfully imported %1 settings."
-msgstr "成功匯入 %1 項設定。"
-
-msgid "No settings imported."
-msgstr "未匯入任何設定。"
-
-msgid "Select All"
-msgstr "全選"
-
-msgid "Clear Selection"
-msgstr "清除選擇"
-
-msgid "Settings from %1"
-msgstr "來自 %1 的設定"
 
 msgid "No pending documents to sync."
 msgstr "沒有待處理的同步文檔。"
@@ -24829,9 +24857,6 @@ msgstr "同步 %1 失敗"
 msgid "Could not open %1 for sync"
 msgstr "無法開啟 %1 進行同步"
 
-msgid "Remove from list"
-msgstr "從列表中移除"
-
 msgid "Removed %1 from sync list"
 msgstr "已從同步列表中移除 %1"
 
@@ -24841,35 +24866,8 @@ msgstr "待處理文檔"
 msgid "Cloud Storage plugin is not enabled or available."
 msgstr "雲端儲存外掛未啟用或不可用。"
 
-msgid "No cloud destination set in settings."
-msgstr "設定中未配置雲端目標。"
-
-msgid "No changed settings found."
-msgstr "未發現已變更的設定。"
-
-msgid "Changed Settings"
-msgstr "已變更的設定"
-
 msgid "Plugin configuration changed. Reload to make changes take effect?"
 msgstr "外掛設定已變更。重新載入使其生效？"
-
-msgid ""
-"Cloud destination set to:\n"
-"%1\n"
-"Provider: %2"
-msgstr ""
-"雲端目標設定為:\n"
-"%1\n"
-"提供商: %2"
-
-msgid ""
-"Do you want to restore this annotation?\n"
-"\n"
-"Page %1: %2"
-msgstr ""
-"是否復原此標註？\n"
-"\n"
-"第 %1 頁: %2"
 
 msgid ""
 "Do you want to sync this document?\n"
@@ -24879,18 +24877,4 @@ msgstr ""
 "是否同步此文檔？\n"
 "\n"
 "%1"
-
-msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
-msgstr "未選擇任何設定。請在「顯示已變更的設定」中選擇要同步的設定。"
-
-msgid ""
-"%1 (%4)\n"
-"Version: %2\n"
-"\n"
-"%3"
-msgstr ""
-"%1 (%4)\n"
-"版本: %2\n"
-"\n"
-"%3"
 

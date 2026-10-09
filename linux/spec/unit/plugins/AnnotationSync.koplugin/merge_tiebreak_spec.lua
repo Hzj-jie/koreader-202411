@@ -85,8 +85,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -115,8 +114,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -146,8 +144,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -187,8 +184,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)
@@ -218,8 +214,7 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       local success, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(success)

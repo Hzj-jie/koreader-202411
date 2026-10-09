@@ -1,7 +1,9 @@
+local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
 local NetworkMgr = require("ui/network/manager")
 local Notification = require("ui/widget/notification")
+local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
 local dump = require("dump")
 local gettext = require("gettext")
@@ -55,7 +57,7 @@ function SyncManager:getDeviceName()
 end
 
 -- "Sync current book now" and "Sync" in the pending books list: queues the
--- book first, its sync is forced.
+-- book first.
 function SyncManager:syncNow(file)
   self:_moveToFront(file)
   self.requested[file] = "Manual Sync"
@@ -76,7 +78,7 @@ function SyncManager:syncAllChangedDocuments()
   end
 
   for _, file in ipairs(changed_docs) do
-    -- Keep a Manual Sync request: it is forced.
+    -- Keep a Manual Sync request: it reports "Synced"/"Failed".
     self.requested[file] = self.requested[file] or "Sync All"
   end
   Notification:notify(
@@ -130,7 +132,7 @@ function SyncManager:_moveToFront(file)
   self:_writeChangedDocumentsFile(list)
 end
 
-function SyncManager:_startSync(file, trigger)
+function SyncManager:_startSync(file, trigger, trash)
   if not util.fileExists(file) then
     logger.warn(
       "AnnotationSync: file missing, removing from sync list:",
@@ -151,8 +153,6 @@ function SyncManager:_startSync(file, trigger)
 
   local ui_doc = self.plugin.ui.document
   local doc = (ui_doc and ui_doc.file == file) and ui_doc or file
-  -- Manual Sync is forced, see annotations.merge.
-  local force = trigger == "Manual Sync"
   assert(require("background_jobs").insertKeyed({
     executable = "fork",
     action = function()
@@ -170,6 +170,14 @@ function SyncManager:_startSync(file, trigger)
       local snapshot_content = assert(util.readFromFile(json_path, "r"))
       assert(util.writeToFile(snapshot_content, snapshot_path))
 
+      if trash then
+        local payload = json.decode(snapshot_content)
+        for _, tomb in ipairs(trash) do
+          table.insert(payload, tomb)
+        end
+        assert(util.writeToFile(json.encode(payload), json_path))
+      end
+
       local sync_success = false
       local uploaded = false
       local cached_path = self:getSyncCachePath(file)
@@ -184,7 +192,6 @@ function SyncManager:_startSync(file, trigger)
               assert(util.writeToFile(uploaded_json, json_path .. ".uploaded"))
             end
           end,
-          force,
           cached_path
         )
       end)
@@ -213,41 +220,102 @@ function SyncManager:_startSync(file, trigger)
         )
         item = { success = false }
       end
+      local snapshot_json = nil
+      local uploaded_json = nil
       if item.success then
-        local snapshot_json =
+        snapshot_json =
           assert(util.readFromFile(item.json_path .. ".snapshot"))
-        local uploaded_json = item.uploaded
+        uploaded_json = item.uploaded
             and assert(util.readFromFile(item.json_path .. ".uploaded"))
           or nil
-        self:_applyBackgroundSync(
-          file,
-          snapshot_json,
-          uploaded_json
-        )
-        self:_movePendingDocumentToBack(file)
-        self:recordSyncState()
-        logger.info(
-          "AnnotationSync: background sync completed for",
-          file
-        )
-      else
-        self:_movePendingDocumentToBack(file)
       end
       if item.json_path then
         os.remove(item.json_path .. ".snapshot")
         os.remove(item.json_path .. ".uploaded")
       end
-      self.running = nil
-      -- A Manual Sync asked while this job ran is still requested if the book
-      -- changed meanwhile or the job failed. The book's next job answers it.
-      if asked and self.requested[file] ~= "Manual Sync" then
+
+      local function finish()
+        self:_movePendingDocumentToBack(file)
         if item.success then
-          Notification:notify(T(gettext("Synced: %1"), book_name(file)))
-        else
-          utils.show_msg(T(gettext("Failed to sync %1."), book_name(file)))
+          self:recordSyncState()
+          logger.info(
+            "AnnotationSync: background sync completed for",
+            file
+          )
+        end
+        self.running = nil
+        -- A Manual Sync asked while this job ran is still requested if the book
+        -- changed meanwhile or the job failed. The book's next job answers it.
+        if asked and self.requested[file] ~= "Manual Sync" then
+          if item.success then
+            Notification:notify(T(gettext("Synced: %1"), book_name(file)))
+          else
+            utils.show_msg(T(gettext("Failed to sync %1."), book_name(file)))
+          end
+        end
+        self:_dispatchNextSync(not item.success)
+      end
+
+      if not item.success then
+        finish()
+        return
+      end
+
+      if not trash then
+        local n = self:_applyBackgroundSync(
+          file,
+          snapshot_json,
+          uploaded_json,
+          true
+        )
+        if n then
+          local box = ConfirmBox:new({
+            text = T(
+              N_(
+                "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
+                "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
+                n
+              ),
+              book_name(file),
+              n
+            ),
+            ok_text = gettext("Move to trash"),
+            cancel_text = gettext("Restore"),
+            ok_callback = function()
+              local income_list = json.decode(uploaded_json)
+              local tombstones = {}
+              local now = os.date("%Y-%m-%d %H:%M:%S")
+              for _, v in ipairs(income_list) do
+                if not v.deleted then
+                  v.deleted = true
+                  v.datetime_updated = now
+                  table.insert(tombstones, v)
+                end
+              end
+              NetworkMgr:willRerunWhenOnline(function()
+                self:_startSync(file, trigger, tombstones)
+              end)
+            end,
+            cancel_callback = function()
+              self:_applyBackgroundSync(
+                file,
+                snapshot_json,
+                uploaded_json
+              )
+              finish()
+            end,
+          })
+          UIManager:show(box)
+          return
         end
       end
-      self:_dispatchNextSync(not item.success)
+
+      self:_applyBackgroundSync(
+        file,
+        snapshot_json,
+        uploaded_json
+      )
+      finish()
     end,
   }))
 end
@@ -274,10 +342,12 @@ function SyncManager:_dispatchNextSync(failed)
     return false
   end
 
-  local trigger = self.requested[file]
-  self.requested[file] = nil
   self.running = true
   NetworkMgr:willRerunWhenOnline(function()
+    -- Take the request when the sync starts: a book taken off the list while
+    -- its sync waited for the network lost its request with it.
+    local trigger = self.requested[file]
+    self.requested[file] = nil
     self:_startSync(file, trigger)
   end)
   return true
@@ -289,10 +359,14 @@ end
 -- edited since the snapshot, so the upload can't replace it: run the same
 -- 3-way merge again, with the book as it is now as the local side, the
 -- snapshot as the base and the upload as the income.
+-- If `ask` is true and the merge would restore annotations into a book that is
+-- empty now but had annotations on this device, returns the count of live
+-- annotations without applying any changes.
 function SyncManager:_applyBackgroundSync(
   file,
   snapshot_json,
-  uploaded_json
+  uploaded_json,
+  ask
 )
   if not util.fileExists(file) then
     logger.warn(
@@ -315,12 +389,39 @@ function SyncManager:_applyBackgroundSync(
   local local_list = json.decode(json.encode(book_now))
   local base_list = json.decode(snapshot_json)
 
+  if ask and #local_list == 0 and uploaded_json then
+    local income_list = json.decode(uploaded_json)
+    local n = 0
+    for _, v in ipairs(income_list) do
+      if not v.deleted then
+        n = n + 1
+      end
+    end
+    if n > 0 then
+      local had_annotations = #base_list > 0
+      if not had_annotations then
+        local sync_base = utils.read_json(self:getSyncCachePath(file))
+        if sync_base then
+          for _, v in ipairs(sync_base) do
+            if not v.deleted then
+              had_annotations = true
+              break
+            end
+          end
+        end
+      end
+      if had_annotations then
+        return n
+      end
+    end
+  end
+
   local unchanged = util.tableEquals(local_list, base_list)
 
   if uploaded_json then
     local income_list = json.decode(uploaded_json)
     local _, active =
-      annotations.merge(local_list, base_list, income_list, false)
+      annotations.merge(local_list, base_list, income_list)
     self.plugin:applySyncedAnnotations(document, active)
     self:_promoteSyncBase(file, uploaded_json)
   end
@@ -514,17 +615,15 @@ end
 
 function SyncManager:cleanOrphanSyncFiles()
   local tmp_dir = DataStorage:getTmpDir()
-  if not tmp_dir or lfs.attributes(tmp_dir, "mode") ~= "directory" then
+  if not tmp_dir then
     return
   end
 
-  pcall(function()
-    for entry in lfs.dir(tmp_dir) do
-      if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
-        os.remove(tmp_dir .. "/" .. entry)
-      end
+  for entry in lfs.dir(tmp_dir) do
+    if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
+      os.remove(tmp_dir .. "/" .. entry)
     end
-  end)
+  end
 end
 
 function SyncManager:getSelectedSettingsWithValues()
@@ -533,55 +632,11 @@ function SyncManager:getSelectedSettingsWithValues()
     return nil
   end
 
-  -- Load active reader settings
-  local active_reader_path = DataStorage:getDataDir() .. "/settings.reader.lua"
-  local ok_a, active_reader = pcall(dofile, active_reader_path)
-  if not ok_a or type(active_reader) ~= "table" then
-    active_reader = {}
-  end
-
-  -- Load active defaults settings
-  local active_defaults_path = DataStorage:getDataDir()
-    .. "/defaults.custom.lua"
-  local ok_ad, active_defaults = pcall(dofile, active_defaults_path)
-  if not ok_ad or type(active_defaults) ~= "table" then
-    active_defaults = {}
-  end
-
-  -- Cache for loaded settings files in settings/ directory
-  local settings_cache = {}
-
+  local caches = {}
   local result = {}
   for key, is_selected in pairs(selected) do
     if is_selected then
-      local domain, full_key = key:match("^([^:]+):(.*)$")
-      if domain and full_key then
-        local val
-        if domain == "reader" then
-          val = utils.get_nested_value(active_reader, full_key)
-        elseif domain == "defaults" then
-          val = utils.get_nested_value(active_defaults, full_key)
-        elseif domain:match("^settings/") then
-          local settings_name = domain:sub(10)
-          if settings_cache[settings_name] == nil then
-            local filepath = DataStorage:getSettingsDir()
-              .. "/"
-              .. settings_name
-              .. ".lua"
-            local ok_s, a_tbl = pcall(dofile, filepath)
-            if ok_s and type(a_tbl) == "table" then
-              settings_cache[settings_name] = a_tbl
-            else
-              settings_cache[settings_name] = false
-            end
-          end
-          local tbl = settings_cache[settings_name]
-          if tbl then
-            val = utils.get_nested_value(tbl, full_key)
-          end
-        end
-        result[key] = val
-      end
+      result[key] = self:getLocalSettingValue(key, caches)
     end
   end
 
@@ -623,7 +678,7 @@ function SyncManager:pushSettings()
 
   logger.dbg("AnnotationSync: pushing settings to remote:", json_path)
   utils.show_msg(gettext("Pushing settings to cloud..."))
-  remote.sync_settings(self.plugin, json_path, function(success)
+  remote.push_settings(self.plugin, json_path, function(success)
     if success then
       logger.dbg("AnnotationSync: settings push successful")
     else
@@ -633,7 +688,6 @@ function SyncManager:pushSettings()
 end
 
 function SyncManager:getLocalSettingValue(key, caches)
-  caches = caches or {}
   local domain, full_key = key:match("^([^:]+):(.*)$")
   if not domain or not full_key then
     return nil

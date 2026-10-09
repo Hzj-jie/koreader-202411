@@ -35,9 +35,6 @@ describe("AnnotationSync internationalization", function()
     -- Set language to Simplified Chinese (zh_CN)
     _.changeLang("zh_CN")
     assert.are.equal("标注同步", _("Annotation Sync"))
-    assert.are.equal("推送设置到云端", _("Push settings to cloud"))
-    assert.are.equal("从云端拉取设置", _("Pull settings from cloud"))
-    assert.are.equal("设备名称: %1", _("Device name: %1"))
     assert.are.equal("同步全部待同步书籍", _("Sync all pending books"))
     assert.are.equal(
       "正在后台依次同步 %1 本书",
@@ -48,12 +45,29 @@ describe("AnnotationSync internationalization", function()
       )
     )
 
+    assert.are.equal(
+      "移到回收站",
+      _("Move to trash")
+    )
+    assert.are.equal(
+      "%1 在此设备上没有标注，但云存储中有 %2 条。要恢复，还是在所有设备上将其移到回收站？移到回收站的标注可以在“显示已删除的标注”中恢复。关闭此对话框也会恢复。",
+      _.ngettext(
+        "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
+        "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
+        3
+      )
+    )
+    assert.are.equal(
+      "上传设置到云端",
+      _("Push settings to cloud")
+    )
+    assert.are.equal(
+      "已恢复 %1 条标注。",
+      _("Restored %1 annotations.")
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
-    assert.are.equal("推送設定至雲端", _("Push settings to cloud"))
-    assert.are.equal("從雲端拉取設定", _("Pull settings from cloud"))
-    assert.are.equal("裝置名稱: %1", _("Device name: %1"))
     assert.are.equal("同步全部待同步書籍", _("Sync all pending books"))
     assert.are.equal(
       "正在後台依序同步 %1 本書",
@@ -62,6 +76,26 @@ describe("AnnotationSync internationalization", function()
         "Syncing %1 books one by one in the background",
         2
       )
+    )
+    assert.are.equal(
+      "移至垃圾桶",
+      _("Move to trash")
+    )
+    assert.are.equal(
+      "%1 在此裝置上沒有標註，但雲端儲存中有 %2 條。要還原，還是在所有裝置上將其移至垃圾桶？移至垃圾桶的標註可以在「顯示已刪除的標註」中還原。關閉此對話框也會還原。",
+      _.ngettext(
+        "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
+        "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
+        3
+      )
+    )
+    assert.are.equal(
+      "上傳設定至雲端",
+      _("Push settings to cloud")
+    )
+    assert.are.equal(
+      "已還原 %1 條標註。",
+      _("Restored %1 annotations.")
     )
   end)
 end)

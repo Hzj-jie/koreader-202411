@@ -200,8 +200,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       local ok, active = annotations_mod.sync_callback(
         local_file,
         last_sync_file,
-        income_file,
-        false
+        income_file
       )
 
       assert.is_true(ok)
@@ -217,52 +216,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     end
   )
 
-  it(
-    "should allow deletions if local map is empty but 'force' is true (Manual Override)",
-    function()
-      local annotations_mod =
-        require("plugins/AnnotationSync.koplugin/annotations")
-      local local_file =
-        test_utils.write_mock_json(test_data_dir, "prot_local_force.json", {})
-      local last_sync_file =
-        test_utils.write_mock_json(test_data_dir, "prot_last_force.json", {
-          {
-            drawer = "lighten",
-            pos0 = "p1",
-            pos1 = "p2",
-            page = "p1",
-            text = "Gone?",
-          },
-        })
-      local income_file =
-        test_utils.write_mock_json(test_data_dir, "prot_income_force.json", {
-          {
-            drawer = "lighten",
-            pos0 = "p1",
-            pos1 = "p2",
-            page = "p1",
-            text = "Gone?",
-          },
-        })
 
-      local ok, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file,
-        true
-      )
-
-      assert.is_true(ok)
-      -- Manual override allows deletion propagation
-      assert.is_equal(0, #active)
-
-      local f = io.open(local_file, "r")
-      local disk_list = json.decode(f:read("*a"))
-      f:close()
-      assert.is_not_nil(disk_list[1])
-      assert.is_true(disk_list[1].deleted)
-    end
-  )
 
   it(
     "should STILL propagate deletions if local list is NOT completely empty",
@@ -398,8 +352,23 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     readerui.annotation.annotations = {}
 
+    local ConfirmBox = require("ui/widget/confirmbox")
+    local box
+    local old_show = UIManager.show
+    UIManager.show = function(self, w, ...)
+      if getmetatable(w) == ConfirmBox then
+        box = w
+      end
+      return old_show(self, w, ...)
+    end
     sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
     sync_instance.manager:syncAllChangedDocuments()
+    UIManager.show = old_show
+
+    -- The book is empty while the cloud has the note: dismissing the box
+    -- restores it.
+    assert.truthy(box)
+    box:onExit()
 
     assert.is_equal(1, #readerui.annotation.annotations)
     assert.is_equal("PDF Note", readerui.annotation.annotations[1].text)
@@ -426,8 +395,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         annotations_mod.sync_callback(
           missing_local_file,
           last_sync_file,
-          income_file,
-          true
+          income_file
         )
       end)
       assert.is_false(ok)
@@ -445,8 +413,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         annotations_mod.sync_callback(
           corrupt_local_file,
           last_sync_file,
-          income_file,
-          true
+          income_file
         )
       end)
       assert.is_false(ok_corrupt)

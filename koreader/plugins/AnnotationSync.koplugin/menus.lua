@@ -264,63 +264,69 @@ function M.show_differing_settings_menu(
 end
 
 function M.show_pending_documents(plugin)
-  local total, changed_docs = plugin.manager:getPendingChangedDocuments()
+  local total = plugin.manager:getPendingChangedDocuments()
   if total == 0 then
     utils.show_msg(gettext("No pending books."))
     return
   end
 
   local pending_menu
-  local menu_items = {}
+  local function menu_items()
+    local _, changed_docs = plugin.manager:getPendingChangedDocuments()
+    -- Sort the files alphabetically by their clean filename
+    local files = {}
+    for _, file in ipairs(changed_docs) do
+      table.insert(files, file)
+    end
+    table.sort(files, function(a, b)
+      local a_name = a:match("([^/]+)$") or a
+      local b_name = b:match("([^/]+)$") or b
+      return a_name:lower() < b_name:lower()
+    end)
 
-  -- Sort the files alphabetically by their clean filename
-  local files = {}
-  for _, file in ipairs(changed_docs) do
-    table.insert(files, file)
-  end
-  table.sort(files, function(a, b)
-    local a_name = a:match("([^/]+)$") or a
-    local b_name = b:match("([^/]+)$") or b
-    return a_name:lower() < b_name:lower()
-  end)
-
-  for __, file in ipairs(files) do
-    local clean_filename = file:match("([^/]+)$") or file
-    table.insert(menu_items, {
-      text = clean_filename,
-      callback = function()
-        UIManager:show(ConfirmBox:new({
-          text = T(gettext("Sync this book now?\n\n%1"), clean_filename),
-          ok_text = gettext("Sync"),
-          cancel_text = gettext("Cancel"),
-          ok_callback = function()
-            plugin.manager:syncNow(file)
-          end,
-          other_buttons = {
-            {
+    local items = {}
+    for i, file in ipairs(files) do
+      local clean_filename = file:match("([^/]+)$") or file
+      table.insert(items, {
+        text = clean_filename,
+        keep_menu_open = true,
+        callback = function()
+          UIManager:show(ConfirmBox:new({
+            text = T(gettext("Sync this book now?\n\n%1"), clean_filename),
+            ok_text = gettext("Sync"),
+            cancel_text = gettext("Cancel"),
+            ok_callback = function()
+              plugin.manager:syncNow(file)
+            end,
+            other_buttons = {
               {
-                text = gettext("Remove from list"),
-                callback = function()
-                  plugin.manager:removeFromChangedDocumentsFileByPath(file)
-                  utils.show_msg(
-                    T(gettext("Removed %1 from pending books."), clean_filename)
-                  )
-                  if pending_menu then
-                    UIManager:close(pending_menu)
-                  end
-                  M.show_pending_documents(plugin)
-                end,
+                {
+                  text = gettext("Remove from list"),
+                  callback = function()
+                    plugin.manager:removeFromChangedDocumentsFileByPath(file)
+                    utils.show_msg(
+                      T(
+                        gettext("Removed %1 from pending books."),
+                        clean_filename
+                      )
+                    )
+                    -- Item i is now the book after the removed one, so the
+                    -- list stays on the same page.
+                    pending_menu:switchItemTable(nil, menu_items(), i)
+                  end,
+                },
               },
             },
-          },
-        }))
-      end,
-    })
+          }))
+        end,
+      })
+    end
+    return items
   end
 
   pending_menu = Menu:new({
     title = gettext("Pending books"),
-    item_table = menu_items,
+    item_table = menu_items(),
   })
   UIManager:show(pending_menu)
 end

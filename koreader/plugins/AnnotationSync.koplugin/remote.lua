@@ -38,7 +38,7 @@ local function perform_sync(widget, json_path, sync_cb, is_silent, finish_cb)
   SyncService.sync(server, json_path, sync_cb, is_silent, finish_cb)
 end
 
-function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
+function M.sync_annotations(widget, json_path, on_complete, cached_path)
   local cleanup_tmp = function()
     os.remove(json_path)
     os.remove(json_path .. ".temp")
@@ -47,9 +47,7 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
   if not isOnline() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
     cleanup_tmp()
-    if on_complete then
-      on_complete(false)
-    end
+    on_complete(false)
     return
   end
   local captured_merged_list = nil
@@ -60,7 +58,6 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
       local_file,
       actual_cached_file,
       income_file,
-      force,
       code_response
     )
     captured_merged_list = merged_list
@@ -84,63 +81,44 @@ function M.sync_annotations(widget, json_path, on_complete, force, cached_path)
   end)
   cleanup_tmp()
   if not ok then
-    if on_complete then
-      on_complete(false)
-    end
+    on_complete(false)
     error(err)
   end
 
-  if on_complete then
-    -- nil: nothing to upload (e.g. both sides empty), still in sync.
-    on_complete(uploaded ~= false, captured_merged_list, uploaded_json)
-  end
+  -- nil: nothing to upload (e.g. both sides empty), still in sync.
+  on_complete(uploaded ~= false, captured_merged_list, uploaded_json)
 end
 
-function M._sync_settings_callback(
-  widget,
-  local_file,
-  _,
-  income_file,
-  code_response
-)
-  if SyncService.notFound(code_response) then
+-- Uploads json_path, which holds this device's settings. sync_cb first copies
+-- the other devices' entries from the cloud file into it, so the upload
+-- replaces only this device's entry.
+function M.push_settings(widget, json_path, on_complete)
+  local sync_cb = function(local_file, _, income_file, code_response)
+    if SyncService.notFound(code_response) then
+      return true
+    end
+
+    local income_data = utils.read_json(income_file)
+    if not income_data then
+      logger.warn(
+        "AnnotationSync: Failed to parse remote settings from server. Aborting sync."
+      )
+      return false
+    end
+
+    local local_data = utils.read_json(local_file)
+    -- Merge incoming settings from other devices
+    for device_id, data in pairs(income_data) do
+      if device_id ~= widget.manager:getDeviceName() then
+        local_data[device_id] = data
+      end
+    end
+
+    assert(util.writeToFile(json.encode(local_data), local_file))
     return true
   end
-
-  local income_data = utils.read_json(income_file)
-  if not income_data then
-    logger.warn(
-      "AnnotationSync: Failed to parse remote settings from server. Aborting sync."
-    )
-    return false
-  end
-
-  local local_data = utils.read_json(local_file)
-  -- Merge incoming settings from other devices
-  for device_id, data in pairs(income_data) do
-    if device_id ~= widget.manager:getDeviceName() then
-      local_data[device_id] = data
-    end
-  end
-
-  util.writeToFile(json.encode(local_data), local_file)
-  return true
-end
-
-function M.sync_settings(widget, json_path, on_complete)
-  local sync_cb = function(local_file, cached_file, income_file, code_response)
-    return M._sync_settings_callback(
-      widget,
-      local_file,
-      cached_file,
-      income_file,
-      code_response
-    )
-  end
   perform_sync(widget, json_path, sync_cb, false, function(uploaded)
-    if on_complete then
-      on_complete(uploaded ~= false)
-    end
+    on_complete(uploaded ~= false)
   end)
 end
 

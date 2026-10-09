@@ -49,6 +49,38 @@ describe("Unsynced / Pending Documents Feature", function()
     os.remove(sync_instance.manager:changedDocumentsFile())
   end)
 
+  -- Shows the pending books list and records every widget shown from then on
+  -- (shown[1] is the list). Call the returned cleanup from the test's finally.
+  local function open_pending_list()
+    local menus = require("plugins/AnnotationSync.koplugin/menus")
+    local shown = {}
+    local old_show = UIManager.show
+    UIManager.show = function(self, w, ...)
+      table.insert(shown, w)
+      return old_show(self, w, ...)
+    end
+    menus.show_pending_documents(sync_instance)
+    return shown,
+      function()
+        UIManager.show = old_show
+        for _, w in ipairs(shown) do
+          UIManager:closeIfShown(w)
+        end
+      end
+  end
+
+  -- Taps the button labelled `text` in a ConfirmBox.
+  local function tap(box, text)
+    for _, row in ipairs(box[1][1][1][1][3].buttons) do
+      for _, button in ipairs(row) do
+        if button.text == text then
+          return button.callback()
+        end
+      end
+    end
+    error("no button " .. text)
+  end
+
   it(
     "verifies that Sync All keeps the files it failed to sync pending",
     function()
@@ -96,81 +128,7 @@ describe("Unsynced / Pending Documents Feature", function()
   )
 
   it(
-    "verifies that show_pending_documents constructs the menu and handles actions correctly",
-    function()
-      local file1 = readerui.document.file
-      sync_instance.manager:addToChangedDocumentsFile(file1)
-
-      local menus = require("plugins/AnnotationSync.koplugin/menus")
-      local Menu = require("ui/widget/menu")
-      local ConfirmBox = require("ui/widget/confirmbox")
-
-      local Widget = require("ui/widget/widget")
-      local Geom = require("ui/geometry")
-      local MockWidget = Widget:extend({
-        dimen = Geom:new({ w = 0, h = 0 }),
-        onShow = function() end,
-        paintTo = function() end,
-        free = function() end,
-        handleEvent = function() end,
-      })
-      local MockMenu = MockWidget:extend({
-        debugStr = function()
-          return "MockMenu"
-        end,
-      })
-      local MockConfirmBox = MockWidget:extend({
-        debugStr = function()
-          return "MockConfirmBox"
-        end,
-      })
-
-      local menu_shown = false
-      local menu_items = {}
-      local old_Menu_new = Menu.new
-      Menu.new = function(this, o)
-        menu_shown = true
-        menu_items = o.item_table or {}
-        return MockMenu:new(o)
-      end
-
-      local confirm_shown = false
-      local confirm_opts = {}
-      local old_ConfirmBox_new = ConfirmBox.new
-      ConfirmBox.new = function(this, o)
-        confirm_shown = true
-        confirm_opts = o
-        return MockConfirmBox:new(o)
-      end
-
-      -- 1. Show pending documents menu
-      menus.show_pending_documents(sync_instance)
-
-      assert.is_true(menu_shown)
-      assert.is_equal(1, #menu_items)
-      assert.is_equal("juliet.epub", menu_items[1].text)
-
-      -- 2. Emulate tapping the document
-      menu_items[1].callback()
-      assert.is_true(confirm_shown)
-      assert.truthy(confirm_opts.text:match("juliet%.epub"))
-      assert.is_not_nil(confirm_opts.other_buttons)
-
-      -- 3. Emulate clicking "Remove from list"
-      confirm_opts.other_buttons[1][1].callback()
-
-      -- Check that it is removed
-      local count, _ = sync_instance.manager:getPendingChangedDocuments()
-      assert.is_equal(0, count, "Document should be removed from changed list")
-
-      -- Cleanup
-      Menu.new = old_Menu_new
-      ConfirmBox.new = old_ConfirmBox_new
-    end
-  )
-
-  it(
-    "'Sync' syncs the book in the background and leaves the list closed",
+    "'Sync' syncs the book in the background and keeps the list open",
     function()
       local juliet = readerui.document.file
       local other = test_data_dir .. "/other.epub"
@@ -201,7 +159,7 @@ describe("Unsynced / Pending Documents Feature", function()
       -- Tap "Sync".
       box[1][1][1][1][3].buttons[1][2].callback()
 
-      assert.is_false(UIManager:isWindowWidget(menu))
+      assert.is_true(UIManager:isWindowWidget(menu))
       assert.is_false(UIManager:isWindowWidget(box))
       local menus_shown, texts = 0, {}
       for _, w in ipairs(shown) do
@@ -221,6 +179,81 @@ describe("Unsynced / Pending Documents Feature", function()
       assert.are.same({ other }, pending)
     end
   )
+
+  it("'Cancel' closes the dialog and keeps the list open", function()
+    sync_instance.manager:_writeChangedDocumentsFile({ readerui.document.file })
+    local shown, cleanup = open_pending_list()
+    finally(cleanup)
+    local menu = shown[1]
+
+    menu:onMenuSelect(menu.item_table[1])
+    local box = shown[2]
+    assert.is_true(UIManager:isWindowWidget(menu))
+    tap(box, "Cancel")
+
+    assert.is_false(UIManager:isWindowWidget(box))
+    assert.is_true(UIManager:isWindowWidget(menu))
+  end)
+
+  it(
+    "'Remove from list' updates the list in place and stays on its page",
+    function()
+      local files = {}
+      for i = 1, 30 do
+        table.insert(files, string.format("%s/book%02d.epub", test_data_dir, i))
+      end
+      sync_instance.manager:_writeChangedDocumentsFile(files)
+      local shown, cleanup = open_pending_list()
+      finally(cleanup)
+      local menu = shown[1]
+      menu:onNextPage()
+      assert.is_equal(2, menu.page)
+
+      -- The first book on page 2.
+      local item = menu.item_table[menu.perpage + 1]
+      menu:onMenuSelect(item)
+      local box = shown[2]
+      tap(box, "Remove from list")
+
+      assert.is_false(UIManager:isWindowWidget(box))
+      assert.is_true(UIManager:isWindowWidget(menu))
+      assert.is_equal(2, menu.page)
+      assert.is_equal(29, #menu.item_table)
+      for _, it_ in ipairs(menu.item_table) do
+        assert.are_not.equal(item.text, it_.text)
+      end
+      local count = sync_instance.manager:getPendingChangedDocuments()
+      assert.is_equal(29, count)
+      -- The list was updated, not shown again.
+      local lists, texts = 0, {}
+      for _, w in ipairs(shown) do
+        if w.title == "Pending books" then
+          lists = lists + 1
+        elseif type(w.text) == "string" then
+          table.insert(texts, w.text)
+        end
+      end
+      assert.is_equal(1, lists)
+      assert.are.same({
+        "Sync this book now?\n\n" .. item.text,
+        "Removed " .. item.text .. " from pending books.",
+      }, texts)
+    end
+  )
+
+  it("removing the last book keeps the empty list open", function()
+    sync_instance.manager:_writeChangedDocumentsFile({ readerui.document.file })
+    local shown, cleanup = open_pending_list()
+    finally(cleanup)
+    local menu = shown[1]
+
+    menu:onMenuSelect(menu.item_table[1])
+    tap(shown[2], "Remove from list")
+
+    assert.is_true(UIManager:isWindowWidget(menu))
+    assert.is_equal(0, #menu.item_table)
+    assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
+  end)
 
   it(
     "can scan opened books in readhistory across all sidecar storage methods",

@@ -242,6 +242,9 @@ describe("Background Sync Behavior", function()
   end)
 
   describe("BackgroundJobs fork dispatching and execution", function()
+    -- Records the file of each _startSync call. Call the returned restore
+    -- function from the test's finally: a test keeps only its last finally,
+    -- so one registered here would replace the test's or be replaced by it.
     local function track_dispatched_file()
       local dispatched = {}
       local old_startSync = sync_manager._startSync
@@ -249,14 +252,9 @@ describe("Background Sync Behavior", function()
         dispatched.file = file
         return old_startSync(self_m, file, ...)
       end
-      finally(function()
+      return dispatched, function()
         sync_manager._startSync = old_startSync
-      end)
-      return setmetatable(dispatched, {
-        __call = function(self)
-          return self.file
-        end,
-      })
+      end
     end
 
     it(
@@ -434,10 +432,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_fail.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
@@ -476,10 +475,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_crash.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         for _, invalid_res in ipairs({ false, 222, 255 }) do
           os.remove(sync_manager:changedDocumentsFile())
@@ -525,10 +525,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_fifo.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         local track_path = sync_manager:changedDocumentsFile()
         util.writeToFile(dump({ doc2, doc1 }), track_path, true)
@@ -637,10 +638,11 @@ describe("Background Sync Behavior", function()
         local doc1 = readerui.document.file
         local doc2 = test_data_dir .. "/doc_mid_edit.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           os.remove(doc2)
         end)
-        local dispatched = track_dispatched_file()
 
         local track_path = sync_manager:changedDocumentsFile()
         util.writeToFile(dump({ doc1, doc2 }), track_path, true)
@@ -944,8 +946,9 @@ describe("Background Sync Behavior", function()
         local doc2 = test_data_dir .. "/doc_next_after_rem.epub"
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc1)
         require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
-        local get_dispatched = track_dispatched_file()
+        local dispatched, restore_start_sync = track_dispatched_file()
         finally(function()
+          restore_start_sync()
           NetworkMgr.isOnline = old_isOnline
           os.remove(doc1)
           os.remove(doc2)
@@ -979,7 +982,7 @@ describe("Background Sync Behavior", function()
 
         -- Exactly one new fork job: doc1 was never forked, doc2 was dispatched and forked
         assert.is_equal(initial_count + 1, #jobs)
-        assert.is_equal(doc2, get_dispatched())
+        assert.is_equal(doc2, dispatched.file)
 
         local _, pending = sync_manager:getPendingChangedDocuments()
         assert.are.same({ doc2 }, pending)
@@ -1176,7 +1179,7 @@ describe("Background Sync Behavior", function()
         }
 
         local dummy_json = test_data_dir .. "/test_silent_dest.json"
-        remote.sync_annotations(mock_w, dummy_json, function() end, false)
+        remote.sync_annotations(mock_w, dummy_json, function() end)
 
         assert.is_false(show_called)
         UIManager.show = old_show
@@ -1240,8 +1243,7 @@ describe("Background Sync Behavior", function()
             table.insert(order, "on_complete")
             on_complete_success = success
             on_complete_merged = merged_list
-          end,
-          false
+          end
         )
 
         assert.are.same(
@@ -1284,7 +1286,7 @@ describe("Background Sync Behavior", function()
         local on_complete_success = nil
         remote.sync_annotations(mock_w, dummy_json, function(success)
           on_complete_success = success
-        end, false)
+        end)
 
         assert.is_false(on_complete_success)
       end
@@ -1308,7 +1310,6 @@ describe("Background Sync Behavior", function()
           local_f,
           cached_f,
           inc_f,
-          force,
           code
         )
           received_cached_file = cached_f
@@ -1334,7 +1335,6 @@ describe("Background Sync Behavior", function()
           function(success, merged, uploaded_json)
             on_complete_uploaded = uploaded_json
           end,
-          false,
           sdr_cache
         )
 
@@ -1382,7 +1382,6 @@ describe("Background Sync Behavior", function()
         mock_w,
         dummy_json,
         function() end,
-        false,
         sdr_cache
       )
 
@@ -1394,7 +1393,7 @@ describe("Background Sync Behavior", function()
       end
       assert.are.equal('{"initial":true}', content)
       -- tmp cache should be cleaned up
-      assert.is_false(lfs.attributes(dummy_json .. ".sync") ~= nil)
+      assert.is_false(util.fileExists(dummy_json .. ".sync"))
     end)
   end)
 
@@ -1436,7 +1435,7 @@ describe("Background Sync Behavior", function()
     end)
 
     it(
-      "Case 13: sync_annotations, finish_cb(true) -> on_complete(true, merged, uploaded_json), sdr_cache untouched",
+      "sync_annotations, finish_cb(true) -> on_complete(true, merged, uploaded_json), sdr_cache untouched",
       function()
         local dummy_merged = { { page = 1, text = "merged_item" } }
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
@@ -1458,7 +1457,7 @@ describe("Background Sync Behavior", function()
           comp_res = success
           comp_data = merged
           comp_uploaded = uploaded_json
-        end, false, sdr_cache)
+        end, sdr_cache)
 
         assert.is_true(comp_res)
         assert.are.same(dummy_merged, comp_data)
@@ -1476,7 +1475,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 14: finish_cb(nil) (both sides empty) -> on_complete(true, ...), cached_path not replaced",
+      "finish_cb(nil) (both sides empty) -> on_complete(true, ...), cached_path not replaced",
       function()
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           callback(local_path, local_path .. ".sync", local_path, 200)
@@ -1493,7 +1492,7 @@ describe("Background Sync Behavior", function()
         remote.sync_annotations(mock_w, dummy_json, function(success, merged)
           comp_res = success
           comp_data = merged
-        end, false, sdr_cache)
+        end, sdr_cache)
 
         assert.is_true(comp_res)
         assert.are.same({}, comp_data)
@@ -1509,7 +1508,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 15: finish_cb(false) -> on_complete(false, ...), cached_path not replaced",
+      "finish_cb(false) -> on_complete(false, ...), cached_path not replaced",
       function()
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           local tmp_sync = local_path .. ".sync"
@@ -1528,7 +1527,7 @@ describe("Background Sync Behavior", function()
         remote.sync_annotations(mock_w, dummy_json, function(success, merged)
           comp_res = success
           comp_data = merged
-        end, false, sdr_cache)
+        end, sdr_cache)
 
         assert.is_false(comp_res)
 
@@ -1544,7 +1543,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 16: SyncService postpones (mock never calls finish_cb) -> assert fires, on_complete(false), error rethrown, tmp cleaned",
+      "SyncService postpones (mock never calls finish_cb) -> assert fires, on_complete(false), error rethrown, tmp cleaned",
       function()
         local tmp_temp = dummy_json .. ".temp"
         local tmp_sync = dummy_json .. ".sync"
@@ -1563,7 +1562,7 @@ describe("Background Sync Behavior", function()
         end
 
         local ok, err = pcall(function()
-          remote.sync_annotations(mock_w, dummy_json, on_complete, false, sdr_cache)
+          remote.sync_annotations(mock_w, dummy_json, on_complete, sdr_cache)
         end)
 
         assert.is_false(ok)
@@ -1578,7 +1577,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "Case 17: No sync_server -> on_complete(false) and a log line, no message even when forced",
+      "No sync_server -> on_complete(false) and a log line, no message",
       function()
         local no_server_w = {
           ui = {},
@@ -1602,7 +1601,7 @@ describe("Background Sync Behavior", function()
         local comp_res = nil
         remote.sync_annotations(no_server_w, dummy_json, function(res)
           comp_res = res
-        end, true, sdr_cache)
+        end, sdr_cache)
 
         assert.is_false(comp_res)
         assert.is_nil(shown_widget)
@@ -1642,7 +1641,7 @@ describe("Background Sync Behavior", function()
         remote.sync_annotations(mock_w, dummy_json, function(res)
           comp_called = true
           comp_res = res
-        end, false, sdr_cache)
+        end, sdr_cache)
 
         assert.is_false(sync_called)
         assert.is_true(comp_called)
@@ -2561,12 +2560,361 @@ describe("Background Sync Behavior", function()
         assert.is_false(is_pending(file))
       end
     )
+
+    describe("a book with no annotations while the cloud has some", function()
+      local ConfirmBox, Notification
+      local A, B, C, D_tomb
+      local boxes, toasts, old_notify, old_use_filename
+
+      -- A closed book that synced A and B, then lost them (e.g. a Reset),
+      -- while another device added C. D was trashed before.
+      local function emptied_book(tag)
+        local doc, name = new_doc(tag)
+        util.writeToFile(
+          encode({ A, B, D_tomb }),
+          sync_manager:getSyncCachePath(doc)
+        )
+        remote_store[name] = encode({ A, B, C, D_tomb })
+        return doc, name
+      end
+
+      local function book(doc)
+        return texts(DocSettings:open(doc):readTable("annotations"))
+      end
+
+      local function base(file)
+        return texts(utils.read_json(sync_manager:getSyncCachePath(file)))
+      end
+
+      local function cloud(name)
+        return texts(json.decode(remote_store[name]))
+      end
+
+      -- The box names the book and the number of annotations on the cloud.
+      local function assert_asks(box, file, n)
+        assert.truthy(box.text:find(basename(file), 1, true))
+        assert.truthy(box.text:find("%f[%w]" .. n .. "%f[%W]"))
+      end
+
+      -- Taps the button labelled label.
+      local function tap(box, label)
+        for _, row in ipairs(box[1][1][1][1][3].buttons) do
+          for _, button in ipairs(row) do
+            if button.text == label then
+              return button.callback()
+            end
+          end
+        end
+        error("no button " .. label)
+      end
+
+      -- Counts the jobs started from now on.
+      local function count_jobs()
+        local n = 0
+        local insert = BackgroundJobs.insertKeyed
+        BackgroundJobs.insertKeyed = function(job)
+          n = n + 1
+          return insert(job)
+        end
+        return function()
+          return n
+        end
+      end
+
+      before_each(function()
+        ConfirmBox = require("ui/widget/confirmbox")
+        Notification = require("ui/widget/notification")
+        -- Every copy of juliet.epub has the same partial MD5: name the cloud
+        -- files after the books.
+        old_use_filename = plugin_instance.settings.use_filename
+        plugin_instance.settings.use_filename = true
+        A = mk(1, "A")
+        B = mk(2, "B")
+        C = mk(3, "C", "2026-01-02 10:00:00")
+        D_tomb = mk(4, "D")
+        D_tomb.deleted = true
+        D_tomb.datetime_updated = "2026-01-02 10:00:00"
+        boxes, toasts = {}, {}
+        -- Show the boxes for real; the outer after_each restores show.
+        local show = UIManager.show
+        UIManager.show = function(self, w, ...)
+          if getmetatable(w) == ConfirmBox then
+            table.insert(boxes, w)
+            return old_show(self, w, ...)
+          end
+          return show(self, w, ...)
+        end
+        old_notify = Notification.notify
+        Notification.notify = function(_, text)
+          table.insert(toasts, text)
+        end
+        fork_like()
+      end)
+
+      after_each(function()
+        -- A failed test can leave its box up.
+        for _, box in ipairs(boxes) do
+          if UIManager:isWindowWidget(box) then
+            UIManager:close(box)
+          end
+        end
+        Notification.notify = old_notify
+        plugin_instance.settings.use_filename = old_use_filename
+      end)
+
+      it(
+        "an automatic sync asks before changing anything, and Restore restores them",
+        function()
+          local doc, name = emptied_book("asks_on_auto_sync")
+
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
+          assert.are.equal("A, B, D(DELETED)", base(doc))
+          assert.is_true(is_pending(doc))
+
+          tap(boxes[1], "Restore")
+
+          assert.are.equal("A, B, C", book(doc))
+          assert.are.equal("A, B, C, D(DELETED)", base(doc))
+          assert.are.equal("A, B, C, D(DELETED)", cloud(name))
+          assert.is_false(is_pending(doc))
+          assert.are.equal(1, #boxes)
+          assert.are.same({}, toasts)
+        end
+      )
+
+      it(
+        "Sync all pending books asks the same, and dismissing the box restores them",
+        function()
+          plugin_instance.settings.network_auto_sync = false
+          local doc = emptied_book("asks_on_sync_all")
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          sync_manager:syncAllChangedDocuments()
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
+
+          boxes[1]:onExit()
+
+          assert.are.equal("A, B, C", book(doc))
+          assert.are.equal("A, B, C, D(DELETED)", base(doc))
+          assert.is_false(is_pending(doc))
+        end
+      )
+
+      it(
+        "Sync in the pending books list asks the same, and Move to trash trashes them everywhere",
+        function()
+          local doc, name = emptied_book("asks_on_sync_now")
+          local jobs = count_jobs()
+
+          sync_manager:syncNow(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
+          assert.are.equal("A, B, D(DELETED)", base(doc))
+          assert.are.same(
+            { "Syncing in the background: asks_on_sync_now.epub" },
+            toasts
+          )
+
+          tap(boxes[1], "Move to trash")
+
+          -- One more job uploads the tombstones.
+          assert.are.equal(2, jobs())
+          assert.are.equal(1, #boxes)
+          assert.are.equal("", book(doc))
+          local trashed = "A(DELETED), B(DELETED), C(DELETED), D(DELETED)"
+          assert.are.equal(trashed, cloud(name))
+          assert.are.equal(trashed, base(doc))
+          assert.are.equal(
+            trashed,
+            texts(sync_manager:getDeletedAnnotations({ file = doc }))
+          )
+          assert.is_false(is_pending(doc))
+          assert.are.same({
+            "Syncing in the background: asks_on_sync_now.epub",
+            "Synced: asks_on_sync_now.epub",
+          }, toasts)
+
+          -- The book stays empty and doesn't ask again.
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert.are.equal("", book(doc))
+        end
+      )
+
+      it(
+        "Move to trash trashes what it counted, even if edited meanwhile, and keeps an annotation added meanwhile",
+        function()
+          local doc, name = emptied_book("cloud_changed_meanwhile")
+          local C_edited = copy(C)
+          C_edited.datetime_updated = "2026-05-01 10:00:00"
+          local E = mk(5, "E", "2026-05-01 10:00:00")
+
+          sync_manager:syncNow(doc)
+          -- Another device edits C and adds E while the box is up.
+          remote_store[name] = encode({ A, B, C_edited, D_tomb, E })
+          tap(boxes[1], "Move to trash")
+
+          assert.are.equal(1, #boxes)
+          assert.are.equal("E", book(doc))
+          assert.are.equal(
+            "A(DELETED), B(DELETED), C(DELETED), D(DELETED), E",
+            cloud(name)
+          )
+          assert.is_false(is_pending(doc))
+        end
+      )
+
+      it(
+        "Sync current book now after deleting its last highlight, then Move to trash, trashes it everywhere",
+        function()
+          plugin_instance.settings.network_auto_sync = false
+          local doc = readerui.document
+          local file = doc.file
+          local name = sync_manager:_getAnnotationFilename(file)
+          local X = hl(doc, 3, "X_last", "2026-01-01 10:00:00")
+          util.writeToFile(encode({ X }), sync_manager:getSyncCachePath(file))
+          remote_store[name] = encode({ X })
+          readerui.annotation.annotations = copy({ X })
+          local x = remove_item(readerui.annotation.annotations, "X_last")
+          plugin_instance:onAnnotationsModified({ x })
+
+          plugin_instance:manualSync()
+
+          assert.are.equal(1, #boxes)
+          assert.are.same({}, readerui.annotation.annotations)
+
+          tap(boxes[1], "Move to trash")
+
+          assert.are.same({}, readerui.annotation.annotations)
+          assert.are.equal("X_last(DELETED)", cloud(name))
+          assert.are.equal("X_last(DELETED)", base(file))
+          assert.is_false(is_pending(file))
+        end
+      )
+
+      it("a book emptied while its sync runs asks too", function()
+        local doc, name = emptied_book("emptied_during_sync")
+        local ds = DocSettings:open(doc)
+        ds:save("annotations", { A, B })
+        ds:flush()
+        -- fork_like runs this after every job: empty the book in the first
+        -- one only.
+        local emptied = false
+        fork_like(function()
+          if emptied then
+            return
+          end
+          emptied = true
+          local during = DocSettings:open(doc)
+          during:save("annotations", {})
+          during:flush()
+        end)
+
+        sync_manager:addToChangedDocumentsFile(doc)
+
+        assert.are.equal(1, #boxes)
+        assert_asks(boxes[1], doc, 3)
+        assert.are.equal("", book(doc))
+
+        tap(boxes[1], "Restore")
+
+        assert.are.equal(1, #boxes)
+        assert.are.equal("A, B, C", book(doc))
+        assert.are.equal("A, B, C, D(DELETED)", cloud(name))
+        assert.is_false(is_pending(doc))
+      end)
+
+      it("a book never synced on this device restores without asking", function()
+        local doc, name = new_doc("never_synced_here")
+        remote_store[name] = encode({ A, B })
+
+        sync_manager:addToChangedDocumentsFile(doc)
+
+        assert.are.equal(0, #boxes)
+        assert.are.equal("A, B", book(doc))
+        assert.are.equal("A, B", base(doc))
+        assert.is_false(is_pending(doc))
+      end)
+
+      it(
+        "a book that synced only tombstones here restores without asking",
+        function()
+          local doc, name = new_doc("only_tombstones_here")
+          local A_tomb = copy(A)
+          A_tomb.deleted = true
+          A_tomb.datetime_updated = "2026-01-02 10:00:00"
+          local A_restored = copy(A)
+          A_restored.datetime_updated = "2026-01-03 10:00:00"
+          util.writeToFile(
+            encode({ A_tomb }),
+            sync_manager:getSyncCachePath(doc)
+          )
+          remote_store[name] = encode({ A_restored })
+
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(0, #boxes)
+          assert.are.equal("A", book(doc))
+        end
+      )
+
+      it("other books wait until the box is answered", function()
+        local doc = emptied_book("waits_first")
+        local other, other_name = new_doc("waits_second")
+        local ds = DocSettings:open(other)
+        ds:save("annotations", { A })
+        ds:flush()
+        local jobs = count_jobs()
+
+        sync_manager:addToChangedDocumentsFile(doc)
+        sync_manager:addToChangedDocumentsFile(other)
+
+        assert.are.equal(1, #boxes)
+        assert.are.equal(1, jobs())
+        assert.is_true(is_pending(other))
+
+        tap(boxes[1], "Restore")
+
+        assert.are.equal(2, jobs())
+        assert.is_false(is_pending(other))
+        assert.are.equal("A", cloud(other_name))
+      end)
+
+      it("the Synced notification shows once, after the answer", function()
+        local doc = emptied_book("synced_after_answer")
+
+        sync_manager:syncNow(doc)
+
+        assert.are.equal(1, #boxes)
+        assert.are.same(
+          { "Syncing in the background: synced_after_answer.epub" },
+          toasts
+        )
+
+        tap(boxes[1], "Restore")
+
+        assert.are.same({
+          "Syncing in the background: synced_after_answer.epub",
+          "Synced: synced_after_answer.epub",
+        }, toasts)
+      end)
+    end)
   end)
 
   describe("Manual Sync, Sync now and Sync All", function()
     local restore_jobs, old_sync_annotations, old_use_filename
     local old_notify, old_show_msg
-    -- synced: the books each job synced, "!" when forced. during[name] runs
+    -- synced: the books each job synced. during[name] runs
     -- once inside the book's job, failing[name] fails its jobs.
     local synced, failing, during
     -- toasts and boxes: the texts of the notifications and message boxes.
@@ -2594,11 +2942,10 @@ describe("Background Sync Behavior", function()
         widget,
         json_path,
         on_complete,
-        force,
         cached_path
       )
         local name = json_path:match("([^/]+)%.json$")
-        table.insert(synced, name .. (force and "!" or ""))
+        table.insert(synced, name)
         local fn = during[name]
         during[name] = nil
         if fn then
@@ -2611,7 +2958,6 @@ describe("Background Sync Behavior", function()
           widget,
           json_path,
           on_complete,
-          force,
           cached_path
         )
       end
@@ -2636,7 +2982,7 @@ describe("Background Sync Behavior", function()
     end)
 
     it(
-      "Manual Sync queues the book and syncs only it, forced, with auto sync off",
+      "Manual Sync queues the book and syncs only it, with auto sync off",
       function()
         local juliet = readerui.document.file
         local a = new_doc("a")
@@ -2649,7 +2995,7 @@ describe("Background Sync Behavior", function()
         plugin_instance:manualSync()
 
         assert.is_true(queued)
-        assert.are.same({ "juliet.epub!" }, synced)
+        assert.are.same({ "juliet.epub" }, synced)
         assert.is_false(is_pending(juliet))
         assert.is_true(is_pending(a))
       end
@@ -2681,7 +3027,7 @@ describe("Background Sync Behavior", function()
 
       sync_manager:syncAllChangedDocuments()
 
-      assert.are.same({ "a.epub", "juliet.epub!", "b.epub" }, synced)
+      assert.are.same({ "a.epub", "juliet.epub", "b.epub" }, synced)
     end)
 
     it("a request ends when its book leaves the queue", function()
@@ -2691,13 +3037,13 @@ describe("Background Sync Behavior", function()
         plugin_instance:manualSync()
       end
       plugin_instance:manualSync()
-      assert.are.same({ "juliet.epub!" }, synced)
+      assert.are.same({ "juliet.epub" }, synced)
       assert.is_false(is_pending(juliet))
 
       -- Edited later, the book waits: auto sync is off and nobody asked.
       sync_manager:addToChangedDocumentsFile(juliet)
 
-      assert.are.same({ "juliet.epub!" }, synced)
+      assert.are.same({ "juliet.epub" }, synced)
       assert.is_true(is_pending(juliet))
     end)
 
@@ -2713,7 +3059,7 @@ describe("Background Sync Behavior", function()
 
         plugin_instance:manualSync()
 
-        assert.are.same({ "juliet.epub!", "juliet.epub!" }, synced)
+        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
         assert.is_true(is_pending(juliet))
       end
     )
@@ -2749,7 +3095,7 @@ describe("Background Sync Behavior", function()
       function()
         plugin_instance:manualSync()
 
-        assert.are.same({ "juliet.epub!" }, synced)
+        assert.are.same({ "juliet.epub" }, synced)
         assert.are.same(
           { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
           toasts
@@ -2763,7 +3109,7 @@ describe("Background Sync Behavior", function()
 
       plugin_instance:manualSync()
 
-      assert.are.same({ "juliet.epub!" }, synced)
+      assert.are.same({ "juliet.epub" }, synced)
       assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
       assert.are.same({ "Failed to sync juliet.epub." }, boxes)
     end)
@@ -2834,7 +3180,7 @@ describe("Background Sync Behavior", function()
 
         sync_manager:addToChangedDocumentsFile(doc.file)
 
-        assert.are.same({ "juliet.epub", "juliet.epub!" }, synced)
+        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
         assert.are.same(
           { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
           toasts
@@ -2852,7 +3198,7 @@ describe("Background Sync Behavior", function()
 
         plugin_instance:manualSync()
 
-        assert.are.same({ "juliet.epub!", "juliet.epub!" }, synced)
+        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
         assert.are.same({ "Failed to sync juliet.epub." }, boxes)
       end
     )
@@ -2876,12 +3222,46 @@ describe("Background Sync Behavior", function()
 
         plugin_instance:manualSync()
 
-        assert.are.same({ "juliet.epub!", "juliet.epub" }, synced)
+        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
         assert.are.same({
           "Syncing in the background: juliet.epub",
           "Syncing 1 book in the background",
           "Synced: juliet.epub",
         }, toasts)
+      end
+    )
+
+    it(
+      "a tap withdrawn while its sync waits for the network gets no notification",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local NetworkListener = require("ui/network/networklistener")
+        local old_isOnline = NetworkMgr.isOnline
+        finally(function()
+          NetworkMgr.isOnline = old_isOnline
+        end)
+        local juliet = readerui.document.file
+        NetworkMgr.isOnline = function()
+          return false
+        end
+
+        -- Offline: the tap waits for the network.
+        plugin_instance:manualSync()
+        -- An edit starts the queue, so juliet's sync waits for the network.
+        sync_manager:addToChangedDocumentsFile(new_doc("a"))
+        -- The user takes juliet off the list, then edits it again.
+        sync_manager:removeFromChangedDocumentsFileByPath(juliet)
+        sync_manager:addToChangedDocumentsFile(juliet)
+
+        NetworkMgr.isOnline = function()
+          return true
+        end
+        NetworkListener:onNetworkOnline()
+        fastforward_ui_events()
+
+        assert.are.same({ "juliet.epub" }, synced)
+        assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+        assert.are.same({}, boxes)
       end
     )
   end)
