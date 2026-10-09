@@ -47,9 +47,7 @@ function M.sync_annotations(widget, json_path, on_complete, cached_path)
   if not isOnline() then
     logger.dbg("AnnotationSync: remote sync skipped, network is offline")
     cleanup_tmp()
-    if on_complete then
-      on_complete(false)
-    end
+    on_complete(false)
     return
   end
   local captured_merged_list = nil
@@ -83,16 +81,12 @@ function M.sync_annotations(widget, json_path, on_complete, cached_path)
   end)
   cleanup_tmp()
   if not ok then
-    if on_complete then
-      on_complete(false)
-    end
+    on_complete(false)
     error(err)
   end
 
-  if on_complete then
-    -- nil: nothing to upload (e.g. both sides empty), still in sync.
-    on_complete(uploaded ~= false, captured_merged_list, uploaded_json)
-  end
+  -- nil: nothing to upload (e.g. both sides empty), still in sync.
+  on_complete(uploaded ~= false, captured_merged_list, uploaded_json)
 end
 
 -- Uploads json_path, which holds this device's settings. sync_cb first copies
