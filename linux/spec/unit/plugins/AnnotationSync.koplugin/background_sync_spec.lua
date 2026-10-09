@@ -3230,5 +3230,39 @@ describe("Background Sync Behavior", function()
         }, toasts)
       end
     )
+
+    it(
+      "a tap withdrawn while its sync waits for the network gets no notification",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local NetworkListener = require("ui/network/networklistener")
+        local old_isOnline = NetworkMgr.isOnline
+        finally(function()
+          NetworkMgr.isOnline = old_isOnline
+        end)
+        local juliet = readerui.document.file
+        NetworkMgr.isOnline = function()
+          return false
+        end
+
+        -- Offline: the tap waits for the network.
+        plugin_instance:manualSync()
+        -- An edit starts the queue, so juliet's sync waits for the network.
+        sync_manager:addToChangedDocumentsFile(new_doc("a"))
+        -- The user takes juliet off the list, then edits it again.
+        sync_manager:removeFromChangedDocumentsFileByPath(juliet)
+        sync_manager:addToChangedDocumentsFile(juliet)
+
+        NetworkMgr.isOnline = function()
+          return true
+        end
+        NetworkListener:onNetworkOnline()
+        fastforward_ui_events()
+
+        assert.are.same({ "juliet.epub" }, synced)
+        assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+        assert.are.same({}, boxes)
+      end
+    )
   end)
 end)

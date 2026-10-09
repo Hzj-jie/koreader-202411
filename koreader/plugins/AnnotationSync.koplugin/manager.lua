@@ -342,10 +342,12 @@ function SyncManager:_dispatchNextSync(failed)
     return false
   end
 
-  local trigger = self.requested[file]
-  self.requested[file] = nil
   self.running = true
   NetworkMgr:willRerunWhenOnline(function()
+    -- Take the request when the sync starts: a book taken off the list while
+    -- its sync waited for the network lost its request with it.
+    local trigger = self.requested[file]
+    self.requested[file] = nil
     self:_startSync(file, trigger)
   end)
   return true
