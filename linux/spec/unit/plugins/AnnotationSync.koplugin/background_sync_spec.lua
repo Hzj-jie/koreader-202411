@@ -1382,7 +1382,6 @@ describe("Background Sync Behavior", function()
         mock_w,
         dummy_json,
         function() end,
-        false,
         sdr_cache
       )
 
