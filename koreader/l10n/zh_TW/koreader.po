@@ -24618,6 +24618,9 @@ msgstr "沒有已變更的設定。"
 msgid "Changed Settings"
 msgstr "已變更的設定"
 
+msgid "Cannot read %1. Skipped syncing it."
+msgstr "無法讀取 %1，已跳過同步。"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算練習"
