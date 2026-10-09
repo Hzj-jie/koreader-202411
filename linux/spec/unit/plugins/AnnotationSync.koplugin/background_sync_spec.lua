@@ -2802,37 +2802,76 @@ describe("Background Sync Behavior", function()
         end
       )
 
-      it("a book emptied while its sync runs asks too", function()
-        local doc, name = emptied_book("emptied_during_sync")
-        local ds = DocSettings:open(doc)
-        ds:save("annotations", { A, B })
-        ds:flush()
-        -- fork_like runs this after every job: empty the book in the first
-        -- one only.
-        local emptied = false
-        fork_like(function()
-          if emptied then
-            return
-          end
-          emptied = true
-          local during = DocSettings:open(doc)
-          during:save("annotations", {})
-          during:flush()
-        end)
+      it(
+        "a book emptied while its sync runs: with auto sync off, Restore removes it from pending",
+        function()
+          plugin_instance.settings.network_auto_sync = false
+          local doc, name = emptied_book("emptied_during_sync_off")
+          local ds = DocSettings:open(doc)
+          ds:save("annotations", { A, B })
+          ds:flush()
+          local emptied = false
+          fork_like(function()
+            if emptied then
+              return
+            end
+            emptied = true
+            local during = DocSettings:open(doc)
+            during:save("annotations", {})
+            during:flush()
+          end)
 
-        sync_manager:addToChangedDocumentsFile(doc)
+          sync_manager:addToChangedDocumentsFile(doc)
+          sync_manager:syncAllChangedDocuments()
 
-        assert.are.equal(1, #boxes)
-        assert_asks(boxes[1], doc, 3)
-        assert.are.equal("", book(doc))
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
 
-        tap(boxes[1], "Restore")
+          tap(boxes[1], "Restore")
 
-        assert.are.equal(1, #boxes)
-        assert.are.equal("A, B, C", book(doc))
-        assert.are.equal("A, B, C, D(DELETED)", cloud(name))
-        assert.is_false(is_pending(doc))
-      end)
+          assert.are.equal(1, #boxes)
+          assert.are.equal("A, B, C", book(doc))
+          assert.are.equal("A, B, C, D(DELETED)", cloud(name))
+          assert.is_false(is_pending(doc))
+        end
+      )
+
+      it(
+        "a book emptied while its sync runs: with auto sync on, Restore runs no second sync job",
+        function()
+          plugin_instance.settings.network_auto_sync = true
+          local doc, name = emptied_book("emptied_during_sync_on")
+          local ds = DocSettings:open(doc)
+          ds:save("annotations", { A, B })
+          ds:flush()
+          local emptied = false
+          fork_like(function()
+            if emptied then
+              return
+            end
+            emptied = true
+            local during = DocSettings:open(doc)
+            during:save("annotations", {})
+            during:flush()
+          end)
+
+          local jobs = count_jobs()
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
+
+          tap(boxes[1], "Restore")
+
+          assert.are.equal(1, #boxes)
+          assert.are.equal("A, B, C", book(doc))
+          assert.are.equal("A, B, C, D(DELETED)", cloud(name))
+          assert.is_false(is_pending(doc))
+          assert.are.equal(1, jobs())
+        end
+      )
 
       it("a book never synced on this device restores without asking", function()
         local doc, name = new_doc("never_synced_here")

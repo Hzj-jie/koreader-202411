@@ -423,7 +423,10 @@ function SyncManager:_applyBackgroundSync(
     end
   end
 
+  -- An empty book takes the upload whole (annotations.merge skips the base for
+  -- it), so after the apply it matches the cloud.
   local unchanged = util.tableEquals(local_list, base_list)
+    or (uploaded_json ~= nil and #local_list == 0)
 
   if uploaded_json then
     local income_list = json.decode(uploaded_json)
