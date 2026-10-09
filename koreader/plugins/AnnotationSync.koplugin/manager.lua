@@ -300,6 +300,11 @@ function SyncManager:_startSync(file, trigger, trash)
                 end
               end
               NetworkMgr:willRerunWhenOnline(function()
+                -- Take the request when the sync starts, as _dispatchNextSync does.
+                if self.requested[file] == "Manual Sync" then
+                  trigger = "Manual Sync"
+                end
+                self.requested[file] = nil
                 self:_startSync(file, trigger, tombstones)
               end)
             end,

@@ -2752,6 +2752,89 @@ describe("Background Sync Behavior", function()
       )
 
       it(
+        "a tap during an auto sync is answered when Move to trash succeeds",
+        function()
+          local doc, name = emptied_book("tap_during_sync_success")
+          local tapped = false
+          fork_like(function()
+            if tapped then
+              return
+            end
+            tapped = true
+            sync_manager:syncNow(doc)
+          end)
+
+          local jobs = count_jobs()
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+
+          tap(boxes[1], "Move to trash")
+
+          -- Exactly 2 jobs total (the first sync + the trash sync)
+          assert.are.equal(2, jobs())
+          assert.are.equal(1, #boxes)
+          assert.is_false(is_pending(doc))
+          assert.are.same({
+            "Syncing in the background: tap_during_sync_success.epub",
+            "Synced: tap_during_sync_success.epub",
+          }, toasts)
+        end
+      )
+
+      it(
+        "a tap during an auto sync gets a message box and stops retrying if Move to trash fails",
+        function()
+          local doc, name = emptied_book("tap_during_sync_fail")
+          local msg_boxes = {}
+          local old_show_msg = utils.show_msg
+          finally(function()
+            utils.show_msg = old_show_msg
+          end)
+          utils.show_msg = function(text)
+            table.insert(msg_boxes, text)
+          end
+
+          local jobs_started = 0
+          BackgroundJobs.insertKeyed = function(job)
+            jobs_started = jobs_started + 1
+            if jobs_started == 1 then
+              -- First sync succeeds, user taps syncNow during it
+              local res = job.action()
+              sync_manager:syncNow(doc)
+              job.result = res
+              job.callback(job)
+            elseif jobs_started == 2 then
+              -- Second sync (Move to trash) fails
+              job.result = { file = doc, success = false }
+              job.callback(job)
+            else
+              -- Any further job
+              local res = job.action()
+              job.result = res
+              job.callback(job)
+            end
+            return true
+          end
+
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+
+          tap(boxes[1], "Move to trash")
+
+          -- Exactly 2 jobs total (the first sync + the failing trash sync)
+          assert.are.equal(2, jobs_started)
+          assert.are.equal(1, #boxes)
+          assert.are.same({
+            "Failed to sync tap_during_sync_fail.epub.",
+          }, msg_boxes)
+        end
+      )
+
+      it(
         "Move to trash trashes what it counted, even if edited meanwhile, and keeps an annotation added meanwhile",
         function()
           local doc, name = emptied_book("cloud_changed_meanwhile")
