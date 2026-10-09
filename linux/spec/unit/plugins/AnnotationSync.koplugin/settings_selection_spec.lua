@@ -94,8 +94,9 @@ describe("AnnotationSync Settings Selection", function()
         sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
       )
 
-      -- Call callback to select
-      changed_item.callback()
+      -- Call onMenuSelect to select
+      submenu:onMenuSelect(changed_item)
+      assert.is_true(UIManager:isWindowWidget(submenu))
       assert.is_true(
         sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
       )
@@ -106,8 +107,9 @@ describe("AnnotationSync Settings Selection", function()
         saved.selected_settings["reader:auto_standby_timeout_seconds"]
       )
 
-      -- Call callback again to deselect
-      changed_item.callback()
+      -- Call onMenuSelect again to deselect
+      submenu:onMenuSelect(changed_item)
+      assert.is_true(UIManager:isWindowWidget(submenu))
       assert.is_nil(
         sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
       )
@@ -151,7 +153,8 @@ describe("AnnotationSync Settings Selection", function()
     assert.is_not_nil(clear_selection_item)
 
     -- Trigger Select All
-    select_all_item.callback()
+    submenu:onMenuSelect(select_all_item)
+    assert.is_true(UIManager:isWindowWidget(submenu))
     assert.is_true(
       sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
     )
@@ -160,7 +163,8 @@ describe("AnnotationSync Settings Selection", function()
     )
 
     -- Trigger Clear Selection
-    clear_selection_item.callback()
+    submenu:onMenuSelect(clear_selection_item)
+    assert.is_true(UIManager:isWindowWidget(submenu))
     assert.is_nil(
       sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
     )
@@ -210,10 +214,34 @@ describe("AnnotationSync Settings Selection", function()
       -- Initially it should be unchecked
       assert.is_not_nil(footer_item.text_func():find("^%[ %]"))
 
-      -- Select the nested setting
-      sync_instance.settings.selected_settings["reader:footer.time"] = true
+      -- Open the branch menu via onMenuSelect
+      local branch_menu
+      UIManager.show = function(this, widget)
+        if widget.title and widget.title:find("footer") then
+          branch_menu = widget
+        end
+        return old_show(this, widget)
+      end
+      submenu:onMenuSelect(footer_item)
+      assert.is_not_nil(branch_menu)
+      assert.is_true(UIManager:isWindowWidget(submenu))
+      assert.is_true(UIManager:isWindowWidget(branch_menu))
 
-      -- Now it should be checked
+      -- Find the leaf item in branch_menu and select it via onMenuSelect
+      local leaf_item
+      for _, item in ipairs(branch_menu.item_table) do
+        if item.setting_id == "reader:footer.time" then
+          leaf_item = item
+          break
+        end
+      end
+      assert.is_not_nil(leaf_item)
+      branch_menu:onMenuSelect(leaf_item)
+      assert.is_true(UIManager:isWindowWidget(branch_menu))
+      assert.is_true(UIManager:isWindowWidget(submenu))
+      assert.is_true(sync_instance.settings.selected_settings["reader:footer.time"])
+
+      -- Now parent branch item should reflect the selection
       assert.is_not_nil(footer_item.text_func():find("[✓]", 1, true))
 
       UIManager.show = old_show

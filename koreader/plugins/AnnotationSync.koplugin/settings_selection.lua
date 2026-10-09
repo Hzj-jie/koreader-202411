@@ -328,6 +328,7 @@ function SettingsSelection.show(plugin)
     if #node.children > 0 then
       table.insert(menu_items, {
         text = gettext("Select All"),
+        keep_menu_open = true,
         callback = function()
           local keys = get_all_leaf_keys(node)
           for __, key in ipairs(keys) do
@@ -341,6 +342,7 @@ function SettingsSelection.show(plugin)
       })
       table.insert(menu_items, {
         text = gettext("Clear Selection"),
+        keep_menu_open = true,
         callback = function()
           local keys = get_all_leaf_keys(node)
           for __, key in ipairs(keys) do
@@ -375,6 +377,7 @@ function SettingsSelection.show(plugin)
               child.full_key
             )
           end,
+          keep_menu_open = true,
           callback = function()
             show_node_menu(child, child.full_key)
           end,
@@ -394,6 +397,7 @@ function SettingsSelection.show(plugin)
               child.active
             )
           end,
+          keep_menu_open = true,
           callback = function()
             plugin.settings.selected_settings[setting_id] = not plugin.settings.selected_settings[setting_id]
               or nil

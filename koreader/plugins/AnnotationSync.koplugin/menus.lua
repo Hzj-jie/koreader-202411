@@ -111,6 +111,7 @@ function M.show_devices_menu(plugin, settings_map)
     local text = string.format("%s (%s)", dev.id, timestamp)
     table.insert(menu_items, {
       text = text,
+      keep_menu_open = true,
       callback = function()
         M.show_differing_settings_menu(
           plugin,
@@ -191,6 +192,7 @@ function M.show_differing_settings_menu(
   table.insert(menu_items, {
     text = gettext("Import Selected Settings"),
     bold = true,
+    keep_menu_open = true,
     callback = function()
       local count = 0
       for __, diff in ipairs(differing) do
@@ -216,6 +218,7 @@ function M.show_differing_settings_menu(
 
   table.insert(menu_items, {
     text = gettext("Select All"),
+    keep_menu_open = true,
     callback = function()
       for __, diff in ipairs(differing) do
         checked[diff.key] = true
@@ -226,6 +229,7 @@ function M.show_differing_settings_menu(
 
   table.insert(menu_items, {
     text = gettext("Clear Selection"),
+    keep_menu_open = true,
     callback = function()
       checked = {}
       diff_menu:updateItems()
@@ -249,6 +253,7 @@ function M.show_differing_settings_menu(
           diff.remote_val_str
         )
       end,
+      keep_menu_open = true,
       callback = function()
         checked[setting_id] = not checked[setting_id]
         diff_menu:updateItems()

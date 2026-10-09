@@ -573,4 +573,105 @@ return {
       )
     end)
   end)
+
+  describe("settings pull menus keep open during interaction", function()
+    local logger = require("logger")
+    local menus = require("plugins/AnnotationSync.koplugin/menus")
+
+    it(
+      "devices menu and differing settings menu stay open on selection, and import closes cleanly",
+      function()
+        local settings_map = {
+          ["OtherDevice"] = {
+            timestamp = "2026-10-08",
+            settings = {
+              ["reader:auto_standby_timeout_seconds"] = 999,
+              ["reader:auto_suspend_timeout_seconds"] = 888,
+            },
+          },
+        }
+
+        local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
+        f:write(
+          'return { ["auto_standby_timeout_seconds"] = 100, ["auto_suspend_timeout_seconds"] = 200 }'
+        )
+        f:close()
+
+        local shown_menus = {}
+        local old_show = UIManager.show
+        finally(function()
+          UIManager.show = old_show
+          for _, m in ipairs(shown_menus) do
+            UIManager:closeIfShown(m)
+          end
+        end)
+        UIManager.show = function(this, widget)
+          if widget.item_table then
+            table.insert(shown_menus, widget)
+          end
+          return old_show(this, widget)
+        end
+
+        menus.show_devices_menu(sync_instance, settings_map)
+        local devices_menu = shown_menus[1]
+        assert.is_not_nil(devices_menu)
+        assert.is_true(UIManager:isWindowWidget(devices_menu))
+
+        devices_menu:onMenuSelect(devices_menu.item_table[1])
+        assert.is_true(UIManager:isWindowWidget(devices_menu))
+        local diff_menu = shown_menus[2]
+        assert.is_not_nil(diff_menu)
+        assert.is_true(UIManager:isWindowWidget(diff_menu))
+
+        local import_item, select_all_item, clear_selection_item, setting_item
+        for _, item in ipairs(diff_menu.item_table) do
+          if item.text == "Import Selected Settings" then
+            import_item = item
+          elseif item.text == "Select All" then
+            select_all_item = item
+          elseif item.text == "Clear Selection" then
+            clear_selection_item = item
+          elseif item.text_func then
+            setting_item = item
+          end
+        end
+        assert.is_not_nil(import_item)
+        assert.is_not_nil(select_all_item)
+        assert.is_not_nil(clear_selection_item)
+        assert.is_not_nil(setting_item)
+
+        assert.is_truthy(setting_item.text_func():find("%[✓%]"))
+        diff_menu:onMenuSelect(setting_item)
+        assert.is_true(UIManager:isWindowWidget(diff_menu))
+        assert.is_truthy(setting_item.text_func():find("%[ %]"))
+
+        diff_menu:onMenuSelect(clear_selection_item)
+        assert.is_true(UIManager:isWindowWidget(diff_menu))
+        assert.is_truthy(setting_item.text_func():find("%[ %]"))
+
+        diff_menu:onMenuSelect(select_all_item)
+        assert.is_true(UIManager:isWindowWidget(diff_menu))
+        assert.is_truthy(setting_item.text_func():find("%[✓%]"))
+
+        local warnings = {}
+        local old_warn = logger.warn
+        finally(function()
+          logger.warn = old_warn
+        end)
+        logger.warn = function(...)
+          local msg = table.concat({ ... }, " ")
+          table.insert(warnings, msg)
+          return old_warn(...)
+        end
+
+        diff_menu:onMenuSelect(import_item)
+        assert.is_false(UIManager:isWindowWidget(diff_menu))
+        assert.is_false(UIManager:isWindowWidget(devices_menu))
+
+        for _, w in ipairs(warnings) do
+          assert.is_nil(w:find("has been closed already"))
+        end
+      end
+    )
+  end)
 end)
