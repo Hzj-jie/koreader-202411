@@ -1393,7 +1393,7 @@ describe("Background Sync Behavior", function()
       end
       assert.are.equal('{"initial":true}', content)
       -- tmp cache should be cleaned up
-      assert.is_false(lfs.attributes(dummy_json .. ".sync") ~= nil)
+      assert.is_false(util.fileExists(dummy_json .. ".sync"))
     end)
   end)
 
