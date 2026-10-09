@@ -57,6 +57,14 @@ describe("AnnotationSync internationalization", function()
         3
       )
     )
+    assert.are.equal(
+      "上传设置到云端",
+      _("Push settings to cloud")
+    )
+    assert.are.equal(
+      "已恢复 %1 条标注。",
+      _("Restored %1 annotations.")
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -80,6 +88,14 @@ describe("AnnotationSync internationalization", function()
         "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
         3
       )
+    )
+    assert.are.equal(
+      "上傳設定至雲端",
+      _("Push settings to cloud")
+    )
+    assert.are.equal(
+      "已還原 %1 條標註。",
+      _("Restored %1 annotations.")
     )
   end)
 end)

@@ -24498,6 +24498,126 @@ msgstr[0] "%1 在此裝置上沒有標註，但雲端儲存中有 %2 條。要�
 msgid "Move to trash"
 msgstr "移至垃圾桶"
 
+msgid "Use filename instead of hash"
+msgstr "使用檔名代替雜湊值"
+
+msgid "Device name: %1"
+msgstr "裝置名稱：%1"
+
+msgid "Set device name"
+msgstr "設定裝置名稱"
+
+msgid "Leave empty to use the default device name."
+msgstr "留空則使用預設裝置名稱。"
+
+msgid "Show changed settings"
+msgstr "顯示已變更的設定"
+
+msgid "Current cloud: %1"
+msgstr "目前雲端：%1"
+
+msgid "Push settings to cloud"
+msgstr "上傳設定至雲端"
+
+msgid "Pull settings from cloud"
+msgstr "從雲端取得設定"
+
+msgid "Last sync: %1"
+msgstr "上次同步：%1"
+
+msgid "Plugin version: %1"
+msgstr "外掛版本：%1"
+
+msgid "%1 (%4)\nVersion: %2\n\n%3"
+msgstr "%1（%4）\n版本：%2\n\n%3"
+
+msgid "AnnotationSync: Push settings to cloud"
+msgstr "標註同步：上傳設定至雲端"
+
+msgid "Push the selected settings to the cloud."
+msgstr "將選取的設定上傳至雲端。"
+
+msgid "AnnotationSync: Pull settings from cloud"
+msgstr "標註同步：從雲端取得設定"
+
+msgid "Pull the selected settings from the cloud."
+msgstr "從雲端取得選取的設定。"
+
+msgid "Cloud destination set to:\n%1\nProvider: %2"
+msgstr "雲端目的地已設為：\n%1\n服務供應商：%2"
+
+msgid "Annotation restored."
+msgstr "標註已還原。"
+
+msgid "Restored %1 annotations."
+msgstr "已還原 %1 條標註。"
+
+msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
+msgstr "未選取任何設定。請在「顯示已變更的設定」中選取要同步的設定。"
+
+msgid "Failed to write settings to local storage."
+msgstr "無法將設定寫入本機儲存空間。"
+
+msgid "Pushing settings to cloud..."
+msgstr "正在上傳設定至雲端…"
+
+msgid "Fetching settings from cloud..."
+msgstr "正在從雲端取得設定…"
+
+msgid "Failed to fetch settings from cloud"
+msgstr "從雲端取得設定失敗"
+
+msgid "No deleted annotations found for this document."
+msgstr "這本書沒有已刪除的標註。"
+
+msgid "Restore All"
+msgstr "全部還原"
+
+msgid "Are you sure you want to restore all %1 deleted annotations?"
+msgstr "確定要還原全部 %1 條已刪除的標註嗎？"
+
+msgid "Do you want to restore this annotation?\n\nPage %1: %2"
+msgstr "要還原這條標註嗎？\n\n第 %1 頁：%2"
+
+msgid "Deleted Annotations"
+msgstr "已刪除的標註"
+
+msgid "No other devices found in cloud settings."
+msgstr "雲端設定中沒有其他裝置。"
+
+msgid "No differing settings found for this device."
+msgstr "該裝置與本機沒有不同的設定。"
+
+msgid "Import Selected Settings"
+msgstr "匯入選取的設定"
+
+msgid "Successfully imported %1 settings."
+msgstr "已成功匯入 %1 項設定。"
+
+msgid "No settings imported."
+msgstr "未匯入任何設定。"
+
+msgid "Select All"
+msgstr "全選"
+
+msgid "Clear Selection"
+msgstr "清除選取"
+
+msgid "Settings from %1"
+msgstr "來自 %1 的設定"
+
+msgid "Remove from list"
+msgstr "從清單中移除"
+
+msgid "No cloud destination set in settings."
+msgstr "設定中未指定雲端目的地。"
+
+msgid "No changed settings found."
+msgstr "沒有已變更的設定。"
+
+msgid "Changed Settings"
+msgstr "已變更的設定"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算練習"
