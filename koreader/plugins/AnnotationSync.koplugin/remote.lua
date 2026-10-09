@@ -120,7 +120,7 @@ function M.push_settings(widget, json_path, on_complete)
       end
     end
 
-    util.writeToFile(json.encode(local_data), local_file)
+    assert(util.writeToFile(json.encode(local_data), local_file))
     return true
   end
   perform_sync(widget, json_path, sync_cb, false, function(uploaded)

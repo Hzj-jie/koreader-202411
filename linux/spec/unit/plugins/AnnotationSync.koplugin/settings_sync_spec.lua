@@ -538,5 +538,39 @@ return {
       assert.is_equal(300, data.Me.settings["reader:auto_suspend_timeout_seconds"])
       assert.is_nil(data.Other)
     end)
+
+    it("push: a failed write of the merged file uploads nothing", function()
+      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
+      f:write('return { ["auto_suspend_timeout_seconds"] = 300 }')
+      f:close()
+      sync_instance.settings.selected_settings =
+        { ["reader:auto_suspend_timeout_seconds"] = true }
+      local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
+      local old_write = util.writeToFile
+      finally(function()
+        util.writeToFile = old_write
+      end)
+      -- The file with Other's settings merged in can't be written, e.g.
+      -- because the disk is full.
+      util.writeToFile = function(data, path, ...)
+        if path == json_path and data:find('"Other"', 1, true) then
+          return false, "No space left on device"
+        end
+        return old_write(data, path, ...)
+      end
+
+      local uploads, shown = with_cloud(200, REMOTE, nil, function()
+        sync_instance.manager:pushSettings()
+      end)
+
+      assert.is_equal(0, #uploads)
+      assert.is_false(has(shown, "Successfully synchronized."))
+      assert.is_true(
+        has(
+          shown,
+          "Something went wrong when syncing, please check your network connection and try again later."
+        )
+      )
+    end)
   end)
 end)
