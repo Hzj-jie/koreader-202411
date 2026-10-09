@@ -251,6 +251,7 @@ function SettingsSelection.show(plugin)
   end
 
   -- 1. Compare settings.reader.lua
+  G_reader_settings:flush()
   compare_settings_file(
     "reader",
     plugin.path .. "/defaults/settings.reader.lua",
@@ -259,6 +260,7 @@ function SettingsSelection.show(plugin)
   )
 
   -- 2. Compare defaults.custom.lua
+  G_defaults:flush()
   compare_settings_file(
     "defaults",
     plugin.path .. "/defaults/defaults.custom.lua",

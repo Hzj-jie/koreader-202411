@@ -57,17 +57,12 @@ describe("AnnotationSync Settings Synchronization", function()
   )
 
   it("should retrieve selected settings with correct active values", function()
-    -- Mock active reader settings
-    local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-    f:write([[
-return {
-    ["auto_standby_timeout_seconds"] = 120,
-    ["footer"] = {
-        ["time"] = true
-    }
-}
-]])
-    f:close()
+    finally(function()
+      G_reader_settings:delete("auto_standby_timeout_seconds")
+      G_reader_settings:delete("footer")
+    end)
+    G_reader_settings:save("auto_standby_timeout_seconds", 120)
+    G_reader_settings:save("footer", { time = true })
 
     -- Select some settings
     sync_instance.settings.selected_settings = {
@@ -119,14 +114,13 @@ return {
         { url = "http://test-server-settings", type = "webdav" }
       sync_instance:onSyncServiceConfirm(test_server)
 
-      -- Mock active settings
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write([[
-return {
-    ["auto_suspend_timeout_seconds"] = 300
-}
-]])
-      f:close()
+      local SyncService = require("apps/cloudstorage/syncservice")
+      local old_sync = SyncService.sync
+      finally(function()
+        G_reader_settings:delete("auto_suspend_timeout_seconds")
+        SyncService.sync = old_sync
+      end)
+      G_reader_settings:save("auto_suspend_timeout_seconds", 300)
 
       -- Select the setting
       sync_instance.settings.selected_settings = {
@@ -140,8 +134,6 @@ return {
       local sync_called = false
       local remote_file_content = nil
 
-      local SyncService = require("apps/cloudstorage/syncservice")
-      local old_sync = SyncService.sync
       SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         sync_called = true
         -- Create a fake remote/income file with another device's settings
@@ -177,9 +169,6 @@ return {
       sync_instance.manager:pushSettings()
       assert.is_true(sync_called)
 
-      -- Restore mock
-      SyncService.sync = old_sync
-
       -- Verify that the synced file has both this device's and other device's settings
       assert.is_not_nil(remote_file_content)
       local data = json.decode(remote_file_content)
@@ -204,25 +193,19 @@ return {
         { url = "http://test-server-settings-pull", type = "webdav" }
       sync_instance:onSyncServiceConfirm(test_server)
 
-      -- Mock active reader settings on local device
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write([[
-return {
-    ["auto_suspend_timeout_seconds"] = 300,
-    ["auto_standby_timeout_seconds"] = 100
-}
-]])
-      f:close()
-
       -- Mock SyncService to simulate pulling other devices' settings
       local sync_called = false
       local SyncService = require("apps/cloudstorage/syncservice")
       local old_sync = SyncService.sync
       local old_show = UIManager.show
       finally(function()
+        G_reader_settings:delete("auto_suspend_timeout_seconds")
+        G_reader_settings:delete("auto_standby_timeout_seconds")
         SyncService.sync = old_sync
         UIManager.show = old_show
       end)
+      G_reader_settings:save("auto_suspend_timeout_seconds", 300)
+      G_reader_settings:save("auto_standby_timeout_seconds", 100)
       SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
         sync_called = true
         local income_path = local_path .. ".income"
@@ -301,20 +284,21 @@ return {
     function()
       -- 100 maps x 32 distinct keys per map fail against json.encode key ordering in 20/20 runs
       -- due to LuaJIT per-process string hash randomization.
-      local local_lines = { "return {" }
       local remote_json_parts = { "{" }
+      local map_names = {}
       for m = 1, 100 do
         local map_name = ("map_%03d"):format(m)
-        table.insert(local_lines, ('  ["%s"] = {'):format(map_name))
+        table.insert(map_names, map_name)
+        local map_data = {}
         table.insert(
           remote_json_parts,
           (m > 1 and ',"reader:%s":{' or '"reader:%s":{'):format(map_name)
         )
         for i = 1, 32 do
           local k = ("m%03d_k%02d"):format(m, i)
-          table.insert(local_lines, ('    ["%s"] = true,'):format(k))
+          map_data[k] = true
         end
-        table.insert(local_lines, "  },")
+        G_reader_settings:save(map_name, map_data)
         for i = 32, 1, -1 do
           local k = ("m%03d_k%02d"):format(m, i)
           table.insert(
@@ -324,18 +308,16 @@ return {
         end
         table.insert(remote_json_parts, "}")
       end
-      table.insert(local_lines, "}")
       table.insert(remote_json_parts, "}")
-
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write(table.concat(local_lines, "\n"))
-      f:close()
 
       local remote_settings = json.decode(table.concat(remote_json_parts))
 
       local shown = {}
       local old_show = UIManager.show
       finally(function()
+        for _, name in ipairs(map_names) do
+          G_reader_settings:delete(name)
+        end
         UIManager.show = old_show
       end)
       UIManager.show = function(_, widget)
@@ -524,9 +506,10 @@ return {
     end)
 
     it("push: cloud file missing (404), one setting selected", function()
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write('return { ["auto_suspend_timeout_seconds"] = 300 }')
-      f:close()
+      finally(function()
+        G_reader_settings:delete("auto_suspend_timeout_seconds")
+      end)
+      G_reader_settings:save("auto_suspend_timeout_seconds", 300)
       sync_instance.settings.selected_settings =
         { ["reader:auto_suspend_timeout_seconds"] = true }
       local uploads = with_cloud(404, nil, nil, function()
@@ -540,16 +523,15 @@ return {
     end)
 
     it("push: a failed write of the merged file uploads nothing", function()
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write('return { ["auto_suspend_timeout_seconds"] = 300 }')
-      f:close()
-      sync_instance.settings.selected_settings =
-        { ["reader:auto_suspend_timeout_seconds"] = true }
       local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
       local old_write = util.writeToFile
       finally(function()
+        G_reader_settings:delete("auto_suspend_timeout_seconds")
         util.writeToFile = old_write
       end)
+      G_reader_settings:save("auto_suspend_timeout_seconds", 300)
+      sync_instance.settings.selected_settings =
+        { ["reader:auto_suspend_timeout_seconds"] = true }
       -- The file with Other's settings merged in can't be written, e.g.
       -- because the disk is full.
       util.writeToFile = function(data, path, ...)
@@ -572,6 +554,27 @@ return {
         )
       )
     end)
+
+    it("push: uploads reader setting changed in memory only", function()
+      finally(function()
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+      end)
+      -- Saved as 100, then changed to 888 in memory only.
+      G_reader_settings:save("auto_standby_timeout_seconds", 100)
+      G_reader_settings:flush()
+      G_reader_settings:save("auto_standby_timeout_seconds", 888)
+      sync_instance.settings.selected_settings =
+        { ["reader:auto_standby_timeout_seconds"] = true }
+
+      local uploads = with_cloud(200, REMOTE, nil, function()
+        sync_instance.manager:pushSettings()
+      end)
+
+      assert.is_equal(1, #uploads)
+      local data = json.decode(uploads[1])
+      assert.is_not_nil(data.Me)
+      assert.is_equal(888, data.Me.settings["reader:auto_standby_timeout_seconds"])
+    end)
   end)
 
   describe("settings pull menus keep open during interaction", function()
@@ -591,20 +594,18 @@ return {
           },
         }
 
-        local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-        f:write(
-          'return { ["auto_standby_timeout_seconds"] = 100, ["auto_suspend_timeout_seconds"] = 200 }'
-        )
-        f:close()
-
         local shown_menus = {}
         local old_show = UIManager.show
         finally(function()
+          G_reader_settings:delete("auto_standby_timeout_seconds")
+          G_reader_settings:delete("auto_suspend_timeout_seconds")
           UIManager.show = old_show
           for _, m in ipairs(shown_menus) do
             UIManager:closeIfShown(m)
           end
         end)
+        G_reader_settings:save("auto_standby_timeout_seconds", 100)
+        G_reader_settings:save("auto_suspend_timeout_seconds", 200)
         UIManager.show = function(this, widget)
           if widget.item_table then
             table.insert(shown_menus, widget)

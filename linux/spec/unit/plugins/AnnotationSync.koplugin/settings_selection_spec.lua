@@ -1,5 +1,5 @@
 describe("AnnotationSync Settings Selection", function()
-  local UIManager, AnnotationSyncPlugin, test_utils, dump
+  local UIManager, AnnotationSyncPlugin, test_utils
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_settings_selection_tmp"
@@ -13,7 +13,6 @@ describe("AnnotationSync Settings Selection", function()
     test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
     disable_plugins()
     UIManager = require("ui/uimanager")
-    dump = require("dump")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
@@ -53,15 +52,11 @@ describe("AnnotationSync Settings Selection", function()
   it(
     "should allow selecting/unselecting settings and persist selections",
     function()
-      -- 1. Create a mock active reader settings file with some changes
-      local active_reader = {
-        ["auto_standby_timeout_seconds"] = 100, -- changed from default -1
-      }
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write(
-        "return " .. dump(active_reader)
-      )
-      f:close()
+      -- 1. Change a reader setting from its default (-1)
+      finally(function()
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+      end)
+      G_reader_settings:save("auto_standby_timeout_seconds", 100)
 
       -- 2. Mock UIManager:show to capture the submenu
       local submenu
@@ -119,14 +114,13 @@ describe("AnnotationSync Settings Selection", function()
   )
 
   it("should support Select All and Clear Selection on the menu", function()
-    -- 1. Create a mock active reader settings file with changes
-    local active_reader = {
-      ["auto_standby_timeout_seconds"] = 100,
-      ["auto_suspend_timeout_seconds"] = 200,
-    }
-    local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-    f:write("return " .. dump(active_reader))
-    f:close()
+    -- 1. Change two reader settings from their defaults
+    finally(function()
+      G_reader_settings:delete("auto_standby_timeout_seconds")
+      G_reader_settings:delete("auto_suspend_timeout_seconds")
+    end)
+    G_reader_settings:save("auto_standby_timeout_seconds", 100)
+    G_reader_settings:save("auto_suspend_timeout_seconds", 200)
 
     local submenu
     local old_show = UIManager.show
@@ -178,20 +172,14 @@ describe("AnnotationSync Settings Selection", function()
   it(
     "should reflect nested setting selection on the parent branch node",
     function()
-      -- 1. Create a mock active reader settings file with changes in a nested table
-      local active_reader = {
-        ["footer"] = {
-          ["time"] = false, -- changed from default
-        },
-      }
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write(
-        "return " .. dump(active_reader)
-      )
-      f:close()
+      local old_show = UIManager.show
+      finally(function()
+        G_reader_settings:delete("footer")
+        UIManager.show = old_show
+      end)
+      G_reader_settings:save("footer", { time = false })
 
       local submenu
-      local old_show = UIManager.show
       UIManager.show = function(this, widget)
         if widget.title == "Changed Settings" then
           submenu = widget
@@ -251,20 +239,16 @@ describe("AnnotationSync Settings Selection", function()
   it(
     "should exclude AnnotationSync's own settings from the changed settings list",
     function()
-      -- 1. Create a mock active reader settings file with changes in AnnotationSync key
-      local active_reader = {
-        ["AnnotationSync"] = {
-          ["device_name"] = "MyCustomDeviceName",
-          ["selected_settings"] = {
-            ["reader:auto_standby_timeout_seconds"] = true,
-          },
+      -- 1. Save settings under the AnnotationSync key
+      finally(function()
+        G_reader_settings:delete("AnnotationSync")
+      end)
+      G_reader_settings:save("AnnotationSync", {
+        ["device_name"] = "MyCustomDeviceName",
+        ["selected_settings"] = {
+          ["reader:auto_standby_timeout_seconds"] = true,
         },
-      }
-      local f = io.open(test_data_dir .. "/settings.reader.lua", "w")
-      f:write(
-        "return " .. dump(active_reader)
-      )
-      f:close()
+      })
 
       local submenu
       local old_show = UIManager.show
@@ -289,6 +273,42 @@ describe("AnnotationSync Settings Selection", function()
       end
 
       UIManager.show = old_show
+    end
+  )
+
+  it(
+    "should include reader settings changed in memory only before flush",
+    function()
+      local old_show = UIManager.show
+      finally(function()
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+        UIManager.show = old_show
+      end)
+      -- Saved as the default (-1), then changed to 777 in memory only.
+      G_reader_settings:save("auto_standby_timeout_seconds", -1)
+      G_reader_settings:flush()
+      G_reader_settings:save("auto_standby_timeout_seconds", 777)
+
+      local submenu
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      local found_item
+      for _, item in ipairs(submenu.item_table) do
+        if item.setting_id == "reader:auto_standby_timeout_seconds" then
+          found_item = item
+          break
+        end
+      end
+      assert.is_not_nil(found_item)
+      assert.truthy(found_item.text_func():find("777", 1, true))
     end
   )
 end)

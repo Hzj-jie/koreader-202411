@@ -712,6 +712,7 @@ function SyncManager:getLocalSettingValue(key, caches)
 
   if domain == "reader" then
     if caches.reader == nil then
+      G_reader_settings:flush()
       local active_reader_path = DataStorage:getDataDir()
         .. "/settings.reader.lua"
       local ok, active_reader = pcall(dofile, active_reader_path)
@@ -720,6 +721,7 @@ function SyncManager:getLocalSettingValue(key, caches)
     return utils.get_nested_value(caches.reader, full_key)
   elseif domain == "defaults" then
     if caches.defaults == nil then
+      G_defaults:flush()
       local active_defaults_path = DataStorage:getDataDir()
         .. "/defaults.custom.lua"
       local ok, active_defaults = pcall(dofile, active_defaults_path)
