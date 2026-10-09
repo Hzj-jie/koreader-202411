@@ -613,7 +613,7 @@ end
 
 function SyncManager:cleanOrphanSyncFiles()
   local tmp_dir = DataStorage:getTmpDir()
-  if not tmp_dir or lfs.attributes(tmp_dir, "mode") ~= "directory" then
+  if not tmp_dir then
     return
   end
 
@@ -686,7 +686,6 @@ function SyncManager:pushSettings()
 end
 
 function SyncManager:getLocalSettingValue(key, caches)
-  caches = caches or {}
   local domain, full_key = key:match("^([^:]+):(.*)$")
   if not domain or not full_key then
     return nil

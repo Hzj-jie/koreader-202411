@@ -124,9 +124,7 @@ function M.push_settings(widget, json_path, on_complete)
     return true
   end
   perform_sync(widget, json_path, sync_cb, false, function(uploaded)
-    if on_complete then
-      on_complete(uploaded ~= false)
-    end
+    on_complete(uploaded ~= false)
   end)
 end
 
