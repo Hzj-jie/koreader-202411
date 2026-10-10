@@ -767,4 +767,99 @@ describe("HttpInspector plugin tests", function()
       assert.stub(UIManager.show).was_called()
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes guessClassName crashing on non-function fields like { clear = true }",
+      function()
+        local test_obj = { clear = true }
+        local reqinfo = {
+          uri = "/test_obj/",
+          parsed_uri = "/test_obj/",
+          args = {},
+          sub = "",
+        }
+        -- In main.lua:400-415:
+        -- classic_method_names contains "clear", "free", etc.
+        -- rawget(test_obj, "clear") returns boolean true instead of a function.
+        -- It passes true to getFunctionInfo(true), which calls debug.getinfo(true, "S"),
+        -- crashing with: bad argument #1 to 'getinfo' (function or level expected).
+        local ok, err = pcall(function()
+          HttpInspector:exposeObject(reqinfo, test_obj)
+        end)
+        assert.is_true(
+          ok,
+          "exposeObject should not crash on non-function fields: "
+            .. tostring(err)
+        )
+      end
+    )
+
+    it(
+      "fails: exposes getOrderedDispatcherActions actions crashing when Dispatcher:init has not run",
+      function()
+        local Dispatcher = require("dispatcher")
+        local settings
+        local n = 1
+        while true do
+          local name, value = debug.getupvalue(Dispatcher.init, n)
+          if not name then
+            break
+          end
+          if name == "settingsList" then
+            settings = value
+            break
+          end
+          n = n + 1
+        end
+        assert.is_table(settings)
+        -- An action with category="string" before Dispatcher:init() has args=nil
+        local saved_args = settings.rotation_mode.args
+        local saved_toggle = settings.rotation_mode.toggle
+        settings.rotation_mode.args = nil
+        settings.rotation_mode.toggle = nil
+        finally(function()
+          settings.rotation_mode.args = saved_args
+          settings.rotation_mode.toggle = saved_toggle
+        end)
+
+        -- Clear cached _dispatcher_actions
+        local get_ordered_fn
+        local i = 1
+        while true do
+          local name, val = debug.getupvalue(HttpInspector.exposeEvent, i)
+          if not name then
+            break
+          end
+          if name == "getOrderedDispatcherActions" then
+            get_ordered_fn = val
+            break
+          end
+          i = i + 1
+        end
+        if get_ordered_fn then
+          debug.setupvalue(get_ordered_fn, 1, nil)
+        end
+
+        local reqinfo = {
+          uri = "/events/",
+          parsed_uri = "/events/",
+          args = {},
+          sub = "",
+        }
+        -- When Dispatcher:init() has not run, cre_font_family has args = nil.
+        -- In main.lua:1289:
+        -- if type(args[1]) == "table" then
+        -- It crashes with: attempt to index local 'args' (a nil value)
+        local ok, err = pcall(function()
+          HttpInspector:exposeEvent(reqinfo)
+        end)
+        assert.is_true(
+          ok,
+          "exposeEvent should not crash when Dispatcher:init() has not run: "
+            .. tostring(err)
+        )
+      end
+    )
+  end)
 end)
