@@ -129,4 +129,24 @@ describe("SlidePuzzle Screen module", function()
       UIManager.close = orig_close
     end
   )
+
+  it("should close screen widget through UIManager on onClose", function()
+    local closed_widget = nil
+    local orig_close = UIManager.close
+    UIManager.close = function(self, widget)
+      closed_widget = widget
+    end
+    finally(function()
+      UIManager.close = orig_close
+    end)
+
+    local game = Game:new(3)
+    local screen = Screen:new({
+      plugin = create_mock_plugin(game),
+      game = game,
+    })
+
+    screen:onClose()
+    assert.are.equal(screen, closed_widget)
+  end)
 end)
