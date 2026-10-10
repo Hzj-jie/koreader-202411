@@ -1,1 +1,0 @@
-../../../../../koreader/plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua

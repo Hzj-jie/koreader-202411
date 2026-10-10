@@ -7,7 +7,7 @@
 ## 🚀 Features
 
 - **Cloud sync for KOReader annotations** (highlights, notes, bookmarks)
-- **Settings Synchronization:** Synchronize your KOReader configuration settings (e.g., gesture configurations, page overlap styles, custom hotkeys) across all your devices selectively via your cloud storage.
+- **Settings Synchronization:** Synchronize your KOReader configuration settings (e.g., gesture configurations, page overlap styles) across all your devices selectively via your cloud storage.
 - **Customizable Device Name:** Assign friendly custom names to your devices (e.g., "Bedside Kobo", "Phone") to easily identify them in sync menus.
 - **Automatic background sync:** When enabled, books with changed annotations are queued and synced quietly in the background, one at a time, as soon as the device is online.
 - **Core Cloud Storage Integration:** Integrates seamlessly with KOReader's built-in cloud storage (supporting Dropbox and WebDAV, and showing the active cloud configuration details directly in the settings menu).
@@ -37,16 +37,16 @@ AnnotationSync integrates directly with KOReader's built-in cloud storage:
 
 ### ⚙️ Settings Synchronization
 
-Keep your KOReader settings (e.g., gestures, hotkeys, page overlap style) synchronized across devices.
+Keep your KOReader settings (e.g., gestures, page overlap style) synchronized across devices.
 
 #### 1. Selecting Settings to Sync
 1. Go to **Settings** -> **Document** -> **Annotation Sync** -> **Settings** -> **Show changed settings**.
-2. This displays a hierarchical list of settings that differ from their default/vanilla configuration, categorized by domains (e.g., `[reader]`, `[defaults]`, `[settings/hotkeys]`).
+2. This displays a hierarchical list of settings that differ from their default/vanilla configuration, categorized by domains (e.g., `[reader]`, `[defaults]`, `[settings/gestures]`).
 3. Dictionary settings open submenus, and list arrays are compared as single entities.
 4. Tap items to toggle their sync status. A checkmark `[✓]` indicates it will be synchronized:
    ```text
    [✓] [reader] page_overlap_style: default -> none
-   [ ] [settings/hotkeys] hotkey_map >
+   [ ] [settings/gestures] gesture_reader >
    ```
 5. You can use **Select All** or **Clear Selection** at any menu level to easily batch-configure settings. Your selections are automatically saved.
 

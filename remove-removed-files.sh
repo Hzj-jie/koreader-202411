@@ -34,6 +34,7 @@ REMOVED_FILES=(
   "plugins/simpleui.koplugin"
   "plugins/kochess.koplugin"
   "plugins/AnnotationSync.koplugin/l10n"
+  "plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua"
   "zsync2"
   "spinning_zsync"
 )
