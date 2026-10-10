@@ -1020,8 +1020,7 @@ describe("UIManager spec", function()
 
           MockTime:increase(0.4) -- now t = 1.0 (only 0.4s after the second call)
           UIManager:_checkTasks()
-          -- Intended: since only 0.4s has elapsed since the second call, it should have rescheduled for 0.6s later.
-          -- Production bug: time.since(previous_call_at) returns microseconds (e.g. 400000) so seconds (1.0) > passed is false!
+          -- Only 0.4s has passed since the second call, so the action is rescheduled for 0.6s later.
           assert.are.equal(0, count)
 
           MockTime:increase(0.6)
@@ -1106,8 +1105,7 @@ describe("UIManager spec", function()
           for k, v in UIManager:keyEvents() do
             collected[k] = v
           end
-          -- Production bug: uimanager.lua:1835-1837 returns early when w.key_events is nil,
-          -- failing to recurse into child widgets inside containers without key_events.
+          -- The child's key events are collected even though FrameContainer has none.
           assert.is_not_nil(collected.ChildAction)
         end
       )
