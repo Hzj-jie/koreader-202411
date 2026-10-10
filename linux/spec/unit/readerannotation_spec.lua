@@ -103,6 +103,39 @@ describe("ReaderAnnotation module", function()
     Screen = require("device").screen
   end)
 
+  local function create_mock_config(data, doc_path)
+    return {
+      doc_path = doc_path,
+      has = function(self, k)
+        return data[k] ~= nil
+      end,
+      hasNot = function(self, k)
+        return data[k] == nil
+      end,
+      read = function(self, k)
+        return data[k]
+      end,
+      readTable = function(self, k)
+        return data[k]
+      end,
+      readTableRef = function(self, k)
+        if data[k] == nil then
+          data[k] = {}
+        end
+        return data[k]
+      end,
+      save = function(self, k, v)
+        data[k] = v
+      end,
+      delete = function(self, k)
+        data[k] = nil
+      end,
+      isTrue = function(self, k)
+        return data[k] == true
+      end,
+    }
+  end
+
   it("should initialize annotation module with EPUB and PDF", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
     local readerui = ReaderUI:new({
@@ -486,6 +519,36 @@ describe("ReaderAnnotation module", function()
         assert.is_nil(data.annotations_externally_modified)
       end
     )
+
+    it(
+      "should defer legacy migration in rolling mode when annotations is absent until onReaderInited",
+      function()
+        local data = {
+          highlights_imported = true,
+          bookmarks = {
+            {
+              page = "/body/div/p[1]",
+              datetime = "2026-08-25 00:00:00",
+              notes = "Rolling Note",
+            },
+          },
+          highlight = {},
+        }
+        local config = create_mock_config(data)
+        mock_ui.rolling = true
+
+        ann:onReadSettings(config)
+        assert.are.same({}, ann.annotations)
+        assert.is_function(ann.onReaderInited)
+        assert.is_nil(data.annotations)
+
+        ann.onReaderInited()
+        assert.are.equal(1, #ann.annotations)
+        assert.are.equal("/body/div/p[1]", ann.annotations[1].page)
+        assert.is_not_nil(data.annotations)
+        assert.is_true(data.annotations_externally_modified)
+      end
+    )
   end)
 
   describe("ReaderAnnotation.doesMatch", function()
@@ -722,39 +785,6 @@ describe("ReaderAnnotation module", function()
   end)
 
   describe("ReaderAnnotation.loadFromSettings", function()
-    local function create_mock_config(data, doc_path)
-      return {
-        doc_path = doc_path,
-        has = function(self, k)
-          return data[k] ~= nil
-        end,
-        hasNot = function(self, k)
-          return data[k] == nil
-        end,
-        read = function(self, k)
-          return data[k]
-        end,
-        readTable = function(self, k)
-          return data[k]
-        end,
-        readTableRef = function(self, k)
-          if data[k] == nil then
-            data[k] = {}
-          end
-          return data[k]
-        end,
-        save = function(self, k, v)
-          data[k] = v
-        end,
-        delete = function(self, k)
-          data[k] = nil
-        end,
-        isTrue = function(self, k)
-          return data[k] == true
-        end,
-      }
-    end
-
     it(
       "should error when config is nil and return empty list when config is empty",
       function()
@@ -1055,6 +1085,321 @@ describe("ReaderAnnotation module", function()
         assert.are.equal(2, data.annotations_invalid[2].page)
       end
     )
+
+    describe("legacy migration format-mismatch and backup branches", function()
+      it(
+        "should backup paging bookmarks to annotations_paging and load bookmarks_rolling in rolling mode",
+        function()
+          local data = {
+            highlights_imported = true,
+            bookmarks = {
+              { page = 1, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+            },
+            highlight = {},
+            bookmarks_rolling = {
+              {
+                page = "/body/p[1]",
+                datetime = "2026-08-25 00:00:00",
+                notes = "Rolling note",
+              },
+            },
+            highlight_rolling = {},
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { rolling = true })
+          assert.are.equal(1, #result)
+          assert.are.equal("/body/p[1]", result[1].page)
+          assert.is_not_nil(data.annotations_paging)
+          assert.are.equal(1, #data.annotations_paging)
+          assert.are.equal(1, data.annotations_paging[1].page)
+          assert.is_nil(data.bookmarks_rolling)
+          assert.is_nil(data.highlight_rolling)
+          assert.is_true(data.annotations_externally_modified)
+          assert.are.equal(data.annotations, result)
+        end
+      )
+
+      it(
+        "should backup rolling bookmarks to annotations_rolling and load bookmarks_paging in paging mode",
+        function()
+          local data = {
+            highlights_imported = true,
+            bookmarks = {
+              {
+                page = "/body/p[1]",
+                datetime = "2026-08-25 00:00:00",
+                notes = "Rolling note",
+              },
+            },
+            highlight = {},
+            bookmarks_paging = {
+              { page = 2, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+            },
+            highlight_paging = {},
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { paging = true })
+          assert.are.equal(1, #result)
+          assert.are.equal(2, result[1].page)
+          assert.is_not_nil(data.annotations_rolling)
+          assert.are.equal(1, #data.annotations_rolling)
+          assert.are.equal("/body/p[1]", data.annotations_rolling[1].page)
+          assert.is_nil(data.bookmarks_paging)
+          assert.is_nil(data.highlight_paging)
+          assert.is_true(data.annotations_externally_modified)
+          assert.are.equal(data.annotations, result)
+        end
+      )
+
+      it(
+        "should migrate bookmarks_paging into annotations_paging when compatible rolling bookmarks loaded",
+        function()
+          local data = {
+            highlights_imported = true,
+            bookmarks = {
+              {
+                page = "/body/p[1]",
+                datetime = "2026-08-25 00:00:00",
+                notes = "Rolling note",
+              },
+            },
+            highlight = {},
+            bookmarks_paging = {
+              { page = 10, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+            },
+            highlight_paging = {},
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { rolling = true })
+          assert.are.equal(1, #result)
+          assert.are.equal("/body/p[1]", result[1].page)
+          assert.is_not_nil(data.annotations_paging)
+          assert.are.equal(1, #data.annotations_paging)
+          assert.are.equal(10, data.annotations_paging[1].page)
+          assert.is_nil(data.bookmarks_paging)
+          assert.is_nil(data.highlight_paging)
+          assert.is_true(data.annotations_externally_modified)
+        end
+      )
+
+      it(
+        "should migrate bookmarks_rolling into annotations_rolling when compatible paging bookmarks loaded",
+        function()
+          local data = {
+            highlights_imported = true,
+            bookmarks = {
+              { page = 5, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+            },
+            highlight = {},
+            bookmarks_rolling = {
+              {
+                page = "/body/p[5]",
+                datetime = "2026-08-25 00:00:00",
+                notes = "Rolling note",
+              },
+            },
+            highlight_rolling = {},
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { paging = true })
+          assert.are.equal(1, #result)
+          assert.are.equal(5, result[1].page)
+          assert.is_not_nil(data.annotations_rolling)
+          assert.are.equal(1, #data.annotations_rolling)
+          assert.are.equal("/body/p[5]", data.annotations_rolling[1].page)
+          assert.is_nil(data.bookmarks_rolling)
+          assert.is_nil(data.highlight_rolling)
+          assert.is_true(data.annotations_externally_modified)
+        end
+      )
+    end)
+
+    describe("rolling-mode swap and empty annotations restore", function()
+      it(
+        "should swap paging annotations to annotations_paging and load annotations_rolling in rolling mode",
+        function()
+          local data = {
+            annotations = {
+              { page = 5, datetime = "2026-08-25 10:00:00" },
+            },
+            annotations_rolling = {
+              { page = "/body/p[1]", datetime = "2026-08-25 10:00:00" },
+            },
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { rolling = true })
+          assert.are.equal(1, #result)
+          assert.are.equal("/body/p[1]", result[1].page)
+          assert.is_not_nil(data.annotations_paging)
+          assert.are.equal(1, #data.annotations_paging)
+          assert.are.equal(5, data.annotations_paging[1].page)
+          assert.is_nil(data.annotations_rolling)
+          assert.is_true(data.annotations_externally_modified)
+          assert.are.equal(data.annotations, result)
+        end
+      )
+
+      it(
+        "should restore from annotations_rolling when annotations is empty in rolling mode",
+        function()
+          local data = {
+            annotations = {},
+            annotations_rolling = {
+              { page = "/body/p[1]", datetime = "2026-08-25 10:00:00" },
+            },
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { rolling = true })
+          assert.are.equal(1, #result)
+          assert.are.equal("/body/p[1]", result[1].page)
+          assert.is_nil(data.annotations_rolling)
+          assert.is_nil(data.annotations_paging)
+          assert.is_true(data.annotations_externally_modified)
+          assert.are.equal(data.annotations, result)
+        end
+      )
+
+      it(
+        "should restore from annotations_paging when annotations is empty in paging mode",
+        function()
+          local data = {
+            annotations = {},
+            annotations_paging = {
+              { page = 5, datetime = "2026-08-25 10:00:00" },
+            },
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, { paging = true })
+          assert.are.equal(1, #result)
+          assert.are.equal(5, result[1].page)
+          assert.is_nil(data.annotations_paging)
+          assert.is_nil(data.annotations_rolling)
+          assert.is_true(data.annotations_externally_modified)
+          assert.are.equal(data.annotations, result)
+        end
+      )
+    end)
+
+    describe("orphaned highlighted bookmark in paging mode", function()
+      it(
+        "should restore single-page highlight pboxes using start and end positions",
+        function()
+          local page_boxes_args = nil
+          local mock_paging_ui = {
+            paging = true,
+            view = {
+              highlight = {
+                saved_drawer = "lighten",
+                saved_color = "yellow",
+              },
+            },
+            document = {
+              hasHiddenFlows = function()
+                return false
+              end,
+              getPageBoxesFromPositions = function(self, page, pos0, pos1)
+                page_boxes_args = { page = page, pos0 = pos0, pos1 = pos1 }
+                return { { x = 10, y = 20, w = 20, h = 20 } }
+              end,
+            },
+          }
+          local bm = {
+            page = 5,
+            highlighted = true,
+            pos0 = { page = 5, x = 10, y = 20 },
+            pos1 = { page = 5, x = 30, y = 40 },
+            notes = "Single page highlight text",
+            datetime = "2026-08-25 00:00:00",
+          }
+          local data = {
+            highlights_imported = true,
+            bookmarks = { bm },
+            highlight = {},
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, mock_paging_ui)
+          assert.are.equal(1, #result)
+          local ann_item = result[1]
+          assert.are.equal(5, ann_item.page)
+          assert.are.equal("lighten", ann_item.drawer)
+          assert.are.equal("yellow", ann_item.color)
+          assert.is_not_nil(ann_item.pboxes)
+          assert.are.equal(1, #ann_item.pboxes)
+          assert.are.same(
+            { x = 10, y = 20, w = 20, h = 20 },
+            ann_item.pboxes[1]
+          )
+          assert.is_not_nil(page_boxes_args)
+          assert.are.equal(5, page_boxes_args.page)
+          assert.are.same(bm.pos0, page_boxes_args.pos0)
+          assert.are.same(bm.pos1, page_boxes_args.pos1)
+        end
+      )
+
+      it(
+        "should restore multi-page highlight pboxes using start position only",
+        function()
+          local page_boxes_args = nil
+          local mock_paging_ui = {
+            paging = true,
+            view = {
+              highlight = {
+                saved_drawer = "underscore",
+                saved_color = "green",
+              },
+            },
+            document = {
+              hasHiddenFlows = function()
+                return false
+              end,
+              getPageBoxesFromPositions = function(self, page, pos0, pos1)
+                page_boxes_args = { page = page, pos0 = pos0, pos1 = pos1 }
+                return { { x = 10, y = 20, w = 50, h = 15 } }
+              end,
+            },
+          }
+          local bm = {
+            page = 5,
+            highlighted = true,
+            pos0 = { page = 5, x = 10, y = 20 },
+            pos1 = { page = 6, x = 30, y = 40 },
+            notes = "Multi page highlight text",
+            datetime = "2026-08-25 00:00:00",
+          }
+          local data = {
+            highlights_imported = true,
+            bookmarks = { bm },
+            highlight = {},
+          }
+          local config = create_mock_config(data)
+          local result =
+            ReaderAnnotation.loadFromSettings(config, mock_paging_ui)
+          assert.are.equal(1, #result)
+          local ann_item = result[1]
+          assert.are.equal(5, ann_item.page)
+          assert.are.equal("underscore", ann_item.drawer)
+          assert.are.equal("green", ann_item.color)
+          assert.is_not_nil(ann_item.pboxes)
+          assert.are.equal(1, #ann_item.pboxes)
+          assert.are.same(
+            { x = 10, y = 20, w = 50, h = 15 },
+            ann_item.pboxes[1]
+          )
+          assert.is_not_nil(page_boxes_args)
+          assert.are.equal(5, page_boxes_args.page)
+          assert.are.same(bm.pos0, page_boxes_args.pos0)
+          assert.are.same(bm.pos0, page_boxes_args.pos1)
+        end
+      )
+    end)
   end)
 
   describe("ReaderAnnotation.markUpdated", function()
