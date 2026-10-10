@@ -581,4 +581,55 @@ describe("VocabBuilder DB module", function()
       conn:close()
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes onSync calling conn.exec instead of conn.rowexec on local_path schema check",
+      function()
+        local schema = [[
+          CREATE TABLE "vocabulary" (
+            "word" TEXT NOT NULL UNIQUE,
+            "title_id" INTEGER,
+            "create_time" INTEGER NOT NULL,
+            "due_time" INTEGER NOT NULL,
+            PRIMARY KEY("word")
+          );
+          CREATE TABLE "title" (
+            "id" INTEGER NOT NULL UNIQUE,
+            "name" TEXT UNIQUE,
+            PRIMARY KEY("id")
+          );
+          PRAGMA user_version = 20240905;
+        ]]
+
+        -- Create valid income db
+        local conn_income = SQ3.open(test_income_path)
+        conn_income:exec(schema)
+        conn_income:exec("INSERT INTO title (id, name) VALUES (1, 'Book');")
+        conn_income:close()
+
+        -- Create empty local sqlite db (schema_version = 0)
+        local conn_empty = SQ3.open(test_db_path)
+        conn_empty:close()
+
+        -- In db.lua line 574:
+        -- local ok3, v3 = pcall(conn.exec, conn, "PRAGMA schema_version")
+        -- Because conn.exec is called instead of conn.rowexec, v3 is the connection
+        -- object rather than the string "0", so tonumber(v3) == 0 evaluates to false.
+        -- Consequently, onSync fails to detect the empty local db and crashes on
+        -- "no such table: title".
+        -- The test asserts that onSync returns false without crashing.
+        local ok, res = pcall(function()
+          return DB.onSync(test_db_path, test_cached_path, test_income_path)
+        end)
+
+        assert.is_true(
+          ok,
+          "onSync should return false for empty local db instead of crashing: "
+            .. tostring(res)
+        )
+        assert.is_false(res)
+      end
+    )
+  end)
 end)
