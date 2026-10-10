@@ -59,4 +59,16 @@ describe("HttpClient module", function()
     UIManager.resetInputTimeout = old_reset_to
     package.loaded.turbo = nil
   end)
+
+  it("should preserve custom connect_timeout and request_timeout", function()
+    local client = HttpClient:new()
+    local req = {
+      url = "http://example.com",
+      connect_timeout = 5,
+      request_timeout = 60,
+    }
+    client:request(req)
+    assert.are.equal(5, req.connect_timeout)
+    assert.are.equal(60, req.request_timeout)
+  end)
 end)

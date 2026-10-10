@@ -352,6 +352,22 @@ describe("PluginLoader module", function()
         assert.is_nil(mock_disabled_plugins["checkers"])
       end
     )
+
+    it(
+      "should filter invisible plugins by code_name even if name differs",
+      function()
+        PluginLoader.all_plugins = {
+          {
+            name = "BackgroundRunner",
+            fullname = "Background Runner",
+            code_name = "backgroundrunner",
+            enable = true,
+          },
+        }
+        local items = PluginLoader:genPluginManagerSubItem()
+        assert.are.same(0, #items)
+      end
+    )
   end)
 
   describe("onMenuSwitched and deferred reload prompt", function()
