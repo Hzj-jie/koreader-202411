@@ -953,5 +953,91 @@ describe("Wallabag plugin unit tests", function()
       assert.stub(remove_stub).was.called()
       remove_stub:revert()
     end)
+
+    it(
+      "fails: exposes download checking type(article.mimetype) == string without quotes",
+      function()
+        wallabag_instance.download_original_document = true
+        local article = {
+          id = 42,
+          title = "Document",
+          mimetype = "application/pdf; charset=binary",
+          url = "https://example.com/api/get_file?id=42",
+        }
+        local captured_apiurl
+        local call_stub = stub(
+          wallabag_instance,
+          "callAPI",
+          function(self, method, apiurl, headers, body, filepath)
+            captured_apiurl = apiurl
+            return true
+          end
+        )
+        finally(function()
+          call_stub:revert()
+        end)
+
+        wallabag_instance:download(article)
+
+        -- In main.lua:670:
+        -- local mimetype = type(article.mimetype) == string
+        -- Evaluates type(article.mimetype) == string (comparing string against table string),
+        -- which is false, setting mimetype to nil.
+        -- When article.url lacks a file extension, DocumentRegistry:hasProvider(article.url)
+        -- returns false, so download falls back to exporting the Wallabag EPUB
+        -- (/api/entries/42/export.epub) instead of downloading the original document URL.
+        assert.are.equal(article.url, captured_apiurl)
+      end
+    )
+
+    it(
+      "fails: exposes history removal settings bugs across init, saveSettings and onCloseDocument",
+      function()
+        -- 1. saveSettings drops remove_abandoned_from_history
+        wallabag_instance.remove_abandoned_from_history = true
+        wallabag_instance:saveSettings()
+        assert.is_true(
+          wallabag_instance.wb_settings.data.wallabag.remove_abandoned_from_history
+        )
+
+        -- 2. init fails to load remove_read_from_history
+        local custom_settings = {
+          data = {
+            wallabag = {
+              remove_read_from_history = true,
+              remove_finished_from_history = false,
+              remove_abandoned_from_history = false,
+            },
+          },
+          save = function() end,
+          flush = function() end,
+        }
+        local open_stub = stub(LuaSettings, "open", function()
+          return custom_settings
+        end)
+        local inst =
+          Wallabag:new({ ui = mock_ui, path = "plugins/wallabag.koplugin" })
+        open_stub:revert()
+        assert.is_true(inst.remove_read_from_history)
+
+        -- 3. onCloseDocument ignores remove_abandoned_from_history in outer guard
+        wallabag_instance.remove_finished_from_history = false
+        wallabag_instance.remove_read_from_history = false
+        wallabag_instance.remove_abandoned_from_history = true
+        wallabag_instance.ui.document = {
+          file = "/downloads/wallabag/[w-id_42] Sample.epub",
+        }
+        wallabag_instance.ui.doc_settings = {
+          readTableRef = function()
+            return { status = "abandoned" }
+          end,
+        }
+        wallabag_instance.ui.setLastDirForFileBrowser = function() end
+        local remove_stub = stub(require("readhistory"), "removeItemByPath")
+        wallabag_instance:onCloseDocument()
+        assert.stub(remove_stub).was.called()
+        remove_stub:revert()
+      end
+    )
   end)
 end)

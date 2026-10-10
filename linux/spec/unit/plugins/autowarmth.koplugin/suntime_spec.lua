@@ -7,32 +7,35 @@ describe("SunTime module for Autowarmth", function()
   end)
 
   describe("setPosition and coordinate clamping", function()
-    it("should set position in radians and degrees, clamping out-of-range coordinates", function()
-      -- Sane coordinates
-      SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
-      assert.are.equal("Berlin", SunTime.pos.name)
-      assert.is_number(SunTime.pos.latitude)
-      assert.is_number(SunTime.pos.longitude)
-      assert.are.equal(50, SunTime.pos.altitude)
-      assert.are.equal(1, SunTime.time_zone)
-      assert.is_number(SunTime.sin_latitude)
-      assert.is_number(SunTime.cos_latitude)
-      assert.is_number(SunTime.refract)
+    it(
+      "should set position in radians and degrees, clamping out-of-range coordinates",
+      function()
+        -- Sane coordinates
+        SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
+        assert.are.equal("Berlin", SunTime.pos.name)
+        assert.is_number(SunTime.pos.latitude)
+        assert.is_number(SunTime.pos.longitude)
+        assert.are.equal(50, SunTime.pos.altitude)
+        assert.are.equal(1, SunTime.time_zone)
+        assert.is_number(SunTime.sin_latitude)
+        assert.is_number(SunTime.cos_latitude)
+        assert.is_number(SunTime.refract)
 
-      -- Clamping north/south beyond 90 degrees
-      SunTime:setPosition("NorthPoleOverflow", 120.0, 0.0, 0, 0, true)
-      assert.is_true(SunTime.pos.latitude <= math.pi / 2)
+        -- Clamping north/south beyond 90 degrees
+        SunTime:setPosition("NorthPoleOverflow", 120.0, 0.0, 0, 0, true)
+        assert.is_true(SunTime.pos.latitude <= math.pi / 2)
 
-      SunTime:setPosition("SouthPoleOverflow", -120.0, 0.0, 0, 0, true)
-      assert.is_true(SunTime.pos.latitude >= -math.pi / 2)
+        SunTime:setPosition("SouthPoleOverflow", -120.0, 0.0, 0, 0, true)
+        assert.is_true(SunTime.pos.latitude >= -math.pi / 2)
 
-      -- Clamping east/west beyond 180 degrees
-      SunTime:setPosition("EastOverflow", 0.0, 200.0, 0, 0, true)
-      assert.are.equal(math.pi, SunTime.pos.longitude)
+        -- Clamping east/west beyond 180 degrees
+        SunTime:setPosition("EastOverflow", 0.0, 200.0, 0, 0, true)
+        assert.are.equal(math.pi, SunTime.pos.longitude)
 
-      SunTime:setPosition("WestOverflow", 0.0, -200.0, 0, 0, true)
-      assert.are.equal(-math.pi, SunTime.pos.longitude)
-    end)
+        SunTime:setPosition("WestOverflow", 0.0, -200.0, 0, 0, true)
+        assert.are.equal(-math.pi, SunTime.pos.longitude)
+      end
+    )
   end)
 
   describe("setDate and leap year handling", function()
@@ -67,23 +70,26 @@ describe("SunTime module for Autowarmth", function()
   end)
 
   describe("calculateTimes across hemispheres and seasons", function()
-    it("should calculate sunrise, sunset, noon, and twilights for temperate northern hemisphere", function()
-      SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
-      SunTime:setDate(2024, 3, 20, 0) -- Vernal equinox: all 11 times defined
-      SunTime:calculateTimes(false)
+    it(
+      "should calculate sunrise, sunset, noon, and twilights for temperate northern hemisphere",
+      function()
+        SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
+        SunTime:setDate(2024, 3, 20, 0) -- Vernal equinox: all 11 times defined
+        SunTime:calculateTimes(false)
 
-      assert.is_number(SunTime.rise)
-      assert.is_number(SunTime.set)
-      assert.is_number(SunTime.noon)
-      assert.is_number(SunTime.midnight)
-      assert.is_true(SunTime.rise < SunTime.noon)
-      assert.is_true(SunTime.noon < SunTime.set)
-      assert.is_number(SunTime.rise_civil)
-      assert.is_number(SunTime.set_civil)
-      assert.is_true(SunTime.rise_civil < SunTime.rise)
-      assert.is_true(SunTime.set < SunTime.set_civil)
-      assert.are.equal(11, #SunTime.times)
-    end)
+        assert.is_number(SunTime.rise)
+        assert.is_number(SunTime.set)
+        assert.is_number(SunTime.noon)
+        assert.is_number(SunTime.midnight)
+        assert.is_true(SunTime.rise < SunTime.noon)
+        assert.is_true(SunTime.noon < SunTime.set)
+        assert.is_number(SunTime.rise_civil)
+        assert.is_number(SunTime.set_civil)
+        assert.is_true(SunTime.rise_civil < SunTime.rise)
+        assert.is_true(SunTime.set < SunTime.set_civil)
+        assert.are.equal(11, #SunTime.times)
+      end
+    )
 
     it("should calculate times with fast_twilight option", function()
       SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
@@ -111,20 +117,45 @@ describe("SunTime module for Autowarmth", function()
       assert.is_true(SunTime.set > 19.5)
     end)
 
-    it("should handle polar night and midnight sun at extreme latitudes", function()
-      -- Longyearbyen Svalbard: 78.2232 N, 15.6267 E, timezone 1
-      SunTime:setPosition("Longyearbyen", 78.2232, 15.6267, 1, 10, true)
+    it(
+      "should handle polar night and midnight sun at extreme latitudes",
+      function()
+        -- Longyearbyen Svalbard: 78.2232 N, 15.6267 E, timezone 1
+        SunTime:setPosition("Longyearbyen", 78.2232, 15.6267, 1, 10, true)
 
-      -- Summer (June 21): Midnight sun -> Sun does not set
-      SunTime:setDate(2024, 6, 21, 1)
-      SunTime:calculateTimes()
-      assert.is_nil(SunTime.set)
+        -- Summer (June 21): Midnight sun -> Sun does not set
+        SunTime:setDate(2024, 6, 21, 1)
+        SunTime:calculateTimes()
+        assert.is_nil(SunTime.set)
 
-      -- Winter (December 21): Polar night -> Sun does not rise
-      SunTime:setDate(2024, 12, 21, 0)
-      SunTime:calculateTimes()
-      assert.is_nil(SunTime.rise)
-    end)
+        -- Winter (December 21): Polar night -> Sun does not rise
+        SunTime:setDate(2024, 12, 21, 0)
+        SunTime:calculateTimes()
+        assert.is_nil(SunTime.rise)
+      end
+    )
+
+    it(
+      "fails: exposes polar night and midnight sun nil arithmetic crash in fast_twilight",
+      function()
+        -- Longyearbyen Svalbard: 78.2232 N, 15.6267 E, timezone 1
+        SunTime:setPosition("Longyearbyen", 78.2232, 15.6267, 1, 10, true)
+
+        -- Winter (December 21): Polar night -> Sun does not rise (self.rise is nil)
+        SunTime:setDate(2024, 12, 21, 0)
+        -- In suntime.lua:575:
+        -- self:calculateTimeIter(self.civil, self.rise - min_civil_twilight, 6)
+        -- Crashes with nil arithmetic when self.rise is nil in fast_twilight mode.
+        local ok, err = pcall(function()
+          SunTime:calculateTimes(true)
+        end)
+        assert.is_true(
+          ok,
+          "calculateTimes(true) should not crash during polar night: "
+            .. tostring(err)
+        )
+      end
+    )
   end)
 
   describe("Sun height, equation of time, and time conversions", function()
