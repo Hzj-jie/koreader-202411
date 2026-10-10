@@ -1,0 +1,67 @@
+local ffi
+local KOPTContext
+
+describe("ffi/koptcontext module", function()
+  local orig_ffi_string
+
+  setup(function()
+    require("commonrequire")
+    ffi = require("ffi")
+    orig_ffi_string = ffi.string
+    ffi.string = function(ptr, len)
+      if ptr == nil or ptr == ffi.null then
+        error(
+          "bad argument #1 to 'string' (cannot convert 'NULL' to 'const char *')\n"
+            .. debug.traceback()
+        )
+      end
+      return orig_ffi_string(ptr, len)
+    end
+    KOPTContext = require("ffi/koptcontext")
+  end)
+
+  teardown(function()
+    ffi.string = orig_ffi_string
+  end)
+
+  it("initializes with default settings", function()
+    local kc = KOPTContext.new()
+    assert.are.equal(1, kc.trim)
+    assert.are.equal(1, kc.wrap)
+    assert.are.equal(2, kc.columns)
+    assert.are.equal(1.2, kc.line_spacing)
+    assert.are.equal(0.06, kc.margin)
+  end)
+
+  it("updates and retrieves language when set", function()
+    local kc = KOPTContext.new()
+    kc:setLanguage("eng")
+    assert.are.equal("eng", kc:getLanguage())
+  end)
+
+  it("safely retrieves language when language is unset", function()
+    local kc = KOPTContext.new()
+    local ok, lang = pcall(function()
+      return kc:getLanguage()
+    end)
+    assert.is_true(ok)
+    assert.is_nil(lang)
+  end)
+
+  it("serializes rectmaps allocated capacity na in totable", function()
+    local kc = KOPTContext.new()
+    kc:setLanguage("eng")
+    kc.rectmaps.n = 2
+    kc.rectmaps.na = 10
+    kc.rectmaps.wrectmap = ffi.C.malloc(ffi.sizeof("WRECTMAP") * 10)
+
+    local tbl = KOPTContext.totable(kc)
+    ffi.C.free(kc.rectmaps.wrectmap)
+    kc.rectmaps.wrectmap = nil
+    kc.rectmaps.n = 0
+    kc.rectmaps.na = 0
+
+    assert.are.equal(2, tbl.rectmaps.n)
+    assert.are.equal(10, tbl.rectmaps.na)
+  end)
+end)
