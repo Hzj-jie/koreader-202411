@@ -14,6 +14,7 @@ describe("Trapper module", function()
 
   before_each(function()
     Trapper:reset()
+    Trapper.current_widget = nil
   end)
 
   it("should initialize Trapper module", function()
@@ -195,84 +196,198 @@ describe("Trapper module", function()
       end
     )
 
-    it("should handle dismissal and resume on continue", function()
-      local orig_scheduleIn = UIManager.scheduleIn
-      local orig_show = UIManager.show
+    it(
+      "should handle dismissal and resume on continue with custom paused text",
+      function()
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
 
-      Trapper:wrap(function()
-        Trapper:info("Message 1")
-        local prev_widget = Trapper.current_widget
-
-        -- Intercept scheduleIn to trigger dismiss_callback instead of timeout
-        UIManager.scheduleIn = function(_, delay, callback)
-          prev_widget.dismiss_callback()
-        end
-
-        -- Intercept UIManager.show when ConfirmBox (abort_box) is shown to click 'Continue'
+        local abort_box
         UIManager.show = function(_, widget)
-          if widget.cancel_callback then
-            widget.cancel_callback()
+          if widget.ok_callback and widget.cancel_callback then
+            abort_box = widget
           end
         end
+        UIManager.close = function(_, widget) end
+        UIManager.forceRepaint = function(_) end
+        UIManager.unschedule = function(_, cb) end
 
-        local res = Trapper:info("Message 2")
-        assert.is_true(res)
-      end)
-
-      UIManager.scheduleIn = orig_scheduleIn
-      UIManager.show = orig_show
-    end)
-
-    it("should handle dismissal and abort on ok_callback", function()
-      local orig_scheduleIn = UIManager.scheduleIn
-      local orig_show = UIManager.show
-
-      Trapper:wrap(function()
-        Trapper:info("Message 1")
-        local prev_widget = Trapper.current_widget
-
+        local scheduled_cb
         UIManager.scheduleIn = function(_, delay, callback)
-          prev_widget.dismiss_callback()
+          scheduled_cb = callback
         end
 
+        local res1, res2
+        local first_widget
+        Trapper:wrap(function()
+          Trapper:setPausedText(
+            "Custom Pause",
+            "Custom Abort",
+            "Custom Continue"
+          )
+          res1 = Trapper:info("Step 1")
+          first_widget = Trapper.current_widget
+          res2 = Trapper:info("Step 2")
+        end)
+
+        assert.is_true(res1)
+        assert.is_not_nil(first_widget)
+        assert.is_true(first_widget.is_infomessage)
+        assert.is_not_nil(scheduled_cb)
+
+        -- Dismiss the first InfoMessage
+        first_widget.dismiss_callback()
+
+        assert.is_not_nil(abort_box)
+        assert.are.equal("Custom Pause", abort_box.text)
+        assert.are.equal("Custom Abort", abort_box.ok_text)
+        assert.are.equal("Custom Continue", abort_box.cancel_text)
+
+        -- Tap cancel_callback (Continue)
+        abort_box.cancel_callback()
+
+        assert.is_true(res2)
+        assert.is_not_nil(Trapper.current_widget)
+        assert.are.equal("Step 2", Trapper.current_widget.text)
+      end
+    )
+
+    it(
+      "should handle dismissal and abort on ok_callback closing current widget and abort box",
+      function()
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        local abort_box
+        local closed_widgets = {}
         UIManager.show = function(_, widget)
-          if widget.ok_callback then
-            widget.ok_callback()
+          if widget.ok_callback and widget.cancel_callback then
+            abort_box = widget
           end
         end
+        UIManager.close = function(_, widget)
+          table.insert(closed_widgets, widget)
+        end
+        UIManager.forceRepaint = function(_) end
+        UIManager.unschedule = function(_, cb) end
 
-        local res = Trapper:info("Message 2")
-        assert.is_false(res)
-      end)
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
 
-      UIManager.scheduleIn = orig_scheduleIn
-      UIManager.show = orig_show
-    end)
+        local res1, res2
+        local first_widget
+        Trapper:wrap(function()
+          Trapper:setPausedText(
+            "Custom Pause",
+            "Custom Abort",
+            "Custom Continue"
+          )
+          res1 = Trapper:info("Step 1")
+          first_widget = Trapper.current_widget
+          res2 = Trapper:info("Step 2")
+        end)
 
-    it("should perform fast refresh when fast_refresh is true", function()
-      local Screen = require("device").screen
-      local refresh_spy = spy.on(Screen, "refreshUI")
+        assert.is_true(res1)
+        assert.is_not_nil(first_widget)
+        assert.is_true(first_widget.is_infomessage)
+        assert.is_not_nil(scheduled_cb)
 
-      Trapper:wrap(function()
-        Trapper:info("Initial text")
-        local orig_widget = Trapper.current_widget
-        orig_widget.movable = {
-          getMovedOffset = function()
-            return { x = 0, y = 0 }
-          end,
-          setMovedOffset = function() end,
-        }
-        orig_widget.paintTo = function() end
-        orig_widget[1] = { { dimen = { x = 0, y = 0, w = 10, h = 10 } } }
+        -- Dismiss the first InfoMessage
+        first_widget.dismiss_callback()
 
-        local res = Trapper:info("Refreshed text", true)
-        assert.is_true(res)
-        assert.is_same("Refreshed text", Trapper.current_widget.text)
-        assert.is_same(orig_widget, Trapper.current_widget)
-      end)
+        assert.is_not_nil(abort_box)
+        assert.are.equal("Custom Pause", abort_box.text)
+        assert.are.equal("Custom Abort", abort_box.ok_text)
+        assert.are.equal("Custom Continue", abort_box.cancel_text)
 
-      refresh_spy:revert()
-    end)
+        -- Tap ok_callback (Abort)
+        abort_box.ok_callback()
+
+        assert.is_false(res2)
+        local closed_abort = false
+        local closed_info = false
+        for _, w in ipairs(closed_widgets) do
+          if w == abort_box then
+            closed_abort = true
+          end
+          if w == first_widget then
+            closed_info = true
+          end
+        end
+        assert.is_true(closed_abort)
+        assert.is_true(closed_info)
+      end
+    )
+
+    it(
+      "should perform fast refresh when fast_refresh is true and resumed via go_on_func",
+      function()
+        local Screen = require("device").screen
+        local refresh_spy = spy.on(Screen, "refreshUI")
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          refresh_spy:revert()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
+        UIManager.forceRepaint = function(_) end
+
+        local res1, res2
+        Trapper:wrap(function()
+          res1 = Trapper:info("Initial")
+          res2 = Trapper:info("Updated Fast", true)
+        end)
+
+        assert.is_true(res1)
+        assert.is_not_nil(scheduled_cb)
+
+        -- Resume coroutine past yield via go_on_func
+        scheduled_cb()
+
+        assert.is_true(res2)
+        assert.is_not_nil(Trapper.current_widget)
+        assert.are.equal("Updated Fast", Trapper.current_widget.text)
+        assert.spy(refresh_spy).was.called()
+      end
+    )
   end)
 
   describe("confirm method", function()

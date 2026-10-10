@@ -952,4 +952,287 @@ describe("FileManager module", function()
     )
     FileManager.instance:onExit()
   end)
+
+  describe(
+    "pasteSelectedFiles, deleteSelectedFiles, createFolder, and deleteFile",
+    function()
+      local ReadHistory = require("readhistory")
+      local ReadCollection = require("readcollection")
+      local base_tmp
+
+      before_each(function()
+        local pid = tostring(ffi.C.getpid())
+        base_tmp = util.realpath("spec/unit/data") .. "/tmp_fm_ops_" .. pid
+        require("util").makePath(base_tmp)
+      end)
+
+      after_each(function()
+        if base_tmp and lfs.attributes(base_tmp) then
+          util.purgeDir(base_tmp)
+        end
+      end)
+
+      it("should handle pasteSelectedFiles for copy and cut/move", function()
+        local src_dir = base_tmp .. "/src"
+        local dst_dir = base_tmp .. "/dst"
+        require("util").makePath(src_dir)
+        require("util").makePath(dst_dir)
+
+        local f1 = src_dir .. "/f1.txt"
+        local f2 = src_dir .. "/f2.txt"
+        local dst_f2 = dst_dir .. "/f2.txt"
+        local h1 = io.open(f1, "w")
+        h1:write("f1")
+        h1:close()
+        local h2 = io.open(f2, "w")
+        h2:write("f2")
+        h2:close()
+        local hd = io.open(dst_f2, "w")
+        hd:write("dst f2")
+        hd:close()
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        filemanager.file_chooser.path = dst_dir
+
+        local shown_msg
+        local old_show = UIManager.show
+        UIManager.show = function(self, w)
+          shown_msg = w
+        end
+        finally(function()
+          UIManager.show = old_show
+          filemanager:onExit()
+        end)
+
+        -- 1. Copy with overwrite = false: f1 copied, f2 skipped
+        filemanager.cutfile = false
+        filemanager.selected_files = {
+          [f1] = true,
+          [f2] = true,
+        }
+        filemanager:pasteSelectedFiles(false)
+
+        assert.is_not_nil(lfs.attributes(dst_dir .. "/f1.txt"))
+        assert.is_nil(filemanager.selected_files[f1])
+        assert.is_true(filemanager.selected_files[f2])
+        assert.is_not_nil(shown_msg)
+        assert.is_true(shown_msg.text:find("1 file was not copied") ~= nil)
+
+        -- 2. Move (cutfile = true) with overwrite = true and self-paste
+        local self_paste_file = dst_dir .. "/f1.txt"
+        filemanager.selected_files = {
+          [self_paste_file] = true,
+          [f2] = true,
+        }
+        filemanager.cutfile = true
+
+        local hist_spy = spy.on(ReadHistory, "updateItems")
+        local coll_spy = spy.on(ReadCollection, "updateItems")
+
+        filemanager:pasteSelectedFiles(true)
+
+        assert.is_not_nil(lfs.attributes(self_paste_file))
+        assert.is_nil(lfs.attributes(f2))
+        assert.is_not_nil(lfs.attributes(dst_dir .. "/f2.txt"))
+        assert.spy(hist_spy).was.called()
+        assert.spy(coll_spy).was.called()
+        assert.is_nil(filemanager.selected_files)
+
+        hist_spy:revert()
+        coll_spy:revert()
+      end)
+
+      it(
+        "should handle deleteSelectedFiles for all succeed and partial failure",
+        function()
+          local d1 = base_tmp .. "/d1.txt"
+          local d2 = base_tmp .. "/d2.txt"
+          local h1 = io.open(d1, "w")
+          h1:write("d1")
+          h1:close()
+          local h2 = io.open(d2, "w")
+          h2:write("d2")
+          h2:close()
+
+          local filemanager = FileManager:new({
+            dimen = Screen:getSize(),
+            root_path = base_tmp,
+          })
+
+          local hist_spy = spy.on(ReadHistory, "removeItems")
+          local coll_spy = spy.on(ReadCollection, "removeItems")
+          finally(function()
+            hist_spy:revert()
+            coll_spy:revert()
+            filemanager:onExit()
+          end)
+
+          -- All succeed
+          filemanager.selected_files = {
+            [d1] = true,
+            [d2] = true,
+          }
+          filemanager:deleteSelectedFiles()
+
+          assert.is_nil(lfs.attributes(d1))
+          assert.is_nil(lfs.attributes(d2))
+          assert.spy(hist_spy).was.called()
+          assert.spy(coll_spy).was.called()
+          assert.is_nil(filemanager.selected_files)
+
+          -- Partial failure
+          local d3 = base_tmp .. "/d3.txt"
+          local h3 = io.open(d3, "w")
+          h3:write("d3")
+          h3:close()
+          local missing = base_tmp .. "/missing.txt"
+
+          local shown_msg
+          local old_show = UIManager.show
+          UIManager.show = function(self, w)
+            shown_msg = w
+          end
+
+          filemanager.selected_files = {
+            [d3] = true,
+            [missing] = true,
+          }
+          filemanager:deleteSelectedFiles()
+          UIManager.show = old_show
+
+          assert.is_nil(lfs.attributes(d3))
+          assert.is_true(filemanager.selected_files[missing])
+          assert.is_not_nil(shown_msg)
+          assert.is_true(shown_msg.text:find("Failed to delete 1 file.") ~= nil)
+        end
+      )
+
+      it("should handle createFolder with various input scenarios", function()
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        filemanager.file_chooser.path = base_tmp
+
+        local shown_dialog
+        local old_show = UIManager.show
+        UIManager.show = function(self, w)
+          shown_dialog = w
+        end
+        finally(function()
+          UIManager.show = old_show
+          filemanager:onExit()
+        end)
+
+        -- 1. Empty input is no-op
+        filemanager:createFolder()
+        assert.is_not_nil(shown_dialog)
+        local create_btn = shown_dialog.buttons[1][2]
+        shown_dialog:setInputText("")
+        local close_spy = spy.on(UIManager, "close")
+        create_btn.callback()
+        assert.spy(close_spy).was_not.called()
+        close_spy:revert()
+
+        -- 2. Normal creation with refreshPath
+        local refresh_spy = spy.on(filemanager.file_chooser, "refreshPath")
+        shown_dialog:setInputText("new_sub")
+        create_btn.callback()
+        assert.are.equal(
+          "directory",
+          lfs.attributes(base_tmp .. "/new_sub", "mode")
+        )
+        assert.spy(refresh_spy).was.called()
+        refresh_spy:revert()
+
+        -- 3. Enter folder after creation
+        local change_spy = spy.on(filemanager.file_chooser, "changeToPath")
+        filemanager:createFolder()
+        assert.is_not_nil(shown_dialog)
+        local check_btn
+        local function find_check_button(node)
+          if type(node) == "table" then
+            if node.checked ~= nil and type(node.checked) == "boolean" then
+              return node
+            end
+            for _, child in ipairs(node) do
+              local found = find_check_button(child)
+              if found then
+                return found
+              end
+            end
+          end
+        end
+        check_btn = find_check_button(shown_dialog.layout)
+          or find_check_button(shown_dialog)
+        assert.is_not_nil(check_btn)
+        check_btn.checked = true
+        create_btn = shown_dialog.buttons[1][2]
+        shown_dialog:setInputText("new_sub_enter")
+        create_btn.callback()
+        assert.are.equal(
+          "directory",
+          lfs.attributes(base_tmp .. "/new_sub_enter", "mode")
+        )
+        assert.spy(change_spy).was.called()
+        change_spy:revert()
+
+        -- 4. Failure when makePath returns false
+        local common_util = require("util")
+        local old_makePath = common_util.makePath
+        common_util.makePath = function()
+          return false
+        end
+        filemanager:createFolder()
+        shown_dialog:setInputText("bad_sub")
+        create_btn = shown_dialog.buttons[1][2]
+        create_btn.callback()
+        common_util.makePath = old_makePath
+
+        assert.is_not_nil(shown_dialog)
+        assert.is_true(
+          shown_dialog.text:find("Failed to create folder:") ~= nil
+        )
+      end)
+
+      it("should handle deleteFile for folders and error handling", function()
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+
+        local shown_msg
+        local old_show = UIManager.show
+        UIManager.show = function(self, w)
+          shown_msg = w
+        end
+        finally(function()
+          UIManager.show = old_show
+          filemanager:onExit()
+        end)
+
+        -- 1. Folder deletion
+        local sub_dir = base_tmp .. "/sub_to_delete"
+        require("util").makePath(sub_dir)
+        local fh = io.open(sub_dir .. "/test.txt", "w")
+        fh:write("x")
+        fh:close()
+        assert.are.equal("directory", lfs.attributes(sub_dir, "mode"))
+
+        local ret = filemanager:deleteFile(sub_dir, false)
+        assert.is_true(ret)
+        assert.is_nil(lfs.attributes(sub_dir))
+
+        -- 2. Failure path for nonexistent file
+        local missing_file = base_tmp .. "/nonexistent_file.txt"
+        local fail_ret = filemanager:deleteFile(missing_file, true)
+        assert.is_nil(fail_ret)
+        assert.is_not_nil(shown_msg)
+        assert.is_true(shown_msg.text:find("Failed to delete:") ~= nil)
+      end)
+    end
+  )
 end)

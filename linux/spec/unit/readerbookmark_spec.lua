@@ -1119,5 +1119,489 @@ describe("ReaderBookmark module", function()
         assert.are.equal(0, #broadcast_events)
       end
     )
+
+    it(
+      "should handle onShowBookmark filter and action dialogs via onLeftButtonTap",
+      function()
+        local orig_annotations = bookmark_mod.ui.annotation.annotations
+        local orig_showWidget = bookmark_mod.showWidget
+        local orig_style_dialog =
+          bookmark_mod.ui.highlight.showHighlightStyleDialog
+
+        bookmark_mod.match_table = nil
+        bookmark_mod.show_edited_only = nil
+        bookmark_mod.show_drawer_only = nil
+
+        local ann_bookmark = {
+          datetime = "2026-10-01 10:00:00",
+          page = "/1/4/2/1:0",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:0",
+          text = "Bookmark item",
+          text_orig = "Bookmark item",
+        }
+        local ann_highlight1 = {
+          datetime = "2026-10-01 10:01:00",
+          page = "/1/4/2/1:10",
+          pos0 = "/1/4/2/1:10",
+          pos1 = "/1/4/2/1:20",
+          text = "Highlight lighten",
+          text_orig = "Highlight lighten",
+          drawer = "lighten",
+        }
+        local ann_highlight2 = {
+          datetime = "2026-10-01 10:02:00",
+          page = "/1/4/2/1:20",
+          pos0 = "/1/4/2/1:20",
+          pos1 = "/1/4/2/1:30",
+          text = "Highlight underscore",
+          text_orig = "Highlight underscore",
+          drawer = "underscore",
+        }
+        local ann_note = {
+          datetime = "2026-10-01 10:03:00",
+          page = "/1/4/2/1:30",
+          pos0 = "/1/4/2/1:30",
+          pos1 = "/1/4/2/1:40",
+          text = "Note item",
+          text_orig = "Note item",
+          drawer = "lighten",
+          note = "My note",
+        }
+        bookmark_mod.ui.annotation.annotations = {
+          ann_bookmark,
+          ann_highlight1,
+          ann_highlight2,
+          ann_note,
+        }
+
+        local captured_widgets = {}
+        finally(function()
+          bookmark_mod.ui.annotation.annotations = orig_annotations
+          bookmark_mod.showWidget = orig_showWidget
+          bookmark_mod.ui.highlight.showHighlightStyleDialog = orig_style_dialog
+          if bookmark_mod.bookmark_menu then
+            UIManager:close(bookmark_mod.bookmark_menu)
+            bookmark_mod.bookmark_menu = nil
+          end
+          bookmark_mod.match_table = nil
+          bookmark_mod.show_edited_only = nil
+          bookmark_mod.show_drawer_only = nil
+          while #UIManager._window_stack > 1 do
+            local top_w =
+              UIManager._window_stack[#UIManager._window_stack].widget
+            if top_w ~= readerui then
+              UIManager:close(top_w)
+            else
+              break
+            end
+          end
+        end)
+
+        bookmark_mod.showWidget = function(self, w, ...)
+          table.insert(captured_widgets, w)
+          return orig_showWidget(self, w, ...)
+        end
+
+        bookmark_mod:onShowBookmark()
+        local bm_menu = bookmark_mod.bookmark_menu[1]
+        bm_menu.showWidget = function(self, w, ...)
+          table.insert(captured_widgets, w)
+          return UIManager:show(w, ...)
+        end
+
+        bm_menu:onLeftButtonTap()
+
+        local bm_dialog = captured_widgets[#captured_widgets]
+        assert.is_not_nil(bm_dialog)
+        assert.are.equal("Filter by bookmark type", bm_dialog.title)
+
+        local found_hl, found_bm, found_note
+        local btn_filter_style, btn_curr_page, btn_latest_bm, btn_select_bms
+        for _, row in ipairs(bm_dialog.buttons) do
+          for _, btn in ipairs(row) do
+            if btn.text and btn.text:lower():find("highlights %(2%)") then
+              found_hl = true
+            elseif
+              btn.text and btn.text:lower():find("page bookmarks %(1%)")
+            then
+              found_bm = true
+            elseif btn.text and btn.text:lower():find("notes %(1%)") then
+              found_note = true
+            elseif btn.text == "Filter by highlight style" then
+              btn_filter_style = btn
+            elseif btn.text == "Current page" then
+              btn_curr_page = btn
+            elseif btn.text == "Latest bookmark" then
+              btn_latest_bm = btn
+            elseif btn.text == "Select bookmarks" then
+              btn_select_bms = btn
+            end
+          end
+        end
+
+        assert.is_true(found_hl)
+        assert.is_true(found_bm)
+        assert.is_true(found_note)
+        assert.is_not_nil(btn_filter_style)
+        assert.is_not_nil(btn_curr_page)
+        assert.is_not_nil(btn_latest_bm)
+        assert.is_not_nil(btn_select_bms)
+
+        -- Current page
+        btn_curr_page.callback()
+
+        -- Latest bookmark -> opens TextViewer
+        btn_latest_bm.callback()
+        local textviewer_found = false
+        for _, w in ipairs(captured_widgets) do
+          if
+            w.text_type == "bookmark"
+            or (w.title and w.title:find("Bookmark details"))
+          then
+            textviewer_found = true
+            UIManager:close(w)
+            break
+          end
+        end
+        assert.is_true(textviewer_found)
+
+        -- Select bookmarks -> select_count becomes 0
+        btn_select_bms.callback()
+        assert.are.equal(0, bm_menu.select_count)
+        bm_menu:toggleSelectMode()
+        assert.is_nil(bm_menu.select_count)
+
+        -- Filter by highlight style
+        bookmark_mod.ui.highlight.showHighlightStyleDialog = function(_, cb)
+          cb("underscore")
+        end
+        btn_filter_style.callback()
+        assert.are.equal("underscore", bookmark_mod.show_drawer_only)
+        assert.are.equal(1, #bm_menu.item_table)
+        assert.are.equal("underscore", bm_menu.item_table[1].drawer)
+        local bm_subtitle = bm_menu.title_bar.subtitle_widget
+            and bm_menu.title_bar.subtitle_widget.text
+          or bm_menu.subtitle
+        assert.is_true(
+          bm_subtitle == "Highlight style: underscore"
+            or bm_subtitle == "Highlight style: underline"
+        )
+        assert.are.equal("Highlight style: underline", bm_subtitle)
+      end
+    )
+
+    it(
+      "should handle onSearchBookmark from open bookmark list and main menu",
+      function()
+        local orig_annotations = bookmark_mod.ui.annotation.annotations
+        local orig_showWidget = bookmark_mod.showWidget
+        local captured_widgets = {}
+
+        local ann_bookmark = {
+          datetime = "2026-10-01 10:00:00",
+          page = "/1/4/2/1:0",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:0",
+          text = "Bookmark item",
+          text_orig = "Bookmark item",
+        }
+        local ann_highlight = {
+          datetime = "2026-10-01 10:01:00",
+          page = "/1/4/2/1:10",
+          pos0 = "/1/4/2/1:10",
+          pos1 = "/1/4/2/1:20",
+          text = "Highlight item",
+          text_orig = "Highlight item",
+          drawer = "lighten",
+        }
+        local ann_note = {
+          datetime = "2026-10-01 10:02:00",
+          page = "/1/4/2/1:20",
+          pos0 = "/1/4/2/1:20",
+          pos1 = "/1/4/2/1:30",
+          text = "Note item",
+          text_orig = "Note item",
+          drawer = "lighten",
+          note = "My note",
+        }
+        bookmark_mod.ui.annotation.annotations = {
+          ann_bookmark,
+          ann_highlight,
+          ann_note,
+        }
+
+        finally(function()
+          bookmark_mod.ui.annotation.annotations = orig_annotations
+          bookmark_mod.showWidget = orig_showWidget
+          if bookmark_mod.bookmark_menu then
+            UIManager:close(bookmark_mod.bookmark_menu)
+            bookmark_mod.bookmark_menu = nil
+          end
+          bookmark_mod.match_table = nil
+          bookmark_mod.show_edited_only = nil
+          bookmark_mod.show_drawer_only = nil
+          while #UIManager._window_stack > 1 do
+            local top_w =
+              UIManager._window_stack[#UIManager._window_stack].widget
+            if top_w ~= readerui then
+              UIManager:close(top_w)
+            else
+              break
+            end
+          end
+        end)
+
+        bookmark_mod.showWidget = function(self, w, ...)
+          table.insert(captured_widgets, w)
+          return orig_showWidget(self, w, ...)
+        end
+
+        -- Case A: when bookmark_mod.bookmark_menu is open
+        bookmark_mod:onShowBookmark()
+        assert.is_not_nil(bookmark_mod.bookmark_menu)
+
+        bookmark_mod:onSearchBookmark()
+        local input_dialog = captured_widgets[#captured_widgets]
+        assert.is_not_nil(input_dialog)
+
+        local check_button_case
+        for _, wrap in ipairs(input_dialog._added_widgets or {}) do
+          local w = wrap[1] or wrap
+          if w.text and w.text:find("Case sensitive") then
+            check_button_case = w
+            break
+          end
+        end
+        assert.is_not_nil(check_button_case)
+        assert.is_false(check_button_case.checked)
+
+        input_dialog.getInputText = function()
+          return "NOTE"
+        end
+
+        local search_btn
+        for _, row in ipairs(input_dialog.buttons) do
+          for _, b in ipairs(row) do
+            if b.text == "Search" then
+              search_btn = b
+              break
+            end
+          end
+        end
+        assert.is_not_nil(search_btn)
+        search_btn.callback()
+
+        assert.are.equal("note", bookmark_mod.match_table.search_str)
+        local bm_subtitle = bookmark_mod.bookmark_menu[1].title_bar.subtitle_widget
+            and bookmark_mod.bookmark_menu[1].title_bar.subtitle_widget.text
+          or bookmark_mod.bookmark_menu[1].subtitle
+        assert.are.equal("Query: note", bm_subtitle)
+        assert.are.equal(1, #bookmark_mod.bookmark_menu[1].item_table)
+        assert.are.equal(
+          "note",
+          bookmark_mod.bookmark_menu[1].item_table[1].type
+        )
+        assert.are.equal(
+          "My note",
+          bookmark_mod.bookmark_menu[1].item_table[1].note
+        )
+
+        -- Case B: when bookmark_mod.bookmark_menu == nil
+        UIManager:close(bookmark_mod.bookmark_menu)
+        bookmark_mod.bookmark_menu = nil
+        bookmark_mod.match_table = nil
+
+        bookmark_mod:onSearchBookmark()
+        local input_dialog_b = captured_widgets[#captured_widgets]
+        assert.is_not_nil(input_dialog_b)
+
+        local check_button_case_b
+        for _, wrap in ipairs(input_dialog_b._added_widgets or {}) do
+          local w = wrap[1] or wrap
+          if w.text and w.text:find("Case sensitive") then
+            check_button_case_b = w
+            break
+          end
+        end
+        assert.is_not_nil(check_button_case_b)
+        check_button_case_b.checked = true
+
+        input_dialog_b.getInputText = function()
+          return "Note"
+        end
+
+        local search_btn_b
+        for _, row in ipairs(input_dialog_b.buttons) do
+          for _, b in ipairs(row) do
+            if b.text == "Search" then
+              search_btn_b = b
+              break
+            end
+          end
+        end
+        assert.is_not_nil(search_btn_b)
+        search_btn_b.callback()
+
+        assert.is_not_nil(bookmark_mod.bookmark_menu)
+        assert.are.equal("Note", bookmark_mod.match_table.search_str)
+        assert.is_true(bookmark_mod.match_table.case_sensitive)
+        local bm_subtitle_b = bookmark_mod.bookmark_menu[1].title_bar.subtitle_widget
+            and bookmark_mod.bookmark_menu[1].title_bar.subtitle_widget.text
+          or bookmark_mod.bookmark_menu[1].subtitle
+        assert.are.equal("Query: Note", bm_subtitle_b)
+      end
+    )
+
+    it(
+      "should edit notes and highlighted text from bookmark_menu and update items",
+      function()
+        local orig_annotations = bookmark_mod.ui.annotation.annotations
+        local orig_showWidget = bookmark_mod.showWidget
+        local orig_broadcast = UIManager.broadcastEvent
+        local orig_getTextFromXPointers = readerui.document.getTextFromXPointers
+
+        local ann = {
+          datetime = "2026-10-01 10:00:00",
+          page = "/1/4/2/1:0",
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:10",
+          text = "Initial highlight text",
+          drawer = "lighten",
+        }
+        bookmark_mod.ui.annotation.annotations = { ann }
+
+        local broadcast_events = {}
+        local last_dialog
+
+        finally(function()
+          bookmark_mod.ui.annotation.annotations = orig_annotations
+          bookmark_mod.showWidget = orig_showWidget
+          UIManager.broadcastEvent = orig_broadcast
+          readerui.document.getTextFromXPointers = orig_getTextFromXPointers
+          if bookmark_mod.bookmark_menu then
+            UIManager:close(bookmark_mod.bookmark_menu)
+            bookmark_mod.bookmark_menu = nil
+          end
+          bookmark_mod.match_table = nil
+          bookmark_mod.show_edited_only = nil
+          bookmark_mod.show_drawer_only = nil
+          while #UIManager._window_stack > 1 do
+            local top_w =
+              UIManager._window_stack[#UIManager._window_stack].widget
+            if top_w ~= readerui then
+              UIManager:close(top_w)
+            else
+              break
+            end
+          end
+        end)
+
+        UIManager.broadcastEvent = function(self, event, ...)
+          table.insert(broadcast_events, event)
+          return orig_broadcast(self, event, ...)
+        end
+
+        bookmark_mod.showWidget = function(self, w, ...)
+          last_dialog = w
+          return orig_showWidget(self, w, ...)
+        end
+
+        bookmark_mod:onShowBookmark()
+        assert.is_not_nil(bookmark_mod.bookmark_menu)
+        local item = bookmark_mod.bookmark_menu[1].item_table[1]
+        assert.are.equal("highlight", item.type)
+
+        -- 1. setBookmarkNote saving "Added note"
+        broadcast_events = {}
+        local cb_called = false
+        bookmark_mod:setBookmarkNote(item, false, nil, function()
+          cb_called = true
+        end)
+        assert.is_not_nil(last_dialog)
+        last_dialog.getInputText = function()
+          return "Added note"
+        end
+        local save_btn
+        for _, row in ipairs(last_dialog.buttons) do
+          for _, b in ipairs(row) do
+            if b.text == "Save" then
+              save_btn = b
+              break
+            end
+          end
+        end
+        assert.is_not_nil(save_btn)
+        save_btn.callback()
+
+        assert.is_true(cb_called)
+        assert.are.equal("note", item.type)
+        assert.are.equal("Added note", item.note)
+        assert.is_not_nil(item.datetime_updated)
+        assert.are.equal(item.datetime_updated, ann.datetime_updated)
+
+        local found_broadcast = false
+        for _, ev in ipairs(broadcast_events) do
+          if
+            type(ev) == "table"
+            and ev.handler == "onAnnotationsModified"
+            and ev.args
+            and ev.args[1]
+          then
+            local arg = ev.args[1]
+            if arg.nb_highlights_added == -1 and arg.nb_notes_added == 1 then
+              found_broadcast = true
+              break
+            end
+          end
+        end
+        assert.is_true(found_broadcast)
+
+        -- 2. editHighlightedText saving "Custom text"
+        last_dialog = nil
+        cb_called = false
+        bookmark_mod:editHighlightedText(item, function()
+          cb_called = true
+        end)
+        assert.is_not_nil(last_dialog)
+        last_dialog.getInputText = function()
+          return "Custom text"
+        end
+        save_btn = nil
+        for _, row in ipairs(last_dialog.buttons) do
+          for _, b in ipairs(row) do
+            if b.text == "Save" then
+              save_btn = b
+              break
+            end
+          end
+        end
+        assert.is_not_nil(save_btn)
+        save_btn.callback()
+
+        assert.is_true(cb_called)
+        assert.are.equal("Custom text", item.text_orig)
+        assert.is_true(item.text_edited)
+        assert.are.equal("Custom text", ann.text)
+        assert.is_true(ann.text_edited)
+
+        -- 3. setHighlightedText resetting text to document:getTextFromXPointers
+        readerui.document.getTextFromXPointers = function(self, p0, p1)
+          assert.are.equal(ann.pos0, p0)
+          assert.are.equal(ann.pos1, p1)
+          return "Reset text from document"
+        end
+
+        cb_called = false
+        bookmark_mod:setHighlightedText(item, nil, function()
+          cb_called = true
+        end)
+        assert.is_true(cb_called)
+        assert.is_nil(item.text_edited)
+        assert.are.equal("Reset text from document", item.text_orig)
+        assert.is_nil(ann.text_edited)
+        assert.are.equal("Reset text from document", ann.text)
+      end
+    )
   end)
 end)
