@@ -28,15 +28,26 @@ function M.show_deleted_annotations(plugin, document)
       callback = function()
         UIManager:show(ConfirmBox:new({
           text = T(
-            gettext(
-              "Are you sure you want to restore all %1 deleted annotations?"
+            N_(
+              "Are you sure you want to restore 1 deleted annotation?",
+              "Are you sure you want to restore all %1 deleted annotations?",
+              #deleted
             ),
             #deleted
           ),
           ok_text = gettext("Restore All"),
           ok_callback = function()
             plugin:restoreAnnotations(deleted, true) -- true = silent
-            utils.show_msg(T(gettext("Restored %1 annotations."), #deleted))
+            utils.show_msg(
+              T(
+                N_(
+                  "Restored 1 annotation.",
+                  "Restored %1 annotations.",
+                  #deleted
+                ),
+                #deleted
+              )
+            )
             UIManager:close(deleted_menu)
           end,
         }))

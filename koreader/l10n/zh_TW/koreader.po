@@ -24552,6 +24552,10 @@ msgstr "標註已還原。"
 msgid "Restored %1 annotations."
 msgstr "已還原 %1 條標註。"
 
+msgid "Restored 1 annotation."
+msgid_plural "Restored %1 annotations."
+msgstr[0] "已還原 %1 條標註。"
+
 msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
 msgstr "未選取任何設定。請在「顯示已變更的設定」中選取要同步的設定。"
 
@@ -24573,8 +24577,9 @@ msgstr "這本書沒有已刪除的標註。"
 msgid "Restore All"
 msgstr "全部還原"
 
-msgid "Are you sure you want to restore all %1 deleted annotations?"
-msgstr "確定要還原全部 %1 條已刪除的標註嗎？"
+msgid "Are you sure you want to restore 1 deleted annotation?"
+msgid_plural "Are you sure you want to restore all %1 deleted annotations?"
+msgstr[0] "確定要還原全部 %1 條已刪除的標註嗎？"
 
 msgid "Do you want to restore this annotation?\n\nPage %1: %2"
 msgstr "要還原這條標註嗎？\n\n第 %1 頁：%2"

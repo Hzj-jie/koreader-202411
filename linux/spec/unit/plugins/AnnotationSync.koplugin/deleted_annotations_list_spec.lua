@@ -205,6 +205,7 @@ describe("AnnotationSync deleted annotations list", function()
     menu.item_table[1].callback()
     local confirm_box = shown_widgets[#shown_widgets]
     assert.is_not_nil(confirm_box)
+    assert.are.equal("Are you sure you want to restore 1 deleted annotation?", confirm_box.text)
     confirm_box.ok_callback()
 
     assert.are.equal("Restored 1 annotation.", captured_msg)

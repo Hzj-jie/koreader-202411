@@ -24927,6 +24927,10 @@ msgstr "标注已恢复。"
 msgid "Restored %1 annotations."
 msgstr "已恢复 %1 条标注。"
 
+msgid "Restored 1 annotation."
+msgid_plural "Restored %1 annotations."
+msgstr[0] "已恢复 %1 条标注。"
+
 msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
 msgstr "未选择任何设置。请在“显示已更改的设置”中选择要同步的设置。"
 
@@ -24948,8 +24952,9 @@ msgstr "这本书没有已删除的标注。"
 msgid "Restore All"
 msgstr "全部恢复"
 
-msgid "Are you sure you want to restore all %1 deleted annotations?"
-msgstr "确定要恢复全部 %1 条已删除的标注吗？"
+msgid "Are you sure you want to restore 1 deleted annotation?"
+msgid_plural "Are you sure you want to restore all %1 deleted annotations?"
+msgstr[0] "确定要恢复全部 %1 条已删除的标注吗？"
 
 msgid "Do you want to restore this annotation?\n\nPage %1: %2"
 msgstr "要恢复这条标注吗？\n\n第 %1 页：%2"

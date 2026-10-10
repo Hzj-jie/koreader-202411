@@ -77,6 +77,18 @@ describe("AnnotationSync internationalization", function()
         1
       )
     )
+    assert.are.equal(
+      "确定要恢复全部 %1 条已删除的标注吗？",
+      _.ngettext(
+        "Are you sure you want to restore 1 deleted annotation?",
+        "Are you sure you want to restore all %1 deleted annotations?",
+        1
+      )
+    )
+    assert.are.equal(
+      "已恢复 %1 条标注。",
+      _.ngettext("Restored 1 annotation.", "Restored %1 annotations.", 1)
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -120,6 +132,18 @@ describe("AnnotationSync internationalization", function()
         "Successfully imported %1 settings.",
         1
       )
+    )
+    assert.are.equal(
+      "確定要還原全部 %1 條已刪除的標註嗎？",
+      _.ngettext(
+        "Are you sure you want to restore 1 deleted annotation?",
+        "Are you sure you want to restore all %1 deleted annotations?",
+        1
+      )
+    )
+    assert.are.equal(
+      "已還原 %1 條標註。",
+      _.ngettext("Restored 1 annotation.", "Restored %1 annotations.", 1)
     )
   end)
 end)
