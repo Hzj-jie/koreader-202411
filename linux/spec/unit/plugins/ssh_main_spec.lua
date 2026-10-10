@@ -521,5 +521,29 @@ describe("SSH plugin main module", function()
 
       G_reader_settings.isTrue = orig_isTrue
     end)
+
+    it(
+      "should handle nil or string return value from Device:retrieveNetworkInfo without crashing",
+      function()
+        local instance = createInstance()
+        instance.SSH_port = "2222"
+
+        local orig_retrieve = Device.retrieveNetworkInfo
+        Device.retrieveNetworkInfo = function()
+          return nil
+        end
+
+        finally(function()
+          Device.retrieveNetworkInfo = orig_retrieve
+        end)
+
+        -- In production main.lua:107:
+        -- Device.retrieveNetworkInfo and table.concat(Device:retrieveNetworkInfo(), "\n")
+        -- evaluates table.concat(nil, "\n") and crashes with bad argument #1 to 'concat'.
+        assert.has_no.errors(function()
+          instance:start(false)
+        end)
+      end
+    )
   end)
 end)
