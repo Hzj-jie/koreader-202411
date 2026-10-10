@@ -563,4 +563,46 @@ describe("VirtualKeyboard component", function()
     local PhysicalKeyboard = require("ui/widget/physicalkeyboard")
     assert.is_table(PhysicalKeyboard)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes genKeyboardLayoutKeyChars crash with 5 configured layouts",
+      function()
+        local mock_inputbox = createMockInputbox()
+        settings_store.keyboard_layouts = { "en", "es", "fr", "de", "ru" }
+        settings_store.keyboard_layout = "en"
+
+        assert.has_no.errors(function()
+          local vk = VirtualKeyboard:new({
+            inputbox = mock_inputbox,
+            width = 600,
+            height = 300,
+          })
+          assert.truthy(vk)
+        end)
+      end
+    )
+
+    it(
+      "fails: exposes onClose stopping text input when keyboard was never shown",
+      function()
+        local mock_inputbox = createMockInputbox()
+        local stop_called = false
+        local orig_stop = Device.stopTextInput
+        Device.stopTextInput = function()
+          stop_called = true
+        end
+
+        local vk = VirtualKeyboard:new({
+          inputbox = mock_inputbox,
+          width = 600,
+          height = 300,
+        })
+        vk:onClose()
+
+        Device.stopTextInput = orig_stop
+        assert.is_false(stop_called)
+      end
+    )
+  end)
 end)
