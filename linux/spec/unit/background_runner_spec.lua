@@ -1047,4 +1047,83 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal("", CommandRunner:_createEnvironment(nil))
     end
   )
+
+  it(
+    "should safely handle errors in job.repeated function in BackgroundRunner:_shouldRepeat",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local error_repeat_job = {
+        repeated = function()
+          error("repeated evaluation error")
+        end,
+      }
+      assert.is_false(BackgroundRunner:_shouldRepeat(error_repeat_job))
+    end
+  )
+
+  it(
+    "should protect callback execution with pcall in BackgroundRunner:_finishJob",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local error_cb_job = {
+        callback = function()
+          error("callback failure")
+        end,
+      }
+      assert.has_no.errors(function()
+        BackgroundRunner:_finishJob(error_cb_job)
+      end)
+    end
+  )
+
+  it(
+    "should handle non-table deserialized output safely in CommandRunner:poll",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local job = { executable = "fork", action = function() end }
+      local entry = {
+        job = job,
+        poll = function()
+          return true
+        end,
+        readAll = function()
+          return "return 42\n"
+        end,
+        close = function() end,
+      }
+      table.insert(CommandRunner.running_jobs, entry)
+      finally(function()
+        CommandRunner.running_jobs = {}
+      end)
+
+      assert.has_no.errors(function()
+        local completed = CommandRunner:poll()
+        assert.is_table(completed)
+        assert.are.equal(222, completed[1].result)
+      end)
+    end
+  )
+
+  it(
+    "should return empty string in CommandRunner:_createEnvironment when environment function returns non-table",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+
+      local number_env_job = {
+        environment = function()
+          return 123
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(number_env_job))
+
+      local string_env_job = {
+        environment = function()
+          return "VAR=1"
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(string_env_job))
+    end
+  )
 end)

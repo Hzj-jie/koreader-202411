@@ -177,4 +177,54 @@ describe("PerceptionExpander plugin module", function()
     inst.is_enabled = false
     inst:onPageUpdate(4)
   end)
+
+  it(
+    "should not reset page_counter to nil when reading settings in createUI",
+    function()
+      local inst = PerceptionExpander:new({
+        ui = {
+          menu = { registerToMainMenu = function() end },
+          view = { registerViewModule = function() end },
+        },
+      })
+      inst:init()
+      inst.is_enabled = true
+      inst.page_counter = 5
+
+      -- createUI(true) reads settings where page_counter is not stored
+      inst:createUI(true)
+      assert.is_not_nil(inst.page_counter)
+      assert.are.equal(5, inst.page_counter)
+    end
+  )
+
+  it(
+    "should not cumulatively shrink margin on repeated createUI in landscape mode",
+    function()
+      local inst = PerceptionExpander:new({
+        ui = {
+          menu = { registerToMainMenu = function() end },
+          view = { registerViewModule = function() end },
+        },
+      })
+      inst:init()
+      inst.is_enabled = true
+
+      local orig_mode = Screen.getScreenMode
+      Screen.getScreenMode = function()
+        return "landscape"
+      end
+      finally(function()
+        Screen.getScreenMode = orig_mode
+      end)
+
+      inst.margin = 0.1
+      inst:createUI(false)
+      local initial_landscape_margin = inst.margin
+
+      -- Calling resetLayout / createUI again in landscape should not shrink margin again
+      inst:resetLayout()
+      assert.are.equal(initial_landscape_margin, inst.margin)
+    end
+  )
 end)
