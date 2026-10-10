@@ -257,36 +257,39 @@ describe("TouchMenu", function()
     assert.is_true(checkmark_called)
   end)
 
-  it("searches menu items recursively and opens a found item via openMenu", function()
-    local sub_item = { text = "Target Sub Item" }
-    local root_item = {
-      text = "Parent Menu",
-      sub_item_table = {
-        sub_item,
-      },
-    }
-    local menu = TouchMenu:new({
-      tab_item_table = {
-        {
-          text = "Tab 1",
-          icon = "dummy",
-          root_item,
+  it(
+    "searches menu items recursively and opens a found item via openMenu",
+    function()
+      local sub_item = { text = "Target Sub Item" }
+      local root_item = {
+        text = "Parent Menu",
+        sub_item_table = {
+          sub_item,
         },
-      },
-    })
+      }
+      local menu = TouchMenu:new({
+        tab_item_table = {
+          {
+            text = "Tab 1",
+            icon = "dummy",
+            root_item,
+          },
+        },
+      })
 
-    local results = menu:search("target")
-    assert.is_table(results)
-    assert.are.equal(1, #results)
-    assert.are.equal("Target Sub Item", results[1][1])
-    local path = results[1][3]
-    assert.are.equal("1.1.1", path)
+      local results = menu:search("target")
+      assert.is_table(results)
+      assert.are.equal(1, #results)
+      assert.are.equal("Target Sub Item", results[1][1])
+      local path = results[1][3]
+      assert.are.equal("1.1.1", path)
 
-    -- Open menu item path without animation
-    assert.has_no.errors(function()
-      menu:openMenu(path, false)
-    end)
-  end)
+      -- Open menu item path without animation
+      assert.has_no.errors(function()
+        menu:openMenu(path, false)
+      end)
+    end
+  )
 
   it("handles onGotoPage and onTapCloseAllMenus", function()
     local Geom = require("ui/geometry")
@@ -314,7 +317,10 @@ describe("TouchMenu", function()
 
     menu.dimen = Geom:new({ x = 0, y = 0, w = 600, h = 300 })
     -- Tap outside to close all menus
-    menu:onTapCloseAllMenus(nil, { pos = Geom:new({ x = 0, y = 500, w = 1, h = 1 }) })
+    menu:onTapCloseAllMenus(
+      nil,
+      { pos = Geom:new({ x = 0, y = 500, w = 1, h = 1 }) }
+    )
     assert.is_true(closed)
   end)
 

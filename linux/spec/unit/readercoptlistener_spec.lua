@@ -168,34 +168,37 @@ describe("ReaderCoptListener module", function()
       end
     end)
 
-    it("should populate getAltStatusBarMenu items and exercise callbacks", function()
-      local listener = createMockListener()
-      local menu = listener:getAltStatusBarMenu()
-      assert.truthy(menu)
-      assert.truthy(menu.sub_item_table)
+    it(
+      "should populate getAltStatusBarMenu items and exercise callbacks",
+      function()
+        local listener = createMockListener()
+        local menu = listener:getAltStatusBarMenu()
+        assert.truthy(menu)
+        assert.truthy(menu.sub_item_table)
 
-      for _, item in ipairs(menu.sub_item_table) do
-        if item.checked_func then
-          pcall(item.checked_func)
-        end
-        if item.text_func then
-          pcall(item.text_func)
-        end
-        if item.callback then
-          pcall(item.callback)
-        end
-        if item.sub_item_table then
-          for _, sub in ipairs(item.sub_item_table) do
-            if sub.checked_func then
-              pcall(sub.checked_func)
-            end
-            if sub.callback then
-              pcall(sub.callback)
+        for _, item in ipairs(menu.sub_item_table) do
+          if item.checked_func then
+            pcall(item.checked_func)
+          end
+          if item.text_func then
+            pcall(item.text_func)
+          end
+          if item.callback then
+            pcall(item.callback)
+          end
+          if item.sub_item_table then
+            for _, sub in ipairs(item.sub_item_table) do
+              if sub.checked_func then
+                pcall(sub.checked_func)
+              end
+              if sub.callback then
+                pcall(sub.callback)
+              end
             end
           end
         end
       end
-    end)
+    )
 
     it("should add and remove additional header content", function()
       local listener = createMockListener()
@@ -208,68 +211,80 @@ describe("ReaderCoptListener module", function()
       assert.is_false(listener:removeAdditionalHeaderContent(test_fn))
     end)
 
-    it("should calculate page_info_override and handle header update events", function()
-      local listener = createMockListener()
-      listener.page_number = 1
-      listener.page_count = 1
-      listener.reading_percent = 1
-      listener.battery = 1
-      listener.battery_percent = 1
-      listener.clock = 1
+    it(
+      "should calculate page_info_override and handle header update events",
+      function()
+        local listener = createMockListener()
+        listener.page_number = 1
+        listener.page_count = 1
+        listener.reading_percent = 1
+        listener.battery = 1
+        listener.battery_percent = 1
+        listener.clock = 1
 
-      local pinfo = listener:page_info_override()
-      assert.is_boolean(pinfo)
-      listener:page_info_override(1)
+        local pinfo = listener:page_info_override()
+        assert.is_boolean(pinfo)
+        listener:page_info_override(1)
 
-      listener:_updateHeader(true)
-      listener:onUpdateHeader()
-      listener:onTimeFormatChanged()
-      listener:onBookMetadataChanged("title")
-      listener:onPageUpdate(1)
-      listener:onPosUpdate(1, 1)
-    end)
-
-    it("should handle battery, resume, screensaver, and config change events", function()
-      local listener = createMockListener()
-      listener:onCharging()
-      listener:onResume()
-      listener:onOutOfScreenSaver()
-
-      listener:onConfigChange("font_size", 20)
-      listener:onConfigChange("font_size", 2)
-    end)
-
-    it("should handle headerRefresh and updatePageInfoOverride with page and scroll view_modes", function()
-      local listener = createMockListener()
-      listener.document.configurable.status_line = 0
-      listener.ui.view.view_mode = "page"
-      listener.clock = 1
-      listener.battery = 1
-
-      local header_updated = false
-      listener._updateHeader = function()
-        header_updated = true
+        listener:_updateHeader(true)
+        listener:onUpdateHeader()
+        listener:onTimeFormatChanged()
+        listener:onBookMetadataChanged("title")
+        listener:onPageUpdate(1)
+        listener:onPosUpdate(1, 1)
       end
+    )
 
-      -- _headerRefresh in page mode with clock
-      listener:_headerRefresh()
-      assert.is_true(header_updated)
+    it(
+      "should handle battery, resume, screensaver, and config change events",
+      function()
+        local listener = createMockListener()
+        listener:onCharging()
+        listener:onResume()
+        listener:onOutOfScreenSaver()
 
-      -- _headerRefresh in scroll mode
-      header_updated = false
-      listener.ui.view.view_mode = "scroll"
-      listener:_headerRefresh()
-      assert.is_false(header_updated)
+        listener:onConfigChange("font_size", 20)
+        listener:onConfigChange("font_size", 2)
+      end
+    )
 
-      -- updatePageInfoOverride in scroll mode (resets override)
-      listener:updatePageInfoOverride(5)
+    it(
+      "should handle headerRefresh and updatePageInfoOverride with page and scroll view_modes",
+      function()
+        local listener = createMockListener()
+        listener.document.configurable.status_line = 0
+        listener.ui.view.view_mode = "page"
+        listener.clock = 1
+        listener.battery = 1
 
-      -- updatePageInfoOverride in page mode with header content
-      listener.ui.view.view_mode = "page"
-      listener:addAdditionalHeaderContent(function() return "EXTRA" end)
-      listener.page_info_override = function() return true end
-      listener:updatePageInfoOverride(5)
-    end)
+        local header_updated = false
+        listener._updateHeader = function()
+          header_updated = true
+        end
+
+        -- _headerRefresh in page mode with clock
+        listener:_headerRefresh()
+        assert.is_true(header_updated)
+
+        -- _headerRefresh in scroll mode
+        header_updated = false
+        listener.ui.view.view_mode = "scroll"
+        listener:_headerRefresh()
+        assert.is_false(header_updated)
+
+        -- updatePageInfoOverride in scroll mode (resets override)
+        listener:updatePageInfoOverride(5)
+
+        -- updatePageInfoOverride in page mode with header content
+        listener.ui.view.view_mode = "page"
+        listener:addAdditionalHeaderContent(function()
+          return "EXTRA"
+        end)
+        listener.page_info_override = function()
+          return true
+        end
+        listener:updatePageInfoOverride(5)
+      end
+    )
   end)
 end)
-

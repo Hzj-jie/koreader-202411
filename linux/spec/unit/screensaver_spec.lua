@@ -19,136 +19,180 @@ describe("Screensaver module", function()
 
   it("should calculate average time for pages", function()
     local old_getAvg = Screensaver.getAvgTimePerPage
-    Screensaver.getAvgTimePerPage = function() return 60 end
+    Screensaver.getAvgTimePerPage = function()
+      return 60
+    end
 
     local sec = Screensaver:_calcAverageTimeForPages(5)
     assert.is_not_nil(sec)
     assert.is_string(sec)
 
-    Screensaver.getAvgTimePerPage = function() return nil end
+    Screensaver.getAvgTimePerPage = function()
+      return nil
+    end
     assert.are_equal("N/A", Screensaver:_calcAverageTimeForPages(5))
 
     Screensaver.getAvgTimePerPage = old_getAvg
   end)
 
-  it("should expand special tokens with ReaderUI instance and hidden flows", function()
-    local ReaderUI = require("apps/reader/readerui")
-    local mock_doc = {
-      hasHiddenFlows = function() return true end,
-      getPageNumberInFlow = function() return 10 end,
-      getTotalPagesInFlow = function() return 50 end,
-      getPageFlow = function() return 1 end,
-    }
-    local mock_ui = {
-      document = mock_doc,
-      view = { state = { page = 10 } },
-      toc = { getChapterPagesLeft = function() return 5 end },
-      doc_props = {
-        display_title = "My Test Book",
-        authors = "Test Author",
-        series = "Test Series",
-        series_index = 2,
-      },
-    }
+  it(
+    "should expand special tokens with ReaderUI instance and hidden flows",
+    function()
+      local ReaderUI = require("apps/reader/readerui")
+      local mock_doc = {
+        hasHiddenFlows = function()
+          return true
+        end,
+        getPageNumberInFlow = function()
+          return 10
+        end,
+        getTotalPagesInFlow = function()
+          return 50
+        end,
+        getPageFlow = function()
+          return 1
+        end,
+      }
+      local mock_ui = {
+        document = mock_doc,
+        view = { state = { page = 10 } },
+        toc = {
+          getChapterPagesLeft = function()
+            return 5
+          end,
+        },
+        doc_props = {
+          display_title = "My Test Book",
+          authors = "Test Author",
+          series = "Test Series",
+          series_index = 2,
+        },
+      }
 
-    ReaderUI.instance = mock_ui
-    G_reader_settings:save("lastfile", "/fake/book.epub")
+      ReaderUI.instance = mock_ui
+      G_reader_settings:save("lastfile", "/fake/book.epub")
 
-    local template = "%T by %A (%S) page %c of %t (%p%%), ch_left: %h, doc_left: %H"
-    local res = Screensaver:expandSpecial(template, "fallback")
-    assert.is_true(res:find("My Test Book") ~= nil)
-    assert.is_true(res:find("Test Series #2") ~= nil)
+      local template =
+        "%T by %A (%S) page %c of %t (%p%%), ch_left: %h, doc_left: %H"
+      local res = Screensaver:expandSpecial(template, "fallback")
+      assert.is_true(res:find("My Test Book") ~= nil)
+      assert.is_true(res:find("Test Series #2") ~= nil)
 
-    -- Test non-hidden flows
-    mock_doc.hasHiddenFlows = function() return false end
-    mock_doc.getPageCount = function() return 100 end
-    mock_doc.getTotalPagesLeft = function() return 20 end
-    local res2 = Screensaver:expandSpecial(template, "fallback")
-    assert.is_true(res2:find("My Test Book") ~= nil)
+      -- Test non-hidden flows
+      mock_doc.hasHiddenFlows = function()
+        return false
+      end
+      mock_doc.getPageCount = function()
+        return 100
+      end
+      mock_doc.getTotalPagesLeft = function()
+        return 20
+      end
+      local res2 = Screensaver:expandSpecial(template, "fallback")
+      assert.is_true(res2:find("My Test Book") ~= nil)
 
-    ReaderUI.instance = nil
-    G_reader_settings:save("lastfile", nil)
-  end)
+      ReaderUI.instance = nil
+      G_reader_settings:save("lastfile", nil)
+    end
+  )
 
-  it("should handle setup with document_cover, bookstatus, and cover exclusions", function()
-    local ReaderUI = require("apps/reader/readerui")
-    local mock_ui = {
-      doc_settings = {
-        isTrue = function(_, key) return key == "exclude_screensaver" end,
-        nilOrFalse = function(_, key) return false end,
-      },
-    }
-    ReaderUI.instance = mock_ui
+  it(
+    "should handle setup with document_cover, bookstatus, and cover exclusions",
+    function()
+      local ReaderUI = require("apps/reader/readerui")
+      local mock_ui = {
+        doc_settings = {
+          isTrue = function(_, key)
+            return key == "exclude_screensaver"
+          end,
+          nilOrFalse = function(_, key)
+            return false
+          end,
+        },
+      }
+      ReaderUI.instance = mock_ui
 
-    -- Cover excluded -> falls back to random_image
-    G_reader_settings:save("screensaver_type", "cover")
-    G_reader_settings:save("lastfile", "/fake/book.epub")
-    Screensaver:setup()
-    assert.are_equal("random_image", Screensaver.screensaver_type)
+      -- Cover excluded -> falls back to random_image
+      G_reader_settings:save("screensaver_type", "cover")
+      G_reader_settings:save("lastfile", "/fake/book.epub")
+      Screensaver:setup()
+      assert.are_equal("random_image", Screensaver.screensaver_type)
 
-    -- Bookstatus excluded -> falls back to random_image
-    G_reader_settings:save("screensaver_type", "bookstatus")
-    Screensaver:setup()
-    assert.are_equal("random_image", Screensaver.screensaver_type)
+      -- Bookstatus excluded -> falls back to random_image
+      G_reader_settings:save("screensaver_type", "bookstatus")
+      Screensaver:setup()
+      assert.are_equal("random_image", Screensaver.screensaver_type)
 
-    -- Disable excluded -> falls back to random_image
-    G_reader_settings:save("screensaver_type", "disable")
-    Screensaver:setup()
-    assert.are_equal("random_image", Screensaver.screensaver_type)
+      -- Disable excluded -> falls back to random_image
+      G_reader_settings:save("screensaver_type", "disable")
+      Screensaver:setup()
+      assert.are_equal("random_image", Screensaver.screensaver_type)
 
-    -- Document cover
-    G_reader_settings:save("screensaver_type", "document_cover")
-    G_reader_settings:save("screensaver_document_cover", "/fake/cover.jpg")
-    mock_ui.doc_settings.isTrue = function() return false end
-    Screensaver:setup()
-    assert.are_equal("random_image", Screensaver.screensaver_type)
+      -- Document cover
+      G_reader_settings:save("screensaver_type", "document_cover")
+      G_reader_settings:save("screensaver_document_cover", "/fake/cover.jpg")
+      mock_ui.doc_settings.isTrue = function()
+        return false
+      end
+      Screensaver:setup()
+      assert.are_equal("random_image", Screensaver.screensaver_type)
 
-    ReaderUI.instance = nil
-    G_reader_settings:save("screensaver_type", nil)
-    G_reader_settings:save("lastfile", nil)
-    G_reader_settings:save("screensaver_document_cover", nil)
-  end)
+      ReaderUI.instance = nil
+      G_reader_settings:save("screensaver_type", nil)
+      G_reader_settings:save("lastfile", nil)
+      G_reader_settings:save("screensaver_document_cover", nil)
+    end
+  )
 
-  it("should handle show with gesture lock, landscape rotation switch, and overlay messages", function()
-    local orig_show = UIManager.show
-    local orig_close = UIManager.close
-    local shown_widgets = {}
-    UIManager.show = function(_, w) table.insert(shown_widgets, w) end
-    UIManager.close = function(_, w) end
+  it(
+    "should handle show with gesture lock, landscape rotation switch, and overlay messages",
+    function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      local shown_widgets = {}
+      UIManager.show = function(_, w)
+        table.insert(shown_widgets, w)
+      end
+      UIManager.close = function(_, w) end
 
-    -- Set touch device and gesture delay
-    local orig_isTouch = Device.isTouchDevice
-    local orig_hasEink = Device.hasEinkScreen
-    Device.isTouchDevice = function() return true end
-    Device.hasEinkScreen = function() return true end
+      -- Set touch device and gesture delay
+      local orig_isTouch = Device.isTouchDevice
+      local orig_hasEink = Device.hasEinkScreen
+      Device.isTouchDevice = function()
+        return true
+      end
+      Device.hasEinkScreen = function()
+        return true
+      end
 
-    G_reader_settings:save("screensaver_delay", "gesture")
-    G_reader_settings:save("screensaver_type", "random_image")
-    G_reader_settings:save("screensaver_img_background", "black")
-    G_reader_settings:makeTrue("screensaver_show_message")
+      G_reader_settings:save("screensaver_delay", "gesture")
+      G_reader_settings:save("screensaver_type", "random_image")
+      G_reader_settings:save("screensaver_img_background", "black")
+      G_reader_settings:makeTrue("screensaver_show_message")
 
-    -- Landscape orientation switch to upright
-    Screen:setRotationMode(Screen.DEVICE_ROTATED_CLOCKWISE) -- 1 (odd -> landscape)
-    Screensaver:setup("reboot", "System Rebooting...")
-    Screensaver:show()
+      -- Landscape orientation switch to upright
+      Screen:setRotationMode(Screen.DEVICE_ROTATED_CLOCKWISE) -- 1 (odd -> landscape)
+      Screensaver:setup("reboot", "System Rebooting...")
+      Screensaver:show()
 
-    assert.is_not_nil(Screensaver.screensaver_widget)
-    assert.is_not_nil(Screensaver.screensaver_lock_widget)
-    assert.are_equal(Screen.DEVICE_ROTATED_UPRIGHT, Screen:getRotationMode())
+      assert.is_not_nil(Screensaver.screensaver_widget)
+      assert.is_not_nil(Screensaver.screensaver_lock_widget)
+      assert.are_equal(Screen.DEVICE_ROTATED_UPRIGHT, Screen:getRotationMode())
 
-    -- Close in gesture mode
-    Screensaver:close()
+      -- Close in gesture mode
+      Screensaver:close()
 
-    Screensaver:cleanup()
-    assert.is_nil(Screensaver.screensaver_widget)
+      Screensaver:cleanup()
+      assert.is_nil(Screensaver.screensaver_widget)
 
-    Device.isTouchDevice = orig_isTouch
-    Device.hasEinkScreen = orig_hasEink
-    G_reader_settings:save("screensaver_delay", nil)
-    G_reader_settings:save("screensaver_type", nil)
-    UIManager.show = orig_show
-    UIManager.close = orig_close
-  end)
+      Device.isTouchDevice = orig_isTouch
+      Device.hasEinkScreen = orig_hasEink
+      G_reader_settings:save("screensaver_delay", nil)
+      G_reader_settings:save("screensaver_type", nil)
+      UIManager.show = orig_show
+      UIManager.close = orig_close
+    end
+  )
 
   it("should handle SVG and image auto-rotation in screensaver", function()
     local orig_show = UIManager.show
@@ -172,7 +216,9 @@ describe("Screensaver module", function()
   it("should test isExcluded and dialog setters", function()
     local orig_show = UIManager.show
     local shown = nil
-    UIManager.show = function(_, w) shown = w end
+    UIManager.show = function(_, w)
+      shown = w
+    end
 
     Screensaver:chooseFile()
     assert.is_not_nil(shown)
@@ -187,4 +233,39 @@ describe("Screensaver module", function()
 
     UIManager.show = orig_show
   end)
+
+  it(
+    "should fallback to disable when screensaver_type or screensaver_delay is unset",
+    function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      finally(function()
+        Screensaver:cleanup()
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+      end)
+      local closed_widget = nil
+      UIManager.show = function(_, w) end
+      UIManager.close = function(_, w)
+        closed_widget = w
+      end
+
+      -- When screensaver_type is unset, setup() defaults to "disable" and show() returns nil
+      G_reader_settings:delete("screensaver_type")
+      G_reader_settings:makeFalse("screensaver_show_message")
+      Screensaver:setup()
+      assert.are_equal("disable", Screensaver.screensaver_type)
+      local ret = Screensaver:show()
+      assert.is_nil(ret)
+      assert.is_nil(Screensaver.screensaver_widget)
+
+      -- When screensaver_delay is unset and screensaver_widget is set, close() falls back to "disable" and closes immediately
+      G_reader_settings:delete("screensaver_delay")
+      Screensaver.prefix = "screensaver_"
+      local mock_widget = { id = "mock_widget" }
+      Screensaver.screensaver_widget = mock_widget
+      Screensaver:close()
+      assert.are_equal(mock_widget, closed_widget)
+    end
+  )
 end)
