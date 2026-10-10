@@ -416,5 +416,23 @@ describe("background_jobs", function()
       job2.callback({ result = 2 })
       assert.is_false(background_jobs.hasKey("echo beta"))
     end)
+
+    it(
+      "should allow re-inserting the same job table after completion without custom when error",
+      function()
+        local my_job = {
+          executable = "my-reused-job",
+        }
+        local ok1 = background_jobs.insertKeyed(my_job)
+        assert.is_true(ok1)
+        local job1 =
+          mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
+        job1.callback({ result = true })
+
+        -- Re-inserting the same table should not error with "does not support custom when"
+        local ok2 = background_jobs.insertKeyed(my_job)
+        assert.is_true(ok2)
+      end
+    )
   end)
 end)
