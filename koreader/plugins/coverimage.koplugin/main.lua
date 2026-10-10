@@ -81,8 +81,7 @@ local CoverImage = WidgetContainer:extend({
   is_doc_only = true,
 })
 
-local default_cache_path = DataStorage:getDataDir()
-  .. "/cache/cover_image.cache/"
+local default_cache_path = DataStorage:getCacheDir() .. "/cover_image.cache/"
 local default_fallback_path = DataStorage:getDataDir() .. "/"
 
 function CoverImage:init()

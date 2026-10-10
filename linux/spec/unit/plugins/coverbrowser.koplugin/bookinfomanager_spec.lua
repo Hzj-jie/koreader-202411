@@ -28,6 +28,17 @@ describe("Coverbrowser BookInfoManager module", function()
         assert.is_number(BookInfoManager.subprocesses_collect_interval)
       end
     )
+
+    it(
+      "should set tmpcr3cache to DataStorage:getCacheDir /tmpcr3cache on init",
+      function()
+        BookInfoManager:init()
+        assert.are.equal(
+          DataStorage:getCacheDir() .. "/tmpcr3cache",
+          BookInfoManager.tmpcr3cache
+        )
+      end
+    )
   end)
 
   describe("Database Lifecycle & Utilities", function()

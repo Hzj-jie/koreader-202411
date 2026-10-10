@@ -198,6 +198,8 @@ local UIManager = require("ui/uimanager")
 require("background_jobs") -- Inject must-have background jobs.
 require("docsettings").cleanHashLocationIfEmpty()
 
+DataStorage:showStorageWarningIfNeeded()
+
 -- Inform once about color rendering on newly supported devices
 -- (there are some android devices that may not have a color screen,
 -- and we are not (yet?) able to guess that fact)
