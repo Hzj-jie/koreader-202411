@@ -1013,4 +1013,65 @@ describe("BookMapWidget widget", function()
       end
     )
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "BookMapRow:getPageAtX avoids division by zero on narrow partial rows",
+      function()
+        local font_face = Font:getFace("infofont", 14)
+        local row = BookMapWidget.BookMapRow:new({
+          width = 40,
+          height = 60,
+          left_spacing = 0,
+          span_height = 10,
+          font_face = font_face,
+          start_page_text = "101",
+          start_page = 101,
+          end_page = 101,
+          pages_per_row = 100,
+          cur_page = 101,
+          toc_items = {},
+          bookmarked_pages = {},
+          previous_locations = {},
+          extra_symbols_pages = {},
+          hidden_flows = {},
+          read_pages = {},
+          page_texts = {},
+        })
+
+        assert.are.equal(101, row:getPageAtX(row.pages_frame_offset_x, true))
+      end
+    )
+
+    it(
+      "BookMapWidget:paintBottomHorizontalSwipeHint avoids division by zero when min == max pages per row",
+      function()
+        local widget = BookMapWidget:new({
+          ui = mock_ui,
+        })
+        widget.min_pages_per_row = 20
+        widget.max_pages_per_row = 20
+        widget.pages_per_row = 20
+
+        local painted_rects = {}
+        local mock_bb = {
+          paintRect = function(self, x, y, w, h, color)
+            table.insert(
+              painted_rects,
+              { x = x, y = y, w = w, h = h, color = color }
+            )
+          end,
+        }
+
+        widget:paintBottomHorizontalSwipeHint(mock_bb)
+        assert.are.equal(2, #painted_rects)
+        local handle = painted_rects[2]
+        assert.is_true(
+          handle.x == handle.x,
+          "handle x coordinate should not be NaN"
+        )
+        assert.is_true(handle.x > 0, "handle x coordinate should be positive")
+      end
+    )
+  end)
 end)

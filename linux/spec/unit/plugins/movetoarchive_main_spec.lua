@@ -181,4 +181,54 @@ describe("MoveToArchive main plugin module", function()
     instance:openFileBrowser("/another/path")
     assert.are.equal("/another/path", show_files_path)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: onMoveToArchive updates history and settings even when file move fails",
+      function()
+        local mock_ui = {
+          menu = { registerToMainMenu = function() end },
+          document = { file = "/books/fiction/book1.epub" },
+          onExit = function() end,
+        }
+        local instance = MoveToArchive:new({ ui = mock_ui })
+        instance:init()
+        instance.archive_dir_path = "/archive/"
+        instance.last_copied_from_dir = "/books/fiction/"
+
+        local orig_move = FileManager.moveFile
+        local move_failed = false
+        FileManager.moveFile = function(self_fm, src, dst)
+          move_failed = true
+          return false, "permission denied"
+        end
+
+        local updated_docsettings = false
+        local orig_updateLocation = DocSettings.updateLocation
+        DocSettings.updateLocation = function(src, dst, is_copy)
+          updated_docsettings = true
+        end
+
+        local readhistory = require("readhistory")
+        local orig_updateItem = readhistory.updateItem
+        local updated_history = false
+        readhistory.updateItem = function(self_rh, src, dst)
+          updated_history = true
+        end
+
+        finally(function()
+          FileManager.moveFile = orig_move
+          DocSettings.updateLocation = orig_updateLocation
+          readhistory.updateItem = orig_updateItem
+        end)
+
+        instance:onMoveToArchive(false)
+        assert.is_true(move_failed)
+        -- When FileManager:moveFile fails, DocSettings and ReadHistory should NOT be updated.
+        -- Bug: onMoveToArchive ignores moveFile return value and unconditionally updates them.
+        assert.is_false(updated_docsettings)
+        assert.is_false(updated_history)
+      end
+    )
+  end)
 end)

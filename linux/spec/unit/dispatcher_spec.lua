@@ -608,4 +608,62 @@ describe("dispatcher", function()
       UIManager.close = old_close
     end)
   end)
+
+  describe("Defect verifications", function()
+    after_each(function()
+      Dispatcher:removeAction("test_custom_str")
+      Dispatcher:removeAction("test_conf_dynamic")
+    end)
+
+    it(
+      "getNameFromItem falls back to string format for unknown string setting",
+      function()
+        Dispatcher:registerAction("test_custom_str", {
+          category = "string",
+          title = "Custom String Action",
+          args = { "opt_a", "opt_b" },
+          toggle = { "Option A", "Option B" },
+        })
+
+        assert.has_no.errors(function()
+          local name = Dispatcher:getNameFromItem(
+            "test_custom_str",
+            { test_custom_str = "opt_unknown" }
+          )
+          assert.are.equal("Custom String Action: opt_unknown", name)
+        end)
+      end
+    )
+
+    it("execute resolves configurable values with args_func", function()
+      package.loaded["apps/reader/readerui"] = {
+        instance = { paging = true },
+      }
+
+      Dispatcher:registerAction("test_conf_dynamic", {
+        category = "string",
+        event = "SomeEvent",
+        reader = true,
+        args_func = function()
+          return { "val_a", "val_b" }, { "Value A", "Value B" }
+        end,
+        configurable = {
+          name = "conf_param",
+          values = { 100, 200 },
+        },
+      })
+
+      assert.has_no.errors(function()
+        Dispatcher:execute({ test_conf_dynamic = "val_a" })
+      end)
+
+      local config_change_val
+      for _, ev in ipairs(captured_inputs) do
+        if ev.handler == "onConfigChange" and ev.args[1] == "conf_param" then
+          config_change_val = ev.args[2]
+        end
+      end
+      assert.are.equal(100, config_change_val)
+    end)
+  end)
 end)
