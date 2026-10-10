@@ -59,7 +59,7 @@ function M.show_deleted_annotations(plugin, document)
           UIManager:show(ConfirmBox:new({
             text = T(
               gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
-              ann.page,
+              ann.pageno,
               ann.text or ann.note or ""
             ),
             ok_text = gettext("Restore"),
