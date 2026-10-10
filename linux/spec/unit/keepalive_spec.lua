@@ -245,4 +245,42 @@ describe("KeepAlive plugin tests", function()
     assert.is_table(KeepAliveClass)
     assert.is_true(KeepAliveClass.disabled)
   end)
+
+  it(
+    "dismissing ConfirmBox via tap-outside leaves pause_auto_suspend enabled permanently",
+    function()
+      Device.isKobo.returns(true)
+      PluginShare.pause_auto_suspend = false
+      PluginShare.keepalive = false
+
+      local KeepAliveClass = dofile("plugins/keepalive.koplugin/main.lua")
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local keepalive = KeepAliveClass:new({ ui = mock_ui })
+      keepalive:init()
+
+      local menu_items = {}
+      keepalive:addToMainMenu(menu_items)
+      local menuItem = menu_items.keep_alive
+
+      local mock_touchmenu = { updateItems = function() end }
+      -- User taps "Keep alive" menu item:
+      menuItem.callback(mock_touchmenu)
+
+      -- The plugin immediately enables pause_auto_suspend and displays the ConfirmBox:
+      assert.is_true(PluginShare.pause_auto_suspend)
+      local confirm_box = UIManager.show.calls[#UIManager.show.calls].refs[2]
+      assert.is_table(confirm_box)
+
+      -- User dismisses the dialog via Back button, ESC, or tap outside (which calls UIManager:close)
+      -- without pressing the "Close" button (cancel_callback):
+      UIManager:close(confirm_box)
+
+      -- Bug: PluginShare.pause_auto_suspend was enabled before confirmation,
+      -- and closing the dialog without clicking cancel_callback leaves pause_auto_suspend
+      -- permanently true while PluginShare.keepalive remains false!
+      assert.is_false(PluginShare.pause_auto_suspend)
+    end
+  )
 end)
