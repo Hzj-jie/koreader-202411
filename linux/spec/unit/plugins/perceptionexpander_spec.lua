@@ -36,14 +36,20 @@ describe("PerceptionExpander plugin module", function()
     local registered_view = false
     local mock_ui = {
       menu = {
-        registerToMainMenu = function() registered_menu = true end,
+        registerToMainMenu = function()
+          registered_menu = true
+        end,
       },
       view = {
-        registerViewModule = function() registered_view = true end,
+        registerViewModule = function()
+          registered_view = true
+        end,
       },
       doc_settings = {
         read = function(self_s, key)
-          if key == "partial_md5_checksum" then return "12345" end
+          if key == "partial_md5_checksum" then
+            return "12345"
+          end
           return nil
         end,
       },
@@ -82,57 +88,63 @@ describe("PerceptionExpander plugin module", function()
     assert.is_table(inst[1])
   end)
 
-  it("should add main menu item, toggle enable, and show settings/about", function()
-    local mock_ui = {
-      menu = { registerToMainMenu = function() end },
-      view = { registerViewModule = function() end },
-    }
-    local inst = PerceptionExpander:new({ ui = mock_ui })
-    inst:init()
+  it(
+    "should add main menu item, toggle enable, and show settings/about",
+    function()
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+        view = { registerViewModule = function() end },
+      }
+      local inst = PerceptionExpander:new({ ui = mock_ui })
+      inst:init()
 
-    local menu_items = {}
-    inst:addToMainMenu(menu_items)
+      local menu_items = {}
+      inst:addToMainMenu(menu_items)
 
-    local sub_items = menu_items.speed_reading_module_perception_expander.sub_item_table
-    assert.is_table(sub_items)
-    assert.are.equal(3, #sub_items)
+      local sub_items =
+        menu_items.speed_reading_module_perception_expander.sub_item_table
+      assert.is_table(sub_items)
+      assert.are.equal(3, #sub_items)
 
-    -- 1. Toggle Enable
-    assert.is_false(sub_items[1].checked_func())
-    sub_items[1].callback()
-    assert.is_true(inst.is_enabled)
+      -- 1. Toggle Enable
+      assert.is_false(sub_items[1].checked_func())
+      sub_items[1].callback()
+      assert.is_true(inst.is_enabled)
 
-    -- 2. Open Settings dialog
-    local shown_widget
-    local orig_show = UIManager.show
-    local orig_close = UIManager.close
-    UIManager.show = function(self_uim, w) shown_widget = w end
-    UIManager.close = function() end
+      -- 2. Open Settings dialog
+      local shown_widget
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      UIManager.show = function(self_uim, w)
+        shown_widget = w
+      end
+      UIManager.close = function() end
 
-    sub_items[2].callback()
-    assert.is_table(shown_widget)
-    assert.is_table(shown_widget.buttons)
+      sub_items[2].callback()
+      assert.is_table(shown_widget)
+      assert.is_table(shown_widget.buttons)
 
-    -- Cancel button
-    shown_widget.buttons[1][1].callback()
+      -- Cancel button
+      shown_widget.buttons[1][1].callback()
 
-    -- Apply button
-    shown_widget.getFields = function()
-      return { "3", "0.15", "5", "50" }
+      -- Apply button
+      shown_widget.getFields = function()
+        return { "3", "0.15", "5", "50" }
+      end
+      shown_widget.buttons[1][2].callback()
+      assert.are.equal(3, inst.line_thickness)
+      assert.are.equal(0.15, inst.margin)
+      assert.are.equal(0.5, inst.line_color_intensity)
+      assert.are.equal(50, inst.shift_each_pages)
+
+      -- 3. About dialog
+      sub_items[3].callback()
+      assert.is_table(shown_widget)
+
+      UIManager.show = orig_show
+      UIManager.close = orig_close
     end
-    shown_widget.buttons[1][2].callback()
-    assert.are.equal(3, inst.line_thickness)
-    assert.are.equal(0.15, inst.margin)
-    assert.are.equal(0.5, inst.line_color_intensity)
-    assert.are.equal(50, inst.shift_each_pages)
-
-    -- 3. About dialog
-    sub_items[3].callback()
-    assert.is_table(shown_widget)
-
-    UIManager.show = orig_show
-    UIManager.close = orig_close
-  end)
+  )
 
   it("should handle onPageUpdate and auto-shift margins", function()
     local inst = PerceptionExpander:new({

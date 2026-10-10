@@ -46,7 +46,9 @@ describe("common_exit_menu_table", function()
       exit_settings.exit.callback()
     end
 
-    if exit_settings.restart_koreader and exit_settings.restart_koreader.callback then
+    if
+      exit_settings.restart_koreader and exit_settings.restart_koreader.callback
+    then
       exit_settings.restart_koreader.callback()
     end
 
@@ -66,10 +68,14 @@ describe("common_exit_menu_table", function()
     end
 
     -- Test when canRestart is false
-    local can_restart_stub = stub(Device, "canRestart", function() return false end)
+    local can_restart_stub = stub(Device, "canRestart", function()
+      return false
+    end)
     local LuaDefaults = require("luadefaults")
     local do_not_exit_stub = stub(LuaDefaults, "isTrue", function(self, key)
-      if key == "DO_NOT_EXIT" then return false end
+      if key == "DO_NOT_EXIT" then
+        return false
+      end
       return false
     end)
     package.loaded["ui/elements/common_exit_menu_table"] = nil

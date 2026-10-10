@@ -86,63 +86,88 @@ describe("ReaderScreenshot module", function()
     os.remove(name)
   end)
 
-  it("should test key registration and gesture events across device types", function()
-    -- Keyboard device
-    local orig_hasKb = Device.hasKeyboard
-    local orig_hasScreenKB = Device.hasScreenKB
-    local orig_isTouch = Device.isTouchDevice
+  it(
+    "should test key registration and gesture events across device types",
+    function()
+      -- Keyboard device
+      local orig_hasKb = Device.hasKeyboard
+      local orig_hasScreenKB = Device.hasScreenKB
+      local orig_isTouch = Device.isTouchDevice
 
-    Device.hasKeyboard = function() return true end
-    Device.hasScreenKB = function() return false end
-    Device.isTouchDevice = function() return true end
+      Device.hasKeyboard = function()
+        return true
+      end
+      Device.hasScreenKB = function()
+        return false
+      end
+      Device.isTouchDevice = function()
+        return true
+      end
 
-    local s_kb = Screenshoter:new({})
-    assert.is_not_nil(s_kb.key_events.KeyPressShoot)
-    assert.is_not_nil(s_kb.ges_events.TapDiagonal)
-    assert.is_not_nil(s_kb.ges_events.SwipeDiagonal)
+      local s_kb = Screenshoter:new({})
+      assert.is_not_nil(s_kb.key_events.KeyPressShoot)
+      assert.is_not_nil(s_kb.ges_events.TapDiagonal)
+      assert.is_not_nil(s_kb.ges_events.SwipeDiagonal)
 
-    -- ScreenKB device
-    Device.hasKeyboard = function() return false end
-    Device.hasScreenKB = function() return true end
-    local s_screenkb = Screenshoter:new({})
-    assert.is_not_nil(s_screenkb.key_events.KeyPressShoot)
+      -- ScreenKB device
+      Device.hasKeyboard = function()
+        return false
+      end
+      Device.hasScreenKB = function()
+        return true
+      end
+      local s_screenkb = Screenshoter:new({})
+      assert.is_not_nil(s_screenkb.key_events.KeyPressShoot)
 
-    -- Non-touch device
-    Device.hasKeyboard = function() return false end
-    Device.hasScreenKB = function() return false end
-    Device.isTouchDevice = function() return false end
-    local s_nontouch = Screenshoter:new({})
-    assert.is_nil(s_nontouch.ges_events.TapDiagonal)
-    assert.is_nil(s_nontouch.ges_events.SwipeDiagonal)
+      -- Non-touch device
+      Device.hasKeyboard = function()
+        return false
+      end
+      Device.hasScreenKB = function()
+        return false
+      end
+      Device.isTouchDevice = function()
+        return false
+      end
+      local s_nontouch = Screenshoter:new({})
+      assert.is_nil(s_nontouch.ges_events.TapDiagonal)
+      assert.is_nil(s_nontouch.ges_events.SwipeDiagonal)
 
-    Device.hasKeyboard = orig_hasKb
-    Device.hasScreenKB = orig_hasScreenKB
-    Device.isTouchDevice = orig_isTouch
-  end)
-
-  it("should get custom screenshot dir and handle chooseFolder dialog", function()
-    local s = Screenshoter:new({})
-    assert.are_equal(s.default_dir, s:getScreenshotDir())
-
-    G_reader_settings:save("screenshot_dir", "/custom/screenshots/")
-    assert.are_equal("/custom/screenshots", s:getScreenshotDir())
-    G_reader_settings:save("screenshot_dir", nil)
-
-    -- chooseFolder
-    local chosen_callback = nil
-    local orig_showChoose = filemanagerutil.showChooseDialog
-    filemanagerutil.showChooseDialog = function(title, cb, curr, def)
-      chosen_callback = cb
+      Device.hasKeyboard = orig_hasKb
+      Device.hasScreenKB = orig_hasScreenKB
+      Device.isTouchDevice = orig_isTouch
     end
+  )
 
-    s:chooseFolder()
-    assert.is_not_nil(chosen_callback)
-    chosen_callback("/new/screenshots")
-    assert.are_equal("/new/screenshots", G_reader_settings:read("screenshot_dir"))
-    G_reader_settings:save("screenshot_dir", nil)
+  it(
+    "should get custom screenshot dir and handle chooseFolder dialog",
+    function()
+      local s = Screenshoter:new({})
+      assert.are_equal(s.default_dir, s:getScreenshotDir())
 
-    filemanagerutil.showChooseDialog = orig_showChoose
-  end)
+      G_reader_settings:save("screenshot_dir", "/custom/screenshots/")
+      assert.are_equal("/custom/screenshots", s:getScreenshotDir())
+      G_reader_settings:save("screenshot_dir", nil)
+
+      -- chooseFolder
+      local chosen_callback = nil
+      local orig_showChoose = filemanagerutil.showChooseDialog
+      filemanagerutil.showChooseDialog = function(title, cb, curr, def)
+        chosen_callback = cb
+      end
+
+      s:chooseFolder()
+      assert.is_not_nil(chosen_callback)
+      chosen_callback("/new/screenshots")
+      assert.are_equal(
+        "/new/screenshots",
+        G_reader_settings:read("screenshot_dir")
+      )
+      G_reader_settings:save("screenshot_dir", nil)
+
+      filemanagerutil.showChooseDialog = orig_showChoose
+    end
+  )
 
   it("should trigger all dialog button callbacks and event triggers", function()
     local shown_dialog = nil
@@ -175,7 +200,9 @@ describe("ReaderScreenshot module", function()
 
     local shot_name = "/tmp/test_shot.png"
     local caller_called = false
-    s:onScreenshot(shot_name, function() caller_called = true end)
+    s:onScreenshot(shot_name, function()
+      caller_called = true
+    end)
 
     assert.is_not_nil(shown_dialog)
     local buttons = shown_dialog.buttons

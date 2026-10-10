@@ -63,46 +63,49 @@ describe("CenterContainer", function()
     assert.are.equal(0, painted_y)
   end)
 
-  it("should center dynamically when container size changes with ignore_if_over", function()
-    local dummy_widget = {
-      getSize = function(self)
-        return self.dimen
-      end,
-      paintTo = function(self, _bb, x, y)
-        self.painted_x = x
-        self.painted_y = y
-      end,
-      dimen = { w = 20, h = 20 },
-    }
-    local cc = CenterContainer:new({
-      dummy_widget,
-      ignore_if_over = "height",
-      dimen = { w = 40, h = 10 }, -- Container height (10) < content height (20)
-    })
+  it(
+    "should center dynamically when container size changes with ignore_if_over",
+    function()
+      local dummy_widget = {
+        getSize = function(self)
+          return self.dimen
+        end,
+        paintTo = function(self, _bb, x, y)
+          self.painted_x = x
+          self.painted_y = y
+        end,
+        dimen = { w = 20, h = 20 },
+      }
+      local cc = CenterContainer:new({
+        dummy_widget,
+        ignore_if_over = "height",
+        dimen = { w = 40, h = 10 }, -- Container height (10) < content height (20)
+      })
 
-    -- Frame 1: Container is smaller than content, should ignore height centering (align top)
-    cc:paintTo(nil, 0, 0)
-    assert.is_equal(0, dummy_widget.painted_y) -- should be at y=0 (top aligned)
+      -- Frame 1: Container is smaller than content, should ignore height centering (align top)
+      cc:paintTo(nil, 0, 0)
+      assert.is_equal(0, dummy_widget.painted_y) -- should be at y=0 (top aligned)
 
-    -- Frame 2: Container becomes larger than content, should center height
-    cc.dimen = { w = 40, h = 40 } -- Container height (40) > content height (20)
-    cc:paintTo(nil, 0, 0)
-    -- Expected y: (40 - 20) / 2 = 10
-    assert.is_equal(10, dummy_widget.painted_y)
+      -- Frame 2: Container becomes larger than content, should center height
+      cc.dimen = { w = 40, h = 40 } -- Container height (40) > content height (20)
+      cc:paintTo(nil, 0, 0)
+      -- Expected y: (40 - 20) / 2 = 10
+      assert.is_equal(10, dummy_widget.painted_y)
 
-    -- Test ignore_if_over = "width"
-    local cc_w = CenterContainer:new({
-      dummy_widget,
-      ignore_if_over = "width",
-      dimen = { w = 10, h = 40 },
-    })
-    cc_w:paintTo(nil, 0, 0)
-    assert.is_equal(0, dummy_widget.painted_x)
+      -- Test ignore_if_over = "width"
+      local cc_w = CenterContainer:new({
+        dummy_widget,
+        ignore_if_over = "width",
+        dimen = { w = 10, h = 40 },
+      })
+      cc_w:paintTo(nil, 0, 0)
+      assert.is_equal(0, dummy_widget.painted_x)
 
-    cc_w.dimen = { w = 40, h = 40 }
-    cc_w:paintTo(nil, 0, 0)
-    assert.is_equal(10, dummy_widget.painted_x)
-  end)
+      cc_w.dimen = { w = 40, h = 40 }
+      cc_w:paintTo(nil, 0, 0)
+      assert.is_equal(10, dummy_widget.painted_x)
+    end
+  )
 
   it("should delegate dirtyRegion to child", function()
     local child = Widget:new({

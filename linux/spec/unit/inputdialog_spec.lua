@@ -254,79 +254,84 @@ describe("InputDialog widget", function()
     end
   end)
 
-  it("handles addWidget, addTextToInput, editable checks, and keyboard toggles", function()
-    local UIManager = require("ui/uimanager")
-    local Widget = require("ui/widget/widget")
-    local dialog = InputDialog:new({
-      title = "Widget Test",
-      input = "initial",
-      add_scroll_buttons = true,
-    })
+  it(
+    "handles addWidget, addTextToInput, editable checks, and keyboard toggles",
+    function()
+      local UIManager = require("ui/uimanager")
+      local Widget = require("ui/widget/widget")
+      local dialog = InputDialog:new({
+        title = "Widget Test",
+        input = "initial",
+        add_scroll_buttons = true,
+      })
 
-    -- addWidget
-    local dummy_w = Widget:new({ dimen = require("ui/geometry"):new({ w = 10, h = 10 }) })
-    dialog:addWidget(dummy_w)
+      -- addWidget
+      local dummy_w =
+        Widget:new({ dimen = require("ui/geometry"):new({ w = 10, h = 10 }) })
+      dialog:addWidget(dummy_w)
 
-    -- text ops
-    dialog:addTextToInput(" extra")
-    assert.is_true(dialog:isTextEditable())
-    assert.is_true(dialog:isTextEdited())
+      -- text ops
+      dialog:addTextToInput(" extra")
+      assert.is_true(dialog:isTextEditable())
+      assert.is_true(dialog:isTextEdited())
 
-    -- Toggle keyboard
-    dialog:closeKeyboard()
-    assert.is_falsy(dialog:isKeyboardVisible())
-    dialog:showKeyboard()
-    assert.is_true(dialog:isKeyboardVisible())
+      -- Toggle keyboard
+      dialog:closeKeyboard()
+      assert.is_falsy(dialog:isKeyboardVisible())
+      dialog:showKeyboard()
+      assert.is_true(dialog:isKeyboardVisible())
 
-    dialog:onCloseDialog()
-  end)
+      dialog:onCloseDialog()
+    end
+  )
 
-  it("handles save_callback, reset_callback, and close_callback button interactions", function()
-    local UIManager = require("ui/uimanager")
-    local saved_text, reset_called, closed_mode
+  it(
+    "handles save_callback, reset_callback, and close_callback button interactions",
+    function()
+      local UIManager = require("ui/uimanager")
+      local saved_text, reset_called, closed_mode
 
-    local dialog = InputDialog:new({
-      title = "Editor",
-      input = "initial text",
-      save_callback = function(content, closing)
-        saved_text = content
-        return true
-      end,
-      reset_callback = function()
-        reset_called = true
-        return "original text"
-      end,
-      close_callback = function(saved)
-        closed_mode = saved
-      end,
-    })
+      local dialog = InputDialog:new({
+        title = "Editor",
+        input = "initial text",
+        save_callback = function(content, closing)
+          saved_text = content
+          return true
+        end,
+        reset_callback = function()
+          reset_called = true
+          return "original text"
+        end,
+        close_callback = function(saved)
+          closed_mode = saved
+        end,
+      })
 
-    dialog.showWidget = function(self, w) end
+      dialog.showWidget = function(self, w) end
 
-    -- Modify text
-    dialog._text_modified = true
-    dialog:setInputText("modified text")
+      -- Modify text
+      dialog._text_modified = true
+      dialog:setInputText("modified text")
 
-    -- Test reset button callback
-    local reset_btn = dialog:button("reset")
-    assert.is_not_nil(reset_btn)
-    reset_btn.callback()
-    assert.is_true(reset_called)
-    assert.are.equal("original text", dialog:getInputText())
+      -- Test reset button callback
+      local reset_btn = dialog:button("reset")
+      assert.is_not_nil(reset_btn)
+      reset_btn.callback()
+      assert.is_true(reset_called)
+      assert.are.equal("original text", dialog:getInputText())
 
-    -- Test save button callback
-    dialog._text_modified = true
-    local save_btn = dialog:button("save")
-    assert.is_not_nil(save_btn)
-    save_btn.callback()
-    assert.are.equal("original text", saved_text)
+      -- Test save button callback
+      dialog._text_modified = true
+      local save_btn = dialog:button("save")
+      assert.is_not_nil(save_btn)
+      save_btn.callback()
+      assert.are.equal("original text", saved_text)
 
-    -- Test close button without modified text
-    dialog._text_modified = false
-    local close_btn = dialog:button("close")
-    assert.is_not_nil(close_btn)
-    close_btn.callback()
-  end)
+      -- Test close button without modified text
+      dialog._text_modified = false
+      local close_btn = dialog:button("close")
+      assert.is_not_nil(close_btn)
+      close_btn.callback()
+    end
+  )
 end)
-
-

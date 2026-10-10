@@ -168,12 +168,27 @@ describe("WpaSupplicant network module", function()
     it("initializes network manager bindings via WpaSupplicant.init", function()
       local mock_mgr = {}
       WpaSupplicant.init(mock_mgr, { ctrl_interface = "/var/run/wpa_test" })
-      assert.is_equal("/var/run/wpa_test", mock_mgr.wpa_supplicant.ctrl_interface)
+      assert.is_equal(
+        "/var/run/wpa_test",
+        mock_mgr.wpa_supplicant.ctrl_interface
+      )
       assert.is_equal(WpaSupplicant.getNetworkList, mock_mgr.getNetworkList)
-      assert.is_equal(WpaSupplicant.getCurrentNetwork, mock_mgr.getCurrentNetwork)
-      assert.is_equal(WpaSupplicant.authenticateNetwork, mock_mgr.authenticateNetwork)
-      assert.is_equal(WpaSupplicant.disconnectNetwork, mock_mgr.disconnectNetwork)
-      assert.is_equal(WpaSupplicant.getConfiguredNetworks, mock_mgr.getConfiguredNetworks)
+      assert.is_equal(
+        WpaSupplicant.getCurrentNetwork,
+        mock_mgr.getCurrentNetwork
+      )
+      assert.is_equal(
+        WpaSupplicant.authenticateNetwork,
+        mock_mgr.authenticateNetwork
+      )
+      assert.is_equal(
+        WpaSupplicant.disconnectNetwork,
+        mock_mgr.disconnectNetwork
+      )
+      assert.is_equal(
+        WpaSupplicant.getConfiguredNetworks,
+        mock_mgr.getConfiguredNetworks
+      )
     end)
 
     it("retrieves configured networks via getConfiguredNetworks", function()
@@ -247,22 +262,38 @@ describe("WpaSupplicant network module", function()
     it("handles auth events with auth failure limit and timeouts", function()
       local event_idx = 0
       local mock_cli = {
-        addNetwork = function() return 1 end,
-        setNetwork = function() return "OK" end,
-        enableNetworkByID = function() return "OK" end,
+        addNetwork = function()
+          return 1
+        end,
+        setNetwork = function()
+          return "OK"
+        end,
+        enableNetworkByID = function()
+          return "OK"
+        end,
         attach = function() end,
-        getConnectedNetwork = function() return nil end,
+        getConnectedNetwork = function()
+          return nil
+        end,
         readEvent = function()
           event_idx = event_idx + 1
           return {
-            isScanEvent = function() return false end,
-            isAuthSuccessful = function() return false end,
-            isAuthFailed = function() return true end,
+            isScanEvent = function()
+              return false
+            end,
+            isAuthSuccessful = function()
+              return false
+            end,
+            isAuthFailed = function()
+              return true
+            end,
             msg = "Auth failed",
           }
         end,
         waitForEvent = function() end,
-        removeNetwork = function() return "OK" end,
+        removeNetwork = function()
+          return "OK"
+        end,
         close = function() end,
       }
       stub(mock_wpaclient, "new", function()

@@ -84,24 +84,32 @@ describe("ExternalKeyboard main plugin module", function()
       if path:find("ci_hdrc") then
         if mode:find("w") then
           return {
-            write = function(self_f, data) written_files[path] = data end,
+            write = function(self_f, data)
+              written_files[path] = data
+            end,
             close = function() end,
           }
         else
           return {
-            read = function() return "host" end,
+            read = function()
+              return "host"
+            end,
             close = function() end,
           }
         end
       elseif path:find("usbc0") then
         if mode:find("w") then
           return {
-            write = function(self_f, data) written_files[path] = data end,
+            write = function(self_f, data)
+              written_files[path] = data
+            end,
             close = function() end,
           }
         else
           return {
-            read = function() return "usb_device" end,
+            read = function()
+              return "usb_device"
+            end,
             close = function() end,
           }
         end
@@ -113,10 +121,16 @@ describe("ExternalKeyboard main plugin module", function()
     assert.are.equal("device", inst:sunxiGetOTGRole())
 
     inst:chipideaSetOTGRole("device")
-    assert.are.equal("gadget", written_files["/sys/kernel/debug/ci_hdrc.0/role"])
+    assert.are.equal(
+      "gadget",
+      written_files["/sys/kernel/debug/ci_hdrc.0/role"]
+    )
 
     inst:sunxiSetOTGRole("host")
-    assert.are.equal("usb_host", written_files["/sys/devices/platform/soc/usbc0/otg_role"])
+    assert.are.equal(
+      "usb_host",
+      written_files["/sys/devices/platform/soc/usbc0/otg_role"]
+    )
 
     io.open = old_open
   end)
@@ -155,8 +169,12 @@ describe("ExternalKeyboard main plugin module", function()
     })
 
     local set_role
-    inst.getOTGRole = function() return "host" end
-    inst.setOTGRole = function(self_i, r) set_role = r end
+    inst.getOTGRole = function()
+      return "host"
+    end
+    inst.setOTGRole = function(self_i, r)
+      set_role = r
+    end
 
     inst:onExit()
     assert.are.equal("device", set_role)
@@ -221,7 +239,10 @@ describe("ExternalKeyboard main plugin module", function()
     local scheduled = {}
     local orig_schedule = UIManager.scheduleIn
     UIManager.scheduleIn = function(self_uim, delay, func, target, arg)
-      table.insert(scheduled, { delay = delay, func = func, target = target, arg = arg })
+      table.insert(
+        scheduled,
+        { delay = delay, func = func, target = target, arg = arg }
+      )
     end
 
     inst:onEvdevInputInsert("/dev/input/event12")

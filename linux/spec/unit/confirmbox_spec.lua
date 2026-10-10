@@ -151,39 +151,52 @@ describe("ConfirmBox", function()
       assert.is_false(closed)
     end)
 
-    it("should support other_buttons rows placed before or after default buttons", function()
-      local other1_called = false
-      local other2_called = false
+    it(
+      "should support other_buttons rows placed before or after default buttons",
+      function()
+        local other1_called = false
+        local other2_called = false
 
-      -- other_buttons_first = false
-      local box_after = ConfirmBox:new({
-        text = "Other buttons after",
-        other_buttons = {
-          {
-            { text = "Custom 1", callback = function() other1_called = true end },
+        -- other_buttons_first = false
+        local box_after = ConfirmBox:new({
+          text = "Other buttons after",
+          other_buttons = {
+            {
+              {
+                text = "Custom 1",
+                callback = function()
+                  other1_called = true
+                end,
+              },
+            },
           },
-        },
-      })
-      local btn_table_after = box_after[1][1][1][1][3]
-      assert.are.equal(2, #btn_table_after.buttons)
-      btn_table_after.buttons[2][1].callback()
-      assert.is_true(other1_called)
+        })
+        local btn_table_after = box_after[1][1][1][1][3]
+        assert.are.equal(2, #btn_table_after.buttons)
+        btn_table_after.buttons[2][1].callback()
+        assert.is_true(other1_called)
 
-      -- other_buttons_first = true
-      local box_before = ConfirmBox:new({
-        text = "Other buttons before",
-        other_buttons_first = true,
-        other_buttons = {
-          {
-            { text = "Custom 2", callback = function() other2_called = true end },
+        -- other_buttons_first = true
+        local box_before = ConfirmBox:new({
+          text = "Other buttons before",
+          other_buttons_first = true,
+          other_buttons = {
+            {
+              {
+                text = "Custom 2",
+                callback = function()
+                  other2_called = true
+                end,
+              },
+            },
           },
-        },
-      })
-      local btn_table_before = box_before[1][1][1][1][3]
-      assert.are.equal(2, #btn_table_before.buttons)
-      btn_table_before.buttons[1][1].callback()
-      assert.is_true(other2_called)
-    end)
+        })
+        local btn_table_before = box_before[1][1][1][1][3]
+        assert.are.equal(2, #btn_table_before.buttons)
+        btn_table_before.buttons[1][1].callback()
+        assert.is_true(other2_called)
+      end
+    )
   end)
 
   describe("widget extension and lifecycle", function()
@@ -289,30 +302,33 @@ describe("ConfirmBox multiple instances", function()
     assert.is_false(UIManager:isWindowWidget(b))
   end)
 
-  it("allows showing a ConfirmBox from another ConfirmBox ok_callback", function()
-    local inner
-    local outer = ConfirmBox:new({
-      text = "outer",
-      ok_callback = function()
-        inner = ConfirmBox:new({ text = "inner" })
-        table.insert(open_boxes, inner)
-        UIManager:show(inner)
-      end,
-    })
-    table.insert(open_boxes, outer)
+  it(
+    "allows showing a ConfirmBox from another ConfirmBox ok_callback",
+    function()
+      local inner
+      local outer = ConfirmBox:new({
+        text = "outer",
+        ok_callback = function()
+          inner = ConfirmBox:new({ text = "inner" })
+          table.insert(open_boxes, inner)
+          UIManager:show(inner)
+        end,
+      })
+      table.insert(open_boxes, outer)
 
-    UIManager:show(outer)
-    assert.is_true(UIManager:isWindowWidget(outer))
+      UIManager:show(outer)
+      assert.is_true(UIManager:isWindowWidget(outer))
 
-    local btn_table = outer[1][1][1][1][3]
-    local ok_btn = btn_table.buttons[1][2]
-    ok_btn.callback()
+      local btn_table = outer[1][1][1][1][3]
+      local ok_btn = btn_table.buttons[1][2]
+      ok_btn.callback()
 
-    assert.truthy(inner)
-    assert.is_true(UIManager:isWindowWidget(inner))
-    assert.is_false(UIManager:isWindowWidget(outer))
+      assert.truthy(inner)
+      assert.is_true(UIManager:isWindowWidget(inner))
+      assert.is_false(UIManager:isWindowWidget(outer))
 
-    UIManager:close(inner)
-    assert.is_false(UIManager:isWindowWidget(inner))
-  end)
+      UIManager:close(inner)
+      assert.is_false(UIManager:isWindowWidget(inner))
+    end
+  )
 end)

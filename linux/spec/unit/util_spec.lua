@@ -646,46 +646,50 @@ describe("util module", function()
     end)
 
     it("returns false on directory with only empty subdirectories", function()
-      local base_dir = "/tmp/test_dir_containing_empty_subdirs_" .. ffiUtil.getpid()
+      local base_dir = "/tmp/test_dir_containing_empty_subdirs_"
+        .. ffiUtil.getpid()
       local nested = base_dir .. "/sub1/sub2/sub3"
       util.makePath(nested)
       assert.is_false(util.isDirContainingFiles(base_dir))
       util.removeEmptyTree(base_dir)
     end)
 
-    it("returns true on directory containing a regular file or symlink", function()
-      local base_dir = "/tmp/test_dir_containing_file_" .. ffiUtil.getpid()
-      local nested = base_dir .. "/a/b"
-      util.makePath(nested)
-      local file = nested .. "/hello.txt"
-      local f = assert(io.open(file, "w"))
-      f:write("content")
-      f:close()
-      assert.is_true(util.isDirContainingFiles(base_dir))
-      os.remove(file)
-      util.removeEmptyTree(base_dir)
+    it(
+      "returns true on directory containing a regular file or symlink",
+      function()
+        local base_dir = "/tmp/test_dir_containing_file_" .. ffiUtil.getpid()
+        local nested = base_dir .. "/a/b"
+        util.makePath(nested)
+        local file = nested .. "/hello.txt"
+        local f = assert(io.open(file, "w"))
+        f:write("content")
+        f:close()
+        assert.is_true(util.isDirContainingFiles(base_dir))
+        os.remove(file)
+        util.removeEmptyTree(base_dir)
 
-      -- Regular file at root
-      util.makePath(base_dir)
-      local root_file = base_dir .. "/root.txt"
-      local rf = assert(io.open(root_file, "w"))
-      rf:write("content")
-      rf:close()
-      assert.is_true(util.isDirContainingFiles(base_dir))
-      os.remove(root_file)
+        -- Regular file at root
+        util.makePath(base_dir)
+        local root_file = base_dir .. "/root.txt"
+        local rf = assert(io.open(root_file, "w"))
+        rf:write("content")
+        rf:close()
+        assert.is_true(util.isDirContainingFiles(base_dir))
+        os.remove(root_file)
 
-      -- Symlink in directory
-      local target = "/tmp/test_target_symlink_" .. ffiUtil.getpid()
-      local tf = assert(io.open(target, "w"))
-      tf:write("target")
-      tf:close()
-      local link = base_dir .. "/test_link"
-      os.execute(string.format("ln -s %q %q", target, link))
-      assert.is_true(util.isDirContainingFiles(base_dir))
-      os.remove(link)
-      os.remove(target)
-      lfs.rmdir(base_dir)
-    end)
+        -- Symlink in directory
+        local target = "/tmp/test_target_symlink_" .. ffiUtil.getpid()
+        local tf = assert(io.open(target, "w"))
+        tf:write("target")
+        tf:close()
+        local link = base_dir .. "/test_link"
+        os.execute(string.format("ln -s %q %q", target, link))
+        assert.is_true(util.isDirContainingFiles(base_dir))
+        os.remove(link)
+        os.remove(target)
+        lfs.rmdir(base_dir)
+      end
+    )
 
     it("rethrows unexpected errors raised inside util.findFiles", function()
       local orig_findFiles = util.findFiles

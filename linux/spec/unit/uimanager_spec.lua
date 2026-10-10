@@ -928,40 +928,46 @@ describe("UIManager spec", function()
       assert.is_number(UIManager:getElapsedTimeSinceBoot())
     end)
 
-    it("should handle run forever mode, window stack debug list and topdown iterator", function()
-      UIManager:setRunForeverMode()
-      UIManager:unsetRunForeverMode()
+    it(
+      "should handle run forever mode, window stack debug list and topdown iterator",
+      function()
+        UIManager:setRunForeverMode()
+        UIManager:unsetRunForeverMode()
 
-      local w1 = Widget:new({ id = "w1" })
-      local w2 = Widget:new({ id = "w2" })
-      UIManager:show(w1)
-      UIManager:show(w2)
+        local w1 = Widget:new({ id = "w1" })
+        local w2 = Widget:new({ id = "w2" })
+        UIManager:show(w1)
+        UIManager:show(w2)
 
-      local list = UIManager:_windowStackDebugList()
-      assert.is_string(list)
+        local list = UIManager:_windowStackDebugList()
+        assert.is_string(list)
 
-      local iter_count = 0
-      for window in UIManager:topdown_windows_iter() do
-        iter_count = iter_count + 1
-        assert.is_not_nil(window)
+        local iter_count = 0
+        for window in UIManager:topdown_windows_iter() do
+          iter_count = iter_count + 1
+          assert.is_not_nil(window)
+        end
+        assert.are.equal(2, iter_count)
+
+        UIManager:close(w1)
+        UIManager:close(w2)
       end
-      assert.are.equal(2, iter_count)
+    )
 
-      UIManager:close(w1)
-      UIManager:close(w2)
-    end)
+    it(
+      "should handle ZMQ registration, refresh schedule, and night mode toggle",
+      function()
+        local dummy_zmq = { id = "zmq1" }
+        UIManager:insertZMQ(dummy_zmq)
+        UIManager:removeZMQ(dummy_zmq)
 
-    it("should handle ZMQ registration, refresh schedule, and night mode toggle", function()
-      local dummy_zmq = { id = "zmq1" }
-      UIManager:insertZMQ(dummy_zmq)
-      UIManager:removeZMQ(dummy_zmq)
+        UIManager:scheduleRefresh("fast", nil, false)
+        UIManager:ignoreNextRefreshPromote()
+        assert.is_boolean(UIManager:fullRefreshPromoteEnabled())
 
-      UIManager:scheduleRefresh("fast", nil, false)
-      UIManager:ignoreNextRefreshPromote()
-      assert.is_boolean(UIManager:fullRefreshPromoteEnabled())
-
-      UIManager:clearRenderStack()
-      UIManager:toggleNightMode()
-    end)
+        UIManager:clearRenderStack()
+        UIManager:toggleNightMode()
+      end
+    )
   end)
 end)

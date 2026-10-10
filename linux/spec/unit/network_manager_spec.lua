@@ -808,14 +808,20 @@ describe("network_manager module", function()
 
       local orig_isWifiOn = NetworkMgr.isWifiOn
       local orig_isConnected = NetworkMgr.isConnected
-      NetworkMgr.isWifiOn = function() return false end
-      NetworkMgr.isConnected = function() return false end
+      NetworkMgr.isWifiOn = function()
+        return false
+      end
+      NetworkMgr.isConnected = function()
+        return false
+      end
 
       local info_menu = NetworkMgr:getInfoMenuTable()
       assert.is_not_nil(info_menu)
       assert.is_false(info_menu.enabled_func())
 
-      NetworkMgr.isWifiOn = function() return true end
+      NetworkMgr.isWifiOn = function()
+        return true
+      end
       assert.is_true(info_menu.enabled_func())
 
       NetworkMgr.isWifiOn = orig_isWifiOn

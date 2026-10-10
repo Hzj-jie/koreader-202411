@@ -87,11 +87,19 @@ describe("InfoMessage", function()
     it("should support custom image widget", function()
       local dummy_bb = setmetatable({
         free = function() end,
-        getType = function() return "bb" end,
-        getWidth = function() return 32 end,
-        getHeight = function() return 32 end,
+        getType = function()
+          return "bb"
+        end,
+        getWidth = function()
+          return 32
+        end,
+        getHeight = function()
+          return 32
+        end,
       }, {
-        __index = function() return function() end end,
+        __index = function()
+          return function() end
+        end,
       })
 
       local msg = InfoMessage:new({
@@ -104,14 +112,17 @@ describe("InfoMessage", function()
       assert.truthy(msg.image)
     end)
 
-    it("should instantiate with explicit height using ScrollTextWidget", function()
-      local msg = InfoMessage:new({
-        text = "Long scrollable message",
-        height = 300,
-      })
+    it(
+      "should instantiate with explicit height using ScrollTextWidget",
+      function()
+        local msg = InfoMessage:new({
+          text = "Long scrollable message",
+          height = 300,
+        })
 
-      assert.are.equal(300, msg.height)
-    end)
+        assert.are.equal(300, msg.height)
+      end
+    )
 
     it("should handle custom width", function()
       local msg = InfoMessage:new({
@@ -158,30 +169,33 @@ describe("InfoMessage", function()
       assert.is_true(closed)
     end)
 
-    it("should unschedule timeout and execute dismiss_callback on onClose", function()
-      local unscheduled = false
-      local dismissed = false
-      UIManager.unschedule = function(_, fn)
-        unscheduled = true
+    it(
+      "should unschedule timeout and execute dismiss_callback on onClose",
+      function()
+        local unscheduled = false
+        local dismissed = false
+        UIManager.unschedule = function(_, fn)
+          unscheduled = true
+        end
+        UIManager.scheduleIn = function(_, delay, fn) end
+
+        local msg = InfoMessage:new({
+          text = "Early close message",
+          timeout = 5,
+          dismiss_callback = function()
+            dismissed = true
+          end,
+        })
+
+        msg:onShow()
+        assert.truthy(msg._timeout_func)
+
+        msg:onClose()
+        assert.is_true(unscheduled)
+        assert.is_nil(msg._timeout_func)
+        assert.is_true(dismissed)
       end
-      UIManager.scheduleIn = function(_, delay, fn) end
-
-      local msg = InfoMessage:new({
-        text = "Early close message",
-        timeout = 5,
-        dismiss_callback = function()
-          dismissed = true
-        end,
-      })
-
-      msg:onShow()
-      assert.truthy(msg._timeout_func)
-
-      msg:onClose()
-      assert.is_true(unscheduled)
-      assert.is_nil(msg._timeout_func)
-      assert.is_true(dismissed)
-    end)
+    )
 
     it("should handle onTapClose and onAnyKeyPressed", function()
       local closed_count = 0

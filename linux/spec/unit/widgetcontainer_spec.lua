@@ -122,64 +122,67 @@ describe("WidgetContainer widget", function()
       container_skip:paintTo(bb, 0, 0)
     end)
 
-    it("should paint children with top, bottom, center, and vertical_align alignments", function()
-      local last_painted_x, last_painted_y
-      local child = Widget:new({
-        dimen = Geom:new({ w = 20, h = 20 }),
-        paintTo = function(self, bb, x, y)
-          last_painted_x = x
-          last_painted_y = y
-        end,
-      })
+    it(
+      "should paint children with top, bottom, center, and vertical_align alignments",
+      function()
+        local last_painted_x, last_painted_y
+        local child = Widget:new({
+          dimen = Geom:new({ w = 20, h = 20 }),
+          paintTo = function(self, bb, x, y)
+            last_painted_x = x
+            last_painted_y = y
+          end,
+        })
 
-      -- align = "top"
-      local container_top = WidgetContainer:new({
-        dimen = Geom:new({ w = 100, h = 100 }),
-        align = "top",
-        child,
-      })
-      container_top:paintTo(createMockBB(), 0, 0)
-      assert.are.equal(40, last_painted_x)
-      assert.are.equal(0, last_painted_y)
+        -- align = "top"
+        local container_top = WidgetContainer:new({
+          dimen = Geom:new({ w = 100, h = 100 }),
+          align = "top",
+          child,
+        })
+        container_top:paintTo(createMockBB(), 0, 0)
+        assert.are.equal(40, last_painted_x)
+        assert.are.equal(0, last_painted_y)
 
-      -- align = "bottom"
-      local container_bottom = WidgetContainer:new({
-        dimen = Geom:new({ w = 100, h = 100 }),
-        align = "bottom",
-        child,
-      })
-      container_bottom:paintTo(createMockBB(), 0, 0)
-      assert.are.equal(40, last_painted_x)
-      assert.are.equal(80, last_painted_y)
+        -- align = "bottom"
+        local container_bottom = WidgetContainer:new({
+          dimen = Geom:new({ w = 100, h = 100 }),
+          align = "bottom",
+          child,
+        })
+        container_bottom:paintTo(createMockBB(), 0, 0)
+        assert.are.equal(40, last_painted_x)
+        assert.are.equal(80, last_painted_y)
 
-      -- align = "center"
-      local container_center = WidgetContainer:new({
-        dimen = Geom:new({ w = 100, h = 100 }),
-        align = "center",
-        child,
-      })
-      container_center:paintTo(createMockBB(), 0, 0)
-      assert.are.equal(40, last_painted_x)
-      assert.are.equal(40, last_painted_y)
+        -- align = "center"
+        local container_center = WidgetContainer:new({
+          dimen = Geom:new({ w = 100, h = 100 }),
+          align = "center",
+          child,
+        })
+        container_center:paintTo(createMockBB(), 0, 0)
+        assert.are.equal(40, last_painted_x)
+        assert.are.equal(40, last_painted_y)
 
-      -- vertical_align = "center"
-      local container_valign = WidgetContainer:new({
-        dimen = Geom:new({ w = 100, h = 100 }),
-        vertical_align = "center",
-        child,
-      })
-      container_valign:paintTo(createMockBB(), 10, 10)
-      assert.are.equal(10, last_painted_x)
-      assert.are.equal(50, last_painted_y)
+        -- vertical_align = "center"
+        local container_valign = WidgetContainer:new({
+          dimen = Geom:new({ w = 100, h = 100 }),
+          vertical_align = "center",
+          child,
+        })
+        container_valign:paintTo(createMockBB(), 10, 10)
+        assert.are.equal(10, last_painted_x)
+        assert.are.equal(50, last_painted_y)
 
-      -- default align
-      local container_default = WidgetContainer:new({
-        child,
-      })
-      container_default:paintTo(createMockBB(), 5, 5)
-      assert.are.equal(5, last_painted_x)
-      assert.are.equal(5, last_painted_y)
-    end)
+        -- default align
+        local container_default = WidgetContainer:new({
+          child,
+        })
+        container_default:paintTo(createMockBB(), 5, 5)
+        assert.are.equal(5, last_painted_x)
+        assert.are.equal(5, last_painted_y)
+      end
+    )
   end)
 
   describe("event handling and broadcasting", function()
@@ -229,4 +232,3 @@ describe("WidgetContainer widget", function()
     end)
   end)
 end)
-

@@ -1093,7 +1093,11 @@ describe("ReaderAnnotation module", function()
           local data = {
             highlights_imported = true,
             bookmarks = {
-              { page = 1, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+              {
+                page = 1,
+                datetime = "2026-08-25 00:00:00",
+                notes = "Paging note",
+              },
             },
             highlight = {},
             bookmarks_rolling = {
@@ -1134,7 +1138,11 @@ describe("ReaderAnnotation module", function()
             },
             highlight = {},
             bookmarks_paging = {
-              { page = 2, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+              {
+                page = 2,
+                datetime = "2026-08-25 00:00:00",
+                notes = "Paging note",
+              },
             },
             highlight_paging = {},
           }
@@ -1167,7 +1175,11 @@ describe("ReaderAnnotation module", function()
             },
             highlight = {},
             bookmarks_paging = {
-              { page = 10, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+              {
+                page = 10,
+                datetime = "2026-08-25 00:00:00",
+                notes = "Paging note",
+              },
             },
             highlight_paging = {},
           }
@@ -1191,7 +1203,11 @@ describe("ReaderAnnotation module", function()
           local data = {
             highlights_imported = true,
             bookmarks = {
-              { page = 5, datetime = "2026-08-25 00:00:00", notes = "Paging note" },
+              {
+                page = 5,
+                datetime = "2026-08-25 00:00:00",
+                notes = "Paging note",
+              },
             },
             highlight = {},
             bookmarks_rolling = {
