@@ -277,65 +277,57 @@ function SyncManager:_startSync(file, trigger, trash)
         return
       end
 
-      if not trash then
-        local n = self:_applyBackgroundSync(
-          file,
-          snapshot_json,
-          uploaded_json,
-          true
-        )
-        if n then
-          local box = ConfirmBox:new({
-            text = T(
-              N_(
-                "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
-                "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
-                n
-              ),
-              book_name(file),
-              n
-            ),
-            ok_text = gettext("Move to trash"),
-            cancel_text = gettext("Restore"),
-            ok_callback = function()
-              local income_list = json.decode(uploaded_json)
-              local tombstones = {}
-              local now = os.date(TIMESTAMP_FORMAT)
-              for _, v in ipairs(income_list) do
-                if not v.deleted then
-                  v.deleted = true
-                  v.datetime_updated = now
-                  table.insert(tombstones, v)
-                end
-              end
-              NetworkMgr:willRerunWhenOnline(function()
-                -- Take the request when the sync starts, as _dispatchNextSync does.
-                if self.requested[file] == MANUAL_SYNC then
-                  trigger = MANUAL_SYNC
-                end
-                self.requested[file] = nil
-                self:_startSync(file, trigger, tombstones)
-              end)
-            end,
-            cancel_callback = function()
-              self:_applyBackgroundSync(
-                file,
-                snapshot_json,
-                uploaded_json
-              )
-              finish()
-            end,
-          })
-          UIManager:show(box)
-          return
-        end
-      end
-
-      self:_applyBackgroundSync(
+      local n = self:_applyBackgroundSync(
         file,
         snapshot_json,
-        uploaded_json
+        uploaded_json,
+        not trash
       )
+      if n then
+        local box = ConfirmBox:new({
+          text = T(
+            N_(
+              "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
+              "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
+              n
+            ),
+            book_name(file),
+            n
+          ),
+          ok_text = gettext("Move to trash"),
+          cancel_text = gettext("Restore"),
+          ok_callback = function()
+            local income_list = json.decode(uploaded_json)
+            local tombstones = {}
+            local now = os.date(TIMESTAMP_FORMAT)
+            for _, v in ipairs(income_list) do
+              if not v.deleted then
+                v.deleted = true
+                v.datetime_updated = now
+                table.insert(tombstones, v)
+              end
+            end
+            NetworkMgr:willRerunWhenOnline(function()
+              -- Take the request when the sync starts, as _dispatchNextSync does.
+              if self.requested[file] == MANUAL_SYNC then
+                trigger = MANUAL_SYNC
+              end
+              self.requested[file] = nil
+              self:_startSync(file, trigger, tombstones)
+            end)
+          end,
+          cancel_callback = function()
+            self:_applyBackgroundSync(
+              file,
+              snapshot_json,
+              uploaded_json
+            )
+            finish()
+          end,
+        })
+        UIManager:show(box)
+        return
+      end
       finish()
     end,
   }))
