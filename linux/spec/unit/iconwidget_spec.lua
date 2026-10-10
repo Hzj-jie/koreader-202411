@@ -30,4 +30,51 @@ describe("IconWidget", function()
     })
     assert.are.equal("/tmp/test.png", icon_img.file)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes init early return when self.file is set preventing updating file on setIcon",
+      function()
+        local iw = IconWidget:new({
+          icon = "appbar.menu",
+        })
+        local initial_file = iw.file
+        assert.truthy(initial_file:find("appbar.menu", 1, true))
+
+        local set_icon = iw.setIcon
+          or function(self, new_icon)
+            self.icon = new_icon
+            self:init()
+          end
+        set_icon(iw, "search")
+
+        assert.are_not.equal(initial_file, iw.file)
+        assert.truthy(iw.file:find("search", 1, true))
+      end
+    )
+
+    it(
+      "fails: exposes permanent caching of ICON_NOT_FOUND on initial lookup miss",
+      function()
+        local lfs = require("libs/libkoreader-lfs")
+        local orig_attributes = lfs.attributes
+        local late_icon_name = "late_added_test_icon_" .. os.time()
+        local late_icon_path = "resources/icons/" .. late_icon_name .. ".svg"
+
+        local iw1 = IconWidget:new({ icon = late_icon_name })
+        assert.truthy(iw1.file:find("icon-not-found", 1, true))
+
+        lfs.attributes = function(path, req)
+          if path == late_icon_path then
+            return "file"
+          end
+          return orig_attributes(path, req)
+        end
+
+        local iw2 = IconWidget:new({ icon = late_icon_name })
+        lfs.attributes = orig_attributes
+        assert.are.equal(late_icon_path, iw2.file)
+      end
+    )
+  end)
 end)
