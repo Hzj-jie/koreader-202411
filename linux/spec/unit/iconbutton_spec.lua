@@ -127,4 +127,35 @@ describe("IconButton", function()
     btn:setIcon("search")
     assert.are.equal("search", btn.icon)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes onTapIconButton invoking callback when enabled is false",
+      function()
+        local called = false
+        local btn = IconButton:new({
+          icon = "appbar.menu",
+          enabled = false,
+          callback = function()
+            called = true
+          end,
+        })
+
+        btn:onTapIconButton()
+        assert.is_false(called)
+      end
+    )
+
+    it("fails: exposes setIcon discarding custom width and height", function()
+      local btn = IconButton:new({
+        icon = "appbar.menu",
+        width = 80,
+        height = 80,
+      })
+
+      assert.are.equal(80, btn.image.width)
+      btn:setIcon("search")
+      assert.are.equal(80, btn.image.width)
+    end)
+  end)
 end)

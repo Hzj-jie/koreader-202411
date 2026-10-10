@@ -44,6 +44,7 @@ describe("Notification", function()
   end)
 
   after_each(function()
+    Notification._shown_list = {}
     UIManager.setDirty = orig_setDirty
     UIManager.show = orig_show
     UIManager.close = orig_close
@@ -247,6 +248,46 @@ describe("Notification", function()
         assert.is_true(notif:onResume())
         assert.is_true(notif:onPhysicalKeyboardDisconnected())
         assert.is_true(notif:onInput())
+      end
+    )
+  end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes _cleanShownStack closing older notification clobbering newer notification slot in _shown_list",
+      function()
+        local n1 = Notification:new({ text = "First" })
+        local n2 = Notification:new({ text = "Second" })
+        Notification._shown_list[1] = time.monotonic() - time.s(35)
+        Notification._shown_list[2] = time.monotonic() - time.s(31)
+
+        n1:onClose()
+
+        assert.truthy(Notification._shown_list[n2._shown_idx])
+      end
+    )
+
+    it(
+      "fails: exposes onShow overwriting _timeout_func without unscheduling previous timer",
+      function()
+        local unscheduled_fn = nil
+        local orig_unschedule = UIManager.unschedule
+        local orig_scheduleIn = UIManager.scheduleIn
+        UIManager.unschedule = function(_, fn)
+          unscheduled_fn = fn
+        end
+        UIManager.scheduleIn = function(_, delay, fn) end
+
+        local notif = Notification:new({ text = "Timer", timeout = 5 })
+        notif:onShow()
+        local prev_fn = notif._timeout_func
+        assert.is_not_nil(prev_fn)
+
+        notif:onShow()
+
+        UIManager.unschedule = orig_unschedule
+        UIManager.scheduleIn = orig_scheduleIn
+        assert.are.equal(prev_fn, unscheduled_fn)
       end
     )
   end)
