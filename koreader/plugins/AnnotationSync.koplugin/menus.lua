@@ -248,7 +248,7 @@ function M.show_differing_settings_menu(
           "%s[%s] %s: %s -> %s",
           prefix,
           domain or "unknown",
-          full_key or setting_id,
+          full_key and table.concat(utils.split_setting_path(full_key), ".") or setting_id,
           diff.local_val_str,
           diff.remote_val_str
         )

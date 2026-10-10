@@ -47,16 +47,35 @@ function M.show_msg(msg)
   }))
 end
 
+-- A setting id is "<domain>:<path>", the path joining the setting's keys with
+-- ".". "%" and "." inside a key are percent-encoded, so a key that holds a dot,
+-- such as a book shortcut to a file, stays one key.
+function M.join_setting_path(keys)
+  local parts = {}
+  for i, key in ipairs(keys) do
+    parts[i] = tostring(key):gsub("[%%.]", function(c)
+      return string.format("%%%02X", c:byte())
+    end)
+  end
+  return table.concat(parts, ".")
+end
+
+function M.split_setting_path(path)
+  local keys = {}
+  for part in path:gmatch("[^.]+") do
+    table.insert(keys, (part:gsub("%%(%x%x)", function(hex)
+      return string.char(tonumber(hex, 16))
+    end)))
+  end
+  return keys
+end
+
 function M.get_nested_value(tbl, path_str)
   if not tbl then
     return nil
   end
-  local parts = {}
-  for part in string.gmatch(path_str, "([^%.]+)") do
-    table.insert(parts, part)
-  end
   local current = tbl
-  for __, part in ipairs(parts) do
+  for __, part in ipairs(M.split_setting_path(path_str)) do
     if type(current) ~= "table" then
       return nil
     end

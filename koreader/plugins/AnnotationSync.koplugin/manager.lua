@@ -786,10 +786,7 @@ function SyncManager:_writeLocalSettingValue(key, value)
   end
 
   local LuaSettings = require("luasettings")
-  local parts = {}
-  for part in string.gmatch(full_key, "([^%.]+)") do
-    table.insert(parts, part)
-  end
+  local parts = utils.split_setting_path(full_key)
 
   if domain == "reader" then
     save_nested_setting(G_reader_settings, parts, value)

@@ -3,6 +3,7 @@ local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 local SettingsSelection = {}
 
 function SettingsSelection.show(plugin)
@@ -87,7 +88,7 @@ function SettingsSelection.show(plugin)
   end
 
   local function is_excluded(domain, path)
-    local full_path = domain .. ":" .. table.concat(path, ".")
+    local full_path = domain .. ":" .. utils.join_setting_path(path)
     if excluded[full_path] then
       return true
     end
@@ -110,6 +111,7 @@ function SettingsSelection.show(plugin)
           domain = domain,
           key = path[#path],
           full_key = table.concat(path, "."),
+          setting_id = domain .. ":" .. utils.join_setting_path(path),
           vanilla = format_val(vanilla),
           active = format_val(active),
         })
@@ -126,6 +128,7 @@ function SettingsSelection.show(plugin)
           domain = domain,
           key = path[#path],
           full_key = table.concat(path, "."),
+          setting_id = domain .. ":" .. utils.join_setting_path(path),
           vanilla = format_val(vanilla),
           active = format_val(active),
         })
@@ -178,6 +181,7 @@ function SettingsSelection.show(plugin)
           domain = domain,
           key = path[#path],
           full_key = table.concat(path, "."),
+          setting_id = domain .. ":" .. utils.join_setting_path(path),
           vanilla = v_str,
           active = a_str,
         })
@@ -304,7 +308,7 @@ function SettingsSelection.show(plugin)
       if child.type == "branch" then
         get_all_leaf_keys(child, keys)
       else
-        table.insert(keys, child.domain .. ":" .. child.full_key)
+        table.insert(keys, child.setting_id)
       end
     end
     return keys
@@ -379,7 +383,7 @@ function SettingsSelection.show(plugin)
           end,
         })
       else
-        local setting_id = child.domain .. ":" .. child.full_key
+        local setting_id = child.setting_id
         table.insert(menu_items, {
           text_func = function()
             local is_selected = plugin.settings.selected_settings[setting_id]
