@@ -1447,5 +1447,378 @@ describe("Readerhighlight module", function()
         )
       end
     )
+
+    it(
+      "should dispatch default actions and handle word/select modes in onHoldRelease",
+      function()
+        local highlight = readerui.highlight
+        local orig_save = highlight.saveHighlight
+        local orig_onExit = highlight.onExit
+        local orig_startSelection = highlight.startSelection
+        local orig_addNote = highlight.addNote
+        local orig_translate = highlight.translate
+        local orig_lookupWikipedia = highlight.lookupWikipedia
+        local orig_highlightDictLookup = highlight.highlightDictLookup
+        local orig_onHighlightSearch = highlight.onHighlightSearch
+        local orig_lookup = highlight.lookup
+        local orig_onShowHighlightMenu = highlight.onShowHighlightMenu
+        local orig_extendSelection = highlight.extendSelection
+        local orig_clear = highlight.clear
+
+        local calls = {}
+        local function record(name, ...)
+          calls[name] = (calls[name] or 0) + 1
+          return ...
+        end
+
+        highlight.saveHighlight = function(self, ...)
+          return record("saveHighlight", ...)
+        end
+        highlight.onExit = function(self, ...)
+          return record("onExit", ...)
+        end
+        highlight.startSelection = function(self, ...)
+          return record("startSelection", ...)
+        end
+        highlight.addNote = function(self, ...)
+          return record("addNote", ...)
+        end
+        highlight.translate = function(self, ...)
+          return record("translate", ...)
+        end
+        highlight.lookupWikipedia = function(self, ...)
+          return record("lookupWikipedia", ...)
+        end
+        highlight.highlightDictLookup = function(self, ...)
+          return record("highlightDictLookup", ...)
+        end
+        highlight.onHighlightSearch = function(self, ...)
+          return record("onHighlightSearch", ...)
+        end
+        highlight.lookup = function(self, ...)
+          return record("lookup", ...)
+        end
+        highlight.onShowHighlightMenu = function(self, ...)
+          return record("onShowHighlightMenu", ...)
+        end
+        highlight.extendSelection = function(self, ...)
+          return record("extendSelection", ...)
+        end
+        highlight.clear = function(self, ...)
+          return record("clear", ...)
+        end
+
+        finally(function()
+          highlight.saveHighlight = orig_save
+          highlight.onExit = orig_onExit
+          highlight.startSelection = orig_startSelection
+          highlight.addNote = orig_addNote
+          highlight.translate = orig_translate
+          highlight.lookupWikipedia = orig_lookupWikipedia
+          highlight.highlightDictLookup = orig_highlightDictLookup
+          highlight.onHighlightSearch = orig_onHighlightSearch
+          highlight.lookup = orig_lookup
+          highlight.onShowHighlightMenu = orig_onShowHighlightMenu
+          highlight.extendSelection = orig_extendSelection
+          highlight.clear = orig_clear
+          G_reader_settings:save("default_highlight_action", "ask")
+          highlight.selected_text = nil
+          highlight.is_word_selection = nil
+          highlight.long_hold_reached = nil
+          highlight.select_mode = nil
+        end)
+
+        highlight.selected_text =
+          { text = "Sample text", pos0 = "/1", pos1 = "/2" }
+        highlight.is_word_selection = false
+        highlight.long_hold_reached = false
+
+        -- 1. "highlight" -> saveHighlight(true) + onExit()
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "highlight")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.saveHighlight)
+        assert.are.equal(1, calls.onExit)
+
+        -- 2. "select" -> startSelection() + onExit()
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "select")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.startSelection)
+        assert.are.equal(1, calls.onExit)
+
+        -- 3. "note" -> addNote() + onExit()
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "note")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.addNote)
+        assert.are.equal(1, calls.onExit)
+
+        -- 4. "translate" -> translate() (no onExit)
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "translate")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.translate)
+        assert.is_nil(calls.onExit)
+
+        -- 5. "wikipedia" -> lookupWikipedia() + onExit()
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "wikipedia")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.lookupWikipedia)
+        assert.are.equal(1, calls.onExit)
+
+        -- 6. "dictionary" -> highlightDictLookup() + onExit()
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "dictionary")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.highlightDictLookup)
+        assert.are.equal(1, calls.onExit)
+
+        -- 7. "search" -> onHighlightSearch() (no onExit)
+        calls = {}
+        G_reader_settings:save("default_highlight_action", "search")
+        highlight:onHoldRelease()
+        assert.are.equal(1, calls.onHighlightSearch)
+        assert.is_nil(calls.onExit)
+
+        -- Word selection with long_hold_reached -> is_word_selection cleared, onShowHighlightMenu runs instead of lookup
+        calls = {}
+        highlight.is_word_selection = true
+        highlight.long_hold_reached = true
+        G_reader_settings:save("default_highlight_action", "dictionary")
+        highlight:onHoldRelease()
+        assert.is_false(highlight.is_word_selection)
+        assert.are.equal(1, calls.onShowHighlightMenu)
+        assert.is_nil(calls.lookup)
+
+        -- select_mode with default_highlight_action == "select" -> extendSelection, saveHighlight(true), clear
+        calls = {}
+        highlight.select_mode = true
+        highlight.is_word_selection = false
+        highlight.long_hold_reached = false
+        G_reader_settings:save("default_highlight_action", "select")
+        highlight:onHoldRelease()
+        assert.is_false(highlight.select_mode)
+        assert.are.equal(1, calls.extendSelection)
+        assert.are.equal(1, calls.saveHighlight)
+        assert.are.equal(1, calls.clear)
+        assert.is_nil(calls.onShowHighlightMenu)
+
+        -- select_mode with default_highlight_action == "ask" -> extendSelection, onShowHighlightMenu
+        calls = {}
+        highlight.select_mode = true
+        highlight.is_word_selection = false
+        highlight.long_hold_reached = false
+        G_reader_settings:save("default_highlight_action", "ask")
+        highlight:onHoldRelease()
+        assert.is_false(highlight.select_mode)
+        assert.are.equal(1, calls.extendSelection)
+        assert.are.equal(1, calls.onShowHighlightMenu)
+        assert.is_nil(calls.saveHighlight)
+      end
+    )
+
+    it(
+      "should handle getExtendedHighlightPage and extendSelection across paged and rolling modes",
+      function()
+        local highlight = readerui.highlight
+        local doc = readerui.document
+        local orig_paging = readerui.paging
+        local orig_comparePositions = doc.comparePositions
+        local orig_getTextBoxes = doc.getTextBoxes
+        local orig_getTextFromPositions = doc.getTextFromPositions
+        local orig_getPageBoxesFromPositions = doc.getPageBoxesFromPositions
+        local orig_compareXPointers = doc.compareXPointers
+        local orig_getTextFromXPointers = doc.getTextFromXPointers
+        local orig_configurable = doc.configurable
+        local orig_deleteHighlight = highlight.deleteHighlight
+
+        local deleted_idx
+        highlight.deleteHighlight = function(self, idx)
+          deleted_idx = idx
+        end
+
+        finally(function()
+          readerui.paging = orig_paging
+          if readerui.view and readerui.view.highlight then
+            readerui.view.highlight.temp = {}
+          end
+          doc.comparePositions = orig_comparePositions
+          doc.getTextBoxes = orig_getTextBoxes
+          doc.getTextFromPositions = orig_getTextFromPositions
+          doc.getPageBoxesFromPositions = orig_getPageBoxesFromPositions
+          doc.compareXPointers = orig_compareXPointers
+          doc.getTextFromXPointers = orig_getTextFromXPointers
+          doc.configurable = orig_configurable
+          highlight.deleteHighlight = orig_deleteHighlight
+          highlight.selected_text = nil
+          highlight.hold_pos = nil
+          highlight.highlight_idx = nil
+        end)
+
+        readerui.paging = true
+        doc.configurable = { text_wrap = 1 }
+
+        doc.comparePositions = function(self, p1, p2)
+          if p1.page < p2.page then
+            return 1
+          end
+          if p1.page > p2.page then
+            return -1
+          end
+          if p1.y < p2.y or (p1.y == p2.y and p1.x < p2.x) then
+            return 1
+          end
+          if p1.y > p2.y or (p1.y == p2.y and p1.x > p2.x) then
+            return -1
+          end
+          return 0
+        end
+
+        doc.getTextBoxes = function(self, page)
+          return {
+            { { x0 = 5, y0 = 10, x1 = 45, y1 = 20 } },
+            { { x0 = 5, y0 = 30, x1 = 95, y1 = 40 } },
+          }
+        end
+
+        local text_wrap_during_getText
+        doc.getTextFromPositions = function(self, p0, p1)
+          text_wrap_during_getText = doc.configurable.text_wrap
+          return {
+            text = string.format(
+              "Page %d [%d,%d - %d,%d] ",
+              p0.page,
+              p0.x,
+              p0.y,
+              p1.x,
+              p1.y
+            ),
+            pboxes = { { x0 = p0.x, y0 = p0.y, x1 = p1.x, y1 = p1.y } },
+          }
+        end
+
+        local span_pos0 = { page = 1, x = 20, y = 30 }
+        local span_pos1 = { page = 3, x = 80, y = 90 }
+
+        -- Test getExtendedHighlightPage directly for 3-page span
+        local p1_item =
+          highlight:getExtendedHighlightPage(span_pos0, span_pos1, 1)
+        assert.are.equal(1, p1_item.pos0.page)
+        assert.are.equal(20, p1_item.pos0.x)
+        assert.are.equal(30, p1_item.pos0.y)
+        assert.are.equal(1, p1_item.pos1.page)
+        assert.are.equal(95, p1_item.pos1.x)
+        assert.are.equal(40, p1_item.pos1.y)
+
+        local p2_item =
+          highlight:getExtendedHighlightPage(span_pos0, span_pos1, 2)
+        assert.are.equal(2, p2_item.pos0.page)
+        assert.are.equal(5, p2_item.pos0.x)
+        assert.are.equal(10, p2_item.pos0.y)
+        assert.are.equal(2, p2_item.pos1.page)
+        assert.are.equal(95, p2_item.pos1.x)
+        assert.are.equal(40, p2_item.pos1.y)
+
+        local p3_item =
+          highlight:getExtendedHighlightPage(span_pos0, span_pos1, 3)
+        assert.are.equal(3, p3_item.pos0.page)
+        assert.are.equal(5, p3_item.pos0.x)
+        assert.are.equal(10, p3_item.pos0.y)
+        assert.are.equal(3, p3_item.pos1.page)
+        assert.are.equal(80, p3_item.pos1.x)
+        assert.are.equal(90, p3_item.pos1.y)
+
+        -- Test extendSelection() multi-page
+        readerui.annotation.annotations = {
+          { pos0 = span_pos0, pos1 = { page = 1, x = 50, y = 30 } },
+        }
+        highlight.highlight_idx = 1
+        highlight.hold_pos = { page = 2 }
+        highlight.selected_text = {
+          pos0 = { page = 3, x = 60, y = 90 },
+          pos1 = span_pos1,
+        }
+        doc.getPageBoxesFromPositions = function(
+          self,
+          cur_page,
+          temp_pos0,
+          temp_pos1
+        )
+          return {
+            {
+              x = 10,
+              y = 10,
+              w = 50,
+              h = 20,
+              page = cur_page,
+              p0 = temp_pos0,
+              p1 = temp_pos1,
+            },
+          }
+        end
+
+        deleted_idx = nil
+        highlight:extendSelection()
+
+        assert.are.equal(0, text_wrap_during_getText)
+        assert.are.equal(1, doc.configurable.text_wrap)
+        assert.are.equal(1, deleted_idx)
+        assert.is_table(highlight.selected_text.ext)
+        assert.is_not_nil(highlight.selected_text.ext[1])
+        assert.is_not_nil(highlight.selected_text.ext[2])
+        assert.is_not_nil(highlight.selected_text.ext[3])
+        assert.are.same(span_pos0, highlight.selected_text.pos0)
+        assert.are.same(span_pos1, highlight.selected_text.pos1)
+        assert.is_string(highlight.selected_text.text)
+        assert.is_not_nil(readerui.view.highlight.temp[2])
+
+        -- Test single-page PDF extension (new_pos0.page == new_pos1.page)
+        local single_item1 = {
+          pos0 = { page = 2, x = 10, y = 20 },
+          pos1 = { page = 2, x = 30, y = 20 },
+        }
+        readerui.annotation.annotations = { single_item1 }
+        highlight.highlight_idx = 1
+        highlight.hold_pos = { page = 2 }
+        highlight.selected_text = {
+          pos0 = { page = 2, x = 40, y = 20 },
+          pos1 = { page = 2, x = 60, y = 20 },
+        }
+        highlight:extendSelection()
+        assert.is_nil(highlight.selected_text.ext)
+        assert.is_table(highlight.selected_text.pboxes)
+        assert.are.equal(2, highlight.selected_text.pos0.page)
+        assert.are.equal(2, highlight.selected_text.pos1.page)
+
+        -- Test rolling EPUB extension (self.ui.paging = nil)
+        readerui.paging = nil
+        local epub_item1 = { pos0 = "/1/2", pos1 = "/1/4" }
+        readerui.annotation.annotations = { epub_item1 }
+        highlight.highlight_idx = 1
+        highlight.selected_text = { pos0 = "/1/3", pos1 = "/1/6" }
+
+        doc.compareXPointers = function(self, xp1, xp2)
+          return (xp1 < xp2) and 1 or -1
+        end
+        local draw_passed
+        doc.getTextFromXPointers = function(self, p0, p1, draw)
+          draw_passed = draw
+          return "Rolling EPUB combined text"
+        end
+
+        deleted_idx = nil
+        highlight:extendSelection()
+        assert.are.equal(1, deleted_idx)
+        assert.is_true(draw_passed)
+        assert.are.equal("/1/2", highlight.selected_text.pos0)
+        assert.are.equal("/1/6", highlight.selected_text.pos1)
+        assert.are.equal(
+          "Rolling EPUB combined text",
+          highlight.selected_text.text
+        )
+      end
+    )
   end)
 end)
