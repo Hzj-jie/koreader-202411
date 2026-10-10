@@ -631,6 +631,55 @@ describe("AnnotationSync Core Integration", function()
       assert.are_equal(ann_p3, readerui.annotation.annotations[2])
     end)
 
+    it("applySyncedAnnotations never calls document:render() on open book", function()
+      local old_render = readerui.document.render
+      readerui.document.render = function()
+        error("render should not be called")
+      end
+      finally(function()
+        readerui.document.render = old_render
+      end)
+
+      sync_instance:applySyncedAnnotations(readerui.document, {})
+    end)
+
+    it("applySyncedAnnotations does not raise when open document has no render method", function()
+      local old_doc = readerui.document
+      local doc_no_render = setmetatable({
+        file = old_doc.file,
+        is_pdf = false,
+      }, {
+        __index = function(_, k)
+          if k == "render" then return nil end
+          return old_doc[k]
+        end,
+      })
+      readerui.document = doc_no_render
+      finally(function()
+        readerui.document = old_doc
+      end)
+
+      sync_instance:applySyncedAnnotations(doc_no_render, {})
+    end)
+
+    it("applySyncedAnnotations repaints the open book, PDF included", function()
+      local old_is_pdf = readerui.document.is_pdf
+      readerui.document.is_pdf = true
+      local dirty_target
+      local old_setDirty = UIManager.setDirty
+      UIManager.setDirty = function(self, widget, ...)
+        dirty_target = widget
+        return old_setDirty(self, widget, ...)
+      end
+      finally(function()
+        readerui.document.is_pdf = old_is_pdf
+        UIManager.setDirty = old_setDirty
+      end)
+
+      sync_instance:applySyncedAnnotations(readerui.document, {})
+      assert.are_equal(readerui, dirty_target)
+    end)
+
     it("applySyncedAnnotations on closed book marks annotations_externally_modified", function()
       local closed_file = test_data_dir .. "/closed_doc.epub"
       local DocSettings = require("docsettings")

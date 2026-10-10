@@ -2752,6 +2752,89 @@ describe("Background Sync Behavior", function()
       )
 
       it(
+        "a tap during an auto sync is answered when Move to trash succeeds",
+        function()
+          local doc, name = emptied_book("tap_during_sync_success")
+          local tapped = false
+          fork_like(function()
+            if tapped then
+              return
+            end
+            tapped = true
+            sync_manager:syncNow(doc)
+          end)
+
+          local jobs = count_jobs()
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+
+          tap(boxes[1], "Move to trash")
+
+          -- Exactly 2 jobs total (the first sync + the trash sync)
+          assert.are.equal(2, jobs())
+          assert.are.equal(1, #boxes)
+          assert.is_false(is_pending(doc))
+          assert.are.same({
+            "Syncing in the background: tap_during_sync_success.epub",
+            "Synced: tap_during_sync_success.epub",
+          }, toasts)
+        end
+      )
+
+      it(
+        "a tap during an auto sync gets a message box and stops retrying if Move to trash fails",
+        function()
+          local doc, name = emptied_book("tap_during_sync_fail")
+          local msg_boxes = {}
+          local old_show_msg = utils.show_msg
+          finally(function()
+            utils.show_msg = old_show_msg
+          end)
+          utils.show_msg = function(text)
+            table.insert(msg_boxes, text)
+          end
+
+          local jobs_started = 0
+          BackgroundJobs.insertKeyed = function(job)
+            jobs_started = jobs_started + 1
+            if jobs_started == 1 then
+              -- First sync succeeds, user taps syncNow during it
+              local res = job.action()
+              sync_manager:syncNow(doc)
+              job.result = res
+              job.callback(job)
+            elseif jobs_started == 2 then
+              -- Second sync (Move to trash) fails
+              job.result = { file = doc, success = false }
+              job.callback(job)
+            else
+              -- Any further job
+              local res = job.action()
+              job.result = res
+              job.callback(job)
+            end
+            return true
+          end
+
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+
+          tap(boxes[1], "Move to trash")
+
+          -- Exactly 2 jobs total (the first sync + the failing trash sync)
+          assert.are.equal(2, jobs_started)
+          assert.are.equal(1, #boxes)
+          assert.are.same({
+            "Failed to sync tap_during_sync_fail.epub.",
+          }, msg_boxes)
+        end
+      )
+
+      it(
         "Move to trash trashes what it counted, even if edited meanwhile, and keeps an annotation added meanwhile",
         function()
           local doc, name = emptied_book("cloud_changed_meanwhile")
@@ -2802,37 +2885,76 @@ describe("Background Sync Behavior", function()
         end
       )
 
-      it("a book emptied while its sync runs asks too", function()
-        local doc, name = emptied_book("emptied_during_sync")
-        local ds = DocSettings:open(doc)
-        ds:save("annotations", { A, B })
-        ds:flush()
-        -- fork_like runs this after every job: empty the book in the first
-        -- one only.
-        local emptied = false
-        fork_like(function()
-          if emptied then
-            return
-          end
-          emptied = true
-          local during = DocSettings:open(doc)
-          during:save("annotations", {})
-          during:flush()
-        end)
+      it(
+        "a book emptied while its sync runs: with auto sync off, Restore removes it from pending",
+        function()
+          plugin_instance.settings.network_auto_sync = false
+          local doc, name = emptied_book("emptied_during_sync_off")
+          local ds = DocSettings:open(doc)
+          ds:save("annotations", { A, B })
+          ds:flush()
+          local emptied = false
+          fork_like(function()
+            if emptied then
+              return
+            end
+            emptied = true
+            local during = DocSettings:open(doc)
+            during:save("annotations", {})
+            during:flush()
+          end)
 
-        sync_manager:addToChangedDocumentsFile(doc)
+          sync_manager:addToChangedDocumentsFile(doc)
+          sync_manager:syncAllChangedDocuments()
 
-        assert.are.equal(1, #boxes)
-        assert_asks(boxes[1], doc, 3)
-        assert.are.equal("", book(doc))
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
 
-        tap(boxes[1], "Restore")
+          tap(boxes[1], "Restore")
 
-        assert.are.equal(1, #boxes)
-        assert.are.equal("A, B, C", book(doc))
-        assert.are.equal("A, B, C, D(DELETED)", cloud(name))
-        assert.is_false(is_pending(doc))
-      end)
+          assert.are.equal(1, #boxes)
+          assert.are.equal("A, B, C", book(doc))
+          assert.are.equal("A, B, C, D(DELETED)", cloud(name))
+          assert.is_false(is_pending(doc))
+        end
+      )
+
+      it(
+        "a book emptied while its sync runs: with auto sync on, Restore runs no second sync job",
+        function()
+          plugin_instance.settings.network_auto_sync = true
+          local doc, name = emptied_book("emptied_during_sync_on")
+          local ds = DocSettings:open(doc)
+          ds:save("annotations", { A, B })
+          ds:flush()
+          local emptied = false
+          fork_like(function()
+            if emptied then
+              return
+            end
+            emptied = true
+            local during = DocSettings:open(doc)
+            during:save("annotations", {})
+            during:flush()
+          end)
+
+          local jobs = count_jobs()
+          sync_manager:addToChangedDocumentsFile(doc)
+
+          assert.are.equal(1, #boxes)
+          assert_asks(boxes[1], doc, 3)
+          assert.are.equal("", book(doc))
+
+          tap(boxes[1], "Restore")
+
+          assert.are.equal(1, #boxes)
+          assert.are.equal("A, B, C", book(doc))
+          assert.are.equal("A, B, C, D(DELETED)", cloud(name))
+          assert.is_false(is_pending(doc))
+          assert.are.equal(1, jobs())
+        end
+      )
 
       it("a book never synced on this device restores without asking", function()
         local doc, name = new_doc("never_synced_here")
