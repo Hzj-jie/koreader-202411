@@ -75,6 +75,20 @@ describe("Checkers ButtonTable widget", function()
       assert.are.equal(0.6, widget.buttons_layout[2][1].alpha)
       assert.are.equal(0.8, widget.buttons_layout[2][2].alpha)
     end)
+
+    it("should preserve alpha alignment when earlier button has nil alpha", function()
+      local widget = CheckersButtonTable:new({
+        buttons = {
+          {
+            { text = "NoAlpha", alpha = nil },
+            { text = "HasAlpha", alpha = 0.5 },
+          },
+        },
+      })
+
+      assert.is_nil(widget.buttons_layout[1][1].alpha)
+      assert.are.equal(0.5, widget.buttons_layout[1][2].alpha)
+    end)
   end)
 
   describe("Button.new lifecycle and cleanup", function()
