@@ -254,4 +254,51 @@ describe("ExternalKeyboard main plugin module", function()
 
     UIManager.scheduleIn = orig_schedule
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: setupKeyboard leaks event_fd when fdopen fails or device is already registered",
+      function()
+        local inst = ExternalKeyboard:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+
+        local closed_fds = {}
+        local orig_input = Device.input
+        Device.input = {
+          fdopen = function(self_in, fd, path, name)
+            error("fdopen failed: EIO")
+          end,
+          close = function(self_in, fd_or_path)
+            closed_fds[fd_or_path] = true
+          end,
+          event_map = {},
+        }
+
+        finally(function()
+          Device.input = orig_input
+          ExternalKeyboard.keyboard_fds = {}
+          ExternalKeyboard.connected_keyboards = 0
+          while #UIManager._window_stack > 0 do
+            UIManager:close(
+              UIManager._window_stack[#UIManager._window_stack].widget
+            )
+          end
+        end)
+
+        local kb_data = {
+          event_fd = 42,
+          event_path = "/dev/input/event15",
+          name = "Defect Keyboard",
+          has_dpad = false,
+        }
+
+        inst:setupKeyboard(kb_data)
+
+        -- If Device.input.fdopen fails, event_fd must be closed to avoid leaking file descriptors.
+        -- In production, setupKeyboard returns early without closing event_fd.
+        assert.is_true(closed_fds[42] or closed_fds["/dev/input/event15"])
+      end
+    )
+  end)
 end)
