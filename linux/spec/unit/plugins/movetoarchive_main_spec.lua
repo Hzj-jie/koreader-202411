@@ -12,7 +12,8 @@ describe("MoveToArchive main plugin module", function()
     FileManager = require("apps/filemanager/filemanager")
     DocSettings = require("docsettings")
 
-    settings_file = DataStorage:getSettingsDir() .. "/move_to_archive_settings.lua"
+    settings_file = DataStorage:getSettingsDir()
+      .. "/move_to_archive_settings.lua"
     MoveToArchive = require("plugins/movetoarchive.koplugin/main")
   end)
 
@@ -68,10 +69,14 @@ describe("MoveToArchive main plugin module", function()
     -- 2. Go to archive folder
     local util = require("frontend/util")
     local orig_dir_exists = util.directoryExists
-    util.directoryExists = function(p) return true end
+    util.directoryExists = function(p)
+      return true
+    end
 
     local shown_path
-    instance.openFileBrowser = function(self_i, p) shown_path = p end
+    instance.openFileBrowser = function(self_i, p)
+      shown_path = p
+    end
     sub_items[3].callback()
     assert.are.equal("/archive/", shown_path)
 
@@ -96,7 +101,9 @@ describe("MoveToArchive main plugin module", function()
   it("should handle onMoveToArchive for move and copy operations", function()
     local orig_show = UIManager.show
     local shown_widgets = {}
-    UIManager.show = function(self_uim, w) table.insert(shown_widgets, w) end
+    UIManager.show = function(self_uim, w)
+      table.insert(shown_widgets, w)
+    end
 
     local mock_ui = {
       menu = { registerToMainMenu = function() end },
@@ -110,8 +117,12 @@ describe("MoveToArchive main plugin module", function()
     -- Mock FileManager and DocSettings methods
     local copied = false
     local moved = false
-    FileManager.copyFile = function(self_fm, src, dst) copied = true end
-    FileManager.moveFile = function(self_fm, src, dst) moved = true end
+    FileManager.copyFile = function(self_fm, src, dst)
+      copied = true
+    end
+    FileManager.moveFile = function(self_fm, src, dst)
+      moved = true
+    end
     DocSettings.updateLocation = function(src, dst, is_copy) end
 
     -- 1. Copy operation
@@ -143,7 +154,9 @@ describe("MoveToArchive main plugin module", function()
     local mock_ui = {
       menu = { registerToMainMenu = function() end },
       document = { file = "/books/fiction/book1.epub" },
-      onExit = function() exited = true end,
+      onExit = function()
+        exited = true
+      end,
     }
     local instance = MoveToArchive:new({ ui = mock_ui })
     instance:init()
@@ -151,7 +164,9 @@ describe("MoveToArchive main plugin module", function()
     -- 1. When FileManager.instance exists
     local reinit_path
     FileManager.instance = {
-      reinit = function(self_fm, path) reinit_path = path end,
+      reinit = function(self_fm, path)
+        reinit_path = path
+      end,
     }
     instance:openFileBrowser("/target/path")
     assert.is_true(exited)
@@ -160,7 +175,9 @@ describe("MoveToArchive main plugin module", function()
     -- 2. When FileManager.instance is nil
     FileManager.instance = nil
     local show_files_path
-    FileManager.showFiles = function(self_fm, path) show_files_path = path end
+    FileManager.showFiles = function(self_fm, path)
+      show_files_path = path
+    end
     instance:openFileBrowser("/another/path")
     assert.are.equal("/another/path", show_files_path)
   end)

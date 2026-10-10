@@ -37,61 +37,67 @@ describe("RadioButtonWidget", function()
   end)
 
   describe("initialization and default indicators", function()
-    it("should instantiate with default settings and default_provider star", function()
-      local buttons = {
-        { { text = "Option 1", provider = "opt1" } },
-        { { text = "Option 2", provider = "opt2", checked = true } },
-      }
+    it(
+      "should instantiate with default settings and default_provider star",
+      function()
+        local buttons = {
+          { { text = "Option 1", provider = "opt1" } },
+          { { text = "Option 2", provider = "opt2", checked = true } },
+        }
 
-      local widget = RadioButtonWidget:new({
-        title_text = "Select Option",
-        radio_buttons = buttons,
-        default_provider = "opt1",
-      })
+        local widget = RadioButtonWidget:new({
+          title_text = "Select Option",
+          radio_buttons = buttons,
+          default_provider = "opt1",
+        })
 
-      assert.are.equal("Select Option", widget.title_text)
-      assert.truthy(widget.width)
-      assert.truthy(widget.key_events.Exit)
-      assert.truthy(widget.ges_events.TapClose)
+        assert.are.equal("Select Option", widget.title_text)
+        assert.truthy(widget.width)
+        assert.truthy(widget.key_events.Exit)
+        assert.truthy(widget.ges_events.TapClose)
 
-      local row, col = widget:getButtonIndex("opt2")
-      assert.are.equal(2, row)
-      assert.are.equal(1, col)
-      assert.is_false(widget:hasMoved())
-    end)
+        local row, col = widget:getButtonIndex("opt2")
+        assert.are.equal(2, row)
+        assert.are.equal(1, col)
+        assert.is_false(widget:hasMoved())
+      end
+    )
   end)
 
   describe("buttons and callbacks", function()
-    it("should execute ok_callback with selected provider and indices", function()
-      local result_radio = nil
-      local closed = false
+    it(
+      "should execute ok_callback with selected provider and indices",
+      function()
+        local result_radio = nil
+        local closed = false
 
-      local buttons = {
-        { { text = "Option A", provider = "a" } },
-        { { text = "Option B", provider = "b", checked = true } },
-      }
+        local buttons = {
+          { { text = "Option A", provider = "a" } },
+          { { text = "Option B", provider = "b", checked = true } },
+        }
 
-      local widget = RadioButtonWidget:new({
-        title_text = "Radio Test",
-        radio_buttons = buttons,
-        callback = function(self)
-          result_radio = self
-        end,
-        close_callback = function()
-          closed = true
-        end,
-      })
+        local widget = RadioButtonWidget:new({
+          title_text = "Radio Test",
+          radio_buttons = buttons,
+          callback = function(self)
+            result_radio = self
+          end,
+          close_callback = function()
+            closed = true
+          end,
+        })
 
-      local btn_table = widget.widget_frame[1][3][1]
-      local ok_btn = btn_table.buttons[1][2]
-      ok_btn.callback()
+        local btn_table = widget.widget_frame[1][3][1]
+        local ok_btn = btn_table.buttons[1][2]
+        ok_btn.callback()
 
-      assert.truthy(result_radio)
-      assert.are.equal("b", result_radio.provider)
-      assert.are.equal(2, result_radio.row)
-      assert.are.equal(1, result_radio.col)
-      assert.is_true(closed)
-    end)
+        assert.truthy(result_radio)
+        assert.are.equal("b", result_radio.provider)
+        assert.are.equal(2, result_radio.row)
+        assert.are.equal(1, result_radio.col)
+        assert.is_true(closed)
+      end
+    )
 
     it("should execute extra button callback and cancel callback", function()
       local extra_called = false
@@ -145,7 +151,8 @@ describe("RadioButtonWidget", function()
       widget:onClose()
 
       -- Tap inside vs outside
-      widget.widget_frame.dimen = Geom:new({ x = 100, y = 100, w = 200, h = 200 })
+      widget.widget_frame.dimen =
+        Geom:new({ x = 100, y = 100, w = 200, h = 200 })
 
       local inside_ev = { pos = Geom:new({ x = 150, y = 150, w = 1, h = 1 }) }
       assert.is_true(widget:onTapClose(nil, inside_ev))

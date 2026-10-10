@@ -15,7 +15,13 @@ describe("Translator module", function()
       if url_str and string.find(url_str, "error_test") then
         return nil, "Connection refused"
       end
-      if url_str and (string.find(url_str, "translate.google") or string.find(url_str, "googleapis.com")) then
+      if
+        url_str
+        and (
+          string.find(url_str, "translate.google")
+          or string.find(url_str, "googleapis.com")
+        )
+      then
         local response_json =
           [=[[[["Wikipedia is a multilingual encyclopedia, the content of which is freely available. Anyone can add knowledge here!", "Wikipedia is een meertalige encyclopedie, waarvan de inhoud vrij beschikbaar is. Iedereen kan hier kennis toevoegen!", null, null, 3]], null, "nl"]]=]
         if type(request) == "table" and request.sink then
@@ -174,57 +180,63 @@ describe("Translator module", function()
     assert.is_string(Translator:getTargetLanguage())
   end)
 
-  it("should handle _showTranslation with detailed view, alternates, and definitions", function()
-    local UIManager = require("ui/uimanager")
-    local Trapper = require("ui/trapper")
-    local shown_widget = nil
-    local orig_show = UIManager.show
-    UIManager.show = function(self, w)
-      shown_widget = w
+  it(
+    "should handle _showTranslation with detailed view, alternates, and definitions",
+    function()
+      local UIManager = require("ui/uimanager")
+      local Trapper = require("ui/trapper")
+      local shown_widget = nil
+      local orig_show = UIManager.show
+      UIManager.show = function(self, w)
+        shown_widget = w
+      end
+
+      local mock_result = {
+        [1] = {
+          { "Hello", "Bonjour" },
+        },
+        [3] = "fr",
+        [6] = {
+          { "Bonjour", nil, { { "Hi" }, { "Hello" } } },
+        },
+        [13] = {
+          {
+            "greeting",
+            { { "an expression of greeting", nil, "hello there" } },
+          },
+        },
+      }
+
+      local orig_loadPage = Translator.loadPage
+      Translator.loadPage = function()
+        return mock_result
+      end
+
+      -- Detailed view = true
+      Translator:_showTranslation("Bonjour", true, "fr", "en", false, nil)
+      assert.is_not_nil(shown_widget)
+      if shown_widget and shown_widget.free then
+        shown_widget:free()
+      end
+
+      -- Detailed view = false
+      shown_widget = nil
+      Translator:_showTranslation("Bonjour", false, "fr", "en", false, nil)
+      assert.is_not_nil(shown_widget)
+      if shown_widget and shown_widget.free then
+        shown_widget:free()
+      end
+
+      -- Failure path
+      Translator.loadPage = function()
+        return nil
+      end
+      shown_widget = nil
+      Translator:_showTranslation("Bonjour", false, "fr", "en", false, nil)
+      assert.is_not_nil(shown_widget)
+
+      Translator.loadPage = orig_loadPage
+      UIManager.show = orig_show
     end
-
-    local mock_result = {
-      [1] = {
-        { "Hello", "Bonjour" },
-      },
-      [3] = "fr",
-      [6] = {
-        { "Bonjour", nil, { { "Hi" }, { "Hello" } } },
-      },
-      [13] = {
-        { "greeting", { { "an expression of greeting", nil, "hello there" } } },
-      },
-    }
-
-    local orig_loadPage = Translator.loadPage
-    Translator.loadPage = function()
-      return mock_result
-    end
-
-    -- Detailed view = true
-    Translator:_showTranslation("Bonjour", true, "fr", "en", false, nil)
-    assert.is_not_nil(shown_widget)
-    if shown_widget and shown_widget.free then
-      shown_widget:free()
-    end
-
-    -- Detailed view = false
-    shown_widget = nil
-    Translator:_showTranslation("Bonjour", false, "fr", "en", false, nil)
-    assert.is_not_nil(shown_widget)
-    if shown_widget and shown_widget.free then
-      shown_widget:free()
-    end
-
-    -- Failure path
-    Translator.loadPage = function()
-      return nil
-    end
-    shown_widget = nil
-    Translator:_showTranslation("Bonjour", false, "fr", "en", false, nil)
-    assert.is_not_nil(shown_widget)
-
-    Translator.loadPage = orig_loadPage
-    UIManager.show = orig_show
-  end)
+  )
 end)

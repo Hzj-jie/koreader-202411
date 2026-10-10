@@ -151,79 +151,87 @@ describe("ReaderPageMap module", function()
       readerui:onClose()
     end)
 
-    it("should retrieve formatted and raw page labels from document pagemap", function()
-      local readerui = createReaderUI()
-      local pagemap = readerui.pagemap
+    it(
+      "should retrieve formatted and raw page labels from document pagemap",
+      function()
+        local readerui = createReaderUI()
+        local pagemap = readerui.pagemap
 
-      readerui.document.getPageMapCurrentPageLabel = function()
-        return "Page 1", 1, 2
+        readerui.document.getPageMapCurrentPageLabel = function()
+          return "Page 1", 1, 2
+        end
+        readerui.document.getPageMapFirstPageLabel = function()
+          return "Page 1"
+        end
+        readerui.document.getPageMapLastPageLabel = function()
+          return "Page 2"
+        end
+        readerui.document.getPageMapXPointerPageLabel = function()
+          return "Page 1"
+        end
+        readerui.document.getPageMapSource = function()
+          return "First Edition 1920"
+        end
+        readerui.document.getPageMap = function()
+          return {
+            { label = "Page 1", page = 1, xpointer = "/1" },
+            { label = "Page 2", page = 2, xpointer = "/2" },
+          }
+        end
+
+        assert.is.same("1", pagemap:getCurrentPageLabel(true))
+        assert.is.same("Page 1", pagemap:getCurrentPageLabel(false))
+        assert.is.same("1", pagemap:getFirstPageLabel(true))
+        assert.is.same("Page 1", pagemap:getFirstPageLabel(false))
+        assert.is.same("2", pagemap:getLastPageLabel(true))
+        assert.is.same("Page 2", pagemap:getLastPageLabel(false))
+        assert.is.same("1", pagemap:getXPointerPageLabel("/1", true))
+        assert.is.same("Page 1", pagemap:getXPointerPageLabel("/1", false))
+        assert.is.same(1, pagemap:getRenderedPageNumber("1", true))
+        assert.is.same(2, pagemap:getRenderedPageNumber("Page 2", false))
+        assert.is_nil(pagemap:getRenderedPageNumber("999", true))
+
+        readerui:onExit()
+        readerui:onClose()
       end
-      readerui.document.getPageMapFirstPageLabel = function()
-        return "Page 1"
+    )
+
+    it(
+      "should update visible page labels and handle position updates",
+      function()
+        local readerui = createReaderUI()
+        local pagemap = readerui.pagemap
+
+        pagemap:onSetPageMargins({ 15, 10, 15, 10 })
+
+        pagemap.show_page_labels = true
+        pagemap.initialized = true
+        pagemap.has_pagemap = true
+        pagemap:resetLayout()
+
+        readerui.document.getPageMapVisiblePageLabels = function()
+          return {
+            { label = "Page 1", screen_page = 1, screen_y = 50 },
+            { label = "Page 2", screen_page = 1, screen_y = 60 },
+            { label = "Page 3", screen_page = 2, screen_y = 700 },
+          }
+        end
+        readerui.document.getVisiblePageCount = function()
+          return 2
+        end
+        readerui.view.footer_visible = true
+        readerui.view.footer.settings.reclaim_height = false
+        pagemap:updateVisibleLabels()
+
+        pagemap:onPageUpdate()
+        pagemap:onPosUpdate()
+        pagemap:onChangeViewMode()
+        pagemap:onSetStatusLine()
+
+        readerui:onExit()
+        readerui:onClose()
       end
-      readerui.document.getPageMapLastPageLabel = function()
-        return "Page 2"
-      end
-      readerui.document.getPageMapXPointerPageLabel = function()
-        return "Page 1"
-      end
-      readerui.document.getPageMapSource = function()
-        return "First Edition 1920"
-      end
-      readerui.document.getPageMap = function()
-        return {
-          { label = "Page 1", page = 1, xpointer = "/1" },
-          { label = "Page 2", page = 2, xpointer = "/2" },
-        }
-      end
-
-      assert.is.same("1", pagemap:getCurrentPageLabel(true))
-      assert.is.same("Page 1", pagemap:getCurrentPageLabel(false))
-      assert.is.same("1", pagemap:getFirstPageLabel(true))
-      assert.is.same("Page 1", pagemap:getFirstPageLabel(false))
-      assert.is.same("2", pagemap:getLastPageLabel(true))
-      assert.is.same("Page 2", pagemap:getLastPageLabel(false))
-      assert.is.same("1", pagemap:getXPointerPageLabel("/1", true))
-      assert.is.same("Page 1", pagemap:getXPointerPageLabel("/1", false))
-      assert.is.same(1, pagemap:getRenderedPageNumber("1", true))
-      assert.is.same(2, pagemap:getRenderedPageNumber("Page 2", false))
-      assert.is_nil(pagemap:getRenderedPageNumber("999", true))
-
-      readerui:onExit()
-      readerui:onClose()
-    end)
-
-    it("should update visible page labels and handle position updates", function()
-      local readerui = createReaderUI()
-      local pagemap = readerui.pagemap
-
-      pagemap:onSetPageMargins({ 15, 10, 15, 10 })
-
-      pagemap.show_page_labels = true
-      pagemap.initialized = true
-      pagemap.has_pagemap = true
-      pagemap:resetLayout()
-
-      readerui.document.getPageMapVisiblePageLabels = function()
-        return {
-          { label = "Page 1", screen_page = 1, screen_y = 50 },
-          { label = "Page 2", screen_page = 1, screen_y = 60 },
-          { label = "Page 3", screen_page = 2, screen_y = 700 },
-        }
-      end
-      readerui.document.getVisiblePageCount = function() return 2 end
-      readerui.view.footer_visible = true
-      readerui.view.footer.settings.reclaim_height = false
-      pagemap:updateVisibleLabels()
-
-      pagemap:onPageUpdate()
-      pagemap:onPosUpdate()
-      pagemap:onChangeViewMode()
-      pagemap:onSetStatusLine()
-
-      readerui:onExit()
-      readerui:onClose()
-    end)
+    )
 
     it("should build main menu items and handle settings callbacks", function()
       local readerui = createReaderUI()
@@ -234,9 +242,15 @@ describe("ReaderPageMap module", function()
       assert.truthy(menu_items.page_map)
       local mock_menu = { updateItems = function() end }
       for _, item in ipairs(menu_items.page_map.sub_item_table) do
-        if item.text_func then item:text_func() end
-        if item.enabled_func then item:enabled_func() end
-        if item.checked_func then item:checked_func() end
+        if item.text_func then
+          item:text_func()
+        end
+        if item.enabled_func then
+          item:enabled_func()
+        end
+        if item.checked_func then
+          item:checked_func()
+        end
         if item.callback then
           item.callback(mock_menu)
           local top = UIManager:getTopmostVisibleWidget()
@@ -287,18 +301,23 @@ describe("ReaderPageMap module", function()
       readerui:onClose()
     end)
 
-    it("should handle post-initialization with various document capabilities", function()
-      local readerui = createReaderUI()
-      local pagemap = readerui.pagemap
+    it(
+      "should handle post-initialization with various document capabilities",
+      function()
+        local readerui = createReaderUI()
+        local pagemap = readerui.pagemap
 
-      readerui.document.info.has_pages = true
-      pagemap:_postInit()
-      readerui.document.info.has_pages = false
-      readerui.document.hasPageMap = function() return false end
-      pagemap:_postInit()
+        readerui.document.info.has_pages = true
+        pagemap:_postInit()
+        readerui.document.info.has_pages = false
+        readerui.document.hasPageMap = function()
+          return false
+        end
+        pagemap:_postInit()
 
-      readerui:onExit()
-      readerui:onClose()
-    end)
+        readerui:onExit()
+        readerui:onClose()
+      end
+    )
   end)
 end)

@@ -119,58 +119,72 @@ describe("Sudoku plugin unit tests", function()
   end)
 
   describe("SudokuBoardWidget and SudokuScreen UI", function()
-    it("should initialize screen, handle inputs, notes mode, and paintTo", function()
-      local Blitbuffer = require("ffi/blitbuffer")
-      local UIManager = require("ui/uimanager")
-      local class = dofile("plugins/sudoku.koplugin/main.lua")
-      local mock_ui = { menu = { registerToMainMenu = function() end } }
-      local plugin = class:new({ ui = mock_ui })
-      plugin:init()
+    it(
+      "should initialize screen, handle inputs, notes mode, and paintTo",
+      function()
+        local Blitbuffer = require("ffi/blitbuffer")
+        local UIManager = require("ui/uimanager")
+        local class = dofile("plugins/sudoku.koplugin/main.lua")
+        local mock_ui = { menu = { registerToMainMenu = function() end } }
+        local plugin = class:new({ ui = mock_ui })
+        plugin:init()
 
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-      assert.is_table(menu_items.sudoku)
+        local menu_items = {}
+        plugin:addToMainMenu(menu_items)
+        assert.is_table(menu_items.sudoku)
 
-      local orig_show = UIManager.show
-      UIManager.show = function(self_uim, widget) end
+        local orig_show = UIManager.show
+        UIManager.show = function(self_uim, widget) end
 
-      plugin:showGame()
-      assert.is_table(plugin.screen)
-      local screen = plugin.screen
+        plugin:showGame()
+        assert.is_table(plugin.screen)
+        local screen = plugin.screen
 
-      -- Test input actions
-      screen:inputDigit(1)
-      screen:toggleNoteMode()
-      screen:inputDigit(2)
-      screen:toggleNoteMode()
-      screen:eraseDigit()
-      screen:undoMove()
-      screen:checkProgress()
-      screen:toggleSolution()
-      screen:toggleSolution()
-      screen:startNewGame()
-      screen:openDifficultyMenu()
+        -- Test input actions
+        screen:inputDigit(1)
+        screen:toggleNoteMode()
+        screen:inputDigit(2)
+        screen:toggleNoteMode()
+        screen:eraseDigit()
+        screen:undoMove()
+        screen:checkProgress()
+        screen:toggleSolution()
+        screen:toggleSolution()
+        screen:startNewGame()
+        screen:openDifficultyMenu()
 
-      -- Test board widget
-      local board_widget = screen.board_widget
-      assert.is_table(board_widget)
-      if board_widget.paint_rect then
-        local r, c = board_widget:getCellFromPoint(board_widget.paint_rect.x + 20, board_widget.paint_rect.y + 20)
-        if r and c then
-          assert.is_number(r)
-          assert.is_number(c)
+        -- Test board widget
+        local board_widget = screen.board_widget
+        assert.is_table(board_widget)
+        if board_widget.paint_rect then
+          local r, c = board_widget:getCellFromPoint(
+            board_widget.paint_rect.x + 20,
+            board_widget.paint_rect.y + 20
+          )
+          if r and c then
+            assert.is_number(r)
+            assert.is_number(c)
+          end
+          board_widget:onTap(
+            nil,
+            {
+              pos = {
+                x = board_widget.paint_rect.x + 20,
+                y = board_widget.paint_rect.y + 20,
+              },
+            }
+          )
         end
-        board_widget:onTap(nil, { pos = { x = board_widget.paint_rect.x + 20, y = board_widget.paint_rect.y + 20 } })
+
+        -- Paint to real blitbuffer
+        local bb = Blitbuffer.new(600, 800)
+        screen:paintTo(bb, 0, 0)
+        bb:free()
+
+        screen:onClose()
+        assert.is_nil(plugin.screen)
+        UIManager.show = orig_show
       end
-
-      -- Paint to real blitbuffer
-      local bb = Blitbuffer.new(600, 800)
-      screen:paintTo(bb, 0, 0)
-      bb:free()
-
-      screen:onClose()
-      assert.is_nil(plugin.screen)
-      UIManager.show = orig_show
-    end)
+    )
   end)
 end)

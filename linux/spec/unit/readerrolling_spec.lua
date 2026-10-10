@@ -526,292 +526,344 @@ describe("Readerrolling module", function()
     end
   end)
 
-  describe("comprehensive tests for ReaderRolling lifecycle, DOM, and callbacks", function()
-    local sample_epub = "spec/front/unit/data/juliet.epub"
+  describe(
+    "comprehensive tests for ReaderRolling lifecycle, DOM, and callbacks",
+    function()
+      local sample_epub = "spec/front/unit/data/juliet.epub"
 
-    before_each(function()
-      if not readerui or not readerui.document then
-        readerui = ReaderUI:new({
-          dimen = Screen:getSize(),
-          document = DocumentRegistry:openDocument(sample_epub),
-        })
-        rolling = readerui.rolling
-      end
-    end)
+      before_each(function()
+        if not readerui or not readerui.document then
+          readerui = ReaderUI:new({
+            dimen = Screen:getSize(),
+            document = DocumentRegistry:openDocument(sample_epub),
+          })
+          rolling = readerui.rolling
+        end
+      end)
 
-    it("should handle engine progress callbacks and events", function()
-      -- Test all callback events
-      rolling:handleEngineCallback("OnLoadFileStart")
-      rolling:handleEngineCallback("OnLoadFileProgress", 50)
-      rolling:handleEngineCallback("OnNodeStylesUpdateStart")
-      rolling:handleEngineCallback("OnNodeStylesUpdateProgress", 50)
-      rolling:handleEngineCallback("OnFormatStart")
-      rolling:handleEngineCallback("OnFormatProgress", 50)
-      rolling:handleEngineCallback("OnSaveCacheFileStart")
-      rolling:handleEngineCallback("OnSaveCacheFileProgress", 50)
-      rolling:handleEngineCallback("OnDocumentReady")
-      rolling:handleEngineCallback("OnSaveCacheFileEnd")
-      rolling:handleEngineCallback("OnLoadFileError", "Test error message")
+      it("should handle engine progress callbacks and events", function()
+        -- Test all callback events
+        rolling:handleEngineCallback("OnLoadFileStart")
+        rolling:handleEngineCallback("OnLoadFileProgress", 50)
+        rolling:handleEngineCallback("OnNodeStylesUpdateStart")
+        rolling:handleEngineCallback("OnNodeStylesUpdateProgress", 50)
+        rolling:handleEngineCallback("OnFormatStart")
+        rolling:handleEngineCallback("OnFormatProgress", 50)
+        rolling:handleEngineCallback("OnSaveCacheFileStart")
+        rolling:handleEngineCallback("OnSaveCacheFileProgress", 50)
+        rolling:handleEngineCallback("OnDocumentReady")
+        rolling:handleEngineCallback("OnSaveCacheFileEnd")
+        rolling:handleEngineCallback("OnLoadFileError", "Test error message")
 
-      -- Test showEngineProgress with and without percent
-      rolling.engine_progress_update_not_before = nil
-      rolling:showEngineProgress(0.5)
-      rolling.engine_progress_update_not_before = nil
-      rolling:showEngineProgress()
-      assert.is_nil(rolling.engine_progress_widget)
-    end)
+        -- Test showEngineProgress with and without percent
+        rolling.engine_progress_update_not_before = nil
+        rolling:showEngineProgress(0.5)
+        rolling.engine_progress_update_not_before = nil
+        rolling:showEngineProgress()
+        assert.is_nil(rolling.engine_progress_widget)
+      end)
 
-    it("should check DOM style coherence and confirm box", function()
-      local orig_isBuiltDomStale = readerui.document.isBuiltDomStale
-      readerui.document.isBuiltDomStale = function()
-        return true
-      end
-      rolling:onCheckDomStyleCoherence()
-      local top = UIManager._window_stack[#UIManager._window_stack]
-      if top and top.widget and top.widget ~= readerui then
-        assert.is_not_nil(top.widget.ok_callback)
-        UIManager:close(top.widget)
-      end
-      readerui.document.isBuiltDomStale = orig_isBuiltDomStale
-    end)
+      it("should check DOM style coherence and confirm box", function()
+        local orig_isBuiltDomStale = readerui.document.isBuiltDomStale
+        readerui.document.isBuiltDomStale = function()
+          return true
+        end
+        rolling:onCheckDomStyleCoherence()
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= readerui then
+          assert.is_not_nil(top.widget.ok_callback)
+          UIManager:close(top.widget)
+        end
+        readerui.document.isBuiltDomStale = orig_isBuiltDomStale
+      end)
 
-    it("should handle DOM version upgrade checks and proposal", function()
-      local orig_isBuiltDomStale = readerui.document.isBuiltDomStale
-      readerui.document.isBuiltDomStale = function()
-        return false
-      end
+      it("should handle DOM version upgrade checks and proposal", function()
+        local orig_isBuiltDomStale = readerui.document.isBuiltDomStale
+        readerui.document.isBuiltDomStale = function()
+          return false
+        end
 
-      -- Call checkXPointersAndProposeDOMVersionUpgrade
-      rolling:checkXPointersAndProposeDOMVersionUpgrade()
-      local top = UIManager._window_stack[#UIManager._window_stack]
-      if top and top.widget and top.widget ~= readerui then
-        UIManager:close(top.widget)
-      end
+        -- Call checkXPointersAndProposeDOMVersionUpgrade
+        rolling:checkXPointersAndProposeDOMVersionUpgrade()
+        local top = UIManager._window_stack[#UIManager._window_stack]
+        if top and top.widget and top.widget ~= readerui then
+          UIManager:close(top.widget)
+        end
 
-      readerui.document.isBuiltDomStale = orig_isBuiltDomStale
-    end)
+        readerui.document.isBuiltDomStale = orig_isBuiltDomStale
+      end)
 
-    it("should exercise touch zones and gesture handlers", function()
-      rolling:setupTouchZones()
+      it("should exercise touch zones and gesture handlers", function()
+        rolling:setupTouchZones()
 
-      -- Test page turns via tap forward and backward
-      rolling:onGotoPage(10)
-      rolling:onGotoViewRel(1)
-      assert.are.same(11, rolling.current_page)
-      rolling:onGotoViewRel(-1)
-      assert.are.same(10, rolling.current_page)
-    end)
+        -- Test page turns via tap forward and backward
+        rolling:onGotoPage(10)
+        rolling:onGotoViewRel(1)
+        assert.are.same(11, rolling.current_page)
+        rolling:onGotoViewRel(-1)
+        assert.are.same(10, rolling.current_page)
+      end)
 
-    it("should exercise all main menu items and hold callbacks in ReaderRolling", function()
-      local menu_items = {}
-      rolling:addToMainMenu(menu_items)
+      it(
+        "should exercise all main menu items and hold callbacks in ReaderRolling",
+        function()
+          local menu_items = {}
+          rolling:addToMainMenu(menu_items)
 
-      -- Exercise hide_nonlinear_flows
-      if menu_items.hide_nonlinear_flows then
-        local hnf = menu_items.hide_nonlinear_flows
-        if hnf.enabled_func then hnf.enabled_func() end
-        if hnf.checked_func then hnf.checked_func() end
-        if hnf.callback then hnf.callback() end
-        if hnf.hold_callback then
-          hnf.hold_callback()
-          local top = UIManager._window_stack[#UIManager._window_stack]
-          if top and top.widget and top.widget ~= readerui then
-            if top.widget.ok_callback then top.widget.ok_callback() end
-            UIManager:close(top.widget)
+          -- Exercise hide_nonlinear_flows
+          if menu_items.hide_nonlinear_flows then
+            local hnf = menu_items.hide_nonlinear_flows
+            if hnf.enabled_func then
+              hnf.enabled_func()
+            end
+            if hnf.checked_func then
+              hnf.checked_func()
+            end
+            if hnf.callback then
+              hnf.callback()
+            end
+            if hnf.hold_callback then
+              hnf.hold_callback()
+              local top = UIManager._window_stack[#UIManager._window_stack]
+              if top and top.widget and top.widget ~= readerui then
+                if top.widget.ok_callback then
+                  top.widget.ok_callback()
+                end
+                UIManager:close(top.widget)
+              end
+            end
+          end
+
+          -- Exercise partial_rerendering
+          if menu_items.partial_rerendering then
+            local pr = menu_items.partial_rerendering
+            if pr.enabled_func then
+              pr.enabled_func()
+            end
+            if pr.checked_func then
+              pr.checked_func()
+            end
+            if pr.callback then
+              pr.callback()
+            end
+            if pr.hold_callback then
+              pr.hold_callback()
+              local top = UIManager._window_stack[#UIManager._window_stack]
+              if top and top.widget and top.widget ~= readerui then
+                if top.widget.choice1_callback then
+                  top.widget.choice1_callback()
+                end
+                if top.widget.choice2_callback then
+                  top.widget.choice2_callback()
+                end
+                UIManager:close(top.widget)
+              end
+            end
           end
         end
-      end
+      )
 
-      -- Exercise partial_rerendering
-      if menu_items.partial_rerendering then
-        local pr = menu_items.partial_rerendering
-        if pr.enabled_func then pr.enabled_func() end
-        if pr.checked_func then pr.checked_func() end
-        if pr.callback then pr.callback() end
-        if pr.hold_callback then
-          pr.hold_callback()
-          local top = UIManager._window_stack[#UIManager._window_stack]
-          if top and top.widget and top.widget ~= readerui then
-            if top.widget.choice1_callback then top.widget.choice1_callback() end
-            if top.widget.choice2_callback then top.widget.choice2_callback() end
-            UIManager:close(top.widget)
+      it(
+        "should exercise batched update lifecycle and position updating",
+        function()
+          rolling:onBatchedUpdate()
+          assert.is_true(rolling.batched_update_count > 0)
+          rolling:onBatchedUpdateDone()
+          assert.are.same(0, rolling.batched_update_count)
+
+          -- Exercise onUpdatePos
+          rolling:onUpdatePos(true)
+          rolling:updatePos(true)
+        end
+      )
+
+      it("should handle top status bar markers and battery states", function()
+        rolling:onSetStatusLine(0)
+        assert.is_true(rolling.cre_top_bar_enabled)
+        rolling:onUpdateTopStatusBarMarkers()
+
+        rolling:onSetStatusLine(1)
+        assert.is_false(rolling.cre_top_bar_enabled)
+
+        rolling:onResume()
+        rolling:onNotCharging()
+      end)
+
+      it(
+        "should exercise marker drawing and unmarking on gotoXPointer",
+        function()
+          rolling:onGotoPage(5)
+          local xp = rolling.xpointer
+          assert.is_not_nil(xp)
+
+          rolling:onGotoXPointer(xp, xp)
+          if rolling.mark_func then
+            rolling.mark_func()
           end
+          if rolling.unmark_func then
+            rolling.unmark_func()
+          end
+          assert.is_nil(rolling.unmark_func)
         end
-      end
-    end)
+      )
 
-    it("should exercise batched update lifecycle and position updating", function()
-      rolling:onBatchedUpdate()
-      assert.is_true(rolling.batched_update_count > 0)
-      rolling:onBatchedUpdateDone()
-      assert.are.same(0, rolling.batched_update_count)
+      it(
+        "should exercise scroll panning with all methods and mousewheel",
+        function()
+          readerui.view.view_mode = "scroll"
 
-      -- Exercise onUpdatePos
-      rolling:onUpdatePos(true)
-      rolling:updatePos(true)
-    end)
+          -- Classic scroll method
+          rolling.scroll_method = readerui.scrolling.SCROLL_METHOD_CLASSIC
+          rolling._pan_started = false
+          rolling:onPan(nil, {
+            direction = "north",
+            relative = { y = -50 },
+            time = 100,
+          })
+          rolling:onPanRelease(nil, { from_mousewheel = false })
 
-    it("should handle top status bar markers and battery states", function()
-      rolling:onSetStatusLine(0)
-      assert.is_true(rolling.cre_top_bar_enabled)
-      rolling:onUpdateTopStatusBarMarkers()
+          -- Turbo scroll method
+          rolling.scroll_method = readerui.scrolling.SCROLL_METHOD_TURBO
+          rolling._pan_started = false
+          rolling:onPan(nil, {
+            direction = "north",
+            relative = { y = -50 },
+            time = 100,
+          })
+          rolling:onPanRelease(nil, { from_mousewheel = false })
 
-      rolling:onSetStatusLine(1)
-      assert.is_false(rolling.cre_top_bar_enabled)
+          -- On release scroll method
+          rolling.scroll_method = readerui.scrolling.SCROLL_METHOD_ON_RELEASE
+          rolling._pan_started = false
+          rolling:onPan(nil, {
+            direction = "north",
+            relative = { y = -50 },
+            time = 100,
+          })
+          rolling:onPanRelease(nil, { from_mousewheel = false })
 
-      rolling:onResume()
-      rolling:onNotCharging()
-    end)
+          -- Mousewheel in scroll mode
+          rolling:onPan(nil, {
+            direction = "north",
+            mousewheel_direction = 1,
+            relative = { y = -20 },
+            time = 100,
+          })
 
-    it("should exercise marker drawing and unmarking on gotoXPointer", function()
-      rolling:onGotoPage(5)
-      local xp = rolling.xpointer
-      assert.is_not_nil(xp)
-
-      rolling:onGotoXPointer(xp, xp)
-      if rolling.mark_func then
-        rolling.mark_func()
-      end
-      if rolling.unmark_func then
-        rolling.unmark_func()
-      end
-      assert.is_nil(rolling.unmark_func)
-    end)
-
-    it("should exercise scroll panning with all methods and mousewheel", function()
-      readerui.view.view_mode = "scroll"
-
-      -- Classic scroll method
-      rolling.scroll_method = readerui.scrolling.SCROLL_METHOD_CLASSIC
-      rolling._pan_started = false
-      rolling:onPan(nil, {
-        direction = "north",
-        relative = { y = -50 },
-        time = 100,
-      })
-      rolling:onPanRelease(nil, { from_mousewheel = false })
-
-      -- Turbo scroll method
-      rolling.scroll_method = readerui.scrolling.SCROLL_METHOD_TURBO
-      rolling._pan_started = false
-      rolling:onPan(nil, {
-        direction = "north",
-        relative = { y = -50 },
-        time = 100,
-      })
-      rolling:onPanRelease(nil, { from_mousewheel = false })
-
-      -- On release scroll method
-      rolling.scroll_method = readerui.scrolling.SCROLL_METHOD_ON_RELEASE
-      rolling._pan_started = false
-      rolling:onPan(nil, {
-        direction = "north",
-        relative = { y = -50 },
-        time = 100,
-      })
-      rolling:onPanRelease(nil, { from_mousewheel = false })
-
-      -- Mousewheel in scroll mode
-      rolling:onPan(nil, {
-        direction = "north",
-        mousewheel_direction = 1,
-        relative = { y = -20 },
-        time = 100,
-      })
-
-      -- Mousewheel in page mode
-      readerui.view.view_mode = "page"
-      rolling:onPan(nil, {
-        direction = "north",
-        mousewheel_direction = 1,
-        relative = { y = -20 },
-        time = 100,
-      })
-    end)
-
-    it("should exercise onGotoViewRel and dim_area in scroll mode with page overlap", function()
-      readerui.view.view_mode = "scroll"
-      readerui.view.footer_visible = true
-      readerui.view.footer.settings.reclaim_height = false
-      readerui.view.page_overlap_enable = true
-
-      rolling.current_pos = 500
-      rolling:onGotoViewRel(1)
-      assert.is_not_nil(readerui.view.dim_area)
-
-      rolling:onGotoViewRel(-1)
-      assert.is_not_nil(readerui.view.dim_area)
-
-      -- End of document dim_area clear
-      local max_pos = readerui.document.info.doc_height - readerui:getSize().h + readerui.view.footer:getHeight()
-      rolling.current_pos = max_pos - 10
-      rolling:onGotoViewRel(1)
-
-      -- Page mode reset
-      readerui.view.view_mode = "page"
-      rolling:onGotoViewRel(1)
-      rolling:onGotoViewRel(-1)
-    end)
-
-    it("should exercise handlePartialRerendering and setupRerenderingAutomation", function()
-      readerui.view.view_mode = "page"
-      rolling:handlePartialRerendering()
-
-      readerui.view.view_mode = "scroll"
-      rolling:handlePartialRerendering()
-      readerui.view.view_mode = "page"
-
-      -- setupRerenderingAutomation
-      rolling:setupRerenderingAutomation()
-      if rolling._stepRerenderingAutomation then
-        rolling.rendering_state = "rendering"
-        rolling._stepRerenderingAutomation()
-      end
-      rolling:tearDownRerenderingAutomation()
-    end)
-
-    it("should exercise addToMainMenu hide_nonlinear_flows enabled_func", function()
-      local orig_hasNonLinear = readerui.document.hasNonLinearFlows
-      readerui.document.hasNonLinearFlows = function() return true end
-
-      local menu_items = {}
-      rolling:addToMainMenu(menu_items)
-      assert.is_not_nil(menu_items.hide_nonlinear_flows)
-      if menu_items.hide_nonlinear_flows and menu_items.hide_nonlinear_flows.enabled_func then
-        readerui.view.view_mode = "page"
-        local enabled = menu_items.hide_nonlinear_flows.enabled_func()
-        assert.is_boolean(enabled)
-      end
-
-      readerui.document.hasNonLinearFlows = orig_hasNonLinear
-    end)
-
-    it("should exercise setupXpointer in page and scroll view modes", function()
-      readerui.view.view_mode = "page"
-      if rolling.setupXpointer then
-        rolling.setupXpointer()
-      end
-
-      -- Test with last_percent setting branch in onReadSettings
-      local orig_read = readerui.doc_settings.read
-      readerui.doc_settings.read = function(self, key)
-        if key == "last_percent" then
-          return 0.5
-        elseif key == "last_xpointer" then
-          return nil
+          -- Mousewheel in page mode
+          readerui.view.view_mode = "page"
+          rolling:onPan(nil, {
+            direction = "north",
+            mousewheel_direction = 1,
+            relative = { y = -20 },
+            time = 100,
+          })
         end
-        return orig_read(self, key)
-      end
-      rolling:onReadSettings(readerui.doc_settings)
-      rolling.ui.view.view_mode = "page"
-      if rolling.setupXpointer then
-        rolling.setupXpointer()
-      end
-      readerui.doc_settings.read = orig_read
-    end)
+      )
 
-    it("should exercise document close lifecycle", function()
-      rolling:onCloseDocument()
-    end)
-  end)
+      it(
+        "should exercise onGotoViewRel and dim_area in scroll mode with page overlap",
+        function()
+          readerui.view.view_mode = "scroll"
+          readerui.view.footer_visible = true
+          readerui.view.footer.settings.reclaim_height = false
+          readerui.view.page_overlap_enable = true
+
+          rolling.current_pos = 500
+          rolling:onGotoViewRel(1)
+          assert.is_not_nil(readerui.view.dim_area)
+
+          rolling:onGotoViewRel(-1)
+          assert.is_not_nil(readerui.view.dim_area)
+
+          -- End of document dim_area clear
+          local max_pos = readerui.document.info.doc_height
+            - readerui:getSize().h
+            + readerui.view.footer:getHeight()
+          rolling.current_pos = max_pos - 10
+          rolling:onGotoViewRel(1)
+
+          -- Page mode reset
+          readerui.view.view_mode = "page"
+          rolling:onGotoViewRel(1)
+          rolling:onGotoViewRel(-1)
+        end
+      )
+
+      it(
+        "should exercise handlePartialRerendering and setupRerenderingAutomation",
+        function()
+          readerui.view.view_mode = "page"
+          rolling:handlePartialRerendering()
+
+          readerui.view.view_mode = "scroll"
+          rolling:handlePartialRerendering()
+          readerui.view.view_mode = "page"
+
+          -- setupRerenderingAutomation
+          rolling:setupRerenderingAutomation()
+          if rolling._stepRerenderingAutomation then
+            rolling.rendering_state = "rendering"
+            rolling._stepRerenderingAutomation()
+          end
+          rolling:tearDownRerenderingAutomation()
+        end
+      )
+
+      it(
+        "should exercise addToMainMenu hide_nonlinear_flows enabled_func",
+        function()
+          local orig_hasNonLinear = readerui.document.hasNonLinearFlows
+          readerui.document.hasNonLinearFlows = function()
+            return true
+          end
+
+          local menu_items = {}
+          rolling:addToMainMenu(menu_items)
+          assert.is_not_nil(menu_items.hide_nonlinear_flows)
+          if
+            menu_items.hide_nonlinear_flows
+            and menu_items.hide_nonlinear_flows.enabled_func
+          then
+            readerui.view.view_mode = "page"
+            local enabled = menu_items.hide_nonlinear_flows.enabled_func()
+            assert.is_boolean(enabled)
+          end
+
+          readerui.document.hasNonLinearFlows = orig_hasNonLinear
+        end
+      )
+
+      it(
+        "should exercise setupXpointer in page and scroll view modes",
+        function()
+          readerui.view.view_mode = "page"
+          if rolling.setupXpointer then
+            rolling.setupXpointer()
+          end
+
+          -- Test with last_percent setting branch in onReadSettings
+          local orig_read = readerui.doc_settings.read
+          readerui.doc_settings.read = function(self, key)
+            if key == "last_percent" then
+              return 0.5
+            elseif key == "last_xpointer" then
+              return nil
+            end
+            return orig_read(self, key)
+          end
+          rolling:onReadSettings(readerui.doc_settings)
+          rolling.ui.view.view_mode = "page"
+          if rolling.setupXpointer then
+            rolling.setupXpointer()
+          end
+          readerui.doc_settings.read = orig_read
+        end
+      )
+
+      it("should exercise document close lifecycle", function()
+        rolling:onCloseDocument()
+      end)
+    end
+  )
 end)

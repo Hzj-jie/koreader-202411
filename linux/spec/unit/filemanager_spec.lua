@@ -52,7 +52,10 @@ describe("FileManager module", function()
       root_path = "spec/unit/data",
     })
 
-    local tmp_fn = util.realpath("spec/unit/data") .. "/2col.test.tmp." .. tostring(ffi.C.getpid()) .. ".foo"
+    local tmp_fn = util.realpath("spec/unit/data")
+      .. "/2col.test.tmp."
+      .. tostring(ffi.C.getpid())
+      .. ".foo"
     util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
 
     local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
@@ -94,7 +97,10 @@ describe("FileManager module", function()
       root_path = "spec/unit/data",
     })
 
-    local tmp_fn = util.realpath("spec/unit/data") .. "/2col.test.tmp." .. tostring(ffi.C.getpid()) .. ".pdf"
+    local tmp_fn = util.realpath("spec/unit/data")
+      .. "/2col.test.tmp."
+      .. tostring(ffi.C.getpid())
+      .. ".pdf"
     util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
 
     local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)

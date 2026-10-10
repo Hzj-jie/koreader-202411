@@ -1289,22 +1289,50 @@ describe("Readerfooter module", function()
     -- Test frontlight text generators
     local Device = require("device")
     local orig_hasFrontlight = Device.hasFrontlight
-    Device.hasFrontlight = function() return true end
+    Device.hasFrontlight = function()
+      return true
+    end
     local orig_powerd = Device.powerd
     Device.powerd = {
-      frontlightIntensity = function() return 50 end,
-      frontlightWarmth = function() return 30 end,
-      frontlightColor = function() return 20 end,
-      getCapacity = function() return 85 end,
-      getCapacityHW = function() return 85 end,
-      isCharging = function() return true end,
-      isChargingHW = function() return true end,
-      hasAuxBattery = function() return true end,
-      isAuxBatteryConnected = function() return true end,
-      getAuxCapacity = function() return 90 end,
-      isAuxCharging = function() return false end,
-      isAuxCharged = function() return true end,
-      getBatterySymbol = function() return "🔋" end,
+      frontlightIntensity = function()
+        return 50
+      end,
+      frontlightWarmth = function()
+        return 30
+      end,
+      frontlightColor = function()
+        return 20
+      end,
+      getCapacity = function()
+        return 85
+      end,
+      getCapacityHW = function()
+        return 85
+      end,
+      isCharging = function()
+        return true
+      end,
+      isChargingHW = function()
+        return true
+      end,
+      hasAuxBattery = function()
+        return true
+      end,
+      isAuxBatteryConnected = function()
+        return true
+      end,
+      getAuxCapacity = function()
+        return 90
+      end,
+      isAuxCharging = function()
+        return false
+      end,
+      isAuxCharged = function()
+        return true
+      end,
+      getBatterySymbol = function()
+        return "🔋"
+      end,
     }
 
     for _, mode in ipairs(prefix_modes) do
@@ -1330,46 +1358,59 @@ describe("Readerfooter module", function()
     readerui:onClose()
   end)
 
-  it("should exercise main menu items, settings sub-menus, and callbacks", function()
-    local sample_epub = footer_sample_epub
-    purgeDir(DocSettings:getSidecarDir(sample_epub))
-    os.remove(DocSettings:getHistoryPath(sample_epub))
+  it(
+    "should exercise main menu items, settings sub-menus, and callbacks",
+    function()
+      local sample_epub = footer_sample_epub
+      purgeDir(DocSettings:getSidecarDir(sample_epub))
+      os.remove(DocSettings:getHistoryPath(sample_epub))
 
-    local readerui = ReaderUI:new({
-      dimen = Screen:getSize(),
-      document = DocumentRegistry:openDocument(sample_epub),
-    })
-    local footer = readerui.view.footer
-    local fake_menu = { setting = {} }
-    footer:addToMainMenu(fake_menu)
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      local footer = readerui.view.footer
+      local fake_menu = { setting = {} }
+      footer:addToMainMenu(fake_menu)
 
-    local function walk_menu(tbl)
-      for _, item in ipairs(tbl) do
-        if item.text_func then pcall(item.text_func) end
-        if item.checked_func then pcall(item.checked_func) end
-        if item.enabled_func then pcall(item.enabled_func) end
-        if item.callback then
-          pcall(item.callback, fake_menu)
-          local top = UIManager._window_stack[#UIManager._window_stack]
-          if top and top.widget and top.widget ~= readerui then
-            if top.widget.ok_callback then pcall(top.widget.ok_callback) end
-            if top.widget.callback then pcall(top.widget.callback, top.widget) end
-            UIManager:close(top.widget)
+      local function walk_menu(tbl)
+        for _, item in ipairs(tbl) do
+          if item.text_func then
+            pcall(item.text_func)
+          end
+          if item.checked_func then
+            pcall(item.checked_func)
+          end
+          if item.enabled_func then
+            pcall(item.enabled_func)
+          end
+          if item.callback then
+            pcall(item.callback, fake_menu)
+            local top = UIManager._window_stack[#UIManager._window_stack]
+            if top and top.widget and top.widget ~= readerui then
+              if top.widget.ok_callback then
+                pcall(top.widget.ok_callback)
+              end
+              if top.widget.callback then
+                pcall(top.widget.callback, top.widget)
+              end
+              UIManager:close(top.widget)
+            end
+          end
+          if item.sub_item_table then
+            walk_menu(item.sub_item_table)
           end
         end
-        if item.sub_item_table then
-          walk_menu(item.sub_item_table)
-        end
       end
+
+      if fake_menu.status_bar and fake_menu.status_bar.sub_item_table then
+        walk_menu(fake_menu.status_bar.sub_item_table)
+      end
+
+      footer:onUpdateFooter()
+
+      readerui:onExit()
+      readerui:onClose()
     end
-
-    if fake_menu.status_bar and fake_menu.status_bar.sub_item_table then
-      walk_menu(fake_menu.status_bar.sub_item_table)
-    end
-
-    footer:onUpdateFooter()
-
-    readerui:onExit()
-    readerui:onClose()
-  end)
+  )
 end)

@@ -643,60 +643,82 @@ describe("ConfigDialog", function()
     end
   )
 
-  it("should handle direct tap and hold events on config panel option items", function()
-    local dialog = ConfigDialog:new({
-      config_options = mock_options,
-      configurable = mock_configurable,
-    })
+  it(
+    "should handle direct tap and hold events on config panel option items",
+    function()
+      local dialog = ConfigDialog:new({
+        config_options = mock_options,
+        configurable = mock_configurable,
+      })
 
-    UIManager:show(dialog)
-    UIManager:forceRepaint()
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
 
-    -- Helper to recursively trigger onTapSelect and onHoldSelect on option items
-    local function triggerItemEvents(widget)
-      if type(widget) ~= "table" then return end
-      if widget.onTapSelect then
-        pcall(function() widget:onTapSelect(true) end)
+      -- Helper to recursively trigger onTapSelect and onHoldSelect on option items
+      local function triggerItemEvents(widget)
+        if type(widget) ~= "table" then
+          return
+        end
+        if widget.onTapSelect then
+          pcall(function()
+            widget:onTapSelect(true)
+          end)
+        end
+        if widget.onHoldSelect then
+          pcall(function()
+            widget:onHoldSelect()
+          end)
+        end
+        for _, child in ipairs(widget) do
+          triggerItemEvents(child)
+        end
       end
-      if widget.onHoldSelect then
-        pcall(function() widget:onHoldSelect() end)
+
+      triggerItemEvents(dialog.config_panel)
+
+      -- Switch to tab 2 and trigger
+      dialog:showConfigPanel(2)
+      triggerItemEvents(dialog.config_panel)
+
+      -- Test onFocus / onUnfocus and disabled tap on OptionTextItem
+      local function findItemWithUnderline(widget)
+        if type(widget) ~= "table" then
+          return
+        end
+        if
+          widget.underline_container
+          and widget.onFocus
+          and widget.onUnfocus
+        then
+          return widget
+        end
+        for _, child in ipairs(widget) do
+          local res = findItemWithUnderline(child)
+          if res then
+            return res
+          end
+        end
       end
-      for _, child in ipairs(widget) do
-        triggerItemEvents(child)
+
+      dialog:showConfigPanel(1)
+      local item = findItemWithUnderline(dialog.config_panel)
+      if item then
+        item:onFocus()
+        assert.are.equal(
+          require("ffi/blitbuffer").COLOR_BLACK,
+          item.underline_container.color
+        )
+        item:onUnfocus()
+        assert.are.equal(
+          require("ffi/blitbuffer").COLOR_WHITE,
+          item.underline_container.color
+        )
+
+        item.enabled = false
+        assert.is_true(item:onTapSelect())
       end
+
+      dialog:closeDialog()
     end
-
-    triggerItemEvents(dialog.config_panel)
-
-    -- Switch to tab 2 and trigger
-    dialog:showConfigPanel(2)
-    triggerItemEvents(dialog.config_panel)
-
-    -- Test onFocus / onUnfocus and disabled tap on OptionTextItem
-    local function findItemWithUnderline(widget)
-      if type(widget) ~= "table" then return end
-      if widget.underline_container and widget.onFocus and widget.onUnfocus then
-        return widget
-      end
-      for _, child in ipairs(widget) do
-        local res = findItemWithUnderline(child)
-        if res then return res end
-      end
-    end
-
-    dialog:showConfigPanel(1)
-    local item = findItemWithUnderline(dialog.config_panel)
-    if item then
-      item:onFocus()
-      assert.are.equal(require("ffi/blitbuffer").COLOR_BLACK, item.underline_container.color)
-      item:onUnfocus()
-      assert.are.equal(require("ffi/blitbuffer").COLOR_WHITE, item.underline_container.color)
-
-      item.enabled = false
-      assert.is_true(item:onTapSelect())
-    end
-
-    dialog:closeDialog()
-  end)
+  )
 end)
-
