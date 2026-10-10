@@ -63,7 +63,7 @@ function SettingsSelection.show(plugin)
         return false
       end
     end
-    return true
+    return count > 0
   end
 
   local function format_val(val)
@@ -72,7 +72,7 @@ function SettingsSelection.show(plugin)
     elseif type(val) == "boolean" then
       return val and "true" or "false"
     elseif type(val) == "table" then
-      if is_array(val) then
+      if next(val) == nil or is_array(val) then
         local parts = {}
         for _, v in ipairs(val) do
           table.insert(parts, format_val(v))
