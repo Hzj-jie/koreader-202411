@@ -69,6 +69,14 @@ describe("AnnotationSync internationalization", function()
       "无法读取 %1，已跳过同步。",
       _("Cannot read %1. Skipped syncing it.")
     )
+    assert.are.equal(
+      "已成功导入 %1 项设置。",
+      _.ngettext(
+        "Successfully imported 1 setting.",
+        "Successfully imported %1 settings.",
+        1
+      )
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -104,6 +112,14 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "無法讀取 %1，已跳過同步。",
       _("Cannot read %1. Skipped syncing it.")
+    )
+    assert.are.equal(
+      "已成功匯入 %1 項設定。",
+      _.ngettext(
+        "Successfully imported 1 setting.",
+        "Successfully imported %1 settings.",
+        1
+      )
     )
   end)
 end)

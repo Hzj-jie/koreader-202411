@@ -2,6 +2,7 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
@@ -211,7 +212,16 @@ function M.show_differing_settings_menu(
         end
       end
       if count > 0 then
-        utils.show_msg(T(gettext("Successfully imported %1 settings."), count))
+        utils.show_msg(
+          T(
+            N_(
+              "Successfully imported 1 setting.",
+              "Successfully imported %1 settings.",
+              count
+            ),
+            count
+          )
+        )
       else
         utils.show_msg(gettext("No settings imported."))
       end

@@ -24966,8 +24966,9 @@ msgstr "该设备与本机没有不同的设置。"
 msgid "Import Selected Settings"
 msgstr "导入选中的设置"
 
-msgid "Successfully imported %1 settings."
-msgstr "已成功导入 %1 项设置。"
+msgid "Successfully imported 1 setting."
+msgid_plural "Successfully imported %1 settings."
+msgstr[0] "已成功导入 %1 项设置。"
 
 msgid "No settings imported."
 msgstr "未导入任何设置。"
