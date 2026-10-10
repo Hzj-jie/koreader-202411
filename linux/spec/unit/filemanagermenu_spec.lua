@@ -300,7 +300,7 @@ describe("filemanagermenu", function()
       menuItem = function()
         return {}
       end,
-      genPluginManagerSubItem = function()
+      genPluginManagerMenu = function()
         return {}
       end,
     }

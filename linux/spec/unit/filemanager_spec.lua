@@ -924,6 +924,35 @@ describe("FileManager module", function()
     filemanager:onExit()
   end)
 
+  it("should restart FileManager in place synchronously", function()
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+    assert.are.equal(filemanager, FileManager.instance)
+
+    filemanager:restart()
+    assert.is_not_nil(FileManager.instance)
+    assert.are_not.equal(filemanager, FileManager.instance)
+    FileManager.instance:onExit()
+  end)
+
+  it("should keep the focused file on restart", function()
+    local focused_file = util.realpath("spec/unit/data") .. "/2col.pdf"
+    local filemanager = FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+      focused_file = focused_file,
+    })
+
+    filemanager:restart()
+    assert.are.equal(
+      focused_file,
+      FileManager.instance.file_chooser.prev_focused_path
+    )
+    FileManager.instance:onExit()
+  end)
+
   describe(
     "pasteSelectedFiles, deleteSelectedFiles, createFolder, and deleteFile",
     function()

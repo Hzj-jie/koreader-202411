@@ -797,31 +797,39 @@ describe("UIManager spec", function()
   end)
 
   describe("askForRestartOrReload", function()
-    local old_ReaderUI
+    local old_ReaderUI, old_FileManager
     setup(function()
       old_ReaderUI = package.loaded["apps/reader/readerui"]
       package.loaded["apps/reader/readerui"] = {
+        instance = nil,
+      }
+      old_FileManager = package.loaded["apps/filemanager/filemanager"]
+      package.loaded["apps/filemanager/filemanager"] = {
         instance = nil,
       }
     end)
 
     teardown(function()
       package.loaded["apps/reader/readerui"] = old_ReaderUI
+      package.loaded["apps/filemanager/filemanager"] = old_FileManager
     end)
 
-    it("should call askForRestart if ReaderUI.instance is nil", function()
-      local askForRestart_called = false
-      local old_askForRestart = UIManager.askForRestart
-      UIManager.askForRestart = function(self, _msg)
-        askForRestart_called = true
+    it(
+      "should call askForRestart if ReaderUI.instance and FileManager.instance are nil",
+      function()
+        local askForRestart_called = false
+        local old_askForRestart = UIManager.askForRestart
+        UIManager.askForRestart = function(self, _msg)
+          askForRestart_called = true
+        end
+
+        UIManager:askForRestartOrReload("Test message")
+        UIManager:_checkTasks()
+
+        assert.is_true(askForRestart_called)
+        UIManager.askForRestart = old_askForRestart
       end
-
-      UIManager:askForRestartOrReload("Test message")
-      UIManager:_checkTasks()
-
-      assert.is_true(askForRestart_called)
-      UIManager.askForRestart = old_askForRestart
-    end)
+    )
 
     it("should show reload dialog if ReaderUI.instance is set", function()
       local ReaderUI = package.loaded["apps/reader/readerui"]
@@ -851,6 +859,38 @@ describe("UIManager spec", function()
       UIManager.show = old_show
       ReaderUI.instance = nil
     end)
+
+    it(
+      "should show reload dialog if FileManager.instance is set and ReaderUI.instance is nil",
+      function()
+        local FileManager = package.loaded["apps/filemanager/filemanager"]
+        local restart_called = false
+        FileManager.instance = {
+          restart = function()
+            restart_called = true
+          end,
+        }
+
+        local show_called_with = nil
+        local old_show = UIManager.show
+        UIManager.show = function(self, widget)
+          show_called_with = widget
+        end
+
+        UIManager:askForRestartOrReload("Test message")
+        UIManager:_checkTasks()
+
+        assert.is_not_nil(show_called_with)
+        assert.are.equal("Test message", show_called_with.text)
+        assert.are.equal("Later", show_called_with.cancel_text)
+
+        show_called_with:ok_callback()
+        assert.is_true(restart_called)
+
+        UIManager.show = old_show
+        FileManager.instance = nil
+      end
+    )
   end)
   describe("UIManager Device Power and Control utilities", function()
     it("should handle askForReboot and askForPowerOff dialogs", function()

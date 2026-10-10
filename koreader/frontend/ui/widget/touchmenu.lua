@@ -840,6 +840,7 @@ function TouchMenu:switchMenuTab(tab_num)
   -- Also, switching to the _same_ tab resets the stack and takes us back to
   -- the top of the menu tree
   self.page = 1
+  self:broadcastEvent(Event:new("MenuSwitched"))
   -- clear item table stack
   self.item_table_stack = {}
   self.parent_id = nil
@@ -850,6 +851,7 @@ end
 
 function TouchMenu:backToUpperMenu(no_close)
   if #self.item_table_stack ~= 0 then
+    self:broadcastEvent(Event:new("MenuSwitched"))
     self.item_table = table.remove(self.item_table_stack)
     -- Allow a menu table to refresh itself when going up (ie. from a setting
     -- submenu that may want to have its parent menu updated).
@@ -877,6 +879,7 @@ function TouchMenu:backToUpperMenu(no_close)
 end
 
 function TouchMenu:_closeMenuOnly()
+  self:broadcastEvent(Event:new("MenuSwitched"))
   self.close_callback()
 end
 

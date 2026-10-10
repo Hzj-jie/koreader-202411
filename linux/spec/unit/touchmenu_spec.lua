@@ -438,4 +438,241 @@ describe("TouchMenu", function()
     -- South swipe
     menu:onSwipe(nil, { direction = "south" })
   end)
+
+  describe("onMenuSwitched lifecycle", function()
+    it(
+      "calls onMenuSwitched on visible submenu items when returning to upper menu from submenu",
+      function()
+        local item_switched_called = false
+        local item_switched_menu = nil
+        local sub_item = {
+          text = "Sub 1",
+          onMenuSwitched = function(self_menu)
+            item_switched_called = true
+            item_switched_menu = self_menu
+          end,
+        }
+        local root_item = {
+          text = "Open Submenu",
+          sub_item_table = { sub_item },
+        }
+        local root_tab = {
+          text = "Tab 1",
+          icon = "dummy",
+          root_item,
+        }
+        local menu = TouchMenu:new({
+          tab_item_table = { root_tab },
+        })
+
+        -- Enter submenu
+        menu:onMenuSelect(root_item)
+        assert.is_false(item_switched_called)
+
+        -- Return to upper menu
+        menu:backToUpperMenu()
+        assert.are.equal(root_tab, menu.item_table)
+        assert.is_true(item_switched_called)
+        assert.are.equal(menu, item_switched_menu)
+      end
+    )
+
+    it(
+      "calls onMenuSwitched on visible submenu items when switching tabs",
+      function()
+        local switched_called = false
+        local switched_menu = nil
+        local sub_item = {
+          text = "Sub 1",
+          onMenuSwitched = function(self_menu)
+            switched_called = true
+            switched_menu = self_menu
+          end,
+        }
+        local root_item = {
+          text = "Open Submenu",
+          sub_item_table = { sub_item },
+        }
+        local tab1 = {
+          text = "Tab 1",
+          icon = "icon1",
+          root_item,
+        }
+        local tab2 = {
+          text = "Tab 2",
+          icon = "icon2",
+          { text = "Item 2" },
+        }
+
+        local menu = TouchMenu:new({
+          tab_item_table = { tab1, tab2 },
+        })
+
+        -- Enter submenu in Tab 1
+        menu:onMenuSelect(root_item)
+        assert.is_false(switched_called)
+
+        -- Switch to Tab 2
+        menu:switchMenuTab(2)
+        assert.is_true(switched_called)
+        assert.are.equal(menu, switched_menu)
+        assert.are.equal(tab2, menu.item_table)
+      end
+    )
+
+    it(
+      "calls onMenuSwitched on visible submenu items when menu is closed",
+      function()
+        local switched_called = false
+        local switched_menu = nil
+        local sub_item = {
+          text = "Sub 1",
+          onMenuSwitched = function(self_menu)
+            switched_called = true
+            switched_menu = self_menu
+          end,
+        }
+        local root_item = {
+          text = "Open Submenu",
+          sub_item_table = { sub_item },
+        }
+        local menu = TouchMenu:new({
+          tab_item_table = {
+            {
+              text = "Tab 1",
+              icon = "dummy",
+              root_item,
+            },
+          },
+          close_callback = function() end,
+        })
+
+        -- Enter submenu and close menu while inside
+        menu:onMenuSelect(root_item)
+        assert.is_false(switched_called)
+        menu:closeMenu()
+
+        assert.is_true(switched_called)
+        assert.are.equal(menu, switched_menu)
+      end
+    )
+
+    it(
+      "calls onMenuSwitched on visible root item when switching tabs",
+      function()
+        local item_switched_called = false
+        local root_item = {
+          text = "Root Item",
+          onMenuSwitched = function()
+            item_switched_called = true
+          end,
+        }
+        local tab1 = { text = "Tab 1", icon = "i1", root_item }
+        local tab2 = { text = "Tab 2", icon = "i2", { text = "Item 2" } }
+        local menu = TouchMenu:new({
+          tab_item_table = { tab1, tab2 },
+        })
+
+        assert.is_false(item_switched_called)
+        menu:switchMenuTab(2)
+        assert.is_true(item_switched_called)
+      end
+    )
+
+    it(
+      "calls onMenuSwitched on visible root item when menu is closed",
+      function()
+        local item_switched_called = false
+        local root_item = {
+          text = "Root Item",
+          onMenuSwitched = function()
+            item_switched_called = true
+          end,
+        }
+        local menu = TouchMenu:new({
+          tab_item_table = {
+            { text = "Tab 1", icon = "dummy", root_item },
+          },
+          close_callback = function() end,
+        })
+
+        assert.is_false(item_switched_called)
+        menu:closeMenu()
+        assert.is_true(item_switched_called)
+      end
+    )
+
+    it(
+      "does not trigger onMenuSwitched when updating items or paginating within same menu",
+      function()
+        local call_count = 0
+        local items = {}
+        for i = 1, 30 do
+          table.insert(items, {
+            text = "Item " .. i,
+            onMenuSwitched = function()
+              call_count = call_count + 1
+            end,
+          })
+        end
+        local tab1 = {
+          text = "Tab 1",
+          icon = "dummy",
+          unpack(items),
+        }
+
+        local menu = TouchMenu:new({
+          tab_item_table = { tab1 },
+        })
+        assert.are.equal(0, call_count)
+
+        -- Paging within same menu
+        menu:onNextPage()
+        assert.are.equal(0, call_count)
+        menu:onPrevPage()
+        assert.are.equal(0, call_count)
+        menu:updateItems()
+        assert.are.equal(0, call_count)
+      end
+    )
+
+    it("broadcasts Event MenuSwitched without arguments", function()
+      local menu_switched_event = nil
+      local sub_table = { { text = "Sub 1" } }
+      local root_item = {
+        text = "Open Submenu",
+        sub_item_table = sub_table,
+      }
+      local menu = TouchMenu:new({
+        tab_item_table = {
+          {
+            text = "Tab 1",
+            icon = "dummy",
+            root_item,
+          },
+        },
+        close_callback = function() end,
+      })
+
+      local orig_broadcast = menu.broadcastEvent
+      menu.broadcastEvent = function(self, ev)
+        if ev and ev.handler == "onMenuSwitched" then
+          menu_switched_event = ev
+        end
+        return orig_broadcast(self, ev)
+      end
+
+      -- Select item to enter submenu
+      menu:onMenuSelect(root_item)
+
+      -- Navigate back to upper menu
+      menu:backToUpperMenu()
+      assert.is_not_nil(menu_switched_event)
+      assert.are.equal("onMenuSwitched", menu_switched_event.handler)
+      assert.are.equal(
+        0,
+        menu_switched_event.args.n or #menu_switched_event.args
+      )
+    end)
+  end)
 end)
