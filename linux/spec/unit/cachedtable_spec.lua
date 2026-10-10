@@ -229,4 +229,23 @@ describe("CachedTable module", function()
     assert.is_true(CachedTable.isResolved(t))
     assert.are.equal("safe", t.fallback)
   end)
+
+  it("retries resolver if it previously threw an error", function()
+    local attempts = 0
+    local t = CachedTable:new(function()
+      attempts = attempts + 1
+      if attempts == 1 then
+        error("transient error")
+      end
+      return { data = "success" }
+    end)
+
+    assert.is_nil(t.data)
+    assert.are.equal(1, attempts)
+    assert.is_false(CachedTable.isResolved(t))
+
+    assert.are.equal("success", t.data)
+    assert.are.equal(2, attempts)
+    assert.is_true(CachedTable.isResolved(t))
+  end)
 end)
