@@ -44,6 +44,29 @@ describe("OPDSPSE module", function()
       http.request = old_request
     end)
 
+    it("should handle multi-chunk responses during authentication", function()
+      local old_request = http.request
+      local req_count = 0
+
+      http.request = function(req)
+        req_count = req_count + 1
+        if req_count == 1 then
+          req.sink('{"token":"mock_bearer_jwt"')
+          req.sink(',"refresh":"none"}')
+          return 1, 200, {}, "200 OK"
+        else
+          req.sink('{"pageNum":7,"seriesId":101}')
+          return 1, 200, {}, "200 OK"
+        end
+      end
+
+      local remote_url = "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
+      local page = OPDSPSE:getLastPage(remote_url, "testuser", "testpass")
+      assert.are.equal("7", page)
+
+      http.request = old_request
+    end)
+
     it("should return default 0 if authentication or progress request fails", function()
       local old_request = http.request
       http.request = function(_req)
