@@ -112,6 +112,39 @@ describe("Gestures plugin", function()
       assert.is_true(flush_called)
       assert.is_false(gestures_instance.updated)
     end)
+
+    it("fails: exposes RTL layout mutating prototype defaults table", function()
+      local shared_defaults = {
+        tap_top_left_corner = { action = "left" },
+        tap_top_right_corner = { action = "right" },
+        tap_left_bottom_corner = { action = "bl" },
+        tap_right_bottom_corner = { action = "br" },
+        double_tap_left_side = { action = "dl" },
+        double_tap_right_side = { action = "dr" },
+      }
+      local open_stub = stub(LuaSettings, "open", function(_, path)
+        if path:find("defaults.lua") then
+          return { data = { gesture_fm = shared_defaults } }
+        end
+        return { data = { gesture_fm = {}, custom_multiswipes = {} } }
+      end)
+      local bd_stub = stub(BD, "mirroredUILayout", function()
+        return true
+      end)
+      local rtl_gestures = GesturesClass:new({
+        ui = mock_ui,
+        path = "plugins/gestures.koplugin",
+      })
+      bd_stub:revert()
+      open_stub:revert()
+
+      -- Gestures:init swaps keys directly in self.defaults without copying,
+      -- mutating the shared defaults prototype table for subsequent instances.
+      assert.are.equal("left", shared_defaults.tap_top_left_corner.action)
+      if rtl_gestures and rtl_gestures.onClose then
+        rtl_gestures:onClose()
+      end
+    end)
   end)
 
   describe("isGestureAlwaysActive", function()
@@ -368,6 +401,31 @@ describe("Gestures plugin", function()
 
       show_stub:revert()
     end)
+
+    it(
+      "fails: exposes tap interval on keyboard value conversion bug",
+      function()
+        G_reader_settings:save("ges_tap_interval_on_keyboard_ms", 150)
+        local menu_items = {}
+        gestures_instance:addIntervals(menu_items)
+        local show_stub = stub(UIManager, "show")
+        local intervals = menu_items.gesture_intervals.sub_item_table
+        local keyboard_item
+        for _, item in ipairs(intervals) do
+          if item.text == "Tap interval on keyboard" then
+            keyboard_item = item
+            break
+          end
+        end
+        assert.is_not_nil(keyboard_item)
+        keyboard_item.callback()
+        local spin = show_stub.calls[1].vals[2]
+        show_stub:revert()
+        -- Production calls time.to_ms(...) on an already millisecond value,
+        -- erroneously dividing 150 ms into 0.15 ms instead of 150 ms.
+        assert.are.equal(150, spin.value)
+      end
+    )
   end)
 
   describe("Gesture Execution & Actions", function()
