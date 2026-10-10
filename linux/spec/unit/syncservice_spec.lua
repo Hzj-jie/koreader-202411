@@ -8,6 +8,7 @@ describe("SyncService", function()
   local mock_uimanager
   local original_os_remove
   local gettext_called_with
+  local mock_cs_servers
 
   setup(function()
     require("commonrequire")
@@ -41,10 +42,14 @@ describe("SyncService", function()
         return args
       end,
     }
+    mock_cs_servers = {}
     package.loaded["luasettings"] = {
       open = function(_, _path)
         return {
-          readTableRef = function(_, _key)
+          readTableRef = function(_, key)
+            if key == "cs_servers" then
+              return mock_cs_servers
+            end
             return {}
           end,
         }
@@ -53,13 +58,25 @@ describe("SyncService", function()
 
     -- Simple Mock Widget / Menu
     local Widget = {
+      init = function(self) end,
+      new = function(self, o)
+        o = o or {}
+        setmetatable(o, self)
+        self.__index = self
+        if o.init then
+          o:init()
+        end
+        return o
+      end,
       extend = function(self, props)
         local class = {}
         for k, v in pairs(props or {}) do
           class[k] = v
         end
-        class.init = function(self) end
-        class.showWidget = function(self, widget, ...)
+        setmetatable(class, self)
+        self.__index = self
+        class.init = function(self_inst) end
+        class.showWidget = function(self_inst, widget, ...)
           require("ui/uimanager"):show(widget, ...)
         end
         return class
@@ -238,6 +255,8 @@ describe("SyncService", function()
     package.loaded["gettext"] = nil
     package.loaded["apps/cloudstorage/dropboxapi"] = nil
     package.loaded["apps/cloudstorage/webdavapi"] = nil
+    package.loaded["ui/downloadmgr"] = nil
+    package.loaded["apps/cloudstorage/cloudstorage"] = nil
     package.loaded["logger"] = nil
   end)
 
@@ -523,5 +542,160 @@ describe("SyncService", function()
         assert.is_true(mock_ffiutil.copyFile_called)
       end)
     end)
+  end)
+
+  describe("init and generateItemTable", function()
+    it(
+      "should handle empty or unsupported cs_servers list with only Add service item",
+      function()
+        mock_cs_servers = {
+          { name = "FTP", type = "ftp" },
+        }
+
+        local inst = SyncService:new()
+
+        assert.are.equal(800, inst.width)
+        assert.are.equal(600, inst.height)
+        assert.are.equal(1, #inst.item_table)
+        assert.are.equal("Add service", inst.item_table[1].text)
+        assert.is_true(inst.item_table[1].bold)
+        assert.is_true(inst.item_table[1].keep_menu_open)
+
+        for _, item in ipairs(inst.item_table) do
+          assert.are_not.equal("Choose cloud service:", item.text)
+        end
+      end
+    )
+
+    it(
+      "should generate items for dropbox and webdav and invoke DownloadMgr callback",
+      function()
+        local dropbox_server = {
+          name = "My Dropbox",
+          type = "dropbox",
+          address = "app_key",
+          password = "tok",
+          url = "/old",
+        }
+        local webdav_server = {
+          name = "My WebDAV",
+          type = "webdav",
+          address = "https://dav.example.com",
+          username = "u",
+          password = "p",
+          url = "/dav",
+        }
+        mock_cs_servers = {
+          dropbox_server,
+          webdav_server,
+          { name = "Ignored FTP", type = "ftp" },
+        }
+
+        local captured_opts = nil
+        local choose_cloud_dir_called = false
+        package.loaded["ui/downloadmgr"] = {
+          new = function(self, opts)
+            captured_opts = opts
+            return {
+              chooseCloudDir = function()
+                choose_cloud_dir_called = true
+              end,
+            }
+          end,
+        }
+
+        local confirmed_server = nil
+        local exit_called = false
+        local inst = SyncService:new({
+          onConfirm = function(server)
+            confirmed_server = server
+          end,
+          onExit = function()
+            exit_called = true
+          end,
+        })
+
+        local items = inst.item_table
+        assert.are.equal(4, #items)
+        assert.are.equal("Choose cloud service:", items[1].text)
+        assert.is_true(items[1].bold)
+
+        assert.are.equal("My Dropbox", items[2].text)
+        assert.are.equal("Dropbox", items[2].mandatory)
+        assert.are.equal("dropbox", items[2].type)
+
+        assert.are.equal("My WebDAV", items[3].text)
+        assert.are.equal("WebDAV", items[3].mandatory)
+        assert.are.equal("webdav", items[3].type)
+
+        assert.are.equal("Add service", items[4].text)
+        assert.is_true(items[4].bold)
+        assert.is_true(items[4].keep_menu_open)
+
+        items[2].callback()
+
+        assert.is_true(choose_cloud_dir_called)
+        assert.are.equal(items[2], captured_opts.item)
+
+        captured_opts.onConfirm("/new/cloud/dir")
+        assert.are.equal("/new/cloud/dir", dropbox_server.url)
+        assert.are.equal(dropbox_server, confirmed_server)
+        assert.is_true(exit_called)
+      end
+    )
+
+    it(
+      "should handle Add service item callback and refresh menu on CloudStorage onExit",
+      function()
+        mock_cs_servers = {}
+
+        local orig_onexit_called_with = nil
+        local mock_cloud_storage = {
+          onExit = function(this)
+            orig_onexit_called_with = this
+          end,
+        }
+        package.loaded["apps/cloudstorage/cloudstorage"] = {
+          new = function()
+            return mock_cloud_storage
+          end,
+        }
+
+        local switched_title = false
+        local switched_table = nil
+        local inst = SyncService:new()
+        inst.switchItemTable = function(self, title, new_table)
+          switched_title = title
+          switched_table = new_table
+        end
+
+        local add_item = inst.item_table[1]
+        assert.are.equal("Add service", add_item.text)
+        assert.is_true(add_item.keep_menu_open)
+
+        add_item.callback()
+
+        assert.are.equal(mock_cloud_storage, mock_uimanager.shown_widget)
+
+        -- Update mock_cs_servers before onExit to verify freshly generated item table
+        table.insert(mock_cs_servers, {
+          name = "New Dropbox",
+          type = "dropbox",
+          address = "k",
+          password = "p",
+          url = "/",
+        })
+
+        mock_cloud_storage:onExit()
+
+        assert.are.equal(mock_cloud_storage, orig_onexit_called_with)
+        assert.is_nil(switched_title)
+        assert.is_table(switched_table)
+        assert.are.equal(3, #switched_table)
+        assert.are.equal("Choose cloud service:", switched_table[1].text)
+        assert.are.equal("New Dropbox", switched_table[2].text)
+        assert.are.equal("Add service", switched_table[3].text)
+      end
+    )
   end)
 end)
