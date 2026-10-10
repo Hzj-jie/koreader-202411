@@ -80,6 +80,9 @@ describe("DocSettingTweak plugin module", function()
     UIManager.show = function(self_uim, w)
       shown_widget = w
     end
+    finally(function()
+      UIManager.show = orig_show
+    end)
 
     menu_items.doc_setting_tweak.callback()
     assert.is_table(shown_widget)
@@ -106,7 +109,9 @@ describe("DocSettingTweak plugin module", function()
     ok, msg = shown_widget.save_callback(valid_lua)
     assert.is_true(ok)
 
-    UIManager.show = orig_show
+    -- Test save_callback rejecting non-table return values
+    ok, msg = shown_widget.save_callback("return 123")
+    assert.is_false(ok)
   end)
 
   it("should apply directory defaults on new document settings load", function()
@@ -157,4 +162,38 @@ describe("DocSettingTweak plugin module", function()
     assert.are.equal("Serif", doc_settings_new.data.font_face)
     assert.are.equal(doc_new.file, doc_settings_new.data.doc_path)
   end)
+
+  it(
+    "should not apply directory defaults to sibling directory sharing prefix with home_dir",
+    function()
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local inst = DocSettingTweak:new({
+        ui = mock_ui,
+        path = "plugins/docsettingtweak.koplugin",
+      })
+      inst:init()
+
+      local test_dir = DataStorage:getDataDir() .. "/test_folder"
+      local sibling_dir = test_dir .. "_sibling"
+      local defaults_content =
+        string.format("return { ['%s'] = { font_size = 50 } }", sibling_dir)
+      local f = io.open(defaults_path, "w")
+      f:write(defaults_content)
+      f:close()
+      inst:loadDefaults()
+
+      _G.G_named_settings = {
+        home_dir = function()
+          return test_dir
+        end,
+      }
+
+      local doc_settings = { data = {} }
+      local doc = { file = sibling_dir .. "/book.epub" }
+      inst:onDocSettingsLoad(doc_settings, doc)
+      assert.is_nil(doc_settings.data.font_size)
+    end
+  )
 end)
