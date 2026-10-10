@@ -440,51 +440,55 @@ describe("ReadHistory module", function()
     rm(test_file("orig2.epub"))
   end)
 
-  it("handles fileDeleted, folderDeleted, removeItems, fileSettingsPurged, clearMissing", function()
-    rm(file("history.lua"))
-    local h = reload()
-    touch(test_file("del1.epub"))
-    touch(test_file("del2.epub"))
-    h:addItem(test_file("del1.epub"), now)
-    h:addItem(test_file("del2.epub"), now)
+  it(
+    "handles fileDeleted, folderDeleted, removeItems, fileSettingsPurged, clearMissing",
+    function()
+      rm(file("history.lua"))
+      local h = reload()
+      touch(test_file("del1.epub"))
+      touch(test_file("del2.epub"))
+      h:addItem(test_file("del1.epub"), now)
+      h:addItem(test_file("del2.epub"), now)
 
-    -- fileSettingsPurged
-    h:fileSettingsPurged(realpath(test_file("del1.epub")))
+      -- fileSettingsPurged
+      h:fileSettingsPurged(realpath(test_file("del1.epub")))
 
-    -- removeItems
-    local to_del = {}
-    to_del[realpath(test_file("del2.epub"))] = true
-    h:removeItems(to_del)
+      -- removeItems
+      local to_del = {}
+      to_del[realpath(test_file("del2.epub"))] = true
+      h:removeItems(to_del)
 
-    -- folderDeleted
-    touch(test_file("folder_doc.epub"))
-    h:addItem(test_file("folder_doc.epub"), now)
-    h:folderDeleted(realpath(test_data_dir()))
+      -- folderDeleted
+      touch(test_file("folder_doc.epub"))
+      h:addItem(test_file("folder_doc.epub"), now)
+      h:folderDeleted(realpath(test_data_dir()))
 
-    -- clearMissing
-    h:clearMissing()
+      -- clearMissing
+      h:clearMissing()
 
-    rm(test_file("del1.epub"))
-    rm(test_file("del2.epub"))
-    rm(test_file("folder_doc.epub"))
-  end)
+      rm(test_file("del1.epub"))
+      rm(test_file("del2.epub"))
+      rm(test_file("folder_doc.epub"))
+    end
+  )
 
-  it("handles ignoreFile, updateLastBookTime, and updateDateTimeString", function()
-    rm(file("history.lua"))
-    local h = reload()
-    touch(test_file("ignore_me.epub"))
-    h:addItem(test_file("ignore_me.epub"), now)
-    assert.are.equal(1, #h.hist)
+  it(
+    "handles ignoreFile, updateLastBookTime, and updateDateTimeString",
+    function()
+      rm(file("history.lua"))
+      local h = reload()
+      touch(test_file("ignore_me.epub"))
+      h:addItem(test_file("ignore_me.epub"), now)
+      assert.are.equal(1, #h.hist)
 
-    assert.is_true(h:ignoreFile("crash.log"))
-    assert.is_true(h:ignoreFile("quickstart-guide.html"))
-    assert.is_false(h:ignoreFile("regular_book.epub"))
+      assert.is_true(h:ignoreFile("crash.log"))
+      assert.is_true(h:ignoreFile("quickstart-guide.html"))
+      assert.is_false(h:ignoreFile("regular_book.epub"))
 
-    h:updateLastBookTime(true)
-    h:updateDateTimeString()
+      h:updateLastBookTime(true)
+      h:updateDateTimeString()
 
-    rm(test_file("ignore_me.epub"))
-  end)
+      rm(test_file("ignore_me.epub"))
+    end
+  )
 end)
-
-

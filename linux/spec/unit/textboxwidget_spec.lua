@@ -461,48 +461,54 @@ describe("TextBoxWidget widget", function()
     assert.are.equal(5, tw_non_xtext:getSourceIndex(5))
   end)
 
-  it("should handle tabstop formatting, RTL directions and strict alignment", function()
-    local tw_tab = TextBoxWidget:new({
-      width = 300,
-      use_xtext = true,
-      tabstop_nb_space_width = 4,
-      face = Font:getFace("cfont", 20),
-      text = "Col1\tCol2\tCol3",
-    })
-    assert.is_not_nil(tw_tab)
+  it(
+    "should handle tabstop formatting, RTL directions and strict alignment",
+    function()
+      local tw_tab = TextBoxWidget:new({
+        width = 300,
+        use_xtext = true,
+        tabstop_nb_space_width = 4,
+        face = Font:getFace("cfont", 20),
+        text = "Col1\tCol2\tCol3",
+      })
+      assert.is_not_nil(tw_tab)
 
-    local tw_rtl = TextBoxWidget:new({
-      width = 300,
-      use_xtext = true,
-      para_direction_rtl = true,
-      auto_para_direction = true,
-      alignment_strict = true,
-      _alt_color_for_rtl = true,
-      face = Font:getFace("cfont", 20),
-      text = "Arabic or Hebrew text simulation",
-    })
-    assert.is_not_nil(tw_rtl)
-  end)
+      local tw_rtl = TextBoxWidget:new({
+        width = 300,
+        use_xtext = true,
+        para_direction_rtl = true,
+        auto_para_direction = true,
+        alignment_strict = true,
+        _alt_color_for_rtl = true,
+        face = Font:getFace("cfont", 20),
+        text = "Arabic or Hebrew text simulation",
+      })
+      assert.is_not_nil(tw_rtl)
+    end
+  )
 
-  it("should handle height overflow ellipsis, height adjust, and select_mode", function()
-    local tw_ellipsis = TextBoxWidget:new({
-      width = 200,
-      height = 50,
-      height_overflow_show_ellipsis = true,
-      height_adjust = true,
-      select_mode = true,
-      face = Font:getFace("cfont", 20),
-      text = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6",
-    })
-    assert.is_not_nil(tw_ellipsis.line_with_ellipsis)
+  it(
+    "should handle height overflow ellipsis, height adjust, and select_mode",
+    function()
+      local tw_ellipsis = TextBoxWidget:new({
+        width = 200,
+        height = 50,
+        height_overflow_show_ellipsis = true,
+        height_adjust = true,
+        select_mode = true,
+        face = Font:getFace("cfont", 20),
+        text = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6",
+      })
+      assert.is_not_nil(tw_ellipsis.line_with_ellipsis)
 
-    local Blitbuffer = require("ffi/blitbuffer")
-    local bb = Blitbuffer.new(200, 100)
-    assert.has_no.errors(function()
-      tw_ellipsis:paintTo(bb, 0, 0)
-    end)
-    bb:free()
-  end)
+      local Blitbuffer = require("ffi/blitbuffer")
+      local bb = Blitbuffer.new(200, 100)
+      assert.has_no.errors(function()
+        tw_ellipsis:paintTo(bb, 0, 0)
+      end)
+      bb:free()
+    end
+  )
 
   it("should handle hold on image with ImageViewer opening", function()
     local Blitbuffer = require("ffi/blitbuffer")
@@ -536,7 +542,10 @@ describe("TextBoxWidget widget", function()
     tw.hold_start_x = 280
     tw.hold_start_y = 10
 
-    local handled = tw:onHoldReleaseText(function() end, { pos = { x = 280, y = 10 } })
+    local handled = tw:onHoldReleaseText(
+      function() end,
+      { pos = { x = 280, y = 10 } }
+    )
     assert.is_true(handled)
 
     img_bb:free()
@@ -556,7 +565,9 @@ describe("TextBoxWidget widget", function()
 
     -- Missing hold_start_time
     tw.hold_start_time = nil
-    assert.is_false(tw:onHoldReleaseText(function() end, { pos = { x = 10, y = 10 } }))
+    assert.is_false(
+      tw:onHoldReleaseText(function() end, { pos = { x = 10, y = 10 } })
+    )
 
     -- Out-of-bounds coordinates
     tw.hold_start_time = 100

@@ -513,10 +513,12 @@ describe("Profiles plugin", function()
       local show_stub = stub(UIManager, "show")
       local close_stub = stub(UIManager, "close")
       local edited_name
-      local edit_cb = function(name) edited_name = name end
+      local edit_cb = function(name)
+        edited_name = name
+      end
 
       profiles_instance.data = {
-        ["ExistingProfile"] = { settings = { name = "ExistingProfile" } }
+        ["ExistingProfile"] = { settings = { name = "ExistingProfile" } },
       }
       profiles_instance.profiles.data = profiles_instance.data
 
@@ -553,7 +555,12 @@ describe("Profiles plugin", function()
     it("should exercise all getSubMenuItems callbacks and actions", function()
       profiles_instance.profiles.data = {
         ["P1"] = {
-          settings = { name = "P1", registered = true, notify = true, auto_exec_ask = true },
+          settings = {
+            name = "P1",
+            registered = true,
+            notify = true,
+            auto_exec_ask = true,
+          },
           action1 = true,
         },
       }
@@ -578,19 +585,25 @@ describe("Profiles plugin", function()
       -- 1. "New" button callback
       sub_items[1].callback(mock_menu)
       local new_dialog = show_stub.calls[#show_stub.calls].vals[2]
-      local _, new_input = debug.getupvalue(new_dialog.buttons[1][2].callback, 1)
+      local _, new_input =
+        debug.getupvalue(new_dialog.buttons[1][2].callback, 1)
       new_input:setInputText("CreatedProfile")
       new_dialog.buttons[1][2].callback()
       assert.is_not_nil(profiles_instance.data["CreatedProfile"])
 
       -- 2. "New with current book settings" callback
       profiles_instance.ui.document = {
-        configurable = { rotation_mode = "portrait", contrast = 1.0, quality = 1 }
+        configurable = {
+          rotation_mode = "portrait",
+          contrast = 1.0,
+          quality = 1,
+        },
       }
       profiles_instance.document = profiles_instance.ui.document
       sub_items[2].callback(mock_menu)
       local book_dialog = show_stub.calls[#show_stub.calls].vals[2]
-      local _, book_input = debug.getupvalue(book_dialog.buttons[1][2].callback, 1)
+      local _, book_input =
+        debug.getupvalue(book_dialog.buttons[1][2].callback, 1)
       book_input:setInputText("BookSettingProfile")
       book_dialog.buttons[1][2].callback()
       assert.is_not_nil(profiles_instance.data["BookSettingProfile"])
@@ -631,10 +644,15 @@ describe("Profiles plugin", function()
       profiles_instance.data["P1_Copy"] = nil
       sub_items = profiles_instance:getSubMenuItems()
       local p1_item_copy = sub_items[#sub_items]
-      if p1_item_copy and p1_item_copy.sub_item_table and p1_item_copy.sub_item_table[8] then
+      if
+        p1_item_copy
+        and p1_item_copy.sub_item_table
+        and p1_item_copy.sub_item_table[8]
+      then
         p1_item_copy.sub_item_table[8].callback(mock_menu)
         local dup_dialog = show_stub.calls[#show_stub.calls].vals[2]
-        local _, dup_input = debug.getupvalue(dup_dialog.buttons[1][2].callback, 1)
+        local _, dup_input =
+          debug.getupvalue(dup_dialog.buttons[1][2].callback, 1)
         dup_input:setInputText("P1_Copy")
         dup_dialog.buttons[1][2].callback()
         assert.is_not_nil(profiles_instance.data["P1_Copy"])
@@ -643,7 +661,8 @@ describe("Profiles plugin", function()
       -- Rename
       p1_sub[7].callback(mock_menu)
       local rename_dialog = show_stub.calls[#show_stub.calls].vals[2]
-      local _, rename_input = debug.getupvalue(rename_dialog.buttons[1][2].callback, 1)
+      local _, rename_input =
+        debug.getupvalue(rename_dialog.buttons[1][2].callback, 1)
       rename_input:setInputText("P1_Renamed")
       rename_dialog.buttons[1][2].callback()
       assert.is_nil(profiles_instance.data.P1)
@@ -664,92 +683,117 @@ describe("Profiles plugin", function()
   end)
 
   describe("AutoExec Triggers and Conditions", function()
-    it("should handle onStart, onResume, onSetRotationMode, and onPathChanged", function()
-      local show_stub = stub(UIManager, "show")
-      local next_tick_stub = stub(UIManager, "nextTick", function(self, fn) if type(self) == "function" then self() elseif fn then fn() end end)
-      local exec_stub = stub(Dispatcher, "execute")
+    it(
+      "should handle onStart, onResume, onSetRotationMode, and onPathChanged",
+      function()
+        local show_stub = stub(UIManager, "show")
+        local next_tick_stub = stub(UIManager, "nextTick", function(self, fn)
+          if type(self) == "function" then
+            self()
+          elseif fn then
+            fn()
+          end
+        end)
+        local exec_stub = stub(Dispatcher, "execute")
 
-      profiles_instance.data = {
-        ["P_Rot"] = { settings = { name = "P_Rot" } },
-        ["P_Path"] = { settings = { name = "P_Path" } },
-        ["P_Ask"] = { settings = { name = "P_Ask", auto_exec_ask = true } },
-      }
+        profiles_instance.data = {
+          ["P_Rot"] = { settings = { name = "P_Rot" } },
+          ["P_Path"] = { settings = { name = "P_Path" } },
+          ["P_Ask"] = { settings = { name = "P_Ask", auto_exec_ask = true } },
+        }
 
-      profiles_instance.autoexec = {
-        Start = { P_Rot = true },
-        Resume = { P_Rot = true },
-        SetRotationMode = {
-          P_Rot = { [0] = true },
-          P_Ask = { [1] = true },
-        },
-        PathChanged = {
-          P_Path = { has = "books,novels", has_not = "ignore" },
-        },
-      }
+        profiles_instance.autoexec = {
+          Start = { P_Rot = true },
+          Resume = { P_Rot = true },
+          SetRotationMode = {
+            P_Rot = { [0] = true },
+            P_Ask = { [1] = true },
+          },
+          PathChanged = {
+            P_Path = { has = "books,novels", has_not = "ignore" },
+          },
+        }
 
-      -- onStart & onResume
-      profiles_instance:onStart()
-      profiles_instance:onResume()
-      profiles_instance:executeAutoExecEvent("Start")
+        -- onStart & onResume
+        profiles_instance:onStart()
+        profiles_instance:onResume()
+        profiles_instance:executeAutoExecEvent("Start")
 
-      -- onSetRotationMode
-      profiles_instance:onSetRotationMode(0)
+        -- onSetRotationMode
+        profiles_instance:onSetRotationMode(0)
 
-      -- onSetRotationMode with auto_exec_ask -> opens ConfirmBox
-      profiles_instance:onSetRotationMode(1)
-      local confirm_box = show_stub.calls[#show_stub.calls].vals[2]
-      if confirm_box and confirm_box.ok_callback then
-        confirm_box.ok_callback()
+        -- onSetRotationMode with auto_exec_ask -> opens ConfirmBox
+        profiles_instance:onSetRotationMode(1)
+        local confirm_box = show_stub.calls[#show_stub.calls].vals[2]
+        if confirm_box and confirm_box.ok_callback then
+          confirm_box.ok_callback()
+        end
+
+        -- onPathChanged match
+        profiles_instance:onPathChanged("/sdcard/books/fiction")
+
+        show_stub:revert()
+        next_tick_stub:revert()
+        exec_stub:revert()
       end
+    )
 
-      -- onPathChanged match
-      profiles_instance:onPathChanged("/sdcard/books/fiction")
+    it(
+      "should handle onReaderReady and onCloseDocument with all condition types",
+      function()
+        local next_tick_stub = stub(UIManager, "nextTick", function(self, fn)
+          if type(self) == "function" then
+            self()
+          elseif fn then
+            fn()
+          end
+        end)
+        local exec_stub = stub(Dispatcher, "execute")
+        local ReadCollection = require("readcollection")
+        local coll_stub = stub(
+          ReadCollection,
+          "isFileInCollection",
+          function(self, file, coll)
+            return coll == "Favorites"
+          end
+        )
 
-      show_stub:revert()
-      next_tick_stub:revert()
-      exec_stub:revert()
-    end)
+        profiles_instance.data = {
+          ["P_Cond"] = { settings = { name = "P_Cond" } },
+        }
 
-    it("should handle onReaderReady and onCloseDocument with all condition types", function()
-      local next_tick_stub = stub(UIManager, "nextTick", function(self, fn) if type(self) == "function" then self() elseif fn then fn() end end)
-      local exec_stub = stub(Dispatcher, "execute")
-      local ReadCollection = require("readcollection")
-      local coll_stub = stub(ReadCollection, "isFileInCollection", function(self, file, coll)
-        return coll == "Favorites"
-      end)
+        profiles_instance.ui.document = { file = "/books/test.epub" }
+        profiles_instance.ui.doc_props =
+          { display_title = "My Novel", authors = "Author X" }
+        local rot_stub = stub(Screen, "getRotationMode", function()
+          return 0
+        end)
 
-      profiles_instance.data = {
-        ["P_Cond"] = { settings = { name = "P_Cond" } },
-      }
-
-      profiles_instance.ui.document = { file = "/books/test.epub" }
-      profiles_instance.ui.doc_props = { display_title = "My Novel", authors = "Author X" }
-      local rot_stub = stub(Screen, "getRotationMode", function() return 0 end)
-
-      profiles_instance.autoexec = {
-        ReaderReadyAll = {
-          P_Cond = {
-            orientation = { [0] = true },
-            doc_props = { title = "Novel" },
-            filepath = "test.epub",
-            collections = { Favorites = true },
+        profiles_instance.autoexec = {
+          ReaderReadyAll = {
+            P_Cond = {
+              orientation = { [0] = true },
+              doc_props = { title = "Novel" },
+              filepath = "test.epub",
+              collections = { Favorites = true },
+            },
           },
-        },
-        CloseDocumentAll = {
-          P_Cond = {
-            filepath = "test.epub",
+          CloseDocumentAll = {
+            P_Cond = {
+              filepath = "test.epub",
+            },
           },
-        },
-      }
+        }
 
-      profiles_instance:onReaderReady()
-      profiles_instance:onCloseDocument()
+        profiles_instance:onReaderReady()
+        profiles_instance:onCloseDocument()
 
-      rot_stub:revert()
-      coll_stub:revert()
-      next_tick_stub:revert()
-      exec_stub:revert()
-    end)
+        rot_stub:revert()
+        coll_stub:revert()
+        next_tick_stub:revert()
+        exec_stub:revert()
+      end
+    )
 
     it("should generate and exercise all autoexec menu item types", function()
       local show_stub = stub(UIManager, "show")
@@ -761,15 +805,24 @@ describe("Profiles plugin", function()
         prop_text = { title = "Title:", authors = "Authors:" },
       }
       profiles_instance.ui.collections = {
-        getCollectionTitle = function(self, id) return "Col_" .. id end,
-        onShowCollList = function(self, selected, cb) cb({ col1 = true }) end,
+        getCollectionTitle = function(self, id)
+          return "Col_" .. id
+        end,
+        onShowCollList = function(self, selected, cb)
+          cb({ col1 = true })
+        end,
       }
       profiles_instance.ui.file_chooser = { path = "/sdcard/books" }
       profiles_instance.ui.document = { file = "/sdcard/books/book.epub" }
-      profiles_instance.ui.doc_props = { display_title = "Book Title", authors = "Author" }
+      profiles_instance.ui.doc_props =
+        { display_title = "Book Title", authors = "Author" }
 
       -- 1. SetRotationMode menu
-      local rot_item = profiles_instance:genAutoExecMenuItem("Rotation", "SetRotationMode", "P1")
+      local rot_item = profiles_instance:genAutoExecMenuItem(
+        "Rotation",
+        "SetRotationMode",
+        "P1"
+      )
       assert.is_table(rot_item)
       local rot_subs = rot_item.sub_item_table_func()
       assert.is_table(rot_subs)
@@ -778,7 +831,8 @@ describe("Profiles plugin", function()
       rot_item.hold_callback(mock_menu)
 
       -- 2. PathChanged menu
-      local path_item = profiles_instance:genAutoExecMenuItem("Path", "PathChanged", "P1")
+      local path_item =
+        profiles_instance:genAutoExecMenuItem("Path", "PathChanged", "P1")
       assert.is_table(path_item)
       local path_subs = path_item.sub_item_table_func()
       assert.is_table(path_subs)
@@ -788,17 +842,25 @@ describe("Profiles plugin", function()
       -- Current folder button
       path_dlg.buttons[1][1].callback()
       -- Save button with text
-      path_dlg.getInputText = function() return "/sdcard/books" end
+      path_dlg.getInputText = function()
+        return "/sdcard/books"
+      end
       path_dlg.buttons[2][2].callback()
       -- Save button empty (removes)
       path_subs[1].callback(mock_menu)
       path_dlg = show_stub.calls[#show_stub.calls].vals[2]
-      path_dlg.getInputText = function() return "" end
+      path_dlg.getInputText = function()
+        return ""
+      end
       path_dlg.buttons[2][2].callback()
       path_item.hold_callback(mock_menu)
 
       -- 3. ReaderReadyAll doc conditional menu
-      local doc_item = profiles_instance:genAutoExecMenuItem("Reader Ready", "ReaderReadyAll", "P1")
+      local doc_item = profiles_instance:genAutoExecMenuItem(
+        "Reader Ready",
+        "ReaderReadyAll",
+        "P1"
+      )
       assert.is_table(doc_item)
       local doc_subs = doc_item.sub_item_table_func()
       assert.is_table(doc_subs)
@@ -815,7 +877,9 @@ describe("Profiles plugin", function()
       props_subs[1].callback(mock_menu)
       local prop_dlg = show_stub.calls[#show_stub.calls].vals[2]
       prop_dlg.buttons[1][1].callback() -- current book button
-      prop_dlg.getInputText = function() return "Novel" end
+      prop_dlg.getInputText = function()
+        return "Novel"
+      end
       prop_dlg.buttons[2][2].callback()
       props_subs[1].hold_callback(mock_menu)
       doc_subs[3].hold_callback(mock_menu)
@@ -825,7 +889,9 @@ describe("Profiles plugin", function()
       doc_subs[4].callback(mock_menu)
       local file_dlg = show_stub.calls[#show_stub.calls].vals[2]
       file_dlg.buttons[1][1].callback() -- current book
-      file_dlg.getInputText = function() return "book.epub" end
+      file_dlg.getInputText = function()
+        return "book.epub"
+      end
       file_dlg.buttons[2][2].callback()
       doc_subs[4].hold_callback(mock_menu)
 
@@ -840,35 +906,39 @@ describe("Profiles plugin", function()
       show_stub:revert()
     end)
 
-    it("should handle getProfileFromCurrentBookSettings and updateProfiles with gestures", function()
-      profiles_instance.ui.rolling = true
-      profiles_instance.ui.font = { font_face = "FreeSerif" }
-      profiles_instance.document = {
-        configurable = {
-          rotation_mode = 0,
-          font_size = 20,
-          line_spacing = 100,
-          render_dpi = 300,
-        },
-      }
+    it(
+      "should handle getProfileFromCurrentBookSettings and updateProfiles with gestures",
+      function()
+        profiles_instance.ui.rolling = true
+        profiles_instance.ui.font = { font_face = "FreeSerif" }
+        profiles_instance.document = {
+          configurable = {
+            rotation_mode = 0,
+            font_size = 20,
+            line_spacing = 100,
+            render_dpi = 300,
+          },
+        }
 
-      local rolling_prof = profiles_instance:getProfileFromCurrentBookSettings("RollingProfile")
-      assert.is_table(rolling_prof)
-      assert.are.equal("FreeSerif", rolling_prof.set_font)
+        local rolling_prof =
+          profiles_instance:getProfileFromCurrentBookSettings("RollingProfile")
+        assert.is_table(rolling_prof)
+        assert.are.equal("FreeSerif", rolling_prof.set_font)
 
-      -- updateProfiles with gestures
-      local gesture_stub = stub()
-      profiles_instance.ui.gestures = { updateProfiles = gesture_stub }
-      profiles_instance.data = {
-        ["ProfA"] = {
-          settings = { order = { "action_old" } },
-          action_old = true,
-        },
-      }
-      profiles_instance:updateProfiles("action_old", "action_new")
-      assert.is_true(profiles_instance.data.ProfA.action_new)
-      assert.is_nil(profiles_instance.data.ProfA.action_old)
-      assert.stub(gesture_stub).was.called()
-    end)
+        -- updateProfiles with gestures
+        local gesture_stub = stub()
+        profiles_instance.ui.gestures = { updateProfiles = gesture_stub }
+        profiles_instance.data = {
+          ["ProfA"] = {
+            settings = { order = { "action_old" } },
+            action_old = true,
+          },
+        }
+        profiles_instance:updateProfiles("action_old", "action_new")
+        assert.is_true(profiles_instance.data.ProfA.action_new)
+        assert.is_nil(profiles_instance.data.ProfA.action_old)
+        assert.stub(gesture_stub).was.called()
+      end
+    )
   end)
 end)

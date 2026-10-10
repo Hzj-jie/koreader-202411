@@ -461,7 +461,7 @@ describe("filemanagermenu", function()
     }
     package.loaded["ui/elements/common_exit_menu_table"] = {}
 
-    mock_gettext = setmetatable({
+    local mock_gettext = setmetatable({
       ngettext = function(sing, plur, n)
         return n == 1 and sing or plur
       end,
