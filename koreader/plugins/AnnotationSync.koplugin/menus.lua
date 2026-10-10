@@ -50,7 +50,13 @@ function M.show_deleted_annotations(plugin, document)
       end
       -- Truncate long text
       if #text > 50 then
-        text = text:sub(1, 47) .. "..."
+        -- Don't cut a multi-byte character: back up while the byte after the
+        -- cut continues one (10xxxxxx).
+        local cut = 47
+        while text:byte(cut + 1) >= 0x80 and text:byte(cut + 1) < 0xC0 do
+          cut = cut - 1
+        end
+        text = text:sub(1, cut) .. "..."
       end
       table.insert(items, {
         text = text,
