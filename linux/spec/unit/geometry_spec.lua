@@ -6,20 +6,23 @@ describe("Geometry", function()
     Geom = require("ui/geometry")
   end)
 
-  it("should create Geom instance with default and custom properties", function()
-    local g_default = Geom:new()
-    assert.are.equal(0, g_default.x)
-    assert.are.equal(0, g_default.y)
-    assert.are.equal(0, g_default.w)
-    assert.are.equal(0, g_default.h)
+  it(
+    "should create Geom instance with default and custom properties",
+    function()
+      local g_default = Geom:new()
+      assert.are.equal(0, g_default.x)
+      assert.are.equal(0, g_default.y)
+      assert.are.equal(0, g_default.w)
+      assert.are.equal(0, g_default.h)
 
-    local g_custom = Geom:new({ x = 10, y = 20, w = 100, h = 200 })
-    assert.are.equal(10, g_custom.x)
-    assert.are.equal(20, g_custom.y)
-    assert.are.equal(100, g_custom.w)
-    assert.are.equal(200, g_custom.h)
-    assert.are.equal("100x200+10+20", tostring(g_custom))
-  end)
+      local g_custom = Geom:new({ x = 10, y = 20, w = 100, h = 200 })
+      assert.are.equal(10, g_custom.x)
+      assert.are.equal(20, g_custom.y)
+      assert.are.equal(100, g_custom.w)
+      assert.are.equal(200, g_custom.h)
+      assert.are.equal("100x200+10+20", tostring(g_custom))
+    end
+  )
 
   it("should copy Geom object", function()
     local g = Geom:new({ x = 5, y = 15, w = 25, h = 35 })
@@ -69,10 +72,16 @@ describe("Geometry", function()
     local g2 = Geom:new({ x = 30, y = 30, w = 50, h = 50 })
 
     local combined = g1:combine(g2)
-    assert.are.same({ x = 10, y = 10, w = 70, h = 70 }, { x = combined.x, y = combined.y, w = combined.w, h = combined.h })
+    assert.are.same(
+      { x = 10, y = 10, w = 70, h = 70 },
+      { x = combined.x, y = combined.y, w = combined.w, h = combined.h }
+    )
 
     local inter = g1:intersect(g2)
-    assert.are.same({ x = 30, y = 30, w = 30, h = 30 }, { x = inter.x, y = inter.y, w = inter.w, h = inter.h })
+    assert.are.same(
+      { x = 30, y = 30, w = 30, h = 30 },
+      { x = inter.x, y = inter.y, w = inter.w, h = inter.h }
+    )
 
     local empty_inter = g1:intersect(nil)
     assert.are.same(g1, empty_inter)
@@ -151,33 +160,36 @@ describe("Geometry", function()
     assert.are.equal(15, sh_box.x)
   end)
 
-  it("should calculate distance, midpoint, center, clear, and resize", function()
-    local p1 = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
-    local p2 = Geom:new({ x = 3, y = 4, w = 0, h = 0 })
+  it(
+    "should calculate distance, midpoint, center, clear, and resize",
+    function()
+      local p1 = Geom:new({ x = 0, y = 0, w = 0, h = 0 })
+      local p2 = Geom:new({ x = 3, y = 4, w = 0, h = 0 })
 
-    assert.are.equal(5, p1:distance(p2))
+      assert.are.equal(5, p1:distance(p2))
 
-    local mid = p1:midpoint(p2)
-    assert.are.equal(2, mid.x)
-    assert.are.equal(2, mid.y)
+      local mid = p1:midpoint(p2)
+      assert.are.equal(2, mid.x)
+      assert.are.equal(2, mid.y)
 
-    local rect = Geom:new({ x = 10, y = 20, w = 100, h = 200 })
-    local center = rect:center()
-    assert.are.equal(60, center.x)
-    assert.are.equal(120, center.y)
+      local rect = Geom:new({ x = 10, y = 20, w = 100, h = 200 })
+      local center = rect:center()
+      assert.are.equal(60, center.x)
+      assert.are.equal(120, center.y)
 
-    rect:resize({ ratio_x = 0.1, ratio_y = 0.2, ratio_w = 0.5, ratio_h = 0.5 })
-    assert.are.equal(20, rect.x) -- 10 + 100*0.1 = 20
-    assert.are.equal(60, rect.y) -- 20 + 200*0.2 = 60
-    assert.are.equal(50, rect.w)
-    assert.are.equal(100, rect.h)
+      rect:resize({ ratio_x = 0.1, ratio_y = 0.2, ratio_w = 0.5, ratio_h = 0.5 })
+      assert.are.equal(20, rect.x) -- 10 + 100*0.1 = 20
+      assert.are.equal(60, rect.y) -- 20 + 200*0.2 = 60
+      assert.are.equal(50, rect.w)
+      assert.are.equal(100, rect.h)
 
-    rect:clear()
-    assert.are.equal(0, rect.x)
-    assert.are.equal(0, rect.y)
-    assert.are.equal(0, rect.w)
-    assert.are.equal(0, rect.h)
-  end)
+      rect:clear()
+      assert.are.equal(0, rect.x)
+      assert.are.equal(0, rect.y)
+      assert.are.equal(0, rect.w)
+      assert.are.equal(0, rect.h)
+    end
+  )
 
   it("should handle boundingBox, smallerThan, and sortPoints", function()
     assert.is_nil(Geom.boundingBox({}))

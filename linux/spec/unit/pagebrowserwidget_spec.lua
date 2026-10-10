@@ -472,6 +472,7 @@ describe("PageBrowserWidget widget", function()
     assert.is_true(child_widget:onExit(false))
     assert.is_true(update_called)
 
+    update_called = false
     child_widget = PageBrowserWidget:new({
       ui = mock_ui,
       on_exit = function(close_all)
@@ -484,6 +485,7 @@ describe("PageBrowserWidget widget", function()
     make_mock_window(child_widget)
     assert.is_true(child_widget:onExit(true))
     assert.is_true(exit_called)
+    assert.is_false(update_called)
   end)
 
   it(
@@ -526,36 +528,40 @@ describe("PageBrowserWidget widget", function()
     end
   )
 
-  it("should instantiate BookMapWidget with on_exit and on_update callbacks on bottom row hold", function()
-    local widget = PageBrowserWidget:new({
-      ui = mock_ui,
-      focus_page = 10,
-    })
-    make_mock_window(widget)
-    local shown_subwidget
-    widget.showWidget = function(self, w)
-      shown_subwidget = w
-    end
-    local exited_parents, updated_editable
-    widget.onExit = function(self, close_all)
-      exited_parents = close_all
-    end
-    widget.updateEditableStuff = function(self, param)
-      updated_editable = param
-    end
+  it(
+    "should instantiate BookMapWidget with on_exit and on_update callbacks on bottom row hold",
+    function()
+      local widget = PageBrowserWidget:new({
+        ui = mock_ui,
+        focus_page = 10,
+      })
+      make_mock_window(widget)
+      local shown_subwidget
+      widget.showWidget = function(self, w)
+        shown_subwidget = w
+      end
+      local exited_parents, updated_editable
+      widget.onExit = function(self, close_all)
+        exited_parents = close_all
+      end
+      widget.updateEditableStuff = function(self, param)
+        updated_editable = param
+      end
 
-    local hold_y = Screen:getHeight() - widget.row_height / 2
-    local hold_x = widget.row[1].pages_frame_offset_x + 10
-    local res = widget:onHold(nil, { pos = Geom:new({ x = hold_x, y = hold_y }) })
-    assert.is_true(res)
-    assert.is_not_nil(shown_subwidget)
-    assert.is_function(shown_subwidget.on_exit)
-    assert.is_function(shown_subwidget.on_update)
+      local hold_y = Screen:getHeight() - widget.row_height / 2
+      local hold_x = widget.row[1].pages_frame_offset_x + 10
+      local res =
+        widget:onHold(nil, { pos = Geom:new({ x = hold_x, y = hold_y }) })
+      assert.is_true(res)
+      assert.is_not_nil(shown_subwidget)
+      assert.is_function(shown_subwidget.on_exit)
+      assert.is_function(shown_subwidget.on_update)
 
-    shown_subwidget.on_exit(true)
-    assert.is_true(exited_parents)
+      shown_subwidget.on_exit(true)
+      assert.is_true(exited_parents)
 
-    shown_subwidget.on_update()
-    assert.is_true(updated_editable)
-  end)
+      shown_subwidget.on_update()
+      assert.is_true(updated_editable)
+    end
+  )
 end)

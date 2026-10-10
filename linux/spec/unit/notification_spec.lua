@@ -91,20 +91,23 @@ describe("Notification", function()
       assert.are.equal(0, #Notification._shown_list)
     end)
 
-    it("should instantiate non-toast notification with key and tap events", function()
-      local notif = Notification:new({
-        text = "Non-toast message",
-        toast = false,
-      })
+    it(
+      "should instantiate non-toast notification with key and tap events",
+      function()
+        local notif = Notification:new({
+          text = "Non-toast message",
+          toast = false,
+        })
 
-      assert.is_false(notif.toast)
-      assert.truthy(notif.key_events.AnyKeyPressed)
-      if Device:isTouchDevice() then
-        assert.truthy(notif.ges_events.TapClose)
+        assert.is_false(notif.toast)
+        assert.truthy(notif.key_events.AnyKeyPressed)
+        if Device:isTouchDevice() then
+          assert.truthy(notif.ges_events.TapClose)
+        end
+
+        notif:onClose()
       end
-
-      notif:onClose()
-    end)
+    )
 
     it("should clean expired entries (> 30s) during stack cleanup", function()
       local time = require("ui/time")
@@ -175,41 +178,47 @@ describe("Notification", function()
   end)
 
   describe("event handling and toast interception", function()
-    it("should dismiss toast on user input event and let event propagate", function()
-      local closed = false
-      UIManager.close = function(_, widget)
-        closed = true
+    it(
+      "should dismiss toast on user input event and let event propagate",
+      function()
+        local closed = false
+        UIManager.close = function(_, widget)
+          closed = true
+        end
+
+        local notif = Notification:new({
+          text = "Toast dismiss",
+          toast = true,
+        })
+
+        local tap_ev = Event:new("Tap")
+        tap_ev.isUserInput = function()
+          return true
+        end
+
+        local handled = notif:handleEvent(tap_ev)
+        assert.is_false(handled)
+        assert.is_true(closed)
       end
+    )
 
-      local notif = Notification:new({
-        text = "Toast dismiss",
-        toast = true,
-      })
+    it(
+      "should pass non-user input events to InputContainer for toast",
+      function()
+        local notif = Notification:new({
+          text = "Toast pass",
+          toast = true,
+        })
 
-      local tap_ev = Event:new("Tap")
-      tap_ev.isUserInput = function()
-        return true
+        local dummy_ev = Event:new("DummyCustomEvent")
+        dummy_ev.isUserInput = function()
+          return false
+        end
+
+        local handled = notif:handleEvent(dummy_ev)
+        assert.is_false(handled or false)
       end
-
-      local handled = notif:handleEvent(tap_ev)
-      assert.is_false(handled)
-      assert.is_true(closed)
-    end)
-
-    it("should pass non-user input events to InputContainer for toast", function()
-      local notif = Notification:new({
-        text = "Toast pass",
-        toast = true,
-      })
-
-      local dummy_ev = Event:new("DummyCustomEvent")
-      dummy_ev.isUserInput = function()
-        return false
-      end
-
-      local handled = notif:handleEvent(dummy_ev)
-      assert.is_false(handled or false)
-    end)
+    )
 
     it("should handle onTapClose and onAnyKeyPressed", function()
       local closed_count = 0
@@ -229,13 +238,16 @@ describe("Notification", function()
       assert.are.equal(2, closed_count)
     end)
 
-    it("should consume background events onIgnoreTouchInput and aliases", function()
-      local notif = Notification:new({ text = "Ignore" })
+    it(
+      "should consume background events onIgnoreTouchInput and aliases",
+      function()
+        local notif = Notification:new({ text = "Ignore" })
 
-      assert.is_true(notif:onIgnoreTouchInput())
-      assert.is_true(notif:onResume())
-      assert.is_true(notif:onPhysicalKeyboardDisconnected())
-      assert.is_true(notif:onInput())
-    end)
+        assert.is_true(notif:onIgnoreTouchInput())
+        assert.is_true(notif:onResume())
+        assert.is_true(notif:onPhysicalKeyboardDisconnected())
+        assert.is_true(notif:onInput())
+      end
+    )
   end)
 end)

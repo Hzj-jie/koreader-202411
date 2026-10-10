@@ -158,20 +158,23 @@ describe("MathPuzzle Generator module", function()
     end
   end)
 
-  it("should handle incorrect answers and whitespace trimming in checkAnswers", function()
-    local problems = Generator.generateProblems("add_sub_100", 10)
-    for _, prob in ipairs(problems) do
-      prob.user_answer = tostring(prob.answer)
+  it(
+    "should handle incorrect answers and whitespace trimming in checkAnswers",
+    function()
+      local problems = Generator.generateProblems("add_sub_100", 10)
+      for _, prob in ipairs(problems) do
+        prob.user_answer = tostring(prob.answer)
+      end
+      problems[1].user_answer = "  " .. tostring(problems[1].answer) .. "  "
+      problems[2].user_answer = tostring(problems[2].answer + 1)
+      problems[3].user_answer = ""
+      local result_mixed = Generator.checkAnswers(problems)
+      assert.is_true(problems[1].is_correct)
+      assert.is_false(problems[2].is_correct)
+      assert.is_false(problems[3].is_correct)
+      assert.are.equal(8, result_mixed.correct_count)
     end
-    problems[1].user_answer = "  " .. tostring(problems[1].answer) .. "  "
-    problems[2].user_answer = tostring(problems[2].answer + 1)
-    problems[3].user_answer = ""
-    local result_mixed = Generator.checkAnswers(problems)
-    assert.is_true(problems[1].is_correct)
-    assert.is_false(problems[2].is_correct)
-    assert.is_false(problems[3].is_correct)
-    assert.are.equal(8, result_mixed.correct_count)
-  end)
+  )
 
   it("should fallback to default mode when mode ID is unknown", function()
     local fallback_mode = Generator.getModeById("non_existent_mode_xyz")
@@ -204,21 +207,24 @@ describe("MathPuzzle Generator module", function()
     end
   end)
 
-  it("should handle non-numeric or invalid input gracefully in checkAnswers", function()
-    local problems = Generator.generateProblems("add_sub_100", 4)
-    problems[1].user_answer = "abc"
-    problems[2].user_answer = nil
-    problems[3].user_answer = "12/34"
-    problems[4].user_answer = tostring(problems[4].answer)
+  it(
+    "should handle non-numeric or invalid input gracefully in checkAnswers",
+    function()
+      local problems = Generator.generateProblems("add_sub_100", 4)
+      problems[1].user_answer = "abc"
+      problems[2].user_answer = nil
+      problems[3].user_answer = "12/34"
+      problems[4].user_answer = tostring(problems[4].answer)
 
-    local res = Generator.checkAnswers(problems)
-    assert.are.equal(4, res.total)
-    assert.are.equal(1, res.correct_count)
-    assert.are.equal(3, res.answered_count)
-    assert.is_false(res.all_correct)
-    assert.is_false(problems[1].is_correct)
-    assert.is_false(problems[2].is_correct)
-    assert.is_false(problems[3].is_correct)
-    assert.is_true(problems[4].is_correct)
-  end)
+      local res = Generator.checkAnswers(problems)
+      assert.are.equal(4, res.total)
+      assert.are.equal(1, res.correct_count)
+      assert.are.equal(3, res.answered_count)
+      assert.is_false(res.all_correct)
+      assert.is_false(problems[1].is_correct)
+      assert.is_false(problems[2].is_correct)
+      assert.is_false(problems[3].is_correct)
+      assert.is_true(problems[4].is_correct)
+    end
+  )
 end)

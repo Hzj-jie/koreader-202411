@@ -83,86 +83,96 @@ describe("ReaderWikipedia module", function()
       end
     end)
 
-    it("should open lookup input dialog and handle cancel and search buttons", function()
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local wiki = ReaderWikipedia:new({
-        ui = mock_ui,
-      })
+    it(
+      "should open lookup input dialog and handle cancel and search buttons",
+      function()
+        local mock_ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        }
+        local wiki = ReaderWikipedia:new({
+          ui = mock_ui,
+        })
 
-      wiki:lookupInput()
-      assert.is_not_nil(wiki.input_dialog)
-      local cancel_btn = wiki.input_dialog.buttons[1][1]
-      cancel_btn.callback()
+        wiki:lookupInput()
+        assert.is_not_nil(wiki.input_dialog)
+        local cancel_btn = wiki.input_dialog.buttons[1][1]
+        cancel_btn.callback()
 
-      wiki:lookupInput()
-      local search_btn = wiki.input_dialog.buttons[1][2]
-      wiki.input_dialog._input_widget = { getText = function() return "" end }
-      search_btn.callback()
-    end)
-
-    it("should exercise wikipedia settings submenus and widget callbacks", function()
-      local shown_widgets = {}
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local wiki = ReaderWikipedia:new({
-        ui = mock_ui,
-      })
-      wiki.showWidget = function(self, w)
-        table.insert(shown_widgets, w)
+        wiki:lookupInput()
+        local search_btn = wiki.input_dialog.buttons[1][2]
+        wiki.input_dialog._input_widget = {
+          getText = function()
+            return ""
+          end,
+        }
+        search_btn.callback()
       end
+    )
 
-      local menu_items = {}
-      wiki:addToMainMenu(menu_items)
+    it(
+      "should exercise wikipedia settings submenus and widget callbacks",
+      function()
+        local shown_widgets = {}
+        local mock_ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        }
+        local wiki = ReaderWikipedia:new({
+          ui = mock_ui,
+        })
+        wiki.showWidget = function(self, w)
+          table.insert(shown_widgets, w)
+        end
 
-      local settings = menu_items.wikipedia_settings.sub_item_table
-      assert.is_table(settings)
-      local mock_menu = { updateItems = function() end }
+        local menu_items = {}
+        wiki:addToMainMenu(menu_items)
 
-      for _, item in ipairs(settings) do
-        if item.text_func then
-          pcall(item.text_func)
-        end
-        if item.enabled_func then
-          pcall(item.enabled_func)
-        end
-        if item.checked_func then
-          pcall(item.checked_func)
-        end
-        if item.callback then
-          pcall(item.callback, mock_menu)
-        end
-        if item.sub_item_table then
-          for _, sub in ipairs(item.sub_item_table) do
-            if sub.checked_func then
-              pcall(sub.checked_func)
+        local settings = menu_items.wikipedia_settings.sub_item_table
+        assert.is_table(settings)
+        local mock_menu = { updateItems = function() end }
+
+        for _, item in ipairs(settings) do
+          if item.text_func then
+            pcall(item.text_func)
+          end
+          if item.enabled_func then
+            pcall(item.enabled_func)
+          end
+          if item.checked_func then
+            pcall(item.checked_func)
+          end
+          if item.callback then
+            pcall(item.callback, mock_menu)
+          end
+          if item.sub_item_table then
+            for _, sub in ipairs(item.sub_item_table) do
+              if sub.checked_func then
+                pcall(sub.checked_func)
+              end
+              if sub.callback then
+                pcall(sub.callback)
+              end
             end
-            if sub.callback then
-              pcall(sub.callback)
+          end
+        end
+
+        for _, w in ipairs(shown_widgets) do
+          if w.ok_callback then
+            pcall(w.ok_callback)
+          end
+          if w.buttons and w.buttons[1] then
+            for _, btn in ipairs(w.buttons[1]) do
+              if btn.callback then
+                pcall(btn.callback)
+              end
             end
           end
         end
       end
-
-      for _, w in ipairs(shown_widgets) do
-        if w.ok_callback then
-          pcall(w.ok_callback)
-        end
-        if w.buttons and w.buttons[1] then
-          for _, btn in ipairs(w.buttons[1]) do
-            if btn.callback then
-              pcall(btn.callback)
-            end
-          end
-        end
-      end
-    end)
+    )
 
     it("should handle dispatcher registration", function()
       local wiki = ReaderWikipedia:new({

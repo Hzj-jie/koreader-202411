@@ -26,17 +26,21 @@ describe("RenderText", function()
     assert.truthy(glyph_bold)
   end)
 
-  it("should fallback to fallback font if glyph is missing in primary face", function()
-    local face = Font:getFace("infofont", 14)
-    -- Chinese character: 你 (0x4F60)
-    local glyph = RenderText:getGlyph(face, 0x4F60, false)
-    -- Should resolve via fallback fonts or handle gracefully
-    assert.truthy(glyph)
-  end)
+  it(
+    "should fallback to fallback font if glyph is missing in primary face",
+    function()
+      local face = Font:getFace("infofont", 14)
+      -- Chinese character: 你 (0x4F60)
+      local glyph = RenderText:getGlyph(face, 0x4F60, false)
+      -- Should resolve via fallback fonts or handle gracefully
+      assert.truthy(glyph)
+    end
+  )
 
   it("should measure text size with sizeUtf8Text", function()
     local face = Font:getFace("infofont", 14)
-    local size = RenderText:sizeUtf8Text(0, 500, face, "Hello World! 123", true, false)
+    local size =
+      RenderText:sizeUtf8Text(0, 500, face, "Hello World! 123", true, false)
     assert.truthy(size)
     assert.is_true(size.x > 0)
     assert.is_true(size.y_top >= 0)
@@ -51,14 +55,16 @@ describe("RenderText", function()
     local face = Font:getFace("infofont", 14)
     local full_text = "The quick brown fox jumps over the lazy dog"
 
-    local subtext = RenderText:getSubTextByWidth(full_text, face, 60, true, false)
+    local subtext =
+      RenderText:getSubTextByWidth(full_text, face, 60, true, false)
     assert.truthy(subtext)
     assert.is_true(#subtext < #full_text)
 
     local ell_width = RenderText:getEllipsisWidth(face)
     assert.is_true(ell_width > 0)
 
-    local truncated = RenderText:truncateTextByWidth(full_text, face, 60, true, false)
+    local truncated =
+      RenderText:truncateTextByWidth(full_text, face, 60, true, false)
     assert.truthy(truncated)
     assert.truthy(truncated:find("…"))
   end)
@@ -97,7 +103,8 @@ describe("RenderText", function()
 
     -- Invalid byte sequences (continuation byte alone, truncated multi-byte, 5-byte sequence)
     local invalid_text = "\x80\xFF\xC0\x20\xE0\x80\xF0\x80\x80\xF8\x80"
-    local inv_size = RenderText:sizeUtf8Text(0, 500, face, invalid_text, false, false)
+    local inv_size =
+      RenderText:sizeUtf8Text(0, 500, face, invalid_text, false, false)
     assert.truthy(inv_size)
   end)
 

@@ -16,7 +16,9 @@ describe("ScreenSaverWidget", function()
 
   it("should initialize ScreenSaverWidget and create frame", function()
     local orig_is_touch = Device.isTouchDevice
-    Device.isTouchDevice = function() return true end
+    Device.isTouchDevice = function()
+      return true
+    end
 
     local ssw = ScreenSaverWidget:new({
       background = 0,
@@ -54,7 +56,8 @@ describe("ScreenSaverWidget", function()
 
   it("should handle onTap when inside frame", function()
     local ssw = ScreenSaverWidget:new()
-    ssw.main_frame.dimen = Geom:new({ x = 0, y = 0, w = ssw.width, h = ssw.height })
+    ssw.main_frame.dimen =
+      Geom:new({ x = 0, y = 0, w = ssw.width, h = ssw.height })
     local closed_widget = nil
     local orig_close = UIManager.close
     UIManager.close = function(self, widget)
@@ -106,57 +109,63 @@ describe("ScreenSaverWidget", function()
     UIManager.close = orig_close
   end)
 
-  it("should handle onClose, restore rotation mode, refresh and broadcast event", function()
-    local ssw = ScreenSaverWidget:new()
+  it(
+    "should handle onClose, restore rotation mode, refresh and broadcast event",
+    function()
+      local ssw = ScreenSaverWidget:new()
 
-    local refreshed_mode = nil
-    local orig_scheduleRefresh = UIManager.scheduleRefresh
-    UIManager.scheduleRefresh = function(self, mode)
-      refreshed_mode = mode
+      local refreshed_mode = nil
+      local orig_scheduleRefresh = UIManager.scheduleRefresh
+      UIManager.scheduleRefresh = function(self, mode)
+        refreshed_mode = mode
+      end
+
+      local broadcasted_event = nil
+      local orig_broadcastEvent = UIManager.broadcastEvent
+      UIManager.broadcastEvent = function(self, ev)
+        broadcasted_event = ev
+      end
+
+      local cleanup_called = false
+      local orig_cleanup = Screensaver.cleanup
+      Screensaver.cleanup = function(self)
+        cleanup_called = true
+      end
+
+      local restored_rotation = nil
+      local orig_setRotationMode = Device.screen.setRotationMode
+      Device.screen.setRotationMode = function(self, mode)
+        restored_rotation = mode
+      end
+
+      Device.orig_rotation_mode = "portrait"
+
+      ssw:onClose()
+
+      assert.are.equal("portrait", restored_rotation)
+      assert.is_nil(Device.orig_rotation_mode)
+      assert.are.equal("full", refreshed_mode)
+      assert.truthy(broadcasted_event)
+      assert.are.equal("onOutOfScreenSaver", broadcasted_event.handler)
+      assert.is_true(cleanup_called)
+
+      UIManager.scheduleRefresh = orig_scheduleRefresh
+      UIManager.broadcastEvent = orig_broadcastEvent
+      Screensaver.cleanup = orig_cleanup
+      Device.screen.setRotationMode = orig_setRotationMode
     end
+  )
 
-    local broadcasted_event = nil
-    local orig_broadcastEvent = UIManager.broadcastEvent
-    UIManager.broadcastEvent = function(self, ev)
-      broadcasted_event = ev
+  it(
+    "should handle onResume and onSuspend flipping screen_saver_lock",
+    function()
+      local ssw = ScreenSaverWidget:new()
+
+      ssw:onResume()
+      assert.is_true(Device.screen_saver_lock)
+
+      ssw:onSuspend()
+      assert.is_false(Device.screen_saver_lock)
     end
-
-    local cleanup_called = false
-    local orig_cleanup = Screensaver.cleanup
-    Screensaver.cleanup = function(self)
-      cleanup_called = true
-    end
-
-    local restored_rotation = nil
-    local orig_setRotationMode = Device.screen.setRotationMode
-    Device.screen.setRotationMode = function(self, mode)
-      restored_rotation = mode
-    end
-
-    Device.orig_rotation_mode = "portrait"
-
-    ssw:onClose()
-
-    assert.are.equal("portrait", restored_rotation)
-    assert.is_nil(Device.orig_rotation_mode)
-    assert.are.equal("full", refreshed_mode)
-    assert.truthy(broadcasted_event)
-    assert.are.equal("onOutOfScreenSaver", broadcasted_event.handler)
-    assert.is_true(cleanup_called)
-
-    UIManager.scheduleRefresh = orig_scheduleRefresh
-    UIManager.broadcastEvent = orig_broadcastEvent
-    Screensaver.cleanup = orig_cleanup
-    Device.screen.setRotationMode = orig_setRotationMode
-  end)
-
-  it("should handle onResume and onSuspend flipping screen_saver_lock", function()
-    local ssw = ScreenSaverWidget:new()
-
-    ssw:onResume()
-    assert.is_true(Device.screen_saver_lock)
-
-    ssw:onSuspend()
-    assert.is_false(Device.screen_saver_lock)
-  end)
+  )
 end)

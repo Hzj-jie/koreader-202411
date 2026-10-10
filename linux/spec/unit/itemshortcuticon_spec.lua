@@ -20,16 +20,19 @@ describe("ItemShortCutIcon", function()
     assert.are.equal(Blitbuffer.COLOR_WHITE, icon[1].background)
   end)
 
-  it("should initialize multi-letter shortcut icon with grey_square style", function()
-    local icon = ItemShortCutIcon:new({
-      key = "Del",
-      style = "grey_square",
-      dimen = Geom:new({ w = 40, h = 30 }),
-    })
+  it(
+    "should initialize multi-letter shortcut icon with grey_square style",
+    function()
+      local icon = ItemShortCutIcon:new({
+        key = "Del",
+        style = "grey_square",
+        dimen = Geom:new({ w = 40, h = 30 }),
+      })
 
-    assert.truthy(icon[1])
-    assert.are.equal(Blitbuffer.COLOR_LIGHT_GRAY, icon[1].background)
-  end)
+      assert.truthy(icon[1])
+      assert.are.equal(Blitbuffer.COLOR_LIGHT_GRAY, icon[1].background)
+    end
+  )
 
   it("should return early when key is nil", function()
     local icon = ItemShortCutIcon:new({})

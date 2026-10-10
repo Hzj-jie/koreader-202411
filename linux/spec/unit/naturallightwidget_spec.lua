@@ -61,20 +61,23 @@ describe("NaturalLightWidget UI component", function()
     _G.G_reader_settings.save = function() end
   end)
 
-  it("should initialize with correct default properties and structure", function()
-    local nlw = NaturalLightWidget:new({})
-    assert.is_not_nil(nlw)
-    assert.is_true(nlw.modal)
-    assert.is_not_nil(nlw.white_gain)
-    assert.is_not_nil(nlw.white_offset)
-    assert.is_not_nil(nlw.red_gain)
-    assert.is_not_nil(nlw.red_offset)
-    assert.is_not_nil(nlw.green_gain)
-    assert.is_not_nil(nlw.green_offset)
-    assert.is_not_nil(nlw.exponent)
-    assert.is_not_nil(nlw.nl_frame)
-    assert.is_not_nil(nlw[1])
-  end)
+  it(
+    "should initialize with correct default properties and structure",
+    function()
+      local nlw = NaturalLightWidget:new({})
+      assert.is_not_nil(nlw)
+      assert.is_true(nlw.modal)
+      assert.is_not_nil(nlw.white_gain)
+      assert.is_not_nil(nlw.white_offset)
+      assert.is_not_nil(nlw.red_gain)
+      assert.is_not_nil(nlw.red_offset)
+      assert.is_not_nil(nlw.green_gain)
+      assert.is_not_nil(nlw.green_offset)
+      assert.is_not_nil(nlw.exponent)
+      assert.is_not_nil(nlw.nl_frame)
+      assert.is_not_nil(nlw[1])
+    end
+  )
 
   it("should handle onShow and capture current values in old_values", function()
     local nlw = NaturalLightWidget:new({})
@@ -129,45 +132,48 @@ describe("NaturalLightWidget UI component", function()
     assert.are.equal(1, brightness_called)
   end)
 
-  it("should handle adaptableNumber button interactions and input_text getText fallback", function()
-    local nlw = NaturalLightWidget:new({})
-    local group = nlw.white_gain
-    local btn_minus = group[1]
-    local input = group[2]
-    local btn_plus = group[3]
+  it(
+    "should handle adaptableNumber button interactions and input_text getText fallback",
+    function()
+      local nlw = NaturalLightWidget:new({})
+      local group = nlw.white_gain
+      local btn_minus = group[1]
+      local input = group[2]
+      local btn_plus = group[3]
 
-    -- Test getText with valid and invalid text
-    input:setText("10")
-    assert.are.equal(10, input:getText())
-    input.text = "invalid_number"
-    assert.are.equal(10, input:getText()) -- fallbacks to initial (which was 10)
+      -- Test getText with valid and invalid text
+      input:setText("10")
+      assert.are.equal(10, input:getText())
+      input.text = "invalid_number"
+      assert.are.equal(10, input:getText()) -- fallbacks to initial (which was 10)
 
-    -- Test btn_plus callback (+step = +1)
-    input:setText("10")
-    btn_plus.callback()
-    assert.are.equal(11, input:getText())
-    assert.are.equal(11, powerd_mock.fl.white_gain)
+      -- Test btn_plus callback (+step = +1)
+      input:setText("10")
+      btn_plus.callback()
+      assert.are.equal(11, input:getText())
+      assert.are.equal(11, powerd_mock.fl.white_gain)
 
-    -- Test btn_plus hold_callback (+step/10 = +0.1)
-    btn_plus.hold_callback()
-    assert.are.equal(11.1, input:getText())
-    assert.are.equal(11.1, powerd_mock.fl.white_gain)
+      -- Test btn_plus hold_callback (+step/10 = +0.1)
+      btn_plus.hold_callback()
+      assert.are.equal(11.1, input:getText())
+      assert.are.equal(11.1, powerd_mock.fl.white_gain)
 
-    -- Test btn_minus callback (-step = -1)
-    btn_minus.callback()
-    assert.are.equal(10.1, input:getText())
-    assert.are.equal(10.1, powerd_mock.fl.white_gain)
+      -- Test btn_minus callback (-step = -1)
+      btn_minus.callback()
+      assert.are.equal(10.1, input:getText())
+      assert.are.equal(10.1, powerd_mock.fl.white_gain)
 
-    -- Test btn_minus hold_callback (-step/10 = -0.1)
-    btn_minus.hold_callback()
-    assert.are.equal(10, input:getText())
-    assert.are.equal(10, powerd_mock.fl.white_gain)
+      -- Test btn_minus hold_callback (-step/10 = -0.1)
+      btn_minus.hold_callback()
+      assert.are.equal(10, input:getText())
+      assert.are.equal(10, powerd_mock.fl.white_gain)
 
-    -- Test enter_callback
-    input:setText("22")
-    input.enter_callback()
-    assert.are.equal(22, powerd_mock.fl.white_gain)
-  end)
+      -- Test enter_callback
+      input:setText("22")
+      input.enter_callback()
+      assert.are.equal(22, powerd_mock.fl.white_gain)
+    end
+  )
 
   it("should handle Restore Defaults button callback", function()
     local nlw = NaturalLightWidget:new({})
@@ -265,8 +271,12 @@ describe("NaturalLightWidget UI component", function()
 
     local kb_shown = false
     local kb_closed = false
-    input.showKeyboard = function() kb_shown = true end
-    input.closeKeyboard = function() kb_closed = true end
+    input.showKeyboard = function()
+      kb_shown = true
+    end
+    input.closeKeyboard = function()
+      kb_closed = true
+    end
 
     -- showKeyboard & closeKeyboard when _current_input is nil
     nlw._current_input = nil
@@ -274,6 +284,7 @@ describe("NaturalLightWidget UI component", function()
       nlw:showKeyboard()
       nlw:closeKeyboard()
     end)
+    assert.is_false(kb_closed)
 
     -- onSwitchFocus
     nlw:onSwitchFocus(input)
