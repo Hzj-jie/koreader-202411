@@ -1126,4 +1126,54 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal("", CommandRunner:_createEnvironment(string_env_job))
     end
   )
+
+  it(
+    "should repeat 1 time when repeated is 1 in BackgroundRunner:_shouldRepeat",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local job = { repeated = 1 }
+      -- repeated = 1 specifies the job repeats once after the initial run.
+      assert.is_true(BackgroundRunner:_shouldRepeat(job))
+      assert.is_false(BackgroundRunner:_shouldRepeat(job))
+    end
+  )
+
+  it(
+    "should set end_time and not abandon remaining queue jobs when catch_exception is false",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local job = {
+        executable = function()
+          error("fatal error")
+        end,
+        catch_exception = false,
+      }
+      pcall(function()
+        BackgroundRunner:_executeJob(job)
+      end)
+      assert.is_not_nil(job.end_time)
+
+      local second_executed = false
+      table.insert(PluginShare.backgroundJobs, {
+        when = 1,
+        catch_exception = false,
+        executable = function()
+          error("fatal error in queue")
+        end,
+      })
+      table.insert(PluginShare.backgroundJobs, {
+        when = 1,
+        executable = function()
+          second_executed = true
+        end,
+      })
+      notifyBackgroundJobsUpdated()
+
+      MockTime:increase(2)
+      pcall(function()
+        UIManager:handleInput()
+      end)
+      assert.is_true(second_executed)
+    end
+  )
 end)
