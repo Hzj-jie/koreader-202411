@@ -53,23 +53,28 @@ describe("BBoxWidget widget module", function()
     assert.is_table(widget.dimen)
   end)
 
-  it("should initialize key_events when Device:isTouchDevice() is false", function()
-    local old_isTouch = Device.isTouchDevice
-    Device.isTouchDevice = function() return false end
-    local mock_document, mock_view = createMockViewAndDoc()
-    local widget = BBoxWidget:new({
-      document = mock_document,
-      view = mock_view,
-    })
-    assert.are.equal(1, widget._confirm_stage)
-    assert.is_not_nil(widget.key_events.MoveIndicatorUp)
-    assert.is_not_nil(widget.key_events.MoveIndicatorDown)
-    assert.is_not_nil(widget.key_events.MoveIndicatorLeft)
-    assert.is_not_nil(widget.key_events.MoveIndicatorRight)
-    assert.is_not_nil(widget.key_events.Exit)
-    assert.is_not_nil(widget.key_events.Select)
-    Device.isTouchDevice = old_isTouch
-  end)
+  it(
+    "should initialize key_events when Device:isTouchDevice() is false",
+    function()
+      local old_isTouch = Device.isTouchDevice
+      Device.isTouchDevice = function()
+        return false
+      end
+      local mock_document, mock_view = createMockViewAndDoc()
+      local widget = BBoxWidget:new({
+        document = mock_document,
+        view = mock_view,
+      })
+      assert.are.equal(1, widget._confirm_stage)
+      assert.is_not_nil(widget.key_events.MoveIndicatorUp)
+      assert.is_not_nil(widget.key_events.MoveIndicatorDown)
+      assert.is_not_nil(widget.key_events.MoveIndicatorLeft)
+      assert.is_not_nil(widget.key_events.MoveIndicatorRight)
+      assert.is_not_nil(widget.key_events.Exit)
+      assert.is_not_nil(widget.key_events.Select)
+      Device.isTouchDevice = old_isTouch
+    end
+  )
 
   describe("coordinate transformations", function()
     it(
@@ -384,15 +389,12 @@ describe("BBoxWidget widget module", function()
       assert.are.equal(Math.round(500 - 2 * step), widget.screen_bbox.y1)
     end)
 
-    it(
-      "should clamp top-left indicator to 0 when moved negatively",
-      function()
-        widget._confirm_stage = 1
-        widget:onMoveIndicator({ -1000, -1000 })
-        assert.are.equal(0, widget.screen_bbox.x0)
-        assert.are.equal(0, widget.screen_bbox.y0)
-      end
-    )
+    it("should clamp top-left indicator to 0 when moved negatively", function()
+      widget._confirm_stage = 1
+      widget:onMoveIndicator({ -1000, -1000 })
+      assert.are.equal(0, widget.screen_bbox.x0)
+      assert.are.equal(0, widget.screen_bbox.y0)
+    end)
 
     it(
       "should clamp bottom-right indicator to Screen dimensions when moved beyond",
@@ -438,14 +440,17 @@ describe("BBoxWidget widget module", function()
       assert.are.equal("onConfirmPageCrop", ev.handler)
     end)
 
-    it("should broadcast ConfirmPageCrop on onSelect if stage is nil", function()
-      widget._confirm_stage = nil
-      local res = widget:onSelect()
-      assert.is_true(res)
-      assert.stub(UIManager.broadcastEvent).was_called(1)
-      local ev = UIManager.broadcastEvent.calls[1].refs[2]
-      assert.are.equal("onConfirmPageCrop", ev.handler)
-    end)
+    it(
+      "should broadcast ConfirmPageCrop on onSelect if stage is nil",
+      function()
+        widget._confirm_stage = nil
+        local res = widget:onSelect()
+        assert.is_true(res)
+        assert.stub(UIManager.broadcastEvent).was_called(1)
+        local ev = UIManager.broadcastEvent.calls[1].refs[2]
+        assert.are.equal("onConfirmPageCrop", ev.handler)
+      end
+    )
 
     it(
       "should broadcast ConfirmPageCrop on onConfirmAdjust when in page area",

@@ -18,13 +18,39 @@ describe("ProgressWidget", function()
     local operations = {}
     return setmetatable({
       paintRect = function(self, x, y, w, h, color)
-        table.insert(operations, { op = "paintRect", x = x, y = y, w = w, h = h, color = color })
+        table.insert(
+          operations,
+          { op = "paintRect", x = x, y = y, w = w, h = h, color = color }
+        )
       end,
       paintRoundedRect = function(self, x, y, w, h, color, radius)
-        table.insert(operations, { op = "paintRoundedRect", x = x, y = y, w = w, h = h, color = color, radius = radius })
+        table.insert(
+          operations,
+          {
+            op = "paintRoundedRect",
+            x = x,
+            y = y,
+            w = w,
+            h = h,
+            color = color,
+            radius = radius,
+          }
+        )
       end,
       paintBorder = function(self, x, y, w, h, size, color, radius)
-        table.insert(operations, { op = "paintBorder", x = x, y = y, w = w, h = h, size = size, color = color, radius = radius })
+        table.insert(
+          operations,
+          {
+            op = "paintBorder",
+            x = x,
+            y = y,
+            w = w,
+            h = h,
+            size = size,
+            color = color,
+            radius = radius,
+          }
+        )
       end,
       blitFrom = function(self, src, ...)
         table.insert(operations, { op = "blitFrom", src = src })
@@ -53,32 +79,35 @@ describe("ProgressWidget", function()
       assert.is_false(pw.initial_pos_marker)
     end)
 
-    it("should initialize initial_pos_marker and icon based on height threshold", function()
-      -- Small height (<= 12) -> position.marker.top
-      local pw_small = ProgressWidget:new({
-        width = 200,
-        height = 10,
-        percentage = 0.4,
-        initial_pos_marker = true,
-      })
-      assert.truthy(pw_small.initial_pos_icon)
-      assert.are.equal(0.4, pw_small.initial_percentage)
+    it(
+      "should initialize initial_pos_marker and icon based on height threshold",
+      function()
+        -- Small height (<= 12) -> position.marker.top
+        local pw_small = ProgressWidget:new({
+          width = 200,
+          height = 10,
+          percentage = 0.4,
+          initial_pos_marker = true,
+        })
+        assert.truthy(pw_small.initial_pos_icon)
+        assert.are.equal(0.4, pw_small.initial_percentage)
 
-      -- Large height (> 12) -> position.marker
-      local pw_large = ProgressWidget:new({
-        width = 200,
-        height = 30,
-        percentage = 0.6,
-        initial_percentage = 0.3,
-        initial_pos_marker = true,
-      })
-      assert.truthy(pw_large.initial_pos_icon)
-      assert.are.equal(0.3, pw_large.initial_percentage)
+        -- Large height (> 12) -> position.marker
+        local pw_large = ProgressWidget:new({
+          width = 200,
+          height = 30,
+          percentage = 0.6,
+          initial_percentage = 0.3,
+          initial_pos_marker = true,
+        })
+        assert.truthy(pw_large.initial_pos_icon)
+        assert.are.equal(0.3, pw_large.initial_percentage)
 
-      -- Free
-      pw_small:free()
-      pw_large:free()
-    end)
+        -- Free
+        pw_small:free()
+        pw_large:free()
+      end
+    )
 
     it("should handle renderMarkerIcon edge cases", function()
       local pw = ProgressWidget:new({
@@ -265,25 +294,28 @@ describe("ProgressWidget", function()
   end)
 
   describe("setPercentage and getPercentageFromPosition", function()
-    it("should update percentage and set initial_percentage if marker enabled", function()
-      local pw = ProgressWidget:new({
-        width = 100,
-        height = 20,
-        initial_pos_marker = true,
-      })
-      assert.is_nil(pw.percentage)
-      assert.is_nil(pw.initial_percentage)
+    it(
+      "should update percentage and set initial_percentage if marker enabled",
+      function()
+        local pw = ProgressWidget:new({
+          width = 100,
+          height = 20,
+          initial_pos_marker = true,
+        })
+        assert.is_nil(pw.percentage)
+        assert.is_nil(pw.initial_percentage)
 
-      pw:setPercentage(0.75)
-      assert.are.equal(0.75, pw.percentage)
-      assert.are.equal(0.75, pw.initial_percentage)
+        pw:setPercentage(0.75)
+        assert.are.equal(0.75, pw.percentage)
+        assert.are.equal(0.75, pw.initial_percentage)
 
-      -- Changing percentage again does not overwrite initial_percentage
-      pw:setPercentage(0.85)
-      assert.are.equal(0.85, pw.percentage)
-      assert.are.equal(0.75, pw.initial_percentage)
-      pw:free()
-    end)
+        -- Changing percentage again does not overwrite initial_percentage
+        pw:setPercentage(0.85)
+        assert.are.equal(0.85, pw.percentage)
+        assert.are.equal(0.75, pw.initial_percentage)
+        pw:free()
+      end
+    )
 
     it("should calculate percentage from position coordinate", function()
       local pw = ProgressWidget:new({

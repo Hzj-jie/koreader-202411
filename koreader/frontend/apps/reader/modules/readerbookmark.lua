@@ -1412,14 +1412,22 @@ function ReaderBookmark:setBookmarkNote(
                   UIManager:broadcastEvent(
                     Event:new(
                       "AnnotationsModified",
-                      { annotation, nb_highlights_added = -1, nb_notes_added = 1 }
+                      {
+                        annotation,
+                        nb_highlights_added = -1,
+                        nb_notes_added = 1,
+                      }
                     )
                   )
                 else
                   UIManager:broadcastEvent(
                     Event:new(
                       "AnnotationsModified",
-                      { annotation, nb_highlights_added = 1, nb_notes_added = -1 }
+                      {
+                        annotation,
+                        nb_highlights_added = 1,
+                        nb_notes_added = -1,
+                      }
                     )
                   )
                 end

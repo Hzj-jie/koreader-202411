@@ -441,7 +441,8 @@ end
 
 function Screensaver:setup(event, event_message)
   self.show_message = G_reader_settings:isTrue("screensaver_show_message")
-  self.screensaver_type = G_reader_settings:read("screensaver_type") or "disable"
+  self.screensaver_type = G_reader_settings:read("screensaver_type")
+    or "disable"
   local screensaver_img_background =
     G_reader_settings:read("screensaver_img_background")
   local screensaver_msg_background =
@@ -808,7 +809,8 @@ function Screensaver:close()
     return
   end
 
-  local screensaver_delay = G_reader_settings:read("screensaver_delay") or "disable"
+  local screensaver_delay = G_reader_settings:read("screensaver_delay")
+    or "disable"
   local screensaver_delay_number = tonumber(screensaver_delay)
   if screensaver_delay_number then
     UIManager:scheduleIn(screensaver_delay_number, self.close_widget, self)

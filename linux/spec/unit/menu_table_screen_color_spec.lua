@@ -23,10 +23,16 @@ describe("menu table screen color module", function()
     local UIManager = require("ui/uimanager")
     local stub = require("luassert.stub")
 
-    local kobo_stub = stub(Device, "isKobo", function() return true end)
-    local color_stub = stub(Device, "hasColorScreen", function() return true end)
+    local kobo_stub = stub(Device, "isKobo", function()
+      return true
+    end)
+    local color_stub = stub(Device, "hasColorScreen", function()
+      return true
+    end)
     local restart_asked = false
-    local restart_stub = stub(UIManager, "askForRestart", function() restart_asked = true end)
+    local restart_stub = stub(UIManager, "askForRestart", function()
+      restart_asked = true
+    end)
 
     menu.callback()
     assert.is_true(restart_asked)

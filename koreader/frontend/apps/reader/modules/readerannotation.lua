@@ -48,9 +48,9 @@ local function getHighlightForBookmark(highlights, bookmark)
       local hl = {
         datetime = highlight.datetime,
         drawer = true,
-        page = type(highlight.pos0) == "string" and highlight.pos0
-          or tonumber(pageno)
-          or pageno,
+        page = type(highlight.pos0) == "string" and highlight.pos0 or tonumber(
+          pageno
+        ) or pageno,
         pos0 = highlight.pos0,
         pos1 = highlight.pos1,
       }
@@ -233,7 +233,8 @@ local function migrateToAnnotations(config, ui)
   else -- paging (rolling == false)
     if has_bookmarks and not bookmarks_rolling then
       if config:has("bookmarks_rolling") then
-        local saved_bookmarks_rolling = config:readTable("bookmarks_rolling") or {}
+        local saved_bookmarks_rolling = config:readTable("bookmarks_rolling")
+          or {}
         local highlights_rolling = config:readTable("highlight_rolling") or {}
         local annotations_rolling = getAnnotationsFromBookmarksHighlights(
           saved_bookmarks_rolling,

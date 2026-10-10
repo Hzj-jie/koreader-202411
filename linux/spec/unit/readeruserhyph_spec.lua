@@ -122,21 +122,27 @@ describe("ReaderUserHyph module", function()
 
       -- Save valid changed suggestion
       shown_widget._input_text = "hy-phen-a-tion"
-      shown_widget.getInputText = function() return "hy-phen-a-tion" end
+      shown_widget.getInputText = function()
+        return "hy-phen-a-tion"
+      end
       if btn_save and btn_save.callback then
         btn_save.callback()
       end
 
       -- Save unchanged suggestion
       shown_widget._input_text = shown_widget.old_hyph_lowercase
-      shown_widget.getInputText = function() return shown_widget.old_hyph_lowercase end
+      shown_widget.getInputText = function()
+        return shown_widget.old_hyph_lowercase
+      end
       if btn_save and btn_save.callback then
         btn_save.callback()
       end
 
       -- Save invalid suggestion
       shown_widget._input_text = "invalid--word"
-      shown_widget.getInputText = function() return "invalid--word" end
+      shown_widget.getInputText = function()
+        return "invalid--word"
+      end
       if btn_save and btn_save.callback then
         btn_save.callback()
       end
@@ -155,12 +161,16 @@ describe("ReaderUserHyph module", function()
     G_reader_settings:save("hyph_user_dict", true)
 
     -- Test USER_DICT_ERROR_NOT_SORTED
-    cre.setUserHyphenationDict = function() return userhyph.USER_DICT_ERROR_NOT_SORTED end
+    cre.setUserHyphenationDict = function()
+      return userhyph.USER_DICT_ERROR_NOT_SORTED
+    end
     userhyph:loadDictionary(tmp_hyph, true, false)
     userhyph:loadDictionary(tmp_hyph, true, true)
 
     -- Test USER_DICT_MALFORMED
-    cre.setUserHyphenationDict = function() return userhyph.USER_DICT_MALFORMED end
+    cre.setUserHyphenationDict = function()
+      return userhyph.USER_DICT_MALFORMED
+    end
     userhyph:loadDictionary(tmp_hyph, true, false)
 
     -- Test reset user hyphenation dict

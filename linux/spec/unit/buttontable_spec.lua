@@ -14,87 +14,95 @@ describe("ButtonTable widget module", function()
   end)
 
   describe("Initialization", function()
-    it("should initialize button table instance with layout and callbacks", function()
-      local btn1_clicked = false
-      local btn2_held = false
-      local buttons = {
-        {
-          {
-            id = "btn1",
-            text = "Btn1",
-            callback = function()
-              btn1_clicked = true
-            end,
-          },
-          {
-            id = "btn2",
-            text = "Btn2",
-            enabled = true,
-            hold_callback = function()
-              btn2_held = true
-            end,
-            allow_hold_when_disabled = true,
-            no_vertical_sep = true,
-          },
-        },
-      }
-      local table_widget = ButtonTable:new({
-        buttons = buttons,
-        width = 300,
-        zero_sep = true,
-      })
-      assert.is_table(table_widget)
-      assert.truthy(table_widget:getButtonById("btn1"))
-      assert.truthy(table_widget:getButtonById("btn2"))
-      assert.is_nil(table_widget:getButtonById("btn3"))
-
-      -- Trigger button callback
-      local b1 = table_widget:getButtonById("btn1")
-      b1.callback()
-      assert.is_true(btn1_clicked)
-
-      local b2 = table_widget:getButtonById("btn2")
-      b2.hold_callback()
-      assert.is_true(btn2_held)
-    end)
-
-    it("should handle parent movable container resetEventState in button callback", function()
-      local reset_called = false
-      local mock_parent = {
-        movable = {
-          resetEventState = function()
-            reset_called = true
-          end,
-        },
-      }
-
-      local btn_clicked = false
-      local table_widget = ButtonTable:new({
-        buttons = {
+    it(
+      "should initialize button table instance with layout and callbacks",
+      function()
+        local btn1_clicked = false
+        local btn2_held = false
+        local buttons = {
           {
             {
-              id = "test_btn",
-              text = "Test",
+              id = "btn1",
+              text = "Btn1",
               callback = function()
-                btn_clicked = true
+                btn1_clicked = true
               end,
             },
+            {
+              id = "btn2",
+              text = "Btn2",
+              enabled = true,
+              hold_callback = function()
+                btn2_held = true
+              end,
+              allow_hold_when_disabled = true,
+              no_vertical_sep = true,
+            },
           },
-        },
-      })
-      table_widget.showParent = function()
-        return mock_parent
-      end
+        }
+        local table_widget = ButtonTable:new({
+          buttons = buttons,
+          width = 300,
+          zero_sep = true,
+        })
+        assert.is_table(table_widget)
+        assert.truthy(table_widget:getButtonById("btn1"))
+        assert.truthy(table_widget:getButtonById("btn2"))
+        assert.is_nil(table_widget:getButtonById("btn3"))
 
-      local b = table_widget:getButtonById("test_btn")
-      b.callback()
-      assert.is_true(reset_called)
-      assert.is_true(btn_clicked)
-    end)
+        -- Trigger button callback
+        local b1 = table_widget:getButtonById("btn1")
+        b1.callback()
+        assert.is_true(btn1_clicked)
+
+        local b2 = table_widget:getButtonById("btn2")
+        b2.hold_callback()
+        assert.is_true(btn2_held)
+      end
+    )
+
+    it(
+      "should handle parent movable container resetEventState in button callback",
+      function()
+        local reset_called = false
+        local mock_parent = {
+          movable = {
+            resetEventState = function()
+              reset_called = true
+            end,
+          },
+        }
+
+        local btn_clicked = false
+        local table_widget = ButtonTable:new({
+          buttons = {
+            {
+              {
+                id = "test_btn",
+                text = "Test",
+                callback = function()
+                  btn_clicked = true
+                end,
+              },
+            },
+          },
+        })
+        table_widget.showParent = function()
+          return mock_parent
+        end
+
+        local b = table_widget:getButtonById("test_btn")
+        b.callback()
+        assert.is_true(reset_called)
+        assert.is_true(btn_clicked)
+      end
+    )
 
     it("should handle DPad devices and shortcuts", function()
       local orig_hasDPad = Device.hasDPad
-      Device.hasDPad = function() return true end
+      Device.hasDPad = function()
+        return true
+      end
 
       local table_widget = ButtonTable:new({
         buttons = {

@@ -30,8 +30,11 @@ describe("MessageQueue base module", function()
     end)
   end)
 
-  it("should return nil when handleZMsgs is called with empty messages", function()
-    local mq = MessageQueue:new()
-    assert.is_nil(mq:handleZMsgs({}))
-  end)
+  it(
+    "should return nil when handleZMsgs is called with empty messages",
+    function()
+      local mq = MessageQueue:new()
+      assert.is_nil(mq:handleZMsgs({}))
+    end
+  )
 end)

@@ -76,7 +76,8 @@ describe("TextWidget", function()
 
   it("should truncate right with and without ellipsis without xtext", function()
     local face = Font:getFace("infofont", 14)
-    local long_text = "This is a very long string that should exceed the small maximum width"
+    local long_text =
+      "This is a very long string that should exceed the small maximum width"
     local tw = TextWidget:new({
       text = long_text,
       face = face,
@@ -107,7 +108,8 @@ describe("TextWidget", function()
 
   it("should truncate left with and without ellipsis without xtext", function()
     local face = Font:getFace("infofont", 14)
-    local long_text = "This is a very long string that should exceed the small maximum width"
+    local long_text =
+      "This is a very long string that should exceed the small maximum width"
     local tw_left = TextWidget:new({
       text = long_text,
       face = face,
@@ -135,40 +137,43 @@ describe("TextWidget", function()
     assert.is_true(tw_left_no_ell:getWidth() <= 60)
   end)
 
-  it("should measure and truncate using xtext when use_xtext is true", function()
-    local face = Font:getFace("infofont", 14)
-    local tw_xtext = TextWidget:new({
-      text = "Testing XText rendering and measuring",
-      face = face,
-      use_xtext = true,
-    })
+  it(
+    "should measure and truncate using xtext when use_xtext is true",
+    function()
+      local face = Font:getFace("infofont", 14)
+      local tw_xtext = TextWidget:new({
+        text = "Testing XText rendering and measuring",
+        face = face,
+        use_xtext = true,
+      })
 
-    assert.is_true(tw_xtext:getWidth() > 0)
-    local fitted, with_ell = tw_xtext:getFittedText()
-    assert.are.equal("Testing XText rendering and measuring", fitted)
-    assert.is_nil(with_ell)
+      assert.is_true(tw_xtext:getWidth() > 0)
+      local fitted, with_ell = tw_xtext:getFittedText()
+      assert.are.equal("Testing XText rendering and measuring", fitted)
+      assert.is_nil(with_ell)
 
-    local tw_xtext_trunc = TextWidget:new({
-      text = "Very long text to truncate with xtext line breaking",
-      face = face,
-      max_width = 50,
-      truncate_with_ellipsis = true,
-      use_xtext = true,
-    })
-    assert.is_true(tw_xtext_trunc:isTruncated())
-    local fitted_t, with_ell_t = tw_xtext_trunc:getFittedText()
-    assert.truthy(fitted_t)
+      local tw_xtext_trunc = TextWidget:new({
+        text = "Very long text to truncate with xtext line breaking",
+        face = face,
+        max_width = 50,
+        truncate_with_ellipsis = true,
+        use_xtext = true,
+      })
+      assert.is_true(tw_xtext_trunc:isTruncated())
+      local fitted_t, with_ell_t = tw_xtext_trunc:getFittedText()
+      assert.truthy(fitted_t)
 
-    local tw_xtext_left = TextWidget:new({
-      text = "Very long text to truncate on left with xtext",
-      face = face,
-      max_width = 50,
-      truncate_left = true,
-      truncate_with_ellipsis = true,
-      use_xtext = true,
-    })
-    assert.is_true(tw_xtext_left:isTruncated())
-  end)
+      local tw_xtext_left = TextWidget:new({
+        text = "Very long text to truncate on left with xtext",
+        face = face,
+        max_width = 50,
+        truncate_left = true,
+        truncate_with_ellipsis = true,
+        use_xtext = true,
+      })
+      assert.is_true(tw_xtext_left:isTruncated())
+    end
+  )
 
   it("should update when setText and setMaxWidth are called", function()
     local face = Font:getFace("infofont", 14)
