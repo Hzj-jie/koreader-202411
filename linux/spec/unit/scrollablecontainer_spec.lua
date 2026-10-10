@@ -41,7 +41,14 @@ describe("ScrollableContainer module", function()
 
   it("should initialize ignore_events and key events", function()
     local container = ScrollableContainer:new({
-      ignore_events = { "touch", "hold", "pan", "swipe", "key_pg_back", "key_pg_fwd" },
+      ignore_events = {
+        "touch",
+        "hold",
+        "pan",
+        "swipe",
+        "key_pg_back",
+        "key_pg_fwd",
+      },
     })
     container:init()
     assert.is_nil(container.ges_events.ScrollableTouch)
@@ -107,7 +114,9 @@ describe("ScrollableContainer module", function()
     assert.is_nil(container._h_scroll_bar)
 
     local bb = {
-      getType = function() return 1 end,
+      getType = function()
+        return 1
+      end,
       blitFrom = function() end,
     }
     local painted_pos = {}
@@ -117,21 +126,26 @@ describe("ScrollableContainer module", function()
     end
 
     -- LTR paint
-    local mirrored_stub = stub(BD, "mirroredUILayout", function() return false end)
+    local mirrored_stub = stub(BD, "mirroredUILayout", function()
+      return false
+    end)
     container:paintTo(bb, 10, 20)
     assert.are.equal(10, painted_pos.x)
     assert.are.equal(20, painted_pos.y)
 
     -- RTL paint (mirrored)
     mirrored_stub:revert()
-    mirrored_stub = stub(BD, "mirroredUILayout", function() return true end)
+    mirrored_stub = stub(BD, "mirroredUILayout", function()
+      return true
+    end)
     container:paintTo(bb, 10, 20)
     assert.are.equal(10 + (200 - 100), painted_pos.x)
     assert.are.equal(20, painted_pos.y)
     mirrored_stub:revert()
 
     -- Empty container paintTo
-    local empty_container = ScrollableContainer:new({ width = 100, height = 100 })
+    local empty_container =
+      ScrollableContainer:new({ width = 100, height = 100 })
     empty_container:paintTo(bb, 0, 0)
   end)
 
@@ -226,46 +240,103 @@ describe("ScrollableContainer module", function()
     container.dimen = Geom:new({ x = 0, y = 0, w = 200, h = 200 })
 
     -- Test touch events inside & outside
-    assert.is_false(container:onScrollableTouch(nil, { pos = Geom:new({ x = 50, y = 50 }) }))
+    assert.is_false(
+      container:onScrollableTouch(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+    )
     assert.is_true(container._touch_pre_pan_was_inside)
-    assert.is_false(container:onScrollableTouch(nil, { pos = Geom:new({ x = 500, y = 500 }) }))
+    assert.is_false(
+      container:onScrollableTouch(nil, { pos = Geom:new({ x = 500, y = 500 }) })
+    )
     assert.is_false(container._touch_pre_pan_was_inside)
 
     -- Test pan gestures
-    container:onScrollablePan(nil, { pos = Geom:new({ x = 50, y = 50 }), relative = { x = -20, y = -20 } })
+    container:onScrollablePan(
+      nil,
+      { pos = Geom:new({ x = 50, y = 50 }), relative = { x = -20, y = -20 } }
+    )
     assert.is_true(container._scrolling)
     container:onScrollablePanRelease(nil, {})
     assert.is_false(container._scrolling)
 
     -- Pan outside without scrolling
-    assert.is_false(container:onScrollablePan(nil, { pos = Geom:new({ x = 500, y = 500 }), relative = { x = -20, y = -20 } }))
+    assert.is_false(
+      container:onScrollablePan(
+        nil,
+        { pos = Geom:new({ x = 500, y = 500 }), relative = { x = -20, y = -20 } }
+      )
+    )
     assert.is_false(container:onScrollablePanRelease(nil, {}))
 
     -- Test hold gestures
-    assert.is_true(container:onScrollableHold(nil, { pos = Geom:new({ x = 50, y = 50 }) }))
-    assert.is_false(container:onScrollableHold(nil, { pos = Geom:new({ x = 500, y = 500 }) }))
-    assert.is_true(container:onScrollableHoldPan(nil, { pos = Geom:new({ x = 60, y = 60 }) }))
-    assert.is_true(container:onScrollableHoldRelease(nil, { pos = Geom:new({ x = 80, y = 80 }) }))
-    assert.is_false(container:onScrollableHoldRelease(nil, { pos = Geom:new({ x = 80, y = 80 }) }))
+    assert.is_true(
+      container:onScrollableHold(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+    )
+    assert.is_false(
+      container:onScrollableHold(nil, { pos = Geom:new({ x = 500, y = 500 }) })
+    )
+    assert.is_true(
+      container:onScrollableHoldPan(nil, { pos = Geom:new({ x = 60, y = 60 }) })
+    )
+    assert.is_true(
+      container:onScrollableHoldRelease(
+        nil,
+        { pos = Geom:new({ x = 80, y = 80 }) }
+      )
+    )
+    assert.is_false(
+      container:onScrollableHoldRelease(
+        nil,
+        { pos = Geom:new({ x = 80, y = 80 }) }
+      )
+    )
 
     -- HoldPan when not scrolling and not inside
     container._scrolling = false
     container._touch_pre_pan_was_inside = false
-    assert.is_false(container:onScrollableHoldPan(nil, { pos = Geom:new({ x = 500, y = 500 }) }))
+    assert.is_false(
+      container:onScrollableHoldPan(
+        nil,
+        { pos = Geom:new({ x = 500, y = 500 }) }
+      )
+    )
 
     -- Test swipe gestures in swipe_full_view = true
     container.swipe_full_view = true
-    local directions = { "north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest" }
+    local directions = {
+      "north",
+      "south",
+      "east",
+      "west",
+      "northeast",
+      "northwest",
+      "southeast",
+      "southwest",
+    }
     for _, dir in ipairs(directions) do
-      assert.is_true(container:onScrollableSwipe(nil, { pos = Geom:new({ x = 50, y = 50 }), direction = dir, distance = 30 }))
+      assert.is_true(
+        container:onScrollableSwipe(
+          nil,
+          { pos = Geom:new({ x = 50, y = 50 }), direction = dir, distance = 30 }
+        )
+      )
     end
     -- Swipe outside
-    assert.is_false(container:onScrollableSwipe(nil, { pos = Geom:new({ x = 500, y = 500 }), direction = "north" }))
+    assert.is_false(
+      container:onScrollableSwipe(
+        nil,
+        { pos = Geom:new({ x = 500, y = 500 }), direction = "north" }
+      )
+    )
 
     -- Test swipe gestures in swipe_full_view = false
     container.swipe_full_view = false
     for _, dir in ipairs(directions) do
-      assert.is_true(container:onScrollableSwipe(nil, { pos = Geom:new({ x = 50, y = 50 }), direction = dir, distance = 30 }))
+      assert.is_true(
+        container:onScrollableSwipe(
+          nil,
+          { pos = Geom:new({ x = 50, y = 50 }), direction = dir, distance = 30 }
+        )
+      )
     end
 
     -- Page up/down
@@ -320,11 +391,15 @@ describe("ScrollableContainer module", function()
 
     -- Scrollbar handled event
     local event_handled = { handler = "test" }
-    local v_bar_stub = stub(container._v_scroll_bar, "handleEvent", function() return true end)
+    local v_bar_stub = stub(container._v_scroll_bar, "handleEvent", function()
+      return true
+    end)
     assert.is_true(container:propagateEvent(event_handled))
     v_bar_stub:revert()
 
-    local h_bar_stub = stub(container._h_scroll_bar, "handleEvent", function() return true end)
+    local h_bar_stub = stub(container._h_scroll_bar, "handleEvent", function()
+      return true
+    end)
     assert.is_true(container:propagateEvent(event_handled))
     h_bar_stub:revert()
 
@@ -357,53 +432,63 @@ describe("ScrollableContainer module", function()
       [1] = content,
     })
     container:initState()
-    container.showParent = function() return parent_mock end
+    container.showParent = function()
+      return parent_mock
+    end
 
     container:onScrollPageDown()
     assert.is_not_nil(scrolled_row)
   end)
 
-  it("handles step scroll grid edge cases, truncation hiding and overflow", function()
-    local content = createContent(200, 1000)
-    local step_grid = {
-      { top = 0, bottom = 100, content_top = 0, content_bottom = 90 },
-      { top = 101, bottom = 200, content_top = 105, content_bottom = 195 },
-      { top = 201, bottom = 300, content_top = 205, content_bottom = 295 },
-      { top = 301, bottom = 400, content_top = 305, content_bottom = 395 },
-      { top = 401, bottom = 500, content_top = 405, content_bottom = 495 },
-      { top = 501, bottom = 600, content_top = 505, content_bottom = 595 },
-    }
-    local container = ScrollableContainer:new({
-      width = 200,
-      height = 200,
-      hide_truncated_grid_items = true,
-      step_scroll_grid_func = function() return step_grid end,
-      [1] = content,
-    })
-    container:initState()
-    assert.is_not_nil(container.step_scroll_grid)
+  it(
+    "handles step scroll grid edge cases, truncation hiding and overflow",
+    function()
+      local content = createContent(200, 1000)
+      local step_grid = {
+        { top = 0, bottom = 100, content_top = 0, content_bottom = 90 },
+        { top = 101, bottom = 200, content_top = 105, content_bottom = 195 },
+        { top = 201, bottom = 300, content_top = 205, content_bottom = 295 },
+        { top = 301, bottom = 400, content_top = 305, content_bottom = 395 },
+        { top = 401, bottom = 500, content_top = 405, content_bottom = 495 },
+        { top = 501, bottom = 600, content_top = 505, content_bottom = 595 },
+      }
+      local container = ScrollableContainer:new({
+        width = 200,
+        height = 200,
+        hide_truncated_grid_items = true,
+        step_scroll_grid_func = function()
+          return step_grid
+        end,
+        [1] = content,
+      })
+      container:initState()
+      assert.is_not_nil(container.step_scroll_grid)
 
-    -- Scroll down with step grid
-    container:_scrollBy(0, 150, true)
-    -- Scroll up with step grid
-    container:_scrollBy(0, -150, true)
+      -- Scroll down with step grid
+      container:_scrollBy(0, 150, true)
+      -- Scroll up with step grid
+      container:_scrollBy(0, -150, true)
 
-    -- Overflow top repeatedly
-    container._scroll_offset_y = 0
-    container:_scrollBy(0, -50, true)
-    assert.are.equal(0, container._scroll_offset_y)
+      -- Overflow top repeatedly
+      container._scroll_offset_y = 0
+      container:_scrollBy(0, -50, true)
+      assert.are.equal(0, container._scroll_offset_y)
 
-    -- Overflow bottom repeatedly
-    container._scroll_offset_y = container._max_scroll_offset_y
-    container:_scrollBy(0, 50, true)
-    assert.are.equal(container._max_scroll_offset_y, container._scroll_offset_y)
+      -- Overflow bottom repeatedly
+      container._scroll_offset_y = container._max_scroll_offset_y
+      container:_scrollBy(0, 50, true)
+      assert.are.equal(
+        container._max_scroll_offset_y,
+        container._scroll_offset_y
+      )
 
-    -- Test RTL scrollBy
-    local mirrored_stub = stub(BD, "mirroredUILayout", function() return true end)
-    local old_x = container._scroll_offset_x
-    container:_scrollBy(10, 0)
-    mirrored_stub:revert()
-  end)
+      -- Test RTL scrollBy
+      local mirrored_stub = stub(BD, "mirroredUILayout", function()
+        return true
+      end)
+      local old_x = container._scroll_offset_x
+      container:_scrollBy(10, 0)
+      mirrored_stub:revert()
+    end
+  )
 end)
-
-

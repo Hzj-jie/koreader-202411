@@ -12,9 +12,12 @@ describe("VocabBuilder DB module", function()
     LuaData = require("luadata")
     Device = require("device")
 
-    test_db_path = DataStorage:getSettingsDir() .. "/vocabulary_builder_test.sqlite3"
-    test_cached_path = DataStorage:getSettingsDir() .. "/vocabulary_builder_cached_test.sqlite3"
-    test_income_path = DataStorage:getSettingsDir() .. "/vocabulary_builder_income_test.sqlite3"
+    test_db_path = DataStorage:getSettingsDir()
+      .. "/vocabulary_builder_test.sqlite3"
+    test_cached_path = DataStorage:getSettingsDir()
+      .. "/vocabulary_builder_cached_test.sqlite3"
+    test_income_path = DataStorage:getSettingsDir()
+      .. "/vocabulary_builder_income_test.sqlite3"
 
     DB = require("plugins/vocabbuilder.koplugin/db")
   end)
@@ -84,38 +87,56 @@ describe("VocabBuilder DB module", function()
       assert.are.equal(20240905, version)
 
       -- Check migrated columns and data
-      local row = conn:exec("SELECT word, title_id, streak_count, highlight FROM vocabulary WHERE word='oldword';")
+      local row = conn:exec(
+        "SELECT word, title_id, streak_count, highlight FROM vocabulary WHERE word='oldword';"
+      )
       assert.is_table(row)
       assert.are.equal("oldword", row.word[1])
       assert.is_not_nil(row.title_id[1])
       conn:close()
     end)
 
-    it("should import lookup data from lookup_history.lua when version is 0", function()
-      local history_file = DataStorage:getSettingsDir() .. "/lookup_history.lua"
-      os.remove(history_file)
-      local lh = LuaData:open(history_file, "LookupHistory")
-      lh:addTableItem({ word = "hist1", book_title = "Hist Book 1", time = 1000 })
-      lh:addTableItem({ word = "hist2", book_title = "Hist Book 1", time = 2000 })
-      lh:addTableItem({ word = "hist1", book_title = "Hist Book 1", time = 3000 }) -- duplicate word
+    it(
+      "should import lookup data from lookup_history.lua when version is 0",
+      function()
+        local history_file = DataStorage:getSettingsDir()
+          .. "/lookup_history.lua"
+        os.remove(history_file)
+        local lh = LuaData:open(history_file, "LookupHistory")
+        lh:addTableItem({
+          word = "hist1",
+          book_title = "Hist Book 1",
+          time = 1000,
+        })
+        lh:addTableItem({
+          word = "hist2",
+          book_title = "Hist Book 1",
+          time = 2000,
+        })
+        lh:addTableItem({
+          word = "hist1",
+          book_title = "Hist Book 1",
+          time = 3000,
+        }) -- duplicate word
 
-      local db_file = DB.path
-      os.remove(db_file)
-      local conn = SQ3.open(db_file)
-      conn:exec("PRAGMA user_version = 0;")
-      conn:close()
+        local db_file = DB.path
+        os.remove(db_file)
+        local conn = SQ3.open(db_file)
+        conn:exec("PRAGMA user_version = 0;")
+        conn:close()
 
-      DB:createDB()
+        DB:createDB()
 
-      conn = SQ3.open(db_file)
-      local count = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
-      assert.are.equal(2, count)
-      local t_count = tonumber(conn:rowexec("SELECT count(0) FROM title;"))
-      assert.are.equal(1, t_count)
-      conn:close()
+        conn = SQ3.open(db_file)
+        local count = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
+        assert.are.equal(2, count)
+        local t_count = tonumber(conn:rowexec("SELECT count(0) FROM title;"))
+        assert.are.equal(1, t_count)
+        conn:close()
 
-      os.remove(history_file)
-    end)
+        os.remove(history_file)
+      end
+    )
   end)
 
   describe("Query and pagination methods", function()
@@ -132,30 +153,37 @@ describe("VocabBuilder DB module", function()
       end
     end)
 
-    it("should count words with selectCount for search and regular filter modes", function()
-      -- 1. Normal count
-      local dummy_widget = {
-        check_reverse = function() return false end,
-        reload_time = os.time(),
-      }
-      local count = DB:selectCount(dummy_widget)
-      assert.are.equal(10, count)
+    it(
+      "should count words with selectCount for search and regular filter modes",
+      function()
+        -- 1. Normal count
+        local dummy_widget = {
+          check_reverse = function()
+            return false
+          end,
+          reload_time = os.time(),
+        }
+        local count = DB:selectCount(dummy_widget)
+        assert.are.equal(10, count)
 
-      -- 2. Reverse / due time filtered count
-      local dummy_widget_rev = {
-        check_reverse = function() return true end,
-        reload_time = 1050,
-      }
-      local count_rev = DB:selectCount(dummy_widget_rev)
-      assert.is_number(count_rev)
+        -- 2. Reverse / due time filtered count
+        local dummy_widget_rev = {
+          check_reverse = function()
+            return true
+          end,
+          reload_time = 1050,
+        }
+        local count_rev = DB:selectCount(dummy_widget_rev)
+        assert.is_number(count_rev)
 
-      -- 3. Search query count
-      local dummy_widget_search = {
-        search_text_sql = "%word0%",
-      }
-      local count_search = DB:selectCount(dummy_widget_search)
-      assert.are.equal(9, count_search)
-    end)
+        -- 3. Search query count
+        local dummy_widget_search = {
+          search_text_sql = "%word0%",
+        }
+        local count_search = DB:selectCount(dummy_widget_search)
+        assert.are.equal(9, count_search)
+      end
+    )
 
     it("should select items with select_items and _select_items", function()
       local items = {}
@@ -180,132 +208,166 @@ describe("VocabBuilder DB module", function()
 
       -- 2. Select with normal due_time ordering
       local items2 = {}
-      for i = 1, 10 do table.insert(items2, {}) end
+      for i = 1, 10 do
+        table.insert(items2, {})
+      end
       DB:_select_items(items2, 1, nil, nil)
       assert.is_not_nil(items2[1].word)
 
       -- 3. Select with reverse due_time ordering
       local items3 = {}
-      for i = 1, 10 do table.insert(items3, {}) end
+      for i = 1, 10 do
+        table.insert(items3, {})
+      end
       DB:_select_items(items3, 1, os.time() + 10000, nil)
       assert.is_not_nil(items3[1].word)
 
       -- 4. Test select_items with widget wrapper
       local widget = {
         item_table = {},
-        check_reverse = function() return false end,
+        check_reverse = function()
+          return false
+        end,
         reload_time = os.time(),
         search_text_sql = nil,
       }
-      for i = 1, 10 do table.insert(widget.item_table, {}) end
+      for i = 1, 10 do
+        table.insert(widget.item_table, {})
+      end
       DB:select_items(widget, 0, 10)
       assert.is_not_nil(widget.item_table[1].word)
     end)
   end)
 
   describe("Spaced repetition gotOrForgot and batch updates", function()
-    it("should calculate due times properly across various streak levels", function()
-      local item = {
-        word = "learn_word",
-        review_count = 0,
-        streak_count = 0,
-        due_time = 0,
-      }
+    it(
+      "should calculate due times properly across various streak levels",
+      function()
+        local item = {
+          word = "learn_word",
+          review_count = 0,
+          streak_count = 0,
+          due_time = 0,
+        }
 
-      local now = os.time()
+        local now = os.time()
 
-      -- Streak 0 -> 1: +30 min (1800s)
-      DB:gotOrForgot(item, true)
-      assert.are.equal(1, item.streak_count)
-      assert.are.equal(1, item.review_count)
-      assert.is_true(item.due_time >= now + 1790 and item.due_time <= now + 1810)
+        -- Streak 0 -> 1: +30 min (1800s)
+        DB:gotOrForgot(item, true)
+        assert.are.equal(1, item.streak_count)
+        assert.are.equal(1, item.review_count)
+        assert.is_true(
+          item.due_time >= now + 1790 and item.due_time <= now + 1810
+        )
 
-      -- Streak 1 -> 2: +12 hr
-      DB:gotOrForgot(item, true)
-      assert.are.equal(2, item.streak_count)
-      assert.are.equal(2, item.review_count)
+        -- Streak 1 -> 2: +12 hr
+        DB:gotOrForgot(item, true)
+        assert.are.equal(2, item.streak_count)
+        assert.are.equal(2, item.review_count)
 
-      -- Streak 2 -> 3: +24 hr
-      DB:gotOrForgot(item, true)
-      assert.are.equal(3, item.streak_count)
+        -- Streak 2 -> 3: +24 hr
+        DB:gotOrForgot(item, true)
+        assert.are.equal(3, item.streak_count)
 
-      -- Streak 3 -> 4: +48 hr
-      DB:gotOrForgot(item, true)
-      assert.are.equal(4, item.streak_count)
+        -- Streak 3 -> 4: +48 hr
+        DB:gotOrForgot(item, true)
+        assert.are.equal(4, item.streak_count)
 
-      -- Streak 4 -> 5: +96 hr
-      DB:gotOrForgot(item, true)
-      assert.are.equal(5, item.streak_count)
+        -- Streak 4 -> 5: +96 hr
+        DB:gotOrForgot(item, true)
+        assert.are.equal(5, item.streak_count)
 
-      -- Streak 5 -> 6: +7 days
-      DB:gotOrForgot(item, true)
-      assert.are.equal(6, item.streak_count)
+        -- Streak 5 -> 6: +7 days
+        DB:gotOrForgot(item, true)
+        assert.are.equal(6, item.streak_count)
 
-      -- Streak 6 -> 7: +15 days
-      DB:gotOrForgot(item, true)
-      assert.are.equal(7, item.streak_count)
+        -- Streak 6 -> 7: +15 days
+        DB:gotOrForgot(item, true)
+        assert.are.equal(7, item.streak_count)
 
-      -- Streak 7 -> 8: +30 days
-      DB:gotOrForgot(item, true)
-      assert.are.equal(8, item.streak_count)
+        -- Streak 7 -> 8: +30 days
+        DB:gotOrForgot(item, true)
+        assert.are.equal(8, item.streak_count)
 
-      -- Streak 8 -> 9: +60 days
-      DB:gotOrForgot(item, true)
-      assert.are.equal(9, item.streak_count)
+        -- Streak 8 -> 9: +60 days
+        DB:gotOrForgot(item, true)
+        assert.are.equal(9, item.streak_count)
 
-      -- Streak 15 -> 16: cap check
-      item.streak_count = 15
-      DB:gotOrForgot(item, true)
-      assert.are.equal(16, item.streak_count)
+        -- Streak 15 -> 16: cap check
+        item.streak_count = 15
+        DB:gotOrForgot(item, true)
+        assert.are.equal(16, item.streak_count)
 
-      -- Test Forgot: resets streak to 0, decrements review count, due in 5 min
-      DB:gotOrForgot(item, false)
-      assert.are.equal(0, item.streak_count)
-      assert.are.equal(item.last_review_count - 1, item.review_count)
-      assert.is_true(item.due_time >= now + 290 and item.due_time <= now + 310)
-    end)
+        -- Test Forgot: resets streak to 0, decrements review count, due in 5 min
+        DB:gotOrForgot(item, false)
+        assert.are.equal(0, item.streak_count)
+        assert.are.equal(item.last_review_count - 1, item.review_count)
+        assert.is_true(
+          item.due_time >= now + 290 and item.due_time <= now + 310
+        )
+      end
+    )
 
-    it("should batch update reviewed items and clean up orphaned titles", function()
-      DB:insertOrUpdate({ word = "batch1", book_title = "Orphan Book", time = 100 })
-      DB:insertOrUpdate({ word = "batch2", book_title = "Persistent Book", time = 100 })
-
-      local items = {
-        {
+    it(
+      "should batch update reviewed items and clean up orphaned titles",
+      function()
+        DB:insertOrUpdate({
           word = "batch1",
-          review_count = 3,
-          streak_count = 2,
-          review_time = 500,
-          due_time = 1500,
-        },
-        {
+          book_title = "Orphan Book",
+          time = 100,
+        })
+        DB:insertOrUpdate({
           word = "batch2",
-          review_count = 1,
-          streak_count = 1,
-          review_time = nil, -- not reviewed, should be skipped
-          due_time = 1200,
-        },
-      }
+          book_title = "Persistent Book",
+          time = 100,
+        })
 
-      DB:batchUpdateItems(items)
+        local items = {
+          {
+            word = "batch1",
+            review_count = 3,
+            streak_count = 2,
+            review_time = 500,
+            due_time = 1500,
+          },
+          {
+            word = "batch2",
+            review_count = 1,
+            streak_count = 1,
+            review_time = nil, -- not reviewed, should be skipped
+            due_time = 1200,
+          },
+        }
 
-      local conn = SQ3.open(DB.path)
-      local row = conn:exec("SELECT review_count, streak_count FROM vocabulary WHERE word='batch1';")
-      assert.are.equal(3, tonumber(row.review_count[1]))
-      assert.are.equal(2, tonumber(row.streak_count[1]))
+        DB:batchUpdateItems(items)
 
-      -- Remove batch1, then batchUpdate to trigger orphan title removal
-      conn:exec("DELETE FROM vocabulary WHERE word='batch1';")
-      conn:close()
+        local conn = SQ3.open(DB.path)
+        local row = conn:exec(
+          "SELECT review_count, streak_count FROM vocabulary WHERE word='batch1';"
+        )
+        assert.are.equal(3, tonumber(row.review_count[1]))
+        assert.are.equal(2, tonumber(row.streak_count[1]))
 
-      DB:batchUpdateItems({})
+        -- Remove batch1, then batchUpdate to trigger orphan title removal
+        conn:exec("DELETE FROM vocabulary WHERE word='batch1';")
+        conn:close()
 
-      conn = SQ3.open(DB.path)
-      local orphan_count = tonumber(conn:rowexec("SELECT count(0) FROM title WHERE name='Orphan Book';"))
-      assert.are.equal(0, orphan_count)
-      local persist_count = tonumber(conn:rowexec("SELECT count(0) FROM title WHERE name='Persistent Book';"))
-      assert.are.equal(1, persist_count)
-      conn:close()
-    end)
+        DB:batchUpdateItems({})
+
+        conn = SQ3.open(DB.path)
+        local orphan_count = tonumber(
+          conn:rowexec("SELECT count(0) FROM title WHERE name='Orphan Book';")
+        )
+        assert.are.equal(0, orphan_count)
+        local persist_count = tonumber(
+          conn:rowexec(
+            "SELECT count(0) FROM title WHERE name='Persistent Book';"
+          )
+        )
+        assert.are.equal(1, persist_count)
+        conn:close()
+      end
+    )
   end)
 
   describe("Book management and title operations", function()
@@ -313,7 +375,11 @@ describe("VocabBuilder DB module", function()
       local id1 = DB:insertNewBook("Fantasy Novel")
       assert.is_number(id1)
 
-      DB:insertOrUpdate({ word = "dragon", book_title = "Fantasy Novel", time = 200 })
+      DB:insertOrUpdate({
+        word = "dragon",
+        book_title = "Fantasy Novel",
+        time = 200,
+      })
       DB:changeBookTitle("Fantasy Novel", "High Fantasy Novel")
 
       local books = DB:selectBooks()
@@ -330,7 +396,9 @@ describe("VocabBuilder DB module", function()
       DB:updateBookIdOfWord("dragon", id2)
 
       local conn = SQ3.open(DB.path)
-      local word_tid = tonumber(conn:rowexec("SELECT title_id FROM vocabulary WHERE word='dragon';"))
+      local word_tid = tonumber(
+        conn:rowexec("SELECT title_id FROM vocabulary WHERE word='dragon';")
+      )
       assert.are.equal(id2, word_tid)
       conn:close()
 
@@ -445,7 +513,9 @@ describe("VocabBuilder DB module", function()
       assert.are.equal(3, count)
 
       -- Common word should have merged review count (2 + 3 = 5 because create_times differed)
-      local row = conn:exec("SELECT review_count, streak_count FROM vocabulary WHERE word='common_word';")
+      local row = conn:exec(
+        "SELECT review_count, streak_count FROM vocabulary WHERE word='common_word';"
+      )
       assert.are.equal(5, tonumber(row.review_count[1]))
       conn:close()
     end)

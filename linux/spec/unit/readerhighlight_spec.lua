@@ -1442,7 +1442,8 @@ describe("Readerhighlight module", function()
         assert.is_not_nil(widget_shown)
         assert.is_not_nil(widget_shown.text)
         assert.is_true(
-          widget_shown.text:find("Applied style and color to 1 highlight") ~= nil
+          widget_shown.text:find("Applied style and color to 1 highlight")
+            ~= nil
         )
       end
     )

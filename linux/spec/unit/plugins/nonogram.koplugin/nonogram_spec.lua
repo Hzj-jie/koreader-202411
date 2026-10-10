@@ -36,45 +36,48 @@ describe("Nonogram board and plugin unit tests", function()
   end
 
   describe("NonogramBoard logic", function()
-    it("should initialize board state, generate random puzzle, and serialize/load", function()
-      local mock_ui = {
-        menu = { registerToMainMenu = function() end },
-      }
-      local plugin = Nonogram:new({ ui = mock_ui })
-      local board = plugin:getBoard()
+    it(
+      "should initialize board state, generate random puzzle, and serialize/load",
+      function()
+        local mock_ui = {
+          menu = { registerToMainMenu = function() end },
+        }
+        local plugin = Nonogram:new({ ui = mock_ui })
+        local board = plugin:getBoard()
 
-      local puzzle = buildSimplePuzzle()
-      board:setCurrentPuzzle(puzzle)
+        local puzzle = buildSimplePuzzle()
+        board:setCurrentPuzzle(puzzle)
 
-      assert.are_equal(3, board:getRowCount())
-      assert.are_equal(3, board:getColCount())
-      assert.are_equal("Test Puzzle", board:getPuzzleTitle())
-      assert.is_table(board:getRowHints(1))
-      assert.is_table(board:getColHints(1))
-      assert.are_equal(1, board:getMaxRowHintCount())
-      assert.are_equal(1, board:getMaxColHintCount())
-      assert.is_false(board:isSolved())
-      assert.is_false(board:isShowingSolution())
+        assert.are_equal(3, board:getRowCount())
+        assert.are_equal(3, board:getColCount())
+        assert.are_equal("Test Puzzle", board:getPuzzleTitle())
+        assert.is_table(board:getRowHints(1))
+        assert.is_table(board:getColHints(1))
+        assert.are_equal(1, board:getMaxRowHintCount())
+        assert.are_equal(1, board:getMaxColHintCount())
+        assert.is_false(board:isSolved())
+        assert.is_false(board:isShowingSolution())
 
-      board:toggleSolution()
-      assert.is_true(board:isShowingSolution())
-      board:toggleSolution()
+        board:toggleSolution()
+        assert.is_true(board:isShowingSolution())
+        board:toggleSolution()
 
-      -- Check serialization and loading
-      local state = board:serialize()
-      assert.is_table(state)
+        -- Check serialization and loading
+        local state = board:serialize()
+        assert.is_table(state)
 
-      local loaded = board:load(state)
-      assert.is_true(loaded)
-      assert.is_false(board:load(nil))
-      assert.is_false(board:load({}))
+        local loaded = board:load(state)
+        assert.is_true(loaded)
+        assert.is_false(board:load(nil))
+        assert.is_false(board:load({}))
 
-      -- Random puzzle generation
-      local rand_puz = board:generateRandomPuzzle(5, 5, 0.4)
-      assert.is_table(rand_puz)
-      assert.are_equal(5, board:getRowCount())
-      assert.are_equal(5, board:getColCount())
-    end)
+        -- Random puzzle generation
+        local rand_puz = board:generateRandomPuzzle(5, 5, 0.4)
+        assert.is_table(rand_puz)
+        assert.are_equal(5, board:getRowCount())
+        assert.are_equal(5, board:getColCount())
+      end
+    )
 
     it("should apply actions, check progress, and reveal hints", function()
       local mock_ui = {
@@ -155,59 +158,73 @@ describe("Nonogram board and plugin unit tests", function()
   end)
 
   describe("NonogramBoardWidget and NonogramScreen UI", function()
-    it("should initialize screen, handle actions, buttons, and paintTo", function()
-      local mock_ui = {
-        menu = { registerToMainMenu = function() end },
-      }
-      local plugin = Nonogram:new({ ui = mock_ui })
-      plugin:init()
+    it(
+      "should initialize screen, handle actions, buttons, and paintTo",
+      function()
+        local mock_ui = {
+          menu = { registerToMainMenu = function() end },
+        }
+        local plugin = Nonogram:new({ ui = mock_ui })
+        plugin:init()
 
-      -- addToMainMenu
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-      assert.is_table(menu_items.nonogram)
-      assert.is_function(menu_items.nonogram.callback)
+        -- addToMainMenu
+        local menu_items = {}
+        plugin:addToMainMenu(menu_items)
+        assert.is_table(menu_items.nonogram)
+        assert.is_function(menu_items.nonogram.callback)
 
-      -- showGame
-      plugin:showGame()
-      assert.is_table(plugin.screen)
-      local screen = plugin.screen
+        -- showGame
+        plugin:showGame()
+        assert.is_table(plugin.screen)
+        local screen = plugin.screen
 
-      -- Test screen action buttons and setters
-      screen:setActiveAction("mark")
-      assert.are_equal("mark", screen.active_action)
-      screen:setActiveAction("fill")
-      assert.are_equal("fill", screen.active_action)
+        -- Test screen action buttons and setters
+        screen:setActiveAction("mark")
+        assert.are_equal("mark", screen.active_action)
+        screen:setActiveAction("fill")
+        assert.are_equal("fill", screen.active_action)
 
-      screen:onCellActivated(1, 1)
-      screen:onAction("fill")
-      screen:onHint()
-      screen:onCheck()
-      screen:toggleSolution()
-      screen:toggleSolution()
-      screen:onRestart()
-      screen:onNewGame()
+        screen:onCellActivated(1, 1)
+        screen:onAction("fill")
+        screen:onHint()
+        screen:onCheck()
+        screen:toggleSolution()
+        screen:toggleSolution()
+        screen:onRestart()
+        screen:onNewGame()
 
-      -- Test board widget tap
-      local board_widget = screen.board_widget
-      assert.is_table(board_widget)
-      board_widget:setMaxDimensions(500, 500)
-      local row, col = board_widget:getCellFromPoint(board_widget.grid_origin_x + 10, board_widget.grid_origin_y + 10)
-      if row and col then
-        assert.is_number(row)
-        assert.is_number(col)
+        -- Test board widget tap
+        local board_widget = screen.board_widget
+        assert.is_table(board_widget)
+        board_widget:setMaxDimensions(500, 500)
+        local row, col = board_widget:getCellFromPoint(
+          board_widget.grid_origin_x + 10,
+          board_widget.grid_origin_y + 10
+        )
+        if row and col then
+          assert.is_number(row)
+          assert.is_number(col)
+        end
+
+        board_widget:onTap(
+          nil,
+          {
+            pos = {
+              x = board_widget.grid_origin_x + 10,
+              y = board_widget.grid_origin_y + 10,
+            },
+          }
+        )
+
+        -- Test paintTo on a real Blitbuffer
+        local bb = Blitbuffer.new(600, 800)
+        screen:paintTo(bb, 0, 0)
+        bb:free()
+
+        -- Close screen
+        screen:onClose()
+        assert.is_nil(plugin.screen)
       end
-
-      board_widget:onTap(nil, { pos = { x = board_widget.grid_origin_x + 10, y = board_widget.grid_origin_y + 10 } })
-
-      -- Test paintTo on a real Blitbuffer
-      local bb = Blitbuffer.new(600, 800)
-      screen:paintTo(bb, 0, 0)
-      bb:free()
-
-      -- Close screen
-      screen:onClose()
-      assert.is_nil(plugin.screen)
-    end)
+    )
   end)
 end)

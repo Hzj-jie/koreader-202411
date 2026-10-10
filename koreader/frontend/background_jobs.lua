@@ -34,17 +34,32 @@ end
 
 function BackgroundJobs.insertKeyed(job)
   assert(type(job) == "table", "BackgroundJobs.insertKeyed expects a table")
-  assert(job.key == nil, "BackgroundJobs.insertKeyed does not support custom key")
-  assert(job.repeated == nil, "BackgroundJobs.insertKeyed does not support repeated jobs")
-  assert(job.when == nil, "BackgroundJobs.insertKeyed does not support custom when")
+  assert(
+    job.key == nil,
+    "BackgroundJobs.insertKeyed does not support custom key"
+  )
+  assert(
+    job.repeated == nil,
+    "BackgroundJobs.insertKeyed does not support repeated jobs"
+  )
+  assert(
+    job.when == nil,
+    "BackgroundJobs.insertKeyed does not support custom when"
+  )
 
   job.when = "asap"
 
   local key = calculateKey(job)
-  assert(type(key) == "string", "BackgroundJobs.insertKeyed expects a valid key")
+  assert(
+    type(key) == "string",
+    "BackgroundJobs.insertKeyed expects a valid key"
+  )
 
   if _active_keys[key] then
-    require("logger").dbg("BackgroundJobs: filtered duplicate job with key:", key)
+    require("logger").dbg(
+      "BackgroundJobs: filtered duplicate job with key:",
+      key
+    )
     return false
   end
 

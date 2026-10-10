@@ -276,56 +276,62 @@ describe("Readerview module", function()
       view:drawSavedHighlight(bb, 0, 0)
     end)
 
-    it("should draw lighten highlight rects with default and custom colors", function()
-      local bb = Blitbuffer.new(800, 600)
-      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+    it(
+      "should draw lighten highlight rects with default and custom colors",
+      function()
+        local bb = Blitbuffer.new(800, 600)
+        local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
 
-      view.highlight = {
-        lighten_factor = 0.5,
-        note_mark = "underline",
-      }
+        view.highlight = {
+          lighten_factor = 0.5,
+          note_mark = "underline",
+        }
 
-      view:drawHighlightRect(bb, 0, 0, rect, "lighten", nil, false)
-      view:drawHighlightRect(
-        bb,
-        0,
-        0,
-        rect,
-        "lighten",
-        Blitbuffer.colorFromName("yellow"),
-        false
-      )
-    end)
+        view:drawHighlightRect(bb, 0, 0, rect, "lighten", nil, false)
+        view:drawHighlightRect(
+          bb,
+          0,
+          0,
+          rect,
+          "lighten",
+          Blitbuffer.colorFromName("yellow"),
+          false
+        )
+      end
+    )
 
-    it("should draw underscore highlight rects in color8, color32, and nightmode", function()
-      local bb = Blitbuffer.new(800, 600)
-      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+    it(
+      "should draw underscore highlight rects in color8, color32, and nightmode",
+      function()
+        local bb = Blitbuffer.new(800, 600)
+        local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
 
-      view.highlight = {
-        lighten_factor = 0.5,
-        note_mark = "underline",
-      }
+        view.highlight = {
+          lighten_factor = 0.5,
+          note_mark = "underline",
+        }
 
-      view:drawHighlightRect(bb, 0, 0, rect, "underscore", nil, true)
-      view:drawHighlightRect(
-        bb,
-        0,
-        0,
-        rect,
-        "underscore",
-        Blitbuffer.COLOR_GRAY_4,
-        false
-      )
-      view:drawHighlightRect(
-        bb,
-        0,
-        0,
-        rect,
-        "underscore",
-        Blitbuffer.colorFromName("red"),
-        false
-      )
-    end)
+        view:drawHighlightRect(bb, 0, 0, rect, "underscore", nil, true)
+        view:drawHighlightRect(
+          bb,
+          0,
+          0,
+          rect,
+          "underscore",
+          Blitbuffer.COLOR_GRAY_4,
+          false
+        )
+        view:drawHighlightRect(
+          bb,
+          0,
+          0,
+          rect,
+          "underscore",
+          Blitbuffer.colorFromName("red"),
+          false
+        )
+      end
+    )
 
     it("should draw strikeout and invert highlight rects", function()
       local bb = Blitbuffer.new(800, 600)
@@ -358,46 +364,49 @@ describe("Readerview module", function()
       view:drawHighlightRect(bb, 0, 0, rect, "invert", nil, false)
     end)
 
-    it("should draw highlight rects with sideline and sidemark note marks", function()
-      local bb = Blitbuffer.new(800, 600)
-      local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
+    it(
+      "should draw highlight rects with sideline and sidemark note marks",
+      function()
+        local bb = Blitbuffer.new(800, 600)
+        local rect = Geom:new({ x = 20, y = 20, w = 100, h = 30 })
 
-      view.highlight = {
-        lighten_factor = 0.5,
-        note_mark = "sideline",
-      }
-      view:setupNoteMarkPosition()
-      view:drawHighlightRect(
-        bb,
-        0,
-        0,
-        rect,
-        "lighten",
-        Blitbuffer.COLOR_BLACK,
-        true
-      )
-      view:drawHighlightRect(
-        bb,
-        0,
-        0,
-        rect,
-        "lighten",
-        Blitbuffer.colorFromName("green"),
-        true
-      )
+        view.highlight = {
+          lighten_factor = 0.5,
+          note_mark = "sideline",
+        }
+        view:setupNoteMarkPosition()
+        view:drawHighlightRect(
+          bb,
+          0,
+          0,
+          rect,
+          "lighten",
+          Blitbuffer.COLOR_BLACK,
+          true
+        )
+        view:drawHighlightRect(
+          bb,
+          0,
+          0,
+          rect,
+          "lighten",
+          Blitbuffer.colorFromName("green"),
+          true
+        )
 
-      view.highlight.note_mark = "sidemark"
-      view:setupNoteMarkPosition()
-      view:drawHighlightRect(
-        bb,
-        0,
-        0,
-        rect,
-        "lighten",
-        Blitbuffer.COLOR_BLACK,
-        true
-      )
-    end)
+        view.highlight.note_mark = "sidemark"
+        view:setupNoteMarkPosition()
+        view:drawHighlightRect(
+          bb,
+          0,
+          0,
+          rect,
+          "lighten",
+          Blitbuffer.COLOR_BLACK,
+          true
+        )
+      end
+    )
 
     it("should exercise overlap styles during paintTo", function()
       local bb = Blitbuffer.new(800, 600)
@@ -464,4 +473,3 @@ describe("Readerview module", function()
     end)
   end)
 end)
-

@@ -16,7 +16,9 @@ describe("HtmlBoxWidget module", function()
 
   it("should initialize touch gesture events", function()
     local orig_is_touch = Device.isTouchDevice
-    Device.isTouchDevice = function() return true end
+    Device.isTouchDevice = function()
+      return true
+    end
 
     local widget = HtmlBoxWidget:new({
       dimen = Geom:new({ x = 0, y = 0, w = 100, h = 100 }),
@@ -27,123 +29,145 @@ describe("HtmlBoxWidget module", function()
     Device.isTouchDevice = orig_is_touch
   end)
 
-  it("should set content and handle fallback parsing when Mupdf errors", function()
-    local mock_doc = {
-      layoutDocument = function() end,
-      getPages = function() return 1 end,
-      close = function() end,
-    }
+  it(
+    "should set content and handle fallback parsing when Mupdf errors",
+    function()
+      local mock_doc = {
+        layoutDocument = function() end,
+        getPages = function()
+          return 1
+        end,
+        close = function() end,
+      }
 
-    local widget = HtmlBoxWidget:new({
-      width = 200,
-      height = 100,
-    })
+      local widget = HtmlBoxWidget:new({
+        width = 200,
+        height = 100,
+      })
 
-    -- 1. Normal setContent
-    local orig_open = Mupdf.openDocumentFromText
-    Mupdf.openDocumentFromText = function(html, mimetype)
-      return mock_doc
-    end
-
-    widget:setContent("<p>Hello</p><br/>", "p { font-size: 12px; }", 12, true, false)
-    assert.are_equal(mock_doc, widget.document)
-    assert.are_equal(1, widget.page_count)
-
-    -- 2. First open fails, fallback succeeds
-    local call_count = 0
-    Mupdf.openDocumentFromText = function(html, mimetype)
-      call_count = call_count + 1
-      if call_count == 1 then
-        error("first parse error")
+      -- 1. Normal setContent
+      local orig_open = Mupdf.openDocumentFromText
+      Mupdf.openDocumentFromText = function(html, mimetype)
+        return mock_doc
       end
-      return mock_doc
+
+      widget:setContent(
+        "<p>Hello</p><br/>",
+        "p { font-size: 12px; }",
+        12,
+        true,
+        false
+      )
+      assert.are_equal(mock_doc, widget.document)
+      assert.are_equal(1, widget.page_count)
+
+      -- 2. First open fails, fallback succeeds
+      local call_count = 0
+      Mupdf.openDocumentFromText = function(html, mimetype)
+        call_count = call_count + 1
+        if call_count == 1 then
+          error("first parse error")
+        end
+        return mock_doc
+      end
+
+      widget:setContent(
+        "<p>Malformed HTML\nwith line break</p>",
+        nil,
+        12,
+        false,
+        true
+      )
+      assert.are_equal(2, call_count)
+      assert.are_equal(mock_doc, widget.document)
+
+      -- 3. Both open attempts fail -> raises error
+      Mupdf.openDocumentFromText = function(html, mimetype)
+        error("fatal parse error")
+      end
+      assert.has_error(function()
+        widget:setContent("<p>Fatal</p>")
+      end)
+
+      Mupdf.openDocumentFromText = orig_open
     end
+  )
 
-    widget:setContent("<p>Malformed HTML\nwith line break</p>", nil, 12, false, true)
-    assert.are_equal(2, call_count)
-    assert.are_equal(mock_doc, widget.document)
+  it(
+    "should render, paint to target blitbuffer with highlights, and calculate single page height",
+    function()
+      local page_closed = false
+      local painted_rects = {}
+      local mock_bb = {
+        getHighlightColor = function(self, alpha)
+          return 12345
+        end,
+        paintRect = function(self, x, y, w, h, color, blend)
+          table.insert(painted_rects, { x = x, y = y, w = w, h = h })
+        end,
+        free = function() end,
+      }
 
-    -- 3. Both open attempts fail -> raises error
-    Mupdf.openDocumentFromText = function(html, mimetype)
-      error("fatal parse error")
+      local mock_page = {
+        draw_new = function(self, _dc, w, h, x, y)
+          return mock_bb
+        end,
+        getUsedBBox = function()
+          return 0, 0, 100, 150.4
+        end,
+        close = function()
+          page_closed = true
+        end,
+      }
+
+      local mock_document = {
+        openPage = function(self, num)
+          page_closed = false
+          return mock_page
+        end,
+        setColorRendering = function() end,
+        close = function() end,
+      }
+
+      local widget = HtmlBoxWidget:new({
+        document = mock_document,
+        page_count = 1,
+        page_number = 1,
+        width = 200,
+        height = 100,
+        highlight_rects = {
+          { x0 = 10, y0 = 10, x1 = 50, y1 = 30 },
+        },
+      })
+
+      -- getSinglePageHeight when page_count == 1
+      local h = widget:getSinglePageHeight()
+      assert.are_equal(151, h)
+
+      -- getSinglePageHeight when page_count > 1
+      widget.page_count = 2
+      assert.is_nil(widget:getSinglePageHeight())
+      widget.page_count = 1
+
+      -- paintTo renders and highlights
+      local target_bb = {
+        blitFrom = function(self, src, dx, dy, sx, sy, w, h) end,
+      }
+      widget:paintTo(target_bb, 0, 0)
+      assert.are_equal(mock_bb, widget.bb)
+      assert.are_equal(1, #painted_rects)
+      assert.are_equal(10, painted_rects[1].x)
+      assert.are_equal(40, painted_rects[1].w)
+
+      -- Second paintTo reuses widget.bb
+      widget:paintTo(target_bb, 0, 0)
+
+      -- Free and onClose
+      widget:onClose()
+      assert.is_nil(widget.bb)
+      assert.is_nil(widget.document)
     end
-    assert.has_error(function()
-      widget:setContent("<p>Fatal</p>")
-    end)
-
-    Mupdf.openDocumentFromText = orig_open
-  end)
-
-  it("should render, paint to target blitbuffer with highlights, and calculate single page height", function()
-    local page_closed = false
-    local painted_rects = {}
-    local mock_bb = {
-      getHighlightColor = function(self, alpha) return 12345 end,
-      paintRect = function(self, x, y, w, h, color, blend)
-        table.insert(painted_rects, { x = x, y = y, w = w, h = h })
-      end,
-      free = function() end,
-    }
-
-    local mock_page = {
-      draw_new = function(self, _dc, w, h, x, y)
-        return mock_bb
-      end,
-      getUsedBBox = function()
-        return 0, 0, 100, 150.4
-      end,
-      close = function()
-        page_closed = true
-      end,
-    }
-
-    local mock_document = {
-      openPage = function(self, num)
-        page_closed = false
-        return mock_page
-      end,
-      setColorRendering = function() end,
-      close = function() end,
-    }
-
-    local widget = HtmlBoxWidget:new({
-      document = mock_document,
-      page_count = 1,
-      page_number = 1,
-      width = 200,
-      height = 100,
-      highlight_rects = {
-        { x0 = 10, y0 = 10, x1 = 50, y1 = 30 },
-      },
-    })
-
-    -- getSinglePageHeight when page_count == 1
-    local h = widget:getSinglePageHeight()
-    assert.are_equal(151, h)
-
-    -- getSinglePageHeight when page_count > 1
-    widget.page_count = 2
-    assert.is_nil(widget:getSinglePageHeight())
-    widget.page_count = 1
-
-    -- paintTo renders and highlights
-    local target_bb = {
-      blitFrom = function(self, src, dx, dy, sx, sy, w, h) end,
-    }
-    widget:paintTo(target_bb, 0, 0)
-    assert.are_equal(mock_bb, widget.bb)
-    assert.are_equal(1, #painted_rects)
-    assert.are_equal(10, painted_rects[1].x)
-    assert.are_equal(40, painted_rects[1].w)
-
-    -- Second paintTo reuses widget.bb
-    widget:paintTo(target_bb, 0, 0)
-
-    -- Free and onClose
-    widget:onClose()
-    assert.is_nil(widget.bb)
-    assert.is_nil(widget.document)
-  end)
+  )
 
   it("should set and clear highlight rects on drag/pan and release", function()
     local mock_page = {
@@ -168,9 +192,13 @@ describe("HtmlBoxWidget module", function()
 
     local mock_document = {
       layoutDocument = function() end,
-      getPages = function() return 1 end,
+      getPages = function()
+        return 1
+      end,
       setColorRendering = function() end,
-      openPage = function() return mock_page end,
+      openPage = function()
+        return mock_page
+      end,
       close = function() end,
     }
 
@@ -205,16 +233,26 @@ describe("HtmlBoxWidget module", function()
     widget:onHoldPanText(nil, { pos = { x = 80, y = 10 } })
 
     -- 7. Reverse selection (end before start)
-    local words, rects = widget:getSelectedWordsAndRects(mock_page:getPageText(), Geom:new({ x = 80, y = 10 }), Geom:new({ x = 10, y = 10 }))
+    local words, rects = widget:getSelectedWordsAndRects(
+      mock_page:getPageText(),
+      Geom:new({ x = 80, y = 10 }),
+      Geom:new({ x = 10, y = 10 })
+    )
     assert.are_equal(2, #words)
 
     -- 8. Multi-line selection and early break
-    local multi_words = widget:getSelectedWordsAndRects(mock_page:getPageText(), Geom:new({ x = 10, y = 10 }), Geom:new({ x = 30, y = 40 }))
+    local multi_words = widget:getSelectedWordsAndRects(
+      mock_page:getPageText(),
+      Geom:new({ x = 10, y = 10 }),
+      Geom:new({ x = 30, y = 40 })
+    )
     assert.are_equal(3, #multi_words)
 
     -- 9. HoldRelease edge cases
     assert.is_false(widget:onHoldReleaseText(nil, { pos = { x = 80, y = 10 } }))
-    assert.is_false(widget:onHoldReleaseText(function() end, { pos = { x = 500, y = 500 } }))
+    assert.is_false(
+      widget:onHoldReleaseText(function() end, { pos = { x = 500, y = 500 } })
+    )
 
     -- 10. Valid HoldRelease
     local called = false
@@ -232,14 +270,22 @@ describe("HtmlBoxWidget module", function()
     local mock_page = {
       getPageLinks = function()
         return {
-          { uri = "https://koreader.rocks", x0 = 10, y0 = 10, x1 = 80, y1 = 30 },
+          {
+            uri = "https://koreader.rocks",
+            x0 = 10,
+            y0 = 10,
+            x1 = 80,
+            y1 = 30,
+          },
         }
       end,
       close = function() end,
     }
 
     local mock_document = {
-      openPage = function() return mock_page end,
+      openPage = function()
+        return mock_page
+      end,
       close = function() end,
     }
 

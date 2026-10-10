@@ -95,7 +95,9 @@ describe("ListView", function()
 
   it("should handle swipes for page turning", function()
     local orig_is_touch = Device.isTouchDevice
-    Device.isTouchDevice = function() return true end
+    Device.isTouchDevice = function()
+      return true
+    end
 
     local items = {}
     for i = 1, 6 do

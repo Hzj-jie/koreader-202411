@@ -21,59 +21,65 @@ describe("KeyValuePage UI component", function()
     G_reader_settings:delete("keyvalues_per_page")
   end)
 
-  it("should instantiate and populate items correctly with string separator", function()
-    local kv_pairs = {
-      { "Key 1", "Value 1" },
-      "----------------------------",
-      { "Key 2", "Value 2", callback = function() end },
-      "Solo Text",
-    }
+  it(
+    "should instantiate and populate items correctly with string separator",
+    function()
+      local kv_pairs = {
+        { "Key 1", "Value 1" },
+        "----------------------------",
+        { "Key 2", "Value 2", callback = function() end },
+        "Solo Text",
+      }
 
-    local page = KeyValuePage:new({
-      title = "Test KV Page",
-      kv_pairs = kv_pairs,
-      callback_return = function() end,
-    })
+      local page = KeyValuePage:new({
+        title = "Test KV Page",
+        kv_pairs = kv_pairs,
+        callback_return = function() end,
+      })
 
-    assert.is_not_nil(page)
-    assert.is_true(#page.kv_pairs >= 3)
-    assert.are.equal("Key 1", page.kv_pairs[1][1])
-    assert.is_true(page.kv_pairs[1].separator)
-    assert.are.equal("Key 2", page.kv_pairs[2][1])
-  end)
-
-  it("should handle pagination navigation (nextPage, prevPage, goToPage)", function()
-    local kv_pairs = {}
-    for i = 1, 15 do
-      table.insert(kv_pairs, { "Key " .. i, "Value " .. i })
+      assert.is_not_nil(page)
+      assert.is_true(#page.kv_pairs >= 3)
+      assert.are.equal("Key 1", page.kv_pairs[1][1])
+      assert.is_true(page.kv_pairs[1].separator)
+      assert.are.equal("Key 2", page.kv_pairs[2][1])
     end
+  )
 
-    local page = KeyValuePage:new({
-      title = "Multi Page KV",
-      kv_pairs = kv_pairs,
-    })
+  it(
+    "should handle pagination navigation (nextPage, prevPage, goToPage)",
+    function()
+      local kv_pairs = {}
+      for i = 1, 15 do
+        table.insert(kv_pairs, { "Key " .. i, "Value " .. i })
+      end
 
-    assert.are.equal(1, page.show_page)
-    assert.are.equal(3, page.pages)
+      local page = KeyValuePage:new({
+        title = "Multi Page KV",
+        kv_pairs = kv_pairs,
+      })
 
-    page:nextPage()
-    assert.are.equal(2, page.show_page)
+      assert.are.equal(1, page.show_page)
+      assert.are.equal(3, page.pages)
 
-    page:nextPage()
-    assert.are.equal(3, page.show_page)
+      page:nextPage()
+      assert.are.equal(2, page.show_page)
 
-    page:nextPage()
-    assert.are.equal(3, page.show_page) -- Already at last page
+      page:nextPage()
+      assert.are.equal(3, page.show_page)
 
-    page:prevPage()
-    assert.are.equal(2, page.show_page)
+      page:nextPage()
+      assert.are.equal(3, page.show_page) -- Already at last page
 
-    page:goToPage(1)
-    assert.are.equal(1, page.show_page)
+      page:prevPage()
+      assert.are.equal(2, page.show_page)
 
-    page:goToPage(3)
-    assert.are.equal(3, page.show_page)
-  end)
+      page:goToPage(1)
+      assert.are.equal(1, page.show_page)
+
+      page:goToPage(3)
+      assert.are.equal(3, page.show_page)
+    end
+  )
 
   it("should handle KeyValueItem focus, tap, and hold interactions", function()
     local callback_invoked = false

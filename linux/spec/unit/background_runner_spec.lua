@@ -31,6 +31,21 @@ describe("BackgroundRunner widget tests", function()
     requireBackgroundRunner():allowBlockingJobs(false)
   end)
 
+  local function getBackgroundRunner()
+    local widget = requireBackgroundRunner()
+    local i = 1
+    while true do
+      local name, val = debug.getupvalue(widget.init, i)
+      if not name then
+        break
+      end
+      if name == "BackgroundRunner" then
+        return val
+      end
+      i = i + 1
+    end
+  end
+
   it("should start job", function()
     local executed = false
     table.insert(PluginShare.backgroundJobs, {
@@ -934,6 +949,102 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(2, #results)
       assert.are.equal(1, results[2].result)
       assert.is_not_nil(results[2].exception)
+    end
+  )
+
+  it(
+    "should use doubled 2-second timeout threshold for idle function executable",
+    function()
+      PluginShare.DeviceIdling = true
+      finally(function()
+        PluginShare.DeviceIdling = nil
+      end)
+
+      local job_pass = {
+        when = "idle",
+        executable = function()
+          MockTime:increase(1.5)
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job_pass)
+      notifyBackgroundJobsUpdated()
+
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.is_false(job_pass.timeout)
+
+      local job_timeout = {
+        when = "idle",
+        executable = function()
+          MockTime:increase(2.5)
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job_timeout)
+      notifyBackgroundJobsUpdated()
+
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.is_true(job_timeout.timeout)
+    end
+  )
+
+  it(
+    "should return false in BackgroundRunner:_executeJob when job.executable is an invalid type",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      assert.is_false(BackgroundRunner:_executeJob({ executable = 123 }))
+      assert.is_false(BackgroundRunner:_executeJob({ executable = true }))
+      assert.is_false(BackgroundRunner:_executeJob({ executable = {} }))
+      assert.is_false(BackgroundRunner:_executeJob({}))
+    end
+  )
+
+  it(
+    "should return empty string in CommandRunner:_createEnvironment when environment is error, nil, or empty table",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+
+      -- Function that throws an error
+      local error_job = {
+        environment = function()
+          error("environment resolution failure")
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(error_job))
+
+      -- Function that returns nil
+      local nil_job = {
+        environment = function()
+          return nil
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(nil_job))
+
+      -- Function that returns an empty table
+      local empty_table_func_job = {
+        environment = function()
+          return {}
+        end,
+      }
+      assert.are.equal(
+        "",
+        CommandRunner:_createEnvironment(empty_table_func_job)
+      )
+
+      -- Literal empty table
+      local empty_table_job = {
+        environment = {},
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(empty_table_job))
+
+      -- Nil job or nil environment
+      assert.are.equal("", CommandRunner:_createEnvironment({}))
+      assert.are.equal("", CommandRunner:_createEnvironment(nil))
     end
   )
 end)
