@@ -1,0 +1,314 @@
+describe("AnnotationSync Settings Selection", function()
+  local UIManager, AnnotationSyncPlugin, test_utils
+  local readerui, sync_instance
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_settings_selection_tmp"
+  local old_getDataDir
+
+  setup(function()
+    require("commonrequire")
+    local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
+    package.path = plugin_path .. ";" .. package.path
+
+    test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
+    disable_plugins()
+    UIManager = require("ui/uimanager")
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
+
+    old_getDataDir = test_utils.setup_test_env(test_data_dir)
+  end)
+
+  teardown(function()
+    if readerui then
+      readerui:onClose()
+    end
+    test_utils.teardown_test_env(test_data_dir, old_getDataDir)
+    UIManager:quit()
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
+  end)
+
+  before_each(function()
+    readerui, sync_instance = test_utils.init_integration_context(
+      "spec/front/unit/data/juliet.epub",
+      AnnotationSyncPlugin
+    )
+    sync_instance.path = "plugins/AnnotationSync.koplugin"
+    UIManager:show(readerui)
+    fastforward_ui_events()
+  end)
+
+  after_each(function()
+    if readerui then
+      readerui:onExit(true)
+      readerui:onClose()
+    end
+  end)
+
+  it("should initialize empty selected_settings in default settings", function()
+    assert.is_not_nil(sync_instance.settings.selected_settings)
+    assert.is_equal(type(sync_instance.settings.selected_settings), "table")
+  end)
+
+  it(
+    "should allow selecting/unselecting settings and persist selections",
+    function()
+      -- 1. Change a reader setting from its default (-1)
+      finally(function()
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+      end)
+      G_reader_settings:save("auto_standby_timeout_seconds", 100)
+
+      -- 2. Mock UIManager:show to capture the submenu
+      local submenu
+      local old_show = UIManager.show
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      -- 3. Show changed settings
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      -- 4. Find the mock changed setting item in the submenu's item table
+      local changed_item
+      local changed_index
+      for i, item in ipairs(submenu.item_table) do
+        if item.setting_id == "reader:auto_standby_timeout_seconds" then
+          changed_item = item
+          changed_index = i
+          break
+        end
+      end
+      assert.is_not_nil(changed_item)
+
+      -- 5. Toggle the checkbox (initially unchecked)
+      assert.is_nil(
+        sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+      )
+
+      -- Call onMenuSelect to select
+      submenu:onMenuSelect(changed_item)
+      assert.is_true(UIManager:isWindowWidget(submenu))
+      assert.is_true(
+        sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+      )
+
+      -- Verify it is saved in G_reader_settings
+      local saved = G_reader_settings:read(sync_instance.plugin_id)
+      assert.is_true(
+        saved.selected_settings["reader:auto_standby_timeout_seconds"]
+      )
+
+      -- Call onMenuSelect again to deselect
+      submenu:onMenuSelect(changed_item)
+      assert.is_true(UIManager:isWindowWidget(submenu))
+      assert.is_nil(
+        sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+      )
+
+      UIManager.show = old_show
+    end
+  )
+
+  it("should support Select All and Clear Selection on the menu", function()
+    -- 1. Change two reader settings from their defaults
+    finally(function()
+      G_reader_settings:delete("auto_standby_timeout_seconds")
+      G_reader_settings:delete("auto_suspend_timeout_seconds")
+    end)
+    G_reader_settings:save("auto_standby_timeout_seconds", 100)
+    G_reader_settings:save("auto_suspend_timeout_seconds", 200)
+
+    local submenu
+    local old_show = UIManager.show
+    UIManager.show = function(this, widget)
+      if widget.title == "Changed Settings" then
+        submenu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    sync_instance:showChangedSettings()
+    assert.is_not_nil(submenu)
+
+    -- Find Select All and Clear Selection items
+    local select_all_item, clear_selection_item
+    for _, item in ipairs(submenu.item_table) do
+      if item.text == "Select All" then
+        select_all_item = item
+      elseif item.text == "Clear Selection" then
+        clear_selection_item = item
+      end
+    end
+    assert.is_not_nil(select_all_item)
+    assert.is_not_nil(clear_selection_item)
+
+    -- Trigger Select All
+    submenu:onMenuSelect(select_all_item)
+    assert.is_true(UIManager:isWindowWidget(submenu))
+    assert.is_true(
+      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+    )
+    assert.is_true(
+      sync_instance.settings.selected_settings["reader:auto_suspend_timeout_seconds"]
+    )
+
+    -- Trigger Clear Selection
+    submenu:onMenuSelect(clear_selection_item)
+    assert.is_true(UIManager:isWindowWidget(submenu))
+    assert.is_nil(
+      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+    )
+    assert.is_nil(
+      sync_instance.settings.selected_settings["reader:auto_suspend_timeout_seconds"]
+    )
+
+    UIManager.show = old_show
+  end)
+
+  it(
+    "should reflect nested setting selection on the parent branch node",
+    function()
+      local old_show = UIManager.show
+      finally(function()
+        G_reader_settings:delete("footer")
+        UIManager.show = old_show
+      end)
+      G_reader_settings:save("footer", { time = false })
+
+      local submenu
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      -- Find the parent branch (footer) item
+      local footer_item
+      for _, item in ipairs(submenu.item_table) do
+        if item.text_func and item.text_func():find("footer >") then
+          footer_item = item
+          break
+        end
+      end
+      assert.is_not_nil(footer_item)
+      -- Initially it should be unchecked
+      assert.is_not_nil(footer_item.text_func():find("^%[ %]"))
+
+      -- Open the branch menu via onMenuSelect
+      local branch_menu
+      UIManager.show = function(this, widget)
+        if widget.title and widget.title:find("footer") then
+          branch_menu = widget
+        end
+        return old_show(this, widget)
+      end
+      submenu:onMenuSelect(footer_item)
+      assert.is_not_nil(branch_menu)
+      assert.is_true(UIManager:isWindowWidget(submenu))
+      assert.is_true(UIManager:isWindowWidget(branch_menu))
+
+      -- Find the leaf item in branch_menu and select it via onMenuSelect
+      local leaf_item
+      for _, item in ipairs(branch_menu.item_table) do
+        if item.setting_id == "reader:footer.time" then
+          leaf_item = item
+          break
+        end
+      end
+      assert.is_not_nil(leaf_item)
+      branch_menu:onMenuSelect(leaf_item)
+      assert.is_true(UIManager:isWindowWidget(branch_menu))
+      assert.is_true(UIManager:isWindowWidget(submenu))
+      assert.is_true(sync_instance.settings.selected_settings["reader:footer.time"])
+
+      -- Now parent branch item should reflect the selection
+      assert.is_not_nil(footer_item.text_func():find("[✓]", 1, true))
+
+      UIManager.show = old_show
+    end
+  )
+
+  it(
+    "should exclude AnnotationSync's own settings from the changed settings list",
+    function()
+      -- 1. Save settings under the AnnotationSync key
+      finally(function()
+        G_reader_settings:delete("AnnotationSync")
+      end)
+      G_reader_settings:save("AnnotationSync", {
+        ["device_name"] = "MyCustomDeviceName",
+        ["selected_settings"] = {
+          ["reader:auto_standby_timeout_seconds"] = true,
+        },
+      })
+
+      local submenu
+      local old_show = UIManager.show
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      -- Verify that AnnotationSync is NOT in the submenu item list
+      for _, item in ipairs(submenu.item_table) do
+        if item.setting_id then
+          assert.is_nil(item.setting_id:find("AnnotationSync", 1, true))
+        end
+        if item.text_func then
+          assert.is_nil(item.text_func():find("AnnotationSync", 1, true))
+        end
+      end
+
+      UIManager.show = old_show
+    end
+  )
+
+  it(
+    "should include reader settings changed in memory only before flush",
+    function()
+      local old_show = UIManager.show
+      finally(function()
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+        UIManager.show = old_show
+      end)
+      -- Saved as the default (-1), then changed to 777 in memory only.
+      G_reader_settings:save("auto_standby_timeout_seconds", -1)
+      G_reader_settings:flush()
+      G_reader_settings:save("auto_standby_timeout_seconds", 777)
+
+      local submenu
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      local found_item
+      for _, item in ipairs(submenu.item_table) do
+        if item.setting_id == "reader:auto_standby_timeout_seconds" then
+          found_item = item
+          break
+        end
+      end
+      assert.is_not_nil(found_item)
+      assert.truthy(found_item.text_func():find("777", 1, true))
+    end
+  )
+end)

@@ -24787,6 +24787,224 @@ msgstr "注释"
 #~ msgid "%1/%2"
 #~ msgstr "%1/%2"
 
+# --- AnnotationSync plugin translations ---
+
+msgid "Annotation Sync"
+msgstr "标注同步"
+
+msgid "Sync annotations and bookmarks between devices."
+msgstr "在多台设备间同步标注与书签。"
+
+msgid "Cloud settings"
+msgstr "云端设置"
+
+msgid "Sync current book now"
+msgstr "立即同步当前书籍"
+
+msgid "Sync all pending books"
+msgstr "同步全部待同步书籍"
+
+msgid "Show pending books"
+msgstr "显示待同步书籍"
+
+msgid "Add books from reading history"
+msgstr "从阅读历史添加书籍"
+
+msgid "Show deleted annotations"
+msgstr "显示已删除的标注"
+
+msgid "Sync pending books automatically"
+msgstr "自动同步待同步书籍"
+
+msgid "AnnotationSync: Sync current book now"
+msgstr "标注同步：立即同步当前书籍"
+
+msgid "AnnotationSync: Sync all pending books"
+msgstr "标注同步：同步全部待同步书籍"
+
+msgid "Sync annotations and bookmarks of the current book."
+msgstr "同步当前书籍的标注与书签。"
+
+msgid "Sync annotations and bookmarks of all pending books."
+msgstr "同步全部待同步书籍的标注与书签。"
+
+msgid "Adding books from reading history…\nThis may take a while if the history is long."
+msgstr "正在从阅读历史添加书籍…\n阅读历史较长时可能需要一段时间。"
+
+msgid "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down."
+msgid_plural "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down."
+msgstr[0] "阅读历史中有 %1 本书待同步。\n同步可能需要一段时间，期间 KOReader 可能变慢。"
+
+msgid "No book is open."
+msgstr "没有打开的书籍。"
+
+msgid "No pending books."
+msgstr "没有待同步的书籍。"
+
+msgid "Pending books"
+msgstr "待同步书籍"
+
+msgid "Sync this book now?\n\n%1"
+msgstr "立即同步这本书？\n\n%1"
+
+msgid "Sync"
+msgstr "同步"
+
+msgid "Removed %1 from pending books."
+msgstr "已将 %1 从待同步书籍中移除。"
+
+msgid "Syncing in the background: %1"
+msgstr "正在后台同步：%1"
+
+msgid "Syncing 1 book in the background"
+msgid_plural "Syncing %1 books one by one in the background"
+msgstr[0] "正在后台依次同步 %1 本书"
+
+msgid "Synced: %1"
+msgstr "已同步：%1"
+
+msgid "Failed to sync %1."
+msgstr "同步 %1 失败。"
+
+msgid "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well."
+msgid_plural "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well."
+msgstr[0] "%1 在此设备上没有标注，但云存储中有 %2 条。要恢复，还是在所有设备上将其移到回收站？移到回收站的标注可以在“显示已删除的标注”中恢复。关闭此对话框也会恢复。"
+
+msgid "Move to trash"
+msgstr "移到回收站"
+
+msgid "Use filename instead of hash"
+msgstr "使用文件名代替哈希值"
+
+msgid "Device name: %1"
+msgstr "设备名称：%1"
+
+msgid "Set device name"
+msgstr "设置设备名称"
+
+msgid "Leave empty to use the default device name."
+msgstr "留空则使用默认设备名称。"
+
+msgid "Show changed settings"
+msgstr "显示已更改的设置"
+
+msgid "Current cloud: %1"
+msgstr "当前云端：%1"
+
+msgid "Push settings to cloud"
+msgstr "上传设置到云端"
+
+msgid "Pull settings from cloud"
+msgstr "从云端获取设置"
+
+msgid "Last sync: %1"
+msgstr "上次同步：%1"
+
+msgid "Plugin version: %1"
+msgstr "插件版本：%1"
+
+msgid "%1 (%4)\nVersion: %2\n\n%3"
+msgstr "%1（%4）\n版本：%2\n\n%3"
+
+msgid "AnnotationSync: Push settings to cloud"
+msgstr "标注同步：上传设置到云端"
+
+msgid "Push the selected settings to the cloud."
+msgstr "将选中的设置上传到云端。"
+
+msgid "AnnotationSync: Pull settings from cloud"
+msgstr "标注同步：从云端获取设置"
+
+msgid "Pull the selected settings from the cloud."
+msgstr "从云端获取选中的设置。"
+
+msgid "Cloud destination set to:\n%1\nProvider: %2"
+msgstr "云端目标已设为：\n%1\n服务商：%2"
+
+msgid "Annotation restored."
+msgstr "标注已恢复。"
+
+msgid "Restored %1 annotations."
+msgstr "已恢复 %1 条标注。"
+
+msgid "Restored 1 annotation."
+msgid_plural "Restored %1 annotations."
+msgstr[0] "已恢复 %1 条标注。"
+
+msgid "No settings are selected. Please select settings to sync in 'Show changed settings'."
+msgstr "未选择任何设置。请在“显示已更改的设置”中选择要同步的设置。"
+
+msgid "Failed to write settings to local storage."
+msgstr "无法将设置写入本地存储。"
+
+msgid "Pushing settings to cloud..."
+msgstr "正在上传设置到云端…"
+
+msgid "Fetching settings from cloud..."
+msgstr "正在从云端获取设置…"
+
+msgid "Failed to fetch settings from cloud"
+msgstr "从云端获取设置失败"
+
+msgid "No deleted annotations found for this document."
+msgstr "这本书没有已删除的标注。"
+
+msgid "Restore All"
+msgstr "全部恢复"
+
+msgid "Are you sure you want to restore 1 deleted annotation?"
+msgid_plural "Are you sure you want to restore all %1 deleted annotations?"
+msgstr[0] "确定要恢复全部 %1 条已删除的标注吗？"
+
+msgid "Do you want to restore this annotation?\n\nPage %1: %2"
+msgstr "要恢复这条标注吗？\n\n第 %1 页：%2"
+
+msgid "Deleted Annotations"
+msgstr "已删除的标注"
+
+msgid "No other devices found in cloud settings."
+msgstr "云端设置中没有其他设备。"
+
+msgid "No differing settings found for this device."
+msgstr "该设备与本机没有不同的设置。"
+
+msgid "Import Selected Settings"
+msgstr "导入选中的设置"
+
+msgid "Successfully imported 1 setting."
+msgid_plural "Successfully imported %1 settings."
+msgstr[0] "已成功导入 %1 项设置。"
+
+msgid "No settings imported."
+msgstr "未导入任何设置。"
+
+msgid "Select All"
+msgstr "全选"
+
+msgid "Clear Selection"
+msgstr "清除选择"
+
+msgid "Settings from %1"
+msgstr "来自 %1 的设置"
+
+msgid "Remove from list"
+msgstr "从列表中移除"
+
+msgid "No cloud destination set in settings."
+msgstr "设置中未指定云端目标。"
+
+msgid "No changed settings found."
+msgstr "没有已更改的设置。"
+
+msgid "Changed Settings"
+msgstr "已更改的设置"
+
+msgid "Cannot read %1. Skipped syncing it."
+msgstr "无法读取 %1，已跳过同步。"
+
+msgid "Cannot find %1. Removed it from pending books."
+msgstr "找不到 %1，已将其从待同步书籍中移除。"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算练习"

@@ -1,0 +1,167 @@
+describe("AnnotationSync recordSyncState & Network online guards", function()
+  local UIManager, SyncService
+  local AnnotationSyncPlugin, test_utils, json
+  local readerui, sync_instance
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_sync_record_state_tmp"
+  local old_getDataDir
+
+  setup(function()
+    require("commonrequire")
+    local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
+    package.path = plugin_path .. ";" .. package.path
+
+    test_utils = require("plugins/AnnotationSync.koplugin/test_utils")
+    disable_plugins()
+    UIManager = require("ui/uimanager")
+    SyncService = require("apps/cloudstorage/syncservice")
+    json = require("json")
+
+    AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
+    old_getDataDir = test_utils.setup_test_env(test_data_dir)
+    _G.old_ImageViewer_new = test_utils.mock_image_viewer()
+
+    G_reader_settings:save("cloud_download_dir", "http://mock-server")
+    G_reader_settings:save(
+      "cloud_server_object",
+      json.encode({ url = "http://mock-server", type = "webdav" })
+    )
+
+    readerui, sync_instance = test_utils.init_integration_context(
+      "spec/front/unit/data/juliet.epub",
+      AnnotationSyncPlugin
+    )
+  end)
+
+  teardown(function()
+    if readerui then
+      readerui:onClose()
+    end
+    test_utils.teardown_test_env(test_data_dir, old_getDataDir)
+    require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
+    UIManager:quit()
+    package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
+  end)
+
+  before_each(function()
+    UIManager:show(readerui)
+    fastforward_ui_events()
+    test_utils.mock_sync_service(SyncService)
+    -- The offline tests leave their requests waiting for the network.
+    sync_instance.manager.requested = {}
+    os.remove(sync_instance.manager:changedDocumentsFile())
+  end)
+
+  describe("recordSyncState unit tests", function()
+    it("records the time of the sync", function()
+      sync_instance.settings.last_sync = "Never"
+      sync_instance.manager:recordSyncState()
+      assert.truthy(
+        sync_instance.settings.last_sync:match(
+          "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"
+        )
+      )
+    end)
+  end)
+
+  describe(
+    "NetworkMgr runWhenOnline guard in syncAllChangedDocuments",
+    function()
+      it("executes sync when network is online", function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_runWhenOnline = NetworkMgr.runWhenOnline
+        local run_online_called = false
+
+        NetworkMgr.runWhenOnline = function(self, callback)
+          run_online_called = true
+          callback()
+          return true
+        end
+
+        local restore_jobs = test_utils.run_jobs_inline()
+        sync_instance.settings.last_sync = "Never"
+
+        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_instance.manager:syncAllChangedDocuments()
+
+        assert.is_true(run_online_called)
+        assert.is_not_equal("Never", sync_instance.settings.last_sync)
+
+        NetworkMgr.runWhenOnline = old_runWhenOnline
+        restore_jobs()
+      end)
+
+      it(
+        "aborts execution when network is offline and runWhenOnline returns false",
+        function()
+          local NetworkMgr = require("ui/network/manager")
+          local old_runWhenOnline = NetworkMgr.runWhenOnline
+          local run_online_called = false
+          local old_last_sync = sync_instance.settings.last_sync
+
+          NetworkMgr.runWhenOnline = function(self, callback)
+            run_online_called = true
+            return false
+          end
+
+          sync_instance.manager:addToChangedDocumentsFile(
+            readerui.document.file
+          )
+          sync_instance.manager:syncAllChangedDocuments()
+
+          assert.is_true(run_online_called)
+          assert.are.equal(old_last_sync, sync_instance.settings.last_sync)
+
+          NetworkMgr.runWhenOnline = old_runWhenOnline
+        end
+      )
+    end
+  )
+
+  describe("NetworkMgr runWhenOnline guard in manualSync", function()
+    it("executes sync when network is online", function()
+      local NetworkMgr = require("ui/network/manager")
+      local old_runWhenOnline = NetworkMgr.runWhenOnline
+      local run_online_called = false
+
+      NetworkMgr.runWhenOnline = function(self, callback)
+        run_online_called = true
+        callback()
+        return true
+      end
+
+      local restore_jobs = test_utils.run_jobs_inline()
+      sync_instance.settings.last_sync = "Never"
+
+      sync_instance:manualSync()
+
+      assert.is_true(run_online_called)
+      assert.is_not_equal("Never", sync_instance.settings.last_sync)
+
+      NetworkMgr.runWhenOnline = old_runWhenOnline
+      restore_jobs()
+    end)
+
+    it(
+      "aborts execution when network is offline and runWhenOnline returns false",
+      function()
+        local NetworkMgr = require("ui/network/manager")
+        local old_runWhenOnline = NetworkMgr.runWhenOnline
+        local run_online_called = false
+        local old_last_sync = sync_instance.settings.last_sync
+
+        NetworkMgr.runWhenOnline = function(self, callback)
+          run_online_called = true
+          return false
+        end
+
+        sync_instance:manualSync()
+
+        assert.is_true(run_online_called)
+        assert.are.equal(old_last_sync, sync_instance.settings.last_sync)
+
+        NetworkMgr.runWhenOnline = old_runWhenOnline
+      end
+    )
+  end)
+end)
