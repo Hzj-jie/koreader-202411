@@ -1420,13 +1420,15 @@ describe("docsettings module", function()
         local sub_dir = base_dir .. "/docsettings/nested"
         local sdr_dir = sub_dir .. "/book.sdr"
         util.makePath(sdr_dir)
+        finally(function()
+          ffiutil.purgeDir(base_dir)
+        end)
         assert.are.equal("directory", lfs.attributes(sdr_dir, "mode"))
 
         docsettings.removeSidecarDir(sdr_dir)
 
         assert.is_nil(lfs.attributes(sdr_dir, "mode"))
         assert.are.equal("directory", lfs.attributes(sub_dir, "mode"))
-        util.removePath(base_dir)
       end
     )
 
