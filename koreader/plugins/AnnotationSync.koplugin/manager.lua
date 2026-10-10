@@ -148,6 +148,14 @@ function SyncManager:_startSync(file, trigger, trash)
       file
     )
     self:removeFromChangedDocumentsFileByPath(file)
+    if trigger == MANUAL_SYNC then
+      utils.show_msg(
+        T(
+          gettext("Cannot find %1. Removed it from pending books."),
+          book_name(file)
+        )
+      )
+    end
     self.running = nil
     self:_dispatchNextSync()
     return

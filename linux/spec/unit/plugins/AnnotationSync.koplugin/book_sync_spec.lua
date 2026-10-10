@@ -199,13 +199,25 @@ describe("AnnotationSync manager book sync engine", function()
     write_sidecar(book_b, { ann(1) })
     manager:_writeChangedDocumentsFile({ missing, book_b })
 
-    manager:syncNow(missing)
+    manager:_dispatchNextSync()
 
     assert.are.same({}, pending())
+    assert.are.same({}, msgs)
     assert.is_not_nil(base(book_b))
     for _, toast in ipairs(toasts) do
       assert.is_falsy(string.match(toast, "^Synced:"))
     end
+  end)
+
+  it("Sync current book now on a book deleted from disk says so and drops it", function()
+    local missing = test_data_dir .. "/gone.epub"
+    manager:_writeChangedDocumentsFile({ missing })
+
+    manager:syncNow(missing)
+
+    assert.are.same({ "Cannot find gone.epub. Removed it from pending books." }, msgs)
+    assert.are.same({}, pending())
+    assert.is_nil(manager.running)
   end)
 
   it("a book that can't be read is skipped with a message and stays pending, and auto sync doesn't go on", function()

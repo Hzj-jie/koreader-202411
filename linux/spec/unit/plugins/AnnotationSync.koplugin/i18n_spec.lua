@@ -89,6 +89,10 @@ describe("AnnotationSync internationalization", function()
       "已恢复 %1 条标注。",
       _.ngettext("Restored 1 annotation.", "Restored %1 annotations.", 1)
     )
+    assert.are.equal(
+      "找不到 %1，已将其从待同步书籍中移除。",
+      _("Cannot find %1. Removed it from pending books.")
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -144,6 +148,10 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "已還原 %1 條標註。",
       _.ngettext("Restored 1 annotation.", "Restored %1 annotations.", 1)
+    )
+    assert.are.equal(
+      "找不到 %1，已將其從待同步書籍中移除。",
+      _("Cannot find %1. Removed it from pending books.")
     )
   end)
 end)

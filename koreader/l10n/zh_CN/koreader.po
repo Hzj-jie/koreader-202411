@@ -25002,6 +25002,9 @@ msgstr "已更改的设置"
 msgid "Cannot read %1. Skipped syncing it."
 msgstr "无法读取 %1，已跳过同步。"
 
+msgid "Cannot find %1. Removed it from pending books."
+msgstr "找不到 %1，已将其从待同步书籍中移除。"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算练习"
