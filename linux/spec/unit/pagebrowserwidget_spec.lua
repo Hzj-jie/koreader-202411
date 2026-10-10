@@ -564,4 +564,44 @@ describe("PageBrowserWidget widget", function()
       assert.is_true(updated_editable)
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes update crashing when getPageMap returns empty table",
+      function()
+        local orig_pagemap = mock_ui.pagemap
+        local orig_getpagemap = mock_ui.document.getPageMap
+        finally(function()
+          mock_ui.pagemap = orig_pagemap
+          mock_ui.document.getPageMap = orig_getpagemap
+        end)
+
+        mock_ui.pagemap = {
+          wantsPageLabels = function()
+            return true
+          end,
+          cleanPageLabel = function(self, label)
+            return label
+          end,
+        }
+        mock_ui.document.getPageMap = function()
+          return {}
+        end
+
+        assert.has_no.errors(function()
+          PageBrowserWidget:new({ ui = mock_ui })
+        end)
+      end
+    )
+
+    it(
+      "fails: exposes saveSettings(true) omitting thumbnails_pagenums = nil",
+      function()
+        local widget = PageBrowserWidget:new({ ui = mock_ui })
+        widget.thumbnails_pagenums = 1
+        widget:saveSettings(true)
+        assert.is_nil(widget.thumbnails_pagenums)
+      end
+    )
+  end)
 end)

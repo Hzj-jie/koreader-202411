@@ -931,4 +931,48 @@ describe("CloudStorage", function()
       assert.is_true(#mock_uimanager.shown_widgets >= 1)
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes onMenuSelect double-popping self.paths when openCloudServer fails",
+      function()
+        local cs = CloudStorage:new()
+        cs.paths = {
+          { url = "/parent" },
+        }
+        -- Make openCloudServer fail and simulate its internal table.remove(self.paths)
+        cs.openCloudServer = function(self, url)
+          table.remove(self.paths)
+          return false
+        end
+
+        local item = {
+          url = "/parent/failing_subfolder",
+          type = "folder",
+        }
+        cs:onMenuSelect(item)
+        assert.are.equal(1, #cs.paths)
+        assert.are.equal("/parent", cs.paths[1].url)
+      end
+    )
+
+    it(
+      "fails: exposes downloadListFiles crashing on nil lfs.attributes for broken symlinks",
+      function()
+        local cs = CloudStorage:new()
+        local path = "/local/sync_dangling"
+        mock_lfs.dirs[path] = { "dangling_symlink.epub" }
+        mock_lfs.files[path .. "/dangling_symlink.epub"] = nil
+
+        local item = {
+          sync_dest_folder = path,
+          sync_source_folder = "/remote",
+        }
+
+        assert.has_no.errors(function()
+          cs:downloadListFiles(item)
+        end)
+      end
+    )
+  end)
 end)

@@ -558,7 +558,7 @@ function UIManager:debounce(seconds, immediate, action)
 
   local scheduled_action
   scheduled_action = function()
-    local passed_from_last_call = time.since(previous_call_at)
+    local passed_from_last_call = time.to_s(time.since(previous_call_at))
     if seconds > passed_from_last_call then
       self:scheduleIn(seconds - passed_from_last_call, scheduled_action)
       is_scheduled = true
@@ -1846,17 +1846,15 @@ function UIManager:keyEvents()
       return
     end
     -- check w itself
-    local c = w.key_events
-    if not c then
-      return
-    end
-    for k, v in pairs(c) do
-      if
-        not v.is_inactive
-        and k ~= "AnyKeyPressed"
-        and k ~= "SelectByShortCut"
-      then
-        key_events[k] = v
+    if w.key_events then
+      for k, v in pairs(w.key_events) do
+        if
+          not v.is_inactive
+          and k ~= "AnyKeyPressed"
+          and k ~= "SelectByShortCut"
+        then
+          key_events[k] = v
+        end
       end
     end
 
