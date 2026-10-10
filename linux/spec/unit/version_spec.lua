@@ -119,6 +119,12 @@ describe("Version module", function()
       assert.are.same("unknown", Version:getShortVersion())
       Version.getUncachedCurrentRevision = orig_getUncached
     end)
+
+    it("should handle non-tag revision strings gracefully", function()
+      Version.rev = "704d4238"
+      Version.short = nil
+      assert.are.same("704d4238", Version:getShortVersion())
+    end)
   end)
 
   describe("version log file", function()
