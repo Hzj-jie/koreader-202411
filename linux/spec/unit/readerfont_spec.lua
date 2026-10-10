@@ -490,6 +490,32 @@ describe("ReaderFont module", function()
         table.insert(shown_widgets, w)
       end
 
+      local Device = require("device")
+      local DataStorage = require("datastorage")
+      local ffiutil = require("ffi/util")
+
+      local orig_canOpenLink = rawget(Device, "canOpenLink")
+      local orig_openLink = rawget(Device, "openLink")
+      local orig_home_dir = rawget(Device, "home_dir")
+
+      local test_home = DataStorage:getDataDir() .. "/readerfont_home"
+      local opened = {}
+
+      Device.canOpenLink = function()
+        return true
+      end
+      Device.openLink = function(_self, link)
+        table.insert(opened, link)
+      end
+      Device.home_dir = test_home
+
+      finally(function()
+        Device.canOpenLink = orig_canOpenLink
+        Device.openLink = orig_openLink
+        Device.home_dir = orig_home_dir
+        ffiutil.purgeDir(test_home)
+      end)
+
       local settings = font_mod:getFontSettingsTable()
       for _, item in ipairs(settings) do
         if item.checked_func then
@@ -505,6 +531,10 @@ describe("ReaderFont module", function()
           item.hold_callback()
         end
       end
+
+      local expected_dir = (os.getenv("XDG_DATA_HOME") or (test_home .. "/.local/share")) .. "/fonts"
+      assert.are.equal(1, #opened)
+      assert.are.equal(expected_dir, opened[1])
 
       -- Verify widgets triggered and test their callbacks
       for _, w in ipairs(shown_widgets) do
