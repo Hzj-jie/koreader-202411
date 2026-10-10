@@ -125,6 +125,7 @@ describe("Clock plugin tests", function()
     assert
       .stub(UIManager.close)
       .was_called_with(match.ref(UIManager), match.ref(Clock))
+    assert.is_false(PluginShare.pause_auto_suspend)
   end)
 
   it("handles show without scheduling timeout if not configured", function()
@@ -159,12 +160,14 @@ describe("Clock plugin tests", function()
       .stub(UIManager.show)
       .was_called_with(match.ref(UIManager), match.ref(Clock))
     assert.is_true(Clock._was_suspending)
+    assert.is_true(Clock._visible)
 
     -- Resume
     stub(Clock, "onShow")
     Clock:onResume()
     assert.stub(Clock.onShow).was_called()
     assert.is_false(Clock._was_suspending)
+    assert.is_true(Clock._visible)
   end)
 
   it("handles tap to close and key press close", function()
