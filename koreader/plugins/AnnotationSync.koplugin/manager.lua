@@ -142,7 +142,7 @@ function SyncManager:_moveToFront(file)
 end
 
 function SyncManager:_startSync(file, trigger, trash)
-  if not util.fileExists(file) then
+  if lfs.attributes(file, "mode") ~= "file" then
     logger.warn(
       "AnnotationSync: file missing, removing from sync list:",
       file
