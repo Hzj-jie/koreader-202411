@@ -21,7 +21,16 @@ local menus = require("plugins/AnnotationSync.koplugin/menus")
 local remote = require("plugins/AnnotationSync.koplugin/remote")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
-local ONLINE_RETRY_INTERVAL = 10
+local TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+-- A value of SyncManager.requested, also passed on as a sync's trigger.
+local MANUAL_SYNC = "Manual Sync"
+-- Files in the data dir.
+local SETTINGS_SYNC_FILE = "/settings_sync.json"
+local READER_SETTINGS_FILE = "/settings.reader.lua"
+local CUSTOM_DEFAULTS_FILE = "/defaults.custom.lua"
+-- A sync job leaves these next to its JSON file for the callback.
+local SNAPSHOT_SUFFIX = ".snapshot"
+local UPLOADED_SUFFIX = ".uploaded"
 
 -- The file name of a book, for messages.
 local function book_name(file)
@@ -34,7 +43,7 @@ end
 -- singleton table, and the latest plugin to init owns it.
 local SyncManager = {
   running = nil,
-  -- Books the user asked to sync: file -> "Manual Sync" ("Sync current book
+  -- Books the user asked to sync: file -> MANUAL_SYNC ("Sync current book
   -- now", or "Sync" in the pending books list) or "Sync All" ("Sync all
   -- pending books"). They run before the others, even with auto sync off. A
   -- request is used up when its job starts, or dropped when the book leaves
@@ -60,7 +69,7 @@ end
 -- book first.
 function SyncManager:syncNow(file)
   self:_moveToFront(file)
-  self.requested[file] = "Manual Sync"
+  self.requested[file] = MANUAL_SYNC
   Notification:notify(
     T(gettext("Syncing in the background: %1"), book_name(file))
   )
@@ -161,7 +170,7 @@ function SyncManager:_startSync(file, trigger, trash)
       end
       NetworkMgr:queryOnlineState()
       while not NetworkMgr:isOnline() do
-        require("ffi/util").sleep(ONLINE_RETRY_INTERVAL)
+        require("ffi/util").sleep(10)
         NetworkMgr:queryOnlineState()
       end
 
@@ -169,7 +178,7 @@ function SyncManager:_startSync(file, trigger, trash)
       if not json_path then
         return { file = file, success = false }
       end
-      local snapshot_path = json_path .. ".snapshot"
+      local snapshot_path = json_path .. SNAPSHOT_SUFFIX
       local snapshot_content = assert(util.readFromFile(json_path, "r"))
       assert(util.writeToFile(snapshot_content, snapshot_path))
 
@@ -192,7 +201,7 @@ function SyncManager:_startSync(file, trigger, trash)
             sync_success = success
             if uploaded_json then
               uploaded = true
-              assert(util.writeToFile(uploaded_json, json_path .. ".uploaded"))
+              assert(util.writeToFile(uploaded_json, json_path .. UPLOADED_SUFFIX))
             end
           end,
           cached_path
@@ -213,8 +222,8 @@ function SyncManager:_startSync(file, trigger, trash)
       -- started is in trigger (_dispatchNextSync moved requested[file] there),
       -- one asked while it ran is in requested[file]. Read it now: the queue
       -- update below can clear it.
-      local asked = trigger == "Manual Sync"
-        or self.requested[file] == "Manual Sync"
+      local asked = trigger == MANUAL_SYNC
+        or self.requested[file] == MANUAL_SYNC
       local item = job.result
       if type(item) ~= "table" then
         logger.warn(
@@ -227,14 +236,14 @@ function SyncManager:_startSync(file, trigger, trash)
       local uploaded_json = nil
       if item.success then
         snapshot_json =
-          assert(util.readFromFile(item.json_path .. ".snapshot"))
+          assert(util.readFromFile(item.json_path .. SNAPSHOT_SUFFIX))
         uploaded_json = item.uploaded
-            and assert(util.readFromFile(item.json_path .. ".uploaded"))
+            and assert(util.readFromFile(item.json_path .. UPLOADED_SUFFIX))
           or nil
       end
       if item.json_path then
-        os.remove(item.json_path .. ".snapshot")
-        os.remove(item.json_path .. ".uploaded")
+        os.remove(item.json_path .. SNAPSHOT_SUFFIX)
+        os.remove(item.json_path .. UPLOADED_SUFFIX)
       end
 
       local function finish()
@@ -249,7 +258,7 @@ function SyncManager:_startSync(file, trigger, trash)
         self.running = nil
         -- A Manual Sync asked while this job ran is still requested if the book
         -- changed meanwhile or the job failed. The book's next job answers it.
-        if asked and self.requested[file] ~= "Manual Sync" then
+        if asked and self.requested[file] ~= MANUAL_SYNC then
           if item.success then
             Notification:notify(T(gettext("Synced: %1"), book_name(file)))
           elseif item.unreadable then
@@ -291,7 +300,7 @@ function SyncManager:_startSync(file, trigger, trash)
             ok_callback = function()
               local income_list = json.decode(uploaded_json)
               local tombstones = {}
-              local now = os.date("%Y-%m-%d %H:%M:%S")
+              local now = os.date(TIMESTAMP_FORMAT)
               for _, v in ipairs(income_list) do
                 if not v.deleted then
                   v.deleted = true
@@ -301,8 +310,8 @@ function SyncManager:_startSync(file, trigger, trash)
               end
               NetworkMgr:willRerunWhenOnline(function()
                 -- Take the request when the sync starts, as _dispatchNextSync does.
-                if self.requested[file] == "Manual Sync" then
-                  trigger = "Manual Sync"
+                if self.requested[file] == MANUAL_SYNC then
+                  trigger = MANUAL_SYNC
                 end
                 self.requested[file] = nil
                 self:_startSync(file, trigger, tombstones)
@@ -612,7 +621,7 @@ function SyncManager:getDeletedAnnotations(document)
 end
 
 function SyncManager:recordSyncState()
-  self.plugin.settings.last_sync = os.date("%Y-%m-%d %H:%M:%S")
+  self.plugin.settings.last_sync = os.date(TIMESTAMP_FORMAT)
   logger.dbg(
     "AnnotationSync: recordSyncState: updated at",
     self.plugin.settings.last_sync
@@ -675,11 +684,11 @@ function SyncManager:pushSettings()
   local local_data = {
     [device_id] = {
       settings = selected_values,
-      timestamp = os.date("%Y-%m-%d %H:%M:%S"),
+      timestamp = os.date(TIMESTAMP_FORMAT),
     },
   }
 
-  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getDataDir() .. SETTINGS_SYNC_FILE
   local ok, err = util.writeToFile(json.encode(local_data), json_path)
   if not ok then
     logger.warn(
@@ -714,7 +723,7 @@ function SyncManager:getLocalSettingValue(key, caches)
     if caches.reader == nil then
       G_reader_settings:flush()
       local active_reader_path = DataStorage:getDataDir()
-        .. "/settings.reader.lua"
+        .. READER_SETTINGS_FILE
       local ok, active_reader = pcall(dofile, active_reader_path)
       caches.reader = ok and active_reader or {}
     end
@@ -723,7 +732,7 @@ function SyncManager:getLocalSettingValue(key, caches)
     if caches.defaults == nil then
       G_defaults:flush()
       local active_defaults_path = DataStorage:getDataDir()
-        .. "/defaults.custom.lua"
+        .. CUSTOM_DEFAULTS_FILE
       local ok, active_defaults = pcall(dofile, active_defaults_path)
       caches.defaults = ok and active_defaults or {}
     end
@@ -785,12 +794,12 @@ function SyncManager:_writeLocalSettingValue(key, value)
   if domain == "reader" then
     save_nested_setting(G_reader_settings, parts, value)
 
-    local filepath = DataStorage:getDataDir() .. "/settings.reader.lua"
+    local filepath = DataStorage:getDataDir() .. READER_SETTINGS_FILE
     local settings_obj = LuaSettings:open(filepath)
     save_nested_setting(settings_obj, parts, value)
     return true
   elseif domain == "defaults" then
-    local filepath = DataStorage:getDataDir() .. "/defaults.custom.lua"
+    local filepath = DataStorage:getDataDir() .. CUSTOM_DEFAULTS_FILE
     local settings_obj = LuaSettings:open(filepath)
     save_nested_setting(settings_obj, parts, value)
     return true
@@ -808,7 +817,7 @@ function SyncManager:_writeLocalSettingValue(key, value)
 end
 
 function SyncManager:pullSettings()
-  local json_path = DataStorage:getDataDir() .. "/settings_sync.json"
+  local json_path = DataStorage:getDataDir() .. SETTINGS_SYNC_FILE
   utils.show_msg(gettext("Fetching settings from cloud..."))
   remote.pull_settings(self.plugin, json_path, function(success, remote_data)
     if success then
