@@ -59,6 +59,17 @@ describe("OPDSParser", function()
     assert.is_truthy(feed.entry[1].title:find("Em—Dash & Euro €"))
   end)
 
+  it("should unescape hexadecimal numeric character entities", function()
+    local xml = [[<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>It&#x2019;s a title with &#xA0; non-breaking space</title>
+</feed>]]
+
+    local parsed = OPDSParser:parse(xml)
+    assert.is_table(parsed)
+    assert.is_table(parsed.feed)
+    assert.are.equal("It’s a title with \u{00A0} non-breaking space", parsed.feed.title)
+  end)
+
   it("should handle CDATA sections by extracting content and unescaping", function()
     local xml = [==[<feed xmlns="http://www.w3.org/2005/Atom">
   <title><![CDATA[Catalog with <Special> & "Chars"]]></title>

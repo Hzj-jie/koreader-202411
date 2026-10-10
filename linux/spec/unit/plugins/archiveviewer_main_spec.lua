@@ -176,6 +176,11 @@ describe("ArchiveViewer main plugin module", function()
       local mandatory_sub = instance:getItemDirMandatory("docs/sub/")
       assert.is_string(mandatory_sub)
       assert.is_true(mandatory_sub:find("1") ~= nil)
+
+      -- unpopulated/missing directory should return a string count without crashing on pairs(nil)
+      local mandatory_missing = instance:getItemDirMandatory("missing_folder/")
+      assert.is_string(mandatory_missing)
+      assert.is_true(mandatory_missing:find("0") ~= nil)
     end)
   end)
 
