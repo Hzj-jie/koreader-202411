@@ -1831,17 +1831,15 @@ function UIManager:keyEvents()
       return
     end
     -- check w itself
-    local c = w.key_events
-    if not c then
-      return
-    end
-    for k, v in pairs(c) do
-      if
-        not v.is_inactive
-        and k ~= "AnyKeyPressed"
-        and k ~= "SelectByShortCut"
-      then
-        key_events[k] = v
+    if w.key_events then
+      for k, v in pairs(w.key_events) do
+        if
+          not v.is_inactive
+          and k ~= "AnyKeyPressed"
+          and k ~= "SelectByShortCut"
+        then
+          key_events[k] = v
+        end
       end
     end
 

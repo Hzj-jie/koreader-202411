@@ -1105,8 +1105,7 @@ describe("UIManager spec", function()
           for k, v in UIManager:keyEvents() do
             collected[k] = v
           end
-          -- Production bug: uimanager.lua:1835-1837 returns early when w.key_events is nil,
-          -- failing to recurse into child widgets inside containers without key_events.
+          -- The child's key events are collected even though FrameContainer has none.
           assert.is_not_nil(collected.ChildAction)
         end
       )
