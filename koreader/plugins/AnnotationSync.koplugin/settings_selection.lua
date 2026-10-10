@@ -91,12 +91,6 @@ function SettingsSelection.show(plugin)
     if excluded[full_path] then
       return true
     end
-    for i = 1, #path do
-      local sub_path = domain .. ":" .. table.concat(path, ".", 1, i)
-      if excluded[sub_path] then
-        return true
-      end
-    end
     return false
   end
 
