@@ -413,4 +413,110 @@ describe("Statistics plugin", function()
       assert.is_same(0, tonumber(book2_count))
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes addBookStatToDB attempting to INSERT into page_stat view",
+      function()
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        local conn = SQ3.open(":memory:")
+        stats:createDB(conn)
+        stats.data = {
+          title = "Test Book",
+          authors = "Test Author",
+        }
+        stats.doc_md5 = "dummy_md5"
+        local book_stats = {
+          title = "Test Book",
+          authors = "Test Author",
+          notes = 0,
+          highlights = 0,
+          pages = 100,
+          series = "Test Series",
+          language = "en",
+          file = "/dummy/test.epub",
+          total_time_in_sec = 60,
+          performance_in_pages = {
+            [1000] = 5,
+            [1030] = 6,
+          },
+        }
+
+        -- In main.lua:804:
+        -- addBookStatToDB executes: INSERT OR IGNORE INTO page_stat VALUES(?, ?, ?, ?)
+        -- But page_stat is a SQL VIEW defined in schema (underlying table is page_stat_data).
+        -- SQLite aborts with: cannot modify page_stat because it is a view.
+        local ok, err = pcall(function()
+          stats:addBookStatToDB(book_stats, conn)
+        end)
+        conn:close()
+
+        assert.is_true(
+          ok,
+          "addBookStatToDB should insert into underlying table without view modification error: "
+            .. tostring(err)
+        )
+      end
+    )
+
+    it(
+      "fails: exposes showCalendarDayView wrapping to today instead of yesterday when before day start hour",
+      function()
+        local CalendarView = require("plugins/statistics.koplugin/calendarview")
+        local UIManager = require("ui/uimanager")
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        stats.settings.calendar_day_start_hour = 23
+        stats.settings.calendar_day_start_minute = 0
+
+        -- 22:00 on 2026-10-10
+        local fixed_time = os.time({
+          year = 2026,
+          month = 10,
+          day = 10,
+          hour = 22,
+          min = 0,
+          sec = 0,
+        })
+        local orig_time = os.time
+        local orig_show = UIManager.show
+        local captured_view
+
+        finally(function()
+          os.time = orig_time
+          UIManager.show = orig_show
+        end)
+
+        os.time = function(t)
+          if not t then
+            return fixed_time
+          end
+          return orig_time(t)
+        end
+
+        UIManager.show = function(self, view)
+          captured_view = view
+        end
+
+        local cal_view = CalendarView:new({
+          ui = stats.ui,
+          reader_statistics = stats,
+        })
+
+        cal_view:showCalendarDayView(stats)
+
+        -- In calendarview.lua:1594:
+        -- date.hour * 3600 + date.min * 60 + date.sec < 23 * 3600 (22:00 < 23:00) is true.
+        -- It runs: date = os.date("*t", os.time() - 86400 + 10800) -- make sure it's the previous day
+        -- But adding 10800 (3 hours) shifts 22:00 (-24h + 3h = -21h) to 01:00 AM on today (2026-10-10).
+        -- Thus date.day remains 10 instead of wrapping to the previous day (9).
+        assert.is_not_nil(captured_view)
+        local resolved_date = os.date("*t", captured_view.day_ts)
+        assert.are.equal(
+          9,
+          resolved_date.day,
+          "CalendarDayView day_ts should be for yesterday (day 9) when before day start hour"
+        )
+      end
+    )
+  end)
 end)
