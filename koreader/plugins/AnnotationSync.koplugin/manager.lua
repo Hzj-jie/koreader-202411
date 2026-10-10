@@ -446,7 +446,14 @@ function SyncManager:_applyBackgroundSync(
     local income_list = json.decode(uploaded_json)
     local _, active =
       annotations.merge(local_list, base_list, income_list)
-    self.plugin:applySyncedAnnotations(document, active)
+    if
+      not util.tableEquals(
+        active,
+        annotations.sort(json.decode(json.encode(book_now)))
+      )
+    then
+      self.plugin:applySyncedAnnotations(document, active)
+    end
     self:_promoteSyncBase(file, uploaded_json)
   end
 

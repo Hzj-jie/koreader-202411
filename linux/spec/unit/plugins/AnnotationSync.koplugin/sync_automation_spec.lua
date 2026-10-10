@@ -219,6 +219,9 @@ describe("AnnotationSync Automation & Settings", function()
           readhistory.hist = old_hist
         end)
 
+        -- The scan picks up only history books that have a sidecar file.
+        readerui.doc_settings:flush()
+
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 

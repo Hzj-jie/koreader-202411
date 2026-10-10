@@ -185,7 +185,7 @@ describe("AnnotationSync manager book sync engine", function()
     assert.is_not_nil(b)
     assert.are.equal(1, #b)
     assert.are.equal("William Shakespeare", b[1].text)
-    assert.is_true(docsettings:open(book_b):read("annotations_externally_modified"))
+    assert.is_nil(docsettings:open(book_b):read("annotations_externally_modified"))
     assert.is_truthy(string.match(sync_instance.settings.last_sync, "^%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d$"))
     assert.is_nil(io.open(tmp_json(book_b), "r"))
     assert.is_nil(io.open(tmp_json(book_b) .. ".snapshot", "r"))
@@ -438,6 +438,10 @@ describe("AnnotationSync manager book sync engine", function()
   it("one sync of the open book writes the merged annotations into it once", function()
     readerui.annotation.annotations = { ann(1) }
     manager:_writeChangedDocumentsFile({ readerui.document.file })
+    util.writeToFile(
+      json.encode({ ann(2) }),
+      tmp_json(readerui.document.file) .. ".income"
+    )
 
     local count = 0
     local orig = AnnotationSyncPlugin.applySyncedAnnotations
@@ -455,5 +459,31 @@ describe("AnnotationSync manager book sync engine", function()
 
     assert.are.equal("Synced: juliet.epub", toasts[#toasts])
     assert.are.equal(1, count)
+    assert.are.equal(2, #readerui.annotation.annotations)
+  end)
+
+  it("a sync of the open book that changes nothing doesn't write it again", function()
+    os.remove(manager:getSyncCachePath(readerui.document.file))
+    readerui.annotation.annotations = { ann(1) }
+    manager:_writeChangedDocumentsFile({ readerui.document.file })
+
+    local count = 0
+    local orig = AnnotationSyncPlugin.applySyncedAnnotations
+    sync_instance.applySyncedAnnotations = function(self_plugin, ...)
+      count = count + 1
+      return orig(self_plugin, ...)
+    end
+
+    finally(function()
+      sync_instance.applySyncedAnnotations = nil
+      readerui.annotation.annotations = {}
+    end)
+
+    manager:syncNow(readerui.document.file)
+
+    assert.are.equal("Synced: juliet.epub", toasts[#toasts])
+    assert.are.equal(0, count)
+    assert.are.equal(1, #base(readerui.document.file))
+    assert.are.same({}, pending())
   end)
 end)
