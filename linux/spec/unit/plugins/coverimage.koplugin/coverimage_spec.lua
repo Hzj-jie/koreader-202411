@@ -724,4 +724,60 @@ describe("CoverImage plugin tests", function()
     assert.are.equal(test_dir .. "/new_cover.png", instance.cover_image_path)
     assert.spy(dummy_menu.updateItems).was_called()
   end)
+
+  it(
+    "fails: exposes getCacheFiles ignoring cache_path and cache_prefix parameters",
+    function()
+      local instance = CoverImage:new({ ui = createMockUI() })
+      local custom_cache_dir = test_dir .. "/custom_cache/"
+      lfs.mkdir(custom_cache_dir)
+      local f = io.open(custom_cache_dir .. "special_test.png", "w")
+      f:write("custom_data")
+      f:close()
+
+      -- getCacheFiles accepts (cache_path, cache_prefix)
+      -- But main.lua:350 iterates self.cover_image_cache_path instead of cache_path,
+      -- and main.lua:354 uses self.cover_image_cache_prefix:len() instead of cache_prefix:len().
+      local count = instance:getCacheFiles(custom_cache_dir, "special_")
+      os.remove(custom_cache_dir .. "special_test.png")
+      lfs.rmdir(custom_cache_dir)
+
+      assert.are.equal(1, count)
+    end
+  )
+
+  it(
+    "fails: exposes migrateCache preserving access time instead of modification time",
+    function()
+      local instance = CoverImage:new({ ui = createMockUI() })
+      local old_cache = test_dir .. "/old_cache_migration/"
+      local new_cache = test_dir .. "/new_cache_migration/"
+      lfs.mkdir(old_cache)
+      lfs.mkdir(new_cache)
+      local old_file = old_cache .. "cover_mig.png"
+      local new_file = new_cache .. "cover_mig.png"
+      local fo = io.open(old_file, "w")
+      fo:write("migrated_data")
+      fo:close()
+
+      -- Set distinct access time (2000000000) and modification time (1500000000)
+      local original_atime = 2000000000
+      local original_mtime = 1500000000
+      lfs.touch(old_file, original_atime, original_mtime)
+
+      instance:migrateCache(old_cache, new_cache)
+
+      local new_file_mtime = lfs.attributes(new_file, "modification")
+      os.remove(new_file)
+      lfs.rmdir(old_cache)
+      lfs.rmdir(new_cache)
+
+      -- In main.lua:443-446:
+      -- local old_access_time = lfs.attributes(old_file, "access")
+      -- lfs.touch(new_file, old_access_time)
+      -- It reads old "access" time and touches new_file without mtime,
+      -- corrupting new_file's modification time to access time (2000000000).
+      assert.are.equal(original_mtime, new_file_mtime)
+    end
+  )
 end)

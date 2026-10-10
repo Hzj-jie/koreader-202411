@@ -403,4 +403,242 @@ describe("VocabBuilder plugin", function()
       end
     )
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes onShowFilter callback executing filter toggle on empty toggled due to #toggled truthiness",
+      function()
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        settings.enabled = true
+        DB:insertOrUpdate({
+          word = "testword",
+          book_title = "Filter Book",
+          time = os.time(),
+        })
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+
+        local sort_widget = nil
+        local orig_show = UIManager.show
+        UIManager.show = function(self, widget)
+          if widget.title == "Filter words from books" then
+            sort_widget = widget
+          end
+          return orig_show(self, widget)
+        end
+        finally(function()
+          UIManager.show = orig_show
+          if sort_widget then
+            UIManager:close(sort_widget)
+          end
+          if vb.widget then
+            UIManager:close(vb.widget)
+          end
+        end)
+
+        vb.widget:onShowFilter()
+        assert.is_table(sort_widget)
+
+        local toggle_stub = stub(DB, "toggleBookFilter")
+        finally(function()
+          toggle_stub:revert()
+        end)
+
+        -- In main.lua:1973:
+        -- if #toggled then
+        -- In Lua, #toggled on empty table {} evaluates to 0, which is truthy.
+        -- Thus sort_widget.callback() calls DB:toggleBookFilter(toggled) with empty ids {}.
+        sort_widget.callback()
+
+        assert.stub(toggle_stub).was_not_called()
+      end
+    )
+
+    it(
+      "fails: exposes resetItems with reverse=true failing to re-synchronize item count with selectCount",
+      function()
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        settings.enabled = true
+        settings.reverse = nil
+
+        local now = os.time()
+        DB:insertOrUpdate({
+          word = "due_past1",
+          book_title = "Book A",
+          time = now - 300,
+        })
+        DB:insertOrUpdate({
+          word = "due_past2",
+          book_title = "Book A",
+          time = now - 200,
+        })
+        DB:insertOrUpdate({
+          word = "due_future",
+          book_title = "Book A",
+          time = now - 100,
+        })
+
+        local SQ3 = require("lua-ljsqlite3/init")
+        local db_conn = SQ3.open(DB.path)
+        db_conn:exec(
+          string.format(
+            "UPDATE vocabulary SET due_time = %d WHERE word = 'due_future';",
+            now + 100000
+          )
+        )
+        db_conn:close()
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+        local widget = vb.widget
+        assert.are.equal(3, #widget.item_table)
+
+        finally(function()
+          if widget then
+            UIManager:close(widget)
+          end
+        end)
+
+        -- In normal mode, item_table has 3 items.
+        -- When reverse is enabled, only items with due_time <= reload_time (2 items) are active.
+        -- But resetItems() only clears .word from existing item_table without re-sizing it via selectCount.
+        -- As a result, #widget.item_table remains 3 with unpopulated nil-word items.
+        settings.reverse = true
+        widget:resetItems()
+
+        assert.are.equal(DB:selectCount(widget), #widget.item_table)
+      end
+    )
+
+    it(
+      "fails: exposes cloud sync Delete and Edit not persisting settings locally",
+      function()
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        settings.enabled = true
+        settings.server = {
+          type = "dropbox",
+          name = "MyDrop",
+          url = "http://example.com",
+        }
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+        vb.widget:onShowMenu()
+
+        local active_menu =
+          UIManager._window_stack[#UIManager._window_stack].widget
+        assert.is_table(active_menu)
+
+        local sync_dialog
+        local orig_show = UIManager.show
+        UIManager.show = function(self, dlg)
+          if dlg.title and dlg.title:find("Cloud storage") then
+            sync_dialog = dlg
+          end
+          return orig_show(self, dlg)
+        end
+
+        local save_called = false
+        local orig_save = G_reader_settings.save
+        G_reader_settings.save = function(self)
+          save_called = true
+          return orig_save(self)
+        end
+
+        finally(function()
+          G_reader_settings.save = orig_save
+          UIManager.show = orig_show
+          if sync_dialog then
+            UIManager:close(sync_dialog)
+          end
+          if active_menu then
+            UIManager:close(active_menu)
+          end
+          if vb.widget then
+            UIManager:close(vb.widget)
+          end
+        end)
+
+        -- Find sync_button in active_menu.layout
+        local sync_button_cb
+        for _, row in ipairs(active_menu.layout or {}) do
+          for _, item in ipairs(row) do
+            if
+              item.text
+              and (
+                item.text:find("Synchronize")
+                or item.text:find("sync", 1, true)
+                or item.text:find("Cloud storage")
+              )
+            then
+              sync_button_cb = item.callback
+              break
+            end
+          end
+        end
+        assert.is_function(sync_button_cb)
+        sync_button_cb()
+
+        assert.is_table(sync_dialog)
+        local delete_btn = sync_dialog.buttons[1][1]
+        assert.are.equal("Delete", delete_btn.text)
+
+        delete_btn.callback()
+        -- In main.lua:248-253, Delete sets settings.server = nil but never calls saveSettings().
+        assert.is_true(
+          save_called,
+          "Deleting cloud storage server must persist settings locally via saveSettings"
+        )
+      end
+    )
+
+    it(
+      "fails: exposes onSync calling conn.exec instead of conn.rowexec causing empty DB to not return false",
+      function()
+        local DataStorage = require("datastorage")
+        local SQ3 = require("lua-ljsqlite3/init")
+        local empty_local_db = DataStorage:getSettingsDir()
+          .. "/empty_local.sqlite3"
+        local income_db = DataStorage:getSettingsDir() .. "/income.sqlite3"
+        local cached_db = DataStorage:getSettingsDir() .. "/cached.sqlite3"
+
+        finally(function()
+          os.remove(empty_local_db)
+          os.remove(income_db)
+          os.remove(cached_db)
+        end)
+
+        -- Create empty uninitialized local db (schema_version = 0)
+        local conn_l = SQ3.open(empty_local_db)
+        conn_l:close()
+
+        -- Copy initialized DB with schema to income_db
+        DB:init()
+        local ffiutil = require("ffi/util")
+        ffiutil.copyFile(DB.path, income_db)
+
+        -- In db.lua:574:
+        -- local ok3, v3 = pcall(conn.exec, conn, "PRAGMA schema_version")
+        -- conn.exec returns a result table { schema_version = { 0 } } instead of a scalar value.
+        -- tonumber(v3) returns nil.
+        -- tonumber(v3) == 0 evaluates to false!
+        -- Thus onSync fails to recognize that local DB is empty (schema_version = 0)
+        -- and fails to return false.
+        local res = DB.onSync(empty_local_db, cached_db, income_db)
+
+        -- Expected: onSync should safely detect empty local DB and return false
+        assert.is_false(
+          res,
+          "onSync must return false when local DB is empty (schema_version = 0)"
+        )
+      end
+    )
+  end)
 end)

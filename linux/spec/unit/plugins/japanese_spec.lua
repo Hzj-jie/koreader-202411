@@ -19,45 +19,51 @@ describe("Japanese plugin & Deinflector", function()
       assert.is_truthy(next(deinflector.rules))
     end)
 
-    it("should deinflect ichidan and godan past/negative forms verbatim", function()
-      local deinflector = Deinflector:new()
+    it(
+      "should deinflect ichidan and godan past/negative forms verbatim",
+      function()
+        local deinflector = Deinflector:new()
 
-      -- 食べた (tabeta) -> 食べる (taberu) [ichidan past]
-      local results_eat = deinflector:deinflectVerbatim("食べた")
-      local found_eat = false
-      for _, res in ipairs(results_eat) do
-        if res.term == "食べる" then
-          found_eat = true
-          break
+        -- 食べた (tabeta) -> 食べる (taberu) [ichidan past]
+        local results_eat = deinflector:deinflectVerbatim("食べた")
+        local found_eat = false
+        for _, res in ipairs(results_eat) do
+          if res.term == "食べる" then
+            found_eat = true
+            break
+          end
         end
-      end
-      assert.is_true(found_eat)
+        assert.is_true(found_eat)
 
-      -- 読まない (yomanai) -> 読む (yomu) [godan negative]
-      local results_read = deinflector:deinflectVerbatim("読まない")
-      local found_read = false
-      for _, res in ipairs(results_read) do
-        if res.term == "読む" then
-          found_read = true
-          break
+        -- 読まない (yomanai) -> 読む (yomu) [godan negative]
+        local results_read = deinflector:deinflectVerbatim("読まない")
+        local found_read = false
+        for _, res in ipairs(results_read) do
+          if res.term == "読む" then
+            found_read = true
+            break
+          end
         end
+        assert.is_true(found_read)
       end
-      assert.is_true(found_read)
-    end)
+    )
 
-    it("should support deinflect with text conversions (hiragana, katakana, half-width)", function()
-      local deinflector = Deinflector:new()
+    it(
+      "should support deinflect with text conversions (hiragana, katakana, half-width)",
+      function()
+        local deinflector = Deinflector:new()
 
-      -- Half-width to full-width or katakana to hiragana conversions
-      local results = deinflector:deinflect("たべた")
-      assert.is_table(results)
-      assert.is_true(#results > 0)
-      local terms = {}
-      for _, r in ipairs(results) do
-        terms[r.term] = true
+        -- Half-width to full-width or katakana to hiragana conversions
+        local results = deinflector:deinflect("たべた")
+        assert.is_table(results)
+        assert.is_true(#results > 0)
+        local terms = {}
+        for _, r in ipairs(results) do
+          terms[r.term] = true
+        end
+        assert.is_true(terms["たべる"] or terms["たべた"])
       end
-      assert.is_true(terms["たべる"] or terms["たべた"])
-    end)
+    )
 
     it("should respect disabled text conversions in deinflect", function()
       local deinflector = Deinflector:new()
@@ -111,6 +117,37 @@ describe("Japanese plugin & Deinflector", function()
 
       _G.G_reader_settings = G_reader_settings_orig
     end)
+
+    it(
+      "should not drop unmapped dakuten/handakuten and produce plain kana in deinflect",
+      function()
+        local deinflector = Deinflector:new()
+        local results = deinflector:deinflect("あﾞ")
+        local produced_plain_a = false
+        for _, r in ipairs(results) do
+          if r.term == "あ" then
+            produced_plain_a = true
+            break
+          end
+        end
+        -- Exposes production bug: kana_mapper drops trailing ﾞ from あﾞ, turning it into plain あ
+        assert.is_false(produced_plain_a)
+      end
+    )
+
+    it("should handle emphatic elongation collapse in deinflect", function()
+      local deinflector = Deinflector:new()
+      deinflector.enabled_text_conversions = {
+        ["collapse_emphatic"] = true,
+      }
+      local results = deinflector:deinflect("すごーーーい")
+      assert.is_table(results)
+      local terms = {}
+      for _, r in ipairs(results) do
+        terms[r.term] = true
+      end
+      assert.is_true(terms["すごい"] or terms["すごーい"])
+    end)
   end)
 
   describe("Japanese language plugin", function()
@@ -143,60 +180,153 @@ describe("Japanese plugin & Deinflector", function()
       assert.is_true(has_taberu)
     end)
 
-    it("should handle onWordSelection expansion using dictionary lookup", function()
-      local jp = Japanese:new()
-      jp.dictionary = {
-        rawSdcv = function(_self, words)
-          local results = {}
-          for i, w in ipairs(words) do
-            if w == "食べる" then
-              results[i] = { { definition = "to eat" } }
-            else
-              results[i] = {}
+    it(
+      "should handle onWordSelection expansion using dictionary lookup",
+      function()
+        local jp = Japanese:new()
+        jp.dictionary = {
+          rawSdcv = function(_self, words)
+            local results = {}
+            for i, w in ipairs(words) do
+              if w == "食べる" then
+                results[i] = { { definition = "to eat" } }
+              else
+                results[i] = {}
+              end
             end
-          end
-          return false, results
-        end,
-      }
+            return false, results
+          end,
+        }
 
-      local text_sequence = {
-        [0] = "食",
-        [1] = "べ",
-        [2] = "た",
-        [3] = "。",
-      }
+        local text_sequence = {
+          [0] = "食",
+          [1] = "べ",
+          [2] = "た",
+          [3] = "。",
+        }
 
-      local args = {
-        pos0 = 0,
-        text = "食",
-        callbacks = {
-          get_next_char_pos = function(p)
-            if p >= 3 then
+        local args = {
+          pos0 = 0,
+          text = "食",
+          callbacks = {
+            get_next_char_pos = function(p)
+              if p >= 3 then
+                return nil
+              end
+              return p + 1
+            end,
+            get_text_in_range = function(_p0, p1)
+              local s = ""
+              for i = 0, p1 do
+                s = s .. (text_sequence[i] or "")
+              end
+              return s
+            end,
+          },
+        }
+
+        local sel = jp:onWordSelection(args)
+        assert.is_table(sel)
+        assert.are.equal(0, sel[1])
+        assert.are.equal(2, sel[2])
+
+        -- Non-CJK skips expansion
+        local no_cjk_args = {
+          text = "abc",
+        }
+        assert.is_nil(jp:onWordSelection(no_cjk_args))
+      end
+    )
+
+    it(
+      "should handle end-of-text without crashing in onWordSelection",
+      function()
+        local jp = Japanese:new()
+        jp.dictionary = {
+          rawSdcv = function(_self, _words)
+            return false, {}
+          end,
+        }
+
+        local args = {
+          pos0 = 0,
+          text = "本",
+          callbacks = {
+            get_next_char_pos = function(_p)
               return nil
-            end
-            return p + 1
-          end,
-          get_text_in_range = function(_p0, p1)
-            local s = ""
-            for i = 0, p1 do
-              s = s .. (text_sequence[i] or "")
-            end
-            return s
-          end,
-        },
-      }
+            end,
+            get_text_in_range = function(_p0, p1)
+              if not p1 then
+                return nil
+              end
+              return "本"
+            end,
+          },
+        }
 
-      local sel = jp:onWordSelection(args)
-      assert.is_table(sel)
-      assert.are.equal(0, sel[1])
-      assert.are.equal(2, sel[2])
+        local ok = pcall(function()
+          return jp:onWordSelection(args)
+        end)
+        -- Exposes production bug: get_next_char_pos returning nil causes
+        -- callbacks.get_text_in_range(pos0, nil) returning nil, crashing
+        -- isPossibleJapaneseWord(nil) with 'attempt to index local str (a nil value)'
+        assert.is_true(ok)
+      end
+    )
 
-      -- Non-CJK skips expansion
-      local no_cjk_args = {
-        text = "abc",
-      }
-      assert.is_nil(jp:onWordSelection(no_cjk_args))
-    end)
+    it(
+      "should include 1-character Japanese words in dictionary candidates",
+      function()
+        local jp = Japanese:new()
+        jp.dictionary = {
+          rawSdcv = function(_self, words)
+            local results = {}
+            for i, w in ipairs(words) do
+              if w == "猫" then
+                results[i] = { { definition = "cat" } }
+              else
+                results[i] = {}
+              end
+            end
+            return false, results
+          end,
+        }
+
+        local text_sequence = {
+          [0] = "猫",
+          [1] = "。",
+        }
+
+        local args = {
+          pos0 = 0,
+          text = "猫",
+          callbacks = {
+            get_next_char_pos = function(p)
+              if p == 0 then
+                return 1
+              elseif p == 1 then
+                return 2
+              end
+              return nil
+            end,
+            get_text_in_range = function(_p0, p1)
+              local s = ""
+              for i = 0, (p1 or 0) - 1 do
+                s = s .. (text_sequence[i] or "")
+              end
+              return s
+            end,
+          },
+        }
+
+        local sel = jp:onWordSelection(args)
+        -- Exposes production bug: onWordSelection immediately advances pos1 past
+        -- the first character, omitting 1-character words followed by punctuation
+        assert.is_table(sel)
+        assert.are.equal(0, sel[1])
+        assert.are.equal(1, sel[2])
+      end
+    )
 
     it("should generate plugin menu item with scan length options", function()
       local jp = Japanese:new()

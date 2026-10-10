@@ -215,4 +215,195 @@ describe("BatteryState plugin tests #nocov", function()
       assert.are.equal(0, widget.charging.time)
     end
   )
+
+  describe("Usage methods", function()
+    local widget, Usage, State
+
+    before_each(function()
+      widget = stat()
+      Usage = getmetatable(widget.awake)
+      State = getmetatable(widget.awake_state)
+    end)
+
+    it("should initialize Usage with default values", function()
+      local u = Usage:new()
+      assert.are.equal(0, u.percentage)
+      assert.are.equal(0, u.time)
+      assert.are.equal(0, u:percentageRate())
+      assert.are.equal(0, u:percentageRatePerHour())
+      assert.are.equal("N/A", u:remainingTime())
+      assert.are.equal("N/A", u:chargingTime())
+    end)
+
+    it("should append state delta correctly", function()
+      local u = Usage:new()
+      local s = State:new()
+      MockTime:increase(60)
+      u:append(s)
+      assert.are.equal(time.s(60), u.time)
+      assert.is_number(u.percentage)
+    end)
+
+    it("should compute percentage rates and estimates", function()
+      local u = Usage:new({ percentage = 10, time = time.s(3600) })
+      assert.are.equal(10 / 3600, u:percentageRate())
+      assert.are.equal(10, u:percentageRatePerHour())
+      assert.is_number(u:remainingTime())
+      assert.is_number(u:chargingTime())
+    end)
+
+    it("should dump usage metrics into key-value pairs", function()
+      local u = Usage:new({ percentage = 5, time = time.s(1800) })
+      local kv = {}
+      u:dump(kv, "Custom label:")
+      assert.is_true(#kv >= 3)
+
+      u:dumpRemaining(kv)
+      assert.is_true(#kv >= 4)
+
+      u:dumpCharging(kv)
+      assert.is_true(#kv >= 5)
+    end)
+  end)
+
+  describe("dumpToText and showStatistics", function()
+    local widget, shown_widgets, dumped_lines
+    local UIManager
+
+    before_each(function()
+      UIManager = require("ui/uimanager")
+      widget = stat()
+      shown_widgets = {}
+      dumped_lines = {}
+
+      widget.dumpOrLog = function(_, content)
+        table.insert(dumped_lines, content)
+      end
+    end)
+
+    it("should dump text when BATTERY_STAT_DO_NOT_DUMP is false", function()
+      G_defaults:save("BATTERY_STAT_DO_NOT_DUMP", false)
+      widget:dumpToText()
+      assert.are.equal(1, #dumped_lines)
+      assert.is_true(dumped_lines[1]:find("Dump at") ~= nil)
+    end)
+
+    it(
+      "should suppress text dump when BATTERY_STAT_DO_NOT_DUMP is true",
+      function()
+        G_defaults:save("BATTERY_STAT_DO_NOT_DUMP", true)
+        widget:dumpToText()
+        assert.are.equal(0, #dumped_lines)
+        G_defaults:save("BATTERY_STAT_DO_NOT_DUMP", false)
+      end
+    )
+
+    it("should display statistics KeyValuePage on showStatistics", function()
+      local orig_show = UIManager.show
+      UIManager.show = function(_, w)
+        table.insert(shown_widgets, w)
+      end
+
+      widget:showStatistics()
+      assert.are.equal(1, #shown_widgets)
+      assert.is_not_nil(widget.kv_page)
+      assert.are.equal(widget.kv_page, shown_widgets[1])
+
+      UIManager.show = orig_show
+    end)
+  end)
+
+  describe("BatteryStatWidget callbacks and menu registration", function()
+    it("should forward events from BatteryStatWidget to BatteryStat", function()
+      local plugin_widget = module:new()
+      local bs = plugin_widget:stat()
+      local flushed, suspended, resumed = false, false, false
+      local orig_flush = bs.onFlushSettings
+      local orig_suspend = bs.onSuspend
+      local orig_resume = bs.onResume
+
+      bs.onFlushSettings = function()
+        flushed = true
+      end
+      bs.onSuspend = function()
+        suspended = true
+      end
+      bs.onResume = function()
+        resumed = true
+      end
+
+      plugin_widget:onFlushSettings()
+      assert.is_true(flushed)
+
+      plugin_widget:onSuspend()
+      assert.is_true(suspended)
+
+      plugin_widget:onResume()
+      assert.is_true(resumed)
+
+      bs.onFlushSettings = orig_flush
+      bs.onSuspend = orig_suspend
+      bs.onResume = orig_resume
+    end)
+
+    it("should register battery statistics in main menu", function()
+      local plugin_widget = module:new()
+      local menu_items = {}
+      plugin_widget:addToMainMenu(menu_items)
+
+      assert.is_table(menu_items.battery_statistics)
+      assert.is_function(menu_items.battery_statistics.callback)
+    end)
+  end)
+
+  describe(
+    "Accumulation vs reset ordering bugs in onCharging and onNotCharging",
+    function()
+      it(
+        "should call accumulate before reset on onCharging transition",
+        function()
+          local widget = stat()
+          local call_order = {}
+          local orig_accumulate = widget.accumulate
+          local orig_reset = widget.reset
+          widget.accumulate = function(self)
+            table.insert(call_order, "accumulate")
+            return orig_accumulate(self)
+          end
+          widget.reset = function(self, ...)
+            table.insert(call_order, "reset")
+            return orig_reset(self, ...)
+          end
+
+          widget.was_charging = false
+          widget:onCharging()
+
+          assert.are.same({ "accumulate", "reset" }, call_order)
+        end
+      )
+
+      it(
+        "should call accumulate before reset on onNotCharging transition",
+        function()
+          local widget = stat()
+          local call_order = {}
+          local orig_accumulate = widget.accumulate
+          local orig_reset = widget.reset
+          widget.accumulate = function(self)
+            table.insert(call_order, "accumulate")
+            return orig_accumulate(self)
+          end
+          widget.reset = function(self, ...)
+            table.insert(call_order, "reset")
+            return orig_reset(self, ...)
+          end
+
+          widget.was_charging = true
+          widget:onNotCharging()
+
+          assert.are.same({ "accumulate", "reset" }, call_order)
+        end
+      )
+    end
+  )
 end)

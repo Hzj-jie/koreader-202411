@@ -124,9 +124,15 @@ describe("SSH plugin main module", function()
       local orig_isKobo = Device.isKobo
       local orig_isKindle = Device.isKindle
 
-      Device.isEmulator = function() return false end
-      Device.isKobo = function() return false end
-      Device.isKindle = function() return true end
+      Device.isEmulator = function()
+        return false
+      end
+      Device.isKobo = function()
+        return false
+      end
+      Device.isKindle = function()
+        return true
+      end
 
       package.loaded["plugins/SSH.koplugin/main"] = nil
       local kindle_ssh = require("plugins/SSH.koplugin/main")
@@ -142,49 +148,55 @@ describe("SSH plugin main module", function()
   end)
 
   describe("Start and Stop SSH server", function()
-    it("should start dropbear server and display InfoMessage when not quiet", function()
-      local instance = createInstance()
-      instance.allow_no_password = false
-      instance.SSH_port = "2222"
+    it(
+      "should start dropbear server and display InfoMessage when not quiet",
+      function()
+        local instance = createInstance()
+        instance.allow_no_password = false
+        instance.SSH_port = "2222"
 
-      instance:start(false)
+        instance:start(false)
 
-      assert.are.equal(1, #shown_widgets)
-      local msg = shown_widgets[1]
-      assert.is_table(msg)
-      assert.is_true(msg.text:find("SSH server started") ~= nil)
+        assert.are.equal(1, #shown_widgets)
+        local msg = shown_widgets[1]
+        assert.is_table(msg)
+        assert.is_true(msg.text:find("SSH server started") ~= nil)
 
-      local dropbear_cmd = nil
-      for _, cmd in ipairs(executed_cmds) do
-        if cmd:find("dropbear") then
-          dropbear_cmd = cmd
-          break
+        local dropbear_cmd = nil
+        for _, cmd in ipairs(executed_cmds) do
+          if cmd:find("dropbear") then
+            dropbear_cmd = cmd
+            break
+          end
         end
+        assert.is_not_nil(dropbear_cmd)
+        assert.is_true(dropbear_cmd:find("-p2222") ~= nil)
+        assert.is_nil(dropbear_cmd:find("-n"))
       end
-      assert.is_not_nil(dropbear_cmd)
-      assert.is_true(dropbear_cmd:find("-p2222") ~= nil)
-      assert.is_nil(dropbear_cmd:find("-n"))
-    end)
+    )
 
-    it("should append -n when allow_no_password is true and suppress message when quiet", function()
-      local instance = createInstance()
-      instance.allow_no_password = true
-      instance.SSH_port = "2224"
+    it(
+      "should append -n when allow_no_password is true and suppress message when quiet",
+      function()
+        local instance = createInstance()
+        instance.allow_no_password = true
+        instance.SSH_port = "2224"
 
-      instance:start(true)
-      assert.are.equal(0, #shown_widgets) -- quiet suppresses message
+        instance:start(true)
+        assert.are.equal(0, #shown_widgets) -- quiet suppresses message
 
-      local dropbear_cmd = nil
-      for _, cmd in ipairs(executed_cmds) do
-        if cmd:find("dropbear") then
-          dropbear_cmd = cmd
-          break
+        local dropbear_cmd = nil
+        for _, cmd in ipairs(executed_cmds) do
+          if cmd:find("dropbear") then
+            dropbear_cmd = cmd
+            break
+          end
         end
+        assert.is_not_nil(dropbear_cmd)
+        assert.is_true(dropbear_cmd:find("-p2224") ~= nil)
+        assert.is_true(dropbear_cmd:find("-n") ~= nil)
       end
-      assert.is_not_nil(dropbear_cmd)
-      assert.is_true(dropbear_cmd:find("-p2224") ~= nil)
-      assert.is_true(dropbear_cmd:find("-n") ~= nil)
-    end)
+    )
 
     it("should show warning when dropbear execution fails", function()
       local instance = createInstance()
@@ -238,6 +250,35 @@ describe("SSH plugin main module", function()
       assert.is_true(has_devpts)
     end)
 
+    it(
+      "should create settings/SSH directory if it does not exist when starting",
+      function()
+        local instance = createInstance()
+        local ssh_dir_exists = false
+        local orig_path_exists = util.pathExists
+        util.pathExists = function(p)
+          if p and p:find("settings/SSH") then
+            return ssh_dir_exists
+          end
+          return orig_path_exists(p)
+        end
+
+        instance:start(true)
+
+        local mkdir_found = false
+        for _, cmd in ipairs(executed_cmds) do
+          if
+            cmd:find("mkdir", 1, true) and cmd:find("settings/SSH", 1, true)
+          then
+            mkdir_found = true
+            break
+          end
+        end
+        assert.is_true(mkdir_found)
+        util.pathExists = orig_path_exists
+      end
+    )
+
     it("should stop dropbear server and clean up pidfile", function()
       local instance = createInstance()
       is_pid_existing = true
@@ -264,7 +305,9 @@ describe("SSH plugin main module", function()
 
       -- Message displayed
       assert.are.equal(1, #shown_widgets)
-      assert.is_true(shown_widgets[1].text:find("SSH server stopped", 1, true) ~= nil)
+      assert.is_true(
+        shown_widgets[1].text:find("SSH server stopped", 1, true) ~= nil
+      )
 
       -- Kindle iptables teardown
       local has_iptables_del = false
@@ -295,79 +338,161 @@ describe("SSH plugin main module", function()
       assert.is_true(shown_widgets[2].text:find("SSH server stopped") ~= nil)
     end)
 
-    it("should show port dialog and save updated port upon confirmation", function()
-      local instance = createInstance()
-      local menu_updated = false
-      local mock_menu = {
-        updateItems = function()
-          menu_updated = true
-        end,
-      }
+    it(
+      "should show port dialog and save updated port upon confirmation",
+      function()
+        local instance = createInstance()
+        local menu_updated = false
+        local mock_menu = {
+          updateItems = function()
+            menu_updated = true
+          end,
+        }
 
-      instance:show_port_dialog(mock_menu)
-      assert.are.equal(1, #shown_widgets)
-      local dialog = shown_widgets[1]
-      assert.is_table(dialog)
+        instance:show_port_dialog(mock_menu)
+        assert.are.equal(1, #shown_widgets)
+        local dialog = shown_widgets[1]
+        assert.is_table(dialog)
 
-      -- Cancel callback closes dialog
-      dialog.buttons[1][1].callback()
-      assert.are.equal(1, #closed_widgets)
+        -- Cancel callback closes dialog
+        dialog.buttons[1][1].callback()
+        assert.are.equal(1, #closed_widgets)
 
-      -- Save callback updates SSH_port
-      dialog.getInputText = function()
-        return "2225"
+        -- Save callback updates SSH_port
+        dialog.getInputText = function()
+          return "2225"
+        end
+        dialog.buttons[1][2].callback()
+        assert.are.equal(2225, instance.SSH_port)
+        assert.is_true(menu_updated)
+        assert.are.equal(2, #closed_widgets)
       end
-      dialog.buttons[1][2].callback()
-      assert.are.equal(2225, instance.SSH_port)
-      assert.is_true(menu_updated)
-      assert.are.equal(2, #closed_widgets)
-    end)
+    )
 
-    it("should register menu items and trigger callbacks", function()
+    it(
+      "should return Start SSH server when stopped and Stop SSH server when running in menu text_func",
+      function()
+        local instance = createInstance()
+        local menu_items = {}
+        instance:addToMainMenu(menu_items)
+        local toggle_item = menu_items.ssh.sub_item_table[1]
+
+        is_pid_existing = false
+        assert.are.equal("Start SSH server", toggle_item.text_func())
+
+        is_pid_existing = true
+        assert.are.equal("Stop SSH server", toggle_item.text_func())
+      end
+    )
+
+    it(
+      "should handle SSH port menu item text, enabled state, and dialog save",
+      function()
+        local instance = createInstance()
+        local menu_items = {}
+        instance:addToMainMenu(menu_items)
+        local port_item = menu_items.ssh.sub_item_table[2]
+
+        instance.SSH_port = "2222"
+        assert.are.equal("SSH port (2222)", port_item.text_func())
+
+        is_pid_existing = false
+        assert.is_true(port_item.enabled_func())
+        is_pid_existing = true
+        assert.is_false(port_item.enabled_func())
+
+        local menu_updated = false
+        local mock_menu = {
+          updateItems = function()
+            menu_updated = true
+          end,
+        }
+
+        port_item.callback(mock_menu)
+        assert.are.equal(1, #shown_widgets)
+        local dialog = shown_widgets[1]
+        dialog.getInputText = function()
+          return "8022"
+        end
+        dialog.buttons[1][2].callback()
+        assert.are.equal(8022, instance.SSH_port)
+        assert.is_true(menu_updated)
+      end
+    )
+
+    it(
+      "should handle SSH public key menu item enabled state and callback",
+      function()
+        local instance = createInstance()
+        local menu_items = {}
+        instance:addToMainMenu(menu_items)
+        local pubkey_item = menu_items.ssh.sub_item_table[3]
+
+        is_pid_existing = false
+        assert.is_true(pubkey_item.enabled_func())
+        is_pid_existing = true
+        assert.is_false(pubkey_item.enabled_func())
+
+        pubkey_item.callback()
+        assert.are.equal(1, #shown_widgets)
+        local msg = shown_widgets[1]
+        assert.is_true(msg.text:find("authorized_keys", 1, true) ~= nil)
+      end
+    )
+
+    it("should toggle login without password via menu item", function()
       local instance = createInstance()
       local menu_items = {}
       instance:addToMainMenu(menu_items)
+      local nopw_item = menu_items.ssh.sub_item_table[4]
 
-      assert.is_table(menu_items.ssh)
-      assert.is_table(menu_items.ssh.sub_item_table)
-      local sub_items = menu_items.ssh.sub_item_table
-      assert.are.equal(5, #sub_items)
-
-      -- Item 1: Toggle server
-      local updated = false
-      local mock_menu = {
-        updateItems = function()
-          updated = true
-        end,
-      }
-      sub_items[1].callback(mock_menu)
-      assert.is_true(updated)
-
-      -- Item 2: Port configuration enabled when not running
       is_pid_existing = false
-      assert.is_true(sub_items[2].enabled_func())
+      assert.is_true(nopw_item.enabled_func())
       is_pid_existing = true
-      assert.is_false(sub_items[2].enabled_func())
+      assert.is_false(nopw_item.enabled_func())
 
-      -- Item 3: Public key info message
-      is_pid_existing = false
-      sub_items[3].callback()
-      local found_key_msg = false
-      for _, w in ipairs(shown_widgets) do
-        if w.text and w.text:find("authorized_keys") then
-          found_key_msg = true
-          break
+      instance.allow_no_password = false
+      assert.is_false(nopw_item.checked_func())
+
+      nopw_item.callback()
+      assert.is_true(instance.allow_no_password)
+      assert.is_true(nopw_item.checked_func())
+
+      nopw_item.callback()
+      assert.is_false(instance.allow_no_password)
+      assert.is_false(nopw_item.checked_func())
+    end)
+
+    it("should toggle auto start SSH server via menu item", function()
+      local instance = createInstance()
+      local menu_items = {}
+      instance:addToMainMenu(menu_items)
+      local autostart_item = menu_items.ssh.sub_item_table[5]
+
+      local autostart_val = false
+      local orig_isTrue = G_reader_settings.isTrue
+      local orig_flip = G_reader_settings.flipNilOrFalse
+      G_reader_settings.isTrue = function(_, key)
+        if key == "SSH_autostart" then
+          return autostart_val
+        end
+        return orig_isTrue(G_reader_settings, key)
+      end
+      G_reader_settings.flipNilOrFalse = function(_, key)
+        if key == "SSH_autostart" then
+          autostart_val = not autostart_val
+        else
+          orig_flip(G_reader_settings, key)
         end
       end
-      assert.is_true(found_key_msg)
 
-      -- Item 4: Login without password toggle
-      local prev_allow = instance.allow_no_password
-      sub_items[4].callback()
-      assert.are.equal(not prev_allow, instance.allow_no_password)
+      assert.is_false(autostart_item.checked_func())
+      autostart_item.callback()
+      assert.is_true(autostart_val)
+      assert.is_true(autostart_item.checked_func())
 
-      -- Item 5: Auto start toggle
-      sub_items[5].callback()
+      G_reader_settings.isTrue = orig_isTrue
+      G_reader_settings.flipNilOrFalse = orig_flip
     end)
 
     it("should handle autoStart when autostart setting is enabled", function()
