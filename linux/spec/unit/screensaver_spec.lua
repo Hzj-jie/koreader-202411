@@ -187,4 +187,39 @@ describe("Screensaver module", function()
 
     UIManager.show = orig_show
   end)
+
+  it(
+    "should fallback to disable when screensaver_type or screensaver_delay is unset",
+    function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      finally(function()
+        Screensaver:cleanup()
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+      end)
+      local closed_widget = nil
+      UIManager.show = function(_, w) end
+      UIManager.close = function(_, w)
+        closed_widget = w
+      end
+
+      -- When screensaver_type is unset, setup() defaults to "disable" and show() returns nil
+      G_reader_settings:delete("screensaver_type")
+      G_reader_settings:makeFalse("screensaver_show_message")
+      Screensaver:setup()
+      assert.are_equal("disable", Screensaver.screensaver_type)
+      local ret = Screensaver:show()
+      assert.is_nil(ret)
+      assert.is_nil(Screensaver.screensaver_widget)
+
+      -- When screensaver_delay is unset and screensaver_widget is set, close() falls back to "disable" and closes immediately
+      G_reader_settings:delete("screensaver_delay")
+      Screensaver.prefix = "screensaver_"
+      local mock_widget = { id = "mock_widget" }
+      Screensaver.screensaver_widget = mock_widget
+      Screensaver:close()
+      assert.are_equal(mock_widget, closed_widget)
+    end
+  )
 end)
