@@ -61,6 +61,19 @@ describe("SDL PowerD", function()
       assert.are.equal(50, SDLPowerD:frontlightIntensityHW())
       assert.are.equal(50, SDLPowerD:frontlightWarmthHW())
     end)
+
+    it(
+      "fails: setWarmthHW is implemented on SDLPowerD for Emulator natural light",
+      function()
+        -- Bug: SDLPowerD implements frontlightWarmthHW returning self.fl_warmth and
+        -- Emulator claims hasNaturalLight and hasNaturalLightApi, but SDLPowerD omits
+        -- implementing setWarmthHW.
+        assert.is_not_nil(
+          rawget(SDLPowerD, "setWarmthHW"),
+          "SDLPowerD should implement setWarmthHW to support natural light on Emulator"
+        )
+      end
+    )
   end)
 
   describe("setIntensityHW", function()
@@ -95,6 +108,25 @@ describe("SDL PowerD", function()
       end)
       assert.are.equal(0, SDLPowerD:getCapacityHW())
     end)
+
+    it(
+      "fails: getCapacityHW returns a fallback number and not nil when SDL power percent is nil",
+      function()
+        -- Bug: lines 28-35 in sdl/powerd.lua only maps percent == -1 to 0.
+        -- When SDL.getPowerInfo() returns nil for percent (e.g. AC-only desktops),
+        -- getCapacityHW returns nil instead of a numeric fallback like 0,
+        -- crashing callers performing numeric comparisons or arithmetic.
+        mock_SDL.getPowerInfo = spy.new(function()
+          return false, false, true, nil
+        end)
+        local cap = SDLPowerD:getCapacityHW()
+        assert.is_not_nil(
+          cap,
+          "getCapacityHW should return a numeric fallback instead of nil"
+        )
+        assert.is_number(cap)
+      end
+    )
   end)
 
   describe("isChargingHW", function()
