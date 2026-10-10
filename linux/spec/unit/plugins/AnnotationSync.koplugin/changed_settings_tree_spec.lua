@@ -264,4 +264,30 @@ describe("AnnotationSync changed settings tree", function()
       assert.is_not_equal("reader:auto_standby_timeout_seconds", item.setting_id)
     end
   end)
+
+  it("lists a table default changed to a plain value as one item", function()
+    local old_filter = G_reader_settings:read("show_filter")
+    G_reader_settings:save("show_filter", false)
+
+    local root_menu, _, cleanup = open_tree()
+    finally(function()
+      cleanup()
+      if old_filter == nil then
+        G_reader_settings:delete("show_filter")
+      else
+        G_reader_settings:save("show_filter", old_filter)
+      end
+    end)
+
+    assert.is_not_nil(root_menu)
+    local found_item
+    for _, item in ipairs(root_menu.item_table) do
+      if item.setting_id == "reader:show_filter" then
+        found_item = item
+        break
+      end
+    end
+    assert.is_not_nil(found_item)
+    assert.is_truthy(found_item.text_func():find("[] -> false", 1, true))
+  end)
 end)
