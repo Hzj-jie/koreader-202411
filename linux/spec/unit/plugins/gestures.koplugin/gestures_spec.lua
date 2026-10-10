@@ -575,4 +575,54 @@ describe("Gestures plugin", function()
       end
     )
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "friendlyMultiswipeName leaves a stray leading space when replacing multiswipe prefix",
+      function()
+        local name =
+          gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
+        -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
+        assert.are.equal("➡ ⬅", name)
+      end
+    )
+
+    it(
+      "multiswipes onboarding prompt is unreachable because init initializes multiswipes_enabled as boolean",
+      function()
+        local orig_read = G_reader_settings.read
+        local orig_isTrue = G_reader_settings.isTrue
+        G_reader_settings.read = function(self, key)
+          if key == "multiswipes_enabled" then
+            return nil
+          end
+          return orig_read(self, key)
+        end
+        G_reader_settings.isTrue = function(self, key)
+          if key == "multiswipes_enabled" then
+            return false
+          end
+          return orig_isTrue(self, key)
+        end
+        finally(function()
+          G_reader_settings.read = orig_read
+          G_reader_settings.isTrue = orig_isTrue
+        end)
+
+        local fresh_gestures = GesturesClass:new({
+          ui = mock_ui,
+          path = "plugins/gestures.koplugin",
+        })
+        -- Bug: init sets self.multiswipes_enabled = G_reader_settings:isTrue("multiswipes_enabled"),
+        -- which evaluates to boolean false instead of remaining nil when unconfigured.
+        assert.is_nil(fresh_gestures.multiswipes_enabled)
+
+        local show_stub = stub(UIManager, "show")
+        fresh_gestures:multiswipeAction("west east", { ges = "multiswipe" })
+        assert.stub(show_stub).was.called(1)
+        show_stub:revert()
+        fresh_gestures:onClose()
+      end
+    )
+  end)
 end)

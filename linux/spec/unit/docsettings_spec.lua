@@ -1981,4 +1981,31 @@ describe("docsettings module", function()
       obj:purge()
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "fails: exposes getSidecarFilename and getSidecarDir matching across / in dot-directories",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_path = "/home/user/.books/README"
+        assert.are.equal(
+          "metadata._.lua",
+          docsettings.getSidecarFilename(doc_path)
+        )
+        assert.are.equal(
+          "/home/user/.books/README.sdr",
+          docsettings:getSidecarDir(doc_path)
+        )
+      end
+    )
+
+    it(
+      "fails: exposes getFileFromHistory breaking on folder names with square brackets",
+      function()
+        local doc_path = "/books/[Sci-Fi]/Dune.epub"
+        local hist_path = docsettings:getHistoryPath(doc_path)
+        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_path))
+      end
+    )
+  end)
 end)
