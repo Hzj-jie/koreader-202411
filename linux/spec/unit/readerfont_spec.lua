@@ -409,64 +409,67 @@ describe("ReaderFont module", function()
       end
     end)
 
-    it("should handle font families menu callbacks and checkmark toggles", function()
-      local mock_ui = create_mock_ui()
-      local font_mod = ReaderFont:new({
-        font_face = "Noto Serif",
-        font_family_fonts = {},
-        ui = mock_ui,
-        configurable = create_default_configurable(),
-      })
+    it(
+      "should handle font families menu callbacks and checkmark toggles",
+      function()
+        local mock_ui = create_mock_ui()
+        local font_mod = ReaderFont:new({
+          font_face = "Noto Serif",
+          font_family_fonts = {},
+          ui = mock_ui,
+          configurable = create_default_configurable(),
+        })
 
-      G_reader_settings:save("cre_font_family_fonts", {
-        ["serif"] = "Noto Serif",
-        ["monospace"] = "Courier",
-      })
+        G_reader_settings:save("cre_font_family_fonts", {
+          ["serif"] = "Noto Serif",
+          ["monospace"] = "Courier",
+        })
 
-      local fam_table = font_mod:getFontFamiliesTable()
-      -- Ignore publisher fonts toggle
-      fam_table[1].checked_func()
-      fam_table[1].callback()
+        local fam_table = font_mod:getFontFamiliesTable()
+        -- Ignore publisher fonts toggle
+        fam_table[1].checked_func()
+        fam_table[1].callback()
 
-      for i = 2, #fam_table do
-        local fam_item = fam_table[i]
-        if fam_item.text_func then
-          fam_item.text_func()
-        end
-        if fam_item.font_func then
-          pcall(fam_item.font_func, 20)
-        end
-        if fam_item.checked_func then
-          fam_item.checked_func()
-        end
-        if fam_item.checkmark_callback then
-          fam_item.checkmark_callback()
-        end
-
-        if fam_item.sub_item_table then
-          if fam_item.sub_item_table.open_on_menu_item_id_func then
-            fam_item.sub_item_table.open_on_menu_item_id_func()
+        for i = 2, #fam_table do
+          local fam_item = fam_table[i]
+          if fam_item.text_func then
+            fam_item.text_func()
           end
-          for _, sub in ipairs(fam_item.sub_item_table) do
-            if sub.text_func then
-              sub.text_func()
+          if fam_item.font_func then
+            pcall(fam_item.font_func, 20)
+          end
+          if fam_item.checked_func then
+            fam_item.checked_func()
+          end
+          if fam_item.checkmark_callback then
+            fam_item.checkmark_callback()
+          end
+
+          if fam_item.sub_item_table then
+            if fam_item.sub_item_table.open_on_menu_item_id_func then
+              fam_item.sub_item_table.open_on_menu_item_id_func()
             end
-            if sub.font_func then
-              pcall(sub.font_func, 20)
-            end
-            if sub.checked_func then
-              sub.checked_func()
-            end
-            if sub.callback then
-              pcall(sub.callback)
-            end
-            if sub.hold_callback then
-              pcall(sub.hold_callback, { updateItems = function() end })
+            for _, sub in ipairs(fam_item.sub_item_table) do
+              if sub.text_func then
+                sub.text_func()
+              end
+              if sub.font_func then
+                pcall(sub.font_func, 20)
+              end
+              if sub.checked_func then
+                sub.checked_func()
+              end
+              if sub.callback then
+                pcall(sub.callback)
+              end
+              if sub.hold_callback then
+                pcall(sub.hold_callback, { updateItems = function() end })
+              end
             end
           end
         end
       end
-    end)
+    )
 
     it("should handle font settings table actions and widgets", function()
       local mock_ui = create_mock_ui()
@@ -540,4 +543,3 @@ describe("ReaderFont module", function()
     end)
   end)
 end)
-

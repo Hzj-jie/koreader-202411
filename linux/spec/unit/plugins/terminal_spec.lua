@@ -813,157 +813,165 @@ describe("Terminal plugin button tap integration", function()
     close_stub:revert()
   end)
 
-  it("should test generateInputDialog callbacks and enter/strike handlers", function()
-    local Terminal = require("plugins/terminal.koplugin/main")
-    local mock_ui = {
-      menu = { registerToMainMenu = function() end },
-    }
-    local terminal = Terminal:new({ ui = mock_ui })
-    terminal.input_face = require("ui/font"):getFace("smallinfont", 14)
+  it(
+    "should test generateInputDialog callbacks and enter/strike handlers",
+    function()
+      local Terminal = require("plugins/terminal.koplugin/main")
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local terminal = Terminal:new({ ui = mock_ui })
+      terminal.input_face = require("ui/font"):getFace("smallinfont", 14)
 
-    local transmitted = {}
-    terminal.transmit = function(self, chars)
-      table.insert(transmitted, chars)
+      local transmitted = {}
+      terminal.transmit = function(self, chars)
+        table.insert(transmitted, chars)
+      end
+
+      local dialog = terminal:generateInputDialog()
+      assert.is_table(dialog)
+      terminal.input_dialog = dialog
+
+      -- Test enter_callback
+      dialog.enter_callback()
+      assert.are.equal("\r", transmitted[#transmitted])
+
+      -- Test strike_callback
+      dialog.strike_callback("a")
+      assert.are.equal("a", transmitted[#transmitted])
+
+      -- Test strike_callback with Ctrl
+      terminal.ctrl = true
+      dialog.strike_callback("c")
+      assert.are.equal("\003", transmitted[#transmitted])
+
+      -- Test strike_callback newline
+      dialog.strike_callback("\n")
+      assert.are.equal("\r\n", transmitted[#transmitted])
+
+      -- Test cancel button (MultiConfirmBox)
+      local show_stub = stub(UIManager, "show")
+      local close_stub = stub(UIManager, "close")
+      local cancel_btn = dialog.button_table.buttons_layout[1][9]
+      cancel_btn.callback()
+      assert.stub(show_stub).was.called(1)
+      local confirm_box = show_stub.calls[1].vals[2]
+      assert.is_table(confirm_box)
+
+      -- Close choice
+      confirm_box.choice1_callback()
+      assert.stub(close_stub).was.called(1)
+
+      -- Quit choice
+      confirm_box.choice2_callback()
+      assert.stub(close_stub).was.called(2)
+
+      show_stub:revert()
+      close_stub:revert()
     end
+  )
 
-    local dialog = terminal:generateInputDialog()
-    assert.is_table(dialog)
-    terminal.input_dialog = dialog
+  it(
+    "should test TermInputText buffer operations and ANSI sequences",
+    function()
+      local TermInputText = require("plugins/terminal.koplugin/terminputtext")
+      local widget = TermInputText:new({
+        width = 400,
+        height = 300,
+        scroll = true,
+        face = require("ui/font"):getFace("smallinfont", 14),
+        parent = { setDirty = function() end },
+      })
 
-    -- Test enter_callback
-    dialog.enter_callback()
-    assert.are.equal("\r", transmitted[#transmitted])
+      -- 1. Test saveBuffer and restoreBuffer
+      widget:interpretAnsiSeq("First Buffer Text")
+      assert.are.equal("First Buffer Text", table.concat(widget.charlist))
 
-    -- Test strike_callback
-    dialog.strike_callback("a")
-    assert.are.equal("a", transmitted[#transmitted])
+      widget:saveBuffer("alternate_buffer")
+      assert.are.equal(0, #widget.charlist)
+      assert.are.equal(1, widget.charpos)
 
-    -- Test strike_callback with Ctrl
-    terminal.ctrl = true
-    dialog.strike_callback("c")
-    assert.are.equal("\003", transmitted[#transmitted])
+      widget:interpretAnsiSeq("Alternate Buffer Text")
+      assert.are.equal("Alternate Buffer Text", table.concat(widget.charlist))
 
-    -- Test strike_callback newline
-    dialog.strike_callback("\n")
-    assert.are.equal("\r\n", transmitted[#transmitted])
+      widget:restoreBuffer("alternate_buffer")
+      assert.are.equal("First Buffer Text", table.concat(widget.charlist))
 
-    -- Test cancel button (MultiConfirmBox)
-    local show_stub = stub(UIManager, "show")
-    local close_stub = stub(UIManager, "close")
-    local cancel_btn = dialog.button_table.buttons_layout[1][9]
-    cancel_btn.callback()
-    assert.stub(show_stub).was.called(1)
-    local confirm_box = show_stub.calls[1].vals[2]
-    assert.is_table(confirm_box)
+      -- 2. Test trimBuffer
+      widget.min_buffer_size = 5
+      widget:interpretAnsiSeq("\nline 1\nline 2\nline 3\n")
+      widget:trimBuffer(10)
+      assert.is_true(#widget.charlist <= 20)
 
-    -- Close choice
-    confirm_box.choice1_callback()
-    assert.stub(close_stub).was.called(1)
+      -- 3. Test ANSI sequences: Colors, Cursor movement, Clearing
+      -- SGR color
+      widget:interpretAnsiSeq("\027[31;1mRed Bold\027[0m")
+      -- Cursor UP / DOWN / LEFT / RIGHT
+      widget:interpretAnsiSeq("\027[2A\027[2B\027[3C\027[3D")
+      -- CUP cursor position
+      widget:interpretAnsiSeq("\027[2;5H")
+      -- ED erase in display
+      widget:interpretAnsiSeq("\027[2J")
+      -- EL erase in line
+      widget:interpretAnsiSeq("\027[0K\027[1K\027[2K")
+      -- DECSET / DECRST alternate screen
+      widget:interpretAnsiSeq("\027[?1049h")
+      widget:interpretAnsiSeq("\027[?1049l")
 
-    -- Quit choice
-    confirm_box.choice2_callback()
-    assert.stub(close_stub).was.called(2)
+      -- 4. Test scrolling & line navigation
+      widget:upLine()
+      widget:downLine()
+      widget:scrollUp()
+      widget:scrollDown()
 
-    show_stub:revert()
-    close_stub:revert()
-  end)
+      -- 5. Test escape Y row col positioning
+      widget:interpretAnsiSeq(string.format("\027Y%c%c", 32 + 2, 32 + 5))
 
-  it("should test TermInputText buffer operations and ANSI sequences", function()
-    local TermInputText = require("plugins/terminal.koplugin/terminputtext")
-    local widget = TermInputText:new({
-      width = 400,
-      height = 300,
-      scroll = true,
-      face = require("ui/font"):getFace("smallinfont", 14),
-      parent = { setDirty = function() end },
-    })
+      -- 6. Test save and restore cursor pos via DEC and SCO escape codes
+      widget:interpretAnsiSeq("Hello World")
+      widget:interpretAnsiSeq("\0277") -- DEC save
+      widget:interpretAnsiSeq("\027[2D")
+      widget:interpretAnsiSeq("\0278") -- DEC restore
+      widget:interpretAnsiSeq("\027[s") -- SCO save
+      widget:interpretAnsiSeq("\027[3D")
+      widget:interpretAnsiSeq("\027[u") -- SCO restore
 
-    -- 1. Test saveBuffer and restoreBuffer
-    widget:interpretAnsiSeq("First Buffer Text")
-    assert.are.equal("First Buffer Text", table.concat(widget.charlist))
+      -- 7. Test identify callback \027Z
+      local identified = nil
+      widget.strike_callback = function(seq)
+        identified = seq
+      end
+      widget:interpretAnsiSeq("\027Z")
+      assert.are.equal("\027/K", identified)
+      widget.strike_callback = nil
 
-    widget:saveBuffer("alternate_buffer")
-    assert.are.equal(0, #widget.charlist)
-    assert.are.equal(1, widget.charpos)
+      -- 8. Test alternate keypad
+      widget:interpretAnsiSeq("\027=")
+      widget:interpretAnsiSeq("Alternate Keypad Mode")
+      widget:interpretAnsiSeq("\027>")
 
-    widget:interpretAnsiSeq("Alternate Buffer Text")
-    assert.are.equal("Alternate Buffer Text", table.concat(widget.charlist))
+      -- 9. Test reverse line feed and scroll regions
+      widget:interpretAnsiSeq("\027[1;10r")
+      widget:interpretAnsiSeq("\027I")
+      widget:interpretAnsiSeq("\027[r") -- reset scroll region
 
-    widget:restoreBuffer("alternate_buffer")
-    assert.are.equal("First Buffer Text", table.concat(widget.charlist))
+      -- 10. Test line navigation and deletion methods
+      widget:goToStartOfLine(true)
+      widget:goToEndOfLine(true)
+      widget:goToStartOfLine(false)
+      widget:goToEndOfLine(false)
+      widget:delToEndOfLine()
+      widget:delToStartOfLine()
+      widget:delChar()
+      assert.is_true(widget:onTapTextBox())
 
-    -- 2. Test trimBuffer
-    widget.min_buffer_size = 5
-    widget:interpretAnsiSeq("\nline 1\nline 2\nline 3\n")
-    widget:trimBuffer(10)
-    assert.is_true(#widget.charlist <= 20)
-
-    -- 3. Test ANSI sequences: Colors, Cursor movement, Clearing
-    -- SGR color
-    widget:interpretAnsiSeq("\027[31;1mRed Bold\027[0m")
-    -- Cursor UP / DOWN / LEFT / RIGHT
-    widget:interpretAnsiSeq("\027[2A\027[2B\027[3C\027[3D")
-    -- CUP cursor position
-    widget:interpretAnsiSeq("\027[2;5H")
-    -- ED erase in display
-    widget:interpretAnsiSeq("\027[2J")
-    -- EL erase in line
-    widget:interpretAnsiSeq("\027[0K\027[1K\027[2K")
-    -- DECSET / DECRST alternate screen
-    widget:interpretAnsiSeq("\027[?1049h")
-    widget:interpretAnsiSeq("\027[?1049l")
-
-    -- 4. Test scrolling & line navigation
-    widget:upLine()
-    widget:downLine()
-    widget:scrollUp()
-    widget:scrollDown()
-
-    -- 5. Test escape Y row col positioning
-    widget:interpretAnsiSeq(string.format("\027Y%c%c", 32 + 2, 32 + 5))
-
-    -- 6. Test save and restore cursor pos via DEC and SCO escape codes
-    widget:interpretAnsiSeq("Hello World")
-    widget:interpretAnsiSeq("\0277") -- DEC save
-    widget:interpretAnsiSeq("\027[2D")
-    widget:interpretAnsiSeq("\0278") -- DEC restore
-    widget:interpretAnsiSeq("\027[s") -- SCO save
-    widget:interpretAnsiSeq("\027[3D")
-    widget:interpretAnsiSeq("\027[u") -- SCO restore
-
-    -- 7. Test identify callback \027Z
-    local identified = nil
-    widget.strike_callback = function(seq) identified = seq end
-    widget:interpretAnsiSeq("\027Z")
-    assert.are.equal("\027/K", identified)
-    widget.strike_callback = nil
-
-    -- 8. Test alternate keypad
-    widget:interpretAnsiSeq("\027=")
-    widget:interpretAnsiSeq("Alternate Keypad Mode")
-    widget:interpretAnsiSeq("\027>")
-
-    -- 9. Test reverse line feed and scroll regions
-    widget:interpretAnsiSeq("\027[1;10r")
-    widget:interpretAnsiSeq("\027I")
-    widget:interpretAnsiSeq("\027[r") -- reset scroll region
-
-    -- 10. Test line navigation and deletion methods
-    widget:goToStartOfLine(true)
-    widget:goToEndOfLine(true)
-    widget:goToStartOfLine(false)
-    widget:goToEndOfLine(false)
-    widget:delToEndOfLine()
-    widget:delToStartOfLine()
-    widget:delChar()
-    assert.is_true(widget:onTapTextBox())
-
-    -- 11. Test addChars with wrap=false and wide CJK replacement
-    widget.wrap = false
-    widget:addChars("Wide replacement: 中文字符测试")
-    widget.wrap = true
-    widget:addChars("\r\nNew line text\b\b")
-  end)
+      -- 11. Test addChars with wrap=false and wide CJK replacement
+      widget.wrap = false
+      widget:addChars("Wide replacement: 中文字符测试")
+      widget.wrap = true
+      widget:addChars("\r\nNew line text\b\b")
+    end
+  )
 
   it("should test Terminal menu items and settings dialogs", function()
     local Terminal = require("plugins/terminal.koplugin/main")
@@ -981,7 +989,9 @@ describe("Terminal plugin button tap integration", function()
     local shown_dialogs = {}
     local orig_show = UIManager.show
     local orig_close = UIManager.close
-    UIManager.show = function(self_uim, d) table.insert(shown_dialogs, d) end
+    UIManager.show = function(self_uim, d)
+      table.insert(shown_dialogs, d)
+    end
     UIManager.close = function() end
 
     -- 1. About dialog
@@ -1040,12 +1050,16 @@ describe("Terminal plugin button tap integration", function()
       btn_row[2].callback()
       -- Save button with valid shell
       inst.shell_dialog = {
-        getInputText = function() return "sh" end,
+        getInputText = function()
+          return "sh"
+        end,
       }
       btn_row[3].callback()
       -- Save button with non-executable shell
       inst.shell_dialog = {
-        getInputText = function() return "non_existent_shell_xyz_123" end,
+        getInputText = function()
+          return "non_existent_shell_xyz_123"
+        end,
       }
       btn_row[3].callback()
     end
@@ -1071,8 +1085,12 @@ describe("Terminal plugin button tap integration", function()
     inst:init()
 
     local transmitted = {}
-    inst.transmit = function(self, s) table.insert(transmitted, s) end
-    inst.receive = function() return "" end
+    inst.transmit = function(self, s)
+      table.insert(transmitted, s)
+    end
+    inst.receive = function()
+      return ""
+    end
     inst.refresh = function() end
 
     local dialog = inst:generateInputDialog()

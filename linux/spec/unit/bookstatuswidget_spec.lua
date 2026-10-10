@@ -20,7 +20,8 @@ describe("BookStatusWidget widget module", function()
   end)
 
   local function createMockUI(summary_data, page_count, current_page)
-    local summary = summary_data or { rating = 4, status = "reading", note = "Great book" }
+    local summary = summary_data
+      or { rating = 4, status = "reading", note = "Great book" }
     local flushed = false
     local mock_ui = {
       document = {
@@ -59,66 +60,91 @@ describe("BookStatusWidget widget module", function()
         return current_page or 10
       end,
     }
-    return mock_ui, function() return flushed end
+    return mock_ui, function()
+      return flushed
+    end
   end
 
-  it("should initialize BookStatusWidget in portrait mode with touch events", function()
-    local mock_ui = createMockUI()
-    local widget = BookStatusWidget:new({
-      ui = mock_ui,
-    })
-    assert.is_table(widget)
-    assert.is_table(widget.summary)
-    assert.are.equal(4, widget.summary.rating)
-    assert.are.equal(100, widget.total_pages)
-    assert.is_true(widget.dithered)
-    assert.is_not_nil(widget.star)
-    assert.is_not_nil(widget.ges_events.Swipe)
-    assert.is_not_nil(widget.ges_events.MultiSwipe)
-    assert.is_not_nil(widget[1])
-  end)
+  it(
+    "should initialize BookStatusWidget in portrait mode with touch events",
+    function()
+      local mock_ui = createMockUI()
+      local widget = BookStatusWidget:new({
+        ui = mock_ui,
+      })
+      assert.is_table(widget)
+      assert.is_table(widget.summary)
+      assert.are.equal(4, widget.summary.rating)
+      assert.are.equal(100, widget.total_pages)
+      assert.is_true(widget.dithered)
+      assert.is_not_nil(widget.star)
+      assert.is_not_nil(widget.ges_events.Swipe)
+      assert.is_not_nil(widget.ges_events.MultiSwipe)
+      assert.is_not_nil(widget[1])
+    end
+  )
 
-  it("should initialize BookStatusWidget in landscape mode and readonly mode", function()
-    local mock_ui = createMockUI()
-    local old_getMode = Device.screen.getScreenMode
-    Device.screen.getScreenMode = function() return "landscape" end
+  it(
+    "should initialize BookStatusWidget in landscape mode and readonly mode",
+    function()
+      local mock_ui = createMockUI()
+      local old_getMode = Device.screen.getScreenMode
+      Device.screen.getScreenMode = function()
+        return "landscape"
+      end
 
-    local widget = BookStatusWidget:new({
-      ui = mock_ui,
-      readonly = true,
-    })
-    assert.is_table(widget)
-    assert.is_true(widget.readonly)
-    assert.is_not_nil(widget.star)
-    assert.is_false(widget.star.enabled)
-    assert.is_true(widget.star.readonly)
+      local widget = BookStatusWidget:new({
+        ui = mock_ui,
+        readonly = true,
+      })
+      assert.is_table(widget)
+      assert.is_true(widget.readonly)
+      assert.is_not_nil(widget.star)
+      assert.is_false(widget.star.enabled)
+      assert.is_true(widget.star.readonly)
 
-    Device.screen.getScreenMode = old_getMode
-  end)
+      Device.screen.getScreenMode = old_getMode
+    end
+  )
 
-  it("should handle cover image thumbnail scaling when cover image is available", function()
-    local mock_ui = createMockUI()
-    local mock_bb = {
-      getWidth = function() return 500 end,
-      getHeight = function() return 800 end,
-    }
-    local scaled_bb = {
-      getWidth = function() return 132 end,
-      getHeight = function() return 184 end,
-    }
-    local old_getCover = FileManagerBookInfo.getCoverImage
-    local old_scale = RenderImage.scaleBlitBuffer
-    FileManagerBookInfo.getCoverImage = function() return mock_bb end
-    RenderImage.scaleBlitBuffer = function() return scaled_bb end
+  it(
+    "should handle cover image thumbnail scaling when cover image is available",
+    function()
+      local mock_ui = createMockUI()
+      local mock_bb = {
+        getWidth = function()
+          return 500
+        end,
+        getHeight = function()
+          return 800
+        end,
+      }
+      local scaled_bb = {
+        getWidth = function()
+          return 132
+        end,
+        getHeight = function()
+          return 184
+        end,
+      }
+      local old_getCover = FileManagerBookInfo.getCoverImage
+      local old_scale = RenderImage.scaleBlitBuffer
+      FileManagerBookInfo.getCoverImage = function()
+        return mock_bb
+      end
+      RenderImage.scaleBlitBuffer = function()
+        return scaled_bb
+      end
 
-    local widget = BookStatusWidget:new({
-      ui = mock_ui,
-    })
-    assert.is_table(widget)
+      local widget = BookStatusWidget:new({
+        ui = mock_ui,
+      })
+      assert.is_table(widget)
 
-    FileManagerBookInfo.getCoverImage = old_getCover
-    RenderImage.scaleBlitBuffer = old_scale
-  end)
+      FileManagerBookInfo.getCoverImage = old_getCover
+      RenderImage.scaleBlitBuffer = old_scale
+    end
+  )
 
   it("should handle statistics getters with default empty stats", function()
     local mock_ui = createMockUI()
@@ -163,7 +189,13 @@ describe("BookStatusWidget widget module", function()
       tick_cb = cb
     end
 
-    widget:onConfigChoose(nil, nil, nil, { "reading", "abandoned", "complete" }, 3)
+    widget:onConfigChoose(
+      nil,
+      nil,
+      nil,
+      { "reading", "abandoned", "complete" },
+      3
+    )
     assert.is_function(tick_cb)
 
     local dirty_called = false
@@ -255,7 +287,8 @@ describe("BookStatusWidget widget module", function()
   end)
 
   it("should handle onSwitchFocus and review InputDialog callbacks", function()
-    local mock_ui = createMockUI({ rating = 3, status = "reading", note = "Old note" })
+    local mock_ui =
+      createMockUI({ rating = 3, status = "reading", note = "Old note" })
     local widget = BookStatusWidget:new({
       ui = mock_ui,
     })
@@ -284,7 +317,9 @@ describe("BookStatusWidget widget module", function()
     assert.are.equal(widget.note_dialog, closed_widget)
 
     -- Test save button
-    widget.note_dialog.getInputText = function() return "Updated review note" end
+    widget.note_dialog.getInputText = function()
+      return "Updated review note"
+    end
     save_btn.callback()
     assert.are.equal("Updated review note", widget.summary.note)
     assert.are.equal("Updated review note", widget.input_note:getText())

@@ -29,7 +29,9 @@ describe("VerticalGroup", function()
     local w3 = createMockWidget(30, 10)
 
     local vg = VerticalGroup:new({
-      w1, w2, w3,
+      w1,
+      w2,
+      w3,
     })
 
     local size = vg:getSize()
@@ -42,7 +44,8 @@ describe("VerticalGroup", function()
     local w2 = createMockWidget(60, 50)
     local vg = VerticalGroup:new({
       align = "center",
-      w1, w2,
+      w1,
+      w2,
     })
 
     vg:paintTo({}, 10, 100)
@@ -58,7 +61,8 @@ describe("VerticalGroup", function()
     local w2 = createMockWidget(60, 50)
     local vg = VerticalGroup:new({
       align = "left",
-      w1, w2,
+      w1,
+      w2,
     })
 
     vg:paintTo({}, 10, 100)
@@ -71,7 +75,8 @@ describe("VerticalGroup", function()
     local w2 = createMockWidget(60, 50)
     local vg = VerticalGroup:new({
       align = "right",
-      w1, w2,
+      w1,
+      w2,
     })
 
     vg:paintTo({}, 10, 100)
@@ -82,49 +87,58 @@ describe("VerticalGroup", function()
     assert.are.same({ x = 10, y = 120 }, w2.painted_at)
   end)
 
-  it("should swap left and right alignment when RTL mirroring is enabled", function()
-    local orig_mirrored = BD.mirroredUILayout
-    BD.mirroredUILayout = function() return true end
+  it(
+    "should swap left and right alignment when RTL mirroring is enabled",
+    function()
+      local orig_mirrored = BD.mirroredUILayout
+      BD.mirroredUILayout = function()
+        return true
+      end
 
-    local w1 = createMockWidget(40, 20)
-    local vg_left = VerticalGroup:new({
-      align = "left",
-      w1,
-    })
-    vg_left:paintTo({}, 0, 0)
-    -- size.w = 40, align swapped to right: x = 0 + 40 - 40 = 0
-    local w2 = createMockWidget(40, 20)
-    local w3 = createMockWidget(60, 20)
-    local vg_left_multi = VerticalGroup:new({
-      align = "left",
-      w2, w3,
-    })
-    vg_left_multi:paintTo({}, 0, 0)
-    -- size.w = 60, align swapped to right: w2 x = 0 + 60 - 40 = 20
-    assert.are.equal(20, w2.painted_at.x)
+      local w1 = createMockWidget(40, 20)
+      local vg_left = VerticalGroup:new({
+        align = "left",
+        w1,
+      })
+      vg_left:paintTo({}, 0, 0)
+      -- size.w = 40, align swapped to right: x = 0 + 40 - 40 = 0
+      local w2 = createMockWidget(40, 20)
+      local w3 = createMockWidget(60, 20)
+      local vg_left_multi = VerticalGroup:new({
+        align = "left",
+        w2,
+        w3,
+      })
+      vg_left_multi:paintTo({}, 0, 0)
+      -- size.w = 60, align swapped to right: w2 x = 0 + 60 - 40 = 20
+      assert.are.equal(20, w2.painted_at.x)
 
-    local w4 = createMockWidget(40, 20)
-    local vg_right = VerticalGroup:new({
-      align = "right",
-      w4,
-    })
-    vg_right:paintTo({}, 15, 0)
-    -- align swapped to left: w4 x = 15
-    assert.are.equal(15, w4.painted_at.x)
+      local w4 = createMockWidget(40, 20)
+      local vg_right = VerticalGroup:new({
+        align = "right",
+        w4,
+      })
+      vg_right:paintTo({}, 15, 0)
+      -- align swapped to left: w4 x = 15
+      assert.are.equal(15, w4.painted_at.x)
 
-    BD.mirroredUILayout = orig_mirrored
-  end)
+      BD.mirroredUILayout = orig_mirrored
+    end
+  )
 
   it("should not swap alignment when allow_mirroring is false", function()
     local orig_mirrored = BD.mirroredUILayout
-    BD.mirroredUILayout = function() return true end
+    BD.mirroredUILayout = function()
+      return true
+    end
 
     local w1 = createMockWidget(40, 20)
     local w2 = createMockWidget(60, 20)
     local vg = VerticalGroup:new({
       allow_mirroring = false,
       align = "left",
-      w1, w2,
+      w1,
+      w2,
     })
     vg:paintTo({}, 10, 0)
     assert.are.equal(10, w1.painted_at.x)

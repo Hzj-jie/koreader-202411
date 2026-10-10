@@ -31,19 +31,23 @@ describe("Exporter main plugin module", function()
       annotation = { updatePageNumbers = stub() },
       view = { document = { file = "/dummy/path/test.epub" } },
     }
-    exporter_instance = Exporter:new({ ui = mock_ui, path = "plugins/exporter.koplugin" })
+    exporter_instance =
+      Exporter:new({ ui = mock_ui, path = "plugins/exporter.koplugin" })
   end)
 
   describe("Initialization and Actions", function()
-    it("should initialize Exporter plugin instance and register actions", function()
-      assert.is_table(exporter_instance)
-      assert.are.equal("exporter", exporter_instance.name)
-      assert.stub(mock_menu.registerToMainMenu).was.called(1)
-      assert.is_table(exporter_instance.targets)
-      assert.is_not_nil(exporter_instance.parser)
+    it(
+      "should initialize Exporter plugin instance and register actions",
+      function()
+        assert.is_table(exporter_instance)
+        assert.are.equal("exporter", exporter_instance.name)
+        assert.stub(mock_menu.registerToMainMenu).was.called(1)
+        assert.is_table(exporter_instance.targets)
+        assert.is_not_nil(exporter_instance.parser)
 
-      exporter_instance:onDispatcherRegisterActions()
-    end)
+        exporter_instance:onDispatcherRegisterActions()
+      end
+    )
 
     it("should check readiness flags correctly", function()
       exporter_instance.targets.html.settings.enabled = true
@@ -78,11 +82,15 @@ describe("Exporter main plugin module", function()
   describe("Export Operations", function()
     it("should handle onExportCurrentNotes", function()
       local run_with_stub = stub(UIManager, "runWith", function(self_u, fn, msg)
-        if type(fn) == "function" then fn() end
+        if type(fn) == "function" then
+          fn()
+        end
       end)
       exporter_instance.targets.html.settings.enabled = true
       exporter_instance.ui.document = { file = "test.epub" }
-      exporter_instance.getDocumentClippings = function() return { ["Test Book"] = {} } end
+      exporter_instance.getDocumentClippings = function()
+        return { ["Test Book"] = {} }
+      end
 
       local export_clip_stub = stub(exporter_instance, "exportClippings")
       exporter_instance:onExportCurrentNotes()
@@ -96,13 +104,17 @@ describe("Exporter main plugin module", function()
 
     it("should handle onExportAllNotes", function()
       local run_with_stub = stub(UIManager, "runWith", function(self_u, fn, msg)
-        if type(fn) == "function" then fn() end
+        if type(fn) == "function" then
+          fn()
+        end
       end)
       exporter_instance.targets.html.settings.enabled = true
 
       local parse_hist_stub = stub(exporter_instance.parser, "parseHistory")
       parse_hist_stub.returns({
-        ["Book 1"] = { { { page = 1, time = 100, text = "Note 1", note = "" } } },
+        ["Book 1"] = {
+          { { page = 1, time = 100, text = "Note 1", note = "" } },
+        },
         ["Empty Book"] = {},
       })
       local export_clip_stub = stub(exporter_instance, "exportClippings")
@@ -118,7 +130,9 @@ describe("Exporter main plugin module", function()
 
     it("should handle exportFilesNotes", function()
       local run_with_stub = stub(UIManager, "runWith", function(self_u, fn, msg)
-        if type(fn) == "function" then fn() end
+        if type(fn) == "function" then
+          fn()
+        end
       end)
       local parse_files_stub = stub(exporter_instance.parser, "parseFiles")
       parse_files_stub.returns({
@@ -144,11 +158,15 @@ describe("Exporter main plugin module", function()
 
       -- Test local target success & failure
       exporter_instance.targets.html.settings.enabled = true
-      exporter_instance.targets.html.export = function() return true end
-      exporter_instance.targets.html.getFilePath = function() return "/path/to/notes.html" end
+      exporter_instance.targets.html.export = function()
+        return true
+      end
+      exporter_instance.targets.html.getFilePath = function()
+        return "/path/to/notes.html"
+      end
 
       local fake_clippings = {
-        ["Book 1"] = { { { text = "Sample Highlight" } } }
+        ["Book 1"] = { { { text = "Sample Highlight" } } },
       }
 
       exporter_instance:exportClippings(fake_clippings)
@@ -159,10 +177,18 @@ describe("Exporter main plugin module", function()
       if exporter_instance.targets.readwise then
         exporter_instance.targets.readwise.settings.token = "valid_token"
         exporter_instance.targets.readwise.settings.enabled = true
-        exporter_instance.targets.readwise.export = function() return true end
-        local run_online_stub = stub(NetworkMgr, "runWhenOnline", function(self_n, fn)
-          if type(fn) == "function" then fn() end
-        end)
+        exporter_instance.targets.readwise.export = function()
+          return true
+        end
+        local run_online_stub = stub(
+          NetworkMgr,
+          "runWhenOnline",
+          function(self_n, fn)
+            if type(fn) == "function" then
+              fn()
+            end
+          end
+        )
 
         exporter_instance:exportClippings(fake_clippings)
         assert.stub(run_online_stub).was.called(1)
@@ -234,7 +260,9 @@ describe("Exporter main plugin module", function()
       -- 1. In filechooser mode
       exporter_instance.ui.file_chooser = { changeToPath = stub() }
       exporter_instance:_gotoFolder("/path/to/folder")
-      assert.stub(exporter_instance.ui.file_chooser.changeToPath).was.called_with(match.is_table(), "/path/to/folder")
+      assert
+        .stub(exporter_instance.ui.file_chooser.changeToPath).was
+        .called_with(match.is_table(), "/path/to/folder")
 
       -- 2. In reader mode
       exporter_instance.ui.file_chooser = nil
@@ -244,7 +272,9 @@ describe("Exporter main plugin module", function()
 
       exporter_instance:_gotoFolder("/path/to/folder")
       assert.stub(exporter_instance.ui.onExit).was.called(1)
-      assert.stub(show_files_stub).was.called_with(FileManager, "/path/to/folder")
+      assert
+        .stub(show_files_stub).was
+        .called_with(FileManager, "/path/to/folder")
 
       show_files_stub:revert()
     end)

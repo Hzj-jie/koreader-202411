@@ -8,36 +8,39 @@ describe("RadioButtonTable", function()
     Device = require("device")
   end)
 
-  it("should initialize with default buttons and select first button", function()
-    local selected_entry = nil
-    local table_widget = RadioButtonTable:new({
-      width = 300,
-      radio_buttons = {
-        {
-          { text = "Option A", provider = "a" },
-          { text = "Option B", provider = "b" },
+  it(
+    "should initialize with default buttons and select first button",
+    function()
+      local selected_entry = nil
+      local table_widget = RadioButtonTable:new({
+        width = 300,
+        radio_buttons = {
+          {
+            { text = "Option A", provider = "a" },
+            { text = "Option B", provider = "b" },
+          },
         },
-      },
-      button_select_callback = function(entry)
-        selected_entry = entry
-      end,
-    })
+        button_select_callback = function(entry)
+          selected_entry = entry
+        end,
+      })
 
-    assert.truthy(table_widget.checked_button)
-    assert.are.equal("Option A", table_widget.checked_button.text)
+      assert.truthy(table_widget.checked_button)
+      assert.are.equal("Option A", table_widget.checked_button.text)
 
-    -- Click second button
-    local btn2 = table_widget.radio_buttons_layout[1][2]
-    btn2.callback()
+      -- Click second button
+      local btn2 = table_widget.radio_buttons_layout[1][2]
+      btn2.callback()
 
-    assert.are.equal(btn2, table_widget.checked_button)
-    assert.truthy(selected_entry)
-    assert.are.equal("b", selected_entry.provider)
+      assert.are.equal(btn2, table_widget.checked_button)
+      assert.truthy(selected_entry)
+      assert.are.equal("b", selected_entry.provider)
 
-    -- Clicking already checked button does nothing
-    btn2.callback()
-    assert.are.equal(btn2, table_widget.checked_button)
-  end)
+      -- Clicking already checked button does nothing
+      btn2.callback()
+      assert.are.equal(btn2, table_widget.checked_button)
+    end
+  )
 
   it("should support zero_sep = true", function()
     local table_widget = RadioButtonTable:new({

@@ -30,7 +30,8 @@ describe("StreamMessageQueue module", function()
   end)
 
   it("should throw error on invalid connection parameters in start", function()
-    local smq = StreamMessageQueue:new({ host = "invalid.domain.99999", port = -1 })
+    local smq =
+      StreamMessageQueue:new({ host = "invalid.domain.99999", port = -1 })
     assert.has_error(function()
       smq:start()
     end)

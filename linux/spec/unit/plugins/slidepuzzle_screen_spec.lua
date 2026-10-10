@@ -81,49 +81,52 @@ describe("SlidePuzzle Screen module", function()
     screen:stopTicker()
   end)
 
-  it("should handle user tap/swipe, moves, new game, and size switches", function()
-    local orig_show = UIManager.show
-    local orig_close = UIManager.close
-    UIManager.show = function() end
-    UIManager.close = function() end
+  it(
+    "should handle user tap/swipe, moves, new game, and size switches",
+    function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      UIManager.show = function() end
+      UIManager.close = function() end
 
-    local game = Game:new(3)
-    local mock_plugin = create_mock_plugin(game)
-    local screen = Screen:new({
-      plugin = mock_plugin,
-      game = game,
-    })
+      local game = Game:new(3)
+      local mock_plugin = create_mock_plugin(game)
+      local screen = Screen:new({
+        plugin = mock_plugin,
+        game = game,
+      })
 
-    -- Tap tiles
-    screen:performTap(1, 1)
-    screen:performTap(3, 3)
+      -- Tap tiles
+      screen:performTap(1, 1)
+      screen:performTap(3, 3)
 
-    -- Swipes
-    screen:performSwipe("up")
-    screen:performSwipe("down")
-    screen:performSwipe("left")
-    screen:performSwipe("right")
+      -- Swipes
+      screen:performSwipe("up")
+      screen:performSwipe("down")
+      screen:performSwipe("left")
+      screen:performSwipe("right")
 
-    -- Size Dialog and Switch
-    screen:showSizeDialog()
-    screen:switchSize(4)
-    assert.are.equal(screen.game:getSize(), 4)
+      -- Size Dialog and Switch
+      screen:showSizeDialog()
+      screen:switchSize(4)
+      assert.are.equal(screen.game:getSize(), 4)
 
-    -- Stats
-    screen:showStats()
+      -- Stats
+      screen:showStats()
 
-    -- New game
-    screen:startNewGame()
+      -- New game
+      screen:startNewGame()
 
-    -- Paint to Blitbuffer
-    local bb = Blitbuffer.new(600, 800)
-    screen:paintTo(bb, 0, 0)
-    bb:free()
+      -- Paint to Blitbuffer
+      local bb = Blitbuffer.new(600, 800)
+      screen:paintTo(bb, 0, 0)
+      bb:free()
 
-    -- Close
-    screen:onClose()
+      -- Close
+      screen:onClose()
 
-    UIManager.show = orig_show
-    UIManager.close = orig_close
-  end)
+      UIManager.show = orig_show
+      UIManager.close = orig_close
+    end
+  )
 end)

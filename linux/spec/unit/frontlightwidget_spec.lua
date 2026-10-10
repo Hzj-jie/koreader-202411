@@ -15,14 +15,28 @@ describe("FrontLightWidget UI component", function()
   end)
 
   local function setupDevice(has_nl, has_nl_mixer, has_nl_api, few_keys)
-    Device.isKobo = function() return true end
+    Device.isKobo = function()
+      return true
+    end
     Device.model = "Kobo_dahlia"
-    Device.hasFrontlight = function() return true end
-    Device.hasNaturalLight = function() return has_nl or false end
-    Device.hasNaturalLightMixer = function() return has_nl_mixer or false end
-    Device.hasNaturalLightApi = function() return has_nl_api or false end
-    Device.hasFewKeys = function() return few_keys or false end
-    Device.isTouchDevice = function() return true end
+    Device.hasFrontlight = function()
+      return true
+    end
+    Device.hasNaturalLight = function()
+      return has_nl or false
+    end
+    Device.hasNaturalLightMixer = function()
+      return has_nl_mixer or false
+    end
+    Device.hasNaturalLightApi = function()
+      return has_nl_api or false
+    end
+    Device.hasFewKeys = function()
+      return few_keys or false
+    end
+    Device.isTouchDevice = function()
+      return true
+    end
 
     local current_intensity = 2
     local current_warmth = 5
@@ -43,20 +57,34 @@ describe("FrontLightWidget UI component", function()
         exponent = 1,
       },
     })
-    powerd_mock.frontlightIntensity = function() return current_intensity end
-    powerd_mock.setIntensity = function(self, val) current_intensity = val end
+    powerd_mock.frontlightIntensity = function()
+      return current_intensity
+    end
+    powerd_mock.setIntensity = function(self, val)
+      current_intensity = val
+    end
     powerd_mock.toggleFrontlight = function(self)
       current_intensity = (current_intensity == 0) and 2 or 0
     end
     powerd_mock.updateResumeFrontlightState = function() end
 
-    powerd_mock.frontlightWarmth = function() return current_warmth end
-    powerd_mock.setWarmth = function(self, val) current_warmth = val end
-    powerd_mock.toNativeWarmth = function(self, val) return val end
-    powerd_mock.fromNativeWarmth = function(self, val) return val end
+    powerd_mock.frontlightWarmth = function()
+      return current_warmth
+    end
+    powerd_mock.setWarmth = function(self, val)
+      current_warmth = val
+    end
+    powerd_mock.toNativeWarmth = function(self, val)
+      return val
+    end
+    powerd_mock.fromNativeWarmth = function(self, val)
+      return val
+    end
 
     Device.powerd = powerd_mock
-    Device.getPowerDevice = function() return powerd_mock end
+    Device.getPowerDevice = function()
+      return powerd_mock
+    end
     return powerd_mock
   end
 
@@ -64,42 +92,53 @@ describe("FrontLightWidget UI component", function()
     setupDevice(false, false, false, false)
   end)
 
-  it("should initialize frontlight properties correctly without natural light", function()
-    local flw = FrontLightWidget:new({})
-    assert.is_not_nil(flw)
-    assert.is.same(0, flw.fl.min)
-    assert.is.same(10, flw.fl.max)
-    assert.is.same(2, flw.fl.cur)
-    assert.is_nil(flw.nl)
-    assert.is_not_nil(flw.fl_minus)
-    assert.is_not_nil(flw.fl_plus)
-  end)
+  it(
+    "should initialize frontlight properties correctly without natural light",
+    function()
+      local flw = FrontLightWidget:new({})
+      assert.is_not_nil(flw)
+      assert.is.same(0, flw.fl.min)
+      assert.is.same(10, flw.fl.max)
+      assert.is.same(2, flw.fl.cur)
+      assert.is_nil(flw.nl)
+      assert.is_not_nil(flw.fl_minus)
+      assert.is_not_nil(flw.fl_plus)
+    end
+  )
 
-  it("should initialize with natural light and configure button when no mixer or api", function()
-    setupDevice(true, false, false, false)
-    local flw = FrontLightWidget:new({})
-    assert.is_not_nil(flw.nl)
-    assert.is.same(0, flw.nl.min)
-    assert.is.same(10, flw.nl.max)
-    assert.is.same(5, flw.nl.cur)
-    assert.is_not_nil(flw.nl_progress)
-    assert.is_not_nil(flw.nl_minus)
-    assert.is_not_nil(flw.nl_plus)
+  it(
+    "should initialize with natural light and configure button when no mixer or api",
+    function()
+      setupDevice(true, false, false, false)
+      local flw = FrontLightWidget:new({})
+      assert.is_not_nil(flw.nl)
+      assert.is.same(0, flw.nl.min)
+      assert.is.same(10, flw.nl.max)
+      assert.is.same(5, flw.nl.cur)
+      assert.is_not_nil(flw.nl_progress)
+      assert.is_not_nil(flw.nl_minus)
+      assert.is_not_nil(flw.nl_plus)
 
-    -- Test configure button callback
-    local shown_widget = nil
-    flw.showWidget = function(self, w) shown_widget = w end
-    local configure_btn = flw.layout[5][2]
-    assert.is_not_nil(configure_btn)
-    configure_btn.callback()
-    assert.is_not_nil(shown_widget)
-  end)
+      -- Test configure button callback
+      local shown_widget = nil
+      flw.showWidget = function(self, w)
+        shown_widget = w
+      end
+      local configure_btn = flw.layout[5][2]
+      assert.is_not_nil(configure_btn)
+      configure_btn.callback()
+      assert.is_not_nil(shown_widget)
+    end
+  )
 
-  it("should initialize with natural light when mixer or api is present", function()
-    setupDevice(true, true, false, true) -- few_keys = true, mixer = true
-    local flw = FrontLightWidget:new({})
-    assert.is_not_nil(flw.nl)
-  end)
+  it(
+    "should initialize with natural light when mixer or api is present",
+    function()
+      setupDevice(true, true, false, true) -- few_keys = true, mixer = true
+      local flw = FrontLightWidget:new({})
+      assert.is_not_nil(flw.nl)
+    end
+  )
 
   it("should handle all brightness button callbacks", function()
     local flw = FrontLightWidget:new({})
@@ -197,7 +236,9 @@ describe("FrontLightWidget UI component", function()
     local close_called = false
     local orig_close = UIManager.close
     UIManager.close = function(_, widget)
-      if widget == flw then close_called = true end
+      if widget == flw then
+        close_called = true
+      end
     end
 
     assert.is_true(flw:onShow())
@@ -216,7 +257,12 @@ describe("FrontLightWidget UI component", function()
     -- When dimensions are not yet set
     flw.fl_progress.dimen = nil
     flw.frame.dimen = nil
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 50, y = 50 }), ges = "tap" }))
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 50, y = 50 }), ges = "tap" }
+      )
+    )
 
     -- Set mock dimensions
     flw.frame.dimen = Geom:new({ x = 10, y = 10, w = 400, h = 300 })
@@ -226,34 +272,70 @@ describe("FrontLightWidget UI component", function()
     flw.fl_progress.getPercentageFromPosition = function(_, pos)
       return 0.7
     end
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 100, y = 60 }), ges = "tap" }))
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 100, y = 60 }), ges = "tap" }
+      )
+    )
     assert.are_equal(7, flw.fl.cur)
 
     -- Tap inside progress bar returning nil percentage
     flw.fl_progress.getPercentageFromPosition = function(_, pos)
       return nil
     end
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 100, y = 60 }), ges = "tap" }))
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 100, y = 60 }), ges = "tap" }
+      )
+    )
 
     -- Tap outside window frame triggers onExit
     local exit_called = false
-    flw.onExit = function() exit_called = true end
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 500, y = 500 }), ges = "tap" }))
+    flw.onExit = function()
+      exit_called = true
+    end
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 500, y = 500 }), ges = "tap" }
+      )
+    )
     assert.is_true(exit_called)
 
     -- Pan outside window frame does not trigger onExit
     exit_called = false
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 500, y = 500 }), ges = "pan" }))
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 500, y = 500 }), ges = "pan" }
+      )
+    )
     assert.is_false(exit_called)
 
     -- Low pan rate throttling
     local orig_low_pan = G_named_settings.low_pan_rate
-    G_named_settings.low_pan_rate = function() return true end
-    flw.fl_progress.getPercentageFromPosition = function(_, pos) return 0.4 end
+    G_named_settings.low_pan_rate = function()
+      return true
+    end
+    flw.fl_progress.getPercentageFromPosition = function(_, pos)
+      return 0.4
+    end
     flw.last_time = 0
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 100, y = 60 }), ges = "pan" }))
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 100, y = 60 }), ges = "pan" }
+      )
+    )
     -- Pan again immediately within rate window
-    assert.is_true(flw:onTapProgress(nil, { pos = Geom:new({ x = 100, y = 60 }), ges = "pan" }))
+    assert.is_true(
+      flw:onTapProgress(
+        nil,
+        { pos = Geom:new({ x = 100, y = 60 }), ges = "pan" }
+      )
+    )
     G_named_settings.low_pan_rate = orig_low_pan
 
     UIManager._window_stack = old_stack

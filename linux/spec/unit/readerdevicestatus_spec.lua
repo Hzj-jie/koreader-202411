@@ -151,7 +151,9 @@ describe("ReaderDeviceStatus", function()
         return true
       end,
       topdown_windows_iter = function()
-        return function() return nil end
+        return function()
+          return nil
+        end
       end,
     }
     package.loaded["ui/uimanager"] = UIManager
@@ -314,9 +316,15 @@ describe("ReaderDeviceStatus", function()
     })
 
     -- Critical battery (<= 5) with canSuspend
-    mock_device.canSuspend = function() return true end
-    mock_powerd.getCapacity = function() return 3 end
-    mock_powerd.isCharging = function() return false end
+    mock_device.canSuspend = function()
+      return true
+    end
+    mock_powerd.getCapacity = function()
+      return 3
+    end
+    mock_powerd.isCharging = function()
+      return false
+    end
     UIManager.suspend = spy.new(function() end)
 
     rds:_checkBatteryStatus()
@@ -326,16 +334,26 @@ describe("ReaderDeviceStatus", function()
     assert.truthy(scheduled[3])
     scheduled[3]()
     assert.spy(UIManager.suspend).was.called(1)
-    mock_device.canSuspend = function() return false end
+    mock_device.canSuspend = function()
+      return false
+    end
 
     -- Reset dismissed state with normal battery
-    mock_powerd.getCapacity = function() return 50 end
-    mock_powerd.isCharging = function() return false end
+    mock_powerd.getCapacity = function()
+      return 50
+    end
+    mock_powerd.isCharging = function()
+      return false
+    end
     rds:_checkBatteryStatus()
 
     -- High battery (> threshold_high = 95) while charging
-    mock_powerd.isCharging = function() return true end
-    mock_powerd.getCapacity = function() return 98 end
+    mock_powerd.isCharging = function()
+      return true
+    end
+    mock_powerd.getCapacity = function()
+      return 98
+    end
     rds:_checkBatteryStatus()
     local high_dialog = UIManager.getLastShownWidget()
     assert.truthy(high_dialog)
@@ -344,11 +362,15 @@ describe("ReaderDeviceStatus", function()
     end
 
     -- Reset dismissed when charge <= 95
-    mock_powerd.getCapacity = function() return 90 end
+    mock_powerd.getCapacity = function()
+      return 90
+    end
     rds:_checkBatteryStatus()
 
     -- onTimesChange_5M
-    _G.G_reader_settings.isTrue = function(self, key) return true end
+    _G.G_reader_settings.isTrue = function(self, key)
+      return true
+    end
     rds:onTimesChange_5M()
   end)
 
@@ -364,7 +386,9 @@ describe("ReaderDeviceStatus", function()
     io.open = function(path, mode)
       if path == "/proc/self/statm" then
         return {
-          read = function() return 100000, 51200 end,
+          read = function()
+            return 100000, 51200
+          end,
           close = function() end,
         }
       end
@@ -372,13 +396,19 @@ describe("ReaderDeviceStatus", function()
     end
 
     -- Test auto-restart when top widget is ReaderUI
-    UIManager.getTopmostVisibleWidget = function() return { name = "ReaderUI" } end
-    _G.G_reader_settings.isTrue = function(self, key) return true end
+    UIManager.getTopmostVisibleWidget = function()
+      return { name = "ReaderUI" }
+    end
+    _G.G_reader_settings.isTrue = function(self, key)
+      return true
+    end
     rds:_checkMemoryStatus()
     local restart_dialog = UIManager.getLastShownWidget()
     assert.truthy(restart_dialog)
     local scheduled = UIManager.getScheduledFuncs()
-    if scheduled[3] then scheduled[3]() end
+    if scheduled[3] then
+      scheduled[3]()
+    end
 
     -- Test addToMainMenu items
     local menu_items = {}
@@ -390,9 +420,15 @@ describe("ReaderDeviceStatus", function()
     local mock_menu = { updateItems = function() end }
 
     for _, item in ipairs(menu_items.device_status_alarm.sub_item_table) do
-      if item.text_func then item:text_func() end
-      if item.enabled_func then item:enabled_func() end
-      if item.checked_func then item:checked_func() end
+      if item.text_func then
+        item:text_func()
+      end
+      if item.enabled_func then
+        item:enabled_func()
+      end
+      if item.checked_func then
+        item:checked_func()
+      end
       if item.callback then
         item.callback(mock_menu)
         local top = UIManager.getLastShownWidget()

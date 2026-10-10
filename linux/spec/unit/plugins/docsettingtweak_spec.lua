@@ -12,7 +12,8 @@ describe("DocSettingTweak plugin module", function()
     UIManager = require("ui/uimanager")
     LuaSettings = require("luasettings")
 
-    defaults_path = FFIUtil.joinPath(DataStorage:getSettingsDir(), "directory_defaults.lua")
+    defaults_path =
+      FFIUtil.joinPath(DataStorage:getSettingsDir(), "directory_defaults.lua")
     DocSettingTweak = require("plugins/docsettingtweak.koplugin/main")
   end)
 
@@ -34,27 +35,30 @@ describe("DocSettingTweak plugin module", function()
     os.remove(defaults_path)
   end)
 
-  it("should initialize DocSettingTweak plugin and create directory_defaults.lua", function()
-    local registered = false
-    local mock_ui = {
-      menu = {
-        registerToMainMenu = function(self_m, plugin)
-          registered = true
-        end,
-      },
-    }
+  it(
+    "should initialize DocSettingTweak plugin and create directory_defaults.lua",
+    function()
+      local registered = false
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function(self_m, plugin)
+            registered = true
+          end,
+        },
+      }
 
-    local inst = DocSettingTweak:new({
-      ui = mock_ui,
-      path = "plugins/docsettingtweak.koplugin",
-    })
-    inst:init()
+      local inst = DocSettingTweak:new({
+        ui = mock_ui,
+        path = "plugins/docsettingtweak.koplugin",
+      })
+      inst:init()
 
-    assert.is_true(registered)
-    local f = io.open(defaults_path, "r")
-    assert.is_not_nil(f)
-    f:close()
-  end)
+      assert.is_true(registered)
+      local f = io.open(defaults_path, "r")
+      assert.is_not_nil(f)
+      f:close()
+    end
+  )
 
   it("should add main menu item and trigger editDirectoryDefaults", function()
     local mock_ui = {
@@ -73,7 +77,9 @@ describe("DocSettingTweak plugin module", function()
 
     local shown_widget
     local orig_show = UIManager.show
-    UIManager.show = function(self_uim, w) shown_widget = w end
+    UIManager.show = function(self_uim, w)
+      shown_widget = w
+    end
 
     menu_items.doc_setting_tweak.callback()
     assert.is_table(shown_widget)
@@ -115,14 +121,19 @@ describe("DocSettingTweak plugin module", function()
 
     -- Write defaults configuration
     local test_dir = DataStorage:getDataDir() .. "/test_folder"
-    local defaults_content = string.format("return { ['%s'] = { font_size = 40, font_face = 'Serif' } }", test_dir)
+    local defaults_content = string.format(
+      "return { ['%s'] = { font_size = 40, font_face = 'Serif' } }",
+      test_dir
+    )
     local f = io.open(defaults_path, "w")
     f:write(defaults_content)
     f:close()
     inst:loadDefaults()
 
     _G.G_named_settings = {
-      home_dir = function() return DataStorage:getDataDir() end,
+      home_dir = function()
+        return DataStorage:getDataDir()
+      end,
     }
 
     -- 1. Document with doc_props (already opened) should not be overridden

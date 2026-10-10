@@ -282,9 +282,15 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       local orig_get = Input.getClipboardText
       local orig_set = Input.setClipboardText
 
-      Input.hasClipboardText = function() return clip_storage ~= "" end
-      Input.getClipboardText = function() return clip_storage end
-      Input.setClipboardText = function(t) clip_storage = t or "" end
+      Input.hasClipboardText = function()
+        return clip_storage ~= ""
+      end
+      Input.getClipboardText = function()
+        return clip_storage
+      end
+      Input.setClipboardText = function(t)
+        clip_storage = t or ""
+      end
 
       Input.setClipboardText("KORTestClip")
       assert.is_true(Input.hasClipboardText())
@@ -386,7 +392,9 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
         device = require("device"),
       })
       custom_input.gesture_detector = {
-        getClockSource = function() return C.CLOCK_MONOTONIC end,
+        getClockSource = function()
+          return C.CLOCK_MONOTONIC
+        end,
       }
       custom_input:clearTimeouts()
       assert.is_equal(0, #custom_input.timer_callbacks)
@@ -430,8 +438,11 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
         device = require("device"),
       })
       custom_input.event_map[103] = "Up"
-      local res =
-        custom_input:handleKeyBoardEv({ type = C.EV_KEY, code = 103, value = 1 })
+      local res = custom_input:handleKeyBoardEv({
+        type = C.EV_KEY,
+        code = 103,
+        value = 1,
+      })
       assert.is_table(res)
       assert.is_equal("Right", res.args[1].key)
 

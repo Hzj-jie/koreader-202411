@@ -143,13 +143,16 @@ describe("TextViewer", function()
     -- Register
     local mock_reg = {
       addAuxProvider = function(self, prov)
-        if prov.enabled_func then prov.enabled_func("test.txt") end
+        if prov.enabled_func then
+          prov.enabled_func("test.txt")
+        end
       end,
-      isTextFile = function() return true end,
+      isTextFile = function()
+        return true
+      end,
     }
     tv:register(mock_reg)
 
     UIManager:close(tv)
   end)
 end)
-
