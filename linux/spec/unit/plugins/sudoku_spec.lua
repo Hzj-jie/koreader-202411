@@ -297,4 +297,31 @@ describe("Sudoku plugin", function()
       UIManager.show = orig_show
     end
   )
+
+  it(
+    "should map right and bottom grid boundary points in SudokuBoardWidget:getCellFromPoint",
+    function()
+      local Geom = require("ui/geometry")
+      local sudoku = createMockSudoku()
+      local orig_show = UIManager.show
+      UIManager.show = function() end
+      sudoku:showGame()
+      local screen = sudoku.screen
+      local widget = screen.board_widget
+
+      widget.paint_rect = Geom:new({ x = 10, y = 20, w = 450, h = 450 })
+
+      -- Rightmost boundary pixel on row 1: x = 10 + 450 = 460, y = 20 + 25 = 45
+      local r, c = widget:getCellFromPoint(460, 45)
+      assert.are.equal(1, r)
+      assert.are.equal(9, c)
+
+      -- Bottommost boundary pixel on col 1: x = 10 + 25 = 35, y = 20 + 450 = 470
+      r, c = widget:getCellFromPoint(35, 470)
+      assert.are.equal(9, r)
+      assert.are.equal(1, c)
+
+      UIManager.show = orig_show
+    end
+  )
 end)
