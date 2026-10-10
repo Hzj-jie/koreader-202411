@@ -118,6 +118,27 @@ describe("SSH plugin main module", function()
       assert.are.equal("2222", instance.SSH_port)
       assert.is_false(instance:isRunning())
     end)
+
+    it("should not disable SSH plugin on Kindle devices", function()
+      local orig_isEmulator = Device.isEmulator
+      local orig_isKobo = Device.isKobo
+      local orig_isKindle = Device.isKindle
+
+      Device.isEmulator = function() return false end
+      Device.isKobo = function() return false end
+      Device.isKindle = function() return true end
+
+      package.loaded["plugins/SSH.koplugin/main"] = nil
+      local kindle_ssh = require("plugins/SSH.koplugin/main")
+
+      Device.isEmulator = orig_isEmulator
+      Device.isKobo = orig_isKobo
+      Device.isKindle = orig_isKindle
+      package.loaded["plugins/SSH.koplugin/main"] = SSH
+
+      assert.is_nil(kindle_ssh.disabled)
+      assert.is_function(kindle_ssh.new)
+    end)
   end)
 
   describe("Start and Stop SSH server", function()
