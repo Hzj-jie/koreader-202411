@@ -69,6 +69,30 @@ describe("AnnotationSync internationalization", function()
       "无法读取 %1，已跳过同步。",
       _("Cannot read %1. Skipped syncing it.")
     )
+    assert.are.equal(
+      "已成功导入 %1 项设置。",
+      _.ngettext(
+        "Successfully imported 1 setting.",
+        "Successfully imported %1 settings.",
+        1
+      )
+    )
+    assert.are.equal(
+      "确定要恢复全部 %1 条已删除的标注吗？",
+      _.ngettext(
+        "Are you sure you want to restore 1 deleted annotation?",
+        "Are you sure you want to restore all %1 deleted annotations?",
+        1
+      )
+    )
+    assert.are.equal(
+      "已恢复 %1 条标注。",
+      _.ngettext("Restored 1 annotation.", "Restored %1 annotations.", 1)
+    )
+    assert.are.equal(
+      "找不到 %1，已将其从待同步书籍中移除。",
+      _("Cannot find %1. Removed it from pending books.")
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -104,6 +128,30 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "無法讀取 %1，已跳過同步。",
       _("Cannot read %1. Skipped syncing it.")
+    )
+    assert.are.equal(
+      "已成功匯入 %1 項設定。",
+      _.ngettext(
+        "Successfully imported 1 setting.",
+        "Successfully imported %1 settings.",
+        1
+      )
+    )
+    assert.are.equal(
+      "確定要還原全部 %1 條已刪除的標註嗎？",
+      _.ngettext(
+        "Are you sure you want to restore 1 deleted annotation?",
+        "Are you sure you want to restore all %1 deleted annotations?",
+        1
+      )
+    )
+    assert.are.equal(
+      "已還原 %1 條標註。",
+      _.ngettext("Restored 1 annotation.", "Restored %1 annotations.", 1)
+    )
+    assert.are.equal(
+      "找不到 %1，已將其從待同步書籍中移除。",
+      _("Cannot find %1. Removed it from pending books.")
     )
   end)
 end)

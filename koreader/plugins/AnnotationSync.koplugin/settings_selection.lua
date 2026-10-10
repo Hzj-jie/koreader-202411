@@ -3,6 +3,7 @@ local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
+local utils = require("plugins/AnnotationSync.koplugin/utils")
 local SettingsSelection = {}
 
 function SettingsSelection.show(plugin)
@@ -63,7 +64,7 @@ function SettingsSelection.show(plugin)
         return false
       end
     end
-    return true
+    return count > 0
   end
 
   local function format_val(val)
@@ -72,7 +73,7 @@ function SettingsSelection.show(plugin)
     elseif type(val) == "boolean" then
       return val and "true" or "false"
     elseif type(val) == "table" then
-      if is_array(val) then
+      if next(val) == nil or is_array(val) then
         local parts = {}
         for _, v in ipairs(val) do
           table.insert(parts, format_val(v))
@@ -87,15 +88,9 @@ function SettingsSelection.show(plugin)
   end
 
   local function is_excluded(domain, path)
-    local full_path = domain .. ":" .. table.concat(path, ".")
+    local full_path = domain .. ":" .. utils.join_setting_path(path)
     if excluded[full_path] then
       return true
-    end
-    for i = 1, #path do
-      local sub_path = domain .. ":" .. table.concat(path, ".", 1, i)
-      if excluded[sub_path] then
-        return true
-      end
     end
     return false
   end
@@ -116,6 +111,7 @@ function SettingsSelection.show(plugin)
           domain = domain,
           key = path[#path],
           full_key = table.concat(path, "."),
+          setting_id = domain .. ":" .. utils.join_setting_path(path),
           vanilla = format_val(vanilla),
           active = format_val(active),
         })
@@ -125,13 +121,13 @@ function SettingsSelection.show(plugin)
 
     -- Case 2: One is a table and the other is not
     if v_is_table ~= a_is_table then
-      local tbl = v_is_table and vanilla or active
-      if is_array(tbl) then
+      if not a_is_table or is_array(active) then
         table.insert(parent_node.children, {
           type = "leaf",
           domain = domain,
           key = path[#path],
           full_key = table.concat(path, "."),
+          setting_id = domain .. ":" .. utils.join_setting_path(path),
           vanilla = format_val(vanilla),
           active = format_val(active),
         })
@@ -143,25 +139,9 @@ function SettingsSelection.show(plugin)
           full_key = table.concat(path, "."),
           children = {},
         }
-        local keys = {}
-        if v_is_table then
-          for k in pairs(vanilla) do
-            keys[k] = true
-          end
-        else
-          for k in pairs(active) do
-            keys[k] = true
-          end
-        end
-        for k in pairs(keys) do
+        for k, v in pairs(active) do
           table.insert(path, k)
-          build_diff_tree(
-            domain,
-            v_is_table and vanilla[k] or nil,
-            a_is_table and active[k] or nil,
-            path,
-            branch
-          )
+          build_diff_tree(domain, nil, v, path, branch)
           table.remove(path)
         end
         if #branch.children > 0 then
@@ -184,6 +164,7 @@ function SettingsSelection.show(plugin)
           domain = domain,
           key = path[#path],
           full_key = table.concat(path, "."),
+          setting_id = domain .. ":" .. utils.join_setting_path(path),
           vanilla = v_str,
           active = a_str,
         })
@@ -200,17 +181,9 @@ function SettingsSelection.show(plugin)
       children = {},
     }
 
-    local all_keys = {}
-    for k in pairs(vanilla) do
-      all_keys[k] = true
-    end
-    for k in pairs(active) do
-      all_keys[k] = true
-    end
-
-    for k in pairs(all_keys) do
+    for k, v in pairs(active) do
       table.insert(path, k)
-      build_diff_tree(domain, vanilla[k], active[k], path, branch)
+      build_diff_tree(domain, vanilla[k], v, path, branch)
       table.remove(path)
     end
 
@@ -228,22 +201,14 @@ function SettingsSelection.show(plugin)
     local ok_v, vanilla_tbl = pcall(dofile, vanilla_path)
     local ok_a, active_tbl = pcall(dofile, active_path)
 
-    local all_keys = {}
-    if ok_v and type(vanilla_tbl) == "table" then
-      for k in pairs(vanilla_tbl) do
-        all_keys[k] = true
-      end
+    if not ok_a or type(active_tbl) ~= "table" then
+      return
     end
-    if ok_a and type(active_tbl) == "table" then
-      for k in pairs(active_tbl) do
-        all_keys[k] = true
-      end
-    end
-    for k in pairs(all_keys) do
+    for k, v in pairs(active_tbl) do
       build_diff_tree(
         domain,
         ok_v and vanilla_tbl and vanilla_tbl[k],
-        ok_a and active_tbl and active_tbl[k],
+        v,
         { k },
         parent_node
       )
@@ -310,7 +275,7 @@ function SettingsSelection.show(plugin)
       if child.type == "branch" then
         get_all_leaf_keys(child, keys)
       else
-        table.insert(keys, child.domain .. ":" .. child.full_key)
+        table.insert(keys, child.setting_id)
       end
     end
     return keys
@@ -385,7 +350,7 @@ function SettingsSelection.show(plugin)
           end,
         })
       else
-        local setting_id = child.domain .. ":" .. child.full_key
+        local setting_id = child.setting_id
         table.insert(menu_items, {
           text_func = function()
             local is_selected = plugin.settings.selected_settings[setting_id]

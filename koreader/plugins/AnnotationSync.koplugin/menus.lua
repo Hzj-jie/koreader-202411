@@ -2,6 +2,7 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
+local N_ = gettext.ngettext
 local T = require("ffi/util").template
 local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
@@ -27,15 +28,26 @@ function M.show_deleted_annotations(plugin, document)
       callback = function()
         UIManager:show(ConfirmBox:new({
           text = T(
-            gettext(
-              "Are you sure you want to restore all %1 deleted annotations?"
+            N_(
+              "Are you sure you want to restore 1 deleted annotation?",
+              "Are you sure you want to restore all %1 deleted annotations?",
+              #deleted
             ),
             #deleted
           ),
           ok_text = gettext("Restore All"),
           ok_callback = function()
             plugin:restoreAnnotations(deleted, true) -- true = silent
-            utils.show_msg(T(gettext("Restored %1 annotations."), #deleted))
+            utils.show_msg(
+              T(
+                N_(
+                  "Restored 1 annotation.",
+                  "Restored %1 annotations.",
+                  #deleted
+                ),
+                #deleted
+              )
+            )
             UIManager:close(deleted_menu)
           end,
         }))
@@ -50,7 +62,13 @@ function M.show_deleted_annotations(plugin, document)
       end
       -- Truncate long text
       if #text > 50 then
-        text = text:sub(1, 47) .. "..."
+        -- Don't cut a multi-byte character: back up while the byte after the
+        -- cut continues one (10xxxxxx).
+        local cut = 47
+        while text:byte(cut + 1) >= 0x80 and text:byte(cut + 1) < 0xC0 do
+          cut = cut - 1
+        end
+        text = text:sub(1, cut) .. "..."
       end
       table.insert(items, {
         text = text,
@@ -59,7 +77,7 @@ function M.show_deleted_annotations(plugin, document)
           UIManager:show(ConfirmBox:new({
             text = T(
               gettext("Do you want to restore this annotation?\n\nPage %1: %2"),
-              ann.page,
+              ann.pageno,
               ann.text or ann.note or ""
             ),
             ok_text = gettext("Restore"),
@@ -205,7 +223,16 @@ function M.show_differing_settings_menu(
         end
       end
       if count > 0 then
-        utils.show_msg(T(gettext("Successfully imported %1 settings."), count))
+        utils.show_msg(
+          T(
+            N_(
+              "Successfully imported 1 setting.",
+              "Successfully imported %1 settings.",
+              count
+            ),
+            count
+          )
+        )
       else
         utils.show_msg(gettext("No settings imported."))
       end
@@ -248,7 +275,7 @@ function M.show_differing_settings_menu(
           "%s[%s] %s: %s -> %s",
           prefix,
           domain or "unknown",
-          full_key or setting_id,
+          full_key and table.concat(utils.split_setting_path(full_key), ".") or setting_id,
           diff.local_val_str,
           diff.remote_val_str
         )
