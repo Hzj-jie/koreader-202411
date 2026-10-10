@@ -1,3 +1,4 @@
+-- luacheck: ignore 122
 describe("network_manager module", function()
   local Device
   local UIManager
@@ -838,6 +839,659 @@ describe("network_manager module", function()
       assert.is_true(ran)
       NetworkMgr.queryOnlineState:revert()
     end)
+  end)
+
+  describe("connection actions, toggles, and saved networks", function()
+    local NetworkMgr
+    local Checker
+
+    setup(function()
+      package.loaded["ui/network/manager"] = nil
+      NetworkMgr = require("ui/network/manager")
+      Checker = NetworkMgr.ConnectivityChecker
+    end)
+
+    describe(
+      "willRerunWhenOnline, willRerunWhenConnected, runWhenOnline, and runWhenConnected",
+      function()
+        it("raises an error when callback is nil", function()
+          assert.has_error(function()
+            NetworkMgr:willRerunWhenOnline(nil)
+          end)
+          assert.has_error(function()
+            NetworkMgr:willRerunWhenConnected(nil)
+          end)
+        end)
+
+        it(
+          "handles willRerunWhenOnline and runWhenOnline when online",
+          function()
+            local orig_isOnline = NetworkMgr.isOnline
+            local orig_before = NetworkMgr._beforeWifiAction
+            finally(function()
+              NetworkMgr.isOnline = orig_isOnline
+              NetworkMgr._beforeWifiAction = orig_before
+            end)
+
+            NetworkMgr.isOnline = function()
+              return true
+            end
+            local before_called = false
+            NetworkMgr._beforeWifiAction = function()
+              before_called = true
+            end
+
+            local cb_ran = false
+            local res = NetworkMgr:willRerunWhenOnline(function()
+              cb_ran = true
+            end)
+            assert.is_false(res)
+            assert.is_true(cb_ran)
+
+            local res_run = NetworkMgr:runWhenOnline(function() end)
+            assert.is_true(res_run)
+            assert.is_false(before_called)
+          end
+        )
+
+        it(
+          "handles willRerunWhenOnline and runWhenOnline when offline",
+          function()
+            local orig_isOnline = NetworkMgr.isOnline
+            local orig_before = NetworkMgr._beforeWifiAction
+            local orig_broadcast = UIManager.broadcastEvent
+            finally(function()
+              NetworkMgr.isOnline = orig_isOnline
+              NetworkMgr._beforeWifiAction = orig_before
+              UIManager.broadcastEvent = orig_broadcast
+            end)
+
+            NetworkMgr.isOnline = function()
+              return false
+            end
+            local before_called = false
+            NetworkMgr._beforeWifiAction = function()
+              before_called = true
+            end
+            local broadcast_event = nil
+            UIManager.broadcastEvent = function(_, ev)
+              broadcast_event = ev
+            end
+
+            local cb = function() end
+            local res = NetworkMgr:willRerunWhenOnline(cb)
+            assert.is_true(res)
+            assert.is_not_nil(broadcast_event)
+            assert.are.equal("onPendingOnline", broadcast_event.handler)
+            assert.are.equal(cb, broadcast_event.args[1])
+
+            local res_run = NetworkMgr:runWhenOnline(cb)
+            assert.is_false(res_run)
+            assert.is_true(before_called)
+          end
+        )
+
+        it(
+          "handles willRerunWhenConnected and runWhenConnected when connected",
+          function()
+            local orig_isWifiConnected = NetworkMgr._isWifiConnected
+            local orig_before = NetworkMgr._beforeWifiAction
+            finally(function()
+              NetworkMgr._isWifiConnected = orig_isWifiConnected
+              NetworkMgr._beforeWifiAction = orig_before
+            end)
+
+            NetworkMgr._isWifiConnected = function()
+              return true
+            end
+            local before_called = false
+            NetworkMgr._beforeWifiAction = function()
+              before_called = true
+            end
+
+            local cb_ran = false
+            local res = NetworkMgr:willRerunWhenConnected(function()
+              cb_ran = true
+            end)
+            assert.is_false(res)
+            assert.is_true(cb_ran)
+
+            local res_run = NetworkMgr:runWhenConnected(function() end)
+            assert.is_true(res_run)
+            assert.is_false(before_called)
+          end
+        )
+
+        it(
+          "handles willRerunWhenConnected and runWhenConnected when disconnected",
+          function()
+            local orig_isWifiConnected = NetworkMgr._isWifiConnected
+            local orig_before = NetworkMgr._beforeWifiAction
+            local orig_broadcast = UIManager.broadcastEvent
+            finally(function()
+              NetworkMgr._isWifiConnected = orig_isWifiConnected
+              NetworkMgr._beforeWifiAction = orig_before
+              UIManager.broadcastEvent = orig_broadcast
+            end)
+
+            NetworkMgr._isWifiConnected = function()
+              return false
+            end
+            local before_called = false
+            NetworkMgr._beforeWifiAction = function()
+              before_called = true
+            end
+            local broadcast_event = nil
+            UIManager.broadcastEvent = function(_, ev)
+              broadcast_event = ev
+            end
+
+            local cb = function() end
+            local res = NetworkMgr:willRerunWhenConnected(cb)
+            assert.is_true(res)
+            assert.is_not_nil(broadcast_event)
+            assert.are.equal("onPendingConnected", broadcast_event.handler)
+            assert.are.equal(cb, broadcast_event.args[1])
+
+            local res_run = NetworkMgr:runWhenConnected(cb)
+            assert.is_false(res_run)
+            assert.is_true(before_called)
+          end
+        )
+      end
+    )
+
+    describe("_beforeWifiAction branches", function()
+      local orig_isWifiConnected
+      local orig_isOnline
+      local orig_toggleWifiOn
+      local orig_showNetworkMenu
+      local orig_show
+      local orig_isAndroid
+      local orig_action_setting
+
+      before_each(function()
+        orig_isWifiConnected = NetworkMgr._isWifiConnected
+        orig_isOnline = NetworkMgr.isOnline
+        orig_toggleWifiOn = NetworkMgr.toggleWifiOn
+        orig_showNetworkMenu = NetworkMgr.showNetworkMenu
+        orig_show = UIManager.show
+        orig_isAndroid = Device.isAndroid
+        orig_action_setting = G_reader_settings:read("wifi_enable_action")
+      end)
+
+      after_each(function()
+        NetworkMgr._isWifiConnected = orig_isWifiConnected
+        NetworkMgr.isOnline = orig_isOnline
+        NetworkMgr.toggleWifiOn = orig_toggleWifiOn
+        NetworkMgr.showNetworkMenu = orig_showNetworkMenu
+        UIManager.show = orig_show
+        Device.isAndroid = orig_isAndroid
+        G_reader_settings:save("wifi_enable_action", orig_action_setting)
+        Checker:stop()
+      end)
+
+      it(
+        "shows ConfirmBox to select another network when wifi is connected but offline",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return true
+          end
+          local shown_box = nil
+          UIManager.show = function(_, widget)
+            shown_box = widget
+          end
+          local menu_called = false
+          NetworkMgr.showNetworkMenu = function()
+            menu_called = true
+          end
+
+          NetworkMgr:_beforeWifiAction()
+
+          assert.is_not_nil(shown_box)
+          assert.is_function(shown_box.ok_callback)
+          shown_box.ok_callback()
+          assert.is_true(menu_called)
+        end
+      )
+
+      it(
+        "calls toggleWifiOn when disconnected and wifi_enable_action is turn_on",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          G_reader_settings:save("wifi_enable_action", "turn_on")
+          local toggle_called = false
+          NetworkMgr.toggleWifiOn = function()
+            toggle_called = true
+          end
+
+          NetworkMgr:_beforeWifiAction()
+          assert.is_true(toggle_called)
+        end
+      )
+
+      it(
+        "handles wifi_enable_action ignore on Android when online vs offline",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          G_reader_settings:save("wifi_enable_action", "ignore")
+          Device.isAndroid = function()
+            return true
+          end
+
+          -- Online: returns early without starting ConnectivityChecker
+          NetworkMgr.isOnline = function()
+            return true
+          end
+          NetworkMgr:_beforeWifiAction()
+          assert.is_false(Checker:running())
+
+          -- Offline: starts ConnectivityChecker
+          NetworkMgr.isOnline = function()
+            return false
+          end
+          NetworkMgr:_beforeWifiAction()
+          assert.is_true(Checker:running())
+          NetworkMgr:_dropPendingWifiConnection(false)
+        end
+      )
+
+      it(
+        "handles prompt action when ConnectivityChecker is running vs not running",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          G_reader_settings:save("wifi_enable_action", "prompt")
+
+          local shown_box = nil
+          UIManager.show = function(_, widget)
+            shown_box = widget
+          end
+          local toggle_called = false
+          NetworkMgr.toggleWifiOn = function()
+            toggle_called = true
+          end
+
+          -- Not running: shows ConfirmBox
+          Checker:stop()
+          NetworkMgr:_beforeWifiAction()
+          assert.is_not_nil(shown_box)
+          shown_box.ok_callback()
+          assert.is_true(toggle_called)
+
+          -- Already running: returns early without showing ConfirmBox
+          shown_box = nil
+          Checker:start()
+          NetworkMgr:_beforeWifiAction()
+          assert.is_nil(shown_box)
+        end
+      )
+    end)
+
+    describe("toggleWifiOn and toggleWifiOff", function()
+      local orig_isWifiConnected
+      local orig_isWifiOn
+      local orig_turnOnWifi
+      local orig_stopAsyncWifiRestoreIfSupported
+      local orig_abortWifiConnection
+      local orig_dropPendingWifiConnection
+      local orig_networkDisconnected
+      local orig_hasWifiRestore
+      local orig_show
+      local orig_close
+
+      before_each(function()
+        orig_isWifiConnected = NetworkMgr._isWifiConnected
+        orig_isWifiOn = NetworkMgr.isWifiOn
+        orig_turnOnWifi = NetworkMgr._turnOnWifi
+        orig_stopAsyncWifiRestoreIfSupported =
+          NetworkMgr._stopAsyncWifiRestoreIfSupported
+        orig_abortWifiConnection = NetworkMgr._abortWifiConnection
+        orig_dropPendingWifiConnection = NetworkMgr._dropPendingWifiConnection
+        orig_networkDisconnected = NetworkMgr._networkDisconnected
+        orig_hasWifiRestore = Device.hasWifiRestore
+        orig_show = UIManager.show
+        orig_close = UIManager.close
+      end)
+
+      after_each(function()
+        NetworkMgr._isWifiConnected = orig_isWifiConnected
+        NetworkMgr.isWifiOn = orig_isWifiOn
+        NetworkMgr._turnOnWifi = orig_turnOnWifi
+        NetworkMgr._stopAsyncWifiRestoreIfSupported =
+          orig_stopAsyncWifiRestoreIfSupported
+        NetworkMgr._abortWifiConnection = orig_abortWifiConnection
+        NetworkMgr._dropPendingWifiConnection = orig_dropPendingWifiConnection
+        NetworkMgr._networkDisconnected = orig_networkDisconnected
+        Device.hasWifiRestore = orig_hasWifiRestore
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+        Checker:stop()
+      end)
+
+      it(
+        "returns immediately from toggleWifiOn if already connected",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return true
+          end
+          local turn_on_called = false
+          NetworkMgr._turnOnWifi = function()
+            turn_on_called = true
+          end
+
+          NetworkMgr:toggleWifiOn()
+          assert.is_false(turn_on_called)
+        end
+      )
+
+      it(
+        "starts ConnectivityChecker via callback when disconnected in toggleWifiOn",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          local passed_cb = nil
+          local passed_interactive = nil
+          NetworkMgr._turnOnWifi = function(_, cb, interactive)
+            passed_cb = cb
+            passed_interactive = interactive
+            return true
+          end
+
+          NetworkMgr:toggleWifiOn()
+          assert.is_function(passed_cb)
+          assert.is_true(passed_interactive)
+
+          passed_cb()
+          assert.is_true(Checker:running())
+          assert.is_true(Checker.interactive)
+        end
+      )
+
+      it(
+        "handles toggleWifiOn when ConnectivityChecker is already running",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          Device.hasWifiRestore = function()
+            return true
+          end
+          Checker:start()
+
+          local stop_called = false
+          NetworkMgr.stopAsyncWifiRestore = function()
+            stop_called = true
+          end
+          local turn_on_args = {}
+          NetworkMgr._turnOnWifi = function(_, ...)
+            turn_on_args = { ... }
+            return true
+          end
+
+          NetworkMgr:toggleWifiOn()
+          assert.is_true(stop_called)
+          assert.are.equal(0, #turn_on_args)
+        end
+      )
+
+      it(
+        "shows error and aborts connection when _turnOnWifi returns false",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          NetworkMgr._turnOnWifi = function()
+            return false
+          end
+          local abort_called = false
+          NetworkMgr._abortWifiConnection = function()
+            abort_called = true
+          end
+          local shown_error = nil
+          UIManager.show = function(_, widget)
+            if
+              widget.text and widget.text:find("Error connecting", 1, true)
+            then
+              shown_error = widget
+            end
+          end
+
+          NetworkMgr:toggleWifiOn()
+          assert.is_not_nil(shown_error)
+          assert.is_true(abort_called)
+        end
+      )
+
+      it(
+        "shows ongoing message and does not abort when _turnOnWifi returns EBUSY",
+        function()
+          NetworkMgr._isWifiConnected = function()
+            return false
+          end
+          NetworkMgr._turnOnWifi = function()
+            return NetworkMgr.EBUSY
+          end
+          local abort_called = false
+          NetworkMgr._abortWifiConnection = function()
+            abort_called = true
+          end
+          local shown_busy = nil
+          UIManager.show = function(_, widget)
+            if widget.text and widget.text:find("ongoing", 1, true) then
+              shown_busy = widget
+            end
+          end
+
+          NetworkMgr:toggleWifiOn()
+          assert.is_not_nil(shown_busy)
+          assert.is_false(abort_called)
+        end
+      )
+
+      it(
+        "handles toggleWifiOff for off, interactive on, and non-interactive on",
+        function()
+          -- 1. If wifi is off: returns immediately
+          NetworkMgr.isWifiOn = function()
+            return false
+          end
+          local drop_called = false
+          NetworkMgr._dropPendingWifiConnection = function()
+            drop_called = true
+          end
+          NetworkMgr:toggleWifiOff(true)
+          assert.is_false(drop_called)
+
+          -- 2. If wifi is on and interactive == true
+          NetworkMgr.isWifiOn = function()
+            return true
+          end
+          local shown_info = nil
+          local closed_info = nil
+          UIManager.show = function(_, widget)
+            shown_info = widget
+          end
+          UIManager.close = function(_, widget)
+            closed_info = widget
+          end
+          local drop_arg = nil
+          NetworkMgr._dropPendingWifiConnection = function(_, arg)
+            drop_arg = arg
+          end
+          local disconnected_called = false
+          NetworkMgr._networkDisconnected = function()
+            disconnected_called = true
+          end
+
+          NetworkMgr:toggleWifiOff(true)
+          assert.is_not_nil(shown_info)
+          assert.are.equal(shown_info, closed_info)
+          assert.is_true(drop_arg)
+          assert.is_true(disconnected_called)
+
+          -- 3. If wifi is on and interactive == false
+          shown_info = nil
+          closed_info = nil
+          drop_arg = nil
+          disconnected_called = false
+
+          NetworkMgr:toggleWifiOff(false)
+          assert.is_nil(shown_info)
+          assert.is_nil(closed_info)
+          assert.is_true(drop_arg)
+          assert.is_true(disconnected_called)
+        end
+      )
+    end)
+
+    describe(
+      "saved networks, asyncCheckWifiState, sysfsInterfaceOperational, and ipAddress",
+      function()
+        it(
+          "lazily initializes nw_settings in saveNetwork, deleteNetwork, and getAllSavedNetworks",
+          function()
+            local settings_dir = require("datastorage"):getSettingsDir()
+            local network_file = settings_dir .. "/network.lua"
+            finally(function()
+              os.remove(network_file)
+              NetworkMgr.nw_settings = nil
+            end)
+
+            NetworkMgr.nw_settings = nil
+            NetworkMgr:saveNetwork({
+              ssid = "TestAP",
+              password = "secret",
+              psk = "psk1",
+              flags = "[WPA2]",
+            })
+            assert.is_not_nil(NetworkMgr.nw_settings)
+            local saved = NetworkMgr:getAllSavedNetworks():read("TestAP")
+            assert.is_not_nil(saved)
+            assert.are.equal("secret", saved.password)
+
+            NetworkMgr.nw_settings = nil
+            NetworkMgr:deleteNetwork({ ssid = "TestAP" })
+            assert.is_not_nil(NetworkMgr.nw_settings)
+            assert.is_nil(NetworkMgr:getAllSavedNetworks():read("TestAP"))
+          end
+        )
+
+        it(
+          "schedules _asyncCheckWifiState and reconnects when wifi is on but disconnected",
+          function()
+            local background_jobs = require("background_jobs")
+            local orig_insert = background_jobs.insert
+            local captured_job = nil
+            background_jobs.insert = function(job)
+              captured_job = job
+            end
+            local orig_isWifiConnected = NetworkMgr._isWifiConnected
+            local orig_isWifiOn = NetworkMgr.isWifiOn
+            local orig_reconnect = NetworkMgr.reconnect
+            finally(function()
+              background_jobs.insert = orig_insert
+              NetworkMgr._isWifiConnected = orig_isWifiConnected
+              NetworkMgr.isWifiOn = orig_isWifiOn
+              NetworkMgr.reconnect = orig_reconnect
+            end)
+
+            NetworkMgr:_asyncCheckWifiState()
+            assert.is_not_nil(captured_job)
+            assert.are.equal(10, captured_job.when)
+            assert.are.equal(12, captured_job.repeated)
+            assert.is_function(captured_job.executable)
+
+            local reconnected_with = nil
+            NetworkMgr.reconnect = function(_, target, interactive)
+              reconnected_with = { target, interactive }
+            end
+
+            NetworkMgr._isWifiConnected = function()
+              return false
+            end
+            NetworkMgr.isWifiOn = function()
+              return true
+            end
+
+            captured_job.executable()
+            assert.is_not_nil(reconnected_with)
+            assert.is_nil(reconnected_with[1])
+            assert.is_true(reconnected_with[2])
+          end
+        )
+
+        it("checks sysfsInterfaceOperational via io.open operstate", function()
+          local orig_io_open = io.open
+          local orig_ifname = NetworkMgr.getNetworkInterfaceName
+          finally(function()
+            io.open = orig_io_open
+            NetworkMgr.getNetworkInterfaceName = orig_ifname
+          end)
+
+          NetworkMgr.getNetworkInterfaceName = function()
+            return "wlan0"
+          end
+
+          local mock_state = "up"
+          io.open = function(path, mode)
+            if path:find("operstate", 1, true) then
+              return {
+                read = function()
+                  return mock_state
+                end,
+                close = function() end,
+              }
+            end
+            return orig_io_open(path, mode)
+          end
+
+          assert.is_true(NetworkMgr:sysfsInterfaceOperational())
+
+          mock_state = "down"
+          assert.is_false(NetworkMgr:sysfsInterfaceOperational())
+
+          io.open = function()
+            return nil
+          end
+          assert.is_false(NetworkMgr:sysfsInterfaceOperational())
+        end)
+
+        it("reads ipAddress via io.popen", function()
+          local orig_io_popen = io.popen
+          local orig_ifname = NetworkMgr.getNetworkInterfaceName
+          finally(function()
+            io.popen = orig_io_popen
+            NetworkMgr.getNetworkInterfaceName = orig_ifname
+          end)
+
+          NetworkMgr.getNetworkInterfaceName = function()
+            return "wlan0"
+          end
+
+          io.popen = function()
+            return nil
+          end
+          assert.is_nil(NetworkMgr:ipAddress())
+
+          io.popen = function()
+            return {
+              read = function()
+                return "192.168.1.42\n"
+              end,
+              close = function() end,
+            }
+          end
+          assert.are.equal("192.168.1.42\n", NetworkMgr:ipAddress())
+        end)
+      end
+    )
   end)
 
   teardown(function()
