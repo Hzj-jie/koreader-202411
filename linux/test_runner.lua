@@ -217,7 +217,8 @@ for i = 1, #spec_files do
 
         local file_total = tonumber(output:match("\n%[%=+%] (%d+) tests? from")) or 0
         local file_passed = tonumber(output:match("\n%[%s+PASSED%s+%] (%d+) tests?%.\n")) or 0
-        local file_failed = tonumber(output:match("\n%[%s+FAILED%s+%] (%d+) tests?, listed below:\n")) or 0
+        local file_failed = (tonumber(output:match("\n%[%s+FAILED%s+%] (%d+) tests?, listed below:\n")) or 0)
+            + (tonumber(output:match("\n%[%s+ERROR%s+%] (%d+) errors?, listed below:\n")) or 0)
 
         if file_total == 0 then
             if exit_code ~= 0 then
