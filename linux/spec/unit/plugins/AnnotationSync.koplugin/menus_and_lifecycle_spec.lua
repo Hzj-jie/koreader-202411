@@ -905,7 +905,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           end)
 
           -- Match real KOReader (reader.lua / luadefaults.lua), where G_defaults is opened against DataStorage:getDataDir()
-          _G.G_defaults = LuaDefaults:open(DataStorage:getDataDir())
+          _G.G_defaults = LuaDefaults:open()
           assert.are.equal(
             16,
             _G.G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE")
