@@ -894,7 +894,7 @@ function KOPTContext.totable(kc)
   -- rectmaps struct
   context.rectmaps = {
     n = kc.rectmaps.n,
-    na = kc.rectmaps.n,
+    na = kc.rectmaps.na,
     wrectmap = ffi.string(
       kc.rectmaps.wrectmap,
       ffi.sizeof("WRECTMAP") * kc.rectmaps.n
