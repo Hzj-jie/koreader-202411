@@ -702,6 +702,14 @@ function SolitaireUI:onTap(arg, ges)
           self:showWinMessage()
         end
       end
+    else
+      local foundation = self.game.foundations[zone.index]
+      if #foundation > 0 then
+        self.selected_source = {
+          type = "foundation",
+          index = zone.index,
+        }
+      end
     end
     self:refreshUI()
     return true
@@ -1045,7 +1053,9 @@ function SolitaireUI:showWinMessage()
 end
 
 function SolitaireUI:onClose()
-  self:saveGame()
+  if not self.game:checkWin() then
+    self:saveGame()
+  end
   -- Stop the timer refresh
   self.game:stopTimer()
   return true

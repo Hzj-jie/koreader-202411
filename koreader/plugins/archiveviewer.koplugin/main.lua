@@ -126,7 +126,7 @@ function ArchiveViewer:getZipListTable()
     for line in std_out:lines() do
       -- entry datetime not used so far
       local fsize, fname =
-        string.match(line, "%s+(%d+)%s+[-0-9]+%s+[0-9:]+%s+(.+)")
+        string.match(line, "%s*(%d+)%s+[-0-9]+%s+[0-9:]+%s+(.+)")
       parse_path(fname, fsize or 0)
     end
     std_out:close()
@@ -181,7 +181,7 @@ end
 
 function ArchiveViewer:getItemDirMandatory(name)
   local sub_dirs, dir_files = 0, 0
-  for _, v in pairs(self.list_table[name]) do
+  for _, v in pairs(self.list_table[name] or {}) do
     if v then
       dir_files = dir_files + 1
     else

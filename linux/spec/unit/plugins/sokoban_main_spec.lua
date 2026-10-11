@@ -168,44 +168,38 @@ describe("Sokoban main plugin module", function()
     UIManager.show = old_show
   end)
 
-  it(
-    "should save best scores to settings on _onSolved [exposes production bug in Sokoban:_onSolved()]",
-    function()
-      local plugin = createMockSokoban()
-      plugin:_loadSettings()
-      local old_show = UIManager.show
-      UIManager.show = function() end
+  it("should save best scores to settings on _onSolved", function()
+    local plugin = createMockSokoban()
+    plugin:_loadSettings()
+    local old_show = UIManager.show
+    UIManager.show = function() end
 
-      plugin:startLevel(1, 1)
-      plugin.game.moves = 14
-      plugin.game.pushes = 6
+    plugin:startLevel(1, 1)
+    plugin.game.moves = 14
+    plugin.game.pushes = 6
 
-      -- Wipe settings data to verify _onSolved saves them
-      plugin.settings.data["best_moves"] = nil
-      plugin.settings.data["best_pushes"] = nil
+    -- Wipe settings data to verify _onSolved saves them
+    plugin.settings.data["best_moves"] = nil
+    plugin.settings.data["best_pushes"] = nil
 
-      plugin:_onSolved()
+    plugin:_onSolved()
 
-      -- Memory state was updated
-      assert.are.equal(
-        14,
-        plugin.best_moves[plugin.current_set][plugin.current_level]
-      )
-      assert.are.equal(
-        6,
-        plugin.best_pushes[plugin.current_set][plugin.current_level]
-      )
+    -- Memory state was updated
+    assert.are.equal(
+      14,
+      plugin.best_moves[plugin.current_set][plugin.current_level]
+    )
+    assert.are.equal(
+      6,
+      plugin.best_pushes[plugin.current_set][plugin.current_level]
+    )
 
-      -- Production bug: _onSolved does not call _saveSettings(), so settings are not saved
-      local saved_moves = plugin.settings:read("best_moves")
-      assert.is_not_nil(saved_moves)
-      assert.is_not_nil(saved_moves[plugin.current_set])
-      assert.are.equal(
-        14,
-        saved_moves[plugin.current_set][plugin.current_level]
-      )
+    -- Verify settings are saved immediately
+    local saved_moves = plugin.settings:read("best_moves")
+    assert.is_not_nil(saved_moves)
+    assert.is_not_nil(saved_moves[plugin.current_set])
+    assert.are.equal(14, saved_moves[plugin.current_set][plugin.current_level])
 
-      UIManager.show = old_show
-    end
-  )
+    UIManager.show = old_show
+  end)
 end)

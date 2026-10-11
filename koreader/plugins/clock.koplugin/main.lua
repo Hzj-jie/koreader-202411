@@ -65,6 +65,8 @@ Clock.addToMainMenu = function(self, menu_items)
   }
 end
 Clock.onClose = function(self)
+  PluginShare.pause_auto_suspend = false
+  self._visible = false
   UIManager:setDirty(nil, function()
     return "ui", self[1].dimen
   end)
@@ -72,6 +74,8 @@ end
 Clock.onShow = function(self)
   if self.timeout then
     UIManager:scheduleIn(self.timeout, function()
+      PluginShare.pause_auto_suspend = false
+      self._visible = false
       return UIManager:close(self)
     end)
   end
@@ -81,12 +85,14 @@ Clock.onSuspend = function(self)
   if
     G_reader_settings:read("clock_on_suspend") and not self._was_suspending
   then
+    self._visible = true
     UIManager:show(self)
     self._was_suspending = true
   end
 end
 Clock.onResume = function(self)
   if self._was_suspending then
+    self._visible = true
     self:onShow()
   end
   self._was_suspending = false
