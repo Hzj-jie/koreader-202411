@@ -219,7 +219,7 @@ describe("Markdown parser module (md.lua)", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes unclosed code block crashing with bad argument to match",
+      "exposes unclosed code block crashing with bad argument to match",
       function()
         local res, err = MD("```lua\nlocal a = 1\nlocal b = 2")
         assert.is_nil(err)

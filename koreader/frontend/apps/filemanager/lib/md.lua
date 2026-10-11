@@ -304,10 +304,18 @@ local function readSimple(pop, peek, tree, links)
       [1] = code,
     }
     tree[#tree + 1] = pre
-    while
-      not (match(pop(), PATTERN_CODEBLOCK) and getIndentLevel(peek()) == indent)
-    do
-      code[#code + 1] = peek()
+    while true do
+      local next_line = pop()
+      if not next_line then
+        break
+      end
+      if
+        match(next_line, PATTERN_CODEBLOCK)
+        and getIndentLevel(next_line) == indent
+      then
+        break
+      end
+      code[#code + 1] = next_line
       code[#code + 1] = "\r\n"
     end
     return pop()
