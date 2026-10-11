@@ -188,7 +188,7 @@ describe("AutoFrontlight widget tests", function()
   )
 
   it(
-    "fails: main.lua calls Device:isEmulator() with colon syntax passing self",
+    "main.lua calls Device:isEmulator() with colon syntax passing self",
     function()
       -- Bug: line 4 calls `Device.isEmulator()` with dot syntax instead of `Device:isEmulator()`.
       -- If isEmulator expects self, calling Device.isEmulator() passes self as nil.
