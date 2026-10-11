@@ -672,7 +672,7 @@ function ReaderUI:showReader(file, provider, seamless)
   -- We can now signal the existing ReaderUI/FileManager instances that it's time to go bye-bye...
   UIManager:broadcastEvent(Event:new("ShowingReader"))
   provider = provider or DocumentRegistry:getProvider(file)
-  if provider.provider then
+  if provider and provider.provider then
     self:_showReaderCoroutine(file, provider, seamless)
   else
     self:showWidget(InfoMessage:new({
@@ -899,7 +899,7 @@ function ReaderUI:dealWithLoadDocumentFailure()
   -- _document)
   -- As we are in a coroutine, we can pause and show an InfoMessage before exiting
   local _coroutine = coroutine.running()
-  if coroutine then
+  if _coroutine then
     logger.warn(
       "crengine failed recognizing or parsing this file: unsupported or invalid document"
     )

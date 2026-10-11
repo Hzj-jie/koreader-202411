@@ -279,8 +279,13 @@ function TextViewer:init(reinit)
       hold_callback = self.default_hold_callback,
     },
   }
-  local buttons = self.buttons_table or {}
-  if (self.add_default_buttons and not reinit) or not self.buttons_table then
+  local buttons = {}
+  if self.buttons_table then
+    for _, row in ipairs(self.buttons_table) do
+      table.insert(buttons, row)
+    end
+  end
+  if self.add_default_buttons or not self.buttons_table then
     table.insert(buttons, default_buttons)
   end
   self.button_table = ButtonTable:new({
@@ -437,7 +442,7 @@ function TextViewer:onHoldStartText(_, ges)
   return self.movable:onMovableHold(_, ges)
 end
 
-function TextViewer:onHoldPanText(_, ges)
+function TextViewer:onHoldPanText(arg, ges)
   -- Forward Hold events not processed by TextBoxWidget event handler
   -- to our MovableContainer
   -- We only forward it if we did forward the Touch
@@ -646,6 +651,9 @@ function TextViewer:setTextBold(start_pos, len)
       table.insert(charlist, TextBoxWidget.PTF_BOLD_END)
     end
     table.insert(charlist, char)
+  end
+  if end_pos > #self.charlist then
+    table.insert(charlist, TextBoxWidget.PTF_BOLD_END)
   end
   self.text = table.concat(charlist)
   self:reinit()
