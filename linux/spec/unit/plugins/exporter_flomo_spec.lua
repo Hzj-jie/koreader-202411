@@ -128,37 +128,32 @@ describe("Flomo Exporter plugin target", function()
     http.request = old_request
   end)
 
-  it(
-    "should handle multi-chunk HTTP responses in makeRequest [exposes production bug in makeRequest()]",
-    function()
-      local old_request = http.request
+  it("should handle multi-chunk HTTP responses in makeRequest", function()
+    local old_request = http.request
 
-      http.request = function(req)
-        local sink = req.sink
-        -- Response body split across multiple chunks
-        sink('{"code":0,')
-        sink('"message":"success"}')
-        return 1, 200, {}, "200 OK"
-      end
-
-      local exporter = FlomoExporter:new({ name = "flomo" })
-      exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
-
-      local booknotes = {
-        title = "Test Book",
-        { { text = "Sample quote", page = 1 } },
-      }
-
-      -- Production bug: makeRequest decodes sink[1] instead of table.concat(sink),
-      -- causing unhandled JSON decode error on multi-chunk responses
-      local ok = pcall(function()
-        return exporter:export({ booknotes })
-      end)
-      assert.is_true(ok)
-
-      http.request = old_request
+    http.request = function(req)
+      local sink = req.sink
+      -- Response body split across multiple chunks
+      sink('{"code":0,')
+      sink('"message":"success"}')
+      return 1, 200, {}, "200 OK"
     end
-  )
+
+    local exporter = FlomoExporter:new({ name = "flomo" })
+    exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
+
+    local booknotes = {
+      title = "Test Book",
+      { { text = "Sample quote", page = 1 } },
+    }
+
+    local ok = pcall(function()
+      return exporter:export({ booknotes })
+    end)
+    assert.is_true(ok)
+
+    http.request = old_request
+  end)
 
   it(
     "should export bookmark notes when clipping text is nil [exposes production bug in FlomoExporter:createHighlights()]",
