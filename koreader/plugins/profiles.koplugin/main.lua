@@ -1212,6 +1212,9 @@ function Profiles:executeAutoExecDocConditional(event)
     return
   end
   local function is_match(txt, pattern)
+    if not txt then
+      return false
+    end
     for str in util.gsplit(pattern, ",") do
       if util.stringSearch(txt, str) ~= 0 then
         return true
@@ -1226,7 +1229,7 @@ function Profiles:executeAutoExecDocConditional(event)
           local mode = Screen:getRotationMode()
           do_execute = trigger[mode]
         elseif condition == "doc_props" then
-          if self.ui.document then
+          if self.ui.document and self.ui.doc_props then
             for prop_name, pattern in pairs(trigger) do
               local prop =
                 self.ui.doc_props[prop_name == "title" and "display_title" or prop_name]
