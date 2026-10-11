@@ -29,6 +29,7 @@ local function makeRequest(method, request_body, api, token)
     source = source,
     headers = {
       ["Content-Type"] = "application/json",
+      ["Content-Length"] = #request_body_json,
       ["Authorization"] = "Bearer " .. token,
     },
   }
@@ -149,7 +150,7 @@ function MemosExporter:createHighlights(booknotes)
         .. booknotes.title
         .. " (page: "
         .. clipping.page
-        .. "）\n\n #"
+        .. ")\n\n #"
         .. booknotes.title:gsub("%s+", "_")
         .. " #koreader"
       local result, err = makeRequest(
@@ -172,7 +173,7 @@ function MemosExporter:createHighlights(booknotes)
       .. " createHighlights error number: "
       .. error_number
   )
-  return true
+  return error_number == 0
 end
 
 function MemosExporter:export(t)
