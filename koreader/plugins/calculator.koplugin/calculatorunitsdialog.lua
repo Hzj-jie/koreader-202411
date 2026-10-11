@@ -56,15 +56,18 @@ function CalculatorUnitsDialog:init()
     }),
   })
 
-  local radio_buttons_units = {}
-  for _, v in pairs(self.units) do
-    table.insert(radio_buttons_units, {
-      {
-        text = v[1],
-        checked = v[3] ~= nil,
-        provider = v[2],
-      },
-    })
+  local function create_radio_buttons()
+    local rbs = {}
+    for _, v in pairs(self.units) do
+      table.insert(rbs, {
+        {
+          text = v[1],
+          checked = v[3] ~= nil,
+          provider = v[2],
+        },
+      })
+    end
+    return rbs
   end
 
   local buttons = {
@@ -128,7 +131,7 @@ function CalculatorUnitsDialog:init()
   }
 
   self.radio_button_table_units_from = RadioButtonTable:new({
-    radio_buttons = radio_buttons_units,
+    radio_buttons = create_radio_buttons(),
     width = math.floor(self.width * 0.4),
     focused = true,
     scroll = false,
@@ -136,7 +139,7 @@ function CalculatorUnitsDialog:init()
     face = self.face,
   })
   self.radio_button_table_units_too = RadioButtonTable:new({
-    radio_buttons = radio_buttons_units,
+    radio_buttons = create_radio_buttons(),
     width = math.floor(self.width * 0.4),
     focused = true,
     scroll = false,

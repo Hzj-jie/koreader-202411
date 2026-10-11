@@ -25,4 +25,14 @@ describe("CalculatorUnitsDialog", function()
       assert.are.equal(0.0254, CalculatorUnitsDialog.units[2][2])
     end
   )
+
+  it("creates separate radio button tables for from and to units", function()
+    local dlg = CalculatorUnitsDialog:new({
+      parent = { units_dialog = {} },
+    })
+    assert.are_not_equal(
+      dlg.radio_button_table_units_from.radio_buttons,
+      dlg.radio_button_table_units_too.radio_buttons
+    )
+  end)
 end)
