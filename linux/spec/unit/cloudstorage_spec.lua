@@ -934,7 +934,7 @@ describe("CloudStorage", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onMenuSelect double-popping self.paths when openCloudServer fails",
+      "exposes onMenuSelect double-popping self.paths when openCloudServer fails",
       function()
         local cs = CloudStorage:new()
         cs.paths = {
