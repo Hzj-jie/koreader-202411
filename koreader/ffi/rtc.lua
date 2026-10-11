@@ -56,7 +56,9 @@ instead uses RTC_WKALM_SET filled from RTC_WKALM_RD but with enabled set to 0.
 @treturn err Error string (if any).
 --]]
 function RTC:toggleAlarmInterrupt(enabled)
-  enabled = (enabled ~= nil) and enabled or true
+  if enabled == nil then
+    enabled = true
+  end
 
   local err
   local fd = C.open(self.dev_rtc, bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
@@ -73,6 +75,7 @@ function RTC:toggleAlarmInterrupt(enabled)
     else
       print("toggleAlarmInterrupt ioctl RTC_AIE_OFF", re, err)
     end
+    C.close(fd)
     return nil, re, err
   end
   re = C.close(fd)
