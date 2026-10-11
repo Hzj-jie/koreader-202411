@@ -57,7 +57,7 @@ if Device:hasFrontlight() then
       -- *) f(x) has the boundary condition: f(1) = max/2;
       -- *) x is roughly the swipe distance as a fraction of the screen geometry,
       --    clamped between 0 and 1
-      local x = math.min(1, ges.distance / gestureScale)
+      local x = math.max(0, math.min(1, ges.distance / gestureScale))
       delta_int = math.ceil(1 / 2 * max * x ^ 2)
     else
       -- The ges arg passed by our caller wasn't a gesture, but an absolute integer increment

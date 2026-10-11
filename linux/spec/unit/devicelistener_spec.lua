@@ -890,7 +890,7 @@ describe("devicelistener", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: calculateGestureDelta clamps negative distance to zero instead of producing positive delta",
+      "calculateGestureDelta clamps negative distance to zero instead of producing positive delta",
       function()
         local listener = DeviceListener:new({})
         mock_powerd.frontlightIntensity = spy.new(function()
