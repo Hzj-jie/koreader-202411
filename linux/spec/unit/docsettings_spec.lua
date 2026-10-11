@@ -1984,7 +1984,7 @@ describe("docsettings module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes getSidecarFilename and getSidecarDir matching across / in dot-directories",
+      "exposes getSidecarFilename and getSidecarDir matching across / in dot-directories",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
         local doc_path = "/home/user/.books/README"
