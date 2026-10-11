@@ -1,6 +1,6 @@
 -- luacheck: ignore 122
 describe("CoverBrowser ListMenu plugin module", function()
-  local ListMenu, Screen, Geom, Blitbuffer, DocSettings
+  local ListMenu, Screen, Geom, Blitbuffer, DocSettings, IconWidget
 
   setup(function()
     require("commonrequire")
@@ -9,6 +9,7 @@ describe("CoverBrowser ListMenu plugin module", function()
     Geom = require("ui/geometry")
     Blitbuffer = require("ffi/blitbuffer")
     DocSettings = require("docsettings")
+    IconWidget = require("ui/widget/iconwidget")
   end)
 
   local function create_mock_list_menu(w, h, perpage_p)
@@ -28,6 +29,9 @@ describe("CoverBrowser ListMenu plugin module", function()
       path = "/tmp",
       files_per_page = perpage_p or 10,
       item_table = { {}, {}, {}, {}, {} },
+      item_group = {},
+      layout = {},
+      items_to_update = {},
       page = 1,
     }
     for k, v in pairs(ListMenu) do
@@ -133,75 +137,58 @@ describe("CoverBrowser ListMenu plugin module", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "fails: exposes failing to paint dogear for opened unindexed book when corner_mark is nil",
-      function()
-        local painted_dogear = false
-        local orig_has_sidecar = DocSettings.hasSidecarFile
-
-        DocSettings.hasSidecarFile = function()
-          return true
-        end
-        finally(function()
-          DocSettings.hasSidecarFile = orig_has_sidecar
-        end)
-
-        -- Build a mock item for an unindexed book that has been opened
-        local item = {
-          width = 400,
-          height = 60,
-          filepath = "/tmp/unindexed_opened_book.epub",
-          do_hint_opened = true,
-          been_opened = true,
-          dimen = Geom:new({ w = 400, h = 60 }),
-          [1] = {
-            [1] = {
-              [2] = {
-                getSize = function()
-                  return Geom:new({ x = 0, y = 0, w = 400, h = 60 })
-                end,
-              },
-            },
-          },
-        }
-
-        -- Mock blitbuffer with paintTo tracking
-        local bb = Blitbuffer.new(400, 60, Blitbuffer.TYPE_BPP_8)
-
-        -- A helper that checks if dogear was painted on bb for an opened book
-        -- In ListMenuItem:paintTo(bb, x, y):
-        --   if corner_mark and self.do_hint_opened and self.been_opened then
-        --     corner_mark:paintTo(bb, ...)
-        --   end
-        -- Because corner_mark is only allocated in `if bookinfo then` (lines 450-464),
-        -- an unindexed book leaves corner_mark == nil, so corner_mark is never painted.
-        local dogear_painted_during_paintTo = false
-
-        -- If corner_mark were initialized, corner_mark:paintTo would be invoked
-        local mock_mark = {
-          getSize = function()
-            return Geom:new({ w = 10, h = 10 })
-          end,
-          paintTo = function()
-            dogear_painted_during_paintTo = true
-          end,
-        }
-
-        -- When testing the module's painted output for an opened unindexed book:
-        -- Calling the actual paint logic:
-        -- We simulate the paintTo block from ListMenuItem
-        -- If corner_mark is nil (as is true for unindexed book without prior indexed books):
-        local current_corner_mark = nil -- module upvalue when only unindexed books are shown
-        if current_corner_mark and item.do_hint_opened and item.been_opened then
-          mock_mark:paintTo()
-        end
-
-        -- The test asserts that opened books have their dogear painted:
-        assert.is_true(
-          dogear_painted_during_paintTo,
-          "Dogear was not painted for opened unindexed book because corner_mark was nil"
-        )
+    it("paints dogear for opened unindexed book", function()
+      local orig_has_sidecar = DocSettings.hasSidecarFile
+      DocSettings.hasSidecarFile = function()
+        return true
       end
-    )
+
+      local dogear_painted = false
+      local orig_new = IconWidget.new
+      IconWidget.new = function(self, args)
+        local inst = orig_new(self, args)
+        if args and args.icon == "dogear.opaque" then
+          local orig_paintTo = inst.paintTo
+          inst.paintTo = function(icon_self, ...)
+            dogear_painted = true
+            if orig_paintTo then
+              orig_paintTo(icon_self, ...)
+            end
+          end
+        end
+        return inst
+      end
+
+      finally(function()
+        DocSettings.hasSidecarFile = orig_has_sidecar
+        IconWidget.new = orig_new
+      end)
+
+      local menu = create_mock_list_menu(600, 800, 10)
+      menu._do_hint_opened = true
+      menu.item_table = {
+        {
+          file = "/tmp/unindexed_opened_book.epub",
+          path = "/tmp/unindexed_opened_book.epub",
+          is_file = true,
+          text = "Unindexed Book",
+        },
+      }
+      menu:_recalculateDimen()
+      menu:_updateItemsBuildUI()
+
+      assert.is_table(menu.item_group)
+      local item = menu.item_group[2]
+      assert.is_not_nil(item)
+      assert.is_true(item.been_opened)
+
+      local bb = Blitbuffer.new(600, 800, Blitbuffer.TYPE_BPP_8)
+      item:paintTo(bb, 0, 0)
+
+      assert.is_true(
+        dogear_painted,
+        "Dogear was not painted for opened unindexed book"
+      )
+    end)
   end)
 end)
