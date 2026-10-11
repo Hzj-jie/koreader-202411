@@ -312,7 +312,7 @@ local function genAppstream()
     end
     table.insert(t, tag("image", "en", v.image, 6))
     if v.caption then
-      gettext.changeLang(en)
+      gettext.changeLang("en")
       orig = v.caption
       for __, lang in ipairs(locales) do
         gettext.changeLang(lang)
@@ -328,7 +328,7 @@ local function genAppstream()
 
   table.insert(t, "  <keywords>")
   for i, v in ipairs(metadata.keywords) do
-    gettext.changeLang(en)
+    gettext.changeLang("en")
     orig = v
     for __, lang in ipairs(locales) do
       gettext.changeLang(lang)
@@ -346,7 +346,7 @@ local function genAppstream()
       <description>]]
   )
   for i, v in ipairs(metadata.notes) do
-    gettext.changeLang(en)
+    gettext.changeLang("en")
     orig = v
     for __, lang in ipairs(locales) do
       gettext.changeLang(lang)
@@ -374,6 +374,7 @@ local function genFastlane()
   local short_orig = metadata.summary
   local full_orig = htmlDescription()
   local short_translated, full_translated
+  local metadata_dir, metadata_file
 
   for __, lang in ipairs(locales) do
     gettext.changeLang(lang)

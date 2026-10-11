@@ -53,8 +53,6 @@ describe("CalibreExtensions module", function()
       end)
 
       -- If calibre-extensions.lua returns false or a non-table, get() returns default formats.
-      -- Exposes defect: isCustom() checks user_overrides ~= nil rather than type == "table",
-      -- returning true for non-table values and hiding the File formats menu.
       CalibreExtensions.user_overrides = false
       assert.is_false(CalibreExtensions:isCustom())
     end

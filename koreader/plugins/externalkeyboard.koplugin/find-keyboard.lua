@@ -11,9 +11,22 @@ local FindKeyboard = {}
 local function count_set_bits(n)
   -- Brian Kernighan's algorithm
   local count = 0
-  while n ~= 0 do
-    count = count + 1
-    n = bit.band(n, n - 1)
+  if ffi.sizeof("long") == 8 then
+    local high = math.floor(n / 4294967296)
+    local low = n % 4294967296
+    while low ~= 0 do
+      count = count + 1
+      low = bit.band(low, low - 1)
+    end
+    while high ~= 0 do
+      count = count + 1
+      high = bit.band(high, high - 1)
+    end
+  else
+    while n ~= 0 do
+      count = count + 1
+      n = bit.band(n, n - 1)
+    end
   end
   return count
 end
@@ -42,13 +55,23 @@ end
 local function is_capabilities_bit_set(long_bitmap_arr, bit_offset)
   local long_bitsize = ffi.sizeof("long") * 8
   local arr_index = math.floor(bit_offset / long_bitsize)
-  local long_mask = bit.lshift(1, bit_offset % long_bitsize)
+  local bit_in_word = bit_offset % long_bitsize
   local long_bitmap = long_bitmap_arr[arr_index + 1] -- Array index starts from 1 in Lua
 
-  if long_bitmap then
-    return bit.band(long_bitmap, long_mask) ~= 0
-  else
+  if not long_bitmap then
     return false
+  end
+
+  if long_bitsize == 64 then
+    if bit_in_word >= 32 then
+      local high = math.floor(long_bitmap / 4294967296)
+      return bit.band(high, bit.lshift(1, bit_in_word - 32)) ~= 0
+    else
+      local low = long_bitmap % 4294967296
+      return bit.band(low, bit.lshift(1, bit_in_word)) ~= 0
+    end
+  else
+    return bit.band(long_bitmap, bit.lshift(1, bit_in_word)) ~= 0
   end
 end
 
