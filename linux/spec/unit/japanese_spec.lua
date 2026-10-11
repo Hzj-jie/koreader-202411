@@ -170,4 +170,52 @@ describe("Japanese plugin unit tests", function()
       end)
     end
   )
+
+  it("should perform zero expansions when max_scan_length is 0", function()
+    local plugin = Japanese:new({})
+    plugin:init()
+    plugin.max_scan_length = 0
+
+    local next_char_called = 0
+    local callbacks = {
+      get_next_char_pos = function(pos)
+        next_char_called = next_char_called + 1
+        if pos == 0 then
+          return 1
+        elseif pos == 1 then
+          return 2
+        end
+        return nil
+      end,
+      get_text_in_range = function(p0, p1)
+        if p0 == 0 and p1 == 1 then
+          return "本"
+        end
+        return "本を"
+      end,
+    }
+
+    plugin.dictionary = {
+      rawSdcv = function(_, words)
+        local results = {}
+        for _, w in ipairs(words) do
+          if w == "本" then
+            table.insert(results, { { definition = "book" } })
+          else
+            table.insert(results, {})
+          end
+        end
+        return false, results
+      end,
+    }
+
+    local res = plugin:onWordSelection({
+      pos0 = 0,
+      text = "本",
+      callbacks = callbacks,
+    })
+    assert.are.same({ 0, 1 }, res)
+    -- pos1 calculation called get_next_char_pos(0) once, but the expansion loop should not advance current_end past pos1
+    assert.are.equal(1, next_char_called)
+  end)
 end)
