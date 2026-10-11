@@ -193,38 +193,35 @@ describe("Remarkable device", function()
       io.popen = orig_popen
     end)
 
-    it(
-      "fails: kernel version parsing treats Linux 6.10+ as mainline",
-      function()
-        -- Bug: lines 154-156 parses uname -r via:
-        -- release = tonumber(release:match("^(%d+%.%d+)%.%d+.*$"))
-        -- On Linux 6.10+, "6.10" parsed as a float is 6.1 < 6.2, so is_mainline
-        -- incorrectly evaluates to false, failing to configure mainline input devices.
-        os.execute = function()
-          return 1
-        end
-        io.popen = function(cmd, mode)
-          if cmd == "uname -r" then
-            return {
-              read = function(self, fmt)
-                return "6.10.0-rm"
-              end,
-              close = function(self) end,
-            }
-          end
-          return orig_popen(cmd, mode)
-        end
-
-        local dev = Remarkable1:extend({})
-        dev:init()
-
-        assert.are.equal(
-          "/dev/input/touchscreen0",
-          dev.input_ts,
-          "Linux 6.10+ should be recognized as mainline kernel"
-        )
+    it("kernel version parsing treats Linux 6.10+ as mainline", function()
+      -- Bug: lines 154-156 parses uname -r via:
+      -- release = tonumber(release:match("^(%d+%.%d+)%.%d+.*$"))
+      -- On Linux 6.10+, "6.10" parsed as a float is 6.1 < 6.2, so is_mainline
+      -- incorrectly evaluates to false, failing to configure mainline input devices.
+      os.execute = function()
+        return 1
       end
-    )
+      io.popen = function(cmd, mode)
+        if cmd == "uname -r" then
+          return {
+            read = function(self, fmt)
+              return "6.10.0-rm"
+            end,
+            close = function(self) end,
+          }
+        end
+        return orig_popen(cmd, mode)
+      end
+
+      local dev = Remarkable1:extend({})
+      dev:init()
+
+      assert.are.equal(
+        "/dev/input/touchscreen0",
+        dev.input_ts,
+        "Linux 6.10+ should be recognized as mainline kernel"
+      )
+    end)
 
     it(
       "fails: Oxide detection does not mutate shared event_map module table in place",
