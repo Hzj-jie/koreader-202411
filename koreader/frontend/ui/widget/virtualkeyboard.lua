@@ -372,7 +372,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
       self:_showLayoutDialog()
     end,
   }
-  for i = 1, #keyboard_layouts do
+  for i = 1, math.min(#positions, #keyboard_layouts) do
     key_chars[positions[i]] = string.sub(keyboard_layouts[i], 1, 2)
     key_chars[positions[i] .. "_func"] = function()
       UIManager:close(self.popup)
