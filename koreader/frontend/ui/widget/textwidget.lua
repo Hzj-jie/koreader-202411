@@ -307,7 +307,7 @@ function TextWidget:getFittedText()
       return self._text_to_draw:sub(1, -4), true
     end
   end
-  if self._shape_start == 1 and self._shape_end == #self.text then
+  if self._shape_start == 1 and self._shape_end == #self._xtext then
     -- not truncated
     return self.text, nil
   end

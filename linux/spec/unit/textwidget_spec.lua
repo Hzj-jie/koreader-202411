@@ -261,7 +261,7 @@ describe("TextWidget", function()
     )
 
     it(
-      "fails: exposes getFittedText returning false instead of nil for un-truncated multi-byte text with xtext",
+      "should ensure getFittedText returns nil for un-truncated multi-byte text with xtext",
       function()
         local face = Font:getFace("infofont", 14)
         local tw = TextWidget:new({
