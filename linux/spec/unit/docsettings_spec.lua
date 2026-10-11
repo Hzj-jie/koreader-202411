@@ -2000,7 +2000,7 @@ describe("docsettings module", function()
     )
 
     it(
-      "fails: exposes getFileFromHistory breaking on folder names with square brackets",
+      "exposes getFileFromHistory breaking on folder names with square brackets",
       function()
         local doc_path = "/books/[Sci-Fi]/Dune.epub"
         local hist_path = docsettings:getHistoryPath(doc_path)
