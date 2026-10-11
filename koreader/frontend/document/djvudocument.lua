@@ -36,6 +36,7 @@ function DjvuDocument:init()
     error("Not a valid DjVu file")
   end
 
+  self:updateColorRendering()
   local ok
   ok, self._document = pcall(
     djvu.openDocument,
@@ -46,7 +47,6 @@ function DjvuDocument:init()
   if not ok then
     error(self._document) -- will contain error message
   end
-  self:updateColorRendering()
   self.is_open = true
   self.info.has_pages = true
   self.info.configurable = true
