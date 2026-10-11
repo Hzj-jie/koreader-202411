@@ -72,9 +72,6 @@ describe("BaseExporter module", function()
       exporter.settings.enabled = true
       exporter:saveSettings()
 
-      -- Exposes defect: BaseExporter:saveSettings() mutates the table returned by
-      -- readTableRef without calling G_reader_settings:save("exporter", ...),
-      -- leaving data_dirty false so G_reader_settings:flush() drops unsaved exporter settings.
       assert.are.equal("exporter", saved_key)
     end
   )
