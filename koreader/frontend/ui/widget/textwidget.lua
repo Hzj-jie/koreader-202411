@@ -302,7 +302,7 @@ function TextWidget:getFittedText()
     end
     -- ellipsis is 3 bytes
     if self.truncate_left then
-      return self._text_to_draw:sub(3), true
+      return self._text_to_draw:sub(4), true
     else
       return self._text_to_draw:sub(1, -4), true
     end
