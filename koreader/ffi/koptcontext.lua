@@ -288,7 +288,9 @@ function KOPTContext_mt.__index:isPreCache()
   return self.precache
 end
 function KOPTContext_mt.__index:getLanguage()
-  return ffi.string(self.language)
+  if self.language ~= nil then
+    return ffi.string(self.language)
+  end
 end
 function KOPTContext_mt.__index:getPageDim()
   return self.page_width, self.page_height
@@ -898,7 +900,7 @@ function KOPTContext.totable(kc)
   -- rectmaps struct
   context.rectmaps = {
     n = kc.rectmaps.n,
-    na = kc.rectmaps.n,
+    na = kc.rectmaps.na,
     wrectmap = ffi.string(
       kc.rectmaps.wrectmap,
       ffi.sizeof("WRECTMAP") * kc.rectmaps.n
