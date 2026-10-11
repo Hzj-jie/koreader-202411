@@ -202,7 +202,12 @@ function ScrollTextWidget:_updateScrollBar(is_partial)
       refreshfunc = "partial"
     end
     -- Reset transparency if the dialog's MovableContainer is currently translucent...
-    if is_partial and self.dialog.movable and self.dialog.movable.alpha then
+    if
+      is_partial
+      and self.dialog
+      and self.dialog.movable
+      and self.dialog.movable.alpha
+    then
       self.dialog.movable.alpha = nil
       -- TODO: setDirty self.dialog seems very wrong, but the movable needs to
       -- be repaint to erase the alpha.
