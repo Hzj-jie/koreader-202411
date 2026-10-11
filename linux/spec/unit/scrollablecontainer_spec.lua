@@ -516,7 +516,7 @@ describe("ScrollableContainer module", function()
     )
 
     it(
-      "fails: exposes onScrollablePanRelease crashing on nil _scroll_relative_x",
+      "should ensure onScrollablePanRelease does not crash on nil _scroll_relative_x",
       function()
         local content = createContent(200, 300)
         local container = ScrollableContainer:new({
