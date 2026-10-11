@@ -279,8 +279,13 @@ function TextViewer:init(reinit)
       hold_callback = self.default_hold_callback,
     },
   }
-  local buttons = self.buttons_table or {}
-  if (self.add_default_buttons and not reinit) or not self.buttons_table then
+  local buttons = {}
+  if self.buttons_table then
+    for _, row in ipairs(self.buttons_table) do
+      table.insert(buttons, row)
+    end
+  end
+  if self.add_default_buttons or not self.buttons_table then
     table.insert(buttons, default_buttons)
   end
   self.button_table = ButtonTable:new({
