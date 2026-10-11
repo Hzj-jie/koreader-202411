@@ -714,7 +714,7 @@ describe("CoverImage plugin tests", function()
   end)
 
   it(
-    "fails: exposes getCacheFiles ignoring cache_path and cache_prefix parameters",
+    "retrieves cache files using passed cache_path and cache_prefix parameters",
     function()
       local instance = CoverImage:new({ ui = createMockUI() })
       local custom_cache_dir = test_dir .. "/custom_cache/"
