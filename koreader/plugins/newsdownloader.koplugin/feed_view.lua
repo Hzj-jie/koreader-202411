@@ -58,7 +58,7 @@ function FeedView:getItem(id, feed, edit_feed_callback, delete_feed_callback)
 
   -- If there's no URL or limit we don't care about this
   -- because we can't use it.
-  if not url and limit then
+  if not url or not limit then
     return nil
   end
 
