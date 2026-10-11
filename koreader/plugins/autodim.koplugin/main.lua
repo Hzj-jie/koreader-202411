@@ -157,6 +157,13 @@ function AutoDim:onExit()
 end
 
 function AutoDim:onClose()
+  UIManager:unschedule(AutoDim._rampTask)
+  self:_clearIdling()
+  self:_restoreFrontlight()
+  if self.trap_widget then
+    UIManager:closeIfShown(self.trap_widget)
+    self.trap_widget = nil
+  end
   BackgroundTaskPlugin.onClose(self)
 end
 
@@ -176,6 +183,9 @@ function AutoDim:onFrontlightTurnedOff()
 end
 
 function AutoDim:_shouldNotDim()
+  if self.autodim_starttime_m <= 0 then
+    return true
+  end
   return UIManager:timeSinceLastUserAction()
     < time.s(self.autodim_starttime_m * 60)
 end
@@ -233,6 +243,12 @@ function AutoDim:_rampTask(fl_diff, delay)
   -- User actions, likely won't happen, but in case the user action was
   -- triggered by not dismissing the TrapWidget.
   if self:_shouldNotDim() then
+    self:_clearIdling()
+    self:_restoreFrontlight()
+    if self.trap_widget then
+      UIManager:close(self.trap_widget)
+      self.trap_widget = nil
+    end
     return
   end
   local fl_level = Powerd:frontlightIntensity()

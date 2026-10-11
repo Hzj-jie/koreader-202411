@@ -152,10 +152,11 @@ function Gestures:init()
     FFIUtil.copyFile(defaults_path, gestures_path)
   end
   self.ignore_hold_corners = G_reader_settings:isTrue("ignore_hold_corners")
-  self.multiswipes_enabled = G_reader_settings:isTrue("multiswipes_enabled")
+  self.multiswipes_enabled = G_reader_settings:read("multiswipes_enabled")
   self.is_docless = self.ui == nil or self.ui.document == nil
   self.ges_mode = self.is_docless and "gesture_fm" or "gesture_reader"
-  self.defaults = LuaSettings:open(defaults_path).data[self.ges_mode]
+  self.defaults =
+    util.tableDeepCopy(LuaSettings:open(defaults_path).data[self.ges_mode])
   if not self.settings_data then
     self.settings_data = LuaSettings:open(gestures_path)
   end
@@ -189,11 +190,11 @@ function Gestures:init()
       -- We only replace them if they are still the other direction's default.
       -- If not, the user has changed them: let him deal with setting new ones if needed.
       if util.tableEquals(self.gestures[k], self.defaults[v]) then
-        self.gestures[k] = self.defaults[k]
+        self.gestures[k] = util.tableDeepCopy(self.defaults[k])
         reset = true
       end
       if util.tableEquals(self.gestures[v], self.defaults[k]) then
-        self.gestures[v] = self.defaults[v]
+        self.gestures[v] = util.tableDeepCopy(self.defaults[v])
         reset = true
       end
     end
@@ -410,7 +411,7 @@ local multiswipe_to_arrow = {
 }
 function Gestures:friendlyMultiswipeName(multiswipe)
   return multiswipe
-    :gsub("multiswipe", "")
+    :gsub("^multiswipe_?", "")
     :gsub("_", " ")
     :gsub("%S+", multiswipe_to_arrow)
 end
@@ -619,9 +620,8 @@ Any other taps made within this interval after a first tap will be considered ac
 The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (2 seconds).]]
             ),
             width = math.floor(Screen:getWidth() * 0.75),
-            value = time.to_ms(
-              G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
-            ),
+            value = G_reader_settings:read("ges_tap_interval_on_keyboard_ms")
+              or 0,
             value_min = 0,
             value_max = 2000,
             value_step = 50,
