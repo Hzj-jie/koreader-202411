@@ -178,54 +178,51 @@ describe("Weather main plugin module", function()
       end
     )
 
-    it(
-      "closes previous KeyValuePage before opening forecastForDay (fails: kv[0] check)",
-      function()
-        local mock_ui = {
-          menu = {
-            registerToMainMenu = function() end,
-          },
-        }
-        local inst = Weather:new({ ui = mock_ui })
-        inst:loadSettings()
+    it("closes previous KeyValuePage before opening forecastForDay", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local inst = Weather:new({ ui = mock_ui })
+      inst:loadSettings()
 
-        -- Stub composer methods to isolate KV closing logic
-        inst.composer.createForecastFromDay = function()
-          return {}
-        end
-        inst.composer.createCurrentForecast = function()
-          return {}
-        end
-
-        local old_kv = {
-          title = "Active Weekly Forecast View",
-        }
-        inst.kv = old_kv
-
-        local closed_widget
-        local old_close = UIManager.close
-        local old_show = UIManager.show
-        UIManager.close = function(_, widget)
-          closed_widget = widget
-        end
-        UIManager.show = function() end
-
-        local day_data = {
-          location = { name = "City", localtime_epoch = 1715774400 },
-          current = { temp_c = 20, condition = { text = "Sunny" } },
-        }
-
-        inst:forecastForDay(day_data)
-
-        UIManager.close = old_close
-        UIManager.show = old_show
-
-        -- Production bug in weather main.lua line 283:
-        -- Checks `if kv[0] ~= nil then UIManager:close(self.kv) end`.
-        -- Since Lua widgets are 1-indexed tables, kv[0] is always nil,
-        -- so UIManager:close is never called on the previously active self.kv!
-        assert.are.equal(old_kv, closed_widget)
+      -- Stub composer methods to isolate KV closing logic
+      inst.composer.createForecastFromDay = function()
+        return {}
       end
-    )
+      inst.composer.createCurrentForecast = function()
+        return {}
+      end
+
+      local old_kv = {
+        title = "Active Weekly Forecast View",
+      }
+      inst.kv = old_kv
+
+      local closed_widget
+      local old_close = UIManager.close
+      local old_show = UIManager.show
+      UIManager.close = function(_, widget)
+        closed_widget = widget
+      end
+      UIManager.show = function() end
+
+      local day_data = {
+        location = { name = "City", localtime_epoch = 1715774400 },
+        current = { temp_c = 20, condition = { text = "Sunny" } },
+      }
+
+      inst:forecastForDay(day_data)
+
+      UIManager.close = old_close
+      UIManager.show = old_show
+
+      -- Production bug in weather main.lua line 283:
+      -- Checks `if kv[0] ~= nil then UIManager:close(self.kv) end`.
+      -- Since Lua widgets are 1-indexed tables, kv[0] is always nil,
+      -- so UIManager:close is never called on the previously active self.kv!
+      assert.are.equal(old_kv, closed_widget)
+    end)
   end)
 end)

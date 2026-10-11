@@ -277,10 +277,9 @@ end
 --
 --
 function Weather:forecastForDay(data)
-  local kv = self.kv or {}
   local view_content = {}
 
-  if kv[0] ~= nil then
+  if self.kv ~= nil then
     UIManager:close(self.kv)
   end
 
