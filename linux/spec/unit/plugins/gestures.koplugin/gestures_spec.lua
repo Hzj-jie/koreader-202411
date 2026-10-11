@@ -403,7 +403,7 @@ describe("Gestures plugin", function()
     end)
 
     it(
-      "fails: exposes tap interval on keyboard value conversion bug",
+      "populates tap interval on keyboard value directly in milliseconds",
       function()
         G_reader_settings:save("ges_tap_interval_on_keyboard_ms", 150)
         local menu_items = {}
