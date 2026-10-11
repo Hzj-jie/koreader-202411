@@ -354,7 +354,11 @@ local getFunctionInfo = function(func, full_code)
     end
     __, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
-    info.classname = signature:gsub(".-(%w+):.*", "%1")
+    if info.is_method then
+      info.classname = signature:gsub(".-(%w+):.*", "%1")
+    else
+      info.classname = ""
+    end
   else
     -- possibly some Lua builtin function or from some C-module
     lines = {}
@@ -398,12 +402,16 @@ local guessClassName = function(obj)
   local meta_table = getmetatable(obj)
   local test_method, meta_test_method
   for _, method_name in ipairs(classic_method_names) do
-    test_method = rawget(obj, method_name)
-    if test_method then
+    local val = rawget(obj, method_name)
+    if type(val) == "function" then
+      test_method = val
       break
     end
     if meta_table and not meta_test_method then
-      meta_test_method = rawget(meta_table, method_name)
+      val = rawget(meta_table, method_name)
+      if type(val) == "function" then
+        meta_test_method = val
+      end
     end
   end
   if not test_method then
@@ -411,7 +419,9 @@ local guessClassName = function(obj)
   end
   if test_method then
     local func_info = getFunctionInfo(test_method)
-    return func_info.classname
+    if func_info.classname and func_info.classname ~= "" then
+      return func_info.classname
+    end
   end
 end
 
