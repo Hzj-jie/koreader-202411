@@ -387,6 +387,10 @@ function Terminal:killShell(ask)
   local pid = pid_file:read("*n")
   pid_file:close()
 
+  if not pid then
+    return -1
+  end
+
   if ask then
     return pid
   else
