@@ -689,8 +689,8 @@ function SudokuBoardWidget:getCellFromPoint(x, y)
     return nil
   end
   local cell_size = rect.w / 9
-  local col = math.floor(local_x / cell_size) + 1
-  local row = math.floor(local_y / cell_size) + 1
+  local col = math.min(9, math.floor(local_x / cell_size) + 1)
+  local row = math.min(9, math.floor(local_y / cell_size) + 1)
   if row < 1 or row > 9 or col < 1 or col > 9 then
     return nil
   end
