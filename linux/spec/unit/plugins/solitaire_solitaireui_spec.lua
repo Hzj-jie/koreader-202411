@@ -564,31 +564,28 @@ describe("SolitaireUI plugin module", function()
     assert.are.equal(1, inst.selected_source.index)
   end)
 
-  it(
-    "does not save completed won game on onClose (fails: onClose unconditionally saves game)",
-    function()
-      local ffiUtil = require("ffi/util")
-      local util = require("util")
-      local pid = tostring(ffiUtil.getpid())
-      local tmp_settings = os.tmpname()
-      local tmp_save = os.tmpname() .. "_" .. pid .. ".lua"
+  it("does not save completed won game on onClose", function()
+    local ffiUtil = require("ffi/util")
+    local util = require("util")
+    local pid = tostring(ffiUtil.getpid())
+    local tmp_settings = os.tmpname()
+    local tmp_save = os.tmpname() .. "_" .. pid .. ".lua"
 
-      local inst = SolitaireUI:new()
-      inst.settings_path = tmp_settings
-      inst.save_path = tmp_save
-      finally(function()
-        os.remove(tmp_settings)
-        os.remove(tmp_save)
-      end)
+    local inst = SolitaireUI:new()
+    inst.settings_path = tmp_settings
+    inst.save_path = tmp_save
+    finally(function()
+      os.remove(tmp_settings)
+      os.remove(tmp_save)
+    end)
 
-      inst.game.checkWin = function()
-        return true
-      end
-      inst:showWinMessage()
-      assert.is_false(util.fileExists(tmp_save))
-
-      inst:onClose()
-      assert.is_false(util.fileExists(tmp_save))
+    inst.game.checkWin = function()
+      return true
     end
-  )
+    inst:showWinMessage()
+    assert.is_false(util.fileExists(tmp_save))
+
+    inst:onClose()
+    assert.is_false(util.fileExists(tmp_save))
+  end)
 end)

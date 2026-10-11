@@ -1053,7 +1053,9 @@ function SolitaireUI:showWinMessage()
 end
 
 function SolitaireUI:onClose()
-  self:saveGame()
+  if not self.game:checkWin() then
+    self:saveGame()
+  end
   -- Stop the timer refresh
   self.game:stopTimer()
   return true
