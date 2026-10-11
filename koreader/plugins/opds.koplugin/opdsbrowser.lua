@@ -401,12 +401,16 @@ function OPDSBrowser:genItemTableFromCatalog(catalog, item_url)
         -- OpenSearch
         if link.type:find(self.search_type) then
           if link.href then
-            table.insert(item_table, { -- the first item in each subcatalog
-              text = "\u{f002} " .. gettext("Search"), -- append SEARCH icon
-              url = build_href(self:getSearchTemplate(build_href(link.href))),
-              searchable = true,
-            })
-            has_opensearch = true
+            local search_template =
+              self:getSearchTemplate(build_href(link.href))
+            if search_template then
+              table.insert(item_table, { -- the first item in each subcatalog
+                text = "\u{f002} " .. gettext("Search"), -- append SEARCH icon
+                url = build_href(search_template),
+                searchable = true,
+              })
+              has_opensearch = true
+            end
           end
         end
         -- Calibre search (also matches the actual template for OpenSearch!)
