@@ -45,11 +45,12 @@ function WeatherApi:_makeRequest(url)
   logger.dbg("result: ", result_response)
   -- Check for result
   if result_response ~= "" then
-    local _, result = pcall(json.decode, result_response)
-    return result
-  else
-    return nil
+    local ok, result = pcall(json.decode, result_response)
+    if ok then
+      return result
+    end
   end
+  return nil
 end
 --
 --
