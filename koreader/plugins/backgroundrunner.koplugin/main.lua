@@ -166,7 +166,7 @@ function BackgroundRunner:_finishJob(job)
   end
   if job.callback ~= nil then
     assert(type(job.callback) == "function")
-    job.callback(job)
+    pcall(job.callback, job)
   end
 end
 
