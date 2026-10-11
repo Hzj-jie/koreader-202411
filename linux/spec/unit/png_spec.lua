@@ -45,4 +45,29 @@ describe("ffi/png module", function()
       assert.are.equal("string", type(err_msg))
     end
   )
+
+  it("cleans up state on early exit in decodeFromFile", function()
+    local cleaned = false
+    local up_idx = 1
+    local name, orig_lodepng = debug.getupvalue(Png.decodeFromFile, up_idx)
+    if name ~= "lodepng" then
+      up_idx = 2
+      orig_lodepng = select(2, debug.getupvalue(Png.decodeFromFile, up_idx))
+    end
+
+    local mock_lodepng = setmetatable({
+      lodepng_state_cleanup = function(state)
+        cleaned = true
+        return orig_lodepng.lodepng_state_cleanup(state)
+      end,
+    }, { __index = orig_lodepng })
+
+    debug.setupvalue(Png.decodeFromFile, up_idx, mock_lodepng)
+
+    local ok, _ = Png.decodeFromFile("../koreader/resources/koreader.png", 99)
+    debug.setupvalue(Png.decodeFromFile, up_idx, orig_lodepng)
+
+    assert.is_false(ok)
+    assert.is_true(cleaned)
+  end)
 end)

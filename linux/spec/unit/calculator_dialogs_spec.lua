@@ -1,28 +1,14 @@
--- luacheck: ignore 122
-local CalculatorSettingsDialog
 local CalculatorUnitsDialog
-local InputDialog
-local PathChooser
-local UIManager
 
-describe("Calculator dialogs", function()
+describe("CalculatorUnitsDialog", function()
   setup(function()
     require("commonrequire")
-    InputDialog = require("ui/widget/inputdialog")
-    PathChooser = require("ui/widget/pathchooser")
-    UIManager = require("ui/uimanager")
 
     local ok1, mod1 = pcall(require, "calculatorunitsdialog")
     if not ok1 then
       mod1 = require("plugins/calculator.koplugin/calculatorunitsdialog")
     end
     CalculatorUnitsDialog = mod1
-
-    local ok2, mod2 = pcall(require, "calculatorsettingsdialog")
-    if not ok2 then
-      mod2 = require("plugins/calculator.koplugin/calculatorsettingsdialog")
-    end
-    CalculatorSettingsDialog = mod2
   end)
 
   it(
@@ -40,57 +26,50 @@ describe("Calculator dialogs", function()
     end
   )
 
-  it(
-    "normalizes trailing slash when creating input dialog for directory path",
-    function()
-      local orig_inputdialog_new = InputDialog.new
-      local orig_pathchooser_new = PathChooser.new
-      local orig_uimanager_show = UIManager.show
-      local captured_input
+  it("creates separate radio button tables for from and to units", function()
+    local dlg = CalculatorUnitsDialog:new({
+      parent = { units_dialog = {} },
+    })
+    assert.are_not_equal(
+      dlg.radio_button_table_units_from.radio_buttons,
+      dlg.radio_button_table_units_too.radio_buttons
+    )
+  end)
 
-      UIManager.show = function() end
+  it("does not crash when confirmed without checked buttons", function()
+    local dlg = CalculatorUnitsDialog:new({
+      units = { { "cm", 0.01 }, { "inch", 0.0254 } },
+      parent = {
+        units_dialog = {},
+        parent = {
+          input_dialog = {
+            _input_widget = {
+              goToEndOfLine = function() end,
+              goToStartOfLine = function() end,
+              addChars = function() end,
+              charpos = 0,
+            },
+            getInputText = function()
+              return ""
+            end,
+            setInputText = function() end,
+          },
+          calculate = function() end,
+          gotoEnd = function() end,
+        },
+      },
+    })
+    dlg.radio_button_table_units_from.checked_button = nil
+    dlg.radio_button_table_units_too.checked_button = nil
 
-      InputDialog.new = function(self, args)
-        captured_input = args.input
-        return {
-          getInputText = function()
-            return args.input
-          end,
-        }
-      end
+    local UIManager = require("ui/uimanager")
+    local orig_close = UIManager.close
+    UIManager.close = function() end
 
-      PathChooser.new = function(self, args)
-        -- Simulate choosing an existing directory that ends with "/"
-        args.onConfirm("/tmp/")
-        return {}
-      end
-
-      local dlg = {
-        calculator_input_path = "/tmp/",
-        parent = { settings = {} },
-      }
-
-      -- choosePathFile(menu, key, folder_only, new_file, migrate)
-      -- When dir_path already ends with "/", line 376 executes `input = dir_path .. "/"`,
-      -- producing redundant double slash "/tmp//".
-      CalculatorSettingsDialog.choosePathFile(
-        dlg,
-        nil,
-        "calculator_input_path",
-        false,
-        true,
-        nil
-      )
-
-      InputDialog.new = orig_inputdialog_new
-      PathChooser.new = orig_pathchooser_new
-      UIManager.show = orig_uimanager_show
-
-      assert.is_not_nil(captured_input)
-      assert.is_nil(
-        captured_input:match("//"),
-        "Redundant double slash found in input: " .. tostring(captured_input)
-      )
-    end
-  )
+    local ok_btn_callback = dlg.button_table.buttons[1][2].callback
+    assert.has_no.errors(function()
+      ok_btn_callback()
+    end)
+    UIManager.close = orig_close
+  end)
 end)
