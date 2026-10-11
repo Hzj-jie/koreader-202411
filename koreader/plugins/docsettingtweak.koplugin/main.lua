@@ -102,9 +102,16 @@ function DocSettingTweak:onDocSettingsLoad(doc_settings, document)
   -- check that the document has not been opened yet & and that we have defaults to customize
   if doc_settings.data.doc_props == nil and directory_defaults.data ~= nil then
     local base = G_named_settings.home_dir()
+    if base:sub(-1) == "/" and #base > 1 then
+      base = base:sub(1, -2)
+    end
     local directory = FFIUtil.dirname(document.file)
     -- check if folder matches our defaults to override
-    while directory:sub(1, #base) == base do
+    while
+      directory == base
+      or (base == "/" and directory:sub(1, 1) == "/")
+      or directory:sub(1, #base + 1) == base .. "/"
+    do
       if directory_defaults:has(directory) then
         local summary = doc_settings.data.summary -- keep status
         doc_settings.data =
