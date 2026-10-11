@@ -239,7 +239,7 @@ describe("Geometry", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes Geom:intersect with zero area rect and disjoint negative rects",
+      "exposes Geom:intersect with zero area rect and disjoint negative rects",
       function()
         local r1 = Geom:new({ x = 0, y = 0, w = 100, h = 100 })
         local zero_rect = Geom:new({ x = 10, y = 10, w = 0, h = 50 })
