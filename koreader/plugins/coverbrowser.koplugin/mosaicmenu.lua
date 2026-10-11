@@ -947,7 +947,7 @@ function MosaicMenu:_recalculateDimen()
   local mark_size = math.floor(math.min(self.item_width, self.item_height) / 8)
   if mark_size ~= corner_mark_size then
     corner_mark_size = mark_size
-    if corner_mark then
+    if reading_mark then
       reading_mark:free()
       abandoned_mark:free()
       complete_mark:free()
