@@ -2869,7 +2869,7 @@ local dictionaries = {
   },
   {
     name = "Esperanto-English dictionary by Paul Denisowski",
-    lang_in = "eto",
+    lang_in = "epo",
     lang_out = "eng",
     entries = 63728,
     license = "Creative Commons Attribution 3.0 Unported License",

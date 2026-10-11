@@ -4,18 +4,41 @@ local S
 
 describe("ffi/SDL2_0 module", function()
   local orig_SDL
+  local toluastring_fn
+
+  local function get_upval(fn, name)
+    local i = 1
+    while true do
+      local n, v = debug.getupvalue(fn, i)
+      if not n then return nil end
+      if n == name then return i, v end
+      i = i + 1
+    end
+  end
+
+  local function set_upval(fn, name, val)
+    local i = get_upval(fn, name)
+    if i then
+      debug.setupvalue(fn, i, val)
+    end
+  end
 
   setup(function()
     require("commonrequire")
     ffi = require("ffi")
     S = require("ffi/SDL2_0")
 
-    local _, sdl_upval = debug.getupvalue(S.waitForEvent, 3)
+    local _, sdl_upval = get_upval(S.waitForEvent, "SDL")
     orig_SDL = sdl_upval
+    local _, t_fn = get_upval(S.waitForEvent, "toluastring")
+    toluastring_fn = t_fn
   end)
 
   after_each(function()
-    debug.setupvalue(S.waitForEvent, 3, orig_SDL)
+    set_upval(S.waitForEvent, "SDL", orig_SDL)
+    if toluastring_fn then
+      set_upval(toluastring_fn, "SDL", orig_SDL)
+    end
   end)
 
   it("returns timeout error when no event arrives", function()
@@ -27,7 +50,7 @@ describe("ffi/SDL2_0 module", function()
       __index = orig_SDL,
     })
 
-    debug.setupvalue(S.waitForEvent, 3, mock_SDL)
+    set_upval(S.waitForEvent, "SDL", mock_SDL)
     local ok, err = S.waitForEvent(0, 500)
     assert.is_false(ok)
     assert.are.equal(ffi.C.ETIME, err)
@@ -35,30 +58,30 @@ describe("ffi/SDL2_0 module", function()
 
   it("frees dropped file memory via SDL_free on SDL_DROPFILE", function()
     local dummy_str = ffi.new("char[16]", "/path/book.epub")
-    local freed_ptrs = {}
+    local freed = false
 
     local mock_SDL = setmetatable({
-      SDL_WaitEventTimeout = function(event)
-        event.type = ffi.C.SDL_DROPFILE
-        event.drop.file = dummy_str
+      SDL_WaitEventTimeout = function(ev)
+        ev.type = orig_SDL.SDL_DROPFILE
+        ev.drop.file = dummy_str
         return 1
       end,
       SDL_free = function(ptr)
-        freed_ptrs[tostring(ptr)] = true
+        if ffi.cast("uintptr_t", ptr) == ffi.cast("uintptr_t", dummy_str) then
+          freed = true
+        end
       end,
     }, {
       __index = orig_SDL,
     })
 
-    debug.setupvalue(S.waitForEvent, 3, mock_SDL)
+    set_upval(S.waitForEvent, "SDL", mock_SDL)
+    if toluastring_fn then
+      set_upval(toluastring_fn, "SDL", mock_SDL)
+    end
 
-    -- In production lines 520-522:
-    --   elseif event.type == SDL.SDL_DROPFILE then
-    --     local dropped_file_path = ffi.string(event.drop.file)
-    --     genEmuEvent(C.EV_SDL, SDL.SDL_DROPFILE, dropped_file_path)
-    -- SDL-allocated event.drop.file char* is never freed with SDL_free, leaking memory.
     S.waitForEvent(0, 1000)
 
-    assert.is_true(freed_ptrs[tostring(dummy_str)])
+    assert.is_true(freed)
   end)
 end)
