@@ -182,7 +182,7 @@ describe("CoverBrowser BookInfoManager plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes missing #files count in N_() call at line 1054 producing plural text for 1 book",
+      "formats singular message when 1 book is found to index in extractBooksInDirectory",
       function()
         local captured_messages = {}
         local orig_show = UIManager.show
