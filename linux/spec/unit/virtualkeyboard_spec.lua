@@ -584,7 +584,7 @@ describe("VirtualKeyboard component", function()
     )
 
     it(
-      "fails: exposes onClose stopping text input when keyboard was never shown",
+      "should ensure onClose does not stop text input when keyboard was never shown",
       function()
         local mock_inputbox = createMockInputbox()
         local stop_called = false
