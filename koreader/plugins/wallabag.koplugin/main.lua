@@ -667,7 +667,7 @@ function Wallabag:download(article)
   -- Just in case we also trim it, though that shouldn't be necessary.
   -- A function represents `null` in our JSON.decode, because `nil` would just disappear.
   -- We can simplify that to not a string.
-  local mimetype = type(article.mimetype) == string
+  local mimetype = type(article.mimetype) == "string"
       and util.trim(article.mimetype:match("^[^;]*"))
     or nil
 
@@ -678,7 +678,7 @@ function Wallabag:download(article)
       mimetype ~= "text/html" and DocumentRegistry:hasProvider(nil, mimetype)
     then
       logger.dbg("Wallabag: ignoring EPUB in favor of mimetype: ", mimetype)
-      file_ext = "." .. DocumentRegistry:mimeToExt(article.mimetype)
+      file_ext = "." .. DocumentRegistry:mimeToExt(mimetype)
       item_url = article.url
     elseif mimetype == nil and DocumentRegistry:hasProvider(article.url) then
       logger.dbg("Wallabag: ignoring EPUB in favor of original: ", article.url)

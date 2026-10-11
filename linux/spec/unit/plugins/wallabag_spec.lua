@@ -955,7 +955,7 @@ describe("Wallabag plugin unit tests", function()
     end)
 
     it(
-      "fails: exposes download checking type(article.mimetype) == string without quotes",
+      "properly detects mimetype and downloads original document when download_original_document is true",
       function()
         wallabag_instance.download_original_document = true
         local article = {
@@ -979,13 +979,6 @@ describe("Wallabag plugin unit tests", function()
 
         wallabag_instance:download(article)
 
-        -- In main.lua:670:
-        -- local mimetype = type(article.mimetype) == string
-        -- Evaluates type(article.mimetype) == string (comparing string against table string),
-        -- which is false, setting mimetype to nil.
-        -- When article.url lacks a file extension, DocumentRegistry:hasProvider(article.url)
-        -- returns false, so download falls back to exporting the Wallabag EPUB
-        -- (/api/entries/42/export.epub) instead of downloading the original document URL.
         assert.are.equal(article.url, captured_apiurl)
       end
     )
