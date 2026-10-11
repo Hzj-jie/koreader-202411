@@ -193,7 +193,7 @@ describe("WakeupMgr", function()
     )
 
     it(
-      "fails: removeTasks does not destroy earlier dummy callback chain when removing later task",
+      "should ensure removeTasks does not destroy earlier dummy callback chain when removing later task",
       function()
         local dodgy_mgr = require("device/wakeupmgr"):new({
           dodgy_rtc = true,
