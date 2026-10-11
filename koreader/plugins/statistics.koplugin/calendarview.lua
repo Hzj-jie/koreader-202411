@@ -1591,7 +1591,15 @@ function CalendarView:showCalendarDayView(reader_statistics)
       + (reader_statistics.settings.calendar_day_start_minute or 0) * 60
   then
     -- Should still be in previous day's timeline
-    date = os.date("*t", os.time() - 86400 + 10800) -- make sure it's the previous day
+    local current_day_ts = os.time({
+      year = date.year,
+      month = date.month,
+      day = date.day,
+      hour = 0,
+      min = 0,
+      sec = 0,
+    })
+    date = os.date("*t", current_day_ts - 86400 + 10800) -- make sure it's the previous day
   end
   UIManager:show(CalendarDayView:new({
     day_ts = os.time({
