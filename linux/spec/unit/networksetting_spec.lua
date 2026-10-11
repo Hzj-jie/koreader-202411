@@ -335,7 +335,7 @@ describe("NetworkSetting module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes saveAndConnectToNetwork closing password dialog on empty WPA password",
+      "exposes saveAndConnectToNetwork closing password dialog on empty WPA password",
       function()
         local network_list = {
           {
