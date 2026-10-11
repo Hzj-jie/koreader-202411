@@ -13,7 +13,7 @@ local CommandRunner = {
 }
 
 function CommandRunner:_createEnvironmentFromTable(t)
-  if t == nil then
+  if type(t) ~= "table" then
     return ""
   end
 
@@ -35,7 +35,7 @@ function CommandRunner:_createEnvironment(job)
   end
   if type(env_table) == "function" then
     local status, result = pcall(env_table)
-    if status then
+    if status and type(result) == "table" then
       return self:_createEnvironmentFromTable(result)
     end
   end
