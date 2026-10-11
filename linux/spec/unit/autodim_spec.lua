@@ -138,7 +138,7 @@ describe("AutoDim widget tests", function()
   end)
 
   it(
-    "fails: _shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
+    "_shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
     function()
       -- Bug: lines 179-181 calculates:
       -- UIManager:timeSinceLastUserAction() < time.s(self.autodim_starttime_m * 60)

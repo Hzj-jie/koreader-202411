@@ -176,6 +176,9 @@ function AutoDim:onFrontlightTurnedOff()
 end
 
 function AutoDim:_shouldNotDim()
+  if self.autodim_starttime_m <= 0 then
+    return true
+  end
   return UIManager:timeSinceLastUserAction()
     < time.s(self.autodim_starttime_m * 60)
 end
