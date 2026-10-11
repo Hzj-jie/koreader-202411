@@ -208,7 +208,7 @@ or type 'help()⮠']])
               end,
               choice2_text = "✓", --ok
               choice2_callback = function()
-                self:dump(nil, self.calculator_input_path)
+                self:load(nil, self.calculator_input_path)
               end,
             }))
           end,

@@ -321,41 +321,37 @@ describe("Calculator main plugin module", function()
     G_reader_settings.save = old_save
   end)
 
-  it(
-    "should invoke load instead of dump on input dialog Load button [exposes production bug in Calculator:generateInputDialog()]",
-    function()
-      local dump_called = false
-      local load_called = false
-      local old_show = UIManager.show
-      local shown_confirm
-      UIManager.show = function(self_u, w)
-        shown_confirm = w
-      end
-
-      local calc = create_mock_calc()
-      calc.dump = function()
-        dump_called = true
-      end
-      calc.load = function()
-        load_called = true
-      end
-
-      local dlg = calc:generateInputDialog("status")
-      local load_btn = dlg.buttons[1][3]
-      assert.are.equal("⇧", load_btn.text)
-      load_btn.callback()
-
-      assert.is_not_nil(shown_confirm)
-      assert.is_function(shown_confirm.choice2_callback)
-      shown_confirm.choice2_callback()
-
-      -- Production bug: choice2_callback invokes self:dump instead of self:load
-      assert.is_true(load_called)
-      assert.is_false(dump_called)
-
-      UIManager.show = old_show
+  it("should invoke load on input dialog Load button", function()
+    local dump_called = false
+    local load_called = false
+    local old_show = UIManager.show
+    local shown_confirm
+    UIManager.show = function(self_u, w)
+      shown_confirm = w
     end
-  )
+
+    local calc = create_mock_calc()
+    calc.dump = function()
+      dump_called = true
+    end
+    calc.load = function()
+      load_called = true
+    end
+
+    local dlg = calc:generateInputDialog("status")
+    local load_btn = dlg.buttons[1][3]
+    assert.are.equal("⇧", load_btn.text)
+    load_btn.callback()
+
+    assert.is_not_nil(shown_confirm)
+    assert.is_function(shown_confirm.choice2_callback)
+    shown_confirm.choice2_callback()
+
+    assert.is_true(load_called)
+    assert.is_false(dump_called)
+
+    UIManager.show = old_show
+  end)
 
   it(
     "should format negative numbers with symmetric decimal precision in auto format [exposes production bug in Calculator:formatResult()]",
