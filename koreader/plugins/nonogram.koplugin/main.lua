@@ -660,17 +660,19 @@ function NonogramBoardWidget:getCellFromPoint(x, y)
   end
   local local_x = x - self.grid_origin_x
   local local_y = y - self.grid_origin_y
-  if local_x < 0 or local_y < 0 then
+  local cols = self.board:getColCount()
+  local rows = self.board:getRowCount()
+  if
+    local_x < 0
+    or local_y < 0
+    or local_x > cols * cell
+    or local_y > rows * cell
+  then
     return nil
   end
-  local col = math.floor(local_x / cell) + 1
-  local row = math.floor(local_y / cell) + 1
-  if
-    row < 1
-    or row > self.board:getRowCount()
-    or col < 1
-    or col > self.board:getColCount()
-  then
+  local col = math.min(cols, math.floor(local_x / cell) + 1)
+  local row = math.min(rows, math.floor(local_y / cell) + 1)
+  if row < 1 or row > rows or col < 1 or col > cols then
     return nil
   end
   return row, col
