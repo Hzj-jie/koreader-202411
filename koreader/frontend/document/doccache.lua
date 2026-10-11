@@ -81,7 +81,7 @@ function DocCache:serialize(doc_path)
   for _, file in pairs(self.cached) do
     table.insert(
       sorted_caches,
-      { file = file, time = lfs.attributes(file, "access") }
+      { file = file, time = lfs.attributes(file, "access") or 0 }
     )
     cached_size = cached_size + (lfs.attributes(file, "size") or 0)
   end
@@ -121,7 +121,7 @@ function DocCache:serialize(doc_path)
   end
 
   -- Allocate the same amount of storage to the disk cache than the memory cache
-  while cached_size > self.size do
+  while self.size and cached_size > self.size do
     -- discard the least recently used cache
     local discarded = table.remove(sorted_caches)
     if discarded then

@@ -38,14 +38,11 @@ function Cache:new(o)
 end
 
 function Cache:init()
-  if self.slots then
-    -- Caller doesn't care about storage space, just slot count
-    self.cache = lru.new(self.slots, nil, self.enable_eviction_cb)
-  else
+  if not self.slots then
     -- Compute the amount of slots in the LRU based on the max size & the average item size
     self.slots = math.ceil(self.size / self.avg_itemsize)
-    self.cache = lru.new(self.slots, self.size, self.enable_eviction_cb)
   end
+  self.cache = lru.new(self.slots, self.size, self.enable_eviction_cb)
 
   -- Caller prefers a persistent on-disk cache; verify or resolve a writable directory,
   -- or disable disk caching if no writable path can be found.
@@ -161,6 +158,9 @@ function Cache:get(key)
 end
 
 function Cache:willAccept(size)
+  if not self.size then
+    return true
+  end
   -- We only allow a single object to fill 50% of the cache
   return size * 4 < self.size * 2
 end
