@@ -411,7 +411,7 @@ local multiswipe_to_arrow = {
 }
 function Gestures:friendlyMultiswipeName(multiswipe)
   return multiswipe
-    :gsub("multiswipe", "")
+    :gsub("^multiswipe_?", "")
     :gsub("_", " ")
     :gsub("%S+", multiswipe_to_arrow)
 end

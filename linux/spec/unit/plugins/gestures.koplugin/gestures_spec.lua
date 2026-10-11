@@ -577,15 +577,12 @@ describe("Gestures plugin", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "friendlyMultiswipeName leaves a stray leading space when replacing multiswipe prefix",
-      function()
-        local name =
-          gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
-        -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
-        assert.are.equal("➡ ⬅", name)
-      end
-    )
+    it("friendlyMultiswipeName formats arrows without leading space", function()
+      local name =
+        gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
+      -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
+      assert.are.equal("➡ ⬅", name)
+    end)
 
     it(
       "multiswipes onboarding prompt is unreachable because init initializes multiswipes_enabled as boolean",
