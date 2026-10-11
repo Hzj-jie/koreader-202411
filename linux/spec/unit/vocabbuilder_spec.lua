@@ -618,7 +618,7 @@ describe("VocabBuilder plugin", function()
     )
 
     it(
-      "fails: exposes onSync calling conn.exec instead of conn.rowexec causing empty DB to not return false",
+      "detects uninitialized database schema and returns false in onSync",
       function()
         local DataStorage = require("datastorage")
         local SQ3 = require("lua-ljsqlite3/init")
@@ -642,16 +642,8 @@ describe("VocabBuilder plugin", function()
         local ffiutil = require("ffi/util")
         ffiutil.copyFile(DB.path, income_db)
 
-        -- In db.lua:574:
-        -- local ok3, v3 = pcall(conn.exec, conn, "PRAGMA schema_version")
-        -- conn.exec returns a result table { schema_version = { 0 } } instead of a scalar value.
-        -- tonumber(v3) returns nil.
-        -- tonumber(v3) == 0 evaluates to false!
-        -- Thus onSync fails to recognize that local DB is empty (schema_version = 0)
-        -- and fails to return false.
         local res = DB.onSync(empty_local_db, cached_db, income_db)
 
-        -- Expected: onSync should safely detect empty local DB and return false
         assert.is_false(
           res,
           "onSync must return false when local DB is empty (schema_version = 0)"
