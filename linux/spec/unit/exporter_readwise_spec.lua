@@ -67,8 +67,6 @@ describe("ReadwiseExporter module", function()
       },
     }
 
-    -- Exposes defect: makeRequest decodes json.decode(sink[1]) instead of
-    -- json.decode(table.concat(sink)), failing on chunked responses.
     local ok = ReadwiseExporter:createHighlights(booknotes)
     assert.is_true(ok)
   end)

@@ -45,7 +45,7 @@ local function makeRequest(endpoint, method, request_body, token)
     return nil, status
   end
 
-  return json.decode(sink[1])
+  return json.decode(table.concat(sink))
 end
 
 function ReadwiseExporter:isReadyToExport()
