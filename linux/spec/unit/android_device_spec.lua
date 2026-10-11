@@ -115,7 +115,7 @@ describe("Android device", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: isValidPath handles nil realpath of external storage without crashing",
+      "isValidPath handles nil realpath of external storage without crashing",
       function()
         local orig_realpath = FFIUtil.realpath
         FFIUtil.realpath = function(p)

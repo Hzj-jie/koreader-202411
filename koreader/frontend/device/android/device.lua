@@ -563,11 +563,11 @@ function Device:isValidPath(path)
   local real_ext_storage = FFIUtil.realpath(android.getExternalStoragePath())
   local real_path = FFIUtil.realpath(path)
 
-  if real_path then
-    return real_path:sub(1, #real_ext_storage) == real_ext_storage
-  else
+  if not real_ext_storage or not real_path then
     return false
   end
+
+  return real_path:sub(1, #real_ext_storage) == real_ext_storage
 end
 
 function Device:showLightDialog()
