@@ -118,7 +118,7 @@ function DocCache:serialize(doc_path)
   end
 
   -- Allocate the same amount of storage to the disk cache than the memory cache
-  while cached_size > self.size do
+  while self.size and cached_size > self.size do
     -- discard the least recently used cache
     local discarded = table.remove(sorted_caches)
     if discarded then
