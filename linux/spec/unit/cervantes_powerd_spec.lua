@@ -145,23 +145,20 @@ describe("CervantesPowerD", function()
   end)
 
   describe("defect tests", function()
-    it(
-      "fails: _syncLightOnStart preserves saved is_frontlight_on = false",
-      function()
-        -- Bug: line 26 evaluates `local is_frontlight_on = G_reader_settings:read("is_frontlight_on") or nil`.
-        -- In Lua, `false or nil` evaluates to `nil`!
-        -- Consequently, when is_frontlight_on was saved as `false`, line 26 sets
-        -- is_frontlight_on = nil, skipping lines 32-34 and leaving self.initial_is_fl_on = true!
-        G_reader_settings:save("is_frontlight_on", false)
-        G_reader_settings:save("frontlight_intensity", 50)
+    it("_syncLightOnStart preserves saved is_frontlight_on = false", function()
+      -- Bug: line 26 evaluates `local is_frontlight_on = G_reader_settings:read("is_frontlight_on") or nil`.
+      -- In Lua, `false or nil` evaluates to `nil`!
+      -- Consequently, when is_frontlight_on was saved as `false`, line 26 sets
+      -- is_frontlight_on = nil, skipping lines 32-34 and leaving self.initial_is_fl_on = true!
+      G_reader_settings:save("is_frontlight_on", false)
+      G_reader_settings:save("frontlight_intensity", 50)
 
-        powerd:_syncLightOnStart()
+      powerd:_syncLightOnStart()
 
-        assert.is_false(
-          powerd.initial_is_fl_on,
-          "_syncLightOnStart should set initial_is_fl_on to false when saved is_frontlight_on is false"
-        )
-      end
-    )
+      assert.is_false(
+        powerd.initial_is_fl_on,
+        "_syncLightOnStart should set initial_is_fl_on to false when saved is_frontlight_on is false"
+      )
+    end)
   end)
 end)
