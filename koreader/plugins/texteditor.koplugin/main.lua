@@ -114,6 +114,8 @@ function TextEditor:onFlushSettings()
     )
     self.settings:save("qr_code_export", self.qr_code_export)
     self.settings:save("show_keyboard_on_start", self.show_keyboard_on_start)
+    self.settings:save("history", self.history)
+    self.settings:save("last_view_pos", self.last_view_pos)
     self.settings:flush()
   end
 end
@@ -234,10 +236,14 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
               ok_callback = function()
                 self.history = {}
                 self.last_view_pos = {}
+                if self.settings then
+                  self.settings:save("history", self.history)
+                  self.settings:save("last_view_pos", self.last_view_pos)
+                end
                 -- remove history items from the parent menu
                 for j = #sub_item_table, 1, -1 do
                   if sub_item_table[j]._texteditor_id then
-                    table.remove(sub_item_table)
+                    table.remove(sub_item_table, j)
                   end
                 end
                 menu:updateItems()
