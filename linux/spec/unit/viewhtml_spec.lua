@@ -466,7 +466,7 @@ describe("ViewHTML module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes _showMatchingSelectors crashing on ancestors[1][2] when ancestors is empty",
+      "should ensure _showMatchingSelectors handles empty ancestors gracefully",
       function()
         local document = {
           getStylesheetsMatchingRulesets = function()
