@@ -186,7 +186,7 @@ describe("Flomo Exporter plugin target", function()
   end)
 
   it(
-    "should return false when highlight export fails due to HTTP error [exposes production bug in FlomoExporter:createHighlights()]",
+    "should return false when highlight export fails due to HTTP error",
     function()
       local old_request = http.request
 
@@ -207,7 +207,6 @@ describe("Flomo Exporter plugin target", function()
         },
       }
 
-      -- Production bug: createHighlights unconditionally returns true even when all requests fail
       local ok = exporter:export({ booknotes })
       assert.is_false(ok)
 
