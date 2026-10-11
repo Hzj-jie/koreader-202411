@@ -88,7 +88,6 @@ describe("MemosExporter module", function()
 
       MemosExporter:createHighlights(booknotes)
       assert.is_not_nil(captured_req)
-      -- Exposes defect: makeRequest passes POST payload without Content-Length header
       assert.is_not_nil(captured_req.headers["Content-Length"])
     end
   )

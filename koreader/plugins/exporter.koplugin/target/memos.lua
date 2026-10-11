@@ -29,6 +29,7 @@ local function makeRequest(method, request_body, api, token)
     source = source,
     headers = {
       ["Content-Type"] = "application/json",
+      ["Content-Length"] = #request_body_json,
       ["Authorization"] = "Bearer " .. token,
     },
   }
