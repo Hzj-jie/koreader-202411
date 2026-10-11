@@ -369,17 +369,17 @@ function NumberPickerWidget:changeValue(value, step, max, min, wrap)
   if self.value_index then
     self.value_index = self.value_index + step
     if self.value_index > #self.value_table then
-      self.value_index = wrap and 1 or #self.value_table
+      self.value_index = (step > 0 and wrap) and 1 or #self.value_table
     elseif self.value_index < 1 then
-      self.value_index = wrap and #self.value_table or 1
+      self.value_index = (step < 0 and wrap) and #self.value_table or 1
     end
     value = self.value_table[self.value_index]
   else
     value = value + step
     if value > max then
-      value = wrap and min or max
+      value = (step > 0 and wrap) and min or max
     elseif value < min then
-      value = wrap and max or min
+      value = (step < 0 and wrap) and max or min
     end
   end
   return value
