@@ -113,10 +113,14 @@ function CalibreWireless:find_calibre_server()
         -- calibre opds port and calibre socket port we will later connect to
         local _, _, replied_port =
           dgram:match("calibre wireless device client %(on (.-)%);(%d+),(%d+)$")
-        return host, replied_port
+        if replied_port then
+          udp:close()
+          return host, replied_port
+        end
       end
     end
   end
+  udp:close()
 end
 
 function CalibreWireless:checkCalibreServer(host, port)

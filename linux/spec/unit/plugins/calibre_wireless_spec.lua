@@ -302,7 +302,7 @@ describe("Calibre Wireless plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes find_calibre_server leaking UDP socket and aborting on non-Calibre datagram",
+      "closes udp socket and continues discovery when receiving non-calibre datagram in find_calibre_server",
       function()
         local orig_udp4 = socket.udp4
         local closed = false
