@@ -446,7 +446,7 @@ describe("FocusManager module", function()
       end
     )
 
-    it("fails: exposes getFocusItem crashing on empty layout", function()
+    it("exposes getFocusItem crashing on empty layout", function()
       local focusmanager = FocusManager:new({})
       focusmanager.layout = {}
       focusmanager.selected = { y = 1, x = 1 }
