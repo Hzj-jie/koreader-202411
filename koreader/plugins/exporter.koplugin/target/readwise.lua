@@ -112,7 +112,9 @@ function ReadwiseExporter:createHighlights(booknotes)
       local highlight = {
         text = clipping.text,
         title = booknotes.title,
-        author = booknotes.author ~= "" and booknotes.author:gsub("\n", ", ")
+        author = booknotes.author
+            and booknotes.author ~= ""
+            and booknotes.author:gsub("\n", ", ")
           or nil, -- optional author
         source_type = "koreader",
         category = "books",

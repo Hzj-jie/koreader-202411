@@ -39,8 +39,6 @@ describe("ReadwiseExporter module", function()
       },
     }
 
-    -- Exposes defect: booknotes.author ~= "" evaluates to true when author is nil,
-    -- crashing with 'attempt to index field author (a nil value)' on booknotes.author:gsub(...)
     assert.has_no.errors(function()
       ReadwiseExporter:createHighlights(booknotes)
     end)
