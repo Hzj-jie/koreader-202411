@@ -89,11 +89,15 @@ For such an occasion the frontend can provide custom mappings, or simply overrid
 -- Invert HW value to canonical one, needed to interpret the one given by OS.
 -- Some devices may wish to override this if the mapping is not as simple as 1:1.
 function fb:getCanonicalRotationMode(hw)
+  if not self.forced_rotation then
+    return hw
+  end
   for k, v in ipairs(self.forced_rotation) do
     if v == hw then
       return k - 1
     end
   end
+  return hw
 end
 
 -- To be overridden. Returns the current FB rotation exactly as reported by hw
@@ -270,15 +274,18 @@ function fb:close() end
 set a rectangle that represents the area of the screen we are working on
 --]]
 function fb:setViewport(viewport)
+  local base_bb = self.full_bb or self.bb
+  local screen_w = base_bb:getWidth()
+  local screen_h = base_bb:getHeight()
   if
     viewport.x < 0
-    or viewport.x > self.screen_size.w
+    or viewport.x > screen_w
     or viewport.y < 0
-    or viewport.y > self.screen_size.h
+    or viewport.y > screen_h
     or viewport.w < 0
-    or viewport.x + viewport.w > self.screen_size.w
+    or viewport.x + viewport.w > screen_w
     or viewport.h < 0
-    or viewport.y + viewport.h > self.screen_size.h
+    or viewport.y + viewport.h > screen_h
   then
     error("fb:setViewport() bad viewport")
   end
