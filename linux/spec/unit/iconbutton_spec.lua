@@ -146,7 +146,7 @@ describe("IconButton", function()
       end
     )
 
-    it("fails: exposes setIcon discarding custom width and height", function()
+    it("exposes setIcon discarding custom width and height", function()
       local btn = IconButton:new({
         icon = "appbar.menu",
         width = 80,

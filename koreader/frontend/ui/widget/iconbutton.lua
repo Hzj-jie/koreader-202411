@@ -32,11 +32,19 @@ local IconButton = InputContainer:extend({
 })
 
 function IconButton:init()
+  local w = rawget(self, "width")
+  if w then
+    self.icon_width = w
+  end
+  local h = rawget(self, "height")
+  if h then
+    self.icon_height = h
+  end
   self.image = IconWidget:new({
     icon = self.icon,
     rotation_angle = self.icon_rotation_angle,
-    width = self.width,
-    height = self.height,
+    width = self.icon_width or self.width,
+    height = self.icon_height or self.height,
   })
   -- Do not use the width and height as the whole widget size.
   self.width = nil
