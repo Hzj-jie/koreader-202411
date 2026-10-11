@@ -407,6 +407,7 @@ function MyClipping:getClippingsFromBook(clippings, doc_path)
     file = doc_path,
     title = title,
     author = author,
+    output_filename = util.getSafeFilename(title),
     number_of_pages = doc_settings:read("doc_pages"),
   }
   if doc_settings:has("annotations") then

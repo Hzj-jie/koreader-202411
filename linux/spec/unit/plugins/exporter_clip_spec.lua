@@ -90,7 +90,7 @@ describe("Exporter Clip plugin module", function()
     )
 
     it(
-      "fails: exposes getClippingsFromBook not setting output_filename",
+      "sets output_filename in getClippingsFromBook",
       function()
         local mock_doc_path = "/tmp/test_book_clippings.epub"
         local orig_open = DocSettings.open
