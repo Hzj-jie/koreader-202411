@@ -272,7 +272,7 @@ function NewsDownloader:loadConfigAndProcessFeeds(menu)
       or feed.download_full_article
     local include_images = not never_download_images and feed.include_images
     local enable_filter = feed.enable_filter or feed.enable_filter == nil
-    local filter_element = feed.filter_element or feed.filter_element == nil
+    local filter_element = feed.filter_element
     local credentials = feed.credentials
     -- Check if the two required attributes are set.
     if url and limit then
