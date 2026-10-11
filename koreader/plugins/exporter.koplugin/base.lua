@@ -102,7 +102,11 @@ function BaseExporter:getFilePath(t)
   local title
   if #t == 1 then
     title = t[1].output_filename
-    if plugin_settings.clipping_dir_book then
+      or (t[1].title and util.getSafeFilename(t[1].title))
+      or (t[1].file and select(2, util.splitFilePathName(t[1].file)))
+      or self.all_books_title
+      or "all-books"
+    if plugin_settings.clipping_dir_book and t[1].file then
       clipping_dir = util.splitFilePathName(t[1].file):sub(1, -2)
     end
   else
