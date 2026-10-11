@@ -174,7 +174,7 @@ describe("WakeupMgr", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: removeTasks unsets hardware RTC alarm when queue becomes empty",
+      "should ensure removeTasks unsets hardware RTC alarm when queue becomes empty",
       function()
         local mgr = require("device/wakeupmgr"):new({})
         stub(mgr, "setWakeupAlarm")
