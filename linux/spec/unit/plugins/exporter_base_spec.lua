@@ -127,7 +127,7 @@ describe("Exporter BaseExporter plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes getFilePath crashing when #t == 1 and output_filename is nil",
+      "falls back to valid title or filename when output_filename is nil in getFilePath",
       function()
         local exporter = BaseExporter:new({
           name = "notes",

@@ -86,7 +86,7 @@ describe("Exporter Main plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes Share as ... callback crashing when getDocumentClippings returns empty table",
+      "handles empty clippings table in Share as callback",
       function()
         local exp = create_mock_exporter()
         local shared_called = false
