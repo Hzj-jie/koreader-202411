@@ -97,7 +97,7 @@ describe("SDL device", function()
     end)
 
     it(
-      "fails: toggleFullscreen can toggle back to fullscreen on isDefaultFullscreen devices",
+      "should toggle back to fullscreen on isDefaultFullscreen devices",
       function()
         -- Bug: lines 357-358:
         -- local current_mode = self.fullscreen or self:isDefaultFullscreen()

@@ -354,7 +354,10 @@ function Device:isAlwaysFullscreen()
 end
 
 function Device:toggleFullscreen()
-  local current_mode = self.fullscreen or self:isDefaultFullscreen()
+  local current_mode = self.fullscreen
+  if current_mode == nil then
+    current_mode = self:isDefaultFullscreen()
+  end
   local new_mode = not current_mode
   local ok, err = SDL.setWindowFullscreen(new_mode)
   if not ok then
