@@ -130,7 +130,7 @@ describe("IconButton", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onTapIconButton invoking callback when enabled is false",
+      "exposes onTapIconButton invoking callback when enabled is false",
       function()
         local called = false
         local btn = IconButton:new({
