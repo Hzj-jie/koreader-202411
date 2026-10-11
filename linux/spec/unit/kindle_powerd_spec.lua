@@ -251,7 +251,7 @@ describe("KindlePowerD", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: readyToSuspend executes due task callback and schedules subsequent future task on RTC",
+      "readyToSuspend executes due task callback and schedules subsequent future task on RTC",
       function()
         local current_time = 1700000000
         local orig_time = os.time
