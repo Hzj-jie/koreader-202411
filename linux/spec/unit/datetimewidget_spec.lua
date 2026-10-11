@@ -226,7 +226,7 @@ describe("DateTimeWidget module", function()
   end)
 
   describe("Defect verifications", function()
-    it("fails: exposes day not clamped to getDaysInMonth on Apply", function()
+    it("exposes day not clamped to getDaysInMonth on Apply", function()
       local widget = DateTimeWidget:new({
         year = 2025,
         month = 2,
