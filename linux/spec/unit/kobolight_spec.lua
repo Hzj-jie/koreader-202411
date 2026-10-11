@@ -2,26 +2,43 @@
 local KoboLight
 
 describe("ffi/kobolight module", function()
+  local open_c_idx
+  local close_c_idx
   local orig_open_C
   local orig_close_C
   local close_fn
+
+  local function get_upval(fn, name)
+    local i = 1
+    while true do
+      local n, v = debug.getupvalue(fn, i)
+      if not n then
+        return nil
+      end
+      if n == name then
+        return i, v
+      end
+      i = i + 1
+    end
+  end
 
   setup(function()
     require("commonrequire")
     KoboLight = require("ffi/kobolight")
 
-    local _, open_c = debug.getupvalue(KoboLight.open, 1)
-    orig_open_C = open_c
-
-    local _, mt = debug.getupvalue(KoboLight.open, 4)
+    open_c_idx, orig_open_C = get_upval(KoboLight.open, "C")
+    local _, mt = get_upval(KoboLight.open, "kobolight_mt")
     close_fn = mt.__index.close
-    local _, close_c = debug.getupvalue(close_fn, 1)
-    orig_close_C = close_c
+    close_c_idx, orig_close_C = get_upval(close_fn, "C")
   end)
 
   after_each(function()
-    debug.setupvalue(KoboLight.open, 1, orig_open_C)
-    debug.setupvalue(close_fn, 1, orig_close_C)
+    if open_c_idx and orig_open_C then
+      debug.setupvalue(KoboLight.open, open_c_idx, orig_open_C)
+    end
+    if close_c_idx and orig_close_C then
+      debug.setupvalue(close_fn, close_c_idx, orig_close_C)
+    end
   end)
 
   it("validates brightness bounds and dispatches ioctl", function()
@@ -41,8 +58,8 @@ describe("ffi/kobolight module", function()
       __index = orig_open_C,
     })
 
-    debug.setupvalue(KoboLight.open, 1, mock_C)
-    debug.setupvalue(close_fn, 1, mock_C)
+    debug.setupvalue(KoboLight.open, open_c_idx, mock_C)
+    debug.setupvalue(close_fn, close_c_idx, mock_C)
 
     local light = KoboLight.open()
 
@@ -77,8 +94,8 @@ describe("ffi/kobolight module", function()
       __index = orig_open_C,
     })
 
-    debug.setupvalue(KoboLight.open, 1, mock_C)
-    debug.setupvalue(close_fn, 1, mock_C)
+    debug.setupvalue(KoboLight.open, open_c_idx, mock_C)
+    debug.setupvalue(close_fn, close_c_idx, mock_C)
 
     local light = KoboLight.open()
     assert.are.equal(42, light.light_fd.ld)
