@@ -152,7 +152,7 @@ function Gestures:init()
     FFIUtil.copyFile(defaults_path, gestures_path)
   end
   self.ignore_hold_corners = G_reader_settings:isTrue("ignore_hold_corners")
-  self.multiswipes_enabled = G_reader_settings:isTrue("multiswipes_enabled")
+  self.multiswipes_enabled = G_reader_settings:read("multiswipes_enabled")
   self.is_docless = self.ui == nil or self.ui.document == nil
   self.ges_mode = self.is_docless and "gesture_fm" or "gesture_reader"
   self.defaults =

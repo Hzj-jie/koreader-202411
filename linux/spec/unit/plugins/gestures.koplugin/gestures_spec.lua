@@ -585,7 +585,7 @@ describe("Gestures plugin", function()
     end)
 
     it(
-      "multiswipes onboarding prompt is unreachable because init initializes multiswipes_enabled as boolean",
+      "prompts for multiswipes onboarding when multiswipes_enabled is unconfigured",
       function()
         local orig_read = G_reader_settings.read
         local orig_isTrue = G_reader_settings.isTrue
