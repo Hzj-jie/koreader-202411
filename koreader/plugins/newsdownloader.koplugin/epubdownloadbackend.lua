@@ -278,8 +278,10 @@ function EpubDownloadBackend:getConnectionCookies(url, credentials)
   logger.dbg("status:", status)
 
   local cookies = {}
-  local to_parse = headers["set-cookie"]
-  split_set_cookie(to_parse, cookies)
+  local to_parse = headers and headers["set-cookie"]
+  if to_parse then
+    split_set_cookie(to_parse, cookies)
+  end
   logger.dbg("Cookies: ", cookies)
 
   return cookies

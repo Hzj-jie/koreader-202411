@@ -75,6 +75,24 @@ describe("EpubDownloadBackend module", function()
     assert.are.equal("session", cookies[1].name)
     assert.are.equal("abc12345", cookies[1].value)
 
+    -- Response without set-cookie header
+    http.request = function(req)
+      return 1, 200, { ["content-type"] = "text/html" }, "200 OK"
+    end
+    local no_cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {})
+    assert.is_table(no_cookies)
+    assert.are.equal(0, #no_cookies)
+
+    -- Response with nil headers (e.g. error / connection failure)
+    http.request = function(req)
+      return nil, 500, nil, "500 Internal Server Error"
+    end
+    local nil_headers_cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {})
+    assert.is_table(nil_headers_cookies)
+    assert.are.equal(0, #nil_headers_cookies)
+
     http.request = old_request
   end)
 
