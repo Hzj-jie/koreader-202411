@@ -75,7 +75,7 @@ describe("Statistics CalendarView widget module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes MIN_MONTH permanently cached when getFirstTimestamp initially returns nil",
+      "does not permanently cache MIN_MONTH when getFirstTimestamp initially returns nil",
       function()
         -- In calendarview.lua lines 1141 and 1212-1219:
         -- local MIN_MONTH = nil
