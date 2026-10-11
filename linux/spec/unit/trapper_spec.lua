@@ -1016,7 +1016,7 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
     )
 
     it(
-      "fails: exposes dismissableRunInSubprocess returning nil instead of empty string",
+      "should ensure dismissableRunInSubprocess preserves empty string return value",
       function()
         local ffiutil = require("ffi/util")
         local orig_isSubProcessDone = ffiutil.isSubProcessDone

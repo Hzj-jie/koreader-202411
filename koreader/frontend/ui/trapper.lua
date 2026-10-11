@@ -677,8 +677,10 @@ function Trapper:dismissableRunInSubprocess(
             UIManager:scheduleIn(1, collect_and_clean)
           end
         else -- subprocess_done: process exited with no output
-          ffiutil.readAllFromFD(parent_read_fd) -- close our fd
-          -- no ret_values
+          local ret_str = ffiutil.readAllFromFD(parent_read_fd) -- close our fd
+          if task_returns_simple_string then
+            ret_values = ret_str or ""
+          end
         end
         break
       end
@@ -693,7 +695,7 @@ function Trapper:dismissableRunInSubprocess(
     end
   end
   -- return what we got or not to our caller
-  if ret_values then
+  if ret_values ~= nil then
     if task_returns_simple_string then
       return completed, ret_values
     else
