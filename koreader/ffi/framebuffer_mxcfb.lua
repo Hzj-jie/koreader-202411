@@ -6,7 +6,6 @@ local C = ffi.C
 
 require("ffi/posix_h")
 
-local band = bit.band
 local bor = bit.bor
 local bxor = bit.bxor
 
@@ -119,18 +118,7 @@ end
 
 -- Returns true if w & h are equal or larger than our visible screen estate (i.e., we asked for a full-screen update)
 function framebuffer:_isFullScreen(w, h)
-  -- NOTE: fb:getWidth() & fb:getHeight() return the viewport size, but obey rotation, which means we can't rely on them directly.
-  --       fb:getScreenWidth() & fb:getScreenHeight return the full screen size, without the viewport, and in the default rotation, which doesn't help either.
-  -- Settle for getWidth() & getHeight() w/ rotation handling, like what bb:getPhysicalRect() does...
-  if band(self:getRotationMode(), 1) == 1 then
-    w, h = h, w
-  end
-
-  if w >= self:getWidth() and h >= self:getHeight() then
-    return true
-  else
-    return false
-  end
+  return w >= self:getWidth() and h >= self:getHeight()
 end
 
 --[[ handlers for the power management API of the eink driver --]]
@@ -334,6 +322,8 @@ local function mxc_update(
     fb:mech_poweron()
   end
 
+  local is_fullscreen = fb:_isFullScreen(w, h)
+
   w = w * fb.refresh_pixel_size
 
   -- NOTE: If we're trying to send a:
@@ -377,7 +367,7 @@ local function mxc_update(
       or (
         is_flashing
         and fb:_isFlashUIWaveFormMode(waveform_mode)
-        and fb:_isFullScreen(w, h)
+        and is_fullscreen
       )
     )
     and fb.mech_wait_update_complete
@@ -1287,7 +1277,7 @@ function framebuffer:init()
         self.night_is_reagl = false
         -- For some mysterious reason, Eclipse waveform modes are completely broken outside of 32bpp.
         -- (This is no longer a concern on later devices, as they no longer allow switching to 8bpp at all).
-        if self.fb_bb ~= 32 then
+        if self.fb_bpp ~= 32 then
           -- Trust @katadelos and let AUTO figure it out (https://github.com/koreader/koreader-base/pull/1768)
           self.waveform_night = C.HWTCON_WAVEFORM_MODE_AUTO
           self.waveform_flashnight = C.HWTCON_WAVEFORM_MODE_AUTO

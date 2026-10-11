@@ -68,7 +68,10 @@ function Webp.fromData(data, size)
 
   local anim_info = ffi.new("WebPAnimInfo[1]")
   ret = libwebpdemux.WebPAnimDecoderGetInfo(decoder, anim_info)
-  assert(ret ~= 0, "libwebp WebPAnimDecoderGetInfo() failed.")
+  if ret == 0 then
+    libwebpdemux.WebPAnimDecoderDelete(decoder)
+    error("libwebp WebPAnimDecoderGetInfo() failed.")
+  end
 
   if anim_info[0].frame_count > 1 and type(data) ~= "string" then
     -- When called from CreDocument:getImageFromPosition(), data is a "userdata" wrapping

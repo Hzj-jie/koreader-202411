@@ -186,18 +186,26 @@ _G.require = function(name)
     return orig_require(name)
   end
 
+  local found = false
   local loaded_module = nil
   for template in package.path:gmatch("[^;]+") do
     local file_path = template:gsub("%?", name)
     local file = io.open(file_path, "r")
     if file then
       file:close()
+      found = true
       loaded_module = assert(loadfile(file_path))()
       break
     end
   end
-  if loaded_module == nil then
+  if not found then
     error("module '" .. name .. "' not found")
+  end
+  if loaded_module == nil then
+    loaded_module = package.loaded[name]
+    if loaded_module == nil then
+      loaded_module = true
+    end
   end
   package.loaded[name] = loaded_module
   return loaded_module

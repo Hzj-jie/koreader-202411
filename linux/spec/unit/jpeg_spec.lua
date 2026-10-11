@@ -57,4 +57,34 @@ describe("ffi/jpeg module", function()
       assert.is_not_equal(50, buf[2])
     end
   )
+
+  it(
+    "frees blitbuffer when tj3Decompress8 fails in openDocumentFromMem",
+    function()
+      local _, orig_turbojpeg = debug.getupvalue(Jpeg.openDocumentFromMem, 1)
+
+      local mock_turbojpeg = setmetatable({
+        tj3DecompressHeader = function(...)
+          return 0
+        end,
+        tj3Get = function(handle, param)
+          return 10
+        end,
+        tj3Decompress8 = function(...)
+          return -1
+        end,
+      }, { __index = orig_turbojpeg })
+
+      debug.setupvalue(Jpeg.openDocumentFromMem, 1, mock_turbojpeg)
+
+      local ok, err = pcall(function()
+        Jpeg.openDocumentFromMem("dummy_jpeg_data", false)
+      end)
+
+      debug.setupvalue(Jpeg.openDocumentFromMem, 1, orig_turbojpeg)
+
+      assert.is_false(ok)
+      assert.is_not_nil(string.match(tostring(err), "decoding JPEG file"))
+    end
+  )
 end)
