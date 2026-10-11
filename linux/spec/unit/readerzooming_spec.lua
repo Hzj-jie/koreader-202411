@@ -174,4 +174,30 @@ describe("ReaderZooming module", function()
       readerui:onClose()
     end
   )
+
+  it(
+    "should preserve doc_settings when onSetZoomPan receives partial settings",
+    function()
+      local sample_pdf = "spec/front/unit/data/sample.pdf"
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_pdf),
+      })
+
+      local zooming = readerui.zooming
+      readerui.doc_settings:save("kopt_zoom_factor", 1.25)
+      readerui.doc_settings:save("zoom_mode", "page")
+
+      zooming:onSetZoomPan({ kopt_zoom_factor = 1.5 }, true)
+      assert.are.equal(1.5, readerui.doc_settings:read("kopt_zoom_factor"))
+      assert.are.equal("page", readerui.doc_settings:read("zoom_mode"))
+
+      zooming:onSetZoomPan({ zoom_mode = "contentwidth" }, true)
+      assert.are.equal(1.5, readerui.doc_settings:read("kopt_zoom_factor"))
+      assert.are.equal("contentwidth", readerui.doc_settings:read("zoom_mode"))
+
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
 end)
