@@ -377,6 +377,103 @@ describe("Cache unit behavior", function()
       assert.are.equal("val_a", c:check("a"))
       assert.is_nil(c:check("b")) -- "b" evicted by LRU
       assert.are.equal("val_c", c:check("c"))
+      assert.is_true(c:willAccept(1000))
+    end
+  )
+
+  it(
+    "should respect byte limit when slots are explicitly configured",
+    function()
+      local c = Cache:new({
+        slots = 10,
+        size = 1000,
+      })
+      c:init()
+
+      assert.are.equal(10, c.cache:total_slots())
+      assert.are.equal(1000, c.cache:total_size())
+
+      c:insert("k1", "v1", 600)
+      c:insert("k2", "v2", 600)
+      assert.is_nil(c:check("k1"))
+      assert.are.equal("v2", c:check("k2"))
+    end
+  )
+
+  it(
+    "should validate positive bounds in resize_slots and resize_bytes",
+    function()
+      local lru = require("ffi/lru")
+      local cache = lru.new(5, 500)
+
+      assert.has_error(function()
+        cache:resize_slots(0)
+      end, "new_size must be >= 1")
+
+      assert.has_error(function()
+        cache:resize_slots(-1)
+      end, "new_size must be >= 1")
+
+      assert.has_error(function()
+        cache:resize_bytes(0)
+      end, "new_bytes must be >= 1")
+
+      assert.has_error(function()
+        cache:resize_bytes(-1)
+      end, "new_bytes must be >= 1")
+
+      cache:resize_slots(10)
+      assert.are.equal(10, cache:total_slots())
+      cache:resize_bytes(1000)
+      assert.are.equal(1000, cache:total_size())
+    end
+  )
+
+  it(
+    "should not retain references to evicted objects after delete, chop, or resize",
+    function()
+      local lru = require("ffi/lru")
+      local cache = lru.new(10, 1000)
+
+      local weak_val
+      do
+        local obj = { name = "test_obj" }
+        weak_val = setmetatable({ val = obj }, { __mode = "v" })
+        cache:set("k1", obj, 100)
+      end
+
+      assert.is_not_nil(weak_val.val)
+      cache:delete("k1")
+      collectgarbage()
+      collectgarbage()
+      assert.is_nil(weak_val.val)
+
+      local weak_val2
+      do
+        local obj2 = { name = "test_chop" }
+        weak_val2 = setmetatable({ val = obj2 }, { __mode = "v" })
+        cache:set("k2", obj2, 100)
+      end
+      cache:chop()
+      collectgarbage()
+      collectgarbage()
+      assert.is_nil(weak_val2.val)
+
+      local weak_val3
+      do
+        local obj3 = { name = "test_resize" }
+        weak_val3 = setmetatable({ val = obj3 }, { __mode = "v" })
+        cache:set("k3", obj3, 100)
+      end
+      cache:resize_slots(1)
+      do
+        local obj4 = { name = "test_resize_evict" }
+        cache:set("k4", obj4, 100)
+      end
+      cache:resize_slots(1)
+      collectgarbage()
+      collectgarbage()
+      assert.is_nil(weak_val3.val)
     end
   )
 

@@ -218,12 +218,14 @@ function ReaderProgress:genWeekStats(stats_day)
   })
   local statistics_group = VerticalGroup:new({ align = "left" })
   local max_week_time = -1
-  local day_time
-  for i = 1, stats_day do
-    day_time = self.dates[i][2]
+  for _, date in ipairs(self.dates) do
+    local day_time = date[2]
     if day_time > max_week_time then
       max_week_time = day_time
     end
+  end
+  if max_week_time <= 0 then
+    max_week_time = 1
   end
   local top_padding_span =
     HorizontalSpan:new({ width = Screen:scaleBySize(15) })
@@ -250,7 +252,7 @@ function ReaderProgress:genWeekStats(stats_day)
   local j = 1
   for i = 1, stats_day do
     diff_time = now_time - second_in_day * (i - 1)
-    if self.dates[j][3] == os.date("%Y-%m-%d", diff_time) then
+    if self.dates[j] and self.dates[j][3] == os.date("%Y-%m-%d", diff_time) then
       select_day_time = self.dates[j][2]
       j = j + 1
     else
