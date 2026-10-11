@@ -343,7 +343,7 @@ describe("FrontLightWidget UI component", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onTapProgress at 0% toggling frontlight on when already at 0",
+      "exposes onTapProgress at 0% toggling frontlight on when already at 0",
       function()
         local flw = FrontLightWidget:new({})
         flw.fl_progress.dimen = Geom:new({ x = 0, y = 0, w = 200, h = 40 })
