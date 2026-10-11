@@ -167,7 +167,7 @@ describe("Kobo device", function()
     end)
 
     it(
-      "fails: isStartupScriptUpToDate handles nil KOREADER_DIR without crashing",
+      "isStartupScriptUpToDate handles nil KOREADER_DIR without crashing",
       function()
         local orig_getenv = os.getenv
         os.getenv = function(var)
