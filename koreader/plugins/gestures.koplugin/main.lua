@@ -155,7 +155,8 @@ function Gestures:init()
   self.multiswipes_enabled = G_reader_settings:isTrue("multiswipes_enabled")
   self.is_docless = self.ui == nil or self.ui.document == nil
   self.ges_mode = self.is_docless and "gesture_fm" or "gesture_reader"
-  self.defaults = LuaSettings:open(defaults_path).data[self.ges_mode]
+  self.defaults =
+    util.tableDeepCopy(LuaSettings:open(defaults_path).data[self.ges_mode])
   if not self.settings_data then
     self.settings_data = LuaSettings:open(gestures_path)
   end
@@ -189,11 +190,11 @@ function Gestures:init()
       -- We only replace them if they are still the other direction's default.
       -- If not, the user has changed them: let him deal with setting new ones if needed.
       if util.tableEquals(self.gestures[k], self.defaults[v]) then
-        self.gestures[k] = self.defaults[k]
+        self.gestures[k] = util.tableDeepCopy(self.defaults[k])
         reset = true
       end
       if util.tableEquals(self.gestures[v], self.defaults[k]) then
-        self.gestures[v] = self.defaults[v]
+        self.gestures[v] = util.tableDeepCopy(self.defaults[v])
         reset = true
       end
     end

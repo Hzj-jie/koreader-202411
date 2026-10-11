@@ -113,7 +113,7 @@ describe("Gestures plugin", function()
       assert.is_false(gestures_instance.updated)
     end)
 
-    it("fails: exposes RTL layout mutating prototype defaults table", function()
+    it("exposes RTL layout mutating prototype defaults table", function()
       local shared_defaults = {
         tap_top_left_corner = { action = "left" },
         tap_top_right_corner = { action = "right" },
