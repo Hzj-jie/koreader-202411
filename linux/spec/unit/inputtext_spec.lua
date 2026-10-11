@@ -592,7 +592,7 @@ describe("InputText widget module", function()
     )
 
     it(
-      "fails: exposes getLineNums indexing text_widget.charlist instead of self.charlist",
+      "exposes getLineNums indexing text_widget.charlist instead of self.charlist",
       function()
         local input = require("ui/widget/inputtext"):new({
           text = "",

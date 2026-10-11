@@ -950,7 +950,7 @@ end
 function InputText:getLineNums()
   local curr_line_num, last_line_num = 1, 1
   for i = 1, #self.charlist do
-    if self.text_widget.charlist[i] == "\n" then
+    if self.charlist[i] == "\n" then
       if i < self.charpos then
         curr_line_num = curr_line_num + 1
       end
