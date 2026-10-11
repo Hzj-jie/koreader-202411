@@ -565,6 +565,7 @@ function NetworkSetting:onTapClose(arg, ges_ev)
     UIManager:close(self)
     return true
   end
+  return false
 end
 
 function NetworkSetting:onClose()
