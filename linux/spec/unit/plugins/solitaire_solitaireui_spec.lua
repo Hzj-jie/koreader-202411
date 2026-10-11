@@ -534,38 +534,35 @@ describe("SolitaireUI plugin module", function()
     end
   )
 
-  it(
-    "selects foundation card on tap when no selection is active (fails: foundation tap lacks selection branch)",
-    function()
-      local ffiUtil = require("ffi/util")
-      local pid = tostring(ffiUtil.getpid())
-      local tmp_settings = os.tmpname()
-      local tmp_save = os.tmpname() .. "_" .. pid
+  it("selects foundation card on tap when no selection is active", function()
+    local ffiUtil = require("ffi/util")
+    local pid = tostring(ffiUtil.getpid())
+    local tmp_settings = os.tmpname()
+    local tmp_save = os.tmpname() .. "_" .. pid
 
-      local inst = SolitaireUI:new({
-        settings_path = tmp_settings,
-        save_path = tmp_save,
-      })
-      finally(function()
-        os.remove(tmp_settings)
-        os.remove(tmp_save)
-      end)
+    local inst = SolitaireUI:new({
+      settings_path = tmp_settings,
+      save_path = tmp_save,
+    })
+    finally(function()
+      os.remove(tmp_settings)
+      os.remove(tmp_save)
+    end)
 
-      inst.game.foundations[1] = { { rank = 1, suit = 1, face_up = true } }
-      local zone =
-        { type = "foundation", index = 1, x = 100, y = 100, w = 50, h = 70 }
-      inst.findTouchZone = function(self, x, y)
-        return zone
-      end
-
-      inst.selected_source = nil
-      inst:onTap(nil, { pos = { x = 100, y = 100 } })
-
-      assert.is_not_nil(inst.selected_source)
-      assert.are.equal("foundation", inst.selected_source.type)
-      assert.are.equal(1, inst.selected_source.index)
+    inst.game.foundations[1] = { { rank = 1, suit = 1, face_up = true } }
+    local zone =
+      { type = "foundation", index = 1, x = 100, y = 100, w = 50, h = 70 }
+    inst.findTouchZone = function(self, x, y)
+      return zone
     end
-  )
+
+    inst.selected_source = nil
+    inst:onTap(nil, { pos = { x = 100, y = 100 } })
+
+    assert.is_not_nil(inst.selected_source)
+    assert.are.equal("foundation", inst.selected_source.type)
+    assert.are.equal(1, inst.selected_source.index)
+  end)
 
   it(
     "does not save completed won game on onClose (fails: onClose unconditionally saves game)",
