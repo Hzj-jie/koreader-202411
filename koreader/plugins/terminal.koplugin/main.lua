@@ -119,7 +119,7 @@ end
 
 function Terminal:isExecutable(file)
   -- check if file is an executable or a command in PATH
-  return os.execute(string.format("test -x %s || command -v %s", file, file))
+  return os.execute(string.format("test -x %q || command -v %q", file, file))
     == 0
 end
 

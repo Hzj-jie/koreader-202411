@@ -1129,7 +1129,7 @@ describe("Terminal plugin button tap integration", function()
 
   describe("Defect verifications", function()
     it(
-      "isExecutable fails on executable paths containing spaces due to unquoted shell arguments",
+      "isExecutable handles executable paths containing spaces safely",
       function()
         local Terminal = require("plugins/terminal.koplugin/main")
         local terminal = Terminal:new({
