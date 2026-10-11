@@ -183,11 +183,20 @@ function MyClipping:getTime(line)
 
   local _, _, hour, minute, second = line:find("(%d+):(%d+):(%d+)")
   if year and month and day and hour and minute and second then
-    for k, v in pairs(pms) do
+    hour = tonumber(hour)
+    local is_pm = false
+    for k in pairs(pms) do
       if line:find(k) then
-        hour = hour + v
+        is_pm = true
         break
       end
+    end
+    if is_pm then
+      if hour < 12 then
+        hour = hour + 12
+      end
+    elseif hour == 12 and (line:find("AM") or line:find("上午")) then
+      hour = 0
     end
     local time = os.time({
       year = year,
