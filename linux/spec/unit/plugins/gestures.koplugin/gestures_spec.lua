@@ -113,7 +113,7 @@ describe("Gestures plugin", function()
       assert.is_false(gestures_instance.updated)
     end)
 
-    it("fails: exposes RTL layout mutating prototype defaults table", function()
+    it("exposes RTL layout mutating prototype defaults table", function()
       local shared_defaults = {
         tap_top_left_corner = { action = "left" },
         tap_top_right_corner = { action = "right" },
@@ -403,7 +403,7 @@ describe("Gestures plugin", function()
     end)
 
     it(
-      "fails: exposes tap interval on keyboard value conversion bug",
+      "populates tap interval on keyboard value directly in milliseconds",
       function()
         G_reader_settings:save("ges_tap_interval_on_keyboard_ms", 150)
         local menu_items = {}
@@ -577,18 +577,15 @@ describe("Gestures plugin", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "friendlyMultiswipeName leaves a stray leading space when replacing multiswipe prefix",
-      function()
-        local name =
-          gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
-        -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
-        assert.are.equal("➡ ⬅", name)
-      end
-    )
+    it("friendlyMultiswipeName formats arrows without leading space", function()
+      local name =
+        gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
+      -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
+      assert.are.equal("➡ ⬅", name)
+    end)
 
     it(
-      "multiswipes onboarding prompt is unreachable because init initializes multiswipes_enabled as boolean",
+      "prompts for multiswipes onboarding when multiswipes_enabled is unconfigured",
       function()
         local orig_read = G_reader_settings.read
         local orig_isTrue = G_reader_settings.isTrue
