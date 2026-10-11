@@ -184,7 +184,7 @@ describe("OPDS Browser plugin module", function()
     )
 
     it(
-      "fails: exposes fetchFeed crashing on HTTP 302 redirect when Location header is missing",
+      "handles HTTP 302 redirect without crashing when Location header is missing",
       function()
         local browser = create_mock_browser()
         local orig_request = http.request
