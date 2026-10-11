@@ -206,7 +206,7 @@ function SSH:addToMainMenu(menu_items)
       {
         text_func = function()
           return self:isRunning() and gettext("Stop SSH server")
-            or gettext("Stop SSH server")
+            or gettext("Start SSH server")
         end,
         keep_menu_open = true,
         callback = function(menu)
