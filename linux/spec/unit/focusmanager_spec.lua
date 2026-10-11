@@ -426,7 +426,7 @@ describe("FocusManager module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onFocusHalfMove subtracting row index y instead of column index x",
+      "exposes onFocusHalfMove subtracting row index y instead of column index x",
       function()
         local w = layout[1][1]
         local focusmanager = FocusManager:new({})
