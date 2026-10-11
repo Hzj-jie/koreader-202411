@@ -66,6 +66,7 @@ local function systemInfo()
     assert(handle ~= nil)
     -- Exclude cpu line.
     result.cpu.count = tonumber(handle:read("*a")) - 1
+    handle:close()
   end
 
   do
@@ -106,6 +107,7 @@ local function systemInfo()
     assert(handle ~= nil)
     -- Exclude ps and wc
     result.processes.count = tonumber(handle:read("*a")) - 2
+    handle:close()
   end
 
   do
@@ -115,6 +117,7 @@ local function systemInfo()
     for word in handle:read("*a"):gmatch("[^,%s]+") do
       table.insert(result.cpu.average, tonumber(word))
     end
+    handle:close()
   end
 
   do
@@ -127,6 +130,7 @@ local function systemInfo()
     if #t > 0 then
       result.uptime.sec = tonumber(t[1])
     end
+    file:close()
   end
 
   return result
@@ -273,7 +277,7 @@ function SystemStat:appendCounters()
           msg = msg .. "\n" .. k
         end
       end
-      if msg == "" then
+      if msg ~= "" then
         UIManager:show(InfoMessage:new({
           text = msg,
         }))
@@ -390,8 +394,22 @@ function SystemStat:appendProcessInfo()
   local stat = io.open("/proc/self/stat", "r")
   assert(stat ~= nil)
 
-  local t = util.splitToArray(stat:read("*line"), " ")
+  local line = stat:read("*line")
   stat:close()
+
+  if not line then
+    return
+  end
+
+  local pid, comm, rest = line:match("^(%d+)%s+%((.*)%)%s+(.+)$")
+  if not pid then
+    return
+  end
+
+  local t = { pid, comm }
+  for word in rest:gmatch("%S+") do
+    table.insert(t, word)
+  end
 
   local n1, n2
 

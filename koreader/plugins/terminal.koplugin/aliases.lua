@@ -46,10 +46,16 @@ function Aliases:load()
   if file then
     for line in file:lines() do
       line = line:gsub("^ *alias *", "") -- drop alias
-      local __, separator = line:find("^[%a%d][%a%d-_]*%=") -- find separator
+      local __, separator = line:find("^[%a%d_][%a%d-_]*%=") -- find separator
       if line ~= "" and line:sub(1, 1) ~= "#" and separator then
         local alias_name = line:sub(1, separator - 1)
-        local alias_command = line:sub(separator + 1):gsub('"', "")
+        local alias_command = line:sub(separator + 1)
+        if
+          (alias_command:sub(1, 1) == '"' and alias_command:sub(-1) == '"')
+          or (alias_command:sub(1, 1) == "'" and alias_command:sub(-1) == "'")
+        then
+          alias_command = alias_command:sub(2, -2)
+        end
         table.insert(self.kv_pairs, {
           alias_name,
           alias_command,

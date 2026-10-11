@@ -235,8 +235,10 @@ function ParserHelp.factorial(l, r)
     return nil, err_no_val
   elseif type(l) == "boolean" then
     return nil, err_bool_arith
-  elseif r then
+  elseif r ~= nil then
     return nil, err_a_val
+  elseif l < 0 or math.floor(l) ~= l then
+    return nil, err_domain
   end
   local x = 1
   for i = 2, l do
@@ -437,11 +439,18 @@ end
 
 -- average
 function ParserHelp.avg(...)
+  local args = { ... }
+  if #args == 0 then
+    return nil, err_no_val
+  end
   local retval = 0
-  for _, v in pairs({ ... }) do
+  for _, v in ipairs(args) do
+    if type(v) == "boolean" then
+      return nil, err_bool_arith
+    end
     retval = retval + v
   end
-  return retval / #{ ... }
+  return retval / #args
 end
 
 function ParserHelp.ternary(l, m, r)
@@ -459,6 +468,9 @@ function ParserHelp.bitOr(l, r)
   if l == nil or r == nil then
     return nil, err_no_val
   end
+  if type(l) == "boolean" or type(r) == "boolean" then
+    return nil, err_bool_arith
+  end
   if math.floor(l) ~= l or math.floor(r) ~= r then
     return nil, err_bitwise
   end
@@ -467,6 +479,9 @@ end
 function ParserHelp.bitAnd(l, r)
   if l == nil or r == nil then
     return nil, err_no_val
+  end
+  if type(l) == "boolean" or type(r) == "boolean" then
+    return nil, err_bool_arith
   end
   if math.floor(l) ~= l or math.floor(r) ~= r then
     return nil, err_bitwise
@@ -477,8 +492,19 @@ function ParserHelp.bitNand(l, r)
   if l == nil and r == nil then
     return nil, err_no_val
   end
-  if l == nil and math.floor(r) == r then
+  if
+    (l ~= nil and type(l) == "boolean") or (r ~= nil and type(r) == "boolean")
+  then
+    return nil, err_bool_arith
+  end
+  if l == nil then
+    if math.floor(r) ~= r then
+      return nil, err_bitwise
+    end
     return bit.bnot(r)
+  end
+  if r == nil then
+    return nil, err_no_val
   end
   if math.floor(l) ~= l or math.floor(r) ~= r then
     return nil, err_bitwise
@@ -488,6 +514,9 @@ end
 function ParserHelp.bitXor(l, r)
   if l == nil or r == nil then
     return nil, err_no_val
+  end
+  if type(l) == "boolean" or type(r) == "boolean" then
+    return nil, err_bool_arith
   end
   if math.floor(l) ~= l or math.floor(r) ~= r then
     return nil, err_bitwise
