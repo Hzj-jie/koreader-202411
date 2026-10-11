@@ -130,7 +130,7 @@ describe("SDL device", function()
   end)
 
   describe("openLink", function()
-    it("fails: openLink escapes single quotes in link", function()
+    it("should escape single quotes in link", function()
       -- Bug: line 92 does `runCommand(tool .. " '" .. link .. "'")`.
       -- If link contains single quotes, it breaks the shell argument quoting.
       local executed_cmd = nil

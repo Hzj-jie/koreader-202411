@@ -89,7 +89,7 @@ local Device = Generic:extend({
     if not enabled or not tool or not link or type(link) ~= "string" then
       return
     end
-    return runCommand(tool .. " '" .. link .. "'")
+    return runCommand(tool .. " '" .. link:gsub("'", "'\\''") .. "'")
   end,
   canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
