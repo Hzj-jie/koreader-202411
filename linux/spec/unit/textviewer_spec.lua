@@ -155,4 +155,25 @@ describe("TextViewer", function()
 
     UIManager:close(tv)
   end)
+
+  it("forwards arg to movable onHoldPanText", function()
+    local tv = TextViewer:new({
+      text = "Sample text",
+      title = "Viewer Test",
+    })
+    local forwarded_arg, forwarded_ges
+    tv.movable._touch_pre_pan_was_inside = true
+    tv.movable.onMovableHoldPan = function(self, arg, ges)
+      forwarded_arg = arg
+      forwarded_ges = ges
+      return true
+    end
+
+    local test_arg = { custom = "data" }
+    local test_ges = { pos = { x = 10, y = 10 } }
+    local res = tv:onHoldPanText(test_arg, test_ges)
+    assert.is_true(res)
+    assert.are.equal(test_arg, forwarded_arg)
+    assert.are.equal(test_ges, forwarded_ges)
+  end)
 end)
