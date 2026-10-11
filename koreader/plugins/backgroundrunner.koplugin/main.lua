@@ -123,7 +123,8 @@ function BackgroundRunner:_shouldRepeat(job)
     return job.repeated
   end
   if type(job.repeated) == "function" then
-    return job.repeated()
+    local ok, res = pcall(job.repeated)
+    return ok and res and true or false
   end
   if type(job.repeated) == "number" then
     job.repeated = job.repeated - 1
