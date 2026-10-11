@@ -371,7 +371,13 @@ function EpubDownloadBackend:createEpub(
   local base_url = socket_url.parse(url)
 
   local cancelled = false
-  local page_htmltitle = html:match([[<title>(.*)</title>]])
+  local page_htmltitle = html:match([[<title[^>]*>([%s%S]-)</title>]])
+  if page_htmltitle then
+    page_htmltitle = page_htmltitle:gsub("%s+", " "):match("^%s*(.-)%s*$")
+  end
+  if not page_htmltitle or page_htmltitle == "" then
+    page_htmltitle = "Untitled"
+  end
   logger.dbg("page_htmltitle is ", page_htmltitle)
   --    local sections = html.sections -- Wikipedia provided TOC
   local bookid = "bookid_placeholder" --string.format("wikipedia_%s_%s_%s", lang, phtml.pageid, phtml.revid)

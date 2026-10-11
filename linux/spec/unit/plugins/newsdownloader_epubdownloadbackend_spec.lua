@@ -120,6 +120,43 @@ describe("EpubDownloadBackend module", function()
     assert.is_true(success)
 
     os.remove(tmp_epub)
+
+    -- Test HTML without title tag (falls back to "Untitled")
+    local tmp_epub_no_title = os.tmpname() .. ".epub"
+    local html_no_title =
+      '<html><head></head><body><div class="content">No title article</div></body></html>'
+    local success_no_title = pcall(function()
+      EpubDownloadBackend:createEpub(
+        tmp_epub_no_title,
+        html_no_title,
+        "http://example.com/no_title",
+        false,
+        "Downloading...",
+        true,
+        ".content"
+      )
+    end)
+    assert.is_true(success_no_title)
+    os.remove(tmp_epub_no_title)
+
+    -- Test HTML with multiline title tag
+    local tmp_epub_multiline = os.tmpname() .. ".epub"
+    local html_multiline =
+      '<html><head><title class="header">\n  Multiline Article Title\n</title></head><body><div class="content">Multiline body</div></body></html>'
+    local success_multiline = pcall(function()
+      EpubDownloadBackend:createEpub(
+        tmp_epub_multiline,
+        html_multiline,
+        "http://example.com/multiline",
+        false,
+        "Downloading...",
+        true,
+        ".content"
+      )
+    end)
+    assert.is_true(success_multiline)
+    os.remove(tmp_epub_multiline)
+
     http.request = old_request
   end)
 
