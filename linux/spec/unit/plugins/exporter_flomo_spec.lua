@@ -102,35 +102,31 @@ describe("Flomo Exporter plugin target", function()
     end
   )
 
-  it(
-    "should include Content-Length header in HTTP POST request [exposes production bug in makeRequest()]",
-    function()
-      local old_request = http.request
-      local captured_headers = nil
+  it("should include Content-Length header in HTTP POST request", function()
+    local old_request = http.request
+    local captured_headers = nil
 
-      http.request = function(req)
-        captured_headers = req.headers
-        req.sink('{"code":0,"message":"success"}')
-        return 1, 200, {}, "200 OK"
-      end
-
-      local exporter = FlomoExporter:new({ name = "flomo" })
-      exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
-
-      local booknotes = {
-        title = "Test Book",
-        { { text = "Sample quote", page = 1 } },
-      }
-
-      exporter:export({ booknotes })
-
-      -- Production bug: makeRequest() only sets Content-Type, omitting Content-Length
-      assert.is_table(captured_headers)
-      assert.is_not_nil(captured_headers["Content-Length"])
-
-      http.request = old_request
+    http.request = function(req)
+      captured_headers = req.headers
+      req.sink('{"code":0,"message":"success"}')
+      return 1, 200, {}, "200 OK"
     end
-  )
+
+    local exporter = FlomoExporter:new({ name = "flomo" })
+    exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
+
+    local booknotes = {
+      title = "Test Book",
+      { { text = "Sample quote", page = 1 } },
+    }
+
+    exporter:export({ booknotes })
+
+    assert.is_table(captured_headers)
+    assert.is_not_nil(captured_headers["Content-Length"])
+
+    http.request = old_request
+  end)
 
   it(
     "should handle multi-chunk HTTP responses in makeRequest [exposes production bug in makeRequest()]",

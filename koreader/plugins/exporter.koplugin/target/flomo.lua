@@ -29,6 +29,7 @@ local function makeRequest(method, request_body, api)
     source = source,
     headers = {
       ["Content-Type"] = "application/json",
+      ["Content-Length"] = #request_body_json,
     },
   }
   local code, headers, status = socket.skip(1, http.request(request))
