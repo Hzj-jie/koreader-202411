@@ -354,15 +354,10 @@ describe("Calculator main plugin module", function()
   end)
 
   it(
-    "should format negative numbers with symmetric decimal precision in auto format [exposes production bug in Calculator:formatResult()]",
+    "should format negative numbers with symmetric decimal precision in auto format",
     function()
       local calc = create_mock_calc()
-      -- Positive 123.45678 gets 5 decimal places because val > 1 is true
       assert.are.equal("123.45678", calc:formatResult(123.45678, "auto"))
-
-      -- Production bug: formatResult checks `val > 1` instead of `math.abs(val) > 1`.
-      -- For negative numbers like -123.45678, `val > 1` is false, causing msp = 2
-      -- and rounding to only 4 decimal places ("-123.4568") instead of 5 ("-123.45678")
       assert.are.equal("-123.45678", calc:formatResult(-123.45678, "auto"))
     end
   )

@@ -484,7 +484,7 @@ function Calculator:formatResult(val, format)
       ret = self:formatMantissaExponent(val, false)
     else
       local msp = math.floor(math.log10(math.abs(val))) -- most significant place
-      if val > 1 then
+      if math.abs(val) > 1 then
         msp = 1
       end
       ret = ""
