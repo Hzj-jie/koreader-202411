@@ -228,7 +228,7 @@ describe("Markdown parser module (md.lua)", function()
     )
 
     it(
-      "fails: exposes greedy linkEscape corrupting multiple inline links on one line",
+      "exposes greedy linkEscape corrupting multiple inline links on one line",
       function()
         local html =
           MD("Check [Link A](https://a.com) and [Link B](https://b.com)")
