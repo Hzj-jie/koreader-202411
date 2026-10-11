@@ -268,7 +268,7 @@ describe("Notification", function()
     )
 
     it(
-      "fails: exposes onShow overwriting _timeout_func without unscheduling previous timer",
+      "exposes onShow overwriting _timeout_func without unscheduling previous timer",
       function()
         local unscheduled_fn = nil
         local orig_unschedule = UIManager.unschedule
