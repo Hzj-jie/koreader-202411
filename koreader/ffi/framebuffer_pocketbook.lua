@@ -91,6 +91,7 @@ function framebuffer:init()
 
   local bpp = pb_fb.depth
 
+  local pixel_stride = pb_fb.scanline * 8 / bpp
   self.data = pb_fb.addr
   self.bb = BB.new(
     pb_fb.width,
@@ -98,7 +99,7 @@ function framebuffer:init()
     BB["TYPE_BB" .. bpp] or BB["TYPE_BBRGB" .. bpp],
     self.data,
     pb_fb.scanline,
-    pb_fb.width
+    pixel_stride
   )
 
   self.blitbuffer_rotation_mode = self.bb:getRotation()
