@@ -393,7 +393,7 @@ function NetworkMgr:ifHasAnAddress()
     return false
   end
 
-  local ok
+  local ok = false
   local ifa = ifaddr[0]
   while ifa ~= nil do
     if

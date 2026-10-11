@@ -1514,7 +1514,7 @@ describe("network_manager module", function()
       )
 
       it(
-        "fails: exposes ifHasAnAddress returning nil instead of false when interface has no inet address",
+        "exposes ifHasAnAddress returning nil instead of false when interface has no inet address",
         function()
           local orig_op = NetworkMgr.sysfsInterfaceOperational
           local orig_ifname = NetworkMgr.getNetworkInterfaceName
