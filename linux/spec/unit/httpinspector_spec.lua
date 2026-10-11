@@ -791,7 +791,7 @@ describe("HttpInspector plugin tests", function()
     )
 
     it(
-      "fails: exposes getOrderedDispatcherActions actions crashing when Dispatcher:init has not run",
+      "handles getOrderedDispatcherActions when Dispatcher:init has not run",
       function()
         local Dispatcher = require("dispatcher")
         local settings
@@ -842,12 +842,8 @@ describe("HttpInspector plugin tests", function()
           args = {},
           sub = "",
         }
-        -- When Dispatcher:init() has not run, cre_font_family has args = nil.
-        -- In main.lua:1289:
-        -- if type(args[1]) == "table" then
-        -- It crashes with: attempt to index local 'args' (a nil value)
         local ok, err = pcall(function()
-          HttpInspector:exposeEvent(reqinfo)
+          HttpInspector:exposeEvent("", reqinfo)
         end)
         assert.is_true(
           ok,
