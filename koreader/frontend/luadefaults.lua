@@ -67,12 +67,12 @@ end
 
 --- Checks if setting exists.
 function LuaDefaults:has(key)
-  return self.ro[key] ~= nil
+  return self.rw[key] ~= nil or self.ro[key] ~= nil
 end
 
 --- Checks if setting does not exist.
 function LuaDefaults:hasNot(key)
-  return self.ro[key] == nil
+  return not self:has(key)
 end
 
 --- Checks if setting has been customized.
