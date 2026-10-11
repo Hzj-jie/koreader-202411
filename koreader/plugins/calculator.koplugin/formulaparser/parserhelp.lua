@@ -439,11 +439,18 @@ end
 
 -- average
 function ParserHelp.avg(...)
+  local args = { ... }
+  if #args == 0 then
+    return nil, err_no_val
+  end
   local retval = 0
-  for _, v in pairs({ ... }) do
+  for _, v in ipairs(args) do
+    if type(v) == "boolean" then
+      return nil, err_bool_arith
+    end
     retval = retval + v
   end
-  return retval / #{ ... }
+  return retval / #args
 end
 
 function ParserHelp.ternary(l, m, r)
