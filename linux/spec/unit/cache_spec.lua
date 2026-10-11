@@ -90,6 +90,25 @@ describe("Cache unit behavior", function()
   )
 
   it(
+    "should respect byte limit when slots are explicitly configured",
+    function()
+      local c = Cache:new({
+        slots = 10,
+        size = 1000,
+      })
+      c:init()
+
+      assert.are.equal(10, c.cache:total_slots())
+      assert.are.equal(1000, c.cache:total_size())
+
+      c:insert("k1", "v1", 600)
+      c:insert("k2", "v2", 600)
+      assert.is_nil(c:check("k1"))
+      assert.are.equal("v2", c:check("k2"))
+    end
+  )
+
+  it(
     "should enforce willAccept and reject oversized items in size-bounded mode",
     function()
       local c = Cache:new({
