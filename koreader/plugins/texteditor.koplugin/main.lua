@@ -546,7 +546,7 @@ function TextEditor:editFile(file_path, readonly)
   self:addToHistory(file_path)
   local __, filename = util.splitFilePathName(file_path)
   local __, filetype = util.splitFileNameSuffix(filename)
-  local is_lua = filetype:lower() == "lua"
+  local is_lua = filetype and filetype:lower() == "lua"
   local para_direction_rtl = nil -- use UI language direction
   if self.force_ltr_para_direction then
     para_direction_rtl = false -- force LTR
