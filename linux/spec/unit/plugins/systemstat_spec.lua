@@ -227,44 +227,41 @@ describe("systemstat plugin", function()
       end
     )
 
-    it(
-      "systemInfo leaks /proc/uptime and popen handles without calling close",
-      function()
-        local uptime_opened = false
-        local uptime_closed = false
+    it("closes /proc/uptime and popen handles in systemInfo", function()
+      local uptime_opened = false
+      local uptime_closed = false
 
-        local orig_io_open = io.open
-        io.open = function(path, mode)
-          if path == "/proc/uptime" then
-            uptime_opened = true
-            local real_h = orig_io_open(path, mode)
-            return {
-              read = function(self, fmt)
-                return real_h:read(fmt)
-              end,
-              lines = function(self)
-                return real_h:lines()
-              end,
-              close = function(self)
-                uptime_closed = true
-                return real_h:close()
-              end,
-            }
-          end
-          return orig_io_open(path, mode)
+      local orig_io_open = io.open
+      io.open = function(path, mode)
+        if path == "/proc/uptime" then
+          uptime_opened = true
+          local real_h = orig_io_open(path, mode)
+          return {
+            read = function(self, fmt)
+              return real_h:read(fmt)
+            end,
+            lines = function(self)
+              return real_h:lines()
+            end,
+            close = function(self)
+              uptime_closed = true
+              return real_h:close()
+            end,
+          }
         end
-        finally(function()
-          io.open = orig_io_open
-        end)
-
-        local widget = SystemStatWidget:new({
-          ui = { menu = { registerToMainMenu = function() end } },
-        })
-        widget:onShowSysStatistics()
-
-        assert.is_true(uptime_opened)
-        assert.is_true(uptime_closed)
+        return orig_io_open(path, mode)
       end
-    )
+      finally(function()
+        io.open = orig_io_open
+      end)
+
+      local widget = SystemStatWidget:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      widget:onShowSysStatistics()
+
+      assert.is_true(uptime_opened)
+      assert.is_true(uptime_closed)
+    end)
   end)
 end)
