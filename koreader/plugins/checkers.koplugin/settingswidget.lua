@@ -194,7 +194,7 @@ function SettingsWidget:show()
     save_callback = function()
       self:applyAndClose()
     end,
-    dismiss_callback = function()
+    close_callback = function()
       UIManager:close(self.dialog)
     end,
   })
