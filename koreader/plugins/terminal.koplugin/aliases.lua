@@ -49,7 +49,13 @@ function Aliases:load()
       local __, separator = line:find("^[%a%d_][%a%d-_]*%=") -- find separator
       if line ~= "" and line:sub(1, 1) ~= "#" and separator then
         local alias_name = line:sub(1, separator - 1)
-        local alias_command = line:sub(separator + 1):gsub('"', "")
+        local alias_command = line:sub(separator + 1)
+        if
+          (alias_command:sub(1, 1) == '"' and alias_command:sub(-1) == '"')
+          or (alias_command:sub(1, 1) == "'" and alias_command:sub(-1) == "'")
+        then
+          alias_command = alias_command:sub(2, -2)
+        end
         table.insert(self.kv_pairs, {
           alias_name,
           alias_command,
