@@ -593,7 +593,7 @@ local LEXER_STATES = {
     event = EVENT_NONE,
   }, -- initial spaces before quoted attribute value
 
-  -- [35-37] handle actual attribute values
+  -- [35-36] handle actual attribute values
   {
     state = ST_ATTR_VAL2,
     cclass = CCLASS_QUOTE,
@@ -602,18 +602,12 @@ local LEXER_STATES = {
   },
   {
     state = ST_ATTR_VAL2,
-    cclass = CCLASS_LETTERS,
-    next_state = ST_ATTR_VAL2,
-    event = EVENT_MARK,
-  },
-  {
-    state = ST_ATTR_VAL2,
-    cclass = CCLASS_SLASH,
+    cclass = CCLASS_ANY,
     next_state = ST_ATTR_VAL2,
     event = EVENT_MARK,
   },
 
-  -- [38] End of table marker
+  -- [37] End of table marker
   {
     state = ST_ERROR,
     cclass = CCLASS_NONE,
@@ -705,6 +699,10 @@ local function gen_cclass_code(prefix, cclass)
       prefix,
       "if(ps.mark == 0) then ps.mark = ps.i end -- mark the position\n"
     )
+  elseif cclass.event == EVENT_ATTR_VAL then
+    code(prefix, "if(ps.mark == 0) then ps.mark = ps.i end\n")
+    code(prefix, "return ", cclass.event, ", ", next_state, "_f\n")
+    return
   elseif cclass.event ~= EVENT_NONE then
     code(prefix, "if(ps.mark > 0) then\n")
     code(prefix, "  return ", cclass.event, ", ", next_state, "_f\n")
@@ -791,7 +789,7 @@ function luxl.new(buffer, bufflen)
 end
 
 function luxl:Reset(buffer, bufflen)
-  self.buf = buffer -- pointer to "uint8_t *" buffer (0 based)
+  self.buf = ffi.cast("const uint8_t *", buffer) -- pointer to "uint8_t *" buffer (0 based)
   self.bufsz = bufflen -- size of input buffer
   self.state = ST_START -- current state
   self.event = EVENT_NONE -- current event
