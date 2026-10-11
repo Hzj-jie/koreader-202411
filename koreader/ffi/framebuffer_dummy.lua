@@ -24,16 +24,7 @@ function framebuffer:_newBB(w, h)
     self.invert_bb:free()
   end
 
-  -- we present this buffer to the outside
-  local bb = BB.new(w, h, BB.TYPE_BBRGB32)
-  local flash = os.getenv("EMULATE_READER_FLASH")
-  if flash then
-    -- in refresh emulation mode, we use a shadow blitbuffer
-    -- and blit refresh areas from it.
-    self.bb = BB.new(w, h, BB.TYPE_BBRGB32)
-  else
-    self.bb = bb
-  end
+  self.bb = BB.new(w, h, BB.TYPE_BBRGB32)
   self.invert_bb = BB.new(w, h, BB.TYPE_BBRGB32)
 
   if rotation then

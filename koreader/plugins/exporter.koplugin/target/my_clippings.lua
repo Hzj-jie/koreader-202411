@@ -68,8 +68,11 @@ function ClippingsExporter:export(t)
 end
 
 function ClippingsExporter:share(t)
-  local content = format(t)
-  self:shareText(content)
+  local t_content = {}
+  for _, booknotes in ipairs(t) do
+    table.insert(t_content, format(booknotes))
+  end
+  self:shareText(table.concat(t_content))
 end
 
 return ClippingsExporter
