@@ -248,6 +248,7 @@ function MenuDialog:setupPluginMenu()
           text = gettext("Delete"),
           callback = function()
             settings.server = nil
+            saveSettings()
             SyncService.removeLastSyncDB(DB.path)
             UIManager:close(self.sync_dialogue)
           end,
@@ -271,6 +272,7 @@ function MenuDialog:setupPluginMenu()
                 SyncService.removeLastSyncDB(DB.path)
               end
               settings.server = chosen_server
+              saveSettings()
             end
             UIManager:show(sync_settings)
           end,
@@ -1910,15 +1912,9 @@ function VocabularyBuilderWidget:forgotFromDict(word)
 end
 
 function VocabularyBuilderWidget:resetItems()
-  for i, item in ipairs(self.item_table) do
-    if self.item_table[i].word then -- selected from DB
-      self.item_table[i] = {
-        callback = self.item_table[i].callback,
-      }
-    end
-  end
-  self.reload_time = os.time()
-  self:_populateItems()
+  self.item_table = self:getVocabItems()
+  self.pages = math.ceil(#self.item_table / self.items_per_page)
+  self:goToPage(1)
 end
 
 function VocabularyBuilderWidget:onShowMenu()
@@ -1980,7 +1976,7 @@ function VocabularyBuilderWidget:onShowFilter()
     item_table = sort_items,
     sort_disabled = true,
     callback = function()
-      if #toggled then
+      if next(toggled) ~= nil then
         DB:toggleBookFilter(toggled)
         self:reloadItems()
       end

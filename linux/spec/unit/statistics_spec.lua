@@ -416,16 +416,16 @@ describe("Statistics plugin", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes addBookStatToDB attempting to INSERT into page_stat view",
+      "inserts page statistics into page_stat_data table without view modification error",
       function()
         local stats = ReaderStatistics:new(helper_create_stats_opts())
         local conn = SQ3.open(":memory:")
         stats:createDB(conn)
         stats.data = {
-          title = "Test Book",
-          authors = "Test Author",
+          title = "Different Book",
+          authors = "Different Author",
         }
-        stats.doc_md5 = "dummy_md5"
+        stats.doc_md5 = "different_md5"
         local book_stats = {
           title = "Test Book",
           authors = "Test Author",
@@ -442,25 +442,25 @@ describe("Statistics plugin", function()
           },
         }
 
-        -- In main.lua:804:
-        -- addBookStatToDB executes: INSERT OR IGNORE INTO page_stat VALUES(?, ?, ?, ?)
-        -- But page_stat is a SQL VIEW defined in schema (underlying table is page_stat_data).
-        -- SQLite aborts with: cannot modify page_stat because it is a view.
-        local ok, err = pcall(function()
-          stats:addBookStatToDB(book_stats, conn)
+        local ok, res = pcall(function()
+          return stats:addBookStatToDB(book_stats, conn)
         end)
-        conn:close()
+        assert.is_true(ok, "addBookStatToDB should not throw an error")
+        assert.is_true(res)
 
-        assert.is_true(
-          ok,
-          "addBookStatToDB should insert into underlying table without view modification error: "
-            .. tostring(err)
-        )
+        local book_count =
+          conn:rowexec("SELECT count(*) FROM book WHERE title = 'Test Book'")
+        assert.are.equal(1, tonumber(book_count))
+
+        local count = conn:rowexec("SELECT count(*) FROM page_stat_data")
+        assert.are.equal(3, tonumber(count))
+
+        conn:close()
       end
     )
 
     it(
-      "fails: exposes showCalendarDayView wrapping to today instead of yesterday when before day start hour",
+      "selects yesterday when current time is earlier than day start hour",
       function()
         local CalendarView = require("plugins/statistics.koplugin/calendarview")
         local UIManager = require("ui/uimanager")
@@ -468,7 +468,7 @@ describe("Statistics plugin", function()
         stats.settings.calendar_day_start_hour = 23
         stats.settings.calendar_day_start_minute = 0
 
-        -- 22:00 on 2026-10-10
+        -- 22:00 on 2026-10-10 (earlier than 23:00 day start hour)
         local fixed_time = os.time({
           year = 2026,
           month = 10,
@@ -504,11 +504,6 @@ describe("Statistics plugin", function()
 
         cal_view:showCalendarDayView(stats)
 
-        -- In calendarview.lua:1594:
-        -- date.hour * 3600 + date.min * 60 + date.sec < 23 * 3600 (22:00 < 23:00) is true.
-        -- It runs: date = os.date("*t", os.time() - 86400 + 10800) -- make sure it's the previous day
-        -- But adding 10800 (3 hours) shifts 22:00 (-24h + 3h = -21h) to 01:00 AM on today (2026-10-10).
-        -- Thus date.day remains 10 instead of wrapping to the previous day (9).
         assert.is_not_nil(captured_view)
         local resolved_date = os.date("*t", captured_view.day_ts)
         assert.are.equal(
