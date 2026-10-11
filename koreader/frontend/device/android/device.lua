@@ -474,7 +474,7 @@ function Device:_toggleStatusBarVisibility()
     )
   end
 
-  self.fullscreen = is_fullscreen
+  self.fullscreen = not is_fullscreen
 end
 
 function Device:isAlwaysFullscreen()

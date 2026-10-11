@@ -162,7 +162,7 @@ describe("Android device", function()
     end)
 
     it(
-      "fails: _toggleStatusBarVisibility sets self.fullscreen to new state",
+      "_toggleStatusBarVisibility sets self.fullscreen to new state",
       function()
         local current_fullscreen = true
         mock_android.isFullscreen = function()
