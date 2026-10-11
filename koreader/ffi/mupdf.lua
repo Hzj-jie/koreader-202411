@@ -736,10 +736,16 @@ function page_mt.__index:draw_new(
     ffi.cast("unsigned char*", bb.data)
   )
   if pix == nil then
+    bb:free()
     merror("cannot allocate pixmap")
   end
 
-  run_page(self, pix, ctm)
+  local ok, err = pcall(run_page, self, pix, ctm)
+  if not ok then
+    M.fz_drop_pixmap(context(), pix)
+    bb:free()
+    error(err)
+  end
 
   if draw_context.gamma >= 0.0 then
     M.fz_gamma_pixmap(context(), pix, draw_context.gamma)
