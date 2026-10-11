@@ -77,15 +77,18 @@ function DocSettingTweak:editDirectoryDefaults()
       if content and #content > 0 then
         local parse_error = util.checkLuaSyntax(content)
         if not parse_error then
-          local syntax_okay, syntax_error = pcall(loadstring(content))
+          local syntax_okay, result = pcall(loadstring(content))
           if syntax_okay then
+            if type(result) ~= "table" then
+              return false, gettext("Defaults must return a table")
+            end
             if not util.writeToFile(content, directory_defaults_path) then
               return false, gettext("Missing defaults file")
             end
             DocSettingTweak:loadDefaults()
             return true, gettext("Defaults saved")
           end
-          return false, T(gettext("Defaults invalid: %1"), syntax_error)
+          return false, T(gettext("Defaults invalid: %1"), result)
         end
         return false, T(gettext("Defaults invalid: %1"), parse_error)
       end
