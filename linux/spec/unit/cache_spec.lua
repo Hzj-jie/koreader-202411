@@ -109,6 +109,35 @@ describe("Cache unit behavior", function()
   )
 
   it(
+    "should validate positive bounds in resize_slots and resize_bytes",
+    function()
+      local lru = require("ffi/lru")
+      local cache = lru.new(5, 500)
+
+      assert.has_error(function()
+        cache:resize_slots(0)
+      end, "new_size must be >= 1")
+
+      assert.has_error(function()
+        cache:resize_slots(-1)
+      end, "new_size must be >= 1")
+
+      assert.has_error(function()
+        cache:resize_bytes(0)
+      end, "new_bytes must be >= 1")
+
+      assert.has_error(function()
+        cache:resize_bytes(-1)
+      end, "new_bytes must be >= 1")
+
+      cache:resize_slots(10)
+      assert.are.equal(10, cache:total_slots())
+      cache:resize_bytes(1000)
+      assert.are.equal(1000, cache:total_size())
+    end
+  )
+
+  it(
     "should enforce willAccept and reject oversized items in size-bounded mode",
     function()
       local c = Cache:new({

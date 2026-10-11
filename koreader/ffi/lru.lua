@@ -244,6 +244,7 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
 
   -- KOReader
   local function resize_slots(_, new_size)
+    assert(new_size >= 1, "new_size must be >= 1")
     if new_size > max_size then
       max_size = new_size
     elseif new_size < max_size then
@@ -260,6 +261,7 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
   local resize_bytes
   if max_bytes then
     resize_bytes = function(_, new_bytes)
+      assert(new_bytes >= 1, "new_bytes must be >= 1")
       if new_bytes > max_bytes then
         max_bytes = new_bytes
       elseif new_bytes < max_bytes then
