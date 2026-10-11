@@ -957,7 +957,7 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes Trapper.current_widget remaining non-nil after user abort",
+      "should ensure Trapper.current_widget is cleared after user abort",
       function()
         local orig_scheduleIn = UIManager.scheduleIn
         local orig_unschedule = UIManager.unschedule
