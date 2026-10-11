@@ -34,7 +34,7 @@ local CalculatorUnitsDialog = InputContainer:new({
   text_face = Font:getFace("smallinfofont"),
   button_padding = Size.padding.default,
   border_size = Size.border.window,
-  units = { { "cm", 0.01 }, { "inch", 254 } },
+  units = { { "cm", 0.01 }, { "inch", 0.0254 } },
 })
 
 function CalculatorUnitsDialog:init()
@@ -56,15 +56,18 @@ function CalculatorUnitsDialog:init()
     }),
   })
 
-  local radio_buttons_units = {}
-  for _, v in pairs(self.units) do
-    table.insert(radio_buttons_units, {
-      {
-        text = v[1],
-        checked = v[3] ~= nil,
-        provider = v[2],
-      },
-    })
+  local function create_radio_buttons()
+    local rbs = {}
+    for _, v in pairs(self.units) do
+      table.insert(rbs, {
+        {
+          text = v[1],
+          checked = v[3] ~= nil,
+          provider = v[2],
+        },
+      })
+    end
+    return rbs
   end
 
   local buttons = {
@@ -80,14 +83,17 @@ function CalculatorUnitsDialog:init()
         is_enter_default = true,
         callback = function()
           UIManager:close(self.parent.units_dialog)
-          --                local value = self.
-          local from =
-            self.radio_button_table_units_from.checked_button.provider
-          local too = self.radio_button_table_units_too.checked_button.provider
-          local comment = "  // "
-            .. self.radio_button_table_units_from.checked_button.text
-            .. " -> "
-            .. self.radio_button_table_units_too.checked_button.text
+          local from_btn = self.radio_button_table_units_from.checked_button
+          local too_btn = self.radio_button_table_units_too.checked_button
+          if not from_btn or not too_btn then
+            return
+          end
+          local from = from_btn.provider
+          local too = too_btn.provider
+          if not from or not too then
+            return
+          end
+          local comment = "  // " .. from_btn.text .. " -> " .. too_btn.text
           local calc = self.parent.parent
 
           -- if no input, in the actual line -> insert `ans`
@@ -128,7 +134,7 @@ function CalculatorUnitsDialog:init()
   }
 
   self.radio_button_table_units_from = RadioButtonTable:new({
-    radio_buttons = radio_buttons_units,
+    radio_buttons = create_radio_buttons(),
     width = math.floor(self.width * 0.4),
     focused = true,
     scroll = false,
@@ -136,7 +142,7 @@ function CalculatorUnitsDialog:init()
     face = self.face,
   })
   self.radio_button_table_units_too = RadioButtonTable:new({
-    radio_buttons = radio_buttons_units,
+    radio_buttons = create_radio_buttons(),
     width = math.floor(self.width * 0.4),
     focused = true,
     scroll = false,

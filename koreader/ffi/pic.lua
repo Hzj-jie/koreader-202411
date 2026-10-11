@@ -133,6 +133,14 @@ function GifDocument:openPage(number)
   -- previous frames) over the first frame
   -- Here, because requesting a random number is possible, we redo all the
   -- pastes from first frame till requested frame number: it could be optimized
+  if
+    self.giffile == nil
+    or self.giffile.ImageCount == 0
+    or self.giffile.SavedImages == nil
+    or self.giffile.SavedImages == ffi.null
+  then
+    error("GIF has no images")
+  end
   local i = self.giffile.SavedImages[0]
   local width = i.ImageDesc.Width
   local height = i.ImageDesc.Height
@@ -169,6 +177,9 @@ function GifDocument:openPage(number)
     -- build palette from frame or global color map
     local cmap = i.ImageDesc.ColorMap ~= nil and i.ImageDesc.ColorMap
       or self.giffile.SColorMap
+    if cmap == nil or cmap == ffi.null then
+      error("GIF has no valid color map")
+    end
     local palette = {}
     for c = 0, cmap.ColorCount - 1 do
       local color = cmap.Colors[c]
@@ -181,8 +192,13 @@ function GifDocument:openPage(number)
     local p = i.RasterBits
     for y = f_y, f_y + f_h - 1 do
       for x = f_x, f_x + f_w - 1 do
-        if not transparent_color or p[0] ~= transparent_color then
-          bb:setPixel(x, y, palette[p[0]])
+        if x >= 0 and x < width and y >= 0 and y < height then
+          if not transparent_color or p[0] ~= transparent_color then
+            local color = palette[p[0]]
+            if color then
+              bb:setPixel(x, y, color)
+            end
+          end
         end
         p = p + 1
       end

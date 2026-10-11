@@ -373,7 +373,7 @@ function CalculatorSettingsDialog:choosePathFile(
         local file_input
         file_input = InputDialog:new({
           title = gettext("Append filename"),
-          input = dir_path .. "/",
+          input = dir_path:match("/$") and dir_path or (dir_path .. "/"),
           buttons = {
             {
               {
