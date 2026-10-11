@@ -141,7 +141,7 @@ describe("Android device", function()
       end
     )
 
-    it("fails: isValidPath prevents sibling directory prefix escape", function()
+    it("isValidPath prevents sibling directory prefix escape", function()
       -- External storage is "/storage/emulated/0"
       -- Sibling path is "/storage/emulated/00/secret.epub"
       -- Bug: line 567 does real_path:sub(1, #real_ext_storage) == real_ext_storage
