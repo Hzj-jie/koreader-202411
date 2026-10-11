@@ -299,7 +299,7 @@ describe("Screensaver module", function()
     )
 
     it(
-      "fails: exposes expandSpecial reporting 0% on page 1 of 1-page document",
+      "should ensure expandSpecial reports 100% on page 1 of 1-page document",
       function()
         local ReaderUI = require("apps/reader/readerui")
         local orig_instance = ReaderUI.instance
