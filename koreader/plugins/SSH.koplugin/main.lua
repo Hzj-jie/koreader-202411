@@ -101,15 +101,23 @@ function SSH:start(quiet)
   logger.dbg("[Network] Launching SSH server : ", cmd)
   if os.execute(cmd) == 0 then
     if not quiet then
+      local net_info = Device.retrieveNetworkInfo
+        and Device:retrieveNetworkInfo()
+      local net_str
+      if type(net_info) == "table" then
+        net_str = table.concat(net_info, "\n")
+      elseif type(net_info) == "string" and net_info ~= "" then
+        net_str = net_info
+      else
+        net_str = gettext("Could not retrieve network info.")
+      end
       UIManager:show(InfoMessage:new({
         timeout = 10,
         -- @translators: %1 is the SSH port, %2 is the network info.
         text = T(
           gettext("SSH server started.\n\nSSH port: %1\n%2"),
           self.SSH_port,
-          Device.retrieveNetworkInfo
-              and table.concat(Device:retrieveNetworkInfo(), "\n")
-            or gettext("Could not retrieve network info.")
+          net_str
         ),
       }))
     end
