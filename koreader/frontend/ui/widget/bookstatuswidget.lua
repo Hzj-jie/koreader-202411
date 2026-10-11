@@ -98,6 +98,7 @@ function BookStatusWidget:init()
   })
 
   self.dithered = true
+  self.updated = nil
 end
 
 function BookStatusWidget:getStats()
