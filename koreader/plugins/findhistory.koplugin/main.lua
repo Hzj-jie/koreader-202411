@@ -19,7 +19,11 @@ local history_backup_file =
   joinPath(DataStorage:getDataDir(), "history.lua.backup")
 
 local function getFilePathFromMetadata(file)
+  file = file:gsub("^'", ""):gsub("'$", "")
   local noSuffix, suffix = file:match("(.*)%.sdr/metadata%.(.+)%.lua")
+  if not noSuffix or not suffix then
+    return file
+  end
   return noSuffix .. "." .. suffix
 end
 
@@ -34,10 +38,13 @@ local function doBuildHistory()
     local records = {}
     for line in file:lines() do
       local f, t = line:match("(.+) (%d+)")
-      table.insert(records, {
-        time = tonumber(t),
-        file = getFilePathFromMetadata(f),
-      })
+      if f and t then
+        f = f:gsub("^'", ""):gsub("'$", "")
+        table.insert(records, {
+          time = tonumber(t),
+          file = getFilePathFromMetadata(f),
+        })
+      end
     end
     file:close()
 

@@ -135,18 +135,20 @@ function History:read(dump)
   end
 
   local history = {}
-  do
-    local offset = #dump.history > (self.capacity - 1)
-        and (#dump.history - (self.capacity - 1)) + 1
-      or 1
-    for n = offset, #dump.history do
-      history[#history + 1] = dump.history[n]
-    end
+  local offset = #dump.history > (self.capacity - 1)
+      and (#dump.history - (self.capacity - 1)) + 1
+    or 1
+  for n = offset, #dump.history do
+    history[#history + 1] = dump.history[n]
   end
   self._history = history
   self._head = #history + 1
   self._tail = 1
-  self._position = dump.position
+  if #history == 0 then
+    self._position = prevPosition(self._head, self.capacity)
+  else
+    self._position = dump.position - (offset - 1)
+  end
   return true
 end
 

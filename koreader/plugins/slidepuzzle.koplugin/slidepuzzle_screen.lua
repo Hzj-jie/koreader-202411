@@ -521,6 +521,7 @@ function Screen:onClose()
   self:stopTicker()
   self.plugin:saveCurrentState(self.game)
   self.plugin:onScreenClosed()
+  UIManager:close(self)
   UIManager:setDirty(nil, "full")
 end
 
