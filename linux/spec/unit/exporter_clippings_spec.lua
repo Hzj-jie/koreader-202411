@@ -67,9 +67,6 @@ describe("ClippingsExporter module", function()
     }
 
     ClippingsExporter:share({ booknotes })
-
-    -- Exposes defect: ClippingsExporter:share(t) passes outer list t to format(t)
-    -- instead of iterating ipairs(t), so t.title is nil and shared_text is empty
     assert.is_not_nil(shared_text)
     assert.is_true(shared_text:find("Test Novel") ~= nil)
   end)

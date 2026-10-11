@@ -33,8 +33,6 @@ describe("trace_require tool", function()
       debug.getinfo = orig_getinfo
     end)
 
-    -- Exposes defect: when debug.getinfo(3) returns nil, info is nil and
-    -- line 30 crashes indexing info.short_src.
     assert.has_no.errors(function()
       require("table")
     end)
@@ -58,8 +56,6 @@ describe("trace_require tool", function()
     end)
 
     require("string")
-
-    -- Exposes defect: when elapse == 0, trace_require computes math.log10(0) (-inf)
     assert.is_not_nil(log10_arg)
     assert.is_true(log10_arg > 0)
   end)

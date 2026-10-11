@@ -165,8 +165,14 @@ describe("CheckersSettingsWidget widget", function()
     widget:show()
 
     assert.is_not_nil(captured_args)
-    -- Exposes defect: SettingsWidget:show() passes dismiss_callback instead of close_callback,
-    -- leaving close_callback nil so InputDialog's close/cancel callback never triggers dismiss cleanup.
     assert.is_not_nil(captured_args.close_callback)
+    local closed_dialog = nil
+    local orig_close = UIManager.close
+    UIManager.close = function(self, dlg)
+      closed_dialog = dlg
+    end
+    captured_args.close_callback()
+    UIManager.close = orig_close
+    assert.are.equal(widget.dialog, closed_dialog)
   end)
 end)

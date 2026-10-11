@@ -52,8 +52,6 @@ describe("FindKeyboard module", function()
     local kb = FindKeyboard:check("event1")
     assert.is_not_nil(kb)
     assert.are.equal("/dev/input/event1", kb.event_path)
-    -- Exposes defect: is_capabilities_bit_set uses 32-bit bit.lshift(1, 39), which wraps
-    -- modulo 32 to bit.lshift(1, 7) (KEY_KP7), failing to detect KEY_UP (bit 39).
     assert.is_true(kb.has_dpad)
   end)
 
@@ -79,8 +77,6 @@ describe("FindKeyboard module", function()
 
     local kb = FindKeyboard:check("event2")
     assert.is_not_nil(kb)
-    -- Exposes defect: is_capabilities_bit_set wraps bit.lshift(1, 39) to bit 7, falsely
-    -- detecting KEY_UP when only KEY_KP7 (bit 7) is present.
     assert.is_false(kb.has_dpad)
   end)
 end)

@@ -51,8 +51,6 @@ describe("MemosExporter module", function()
         },
       }
 
-      -- Exposes defect: createHighlights unconditionally returns true even when
-      -- all HTTP requests fail (error_number == number), causing export() to report success.
       local ok = MemosExporter:createHighlights(booknotes)
       assert.is_false(ok)
     end
@@ -88,7 +86,6 @@ describe("MemosExporter module", function()
 
       MemosExporter:createHighlights(booknotes)
       assert.is_not_nil(captured_req)
-      -- Exposes defect: makeRequest passes POST payload without Content-Length header
       assert.is_not_nil(captured_req.headers["Content-Length"])
     end
   )
@@ -131,7 +128,6 @@ describe("MemosExporter module", function()
 
     MemosExporter:createHighlights(booknotes)
     assert.is_string(captured_content)
-    -- Exposes defect: lines 150-152 open '(page: 42' with ASCII '(' but close with full-width CJK '）'
     assert.is_true(captured_content:find("%(page: 42%)") ~= nil)
   end)
 end)

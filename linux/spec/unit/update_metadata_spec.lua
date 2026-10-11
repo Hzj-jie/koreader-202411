@@ -59,9 +59,6 @@ describe("update-metadata tool", function()
       end)
 
       dofile("tools/update-metadata.lua")
-
-      -- Exposes defect: lines 315, 331, 349 call gettext.changeLang(en) with
-      -- unquoted global 'en' (nil) instead of string "en".
       assert.are.equal(0, nil_lang_calls)
     end
   )
@@ -113,9 +110,6 @@ describe("update-metadata tool", function()
       end)
 
       dofile("tools/update-metadata.lua")
-
-      -- Exposes defect: genFastlane assigns to undeclared globals metadata_dir
-      -- and metadata_file without local declarations, polluting _G.
       assert.is_nil(_G.metadata_dir)
       assert.is_nil(_G.metadata_file)
     end
