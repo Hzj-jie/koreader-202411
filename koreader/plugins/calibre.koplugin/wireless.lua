@@ -682,7 +682,8 @@ function CalibreWireless:deleteBook(arg)
         arg.lpaths[i]
       )
     else
-      titles = titles .. "\n" .. CalibreMetadata.books[index].title
+      local title = CalibreMetadata.books[index].title or v
+      titles = titles .. "\n" .. title
       util.removeFile(inbox_dir .. "/" .. v)
       CalibreMetadata:removeBook(v)
     end
