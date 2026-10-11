@@ -110,9 +110,6 @@ describe("update-metadata tool", function()
       end)
 
       dofile("tools/update-metadata.lua")
-
-      -- Exposes defect: genFastlane assigns to undeclared globals metadata_dir
-      -- and metadata_file without local declarations, polluting _G.
       assert.is_nil(_G.metadata_dir)
       assert.is_nil(_G.metadata_file)
     end

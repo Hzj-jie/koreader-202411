@@ -374,6 +374,7 @@ local function genFastlane()
   local short_orig = metadata.summary
   local full_orig = htmlDescription()
   local short_translated, full_translated
+  local metadata_dir, metadata_file
 
   for __, lang in ipairs(locales) do
     gettext.changeLang(lang)
