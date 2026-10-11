@@ -144,7 +144,7 @@ describe("Kobo device", function()
   end)
 
   describe("Defect verifications", function()
-    it("fails: getCPUCount returns core count 2 for dual-core '0-1'", function()
+    it("getCPUCount returns core count 2 for dual-core '0-1'", function()
       local mock_possible = create_temp_file("0-1\n")
       local orig_io_open = io.open
       io.open = function(path, mode)

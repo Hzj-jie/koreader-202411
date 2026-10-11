@@ -52,7 +52,7 @@ local function checkStandby(target_state)
   return util.no
 end
 
--- Return the highest core number
+-- Return the CPU core count
 local function getCPUCount()
   local fd = io.open("/sys/devices/system/cpu/possible", "re")
   if fd then
@@ -60,7 +60,13 @@ local function getCPUCount()
     fd:close()
 
     -- Format is n-N, where n is the first core, and N the last (e.g., 0-3)
-    return tonumber(str:match("%d+$")) or 1
+    if str then
+      local first, last = str:match("(%d+)%-(%d+)")
+      if first and last then
+        return tonumber(last) - tonumber(first) + 1
+      end
+    end
+    return 1
   else
     return 1
   end
@@ -1679,18 +1685,9 @@ function Kobo:toggleChargingLED(toggle)
   return self:charging_led_imp(toggle)
 end
 
--- Return the highest core number
+-- Return the CPU core count
 function Kobo:getCPUCount()
-  local fd = io.open("/sys/devices/system/cpu/possible", "re")
-  if fd then
-    local str = fd:read("*line")
-    fd:close()
-
-    -- Format is n-N, where n is the first core, and N the last (e.g., 0-3)
-    return tonumber(str:match("%d+$")) or 1
-  else
-    return 1
-  end
+  return getCPUCount()
 end
 
 function Kobo:enableCPUCores(amount)
