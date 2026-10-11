@@ -218,4 +218,37 @@ describe("Japanese plugin unit tests", function()
     -- pos1 calculation called get_next_char_pos(0) once, but the expansion loop should not advance current_end past pos1
     assert.are.equal(1, next_char_called)
   end)
+
+  it(
+    "should preserve unmapped voiced and semi-voiced marks in deinflector",
+    function()
+      local Deinflector = require("plugins/japanese.koplugin/deinflector")
+      local d = Deinflector:new({
+        enabled_text_conversions = {
+          ["halfwidth_to_fullwidth"] = false,
+          ["katakana_to_hiragana"] = true,
+          ["hiragana_to_katakana"] = true,
+        },
+      })
+      local res1 = d:deinflect("ﾀﾞﾒ")
+      local found1 = false
+      for _, item in ipairs(res1) do
+        if item.term == "ﾀﾞﾒ" then
+          found1 = true
+          break
+        end
+      end
+      assert.is_true(found1)
+
+      local res2 = d:deinflect("あﾞ")
+      local found2 = false
+      for _, item in ipairs(res2) do
+        if item.term == "アﾞ" then
+          found2 = true
+          break
+        end
+      end
+      assert.is_true(found2)
+    end
+  )
 end)
