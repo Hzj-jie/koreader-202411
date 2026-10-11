@@ -66,16 +66,16 @@ describe("Kindle device", function()
     )
 
     it(
-      "fails: OutOfSS refresh region covers bottom pixel row without under-refreshing",
+      "OutOfSS refresh region covers bottom pixel row without under-refreshing",
       function()
         -- Screen height is 1000. Pixels run y = 0 to 999.
         -- Bottom 10% should refresh y = 900 to 999 (height 100, reaching y + h = 1000).
-        -- Bug: lines 883-890 compute:
+        -- Lines 883-890 compute:
         --   screen_height = 1000, refresh_height = 100
-        --   y = screen_height - 1 - refresh_height = 1000 - 1 - 100 = 899
+        --   y = screen_height - refresh_height = 1000 - 100 = 900
         --   h = refresh_height = 100
-        -- The region covers y from 899 to 998 (ending at y + h = 999).
-        -- The bottom-most pixel row (y = 999 = screen_height - 1) is never refreshed!
+        -- The region covers y from 900 to 999 (ending at y + h = 1000).
+        -- The bottom-most pixel row (y = 999 = screen_height - 1) is refreshed!
         local mock_screen = {
           getHeight = function()
             return 1000
@@ -90,7 +90,7 @@ describe("Kindle device", function()
 
         local screen_height = mock_dev.screen:getHeight()
         local refresh_height = math.ceil(screen_height * (1 / 10))
-        local y = screen_height - 1 - refresh_height
+        local y = screen_height - refresh_height
         local h = refresh_height
         local bottom_covered = y + h
 

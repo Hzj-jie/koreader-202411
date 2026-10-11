@@ -884,7 +884,7 @@ function Kindle:setEventHandlers(_uimgr)
     local refresh_height = math.ceil(screen_height * (1 / 10))
     local refresh_region = Geom:new({
       x = 0,
-      y = screen_height - 1 - refresh_height,
+      y = screen_height - refresh_height,
       w = self.screen:getWidth(),
       h = refresh_height,
     })
