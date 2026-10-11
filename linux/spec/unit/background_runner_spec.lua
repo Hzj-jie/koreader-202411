@@ -1092,9 +1092,13 @@ describe("BackgroundRunner widget tests", function()
         end,
         close = function() end,
       }
+      UIManager:preventStandby()
       table.insert(CommandRunner.running_jobs, entry)
       finally(function()
-        CommandRunner.running_jobs = {}
+        if #CommandRunner.running_jobs > 0 then
+          UIManager:allowStandby()
+          CommandRunner.running_jobs = {}
+        end
       end)
 
       assert.has_no.errors(function()
@@ -1128,11 +1132,11 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "should repeat 1 time when repeated is 1 in BackgroundRunner:_shouldRepeat",
+    "should repeat 1 time when repeated is 2 in BackgroundRunner:_shouldRepeat",
     function()
       local BackgroundRunner = getBackgroundRunner()
-      local job = { repeated = 1 }
-      -- repeated = 1 specifies the job repeats once after the initial run.
+      local job = { repeated = 2 }
+      -- repeated = 2 specifies 2 total executions (repeats 1 time after the initial run).
       assert.is_true(BackgroundRunner:_shouldRepeat(job))
       assert.is_false(BackgroundRunner:_shouldRepeat(job))
     end
@@ -1169,6 +1173,8 @@ describe("BackgroundRunner widget tests", function()
       })
       notifyBackgroundJobsUpdated()
 
+      MockTime:increase(2)
+      UIManager:handleInput()
       MockTime:increase(2)
       pcall(function()
         UIManager:handleInput()

@@ -253,6 +253,10 @@ describe("ArchiveViewer main plugin module", function()
         local mandatory_sub = instance:getItemDirMandatory("docs/sub/")
         assert.is_string(mandatory_sub)
         assert.is_true(mandatory_sub:find("1") ~= nil)
+
+        local mandatory_empty = instance:getItemDirMandatory("nonexistent/")
+        assert.is_string(mandatory_empty)
+        assert.is_true(mandatory_empty:find("0") ~= nil)
       end
     )
   end)

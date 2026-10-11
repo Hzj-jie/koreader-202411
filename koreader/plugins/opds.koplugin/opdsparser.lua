@@ -23,7 +23,17 @@ local function unescape(str)
     if unescape_map[s] then
       return unescape_map[s]
     elseif n == "#" then -- unescape unicode
-      return util.unicodeCodepointToUtf8(tonumber(s))
+      local codepoint
+      if s:sub(1, 1) == "x" or s:sub(1, 1) == "X" then
+        codepoint = tonumber(s:sub(2), 16)
+      else
+        codepoint = tonumber(s)
+      end
+      if codepoint then
+        return util.unicodeCodepointToUtf8(codepoint)
+      else
+        return orig
+      end
     else
       return orig
     end

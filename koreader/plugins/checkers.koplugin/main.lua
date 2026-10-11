@@ -392,6 +392,10 @@ function Checkers:doUndo()
   self.board:updateBoard()
   self:updateStatus()
   UIManager:setDirty(self, "ui")
+
+  if not self.game:is_over() and not self.human[self.game:whose_turn()] then
+    self:scheduleAIMove()
+  end
 end
 
 function Checkers:askNewGame()
