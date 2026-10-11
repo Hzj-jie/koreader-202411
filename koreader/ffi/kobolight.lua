@@ -19,7 +19,9 @@ function kobolight_mt.__index:close()
   -- whole object and not strictly needed.
   -- it allows to force-close immediately, though.
   if self.light_fd and self.light_fd.ld ~= -1 then
-    C.close(self.light_fd.ld)
+    local fd = self.light_fd.ld
+    ffi.gc(self.light_fd, nil)
+    C.close(fd)
     self.light_fd.ld = -1
   end
 end
@@ -42,7 +44,10 @@ function kobolight.open(device)
     C.open(device or "/dev/ntx_io", bor(C.O_RDONLY, C.O_NONBLOCK, C.O_CLOEXEC))
   assert(ld ~= -1, "cannot open ntx_io character device")
   light.light_fd = ffi.gc(ffi.new("light_fd", ld), function(light_fd)
-    C.close(light_fd.ld)
+    if light_fd.ld ~= -1 then
+      C.close(light_fd.ld)
+      light_fd.ld = -1
+    end
   end)
 
   setmetatable(light, kobolight_mt)

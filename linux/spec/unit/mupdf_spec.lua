@@ -81,4 +81,34 @@ describe("ffi/mupdf module", function()
       )
     end
   )
+
+  it(
+    "cleans up pixmap and blitbuffer when page rendering fails in draw_new",
+    function()
+      local doc = mupdf.openDocument("spec/front/unit/data/2col.pdf")
+      local page = doc:openPage(1)
+      local dc =
+        { zoom = 1, rotate = 0, offset_x = 0, offset_y = 0, gamma = -1 }
+
+      local _, orig_W = debug.getupvalue(mupdf.renderImage, 1)
+      local mock_W = setmetatable({
+        mupdf_run_page = function(...)
+          return nil
+        end,
+      }, { __index = orig_W })
+
+      debug.setupvalue(mupdf.renderImage, 1, mock_W)
+
+      local ok, err = pcall(function()
+        page:draw_new(dc, 100, 100, 0, 0)
+      end)
+
+      debug.setupvalue(mupdf.renderImage, 1, orig_W)
+      page:close()
+      doc:close()
+
+      assert.is_false(ok)
+      assert.is_not_nil(string.match(tostring(err), "could not run page"))
+    end
+  )
 end)
