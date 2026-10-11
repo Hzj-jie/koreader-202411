@@ -157,6 +157,13 @@ function AutoDim:onExit()
 end
 
 function AutoDim:onClose()
+  UIManager:unschedule(AutoDim._rampTask)
+  self:_clearIdling()
+  self:_restoreFrontlight()
+  if self.trap_widget then
+    UIManager:closeIfShown(self.trap_widget)
+    self.trap_widget = nil
+  end
   BackgroundTaskPlugin.onClose(self)
 end
 
