@@ -52,7 +52,9 @@ function require(module)
     error(loaded_module)
   end
   local elapse = os.clock() - x
-  local annot = highlight:rep(math.ceil(math.log10(elapse / threshold))) or ""
+  local safe_elapse = elapse > 0 and elapse or 0.000001
+  local annot = highlight:rep(math.ceil(math.log10(safe_elapse / threshold)))
+    or ""
   if not loaded then
     print(
       string.format(
