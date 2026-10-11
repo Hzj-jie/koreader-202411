@@ -90,9 +90,7 @@ local function s(t, opts)
     local origsafestr = safestr
     safestr = function(s)
       return type(s) == "number"
-          and (nohuge and snum[tostring(s)] or numformat
-            :format(s)
-            :gsub(",", "."))
+          and (huge and snum[tostring(s)] or numformat:format(s):gsub(",", "."))
         or origsafestr(s)
     end
   end
