@@ -69,9 +69,6 @@ describe("FramebufferDummy module", function()
 
     fb:_newBB(300, 400)
 
-    -- Exposes defect: _newBB allocates 'local bb = BB.new(w, h, TYPE_BBRGB32)'
-    -- on line 28, but when EMULATE_READER_FLASH is set, line 33 allocates a
-    -- second buffer 'self.bb = BB.new(...)', abandoning the first without freeing it.
     for _, b in ipairs(created) do
       local is_held = (fb.bb == b or fb.invert_bb == b)
       assert.is_true(is_held or freed[b] == true)
