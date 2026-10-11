@@ -339,7 +339,7 @@ describe("BookStatusWidget widget module", function()
     end)
 
     it(
-      "fails: exposes readonly = true still opening editable review dialog on onSwitchFocus",
+      "exposes readonly = true still opening editable review dialog on onSwitchFocus",
       function()
         local mock_ui = createMockUI()
         local shown_widget = nil
