@@ -917,7 +917,7 @@ function NewsDownloader:updateFeedConfig(id, key, value)
   -- Check to see if the id is larger than the number of feeds. If it is,
   -- then we know this is a new add. Insert the base array.
   if id > #feed_config then
-    table.insert(feed_config, self.empty_feed)
+    table.insert(feed_config, util.tableDeepCopy(self.empty_feed))
   end
 
   local new_config = {}
@@ -929,62 +929,17 @@ function NewsDownloader:updateFeedConfig(id, key, value)
     -- Check to see if this is the correct feed to update.
     if idx == id then
       if key == FeedView.URL then
-        if feed[1] then
-          -- If the value exists, then it's been set. So all we do
-          -- is overwrite the value.
-          feed[1] = value
-        else
-          -- If the value doesn't exist, then we need to set it.
-          -- So we insert it into the table.
-          table.insert(feed, {
-            value,
-          })
-        end
+        feed[1] = value
       elseif key == FeedView.LIMIT then
-        if feed.limit then
-          feed.limit = value
-        else
-          table.insert(feed, {
-            "limit",
-            value,
-          })
-        end
+        feed.limit = value
       elseif key == FeedView.DOWNLOAD_FULL_ARTICLE then
-        if feed.download_full_article ~= nil then
-          feed.download_full_article = value
-        else
-          table.insert(feed, {
-            "download_full_article",
-            value,
-          })
-        end
+        feed.download_full_article = value
       elseif key == FeedView.INCLUDE_IMAGES then
-        if feed.include_images ~= nil then
-          feed.include_images = value
-        else
-          table.insert(feed, {
-            "include_images",
-            value,
-          })
-        end
+        feed.include_images = value
       elseif key == FeedView.ENABLE_FILTER then
-        if feed.enable_filter ~= nil then
-          feed.enable_filter = value
-        else
-          table.insert(feed, {
-            "enable_filter",
-            value,
-          })
-        end
+        feed.enable_filter = value
       elseif key == FeedView.FILTER_ELEMENT then
-        if feed.filter_element then
-          feed.filter_element = value
-        else
-          table.insert(feed, {
-            "filter_element",
-            value,
-          })
-        end
+        feed.filter_element = value
       end
     end
     -- Now we insert the updated (or newly created) feed into the
