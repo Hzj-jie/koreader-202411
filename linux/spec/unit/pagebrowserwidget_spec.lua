@@ -592,7 +592,7 @@ describe("PageBrowserWidget widget", function()
     end)
 
     it(
-      "fails: exposes saveSettings(true) omitting thumbnails_pagenums = nil",
+      "exposes saveSettings(true) omitting thumbnails_pagenums = nil",
       function()
         local widget = PageBrowserWidget:new({ ui = mock_ui })
         widget.thumbnails_pagenums = 1
