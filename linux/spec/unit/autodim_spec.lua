@@ -157,7 +157,7 @@ describe("AutoDim widget tests", function()
   )
 
   it(
-    "fails: _rampTask restores frontlight and closes trap_widget when _shouldNotDim becomes true",
+    "_rampTask restores frontlight and closes trap_widget when _shouldNotDim becomes true",
     function()
       -- Bug: lines 235-237 in _rampTask:
       -- if self:_shouldNotDim() then return end
