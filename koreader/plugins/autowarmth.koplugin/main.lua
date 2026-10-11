@@ -347,8 +347,8 @@ function AutoWarmth:scheduleMidnightUpdate(from_resume)
   -- Calculate current timezone of device, which might change due to daylight saving.
   local timezone = SunTime:getTimezoneOffset()
   if timezone ~= self.timezone then
-    G_reader_settings:save("autowarmth_timezone", self.timezone)
     self.timezone = timezone
+    G_reader_settings:save("autowarmth_timezone", self.timezone)
   end
 
   SunTime:setPosition(
