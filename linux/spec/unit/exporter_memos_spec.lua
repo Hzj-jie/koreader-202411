@@ -130,4 +130,33 @@ describe("MemosExporter module", function()
     assert.is_string(captured_content)
     assert.is_true(captured_content:find("%(page: 42%)") ~= nil)
   end)
+
+  it("decodes multi-chunk JSON responses in makeRequest", function()
+    local orig_request = http.request
+    http.request = function(req)
+      if req.sink then
+        req.sink('{"status":')
+        req.sink('"success"}')
+      end
+      return 1, 200, {}, "OK"
+    end
+    finally(function()
+      http.request = orig_request
+    end)
+
+    MemosExporter.settings = {
+      api = "http://localhost:5230/api/v1/memo",
+      token = "test-token",
+    }
+
+    local booknotes = {
+      title = "Test Book",
+      {
+        { text = "Highlight 1", page = 1 },
+      },
+    }
+
+    local ok = MemosExporter:createHighlights(booknotes)
+    assert.is_true(ok)
+  end)
 end)
