@@ -723,7 +723,10 @@ function util.getFilesystemType(path)
     for param in line:gmatch("%S+") do
       table.insert(mount, param)
     end
-    if string.match(path, mount[2]) then
+    local is_match = mount[2] == "/"
+      or path == mount[2]
+      or string.find(path, mount[2] .. "/", 1, true) == 1
+    if is_match then
       type = mount[3]
       if mount[2] ~= "/" then
         break
