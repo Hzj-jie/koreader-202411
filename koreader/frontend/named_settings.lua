@@ -114,7 +114,7 @@ function named_settings.fast_screen_refresh()
   end
   return G_reader_settings:isFalse("avoid_flashing_ui")
     or named_settings.full_refresh_count()
-      < G_named_settings.default.full_refresh_count()
+      < named_settings.default.full_refresh_count()
 end
 
 function named_settings.collate()
