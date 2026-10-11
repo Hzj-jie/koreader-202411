@@ -416,16 +416,16 @@ describe("Statistics plugin", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes addBookStatToDB attempting to INSERT into page_stat view",
+      "inserts page statistics into page_stat_data table without view modification error",
       function()
         local stats = ReaderStatistics:new(helper_create_stats_opts())
         local conn = SQ3.open(":memory:")
         stats:createDB(conn)
         stats.data = {
-          title = "Test Book",
-          authors = "Test Author",
+          title = "Different Book",
+          authors = "Different Author",
         }
-        stats.doc_md5 = "dummy_md5"
+        stats.doc_md5 = "different_md5"
         local book_stats = {
           title = "Test Book",
           authors = "Test Author",
@@ -442,20 +442,20 @@ describe("Statistics plugin", function()
           },
         }
 
-        -- In main.lua:804:
-        -- addBookStatToDB executes: INSERT OR IGNORE INTO page_stat VALUES(?, ?, ?, ?)
-        -- But page_stat is a SQL VIEW defined in schema (underlying table is page_stat_data).
-        -- SQLite aborts with: cannot modify page_stat because it is a view.
-        local ok, err = pcall(function()
-          stats:addBookStatToDB(book_stats, conn)
+        local ok, res = pcall(function()
+          return stats:addBookStatToDB(book_stats, conn)
         end)
-        conn:close()
+        assert.is_true(ok, "addBookStatToDB should not throw an error")
+        assert.is_true(res)
 
-        assert.is_true(
-          ok,
-          "addBookStatToDB should insert into underlying table without view modification error: "
-            .. tostring(err)
-        )
+        local book_count =
+          conn:rowexec("SELECT count(*) FROM book WHERE title = 'Test Book'")
+        assert.are.equal(1, tonumber(book_count))
+
+        local count = conn:rowexec("SELECT count(*) FROM page_stat_data")
+        assert.are.equal(3, tonumber(count))
+
+        conn:close()
       end
     )
 
