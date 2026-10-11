@@ -347,11 +347,11 @@ end
 function CoverImage:getCacheFiles(cache_path, cache_prefix)
   local cache_size = 0
   local files = {}
-  for entry in lfs.dir(self.cover_image_cache_path) do
+  for entry in lfs.dir(cache_path) do
     if entry ~= "." and entry ~= ".." then
       local file = cache_path .. entry
       if
-        entry:sub(1, self.cover_image_cache_prefix:len()) == cache_prefix
+        entry:sub(1, cache_prefix:len()) == cache_prefix
         and lfs.attributes(file, "mode") == "file"
       then
         local blocksize = lfs.attributes(file).blksize or 4096
@@ -440,10 +440,10 @@ function CoverImage:migrateCache(old_path, new_path)
         and entry:sub(1, self.cover_image_cache_prefix:len())
           == self.cover_image_cache_prefix
       then
-        local old_access_time = lfs.attributes(old_file, "access")
+        local old_modification_time = lfs.attributes(old_file, "modification")
         local new_file = new_path .. entry
         os.rename(old_file, new_file)
-        lfs.touch(new_file, old_access_time) -- restore original time
+        lfs.touch(new_file, old_modification_time) -- restore original time
       end
     end
   end
