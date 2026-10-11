@@ -79,7 +79,7 @@ describe("Statistics ReaderProgress widget module", function()
   end)
 
   describe("Defect verifications", function()
-    it("fails: exposes genWeekStats crashing when #self.dates < 7", function()
+    it("handles fewer than 7 days gracefully in genWeekStats", function()
       -- In readerprogress.lua line 222-227 and line 251-255:
       -- genWeekStats(stats_day) iterates for i = 1, stats_day (stats_day is 7 from getStatusContent).
       -- It accesses self.dates[i][2] and self.dates[j][3].
