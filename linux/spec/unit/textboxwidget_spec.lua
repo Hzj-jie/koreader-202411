@@ -622,7 +622,7 @@ describe("TextBoxWidget widget", function()
     )
 
     it(
-      "fails: exposes scrollToRatio crashing when text is empty and editable = true",
+      "should ensure scrollToRatio does not crash when text is empty and editable = true",
       function()
         local tw = TextBoxWidget:new({
           width = 200,

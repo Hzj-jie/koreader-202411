@@ -1680,7 +1680,10 @@ function TextBoxWidget:scrollToRatio(ratio, force_to_page)
   if self.editable then
     -- move cursor to first line of visible area
     local ln = self.height == nil and 1 or self.virtual_line_num
-    self:moveCursorToCharPos(self.vertical_string_list[ln].offset)
+    self:moveCursorToCharPos(
+      self.vertical_string_list[ln] and self.vertical_string_list[ln].offset
+        or 1
+    )
   end
 end
 
