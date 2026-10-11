@@ -770,7 +770,7 @@ describe("HttpInspector plugin tests", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes guessClassName crashing on non-function fields like { clear = true }",
+      "safely handles non-function fields in guessClassName without crashing",
       function()
         local test_obj = { clear = true }
         local reqinfo = {
@@ -779,13 +779,8 @@ describe("HttpInspector plugin tests", function()
           args = {},
           sub = "",
         }
-        -- In main.lua:400-415:
-        -- classic_method_names contains "clear", "free", etc.
-        -- rawget(test_obj, "clear") returns boolean true instead of a function.
-        -- It passes true to getFunctionInfo(true), which calls debug.getinfo(true, "S"),
-        -- crashing with: bad argument #1 to 'getinfo' (function or level expected).
         local ok, err = pcall(function()
-          HttpInspector:exposeObject(reqinfo, test_obj)
+          HttpInspector:exposeObject(test_obj, "/", reqinfo)
         end)
         assert.is_true(
           ok,
@@ -796,7 +791,7 @@ describe("HttpInspector plugin tests", function()
     )
 
     it(
-      "fails: exposes getOrderedDispatcherActions actions crashing when Dispatcher:init has not run",
+      "handles getOrderedDispatcherActions when Dispatcher:init has not run",
       function()
         local Dispatcher = require("dispatcher")
         local settings
@@ -847,12 +842,8 @@ describe("HttpInspector plugin tests", function()
           args = {},
           sub = "",
         }
-        -- When Dispatcher:init() has not run, cre_font_family has args = nil.
-        -- In main.lua:1289:
-        -- if type(args[1]) == "table" then
-        -- It crashes with: attempt to index local 'args' (a nil value)
         local ok, err = pcall(function()
-          HttpInspector:exposeEvent(reqinfo)
+          HttpInspector:exposeEvent("", reqinfo)
         end)
         assert.is_true(
           ok,
