@@ -168,7 +168,7 @@ describe("Exporter Joplin target module", function()
     )
 
     it(
-      "fails: exposes port validation rejecting valid ports due to port < 65355 check",
+      "accepts valid ports up to 65535 in port validation",
       function()
         local exp = create_mock_exporter()
         exp.settings.port = 41184
