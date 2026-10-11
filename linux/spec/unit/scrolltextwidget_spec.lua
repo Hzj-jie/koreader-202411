@@ -69,4 +69,42 @@ describe("ScrollTextWidget module", function()
     })
     assert.is_false(widget.v_scroll_bar.enable)
   end)
+
+  it(
+    "should update scroll bar partially when dialog is nil or movable has alpha",
+    function()
+      local UIManager = require("ui/uimanager")
+      local stub = require("luassert.stub")
+      local setdirty_stub = stub(UIManager, "setDirty")
+
+      local text = "1\n2\n3\n4\n5\n6\n7\n8\n9\n10"
+      local widget = ScrollTextWidget:new({
+        text = text,
+        height = 50,
+        width = 200,
+      })
+      -- dialog is nil: should not throw error on scrollDown or scrollUp
+      assert.has_no.errors(function()
+        widget:scrollDown()
+        widget:scrollUp()
+      end)
+
+      -- with dialog having translucent movable
+      local mock_dialog = {
+        movable = { alpha = 0.5 },
+      }
+      local widget_with_dialog = ScrollTextWidget:new({
+        text = text,
+        height = 50,
+        width = 200,
+        dialog = mock_dialog,
+      })
+      assert.has_no.errors(function()
+        widget_with_dialog:scrollDown()
+      end)
+      assert.is_nil(mock_dialog.movable.alpha)
+
+      setdirty_stub:revert()
+    end
+  )
 end)
