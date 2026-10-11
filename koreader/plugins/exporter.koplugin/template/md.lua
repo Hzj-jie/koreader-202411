@@ -49,7 +49,9 @@ local function prepareBookContent(
     local entry = note[1]
     if entry.chapter ~= current_chapter then
       current_chapter = entry.chapter
-      table.insert(tbl, "## " .. current_chapter)
+      if current_chapter then
+        table.insert(tbl, "## " .. current_chapter)
+      end
     end
     table.insert(
       tbl,
@@ -58,16 +60,18 @@ local function prepareBookContent(
         .. " @ "
         .. os.date("%d %B %Y %I:%M:%S %p", entry.time)
     )
-    if highlight_formatting then
-      table.insert(
-        tbl,
-        string.format(
-          formatters[formatting_options[entry.drawer]].formatter,
-          entry.text
+    if entry.text then
+      if highlight_formatting then
+        table.insert(
+          tbl,
+          string.format(
+            formatters[formatting_options[entry.drawer]].formatter,
+            entry.text
+          )
         )
-      )
-    else
-      table.insert(tbl, entry.text)
+      else
+        table.insert(tbl, entry.text)
+      end
     end
     if entry.note then
       table.insert(tbl, "\n---\n" .. entry.note)

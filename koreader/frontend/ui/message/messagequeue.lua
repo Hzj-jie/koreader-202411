@@ -16,10 +16,10 @@ end
 
 function MessageQueue:new(o)
   o = self:extend(o)
+  o.messages = {}
   if o.init then
     o:init()
   end
-  self.messages = {}
   return o
 end
 

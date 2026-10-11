@@ -45,7 +45,7 @@ local function makeRequest(method, request_body, api, token)
     return nil, status
   end
 
-  return json.decode(sink[1])
+  return json.decode(table.concat(sink))
 end
 
 function MemosExporter:isReadyToExport()

@@ -61,9 +61,8 @@ local Calculator = WidgetContainer:new({
 })
 
 function Calculator:init()
-  G_reader_settings:save("calculator_output_path", self.output_path)
-  G_reader_settings:save("calculator_input_path", self.input_path)
-  G_reader_settings:save("calculator_input_path", self.input_path)
+  G_reader_settings:save("calculator_output_path", self.calculator_output_path)
+  G_reader_settings:save("calculator_input_path", self.calculator_input_path)
   G_reader_settings:save("calculator_use_init_file", self.use_init_file)
   if self.use_init_file == "yes" then
     self:load(nil, self.init_file)
@@ -209,7 +208,7 @@ or type 'help()⮠']])
               end,
               choice2_text = "✓", --ok
               choice2_callback = function()
-                self:dump(nil, self.calculator_input_path)
+                self:load(nil, self.calculator_input_path)
               end,
             }))
           end,
@@ -485,7 +484,7 @@ function Calculator:formatResult(val, format)
       ret = self:formatMantissaExponent(val, false)
     else
       local msp = math.floor(math.log10(math.abs(val))) -- most significant place
-      if val > 1 then
+      if math.abs(val) > 1 then
         msp = 1
       end
       ret = ""
