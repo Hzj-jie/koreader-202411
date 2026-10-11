@@ -37,6 +37,7 @@ end
 
 function MenuSorter:mergeAndSort(config_prefix, item_table, order)
   local user_order = self:_readMSSettings(config_prefix)
+  order = util.tableDeepCopy(order)
   if user_order then
     for user_order_id, user_order_item in pairs(user_order) do
       order[user_order_id] = user_order_item
