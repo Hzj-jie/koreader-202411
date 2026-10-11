@@ -399,6 +399,18 @@ function NewsDownloader:processFeedSource(
     })
     return
   end
+  -- Normalize single item/entry to an array if simpleTreeHandler parsed a single table.
+  if feeds.rss and feeds.rss.channel and feeds.rss.channel.item then
+    if feeds.rss.channel.item[1] == nil then
+      feeds.rss.channel.item = { feeds.rss.channel.item }
+    end
+  end
+  if feeds.feed and feeds.feed.entry then
+    if feeds.feed.entry[1] == nil then
+      feeds.feed.entry = { feeds.feed.entry }
+    end
+  end
+
   -- Check to see if the feed uses RSS.
   local is_rss = feeds.rss
     and feeds.rss.channel
@@ -410,6 +422,7 @@ function NewsDownloader:processFeedSource(
   -- Check to see if the feed uses Atom.
   local is_atom = feeds.feed
     and feeds.feed.title
+    and feeds.feed.entry
     and feeds.feed.entry[1]
     and feeds.feed.entry[1].title
     and feeds.feed.entry[1].link
@@ -450,10 +463,8 @@ function NewsDownloader:processFeedSource(
     local error_message
     if not ok then
       error_message = gettext("(Reason: Failed to download content)")
-    elseif not is_rss then
-      error_message = gettext("(Reason: Couldn't process RSS)")
-    elseif not is_atom then
-      error_message = gettext("(Reason: Couldn't process Atom)")
+    else
+      error_message = gettext("(Reason: Couldn't process feed)")
     end
     table.insert(unsupported_feeds_urls, {
       url,
