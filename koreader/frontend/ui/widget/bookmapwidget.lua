@@ -91,12 +91,18 @@ function BookMapRow:getPageAtX(x, at_bounds_if_outside)
     if not at_bounds_if_outside then
       return
     end
-    x = self.pages_frame_inner_width - 1
+    x = math.max(0, self.pages_frame_inner_width - 1)
   end
   -- Reverse of the computation in :getPageX():
-  local slot_idx = math.floor(
-    x / (self.page_slot_width + self.page_slot_extra / self.nb_page_slots)
-  )
+  local slot_size = self.page_slot_width
+    + (
+      self.nb_page_slots > 0 and self.page_slot_extra / self.nb_page_slots or 0
+    )
+  local slot_idx = 0
+  if slot_size > 0 then
+    slot_idx = math.floor(x / slot_size)
+  end
+  slot_idx = math.max(0, math.min(slot_idx, self.nb_page_slots - 1))
   if BD.mirroredUILayout() then
     return self.end_page - slot_idx
   else
