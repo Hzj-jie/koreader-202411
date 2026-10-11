@@ -69,8 +69,9 @@ function IconWidget:init()
     end
     if not self.file then
       self.file = ICON_NOT_FOUND
+    else
+      ICONS_PATH[self.icon] = self.file
     end
-    ICONS_PATH[self.icon] = self.file
   end
 end
 

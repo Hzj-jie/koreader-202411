@@ -54,7 +54,7 @@ describe("IconWidget", function()
     )
 
     it(
-      "fails: exposes permanent caching of ICON_NOT_FOUND on initial lookup miss",
+      "exposes permanent caching of ICON_NOT_FOUND on initial lookup miss",
       function()
         local lfs = require("libs/libkoreader-lfs")
         local orig_attributes = lfs.attributes
