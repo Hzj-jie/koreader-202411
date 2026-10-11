@@ -454,7 +454,7 @@ describe("VocabBuilder plugin", function()
     )
 
     it(
-      "fails: exposes resetItems with reverse=true failing to re-synchronize item count with selectCount",
+      "re-synchronizes item count with selectCount on resetItems with reverse=true",
       function()
         local settings = G_reader_settings:readTableRef("vocabulary_builder")
         settings.enabled = true
@@ -500,10 +500,6 @@ describe("VocabBuilder plugin", function()
           end
         end)
 
-        -- In normal mode, item_table has 3 items.
-        -- When reverse is enabled, only items with due_time <= reload_time (2 items) are active.
-        -- But resetItems() only clears .word from existing item_table without re-sizing it via selectCount.
-        -- As a result, #widget.item_table remains 3 with unpopulated nil-word items.
         settings.reverse = true
         widget:resetItems()
 
