@@ -254,7 +254,7 @@ describe("Geometry", function()
     )
 
     it(
-      "fails: exposes centerWithin producing fractional coordinates on odd dimensions",
+      "exposes centerWithin producing fractional coordinates on odd dimensions",
       function()
         local container = Geom:new({ x = 0, y = 0, w = 200, h = 200 })
         local odd_box = Geom:new({ x = 0, y = 0, w = 25, h = 25 })

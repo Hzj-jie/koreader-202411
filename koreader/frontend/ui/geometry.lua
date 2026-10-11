@@ -364,8 +364,8 @@ function Geom:centerWithin(rect_b, x, y)
     self.h = rect_b.h
   end
   -- place to center
-  self.x = x - self.w / 2
-  self.y = y - self.h / 2
+  self.x = Math.round(x - self.w / 2)
+  self.y = Math.round(y - self.h / 2)
   -- check boundary
   if self.x < rect_b.x then
     self.x = rect_b.x
