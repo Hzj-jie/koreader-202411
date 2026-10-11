@@ -1072,8 +1072,13 @@ function InputText:delWord(left_to_cursor)
   if self.readonly or not self:isTextEditable(true) then
     return
   end
+  if left_to_cursor and self.charpos <= 1 then
+    return
+  end
   local start_pos, end_pos = self:getStringPos(true, left_to_cursor)
-  start_pos = math.min(start_pos, end_pos)
+  if start_pos > end_pos then
+    return
+  end
   for i = end_pos, start_pos, -1 do
     table.remove(self.charlist, i)
   end
@@ -1085,6 +1090,8 @@ function InputText:delWord(left_to_cursor)
     else
       self.charpos = start_pos
     end
+  else
+    self.charpos = 1
   end
   self.is_text_edited = true
   self:initTextBox()
