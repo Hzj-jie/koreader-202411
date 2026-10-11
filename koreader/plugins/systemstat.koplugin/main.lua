@@ -273,7 +273,7 @@ function SystemStat:appendCounters()
           msg = msg .. "\n" .. k
         end
       end
-      if msg == "" then
+      if msg ~= "" then
         UIManager:show(InfoMessage:new({
           text = msg,
         }))
