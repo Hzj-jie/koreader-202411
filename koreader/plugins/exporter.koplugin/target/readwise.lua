@@ -45,7 +45,7 @@ local function makeRequest(endpoint, method, request_body, token)
     return nil, status
   end
 
-  return json.decode(sink[1])
+  return json.decode(table.concat(sink))
 end
 
 function ReadwiseExporter:isReadyToExport()
@@ -112,7 +112,9 @@ function ReadwiseExporter:createHighlights(booknotes)
       local highlight = {
         text = clipping.text,
         title = booknotes.title,
-        author = booknotes.author ~= "" and booknotes.author:gsub("\n", ", ")
+        author = booknotes.author
+            and booknotes.author ~= ""
+            and booknotes.author:gsub("\n", ", ")
           or nil, -- optional author
         source_type = "koreader",
         category = "books",

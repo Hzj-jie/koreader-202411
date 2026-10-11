@@ -27,8 +27,6 @@ describe("slt2 template engine", function()
     local env = setmetatable({}, custom_mt)
 
     slt2.render_co(t, env)
-
-    -- Exposes defect: slt2.render_co overwrites caller's custom metatable with mt51
     assert.are.equal(custom_mt, getmetatable(env))
   end)
 
@@ -48,9 +46,6 @@ describe("slt2 template engine", function()
       local ok2, val2 = coroutine.resume(co2)
       assert.is_true(ok2)
       assert.are.equal("second", val2)
-
-      -- Exposes defect: slt2.render_co calls setfenv(t.code, env2) on shared t.code,
-      -- mutating co1's execution environment from 'first' to 'second'.
       assert.are.equal("first", val1)
     end
   )
