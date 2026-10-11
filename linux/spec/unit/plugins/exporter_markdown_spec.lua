@@ -167,6 +167,26 @@ describe("Markdown Exporter and Template", function()
       local lines = md.prepareBookContent(book, default_formatting, true)
       assert.is_table(lines)
     end)
+
+    it("should handle image-only annotations where entry.text is nil without error", function()
+      local book = {
+        title = "Image Only Book",
+        author = "Author",
+        {
+          {
+            chapter = "Chapter 1",
+            page = 1,
+            time = 1700000000,
+            drawer = "lighten",
+            image = true,
+            text = nil,
+          },
+        },
+      }
+
+      local lines = md.prepareBookContent(book, default_formatting, true)
+      assert.is_table(lines)
+    end)
   end)
 
   describe("MarkdownExporter methods", function()
