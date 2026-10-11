@@ -130,7 +130,6 @@ describe("MemosExporter module", function()
 
     MemosExporter:createHighlights(booknotes)
     assert.is_string(captured_content)
-    -- Exposes defect: lines 150-152 open '(page: 42' with ASCII '(' but close with full-width CJK '）'
     assert.is_true(captured_content:find("%(page: 42%)") ~= nil)
   end)
 end)

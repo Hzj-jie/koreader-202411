@@ -150,7 +150,7 @@ function MemosExporter:createHighlights(booknotes)
         .. booknotes.title
         .. " (page: "
         .. clipping.page
-        .. "）\n\n #"
+        .. ")\n\n #"
         .. booknotes.title:gsub("%s+", "_")
         .. " #koreader"
       local result, err = makeRequest(
