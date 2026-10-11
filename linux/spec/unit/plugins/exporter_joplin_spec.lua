@@ -135,7 +135,7 @@ describe("Exporter Joplin target module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes findNotebookByTitle hardcoding query=title in url",
+      "finds notebook by query title without hardcoding query=title in url",
       function()
         local exp = create_mock_exporter()
         local orig_request = http.request

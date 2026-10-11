@@ -101,7 +101,7 @@ end
 -- If successful returns id of found notebook (folder).
 function JoplinExporter:findNotebookByTitle(title)
   local url_base = string.format(
-    "http://%s:%s/folders?token=%s&query=title&page=",
+    "http://%s:%s/folders?token=%s&query=%s&page=",
     self.settings.ip,
     self.settings.port,
     self.settings.token,
