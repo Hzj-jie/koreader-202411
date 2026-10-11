@@ -28,7 +28,7 @@ end
 
 --- Reads a setting, optionally initializing it to a default.
 function LuaDefaults:read(key, default)
-  if not default then
+  if default == nil then
     if self:hasBeenCustomized(key) then
       return self.rw[key]
     else
