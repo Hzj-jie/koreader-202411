@@ -115,4 +115,50 @@ describe("Readerui module", function()
     assert.is_true(size.w > 0)
     assert.is_true(size.h > 0)
   end)
+
+  it(
+    "should error directly when dealWithLoadDocumentFailure is called outside a coroutine",
+    function()
+      assert.has_error(
+        function()
+          readerui:dealWithLoadDocumentFailure()
+        end,
+        "crengine failed recognizing or parsing this file: unsupported or invalid document"
+      )
+    end
+  )
+
+  it(
+    "should show InfoMessage when DocumentRegistry hasProvider is true but getProvider returns nil",
+    function()
+      local stub = require("luassert.stub")
+      local has_stub = stub(DocumentRegistry, "hasProvider", function()
+        return true
+      end)
+      local get_stub = stub(DocumentRegistry, "getProvider", function()
+        return nil
+      end)
+      local show_widget_called = false
+      local orig_showWidget = ReaderUI.showWidget
+      ReaderUI.showWidget = function(self, widget)
+        show_widget_called = true
+      end
+      local show_fm_called = false
+      local orig_showFileManager = ReaderUI.showFileManager
+      ReaderUI.showFileManager = function(self, file)
+        show_fm_called = true
+      end
+
+      assert.has_no.errors(function()
+        ReaderUI:showReader(sample_epub)
+      end)
+      assert.is_true(show_widget_called)
+      assert.is_true(show_fm_called)
+
+      has_stub:revert()
+      get_stub:revert()
+      ReaderUI.showWidget = orig_showWidget
+      ReaderUI.showFileManager = orig_showFileManager
+    end
+  )
 end)
