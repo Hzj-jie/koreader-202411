@@ -69,23 +69,28 @@ describe("Exporter Clip plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes getTime 12-hour AM/PM offset error turning 12 PM into 24:00 next day",
+      "converts 12 PM to hour 12 and 12 AM to hour 0 on same day in getTime",
       function()
         -- 12:30:00 PM is noon on the same day (hour 12, day 1)
         local ts = MyClipping:getTime("2023-05-01 12:30:00 PM")
         assert.is_number(ts)
 
         local d = os.date("*t", ts)
-        -- Due to blindly adding 12 to hour whenever 'PM' is matched:
-        -- hour becomes 12 + 12 = 24, which os.time() normalizes to the next day (day 2, hour 0).
-        -- In correct 12-to-24 hour conversion, 12 PM remains hour 12 on day 1.
         assert.are.equal(1, d.day)
         assert.are.equal(12, d.hour)
+
+        -- 12:30:00 AM is midnight on the same day (hour 0, day 1)
+        local ts_am = MyClipping:getTime("2023-05-01 12:30:00 AM")
+        assert.is_number(ts_am)
+
+        local d_am = os.date("*t", ts_am)
+        assert.are.equal(1, d_am.day)
+        assert.are.equal(0, d_am.hour)
       end
     )
 
     it(
-      "fails: exposes getClippingsFromBook not setting output_filename",
+      "sets output_filename in getClippingsFromBook",
       function()
         local mock_doc_path = "/tmp/test_book_clippings.epub"
         local orig_open = DocSettings.open
