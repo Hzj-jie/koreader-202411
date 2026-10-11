@@ -406,7 +406,7 @@ describe("VocabBuilder plugin", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onShowFilter callback executing filter toggle on empty toggled due to #toggled truthiness",
+      "does not execute filter toggle on empty toggled in onShowFilter callback",
       function()
         local settings = G_reader_settings:readTableRef("vocabulary_builder")
         settings.enabled = true
@@ -447,10 +447,6 @@ describe("VocabBuilder plugin", function()
           toggle_stub:revert()
         end)
 
-        -- In main.lua:1973:
-        -- if #toggled then
-        -- In Lua, #toggled on empty table {} evaluates to 0, which is truthy.
-        -- Thus sort_widget.callback() calls DB:toggleBookFilter(toggled) with empty ids {}.
         sort_widget.callback()
 
         assert.stub(toggle_stub).was_not_called()

@@ -1970,7 +1970,7 @@ function VocabularyBuilderWidget:onShowFilter()
     item_table = sort_items,
     sort_disabled = true,
     callback = function()
-      if #toggled then
+      if next(toggled) ~= nil then
         DB:toggleBookFilter(toggled)
         self:reloadItems()
       end
