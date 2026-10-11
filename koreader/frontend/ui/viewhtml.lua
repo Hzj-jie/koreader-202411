@@ -292,8 +292,9 @@ function ViewHtml:_handleLongPress(
     local info = offsets[i]
     local offset, level = tonumber(info[1]), tonumber(info[2])
     -- Correct offsets with the shifts caused by our substitutions
+    local orig_offset = offset
     for _, offset_shift in ipairs(offset_shifts) do
-      if offset >= offset_shift[1] then
+      if orig_offset >= offset_shift[1] then
         offset = offset + offset_shift[2]
       end
     end

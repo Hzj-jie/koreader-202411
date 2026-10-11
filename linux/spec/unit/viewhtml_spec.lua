@@ -480,7 +480,7 @@ describe("ViewHTML module", function()
     )
 
     it(
-      "fails: exposes multi-pass replace_in_html offset_shifts corrupting element lookup",
+      "should ensure multi-pass replace_in_html offset_shifts correctly identify element",
       function()
         local document = {}
         local css_selectors_offsets = table.concat({
