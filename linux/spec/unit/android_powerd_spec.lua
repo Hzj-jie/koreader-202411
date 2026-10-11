@@ -150,7 +150,7 @@ describe("AndroidPowerD", function()
     )
 
     it(
-      "fails: setWarmthHW and frontlightWarmthHW use consistent warmth scaling",
+      "setWarmthHW and frontlightWarmthHW use consistent warmth scaling",
       function()
         mock_android.screen_min_warmth = 0
         mock_android.screen_max_warmth = 10
