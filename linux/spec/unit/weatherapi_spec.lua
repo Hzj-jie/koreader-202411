@@ -58,9 +58,6 @@ describe("WeatherApi module", function()
 
       local api = WeatherApi:new()
       local res = api:_makeRequest("http://api.weatherapi.com/v1/forecast.json")
-
-      -- Exposes defect: socket.skip(2, ...) discards the HTTP status code (401),
-      -- treating HTTP error payloads as successful forecast data.
       assert.is_nil(res)
     end
   )

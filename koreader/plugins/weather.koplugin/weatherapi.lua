@@ -2,7 +2,6 @@ local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
-local socket = require("socket")
 local socketutil = require("socketutil")
 
 local WeatherApi = {
@@ -34,10 +33,10 @@ function WeatherApi:_makeRequest(url)
     sink = ltn12.sink.table(sink),
   }
   -- Make request
-  local headers = socket.skip(2, http.request(request))
+  local _, code, headers = http.request(request)
   socketutil:reset_timeout()
-  -- Check to see if headers exist
-  if headers == nil then
+  -- Check to see if request succeeded
+  if headers == nil or code ~= 200 then
     return nil
   end
   -- Not sure what this does
