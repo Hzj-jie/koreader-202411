@@ -67,7 +67,7 @@ function PocketBookPowerD:setWarmthHW(level)
 end
 
 function PocketBookPowerD:frontlightWarmthHW()
-  return inkview.GetFrontlightColor()
+  return math.max(0, inkview.GetFrontlightColor())
 end
 
 function PocketBookPowerD:getCapacityHW()
