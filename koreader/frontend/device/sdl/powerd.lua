@@ -32,7 +32,7 @@ end
 function SDLPowerD:getCapacityHW()
   local _, _, _, percent = SDL.getPowerInfo()
   -- -1 looks a bit odd compared to 0
-  if percent == -1 then
+  if not percent or percent == -1 then
     return 0
   end
   return percent
