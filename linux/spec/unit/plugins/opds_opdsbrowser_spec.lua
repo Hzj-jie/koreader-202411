@@ -217,5 +217,36 @@ describe("OPDS Browser plugin module", function()
         )
       end
     )
+
+    it(
+      "does not duplicate acquisition when link has both acquisition rel and application/pdf type",
+      function()
+        local browser = create_mock_browser()
+        local catalog = {
+          feed = {
+            entry = {
+              {
+                title = "Standard PDF Book",
+                id = "urn:pdf-book",
+                link = {
+                  {
+                    rel = "http://opds-spec.org/acquisition",
+                    href = "/download/book.pdf",
+                    type = "application/pdf",
+                  },
+                },
+              },
+            },
+          },
+        }
+
+        local res =
+          browser:genItemTableFromCatalog(catalog, "https://books.org/catalog")
+        assert.is_table(res)
+        assert.are.equal(1, #res)
+        local book = res[1]
+        assert.are.equal(1, #book.acquisitions)
+      end
+    )
   end)
 end)

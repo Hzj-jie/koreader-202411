@@ -499,8 +499,11 @@ function OPDSBrowser:genItemTableFromCatalog(catalog, item_url)
           -- indicated by title="pdf" or whose type is
           -- "application/pdf"
           if
-            link.title == "pdf"
-            or link.type == "application/pdf" and link.rel ~= "subsection"
+            not (link.rel and link.rel:match(self.acquisition_rel))
+            and (
+              link.title == "pdf"
+              or link.type == "application/pdf" and link.rel ~= "subsection"
+            )
           then
             -- Check for the presence of the pdf suffix and add it
             -- if it's missing.
