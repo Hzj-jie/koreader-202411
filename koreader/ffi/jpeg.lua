@@ -80,6 +80,7 @@ function Jpeg.openDocumentFromMem(data, color)
       format
     ) < 0
   then
+    image_bb:free()
     turbojpeg.tj3Destroy(handle)
     error("decoding JPEG file")
   end
