@@ -646,4 +646,37 @@ describe("MenuSorter module", function()
       end
     )
   end)
+
+  describe("findById and removeMenuButton", function()
+    it("should handle tables with non-table fields without crashing", function()
+      local tbl = {
+        title = "Top Level",
+        new = true,
+        count = 42,
+        callback = function() end,
+        { id = "item1", text = "Item 1" },
+        {
+          id = "item2",
+          text = "Item 2",
+          sub_item_table = {
+            flag = false,
+            { id = "sub1", text = "Sub 1" },
+          },
+        },
+      }
+
+      assert.is_not_nil(MenuSorter:findById(tbl, "item1"))
+      assert.equals("item1", MenuSorter:findById(tbl, "item1").id)
+      assert.is_not_nil(MenuSorter:findById(tbl, "sub1"))
+      assert.equals("sub1", MenuSorter:findById(tbl, "sub1").id)
+      assert.is_nil(MenuSorter:findById(tbl, "nonexistent"))
+
+      assert.is_nil(MenuSorter:findById(nil, "item1"))
+      assert.is_nil(MenuSorter:removeMenuButton(nil, "item1"))
+
+      assert.is_true(MenuSorter:removeMenuButton(tbl, "sub1"))
+      assert.is_nil(MenuSorter:findById(tbl, "sub1"))
+      assert.is_nil(MenuSorter:removeMenuButton(tbl, "nonexistent"))
+    end)
+  end)
 end)
