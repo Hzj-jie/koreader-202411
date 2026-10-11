@@ -136,7 +136,7 @@ describe("SunTime module for Autowarmth", function()
     )
 
     it(
-      "fails: exposes polar night and midnight sun nil arithmetic crash in fast_twilight",
+      "handles polar night and midnight sun in fast_twilight without crash",
       function()
         -- Longyearbyen Svalbard: 78.2232 N, 15.6267 E, timezone 1
         SunTime:setPosition("Longyearbyen", 78.2232, 15.6267, 1, 10, true)

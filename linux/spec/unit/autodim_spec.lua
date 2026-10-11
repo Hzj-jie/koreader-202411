@@ -138,7 +138,7 @@ describe("AutoDim widget tests", function()
   end)
 
   it(
-    "fails: _shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
+    "_shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
     function()
       -- Bug: lines 179-181 calculates:
       -- UIManager:timeSinceLastUserAction() < time.s(self.autodim_starttime_m * 60)
@@ -157,7 +157,7 @@ describe("AutoDim widget tests", function()
   )
 
   it(
-    "fails: _rampTask restores frontlight and closes trap_widget when _shouldNotDim becomes true",
+    "_rampTask restores frontlight and closes trap_widget when _shouldNotDim becomes true",
     function()
       -- Bug: lines 235-237 in _rampTask:
       -- if self:_shouldNotDim() then return end
