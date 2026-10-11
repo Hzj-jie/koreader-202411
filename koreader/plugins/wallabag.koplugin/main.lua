@@ -113,6 +113,8 @@ function Wallabag:init()
   end
   self.remove_finished_from_history = self.wb_settings.data.wallabag.remove_finished_from_history
     or false
+  self.remove_read_from_history = self.wb_settings.data.wallabag.remove_read_from_history
+    or false
   self.remove_abandoned_from_history = self.wb_settings.data.wallabag.remove_abandoned_from_history
     or false
   self.download_original_document =
@@ -1320,6 +1322,7 @@ function Wallabag:saveSettings()
     send_review_as_tags = self.send_review_as_tags,
     remove_finished_from_history = self.remove_finished_from_history,
     remove_read_from_history = self.remove_read_from_history,
+    remove_abandoned_from_history = self.remove_abandoned_from_history,
     download_original_document = self.download_original_document,
     download_queue = self.download_queue,
   }
@@ -1388,18 +1391,24 @@ function Wallabag:addToDownloadQueue(article_url)
 end
 
 function Wallabag:onCloseDocument()
-  if self.remove_finished_from_history or self.remove_read_from_history then
+  if
+    self.remove_finished_from_history
+    or self.remove_read_from_history
+    or self.remove_abandoned_from_history
+  then
     local document_full_path = self.ui.document.file
     local summary = self.ui.doc_settings:readTableRef("summary")
     local status = summary.status
-    local is_finished = status == "complete"
-    local is_read = self:getLastPercent() == 1
-    local is_abandoned = status == "abandoned"
+    local is_finished = self.remove_finished_from_history
+      and status == "complete"
+    local is_read = self.remove_read_from_history and self:getLastPercent() == 1
+    local is_abandoned = self.remove_abandoned_from_history
+      and status == "abandoned"
 
     if
       document_full_path
       and self.directory
-      and ((self.remove_finished_from_history and is_finished) or (self.remove_read_from_history and is_read) or (self.remove_abandoned_from_history and is_abandoned))
+      and (is_finished or is_read or is_abandoned)
       and self.directory
         == string.sub(document_full_path, 1, string.len(self.directory))
     then

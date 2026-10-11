@@ -984,7 +984,7 @@ describe("Wallabag plugin unit tests", function()
     )
 
     it(
-      "fails: exposes history removal settings bugs across init, saveSettings and onCloseDocument",
+      "persists, loads, and respects history removal settings across init, saveSettings, and onCloseDocument",
       function()
         -- 1. saveSettings drops remove_abandoned_from_history
         wallabag_instance.remove_abandoned_from_history = true
@@ -1002,6 +1002,9 @@ describe("Wallabag plugin unit tests", function()
               remove_abandoned_from_history = false,
             },
           },
+          readTableRef = function(self, key)
+            return self.data[key]
+          end,
           save = function() end,
           flush = function() end,
         }
