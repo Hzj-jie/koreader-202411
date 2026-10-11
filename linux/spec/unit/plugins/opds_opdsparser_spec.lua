@@ -78,7 +78,7 @@ describe("OPDS Parser module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes unescape crashing on hex character entities like &#x2014;",
+      "unescapes hexadecimal numeric character entities like &#x2014;",
       function()
         local xml = [[
         <feed>
