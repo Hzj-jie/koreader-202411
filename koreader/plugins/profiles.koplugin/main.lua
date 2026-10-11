@@ -424,7 +424,7 @@ function Profiles:getProfileFromCurrentBookSettings(new_name)
   local profile = { settings = { name = new_name, order = document_settings } }
   for _, v in ipairs(document_settings) do
     -- document configurable settings do not have prefixes
-    local value = self.document.configurable[v:gsub("^kopt_", "")]
+    local value = self.ui.document.configurable[v:gsub("^kopt_", "")]
     if setting_needs_arg[v] then
       value = Dispatcher:getArgFromValue(v, value)
     end
