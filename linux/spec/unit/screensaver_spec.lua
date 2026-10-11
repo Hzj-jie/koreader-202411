@@ -271,7 +271,7 @@ describe("Screensaver module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes addOverlayMessage swapping w/h and creating a hole at [1] when widget is nil",
+      "should ensure addOverlayMessage does not swap w/h or create a hole at [1] when widget is nil",
       function()
         local orig_show = UIManager.show
         finally(function()

@@ -280,14 +280,24 @@ local function addOverlayMessage(widget, widget_height, text)
     },
     textw,
   })
-  widget = OverlapGroup:new({
-    dimen = {
-      h = screen_w,
-      w = screen_h,
-    },
-    widget,
-    textw,
-  })
+  if widget then
+    widget = OverlapGroup:new({
+      dimen = {
+        w = screen_w,
+        h = screen_h,
+      },
+      widget,
+      textw,
+    })
+  else
+    widget = OverlapGroup:new({
+      dimen = {
+        w = screen_w,
+        h = screen_h,
+      },
+      textw,
+    })
+  end
   return widget
 end
 
