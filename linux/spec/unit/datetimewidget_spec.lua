@@ -241,7 +241,7 @@ describe("DateTimeWidget module", function()
     end)
 
     it(
-      "fails: exposes extra_callback receiving stale values instead of updated picker values",
+      "exposes extra_callback receiving stale values instead of updated picker values",
       function()
         local received_year = nil
         local widget = DateTimeWidget:new({
