@@ -173,7 +173,7 @@ function MemosExporter:createHighlights(booknotes)
       .. " createHighlights error number: "
       .. error_number
   )
-  return true
+  return error_number == 0
 end
 
 function MemosExporter:export(t)

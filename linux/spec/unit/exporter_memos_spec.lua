@@ -51,8 +51,6 @@ describe("MemosExporter module", function()
         },
       }
 
-      -- Exposes defect: createHighlights unconditionally returns true even when
-      -- all HTTP requests fail (error_number == number), causing export() to report success.
       local ok = MemosExporter:createHighlights(booknotes)
       assert.is_false(ok)
     end
