@@ -1149,7 +1149,7 @@ describe("Terminal plugin button tap integration", function()
     )
 
     it(
-      "refresh fails to clamp refresh_time when backing off above 5 seconds",
+      "refresh clamps refresh_time when backing off above 5 seconds",
       function()
         local Terminal = require("plugins/terminal.koplugin/main")
         local terminal = Terminal:new({

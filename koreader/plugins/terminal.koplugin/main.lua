@@ -357,8 +357,8 @@ function Terminal:refresh(reset)
     end
   else
     if self.is_shell_open then
-      if self.refresh_time > 5 then
-        self.refresh_time = self.refresh_time
+      if self.refresh_time >= 5 then
+        self.refresh_time = 5
       elseif self.refresh_time > 1 then
         self.refresh_time = self.refresh_time * 1.1
       else
