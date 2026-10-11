@@ -139,6 +139,9 @@ function Cache:get(key)
 end
 
 function Cache:willAccept(size)
+  if not self.size then
+    return true
+  end
   -- We only allow a single object to fill 50% of the cache
   return size * 4 < self.size * 2
 end
