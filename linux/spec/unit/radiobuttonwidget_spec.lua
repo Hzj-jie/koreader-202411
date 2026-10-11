@@ -163,22 +163,19 @@ describe("RadioButtonWidget", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "fails: exposes update duplicating star suffix on repeated calls",
-      function()
-        local buttons = {
-          { { text = "Option 1", provider = "opt1" } },
-        }
-        local widget = RadioButtonWidget:new({
-          title_text = "Star Test",
-          radio_buttons = buttons,
-          default_provider = "opt1",
-        })
-        widget:update()
-        local _, count = string.gsub(widget.radio_buttons[1][1].text, "★", "")
-        assert.are.equal(1, count)
-      end
-    )
+    it("update does not duplicate star suffix on repeated calls", function()
+      local buttons = {
+        { { text = "Option 1", provider = "opt1" } },
+      }
+      local widget = RadioButtonWidget:new({
+        title_text = "Star Test",
+        radio_buttons = buttons,
+        default_provider = "opt1",
+      })
+      widget:update()
+      local _, count = string.gsub(widget.radio_buttons[1][1].text, "★", "")
+      assert.are.equal(1, count)
+    end)
 
     it(
       "fails: exposes Apply callback crashing when no radio button is checked",
