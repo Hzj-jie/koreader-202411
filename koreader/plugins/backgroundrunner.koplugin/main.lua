@@ -208,11 +208,12 @@ function BackgroundRunner:_executeJob(job)
       )
       job.result = 1
       job.exception = err
-      -- trigger the exception at the end to preserve the logs.
-      assert(job.catch_exception ~= false, err)
     end
     job.end_time = time.monotonic()
     self:_finishJob(job)
+    if not status and job.catch_exception == false then
+      error(err)
+    end
     return true
   end
   logger.dbg(
@@ -247,6 +248,7 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
+  local first_error
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
   -- simple.
   for _ = 1, #PluginShare.backgroundJobs do
@@ -303,7 +305,10 @@ function BackgroundRunner:_execute()
     if should_execute then
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       assert(not should_ignore)
-      self:_executeJob(job)
+      local ok, err = pcall(self._executeJob, self, job)
+      if not ok and not first_error then
+        first_error = err
+      end
     elseif not should_ignore then
       -- _finishJob would insert a clone, so this insert is only needed if the
       -- job wasn't executed.
@@ -312,6 +317,10 @@ function BackgroundRunner:_execute()
   end
 
   self:schedule()
+
+  if first_error then
+    error(first_error)
+  end
 end
 
 function BackgroundRunner:schedule()
