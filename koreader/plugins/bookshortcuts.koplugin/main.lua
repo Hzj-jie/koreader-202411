@@ -43,7 +43,10 @@ function BookShortcuts:onBookShortcut(path)
   if util.pathExists(path) then
     local file
     if lfs.attributes(path, "mode") ~= "file" then
-      if G_reader_settings:read("BookShortcuts_directory_action") == "FM" then
+      if
+        (G_reader_settings:read("BookShortcuts_directory_action") or "FM")
+        == "FM"
+      then
         if self.ui.file_chooser then
           self.ui.file_chooser:changeToPath(path)
         else -- called from Reader
@@ -138,8 +141,9 @@ function BookShortcuts:getSubMenuItems()
         {
           text = FM_text,
           checked_func = function()
-            return G_reader_settings:read("BookShortcuts_directory_action")
-              == "FM"
+            return (
+              G_reader_settings:read("BookShortcuts_directory_action") or "FM"
+            ) == "FM"
           end,
           callback = function()
             G_reader_settings:save("BookShortcuts_directory_action", "FM")
