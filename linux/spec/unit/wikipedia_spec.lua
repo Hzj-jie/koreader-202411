@@ -931,7 +931,7 @@ describe("Wikipedia HTML with Images & Math", function()
     )
 
     it(
-      "fails: exposes getFullPageHtml crashing on nil result when loadPage returns nil",
+      "should ensure getFullPageHtml does not crash when loadPage returns nil",
       function()
         local orig_loadPage = Wikipedia.loadPage
         finally(function()

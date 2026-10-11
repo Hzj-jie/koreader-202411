@@ -299,7 +299,7 @@ function Wikipedia:getFullPageHtml(wiki_title, lang)
   if result and result.parse then
     return result.parse
   end
-  if result.error and result.error.info then
+  if result and result.error and result.error.info then
     error(result.error.info)
   end
 end
