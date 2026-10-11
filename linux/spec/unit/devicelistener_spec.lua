@@ -908,7 +908,7 @@ describe("devicelistener", function()
     )
 
     it(
-      "fails: onSwapPageTurnButtons preserves right button inversion when swapping left buttons",
+      "onSwapPageTurnButtons preserves right button inversion when swapping left buttons",
       function()
         local listener = DeviceListener:new({})
         mock_reader_settings:save("input_invert_page_turn_keys", true)
