@@ -197,6 +197,8 @@ function InfoMessage:onClose()
       self.dismiss_callback = nil
     end
   end
+
+  self:free()
 end
 
 function InfoMessage:onShow()

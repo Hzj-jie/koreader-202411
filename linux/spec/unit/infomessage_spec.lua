@@ -225,7 +225,7 @@ describe("InfoMessage", function()
   end)
 
   describe("Defect verifications", function()
-    it("fails: exposes onClose not freeing image BlitBuffer", function()
+    it("exposes onClose not freeing image BlitBuffer", function()
       local freed = false
       local dummy_bb = setmetatable({
         free = function()
