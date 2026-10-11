@@ -148,7 +148,7 @@ function CommandRunner:poll()
       local output = entry:readAll()
       logger.dbg("CommandRunner: Receive output " .. output)
       local status, result = pcall(loadstring(output))
-      if status and result ~= nil then
+      if status and type(result) == "table" then
         for k, v in pairs(result) do
           entry.job[k] = v
         end
