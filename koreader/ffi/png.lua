@@ -34,7 +34,7 @@ function Png.encodeToFile(filename, mem, w, h, n)
   local err =
     lodepng.lodepng_encode_file(filename, mem, w, h, colortype, bitdepth)
   if err ~= 0 then
-    local err_msg = lodepng.lodepng_error_text(err)
+    local err_msg = ffi.string(lodepng.lodepng_error_text(err))
     return false, err_msg
   else
     return true
