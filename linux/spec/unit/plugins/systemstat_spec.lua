@@ -182,7 +182,7 @@ describe("systemstat plugin", function()
     end)
 
     it(
-      "appendProcessInfo shifts field values when process comm contains spaces",
+      "correctly parses process stat fields when comm contains spaces",
       function()
         local orig_io_open = io.open
         local stat_line =
