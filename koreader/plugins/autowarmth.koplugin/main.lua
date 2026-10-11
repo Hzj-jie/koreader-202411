@@ -543,7 +543,7 @@ function AutoWarmth:toggleFrontlight(now_s)
   local sunrise_in_s = sr
       and (sr * 3600 + self.fl_off_during_day_offset_s - now_s)
     or 0
-  local sunset_in_s = sr
+  local sunset_in_s = ss
       and (ss * 3600 - self.fl_off_during_day_offset_s - now_s)
     or 0
 

@@ -746,7 +746,7 @@ describe("AutoWarmth plugin tests", function()
       end
     )
 
-    it("fails: exposes toggleFrontlight checking sr instead of ss", function()
+    it("guards nil sunset time in toggleFrontlight arithmetic", function()
       AutoWarmth.fl_off_during_day = true
       AutoWarmth.fl_off_during_day_offset_s = 0
       AutoWarmth.current_times_h = {
