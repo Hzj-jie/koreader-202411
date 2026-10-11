@@ -297,35 +297,29 @@ describe("Calculator main plugin module", function()
     assert.is_function(menu_items.calculator.callback)
   end)
 
-  it(
-    "should persist valid file paths in settings on init [exposes production bug in Calculator:init()]",
-    function()
-      local saved_settings = {}
-      local old_save = G_reader_settings.save
-      G_reader_settings.save = function(self_s, key, val)
-        saved_settings[key] = val
-      end
-
-      local calc = create_mock_calc()
-      calc:init()
-
-      -- Production bug: init() uses self.output_path and self.input_path
-      -- which are nil and {}, rather than self.calculator_output_path
-      -- and self.calculator_input_path
-      assert.is_string(saved_settings["calculator_output_path"])
-      assert.are.equal(
-        calc.calculator_output_path,
-        saved_settings["calculator_output_path"]
-      )
-      assert.is_string(saved_settings["calculator_input_path"])
-      assert.are.equal(
-        calc.calculator_input_path,
-        saved_settings["calculator_input_path"]
-      )
-
-      G_reader_settings.save = old_save
+  it("should persist valid file paths in settings on init", function()
+    local saved_settings = {}
+    local old_save = G_reader_settings.save
+    G_reader_settings.save = function(self_s, key, val)
+      saved_settings[key] = val
     end
-  )
+
+    local calc = create_mock_calc()
+    calc:init()
+
+    assert.is_string(saved_settings["calculator_output_path"])
+    assert.are.equal(
+      calc.calculator_output_path,
+      saved_settings["calculator_output_path"]
+    )
+    assert.is_string(saved_settings["calculator_input_path"])
+    assert.are.equal(
+      calc.calculator_input_path,
+      saved_settings["calculator_input_path"]
+    )
+
+    G_reader_settings.save = old_save
+  end)
 
   it(
     "should invoke load instead of dump on input dialog Load button [exposes production bug in Calculator:generateInputDialog()]",
