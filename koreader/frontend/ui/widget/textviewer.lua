@@ -647,6 +647,9 @@ function TextViewer:setTextBold(start_pos, len)
     end
     table.insert(charlist, char)
   end
+  if end_pos > #self.charlist then
+    table.insert(charlist, TextBoxWidget.PTF_BOLD_END)
+  end
   self.text = table.concat(charlist)
   self:reinit()
   self.text = text -- restore original text
