@@ -571,32 +571,50 @@ function SunTime:calculateTimes(fast_twilight)
   else
     -- Calculate rise and set from scratch, use these values for twilight times
     self.rise = self:calculateTimeIter(nil, 6)
-    self.rise_civil =
-      self:calculateTimeIter(self.civil, self.rise - min_civil_twilight, 6)
-    self.rise_nautic = self:calculateTimeIter(
-      self.nautic,
-      self.rise_civil - min_nautic_twilight,
-      6
-    )
-    self.rise_astronomic = self:calculateTimeIter(
-      self.astronomic,
-      self.rise_nautic - min_astronomic_twilight,
-      6
-    )
+    self.rise_civil = self.rise
+        and self:calculateTimeIter(
+          self.civil,
+          self.rise - min_civil_twilight,
+          6
+        )
+      or self:calculateTimeIter(self.civil, 6)
+    self.rise_nautic = self.rise_civil
+        and self:calculateTimeIter(
+          self.nautic,
+          self.rise_civil - min_nautic_twilight,
+          6
+        )
+      or self:calculateTimeIter(self.nautic, 6)
+    self.rise_astronomic = self.rise_nautic
+        and self:calculateTimeIter(
+          self.astronomic,
+          self.rise_nautic - min_astronomic_twilight,
+          6
+        )
+      or self:calculateTimeIter(self.astronomic, 6)
 
     self.set = self:calculateTimeIter(nil, 18)
-    self.set_civil =
-      self:calculateTimeIter(self.civil, self.set + min_civil_twilight, 18)
-    self.set_nautic = self:calculateTimeIter(
-      self.nautic,
-      self.set_civil + min_nautic_twilight,
-      18
-    )
-    self.set_astronomic = self:calculateTimeIter(
-      self.astronomic,
-      self.set_nautic + min_astronomic_twilight,
-      18
-    )
+    self.set_civil = self.set
+        and self:calculateTimeIter(
+          self.civil,
+          self.set + min_civil_twilight,
+          18
+        )
+      or self:calculateTimeIter(self.civil, 18)
+    self.set_nautic = self.set_civil
+        and self:calculateTimeIter(
+          self.nautic,
+          self.set_civil + min_nautic_twilight,
+          18
+        )
+      or self:calculateTimeIter(self.nautic, 18)
+    self.set_astronomic = self.set_nautic
+        and self:calculateTimeIter(
+          self.astronomic,
+          self.set_nautic + min_astronomic_twilight,
+          18
+        )
+      or self:calculateTimeIter(self.astronomic, 18)
   end
 
   self.midnight_beginning = self:calculateMidnight(0)
