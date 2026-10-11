@@ -3067,7 +3067,7 @@ function BB_mt.__index:progressBar(
   if load_m_h * 2 > h then
     load_m_h = h / 2
   end
-  self:paintBorder(x, y, w, h, 2, 15)
+  self:paintBorder(x, y, w, h, 2, Color8(15))
   self:paintRect(
     x + load_m_w,
     y + load_m_h,
