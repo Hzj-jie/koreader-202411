@@ -224,7 +224,7 @@ describe("Remarkable device", function()
     end)
 
     it(
-      "fails: Oxide detection does not mutate shared event_map module table in place",
+      "Oxide detection does not mutate shared event_map module table in place",
       function()
         -- Bug: lines 134-138 does:
         -- local event_map = require("device/remarkable/event_map")
