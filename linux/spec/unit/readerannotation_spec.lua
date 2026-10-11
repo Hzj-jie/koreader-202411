@@ -1469,7 +1469,7 @@ describe("ReaderAnnotation module", function()
     end)
 
     it(
-      "fails: exposes getNumberOfHighlightsAndNotes missing page notes with nil drawer",
+      "getNumberOfHighlightsAndNotes counts page notes with nil drawer",
       function()
         local annotation = ReaderAnnotation:new({
           ui = {},
