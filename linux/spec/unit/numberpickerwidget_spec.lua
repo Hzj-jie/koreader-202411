@@ -243,7 +243,7 @@ describe("NumberPickerWidget module", function()
   )
 
   describe("Defect verifications", function()
-    it("fails: exposes update stripping configured unit suffix", function()
+    it("exposes update stripping configured unit suffix", function()
       local picker = NumberPickerWidget:new({
         value = 10,
         value_min = 0,
