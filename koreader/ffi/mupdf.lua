@@ -940,7 +940,8 @@ function mupdf.renderImage(data, size, width, height)
       M.fz_default_color_params,
       (ncomp == 4 and 1 or 0)
     )
-    if pixmap == nil then
+    if bgr_pixmap == nil then
+      M.fz_drop_pixmap(context(), pixmap)
       merror("could not convert pixmap to BGR")
     end
     M.fz_drop_pixmap(context(), pixmap)
