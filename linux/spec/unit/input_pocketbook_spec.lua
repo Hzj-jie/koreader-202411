@@ -32,8 +32,18 @@ describe("ffi/input_pocketbook module", function()
 
     package.loaded["ffi/input_pocketbook"] = nil
     input = require("ffi/input_pocketbook")
-    local _, fn = debug.getupvalue(input.waitForEvent, 3)
-    waitForEventRaw = fn
+    local i = 1
+    while true do
+      local name, val = debug.getupvalue(input.waitForEvent, i)
+      if not name then
+        break
+      end
+      if name == "waitForEventRaw" then
+        waitForEventRaw = val
+        break
+      end
+      i = i + 1
+    end
   end)
 
   teardown(function()
