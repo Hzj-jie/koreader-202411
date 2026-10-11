@@ -56,11 +56,11 @@ local function makeRequest(url, auth, method, request_body)
     return nil, status
   end
 
-  if not sink[1] then
+  if #sink == 0 then
     return nil, "No response from Nextcloud"
   end
 
-  return json.decode(sink[1])
+  return json.decode(table.concat(sink))
 end
 
 function NextcloudExporter:isReadyToExport()
