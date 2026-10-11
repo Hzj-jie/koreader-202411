@@ -101,7 +101,7 @@ end
 -- If successful returns id of found notebook (folder).
 function JoplinExporter:findNotebookByTitle(title)
   local url_base = string.format(
-    "http://%s:%s/folders?token=%s&query=title&page=",
+    "http://%s:%s/folders?token=%s&query=%s&page=",
     self.settings.ip,
     self.settings.port,
     self.settings.token,
@@ -265,7 +265,7 @@ function JoplinExporter:getMenuTable()
                     local ip = fields[1]
                     local port = tonumber(fields[2])
                     if ip ~= "" then
-                      if port and port < 65355 then
+                      if port and port > 0 and port <= 65535 then
                         self.settings.ip = ip
                         self.settings.port = port
                         self:saveSettings()
