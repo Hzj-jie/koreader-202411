@@ -55,10 +55,9 @@ function CanvasContext:init(device)
   self:setColorRenderingEnabled(device.screen:isColorEnabled())
 
   -- NOTE: At 32bpp, Kobo's fb is BGR, not RGB. Handle the conversion in MuPDF if needed.
-  if device:hasBGRFrameBuffer() then
-    self.is_bgr = true
-    Mupdf.bgr = true
-  end
+  local is_bgr = device:hasBGRFrameBuffer() and true or false
+  self.is_bgr = is_bgr
+  Mupdf.bgr = is_bgr
 
   -- This one may be called by a subprocess, and would crash on Android when
   -- calling android.isEink() which is only allowed from the main thread.
