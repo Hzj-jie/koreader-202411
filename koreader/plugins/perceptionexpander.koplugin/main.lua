@@ -71,10 +71,19 @@ function PerceptionExpander:createUI(readSettings)
   local line_height = math.floor(screen_height * 0.9)
   local line_top_position = math.floor(screen_height * 0.05)
 
-  self.last_screen_mode = Screen:getScreenMode()
-  if self.last_screen_mode == "landscape" then
-    self.margin = (self.margin - self.margin_shift)
+  local current_screen_mode = Screen:getScreenMode()
+  if
+    current_screen_mode == "landscape"
+    and self.last_screen_mode ~= "landscape"
+  then
+    self.margin = self.margin - self.margin_shift
+  elseif
+    current_screen_mode ~= "landscape"
+    and self.last_screen_mode == "landscape"
+  then
+    self.margin = self.margin + self.margin_shift
   end
+  self.last_screen_mode = current_screen_mode
 
   local line_widget = LineWidget:new({
     background = Blitbuffer.gray(self.line_color_intensity),
