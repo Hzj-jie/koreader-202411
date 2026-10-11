@@ -70,6 +70,7 @@ function Png.decodeFromFile(filename, req_n)
     #fdata
   )
   if err ~= 0 then
+    lodepng.lodepng_state_cleanup(state)
     return false, ffi.string(lodepng.lodepng_error_text(err))
   end
 
@@ -118,6 +119,7 @@ function Png.decodeFromFile(filename, req_n)
   elseif req_n == 4 then
     state[0].info_raw.colortype = lodepng.LCT_RGBA
   else
+    lodepng.lodepng_state_cleanup(state)
     return false, "requested an invalid number of color components"
   end
 
