@@ -62,6 +62,24 @@ describe("DocCache", function()
       end)
     end)
 
+    it(
+      "should handle missing access time attribute during serialization sort",
+      function()
+        local dummy_file = temp_dir .. "/missing_attr_file"
+        local f = assert(io.open(dummy_file, "w"))
+        f:write("content")
+        f:close()
+
+        DocCache.cached = { [md5("missing_attr_file")] = dummy_file }
+        -- Remove the file before serialization so lfs.attributes returns nil
+        os.remove(dummy_file)
+
+        assert.has_no_errors(function()
+          DocCache:serialize()
+        end)
+      end
+    )
+
     it("should serialize displayed page item and write dumped files", function()
       local doc_path = "/tmp/test_book_" .. ffiUtil.getpid() .. ".epub"
 

@@ -78,7 +78,7 @@ function DocCache:serialize(doc_path)
   for _, file in pairs(self.cached) do
     table.insert(
       sorted_caches,
-      { file = file, time = lfs.attributes(file, "access") }
+      { file = file, time = lfs.attributes(file, "access") or 0 }
     )
     cached_size = cached_size + (lfs.attributes(file, "size") or 0)
   end
