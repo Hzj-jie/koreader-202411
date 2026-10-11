@@ -33,8 +33,6 @@ describe("trace_require tool", function()
       debug.getinfo = orig_getinfo
     end)
 
-    -- Exposes defect: when debug.getinfo(3) returns nil, info is nil and
-    -- line 30 crashes indexing info.short_src.
     assert.has_no.errors(function()
       require("table")
     end)

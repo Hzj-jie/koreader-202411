@@ -18,17 +18,19 @@ function require(module)
   local x = os.clock()
   local info = debug.getinfo(2)
   -- this is a protected call of require
-  if info.short_src == "[C]" then
+  if info and info.short_src == "[C]" then
     info = debug.getinfo(3)
   end
+  local short_src = info and info.short_src or "?"
+  local currentline = info and info.currentline or "?"
   local loaded = loaded_modules[module]
   if not loaded then
     print(
       string.format(
         "%s%s:%s => %s",
         indent:rep(level),
-        info.short_src,
-        info.currentline,
+        short_src,
+        currentline,
         module
       )
     )
@@ -37,8 +39,8 @@ function require(module)
       string.format(
         "%s%s:%s -> %s",
         indent:rep(level),
-        info.short_src,
-        info.currentline,
+        short_src,
+        currentline,
         module
       )
     )
