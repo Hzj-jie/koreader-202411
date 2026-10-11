@@ -922,7 +922,7 @@ describe("Wikipedia HTML with Images & Math", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes prettifyText corrupting articles starting with == Heading ==",
+      "should ensure prettifyText handles articles starting with headings",
       function()
         local input = "== Heading ==\nBody"
         local output = Wikipedia:prettifyText(input)
