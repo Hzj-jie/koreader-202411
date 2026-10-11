@@ -508,7 +508,7 @@ describe("VocabBuilder plugin", function()
     )
 
     it(
-      "fails: exposes cloud sync Delete and Edit not persisting settings locally",
+      "persists settings locally when deleting and editing cloud sync server",
       function()
         local settings = G_reader_settings:readTableRef("vocabulary_builder")
         settings.enabled = true
@@ -529,31 +529,40 @@ describe("VocabBuilder plugin", function()
         assert.is_table(active_menu)
 
         local sync_dialog
+        local sync_settings_dialog
         local orig_show = UIManager.show
         UIManager.show = function(self, dlg)
           if dlg.title and dlg.title:find("Cloud storage") then
             sync_dialog = dlg
+          elseif dlg.onConfirm then
+            sync_settings_dialog = dlg
           end
           return orig_show(self, dlg)
         end
 
-        local save_called = false
+        local save_called = 0
         local orig_save = G_reader_settings.save
-        G_reader_settings.save = function(self)
-          save_called = true
-          return orig_save(self)
+        G_reader_settings.save = function(self, key, value)
+          save_called = save_called + 1
+          return orig_save(self, key, value)
         end
 
         finally(function()
           G_reader_settings.save = orig_save
           UIManager.show = orig_show
-          if sync_dialog then
+          if
+            sync_settings_dialog
+            and UIManager:isWindowWidget(sync_settings_dialog)
+          then
+            UIManager:close(sync_settings_dialog)
+          end
+          if sync_dialog and UIManager:isWindowWidget(sync_dialog) then
             UIManager:close(sync_dialog)
           end
-          if active_menu then
+          if active_menu and UIManager:isWindowWidget(active_menu) then
             UIManager:close(active_menu)
           end
-          if vb.widget then
+          if vb.widget and UIManager:isWindowWidget(vb.widget) then
             UIManager:close(vb.widget)
           end
         end)
@@ -583,11 +592,28 @@ describe("VocabBuilder plugin", function()
         assert.are.equal("Delete", delete_btn.text)
 
         delete_btn.callback()
-        -- In main.lua:248-253, Delete sets settings.server = nil but never calls saveSettings().
-        assert.is_true(
-          save_called,
-          "Deleting cloud storage server must persist settings locally via saveSettings"
-        )
+        assert.are.equal(1, save_called)
+        assert.is_nil(settings.server)
+
+        -- Reopen sync dialog to test Edit callback
+        settings.server = {
+          type = "dropbox",
+          name = "OldServer",
+          url = "http://example.com",
+        }
+        sync_button_cb()
+        assert.is_table(sync_dialog)
+        local edit_btn = sync_dialog.buttons[1][2]
+        assert.are.equal("Edit", edit_btn.text)
+        edit_btn.callback()
+        assert.is_table(sync_settings_dialog)
+        sync_settings_dialog.onConfirm({
+          type = "dropbox",
+          name = "NewServer",
+          url = "http://example.org",
+        })
+        assert.are.equal(2, save_called)
+        assert.are.equal("NewServer", settings.server.name)
       end
     )
 
