@@ -368,9 +368,10 @@ function ScrollableContainer:_scrollBy(dx, dy, ensure_scroll_steps)
           -- (Not super sure this may not cause other issues like having the previous top
           -- row duplicated at the new bottom.)
           local first_row = self:_getStepScrollRowAtY(0)
-          if -new_y < first_row.bottom then
+            or self.step_scroll_grid[1]
+          if first_row and -new_y < first_row.bottom then
             new_top_row, new_top_row_fully_visible =
-              self:_getStepScrollRowAtY(0, true)
+              self:_getStepScrollRowAtY(first_row.top, true)
           end
         end
         -- If the new top row is not fully visible, use the next row
