@@ -55,7 +55,7 @@ function PocketBookPowerD:isFrontlightOn()
     return false
   end
   -- Query directly instead of assuming from cached value.
-  local enabled = inkview.GetFrontlightState() >= 0
+  local enabled = inkview.GetFrontlightState() > 0
   pcall(function()
     enabled = inkview.GetFrontlightEnabled() > 0
   end)
