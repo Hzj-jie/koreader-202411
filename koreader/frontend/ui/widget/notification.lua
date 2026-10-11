@@ -117,7 +117,7 @@ function Notification:_cleanShownStack()
   for i = #Notification._shown_list, 1, -1 do
     if
       Notification._shown_list[i]
-      and Notification._shown_list[i] > expire_time
+      and (self._shown_idx or Notification._shown_list[i] > expire_time)
     then
       break -- still shown (or not yet expired)
     end
