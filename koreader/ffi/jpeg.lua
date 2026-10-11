@@ -147,7 +147,7 @@ function Jpeg.convertToGray(source_ptr, stride, h)
   for y = 0, h - 1 do
     local offs = y * stride
     local offs_8bit = offs
-    for _ = 0, tonumber(stride), 3 do
+    for _ = 0, tonumber(stride) - 3, 3 do
       local r = 0.299 * source_ptr[offs]
       offs = offs + 1
       local g = 0.587 * source_ptr[offs]
