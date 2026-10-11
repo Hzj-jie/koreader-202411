@@ -63,7 +63,7 @@ describe("SDL PowerD", function()
     end)
 
     it(
-      "fails: setWarmthHW is implemented on SDLPowerD for Emulator natural light",
+      "should implement setWarmthHW on SDLPowerD for Emulator natural light",
       function()
         -- Bug: SDLPowerD implements frontlightWarmthHW returning self.fl_warmth and
         -- Emulator claims hasNaturalLight and hasNaturalLightApi, but SDLPowerD omits
