@@ -112,7 +112,7 @@ describe("Weather main plugin module", function()
 
   describe("failing tests exposing production bugs", function()
     it(
-      "formats 12h clock noon and midnight properly in hourly forecast (fails: noon 12:00 AM bug)",
+      "formats 12h clock noon and midnight properly in hourly forecast",
       function()
         local mock_ui = {
           menu = {
@@ -149,19 +149,32 @@ describe("Weather main plugin module", function()
         }
 
         inst:createForecastForHour(hour_data)
-
-        UIManager.show = old_show
-        UIManager.close = old_close
-
         assert.is_table(inst.kv)
-        -- Production bug in weather main.lua lines 358-362:
-        -- if date.hour <= 12 then hour = date.hour .. ":00 AM" else ...
-        -- When date.hour is 12 (noon), it formats as "12:00 AM" instead of "12:00 PM"!
         assert.is_truthy(
           inst.kv.title:find("12:00 PM"),
           "noon should be formatted as 12:00 PM, got: "
             .. tostring(inst.kv.title)
         )
+
+        -- Epoch for 2026-06-15 00:00:00 (midnight):
+        local midnight_epoch = os.time({
+          year = 2026,
+          month = 6,
+          day = 15,
+          hour = 0,
+          min = 0,
+          sec = 0,
+        })
+        inst:createForecastForHour({ time_epoch = midnight_epoch })
+        assert.is_table(inst.kv)
+        assert.is_truthy(
+          inst.kv.title:find("12:00 AM"),
+          "midnight should be formatted as 12:00 AM, got: "
+            .. tostring(inst.kv.title)
+        )
+
+        UIManager.show = old_show
+        UIManager.close = old_close
       end
     )
 

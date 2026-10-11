@@ -355,11 +355,9 @@ function Weather:createForecastForHour(data)
   local hour
 
   if string.find(self.clock_style, "12") then
-    if date.hour <= 12 then
-      hour = date.hour .. ":00 AM"
-    else
-      hour = (date.hour - 12) .. ":00 PM"
-    end
+    local meridiem = (date.hour < 12) and "AM" or "PM"
+    local hour_num = (date.hour % 12 == 0) and 12 or (date.hour % 12)
+    hour = hour_num .. ":00 " .. meridiem
   else
     hour = date.hour
   end

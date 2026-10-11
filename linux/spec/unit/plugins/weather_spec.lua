@@ -178,6 +178,7 @@ describe("Weather plugin, WeatherApi, and Composer", function()
         callback_called = true
       end)
       assert.is_table(view_c)
+      assert.are.equal("12:00 PM", view_c[6][1])
       view_c[1].callback()
       assert.is_true(callback_called)
 
