@@ -126,7 +126,7 @@ describe("Calibre Metadata plugin module", function()
   end)
 
   it(
-    "should prune all deleted books when consecutive books are missing [exposes production bug in CalibreMetadata:prune()]",
+    "should prune all deleted books when consecutive books are missing",
     function()
       local old_exists = util.fileExists
       local saved = false
@@ -153,8 +153,6 @@ describe("Calibre Metadata plugin module", function()
         return true
       end
 
-      -- Production bug: prune() uses ipairs(self.books) while calling self:removeBook(),
-      -- mutating self.books in-place and skipping the consecutive missing2.epub
       local pruned_count = meta:prune()
       assert.are.equal(2, pruned_count)
       assert.are.equal(1, #meta.books)

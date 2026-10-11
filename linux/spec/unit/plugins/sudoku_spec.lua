@@ -213,7 +213,7 @@ describe("Sudoku plugin", function()
   end)
 
   it(
-    "should support undo when erasing pencil notes on an empty cell [exposes production bug in SudokuScreen:eraseDigit()]",
+    "should support undo when erasing pencil notes on an empty cell",
     function()
       local sudoku = createMockSudoku()
       local orig_show = UIManager.show
@@ -259,7 +259,7 @@ describe("Sudoku plugin", function()
   )
 
   it(
-    "should preserve pencil notes when eraseDigit is called while revealing solution [exposes production bug in SudokuScreen:eraseDigit()]",
+    "should preserve pencil notes when eraseDigit is called while revealing solution",
     function()
       local sudoku = createMockSudoku()
       local orig_show = UIManager.show
