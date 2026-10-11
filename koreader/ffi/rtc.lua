@@ -102,7 +102,9 @@ you can process your value with @{secondsFromNowToEpoch}.
 @treturn err Error string (if any).
 --]]
 function RTC:setWakeupAlarm(epoch, enabled)
-  enabled = (enabled ~= nil) and enabled or true
+  if enabled == nil then
+    enabled = true
+  end
 
   self._wakeup_scheduled_tm = ffi.new("struct tm")
   local ptm = C.gmtime_r(ffi.new("time_t[1]", epoch), self._wakeup_scheduled_tm)
@@ -132,6 +134,7 @@ function RTC:setWakeupAlarm(epoch, enabled)
   if re == -1 then
     err = ffi.string(C.strerror(ffi.errno()))
     print("setWakeupAlarm ioctl RTC_WKALM_SET", re, err)
+    C.close(fd)
     return nil, re, err
   end
   re = C.close(fd)
@@ -145,7 +148,7 @@ function RTC:setWakeupAlarm(epoch, enabled)
     self._wakeup_scheduled = true
   else
     self._wakeup_scheduled = false
-    self._wakeup_scheduled_ptm = nil
+    self._wakeup_scheduled_tm = nil
   end
   return true
 end
