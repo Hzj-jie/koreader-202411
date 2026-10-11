@@ -34,7 +34,7 @@ local CalculatorUnitsDialog = InputContainer:new({
   text_face = Font:getFace("smallinfofont"),
   button_padding = Size.padding.default,
   border_size = Size.border.window,
-  units = { { "cm", 0.01 }, { "inch", 254 } },
+  units = { { "cm", 0.01 }, { "inch", 0.0254 } },
 })
 
 function CalculatorUnitsDialog:init()
