@@ -460,7 +460,7 @@ describe("Statistics plugin", function()
     )
 
     it(
-      "fails: exposes showCalendarDayView wrapping to today instead of yesterday when before day start hour",
+      "selects yesterday when current time is earlier than day start hour",
       function()
         local CalendarView = require("plugins/statistics.koplugin/calendarview")
         local UIManager = require("ui/uimanager")
@@ -468,7 +468,7 @@ describe("Statistics plugin", function()
         stats.settings.calendar_day_start_hour = 23
         stats.settings.calendar_day_start_minute = 0
 
-        -- 22:00 on 2026-10-10
+        -- 22:00 on 2026-10-10 (earlier than 23:00 day start hour)
         local fixed_time = os.time({
           year = 2026,
           month = 10,
@@ -504,11 +504,6 @@ describe("Statistics plugin", function()
 
         cal_view:showCalendarDayView(stats)
 
-        -- In calendarview.lua:1594:
-        -- date.hour * 3600 + date.min * 60 + date.sec < 23 * 3600 (22:00 < 23:00) is true.
-        -- It runs: date = os.date("*t", os.time() - 86400 + 10800) -- make sure it's the previous day
-        -- But adding 10800 (3 hours) shifts 22:00 (-24h + 3h = -21h) to 01:00 AM on today (2026-10-10).
-        -- Thus date.day remains 10 instead of wrapping to the previous day (9).
         assert.is_not_nil(captured_view)
         local resolved_date = os.date("*t", captured_view.day_ts)
         assert.are.equal(
