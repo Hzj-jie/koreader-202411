@@ -1213,8 +1213,6 @@ function SudokuScreen:inputDigit(value)
 end
 
 function SudokuScreen:eraseDigit()
-  local row, col = self.board:getSelection()
-  self.board:clearNotes(row, col)
   local ok, err = self.board:clearSelection()
   if not ok then
     self:updateStatus(err)
