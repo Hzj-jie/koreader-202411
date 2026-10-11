@@ -608,7 +608,7 @@ describe("TextBoxWidget widget", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes scrollLines setting virtual_line_num <= 0 when total lines < lines_per_page",
+      "should ensure scrollLines clamps virtual_line_num to 1 when total lines < lines_per_page",
       function()
         local tw = TextBoxWidget:new({
           width = 200,

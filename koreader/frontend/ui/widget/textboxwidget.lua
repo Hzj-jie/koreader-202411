@@ -1600,13 +1600,10 @@ function TextBoxWidget:scrollLines(nb_lines)
     return
   end
   self.image_show_alt_text = nil
-  local new_line_num = self.virtual_line_num + nb_lines
-  if new_line_num < 1 then
-    new_line_num = 1
-  end
-  if new_line_num > #self.vertical_string_list - self.lines_per_page + 1 then
-    new_line_num = #self.vertical_string_list - self.lines_per_page + 1
-  end
+  local max_line_num =
+    math.max(1, #self.vertical_string_list - self.lines_per_page + 1)
+  local new_line_num =
+    Math.clamp(self.virtual_line_num + nb_lines, 1, max_line_num)
   self.virtual_line_num = new_line_num
   self:free(false)
   self:_updateLayout()
