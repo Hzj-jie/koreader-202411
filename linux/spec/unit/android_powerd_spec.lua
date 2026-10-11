@@ -119,7 +119,7 @@ describe("AndroidPowerD", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: setIntensityHW reaches max_bright when intensity is 100 with non-zero min_bright",
+      "setIntensityHW reaches max_bright when intensity is 100 with non-zero min_bright",
       function()
         mock_android.screen_min_brightness = 10
         mock_android.screen_max_brightness = 255
