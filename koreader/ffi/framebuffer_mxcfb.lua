@@ -334,6 +334,8 @@ local function mxc_update(
     fb:mech_poweron()
   end
 
+  local is_fullscreen = fb:_isFullScreen(w, h)
+
   w = w * fb.refresh_pixel_size
 
   -- NOTE: If we're trying to send a:
@@ -377,7 +379,7 @@ local function mxc_update(
       or (
         is_flashing
         and fb:_isFlashUIWaveFormMode(waveform_mode)
-        and fb:_isFullScreen(w, h)
+        and is_fullscreen
       )
     )
     and fb.mech_wait_update_complete
