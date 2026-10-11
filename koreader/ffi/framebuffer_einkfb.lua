@@ -13,8 +13,8 @@ local function einkfb_update(fb, refreshtype, x, y, w, h)
 
   refarea[0].x1 = x or 0
   refarea[0].y1 = y or 0
-  refarea[0].x2 = x + w
-  refarea[0].y2 = y + h
+  refarea[0].x2 = x + w - 1
+  refarea[0].y2 = y + h - 1
   refarea[0].buffer = nil
   refarea[0].which_fx = refreshtype
 
