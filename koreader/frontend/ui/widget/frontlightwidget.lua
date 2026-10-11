@@ -514,6 +514,7 @@ function FrontLightWidget:setFrontLightIntensity(intensity)
 end
 
 function FrontLightWidget:onClose()
+  UIManager:unschedule(self.refreshBrightnessWidgets)
   UIManager:setDirty(nil, function()
     return "flashui", self.frame.dimen
   end)
