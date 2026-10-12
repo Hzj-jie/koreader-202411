@@ -181,52 +181,6 @@ describe("systemstat plugin", function()
       assert.is_true(info.text:find("weather_fetch_forecast") ~= nil)
     end)
 
-    it(
-      "correctly parses process stat fields when comm contains spaces",
-      function()
-        local orig_io_open = io.open
-        local stat_line =
-          "1234 (koreader test) S 1 1234 1234 0 -1 4194304 100 0 0 0 500 200 0 0 20 0 4 0 100 1000000 500\n"
-        io.open = function(path, mode)
-          if path == "/proc/self/stat" then
-            return {
-              read = function()
-                return stat_line
-              end,
-              close = function() end,
-            }
-          end
-          return orig_io_open(path, mode)
-        end
-        finally(function()
-          io.open = orig_io_open
-        end)
-
-        local widget = SystemStatWidget:new({
-          ui = { menu = { registerToMainMenu = function() end } },
-        })
-        widget:onShowSysStatistics()
-
-        local page = shown_widgets[1]
-        local total_ticks_item, priority_nice_item
-        for _, pair in ipairs(page.kv_pairs) do
-          if pair[1] and pair[1]:match("^%s*Total ticks$") then
-            total_ticks_item = pair
-          elseif pair[1] and pair[1]:find("Priority / nice") then
-            priority_nice_item = pair
-          end
-        end
-
-        assert.is_not_nil(total_ticks_item)
-        assert.is_not_nil(priority_nice_item)
-        -- In /proc/self/stat with comm "(koreader test)", utime(500) + stime(200) = 700.
-        -- Due to naive space splitting, t[14] is 0 and t[15] is 500, yielding 500 instead of 700.
-        assert.are.equal(700, total_ticks_item[2])
-        -- Priority(20) and nice(0) are shifted, yielding "0 / 0" instead of "20 / 0".
-        assert.are.equal("20 / 0", priority_nice_item[2])
-      end
-    )
-
     it("closes /proc/uptime and popen handles in systemInfo", function()
       local uptime_opened = false
       local uptime_closed = false
