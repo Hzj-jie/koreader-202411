@@ -1062,7 +1062,7 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "should protect callback execution with pcall in BackgroundRunner:_finishJob",
+    "should propagate callback failure in BackgroundRunner:_finishJob",
     function()
       local BackgroundRunner = getBackgroundRunner()
       local error_cb_job = {
@@ -1070,9 +1070,9 @@ describe("BackgroundRunner widget tests", function()
           error("callback failure")
         end,
       }
-      assert.has_no.errors(function()
+      assert.has_error(function()
         BackgroundRunner:_finishJob(error_cb_job)
-      end)
+      end, "callback failure")
     end
   )
 
