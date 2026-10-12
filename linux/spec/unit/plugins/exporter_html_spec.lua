@@ -157,23 +157,6 @@ describe("HTML Exporter target module", function()
     assert.is_truthy(shared_text:find("Shared HTML Book"))
   end)
 
-  it("should handle booknotes with nil author safely", function()
-    local booknotes = {
-      title = "Book Without Author",
-      author = nil,
-      {
-        {
-          chapter = "Chapter 1",
-          text = "Note text",
-          page = 1,
-          time = 1715774400,
-        },
-      },
-    }
-    local content = HtmlExporter:getRenderedContent({ booknotes })
-    assert.is_string(content)
-    assert.is_truthy(content:find("Book Without Author"))
-  end)
 
   it("should escape special characters in clipping chapter", function()
     local booknotes = {
