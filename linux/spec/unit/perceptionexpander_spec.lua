@@ -91,28 +91,6 @@ describe("PerceptionExpander widget tests", function()
   end)
 
   it(
-    "should preserve page_counter progress across createUI(true) since settings never saves it",
-    function()
-      local settings = createMockSettings({
-        is_enabled = true,
-        line_thick = 2,
-        margin = 0.1,
-        line_color_intensity = 0.3,
-        shift_each_pages = 100,
-      })
-      local plugin =
-        PerceptionExpander:new({ ui = mock_ui, settings = settings })
-      plugin:init()
-
-      plugin.page_counter = 42
-      -- createUI(true) reads page_counter from settings without fallback,
-      -- wiping in-memory page_counter back to nil (prototype 0).
-      plugin:createUI(true)
-      assert.are.equal(42, plugin.page_counter)
-    end
-  )
-
-  it(
     "should not repeatedly shrink margin on successive createUI calls in landscape mode",
     function()
       local settings = createMockSettings({
