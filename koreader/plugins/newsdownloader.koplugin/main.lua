@@ -1,6 +1,5 @@
 local BD = require("ui/bidi")
 local DataStorage = require("datastorage")
---local DownloadBackend = require("plugins/newsdownloader.koplugin/internaldownloadbackend")
 --local DownloadBackend = require("luahttpdownloadbackend")
 local DownloadBackend =
   require("plugins/newsdownloader.koplugin/epubdownloadbackend")
