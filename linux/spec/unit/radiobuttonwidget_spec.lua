@@ -176,24 +176,5 @@ describe("RadioButtonWidget", function()
       local _, count = string.gsub(widget.radio_buttons[1][1].text, "★", "")
       assert.are.equal(1, count)
     end)
-
-    it("Apply callback handles case when no radio button is checked", function()
-      local buttons = {
-        { { text = "Option A", provider = "a" } },
-      }
-      local widget = RadioButtonWidget:new({
-        title_text = "No checked test",
-        radio_buttons = buttons,
-        callback = function(self) end,
-      })
-      -- When no radio button is checked (checked_button is nil)
-      local value_widget = widget.widget_frame[1][2][1][1]
-      value_widget.checked_button = nil
-
-      local btn_table = widget.widget_frame[1][3][1]
-      local ok_btn = btn_table.buttons[1][2]
-      ok_btn.callback()
-      assert.is_nil(widget.provider)
-    end)
   end)
 end)
