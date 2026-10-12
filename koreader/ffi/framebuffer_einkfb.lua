@@ -11,10 +11,13 @@ local function einkfb_update(fb, refreshtype, x, y, w, h)
 
   local refarea = ffi.new("struct update_area_t[1]")
 
+  -- NOTE: einkfb kernel driver's update_area_t defines (x2 - x1) and (y2 - y1)
+  -- as width and height, respectively (see kernel header einkfb.h: update_area_t).
+  -- Therefore, x2 = x + w and y2 = y + h without subtracting 1.
   refarea[0].x1 = x or 0
   refarea[0].y1 = y or 0
-  refarea[0].x2 = x + w - 1
-  refarea[0].y2 = y + h - 1
+  refarea[0].x2 = x + w
+  refarea[0].y2 = y + h
   refarea[0].buffer = nil
   refarea[0].which_fx = refreshtype
 
