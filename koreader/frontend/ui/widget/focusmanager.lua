@@ -209,7 +209,7 @@ function FocusManager:onFocusHalfMove(args)
     if dx == 0 then
       dx = 1
     elseif dx + x > #row then
-      dx = #row - y -- last column
+      dx = #row - x -- last column
     end
   end
   return self:onFocusMove({ dx, dy })
@@ -576,7 +576,7 @@ function FocusManager:_verticalStep(dy)
 end
 
 function FocusManager:getFocusItem()
-  if not self.layout then
+  if not self.layout or not self.layout[self.selected.y] then
     return nil
   end
   return self.layout[self.selected.y][self.selected.x]

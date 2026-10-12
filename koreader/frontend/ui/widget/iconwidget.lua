@@ -45,12 +45,14 @@ local IconWidget = ImageWidget:extend({
 })
 
 function IconWidget:init()
-  if self.image or self.file then
+  if self.image or (self.file and not self._icon_resolved) then
     -- In case we're created with one of these: just be an ImageWidget.
     return
   end
+  self:free()
   -- See if already seen and full path cached
   self.file = ICONS_PATH[self.icon]
+  self._icon_resolved = true
   if not self.file then
     -- Not yet seen, look for it
     for _, dir in ipairs(ICONS_DIRS) do
@@ -67,8 +69,17 @@ function IconWidget:init()
     end
     if not self.file then
       self.file = ICON_NOT_FOUND
+    else
+      ICONS_PATH[self.icon] = self.file
     end
-    ICONS_PATH[self.icon] = self.file
+  end
+end
+
+function IconWidget:setIcon(icon)
+  if self.icon ~= icon then
+    self.icon = icon
+    self.file = nil
+    self:init()
   end
 end
 

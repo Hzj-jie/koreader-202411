@@ -329,20 +329,17 @@ describe("BookStatusWidget widget module", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "fails: exposes init setting updated = true on already-rated book",
-      function()
-        local mock_ui =
-          createMockUI({ rating = 4, status = "reading", note = "Great book" })
-        local widget = BookStatusWidget:new({
-          ui = mock_ui,
-        })
-        assert.is_falsy(widget.updated)
-      end
-    )
+    it("exposes init setting updated = true on already-rated book", function()
+      local mock_ui =
+        createMockUI({ rating = 4, status = "reading", note = "Great book" })
+      local widget = BookStatusWidget:new({
+        ui = mock_ui,
+      })
+      assert.is_falsy(widget.updated)
+    end)
 
     it(
-      "fails: exposes readonly = true still opening editable review dialog on onSwitchFocus",
+      "exposes readonly = true still opening editable review dialog on onSwitchFocus",
       function()
         local mock_ui = createMockUI()
         local shown_widget = nil

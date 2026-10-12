@@ -420,6 +420,7 @@ function ExternalKeyboard:setupKeyboard(data)
         text = "Error opening keyboard:\n" .. tostring(fd),
       }))
       logger.warn("Error opening keyboard:", fd)
+      Device.input:close(keyboard_info.event_fd or keyboard_info.event_path)
       return
     end
 
@@ -438,6 +439,9 @@ function ExternalKeyboard:setupKeyboard(data)
     if keyboard_info.has_dpad then
       has_dpad_func = util.yes
     end
+  else
+    Device.input:close(keyboard_info.event_fd or keyboard_info.event_path)
+    return
   end
 
   -- If this is our first external input device, keep a snapshot of the native input-related device caps.

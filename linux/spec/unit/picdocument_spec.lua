@@ -40,7 +40,7 @@ describe("PicDocument module", function()
   end)
 
   describe("Defect verifications", function()
-    it("fails: getCoverPageImage closes the opened page handle", function()
+    it("getCoverPageImage closes the opened page handle", function()
       local img_path = "base/spec/unit/data/sample.jpg"
       local doc = PicDocument:new({ file = img_path })
       doc:init()

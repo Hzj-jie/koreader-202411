@@ -28,7 +28,7 @@ end
 
 --- Reads a setting, optionally initializing it to a default.
 function LuaDefaults:read(key, default)
-  if not default then
+  if default == nil then
     if self:hasBeenCustomized(key) then
       return self.rw[key]
     else
@@ -67,12 +67,12 @@ end
 
 --- Checks if setting exists.
 function LuaDefaults:has(key)
-  return self.ro[key] ~= nil
+  return self.rw[key] ~= nil or self.ro[key] ~= nil
 end
 
 --- Checks if setting does not exist.
 function LuaDefaults:hasNot(key)
-  return self.ro[key] == nil
+  return not self:has(key)
 end
 
 --- Checks if setting has been customized.

@@ -118,8 +118,10 @@ function RadioButtonWidget:update()
   self.layout = {}
   if self.default_provider then
     local row, col = self:getButtonIndex(self.default_provider)
-    self.radio_buttons[row][col].text = self.radio_buttons[row][col].text
-      .. "\u{A0}\u{A0}★"
+    if not self.radio_buttons[row][col].text:find("★", 1, true) then
+      self.radio_buttons[row][col].text = self.radio_buttons[row][col].text
+        .. "\u{A0}\u{A0}★"
+    end
   end
 
   local value_widget = RadioButtonTable:new({
@@ -160,8 +162,13 @@ function RadioButtonWidget:update()
         text = self.ok_text,
         callback = function()
           if self.callback then
-            self.provider = value_widget.checked_button.provider
-            self.row, self.col = self:getButtonIndex(self.provider)
+            if value_widget.checked_button then
+              self.provider = value_widget.checked_button.provider
+              self.row, self.col = self:getButtonIndex(self.provider)
+            else
+              self.provider = nil
+              self.row, self.col = nil, nil
+            end
             self.callback(self)
           end
           if not self.keep_shown_on_apply then

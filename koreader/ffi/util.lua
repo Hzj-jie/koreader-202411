@@ -222,6 +222,7 @@ function util.copyFile(from, to)
   end
   local tfp, terr = io.open(to, "wb")
   if not tfp then
+    ffp:close()
     return terr
   end
   while true do
@@ -241,6 +242,9 @@ Joins paths.
 NOTE: If `path2` is an absolute path, then this function ignores `path1` and returns `path2` directly.
 --]]
 function util.joinPath(path1, path2)
+  if path1 == "" then
+    return path2
+  end
   if string.sub(path2, 1, 1) == "/" then
     return path2
   end

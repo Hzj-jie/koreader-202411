@@ -119,7 +119,7 @@ end
 
 function Terminal:isExecutable(file)
   -- check if file is an executable or a command in PATH
-  return os.execute(string.format("test -x %s || command -v %s", file, file))
+  return os.execute(string.format("test -x %q || command -v %q", file, file))
     == 0
 end
 
@@ -357,8 +357,8 @@ function Terminal:refresh(reset)
     end
   else
     if self.is_shell_open then
-      if self.refresh_time > 5 then
-        self.refresh_time = self.refresh_time
+      if self.refresh_time >= 5 then
+        self.refresh_time = 5
       elseif self.refresh_time > 1 then
         self.refresh_time = self.refresh_time * 1.1
       else
@@ -386,6 +386,10 @@ function Terminal:killShell(ask)
 
   local pid = pid_file:read("*n")
   pid_file:close()
+
+  if not pid then
+    return -1
+  end
 
   if ask then
     return pid

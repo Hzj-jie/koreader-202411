@@ -247,15 +247,28 @@ function KindlePowerD:initWakeupMgr()
   end
 
   function KindlePowerD:readyToSuspend(_delay)
-    if self.device.wakeup_mgr:isWakeupAlarmScheduled() then
+    while
+      self.device.wakeup_mgr:isWakeupAlarmScheduled()
+      and #self.device.wakeup_mgr._task_queue > 0
+    do
       local now = os.time()
       local alarm = self.device.wakeup_mgr:getWakeupAlarmEpoch()
-      if alarm > now then
+      if alarm and alarm > now then
         -- Powerd / Lipc need seconds_from_now not epoch
         self:setRtcWakeup(alarm - now)
+        break
       else
         -- wakeup time is in the past
+        local to_run = {}
+        for _, task in ipairs(self.device.wakeup_mgr._task_queue) do
+          if task.epoch == alarm and task.callback then
+            table.insert(to_run, task.callback)
+          end
+        end
         self.device.wakeup_mgr:removeTasks(alarm)
+        for _, callback in ipairs(to_run) do
+          callback()
+        end
       end
     end
   end

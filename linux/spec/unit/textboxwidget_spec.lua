@@ -608,7 +608,7 @@ describe("TextBoxWidget widget", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes scrollLines setting virtual_line_num <= 0 when total lines < lines_per_page",
+      "should ensure scrollLines clamps virtual_line_num to 1 when total lines < lines_per_page",
       function()
         local tw = TextBoxWidget:new({
           width = 200,
@@ -622,7 +622,7 @@ describe("TextBoxWidget widget", function()
     )
 
     it(
-      "fails: exposes scrollToRatio crashing when text is empty and editable = true",
+      "should ensure scrollToRatio does not crash when text is empty and editable = true",
       function()
         local tw = TextBoxWidget:new({
           width = 200,

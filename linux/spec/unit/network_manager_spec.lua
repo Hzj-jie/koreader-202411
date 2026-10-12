@@ -1495,7 +1495,7 @@ describe("network_manager module", function()
 
     describe("Defect verifications", function()
       it(
-        "fails: exposes ConnectivityChecker:start setting settings_id to 0 when os.clock < 0.001",
+        "exposes ConnectivityChecker:start setting settings_id to 0 when os.clock < 0.001",
         function()
           local orig_clock = os.clock
           finally(function()
@@ -1514,7 +1514,7 @@ describe("network_manager module", function()
       )
 
       it(
-        "fails: exposes ifHasAnAddress returning nil instead of false when interface has no inet address",
+        "exposes ifHasAnAddress returning nil instead of false when interface has no inet address",
         function()
           local orig_op = NetworkMgr.sysfsInterfaceOperational
           local orig_ifname = NetworkMgr.getNetworkInterfaceName
