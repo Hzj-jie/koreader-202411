@@ -278,4 +278,38 @@ describe("RenderImage module", function()
       WebP.fromData = orig_from_data
     end
   )
+
+  it("should handle broken GIF where openPage errors gracefully", function()
+    local closed_gif = false
+    local mock_gif = {
+      getPages = function()
+        return 1
+      end,
+      openPage = function()
+        error("GIF has no images")
+      end,
+      close = function()
+        closed_gif = true
+      end,
+    }
+
+    local Pic = require("ffi/pic")
+    local orig_open_gif = Pic.openGIFDocumentFromData
+    Pic.openGIFDocumentFromData = function()
+      return mock_gif
+    end
+
+    local dummy_gif_data = "GIF89aBroken"
+    local result = RenderImage:renderImageData(
+      dummy_gif_data,
+      #dummy_gif_data,
+      false,
+      20,
+      20
+    )
+    assert.is_nil(result)
+    assert.is_true(closed_gif)
+
+    Pic.openGIFDocumentFromData = orig_open_gif
+  end)
 end)
