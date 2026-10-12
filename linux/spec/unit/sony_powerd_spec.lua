@@ -24,4 +24,21 @@ describe("device/sony-prstux/powerd module", function()
     assert.are.equal(85, inst:getCapacityHW())
     assert.is_true(inst:isChargingHW())
   end)
+
+  it(
+    "returns 0 from frontlightIntensityHW when device has no frontlight",
+    function()
+      local inst = SonyPRSTUX_PowerD:new({
+        device = {
+          hasFrontlight = function()
+            return false
+          end,
+          hasNaturalLight = function()
+            return false
+          end,
+        },
+      })
+      assert.are.equal(0, inst:frontlightIntensityHW())
+    end
+  )
 end)
