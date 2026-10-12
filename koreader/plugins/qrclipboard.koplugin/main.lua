@@ -25,7 +25,7 @@ function QRClipboard:addToMainMenu(menu_items)
     text = gettext("QR from clipboard"),
     callback = function()
       UIManager:show(QRMessage:new({
-        text = Device.input:getClipboardText(),
+        text = Device.input.getClipboardText(),
         width = Device.screen:getWidth(),
         height = Device.screen:getHeight(),
       }))

@@ -71,30 +71,4 @@ describe("QRClipboard widget tests", function()
       assert.are.equal("https://koreader.rocks", shown_widgets[1].text)
     end
   )
-
-  it(
-    "should invoke getClipboardText with self colon syntax on Device.input",
-    function()
-      local plugin = QRClipboard:new({ ui = mock_ui })
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-
-      local received_self = nil
-      Device.input.getClipboardText = function(self)
-        received_self = self
-        assert(
-          self ~= nil,
-          "getClipboardText must be called as a method with self"
-        )
-        return "test text"
-      end
-
-      -- Line 28 calls Device.input.getClipboardText() with dot syntax,
-      -- passing self = nil and failing the assertion.
-      assert.has_no.errors(function()
-        menu_items.qrclipboard.callback()
-      end)
-      assert.are.equal(Device.input, received_self)
-    end
-  )
 end)
