@@ -127,8 +127,8 @@ end
 dbg:guard(Math, "clamp", function(_value, min, max)
   assert(min ~= nil and max ~= nil, "Math.clamp: min and max must not be nil")
   assert(
-    min < max,
-    "Math.clamp: min " .. min .. " must be less than max " .. max
+    min <= max,
+    "Math.clamp: min " .. min .. " must be less than or equal to max " .. max
   )
 end)
 
