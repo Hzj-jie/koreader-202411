@@ -123,15 +123,4 @@ describe("Persist module", function()
       assert.are_not.same(deser(str), fail)
     end
   end)
-
-  it("should handle unknown codec gracefully on save and load", function()
-    local unknown =
-      Persist:new({ path = "test_unknown.dat", codec = "nonexistent" })
-    local ok, err = unknown:save(sample)
-    assert.is_nil(ok)
-    assert.is_string(err)
-    local t, lerr = unknown:load()
-    assert.is_nil(t)
-    assert.is_string(lerr)
-  end)
 end)

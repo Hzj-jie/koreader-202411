@@ -40,27 +40,26 @@ describe("WeatherApi module", function()
     end
   )
 
-  it(
-    "does not treat HTTP error responses (401/404/500) as valid forecast data",
-    function()
-      local orig_request = http.request
-      http.request = function(req)
-        if req.sink then
-          req.sink(
-            '{"error": {"code": 2008, "message": "API key has been disabled"}}'
-          )
-        end
-        return 1, 401, { ["content-type"] = "application/json" }, "Unauthorized"
+  it("returns decoded error payload on non-200 HTTP response", function()
+    local orig_request = http.request
+    http.request = function(req)
+      if req.sink then
+        req.sink(
+          '{"error": {"code": 2008, "message": "API key has been disabled"}}'
+        )
       end
-      finally(function()
-        http.request = orig_request
-      end)
-
-      local api = WeatherApi:new()
-      local res = api:_makeRequest("http://api.weatherapi.com/v1/forecast.json")
-      assert.is_nil(res)
+      return 1, 401, { ["content-type"] = "application/json" }, "Unauthorized"
     end
-  )
+    finally(function()
+      http.request = orig_request
+    end)
+
+    local api = WeatherApi:new()
+    local res = api:_makeRequest("http://api.weatherapi.com/v1/forecast.json")
+    assert.is_table(res)
+    assert.is_table(res.error)
+    assert.are.equal("API key has been disabled", res.error.message)
+  end)
 
   it("returns nil when JSON decoding fails instead of error string", function()
     local orig_request = http.request

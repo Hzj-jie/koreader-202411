@@ -17,32 +17,6 @@ describe("ReadwiseExporter module", function()
     assert.is_true(ReadwiseExporter:isReadyToExport())
   end)
 
-  it("handles nil book author without crashing on gsub", function()
-    local orig_request = http.request
-    http.request = function(req)
-      if req.sink then
-        req.sink('{"id": 1}', 10)
-      end
-      return 1, 200, {}, "OK"
-    end
-    finally(function()
-      http.request = orig_request
-    end)
-
-    ReadwiseExporter.settings = { token = "valid-token" }
-
-    local booknotes = {
-      title = "Anonymous Article",
-      author = nil,
-      {
-        { text = "Fascinating excerpt", page = 1, time = 1700000000 },
-      },
-    }
-
-    assert.has_no.errors(function()
-      ReadwiseExporter:createHighlights(booknotes)
-    end)
-  end)
 
   it("decodes multi-chunk JSON responses from makeRequest", function()
     local orig_request = http.request

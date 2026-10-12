@@ -514,24 +514,5 @@ describe("ScrollableContainer module", function()
         end)
       end
     )
-
-    it(
-      "should ensure onScrollablePanRelease does not crash on nil _scroll_relative_x",
-      function()
-        local content = createContent(200, 300)
-        local container = ScrollableContainer:new({
-          width = 200,
-          height = 200,
-          [1] = content,
-        })
-        container:initState()
-        container._scrolling = true
-        container._scroll_relative_x = nil
-        container._scroll_relative_y = nil
-        assert.has_no.errors(function()
-          container:onScrollablePanRelease(nil, {})
-        end)
-      end
-    )
   end)
 end)

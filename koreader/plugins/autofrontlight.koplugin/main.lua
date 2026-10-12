@@ -45,25 +45,19 @@ function AutoFrontlightPlugin:_action()
     "AutoFrontlight:_action(): Retrieved ambient brightness level: ",
     current_level
   )
-  local power_device = Device:getPowerDevice()
-  local is_on = power_device:isFrontlightOn()
   if self.last_brightness == current_level then
-    if
-      not ((current_level <= 1 and not is_on) or (current_level >= 3 and is_on))
-    then
-      logger.dbg(
-        "AutoFrontlight:_action(): recorded brightness is same as current level ",
-        self.last_brightness
-      )
-      return
-    end
+    logger.dbg(
+      "AutoFrontlight:_action(): recorded brightness is same as current level ",
+      self.last_brightness
+    )
+    return
   end
   if current_level <= 1 then
     logger.dbg("AutoFrontlight: going to turn on frontlight")
-    power_device:turnOnFrontlight()
+    Device:getPowerDevice():turnOnFrontlight()
   elseif current_level >= 3 then
     logger.dbg("AutoFrontlight: going to turn off frontlight")
-    power_device:turnOffFrontlight()
+    Device:getPowerDevice():turnOffFrontlight()
   end
   self.last_brightness = current_level
 end

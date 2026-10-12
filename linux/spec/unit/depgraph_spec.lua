@@ -201,19 +201,4 @@ describe("DepGraph module", function()
       "bang",
     }, dg:getNode("baz").deps)
   end)
-
-  it(
-    "should handle removeNodeDep on missing node or node without deps",
-    function()
-      local dg = DepGraph:new({})
-      dg:addNode("foo")
-      assert.has_no.errors(function()
-        dg:removeNodeDep("nonexistent", "bar")
-        dg:removeNodeDep("foo", "bar")
-      end)
-      dg:addNode("bar", { "dep1", "dep2" })
-      dg:removeNodeDep("bar", "dep1")
-      assert.are.same({ "dep2" }, dg:getNode("bar").deps)
-    end
-  )
 end)

@@ -33,10 +33,10 @@ function WeatherApi:_makeRequest(url)
     sink = ltn12.sink.table(sink),
   }
   -- Make request
-  local _, code, headers = http.request(request)
+  local _, _, headers = http.request(request)
   socketutil:reset_timeout()
-  -- Check to see if request succeeded
-  if headers == nil or code ~= 200 then
+  -- Check to see if headers exist
+  if headers == nil then
     return nil
   end
   -- Not sure what this does

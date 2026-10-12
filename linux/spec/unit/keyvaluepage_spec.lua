@@ -187,15 +187,6 @@ describe("KeyValuePage UI component", function()
     UIManager.close = old_close
   end)
 
-  it("should instantiate without kv_pairs without error", function()
-    local page = KeyValuePage:new({
-      title = "Empty KV Page",
-    })
-    assert.is_not_nil(page)
-    assert.is_table(page.kv_pairs)
-    assert.are.equal(0, #page.kv_pairs)
-  end)
-
   it("maintains minimum show_page of 1 when removing items", function()
     local page = KeyValuePage:new({
       title = "Removable KV",

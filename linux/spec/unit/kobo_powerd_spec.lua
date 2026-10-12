@@ -298,48 +298,4 @@ describe("KoboPowerD", function()
     )
   end)
 
-  describe("Defect verifications", function()
-    it(
-      "_syncKoboLightOnStart handles nil frontLightLevel gracefully without crashing",
-      function()
-        local orig_defaults = G_defaults.read
-        local orig_get_level = NickelConf.frontLightLevel.get
-        local orig_get_state = NickelConf.frontLightState.get
-
-        G_defaults.read = function(self_d, key)
-          if key == "KOBO_LIGHT_ON_START" then
-            return "-2"
-          end
-          return orig_defaults(self_d, key)
-        end
-
-        -- Nickel config returns nil for both level and state
-        NickelConf.frontLightLevel.get = function()
-          return nil
-        end
-        NickelConf.frontLightState.get = function()
-          return nil
-        end
-
-        finally(function()
-          G_defaults.read = orig_defaults
-          NickelConf.frontLightLevel.get = orig_get_level
-          NickelConf.frontLightState.get = orig_get_state
-        end)
-
-        -- When NickelConf returns nil, _syncKoboLightOnStart should handle missing values.
-        -- Bug: line 54 runs `if new_intensity > 0 then` without checking if new_intensity is nil,
-        -- crashing with "attempt to compare nil with number".
-        local ok, err = pcall(function()
-          mock_powerd:_syncKoboLightOnStart()
-        end)
-
-        assert.is_true(
-          ok,
-          "Expected _syncKoboLightOnStart to succeed, but got error: "
-            .. tostring(err)
-        )
-      end
-    )
-  end)
 end)

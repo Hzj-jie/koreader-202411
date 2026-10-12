@@ -35,11 +35,9 @@ function ButtonTable:init()
 
   -- Match the row/column order used by ButtonTable:init().
   local alpha_queue = {}
-  local alpha_count = 0
   for _, row in ipairs(self.buttons or {}) do
     for _, entry in ipairs(row) do
-      alpha_count = alpha_count + 1
-      alpha_queue[alpha_count] = entry.alpha
+      table.insert(alpha_queue, entry.alpha)
     end
   end
 

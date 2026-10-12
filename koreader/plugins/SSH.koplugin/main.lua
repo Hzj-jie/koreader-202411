@@ -11,11 +11,7 @@ local logger = require("logger")
 local util = require("util")
 local T = require("ffi/util").template
 
-if
-  not Device:isKobo()
-  and not Device:isEmulator()
-  and not Device:isKindle()
-then
+if not Device:isKobo() and not Device:isEmulator() then
   return { disabled = true }
 end
 
@@ -58,25 +54,7 @@ function SSH:autoStart()
 end
 
 function SSH:start(quiet)
-  -- Make a hole in the Kindle's firewall
-  if Device:isKindle() then
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -A INPUT -p tcp --dport",
-        self.SSH_port,
-        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-      )
-    )
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -A OUTPUT -p tcp --sport",
-        self.SSH_port,
-        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
-      )
-    )
-  elseif Device:isKobo() then
+  if Device:isKobo() then
     -- An SSH/telnet server of course needs to be able to manipulate
     -- pseudoterminals...
     -- Kobo's init scripts fail to set this up...
@@ -101,23 +79,15 @@ function SSH:start(quiet)
   logger.dbg("[Network] Launching SSH server : ", cmd)
   if os.execute(cmd) == 0 then
     if not quiet then
-      local net_info = Device.retrieveNetworkInfo
-        and Device:retrieveNetworkInfo()
-      local net_str
-      if type(net_info) == "table" then
-        net_str = table.concat(net_info, "\n")
-      elseif type(net_info) == "string" and net_info ~= "" then
-        net_str = net_info
-      else
-        net_str = gettext("Could not retrieve network info.")
-      end
       UIManager:show(InfoMessage:new({
         timeout = 10,
         -- @translators: %1 is the SSH port, %2 is the network info.
         text = T(
           gettext("SSH server started.\n\nSSH port: %1\n%2"),
           self.SSH_port,
-          net_str
+          Device.retrieveNetworkInfo
+              and table.concat(Device:retrieveNetworkInfo(), "\n")
+            or gettext("Could not retrieve network info.")
         ),
       }))
     end
@@ -142,26 +112,6 @@ function SSH:stop()
 
   if self:isRunning() then
     os.remove("/tmp/dropbear_koreader.pid")
-  end
-
-  -- Plug the hole in the Kindle's firewall
-  if Device:isKindle() then
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -D INPUT -p tcp --dport",
-        self.SSH_port,
-        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
-      )
-    )
-    os.execute(
-      string.format(
-        "%s %s %s",
-        "iptables -D OUTPUT -p tcp --sport",
-        self.SSH_port,
-        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
-      )
-    )
   end
 end
 

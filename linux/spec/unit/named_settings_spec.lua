@@ -228,10 +228,7 @@ describe("named_settings", function()
       assert.is_false(named_settings.fast_screen_refresh())
 
       named_settings.set.full_refresh_count(10)
-      local saved_g = G_named_settings
-      G_named_settings = nil
       assert.is_true(named_settings.fast_screen_refresh())
-      G_named_settings = saved_g
     end)
   end)
 

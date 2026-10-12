@@ -21,6 +21,10 @@ function Remarkable_PowerD:isChargingHW()
   return status == "Charging" or status == "Full"
 end
 
+function Remarkable_PowerD:isChargedHW()
+  return self:read_str_file(self.status_file) == "Full"
+end
+
 function Remarkable_PowerD:beforeSuspend()
   -- Inhibit user input and emit the Suspend event.
   self.device:_beforeSuspend()

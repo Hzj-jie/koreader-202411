@@ -129,6 +129,17 @@ describe("CervantesPowerD", function()
       assert.are.equal(60, natural_brightness_set.intensity)
       assert.are.equal(35, natural_brightness_set.warmth)
     end)
+
+    it(
+      "does not restore frontlight brightness after resume if frontlight was off",
+      function()
+        powerd.fl_was_on = false
+        brightness_set = nil
+        powerd:afterResume()
+        assert.is_true(after_resume_called)
+        assert.is_nil(brightness_set)
+      end
+    )
   end)
 
   describe("settings persistence", function()

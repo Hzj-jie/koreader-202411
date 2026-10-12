@@ -72,17 +72,15 @@ function CachedTable:new(resolver, initial_fields)
 
   local function do_resolve(t)
     if not resolved then
+      resolved = true
       local ok, data = pcall(resolver)
-      if ok then
-        resolved = true
-        if data then
-          for field, val in pairs(data) do
-            if rawget(t, field) == nil then
-              rawset(t, field, val)
-            end
+      if ok and data then
+        for field, val in pairs(data) do
+          if rawget(t, field) == nil then
+            rawset(t, field, val)
           end
         end
-      else
+      elseif not ok then
         logger.warn("CachedTable: resolver failed:", tostring(data))
       end
     end

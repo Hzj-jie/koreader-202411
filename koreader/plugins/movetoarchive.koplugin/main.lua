@@ -142,6 +142,7 @@ function MoveToArchive:onMoveToArchive(do_copy)
       end,
     }))
   else
+    self:openFileBrowser(self.last_copied_from_dir)
     UIManager:show(InfoMessage:new({
       text = err or gettext("Operation failed."),
     }))
