@@ -124,7 +124,7 @@ describe("Gestures plugin", function()
       }
       local open_stub = stub(LuaSettings, "open", function(_, path)
         if path:find("defaults.lua") then
-          return { data = { gesture_fm = shared_defaults } }
+          return { data = { gesture_fm = util.tableDeepCopy(shared_defaults) } }
         end
         return { data = { gesture_fm = {}, custom_multiswipes = {} } }
       end)
