@@ -102,6 +102,26 @@ describe("Kobo device", function()
         assert.are.equal(1, Kobo:getCPUCount())
       end
     )
+
+    it("should return highest core number from sysfs", function()
+      local orig_io_open = io.open
+      io.open = function(path, mode)
+        if path == "/sys/devices/system/cpu/possible" then
+          return {
+            read = function(self, _fmt)
+              return "0-3"
+            end,
+            close = function(self) end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+      finally(function()
+        io.open = orig_io_open
+      end)
+
+      assert.are.equal(3, Kobo:getCPUCount())
+    end)
   end)
 
   describe("Startup script verification", function()
