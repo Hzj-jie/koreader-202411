@@ -723,7 +723,10 @@ function util.getFilesystemType(path)
     for param in line:gmatch("%S+") do
       table.insert(mount, param)
     end
-    if string.match(path, mount[2]) then
+    local is_match = mount[2] == "/"
+      or path == mount[2]
+      or string.find(path, mount[2] .. "/", 1, true) == 1
+    if is_match then
       type = mount[3]
       if mount[2] ~= "/" then
         break
@@ -821,8 +824,9 @@ function util:calcFreeMem()
   else
     -- Crappy Free + Buffers + Cache version, because the zoneinfo approach is a tad hairy...
     -- So, leave an even larger margin, and only report 75% of that...
-    return math.floor((memfree + buffers + cached) * 0.75) * 1024,
-      memtotal * 1024
+    return math.floor(((memfree or 0) + (buffers or 0) + (cached or 0)) * 0.75)
+      * 1024,
+      (memtotal or 0) * 1024
   end
 end
 
@@ -1621,7 +1625,7 @@ function util.prettifyCSS(css_text, condensed)
       return s
     end)
     -- Protect ',' inside () (ie. ":is(td, th)") by replacing them with rare control chars
-    css_text = css_text:gsub("%b()/", function(s)
+    css_text = css_text:gsub("%b()", function(s)
       s = s:gsub(",", "\v")
       return s
     end)

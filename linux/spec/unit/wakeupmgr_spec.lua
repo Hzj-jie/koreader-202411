@@ -174,7 +174,7 @@ describe("WakeupMgr", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: removeTasks unsets hardware RTC alarm when queue becomes empty",
+      "should ensure removeTasks unsets hardware RTC alarm when queue becomes empty",
       function()
         local mgr = require("device/wakeupmgr"):new({})
         stub(mgr, "setWakeupAlarm")
@@ -193,7 +193,7 @@ describe("WakeupMgr", function()
     )
 
     it(
-      "fails: removeTasks does not destroy earlier dummy callback chain when removing later task",
+      "should ensure removeTasks does not destroy earlier dummy callback chain when removing later task",
       function()
         local dodgy_mgr = require("device/wakeupmgr"):new({
           dodgy_rtc = true,

@@ -1129,7 +1129,7 @@ describe("Terminal plugin button tap integration", function()
 
   describe("Defect verifications", function()
     it(
-      "isExecutable fails on executable paths containing spaces due to unquoted shell arguments",
+      "isExecutable handles executable paths containing spaces safely",
       function()
         local Terminal = require("plugins/terminal.koplugin/main")
         local terminal = Terminal:new({
@@ -1149,7 +1149,7 @@ describe("Terminal plugin button tap integration", function()
     )
 
     it(
-      "refresh fails to clamp refresh_time when backing off above 5 seconds",
+      "refresh clamps refresh_time when backing off above 5 seconds",
       function()
         local Terminal = require("plugins/terminal.koplugin/main")
         local terminal = Terminal:new({
@@ -1175,7 +1175,7 @@ describe("Terminal plugin button tap integration", function()
     )
 
     it(
-      "killShell returns nil and crashes in menu enabled_func when pid file is empty",
+      "killShell returns -1 and avoids crashes in menu enabled_func when pid file is empty",
       function()
         local Terminal = require("plugins/terminal.koplugin/main")
         local terminal = Terminal:new({

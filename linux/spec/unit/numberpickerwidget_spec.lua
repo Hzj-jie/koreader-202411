@@ -243,7 +243,7 @@ describe("NumberPickerWidget module", function()
   )
 
   describe("Defect verifications", function()
-    it("fails: exposes update stripping configured unit suffix", function()
+    it("exposes update stripping configured unit suffix", function()
       local picker = NumberPickerWidget:new({
         value = 10,
         value_min = 0,
@@ -259,7 +259,7 @@ describe("NumberPickerWidget module", function()
     end)
 
     it(
-      "fails: exposes changeValue wrapping to min when step is -1 and value > max",
+      "exposes changeValue wrapping to min when step is -1 and value > max",
       function()
         local res = NumberPickerWidget:changeValue(31, -1, 28, 1, true)
         assert.are.equal(28, res)

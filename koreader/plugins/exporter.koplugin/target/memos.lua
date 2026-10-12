@@ -142,7 +142,10 @@ function MemosExporter:createHighlights(booknotes)
   local error_number = 0
   for _, chapter in ipairs(booknotes) do
     for _, clipping in ipairs(chapter) do
-      local highlight = clipping.text .. "\n\n"
+      local highlight = ""
+      if clipping.text then
+        highlight = highlight .. clipping.text .. "\n\n"
+      end
       if clipping.note then
         highlight = highlight .. clipping.note .. "\n\n"
       end

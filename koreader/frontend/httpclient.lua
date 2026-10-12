@@ -12,8 +12,8 @@ function HTTPClient:new()
 end
 
 function HTTPClient:request(request, response_callback)
-  request.connect_timeout = 10
-  request.request_timeout = 20
+  request.connect_timeout = request.connect_timeout or 10
+  request.request_timeout = request.request_timeout or 20
   UIManager:initLooper()
   UIManager.looper:add_callback(function()
     -- avoid endless waiting for input
