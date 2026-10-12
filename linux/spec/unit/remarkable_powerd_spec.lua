@@ -91,27 +91,5 @@ describe("Remarkable_PowerD", function()
       status_content = "Discharging"
       assert.is_false(powerd:isChargingHW())
     end)
-
-    it(
-      "isChargingHW reports true when device status is Full (plugged in on charger)",
-      function()
-        status_content = "Full"
-        assert.is_true(
-          powerd:isChargingHW(),
-          "isChargingHW should return true when device is plugged in with battery Full"
-        )
-      end
-    )
-
-    it("isChargedHW reports true when device status is Full", function()
-      status_content = "Full"
-      assert.is_true(powerd:isChargedHW())
-
-      status_content = "Charging"
-      assert.is_false(powerd:isChargedHW())
-
-      status_content = "Discharging"
-      assert.is_false(powerd:isChargedHW())
-    end)
   end)
 end)

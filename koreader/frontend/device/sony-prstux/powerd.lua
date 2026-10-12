@@ -13,6 +13,12 @@ local SonyPRSTUX_PowerD = BasePowerD:new({
 
 function SonyPRSTUX_PowerD:init() end
 
+function SonyPRSTUX_PowerD:frontlightIntensityHW()
+  if not self.device:hasFrontlight() then
+    return 0
+  end
+end
+
 function SonyPRSTUX_PowerD:setIntensityHW(_intensity) end
 
 function SonyPRSTUX_PowerD:getCapacityHW()
