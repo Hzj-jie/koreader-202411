@@ -672,7 +672,7 @@ function ReaderUI:showReader(file, provider, seamless)
   -- We can now signal the existing ReaderUI/FileManager instances that it's time to go bye-bye...
   UIManager:broadcastEvent(Event:new("ShowingReader"))
   provider = provider or DocumentRegistry:getProvider(file)
-  if provider and provider.provider then
+  if provider.provider then
     self:_showReaderCoroutine(file, provider, seamless)
   else
     self:showWidget(InfoMessage:new({
