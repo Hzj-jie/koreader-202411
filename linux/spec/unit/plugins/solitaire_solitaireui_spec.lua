@@ -564,6 +564,38 @@ describe("SolitaireUI plugin module", function()
     assert.are.equal(1, inst.selected_source.index)
   end)
 
+  it("highlights foundation card when selected in drawFoundation", function()
+    local ffiUtil = require("ffi/util")
+    local pid = tostring(ffiUtil.getpid())
+    local tmp_settings = os.tmpname()
+    local tmp_save = os.tmpname() .. "_" .. pid
+
+    local inst = SolitaireUI:new({
+      settings_path = tmp_settings,
+      save_path = tmp_save,
+    })
+    finally(function()
+      os.remove(tmp_settings)
+      os.remove(tmp_save)
+    end)
+
+    inst.game.foundations[1] = { { rank = 1, suit = 1, face_up = true } }
+    inst.selected_source = { type = "foundation", index = 1 }
+
+    local card_drawn = nil
+    local is_highlighted = nil
+    inst.drawCard = function(self, bb, x, y, card, highlighted, face_up)
+      card_drawn = card
+      is_highlighted = highlighted
+    end
+
+    local bb = Blitbuffer.new(600, 800)
+    inst:drawFoundation(bb, 10, 10, 1)
+
+    assert.is_not_nil(card_drawn)
+    assert.is_true(is_highlighted)
+  end)
+
   it("does not save completed won game on onClose", function()
     local ffiUtil = require("ffi/util")
     local util = require("util")
