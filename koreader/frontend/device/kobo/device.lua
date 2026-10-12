@@ -1708,18 +1708,12 @@ function Kobo:defaultCPUGovernor()
 end
 
 function Kobo:isStartupScriptUpToDate()
-  local koreader_dir = os.getenv("KOREADER_DIR")
-  if not koreader_dir then
-    return false
-  end
   -- Compare the hash of the *active* script (i.e., the one in /tmp) to the *potential* one (i.e., the one in KOREADER_DIR)
   local current_script = "/tmp/koreader.sh"
-  local new_script = koreader_dir .. "/" .. "koreader.sh"
+  local new_script = os.getenv("KOREADER_DIR") .. "/" .. "koreader.sh"
 
   local md5 = require("ffi/MD5")
-  local current_hash = md5.sumFile(current_script)
-  local new_hash = md5.sumFile(new_script)
-  return current_hash ~= nil and current_hash == new_hash
+  return md5.sumFile(current_script) == md5.sumFile(new_script)
 end
 
 function Kobo:UIManagerReady(uimgr)

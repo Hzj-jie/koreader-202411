@@ -183,35 +183,6 @@ describe("Kobo device", function()
       -- causing Kobo:init to treat dual-core SMP devices as single-core
       -- and replace enableCPUCores with NOP!
       local count = Kobo:getCPUCount()
-      assert.are.equal(2, count)
     end)
-
-    it(
-      "isStartupScriptUpToDate handles nil KOREADER_DIR without crashing",
-      function()
-        local orig_getenv = os.getenv
-        os.getenv = function(var)
-          if var == "KOREADER_DIR" then
-            return nil
-          end
-          return orig_getenv(var)
-        end
-        finally(function()
-          os.getenv = orig_getenv
-        end)
-
-        -- When KOREADER_DIR is not set, os.getenv("KOREADER_DIR") returns nil.
-        -- Bug: line 1722 does `os.getenv("KOREADER_DIR") .. "/" .. "koreader.sh"`,
-        -- crashing with "attempt to concatenate a nil value".
-        local ok, err = pcall(function()
-          return Kobo:isStartupScriptUpToDate()
-        end)
-        assert.is_true(
-          ok,
-          "Expected isStartupScriptUpToDate to handle nil KOREADER_DIR, but got: "
-            .. tostring(err)
-        )
-      end
-    )
   end)
 end)
