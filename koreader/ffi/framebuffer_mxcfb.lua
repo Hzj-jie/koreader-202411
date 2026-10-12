@@ -6,6 +6,7 @@ local C = ffi.C
 
 require("ffi/posix_h")
 
+local band = bit.band
 local bor = bit.bor
 local bxor = bit.bxor
 
@@ -118,6 +119,13 @@ end
 
 -- Returns true if w & h are equal or larger than our visible screen estate (i.e., we asked for a full-screen update)
 function framebuffer:_isFullScreen(w, h)
+  -- NOTE: fb:getWidth() & fb:getHeight() return the viewport size, but obey rotation, which means we can't rely on them directly.
+  --       fb:getScreenWidth() & fb:getScreenHeight return the full screen size, without the viewport, and in the default rotation, which doesn't help either.
+  -- Settle for getWidth() & getHeight() w/ rotation handling, like what bb:getPhysicalRect() does...
+  if band(self:getRotationMode(), 1) == 1 then
+    w, h = h, w
+  end
+
   return w >= self:getWidth() and h >= self:getHeight()
 end
 
