@@ -22,8 +22,7 @@ local function disableOnMenu(menu)
 end
 
 local function showConfirmBox(menu)
-  local confirm_box
-  confirm_box = ConfirmBox:new({
+  UIManager:show(ConfirmBox:new({
     text = gettext(
       'The system won\'t sleep while this message is showing.\n\nPress "Stay alive" if you prefer to keep the system on even after closing this notification. *This will drain the battery*.\n\nIf KOReader terminates before "Close" is pressed, please start and close the KeepAlive plugin again to ensure settings are reset.'
     ),
@@ -36,17 +35,7 @@ local function showConfirmBox(menu)
       PluginShare.keepalive = true
       menu:updateItems()
     end,
-  })
-  local orig_onClose = confirm_box.onClose
-  confirm_box.onClose = function(self)
-    if orig_onClose then
-      orig_onClose(self)
-    end
-    if not PluginShare.keepalive then
-      disableOnMenu(menu)
-    end
-  end
-  UIManager:show(confirm_box)
+  }))
 end
 
 if Device:isCervantes() or Device:isKobo() then
