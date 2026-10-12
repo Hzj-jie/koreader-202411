@@ -2119,10 +2119,7 @@ function BookMapWidget:paintBottomHorizontalSwipeHint(bb)
   -- could be related to the increment/ratio we use in onSwipe)
   local cur = self.pages_per_row - self.min_pages_per_row
   local max = self.max_pages_per_row - self.min_pages_per_row
-  local dx = 0
-  if max > 0 then
-    dx = math.floor(h.max_dx * (1 - math.log(1 + cur) / math.log(1 + max)))
-  end
+  local dx = math.floor(h.max_dx * (1 - math.log(1 + cur) / math.log(1 + max)))
   if BD.mirroredUILayout() then
     dx = h.max_dx - dx
   end
