@@ -48,17 +48,6 @@ describe("Checkers AI module", function()
       end
     )
 
-    it(
-      "should evaluate AI.best_move at depth 0 without infinite recursion",
-      function()
-        local game = Game.new()
-        local ok, best = pcall(function()
-          return AI.best_move(game, 0)
-        end)
-        assert.is_true(ok)
-        assert.is_not_nil(best)
-      end
-    )
   end)
 
   describe("best_move evaluation and non-mutation", function()

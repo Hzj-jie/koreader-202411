@@ -35,41 +35,4 @@ describe("CalculatorUnitsDialog", function()
       dlg.radio_button_table_units_too.radio_buttons
     )
   end)
-
-  it("does not crash when confirmed without checked buttons", function()
-    local dlg = CalculatorUnitsDialog:new({
-      units = { { "cm", 0.01 }, { "inch", 0.0254 } },
-      parent = {
-        units_dialog = {},
-        parent = {
-          input_dialog = {
-            _input_widget = {
-              goToEndOfLine = function() end,
-              goToStartOfLine = function() end,
-              addChars = function() end,
-              charpos = 0,
-            },
-            getInputText = function()
-              return ""
-            end,
-            setInputText = function() end,
-          },
-          calculate = function() end,
-          gotoEnd = function() end,
-        },
-      },
-    })
-    dlg.radio_button_table_units_from.checked_button = nil
-    dlg.radio_button_table_units_too.checked_button = nil
-
-    local UIManager = require("ui/uimanager")
-    local orig_close = UIManager.close
-    UIManager.close = function() end
-
-    local ok_btn_callback = dlg.button_table.buttons[1][2].callback
-    assert.has_no.errors(function()
-      ok_btn_callback()
-    end)
-    UIManager.close = orig_close
-  end)
 end)

@@ -169,6 +169,10 @@ function Checkers:startGame()
 end
 
 function Checkers:resetGame()
+  if self.ai_action then
+    UIManager:unschedule(self.ai_action)
+    self.ai_action = nil
+  end
   self.game = Game.new()
   self.board.game = self.game
   self.board.selected_pos = nil
@@ -336,9 +340,14 @@ end
 
 -- Yield to the paint loop briefly so "AI thinking…" appears before computation.
 function Checkers:scheduleAIMove()
-  UIManager:scheduleIn(0.05, function()
+  if self.ai_action then
+    UIManager:unschedule(self.ai_action)
+  end
+  self.ai_action = function()
+    self.ai_action = nil
     self:doAIMove()
-  end)
+  end
+  UIManager:scheduleIn(0.05, self.ai_action)
 end
 
 -- Apply the full AI move chain (handles multi-jump internally).
@@ -381,6 +390,10 @@ end
 function Checkers:doUndo()
   if not self.game:can_undo() then
     return
+  end
+  if self.ai_action then
+    UIManager:unschedule(self.ai_action)
+    self.ai_action = nil
   end
   -- Undo the last move, then keep undoing while an AI player is to move
   -- (so the human is always returned to their own turn).

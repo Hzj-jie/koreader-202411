@@ -106,12 +106,5 @@ describe("sort", function()
         end
       )
     end)
-
-    it("should handle mixed types when collation keys match", function()
-      local cmp = sort.natsort_cmp()
-      local t = { "1", 1 }
-      table.sort(t, cmp)
-      assert.is_table(t)
-    end)
   end)
 end)

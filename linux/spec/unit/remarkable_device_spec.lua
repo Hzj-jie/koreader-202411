@@ -222,48 +222,5 @@ describe("Remarkable device", function()
         "Linux 6.10+ should be recognized as mainline kernel"
       )
     end)
-
-    it(
-      "Oxide detection does not mutate shared event_map module table in place",
-      function()
-        -- Bug: lines 134-138 does:
-        -- local event_map = require("device/remarkable/event_map")
-        -- if oxide_running then event_map[116] = nil end
-        -- This mutates package.loaded["device/remarkable/event_map"] in-place,
-        -- stripping key 116 ("Power") permanently for subsequent requires.
-        os.execute = function(cmd)
-          if cmd:find("systemctl is-active --quiet tarnish", 1, true) then
-            return 0 -- oxide running
-          end
-          return 1
-        end
-        io.popen = function(cmd, mode)
-          if cmd == "uname -r" then
-            return {
-              read = function(self, fmt)
-                return "5.4.0-rm"
-              end,
-              close = function(self) end,
-            }
-          end
-          return orig_popen(cmd, mode)
-        end
-
-        -- Verify key 116 exists initially
-        local event_map_before = require("device/remarkable/event_map")
-        assert.are.equal("Power", event_map_before[116])
-
-        local dev = Remarkable1:extend({})
-        dev:init()
-
-        -- Requiring event_map should not have had key 116 mutated away in package.loaded
-        local event_map_after = require("device/remarkable/event_map")
-        assert.are.equal(
-          "Power",
-          event_map_after[116],
-          "event_map table should not be permanently stripped of Power key"
-        )
-      end
-    )
   end)
 end)

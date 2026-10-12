@@ -131,7 +131,7 @@ function Remarkable:init()
     status_file = self.status_path,
   })
 
-  local event_map = util.tableDeepCopy(require("device/remarkable/event_map"))
+  local event_map = require("device/remarkable/event_map")
   -- If we are launched while Oxide is running, remove Power from the event map
   if oxide_running then
     event_map[116] = nil
@@ -139,7 +139,7 @@ function Remarkable:init()
 
   self.input = require("device/input"):new({
     device = self,
-    event_map = event_map,
+    event_map = require("device/remarkable/event_map"),
     wacom_protocol = true,
   })
 

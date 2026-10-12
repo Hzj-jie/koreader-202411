@@ -128,18 +128,16 @@ function DocumentRegistry:getProviders(file)
           end
         end
       end
-      if not added then
-        local inserted = false
-        for i, prov in ipairs(providers) do
-          if provider.weight > prov.weight then
-            table.insert(providers, i, provider)
-            inserted = true
-            break
-          end
-        end
-        if not inserted then
-          table.insert(providers, provider)
-        end
+      -- if extension == provider.extension then
+      -- stick highest weighted provider at the front
+      if
+        not added
+        and #providers >= 1
+        and provider.weight > providers[1].weight
+      then
+        table.insert(providers, 1, provider)
+      elseif not added then
+        table.insert(providers, provider)
       end
     end
   end

@@ -186,30 +186,18 @@ _G.require = function(name)
     return orig_require(name)
   end
 
-  local found = false
   local loaded_module = nil
   for template in package.path:gmatch("[^;]+") do
     local file_path = template:gsub("%?", name)
     local file = io.open(file_path, "r")
     if file then
       file:close()
-      found = true
-      -- A module is not required to return a value; if it returns nil,
-      -- loaded_module is nil even though the file was found and executed.
       loaded_module = assert(loadfile(file_path))()
       break
     end
   end
-  if not found then
-    error("module '" .. name .. "' not found")
-  end
-  -- Standard Lua require semantics: if the chunk returned nil, fall back
-  -- to package.loaded[name] or default to true.
   if loaded_module == nil then
-    loaded_module = package.loaded[name]
-    if loaded_module == nil then
-      loaded_module = true
-    end
+    error("module '" .. name .. "' not found")
   end
   package.loaded[name] = loaded_module
   return loaded_module

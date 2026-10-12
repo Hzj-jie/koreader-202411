@@ -106,7 +106,6 @@ local function _clone(job)
   result.action = job.action
   result.callback = job.callback
   result.environment = job.environment
-  result.catch_exception = job.catch_exception
   result.insert_time = time.monotonic()
   return result
 end
@@ -166,7 +165,7 @@ function BackgroundRunner:_finishJob(job)
   end
   if job.callback ~= nil then
     assert(type(job.callback) == "function")
-    pcall(job.callback, job)
+    job.callback(job)
   end
 end
 
@@ -211,9 +210,6 @@ function BackgroundRunner:_executeJob(job)
     end
     job.end_time = time.monotonic()
     self:_finishJob(job)
-    if not status and job.catch_exception == false then
-      error(err)
-    end
     return true
   end
   logger.dbg(
@@ -248,7 +244,6 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
-  local first_error
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
   -- simple.
   for _ = 1, #PluginShare.backgroundJobs do
@@ -305,10 +300,7 @@ function BackgroundRunner:_execute()
     if should_execute then
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       assert(not should_ignore)
-      local ok, err = pcall(self._executeJob, self, job)
-      if not ok and not first_error then
-        first_error = err
-      end
+      self:_executeJob(job)
     elseif not should_ignore then
       -- _finishJob would insert a clone, so this insert is only needed if the
       -- job wasn't executed.
@@ -317,10 +309,6 @@ function BackgroundRunner:_execute()
   end
 
   self:schedule()
-
-  if first_error then
-    error(first_error)
-  end
 end
 
 function BackgroundRunner:schedule()
