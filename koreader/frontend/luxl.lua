@@ -593,7 +593,7 @@ local LEXER_STATES = {
     event = EVENT_NONE,
   }, -- initial spaces before quoted attribute value
 
-  -- [35-36] handle actual attribute values
+  -- [35-37] handle actual attribute values
   {
     state = ST_ATTR_VAL2,
     cclass = CCLASS_QUOTE,
@@ -602,12 +602,18 @@ local LEXER_STATES = {
   },
   {
     state = ST_ATTR_VAL2,
-    cclass = CCLASS_ANY,
+    cclass = CCLASS_LETTERS,
+    next_state = ST_ATTR_VAL2,
+    event = EVENT_MARK,
+  },
+  {
+    state = ST_ATTR_VAL2,
+    cclass = CCLASS_SLASH,
     next_state = ST_ATTR_VAL2,
     event = EVENT_MARK,
   },
 
-  -- [37] End of table marker
+  -- [38] End of table marker
   {
     state = ST_ERROR,
     cclass = CCLASS_NONE,
