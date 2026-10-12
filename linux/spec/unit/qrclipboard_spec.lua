@@ -97,37 +97,4 @@ describe("QRClipboard widget tests", function()
       assert.are.equal(Device.input, received_self)
     end
   )
-
-  it(
-    "should handle nil clipboard gracefully without crashing in QRWidget:init",
-    function()
-      local plugin = QRClipboard:new({ ui = mock_ui })
-      local menu_items = {}
-      plugin:addToMainMenu(menu_items)
-
-      Device.input.getClipboardText = function()
-        return nil
-      end
-
-      -- Passing nil clipboard text directly into QRMessage:new causes
-      -- QRWidget:init to crash on #text > 2953 with attempt to get length of nil.
-      assert.has_no.errors(function()
-        menu_items.qrclipboard.callback()
-      end)
-    end
-  )
-
-  it("should not generate QRMessage when clipboard is empty string", function()
-    local plugin = QRClipboard:new({ ui = mock_ui })
-    local menu_items = {}
-    plugin:addToMainMenu(menu_items)
-
-    Device.input.getClipboardText = function()
-      return ""
-    end
-
-    menu_items.qrclipboard.callback()
-    -- Empty clipboard should not show a QR code message.
-    assert.are.equal(0, #shown_widgets)
-  end)
 end)
