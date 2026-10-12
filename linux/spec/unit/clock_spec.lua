@@ -197,7 +197,12 @@ describe("Clock plugin tests", function()
     Clock.ui = { menu = { registerToMainMenu = function() end } }
     Clock:init()
 
+    PluginShare.pause_auto_suspend = true
+    Clock._visible = true
     Clock:onClose()
+
+    assert.is_true(PluginShare.pause_auto_suspend)
+    assert.is_false(Clock._visible)
 
     assert
       .stub(UIManager.setDirty)
