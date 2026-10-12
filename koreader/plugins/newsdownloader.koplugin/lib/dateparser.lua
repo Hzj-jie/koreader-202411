@@ -53,13 +53,9 @@ function dateparser.parse(str, date_format)
   local success, res
   if date_format then
     if not formats[date_format] then
-      return nil, "unknown date format: " .. tostring(date_format)
+      return "unknown date format: " .. tostring(date_format)
     end
     success, res = pcall(formats[date_format], str)
-    if success and res then
-      return res
-    end
-    return nil, res
   else
     for i, func in ipairs(format_func) do
       success, res = pcall(func, str)
@@ -67,8 +63,8 @@ function dateparser.parse(str, date_format)
         return res
       end
     end
-    return nil
   end
+  return success and res
 end
 
 dateparser.register_format("W3CDTF", function(rest)
