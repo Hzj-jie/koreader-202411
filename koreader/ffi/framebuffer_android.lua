@@ -31,13 +31,11 @@ function framebuffer:_updateFull()
   if eink_platform == "rockchip" then
     android.einkUpdate(full)
   else
-    local x = self.viewport and self.viewport.x or 0
-    local y = self.viewport and self.viewport.y or 0
     self:_updatePartial(
       full,
       delay_page,
-      x,
-      y,
+      self.viewport and self.viewport.x or 0,
+      self.viewport and self.viewport.y or 0,
       self:getWidth(),
       self:getHeight()
     )

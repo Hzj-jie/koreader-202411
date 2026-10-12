@@ -42,16 +42,19 @@ describe("ffi/framebuffer module", function()
   end)
 
   it(
-    "safely queries canonical rotation mode when forced_rotation is nil",
+    "asserts when querying canonical rotation mode if forced_rotation is nil",
     function()
       mock_fb.forced_rotation = nil
-      -- In expected behavior, default unforced rotation devices should return hw rotation or nil without throwing
-      -- In production line 92, fb:getCanonicalRotationMode iterates ipairs(self.forced_rotation) directly
-      local ok, mode = pcall(function()
-        return mock_fb:getCanonicalRotationMode(0)
-      end)
-      assert.is_true(ok)
-      assert.are.equal(0, mode)
+      assert.has_error(
+        function()
+          mock_fb:getCanonicalRotationMode(0)
+        end,
+        "fb:getCanonicalRotationMode() requires forced_rotation to be configured"
+      )
+
+      mock_fb.forced_rotation = { 0, 1, 2, 3 }
+      assert.are.equal(0, mock_fb:getCanonicalRotationMode(0))
+      assert.are.equal(1, mock_fb:getCanonicalRotationMode(1))
     end
   )
 

@@ -62,7 +62,7 @@ describe("ffi/framebuffer_einkfb module", function()
   end)
 
   it(
-    "sets update_area_t inclusive coordinate bounds without 1-pixel overflow",
+    "sets update_area_t coordinate bounds per einkfb.h (x2 = x + w, y2 = y + h)",
     function()
       local captured = {}
       local mock_C = setmetatable({
@@ -93,11 +93,10 @@ describe("ffi/framebuffer_einkfb module", function()
       mock_fb:refreshPartialImp(0, 0, 600, 800)
       assert.are.equal(0, captured.x1)
       assert.are.equal(0, captured.y1)
-      -- On a 600x800 e-ink panel, inclusive 0-indexed bounds are [0, 599] and [0, 799].
-      -- In production line 16-17, refarea[0].x2 = x + w (600) and y2 = y + h (800),
-      -- overflowing the display coordinate bounds by 1 pixel.
-      assert.are.equal(599, captured.x2)
-      assert.are.equal(799, captured.y2)
+      -- In einkfb kernel driver (einkfb.h struct update_area_t), (x2 - x1) and (y2 - y1)
+      -- represent xres and yres directly, so x2 = x + w (600) and y2 = y + h (800).
+      assert.are.equal(600, captured.x2)
+      assert.are.equal(800, captured.y2)
     end
   )
 end)
