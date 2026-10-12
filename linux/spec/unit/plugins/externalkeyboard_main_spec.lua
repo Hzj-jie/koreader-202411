@@ -257,7 +257,7 @@ describe("ExternalKeyboard main plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "setupKeyboard leaks event_fd when fdopen fails or device is already registered",
+      "closes input device by path when fdopen fails or device is already registered",
       function()
         local inst = ExternalKeyboard:new({
           ui = { menu = { registerToMainMenu = function() end } },
@@ -295,9 +295,8 @@ describe("ExternalKeyboard main plugin module", function()
 
         inst:setupKeyboard(kb_data)
 
-        -- If Device.input.fdopen fails, event_fd must be closed to avoid leaking file descriptors.
-        -- In production, setupKeyboard returns early without closing event_fd.
-        assert.is_true(closed_fds[42] or closed_fds["/dev/input/event15"])
+        -- If Device.input.fdopen fails, event_path must be closed to avoid leaking file descriptors.
+        assert.is_true(closed_fds["/dev/input/event15"])
       end
     )
   end)

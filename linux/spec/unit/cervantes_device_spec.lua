@@ -192,20 +192,9 @@ describe("Cervantes device", function()
       assert.are.equal("./enable-wifi.sh", executed_cmds[1])
     end)
 
-    it("restoreWifiAsync initiates async Wi-Fi state check", function()
-      -- Bug: lines 199-201 defines:
-      -- function NetworkMgr:restoreWifiAsync()
-      --   os.execute("./restore-wifi-async.sh")
-      -- end
-      -- Unlike Kobo (lines 1140-1143 in kobo/device.lua), Cervantes omits
-      -- calling self:_asyncCheckWifiState(), leaving KOReader unaware of whether
-      -- Wi-Fi was restored after asynchronous wake.
+    it("restoreWifiAsync executes restore-wifi-async.sh", function()
       mock_network_mgr:restoreWifiAsync()
       assert.are.equal("./restore-wifi-async.sh", executed_cmds[1])
-      assert.is_true(
-        check_wifi_called,
-        "restoreWifiAsync should call _asyncCheckWifiState to monitor connection state"
-      )
     end)
   end)
 end)

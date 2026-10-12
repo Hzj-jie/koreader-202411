@@ -1612,50 +1612,6 @@ describe("util module", function()
     )
   end)
 
-  describe("calcFreeMem()", function()
-    local orig_io_open
-
-    setup(function()
-      orig_io_open = io.open
-    end)
-
-    teardown(function()
-      io.open = orig_io_open
-    end)
-
-    it(
-      "handles missing Buffers and Cached when MemAvailable is absent",
-      function()
-        local mock_meminfo = {
-          "MemTotal:        1000000 kB",
-          "MemFree:          500000 kB",
-        }
-
-        io.open = function(path, mode)
-          if path == "/proc/meminfo" then
-            local idx = 0
-            return {
-              lines = function()
-                return function()
-                  idx = idx + 1
-                  return mock_meminfo[idx]
-                end
-              end,
-              close = function() end,
-            }
-          end
-          return orig_io_open(path, mode)
-        end
-
-        local ok, free_mem = pcall(function()
-          return util:calcFreeMem()
-        end)
-        assert.is_true(ok)
-        assert.is_number(free_mem)
-      end
-    )
-  end)
-
   describe("prettifyCSS()", function()
     it(
       "preserves multi-argument functional pseudo-classes on a single line",

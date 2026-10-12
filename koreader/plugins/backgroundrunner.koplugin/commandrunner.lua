@@ -13,7 +13,7 @@ local CommandRunner = {
 }
 
 function CommandRunner:_createEnvironmentFromTable(t)
-  if type(t) ~= "table" then
+  if t == nil then
     return ""
   end
 
@@ -35,7 +35,7 @@ function CommandRunner:_createEnvironment(job)
   end
   if type(env_table) == "function" then
     local status, result = pcall(env_table)
-    if status and type(result) == "table" then
+    if status then
       return self:_createEnvironmentFromTable(result)
     end
   end
@@ -148,7 +148,7 @@ function CommandRunner:poll()
       local output = entry:readAll()
       logger.dbg("CommandRunner: Receive output " .. output)
       local status, result = pcall(loadstring(output))
-      if status and type(result) == "table" then
+      if status and result ~= nil then
         for k, v in pairs(result) do
           entry.job[k] = v
         end

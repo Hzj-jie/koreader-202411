@@ -95,10 +95,6 @@ describe("Remarkable_PowerD", function()
     it(
       "isChargingHW reports true when device status is Full (plugged in on charger)",
       function()
-        -- Bug: line 20 does `return self:read_str_file(self.status_file) == "Charging"`.
-        -- On Linux power_supply sysfs, when a plugged-in battery reaches 100%,
-        -- the kernel sets status to "Full". Because isChargingHW only checks for
-        -- "Charging", it returns false when plugged in and fully charged.
         status_content = "Full"
         assert.is_true(
           powerd:isChargingHW(),
@@ -106,5 +102,16 @@ describe("Remarkable_PowerD", function()
         )
       end
     )
+
+    it("isChargedHW reports true when device status is Full", function()
+      status_content = "Full"
+      assert.is_true(powerd:isChargedHW())
+
+      status_content = "Charging"
+      assert.is_false(powerd:isChargedHW())
+
+      status_content = "Discharging"
+      assert.is_false(powerd:isChargedHW())
+    end)
   end)
 end)

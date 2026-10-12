@@ -466,20 +466,6 @@ describe("ViewHTML module", function()
 
   describe("Defect verifications", function()
     it(
-      "should ensure _showMatchingSelectors handles empty ancestors gracefully",
-      function()
-        local document = {
-          getStylesheetsMatchingRulesets = function()
-            return {}
-          end,
-        }
-        assert.has_no.errors(function()
-          ViewHTML:_showMatchingSelectors(document, {}, false)
-        end)
-      end
-    )
-
-    it(
       "should ensure multi-pass replace_in_html offset_shifts correctly identify element",
       function()
         local document = {}

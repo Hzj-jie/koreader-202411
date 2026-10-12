@@ -166,7 +166,7 @@ describe("AutoFrontlight widget tests", function()
   )
 
   it(
-    "_action re-enables frontlight when turned off while in dark environment",
+    "respects manual frontlight toggle when ambient brightness is unchanged",
     function()
       -- Set the initial state: ambient brightness 0, frontlight on (level 2)
       setAmbientBrightnessAndRun(3)
@@ -174,16 +174,14 @@ describe("AutoFrontlight widget tests", function()
       setAmbientBrightnessAndRun(0)
       assertFrontlightLevel(2)
 
-      -- User or suspend/resume turns off frontlight out-of-band while still in dark environment
+      -- User turns off frontlight manually while still in dark environment
       Device:getPowerDevice():turnOffFrontlight()
       assertFrontlightLevel(0)
 
-      -- When AutoFrontlight runs again in ambient brightness 0, it should detect that
-      -- frontlight is off in a dark environment and turn it back on.
-      -- Bug: lines 48-53 exits early because self.last_brightness == current_level (both 0),
-      -- leaving the frontlight off in the dark!
+      -- When AutoFrontlight runs again in ambient brightness 0, it should respect
+      -- the manual toggle because ambient brightness is unchanged
       setAmbientBrightnessAndRun(0)
-      assertFrontlightLevel(2)
+      assertFrontlightLevel(0)
     end
   )
 

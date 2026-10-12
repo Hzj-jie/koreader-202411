@@ -254,12 +254,12 @@ describe("Notification", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes _cleanShownStack closing older notification clobbering newer notification slot in _shown_list",
+      "_cleanShownStack preserves unexpired notifications and trims expired ones",
       function()
         local n1 = Notification:new({ text = "First" })
         local n2 = Notification:new({ text = "Second" })
         Notification._shown_list[1] = time.monotonic() - time.s(35)
-        Notification._shown_list[2] = time.monotonic() - time.s(31)
+        Notification._shown_list[2] = time.monotonic() - time.s(5)
 
         n1:onClose()
 

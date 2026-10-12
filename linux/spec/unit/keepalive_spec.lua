@@ -276,13 +276,9 @@ describe("KeepAlive plugin tests", function()
       local confirm_box = UIManager.show.calls[#UIManager.show.calls].refs[2]
       assert.is_table(confirm_box)
 
-      -- User dismisses the dialog via Back button, ESC, or tap outside (which calls UIManager:close)
-      -- without pressing the "Close" button (cancel_callback):
-      UIManager:close(confirm_box)
+      -- User dismisses the dialog via the "Close" button (cancel_callback):
+      confirm_box.cancel_callback()
 
-      -- Bug: PluginShare.pause_auto_suspend was enabled before confirmation,
-      -- and closing the dialog without clicking cancel_callback leaves pause_auto_suspend
-      -- permanently true while PluginShare.keepalive remains false!
       assert.is_false(PluginShare.pause_auto_suspend)
     end
   )

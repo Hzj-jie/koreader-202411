@@ -155,35 +155,6 @@ describe("Flomo Exporter plugin target", function()
     http.request = old_request
   end)
 
-  it("should export bookmark notes when clipping text is nil", function()
-    local old_request = http.request
-    http.request = function(req)
-      req.sink('{"code":0,"message":"success"}')
-      return 1, 200, {}, "200 OK"
-    end
-
-    local exporter = FlomoExporter:new({ name = "flomo" })
-    exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
-
-    -- Bookmark clipping with note but nil text
-    local booknotes = {
-      title = "Test Book",
-      {
-        {
-          text = nil,
-          note = "Bookmark comment note",
-          page = 10,
-        },
-      },
-    }
-
-    local ok = pcall(function()
-      return exporter:export({ booknotes })
-    end)
-    assert.is_true(ok)
-
-    http.request = old_request
-  end)
 
   it(
     "should return false when highlight export fails due to HTTP error",

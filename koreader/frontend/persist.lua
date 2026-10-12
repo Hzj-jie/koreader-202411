@@ -223,21 +223,16 @@ function Persist:size()
 end
 
 function Persist:load()
-  local codec = codecs[self.codec]
-  if not codec then
-    return nil, "unknown codec: " .. tostring(self.codec)
-  end
-
   local t, err
-  if codec.reads_from_file then
-    t, err = codec.deserialize(self.path)
+  if codecs[self.codec].reads_from_file then
+    t, err = codecs[self.codec].deserialize(self.path)
   else
     local str
     str, err = readFile(self.path)
     if not str then
       return nil, err
     end
-    t, err = codec.deserialize(str)
+    t, err = codecs[self.codec].deserialize(str)
   end
   if not t then
     return nil, err
@@ -248,19 +243,14 @@ function Persist:load()
 end
 
 function Persist:save(t, as_bytecode)
-  local codec = codecs[self.codec]
-  if not codec then
-    return nil, "unknown codec: " .. tostring(self.codec)
-  end
-
   local ok, err
-  if codec.writes_to_file then
-    ok, err = codec.serialize(t, as_bytecode, self.path)
+  if codecs[self.codec].writes_to_file then
+    ok, err = codecs[self.codec].serialize(t, as_bytecode, self.path)
     if not ok then
       return nil, err
     end
   else
-    ok, err = codec.serialize(t, as_bytecode)
+    ok, err = codecs[self.codec].serialize(t, as_bytecode)
     if not ok then
       return nil, err
     end

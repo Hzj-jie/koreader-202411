@@ -70,13 +70,6 @@ function KOSyncClient:init()
   end
 end
 
-local function sanitize_error(err)
-  if type(err) == "string" then
-    return (err:gsub("^.-:%d+: ", ""))
-  end
-  return err
-end
-
 function KOSyncClient:register(username, password)
   self.client:reset_middlewares()
   self.client:enable("Format.JSON")
@@ -93,7 +86,7 @@ function KOSyncClient:register(username, password)
     return res.status == 201, res.body
   else
     logger.dbg("KOSyncClient:register failure:", res)
-    return false, sanitize_error(res)
+    return false, res.body
   end
 end
 
@@ -114,7 +107,7 @@ function KOSyncClient:authorize(username, password)
     return res.status == 200, res.body
   else
     logger.dbg("KOSyncClient:authorize failure:", res)
-    return false, sanitize_error(res)
+    return false, res.body
   end
 end
 
@@ -151,7 +144,7 @@ function KOSyncClient:update_progress(
       callback(res.status == 200, res.body)
     else
       logger.dbg("KOSyncClient:update_progress failure:", res)
-      callback(false, sanitize_error(res))
+      callback(false, res.body)
     end
   end)
   self.client:enable("AsyncHTTP", { thread = co })
@@ -181,7 +174,7 @@ function KOSyncClient:get_progress(username, password, document, callback)
       callback(res.status == 200, res.body)
     else
       logger.dbg("KOSyncClient:get_progress failure:", res)
-      callback(false, sanitize_error(res))
+      callback(false, res.body)
     end
   end)
   self.client:enable("AsyncHTTP", { thread = co })

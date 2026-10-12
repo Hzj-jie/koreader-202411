@@ -304,7 +304,7 @@ function KeyValuePage:init()
   self.kv_pairs = {}
   -- deprecated, use separator=true on a regular k/v table
   -- (kept in case some user plugins would use this)
-  for _, value in pairs(kv_pairs or {}) do
+  for _, value in pairs(kv_pairs) do
     if type(value) == "string" then
       if string.match(value, "^-+$") then
         -- Never add a separator before the very first item.

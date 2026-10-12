@@ -221,4 +221,57 @@ describe("Checkers main plugin module", function()
 
     UIManager.scheduleIn = old_schedule
   end)
+
+  it("should unschedule pending AI task on undo", function()
+    local scheduled = false
+    local unscheduled = false
+    local old_schedule = UIManager.scheduleIn
+    local old_unschedule = UIManager.unschedule
+    UIManager.scheduleIn = function(self_uim, delay, fn)
+      scheduled = true
+      return fn
+    end
+    UIManager.unschedule = function(self_uim, action)
+      unscheduled = true
+    end
+
+    local instance = Checkers:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+    instance:init()
+    instance.human[1] = false
+    instance.human[2] = true
+
+    instance.game = Game.new()
+    instance.board = {
+      game = instance.game,
+      _clear_selection = function() end,
+      updateBoard = function() end,
+    }
+    instance.status_bar = {
+      setTitle = function() end,
+      setSubTitle = function() end,
+    }
+
+    -- Black (AI) makes opening move
+    local m1 = instance.game:get_possible_moves()[1]
+    instance.game:move(m1[1], m1[2])
+
+    -- White (Human) makes move 2
+    local m2 = instance.game:get_possible_moves()[1]
+    instance.game:move(m2[1], m2[2])
+
+    -- Simulate pending AI task
+    instance:scheduleAIMove()
+    assert.is_true(scheduled)
+
+    -- Undo while AI move is pending
+    instance:doUndo()
+    assert.is_true(unscheduled)
+
+    UIManager.scheduleIn = old_schedule
+    UIManager.unschedule = old_unschedule
+  end)
 end)
