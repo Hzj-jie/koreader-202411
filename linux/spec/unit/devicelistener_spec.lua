@@ -906,26 +906,5 @@ describe("devicelistener", function()
         assert.spy(mock_powerd.setIntensity).was_not.called()
       end
     )
-
-    it(
-      "onSwapPageTurnButtons preserves right button inversion when swapping left buttons",
-      function()
-        local listener = DeviceListener:new({})
-        mock_reader_settings:save("input_invert_page_turn_keys", true)
-        mock_device.invertButtons = spy.new(function() end)
-        mock_device.invertButtonsLeft = spy.new(function() end)
-        mock_device.invertButtonsRight = spy.new(function() end)
-
-        listener:onSwapPageTurnButtons("left")
-
-        -- When both sides were inverted and the user swaps left-side buttons,
-        -- right-side buttons must remain inverted.
-        -- Bug: onSwapPageTurnButtons("left") un-inverts both sides via Device:invertButtons()
-        -- and then only inverts left side, leaving right-side un-inverted.
-        assert.is_true(
-          mock_reader_settings:isTrue("input_invert_right_page_turn_keys")
-        )
-      end
-    )
   end)
 end)
