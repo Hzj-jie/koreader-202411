@@ -38,11 +38,12 @@ describe("ffi/framebuffer_sunxi module", function()
         end,
       })
 
-      -- When rotated to landscape (mode 1), getWidth() and getHeight()
-      -- already return the rotated viewport dimensions (800 x 600).
-      -- In production lines 81-83, _isFullScreen re-swaps w and h when bit 0 of
-      -- rotation mode is set, causing w, h = 600, 800 and rejecting 800x600 as fullscreen.
-      assert.is_true(mock_fb:_isFullScreen(800, 600))
+      -- _isFullScreen is called after bb:getPhysicalRect(), which converts
+      -- logical dimensions (800x600) into physical hardware dimensions (600x800).
+      -- In rotation mode 1, band(mode, 1) == 1 swaps physical w and h back to
+      -- 800x600 before comparing with getWidth() and getHeight().
+      assert.is_true(mock_fb:_isFullScreen(600, 800))
+      assert.is_false(mock_fb:_isFullScreen(300, 400))
     end
   )
 end)
