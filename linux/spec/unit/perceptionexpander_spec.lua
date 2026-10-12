@@ -132,14 +132,15 @@ describe("PerceptionExpander widget tests", function()
       end
 
       plugin:createUI()
-      local initial_landscape_margin = plugin.margin
+      assert.are.equal(0.1, plugin.margin)
+      assert.are.equal(plugin.screen_width * 0.07, plugin.left_line.dimen.x)
 
-      -- Successive calls to createUI() (e.g. from saveSettings, redraws, or orientation checks)
-      -- should not repeatedly subtract margin_shift in place.
+      -- Successive calls to createUI() should not shrink plugin.margin
       plugin:createUI()
       plugin:createUI()
 
-      assert.are.equal(initial_landscape_margin, plugin.margin)
+      assert.are.equal(0.1, plugin.margin)
+      assert.are.equal(plugin.screen_width * 0.07, plugin.left_line.dimen.x)
     end
   )
 end)
