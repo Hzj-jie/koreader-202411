@@ -164,9 +164,9 @@ function RenderImage:renderGifImageDataWithGifLib(
     frames.image_disposable = true
     for i = 1, nb_frames do
       table.insert(frames, function()
-        local page = gif:openPage(i)
+        local page_ok, page = pcall(gif.openPage, gif, i)
         -- we do not page.close(), so image_bb is not freed
-        if page and page.image_bb then
+        if page_ok and page and page.image_bb then
           return self:scaleBlitBuffer(page.image_bb, width, height)
         end
       end)
@@ -198,9 +198,9 @@ function RenderImage:renderGifImageDataWithGifLib(
     setmetatable(frames, frames_mt)
     return frames
   else
-    local page = gif:openPage(1)
+    local page_ok, page = pcall(gif.openPage, gif, 1)
     -- we do not page.close(), so image_bb is not freed
-    if page and page.image_bb then
+    if page_ok and page and page.image_bb then
       gif:close()
       return self:scaleBlitBuffer(page.image_bb, width, height)
     end
