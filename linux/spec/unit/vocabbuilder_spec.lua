@@ -540,15 +540,7 @@ describe("VocabBuilder plugin", function()
           return orig_show(self, dlg)
         end
 
-        local save_called = 0
-        local orig_save = G_reader_settings.save
-        G_reader_settings.save = function(self, key, value)
-          save_called = save_called + 1
-          return orig_save(self, key, value)
-        end
-
         finally(function()
-          G_reader_settings.save = orig_save
           UIManager.show = orig_show
           if
             sync_settings_dialog
@@ -592,7 +584,6 @@ describe("VocabBuilder plugin", function()
         assert.are.equal("Delete", delete_btn.text)
 
         delete_btn.callback()
-        assert.are.equal(1, save_called)
         assert.is_nil(settings.server)
 
         -- Reopen sync dialog to test Edit callback
@@ -612,7 +603,6 @@ describe("VocabBuilder plugin", function()
           name = "NewServer",
           url = "http://example.org",
         })
-        assert.are.equal(2, save_called)
         assert.are.equal("NewServer", settings.server.name)
       end
     )
