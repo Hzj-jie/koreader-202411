@@ -36,4 +36,28 @@ describe("ffi/pic module", function()
     assert.is_false(ok)
     assert.is_not_nil(string.match(tostring(err), "GIF has no images"))
   end)
+
+  it(
+    "fails cleanly when opening page on GIF with no valid color map",
+    function()
+      local doc = Pic.openGIFDocument("../koreader/tools/eink_cmap.gif")
+      local saved_s_colormap = doc.giffile.SColorMap
+      local saved_desc_colormap = doc.giffile.SavedImages[0].ImageDesc.ColorMap
+      doc.giffile.SColorMap = nil
+      doc.giffile.SavedImages[0].ImageDesc.ColorMap = nil
+
+      local ok, err = pcall(function()
+        doc:openPage(1)
+      end)
+
+      doc.giffile.SColorMap = saved_s_colormap
+      doc.giffile.SavedImages[0].ImageDesc.ColorMap = saved_desc_colormap
+      doc:close()
+
+      assert.is_false(ok)
+      assert.is_not_nil(
+        string.match(tostring(err), "GIF has no valid color map")
+      )
+    end
+  )
 end)
