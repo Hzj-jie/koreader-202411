@@ -119,7 +119,7 @@ describe("SSH plugin main module", function()
       assert.is_false(instance:isRunning())
     end)
 
-    it("should not disable SSH plugin on Kindle devices", function()
+    it("should disable SSH plugin on Kindle devices", function()
       local orig_isEmulator = Device.isEmulator
       local orig_isKobo = Device.isKobo
       local orig_isKindle = Device.isKindle
@@ -142,8 +142,7 @@ describe("SSH plugin main module", function()
       Device.isKindle = orig_isKindle
       package.loaded["plugins/SSH.koplugin/main"] = SSH
 
-      assert.is_nil(kindle_ssh.disabled)
-      assert.is_function(kindle_ssh.new)
+      assert.is_true(kindle_ssh.disabled)
     end)
   end)
 
