@@ -17,12 +17,7 @@ function Remarkable_PowerD:getCapacityHW()
 end
 
 function Remarkable_PowerD:isChargingHW()
-  local status = self:read_str_file(self.status_file)
-  return status == "Charging" or status == "Full"
-end
-
-function Remarkable_PowerD:isChargedHW()
-  return self:read_str_file(self.status_file) == "Full"
+  return self:read_str_file(self.status_file) == "Charging"
 end
 
 function Remarkable_PowerD:beforeSuspend()
