@@ -60,18 +60,16 @@ local function prepareBookContent(
         .. " @ "
         .. os.date("%d %B %Y %I:%M:%S %p", entry.time)
     )
-    if entry.text then
-      if highlight_formatting then
-        table.insert(
-          tbl,
-          string.format(
-            formatters[formatting_options[entry.drawer]].formatter,
-            entry.text
-          )
+    if highlight_formatting then
+      table.insert(
+        tbl,
+        string.format(
+          formatters[formatting_options[entry.drawer]].formatter,
+          entry.text
         )
-      else
-        table.insert(tbl, entry.text)
-      end
+      )
+    else
+      table.insert(tbl, entry.text)
     end
     if entry.note then
       table.insert(tbl, "\n---\n" .. entry.note)
