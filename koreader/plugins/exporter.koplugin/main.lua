@@ -285,7 +285,7 @@ function Exporter:addToMainMenu(menu_items)
         text = T(gettext("Share as %1"), v.name),
         callback = function()
           local clippings = self:getDocumentClippings()
-          local document = {}
+          local document
           for _, notes in pairs(clippings) do
             document = notes or {}
           end

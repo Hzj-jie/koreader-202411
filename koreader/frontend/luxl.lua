@@ -699,10 +699,6 @@ local function gen_cclass_code(prefix, cclass)
       prefix,
       "if(ps.mark == 0) then ps.mark = ps.i end -- mark the position\n"
     )
-  elseif cclass.event == EVENT_ATTR_VAL then
-    code(prefix, "if(ps.mark == 0) then ps.mark = ps.i end\n")
-    code(prefix, "return ", cclass.event, ", ", next_state, "_f\n")
-    return
   elseif cclass.event ~= EVENT_NONE then
     code(prefix, "if(ps.mark > 0) then\n")
     code(prefix, "  return ", cclass.event, ", ", next_state, "_f\n")
@@ -786,22 +782,6 @@ function luxl.new(buffer, bufflen)
   setmetatable(newone, luxl_mt)
 
   return newone
-end
-
-function luxl:Reset(buffer, bufflen)
-  self.buf = ffi.cast("const uint8_t *", buffer) -- pointer to "uint8_t *" buffer (0 based)
-  self.bufsz = bufflen -- size of input buffer
-  self.state = ST_START -- current state
-  self.event = EVENT_NONE -- current event
-  self.err = 0 -- number of errors thus far
-  self.markix = 0 -- offset of current item of interest
-  self.marksz = 0 -- size of current item of interest
-  local ps = self.ps
-  ps.buf = buffer
-  ps.bufsz = bufflen
-  ps.mark = 0
-  ps.i = 0
-  ps.ix = 0
 end
 
 function luxl:SetMessageHandler(handler)

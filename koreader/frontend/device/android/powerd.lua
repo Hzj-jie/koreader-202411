@@ -45,24 +45,13 @@ function AndroidPowerD:init()
 end
 
 function AndroidPowerD:setWarmthHW(warmth)
-  if self.warm_diff and self.warm_diff > 0 then
-    local min_warmth = self.fl_warmth_min or 0
-    android.setScreenWarmth(
-      min_warmth + math.floor(warmth * self.warm_diff / 100)
-    )
-  else
-    android.setScreenWarmth(warmth)
-  end
+  android.setScreenWarmth(warmth)
 end
 
 function AndroidPowerD:frontlightWarmthHW()
-  if self.warm_diff and self.warm_diff > 0 then
-    local min_warmth = self.fl_warmth_min or 0
-    return math.floor(
-      (android.getScreenWarmth() - min_warmth) / self.warm_diff * 100
-    )
-  end
-  return android.getScreenWarmth()
+  return math.floor(
+    (android.getScreenWarmth() - self.fl_warmth_min) / self.warm_diff * 100
+  )
 end
 
 function AndroidPowerD:getCapacityHW()
@@ -97,14 +86,10 @@ function AndroidPowerD:turnOnFrontlightHW(_done_callback)
   )
 
   if android.hasStandaloneWarmth() then
-    if self.warm_diff and self.warm_diff > 0 then
-      local min_warmth = self.fl_warmth_min or 0
-      android.setScreenWarmth(
-        min_warmth + math.floor(self.fl_warmth * self.warm_diff / 100)
-      )
-    else
-      android.setScreenWarmth(self.fl_warmth)
-    end
+    android.setScreenWarmth(
+      self.fl_warmth_min
+        + math.floor(self.fl_warmth * self.warm_diff / 100)
+    )
   end
   return false
 end

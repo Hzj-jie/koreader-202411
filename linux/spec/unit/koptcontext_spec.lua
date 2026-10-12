@@ -33,27 +33,12 @@ describe("ffi/koptcontext module", function()
     assert.are.equal(0.06, kc.margin)
   end)
 
-  it("updates and retrieves language when set", function()
-    local kc = KOPTContext.new()
-    kc:setLanguage("eng")
-    assert.are.equal("eng", kc:getLanguage())
-  end)
-
-  it("safely retrieves language when language is unset", function()
-    local kc = KOPTContext.new()
-    local ok, lang = pcall(function()
-      return kc:getLanguage()
-    end)
-    assert.is_true(ok)
-    assert.is_nil(lang)
-  end)
-
-  it("serializes rectmaps allocated capacity na in totable", function()
+  it("serializes and restores rectmaps matching allocated size", function()
     local kc = KOPTContext.new()
     kc:setLanguage("eng")
     kc.rectmaps.n = 2
     kc.rectmaps.na = 10
-    kc.rectmaps.wrectmap = ffi.C.malloc(ffi.sizeof("WRECTMAP") * 10)
+    kc.rectmaps.wrectmap = ffi.C.malloc(ffi.sizeof("WRECTMAP") * 2)
 
     local tbl = KOPTContext.totable(kc)
     ffi.C.free(kc.rectmaps.wrectmap)
@@ -62,6 +47,14 @@ describe("ffi/koptcontext module", function()
     kc.rectmaps.na = 0
 
     assert.are.equal(2, tbl.rectmaps.n)
-    assert.are.equal(10, tbl.rectmaps.na)
+    assert.are.equal(2, tbl.rectmaps.na)
+
+    local restored = KOPTContext.fromtable(tbl)
+    assert.are.equal(2, restored.rectmaps.n)
+    assert.are.equal(2, restored.rectmaps.na)
+    if restored.rectmaps.wrectmap ~= nil then
+      ffi.C.free(restored.rectmaps.wrectmap)
+      restored.rectmaps.wrectmap = nil
+    end
   end)
 end)

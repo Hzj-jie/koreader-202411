@@ -47,6 +47,8 @@ function BackgroundJobs.insertKeyed(job)
     "BackgroundJobs.insertKeyed does not support custom when"
   )
 
+  job.when = "asap"
+
   local key = calculateKey(job)
   assert(
     type(key) == "string",
@@ -61,14 +63,11 @@ function BackgroundJobs.insertKeyed(job)
     return false
   end
 
-  job.when = "asap"
   _active_keys[key] = true
 
   local orig_callback = job.callback
   job.callback = function(res_job)
     _active_keys[key] = nil
-    job.when = nil
-    job.callback = orig_callback
     if orig_callback then
       orig_callback(res_job)
     end

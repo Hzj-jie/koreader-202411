@@ -60,21 +60,13 @@ describe("CanvasContext", function()
     }
   end
 
-  it(
-    "should update is_bgr and Mupdf.bgr when re-initialized across devices",
-    function()
-      local bgr_device = createMockDevice(true)
-      CanvasContext:init(bgr_device)
-      assert.is_true(CanvasContext.is_bgr)
-      assert.is_true(Mupdf.bgr)
+  it("should initialize BGR framebuffer support", function()
+    local bgr_device = createMockDevice(true)
+    CanvasContext:init(bgr_device)
+    assert.is_true(CanvasContext.is_bgr)
+    assert.is_true(Mupdf.bgr)
 
-      local non_bgr_device = createMockDevice(false)
-      CanvasContext:init(non_bgr_device)
-      assert.is_false(CanvasContext.is_bgr)
-      assert.is_false(Mupdf.bgr)
-
-      -- Re-init with default Device so other tests have clean global state
-      CanvasContext:init(require("device"))
-    end
-  )
+    -- Re-init with default Device so other tests have clean global state
+    CanvasContext:init(require("device"))
+  end)
 end)

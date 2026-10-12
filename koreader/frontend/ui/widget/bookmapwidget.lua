@@ -91,18 +91,12 @@ function BookMapRow:getPageAtX(x, at_bounds_if_outside)
     if not at_bounds_if_outside then
       return
     end
-    x = math.max(0, self.pages_frame_inner_width - 1)
+    x = self.pages_frame_inner_width - 1
   end
   -- Reverse of the computation in :getPageX():
-  local slot_size = self.page_slot_width
-    + (
-      self.nb_page_slots > 0 and self.page_slot_extra / self.nb_page_slots or 0
-    )
-  local slot_idx = 0
-  if slot_size > 0 then
-    slot_idx = math.floor(x / slot_size)
-  end
-  slot_idx = math.max(0, math.min(slot_idx, self.nb_page_slots - 1))
+  local slot_idx = math.floor(
+    x / (self.page_slot_width + self.page_slot_extra / self.nb_page_slots)
+  )
   if BD.mirroredUILayout() then
     return self.end_page - slot_idx
   else
@@ -2119,10 +2113,7 @@ function BookMapWidget:paintBottomHorizontalSwipeHint(bb)
   -- could be related to the increment/ratio we use in onSwipe)
   local cur = self.pages_per_row - self.min_pages_per_row
   local max = self.max_pages_per_row - self.min_pages_per_row
-  local dx = 0
-  if max > 0 then
-    dx = math.floor(h.max_dx * (1 - math.log(1 + cur) / math.log(1 + max)))
-  end
+  local dx = math.floor(h.max_dx * (1 - math.log(1 + cur) / math.log(1 + max)))
   if BD.mirroredUILayout() then
     dx = h.max_dx - dx
   end

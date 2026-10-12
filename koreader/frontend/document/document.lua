@@ -322,23 +322,36 @@ This method returns pagesize if bbox is corrupted
 --]]
 function Document:getUsedBBoxDimensions(pageno, zoom, rotation)
   local bbox = self:getPageBBox(pageno)
-  -- clipping page bbox without mutating cached bbox
-  local x0 = math.max(0, bbox.x0 or 0)
-  local y0 = math.max(0, bbox.y0 or 0)
-  local x1 = bbox.x1 and math.max(0, bbox.x1) or nil
-  local y1 = bbox.y1 and math.max(0, bbox.y1) or nil
+  -- clipping page bbox
+  if bbox.x0 < 0 then
+    bbox.x0 = 0
+  end
+  if bbox.y0 < 0 then
+    bbox.y0 = 0
+  end
+  if bbox.x1 and bbox.x1 < 0 then
+    bbox.x1 = 0
+  end
+  if bbox.y1 and bbox.y1 < 0 then
+    bbox.y1 = 0
+  end
   local ubbox_dimen
-  if (not x1 or x0 >= x1) or (not y1 or y0 >= y1) then
+  if
+    (not bbox.x1 or bbox.x0 >= bbox.x1) or (not bbox.y1 or bbox.y0 >= bbox.y1)
+  then
     -- if document's bbox info is corrupted, we use the page size
     ubbox_dimen = self:getPageDimensions(pageno, zoom, rotation)
   else
-    local rect = Geom:new({
-      x = x0,
-      y = y0,
-      w = x1 - x0,
-      h = y1 - y0,
+    ubbox_dimen = Geom:new({
+      x = bbox.x0,
+      y = bbox.y0,
+      w = bbox.x1 - bbox.x0,
+      h = bbox.y1 - bbox.y0,
     })
-    ubbox_dimen = self:transformRect(rect, zoom, rotation)
+    --- @note: Should we round this regardless of zoom?
+    if zoom ~= 1 then
+      ubbox_dimen:transformByScale(zoom)
+    end
   end
   return ubbox_dimen
 end

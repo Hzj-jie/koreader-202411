@@ -66,7 +66,7 @@ describe("ClippingsExporter module", function()
       },
     }
 
-    ClippingsExporter:share({ booknotes })
+    ClippingsExporter:share(booknotes)
     assert.is_not_nil(shared_text)
     assert.is_true(shared_text:find("Test Novel") ~= nil)
   end)

@@ -229,7 +229,7 @@ end
 
 --- Replaces existing settings with table.
 function LuaSettings:reset(table)
-  self.data = table or {}
+  self.data = table
   return self
 end
 

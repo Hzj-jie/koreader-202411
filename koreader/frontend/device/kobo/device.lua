@@ -52,7 +52,7 @@ local function checkStandby(target_state)
   return util.no
 end
 
--- Return the CPU core count
+-- Return the highest core number
 local function getCPUCount()
   local fd = io.open("/sys/devices/system/cpu/possible", "re")
   if fd then
@@ -60,13 +60,7 @@ local function getCPUCount()
     fd:close()
 
     -- Format is n-N, where n is the first core, and N the last (e.g., 0-3)
-    if str then
-      local first, last = str:match("(%d+)%-(%d+)")
-      if first and last then
-        return tonumber(last) - tonumber(first) + 1
-      end
-    end
-    return 1
+    return tonumber(str:match("%d+$")) or 1
   else
     return 1
   end
@@ -1714,18 +1708,12 @@ function Kobo:defaultCPUGovernor()
 end
 
 function Kobo:isStartupScriptUpToDate()
-  local koreader_dir = os.getenv("KOREADER_DIR")
-  if not koreader_dir then
-    return false
-  end
   -- Compare the hash of the *active* script (i.e., the one in /tmp) to the *potential* one (i.e., the one in KOREADER_DIR)
   local current_script = "/tmp/koreader.sh"
-  local new_script = koreader_dir .. "/" .. "koreader.sh"
+  local new_script = os.getenv("KOREADER_DIR") .. "/" .. "koreader.sh"
 
   local md5 = require("ffi/MD5")
-  local current_hash = md5.sumFile(current_script)
-  local new_hash = md5.sumFile(new_script)
-  return current_hash ~= nil and current_hash == new_hash
+  return md5.sumFile(current_script) == md5.sumFile(new_script)
 end
 
 function Kobo:UIManagerReady(uimgr)

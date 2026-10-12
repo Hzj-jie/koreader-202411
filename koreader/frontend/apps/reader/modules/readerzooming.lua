@@ -800,12 +800,8 @@ function ReaderZooming:onZoomFactorChange()
 end
 
 function ReaderZooming:onSetZoomPan(settings, no_redraw)
-  if settings.kopt_zoom_factor ~= nil then
-    self.ui.doc_settings:save("kopt_zoom_factor", settings.kopt_zoom_factor)
-  end
-  if settings.zoom_mode ~= nil then
-    self.ui.doc_settings:save("zoom_mode", settings.zoom_mode)
-  end
+  self.ui.doc_settings:save("kopt_zoom_factor", settings.kopt_zoom_factor)
+  self.ui.doc_settings:save("zoom_mode", settings.zoom_mode)
   for k, v in pairs(settings) do
     self[k] = v
     -- Configurable keys aren't prefixed...

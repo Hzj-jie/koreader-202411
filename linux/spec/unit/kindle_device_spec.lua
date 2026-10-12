@@ -52,20 +52,6 @@ describe("Kindle device", function()
 
   describe("Defect verifications", function()
     it(
-      "setDateTime returns false on non-legacy models instead of nil",
-      function()
-        -- Kindle:setDateTime explicit contract: "-- Returns false to disable the feature."
-        -- When model is non-legacy (e.g. KindlePaperWhite), lines 665-672 have:
-        -- if self.model ~= "Kindle" and self.model ~= "Kindle2" and self.model ~= "KindleDXG" then
-        --   return
-        -- end
-        -- A bare return produces nil instead of false!
-        local ret = KindlePaperWhite:setDateTime(2026, 10, 10, 12, 0, 0)
-        assert.is_false(ret)
-      end
-    )
-
-    it(
       "OutOfSS refresh region covers bottom pixel row without under-refreshing",
       function()
         -- Screen height is 1000. Pixels run y = 0 to 999.

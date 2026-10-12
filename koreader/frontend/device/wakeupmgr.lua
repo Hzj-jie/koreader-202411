@@ -152,7 +152,6 @@ function WakeupMgr:removeTasks(epoch, callback)
         and match_epoch
         and self.DummyTaskCallback == v.callback
         and v.epoch < match_epoch
-        and (match_epoch - v.epoch) % 0xFFFF == 0
       )
     then
       if not match_epoch then

@@ -218,18 +218,26 @@ describe("MoveToArchive main plugin module", function()
           updated_history = true
         end
 
+        local browser_path
+        local orig_openFileBrowser = instance.openFileBrowser
+        instance.openFileBrowser = function(self_i, path)
+          browser_path = path
+        end
+
         finally(function()
           FileManager.moveFile = orig_move
           DocSettings.updateLocation = orig_updateLocation
           readhistory.updateItem = orig_updateItem
+          instance.openFileBrowser = orig_openFileBrowser
         end)
 
         instance:onMoveToArchive(false)
         assert.is_true(move_failed)
         -- When FileManager:moveFile fails, DocSettings and ReadHistory should NOT be updated.
-        -- Bug: onMoveToArchive ignores moveFile return value and unconditionally updates them.
+        -- And file browser should reopen so UI window stack is not left empty.
         assert.is_false(updated_docsettings)
         assert.is_false(updated_history)
+        assert.are.equal("/books/fiction/", browser_path)
       end
     )
   end)

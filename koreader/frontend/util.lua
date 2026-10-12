@@ -824,9 +824,8 @@ function util:calcFreeMem()
   else
     -- Crappy Free + Buffers + Cache version, because the zoneinfo approach is a tad hairy...
     -- So, leave an even larger margin, and only report 75% of that...
-    return math.floor(((memfree or 0) + (buffers or 0) + (cached or 0)) * 0.75)
-      * 1024,
-      (memtotal or 0) * 1024
+    return math.floor((memfree + buffers + cached) * 0.75) * 1024,
+      memtotal * 1024
   end
 end
 

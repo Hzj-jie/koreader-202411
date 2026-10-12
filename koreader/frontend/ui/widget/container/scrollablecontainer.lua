@@ -713,13 +713,8 @@ function ScrollableContainer:onScrollablePanRelease(_, ges)
   end
   logger.dbg("ScrollableContainer:onScrollablePanRelease", ges)
   if self._scrolling then
-    self._scrolling = false
-    if not self._scroll_relative_x or not self._scroll_relative_y then
-      self._scroll_relative_x = nil
-      self._scroll_relative_y = nil
-      return false
-    end
     self:_scrollBy(-self._scroll_relative_x, -self._scroll_relative_y)
+    self._scrolling = false
     self._scroll_relative_x = nil
     self._scroll_relative_y = nil
     return true

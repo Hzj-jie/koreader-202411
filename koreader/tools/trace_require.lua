@@ -18,19 +18,17 @@ function require(module)
   local x = os.clock()
   local info = debug.getinfo(2)
   -- this is a protected call of require
-  if info and info.short_src == "[C]" then
+  if info.short_src == "[C]" then
     info = debug.getinfo(3)
   end
-  local short_src = info and info.short_src or "?"
-  local currentline = info and info.currentline or "?"
   local loaded = loaded_modules[module]
   if not loaded then
     print(
       string.format(
         "%s%s:%s => %s",
         indent:rep(level),
-        short_src,
-        currentline,
+        info.short_src,
+        info.currentline,
         module
       )
     )
@@ -39,8 +37,8 @@ function require(module)
       string.format(
         "%s%s:%s -> %s",
         indent:rep(level),
-        short_src,
-        currentline,
+        info.short_src,
+        info.currentline,
         module
       )
     )
@@ -52,9 +50,7 @@ function require(module)
     error(loaded_module)
   end
   local elapse = os.clock() - x
-  local safe_elapse = elapse > 0 and elapse or 0.000001
-  local annot = highlight:rep(math.ceil(math.log10(safe_elapse / threshold)))
-    or ""
+  local annot = highlight:rep(math.ceil(math.log10(elapse / threshold))) or ""
   if not loaded then
     print(
       string.format(

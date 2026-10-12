@@ -151,7 +151,7 @@ function CervantesPowerD:beforeSuspend()
 end
 
 function CervantesPowerD:afterResume()
-  if self.fl then
+  if self.fl and self.fl_was_on then
     -- just re-set it to self.hw_intensity that we haven't changed on Suspend
     if not self.device:hasNaturalLight() then
       self.fl:setBrightness(self.hw_intensity)

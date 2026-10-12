@@ -75,7 +75,6 @@ Saves settings for the exporter
 function BaseExporter:saveSettings()
   local plugin_settings = G_reader_settings:readTableRef("exporter")
   plugin_settings[self.name] = self.settings
-  G_reader_settings:save("exporter", plugin_settings)
   self.new_settings = true
 end
 
@@ -102,11 +101,7 @@ function BaseExporter:getFilePath(t)
   local title
   if #t == 1 then
     title = t[1].output_filename
-      or (t[1].title and util.getSafeFilename(t[1].title))
-      or (t[1].file and select(2, util.splitFilePathName(t[1].file)))
-      or self.all_books_title
-      or "all-books"
-    if plugin_settings.clipping_dir_book and t[1].file then
+    if plugin_settings.clipping_dir_book then
       clipping_dir = util.splitFilePathName(t[1].file):sub(1, -2)
     end
   else

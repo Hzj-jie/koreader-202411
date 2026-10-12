@@ -80,7 +80,6 @@ function Game:saveState()
     },
     moves = self.moves,
     score = self.score,
-    last_draw_count = self.last_draw_count,
   }
 
   table.insert(self.history, state)
@@ -105,7 +104,6 @@ function Game:undo()
   self.tableau = state.tableau
   self.moves = state.moves
   self.score = state.score
-  self.last_draw_count = state.last_draw_count
 
   return true
 end

@@ -72,7 +72,7 @@ local function alpha_beta(game, depth, alpha, beta, ai_player)
   local current = game:whose_turn()
   local is_max = (current == ai_player)
 
-  if depth <= 0 or game:is_over() then
+  if depth == 0 or game:is_over() then
     return evaluate(game, ai_player)
   end
 

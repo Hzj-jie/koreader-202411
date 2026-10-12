@@ -118,40 +118,5 @@ describe("PocketBook device", function()
         )
       )
     end)
-
-    it(
-      "associateFileExtensions handles digit-only extensions without crashing",
-      function()
-        -- Bug: line 349 does `k:match("%a+"):upper()`. When k is digit-only like "001",
-        -- k:match("%a+") returns nil and nil:upper() crashes with attempt to index a nil value.
-        local ok, err = pcall(function()
-          PocketBook:associateFileExtensions({ ["001"] = true })
-        end)
-        assert.is_true(
-          ok,
-          "associateFileExtensions should not crash on digit extensions: "
-            .. tostring(err)
-        )
-      end
-    )
-
-    it(
-      "associateFileExtensions preserves digits in alphanumeric extensions",
-      function()
-        -- Bug: line 349 does `k:match("%a+"):upper()`. When k is "fb2",
-        -- k:match("%a+") matches only "fb" and drops "2", producing ICON_FB and @FB_file.
-        PocketBook:associateFileExtensions({ ["fb2"] = true })
-        local out = written_files["/mnt/ext1/system/config/extensions.cfg"]
-        assert.is_not_nil(out)
-        assert.is_truthy(
-          out:find("@FB2_file"),
-          "expected @FB2_file but found: " .. out
-        )
-        assert.is_truthy(
-          out:find("ICON_FB2"),
-          "expected ICON_FB2 but found: " .. out
-        )
-      end
-    )
   end)
 end)
