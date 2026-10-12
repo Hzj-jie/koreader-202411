@@ -222,13 +222,10 @@ end
 ---- @tparam string needle_id Menu item ID string
 ---- @treturn table a reference to the table item if found
 function MenuSorter:findById(tbl, needle_id)
-  if tbl == nil then
-    return nil
-  end
   local items = {}
 
   for _, item in pairs(tbl) do
-    if type(item) == "table" then
+    if item ~= "KOMenu:menu_buttons" then
       table.insert(items, item)
     end
   end
@@ -236,8 +233,8 @@ function MenuSorter:findById(tbl, needle_id)
   local k, v
   k, v = next(items, nil)
   while k do
-    local id_match = type(v) == "table" and v.id == needle_id
-    local sub_table = type(v) == "table" and (v.sub_item_table or v)
+    local id_match = v.id == needle_id
+    local sub_table = v.sub_item_table or type(v) == "table" and v
 
     if id_match then
       return v
@@ -253,12 +250,9 @@ function MenuSorter:findById(tbl, needle_id)
 end
 
 function MenuSorter:removeMenuButton(tbl, needle_id)
-  if tbl == nil then
-    return nil
-  end
   local items = {}
   for _, item in pairs(tbl) do
-    if type(item) == "table" then
+    if item ~= "KOMenu:menu_buttons" then
       table.insert(items, item)
     end
   end
@@ -266,7 +260,7 @@ function MenuSorter:removeMenuButton(tbl, needle_id)
   local k, v
   k, v = next(items, nil)
   while k do
-    local sub_table = type(v) == "table" and (v.sub_item_table or v)
+    local sub_table = v.sub_item_table or type(v) == "table" and v
     if sub_table then
       for idx, item in ipairs(sub_table) do
         if type(item) == "table" and item.id == needle_id then
