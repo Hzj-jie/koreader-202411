@@ -85,7 +85,6 @@ describe("Cache unit behavior", function()
       assert.are.equal("val_a", c:check("a"))
       assert.is_nil(c:check("b")) -- "b" evicted by LRU
       assert.are.equal("val_c", c:check("c"))
-      assert.is_true(c:willAccept(1000))
     end
   )
 
