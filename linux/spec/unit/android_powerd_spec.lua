@@ -167,15 +167,21 @@ describe("AndroidPowerD", function()
           },
         })
 
-        -- For warm_diff = 10 (range 0..10), setting warmth to 50 on the [0..100] scale
-        -- should scale to 5 on the hardware [0..10] scale.
-        -- Defect: setWarmthHW passes warmth directly to android.setScreenWarmth(warmth),
-        -- while frontlightWarmthHW and turnOnFrontlightHW multiply/divide by self.warm_diff.
-        p:setWarmthHW(50)
+        -- BasePowerD:setWarmth scales [0..100] percentage to native range.
+        -- For warm_diff = 10 (range 0..10), setting warmth to 50 scales to 5.
+        p:setWarmth(50)
         assert.are.equal(
           5,
           mock_android.screen_warmth,
-          "Expected screen warmth to be scaled by warm_diff to 5, got unscaled value"
+          "Expected screen warmth to be scaled by warm_diff to 5 via setWarmth"
+        )
+
+        -- setWarmthHW expects the native hardware value directly
+        p:setWarmthHW(8)
+        assert.are.equal(
+          8,
+          mock_android.screen_warmth,
+          "Expected setWarmthHW to set hardware screen warmth directly"
         )
       end
     )

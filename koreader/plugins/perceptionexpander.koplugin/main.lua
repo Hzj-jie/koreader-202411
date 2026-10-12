@@ -54,16 +54,11 @@ end
 function PerceptionExpander:createUI(readSettings)
   if readSettings then
     self.line_thickness = tonumber(self.settings:read("line_thick"))
-      or self.line_thickness
-    self.margin = tonumber(self.settings:read("margin")) or self.margin
-    self.line_color_intensity = tonumber(
-      self.settings:read("line_color_intensity")
-    ) or self.line_color_intensity
+    self.margin = tonumber(self.settings:read("margin"))
+    self.line_color_intensity =
+      tonumber(self.settings:read("line_color_intensity"))
     self.shift_each_pages = tonumber(self.settings:read("shift_each_pages"))
-      or self.shift_each_pages
     self.page_counter = tonumber(self.settings:read("page_counter"))
-      or self.page_counter
-      or 0
   end
 
   self.screen_width = Screen:getWidth()
@@ -71,19 +66,10 @@ function PerceptionExpander:createUI(readSettings)
   local line_height = math.floor(screen_height * 0.9)
   local line_top_position = math.floor(screen_height * 0.05)
 
-  local current_screen_mode = Screen:getScreenMode()
-  if
-    current_screen_mode == "landscape"
-    and self.last_screen_mode ~= "landscape"
-  then
-    self.margin = self.margin - self.margin_shift
-  elseif
-    current_screen_mode ~= "landscape"
-    and self.last_screen_mode == "landscape"
-  then
-    self.margin = self.margin + self.margin_shift
+  local margin = self.margin
+  if Screen:getScreenMode() == "landscape" then
+    margin = margin - self.margin_shift
   end
-  self.last_screen_mode = current_screen_mode
 
   local line_widget = LineWidget:new({
     background = Blitbuffer.gray(self.line_color_intensity),
@@ -95,7 +81,7 @@ function PerceptionExpander:createUI(readSettings)
 
   self.left_line = WidgetContainer:new({
     dimen = Geom:new({
-      x = self.screen_width * self.margin,
+      x = self.screen_width * margin,
       y = line_top_position,
       w = self.line_thickness,
       h = line_height,
@@ -105,7 +91,7 @@ function PerceptionExpander:createUI(readSettings)
 
   self.right_line = WidgetContainer:new({
     dimen = Geom:new({
-      x = self.screen_width - (self.screen_width * self.margin),
+      x = self.screen_width - (self.screen_width * margin),
       y = line_top_position,
       w = self.line_thickness,
       h = line_height,

@@ -7,9 +7,7 @@ local MockRTC = {
 -- This call always succeeds, errors will only happen at suspend time in
 -- powerd:setRtcWakeup()
 function MockRTC:setWakeupAlarm(epoch, enabled)
-  if enabled == nil then
-    enabled = true
-  end
+  enabled = (enabled ~= nil) and enabled or true
   if enabled then
     self._wakeup_scheduled = true
     self._wakeup_scheduled_epoch = epoch

@@ -277,11 +277,12 @@ end
 --
 --
 function Weather:forecastForDay(data)
-  local view_content = {}
-
+  local kv = self.kv
   if self.kv ~= nil then
     UIManager:close(self.kv)
   end
+
+  local view_content = {}
 
   local day
 
@@ -316,6 +317,12 @@ function Weather:forecastForDay(data)
     title = T(gettext("%1 forecast"), day),
     return_button = true,
     kv_pairs = view_content,
+    callback_return = function()
+      if kv ~= nil then
+        UIManager:show(kv)
+        self.kv = kv
+      end
+    end,
   })
   -- Show it
   UIManager:show(self.kv)

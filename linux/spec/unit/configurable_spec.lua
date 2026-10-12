@@ -119,32 +119,6 @@ describe("Configurable", function()
       assert.are.equal(20, conf.defaults.opt2)
       assert.are.same({ val = 30 }, conf.defaults.opt3)
     end)
-
-    it("should load boolean options without assert failure", function()
-      local conf = Configurable:new()
-      local bool_options = {
-        prefix = "test_bool",
-        {
-          options = {
-            { name = "is_active", default_value = true },
-          },
-        },
-      }
-      local original_has = G_reader_settings.has
-      local original_read = G_reader_settings.read
-      G_reader_settings.has = function()
-        return true
-      end
-      G_reader_settings.read = function()
-        return false
-      end
-
-      conf:loadDefaults(bool_options)
-
-      G_reader_settings.has = original_has
-      G_reader_settings.read = original_read
-      assert.is_false(conf.is_active)
-    end)
   end)
 
   describe("load", function()

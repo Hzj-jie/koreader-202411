@@ -455,15 +455,11 @@ function ViewHtml:_showMatchingSelectors(
 )
   local snippets
   if not show_all_ancestors then
-    local node_dataindex = ancestors[1] and ancestors[1][2]
-    if node_dataindex then
-      snippets = document:getStylesheetsMatchingRulesets(
-        node_dataindex,
-        with_main_stylesheet
-      )
-    else
-      snippets = {}
-    end
+    local node_dataindex = ancestors[1][2]
+    snippets = document:getStylesheetsMatchingRulesets(
+      node_dataindex,
+      with_main_stylesheet
+    )
   else
     snippets = {}
     local elements = {}

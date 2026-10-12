@@ -162,13 +162,8 @@ function RadioButtonWidget:update()
         text = self.ok_text,
         callback = function()
           if self.callback then
-            if value_widget.checked_button then
-              self.provider = value_widget.checked_button.provider
-              self.row, self.col = self:getButtonIndex(self.provider)
-            else
-              self.provider = nil
-              self.row, self.col = nil, nil
-            end
+            self.provider = value_widget.checked_button.provider
+            self.row, self.col = self:getButtonIndex(self.provider)
             self.callback(self)
           end
           if not self.keep_shown_on_apply then

@@ -114,8 +114,6 @@ function TextEditor:onFlushSettings()
     )
     self.settings:save("qr_code_export", self.qr_code_export)
     self.settings:save("show_keyboard_on_start", self.show_keyboard_on_start)
-    self.settings:save("history", self.history)
-    self.settings:save("last_view_pos", self.last_view_pos)
     self.settings:flush()
   end
 end
@@ -236,10 +234,8 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
               ok_callback = function()
                 self.history = {}
                 self.last_view_pos = {}
-                if self.settings then
-                  self.settings:save("history", self.history)
-                  self.settings:save("last_view_pos", self.last_view_pos)
-                end
+                self.settings:save("history", self.history)
+                self.settings:save("last_view_pos", self.last_view_pos)
                 -- remove history items from the parent menu
                 for j = #sub_item_table, 1, -1 do
                   if sub_item_table[j]._texteditor_id then
@@ -552,7 +548,7 @@ function TextEditor:editFile(file_path, readonly)
   self:addToHistory(file_path)
   local __, filename = util.splitFilePathName(file_path)
   local __, filetype = util.splitFileNameSuffix(filename)
-  local is_lua = filetype and filetype:lower() == "lua"
+  local is_lua = filetype:lower() == "lua"
   local para_direction_rtl = nil -- use UI language direction
   if self.force_ltr_para_direction then
     para_direction_rtl = false -- force LTR

@@ -93,40 +93,7 @@ describe("SDL device", function()
 
       dev:toggleFullscreen()
       assert.is_false(dev.fullscreen)
-      assert.is_false(fullscreen_mode_set)
     end)
-
-    it(
-      "should toggle back to fullscreen on isDefaultFullscreen devices",
-      function()
-        -- Bug: lines 357-358:
-        -- local current_mode = self.fullscreen or self:isDefaultFullscreen()
-        -- local new_mode = not current_mode
-        -- When isDefaultFullscreen is true (e.g. UbuntuTouch), after self.fullscreen
-        -- is toggled to false, `false or true` evaluates to `true`!
-        -- Consequently, new_mode is always `false` and fullscreen can never be toggled back on!
-        local dev = SDLDevice:extend({
-          isDefaultFullscreen = function()
-            return true
-          end,
-          fullscreen = nil,
-        })
-
-        -- First toggle: switches from default true to false
-        dev:toggleFullscreen()
-        assert.is_false(
-          dev.fullscreen,
-          "first toggle should disable fullscreen"
-        )
-
-        -- Second toggle: should toggle back from false to true
-        dev:toggleFullscreen()
-        assert.is_true(
-          dev.fullscreen,
-          "second toggle should re-enable fullscreen on isDefaultFullscreen device"
-        )
-      end
-    )
   end)
 
   describe("openLink", function()

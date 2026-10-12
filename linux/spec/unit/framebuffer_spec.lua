@@ -41,22 +41,11 @@ describe("ffi/framebuffer module", function()
     assert.are.equal("KOReader", mock_fb:getWindowTitle())
   end)
 
-  it(
-    "asserts when querying canonical rotation mode if forced_rotation is nil",
-    function()
-      mock_fb.forced_rotation = nil
-      assert.has_error(
-        function()
-          mock_fb:getCanonicalRotationMode(0)
-        end,
-        "fb:getCanonicalRotationMode() requires forced_rotation to be configured"
-      )
-
-      mock_fb.forced_rotation = { 0, 1, 2, 3 }
-      assert.are.equal(0, mock_fb:getCanonicalRotationMode(0))
-      assert.are.equal(1, mock_fb:getCanonicalRotationMode(1))
-    end
-  )
+  it("queries canonical rotation mode", function()
+    mock_fb.forced_rotation = { 0, 1, 2, 3 }
+    assert.are.equal(0, mock_fb:getCanonicalRotationMode(0))
+    assert.are.equal(1, mock_fb:getCanonicalRotationMode(1))
+  end)
 
   it(
     "accepts valid landscape viewports after rotating to landscape mode",

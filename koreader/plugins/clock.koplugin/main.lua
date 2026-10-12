@@ -65,20 +65,12 @@ Clock.addToMainMenu = function(self, menu_items)
   }
 end
 Clock.onClose = function(self)
-  PluginShare.pause_auto_suspend = false
   self._visible = false
   UIManager:setDirty(nil, function()
     return "ui", self[1].dimen
   end)
 end
 Clock.onShow = function(self)
-  if self.timeout then
-    UIManager:scheduleIn(self.timeout, function()
-      PluginShare.pause_auto_suspend = false
-      self._visible = false
-      return UIManager:close(self)
-    end)
-  end
   PluginShare.pause_auto_suspend = true
 end
 Clock.onSuspend = function(self)

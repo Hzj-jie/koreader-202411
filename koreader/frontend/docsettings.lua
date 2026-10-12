@@ -106,7 +106,7 @@ function DocSettings:getPathFromHistory(hist_name)
     return ""
   end -- ignore .lua.old backups
   local _, basename = util.splitFilePathName(hist_name)
-  local dir_part = basename:match("^%[(.*#)%]%s+.+%.lua$")
+  local dir_part = basename:match("^%[(.-#)%]%s+.+%.lua$")
   if dir_part then
     if dir_part:sub(-1) == "#" then
       dir_part = dir_part:sub(1, -2)
@@ -131,7 +131,7 @@ function DocSettings:getNameFromHistory(hist_name)
     return ""
   end -- ignore .lua.old backups
   local _, basename = util.splitFilePathName(hist_name)
-  local name = basename:match("^%[.*#%]%s+(.+)%.lua$")
+  local name = basename:match("^%[.-#%]%s+(.+)%.lua$")
   if name then
     return name
   end

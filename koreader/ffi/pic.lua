@@ -178,6 +178,7 @@ function GifDocument:openPage(number)
     local cmap = i.ImageDesc.ColorMap ~= nil and i.ImageDesc.ColorMap
       or self.giffile.SColorMap
     if cmap == nil or cmap == ffi.null then
+      bb:free()
       error("GIF has no valid color map")
     end
     local palette = {}
