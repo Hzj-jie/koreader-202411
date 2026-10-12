@@ -354,11 +354,7 @@ local getFunctionInfo = function(func, full_code)
     end
     __, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
-    if info.is_method then
-      info.classname = signature:gsub(".-(%w+):.*", "%1")
-    else
-      info.classname = ""
-    end
+    info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
     -- possibly some Lua builtin function or from some C-module
     lines = {}
@@ -419,9 +415,7 @@ local guessClassName = function(obj)
   end
   if test_method then
     local func_info = getFunctionInfo(test_method)
-    if func_info.classname and func_info.classname ~= "" then
-      return func_info.classname
-    end
+    return func_info.classname
   end
 end
 
