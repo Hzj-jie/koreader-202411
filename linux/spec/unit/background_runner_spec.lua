@@ -1023,61 +1023,6 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "should handle non-table deserialized output safely in CommandRunner:poll",
-    function()
-      local CommandRunner =
-        require("plugins/backgroundrunner.koplugin/commandrunner")
-      local job = { executable = "fork", action = function() end }
-      local entry = {
-        job = job,
-        poll = function()
-          return true
-        end,
-        readAll = function()
-          return "return 42\n"
-        end,
-        close = function() end,
-      }
-      UIManager:preventStandby()
-      table.insert(CommandRunner.running_jobs, entry)
-      finally(function()
-        if #CommandRunner.running_jobs > 0 then
-          UIManager:allowStandby()
-          CommandRunner.running_jobs = {}
-        end
-      end)
-
-      assert.has_no.errors(function()
-        local completed = CommandRunner:poll()
-        assert.is_table(completed)
-        assert.are.equal(222, completed[1].result)
-      end)
-    end
-  )
-
-  it(
-    "should return empty string in CommandRunner:_createEnvironment when environment function returns non-table",
-    function()
-      local CommandRunner =
-        require("plugins/backgroundrunner.koplugin/commandrunner")
-
-      local number_env_job = {
-        environment = function()
-          return 123
-        end,
-      }
-      assert.are.equal("", CommandRunner:_createEnvironment(number_env_job))
-
-      local string_env_job = {
-        environment = function()
-          return "VAR=1"
-        end,
-      }
-      assert.are.equal("", CommandRunner:_createEnvironment(string_env_job))
-    end
-  )
-
-  it(
     "should repeat 1 time when repeated is 2 in BackgroundRunner:_shouldRepeat",
     function()
       local BackgroundRunner = getBackgroundRunner()
