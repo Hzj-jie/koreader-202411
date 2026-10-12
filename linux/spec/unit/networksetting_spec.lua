@@ -320,7 +320,7 @@ describe("NetworkSetting module", function()
 
     -- Inside popup
     local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
-    assert.is_nil(ns:onTapClose(nil, inside_ev))
+    assert.is_false(ns:onTapClose(nil, inside_ev))
 
     -- Outside popup
     local outside_ev = { pos = Geom:new({ x = -100, y = -100 }) }
@@ -335,7 +335,7 @@ describe("NetworkSetting module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes saveAndConnectToNetwork closing password dialog on empty WPA password",
+      "exposes saveAndConnectToNetwork closing password dialog on empty WPA password",
       function()
         local network_list = {
           {
@@ -368,7 +368,7 @@ describe("NetworkSetting module", function()
     )
 
     it(
-      "fails: exposes onTapClose returning nil instead of boolean false inside popup",
+      "exposes onTapClose returning nil instead of boolean false inside popup",
       function()
         local Geom = require("ui/geometry")
         local ns = NetworkSetting:new({ network_list = {} })

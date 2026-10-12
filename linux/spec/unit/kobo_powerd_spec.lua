@@ -300,7 +300,7 @@ describe("KoboPowerD", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: _syncKoboLightOnStart handles nil frontLightLevel gracefully without crashing",
+      "_syncKoboLightOnStart handles nil frontLightLevel gracefully without crashing",
       function()
         local orig_defaults = G_defaults.read
         local orig_get_level = NickelConf.frontLightLevel.get

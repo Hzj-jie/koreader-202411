@@ -254,7 +254,7 @@ describe("Notification", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes _cleanShownStack closing older notification clobbering newer notification slot in _shown_list",
+      "exposes _cleanShownStack closing older notification clobbering newer notification slot in _shown_list",
       function()
         local n1 = Notification:new({ text = "First" })
         local n2 = Notification:new({ text = "Second" })
@@ -268,7 +268,7 @@ describe("Notification", function()
     )
 
     it(
-      "fails: exposes onShow overwriting _timeout_func without unscheduling previous timer",
+      "exposes onShow overwriting _timeout_func without unscheduling previous timer",
       function()
         local unscheduled_fn = nil
         local orig_unschedule = UIManager.unschedule

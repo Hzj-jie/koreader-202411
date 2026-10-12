@@ -80,7 +80,11 @@ local function getFallbackStatus(cand)
 end
 
 function DocSettings.getSidecarFilename(doc_path)
-  local suffix = doc_path:match(".*%.(.+)") or "_"
+  local _, filename = util.splitFilePathName(doc_path)
+  local _, suffix = util.splitFileNameSuffix(filename)
+  if suffix == "" then
+    suffix = "_"
+  end
   return "metadata." .. suffix .. ".lua"
 end
 
@@ -101,14 +105,22 @@ function DocSettings:getPathFromHistory(hist_name)
   if hist_name:sub(-4) ~= ".lua" then
     return ""
   end -- ignore .lua.old backups
+  local _, basename = util.splitFilePathName(hist_name)
+  local dir_part = basename:match("^%[(.*#)%]%s+.+%.lua$")
+  if dir_part then
+    if dir_part:sub(-1) == "#" then
+      dir_part = dir_part:sub(1, -2)
+    end
+    return (string.gsub(dir_part, "#", "/"))
+  end
   -- 1. select everything included in brackets
-  local s = string.match(hist_name, "%b[]")
+  local s = string.match(basename, "%b[]")
   if s == nil or s == "" then
     return ""
   end
   -- 2. crop the bracket-sign from both sides
   -- 3. and finally replace decorative signs '#' to dir-char '/'
-  return string.gsub(string.sub(s, 2, -3), "#", "/")
+  return (string.gsub(string.sub(s, 2, -3), "#", "/"))
 end
 
 function DocSettings:getNameFromHistory(hist_name)
@@ -118,13 +130,18 @@ function DocSettings:getNameFromHistory(hist_name)
   if hist_name:sub(-4) ~= ".lua" then
     return ""
   end -- ignore .lua.old backups
-  local s = string.match(hist_name, "%b[]")
+  local _, basename = util.splitFilePathName(hist_name)
+  local name = basename:match("^%[.*#%]%s+(.+)%.lua$")
+  if name then
+    return name
+  end
+  local s = string.match(basename, "%b[]")
   if s == nil or s == "" then
     return ""
   end
   -- at first, search for path length
   -- and return the rest of string without 4 last characters (".lua")
-  return string.sub(hist_name, string.len(s) + 2, -5)
+  return string.sub(basename, string.len(s) + 2, -5)
 end
 
 function DocSettings:getFileFromHistory(hist_name)
@@ -142,7 +159,9 @@ local function getCandidates(doc_path)
     return {}
   end
 
-  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
+  local dir, filename = util.splitFilePathName(doc_path)
+  local stem_name = util.splitFileNameSuffix(filename)
+  local stem = dir .. stem_name
   local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
 
   local doc_dir = stem .. ".sdr"

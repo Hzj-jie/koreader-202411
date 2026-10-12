@@ -340,8 +340,9 @@ local function deserialize_value(seen)
       v[key] = deserialize_value(seen)
     end
     if t == 253 then
+      local mt = deserialize_value(seen)
       if includeMetatables then
-        setmetatable(v, deserialize_value(seen))
+        setmetatable(v, mt)
       end
     end
     return v

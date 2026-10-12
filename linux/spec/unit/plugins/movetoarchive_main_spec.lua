@@ -119,9 +119,11 @@ describe("MoveToArchive main plugin module", function()
     local moved = false
     FileManager.copyFile = function(self_fm, src, dst)
       copied = true
+      return true
     end
     FileManager.moveFile = function(self_fm, src, dst)
       moved = true
+      return true
     end
     DocSettings.updateLocation = function(src, dst, is_copy) end
 
@@ -184,7 +186,7 @@ describe("MoveToArchive main plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: onMoveToArchive updates history and settings even when file move fails",
+      "onMoveToArchive does not update history and settings when file move fails",
       function()
         local mock_ui = {
           menu = { registerToMainMenu = function() end },

@@ -380,30 +380,27 @@ describe("DocumentRegistry", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "fails: getProviders sorts providers in descending weight order",
-      function()
-        local prov_a = { provider = "ProvA" }
-        local prov_b = { provider = "ProvB" }
-        local prov_c = { provider = "ProvC" }
+    it("getProviders sorts providers in descending weight order", function()
+      local prov_a = { provider = "ProvA" }
+      local prov_b = { provider = "ProvB" }
+      local prov_c = { provider = "ProvC" }
 
-        DocumentRegistry:addProvider("xyz", "application/x-xyz", prov_a, 100)
-        DocumentRegistry:addProvider("xyz", "application/x-xyz", prov_b, 50)
-        DocumentRegistry:addProvider("xyz", "application/x-xyz", prov_c, 80)
+      DocumentRegistry:addProvider("xyz", "application/x-xyz", prov_a, 100)
+      DocumentRegistry:addProvider("xyz", "application/x-xyz", prov_b, 50)
+      DocumentRegistry:addProvider("xyz", "application/x-xyz", prov_c, 80)
 
-        local list = DocumentRegistry:getProviders("document.xyz")
-        assert.is_table(list)
-        assert.are.equal(3, #list)
+      local list = DocumentRegistry:getProviders("document.xyz")
+      assert.is_table(list)
+      assert.are.equal(3, #list)
 
-        -- Expected descending order by weight: 100 (ProvA), 80 (ProvC), 50 (ProvB).
-        -- Bug: DocumentRegistry:getProviders only checks provider.weight > providers[1].weight
-        -- and appends all other providers to the end, resulting in { ProvA (100), ProvB (50), ProvC (80) }.
-        assert.are.equal("ProvA", list[1].provider.provider)
-        assert.are.equal("ProvC", list[2].provider.provider)
-        assert.are.equal("ProvB", list[3].provider.provider)
-        assert.are.equal(80, list[2].weight)
-        assert.are.equal(50, list[3].weight)
-      end
-    )
+      -- Expected descending order by weight: 100 (ProvA), 80 (ProvC), 50 (ProvB).
+      -- Bug: DocumentRegistry:getProviders only checks provider.weight > providers[1].weight
+      -- and appends all other providers to the end, resulting in { ProvA (100), ProvB (50), ProvC (80) }.
+      assert.are.equal("ProvA", list[1].provider.provider)
+      assert.are.equal("ProvC", list[2].provider.provider)
+      assert.are.equal("ProvB", list[3].provider.provider)
+      assert.are.equal(80, list[2].weight)
+      assert.are.equal(50, list[3].weight)
+    end)
   end)
 end)

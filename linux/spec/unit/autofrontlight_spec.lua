@@ -166,9 +166,11 @@ describe("AutoFrontlight widget tests", function()
   )
 
   it(
-    "fails: _action re-enables frontlight when turned off while in dark environment",
+    "_action re-enables frontlight when turned off while in dark environment",
     function()
-      -- Set ambient brightness to 0 (dark) and run, frontlight turns on (level 2)
+      -- Set the initial state: ambient brightness 0, frontlight on (level 2)
+      setAmbientBrightnessAndRun(3)
+      Device:getPowerDevice():turnOffFrontlight()
       setAmbientBrightnessAndRun(0)
       assertFrontlightLevel(2)
 
@@ -186,7 +188,7 @@ describe("AutoFrontlight widget tests", function()
   )
 
   it(
-    "fails: main.lua calls Device:isEmulator() with colon syntax passing self",
+    "main.lua calls Device:isEmulator() with colon syntax passing self",
     function()
       -- Bug: line 4 calls `Device.isEmulator()` with dot syntax instead of `Device:isEmulator()`.
       -- If isEmulator expects self, calling Device.isEmulator() passes self as nil.

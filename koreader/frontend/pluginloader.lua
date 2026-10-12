@@ -177,7 +177,10 @@ function PluginLoader:genPluginManagerSubItem()
 
   local plugin_table = {}
   for _, plugin in ipairs(self.all_plugins) do
-    if not INVISIBLE_PLUGINS[plugin.name] then
+    if
+      not INVISIBLE_PLUGINS[plugin.code_name]
+      and not INVISIBLE_PLUGINS[plugin.name]
+    then
       table.insert(plugin_table, {
         text = plugin.fullname,
         checked_func = function()

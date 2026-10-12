@@ -22,7 +22,9 @@ describe("KeepAlive plugin tests", function()
     stub(Device, "isKindle")
     stub(Device, "isSDL")
 
-    stub(UIManager, "show")
+    stub(UIManager, "show", function(self, widget)
+      table.insert(self._window_stack, { x = 0, y = 0, widget = widget })
+    end)
   end)
 
   after_each(function()
@@ -31,6 +33,7 @@ describe("KeepAlive plugin tests", function()
     Device.isKindle:revert()
     Device.isSDL:revert()
     UIManager.show:revert()
+    UIManager._window_stack = {}
 
     package.unload("plugins/keepalive.koplugin/main")
     PluginShare.keepalive = nil
