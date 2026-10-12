@@ -89,12 +89,11 @@ describe("luxl", function()
     end
   )
 
-  it("should lex empty attribute values", function()
+  it("should not emit attribute value for empty attributes", function()
     local res = lex('<tag key="" />')
     assert.is.same({
       { event = luxl.EVENT_START, text = "tag" },
       { event = luxl.EVENT_ATTR_NAME, text = "key" },
-      { event = luxl.EVENT_ATTR_VAL, text = "" },
       { event = luxl.EVENT_END, text = "/" },
     }, res)
   end)
