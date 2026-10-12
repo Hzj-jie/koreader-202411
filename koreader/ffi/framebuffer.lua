@@ -89,15 +89,15 @@ For such an occasion the frontend can provide custom mappings, or simply overrid
 -- Invert HW value to canonical one, needed to interpret the one given by OS.
 -- Some devices may wish to override this if the mapping is not as simple as 1:1.
 function fb:getCanonicalRotationMode(hw)
-  if not self.forced_rotation then
-    return hw
-  end
+  assert(
+    self.forced_rotation ~= nil,
+    "fb:getCanonicalRotationMode() requires forced_rotation to be configured"
+  )
   for k, v in ipairs(self.forced_rotation) do
     if v == hw then
       return k - 1
     end
   end
-  return hw
 end
 
 -- To be overridden. Returns the current FB rotation exactly as reported by hw
