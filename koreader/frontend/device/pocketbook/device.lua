@@ -346,7 +346,7 @@ function PocketBook:associateFileExtensions(assoc)
     else
       -- Doesn't exist, so hallucinate up something
       -- TBD: We have document opener in 'v', maybe consult mime in there?
-      local bn = k:match("%a+"):upper()
+      local bn = (k:match("%w+") or k):upper()
       t = { k, "@" .. bn .. "_file", "1", app_name, "ICON_" .. bn }
     end
     table.insert(res, table.concat(t, ":"))

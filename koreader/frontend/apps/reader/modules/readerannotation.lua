@@ -431,7 +431,7 @@ function ReaderAnnotation.doesMatch(a, b)
       and a.pos1.x == b.pos1.x
       and a.pos1.y == b.pos1.y
   end
-  return a.pos1 == b.pos1
+  return a.pos0 == b.pos0 and a.pos1 == b.pos1
 end
 
 function ReaderAnnotation.isValidItem(item)
@@ -625,12 +625,10 @@ function ReaderAnnotation:getNumberOfHighlightsAndNotes() -- for Statistics plug
   local highlights = 0
   local notes = 0
   for _, item in ipairs(self.annotations) do
-    if item.drawer then
-      if item.note then
-        notes = notes + 1
-      else
-        highlights = highlights + 1
-      end
+    if item.note and item.note ~= "" then
+      notes = notes + 1
+    elseif item.drawer then
+      highlights = highlights + 1
     end
   end
   return highlights, notes

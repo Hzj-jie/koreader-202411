@@ -120,7 +120,7 @@ describe("PocketBook device", function()
     end)
 
     it(
-      "fails: associateFileExtensions handles digit-only extensions without crashing",
+      "associateFileExtensions handles digit-only extensions without crashing",
       function()
         -- Bug: line 349 does `k:match("%a+"):upper()`. When k is digit-only like "001",
         -- k:match("%a+") returns nil and nil:upper() crashes with attempt to index a nil value.
@@ -136,7 +136,7 @@ describe("PocketBook device", function()
     )
 
     it(
-      "fails: associateFileExtensions preserves digits in alphanumeric extensions",
+      "associateFileExtensions preserves digits in alphanumeric extensions",
       function()
         -- Bug: line 349 does `k:match("%a+"):upper()`. When k is "fb2",
         -- k:match("%a+") matches only "fb" and drops "2", producing ICON_FB and @FB_file.

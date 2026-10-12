@@ -173,10 +173,10 @@ function Screensaver:expandSpecial(message, fallback)
       time_left_document =
         self:_calcAverageTimeForPages(doc:getTotalPagesLeft(currentpage))
     end
-    if currentpage == 1 then
-      percent = 0
-    elseif currentpage == totalpages then
+    if currentpage == totalpages then
       percent = 100
+    elseif currentpage == 1 then
+      percent = 0
     else
       percent =
         Math.round(Math.clamp(((currentpage * 100) / totalpages), 1, 99))
@@ -188,10 +188,10 @@ function Screensaver:expandSpecial(message, fallback)
     totalpages = doc_settings:read("doc_pages") or totalpages
     percent = doc_settings:read("percent_finished") or percent
     currentpage = Math.round(percent * totalpages)
-    if currentpage == 1 then
-      percent = 0
-    elseif currentpage == totalpages then
+    if currentpage == totalpages then
       percent = 100
+    elseif currentpage == 1 then
+      percent = 0
     else
       percent = Math.round(Math.clamp(percent * 100, 1, 99))
     end
@@ -280,14 +280,24 @@ local function addOverlayMessage(widget, widget_height, text)
     },
     textw,
   })
-  widget = OverlapGroup:new({
-    dimen = {
-      h = screen_w,
-      w = screen_h,
-    },
-    widget,
-    textw,
-  })
+  if widget then
+    widget = OverlapGroup:new({
+      dimen = {
+        w = screen_w,
+        h = screen_h,
+      },
+      widget,
+      textw,
+    })
+  else
+    widget = OverlapGroup:new({
+      dimen = {
+        w = screen_w,
+        h = screen_h,
+      },
+      textw,
+    })
+  end
   return widget
 end
 

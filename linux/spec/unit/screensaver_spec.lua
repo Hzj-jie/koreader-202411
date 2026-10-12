@@ -271,7 +271,7 @@ describe("Screensaver module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes addOverlayMessage swapping w/h and creating a hole at [1] when widget is nil",
+      "should ensure addOverlayMessage does not swap w/h or create a hole at [1] when widget is nil",
       function()
         local orig_show = UIManager.show
         finally(function()
@@ -299,7 +299,7 @@ describe("Screensaver module", function()
     )
 
     it(
-      "fails: exposes expandSpecial reporting 0% on page 1 of 1-page document",
+      "should ensure expandSpecial reports 100% on page 1 of 1-page document",
       function()
         local ReaderUI = require("apps/reader/readerui")
         local orig_instance = ReaderUI.instance

@@ -192,7 +192,7 @@ describe("Cervantes device", function()
       assert.are.equal("./enable-wifi.sh", executed_cmds[1])
     end)
 
-    it("fails: restoreWifiAsync initiates async Wi-Fi state check", function()
+    it("restoreWifiAsync initiates async Wi-Fi state check", function()
       -- Bug: lines 199-201 defines:
       -- function NetworkMgr:restoreWifiAsync()
       --   os.execute("./restore-wifi-async.sh")

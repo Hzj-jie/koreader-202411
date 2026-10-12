@@ -63,7 +63,7 @@ describe("SDL PowerD", function()
     end)
 
     it(
-      "fails: setWarmthHW is implemented on SDLPowerD for Emulator natural light",
+      "should implement setWarmthHW on SDLPowerD for Emulator natural light",
       function()
         -- Bug: SDLPowerD implements frontlightWarmthHW returning self.fl_warmth and
         -- Emulator claims hasNaturalLight and hasNaturalLightApi, but SDLPowerD omits
@@ -110,7 +110,7 @@ describe("SDL PowerD", function()
     end)
 
     it(
-      "fails: getCapacityHW returns a fallback number and not nil when SDL power percent is nil",
+      "should return a fallback number and not nil when SDL power percent is nil",
       function()
         -- Bug: lines 28-35 in sdl/powerd.lua only maps percent == -1 to 0.
         -- When SDL.getPowerInfo() returns nil for percent (e.g. AC-only desktops),
