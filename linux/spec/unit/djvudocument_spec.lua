@@ -139,7 +139,7 @@ describe("DjvuDocument", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: init calls updateColorRendering before openDocument when color rendering is enabled",
+      "init calls updateColorRendering before openDocument when color rendering is enabled",
       function()
         local djvu = require("libs/libkoreader-djvu")
         local orig_openDocument = djvu.openDocument

@@ -257,7 +257,7 @@ describe("ExternalKeyboard main plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: setupKeyboard leaks event_fd when fdopen fails or device is already registered",
+      "setupKeyboard leaks event_fd when fdopen fails or device is already registered",
       function()
         local inst = ExternalKeyboard:new({
           ui = { menu = { registerToMainMenu = function() end } },

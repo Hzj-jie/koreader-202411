@@ -566,7 +566,7 @@ describe("VirtualKeyboard component", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes genKeyboardLayoutKeyChars crash with 5 configured layouts",
+      "should ensure genKeyboardLayoutKeyChars does not crash with 5 configured layouts",
       function()
         local mock_inputbox = createMockInputbox()
         settings_store.keyboard_layouts = { "en", "es", "fr", "de", "ru" }
@@ -584,7 +584,7 @@ describe("VirtualKeyboard component", function()
     )
 
     it(
-      "fails: exposes onClose stopping text input when keyboard was never shown",
+      "should ensure onClose does not stop text input when keyboard was never shown",
       function()
         local mock_inputbox = createMockInputbox()
         local stop_called = false

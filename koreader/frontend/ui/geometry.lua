@@ -154,7 +154,12 @@ Returns a new rectangle for the part that we and a given rectangle share
 --- @todo what happens if there is no rectangle shared? currently behaviour is undefined.
 function Geom:intersect(rect_b)
   local intersected = self:copy()
-  if not rect_b or rect_b:area() == 0 then
+  if not rect_b then
+    return intersected
+  end
+  if rect_b:area() == 0 or self:area() == 0 then
+    intersected.w = 0
+    intersected.h = 0
     return intersected
   end
 
@@ -173,6 +178,10 @@ function Geom:intersect(rect_b)
     intersected.h = self.y + self.h - intersected.y
   else
     intersected.h = rect_b.y + rect_b.h - intersected.y
+  end
+  if intersected.w <= 0 or intersected.h <= 0 then
+    intersected.w = 0
+    intersected.h = 0
   end
   return intersected
 end
@@ -355,8 +364,8 @@ function Geom:centerWithin(rect_b, x, y)
     self.h = rect_b.h
   end
   -- place to center
-  self.x = x - self.w / 2
-  self.y = y - self.h / 2
+  self.x = Math.round(x - self.w / 2)
+  self.y = Math.round(y - self.h / 2)
   -- check boundary
   if self.x < rect_b.x then
     self.x = rect_b.x

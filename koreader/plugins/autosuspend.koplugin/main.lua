@@ -552,6 +552,7 @@ function AutoSuspend:pickTimeoutValue(
         self:toggleStandbyHandler(false)
       else
         self:_unschedule()
+        self:_start()
       end
       if menu then
         menu:updateItems()

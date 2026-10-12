@@ -149,7 +149,7 @@ describe("Joplin Exporter target", function()
     it("findNotebookByTitle: returns notebook id when title matches", function()
       stub(http, "request", function(req)
         assert.is_not_nil(req.url:find("folders%?token=secret_token_123"))
-        assert.is_not_nil(req.url:find("query=title"))
+        assert.is_not_nil(req.url:find("query=KOReader Notes", 1, true))
         assert.are.equal("GET", req.method)
         local body = json.encode({
           has_more = false,

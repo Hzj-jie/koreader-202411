@@ -210,9 +210,7 @@ function CloudStorage:onMenuSelect(item)
     table.insert(self.paths, {
       url = item.url,
     })
-    if not self:openCloudServer(item.url) then
-      table.remove(self.paths)
-    end
+    self:openCloudServer(item.url)
   end
   return true
 end
@@ -562,7 +560,7 @@ function CloudStorage:downloadListFiles(item)
     for f in iter, dir_obj do
       local filename = path .. "/" .. f
       local attributes = lfs.attributes(filename)
-      if attributes.mode == "file" then
+      if attributes and attributes.mode == "file" then
         local_files[f] = attributes.size
       end
     end

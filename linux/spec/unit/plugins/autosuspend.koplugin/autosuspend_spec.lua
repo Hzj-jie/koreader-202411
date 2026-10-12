@@ -368,7 +368,7 @@ describe("AutoSuspend", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes pickTimeoutValue Disable button extra_callback killing remaining active timer",
+      "exposes pickTimeoutValue Disable button extra_callback killing remaining active timer",
       function()
         local UIManager = require("ui/uimanager")
         local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")

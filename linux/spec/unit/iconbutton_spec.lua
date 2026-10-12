@@ -130,7 +130,7 @@ describe("IconButton", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onTapIconButton invoking callback when enabled is false",
+      "exposes onTapIconButton invoking callback when enabled is false",
       function()
         local called = false
         local btn = IconButton:new({
@@ -146,7 +146,7 @@ describe("IconButton", function()
       end
     )
 
-    it("fails: exposes setIcon discarding custom width and height", function()
+    it("exposes setIcon discarding custom width and height", function()
       local btn = IconButton:new({
         icon = "appbar.menu",
         width = 80,

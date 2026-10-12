@@ -426,7 +426,7 @@ describe("FocusManager module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onFocusHalfMove subtracting row index y instead of column index x",
+      "exposes onFocusHalfMove subtracting row index y instead of column index x",
       function()
         local w = layout[1][1]
         local focusmanager = FocusManager:new({})
@@ -446,7 +446,7 @@ describe("FocusManager module", function()
       end
     )
 
-    it("fails: exposes getFocusItem crashing on empty layout", function()
+    it("exposes getFocusItem crashing on empty layout", function()
       local focusmanager = FocusManager:new({})
       focusmanager.layout = {}
       focusmanager.selected = { y = 1, x = 1 }

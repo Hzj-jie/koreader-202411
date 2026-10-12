@@ -1383,9 +1383,13 @@ function Dispatcher:getNameFromItem(item, settings, dont_show_value)
         settingsList[item].args, settingsList[item].toggle =
           settingsList[item].args_func()
       end
-      local value_num = util.arrayContains(settingsList[item].args, value)
-      display_value = settingsList[item].toggle[value_num]
-        or string.format("%.1f", value)
+      local value_num = settingsList[item].args
+        and util.arrayContains(settingsList[item].args, value)
+      display_value = (
+        settingsList[item].toggle and settingsList[item].toggle[value_num]
+      )
+        or (tonumber(value) and string.format("%.1f", value))
+        or tostring(value)
     end
   elseif category == "absolutenumber" then
     display_value = tostring(value)
@@ -1997,10 +2001,22 @@ function Dispatcher:execute(settings, exec_props)
       if settingsList[k].configurable then
         local value = v
         if type(v) ~= "number" then
-          for i, r in ipairs(settingsList[k].args) do
-            if v == r then
-              value = settingsList[k].configurable.values[i]
-              break
+          if not settingsList[k].args and settingsList[k].args_func then
+            settingsList[k].args, settingsList[k].toggle =
+              settingsList[k].args_func()
+          end
+          if settingsList[k].args then
+            for i, r in ipairs(settingsList[k].args) do
+              local match
+              if type(v) == "table" and type(r) == "table" then
+                match = v[1] == r[1]
+              else
+                match = v == r
+              end
+              if match then
+                value = settingsList[k].configurable.values[i]
+                break
+              end
             end
           end
         end

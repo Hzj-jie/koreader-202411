@@ -343,7 +343,7 @@ describe("FrontLightWidget UI component", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onTapProgress at 0% toggling frontlight on when already at 0",
+      "exposes onTapProgress at 0% toggling frontlight on when already at 0",
       function()
         local flw = FrontLightWidget:new({})
         flw.fl_progress.dimen = Geom:new({ x = 0, y = 0, w = 200, h = 40 })
@@ -373,21 +373,18 @@ describe("FrontLightWidget UI component", function()
       end
     )
 
-    it(
-      "fails: exposes onClose not unscheduling refreshBrightnessWidgets",
-      function()
-        local flw = FrontLightWidget:new({})
-        local unscheduled_action = nil
-        local orig_unschedule = UIManager.unschedule
-        UIManager.unschedule = function(self, action)
-          unscheduled_action = action
-        end
-
-        flw:onClose()
-
-        UIManager.unschedule = orig_unschedule
-        assert.are.equal(flw.refreshBrightnessWidgets, unscheduled_action)
+    it("exposes onClose not unscheduling refreshBrightnessWidgets", function()
+      local flw = FrontLightWidget:new({})
+      local unscheduled_action = nil
+      local orig_unschedule = UIManager.unschedule
+      UIManager.unschedule = function(self, action)
+        unscheduled_action = action
       end
-    )
+
+      flw:onClose()
+
+      UIManager.unschedule = orig_unschedule
+      assert.are.equal(flw.refreshBrightnessWidgets, unscheduled_action)
+    end)
   end)
 end)

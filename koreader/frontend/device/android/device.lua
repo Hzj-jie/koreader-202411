@@ -474,7 +474,7 @@ function Device:_toggleStatusBarVisibility()
     )
   end
 
-  self.fullscreen = is_fullscreen
+  self.fullscreen = not is_fullscreen
 end
 
 function Device:isAlwaysFullscreen()
@@ -563,11 +563,13 @@ function Device:isValidPath(path)
   local real_ext_storage = FFIUtil.realpath(android.getExternalStoragePath())
   local real_path = FFIUtil.realpath(path)
 
-  if real_path then
-    return real_path:sub(1, #real_ext_storage) == real_ext_storage
-  else
+  if not real_ext_storage or not real_path then
     return false
   end
+
+  local prefix = real_ext_storage:sub(-1) == "/" and real_ext_storage
+    or (real_ext_storage .. "/")
+  return real_path == real_ext_storage or real_path:sub(1, #prefix) == prefix
 end
 
 function Device:showLightDialog()
