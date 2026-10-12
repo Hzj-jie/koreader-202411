@@ -91,6 +91,18 @@ describe("SunTime module for Autowarmth", function()
       end
     )
 
+    it("should calculate times with fast_twilight enabled", function()
+      SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
+      SunTime:setDate(2024, 3, 20, 0)
+      SunTime:calculateTimes(true)
+
+      assert.is_number(SunTime.rise)
+      assert.is_number(SunTime.set)
+      assert.is_number(SunTime.rise_civil)
+      assert.is_number(SunTime.set_civil)
+      assert.are.equal(11, #SunTime.times)
+    end)
+
     it("should calculate times for southern hemisphere (Sydney)", function()
       -- Sydney: -33.8688, 151.2093, timezone 10
       SunTime:setPosition("Sydney", -33.8688, 151.2093, 10, 20, true)
