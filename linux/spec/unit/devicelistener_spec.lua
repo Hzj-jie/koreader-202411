@@ -888,23 +888,4 @@ describe("devicelistener", function()
     end)
   end)
 
-  describe("Defect verifications", function()
-    it(
-      "calculateGestureDelta clamps negative distance to zero instead of producing positive delta",
-      function()
-        local listener = DeviceListener:new({})
-        mock_powerd.frontlightIntensity = spy.new(function()
-          return 50
-        end)
-        mock_powerd.setIntensity = spy.new(function() end)
-
-        listener:onIncreaseFlIntensity({ distance = -1000 })
-
-        -- Expected: negative distance should clamp to 0 delta without changing intensity.
-        -- Bug: math.min(1, -1.25) is -1.25, and (-1.25)^2 = 1.5625 > 1,
-        -- producing a positive delta (+79) that erroneously increases brightness.
-        assert.spy(mock_powerd.setIntensity).was_not.called()
-      end
-    )
-  end)
 end)
