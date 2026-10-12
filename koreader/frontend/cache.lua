@@ -37,11 +37,14 @@ function Cache:new(o)
 end
 
 function Cache:init()
-  if not self.slots then
+  if self.slots then
+    -- Caller doesn't care about storage space, just slot count
+    self.cache = lru.new(self.slots, nil, self.enable_eviction_cb)
+  else
     -- Compute the amount of slots in the LRU based on the max size & the average item size
     self.slots = math.ceil(self.size / self.avg_itemsize)
+    self.cache = lru.new(self.slots, self.size, self.enable_eviction_cb)
   end
-  self.cache = lru.new(self.slots, self.size, self.enable_eviction_cb)
 
   if self.disk_cache then
     self.cached = self:_getDiskCache()
