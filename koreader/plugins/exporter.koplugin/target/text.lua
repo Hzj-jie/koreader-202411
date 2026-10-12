@@ -48,7 +48,7 @@ end
 
 function TextExporter:export(t)
   local path = self:getFilePath(t)
-  local file = io.open(path, "w")
+  local file = io.open(path, "a")
   if not file then
     return false
   end
@@ -62,7 +62,7 @@ end
 
 function TextExporter:share(t)
   local content = format(t)
-  self:shareText(table.concat(content, "\n"))
+  self:shareText(content)
 end
 
 return TextExporter
