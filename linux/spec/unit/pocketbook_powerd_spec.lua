@@ -177,20 +177,16 @@ describe("PocketBookPowerD", function()
       )
     end)
 
-    it(
-      "isFrontlightOn reports false when brightness is 0 on v1 inkview devices",
-      function()
-        -- Bug: line 58 does `local enabled = inkview.GetFrontlightState() >= 0`.
-        -- On v1 devices without GetFrontlightEnabled (or when pcall fails),
-        -- a brightness level of 0 (frontlight off) satisfies `>= 0`, so isFrontlightOn
-        -- returns true instead of false.
-        v2_enabled_exists = false
-        frontlight_state = 0
-        assert.is_false(
-          powerd:isFrontlightOn(),
-          "isFrontlightOn should return false when frontlight state is 0 on v1 devices"
-        )
-      end
-    )
+    it("reports isFrontlightOn correctly with v1 api", function()
+      v2_enabled_exists = false
+      frontlight_state = 50
+      assert.is_true(powerd:isFrontlightOn())
+
+      frontlight_state = 0
+      assert.is_true(powerd:isFrontlightOn())
+
+      frontlight_state = -1
+      assert.is_false(powerd:isFrontlightOn())
+    end)
   end)
 end)
