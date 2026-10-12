@@ -894,7 +894,7 @@ function KOPTContext.totable(kc)
   -- rectmaps struct
   context.rectmaps = {
     n = kc.rectmaps.n,
-    na = kc.rectmaps.na,
+    na = kc.rectmaps.n,
     wrectmap = ffi.string(
       kc.rectmaps.wrectmap,
       ffi.sizeof("WRECTMAP") * kc.rectmaps.n
@@ -971,7 +971,7 @@ function KOPTContext.fromtable(context)
   end
   k2pdfopt.wrectmaps_init(kc.rectmaps)
   kc.rectmaps.n = context.rectmaps.n
-  kc.rectmaps.na = context.rectmaps.na
+  kc.rectmaps.na = context.rectmaps.n
   if context.rectmaps.wrectmap ~= "" then
     kc.rectmaps.wrectmap = C.malloc(#context.rectmaps.wrectmap)
     ffi.copy(
