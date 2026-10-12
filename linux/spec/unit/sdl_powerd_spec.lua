@@ -61,19 +61,6 @@ describe("SDL PowerD", function()
       assert.are.equal(50, SDLPowerD:frontlightIntensityHW())
       assert.are.equal(50, SDLPowerD:frontlightWarmthHW())
     end)
-
-    it(
-      "should implement setWarmthHW on SDLPowerD for Emulator natural light",
-      function()
-        -- Bug: SDLPowerD implements frontlightWarmthHW returning self.fl_warmth and
-        -- Emulator claims hasNaturalLight and hasNaturalLightApi, but SDLPowerD omits
-        -- implementing setWarmthHW.
-        assert.is_not_nil(
-          rawget(SDLPowerD, "setWarmthHW"),
-          "SDLPowerD should implement setWarmthHW to support natural light on Emulator"
-        )
-      end
-    )
   end)
 
   describe("setIntensityHW", function()

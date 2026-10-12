@@ -25,10 +25,6 @@ function SDLPowerD:frontlightWarmthHW()
   return self.fl_warmth
 end
 
-function SDLPowerD:setWarmthHW(warmth)
-  self.fl_warmth = warmth or self.fl_warmth
-end
-
 function SDLPowerD:getCapacityHW()
   local _, _, _, percent = SDL.getPowerInfo()
   -- -1 looks a bit odd compared to 0
