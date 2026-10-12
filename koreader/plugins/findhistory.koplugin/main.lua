@@ -20,9 +20,6 @@ local history_backup_file =
 
 local function getFilePathFromMetadata(file)
   local noSuffix, suffix = file:match("(.*)%.sdr/metadata%.(.+)%.lua")
-  if not noSuffix or not suffix then
-    return file
-  end
   return noSuffix .. "." .. suffix
 end
 
@@ -37,12 +34,10 @@ local function doBuildHistory()
     local records = {}
     for line in file:lines() do
       local f, t = line:match("(.+) (%d+)")
-      if f and t then
-        table.insert(records, {
-          time = tonumber(t),
-          file = getFilePathFromMetadata(f),
-        })
-      end
+      table.insert(records, {
+        time = tonumber(t),
+        file = getFilePathFromMetadata(f),
+      })
     end
     file:close()
 
