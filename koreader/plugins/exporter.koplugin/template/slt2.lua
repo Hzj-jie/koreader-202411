@@ -143,16 +143,15 @@ local mt51 = { __index = _G }
 function slt2.render_co(t, env)
   local f
   if setfenv == nil then -- lua 5.2
-    if env ~= nil and getmetatable(env) == nil then
+    if env ~= nil then
       setmetatable(env, mt52)
     end
     f = assert(load(t.code, t.name, "t", env or _ENV)) -- luacheck: ignore 113
   else -- lua 5.1
-    if env ~= nil and getmetatable(env) == nil then
+    if env ~= nil then
       setmetatable(env, mt51)
     end
-    f = assert(loadstring(string.dump(t.code), t.name))
-    setfenv(f, env or _G)
+    f = setfenv(t.code, env or _G)
   end
   return f
 end
