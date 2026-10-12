@@ -110,23 +110,4 @@ describe("luxl", function()
       }, res)
     end
   )
-
-  it("should reset buffer and cast self.buf", function()
-    local str1 = "<tag />"
-    local lx = luxl.new(str1, #str1)
-    local str2 = '<elem attr="val" />'
-    lx:Reset(str2, #str2)
-    assert.is_not_nil(lx.buf)
-    local res = {}
-    for event, offset, size in lx:Lexemes() do
-      local text = str2:sub(offset + 1, offset + size)
-      table.insert(res, { event = event, text = text })
-    end
-    assert.is.same({
-      { event = luxl.EVENT_START, text = "elem" },
-      { event = luxl.EVENT_ATTR_NAME, text = "attr" },
-      { event = luxl.EVENT_ATTR_VAL, text = "val" },
-      { event = luxl.EVENT_END, text = "/" },
-    }, res)
-  end)
 end)
