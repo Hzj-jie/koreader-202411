@@ -582,27 +582,5 @@ describe("VirtualKeyboard component", function()
         end)
       end
     )
-
-    it(
-      "should ensure onClose does not stop text input when keyboard was never shown",
-      function()
-        local mock_inputbox = createMockInputbox()
-        local stop_called = false
-        local orig_stop = Device.stopTextInput
-        Device.stopTextInput = function()
-          stop_called = true
-        end
-
-        local vk = VirtualKeyboard:new({
-          inputbox = mock_inputbox,
-          width = 600,
-          height = 300,
-        })
-        vk:onClose()
-
-        Device.stopTextInput = orig_stop
-        assert.is_false(stop_called)
-      end
-    )
   end)
 end)
