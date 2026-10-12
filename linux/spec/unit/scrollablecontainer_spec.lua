@@ -492,7 +492,7 @@ describe("ScrollableContainer module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes _scrollBy crashing on first_row.bottom when first row starts at top > 0",
+      "should ensure _scrollBy does not crash on first_row.bottom when first row starts at top > 0",
       function()
         local content = createContent(200, 300)
         local step_grid = {
@@ -516,7 +516,7 @@ describe("ScrollableContainer module", function()
     )
 
     it(
-      "fails: exposes onScrollablePanRelease crashing on nil _scroll_relative_x",
+      "should ensure onScrollablePanRelease does not crash on nil _scroll_relative_x",
       function()
         local content = createContent(200, 300)
         local container = ScrollableContainer:new({

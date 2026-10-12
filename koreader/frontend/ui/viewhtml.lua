@@ -292,8 +292,9 @@ function ViewHtml:_handleLongPress(
     local info = offsets[i]
     local offset, level = tonumber(info[1]), tonumber(info[2])
     -- Correct offsets with the shifts caused by our substitutions
+    local orig_offset = offset
     for _, offset_shift in ipairs(offset_shifts) do
-      if offset >= offset_shift[1] then
+      if orig_offset >= offset_shift[1] then
         offset = offset + offset_shift[2]
       end
     end
@@ -454,11 +455,15 @@ function ViewHtml:_showMatchingSelectors(
 )
   local snippets
   if not show_all_ancestors then
-    local node_dataindex = ancestors[1][2]
-    snippets = document:getStylesheetsMatchingRulesets(
-      node_dataindex,
-      with_main_stylesheet
-    )
+    local node_dataindex = ancestors[1] and ancestors[1][2]
+    if node_dataindex then
+      snippets = document:getStylesheetsMatchingRulesets(
+        node_dataindex,
+        with_main_stylesheet
+      )
+    else
+      snippets = {}
+    end
   else
     snippets = {}
     local elements = {}

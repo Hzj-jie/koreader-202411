@@ -115,7 +115,7 @@ describe("Android device", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: isValidPath handles nil realpath of external storage without crashing",
+      "isValidPath handles nil realpath of external storage without crashing",
       function()
         local orig_realpath = FFIUtil.realpath
         FFIUtil.realpath = function(p)
@@ -141,7 +141,7 @@ describe("Android device", function()
       end
     )
 
-    it("fails: isValidPath prevents sibling directory prefix escape", function()
+    it("isValidPath prevents sibling directory prefix escape", function()
       -- External storage is "/storage/emulated/0"
       -- Sibling path is "/storage/emulated/00/secret.epub"
       -- Bug: line 567 does real_path:sub(1, #real_ext_storage) == real_ext_storage
@@ -162,7 +162,7 @@ describe("Android device", function()
     end)
 
     it(
-      "fails: _toggleStatusBarVisibility sets self.fullscreen to new state",
+      "_toggleStatusBarVisibility sets self.fullscreen to new state",
       function()
         local current_fullscreen = true
         mock_android.isFullscreen = function()

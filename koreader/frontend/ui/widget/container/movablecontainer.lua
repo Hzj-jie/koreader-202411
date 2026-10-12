@@ -315,16 +315,16 @@ function MovableContainer:_moveBy(dx, dy, restrict_to_screen)
   -- MovableContainer may not be _moveBy before paintTo.
 end
 
+function MovableContainer:getMovedDimen()
+  return self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
+end
+
 function MovableContainer:onMovableSwipe(_, ges)
   logger.dbg("MovableContainer:onMovableSwipe", ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if
-    not ges.pos:intersectWith(
-      self.dimen:copy():offsetBy(self._moved_offset_x, self._moved_offset_y)
-    )
-  then
+  if not ges.pos:intersectWith(self:getMovedDimen()) then
     -- with swipe, ges.pos is swipe's start position, which should
     -- be on us to consider it
     return false
@@ -362,7 +362,7 @@ function MovableContainer:onMovableTouch(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if ges.pos:intersectWith(self.dimen) then
+  if ges.pos:intersectWith(self:getMovedDimen()) then
     self._touch_pre_pan_was_inside = true
     self._move_relative_x = ges.pos.x
     self._move_relative_y = ges.pos.y
@@ -377,7 +377,7 @@ function MovableContainer:onMovableHold(_, ges)
   if not self.dimen then -- not yet painted
     return false
   end
-  if ges.pos:intersectWith(self.dimen) then
+  if ges.pos:intersectWith(self:getMovedDimen()) then
     self._moving = true -- start of pan
     self._move_relative_x = ges.pos.x
     self._move_relative_y = ges.pos.y
@@ -393,7 +393,7 @@ function MovableContainer:onMovableHoldPan(_, ges)
   end
   -- we may sometimes not see the "hold" event
   if
-    ges.pos:intersectWith(self.dimen)
+    ges.pos:intersectWith(self:getMovedDimen())
     or self._moving
     or self._touch_pre_pan_was_inside
   then
@@ -439,7 +439,7 @@ function MovableContainer:onMovablePan(_, ges)
     return false
   end
   if
-    ges.pos:intersectWith(self.dimen)
+    ges.pos:intersectWith(self:getMovedDimen())
     or self._moving
     or self._touch_pre_pan_was_inside
   then

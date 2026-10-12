@@ -1452,27 +1452,24 @@ describe("ReaderAnnotation module", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "fails: exposes doesMatch ignoring pos0 when positions are strings",
-      function()
-        local hl1 = {
-          drawer = "lighten",
-          page = 1,
-          pos0 = "/body/p[1]/text().0",
-          pos1 = "/body/p[1]/text().100",
-        }
-        local hl2 = {
-          drawer = "lighten",
-          page = 1,
-          pos0 = "/body/p[1]/text().50",
-          pos1 = "/body/p[1]/text().100",
-        }
-        assert.is_false(ReaderAnnotation.doesMatch(hl1, hl2))
-      end
-    )
+    it("doesMatch considers pos0 when positions are strings", function()
+      local hl1 = {
+        drawer = "lighten",
+        page = 1,
+        pos0 = "/body/p[1]/text().0",
+        pos1 = "/body/p[1]/text().100",
+      }
+      local hl2 = {
+        drawer = "lighten",
+        page = 1,
+        pos0 = "/body/p[1]/text().50",
+        pos1 = "/body/p[1]/text().100",
+      }
+      assert.is_false(ReaderAnnotation.doesMatch(hl1, hl2))
+    end)
 
     it(
-      "fails: exposes getNumberOfHighlightsAndNotes missing page notes with nil drawer",
+      "getNumberOfHighlightsAndNotes counts page notes with nil drawer",
       function()
         local annotation = ReaderAnnotation:new({
           ui = {},

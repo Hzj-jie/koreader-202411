@@ -226,7 +226,7 @@ describe("DateTimeWidget module", function()
   end)
 
   describe("Defect verifications", function()
-    it("fails: exposes day not clamped to getDaysInMonth on Apply", function()
+    it("exposes day not clamped to getDaysInMonth on Apply", function()
       local widget = DateTimeWidget:new({
         year = 2025,
         month = 2,
@@ -241,7 +241,7 @@ describe("DateTimeWidget module", function()
     end)
 
     it(
-      "fails: exposes extra_callback receiving stale values instead of updated picker values",
+      "exposes extra_callback receiving stale values instead of updated picker values",
       function()
         local received_year = nil
         local widget = DateTimeWidget:new({

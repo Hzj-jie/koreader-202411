@@ -578,7 +578,7 @@ describe("InputText widget module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes delWord(true) when charpos == 1 setting charpos = 0 and is_text_edited = true",
+      "exposes delWord(true) when charpos == 1 setting charpos = 0 and is_text_edited = true",
       function()
         local input = require("ui/widget/inputtext"):new({
           text = "hello",
@@ -592,7 +592,7 @@ describe("InputText widget module", function()
     )
 
     it(
-      "fails: exposes getLineNums indexing text_widget.charlist instead of self.charlist",
+      "exposes getLineNums indexing text_widget.charlist instead of self.charlist",
       function()
         local input = require("ui/widget/inputtext"):new({
           text = "",

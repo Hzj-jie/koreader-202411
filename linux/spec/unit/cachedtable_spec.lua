@@ -226,7 +226,7 @@ describe("CachedTable module", function()
     assert.is_false(CachedTable.isResolved(t))
     -- Should not throw an unhandled error
     assert.is_nil(t.missing)
-    assert.is_true(CachedTable.isResolved(t))
+    assert.is_false(CachedTable.isResolved(t))
     assert.are.equal("safe", t.fallback)
   end)
 

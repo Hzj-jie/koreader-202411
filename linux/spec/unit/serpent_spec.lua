@@ -54,7 +54,7 @@ describe("serpent module", function()
   it(
     "should validate radix formatting using percent format specifier",
     function()
-      local formatted = (".1f"):format(1.2)
+      local formatted = ("%.1f"):format(1.2)
       assert.are.equal("1.2", formatted)
     end
   )

@@ -284,7 +284,7 @@ describe("PdfDocument", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: registers pbm/pgm/pnm/ppm with standard ascii hyphen in mimetype",
+      "registers pbm/pgm/pnm/ppm with standard ascii hyphen in mimetype",
       function()
         local registered = {}
         local mock_registry = {

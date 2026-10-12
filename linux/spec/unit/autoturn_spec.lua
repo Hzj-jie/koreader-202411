@@ -456,7 +456,7 @@ describe("AutoTurn plugin tests", function()
   )
 
   it(
-    "onClose clobbers PluginShare.pause_auto_suspend when autoturn is disabled",
+    "onClose preserves PluginShare.pause_auto_suspend when autoturn is disabled",
     function()
       saveAutoTurnSettings({ enable = false, timeout = 30 })
 

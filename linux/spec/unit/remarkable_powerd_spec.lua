@@ -93,7 +93,7 @@ describe("Remarkable_PowerD", function()
     end)
 
     it(
-      "fails: isChargingHW reports true when device status is Full (plugged in on charger)",
+      "isChargingHW reports true when device status is Full (plugged in on charger)",
       function()
         -- Bug: line 20 does `return self:read_str_file(self.status_file) == "Charging"`.
         -- On Linux power_supply sysfs, when a plugged-in battery reaches 100%,

@@ -372,7 +372,7 @@ function VirtualKey:genKeyboardLayoutKeyChars()
       self:_showLayoutDialog()
     end,
   }
-  for i = 1, #keyboard_layouts do
+  for i = 1, math.min(#positions, #keyboard_layouts) do
     key_chars[positions[i]] = string.sub(keyboard_layouts[i], 1, 2)
     key_chars[positions[i] .. "_func"] = function()
       UIManager:close(self.popup)
@@ -991,8 +991,8 @@ function VirtualKeyboard:_refresh(want_flash, fullscreen)
 end
 
 function VirtualKeyboard:onShow()
+  assert(active_instances < 1, "Multiple VirtualKeyboard instances detected!")
   active_instances = active_instances + 1
-  assert(active_instances <= 1, "Multiple VirtualKeyboard instances detected!")
   self:_refresh(true)
   self.visible = true
   Device:startTextInput()
@@ -1000,6 +1000,9 @@ function VirtualKeyboard:onShow()
 end
 
 function VirtualKeyboard:onClose()
+  if not self.visible then
+    return
+  end
   self:_refresh(true)
   self.visible = false
   -- NOTE: This effectively stops SDL text input when a keyboard is hidden (... but navigational stuff still works).
