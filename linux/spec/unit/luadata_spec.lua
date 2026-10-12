@@ -85,7 +85,7 @@ describe("luadata module", function()
       f_out:close()
 
       d = require("frontend/luadata"):open(file, "test")
-      assert.Equals("a", d:read()[1])
+      assert.Equals("b", d:read()[1])
       assert.Equals("file", lfs.attributes(d.file .. ".old.1", "mode"))
       assert.Equals("file", lfs.attributes(d.file .. ".old.2", "mode"))
     end)

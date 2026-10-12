@@ -304,14 +304,15 @@ function NetworkItem:saveAndConnectToNetwork(password_input)
     self:showWidget(InfoMessage:new({
       text = gettext("Password cannot be empty."),
     }))
-  else
-    if new_passwd ~= self.info.password then
-      self.info.password = new_passwd
-      self.info.psk = nil
-      NetworkMgr:saveNetwork(self.info)
-    end
-    self:connect()
+    return
   end
+
+  if new_passwd ~= self.info.password then
+    self.info.password = new_passwd
+    self.info.psk = nil
+    NetworkMgr:saveNetwork(self.info)
+  end
+  self:connect()
 
   UIManager:close(password_input)
 end
@@ -564,6 +565,7 @@ function NetworkSetting:onTapClose(arg, ges_ev)
     UIManager:close(self)
     return true
   end
+  return false
 end
 
 function NetworkSetting:onClose()

@@ -103,6 +103,7 @@ function InfoMessage:init()
     if self.image then
       image_widget = ImageWidget:new({
         image = self.image,
+        image_disposable = false,
         width = self.image_width,
         height = self.image_height,
         alpha = self.alpha ~= nil and self.alpha or false, -- default to false
@@ -197,6 +198,12 @@ function InfoMessage:onClose()
       self.dismiss_callback = nil
     end
   end
+
+  if self.image and self.image.free then
+    self.image:free()
+    self.image = nil
+  end
+  self:free()
 end
 
 function InfoMessage:onShow()

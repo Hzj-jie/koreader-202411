@@ -131,7 +131,7 @@ function Remarkable:init()
     status_file = self.status_path,
   })
 
-  local event_map = require("device/remarkable/event_map")
+  local event_map = util.tableDeepCopy(require("device/remarkable/event_map"))
   -- If we are launched while Oxide is running, remove Power from the event map
   if oxide_running then
     event_map[116] = nil
@@ -139,7 +139,7 @@ function Remarkable:init()
 
   self.input = require("device/input"):new({
     device = self,
-    event_map = require("device/remarkable/event_map"),
+    event_map = event_map,
     wacom_protocol = true,
   })
 
@@ -151,10 +151,13 @@ function Remarkable:init()
   if std_out then
     local release = std_out:read("*line")
     std_out:close()
-    release = release:match("^(%d+%.%d+)%.%d+.*$")
-    release = tonumber(release)
-    if release and release >= 6.2 then
-      is_mainline = true
+    local major, minor = release:match("^(%d+)%.(%d+)")
+    if major and minor then
+      major = tonumber(major)
+      minor = tonumber(minor)
+      if major > 6 or (major == 6 and minor >= 2) then
+        is_mainline = true
+      end
     end
   end
 

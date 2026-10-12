@@ -181,11 +181,8 @@ function ZipWriter:open(zipfilepath)
     bit.lshift(t.month, 5),
     bit.lshift(t.day, 0)
   )
-  self.started_time = bit.bor(
-    bit.lshift(t.hour, 11),
-    bit.lshift(t.min, 5),
-    bit.rshift(t.sec + 2, 1)
-  )
+  self.started_time =
+    bit.bor(bit.lshift(t.hour, 11), bit.lshift(t.min, 5), bit.rshift(t.sec, 1))
   self.ziphandle = io.open(zipfilepath, "wb")
   if not self.ziphandle then
     return nil

@@ -51,13 +51,16 @@ function KoboPowerD:_syncKoboLightOnStart()
       if is_frontlight_on == nil then
         -- this device does not support frontlight toggle,
         -- we set the value based on frontlight intensity.
-        if new_intensity > 0 then
+        if new_intensity and new_intensity > 0 then
           is_frontlight_on = true
         else
           is_frontlight_on = false
         end
       end
-      if is_frontlight_on == false and new_intensity == 0 then
+      if
+        is_frontlight_on == false
+        and (not new_intensity or new_intensity == 0)
+      then
         -- frontlight was toggled off in nickel, and we have no
         -- level-before-toggle-off (firmware without "FrontLightState"):
         -- use the one from koreader settings

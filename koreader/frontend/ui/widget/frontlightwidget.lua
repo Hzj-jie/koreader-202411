@@ -514,6 +514,7 @@ function FrontLightWidget:setFrontLightIntensity(intensity)
 end
 
 function FrontLightWidget:onClose()
+  UIManager:unschedule(self.refreshBrightnessWidgets)
   UIManager:setDirty(nil, function()
     return "flashui", self.frame.dimen
   end)
@@ -549,7 +550,13 @@ function FrontLightWidget:onTapProgress(arg, ges_ev)
 
     local num = Math.round(perc * self.fl.max)
     -- Always set the frontlight intensity.
-    self:setFrontLightIntensity(num)
+    if
+      num == self.fl.min and self.powerd:frontlightIntensity() == self.fl.min
+    then
+      self.fl.cur = self.fl.min
+    else
+      self:setFrontLightIntensity(num)
+    end
 
     -- But limit the widget update frequency on E Ink.
     if G_named_settings.low_pan_rate() then

@@ -89,7 +89,7 @@ local Device = Generic:extend({
     if not enabled or not tool or not link or type(link) ~= "string" then
       return
     end
-    return runCommand(tool .. " '" .. link .. "'")
+    return runCommand(tool .. " '" .. link:gsub("'", "'\\''") .. "'")
   end,
   canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()
@@ -354,7 +354,10 @@ function Device:isAlwaysFullscreen()
 end
 
 function Device:toggleFullscreen()
-  local current_mode = self.fullscreen or self:isDefaultFullscreen()
+  local current_mode = self.fullscreen
+  if current_mode == nil then
+    current_mode = self:isDefaultFullscreen()
+  end
   local new_mode = not current_mode
   local ok, err = SDL.setWindowFullscreen(new_mode)
   if not ok then

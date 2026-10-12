@@ -971,7 +971,7 @@ function KOPTContext.fromtable(context)
   end
   k2pdfopt.wrectmaps_init(kc.rectmaps)
   kc.rectmaps.n = context.rectmaps.n
-  kc.rectmaps.na = context.rectmaps.n
+  kc.rectmaps.na = context.rectmaps.na
   if context.rectmaps.wrectmap ~= "" then
     kc.rectmaps.wrectmap = C.malloc(#context.rectmaps.wrectmap)
     ffi.copy(

@@ -33,7 +33,7 @@ describe("IconWidget", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes init early return when self.file is set preventing updating file on setIcon",
+      "exposes init early return when self.file is set preventing updating file on setIcon",
       function()
         local iw = IconWidget:new({
           icon = "appbar.menu",
@@ -46,7 +46,7 @@ describe("IconWidget", function()
             self.icon = new_icon
             self:init()
           end
-        set_icon(iw, "search")
+        set_icon(iw, "appbar.search")
 
         assert.are_not.equal(initial_file, iw.file)
         assert.truthy(iw.file:find("search", 1, true))
@@ -54,7 +54,7 @@ describe("IconWidget", function()
     )
 
     it(
-      "fails: exposes permanent caching of ICON_NOT_FOUND on initial lookup miss",
+      "exposes permanent caching of ICON_NOT_FOUND on initial lookup miss",
       function()
         local lfs = require("libs/libkoreader-lfs")
         local orig_attributes = lfs.attributes
