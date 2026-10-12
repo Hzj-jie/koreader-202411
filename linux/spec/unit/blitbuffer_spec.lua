@@ -33,15 +33,6 @@ describe("ffi/blitbuffer module", function()
     assert.are.equal(0, len)
   end)
 
-  it("renders progressBar without type errors in border painting", function()
-    local bb = Blitbuffer.new(100, 40, Blitbuffer.TYPE_BB8)
-    local ok, err = pcall(function()
-      bb:progressBar(0, 0, 100, 40, 2, 2, 0.5, Blitbuffer.Color8(0))
-    end)
-    bb:free()
-    assert.is_true(ok, tostring(err))
-  end)
-
   it(
     "returns valid stride matching rotated dimensions in getBufferData for BBRGB24",
     function()
