@@ -354,11 +354,7 @@ local getFunctionInfo = function(func, full_code)
     end
     __, cnt = signature:gsub("^[^(]*:", "")
     info.is_method = cnt > 0
-    if info.is_method then
-      info.classname = signature:gsub(".-(%w+):.*", "%1")
-    else
-      info.classname = ""
-    end
+    info.classname = signature:gsub(".-(%w+):.*", "%1")
   else
     -- possibly some Lua builtin function or from some C-module
     lines = {}
@@ -402,16 +398,12 @@ local guessClassName = function(obj)
   local meta_table = getmetatable(obj)
   local test_method, meta_test_method
   for _, method_name in ipairs(classic_method_names) do
-    local val = rawget(obj, method_name)
-    if type(val) == "function" then
-      test_method = val
+    test_method = rawget(obj, method_name)
+    if test_method then
       break
     end
     if meta_table and not meta_test_method then
-      val = rawget(meta_table, method_name)
-      if type(val) == "function" then
-        meta_test_method = val
-      end
+      meta_test_method = rawget(meta_table, method_name)
     end
   end
   if not test_method then
@@ -419,9 +411,7 @@ local guessClassName = function(obj)
   end
   if test_method then
     local func_info = getFunctionInfo(test_method)
-    if func_info.classname and func_info.classname ~= "" then
-      return func_info.classname
-    end
+    return func_info.classname
   end
 end
 
@@ -1112,7 +1102,6 @@ local getOrderedDispatcherActions = function()
     return _dispatcher_actions
   end
   local Dispatcher = require("dispatcher")
-  Dispatcher:init()
   local settings, order
   local n = 1
   while true do
@@ -1270,16 +1259,12 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         -- to update the setting value for the bottom menu
         -- We'll have to insert it in our single URL which may then carry 2 events
         get_base_href = function(v, is_indice, single)
-          local val = is_indice and action.configurable.values[v] or v
-          if type(val) == "table" then
-            val = val[1]
-          end
           return T(
             "%1/%2/%3/%4%5",
             reqinfo.parsed_uri,
             "ConfigChange",
             action.configurable.name,
-            val,
+            is_indice and action.configurable.values[v] or v,
             single and "" or (action.event and "/&/" .. action.event or "")
           )
         end
@@ -1302,11 +1287,7 @@ function HttpInspector:exposeEvent(uri, reqinfo)
         else
           args, toggle = action.args, action.toggle
         end
-        if not args then
-          add_html(
-            T("  %1/... unsupported (no arguments)", get_base_href("..."))
-          )
-        elseif type(args[1]) == "table" then
+        if type(args[1]) == "table" then
           add_html(
             T("  %1/... unsupported (table arguments)", get_base_href("..."))
           )
@@ -1315,15 +1296,11 @@ function HttpInspector:exposeEvent(uri, reqinfo)
             local href = T("%1/%2", get_base_href(i, true), tostring(args[i]))
             local unit = action.unit and " " .. action.unit or ""
             local default = args[i] == action.default and " (default)" or ""
-            local label = toggle and toggle[i]
-            if type(label) == "table" then
-              label = label[1]
-            end
             add_html(
               T(
                 "  <a href='%1'>%1</a> \t<b>%2%3%4</b>",
                 href,
-                label or tostring(args[i]),
+                toggle[i],
                 unit,
                 default
               )

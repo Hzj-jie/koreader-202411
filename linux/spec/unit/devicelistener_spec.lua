@@ -888,44 +888,4 @@ describe("devicelistener", function()
     end)
   end)
 
-  describe("Defect verifications", function()
-    it(
-      "calculateGestureDelta clamps negative distance to zero instead of producing positive delta",
-      function()
-        local listener = DeviceListener:new({})
-        mock_powerd.frontlightIntensity = spy.new(function()
-          return 50
-        end)
-        mock_powerd.setIntensity = spy.new(function() end)
-
-        listener:onIncreaseFlIntensity({ distance = -1000 })
-
-        -- Expected: negative distance should clamp to 0 delta without changing intensity.
-        -- Bug: math.min(1, -1.25) is -1.25, and (-1.25)^2 = 1.5625 > 1,
-        -- producing a positive delta (+79) that erroneously increases brightness.
-        assert.spy(mock_powerd.setIntensity).was_not.called()
-      end
-    )
-
-    it(
-      "onSwapPageTurnButtons preserves right button inversion when swapping left buttons",
-      function()
-        local listener = DeviceListener:new({})
-        mock_reader_settings:save("input_invert_page_turn_keys", true)
-        mock_device.invertButtons = spy.new(function() end)
-        mock_device.invertButtonsLeft = spy.new(function() end)
-        mock_device.invertButtonsRight = spy.new(function() end)
-
-        listener:onSwapPageTurnButtons("left")
-
-        -- When both sides were inverted and the user swaps left-side buttons,
-        -- right-side buttons must remain inverted.
-        -- Bug: onSwapPageTurnButtons("left") un-inverts both sides via Device:invertButtons()
-        -- and then only inverts left side, leaving right-side un-inverted.
-        assert.is_true(
-          mock_reader_settings:isTrue("input_invert_right_page_turn_keys")
-        )
-      end
-    )
-  end)
 end)

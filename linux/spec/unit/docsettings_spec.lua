@@ -1643,6 +1643,12 @@ describe("docsettings module", function()
       assert.are.equal("", docsettings:getNameFromHistory("no_brackets.lua"))
     end)
 
+    it("handles history filenames with multiple hashes or symbols", function()
+      local hist = "[#sdcard#Books#] My #1 Book.lua"
+      assert.are.equal("/sdcard/Books", docsettings:getPathFromHistory(hist))
+      assert.are.equal("My #1 Book", docsettings:getNameFromHistory(hist))
+    end)
+
     it(
       "converts valid history path back and forth with getFileFromHistory",
       function()

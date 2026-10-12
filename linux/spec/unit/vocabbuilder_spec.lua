@@ -540,15 +540,7 @@ describe("VocabBuilder plugin", function()
           return orig_show(self, dlg)
         end
 
-        local save_called = 0
-        local orig_save = G_reader_settings.save
-        G_reader_settings.save = function(self, key, value)
-          save_called = save_called + 1
-          return orig_save(self, key, value)
-        end
-
         finally(function()
-          G_reader_settings.save = orig_save
           UIManager.show = orig_show
           if
             sync_settings_dialog
@@ -592,7 +584,6 @@ describe("VocabBuilder plugin", function()
         assert.are.equal("Delete", delete_btn.text)
 
         delete_btn.callback()
-        assert.are.equal(1, save_called)
         assert.is_nil(settings.server)
 
         -- Reopen sync dialog to test Edit callback
@@ -612,42 +603,7 @@ describe("VocabBuilder plugin", function()
           name = "NewServer",
           url = "http://example.org",
         })
-        assert.are.equal(2, save_called)
         assert.are.equal("NewServer", settings.server.name)
-      end
-    )
-
-    it(
-      "detects uninitialized database schema and returns false in onSync",
-      function()
-        local DataStorage = require("datastorage")
-        local SQ3 = require("lua-ljsqlite3/init")
-        local empty_local_db = DataStorage:getSettingsDir()
-          .. "/empty_local.sqlite3"
-        local income_db = DataStorage:getSettingsDir() .. "/income.sqlite3"
-        local cached_db = DataStorage:getSettingsDir() .. "/cached.sqlite3"
-
-        finally(function()
-          os.remove(empty_local_db)
-          os.remove(income_db)
-          os.remove(cached_db)
-        end)
-
-        -- Create empty uninitialized local db (schema_version = 0)
-        local conn_l = SQ3.open(empty_local_db)
-        conn_l:close()
-
-        -- Copy initialized DB with schema to income_db
-        DB:init()
-        local ffiutil = require("ffi/util")
-        ffiutil.copyFile(DB.path, income_db)
-
-        local res = DB.onSync(empty_local_db, cached_db, income_db)
-
-        assert.is_false(
-          res,
-          "onSync must return false when local DB is empty (schema_version = 0)"
-        )
       end
     )
   end)

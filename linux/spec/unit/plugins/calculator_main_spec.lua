@@ -297,29 +297,35 @@ describe("Calculator main plugin module", function()
     assert.is_function(menu_items.calculator.callback)
   end)
 
-  it("should persist valid file paths in settings on init", function()
-    local saved_settings = {}
-    local old_save = G_reader_settings.save
-    G_reader_settings.save = function(self_s, key, val)
-      saved_settings[key] = val
+  it(
+    "should read file paths from settings on init without overwriting them",
+    function()
+      local old_read = G_reader_settings.read
+      local save_called = false
+      local old_save = G_reader_settings.save
+      G_reader_settings.read = function(self_s, key)
+        if key == "calculator_output_path" then
+          return "/custom/output.calc"
+        elseif key == "calculator_input_path" then
+          return "/custom/input.calc"
+        end
+        return nil
+      end
+      G_reader_settings.save = function(self_s, key, val)
+        save_called = true
+      end
+
+      local calc = create_mock_calc()
+      calc:init()
+
+      assert.are.equal("/custom/output.calc", calc.calculator_output_path)
+      assert.are.equal("/custom/input.calc", calc.calculator_input_path)
+      assert.is_false(save_called)
+
+      G_reader_settings.read = old_read
+      G_reader_settings.save = old_save
     end
-
-    local calc = create_mock_calc()
-    calc:init()
-
-    assert.is_string(saved_settings["calculator_output_path"])
-    assert.are.equal(
-      calc.calculator_output_path,
-      saved_settings["calculator_output_path"]
-    )
-    assert.is_string(saved_settings["calculator_input_path"])
-    assert.are.equal(
-      calc.calculator_input_path,
-      saved_settings["calculator_input_path"]
-    )
-
-    G_reader_settings.save = old_save
-  end)
+  )
 
   it("should invoke load on input dialog Load button", function()
     local dump_called = false

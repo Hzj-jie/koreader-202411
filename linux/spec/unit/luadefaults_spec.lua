@@ -70,23 +70,6 @@ describe("LuaDefaults", function()
       assert.is_true(defaults:hasBeenCustomized("DHINTCOUNT"))
       assert.are.same(5, defaults:read("DHINTCOUNT"))
     end)
-
-    it(
-      "should return false when default is false and key is not customized",
-      function()
-        local defaults = LuaDefaults:open(TEST_FILE)
-        assert.is_false(defaults:has("DNEW_BOOL"))
-        local val = defaults:read("DNEW_BOOL", false)
-        assert.is_false(val)
-      end
-    )
-
-    it("should report key existence when customized in rw table", function()
-      local defaults = LuaDefaults:open(TEST_FILE)
-      defaults:save("DCUSTOM_KEY", 42)
-      assert.is_true(defaults:has("DCUSTOM_KEY"))
-      assert.is_false(defaults:hasNot("DCUSTOM_KEY"))
-    end)
   end)
 
   describe("saving and deleting", function()

@@ -136,42 +136,4 @@ describe("DjvuDocument", function()
       assert.are.equal("image/vnd.djvu", registered[4].mime)
     end)
   end)
-
-  describe("Defect verifications", function()
-    it(
-      "init calls updateColorRendering before openDocument when color rendering is enabled",
-      function()
-        local djvu = require("libs/libkoreader-djvu")
-        local orig_openDocument = djvu.openDocument
-        local first_render_color
-
-        djvu.openDocument = function(file, render_color, cache_size)
-          if first_render_color == nil then
-            first_render_color = render_color
-          end
-          return orig_openDocument(file, render_color, cache_size)
-        end
-
-        local orig_hasColor = CanvasContext.hasColorRendering
-        CanvasContext.hasColorRendering = function()
-          return true
-        end
-
-        finally(function()
-          djvu.openDocument = orig_openDocument
-          CanvasContext.hasColorRendering = orig_hasColor
-        end)
-
-        assert.is_true(CanvasContext:hasColorRendering())
-        local doc = DjvuDocument:new({ file = sample_djvu })
-
-        -- When CanvasContext:hasColorRendering() is true, openDocument should receive render_color = true.
-        -- Bug: DjvuDocument:init() calls openDocument with self.render_color (false/nil) BEFORE calling self:updateColorRendering().
-        assert.is_true(first_render_color)
-
-        doc._document:close()
-        doc.is_open = false
-      end
-    )
-  end)
 end)

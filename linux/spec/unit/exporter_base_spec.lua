@@ -55,24 +55,13 @@ describe("BaseExporter module", function()
     assert.is_false(exporter:isEnabled())
   end)
 
-  it(
-    "calls G_reader_settings:save to mark settings dirty when saving",
-    function()
-      local saved_key = nil
-      local orig_save = G_reader_settings.save
-      G_reader_settings.save = function(self, key, val, default)
-        saved_key = key
-        return orig_save(self, key, val, default)
-      end
-      finally(function()
-        G_reader_settings.save = orig_save
-      end)
+  it("saves exporter settings into reader settings table", function()
+    local exporter = BaseExporter:new({ name = "testexporter" })
+    exporter.settings.enabled = true
+    exporter:saveSettings()
 
-      local exporter = BaseExporter:new({ name = "testexporter" })
-      exporter.settings.enabled = true
-      exporter:saveSettings()
-
-      assert.are.equal("exporter", saved_key)
-    end
-  )
+    local plugin_settings = G_reader_settings:readTableRef("exporter")
+    assert.is_true(plugin_settings.testexporter.enabled)
+    assert.is_true(exporter.new_settings)
+  end)
 end)

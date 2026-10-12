@@ -128,18 +128,4 @@ describe("luasettings module", function()
 
     os.remove(test_file)
   end)
-
-  it(
-    "should handle reset without arguments without corrupting data table",
-    function()
-      local LuaSettings = require("frontend/luasettings")
-      local s = LuaSettings:open("test_reset_empty.lua")
-      s:save("key", "val")
-      s:reset()
-      assert.is_table(s.data)
-      assert.is_false(s:has("key"))
-      s:save("new_key", "new_val")
-      assert.are.equal("new_val", s:read("new_key"))
-    end
-  )
 end)

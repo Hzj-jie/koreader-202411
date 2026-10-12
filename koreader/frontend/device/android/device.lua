@@ -435,48 +435,6 @@ function Device:_toggleFullscreenLegacy()
   end
 end
 
--- toggle fullscreen API 14-16
-function Device:_toggleStatusBarVisibility()
-  local is_fullscreen = android.isFullscreen()
-  android.setFullscreen(not is_fullscreen)
-  logger.dbg(string.format("requesting fullscreen: %s", not is_fullscreen))
-  local width = android.getScreenWidth()
-  local height = android.getScreenHeight()
-  local statusbar_height = android.getStatusBarHeight()
-  local new_height = height - statusbar_height
-
-  local Input = require("device/input")
-  if not is_fullscreen and self.viewport then
-    statusbar_height = 0
-    -- reset touchTranslate to normal
-    -- (since we don't setup any hooks besides the viewport one,
-    -- (we can just reset the hook to the default NOP instead of piling on +/- translations...)
-    self.input.eventAdjustHook = Input.eventAdjustHook
-  end
-
-  local viewport =
-    Geom:new({ x = 0, y = statusbar_height, w = width, h = new_height })
-  logger.info(
-    string.format(
-      "Switching viewport to new geometry [x=%d,y=%d,w=%d,h=%d]",
-      0,
-      statusbar_height,
-      width,
-      new_height
-    )
-  )
-
-  self.screen:setViewport(viewport)
-  if is_fullscreen and self.viewport and self.viewport.y ~= 0 then
-    self.input:registerEventAdjustHook(
-      self.input.adjustTouchTranslate,
-      { x = 0 - self.viewport.x, y = 0 - self.viewport.y }
-    )
-  end
-
-  self.fullscreen = not is_fullscreen
-end
-
 function Device:isAlwaysFullscreen()
   return not canToggleFullscreen()
 end
@@ -487,10 +445,8 @@ function Device:toggleFullscreen()
   local __, api = canToggleFullscreen()
   if api >= 19 then
     self:_toggleFullscreenImmersive()
-  elseif api >= 16 then
-    self:_toggleFullscreenLegacy()
   else
-    self:_toggleStatusBarVisibility()
+    self:_toggleFullscreenLegacy()
   end
 end
 
@@ -531,10 +487,6 @@ function Device:info()
   return common_text .. platform_text .. eink_text .. wakelocks_text
 end
 
-function Device:isDeprecated()
-  return self.firmware_rev < 18
-end
-
 function Device:test()
   android.runTest()
 end
@@ -563,13 +515,13 @@ function Device:isValidPath(path)
   local real_ext_storage = FFIUtil.realpath(android.getExternalStoragePath())
   local real_path = FFIUtil.realpath(path)
 
-  if not real_ext_storage or not real_path then
+  if real_path then
+    local prefix = real_ext_storage:sub(-1) == "/" and real_ext_storage
+      or (real_ext_storage .. "/")
+    return real_path == real_ext_storage or real_path:sub(1, #prefix) == prefix
+  else
     return false
   end
-
-  local prefix = real_ext_storage:sub(-1) == "/" and real_ext_storage
-    or (real_ext_storage .. "/")
-  return real_path == real_ext_storage or real_path:sub(1, #prefix) == prefix
 end
 
 function Device:showLightDialog()
