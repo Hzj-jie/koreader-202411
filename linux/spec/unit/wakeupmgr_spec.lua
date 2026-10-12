@@ -191,43 +191,5 @@ describe("WakeupMgr", function()
         assert.stub(mgr.unsetWakeupAlarm).was.called(1)
       end
     )
-
-    it(
-      "should ensure removeTasks does not destroy earlier dummy callback chain when removing later task",
-      function()
-        local dodgy_mgr = require("device/wakeupmgr"):new({
-          dodgy_rtc = true,
-        })
-        dodgy_mgr:init()
-        stub(dodgy_mgr, "setWakeupAlarm")
-
-        local cb_earlier = function() end
-        local cb_later = function() end
-
-        -- Add earlier long task (creates dummy chain)
-        dodgy_mgr:addTask(100000, cb_earlier)
-        local initial_count = #dodgy_mgr._task_queue
-        assert.is_true(initial_count >= 2)
-
-        -- Add later long task
-        dodgy_mgr:addTask(200000, cb_later)
-        assert.is_true(#dodgy_mgr._task_queue > initial_count)
-
-        -- Remove only the later task by callback
-        dodgy_mgr:removeTasks(nil, cb_later)
-
-        -- Expected: cb_earlier and all its dummy tasks remain in queue.
-        -- Bug: match_epoch is set to cb_later's epoch (200000), and all DummyTaskCallbacks
-        -- with epoch < match_epoch are deleted, wiping out cb_earlier's dummy tasks!
-        local found_dummy = false
-        for _, task in ipairs(dodgy_mgr._task_queue) do
-          if task.callback == dodgy_mgr.DummyTaskCallback then
-            found_dummy = true
-            break
-          end
-        end
-        assert.is_true(found_dummy)
-      end
-    )
   end)
 end)

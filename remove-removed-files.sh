@@ -35,6 +35,8 @@ REMOVED_FILES=(
   "plugins/kochess.koplugin"
   "plugins/AnnotationSync.koplugin/l10n"
   "plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua"
+  "plugins/newsdownloader.koplugin/internaldownloadbackend.lua"
+  "plugins/externalkeyboard.koplugin/find-keyboard.lua"
   "zsync2"
   "spinning_zsync"
 )

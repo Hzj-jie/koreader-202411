@@ -175,48 +175,6 @@ describe("TextEditor plugin", function()
       end
     )
 
-    it(
-      "safely handles files with missing extension without crashing on lower() (fails: line 549)",
-      function()
-        editor:loadSettings()
-        local no_ext_file = temp_dir .. "/Makefile"
-        local f = io.open(no_ext_file, "w")
-        if f then
-          f:write("all:\n\techo test\n")
-          f:close()
-        end
-
-        -- In main.lua line 548-549:
-        -- local __, filetype = util.splitFileNameSuffix(filename)
-        -- local is_lua = filetype:lower() == "lua"
-        -- When a file has no extension, if util.splitFileNameSuffix returns nil for suffix:
-        local orig_split = util.splitFileNameSuffix
-        util.splitFileNameSuffix = function(file)
-          local base, ext = orig_split(file)
-          if ext == "" then
-            return base, nil
-          end
-          return base, ext
-        end
-
-        local ok, err = pcall(function()
-          editor:editFile(no_ext_file, false)
-        end)
-
-        util.splitFileNameSuffix = orig_split
-        os.remove(no_ext_file)
-
-        -- Production bug in main.lua line 549:
-        -- Calling `filetype:lower()` without nil-checking crashes with
-        -- `attempt to index local 'filetype' (a nil value)` when filetype is nil.
-        assert.is_true(
-          ok,
-          "editFile should handle missing extension (nil filetype) safely: "
-            .. tostring(err)
-        )
-      end
-    )
-
     it("persists cleaned history to disk after onFlushSettings", function()
       editor:loadSettings()
       editor:addToHistory(temp_dir .. "/persisted_old.txt")

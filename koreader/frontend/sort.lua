@@ -118,26 +118,13 @@ function sort.natsort_cmp(cache)
       end
       res = res .. c:gsub("[%z\1-\127\192-\255]", "\0%0")
     end
-    if s ~= nil then
-      cache[s] = res
-    end
+    cache[s] = res
     return res
   end
 
   local function natsort(a, b)
-    local ca = (a ~= nil and cache[a]) or natsort_conv(a)
-    local cb = (b ~= nil and cache[b]) or natsort_conv(b)
-    if ca ~= cb then
-      return ca < cb
-    end
-    if type(a) == type(b) then
-      return a < b
-    end
-    local sa, sb = tostring(a), tostring(b)
-    if sa ~= sb then
-      return sa < sb
-    end
-    return type(a) < type(b)
+    local ca, cb = cache[a] or natsort_conv(a), cache[b] or natsort_conv(b)
+    return ca < cb or ca == cb and a < b
   end
   return natsort, cache
 end

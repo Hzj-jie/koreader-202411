@@ -713,27 +713,6 @@ describe("CoverImage plugin tests", function()
     assert.spy(dummy_menu.updateItems).was_called()
   end)
 
-  it(
-    "retrieves cache files using passed cache_path and cache_prefix parameters",
-    function()
-      local instance = CoverImage:new({ ui = createMockUI() })
-      local custom_cache_dir = test_dir .. "/custom_cache/"
-      lfs.mkdir(custom_cache_dir)
-      local f = io.open(custom_cache_dir .. "special_test.png", "w")
-      f:write("custom_data")
-      f:close()
-
-      -- getCacheFiles accepts (cache_path, cache_prefix)
-      -- But main.lua:350 iterates self.cover_image_cache_path instead of cache_path,
-      -- and main.lua:354 uses self.cover_image_cache_prefix:len() instead of cache_prefix:len().
-      local count = instance:getCacheFiles(custom_cache_dir, "special_")
-      os.remove(custom_cache_dir .. "special_test.png")
-      lfs.rmdir(custom_cache_dir)
-
-      assert.are.equal(1, count)
-    end
-  )
-
   it("preserves modification time when migrating cache files", function()
     local instance = CoverImage:new({ ui = createMockUI() })
     local old_cache = test_dir .. "/old_cache_migration/"

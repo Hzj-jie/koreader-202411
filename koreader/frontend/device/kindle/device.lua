@@ -668,7 +668,7 @@ function Kindle:setDateTime(year, month, day, hour, min, sec)
     and self.model ~= "KindleDXG"
   then
     -- Returns false to disable the feature.
-    return false
+    return
   end
 
   if hour == nil or min == nil then

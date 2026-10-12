@@ -165,14 +165,7 @@ describe("CheckersSettingsWidget widget", function()
     widget:show()
 
     assert.is_not_nil(captured_args)
-    assert.is_not_nil(captured_args.close_callback)
-    local closed_dialog = nil
-    local orig_close = UIManager.close
-    UIManager.close = function(self, dlg)
-      closed_dialog = dlg
-    end
-    captured_args.close_callback()
-    UIManager.close = orig_close
-    assert.are.equal(widget.dialog, closed_dialog)
+    assert.is_not_nil(captured_args.save_callback)
+    assert.is_nil(captured_args.close_callback)
   end)
 end)

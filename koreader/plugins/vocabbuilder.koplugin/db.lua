@@ -527,7 +527,6 @@ function VocabularyBuilder.onSync(local_path, cached_path, income_path)
   if not ok1 or tonumber(v1) == 0 then
     -- no income db or wrong db, first time sync
     logger.dbg("vocabbuilder open income DB failed", v1)
-    conn_income:close()
     return true
   end
 
@@ -572,11 +571,10 @@ function VocabularyBuilder.onSync(local_path, cached_path, income_path)
   conn_cached:close()
   conn_income:close()
   local conn = SQ3.open(local_path)
-  local ok3, v3 = pcall(conn.rowexec, conn, "PRAGMA schema_version")
+  local ok3, v3 = pcall(conn.exec, conn, "PRAGMA schema_version")
   if not ok3 or tonumber(v3) == 0 then
     -- no local db, this is an error
     logger.err("vocabbuilder open local DB", v3)
-    conn:close()
     return false
   end
 

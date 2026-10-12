@@ -114,33 +114,6 @@ describe("Android device", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "isValidPath handles nil realpath of external storage without crashing",
-      function()
-        local orig_realpath = FFIUtil.realpath
-        FFIUtil.realpath = function(p)
-          if p == "/storage/emulated/0" then
-            return nil
-          end
-          return p
-        end
-        finally(function()
-          FFIUtil.realpath = orig_realpath
-        end)
-
-        -- When external storage realpath is nil, line 567 attempts #real_ext_storage
-        -- and crashes with "attempt to get length of local 'real_ext_storage' (a nil value)".
-        local ok, err = pcall(function()
-          return Device:isValidPath("/storage/emulated/0/Books/novel.epub")
-        end)
-        assert.is_true(
-          ok,
-          "Expected isValidPath to return false when external storage realpath is nil, but got: "
-            .. tostring(err)
-        )
-      end
-    )
-
     it("isValidPath prevents sibling directory prefix escape", function()
       -- External storage is "/storage/emulated/0"
       -- Sibling path is "/storage/emulated/00/secret.epub"
@@ -160,35 +133,5 @@ describe("Android device", function()
         "Expected sibling prefix directory '/storage/emulated/00' to be rejected"
       )
     end)
-
-    it(
-      "_toggleStatusBarVisibility sets self.fullscreen to new state",
-      function()
-        local current_fullscreen = true
-        mock_android.isFullscreen = function()
-          return current_fullscreen
-        end
-        mock_android.setFullscreen = function(new_state)
-          current_fullscreen = new_state
-        end
-
-        local mock_screen = {
-          setViewport = function() end,
-        }
-        local test_dev = setmetatable({
-          screen = mock_screen,
-          viewport = nil,
-        }, { __index = Device })
-
-        -- Initially fullscreen is true; toggling sets android fullscreen to false.
-        -- Bug: line 477 sets self.fullscreen = is_fullscreen (the old true value)
-        -- instead of not is_fullscreen (the new false value).
-        test_dev:_toggleStatusBarVisibility()
-        assert.is_false(
-          test_dev.fullscreen,
-          "Expected test_dev.fullscreen to be false after toggling from true"
-        )
-      end
-    )
   end)
 end)

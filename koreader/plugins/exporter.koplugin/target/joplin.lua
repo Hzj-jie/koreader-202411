@@ -98,37 +98,6 @@ function JoplinExporter:findNoteByTitle(title, notebook_id)
   return
 end
 
--- If successful returns id of found notebook (folder).
-function JoplinExporter:findNotebookByTitle(title)
-  local url_base = string.format(
-    "http://%s:%s/folders?token=%s&query=%s&page=",
-    self.settings.ip,
-    self.settings.port,
-    self.settings.token,
-    title
-  )
-
-  local page = 1
-  local url, has_more
-
-  repeat
-    url = url_base .. page
-    local folders, err = makeRequest(url, "GET")
-    if not folders then
-      logger.warn("Joplin findNotebookByTitle error", err)
-      return
-    end
-    has_more = folders.has_more
-    for _, folder in ipairs(folders.items) do
-      if folder.title == title then
-        return folder.id
-      end
-    end
-    page = page + 1
-  until not has_more
-  return
-end
-
 -- returns true if the notebook exists
 function JoplinExporter:notebookExist(title)
   local url = string.format(

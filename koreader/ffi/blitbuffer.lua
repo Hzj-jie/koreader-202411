@@ -3043,41 +3043,6 @@ function BB_mt.__index:hatchRect(x, y, w, h, sw, c, a)
 end
 
 --[[
-Draw a progress bar according to following args:
-
-@x:  start position in x axis
-@y:  start position in y axis
-@w:  width for progress bar
-@h:  height for progress bar
-@load_m_w: width margin for loading bar
-@load_m_h: height margin for loading bar
-@load_percent: progress in percent
-@c:  color for loading bar
---]]
-function BB_mt.__index:progressBar(
-  x,
-  y,
-  w,
-  h,
-  load_m_w,
-  load_m_h,
-  load_percent,
-  c
-)
-  if load_m_h * 2 > h then
-    load_m_h = h / 2
-  end
-  self:paintBorder(x, y, w, h, 2, Color8(15))
-  self:paintRect(
-    x + load_m_w,
-    y + load_m_h,
-    (w - 2 * load_m_w) * load_percent,
-    (h - 2 * load_m_h),
-    c
-  )
-end
-
---[[
 Ligthen color values in a rectangular area
 (i.e., blend pure white at the requested opacity OVER rect).
 NOTE: Used to be called dimRect because it effectively makes black text dimmer.

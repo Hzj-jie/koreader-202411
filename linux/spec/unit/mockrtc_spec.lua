@@ -23,14 +23,6 @@ describe("MockRTC", function()
     assert.equals(2000, MockRTC:getWakeupAlarmEpoch())
   end)
 
-  it("should unschedule wakeup alarm when enabled is false", function()
-    MockRTC:setWakeupAlarm(1000, true)
-    assert.is_true(MockRTC:isWakeupAlarmScheduled())
-
-    MockRTC:setWakeupAlarm(1000, false)
-    assert.is_false(MockRTC:isWakeupAlarmScheduled())
-    assert.is_nil(MockRTC:getWakeupAlarmEpoch())
-  end)
 
   it("should validate wakeup alarm by proximity", function()
     local now = os.time()

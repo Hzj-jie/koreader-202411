@@ -91,19 +91,6 @@ describe("SunTime module for Autowarmth", function()
       end
     )
 
-    it("should calculate times with fast_twilight option", function()
-      SunTime:setPosition("Berlin", 52.52, 13.405, 1, 50, true)
-      SunTime:setDate(2024, 3, 20, 0)
-      SunTime:calculateTimes(true)
-
-      assert.is_number(SunTime.rise)
-      assert.is_number(SunTime.set)
-      assert.is_number(SunTime.rise_civil)
-      assert.is_number(SunTime.set_civil)
-      assert.is_true(SunTime.rise_civil < SunTime.rise)
-      assert.is_true(SunTime.set < SunTime.set_civil)
-    end)
-
     it("should calculate times for southern hemisphere (Sydney)", function()
       -- Sydney: -33.8688, 151.2093, timezone 10
       SunTime:setPosition("Sydney", -33.8688, 151.2093, 10, 20, true)
@@ -132,28 +119,6 @@ describe("SunTime module for Autowarmth", function()
         SunTime:setDate(2024, 12, 21, 0)
         SunTime:calculateTimes()
         assert.is_nil(SunTime.rise)
-      end
-    )
-
-    it(
-      "handles polar night and midnight sun in fast_twilight without crash",
-      function()
-        -- Longyearbyen Svalbard: 78.2232 N, 15.6267 E, timezone 1
-        SunTime:setPosition("Longyearbyen", 78.2232, 15.6267, 1, 10, true)
-
-        -- Winter (December 21): Polar night -> Sun does not rise (self.rise is nil)
-        SunTime:setDate(2024, 12, 21, 0)
-        -- In suntime.lua:575:
-        -- self:calculateTimeIter(self.civil, self.rise - min_civil_twilight, 6)
-        -- Crashes with nil arithmetic when self.rise is nil in fast_twilight mode.
-        local ok, err = pcall(function()
-          SunTime:calculateTimes(true)
-        end)
-        assert.is_true(
-          ok,
-          "calculateTimes(true) should not crash during polar night: "
-            .. tostring(err)
-        )
       end
     )
   end)

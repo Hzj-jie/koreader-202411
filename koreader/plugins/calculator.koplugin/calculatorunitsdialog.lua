@@ -83,17 +83,13 @@ function CalculatorUnitsDialog:init()
         is_enter_default = true,
         callback = function()
           UIManager:close(self.parent.units_dialog)
-          local from_btn = self.radio_button_table_units_from.checked_button
-          local too_btn = self.radio_button_table_units_too.checked_button
-          if not from_btn or not too_btn then
-            return
-          end
-          local from = from_btn.provider
-          local too = too_btn.provider
-          if not from or not too then
-            return
-          end
-          local comment = "  // " .. from_btn.text .. " -> " .. too_btn.text
+          local from =
+            self.radio_button_table_units_from.checked_button.provider
+          local too = self.radio_button_table_units_too.checked_button.provider
+          local comment = "  // "
+            .. self.radio_button_table_units_from.checked_button.text
+            .. " -> "
+            .. self.radio_button_table_units_too.checked_button.text
           local calc = self.parent.parent
 
           -- if no input, in the actual line -> insert `ans`

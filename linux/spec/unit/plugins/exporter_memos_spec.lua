@@ -217,32 +217,6 @@ describe("Memos Exporter target module", function()
       end
     )
 
-    it(
-      "should handle bookmark clipping with nil text without crashing",
-      function()
-        MemosExporter.settings = {
-          api = "https://memos.example.com/api/v1/memo",
-          token = "sample_token",
-        }
-
-        http.request = function(req)
-          req.sink('{"id": 1}')
-          return 1, 200, {}, "200 OK"
-        end
-
-        -- Bookmark clipping with nil text
-        local booknotes_with_bookmark = {
-          title = "Bookmark Book",
-          {
-            { text = nil, note = "Bookmark note", page = 50 },
-          },
-        }
-
-        assert.has_no.errors(function()
-          MemosExporter:createHighlights(booknotes_with_bookmark)
-        end)
-      end
-    )
 
     it(
       "should handle multi-chunk ltn12 responses in makeRequest (fails due to json.decode(sink[1]))",

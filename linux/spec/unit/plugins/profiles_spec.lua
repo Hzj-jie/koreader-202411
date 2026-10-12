@@ -919,6 +919,7 @@ describe("Profiles plugin", function()
             render_dpi = 300,
           },
         }
+        profiles_instance.document = profiles_instance.ui.document
 
         local rolling_prof =
           profiles_instance:getProfileFromCurrentBookSettings("RollingProfile")
