@@ -114,8 +114,6 @@ function TextEditor:onFlushSettings()
     )
     self.settings:save("qr_code_export", self.qr_code_export)
     self.settings:save("show_keyboard_on_start", self.show_keyboard_on_start)
-    self.settings:save("history", self.history)
-    self.settings:save("last_view_pos", self.last_view_pos)
     self.settings:flush()
   end
 end
