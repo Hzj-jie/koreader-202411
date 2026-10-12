@@ -194,6 +194,8 @@ _G.require = function(name)
     if file then
       file:close()
       found = true
+      -- A module is not required to return a value; if it returns nil,
+      -- loaded_module is nil even though the file was found and executed.
       loaded_module = assert(loadfile(file_path))()
       break
     end
@@ -201,6 +203,8 @@ _G.require = function(name)
   if not found then
     error("module '" .. name .. "' not found")
   end
+  -- Standard Lua require semantics: if the chunk returned nil, fall back
+  -- to package.loaded[name] or default to true.
   if loaded_module == nil then
     loaded_module = package.loaded[name]
     if loaded_module == nil then
