@@ -1273,7 +1273,7 @@ function DictQuickLookup:onHoldStartText(_, ges)
   return self.movable:onMovableHold(_, ges)
 end
 
-function DictQuickLookup:onHoldPanText(_, ges)
+function DictQuickLookup:onHoldPanText(arg, ges)
   -- Forward Hold events not processed by TextBoxWidget event handler
   -- to our MovableContainer
   -- We only forward it if we did forward the Touch
