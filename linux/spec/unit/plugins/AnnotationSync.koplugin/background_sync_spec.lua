@@ -393,7 +393,7 @@ describe("Background Sync Behavior", function()
         -- 4. auto sync is on, a book is queued, nothing is running -> returns true, running is set
         sync_manager:_writeChangedDocumentsFile({ doc })
         assert.is_true(sync_manager:_dispatchNextSync())
-        assert.is_true(sync_manager.running)
+        assert.are.equal(doc, sync_manager.running)
       end
     )
 
@@ -807,7 +807,7 @@ describe("Background Sync Behavior", function()
         local jobs = require("pluginshare").backgroundJobs
         local job = jobs[#jobs]
 
-        assert.is_true(sync_manager.running)
+        assert.are.equal(doc, sync_manager.running)
 
         plugin_instance.settings.network_auto_sync = false
 

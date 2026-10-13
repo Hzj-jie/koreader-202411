@@ -319,39 +319,48 @@ function M.show_pending_documents(plugin)
     local items = {}
     for i, file in ipairs(files) do
       local clean_filename = file:match("([^/]+)$") or file
-      table.insert(items, {
-        text = clean_filename,
-        keep_menu_open = true,
-        callback = function()
-          UIManager:show(ConfirmBox:new({
-            text = T(gettext("Sync this book now?\n\n%1"), clean_filename),
-            ok_text = gettext("Sync"),
-            cancel_text = gettext("Cancel"),
-            ok_callback = function()
-              plugin.manager:syncNow(file)
-            end,
-            other_buttons = {
-              {
+      if file == plugin.manager.running then
+        table.insert(items, {
+          text = clean_filename,
+          mandatory = gettext("Syncing"),
+          dim = true,
+        })
+      else
+        table.insert(items, {
+          text = clean_filename,
+          keep_menu_open = true,
+          callback = function()
+            UIManager:show(ConfirmBox:new({
+              text = T(gettext("Sync this book now?\n\n%1"), clean_filename),
+              ok_text = gettext("Sync"),
+              cancel_text = gettext("Cancel"),
+              ok_callback = function()
+                plugin.manager:syncNow(file)
+                pending_menu:switchItemTable(nil, menu_items(), i)
+              end,
+              other_buttons = {
                 {
-                  text = gettext("Remove from list"),
-                  callback = function()
-                    plugin.manager:removeFromChangedDocumentsFileByPath(file)
-                    utils.show_msg(
-                      T(
-                        gettext("Removed %1 from pending books."),
-                        clean_filename
+                  {
+                    text = gettext("Remove from list"),
+                    callback = function()
+                      plugin.manager:removeFromChangedDocumentsFileByPath(file)
+                      utils.show_msg(
+                        T(
+                          gettext("Removed %1 from pending books."),
+                          clean_filename
+                        )
                       )
-                    )
-                    -- Item i is now the book after the removed one, so the
-                    -- list stays on the same page.
-                    pending_menu:switchItemTable(nil, menu_items(), i)
-                  end,
+                      -- Item i is now the book after the removed one, so the
+                      -- list stays on the same page.
+                      pending_menu:switchItemTable(nil, menu_items(), i)
+                    end,
+                  },
                 },
               },
-            },
-          }))
-        end,
-      })
+            }))
+          end,
+        })
+      end
     end
     return items
   end

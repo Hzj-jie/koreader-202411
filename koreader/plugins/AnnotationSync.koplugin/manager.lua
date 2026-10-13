@@ -363,7 +363,7 @@ function SyncManager:_dispatchNextSync(failed)
     return false
   end
 
-  self.running = true
+  self.running = file
   NetworkMgr:willRerunWhenOnline(function()
     -- Take the request when the sync starts: a book taken off the list while
     -- its sync waited for the network lost its request with it.
