@@ -190,4 +190,68 @@ describe("AnnotationSync pending queue", function()
     assert.are.equal("b.epub", menu.item_table[2].text)
     assert.are.equal("C.epub", menu.item_table[3].text)
   end)
+
+  it(
+    "renders syncing book with mandatory Syncing and dim true, and refreshes menu on manual Sync",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      local path_b = test_data_dir .. "/B.epub"
+      manager:_writeChangedDocumentsFile({ path_a, path_b })
+      manager.running = path_a
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        table.insert(shown_widgets, widget)
+        return orig_show(ui_mgr, widget, ...)
+      end
+
+      finally(function()
+        manager.running = nil
+        UIManager.show = orig_show
+        for _, w in ipairs(shown_widgets) do
+          UIManager:closeIfShown(w)
+        end
+      end)
+
+      menus.show_pending_documents(sync_instance)
+
+      local menu = shown_widgets[1]
+      assert.is_not_nil(menu)
+      assert.are.equal(2, #menu.item_table)
+
+      -- Item 1: path_a is currently syncing -> dimmed, mandatory = "Syncing", no callback
+      assert.are.equal("A.epub", menu.item_table[1].text)
+      assert.are.equal("Syncing", menu.item_table[1].mandatory)
+      assert.is_true(menu.item_table[1].dim)
+      assert.is_nil(menu.item_table[1].callback)
+
+      -- Item 2: path_b is pending -> interactive callback
+      assert.are.equal("B.epub", menu.item_table[2].text)
+      assert.is_function(menu.item_table[2].callback)
+
+      -- Invoke callback on B.epub to trigger ConfirmBox
+      local orig_sync_now = manager.syncNow
+      local synced_file
+      manager.syncNow = function(mgr, file)
+        synced_file = file
+      end
+
+      local switch_called = false
+      menu.switchItemTable = function(self_menu, title, items, index)
+        switch_called = true
+      end
+
+      menu.item_table[2].callback()
+      local confirm_box = shown_widgets[#shown_widgets]
+      assert.is_not_nil(confirm_box)
+      assert.is_function(confirm_box.ok_callback)
+
+      confirm_box.ok_callback()
+      assert.are.equal(path_b, synced_file)
+      assert.is_true(switch_called)
+
+      manager.syncNow = orig_sync_now
+    end
+  )
 end)

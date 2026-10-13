@@ -319,7 +319,7 @@ describe("AnnotationSync manager book sync engine", function()
       .. "Dismissing this dialog restores them as well."
     assert.are.equal(expected_text, box.text)
     assert.are.equal(0, #sidecar(book_b))
-    assert.is_true(manager.running)
+    assert.are.equal(book_b, manager.running)
     for _, toast in ipairs(toasts) do
       assert.is_falsy(string.match(toast, "^Synced:"))
     end

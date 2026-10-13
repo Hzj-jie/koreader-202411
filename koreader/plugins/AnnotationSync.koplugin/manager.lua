@@ -363,7 +363,7 @@ function SyncManager:_dispatchNextSync(failed)
     return false
   end
 
-  self.running = true
+  self.running = file
   NetworkMgr:willRerunWhenOnline(function()
     -- Take the request when the sync starts: a book taken off the list while
     -- its sync waited for the network lost its request with it.
@@ -444,14 +444,19 @@ function SyncManager:_applyBackgroundSync(
 
   if uploaded_json then
     local income_list = json.decode(uploaded_json)
-    local _, active =
-      annotations.merge(local_list, base_list, income_list)
-    if
-      not util.tableEquals(
-        active,
-        annotations.sort(json.decode(json.encode(book_now)))
-      )
-    then
+    local active
+    if unchanged then
+      active = {}
+      for _, v in ipairs(income_list) do
+        if not v.deleted then
+          table.insert(active, v)
+        end
+      end
+    else
+      local _
+      _, active = annotations.merge(local_list, base_list, income_list)
+    end
+    if not util.tableEquals(active, local_list) then
       self.plugin:applySyncedAnnotations(document, active)
     end
     self:_promoteSyncBase(file, uploaded_json)
