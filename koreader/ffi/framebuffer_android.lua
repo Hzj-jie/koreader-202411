@@ -34,8 +34,8 @@ function framebuffer:_updateFull()
     self:_updatePartial(
       full,
       delay_page,
-      self.viewport and self.viewport.x or 0,
-      self.viewport and self.viewport.y or 0,
+      0,
+      0,
       self:getWidth(),
       self:getHeight()
     )

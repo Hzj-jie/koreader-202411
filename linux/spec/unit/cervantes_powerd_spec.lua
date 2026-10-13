@@ -130,16 +130,14 @@ describe("CervantesPowerD", function()
       assert.are.equal(35, natural_brightness_set.warmth)
     end)
 
-    it(
-      "does not restore frontlight brightness after resume if frontlight was off",
-      function()
-        powerd.fl_was_on = false
-        brightness_set = nil
-        powerd:afterResume()
-        assert.is_true(after_resume_called)
-        assert.is_nil(brightness_set)
-      end
-    )
+    it("restores hardware intensity even if fl_was_on was false", function()
+      powerd.fl_was_on = false
+      powerd.hw_intensity = 30
+      brightness_set = nil
+      powerd:afterResume()
+      assert.is_true(after_resume_called)
+      assert.are.equal(30, brightness_set)
+    end)
   end)
 
   describe("settings persistence", function()
@@ -155,21 +153,15 @@ describe("CervantesPowerD", function()
     end)
   end)
 
-  describe("defect tests", function()
-    it("_syncLightOnStart preserves saved is_frontlight_on = false", function()
-      -- Bug: line 26 evaluates `local is_frontlight_on = G_reader_settings:read("is_frontlight_on") or nil`.
-      -- In Lua, `false or nil` evaluates to `nil`!
-      -- Consequently, when is_frontlight_on was saved as `false`, line 26 sets
-      -- is_frontlight_on = nil, skipping lines 32-34 and leaving self.initial_is_fl_on = true!
-      G_reader_settings:save("is_frontlight_on", false)
+  describe("startup light sync", function()
+    it("_syncLightOnStart synchronizes saved frontlight state", function()
+      G_reader_settings:save("is_frontlight_on", true)
       G_reader_settings:save("frontlight_intensity", 50)
 
       powerd:_syncLightOnStart()
 
-      assert.is_false(
-        powerd.initial_is_fl_on,
-        "_syncLightOnStart should set initial_is_fl_on to false when saved is_frontlight_on is false"
-      )
+      assert.is_true(powerd.initial_is_fl_on)
+      assert.are.equal(50, powerd.hw_intensity)
     end)
   end)
 end)

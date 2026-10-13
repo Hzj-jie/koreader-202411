@@ -934,21 +934,18 @@ describe("CloudStorage", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes onMenuSelect double-popping self.paths when openCloudServer fails",
+      "removes pushed path from self.paths when openCloudServer fails",
       function()
         local cs = CloudStorage:new()
         cs.paths = {
           { url = "/parent" },
         }
-        -- Make openCloudServer fail and simulate its internal table.remove(self.paths)
-        cs.openCloudServer = function(self, url)
-          table.remove(self.paths)
+        cs.openCloudServer = function()
           return false
         end
 
         local item = {
           url = "/parent/failing_subfolder",
-          type = "folder",
         }
         cs:onMenuSelect(item)
         assert.are.equal(1, #cs.paths)

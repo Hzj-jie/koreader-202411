@@ -14,7 +14,7 @@ local function _getPhysicalRect(fb, x, y, w, h)
 end
 
 local function _adjustAreaColours(fb)
-  if fb.device:hasColorScreen() then
+  if fb.device.hasColorScreen() then
     fb.debug("adjusting image color saturation")
 
     inkview.adjustAreaDefault(
@@ -36,7 +36,7 @@ local function _updatePartial(fb, x, y, w, h, dither, hq)
     _adjustAreaColours(fb)
   end
 
-  if fb.device:hasColorScreen() and hq then
+  if fb.device.hasColorScreen() and hq then
     inkview.PartialUpdateHQ(x, y, w, h)
   else
     inkview.PartialUpdate(x, y, w, h)
@@ -50,7 +50,7 @@ local function _updateFull(fb, x, y, w, h, dither)
     _adjustAreaColours(fb)
   end
 
-  if fb.device:hasColorScreen() then
+  if fb.device.hasColorScreen() then
     inkview.FullUpdateHQ()
   else
     inkview.FullUpdate()
@@ -91,7 +91,6 @@ function framebuffer:init()
 
   local bpp = pb_fb.depth
 
-  local pixel_stride = pb_fb.scanline * 8 / bpp
   self.data = pb_fb.addr
   self.bb = BB.new(
     pb_fb.width,
@@ -99,7 +98,7 @@ function framebuffer:init()
     BB["TYPE_BB" .. bpp] or BB["TYPE_BBRGB" .. bpp],
     self.data,
     pb_fb.scanline,
-    pixel_stride
+    pb_fb.width
   )
 
   self.blitbuffer_rotation_mode = self.bb:getRotation()

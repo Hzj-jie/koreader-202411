@@ -106,6 +106,7 @@ local function _clone(job)
   result.action = job.action
   result.callback = job.callback
   result.environment = job.environment
+  result.catch_exception = job.catch_exception
   result.insert_time = time.monotonic()
   return result
 end
@@ -122,8 +123,7 @@ function BackgroundRunner:_shouldRepeat(job)
     return job.repeated
   end
   if type(job.repeated) == "function" then
-    local ok, res = pcall(job.repeated)
-    return ok and res and true or false
+    return job.repeated()
   end
   if type(job.repeated) == "number" then
     job.repeated = job.repeated - 1
@@ -207,6 +207,8 @@ function BackgroundRunner:_executeJob(job)
       )
       job.result = 1
       job.exception = err
+      -- trigger the exception at the end to preserve the logs.
+      assert(job.catch_exception ~= false, err)
     end
     job.end_time = time.monotonic()
     self:_finishJob(job)

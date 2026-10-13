@@ -219,7 +219,7 @@ function framebuffer:init()
 
   -- Make sure we never try to map a larger memory region than the fb reports
   assert(
-    self.fb_size <= self._finfo.smem_len or self._finfo.smem_len <= 0x1000,
+    self.fb_size <= self._finfo.smem_len or self._finfo.smem <= 0x1000,
     "computed fb memory region too large"
   )
 

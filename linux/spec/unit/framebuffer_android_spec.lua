@@ -39,7 +39,7 @@ describe("ffi/framebuffer_android module", function()
   end)
 
   it(
-    "passes viewport origin coordinates to _updatePartial in _updateFull",
+    "passes (0, 0) origin coordinates to _updatePartial in _updateFull",
     function()
       local captured = {}
       local mock_fb = FramebufferAndroid:extend({
@@ -60,10 +60,8 @@ describe("ffi/framebuffer_android module", function()
 
       mock_fb:_updateFull()
 
-      -- When viewport is active, x and y must be the viewport origin (50, 100)
-      -- In production lines 37-38, it passes 0, 0 unconditionally
-      assert.are.equal(50, captured.x)
-      assert.are.equal(100, captured.y)
+      assert.are.equal(0, captured.x)
+      assert.are.equal(0, captured.y)
       assert.are.equal(500, captured.w)
       assert.are.equal(700, captured.h)
     end

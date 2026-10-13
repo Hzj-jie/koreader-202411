@@ -210,7 +210,9 @@ function CloudStorage:onMenuSelect(item)
     table.insert(self.paths, {
       url = item.url,
     })
-    self:openCloudServer(item.url)
+    if not self:openCloudServer(item.url) then
+      table.remove(self.paths)
+    end
   end
   return true
 end
