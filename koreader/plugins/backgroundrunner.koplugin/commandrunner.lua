@@ -100,6 +100,9 @@ function CommandRunner:start(job)
           ffi.C.close(parent_read_fd)
           parent_read_fd = nil
         end
+        if not ffiUtil.isSubProcessDone(pid) then
+          ffiUtil.terminateSubProcess(pid)
+        end
         ffiUtil.isSubProcessDone(pid, true)
       end,
     }

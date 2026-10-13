@@ -1126,4 +1126,54 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal("", CommandRunner:_createEnvironment(string_env_job))
     end
   )
+
+  it(
+    "terminates subprocess if not done when entry:close is called",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local ffiUtil = require("ffi/util")
+      local terminate_called = false
+      local done_blocking_called = false
+
+      local old_runInSubProcess = ffiUtil.runInSubProcess
+      local old_isSubProcessDone = ffiUtil.isSubProcessDone
+      local old_terminateSubProcess = ffiUtil.terminateSubProcess
+
+      ffiUtil.runInSubProcess = function()
+        return 12345, nil
+      end
+
+      ffiUtil.isSubProcessDone = function(pid, blocking)
+        if blocking then
+          done_blocking_called = true
+          return true
+        end
+        return false
+      end
+
+      ffiUtil.terminateSubProcess = function(pid)
+        assert.is_false(done_blocking_called)
+        terminate_called = true
+        return true
+      end
+
+      CommandRunner.running_jobs = {}
+      CommandRunner:start({
+        executable = "fork",
+        action = function() end,
+      })
+      local entry = CommandRunner.running_jobs[#CommandRunner.running_jobs]
+      assert.is_table(entry)
+      entry:close()
+
+      assert.is_true(terminate_called)
+      assert.is_true(done_blocking_called)
+
+      ffiUtil.runInSubProcess = old_runInSubProcess
+      ffiUtil.isSubProcessDone = old_isSubProcessDone
+      ffiUtil.terminateSubProcess = old_terminateSubProcess
+      CommandRunner.running_jobs = {}
+    end
+  )
 end)

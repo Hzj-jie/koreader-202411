@@ -67,6 +67,7 @@ int waitpid(int, int *, int);
 int getpid(void) __attribute__((nothrow, leaf));
 int getppid(void) __attribute__((nothrow, leaf));
 int setpgid(int, int) __attribute__((nothrow, leaf));
+void _exit(int);
 struct pollfd {
   int fd;
   short int events;
