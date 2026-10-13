@@ -124,24 +124,12 @@ function framebuffer:_render(bb, x, y, w, h)
   local sdl_rect = SDL.rect(px, py, pw, ph)
 
   if not bb_emu then
-    if bb:getRotation() == 0 then
-      SDL.SDL.SDL_UpdateTexture(
-        SDL.texture,
-        sdl_rect,
-        bb_rect.data,
-        bb_rect.stride
-      )
-    else
-      local unrotated_bb = BB.new(pw, ph, bb:getType())
-      unrotated_bb:blitFrom(bb, 0, 0, x, y, w, h)
-      SDL.SDL.SDL_UpdateTexture(
-        SDL.texture,
-        sdl_rect,
-        unrotated_bb.data,
-        unrotated_bb.stride
-      )
-      unrotated_bb:free()
-    end
+    SDL.SDL.SDL_UpdateTexture(
+      SDL.texture,
+      sdl_rect,
+      bb_rect.data,
+      bb_rect.stride
+    )
   else
     -- The manual conversion is here deliberately, so as to separate us from possible bugs in the blitter.
     local vbuf = ffi.new("ColorRGB32[?]", pw * ph)

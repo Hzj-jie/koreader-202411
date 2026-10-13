@@ -136,7 +136,7 @@ function framebuffer:reinit()
   -- Make sure we never try to map a larger memory region than the fb reports
   -- @warning Feel free to remove this check if it burns. There are chinese things out there that even happily report smem as 0x1000 and such.
   assert(
-    self.fb_size <= finfo.smem_len or finfo.smem_len <= 0x1000,
+    self.fb_size <= finfo.smem_len or finfo.smem <= 0x1000,
     "computed fb memory region too large"
   )
 

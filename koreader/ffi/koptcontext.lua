@@ -287,6 +287,9 @@ end
 function KOPTContext_mt.__index:isPreCache()
   return self.precache
 end
+function KOPTContext_mt.__index:getLanguage()
+  return ffi.string(self.language)
+end
 function KOPTContext_mt.__index:getPageDim()
   return self.page_width, self.page_height
 end
