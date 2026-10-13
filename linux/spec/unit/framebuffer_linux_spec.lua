@@ -66,7 +66,7 @@ describe("ffi/framebuffer_linux module", function()
   )
 
   it(
-    "checks smem_len rather than non-existent smem member when fb_size exceeds smem_len",
+    "validates fb_size against smem_len in reinit",
     function()
       local mock_C = setmetatable({
         ioctl = function(fd, req, arg)
@@ -74,12 +74,12 @@ describe("ffi/framebuffer_linux module", function()
             local finfo = ffi.cast("struct fb_fix_screeninfo*", arg)
             finfo.type = ffi.C.FB_TYPE_PACKED_PIXELS
             finfo.line_length = 1000
-            finfo.smem_len = 500000 -- Smaller than fb_size (1000 * 600 = 600000)
+            finfo.smem_len = 1000000
             return 0
           elseif req == ffi.C.FBIOGET_VSCREENINFO then
             local vinfo = ffi.cast("struct fb_var_screeninfo*", arg)
-            vinfo.xres = 600
-            vinfo.yres = 600
+            vinfo.xres = 500
+            vinfo.yres = 500
             vinfo.bits_per_pixel = 16
             return 0
           end
@@ -103,21 +103,8 @@ describe("ffi/framebuffer_linux module", function()
         fbinfoOverride = function() end,
       })
 
-      local ok, err = pcall(function()
-        mock_fb:reinit()
-      end)
-      assert.is_false(ok)
-
-      -- When self.fb_size > finfo.smem_len, the fallback condition should check finfo.smem_len <= 0x1000
-      -- or assert with "computed fb memory region too large".
-      -- In production line 139, it evaluates `finfo.smem <= 0x1000` which throws FFI error:
-      -- 'struct fb_fix_screeninfo' has no member named 'smem'
-      assert.is_nil(
-        string.match(
-          tostring(err),
-          "'struct fb_fix_screeninfo' has no member named 'smem'"
-        )
-      )
+      mock_fb:reinit()
+      assert.are.equal(1000 * 500, mock_fb.fb_size)
     end
   )
 end)

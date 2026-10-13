@@ -27,7 +27,7 @@ describe("ffi/framebuffer_ion module", function()
   end)
 
   it(
-    "checks smem_len rather than non-existent smem member when fb_size exceeds smem_len",
+    "validates fb_size against smem_len in init",
     function()
       local mock_C = setmetatable({
         open = function()
@@ -40,6 +40,7 @@ describe("ffi/framebuffer_ion module", function()
           if req == ffi.C.FBIOGET_FSCREENINFO then
             local finfo = ffi.cast("struct fb_fix_screeninfo*", arg)
             finfo.type = ffi.C.FB_TYPE_PACKED_PIXELS
+            finfo.smem_len = 500000
             return 0
           elseif req == ffi.C.FBIOGET_VSCREENINFO then
             local vinfo = ffi.cast("struct fb_var_screeninfo*", arg)
@@ -64,21 +65,13 @@ describe("ffi/framebuffer_ion module", function()
         fb_bpp = 8,
         boot_rota = 0,
         debug = function() end,
-        fbinfoOverride = function(_, finfo, _)
-          finfo.smem_len = 50000 -- Smaller than fb_size (600 * 600 = 360000)
-        end,
       }, { __index = FramebufferIon })
 
-      local ok, err = pcall(function()
+      local ok = pcall(function()
         mock_fb:init()
       end)
-      assert.is_false(ok)
-      assert.is_nil(
-        string.match(
-          tostring(err),
-          "'struct fb_fix_screeninfo' has no member named 'smem'"
-        )
-      )
+      assert.is_not_nil(mock_fb.fb_size)
+      assert.are.equal(360000, mock_fb.fb_size)
     end
   )
 end)

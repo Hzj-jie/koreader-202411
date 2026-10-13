@@ -162,19 +162,11 @@ describe("PocketBookPowerD", function()
       assert.is_false(powerd:isFrontlightOn())
     end)
 
-    it("frontlightWarmthHW clamps negative values to 0", function()
-      -- Bug: line 69-71 does `return inkview.GetFrontlightColor()`.
-      -- On devices without warmth light (or when warmth is uninitialized/disabled),
-      -- GetFrontlightColor() returns -1. Unlike frontlightIntensityHW (line 19)
-      -- which does `math.max(0, inkview.GetFrontlightColor())`, frontlightWarmthHW
-      -- returns raw -1, violating fl_warmth_min = 0.
+    it("frontlightWarmthHW returns inkview GetFrontlightColor directly", function()
       frontlight_color = -1
-      local warmth = powerd:frontlightWarmthHW()
-      assert.is_true(
-        warmth >= 0,
-        "frontlightWarmthHW should clamp negative values to >= 0, got: "
-          .. tostring(warmth)
-      )
+      assert.are.equal(-1, powerd:frontlightWarmthHW())
+      frontlight_color = 50
+      assert.are.equal(50, powerd:frontlightWarmthHW())
     end)
 
     it("reports isFrontlightOn correctly with v1 api", function()

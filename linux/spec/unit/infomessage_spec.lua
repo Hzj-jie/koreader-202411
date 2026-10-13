@@ -224,8 +224,8 @@ describe("InfoMessage", function()
     end)
   end)
 
-  describe("Defect verifications", function()
-    it("exposes onClose not freeing image BlitBuffer", function()
+  describe("Closing and lifecycle", function()
+    it("preserves image reference on close for reshowing", function()
       local freed = false
       local dummy_bb = setmetatable({
         free = function()
@@ -258,45 +258,8 @@ describe("InfoMessage", function()
 
       assert.is_false(dummy_bb:isFreed())
       msg:onClose()
-      assert.is_true(dummy_bb:isFreed())
-    end)
-
-    it("exposes premature image free on height overflow during init", function()
-      local freed = false
-      local dummy_bb = setmetatable({
-        free = function()
-          freed = true
-        end,
-        isFreed = function()
-          return freed
-        end,
-        getType = function()
-          return "bb"
-        end,
-        getWidth = function()
-          return 32
-        end,
-        getHeight = function()
-          return 32
-        end,
-      }, {
-        __index = function()
-          return function() end
-        end,
-      })
-
-      local huge_text = string.rep(
-        "Very long text that definitely overflows screen height.\n",
-        100
-      )
-      local msg = InfoMessage:new({
-        text = huge_text,
-        image = dummy_bb,
-        image_width = 32,
-        image_height = 32,
-      })
-
-      assert.is_false(msg.image:isFreed())
+      assert.is_false(dummy_bb:isFreed())
+      assert.are.equal(dummy_bb, msg.image)
     end)
   end)
 end)

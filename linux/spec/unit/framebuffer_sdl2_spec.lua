@@ -18,7 +18,7 @@ describe("ffi/framebuffer_SDL2_0 module", function()
   end)
 
   it(
-    "blits unrotated buffer before SDL_UpdateTexture when bb is rotated",
+    "updates SDL texture with viewport buffer directly",
     function()
       local captured = {}
       local mock_SDL = setmetatable({
