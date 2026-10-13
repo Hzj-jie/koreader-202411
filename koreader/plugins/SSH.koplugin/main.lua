@@ -54,7 +54,25 @@ function SSH:autoStart()
 end
 
 function SSH:start(quiet)
-  if Device:isKobo() then
+  -- Punch a hole into the Kindle's firewall
+  if Device:isKindle() then
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -A INPUT -p tcp --dport",
+        self.SSH_port,
+        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+      )
+    )
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -A OUTPUT -p tcp --sport",
+        self.SSH_port,
+        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
+      )
+    )
+  elseif Device:isKobo() then
     -- An SSH/telnet server of course needs to be able to manipulate
     -- pseudoterminals...
     -- Kobo's init scripts fail to set this up...
@@ -112,6 +130,26 @@ function SSH:stop()
 
   if self:isRunning() then
     os.remove("/tmp/dropbear_koreader.pid")
+  end
+
+  -- Plug the hole in the Kindle's firewall
+  if Device:isKindle() then
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -D INPUT -p tcp --dport",
+        self.SSH_port,
+        "-m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+      )
+    )
+    os.execute(
+      string.format(
+        "%s %s %s",
+        "iptables -D OUTPUT -p tcp --sport",
+        self.SSH_port,
+        "-m conntrack --ctstate ESTABLISHED -j ACCEPT"
+      )
+    )
   end
 end
 

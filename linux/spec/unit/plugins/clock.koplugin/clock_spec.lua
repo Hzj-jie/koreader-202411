@@ -116,6 +116,23 @@ describe("Clock plugin tests", function()
     assert.is_true(PluginShare.pause_auto_suspend)
   end)
 
+  it("schedules auto-close on show when timeout is configured", function()
+    Device.hasKeys.returns(false)
+    Device.isTouchDevice.returns(false)
+    Clock = dofile("plugins/clock.koplugin/main.lua")
+    Clock.ui = { menu = { registerToMainMenu = function() end } }
+    Clock:init()
+    Clock.timeout = 5
+
+    Clock:onShow()
+
+    assert.stub(UIManager.scheduleIn).was_called_with(
+      match.ref(UIManager),
+      5,
+      match.is_function()
+    )
+  end)
+
   it("handles suspend and resume based on G_reader_settings", function()
     Device.hasKeys.returns(false)
     Device.isTouchDevice.returns(false)

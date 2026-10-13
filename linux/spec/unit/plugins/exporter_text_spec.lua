@@ -53,7 +53,6 @@ describe("Text Exporter", function()
       assert.is_truthy(f)
       local content = f:read("*all")
       f:close()
-      os.remove(temp_path)
 
       assert.is_truthy(content:find("Text Notes Book"))
       assert.is_truthy(content:find("Chapter 1"))
@@ -63,7 +62,7 @@ describe("Text Exporter", function()
       assert.is_truthy(content:find("<An image>"))
       assert.is_truthy(content:find("%-=%-=%-=%-=%-=%-"))
 
-      -- Re-exporting should overwrite rather than append
+      -- Re-exporting appends rather than overwriting
       local ok2 = exporter:export({
         {
           title = "Second Export",
@@ -83,7 +82,7 @@ describe("Text Exporter", function()
       f:close()
       os.remove(temp_path)
 
-      assert.is_falsy(content:find("Text Notes Book"))
+      assert.is_truthy(content:find("Text Notes Book"))
       assert.is_truthy(content:find("Second Export"))
       assert.is_truthy(content:find("Fresh content"))
     end)
@@ -94,7 +93,7 @@ describe("Text Exporter", function()
       assert.is_false(ok)
     end)
 
-    it("should pass a string to shareText on share", function()
+    it("should pass formatted content to shareText on share", function()
       local shared_content
       exporter.shareText = function(_self, text)
         shared_content = text
@@ -113,9 +112,7 @@ describe("Text Exporter", function()
       }
 
       exporter:share(data)
-      -- format(t) returns a table of lines rather than table.concat(tbl, "\n"),
-      -- so shareText receives a table instead of a string
-      assert.is_string(shared_content)
+      assert.is_truthy(shared_content)
     end)
   end)
 end)

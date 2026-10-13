@@ -33,6 +33,12 @@ describe("ffi/koptcontext module", function()
     assert.are.equal(0.06, kc.margin)
   end)
 
+  it("returns language string via getLanguage", function()
+    local kc = KOPTContext.new()
+    kc:setLanguage("eng")
+    assert.are.equal("eng", kc:getLanguage())
+  end)
+
   it("serializes and restores rectmaps matching allocated size", function()
     local kc = KOPTContext.new()
     kc:setLanguage("eng")
