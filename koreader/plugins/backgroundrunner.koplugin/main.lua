@@ -368,6 +368,8 @@ function BackgroundRunnerWidget:onExitKOReader()
   CommandRunner:cleanup()
 end
 
+BackgroundRunnerWidget.onRestart = BackgroundRunnerWidget.onExitKOReader
+
 if util.isTesting() then
   function BackgroundRunnerWidget:allowBlockingJobs(v)
     ALLOW_BLOCKING_JOBS = v
