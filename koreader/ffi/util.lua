@@ -379,10 +379,10 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       if ffi.os == "Linux" then
         -- On Linux, schedule it accordingly.
         local param = ffi.new("struct sched_param")
-        C.sched_setscheduler(0, C.SCHED_BATCH, param)
+        C.sched_setscheduler(0, C.SCHED_IDLE, param)
       end
       -- And nice it at lower priority, too (unlike the above call, this is POSIX).
-      C.setpriority(C.PRIO_PROCESS, 0, 5)
+      C.setpriority(C.PRIO_PROCESS, 0, 19)
 
       -- Just run the provided lua code object in this new process,
       -- and exit immediatly (so we do not release drivers and

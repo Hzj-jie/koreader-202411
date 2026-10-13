@@ -1225,4 +1225,32 @@ describe("BackgroundRunner widget tests", function()
       CommandRunner.running_jobs = {}
     end
   )
+
+  it(
+    "sets SCHED_IDLE and nice 19 for background subprocess on Linux",
+    function()
+      local ffi = require("ffi")
+      if ffi.os ~= "Linux" then
+        return
+      end
+      local ffiUtil = require("ffi/util")
+      local C = ffi.C
+
+      local pid, rfd = ffiUtil.runInSubProcess(function(child_pid, write_fd)
+        local policy = C.sched_getscheduler(0)
+        local prio = C.getpriority(0, 0)
+        local out = string.format("%d,%d\n", policy, prio)
+        ffiUtil.writeToFD(write_fd, out, true)
+      end, true)
+
+      assert.is_number(pid)
+      local result = ffiUtil.readAllFromFD(rfd)
+      ffiUtil.isSubProcessDone(pid, true)
+
+      assert.is_string(result)
+      local p, pr = result:match("(%d+),(%d+)")
+      assert.are.equal(C.SCHED_IDLE, tonumber(p))
+      assert.are.equal(19, tonumber(pr))
+    end
+  )
 end)
