@@ -454,9 +454,10 @@ function SyncManager:_applyBackgroundSync(
       end
     else
       local _
-      _, active = annotations.merge(local_list, base_list, income_list)
+      _, active =
+        annotations.merge(util.tableDeepCopy(local_list), base_list, income_list)
     end
-    if not util.tableEquals(active, local_list) then
+    if not util.tableEquals(active, annotations.sort(local_list)) then
       self.plugin:applySyncedAnnotations(document, active)
     end
     self:_promoteSyncBase(file, uploaded_json)
