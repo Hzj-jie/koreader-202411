@@ -188,6 +188,17 @@ function CommandRunner:poll()
   return #completed > 0 and completed or nil
 end
 
+function CommandRunner:cleanup()
+  for i = #self.running_jobs, 1, -1 do
+    local entry = self.running_jobs[i]
+    if entry.pid then
+      ffiUtil.terminateSubProcess(entry.pid)
+    end
+    entry:close()
+    table.remove(self.running_jobs, i)
+  end
+end
+
 --- Whether there are running jobs.
 -- @treturn boolean
 function CommandRunner:pending()

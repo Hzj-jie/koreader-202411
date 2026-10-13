@@ -332,6 +332,7 @@ function util.runInSubProcess(func, with_pipe, double_fork)
         )
     end
   end
+  local parent_pid = util.getpid()
   local pid = C.fork()
   if pid == 0 then -- child process
     -- In production, UIManager is always loaded before any subprocess fork.
@@ -362,6 +363,13 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       -- util.isSubProcessDone() returning false until all the child's
       -- children are done.
       C.setpgid(0, 0)
+      if ffi.os == "Linux" and not double_fork then
+        -- PR_SET_PDEATHSIG = 1, SIGTERM = 15
+        C.prctl(1, 15, 0, 0, 0)
+        if C.getppid() ~= parent_pid then
+          C._exit(1)
+        end
+      end
       if parent_read_fd then
         -- close our duplicate of parent fd
         C.close(parent_read_fd)
