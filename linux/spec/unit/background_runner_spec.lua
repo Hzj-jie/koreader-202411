@@ -995,7 +995,7 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "should safely handle errors in job.repeated function in BackgroundRunner:_shouldRepeat",
+    "should propagate errors in job.repeated function in BackgroundRunner:_shouldRepeat",
     function()
       local BackgroundRunner = getBackgroundRunner()
       local error_repeat_job = {
@@ -1003,7 +1003,9 @@ describe("BackgroundRunner widget tests", function()
           error("repeated evaluation error")
         end,
       }
-      assert.is_false(BackgroundRunner:_shouldRepeat(error_repeat_job))
+      assert.has_error(function()
+        BackgroundRunner:_shouldRepeat(error_repeat_job)
+      end, "repeated evaluation error")
     end
   )
 

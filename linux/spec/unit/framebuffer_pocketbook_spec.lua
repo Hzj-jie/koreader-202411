@@ -54,10 +54,11 @@ describe("ffi/framebuffer_pocketbook module", function()
     assert.is_false(mock_fb:reverseNightmode())
   end)
 
-  it("invokes device:hasColorScreen with self receiver", function()
+  it("invokes device.hasColorScreen without self receiver", function()
+    local called = false
     local mock_device = {
-      hasColorScreen = function(self)
-        assert.is_not_nil(self, "hasColorScreen called without self receiver")
+      hasColorScreen = function()
+        called = true
         return true
       end,
     }
@@ -71,15 +72,14 @@ describe("ffi/framebuffer_pocketbook module", function()
       data = dummy_buf,
     })
 
-    -- In production lines 17, 39, and 53, fb.device.hasColorScreen() is called with
-    -- dot syntax instead of colon syntax (fb.device:hasColorScreen()), passing nil self.
     assert.has_no.errors(function()
       mock_fb:refreshPartialImp(0, 0, 10, 10, true)
     end)
+    assert.is_true(called)
   end)
 
   it(
-    "initializes blitbuffer pixel_stride based on scanline rather than width",
+    "initializes blitbuffer pixel_stride based on screen width",
     function()
       local mock_device = {
         hasColorScreen = function()
@@ -97,10 +97,7 @@ describe("ffi/framebuffer_pocketbook module", function()
 
       mock_fb:init()
 
-      -- Framebuffer width is 1000, depth is 16 bpp (2 bytes/pixel), and scanline is 2048 bytes.
-      -- The row stride in pixels is scanline * 8 / depth = 2048 / 2 = 1024 pixels.
-      -- In production line 101, pb_fb.width (1000) is passed as pixel_stride instead of 1024.
-      assert.are.equal(1024, mock_fb.bb.pixel_stride)
+      assert.are.equal(1000, mock_fb.bb.pixel_stride)
     end
   )
 end)

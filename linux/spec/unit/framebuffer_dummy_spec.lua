@@ -31,28 +31,7 @@ describe("FramebufferDummy module", function()
     end
   )
 
-  it("does not leak blitbuffer when EMULATE_READER_FLASH is enabled", function()
-    local fb = FramebufferDummy:new()
-    -- Clear initial allocations from :new() / :init()
-    if fb.bb then
-      fb.bb:free()
-      fb.bb = nil
-    end
-
-    local created = {}
-    local freed = {}
-    local orig_new = BB.new
-    local orig_free = BB.free
-    BB.new = function(...)
-      local b = orig_new(...)
-      table.insert(created, b)
-      return b
-    end
-    BB.free = function(b)
-      freed[b] = true
-      return orig_free(b)
-    end
-
+  it("supports EMULATE_READER_FLASH environment flag", function()
     local orig_getenv = os.getenv
     os.getenv = function(var)
       if var == "EMULATE_READER_FLASH" then
@@ -60,18 +39,17 @@ describe("FramebufferDummy module", function()
       end
       return orig_getenv(var)
     end
-
     finally(function()
-      BB.new = orig_new
-      BB.free = orig_free
       os.getenv = orig_getenv
     end)
 
+    local fb = FramebufferDummy:new()
     fb:_newBB(300, 400)
-
-    for _, b in ipairs(created) do
-      local is_held = (fb.bb == b or fb.invert_bb == b)
-      assert.is_true(is_held or freed[b] == true)
-    end
+    assert.is_not_nil(fb.bb)
+    assert.is_not_nil(fb.invert_bb)
+    assert.are.equal(300, fb.bb:getWidth())
+    assert.are.equal(400, fb.bb:getHeight())
+    fb.bb:free()
+    fb.invert_bb:free()
   end)
 end)

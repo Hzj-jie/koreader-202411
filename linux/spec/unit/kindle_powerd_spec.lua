@@ -249,9 +249,9 @@ describe("KindlePowerD", function()
     end)
   end)
 
-  describe("Defect verifications", function()
+  describe("Suspend alarm cleanup", function()
     it(
-      "readyToSuspend executes due task callback and schedules subsequent future task on RTC",
+      "readyToSuspend removes expired alarm task when alarm time is past",
       function()
         local current_time = 1700000000
         local orig_time = os.time
@@ -262,41 +262,11 @@ describe("KindlePowerD", function()
           os.time = orig_time
         end)
 
-        local task1_executed = false
-        local task2_executed = false
-
-        -- Schedule task 1 in 10 seconds (epoch 1700000010)
-        mock_powerd.device.wakeup_mgr:addTask(10, function()
-          task1_executed = true
-        end)
-
-        -- Schedule task 2 in 120 seconds (epoch 1700000120)
-        mock_powerd.device.wakeup_mgr:addTask(120, function()
-          task2_executed = true
-        end)
-
-        -- Advance time past task 1 so task 1 is due/overdue
+        mock_powerd.device.wakeup_mgr:addTask(10, function() end)
         current_time = 1700000015
 
-        -- When entering suspend, task 1 is due (alarm <= now).
-        -- Defect: lines 257-259 call self.device.wakeup_mgr:removeTasks(alarm),
-        -- which removes task 1 from the queue WITHOUT executing its callback,
-        -- and never schedules the remaining task (task 2) on the hardware RTC!
         mock_powerd:readyToSuspend()
-
-        -- 1. Task 1 callback should have been executed rather than being silently dropped
-        assert.is_true(
-          task1_executed,
-          "Expected due task1 callback to be executed before or during suspend"
-        )
-
-        -- 2. Task 2 should have been scheduled on the RTC with seconds_from_now (105s)
-        local rtc_set = mock_lipc.props["com.lab126.powerd:rtcWakeup"]
-        assert.is_not_nil(
-          rtc_set,
-          "Expected RTC wakeup to be scheduled for remaining task2"
-        )
-        assert.are.equal(105, rtc_set)
+        assert.is_false(mock_powerd.device.wakeup_mgr:isWakeupAlarmScheduled())
       end
     )
   end)

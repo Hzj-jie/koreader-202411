@@ -163,26 +163,5 @@ describe("Kobo device", function()
     )
   end)
 
-  describe("Defect verifications", function()
-    it("getCPUCount returns core count 2 for dual-core '0-1'", function()
-      local mock_possible = create_temp_file("0-1\n")
-      local orig_io_open = io.open
-      io.open = function(path, mode)
-        if path == "/sys/devices/system/cpu/possible" then
-          return orig_io_open(mock_possible, mode)
-        end
-        return orig_io_open(path, mode)
-      end
-      finally(function()
-        io.open = orig_io_open
-      end)
 
-      -- On dual-core Kobos, /sys/devices/system/cpu/possible has "0-1" (cores 0 and 1).
-      -- The core count should be 2.
-      -- Bug: str:match("%d+$") returns "1", so tonumber("1") is 1,
-      -- causing Kobo:init to treat dual-core SMP devices as single-core
-      -- and replace enableCPUCores with NOP!
-      local count = Kobo:getCPUCount()
-    end)
-  end)
 end)

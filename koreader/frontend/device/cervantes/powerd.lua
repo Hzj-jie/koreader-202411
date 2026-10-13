@@ -22,8 +22,8 @@ function CervantesPowerD:frontlightWarmthHW()
 end
 
 function CervantesPowerD:_syncLightOnStart()
-  local new_intensity = G_reader_settings:read("frontlight_intensity")
-  local is_frontlight_on = G_reader_settings:read("is_frontlight_on")
+  local new_intensity = G_reader_settings:read("frontlight_intensity") or nil
+  local is_frontlight_on = G_reader_settings:read("is_frontlight_on") or nil
 
   if new_intensity ~= nil then
     self.hw_intensity = new_intensity
@@ -151,7 +151,7 @@ function CervantesPowerD:beforeSuspend()
 end
 
 function CervantesPowerD:afterResume()
-  if self.fl and self.fl_was_on then
+  if self.fl then
     -- just re-set it to self.hw_intensity that we haven't changed on Suspend
     if not self.device:hasNaturalLight() then
       self.fl:setBrightness(self.hw_intensity)
