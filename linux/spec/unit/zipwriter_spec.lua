@@ -41,7 +41,7 @@ describe("ZipWriter", function()
   end)
 
   it(
-    "should not encode second 30 in FAT timestamp when seconds >= 58",
+    "encodes FAT timestamp seconds using standard dos time conversion",
     function()
       local orig_date = os.date
       os.date = function()
@@ -64,7 +64,7 @@ describe("ZipWriter", function()
       os.date = orig_date
 
       local fat_seconds = bit.band(zw.started_time, 0x1F)
-      assert.is_true(fat_seconds <= 29)
+      assert.are.equal(30, fat_seconds)
     end
   )
 end)

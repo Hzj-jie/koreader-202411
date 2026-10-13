@@ -98,6 +98,13 @@ describe("luxl", function()
     }, res)
   end)
 
+  it("resets internal state via Reset", function()
+    local lx = luxl.new("<tag>first</tag>", 16)
+    lx:Reset("<tag>second</tag>", 17)
+    assert.are.equal(17, lx.bufsz)
+    assert.are.equal(0, lx.markix)
+  end)
+
   it(
     "should lex attribute values with spaces, hyphens, colons, and underscores",
     function()

@@ -1679,9 +1679,18 @@ function Kobo:toggleChargingLED(toggle)
   return self:charging_led_imp(toggle)
 end
 
--- Return the CPU core count
+-- Return the highest core number
 function Kobo:getCPUCount()
-  return getCPUCount()
+  local fd = io.open("/sys/devices/system/cpu/possible", "re")
+  if fd then
+    local str = fd:read("*line")
+    fd:close()
+
+    -- Format is n-N, where n is the first core, and N the last (e.g., 0-3)
+    return tonumber(str:match("%d+$")) or 1
+  else
+    return 1
+  end
 end
 
 function Kobo:enableCPUCores(amount)

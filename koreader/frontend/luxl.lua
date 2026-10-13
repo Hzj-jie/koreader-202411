@@ -593,7 +593,7 @@ local LEXER_STATES = {
     event = EVENT_NONE,
   }, -- initial spaces before quoted attribute value
 
-  -- [35-36] handle actual attribute values
+  -- [35-37] handle actual attribute values
   {
     state = ST_ATTR_VAL2,
     cclass = CCLASS_QUOTE,
@@ -602,12 +602,18 @@ local LEXER_STATES = {
   },
   {
     state = ST_ATTR_VAL2,
-    cclass = CCLASS_ANY,
+    cclass = CCLASS_LETTERS,
+    next_state = ST_ATTR_VAL2,
+    event = EVENT_MARK,
+  },
+  {
+    state = ST_ATTR_VAL2,
+    cclass = CCLASS_SLASH,
     next_state = ST_ATTR_VAL2,
     event = EVENT_MARK,
   },
 
-  -- [37] End of table marker
+  -- [38] End of table marker
   {
     state = ST_ERROR,
     cclass = CCLASS_NONE,
@@ -782,6 +788,22 @@ function luxl.new(buffer, bufflen)
   setmetatable(newone, luxl_mt)
 
   return newone
+end
+
+function luxl:Reset(buffer, bufflen)
+  self.buf = buffer -- pointer to "uint8_t *" buffer (0 based)
+  self.bufsz = bufflen -- size of input buffer
+  self.state = ST_START -- current state
+  self.event = EVENT_NONE -- current event
+  self.err = 0 -- number of errors thus far
+  self.markix = 0 -- offset of current item of interest
+  self.marksz = 0 -- size of current item of interest
+  local ps = self.ps
+  ps.buf = buffer
+  ps.bufsz = bufflen
+  ps.mark = 0
+  ps.i = 0
+  ps.ix = 0
 end
 
 function luxl:SetMessageHandler(handler)

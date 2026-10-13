@@ -71,6 +71,11 @@ Clock.onClose = function(self)
   end)
 end
 Clock.onShow = function(self)
+  if self.timeout then
+    UIManager:scheduleIn(self.timeout, function()
+      return UIManager:close(self)
+    end)
+  end
   PluginShare.pause_auto_suspend = true
 end
 Clock.onSuspend = function(self)

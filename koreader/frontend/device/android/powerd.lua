@@ -4,14 +4,11 @@ local _, android = pcall(require, "android")
 local AndroidPowerD = BasePowerD:new({
   fl_min = 0,
   fl_max = 100,
-  min_bright = 0,
 })
 
 function AndroidPowerD:frontlightIntensityHW()
   return math.floor(
-    (android.getScreenBrightness() - self.min_bright)
-      / self.bright_diff
-      * self.fl_max
+    android.getScreenBrightness() / self.bright_diff * self.fl_max
   )
 end
 
@@ -21,20 +18,20 @@ function AndroidPowerD:setIntensityHW(intensity)
 
   self.fl_intensity = intensity
   android.setScreenBrightness(
-    self.min_bright + math.floor(intensity * self.bright_diff / self.fl_max)
+    math.floor(intensity * self.bright_diff / self.fl_max)
   )
   self:_decideFrontlightState()
 end
 
 function AndroidPowerD:init()
-  self.min_bright = android.getScreenMinBrightness()
-  self.bright_diff = android.getScreenMaxBrightness() - self.min_bright
+  local min_bright = android.getScreenMinBrightness()
+  self.bright_diff = android.getScreenMaxBrightness() - min_bright
 
   -- if necessary scale fl_min:
   --    do not use fl_min==0 if getScreenMinBrightness!=0,
   --    because intenstiy==0 would mean to use system intensity
-  if self.min_bright ~= self.fl_min then
-    self.fl_min = math.ceil(self.min_bright * self.bright_diff / self.fl_max)
+  if min_bright ~= self.fl_min then
+    self.fl_min = math.ceil(min_bright * self.bright_diff / self.fl_max)
   end
 
   if self.device:hasNaturalLight() then
@@ -49,9 +46,7 @@ function AndroidPowerD:setWarmthHW(warmth)
 end
 
 function AndroidPowerD:frontlightWarmthHW()
-  return math.floor(
-    (android.getScreenWarmth() - self.fl_warmth_min) / self.warm_diff * 100
-  )
+  return android.getScreenWarmth() * self.warm_diff
 end
 
 function AndroidPowerD:getCapacityHW()
@@ -81,15 +76,11 @@ function AndroidPowerD:turnOnFrontlightHW(_done_callback)
   android.enableFrontlightSwitch()
 
   android.setScreenBrightness(
-    self.min_bright
-      + math.floor(self.fl_intensity * self.bright_diff / self.fl_max)
+    math.floor(self.fl_intensity * self.bright_diff / self.fl_max)
   )
 
   if android.hasStandaloneWarmth() then
-    android.setScreenWarmth(
-      self.fl_warmth_min
-        + math.floor(self.fl_warmth * self.warm_diff / 100)
-    )
+    android.setScreenWarmth(math.floor(self.fl_warmth / self.warm_diff))
   end
   return false
 end
