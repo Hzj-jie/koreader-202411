@@ -362,6 +362,12 @@ function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   self:init()
 end
 
+function BackgroundRunnerWidget:onExitKOReader()
+  logger.dbg("BackgroundRunnerWidget:onExitKOReader()")
+  PluginShare.stopBackgroundRunner = true
+  CommandRunner:cleanup()
+end
+
 if util.isTesting() then
   function BackgroundRunnerWidget:allowBlockingJobs(v)
     ALLOW_BLOCKING_JOBS = v
