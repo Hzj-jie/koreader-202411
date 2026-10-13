@@ -1111,6 +1111,102 @@ describe("Background Sync Behavior", function()
     end)
 
     it(
+      "applies both local edit to A and remote update to B when unchanged is false",
+      function()
+        local file = readerui.document.file
+
+        local A_base = {
+          datetime = "2026-01-01 10:00:00",
+          datetime_updated = "2026-01-01 10:00:00",
+          page = 1,
+          pos0 = { page = 1, x = 10, y = 10 },
+          pos1 = { page = 1, x = 20, y = 20 },
+          text = "Annotation A original",
+        }
+        local B_base = {
+          datetime = "2026-01-01 10:00:00",
+          datetime_updated = "2026-01-01 10:00:00",
+          page = 2,
+          pos0 = { page = 2, x = 10, y = 10 },
+          pos1 = { page = 2, x = 20, y = 20 },
+          text = "Annotation B original",
+        }
+
+        local A_local = {
+          datetime = "2026-01-01 10:00:00",
+          datetime_updated = "2026-01-02 12:00:00",
+          notes = "Local note on A",
+          page = 1,
+          pos0 = { page = 1, x = 10, y = 10 },
+          pos1 = { page = 1, x = 20, y = 20 },
+          text = "Annotation A original",
+        }
+        local B_local = {
+          datetime = "2026-01-01 10:00:00",
+          datetime_updated = "2026-01-01 10:00:00",
+          page = 2,
+          pos0 = { page = 2, x = 10, y = 10 },
+          pos1 = { page = 2, x = 20, y = 20 },
+          text = "Annotation B original",
+        }
+        readerui.annotation.annotations = { A_local, B_local }
+
+        local A_remote = {
+          datetime = "2026-01-01 10:00:00",
+          datetime_updated = "2026-01-01 10:00:00",
+          page = 1,
+          pos0 = { page = 1, x = 10, y = 10 },
+          pos1 = { page = 1, x = 20, y = 20 },
+          text = "Annotation A original",
+        }
+        local B_remote = {
+          datetime = "2026-01-01 10:00:00",
+          datetime_updated = "2026-01-02 13:00:00",
+          notes = "Remote note on B",
+          page = 2,
+          pos0 = { page = 2, x = 10, y = 10 },
+          pos1 = { page = 2, x = 20, y = 20 },
+          text = "Annotation B original",
+        }
+
+        local applied_annotations = nil
+        local orig_apply = plugin_instance.applySyncedAnnotations
+        plugin_instance.applySyncedAnnotations = function(self_plugin, doc, active)
+          applied_annotations = active
+          return orig_apply(self_plugin, doc, active)
+        end
+        finally(function()
+          plugin_instance.applySyncedAnnotations = orig_apply
+        end)
+
+        local snapshot_json = json.encode({ A_base, B_base })
+        local uploaded_json = json.encode({ A_remote, B_remote })
+
+        sync_manager:_applyBackgroundSync(file, snapshot_json, uploaded_json)
+
+        assert.is_not_nil(applied_annotations)
+        assert.are.equal(2, #applied_annotations)
+
+        local merged_A, merged_B
+        for _, ann in ipairs(applied_annotations) do
+          if ann.page == 1 then
+            merged_A = ann
+          elseif ann.page == 2 then
+            merged_B = ann
+          end
+        end
+
+        assert.is_not_nil(merged_A)
+        assert.are.equal("Local note on A", merged_A.notes)
+        assert.are.equal("2026-01-02 12:00:00", merged_A.datetime_updated)
+
+        assert.is_not_nil(merged_B)
+        assert.are.equal("Remote note on B", merged_B.notes)
+        assert.are.equal("2026-01-02 13:00:00", merged_B.datetime_updated)
+      end
+    )
+
+    it(
       "does not alter active ReaderUI annotations for unrelated inactive synced documents, but updates inactive sidecar",
       function()
         local inactive_doc = test_data_dir .. "/doc2.epub"
