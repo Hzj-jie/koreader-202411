@@ -324,6 +324,7 @@ function M.show_pending_documents(plugin)
           text = clean_filename,
           mandatory = gettext("Syncing"),
           dim = true,
+          select_enabled = false,
         })
       else
         table.insert(items, {

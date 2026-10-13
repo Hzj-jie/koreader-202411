@@ -220,10 +220,11 @@ describe("AnnotationSync pending queue", function()
       assert.is_not_nil(menu)
       assert.are.equal(2, #menu.item_table)
 
-      -- Item 1: path_a is currently syncing -> dimmed, mandatory = "Syncing", no callback
+      -- Item 1: path_a is currently syncing -> dimmed, mandatory = "Syncing", no callback, select_enabled = false
       assert.are.equal("A.epub", menu.item_table[1].text)
       assert.are.equal("Syncing", menu.item_table[1].mandatory)
       assert.is_true(menu.item_table[1].dim)
+      assert.is_false(menu.item_table[1].select_enabled)
       assert.is_nil(menu.item_table[1].callback)
 
       -- Item 2: path_b is pending -> interactive callback
