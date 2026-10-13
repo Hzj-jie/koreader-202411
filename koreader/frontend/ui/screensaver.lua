@@ -280,25 +280,17 @@ local function addOverlayMessage(widget, widget_height, text)
     },
     textw,
   })
+  local group = {
+    dimen = {
+      w = screen_w,
+      h = screen_h,
+    },
+  }
   if widget then
-    widget = OverlapGroup:new({
-      dimen = {
-        w = screen_w,
-        h = screen_h,
-      },
-      widget,
-      textw,
-    })
-  else
-    widget = OverlapGroup:new({
-      dimen = {
-        w = screen_w,
-        h = screen_h,
-      },
-      textw,
-    })
+    table.insert(group, widget)
   end
-  return widget
+  table.insert(group, textw)
+  return OverlapGroup:new(group)
 end
 
 function Screensaver:chooseFolder()
