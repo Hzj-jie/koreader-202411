@@ -74,10 +74,29 @@ function M.merge(local_list, base_list, income_list)
   local merged = {}
   local active = {}
 
-  -- TODO: Improve the perf with binary search.
-  local function is_in_list(list, v)
+  local function index_by_page(list)
     assert(type(list) == "table")
-    for _, r in ipairs(list) do
+    local by_page = {}
+    for _, item in ipairs(list) do
+      local p = item.page
+      if p ~= nil then
+        local bucket = by_page[p]
+        if not bucket then
+          bucket = {}
+          by_page[p] = bucket
+        end
+        table.insert(bucket, item)
+      end
+    end
+    return by_page
+  end
+
+  local function find_match(by_page, v)
+    local bucket = by_page[v.page]
+    if not bucket then
+      return nil
+    end
+    for _, r in ipairs(bucket) do
       if ReaderAnnotation.doesMatch(v, r) then
         return r
       end
@@ -85,11 +104,15 @@ function M.merge(local_list, base_list, income_list)
     return nil
   end
 
+  local local_by_page = index_by_page(local_list)
+  local income_by_page = index_by_page(income_list)
+  local base_by_page = index_by_page(base_list)
+
   for _, v in ipairs(local_list) do
     table.insert(merged, v)
   end
   for _, v in ipairs(income_list) do
-    local r = is_in_list(local_list, v)
+    local r = find_match(local_by_page, v)
     if r then
       -- In both local and income, update any fields to the later one.
       -- Note, if timestamp equals, local (r) is preferred.
@@ -110,15 +133,15 @@ function M.merge(local_list, base_list, income_list)
   M.sort(merged)
 
   for _, v in ipairs(merged) do
-    local is_income = is_in_list(income_list, v)
-    local is_local = is_in_list(local_list, v)
+    local is_income = find_match(income_by_page, v)
+    local is_local = find_match(local_by_page, v)
     assert(is_income or is_local)
     if not v.deleted then
       if is_income and is_local then
         -- No matter if it's in base_list, it's active.
         table.insert(active, v)
       else
-        local is_last_sync = is_in_list(base_list, v)
+        local is_last_sync = find_match(base_by_page, v)
         if is_income then
           if is_last_sync then
             -- local deleted
