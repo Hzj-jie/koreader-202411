@@ -163,15 +163,13 @@ describe("named_settings", function()
     end)
 
     it(
-      "should return default or saved value for bookshortcuts_directory_action",
+      "should return default or saved value for BookShortcuts_directory_action",
       function()
-        assert.are.same("FM", named_settings.bookshortcuts_directory_action())
         assert.are.same("FM", named_settings.BookShortcuts_directory_action())
-        named_settings.set.bookshortcuts_directory_action("Last")
-        assert.are.same("Last", named_settings.bookshortcuts_directory_action())
+        named_settings.set.BookShortcuts_directory_action("Last")
         assert.are.same("Last", named_settings.BookShortcuts_directory_action())
-        named_settings.set.bookshortcuts_directory_action("FM")
-        assert.are.same("FM", named_settings.bookshortcuts_directory_action())
+        named_settings.set.BookShortcuts_directory_action("FM")
+        assert.are.same("FM", named_settings.BookShortcuts_directory_action())
         assert.is_nil(G_reader_settings:read("BookShortcuts_directory_action"))
       end
     )
