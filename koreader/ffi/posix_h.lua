@@ -67,6 +67,7 @@ int waitpid(int, int *, int);
 int getpid(void) __attribute__((nothrow, leaf));
 int getppid(void) __attribute__((nothrow, leaf));
 int setpgid(int, int) __attribute__((nothrow, leaf));
+void _exit(int);
 struct pollfd {
   int fd;
   short int events;
@@ -184,6 +185,7 @@ static const int SCHED_RR = 2;
 static const int SCHED_RESET_ON_FORK = 1073741824;
 int sched_getscheduler(int) __attribute__((nothrow, leaf));
 int sched_setscheduler(int, int, const struct sched_param *) __attribute__((nothrow, leaf));
+int prctl(int, unsigned long, unsigned long, unsigned long, unsigned long);
 int sched_getparam(int, struct sched_param *) __attribute__((nothrow, leaf));
 int sched_setparam(int, const struct sched_param *) __attribute__((nothrow, leaf));
 typedef struct {
