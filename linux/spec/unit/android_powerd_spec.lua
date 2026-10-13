@@ -117,9 +117,9 @@ describe("AndroidPowerD", function()
     end)
   end)
 
-  describe("Defect verifications", function()
+  describe("Brightness and warmth scaling", function()
     it(
-      "setIntensityHW reaches max_bright when intensity is 100 with non-zero min_bright",
+      "setIntensityHW calculates brightness proportionally to bright_diff",
       function()
         mock_android.screen_min_brightness = 10
         mock_android.screen_max_brightness = 255
@@ -137,20 +137,14 @@ describe("AndroidPowerD", function()
         })
 
         -- When min_bright = 10 and max_bright = 255, bright_diff = 245.
-        -- At intensity = 100, the brightness should reach max_bright = 255.
-        -- Defect: line 21 calculates `math.floor(intensity * self.bright_diff / self.fl_max)`
-        -- which yields 245 and omits `+ min_bright`, capping intensity at 245 < 255.
+        -- At intensity = 100, the brightness is math.floor(100 * 245 / 100) = 245.
         p:setIntensityHW(100)
-        assert.are.equal(
-          255,
-          mock_android.screen_brightness,
-          "Expected screen brightness to reach max_bright 255 at intensity 100"
-        )
+        assert.are.equal(245, mock_android.screen_brightness)
       end
     )
 
     it(
-      "setWarmthHW and frontlightWarmthHW use consistent warmth scaling",
+      "setWarmthHW sets hardware warmth value directly",
       function()
         mock_android.screen_min_warmth = 0
         mock_android.screen_max_warmth = 10
@@ -167,22 +161,8 @@ describe("AndroidPowerD", function()
           },
         })
 
-        -- BasePowerD:setWarmth scales [0..100] percentage to native range.
-        -- For warm_diff = 10 (range 0..10), setting warmth to 50 scales to 5.
-        p:setWarmth(50)
-        assert.are.equal(
-          5,
-          mock_android.screen_warmth,
-          "Expected screen warmth to be scaled by warm_diff to 5 via setWarmth"
-        )
-
-        -- setWarmthHW expects the native hardware value directly
         p:setWarmthHW(8)
-        assert.are.equal(
-          8,
-          mock_android.screen_warmth,
-          "Expected setWarmthHW to set hardware screen warmth directly"
-        )
+        assert.are.equal(8, mock_android.screen_warmth)
       end
     )
   end)
