@@ -915,26 +915,25 @@ describe("KOSync plugin tests", function()
       assert.is_not_equal(0, kosync.last_page_turn_timestamp)
     end)
 
-    it("handles onSaveSettings, onSuspend, onNetworkDisconnecting", function()
+    it("handles onSaveSettings", function()
       kosync:init()
       stub(kosync, "_updateProgress")
 
       kosync.settings.auto_sync = false
       kosync:onSaveSettings()
-      kosync:onSuspend()
-      kosync:onNetworkDisconnecting()
       assert.stub(kosync._updateProgress).was_not_called()
 
       kosync.settings.auto_sync = true
       kosync.push_timestamp = 0
       kosync:onSaveSettings()
-      kosync.push_timestamp = 0
-      kosync:onSuspend()
-      kosync.push_timestamp = 0
-      kosync:onNetworkDisconnecting()
-      assert.stub(kosync._updateProgress).was_called(3)
+      assert.stub(kosync._updateProgress).was_called(1)
 
       kosync._updateProgress:revert()
+    end)
+
+    it("does not register onSuspend or onNetworkDisconnecting", function()
+      assert.is_nil(kosync.onSuspend)
+      assert.is_nil(kosync.onNetworkDisconnecting)
     end)
 
     it("handles onResume and onNetworkOnline", function()

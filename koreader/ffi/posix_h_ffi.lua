@@ -100,6 +100,7 @@ int waitpid(int, int *, int);
 int getpid(void);
 int getppid(void);
 int setpgid(int, int);
+void _exit(int);
 struct pollfd {
   int fd;
   short int events;
@@ -199,6 +200,7 @@ struct sched_param {
 };
 int sched_getscheduler(int);
 int sched_setscheduler(int, int, const struct sched_param *);
+int prctl(int, unsigned long, unsigned long, unsigned long, unsigned long);
 int sched_getparam(int, struct sched_param *);
 int sched_setparam(int, const struct sched_param *);
 typedef struct {

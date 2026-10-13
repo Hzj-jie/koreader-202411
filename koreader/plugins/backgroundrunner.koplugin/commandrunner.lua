@@ -100,6 +100,9 @@ function CommandRunner:start(job)
           ffi.C.close(parent_read_fd)
           parent_read_fd = nil
         end
+        if not ffiUtil.isSubProcessDone(pid) then
+          ffiUtil.terminateSubProcess(pid)
+        end
         ffiUtil.isSubProcessDone(pid, true)
       end,
     }
@@ -183,6 +186,17 @@ function CommandRunner:poll()
   end
 
   return #completed > 0 and completed or nil
+end
+
+function CommandRunner:cleanup()
+  for i = #self.running_jobs, 1, -1 do
+    local entry = self.running_jobs[i]
+    if entry.pid then
+      ffiUtil.terminateSubProcess(entry.pid)
+    end
+    entry:close()
+    table.remove(self.running_jobs, i)
+  end
 end
 
 --- Whether there are running jobs.

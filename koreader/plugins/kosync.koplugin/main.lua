@@ -911,26 +911,11 @@ function KOSync:onResume()
   end)
 end
 
-function KOSync:onSuspend()
-  if not self.settings.auto_sync then
-    return
-  end
-  -- We request an extra flashing refresh on success, to deal with potential ghosting left by the NetworkMgr UI
-  self:_updateProgress(false)
-end
-
 function KOSync:onNetworkOnline()
   if not self.settings.auto_sync then
     return
   end
   self:_getProgress(false)
-end
-
-function KOSync:onNetworkDisconnecting()
-  if not self.settings.auto_sync then
-    return
-  end
-  self:_updateProgress(false)
 end
 
 function KOSync:onKOSyncPushProgress()
