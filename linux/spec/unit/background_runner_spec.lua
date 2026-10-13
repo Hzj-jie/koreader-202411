@@ -1205,6 +1205,7 @@ describe("BackgroundRunner widget tests", function()
       local mock_entry = {
         pid = 9999,
         close = function(self)
+          ffiUtil.terminateSubProcess(self.pid)
           closed_entries = closed_entries + 1
         end,
       }
