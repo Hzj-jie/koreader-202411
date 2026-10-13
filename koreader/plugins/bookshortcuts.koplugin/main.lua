@@ -43,10 +43,7 @@ function BookShortcuts:onBookShortcut(path)
   if util.pathExists(path) then
     local file
     if lfs.attributes(path, "mode") ~= "file" then
-      if
-        (G_reader_settings:read("BookShortcuts_directory_action") or "FM")
-        == "FM"
-      then
+      if G_named_settings.bookshortcuts_directory_action() == "FM" then
         if self.ui.file_chooser then
           self.ui.file_chooser:changeToPath(path)
         else -- called from Reader
@@ -120,8 +117,7 @@ function BookShortcuts:getSubMenuItems()
       text_func = function()
         return T(
           gettext("Folder action: %1"),
-          (G_reader_settings:read("BookShortcuts_directory_action") or "FM")
-                == "FM"
+          G_named_settings.bookshortcuts_directory_action() == "FM"
               and FM_text
             or last_text
         )
@@ -131,22 +127,19 @@ function BookShortcuts:getSubMenuItems()
         {
           text = last_text,
           checked_func = function()
-            return G_reader_settings:read("BookShortcuts_directory_action")
-              == "Last"
+            return G_named_settings.bookshortcuts_directory_action() == "Last"
           end,
           callback = function()
-            G_reader_settings:save("BookShortcuts_directory_action", "Last")
+            G_named_settings.set.bookshortcuts_directory_action("Last")
           end,
         },
         {
           text = FM_text,
           checked_func = function()
-            return (
-              G_reader_settings:read("BookShortcuts_directory_action") or "FM"
-            ) == "FM"
+            return G_named_settings.bookshortcuts_directory_action() == "FM"
           end,
           callback = function()
-            G_reader_settings:save("BookShortcuts_directory_action", "FM")
+            G_named_settings.set.bookshortcuts_directory_action("FM")
           end,
         },
       },
@@ -158,8 +151,7 @@ function BookShortcuts:getSubMenuItems()
         return G_reader_settings:isTrue("BookShortcuts_recursive_directory")
       end,
       enabled_func = function()
-        return G_reader_settings:read("BookShortcuts_directory_action")
-          == "Last"
+        return G_named_settings.bookshortcuts_directory_action() == "Last"
       end,
       callback = function()
         G_reader_settings:flipNilOrFalse("BookShortcuts_recursive_directory")
