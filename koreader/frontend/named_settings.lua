@@ -130,4 +130,17 @@ function named_settings.show_bottom_menu()
     or G_reader_settings:nilOrTrue("show_bottom_menu")
 end
 
+function named_settings.bookshortcuts_directory_action()
+  return G_reader_settings:read("BookShortcuts_directory_action") or "FM"
+end
+
+function named_settings.set.bookshortcuts_directory_action(value)
+  return G_reader_settings:save("BookShortcuts_directory_action", value, "FM")
+end
+
+named_settings.BookShortcuts_directory_action =
+  named_settings.bookshortcuts_directory_action
+named_settings.set.BookShortcuts_directory_action =
+  named_settings.set.bookshortcuts_directory_action
+
 return named_settings
