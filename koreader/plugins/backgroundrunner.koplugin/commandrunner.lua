@@ -100,9 +100,7 @@ function CommandRunner:start(job)
           ffi.C.close(parent_read_fd)
           parent_read_fd = nil
         end
-        if not ffiUtil.isSubProcessDone(pid) then
-          ffiUtil.terminateSubProcess(pid)
-        end
+        ffiUtil.terminateSubProcess(pid)
         ffiUtil.isSubProcessDone(pid, true)
       end,
     }
@@ -169,7 +167,6 @@ function CommandRunner:poll()
       logger.warn(
         "CommandRunner: fork job timed out after " .. FORK_TIMEOUT .. "s"
       )
-      ffiUtil.terminateSubProcess(entry.pid)
       entry:close()
       entry.job.result = 255
       entry.job.timeout = true
@@ -191,9 +188,6 @@ end
 function CommandRunner:cleanup()
   for i = #self.running_jobs, 1, -1 do
     local entry = self.running_jobs[i]
-    if entry.pid then
-      ffiUtil.terminateSubProcess(entry.pid)
-    end
     entry:close()
     table.remove(self.running_jobs, i)
   end

@@ -1113,6 +1113,7 @@ describe("BackgroundRunner widget tests", function()
       local mock_entry = {
         pid = 9999,
         close = function(self)
+          ffiUtil.terminateSubProcess(self.pid)
           closed_entries = closed_entries + 1
         end,
       }
@@ -1125,6 +1126,56 @@ describe("BackgroundRunner widget tests", function()
       assert.is_true(PluginShare.stopBackgroundRunner)
       assert.are.equal(1, #terminated_pids)
       assert.are.equal(9999, terminated_pids[1])
+      assert.are.equal(1, closed_entries)
+      assert.are.equal(0, #CommandRunner.running_jobs)
+
+      ffiUtil.terminateSubProcess = old_terminateSubProcess
+      ffiUtil.isSubProcessDone = old_isSubProcessDone
+      CommandRunner.running_jobs = {}
+    end
+  )
+
+  it(
+    "cleans up running jobs on onRestart event",
+    function()
+      local BackgroundRunnerWidget =
+        require("plugins/backgroundrunner.koplugin/main")
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local ffiUtil = require("ffi/util")
+
+      PluginShare.stopBackgroundRunner = false
+      CommandRunner.running_jobs = {}
+
+      local terminated_pids = {}
+      local old_terminateSubProcess = ffiUtil.terminateSubProcess
+      ffiUtil.terminateSubProcess = function(pid)
+        table.insert(terminated_pids, pid)
+        return true
+      end
+
+      local old_isSubProcessDone = ffiUtil.isSubProcessDone
+      ffiUtil.isSubProcessDone = function(pid, blocking)
+        return true
+      end
+
+      local closed_entries = 0
+      local mock_entry = {
+        pid = 8888,
+        close = function(self)
+          ffiUtil.terminateSubProcess(self.pid)
+          closed_entries = closed_entries + 1
+        end,
+      }
+      table.insert(CommandRunner.running_jobs, mock_entry)
+
+      local widget = BackgroundRunnerWidget:new()
+      assert.is_function(widget.onRestart)
+      widget:onRestart()
+
+      assert.is_true(PluginShare.stopBackgroundRunner)
+      assert.are.equal(1, #terminated_pids)
+      assert.are.equal(8888, terminated_pids[1])
       assert.are.equal(1, closed_entries)
       assert.are.equal(0, #CommandRunner.running_jobs)
 
