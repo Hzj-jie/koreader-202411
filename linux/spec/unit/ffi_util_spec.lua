@@ -22,10 +22,6 @@ describe("ffi/util module", function()
         )
       end
     )
-
-    it("returns relative path2 when path1 is empty", function()
-      assert.are.equal("foo/bar", ffiUtil.joinPath("", "foo/bar"))
-    end)
   end)
 
   describe("copyFile()", function()

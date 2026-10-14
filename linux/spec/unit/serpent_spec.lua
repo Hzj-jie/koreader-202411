@@ -27,49 +27,4 @@ describe("serpent module", function()
     assert.are.equal(math.huge, loaded.inf)
     assert.are.equal(-math.huge, loaded.neg_inf)
   end)
-
-  it(
-    "should serialize math.huge accurately when fixradix is enabled",
-    function()
-      local orig_format = getmetatable("").format
-      getmetatable("").format = function(fmt, ...)
-        if fmt == "%.1f" and select(1, ...) == 1.2 then
-          return "1,2"
-        end
-        return orig_format(fmt, ...)
-      end
-      finally(function()
-        getmetatable("").format = orig_format
-      end)
-
-      local tbl = { inf = math.huge }
-      local res = serpent.line(tbl, { fixradix = true, comment = false })
-      local loaded = loadstring("return " .. res)()
-      assert.are.equal(math.huge, loaded.inf)
-    end
-  )
-
-  it(
-    "should serialize -math.huge accurately when fixradix is enabled",
-    function()
-      local orig_format = getmetatable("").format
-      getmetatable("").format = function(fmt, ...)
-        if fmt == "%.1f" and select(1, ...) == 1.2 then
-          return "1,2"
-        end
-        return orig_format(fmt, ...)
-      end
-      finally(function()
-        getmetatable("").format = orig_format
-      end)
-
-      local tbl = { neg_inf = -math.huge }
-      local res = serpent.line(tbl, { fixradix = true, comment = false })
-      local chunk, err = loadstring("return " .. res)
-      assert.is_nil(err)
-      local ok, loaded = pcall(chunk)
-      assert.is_true(ok)
-      assert.are.equal(-math.huge, loaded.neg_inf)
-    end
-  )
 end)

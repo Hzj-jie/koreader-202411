@@ -459,7 +459,7 @@ local function get_version_eclevel(len, mode, requested_ec_level)
 
   local bits, digits, modebits, c
   local tab = { { 10, 9, 8, 8 }, { 12, 11, 16, 10 }, { 14, 13, 16, 12 } }
-  local minversion = nil
+  local minversion = 40
   local maxec_level = requested_ec_level or 1
   local min, max = 1, 4
   if
@@ -492,16 +492,13 @@ local function get_version_eclevel(len, mode, requested_ec_level)
         c = math.floor(modebits * 1 / 13)
       end
       if c >= len then
-        if not minversion or version <= minversion then
+        if version <= minversion then
           minversion = version
           maxec_level = ec_level
         end
         break
       end
     end
-  end
-  if not minversion then
-    return nil, "Data too long for QR code"
   end
   return minversion, maxec_level
 end
@@ -549,9 +546,6 @@ local function get_version_eclevel_mode_bistringlength(
   end
   local version, ec_level
   version, ec_level = get_version_eclevel(#str, local_mode, requested_ec_level)
-  if not version then
-    return nil, ec_level
-  end
   local length_string = get_length(str, version, local_mode)
   return version, ec_level, binary(local_mode, 4), local_mode, length_string
 end
@@ -2763,9 +2757,6 @@ local function qrcode(str, ec_level)
   local arranged_data, version, data_raw, mode, len_bitstring
   version, ec_level, data_raw, mode, len_bitstring =
     get_version_eclevel_mode_bistringlength(str, ec_level)
-  if not version then
-    return false, ec_level or "Data too long for QR code"
-  end
   data_raw = data_raw .. len_bitstring
   data_raw = data_raw .. encode_data(str, mode)
   data_raw = add_pad_data(version, ec_level, data_raw)

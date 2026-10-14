@@ -3357,7 +3357,7 @@ local Jpeg -- lazy load ffi/jpeg
 function BB_mt.__index:getBufferData()
   local w, h = self:getWidth(), self:getHeight()
   local bbdump, source_ptr, stride
-  if self:getType() == TYPE_BBRGB24 and self:getRotation() == 0 then
+  if self:getType() == TYPE_BBRGB24 then
     source_ptr = ffi.cast(uint8pt, self.data)
     stride = self.stride
   else

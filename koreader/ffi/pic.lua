@@ -133,14 +133,6 @@ function GifDocument:openPage(number)
   -- previous frames) over the first frame
   -- Here, because requesting a random number is possible, we redo all the
   -- pastes from first frame till requested frame number: it could be optimized
-  if
-    self.giffile == nil
-    or self.giffile.ImageCount == 0
-    or self.giffile.SavedImages == nil
-    or self.giffile.SavedImages == ffi.null
-  then
-    error("GIF has no images")
-  end
   local i = self.giffile.SavedImages[0]
   local width = i.ImageDesc.Width
   local height = i.ImageDesc.Height
