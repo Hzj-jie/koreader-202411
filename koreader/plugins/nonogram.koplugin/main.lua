@@ -666,9 +666,6 @@ function NonogramBoardWidget:getCellFromPoint(x, y)
   end
   local col = math.min(cols, math.floor(local_x / cell) + 1)
   local row = math.min(rows, math.floor(local_y / cell) + 1)
-  if row < 1 or row > rows or col < 1 or col > cols then
-    return nil
-  end
   return row, col
 end
 

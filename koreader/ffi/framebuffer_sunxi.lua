@@ -82,7 +82,11 @@ function framebuffer:_isFullScreen(w, h)
     w, h = h, w
   end
 
-  return w >= self:getWidth() and h >= self:getHeight()
+  if w >= self:getWidth() and h >= self:getHeight() then
+    return true
+  else
+    return false
+  end
 end
 
 --[[ handlers for the power management API of the eink driver --]]

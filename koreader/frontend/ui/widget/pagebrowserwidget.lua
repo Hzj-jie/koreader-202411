@@ -482,7 +482,7 @@ function PageBrowserWidget:update()
     end
     if show_at_bottom or show_near_thumbnail then
       local page_text, thumbnail_page_text
-      if self.page_labels and #self.page_labels > 0 then
+      if self.page_labels then
         local page_label
         for idx = cur_page_label_idx, #self.page_labels do
           local item = self.page_labels[idx]
@@ -499,7 +499,6 @@ function PageBrowserWidget:update()
           page_text = self.ui.pagemap:cleanPageLabel(page_label)
         elseif
           show_near_thumbnail
-          and self.page_labels[cur_page_label_idx]
           and self.page_labels[cur_page_label_idx].page <= p
         then
           -- When reference pages may span multiple screen pages, the above may not get
