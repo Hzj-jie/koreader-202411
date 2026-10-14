@@ -1135,7 +1135,8 @@ describe("Terminal plugin button tap integration", function()
         local terminal = Terminal:new({
           ui = { menu = { registerToMainMenu = function() end } },
         })
-        local test_file = "/tmp/test koreader shell.sh"
+        local ffiUtil = require("ffi/util")
+        local test_file = "/tmp/test koreader shell " .. ffiUtil.getpid() .. ".sh"
         local f = io.open(test_file, "w")
         f:write("#!/bin/sh\nexit 0\n")
         f:close()

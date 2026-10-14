@@ -368,7 +368,7 @@ describe("AutoSuspend", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes pickTimeoutValue Disable button extra_callback killing remaining active timer",
+      "keeps remaining active timer when disabling autosuspend timeout in pickTimeoutValue",
       function()
         local UIManager = require("ui/uimanager")
         local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
@@ -391,22 +391,21 @@ describe("AutoSuspend", function()
           end
           return orig_unschedule(self_uim, task)
         end
-        finally(function()
-          UIManager.scheduleIn = orig_scheduleIn
-          UIManager.unschedule = orig_unschedule
-        end)
-
-        widget:_start()
-        assert.is_true(scheduled)
 
         local spinner
         local orig_show = UIManager.show
         UIManager.show = function(self_uim, w)
           spinner = w
         end
+
         finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
           UIManager.show = orig_show
         end)
+
+        widget:_start()
+        assert.is_true(scheduled)
 
         widget:pickTimeoutValue(
           nil,
@@ -422,8 +421,6 @@ describe("AutoSuspend", function()
 
         assert.is_false(widget:_enabled())
         assert.is_true(widget:_enabledShutdown())
-        -- Bug: extra_callback calls self:_unschedule() without self:_start(),
-        -- killing the shared timer task so autoshutdown never fires.
         assert.is_true(scheduled)
       end
     )

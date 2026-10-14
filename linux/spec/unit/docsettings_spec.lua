@@ -1989,8 +1989,19 @@ describe("docsettings module", function()
   end)
 
   describe("Defect verifications", function()
+    local orig_metadata_folder
+
+    before_each(function()
+      orig_metadata_folder =
+        G_reader_settings:readSetting("document_metadata_folder")
+    end)
+
+    after_each(function()
+      G_reader_settings:save("document_metadata_folder", orig_metadata_folder)
+    end)
+
     it(
-      "exposes getSidecarFilename and getSidecarDir matching across / in dot-directories",
+      "correctly handles getSidecarFilename and getSidecarDir matching across / in dot-directories",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
         local doc_path = "/home/user/.books/README"
@@ -2006,7 +2017,7 @@ describe("docsettings module", function()
     )
 
     it(
-      "exposes getFileFromHistory breaking on folder names with square brackets",
+      "recovers file path with getFileFromHistory for folder names with square brackets",
       function()
         local doc_path = "/books/[Sci-Fi]/Dune.epub"
         local hist_path = docsettings:getHistoryPath(doc_path)

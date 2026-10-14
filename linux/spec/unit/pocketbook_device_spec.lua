@@ -37,6 +37,10 @@ package.loaded["device/pocketbook/device"] = nil
 local PocketBook = require("device/pocketbook/device")
 
 describe("PocketBook device", function()
+  teardown(function()
+    ffi.load = orig_load
+  end)
+
   describe("properties and hardware queries", function()
     it("reports correct model and platform capabilities for PB632", function()
       assert.are.equal("PBTouchHDPlus", PocketBook.model)
