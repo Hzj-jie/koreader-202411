@@ -1900,9 +1900,15 @@ function VocabularyBuilderWidget:forgotFromDict(word)
 end
 
 function VocabularyBuilderWidget:resetItems()
-  self.item_table = self:getVocabItems()
-  self.pages = math.ceil(#self.item_table / self.items_per_page)
-  self:goToPage(1)
+  for i, item in ipairs(self.item_table) do
+    if self.item_table[i].word then -- selected from DB
+      self.item_table[i] = {
+        callback = self.item_table[i].callback,
+      }
+    end
+  end
+  self.reload_time = os.time()
+  self:_populateItems()
 end
 
 function VocabularyBuilderWidget:onShowMenu()
@@ -1964,7 +1970,7 @@ function VocabularyBuilderWidget:onShowFilter()
     item_table = sort_items,
     sort_disabled = true,
     callback = function()
-      if next(toggled) ~= nil then
+      if #toggled then
         DB:toggleBookFilter(toggled)
         self:reloadItems()
       end

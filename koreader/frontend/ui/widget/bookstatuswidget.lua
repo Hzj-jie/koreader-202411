@@ -98,7 +98,6 @@ function BookStatusWidget:init()
   })
 
   self.dithered = true
-  self.updated = nil
 end
 
 function BookStatusWidget:getStats()
@@ -573,9 +572,6 @@ function BookStatusWidget:onExit()
 end
 
 function BookStatusWidget:onSwitchFocus(_inputbox)
-  if self.readonly then
-    return
-  end
   self.note_dialog = InputDialog:new({
     title = gettext("Review"),
     input = self.input_note:getText(),

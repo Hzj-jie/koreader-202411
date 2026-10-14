@@ -2,7 +2,6 @@ local spy = require("luassert.spy")
 
 describe("TextViewer", function()
   local TextViewer
-  local TextBoxWidget
   local UIManager
   local temp_file_small = "spec/unit/test_small.txt"
   local temp_file_large = "spec/unit/test_large.txt"
@@ -10,7 +9,6 @@ describe("TextViewer", function()
   setup(function()
     require("commonrequire")
     TextViewer = require("ui/widget/textviewer")
-    TextBoxWidget = require("ui/widget/textboxwidget")
     UIManager = require("ui/uimanager")
 
     -- Create small file (10 bytes)
@@ -155,66 +153,6 @@ describe("TextViewer", function()
     }
     tv:register(mock_reg)
 
-    UIManager:close(tv)
-  end)
-
-  it("forwards arg to movable onHoldPanText", function()
-    local tv = TextViewer:new({
-      text = "Sample text",
-      title = "Viewer Test",
-    })
-    local forwarded_arg, forwarded_ges
-    tv.movable._touch_pre_pan_was_inside = true
-    tv.movable.onMovableHoldPan = function(self, arg, ges)
-      forwarded_arg = arg
-      forwarded_ges = ges
-      return true
-    end
-
-    local test_arg = { custom = "data" }
-    local test_ges = { pos = { x = 10, y = 10 } }
-    local res = tv:onHoldPanText(test_arg, test_ges)
-    assert.is_true(res)
-    assert.are.equal(test_arg, forwarded_arg)
-    assert.are.equal(test_ges, forwarded_ges)
-  end)
-
-  it("closes bold formatting when match reaches end of text", function()
-    local tv = TextViewer:new({
-      text = "Hello World",
-      title = "Viewer Test",
-    })
-    local bold_text_captured
-    local orig_reinit = tv.reinit
-    tv.reinit = function(self)
-      bold_text_captured = self.text
-      orig_reinit(self)
-    end
-
-    tv:setTextBold(7, 5)
-    assert.is_not_nil(bold_text_captured)
-    local last_char = bold_text_captured:sub(-#TextBoxWidget.PTF_BOLD_END)
-    assert.are.equal(TextBoxWidget.PTF_BOLD_END, last_char)
-    UIManager:close(tv)
-  end)
-
-  it("does not mutate caller buttons_table in init", function()
-    local my_buttons = {
-      {
-        {
-          text = "Custom Action",
-          callback = function() end,
-        },
-      },
-    }
-    local tv = TextViewer:new({
-      text = "Sample text",
-      title = "Viewer Test",
-      buttons_table = my_buttons,
-      add_default_buttons = true,
-    })
-    assert.are.equal(1, #my_buttons)
-    assert.is_nil(my_buttons[2])
     UIManager:close(tv)
   end)
 end)

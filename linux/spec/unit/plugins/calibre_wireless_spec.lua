@@ -302,7 +302,7 @@ describe("Calibre Wireless plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "closes udp socket and continues discovery when receiving non-calibre datagram in find_calibre_server",
+      "fails: exposes find_calibre_server leaking UDP socket and aborting on non-Calibre datagram",
       function()
         local orig_udp4 = socket.udp4
         local closed = false
@@ -351,12 +351,11 @@ describe("Calibre Wireless plugin module", function()
     )
 
     it(
-      "handles nil book metadata title when deleting books in deleteBook",
+      "fails: exposes deleteBook crashing when a book metadata entry has title = nil",
       function()
         local orig_books = CalibreMetadata.books
         local orig_getBookUuid = CalibreMetadata.getBookUuid
         local orig_removeBook = CalibreMetadata.removeBook
-        local orig_saveBookList = CalibreMetadata.saveBookList
         local orig_removeFile = util.removeFile
 
         G_reader_settings:save("inbox_dir", "/tmp")
@@ -376,7 +375,6 @@ describe("Calibre Wireless plugin module", function()
         end
 
         CalibreMetadata.removeBook = function() end
-        CalibreMetadata.saveBookList = function() end
         util.removeFile = function() end
         wireless_inst.sendJsonData = function() end
 
@@ -384,7 +382,6 @@ describe("Calibre Wireless plugin module", function()
           CalibreMetadata.books = orig_books
           CalibreMetadata.getBookUuid = orig_getBookUuid
           CalibreMetadata.removeBook = orig_removeBook
-          CalibreMetadata.saveBookList = orig_saveBookList
           util.removeFile = orig_removeFile
           G_reader_settings:delete("inbox_dir")
         end)

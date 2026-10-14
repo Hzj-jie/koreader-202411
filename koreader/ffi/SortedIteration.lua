@@ -26,21 +26,37 @@ local function __genOrderedIndex(t)
   return orderedIndex
 end
 
-local function orderedPairs(t)
-  local orderedIndex = __genOrderedIndex(t)
-  local indices = {}
-  for i = 1, #orderedIndex do
-    indices[orderedIndex[i]] = i
-  end
+local function orderedNext(t, state)
+  -- Equivalent of the next function, but returns the keys in the alphabetic
+  -- order. We use a temporary ordered key table that is stored in the
+  -- table being iterated.
 
-  local function orderedNext(_, state)
-    local i = (state == nil and 0 or (indices[state] or 0)) + 1
-    local key = orderedIndex[i]
-    if key ~= nil then
-      return key, t[key]
+  local key = nil
+  if state == nil then
+    -- the first time, generate the index
+    t.__orderedIndex = __genOrderedIndex(t)
+    key = t.__orderedIndex[1]
+  else
+    -- fetch the next value
+    for i = 1, #t.__orderedIndex do
+      if t.__orderedIndex[i] == state then
+        key = t.__orderedIndex[i + 1]
+      end
     end
   end
 
+  if key then
+    return key, t[key]
+  end
+
+  -- no more value to return, cleanup
+  t.__orderedIndex = nil
+  return
+end
+
+local function orderedPairs(t)
+  -- Equivalent of the pairs() function on tables. Allows to iterate
+  -- in order
   return orderedNext, t, nil
 end
 

@@ -390,12 +390,10 @@ local function waitForEventRaw(timeout)
       is_active = active
       return true,
         {
-          {
-            type = C.EV_MSC,
-            code = active and C.EVT_SHOW or C.EVT_HIDE,
-            value = 0,
-            time = updateTimestamp(),
-          },
+          type = C.EV_MSC,
+          code = active and C.EVT_SHOW or C.EVT_HIDE,
+          value = 0,
+          time = updateTimestamp(),
         }
     end
     -- We have got sleepmode ("autostandby") requested by frontend.

@@ -400,10 +400,9 @@ end
 function ReadTimer:onResume()
   if self:scheduled() then
     logger.dbg("ReadTimer: onResume with an active timer")
-    local remaining = self:remaining()
     self:unschedule()
     -- When self:remaining() is 0, it should immediately fire the alarm.
-    self:rescheduleIn(remaining)
+    self:rescheduleIn(self:remaining())
   end
 end
 

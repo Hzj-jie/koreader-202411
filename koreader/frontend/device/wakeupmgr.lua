@@ -167,12 +167,8 @@ function WakeupMgr:removeTasks(epoch, callback)
   end
 
   -- Schedule the next wakeup action, if any (and if necessary).
-  if reschedule then
-    if self._task_queue[1] then
-      self:setWakeupAlarm(self._task_queue[1].epoch)
-    else
-      self:unsetWakeupAlarm()
-    end
+  if reschedule and self._task_queue[1] then
+    self:setWakeupAlarm(self._task_queue[1].epoch)
   end
 
   return removed

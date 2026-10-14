@@ -56,11 +56,11 @@ local function makeRequest(url, auth, method, request_body)
     return nil, status
   end
 
-  if #sink == 0 then
+  if not sink[1] then
     return nil, "No response from Nextcloud"
   end
 
-  return json.decode(table.concat(sink))
+  return json.decode(sink[1])
 end
 
 function NextcloudExporter:isReadyToExport()
@@ -175,7 +175,7 @@ function NextcloudExporter:export(t)
 
   -- determine if markdown export is set
   local plugin_settings = G_reader_settings:readTableRef("exporter")
-  local markdown_settings = plugin_settings and plugin_settings.markdown or {}
+  local markdown_settings = plugin_settings.markdown
 
   -- setup Nextcloud variables
   local url_base =

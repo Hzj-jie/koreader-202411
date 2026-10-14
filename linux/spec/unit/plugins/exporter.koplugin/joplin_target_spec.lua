@@ -146,6 +146,25 @@ describe("Joplin Exporter target", function()
       assert.is_nil(JoplinExporter:findNoteByTitle("Title", "nb_id"))
     end)
 
+    it("findNotebookByTitle: returns notebook id when title matches", function()
+      stub(http, "request", function(req)
+        assert.is_not_nil(req.url:find("folders%?token=secret_token_123"))
+        assert.is_not_nil(req.url:find("query=title"))
+        assert.are.equal("GET", req.method)
+        local body = json.encode({
+          has_more = false,
+          items = {
+            { id = "folder_100", title = "KOReader Notes" },
+          },
+        })
+        req.sink(body)
+        return 1, 200, {}
+      end)
+
+      local folder_id = JoplinExporter:findNotebookByTitle("KOReader Notes")
+      assert.are.equal("folder_100", folder_id)
+    end)
+
     it(
       "notebookExist: returns notebook id if found or false if not found",
       function()

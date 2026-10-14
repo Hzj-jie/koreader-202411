@@ -34,7 +34,7 @@ function Png.encodeToFile(filename, mem, w, h, n)
   local err =
     lodepng.lodepng_encode_file(filename, mem, w, h, colortype, bitdepth)
   if err ~= 0 then
-    local err_msg = ffi.string(lodepng.lodepng_error_text(err))
+    local err_msg = lodepng.lodepng_error_text(err)
     return false, err_msg
   else
     return true
@@ -70,7 +70,6 @@ function Png.decodeFromFile(filename, req_n)
     #fdata
   )
   if err ~= 0 then
-    lodepng.lodepng_state_cleanup(state)
     return false, ffi.string(lodepng.lodepng_error_text(err))
   end
 
@@ -119,7 +118,6 @@ function Png.decodeFromFile(filename, req_n)
   elseif req_n == 4 then
     state[0].info_raw.colortype = lodepng.LCT_RGBA
   else
-    lodepng.lodepng_state_cleanup(state)
     return false, "requested an invalid number of color components"
   end
 

@@ -1001,6 +1001,7 @@ describe("UIManager spec", function()
         UIManager:insertZMQ(dummy_zmq)
         UIManager:removeZMQ(dummy_zmq)
 
+
         UIManager:scheduleRefresh("fast", nil, false)
         UIManager:ignoreNextRefreshPromote()
         assert.is_boolean(UIManager:fullRefreshPromoteEnabled())
@@ -1060,7 +1061,8 @@ describe("UIManager spec", function()
 
           MockTime:increase(0.4) -- now t = 1.0 (only 0.4s after the second call)
           UIManager:_checkTasks()
-          -- Only 0.4s has passed since the second call, so the action is rescheduled for 0.6s later.
+          -- Intended: since only 0.4s has elapsed since the second call, it should have rescheduled for 0.6s later.
+          -- Production bug: time.since(previous_call_at) returns microseconds (e.g. 400000) so seconds (1.0) > passed is false!
           assert.are.equal(0, count)
 
           MockTime:increase(0.6)
@@ -1145,7 +1147,8 @@ describe("UIManager spec", function()
           for k, v in UIManager:keyEvents() do
             collected[k] = v
           end
-          -- The child's key events are collected even though FrameContainer has none.
+          -- Production bug: uimanager.lua:1835-1837 returns early when w.key_events is nil,
+          -- failing to recurse into child widgets inside containers without key_events.
           assert.is_not_nil(collected.ChildAction)
         end
       )

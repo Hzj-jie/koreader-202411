@@ -174,10 +174,7 @@ function PageBrowserWidget:init()
   -- Reference page numbers, for first row page display
   self.page_labels = nil
   if self.ui.pagemap and self.ui.pagemap:wantsPageLabels() then
-    local page_labels = self.ui.document:getPageMap()
-    if page_labels and #page_labels > 0 then
-      self.page_labels = page_labels
-    end
+    self.page_labels = self.ui.document:getPageMap()
   end
   -- Location stack
   self.previous_locations = self.ui.link:getPreviousLocationPages()
@@ -482,14 +479,13 @@ function PageBrowserWidget:update()
     end
     if show_at_bottom or show_near_thumbnail then
       local page_text, thumbnail_page_text
-      if self.page_labels and #self.page_labels > 0 then
+      if self.page_labels then
         local page_label
         for idx = cur_page_label_idx, #self.page_labels do
           local item = self.page_labels[idx]
           if item.page >= p then
             if item.page == p then
               page_label = item.label
-              cur_page_label_idx = idx
             end
             break
           end
@@ -497,11 +493,7 @@ function PageBrowserWidget:update()
         end
         if page_label then
           page_text = self.ui.pagemap:cleanPageLabel(page_label)
-        elseif
-          show_near_thumbnail
-          and self.page_labels[cur_page_label_idx]
-          and self.page_labels[cur_page_label_idx].page <= p
-        then
+        elseif show_near_thumbnail then
           -- When reference pages may span multiple screen pages, the above may not get
           -- a page_text for some pages, which is fine for the bottom ribbon: it will
           -- display it for the next slot where a new reference page starts.
@@ -1229,7 +1221,6 @@ function PageBrowserWidget:saveSettings(reset)
     self.nb_toc_spans = nil
     self.nb_rows = nil
     self.nb_cols = nil
-    self.thumbnails_pagenums = nil
   end
   if self.ui.handmade:isHandmadeTocEnabled() then
     self.ui.doc_settings:save(

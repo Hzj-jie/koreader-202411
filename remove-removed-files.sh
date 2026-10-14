@@ -33,8 +33,6 @@ REMOVED_FILES=(
   "plugins/weather.koplugin/settings.lua"
   "plugins/simpleui.koplugin"
   "plugins/kochess.koplugin"
-  "plugins/newsdownloader.koplugin/internaldownloadbackend.lua"
-  "plugins/externalkeyboard.koplugin/find-keyboard.lua"
   "zsync2"
   "spinning_zsync"
 )
