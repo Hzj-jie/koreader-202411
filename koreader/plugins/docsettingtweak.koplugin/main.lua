@@ -77,18 +77,15 @@ function DocSettingTweak:editDirectoryDefaults()
       if content and #content > 0 then
         local parse_error = util.checkLuaSyntax(content)
         if not parse_error then
-          local syntax_okay, result = pcall(loadstring(content))
+          local syntax_okay, syntax_error = pcall(loadstring(content))
           if syntax_okay then
-            if type(result) ~= "table" then
-              return false, gettext("Defaults must return a table")
-            end
             if not util.writeToFile(content, directory_defaults_path) then
               return false, gettext("Missing defaults file")
             end
             DocSettingTweak:loadDefaults()
             return true, gettext("Defaults saved")
           end
-          return false, T(gettext("Defaults invalid: %1"), result)
+          return false, T(gettext("Defaults invalid: %1"), syntax_error)
         end
         return false, T(gettext("Defaults invalid: %1"), parse_error)
       end
@@ -102,16 +99,9 @@ function DocSettingTweak:onDocSettingsLoad(doc_settings, document)
   -- check that the document has not been opened yet & and that we have defaults to customize
   if doc_settings.data.doc_props == nil and directory_defaults.data ~= nil then
     local base = G_named_settings.home_dir()
-    if base:sub(-1) == "/" and #base > 1 then
-      base = base:sub(1, -2)
-    end
     local directory = FFIUtil.dirname(document.file)
     -- check if folder matches our defaults to override
-    while
-      directory == base
-      or (base == "/" and directory:sub(1, 1) == "/")
-      or directory:sub(1, #base + 1) == base .. "/"
-    do
+    while directory:sub(1, #base) == base do
       if directory_defaults:has(directory) then
         local summary = doc_settings.data.summary -- keep status
         doc_settings.data =

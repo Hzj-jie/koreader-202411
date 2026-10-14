@@ -898,6 +898,60 @@ describe("BackgroundRunner widget tests", function()
     end
   )
 
+  it("should raise exception if catch_exception is false", function()
+    table.insert(PluginShare.backgroundJobs, {
+      when = 1,
+      catch_exception = false,
+      executable = function()
+        error("fatal job error")
+      end,
+    })
+    notifyBackgroundJobsUpdated()
+
+    MockTime:increase(2)
+    UIManager:handleInput()
+    assert.has_error(function()
+      MockTime:increase(2)
+      UIManager:handleInput()
+    end)
+  end)
+
+  it(
+    "should preserve catch_exception across repeating function executions",
+    function()
+      local results = {}
+      table.insert(PluginShare.backgroundJobs, {
+        when = 1,
+        repeated = 2,
+        executable = function()
+          error("repeating job error")
+        end,
+        callback = function(j)
+          table.insert(results, { result = j.result, exception = j.exception })
+        end,
+      })
+      notifyBackgroundJobsUpdated()
+
+      -- First execution
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.are.equal(1, #results)
+      assert.are.equal(1, results[1].result)
+      assert.is_not_nil(results[1].exception)
+
+      -- Second execution of the cloned repeating job
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.are.equal(2, #results)
+      assert.are.equal(1, results[2].result)
+      assert.is_not_nil(results[2].exception)
+    end
+  )
+
   it(
     "should use doubled 2-second timeout threshold for idle function executable",
     function()
@@ -995,7 +1049,7 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "should propagate errors in job.repeated function in BackgroundRunner:_shouldRepeat",
+    "should safely handle errors in job.repeated function in BackgroundRunner:_shouldRepeat",
     function()
       local BackgroundRunner = getBackgroundRunner()
       local error_repeat_job = {
@@ -1003,14 +1057,12 @@ describe("BackgroundRunner widget tests", function()
           error("repeated evaluation error")
         end,
       }
-      assert.has_error(function()
-        BackgroundRunner:_shouldRepeat(error_repeat_job)
-      end, "repeated evaluation error")
+      assert.is_false(BackgroundRunner:_shouldRepeat(error_repeat_job))
     end
   )
 
   it(
-    "should propagate callback failure in BackgroundRunner:_finishJob",
+    "should protect callback execution with pcall in BackgroundRunner:_finishJob",
     function()
       local BackgroundRunner = getBackgroundRunner()
       local error_cb_job = {
@@ -1018,20 +1070,60 @@ describe("BackgroundRunner widget tests", function()
           error("callback failure")
         end,
       }
-      assert.has_error(function()
+      assert.has_no.errors(function()
         BackgroundRunner:_finishJob(error_cb_job)
-      end, "callback failure")
+      end)
     end
   )
 
   it(
-    "should repeat 1 time when repeated is 2 in BackgroundRunner:_shouldRepeat",
+    "should handle non-table deserialized output safely in CommandRunner:poll",
     function()
-      local BackgroundRunner = getBackgroundRunner()
-      local job = { repeated = 2 }
-      -- repeated = 2 specifies 2 total executions (repeats 1 time after the initial run).
-      assert.is_true(BackgroundRunner:_shouldRepeat(job))
-      assert.is_false(BackgroundRunner:_shouldRepeat(job))
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local job = { executable = "fork", action = function() end }
+      local entry = {
+        job = job,
+        poll = function()
+          return true
+        end,
+        readAll = function()
+          return "return 42\n"
+        end,
+        close = function() end,
+      }
+      table.insert(CommandRunner.running_jobs, entry)
+      finally(function()
+        CommandRunner.running_jobs = {}
+      end)
+
+      assert.has_no.errors(function()
+        local completed = CommandRunner:poll()
+        assert.is_table(completed)
+        assert.are.equal(222, completed[1].result)
+      end)
+    end
+  )
+
+  it(
+    "should return empty string in CommandRunner:_createEnvironment when environment function returns non-table",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+
+      local number_env_job = {
+        environment = function()
+          return 123
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(number_env_job))
+
+      local string_env_job = {
+        environment = function()
+          return "VAR=1"
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(string_env_job))
     end
   )
 

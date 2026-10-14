@@ -456,6 +456,82 @@ describe("NewsDownloader main plugin module", function()
   )
 
   it(
+    "should pass string or nil filter_element to createEpub when filter_element is omitted from feed config",
+    function()
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      require("libs/libkoreader-lfs").mkdir(tmp_dir)
+
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+        download_dir = tmp_dir .. "/",
+        feed_config_path = tmp_dir .. "/feed_config.lua",
+      })
+      inst.settings =
+        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+
+      local config = {
+        {
+          [1] = "https://example.com/rss",
+          limit = 1,
+          download_full_article = true,
+          include_images = false,
+          enable_filter = false,
+          -- filter_element is omitted (nil)
+        },
+      }
+      inst:saveConfig(config)
+
+      local captured_filter_element = nil
+      local orig_process = inst.processFeedSource
+      local orig_open = inst.openDownloadsFolder
+      local orig_info = require("ui/trapper").info
+      require("ui/trapper").info = function() end
+      inst.openDownloadsFolder = function() end
+
+      inst.processFeedSource = function(
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        _,
+        filter_element
+      )
+        captured_filter_element = filter_element
+      end
+
+      finally(function()
+        inst.processFeedSource = orig_process
+        inst.openDownloadsFolder = orig_open
+        require("ui/trapper").info = orig_info
+      end)
+
+      local mock_menu = {
+        updateItems = function() end,
+        closeMenu = function() end,
+      }
+      inst:loadConfigAndProcessFeeds(mock_menu)
+
+      -- Production bug: line 275 evaluates `feed.filter_element == nil` to boolean `true`,
+      -- passing boolean `true` into processFeedSource / createEpub instead of `""` or `nil`.
+      assert.is_not_boolean(captured_filter_element)
+      assert.is_true(
+        captured_filter_element == nil or captured_filter_element == ""
+      )
+    end
+  )
+
+  it(
     "should correctly set include_images and filter_element hash fields when updating feed with omitted fields",
     function()
       local tmp_dir = os.tmpname()

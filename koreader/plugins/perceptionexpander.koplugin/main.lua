@@ -66,9 +66,9 @@ function PerceptionExpander:createUI(readSettings)
   local line_height = math.floor(screen_height * 0.9)
   local line_top_position = math.floor(screen_height * 0.05)
 
-  local margin = self.margin
-  if Screen:getScreenMode() == "landscape" then
-    margin = margin - self.margin_shift
+  self.last_screen_mode = Screen:getScreenMode()
+  if self.last_screen_mode == "landscape" then
+    self.margin = (self.margin - self.margin_shift)
   end
 
   local line_widget = LineWidget:new({
@@ -81,7 +81,7 @@ function PerceptionExpander:createUI(readSettings)
 
   self.left_line = WidgetContainer:new({
     dimen = Geom:new({
-      x = self.screen_width * margin,
+      x = self.screen_width * self.margin,
       y = line_top_position,
       w = self.line_thickness,
       h = line_height,
@@ -91,7 +91,7 @@ function PerceptionExpander:createUI(readSettings)
 
   self.right_line = WidgetContainer:new({
     dimen = Geom:new({
-      x = self.screen_width - (self.screen_width * margin),
+      x = self.screen_width - (self.screen_width * self.margin),
       y = line_top_position,
       w = self.line_thickness,
       h = line_height,

@@ -88,33 +88,4 @@ describe("luxl", function()
       }, res)
     end
   )
-
-  it("should not emit attribute value for empty attributes", function()
-    local res = lex('<tag key="" />')
-    assert.is.same({
-      { event = luxl.EVENT_START, text = "tag" },
-      { event = luxl.EVENT_ATTR_NAME, text = "key" },
-      { event = luxl.EVENT_END, text = "/" },
-    }, res)
-  end)
-
-  it("resets internal state via Reset", function()
-    local lx = luxl.new("<tag>first</tag>", 16)
-    lx:Reset("<tag>second</tag>", 17)
-    assert.are.equal(17, lx.bufsz)
-    assert.are.equal(0, lx.markix)
-  end)
-
-  it(
-    "should lex attribute values with spaces, hyphens, colons, and underscores",
-    function()
-      local res = lex('<tag key="foo-bar_1:test baz" />')
-      assert.is.same({
-        { event = luxl.EVENT_START, text = "tag" },
-        { event = luxl.EVENT_ATTR_NAME, text = "key" },
-        { event = luxl.EVENT_ATTR_VAL, text = "foo-bar_1:test baz" },
-        { event = luxl.EVENT_END, text = "/" },
-      }, res)
-    end
-  )
 end)

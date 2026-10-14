@@ -21,9 +21,7 @@ local MarkdownExporter = require("plugins/exporter.koplugin/base"):new({
           strikeout = "strikethrough",
           invert = "bold",
         }
-      if settings.highlight_formatting == nil then
-        settings.highlight_formatting = true
-      end
+      settings.highlight_formatting = settings.highlight_formatting or true
       changed = true
     end
     return changed, settings
@@ -58,7 +56,6 @@ function MarkdownExporter:editFormatStyle(drawer_style, label, menu)
     radio_buttons = radio_buttons,
     callback = function(radio)
       self.settings.formatting_options[drawer_style] = radio.provider
-      self:saveSettings()
       menu:updateItems()
     end,
   }))
@@ -115,7 +112,6 @@ function MarkdownExporter:getMenuTable()
         callback = function()
           self.settings.highlight_formatting =
             not self.settings.highlight_formatting
-          self:saveSettings()
         end,
       },
     },

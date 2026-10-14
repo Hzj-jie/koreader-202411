@@ -82,6 +82,16 @@ describe("NewsDownloader dateparser module", function()
       assert.are.equal(ts_rfc_utc, ts_rfc_neg)
     end)
 
+    it("should return nil and error message for unknown format name (fails due to returning error string as 1st value)", function()
+      local res, err = dateparser.parse("2023-05-01", "NONEXISTENT_FORMAT")
+      assert.is_nil(res)
+      assert.is_string(err)
+    end)
+
+    it("should return nil for unparseable date string without explicit format (fails due to line 67 returning false)", function()
+      local res = dateparser.parse("not a valid date")
+      assert.is_nil(res)
+    end)
 
     it("should parse year-only, year-month, and year-day-of-year in W3CDTF (fails due to rest nil crash in W3CDTF)", function()
       local ts_year = dateparser.parse("2023", "W3CDTF")

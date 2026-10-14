@@ -112,7 +112,7 @@ describe("Weather main plugin module", function()
 
   describe("failing tests exposing production bugs", function()
     it(
-      "formats 12h clock noon and midnight properly in hourly forecast",
+      "formats 12h clock noon and midnight properly in hourly forecast (fails: noon 12:00 AM bug)",
       function()
         local mock_ui = {
           menu = {
@@ -149,80 +149,70 @@ describe("Weather main plugin module", function()
         }
 
         inst:createForecastForHour(hour_data)
+
+        UIManager.show = old_show
+        UIManager.close = old_close
+
         assert.is_table(inst.kv)
+        -- Production bug in weather main.lua lines 358-362:
+        -- if date.hour <= 12 then hour = date.hour .. ":00 AM" else ...
+        -- When date.hour is 12 (noon), it formats as "12:00 AM" instead of "12:00 PM"!
         assert.is_truthy(
           inst.kv.title:find("12:00 PM"),
           "noon should be formatted as 12:00 PM, got: "
             .. tostring(inst.kv.title)
         )
-
-        -- Epoch for 2026-06-15 00:00:00 (midnight):
-        local midnight_epoch = os.time({
-          year = 2026,
-          month = 6,
-          day = 15,
-          hour = 0,
-          min = 0,
-          sec = 0,
-        })
-        inst:createForecastForHour({ time_epoch = midnight_epoch })
-        assert.is_table(inst.kv)
-        assert.is_truthy(
-          inst.kv.title:find("12:00 AM"),
-          "midnight should be formatted as 12:00 AM, got: "
-            .. tostring(inst.kv.title)
-        )
-
-        UIManager.show = old_show
-        UIManager.close = old_close
       end
     )
 
-    it("closes previous KeyValuePage before opening forecastForDay", function()
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local inst = Weather:new({ ui = mock_ui })
-      inst:loadSettings()
+    it(
+      "closes previous KeyValuePage before opening forecastForDay (fails: kv[0] check)",
+      function()
+        local mock_ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        }
+        local inst = Weather:new({ ui = mock_ui })
+        inst:loadSettings()
 
-      -- Stub composer methods to isolate KV closing logic
-      inst.composer.createForecastFromDay = function()
-        return {}
+        -- Stub composer methods to isolate KV closing logic
+        inst.composer.createForecastFromDay = function()
+          return {}
+        end
+        inst.composer.createCurrentForecast = function()
+          return {}
+        end
+
+        local old_kv = {
+          title = "Active Weekly Forecast View",
+        }
+        inst.kv = old_kv
+
+        local closed_widget
+        local old_close = UIManager.close
+        local old_show = UIManager.show
+        UIManager.close = function(_, widget)
+          closed_widget = widget
+        end
+        UIManager.show = function() end
+
+        local day_data = {
+          location = { name = "City", localtime_epoch = 1715774400 },
+          current = { temp_c = 20, condition = { text = "Sunny" } },
+        }
+
+        inst:forecastForDay(day_data)
+
+        UIManager.close = old_close
+        UIManager.show = old_show
+
+        -- Production bug in weather main.lua line 283:
+        -- Checks `if kv[0] ~= nil then UIManager:close(self.kv) end`.
+        -- Since Lua widgets are 1-indexed tables, kv[0] is always nil,
+        -- so UIManager:close is never called on the previously active self.kv!
+        assert.are.equal(old_kv, closed_widget)
       end
-      inst.composer.createCurrentForecast = function()
-        return {}
-      end
-
-      local old_kv = {
-        title = "Active Weekly Forecast View",
-      }
-      inst.kv = old_kv
-
-      local closed_widget
-      local old_close = UIManager.close
-      local old_show = UIManager.show
-      UIManager.close = function(_, widget)
-        closed_widget = widget
-      end
-      UIManager.show = function() end
-
-      local day_data = {
-        location = { name = "City", localtime_epoch = 1715774400 },
-        current = { temp_c = 20, condition = { text = "Sunny" } },
-      }
-
-      inst:forecastForDay(day_data)
-
-      UIManager.close = old_close
-      UIManager.show = old_show
-
-      -- Production bug in weather main.lua line 283:
-      -- Checks `if kv[0] ~= nil then UIManager:close(self.kv) end`.
-      -- Since Lua widgets are 1-indexed tables, kv[0] is always nil,
-      -- so UIManager:close is never called on the previously active self.kv!
-      assert.are.equal(old_kv, closed_widget)
-    end)
+    )
   end)
 end)

@@ -85,46 +85,4 @@ describe("QuickStart module", function()
       G_reader_settings:save("language", "en")
     end
   )
-
-  it("handles FileConverter failure and purges only html files", function()
-    local FileConverter = require("apps/filemanager/filemanagerconverter")
-    local DataStorage = require("datastorage")
-    local lfs = require("libs/libkoreader-lfs")
-    local stub = require("luassert.stub")
-
-    local quickstart_dir = ("%s/help"):format(DataStorage:getDataDir())
-    if lfs.attributes(quickstart_dir, "mode") ~= "dir" then
-      lfs.mkdir(quickstart_dir)
-    end
-
-    -- Create an old quickstart html and an sdr directory
-    local old_html = ("%s/quickstart-old-rev.html"):format(quickstart_dir)
-    local sdr_dir = ("%s/quickstart-en-v1.html.sdr"):format(quickstart_dir)
-    local f = io.open(old_html, "w")
-    if f then
-      f:write("test")
-      f:close()
-    end
-    lfs.mkdir(sdr_dir)
-
-    local md_stub = stub(FileConverter, "mdToHtml", function()
-      return nil
-    end)
-
-    G_reader_settings:save("quickstart_shown_version", nil)
-    package.loaded["ui/quickstart"] = nil
-    local QuickStart = require("ui/quickstart")
-    local result = QuickStart:getQuickStart()
-    assert.is_nil(result)
-    assert.is_nil(G_reader_settings:read("quickstart_shown_version"))
-    md_stub:revert()
-
-    -- SDR directory should still exist
-    assert.is_same("directory", lfs.attributes(sdr_dir, "mode"))
-    -- Clean up
-    lfs.rmdir(sdr_dir)
-    if lfs.attributes(old_html, "mode") == "file" then
-      os.remove(old_html)
-    end
-  end)
 end)

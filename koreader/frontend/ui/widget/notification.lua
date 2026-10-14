@@ -143,9 +143,6 @@ function Notification:onShow()
     return "ui", self.frame.dimen
   end)
   if self.timeout then
-    if self._timeout_func then
-      UIManager:unschedule(self._timeout_func)
-    end
     self._timeout_func = function()
       self._timeout_func = nil
       UIManager:close(self)

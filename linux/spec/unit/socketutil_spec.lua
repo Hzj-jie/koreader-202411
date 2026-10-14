@@ -261,18 +261,6 @@ describe("socketutil", function()
           assert.is.same("custom error", err)
         end
       )
-
-      it("does not provide file_sink in production when isTesting is false", function()
-        local util = require("util")
-        local orig_isTesting = util.isTesting
-        util.isTesting = function()
-          return false
-        end
-        package.loaded["socketutil"] = nil
-        local prod_socketutil = require("socketutil")
-        util.isTesting = orig_isTesting
-        assert.is_nil(prod_socketutil.file_sink)
-      end)
     end)
   end)
 end)

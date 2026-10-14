@@ -100,32 +100,28 @@ local function externalLinkEscape(str, t)
 end
 
 local function linkEscape(str, t)
-  local searchIndex = 1
-  while true do
-    local start_pos, end_pos, is_img, text, url =
-      find(str, "(!?)%[(.-)%]%((.-)%)", searchIndex)
-    if not start_pos then
-      if searchIndex <= #str or searchIndex == 1 then
-        externalLinkEscape(sub(str, searchIndex), t)
-      end
-      break
+  local nomatches = true
+  for m1, m2, m3, m4 in gmatch(str, "(.*)%[(.*)%]%((.*)%)(.*)") do
+    if nomatches then
+      externalLinkEscape(match(m1, "^(.-)!?$"), t)
+      nomatches = false
     end
-    if start_pos > searchIndex then
-      externalLinkEscape(sub(str, searchIndex, start_pos - 1), t)
-    end
-    if is_img == "!" then
+    if byte(m1, #m1) == byte("!") then
       t[#t + 1] = {
         type = "img",
         attributes = {
-          src = url,
-          alt = text,
+          src = m3,
+          alt = m2,
         },
         noclose = true,
       }
     else
-      t[#t + 1] = { text, type = "a", attributes = { href = url } }
+      t[#t + 1] = { m2, type = "a", attributes = { href = m3 } }
     end
-    searchIndex = end_pos + 1
+    externalLinkEscape(m4, t)
+  end
+  if nomatches then
+    externalLinkEscape(str, t)
   end
 end
 
@@ -308,18 +304,10 @@ local function readSimple(pop, peek, tree, links)
       [1] = code,
     }
     tree[#tree + 1] = pre
-    while true do
-      local next_line = pop()
-      if not next_line then
-        break
-      end
-      if
-        match(next_line, PATTERN_CODEBLOCK)
-        and getIndentLevel(next_line) == indent
-      then
-        break
-      end
-      code[#code + 1] = next_line
+    while
+      not (match(pop(), PATTERN_CODEBLOCK) and getIndentLevel(peek()) == indent)
+    do
+      code[#code + 1] = peek()
       code[#code + 1] = "\r\n"
     end
     return pop()

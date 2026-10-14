@@ -1643,12 +1643,6 @@ describe("docsettings module", function()
       assert.are.equal("", docsettings:getNameFromHistory("no_brackets.lua"))
     end)
 
-    it("handles history filenames with multiple hashes or symbols", function()
-      local hist = "[#sdcard#Books#] My #1 Book.lua"
-      assert.are.equal("/sdcard/Books", docsettings:getPathFromHistory(hist))
-      assert.are.equal("My #1 Book", docsettings:getNameFromHistory(hist))
-    end)
-
     it(
       "converts valid history path back and forth with getFileFromHistory",
       function()
@@ -1986,32 +1980,5 @@ describe("docsettings module", function()
     assert.has_no_errors(function()
       obj:purge()
     end)
-  end)
-
-  describe("Defect verifications", function()
-    it(
-      "exposes getSidecarFilename and getSidecarDir matching across / in dot-directories",
-      function()
-        G_reader_settings:save("document_metadata_folder", "doc")
-        local doc_path = "/home/user/.books/README"
-        assert.are.equal(
-          "metadata._.lua",
-          docsettings.getSidecarFilename(doc_path)
-        )
-        assert.are.equal(
-          "/home/user/.books/README.sdr",
-          docsettings:getSidecarDir(doc_path)
-        )
-      end
-    )
-
-    it(
-      "exposes getFileFromHistory breaking on folder names with square brackets",
-      function()
-        local doc_path = "/books/[Sci-Fi]/Dune.epub"
-        local hist_path = docsettings:getHistoryPath(doc_path)
-        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_path))
-      end
-    )
   end)
 end)

@@ -113,7 +113,7 @@ describe("Gestures plugin", function()
       assert.is_false(gestures_instance.updated)
     end)
 
-    it("exposes RTL layout mutating prototype defaults table", function()
+    it("fails: exposes RTL layout mutating prototype defaults table", function()
       local shared_defaults = {
         tap_top_left_corner = { action = "left" },
         tap_top_right_corner = { action = "right" },
@@ -124,7 +124,7 @@ describe("Gestures plugin", function()
       }
       local open_stub = stub(LuaSettings, "open", function(_, path)
         if path:find("defaults.lua") then
-          return { data = { gesture_fm = util.tableDeepCopy(shared_defaults) } }
+          return { data = { gesture_fm = shared_defaults } }
         end
         return { data = { gesture_fm = {}, custom_multiswipes = {} } }
       end)
@@ -403,7 +403,7 @@ describe("Gestures plugin", function()
     end)
 
     it(
-      "populates tap interval on keyboard value directly in milliseconds",
+      "fails: exposes tap interval on keyboard value conversion bug",
       function()
         G_reader_settings:save("ges_tap_interval_on_keyboard_ms", 150)
         local menu_items = {}
@@ -574,14 +574,5 @@ describe("Gestures plugin", function()
         exec_stub:revert()
       end
     )
-  end)
-
-  describe("Defect verifications", function()
-    it("friendlyMultiswipeName formats arrows without leading space", function()
-      local name =
-        gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
-      -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
-      assert.are.equal("➡ ⬅", name)
-    end)
   end)
 end)

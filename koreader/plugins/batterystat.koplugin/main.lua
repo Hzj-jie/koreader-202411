@@ -208,16 +208,16 @@ end
 
 function BatteryStat:onCharging()
   if not self.was_charging then
-    self:accumulate()
     self:reset(true, false)
+    self:accumulate()
   end
   self.was_charging = true
 end
 
 function BatteryStat:onNotCharging()
   if self.was_charging then
-    self:accumulate()
     self:reset(false, true)
+    self:accumulate()
   end
   self.was_charging = false
 end
