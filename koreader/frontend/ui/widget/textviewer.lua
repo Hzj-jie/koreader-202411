@@ -280,7 +280,7 @@ function TextViewer:init(reinit)
     },
   }
   local buttons = self.buttons_table or {}
-  if self.add_default_buttons or not self.buttons_table then
+  if (self.add_default_buttons and not reinit) or not self.buttons_table then
     table.insert(buttons, default_buttons)
   end
   self.button_table = ButtonTable:new({

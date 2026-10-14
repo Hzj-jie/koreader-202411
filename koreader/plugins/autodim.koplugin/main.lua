@@ -240,6 +240,8 @@ function AutoDim:_rampTask(fl_diff, delay)
   if Device.screen_saver_mode then
     return
   end
+  -- User actions, likely won't happen, but in case the user action was
+  -- triggered by not dismissing the TrapWidget.
   if self:_shouldNotDim() then
     return
   end

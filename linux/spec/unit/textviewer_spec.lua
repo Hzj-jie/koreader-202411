@@ -2,7 +2,6 @@ local spy = require("luassert.spy")
 
 describe("TextViewer", function()
   local TextViewer
-  local TextBoxWidget
   local UIManager
   local temp_file_small = "spec/unit/test_small.txt"
   local temp_file_large = "spec/unit/test_large.txt"
@@ -10,7 +9,6 @@ describe("TextViewer", function()
   setup(function()
     require("commonrequire")
     TextViewer = require("ui/widget/textviewer")
-    TextBoxWidget = require("ui/widget/textboxwidget")
     UIManager = require("ui/uimanager")
 
     -- Create small file (10 bytes)
@@ -177,5 +175,18 @@ describe("TextViewer", function()
     assert.is_true(res)
     assert.are.equal(test_arg, forwarded_arg)
     assert.are.equal(test_ges, forwarded_ges)
+  end)
+
+  it("does not duplicate default buttons on reinit", function()
+    local custom_buttons = { { { text = "Custom", id = "custom" } } }
+    local tv = TextViewer:new({
+      text = "Sample text",
+      title = "Viewer Test",
+      buttons_table = custom_buttons,
+      add_default_buttons = true,
+    })
+    local row_count = #tv.buttons_table
+    tv:reinit()
+    assert.are.equal(row_count, #tv.buttons_table)
   end)
 end)
