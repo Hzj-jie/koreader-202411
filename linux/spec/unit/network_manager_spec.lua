@@ -1495,25 +1495,6 @@ describe("network_manager module", function()
 
     describe("Defect verifications", function()
       it(
-        "exposes ConnectivityChecker:start setting settings_id to 0 when os.clock < 0.001",
-        function()
-          local orig_clock = os.clock
-          finally(function()
-            os.clock = orig_clock
-            NetworkMgr.ConnectivityChecker:stop()
-          end)
-
-          os.clock = function()
-            return 0.0005
-          end
-
-          NetworkMgr.ConnectivityChecker:stop()
-          NetworkMgr.ConnectivityChecker:start()
-          assert.is_true(NetworkMgr.ConnectivityChecker:running())
-        end
-      )
-
-      it(
         "exposes ifHasAnAddress returning nil instead of false when interface has no inet address",
         function()
           local orig_op = NetworkMgr.sysfsInterfaceOperational

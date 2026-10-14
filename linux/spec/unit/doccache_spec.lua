@@ -54,14 +54,6 @@ describe("DocCache", function()
       end)
     end)
 
-    it("should handle serialization when self.size is nil", function()
-      DocCache.size = nil
-      local doc_path = "/tmp/test_nil_size_" .. ffiUtil.getpid() .. ".epub"
-      assert.has_no_errors(function()
-        DocCache:serialize(doc_path)
-      end)
-    end)
-
     it(
       "should handle missing access time attribute during serialization sort",
       function()

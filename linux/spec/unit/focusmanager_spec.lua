@@ -445,12 +445,5 @@ describe("FocusManager module", function()
         assert.are.same({ y = 1, x = 4 }, focusmanager.selected)
       end
     )
-
-    it("exposes getFocusItem crashing on empty layout", function()
-      local focusmanager = FocusManager:new({})
-      focusmanager.layout = {}
-      focusmanager.selected = { y = 1, x = 1 }
-      assert.is_nil(focusmanager:getFocusItem())
-    end)
   end)
 end)

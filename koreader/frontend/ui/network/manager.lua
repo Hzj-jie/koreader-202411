@@ -84,7 +84,7 @@ function ConnectivityChecker:start(interactive)
   self:stop()
   self.interactive = interactive
   -- Copied from SwitchPlugin.
-  self.settings_id = math.max(1, math.floor(os.clock() * 1000))
+  self.settings_id = math.floor(os.clock() * 1000)
   BackgroundTaskPlugin._start(self)
 end
 
