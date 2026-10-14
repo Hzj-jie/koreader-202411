@@ -578,6 +578,23 @@ describe("InputText widget module", function()
 
   describe("Defect verifications", function()
     it(
+      "delWord(true) deletes delimiter before cursor and walks back word by word",
+      function()
+        local input = require("ui/widget/inputtext"):new({
+          text = "hello world",
+        })
+        input.charpos = 7
+        input:delWord(true)
+        assert.are.equal("helloworld", input:getText())
+        assert.are.equal(6, input.charpos)
+
+        input:delWord(true)
+        assert.are.equal("world", input:getText())
+        assert.are.equal(1, input.charpos)
+      end
+    )
+
+    it(
       "exposes delWord(true) when charpos == 1 setting charpos = 0 and is_text_edited = true",
       function()
         local input = require("ui/widget/inputtext"):new({
