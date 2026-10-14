@@ -219,7 +219,7 @@ describe("Markdown parser module (md.lua)", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes unclosed code block crashing with bad argument to match",
+      "handles unclosed code block without crash",
       function()
         local res, err = MD("```lua\nlocal a = 1\nlocal b = 2")
         assert.is_nil(err)
@@ -228,7 +228,7 @@ describe("Markdown parser module (md.lua)", function()
     )
 
     it(
-      "exposes greedy linkEscape corrupting multiple inline links on one line",
+      "renders multiple inline links on one line without corrupting link targets",
       function()
         local html =
           MD("Check [Link A](https://a.com) and [Link B](https://b.com)")

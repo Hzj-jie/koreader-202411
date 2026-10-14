@@ -40,8 +40,7 @@ describe("ffi/png module", function()
       assert.is_false(ok)
       assert.is_not_nil(err_msg)
 
-      -- In expected behavior, error message must be a Lua string (matching decodeFromFile line 73)
-      -- In production line 37, lodepng_error_text returns raw cdata (const char*) without ffi.string
+      -- Error message must be a Lua string
       assert.are.equal("string", type(err_msg))
     end
   )

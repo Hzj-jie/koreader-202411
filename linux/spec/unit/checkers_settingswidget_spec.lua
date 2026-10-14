@@ -140,7 +140,7 @@ describe("CheckersSettingsWidget widget", function()
     end
   )
 
-  it("passes close_callback to InputDialog for dismiss handling", function()
+  it("does not pass dismiss_callback to InputDialog for dismiss handling", function()
     local captured_args = nil
     local orig_new = InputDialog.new
     InputDialog.new = function(self, args)

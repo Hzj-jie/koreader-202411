@@ -106,8 +106,6 @@ describe("Japanese plugin unit tests", function()
       })
 
       -- The 1-char word "猫" should be checked and selected: range { 0, 1 }.
-      -- In production, the repeat loop immediately advances current_end past pos1
-      -- to pos2 ("猫。"), which hits punctuation and breaks, completely skipping "猫".
       assert.is_not_nil(queried_words)
       local queried_neko = false
       for _, w in ipairs(queried_words) do

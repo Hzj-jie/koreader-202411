@@ -46,8 +46,7 @@ describe("ffi/zstd module", function()
       assert.is_false(ok)
 
       -- When passed invalid bytes, ZSTD_getFrameContentSize returns ZSTD_CONTENTSIZE_ERROR ((uint64_t)-2).
-      -- In expected behavior, this sentinel should be caught before attempting a multi-exabyte allocation.
-      -- In production, lines 38-43 pass -2 into C.calloc and crash on allocation failure.
+      -- This sentinel should be caught before attempting allocation.
       assert.is_nil(
         string.match(
           tostring(err),

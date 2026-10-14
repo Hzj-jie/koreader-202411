@@ -335,7 +335,7 @@ describe("NetworkSetting module", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes saveAndConnectToNetwork closing password dialog on empty WPA password",
+      "does not close password dialog on empty WPA password in saveAndConnectToNetwork",
       function()
         local network_list = {
           {
@@ -368,7 +368,7 @@ describe("NetworkSetting module", function()
     )
 
     it(
-      "exposes onTapClose returning nil instead of boolean false inside popup",
+      "returns boolean false on onTapClose inside popup",
       function()
         local Geom = require("ui/geometry")
         local ns = NetworkSetting:new({ network_list = {} })

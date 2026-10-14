@@ -140,13 +140,6 @@ describe("AutoDim widget tests", function()
   it(
     "_shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
     function()
-      -- Bug: lines 179-181 calculates:
-      -- UIManager:timeSinceLastUserAction() < time.s(self.autodim_starttime_m * 60)
-      -- When autodim_starttime_m is -1 (disabled), time.s(-60) is -60,
-      -- while timeSinceLastUserAction is >= 0.
-      -- Thus, timeSinceLastUserAction < -60 evaluates to false!
-      -- _shouldNotDim() returns false (indicating the device should dim),
-      -- even when the feature is disabled and right after a user action!
       AutoDim.autodim_starttime_m = -1
       UIManager:updateLastUserActionTime()
       assert.is_true(
@@ -159,11 +152,6 @@ describe("AutoDim widget tests", function()
   it(
     "_rampTask restores frontlight and closes trap_widget when _shouldNotDim becomes true",
     function()
-      -- Bug: lines 235-237 in _rampTask:
-      -- if self:_shouldNotDim() then return end
-      -- When user activity occurs during ramping, _rampTask simply returns early,
-      -- leaving the screen dimmed, trap_widget still open on screen, and
-      -- PluginShare.DeviceIdling = true!
       local PluginShare = require("pluginshare")
       Device:getPowerDevice():setIntensity(10)
 

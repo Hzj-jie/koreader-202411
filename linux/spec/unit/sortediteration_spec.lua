@@ -41,8 +41,7 @@ describe("ffi/SortedIteration module", function()
         end
       end
 
-      -- In expected behavior, early exit should not leave hidden internal keys on the caller table
-      -- In production, orderedNext attaches __orderedIndex to t and only clears it at end of loop
+      -- Early exit should not leave hidden internal keys on the caller table
       assert.is_nil(rawget(t, "__orderedIndex"))
     end
   )

@@ -424,8 +424,6 @@ describe("Gestures plugin", function()
         keyboard_item.callback()
         local spin = show_stub.calls[1].vals[2]
         show_stub:revert()
-        -- Production calls time.to_ms(...) on an already millisecond value,
-        -- erroneously dividing 150 ms into 0.15 ms instead of 150 ms.
         assert.are.equal(150, spin.value)
       end
     )
@@ -583,7 +581,6 @@ describe("Gestures plugin", function()
     it("friendlyMultiswipeName formats arrows without leading space", function()
       local name =
         gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
-      -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
       assert.are.equal("➡ ⬅", name)
     end)
   end)

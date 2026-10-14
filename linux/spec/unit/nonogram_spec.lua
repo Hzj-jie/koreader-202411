@@ -215,6 +215,15 @@ describe("Nonogram plugin", function()
         local row, col = widget:getCellFromPoint(x, y)
         assert.are.equal(1, row)
         assert.are.equal(cols, col)
+
+        local rows = board:getRowCount()
+        -- Point on the bottom boundary pixel of the grid
+        local bx = widget.grid_origin_x + math.floor(cell / 2)
+        local by = widget.grid_origin_y + rows * cell
+
+        local brow, bcol = widget:getCellFromPoint(bx, by)
+        assert.are.equal(rows, brow)
+        assert.are.equal(1, bcol)
       end
     )
   end)

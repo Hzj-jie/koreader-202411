@@ -19,9 +19,7 @@ describe("CalculatorUnitsDialog", function()
       assert.are.equal(0.01, CalculatorUnitsDialog.units[1][2])
 
       assert.are.equal("inch", CalculatorUnitsDialog.units[2][1])
-      -- 1 inch = 0.0254 meters.
-      -- In production line 37: units = { { "cm", 0.01 }, { "inch", 254 } }.
-      -- 254 is off by a factor of 10,000x compared to 0.0254.
+      -- 1 inch = 0.0254 meters
       assert.are.equal(0.0254, CalculatorUnitsDialog.units[2][2])
     end
   )

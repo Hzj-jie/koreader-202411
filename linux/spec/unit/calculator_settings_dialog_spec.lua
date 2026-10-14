@@ -48,9 +48,6 @@ describe("CalculatorSettingsDialog", function()
         parent = { settings = {} },
       }
 
-      -- choosePathFile(menu, key, folder_only, new_file, migrate)
-      -- When dir_path already ends with "/", line 376 executes `input = dir_path .. "/"`,
-      -- producing redundant double slash "/tmp//".
       CalculatorSettingsDialog.choosePathFile(
         dlg,
         nil,
