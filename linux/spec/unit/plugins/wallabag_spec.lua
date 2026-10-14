@@ -986,14 +986,14 @@ describe("Wallabag plugin unit tests", function()
     it(
       "persists, loads, and respects history removal settings across init, saveSettings, and onCloseDocument",
       function()
-        -- 1. saveSettings drops remove_abandoned_from_history
+        -- 1. saveSettings persists remove_abandoned_from_history
         wallabag_instance.remove_abandoned_from_history = true
         wallabag_instance:saveSettings()
         assert.is_true(
           wallabag_instance.wb_settings.data.wallabag.remove_abandoned_from_history
         )
 
-        -- 2. init fails to load remove_read_from_history
+        -- 2. init loads remove_read_from_history
         local custom_settings = {
           data = {
             wallabag = {
@@ -1016,7 +1016,7 @@ describe("Wallabag plugin unit tests", function()
         open_stub:revert()
         assert.is_true(inst.remove_read_from_history)
 
-        -- 3. onCloseDocument ignores remove_abandoned_from_history in outer guard
+        -- 3. onCloseDocument checks remove_abandoned_from_history
         wallabag_instance.remove_finished_from_history = false
         wallabag_instance.remove_read_from_history = false
         wallabag_instance.remove_abandoned_from_history = true

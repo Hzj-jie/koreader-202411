@@ -950,7 +950,7 @@ end
 function InputText:getLineNums()
   local curr_line_num, last_line_num = 1, 1
   for i = 1, #self.charlist do
-    if self.charlist[i] == "\n" then
+    if self.text_widget.charlist[i] == "\n" then
       if i < self.charpos then
         curr_line_num = curr_line_num + 1
       end
@@ -1072,11 +1072,9 @@ function InputText:delWord(left_to_cursor)
   if self.readonly or not self:isTextEditable(true) then
     return
   end
-  if left_to_cursor and self.charpos <= 1 then
-    return
-  end
   local start_pos, end_pos = self:getStringPos(true, left_to_cursor)
-  if start_pos > end_pos then
+  start_pos = math.min(start_pos, end_pos)
+  if start_pos < 1 then
     return
   end
   for i = end_pos, start_pos, -1 do
@@ -1090,8 +1088,6 @@ function InputText:delWord(left_to_cursor)
     else
       self.charpos = start_pos
     end
-  else
-    self.charpos = 1
   end
   self.is_text_edited = true
   self:initTextBox()

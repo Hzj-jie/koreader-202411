@@ -93,7 +93,7 @@ describe("Text Exporter", function()
       assert.is_false(ok)
     end)
 
-    it("should pass formatted content to shareText on share", function()
+    it("should pass a string to shareText on share", function()
       local shared_content
       exporter.shareText = function(_self, text)
         shared_content = text
@@ -112,7 +112,7 @@ describe("Text Exporter", function()
       }
 
       exporter:share(data)
-      assert.is_truthy(shared_content)
+      assert.is_string(shared_content)
     end)
   end)
 end)

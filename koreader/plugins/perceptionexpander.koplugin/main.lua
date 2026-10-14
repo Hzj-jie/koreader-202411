@@ -51,6 +51,13 @@ function PerceptionExpander:readSettingsFile()
     LuaSettings:open(DataStorage:getSettingsDir() .. "/perception_expander.lua")
 end
 
+function PerceptionExpander:getDisplayMargin()
+  if Screen:getScreenMode() == "landscape" then
+    return self.margin - self.margin_shift
+  end
+  return self.margin
+end
+
 function PerceptionExpander:createUI(readSettings)
   if readSettings then
     self.line_thickness = tonumber(self.settings:read("line_thick"))
@@ -66,10 +73,8 @@ function PerceptionExpander:createUI(readSettings)
   local line_height = math.floor(screen_height * 0.9)
   local line_top_position = math.floor(screen_height * 0.05)
 
-  local margin = self.margin
-  if Screen:getScreenMode() == "landscape" then
-    margin = margin - self.margin_shift
-  end
+  self.last_screen_mode = Screen:getScreenMode()
+  local margin = self:getDisplayMargin()
 
   local line_widget = LineWidget:new({
     background = Blitbuffer.gray(self.line_color_intensity),
@@ -232,9 +237,10 @@ function PerceptionExpander:onPageUpdate(_pageno)
   then
     self.page_counter = 0
     self.margin = self.margin + self.margin_shift
-    self.left_line.dimen.x = self.screen_width * self.margin
+    local display_margin = self:getDisplayMargin()
+    self.left_line.dimen.x = self.screen_width * display_margin
     self.right_line.dimen.x = self.screen_width
-      - (self.screen_width * self.margin)
+      - (self.screen_width * display_margin)
   else
     self.page_counter = self.page_counter + 1
   end

@@ -110,7 +110,7 @@ describe("Weather main plugin module", function()
     )
   end)
 
-  describe("failing tests exposing production bugs", function()
+  describe("edge cases and display updates", function()
     it(
       "formats 12h clock noon and midnight properly in hourly forecast",
       function()
@@ -218,10 +218,6 @@ describe("Weather main plugin module", function()
       UIManager.close = old_close
       UIManager.show = old_show
 
-      -- Production bug in weather main.lua line 283:
-      -- Checks `if kv[0] ~= nil then UIManager:close(self.kv) end`.
-      -- Since Lua widgets are 1-indexed tables, kv[0] is always nil,
-      -- so UIManager:close is never called on the previously active self.kv!
       assert.are.equal(old_kv, closed_widget)
     end)
   end)

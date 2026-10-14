@@ -37,8 +37,6 @@ describe("ui/data/dictionaries module", function()
       assert.are.equal("eng", esperanto_dict.lang_out)
 
       -- Esperanto's ISO 639-3 code is "epo".
-      -- In production line 2872, lang_in is set to "eto" (Eton), miscategorizing
-      -- the dictionary under an unrelated language family.
       assert.are.equal("epo", esperanto_dict.lang_in)
     end
   )

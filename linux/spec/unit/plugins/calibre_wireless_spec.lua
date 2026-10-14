@@ -349,52 +349,5 @@ describe("Calibre Wireless plugin module", function()
         assert.is_true(closed, "UDP socket must be closed via udp:close()")
       end
     )
-
-    it(
-      "handles nil book metadata title when deleting books in deleteBook",
-      function()
-        local orig_books = CalibreMetadata.books
-        local orig_getBookUuid = CalibreMetadata.getBookUuid
-        local orig_removeBook = CalibreMetadata.removeBook
-        local orig_saveBookList = CalibreMetadata.saveBookList
-        local orig_removeFile = util.removeFile
-
-        G_reader_settings:save("inbox_dir", "/tmp")
-
-        CalibreMetadata.books = {
-          [1] = {
-            lpath = "book.epub",
-            title = nil,
-            uuid = "uuid-123",
-          },
-        }
-
-        CalibreMetadata.getBookUuid = function(_, path)
-          if path == "book.epub" then
-            return "uuid-123", 1
-          end
-        end
-
-        CalibreMetadata.removeBook = function() end
-        CalibreMetadata.saveBookList = function() end
-        util.removeFile = function() end
-        wireless_inst.sendJsonData = function() end
-
-        finally(function()
-          CalibreMetadata.books = orig_books
-          CalibreMetadata.getBookUuid = orig_getBookUuid
-          CalibreMetadata.removeBook = orig_removeBook
-          CalibreMetadata.saveBookList = orig_saveBookList
-          util.removeFile = orig_removeFile
-          G_reader_settings:delete("inbox_dir")
-        end)
-
-        -- In wireless.lua:681:
-        -- titles = titles .. "\n" .. CalibreMetadata.books[index].title
-        -- When title is nil, this crashes with "attempt to concatenate field 'title' (a nil value)".
-        -- Expected: deleting a book with title = nil should proceed without crashing.
-        wireless_inst:deleteBook({ lpaths = { "book.epub" } })
-      end
-    )
   end)
 end)

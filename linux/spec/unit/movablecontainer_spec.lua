@@ -516,7 +516,7 @@ describe("MovableContainer widget", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes onMovableHold testing unmoved initial dimen at moved position",
+      "handles onMovableHold testing moved dimen at moved position",
       function()
         local inner_widget = Widget:new({
           dimen = Geom:new({ x = 100, y = 100, w = 100, h = 100 }),
@@ -533,7 +533,7 @@ describe("MovableContainer widget", function()
     )
 
     it(
-      "exposes onMovableHold returning true inside vacated initial area",
+      "returns false from onMovableHold outside moved area in vacated initial area",
       function()
         local inner_widget = Widget:new({
           dimen = Geom:new({ x = 100, y = 100, w = 100, h = 100 }),

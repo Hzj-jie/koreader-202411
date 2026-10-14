@@ -58,6 +58,10 @@ package.loaded["device/pocketbook/powerd"] = nil
 local PocketBookPowerD = require("device/pocketbook/powerd")
 
 describe("PocketBookPowerD", function()
+  teardown(function()
+    ffi.load = orig_load
+  end)
+
   local mock_device
   local powerd
   local before_suspend_called = false

@@ -576,7 +576,7 @@ function FocusManager:_verticalStep(dy)
 end
 
 function FocusManager:getFocusItem()
-  if not self.layout or not self.layout[self.selected.y] then
+  if not self.layout then
     return nil
   end
   return self.layout[self.selected.y][self.selected.x]

@@ -54,10 +54,7 @@ function PicDocument:getDocumentProps()
 end
 
 function PicDocument:getCoverPageImage()
-  local ok, first_page = pcall(self._document.openPage, self._document, 1)
-  if not ok or not first_page then
-    return nil
-  end
+  local first_page = self._document:openPage(1)
   local image
   if first_page.image_bb then
     image = first_page.image_bb:copy()

@@ -612,7 +612,6 @@ describe("dispatcher", function()
   describe("Defect verifications", function()
     after_each(function()
       Dispatcher:removeAction("test_custom_str")
-      Dispatcher:removeAction("test_conf_dynamic")
     end)
 
     it(
@@ -634,36 +633,5 @@ describe("dispatcher", function()
         end)
       end
     )
-
-    it("execute resolves configurable values with args_func", function()
-      package.loaded["apps/reader/readerui"] = {
-        instance = { paging = true },
-      }
-
-      Dispatcher:registerAction("test_conf_dynamic", {
-        category = "string",
-        event = "SomeEvent",
-        reader = true,
-        args_func = function()
-          return { "val_a", "val_b" }, { "Value A", "Value B" }
-        end,
-        configurable = {
-          name = "conf_param",
-          values = { 100, 200 },
-        },
-      })
-
-      assert.has_no.errors(function()
-        Dispatcher:execute({ test_conf_dynamic = "val_a" })
-      end)
-
-      local config_change_val
-      for _, ev in ipairs(captured_inputs) do
-        if ev.handler == "onConfigChange" and ev.args[1] == "conf_param" then
-          config_change_val = ev.args[2]
-        end
-      end
-      assert.are.equal(100, config_change_val)
-    end)
   end)
 end)

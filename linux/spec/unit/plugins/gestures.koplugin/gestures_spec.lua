@@ -1,6 +1,6 @@
 describe("Gestures plugin", function()
   local GesturesClass, DataStorage, Dispatcher, UIManager, LuaSettings, util, Device, Screen, GestureDetector, InputContainer, Event, BD
-  local mock_ui, gestures_instance, test_gestures_file
+  local mock_ui, gestures_instance, test_gestures_file, orig_rtl
 
   setup(function()
     require("commonrequire")
@@ -19,6 +19,7 @@ describe("Gestures plugin", function()
   end)
 
   before_each(function()
+    orig_rtl = G_reader_settings:read("gesture_fmui_lang_direction_rtl")
     test_gestures_file = DataStorage:getSettingsDir()
       .. "/test_gestures_"
       .. os.time()
@@ -50,6 +51,12 @@ describe("Gestures plugin", function()
   after_each(function()
     local FileManager = require("apps/filemanager/filemanager")
     FileManager.instance = nil
+
+    if orig_rtl ~= nil then
+      G_reader_settings:save("gesture_fmui_lang_direction_rtl", orig_rtl)
+    else
+      G_reader_settings:delete("gesture_fmui_lang_direction_rtl")
+    end
 
     if test_gestures_file then
       os.remove(test_gestures_file)
@@ -113,7 +120,7 @@ describe("Gestures plugin", function()
       assert.is_false(gestures_instance.updated)
     end)
 
-    it("exposes RTL layout mutating prototype defaults table", function()
+    it("handles RTL layout without mutating caller shared table", function()
       local shared_defaults = {
         tap_top_left_corner = { action = "left" },
         tap_top_right_corner = { action = "right" },
@@ -138,8 +145,6 @@ describe("Gestures plugin", function()
       bd_stub:revert()
       open_stub:revert()
 
-      -- Gestures:init swaps keys directly in self.defaults without copying,
-      -- mutating the shared defaults prototype table for subsequent instances.
       assert.are.equal("left", shared_defaults.tap_top_left_corner.action)
       if rtl_gestures and rtl_gestures.onClose then
         rtl_gestures:onClose()
@@ -421,8 +426,6 @@ describe("Gestures plugin", function()
         keyboard_item.callback()
         local spin = show_stub.calls[1].vals[2]
         show_stub:revert()
-        -- Production calls time.to_ms(...) on an already millisecond value,
-        -- erroneously dividing 150 ms into 0.15 ms instead of 150 ms.
         assert.are.equal(150, spin.value)
       end
     )
@@ -580,7 +583,6 @@ describe("Gestures plugin", function()
     it("friendlyMultiswipeName formats arrows without leading space", function()
       local name =
         gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
-      -- Expected: "➡ ⬅", but actual has a leading space: " ➡ ⬅"
       assert.are.equal("➡ ⬅", name)
     end)
   end)

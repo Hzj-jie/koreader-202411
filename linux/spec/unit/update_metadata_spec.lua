@@ -9,6 +9,7 @@ describe("update-metadata tool", function()
   it(
     "passes non-nil language code to gettext.changeLang in genAppstream",
     function()
+      local orig_package_path = package.path
       local nil_lang_calls = 0
       local orig_change_lang = gettext.changeLang
       gettext.changeLang = function(lang)
@@ -49,6 +50,7 @@ describe("update-metadata tool", function()
       print = function() end
 
       finally(function()
+        package.path = orig_package_path
         gettext.changeLang = orig_change_lang
         io.popen = orig_popen
         io.open = orig_open
@@ -66,6 +68,7 @@ describe("update-metadata tool", function()
   it(
     "does not leak metadata_dir and metadata_file into global scope",
     function()
+      local orig_package_path = package.path
       local orig_popen = io.popen
       io.popen = function()
         return {
@@ -101,6 +104,7 @@ describe("update-metadata tool", function()
       _G.metadata_file = nil
 
       finally(function()
+        package.path = orig_package_path
         io.popen = orig_popen
         io.open = orig_open
         os.execute = orig_execute

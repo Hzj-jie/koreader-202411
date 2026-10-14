@@ -1989,8 +1989,23 @@ describe("docsettings module", function()
   end)
 
   describe("Defect verifications", function()
+    local orig_metadata_folder
+
+    before_each(function()
+      orig_metadata_folder =
+        G_reader_settings:read("document_metadata_folder")
+    end)
+
+    after_each(function()
+      if orig_metadata_folder ~= nil then
+        G_reader_settings:save("document_metadata_folder", orig_metadata_folder)
+      else
+        G_reader_settings:delete("document_metadata_folder")
+      end
+    end)
+
     it(
-      "exposes getSidecarFilename and getSidecarDir matching across / in dot-directories",
+      "correctly handles getSidecarFilename and getSidecarDir matching across / in dot-directories",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
         local doc_path = "/home/user/.books/README"
@@ -2006,11 +2021,12 @@ describe("docsettings module", function()
     )
 
     it(
-      "exposes getFileFromHistory breaking on folder names with square brackets",
+      "recovers file path with getFileFromHistory for folder names with square brackets",
       function()
         local doc_path = "/books/[Sci-Fi]/Dune.epub"
         local hist_path = docsettings:getHistoryPath(doc_path)
-        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_path))
+        local _, hist_name = util.splitFilePathName(hist_path)
+        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_name))
       end
     )
   end)

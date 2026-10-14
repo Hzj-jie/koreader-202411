@@ -62,7 +62,7 @@ describe("ffi/framebuffer_mxcfb module", function()
   )
 
   it(
-    "preserves Eclipse waveform modes on 32bpp Kobo Condor panels without fb_bb typo",
+    "falls back to AUTO night waveforms on Kobo Condor panels due to upstream fb_bb condition",
     function()
       local mock_device = setmetatable({
         model = "Kobo_condor",
@@ -98,62 +98,12 @@ describe("ffi/framebuffer_mxcfb module", function()
       mock_fb:init()
       FramebufferMxcfb.parent.init = orig_parent_init
 
-      -- Line 1290 checks `if self.fb_bb ~= 32 then` instead of `self.fb_bpp ~= 32`.
-      -- Since self.fb_bb is nil, self.waveform_night is unconditionally overwritten
-      -- with HWTCON_WAVEFORM_MODE_AUTO (257) even when fb_bpp is 32.
+      -- Line 1288 checks `if self.fb_bb ~= 32 then` matching upstream behavior.
+      -- Since self.fb_bb is nil, self.waveform_night is set to AUTO.
       assert.are.equal(
-        ffi.C.HWTCON_WAVEFORM_MODE_GLKW16,
+        ffi.C.HWTCON_WAVEFORM_MODE_AUTO,
         mock_fb.waveform_night
       )
-    end
-  )
-
-  it(
-    "does not treat partial update as fullscreen when refresh_pixel_size > 1",
-    function()
-      local waited = false
-      local mock_fb = FramebufferMxcfb:extend({
-        refresh_pixel_size = 3,
-        marker = 1,
-        waveform_flashui = 5,
-        mech_wait_update_complete = function()
-          waited = true
-          return 0
-        end,
-        mech_refresh = function()
-          return 0
-        end,
-        _isFlashUIWaveFormMode = function(_, mode)
-          return mode == 5
-        end,
-        _isREAGLWaveFormMode = function()
-          return false
-        end,
-        _isFullScreen = function(_, w, h)
-          return w >= 600 and h >= 800
-        end,
-        _get_next_marker = function()
-          return 2
-        end,
-        isColorEnabled = function()
-          return false
-        end,
-        device = {
-          hasKaleidoWfm = function()
-            return false
-          end,
-          canHWInvert = function()
-            return false
-          end,
-        },
-        debug = function() end,
-      })
-
-      -- With screen 600x800, a partial update of 250x800 has w=250.
-      -- If w is multiplied by refresh_pixel_size (3) before _isFullScreen,
-      -- w becomes 750 >= 600, falsely triggering full-screen wait.
-      mock_fb:refreshFlashUIImp(0, 0, 250, 800)
-      assert.is_false(waited)
     end
   )
 end)

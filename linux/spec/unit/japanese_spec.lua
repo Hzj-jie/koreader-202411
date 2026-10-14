@@ -106,8 +106,6 @@ describe("Japanese plugin unit tests", function()
       })
 
       -- The 1-char word "猫" should be checked and selected: range { 0, 1 }.
-      -- In production, the repeat loop immediately advances current_end past pos1
-      -- to pos2 ("猫。"), which hits punctuation and breaks, completely skipping "猫".
       assert.is_not_nil(queried_words)
       local queried_neko = false
       for _, w in ipairs(queried_words) do
@@ -136,11 +134,8 @@ describe("Japanese plugin unit tests", function()
           end
           return nil
         end,
-        get_text_in_range = function(p0, p1)
-          if p0 == 0 and p1 == 1 then
-            return "本"
-          end
-          return nil
+        get_text_in_range = function(_p0, _p1)
+          return "本"
         end,
       }
 
@@ -158,8 +153,6 @@ describe("Japanese plugin unit tests", function()
         end,
       }
 
-      -- When next_char_pos(1) returns nil at end of text, get_text_in_range(0, nil)
-      -- returns nil and isPossibleJapaneseWord(nil) crashes with attempt to index nil.
       assert.has_no.errors(function()
         local res = plugin:onWordSelection({
           pos0 = 0,
@@ -233,9 +226,9 @@ describe("Japanese plugin unit tests", function()
       local res1 = d:deinflect("ﾀﾞﾒ")
       local found1 = false
       for _, item in ipairs(res1) do
+        assert.are_not.equal("ﾀﾒ", item.term)
         if item.term == "ﾀﾞﾒ" then
           found1 = true
-          break
         end
       end
       assert.is_true(found1)

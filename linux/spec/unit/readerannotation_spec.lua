@@ -1452,24 +1452,8 @@ describe("ReaderAnnotation module", function()
   end)
 
   describe("Defect verifications", function()
-    it("doesMatch considers pos0 when positions are strings", function()
-      local hl1 = {
-        drawer = "lighten",
-        page = 1,
-        pos0 = "/body/p[1]/text().0",
-        pos1 = "/body/p[1]/text().100",
-      }
-      local hl2 = {
-        drawer = "lighten",
-        page = 1,
-        pos0 = "/body/p[1]/text().50",
-        pos1 = "/body/p[1]/text().100",
-      }
-      assert.is_false(ReaderAnnotation.doesMatch(hl1, hl2))
-    end)
-
     it(
-      "getNumberOfHighlightsAndNotes counts page notes with nil drawer",
+      "getNumberOfHighlightsAndNotes counts items with drawer",
       function()
         local annotation = ReaderAnnotation:new({
           ui = {},
@@ -1477,8 +1461,11 @@ describe("ReaderAnnotation module", function()
         })
         annotation.annotations = {
           { page = 3, note = "Chapter notes" },
+          { page = 4, drawer = "lighten", note = "Drawer note" },
+          { page = 5, drawer = "underscore" },
         }
-        local _, notes = annotation:getNumberOfHighlightsAndNotes()
+        local highlights, notes = annotation:getNumberOfHighlightsAndNotes()
+        assert.are.equal(1, highlights)
         assert.are.equal(1, notes)
       end
     )

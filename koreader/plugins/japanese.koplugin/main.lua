@@ -152,7 +152,7 @@ function Japanese:onWordSelection(args)
   local num_expansions = 0
   while current_end do
     current_text = callbacks.get_text_in_range(pos0, current_end)
-    if not current_text or not isPossibleJapaneseWord(current_text) then
+    if not isPossibleJapaneseWord(current_text) then
       logger.dbg(
         "japanese.koplugin: stopping expansion at",
         current_text,

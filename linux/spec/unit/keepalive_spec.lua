@@ -250,7 +250,7 @@ describe("KeepAlive plugin tests", function()
   end)
 
   it(
-    "dismissing ConfirmBox via tap-outside leaves pause_auto_suspend enabled permanently",
+    "restores pause_auto_suspend when ConfirmBox is cancelled",
     function()
       Device.isKobo.returns(true)
       PluginShare.pause_auto_suspend = false

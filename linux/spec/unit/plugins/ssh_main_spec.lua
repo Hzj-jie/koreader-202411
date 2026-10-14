@@ -208,8 +208,26 @@ describe("SSH plugin main module", function()
       assert.is_true(msg.text:find("Failed to start SSH server") ~= nil)
     end)
 
-    it("should configure devpts for Kobo", function()
+    it("should configure iptables for Kindle and devpts for Kobo", function()
       local instance = createInstance()
+
+      -- Kindle mode
+      Device.isKindle = function()
+        return true
+      end
+      instance:start(true)
+
+      local has_iptables_input, has_iptables_output = false, false
+      for _, cmd in ipairs(executed_cmds) do
+        if cmd:find("iptables -A INPUT", 1, true) then
+          has_iptables_input = true
+        end
+        if cmd:find("iptables -A OUTPUT", 1, true) then
+          has_iptables_output = true
+        end
+      end
+      assert.is_true(has_iptables_input)
+      assert.is_true(has_iptables_output)
 
       -- Kobo mode
       Device.isKindle = function()
@@ -264,6 +282,10 @@ describe("SSH plugin main module", function()
       local instance = createInstance()
       is_pid_existing = true
 
+      Device.isKindle = function()
+        return true
+      end
+
       instance:stop()
 
       -- Kills pid and shows stopped message
@@ -285,6 +307,16 @@ describe("SSH plugin main module", function()
       assert.is_true(
         shown_widgets[1].text:find("SSH server stopped", 1, true) ~= nil
       )
+
+      -- Kindle iptables teardown
+      local has_iptables_del = false
+      for _, cmd in ipairs(executed_cmds) do
+        if cmd:find("iptables -D INPUT", 1, true) then
+          has_iptables_del = true
+          break
+        end
+      end
+      assert.is_true(has_iptables_del)
     end)
   end)
 

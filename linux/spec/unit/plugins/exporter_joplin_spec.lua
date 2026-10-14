@@ -171,8 +171,7 @@ describe("Exporter Joplin target module", function()
       assert.are.equal("OK", ok_btn.text)
       ok_btn.callback()
 
-      -- Due to `port < 65355` in joplin.lua line 268:
-      -- Port 65500 is valid (<= 65535) but is rejected by `< 65355`.
+      -- Valid port (<= 65535) is accepted
       assert.are.equal(65500, exp.settings.port)
     end)
   end)

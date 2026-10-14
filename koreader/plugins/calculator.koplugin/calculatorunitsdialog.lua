@@ -34,7 +34,6 @@ local CalculatorUnitsDialog = InputContainer:new({
   text_face = Font:getFace("smallinfofont"),
   button_padding = Size.padding.default,
   border_size = Size.border.window,
-  units = { { "cm", 0.01 }, { "inch", 0.0254 } },
 })
 
 function CalculatorUnitsDialog:init()
@@ -56,18 +55,15 @@ function CalculatorUnitsDialog:init()
     }),
   })
 
-  local function create_radio_buttons()
-    local rbs = {}
-    for _, v in pairs(self.units) do
-      table.insert(rbs, {
-        {
-          text = v[1],
-          checked = v[3] ~= nil,
-          provider = v[2],
-        },
-      })
-    end
-    return rbs
+  local radio_buttons_units = {}
+  for _, v in pairs(self.units) do
+    table.insert(radio_buttons_units, {
+      {
+        text = v[1],
+        checked = v[3] ~= nil,
+        provider = v[2],
+      },
+    })
   end
 
   local buttons = {
@@ -130,7 +126,7 @@ function CalculatorUnitsDialog:init()
   }
 
   self.radio_button_table_units_from = RadioButtonTable:new({
-    radio_buttons = create_radio_buttons(),
+    radio_buttons = radio_buttons_units,
     width = math.floor(self.width * 0.4),
     focused = true,
     scroll = false,
@@ -138,7 +134,7 @@ function CalculatorUnitsDialog:init()
     face = self.face,
   })
   self.radio_button_table_units_too = RadioButtonTable:new({
-    radio_buttons = create_radio_buttons(),
+    radio_buttons = radio_buttons_units,
     width = math.floor(self.width * 0.4),
     focused = true,
     scroll = false,

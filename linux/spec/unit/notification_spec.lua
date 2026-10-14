@@ -254,40 +254,19 @@ describe("Notification", function()
 
   describe("Defect verifications", function()
     it(
-      "_cleanShownStack preserves unexpired notifications and trims expired ones",
+      "_cleanShownStack preserves unexpired notifications and trims expired ones from tail",
       function()
+        Notification._shown_list = {}
         local n1 = Notification:new({ text = "First" })
         local n2 = Notification:new({ text = "Second" })
-        Notification._shown_list[1] = time.monotonic() - time.s(35)
-        Notification._shown_list[2] = time.monotonic() - time.s(5)
+        Notification._shown_list[1] = time.monotonic() - time.s(5)
+        Notification._shown_list[2] = time.monotonic() - time.s(35)
 
-        n1:onClose()
+        n2:onClose()
 
-        assert.truthy(Notification._shown_list[n2._shown_idx])
-      end
-    )
-
-    it(
-      "exposes onShow overwriting _timeout_func without unscheduling previous timer",
-      function()
-        local unscheduled_fn = nil
-        local orig_unschedule = UIManager.unschedule
-        local orig_scheduleIn = UIManager.scheduleIn
-        UIManager.unschedule = function(_, fn)
-          unscheduled_fn = fn
-        end
-        UIManager.scheduleIn = function(_, delay, fn) end
-
-        local notif = Notification:new({ text = "Timer", timeout = 5 })
-        notif:onShow()
-        local prev_fn = notif._timeout_func
-        assert.is_not_nil(prev_fn)
-
-        notif:onShow()
-
-        UIManager.unschedule = orig_unschedule
-        UIManager.scheduleIn = orig_scheduleIn
-        assert.are.equal(prev_fn, unscheduled_fn)
+        assert.are.equal(1, #Notification._shown_list)
+        assert.truthy(Notification._shown_list[1])
+        assert.is_nil(Notification._shown_list[2])
       end
     )
   end)

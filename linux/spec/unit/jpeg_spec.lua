@@ -20,7 +20,6 @@ describe("ffi/jpeg module", function()
   it("converts RGB pixels to accurate grayscale values", function()
     -- 1 pixel RGB: (100, 150, 200)
     -- gray = round(0.299 * 100 + 0.587 * 150 + 0.114 * 200) = round(140.75) = 141
-    -- Allocate 6 bytes so the out-of-bounds read doesn't segfault
     local buf = ffi.new("uint8_t[6]")
     buf[0] = 100
     buf[1] = 150
@@ -50,10 +49,6 @@ describe("ffi/jpeg module", function()
 
       assert.are.equal(100, buf[0])
       assert.are.equal(200, buf[1])
-
-      -- In expected behavior, a row of width 2 (stride 6) only outputs 2 gray pixels (buf[0], buf[1]).
-      -- In production line 150, `for _ = 0, tonumber(stride), 3 do` iterates 3 times (0, 3, 6),
-      -- reading out-of-bounds sentinel bytes 6..8 and writing converted sentinel (50) to buf[2].
       assert.is_not_equal(50, buf[2])
     end
   )
@@ -75,6 +70,22 @@ describe("ffi/jpeg module", function()
         end,
       }, { __index = orig_turbojpeg })
 
+      local BlitBuffer = require("ffi/blitbuffer")
+      local orig_bb_new = BlitBuffer.new
+      local bb_freed = false
+      BlitBuffer.new = function(...)
+        local real_bb = orig_bb_new(...)
+        return setmetatable({
+          free = function(self)
+            bb_freed = true
+            return real_bb:free()
+          end,
+        }, {
+          __index = real_bb,
+          __newindex = real_bb,
+        })
+      end
+
       debug.setupvalue(Jpeg.openDocumentFromMem, 1, mock_turbojpeg)
 
       local ok, err = pcall(function()
@@ -82,9 +93,11 @@ describe("ffi/jpeg module", function()
       end)
 
       debug.setupvalue(Jpeg.openDocumentFromMem, 1, orig_turbojpeg)
+      BlitBuffer.new = orig_bb_new
 
       assert.is_false(ok)
       assert.is_not_nil(string.match(tostring(err), "decoding JPEG file"))
+      assert.is_true(bb_freed)
     end
   )
 end)

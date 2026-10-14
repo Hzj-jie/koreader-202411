@@ -75,24 +75,22 @@ function hb_face_t:getCoverage()
   for script_id, tab in ipairs(coverage.scripts) do
     local hit, total = intersect(tab)
     -- for scripts, we do only rough majority hit
-    if total > 0 and 2 * hit > total then
+    if 2 * hit > total then
       scripts[script_id] = hit / total
     end
   end
 
   for lang_id, tab in pairs(coverage.langs) do
+    local found
     local hit, total = intersect(tab)
-    if total > 0 then
-      local found
-      -- for languages, consider predefined threshold by glyph count
-      for i = 1, #coverage_thresholds, 2 do
-        if total > coverage_thresholds[i] then
-          found = i + 1
-        end
+    -- for languages, consider predefined threshold by glyph count
+    for i = 1, #coverage_thresholds, 2 do
+      if total > coverage_thresholds[i] then
+        found = i + 1
       end
-      if found and hit * 100 / total >= coverage_thresholds[found] then
-        langs[lang_id] = hit / total
-      end
+    end
+    if hit * 100 / total >= coverage_thresholds[found] then
+      langs[lang_id] = hit / total
     end
   end
 

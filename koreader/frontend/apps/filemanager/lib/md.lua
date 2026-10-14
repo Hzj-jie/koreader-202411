@@ -103,7 +103,7 @@ local function linkEscape(str, t)
   local searchIndex = 1
   while true do
     local start_pos, end_pos, is_img, text, url =
-      find(str, "(!?)%[(.-)%]%((.-)%)", searchIndex)
+      find(str, "(!?)(%b[])(%b())", searchIndex)
     if not start_pos then
       if searchIndex <= #str or searchIndex == 1 then
         externalLinkEscape(sub(str, searchIndex), t)
@@ -113,6 +113,8 @@ local function linkEscape(str, t)
     if start_pos > searchIndex then
       externalLinkEscape(sub(str, searchIndex, start_pos - 1), t)
     end
+    text = sub(text, 2, -2)
+    url = sub(url, 2, -2)
     if is_img == "!" then
       t[#t + 1] = {
         type = "img",

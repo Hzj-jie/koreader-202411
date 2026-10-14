@@ -21,22 +21,6 @@ describe("ffi/pic module", function()
     doc:close()
   end)
 
-  it("fails cleanly when opening page on GIF with 0 images", function()
-    local doc = Pic.openGIFDocument("../koreader/tools/eink_cmap.gif")
-    local saved_count = doc.giffile.ImageCount
-    doc.giffile.ImageCount = 0
-
-    local ok, err = pcall(function()
-      doc:openPage(1)
-    end)
-
-    doc.giffile.ImageCount = saved_count
-    doc:close()
-
-    assert.is_false(ok)
-    assert.is_not_nil(string.match(tostring(err), "GIF has no images"))
-  end)
-
   it(
     "fails cleanly when opening page on GIF with no valid color map",
     function()

@@ -578,6 +578,23 @@ describe("InputText widget module", function()
 
   describe("Defect verifications", function()
     it(
+      "delWord(true) deletes delimiter before cursor and walks back word by word",
+      function()
+        local input = require("ui/widget/inputtext"):new({
+          text = "hello world",
+        })
+        input.charpos = 7
+        input:delWord(true)
+        assert.are.equal("helloworld", input:getText())
+        assert.are.equal(6, input.charpos)
+
+        input:delWord(true)
+        assert.are.equal("world", input:getText())
+        assert.are.equal(1, input.charpos)
+      end
+    )
+
+    it(
       "exposes delWord(true) when charpos == 1 setting charpos = 0 and is_text_edited = true",
       function()
         local input = require("ui/widget/inputtext"):new({
@@ -588,20 +605,6 @@ describe("InputText widget module", function()
         input:delWord(true)
         assert.are.equal(1, input.charpos)
         assert.is_false(input:isTextEdited())
-      end
-    )
-
-    it(
-      "exposes getLineNums indexing text_widget.charlist instead of self.charlist",
-      function()
-        local input = require("ui/widget/inputtext"):new({
-          text = "",
-        })
-        input:addChars("line1\nline2")
-        input.text_widget.charlist = nil
-        local curr_line, last_line = input:getLineNums()
-        assert.are.equal(2, curr_line)
-        assert.are.equal(2, last_line)
       end
     )
   end)

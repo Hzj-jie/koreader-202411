@@ -133,14 +133,6 @@ function GifDocument:openPage(number)
   -- previous frames) over the first frame
   -- Here, because requesting a random number is possible, we redo all the
   -- pastes from first frame till requested frame number: it could be optimized
-  if
-    self.giffile == nil
-    or self.giffile.ImageCount == 0
-    or self.giffile.SavedImages == nil
-    or self.giffile.SavedImages == ffi.null
-  then
-    error("GIF has no images")
-  end
   local i = self.giffile.SavedImages[0]
   local width = i.ImageDesc.Width
   local height = i.ImageDesc.Height
@@ -195,10 +187,7 @@ function GifDocument:openPage(number)
       for x = f_x, f_x + f_w - 1 do
         if x >= 0 and x < width and y >= 0 and y < height then
           if not transparent_color or p[0] ~= transparent_color then
-            local color = palette[p[0]]
-            if color then
-              bb:setPixel(x, y, color)
-            end
+            bb:setPixel(x, y, palette[p[0]])
           end
         end
         p = p + 1

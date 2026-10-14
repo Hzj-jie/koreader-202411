@@ -126,7 +126,7 @@ describe("CalibreExtensions", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes isCustom returning true when user_overrides is a non-table value",
+      "exposes isCustom returning true when user_overrides is a non-table value",
       function()
         local orig_overrides = CalibreExtensions.user_overrides
         finally(function()

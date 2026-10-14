@@ -194,10 +194,7 @@ describe("Remarkable device", function()
     end)
 
     it("kernel version parsing treats Linux 6.10+ as mainline", function()
-      -- Bug: lines 154-156 parses uname -r via:
-      -- release = tonumber(release:match("^(%d+%.%d+)%.%d+.*$"))
-      -- On Linux 6.10+, "6.10" parsed as a float is 6.1 < 6.2, so is_mainline
-      -- incorrectly evaluates to false, failing to configure mainline input devices.
+      -- On Linux 6.10+, release must be parsed correctly so is_mainline evaluates to true
       os.execute = function()
         return 1
       end

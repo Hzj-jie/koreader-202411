@@ -164,9 +164,9 @@ describe("Memos Exporter target module", function()
     end
   )
 
-  describe("failing tests for production bugs", function()
+  describe("HTTP request handling and edge cases", function()
     it(
-      "should set Content-Length header in makeRequest (fails because Content-Length is omitted)",
+      "should set Content-Length header in makeRequest",
       function()
         MemosExporter.settings = {
           api = "https://memos.example.com/api/v1/memo",
@@ -194,7 +194,7 @@ describe("Memos Exporter target module", function()
     )
 
     it(
-      "should return false from createHighlights and export when all HTTP requests fail (fails due to unconditional return true)",
+      "should return false from createHighlights and export when all HTTP requests fail",
       function()
         MemosExporter.settings = {
           api = "https://memos.example.com/api/v1/memo",
@@ -219,7 +219,7 @@ describe("Memos Exporter target module", function()
 
 
     it(
-      "should handle multi-chunk ltn12 responses in makeRequest (fails due to json.decode(sink[1]))",
+      "should handle multi-chunk ltn12 responses in makeRequest",
       function()
         MemosExporter.settings = {
           api = "https://memos.example.com/api/v1/memo",

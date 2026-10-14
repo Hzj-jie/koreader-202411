@@ -11,6 +11,7 @@ describe("Kobo device", function()
     pcall(function()
       ffi.cdef([[
         int setenv(const char *name, const char *value, int overwrite);
+        int unsetenv(const char *name);
       ]])
     end)
     ffi.C.setenv("PRODUCT", "monza", 1)
@@ -29,6 +30,10 @@ describe("Kobo device", function()
   end
 
   teardown(function()
+    pcall(function()
+      local ffi = require("ffi")
+      ffi.C.unsetenv("PRODUCT")
+    end)
     for _, path in ipairs(tmp_files) do
       os.remove(path)
     end
@@ -86,7 +91,7 @@ describe("Kobo device", function()
     end)
 
     it(
-      "should return fallback core count 1 when sysfs file is absent",
+      "should return fallback CPU core index 1 when sysfs file is absent",
       function()
         local orig_io_open = io.open
         io.open = function(path, mode)
@@ -128,36 +133,31 @@ describe("Kobo device", function()
     it(
       "should verify active startup script against installed script",
       function()
-        local tmp_active = "/tmp/koreader.sh"
-        local f1 = io.open(tmp_active, "w")
-        f1:write("#!/bin/sh\necho koreader\n")
-        f1:close()
-
-        local dir = "/tmp/test_koreader_dir_" .. ffiUtil.getpid()
-        os.execute("mkdir -p " .. dir)
-        local f2 = io.open(dir .. "/koreader.sh", "w")
-        f2:write("#!/bin/sh\necho koreader\n")
-        f2:close()
+        local MD5 = require("ffi/MD5")
+        local orig_sumFile = MD5.sumFile
+        local hashes = {}
+        MD5.sumFile = function(filepath)
+          return hashes[filepath]
+        end
 
         local orig_getenv = os.getenv
         os.getenv = function(var)
           if var == "KOREADER_DIR" then
-            return dir
+            return "/dummy/koreader"
           end
           return orig_getenv(var)
         end
+
         finally(function()
+          MD5.sumFile = orig_sumFile
           os.getenv = orig_getenv
-          os.remove(tmp_active)
-          os.remove(dir .. "/koreader.sh")
-          os.execute("rmdir " .. dir)
         end)
 
+        hashes["/tmp/koreader.sh"] = "same_hash_123"
+        hashes["/dummy/koreader/koreader.sh"] = "same_hash_123"
         assert.is_true(Kobo:isStartupScriptUpToDate())
 
-        local f3 = io.open(dir .. "/koreader.sh", "w")
-        f3:write("#!/bin/sh\necho updated\n")
-        f3:close()
+        hashes["/dummy/koreader/koreader.sh"] = "updated_hash_456"
         assert.is_false(Kobo:isStartupScriptUpToDate())
       end
     )

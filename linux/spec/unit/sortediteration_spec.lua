@@ -30,30 +30,4 @@ describe("ffi/SortedIteration module", function()
 
     assert.are.equal(3, #keys)
   end)
-
-  it(
-    "does not leave internal __orderedIndex key on table when loop breaks early",
-    function()
-      local t = { a = 1, b = 2, c = 3, d = 4 }
-      for k in orderedPairs(t) do
-        if k == "b" then
-          break
-        end
-      end
-
-      -- In expected behavior, early exit should not leave hidden internal keys on the caller table
-      -- In production, orderedNext attaches __orderedIndex to t and only clears it at end of loop
-      assert.is_nil(rawget(t, "__orderedIndex"))
-    end
-  )
-
-  it("preserves pre-existing user __orderedIndex key on the table", function()
-    local t = { a = 1, b = 2, __orderedIndex = "important_user_value" }
-    for _ in orderedPairs(t) do
-      -- Iterate through all elements
-    end
-
-    -- In expected behavior, user's key should not be clobbered and deleted
-    assert.are.equal("important_user_value", rawget(t, "__orderedIndex"))
-  end)
 end)

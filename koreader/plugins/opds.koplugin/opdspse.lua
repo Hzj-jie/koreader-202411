@@ -64,10 +64,6 @@ function OPDSPSE:getLastPage(remote_url, username, password)
     -- attempt to pull progress for chapterId in remote_url
     local auth_body = table.concat(auth_data)
     local bearer_token = auth_body:match('"token":"([^"]+)"')
-      or auth_body:match('"token":"(.+)","refresh')
-    if not bearer_token then
-      return 0
-    end
 
     -- Do HTTP GET request for chapter progress
     local progress_parsed = url.parse(progress_url)
@@ -104,8 +100,6 @@ function OPDSPSE:getLastPage(remote_url, username, password)
       -- if HTTP GET was successful, pull page number from response
       local progress_body = table.concat(progress_data)
       last_page = tonumber(progress_body:match('"pageNum":([%d]+)'))
-        or tonumber(progress_body:match('"pageNum":(%d+)'))
-        or 0
     else
       logger.dbg(
         "OPDSPSE:getLastPage: Progress Request failed:",
@@ -141,7 +135,7 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
     local ok, page = pcall(function()
       return self:getLastPage(remote_url, username, password)
     end)
-    if ok and page then
+    if ok then
       last_page = page
     else
       logger.warn("Couldn't pull progress, defaulting to Page 0.")

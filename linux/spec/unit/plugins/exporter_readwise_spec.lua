@@ -155,8 +155,8 @@ describe("ReadwiseExporter plugin target module", function()
     assert.is_false(exp:export({ booknotes1 }))
   end)
 
-  describe("failing tests for production bugs", function()
-    it("should handle multi-chunk ltn12 HTTP responses in makeRequest (fails due to json.decode(sink[1]))", function()
+  describe("HTTP response handling", function()
+    it("should handle multi-chunk ltn12 HTTP responses in makeRequest", function()
       local exp = setmetatable(
         { settings = { token = "test_token" } },
         { __index = ReadwiseExporter }

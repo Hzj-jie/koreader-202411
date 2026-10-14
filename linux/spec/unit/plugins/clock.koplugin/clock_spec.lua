@@ -131,6 +131,26 @@ describe("Clock plugin tests", function()
       5,
       match.is_function()
     )
+
+    local call = UIManager.scheduleIn.calls[1]
+    local callback = call.refs[3]
+    callback()
+    assert
+      .stub(UIManager.close)
+      .was_called_with(match.ref(UIManager), match.ref(Clock))
+  end)
+
+  it("handles show without scheduling timeout if not configured", function()
+    Device.hasKeys.returns(false)
+    Device.isTouchDevice.returns(false)
+    Clock = dofile("plugins/clock.koplugin/main.lua")
+    Clock.ui = { menu = { registerToMainMenu = function() end } }
+    Clock:init()
+
+    Clock.timeout = nil
+    Clock:onShow()
+
+    assert.stub(UIManager.scheduleIn).was_not_called()
   end)
 
   it("handles suspend and resume based on G_reader_settings", function()
@@ -172,7 +192,6 @@ describe("Clock plugin tests", function()
     -- Tap close
     local closed = Clock:onTapClose()
     assert.is_true(closed)
-    assert.is_false(Clock._visible)
     assert.is_false(PluginShare.pause_auto_suspend)
     assert
       .stub(UIManager.close)

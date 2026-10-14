@@ -64,7 +64,7 @@ end
 
 function Calibre:closeWirelessConnection()
   if CalibreWireless.calibre_socket then
-    CalibreWireless:disconnect()
+    CalibreWireless:_disconnect()
   end
 end
 
@@ -145,7 +145,7 @@ function Calibre:addToMainMenu(menu_items)
           if not CalibreWireless.calibre_socket then
             CalibreWireless:connect()
           else
-            CalibreWireless:disconnect()
+            CalibreWireless:_disconnect()
           end
         end,
       },

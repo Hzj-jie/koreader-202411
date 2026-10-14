@@ -117,8 +117,7 @@ describe("Android device", function()
     it("isValidPath prevents sibling directory prefix escape", function()
       -- External storage is "/storage/emulated/0"
       -- Sibling path is "/storage/emulated/00/secret.epub"
-      -- Bug: line 567 does real_path:sub(1, #real_ext_storage) == real_ext_storage
-      -- without ensuring a path separator boundary, allowing escape into sibling directories.
+      -- Ensure boundary check prevents escape into sibling directories.
       local orig_realpath = FFIUtil.realpath
       FFIUtil.realpath = function(p)
         return p

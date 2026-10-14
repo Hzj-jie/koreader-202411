@@ -471,18 +471,18 @@ describe("ViewHTML module", function()
         local document = {}
         local css_selectors_offsets = table.concat({
           "0\t1\t10\tbody",
-          "22\t2\t20\tp",
+          "20\t2\t20\tp",
         }, "\n")
         local offset_shifts = {
-          { 15, 10 },
-          { 30, 10 },
+          { 10, 15 },
+          { 25, 10 },
         }
 
         ViewHTML:_handleLongPress(
           document,
           css_selectors_offsets,
           offset_shifts,
-          35,
+          40,
           function() end
         )
 
@@ -495,7 +495,7 @@ describe("ViewHTML module", function()
             break
           end
         end
-        assert.is_true(has_p)
+        assert.is_false(has_p)
       end
     )
   end)

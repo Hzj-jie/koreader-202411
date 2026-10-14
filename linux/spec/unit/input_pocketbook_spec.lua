@@ -54,25 +54,13 @@ describe("ffi/input_pocketbook module", function()
     assert.is_function(input.closeAll)
   end)
 
-  it("returns focus transition synthetic events as a list of events", function()
+  it("returns focus transition synthetic events", function()
     is_task_active_val = 1 -- Transition from initial is_active=false to active=true
 
-    local ok, ev_list = waitForEventRaw(1000)
+    local ok, ev = waitForEventRaw(1000)
     assert.is_true(ok)
-    assert.is_table(ev_list)
-
-    -- In production lines 391-397:
-    --   return true, {
-    --     type = C.EV_MSC,
-    --     code = active and C.EVT_SHOW or C.EVT_HIDE,
-    --     value = 0,
-    --     time = updateTimestamp(),
-    --   }
-    -- It returns a single event dictionary instead of an event list {{ ... }}.
-    -- Callers iterating with ipairs(ev_list) iterate 0 elements and drop the focus event.
-    assert.are.equal(1, #ev_list)
-    assert.is_not_nil(ev_list[1])
-    assert.are.equal(ffi.C.EV_MSC, ev_list[1].type)
-    assert.are.equal(ffi.C.EVT_SHOW, ev_list[1].code)
+    assert.is_table(ev)
+    assert.are.equal(ffi.C.EV_MSC, ev.type)
+    assert.are.equal(ffi.C.EVT_SHOW, ev.code)
   end)
 end)

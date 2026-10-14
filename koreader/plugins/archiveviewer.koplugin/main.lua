@@ -181,7 +181,7 @@ end
 
 function ArchiveViewer:getItemDirMandatory(name)
   local sub_dirs, dir_files = 0, 0
-  for _, v in pairs(self.list_table[name] or {}) do
+  for _, v in pairs(self.list_table[name]) do
     if v then
       dir_files = dir_files + 1
     else

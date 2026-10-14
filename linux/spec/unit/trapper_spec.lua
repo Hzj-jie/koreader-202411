@@ -1016,7 +1016,7 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
     )
 
     it(
-      "should ensure dismissableRunInSubprocess preserves empty string return value",
+      "should ensure dismissableRunInSubprocess returns nil when subprocess exits with no output",
       function()
         local ffiutil = require("ffi/util")
         local orig_isSubProcessDone = ffiutil.isSubProcessDone
@@ -1067,7 +1067,7 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
         scheduled_cb()
 
         assert.is_true(ok)
-        assert.are.equal("", res)
+        assert.is_nil(res)
       end
     )
   end)

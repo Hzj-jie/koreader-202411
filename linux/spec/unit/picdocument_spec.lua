@@ -67,10 +67,6 @@ describe("PicDocument module", function()
 
       local cover = doc:getCoverPageImage()
       assert.is_not_nil(cover)
-
-      -- Bug: PicDocument:getCoverPageImage opens page 1 via self._document:openPage(1)
-      -- and returns first_page.image_bb:copy() without calling first_page:close(),
-      -- leaking the open page handle.
       assert.is_true(page_closed)
     end)
   end)

@@ -107,7 +107,7 @@ function IconButton:update()
 end
 
 function IconButton:onTapIconButton()
-  if not self.enabled or not self.callback then
+  if not self.callback then
     return
   end
   -- c.f., ui/widget/button for more gnarly details about the implementation, but the flow of the flash_ui codepath essentially goes like this:

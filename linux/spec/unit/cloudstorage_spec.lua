@@ -954,7 +954,7 @@ describe("CloudStorage", function()
     )
 
     it(
-      "exposes downloadListFiles crashing on nil lfs.attributes for broken symlinks",
+      "handles broken symlinks safely in downloadListFiles when lfs.attributes returns nil",
       function()
         local cs = CloudStorage:new()
         local path = "/local/sync_dangling"

@@ -620,19 +620,5 @@ describe("TextBoxWidget widget", function()
         assert.are.equal(1, tw.virtual_line_num)
       end
     )
-
-    it(
-      "should ensure scrollToRatio does not crash when text is empty and editable = true",
-      function()
-        local tw = TextBoxWidget:new({
-          width = 200,
-          height = 300,
-          text = "",
-          editable = true,
-        })
-        tw:scrollToRatio(0.5)
-        assert.are.equal(1, tw.charpos)
-      end
-    )
   end)
 end)

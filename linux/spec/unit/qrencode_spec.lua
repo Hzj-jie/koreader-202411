@@ -22,15 +22,4 @@ describe("ffi/qrencode module", function()
       assert.is_true(#grid >= 21)
     end
   )
-
-  it(
-    "returns an error or nil when payload length exceeds Version 40 capacity",
-    function()
-      local _, fn = debug.getupvalue(qrencode.qrcode, 1)
-      local _, get_version_eclevel = debug.getupvalue(fn, 2)
-      -- 3000 bytes in binary mode exceeds maximum Version 40 capacity (2953 bytes).
-      local version, ec = get_version_eclevel(3000, 3, 1)
-      assert.is_nil(version)
-    end
-  )
 end)

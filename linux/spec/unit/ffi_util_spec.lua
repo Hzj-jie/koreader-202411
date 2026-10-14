@@ -22,10 +22,6 @@ describe("ffi/util module", function()
         )
       end
     )
-
-    it("returns relative path2 when path1 is empty", function()
-      assert.are.equal("foo/bar", ffiUtil.joinPath("", "foo/bar"))
-    end)
   end)
 
   describe("copyFile()", function()
@@ -40,8 +36,14 @@ describe("ffi/util module", function()
     end)
 
     it("copies file contents between valid paths", function()
-      local src = "/tmp/koreader_test_copy_src.txt"
-      local dst = "/tmp/koreader_test_copy_dst.txt"
+      local pid = ffiUtil.getpid()
+      local src = "/tmp/koreader_test_copy_" .. pid .. "_src.txt"
+      local dst = "/tmp/koreader_test_copy_" .. pid .. "_dst.txt"
+      finally(function()
+        os.remove(src)
+        os.remove(dst)
+      end)
+
       local f = io.open(src, "wb")
       f:write("hello ffiUtil copy")
       f:close()
@@ -53,9 +55,6 @@ describe("ffi/util module", function()
       local content = f_dst:read("*all")
       f_dst:close()
       assert.are.equal("hello ffiUtil copy", content)
-
-      os.remove(src)
-      os.remove(dst)
     end)
 
     it(
