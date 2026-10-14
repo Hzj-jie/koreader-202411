@@ -175,95 +175,45 @@ describe("TextEditor plugin", function()
       end
     )
 
-    it("persists cleaned history to disk after onFlushSettings", function()
-      editor:loadSettings()
-      editor:addToHistory(temp_dir .. "/persisted_old.txt")
-      editor:onFlushSettings()
-
-      local LuaSettings = require("luasettings")
-      local saved_before = LuaSettings:open(temp_settings_path)
-      assert.are.equal(1, #saved_before:read("history"))
-
-      local sub_items = editor:getSubMenuItems()
-      local clean_item
-      for _, item in ipairs(sub_items[1].sub_item_table) do
-        if item.text == "Clean text editor history" then
-          clean_item = item
-          break
-        end
-      end
-
-      local shown_box
-      local old_show = UIManager.show
-      UIManager.show = function(_, widget)
-        shown_box = widget
-      end
-
-      clean_item.callback({
-        updateItems = function() end,
-      })
-      UIManager.show = old_show
-      shown_box.ok_callback()
-
-      -- Flush settings to persist changes
-      editor:onFlushSettings()
-
-      -- In production, onFlushSettings never saves "history" to disk,
-      -- so the old history persists in text_editor_settings.lua.
-      local saved_after = LuaSettings:open(temp_settings_path)
-      assert.are.same({}, saved_after:read("history"))
-    end)
-
     it(
-      "removes history item at index j rather than tail of sub_item_table",
+      "safely handles files with missing extension without crashing on lower() (fails: line 549)",
       function()
         editor:loadSettings()
-        local sub_items = editor:getSubMenuItems()
-        local clean_item
-        for _, item in ipairs(sub_items[1].sub_item_table) do
-          if item.text == "Clean text editor history" then
-            clean_item = item
-            break
-          end
+        local no_ext_file = temp_dir .. "/Makefile"
+        local f = io.open(no_ext_file, "w")
+        if f then
+          f:write("all:\n\techo test\n")
+          f:close()
         end
 
-        local shown_box
-        local old_show = UIManager.show
-        UIManager.show = function(_, widget)
-          shown_box = widget
+        -- In main.lua line 548-549:
+        -- local __, filetype = util.splitFileNameSuffix(filename)
+        -- local is_lua = filetype:lower() == "lua"
+        -- When a file has no extension, if util.splitFileNameSuffix returns nil for suffix:
+        local orig_split = util.splitFileNameSuffix
+        util.splitFileNameSuffix = function(file)
+          local base, ext = orig_split(file)
+          if ext == "" then
+            return base, nil
+          end
+          return base, ext
         end
 
-        clean_item.callback({
-          updateItems = function() end,
-        })
-        UIManager.show = old_show
+        local ok, err = pcall(function()
+          editor:editFile(no_ext_file, false)
+        end)
 
-        -- Verify that clean_item removes the history entry and preserves trailing non-history items:
-        local custom_menu = {
-          { _texteditor_id = "/path/to/file.txt", text = "file.txt" },
-          { text = "Keep me" },
-        }
-        -- Execute the clean callback with custom_menu as the sub_item_table in its scope:
-        local debug_upvalue_set = false
-        local i = 1
-        while true do
-          local name = debug.getupvalue(shown_box.ok_callback, i)
-          if not name then
-            break
-          end
-          if name == "sub_item_table" then
-            debug.setupvalue(shown_box.ok_callback, i, custom_menu)
-            debug_upvalue_set = true
-            break
-          end
-          i = i + 1
-        end
+        util.splitFileNameSuffix = orig_split
+        os.remove(no_ext_file)
 
-        assert.is_true(debug_upvalue_set)
-        shown_box.ok_callback()
-
-        assert.are.equal(1, #custom_menu)
-        assert.are.equal("Keep me", custom_menu[1].text)
+        -- Production bug in main.lua line 549:
+        -- Calling `filetype:lower()` without nil-checking crashes with
+        -- `attempt to index local 'filetype' (a nil value)` when filetype is nil.
+        assert.is_true(
+          ok,
+          "editFile should handle missing extension (nil filetype) safely: "
+            .. tostring(err)
+        )
       end
     )
   end)

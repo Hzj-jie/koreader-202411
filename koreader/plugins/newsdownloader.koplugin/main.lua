@@ -399,18 +399,6 @@ function NewsDownloader:processFeedSource(
     })
     return
   end
-  -- Normalize single item/entry to an array if simpleTreeHandler parsed a single table.
-  if feeds.rss and feeds.rss.channel and feeds.rss.channel.item then
-    if feeds.rss.channel.item[1] == nil then
-      feeds.rss.channel.item = { feeds.rss.channel.item }
-    end
-  end
-  if feeds.feed and feeds.feed.entry then
-    if feeds.feed.entry[1] == nil then
-      feeds.feed.entry = { feeds.feed.entry }
-    end
-  end
-
   -- Check to see if the feed uses RSS.
   local is_rss = feeds.rss
     and feeds.rss.channel
@@ -422,7 +410,6 @@ function NewsDownloader:processFeedSource(
   -- Check to see if the feed uses Atom.
   local is_atom = feeds.feed
     and feeds.feed.title
-    and feeds.feed.entry
     and feeds.feed.entry[1]
     and feeds.feed.entry[1].title
     and feeds.feed.entry[1].link
@@ -463,8 +450,10 @@ function NewsDownloader:processFeedSource(
     local error_message
     if not ok then
       error_message = gettext("(Reason: Failed to download content)")
-    else
-      error_message = gettext("(Reason: Couldn't process feed)")
+    elseif not is_rss then
+      error_message = gettext("(Reason: Couldn't process RSS)")
+    elseif not is_atom then
+      error_message = gettext("(Reason: Couldn't process Atom)")
     end
     table.insert(unsupported_feeds_urls, {
       url,
@@ -928,7 +917,7 @@ function NewsDownloader:updateFeedConfig(id, key, value)
   -- Check to see if the id is larger than the number of feeds. If it is,
   -- then we know this is a new add. Insert the base array.
   if id > #feed_config then
-    table.insert(feed_config, util.tableDeepCopy(self.empty_feed))
+    table.insert(feed_config, self.empty_feed)
   end
 
   local new_config = {}
@@ -940,17 +929,62 @@ function NewsDownloader:updateFeedConfig(id, key, value)
     -- Check to see if this is the correct feed to update.
     if idx == id then
       if key == FeedView.URL then
-        feed[1] = value
+        if feed[1] then
+          -- If the value exists, then it's been set. So all we do
+          -- is overwrite the value.
+          feed[1] = value
+        else
+          -- If the value doesn't exist, then we need to set it.
+          -- So we insert it into the table.
+          table.insert(feed, {
+            value,
+          })
+        end
       elseif key == FeedView.LIMIT then
-        feed.limit = value
+        if feed.limit then
+          feed.limit = value
+        else
+          table.insert(feed, {
+            "limit",
+            value,
+          })
+        end
       elseif key == FeedView.DOWNLOAD_FULL_ARTICLE then
-        feed.download_full_article = value
+        if feed.download_full_article ~= nil then
+          feed.download_full_article = value
+        else
+          table.insert(feed, {
+            "download_full_article",
+            value,
+          })
+        end
       elseif key == FeedView.INCLUDE_IMAGES then
-        feed.include_images = value
+        if feed.include_images ~= nil then
+          feed.include_images = value
+        else
+          table.insert(feed, {
+            "include_images",
+            value,
+          })
+        end
       elseif key == FeedView.ENABLE_FILTER then
-        feed.enable_filter = value
+        if feed.enable_filter ~= nil then
+          feed.enable_filter = value
+        else
+          table.insert(feed, {
+            "enable_filter",
+            value,
+          })
+        end
       elseif key == FeedView.FILTER_ELEMENT then
-        feed.filter_element = value
+        if feed.filter_element then
+          feed.filter_element = value
+        else
+          table.insert(feed, {
+            "filter_element",
+            value,
+          })
+        end
       end
     end
     -- Now we insert the updated (or newly created) feed into the

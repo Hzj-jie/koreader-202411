@@ -400,27 +400,14 @@ function NonogramBoard:revealHint()
     for c = 1, cols do
       local solution = self.current.solution[r][c]
       local state = self.user_grid[r][c]
-      if (not solution) and state == 1 then
-        self.user_grid[r][c] = -1
-        self.conflict_visible = false
-        self.incorrect_filled = {}
-        self.highlight_hints = false
-        self:setSelection(r, c)
-        return true, T(gettext("Cleared an incorrect cell %1,%2."), r, c)
-      end
-    end
-  end
-  for r = 1, rows do
-    for c = 1, cols do
-      local solution = self.current.solution[r][c]
-      local state = self.user_grid[r][c]
       if solution and state ~= 1 then
         self.user_grid[r][c] = 1
-        self.conflict_visible = false
-        self.incorrect_filled = {}
-        self.highlight_hints = false
         self:setSelection(r, c)
         return true, T(gettext("Filled the correct cell %1,%2."), r, c)
+      elseif (not solution) and state == 1 then
+        self.user_grid[r][c] = -1
+        self:setSelection(r, c)
+        return true, T(gettext("Cleared an incorrect cell %1,%2."), r, c)
       end
     end
   end
@@ -660,19 +647,17 @@ function NonogramBoardWidget:getCellFromPoint(x, y)
   end
   local local_x = x - self.grid_origin_x
   local local_y = y - self.grid_origin_y
-  local cols = self.board:getColCount()
-  local rows = self.board:getRowCount()
-  if
-    local_x < 0
-    or local_y < 0
-    or local_x > cols * cell
-    or local_y > rows * cell
-  then
+  if local_x < 0 or local_y < 0 then
     return nil
   end
-  local col = math.min(cols, math.floor(local_x / cell) + 1)
-  local row = math.min(rows, math.floor(local_y / cell) + 1)
-  if row < 1 or row > rows or col < 1 or col > cols then
+  local col = math.floor(local_x / cell) + 1
+  local row = math.floor(local_y / cell) + 1
+  if
+    row < 1
+    or row > self.board:getRowCount()
+    or col < 1
+    or col > self.board:getColCount()
+  then
     return nil
   end
   return row, col

@@ -130,8 +130,14 @@ function Composer:hourlyView(data, callback)
     end
 
     if self.settings:clock_12() then
-      local meridiem = (i < 12) and "AM" or "PM"
-      local hour = (i % 12 == 0) and 12 or (i % 12)
+      local meridiem
+      local hour = i
+      if hour <= 12 then
+        meridiem = "AM"
+      else
+        meridiem = "PM"
+        hour = hour - 12
+      end
       time = hour .. ":00 " .. meridiem
     else
       time = i .. ":00"

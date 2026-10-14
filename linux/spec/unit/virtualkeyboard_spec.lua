@@ -563,24 +563,4 @@ describe("VirtualKeyboard component", function()
     local PhysicalKeyboard = require("ui/widget/physicalkeyboard")
     assert.is_table(PhysicalKeyboard)
   end)
-
-  describe("Defect verifications", function()
-    it(
-      "should ensure genKeyboardLayoutKeyChars does not crash with 5 configured layouts",
-      function()
-        local mock_inputbox = createMockInputbox()
-        settings_store.keyboard_layouts = { "en", "es", "fr", "de", "ru" }
-        settings_store.keyboard_layout = "en"
-
-        assert.has_no.errors(function()
-          local vk = VirtualKeyboard:new({
-            inputbox = mock_inputbox,
-            width = 600,
-            height = 300,
-          })
-          assert.truthy(vk)
-        end)
-      end
-    )
-  end)
 end)

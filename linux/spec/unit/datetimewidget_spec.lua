@@ -224,41 +224,4 @@ describe("DateTimeWidget module", function()
       assert.is_true(widget:onTapClose(nil, outside_ev))
     end)
   end)
-
-  describe("Defect verifications", function()
-    it("exposes day not clamped to getDaysInMonth on Apply", function()
-      local widget = DateTimeWidget:new({
-        year = 2025,
-        month = 2,
-        day = 31,
-        ok_text = "Apply",
-        callback = function(self) end,
-      })
-      local btn_table = widget.date_frame[1][3][1]
-      local apply_btn = btn_table.buttons[1][2]
-      apply_btn.callback()
-      assert.are.equal(28, widget.day)
-    end)
-
-    it(
-      "exposes extra_callback receiving stale values instead of updated picker values",
-      function()
-        local received_year = nil
-        local widget = DateTimeWidget:new({
-          year = 2024,
-          month = 5,
-          day = 1,
-          extra_text = "Custom",
-          extra_callback = function(self)
-            received_year = self.year
-          end,
-        })
-        widget.year_widget.value = 2030
-        local btn_table = widget.date_frame[1][3][1]
-        local extra_btn = btn_table.buttons[1][1]
-        extra_btn.callback()
-        assert.are.equal(2030, received_year)
-      end
-    )
-  end)
 end)

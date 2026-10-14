@@ -49,9 +49,7 @@ local function prepareBookContent(
     local entry = note[1]
     if entry.chapter ~= current_chapter then
       current_chapter = entry.chapter
-      if current_chapter then
-        table.insert(tbl, "## " .. current_chapter)
-      end
+      table.insert(tbl, "## " .. current_chapter)
     end
     table.insert(
       tbl,

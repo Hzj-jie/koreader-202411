@@ -184,7 +184,7 @@ describe("Nonogram plugin main module", function()
   )
 
   it(
-    "should clear conflict_visible and incorrect_filled when revealHint resolves conflicts",
+    "should clear conflict_visible and incorrect_filled when revealHint resolves conflicts [exposes production bug in NonogramBoard:revealHint()]",
     function()
       local plugin = createMockNonogram()
       local board = plugin:getBoard()

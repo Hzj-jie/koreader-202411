@@ -265,7 +265,7 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
   end
 
   local text, icon
-  if headers and code == 301 and headers.location then
+  if headers and code == 301 then
     text = T(
       gettext(
         "The catalog has been permanently moved. Please update catalog URL to '%1'."
@@ -276,7 +276,6 @@ function OPDSBrowser:fetchFeed(item_url, headers_only)
     headers
     and code == 302
     and item_url:match("^https")
-    and headers.location
     and headers.location:match("^http[^s]")
   then
     text = T(
@@ -402,16 +401,12 @@ function OPDSBrowser:genItemTableFromCatalog(catalog, item_url)
         -- OpenSearch
         if link.type:find(self.search_type) then
           if link.href then
-            local search_template =
-              self:getSearchTemplate(build_href(link.href))
-            if search_template then
-              table.insert(item_table, { -- the first item in each subcatalog
-                text = "\u{f002} " .. gettext("Search"), -- append SEARCH icon
-                url = build_href(search_template),
-                searchable = true,
-              })
-              has_opensearch = true
-            end
+            table.insert(item_table, { -- the first item in each subcatalog
+              text = "\u{f002} " .. gettext("Search"), -- append SEARCH icon
+              url = build_href(self:getSearchTemplate(build_href(link.href))),
+              searchable = true,
+            })
+            has_opensearch = true
           end
         end
         -- Calibre search (also matches the actual template for OpenSearch!)
@@ -499,11 +494,8 @@ function OPDSBrowser:genItemTableFromCatalog(catalog, item_url)
           -- indicated by title="pdf" or whose type is
           -- "application/pdf"
           if
-            not (link.rel and link.rel:match(self.acquisition_rel))
-            and (
-              link.title == "pdf"
-              or link.type == "application/pdf" and link.rel ~= "subsection"
-            )
+            link.title == "pdf"
+            or link.type == "application/pdf" and link.rel ~= "subsection"
           then
             -- Check for the presence of the pdf suffix and add it
             -- if it's missing.
@@ -869,8 +861,6 @@ function OPDSBrowser:downloadFile(filename, remote_url)
       elseif
         code == 302
         and remote_url:match("^https")
-        and headers
-        and headers.location
         and headers.location:match("^http[^s]")
       then
         util.removeFile(local_path)

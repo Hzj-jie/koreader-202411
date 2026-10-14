@@ -126,7 +126,6 @@ function Game2048Storage:switchGameState(state)
   if not self:readGameState(state.profile, state) then
     -- If no game state is present in given profile, start a new game
     state:newGame()
-    state.info:reset()
   end
   return true
 end

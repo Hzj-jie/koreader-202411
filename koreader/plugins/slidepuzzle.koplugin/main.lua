@@ -105,9 +105,7 @@ end
 
 function SlidePuzzle:getCurrentGame()
   if
-    not self._cached_game
-    or self._cached_game:getSize() ~= self.active_size
-    or self._cached_game:isWon()
+    not self._cached_game or self._cached_game:getSize() ~= self.active_size
   then
     self._cached_game = self:_loadOrCreateGame(self.active_size)
   end

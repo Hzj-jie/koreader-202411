@@ -445,8 +445,6 @@ local function kana_mapper(map)
         -- half-width kana.
         if map[last_char .. c] then
           new_text[#new_text] = map[last_char .. c]
-        else
-          table.insert(new_text, map[c] or c)
         end
       else
         table.insert(new_text, map[c] or c)

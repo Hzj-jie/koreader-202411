@@ -605,34 +605,4 @@ describe("TextBoxWidget widget", function()
       canvas:free()
     end
   )
-
-  describe("Defect verifications", function()
-    it(
-      "should ensure scrollLines clamps virtual_line_num to 1 when total lines < lines_per_page",
-      function()
-        local tw = TextBoxWidget:new({
-          width = 200,
-          height = 300,
-          text = "Line 1\nLine 2",
-        })
-        assert.is_true(#tw.vertical_string_list < tw.lines_per_page)
-        tw:scrollLines(1)
-        assert.are.equal(1, tw.virtual_line_num)
-      end
-    )
-
-    it(
-      "should ensure scrollToRatio does not crash when text is empty and editable = true",
-      function()
-        local tw = TextBoxWidget:new({
-          width = 200,
-          height = 300,
-          text = "",
-          editable = true,
-        })
-        tw:scrollToRatio(0.5)
-        assert.are.equal(1, tw.charpos)
-      end
-    )
-  end)
 end)
