@@ -239,7 +239,7 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
                 -- remove history items from the parent menu
                 for j = #sub_item_table, 1, -1 do
                   if sub_item_table[j]._texteditor_id then
-                    table.remove(sub_item_table, j)
+                    table.remove(sub_item_table)
                   end
                 end
                 menu:updateItems()
