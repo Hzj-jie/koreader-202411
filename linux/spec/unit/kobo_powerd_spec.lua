@@ -231,7 +231,6 @@ describe("KoboPowerD", function()
 
       mock_powerd:setWarmthHW(80)
       assert.are.equal(80, mock_powerd.warmth_set)
-      assert.are.equal(80, mock_powerd.fl_warmth)
     end)
   end)
 

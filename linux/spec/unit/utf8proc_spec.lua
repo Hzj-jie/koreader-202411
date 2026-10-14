@@ -15,7 +15,7 @@ describe("ffi/utf8proc module", function()
   end)
 
   it("normalizes strings to NFC form", function()
-    local normalized = Utf8Proc.normalize_NFC("café")
+    local normalized = Utf8Proc.normalize_NFC("cafe\xCC\x81")
     assert.is_string(normalized)
     assert.are.equal("café", normalized)
   end)
@@ -33,8 +33,6 @@ describe("ffi/utf8proc module", function()
 
       Utf8Proc.lowercase_dumb("A")
 
-      -- In expected behavior, Lua strings are immutable and ten spaces must remain ten spaces
-      -- In production, Utf8Proc.cased_dumb casts (" "):rep(10) to a mutable C pointer and mutates it
       local after = (" "):rep(10)
       assert.are.equal("          ", after)
     end

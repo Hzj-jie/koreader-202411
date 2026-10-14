@@ -82,26 +82,25 @@ describe("Profiles plugin", function()
       }
       profiles.updated = true
       profiles:onFlushSettings()
+      assert.is_false(profiles.updated)
 
-      -- Rename profile
+      -- Verify saved to disk by reloading
+      profiles.profiles = nil
+      profiles:loadProfiles()
+      assert.is_not_nil(profiles.data["Custom"])
+      assert.are.equal(24, profiles.data["Custom"].font_size)
+
+      -- Rename profile via production updateAutoExec
       profiles.autoexec = {
         start = { ["Custom"] = true },
       }
-      profiles.data["Custom_Renamed"] = profiles.data["Custom"]
-      profiles.data["Custom_Renamed"].settings.name = "Custom_Renamed"
-      profiles.data["Custom"] = nil
-      profiles.autoexec.start["Custom_Renamed"] = true
-      profiles.autoexec.start["Custom"] = nil
-
-      assert.is_nil(profiles.data["Custom"])
-      assert.is_not_nil(profiles.data["Custom_Renamed"])
+      profiles:updateAutoExec("Custom", "Custom_Renamed")
+      assert.is_nil(profiles.autoexec.start["Custom"])
       assert.is_true(profiles.autoexec.start["Custom_Renamed"])
 
-      -- Delete profile
-      profiles.data["Custom_Renamed"] = nil
-      profiles.autoexec.start["Custom_Renamed"] = nil
-      assert.is_nil(profiles.data["Custom_Renamed"])
-      assert.is_nil(profiles.autoexec.start["Custom_Renamed"])
+      -- Delete profile via production updateAutoExec
+      profiles:updateAutoExec("Custom_Renamed", nil)
+      assert.is_nil(profiles.autoexec.start)
     end)
 
     it("updates action names across existing profiles", function()

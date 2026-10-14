@@ -233,9 +233,9 @@ describe("Japanese plugin unit tests", function()
       local res1 = d:deinflect("ﾀﾞﾒ")
       local found1 = false
       for _, item in ipairs(res1) do
+        assert.are_not.equal("ﾀﾒ", item.term)
         if item.term == "ﾀﾞﾒ" then
           found1 = true
-          break
         end
       end
       assert.is_true(found1)

@@ -254,21 +254,24 @@ describe("Notification", function()
 
   describe("Defect verifications", function()
     it(
-      "_cleanShownStack preserves unexpired notifications and trims expired ones",
+      "_cleanShownStack preserves unexpired notifications and trims expired ones from tail",
       function()
+        Notification._shown_list = {}
         local n1 = Notification:new({ text = "First" })
         local n2 = Notification:new({ text = "Second" })
-        Notification._shown_list[1] = time.monotonic() - time.s(35)
-        Notification._shown_list[2] = time.monotonic() - time.s(5)
+        Notification._shown_list[1] = time.monotonic() - time.s(5)
+        Notification._shown_list[2] = time.monotonic() - time.s(35)
 
-        n1:onClose()
+        n2:onClose()
 
-        assert.truthy(Notification._shown_list[n2._shown_idx])
+        assert.are.equal(1, #Notification._shown_list)
+        assert.truthy(Notification._shown_list[1])
+        assert.is_nil(Notification._shown_list[2])
       end
     )
 
     it(
-      "exposes onShow overwriting _timeout_func without unscheduling previous timer",
+      "unschedules previous timer when onShow is called again",
       function()
         local unscheduled_fn = nil
         local orig_unschedule = UIManager.unschedule

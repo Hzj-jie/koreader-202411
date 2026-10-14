@@ -57,7 +57,8 @@ describe("ffi/framebuffer_pocketbook module", function()
   it("invokes device.hasColorScreen without self receiver", function()
     local called = false
     local mock_device = {
-      hasColorScreen = function()
+      hasColorScreen = function(...)
+        assert.are.equal(0, select("#", ...))
         called = true
         return true
       end,

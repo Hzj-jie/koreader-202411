@@ -202,8 +202,10 @@ describe("FindHistory plugin", function()
       close = function() end,
     }
 
+    local popen_cmd
     local old_popen = io.popen
-    io.popen = function()
+    io.popen = function(cmd)
+      popen_cmd = cmd
       return mock_file
     end
 
@@ -222,6 +224,8 @@ describe("FindHistory plugin", function()
     ReadHistory._flush = old_flush
     ReadHistory.reload = old_reload
 
+    assert.is_not_nil(popen_cmd)
+    assert.is_not_nil(popen_cmd:find("%%n %%Y"))
     assert.is_table(ReadHistory.hist)
     assert.are.equal(1, #ReadHistory.hist)
     assert.are.equal(1700000000, ReadHistory.hist[1].time)

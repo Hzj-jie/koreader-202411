@@ -31,6 +31,17 @@ describe("serpent module", function()
   it(
     "should serialize math.huge accurately when fixradix is enabled",
     function()
+      local orig_format = getmetatable("").format
+      getmetatable("").format = function(fmt, ...)
+        if fmt == "%.1f" and select(1, ...) == 1.2 then
+          return "1,2"
+        end
+        return orig_format(fmt, ...)
+      end
+      finally(function()
+        getmetatable("").format = orig_format
+      end)
+
       local tbl = { inf = math.huge }
       local res = serpent.line(tbl, { fixradix = true, comment = false })
       local loaded = loadstring("return " .. res)()
@@ -41,6 +52,17 @@ describe("serpent module", function()
   it(
     "should serialize -math.huge accurately when fixradix is enabled",
     function()
+      local orig_format = getmetatable("").format
+      getmetatable("").format = function(fmt, ...)
+        if fmt == "%.1f" and select(1, ...) == 1.2 then
+          return "1,2"
+        end
+        return orig_format(fmt, ...)
+      end
+      finally(function()
+        getmetatable("").format = orig_format
+      end)
+
       local tbl = { neg_inf = -math.huge }
       local res = serpent.line(tbl, { fixradix = true, comment = false })
       local chunk, err = loadstring("return " .. res)
@@ -48,14 +70,6 @@ describe("serpent module", function()
       local ok, loaded = pcall(chunk)
       assert.is_true(ok)
       assert.are.equal(-math.huge, loaded.neg_inf)
-    end
-  )
-
-  it(
-    "should validate radix formatting using percent format specifier",
-    function()
-      local formatted = ("%.1f"):format(1.2)
-      assert.are.equal("1.2", formatted)
     end
   )
 end)

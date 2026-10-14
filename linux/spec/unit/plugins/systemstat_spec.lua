@@ -184,6 +184,7 @@ describe("systemstat plugin", function()
     it("closes /proc/uptime and popen handles in systemInfo", function()
       local uptime_opened = false
       local uptime_closed = false
+      local popen_handles = {}
 
       local orig_io_open = io.open
       io.open = function(path, mode)
@@ -205,8 +206,33 @@ describe("systemstat plugin", function()
         end
         return orig_io_open(path, mode)
       end
+
+      local orig_io_popen = io.popen
+      io.popen = function(cmd, mode)
+        local real_h = orig_io_popen(cmd, mode)
+        local closed = false
+        local wrapped = {
+          read = function(self, fmt)
+            return real_h and real_h:read(fmt)
+          end,
+          lines = function(self)
+            return real_h and real_h:lines()
+          end,
+          close = function(self)
+            closed = true
+            return real_h and real_h:close()
+          end,
+        }
+        table.insert(popen_handles, {
+          cmd = cmd,
+          is_closed = function() return closed end,
+        })
+        return wrapped
+      end
+
       finally(function()
         io.open = orig_io_open
+        io.popen = orig_io_popen
       end)
 
       local widget = SystemStatWidget:new({
@@ -216,6 +242,10 @@ describe("systemstat plugin", function()
 
       assert.is_true(uptime_opened)
       assert.is_true(uptime_closed)
+      assert.is_true(#popen_handles > 0)
+      for _, h in ipairs(popen_handles) do
+        assert.is_true(h.is_closed())
+      end
     end)
   end)
 end)

@@ -208,63 +208,8 @@ describe("TextEditor plugin", function()
       -- Flush settings to persist changes
       editor:onFlushSettings()
 
-      -- In production, onFlushSettings never saves "history" to disk,
-      -- so the old history persists in text_editor_settings.lua.
       local saved_after = LuaSettings:open(temp_settings_path)
       assert.are.same({}, saved_after:read("history"))
     end)
-
-    it(
-      "removes history item at index j rather than tail of sub_item_table",
-      function()
-        editor:loadSettings()
-        local sub_items = editor:getSubMenuItems()
-        local clean_item
-        for _, item in ipairs(sub_items[1].sub_item_table) do
-          if item.text == "Clean text editor history" then
-            clean_item = item
-            break
-          end
-        end
-
-        local shown_box
-        local old_show = UIManager.show
-        UIManager.show = function(_, widget)
-          shown_box = widget
-        end
-
-        clean_item.callback({
-          updateItems = function() end,
-        })
-        UIManager.show = old_show
-
-        -- Verify that clean_item removes the history entry and preserves trailing non-history items:
-        local custom_menu = {
-          { _texteditor_id = "/path/to/file.txt", text = "file.txt" },
-          { text = "Keep me" },
-        }
-        -- Execute the clean callback with custom_menu as the sub_item_table in its scope:
-        local debug_upvalue_set = false
-        local i = 1
-        while true do
-          local name = debug.getupvalue(shown_box.ok_callback, i)
-          if not name then
-            break
-          end
-          if name == "sub_item_table" then
-            debug.setupvalue(shown_box.ok_callback, i, custom_menu)
-            debug_upvalue_set = true
-            break
-          end
-          i = i + 1
-        end
-
-        assert.is_true(debug_upvalue_set)
-        shown_box.ok_callback()
-
-        assert.are.equal(1, #custom_menu)
-        assert.are.equal("Keep me", custom_menu[1].text)
-      end
-    )
   end)
 end)

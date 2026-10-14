@@ -97,6 +97,14 @@ describe("ffi/mupdf module", function()
         end,
       }, { __index = orig_W })
 
+      local BlitBuffer = require("ffi/blitbuffer")
+      local orig_bb_free = BlitBuffer.free
+      local bb_freed = false
+      BlitBuffer.free = function(self_bb)
+        bb_freed = true
+        return orig_bb_free(self_bb)
+      end
+
       debug.setupvalue(mupdf.renderImage, 1, mock_W)
 
       local ok, err = pcall(function()
@@ -104,11 +112,13 @@ describe("ffi/mupdf module", function()
       end)
 
       debug.setupvalue(mupdf.renderImage, 1, orig_W)
+      BlitBuffer.free = orig_bb_free
       page:close()
       doc:close()
 
       assert.is_false(ok)
       assert.is_not_nil(string.match(tostring(err), "could not run page"))
+      assert.is_true(bb_freed)
     end
   )
 end)
