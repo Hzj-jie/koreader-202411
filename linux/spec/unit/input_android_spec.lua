@@ -56,18 +56,13 @@ describe("ffi/input_android module", function()
   end)
 
   it(
-    "returns false and error code on ALOOPER_POLL_ERROR rather than bare nil",
+    "returns nil on ALOOPER_POLL_ERROR indicating catastrophic failure to UIManager",
     function()
       poll_state_result = ffi.C.ALOOPER_POLL_ERROR
 
-      -- In production line 324-326:
-      --   elseif poll_state == C.ALOOPER_POLL_ERROR then
-      --     android.LOGE("Encountered a polling error!")
-      --     return
-      -- A bare return statement yields (nil, nil) instead of (false, errno).
       local ok, err = input.waitForEvent(0, 500)
-      assert.is_false(ok)
-      assert.is_not_nil(err)
+      assert.is_nil(ok)
+      assert.is_nil(err)
     end
   )
 end)
