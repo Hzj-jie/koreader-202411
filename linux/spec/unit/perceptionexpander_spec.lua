@@ -121,4 +121,79 @@ describe("PerceptionExpander widget tests", function()
       assert.are.equal(plugin.screen_width * 0.07, plugin.left_line.dimen.x)
     end
   )
+
+  it(
+    "should not rebuild UI on onPageUpdate when screen mode does not change",
+    function()
+      local settings = createMockSettings({
+        is_enabled = true,
+        line_thick = 2,
+        margin = 0.1,
+        line_color_intensity = 0.3,
+        shift_each_pages = 100,
+        page_counter = 0,
+      })
+      local plugin =
+        PerceptionExpander:new({ ui = mock_ui, settings = settings })
+      plugin:init()
+
+      local createUI_called = 0
+      local orig_createUI = plugin.createUI
+      plugin.createUI = function(self_p, ...)
+        createUI_called = createUI_called + 1
+        return orig_createUI(self_p, ...)
+      end
+
+      plugin:onPageUpdate(1)
+      assert.are.equal(0, createUI_called)
+      plugin:onPageUpdate(2)
+      assert.are.equal(0, createUI_called)
+    end
+  )
+
+  it(
+    "in landscape mode, line positions after a shift match what createUI draws for the new margin",
+    function()
+      local settings = createMockSettings({
+        is_enabled = true,
+        line_thick = 2,
+        margin = 0.1,
+        line_color_intensity = 0.3,
+        shift_each_pages = 2,
+        page_counter = 2,
+      })
+      local plugin =
+        PerceptionExpander:new({ ui = mock_ui, settings = settings })
+      plugin:init()
+
+      Screen.getScreenMode = function()
+        return "landscape"
+      end
+
+      plugin:createUI()
+      assert.are.equal(0.1, plugin.margin)
+      -- Landscape display margin is 0.1 - 0.03 = 0.07
+      assert.are.equal(plugin.screen_width * 0.07, plugin.left_line.dimen.x)
+
+      -- Trigger periodic shift via onPageUpdate
+      plugin:onPageUpdate(3)
+      assert.are.equal(0, plugin.page_counter)
+      assert.are.equal(0.13, plugin.margin)
+      -- New margin shifted: 0.13 - 0.03 = 0.10
+      local expected_x = plugin.screen_width * 0.10
+      assert.are.equal(expected_x, plugin.left_line.dimen.x)
+      assert.are.equal(
+        plugin.screen_width - expected_x,
+        plugin.right_line.dimen.x
+      )
+
+      -- Verify createUI with the same new margin produces identical line positions
+      plugin:createUI()
+      assert.are.equal(expected_x, plugin.left_line.dimen.x)
+      assert.are.equal(
+        plugin.screen_width - expected_x,
+        plugin.right_line.dimen.x
+      )
+    end
+  )
 end)
