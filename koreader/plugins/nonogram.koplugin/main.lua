@@ -400,27 +400,21 @@ function NonogramBoard:revealHint()
     for c = 1, cols do
       local solution = self.current.solution[r][c]
       local state = self.user_grid[r][c]
-      if (not solution) and state == 1 then
-        self.user_grid[r][c] = -1
-        self.conflict_visible = false
-        self.incorrect_filled = {}
-        self.highlight_hints = false
-        self:setSelection(r, c)
-        return true, T(gettext("Cleared an incorrect cell %1,%2."), r, c)
-      end
-    end
-  end
-  for r = 1, rows do
-    for c = 1, cols do
-      local solution = self.current.solution[r][c]
-      local state = self.user_grid[r][c]
+      local target_val, msg
       if solution and state ~= 1 then
-        self.user_grid[r][c] = 1
+        target_val = 1
+        msg = T(gettext("Filled the correct cell %1,%2."), r, c)
+      elseif (not solution) and state == 1 then
+        target_val = -1
+        msg = T(gettext("Cleared an incorrect cell %1,%2."), r, c)
+      end
+      if target_val then
+        self.user_grid[r][c] = target_val
         self.conflict_visible = false
         self.incorrect_filled = {}
         self.highlight_hints = false
         self:setSelection(r, c)
-        return true, T(gettext("Filled the correct cell %1,%2."), r, c)
+        return true, msg
       end
     end
   end

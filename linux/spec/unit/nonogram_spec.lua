@@ -137,6 +137,47 @@ describe("Nonogram plugin", function()
     )
 
     it(
+      "revealHint fills earlier missing correct cell before clearing later incorrect cell",
+      function()
+        local nonogram = Nonogram:new({
+          ui = mock_ui,
+          path = "plugins/nonogram.koplugin",
+        })
+        local board = nonogram:getBoard()
+        local puzzle = {
+          title = "Test 2x2 Order",
+          rows_count = 2,
+          cols_count = 2,
+          solution = {
+            { true, false },
+            { false, true },
+          },
+          row_hints = { { 1 }, { 1 } },
+          col_hints = { { 1 }, { 1 } },
+          max_row_hint_count = 1,
+          max_col_hint_count = 1,
+        }
+        board:setCurrentPuzzle(puzzle)
+        board:resetProgress()
+
+        -- Cell (1, 1) is solution=true, user_grid=-1 (earlier missing correct cell)
+        -- Cell (2, 1) is solution=false, user_grid=1 (later incorrectly filled cell)
+        board.user_grid[2][1] = 1
+
+        -- In row-major order, cell (1, 1) should be filled first
+        local ok, msg = board:revealHint()
+        assert.is_true(ok)
+        assert.are.equal(1, board.user_grid[1][1])
+        assert.are.equal(1, board.user_grid[2][1])
+
+        -- Next hint in row-major order should clear cell (2, 1)
+        ok, msg = board:revealHint()
+        assert.is_true(ok)
+        assert.are.equal(-1, board.user_grid[2][1])
+      end
+    )
+
+    it(
       "NonogramBoardWidget:getCellFromPoint maps right and bottom grid boundary points",
       function()
         local nonogram = Nonogram:new({
