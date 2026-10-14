@@ -232,8 +232,9 @@ function MenuDialog:setupPluginMenu()
         settings.server = server
         saveSettings()
         DB:batchUpdateItems(self.vocabbuilder.item_table)
-        SyncService.sync(server, DB.path, DB.onSync, false)
-        self.vocabbuilder:reloadItems()
+        SyncService.sync(server, DB.path, DB.onSync, false, function()
+          self.vocabbuilder:reloadItems()
+        end)
       end
       UIManager:close(self.sync_dialogue)
       UIManager:close(self)
@@ -280,8 +281,9 @@ function MenuDialog:setupPluginMenu()
             UIManager:close(self.sync_dialogue)
             UIManager:close(self)
             DB:batchUpdateItems(self.vocabbuilder.item_table)
-            SyncService.sync(server, DB.path, DB.onSync, false)
-            self.vocabbuilder:reloadItems()
+            SyncService.sync(server, DB.path, DB.onSync, false, function()
+              self.vocabbuilder:reloadItems()
+            end)
           end,
         },
       },
@@ -1610,16 +1612,24 @@ function VocabularyBuilderWidget:refreshFooter()
           settings.server = server
           saveSettings()
           DB:batchUpdateItems(self.item_table)
-          SyncService.sync(server, DB.path, DB.onSync, false)
-          self:reloadItems()
+          SyncService.sync(server, DB.path, DB.onSync, false, function()
+            self:reloadItems()
+          end)
         end
         UIManager:show(sync_settings)
       else
         -- manual sync
         DB:batchUpdateItems(self.item_table)
         UIManager:nextTick(function()
-          SyncService.sync(settings.server, DB.path, DB.onSync, false)
-          self:reloadItems()
+          SyncService.sync(
+            settings.server,
+            DB.path,
+            DB.onSync,
+            false,
+            function()
+              self:reloadItems()
+            end
+          )
         end)
       end
     end,
