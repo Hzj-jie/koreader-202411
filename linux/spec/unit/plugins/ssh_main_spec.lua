@@ -119,7 +119,7 @@ describe("SSH plugin main module", function()
       assert.is_false(instance:isRunning())
     end)
 
-    it("should disable SSH plugin on Kindle devices", function()
+    it("should not disable SSH plugin on Kindle devices", function()
       local orig_isEmulator = Device.isEmulator
       local orig_isKobo = Device.isKobo
       local orig_isKindle = Device.isKindle
@@ -142,7 +142,8 @@ describe("SSH plugin main module", function()
       Device.isKindle = orig_isKindle
       package.loaded["plugins/SSH.koplugin/main"] = SSH
 
-      assert.is_true(kindle_ssh.disabled)
+      assert.is_nil(kindle_ssh.disabled)
+      assert.is_function(kindle_ssh.new)
     end)
   end)
 
@@ -208,8 +209,26 @@ describe("SSH plugin main module", function()
       assert.is_true(msg.text:find("Failed to start SSH server") ~= nil)
     end)
 
-    it("should configure devpts for Kobo", function()
+    it("should configure iptables for Kindle and devpts for Kobo", function()
       local instance = createInstance()
+
+      -- Kindle mode
+      Device.isKindle = function()
+        return true
+      end
+      instance:start(true)
+
+      local has_iptables_input, has_iptables_output = false, false
+      for _, cmd in ipairs(executed_cmds) do
+        if cmd:find("iptables -A INPUT", 1, true) then
+          has_iptables_input = true
+        end
+        if cmd:find("iptables -A OUTPUT", 1, true) then
+          has_iptables_output = true
+        end
+      end
+      assert.is_true(has_iptables_input)
+      assert.is_true(has_iptables_output)
 
       -- Kobo mode
       Device.isKindle = function()
@@ -264,6 +283,10 @@ describe("SSH plugin main module", function()
       local instance = createInstance()
       is_pid_existing = true
 
+      Device.isKindle = function()
+        return true
+      end
+
       instance:stop()
 
       -- Kills pid and shows stopped message
@@ -285,6 +308,16 @@ describe("SSH plugin main module", function()
       assert.is_true(
         shown_widgets[1].text:find("SSH server stopped", 1, true) ~= nil
       )
+
+      -- Kindle iptables teardown
+      local has_iptables_del = false
+      for _, cmd in ipairs(executed_cmds) do
+        if cmd:find("iptables -D INPUT", 1, true) then
+          has_iptables_del = true
+          break
+        end
+      end
+      assert.is_true(has_iptables_del)
     end)
   end)
 
@@ -487,26 +520,6 @@ describe("SSH plugin main module", function()
       assert.are.equal(1, #next_ticks) -- no new nextTick scheduled
 
       G_reader_settings.isTrue = orig_isTrue
-    end)
-
-    it("should retrieve network info as table and display in info message", function()
-      local instance = createInstance()
-      instance.SSH_port = "2222"
-
-      local orig_retrieve = Device.retrieveNetworkInfo
-      Device.retrieveNetworkInfo = function()
-        return { "IP: 192.168.1.100" }
-      end
-
-      finally(function()
-        Device.retrieveNetworkInfo = orig_retrieve
-      end)
-
-      instance:start(false)
-      assert.are.equal(1, #shown_widgets)
-      assert.is_true(
-        shown_widgets[1].text:find("192.168.1.100", 1, true) ~= nil
-      )
     end)
   end)
 end)

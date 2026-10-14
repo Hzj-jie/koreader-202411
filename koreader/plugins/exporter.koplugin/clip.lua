@@ -183,20 +183,11 @@ function MyClipping:getTime(line)
 
   local _, _, hour, minute, second = line:find("(%d+):(%d+):(%d+)")
   if year and month and day and hour and minute and second then
-    hour = tonumber(hour)
-    local is_pm = false
-    for k in pairs(pms) do
+    for k, v in pairs(pms) do
       if line:find(k) then
-        is_pm = true
+        hour = hour + v
         break
       end
-    end
-    if is_pm then
-      if hour < 12 then
-        hour = hour + 12
-      end
-    elseif hour == 12 and (line:find("AM") or line:find("上午")) then
-      hour = 0
     end
     local time = os.time({
       year = year,
@@ -407,7 +398,6 @@ function MyClipping:getClippingsFromBook(clippings, doc_path)
     file = doc_path,
     title = title,
     author = author,
-    output_filename = util.getSafeFilename(title),
     number_of_pages = doc_settings:read("doc_pages"),
   }
   if doc_settings:has("annotations") then

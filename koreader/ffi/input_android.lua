@@ -322,7 +322,7 @@ function input.waitForEvent(sec, usec)
     return false, C.ETIME
   elseif poll_state == C.ALOOPER_POLL_ERROR then
     android.LOGE("Encountered a polling error!")
-    return false, ffi.errno()
+    return
   end
   -- NOTE: We never set callbacks, and we never call wake, so no need to check for ALOOPER_POLL_CALLBACK & ALOOPER_POLL_WAKE
 

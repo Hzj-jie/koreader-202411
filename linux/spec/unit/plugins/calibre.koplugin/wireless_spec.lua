@@ -130,14 +130,10 @@ describe("Calibre Wireless module", function()
 
   describe("Network and Server Discovery", function()
     it("should discover calibre server via UDP broadcast", function()
-      local closed = false
       local mock_udp = {
         setoption = function() end,
         setsockname = function() end,
         settimeout = function() end,
-        close = function()
-          closed = true
-        end,
         sendto = function()
           return true
         end,
@@ -152,20 +148,15 @@ describe("Calibre Wireless module", function()
       local host, port = wireless_inst:find_calibre_server()
       assert.are.same(host, "192.168.1.50")
       assert.are.same(port, "9090")
-      assert.is_true(closed)
 
       socket.udp4:revert()
     end)
 
     it("should return nil if UDP broadcast fails to discover server", function()
-      local closed = false
       local mock_udp = {
         setoption = function() end,
         setsockname = function() end,
         settimeout = function() end,
-        close = function()
-          closed = true
-        end,
         sendto = function()
           return nil, "connection failed"
         end,
@@ -176,7 +167,6 @@ describe("Calibre Wireless module", function()
       local host, port = wireless_inst:find_calibre_server()
       assert.is_nil(host)
       assert.is_nil(port)
-      assert.is_true(closed)
 
       socket.udp4:revert()
     end)

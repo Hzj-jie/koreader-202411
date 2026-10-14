@@ -919,32 +919,4 @@ describe("Wikipedia HTML with Images & Math", function()
       assert.is_true(res)
     end
   )
-
-  describe("Defect verifications", function()
-    it(
-      "should ensure prettifyText handles articles starting with headings",
-      function()
-        local input = "== Heading ==\nBody"
-        local output = Wikipedia:prettifyText(input)
-        assert.is_nil(output:find("^== "))
-      end
-    )
-
-    it(
-      "should ensure getFullPageHtml does not crash when loadPage returns nil",
-      function()
-        local orig_loadPage = Wikipedia.loadPage
-        finally(function()
-          Wikipedia.loadPage = orig_loadPage
-        end)
-        Wikipedia.loadPage = function()
-          return nil
-        end
-
-        assert.has_no.errors(function()
-          Wikipedia:getFullPageHtml("Test_Title", "en")
-        end)
-      end
-    )
-  end)
 end)

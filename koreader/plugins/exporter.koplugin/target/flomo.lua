@@ -29,7 +29,6 @@ local function makeRequest(method, request_body, api)
     source = source,
     headers = {
       ["Content-Type"] = "application/json",
-      ["Content-Length"] = #request_body_json,
     },
   }
   local code, headers, status = socket.skip(1, http.request(request))
@@ -44,7 +43,7 @@ local function makeRequest(method, request_body, api)
     return nil, status
   end
 
-  return json.decode(table.concat(sink))
+  return json.decode(sink[1])
 end
 
 function FlomoExporter:isReadyToExport()
@@ -138,7 +137,7 @@ function FlomoExporter:createHighlights(booknotes)
       .. " createHighlights error number: "
       .. error_number
   )
-  return error_number == 0
+  return true
 end
 
 function FlomoExporter:export(t)

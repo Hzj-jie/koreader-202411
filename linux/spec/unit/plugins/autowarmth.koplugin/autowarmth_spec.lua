@@ -21,8 +21,7 @@ describe("AutoWarmth plugin tests", function()
       return original_os_date(format, time_val)
     end
 
-    SunTime = require("plugins/autowarmth.koplugin/suntime")
-    package.loaded["suntime"] = SunTime
+    SunTime = require("suntime")
     stub(SunTime, "getTimezoneOffset")
     SunTime.getTimezoneOffset.returns(0)
   end)
@@ -726,7 +725,7 @@ describe("AutoWarmth plugin tests", function()
 
   describe("Defect verifications", function()
     it(
-      "exposes timezone update saving old timezone in scheduleMidnightUpdate",
+      "fails: exposes timezone update saving old timezone in scheduleMidnightUpdate",
       function()
         AutoWarmth.timezone = 0
         G_reader_settings:save("autowarmth_timezone", 0)
@@ -746,7 +745,7 @@ describe("AutoWarmth plugin tests", function()
       end
     )
 
-    it("guards nil sunset time in toggleFrontlight arithmetic", function()
+    it("fails: exposes toggleFrontlight checking sr instead of ss", function()
       AutoWarmth.fl_off_during_day = true
       AutoWarmth.fl_off_during_day_offset_s = 0
       AutoWarmth.current_times_h = {

@@ -65,7 +65,6 @@ function AutoTurn:_start()
 
   BackgroundTaskPlugin._start(self)
   PluginShare.pause_auto_suspend = true
-  self._paused_auto_suspend = true
 
   -- Show info message if enabled and started
   logger.dbg(
@@ -106,18 +105,12 @@ end
 
 function AutoTurn:_stop()
   BackgroundTaskPlugin._stop(self)
-  if self._paused_auto_suspend then
-    PluginShare.pause_auto_suspend = false
-    self._paused_auto_suspend = nil
-  end
+  PluginShare.pause_auto_suspend = false
 end
 
 function AutoTurn:onClose()
   BackgroundTaskPlugin.onClose(self)
-  if self._paused_auto_suspend then
-    PluginShare.pause_auto_suspend = false
-    self._paused_auto_suspend = nil
-  end
+  PluginShare.pause_auto_suspend = false
 end
 
 AutoTurn.onCloseDocument = AutoTurn.onClose

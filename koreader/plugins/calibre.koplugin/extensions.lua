@@ -78,7 +78,7 @@ function CalibreExtensions:getInfo()
 end
 
 function CalibreExtensions:isCustom()
-  return type(self.user_overrides) == "table"
+  return self.user_overrides ~= nil
 end
 
 return CalibreExtensions

@@ -1600,10 +1600,13 @@ function TextBoxWidget:scrollLines(nb_lines)
     return
   end
   self.image_show_alt_text = nil
-  local max_line_num =
-    math.max(1, #self.vertical_string_list - self.lines_per_page + 1)
-  local new_line_num =
-    Math.clamp(self.virtual_line_num + nb_lines, 1, max_line_num)
+  local new_line_num = self.virtual_line_num + nb_lines
+  if new_line_num < 1 then
+    new_line_num = 1
+  end
+  if new_line_num > #self.vertical_string_list - self.lines_per_page + 1 then
+    new_line_num = #self.vertical_string_list - self.lines_per_page + 1
+  end
   self.virtual_line_num = new_line_num
   self:free(false)
   self:_updateLayout()
@@ -1680,10 +1683,7 @@ function TextBoxWidget:scrollToRatio(ratio, force_to_page)
   if self.editable then
     -- move cursor to first line of visible area
     local ln = self.height == nil and 1 or self.virtual_line_num
-    self:moveCursorToCharPos(
-      self.vertical_string_list[ln] and self.vertical_string_list[ln].offset
-        or 1
-    )
+    self:moveCursorToCharPos(self.vertical_string_list[ln].offset)
   end
 end
 

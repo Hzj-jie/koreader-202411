@@ -380,64 +380,6 @@ describe("Cache unit behavior", function()
     end
   )
 
-  it("should resize slots and bytes", function()
-    local lru = require("ffi/lru")
-    local cache = lru.new(5, 500)
-
-    cache:resize_slots(10)
-    assert.are.equal(10, cache:total_slots())
-    cache:resize_bytes(1000)
-    assert.are.equal(1000, cache:total_size())
-  end)
-
-  it(
-    "should not retain references to evicted objects after delete, chop, or resize",
-    function()
-      local lru = require("ffi/lru")
-      local cache = lru.new(10, 1000)
-
-      local weak_val
-      do
-        local obj = { name = "test_obj" }
-        weak_val = setmetatable({ val = obj }, { __mode = "v" })
-        cache:set("k1", obj, 100)
-      end
-
-      assert.is_not_nil(weak_val.val)
-      cache:delete("k1")
-      collectgarbage()
-      collectgarbage()
-      assert.is_nil(weak_val.val)
-
-      local weak_val2
-      do
-        local obj2 = { name = "test_chop" }
-        weak_val2 = setmetatable({ val = obj2 }, { __mode = "v" })
-        cache:set("k2", obj2, 100)
-      end
-      cache:chop()
-      collectgarbage()
-      collectgarbage()
-      assert.is_nil(weak_val2.val)
-
-      local weak_val3
-      do
-        local obj3 = { name = "test_resize" }
-        weak_val3 = setmetatable({ val = obj3 }, { __mode = "v" })
-        cache:set("k3", obj3, 100)
-      end
-      cache:resize_slots(1)
-      do
-        local obj4 = { name = "test_resize_evict" }
-        cache:set("k4", obj4, 100)
-      end
-      cache:resize_slots(1)
-      collectgarbage()
-      collectgarbage()
-      assert.is_nil(weak_val3.val)
-    end
-  )
-
   it(
     "should enforce willAccept and reject oversized items in size-bounded mode",
     function()

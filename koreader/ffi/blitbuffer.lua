@@ -1387,7 +1387,7 @@ function BB.checkBounds(
   local target_left = target_size - target_offset
   local source_left = source_size - source_offset
   -- return corresponding values
-  if target_left <= 0 or source_left <= 0 or length <= 0 then
+  if target_left <= 0 or source_left <= 0 then
     return 0, 0, 0
   elseif length <= target_left and length <= source_left then
     -- length is the smallest value
@@ -3357,7 +3357,7 @@ local Jpeg -- lazy load ffi/jpeg
 function BB_mt.__index:getBufferData()
   local w, h = self:getWidth(), self:getHeight()
   local bbdump, source_ptr, stride
-  if self:getType() == TYPE_BBRGB24 and self:getRotation() == 0 then
+  if self:getType() == TYPE_BBRGB24 then
     source_ptr = ffi.cast(uint8pt, self.data)
     stride = self.stride
   else

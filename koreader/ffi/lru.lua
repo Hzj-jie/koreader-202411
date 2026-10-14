@@ -81,8 +81,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
         cut(tuple)
         size = size - 1
         bytes_used = bytes_used - tuple[BYTES]
-        tuple[VALUE] = nil
-        tuple[KEY] = nil
         removed_tuple = tuple
       end
     else
@@ -91,8 +89,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
         map[key] = nil
         cut(tuple)
         size = size - 1
-        tuple[VALUE] = nil
-        tuple[KEY] = nil
         removed_tuple = tuple
       end
     end
@@ -103,8 +99,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
         cut(tuple)
         size = size - 1
         bytes_used = bytes_used - tuple[BYTES]
-        tuple[VALUE] = nil
-        tuple[KEY] = nil
         removed_tuple = tuple
       end
     else
@@ -112,8 +106,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
         map[key] = nil
         cut(tuple)
         size = size - 1
-        tuple[VALUE] = nil
-        tuple[KEY] = nil
         removed_tuple = tuple
       end
     end
@@ -150,7 +142,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
     while size > half do
       del(oldest[KEY], oldest)
     end
-    removed_tuple = nil
   end
 
   local function get(_, key)
@@ -209,9 +200,7 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
   end
 
   local function delete(_, key)
-    local ret = set(_, key, nil)
-    removed_tuple = nil
-    return ret
+    return set(_, key, nil)
   end
 
   local function mynext(_, prev_key)
@@ -261,7 +250,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
       while size > new_size do
         del(oldest[KEY], oldest)
       end
-      removed_tuple = nil
       max_size = new_size
     else
       return
@@ -278,7 +266,6 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
         while bytes_used > new_bytes do
           del(oldest[KEY], oldest)
         end
-        removed_tuple = nil
         max_bytes = new_bytes
       else
         return

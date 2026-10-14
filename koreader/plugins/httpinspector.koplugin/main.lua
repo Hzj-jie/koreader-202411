@@ -1115,7 +1115,6 @@ local getOrderedDispatcherActions = function()
     end
     n = n + 1
   end
-  n = 1
   while true do
     local name, value = debug.getupvalue(Dispatcher.registerAction, n)
     if not name then

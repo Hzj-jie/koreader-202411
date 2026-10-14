@@ -452,10 +452,11 @@ function QuickStart:getQuickStart()
     -- purge old quickstart guides
     local iter, dir_obj = lfs.dir(quickstart_dir)
     for f in iter, dir_obj do
-      if f:match("^quickstart%-.+%.html$") then
-        local file_path = ("%s/%s"):format(quickstart_dir, f)
-        os.remove(file_path)
-        DocSettings:open(file_path):purge()
+      if f:match("quickstart-.*%.html") then
+        local file_abs_path =
+          FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
+        os.remove(file_abs_path)
+        DocSettings:open(file_abs_path):purge()
       end
     end
 
@@ -464,47 +465,45 @@ function QuickStart:getQuickStart()
       gettext("KOReader Quickstart Guide"),
       stylesheet
     )
-    if not quickstart_html then
-      return nil
-    end
-
-    -- Fix links to images, which are in KOReader install directory, which may not
-    -- be alongside help/ on some platforms like Android.
-    -- crengine won't accept full paths, so we need to make these relative
-    local src = FFIUtil.realpath(quickstart_dir) .. "/"
-    local dst = lfs.currentdir() .. "/"
-    -- Find the common leading directories
-    local idx = 0
-    while true do
-      local tst = src:find("/", idx + 1, true)
-      if tst and src:sub(1, tst) == dst:sub(1, tst) then
-        idx = tst
-      else
-        break
+    if quickstart_html then
+      -- Fix links to images, which are in KOReader install directory, which may not
+      -- be alongside help/ on some platforms like Android.
+      -- crengine won't accept full paths, so we need to make these relative
+      local src = FFIUtil.realpath(quickstart_dir) .. "/"
+      local dst = lfs.currentdir() .. "/"
+      -- Find the common leading directories
+      local idx = 0
+      while true do
+        local tst = src:find("/", idx + 1, true)
+        if tst and src:sub(1, tst) == dst:sub(1, tst) then
+          idx = tst
+        else
+          break
+        end
       end
+      -- Trim off the common directories from the front
+      src = src:sub(idx + 1)
+      dst = dst:sub(idx + 1)
+      -- Back up from dst to get to this common parent
+      local relpath = ""
+      idx = src:find("/")
+      while idx do
+        relpath = relpath .. "../"
+        idx = src:find("/", idx + 1)
+      end
+      -- Add the path down to dst from here
+      relpath = relpath .. dst
+      relpath = relpath:gsub("//", "/") -- make it prettier
+      quickstart_html = quickstart_html:gsub(
+        [[src="resources/]],
+        [[src="]] .. relpath .. [[resources/]]
+      )
+      if Language:isLanguageRTL(language) then
+        quickstart_html = quickstart_html:gsub("<html>", '<html dir="rtl">')
+      end
+      -- Write the fixed HTML content
+      util.writeToFile(quickstart_html, quickstart_filename)
     end
-    -- Trim off the common directories from the front
-    src = src:sub(idx + 1)
-    dst = dst:sub(idx + 1)
-    -- Back up from dst to get to this common parent
-    local relpath = ""
-    idx = src:find("/")
-    while idx do
-      relpath = relpath .. "../"
-      idx = src:find("/", idx + 1)
-    end
-    -- Add the path down to dst from here
-    relpath = relpath .. dst
-    relpath = relpath:gsub("//", "/") -- make it prettier
-    quickstart_html = quickstart_html:gsub(
-      [[src="resources/]],
-      [[src="]] .. relpath .. [[resources/]]
-    )
-    if Language:isLanguageRTL(language) then
-      quickstart_html = quickstart_html:gsub("<html>", '<html dir="rtl">')
-    end
-    -- Write the fixed HTML content
-    util.writeToFile(quickstart_html, quickstart_filename)
   end
   -- remember filename for file manager
   self.quickstart_filename = quickstart_filename

@@ -736,16 +736,10 @@ function page_mt.__index:draw_new(
     ffi.cast("unsigned char*", bb.data)
   )
   if pix == nil then
-    bb:free()
     merror("cannot allocate pixmap")
   end
 
-  local ok, err = pcall(run_page, self, pix, ctm)
-  if not ok then
-    M.fz_drop_pixmap(context(), pix)
-    bb:free()
-    error(err)
-  end
+  run_page(self, pix, ctm)
 
   if draw_context.gamma >= 0.0 then
     M.fz_gamma_pixmap(context(), pix, draw_context.gamma)
@@ -946,8 +940,7 @@ function mupdf.renderImage(data, size, width, height)
       M.fz_default_color_params,
       (ncomp == 4 and 1 or 0)
     )
-    if bgr_pixmap == nil then
-      M.fz_drop_pixmap(context(), pixmap)
+    if pixmap == nil then
       merror("could not convert pixmap to BGR")
     end
     M.fz_drop_pixmap(context(), pixmap)
