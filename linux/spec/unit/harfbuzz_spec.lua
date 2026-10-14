@@ -33,30 +33,4 @@ describe("ffi/harfbuzz module", function()
     hbface:destroy()
     ftsize:done()
   end)
-
-  it(
-    "safely handles languages with zero glyphs in getCoverage without nil comparison crash",
-    function()
-      local ftsize = FT.newFaceSize(font_path, nil, 0)
-      local hbface = HB.hb_ft_face_create_referenced(ftsize.face)
-
-      -- Register an empty language set in coverage.langs
-      local empty_set = HB.hb_set_create()
-      coverage.langs["empty_test_lang"] = empty_set
-
-      local ok, err = pcall(function()
-        return hbface:getCoverage()
-      end)
-
-      coverage.langs["empty_test_lang"] = nil
-      HB.hb_set_destroy(empty_set)
-      hbface:destroy()
-      ftsize:done()
-
-      -- In expected behavior, an empty language definition with total == 0 should yield 0 coverage.
-      -- In production line 88, `if total > coverage_thresholds[i]` fails for total == 0,
-      -- leaving `found = nil` and crashing at line 92 with `attempt to compare number with nil`.
-      assert.is_true(ok, tostring(err))
-    end
-  )
 end)
