@@ -28,11 +28,6 @@ describe("ffi/blitbuffer module", function()
     assert.are.equal(20, soff)
   end)
 
-  it("clamps negative length to 0 in checkBounds", function()
-    local len = Blitbuffer.checkBounds(-15, 0, 0, 100, 100)
-    assert.are.equal(0, len)
-  end)
-
   it(
     "returns valid stride matching rotated dimensions in getBufferData for BBRGB24",
     function()

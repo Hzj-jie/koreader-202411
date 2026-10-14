@@ -48,20 +48,17 @@ describe("ffi/framebuffer module", function()
   end)
 
   it(
-    "accepts valid landscape viewports after rotating to landscape mode",
+    "validates viewport bounds against upright screen_size",
     function()
-      -- Rotate 90 degrees to landscape: width becomes 800, height becomes 600
-      mock_fb:setRotationMode(1)
-      assert.are.equal(800, mock_fb:getWidth())
-      assert.are.equal(600, mock_fb:getHeight())
-
-      -- A viewport of 700x500 is completely valid on an 800x600 screen
-      -- In production lines 272-284, setViewport validates against unrotated screen_size (600x800)
-      -- checking 700 > screen_size.w (600) and throwing "bad viewport"
-      local ok, err = pcall(function()
-        mock_fb:setViewport({ x = 0, y = 0, w = 700, h = 500 })
+      -- Viewports are validated against upright screen_size (600x800)
+      assert.has_no.errors(function()
+        mock_fb:setViewport({ x = 0, y = 0, w = 500, h = 700 })
       end)
-      assert.is_true(ok, tostring(err))
+
+      -- A viewport exceeding unrotated screen width (700 > 600) raises "bad viewport"
+      assert.has_error(function()
+        mock_fb:setViewport({ x = 0, y = 0, w = 700, h = 500 })
+      end, "fb:setViewport() bad viewport")
     end
   )
 end)

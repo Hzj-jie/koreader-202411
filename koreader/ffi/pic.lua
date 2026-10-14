@@ -195,10 +195,7 @@ function GifDocument:openPage(number)
       for x = f_x, f_x + f_w - 1 do
         if x >= 0 and x < width and y >= 0 and y < height then
           if not transparent_color or p[0] ~= transparent_color then
-            local color = palette[p[0]]
-            if color then
-              bb:setPixel(x, y, color)
-            end
+            bb:setPixel(x, y, palette[p[0]])
           end
         end
         p = p + 1
