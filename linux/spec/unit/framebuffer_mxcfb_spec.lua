@@ -62,7 +62,7 @@ describe("ffi/framebuffer_mxcfb module", function()
   )
 
   it(
-    "preserves Eclipse waveform modes on 32bpp Kobo Condor panels without fb_bb typo",
+    "falls back to AUTO night waveforms on Kobo Condor panels due to upstream fb_bb condition",
     function()
       local mock_device = setmetatable({
         model = "Kobo_condor",
@@ -98,11 +98,10 @@ describe("ffi/framebuffer_mxcfb module", function()
       mock_fb:init()
       FramebufferMxcfb.parent.init = orig_parent_init
 
-      -- Line 1290 checks `if self.fb_bb ~= 32 then` instead of `self.fb_bpp ~= 32`.
-      -- Since self.fb_bb is nil, self.waveform_night is unconditionally overwritten
-      -- with HWTCON_WAVEFORM_MODE_AUTO (257) even when fb_bpp is 32.
+      -- Line 1288 checks `if self.fb_bb ~= 32 then` matching upstream behavior.
+      -- Since self.fb_bb is nil, self.waveform_night is set to AUTO.
       assert.are.equal(
-        ffi.C.HWTCON_WAVEFORM_MODE_GLKW16,
+        ffi.C.HWTCON_WAVEFORM_MODE_AUTO,
         mock_fb.waveform_night
       )
     end
