@@ -625,10 +625,12 @@ function ReaderAnnotation:getNumberOfHighlightsAndNotes() -- for Statistics plug
   local highlights = 0
   local notes = 0
   for _, item in ipairs(self.annotations) do
-    if item.note and item.note ~= "" then
-      notes = notes + 1
-    elseif item.drawer then
-      highlights = highlights + 1
+    if item.drawer then
+      if item.note then
+        notes = notes + 1
+      else
+        highlights = highlights + 1
+      end
     end
   end
   return highlights, notes

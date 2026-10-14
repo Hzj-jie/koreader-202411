@@ -1453,7 +1453,7 @@ describe("ReaderAnnotation module", function()
 
   describe("Defect verifications", function()
     it(
-      "getNumberOfHighlightsAndNotes counts page notes with nil drawer",
+      "getNumberOfHighlightsAndNotes counts items with drawer",
       function()
         local annotation = ReaderAnnotation:new({
           ui = {},
@@ -1461,8 +1461,11 @@ describe("ReaderAnnotation module", function()
         })
         annotation.annotations = {
           { page = 3, note = "Chapter notes" },
+          { page = 4, drawer = "lighten", note = "Drawer note" },
+          { page = 5, drawer = "underscore" },
         }
-        local _, notes = annotation:getNumberOfHighlightsAndNotes()
+        local highlights, notes = annotation:getNumberOfHighlightsAndNotes()
+        assert.are.equal(1, highlights)
         assert.are.equal(1, notes)
       end
     )
