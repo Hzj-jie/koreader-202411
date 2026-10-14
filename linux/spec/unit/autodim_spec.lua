@@ -150,7 +150,7 @@ describe("AutoDim widget tests", function()
   )
 
   it(
-    "_rampTask restores frontlight and closes trap_widget when _shouldNotDim becomes true",
+    "_rampTask leaves trap_widget shown on user action until tap dismiss",
     function()
       local PluginShare = require("pluginshare")
       Device:getPowerDevice():setIntensity(10)
@@ -160,25 +160,21 @@ describe("AutoDim widget tests", function()
       assert.is_not_nil(AutoDim.trap_widget)
       assert.is_true(PluginShare.DeviceIdling)
 
-      -- Simulate user action interrupting ramp down
+      -- Touch-down bumps last user action time before tap dismiss
       UIManager:updateLastUserActionTime()
       assert.is_true(AutoDim:_shouldNotDim())
 
+      -- _rampTask leaves trap_widget shown, intensity unchanged
       AutoDim:_rampTask(9, 0.15)
+      assert.is_not_nil(AutoDim.trap_widget)
+      assert.are.equal(9, Device:getPowerDevice():frontlightIntensity())
+      assert.is_true(PluginShare.DeviceIdling)
 
-      assert.is_nil(
-        AutoDim.trap_widget,
-        "trap_widget should be closed when dimming is interrupted"
-      )
-      assert.are.equal(
-        10,
-        Device:getPowerDevice():frontlightIntensity(),
-        "frontlight should be restored"
-      )
-      assert.is_false(
-        PluginShare.DeviceIdling,
-        "DeviceIdling flag should be cleared"
-      )
+      -- Tap dismiss restores intensity and clears DeviceIdling
+      AutoDim.trap_widget:onTapDismiss()
+      assert.is_nil(AutoDim.trap_widget)
+      assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
+      assert.is_false(PluginShare.DeviceIdling)
     end
   )
 end)

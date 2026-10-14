@@ -104,6 +104,7 @@ describe("Game2048 main plugin module", function()
       instance.storage:switchGameState(state)
       assert.are.equal(state.profile, "uninitialized_profile")
       assert.are.equal(state.info.best, 0)
+      assert.are.equal(state.history:current().info.best, 0)
       assert.are.equal(state.board:getSize(), 5)
     end
   )
