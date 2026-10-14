@@ -305,17 +305,21 @@ function CalibreSearch:bookCatalog(t, option)
     local entry = {}
     entry.info = getBookInfo(book)
     entry.path = book.rootpath .. "/" .. book.lpath
-    local author = (book.authors and book.authors[1]) or "-"
     if series and book.series_index then
       local major, minor =
         string.format("%05.2f", book.series_index):match("([^.]+)%.([^.]+)")
       if minor ~= "00" then
         subseries = true
       end
-      entry.text =
-        string.format("%s.%s | %s - %s", major, minor, book.title, author)
+      entry.text = string.format(
+        "%s.%s | %s - %s",
+        major,
+        minor,
+        book.title,
+        book.authors[1]
+      )
     else
-      entry.text = string.format("%s - %s", book.title, author)
+      entry.text = string.format("%s - %s", book.title, book.authors[1])
     end
     entry.callback = function()
       local Event = require("ui/event")

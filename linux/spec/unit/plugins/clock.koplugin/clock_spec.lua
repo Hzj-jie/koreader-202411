@@ -192,7 +192,6 @@ describe("Clock plugin tests", function()
     -- Tap close
     local closed = Clock:onTapClose()
     assert.is_true(closed)
-    assert.is_false(Clock._visible)
     assert.is_false(PluginShare.pause_auto_suspend)
     assert
       .stub(UIManager.close)

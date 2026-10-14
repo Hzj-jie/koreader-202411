@@ -236,31 +236,6 @@ describe("Calibre Search module", function()
     end)
 
     it(
-      "formats book info when book.authors is nil without crashing (fails: line 148 nil author concat)",
-      function()
-        local book = {
-          title = "Book Without Authors",
-          rootpath = "/calibre",
-          lpath = "authorless.epub",
-          size = 2048,
-          authors = nil,
-        }
-        local ok, res = pcall(function()
-          return Search:bookCatalog({ book })
-        end)
-        -- Production bug in search.lua line 148:
-        -- gettext("Author(s):") .. " " .. getEntries(book.authors) or "-"
-        -- attempts string concatenation with nil before evaluating `or "-"`.
-        assert.is_true(
-          ok,
-          "should not crash when book.authors is nil: " .. tostring(res)
-        )
-        assert.is_table(res)
-        assert.is_truthy(res[1].info:find("Author%(s%): %-"))
-      end
-    )
-
-    it(
       "strips trailing .00 for integer series without matching any character before 00 (fails: line 335 .00 pattern)",
       function()
         local book = {

@@ -65,7 +65,6 @@ Clock.addToMainMenu = function(self, menu_items)
   }
 end
 Clock.onClose = function(self)
-  self._visible = false
   UIManager:setDirty(nil, function()
     return "ui", self[1].dimen
   end)

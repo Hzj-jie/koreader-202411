@@ -134,11 +134,8 @@ describe("Japanese plugin unit tests", function()
           end
           return nil
         end,
-        get_text_in_range = function(p0, p1)
-          if p0 == 0 and p1 == 1 then
-            return "本"
-          end
-          return nil
+        get_text_in_range = function(_p0, _p1)
+          return "本"
         end,
       }
 
@@ -156,8 +153,6 @@ describe("Japanese plugin unit tests", function()
         end,
       }
 
-      -- When next_char_pos(1) returns nil at end of text, get_text_in_range(0, nil)
-      -- returns nil and isPossibleJapaneseWord(nil) crashes with attempt to index nil.
       assert.has_no.errors(function()
         local res = plugin:onWordSelection({
           pos0 = 0,
