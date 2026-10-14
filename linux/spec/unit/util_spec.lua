@@ -1,4 +1,3 @@
--- luacheck: ignore 122
 describe("util module", function()
   local DataStorage, lfs, util, ffiUtil
   setup(function()
@@ -1565,5 +1564,4 @@ describe("util module", function()
       assert.is_truthy(err)
     end)
   end)
-
 end)
