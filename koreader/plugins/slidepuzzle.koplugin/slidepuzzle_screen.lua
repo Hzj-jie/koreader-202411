@@ -66,7 +66,7 @@ function Screen:init()
   self.live_tick_accum = 0 -- seconds ticked during current run (not yet folded into game.elapsed)
   self.tick_scheduled = false
   if Device:hasKeys() then
-    self.key_events.CloseWidget = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   self.header_text = TextWidget:new({
     face = Font:getFace("smallinfofont"),
@@ -516,7 +516,7 @@ function Screen:showStats()
   }))
 end
 
-function Screen:onCloseWidget()
+function Screen:onExit()
   UIManager:close(self)
   return true
 end

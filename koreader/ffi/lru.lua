@@ -209,9 +209,8 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
   end
 
   local function delete(_, key)
-    local ret = set(_, key, nil)
+    set(_, key, nil)
     removed_tuple = nil
-    return ret
   end
 
   local function mynext(_, prev_key)

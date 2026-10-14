@@ -131,7 +131,7 @@ describe("SlidePuzzle Screen module", function()
   )
 
   it(
-    "should close screen widget through UIManager on onCloseWidget without recursion",
+    "should close screen widget through UIManager on onExit without recursion",
     function()
       local game = Game:new(3)
       local screen = Screen:new({
@@ -141,7 +141,7 @@ describe("SlidePuzzle Screen module", function()
       UIManager:show(screen)
       assert.is_true(UIManager:isWindowWidget(screen))
 
-      screen:onCloseWidget()
+      screen:onExit()
       assert.is_false(UIManager:isWindowWidget(screen))
     end
   )
