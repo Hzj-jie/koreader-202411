@@ -223,20 +223,21 @@ describe("Calibre plugin main module", function()
         local plugin = Calibre:new({
           ui = { menu = { registerToMainMenu = function() end } },
         })
-        local dummy_socket = { stop = function() end }
+        local socket_stopped = false
+        local dummy_socket = {
+          stop = function()
+            socket_stopped = true
+          end,
+        }
         CalibreWireless.calibre_socket = dummy_socket
-        local orig_disconnect = CalibreWireless.disconnect
-        CalibreWireless.disconnect = function()
-          CalibreWireless.calibre_socket = nil
-        end
 
         finally(function()
           CalibreWireless.calibre_socket = nil
-          CalibreWireless.disconnect = orig_disconnect
         end)
 
         plugin:closeWirelessConnection()
         assert.is_nil(CalibreWireless.calibre_socket)
+        assert.is_true(socket_stopped)
       end
     )
 
