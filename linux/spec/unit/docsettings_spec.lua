@@ -1993,11 +1993,15 @@ describe("docsettings module", function()
 
     before_each(function()
       orig_metadata_folder =
-        G_reader_settings:readSetting("document_metadata_folder")
+        G_reader_settings:read("document_metadata_folder")
     end)
 
     after_each(function()
-      G_reader_settings:save("document_metadata_folder", orig_metadata_folder)
+      if orig_metadata_folder ~= nil then
+        G_reader_settings:save("document_metadata_folder", orig_metadata_folder)
+      else
+        G_reader_settings:delete("document_metadata_folder")
+      end
     end)
 
     it(

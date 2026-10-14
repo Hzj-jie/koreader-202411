@@ -71,11 +71,19 @@ describe("ffi/jpeg module", function()
       }, { __index = orig_turbojpeg })
 
       local BlitBuffer = require("ffi/blitbuffer")
-      local orig_bb_free = BlitBuffer.free
+      local orig_bb_new = BlitBuffer.new
       local bb_freed = false
-      BlitBuffer.free = function(self_bb)
-        bb_freed = true
-        return orig_bb_free(self_bb)
+      BlitBuffer.new = function(...)
+        local real_bb = orig_bb_new(...)
+        return setmetatable({
+          free = function(self)
+            bb_freed = true
+            return real_bb:free()
+          end,
+        }, {
+          __index = real_bb,
+          __newindex = real_bb,
+        })
       end
 
       debug.setupvalue(Jpeg.openDocumentFromMem, 1, mock_turbojpeg)
@@ -85,7 +93,7 @@ describe("ffi/jpeg module", function()
       end)
 
       debug.setupvalue(Jpeg.openDocumentFromMem, 1, orig_turbojpeg)
-      BlitBuffer.free = orig_bb_free
+      BlitBuffer.new = orig_bb_new
 
       assert.is_false(ok)
       assert.is_not_nil(string.match(tostring(err), "decoding JPEG file"))

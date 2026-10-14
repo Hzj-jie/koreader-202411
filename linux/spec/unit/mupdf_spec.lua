@@ -98,11 +98,19 @@ describe("ffi/mupdf module", function()
       }, { __index = orig_W })
 
       local BlitBuffer = require("ffi/blitbuffer")
-      local orig_bb_free = BlitBuffer.free
+      local orig_bb_new = BlitBuffer.new
       local bb_freed = false
-      BlitBuffer.free = function(self_bb)
-        bb_freed = true
-        return orig_bb_free(self_bb)
+      BlitBuffer.new = function(...)
+        local real_bb = orig_bb_new(...)
+        return setmetatable({
+          free = function(self)
+            bb_freed = true
+            return real_bb:free()
+          end,
+        }, {
+          __index = real_bb,
+          __newindex = real_bb,
+        })
       end
 
       debug.setupvalue(mupdf.renderImage, 1, mock_W)
@@ -112,7 +120,7 @@ describe("ffi/mupdf module", function()
       end)
 
       debug.setupvalue(mupdf.renderImage, 1, orig_W)
-      BlitBuffer.free = orig_bb_free
+      BlitBuffer.new = orig_bb_new
       page:close()
       doc:close()
 

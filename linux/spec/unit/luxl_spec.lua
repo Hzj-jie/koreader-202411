@@ -99,18 +99,20 @@ describe("luxl", function()
   end)
 
   it("resets internal state via Reset", function()
-    local lx = luxl.new("<tag>first</tag>", 16)
-    local ev1, text1 = lx:Lex()
+    local str1 = "<tag>first</tag>"
+    local lx = luxl.new(str1, #str1)
+    local ev1, offset1, size1 = lx:GetNext()
     assert.are.equal(luxl.EVENT_START, ev1)
-    assert.are.equal("tag", text1)
+    assert.are.equal("tag", str1:sub(offset1 + 1, offset1 + size1))
 
-    lx:Reset("<second>val</second>", 20)
-    assert.are.equal(20, lx.bufsz)
+    local str2 = "<second>val</second>"
+    lx:Reset(str2, #str2)
+    assert.are.equal(#str2, lx.bufsz)
     assert.are.equal(0, lx.markix)
 
-    local ev2, text2 = lx:Lex()
+    local ev2, offset2, size2 = lx:GetNext()
     assert.are.equal(luxl.EVENT_START, ev2)
-    assert.are.equal("second", text2)
+    assert.are.equal("second", str2:sub(offset2 + 1, offset2 + size2))
   end)
 
   it(

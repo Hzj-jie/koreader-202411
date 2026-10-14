@@ -19,7 +19,7 @@ describe("Gestures plugin", function()
   end)
 
   before_each(function()
-    orig_rtl = G_reader_settings:readSetting("gesture_fmui_lang_direction_rtl")
+    orig_rtl = G_reader_settings:read("gesture_fmui_lang_direction_rtl")
     test_gestures_file = DataStorage:getSettingsDir()
       .. "/test_gestures_"
       .. os.time()
@@ -54,6 +54,8 @@ describe("Gestures plugin", function()
 
     if orig_rtl ~= nil then
       G_reader_settings:save("gesture_fmui_lang_direction_rtl", orig_rtl)
+    else
+      G_reader_settings:delete("gesture_fmui_lang_direction_rtl")
     end
 
     if test_gestures_file then
