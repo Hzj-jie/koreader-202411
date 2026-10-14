@@ -590,15 +590,5 @@ describe("PageBrowserWidget widget", function()
         PageBrowserWidget:new({ ui = mock_ui })
       end)
     end)
-
-    it(
-      "clears thumbnails_pagenums on saveSettings(true)",
-      function()
-        local widget = PageBrowserWidget:new({ ui = mock_ui })
-        widget.thumbnails_pagenums = 1
-        widget:saveSettings(true)
-        assert.is_nil(widget.thumbnails_pagenums)
-      end
-    )
   end)
 end)

@@ -279,12 +279,7 @@ function TextViewer:init(reinit)
       hold_callback = self.default_hold_callback,
     },
   }
-  local buttons = {}
-  if self.buttons_table then
-    for _, row in ipairs(self.buttons_table) do
-      table.insert(buttons, row)
-    end
-  end
+  local buttons = self.buttons_table or {}
   if self.add_default_buttons or not self.buttons_table then
     table.insert(buttons, default_buttons)
   end
@@ -651,9 +646,6 @@ function TextViewer:setTextBold(start_pos, len)
       table.insert(charlist, TextBoxWidget.PTF_BOLD_END)
     end
     table.insert(charlist, char)
-  end
-  if end_pos > #self.charlist then
-    table.insert(charlist, TextBoxWidget.PTF_BOLD_END)
   end
   self.text = table.concat(charlist)
   self:reinit()

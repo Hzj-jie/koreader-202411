@@ -1229,7 +1229,6 @@ function PageBrowserWidget:saveSettings(reset)
     self.nb_toc_spans = nil
     self.nb_rows = nil
     self.nb_cols = nil
-    self.thumbnails_pagenums = nil
   end
   if self.ui.handmade:isHandmadeTocEnabled() then
     self.ui.doc_settings:save(

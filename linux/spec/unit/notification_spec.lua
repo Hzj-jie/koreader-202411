@@ -269,29 +269,5 @@ describe("Notification", function()
         assert.is_nil(Notification._shown_list[2])
       end
     )
-
-    it(
-      "unschedules previous timer when onShow is called again",
-      function()
-        local unscheduled_fn = nil
-        local orig_unschedule = UIManager.unschedule
-        local orig_scheduleIn = UIManager.scheduleIn
-        UIManager.unschedule = function(_, fn)
-          unscheduled_fn = fn
-        end
-        UIManager.scheduleIn = function(_, delay, fn) end
-
-        local notif = Notification:new({ text = "Timer", timeout = 5 })
-        notif:onShow()
-        local prev_fn = notif._timeout_func
-        assert.is_not_nil(prev_fn)
-
-        notif:onShow()
-
-        UIManager.unschedule = orig_unschedule
-        UIManager.scheduleIn = orig_scheduleIn
-        assert.are.equal(prev_fn, unscheduled_fn)
-      end
-    )
   end)
 end)

@@ -2025,7 +2025,8 @@ describe("docsettings module", function()
       function()
         local doc_path = "/books/[Sci-Fi]/Dune.epub"
         local hist_path = docsettings:getHistoryPath(doc_path)
-        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_path))
+        local _, hist_name = util.splitFilePathName(hist_path)
+        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_name))
       end
     )
   end)

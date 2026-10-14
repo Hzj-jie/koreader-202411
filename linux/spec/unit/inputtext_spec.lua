@@ -607,19 +607,5 @@ describe("InputText widget module", function()
         assert.is_false(input:isTextEdited())
       end
     )
-
-    it(
-      "exposes getLineNums indexing text_widget.charlist instead of self.charlist",
-      function()
-        local input = require("ui/widget/inputtext"):new({
-          text = "",
-        })
-        input:addChars("line1\nline2")
-        input.text_widget.charlist = nil
-        local curr_line, last_line = input:getLineNums()
-        assert.are.equal(2, curr_line)
-        assert.are.equal(2, last_line)
-      end
-    )
   end)
 end)

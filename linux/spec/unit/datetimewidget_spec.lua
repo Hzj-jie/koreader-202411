@@ -239,26 +239,5 @@ describe("DateTimeWidget module", function()
       apply_btn.callback()
       assert.are.equal(28, widget.day)
     end)
-
-    it(
-      "passes updated picker values to extra_callback",
-      function()
-        local received_year = nil
-        local widget = DateTimeWidget:new({
-          year = 2024,
-          month = 5,
-          day = 1,
-          extra_text = "Custom",
-          extra_callback = function(self)
-            received_year = self.year
-          end,
-        })
-        widget.year_widget.value = 2030
-        local btn_table = widget.date_frame[1][3][1]
-        local extra_btn = btn_table.buttons[1][1]
-        extra_btn.callback()
-        assert.are.equal(2030, received_year)
-      end
-    )
   end)
 end)

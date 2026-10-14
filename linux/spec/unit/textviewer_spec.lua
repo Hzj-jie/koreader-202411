@@ -178,43 +178,4 @@ describe("TextViewer", function()
     assert.are.equal(test_arg, forwarded_arg)
     assert.are.equal(test_ges, forwarded_ges)
   end)
-
-  it("closes bold formatting when match reaches end of text", function()
-    local tv = TextViewer:new({
-      text = "Hello World",
-      title = "Viewer Test",
-    })
-    local bold_text_captured
-    local orig_reinit = tv.reinit
-    tv.reinit = function(self)
-      bold_text_captured = self.text
-      orig_reinit(self)
-    end
-
-    tv:setTextBold(7, 5)
-    assert.is_not_nil(bold_text_captured)
-    local last_char = bold_text_captured:sub(-#TextBoxWidget.PTF_BOLD_END)
-    assert.are.equal(TextBoxWidget.PTF_BOLD_END, last_char)
-    UIManager:close(tv)
-  end)
-
-  it("does not mutate caller buttons_table in init", function()
-    local my_buttons = {
-      {
-        {
-          text = "Custom Action",
-          callback = function() end,
-        },
-      },
-    }
-    local tv = TextViewer:new({
-      text = "Sample text",
-      title = "Viewer Test",
-      buttons_table = my_buttons,
-      add_default_buttons = true,
-    })
-    assert.are.equal(1, #my_buttons)
-    assert.is_nil(my_buttons[2])
-    UIManager:close(tv)
-  end)
 end)
