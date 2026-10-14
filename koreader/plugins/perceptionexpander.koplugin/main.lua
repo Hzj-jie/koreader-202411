@@ -51,12 +51,11 @@ function PerceptionExpander:readSettingsFile()
     LuaSettings:open(DataStorage:getSettingsDir() .. "/perception_expander.lua")
 end
 
-function PerceptionExpander:getDisplayMargin(margin)
-  margin = margin or self.margin
+function PerceptionExpander:getDisplayMargin()
   if Screen:getScreenMode() == "landscape" then
-    return margin - self.margin_shift
+    return self.margin - self.margin_shift
   end
-  return margin
+  return self.margin
 end
 
 function PerceptionExpander:createUI(readSettings)
