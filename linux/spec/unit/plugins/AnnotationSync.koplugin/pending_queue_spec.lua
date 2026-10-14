@@ -201,6 +201,7 @@ describe("AnnotationSync pending queue", function()
 
       local shown_widgets = {}
       local orig_show = UIManager.show
+      local orig_sync_now = manager.syncNow
       UIManager.show = function(ui_mgr, widget, ...)
         table.insert(shown_widgets, widget)
         return orig_show(ui_mgr, widget, ...)
@@ -208,6 +209,7 @@ describe("AnnotationSync pending queue", function()
 
       finally(function()
         manager.running = nil
+        manager.syncNow = orig_sync_now
         UIManager.show = orig_show
         for _, w in ipairs(shown_widgets) do
           UIManager:closeIfShown(w)
@@ -232,7 +234,6 @@ describe("AnnotationSync pending queue", function()
       assert.is_function(menu.item_table[2].callback)
 
       -- Invoke callback on B.epub to trigger ConfirmBox
-      local orig_sync_now = manager.syncNow
       local synced_file
       manager.syncNow = function(mgr, file)
         synced_file = file
@@ -251,8 +252,6 @@ describe("AnnotationSync pending queue", function()
       confirm_box.ok_callback()
       assert.are.equal(path_b, synced_file)
       assert.is_true(switch_called)
-
-      manager.syncNow = orig_sync_now
     end
   )
 end)

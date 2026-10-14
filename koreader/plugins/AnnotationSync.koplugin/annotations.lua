@@ -79,14 +79,12 @@ function M.merge(local_list, base_list, income_list)
     local by_page = {}
     for _, item in ipairs(list) do
       local p = item.page
-      if p ~= nil then
-        local bucket = by_page[p]
-        if not bucket then
-          bucket = {}
-          by_page[p] = bucket
-        end
-        table.insert(bucket, item)
+      local bucket = by_page[p]
+      if not bucket then
+        bucket = {}
+        by_page[p] = bucket
       end
+      table.insert(bucket, item)
     end
     return by_page
   end
