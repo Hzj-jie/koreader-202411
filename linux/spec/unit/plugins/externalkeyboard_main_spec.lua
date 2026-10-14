@@ -257,28 +257,32 @@ describe("ExternalKeyboard main plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "closes input device by path when fdopen fails or device is already registered",
+      "closes duplicate event_fd when device path is already registered without closing live device",
       function()
         local inst = ExternalKeyboard:new({
           ui = { menu = { registerToMainMenu = function() end } },
         })
 
-        local closed_fds = {}
+        local closed_paths = {}
         local orig_input = Device.input
         Device.input = {
-          fdopen = function(self_in, fd, path, name)
-            error("fdopen failed: EIO")
+          fdopen = function()
+            error("fdopen should not be called for already-registered path")
           end,
-          close = function(self_in, fd_or_path)
-            closed_fds[fd_or_path] = true
+          close = function(self_in, path)
+            closed_paths[path] = true
           end,
           event_map = {},
         }
+
+        local dummy_fd = ffi.C.open("/dev/null", 0)
+        assert.is_true(dummy_fd >= 0)
 
         finally(function()
           Device.input = orig_input
           ExternalKeyboard.keyboard_fds = {}
           ExternalKeyboard.connected_keyboards = 0
+          ffi.C.close(dummy_fd)
           while #UIManager._window_stack > 0 do
             UIManager:close(
               UIManager._window_stack[#UIManager._window_stack].widget
@@ -286,8 +290,11 @@ describe("ExternalKeyboard main plugin module", function()
           end
         end)
 
+        local live_fd = 99
+        ExternalKeyboard.keyboard_fds["/dev/input/event15"] = live_fd
+
         local kb_data = {
-          event_fd = 42,
+          event_fd = dummy_fd,
           event_path = "/dev/input/event15",
           name = "Defect Keyboard",
           has_dpad = false,
@@ -295,8 +302,16 @@ describe("ExternalKeyboard main plugin module", function()
 
         inst:setupKeyboard(kb_data)
 
-        -- If Device.input.fdopen fails, event_path must be closed to avoid leaking file descriptors.
-        assert.is_true(closed_fds["/dev/input/event15"])
+        -- Live device should not be closed and keyboard_fds entry stays
+        assert.is_nil(closed_paths["/dev/input/event15"])
+        assert.are.equal(
+          live_fd,
+          ExternalKeyboard.keyboard_fds["/dev/input/event15"]
+        )
+
+        -- Duplicate scan fd must have been closed by C.close
+        assert.are.equal(-1, ffi.C.close(dummy_fd))
+        assert.are.equal(9, ffi.errno())
       end
     )
   end)
