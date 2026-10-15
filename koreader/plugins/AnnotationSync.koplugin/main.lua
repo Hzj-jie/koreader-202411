@@ -16,6 +16,7 @@ local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
+local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
@@ -44,18 +45,6 @@ AnnotationSyncPlugin.default_settings = {
 
 function AnnotationSyncPlugin:init()
   self.ui.menu:registerToMainMenu(self)
-
-  -- Ensure the plugin is in the ReaderUI event chain
-  local found = false
-  for __, child in ipairs(self.ui) do
-    if child == self then
-      found = true
-      break
-    end
-  end
-  if not found then
-    table.insert(self.ui, self)
-  end
 
   self:onDispatcherRegisterActions()
 
@@ -309,6 +298,7 @@ end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
+  annotations.normalize(merged_list)
 
   if self.ui.document == document then
     -- 1. Sort using core's comparator
@@ -415,13 +405,7 @@ function AnnotationSyncPlugin:onSyncServiceConfirm(server)
 end
 
 function AnnotationSyncPlugin:manualSync()
-  local document = self.ui.document
-  local file = document and document.file
-  if not file then
-    utils.show_msg(gettext("No book is open."))
-    return
-  end
-  self.manager:syncNow(file)
+  self.manager:syncNow(self.ui.document.file)
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()
@@ -450,11 +434,7 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   self.manager:addToChangedDocumentsFile(document.file)
 
   if not silent then
-    if #anns == 1 then
-      utils.show_msg(gettext("Annotation restored."))
-    else
-      utils.show_msg(T(gettext("Restored %1 annotations."), #anns))
-    end
+    utils.show_msg(gettext("Annotation restored."))
   end
 end
 
@@ -462,49 +442,16 @@ function AnnotationSyncPlugin:restoreAnnotation(ann, silent)
   self:restoreAnnotations({ ann }, silent)
 end
 
-function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
+function AnnotationSyncPlugin:onAnnotationsModified(_)
   if self.is_applying_sync then
     return
   end
 
-  -- only want to handle each changed file once, so let's keep track
-  local changed_files = {}
-  local unknown_file = "unknown_file"
-
-  -- find changed files for payload annotations
-  for __, annotation in ipairs(modified_annotations) do
-    local changed_file = annotation.book_path
-    -- AnnotationsModified event payload does not include book_path for an active document
-    if not changed_file then
-      changed_file = self.ui.document and self.ui.document.file
-    end
-    if not changed_file then
-      changed_file = unknown_file
-    end
-    local count = changed_files[changed_file]
-    changed_files[changed_file] = (count and count + 1) or 1
-  end
-
-  -- handle changed files
-  for changed_file, changes in pairs(changed_files) do
-    if changed_file == unknown_file then
-      if changes > 0 then
-        logger.warn(
-          "AnnotationSync: Document annotations modification detected, but could not determine file for",
-          changes,
-          "annotations"
-        )
-      end
-    else
-      logger.dbg(
-        "AnnotationSync:",
-        changes,
-        "Document annotations modified:",
-        changed_file
-      )
-      self.manager:addToChangedDocumentsFile(changed_file)
-    end
-  end
+  logger.dbg(
+    "AnnotationSync: Document annotations modified:",
+    self.ui.document.file
+  )
+  self.manager:addToChangedDocumentsFile(self.ui.document.file)
 end
 
 function AnnotationSyncPlugin:showChangedSettings()

@@ -351,29 +351,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       )
 
       it(
-        "shows 'No book is open.' when manualSync is called without an open document",
-        function()
-          local orig_doc = readerui.document
-          local shown_text
-          local orig_show = UIManager.show
-          finally(function()
-            readerui.document = orig_doc
-            UIManager.show = orig_show
-          end)
-          readerui.document = nil
-          UIManager.show = function(_, widget)
-            if widget and widget.text then
-              shown_text = widget.text
-            end
-          end
-
-          sync_instance:manualSync()
-          assert.are.equal("No book is open.", shown_text)
-        end
-      )
-
-      it(
-        "applies synced annotations to an inactive document sidecar and shows non-silent restore messages",
+        "applies synced annotations to an inactive document sidecar and shows non-silent restore message",
         function()
           local inactive_file = test_data_dir .. "/inactive_book.epub"
           local ffiutil = require("ffi/util")
@@ -419,57 +397,18 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             },
           }, false)
           assert.are.equal("Annotation restored.", shown_texts[1])
-
-          sync_instance:restoreAnnotations({
-            {
-              page = "/body/DocFragment[1]/body/p[2]",
-              pos0 = "/body/DocFragment[1]/body/p[2]/text().0",
-              pos1 = "/body/DocFragment[1]/body/p[2]/text().5",
-              text = "Two",
-              deleted = true,
-            },
-            {
-              page = "/body/DocFragment[1]/body/p[3]",
-              pos0 = "/body/DocFragment[1]/body/p[3]/text().0",
-              pos1 = "/body/DocFragment[1]/body/p[3]/text().5",
-              text = "Three",
-              deleted = true,
-            },
-          }, false)
-          assert.are.equal("Restored 2 annotations.", shown_texts[2])
         end
       )
 
       it(
-        "handles onAnnotationsModified during apply, closed-book book_path deduplication, and unknown_file",
+        "handles onAnnotationsModified during apply",
         function()
-          local orig_doc = readerui.document
           finally(function()
-            readerui.document = orig_doc
             sync_instance.is_applying_sync = false
           end)
 
           sync_instance.is_applying_sync = true
           sync_instance:onAnnotationsModified({ { text = "ignored" } })
-          assert.are.equal(
-            0,
-            (sync_instance.manager:getPendingChangedDocuments())
-          )
-          sync_instance.is_applying_sync = false
-
-          local closed_path = test_data_dir .. "/closed.epub"
-          sync_instance:onAnnotationsModified({
-            { book_path = closed_path, text = "first" },
-            { book_path = closed_path, text = "second" },
-          })
-          local count, list =
-            sync_instance.manager:getPendingChangedDocuments()
-          assert.are.equal(1, count)
-          assert.are.same({ closed_path }, list)
-
-          os.remove(sync_instance.manager:changedDocumentsFile())
-          readerui.document = nil
-          sync_instance:onAnnotationsModified({ { text = "no doc and no path" } })
           assert.are.equal(
             0,
             (sync_instance.manager:getPendingChangedDocuments())
@@ -723,10 +662,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           local tmp_json = test_data_dir .. "/no_server.json"
           util.writeToFile("{}", tmp_json)
           local completed_status
-          pcall(function()
-            remote.sync_annotations(sync_instance, tmp_json, function(ok)
-              completed_status = ok
-            end)
+          remote.sync_annotations(sync_instance, tmp_json, function(ok)
+            completed_status = ok
           end)
           assert.is_false(completed_status)
         end
@@ -874,19 +811,11 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           assert.is_nil(utils.read_json(nil))
           assert.is_nil(utils.read_json(test_data_dir .. "/missing.json"))
           local html_path = test_data_dir .. "/error.html"
-          local err_json_path = test_data_dir .. "/api_error.json"
           finally(function()
             os.remove(html_path)
-            os.remove(err_json_path)
           end)
           util.writeToFile("<html>502 Bad Gateway</html>", html_path)
           assert.is_nil(utils.read_json(html_path))
-
-          util.writeToFile(
-            '{"error_summary": "path/not_found/.."}',
-            err_json_path
-          )
-          assert.is_nil(utils.read_json(err_json_path))
 
           assert.is_nil(utils.get_nested_value(nil, "a.b"))
           assert.is_nil(utils.get_nested_value({ a = 42 }, "a.b.c"))

@@ -79,14 +79,12 @@ function M.merge(local_list, base_list, income_list)
     local by_page = {}
     for _, item in ipairs(list) do
       local p = item.page
-      if p ~= nil then
-        local bucket = by_page[p]
-        if not bucket then
-          bucket = {}
-          by_page[p] = bucket
-        end
-        table.insert(bucket, item)
+      local bucket = by_page[p]
+      if not bucket then
+        bucket = {}
+        by_page[p] = bucket
       end
+      table.insert(bucket, item)
     end
     return by_page
   end
@@ -214,7 +212,7 @@ function M.sync_callback(
     return nil, active
   end
 
-  util.writeToFile(json.encode(merged), local_file)
+  assert(util.writeToFile(json.encode(merged), local_file))
   return true, active
 end
 
@@ -292,11 +290,6 @@ function M.sort(array)
       return false
     end
 
-    -- Same page: rolling XPointers within the page
-    if type(a.pos0) == "string" and type(b.pos0) == "string" then
-      return natcmp(a.pos0, b.pos0) > 0
-    end
-
     return false
   end)
 
@@ -308,6 +301,25 @@ function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""
   local b_time = b.datetime_updated or b.datetime or ""
   return a_time <= b_time
+end
+
+function M.normalize(list)
+  for _, item in ipairs(list) do
+    if type(item.ext) == "table" then
+      local normalized_ext = {}
+      for k, v in pairs(item.ext) do
+        if type(v) ~= "function" then
+          local num_k = tonumber(k)
+          if num_k then
+            normalized_ext[num_k] = v
+          else
+            normalized_ext[k] = v
+          end
+        end
+      end
+      item.ext = normalized_ext
+    end
+  end
 end
 
 return M

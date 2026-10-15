@@ -62,10 +62,6 @@ describe("AnnotationSync internationalization", function()
       _("Push settings to cloud")
     )
     assert.are.equal(
-      "已恢复 %1 条标注。",
-      _("Restored %1 annotations.")
-    )
-    assert.are.equal(
       "无法读取 %1，已跳过同步。",
       _("Cannot read %1. Skipped syncing it.")
     )
@@ -92,6 +88,10 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "找不到 %1，已将其从待同步书籍中移除。",
       _("Cannot find %1. Removed it from pending books.")
+    )
+    assert.are.equal(
+      "正在同步",
+      _("Syncing")
     )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
@@ -122,10 +122,6 @@ describe("AnnotationSync internationalization", function()
       _("Push settings to cloud")
     )
     assert.are.equal(
-      "已還原 %1 條標註。",
-      _("Restored %1 annotations.")
-    )
-    assert.are.equal(
       "無法讀取 %1，已跳過同步。",
       _("Cannot read %1. Skipped syncing it.")
     )
@@ -152,6 +148,10 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "找不到 %1，已將其從待同步書籍中移除。",
       _("Cannot find %1. Removed it from pending books.")
+    )
+    assert.are.equal(
+      "正在同步",
+      _("Syncing")
     )
   end)
 end)

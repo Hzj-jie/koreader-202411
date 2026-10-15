@@ -65,7 +65,7 @@ describe("AnnotationSync Core Integration", function()
     restore_jobs()
   end)
 
-  local function create_ann_from_db(index, note, datetime)
+  local function create_ann_from_db(index, note, datetime, datetime_updated)
     local entry = highlight_db[index]
     local ann = {
       drawer = "lighten",
@@ -75,6 +75,7 @@ describe("AnnotationSync Core Integration", function()
       text = entry.text,
       chapter = "Test Chapter",
       datetime = datetime or "2026-01-01 12:00:00",
+      datetime_updated = datetime_updated or datetime or "2026-01-01 12:00:00",
       note = note,
     }
     return ann
@@ -154,11 +155,11 @@ describe("AnnotationSync Core Integration", function()
 
     it("resolves conflicts using timestamps (latest wins)", function()
       local ann_l =
-        create_ann_from_db(1, "Local Newer", "2026-02-02 12:00:00")
+        create_ann_from_db(1, "Local Newer", "2026-01-01 12:00:00", "2026-02-02 12:00:00")
       table.insert(readerui.annotation.annotations, ann_l)
 
       local ann_r =
-        create_ann_from_db(1, "Remote Older", "2026-02-01 12:00:00")
+        create_ann_from_db(1, "Remote Older", "2026-01-01 12:00:00", "2026-02-01 12:00:00")
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_conflict.json",
@@ -189,10 +190,11 @@ describe("AnnotationSync Core Integration", function()
 
     it("resurrects zombie if modification is newer than deletion", function()
       -- Remote has deletion, but local has a NEWER modification
-      local ann_l = create_ann_from_db(1, "Revived", "2026-02-05 12:00:00")
+      local ann_l =
+        create_ann_from_db(1, "Revived", "2026-01-01 12:00:00", "2026-02-05 12:00:00")
       table.insert(readerui.annotation.annotations, ann_l)
 
-      local ann_r = create_ann_from_db(1)
+      local ann_r = create_ann_from_db(1, nil, "2026-01-01 12:00:00")
       ann_r.deleted = true
       ann_r.datetime_updated = "2026-02-01 12:00:00"
 

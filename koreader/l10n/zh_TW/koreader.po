@@ -24460,9 +24460,6 @@ msgid "1 book from reading history is pending.\nSyncing it may take a while and 
 msgid_plural "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down."
 msgstr[0] "閱讀歷史中有 %1 本書待同步。\n同步可能需要一段時間，期間 KOReader 可能變慢。"
 
-msgid "No book is open."
-msgstr "沒有開啟的書籍。"
-
 msgid "No pending books."
 msgstr "沒有待同步的書籍。"
 
@@ -24549,9 +24546,6 @@ msgstr "雲端目的地已設為：\n%1\n服務供應商：%2"
 msgid "Annotation restored."
 msgstr "標註已還原。"
 
-msgid "Restored %1 annotations."
-msgstr "已還原 %1 條標註。"
-
 msgid "Restored 1 annotation."
 msgid_plural "Restored %1 annotations."
 msgstr[0] "已還原 %1 條標註。"
@@ -24629,6 +24623,9 @@ msgstr "無法讀取 %1，已跳過同步。"
 
 msgid "Cannot find %1. Removed it from pending books."
 msgstr "找不到 %1，已將其從待同步書籍中移除。"
+
+msgid "Syncing"
+msgstr "正在同步"
 
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
@@ -24745,148 +24742,3 @@ msgstr "用時：%s"
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:462
 msgid "Check"
 msgstr "檢查"
-
-msgid "Fill-in-the-Blank (+, -) within 100"
-msgstr "100以內填空題（僅加減法）"
-
-msgid "Find the missing number in addition and subtraction equations"
-msgstr "求加減法算式中的未知數"
-
-msgid "Arithmetic Progression within 30 (Entry Level)"
-msgstr "30以內等差數列（入門）"
-
-msgid "Alternating blanks, step up to 3, numbers up to 30"
-msgstr "隔項填空，公差不超過3，數值不超過30"
-
-msgid "Arithmetic Progression within 50 (Easy)"
-msgstr "50以內等差數列（簡單）"
-
-msgid "Alternating blanks, step up to 4, numbers up to 50"
-msgstr "隔項填空，公差不超過4，數值不超過50"
-
-msgid "Arithmetic Progression within 50"
-msgstr "50以內等差數列"
-
-msgid "Step up to 4, numbers up to 50"
-msgstr "公差不超過4，數值不超過50"
-
-msgid "Arithmetic Progression within 100"
-msgstr "100以內等差數列"
-
-msgid "Step up to 10, numbers up to 100"
-msgstr "公差不超過10，數值不超過100"
-
-msgid "Your progress will be lost if you exit. Are you sure you want to exit?"
-msgstr "退出後目前進度將遺失。確定要退出嗎？"
-
-msgid "Storage is completely read-only. Settings and reading history cannot be saved to disk."
-msgstr "儲存空間完全唯讀。設定和閱讀歷史無法儲存至磁碟。"
-
-msgid "Primary storage is read-only. Settings will be saved to temporary storage and may be lost when the device is restarted."
-msgstr "主要儲存空間為唯讀。設定將儲存至暫存空間中，並在裝置重新啟動後可能遺失。"
-
-msgid "Settings changed. Reload file manager to take effect?"
-msgstr "設定已變更。重新載入檔案管理器使其生效？"
-
-msgid "Tap to open batterystat.log."
-msgstr "點擊開啟 batterystat.log。"
-
-msgid "annotation_sync_plugin"
-msgstr "annotation_sync_plugin"
-
-msgid "Automatically Sync All when network becomes available"
-msgstr "網路可用時自動全部同步"
-
-msgid "Enable Reading Progress Sync"
-msgstr "啟用閱讀進度同步"
-
-msgid "Sync using last word of page"
-msgstr "使用頁面最後一個詞同步"
-
-msgid "Sync every %1 pages"
-msgstr "每 %1 頁同步一次"
-
-msgid "Sync every # pages"
-msgstr "每 # 頁同步一次"
-
-msgid "Jump to device progress"
-msgstr "跳轉至裝置進度"
-
-msgid "Why are some options greyed out?"
-msgstr "為什麼部分選項顯示為灰色？"
-
-msgid "Reading progress sync is not supported on this version of KOReader."
-msgstr "目前版本的 KOReader 不支援閱讀進度同步。"
-
-msgid "A document must be active to jump to device progress."
-msgstr "必須開啟文檔才能跳轉至裝置進度。"
-
-msgid "AnnotationSync: Manual Sync"
-msgstr "AnnotationSync: 手動同步"
-
-msgid "AnnotationSync: Jump to device progress"
-msgstr "AnnotationSync: 跳轉至裝置進度"
-
-msgid "AnnotationSync: Sync All"
-msgstr "AnnotationSync: 全部同步"
-
-msgid "Network is disconnected, cannot pull progress"
-msgstr "網路已中斷，無法拉取進度"
-
-msgid "Fetching remote progress..."
-msgstr "正在獲取遠端進度..."
-
-msgid "Failed to fetch remote progress"
-msgstr "獲取遠端進度失敗"
-
-msgid "Network is disconnected, cannot pull settings"
-msgstr "網路已中斷，無法拉取設定"
-
-msgid "(this device)"
-msgstr "(本機裝置)"
-
-msgid "Jumped to page %1 from %2"
-msgstr "已從 %2 跳轉至第 %1 頁"
-
-msgid "No remote progress found."
-msgstr "未找到遠端進度。"
-
-msgid "No pending documents to sync."
-msgstr "沒有待處理的同步文檔。"
-
-msgid "Sync now"
-msgstr "立即同步"
-
-msgid "Syncing %1..."
-msgstr "正在同步 %1..."
-
-msgid "Successfully synced %1"
-msgstr "成功同步 %1"
-
-msgid "Failed to sync %1"
-msgstr "同步 %1 失敗"
-
-msgid "Could not open %1 for sync"
-msgstr "無法開啟 %1 進行同步"
-
-msgid "Removed %1 from sync list"
-msgstr "已從同步列表中移除 %1"
-
-msgid "Pending Documents"
-msgstr "待處理文檔"
-
-msgid "Cloud Storage plugin is not enabled or available."
-msgstr "雲端儲存外掛未啟用或不可用。"
-
-msgid "Plugin configuration changed. Reload to make changes take effect?"
-msgstr "外掛設定已變更。重新載入使其生效？"
-
-msgid ""
-"Do you want to sync this document?\n"
-"\n"
-"%1"
-msgstr ""
-"是否同步此文檔？\n"
-"\n"
-"%1"
-
