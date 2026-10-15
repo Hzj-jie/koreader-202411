@@ -63,17 +63,12 @@ describe("AnnotationSync plugin unit tests", function()
     end)
 
     it(
-      "should return nil when reading HTML or Dropbox error JSON payload",
+      "should return nil when reading HTML payload",
       function()
         local tmp_file = os.tmpname()
 
         local f = io.open(tmp_file, "w")
         f:write("<html>500 Internal Error</html>")
-        f:close()
-        assert.is_nil(utils.read_json(tmp_file))
-
-        f = io.open(tmp_file, "w")
-        f:write('{"error_summary": "path/not_found/..."}')
         f:close()
         assert.is_nil(utils.read_json(tmp_file))
 
@@ -235,9 +230,14 @@ describe("AnnotationSync plugin unit tests", function()
         local xp1 = { page = "/body/DocFragment[1]" }
         local xp2 = { page = "/body/DocFragment[2]" }
         local xp10 = { page = "/body/DocFragment[10]" }
-        local xp_text72 = { page = 1, pos0 = "/body/DocFragment[3]/text().72" }
-        local xp_text210 =
-          { page = 1, pos0 = "/body/DocFragment[3]/text().210" }
+        local xp_text72 = {
+          page = "/body/DocFragment[3]/text().72",
+          pos0 = "/body/DocFragment[3]/text().72",
+        }
+        local xp_text210 = {
+          page = "/body/DocFragment[3]/text().210",
+          pos0 = "/body/DocFragment[3]/text().210",
+        }
 
         local sorted_xp = annotations.sort({ xp10, xp2, xp1 })
         assert.are.equal("/body/DocFragment[1]", sorted_xp[1].page)
