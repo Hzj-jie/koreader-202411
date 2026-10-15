@@ -25117,3 +25117,48 @@ msgstr "用时：%s"
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:462
 msgid "Check"
 msgstr "检查"
+
+msgid "Alternating blanks, step up to 3, numbers up to 30"
+msgstr "隔项填空，公差不超过3，数值不超过30"
+
+msgid "Alternating blanks, step up to 4, numbers up to 50"
+msgstr "隔项填空，公差不超过4，数值不超过50"
+
+msgid "Arithmetic Progression within 100"
+msgstr "100以内等差数列"
+
+msgid "Arithmetic Progression within 30 (Entry Level)"
+msgstr "30以内等差数列（入门）"
+
+msgid "Arithmetic Progression within 50"
+msgstr "50以内等差数列"
+
+msgid "Arithmetic Progression within 50 (Easy)"
+msgstr "50以内等差数列（简单）"
+
+msgid "Fill-in-the-Blank (+, -) within 100"
+msgstr "100以内填空题（仅加减法）"
+
+msgid "Find the missing number in addition and subtraction equations"
+msgstr "求加减法算式中的未知数"
+
+msgid "Step up to 10, numbers up to 100"
+msgstr "公差不超过10，数值不超过100"
+
+msgid "Step up to 4, numbers up to 50"
+msgstr "公差不超过4，数值不超过50"
+
+msgid "Your progress will be lost if you exit. Are you sure you want to exit?"
+msgstr "退出后当前进度将丢失。确定要退出吗？"
+
+msgid "Primary storage is read-only. Settings will be saved to temporary storage and may be lost when the device is restarted."
+msgstr "主要存储空间为只读。设置将保存到临时存储中，并在设备重启后可能丢失。"
+
+msgid "Storage is completely read-only. Settings and reading history cannot be saved to disk."
+msgstr "存储空间完全只读。设置和阅读历史无法保存到磁盘。"
+
+msgid "Settings changed. Reload file manager to take effect?"
+msgstr "设置已更改。重新加载文件管理器使其生效？"
+
+msgid "Tap to open batterystat.log."
+msgstr "点击打开 batterystat.log。"
