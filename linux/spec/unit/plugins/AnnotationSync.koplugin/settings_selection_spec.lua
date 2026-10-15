@@ -239,11 +239,12 @@ describe("AnnotationSync Settings Selection", function()
   it(
     "should exclude AnnotationSync's own settings from the changed settings list",
     function()
-      -- 1. Save settings under the AnnotationSync key
+      -- 1. Save settings under the plugin's own settings key
       finally(function()
+        G_reader_settings:delete(sync_instance.plugin_id)
         G_reader_settings:delete("AnnotationSync")
       end)
-      G_reader_settings:save("AnnotationSync", {
+      G_reader_settings:save(sync_instance.plugin_id, {
         ["device_name"] = "MyCustomDeviceName",
         ["selected_settings"] = {
           ["reader:auto_standby_timeout_seconds"] = true,
@@ -262,12 +263,14 @@ describe("AnnotationSync Settings Selection", function()
       sync_instance:showChangedSettings()
       assert.is_not_nil(submenu)
 
-      -- Verify that AnnotationSync is NOT in the submenu item list
+      -- Verify that neither plugin_id nor AnnotationSync is in the submenu item list
       for _, item in ipairs(submenu.item_table) do
         if item.setting_id then
+          assert.is_nil(item.setting_id:find(sync_instance.plugin_id, 1, true))
           assert.is_nil(item.setting_id:find("AnnotationSync", 1, true))
         end
         if item.text_func then
+          assert.is_nil(item.text_func():find(sync_instance.plugin_id, 1, true))
           assert.is_nil(item.text_func():find("AnnotationSync", 1, true))
         end
       end

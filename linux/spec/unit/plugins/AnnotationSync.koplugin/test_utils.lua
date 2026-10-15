@@ -191,9 +191,10 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
     document = DocumentRegistry:openDocument(target_file),
   })
 
+  local _meta = require("plugins/AnnotationSync.koplugin/_meta")
   local sync_instance = AnnotationSyncPlugin:new({
     ui = readerui,
-    plugin_id = "AnnotationSync",
+    plugin_id = _meta.plugin_id,
     version = "test",
     path = "plugins/AnnotationSync.koplugin",
   })
