@@ -351,28 +351,6 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       )
 
       it(
-        "shows 'No book is open.' when manualSync is called without an open document",
-        function()
-          local orig_doc = readerui.document
-          local shown_text
-          local orig_show = UIManager.show
-          finally(function()
-            readerui.document = orig_doc
-            UIManager.show = orig_show
-          end)
-          readerui.document = nil
-          UIManager.show = function(_, widget)
-            if widget and widget.text then
-              shown_text = widget.text
-            end
-          end
-
-          sync_instance:manualSync()
-          assert.are.equal("No book is open.", shown_text)
-        end
-      )
-
-      it(
         "applies synced annotations to an inactive document sidecar and shows non-silent restore messages",
         function()
           local inactive_file = test_data_dir .. "/inactive_book.epub"

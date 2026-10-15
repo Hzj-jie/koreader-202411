@@ -405,13 +405,7 @@ function AnnotationSyncPlugin:onSyncServiceConfirm(server)
 end
 
 function AnnotationSyncPlugin:manualSync()
-  local document = self.ui.document
-  local file = document and document.file
-  if not file then
-    utils.show_msg(gettext("No book is open."))
-    return
-  end
-  self.manager:syncNow(file)
+  self.manager:syncNow(self.ui.document.file)
 end
 
 function AnnotationSyncPlugin:showDeletedAnnotations()

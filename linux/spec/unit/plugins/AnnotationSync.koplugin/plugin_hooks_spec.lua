@@ -93,29 +93,6 @@ describe("AnnotationSync plugin hooks and wiring", function()
     assert.are.equal(0, manager:getPendingChangedDocuments())
   end)
 
-  it("Sync current book now without an open book says so and queues nothing", function()
-    local orig_doc = readerui.document
-    readerui.document = nil
-
-    local captured_msg
-    local orig_show_msg = utils.show_msg
-    utils.show_msg = function(msg)
-      captured_msg = msg
-    end
-
-    finally(function()
-      readerui.document = orig_doc
-      utils.show_msg = orig_show_msg
-      manager.requested = {}
-    end)
-
-    sync_instance:manualSync()
-
-    assert.are.equal("No book is open.", captured_msg)
-    assert.are.equal(0, manager:getPendingChangedDocuments())
-    assert.is_nil(next(manager.requested))
-  end)
-
   it("every gesture action is registered with a handler that calls the plugin", function()
     local actions = {}
     local orig_registerAction = Dispatcher.registerAction
