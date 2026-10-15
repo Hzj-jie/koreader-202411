@@ -407,11 +407,11 @@ function SyncManager:_applyBackgroundSync(
   local book_now = self:getAnnotationsForDocument(document)
   -- Round trip through JSON so floating-point coordinates match the precision
   -- of snapshot_json and uploaded_json across comparisons and matching.
-  local local_list = annotations.normalize(json.decode(json.encode(book_now)))
-  local base_list = annotations.normalize(json.decode(snapshot_json))
+  local local_list = json.decode(json.encode(book_now))
+  local base_list = json.decode(snapshot_json)
 
   if ask and #local_list == 0 and uploaded_json then
-    local income_list = annotations.normalize(json.decode(uploaded_json))
+    local income_list = json.decode(uploaded_json)
     local n = 0
     for _, v in ipairs(income_list) do
       if not v.deleted then
@@ -443,7 +443,7 @@ function SyncManager:_applyBackgroundSync(
     or (uploaded_json ~= nil and #local_list == 0)
 
   if uploaded_json then
-    local income_list = annotations.normalize(json.decode(uploaded_json))
+    local income_list = json.decode(uploaded_json)
     local active
     if unchanged then
       active = {}

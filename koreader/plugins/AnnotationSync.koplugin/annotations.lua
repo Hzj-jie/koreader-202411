@@ -304,14 +304,11 @@ function M.is_before(a, b)
 end
 
 function M.normalize(list)
-  if not list then
-    return
-  end
   for _, item in ipairs(list) do
-    if item.ext and type(item.ext) == "table" then
+    if type(item.ext) == "table" then
       local normalized_ext = {}
       for k, v in pairs(item.ext) do
-        if type(v) ~= "function" and v ~= nil then
+        if type(v) ~= "function" then
           local num_k = tonumber(k)
           if num_k then
             normalized_ext[num_k] = v
@@ -323,7 +320,6 @@ function M.normalize(list)
       item.ext = normalized_ext
     end
   end
-  return list
 end
 
 return M

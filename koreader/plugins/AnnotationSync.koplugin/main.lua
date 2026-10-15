@@ -427,8 +427,6 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
     table.insert(current, ann)
   end
 
-  annotations.normalize(current)
-
   -- 3. Apply changes once (saves to sidecar and refreshes UI)
   self:applySyncedAnnotations(document, current)
   -- A restore is a user edit, but applySyncedAnnotations suppresses
