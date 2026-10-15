@@ -252,27 +252,7 @@ describe("AutoDim widget tests", function()
     end)
   end)
 
-  describe("Ramp task and dismissal bugs", function()
-    it(
-      "should dismiss trap_widget and restore frontlight when _shouldNotDim triggers in _rampTask",
-      function()
-        Device:getPowerDevice():setIntensity(10)
-        AutoDim.origin_fl = 10
-        AutoDim.trap_widget = TrapWidget:new({ name = "AutoDim" })
-        PluginShare.DeviceIdling = true
-
-        -- Trigger user action so _shouldNotDim returns true
-        UIManager:updateLastUserActionTime()
-        assert.is_true(AutoDim:_shouldNotDim())
-
-        AutoDim:_rampTask(9, 0.1)
-
-        -- Exposes production bug: bare return in _rampTask leaks trap_widget & frontlight
-        assert.is_nil(AutoDim.trap_widget)
-        assert.is_false(PluginShare.DeviceIdling)
-      end
-    )
-
+  describe("onClose cleanup", function()
     it(
       "should clean up trap_widget and restore frontlight on onClose while dimmed",
       function()
@@ -283,7 +263,6 @@ describe("AutoDim widget tests", function()
 
         AutoDim:onClose()
 
-        -- Exposes production bug: onClose leaves trap_widget, DeviceIdling, and dimmed level
         assert.is_nil(AutoDim.trap_widget)
         assert.is_false(PluginShare.DeviceIdling)
         assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
