@@ -43,6 +43,11 @@ describe("AnnotationSync pending queue", function()
 
   before_each(function()
     os.remove(manager:changedDocumentsFile())
+    manager.last_sync_time = {}
+    if manager._cooldown_task then
+      UIManager:unschedule(manager._cooldown_task)
+      manager._cooldown_task = nil
+    end
   end)
 
   it("Sync current book now moves the book to the front of the pending books", function()
@@ -252,6 +257,73 @@ describe("AnnotationSync pending queue", function()
       confirm_box.ok_callback()
       assert.are.equal(path_b, synced_file)
       assert.is_true(switch_called)
+    end
+  )
+
+  it(
+    "show_pending_documents displays cooldown status for cooling down books while keeping them selectable",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      local path_b = test_data_dir .. "/B.epub"
+      manager:_writeChangedDocumentsFile({ path_a, path_b })
+
+      -- path_a is cooling down with 250s remaining (~5 minutes)
+      manager.last_sync_time[path_a] = os.time() - 50
+      -- path_b is cooling down with 30s remaining (1 minute)
+      manager.last_sync_time[path_b] = os.time() - 270
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      local orig_sync_now = manager.syncNow
+      UIManager.show = function(ui_mgr, widget, ...)
+        table.insert(shown_widgets, widget)
+        return orig_show(ui_mgr, widget, ...)
+      end
+
+      finally(function()
+        manager.last_sync_time = {}
+        manager.syncNow = orig_sync_now
+        UIManager.show = orig_show
+        for _, w in ipairs(shown_widgets) do
+          UIManager:closeIfShown(w)
+        end
+      end)
+
+      menus.show_pending_documents(sync_instance)
+
+      local menu = shown_widgets[1]
+      assert.is_not_nil(menu)
+      assert.are.equal(2, #menu.item_table)
+
+      -- Item 1: path_a -> dimmed, mandatory = "Cool down for 5 minutes", callback present, select_enabled not false
+      assert.are.equal("A.epub", menu.item_table[1].text)
+      assert.are.equal("Cool down for 5 minutes", menu.item_table[1].mandatory)
+      assert.is_true(menu.item_table[1].dim)
+      assert.is_not_equal(false, menu.item_table[1].select_enabled)
+      assert.is_function(menu.item_table[1].callback)
+
+      -- Item 2: path_b -> dimmed, mandatory = "Cool down for 1 minute" (singular)
+      assert.are.equal("B.epub", menu.item_table[2].text)
+      assert.are.equal("Cool down for 1 minute", menu.item_table[2].mandatory)
+      assert.is_true(menu.item_table[2].dim)
+      assert.is_not_equal(false, menu.item_table[2].select_enabled)
+      assert.is_function(menu.item_table[2].callback)
+
+      -- User taps cooling-down book A and confirms Sync Now -> clears cooldown and initiates sync
+      local synced_file
+      manager.syncNow = function(mgr, file)
+        synced_file = file
+        mgr.last_sync_time[file] = nil
+      end
+
+      menu.item_table[1].callback()
+      local confirm_box = shown_widgets[#shown_widgets]
+      assert.is_not_nil(confirm_box)
+      assert.is_function(confirm_box.ok_callback)
+
+      confirm_box.ok_callback()
+      assert.are.equal(path_a, synced_file)
+      assert.are.equal(0, manager:getRemainingCooldown(path_a))
     end
   )
 end)

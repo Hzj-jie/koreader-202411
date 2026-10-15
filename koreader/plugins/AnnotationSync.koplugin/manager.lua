@@ -24,6 +24,7 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 local TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 -- A value of SyncManager.requested, also passed on as a sync's trigger.
 local MANUAL_SYNC = "Manual Sync"
+local SYNC_COOLDOWN = 300
 -- Files in the data dir.
 local SETTINGS_SYNC_FILE = "/settings_sync.json"
 local READER_SETTINGS_FILE = "/settings.reader.lua"
@@ -43,6 +44,7 @@ end
 -- singleton table, and the latest plugin to init owns it.
 local SyncManager = {
   running = nil,
+  last_sync_time = {},
   -- Books the user asked to sync: file -> MANUAL_SYNC ("Sync current book
   -- now", or "Sync" in the pending books list) or "Sync All" ("Sync all
   -- pending books"). They run before the others, even with auto sync off. A
@@ -53,6 +55,15 @@ local SyncManager = {
 
 function SyncManager:setPlugin(plugin)
   self.plugin = plugin
+end
+
+function SyncManager:getRemainingCooldown(file)
+  local last = self.last_sync_time[file]
+  if not last then
+    return 0
+  end
+  local remaining = SYNC_COOLDOWN - (os.time() - last)
+  return remaining > 0 and remaining or 0
 end
 
 function SyncManager:getDeviceName()
@@ -70,6 +81,7 @@ end
 function SyncManager:syncNow(file)
   self:_moveToFront(file)
   self.requested[file] = MANUAL_SYNC
+  self.last_sync_time[file] = nil
   Notification:notify(
     T(gettext("Syncing in the background: %1"), book_name(file))
   )
@@ -89,6 +101,7 @@ function SyncManager:syncAllChangedDocuments()
   for _, file in ipairs(changed_docs) do
     -- Keep a Manual Sync request: it reports "Synced"/"Failed".
     self.requested[file] = self.requested[file] or "Sync All"
+    self.last_sync_time[file] = nil
   end
   Notification:notify(
     T(
@@ -263,6 +276,9 @@ function SyncManager:_startSync(file, trigger, trash)
             file
           )
         end
+        if not self.requested[file] then
+          self.last_sync_time[file] = os.time()
+        end
         self.running = nil
         -- A Manual Sync asked while this job ran is still requested if the book
         -- changed meanwhile or the job failed. The book's next job answers it.
@@ -347,19 +363,46 @@ function SyncManager:_dispatchNextSync(failed)
   if self.running then
     return false
   end
+  if self._cooldown_task then
+    UIManager:unschedule(self._cooldown_task)
+    self._cooldown_task = nil
+  end
 
   local list = self:_loadChangedDocuments()
   local file
   for _, f in ipairs(list) do
-    if self.requested[f] then
+    if self.requested[f] and self:getRemainingCooldown(f) == 0 then
       file = f
       break
     end
   end
   if not file and self.plugin.settings.network_auto_sync and not failed then
-    file = list[1]
+    for _, f in ipairs(list) do
+      if self:getRemainingCooldown(f) == 0 then
+        file = f
+        break
+      end
+    end
   end
   if not file then
+    if self.plugin.settings.network_auto_sync then
+      local min_remaining = nil
+      for _, f in ipairs(list) do
+        local rem = self:getRemainingCooldown(f)
+        if rem > 0 then
+          if not min_remaining or rem < min_remaining then
+            min_remaining = rem
+          end
+        end
+      end
+      if min_remaining then
+        self._cooldown_task = function()
+          self._cooldown_task = nil
+          self:_dispatchNextSync()
+        end
+        UIManager:scheduleIn(min_remaining, self._cooldown_task)
+      end
+    end
     return false
   end
 

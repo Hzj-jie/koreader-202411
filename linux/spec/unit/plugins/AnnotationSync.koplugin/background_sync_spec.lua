@@ -84,6 +84,11 @@ describe("Background Sync Behavior", function()
     plugin_instance.settings.network_auto_sync = true
     sync_manager.running = nil
     sync_manager.requested = {}
+    sync_manager.last_sync_time = {}
+    if sync_manager._cooldown_task then
+      UIManager:unschedule(sync_manager._cooldown_task)
+      sync_manager._cooldown_task = nil
+    end
   end)
 
   after_each(function()
@@ -94,6 +99,12 @@ describe("Background Sync Behavior", function()
     end
     require("background_jobs").clearKeys()
     sync_manager.running = nil
+    sync_manager.requested = {}
+    sync_manager.last_sync_time = {}
+    if sync_manager._cooldown_task then
+      UIManager:unschedule(sync_manager._cooldown_task)
+      sync_manager._cooldown_task = nil
+    end
   end)
 
   describe("Main thread preparation and validation", function()
@@ -314,6 +325,7 @@ describe("Background Sync Behavior", function()
         assert.is_equal(initial_count + 1, #jobs)
 
         -- Triggering next sync pass forks job 2 (retry)
+        sync_manager.last_sync_time[doc] = nil
         sync_manager:_dispatchNextSync()
         assert.is_equal(initial_count + 2, #jobs)
         local job2 = jobs[#jobs]
@@ -489,6 +501,7 @@ describe("Background Sync Behavior", function()
             jobs[k] = nil
           end
           sync_manager.running = nil
+          sync_manager.last_sync_time = {}
 
           local track_path = sync_manager:changedDocumentsFile()
           util.writeToFile(dump({ doc1, doc2 }), track_path, true)
@@ -1956,6 +1969,7 @@ describe("Background Sync Behavior", function()
         ds:save("annotations", side1)
         ds:flush()
 
+        sync_manager.last_sync_time[doc] = nil
         sync_manager:addToChangedDocumentsFile(doc)
 
         local remote_after = json.decode(remote_store[name])
@@ -2098,6 +2112,7 @@ describe("Background Sync Behavior", function()
         -- Next sync: performs normal sync and uploads H and X with new_note, plus tombstones for A, D, Q
         -- fork_like dropped the job the callback queued; run it.
         sync_manager.running = nil
+        sync_manager.last_sync_time[file] = nil
         fork_like()
         sync_manager:_dispatchNextSync()
 
@@ -2609,6 +2624,15 @@ describe("Background Sync Behavior", function()
 
         sync_manager:addToChangedDocumentsFile(file)
 
+        assert.is_equal(1, jobs_dispatched)
+        assert.is_not_nil(sync_manager._cooldown_task)
+        assert.is_true(is_pending(file))
+
+        -- After cooldown expires, the scheduled cooldown task dispatches job 2
+        sync_manager.last_sync_time[file] = os.time() - 300
+        local cooldown_fn = sync_manager._cooldown_task
+        cooldown_fn()
+
         assert.is_equal(2, jobs_dispatched)
         assert.is_true(second_job_dispatched_after_first_callback)
         assert.is_false(is_pending(file))
@@ -2840,6 +2864,7 @@ describe("Background Sync Behavior", function()
           }, toasts)
 
           -- The book stays empty and doesn't ask again.
+          sync_manager.last_sync_time[doc] = nil
           sync_manager:addToChangedDocumentsFile(doc)
 
           assert.are.equal(1, #boxes)
@@ -3541,5 +3566,198 @@ describe("Background Sync Behavior", function()
       )
       assert.are.same({}, boxes)
     end)
+  end)
+
+  describe("Sync cooldown behavior (Issue #517)", function()
+    local ffiutil = require("ffi/util")
+    local function new_doc(tag)
+      local doc = test_data_dir .. "/" .. tag .. ".epub"
+      ffiutil.copyFile("spec/front/unit/data/juliet.epub", doc)
+      return doc
+    end
+
+    local function is_pending(file)
+      local _, docs = sync_manager:getPendingChangedDocuments()
+      return not not (docs and util.arrayContains(docs, file))
+    end
+
+    local function finish_job_success(job, file)
+      local tmp_json = DataStorage:getTmpDir() .. "/" .. sync_manager:_getAnnotationFilename(file)
+      util.writeToFile("[]", tmp_json .. ".snapshot")
+      job.result = { file = file, json_path = tmp_json, success = true }
+      job.callback(job)
+    end
+
+    it(
+      "runs first automatic sync immediately; subsequent automatic sync within 5 minutes enters cooldown and schedules UIManager timer",
+      function()
+        local jobs = require("pluginshare").backgroundJobs
+        local doc = new_doc("cooldown_first_then_wait")
+
+        local scheduled_time, scheduled_fn
+        local orig_scheduleIn = UIManager.scheduleIn
+        UIManager.scheduleIn = function(ui_mgr, delay, fn)
+          scheduled_time = delay
+          scheduled_fn = fn
+          return orig_scheduleIn(ui_mgr, delay, fn)
+        end
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          if sync_manager._cooldown_task then
+            UIManager:unschedule(sync_manager._cooldown_task)
+            sync_manager._cooldown_task = nil
+          end
+          os.remove(doc)
+        end)
+
+        local initial_count = #jobs
+        sync_manager:addToChangedDocumentsFile(doc)
+
+        -- First sync dispatched immediately
+        assert.is_equal(initial_count + 1, #jobs)
+        local job1 = jobs[#jobs]
+        finish_job_success(job1, doc)
+
+        -- Book is no longer pending, but last_sync_time is recorded
+        assert.is_false(is_pending(doc))
+        assert.is_not_nil(sync_manager.last_sync_time[doc])
+        assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
+
+        -- A new annotation is added to doc within 5 minutes
+        sync_manager:addToChangedDocumentsFile(doc)
+
+        -- Subsequent automatic sync is NOT dispatched immediately
+        assert.is_equal(initial_count + 1, #jobs)
+        assert.is_true(is_pending(doc))
+        assert.is_not_nil(scheduled_time)
+        assert.is_not_nil(sync_manager._cooldown_task)
+        assert.is_equal(scheduled_fn, sync_manager._cooldown_task)
+        assert.is_true(scheduled_time <= 300 and scheduled_time > 0)
+
+        -- When cooldown expires, scheduled timer fires and dispatches job
+        sync_manager.last_sync_time[doc] = os.time() - 300
+        sync_manager._cooldown_task()
+        assert.is_equal(initial_count + 2, #jobs)
+        local job2 = jobs[#jobs]
+        finish_job_success(job2, doc)
+        assert.is_false(is_pending(doc))
+      end
+    )
+
+    it(
+      "failed automatic sync also enters 5-minute cooldown",
+      function()
+        local jobs = require("pluginshare").backgroundJobs
+        local doc = new_doc("cooldown_failed_sync")
+        finally(function()
+          os.remove(doc)
+        end)
+
+        local initial_count = #jobs
+        sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_equal(initial_count + 1, #jobs)
+
+        local job1 = jobs[#jobs]
+        job1.result = { file = doc, success = false }
+        job1.callback(job1)
+
+        -- Failed sync stays pending, but enters cooldown
+        assert.is_true(is_pending(doc))
+        assert.is_not_nil(sync_manager.last_sync_time[doc])
+        assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
+
+        -- Another dispatch attempt while cooling down does not fork a new job
+        assert.is_false(sync_manager:_dispatchNextSync())
+        assert.is_equal(initial_count + 1, #jobs)
+      end
+    )
+
+    it(
+      "while book A is in cooldown, book B dispatches immediately",
+      function()
+        local jobs = require("pluginshare").backgroundJobs
+        local doc_a = new_doc("cooldown_book_a")
+        local doc_b = new_doc("cooldown_book_b")
+
+        local orig_startSync = sync_manager._startSync
+        local dispatched_file = nil
+        sync_manager._startSync = function(mgr, file, ...)
+          dispatched_file = file
+          return orig_startSync(mgr, file, ...)
+        end
+        finally(function()
+          sync_manager._startSync = orig_startSync
+          os.remove(doc_a)
+          os.remove(doc_b)
+        end)
+
+        local initial_count = #jobs
+        sync_manager:addToChangedDocumentsFile(doc_a)
+        assert.is_equal(initial_count + 1, #jobs)
+
+        -- Complete sync for doc_a so it enters cooldown
+        local job_a = jobs[#jobs]
+        finish_job_success(job_a, doc_a)
+        assert.is_true(sync_manager:getRemainingCooldown(doc_a) > 0)
+
+        -- Re-add doc_a to pending queue
+        sync_manager:addToChangedDocumentsFile(doc_a)
+        assert.is_equal(initial_count + 1, #jobs)
+
+        -- Add doc_b to pending queue: doc_b is NOT in cooldown and dispatches immediately
+        sync_manager:addToChangedDocumentsFile(doc_b)
+        assert.is_equal(initial_count + 2, #jobs)
+        assert.are.equal(doc_b, dispatched_file)
+
+        local job_b = jobs[#jobs]
+        finish_job_success(job_b, doc_b)
+        assert.is_false(is_pending(doc_b))
+        assert.is_true(is_pending(doc_a))
+      end
+    )
+
+    it(
+      "syncNow and syncAllChangedDocuments clear cooldown so books sync immediately",
+      function()
+        local jobs = require("pluginshare").backgroundJobs
+        local doc = new_doc("cooldown_manual_override")
+        finally(function()
+          os.remove(doc)
+        end)
+
+        local initial_count = #jobs
+        sync_manager:addToChangedDocumentsFile(doc)
+        local job1 = jobs[#jobs]
+        finish_job_success(job1, doc)
+
+        -- doc is now in cooldown
+        assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
+        sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_equal(initial_count + 1, #jobs)
+
+        -- Calling syncNow clears cooldown and dispatches immediately
+        sync_manager:syncNow(doc)
+        assert.is_nil(sync_manager.last_sync_time[doc])
+        assert.is_equal(initial_count + 2, #jobs)
+
+        local job2 = jobs[#jobs]
+        finish_job_success(job2, doc)
+        assert.is_false(is_pending(doc))
+
+        -- Now put in cooldown again
+        assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
+        sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_equal(initial_count + 2, #jobs)
+
+        -- Calling syncAllChangedDocuments clears cooldown and dispatches immediately
+        sync_manager:syncAllChangedDocuments()
+        assert.is_nil(sync_manager.last_sync_time[doc])
+        assert.is_equal(initial_count + 3, #jobs)
+
+        local job3 = jobs[#jobs]
+        finish_job_success(job3, doc)
+        assert.is_false(is_pending(doc))
+      end
+    )
   end)
 end)

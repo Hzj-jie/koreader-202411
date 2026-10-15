@@ -59,6 +59,12 @@ describe("AnnotationSync Automation & Settings", function()
       jobs[k] = nil
     end
     sync_instance.manager.running = nil
+    sync_instance.manager.requested = {}
+    sync_instance.manager.last_sync_time = {}
+    if sync_instance.manager._cooldown_task then
+      UIManager:unschedule(sync_instance.manager._cooldown_task)
+      sync_instance.manager._cooldown_task = nil
+    end
   end)
 
   after_each(function()
@@ -69,6 +75,12 @@ describe("AnnotationSync Automation & Settings", function()
       jobs[k] = nil
     end
     sync_instance.manager.running = nil
+    sync_instance.manager.requested = {}
+    sync_instance.manager.last_sync_time = {}
+    if sync_instance.manager._cooldown_task then
+      UIManager:unschedule(sync_instance.manager._cooldown_task)
+      sync_instance.manager._cooldown_task = nil
+    end
   end)
 
   describe("Settings", function()

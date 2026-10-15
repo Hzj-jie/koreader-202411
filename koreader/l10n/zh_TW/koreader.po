@@ -24627,6 +24627,10 @@ msgstr "找不到 %1，已將其從待同步書籍中移除。"
 msgid "Syncing"
 msgstr "正在同步"
 
+msgid "Cool down for 1 minute"
+msgid_plural "Cool down for %1 minutes"
+msgstr[0] "冷卻 %1 分鐘"
+
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"
 msgstr "口算練習"
