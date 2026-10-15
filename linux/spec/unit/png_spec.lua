@@ -9,7 +9,7 @@ describe("ffi/png module", function()
   end)
 
   it("decodes valid PNG file from disk", function()
-    local ok, img = Png.decodeFromFile("../koreader/resources/koreader.png", 3)
+    local ok, img = Png.decodeFromFile("resources/koreader.png", 3)
     assert.is_true(ok)
     assert.is_table(img)
     assert.is_not_nil(img.data)

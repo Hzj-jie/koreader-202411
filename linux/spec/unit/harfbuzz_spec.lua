@@ -3,7 +3,7 @@ local HB
 local coverage
 
 describe("ffi/harfbuzz module", function()
-  local font_path = "../koreader/fonts/droid/DroidSansMono.ttf"
+  local font_path = "fonts/droid/DroidSansMono.ttf"
 
   setup(function()
     require("commonrequire")

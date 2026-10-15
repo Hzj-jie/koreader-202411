@@ -9,7 +9,7 @@ describe("ffi/pic module", function()
   end)
 
   it("opens GIF document and opens page successfully", function()
-    local doc = Pic.openGIFDocument("../koreader/tools/eink_cmap.gif")
+    local doc = Pic.openGIFDocument("tools/eink_cmap.gif")
     assert.is_not_nil(doc)
     assert.is_true(doc:getPages() > 0)
     local page = doc:openPage(1)
@@ -24,7 +24,7 @@ describe("ffi/pic module", function()
   it(
     "fails cleanly when opening page on GIF with no valid color map",
     function()
-      local doc = Pic.openGIFDocument("../koreader/tools/eink_cmap.gif")
+      local doc = Pic.openGIFDocument("tools/eink_cmap.gif")
       local saved_s_colormap = doc.giffile.SColorMap
       local saved_desc_colormap = doc.giffile.SavedImages[0].ImageDesc.ColorMap
       doc.giffile.SColorMap = nil
