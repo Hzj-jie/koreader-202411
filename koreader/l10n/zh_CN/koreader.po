@@ -24924,9 +24924,6 @@ msgstr "云端目标已设为：\n%1\n服务商：%2"
 msgid "Annotation restored."
 msgstr "标注已恢复。"
 
-msgid "Restored %1 annotations."
-msgstr "已恢复 %1 条标注。"
-
 msgid "Restored 1 annotation."
 msgid_plural "Restored %1 annotations."
 msgstr[0] "已恢复 %1 条标注。"

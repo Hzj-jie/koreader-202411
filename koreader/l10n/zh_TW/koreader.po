@@ -24549,9 +24549,6 @@ msgstr "雲端目的地已設為：\n%1\n服務供應商：%2"
 msgid "Annotation restored."
 msgstr "標註已還原。"
 
-msgid "Restored %1 annotations."
-msgstr "已還原 %1 條標註。"
-
 msgid "Restored 1 annotation."
 msgid_plural "Restored %1 annotations."
 msgstr[0] "已還原 %1 條標註。"

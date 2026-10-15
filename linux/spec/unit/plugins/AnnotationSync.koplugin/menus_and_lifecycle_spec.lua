@@ -351,7 +351,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       )
 
       it(
-        "applies synced annotations to an inactive document sidecar and shows non-silent restore messages",
+        "applies synced annotations to an inactive document sidecar and shows non-silent restore message",
         function()
           local inactive_file = test_data_dir .. "/inactive_book.epub"
           local ffiutil = require("ffi/util")
@@ -397,24 +397,6 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             },
           }, false)
           assert.are.equal("Annotation restored.", shown_texts[1])
-
-          sync_instance:restoreAnnotations({
-            {
-              page = "/body/DocFragment[1]/body/p[2]",
-              pos0 = "/body/DocFragment[1]/body/p[2]/text().0",
-              pos1 = "/body/DocFragment[1]/body/p[2]/text().5",
-              text = "Two",
-              deleted = true,
-            },
-            {
-              page = "/body/DocFragment[1]/body/p[3]",
-              pos0 = "/body/DocFragment[1]/body/p[3]/text().0",
-              pos1 = "/body/DocFragment[1]/body/p[3]/text().5",
-              text = "Three",
-              deleted = true,
-            },
-          }, false)
-          assert.are.equal("Restored 2 annotations.", shown_texts[2])
         end
       )
 

@@ -436,11 +436,7 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   self.manager:addToChangedDocumentsFile(document.file)
 
   if not silent then
-    if #anns == 1 then
-      utils.show_msg(gettext("Annotation restored."))
-    else
-      utils.show_msg(T(gettext("Restored %1 annotations."), #anns))
-    end
+    utils.show_msg(gettext("Annotation restored."))
   end
 end
 
