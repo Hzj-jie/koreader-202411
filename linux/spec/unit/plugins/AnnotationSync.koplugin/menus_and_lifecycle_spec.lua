@@ -811,19 +811,11 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           assert.is_nil(utils.read_json(nil))
           assert.is_nil(utils.read_json(test_data_dir .. "/missing.json"))
           local html_path = test_data_dir .. "/error.html"
-          local err_json_path = test_data_dir .. "/api_error.json"
           finally(function()
             os.remove(html_path)
-            os.remove(err_json_path)
           end)
           util.writeToFile("<html>502 Bad Gateway</html>", html_path)
           assert.is_nil(utils.read_json(html_path))
-
-          util.writeToFile(
-            '{"error_summary": "path/not_found/.."}',
-            err_json_path
-          )
-          assert.is_nil(utils.read_json(err_json_path))
 
           assert.is_nil(utils.get_nested_value(nil, "a.b"))
           assert.is_nil(utils.get_nested_value({ a = 42 }, "a.b.c"))

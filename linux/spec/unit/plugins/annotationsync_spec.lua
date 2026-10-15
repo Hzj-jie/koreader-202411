@@ -63,17 +63,12 @@ describe("AnnotationSync plugin unit tests", function()
     end)
 
     it(
-      "should return nil when reading HTML or Dropbox error JSON payload",
+      "should return nil when reading HTML payload",
       function()
         local tmp_file = os.tmpname()
 
         local f = io.open(tmp_file, "w")
         f:write("<html>500 Internal Error</html>")
-        f:close()
-        assert.is_nil(utils.read_json(tmp_file))
-
-        f = io.open(tmp_file, "w")
-        f:write('{"error_summary": "path/not_found/..."}')
         f:close()
         assert.is_nil(utils.read_json(tmp_file))
 

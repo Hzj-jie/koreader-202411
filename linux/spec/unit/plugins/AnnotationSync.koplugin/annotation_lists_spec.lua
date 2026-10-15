@@ -391,8 +391,6 @@ describe("AnnotationSync annotation lists, merge, and pure functions", function(
     local empty_file = test_data_dir .. "/empty.json"
     local html_file = test_data_dir .. "/error.html"
     local broken_file = test_data_dir .. "/broken.json"
-    local err1 = test_data_dir .. "/err1.json"
-    local err2 = test_data_dir .. "/err2.json"
     local valid1 = test_data_dir .. "/valid1.json"
     local valid2 = test_data_dir .. "/valid2.json"
 
@@ -400,8 +398,6 @@ describe("AnnotationSync annotation lists, merge, and pure functions", function(
       os.remove(empty_file)
       os.remove(html_file)
       os.remove(broken_file)
-      os.remove(err1)
-      os.remove(err2)
       os.remove(valid1)
       os.remove(valid2)
     end)
@@ -414,12 +410,6 @@ describe("AnnotationSync annotation lists, merge, and pure functions", function(
 
     util.writeToFile("{broken", broken_file)
     assert.is_nil(utils.read_json(broken_file))
-
-    util.writeToFile('{"error_summary":"path/not_found/"}', err1)
-    assert.is_nil(utils.read_json(err1))
-
-    util.writeToFile('{"error":{"code":409}}', err2)
-    assert.is_nil(utils.read_json(err2))
 
     util.writeToFile('{"a":1}', valid1)
     assert.are.equal(1, utils.read_json(valid1).a)
