@@ -662,10 +662,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           local tmp_json = test_data_dir .. "/no_server.json"
           util.writeToFile("{}", tmp_json)
           local completed_status
-          pcall(function()
-            remote.sync_annotations(sync_instance, tmp_json, function(ok)
-              completed_status = ok
-            end)
+          remote.sync_annotations(sync_instance, tmp_json, function(ok)
+            completed_status = ok
           end)
           assert.is_false(completed_status)
         end
