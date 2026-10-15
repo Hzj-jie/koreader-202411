@@ -1003,6 +1003,74 @@ describe("KOSync plugin tests", function()
     end)
 
     it(
+      "defers background pull via NetworkMgr:willRerunWhenOnline when offline",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.pull_timestamp = 0
+
+        local deferred_callback = nil
+        NetworkMgr.willRerunWhenOnline:revert()
+        stub(NetworkMgr, "willRerunWhenOnline", function(self_arg, cb)
+          local callback = type(self_arg) == "function" and self_arg or cb
+          deferred_callback = callback
+          return true
+        end)
+
+        local insert_keyed_called = false
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          insert_keyed_called = true
+          local res = false
+          local ok, ret = pcall(job.action)
+          if ok then
+            res = ret
+          end
+          job.result = res
+          job.callback(job)
+          return true
+        end)
+
+        kosync:_getProgress(false)
+        assert.is_not_nil(deferred_callback)
+        assert.is_false(insert_keyed_called)
+
+        -- Simulate network coming back online
+        deferred_callback()
+        assert.is_true(insert_keyed_called)
+        assert.spy(mock_client.get_progress).was_called()
+
+        BackgroundJobs.insertKeyed:revert()
+        NetworkMgr.willRerunWhenOnline:revert()
+        stub(NetworkMgr, "willRerunWhenOnline", function(...)
+          for _, arg in ipairs({ ... }) do
+            if type(arg) == "function" then
+              arg()
+            end
+          end
+          return false
+        end)
+      end
+    )
+
+    it("resets pull_timestamp on background pull failure", function()
+      kosync:init()
+      kosync.settings.username = "user"
+      kosync.settings.userkey = "key"
+      kosync.pull_timestamp = 12345
+
+      stub(BackgroundJobs, "insertKeyed", function(job)
+        job.result = { ok = false }
+        job.callback(job)
+        return true
+      end)
+
+      kosync:_getProgress(false)
+      assert.are.equal(0, kosync.pull_timestamp)
+      BackgroundJobs.insertKeyed:revert()
+    end)
+
+    it(
       "deduplicates concurrent background push jobs with identical state",
       function()
         kosync:init()

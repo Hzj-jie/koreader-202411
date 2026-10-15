@@ -849,6 +849,9 @@ function KOSync:_getProgress(interactive)
     if res.skipped then
       return
     end
+    if not res.ok then
+      self.pull_timestamp = 0
+    end
 
     self:_applyPullUI(res.ok, res.body, doc_digest, interactive)
   end
@@ -860,13 +863,15 @@ function KOSync:_getProgress(interactive)
       end, gettext("Pulling progress…"))
     end)
   else
-    BackgroundJobs.insertKeyed({
-      executable = "fork",
-      action = send,
-      callback = function(job)
-        apply(job.result)
-      end,
-    })
+    NetworkMgr:willRerunWhenOnline(function()
+      BackgroundJobs.insertKeyed({
+        executable = "fork",
+        action = send,
+        callback = function(job)
+          apply(job.result)
+        end,
+      })
+    end)
   end
 end
 
