@@ -594,6 +594,14 @@ describe("SyncService", function()
           "Something went wrong when syncing, please check your network connection and try again later.",
           mock_uimanager.shown_widget.text
         )
+        local expected_removed = {
+          "/tmp/book.epub.temp",
+          "/tmp/book.epub.temp",
+        }
+        assert.are.equal(#expected_removed, #mock_os.removed_files)
+        for i, path in ipairs(expected_removed) do
+          assert.are.equal(path, mock_os.removed_files[i])
+        end
       end)
 
       it("Dropbox 409 or 404 on download -> sync_cb is called with code, file treated as missing", function()
@@ -630,13 +638,14 @@ describe("SyncService", function()
           "Something went wrong when syncing, please check your network connection and try again later.",
           mock_uimanager.shown_widget.text
         )
-        local removed_income = false
-        for _, f in ipairs(mock_os.removed_files) do
-          if f == "/tmp/book.epub.temp" then
-            removed_income = true
-          end
+        local expected_removed = {
+          "/tmp/book.epub.temp",
+          "/tmp/book.epub.temp",
+        }
+        assert.are.equal(#expected_removed, #mock_os.removed_files)
+        for i, path in ipairs(expected_removed) do
+          assert.are.equal(path, mock_os.removed_files[i])
         end
-        assert.is_true(removed_income)
       end)
 
       it("sync_cb returns nil -> nil, no message, no upload, income temp file removed", function()
@@ -650,13 +659,14 @@ describe("SyncService", function()
         assert.is_nil(finish_res)
         assert.is_nil(mock_uimanager.shown_widget)
         assert.is_false(mock_dropbox_api.uploadFile_called)
-        local removed_income = false
-        for _, f in ipairs(mock_os.removed_files) do
-          if f == "/tmp/book.epub.temp" then
-            removed_income = true
-          end
+        local expected_removed = {
+          "/tmp/book.epub.temp",
+          "/tmp/book.epub.temp",
+        }
+        assert.are.equal(#expected_removed, #mock_os.removed_files)
+        for i, path in ipairs(expected_removed) do
+          assert.are.equal(path, mock_os.removed_files[i])
         end
-        assert.is_true(removed_income)
       end)
 
       it("sync_cb returns false -> false, generic message, no upload", function()
