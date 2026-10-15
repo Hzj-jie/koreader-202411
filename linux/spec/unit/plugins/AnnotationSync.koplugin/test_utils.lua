@@ -204,26 +204,6 @@ function M.init_integration_context(file, AnnotationSyncPlugin)
   sync_instance:init()
   readerui.menu.registerToMainMenu = old_register
 
-  -- Ensure sync_server is populated for tests using legacy cloud_server_object
-  -- Use a metatable to handle cases where cloud_server_object is set AFTER init
-  if sync_instance.settings then
-    setmetatable(sync_instance.settings, {
-      __index = function(t, k)
-        if k == "sync_server" then
-          local server_json = G_reader_settings:read("cloud_server_object")
-          if server_json and server_json ~= "" then
-            local ok, server = pcall(json.decode, server_json)
-            if ok and server then
-              rawset(t, "sync_server", server)
-              return server
-            end
-          end
-        end
-        return nil
-      end,
-    })
-  end
-
   -- Automatically mock SyncService if available
   local ok, SyncService = pcall(require, "apps/cloudstorage/syncservice")
   if ok then

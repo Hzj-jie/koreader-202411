@@ -86,6 +86,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         "cloud_server_object",
         json.encode({ url = "mock" })
       )
+      sync_instance.settings.sync_server = { url = "mock" }
 
       -- 4. Trigger Sync All
       sync_instance.manager:syncAllChangedDocuments()
@@ -272,6 +273,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
         "cloud_server_object",
         json.encode({ url = "mock" })
       )
+      sync_instance.settings.sync_server = { url = "mock" }
 
       readerui.annotation.annotations = {
         {
@@ -349,6 +351,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
     G_reader_settings:save("cloud_download_dir", "mock")
     G_reader_settings:save("cloud_server_object", json.encode({ url = "mock" }))
+    sync_instance.settings.sync_server = { url = "mock" }
 
     readerui.annotation.annotations = {}
 
