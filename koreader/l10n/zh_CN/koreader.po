@@ -24835,9 +24835,6 @@ msgid "1 book from reading history is pending.\nSyncing it may take a while and 
 msgid_plural "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down."
 msgstr[0] "阅读历史中有 %1 本书待同步。\n同步可能需要一段时间，期间 KOReader 可能变慢。"
 
-msgid "No book is open."
-msgstr "没有打开的书籍。"
-
 msgid "No pending books."
 msgstr "没有待同步的书籍。"
 
