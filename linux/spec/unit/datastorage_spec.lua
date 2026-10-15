@@ -333,6 +333,7 @@ describe("DataStorage module", function()
     assert.is_truthy(shown_widget.text:find("temporary storage"))
     assert.is_truthy(shown_widget.ok_text)
     assert.is_truthy(shown_widget.cancel_text)
+    assert.is_false(shown_widget.dismissable)
 
     -- Test cancel callback calls quit
     shown_widget.cancel_callback()
@@ -369,12 +370,47 @@ describe("DataStorage module", function()
       DataStorage:showStorageWarningIfNeeded()
       assert.is_not_nil(shown_widget)
       assert.is_truthy(shown_widget.text:find("completely read%-only"))
+      assert.is_false(shown_widget.dismissable)
 
       shown_widget.cancel_callback()
       assert.is_true(quit_called)
 
       UIManager.show = orig_show
       UIManager.quit = orig_quit
+    end
+  )
+
+  it(
+    "should make storage warning non-dismissable to prevent accidental quit",
+    function()
+      env_mock["KO_MULTIUSER"] = "true"
+      env_mock["XDG_CONFIG_HOME"] = "/fake/xdg"
+      isDirRW_mock = function()
+        return false
+      end
+      DataStorage = require("datastorage")
+      DataStorage:getDataDir()
+
+      local UIManager = require("ui/uimanager")
+      local shown_widget = nil
+      local orig_show = UIManager.show
+      local orig_quit = UIManager.quit
+
+      finally(function()
+        UIManager.show = orig_show
+        UIManager.quit = orig_quit
+      end)
+
+      UIManager.show = function(_, widget)
+        shown_widget = widget
+      end
+      UIManager.quit = function() end
+
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_not_nil(shown_widget)
+      assert.is_false(shown_widget.dismissable)
+      assert.is_nil(shown_widget.ges_events.TapClose)
+      assert.is_nil(shown_widget.key_events.Exit)
     end
   )
 

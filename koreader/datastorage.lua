@@ -203,6 +203,7 @@ function DataStorage:showStorageWarningIfNeeded()
     cancel_callback = function()
       UIManager:quit()
     end,
+    dismissable = false,
   }))
 end
 
