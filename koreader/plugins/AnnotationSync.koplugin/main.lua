@@ -16,6 +16,7 @@ local ReaderAnnotation = require("apps/reader/modules/readerannotation")
 local SettingsSelection =
   require("plugins/AnnotationSync.koplugin/settings_selection")
 local SyncManager = require("plugins/AnnotationSync.koplugin/manager")
+local annotations = require("plugins/AnnotationSync.koplugin/annotations")
 local menus = require("plugins/AnnotationSync.koplugin/menus")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
 
@@ -309,6 +310,7 @@ end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   self.is_applying_sync = true
+  annotations.normalize(merged_list)
 
   if self.ui.document == document then
     -- 1. Sort using core's comparator
@@ -442,6 +444,8 @@ function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
     -- 2. Add back to current list
     table.insert(current, ann)
   end
+
+  annotations.normalize(current)
 
   -- 3. Apply changes once (saves to sidecar and refreshes UI)
   self:applySyncedAnnotations(document, current)
