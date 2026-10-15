@@ -212,7 +212,7 @@ function M.sync_callback(
     return nil, active
   end
 
-  util.writeToFile(json.encode(merged), local_file)
+  assert(util.writeToFile(json.encode(merged), local_file))
   return true, active
 end
 

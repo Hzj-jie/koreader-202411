@@ -420,4 +420,43 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.truthy(err_corrupt:find("missing or unreadable local sync file"))
     end
   )
+
+  it("aborts when writing the merged file fails", function()
+    local annotations_mod =
+      require("plugins/AnnotationSync.koplugin/annotations")
+    local local_file = test_data_dir .. "/write_fail_local.json"
+    local last_sync_file = test_data_dir .. "/write_fail_base.json"
+    local income_file = test_data_dir .. "/write_fail_income.json"
+
+    test_utils.write_mock_json(test_data_dir, "write_fail_local.json", {
+      { pos0 = "p1", pos1 = "p2", page = "page_1", text = "Local", drawer = "lighten" },
+    })
+    test_utils.write_mock_json(test_data_dir, "write_fail_base.json", {})
+    test_utils.write_mock_json(test_data_dir, "write_fail_income.json", {
+      { pos0 = "p3", pos1 = "p4", page = "page_1", text = "Remote", drawer = "lighten" },
+    })
+
+    local util = require("util")
+    local old_writeToFile = util.writeToFile
+
+    finally(function()
+      util.writeToFile = old_writeToFile
+      os.remove(local_file)
+      os.remove(last_sync_file)
+      os.remove(income_file)
+    end)
+
+    util.writeToFile = function(data, path, ...)
+      if path == local_file then
+        return false, "No space left on device"
+      end
+      return old_writeToFile(data, path, ...)
+    end
+
+    local ok, err = pcall(function()
+      annotations_mod.sync_callback(local_file, last_sync_file, income_file)
+    end)
+    assert.is_false(ok)
+    assert.truthy(err:find("No space left on device"))
+  end)
 end)
