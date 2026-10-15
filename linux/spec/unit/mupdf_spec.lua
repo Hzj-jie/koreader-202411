@@ -28,7 +28,7 @@ describe("ffi/mupdf module", function()
   end)
 
   it("renders image files to blitbuffer", function()
-    local bb = mupdf.renderImageFile("../koreader/resources/koreader.png")
+    local bb = mupdf.renderImageFile("resources/koreader.png")
     assert.is_not_nil(bb)
     assert.is_true(bb:getWidth() > 0)
     assert.is_true(bb:getHeight() > 0)
@@ -68,7 +68,7 @@ describe("ffi/mupdf module", function()
       debug.setupvalue(mupdf.renderImage, 5, mock_M)
 
       local ok, err = pcall(function()
-        mupdf.renderImageFile("../koreader/resources/koreader.png")
+        mupdf.renderImageFile("resources/koreader.png")
       end)
 
       debug.setupvalue(mupdf.renderImage, 1, orig_W)
