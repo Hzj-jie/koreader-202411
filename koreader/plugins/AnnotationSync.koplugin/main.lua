@@ -46,18 +46,6 @@ AnnotationSyncPlugin.default_settings = {
 function AnnotationSyncPlugin:init()
   self.ui.menu:registerToMainMenu(self)
 
-  -- Ensure the plugin is in the ReaderUI event chain
-  local found = false
-  for __, child in ipairs(self.ui) do
-    if child == self then
-      found = true
-      break
-    end
-  end
-  if not found then
-    table.insert(self.ui, self)
-  end
-
   self:onDispatcherRegisterActions()
 
   self.settings = G_reader_settings:readTableRef(

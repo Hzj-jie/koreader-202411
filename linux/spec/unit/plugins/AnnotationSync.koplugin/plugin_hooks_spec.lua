@@ -64,6 +64,16 @@ describe("AnnotationSync plugin hooks and wiring", function()
     assert.is_false(G_reader_settings:has("annotation_sync_use_filename"))
   end)
 
+  it("registers the plugin into readerui exactly once", function()
+    local count = 0
+    for _, child in ipairs(readerui) do
+      if child == sync_instance then
+        count = count + 1
+      end
+    end
+    assert.are.equal(1, count)
+  end)
+
   it("an annotation change marks each book it names as pending, once", function()
     local path_a = test_data_dir .. "/book_a.epub"
     local path_b = test_data_dir .. "/book_b.epub"
