@@ -392,26 +392,25 @@ describe("DataStorage module", function()
       DataStorage:getDataDir()
 
       local UIManager = require("ui/uimanager")
-      local quit_called = false
       local shown_widget = nil
       local orig_show = UIManager.show
       local orig_quit = UIManager.quit
 
+      finally(function()
+        UIManager.show = orig_show
+        UIManager.quit = orig_quit
+      end)
+
       UIManager.show = function(_, widget)
         shown_widget = widget
       end
-      UIManager.quit = function()
-        quit_called = true
-      end
+      UIManager.quit = function() end
 
       DataStorage:showStorageWarningIfNeeded()
       assert.is_not_nil(shown_widget)
       assert.is_false(shown_widget.dismissable)
       assert.is_nil(shown_widget.ges_events.TapClose)
-      assert.is_nil(shown_widget.key_events.Close)
-
-      UIManager.show = orig_show
-      UIManager.quit = orig_quit
+      assert.is_nil(shown_widget.key_events.Exit)
     end
   )
 
