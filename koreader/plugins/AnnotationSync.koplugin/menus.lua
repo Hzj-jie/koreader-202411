@@ -327,7 +327,8 @@ function M.show_pending_documents(plugin)
           select_enabled = false,
         })
       else
-        table.insert(items, {
+        local remaining = plugin.manager:getRemainingCooldown(file)
+        local item = {
           text = clean_filename,
           keep_menu_open = true,
           callback = function()
@@ -360,7 +361,16 @@ function M.show_pending_documents(plugin)
               },
             }))
           end,
-        })
+        }
+        if remaining > 0 then
+          local mins = math.ceil(remaining / 60)
+          item.mandatory = T(
+            N_("Cool down for 1 minute", "Cool down for %1 minutes", mins),
+            mins
+          )
+          item.dim = true
+        end
+        table.insert(items, item)
       end
     end
     return items

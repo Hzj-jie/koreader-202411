@@ -126,6 +126,11 @@ describe("AnnotationSync manager book sync engine", function()
     os.remove(manager:changedDocumentsFile())
     manager.requested = {}
     manager.running = nil
+    manager.last_sync_time = {}
+    if manager._cooldown_task then
+      UIManager:unschedule(manager._cooldown_task)
+      manager._cooldown_task = nil
+    end
 
     sync_instance.settings.network_auto_sync = false
     sync_instance.settings.use_filename = true
@@ -161,6 +166,11 @@ describe("AnnotationSync manager book sync engine", function()
     sync_instance.settings.network_auto_sync = false
     manager.running = nil
     manager.requested = {}
+    manager.last_sync_time = {}
+    if manager._cooldown_task then
+      UIManager:unschedule(manager._cooldown_task)
+      manager._cooldown_task = nil
+    end
 
     os.remove(book_b)
     os.remove(book_d)

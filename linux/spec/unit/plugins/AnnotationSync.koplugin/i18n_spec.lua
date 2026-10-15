@@ -93,6 +93,14 @@ describe("AnnotationSync internationalization", function()
       "正在同步",
       _("Syncing")
     )
+    assert.are.equal(
+      "冷却 %1 分钟",
+      _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 5)
+    )
+    assert.are.equal(
+      "冷却 %1 分钟",
+      _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 1)
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -152,6 +160,14 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "正在同步",
       _("Syncing")
+    )
+    assert.are.equal(
+      "冷卻 %1 分鐘",
+      _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 5)
+    )
+    assert.are.equal(
+      "冷卻 %1 分鐘",
+      _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 1)
     )
   end)
 end)
