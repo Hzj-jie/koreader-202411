@@ -1,1 +1,0 @@
-../../../koreader/plugins/backgroundrunner.koplugin/keyed_job_filter.lua
