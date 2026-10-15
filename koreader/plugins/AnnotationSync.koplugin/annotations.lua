@@ -290,11 +290,6 @@ function M.sort(array)
       return false
     end
 
-    -- Same page: rolling XPointers within the page
-    if type(a.pos0) == "string" and type(b.pos0) == "string" then
-      return natcmp(a.pos0, b.pos0) > 0
-    end
-
     return false
   end)
 
