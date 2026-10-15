@@ -413,20 +413,48 @@ describe("PluginLoader module", function()
         -- Toggle second item as well
         plugin_table[2].callback()
         assert.is_false(reload_called)
+        assert.is_false(restart_called)
 
-        -- Now trigger onMenuSwitched (e.g. user navigated away from submenu)
+        -- Now trigger onMenuSwitched on the parent menu item
         menu_item:onMenuSwitched()
 
         -- Should prompt now!
-        assert.is_true(reload_called)
-        assert.are.equal(
-          "Plugin configuration changed. Reload to make changes take effect?",
-          reload_prompt_msg
-        )
+        assert.is_true(restart_called)
+        assert.is_false(reload_called)
 
         -- Calling onMenuSwitched again without further changes should NOT prompt again
-        reload_called = false
+        restart_called = false
         menu_item:onMenuSwitched()
+        assert.is_false(restart_called)
+      end
+    )
+
+    it(
+      "prompts for restart when returning from plugin submenu via TouchMenu backToUpperMenu",
+      function()
+        local TouchMenu = require("ui/widget/touchmenu")
+        local plugin_menu_item = PluginLoader:genPluginManagerMenu()
+        local root_tab = {
+          text = "Tools",
+          icon = "dummy",
+          plugin_menu_item,
+        }
+        local touch_menu = TouchMenu:new({
+          tab_item_table = { root_tab },
+        })
+
+        -- Select parent item to enter submenu
+        touch_menu:onMenuSelect(plugin_menu_item)
+        assert.are.equal(plugin_menu_item.sub_item_table, touch_menu.item_table)
+        assert.is_false(restart_called)
+
+        -- Select first plugin row to toggle (checked_func keeps menu in submenu)
+        touch_menu:onMenuSelect(touch_menu.item_table[1])
+        assert.is_false(restart_called)
+
+        -- Navigate back to upper menu (triggers onMenuSwitched on child row before popping stack)
+        touch_menu:backToUpperMenu()
+        assert.is_true(restart_called)
         assert.is_false(reload_called)
       end
     )
