@@ -5,20 +5,9 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_sync_ground_truth_tmp"
   local old_getDataDir
-  local old_logger_methods
+
   setup(function()
     require("commonrequire")
-    local logger = require("logger")
-    old_logger_methods = {
-      dbg = logger.dbg,
-      info = logger.info,
-      warn = logger.warn,
-      err = logger.err,
-    }
-    logger:setLevel(logger.levels.dbg)
-    local Device = require("device")
-    Device.screen:resize(1200, 800)
-
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
@@ -47,12 +36,6 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
     end
     test_utils.teardown_test_env(test_data_dir, old_getDataDir)
     require("ui/widget/imageviewer").new = _G.old_ImageViewer_new
-    if old_logger_methods then
-      local logger = require("logger")
-      for lvl, fn in pairs(old_logger_methods) do
-        logger[lvl] = fn
-      end
-    end
     UIManager:quit()
     package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
   end)
@@ -68,9 +51,18 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
     "should generate highlights for selected ground truth entries and track them",
     function()
       local test_entries = {
-        highlight_db[1], -- Page 3, Line 1
-        highlight_db[26], -- Page 4, Line 1
-        highlight_db[51], -- Page 5, Line 1
+        {
+          page_num = highlight_db[26].page_num, -- Page 6, Line 1 ("Act I")
+          pos0 = highlight_db[26].pos0,
+          pos1 = { x = 500, y = highlight_db[26].pos1.y },
+          text = highlight_db[26].text,
+        },
+        {
+          page_num = highlight_db[51].page_num, -- Page 7, Line 1 ("SCENE I. Verona. A public place.")
+          pos0 = highlight_db[51].pos0,
+          pos1 = { x = 500, y = highlight_db[51].pos1.y },
+          text = highlight_db[51].text,
+        },
       }
 
       for _, entry in ipairs(test_entries) do
@@ -84,17 +76,7 @@ describe("AnnotationSync Highlight Ground Truth Integration", function()
 
       for i, entry in ipairs(test_entries) do
         local stored_ann = readerui.annotation.annotations[i]
-        -- Allow slight difference due to font/wrap differences (one being a substring of another)
-        local match = stored_ann.text:find(entry.text, 1, true)
-          or entry.text:find(stored_ann.text, 1, true)
-        assert.truthy(
-          match,
-          string.format(
-            "Expected text to match closely: expected '%s', got '%s'",
-            entry.text,
-            stored_ann.text
-          )
-        )
+        assert.is_equal(entry.text, stored_ann.text)
       end
 
       local count, changed_docs =
