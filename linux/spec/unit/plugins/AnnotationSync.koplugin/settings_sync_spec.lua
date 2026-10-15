@@ -353,17 +353,15 @@ describe("AnnotationSync Settings Synchronization", function()
     it(
       "push_settings: on_complete is called only from finish_cb; postponed calls it later",
       function()
-        local dummy_json = test_data_dir .. "/test_settings_case18.json"
+        local dummy_json = test_data_dir .. "/test_settings_timing.json"
+        finally(function()
+          os.remove(dummy_json)
+        end)
         util.writeToFile("{}", dummy_json)
 
         local queued_finish = nil
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
           queued_finish = function()
-            callback(
-              local_path,
-              local_path .. ".last_sync",
-              local_path .. ".income"
-            )
             if finish_cb then
               finish_cb(true)
             end
@@ -387,8 +385,6 @@ describe("AnnotationSync Settings Synchronization", function()
         queued_finish()
         assert.is_true(on_complete_called)
         assert.is_true(on_complete_success)
-
-        os.remove(dummy_json)
       end
     )
   end)
