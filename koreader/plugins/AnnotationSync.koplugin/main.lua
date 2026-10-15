@@ -454,49 +454,16 @@ function AnnotationSyncPlugin:restoreAnnotation(ann, silent)
   self:restoreAnnotations({ ann }, silent)
 end
 
-function AnnotationSyncPlugin:onAnnotationsModified(modified_annotations)
+function AnnotationSyncPlugin:onAnnotationsModified(_)
   if self.is_applying_sync then
     return
   end
 
-  -- only want to handle each changed file once, so let's keep track
-  local changed_files = {}
-  local unknown_file = "unknown_file"
-
-  -- find changed files for payload annotations
-  for __, annotation in ipairs(modified_annotations) do
-    local changed_file = annotation.book_path
-    -- AnnotationsModified event payload does not include book_path for an active document
-    if not changed_file then
-      changed_file = self.ui.document and self.ui.document.file
-    end
-    if not changed_file then
-      changed_file = unknown_file
-    end
-    local count = changed_files[changed_file]
-    changed_files[changed_file] = (count and count + 1) or 1
-  end
-
-  -- handle changed files
-  for changed_file, changes in pairs(changed_files) do
-    if changed_file == unknown_file then
-      if changes > 0 then
-        logger.warn(
-          "AnnotationSync: Document annotations modification detected, but could not determine file for",
-          changes,
-          "annotations"
-        )
-      end
-    else
-      logger.dbg(
-        "AnnotationSync:",
-        changes,
-        "Document annotations modified:",
-        changed_file
-      )
-      self.manager:addToChangedDocumentsFile(changed_file)
-    end
-  end
+  logger.dbg(
+    "AnnotationSync: Document annotations modified:",
+    self.ui.document.file
+  )
+  self.manager:addToChangedDocumentsFile(self.ui.document.file)
 end
 
 function AnnotationSyncPlugin:showChangedSettings()

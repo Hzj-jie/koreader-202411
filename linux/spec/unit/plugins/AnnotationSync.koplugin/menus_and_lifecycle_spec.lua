@@ -441,35 +441,14 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       )
 
       it(
-        "handles onAnnotationsModified during apply, closed-book book_path deduplication, and unknown_file",
+        "handles onAnnotationsModified during apply",
         function()
-          local orig_doc = readerui.document
           finally(function()
-            readerui.document = orig_doc
             sync_instance.is_applying_sync = false
           end)
 
           sync_instance.is_applying_sync = true
           sync_instance:onAnnotationsModified({ { text = "ignored" } })
-          assert.are.equal(
-            0,
-            (sync_instance.manager:getPendingChangedDocuments())
-          )
-          sync_instance.is_applying_sync = false
-
-          local closed_path = test_data_dir .. "/closed.epub"
-          sync_instance:onAnnotationsModified({
-            { book_path = closed_path, text = "first" },
-            { book_path = closed_path, text = "second" },
-          })
-          local count, list =
-            sync_instance.manager:getPendingChangedDocuments()
-          assert.are.equal(1, count)
-          assert.are.same({ closed_path }, list)
-
-          os.remove(sync_instance.manager:changedDocumentsFile())
-          readerui.document = nil
-          sync_instance:onAnnotationsModified({ { text = "no doc and no path" } })
           assert.are.equal(
             0,
             (sync_instance.manager:getPendingChangedDocuments())

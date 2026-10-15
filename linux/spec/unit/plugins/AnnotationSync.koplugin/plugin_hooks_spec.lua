@@ -74,27 +74,7 @@ describe("AnnotationSync plugin hooks and wiring", function()
     assert.are.equal(1, count)
   end)
 
-  it("an annotation change marks each book it names as pending, once", function()
-    local path_a = test_data_dir .. "/book_a.epub"
-    local path_b = test_data_dir .. "/book_b.epub"
-
-    sync_instance:onAnnotationsModified({
-      { book_path = path_a },
-      { book_path = path_b },
-      { book_path = path_a },
-    })
-
-    local _, docs = manager:getPendingChangedDocuments()
-    assert.are.equal(2, #docs)
-    local doc_set = {}
-    for _, d in ipairs(docs) do
-      doc_set[d] = true
-    end
-    assert.is_true(doc_set[path_a])
-    assert.is_true(doc_set[path_b])
-  end)
-
-  it("an annotation change without a book path marks the open book as pending", function()
+  it("an annotation change marks the open book as pending", function()
     sync_instance:onAnnotationsModified({ { text = "x" } })
 
     local _, docs = manager:getPendingChangedDocuments()
@@ -104,21 +84,8 @@ describe("AnnotationSync plugin hooks and wiring", function()
 
   it("an annotation change made while synced annotations are applied is ignored", function()
     sync_instance.is_applying_sync = true
-    local path_a = test_data_dir .. "/book_a.epub"
     finally(function()
       sync_instance.is_applying_sync = false
-    end)
-
-    sync_instance:onAnnotationsModified({ { book_path = path_a } })
-
-    assert.are.equal(0, manager:getPendingChangedDocuments())
-  end)
-
-  it("an annotation change with no book path and no open book marks nothing", function()
-    local orig_doc = readerui.document
-    readerui.document = nil
-    finally(function()
-      readerui.document = orig_doc
     end)
 
     sync_instance:onAnnotationsModified({ { text = "x" } })
