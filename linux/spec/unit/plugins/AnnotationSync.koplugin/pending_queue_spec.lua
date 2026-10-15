@@ -44,10 +44,6 @@ describe("AnnotationSync pending queue", function()
   before_each(function()
     os.remove(manager:changedDocumentsFile())
     manager.last_sync_time = {}
-    if manager._cooldown_task then
-      UIManager:unschedule(manager._cooldown_task)
-      manager._cooldown_task = nil
-    end
   end)
 
   it("Sync current book now moves the book to the front of the pending books", function()
@@ -79,7 +75,7 @@ describe("AnnotationSync pending queue", function()
     assert.are.equal(path_b, list[3])
 
     assert.are.equal("Manual Sync", manager.requested[path_c])
-    assert.are.equal("Syncing in the background: C.epub", toast_msg)
+    assert.are.equal("Syncing C.epub in the background", toast_msg)
   end)
 
   it("Sync current book now on a book that isn't pending adds it at the front", function()
@@ -266,11 +262,12 @@ describe("AnnotationSync pending queue", function()
       local path_a = test_data_dir .. "/A.epub"
       local path_b = test_data_dir .. "/B.epub"
       manager:_writeChangedDocumentsFile({ path_a, path_b })
+      sync_instance.settings.network_auto_sync = true
 
       -- path_a is cooling down with 250s remaining (~5 minutes)
-      manager.last_sync_time[path_a] = os.time() - 50
+      manager.last_sync_time[path_a] = { time = os.time() - 50, failed = false }
       -- path_b is cooling down with 30s remaining (1 minute)
-      manager.last_sync_time[path_b] = os.time() - 270
+      manager.last_sync_time[path_b] = { time = os.time() - 270, failed = false }
 
       local shown_widgets = {}
       local orig_show = UIManager.show
@@ -324,6 +321,95 @@ describe("AnnotationSync pending queue", function()
       confirm_box.ok_callback()
       assert.are.equal(path_a, synced_file)
       assert.are.equal(0, manager:getRemainingCooldown(path_a))
+    end
+  )
+
+  it(
+    "show_pending_documents displays retry status for failed cooling down books when network_auto_sync is true",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      local path_b = test_data_dir .. "/B.epub"
+      manager:_writeChangedDocumentsFile({ path_a, path_b })
+      sync_instance.settings.network_auto_sync = true
+
+      -- path_a failed 50s ago (retry in 5 minutes)
+      manager.last_sync_time[path_a] = { time = os.time() - 50, failed = true }
+      -- path_b failed 270s ago (retry in 1 minute)
+      manager.last_sync_time[path_b] = { time = os.time() - 270, failed = true }
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        table.insert(shown_widgets, widget)
+        return orig_show(ui_mgr, widget, ...)
+      end
+
+      finally(function()
+        manager.last_sync_time = {}
+        UIManager.show = orig_show
+        for _, w in ipairs(shown_widgets) do
+          UIManager:closeIfShown(w)
+        end
+      end)
+
+      menus.show_pending_documents(sync_instance)
+
+      local menu = shown_widgets[1]
+      assert.is_not_nil(menu)
+      assert.are.equal(2, #menu.item_table)
+
+      -- Item 1: path_a -> dimmed, mandatory = "Failed, retry in 5 minutes"
+      assert.are.equal("A.epub", menu.item_table[1].text)
+      assert.are.equal("Failed, retry in 5 minutes", menu.item_table[1].mandatory)
+      assert.is_true(menu.item_table[1].dim)
+
+      -- Item 2: path_b -> dimmed, mandatory = "Failed, retry in 1 minute"
+      assert.are.equal("B.epub", menu.item_table[2].text)
+      assert.are.equal("Failed, retry in 1 minute", menu.item_table[2].mandatory)
+      assert.is_true(menu.item_table[2].dim)
+    end
+  )
+
+  it(
+    "show_pending_documents does not display cooldown or failed status and does not dim when network_auto_sync is false",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      local path_b = test_data_dir .. "/B.epub"
+      manager:_writeChangedDocumentsFile({ path_a, path_b })
+      sync_instance.settings.network_auto_sync = false
+
+      manager.last_sync_time[path_a] = { time = os.time() - 50, failed = false }
+      manager.last_sync_time[path_b] = { time = os.time() - 50, failed = true }
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        table.insert(shown_widgets, widget)
+        return orig_show(ui_mgr, widget, ...)
+      end
+
+      finally(function()
+        manager.last_sync_time = {}
+        sync_instance.settings.network_auto_sync = true
+        UIManager.show = orig_show
+        for _, w in ipairs(shown_widgets) do
+          UIManager:closeIfShown(w)
+        end
+      end)
+
+      menus.show_pending_documents(sync_instance)
+
+      local menu = shown_widgets[1]
+      assert.is_not_nil(menu)
+      assert.are.equal(2, #menu.item_table)
+
+      assert.are.equal("A.epub", menu.item_table[1].text)
+      assert.is_nil(menu.item_table[1].mandatory)
+      assert.is_nil(menu.item_table[1].dim)
+
+      assert.are.equal("B.epub", menu.item_table[2].text)
+      assert.is_nil(menu.item_table[2].mandatory)
+      assert.is_nil(menu.item_table[2].dim)
     end
   )
 end)

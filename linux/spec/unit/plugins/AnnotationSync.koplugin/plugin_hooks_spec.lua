@@ -234,7 +234,8 @@ describe("AnnotationSync plugin hooks and wiring", function()
         push_item = item
       elseif item.text == "Pull settings from cloud" then
         pull_item = item
-      elseif item.text == "Sync current book now" then
+      elseif item.text == "Sync current book now"
+        or (item.text_func and item.text_func():find("Sync current book now", 1, true)) then
         sync_curr_item = item
       elseif item.text == "Show deleted annotations" then
         deleted_item = item
@@ -269,5 +270,14 @@ describe("AnnotationSync plugin hooks and wiring", function()
     readerui.document = nil
     assert.is_false(sync_curr_item.enabled_func())
     assert.is_false(deleted_item.enabled_func())
+
+    -- 4. When current book is running: disabled and text shows "Current book is being synchronized"
+    readerui.document = orig_doc
+    sync_instance.manager.running = orig_doc.file
+    assert.are.equal("Current book is being synchronized", sync_curr_item.text_func())
+    assert.is_false(sync_curr_item.enabled_func())
+    sync_instance.manager.running = nil
+    assert.are.equal("Sync current book now", sync_curr_item.text_func())
+    assert.is_true(sync_curr_item.enabled_func())
   end)
 end)

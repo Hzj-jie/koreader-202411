@@ -96,6 +96,8 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 3. Trigger Sync All
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
+      sync_instance.manager:dispatchNextSync()
       fastforward_ui_events()
 
       -- Should have attempted to sync both
@@ -119,6 +121,8 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 6. Trigger Sync All again
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
+      sync_instance.manager:dispatchNextSync()
       fastforward_ui_events()
 
       -- 7. Verify both are now clean
@@ -207,6 +211,8 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 4. Sync All
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
+      sync_instance.manager:dispatchNextSync()
       fastforward_ui_events()
       os.remove(income_epub)
       os.remove(income_pdf)

@@ -366,6 +366,7 @@ describe("AnnotationSync Trash & Restore", function()
 
       finally(test_utils.run_jobs_inline())
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
 
       assert.is_not_nil(uploaded_content)
       assert.is_not_nil(uploaded_content[1])

@@ -83,6 +83,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
 
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
         sync_instance.manager:syncAllChangedDocuments()
+        sync_instance.manager:dispatchNextSync()
 
         assert.is_true(run_online_called)
         assert.is_not_equal("Never", sync_instance.settings.last_sync)
@@ -134,6 +135,7 @@ describe("AnnotationSync recordSyncState & Network online guards", function()
       sync_instance.settings.last_sync = "Never"
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
 
       assert.is_true(run_online_called)
       assert.is_not_equal("Never", sync_instance.settings.last_sync)

@@ -60,10 +60,13 @@ end
 function SyncManager:getRemainingCooldown(file)
   local last = self.last_sync_time[file]
   if not last then
-    return 0
+    return 0, false
   end
-  local remaining = SYNC_COOLDOWN - (os.time() - last)
-  return remaining > 0 and remaining or 0
+  local remaining = SYNC_COOLDOWN - (os.time() - last.time)
+  if remaining > 0 then
+    return remaining, last.failed
+  end
+  return 0, false
 end
 
 function SyncManager:getDeviceName()
@@ -79,14 +82,19 @@ end
 -- "Sync current book now" and "Sync" in the pending books list: queues the
 -- book first.
 function SyncManager:syncNow(file)
+  if file == self.running then
+    return
+  end
   self:_moveToFront(file)
   self.requested[file] = MANUAL_SYNC
   self.last_sync_time[file] = nil
-  Notification:notify(
-    T(gettext("Syncing in the background: %1"), book_name(file))
-  )
   NetworkMgr:runWhenOnline(function()
-    self:_dispatchNextSync()
+    local next_file = self:_loadChangedDocuments()[1]
+    if next_file then
+      Notification:notify(
+        T(gettext("Syncing %1 in the background"), book_name(next_file))
+      )
+    end
   end)
 end
 
@@ -99,22 +107,26 @@ function SyncManager:syncAllChangedDocuments()
   end
 
   for _, file in ipairs(changed_docs) do
-    -- Keep a Manual Sync request: it reports "Synced"/"Failed".
-    self.requested[file] = self.requested[file] or "Sync All"
-    self.last_sync_time[file] = nil
+    if file ~= self.running then
+      -- Keep a Manual Sync request: it reports "Synced"/"Failed".
+      self.requested[file] = self.requested[file] or "Sync All"
+      self.last_sync_time[file] = nil
+    end
   end
-  Notification:notify(
-    T(
-      N_(
-        "Syncing 1 book in the background",
-        "Syncing %1 books one by one in the background",
-        total
-      ),
-      total
-    )
-  )
   NetworkMgr:runWhenOnline(function()
-    self:_dispatchNextSync()
+    local count = self:getPendingChangedDocuments()
+    if count > 0 then
+      Notification:notify(
+        T(
+          N_(
+            "Syncing 1 book in the background",
+            "Syncing %1 books one by one in the background",
+            count
+          ),
+          count
+        )
+      )
+    end
   end)
 end
 
@@ -170,14 +182,12 @@ function SyncManager:_startSync(file, trigger, trash)
       )
     end
     self.running = nil
-    self:_dispatchNextSync()
     return
   end
 
   local _, pending_docs = self:getPendingChangedDocuments()
   if not util.arrayContains(pending_docs, file) then
     self.running = nil
-    self:_dispatchNextSync()
     return
   end
 
@@ -239,12 +249,6 @@ function SyncManager:_startSync(file, trigger, trash)
       }
     end,
     callback = function(job)
-      -- Was a Manual Sync asked for this book? One asked before this job
-      -- started is in trigger (_dispatchNextSync moved requested[file] there),
-      -- one asked while it ran is in requested[file]. Read it now: the queue
-      -- update below can clear it.
-      local asked = trigger == MANUAL_SYNC
-        or self.requested[file] == MANUAL_SYNC
       local item = job.result
       if type(item) ~= "table" then
         logger.warn(
@@ -276,13 +280,13 @@ function SyncManager:_startSync(file, trigger, trash)
             file
           )
         end
-        if not self.requested[file] then
-          self.last_sync_time[file] = os.time()
-        end
+        self.last_sync_time[file] = {
+          time = os.time(),
+          failed = not item.success,
+        }
         self.running = nil
-        -- A Manual Sync asked while this job ran is still requested if the book
-        -- changed meanwhile or the job failed. The book's next job answers it.
-        if asked and self.requested[file] ~= MANUAL_SYNC then
+        -- A Manual Sync asked before this job ran is answered here.
+        if trigger == MANUAL_SYNC then
           if item.success then
             Notification:notify(T(gettext("Synced: %1"), book_name(file)))
           elseif item.unreadable then
@@ -293,7 +297,6 @@ function SyncManager:_startSync(file, trigger, trash)
             utils.show_msg(T(gettext("Failed to sync %1."), book_name(file)))
           end
         end
-        self:_dispatchNextSync(not item.success)
       end
 
       if not item.success then
@@ -332,11 +335,6 @@ function SyncManager:_startSync(file, trigger, trash)
               end
             end
             NetworkMgr:willRerunWhenOnline(function()
-              -- Take the request when the sync starts, as _dispatchNextSync does.
-              if self.requested[file] == MANUAL_SYNC then
-                trigger = MANUAL_SYNC
-              end
-              self.requested[file] = nil
               self:_startSync(file, trigger, tombstones)
             end)
           end,
@@ -358,14 +356,10 @@ function SyncManager:_startSync(file, trigger, trash)
 end
 
 -- Starts the first book the user asked to sync. Without one, with auto sync
--- on and unless the last sync failed, starts the first book of the queue.
-function SyncManager:_dispatchNextSync(failed)
-  if self.running then
+-- on, starts the first book of the queue that is not in cooldown.
+function SyncManager:dispatchNextSync()
+  if self.running or not NetworkMgr:isOnline() then
     return false
-  end
-  if self._cooldown_task then
-    UIManager:unschedule(self._cooldown_task)
-    self._cooldown_task = nil
   end
 
   local list = self:_loadChangedDocuments()
@@ -376,7 +370,7 @@ function SyncManager:_dispatchNextSync(failed)
       break
     end
   end
-  if not file and self.plugin.settings.network_auto_sync and not failed then
+  if not file and self.plugin.settings.network_auto_sync then
     for _, f in ipairs(list) do
       if self:getRemainingCooldown(f) == 0 then
         file = f
@@ -385,35 +379,13 @@ function SyncManager:_dispatchNextSync(failed)
     end
   end
   if not file then
-    if self.plugin.settings.network_auto_sync then
-      local min_remaining = nil
-      for _, f in ipairs(list) do
-        local rem = self:getRemainingCooldown(f)
-        if rem > 0 then
-          if not min_remaining or rem < min_remaining then
-            min_remaining = rem
-          end
-        end
-      end
-      if min_remaining then
-        self._cooldown_task = function()
-          self._cooldown_task = nil
-          self:_dispatchNextSync()
-        end
-        UIManager:scheduleIn(min_remaining, self._cooldown_task)
-      end
-    end
     return false
   end
 
   self.running = file
-  NetworkMgr:willRerunWhenOnline(function()
-    -- Take the request when the sync starts: a book taken off the list while
-    -- its sync waited for the network lost its request with it.
-    local trigger = self.requested[file]
-    self.requested[file] = nil
-    self:_startSync(file, trigger)
-  end)
+  local trigger = self.requested[file]
+  self.requested[file] = nil
+  self:_startSync(file, trigger)
   return true
 end
 
@@ -575,7 +547,6 @@ function SyncManager:addToChangedDocumentsFile(file)
     table.insert(list, file)
     self:_writeChangedDocumentsFile(list)
   end
-  self:_dispatchNextSync()
 end
 
 function SyncManager:removeFromChangedDocumentsFileByPath(file)
@@ -629,7 +600,6 @@ function SyncManager:scanLibraryForUnsyncedDocuments()
       end
     end
     self:_writeChangedDocumentsFile(list)
-    self:_dispatchNextSync()
   end
 
   return count, added_files

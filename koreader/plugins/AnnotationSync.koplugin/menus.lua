@@ -327,7 +327,7 @@ function M.show_pending_documents(plugin)
           select_enabled = false,
         })
       else
-        local remaining = plugin.manager:getRemainingCooldown(file)
+        local remaining, failed = plugin.manager:getRemainingCooldown(file)
         local item = {
           text = clean_filename,
           keep_menu_open = true,
@@ -362,12 +362,19 @@ function M.show_pending_documents(plugin)
             }))
           end,
         }
-        if remaining > 0 then
+        if plugin.settings.network_auto_sync and remaining > 0 then
           local mins = math.ceil(remaining / 60)
-          item.mandatory = T(
-            N_("Cool down for 1 minute", "Cool down for %1 minutes", mins),
-            mins
-          )
+          if failed then
+            item.mandatory = T(
+              N_("Failed, retry in 1 minute", "Failed, retry in %1 minutes", mins),
+              mins
+            )
+          else
+            item.mandatory = T(
+              N_("Cool down for 1 minute", "Cool down for %1 minutes", mins),
+              mins
+            )
+          end
           item.dim = true
         end
         table.insert(items, item)

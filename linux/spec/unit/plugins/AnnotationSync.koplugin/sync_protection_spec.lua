@@ -90,6 +90,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       -- 4. Trigger Sync All
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
 
       -- 5. Verify the 1 highlight was found and included in the sync data
       local count = 0
@@ -288,6 +289,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
       sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
 
       local cached_path =
         sync_instance.manager:getSyncCachePath(readerui.document.file)
@@ -366,6 +368,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     end
     sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
     sync_instance.manager:syncAllChangedDocuments()
+    sync_instance.manager:dispatchNextSync()
     UIManager.show = old_show
 
     -- The book is empty while the cloud has the note: dismissing the box

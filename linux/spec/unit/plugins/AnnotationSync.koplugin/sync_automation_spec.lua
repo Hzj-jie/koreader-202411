@@ -61,10 +61,6 @@ describe("AnnotationSync Automation & Settings", function()
     sync_instance.manager.running = nil
     sync_instance.manager.requested = {}
     sync_instance.manager.last_sync_time = {}
-    if sync_instance.manager._cooldown_task then
-      UIManager:unschedule(sync_instance.manager._cooldown_task)
-      sync_instance.manager._cooldown_task = nil
-    end
   end)
 
   after_each(function()
@@ -77,10 +73,6 @@ describe("AnnotationSync Automation & Settings", function()
     sync_instance.manager.running = nil
     sync_instance.manager.requested = {}
     sync_instance.manager.last_sync_time = {}
-    if sync_instance.manager._cooldown_task then
-      UIManager:unschedule(sync_instance.manager._cooldown_task)
-      sync_instance.manager._cooldown_task = nil
-    end
   end)
 
   describe("Settings", function()
@@ -100,6 +92,7 @@ describe("AnnotationSync Automation & Settings", function()
       finally(test_utils.run_jobs_inline())
       sync_instance.settings.use_filename = false
       sync_instance:manualSync()
+      sync_instance:onTimesChange_1M()
       assert.truthy(
         captured_path:match(
           util.partialMD5(readerui.document.file) .. "%.json$"
@@ -108,13 +101,14 @@ describe("AnnotationSync Automation & Settings", function()
 
       sync_instance.settings.use_filename = true
       sync_instance:manualSync()
+      sync_instance:onTimesChange_1M()
       assert.truthy(captured_path:match("juliet%.epub%.json$"))
     end)
   end)
 
   describe("Automation", function()
     it(
-      "triggers background incremental fork sync on onNetworkOnline when network_auto_sync is enabled",
+      "triggers background incremental fork sync on onTimesChange_1M when network_auto_sync is enabled",
       function()
         sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -132,7 +126,7 @@ describe("AnnotationSync Automation & Settings", function()
           end
         end
 
-        sync_instance:onNetworkOnline()
+        sync_instance:onTimesChange_1M()
 
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
@@ -174,12 +168,14 @@ describe("AnnotationSync Automation & Settings", function()
 
       finally(test_utils.run_jobs_inline())
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance:onTimesChange_1M()
+      sync_instance:onTimesChange_1M()
       fastforward_ui_events()
       assert.is_equal(2, #synced_files)
     end)
 
     it(
-      "ignores onNetworkOnline when network_auto_sync is disabled",
+      "ignores onTimesChange_1M when network_auto_sync is disabled",
       function()
         sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -187,21 +183,23 @@ describe("AnnotationSync Automation & Settings", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_jobs_count = #jobs
 
-        sync_instance:onNetworkOnline()
+        sync_instance:onTimesChange_1M()
 
         assert.is_equal(initial_jobs_count, #jobs)
       end
     )
 
     it(
-      "triggers background sync when addToChangedDocumentsFile is called with network_auto_sync enabled",
+      "does not dispatch immediately on addToChangedDocumentsFile, but on next onTimesChange_1M",
       function()
         sync_instance.settings.network_auto_sync = true
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+        assert.is_equal(initial_count, #jobs)
 
+        sync_instance:onTimesChange_1M()
         assert.is_equal(initial_count + 1, #jobs)
       end
     )
@@ -217,6 +215,9 @@ describe("AnnotationSync Automation & Settings", function()
 
         assert.is_equal(initial_count, #jobs)
         assert.is_true(sync_instance.manager:getPendingChangedDocuments() > 0)
+
+        sync_instance:onTimesChange_1M()
+        assert.is_equal(initial_count, #jobs)
       end
     )
 
@@ -238,13 +239,15 @@ describe("AnnotationSync Automation & Settings", function()
         local initial_count = #jobs
 
         sync_instance.manager:scanLibraryForUnsyncedDocuments()
+        assert.is_equal(initial_count, #jobs)
 
+        sync_instance:onTimesChange_1M()
         assert.is_equal(initial_count + 1, #jobs)
       end
     )
 
     it(
-      "switching network_auto_sync toggle on triggers background sync",
+      "switching network_auto_sync toggle on triggers background sync on next onTimesChange_1M",
       function()
         sync_instance.settings.network_auto_sync = false
         sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
@@ -268,6 +271,9 @@ describe("AnnotationSync Automation & Settings", function()
         menu_item.callback()
 
         assert.is_true(sync_instance.settings.network_auto_sync)
+        assert.is_equal(initial_count, #jobs)
+
+        sync_instance:onTimesChange_1M()
         assert.is_equal(initial_count + 1, #jobs)
       end
     )
@@ -275,6 +281,7 @@ describe("AnnotationSync Automation & Settings", function()
     it(
       "prunes missing files in main thread and applies synced annotations in background callback",
       function()
+        sync_instance.settings.network_auto_sync = true
         local jobs = require("pluginshare").backgroundJobs
         local initial_jobs_count = #jobs
         local missing_file = "/path/to/nonexistent/book.epub"
@@ -286,12 +293,14 @@ describe("AnnotationSync Automation & Settings", function()
         sync_instance.manager:addToChangedDocumentsFile(missing_file)
         sync_instance.manager:addToChangedDocumentsFile(active_file)
 
-        -- Missing file is pruned on main thread immediately
+        -- First dispatch cleans up missing file
+        sync_instance:onTimesChange_1M()
         local _, remaining = sync_instance.manager:getPendingChangedDocuments()
         assert.falsy(util.arrayContains(remaining, missing_file))
         assert.truthy(util.arrayContains(remaining, active_file))
 
-        -- Active file was queued into background jobs
+        -- Second dispatch queues active file into background jobs
+        sync_instance:onTimesChange_1M()
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
 

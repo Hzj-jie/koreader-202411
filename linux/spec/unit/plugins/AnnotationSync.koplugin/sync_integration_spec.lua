@@ -92,6 +92,7 @@ describe("AnnotationSync Core Integration", function()
       assert.truthy(util.arrayContains(docs, readerui.document.file))
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
     end)
 
@@ -101,6 +102,7 @@ describe("AnnotationSync Core Integration", function()
 
       -- Sync an empty book
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
 
       -- Should succeed and update metadata
       assert.is_not_equal("Never", sync_instance.settings.last_sync)
@@ -117,6 +119,7 @@ describe("AnnotationSync Core Integration", function()
 
       -- 3. Sync (First time)
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
 
       -- 4. Should succeed, mark as clean, and have 1 annotation
       assert.is_not_equal("Never", sync_instance.settings.last_sync)
@@ -148,6 +151,7 @@ describe("AnnotationSync Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
 
       assert.is_equal(2, #readerui.annotation.annotations)
@@ -184,6 +188,7 @@ describe("AnnotationSync Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
       assert.is_equal("Local Newer", readerui.annotation.annotations[1].note)
     end)
@@ -222,6 +227,7 @@ describe("AnnotationSync Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
       assert.is_equal(1, #readerui.annotation.annotations)
       assert.is_equal("Revived", readerui.annotation.annotations[1].note)
@@ -261,6 +267,7 @@ describe("AnnotationSync Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
@@ -327,6 +334,7 @@ describe("AnnotationSync Core Integration", function()
         end
 
         sync_instance:manualSync()
+        sync_instance.manager:dispatchNextSync()
 
         assert.is_equal(
           0,
@@ -363,6 +371,7 @@ describe("AnnotationSync Core Integration", function()
       end
 
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
 
       assert.is_not_nil(
         lfs.attributes(sdr_dir),
@@ -485,6 +494,7 @@ describe("AnnotationSync Core Integration", function()
           upload_code = 500
 
           sync_instance.manager:syncNow(doc)
+          sync_instance.manager:dispatchNextSync()
           local f = io.open(sync_instance.manager:getSyncCachePath(doc), "r")
           local base_after = f:read("*a")
           f:close()
@@ -492,7 +502,7 @@ describe("AnnotationSync Core Integration", function()
           assert.is_true(is_pending(doc))
           assert.are.equal(base, base_after)
           assert.are.same(
-            { "Syncing in the background: d1.epub", "Failed to sync d1.epub." },
+            { "Syncing d1.epub in the background", "Failed to sync d1.epub." },
             shown
           )
         end
@@ -506,10 +516,11 @@ describe("AnnotationSync Core Integration", function()
 
           -- D2a: remote returns 409
           sync_instance.manager:syncNow(doc)
+          sync_instance.manager:dispatchNextSync()
           assert.is_false(is_pending(doc))
           assert.are.equal(0, #uploads)
           assert.are.same(
-            { "Syncing in the background: d2.epub", "Synced: d2.epub" },
+            { "Syncing d2.epub in the background", "Synced: d2.epub" },
             shown
           )
 
@@ -517,12 +528,13 @@ describe("AnnotationSync Core Integration", function()
           remote_store[name] = "{}"
           sync_instance.manager:addToChangedDocumentsFile(doc)
           sync_instance.manager:syncNow(doc)
+          sync_instance.manager:dispatchNextSync()
           assert.is_false(is_pending(doc))
           assert.are.equal(0, #uploads)
           assert.are.same({
-            "Syncing in the background: d2.epub",
+            "Syncing d2.epub in the background",
             "Synced: d2.epub",
-            "Syncing in the background: d2.epub",
+            "Syncing d2.epub in the background",
             "Synced: d2.epub",
           }, shown)
         end
@@ -540,9 +552,10 @@ describe("AnnotationSync Core Integration", function()
           sync_instance.manager:addToChangedDocumentsFile(doc)
 
           sync_instance.manager:syncNow(doc)
+          sync_instance.manager:dispatchNextSync()
           assert.is_true(is_pending(doc))
           assert.are.same(
-            { "Syncing in the background: d3.epub", "Failed to sync d3.epub." },
+            { "Syncing d3.epub in the background", "Failed to sync d3.epub." },
             shown
           )
           assert.are.equal(0, #uploads)

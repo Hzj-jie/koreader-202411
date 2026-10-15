@@ -116,6 +116,8 @@ describe("Unsynced / Pending Documents Feature", function()
 
       -- 3. Run Sync All
       sync_instance.manager:syncAllChangedDocuments()
+      sync_instance.manager:dispatchNextSync()
+      sync_instance.manager:dispatchNextSync()
       fastforward_ui_events()
 
       -- 4. Verify results
@@ -158,6 +160,7 @@ describe("Unsynced / Pending Documents Feature", function()
       local box = shown[2]
       -- Tap "Sync".
       box[1][1][1][1][3].buttons[1][2].callback()
+      sync_instance.manager:dispatchNextSync()
 
       assert.is_true(UIManager:isWindowWidget(menu))
       assert.is_false(UIManager:isWindowWidget(box))
@@ -172,7 +175,7 @@ describe("Unsynced / Pending Documents Feature", function()
       assert.is_equal(1, menus_shown)
       assert.are.same({
         "Sync this book now?\n\njuliet.epub",
-        "Syncing in the background: juliet.epub",
+        "Syncing juliet.epub in the background",
         "Synced: juliet.epub",
       }, texts)
       local _, pending = sync_instance.manager:getPendingChangedDocuments()
@@ -292,8 +295,8 @@ describe("Unsynced / Pending Documents Feature", function()
       local old_hist = readhistory.hist
       readhistory.hist = util.tableDeepCopy(old_hist)
 
-      local orig_dispatch = sync_instance.manager._dispatchNextSync
-      sync_instance.manager._dispatchNextSync = function() end
+      local orig_dispatch = sync_instance.manager.dispatchNextSync
+      sync_instance.manager.dispatchNextSync = function() end
 
       local scan_dir = test_data_dir .. "/test_scan_order"
       local doc_a = scan_dir .. "/book_a.epub"
@@ -305,7 +308,7 @@ describe("Unsynced / Pending Documents Feature", function()
 
       finally(function()
         readhistory.hist = old_hist
-        sync_instance.manager._dispatchNextSync = orig_dispatch
+        sync_instance.manager.dispatchNextSync = orig_dispatch
         os.execute("rm -rf " .. scan_dir)
       end)
 

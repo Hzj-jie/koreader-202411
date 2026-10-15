@@ -100,6 +100,7 @@ describe("AnnotationSync PDF Core Integration", function()
       assert.truthy(util.arrayContains(docs, readerui.document.file))
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       assert.is_equal(0, (sync_instance.manager:getPendingChangedDocuments()))
     end)
   end)
@@ -128,6 +129,7 @@ describe("AnnotationSync PDF Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
 
       assert.is_equal(2, #readerui.annotation.annotations)
@@ -167,6 +169,7 @@ describe("AnnotationSync PDF Core Integration", function()
         end
 
         sync_instance:manualSync()
+        sync_instance.manager:dispatchNextSync()
         os.remove(income_path)
 
         -- Both distinct highlights should be preserved (exact coordinate identity avoids data loss)
@@ -205,6 +208,7 @@ describe("AnnotationSync PDF Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
       assert.is_equal(
         "Local Newer PDF",
@@ -246,6 +250,7 @@ describe("AnnotationSync PDF Core Integration", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       os.remove(income_path)
       assert.is_equal(0, #readerui.annotation.annotations)
     end)
