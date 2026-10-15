@@ -70,7 +70,7 @@ describe("AnnotationSync PDF Core Integration", function()
     restore_jobs()
   end)
 
-  local function create_pdf_ann_from_db(index, note, datetime)
+  local function create_pdf_ann_from_db(index, note, datetime, datetime_updated)
     local entry = highlight_pdf_db[index]
     local ann = {
       drawer = "lighten",
@@ -80,6 +80,7 @@ describe("AnnotationSync PDF Core Integration", function()
       text = entry.text,
       chapter = "Test Chapter",
       datetime = datetime or "2026-01-01 12:00:00",
+      datetime_updated = datetime_updated or datetime or "2026-01-01 12:00:00",
       note = note,
     }
     ann.pos0.page = entry.page_num
@@ -175,11 +176,11 @@ describe("AnnotationSync PDF Core Integration", function()
 
     it("resolves PDF conflicts using timestamps (latest wins)", function()
       local ann_l =
-        create_pdf_ann_from_db(1, "Local Newer PDF", "2026-02-02 12:00:00")
+        create_pdf_ann_from_db(1, "Local Newer PDF", "2026-01-01 12:00:00", "2026-02-02 12:00:00")
       table.insert(readerui.annotation.annotations, ann_l)
 
       local ann_r =
-        create_pdf_ann_from_db(1, "Remote Older PDF", "2026-02-01 12:00:00")
+        create_pdf_ann_from_db(1, "Remote Older PDF", "2026-01-01 12:00:00", "2026-02-01 12:00:00")
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_conflict_pdf.json",
