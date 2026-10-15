@@ -182,11 +182,7 @@ function PluginLoader:genPluginManagerMenu()
     end
     has_changes = false
 
-    require("ui/uimanager"):askForRestartOrReload(
-      gettext(
-        "Plugin configuration changed. Reload to make changes take effect?"
-      )
-    )
+    require("ui/uimanager"):askForRestart()
   end
 
   local plugin_table = {}
