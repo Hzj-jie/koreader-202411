@@ -365,7 +365,7 @@ function SyncManager:dispatchNextSync()
   local list = self:_loadChangedDocuments()
   local file
   for _, f in ipairs(list) do
-    if self.requested[f] and self:getRemainingCooldown(f) == 0 then
+    if self.requested[f] then
       file = f
       break
     end
