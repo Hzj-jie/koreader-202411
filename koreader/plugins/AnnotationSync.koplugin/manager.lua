@@ -24,7 +24,6 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 local TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 -- A value of SyncManager.requested, also passed on as a sync's trigger.
 local MANUAL_SYNC = "Manual Sync"
-local SYNC_COOLDOWN = 300
 -- Files in the data dir.
 local SETTINGS_SYNC_FILE = "/settings_sync.json"
 local READER_SETTINGS_FILE = "/settings.reader.lua"
@@ -62,7 +61,7 @@ function SyncManager:getRemainingCooldown(file)
   if not last then
     return 0, false
   end
-  local remaining = SYNC_COOLDOWN - (os.time() - last.time)
+  local remaining = 300 - (os.time() - last.time) -- 5 minutes
   if remaining > 0 then
     return remaining, last.failed
   end
@@ -83,6 +82,7 @@ end
 -- book first.
 function SyncManager:syncNow(file)
   if file == self.running then
+    Notification:notify(gettext("Current book is being synchronized"))
     return
   end
   self:_moveToFront(file)
@@ -365,7 +365,7 @@ function SyncManager:dispatchNextSync()
   local list = self:_loadChangedDocuments()
   local file
   for _, f in ipairs(list) do
-    if self.requested[f] and self:getRemainingCooldown(f) == 0 then
+    if self.requested[f] then
       file = f
       break
     end

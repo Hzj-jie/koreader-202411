@@ -78,6 +78,32 @@ describe("AnnotationSync pending queue", function()
     assert.are.equal("Syncing C.epub in the background", toast_msg)
   end)
 
+  it("Sync current book now on the running book notifies that it is being synchronized", function()
+    local path_a = test_data_dir .. "/A.epub"
+    manager:_writeChangedDocumentsFile({ path_a })
+    manager.running = path_a
+    manager.last_sync_time[path_a] = { time = 12345, failed = false }
+
+    local toast_msg
+    local orig_notify = Notification.notify
+    Notification.notify = function(_, text)
+      toast_msg = text
+    end
+
+    finally(function()
+      manager.running = nil
+      manager.requested = {}
+      manager.last_sync_time = {}
+      Notification.notify = orig_notify
+    end)
+
+    manager:syncNow(path_a)
+
+    assert.are.equal("Current book is being synchronized", toast_msg)
+    assert.is_nil(manager.requested[path_a])
+    assert.are.same({ time = 12345, failed = false }, manager.last_sync_time[path_a])
+  end)
+
   it("Sync current book now on a book that isn't pending adds it at the front", function()
     local path_a = test_data_dir .. "/A.epub"
     local path_b = test_data_dir .. "/B.epub"
