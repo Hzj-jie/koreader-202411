@@ -102,6 +102,15 @@ msgstr[5] ""
 #, fuzzy
 msgid "Fuzzy"
 msgstr "Fuzzy translated"
+
+#: frontend/ui/data/css_tweaks.lua:55
+#, fuzzy
+msgid ""
+msgstr ""
+
+#: frontend/ui/data/css_tweaks.lua:60
+msgid "Next Item"
+msgstr "Next Translated"
 ]]
 
 describe("GetText module", function()
@@ -232,6 +241,9 @@ describe("GetText module", function()
     end)
     it("gettext should ignore fuzzy strings", function()
       assert.is_equal("Fuzzy", GetText("Fuzzy"))
+    end)
+    it("gettext should not leak fuzzy status across entries", function()
+      assert.is_equal("Next Translated", GetText("Next Item"))
     end)
     it("gettext should translate multiline string", function()
       assert.is_equal("\nbericht", GetText("\nmessage"))

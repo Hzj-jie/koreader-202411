@@ -304,6 +304,7 @@ function GetText_mt.__index.changeLang(new_lang)
       end
       data = {}
       what = nil
+      fuzzy = false
     else
       -- comment
       if not line:match("^#") then

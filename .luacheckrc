@@ -10,6 +10,8 @@ globals = {
   "assert.truthy",
   "describe",
   "einkfb",
+  "disable_plugins",
+  "fastforward_ui_events",
   "io.open",
   "io.write",
   "math.e",
