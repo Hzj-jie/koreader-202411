@@ -2917,7 +2917,7 @@ describe("Background Sync Behavior", function()
           assert.are.equal(2, jobs())
           assert.are.equal(1, #boxes)
           assert.is_false(is_pending(doc))
-          assert.are.same({}, toasts)
+          assert.are.same({ "Current book is being synchronized" }, toasts)
         end
       )
 
@@ -3429,7 +3429,7 @@ describe("Background Sync Behavior", function()
         sync_manager:dispatchNextSync()
 
         assert.are.same({ "juliet.epub" }, synced)
-        assert.are.same({}, toasts)
+        assert.are.same({ "Current book is being synchronized" }, toasts)
       end
     )
 
@@ -3455,7 +3455,7 @@ describe("Background Sync Behavior", function()
         sync_manager:dispatchNextSync()
 
         assert.are.same({ "juliet.epub" }, synced)
-        assert.are.same({}, toasts)
+        assert.are.same({ "Current book is being synchronized" }, toasts)
       end
     )
 
@@ -3471,6 +3471,10 @@ describe("Background Sync Behavior", function()
         sync_manager:dispatchNextSync()
 
         assert.are.same({ "juliet.epub" }, synced)
+        assert.are.same({
+          "Syncing juliet.epub in the background",
+          "Current book is being synchronized",
+        }, toasts)
         assert.are.same({ "Failed to sync juliet.epub." }, boxes)
       end
     )

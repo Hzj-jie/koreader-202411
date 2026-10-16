@@ -82,6 +82,7 @@ end
 -- book first.
 function SyncManager:syncNow(file)
   if file == self.running then
+    Notification:notify(gettext("Current book is being synchronized"))
     return
   end
   self:_moveToFront(file)
