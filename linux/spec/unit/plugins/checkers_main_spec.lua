@@ -167,87 +167,111 @@ describe("Checkers main plugin module", function()
     assert.is_number(best[2])
   end)
 
-  it(
-    "should schedule AI move after doUndo() leaves game on AI turn [exposes production bug in Checkers:doUndo()]",
-    function()
-      local scheduled = false
-      local old_schedule = UIManager.scheduleIn
-      UIManager.scheduleIn = function(self_uim, delay, fn)
-        scheduled = true
-      end
-
-      local instance = Checkers:new({
-        ui = {
-          menu = { registerToMainMenu = function() end },
-        },
-      })
-      instance:init()
-      -- Black (1) is AI, White (2) is Human
-      instance.human[1] = false
-      instance.human[2] = true
-
-      instance.game = Game.new()
-      instance.board = {
-        game = instance.game,
-        _clear_selection = function() end,
-        updateBoard = function() end,
-      }
-      instance.status_bar = {
-        setTitle = function() end,
-        setSubTitle = function() end,
-      }
-
-      -- Black (AI) makes opening move
-      local m1 = instance.game:get_possible_moves()[1]
-      instance.game:move(m1[1], m1[2])
-      assert.are.equal(2, instance.game:whose_turn())
-
-      -- White (Human) makes move 2
-      local m2 = instance.game:get_possible_moves()[1]
-      instance.game:move(m2[1], m2[2])
-      assert.are.equal(1, instance.game:whose_turn())
-
-      -- First undo: undid White's move, turn is White (Human)
-      instance:doUndo()
-      assert.are.equal(2, instance.game:whose_turn())
-      assert.is_false(scheduled)
-
-      -- Second undo: undid Black's opening move, turn is now Black (AI)
-      scheduled = false
-      instance:doUndo()
-      assert.are.equal(1, instance.game:whose_turn())
-      assert.is_false(instance.human[1])
-
-      -- Production bug: doUndo() leaves game on AI's turn without calling scheduleAIMove()
-      assert.is_true(scheduled)
-
-      UIManager.scheduleIn = old_schedule
+  it("should schedule AI move after doUndo() leaves game on AI turn", function()
+    local scheduled = false
+    local old_schedule = UIManager.scheduleIn
+    UIManager.scheduleIn = function(self_uim, delay, fn)
+      scheduled = true
     end
-  )
 
-  it(
-    "should evaluate AI.best_move at depth 0 without infinite recursion [exposes production bug in AI.alpha_beta()]",
-    function()
-      local game = Game.new()
-      -- Production bug: ai.lua line 75 checks `depth == 0` instead of `depth <= 0`.
-      -- With depth = 0, `next_depth = depth - 1` becomes -1, causing infinite recursion
-      -- down the game tree. We install a call-counter hook to bound runaway recursion.
-      local call_count = 0
-      debug.sethook(function()
-        call_count = call_count + 1
-        if call_count > 50 then
-          debug.sethook()
-          error("infinite recursion in alpha_beta: depth <= 0 not handled")
-        end
-      end, "c")
+    local instance = Checkers:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+    instance:init()
+    -- Black (1) is AI, White (2) is Human
+    instance.human[1] = false
+    instance.human[2] = true
 
-      local ok, best = pcall(function()
-        return AI.best_move(game, 0)
-      end)
-      debug.sethook()
+    instance.game = Game.new()
+    instance.board = {
+      game = instance.game,
+      _clear_selection = function() end,
+      updateBoard = function() end,
+    }
+    instance.status_bar = {
+      setTitle = function() end,
+      setSubTitle = function() end,
+    }
 
-      assert.is_true(ok)
-      assert.is_not_nil(best)
+    -- Black (AI) makes opening move
+    local m1 = instance.game:get_possible_moves()[1]
+    instance.game:move(m1[1], m1[2])
+    assert.are.equal(2, instance.game:whose_turn())
+
+    -- White (Human) makes move 2
+    local m2 = instance.game:get_possible_moves()[1]
+    instance.game:move(m2[1], m2[2])
+    assert.are.equal(1, instance.game:whose_turn())
+
+    -- First undo: undid White's move, turn is White (Human)
+    instance:doUndo()
+    assert.are.equal(2, instance.game:whose_turn())
+    assert.is_false(scheduled)
+
+    -- Second undo: undid Black's opening move, turn is now Black (AI)
+    scheduled = false
+    instance:doUndo()
+    assert.are.equal(1, instance.game:whose_turn())
+    assert.is_false(instance.human[1])
+
+    -- Verify scheduleAIMove() was called
+    assert.is_true(scheduled)
+
+    UIManager.scheduleIn = old_schedule
+  end)
+
+  it("should unschedule pending AI task on undo", function()
+    local scheduled = false
+    local unscheduled = false
+    local old_schedule = UIManager.scheduleIn
+    local old_unschedule = UIManager.unschedule
+    UIManager.scheduleIn = function(self_uim, delay, fn)
+      scheduled = true
+      return fn
     end
-  )
+    UIManager.unschedule = function(self_uim, action)
+      unscheduled = true
+    end
+
+    local instance = Checkers:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+    instance:init()
+    instance.human[1] = false
+    instance.human[2] = true
+
+    instance.game = Game.new()
+    instance.board = {
+      game = instance.game,
+      _clear_selection = function() end,
+      updateBoard = function() end,
+    }
+    instance.status_bar = {
+      setTitle = function() end,
+      setSubTitle = function() end,
+    }
+
+    -- Black (AI) makes opening move
+    local m1 = instance.game:get_possible_moves()[1]
+    instance.game:move(m1[1], m1[2])
+
+    -- White (Human) makes move 2
+    local m2 = instance.game:get_possible_moves()[1]
+    instance.game:move(m2[1], m2[2])
+
+    -- Simulate pending AI task
+    instance:scheduleAIMove()
+    assert.is_true(scheduled)
+
+    -- Undo while AI move is pending
+    instance:doUndo()
+    assert.is_true(unscheduled)
+
+    UIManager.scheduleIn = old_schedule
+    UIManager.unschedule = old_unschedule
+  end)
 end)

@@ -255,10 +255,7 @@ describe("Japanese plugin & Deinflector", function()
             get_next_char_pos = function(_p)
               return nil
             end,
-            get_text_in_range = function(_p0, p1)
-              if not p1 then
-                return nil
-              end
+            get_text_in_range = function(_p0, _p1)
               return "本"
             end,
           },

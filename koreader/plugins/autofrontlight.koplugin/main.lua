@@ -1,7 +1,7 @@
 local Device = require("device")
 
 if
-  not (Device.isEmulator() or (Device:isKindle() and Device:hasLightSensor()))
+  not (Device:isEmulator() or (Device:isKindle() and Device:hasLightSensor()))
 then
   return { disabled = true }
 end

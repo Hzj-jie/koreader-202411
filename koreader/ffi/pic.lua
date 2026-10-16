@@ -169,6 +169,10 @@ function GifDocument:openPage(number)
     -- build palette from frame or global color map
     local cmap = i.ImageDesc.ColorMap ~= nil and i.ImageDesc.ColorMap
       or self.giffile.SColorMap
+    if cmap == nil or cmap == ffi.null then
+      bb:free()
+      error("GIF has no valid color map")
+    end
     local palette = {}
     for c = 0, cmap.ColorCount - 1 do
       local color = cmap.Colors[c]
@@ -181,8 +185,10 @@ function GifDocument:openPage(number)
     local p = i.RasterBits
     for y = f_y, f_y + f_h - 1 do
       for x = f_x, f_x + f_w - 1 do
-        if not transparent_color or p[0] ~= transparent_color then
-          bb:setPixel(x, y, palette[p[0]])
+        if x >= 0 and x < width and y >= 0 and y < height then
+          if not transparent_color or p[0] ~= transparent_color then
+            bb:setPixel(x, y, palette[p[0]])
+          end
         end
         p = p + 1
       end

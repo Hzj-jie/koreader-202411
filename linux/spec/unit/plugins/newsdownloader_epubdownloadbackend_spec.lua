@@ -75,6 +75,24 @@ describe("EpubDownloadBackend module", function()
     assert.are.equal("session", cookies[1].name)
     assert.are.equal("abc12345", cookies[1].value)
 
+    -- Response without set-cookie header
+    http.request = function(req)
+      return 1, 200, { ["content-type"] = "text/html" }, "200 OK"
+    end
+    local no_cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {})
+    assert.is_table(no_cookies)
+    assert.are.equal(0, #no_cookies)
+
+    -- Response with nil headers (e.g. error / connection failure)
+    http.request = function(req)
+      return nil, 500, nil, "500 Internal Server Error"
+    end
+    local nil_headers_cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {})
+    assert.is_table(nil_headers_cookies)
+    assert.are.equal(0, #nil_headers_cookies)
+
     http.request = old_request
   end)
 
@@ -102,6 +120,43 @@ describe("EpubDownloadBackend module", function()
     assert.is_true(success)
 
     os.remove(tmp_epub)
+
+    -- Test HTML without title tag (falls back to "Untitled")
+    local tmp_epub_no_title = os.tmpname() .. ".epub"
+    local html_no_title =
+      '<html><head></head><body><div class="content">No title article</div></body></html>'
+    local success_no_title = pcall(function()
+      EpubDownloadBackend:createEpub(
+        tmp_epub_no_title,
+        html_no_title,
+        "http://example.com/no_title",
+        false,
+        "Downloading...",
+        true,
+        ".content"
+      )
+    end)
+    assert.is_true(success_no_title)
+    os.remove(tmp_epub_no_title)
+
+    -- Test HTML with multiline title tag
+    local tmp_epub_multiline = os.tmpname() .. ".epub"
+    local html_multiline =
+      '<html><head><title class="header">\n  Multiline Article Title\n</title></head><body><div class="content">Multiline body</div></body></html>'
+    local success_multiline = pcall(function()
+      EpubDownloadBackend:createEpub(
+        tmp_epub_multiline,
+        html_multiline,
+        "http://example.com/multiline",
+        false,
+        "Downloading...",
+        true,
+        ".content"
+      )
+    end)
+    assert.is_true(success_multiline)
+    os.remove(tmp_epub_multiline)
+
     http.request = old_request
   end)
 

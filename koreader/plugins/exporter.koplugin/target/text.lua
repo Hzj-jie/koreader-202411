@@ -62,7 +62,7 @@ end
 
 function TextExporter:share(t)
   local content = format(t)
-  self:shareText(content)
+  self:shareText(table.concat(content, "\n"))
 end
 
 return TextExporter

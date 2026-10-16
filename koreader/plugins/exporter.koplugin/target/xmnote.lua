@@ -147,7 +147,7 @@ function XMNoteExporter:makeRequest(endpoint, method, request_body)
     return nil, status
   end
 
-  local response = json.decode(sink[1])
+  local response = json.decode(table.concat(sink))
   local api_code = response["code"]
   if api_code ~= nil and api_code ~= 200 then
     logger.warn(

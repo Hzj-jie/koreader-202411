@@ -157,6 +157,13 @@ function AutoDim:onExit()
 end
 
 function AutoDim:onClose()
+  UIManager:unschedule(AutoDim._rampTask)
+  self:_clearIdling()
+  self:_restoreFrontlight()
+  if self.trap_widget then
+    UIManager:closeIfShown(self.trap_widget)
+    self.trap_widget = nil
+  end
   BackgroundTaskPlugin.onClose(self)
 end
 
@@ -176,6 +183,9 @@ function AutoDim:onFrontlightTurnedOff()
 end
 
 function AutoDim:_shouldNotDim()
+  if self.autodim_starttime_m <= 0 then
+    return true
+  end
   return UIManager:timeSinceLastUserAction()
     < time.s(self.autodim_starttime_m * 60)
 end

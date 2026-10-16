@@ -114,29 +114,39 @@ function MoveToArchive:onMoveToArchive(do_copy)
   UIManager:broadcastEvent(Event:new("SetupShowReader"))
 
   self.ui:onExit()
-  local text
+  local ok, err
   if do_copy then
-    text =
-      gettext("Book copied.\nDo you want to open it from the archive folder?")
-    FileManager:copyFile(document_full_path, self.archive_dir_path)
+    ok, err = FileManager:copyFile(document_full_path, self.archive_dir_path)
   else
-    text =
-      gettext("Book moved.\nDo you want to open it from the archive folder?")
-    FileManager:moveFile(document_full_path, self.archive_dir_path)
-    require("readhistory"):updateItem(document_full_path, dest_file) -- (will update "lastfile" if needed)
-    require("readcollection"):updateItem(document_full_path, dest_file)
+    ok, err = FileManager:moveFile(document_full_path, self.archive_dir_path)
+    if ok then
+      require("readhistory"):updateItem(document_full_path, dest_file) -- (will update "lastfile" if needed)
+      require("readcollection"):updateItem(document_full_path, dest_file)
+    end
   end
-  DocSettings.updateLocation(document_full_path, dest_file, do_copy)
-  UIManager:show(ConfirmBox:new({
-    text = text,
-    ok_callback = function()
-      local ReaderUI = require("apps/reader/readerui")
-      ReaderUI:showReader(dest_file)
-    end,
-    cancel_callback = function()
-      self:openFileBrowser(self.last_copied_from_dir)
-    end,
-  }))
+  if ok then
+    DocSettings.updateLocation(document_full_path, dest_file, do_copy)
+    local text = do_copy
+        and gettext(
+          "Book copied.\nDo you want to open it from the archive folder?"
+        )
+      or gettext("Book moved.\nDo you want to open it from the archive folder?")
+    UIManager:show(ConfirmBox:new({
+      text = text,
+      ok_callback = function()
+        local ReaderUI = require("apps/reader/readerui")
+        ReaderUI:showReader(dest_file)
+      end,
+      cancel_callback = function()
+        self:openFileBrowser(self.last_copied_from_dir)
+      end,
+    }))
+  else
+    self:openFileBrowser(self.last_copied_from_dir)
+    UIManager:show(InfoMessage:new({
+      text = err or gettext("Operation failed."),
+    }))
+  end
 end
 
 function MoveToArchive:setArchiveDirectory()

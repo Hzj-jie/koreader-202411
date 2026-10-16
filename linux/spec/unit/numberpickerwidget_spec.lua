@@ -241,4 +241,29 @@ describe("NumberPickerWidget module", function()
       UIManager.close = orig_close
     end
   )
+
+  describe("Defect verifications", function()
+    it("preserves configured unit suffix on update", function()
+      local picker = NumberPickerWidget:new({
+        value = 10,
+        value_min = 0,
+        value_max = 100,
+        unit = "%",
+      })
+      assert.is_true(picker.text_value.text:find("%%") ~= nil)
+      picker:update()
+      assert.is_true(
+        picker.text_value.text:find("%%") ~= nil,
+        "picker.text_value.text should preserve unit suffix after update"
+      )
+    end)
+
+    it(
+      "clamps to max when stepping down from value above max with wrap enabled",
+      function()
+        local res = NumberPickerWidget:changeValue(31, -1, 28, 1, true)
+        assert.are.equal(28, res)
+      end
+    )
+  end)
 end)

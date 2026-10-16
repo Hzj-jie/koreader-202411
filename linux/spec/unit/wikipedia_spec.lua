@@ -919,4 +919,15 @@ describe("Wikipedia HTML with Images & Math", function()
       assert.is_true(res)
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure prettifyText handles articles starting with headings",
+      function()
+        local input = "== Heading ==\nBody"
+        local output = Wikipedia:prettifyText(input)
+        assert.is_nil(output:find("^== "))
+      end
+    )
+  end)
 end)

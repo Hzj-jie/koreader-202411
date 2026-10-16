@@ -156,83 +156,79 @@ describe("FindHistory plugin", function()
     UIManager.show = old_show
   end)
 
-  it(
-    "extracts clean file path without single quotes from stat output (fails: line 32 single-quoted stat)",
-    function()
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local fh = FindHistory:new({
-        ui = mock_ui,
-      })
-      local menu_items = {}
-      fh:addToMainMenu(menu_items)
+  it("extracts clean file path from stat output", function()
+    local mock_ui = {
+      menu = {
+        registerToMainMenu = function() end,
+      },
+    }
+    local fh = FindHistory:new({
+      ui = mock_ui,
+    })
+    local menu_items = {}
+    fh:addToMainMenu(menu_items)
 
-      local shown_dialog
-      local old_show = UIManager.show
-      UIManager.show = function(_, widget)
-        shown_dialog = widget
-      end
-      menu_items.findhistory.callback()
-
-      -- Simulate backup file not existing so backupAndBuildHistory proceeds directly
-      local old_attr = lfs.attributes
-      lfs.attributes = function()
-        return nil
-      end
-
-      local old_execute = os.execute
-      os.execute = function()
-        return 0
-      end
-
-      local old_run_with = UIManager.runWith
-      UIManager.runWith = function(_, fn)
-        fn()
-      end
-
-      -- Output from GNU stat -c '%N %Y' quotes the file path with '%N'
-      local stat_output =
-        "'/home/books/novel.sdr/metadata.epub.lua' 1700000000\n"
-      local mock_file = {
-        lines = function()
-          return coroutine.wrap(function()
-            coroutine.yield(stat_output)
-          end)
-        end,
-        close = function() end,
-      }
-
-      local old_popen = io.popen
-      io.popen = function()
-        return mock_file
-      end
-
-      local old_flush = ReadHistory._flush
-      local old_reload = ReadHistory.reload
-      ReadHistory._flush = function() end
-      ReadHistory.reload = function() end
-
-      shown_dialog.choice1_callback()
-
-      io.popen = old_popen
-      os.execute = old_execute
-      lfs.attributes = old_attr
-      UIManager.show = old_show
-      UIManager.runWith = old_run_with
-      ReadHistory._flush = old_flush
-      ReadHistory.reload = old_reload
-
-      assert.is_table(ReadHistory.hist)
-      assert.are.equal(1, #ReadHistory.hist)
-      assert.are.equal(1700000000, ReadHistory.hist[1].time)
-      -- Production bug in findhistory main.lua line 32:
-      -- stat -c '%N %Y' formats the filename with '%N', which outputs single-quoted filenames.
-      -- The regex line:match("(.+) (%d+)") captures the single quotes into f, and getFilePathFromMetadata
-      -- retains the single quotes, yielding "'/home/books/novel.epub'" instead of "/home/books/novel.epub".
-      assert.are.equal("/home/books/novel.epub", ReadHistory.hist[1].file)
+    local shown_dialog
+    local old_show = UIManager.show
+    UIManager.show = function(_, widget)
+      shown_dialog = widget
     end
-  )
+    menu_items.findhistory.callback()
+
+    -- Simulate backup file not existing so backupAndBuildHistory proceeds directly
+    local old_attr = lfs.attributes
+    lfs.attributes = function()
+      return nil
+    end
+
+    local old_execute = os.execute
+    os.execute = function()
+      return 0
+    end
+
+    local old_run_with = UIManager.runWith
+    UIManager.runWith = function(_, fn)
+      fn()
+    end
+
+    -- Output from stat -c '%n %Y' outputs raw unquoted file path
+    local stat_output = "/home/books/novel.sdr/metadata.epub.lua 1700000000\n"
+    local mock_file = {
+      lines = function()
+        return coroutine.wrap(function()
+          coroutine.yield(stat_output)
+        end)
+      end,
+      close = function() end,
+    }
+
+    local popen_cmd
+    local old_popen = io.popen
+    io.popen = function(cmd)
+      popen_cmd = cmd
+      return mock_file
+    end
+
+    local old_flush = ReadHistory._flush
+    local old_reload = ReadHistory.reload
+    ReadHistory._flush = function() end
+    ReadHistory.reload = function() end
+
+    shown_dialog.choice1_callback()
+
+    io.popen = old_popen
+    os.execute = old_execute
+    lfs.attributes = old_attr
+    UIManager.show = old_show
+    UIManager.runWith = old_run_with
+    ReadHistory._flush = old_flush
+    ReadHistory.reload = old_reload
+
+    assert.is_not_nil(popen_cmd)
+    assert.is_not_nil(popen_cmd:find("%%n %%Y"))
+    assert.is_table(ReadHistory.hist)
+    assert.are.equal(1, #ReadHistory.hist)
+    assert.are.equal(1700000000, ReadHistory.hist[1].time)
+    assert.are.equal("/home/books/novel.epub", ReadHistory.hist[1].file)
+  end)
 end)

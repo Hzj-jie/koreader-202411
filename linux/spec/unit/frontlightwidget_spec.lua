@@ -340,4 +340,51 @@ describe("FrontLightWidget UI component", function()
 
     UIManager._window_stack = old_stack
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "exposes onTapProgress at 0% toggling frontlight on when already at 0",
+      function()
+        local flw = FrontLightWidget:new({})
+        flw.fl_progress.dimen = Geom:new({ x = 0, y = 0, w = 200, h = 40 })
+        flw.frame.dimen = Geom:new({ x = 0, y = 0, w = 300, h = 300 })
+        flw.fl_progress.getPercentageFromPosition = function()
+          return 0
+        end
+
+        flw.powerd:setIntensity(0)
+        assert.are.equal(0, flw.powerd:frontlightIntensity())
+
+        local toggle_called = false
+        local orig_toggle = flw.powerd.toggleFrontlight
+        flw.powerd.toggleFrontlight = function(self)
+          toggle_called = true
+          orig_toggle(self)
+        end
+
+        flw:onTapProgress(
+          nil,
+          { pos = Geom:new({ x = 10, y = 10 }), ges = "tap" }
+        )
+
+        flw.powerd.toggleFrontlight = orig_toggle
+        assert.is_false(toggle_called)
+        assert.are.equal(0, flw.powerd:frontlightIntensity())
+      end
+    )
+
+    it("exposes onClose not unscheduling refreshBrightnessWidgets", function()
+      local flw = FrontLightWidget:new({})
+      local unscheduled_action = nil
+      local orig_unschedule = UIManager.unschedule
+      UIManager.unschedule = function(self, action)
+        unscheduled_action = action
+      end
+
+      flw:onClose()
+
+      UIManager.unschedule = orig_unschedule
+      assert.are.equal(flw.refreshBrightnessWidgets, unscheduled_action)
+    end)
+  end)
 end)

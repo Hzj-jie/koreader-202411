@@ -194,9 +194,6 @@ function SettingsWidget:show()
     save_callback = function()
       self:applyAndClose()
     end,
-    dismiss_callback = function()
-      UIManager:close(self.dialog)
-    end,
   })
   dlg.element_width = math.floor(dlg.width * 0.8)
   self.dialog = dlg

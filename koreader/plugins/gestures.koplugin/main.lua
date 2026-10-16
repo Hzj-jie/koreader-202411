@@ -410,7 +410,7 @@ local multiswipe_to_arrow = {
 }
 function Gestures:friendlyMultiswipeName(multiswipe)
   return multiswipe
-    :gsub("multiswipe", "")
+    :gsub("^multiswipe_?", "")
     :gsub("_", " ")
     :gsub("%S+", multiswipe_to_arrow)
 end
@@ -619,9 +619,8 @@ Any other taps made within this interval after a first tap will be considered ac
 The interval value is in milliseconds and can range from 0 (0 seconds) to 2000 (2 seconds).]]
             ),
             width = math.floor(Screen:getWidth() * 0.75),
-            value = time.to_ms(
-              G_reader_settings:read("ges_tap_interval_on_keyboard_ms") or 0
-            ),
+            value = G_reader_settings:read("ges_tap_interval_on_keyboard_ms")
+              or 0,
             value_min = 0,
             value_max = 2000,
             value_step = 50,

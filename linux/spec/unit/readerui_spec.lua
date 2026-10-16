@@ -115,4 +115,16 @@ describe("Readerui module", function()
     assert.is_true(size.w > 0)
     assert.is_true(size.h > 0)
   end)
+
+  it(
+    "should error directly when dealWithLoadDocumentFailure is called outside a coroutine",
+    function()
+      assert.has_error(
+        function()
+          readerui:dealWithLoadDocumentFailure()
+        end,
+        "crengine failed recognizing or parsing this file: unsupported or invalid document"
+      )
+    end
+  )
 end)

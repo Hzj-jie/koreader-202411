@@ -144,11 +144,13 @@ local function getBookInfo(book)
     return id
   end
   -- all entries can be empty, except size, which is always filled by calibre.
-  local title = gettext("Title:") .. " " .. book.title or "-"
-  local authors = gettext("Author(s):") .. " " .. getEntries(book.authors)
-    or "-"
-  local size = gettext("Size:") .. " " .. util.getFriendlySize(book.size)
-    or gettext("Unknown")
+  local title = gettext("Title:") .. " " .. (book.title or "-")
+  local authors = gettext("Author(s):")
+    .. " "
+    .. (getEntries(book.authors) or "-")
+  local size = gettext("Size:")
+    .. " "
+    .. (util.getFriendlySize(book.size) or gettext("Unknown"))
   local tags = getEntries(book.tags)
   if tags then
     tags = gettext("Tags:") .. " " .. tags
@@ -332,7 +334,7 @@ function CalibreSearch:bookCatalog(t, option)
   end
   if series and not subseries then
     for index, entry in ipairs(catalog) do
-      catalog[index].text = entry.text:gsub(".00", "", 1)
+      catalog[index].text = entry.text:gsub("%.00", "", 1)
     end
   end
   return catalog

@@ -240,4 +240,40 @@ describe("TextWidget", function()
     assert.is_nil(tw._xtext)
     assert.is_false(tw._updated)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure getFittedText strips full 3-byte ellipsis on left truncation",
+      function()
+        local face = Font:getFace("infofont", 14)
+        local tw = TextWidget:new({
+          text = "A very long sentence that will definitely exceed max width",
+          face = face,
+          use_xtext = false,
+          truncate_left = true,
+          truncate_with_ellipsis = true,
+          max_width = 80,
+        })
+        local fitted, is_truncated = tw:getFittedText()
+        assert.is_true(is_truncated)
+        assert.are_not.equal(0xA6, fitted:byte(1))
+      end
+    )
+
+    it(
+      "should ensure getFittedText returns nil for un-truncated multi-byte text with xtext",
+      function()
+        local face = Font:getFace("infofont", 14)
+        local tw = TextWidget:new({
+          text = "héllo",
+          face = face,
+          use_xtext = true,
+          max_width = 1000,
+        })
+        local fitted, is_truncated = tw:getFittedText()
+        assert.are.equal("héllo", fitted)
+        assert.is_nil(is_truncated)
+      end
+    )
+  end)
 end)

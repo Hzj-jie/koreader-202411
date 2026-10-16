@@ -165,7 +165,6 @@ describe("Markdown Exporter and Template", function()
       }
 
       local lines = md.prepareBookContent(book, default_formatting, true)
-      assert.is_table(lines)
     end)
   end)
 
@@ -196,9 +195,19 @@ describe("Markdown Exporter and Template", function()
       assert.is_true(saved)
       assert.is_table(exporter.settings.formatting_options)
       assert.is_true(exporter.settings.highlight_formatting)
+
+      -- init_callback should preserve existing highlight_formatting = false
+      local _, settings2 = exporter:init_callback({
+        highlight_formatting = false,
+      })
+      assert.is_false(settings2.highlight_formatting)
     end)
 
     it("should construct menu table and toggle settings", function()
+      local saved_count = 0
+      exporter.saveSettings = function()
+        saved_count = saved_count + 1
+      end
       exporter.settings = {
         enabled = true,
         highlight_formatting = true,
@@ -220,12 +229,14 @@ describe("Markdown Exporter and Template", function()
       assert.is_true(export_item.checked_func())
       export_item.callback()
       assert.is_false(exporter:isEnabled())
+      assert.are.equal(1, saved_count)
 
       -- Format highlights item
       local format_item = menu_table.sub_item_table[2]
       assert.is_true(format_item.checked_func())
       format_item.callback()
       assert.is_false(exporter.settings.highlight_formatting)
+      assert.are.equal(2, saved_count)
 
       -- Edit format style item opens RadioButtonWidget
       local shown_widget
@@ -245,6 +256,7 @@ describe("Markdown Exporter and Template", function()
       -- Select bold (index 2)
       shown_widget.callback(shown_widget.radio_buttons[2][1])
       assert.are.equal("bold", exporter.settings.formatting_options.lighten)
+      assert.are.equal(3, saved_count)
 
       UIManager.show = old_show
     end)

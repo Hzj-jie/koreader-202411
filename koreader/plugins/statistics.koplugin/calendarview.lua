@@ -1211,12 +1211,11 @@ function CalendarView:init()
   local now_ts = os.time()
   if not MIN_MONTH then
     local min_ts = self.reader_statistics:getFirstTimestamp()
-    if not min_ts then
-      min_ts = now_ts
+    if min_ts then
+      MIN_MONTH = os.date("%Y-%m", min_ts)
     end
-    MIN_MONTH = os.date("%Y-%m", min_ts)
   end
-  self.min_month = MIN_MONTH
+  self.min_month = MIN_MONTH or os.date("%Y-%m", now_ts)
   self.max_month = os.date("%Y-%m", now_ts)
   if not self.cur_month then
     self.cur_month = self.max_month
@@ -1591,7 +1590,15 @@ function CalendarView:showCalendarDayView(reader_statistics)
       + (reader_statistics.settings.calendar_day_start_minute or 0) * 60
   then
     -- Should still be in previous day's timeline
-    date = os.date("*t", os.time() - 86400 + 10800) -- make sure it's the previous day
+    local current_day_ts = os.time({
+      year = date.year,
+      month = date.month,
+      day = date.day,
+      hour = 0,
+      min = 0,
+      sec = 0,
+    })
+    date = os.date("*t", current_day_ts - 86400 + 10800) -- make sure it's the previous day
   end
   UIManager:show(CalendarDayView:new({
     day_ts = os.time({

@@ -899,7 +899,7 @@ function ReaderUI:dealWithLoadDocumentFailure()
   -- _document)
   -- As we are in a coroutine, we can pause and show an InfoMessage before exiting
   local _coroutine = coroutine.running()
-  if coroutine then
+  if _coroutine then
     logger.warn(
       "crengine failed recognizing or parsing this file: unsupported or invalid document"
     )

@@ -954,4 +954,121 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
       UIManager.scheduleIn = orig_scheduleIn
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure Trapper.current_widget is cleared after user abort",
+      function()
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        local abort_box
+        UIManager.show = function(_, widget)
+          if widget.ok_callback and widget.cancel_callback then
+            abort_box = widget
+          end
+        end
+        UIManager.close = function(_, widget) end
+        UIManager.forceRepaint = function(_) end
+        UIManager.unschedule = function(_, cb) end
+
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
+
+        Trapper:reset()
+        Trapper.current_widget = nil
+
+        local first_widget
+        local res1, res2
+        local current_after_abort
+        Trapper:wrap(function()
+          res1 = Trapper:info("Step 1")
+          first_widget = Trapper.current_widget
+          res2 = Trapper:info("Step 2")
+          current_after_abort = Trapper.current_widget
+        end)
+
+        assert.is_true(res1)
+        assert.is_not_nil(first_widget)
+        assert.is_not_nil(scheduled_cb)
+
+        first_widget.dismiss_callback()
+        assert.is_not_nil(abort_box)
+        abort_box.ok_callback()
+
+        assert.is_false(res2)
+        assert.is_nil(current_after_abort)
+      end
+    )
+
+    it(
+      "should ensure dismissableRunInSubprocess returns nil when subprocess exits with no output",
+      function()
+        local ffiutil = require("ffi/util")
+        local orig_isSubProcessDone = ffiutil.isSubProcessDone
+        local orig_getNonBlockingReadSize = ffiutil.getNonBlockingReadSize
+        local orig_readAllFromFD = ffiutil.readAllFromFD
+        local orig_runInSubProcess = ffiutil.runInSubProcess
+        local orig_scheduleIn = UIManager.scheduleIn
+
+        finally(function()
+          ffiutil.isSubProcessDone = orig_isSubProcessDone
+          ffiutil.getNonBlockingReadSize = orig_getNonBlockingReadSize
+          ffiutil.readAllFromFD = orig_readAllFromFD
+          ffiutil.runInSubProcess = orig_runInSubProcess
+          UIManager.scheduleIn = orig_scheduleIn
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        ffiutil.runInSubProcess = function()
+          return 1234
+        end
+        ffiutil.isSubProcessDone = function()
+          return true
+        end
+        ffiutil.getNonBlockingReadSize = function()
+          return 0
+        end
+        ffiutil.readAllFromFD = function()
+          return ""
+        end
+
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
+
+        Trapper:reset()
+        Trapper.current_widget = nil
+
+        local ok, res
+        Trapper:wrap(function()
+          ok, res = Trapper:dismissableRunInSubprocess(function()
+            return ""
+          end, false, true)
+        end)
+
+        assert.is_not_nil(scheduled_cb)
+        scheduled_cb()
+
+        assert.is_true(ok)
+        assert.is_nil(res)
+      end
+    )
+  end)
 end)

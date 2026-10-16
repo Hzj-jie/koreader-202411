@@ -102,104 +102,62 @@ describe("Flomo Exporter plugin target", function()
     end
   )
 
-  it(
-    "should include Content-Length header in HTTP POST request [exposes production bug in makeRequest()]",
-    function()
-      local old_request = http.request
-      local captured_headers = nil
+  it("should include Content-Length header in HTTP POST request", function()
+    local old_request = http.request
+    local captured_headers = nil
 
-      http.request = function(req)
-        captured_headers = req.headers
-        req.sink('{"code":0,"message":"success"}')
-        return 1, 200, {}, "200 OK"
-      end
-
-      local exporter = FlomoExporter:new({ name = "flomo" })
-      exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
-
-      local booknotes = {
-        title = "Test Book",
-        { { text = "Sample quote", page = 1 } },
-      }
-
-      exporter:export({ booknotes })
-
-      -- Production bug: makeRequest() only sets Content-Type, omitting Content-Length
-      assert.is_table(captured_headers)
-      assert.is_not_nil(captured_headers["Content-Length"])
-
-      http.request = old_request
+    http.request = function(req)
+      captured_headers = req.headers
+      req.sink('{"code":0,"message":"success"}')
+      return 1, 200, {}, "200 OK"
     end
-  )
 
-  it(
-    "should handle multi-chunk HTTP responses in makeRequest [exposes production bug in makeRequest()]",
-    function()
-      local old_request = http.request
+    local exporter = FlomoExporter:new({ name = "flomo" })
+    exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
 
-      http.request = function(req)
-        local sink = req.sink
-        -- Response body split across multiple chunks
-        sink('{"code":0,')
-        sink('"message":"success"}')
-        return 1, 200, {}, "200 OK"
-      end
+    local booknotes = {
+      title = "Test Book",
+      { { text = "Sample quote", page = 1 } },
+    }
 
-      local exporter = FlomoExporter:new({ name = "flomo" })
-      exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
+    exporter:export({ booknotes })
 
-      local booknotes = {
-        title = "Test Book",
-        { { text = "Sample quote", page = 1 } },
-      }
+    assert.is_table(captured_headers)
+    assert.is_not_nil(captured_headers["Content-Length"])
 
-      -- Production bug: makeRequest decodes sink[1] instead of table.concat(sink),
-      -- causing unhandled JSON decode error on multi-chunk responses
-      local ok = pcall(function()
-        return exporter:export({ booknotes })
-      end)
-      assert.is_true(ok)
+    http.request = old_request
+  end)
 
-      http.request = old_request
+  it("should handle multi-chunk HTTP responses in makeRequest", function()
+    local old_request = http.request
+
+    http.request = function(req)
+      local sink = req.sink
+      -- Response body split across multiple chunks
+      sink('{"code":0,')
+      sink('"message":"success"}')
+      return 1, 200, {}, "200 OK"
     end
-  )
+
+    local exporter = FlomoExporter:new({ name = "flomo" })
+    exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
+
+    local booknotes = {
+      title = "Test Book",
+      { { text = "Sample quote", page = 1 } },
+    }
+
+    local ok = pcall(function()
+      return exporter:export({ booknotes })
+    end)
+    assert.is_true(ok)
+
+    http.request = old_request
+  end)
+
 
   it(
-    "should export bookmark notes when clipping text is nil [exposes production bug in FlomoExporter:createHighlights()]",
-    function()
-      local old_request = http.request
-      http.request = function(req)
-        req.sink('{"code":0,"message":"success"}')
-        return 1, 200, {}, "200 OK"
-      end
-
-      local exporter = FlomoExporter:new({ name = "flomo" })
-      exporter.settings.api = "https://flomoapp.com/api/v1/memo/test/"
-
-      -- Bookmark clipping with note but nil text
-      local booknotes = {
-        title = "Test Book",
-        {
-          {
-            text = nil,
-            note = "Bookmark comment note",
-            page = 10,
-          },
-        },
-      }
-
-      -- Production bug: concatenates clipping.text without nil check, crashing with nil concatenation
-      local ok = pcall(function()
-        return exporter:export({ booknotes })
-      end)
-      assert.is_true(ok)
-
-      http.request = old_request
-    end
-  )
-
-  it(
-    "should return false when highlight export fails due to HTTP error [exposes production bug in FlomoExporter:createHighlights()]",
+    "should return false when highlight export fails due to HTTP error",
     function()
       local old_request = http.request
 
@@ -220,7 +178,6 @@ describe("Flomo Exporter plugin target", function()
         },
       }
 
-      -- Production bug: createHighlights unconditionally returns true even when all requests fail
       local ok = exporter:export({ booknotes })
       assert.is_false(ok)
 

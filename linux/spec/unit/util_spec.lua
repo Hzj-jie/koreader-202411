@@ -1,3 +1,4 @@
+-- luacheck: ignore 122
 describe("util module", function()
   local DataStorage, lfs, util, ffiUtil
   setup(function()
@@ -1540,5 +1541,85 @@ describe("util module", function()
       assert.is_false(ok)
       assert.is_truthy(err)
     end)
+  end)
+
+  describe("getFilesystemType()", function()
+    local orig_io_open
+
+    setup(function()
+      orig_io_open = io.open
+    end)
+
+    teardown(function()
+      io.open = orig_io_open
+    end)
+
+    it("does not match mount points as substrings in filenames", function()
+      local mock_mounts = {
+        "/dev/root / ext4 rw,relatime 0 0",
+        "/dev/sda1 /boot vfat rw,relatime 0 0",
+      }
+
+      io.open = function(path, mode)
+        if path == "/proc/mounts" then
+          local idx = 0
+          return {
+            lines = function()
+              return function()
+                idx = idx + 1
+                return mock_mounts[idx]
+              end
+            end,
+            close = function() end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+
+      -- /tmp/boot.img is under root (/), not /boot
+      local fs = util.getFilesystemType("/tmp/boot.img")
+      assert.are.equal("ext4", fs)
+    end)
+
+    it(
+      "does not treat dashes in mount points as Lua pattern quantifiers",
+      function()
+        local mock_mounts = {
+          "/dev/root / ext4 rw,relatime 0 0",
+          "/dev/sda2 /mnt/sd-card f2fs rw,relatime 0 0",
+        }
+
+        io.open = function(path, mode)
+          if path == "/proc/mounts" then
+            local idx = 0
+            return {
+              lines = function()
+                return function()
+                  idx = idx + 1
+                  return mock_mounts[idx]
+                end
+              end,
+              close = function() end,
+            }
+          end
+          return orig_io_open(path, mode)
+        end
+
+        -- /mnt/scard should not match /mnt/sd-card
+        local fs = util.getFilesystemType("/mnt/scard/file.txt")
+        assert.are.equal("ext4", fs)
+      end
+    )
+  end)
+
+  describe("prettifyCSS()", function()
+    it(
+      "preserves multi-argument functional pseudo-classes on a single line",
+      function()
+        local css = ":is(td, th) { color: red; }"
+        local prettified = util.prettifyCSS(css)
+        assert.is_true(prettified:find(":is(td, th)", 1, true) ~= nil)
+      end
+    )
   end)
 end)

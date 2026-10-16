@@ -305,6 +305,7 @@ function Sokoban:_onSolved()
   local fr = self.furthest_reached[self.current_set] or 1
   self.furthest_reached[self.current_set] =
     math.max(fr, math.min(self.current_level + 1, #ls.levels))
+  self:_saveSettings()
 
   -- full refresh so e-ink ghosts clear
   UIManager:setDirty(self.widget, "full")

@@ -1051,7 +1051,7 @@ Do you want to prune the cache of removed books?]]),
     UIManager:close(info)
     info = InfoMessage:new({
       text = T(
-        N_("Found 1 book to index.", "Found %1 books to index."),
+        N_("Found 1 book to index.", "Found %1 books to index.", #files),
         #files
       ),
     })

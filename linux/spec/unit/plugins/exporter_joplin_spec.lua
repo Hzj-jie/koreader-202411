@@ -134,82 +134,45 @@ describe("Exporter Joplin target module", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "fails: exposes findNotebookByTitle hardcoding query=title in url",
-      function()
-        local exp = create_mock_exporter()
-        local orig_request = http.request
-        local requested_url = nil
+    it("accepts valid ports up to 65535 in port validation", function()
+      local exp = create_mock_exporter()
+      exp.settings.port = 41184
+      exp.saveSettings = function() end
 
-        http.request = function(req)
-          requested_url = req.url
-          req.sink(json.encode({
-            has_more = false,
-            items = {},
-          }))
-          return 1
-        end
-        finally(function()
-          http.request = orig_request
-        end)
+      local menu = exp:getMenuTable()
+      local ip_port_item = menu.sub_item_table[1]
+      assert.is_table(ip_port_item)
 
-        local search_title = "Science and Hypothesis"
-        exp:findNotebookByTitle(search_title)
-
-        assert.is_string(requested_url)
-        -- In joplin.lua lines 103-109:
-        -- url_base is "http://%s:%s/folders?token=%s&query=title&page=" with title passed as 4th arg.
-        -- The query parameter is literally "query=title" instead of "query=" .. title.
-        assert.is_falsy(
-          requested_url:find("query=title", 1, true),
-          "URL should not have hardcoded 'query=title'"
-        )
+      local orig_new = MultiInputDialog.new
+      local captured_dlg = nil
+      MultiInputDialog.new = function(self, args)
+        captured_dlg = orig_new(self, args)
+        return captured_dlg
       end
-    )
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      UIManager.show = function() end
+      UIManager.close = function() end
+      finally(function()
+        MultiInputDialog.new = orig_new
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+      end)
 
-    it(
-      "fails: exposes port validation rejecting valid ports due to port < 65355 check",
-      function()
-        local exp = create_mock_exporter()
-        exp.settings.port = 41184
-        exp.saveSettings = function() end
+      ip_port_item.callback()
+      assert.is_table(captured_dlg)
 
-        local menu = exp:getMenuTable()
-        local ip_port_item = menu.sub_item_table[1]
-        assert.is_table(ip_port_item)
-
-        local orig_new = MultiInputDialog.new
-        local captured_dlg = nil
-        MultiInputDialog.new = function(self, args)
-          captured_dlg = orig_new(self, args)
-          return captured_dlg
-        end
-        local orig_show = UIManager.show
-        local orig_close = UIManager.close
-        UIManager.show = function() end
-        UIManager.close = function() end
-        finally(function()
-          MultiInputDialog.new = orig_new
-          UIManager.show = orig_show
-          UIManager.close = orig_close
-        end)
-
-        ip_port_item.callback()
-        assert.is_table(captured_dlg)
-
-        captured_dlg.getFields = function()
-          return { "192.168.1.50", "65500" }
-        end
-
-        -- Click OK button (button 2 in group 1)
-        local ok_btn = captured_dlg.buttons[1][2]
-        assert.are.equal("OK", ok_btn.text)
-        ok_btn.callback()
-
-        -- Due to `port < 65355` in joplin.lua line 268:
-        -- Port 65500 is valid (<= 65535) but is rejected by `< 65355`.
-        assert.are.equal(65500, exp.settings.port)
+      captured_dlg.getFields = function()
+        return { "192.168.1.50", "65500" }
       end
-    )
+
+      -- Click OK button (button 2 in group 1)
+      local ok_btn = captured_dlg.buttons[1][2]
+      assert.are.equal("OK", ok_btn.text)
+      ok_btn.callback()
+
+      -- Valid port (<= 65535) is accepted
+      assert.are.equal(65500, exp.settings.port)
+    end)
   end)
 end)

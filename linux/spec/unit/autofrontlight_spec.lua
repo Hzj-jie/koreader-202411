@@ -164,4 +164,50 @@ describe("AutoFrontlight widget tests", function()
       Device.isKindle = orig_isKindle
     end
   )
+
+  it(
+    "respects manual frontlight toggle when ambient brightness is unchanged",
+    function()
+      -- Set the initial state: ambient brightness 0, frontlight on (level 2)
+      setAmbientBrightnessAndRun(3)
+      Device:getPowerDevice():turnOffFrontlight()
+      setAmbientBrightnessAndRun(0)
+      assertFrontlightLevel(2)
+
+      -- User turns off frontlight manually while still in dark environment
+      Device:getPowerDevice():turnOffFrontlight()
+      assertFrontlightLevel(0)
+
+      -- When AutoFrontlight runs again in ambient brightness 0, it should respect
+      -- the manual toggle because ambient brightness is unchanged
+      setAmbientBrightnessAndRun(0)
+      assertFrontlightLevel(0)
+    end
+  )
+
+  it(
+    "main.lua calls Device:isEmulator() with colon syntax passing self",
+    function()
+      -- Bug: line 4 calls `Device.isEmulator()` with dot syntax instead of `Device:isEmulator()`.
+      -- If isEmulator expects self, calling Device.isEmulator() passes self as nil.
+      local orig_isEmulator = Device.isEmulator
+      local called_with_self = false
+      Device.isEmulator = function(self)
+        if self ~= nil then
+          called_with_self = true
+          return true
+        end
+        return false
+      end
+
+      package.loaded["plugins/autofrontlight.koplugin/main"] = nil
+      dofile("plugins/autofrontlight.koplugin/main.lua")
+
+      assert.is_true(
+        called_with_self,
+        "Device:isEmulator() should be called with colon syntax passing self"
+      )
+      Device.isEmulator = orig_isEmulator
+    end
+  )
 end)

@@ -796,7 +796,7 @@ function KeyValuePage:removeKeyValueItem(kv_item)
   if kv_item.kv_pairs_idx then
     table.remove(self.kv_pairs, kv_item.kv_pairs_idx)
     self.pages = math.ceil(#self.kv_pairs / self.items_per_page)
-    self.show_page = math.min(self.show_page, self.pages)
+    self.show_page = math.max(1, math.min(self.show_page, self.pages))
     self:_populateItems()
   end
 end

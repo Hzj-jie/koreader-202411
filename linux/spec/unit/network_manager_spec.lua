@@ -1492,6 +1492,29 @@ describe("network_manager module", function()
         end)
       end
     )
+
+    describe("Defect verifications", function()
+      it(
+        "exposes ifHasAnAddress returning nil instead of false when interface has no inet address",
+        function()
+          local orig_op = NetworkMgr.sysfsInterfaceOperational
+          local orig_ifname = NetworkMgr.getNetworkInterfaceName
+          finally(function()
+            NetworkMgr.sysfsInterfaceOperational = orig_op
+            NetworkMgr.getNetworkInterfaceName = orig_ifname
+          end)
+
+          NetworkMgr.sysfsInterfaceOperational = function()
+            return true
+          end
+          NetworkMgr.getNetworkInterfaceName = function()
+            return "nonexistent_iface_no_addr"
+          end
+
+          assert.are.equal(false, NetworkMgr:ifHasAnAddress())
+        end
+      )
+    end)
   end)
 
   teardown(function()

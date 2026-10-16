@@ -134,7 +134,7 @@ describe("CoverBrowser MosaicMenu plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes leaking reading, abandoned, and complete marks in _recalculateDimen when corner_mark is nil",
+      "frees reading, abandoned, and complete marks in _recalculateDimen when corner_mark is nil",
       function()
         local orig_new = IconWidget.new
         local created_icons = {}

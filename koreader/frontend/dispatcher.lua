@@ -1385,7 +1385,8 @@ function Dispatcher:getNameFromItem(item, settings, dont_show_value)
       end
       local value_num = util.arrayContains(settingsList[item].args, value)
       display_value = settingsList[item].toggle[value_num]
-        or string.format("%.1f", value)
+        or (tonumber(value) and string.format("%.1f", value))
+        or tostring(value)
     end
   elseif category == "absolutenumber" then
     display_value = tostring(value)

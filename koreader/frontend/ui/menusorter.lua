@@ -37,6 +37,7 @@ end
 
 function MenuSorter:mergeAndSort(config_prefix, item_table, order)
   local user_order = self:_readMSSettings(config_prefix)
+  order = util.tableDeepCopy(order)
   if user_order then
     for user_order_id, user_order_item in pairs(user_order) do
       order[user_order_id] = user_order_item
@@ -221,9 +222,6 @@ end
 ---- @tparam string needle_id Menu item ID string
 ---- @treturn table a reference to the table item if found
 function MenuSorter:findById(tbl, needle_id)
-  if tbl == nil then
-    return nil
-  end
   local items = {}
 
   for _, item in pairs(tbl) do

@@ -80,7 +80,11 @@ local function getFallbackStatus(cand)
 end
 
 function DocSettings.getSidecarFilename(doc_path)
-  local suffix = doc_path:match(".*%.(.+)") or "_"
+  local _, filename = util.splitFilePathName(doc_path)
+  local _, suffix = util.splitFileNameSuffix(filename)
+  if suffix == "" then
+    suffix = "_"
+  end
   return "metadata." .. suffix .. ".lua"
 end
 
@@ -142,7 +146,9 @@ local function getCandidates(doc_path)
     return {}
   end
 
-  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
+  local dir, filename = util.splitFilePathName(doc_path)
+  local stem_name = util.splitFileNameSuffix(filename)
+  local stem = dir .. stem_name
   local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
 
   local doc_dir = stem .. ".sdr"

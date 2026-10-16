@@ -53,7 +53,6 @@ describe("Text Exporter", function()
       assert.is_truthy(f)
       local content = f:read("*all")
       f:close()
-      os.remove(temp_path)
 
       assert.is_truthy(content:find("Text Notes Book"))
       assert.is_truthy(content:find("Chapter 1"))
@@ -62,6 +61,30 @@ describe("Text Exporter", function()
       assert.is_truthy(content:find("\n%-%-%-\nAnnotation note"))
       assert.is_truthy(content:find("<An image>"))
       assert.is_truthy(content:find("%-=%-=%-=%-=%-=%-"))
+
+      -- Re-exporting appends rather than overwriting
+      local ok2 = exporter:export({
+        {
+          title = "Second Export",
+          {
+            {
+              chapter = "Chapter X",
+              page = 1,
+              time = now,
+              text = "Fresh content",
+            },
+          },
+        },
+      })
+      assert.is_true(ok2)
+      f = io.open(temp_path, "r")
+      content = f:read("*all")
+      f:close()
+      os.remove(temp_path)
+
+      assert.is_truthy(content:find("Text Notes Book"))
+      assert.is_truthy(content:find("Second Export"))
+      assert.is_truthy(content:find("Fresh content"))
     end)
 
     it("should return false when target path cannot be opened", function()
@@ -89,8 +112,6 @@ describe("Text Exporter", function()
       }
 
       exporter:share(data)
-      -- format(t) returns a table of lines rather than table.concat(tbl, "\n"),
-      -- so shareText receives a table instead of a string
       assert.is_string(shared_content)
     end)
   end)

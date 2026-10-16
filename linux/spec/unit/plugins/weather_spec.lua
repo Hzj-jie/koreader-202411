@@ -95,6 +95,82 @@ describe("Weather plugin, WeatherApi, and Composer", function()
       })
       assert.is_table(Weather.kv)
     end)
+
+    it(
+      "should preserve previous kv and restore it via callback_return in forecastForDay",
+      function()
+        local mock_ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        }
+        Weather.ui = mock_ui
+        Weather:loadSettings()
+
+        local closed_kv = nil
+        local shown_kv = nil
+        local UIManager = require("ui/uimanager")
+        local orig_close = UIManager.close
+        local orig_show = UIManager.show
+        UIManager.close = function(self_uim, widget)
+          closed_kv = widget
+        end
+        UIManager.show = function(self_uim, widget)
+          shown_kv = widget
+        end
+
+        local previous_kv = {
+          title = "Weekly forecast",
+          close = function() end,
+        }
+        Weather.kv = previous_kv
+
+        local day_data = {
+          location = { localtime_epoch = 1715774400, name = "London" },
+          current = {
+            temp_c = 20,
+            feelslike_c = 20,
+            feelslike_f = 68,
+            condition = { text = "Sunny" },
+            wind_kph = 5,
+            humidity = 50,
+            uv = 1,
+          },
+          forecast = nil,
+          day = {
+            condition = { text = "Sunny" },
+            avgtemp_c = 20,
+            maxtemp_c = 22,
+            mintemp_c = 15,
+            avgtemp_f = 68,
+            maxtemp_f = 72,
+            mintemp_f = 59,
+          },
+          astro = {
+            moon_phase = "Full",
+            moon_illumination = 100,
+            moonrise = "18:00",
+            moonset = "06:00",
+            sunrise = "06:00",
+            sunset = "18:00",
+          },
+          hour = {},
+        }
+
+        Weather:forecastForDay(day_data)
+
+        assert.are.equal(previous_kv, closed_kv)
+        assert.is_table(Weather.kv)
+        assert.is_function(Weather.kv.callback_return)
+
+        Weather.kv.callback_return()
+        assert.are.equal(previous_kv, Weather.kv)
+        assert.are.equal(previous_kv, shown_kv)
+
+        UIManager.close = orig_close
+        UIManager.show = orig_show
+      end
+    )
   end)
 
   describe("Composer Module", function()
@@ -178,6 +254,7 @@ describe("Weather plugin, WeatherApi, and Composer", function()
         callback_called = true
       end)
       assert.is_table(view_c)
+      assert.are.equal("12:00 PM", view_c[6][1])
       view_c[1].callback()
       assert.is_true(callback_called)
 

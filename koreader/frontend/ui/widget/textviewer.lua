@@ -437,7 +437,7 @@ function TextViewer:onHoldStartText(_, ges)
   return self.movable:onMovableHold(_, ges)
 end
 
-function TextViewer:onHoldPanText(_, ges)
+function TextViewer:onHoldPanText(arg, ges)
   -- Forward Hold events not processed by TextBoxWidget event handler
   -- to our MovableContainer
   -- We only forward it if we did forward the Touch

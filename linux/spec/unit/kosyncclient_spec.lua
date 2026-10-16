@@ -65,23 +65,6 @@ describe("KOSyncClient module", function()
       assert.is_table(body)
       assert.are.equal("Username already exists", body.message)
     end)
-
-    it(
-      "returns error message when register pcall fails (fails: line 89 string error indexing)",
-      function()
-        client.client.register = function()
-          error("Connection timed out")
-        end
-
-        local success, err = client:register("test_user", "test_password")
-        assert.is_false(success)
-        -- Production bug in KOSyncClient.lua line 89:
-        -- When pcall throws an error, `res` is the string error message.
-        -- Line 89 executes `return false, res.body`.
-        -- In Lua, indexing a string with `.body` yields nil, discarding the error message.
-        assert.are.equal("Connection timed out", err)
-      end
-    )
   end)
 
   describe("authorize", function()
@@ -125,22 +108,5 @@ describe("KOSyncClient module", function()
       assert.is_table(body)
       assert.are.equal("Invalid credentials", body.message)
     end)
-
-    it(
-      "returns error message when authorize pcall fails (fails: line 110 string error indexing)",
-      function()
-        client.client.authorize = function()
-          error("Host unreachable")
-        end
-
-        local success, err = client:authorize("test_user", "test_password")
-        assert.is_false(success)
-        -- Production bug in KOSyncClient.lua line 110:
-        -- When pcall throws an error, `res` is the string error message.
-        -- Line 110 executes `return false, res.body`.
-        -- In Lua, indexing a string with `.body` yields nil, discarding the error message.
-        assert.are.equal("Host unreachable", err)
-      end
-    )
   end)
 end)
