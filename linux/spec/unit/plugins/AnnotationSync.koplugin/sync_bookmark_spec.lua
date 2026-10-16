@@ -110,6 +110,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     end
 
     sync_instance:manualSync()
+    sync_instance.manager:dispatchNextSync()
     os.remove(income_path)
 
     assert.is_equal(2, #readerui.annotation.annotations)
@@ -169,6 +170,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     -- Start with both in UI
     readerui.annotation.annotations = { bm1, bm2 }
     sync_instance:manualSync()
+    sync_instance.manager:dispatchNextSync()
 
     -- 2. Delete one bookmark locally (bm1), keep bm2
     readerui.annotation.annotations = { bm2 }
@@ -199,6 +201,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     end
 
     sync_instance:manualSync()
+    sync_instance.manager:dispatchNextSync()
     os.remove(income_path)
 
     -- Verify bm1 was marked deleted and uploaded
@@ -265,6 +268,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     end
 
     sync_instance:manualSync()
+    sync_instance.manager:dispatchNextSync()
     os.remove(income_path)
 
     -- Verify final state is 0 bookmarks (deleted by remote)
@@ -320,6 +324,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
     end
 
     sync_instance:manualSync()
+    sync_instance.manager:dispatchNextSync()
     os.remove(income_path)
     os.remove(sample_pdf)
 

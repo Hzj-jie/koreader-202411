@@ -127,10 +127,6 @@ describe("AnnotationSync manager book sync engine", function()
     manager.requested = {}
     manager.running = nil
     manager.last_sync_time = {}
-    if manager._cooldown_task then
-      UIManager:unschedule(manager._cooldown_task)
-      manager._cooldown_task = nil
-    end
 
     sync_instance.settings.network_auto_sync = false
     sync_instance.settings.use_filename = true
@@ -167,10 +163,6 @@ describe("AnnotationSync manager book sync engine", function()
     manager.running = nil
     manager.requested = {}
     manager.last_sync_time = {}
-    if manager._cooldown_task then
-      UIManager:unschedule(manager._cooldown_task)
-      manager._cooldown_task = nil
-    end
 
     os.remove(book_b)
     os.remove(book_d)
@@ -185,9 +177,11 @@ describe("AnnotationSync manager book sync engine", function()
     write_sidecar(book_b, { ann(1) })
     manager:_writeChangedDocumentsFile({ book_b })
     manager:syncNow(book_b)
+    manager:dispatchNextSync()
+    manager:dispatchNextSync()
 
     assert.are.same({
-      "Syncing in the background: book_b.epub",
+      "Syncing book_b.epub in the background",
       "Synced: book_b.epub",
     }, toasts)
     assert.are.same({}, pending())
@@ -209,7 +203,8 @@ describe("AnnotationSync manager book sync engine", function()
     write_sidecar(book_b, { ann(1) })
     manager:_writeChangedDocumentsFile({ missing, book_b })
 
-    manager:_dispatchNextSync()
+    assert.is_true(manager:dispatchNextSync())
+    assert.is_true(manager:dispatchNextSync())
 
     assert.are.same({}, pending())
     assert.are.same({}, msgs)
@@ -224,6 +219,7 @@ describe("AnnotationSync manager book sync engine", function()
     manager:_writeChangedDocumentsFile({ missing })
 
     manager:syncNow(missing)
+    manager:dispatchNextSync()
 
     assert.are.same({ "Cannot find gone.epub. Removed it from pending books." }, msgs)
     assert.are.same({}, pending())
@@ -250,6 +246,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(book_c)
+    manager:dispatchNextSync()
 
     local found_msg = false
     for _, m in ipairs(msgs) do
@@ -279,6 +276,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(book_b)
+    manager:dispatchNextSync()
 
     local found_msg = false
     for _, m in ipairs(msgs) do
@@ -318,6 +316,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(book_b)
+    manager:dispatchNextSync()
 
     assert.are.equal(1, #boxes)
     local box = boxes[1]
@@ -359,6 +358,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(book_b)
+    manager:dispatchNextSync()
 
     assert.are.equal(1, #boxes)
     boxes[1].cancel_callback()
@@ -395,6 +395,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(book_b)
+    manager:dispatchNextSync()
 
     assert.are.equal(1, #boxes)
     boxes[1].ok_callback()
@@ -417,6 +418,8 @@ describe("AnnotationSync manager book sync engine", function()
     manager:_writeChangedDocumentsFile({ book_b, book_d })
 
     manager:syncAllChangedDocuments()
+    assert.is_true(manager:dispatchNextSync())
+    assert.is_true(manager:dispatchNextSync())
 
     assert.are.same({ "Syncing 2 books one by one in the background" }, toasts)
     assert.is_not_nil(base(book_b))
@@ -431,15 +434,16 @@ describe("AnnotationSync manager book sync engine", function()
     manager.running = true
     manager.requested[book_b] = "Manual Sync"
 
-    assert.is_false(manager:_dispatchNextSync())
+    assert.is_false(manager:dispatchNextSync())
     assert.are.equal("Manual Sync", manager.requested[book_b])
 
     manager.running = nil
     manager.requested = {}
-    assert.is_false(manager:_dispatchNextSync())
+    assert.is_false(manager:dispatchNextSync())
 
     sync_instance.settings.network_auto_sync = true
-    assert.is_false(manager:_dispatchNextSync(true))
+    manager.last_sync_time[book_b] = { time = os.time(), failed = true }
+    assert.is_false(manager:dispatchNextSync())
 
     assert.are.same({ book_b }, pending())
     assert.is_nil(base(book_b))
@@ -466,6 +470,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(readerui.document.file)
+    manager:dispatchNextSync()
 
     assert.are.equal("Synced: juliet.epub", toasts[#toasts])
     assert.are.equal(1, count)
@@ -490,6 +495,7 @@ describe("AnnotationSync manager book sync engine", function()
     end)
 
     manager:syncNow(readerui.document.file)
+    manager:dispatchNextSync()
 
     assert.are.equal("Synced: juliet.epub", toasts[#toasts])
     assert.are.equal(0, count)

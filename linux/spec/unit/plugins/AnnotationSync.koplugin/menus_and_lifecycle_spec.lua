@@ -303,20 +303,20 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
     "dispatcher handlers, manualSync, applySyncedAnnotations, restoreAnnotations, and onAnnotationsModified",
     function()
       it(
-        "delegates dispatcher events and onNetworkOnline to manager/plugin methods",
+        "delegates dispatcher events and onTimesChange_1M to manager/plugin methods",
         function()
           local called = {}
           local orig_sync_all = sync_instance.manager.syncAllChangedDocuments
           local orig_manual = sync_instance.manualSync
           local orig_push = sync_instance.manager.pushSettings
           local orig_pull = sync_instance.manager.pullSettings
-          local orig_dispatch = sync_instance.manager._dispatchNextSync
+          local orig_dispatch = sync_instance.manager.dispatchNextSync
           finally(function()
             sync_instance.manager.syncAllChangedDocuments = orig_sync_all
             sync_instance.manualSync = orig_manual
             sync_instance.manager.pushSettings = orig_push
             sync_instance.manager.pullSettings = orig_pull
-            sync_instance.manager._dispatchNextSync = orig_dispatch
+            sync_instance.manager.dispatchNextSync = orig_dispatch
           end)
 
           sync_instance.manager.syncAllChangedDocuments = function()
@@ -331,7 +331,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           sync_instance.manager.pullSettings = function()
             called.pull_settings = true
           end
-          sync_instance.manager._dispatchNextSync = function()
+          sync_instance.manager.dispatchNextSync = function()
             called.dispatch = true
             return true
           end
@@ -340,7 +340,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           assert.is_true(sync_instance:onAnnotationSyncManualSync())
           assert.is_true(sync_instance:onAnnotationSyncPushSettings())
           assert.is_true(sync_instance:onAnnotationSyncPullSettings())
-          sync_instance:onNetworkOnline()
+          sync_instance:onTimesChange_1M()
 
           assert.is_true(called.sync_all)
           assert.is_true(called.manual_sync)

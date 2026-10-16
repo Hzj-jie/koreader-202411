@@ -24475,8 +24475,8 @@ msgstr "同步"
 msgid "Removed %1 from pending books."
 msgstr "已將 %1 從待同步書籍中移除。"
 
-msgid "Syncing in the background: %1"
-msgstr "正在後台同步：%1"
+msgid "Syncing %1 in the background"
+msgstr "正在後台同步 %1"
 
 msgid "Syncing 1 book in the background"
 msgid_plural "Syncing %1 books one by one in the background"
@@ -24627,9 +24627,16 @@ msgstr "找不到 %1，已將其從待同步書籍中移除。"
 msgid "Syncing"
 msgstr "正在同步"
 
+msgid "Current book is being synchronized"
+msgstr "目前書籍正在同步"
+
 msgid "Cool down for 1 minute"
 msgid_plural "Cool down for %1 minutes"
 msgstr[0] "冷卻 %1 分鐘"
+
+msgid "Failed, retry in 1 minute"
+msgid_plural "Failed, retry in %1 minutes"
+msgstr[0] "失敗，%1 分鐘後重試"
 
 #: plugins/mathpuzzle.koplugin/main.lua:31
 msgid "Math puzzle"

@@ -85,10 +85,6 @@ describe("Background Sync Behavior", function()
     sync_manager.running = nil
     sync_manager.requested = {}
     sync_manager.last_sync_time = {}
-    if sync_manager._cooldown_task then
-      UIManager:unschedule(sync_manager._cooldown_task)
-      sync_manager._cooldown_task = nil
-    end
   end)
 
   after_each(function()
@@ -101,10 +97,6 @@ describe("Background Sync Behavior", function()
     sync_manager.running = nil
     sync_manager.requested = {}
     sync_manager.last_sync_time = {}
-    if sync_manager._cooldown_task then
-      UIManager:unschedule(sync_manager._cooldown_task)
-      sync_manager._cooldown_task = nil
-    end
   end)
 
   describe("Main thread preparation and validation", function()
@@ -147,11 +139,12 @@ describe("Background Sync Behavior", function()
 
           -- No background runner job queued directly while offline
           assert.is_equal(initial_count, #jobs)
-          -- But queued silently in NetworkListener for when online
-          assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
 
-          NetworkListener:onNetworkOnline()
-          fastforward_ui_events()
+          -- In Issue #518, periodic onTimesChange_1M checks isOnline directly without popups
+          plugin_instance:onTimesChange_1M()
+          assert.is_false(run_online_called)
+          assert.is_false(notify_called)
+          assert.is_equal(initial_count, #jobs)
         end)
 
         NetworkMgr.isConnected = old_isConn
@@ -169,7 +162,7 @@ describe("Background Sync Behavior", function()
       local jobs = require("pluginshare").backgroundJobs
       local initial_count = #jobs
 
-      sync_manager:_dispatchNextSync()
+      sync_manager:dispatchNextSync()
 
       assert.is_equal(initial_count, #jobs)
     end)
@@ -182,12 +175,14 @@ describe("Background Sync Behavior", function()
       sync_manager:addToChangedDocumentsFile(missing_file)
       sync_manager:addToChangedDocumentsFile(readerui.document.file)
 
-      -- Missing file is pruned immediately
+      -- First dispatch cleans up missing file
+      sync_manager:dispatchNextSync()
       local _, changed = sync_manager:getPendingChangedDocuments()
       assert.falsy(util.arrayContains(changed, missing_file))
       assert.truthy(util.arrayContains(changed, readerui.document.file))
 
-      -- Only the existing file was queued
+      -- Second dispatch queues active file
+      sync_manager:dispatchNextSync()
       assert.is_equal(initial_count + 1, #jobs)
     end)
 
@@ -199,6 +194,8 @@ describe("Background Sync Behavior", function()
 
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
+
+        sync_manager:dispatchNextSync()
 
         local total, _ = sync_manager:getPendingChangedDocuments()
         assert.is_equal(0, total)
@@ -243,6 +240,7 @@ describe("Background Sync Behavior", function()
         local restore_jobs = test_utils.run_jobs_inline()
 
         plugin_instance:manualSync()
+        sync_manager:dispatchNextSync()
 
         assert.is_false(flush_broadcasted)
         assert.is_equal(0, (sync_manager:getPendingChangedDocuments()))
@@ -275,6 +273,7 @@ describe("Background Sync Behavior", function()
         local initial_count = #jobs
 
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
 
         assert.is_equal(initial_count + 1, #jobs)
         local job = jobs[#jobs]
@@ -292,7 +291,9 @@ describe("Background Sync Behavior", function()
         local initial_count = #jobs
 
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
 
         -- Only 1 job is inserted thanks to sync queue dedup
         assert.is_equal(initial_count + 1, #jobs)
@@ -307,6 +308,7 @@ describe("Background Sync Behavior", function()
         local initial_count = #jobs
 
         sync_manager:addToChangedDocumentsFile(doc)
+        sync_manager:dispatchNextSync()
 
         -- Job 1 is forked
         assert.is_equal(initial_count + 1, #jobs)
@@ -315,6 +317,7 @@ describe("Background Sync Behavior", function()
         -- Trigger background sync twice more while job 1 is in-flight
         sync_manager:addToChangedDocumentsFile(doc)
         sync_manager:addToChangedDocumentsFile(doc)
+        sync_manager:dispatchNextSync()
 
         -- Still only 1 job has been forked
         assert.is_equal(initial_count + 1, #jobs)
@@ -326,7 +329,7 @@ describe("Background Sync Behavior", function()
 
         -- Triggering next sync pass forks job 2 (retry)
         sync_manager.last_sync_time[doc] = nil
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
         assert.is_equal(initial_count + 2, #jobs)
         local job2 = jobs[#jobs]
 
@@ -359,10 +362,10 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(doc)
 
         plugin_instance.ui = { document = { file = doc } }
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
 
         plugin_instance.ui = nil
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
 
         assert.is_equal(1, #inserted_jobs)
       end
@@ -387,24 +390,24 @@ describe("Background Sync Behavior", function()
 
         -- 1. A sync is already running (running set) -> returns false
         sync_manager.running = true
-        assert.is_false(sync_manager:_dispatchNextSync())
+        assert.is_false(sync_manager:dispatchNextSync())
         sync_manager.running = nil
 
         -- 2. network_auto_sync is off and the queue has a book -> returns false, running stays nil
         plugin_instance.settings.network_auto_sync = false
         sync_manager:_writeChangedDocumentsFile({ doc })
-        assert.is_false(sync_manager:_dispatchNextSync())
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_nil(sync_manager.running)
 
         -- 3. auto sync is on and the queue is empty -> returns false
         plugin_instance.settings.network_auto_sync = true
         os.remove(sync_manager:changedDocumentsFile())
-        assert.is_false(sync_manager:_dispatchNextSync())
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_nil(sync_manager.running)
 
         -- 4. auto sync is on, a book is queued, nothing is running -> returns true, running is set
         sync_manager:_writeChangedDocumentsFile({ doc })
-        assert.is_true(sync_manager:_dispatchNextSync())
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.are.equal(doc, sync_manager.running)
       end
     )
@@ -423,17 +426,19 @@ describe("Background Sync Behavior", function()
 
         sync_manager:addToChangedDocumentsFile(doc1)
         sync_manager:addToChangedDocumentsFile(doc2)
+        sync_manager:dispatchNextSync()
 
         -- Only 1 job is in flight initially
         assert.is_equal(initial_count + 1, #jobs)
 
-        -- Completing the first job with success dispatches the next queued document
+        -- Completing the first job with success dispatches the next queued document on next dispatch
         local job1 = jobs[#jobs]
         local tmp_json = DataStorage:getTmpDir() .. "/test_seq1.json"
         util.writeToFile("[]", tmp_json .. ".snapshot")
         job1.result = { file = doc1, json_path = tmp_json, success = true }
         job1.callback(job1)
 
+        sync_manager:dispatchNextSync()
         assert.is_equal(initial_count + 2, #jobs)
       end
     )
@@ -456,7 +461,7 @@ describe("Background Sync Behavior", function()
         local track_path = sync_manager:changedDocumentsFile()
         util.writeToFile(dump({ doc1, doc2 }), track_path, true)
 
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
 
         -- Job 1 (doc1) is forked
         assert.is_equal(initial_count + 1, #jobs)
@@ -475,7 +480,7 @@ describe("Background Sync Behavior", function()
         assert.are.same({ doc2, doc1 }, pending)
 
         -- On next trigger, doc2 is dispatched because it is now at the front
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
         assert.is_equal(initial_count + 2, #jobs)
         assert.is_equal(doc2, dispatched.file)
       end
@@ -508,7 +513,7 @@ describe("Background Sync Behavior", function()
 
           local count_before = #jobs
 
-          sync_manager:_dispatchNextSync()
+          sync_manager:dispatchNextSync()
           assert.is_equal(count_before + 1, #jobs)
 
           -- Child crashed: CommandRunner returns false, 222, or 255 (timeout)
@@ -525,7 +530,7 @@ describe("Background Sync Behavior", function()
           assert.is_equal(count_before + 1, #jobs)
 
           -- On next trigger, doc2 dispatches
-          sync_manager:_dispatchNextSync()
+          sync_manager:dispatchNextSync()
           assert.is_equal(count_before + 2, #jobs)
           assert.is_equal(doc2, dispatched.file)
         end
@@ -550,7 +555,7 @@ describe("Background Sync Behavior", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
 
         assert.is_equal(initial_count + 1, #jobs)
         assert.is_equal(doc2, dispatched.file)
@@ -628,6 +633,7 @@ describe("Background Sync Behavior", function()
       function()
         local doc1 = readerui.document.file
         sync_manager:addToChangedDocumentsFile(doc1)
+        sync_manager:dispatchNextSync()
 
         local jobs = require("pluginshare").backgroundJobs
         local job1 = jobs[#jobs]
@@ -663,7 +669,7 @@ describe("Background Sync Behavior", function()
         local jobs = require("pluginshare").backgroundJobs
         local initial_count = #jobs
 
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
         assert.is_equal(initial_count + 1, #jobs)
         assert.is_equal(doc1, dispatched.file)
         local job1 = jobs[#jobs]
@@ -682,7 +688,8 @@ describe("Background Sync Behavior", function()
         assert.is_equal(2, total)
         assert.are.same({ doc2, doc1 }, pending)
 
-        -- Next document (doc2) was dispatched immediately
+        -- Next document (doc2) is dispatched on next dispatch pass
+        sync_manager:dispatchNextSync()
         assert.is_equal(initial_count + 2, #jobs)
         assert.is_equal(doc2, dispatched.file)
       end
@@ -693,6 +700,7 @@ describe("Background Sync Behavior", function()
       function()
         local doc = readerui.document.file
         sync_manager:addToChangedDocumentsFile(doc)
+        sync_manager:dispatchNextSync()
 
         local jobs = require("pluginshare").backgroundJobs
         local job = jobs[#jobs]
@@ -751,6 +759,7 @@ describe("Background Sync Behavior", function()
       function()
         local doc = readerui.document.file
         sync_manager:addToChangedDocumentsFile(doc)
+        sync_manager:dispatchNextSync()
 
         local jobs = require("pluginshare").backgroundJobs
         local job = jobs[#jobs]
@@ -816,6 +825,7 @@ describe("Background Sync Behavior", function()
       function()
         local doc = readerui.document.file
         sync_manager:addToChangedDocumentsFile(doc)
+        sync_manager:dispatchNextSync()
 
         local jobs = require("pluginshare").backgroundJobs
         local job = jobs[#jobs]
@@ -859,6 +869,7 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(doc2)
 
         -- Job 1 is forked
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
         local job1 = jobs[#jobs]
 
@@ -873,18 +884,17 @@ describe("Background Sync Behavior", function()
         job1.result = { file = doc1, json_path = tmp_json, success = true }
         job1.callback(job1)
 
-        -- Next queued job must NOT be forked while offline, held in NetworkListener
+        -- Next queued job must NOT be forked while offline
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
-        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
 
         -- Network comes back online
         NetworkMgr.isOnline = function()
           return true
         end
-        NetworkListener:onNetworkOnline()
-        fastforward_ui_events()
 
         -- The next queued document is now forked
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 2, #jobs)
         local job2 = jobs[#jobs]
         job2.result = { success = false }
@@ -896,7 +906,6 @@ describe("Background Sync Behavior", function()
       "prunes deleted book and dispatches next queued document after waiting for network",
       function()
         local NetworkMgr = require("ui/network/manager")
-        local NetworkListener = require("ui/network/networklistener")
         local old_isOnline = NetworkMgr.isOnline
 
         local doc1 = test_data_dir .. "/doc_del_wait.epub"
@@ -920,9 +929,9 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(doc1)
         sync_manager:addToChangedDocumentsFile(doc2)
 
-        -- Nothing forked directly while offline, doc1 is held waiting for network
+        -- Nothing forked directly while offline
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count, #jobs)
-        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
 
         -- While doc1 waits for network, doc1 file is deleted from disk
         os.remove(doc1)
@@ -931,15 +940,15 @@ describe("Background Sync Behavior", function()
         NetworkMgr.isOnline = function()
           return true
         end
-        NetworkListener:onNetworkOnline()
-        fastforward_ui_events()
 
-        -- doc1 was pruned from pending documents without forking
+        -- First dispatch pass prunes deleted doc1
+        sync_manager:dispatchNextSync()
         local _, pending = sync_manager:getPendingChangedDocuments()
         assert.falsy(util.arrayContains(pending, doc1))
         assert.truthy(util.arrayContains(pending, doc2))
 
-        -- Next document (doc2) is forked
+        -- Second dispatch pass forks doc2
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
 
         local job2 = jobs[#jobs]
@@ -952,7 +961,6 @@ describe("Background Sync Behavior", function()
       "dispatches next queued document when held-back book is removed from sync queue while waiting for network",
       function()
         local NetworkMgr = require("ui/network/manager")
-        local NetworkListener = require("ui/network/networklistener")
         local old_isOnline = NetworkMgr.isOnline
 
         local doc1 = test_data_dir .. "/doc_rem_wait.epub"
@@ -979,8 +987,8 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(doc2)
 
         -- Nothing forked directly while offline, doc1 is held waiting for network
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count, #jobs)
-        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
 
         -- While doc1 waits for network, doc1 is removed from queue but stays on disk
         sync_manager:removeFromChangedDocumentsFileByPath(doc1)
@@ -990,10 +998,9 @@ describe("Background Sync Behavior", function()
         NetworkMgr.isOnline = function()
           return true
         end
-        NetworkListener:onNetworkOnline()
-        fastforward_ui_events()
 
-        -- Exactly one new fork job: doc1 was never forked, doc2 was dispatched and forked
+        -- doc2 is dispatched and forked
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
         assert.is_equal(doc2, dispatched.file)
 
@@ -1010,6 +1017,7 @@ describe("Background Sync Behavior", function()
       "executes remote sync inside action without showing UI modals in silent mode",
       function()
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
 
         local sync_called_silent = nil
         SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
@@ -1047,6 +1055,7 @@ describe("Background Sync Behavior", function()
       "handles remote sync failure or crash inside action gracefully",
       function()
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
 
         SyncService.sync = function(server, local_path, callback, is_silent)
           error("Simulated network crash during background sync")
@@ -1070,6 +1079,7 @@ describe("Background Sync Behavior", function()
       function()
         plugin_instance.settings.last_sync = "Never"
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
 
         local job = require("pluginshare").backgroundJobs[#require(
           "pluginshare"
@@ -1099,6 +1109,7 @@ describe("Background Sync Behavior", function()
 
     it("applies synced annotations to active ReaderUI document", function()
       sync_manager:addToChangedDocumentsFile(readerui.document.file)
+      sync_manager:dispatchNextSync()
 
       local job =
         require("pluginshare").backgroundJobs[#require("pluginshare").backgroundJobs]
@@ -1228,6 +1239,7 @@ describe("Background Sync Behavior", function()
           inactive_doc
         )
         sync_manager:addToChangedDocumentsFile(inactive_doc)
+        sync_manager:dispatchNextSync()
 
         local job = require("pluginshare").backgroundJobs[#require(
           "pluginshare"
@@ -1259,6 +1271,7 @@ describe("Background Sync Behavior", function()
 
     it("safely handles nil or malformed job result in callback", function()
       sync_manager:addToChangedDocumentsFile(readerui.document.file)
+      sync_manager:dispatchNextSync()
 
       local job =
         require("pluginshare").backgroundJobs[#require("pluginshare").backgroundJobs]
@@ -1867,7 +1880,7 @@ describe("Background Sync Behavior", function()
       end
     end
 
-    local old_show
+    local old_show, old_addToChanged
 
     before_each(function()
       last_child_res = nil
@@ -1891,6 +1904,12 @@ describe("Background Sync Behavior", function()
           return
         end
         return old_show(self, w, ...)
+      end
+
+      old_addToChanged = sync_manager.addToChangedDocumentsFile
+      sync_manager.addToChangedDocumentsFile = function(mgr, file)
+        old_addToChanged(mgr, file)
+        mgr:dispatchNextSync()
       end
 
       package.loaded["apps/cloudstorage/dropboxapi"] = {
@@ -1924,6 +1943,7 @@ describe("Background Sync Behavior", function()
     end)
 
     after_each(function()
+      sync_manager.addToChangedDocumentsFile = old_addToChanged
       NetworkMgr.isOnline = old_isOnline
       BackgroundJobs.insertKeyed = old_insertKeyed
       SyncService.sync = old_sync
@@ -2114,7 +2134,7 @@ describe("Background Sync Behavior", function()
         sync_manager.running = nil
         sync_manager.last_sync_time[file] = nil
         fork_like()
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
 
         local remote_after = json.decode(remote_store[name])
         local active_remote = {}
@@ -2178,7 +2198,7 @@ describe("Background Sync Behavior", function()
         -- the job whose callback was lost.
         sync_manager.running = nil
         fork_like()
-        sync_manager:_dispatchNextSync()
+        sync_manager:dispatchNextSync()
 
         local remote_after = json.decode(remote_store[name])
         assert.are.equal(2, #remote_after)
@@ -2304,7 +2324,7 @@ describe("Background Sync Behavior", function()
         end
 
         sync_manager:addToChangedDocumentsFile(file)
-        assert.is_equal("0 / 1", NetworkListener:countsOfPendingJobs())
+        assert.is_false(sync_manager:dispatchNextSync())
 
         plugin_instance:init()
 
@@ -2317,8 +2337,7 @@ describe("Background Sync Behavior", function()
         end
 
         fork_like()
-        NetworkListener:onNetworkOnline()
-        fastforward_ui_events()
+        sync_manager:dispatchNextSync()
 
         assert.are.equal(3, #readerui.annotation.annotations)
         assert.are.equal(
@@ -2625,13 +2644,11 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(file)
 
         assert.is_equal(1, jobs_dispatched)
-        assert.is_not_nil(sync_manager._cooldown_task)
         assert.is_true(is_pending(file))
 
-        -- After cooldown expires, the scheduled cooldown task dispatches job 2
-        sync_manager.last_sync_time[file] = os.time() - 300
-        local cooldown_fn = sync_manager._cooldown_task
-        cooldown_fn()
+        -- After cooldown expires, dispatchNextSync dispatches job 2
+        sync_manager.last_sync_time[file].time = os.time() - 300
+        sync_manager:dispatchNextSync()
 
         assert.is_equal(2, jobs_dispatched)
         assert.is_true(second_job_dispatched_after_first_callback)
@@ -2814,6 +2831,7 @@ describe("Background Sync Behavior", function()
           sync_manager:addToChangedDocumentsFile(doc)
 
           sync_manager:syncAllChangedDocuments()
+          sync_manager:dispatchNextSync()
 
           assert.are.equal(1, #boxes)
           assert_asks(boxes[1], doc, 3)
@@ -2834,13 +2852,14 @@ describe("Background Sync Behavior", function()
           local jobs = count_jobs()
 
           sync_manager:syncNow(doc)
+          sync_manager:dispatchNextSync()
 
           assert.are.equal(1, #boxes)
           assert_asks(boxes[1], doc, 3)
           assert.are.equal("", book(doc))
           assert.are.equal("A, B, D(DELETED)", base(doc))
           assert.are.same(
-            { "Syncing in the background: asks_on_sync_now.epub" },
+            { "Syncing asks_on_sync_now.epub in the background" },
             toasts
           )
 
@@ -2859,7 +2878,7 @@ describe("Background Sync Behavior", function()
           )
           assert.is_false(is_pending(doc))
           assert.are.same({
-            "Syncing in the background: asks_on_sync_now.epub",
+            "Syncing asks_on_sync_now.epub in the background",
             "Synced: asks_on_sync_now.epub",
           }, toasts)
 
@@ -2883,6 +2902,7 @@ describe("Background Sync Behavior", function()
             end
             tapped = true
             sync_manager:syncNow(doc)
+          sync_manager:dispatchNextSync()
           end)
 
           local jobs = count_jobs()
@@ -2897,10 +2917,7 @@ describe("Background Sync Behavior", function()
           assert.are.equal(2, jobs())
           assert.are.equal(1, #boxes)
           assert.is_false(is_pending(doc))
-          assert.are.same({
-            "Syncing in the background: tap_during_sync_success.epub",
-            "Synced: tap_during_sync_success.epub",
-          }, toasts)
+          assert.are.same({}, toasts)
         end
       )
 
@@ -2924,6 +2941,7 @@ describe("Background Sync Behavior", function()
               -- First sync succeeds, user taps syncNow during it
               local res = job.action()
               sync_manager:syncNow(doc)
+          sync_manager:dispatchNextSync()
               job.result = res
               job.callback(job)
             elseif jobs_started == 2 then
@@ -2949,9 +2967,7 @@ describe("Background Sync Behavior", function()
           -- Exactly 2 jobs total (the first sync + the failing trash sync)
           assert.are.equal(2, jobs_started)
           assert.are.equal(1, #boxes)
-          assert.are.same({
-            "Failed to sync tap_during_sync_fail.epub.",
-          }, msg_boxes)
+          assert.are.same({}, msg_boxes)
         end
       )
 
@@ -2964,6 +2980,7 @@ describe("Background Sync Behavior", function()
           local E = mk(5, "E", "2026-05-01 10:00:00")
 
           sync_manager:syncNow(doc)
+          sync_manager:dispatchNextSync()
           -- Another device edits C and adds E while the box is up.
           remote_store[name] = encode({ A, B, C_edited, D_tomb, E })
           tap(boxes[1], "Move to trash")
@@ -2993,6 +3010,7 @@ describe("Background Sync Behavior", function()
           plugin_instance:onAnnotationsModified({ x })
 
           plugin_instance:manualSync()
+          sync_manager:dispatchNextSync()
 
           assert.are.equal(1, #boxes)
           assert.are.same({}, readerui.annotation.annotations)
@@ -3027,6 +3045,8 @@ describe("Background Sync Behavior", function()
 
           sync_manager:addToChangedDocumentsFile(doc)
           sync_manager:syncAllChangedDocuments()
+          sync_manager:dispatchNextSync()
+          sync_manager:dispatchNextSync()
 
           assert.are.equal(1, #boxes)
           assert_asks(boxes[1], doc, 3)
@@ -3127,6 +3147,7 @@ describe("Background Sync Behavior", function()
         assert.is_true(is_pending(other))
 
         tap(boxes[1], "Restore")
+        sync_manager:dispatchNextSync()
 
         assert.are.equal(2, jobs())
         assert.is_false(is_pending(other))
@@ -3137,17 +3158,18 @@ describe("Background Sync Behavior", function()
         local doc = emptied_book("synced_after_answer")
 
         sync_manager:syncNow(doc)
+        sync_manager:dispatchNextSync()
 
         assert.are.equal(1, #boxes)
         assert.are.same(
-          { "Syncing in the background: synced_after_answer.epub" },
+          { "Syncing synced_after_answer.epub in the background" },
           toasts
         )
 
         tap(boxes[1], "Restore")
 
         assert.are.same({
-          "Syncing in the background: synced_after_answer.epub",
+          "Syncing synced_after_answer.epub in the background",
           "Synced: synced_after_answer.epub",
         }, toasts)
       end)
@@ -3236,6 +3258,7 @@ describe("Background Sync Behavior", function()
         end
 
         plugin_instance:manualSync()
+        sync_manager:dispatchNextSync()
 
         assert.is_true(queued)
         assert.are.same({ "juliet.epub" }, synced)
@@ -3252,6 +3275,7 @@ describe("Background Sync Behavior", function()
       failing["a.epub"] = true
 
       sync_manager:syncAllChangedDocuments()
+      while sync_manager:dispatchNextSync() do end
 
       assert.are.same({ "a.epub", "b.epub" }, synced)
       assert.is_true(is_pending(a))
@@ -3269,6 +3293,7 @@ describe("Background Sync Behavior", function()
       end
 
       sync_manager:syncAllChangedDocuments()
+      while sync_manager:dispatchNextSync() do end
 
       assert.are.same({ "a.epub", "juliet.epub", "b.epub" }, synced)
     end)
@@ -3280,6 +3305,7 @@ describe("Background Sync Behavior", function()
         plugin_instance:manualSync()
       end
       plugin_instance:manualSync()
+      sync_manager:dispatchNextSync()
       assert.are.same({ "juliet.epub" }, synced)
       assert.is_false(is_pending(juliet))
 
@@ -3291,7 +3317,7 @@ describe("Background Sync Behavior", function()
     end)
 
     it(
-      "a tap during a failing sync syncs the book once more, and no other book",
+      "a tap during a failing sync is ignored while running",
       function()
         local juliet = readerui.document.file
         sync_manager:addToChangedDocumentsFile(new_doc("a"))
@@ -3301,8 +3327,9 @@ describe("Background Sync Behavior", function()
         end
 
         plugin_instance:manualSync()
+        sync_manager:dispatchNextSync()
 
-        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
+        assert.are.same({ "juliet.epub" }, synced)
         assert.is_true(is_pending(juliet))
       end
     )
@@ -3326,6 +3353,7 @@ describe("Background Sync Behavior", function()
         end
 
         sync_manager:syncAllChangedDocuments()
+        while sync_manager:dispatchNextSync() do end
 
         assert.are.same({ "b.epub" }, synced)
         assert.is_true(is_pending(a))
@@ -3337,10 +3365,11 @@ describe("Background Sync Behavior", function()
       "Manual Sync shows a notification at the tap and when the book is synced",
       function()
         plugin_instance:manualSync()
+        sync_manager:dispatchNextSync()
 
         assert.are.same({ "juliet.epub" }, synced)
         assert.are.same(
-          { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
+          { "Syncing juliet.epub in the background", "Synced: juliet.epub" },
           toasts
         )
         assert.are.same({}, boxes)
@@ -3351,9 +3380,10 @@ describe("Background Sync Behavior", function()
       failing["juliet.epub"] = true
 
       plugin_instance:manualSync()
+      sync_manager:dispatchNextSync()
 
       assert.are.same({ "juliet.epub" }, synced)
-      assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+      assert.are.same({ "Syncing juliet.epub in the background" }, toasts)
       assert.are.same({ "Failed to sync juliet.epub." }, boxes)
     end)
 
@@ -3366,6 +3396,7 @@ describe("Background Sync Behavior", function()
         failing["a.epub"] = true
 
         sync_manager:syncAllChangedDocuments()
+        while sync_manager:dispatchNextSync() do end
 
         assert.are.same({ "a.epub", "b.epub" }, synced)
         assert.are.same(
@@ -3378,6 +3409,7 @@ describe("Background Sync Behavior", function()
         failing["a.epub"] = nil
         toasts = {}
         sync_manager:syncAllChangedDocuments()
+        while sync_manager:dispatchNextSync() do end
 
         assert.are.same({ "a.epub", "b.epub", "a.epub" }, synced)
         assert.are.same({ "Syncing 1 book in the background" }, toasts)
@@ -3386,7 +3418,7 @@ describe("Background Sync Behavior", function()
     )
 
     it(
-      "a Manual Sync tapped while the book's auto sync runs is answered by it",
+      "a Manual Sync tapped while the book's auto sync runs is ignored while running",
       function()
         plugin_instance.settings.network_auto_sync = true
         during["juliet.epub"] = function()
@@ -3394,17 +3426,15 @@ describe("Background Sync Behavior", function()
         end
 
         sync_manager:addToChangedDocumentsFile(readerui.document.file)
+        sync_manager:dispatchNextSync()
 
         assert.are.same({ "juliet.epub" }, synced)
-        assert.are.same(
-          { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
-          toasts
-        )
+        assert.are.same({}, toasts)
       end
     )
 
     it(
-      "if the book changed during that sync, the next sync answers, once",
+      "if the book changed during that sync, mid-flight tap is ignored",
       function()
         plugin_instance.settings.network_auto_sync = true
         local doc = readerui.document
@@ -3422,17 +3452,15 @@ describe("Background Sync Behavior", function()
         end
 
         sync_manager:addToChangedDocumentsFile(doc.file)
+        sync_manager:dispatchNextSync()
 
-        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
-        assert.are.same(
-          { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
-          toasts
-        )
+        assert.are.same({ "juliet.epub" }, synced)
+        assert.are.same({}, toasts)
       end
     )
 
     it(
-      "a tap during a failing sync gets one message box, after the retry",
+      "a tap during a failing sync gets one message box, mid-flight tap is ignored",
       function()
         failing["juliet.epub"] = true
         during["juliet.epub"] = function()
@@ -3440,8 +3468,9 @@ describe("Background Sync Behavior", function()
         end
 
         plugin_instance:manualSync()
+        sync_manager:dispatchNextSync()
 
-        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
+        assert.are.same({ "juliet.epub" }, synced)
         assert.are.same({ "Failed to sync juliet.epub." }, boxes)
       end
     )
@@ -3461,13 +3490,15 @@ describe("Background Sync Behavior", function()
             color = "yellow",
           })
           sync_manager:syncAllChangedDocuments()
+          sync_manager:dispatchNextSync()
         end
 
         plugin_instance:manualSync()
+        sync_manager:dispatchNextSync()
 
-        assert.are.same({ "juliet.epub", "juliet.epub" }, synced)
+        assert.are.same({ "juliet.epub" }, synced)
         assert.are.same({
-          "Syncing in the background: juliet.epub",
+          "Syncing juliet.epub in the background",
           "Syncing 1 book in the background",
           "Synced: juliet.epub",
         }, toasts)
@@ -3478,20 +3509,18 @@ describe("Background Sync Behavior", function()
       "a tap withdrawn while its sync waits for the network gets no notification",
       function()
         local NetworkMgr = require("ui/network/manager")
-        local NetworkListener = require("ui/network/networklistener")
         local old_isOnline = NetworkMgr.isOnline
         finally(function()
           NetworkMgr.isOnline = old_isOnline
         end)
         local juliet = readerui.document.file
+        plugin_instance.settings.network_auto_sync = true
         NetworkMgr.isOnline = function()
           return false
         end
 
         -- Offline: the tap waits for the network.
         plugin_instance:manualSync()
-        -- An edit starts the queue, so juliet's sync waits for the network.
-        sync_manager:addToChangedDocumentsFile(new_doc("a"))
         -- The user takes juliet off the list, then edits it again.
         sync_manager:removeFromChangedDocumentsFileByPath(juliet)
         sync_manager:addToChangedDocumentsFile(juliet)
@@ -3499,11 +3528,13 @@ describe("Background Sync Behavior", function()
         NetworkMgr.isOnline = function()
           return true
         end
+        local NetworkListener = require("ui/network/networklistener")
         NetworkListener:onNetworkOnline()
         fastforward_ui_events()
+        sync_manager:dispatchNextSync()
 
         assert.are.same({ "juliet.epub" }, synced)
-        assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+        assert.are.same({ "Syncing juliet.epub in the background" }, toasts)
         assert.are.same({}, boxes)
       end
     )
@@ -3529,10 +3560,11 @@ describe("Background Sync Behavior", function()
       finally(unreadable(juliet))
 
       plugin_instance:manualSync()
+      sync_manager:dispatchNextSync()
 
       assert.are.same({}, synced)
       assert.is_true(is_pending(juliet))
-      assert.are.same({ "Syncing in the background: juliet.epub" }, toasts)
+      assert.are.same({ "Syncing juliet.epub in the background" }, toasts)
       assert.are.same({ "Cannot read juliet.epub. Skipped syncing it." }, boxes)
     end)
 
@@ -3545,6 +3577,7 @@ describe("Background Sync Behavior", function()
         finally(unreadable(juliet))
 
         sync_manager:addToChangedDocumentsFile(juliet)
+        sync_manager:dispatchNextSync()
 
         assert.are.same({}, synced)
         assert.is_true(is_pending(juliet))
@@ -3558,10 +3591,11 @@ describe("Background Sync Behavior", function()
       finally(unreadable(juliet))
 
       plugin_instance:manualSync()
+      sync_manager:dispatchNextSync()
 
       assert.are.same({ "juliet.epub" }, synced)
       assert.are.same(
-        { "Syncing in the background: juliet.epub", "Synced: juliet.epub" },
+        { "Syncing juliet.epub in the background", "Synced: juliet.epub" },
         toasts
       )
       assert.are.same({}, boxes)
@@ -3589,31 +3623,19 @@ describe("Background Sync Behavior", function()
     end
 
     it(
-      "runs first automatic sync immediately; subsequent automatic sync within 5 minutes enters cooldown and schedules UIManager timer",
+      "runs first automatic sync; subsequent automatic sync within 5 minutes enters cooldown and dispatches when cooldown expires",
       function()
         local jobs = require("pluginshare").backgroundJobs
         local doc = new_doc("cooldown_first_then_wait")
-
-        local scheduled_time, scheduled_fn
-        local orig_scheduleIn = UIManager.scheduleIn
-        UIManager.scheduleIn = function(ui_mgr, delay, fn)
-          scheduled_time = delay
-          scheduled_fn = fn
-          return orig_scheduleIn(ui_mgr, delay, fn)
-        end
         finally(function()
-          UIManager.scheduleIn = orig_scheduleIn
-          if sync_manager._cooldown_task then
-            UIManager:unschedule(sync_manager._cooldown_task)
-            sync_manager._cooldown_task = nil
-          end
           os.remove(doc)
         end)
 
         local initial_count = #jobs
         sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_true(sync_manager:dispatchNextSync())
 
-        -- First sync dispatched immediately
+        -- First sync dispatched
         assert.is_equal(initial_count + 1, #jobs)
         local job1 = jobs[#jobs]
         finish_job_success(job1, doc)
@@ -3626,17 +3648,14 @@ describe("Background Sync Behavior", function()
         -- A new annotation is added to doc within 5 minutes
         sync_manager:addToChangedDocumentsFile(doc)
 
-        -- Subsequent automatic sync is NOT dispatched immediately
+        -- Subsequent automatic sync is in cooldown, dispatch returns false
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
         assert.is_true(is_pending(doc))
-        assert.is_not_nil(scheduled_time)
-        assert.is_not_nil(sync_manager._cooldown_task)
-        assert.is_equal(scheduled_fn, sync_manager._cooldown_task)
-        assert.is_true(scheduled_time <= 300 and scheduled_time > 0)
 
-        -- When cooldown expires, scheduled timer fires and dispatches job
-        sync_manager.last_sync_time[doc] = os.time() - 300
-        sync_manager._cooldown_task()
+        -- When cooldown expires, dispatch succeeds and runs job
+        sync_manager.last_sync_time[doc].time = os.time() - 300
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 2, #jobs)
         local job2 = jobs[#jobs]
         finish_job_success(job2, doc)
@@ -3655,6 +3674,7 @@ describe("Background Sync Behavior", function()
 
         local initial_count = #jobs
         sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
 
         local job1 = jobs[#jobs]
@@ -3664,10 +3684,12 @@ describe("Background Sync Behavior", function()
         -- Failed sync stays pending, but enters cooldown
         assert.is_true(is_pending(doc))
         assert.is_not_nil(sync_manager.last_sync_time[doc])
-        assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
+        local rem, failed = sync_manager:getRemainingCooldown(doc)
+        assert.is_true(rem > 0)
+        assert.is_true(failed)
 
         -- Another dispatch attempt while cooling down does not fork a new job
-        assert.is_false(sync_manager:_dispatchNextSync())
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
       end
     )
@@ -3693,6 +3715,7 @@ describe("Background Sync Behavior", function()
 
         local initial_count = #jobs
         sync_manager:addToChangedDocumentsFile(doc_a)
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
 
         -- Complete sync for doc_a so it enters cooldown
@@ -3702,10 +3725,12 @@ describe("Background Sync Behavior", function()
 
         -- Re-add doc_a to pending queue
         sync_manager:addToChangedDocumentsFile(doc_a)
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
 
         -- Add doc_b to pending queue: doc_b is NOT in cooldown and dispatches immediately
         sync_manager:addToChangedDocumentsFile(doc_b)
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 2, #jobs)
         assert.are.equal(doc_b, dispatched_file)
 
@@ -3727,17 +3752,20 @@ describe("Background Sync Behavior", function()
 
         local initial_count = #jobs
         sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_true(sync_manager:dispatchNextSync())
         local job1 = jobs[#jobs]
         finish_job_success(job1, doc)
 
         -- doc is now in cooldown
         assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
         sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 1, #jobs)
 
         -- Calling syncNow clears cooldown and dispatches immediately
         sync_manager:syncNow(doc)
         assert.is_nil(sync_manager.last_sync_time[doc])
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 2, #jobs)
 
         local job2 = jobs[#jobs]
@@ -3747,11 +3775,13 @@ describe("Background Sync Behavior", function()
         -- Now put in cooldown again
         assert.is_true(sync_manager:getRemainingCooldown(doc) > 0)
         sync_manager:addToChangedDocumentsFile(doc)
+        assert.is_false(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 2, #jobs)
 
         -- Calling syncAllChangedDocuments clears cooldown and dispatches immediately
         sync_manager:syncAllChangedDocuments()
         assert.is_nil(sync_manager.last_sync_time[doc])
+        assert.is_true(sync_manager:dispatchNextSync())
         assert.is_equal(initial_count + 3, #jobs)
 
         local job3 = jobs[#jobs]

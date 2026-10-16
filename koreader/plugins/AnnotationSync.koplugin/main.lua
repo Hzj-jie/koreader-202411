@@ -118,7 +118,6 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
               self.settings.network_auto_sync =
                 not self.settings.network_auto_sync
               self:saveSettings()
-              self.manager:_dispatchNextSync()
             end,
           },
 
@@ -195,10 +194,19 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Sync current book now"),
+        text_func = function()
+          if
+            self.ui.document
+            and self.ui.document.file == self.manager.running
+          then
+            return gettext("Current book is being synchronized")
+          end
+          return gettext("Sync current book now")
+        end,
         enabled_func = function()
           return ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
             and self.ui.document ~= nil
+            and self.ui.document.file ~= self.manager.running
         end,
         hold_callback = function()
           utils.show_msg(manual_sync_description)
@@ -290,9 +298,9 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
   }
 end
 
-function AnnotationSyncPlugin:onNetworkOnline()
-  if self.manager:_dispatchNextSync() then
-    logger.dbg("AnnotationSync: onNetworkOnline triggered background sync")
+function AnnotationSyncPlugin:onTimesChange_1M()
+  if self.manager:dispatchNextSync() then
+    logger.dbg("AnnotationSync: onTimesChange_1M triggered background sync")
   end
 end
 

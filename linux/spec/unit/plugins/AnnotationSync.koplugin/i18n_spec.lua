@@ -101,6 +101,18 @@ describe("AnnotationSync internationalization", function()
       "冷却 %1 分钟",
       _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 1)
     )
+    assert.are.equal(
+      "当前书籍正在同步",
+      _("Current book is being synchronized")
+    )
+    assert.are.equal(
+      "失败，%1 分钟后重试",
+      _.ngettext("Failed, retry in 1 minute", "Failed, retry in %1 minutes", 5)
+    )
+    assert.are.equal(
+      "失败，%1 分钟后重试",
+      _.ngettext("Failed, retry in 1 minute", "Failed, retry in %1 minutes", 1)
+    )
     -- Set language to Traditional Chinese (zh_TW)
     _.changeLang("zh_TW")
     assert.are.equal("標註同步", _("Annotation Sync"))
@@ -168,6 +180,18 @@ describe("AnnotationSync internationalization", function()
     assert.are.equal(
       "冷卻 %1 分鐘",
       _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 1)
+    )
+    assert.are.equal(
+      "目前書籍正在同步",
+      _("Current book is being synchronized")
+    )
+    assert.are.equal(
+      "失敗，%1 分鐘後重試",
+      _.ngettext("Failed, retry in 1 minute", "Failed, retry in %1 minutes", 5)
+    )
+    assert.are.equal(
+      "失敗，%1 分鐘後重試",
+      _.ngettext("Failed, retry in 1 minute", "Failed, retry in %1 minutes", 1)
     )
   end)
 end)

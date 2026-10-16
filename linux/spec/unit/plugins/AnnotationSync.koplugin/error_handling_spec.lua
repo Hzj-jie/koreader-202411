@@ -127,6 +127,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
 
       assert.truthy(
         sync_instance.settings.last_sync:match(
@@ -173,7 +174,9 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       end
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
 
       assert.are.equal(
         2,
@@ -198,6 +201,7 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
       table.insert(readerui.annotation.annotations, ann)
 
       sync_instance:manualSync()
+      sync_instance.manager:dispatchNextSync()
       assert.is_equal(
         0,
         (sync_instance.manager:getPendingChangedDocuments()),
