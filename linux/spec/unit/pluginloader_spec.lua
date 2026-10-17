@@ -404,11 +404,12 @@ describe("PluginLoader module", function()
         -- Toggle first item
         plugin_table[1].callback()
 
-        -- Immediately after toggle, NO prompt should have been shown!
+        -- Immediately after toggle, NO prompt should have been shown,
+        -- and plugin caches should remain intact until restart
         assert.is_false(reload_called)
         assert.is_false(restart_called)
-        assert.is_nil(PluginLoader.enabled_plugins)
-        assert.is_nil(PluginLoader.disabled_plugins)
+        assert.is_not_nil(PluginLoader.enabled_plugins)
+        assert.is_not_nil(PluginLoader.disabled_plugins)
 
         -- Toggle second item as well
         plugin_table[2].callback()
