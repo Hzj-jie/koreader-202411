@@ -275,5 +275,37 @@ describe("TextWidget", function()
         assert.is_nil(is_truncated)
       end
     )
+
+    it(
+      "should ensure getFittedText returns truncated text and ellipsis flag when multi-byte text is truncated",
+      function()
+        local face = Font:getFace("infofont", 14)
+        local text = "第一章 中文標題"
+        local full_w = TextWidget:new({
+          text = text,
+          face = face,
+          use_xtext = true,
+        }):getWidth()
+        local tw = nil
+        for w = full_w - 1, full_w - 30, -1 do
+          local candidate = TextWidget:new({
+            text = text,
+            face = face,
+            use_xtext = true,
+            truncate_with_ellipsis = true,
+            max_width = w,
+          })
+          if candidate:isTruncated() then
+            tw = candidate
+            break
+          end
+        end
+        assert.is_not_nil(tw)
+        assert.is_true(tw:isTruncated())
+        local fitted, with_ellipsis = tw:getFittedText()
+        assert.is_true(with_ellipsis)
+        assert.are_not.equal(text, fitted)
+      end
+    )
   end)
 end)
