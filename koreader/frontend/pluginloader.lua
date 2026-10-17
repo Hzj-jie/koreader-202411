@@ -210,8 +210,6 @@ function PluginLoader:genPluginManagerMenu()
             end
           end
           has_changes = true
-          self.enabled_plugins = nil
-          self.disabled_plugins = nil
         end,
         help_text = plugin.description,
         onMenuSwitched = onMenuSwitched,
