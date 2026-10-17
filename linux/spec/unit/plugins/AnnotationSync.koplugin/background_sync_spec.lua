@@ -1113,7 +1113,7 @@ describe("Background Sync Behavior", function()
 
       local job =
         require("pluginshare").backgroundJobs[#require("pluginshare").backgroundJobs]
-      local dummy_ann = { { text = "Background Synced Annotation", page = 1 } }
+      local dummy_ann = { { text = "Background Synced Annotation", page = "/1/4/2/4" } }
       local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync2.json"
       util.writeToFile("[]", tmp_json .. ".snapshot")
       util.writeToFile(json.encode(dummy_ann), tmp_json .. ".uploaded")
@@ -1142,17 +1142,17 @@ describe("Background Sync Behavior", function()
         local A_base = {
           datetime = "2026-01-01 10:00:00",
           datetime_updated = "2026-01-01 10:00:00",
-          page = 1,
-          pos0 = { page = 1, x = 10, y = 10 },
-          pos1 = { page = 1, x = 20, y = 20 },
+          page = "/1/4/2/4",
+          pos0 = { page = "/1/4/2/4", x = 10, y = 10 },
+          pos1 = { page = "/1/4/2/4", x = 20, y = 20 },
           text = "Annotation A original",
         }
         local B_base = {
           datetime = "2026-01-01 10:00:00",
           datetime_updated = "2026-01-01 10:00:00",
-          page = 2,
-          pos0 = { page = 2, x = 10, y = 10 },
-          pos1 = { page = 2, x = 20, y = 20 },
+          page = "/1/4/2/6",
+          pos0 = { page = "/1/4/2/6", x = 10, y = 10 },
+          pos1 = { page = "/1/4/2/6", x = 20, y = 20 },
           text = "Annotation B original",
         }
 
@@ -1160,17 +1160,17 @@ describe("Background Sync Behavior", function()
           datetime = "2026-01-01 10:00:00",
           datetime_updated = "2026-01-02 12:00:00",
           notes = "Local note on A",
-          page = 1,
-          pos0 = { page = 1, x = 10, y = 10 },
-          pos1 = { page = 1, x = 20, y = 20 },
+          page = "/1/4/2/4",
+          pos0 = { page = "/1/4/2/4", x = 10, y = 10 },
+          pos1 = { page = "/1/4/2/4", x = 20, y = 20 },
           text = "Annotation A original",
         }
         local B_local = {
           datetime = "2026-01-01 10:00:00",
           datetime_updated = "2026-01-01 10:00:00",
-          page = 2,
-          pos0 = { page = 2, x = 10, y = 10 },
-          pos1 = { page = 2, x = 20, y = 20 },
+          page = "/1/4/2/6",
+          pos0 = { page = "/1/4/2/6", x = 10, y = 10 },
+          pos1 = { page = "/1/4/2/6", x = 20, y = 20 },
           text = "Annotation B original",
         }
         readerui.annotation.annotations = { A_local, B_local }
@@ -1178,18 +1178,18 @@ describe("Background Sync Behavior", function()
         local A_remote = {
           datetime = "2026-01-01 10:00:00",
           datetime_updated = "2026-01-01 10:00:00",
-          page = 1,
-          pos0 = { page = 1, x = 10, y = 10 },
-          pos1 = { page = 1, x = 20, y = 20 },
+          page = "/1/4/2/4",
+          pos0 = { page = "/1/4/2/4", x = 10, y = 10 },
+          pos1 = { page = "/1/4/2/4", x = 20, y = 20 },
           text = "Annotation A original",
         }
         local B_remote = {
           datetime = "2026-01-01 10:00:00",
           datetime_updated = "2026-01-02 13:00:00",
           notes = "Remote note on B",
-          page = 2,
-          pos0 = { page = 2, x = 10, y = 10 },
-          pos1 = { page = 2, x = 20, y = 20 },
+          page = "/1/4/2/6",
+          pos0 = { page = "/1/4/2/6", x = 10, y = 10 },
+          pos1 = { page = "/1/4/2/6", x = 20, y = 20 },
           text = "Annotation B original",
         }
 
@@ -1213,9 +1213,9 @@ describe("Background Sync Behavior", function()
 
         local merged_A, merged_B
         for _, ann in ipairs(applied_annotations) do
-          if ann.page == 1 then
+          if ann.page == "/1/4/2/4" then
             merged_A = ann
-          elseif ann.page == 2 then
+          elseif ann.page == "/1/4/2/6" then
             merged_B = ann
           end
         end

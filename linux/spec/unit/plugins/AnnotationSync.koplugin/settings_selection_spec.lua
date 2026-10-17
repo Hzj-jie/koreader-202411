@@ -314,4 +314,206 @@ describe("AnnotationSync Settings Selection", function()
       assert.truthy(found_item.text_func():find("777", 1, true))
     end
   )
+
+  it(
+    "lists, selects, pushes and pulls an emptied dictionary setting",
+    function()
+      local old_show = UIManager.show
+      finally(function()
+        G_reader_settings:delete("style_tweaks")
+        UIManager.show = old_show
+      end)
+
+      G_reader_settings:save("style_tweaks", {})
+      G_reader_settings:flush()
+
+      local submenu
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      local found_item
+      for _, item in ipairs(submenu.item_table) do
+        if item.setting_id == "reader:style_tweaks" then
+          found_item = item
+          break
+        end
+      end
+      assert.is_not_nil(found_item)
+      assert.truthy(found_item.text_func():find("{dictionary} -> {}", 1, true))
+
+      -- Select it
+      submenu:onMenuSelect(found_item)
+      assert.is_true(sync_instance.settings.selected_settings["reader:style_tweaks"])
+
+      -- Verify pushed value via getSelectedSettingsWithValues
+      local selected_values = sync_instance.manager:getSelectedSettingsWithValues()
+      assert.is_not_nil(selected_values)
+      assert.are.same({}, selected_values["reader:style_tweaks"])
+
+      -- Verify pull applies {}
+      G_reader_settings:save("style_tweaks", { foo = "bar" })
+      sync_instance.manager:_writeLocalSettingValue("reader:style_tweaks", {})
+      assert.are.same({}, G_reader_settings:readTable("style_tweaks"))
+    end
+  )
+
+  it(
+    "prunes reverted settings, uploads nothing and takes no-settings path",
+    function()
+      local utils_mod = require("plugins/AnnotationSync.koplugin/utils")
+      local remote_mod = require("plugins/AnnotationSync.koplugin/remote")
+      local old_show_msg = utils_mod.show_msg
+      local msg_shown
+      utils_mod.show_msg = function(msg)
+        msg_shown = msg
+      end
+      finally(function()
+        utils_mod.show_msg = old_show_msg
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+      end)
+
+      -- Change setting and select it
+      G_reader_settings:save("auto_standby_timeout_seconds", 777)
+      G_reader_settings:flush()
+      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"] = true
+      sync_instance:saveSettings()
+
+      -- Revert setting back to default (-1)
+      G_reader_settings:save("auto_standby_timeout_seconds", -1)
+      G_reader_settings:flush()
+
+      local old_push = remote_mod.push_settings
+      local pushed = false
+      remote_mod.push_settings = function()
+        pushed = true
+      end
+      finally(function()
+        remote_mod.push_settings = old_push
+      end)
+
+      sync_instance.manager:pushSettings()
+
+      assert.is_false(pushed)
+      assert.is_nil(sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"])
+      assert.is_not_nil(msg_shown)
+      assert.truthy(msg_shown:find("No settings are selected", 1, true))
+    end
+  )
+
+  it("refreshes parent branch item when child branch changes", function()
+    local old_show = UIManager.show
+    finally(function()
+      G_reader_settings:delete("footer")
+      UIManager.show = old_show
+    end)
+    G_reader_settings:save("footer", { time = false })
+
+    local parent_menu
+    UIManager.show = function(this, widget)
+      if widget.title == "Changed Settings" then
+        parent_menu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    sync_instance:showChangedSettings()
+    assert.is_not_nil(parent_menu)
+
+    local footer_item, footer_idx
+    for i, item in ipairs(parent_menu.item_table) do
+      if item.text_func and item.text_func():find("footer >") then
+        footer_item = item
+        footer_idx = i
+        break
+      end
+    end
+    assert.is_not_nil(footer_item)
+
+    local branch_menu
+    UIManager.show = function(this, widget)
+      if widget.title and widget.title:find("footer") then
+        branch_menu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    parent_menu:onMenuSelect(footer_item)
+    assert.is_not_nil(branch_menu)
+
+    -- Tap Select All in branch_menu
+    local select_all_item
+    for _, item in ipairs(branch_menu.item_table) do
+      if item.text == "Select All" then
+        select_all_item = item
+        break
+      end
+    end
+    assert.is_not_nil(select_all_item)
+    select_all_item.callback()
+
+    -- Close branch_menu
+    UIManager:close(branch_menu)
+
+    -- Verify that the parent menu's item_group has been refreshed to show [✓]
+    local rendered_footer_btn = parent_menu.item_group[footer_idx]
+    assert.is_not_nil(rendered_footer_btn)
+    assert.truthy(rendered_footer_btn.text:find("^%[✓%]"))
+  end)
+
+  it("keeps focus on the same row when toggling a leaf on page 2", function()
+    local old_show = UIManager.show
+    local Device_mod = require("device")
+    local old_hasDPad = Device_mod.hasDPad
+    Device_mod.hasDPad = function() return true end
+    finally(function()
+      Device_mod.hasDPad = old_hasDPad
+      UIManager.show = old_show
+      for i = 1, 30 do
+        G_reader_settings:delete("test_many_" .. i)
+      end
+    end)
+
+    for i = 1, 30 do
+      G_reader_settings:save("test_many_" .. i, 1)
+    end
+    G_reader_settings:flush()
+
+    local submenu
+    UIManager.show = function(this, widget)
+      if widget.title == "Changed Settings" then
+        submenu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    sync_instance:showChangedSettings()
+    assert.is_not_nil(submenu)
+    assert.is_true(submenu.page_num > 1)
+
+    -- Switch to page 2
+    submenu:onGotoPage(2)
+    assert.are_equal(2, submenu.page)
+
+    local page2_item_idx = (submenu.page - 1) * submenu.perpage + 2
+    local item = submenu.item_table[page2_item_idx]
+    assert.is_not_nil(item)
+
+    local updated_select_number
+    local orig_updateItems = submenu.updateItems
+    submenu.updateItems = function(self, select_number, no_recalc)
+      updated_select_number = select_number
+      return orig_updateItems(self, select_number, no_recalc)
+    end
+
+    submenu:onMenuSelect(item)
+
+    assert.are_equal(2, updated_select_number)
+  end)
 end)

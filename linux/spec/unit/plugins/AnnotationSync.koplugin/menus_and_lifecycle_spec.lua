@@ -247,6 +247,30 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       end
     )
 
+    it("enables push, pull and sync current book when sync_server url is empty root", function()
+      sync_instance.settings.sync_server = {
+        type = "webdav",
+        url = "",
+      }
+      G_reader_settings:save("cloud_download_dir", "")
+
+      local menu_items = {}
+      sync_instance:addToMainMenu(menu_items)
+      local sub = menu_items.annotation_sync_plugin.sub_item_table
+
+      local push_item = sub[2]
+      local pull_item = sub[3]
+      local sync_now_item = sub[4]
+
+      assert.are_equal("Push settings to cloud", push_item.text)
+      assert.are_equal("Pull settings from cloud", pull_item.text)
+      assert.are_equal("Sync current book now", sync_now_item.text_func())
+
+      assert.is_true(push_item.enabled_func())
+      assert.is_true(pull_item.enabled_func())
+      assert.is_true(sync_now_item.enabled_func())
+    end)
+
     it(
       "scans reading history via 'Add books from reading history' menu item",
       function()
@@ -621,6 +645,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             UIManager.show = orig_show
             util.writeToFile = orig_write
             sync_instance.settings.selected_settings = {}
+            G_reader_settings:delete("auto_standby_timeout_seconds")
           end)
           UIManager.show = function(_, widget)
             if widget and widget.text then
@@ -635,6 +660,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             shown_texts[#shown_texts]
           )
 
+          G_reader_settings:save("auto_standby_timeout_seconds", 120)
+          G_reader_settings:flush()
           sync_instance.settings.selected_settings = {
             ["reader:auto_standby_timeout_seconds"] = true,
           }

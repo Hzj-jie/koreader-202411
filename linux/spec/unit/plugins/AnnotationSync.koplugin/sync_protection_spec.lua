@@ -313,6 +313,15 @@ describe("AnnotationSync Sync Protection & Regressions", function()
   )
 
   it("should protect PDF annotations similarly (geometry keys)", function()
+    local old_rolling = readerui.rolling
+    local old_paging = readerui.paging
+    readerui.rolling = false
+    readerui.paging = true
+    finally(function()
+      readerui.rolling = old_rolling
+      readerui.paging = old_paging
+    end)
+
     local remote_ann = {
       {
         drawer = "lighten",

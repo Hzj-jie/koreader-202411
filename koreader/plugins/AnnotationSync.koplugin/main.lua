@@ -178,7 +178,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       {
         text = gettext("Push settings to cloud"),
         enabled_func = function()
-          return (G_reader_settings:read("cloud_download_dir") or "") ~= ""
+          return self.settings.sync_server ~= nil
         end,
         callback = function()
           self.manager:pushSettings()
@@ -187,7 +187,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       {
         text = gettext("Pull settings from cloud"),
         enabled_func = function()
-          return (G_reader_settings:read("cloud_download_dir") or "") ~= ""
+          return self.settings.sync_server ~= nil
         end,
         callback = function()
           self.manager:pullSettings()
@@ -204,7 +204,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
           return gettext("Sync current book now")
         end,
         enabled_func = function()
-          return ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
+          return self.settings.sync_server ~= nil
             and self.ui.document ~= nil
             and self.ui.document.file ~= self.manager.running
         end,
@@ -309,6 +309,26 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   annotations.normalize(merged_list)
 
   if self.ui.document == document then
+    local existing = self.ui.annotation.annotations
+    local matched = {}
+    for i, new_item in ipairs(merged_list) do
+      for _, old_item in ipairs(existing) do
+        if not matched[old_item] and ReaderAnnotation.doesMatch(old_item, new_item) then
+          matched[old_item] = true
+          for k in pairs(old_item) do
+            if new_item[k] == nil then
+              old_item[k] = nil
+            end
+          end
+          for k, v in pairs(new_item) do
+            old_item[k] = v
+          end
+          merged_list[i] = old_item
+          break
+        end
+      end
+    end
+
     -- 1. Sort using core's comparator
     self.ui.annotation:sortItems(merged_list)
 
@@ -319,9 +339,16 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
     self.ui.annotation:updatePageNumbers(true)
 
     -- 3. Notify system
-    if #merged_list > 0 then
-      UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
+    local modified_items = {}
+    for _, item in ipairs(merged_list) do
+      table.insert(modified_items, item)
     end
+    for _, old_item in ipairs(existing) do
+      if not matched[old_item] then
+        table.insert(modified_items, old_item)
+      end
+    end
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", modified_items))
 
     -- 4. Repaint the UI to show synced highlights (drawn from self.ui.annotation.annotations)
     self.ui:setDirty()

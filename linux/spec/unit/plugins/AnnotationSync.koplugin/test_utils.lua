@@ -29,6 +29,7 @@ local old_runWhenOnline
 
 local old_getSettingsDir
 local old_G_reader_settings
+local old_G_defaults
 local old_tmp_dir
 local old_document_metadata_folder
 local old_show
@@ -57,6 +58,9 @@ function M.setup_test_env(test_data_dir)
     _G.G_reader_settings =
       LuaSettings:open(test_data_dir .. "/settings.reader.lua")
   end
+
+  old_G_defaults = _G.G_defaults
+  _G.G_defaults = require("luadefaults"):open(test_data_dir .. "/defaults.custom.lua")
 
   local named_settings = require("named_settings")
   old_document_metadata_folder = named_settings.document_metadata_folder
@@ -126,6 +130,13 @@ function M.teardown_test_env(test_data_dir, old_getDataDir)
   if old_G_reader_settings then
     _G.G_reader_settings = old_G_reader_settings
     old_G_reader_settings = nil
+  end
+
+  if old_G_defaults then
+    _G.G_defaults = old_G_defaults
+    old_G_defaults = nil
+  else
+    _G.G_defaults = nil
   end
 
   if old_isConnected then
