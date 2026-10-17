@@ -178,7 +178,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       {
         text = gettext("Push settings to cloud"),
         enabled_func = function()
-          return (G_reader_settings:read("cloud_download_dir") or "") ~= ""
+          return self.settings.sync_server ~= nil
         end,
         callback = function()
           self.manager:pushSettings()
@@ -187,7 +187,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
       {
         text = gettext("Pull settings from cloud"),
         enabled_func = function()
-          return (G_reader_settings:read("cloud_download_dir") or "") ~= ""
+          return self.settings.sync_server ~= nil
         end,
         callback = function()
           self.manager:pullSettings()
@@ -204,7 +204,7 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
           return gettext("Sync current book now")
         end,
         enabled_func = function()
-          return ((G_reader_settings:read("cloud_download_dir") or "") ~= "")
+          return self.settings.sync_server ~= nil
             and self.ui.document ~= nil
             and self.ui.document.file ~= self.manager.running
         end,

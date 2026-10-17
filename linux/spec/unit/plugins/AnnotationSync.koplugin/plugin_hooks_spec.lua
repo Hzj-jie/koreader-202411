@@ -248,19 +248,20 @@ describe("AnnotationSync plugin hooks and wiring", function()
     assert.is_not_nil(deleted_item)
 
     local orig_doc = readerui.document
+    local orig_sync_server = sync_instance.settings.sync_server
     finally(function()
       readerui.document = orig_doc
-      G_reader_settings:save("cloud_download_dir", "http://mock")
+      sync_instance.settings.sync_server = orig_sync_server
     end)
 
-    -- 1. With cloud_download_dir deleted: push, pull, sync current are disabled
-    G_reader_settings:delete("cloud_download_dir")
+    -- 1. With sync_server nil: push, pull, sync current are disabled
+    sync_instance.settings.sync_server = nil
     assert.is_false(push_item.enabled_func())
     assert.is_false(pull_item.enabled_func())
     assert.is_false(sync_curr_item.enabled_func())
 
-    -- 2. With cloud_download_dir set and book open: all four are enabled
-    G_reader_settings:save("cloud_download_dir", "http://mock")
+    -- 2. With sync_server restored and book open: all four are enabled
+    sync_instance.settings.sync_server = orig_sync_server
     assert.is_true(push_item.enabled_func())
     assert.is_true(pull_item.enabled_func())
     assert.is_true(sync_curr_item.enabled_func())
