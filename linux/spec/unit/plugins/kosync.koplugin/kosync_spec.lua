@@ -1487,6 +1487,77 @@ describe("KOSync plugin tests", function()
     end)
 
     it(
+      "sanitizes background pull response to remove non-serializable values such as json null sentinels",
+      function()
+        kosync:init()
+        kosync.settings.username = "user"
+        kosync.settings.userkey = "key"
+        kosync.pull_timestamp = 0
+        kosync.settings.sync_forward = 2 -- SILENT
+
+        -- Simulate server returning JSON with nulls parsed as json.util.null functions
+        local json = require("json")
+        local mock_null = json.null or function()
+          return nil
+        end
+        mock_client.get_progress = spy.new(function()
+          return true,
+            {
+              percentage = 0.85,
+              progress = "85",
+              timestamp = 300,
+              device = "OtherDevice",
+              device_id = mock_null,
+              unknown_field = function() end,
+            }
+        end)
+
+        local executed_result
+        stub(BackgroundJobs, "insertKeyed", function(job)
+          assert.are.equal("fork", job.executable)
+          local ok, ret = pcall(job.action)
+          local res = ok and ret or false
+          -- Use real dump and loadstring serialization as CommandRunner does in fork mode
+          local dump = require("dump")
+          local serialized = string.format(
+            "return { result = %s, timeout = false }\n",
+            dump(res)
+          )
+          local load_ok, parsed = pcall(function()
+            return loadstring(serialized)()
+          end)
+          if load_ok and type(parsed) == "table" then
+            job.result = parsed.result
+          else
+            job.result = 222
+          end
+          executed_result = job.result
+          job.callback(job)
+          return true
+        end)
+
+        stub(kosync, "_syncToProgress")
+        kosync:_getProgress(false)
+
+        assert.is_table(executed_result)
+        assert.are_not.equal(222, executed_result)
+        assert.is_true(executed_result.ok)
+        assert.is_table(executed_result.body)
+        assert.are.equal(0.85, executed_result.body.percentage)
+        assert.are.equal("85", executed_result.body.progress)
+        assert.are.equal("OtherDevice", executed_result.body.device)
+        assert.is_nil(executed_result.body.device_id)
+        assert.is_nil(executed_result.body.unknown_field)
+        assert
+          .stub(kosync._syncToProgress)
+          .was_called_with(match.is_table(), "85")
+
+        kosync._syncToProgress:revert()
+        BackgroundJobs.insertKeyed:revert()
+      end
+    )
+
+    it(
       "samples local progress live in _applyPullUI, avoiding backward sync when reading in flight",
       function()
         kosync:init()
