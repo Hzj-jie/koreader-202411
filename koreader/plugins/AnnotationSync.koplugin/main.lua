@@ -309,6 +309,26 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   annotations.normalize(merged_list)
 
   if self.ui.document == document then
+    local existing = self.ui.annotation.annotations
+    local matched = {}
+    for i, new_item in ipairs(merged_list) do
+      for _, old_item in ipairs(existing) do
+        if not matched[old_item] and ReaderAnnotation.doesMatch(old_item, new_item) then
+          matched[old_item] = true
+          for k in pairs(old_item) do
+            if new_item[k] == nil then
+              old_item[k] = nil
+            end
+          end
+          for k, v in pairs(new_item) do
+            old_item[k] = v
+          end
+          merged_list[i] = old_item
+          break
+        end
+      end
+    end
+
     -- 1. Sort using core's comparator
     self.ui.annotation:sortItems(merged_list)
 

@@ -54,6 +54,9 @@ describe("AnnotationSync Core Integration", function()
     readerui.annotation.annotations = {}
     sync_instance.settings.last_sync = "Never"
     sync_instance.settings.use_filename = true
+    sync_instance.manager.running = nil
+    sync_instance.manager.requested = {}
+    sync_instance.manager.last_sync_time = {}
     os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
     os.remove(sync_instance.manager:changedDocumentsFile())
 
@@ -644,6 +647,274 @@ describe("AnnotationSync Core Integration", function()
       assert.is_true(sort_called)
       assert.are_equal(ann_p1, readerui.annotation.annotations[1])
       assert.are_equal(ann_p3, readerui.annotation.annotations[2])
+    end)
+
+    it("highlight dialog open plus a remote item sorting before: dialog Delete removes the chosen highlight", function()
+      local xp1 = readerui.document:getPageXPointer(1)
+      local xp2 = readerui.document:getPageXPointer(2)
+      local xp3 = readerui.document:getPageXPointer(3)
+
+      local A = {
+        page = xp2,
+        pos0 = xp2,
+        pos1 = xp2,
+        text = "Highlight A",
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+      }
+      local B = {
+        page = xp3,
+        pos0 = xp3,
+        pos1 = xp3,
+        text = "Highlight B",
+        datetime = "2026-01-01 11:00:00",
+        drawer = "lighten",
+      }
+      local C = {
+        page = xp1,
+        pos0 = xp1,
+        pos1 = xp1,
+        text = "Highlight C",
+        datetime = "2026-01-01 09:00:00",
+        drawer = "lighten",
+      }
+
+      readerui.annotation.annotations = { A, B }
+      readerui.annotation:updatePageNumbers(true)
+
+      readerui.highlight:onShowHighlightDialog(2)
+      assert.is_not_nil(readerui.highlight.edit_highlight_dialog)
+
+      local snapshot = json.encode({ A, B })
+      local uploaded = json.encode({ C, A, B })
+
+      sync_instance.manager:_applyBackgroundSync(readerui.document.file, snapshot, uploaded)
+
+      local dialog = readerui.highlight.edit_highlight_dialog
+      dialog.buttons[1][1].callback()
+
+      fastforward_ui_events()
+
+      local texts = {}
+      for _, ann in ipairs(readerui.annotation.annotations) do
+        table.insert(texts, ann.text)
+      end
+      assert.are.same({ "Highlight C", "Highlight A" }, texts)
+    end)
+
+    it("note editor open during sync preserves note after saving", function()
+      local xp = readerui.document:getPageXPointer(2)
+      local B = {
+        page = xp,
+        pos0 = xp,
+        pos1 = xp,
+        text = "Highlight B",
+        datetime = "2026-01-01 11:00:00",
+        drawer = "lighten",
+      }
+      readerui.annotation.annotations = { B }
+      readerui.annotation:updatePageNumbers(true)
+
+      local input_dialog
+      local old_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        local _ = require("gettext")
+        if widget and (widget.title == _("Edit note") or widget.title == "Edit note") then
+          input_dialog = widget
+        end
+        return old_show(ui_mgr, widget, ...)
+      end
+      finally(function()
+        UIManager.show = old_show
+      end)
+
+      readerui.bookmark:setBookmarkNote(1, false, nil, function() end)
+      assert.is_not_nil(input_dialog)
+
+      local B_remote = {
+        page = xp,
+        pos0 = xp,
+        pos1 = xp,
+        text = "Highlight B",
+        datetime = "2026-01-01 11:00:00",
+        drawer = "lighten",
+      }
+      sync_instance:applySyncedAnnotations(readerui.document, { B_remote })
+
+      input_dialog:setInputText("my typed note")
+      input_dialog.buttons[1][3].callback()
+
+      assert.are.equal("my typed note", readerui.annotation.annotations[1].note)
+    end)
+
+    it("dismissing existing-highlight dialog via dialog:onExit() lets pending sync apply", function()
+      local xp1 = readerui.document:getPageXPointer(1)
+      local xp2 = readerui.document:getPageXPointer(2)
+
+      local A = {
+        page = xp2,
+        pos0 = xp2,
+        pos1 = xp2,
+        text = "Highlight A",
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+      }
+      local C = {
+        page = xp1,
+        pos0 = xp1,
+        pos1 = xp1,
+        text = "Highlight C",
+        datetime = "2026-01-01 09:00:00",
+        drawer = "lighten",
+      }
+
+      readerui.annotation.annotations = { A }
+      readerui.annotation:updatePageNumbers(true)
+
+      readerui.highlight:onShowHighlightDialog(1)
+      local dialog = readerui.highlight.edit_highlight_dialog
+      assert.is_not_nil(dialog)
+
+      local snapshot = json.encode({ A })
+      local uploaded = json.encode({ C, A })
+
+      sync_instance.manager:_applyBackgroundSync(readerui.document.file, snapshot, uploaded)
+
+      -- With dialog still open, sync apply was deferred
+      assert.are.equal(1, #readerui.annotation.annotations)
+
+      -- Dismiss dialog with onExit (tap outside or Back)
+      dialog:onExit()
+      fastforward_ui_events()
+
+      assert.are.equal(2, #readerui.annotation.annotations)
+      local texts = {}
+      for _, ann in ipairs(readerui.annotation.annotations) do
+        table.insert(texts, ann.text)
+      end
+      assert.are.same({ "Highlight C", "Highlight A" }, texts)
+    end)
+
+    it("trashing last highlight in open dialog and closing it still shows Restore / Move to trash ConfirmBox", function()
+      local xp1 = readerui.document:getPageXPointer(1)
+      local A = {
+        page = xp1,
+        pos0 = xp1,
+        pos1 = xp1,
+        text = "Highlight to delete",
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+      }
+      readerui.annotation.annotations = { A }
+      readerui.annotation:updatePageNumbers(true)
+      readerui.doc_settings:save("annotations", { A })
+      readerui.doc_settings:flush()
+
+      local doc_file = readerui.document.file
+      local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
+      util.writeToFile(json.encode({ A }), cache_path)
+
+      local DataStorage = require("datastorage")
+      local tmp_income = DataStorage:getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
+      util.writeToFile(json.encode({ A }), tmp_income)
+      finally(function()
+        os.remove(tmp_income)
+      end)
+
+      local boxes = {}
+      local old_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        local ConfirmBox = require("ui/widget/confirmbox")
+        if getmetatable(widget) == ConfirmBox then
+          table.insert(boxes, widget)
+        end
+        return old_show(ui_mgr, widget, ...)
+      end
+      finally(function()
+        UIManager.show = old_show
+        for _, b in ipairs(boxes) do
+          UIManager:close(b)
+        end
+        sync_instance.manager.running = nil
+      end)
+
+      readerui.highlight:onShowHighlightDialog(1)
+      local dialog = readerui.highlight.edit_highlight_dialog
+      assert.is_not_nil(dialog)
+
+      sync_instance.manager:addToChangedDocumentsFile(doc_file)
+      sync_instance.manager:syncNow(doc_file)
+      sync_instance.manager:dispatchNextSync()
+
+      assert.are.equal(0, #boxes)
+
+      -- User deletes highlight via dialog Delete button (buttons[1][1])
+      dialog.buttons[1][1].callback()
+      assert.are.equal(0, #readerui.annotation.annotations)
+
+      fastforward_ui_events()
+
+      assert.are.equal(1, #boxes)
+      assert.are.equal("Move to trash", boxes[1].ok_text)
+      assert.are.equal("Restore", boxes[1].cancel_text)
+    end)
+
+    it("while deferred, running stays set and Synced message is not shown until apply runs", function()
+      local xp1 = readerui.document:getPageXPointer(1)
+      local A = {
+        page = xp1,
+        pos0 = xp1,
+        pos1 = xp1,
+        text = "Highlight A",
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+      }
+      readerui.annotation.annotations = { A }
+      readerui.annotation:updatePageNumbers(true)
+
+      local doc_file = readerui.document.file
+      local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
+      util.writeToFile(json.encode({ A }), cache_path)
+
+      local notifications = {}
+      local Notification = require("ui/widget/notification")
+      local old_notify = Notification.notify
+      Notification.notify = function(self_notif, text, ...)
+        table.insert(notifications, text)
+        return old_notify(self_notif, text, ...)
+      end
+      finally(function()
+        Notification.notify = old_notify
+      end)
+
+      readerui.highlight:onShowHighlightDialog(1)
+      local dialog = readerui.highlight.edit_highlight_dialog
+      assert.is_not_nil(dialog)
+
+      sync_instance.manager:addToChangedDocumentsFile(doc_file)
+      sync_instance.manager:syncNow(doc_file)
+      sync_instance.manager:dispatchNextSync()
+
+      -- While dialog is open, background sync was deferred
+      assert.are.equal(doc_file, sync_instance.manager.running)
+      for _, n in ipairs(notifications) do
+        assert.is_falsy(string.match(n, "^Synced:"))
+      end
+
+      -- Close dialog
+      dialog:onExit()
+      fastforward_ui_events()
+
+      -- After apply runs, running is cleared and "Synced:" is shown
+      assert.is_nil(sync_instance.manager.running)
+      local found_synced = false
+      for _, n in ipairs(notifications) do
+        if string.match(n, "^Synced:") then
+          found_synced = true
+          break
+        end
+      end
+      assert.is_true(found_synced)
     end)
 
     it("applySyncedAnnotations never calls document:render() on open book", function()
