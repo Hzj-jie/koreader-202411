@@ -304,7 +304,7 @@ describe("AnnotationSync Automation & Settings", function()
         assert.is_equal(initial_jobs_count + 1, #jobs)
         local job = jobs[#jobs]
 
-        local dummy_merged = { { text = "Sample Annotation", page = 1 } }
+        local dummy_merged = { { text = "Sample Annotation", page = "/1/4/2/4" } }
         local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync_auto.json"
         util.writeToFile("[]", tmp_json .. ".snapshot")
         util.writeToFile(json.encode(dummy_merged), tmp_json .. ".uploaded")

@@ -993,6 +993,107 @@ describe("AnnotationSync Core Integration", function()
       assert.are_equal(1, #anns)
       assert.are_equal("Closed doc note", anns[1].text)
     end)
+
+    it("format isolation: local [paging P1], base/income [rolling R1,R2] keeps R1 and R2 not deleted plus P1; active is [P1]", function()
+      local P1 = {
+        datetime = "2026-01-01 11:00:00",
+        drawer = "lighten",
+        page = 3,
+        pos0 = { x = 1, y = 2, page = 3 },
+        pos1 = { x = 9, y = 2, page = 3 },
+        text = "Paging P1",
+      }
+      local R1 = {
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+        page = "/body/p[1]/text().0",
+        pos0 = "/body/p[1]/text().0",
+        pos1 = "/body/p[1]/text().9",
+        text = "Rolling R1",
+      }
+      local R2 = {
+        datetime = "2026-01-01 10:30:00",
+        drawer = "lighten",
+        page = "/body/p[2]/text().0",
+        pos0 = "/body/p[2]/text().0",
+        pos1 = "/body/p[2]/text().9",
+        text = "Rolling R2",
+      }
+
+      local merged, active = annotations_mod.merge({ P1 }, { R1, R2 }, { R1, R2 }, "number")
+      assert.are_equal(1, #active)
+      assert.are_equal(P1.text, active[1].text)
+      assert.are_equal(3, #merged)
+      for _, item in ipairs(merged) do
+        assert.is_nil(item.deleted)
+      end
+    end)
+
+    it("empty paging view of a rolling-annotated book: no restore prompt and no rolling items applied", function()
+      local R1 = {
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+        page = "/body/p[1]/text().0",
+        pos0 = "/body/p[1]/text().0",
+        pos1 = "/body/p[1]/text().9",
+        text = "Rolling R1",
+      }
+      local R2 = {
+        datetime = "2026-01-01 10:30:00",
+        drawer = "lighten",
+        page = "/body/p[2]/text().0",
+        pos0 = "/body/p[2]/text().0",
+        pos1 = "/body/p[2]/text().9",
+        text = "Rolling R2",
+      }
+
+      readerui.annotation.annotations = {}
+      readerui.rolling = false
+      readerui.paging = true
+      finally(function()
+        readerui.rolling = true
+        readerui.paging = false
+      end)
+
+      local snapshot = json.encode({ R1, R2 })
+      local uploaded = json.encode({ R1, R2 })
+
+      local n = sync_instance.manager:_applyBackgroundSync(
+        readerui.document.file,
+        snapshot,
+        uploaded,
+        true
+      )
+      assert.is_nil(n)
+      assert.are_equal(0, #readerui.annotation.annotations)
+    end)
+
+    it("format isolation: back in CRE with base/income containing P1: P1 is kept, not tombstoned, and not in active", function()
+      local P1 = {
+        datetime = "2026-01-01 11:00:00",
+        drawer = "lighten",
+        page = 3,
+        pos0 = { x = 1, y = 2, page = 3 },
+        pos1 = { x = 9, y = 2, page = 3 },
+        text = "Paging P1",
+      }
+      local R1 = {
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+        page = "/body/p[1]/text().0",
+        pos0 = "/body/p[1]/text().0",
+        pos1 = "/body/p[1]/text().9",
+        text = "Rolling R1",
+      }
+
+      local merged, active = annotations_mod.merge({ R1 }, { R1, P1 }, { R1, P1 }, "string")
+      assert.are_equal(1, #active)
+      assert.are_equal(R1.text, active[1].text)
+      assert.are_equal(2, #merged)
+      for _, item in ipairs(merged) do
+        assert.is_nil(item.deleted)
+      end
+    end)
   end)
 
   describe("Closed-book sidecar synchronization", function()

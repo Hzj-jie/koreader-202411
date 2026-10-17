@@ -45,8 +45,37 @@ local function read_to_array(file)
   return M.sort(valid)
 end
 
-function M.merge(local_list, base_list, income_list)
+function M.merge(local_list, base_list, income_list, page_type)
   assert(type(local_list) == "table", "local_list must be a table")
+
+  local other_format_income = {}
+  if page_type then
+    local filtered_income = {}
+    for _, v in ipairs(income_list) do
+      if type(v.page) == page_type then
+        table.insert(filtered_income, v)
+      else
+        table.insert(other_format_income, v)
+      end
+    end
+    income_list = filtered_income
+
+    local filtered_base = {}
+    for _, v in ipairs(base_list) do
+      if type(v.page) == page_type then
+        table.insert(filtered_base, v)
+      end
+    end
+    base_list = filtered_base
+
+    local filtered_local = {}
+    for _, v in ipairs(local_list) do
+      if type(v.page) == page_type then
+        table.insert(filtered_local, v)
+      end
+    end
+    local_list = filtered_local
+  end
 
   -- The book never holds tombstones, so a base tombstone missing from it is not
   -- a local deletion; a live income copy of it is a restore made elsewhere.
@@ -159,6 +188,11 @@ function M.merge(local_list, base_list, income_list)
     end
   end
 
+  for _, v in ipairs(other_format_income) do
+    table.insert(merged, v)
+  end
+  M.sort(merged)
+
   return merged, active
 end
 
@@ -200,8 +234,9 @@ function M.sync_callback(
     return false
   end
 
+  local page_type = local_list[1] and type(local_list[1].page)
   local merged, active =
-    M.merge(local_list, last_sync_list, income_list)
+    M.merge(local_list, last_sync_list, income_list, page_type)
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
 

@@ -469,12 +469,21 @@ function SyncManager:_applyBackgroundSync(
   local local_list = json.decode(json.encode(book_now))
   local base_list = json.decode(snapshot_json)
 
+  local page_type
+  if ui_document and ui_document.file == file then
+    page_type = self.plugin.ui.rolling and "string" or "number"
+  elseif local_list[1] then
+    page_type = type(local_list[1].page)
+  end
+
   if ask and #local_list == 0 and uploaded_json then
     local income_list = json.decode(uploaded_json)
     local n = 0
     for _, v in ipairs(income_list) do
       if not v.deleted then
-        n = n + 1
+        if not page_type or type(v.page) == page_type then
+          n = n + 1
+        end
       end
     end
     if n > 0 then
@@ -511,13 +520,15 @@ function SyncManager:_applyBackgroundSync(
       active = {}
       for _, v in ipairs(income_list) do
         if not v.deleted then
-          table.insert(active, v)
+          if not page_type or type(v.page) == page_type then
+            table.insert(active, v)
+          end
         end
       end
     else
       local _
       _, active =
-        annotations.merge(util.tableDeepCopy(local_list), base_list, income_list)
+        annotations.merge(util.tableDeepCopy(local_list), base_list, income_list, page_type)
     end
     if not util.tableEquals(active, annotations.sort(local_list)) then
       self.plugin:applySyncedAnnotations(document, active)
