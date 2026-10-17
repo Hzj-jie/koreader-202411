@@ -823,10 +823,6 @@ function SyncManager:_writeLocalSettingValue(key, value)
     return true
   elseif domain == "defaults" then
     save_nested_setting(G_defaults, parts, value)
-
-    local filepath = DataStorage:getDataDir() .. CUSTOM_DEFAULTS_FILE
-    local settings_obj = LuaSettings:open(filepath)
-    save_nested_setting(settings_obj, parts, value)
     return true
   elseif domain:match("^settings/") then
     local settings_name = domain:sub(10)

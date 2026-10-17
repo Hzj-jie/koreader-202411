@@ -60,14 +60,15 @@ describe("AnnotationSync settings values and pull menus", function()
     local p_s = LuaSettings:open(DataStorage:getSettingsDir() .. "/rv_plugin.lua")
     p_s:save("a", { b = 5 })
     p_s:flush()
-    local d_s = LuaSettings:open(test_data_dir .. "/defaults.custom.lua")
-    d_s:save("RV_DEFAULT", 9)
-    d_s:flush()
+    G_defaults:save("RV_DEFAULT", 9)
+    G_defaults:flush()
 
     finally(function()
       G_reader_settings:delete("rv_number")
       G_reader_settings:delete("rv_table")
       os.remove(DataStorage:getSettingsDir() .. "/rv_plugin.lua")
+      G_defaults:delete("RV_DEFAULT")
+      G_defaults:flush()
       os.remove(test_data_dir .. "/defaults.custom.lua")
     end)
 
@@ -122,6 +123,25 @@ describe("AnnotationSync settings values and pull menus", function()
     assert.are.equal(3, d_s:read("RV_DEFAULT2"))
 
     assert.is_false(manager:_writeLocalSettingValue("no_colon", 1))
+  end)
+
+  it("writing a leaf that restores a table default leaves no partial table in defaults.custom.lua", function()
+    local custom_file = test_data_dir .. "/defaults.custom.lua"
+    finally(function()
+      os.remove(custom_file)
+    end)
+
+    G_defaults:save("DTAP_ZONE_MENU", { x = 0.1, y = 0, w = 1, h = 1 / 8 })
+    G_defaults:flush()
+
+    assert.is_true(manager:_writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0))
+
+    local d_s = LuaSettings:open(custom_file)
+    assert.is_nil(d_s:read("DTAP_ZONE_MENU"))
+
+    local reopened = require("luadefaults"):open(custom_file)
+    local full_val = reopened:read("DTAP_ZONE_MENU")
+    assert.are.same({ x = 0, y = 0, w = 1, h = 1 / 8 }, full_val)
   end)
 
   it("an imported defaults setting is still there after the next settings comparison", function()

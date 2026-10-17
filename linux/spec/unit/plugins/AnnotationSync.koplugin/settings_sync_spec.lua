@@ -82,13 +82,14 @@ describe("AnnotationSync Settings Synchronization", function()
       local defaults_path = test_data_dir .. "/defaults.custom.lua"
       local profiles_path = test_data_dir .. "/settings/profiles.lua"
       finally(function()
+        G_defaults:delete("DTAP_ZONE_MENU")
+        G_defaults:flush()
         os.remove(defaults_path)
         os.remove(profiles_path)
       end)
-      local f = io.open(defaults_path, "w")
-      f:write([[return { ["DTAP_ZONE_MENU"] = { ["h"] = 0.25 } }]])
-      f:close()
-      f = io.open(profiles_path, "w")
+      G_defaults:save("DTAP_ZONE_MENU", { h = 0.25 })
+      G_defaults:flush()
+      local f = io.open(profiles_path, "w")
       f:write([[return { ["night"] = { ["dark_mode"] = true } }]])
       f:close()
 
