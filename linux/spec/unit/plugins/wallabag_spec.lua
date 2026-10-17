@@ -984,6 +984,78 @@ describe("Wallabag plugin unit tests", function()
     )
 
     it(
+      "prefers supported url extension over mimeToExt for original documents and exports epub for html/xhtml",
+      function()
+        wallabag_instance.download_original_document = true
+
+        local downloaded_urls = {}
+        local downloaded_paths = {}
+        local call_stub = stub(
+          wallabag_instance,
+          "callAPI",
+          function(self, method, apiurl, headers, body, filepath)
+            table.insert(downloaded_urls, apiurl)
+            table.insert(downloaded_paths, filepath)
+            return true
+          end
+        )
+        finally(function()
+          call_stub:revert()
+        end)
+
+        -- 1. PDF URL served as application/octet-stream -> should keep .pdf, not .cfb
+        wallabag_instance:download({
+          id = 101,
+          title = "Paper",
+          mimetype = "application/octet-stream",
+          url = "https://bucket.example.com/paper.pdf",
+        })
+        assert.are.equal("https://bucket.example.com/paper.pdf", downloaded_urls[1])
+        assert.is_true(downloaded_paths[1]:sub(-4) == ".pdf")
+
+        -- 2. CBZ URL served as application/zip -> should keep .cbz, not .fb2.zip
+        wallabag_instance:download({
+          id = 102,
+          title = "Comic",
+          mimetype = "application/zip",
+          url = "https://example.com/comic.cbz",
+        })
+        assert.are.equal("https://example.com/comic.cbz", downloaded_urls[2])
+        assert.is_true(downloaded_paths[2]:sub(-4) == ".cbz")
+
+        -- 3. Webpage with application/xhtml+xml -> should use Wallabag EPUB export, not raw .xhtml
+        wallabag_instance:download({
+          id = 103,
+          title = "Post",
+          mimetype = "application/xhtml+xml",
+          url = "https://example.com/post",
+        })
+        assert.are.equal("/api/entries/103/export.epub", downloaded_urls[3])
+        assert.is_true(downloaded_paths[3]:sub(-5) == ".epub")
+
+        -- 4. Webpage with text/html -> should use Wallabag EPUB export
+        wallabag_instance:download({
+          id = 104,
+          title = "WebArticle",
+          mimetype = "text/html; charset=utf-8",
+          url = "https://example.com/article.html",
+        })
+        assert.are.equal("/api/entries/104/export.epub", downloaded_urls[4])
+        assert.is_true(downloaded_paths[4]:sub(-5) == ".epub")
+
+        -- 5. Supported document via mimetype when URL has no extension
+        wallabag_instance:download({
+          id = 105,
+          title = "MimeOnlyDoc",
+          mimetype = "application/pdf",
+          url = "https://example.com/download?id=105",
+        })
+        assert.are.equal("https://example.com/download?id=105", downloaded_urls[5])
+        assert.is_true(downloaded_paths[5]:sub(-4) == ".pdf")
+      end
+    )
+
+    it(
       "persists, loads, and respects history removal settings across init, saveSettings, and onCloseDocument",
       function()
         -- 1. saveSettings persists remove_abandoned_from_history

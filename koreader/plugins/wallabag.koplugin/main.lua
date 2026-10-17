@@ -674,17 +674,16 @@ function Wallabag:download(article)
     or nil
 
   -- If the article links to a supported file, we will download it directly.
-  -- All webpages are HTML. Ignore them since we want the Wallabag EPUB instead!
-  if self.download_original_document then
-    if
-      mimetype ~= "text/html" and DocumentRegistry:hasProvider(nil, mimetype)
-    then
-      logger.dbg("Wallabag: ignoring EPUB in favor of mimetype: ", mimetype)
-      file_ext = "." .. DocumentRegistry:mimeToExt(mimetype)
-      item_url = article.url
-    elseif mimetype == nil and DocumentRegistry:hasProvider(article.url) then
+  -- All webpages are HTML/XHTML. Ignore them since we want the Wallabag EPUB instead!
+  local is_webpage = mimetype == "text/html" or mimetype == "application/xhtml+xml"
+  if self.download_original_document and not is_webpage then
+    if DocumentRegistry:hasProvider(article.url) then
       logger.dbg("Wallabag: ignoring EPUB in favor of original: ", article.url)
       file_ext = "." .. util.getFileNameSuffix(article.url)
+      item_url = article.url
+    elseif DocumentRegistry:hasProvider(nil, mimetype) then
+      logger.dbg("Wallabag: ignoring EPUB in favor of mimetype: ", mimetype)
+      file_ext = "." .. DocumentRegistry:mimeToExt(mimetype)
       item_url = article.url
     end
   end
