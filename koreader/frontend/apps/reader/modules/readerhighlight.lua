@@ -1406,6 +1406,7 @@ function ReaderHighlight:showChooseHighlightDialog(highlights)
     dialog = ButtonDialog:new({
       buttons = buttons,
     })
+    self.ui.annotation:trackChangingWidget(dialog)
     self:showWidget(dialog)
   end
   return true
@@ -1440,6 +1441,7 @@ function ReaderHighlight:showHighlightNoteOrDialog(index)
         },
       },
     })
+    self.ui.annotation:trackChangingWidget(textviewer)
     self:showWidget(textviewer)
   else
     self:onShowHighlightDialog(index)
@@ -1565,6 +1567,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
       return self:_getDialogAnchor(self.edit_highlight_dialog, item)
     end,
   })
+  self.ui.annotation:trackChangingWidget(self.edit_highlight_dialog)
   self:showWidget(self.edit_highlight_dialog)
   return true
 end
@@ -1622,6 +1625,9 @@ function ReaderHighlight:onShowHighlightMenu(index)
       self:onTap()
     end,
   })
+  if index then
+    self.ui.annotation:trackChangingWidget(self.highlight_dialog)
+  end
   -- NOTE: Disable merging for this update,
   --     or the buggy Sage kernel may alpha-blend it into the page (with a bogus alpha value, to boot)...
   self:showWidget(self.highlight_dialog, "[ui]")
@@ -2625,7 +2631,7 @@ function ReaderHighlight:showHighlightStyleDialog(caller_callback, item_drawer)
       },
     })
   end
-  self:showWidget(RadioButtonWidget:new({
+  local dialog = RadioButtonWidget:new({
     title_text = gettext("Highlight style"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
@@ -2634,7 +2640,11 @@ function ReaderHighlight:showHighlightStyleDialog(caller_callback, item_drawer)
     callback = function(radio)
       caller_callback(radio.provider)
     end,
-  }))
+  })
+  if item_drawer then
+    self.ui.annotation:trackChangingWidget(dialog)
+  end
+  self:showWidget(dialog)
 end
 
 function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
@@ -2662,7 +2672,7 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
       },
     })
   end
-  self:showWidget(RadioButtonWidget:new({
+  local dialog = RadioButtonWidget:new({
     title_text = gettext("Highlight color"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
@@ -2674,7 +2684,11 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
     -- This ensures the waveform mode will be upgraded to a Kaleido wfm on compatible devices
     colorful = true,
     dithered = true,
-  }))
+  })
+  if item then
+    self.ui.annotation:trackChangingWidget(dialog)
+  end
+  self:showWidget(dialog)
 end
 
 function ReaderHighlight:startSelection()
