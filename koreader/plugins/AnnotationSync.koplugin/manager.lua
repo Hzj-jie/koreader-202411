@@ -740,6 +740,9 @@ function SyncManager:cleanOrphanSyncFiles()
 end
 
 function SyncManager:getSelectedSettingsWithValues()
+  local SettingsSelection = require("plugins/AnnotationSync.koplugin/settings_selection")
+  SettingsSelection.prune_selected_settings(self.plugin)
+
   local selected = self.plugin.settings.selected_settings or {}
   if not next(selected) then
     return nil
@@ -751,6 +754,10 @@ function SyncManager:getSelectedSettingsWithValues()
     if is_selected then
       result[key] = self:getLocalSettingValue(key, caches)
     end
+  end
+
+  if not next(result) then
+    return nil
   end
 
   return result

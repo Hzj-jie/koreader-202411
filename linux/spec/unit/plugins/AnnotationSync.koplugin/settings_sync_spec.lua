@@ -62,7 +62,7 @@ describe("AnnotationSync Settings Synchronization", function()
       G_reader_settings:delete("footer")
     end)
     G_reader_settings:save("auto_standby_timeout_seconds", 120)
-    G_reader_settings:save("footer", { time = true })
+    G_reader_settings:save("footer", { time = false })
 
     -- Select some settings
     sync_instance.settings.selected_settings = {
@@ -73,36 +73,36 @@ describe("AnnotationSync Settings Synchronization", function()
     local values = sync_instance.manager:getSelectedSettingsWithValues()
     assert.is_not_nil(values)
     assert.is_equal(120, values["reader:auto_standby_timeout_seconds"])
-    assert.is_equal(true, values["reader:footer.time"])
+    assert.is_equal(false, values["reader:footer.time"])
   end)
 
   it(
     "should retrieve selected settings from defaults.custom.lua and settings/*.lua",
     function()
       local defaults_path = test_data_dir .. "/defaults.custom.lua"
-      local profiles_path = test_data_dir .. "/settings/profiles.lua"
+      local bookshortcuts_path = test_data_dir .. "/settings/bookshortcuts.lua"
       finally(function()
         G_defaults:delete("DTAP_ZONE_MENU")
         G_defaults:flush()
         os.remove(defaults_path)
-        os.remove(profiles_path)
+        os.remove(bookshortcuts_path)
       end)
       G_defaults:save("DTAP_ZONE_MENU", { h = 0.25 })
       G_defaults:flush()
-      local f = io.open(profiles_path, "w")
-      f:write([[return { ["night"] = { ["dark_mode"] = true } }]])
+      local f = io.open(bookshortcuts_path, "w")
+      f:write([[return { ["settings"] = { ["directory_action"] = "READER" } }]])
       f:close()
 
       sync_instance.settings.selected_settings = {
         ["defaults:DTAP_ZONE_MENU.h"] = true,
-        ["settings/profiles:night.dark_mode"] = true,
+        ["settings/bookshortcuts:settings.directory_action"] = true,
         ["settings/missing:night.dark_mode"] = true,
         ["defaults:DTAP_ZONE_MENU"] = false,
       }
 
       assert.are.same({
         ["defaults:DTAP_ZONE_MENU.h"] = 0.25,
-        ["settings/profiles:night.dark_mode"] = true,
+        ["settings/bookshortcuts:settings.directory_action"] = "READER",
       }, sync_instance.manager:getSelectedSettingsWithValues())
     end
   )

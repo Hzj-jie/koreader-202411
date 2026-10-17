@@ -363,4 +363,47 @@ describe("AnnotationSync Settings Selection", function()
       assert.are.same({}, G_reader_settings:readTable("style_tweaks"))
     end
   )
+
+  it(
+    "prunes reverted settings, uploads nothing and takes no-settings path",
+    function()
+      local utils_mod = require("plugins/AnnotationSync.koplugin/utils")
+      local remote_mod = require("plugins/AnnotationSync.koplugin/remote")
+      local old_show_msg = utils_mod.show_msg
+      local msg_shown
+      utils_mod.show_msg = function(msg)
+        msg_shown = msg
+      end
+      finally(function()
+        utils_mod.show_msg = old_show_msg
+        G_reader_settings:delete("auto_standby_timeout_seconds")
+      end)
+
+      -- Change setting and select it
+      G_reader_settings:save("auto_standby_timeout_seconds", 777)
+      G_reader_settings:flush()
+      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"] = true
+      sync_instance:saveSettings()
+
+      -- Revert setting back to default (-1)
+      G_reader_settings:save("auto_standby_timeout_seconds", -1)
+      G_reader_settings:flush()
+
+      local old_push = remote_mod.push_settings
+      local pushed = false
+      remote_mod.push_settings = function()
+        pushed = true
+      end
+      finally(function()
+        remote_mod.push_settings = old_push
+      end)
+
+      sync_instance.manager:pushSettings()
+
+      assert.is_false(pushed)
+      assert.is_nil(sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"])
+      assert.is_not_nil(msg_shown)
+      assert.truthy(msg_shown:find("No settings are selected", 1, true))
+    end
+  )
 end)

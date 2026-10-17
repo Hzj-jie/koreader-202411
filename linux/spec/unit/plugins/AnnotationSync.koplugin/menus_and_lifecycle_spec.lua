@@ -645,6 +645,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             UIManager.show = orig_show
             util.writeToFile = orig_write
             sync_instance.settings.selected_settings = {}
+            G_reader_settings:delete("auto_standby_timeout_seconds")
           end)
           UIManager.show = function(_, widget)
             if widget and widget.text then
@@ -659,6 +660,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             shown_texts[#shown_texts]
           )
 
+          G_reader_settings:save("auto_standby_timeout_seconds", 120)
+          G_reader_settings:flush()
           sync_instance.settings.selected_settings = {
             ["reader:auto_standby_timeout_seconds"] = true,
           }
