@@ -966,6 +966,69 @@ describe("AnnotationSync Core Integration", function()
       assert.are_equal(readerui, dirty_target)
     end)
 
+    it("applySyncedAnnotations resets thumbnail cache for removed highlights and broadcasts when empty", function()
+      local xp4 = readerui.document:getPageXPointer(4)
+      local xp9 = readerui.document:getPageXPointer(9)
+
+      local A = {
+        page = xp4,
+        pos0 = xp4,
+        pos1 = xp4,
+        text = "Highlight A",
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+      }
+      local B = {
+        page = xp9,
+        pos0 = xp9,
+        pos1 = xp9,
+        text = "Highlight B",
+        datetime = "2026-01-01 10:05:00",
+        drawer = "lighten",
+      }
+
+      local removed_caches = {}
+      local old_removeFromCache = readerui.thumbnail.removeFromCache
+      readerui.thumbnail.removeFromCache = function(self, hash_subs, ...)
+        table.insert(removed_caches, hash_subs)
+        return old_removeFromCache(self, hash_subs, ...)
+      end
+      finally(function()
+        readerui.thumbnail.removeFromCache = old_removeFromCache
+      end)
+
+      -- Initial state: A (p4) and B (p9)
+      sync_instance:applySyncedAnnotations(readerui.document, { A, B })
+      removed_caches = {}
+
+      -- Apply { A }: B is removed -> p9's cache must be evicted
+      sync_instance:applySyncedAnnotations(readerui.document, { A })
+      local p9_found = false
+      for _, subs in ipairs(removed_caches) do
+        for _, sub in ipairs(subs) do
+          if sub == "p9-" then
+            p9_found = true
+            break
+          end
+        end
+      end
+      assert.is_true(p9_found)
+
+      -- Apply {}: A is removed -> event must be broadcast and p4's cache evicted
+      removed_caches = {}
+      sync_instance:applySyncedAnnotations(readerui.document, {})
+      local p4_found = false
+      for _, subs in ipairs(removed_caches) do
+        for _, sub in ipairs(subs) do
+          if sub == "p4-" then
+            p4_found = true
+            break
+          end
+        end
+      end
+      assert.is_true(p4_found)
+    end)
+
     it("applySyncedAnnotations on closed book marks annotations_externally_modified", function()
       local closed_file = test_data_dir .. "/closed_doc.epub"
       local DocSettings = require("docsettings")

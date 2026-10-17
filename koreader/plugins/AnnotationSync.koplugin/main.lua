@@ -339,9 +339,16 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
     self.ui.annotation:updatePageNumbers(true)
 
     -- 3. Notify system
-    if #merged_list > 0 then
-      UIManager:broadcastEvent(Event:new("AnnotationsModified", merged_list))
+    local modified_items = {}
+    for _, item in ipairs(merged_list) do
+      table.insert(modified_items, item)
     end
+    for _, old_item in ipairs(existing) do
+      if not matched[old_item] then
+        table.insert(modified_items, old_item)
+      end
+    end
+    UIManager:broadcastEvent(Event:new("AnnotationsModified", modified_items))
 
     -- 4. Repaint the UI to show synced highlights (drawn from self.ui.annotation.annotations)
     self.ui:setDirty()
