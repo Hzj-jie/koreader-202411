@@ -406,4 +406,64 @@ describe("AnnotationSync Settings Selection", function()
       assert.truthy(msg_shown:find("No settings are selected", 1, true))
     end
   )
+
+  it("refreshes parent branch item when child branch changes", function()
+    local old_show = UIManager.show
+    finally(function()
+      G_reader_settings:delete("footer")
+      UIManager.show = old_show
+    end)
+    G_reader_settings:save("footer", { time = false })
+
+    local parent_menu
+    UIManager.show = function(this, widget)
+      if widget.title == "Changed Settings" then
+        parent_menu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    sync_instance:showChangedSettings()
+    assert.is_not_nil(parent_menu)
+
+    local footer_item, footer_idx
+    for i, item in ipairs(parent_menu.item_table) do
+      if item.text_func and item.text_func():find("footer >") then
+        footer_item = item
+        footer_idx = i
+        break
+      end
+    end
+    assert.is_not_nil(footer_item)
+
+    local branch_menu
+    UIManager.show = function(this, widget)
+      if widget.title and widget.title:find("footer") then
+        branch_menu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    parent_menu:onMenuSelect(footer_item)
+    assert.is_not_nil(branch_menu)
+
+    -- Tap Select All in branch_menu
+    local select_all_item
+    for _, item in ipairs(branch_menu.item_table) do
+      if item.text == "Select All" then
+        select_all_item = item
+        break
+      end
+    end
+    assert.is_not_nil(select_all_item)
+    select_all_item.callback()
+
+    -- Close branch_menu
+    UIManager:close(branch_menu)
+
+    -- Verify that the parent menu's item_group has been refreshed to show [✓]
+    local rendered_footer_btn = parent_menu.item_group[footer_idx]
+    assert.is_not_nil(rendered_footer_btn)
+    assert.truthy(rendered_footer_btn.text:find("^%[✓%]"))
+  end)
 end)

@@ -324,7 +324,7 @@ function SettingsSelection.prune_selected_settings(plugin, root)
   end
 end
 
-local function show_node_menu(node, title, plugin)
+local function show_node_menu(node, title, plugin, parent_refresh)
   local menu_items = {}
   local submenu
 
@@ -348,6 +348,9 @@ local function show_node_menu(node, title, plugin)
         if submenu then
           submenu:updateItems()
         end
+        if parent_refresh then
+          parent_refresh()
+        end
       end,
     })
     table.insert(menu_items, {
@@ -361,6 +364,9 @@ local function show_node_menu(node, title, plugin)
         plugin:saveSettings()
         if submenu then
           submenu:updateItems()
+        end
+        if parent_refresh then
+          parent_refresh()
         end
       end,
       separator = true,
@@ -389,7 +395,14 @@ local function show_node_menu(node, title, plugin)
         end,
         keep_menu_open = true,
         callback = function()
-          show_node_menu(child, child.full_key, plugin)
+          show_node_menu(child, child.full_key, plugin, function()
+            if submenu then
+              submenu:updateItems()
+            end
+            if parent_refresh then
+              parent_refresh()
+            end
+          end)
         end,
       })
     else
@@ -421,6 +434,9 @@ local function show_node_menu(node, title, plugin)
               end
             end
             submenu:updateItems(idx, true)
+          end
+          if parent_refresh then
+            parent_refresh()
           end
         end,
         setting_id = setting_id,
