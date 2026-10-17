@@ -466,4 +466,54 @@ describe("AnnotationSync Settings Selection", function()
     assert.is_not_nil(rendered_footer_btn)
     assert.truthy(rendered_footer_btn.text:find("^%[✓%]"))
   end)
+
+  it("keeps focus on the same row when toggling a leaf on page 2", function()
+    local old_show = UIManager.show
+    local Device_mod = require("device")
+    local old_hasDPad = Device_mod.hasDPad
+    Device_mod.hasDPad = function() return true end
+    finally(function()
+      Device_mod.hasDPad = old_hasDPad
+      UIManager.show = old_show
+      for i = 1, 30 do
+        G_reader_settings:delete("test_many_" .. i)
+      end
+    end)
+
+    for i = 1, 30 do
+      G_reader_settings:save("test_many_" .. i, 1)
+    end
+    G_reader_settings:flush()
+
+    local submenu
+    UIManager.show = function(this, widget)
+      if widget.title == "Changed Settings" then
+        submenu = widget
+      end
+      return old_show(this, widget)
+    end
+
+    sync_instance:showChangedSettings()
+    assert.is_not_nil(submenu)
+    assert.is_true(submenu.page_num > 1)
+
+    -- Switch to page 2
+    submenu:onGotoPage(2)
+    assert.are_equal(2, submenu.page)
+
+    local page2_item_idx = (submenu.page - 1) * submenu.perpage + 2
+    local item = submenu.item_table[page2_item_idx]
+    assert.is_not_nil(item)
+
+    local updated_select_number
+    local orig_updateItems = submenu.updateItems
+    submenu.updateItems = function(self, select_number, no_recalc)
+      updated_select_number = select_number
+      return orig_updateItems(self, select_number, no_recalc)
+    end
+
+    submenu:onMenuSelect(item)
+
+    assert.are_equal(2, updated_select_number)
+  end)
 end)

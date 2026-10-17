@@ -433,7 +433,7 @@ local function show_node_menu(node, title, plugin, parent_refresh)
                 break
               end
             end
-            submenu:updateItems(idx, true)
+            submenu:updateItems(idx - (submenu.page - 1) * submenu.perpage, true)
           end
           if parent_refresh then
             parent_refresh()
