@@ -172,6 +172,19 @@ function SettingsSelection.show(plugin)
     end
 
     -- Both are dictionaries
+    if next(active) == nil and next(vanilla) ~= nil then
+      table.insert(parent_node.children, {
+        type = "leaf",
+        domain = domain,
+        key = path[#path],
+        full_key = table.concat(path, "."),
+        setting_id = domain .. ":" .. utils.join_setting_path(path),
+        vanilla = "{dictionary}",
+        active = "{}",
+      })
+      return
+    end
+
     local branch = {
       type = "branch",
       domain = domain,

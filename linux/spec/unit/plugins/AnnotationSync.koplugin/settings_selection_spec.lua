@@ -314,4 +314,53 @@ describe("AnnotationSync Settings Selection", function()
       assert.truthy(found_item.text_func():find("777", 1, true))
     end
   )
+
+  it(
+    "lists, selects, pushes and pulls an emptied dictionary setting",
+    function()
+      local old_show = UIManager.show
+      finally(function()
+        G_reader_settings:delete("style_tweaks")
+        UIManager.show = old_show
+      end)
+
+      G_reader_settings:save("style_tweaks", {})
+      G_reader_settings:flush()
+
+      local submenu
+      UIManager.show = function(this, widget)
+        if widget.title == "Changed Settings" then
+          submenu = widget
+        end
+        return old_show(this, widget)
+      end
+
+      sync_instance:showChangedSettings()
+      assert.is_not_nil(submenu)
+
+      local found_item
+      for _, item in ipairs(submenu.item_table) do
+        if item.setting_id == "reader:style_tweaks" then
+          found_item = item
+          break
+        end
+      end
+      assert.is_not_nil(found_item)
+      assert.truthy(found_item.text_func():find("{dictionary} -> {}", 1, true))
+
+      -- Select it
+      submenu:onMenuSelect(found_item)
+      assert.is_true(sync_instance.settings.selected_settings["reader:style_tweaks"])
+
+      -- Verify pushed value via getSelectedSettingsWithValues
+      local selected_values = sync_instance.manager:getSelectedSettingsWithValues()
+      assert.is_not_nil(selected_values)
+      assert.are.same({}, selected_values["reader:style_tweaks"])
+
+      -- Verify pull applies {}
+      G_reader_settings:save("style_tweaks", { foo = "bar" })
+      sync_instance.manager:_writeLocalSettingValue("reader:style_tweaks", {})
+      assert.are.same({}, G_reader_settings:readTable("style_tweaks"))
+    end
+  )
 end)
