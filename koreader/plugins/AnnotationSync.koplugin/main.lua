@@ -441,27 +441,29 @@ end
 function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   local document = self.ui.document
 
-  local now = os.date("%Y-%m-%d %H:%M:%S")
-  local current = self.manager:getAnnotationsForDocument(document)
+  ReaderAnnotation.willChangeAnnotations(document.file, function()
+    local now = os.date("%Y-%m-%d %H:%M:%S")
+    local current = self.manager:getAnnotationsForDocument(document)
 
-  for __, ann in ipairs(anns) do
-    -- 1. Mark as not deleted and update timestamp
-    ann.deleted = false
-    ann.datetime_updated = now
+    for __, ann in ipairs(anns) do
+      -- 1. Mark as not deleted and update timestamp
+      ann.deleted = false
+      ann.datetime_updated = now
 
-    -- 2. Add back to current list
-    table.insert(current, ann)
-  end
+      -- 2. Add back to current list
+      table.insert(current, ann)
+    end
 
-  -- 3. Apply changes once (saves to sidecar and refreshes UI)
-  self:applySyncedAnnotations(document, current)
-  -- A restore is a user edit, but applySyncedAnnotations suppresses
-  -- onAnnotationsModified (is_applying_sync), so mark the book pending here.
-  self.manager:addToChangedDocumentsFile(document.file)
+    -- 3. Apply changes once (saves to sidecar and refreshes UI)
+    self:applySyncedAnnotations(document, current)
+    -- A restore is a user edit, but applySyncedAnnotations suppresses
+    -- onAnnotationsModified (is_applying_sync), so mark the book pending here.
+    self.manager:addToChangedDocumentsFile(document.file)
 
-  if not silent then
-    utils.show_msg(gettext("Annotation restored."))
-  end
+    if not silent then
+      utils.show_msg(gettext("Annotation restored."))
+    end
+  end)
 end
 
 function AnnotationSyncPlugin:restoreAnnotation(ann, silent)

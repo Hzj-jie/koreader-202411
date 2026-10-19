@@ -875,6 +875,66 @@ describe("AnnotationSync Core Integration", function()
       assert.is_nil(sync_instance.manager.running)
       assert.is_not_nil(sync_instance.manager.last_sync_time[doc_file])
     end)
+    it("restoreAnnotations waits for tracked dialog to close before restoring annotations and marking pending", function()
+      local Widget = require("ui/widget/widget")
+      local xp1 = readerui.document:getPageXPointer(1)
+      local xp2 = readerui.document:getPageXPointer(2)
+
+      local A = {
+        page = xp1,
+        pos0 = xp1,
+        pos1 = xp1,
+        text = "Highlight A",
+        datetime = "2026-01-01 10:00:00",
+        drawer = "lighten",
+      }
+      readerui.annotation.annotations = { A }
+      readerui.annotation:updatePageNumbers(true)
+      readerui.doc_settings:save("annotations", { A })
+      readerui.doc_settings:flush()
+
+      local doc_file = readerui.document.file
+      sync_instance.manager:removeFromChangedDocumentsFileByPath(doc_file)
+      local count_before = sync_instance.manager:getPendingChangedDocuments()
+      assert.are.equal(0, count_before)
+
+      local R = {
+        page = xp2,
+        pos0 = xp2,
+        pos1 = xp2,
+        text = "Highlight to restore",
+        datetime = "2026-01-01 09:00:00",
+        deleted = true,
+        drawer = "lighten",
+      }
+
+      local widget = Widget:new()
+      readerui.annotation:trackChangingWidget(widget)
+
+      sync_instance:restoreAnnotations({ R }, true)
+
+      -- With dialog open, book remains unchanged and book is not marked pending yet
+      assert.are.equal(1, #readerui.annotation.annotations)
+      assert.are.equal("Highlight A", readerui.annotation.annotations[1].text)
+      local count_during = sync_instance.manager:getPendingChangedDocuments()
+      assert.are.equal(0, count_during)
+
+      -- Dialog closes and one tick passes
+      widget:onClose()
+      fastforward_ui_events()
+
+      -- Annotations restored and book marked pending
+      assert.are.equal(2, #readerui.annotation.annotations)
+      local texts = {}
+      for _, ann in ipairs(readerui.annotation.annotations) do
+        table.insert(texts, ann.text)
+      end
+      assert.are.same({ "Highlight A", "Highlight to restore" }, texts)
+      local count_after, pending_docs = sync_instance.manager:getPendingChangedDocuments()
+      assert.are.equal(1, count_after)
+      assert.truthy(util.arrayContains(pending_docs, doc_file))
+    end)
+
     it("applySyncedAnnotations never calls document:render() on open book", function()
       local old_render = readerui.document.render
       readerui.document.render = function()
