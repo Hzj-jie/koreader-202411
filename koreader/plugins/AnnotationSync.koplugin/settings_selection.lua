@@ -295,13 +295,15 @@ function SettingsSelection.build_tree(plugin)
 end
 
 function SettingsSelection.prune_selected_settings(plugin, root)
-  root = root or SettingsSelection.build_tree(plugin)
-  local valid_keys = {}
-  for _, key in ipairs(get_all_leaf_keys(root)) do
-    valid_keys[key] = true
+  local selected = plugin.settings.selected_settings
+  if not next(selected) then
+    return
   end
 
-  local selected = plugin.settings.selected_settings
+  local valid_keys = {}
+  for _, key in ipairs(get_all_leaf_keys(root or SettingsSelection.build_tree(plugin))) do
+    valid_keys[key] = true
+  end
 
   local pruned = false
   for key in pairs(selected) do

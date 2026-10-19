@@ -410,6 +410,25 @@ describe("AnnotationSync settings values and pull menus", function()
     )
   end)
 
+  it("with an empty selection, getSelectedSettingsWithValues returns nil without calling build_tree", function()
+    local SettingsSelection = require("plugins/AnnotationSync.koplugin/settings_selection")
+    local build_tree_calls = 0
+    local old_build_tree = SettingsSelection.build_tree
+    SettingsSelection.build_tree = function(...)
+      build_tree_calls = build_tree_calls + 1
+      return old_build_tree(...)
+    end
+    finally(function()
+      SettingsSelection.build_tree = old_build_tree
+    end)
+
+    sync_instance.settings.selected_settings = {}
+    local result = manager:getSelectedSettingsWithValues()
+
+    assert.is_nil(result)
+    assert.are.equal(0, build_tree_calls)
+  end)
+
   it("pushSettings files the settings under the device name, or the model when the name is empty", function()
     local pushed_data
     local old_push = remote.push_settings
