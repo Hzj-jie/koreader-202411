@@ -1854,7 +1854,7 @@ describe("Readerhighlight module", function()
         local details_button
         for _, row in ipairs(highlight.edit_highlight_dialog.buttons) do
           for _, btn in ipairs(row) do
-            if btn.text == "Details" then
+            if btn.text == require("gettext")("Details") then
               details_button = btn
               break
             end
