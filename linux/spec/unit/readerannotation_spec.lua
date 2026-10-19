@@ -1483,4 +1483,434 @@ describe("ReaderAnnotation module", function()
       end
     )
   end)
+
+  describe("ReaderAnnotation.willChangeAnnotations API", function()
+    local UIManager = require("ui/uimanager")
+    local Widget = require("ui/widget/widget")
+
+    local function fastforward()
+      UIManager:shiftScheduledTasksBy(-1e9)
+      UIManager:_checkTasks()
+    end
+
+    local annotation, mock_ui
+
+    before_each(function()
+      mock_ui = {
+        document = {
+          file = "/tmp/test_book.epub",
+          hasHiddenFlows = function()
+            return false
+          end,
+        },
+      }
+      annotation = ReaderAnnotation:new({
+        ui = mock_ui,
+      })
+    end)
+
+    after_each(function()
+      annotation:_releaseChangingFile()
+      fastforward()
+    end)
+
+    it("runs immediately and returns false when file is free, and file is free afterwards", function()
+      local ran = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran = true
+      end)
+      assert.is_false(ret)
+      assert.is_true(ran)
+
+      local ran2 = false
+      local ret2 = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran2 = true
+      end)
+      assert.is_false(ret2)
+      assert.is_true(ran2)
+    end)
+
+    it("queues callback, returns true while session holds file, and runs after session ends (one tick)", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local waiter_ran = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_true(ret)
+      assert.is_false(waiter_ran)
+
+      widget:onClose()
+      assert.is_false(waiter_ran)
+
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("executes queued callbacks in FIFO order across 3 callbacks", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local order = {}
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        table.insert(order, 1)
+      end)
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        table.insert(order, 2)
+      end)
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        table.insert(order, 3)
+      end)
+      assert.are.same({}, order)
+
+      widget:onClose()
+      fastforward()
+      assert.are.same({ 1, 2, 3 }, order)
+    end)
+
+    it("maintains per-file independence", function()
+      local ran_a, ran_b = false, false
+      ReaderAnnotation.willChangeAnnotations("/tmp/file_a.epub", function()
+        ran_a = true
+      end)
+      ReaderAnnotation.willChangeAnnotations("/tmp/file_b.epub", function()
+        ran_b = true
+      end)
+      assert.is_true(ran_a)
+      assert.is_true(ran_b)
+    end)
+
+    it("handles callback errors: propagates error and leaves file free for next call", function()
+      local ok, err = pcall(function()
+        ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+          error("test boom")
+        end)
+      end)
+      assert.is_false(ok)
+      assert.truthy(err:find("test boom"))
+      assert.truthy(err:find("stack traceback:"))
+
+      local ran = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran = true
+      end)
+      assert.is_false(ret)
+      assert.is_true(ran)
+    end)
+
+    it("runs second queued callback and frees file even if first queued callback raises", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local second_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        error("first callback failed")
+      end)
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        second_ran = true
+      end)
+
+      widget:onClose()
+      local ok, err = pcall(function()
+        fastforward()
+      end)
+      assert.is_false(ok)
+      assert.truthy(err:find("first callback failed"))
+      assert.is_true(second_ran)
+
+      local ran = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran = true
+      end)
+      assert.is_false(ret)
+      assert.is_true(ran)
+    end)
+
+    it("runs all queued callbacks and propagates first error when multiple queued callbacks raise", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local first_ran = false
+      local second_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        first_ran = true
+        error("first callback failed")
+      end)
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        second_ran = true
+        error("second callback failed")
+      end)
+
+      widget:onClose()
+      local ok, err = pcall(function()
+        fastforward()
+      end)
+      assert.is_false(ok)
+      assert.is_true(first_ran)
+      assert.is_true(second_ran)
+      assert.truthy(err:find("first callback failed"))
+      assert.falsy(err:find("second callback failed"))
+
+      local ran = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran = true
+      end)
+      assert.is_false(ret)
+      assert.is_true(ran)
+    end)
+
+    it("asserts on nested willChangeAnnotations for the same file from inside callback", function()
+      local asserted = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        local ok, err = pcall(function()
+          ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function() end)
+        end)
+        assert.is_false(ok)
+        assert.truthy(err:find("willChangeAnnotations called from a callback changing /tmp/test_book.epub"))
+        asserted = true
+      end)
+      assert.is_true(asserted)
+    end)
+
+    it("asserts on trackChangingWidget from inside a running callback for the same file", function()
+      local asserted = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        local ok, err = pcall(function()
+          annotation:trackChangingWidget(Widget:new())
+        end)
+        assert.is_false(ok)
+        asserted = true
+      end)
+      assert.is_true(asserted)
+    end)
+  end)
+
+  describe("ReaderAnnotation:trackChangingWidget and dialog lock", function()
+    local UIManager = require("ui/uimanager")
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local Widget = require("ui/widget/widget")
+
+    local function fastforward()
+      UIManager:shiftScheduledTasksBy(-1e9)
+      UIManager:_checkTasks()
+    end
+
+    local annotation, mock_ui
+
+    before_each(function()
+      mock_ui = {
+        document = {
+          file = "/tmp/test_book.epub",
+          hasHiddenFlows = function()
+            return false
+          end,
+        },
+      }
+      annotation = ReaderAnnotation:new({
+        ui = mock_ui,
+      })
+    end)
+
+    after_each(function()
+      annotation:_releaseChangingFile()
+      fastforward()
+    end)
+
+    it("(1) waiter fn does not run while a highlight dialog is open", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local waiter_ran = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_true(ret)
+      assert.is_false(waiter_ran)
+
+      widget:onClose()
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("(2) waiter fn does not run across close(A) and open(B) in one call", function()
+      local widget_a = Widget:new()
+      local widget_b = Widget:new()
+      annotation:trackChangingWidget(widget_a)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      widget_a:onClose()
+      annotation:trackChangingWidget(widget_b)
+
+      fastforward()
+      assert.is_false(waiter_ran)
+
+      widget_b:onClose()
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("(3) waiter fn does not run across bookmark-menu close-and-reopen", function()
+      local bm_menu_1 = Widget:new()
+      local bm_menu_2 = Widget:new()
+      annotation:trackChangingWidget(bm_menu_1)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      bm_menu_1:onClose()
+      annotation:trackChangingWidget(bm_menu_2)
+
+      fastforward()
+      assert.is_false(waiter_ran)
+
+      bm_menu_2:onClose()
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("(4) tracked dialog on top: closing it does not release; closing the bottom one does after one tick", function()
+      local bottom = Widget:new()
+      local top = Widget:new()
+      annotation:trackChangingWidget(bottom)
+      annotation:trackChangingWidget(top)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      top:onClose()
+      fastforward()
+      assert.is_false(waiter_ran)
+
+      bottom:onClose()
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("(5) open(B) then close(A) in one call keeps lock and waiter runs after B closes", function()
+      local widget_a = Widget:new()
+      local widget_b = Widget:new()
+      annotation:trackChangingWidget(widget_a)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      annotation:trackChangingWidget(widget_b)
+      widget_a:onClose()
+
+      fastforward()
+      assert.is_false(waiter_ran)
+
+      widget_b:onClose()
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("(6) waiter fn runs once chain ends via button, onExit, or UIManager:close after one tick", function()
+      -- 6a: via UIManager:close / onClose
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      widget:onClose()
+      assert.is_false(waiter_ran)
+
+      fastforward()
+      assert.is_true(waiter_ran)
+
+      -- 6b: via onExit (e.g. tap-outside or Back on ButtonDialog)
+      local dialog = ButtonDialog:new({
+        buttons = {
+          {
+            { text = "OK" },
+          },
+        },
+      })
+      annotation:trackChangingWidget(dialog)
+      UIManager:show(dialog)
+
+      waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      dialog:onExit()
+      assert.is_false(waiter_ran)
+
+      fastforward()
+      assert.is_true(waiter_ran)
+    end)
+
+    it("(7a) onCloseDocument with a dialog open releases once", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      annotation:onCloseDocument()
+      assert.is_true(waiter_ran)
+
+      local ran_new = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran_new = true
+      end)
+      assert.is_false(ret)
+      assert.is_true(ran_new)
+
+      assert.has_no.errors(function()
+        widget:onClose()
+        fastforward()
+      end)
+    end)
+
+    it("(7b) onClose with a dialog open releases once", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local waiter_ran = false
+      ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        waiter_ran = true
+      end)
+      assert.is_false(waiter_ran)
+
+      annotation:onClose()
+      assert.is_true(waiter_ran)
+
+      local ran_new = false
+      local ret = ReaderAnnotation.willChangeAnnotations("/tmp/test_book.epub", function()
+        ran_new = true
+      end)
+      assert.is_false(ret)
+      assert.is_true(ran_new)
+
+      assert.has_no.errors(function()
+        widget:onClose()
+        fastforward()
+      end)
+    end)
+  end)
 end)

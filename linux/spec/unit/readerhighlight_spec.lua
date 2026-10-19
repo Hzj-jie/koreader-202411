@@ -1820,5 +1820,65 @@ describe("Readerhighlight module", function()
         )
       end
     )
+
+    it(
+      "keeps annotation lock across onShowHighlightDialog and child dialog until child closes",
+      function()
+        local highlight = readerui.highlight
+        local ReaderAnnotation = require("apps/reader/modules/readerannotation")
+        local fastforward = function()
+          UIManager:shiftScheduledTasksBy(-1e9)
+          UIManager:_checkTasks()
+        end
+
+        highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
+        highlight:onHoldPan(nil, { pos = Geom:new({ x = 400, y = 170 }) })
+        highlight:onHoldRelease()
+        if highlight.highlight_dialog then
+          UIManager:close(highlight.highlight_dialog)
+          highlight.highlight_dialog = nil
+        end
+        local idx = highlight:saveHighlight()
+        assert.is_not_nil(idx)
+
+        highlight:onShowHighlightDialog(idx)
+        assert.is_not_nil(highlight.edit_highlight_dialog)
+
+        local waiter_ran = false
+        local ret = ReaderAnnotation.willChangeAnnotations(readerui.document.file, function()
+          waiter_ran = true
+        end)
+        assert.is_true(ret)
+        assert.is_false(waiter_ran)
+
+        local details_button
+        for _, row in ipairs(highlight.edit_highlight_dialog.buttons) do
+          for _, btn in ipairs(row) do
+            if btn.text == "Details" then
+              details_button = btn
+              break
+            end
+          end
+        end
+        assert.is_not_nil(details_button)
+        details_button.callback()
+
+        assert.is_nil(highlight.edit_highlight_dialog)
+
+        fastforward()
+        assert.is_false(waiter_ran)
+
+        local child_dialog = UIManager._window_stack[#UIManager._window_stack].widget
+        assert.is_not_nil(child_dialog)
+        UIManager:close(child_dialog)
+
+        assert.is_false(waiter_ran)
+        fastforward()
+        assert.is_true(waiter_ran)
+
+        highlight:clear()
+        readerui.annotation.annotations = {}
+      end
+    )
   end)
 end)
