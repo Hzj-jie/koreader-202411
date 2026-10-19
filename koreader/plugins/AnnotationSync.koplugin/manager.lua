@@ -686,7 +686,7 @@ end
 function SyncManager:getSelectedSettingsWithValues()
   require("plugins/AnnotationSync.koplugin/settings_selection").prune_selected_settings(self.plugin)
 
-  local selected = self.plugin.settings.selected_settings or {}
+  local selected = self.plugin.settings.selected_settings
   if not next(selected) then
     return nil
   end

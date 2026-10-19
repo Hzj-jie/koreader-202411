@@ -52,6 +52,7 @@ function AnnotationSyncPlugin:init()
     self.plugin_id,
     util.tableDeepCopy(self.default_settings)
   )
+  self.settings.selected_settings = self.settings.selected_settings or {}
 
   -- Fallback/migration for legacy cloud_server_object
   if not self.settings.sync_server then

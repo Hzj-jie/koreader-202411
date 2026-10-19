@@ -302,9 +302,6 @@ function SettingsSelection.prune_selected_settings(plugin, root)
   end
 
   local selected = plugin.settings.selected_settings
-  if not selected then
-    return
-  end
 
   local pruned = false
   for key in pairs(selected) do
@@ -433,7 +430,6 @@ local function show_node_menu(node, title, plugin, parent_refresh)
 end
 
 function SettingsSelection.show(plugin)
-  plugin.settings.selected_settings = plugin.settings.selected_settings or {}
   local root = SettingsSelection.build_tree(plugin)
   SettingsSelection.prune_selected_settings(plugin, root)
   show_node_menu(root, gettext("Changed Settings"), plugin, function() end)

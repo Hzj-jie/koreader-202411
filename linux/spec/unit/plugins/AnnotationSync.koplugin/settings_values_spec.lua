@@ -373,6 +373,43 @@ describe("AnnotationSync settings values and pull menus", function()
     assert.are.equal(0, sync_calls)
   end)
 
+  it("defaults selected_settings to an empty table on init if older settings table lacked it", function()
+    local _meta = require("plugins/AnnotationSync.koplugin/_meta")
+    G_reader_settings:save(_meta.plugin_id, {
+      sync_server = { url = "http://mock", type = "webdav" },
+      device_name = "test_dev",
+    })
+    G_reader_settings:flush()
+
+    local dummy_ui = {
+      menu = { registerToMainMenu = function() end },
+    }
+    local plugin = AnnotationSyncPlugin:new({
+      ui = dummy_ui,
+      plugin_id = _meta.plugin_id,
+      path = "plugins/AnnotationSync.koplugin",
+    })
+    plugin:init()
+
+    assert.is_not_nil(plugin.settings.selected_settings)
+    assert.are.same({}, plugin.settings.selected_settings)
+
+    local msg_shown
+    local old_msg = utils.show_msg
+    utils.show_msg = function(m)
+      msg_shown = m
+    end
+    finally(function()
+      utils.show_msg = old_msg
+    end)
+
+    plugin.manager:pushSettings()
+    assert.are.equal(
+      "No settings are selected. Please select settings to sync in 'Show changed settings'.",
+      msg_shown
+    )
+  end)
+
   it("pushSettings files the settings under the device name, or the model when the name is empty", function()
     local pushed_data
     local old_push = remote.push_settings
