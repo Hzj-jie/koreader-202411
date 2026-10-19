@@ -1,5 +1,5 @@
 describe("AnnotationSync Core Integration", function()
-  local UIManager, SyncService
+  local UIManager, SyncService, gettext
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util, utils, annotations_mod
   local readerui, sync_instance, real_sync, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
@@ -16,6 +16,7 @@ describe("AnnotationSync Core Integration", function()
     UIManager = require("ui/uimanager")
     SyncService = require("apps/cloudstorage/syncservice")
     real_sync = SyncService.sync
+    gettext = require("gettext")
     json = require("json")
     util = require("util")
     utils = require("plugins/AnnotationSync.koplugin/utils")
@@ -893,7 +894,7 @@ describe("AnnotationSync Core Integration", function()
       local input_dialog
       local old_show = UIManager.show
       UIManager.show = function(ui_mgr, widget, ...)
-        if widget and (widget.title == require("gettext")("Edit note") or widget.title == "Edit note") then
+        if widget and widget.title == gettext("Edit note") then
           input_dialog = widget
         end
         return old_show(ui_mgr, widget, ...)
@@ -980,8 +981,8 @@ describe("AnnotationSync Core Integration", function()
       fastforward_ui_events()
 
       assert.are.equal(1, #boxes)
-      assert.are.equal("Move to trash", boxes[1].ok_text)
-      assert.are.equal("Restore", boxes[1].cancel_text)
+      assert.are.equal(gettext("Move to trash"), boxes[1].ok_text)
+      assert.are.equal(gettext("Restore"), boxes[1].cancel_text)
 
       -- Hold book with a second dialog before clicking Restore
       local widget2 = require("ui/widget/widget"):new()

@@ -1,6 +1,6 @@
 describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
   local AnnotationSyncPlugin, DataStorage, Device, LuaDefaults, LuaSettings
-  local SettingsSelection, SyncService, UIManager
+  local SettingsSelection, SyncService, UIManager, gettext
   local annotations, dump, json, menus, readhistory, remote, test_utils, util, utils
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
@@ -21,6 +21,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
     LuaSettings = require("luasettings")
     SyncService = require("apps/cloudstorage/syncservice")
     UIManager = require("ui/uimanager")
+    gettext = require("gettext")
     dump = require("dump")
     json = require("json")
     readhistory = require("readhistory")
@@ -262,9 +263,9 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       local pull_item = sub[3]
       local sync_now_item = sub[4]
 
-      assert.are_equal("Push settings to cloud", push_item.text)
-      assert.are_equal("Pull settings from cloud", pull_item.text)
-      assert.are_equal("Sync current book now", sync_now_item.text_func())
+      assert.are_equal(gettext("Push settings to cloud"), push_item.text)
+      assert.are_equal(gettext("Pull settings from cloud"), pull_item.text)
+      assert.are_equal(gettext("Sync current book now"), sync_now_item.text_func())
 
       assert.is_true(push_item.enabled_func())
       assert.is_true(pull_item.enabled_func())
