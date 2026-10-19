@@ -744,6 +744,7 @@ function ReaderBookmark:onShowBookmark()
   self.bookmark_menu = CenterContainer:new({
     dimen = Screen:getSize(),
   })
+  self.ui.annotation:trackChangingWidget(self.bookmark_menu)
   local bm_menu = Menu:new({
     title = T(gettext("Bookmarks (%1)"), #item_table),
     item_table = item_table,
@@ -1339,6 +1340,7 @@ function ReaderBookmark:showBookmarkDetails(item_or_index)
     buttons_table = buttons_table,
     close_callback = close_callback,
   })
+  self.ui.annotation:trackChangingWidget(textviewer)
   self:showWidget(textviewer)
   return true
 end
@@ -1450,6 +1452,7 @@ function ReaderBookmark:setBookmarkNote(
       },
     },
   })
+  self.ui.annotation:trackChangingWidget(input_dialog)
   self:showWidget(input_dialog)
 end
 
@@ -1492,6 +1495,7 @@ function ReaderBookmark:editHighlightedText(item_or_index, caller_callback)
       },
     },
   })
+  self.ui.annotation:trackChangingWidget(input_dialog)
   self:showWidget(input_dialog)
 end
 
