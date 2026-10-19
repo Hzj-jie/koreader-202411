@@ -1,7 +1,6 @@
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
-local InputDialog = require("ui/widget/inputdialog")
 local NetworkMgr = require("ui/network/manager")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
@@ -305,58 +304,47 @@ function SyncManager:_startSync(file, trigger, trash)
         return
       end
 
-      self:_applyBackgroundSync(
-        file,
-        snapshot_json,
-        uploaded_json,
-        not trash,
-        function(n)
-          if n then
-            local box = ConfirmBox:new({
-              text = T(
-                N_(
-                  "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
-                  "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
-                  n
-                ),
-                book_name(file),
-                n
-              ),
-              ok_text = gettext("Move to trash"),
-              cancel_text = gettext("Restore"),
-              ok_callback = function()
-                local income_list = json.decode(uploaded_json)
-                local tombstones = {}
-                local now = os.date(TIMESTAMP_FORMAT)
-                for _, v in ipairs(income_list) do
-                  if not v.deleted then
-                    v.deleted = true
-                    v.datetime_updated = now
-                    table.insert(tombstones, v)
-                  end
-                end
-                NetworkMgr:willRerunWhenOnline(function()
-                  self:_startSync(file, trigger, tombstones)
-                end)
-              end,
-              cancel_callback = function()
-                self:_applyBackgroundSync(
-                  file,
-                  snapshot_json,
-                  uploaded_json,
-                  nil,
-                  function()
-                    finish()
-                  end
-                )
-              end,
-            })
-            UIManager:show(box)
-            return
-          end
+      ReaderAnnotation.willChangeAnnotations(file, function()
+        local n = self:_applyBackgroundSync(file, snapshot_json, uploaded_json, not trash)
+        if not n then
           finish()
+          return
         end
-      )
+        UIManager:show(ConfirmBox:new({
+          text = T(
+            N_(
+              "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
+              "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
+              n
+            ),
+            book_name(file),
+            n
+          ),
+          ok_text = gettext("Move to trash"),
+          cancel_text = gettext("Restore"),
+          ok_callback = function()
+            local income_list = json.decode(uploaded_json)
+            local tombstones = {}
+            local now = os.date(TIMESTAMP_FORMAT)
+            for _, v in ipairs(income_list) do
+              if not v.deleted then
+                v.deleted = true
+                v.datetime_updated = now
+                table.insert(tombstones, v)
+              end
+            end
+            NetworkMgr:willRerunWhenOnline(function()
+              self:_startSync(file, trigger, tombstones)
+            end)
+          end,
+          cancel_callback = function()
+            ReaderAnnotation.willChangeAnnotations(file, function()
+              self:_applyBackgroundSync(file, snapshot_json, uploaded_json)
+              finish()
+            end)
+          end,
+        }))
+      end)
     end,
   }))
 end
@@ -395,27 +383,6 @@ function SyncManager:dispatchNextSync()
   return true
 end
 
-function SyncManager:_hasOpenAnnotationDialog()
-  local ui = self.plugin.ui
-  if not ui.document then
-    return false
-  end
-  for window in UIManager:topdown_windows_iter() do
-    local w = window.widget
-    if w == ui then
-      break
-    end
-    if
-      w == ui.highlight.edit_highlight_dialog
-      or w == ui.highlight.highlight_dialog
-      or getmetatable(w) == InputDialog
-    then
-      return true
-    end
-  end
-  return false
-end
-
 -- Applies a background sync that the forked child finished. The child merged
 -- a snapshot of the book (snapshot_json) and uploaded the result
 -- (uploaded_json, nil if there was nothing to upload). The book may have been
@@ -429,8 +396,7 @@ function SyncManager:_applyBackgroundSync(
   file,
   snapshot_json,
   uploaded_json,
-  ask,
-  on_done
+  ask
 )
   if not util.fileExists(file) then
     logger.warn(
@@ -438,9 +404,6 @@ function SyncManager:_applyBackgroundSync(
       file
     )
     self:removeFromChangedDocumentsFileByPath(file)
-    if on_done then
-      on_done()
-    end
     return
   end
 
@@ -448,19 +411,6 @@ function SyncManager:_applyBackgroundSync(
   local ui_document = self.plugin.ui.document
   if ui_document and ui_document.file == file then
     document = ui_document
-  end
-
-  if ui_document and ui_document.file == file and self:_hasOpenAnnotationDialog() then
-    UIManager:scheduleIn(0.5, function()
-      self:_applyBackgroundSync(
-        file,
-        snapshot_json,
-        uploaded_json,
-        ask,
-        on_done
-      )
-    end)
-    return
   end
 
   local book_now = self:getAnnotationsForDocument(document)
@@ -500,9 +450,6 @@ function SyncManager:_applyBackgroundSync(
         end
       end
       if had_annotations then
-        if on_done then
-          on_done(n)
-        end
         return n
       end
     end
@@ -538,9 +485,6 @@ function SyncManager:_applyBackgroundSync(
 
   if unchanged then
     self:removeFromChangedDocumentsFileByPath(file)
-  end
-  if on_done then
-    on_done()
   end
 end
 
@@ -740,10 +684,9 @@ function SyncManager:cleanOrphanSyncFiles()
 end
 
 function SyncManager:getSelectedSettingsWithValues()
-  local SettingsSelection = require("plugins/AnnotationSync.koplugin/settings_selection")
-  SettingsSelection.prune_selected_settings(self.plugin)
+  require("plugins/AnnotationSync.koplugin/settings_selection").prune_selected_settings(self.plugin)
 
-  local selected = self.plugin.settings.selected_settings or {}
+  local selected = self.plugin.settings.selected_settings
   if not next(selected) then
     return nil
   end

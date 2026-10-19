@@ -52,6 +52,7 @@ function AnnotationSyncPlugin:init()
     self.plugin_id,
     util.tableDeepCopy(self.default_settings)
   )
+  self.settings.selected_settings = self.settings.selected_settings or {}
 
   -- Fallback/migration for legacy cloud_server_object
   if not self.settings.sync_server then
@@ -311,19 +312,10 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
   if self.ui.document == document then
     local existing = self.ui.annotation.annotations
     local matched = {}
-    for i, new_item in ipairs(merged_list) do
+    for _, new_item in ipairs(merged_list) do
       for _, old_item in ipairs(existing) do
         if not matched[old_item] and ReaderAnnotation.doesMatch(old_item, new_item) then
           matched[old_item] = true
-          for k in pairs(old_item) do
-            if new_item[k] == nil then
-              old_item[k] = nil
-            end
-          end
-          for k, v in pairs(new_item) do
-            old_item[k] = v
-          end
-          merged_list[i] = old_item
           break
         end
       end
@@ -450,27 +442,29 @@ end
 function AnnotationSyncPlugin:restoreAnnotations(anns, silent)
   local document = self.ui.document
 
-  local now = os.date("%Y-%m-%d %H:%M:%S")
-  local current = self.manager:getAnnotationsForDocument(document)
+  ReaderAnnotation.willChangeAnnotations(document.file, function()
+    local now = os.date("%Y-%m-%d %H:%M:%S")
+    local current = self.manager:getAnnotationsForDocument(document)
 
-  for __, ann in ipairs(anns) do
-    -- 1. Mark as not deleted and update timestamp
-    ann.deleted = false
-    ann.datetime_updated = now
+    for __, ann in ipairs(anns) do
+      -- 1. Mark as not deleted and update timestamp
+      ann.deleted = false
+      ann.datetime_updated = now
 
-    -- 2. Add back to current list
-    table.insert(current, ann)
-  end
+      -- 2. Add back to current list
+      table.insert(current, ann)
+    end
 
-  -- 3. Apply changes once (saves to sidecar and refreshes UI)
-  self:applySyncedAnnotations(document, current)
-  -- A restore is a user edit, but applySyncedAnnotations suppresses
-  -- onAnnotationsModified (is_applying_sync), so mark the book pending here.
-  self.manager:addToChangedDocumentsFile(document.file)
+    -- 3. Apply changes once (saves to sidecar and refreshes UI)
+    self:applySyncedAnnotations(document, current)
+    -- A restore is a user edit, but applySyncedAnnotations suppresses
+    -- onAnnotationsModified (is_applying_sync), so mark the book pending here.
+    self.manager:addToChangedDocumentsFile(document.file)
 
-  if not silent then
-    utils.show_msg(gettext("Annotation restored."))
-  end
+    if not silent then
+      utils.show_msg(gettext("Annotation restored."))
+    end
+  end)
 end
 
 function AnnotationSyncPlugin:restoreAnnotation(ann, silent)

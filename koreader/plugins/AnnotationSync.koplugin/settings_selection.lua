@@ -84,8 +84,7 @@ local function format_val(val)
 end
 
 local function is_excluded(domain, path)
-  local full_path = domain .. ":" .. utils.join_setting_path(path)
-  if excluded[full_path] then
+  if excluded[domain .. ":" .. utils.join_setting_path(path)] then
     return true
   end
   return false
@@ -148,10 +147,7 @@ local function build_diff_tree(domain, vanilla, active, path, parent_node)
   end
 
   -- Case 3: Both are tables
-  local v_is_array = is_array(vanilla)
-  local a_is_array = is_array(active)
-
-  if v_is_array or a_is_array then
+  if is_array(vanilla) or is_array(active) then
     local v_str = format_val(vanilla)
     local a_str = format_val(active)
     if v_str ~= a_str then
@@ -267,8 +263,7 @@ function SettingsSelection.build_tree(plugin)
     for entry in lfs.dir(vanilla_settings_dir) do
       if entry ~= "." and entry ~= ".." then
         local filepath = vanilla_settings_dir .. "/" .. entry
-        local mode = lfs.attributes(filepath, "mode")
-        if mode == "file" and entry:match("%.lua$") then
+        if lfs.attributes(filepath, "mode") == "file" and entry:match("%.lua$") then
           local name = entry:gsub("%.lua$", "")
           local domain = "settings/" .. name
           if not excluded[domain] then
@@ -300,15 +295,14 @@ function SettingsSelection.build_tree(plugin)
 end
 
 function SettingsSelection.prune_selected_settings(plugin, root)
-  root = root or SettingsSelection.build_tree(plugin)
-  local valid_keys = {}
-  for _, key in ipairs(get_all_leaf_keys(root)) do
-    valid_keys[key] = true
+  local selected = plugin.settings.selected_settings
+  if not next(selected) then
+    return
   end
 
-  local selected = plugin.settings.selected_settings
-  if not selected then
-    return
+  local valid_keys = {}
+  for _, key in ipairs(get_all_leaf_keys(root or SettingsSelection.build_tree(plugin))) do
+    valid_keys[key] = true
   end
 
   local pruned = false
@@ -325,6 +319,7 @@ function SettingsSelection.prune_selected_settings(plugin, root)
 end
 
 local function show_node_menu(node, title, plugin, parent_refresh)
+  assert(parent_refresh)
   local menu_items = {}
   local submenu
 
@@ -340,34 +335,24 @@ local function show_node_menu(node, title, plugin, parent_refresh)
       text = gettext("Select All"),
       keep_menu_open = true,
       callback = function()
-        local keys = get_all_leaf_keys(node)
-        for __, key in ipairs(keys) do
+        for __, key in ipairs(get_all_leaf_keys(node)) do
           plugin.settings.selected_settings[key] = true
         end
         plugin:saveSettings()
-        if submenu then
-          submenu:updateItems()
-        end
-        if parent_refresh then
-          parent_refresh()
-        end
+        submenu:updateItems()
+        parent_refresh()
       end,
     })
     table.insert(menu_items, {
       text = gettext("Clear Selection"),
       keep_menu_open = true,
       callback = function()
-        local keys = get_all_leaf_keys(node)
-        for __, key in ipairs(keys) do
+        for __, key in ipairs(get_all_leaf_keys(node)) do
           plugin.settings.selected_settings[key] = nil
         end
         plugin:saveSettings()
-        if submenu then
-          submenu:updateItems()
-        end
-        if parent_refresh then
-          parent_refresh()
-        end
+        submenu:updateItems()
+        parent_refresh()
       end,
       separator = true,
     })
@@ -377,18 +362,16 @@ local function show_node_menu(node, title, plugin, parent_refresh)
     if child.type == "branch" then
       table.insert(menu_items, {
         text_func = function()
-          local keys = get_all_leaf_keys(child)
           local any_selected = false
-          for ___, key in ipairs(keys) do
+          for ___, key in ipairs(get_all_leaf_keys(child)) do
             if plugin.settings.selected_settings[key] then
               any_selected = true
               break
             end
           end
-          local prefix = any_selected and "[✓] " or "[ ] "
           return string.format(
             "%s[%s] %s >",
-            prefix,
+            any_selected and "[✓] " or "[ ] ",
             child.domain,
             child.full_key
           )
@@ -396,12 +379,8 @@ local function show_node_menu(node, title, plugin, parent_refresh)
         keep_menu_open = true,
         callback = function()
           show_node_menu(child, child.full_key, plugin, function()
-            if submenu then
-              submenu:updateItems()
-            end
-            if parent_refresh then
-              parent_refresh()
-            end
+            submenu:updateItems()
+            parent_refresh()
           end)
         end,
       })
@@ -409,11 +388,9 @@ local function show_node_menu(node, title, plugin, parent_refresh)
       local setting_id = child.setting_id
       table.insert(menu_items, {
         text_func = function()
-          local is_selected = plugin.settings.selected_settings[setting_id]
-          local prefix = is_selected and "[✓] " or "[ ] "
           return string.format(
             "%s[%s] %s: %s -> %s",
-            prefix,
+            plugin.settings.selected_settings[setting_id] and "[✓] " or "[ ] ",
             child.domain,
             child.full_key,
             child.vanilla,
@@ -425,19 +402,15 @@ local function show_node_menu(node, title, plugin, parent_refresh)
           plugin.settings.selected_settings[setting_id] = not plugin.settings.selected_settings[setting_id]
             or nil
           plugin:saveSettings()
-          if submenu then
-            local idx = 1
-            for i, item in ipairs(menu_items) do
-              if item.setting_id == setting_id then
-                idx = i
-                break
-              end
+          local idx = 1
+          for i, item in ipairs(menu_items) do
+            if item.setting_id == setting_id then
+              idx = i
+              break
             end
-            submenu:updateItems(idx - (submenu.page - 1) * submenu.perpage, true)
           end
-          if parent_refresh then
-            parent_refresh()
-          end
+          submenu:updateItems(idx - (submenu.page - 1) * submenu.perpage, true)
+          parent_refresh()
         end,
         setting_id = setting_id,
       })
@@ -459,10 +432,9 @@ local function show_node_menu(node, title, plugin, parent_refresh)
 end
 
 function SettingsSelection.show(plugin)
-  plugin.settings.selected_settings = plugin.settings.selected_settings or {}
   local root = SettingsSelection.build_tree(plugin)
   SettingsSelection.prune_selected_settings(plugin, root)
-  show_node_menu(root, gettext("Changed Settings"), plugin)
+  show_node_menu(root, gettext("Changed Settings"), plugin, function() end)
 end
 
 return SettingsSelection

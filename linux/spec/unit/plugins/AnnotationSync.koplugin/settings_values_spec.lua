@@ -136,12 +136,12 @@ describe("AnnotationSync settings values and pull menus", function()
 
     assert.is_true(manager:_writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0))
 
-    local d_s = LuaSettings:open(custom_file)
-    assert.is_nil(d_s:read("DTAP_ZONE_MENU"))
+    assert.is_nil(LuaSettings:open(custom_file):read("DTAP_ZONE_MENU"))
 
-    local reopened = require("luadefaults"):open(custom_file)
-    local full_val = reopened:read("DTAP_ZONE_MENU")
-    assert.are.same({ x = 0, y = 0, w = 1, h = 1 / 8 }, full_val)
+    assert.are.same(
+      { x = 0, y = 0, w = 1, h = 1 / 8 },
+      require("luadefaults"):open(custom_file):read("DTAP_ZONE_MENU")
+    )
   end)
 
   it("an imported defaults setting is still there after the next settings comparison", function()
@@ -371,6 +371,62 @@ describe("AnnotationSync settings values and pull menus", function()
       msg_shown
     )
     assert.are.equal(0, sync_calls)
+  end)
+
+  it("defaults selected_settings to an empty table on init if older settings table lacked it", function()
+    local _meta = require("plugins/AnnotationSync.koplugin/_meta")
+    G_reader_settings:save(_meta.plugin_id, {
+      sync_server = { url = "http://mock", type = "webdav" },
+      device_name = "test_dev",
+    })
+    G_reader_settings:flush()
+
+    local dummy_ui = {
+      menu = { registerToMainMenu = function() end },
+    }
+    local plugin = AnnotationSyncPlugin:new({
+      ui = dummy_ui,
+      plugin_id = _meta.plugin_id,
+      path = "plugins/AnnotationSync.koplugin",
+    })
+    plugin:init()
+
+    assert.is_not_nil(plugin.settings.selected_settings)
+    assert.are.same({}, plugin.settings.selected_settings)
+
+    local msg_shown
+    local old_msg = utils.show_msg
+    utils.show_msg = function(m)
+      msg_shown = m
+    end
+    finally(function()
+      utils.show_msg = old_msg
+    end)
+
+    plugin.manager:pushSettings()
+    assert.are.equal(
+      "No settings are selected. Please select settings to sync in 'Show changed settings'.",
+      msg_shown
+    )
+  end)
+
+  it("with an empty selection, getSelectedSettingsWithValues returns nil without calling build_tree", function()
+    local SettingsSelection = require("plugins/AnnotationSync.koplugin/settings_selection")
+    local build_tree_calls = 0
+    local old_build_tree = SettingsSelection.build_tree
+    SettingsSelection.build_tree = function(...)
+      build_tree_calls = build_tree_calls + 1
+      return old_build_tree(...)
+    end
+    finally(function()
+      SettingsSelection.build_tree = old_build_tree
+    end)
+
+    sync_instance.settings.selected_settings = {}
+    local result = manager:getSelectedSettingsWithValues()
+
+    assert.is_nil(result)
+    assert.are.equal(0, build_tree_calls)
   end)
 
   it("pushSettings files the settings under the device name, or the model when the name is empty", function()
