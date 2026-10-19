@@ -1113,10 +1113,12 @@ describe("Background Sync Behavior", function()
 
       local job =
         require("pluginshare").backgroundJobs[#require("pluginshare").backgroundJobs]
-      local dummy_ann = { { text = "Background Synced Annotation", page = "/1/4/2/4" } }
       local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync2.json"
       util.writeToFile("[]", tmp_json .. ".snapshot")
-      util.writeToFile(json.encode(dummy_ann), tmp_json .. ".uploaded")
+      util.writeToFile(
+        json.encode({ { text = "Background Synced Annotation", page = "/1/4/2/4" } }),
+        tmp_json .. ".uploaded"
+      )
 
       job.callback({
         result = {

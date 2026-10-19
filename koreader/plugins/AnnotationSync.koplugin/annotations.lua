@@ -234,9 +234,8 @@ function M.sync_callback(
     return false
   end
 
-  local page_type = local_list[1] and type(local_list[1].page)
   local merged, active =
-    M.merge(local_list, last_sync_list, income_list, page_type)
+    M.merge(local_list, last_sync_list, income_list, local_list[1] and type(local_list[1].page))
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
 

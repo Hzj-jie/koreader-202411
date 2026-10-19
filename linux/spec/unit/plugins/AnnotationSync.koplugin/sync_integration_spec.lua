@@ -651,7 +651,6 @@ describe("AnnotationSync Core Integration", function()
     end)
 
     it("background sync waits for tracked dialog to close before applying changes and promoting merge base", function()
-      local Widget = require("ui/widget/widget")
       local xp1 = readerui.document:getPageXPointer(1)
       local xp2 = readerui.document:getPageXPointer(2)
 
@@ -681,15 +680,14 @@ describe("AnnotationSync Core Integration", function()
       local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
       util.writeToFile(json.encode({ A }), cache_path)
 
-      local DataStorage = require("datastorage")
-      local tmp_income = DataStorage:getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
+      local tmp_income = require("datastorage"):getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
       util.writeToFile(json.encode({ C, A }), tmp_income)
       finally(function()
         os.remove(tmp_income)
         sync_instance.manager.running = nil
       end)
 
-      local widget = Widget:new()
+      local widget = require("ui/widget/widget"):new()
       readerui.annotation:trackChangingWidget(widget)
 
       sync_instance.manager:addToChangedDocumentsFile(doc_file)
@@ -699,8 +697,7 @@ describe("AnnotationSync Core Integration", function()
       -- With dialog open, finished sync does not change the book or merge base yet, and running stays set
       assert.are.equal(1, #readerui.annotation.annotations)
       assert.are.equal("Highlight A", readerui.annotation.annotations[1].text)
-      local base_during = utils.read_json(cache_path)
-      assert.are.equal(1, #base_during)
+      assert.are.equal(1, #utils.read_json(cache_path))
       assert.are.equal(doc_file, sync_instance.manager.running)
       assert.is_nil(sync_instance.manager.last_sync_time[doc_file])
 
@@ -715,14 +712,12 @@ describe("AnnotationSync Core Integration", function()
         table.insert(texts, ann.text)
       end
       assert.are.same({ "Highlight C", "Highlight A" }, texts)
-      local base_after = utils.read_json(cache_path)
-      assert.are.equal(2, #base_after)
+      assert.are.equal(2, #utils.read_json(cache_path))
       assert.is_nil(sync_instance.manager.running)
       assert.is_not_nil(sync_instance.manager.last_sync_time[doc_file])
     end)
 
     it("annotation added while apply is queued survives because re-merge reads book when callback runs", function()
-      local Widget = require("ui/widget/widget")
       local xp1 = readerui.document:getPageXPointer(1)
       local xp2 = readerui.document:getPageXPointer(2)
       local xp3 = readerui.document:getPageXPointer(3)
@@ -750,18 +745,16 @@ describe("AnnotationSync Core Integration", function()
       readerui.doc_settings:flush()
 
       local doc_file = readerui.document.file
-      local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
-      util.writeToFile(json.encode({ A }), cache_path)
+      util.writeToFile(json.encode({ A }), sync_instance.manager:getSyncCachePath(doc_file))
 
-      local DataStorage = require("datastorage")
-      local tmp_income = DataStorage:getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
+      local tmp_income = require("datastorage"):getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
       util.writeToFile(json.encode({ C, A }), tmp_income)
       finally(function()
         os.remove(tmp_income)
         sync_instance.manager.running = nil
       end)
 
-      local widget = Widget:new()
+      local widget = require("ui/widget/widget"):new()
       readerui.annotation:trackChangingWidget(widget)
 
       sync_instance.manager:addToChangedDocumentsFile(doc_file)
@@ -833,11 +826,9 @@ describe("AnnotationSync Core Integration", function()
       readerui.doc_settings:flush()
 
       local doc_file = readerui.document.file
-      local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
-      util.writeToFile(json.encode({ A, B }), cache_path)
+      util.writeToFile(json.encode({ A, B }), sync_instance.manager:getSyncCachePath(doc_file))
 
-      local DataStorage = require("datastorage")
-      local tmp_income = DataStorage:getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
+      local tmp_income = require("datastorage"):getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
       util.writeToFile(json.encode({ C, A, B }), tmp_income)
       finally(function()
         os.remove(tmp_income)
@@ -855,8 +846,7 @@ describe("AnnotationSync Core Integration", function()
       sync_instance.manager:syncNow(doc_file)
       sync_instance.manager:dispatchNextSync()
 
-      local dialog = readerui.highlight.edit_highlight_dialog
-      dialog.buttons[1][1].callback()
+      readerui.highlight.edit_highlight_dialog.buttons[1][1].callback()
 
       fastforward_ui_events()
 
@@ -895,18 +885,15 @@ describe("AnnotationSync Core Integration", function()
       readerui.doc_settings:flush()
 
       local doc_file = readerui.document.file
-      local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
-      util.writeToFile(json.encode({ B }), cache_path)
+      util.writeToFile(json.encode({ B }), sync_instance.manager:getSyncCachePath(doc_file))
 
-      local DataStorage = require("datastorage")
-      local tmp_income = DataStorage:getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
+      local tmp_income = require("datastorage"):getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
       util.writeToFile(json.encode({ C, B }), tmp_income)
 
       local input_dialog
       local old_show = UIManager.show
       UIManager.show = function(ui_mgr, widget, ...)
-        local gettext = require("gettext")
-        if widget and (widget.title == gettext("Edit note") or widget.title == "Edit note") then
+        if widget and (widget.title == require("gettext")("Edit note") or widget.title == "Edit note") then
           input_dialog = widget
         end
         return old_show(ui_mgr, widget, ...)
@@ -942,7 +929,6 @@ describe("AnnotationSync Core Integration", function()
     end)
 
     it("empty-book ConfirmBox appears after queued callback runs and Restore under dialog queues second apply", function()
-      local Widget = require("ui/widget/widget")
       local xp1 = readerui.document:getPageXPointer(1)
       local A = {
         page = xp1,
@@ -958,18 +944,15 @@ describe("AnnotationSync Core Integration", function()
       readerui.doc_settings:flush()
 
       local doc_file = readerui.document.file
-      local cache_path = sync_instance.manager:getSyncCachePath(doc_file)
-      util.writeToFile(json.encode({ A }), cache_path)
+      util.writeToFile(json.encode({ A }), sync_instance.manager:getSyncCachePath(doc_file))
 
-      local DataStorage = require("datastorage")
-      local tmp_income = DataStorage:getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
+      local tmp_income = require("datastorage"):getTmpDir() .. "/" .. sync_instance.manager:_getAnnotationFilename(doc_file) .. ".income"
       util.writeToFile(json.encode({ A }), tmp_income)
 
       local boxes = {}
       local old_show = UIManager.show
       UIManager.show = function(ui_mgr, widget, ...)
-        local ConfirmBox = require("ui/widget/confirmbox")
-        if getmetatable(widget) == ConfirmBox then
+        if getmetatable(widget) == require("ui/widget/confirmbox") then
           table.insert(boxes, widget)
         end
         return old_show(ui_mgr, widget, ...)
@@ -983,7 +966,7 @@ describe("AnnotationSync Core Integration", function()
         sync_instance.manager.running = nil
       end)
 
-      local widget1 = Widget:new()
+      local widget1 = require("ui/widget/widget"):new()
       readerui.annotation:trackChangingWidget(widget1)
 
       sync_instance.manager:addToChangedDocumentsFile(doc_file)
@@ -1001,7 +984,7 @@ describe("AnnotationSync Core Integration", function()
       assert.are.equal("Restore", boxes[1].cancel_text)
 
       -- Hold book with a second dialog before clicking Restore
-      local widget2 = Widget:new()
+      local widget2 = require("ui/widget/widget"):new()
       readerui.annotation:trackChangingWidget(widget2)
 
       boxes[1].cancel_callback()
@@ -1020,7 +1003,6 @@ describe("AnnotationSync Core Integration", function()
       assert.is_not_nil(sync_instance.manager.last_sync_time[doc_file])
     end)
     it("restoreAnnotations waits for tracked dialog to close before restoring annotations and marking pending", function()
-      local Widget = require("ui/widget/widget")
       local xp1 = readerui.document:getPageXPointer(1)
       local xp2 = readerui.document:getPageXPointer(2)
 
@@ -1039,29 +1021,27 @@ describe("AnnotationSync Core Integration", function()
 
       local doc_file = readerui.document.file
       sync_instance.manager:removeFromChangedDocumentsFileByPath(doc_file)
-      local count_before = sync_instance.manager:getPendingChangedDocuments()
-      assert.are.equal(0, count_before)
+      assert.are.equal(0, (sync_instance.manager:getPendingChangedDocuments()))
 
-      local R = {
-        page = xp2,
-        pos0 = xp2,
-        pos1 = xp2,
-        text = "Highlight to restore",
-        datetime = "2026-01-01 09:00:00",
-        deleted = true,
-        drawer = "lighten",
-      }
-
-      local widget = Widget:new()
+      local widget = require("ui/widget/widget"):new()
       readerui.annotation:trackChangingWidget(widget)
 
-      sync_instance:restoreAnnotations({ R }, true)
+      sync_instance:restoreAnnotations({
+        {
+          page = xp2,
+          pos0 = xp2,
+          pos1 = xp2,
+          text = "Highlight to restore",
+          datetime = "2026-01-01 09:00:00",
+          deleted = true,
+          drawer = "lighten",
+        },
+      }, true)
 
       -- With dialog open, book remains unchanged and book is not marked pending yet
       assert.are.equal(1, #readerui.annotation.annotations)
       assert.are.equal("Highlight A", readerui.annotation.annotations[1].text)
-      local count_during = sync_instance.manager:getPendingChangedDocuments()
-      assert.are.equal(0, count_during)
+      assert.are.equal(0, (sync_instance.manager:getPendingChangedDocuments()))
 
       -- Dialog closes and one tick passes
       widget:onClose()
@@ -1280,16 +1260,12 @@ describe("AnnotationSync Core Integration", function()
         readerui.paging = false
       end)
 
-      local snapshot = json.encode({ R1, R2 })
-      local uploaded = json.encode({ R1, R2 })
-
-      local n = sync_instance.manager:_applyBackgroundSync(
+      assert.is_nil(sync_instance.manager:_applyBackgroundSync(
         readerui.document.file,
-        snapshot,
-        uploaded,
+        json.encode({ R1, R2 }),
+        json.encode({ R1, R2 }),
         true
-      )
-      assert.is_nil(n)
+      ))
       assert.are_equal(0, #readerui.annotation.annotations)
     end)
 

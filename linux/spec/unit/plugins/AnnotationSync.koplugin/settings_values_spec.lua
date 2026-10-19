@@ -136,12 +136,12 @@ describe("AnnotationSync settings values and pull menus", function()
 
     assert.is_true(manager:_writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0))
 
-    local d_s = LuaSettings:open(custom_file)
-    assert.is_nil(d_s:read("DTAP_ZONE_MENU"))
+    assert.is_nil(LuaSettings:open(custom_file):read("DTAP_ZONE_MENU"))
 
-    local reopened = require("luadefaults"):open(custom_file)
-    local full_val = reopened:read("DTAP_ZONE_MENU")
-    assert.are.same({ x = 0, y = 0, w = 1, h = 1 / 8 }, full_val)
+    assert.are.same(
+      { x = 0, y = 0, w = 1, h = 1 / 8 },
+      require("luadefaults"):open(custom_file):read("DTAP_ZONE_MENU")
+    )
   end)
 
   it("an imported defaults setting is still there after the next settings comparison", function()

@@ -501,8 +501,7 @@ describe("AnnotationSync Settings Selection", function()
     submenu:onGotoPage(2)
     assert.are_equal(2, submenu.page)
 
-    local page2_item_idx = (submenu.page - 1) * submenu.perpage + 2
-    local item = submenu.item_table[page2_item_idx]
+    local item = submenu.item_table[(submenu.page - 1) * submenu.perpage + 2]
     assert.is_not_nil(item)
 
     local updated_select_number
