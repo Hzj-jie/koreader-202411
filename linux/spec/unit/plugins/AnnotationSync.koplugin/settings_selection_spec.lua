@@ -1,5 +1,5 @@
 describe("AnnotationSync Settings Selection", function()
-  local UIManager, AnnotationSyncPlugin, test_utils
+  local UIManager, AnnotationSyncPlugin, test_utils, gettext
   local readerui, sync_instance
   local test_data_dir = require("datastorage"):getDataDir()
     .. "/test_settings_selection_tmp"
@@ -14,6 +14,7 @@ describe("AnnotationSync Settings Selection", function()
     disable_plugins()
     UIManager = require("ui/uimanager")
     AnnotationSyncPlugin = require("plugins/AnnotationSync.koplugin/main")
+    gettext = require("gettext")
 
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
   end)
@@ -329,7 +330,7 @@ describe("AnnotationSync Settings Selection", function()
 
       local submenu
       UIManager.show = function(this, widget)
-        if widget.title == "Changed Settings" then
+        if widget.title == gettext("Changed Settings") then
           submenu = widget
         end
         return old_show(this, widget)
@@ -403,7 +404,10 @@ describe("AnnotationSync Settings Selection", function()
       assert.is_false(pushed)
       assert.is_nil(sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"])
       assert.is_not_nil(msg_shown)
-      assert.truthy(msg_shown:find("No settings are selected", 1, true))
+      assert.are.equal(
+        gettext("No settings are selected. Please select settings to sync in 'Show changed settings'."),
+        msg_shown
+      )
     end
   )
 
@@ -417,7 +421,7 @@ describe("AnnotationSync Settings Selection", function()
 
     local parent_menu
     UIManager.show = function(this, widget)
-      if widget.title == "Changed Settings" then
+      if widget.title == gettext("Changed Settings") then
         parent_menu = widget
       end
       return old_show(this, widget)
@@ -450,7 +454,7 @@ describe("AnnotationSync Settings Selection", function()
     -- Tap Select All in branch_menu
     local select_all_item
     for _, item in ipairs(branch_menu.item_table) do
-      if item.text == "Select All" then
+      if item.text == gettext("Select All") then
         select_all_item = item
         break
       end
@@ -487,7 +491,7 @@ describe("AnnotationSync Settings Selection", function()
 
     local submenu
     UIManager.show = function(this, widget)
-      if widget.title == "Changed Settings" then
+      if widget.title == gettext("Changed Settings") then
         submenu = widget
       end
       return old_show(this, widget)

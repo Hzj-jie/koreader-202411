@@ -405,7 +405,7 @@ describe("AnnotationSync settings values and pull menus", function()
 
     plugin.manager:pushSettings()
     assert.are.equal(
-      "No settings are selected. Please select settings to sync in 'Show changed settings'.",
+      require("gettext")("No settings are selected. Please select settings to sync in 'Show changed settings'."),
       msg_shown
     )
   end)
