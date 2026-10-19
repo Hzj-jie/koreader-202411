@@ -320,6 +320,7 @@ function SettingsSelection.prune_selected_settings(plugin, root)
 end
 
 local function show_node_menu(node, title, plugin, parent_refresh)
+  assert(parent_refresh)
   local menu_items = {}
   local submenu
 
@@ -339,12 +340,8 @@ local function show_node_menu(node, title, plugin, parent_refresh)
           plugin.settings.selected_settings[key] = true
         end
         plugin:saveSettings()
-        if submenu then
-          submenu:updateItems()
-        end
-        if parent_refresh then
-          parent_refresh()
-        end
+        submenu:updateItems()
+        parent_refresh()
       end,
     })
     table.insert(menu_items, {
@@ -355,12 +352,8 @@ local function show_node_menu(node, title, plugin, parent_refresh)
           plugin.settings.selected_settings[key] = nil
         end
         plugin:saveSettings()
-        if submenu then
-          submenu:updateItems()
-        end
-        if parent_refresh then
-          parent_refresh()
-        end
+        submenu:updateItems()
+        parent_refresh()
       end,
       separator = true,
     })
@@ -387,12 +380,8 @@ local function show_node_menu(node, title, plugin, parent_refresh)
         keep_menu_open = true,
         callback = function()
           show_node_menu(child, child.full_key, plugin, function()
-            if submenu then
-              submenu:updateItems()
-            end
-            if parent_refresh then
-              parent_refresh()
-            end
+            submenu:updateItems()
+            parent_refresh()
           end)
         end,
       })
@@ -414,19 +403,15 @@ local function show_node_menu(node, title, plugin, parent_refresh)
           plugin.settings.selected_settings[setting_id] = not plugin.settings.selected_settings[setting_id]
             or nil
           plugin:saveSettings()
-          if submenu then
-            local idx = 1
-            for i, item in ipairs(menu_items) do
-              if item.setting_id == setting_id then
-                idx = i
-                break
-              end
+          local idx = 1
+          for i, item in ipairs(menu_items) do
+            if item.setting_id == setting_id then
+              idx = i
+              break
             end
-            submenu:updateItems(idx - (submenu.page - 1) * submenu.perpage, true)
           end
-          if parent_refresh then
-            parent_refresh()
-          end
+          submenu:updateItems(idx - (submenu.page - 1) * submenu.perpage, true)
+          parent_refresh()
         end,
         setting_id = setting_id,
       })
@@ -451,7 +436,7 @@ function SettingsSelection.show(plugin)
   plugin.settings.selected_settings = plugin.settings.selected_settings or {}
   local root = SettingsSelection.build_tree(plugin)
   SettingsSelection.prune_selected_settings(plugin, root)
-  show_node_menu(root, gettext("Changed Settings"), plugin)
+  show_node_menu(root, gettext("Changed Settings"), plugin, function() end)
 end
 
 return SettingsSelection
