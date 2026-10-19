@@ -26,7 +26,7 @@ describe("DocCache", function()
     DocCache.cache_path = temp_dir .. "/"
     DocCache.cache_dir = temp_dir .. "/"
     DocCache.disk_cache = true
-    DocCache.cached = DocCache:_getDiskCache()
+    DocCache:refreshSnapshot()
   end)
 
   after_each(function()
@@ -174,7 +174,7 @@ describe("DocCache", function()
         f2:close()
         lfs.touch(mid_file, os.time() - 50, os.time() - 50)
 
-        DocCache.cached = DocCache:_getDiskCache()
+        DocCache:refreshSnapshot()
         DocCache.size = 150
 
         local doc_path = "/tmp/evict_book_" .. ffiUtil.getpid() .. ".epub"
