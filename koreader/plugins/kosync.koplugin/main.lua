@@ -840,15 +840,26 @@ function KOSync:_getProgress(interactive)
     local ok, body = client:get_progress(username, userkey, doc_digest)
     if ok and type(body) == "table" then
       local sanitized_body = {}
-      for _, k in ipairs({ "percentage", "progress", "device", "device_id", "timestamp" }) do
+      for _, k in ipairs({
+        "percentage",
+        "progress",
+        "device",
+        "device_id",
+        "timestamp",
+      }) do
         local v = body[k]
-        if type(v) == "number" or type(v) == "string" or type(v) == "boolean" then
+        if
+          type(v) == "number"
+          or type(v) == "string"
+          or type(v) == "boolean"
+        then
           sanitized_body[k] = v
         end
       end
       body = sanitized_body
     elseif not ok and type(body) == "table" then
-      body = { message = type(body.message) == "string" and body.message or nil }
+      body =
+        { message = type(body.message) == "string" and body.message or nil }
     end
     return { ok = ok, body = body }
   end

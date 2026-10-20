@@ -7,8 +7,10 @@ describe("SokobanGame module", function()
   end)
 
   describe("XSB parsing and initialization", function()
-    it("should parse XSB levels, strip comments and blank lines, and map characters", function()
-      local xsb = [[
+    it(
+      "should parse XSB levels, strip comments and blank lines, and map characters",
+      function()
+        local xsb = [[
 ; Level title comment
 ; Author: Test
 
@@ -19,35 +21,36 @@ describe("SokobanGame module", function()
 
 ; Trailing comment
 ]]
-      local game = SokobanGame.from_xsb(xsb)
-      assert.is_table(game)
-      assert.are.equal(4, game.rows)
-      assert.are.equal(7, game.cols)
+        local game = SokobanGame.from_xsb(xsb)
+        assert.is_table(game)
+        assert.are.equal(4, game.rows)
+        assert.are.equal(7, game.cols)
 
-      -- Row 1: "######" (plus trailing space for max_cols 7)
-      assert.are.equal(SokobanGame.WALL, game.grid[1][1])
-      assert.are.equal(SokobanGame.WALL, game.grid[1][6])
+        -- Row 1: "######" (plus trailing space for max_cols 7)
+        assert.are.equal(SokobanGame.WALL, game.grid[1][1])
+        assert.are.equal(SokobanGame.WALL, game.grid[1][6])
 
-      -- Row 2: "#@ $ .#"
-      assert.are.equal(SokobanGame.WALL, game.grid[2][1])
-      assert.are.equal(SokobanGame.PLAYER, game.grid[2][2])
-      assert.are.equal(SokobanGame.FLOOR, game.grid[2][3])
-      assert.are.equal(SokobanGame.BOX, game.grid[2][4])
-      assert.are.equal(SokobanGame.FLOOR, game.grid[2][5])
-      assert.are.equal(SokobanGame.TARGET, game.grid[2][6])
-      assert.are.equal(SokobanGame.WALL, game.grid[2][7])
+        -- Row 2: "#@ $ .#"
+        assert.are.equal(SokobanGame.WALL, game.grid[2][1])
+        assert.are.equal(SokobanGame.PLAYER, game.grid[2][2])
+        assert.are.equal(SokobanGame.FLOOR, game.grid[2][3])
+        assert.are.equal(SokobanGame.BOX, game.grid[2][4])
+        assert.are.equal(SokobanGame.FLOOR, game.grid[2][5])
+        assert.are.equal(SokobanGame.TARGET, game.grid[2][6])
+        assert.are.equal(SokobanGame.WALL, game.grid[2][7])
 
-      -- Row 3: "#+ * -#"
-      assert.are.equal(SokobanGame.PLR_ON, game.grid[3][2])
-      assert.are.equal(SokobanGame.BOX_ON, game.grid[3][4])
-      assert.are.equal(SokobanGame.FLOOR, game.grid[3][6]) -- '-' maps to FLOOR
+        -- Row 3: "#+ * -#"
+        assert.are.equal(SokobanGame.PLR_ON, game.grid[3][2])
+        assert.are.equal(SokobanGame.BOX_ON, game.grid[3][4])
+        assert.are.equal(SokobanGame.FLOOR, game.grid[3][6]) -- '-' maps to FLOOR
 
-      -- Last parsed player position recorded
-      assert.are.equal(3, game.player_r)
-      assert.are.equal(2, game.player_c)
-      assert.are.equal(0, game.moves)
-      assert.are.equal(0, game.pushes)
-    end)
+        -- Last parsed player position recorded
+        assert.are.equal(3, game.player_r)
+        assert.are.equal(2, game.player_c)
+        assert.are.equal(0, game.moves)
+        assert.are.equal(0, game.pushes)
+      end
+    )
   end)
 
   describe("Query helpers: box counts and solution check", function()
@@ -89,34 +92,37 @@ describe("SokobanGame module", function()
       assert.are.equal(0, game.moves)
     end)
 
-    it("should update player cell, vacate previous cell, and handle targets", function()
-      local xsb = [[
+    it(
+      "should update player cell, vacate previous cell, and handle targets",
+      function()
+        local xsb = [[
 #######
 # @ . #
 #######
 ]]
-      local game = SokobanGame.from_xsb(xsb)
-      assert.are.equal(SokobanGame.PLAYER, game.grid[2][3])
+        local game = SokobanGame.from_xsb(xsb)
+        assert.are.equal(SokobanGame.PLAYER, game.grid[2][3])
 
-      -- Move right to empty floor
-      assert.is_true(game:move(0, 1))
-      assert.are.equal(2, game.player_r)
-      assert.are.equal(4, game.player_c)
-      assert.are.equal(SokobanGame.FLOOR, game.grid[2][3])
-      assert.are.equal(SokobanGame.PLAYER, game.grid[2][4])
-      assert.are.equal(1, game.moves)
-      assert.are.equal(0, game.pushes)
+        -- Move right to empty floor
+        assert.is_true(game:move(0, 1))
+        assert.are.equal(2, game.player_r)
+        assert.are.equal(4, game.player_c)
+        assert.are.equal(SokobanGame.FLOOR, game.grid[2][3])
+        assert.are.equal(SokobanGame.PLAYER, game.grid[2][4])
+        assert.are.equal(1, game.moves)
+        assert.are.equal(0, game.pushes)
 
-      -- Move right onto target
-      assert.is_true(game:move(0, 1))
-      assert.are.equal(SokobanGame.PLR_ON, game.grid[2][5])
-      assert.are.equal(SokobanGame.FLOOR, game.grid[2][4])
+        -- Move right onto target
+        assert.is_true(game:move(0, 1))
+        assert.are.equal(SokobanGame.PLR_ON, game.grid[2][5])
+        assert.are.equal(SokobanGame.FLOOR, game.grid[2][4])
 
-      -- Move right off target
-      assert.is_true(game:move(0, 1))
-      assert.are.equal(SokobanGame.PLAYER, game.grid[2][6])
-      assert.are.equal(SokobanGame.TARGET, game.grid[2][5]) -- target restored
-    end)
+        -- Move right off target
+        assert.is_true(game:move(0, 1))
+        assert.are.equal(SokobanGame.PLAYER, game.grid[2][6])
+        assert.are.equal(SokobanGame.TARGET, game.grid[2][5]) -- target restored
+      end
+    )
   end)
 
   describe("Pushing boxes", function()

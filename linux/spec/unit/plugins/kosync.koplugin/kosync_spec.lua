@@ -1497,9 +1497,10 @@ describe("KOSync plugin tests", function()
 
         -- Simulate server returning JSON with nulls parsed as json.util.null functions
         local json = require("json")
-        local mock_null = json.null or function()
-          return nil
-        end
+        local mock_null = json.null
+          or function()
+            return nil
+          end
         mock_client.get_progress = spy.new(function()
           return true,
             {

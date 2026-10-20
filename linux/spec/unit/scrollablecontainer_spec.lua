@@ -259,12 +259,10 @@ describe("ScrollableContainer module", function()
     assert.is_false(container._scrolling)
 
     -- Pan outside without scrolling
-    assert.is_false(
-      container:onScrollablePan(
-        nil,
-        { pos = Geom:new({ x = 500, y = 500 }), relative = { x = -20, y = -20 } }
-      )
-    )
+    assert.is_false(container:onScrollablePan(nil, {
+      pos = Geom:new({ x = 500, y = 500 }),
+      relative = { x = -20, y = -20 },
+    }))
     assert.is_false(container:onScrollablePanRelease(nil, {}))
 
     -- Test hold gestures

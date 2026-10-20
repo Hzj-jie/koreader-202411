@@ -29,31 +29,34 @@ describe("Game2048Config module", function()
     UIManager.close = orig_close
   end)
 
-  it("should handle Game2048Settings creation, reset, merge, and dump", function()
-    local settings = Game2048Config.makeDefaultSettings()
-    assert.is_table(settings)
-    assert.are.equal("default", settings.profile)
-    assert.are.equal(4, settings.size)
-    assert.are.equal(0.1, settings.new_tile_delay)
-    assert.are.equal("default", settings.theme)
+  it(
+    "should handle Game2048Settings creation, reset, merge, and dump",
+    function()
+      local settings = Game2048Config.makeDefaultSettings()
+      assert.is_table(settings)
+      assert.are.equal("default", settings.profile)
+      assert.are.equal(4, settings.size)
+      assert.are.equal(0.1, settings.new_tile_delay)
+      assert.are.equal("default", settings.theme)
 
-    settings.size = 5
-    settings.theme = "all_black"
-    settings:reset()
-    assert.are.equal(4, settings.size)
-    assert.are.equal("default", settings.theme)
+      settings.size = 5
+      settings.theme = "all_black"
+      settings:reset()
+      assert.are.equal(4, settings.size)
+      assert.are.equal("default", settings.theme)
 
-    settings:merge({ size = 3, theme = "gray", unknown = 123 })
-    assert.are.equal(3, settings.size)
-    assert.are.equal("gray", settings.theme)
-    assert.is_nil(settings.unknown)
+      settings:merge({ size = 3, theme = "gray", unknown = 123 })
+      assert.are.equal(3, settings.size)
+      assert.are.equal("gray", settings.theme)
+      assert.is_nil(settings.unknown)
 
-    local dumped = settings:dump()
-    assert.is_table(dumped)
-    assert.are.equal(3, dumped.size)
-    assert.are.equal("gray", dumped.theme)
-    assert.are.equal("default", dumped.profile)
-  end)
+      local dumped = settings:dump()
+      assert.is_table(dumped)
+      assert.are.equal(3, dumped.size)
+      assert.are.equal("gray", dumped.theme)
+      assert.are.equal("default", dumped.profile)
+    end
+  )
 
   it("should initialize Game2048Config and build option panels", function()
     local config = Game2048Config:new()
@@ -64,16 +67,19 @@ describe("Game2048Config module", function()
     assert.is_false(config._did_show_size_notification)
   end)
 
-  it("should show config menu without error (fails due to production typo onShowConfigPanel)", function()
-    local settings = Game2048Config.makeDefaultSettings()
-    local config = Game2048Config:new({
-      configurable = settings,
-    })
+  it(
+    "should show config menu without error (fails due to production typo onShowConfigPanel)",
+    function()
+      local settings = Game2048Config.makeDefaultSettings()
+      local config = Game2048Config:new({
+        configurable = settings,
+      })
 
-    assert.has_no.errors(function()
-      config:showConfigMenu()
-    end)
-  end)
+      assert.has_no.errors(function()
+        config:showConfigMenu()
+      end)
+    end
+  )
 
   it("should handle onSetDimensions and onCloseCallback", function()
     local callback_called = false
@@ -119,7 +125,10 @@ describe("Game2048Config module", function()
     config:onConfigChange("size", 5)
     assert.are.equal(5, settings.size)
     assert.are.equal(1, #shown_widgets)
-    assert.are.equal("Start a new game to change the size of the board", shown_widgets[1].text)
+    assert.are.equal(
+      "Start a new game to change the size of the board",
+      shown_widgets[1].text
+    )
 
     -- Size change second time does not show notification again
     config:onConfigChange("size", 3)

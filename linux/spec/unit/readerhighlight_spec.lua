@@ -1845,9 +1845,12 @@ describe("Readerhighlight module", function()
         assert.is_not_nil(highlight.edit_highlight_dialog)
 
         local waiter_ran = false
-        local ret = ReaderAnnotation.willChangeAnnotations(readerui.document.file, function()
-          waiter_ran = true
-        end)
+        local ret = ReaderAnnotation.willChangeAnnotations(
+          readerui.document.file,
+          function()
+            waiter_ran = true
+          end
+        )
         assert.is_true(ret)
         assert.is_false(waiter_ran)
 
@@ -1868,7 +1871,8 @@ describe("Readerhighlight module", function()
         fastforward()
         assert.is_false(waiter_ran)
 
-        local child_dialog = UIManager._window_stack[#UIManager._window_stack].widget
+        local child_dialog =
+          UIManager._window_stack[#UIManager._window_stack].widget
         assert.is_not_nil(child_dialog)
         UIManager:close(child_dialog)
 

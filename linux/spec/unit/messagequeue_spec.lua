@@ -37,10 +37,13 @@ describe("MessageQueue base module", function()
     end)
   end)
 
-  it("should return nil when handleZMsgs is called with empty messages", function()
-    local mq = MessageQueue:new()
-    assert.is_nil(mq:handleZMsgs({}))
-  end)
+  it(
+    "should return nil when handleZMsgs is called with empty messages",
+    function()
+      local mq = MessageQueue:new()
+      assert.is_nil(mq:handleZMsgs({}))
+    end
+  )
 
   it("should handle DELIVER message and return FileDeliver event", function()
     local mq = MessageQueue:new()
@@ -56,23 +59,30 @@ describe("MessageQueue base module", function()
     assert.are.equal("/path/to/test.epub", ev.args[2])
   end)
 
-  it("should handle ENTER message with header and return ZyreEnter event", function()
-    local mq = MessageQueue:new()
-    local msg = czmq.zmsg_new()
-    czmq.zmsg_addmem(msg, "ENTER\0", #"ENTER" + 1)
-    czmq.zmsg_addmem(msg, "peer-uuid-123\0", #"peer-uuid-123" + 1)
-    czmq.zmsg_addmem(msg, "alice\0", #"alice" + 1)
-    czmq.zmsg_addmem(msg, "", 0)
-    czmq.zmsg_addmem(msg, "tcp://192.168.1.5:5555\0", #"tcp://192.168.1.5:5555" + 1)
+  it(
+    "should handle ENTER message with header and return ZyreEnter event",
+    function()
+      local mq = MessageQueue:new()
+      local msg = czmq.zmsg_new()
+      czmq.zmsg_addmem(msg, "ENTER\0", #"ENTER" + 1)
+      czmq.zmsg_addmem(msg, "peer-uuid-123\0", #"peer-uuid-123" + 1)
+      czmq.zmsg_addmem(msg, "alice\0", #"alice" + 1)
+      czmq.zmsg_addmem(msg, "", 0)
+      czmq.zmsg_addmem(
+        msg,
+        "tcp://192.168.1.5:5555\0",
+        #"tcp://192.168.1.5:5555" + 1
+      )
 
-    local ev = mq:handleZMsgs({ msg })
-    assert.is_not_nil(ev)
-    assert.are.equal("onZyreEnter", ev.handler)
-    assert.are.equal("peer-uuid-123", ev.args[1])
-    assert.are.equal("alice", ev.args[2])
-    assert.is_table(ev.args[3])
-    assert.are.equal("tcp://192.168.1.5:5555", ev.args[4])
-  end)
+      local ev = mq:handleZMsgs({ msg })
+      assert.is_not_nil(ev)
+      assert.are.equal("onZyreEnter", ev.handler)
+      assert.are.equal("peer-uuid-123", ev.args[1])
+      assert.are.equal("alice", ev.args[2])
+      assert.is_table(ev.args[3])
+      assert.are.equal("tcp://192.168.1.5:5555", ev.args[4])
+    end
+  )
 
   it("should return nil for unhandled zmq command", function()
     local mq = MessageQueue:new()
@@ -83,15 +93,18 @@ describe("MessageQueue base module", function()
     assert.is_nil(ev)
   end)
 
-  it("should assign distinct messages table to instance rather than mutating prototype", function()
-    local q1 = MessageQueue:new()
-    local q2 = MessageQueue:new()
+  it(
+    "should assign distinct messages table to instance rather than mutating prototype",
+    function()
+      local q1 = MessageQueue:new()
+      local q2 = MessageQueue:new()
 
-    -- Each instance should own its own messages table directly
-    assert.is_not_nil(rawget(q1, "messages"))
-    assert.are_not.equal(q1.messages, q2.messages)
+      -- Each instance should own its own messages table directly
+      assert.is_not_nil(rawget(q1, "messages"))
+      assert.are_not.equal(q1.messages, q2.messages)
 
-    q1.messages["test_key"] = "test_value"
-    assert.is_nil(q2.messages["test_key"])
-  end)
+      q1.messages["test_key"] = "test_value"
+      assert.is_nil(q2.messages["test_key"])
+    end
+  )
 end)

@@ -29,24 +29,27 @@ describe("PdfDocument", function()
   end)
 
   describe("Initialization & Layout", function()
-    it("should initialize document, update color rendering, and layout document", function()
-      local doc = PdfDocument:new({ file = sample_pdf })
-      doc:init()
-      assert.is_true(doc.is_open)
-      assert.is_true(doc.info.has_pages)
-      assert.is_boolean(doc.is_reflowable)
-      assert.is_number(doc.reflowable_font_size)
+    it(
+      "should initialize document, update color rendering, and layout document",
+      function()
+        local doc = PdfDocument:new({ file = sample_pdf })
+        doc:init()
+        assert.is_true(doc.is_open)
+        assert.is_true(doc.info.has_pages)
+        assert.is_boolean(doc.is_reflowable)
+        assert.is_number(doc.reflowable_font_size)
 
-      -- updateColorRendering
-      doc:updateColorRendering()
+        -- updateColorRendering
+        doc:updateColorRendering()
 
-      -- layoutDocument with font_size
-      doc:layoutDocument(24)
-      assert.are.equal(24, doc.reflowable_font_size)
+        -- layoutDocument with font_size
+        doc:layoutDocument(24)
+        assert.are.equal(24, doc.reflowable_font_size)
 
-      doc._document:close()
-      doc.is_open = false
-    end)
+        doc._document:close()
+        doc.is_open = false
+      end
+    )
 
     it("should convert kopt font size to reflowable font size", function()
       local doc = PdfDocument:new({ file = sample_pdf })
@@ -191,60 +194,63 @@ describe("PdfDocument", function()
       os.remove(tmp_pdf)
     end)
 
-    it("should save, update, and delete highlights on writable PDF and write on close", function()
-      local tmp_pdf = "/tmp/test_hl_" .. ffiUtil.getpid() .. ".pdf"
-      local src = assert(io.open(sample_pdf, "rb"))
-      local content = src:read("*all")
-      src:close()
-      local dst = assert(io.open(tmp_pdf, "wb"))
-      dst:write(content)
-      dst:close()
+    it(
+      "should save, update, and delete highlights on writable PDF and write on close",
+      function()
+        local tmp_pdf = "/tmp/test_hl_" .. ffiUtil.getpid() .. ".pdf"
+        local src = assert(io.open(sample_pdf, "rb"))
+        local content = src:read("*all")
+        src:close()
+        local dst = assert(io.open(tmp_pdf, "wb"))
+        dst:write(content)
+        dst:close()
 
-      local doc = DocumentRegistry:openDocument(tmp_pdf, PdfDocument)
-      assert.is_not_nil(doc)
-      assert.are.equal(1, DocumentRegistry:getReferenceCount(tmp_pdf))
+        local doc = DocumentRegistry:openDocument(tmp_pdf, PdfDocument)
+        assert.is_not_nil(doc)
+        assert.are.equal(1, DocumentRegistry:getReferenceCount(tmp_pdf))
 
-      -- saveHighlight with lighten drawer
-      local item_lighten = {
-        pboxes = { { x = 72, y = 100, w = 200, h = 12 } },
-        drawer = "lighten",
-        color = "yellow",
-      }
-      doc:saveHighlight(1, item_lighten)
-      assert.is_true(doc.is_edited)
-      assert.is_table(item_lighten.pboxes)
+        -- saveHighlight with lighten drawer
+        local item_lighten = {
+          pboxes = { { x = 72, y = 100, w = 200, h = 12 } },
+          drawer = "lighten",
+          color = "yellow",
+        }
+        doc:saveHighlight(1, item_lighten)
+        assert.is_true(doc.is_edited)
+        assert.is_table(item_lighten.pboxes)
 
-      -- saveHighlight with underscore drawer
-      local item_underline = {
-        pboxes = { { x = 72, y = 150, w = 150, h = 12 } },
-        drawer = "underscore",
-      }
-      doc:saveHighlight(1, item_underline)
-      assert.is_true(doc.is_edited)
+        -- saveHighlight with underscore drawer
+        local item_underline = {
+          pboxes = { { x = 72, y = 150, w = 150, h = 12 } },
+          drawer = "underscore",
+        }
+        doc:saveHighlight(1, item_underline)
+        assert.is_true(doc.is_edited)
 
-      -- saveHighlight with strikeout drawer
-      local item_strikeout = {
-        pboxes = { { x = 72, y = 200, w = 180, h = 12 } },
-        drawer = "strikeout",
-      }
-      doc:saveHighlight(1, item_strikeout)
-      assert.is_true(doc.is_edited)
+        -- saveHighlight with strikeout drawer
+        local item_strikeout = {
+          pboxes = { { x = 72, y = 200, w = 180, h = 12 } },
+          drawer = "strikeout",
+        }
+        doc:saveHighlight(1, item_strikeout)
+        assert.is_true(doc.is_edited)
 
-      -- updateHighlightContents
-      doc:updateHighlightContents(1, item_lighten, "Updated note text")
-      assert.is_true(doc.is_edited)
+        -- updateHighlightContents
+        doc:updateHighlightContents(1, item_lighten, "Updated note text")
+        assert.is_true(doc.is_edited)
 
-      -- deleteHighlight
-      doc:deleteHighlight(1, item_strikeout)
-      assert.is_true(doc.is_edited)
+        -- deleteHighlight
+        doc:deleteHighlight(1, item_strikeout)
+        assert.is_true(doc.is_edited)
 
-      -- close writes document when refcount == 1
-      assert.are.equal(1, DocumentRegistry:getReferenceCount(tmp_pdf))
-      doc:close()
-      assert.is_nil(DocumentRegistry:getReferenceCount(tmp_pdf))
+        -- close writes document when refcount == 1
+        assert.are.equal(1, DocumentRegistry:getReferenceCount(tmp_pdf))
+        doc:close()
+        assert.is_nil(DocumentRegistry:getReferenceCount(tmp_pdf))
 
-      os.remove(tmp_pdf)
-    end)
+        os.remove(tmp_pdf)
+      end
+    )
   end)
 
   describe("Provider Registration", function()
@@ -252,7 +258,10 @@ describe("PdfDocument", function()
       local registered = {}
       local mock_registry = {
         addProvider = function(_self, ext, mime, provider, weight)
-          table.insert(registered, { ext = ext, mime = mime, provider = provider, weight = weight })
+          table.insert(
+            registered,
+            { ext = ext, mime = mime, provider = provider, weight = weight }
+          )
         end,
       }
       PdfDocument:register(mock_registry)

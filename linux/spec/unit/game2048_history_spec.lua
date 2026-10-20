@@ -136,21 +136,24 @@ describe("Game2048 History module", function()
     assert.is_false(h:read({ history = { 1, 2 } }))
   end)
 
-  it("should adjust position when reading dump exceeding capacity (fails due to unadjusted dump.position offset bug)", function()
-    local h = History:new({ capacity = 5 })
-    -- dump has 8 items, capacity is 5.
-    -- capacity - 1 = 4 items will be retained.
-    -- Dump position is 8 (the last item, value 80).
-    local dump = {
-      history = { 10, 20, 30, 40, 50, 60, 70, 80 },
-      position = 8,
-    }
+  it(
+    "should adjust position when reading dump exceeding capacity (fails due to unadjusted dump.position offset bug)",
+    function()
+      local h = History:new({ capacity = 5 })
+      -- dump has 8 items, capacity is 5.
+      -- capacity - 1 = 4 items will be retained.
+      -- Dump position is 8 (the last item, value 80).
+      local dump = {
+        history = { 10, 20, 30, 40, 50, 60, 70, 80 },
+        position = 8,
+      }
 
-    local ok = h:read(dump)
-    assert.is_true(ok)
+      local ok = h:read(dump)
+      assert.is_true(ok)
 
-    -- In truncated history, position must be adjusted to the retained range (1..4)
-    -- Expected current() to be 80, but due to bug self._position is 8 and self._history[8] is nil
-    assert.are.equal(80, h:current())
-  end)
+      -- In truncated history, position must be adjusted to the retained range (1..4)
+      -- Expected current() to be 80, but due to bug self._position is 8 and self._history[8] is nil
+      assert.are.equal(80, h:current())
+    end
+  )
 end)

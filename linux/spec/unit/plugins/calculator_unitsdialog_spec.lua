@@ -62,49 +62,55 @@ describe("CalculatorUnitsDialog widget", function()
   end
 
   describe("Widget Initialization & Layout", function()
-    it("should initialize CalculatorUnitsDialog widget and child radio button tables", function()
-      local dialog = CalculatorUnitsDialog:new({
-        units = {
-          { "cm", 0.01, true },
-          { "inch", 0.0254 },
-        },
-      })
-      assert.is_table(dialog)
-      assert.is_table(dialog.radio_button_table_units_from)
-      assert.is_table(dialog.radio_button_table_units_too)
-      assert.is_table(dialog.button_table)
-      assert.is_table(dialog.dialog_frame)
-      assert.is_table(dialog.movable)
-      assert.is_table(dialog[1])
-    end)
-
-    it("should trigger onShow and onClose handlers updating UIManager dirty state", function()
-      local dialog = CalculatorUnitsDialog:new({
-        units = {
-          { "m", 1, true },
-          { "km", 1000 },
-        },
-      })
-      dialog.dialog_frame.dimen = { x = 0, y = 0, w = 200, h = 300 }
-      dialog[1][1].dimen = { x = 0, y = 0, w = 200, h = 300 }
-
-      local set_dirty_calls = 0
-      local old_set_dirty = UIManager.setDirty
-      UIManager.setDirty = function(_self, _target, func)
-        set_dirty_calls = set_dirty_calls + 1
-        local mode, dimen = func()
-        assert.are.equal("ui", mode)
-        assert.is_table(dimen)
+    it(
+      "should initialize CalculatorUnitsDialog widget and child radio button tables",
+      function()
+        local dialog = CalculatorUnitsDialog:new({
+          units = {
+            { "cm", 0.01, true },
+            { "inch", 0.0254 },
+          },
+        })
+        assert.is_table(dialog)
+        assert.is_table(dialog.radio_button_table_units_from)
+        assert.is_table(dialog.radio_button_table_units_too)
+        assert.is_table(dialog.button_table)
+        assert.is_table(dialog.dialog_frame)
+        assert.is_table(dialog.movable)
+        assert.is_table(dialog[1])
       end
+    )
 
-      dialog:onShow()
-      assert.are.equal(1, set_dirty_calls)
+    it(
+      "should trigger onShow and onClose handlers updating UIManager dirty state",
+      function()
+        local dialog = CalculatorUnitsDialog:new({
+          units = {
+            { "m", 1, true },
+            { "km", 1000 },
+          },
+        })
+        dialog.dialog_frame.dimen = { x = 0, y = 0, w = 200, h = 300 }
+        dialog[1][1].dimen = { x = 0, y = 0, w = 200, h = 300 }
 
-      dialog:onClose()
-      assert.are.equal(2, set_dirty_calls)
+        local set_dirty_calls = 0
+        local old_set_dirty = UIManager.setDirty
+        UIManager.setDirty = function(_self, _target, func)
+          set_dirty_calls = set_dirty_calls + 1
+          local mode, dimen = func()
+          assert.are.equal("ui", mode)
+          assert.is_table(dimen)
+        end
 
-      UIManager.setDirty = old_set_dirty
-    end)
+        dialog:onShow()
+        assert.are.equal(1, set_dirty_calls)
+
+        dialog:onClose()
+        assert.are.equal(2, set_dirty_calls)
+
+        UIManager.setDirty = old_set_dirty
+      end
+    )
   end)
 
   describe("Buttons & Unit Conversion Callbacks", function()
@@ -135,43 +141,51 @@ describe("CalculatorUnitsDialog widget", function()
       UIManager.close = old_close
     end)
 
-    it("should insert ans and apply numeric conversion when input line is empty", function()
-      local calc = createMockCalc("")
-      local parent = { parent = calc }
-      local dialog = CalculatorUnitsDialog:new({
-        parent = parent,
-        units = {
-          { "cm", 0.01, true },
-          { "inch", 0.0254 },
-        },
-      })
-      parent.units_dialog = dialog
+    it(
+      "should insert ans and apply numeric conversion when input line is empty",
+      function()
+        local calc = createMockCalc("")
+        local parent = { parent = calc }
+        local dialog = CalculatorUnitsDialog:new({
+          parent = parent,
+          units = {
+            { "cm", 0.01, true },
+            { "inch", 0.0254 },
+          },
+        })
+        parent.units_dialog = dialog
 
-      -- Set checked buttons (cm -> inch)
-      dialog.radio_button_table_units_from.checked_button = {
-        text = "cm",
-        provider = 0.01,
-      }
-      dialog.radio_button_table_units_too.checked_button = {
-        text = "inch",
-        provider = 0.0254,
-      }
+        -- Set checked buttons (cm -> inch)
+        dialog.radio_button_table_units_from.checked_button = {
+          text = "cm",
+          provider = 0.01,
+        }
+        dialog.radio_button_table_units_too.checked_button = {
+          text = "inch",
+          provider = 0.0254,
+        }
 
-      local old_close = UIManager.close
-      UIManager.close = function() end
+        local old_close = UIManager.close
+        UIManager.close = function() end
 
-      -- OK button is second button in button_table
-      local ok_btn = dialog.button_table.buttons[1][2]
-      assert.are.equal("✓", ok_btn.text)
-      ok_btn.callback()
+        -- OK button is second button in button_table
+        local ok_btn = dialog.button_table.buttons[1][2]
+        assert.are.equal("✓", ok_btn.text)
+        ok_btn.callback()
 
-      assert.is_truthy(calc.calculated_input:find("%(ans%)%*%(0%.01/0%.0254%)"))
-      assert.is_truthy(calc.calculated_input:find("// cm %-> inch"))
-      assert.is_true(calc.goto_end_called)
-      assert.are.equal("eval(" .. calc.calculated_input .. ")", calc.input_dialog:getInputText())
+        assert.is_truthy(
+          calc.calculated_input:find("%(ans%)%*%(0%.01/0%.0254%)")
+        )
+        assert.is_truthy(calc.calculated_input:find("// cm %-> inch"))
+        assert.is_true(calc.goto_end_called)
+        assert.are.equal(
+          "eval(" .. calc.calculated_input .. ")",
+          calc.input_dialog:getInputText()
+        )
 
-      UIManager.close = old_close
-    end)
+        UIManager.close = old_close
+      end
+    )
 
     it("should wrap existing input and apply numeric conversion", function()
       local calc = createMockCalc("100 + 50")
@@ -207,38 +221,41 @@ describe("CalculatorUnitsDialog widget", function()
       UIManager.close = old_close
     end)
 
-    it("should handle formula string conversions (non-numeric providers)", function()
-      local calc = createMockCalc("25")
-      local parent = { parent = calc }
-      local dialog = CalculatorUnitsDialog:new({
-        parent = parent,
-        units = {
-          { "celsius", "c2k", true },
-          { "kelvin", "k2c" },
-        },
-      })
-      parent.units_dialog = dialog
+    it(
+      "should handle formula string conversions (non-numeric providers)",
+      function()
+        local calc = createMockCalc("25")
+        local parent = { parent = calc }
+        local dialog = CalculatorUnitsDialog:new({
+          parent = parent,
+          units = {
+            { "celsius", "c2k", true },
+            { "kelvin", "k2c" },
+          },
+        })
+        parent.units_dialog = dialog
 
-      dialog.radio_button_table_units_from.checked_button = {
-        text = "celsius",
-        provider = "c2k",
-      }
-      dialog.radio_button_table_units_too.checked_button = {
-        text = "kelvin",
-        provider = "k2c",
-      }
+        dialog.radio_button_table_units_from.checked_button = {
+          text = "celsius",
+          provider = "c2k",
+        }
+        dialog.radio_button_table_units_too.checked_button = {
+          text = "kelvin",
+          provider = "k2c",
+        }
 
-      local old_close = UIManager.close
-      UIManager.close = function() end
+        local old_close = UIManager.close
+        UIManager.close = function() end
 
-      local ok_btn = dialog.button_table.buttons[1][2]
-      ok_btn.callback()
+        local ok_btn = dialog.button_table.buttons[1][2]
+        ok_btn.callback()
 
-      assert.is_truthy(calc.calculated_input:find("c2k"))
-      assert.is_truthy(calc.calculated_input:find("// celsius %-> kelvin"))
-      assert.is_true(calc.goto_end_called)
+        assert.is_truthy(calc.calculated_input:find("c2k"))
+        assert.is_truthy(calc.calculated_input:find("// celsius %-> kelvin"))
+        assert.is_true(calc.goto_end_called)
 
-      UIManager.close = old_close
-    end)
+        UIManager.close = old_close
+      end
+    )
   end)
 end)

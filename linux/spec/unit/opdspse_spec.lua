@@ -18,31 +18,38 @@ describe("OPDSPSE module", function()
   end)
 
   describe("getLastPage", function()
-    it("should extract bearer token and fetch chapter progress page number", function()
-      local old_request = http.request
-      local req_count = 0
-      local captured_headers = {}
+    it(
+      "should extract bearer token and fetch chapter progress page number",
+      function()
+        local old_request = http.request
+        local req_count = 0
+        local captured_headers = {}
 
-      http.request = function(req)
-        req_count = req_count + 1
-        table.insert(captured_headers, req.headers)
-        if req_count == 1 then
-          req.sink('{"token":"mock_bearer_jwt","refresh":"none"}')
-          return 1, 200, {}, "200 OK"
-        else
-          req.sink('{"pageNum":7,"seriesId":101}')
-          return 1, 200, {}, "200 OK"
+        http.request = function(req)
+          req_count = req_count + 1
+          table.insert(captured_headers, req.headers)
+          if req_count == 1 then
+            req.sink('{"token":"mock_bearer_jwt","refresh":"none"}')
+            return 1, 200, {}, "200 OK"
+          else
+            req.sink('{"pageNum":7,"seriesId":101}')
+            return 1, 200, {}, "200 OK"
+          end
         end
+
+        local remote_url =
+          "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
+        local page = OPDSPSE:getLastPage(remote_url, "testuser", "testpass")
+        assert.are.equal("7", page)
+        assert.are.equal(2, req_count)
+        assert.are.equal(
+          "Bearer mock_bearer_jwt",
+          captured_headers[2]["Authorization"]
+        )
+
+        http.request = old_request
       end
-
-      local remote_url = "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
-      local page = OPDSPSE:getLastPage(remote_url, "testuser", "testpass")
-      assert.are.equal("7", page)
-      assert.are.equal(2, req_count)
-      assert.are.equal("Bearer mock_bearer_jwt", captured_headers[2]["Authorization"])
-
-      http.request = old_request
-    end)
+    )
 
     it("should handle multi-chunk responses during authentication", function()
       local old_request = http.request
@@ -60,25 +67,30 @@ describe("OPDSPSE module", function()
         end
       end
 
-      local remote_url = "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
+      local remote_url =
+        "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
       local page = OPDSPSE:getLastPage(remote_url, "testuser", "testpass")
       assert.are.equal("7", page)
 
       http.request = old_request
     end)
 
-    it("should return default 0 if authentication or progress request fails", function()
-      local old_request = http.request
-      http.request = function(_req)
-        return nil, 401, {}, "401 Unauthorized"
+    it(
+      "should return default 0 if authentication or progress request fails",
+      function()
+        local old_request = http.request
+        http.request = function(_req)
+          return nil, 401, {}, "401 Unauthorized"
+        end
+
+        local remote_url =
+          "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
+        local page = OPDSPSE:getLastPage(remote_url, "user", "pass")
+        assert.are.equal(0, page)
+
+        http.request = old_request
       end
-
-      local remote_url = "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
-      local page = OPDSPSE:getLastPage(remote_url, "user", "pass")
-      assert.are.equal(0, page)
-
-      http.request = old_request
-    end)
+    )
 
     it("should show error message for invalid protocol", function()
       local shown_info
@@ -87,7 +99,8 @@ describe("OPDSPSE module", function()
         shown_info = widget
       end
 
-      local remote_url = "ftp://kavita.example/api/opds/myapikey123/image?chapterId=99"
+      local remote_url =
+        "ftp://kavita.example/api/opds/myapikey123/image?chapterId=99"
       local page = OPDSPSE:getLastPage(remote_url, "user", "pass")
       assert.are.equal(0, page)
       assert.is_table(shown_info)
@@ -155,34 +168,38 @@ describe("OPDSPSE module", function()
   end)
 
   describe("streamPages", function()
-    it("should initialize image viewer and switch to last page when continue is false", function()
-      local shown_viewer
-      local old_show = UIManager.show
-      UIManager.show = function(_self, widget)
-        shown_viewer = widget
+    it(
+      "should initialize image viewer and switch to last page when continue is false",
+      function()
+        local shown_viewer
+        local old_show = UIManager.show
+        UIManager.show = function(_self, widget)
+          shown_viewer = widget
+        end
+
+        local old_get_last = OPDSPSE.getLastPage
+        OPDSPSE.getLastPage = function()
+          return 4
+        end
+
+        local remote_url =
+          "http://kavita.example/api/opds/key/image?chapterId=10&page={pageNumber}&maxWidth={maxWidth}"
+        OPDSPSE:streamPages(remote_url, 20, false, "user", "pass")
+
+        assert.is_table(shown_viewer)
+        assert.are.equal(20, shown_viewer.images_list_nb)
+        assert.are.equal(5, shown_viewer._images_list_cur) -- 4 + 1
+        assert.is_table(shown_viewer._images_list)
+        assert.is_not_nil(shown_viewer.image)
+
+        -- Test page_table metatable index for non-number key
+        local fallback = shown_viewer._images_list["not_a_number"]
+        assert.is_not_nil(fallback)
+
+        UIManager.show = old_show
+        OPDSPSE.getLastPage = old_get_last
       end
-
-      local old_get_last = OPDSPSE.getLastPage
-      OPDSPSE.getLastPage = function()
-        return 4
-      end
-
-      local remote_url = "http://kavita.example/api/opds/key/image?chapterId=10&page={pageNumber}&maxWidth={maxWidth}"
-      OPDSPSE:streamPages(remote_url, 20, false, "user", "pass")
-
-      assert.is_table(shown_viewer)
-      assert.are.equal(20, shown_viewer.images_list_nb)
-      assert.are.equal(5, shown_viewer._images_list_cur) -- 4 + 1
-      assert.is_table(shown_viewer._images_list)
-      assert.is_not_nil(shown_viewer.image)
-
-      -- Test page_table metatable index for non-number key
-      local fallback = shown_viewer._images_list["not_a_number"]
-      assert.is_not_nil(fallback)
-
-      UIManager.show = old_show
-      OPDSPSE.getLastPage = old_get_last
-    end)
+    )
 
     it("should call jumpToPage when continue is true", function()
       local jump_called = false
@@ -196,7 +213,8 @@ describe("OPDSPSE module", function()
         return 0
       end
 
-      local remote_url = "http://kavita.example/api/opds/key/image?chapterId=10&page={pageNumber}&maxWidth={maxWidth}"
+      local remote_url =
+        "http://kavita.example/api/opds/key/image?chapterId=10&page={pageNumber}&maxWidth={maxWidth}"
       OPDSPSE:streamPages(remote_url, 15, true, "user", "pass")
       assert.is_true(jump_called)
 

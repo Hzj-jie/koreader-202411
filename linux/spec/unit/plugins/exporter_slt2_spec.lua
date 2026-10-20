@@ -13,44 +13,63 @@ describe("slt2 template engine module", function()
 
   local function get_temp_file(suffix)
     local dir = DataStorage:getDataDir()
-    return string.format("%s/slt2_%d_%d_%s.txt", dir, ffiUtil.getpid(), os.time(), suffix)
+    return string.format(
+      "%s/slt2_%d_%d_%s.txt",
+      dir,
+      ffiUtil.getpid(),
+      os.time(),
+      suffix
+    )
   end
 
-  it("should precompile template strings with nested file inclusions", function()
-    local tmpl = "Hello #{= name }#!"
-    local compiled = slt2.precompile(tmpl)
-    assert.is_string(compiled)
-    assert.are.equal(tmpl, compiled)
+  it(
+    "should precompile template strings with nested file inclusions",
+    function()
+      local tmpl = "Hello #{= name }#!"
+      local compiled = slt2.precompile(tmpl)
+      assert.is_string(compiled)
+      assert.are.equal(tmpl, compiled)
 
-    -- Test nested inclusions: root -> child -> grandchild
-    local file_grandchild = get_temp_file("grandchild")
-    local file_child = get_temp_file("child")
+      -- Test nested inclusions: root -> child -> grandchild
+      local file_grandchild = get_temp_file("grandchild")
+      local file_child = get_temp_file("child")
 
-    local fg = assert(io.open(file_grandchild, "w"))
-    fg:write("[Grandchild Content: #{= val }#]")
-    fg:close()
+      local fg = assert(io.open(file_grandchild, "w"))
+      fg:write("[Grandchild Content: #{= val }#]")
+      fg:close()
 
-    local fc = assert(io.open(file_child, "w"))
-    fc:write("Child Start -> #{include: " .. string.format("%q", file_grandchild) .. "}# <- Child End")
-    fc:close()
+      local fc = assert(io.open(file_child, "w"))
+      fc:write(
+        "Child Start -> #{include: "
+          .. string.format("%q", file_grandchild)
+          .. "}# <- Child End"
+      )
+      fc:close()
 
-    local root_tmpl = "Root: #{include: " .. string.format("%q", file_child) .. "}#"
+      local root_tmpl = "Root: #{include: "
+        .. string.format("%q", file_child)
+        .. "}#"
 
-    finally(function()
-      os.remove(file_grandchild)
-      os.remove(file_child)
-    end)
+      finally(function()
+        os.remove(file_grandchild)
+        os.remove(file_child)
+      end)
 
-    local precompiled = slt2.precompile(root_tmpl)
-    assert.is_string(precompiled)
+      local precompiled = slt2.precompile(root_tmpl)
+      assert.is_string(precompiled)
 
-    local t = slt2.loadstring(root_tmpl)
-    local rendered = slt2.render(t, { val = "42" })
-    assert.are.equal("Root: Child Start -> [Grandchild Content: 42] <- Child End", rendered)
-  end)
+      local t = slt2.loadstring(root_tmpl)
+      local rendered = slt2.render(t, { val = "42" })
+      assert.are.equal(
+        "Root: Child Start -> [Grandchild Content: 42] <- Child End",
+        rendered
+      )
+    end
+  )
 
   it("should support custom start_tag and end_tag in loadstring", function()
-    local tmpl = "Greeting: <% for i, name in ipairs(names) do %><% if i > 1 then %>, <% end %><%= name %><% end %>!"
+    local tmpl =
+      "Greeting: <% for i, name in ipairs(names) do %><% if i > 1 then %>, <% end %><%= name %><% end %>!"
     local t = slt2.loadstring(tmpl, "<%", "%>")
     assert.is_table(t)
 
@@ -58,17 +77,20 @@ describe("slt2 template engine module", function()
     assert.are.equal("Greeting: Alice, Bob, Charlie!", rendered)
   end)
 
-  it("should raise errors for missing end tags in include and templates", function()
-    -- Missing end tag in loadstring
-    assert.has_error(function()
-      slt2.loadstring("Hello #{= name")
-    end)
+  it(
+    "should raise errors for missing end tags in include and templates",
+    function()
+      -- Missing end tag in loadstring
+      assert.has_error(function()
+        slt2.loadstring("Hello #{= name")
+      end)
 
-    -- Missing end tag in include_fold
-    assert.has_error(function()
-      slt2.precompile("Include #{include: 'some_file'")
-    end)
-  end)
+      -- Missing end tag in include_fold
+      assert.has_error(function()
+        slt2.precompile("Include #{include: 'some_file'")
+      end)
+    end
+  )
 
   it("should load template from file and render", function()
     local tmp_file = get_temp_file("loadfile")
@@ -111,18 +133,22 @@ describe("slt2 template engine module", function()
     assert.are.equal("Item 1; Item 2; Item 3; ", rendered)
   end)
 
-  it("should handle loops, expressions, and propagate runtime execution errors", function()
-    -- Loops and expressions
-    local tmpl = "Sum: #{ local sum = 0; for _, n in ipairs(numbers) do sum = sum + n end }##{= sum }#"
-    local t = slt2.loadstring(tmpl)
-    local rendered = slt2.render(t, { numbers = { 10, 20, 30 } })
-    assert.are.equal("Sum: 60", rendered)
+  it(
+    "should handle loops, expressions, and propagate runtime execution errors",
+    function()
+      -- Loops and expressions
+      local tmpl =
+        "Sum: #{ local sum = 0; for _, n in ipairs(numbers) do sum = sum + n end }##{= sum }#"
+      local t = slt2.loadstring(tmpl)
+      local rendered = slt2.render(t, { numbers = { 10, 20, 30 } })
+      assert.are.equal("Sum: 60", rendered)
 
-    -- Runtime error propagation
-    local err_tmpl = "Before #{ error('template execution failed!') }# After"
-    local t_err = slt2.loadstring(err_tmpl)
-    assert.has_error(function()
-      slt2.render(t_err, {})
-    end)
-  end)
+      -- Runtime error propagation
+      local err_tmpl = "Before #{ error('template execution failed!') }# After"
+      local t_err = slt2.loadstring(err_tmpl)
+      assert.has_error(function()
+        slt2.render(t_err, {})
+      end)
+    end
+  )
 end)

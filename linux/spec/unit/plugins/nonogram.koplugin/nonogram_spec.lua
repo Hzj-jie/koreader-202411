@@ -206,15 +206,12 @@ describe("Nonogram board and plugin unit tests", function()
           assert.is_number(col)
         end
 
-        board_widget:onTap(
-          nil,
-          {
-            pos = {
-              x = board_widget.grid_origin_x + 10,
-              y = board_widget.grid_origin_y + 10,
-            },
-          }
-        )
+        board_widget:onTap(nil, {
+          pos = {
+            x = board_widget.grid_origin_x + 10,
+            y = board_widget.grid_origin_y + 10,
+          },
+        })
 
         -- Test paintTo on a real Blitbuffer
         local bb = Blitbuffer.new(600, 800)
