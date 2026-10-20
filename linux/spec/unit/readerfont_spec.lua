@@ -532,7 +532,9 @@ describe("ReaderFont module", function()
         end
       end
 
-      local expected_dir = (os.getenv("XDG_DATA_HOME") or (test_home .. "/.local/share")) .. "/fonts"
+      local expected_dir = (
+        os.getenv("XDG_DATA_HOME") or (test_home .. "/.local/share")
+      ) .. "/fonts"
       assert.are.equal(1, #opened)
       assert.are.equal(expected_dir, opened[1])
 

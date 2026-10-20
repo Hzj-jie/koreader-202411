@@ -20,7 +20,9 @@ describe("Text Exporter", function()
 
     it("should format and write clippings to target file", function()
       local temp_path = "/tmp/test_export_text_" .. ffiUtil.getpid() .. ".txt"
-      exporter.getFilePath = function() return temp_path end
+      exporter.getFilePath = function()
+        return temp_path
+      end
 
       local now = 1700000000
       local data = {
@@ -88,7 +90,9 @@ describe("Text Exporter", function()
     end)
 
     it("should return false when target path cannot be opened", function()
-      exporter.getFilePath = function() return "/nonexistent/invalid/dir/path.txt" end
+      exporter.getFilePath = function()
+        return "/nonexistent/invalid/dir/path.txt"
+      end
       local ok = exporter:export({ { title = "Dummy" } })
       assert.is_false(ok)
     end)

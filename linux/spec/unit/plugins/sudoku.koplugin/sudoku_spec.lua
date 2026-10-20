@@ -165,15 +165,12 @@ describe("Sudoku plugin unit tests", function()
             assert.is_number(r)
             assert.is_number(c)
           end
-          board_widget:onTap(
-            nil,
-            {
-              pos = {
-                x = board_widget.paint_rect.x + 20,
-                y = board_widget.paint_rect.y + 20,
-              },
-            }
-          )
+          board_widget:onTap(nil, {
+            pos = {
+              x = board_widget.paint_rect.x + 20,
+              y = board_widget.paint_rect.y + 20,
+            },
+          })
         end
 
         -- Paint to real blitbuffer

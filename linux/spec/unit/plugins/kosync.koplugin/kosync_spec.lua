@@ -1,6 +1,6 @@
 describe("KOSync plugin tests", function()
   local KOSyncClass, KOSyncClient, kosync, mock_ui, mock_client
-  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs
+  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs, ReaderUI, gettext
   local match
 
   setup(function()
@@ -36,6 +36,7 @@ describe("KOSync plugin tests", function()
     NetworkMgr = require("ui/network/manager")
     Dispatcher = require("dispatcher")
     MultiInputDialog = require("ui/widget/multiinputdialog")
+    gettext = require("gettext")
     G_reader_settings = _G.G_reader_settings
 
     G_reader_settings:delete("kosync")
@@ -586,8 +587,14 @@ describe("KOSync plugin tests", function()
       mock_client.authorize = spy.new(function()
         return false, "offline"
       end)
+      gettext.changeLang("zh_CN")
+      finally(function()
+        gettext.changeLang("C")
+      end)
+      local expected = gettext("offline")
+      assert.are_not.equal("offline", expected)
       kosync:_doLogin("user1", "wrongpass", mock_menu)
-      assert.are.equal("offline", lastShownText())
+      assert.are.equal(expected, lastShownText())
 
       -- Failures keep the logged-in account
       assert.are.equal(userkey, kosync.settings.userkey)
@@ -624,8 +631,14 @@ describe("KOSync plugin tests", function()
       mock_client.register = spy.new(function()
         return false, "offline"
       end)
+      gettext.changeLang("zh_CN")
+      finally(function()
+        gettext.changeLang("C")
+      end)
+      local expected = gettext("offline")
+      assert.are_not.equal("offline", expected)
       kosync:_doRegister("user3", "pass3", mock_menu)
-      assert.are.equal("offline", lastShownText())
+      assert.are.equal(expected, lastShownText())
 
       -- Failures keep the registered account
       assert.are.equal("user2", kosync.settings.username)
@@ -1497,9 +1510,10 @@ describe("KOSync plugin tests", function()
 
         -- Simulate server returning JSON with nulls parsed as json.util.null functions
         local json = require("json")
-        local mock_null = json.null or function()
-          return nil
-        end
+        local mock_null = json.null
+          or function()
+            return nil
+          end
         mock_client.get_progress = spy.new(function()
           return true,
             {

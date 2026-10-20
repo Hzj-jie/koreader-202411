@@ -49,16 +49,16 @@ local CHECKSUM_METHOD = {
 -- Debounce push/pull attempts
 local API_CALL_DEBOUNCE_DELAY = time.s(25)
 
-local client
+local cached_client
 
 local function getClient(path, custom_server)
-  if not client or client.custom_url ~= custom_server then
-    client = require("plugins/kosync.koplugin/KOSyncClient"):new({
+  if not cached_client or cached_client.custom_url ~= custom_server then
+    cached_client = require("plugins/kosync.koplugin/KOSyncClient"):new({
       custom_url = custom_server,
       service_spec = path .. "/api.json",
     })
   end
-  return client
+  return cached_client
 end
 
 function KOSync:init()
@@ -516,6 +516,8 @@ end
 local function getErrorMessage(body)
   if type(body) == "table" and body.message then
     return body.message
+  elseif body == "offline" then
+    return gettext("offline")
   elseif type(body) == "string" then
     return body
   end
@@ -840,15 +842,26 @@ function KOSync:_getProgress(interactive)
     local ok, body = client:get_progress(username, userkey, doc_digest)
     if ok and type(body) == "table" then
       local sanitized_body = {}
-      for _, k in ipairs({ "percentage", "progress", "device", "device_id", "timestamp" }) do
+      for _, k in ipairs({
+        "percentage",
+        "progress",
+        "device",
+        "device_id",
+        "timestamp",
+      }) do
         local v = body[k]
-        if type(v) == "number" or type(v) == "string" or type(v) == "boolean" then
+        if
+          type(v) == "number"
+          or type(v) == "string"
+          or type(v) == "boolean"
+        then
           sanitized_body[k] = v
         end
       end
       body = sanitized_body
     elseif not ok and type(body) == "table" then
-      body = { message = type(body.message) == "string" and body.message or nil }
+      body =
+        { message = type(body.message) == "string" and body.message or nil }
     end
     return { ok = ok, body = body }
   end

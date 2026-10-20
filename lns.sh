@@ -61,7 +61,6 @@ ln -rsf "linux/base/spec" "linux/spec/base"
 ln -rsf "linux/test" "linux/spec/unit/data"
 ln -rsf "origin.linux/data/tessdata" "linux/data/tessdata"
 
-
 # --- 2. PW2 ---
 echo "Configuring pw2/..."
 PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$|plugins/legacy_terminal\.koplugin"

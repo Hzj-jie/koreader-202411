@@ -17,6 +17,7 @@ function run {
 
 function run_twice {
   run "$@"
+  run "$@"
 }
 
 run_twice "koreader"

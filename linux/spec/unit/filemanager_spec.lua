@@ -924,7 +924,6 @@ describe("FileManager module", function()
     filemanager:onExit()
   end)
 
-
   describe(
     "pasteSelectedFiles, deleteSelectedFiles, createFolder, and deleteFile",
     function()

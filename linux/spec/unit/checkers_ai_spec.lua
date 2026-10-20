@@ -47,7 +47,6 @@ describe("Checkers AI module", function()
         assert.are.same(moves[1], best)
       end
     )
-
   end)
 
   describe("best_move evaluation and non-mutation", function()

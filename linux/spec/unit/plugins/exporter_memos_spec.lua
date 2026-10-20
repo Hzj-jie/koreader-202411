@@ -165,33 +165,30 @@ describe("Memos Exporter target module", function()
   )
 
   describe("HTTP request handling and edge cases", function()
-    it(
-      "should set Content-Length header in makeRequest",
-      function()
-        MemosExporter.settings = {
-          api = "https://memos.example.com/api/v1/memo",
-          token = "sample_token",
-        }
+    it("should set Content-Length header in makeRequest", function()
+      MemosExporter.settings = {
+        api = "https://memos.example.com/api/v1/memo",
+        token = "sample_token",
+      }
 
-        local header_content_length = nil
-        http.request = function(req)
-          header_content_length = req.headers["Content-Length"]
-          req.sink('{"id": 1}')
-          return 1, 200, {}, "200 OK"
-        end
-
-        local booknotes = {
-          title = "Test",
-          {
-            { text = "Text", page = 1 },
-          },
-        }
-
-        MemosExporter:createHighlights(booknotes)
-        -- socket.http needs Content-Length header for POST body
-        assert.is_not_nil(header_content_length)
+      local header_content_length = nil
+      http.request = function(req)
+        header_content_length = req.headers["Content-Length"]
+        req.sink('{"id": 1}')
+        return 1, 200, {}, "200 OK"
       end
-    )
+
+      local booknotes = {
+        title = "Test",
+        {
+          { text = "Text", page = 1 },
+        },
+      }
+
+      MemosExporter:createHighlights(booknotes)
+      -- socket.http needs Content-Length header for POST body
+      assert.is_not_nil(header_content_length)
+    end)
 
     it(
       "should return false from createHighlights and export when all HTTP requests fail",
@@ -217,34 +214,30 @@ describe("Memos Exporter target module", function()
       end
     )
 
+    it("should handle multi-chunk ltn12 responses in makeRequest", function()
+      MemosExporter.settings = {
+        api = "https://memos.example.com/api/v1/memo",
+        token = "sample_token",
+      }
 
-    it(
-      "should handle multi-chunk ltn12 responses in makeRequest",
-      function()
-        MemosExporter.settings = {
-          api = "https://memos.example.com/api/v1/memo",
-          token = "sample_token",
-        }
-
-        http.request = function(req)
-          -- Multi-chunk response
-          req.sink('{"id":')
-          req.sink("1}")
-          return 1, 200, {}, "200 OK"
-        end
-
-        local booknotes = {
-          title = "Test Book",
-          {
-            { text = "Highlight", page = 1 },
-          },
-        }
-
-        assert.has_no.errors(function()
-          local ok = MemosExporter:createHighlights(booknotes)
-          assert.is_true(ok)
-        end)
+      http.request = function(req)
+        -- Multi-chunk response
+        req.sink('{"id":')
+        req.sink("1}")
+        return 1, 200, {}, "200 OK"
       end
-    )
+
+      local booknotes = {
+        title = "Test Book",
+        {
+          { text = "Highlight", page = 1 },
+        },
+      }
+
+      assert.has_no.errors(function()
+        local ok = MemosExporter:createHighlights(booknotes)
+        assert.is_true(ok)
+      end)
+    end)
   end)
 end)

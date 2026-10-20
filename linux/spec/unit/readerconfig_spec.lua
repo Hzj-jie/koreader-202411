@@ -118,86 +118,95 @@ describe("ReaderConfig module", function()
   end)
 
   describe("Menu Activation & Gestures", function()
-    it("should handle onTapShowConfigMenu based on activation_menu setting", function()
-      local mock_ui = createMockUI()
-      local rc = ReaderConfig:new({
-        ui = mock_ui,
-        document = { koptinterface = nil },
-        configurable = Configurable:new(),
-      })
+    it(
+      "should handle onTapShowConfigMenu based on activation_menu setting",
+      function()
+        local mock_ui = createMockUI()
+        local rc = ReaderConfig:new({
+          ui = mock_ui,
+          document = { koptinterface = nil },
+          configurable = Configurable:new(),
+        })
 
-      local shown = 0
-      rc.onShowConfigMenu = function()
-        shown = shown + 1
-        return true
+        local shown = 0
+        rc.onShowConfigMenu = function()
+          shown = shown + 1
+          return true
+        end
+
+        rc.activation_menu = "tap"
+        assert.is_true(rc:onTapShowConfigMenu())
+        assert.are.equal(1, shown)
+
+        rc.activation_menu = "all"
+        assert.is_true(rc:onTapShowConfigMenu())
+        assert.are.equal(2, shown)
+
+        rc.activation_menu = "swipe"
+        assert.is_nil(rc:onTapShowConfigMenu())
+        assert.are.equal(2, shown)
       end
+    )
 
-      rc.activation_menu = "tap"
-      assert.is_true(rc:onTapShowConfigMenu())
-      assert.are.equal(1, shown)
+    it(
+      "should handle onSwipeShowConfigMenu based on direction and activation setting",
+      function()
+        local mock_ui = createMockUI()
+        local rc = ReaderConfig:new({
+          ui = mock_ui,
+          document = { koptinterface = nil },
+          configurable = Configurable:new(),
+        })
 
-      rc.activation_menu = "all"
-      assert.is_true(rc:onTapShowConfigMenu())
-      assert.are.equal(2, shown)
+        local shown = 0
+        rc.onShowConfigMenu = function()
+          shown = shown + 1
+          return true
+        end
 
-      rc.activation_menu = "swipe"
-      assert.is_nil(rc:onTapShowConfigMenu())
-      assert.are.equal(2, shown)
-    end)
+        rc.activation_menu = "swipe"
+        assert.is_true(rc:onSwipeShowConfigMenu({ direction = "north" }))
+        assert.are.equal(1, shown)
 
-    it("should handle onSwipeShowConfigMenu based on direction and activation setting", function()
-      local mock_ui = createMockUI()
-      local rc = ReaderConfig:new({
-        ui = mock_ui,
-        document = { koptinterface = nil },
-        configurable = Configurable:new(),
-      })
+        -- wrong direction
+        assert.is_nil(rc:onSwipeShowConfigMenu({ direction = "south" }))
+        assert.are.equal(1, shown)
 
-      local shown = 0
-      rc.onShowConfigMenu = function()
-        shown = shown + 1
-        return true
+        -- tap only mode
+        rc.activation_menu = "tap"
+        assert.is_nil(rc:onSwipeShowConfigMenu({ direction = "north" }))
+        assert.are.equal(1, shown)
       end
-
-      rc.activation_menu = "swipe"
-      assert.is_true(rc:onSwipeShowConfigMenu({ direction = "north" }))
-      assert.are.equal(1, shown)
-
-      -- wrong direction
-      assert.is_nil(rc:onSwipeShowConfigMenu({ direction = "south" }))
-      assert.are.equal(1, shown)
-
-      -- tap only mode
-      rc.activation_menu = "tap"
-      assert.is_nil(rc:onSwipeShowConfigMenu({ direction = "north" }))
-      assert.are.equal(1, shown)
-    end)
+    )
   end)
 
   describe("Dialog Lifecycle & Dimension Changes", function()
-    it("should handle onSetDimensions by delegating to active dialog", function()
-      local mock_ui = createMockUI()
-      local rc = ReaderConfig:new({
-        ui = mock_ui,
-        document = { koptinterface = nil },
-        configurable = Configurable:new(),
-      })
+    it(
+      "should handle onSetDimensions by delegating to active dialog",
+      function()
+        local mock_ui = createMockUI()
+        local rc = ReaderConfig:new({
+          ui = mock_ui,
+          document = { koptinterface = nil },
+          configurable = Configurable:new(),
+        })
 
-      local inited = 0
-      rc.config_dialog = {
-        init = function()
-          inited = inited + 1
-        end,
-      }
+        local inited = 0
+        rc.config_dialog = {
+          init = function()
+            inited = inited + 1
+          end,
+        }
 
-      rc:onSetDimensions()
-      assert.are.equal(1, inited)
-
-      rc.config_dialog = nil
-      assert.has_no_errors(function()
         rc:onSetDimensions()
-      end)
-    end)
+        assert.are.equal(1, inited)
+
+        rc.config_dialog = nil
+        assert.has_no_errors(function()
+          rc:onSetDimensions()
+        end)
+      end
+    )
 
     it("should handle onCloseConfigMenu and _closeCallback cleanly", function()
       local mock_ui = createMockUI()

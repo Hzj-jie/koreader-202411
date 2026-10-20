@@ -11,18 +11,21 @@ describe("ReaderFlipping module", function()
     WidgetContainer = require("ui/widget/container/widgetcontainer")
   end)
 
-  it("should initialize widgets, LeftContainer, and default dimensions", function()
-    local flipping = ReaderFlipping:new({ ui = {} })
-    assert.is_table(flipping)
-    assert.is_table(flipping.flipping_widget)
-    assert.is_table(flipping.bookmark_flipping_widget)
-    assert.is_table(flipping.long_hold_widget)
-    assert.is_table(flipping.select_mode_widget)
+  it(
+    "should initialize widgets, LeftContainer, and default dimensions",
+    function()
+      local flipping = ReaderFlipping:new({ ui = {} })
+      assert.is_table(flipping)
+      assert.is_table(flipping.flipping_widget)
+      assert.is_table(flipping.bookmark_flipping_widget)
+      assert.is_table(flipping.long_hold_widget)
+      assert.is_table(flipping.select_mode_widget)
 
-    assert.is_table(flipping[1])
-    assert.are.equal(Screen:getWidth(), flipping[1].dimen.w)
-    assert.are.equal(flipping.flipping_widget, flipping[1][1])
-  end)
+      assert.is_table(flipping[1])
+      assert.are.equal(Screen:getWidth(), flipping[1].dimen.w)
+      assert.are.equal(flipping.flipping_widget, flipping[1][1])
+    end
+  )
 
   it("should handle resetLayout and getRefreshRegion", function()
     local flipping = ReaderFlipping:new({ ui = {} })
@@ -34,44 +37,47 @@ describe("ReaderFlipping module", function()
     assert.are.equal(flipping[1][1].dimen, region)
   end)
 
-  it("should handle rolling rendering state icon widgets and onSetStatusLine cache reset", function()
-    local mock_ui = {
-      rolling = {
-        rendering_state = 1,
-        RENDERING_STATE = {
-          PARTIALLY_RERENDERED = 1,
-          FULL_RENDERING_IN_BACKGROUND = 2,
-          FULL_RENDERING_READY = 3,
-          RELOADING_DOCUMENT = 4,
-          UNKNOWN_STATE = 99,
+  it(
+    "should handle rolling rendering state icon widgets and onSetStatusLine cache reset",
+    function()
+      local mock_ui = {
+        rolling = {
+          rendering_state = 1,
+          RENDERING_STATE = {
+            PARTIALLY_RERENDERED = 1,
+            FULL_RENDERING_IN_BACKGROUND = 2,
+            FULL_RENDERING_READY = 3,
+            RELOADING_DOCUMENT = 4,
+            UNKNOWN_STATE = 99,
+          },
+          cre_top_bar_enabled = false,
         },
-        cre_top_bar_enabled = false,
-      },
-    }
+      }
 
-    local flipping = ReaderFlipping:new({ ui = mock_ui })
+      local flipping = ReaderFlipping:new({ ui = mock_ui })
 
-    -- Test when top bar disabled: widget has alpha = true
-    local widget1 = flipping:getRollingRenderingStateIconWidget()
-    assert.is_table(widget1)
-    assert.are.equal("cre.render.partial", widget1.icon)
-    assert.is_true(widget1.alpha)
+      -- Test when top bar disabled: widget has alpha = true
+      local widget1 = flipping:getRollingRenderingStateIconWidget()
+      assert.is_table(widget1)
+      assert.are.equal("cre.render.partial", widget1.icon)
+      assert.is_true(widget1.alpha)
 
-    -- Cached lookup returns identical widget
-    assert.are.equal(widget1, flipping:getRollingRenderingStateIconWidget())
+      -- Cached lookup returns identical widget
+      assert.are.equal(widget1, flipping:getRollingRenderingStateIconWidget())
 
-    -- Test when top bar enabled: widget has alpha = false
-    flipping:onSetStatusLine()
-    assert.is_nil(flipping.rolling_rendering_state_widgets)
-    mock_ui.rolling.cre_top_bar_enabled = true
-    local widget2 = flipping:getRollingRenderingStateIconWidget()
-    assert.is_table(widget2)
-    assert.is_false(widget2.alpha)
+      -- Test when top bar enabled: widget has alpha = false
+      flipping:onSetStatusLine()
+      assert.is_nil(flipping.rolling_rendering_state_widgets)
+      mock_ui.rolling.cre_top_bar_enabled = true
+      local widget2 = flipping:getRollingRenderingStateIconWidget()
+      assert.is_table(widget2)
+      assert.is_false(widget2.alpha)
 
-    -- Test state without icon returns nil
-    mock_ui.rolling.rendering_state = 99
-    assert.is_nil(flipping:getRollingRenderingStateIconWidget())
-  end)
+      -- Test state without icon returns nil
+      mock_ui.rolling.rendering_state = 99
+      assert.is_nil(flipping:getRollingRenderingStateIconWidget())
+    end
+  )
 
   it("should handle paintTo across all 5 branches", function()
     local mock_ui = {
@@ -144,7 +150,8 @@ describe("ReaderFlipping module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local readerflipping = readerui.flipping or ReaderFlipping:new({ ui = readerui })
+    local readerflipping = readerui.flipping
+      or ReaderFlipping:new({ ui = readerui })
     assert.is_table(readerflipping)
 
     readerui:onExit()
