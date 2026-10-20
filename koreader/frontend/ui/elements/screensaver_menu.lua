@@ -134,7 +134,11 @@ return {
         text = gettext("Postpone screen update after wake-up"),
         sub_item_table = {
           genMenuItem(gettext("Never"), "screensaver_delay", "disable"),
-          genMenuItem(gettext("1 second"), "screensaver_delay", "1"),
+          genMenuItem(
+            T(gettext.ngettext("1 second", "%1 seconds", 1), 1),
+            "screensaver_delay",
+            "1"
+          ),
           genMenuItem(gettext("3 seconds"), "screensaver_delay", "3"),
           genMenuItem(gettext("5 seconds"), "screensaver_delay", "5"),
           genMenuItem(gettext("Until a tap"), "screensaver_delay", "tap"),
