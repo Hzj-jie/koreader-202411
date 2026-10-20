@@ -1710,7 +1710,7 @@ msgstr ""
 
 #: frontend/apps/filemanager/filemanager.lua:1555
 msgid "Selected files (%1)"
-msgstr "删除文件（%1）"
+msgstr "已选择文件（%1）"
 
 #. @translators %1 is the provider name, such as Cool Reader Engine or MuPDF.
 #: frontend/apps/filemanager/filemanager.lua:1590
