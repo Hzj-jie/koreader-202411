@@ -272,10 +272,14 @@ describe("CoverBrowser BookInfoManager plugin module", function()
         end
 
         assert.is_not_nil(found_msg)
-        -- For 1 book, the correct grammar is singular: "Found 1 book to index."
-        -- Due to N_() missing the 3rd argument #files at line 1054,
-        -- GetText.getPlural(nil) defaults to plural, yielding "Found 1 books to index."
-        assert.are.equal("Found 1 book to index.", found_msg)
+        assert.are.equal(
+          require("gettext").T_N(
+            "Found 1 book to index.",
+            "Found %1 books to index.",
+            1
+          ),
+          found_msg
+        )
       end
     )
   end)
