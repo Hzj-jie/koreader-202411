@@ -7,7 +7,6 @@ local UIManager = require("ui/uimanager")
 local docsettings = require("frontend/docsettings")
 local dump = require("dump")
 local gettext = require("gettext")
-local N_ = gettext.ngettext
 local T = require("ffi/util").template
 local json = require("json")
 local lfs = require("libs/libkoreader-lfs")
@@ -117,12 +116,9 @@ function SyncManager:syncAllChangedDocuments()
     local count = self:getPendingChangedDocuments()
     if count > 0 then
       Notification:notify(
-        T(
-          N_(
-            "Syncing 1 book in the background",
-            "Syncing %1 books one by one in the background",
-            count
-          ),
+        gettext.T_N(
+          "Syncing 1 book in the background",
+          "Syncing %1 books one by one in the background",
           count
         )
       )
@@ -312,7 +308,7 @@ function SyncManager:_startSync(file, trigger, trash)
         end
         UIManager:show(ConfirmBox:new({
           text = T(
-            N_(
+            gettext.ngettext(
               "%1 has no annotations on this device, but 1 on your cloud storage. Restore it, or move it to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores it as well.",
               "%1 has no annotations on this device, but %2 on your cloud storage. Restore them, or move them to the trash on all devices? Trashed annotations can be restored from 'Show deleted annotations'. Dismissing this dialog restores them as well.",
               n
