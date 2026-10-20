@@ -6,6 +6,7 @@ Example:
     local C_ = gettext.pgettext                  -- @{pgettext}()
     local N_ = gettext.ngettext                  -- @{ngettext}()
     local NC_ = gettext.npgettext                -- @{npgettext}()
+    local T_N = gettext.T_N                      -- @{T_N}()
     local T = require("ffi/util").template -- @{ffi.util.template}()
 
     -- The most common use case with regular @{gettext.gettext|gettext}().
@@ -15,12 +16,18 @@ Example:
     -- selected by @{ngettext}() based on the number.
     local numbered_string = T(N_("1 item", "%1 items", num_items), num_items)
 
-It's required to pass along the number twice, because @{ngettext}() doesn't do anything with placeholders.
+    -- The preferred shortcut @{T_N}() automatically combines @{ngettext}() with
+    -- template substitution for the common case where %1 is the count.
+    local preferred_numbered_string = T_N("1 item", "%1 items", num_items)
+
+It's required to pass along the number twice when using @{ngettext}(), because @{ngettext}() doesn't do anything with placeholders.
+@{T_N}() avoids this duplication when the placeholder matches the count.
 See @{ffi.util.template}() for more information about the template function.
 --]]
 
 local isAndroid, android = pcall(require, "android")
 local logger = require("logger")
+local T = require("ffi/util").template
 
 local GetText = {
   context = {},
@@ -380,6 +387,29 @@ function GetText_mt.__index.ngettext(msgid, msgid_plural, n)
     return GetText.translation[msgid] and GetText.translation[msgid][plural]
       or GetText.wrapUntranslated(msgid_plural)
   end
+end
+
+--[[--
+Selects a plural form with @{ngettext}() and formats it using the template function.
+
+@function T_N
+
+@string msgid
+@string msgid_plural
+@int n
+@param ... additional arguments passed to the template function
+
+@treturn string formatted translation
+
+@usage
+    local gettext = require("gettext")
+    local T_N = gettext.T_N
+
+    local items_string = T_N("1 item", "%1 items", num_items)
+--]]
+function GetText_mt.__index.T_N(msgid, msgid_plural, n, ...)
+  assert(type(n) == "number")
+  return T(GetText.ngettext(msgid, msgid_plural, n), n, ...)
 end
 
 --[[--

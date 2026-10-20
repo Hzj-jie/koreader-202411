@@ -25,6 +25,7 @@ local logger = require("logger")
 local util = require("util")
 local C_ = gettext.pgettext
 local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = FFIUtil.template
 
 local statistics_dir = DataStorage:getDataDir() .. "/statistics/"
@@ -541,11 +542,9 @@ Please wait…
         UIManager:close(info)
         UIManager:forceRepaint()
         UIManager:show(InfoMessage:new({
-          text = T(
-            N_(
-              "Conversion complete.\nImported one book to the database.\nTap to continue.",
-              "Conversion complete.\nImported %1 books to the database.\nTap to continue."
-            ),
+          text = T_N(
+            "Conversion complete.\nImported one book to the database.\nTap to continue.",
+            "Conversion complete.\nImported %1 books to the database.\nTap to continue.",
             nr_book
           ),
         }))
@@ -2064,12 +2063,9 @@ function ReaderStatistics:getCurrentStat()
 
   local estimated_popup = function()
     UIManager:show(InfoMessage:new({
-      text = T(
-        N_(
-          "There is 1 page (%2%) left to read.",
-          "There are %1 pages (%2%) left to read.",
-          total_pages - current_page
-        ),
+      text = T_N(
+        "There is 1 page (%2%) left to read.",
+        "There are %1 pages (%2%) left to read.",
         total_pages - current_page,
         100 - percent_read
       )
@@ -2105,13 +2101,12 @@ function ReaderStatistics:getCurrentStat()
     }
     estimated_finish_date = {
       gettext("Estimated finish date") .. " ⓘ",
-      estimates_valid
-          and T(
-            N_("(in 1 day) %2", "(in %1 days) %2", estimate_days_to_read),
-            estimate_days_to_read,
-            estimate_end_of_read_date
-          )
-        or gettext("N/A"),
+      estimates_valid and T_N(
+        "(in 1 day) %2",
+        "(in %1 days) %2",
+        estimate_days_to_read,
+        estimate_end_of_read_date
+      ) or gettext("N/A"),
       callback = estimated_popup,
     }
   else
@@ -2212,8 +2207,9 @@ function ReaderStatistics:getCurrentStat()
     -- Date-focused book stats
     {
       gettext("Book start date"),
-      T(
-        N_("(1 day ago) %2", "(%1 days ago) %2", first_open_days_ago),
+      T_N(
+        "(1 day ago) %2",
+        "(%1 days ago) %2",
         first_open_days_ago,
         datetime.secondsToDate(tonumber(first_open), true)
       ),
@@ -2375,16 +2371,18 @@ function ReaderStatistics:getBookStat(id_book)
     -- Date-focused book stats
     {
       gettext("Book start date"),
-      T(
-        N_("(1 day ago) %2", "(%1 days ago) %2", first_open_days_ago),
+      T_N(
+        "(1 day ago) %2",
+        "(%1 days ago) %2",
         first_open_days_ago,
         datetime.secondsToDate(tonumber(first_open), true)
       ),
     },
     {
       gettext("Last read date"),
-      T(
-        N_("(1 day ago) %2", "(%1 days ago) %2", last_open_days_ago),
+      T_N(
+        "(1 day ago) %2",
+        "(%1 days ago) %2",
         last_open_days_ago,
         datetime.secondsToDate(tonumber(last_open), true)
       ),
@@ -3140,12 +3138,9 @@ function ReaderStatistics:genResetBookSubItemTable()
   })
   local reset_minutes = { 1, 5, 15, 30, 60 }
   for _, minutes in ipairs(reset_minutes) do
-    local text = T(
-      N_(
-        "Reset stats for books read for < 1 m",
-        "Reset stats for books read for < %1 m",
-        minutes
-      ),
+    local text = T_N(
+      "Reset stats for books read for < 1 m",
+      "Reset stats for books read for < %1 m",
       minutes
     )
     table.insert(sub_item_table, {
@@ -3303,12 +3298,9 @@ end
 function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
   local max_total_duration_sec = max_total_duration_mn * 60
   UIManager:show(ConfirmBox:new({
-    text = T(
-      N_(
-        "Permanently remove statistics for books read for less than 1 minute?",
-        "Permanently remove statistics for books read for less than %1 minutes?",
-        max_total_duration_mn
-      ),
+    text = T_N(
+      "Permanently remove statistics for books read for less than 1 minute?",
+      "Permanently remove statistics for books read for less than %1 minutes?",
       max_total_duration_mn
     ),
     ok_text = gettext("Remove"),
@@ -3348,12 +3340,9 @@ function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
       end
       conn:close()
       UIManager:show(InfoMessage:new({
-        text = nb_deleted > 0 and T(
-          N_(
-            "Statistics for 1 book removed.",
-            "Statistics for %1 books removed.",
-            nb_deleted
-          ),
+        text = nb_deleted > 0 and T_N(
+          "Statistics for 1 book removed.",
+          "Statistics for %1 books removed.",
           nb_deleted
         ) or T(gettext("No statistics removed.")),
       }))

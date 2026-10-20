@@ -20,7 +20,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local Screen = Device.screen
 local ffiutil = require("ffi/util")
 local T = ffiutil.template
@@ -186,9 +186,9 @@ function BookInfo:extract(doc_settings_or_file, book_props)
     local lines_nb, words_nb = self.ui.view:getCurrentPageLineWordCounts()
     local text = lines_nb == 0
         and gettext("number of lines and words not available")
-      or T(N_("1 line", "%1 lines", lines_nb), lines_nb)
+      or T_N("1 line", "%1 lines", lines_nb)
         .. ", "
-        .. T(N_("1 word", "%1 words", words_nb), words_nb)
+        .. T_N("1 word", "%1 words", words_nb)
     table.insert(kv_pairs, { gettext("Current page:"), text, separator = true })
   end
 
@@ -823,12 +823,9 @@ function BookInfo:moveBookMetadata()
         }))
       else
         self:showWidget(ConfirmBox:new({
-          text = T(
-            N_(
-              "1 book with metadata not in your preferred location found.",
-              "%1 books with metadata not in your preferred location found.",
-              books_to_move_nb
-            ),
+          text = T_N(
+            "1 book with metadata not in your preferred location found.",
+            "%1 books with metadata not in your preferred location found.",
             books_to_move_nb
           )
             .. "\n"
@@ -898,12 +895,9 @@ function BookInfo.showBooksWithHashBasedMetadata()
   end
   local doc_nb = #file_info - 1
   UIManager:show(TextViewer:new({
-    title = T(
-      N_(
-        "1 document with hash-based metadata",
-        "%1 documents with hash-based metadata",
-        doc_nb
-      ),
+    title = T_N(
+      "1 document with hash-based metadata",
+      "%1 documents with hash-based metadata",
       doc_nb
     ),
     title_multilines = true,

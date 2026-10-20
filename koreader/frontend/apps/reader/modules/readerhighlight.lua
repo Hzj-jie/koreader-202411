@@ -22,7 +22,7 @@ local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
 local C_ = gettext.pgettext
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = ffiUtil.template
 local Screen = Device.screen
 
@@ -643,12 +643,9 @@ function ReaderHighlight:addToMainMenu(menu_items)
           end
           if total > 0 then
             self:showWidget(Notification:new({
-              text = T(
-                N_(
-                  "Applied style and color to 1 highlight",
-                  "Applied style and color to %1 highlights",
-                  total
-                ),
+              text = T_N(
+                "Applied style and color to 1 highlight",
+                "Applied style and color to %1 highlights",
                 total
               ),
             }))
@@ -764,12 +761,9 @@ If you wish your highlights to be saved in the document, just move it to a writa
                   end
                 end
                 self:showWidget(Notification:new({
-                  text = T(
-                    N_(
-                      "1 highlight written into PDF file",
-                      "%1 highlights written into PDF file",
-                      count
-                    ),
+                  text = T_N(
+                    "1 highlight written into PDF file",
+                    "%1 highlights written into PDF file",
                     count
                   ),
                 }))
@@ -798,12 +792,9 @@ If you wish your highlights to be saved in the document, just move it to a writa
                   end
                 end
                 self:showWidget(Notification:new({
-                  text = T(
-                    N_(
-                      "1 highlight deleted from PDF file",
-                      "%1 highlights deleted from PDF file",
-                      count
-                    ),
+                  text = T_N(
+                    "1 highlight deleted from PDF file",
+                    "%1 highlights deleted from PDF file",
                     count
                   ),
                 }))
@@ -1002,12 +993,9 @@ Except when in two columns mode, where this is limited to showing only the previ
         local highlight_non_touch_interval = G_reader_settings:read(
           "highlight_non_touch_interval"
         ) or 1
-        return T(
-          N_(
-            "Speed-up rate interval: 1 second",
-            "Speed-up rate interval: %1 seconds",
-            highlight_non_touch_interval
-          ),
+        return T_N(
+          "Speed-up rate interval: 1 second",
+          "Speed-up rate interval: %1 seconds",
           highlight_non_touch_interval
         )
       end,

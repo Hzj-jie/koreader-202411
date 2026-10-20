@@ -20,6 +20,7 @@ LUA_FILES="reader.lua datastorage.lua $(find frontend -iname "*.lua" | sort) $(f
 xgettext --from-code=utf-8 \
   --keyword=gettext \
   --keyword=C_:1c,2 --keyword=N_:1,2 --keyword=NC_:1c,2,3 \
+  --keyword=T_N:1,2 --keyword=gettext.T_N:1,2 \
   --add-comments=@translators \
   $LUA_FILES \
   -o "$POT_FILE"
