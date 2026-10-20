@@ -20,7 +20,10 @@ describe("Game2048Widget widget", function()
     orig_setDirty = UIManager.setDirty
 
     UIManager.scheduleIn = function(_, delay, callback, arg)
-      table.insert(scheduled_calls, { delay = delay, callback = callback, arg = arg })
+      table.insert(
+        scheduled_calls,
+        { delay = delay, callback = callback, arg = arg }
+      )
     end
     UIManager.unschedule = function() end
     UIManager.setDirty = function(_, target, mode, dimen)
@@ -48,35 +51,38 @@ describe("Game2048Widget widget", function()
       assert.is_not_nil(widget._tile_side)
     end)
 
-    it("should update numbers for allowed lengths and ignore invalid lengths", function()
-      local widget = Game2048Widget:new({ width = 400 })
+    it(
+      "should update numbers for allowed lengths and ignore invalid lengths",
+      function()
+        local widget = Game2048Widget:new({ width = 400 })
 
-      -- 3x3 board (9 elements)
-      local numbers_9 = { 0, 0, 0, 0, 1, 0, 0, 0, 0 }
-      widget:setNumbers(numbers_9)
-      assert.are.equal(9, #widget.numbers)
-      assert.are.equal(3, widget._size)
+        -- 3x3 board (9 elements)
+        local numbers_9 = { 0, 0, 0, 0, 1, 0, 0, 0, 0 }
+        widget:setNumbers(numbers_9)
+        assert.are.equal(9, #widget.numbers)
+        assert.are.equal(3, widget._size)
 
-      -- 2x2 board (4 elements)
-      local numbers_4 = { 1, 2, 3, 4 }
-      widget:setNumbers(numbers_4)
-      assert.are.equal(4, #widget.numbers)
-      assert.are.equal(2, widget._size)
+        -- 2x2 board (4 elements)
+        local numbers_4 = { 1, 2, 3, 4 }
+        widget:setNumbers(numbers_4)
+        assert.are.equal(4, #widget.numbers)
+        assert.are.equal(2, widget._size)
 
-      -- 5x5 board (25 elements)
-      local numbers_25 = {}
-      for i = 1, 25 do
-        numbers_25[i] = 0
+        -- 5x5 board (25 elements)
+        local numbers_25 = {}
+        for i = 1, 25 do
+          numbers_25[i] = 0
+        end
+        widget:setNumbers(numbers_25)
+        assert.are.equal(25, #widget.numbers)
+        assert.are.equal(5, widget._size)
+
+        -- Invalid length (e.g. 5 or 10 elements) must be ignored
+        widget:setNumbers({ 1, 2, 3, 4, 5 })
+        assert.are.equal(25, #widget.numbers)
+        assert.are.equal(5, widget._size)
       end
-      widget:setNumbers(numbers_25)
-      assert.are.equal(25, #widget.numbers)
-      assert.are.equal(5, widget._size)
-
-      -- Invalid length (e.g. 5 or 10 elements) must be ignored
-      widget:setNumbers({ 1, 2, 3, 4, 5 })
-      assert.are.equal(25, #widget.numbers)
-      assert.are.equal(5, widget._size)
-    end)
+    )
 
     it("should handle animate_new_tile and uncover hidden tile", function()
       local widget = Game2048Widget:new({ width = 400, new_tile_delay = 0.1 })
@@ -108,35 +114,38 @@ describe("Game2048Widget widget", function()
       assert.are.equal(Blitbuffer.COLOR_BLACK, fg)
     end)
 
-    it("should paint to blitbuffer in unfocused, focused, and active states with tiles", function()
-      local widget = Game2048Widget:new({ width = 400 })
-      local numbers = {}
-      for i = 1, 16 do
-        numbers[i] = 0
+    it(
+      "should paint to blitbuffer in unfocused, focused, and active states with tiles",
+      function()
+        local widget = Game2048Widget:new({ width = 400 })
+        local numbers = {}
+        for i = 1, 16 do
+          numbers[i] = 0
+        end
+        numbers[1] = 1 -- 2
+        numbers[2] = 2 -- 4
+        numbers[3] = 11 -- 2048
+        numbers[4] = 28 -- > MAX_VALUE (fallback ∞)
+        widget:setNumbers(numbers)
+
+        local bb = Blitbuffer.new(400, 400)
+
+        -- Unfocused paint
+        widget._has_focus = false
+        widget._is_active = false
+        widget:paintTo(bb, 0, 0)
+        assert.are.equal(0, widget.dimen.x)
+        assert.are.equal(0, widget.dimen.y)
+
+        -- Focused paint
+        widget._has_focus = true
+        widget:paintTo(bb, 0, 0)
+
+        -- Active paint
+        widget._is_active = true
+        widget:paintTo(bb, 0, 0)
       end
-      numbers[1] = 1 -- 2
-      numbers[2] = 2 -- 4
-      numbers[3] = 11 -- 2048
-      numbers[4] = 28 -- > MAX_VALUE (fallback ∞)
-      widget:setNumbers(numbers)
-
-      local bb = Blitbuffer.new(400, 400)
-
-      -- Unfocused paint
-      widget._has_focus = false
-      widget._is_active = false
-      widget:paintTo(bb, 0, 0)
-      assert.are.equal(0, widget.dimen.x)
-      assert.are.equal(0, widget.dimen.y)
-
-      -- Focused paint
-      widget._has_focus = true
-      widget:paintTo(bb, 0, 0)
-
-      -- Active paint
-      widget._is_active = true
-      widget:paintTo(bb, 0, 0)
-    end)
+    )
   end)
 
   describe("Focus, active state, and move handling", function()

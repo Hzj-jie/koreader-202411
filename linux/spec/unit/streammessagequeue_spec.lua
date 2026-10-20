@@ -26,10 +26,14 @@ describe("StreamMessageQueue module", function()
 
   after_each(function()
     for _, cli in ipairs(active_clients) do
-      pcall(function() cli:stop() end)
+      pcall(function()
+        cli:stop()
+      end)
     end
     for _, srv in ipairs(active_servers) do
-      pcall(function() srv:stop() end)
+      pcall(function()
+        srv:stop()
+      end)
     end
   end)
 
@@ -37,12 +41,15 @@ describe("StreamMessageQueue module", function()
     return 20000 + (ffi.C.getpid() % 10000)
   end
 
-  it("should initialize StreamMessageQueue instance with host and port", function()
-    local smq = StreamMessageQueue:new({ host = "127.0.0.1", port = 8080 })
-    assert.is_table(smq)
-    assert.are.equal("127.0.0.1", smq.host)
-    assert.are.equal(8080, smq.port)
-  end)
+  it(
+    "should initialize StreamMessageQueue instance with host and port",
+    function()
+      local smq = StreamMessageQueue:new({ host = "127.0.0.1", port = 8080 })
+      assert.is_table(smq)
+      assert.are.equal("127.0.0.1", smq.host)
+      assert.are.equal(8080, smq.port)
+    end
+  )
 
   it("should handle stopping message queue and destroying handles", function()
     local smq = StreamMessageQueue:new({ host = "127.0.0.1", port = 8080 })
@@ -54,7 +61,8 @@ describe("StreamMessageQueue module", function()
   end)
 
   it("should throw error on invalid connection parameters in start", function()
-    local smq = StreamMessageQueue:new({ host = "invalid.domain.99999", port = -1 })
+    local smq =
+      StreamMessageQueue:new({ host = "invalid.domain.99999", port = -1 })
     assert.has_error(function()
       smq:start()
     end)
@@ -76,49 +84,54 @@ describe("StreamMessageQueue module", function()
     assert.is_nil(empty_data)
   end)
 
-  it("should connect to server, send data, and receive data in waitEvent", function()
-    local port = getTestPort()
-    local srv = StreamMessageQueueServer:new({ host = "127.0.0.1", port = port })
-    srv:start()
-    table.insert(active_servers, srv)
+  it(
+    "should connect to server, send data, and receive data in waitEvent",
+    function()
+      local port = getTestPort()
+      local srv =
+        StreamMessageQueueServer:new({ host = "127.0.0.1", port = port })
+      srv:start()
+      table.insert(active_servers, srv)
 
-    local cli = StreamMessageQueue:new({ host = "127.0.0.1", port = port })
-    cli:start()
-    table.insert(active_clients, cli)
+      local cli = StreamMessageQueue:new({ host = "127.0.0.1", port = port })
+      cli:start()
+      table.insert(active_clients, cli)
 
-    assert.is_string(cli.id)
-    assert.is_true(#cli.id > 0)
+      assert.is_string(cli.id)
+      assert.is_true(#cli.id > 0)
 
-    -- Client sends data to server
-    cli:send("ping from client")
+      -- Client sends data to server
+      cli:send("ping from client")
 
-    local srv_received, srv_id
-    srv.receiveCallback = function(req, id)
-      srv_received = req
-      srv_id = id
+      local srv_received, srv_id
+      srv.receiveCallback = function(req, id)
+        srv_received = req
+        srv_id = id
+      end
+
+      socket.sleep(0.05)
+      srv:waitEvent()
+      assert.are.equal("ping from client", srv_received)
+      assert.is_not_nil(srv_id)
+
+      -- Server sends response back to client
+      srv:send("pong from server", srv_id)
+
+      local cli_received
+      cli.receiveCallback = function(pkgs)
+        cli_received = table.concat(pkgs)
+      end
+
+      socket.sleep(0.05)
+      cli:waitEvent()
+      assert.are.equal("pong from server", cli_received)
     end
-
-    socket.sleep(0.05)
-    srv:waitEvent()
-    assert.are.equal("ping from client", srv_received)
-    assert.is_not_nil(srv_id)
-
-    -- Server sends response back to client
-    srv:send("pong from server", srv_id)
-
-    local cli_received
-    cli.receiveCallback = function(pkgs)
-      cli_received = table.concat(pkgs)
-    end
-
-    socket.sleep(0.05)
-    cli:waitEvent()
-    assert.are.equal("pong from server", cli_received)
-  end)
+  )
 
   it("should not invoke receiveCallback when no data is waiting", function()
     local port = getTestPort() + 1
-    local srv = StreamMessageQueueServer:new({ host = "127.0.0.1", port = port })
+    local srv =
+      StreamMessageQueueServer:new({ host = "127.0.0.1", port = port })
     srv:start()
     table.insert(active_servers, srv)
 

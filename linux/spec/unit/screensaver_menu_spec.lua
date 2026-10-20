@@ -146,4 +146,29 @@ describe("Screensaver Menu Spec", function()
     hide_reboot_item.callback()
     assert.is_boolean(hide_reboot_item.checked_func())
   end)
+
+  it(
+    "formats 1 second screensaver delay menu item using localized plural",
+    function()
+      local gettext = require("gettext")
+      gettext.changeLang("zh_CN")
+      finally(function()
+        gettext.changeLang("C")
+        package.unload("ui/elements/screensaver_menu")
+      end)
+
+      package.unload("ui/elements/screensaver_menu")
+      local one_sec_item =
+        require("ui/elements/screensaver_menu")[1].sub_item_table[8].sub_item_table[2]
+
+      assert.are.equal(
+        require("ffi/util").template(
+          gettext.ngettext("1 second", "%1 seconds", 1),
+          1
+        ),
+        one_sec_item.text
+      )
+      assert.is_nil(string.find(one_sec_item.text, "%1", 1, true))
+    end
+  )
 end)

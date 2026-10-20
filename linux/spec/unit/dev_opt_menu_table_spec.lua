@@ -43,11 +43,19 @@ describe("DevOptMenuTable element", function()
 
     item.callback()
     assert.is_not_nil(shown_widget)
-    assert.is_function(shown_widget.ok_callback)
+    local FFIUtil = require("ffi/util")
+    local DataStorage = require("datastorage")
+    local purged_dir
+    local orig_purge = FFIUtil.purgeDir
+    FFIUtil.purgeDir = function(dir)
+      purged_dir = dir
+    end
 
     shown_widget.ok_callback()
     assert.is_true(asked_restart)
+    assert.are.equal(DataStorage:getCacheDir(), purged_dir)
 
+    FFIUtil.purgeDir = orig_purge
     UIManager.show = orig_show
     UIManager.askForRestart = orig_ask
   end)

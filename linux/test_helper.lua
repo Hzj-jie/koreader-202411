@@ -49,8 +49,6 @@ os.tmpname = function()
     return fn
 end
 
-
-
 local max_jobs = 4
 local nproc_p = io.popen("nproc 2>/dev/null")
 if nproc_p then

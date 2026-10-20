@@ -43,31 +43,34 @@ describe("QRClipboard plugin", function()
     assert.are.equal(plugin, registered_plugin)
   end)
 
-  it("should add qrclipboard item to main menu and show QRMessage with clipboard text", function()
-    local mock_ui = {
-      menu = { registerToMainMenu = function() end },
-    }
-    local plugin = QRClipboard:new({ ui = mock_ui })
+  it(
+    "should add qrclipboard item to main menu and show QRMessage with clipboard text",
+    function()
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local plugin = QRClipboard:new({ ui = mock_ui })
 
-    local menu_items = {}
-    plugin:addToMainMenu(menu_items)
-    assert.is_table(menu_items.qrclipboard)
-    assert.are.equal("QR from clipboard", menu_items.qrclipboard.text)
-    assert.is_function(menu_items.qrclipboard.callback)
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
+      assert.is_table(menu_items.qrclipboard)
+      assert.are.equal("QR from clipboard", menu_items.qrclipboard.text)
+      assert.is_function(menu_items.qrclipboard.callback)
 
-    Device.input.getClipboardText = function()
-      return "https://koreader.rocks"
+      Device.input.getClipboardText = function()
+        return "https://koreader.rocks"
+      end
+
+      menu_items.qrclipboard.callback()
+
+      assert.are.equal(1, #shown_widgets)
+      local qrmessage = shown_widgets[1]
+      assert.is_table(qrmessage)
+      assert.are.equal("https://koreader.rocks", qrmessage.text)
+      assert.are.equal(Device.screen:getWidth(), qrmessage.width)
+      assert.are.equal(Device.screen:getHeight(), qrmessage.height)
     end
-
-    menu_items.qrclipboard.callback()
-
-    assert.are.equal(1, #shown_widgets)
-    local qrmessage = shown_widgets[1]
-    assert.is_table(qrmessage)
-    assert.are.equal("https://koreader.rocks", qrmessage.text)
-    assert.are.equal(Device.screen:getWidth(), qrmessage.width)
-    assert.are.equal(Device.screen:getHeight(), qrmessage.height)
-  end)
+  )
 
   it("should handle empty clipboard text string", function()
     local mock_ui = {

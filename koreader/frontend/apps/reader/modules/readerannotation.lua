@@ -60,7 +60,10 @@ function ReaderAnnotation.willChangeAnnotations(file, callback)
   assert(type(file) == "string" and file ~= "")
   assert(type(callback) == "function")
   -- Before _startChanging: the file is held while a callback runs.
-  assert(not running_files[file], "willChangeAnnotations called from a callback changing " .. file)
+  assert(
+    not running_files[file],
+    "willChangeAnnotations called from a callback changing " .. file
+  )
   local taken = _startChanging(file)
   table.insert(changing_files[file], callback)
   if not taken then

@@ -67,24 +67,30 @@ describe("OPDSParser", function()
     local parsed = OPDSParser:parse(xml)
     assert.is_table(parsed)
     assert.is_table(parsed.feed)
-    assert.are.equal("It’s a title with \u{00A0} non-breaking space", parsed.feed.title)
+    assert.are.equal(
+      "It’s a title with \u{00A0} non-breaking space",
+      parsed.feed.title
+    )
   end)
 
-  it("should handle CDATA sections by extracting content and unescaping", function()
-    local xml = [==[<feed xmlns="http://www.w3.org/2005/Atom">
+  it(
+    "should handle CDATA sections by extracting content and unescaping",
+    function()
+      local xml = [==[<feed xmlns="http://www.w3.org/2005/Atom">
   <title><![CDATA[Catalog with <Special> & "Chars"]]></title>
   <entry>
     <summary><![CDATA[Some summary with & and <tags>]]></summary>
   </entry>
 </feed>]==]
 
-    local parsed = OPDSParser:parse(xml)
-    assert.is_table(parsed)
-    local feed = parsed.feed
-    assert.is_table(feed)
-    assert.are.equal("Catalog with <Special> & \"Chars\"", feed.title)
-    assert.are.equal("Some summary with & and <tags>", feed.entry[1].summary)
-  end)
+      local parsed = OPDSParser:parse(xml)
+      assert.is_table(parsed)
+      local feed = parsed.feed
+      assert.is_table(feed)
+      assert.are.equal('Catalog with <Special> & "Chars"', feed.title)
+      assert.are.equal("Some summary with & and <tags>", feed.entry[1].summary)
+    end
+  )
 
   it("should mangle HTML/XHTML content tags into text node", function()
     local xml = [[<feed xmlns="http://www.w3.org/2005/Atom">
@@ -105,8 +111,10 @@ describe("OPDSParser", function()
     assert.is_truthy(feed.entry[1].content:find("Paragraph 2"))
   end)
 
-  it("should strip xml-stylesheet, comments, and fix self-closing tags and br/hr", function()
-    local xml = [[<?xml version="1.0" encoding="utf-8"?>
+  it(
+    "should strip xml-stylesheet, comments, and fix self-closing tags and br/hr",
+    function()
+      local xml = [[<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="/opds.xsl"?>
 <!-- This is an XML comment that luxl does not like -->
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -117,12 +125,13 @@ describe("OPDSParser", function()
   </entry>
 </feed>]]
 
-    local parsed = OPDSParser:parse(xml)
-    assert.is_table(parsed)
-    local feed = parsed.feed
-    assert.is_table(feed)
-    assert.are.equal("Commented Feed", feed.title)
-    assert.is_table(feed.entry)
-    assert.are.equal("Entry 1", feed.entry[1].title)
-  end)
+      local parsed = OPDSParser:parse(xml)
+      assert.is_table(parsed)
+      local feed = parsed.feed
+      assert.is_table(feed)
+      assert.are.equal("Commented Feed", feed.title)
+      assert.is_table(feed.entry)
+      assert.are.equal("Entry 1", feed.entry[1].title)
+    end
+  )
 end)

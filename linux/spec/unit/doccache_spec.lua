@@ -26,7 +26,7 @@ describe("DocCache", function()
     DocCache.cache_path = temp_dir .. "/"
     DocCache.cache_dir = temp_dir .. "/"
     DocCache.disk_cache = true
-    DocCache.cached = DocCache:_getDiskCache()
+    DocCache:refreshSnapshot()
   end)
 
   after_each(function()
@@ -124,54 +124,57 @@ describe("DocCache", function()
       assert.is_not_nil(lfs.attributes(dumped_file_path .. ".size", "size"))
     end)
 
-    it("should evict oldest access-time cache files when exceeding budget", function()
-      -- Pre-create older and newer cache files
-      local old_file = temp_dir .. "/old_cache_file"
-      local f1 = assert(io.open(old_file, "w"))
-      f1:write(string.rep("a", 100))
-      f1:close()
-      lfs.touch(old_file, os.time() - 200, os.time() - 200)
+    it(
+      "should evict oldest access-time cache files when exceeding budget",
+      function()
+        -- Pre-create older and newer cache files
+        local old_file = temp_dir .. "/old_cache_file"
+        local f1 = assert(io.open(old_file, "w"))
+        f1:write(string.rep("a", 100))
+        f1:close()
+        lfs.touch(old_file, os.time() - 200, os.time() - 200)
 
-      local mid_file = temp_dir .. "/mid_cache_file"
-      local f2 = assert(io.open(mid_file, "w"))
-      f2:write(string.rep("b", 100))
-      f2:close()
-      lfs.touch(mid_file, os.time() - 50, os.time() - 50)
+        local mid_file = temp_dir .. "/mid_cache_file"
+        local f2 = assert(io.open(mid_file, "w"))
+        f2:write(string.rep("b", 100))
+        f2:close()
+        lfs.touch(mid_file, os.time() - 50, os.time() - 50)
 
-      DocCache.cached = DocCache:_getDiskCache()
-      DocCache.size = 150
+        DocCache:refreshSnapshot()
+        DocCache.size = 150
 
-      local doc_path = "/tmp/evict_book_" .. ffiUtil.getpid() .. ".epub"
-      local item1 = {
-        persistent = true,
-        doc_path = doc_path,
-        dump = function(_self, path)
-          local f = assert(io.open(path, "w"))
-          f:write(string.rep("c", 60))
-          f:close()
-          return 60
-        end,
-        onFree = function() end,
-      }
-      local item_hinted = {
-        persistent = true,
-        doc_path = doc_path,
-        dump = function()
-          return 10
-        end,
-        onFree = function() end,
-      }
-      DocCache.cache:set("evict_disp", item1, 60)
-      DocCache.cache:set("evict_hint", item_hinted, 10)
+        local doc_path = "/tmp/evict_book_" .. ffiUtil.getpid() .. ".epub"
+        local item1 = {
+          persistent = true,
+          doc_path = doc_path,
+          dump = function(_self, path)
+            local f = assert(io.open(path, "w"))
+            f:write(string.rep("c", 60))
+            f:close()
+            return 60
+          end,
+          onFree = function() end,
+        }
+        local item_hinted = {
+          persistent = true,
+          doc_path = doc_path,
+          dump = function()
+            return 10
+          end,
+          onFree = function() end,
+        }
+        DocCache.cache:set("evict_disp", item1, 60)
+        DocCache.cache:set("evict_hint", item_hinted, 10)
 
-      DocCache:serialize(doc_path)
+        DocCache:serialize(doc_path)
 
-      assert.is_nil(lfs.attributes(old_file))
-      assert.is_nil(lfs.attributes(mid_file))
+        assert.is_nil(lfs.attributes(old_file))
+        assert.is_nil(lfs.attributes(mid_file))
 
-      local dumped_path = temp_dir .. "/" .. md5("evict_disp")
-      assert.is_not_nil(lfs.attributes(dumped_path))
-    end)
+        local dumped_path = temp_dir .. "/" .. md5("evict_disp")
+        assert.is_not_nil(lfs.attributes(dumped_path))
+      end
+    )
 
     it("should refresh disk cache snapshot via refreshSnapshot", function()
       local dummy_file = temp_dir .. "/snapshot_test"

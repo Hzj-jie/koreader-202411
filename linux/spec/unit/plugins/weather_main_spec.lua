@@ -108,6 +108,36 @@ describe("Weather main plugin module", function()
         os.remove(tmp_file)
       end
     )
+
+    it("opens postal code dialog without an empty description", function()
+      local tmp_file = os.tmpname()
+      local inst = Weather:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+        settings_file = tmp_file,
+      })
+      inst:loadSettings()
+
+      local menu_items = {}
+      inst:addToMainMenu(menu_items)
+
+      local captured_dialog
+      local old_show = UIManager.show
+      finally(function()
+        UIManager.show = old_show
+        os.remove(tmp_file)
+      end)
+      UIManager.show = function(first, second)
+        captured_dialog = second or first
+      end
+
+      menu_items.weather.sub_item_table_func()[1].sub_item_table[1].callback({})
+      assert.is_table(captured_dialog)
+      assert.is_nil(captured_dialog.description)
+    end)
   end)
 
   describe("failing tests exposing production bugs", function()

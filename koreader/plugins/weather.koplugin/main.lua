@@ -105,7 +105,6 @@ function Weather:getSubMenuItems()
               input = postal_code,
               input_hint = gettext("Format: " .. self.default_postal_code),
               input_type = "string",
-              description = gettext(""),
               buttons = {
                 {
                   {
