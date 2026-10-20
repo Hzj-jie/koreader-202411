@@ -144,18 +144,15 @@ describe("Cache module", function()
       end)
     end)
 
-    it(
-      "skips refreshSnapshot when disk_cache is disabled",
-      function()
-        local c = Cache:new({
-          slots = 10,
-          disk_cache = false,
-          cache_path = "/nonexistent/cache/",
-        })
-        c:refreshSnapshot()
-        assert.is_nil(c.cached)
-      end
-    )
+    it("skips refreshSnapshot when disk_cache is disabled", function()
+      local c = Cache:new({
+        slots = 10,
+        disk_cache = false,
+        cache_path = "/nonexistent/cache/",
+      })
+      c:refreshSnapshot()
+      assert.is_nil(c.cached)
+    end)
 
     it(
       "asserts in refreshSnapshot when disk_cache is enabled but cache_path is nil",
@@ -233,7 +230,9 @@ describe("Cache module", function()
         end
 
         lfs.dir = function(path)
-          return function() return nil end
+          return function()
+            return nil
+          end
         end
 
         local c = Cache:new({
@@ -286,34 +285,31 @@ describe("Cache module", function()
       end
     )
 
-    it(
-      "handles lfs.dir error in refreshSnapshot gracefully",
-      function()
-        lfs.attributes = function(path, request)
-          if request == "mode" then
-            return "directory"
-          end
-          return nil
+    it("handles lfs.dir error in refreshSnapshot gracefully", function()
+      lfs.attributes = function(path, request)
+        if request == "mode" then
+          return "directory"
         end
-
-        lfs.dir = function()
-          return nil, nil, "permission denied"
-        end
-
-        local c = Cache:new({
-          slots = 10,
-          disk_cache = false,
-          cache_path = "/unreadable/cache/",
-        })
-        c.disk_cache = true
-
-        assert.has_no_errors(function()
-          c:refreshSnapshot()
-        end)
-        assert.is_table(c.cached)
-        assert.are.same({}, c.cached)
+        return nil
       end
-    )
+
+      lfs.dir = function()
+        return nil, nil, "permission denied"
+      end
+
+      local c = Cache:new({
+        slots = 10,
+        disk_cache = false,
+        cache_path = "/unreadable/cache/",
+      })
+      c.disk_cache = true
+
+      assert.has_no_errors(function()
+        c:refreshSnapshot()
+      end)
+      assert.is_table(c.cached)
+      assert.are.same({}, c.cached)
+    end)
 
     it(
       "falls back to DataStorage:getCacheDirOrNil when configured cache_path is unwritable",
@@ -390,24 +386,21 @@ describe("Cache unit behavior", function()
     assert.are.equal(1000, cache:total_size())
   end)
 
-  it(
-    "should not retain references to evicted objects after chop",
-    function()
-      local lru = require("ffi/lru")
-      local cache = lru.new(10, 1000)
+  it("should not retain references to evicted objects after chop", function()
+    local lru = require("ffi/lru")
+    local cache = lru.new(10, 1000)
 
-      local weak_val
-      do
-        local obj = { name = "test_chop" }
-        weak_val = setmetatable({ val = obj }, { __mode = "v" })
-        cache:set("k1", obj, 100)
-      end
-      cache:chop()
-      collectgarbage()
-      collectgarbage()
-      assert.is_nil(weak_val.val)
+    local weak_val
+    do
+      local obj = { name = "test_chop" }
+      weak_val = setmetatable({ val = obj }, { __mode = "v" })
+      cache:set("k1", obj, 100)
     end
-  )
+    cache:chop()
+    collectgarbage()
+    collectgarbage()
+    assert.is_nil(weak_val.val)
+  end)
 
   it(
     "should enforce willAccept and reject oversized items in size-bounded mode",

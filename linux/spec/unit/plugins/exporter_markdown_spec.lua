@@ -36,89 +36,97 @@ describe("Markdown Exporter and Template", function()
       assert.are.equal("##### N/A\n", lines2[2])
     end)
 
-    it("should group consecutive annotations by chapter and emit new headers on change", function()
-      local now = 1700000000
-      local book = {
-        title = "Chaptered Book",
-        author = "Writer",
-        {
-          {
-            chapter = "Chapter 1",
-            page = 10,
-            time = now,
-            drawer = "lighten",
-            text = "First note",
-          },
-        },
-        {
-          {
-            chapter = "Chapter 1",
-            page = 12,
-            time = now + 60,
-            drawer = "lighten",
-            text = "Second note",
-          },
-        },
-        {
-          {
-            chapter = "Chapter 2",
-            page = 20,
-            time = now + 120,
-            drawer = "underscore",
-            text = "Third note",
-          },
-        },
-      }
-
-      local lines = md.prepareBookContent(book, default_formatting, true)
-      local chapter_headers = {}
-      for _, line in ipairs(lines) do
-        if line:find("^## ") then
-          table.insert(chapter_headers, line)
-        end
-      end
-
-      assert.are.equal(2, #chapter_headers)
-      assert.are.equal("## Chapter 1", chapter_headers[1])
-      assert.are.equal("## Chapter 2", chapter_headers[2])
-    end)
-
-    it("should format highlights with all 8 formatting styles vs plain text", function()
-      local now = 1700000000
-      local styles = {
-        none = "sample",
-        bold = "**sample**",
-        highlight = "==sample==",
-        italic = "*sample*",
-        bold_italic = "**_sample_**",
-        underline_markdownit = "++sample++",
-        underline_u_tag = "<u>sample</u>",
-        strikethrough = "~~sample~~",
-      }
-
-      for style_name, expected_formatted in pairs(styles) do
-        local custom_formatting = { test_drawer = style_name }
+    it(
+      "should group consecutive annotations by chapter and emit new headers on change",
+      function()
+        local now = 1700000000
         local book = {
-          title = "Style Test",
-          author = "Tester",
+          title = "Chaptered Book",
+          author = "Writer",
           {
             {
-              chapter = "Ch",
-              page = 1,
+              chapter = "Chapter 1",
+              page = 10,
               time = now,
-              drawer = "test_drawer",
-              text = "sample",
+              drawer = "lighten",
+              text = "First note",
+            },
+          },
+          {
+            {
+              chapter = "Chapter 1",
+              page = 12,
+              time = now + 60,
+              drawer = "lighten",
+              text = "Second note",
+            },
+          },
+          {
+            {
+              chapter = "Chapter 2",
+              page = 20,
+              time = now + 120,
+              drawer = "underscore",
+              text = "Third note",
             },
           },
         }
 
-        local formatted_lines = md.prepareBookContent(book, custom_formatting, true)
-        assert.are.equal(expected_formatted, formatted_lines[5])
+        local lines = md.prepareBookContent(book, default_formatting, true)
+        local chapter_headers = {}
+        for _, line in ipairs(lines) do
+          if line:find("^## ") then
+            table.insert(chapter_headers, line)
+          end
+        end
 
-        local plain_lines = md.prepareBookContent(book, custom_formatting, false)
-        assert.are.equal("sample", plain_lines[5])
+        assert.are.equal(2, #chapter_headers)
+        assert.are.equal("## Chapter 1", chapter_headers[1])
+        assert.are.equal("## Chapter 2", chapter_headers[2])
       end
-    end)
+    )
+
+    it(
+      "should format highlights with all 8 formatting styles vs plain text",
+      function()
+        local now = 1700000000
+        local styles = {
+          none = "sample",
+          bold = "**sample**",
+          highlight = "==sample==",
+          italic = "*sample*",
+          bold_italic = "**_sample_**",
+          underline_markdownit = "++sample++",
+          underline_u_tag = "<u>sample</u>",
+          strikethrough = "~~sample~~",
+        }
+
+        for style_name, expected_formatted in pairs(styles) do
+          local custom_formatting = { test_drawer = style_name }
+          local book = {
+            title = "Style Test",
+            author = "Tester",
+            {
+              {
+                chapter = "Ch",
+                page = 1,
+                time = now,
+                drawer = "test_drawer",
+                text = "sample",
+              },
+            },
+          }
+
+          local formatted_lines =
+            md.prepareBookContent(book, custom_formatting, true)
+          assert.are.equal(expected_formatted, formatted_lines[5])
+
+          local plain_lines =
+            md.prepareBookContent(book, custom_formatting, false)
+          assert.are.equal("sample", plain_lines[5])
+        end
+      end
+    )
 
     it("should append note when note field is present", function()
       local book = {
@@ -140,32 +148,35 @@ describe("Markdown Exporter and Template", function()
       assert.are.equal("\n---\nMy personal thoughts", lines[6])
     end)
 
-    it("should handle annotations where chapter transitions from a name to nil without crashing", function()
-      local book = {
-        title = "Nil Chapter Transition",
-        author = "Author",
-        {
+    it(
+      "should handle annotations where chapter transitions from a name to nil without crashing",
+      function()
+        local book = {
+          title = "Nil Chapter Transition",
+          author = "Author",
           {
-            chapter = "Chapter 1",
-            page = 1,
-            time = 1700000000,
-            drawer = "lighten",
-            text = "First highlight",
+            {
+              chapter = "Chapter 1",
+              page = 1,
+              time = 1700000000,
+              drawer = "lighten",
+              text = "First highlight",
+            },
           },
-        },
-        {
           {
-            chapter = nil,
-            page = 2,
-            time = 1700000060,
-            drawer = "lighten",
-            text = "Second highlight without chapter",
+            {
+              chapter = nil,
+              page = 2,
+              time = 1700000060,
+              drawer = "lighten",
+              text = "Second highlight without chapter",
+            },
           },
-        },
-      }
+        }
 
-      local lines = md.prepareBookContent(book, default_formatting, true)
-    end)
+        local lines = md.prepareBookContent(book, default_formatting, true)
+      end
+    )
   end)
 
   describe("MarkdownExporter methods", function()
@@ -178,30 +189,38 @@ describe("Markdown Exporter and Template", function()
       })
     end)
 
-    it("should initialize default formatting_options and highlight_formatting in init_callback and onInit", function()
-      local changed, settings = exporter:init_callback({})
-      assert.is_true(changed)
-      assert.is_table(settings.formatting_options)
-      assert.are.equal("italic", settings.formatting_options.lighten)
-      assert.are.equal("underline_markdownit", settings.formatting_options.underscore)
-      assert.are.equal("strikethrough", settings.formatting_options.strikeout)
-      assert.are.equal("bold", settings.formatting_options.invert)
-      assert.is_true(settings.highlight_formatting)
+    it(
+      "should initialize default formatting_options and highlight_formatting in init_callback and onInit",
+      function()
+        local changed, settings = exporter:init_callback({})
+        assert.is_true(changed)
+        assert.is_table(settings.formatting_options)
+        assert.are.equal("italic", settings.formatting_options.lighten)
+        assert.are.equal(
+          "underline_markdownit",
+          settings.formatting_options.underscore
+        )
+        assert.are.equal("strikethrough", settings.formatting_options.strikeout)
+        assert.are.equal("bold", settings.formatting_options.invert)
+        assert.is_true(settings.highlight_formatting)
 
-      exporter.settings = {}
-      local saved = false
-      exporter.saveSettings = function() saved = true end
-      exporter:onInit()
-      assert.is_true(saved)
-      assert.is_table(exporter.settings.formatting_options)
-      assert.is_true(exporter.settings.highlight_formatting)
+        exporter.settings = {}
+        local saved = false
+        exporter.saveSettings = function()
+          saved = true
+        end
+        exporter:onInit()
+        assert.is_true(saved)
+        assert.is_table(exporter.settings.formatting_options)
+        assert.is_true(exporter.settings.highlight_formatting)
 
-      -- init_callback should preserve existing highlight_formatting = false
-      local _, settings2 = exporter:init_callback({
-        highlight_formatting = false,
-      })
-      assert.is_false(settings2.highlight_formatting)
-    end)
+        -- init_callback should preserve existing highlight_formatting = false
+        local _, settings2 = exporter:init_callback({
+          highlight_formatting = false,
+        })
+        assert.is_false(settings2.highlight_formatting)
+      end
+    )
 
     it("should construct menu table and toggle settings", function()
       local saved_count = 0
@@ -263,8 +282,12 @@ describe("Markdown Exporter and Template", function()
 
     it("should export markdown file and return success status", function()
       local temp_path = "/tmp/test_export_md_" .. ffiUtil.getpid() .. ".md"
-      exporter.getFilePath = function() return temp_path end
-      exporter.getTimeStamp = function() return "2026-10-10 00:00:00" end
+      exporter.getFilePath = function()
+        return temp_path
+      end
+      exporter.getTimeStamp = function()
+        return "2026-10-10 00:00:00"
+      end
       exporter.settings = {
         formatting_options = {
           lighten = "italic",
@@ -302,7 +325,9 @@ describe("Markdown Exporter and Template", function()
       assert.is_truthy(content:find("_Generated at: 2026%-10%-10 00:00:00_"))
 
       -- Failure when path cannot be written
-      exporter.getFilePath = function() return "/nonexistent/invalid/dir/path.md" end
+      exporter.getFilePath = function()
+        return "/nonexistent/invalid/dir/path.md"
+      end
       assert.is_false(exporter:export(data))
     end)
 
@@ -311,7 +336,9 @@ describe("Markdown Exporter and Template", function()
       exporter.shareText = function(_self, text)
         shared_text = text
       end
-      exporter.getTimeStamp = function() return "2026-10-10 00:00:00" end
+      exporter.getTimeStamp = function()
+        return "2026-10-10 00:00:00"
+      end
       exporter.settings = {
         formatting_options = { lighten = "bold" },
         highlight_formatting = true,
@@ -335,7 +362,9 @@ describe("Markdown Exporter and Template", function()
       assert.is_string(shared_text)
       assert.is_truthy(shared_text:find("# Share Book"))
       assert.is_truthy(shared_text:find("**Shared highlight**"))
-      assert.is_truthy(shared_text:find("_Generated at: 2026%-10%-10 00:00:00_"))
+      assert.is_truthy(
+        shared_text:find("_Generated at: 2026%-10%-10 00:00:00_")
+      )
     end)
   end)
 end)

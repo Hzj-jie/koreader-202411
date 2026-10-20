@@ -42,6 +42,3 @@ if __name__ == "__main__":
                 ev["code"],
                 ev["value"])
             )
-
-
-

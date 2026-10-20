@@ -14,7 +14,12 @@ describe("Solitaire Stats module", function()
   end)
 
   before_each(function()
-    tmp_stats_path = lfs.currentdir() .. "/test_solitaire_stats_" .. ffiUtil.getpid() .. "_" .. os.time() .. ".lua"
+    tmp_stats_path = lfs.currentdir()
+      .. "/test_solitaire_stats_"
+      .. ffiUtil.getpid()
+      .. "_"
+      .. os.time()
+      .. ".lua"
   end)
 
   after_each(function()
@@ -41,80 +46,89 @@ describe("Solitaire Stats module", function()
     assert.are.same({}, s.leaderboard)
   end)
 
-  it("should record wins and update streaks/leaderboard across Draw-1 and Draw-3", function()
-    local s = Stats:new()
-    s.stats_path = tmp_stats_path
+  it(
+    "should record wins and update streaks/leaderboard across Draw-1 and Draw-3",
+    function()
+      local s = Stats:new()
+      s.stats_path = tmp_stats_path
 
-    s:recordWin(500, 45, 120, 1)
-    assert.are.equal(1, s.games_played)
-    assert.are.equal(1, s.games_won)
-    assert.are.equal(1, s.draw1_games_played)
-    assert.are.equal(1, s.draw1_games_won)
-    assert.are.equal(0, s.draw3_games_played)
-    assert.are.equal(500, s.best_score)
-    assert.are.equal(45, s.fewest_moves)
-    assert.are.equal(120, s.best_time)
-    assert.are.equal(1, s.current_win_streak)
-    assert.are.equal(1, s.longest_win_streak)
-    assert.are.equal(0, s.current_lose_streak)
+      s:recordWin(500, 45, 120, 1)
+      assert.are.equal(1, s.games_played)
+      assert.are.equal(1, s.games_won)
+      assert.are.equal(1, s.draw1_games_played)
+      assert.are.equal(1, s.draw1_games_won)
+      assert.are.equal(0, s.draw3_games_played)
+      assert.are.equal(500, s.best_score)
+      assert.are.equal(45, s.fewest_moves)
+      assert.are.equal(120, s.best_time)
+      assert.are.equal(1, s.current_win_streak)
+      assert.are.equal(1, s.longest_win_streak)
+      assert.are.equal(0, s.current_lose_streak)
 
-    s:recordWin(600, 40, 100, 3)
-    assert.are.equal(2, s.games_played)
-    assert.are.equal(2, s.games_won)
-    assert.are.equal(1, s.draw3_games_played)
-    assert.are.equal(1, s.draw3_games_won)
-    assert.are.equal(600, s.best_score)
-    assert.are.equal(40, s.fewest_moves)
-    assert.are.equal(100, s.best_time)
-    assert.are.equal(2, s.current_win_streak)
-    assert.are.equal(2, s.longest_win_streak)
-    assert.are.equal(2, #s.leaderboard)
-    assert.are.equal(600, s.leaderboard[1].score)
-    assert.are.equal(500, s.leaderboard[2].score)
-  end)
-
-  it("should record losses and reset win streak while tracking lose streak", function()
-    local s = Stats:new()
-    s.stats_path = tmp_stats_path
-
-    s:recordWin(500, 45, 120, 1)
-    s:recordWin(550, 42, 110, 1)
-    assert.are.equal(2, s.current_win_streak)
-    assert.are.equal(2, s.longest_win_streak)
-
-    s:recordLoss(3)
-    assert.are.equal(3, s.games_played)
-    assert.are.equal(2, s.games_won)
-    assert.are.equal(1, s.games_lost)
-    assert.are.equal(1, s.draw3_games_played)
-    assert.are.equal(0, s.draw3_games_won)
-    assert.are.equal(0, s.current_win_streak)
-    assert.are.equal(2, s.longest_win_streak)
-    assert.are.equal(1, s.current_lose_streak)
-
-    s:recordLoss(1)
-    assert.are.equal(2, s.current_lose_streak)
-  end)
-
-  it("should sort leaderboard by score descending and cap at max_leaderboard", function()
-    local s = Stats:new()
-    s.stats_path = tmp_stats_path
-
-    for score = 100, 1200, 100 do
-      s:addToLeaderboard(score, 50, 100, 1)
+      s:recordWin(600, 40, 100, 3)
+      assert.are.equal(2, s.games_played)
+      assert.are.equal(2, s.games_won)
+      assert.are.equal(1, s.draw3_games_played)
+      assert.are.equal(1, s.draw3_games_won)
+      assert.are.equal(600, s.best_score)
+      assert.are.equal(40, s.fewest_moves)
+      assert.are.equal(100, s.best_time)
+      assert.are.equal(2, s.current_win_streak)
+      assert.are.equal(2, s.longest_win_streak)
+      assert.are.equal(2, #s.leaderboard)
+      assert.are.equal(600, s.leaderboard[1].score)
+      assert.are.equal(500, s.leaderboard[2].score)
     end
+  )
 
-    assert.are.equal(10, #s.leaderboard)
-    assert.are.equal(1200, s.leaderboard[1].score)
-    assert.are.equal(300, s.leaderboard[10].score)
+  it(
+    "should record losses and reset win streak while tracking lose streak",
+    function()
+      local s = Stats:new()
+      s.stats_path = tmp_stats_path
 
-    -- Insert intermediate score
-    s:addToLeaderboard(850, 48, 95, 3)
-    assert.are.equal(10, #s.leaderboard)
-    assert.are.equal(1200, s.leaderboard[1].score)
-    assert.are.equal(850, s.leaderboard[5].score)
-    assert.are.equal(400, s.leaderboard[10].score)
-  end)
+      s:recordWin(500, 45, 120, 1)
+      s:recordWin(550, 42, 110, 1)
+      assert.are.equal(2, s.current_win_streak)
+      assert.are.equal(2, s.longest_win_streak)
+
+      s:recordLoss(3)
+      assert.are.equal(3, s.games_played)
+      assert.are.equal(2, s.games_won)
+      assert.are.equal(1, s.games_lost)
+      assert.are.equal(1, s.draw3_games_played)
+      assert.are.equal(0, s.draw3_games_won)
+      assert.are.equal(0, s.current_win_streak)
+      assert.are.equal(2, s.longest_win_streak)
+      assert.are.equal(1, s.current_lose_streak)
+
+      s:recordLoss(1)
+      assert.are.equal(2, s.current_lose_streak)
+    end
+  )
+
+  it(
+    "should sort leaderboard by score descending and cap at max_leaderboard",
+    function()
+      local s = Stats:new()
+      s.stats_path = tmp_stats_path
+
+      for score = 100, 1200, 100 do
+        s:addToLeaderboard(score, 50, 100, 1)
+      end
+
+      assert.are.equal(10, #s.leaderboard)
+      assert.are.equal(1200, s.leaderboard[1].score)
+      assert.are.equal(300, s.leaderboard[10].score)
+
+      -- Insert intermediate score
+      s:addToLeaderboard(850, 48, 95, 3)
+      assert.are.equal(10, #s.leaderboard)
+      assert.are.equal(1200, s.leaderboard[1].score)
+      assert.are.equal(850, s.leaderboard[5].score)
+      assert.are.equal(400, s.leaderboard[10].score)
+    end
+  )
 
   it("should calculate averages and format time correctly", function()
     local s = Stats:new()
@@ -139,43 +153,57 @@ describe("Solitaire Stats module", function()
     assert.are.equal(150, s:getAverageTime())
   end)
 
-  it("should format statistics text with all sections and draw modes", function()
-    local s = Stats:new()
-    s.stats_path = tmp_stats_path
+  it(
+    "should format statistics text with all sections and draw modes",
+    function()
+      local s = Stats:new()
+      s.stats_path = tmp_stats_path
 
-    -- Unplayed state
-    local empty_text = s:getStatsText()
-    assert.is_string(empty_text)
-    assert.is_not_nil(empty_text:find("Games Played:    0", 1, true))
-    assert.is_not_nil(empty_text:find("Fewest Moves:    --", 1, true))
-    assert.is_nil(empty_text:find("── By Draw Mode ──", 1, true))
+      -- Unplayed state
+      local empty_text = s:getStatsText()
+      assert.is_string(empty_text)
+      assert.is_not_nil(empty_text:find("Games Played:    0", 1, true))
+      assert.is_not_nil(empty_text:find("Fewest Moves:    --", 1, true))
+      assert.is_nil(empty_text:find("── By Draw Mode ──", 1, true))
 
-    -- Played state with wins and losses in both modes
-    s:recordWin(500, 50, 100, 1)
-    s:recordLoss(3)
+      -- Played state with wins and losses in both modes
+      s:recordWin(500, 50, 100, 1)
+      s:recordLoss(3)
 
-    local text = s:getStatsText()
-    assert.is_not_nil(text:find("Games Played:    2", 1, true))
-    assert.is_not_nil(text:find("Games Won:       1", 1, true))
-    assert.is_not_nil(text:find("Games Lost:      1", 1, true))
-    assert.is_not_nil(text:find("Win Rate:        50%", 1, true))
-    assert.is_not_nil(text:find("Best Score:      500", 1, true))
-    assert.is_not_nil(text:find("Fewest Moves:    50", 1, true))
-    assert.is_not_nil(text:find("── By Draw Mode ──", 1, true))
-    assert.is_not_nil(text:find("Draw-1:  1/1 (100%)", 1, true))
-    assert.is_not_nil(text:find("Draw-3:  0/1 (0%)", 1, true))
-  end)
+      local text = s:getStatsText()
+      assert.is_not_nil(text:find("Games Played:    2", 1, true))
+      assert.is_not_nil(text:find("Games Won:       1", 1, true))
+      assert.is_not_nil(text:find("Games Lost:      1", 1, true))
+      assert.is_not_nil(text:find("Win Rate:        50%", 1, true))
+      assert.is_not_nil(text:find("Best Score:      500", 1, true))
+      assert.is_not_nil(text:find("Fewest Moves:    50", 1, true))
+      assert.is_not_nil(text:find("── By Draw Mode ──", 1, true))
+      assert.is_not_nil(text:find("Draw-1:  1/1 (100%)", 1, true))
+      assert.is_not_nil(text:find("Draw-3:  0/1 (0%)", 1, true))
+    end
+  )
 
   it("should format leaderboard text when empty vs populated", function()
     local s = Stats:new()
     s.stats_path = tmp_stats_path
 
-    assert.are.equal("No games won yet!\n\nWin a game to see your scores here.", s:getLeaderboardText())
+    assert.are.equal(
+      "No games won yet!\n\nWin a game to see your scores here.",
+      s:getLeaderboardText()
+    )
 
     s:recordWin(750, 35, 90, 3)
     local board_text = s:getLeaderboardText()
-    assert.is_not_nil(board_text:find("══════ BEST SCORES ══════", 1, true))
-    assert.is_not_nil(board_text:find("#1  Score: 750  Moves: 35  Time: 1:30  D3", 1, true))
+    assert.is_not_nil(
+      board_text:find(
+        "══════ BEST SCORES ══════",
+        1,
+        true
+      )
+    )
+    assert.is_not_nil(
+      board_text:find("#1  Score: 750  Moves: 35  Time: 1:30  D3", 1, true)
+    )
   end)
 
   it("should persist stats to LuaSettings and reload correctly", function()

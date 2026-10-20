@@ -21,7 +21,8 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local readergoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local readergoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
     assert.is_table(readergoto)
 
     local menu_items = {}
@@ -41,7 +42,8 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local rgoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local rgoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
     assert.is_true(rgoto:onGoToBeginning())
     assert.is_true(rgoto:onGoToEnd())
     assert.is_true(rgoto:onGoToRandomPage())
@@ -64,7 +66,8 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local rgoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local rgoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
     rgoto:onShowGotoDialog()
     assert.is_table(rgoto.goto_dialog)
 
@@ -88,7 +91,8 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local rgoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local rgoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
     local broadcasted_events = {}
     local orig_broadcast = UIManager.broadcastEvent
     UIManager.broadcastEvent = function(_self, ev)
@@ -126,7 +130,8 @@ describe("ReaderGoto module", function()
       document = DocumentRegistry:openDocument(sample_epub),
     })
 
-    local rgoto = ReaderGoto:new({ ui = readerui, document = readerui.document })
+    local rgoto =
+      ReaderGoto:new({ ui = readerui, document = readerui.document })
 
     -- Mock pagemap with page labels
     readerui.pagemap = {
@@ -152,7 +157,9 @@ describe("ReaderGoto module", function()
 
     -- Test onShowGotoDialog with pagemap labels
     rgoto:onShowGotoDialog()
-    assert.is_true(string.find(rgoto.goto_dialog.input_hint, "@iv %(i %- xx%)") ~= nil)
+    assert.is_true(
+      string.find(rgoto.goto_dialog.input_hint, "@iv %(i %- xx%)") ~= nil
+    )
 
     local broadcasted_events = {}
     local orig_broadcast = UIManager.broadcastEvent

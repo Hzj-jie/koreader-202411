@@ -37,58 +37,46 @@ describe("CreOptions", function()
       return Screen.DEVICE_ROTATED_UPRIGHT
     end
     local icons_ur = opt.item_icons_func()
-    assert.are.same(
-      {
-        "rotation.P.90CCW",
-        "rotation.P.0UR",
-        "rotation.P.90CW",
-        "rotation.P.180UD",
-      },
-      icons_ur
-    )
+    assert.are.same({
+      "rotation.P.90CCW",
+      "rotation.P.0UR",
+      "rotation.P.90CW",
+      "rotation.P.180UD",
+    }, icons_ur)
     assert.are.equal(Screen.DEVICE_ROTATED_UPRIGHT, opt.current_func())
 
     Screen.getRotationMode = function()
       return Screen.DEVICE_ROTATED_UPSIDE_DOWN
     end
     local icons_ud = opt.item_icons_func()
-    assert.are.same(
-      {
-        "rotation.P.90CW",
-        "rotation.P.180UD",
-        "rotation.P.90CCW",
-        "rotation.P.0UR",
-      },
-      icons_ud
-    )
+    assert.are.same({
+      "rotation.P.90CW",
+      "rotation.P.180UD",
+      "rotation.P.90CCW",
+      "rotation.P.0UR",
+    }, icons_ud)
 
     Screen.getRotationMode = function()
       return Screen.DEVICE_ROTATED_CLOCKWISE
     end
     local icons_cw = opt.item_icons_func()
-    assert.are.same(
-      {
-        "rotation.L.90CCW",
-        "rotation.L.0UR",
-        "rotation.L.90CW",
-        "rotation.L.180UD",
-      },
-      icons_cw
-    )
+    assert.are.same({
+      "rotation.L.90CCW",
+      "rotation.L.0UR",
+      "rotation.L.90CW",
+      "rotation.L.180UD",
+    }, icons_cw)
 
     Screen.getRotationMode = function()
       return Screen.DEVICE_ROTATED_COUNTER_CLOCKWISE
     end
     local icons_ccw = opt.item_icons_func()
-    assert.are.same(
-      {
-        "rotation.L.90CW",
-        "rotation.L.180UD",
-        "rotation.L.90CCW",
-        "rotation.L.0UR",
-      },
-      icons_ccw
-    )
+    assert.are.same({
+      "rotation.L.90CW",
+      "rotation.L.180UD",
+      "rotation.L.90CCW",
+      "rotation.L.0UR",
+    }, icons_ccw)
 
     Screen.getRotationMode = orig_getRotationMode
   end)

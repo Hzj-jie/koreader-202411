@@ -1001,7 +1001,6 @@ describe("UIManager spec", function()
         UIManager:insertZMQ(dummy_zmq)
         UIManager:removeZMQ(dummy_zmq)
 
-
         UIManager:scheduleRefresh("fast", nil, false)
         UIManager:ignoreNextRefreshPromote()
         assert.is_boolean(UIManager:fullRefreshPromoteEnabled())

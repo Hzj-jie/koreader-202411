@@ -24,33 +24,27 @@ describe("ProgressWidget", function()
         )
       end,
       paintRoundedRect = function(self, x, y, w, h, color, radius)
-        table.insert(
-          operations,
-          {
-            op = "paintRoundedRect",
-            x = x,
-            y = y,
-            w = w,
-            h = h,
-            color = color,
-            radius = radius,
-          }
-        )
+        table.insert(operations, {
+          op = "paintRoundedRect",
+          x = x,
+          y = y,
+          w = w,
+          h = h,
+          color = color,
+          radius = radius,
+        })
       end,
       paintBorder = function(self, x, y, w, h, size, color, radius)
-        table.insert(
-          operations,
-          {
-            op = "paintBorder",
-            x = x,
-            y = y,
-            w = w,
-            h = h,
-            size = size,
-            color = color,
-            radius = radius,
-          }
-        )
+        table.insert(operations, {
+          op = "paintBorder",
+          x = x,
+          y = y,
+          w = w,
+          h = h,
+          size = size,
+          color = color,
+          radius = radius,
+        })
       end,
       blitFrom = function(self, src, ...)
         table.insert(operations, { op = "blitFrom", src = src })

@@ -61,30 +61,33 @@ describe("ScoreBoardWidget widget", function()
       assert.are.equal(size.h, widget.dimen.h)
     end)
 
-    it("should update value and schedule redraw only after dimen is populated", function()
-      local widget = ScoreBoardWidget:new({
-        name = "SCORE",
-        value = "100",
-      })
+    it(
+      "should update value and schedule redraw only after dimen is populated",
+      function()
+        local widget = ScoreBoardWidget:new({
+          name = "SCORE",
+          value = "100",
+        })
 
-      -- Before paintTo, dimen is nil, so setValue does not call setDirty
-      widget:setValue("200")
-      assert.are.equal("200", widget._value_label.text)
-      assert.are.equal(0, #dirty_calls)
+        -- Before paintTo, dimen is nil, so setValue does not call setDirty
+        widget:setValue("200")
+        assert.are.equal("200", widget._value_label.text)
+        assert.are.equal(0, #dirty_calls)
 
-      -- Populate dimen via paintTo
-      local size = widget:getSize()
-      local bb = Blitbuffer.new(size.w, size.h)
-      widget:paintTo(bb, 0, 0)
-      assert.is_not_nil(widget.dimen)
+        -- Populate dimen via paintTo
+        local size = widget:getSize()
+        local bb = Blitbuffer.new(size.w, size.h)
+        widget:paintTo(bb, 0, 0)
+        assert.is_not_nil(widget.dimen)
 
-      -- After paintTo, setValue triggers setDirty with dimen
-      widget:setValue("256")
-      assert.are.equal("256", widget._value_label.text)
-      assert.are.equal(1, #dirty_calls)
-      assert.are.equal(widget, dirty_calls[1].target)
-      assert.are.equal("fast", dirty_calls[1].mode)
-      assert.are.equal(widget.dimen, dirty_calls[1].dimen)
-    end)
+        -- After paintTo, setValue triggers setDirty with dimen
+        widget:setValue("256")
+        assert.are.equal("256", widget._value_label.text)
+        assert.are.equal(1, #dirty_calls)
+        assert.are.equal(widget, dirty_calls[1].target)
+        assert.are.equal("fast", dirty_calls[1].mode)
+        assert.are.equal(widget.dimen, dirty_calls[1].dimen)
+      end
+    )
   end)
 end)
