@@ -49,16 +49,16 @@ local CHECKSUM_METHOD = {
 -- Debounce push/pull attempts
 local API_CALL_DEBOUNCE_DELAY = time.s(25)
 
-local client
+local cached_client
 
 local function getClient(path, custom_server)
-  if not client or client.custom_url ~= custom_server then
-    client = require("plugins/kosync.koplugin/KOSyncClient"):new({
+  if not cached_client or cached_client.custom_url ~= custom_server then
+    cached_client = require("plugins/kosync.koplugin/KOSyncClient"):new({
       custom_url = custom_server,
       service_spec = path .. "/api.json",
     })
   end
-  return client
+  return cached_client
 end
 
 function KOSync:init()
