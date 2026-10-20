@@ -544,7 +544,8 @@ Please wait…
           text = T(
             N_(
               "Conversion complete.\nImported one book to the database.\nTap to continue.",
-              "Conversion complete.\nImported %1 books to the database.\nTap to continue."
+              "Conversion complete.\nImported %1 books to the database.\nTap to continue.",
+              nr_book
             ),
             nr_book
           ),
