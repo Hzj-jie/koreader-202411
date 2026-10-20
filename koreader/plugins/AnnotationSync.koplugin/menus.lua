@@ -2,7 +2,7 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = require("ffi/util").template
 local util = require("util")
 local utils = require("plugins/AnnotationSync.koplugin/utils")
@@ -27,24 +27,18 @@ function M.show_deleted_annotations(plugin, document)
       keep_menu_open = true,
       callback = function()
         UIManager:show(ConfirmBox:new({
-          text = T(
-            N_(
-              "Are you sure you want to restore 1 deleted annotation?",
-              "Are you sure you want to restore all %1 deleted annotations?",
-              #deleted
-            ),
+          text = T_N(
+            "Are you sure you want to restore 1 deleted annotation?",
+            "Are you sure you want to restore all %1 deleted annotations?",
             #deleted
           ),
           ok_text = gettext("Restore All"),
           ok_callback = function()
             plugin:restoreAnnotations(deleted, true) -- true = silent
             utils.show_msg(
-              T(
-                N_(
-                  "Restored 1 annotation.",
-                  "Restored %1 annotations.",
-                  #deleted
-                ),
+              T_N(
+                "Restored 1 annotation.",
+                "Restored %1 annotations.",
                 #deleted
               )
             )
@@ -224,12 +218,9 @@ function M.show_differing_settings_menu(
       end
       if count > 0 then
         utils.show_msg(
-          T(
-            N_(
-              "Successfully imported 1 setting.",
-              "Successfully imported %1 settings.",
-              count
-            ),
+          T_N(
+            "Successfully imported 1 setting.",
+            "Successfully imported %1 settings.",
             count
           )
         )
@@ -365,13 +356,15 @@ function M.show_pending_documents(plugin)
         if plugin.settings.network_auto_sync and remaining > 0 then
           local mins = math.ceil(remaining / 60)
           if failed then
-            item.mandatory = T(
-              N_("Failed, retry in 1 minute", "Failed, retry in %1 minutes", mins),
+            item.mandatory = T_N(
+              "Failed, retry in 1 minute",
+              "Failed, retry in %1 minutes",
               mins
             )
           else
-            item.mandatory = T(
-              N_("Cool down for 1 minute", "Cool down for %1 minutes", mins),
+            item.mandatory = T_N(
+              "Cool down for 1 minute",
+              "Cool down for %1 minutes",
               mins
             )
           end

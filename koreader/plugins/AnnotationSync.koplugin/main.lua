@@ -7,7 +7,6 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local docsettings = require("frontend/docsettings")
 local T = require("ffi/util").template
 local gettext = require("gettext")
-local N_ = gettext.ngettext
 local json = require("json")
 local logger = require("logger")
 local util = require("util")
@@ -243,12 +242,9 @@ function AnnotationSyncPlugin:addToMainMenu(menu_items)
           UIManager:scheduleIn(0.1, function()
             local count = self.manager:scanLibraryForUnsyncedDocuments()
             utils.show_msg(
-              T(
-                N_(
-                  "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down.",
-                  "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down.",
-                  count
-                ),
+              gettext.T_N(
+                "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down.",
+                "%1 books from reading history are pending.\nSyncing them may take a while and slow KOReader down.",
                 count
               )
             )
