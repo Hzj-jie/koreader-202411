@@ -15,8 +15,6 @@ local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
 local C_ = gettext.pgettext
-local N_ = gettext.ngettext
-local T = require("ffi/util").template
 
 local K = require("ui/data/keyboardlayouts/ja_keyboard_keys")
 
@@ -180,12 +178,9 @@ local function genMenuItems(self)
         local interval = getKeitaiTapInterval()
         if interval ~= 0 then
           -- @translators Keitai input is a kind of Japanese keyboard input mode (similar to T9 keypad input). See <https://en.wikipedia.org/wiki/Japanese_input_method#Mobile_phones> for more information.
-          return T(
-            N_(
-              "Keitai tap interval: %1 second",
-              "Keitai tap interval: %1 seconds",
-              time.to_s(interval)
-            ),
+          return gettext.T_N(
+            "Keitai tap interval: %1 second",
+            "Keitai tap interval: %1 seconds",
             time.to_s(interval)
           )
         else

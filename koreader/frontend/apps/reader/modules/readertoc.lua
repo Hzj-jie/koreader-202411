@@ -16,7 +16,7 @@ local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local logger = require("logger")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -1194,12 +1194,9 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
     end
     return {
       text_func = function()
-        return T(
-          N_(
-            "1 entry at ToC depth %2",
-            "%1 entries at ToC depth %2",
-            #ticks[level]
-          ),
+        return T_N(
+          "1 entry at ToC depth %2",
+          "%1 entries at ToC depth %2",
           #ticks[level],
           level
         )
@@ -1224,10 +1221,7 @@ See Style tweaks → Miscellaneous → Alternative ToC hints.]])
           nb_ticks = nb_ticks + #ticks[level]
         end
       end
-      return T(
-        N_("Progress bars: 1 tick", "Progress bars: %1 ticks", nb_ticks),
-        nb_ticks
-      )
+      return T_N("Progress bars: 1 tick", "Progress bars: %1 ticks", nb_ticks)
     end,
     help_text = gettext(
       [[The progress bars in the footer and the skim dialog can become cramped when the table of contents is complex. This allows you to restrict the number of tick marks.]]

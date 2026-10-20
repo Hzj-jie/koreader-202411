@@ -519,4 +519,56 @@ describe("Statistics plugin", function()
       end
     )
   end)
+
+  it(
+    "should use singular form when migrating 1 book in _checkInitDatabase",
+    function()
+      local UIManager = require("ui/uimanager")
+      local ReadHistory = require("readhistory")
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      local orig_forceRepaint = UIManager.forceRepaint
+      local orig_hist = ReadHistory.hist
+
+      local shown_texts = {}
+      UIManager.show = function(self, widget)
+        if widget and widget.text then
+          table.insert(shown_texts, widget.text)
+        end
+      end
+      UIManager.close = function() end
+      UIManager.forceRepaint = function() end
+      ReadHistory.hist = { { text = "/path/to/some_book.epub" } }
+
+      finally(function()
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+        UIManager.forceRepaint = orig_forceRepaint
+        ReadHistory.hist = orig_hist
+        os.remove(db_location)
+      end)
+
+      local opts = helper_create_stats_opts()
+      opts.ui.doc_props = nil
+      local stats = ReaderStatistics:new(opts)
+      stats.migrateToDB = function()
+        return 1
+      end
+
+      stats:_checkInitDatabase()
+
+      assert.is_true(#shown_texts >= 2)
+      assert.are.equal(
+        require("ffi/util").template(
+          require("gettext").ngettext(
+            "Conversion complete.\nImported one book to the database.\nTap to continue.",
+            "Conversion complete.\nImported %1 books to the database.\nTap to continue.",
+            1
+          ),
+          1
+        ),
+        shown_texts[#shown_texts]
+      )
+    end
+  )
 end)

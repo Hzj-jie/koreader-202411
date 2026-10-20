@@ -30,7 +30,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -365,13 +365,10 @@ function ListMenuItem:update()
         -- Display these instead of the read %
         if pages then
           if status == "complete" then
-            pages_str = T(
-              N_("Finished – 1 page", "Finished – %1 pages", pages),
-              pages
-            )
-          else
             pages_str =
-              T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
+              T_N("Finished – 1 page", "Finished – %1 pages", pages)
+          else
+            pages_str = T_N("On hold – 1 page", "On hold – %1 pages", pages)
           end
         else
           pages_str = status == "complete" and gettext("Finished")
@@ -405,7 +402,7 @@ function ListMenuItem:update()
         end
       else
         if pages then
-          pages_str = T(N_("1 page", "%1 pages", pages), pages)
+          pages_str = T_N("1 page", "%1 pages", pages)
         end
       end
 

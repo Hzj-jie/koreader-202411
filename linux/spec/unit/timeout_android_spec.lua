@@ -85,4 +85,27 @@ describe("TimeoutAndroid element", function()
       menu.sub_item_table[1].callback()
     end
   )
+
+  it("should choose the minutes plural form by minutes, not seconds", function()
+    package.loaded.android.settings.hasPermission = function()
+      return true
+    end
+    local gettext = require("gettext")
+    gettext.changeLang("ru")
+    package.loaded["ui/elements/timeout_android"] = nil
+
+    finally(function()
+      gettext.changeLang("C")
+      package.loaded["ui/elements/timeout_android"] = nil
+      TimeoutAndroid = require("ui/elements/timeout_android")
+    end)
+
+    assert.are.equal(
+      require("ffi/util").template(
+        gettext.ngettext("1 minute", "%1 minutes", 2),
+        2
+      ),
+      require("ui/elements/timeout_android"):getTimeoutMenuTable().sub_item_table[2].text
+    )
+  end)
 end)

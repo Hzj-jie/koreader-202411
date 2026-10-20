@@ -41,7 +41,7 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local C_ = gettext.pgettext
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local Screen = Device.screen
 local T = ffiUtil.template
 
@@ -558,10 +558,7 @@ function FileManager:tapPlus()
     local select_count = util.tableSize(self.selected_files)
     local actions_enabled = select_count > 0
     title = actions_enabled
-        and T(
-          N_("1 file selected", "%1 files selected", select_count),
-          select_count
-        )
+        and T_N("1 file selected", "%1 files selected", select_count)
       or gettext("No files selected")
     buttons = {
       {
@@ -1092,14 +1089,8 @@ function FileManager:pasteSelectedFiles(overwrite)
   end
   if skipped_nb > 0 then -- keep select mode on
     local text = self.cutfile
-        and T(
-          N_("1 file was not moved", "%1 files were not moved", skipped_nb),
-          skipped_nb
-        )
-      or T(
-        N_("1 file was not copied", "%1 files were not copied", skipped_nb),
-        skipped_nb
-      )
+        and T_N("1 file was not moved", "%1 files were not moved", skipped_nb)
+      or T_N("1 file was not copied", "%1 files were not copied", skipped_nb)
     self:showWidget(InfoMessage:new({
       text = text,
       icon = "notice-warning",
@@ -1272,8 +1263,9 @@ function FileManager:deleteSelectedFiles()
   end
   if skipped_nb > 0 then -- keep select mode on
     self:showWidget(InfoMessage:new({
-      text = T(
-        N_("Failed to delete 1 file.", "Failed to delete %1 files.", skipped_nb),
+      text = T_N(
+        "Failed to delete 1 file.",
+        "Failed to delete %1 files.",
         skipped_nb
       ),
       icon = "notice-warning",
