@@ -1,6 +1,6 @@
 describe("KOSync plugin tests", function()
   local KOSyncClass, KOSyncClient, kosync, mock_ui, mock_client
-  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs
+  local Device, UIManager, NetworkMgr, Dispatcher, G_reader_settings, MultiInputDialog, BackgroundJobs, ReaderUI
   local match
 
   setup(function()
