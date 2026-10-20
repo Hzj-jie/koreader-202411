@@ -301,6 +301,9 @@ describe("filemanagerfilesearcher", function()
       ngettext = function(sing, plur, n)
         return n == 1 and sing or plur
       end,
+      T_N = function(sing, plur, n, ...)
+        return require("ffi/util").template(n == 1 and sing or plur, n, ...)
+      end,
     }, {
       __call = function(self, text)
         return text

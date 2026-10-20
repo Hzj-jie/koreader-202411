@@ -16,6 +16,7 @@ local time = require("ui/time")
 local util = require("util")
 local zstd = require("ffi/zstd")
 local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = FFIUtil.template
 
 -- Database definition
@@ -988,10 +989,7 @@ Do you want to prune the cache of removed books?]]),
 
   if refresh_existing then
     info = InfoMessage:new({
-      text = T(
-        N_("Found 1 book to index.", "Found %1 books to index.", #files),
-        #files
-      ),
+      text = T_N("Found 1 book to index.", "Found %1 books to index.", #files),
     })
     UIManager:show(info)
     UIManager:forceRepaint()
@@ -1131,12 +1129,9 @@ Do you want to prune the cache of removed books?]]),
   info = InfoMessage:new({
     text = T(gettext("Processed %1 / %2 books."), nb_done, nb_files)
       .. "\n"
-      .. T(
-        N_(
-          "One extracted successfully.",
-          "%1 extracted successfully.",
-          nb_success
-        ),
+      .. T_N(
+        "One extracted successfully.",
+        "%1 extracted successfully.",
         nb_success
       ),
   })

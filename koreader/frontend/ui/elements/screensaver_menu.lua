@@ -135,7 +135,7 @@ return {
         sub_item_table = {
           genMenuItem(gettext("Never"), "screensaver_delay", "disable"),
           genMenuItem(
-            T(gettext.ngettext("1 second", "%1 seconds", 1), 1),
+            gettext.T_N("1 second", "%1 seconds", 1),
             "screensaver_delay",
             "1"
           ),

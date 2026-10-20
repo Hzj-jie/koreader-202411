@@ -419,6 +419,9 @@ describe("CloudStorage", function()
       ngettext = function(singular, plural, n)
         return n == 1 and singular or plural
       end,
+      T_N = function(sing, plur, n, ...)
+        return require("ffi/util").template(n == 1 and sing or plur, n, ...)
+      end,
     }, {
       __call = function(_, text)
         return text
