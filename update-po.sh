@@ -15,7 +15,7 @@ echo "Extracting strings using xgettext..."
 mkdir -p "$TEMPLATE_DIR"
 
 # Find files to translate
-LUA_FILES="reader.lua $(find frontend -iname "*.lua" | sort) $(find plugins -iname "*.lua" | sort) $(find tools -iname "*.lua" | sort)"
+LUA_FILES="reader.lua datastorage.lua $(find frontend -iname "*.lua" | sort) $(find plugins -iname "*.lua" | sort) $(find tools -iname "*.lua" | sort)"
 
 xgettext --from-code=utf-8 \
   --keyword=gettext \
