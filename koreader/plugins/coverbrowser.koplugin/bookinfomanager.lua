@@ -15,7 +15,6 @@ local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
 local zstd = require("ffi/zstd")
-local N_ = gettext.ngettext
 local T_N = gettext.T_N
 local T = FFIUtil.template
 
@@ -1048,10 +1047,7 @@ Do you want to prune the cache of removed books?]]),
     end
     UIManager:close(info)
     info = InfoMessage:new({
-      text = T(
-        N_("Found 1 book to index.", "Found %1 books to index.", #files),
-        #files
-      ),
+      text = T_N("Found 1 book to index.", "Found %1 books to index.", #files),
     })
     UIManager:show(info)
     UIManager:forceRepaint()
