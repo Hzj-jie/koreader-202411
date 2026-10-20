@@ -11,12 +11,11 @@
 # taichunmin <taichunmin@gmail.com>, 2018
 # civa <visig@protonmail.ch>, 2018
 # Yao-Hao Wang <acdsee400@gmail.com>, 2015-2016
-#: plugins/weather.koplugin/main.lua:108
 msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 19:38-0700\n"
+"POT-Creation-Date: 2026-10-19 22:15-0700\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -276,7 +275,7 @@ msgstr "輸入檔名"
 #: plugins/wallabag.koplugin/main.lua:1155
 #: plugins/wallabag.koplugin/main.lua:1220
 #: plugins/wallabag.koplugin/main.lua:1265
-#: plugins/weather.koplugin/main.lua:112 plugins/weather.koplugin/main.lua:150
+#: plugins/weather.koplugin/main.lua:111 plugins/weather.koplugin/main.lua:149
 msgid "Cancel"
 msgstr "取消"
 
@@ -611,8 +610,8 @@ msgstr "Dropbox 資料夾 (/ for root)"
 #: plugins/profiles.koplugin/main.lua:860
 #: plugins/profiles.koplugin/main.lua:974 plugins/SSH.koplugin/main.lua:180
 #: plugins/terminal.koplugin/aliases.lua:134
-#: plugins/terminal.koplugin/main.lua:812 plugins/weather.koplugin/main.lua:118
-#: plugins/weather.koplugin/main.lua:156
+#: plugins/terminal.koplugin/main.lua:812 plugins/weather.koplugin/main.lua:117
+#: plugins/weather.koplugin/main.lua:155
 msgid "Save"
 msgstr "儲存"
 
@@ -4128,7 +4127,7 @@ msgstr "全文搜尋"
 #: frontend/apps/reader/modules/readerhighlight.lua:453
 #: frontend/ui/data/creoptions.lua:250 frontend/ui/data/creoptions.lua:306
 #: frontend/ui/elements/common_settings_menu_table.lua:420
-#: frontend/ui/elements/screensaver_menu.lua:239
+#: frontend/ui/elements/screensaver_menu.lua:243
 #: plugins/solitaire.koplugin/solitaireui.lua:216
 msgid "Top"
 msgstr "上"
@@ -4136,7 +4135,7 @@ msgstr "上"
 #: frontend/apps/reader/modules/readerhighlight.lua:455
 #: frontend/ui/data/creoptions.lua:255 frontend/ui/data/creoptions.lua:311
 #: frontend/ui/elements/common_settings_menu_table.lua:422
-#: frontend/ui/elements/screensaver_menu.lua:246
+#: frontend/ui/elements/screensaver_menu.lua:250
 msgid "Bottom"
 msgstr "下"
 
@@ -12334,17 +12333,17 @@ msgid "Border fill, rotation, and fit"
 msgstr "邊框填充，旋轉和適應"
 
 #: frontend/ui/elements/screensaver_menu.lua:78
-#: frontend/ui/elements/screensaver_menu.lua:215
+#: frontend/ui/elements/screensaver_menu.lua:219
 msgid "Black fill"
 msgstr "黑色填充"
 
 #: frontend/ui/elements/screensaver_menu.lua:83
-#: frontend/ui/elements/screensaver_menu.lua:220
+#: frontend/ui/elements/screensaver_menu.lua:224
 msgid "White fill"
 msgstr "白色填充"
 
 #: frontend/ui/elements/screensaver_menu.lua:88
-#: frontend/ui/elements/screensaver_menu.lua:225
+#: frontend/ui/elements/screensaver_menu.lua:229
 msgid "No fill"
 msgstr "不填充"
 
@@ -12369,72 +12368,72 @@ msgstr "喚醒後延遲螢幕更新"
 msgid "Never"
 msgstr "從不"
 
-#: frontend/ui/elements/screensaver_menu.lua:137
+#: frontend/ui/elements/screensaver_menu.lua:138
 #: frontend/ui/elements/timeout_android.lua:29
 msgid "1 second"
 msgid_plural "%1 seconds"
 msgstr[0] "%1 秒"
 
-#: frontend/ui/elements/screensaver_menu.lua:138
+#: frontend/ui/elements/screensaver_menu.lua:142
 msgid "3 seconds"
 msgstr "3 秒"
 
-#: frontend/ui/elements/screensaver_menu.lua:139
+#: frontend/ui/elements/screensaver_menu.lua:143
 msgid "5 seconds"
 msgstr "5秒"
 
-#: frontend/ui/elements/screensaver_menu.lua:140
+#: frontend/ui/elements/screensaver_menu.lua:144
 msgid "Until a tap"
 msgstr "直到按一下"
 
-#: frontend/ui/elements/screensaver_menu.lua:142
+#: frontend/ui/elements/screensaver_menu.lua:146
 msgid "Until 'exit sleep screen' gesture"
 msgstr "直到 “退出屏保程式” 手勢"
 
-#: frontend/ui/elements/screensaver_menu.lua:149
+#: frontend/ui/elements/screensaver_menu.lua:153
 msgid "Custom images"
 msgstr "自定義圖片"
 
-#: frontend/ui/elements/screensaver_menu.lua:156
+#: frontend/ui/elements/screensaver_menu.lua:160
 msgid "Choose image or document cover"
 msgstr "選擇圖片或文件封面"
 
-#: frontend/ui/elements/screensaver_menu.lua:167
+#: frontend/ui/elements/screensaver_menu.lua:171
 msgid "Choose random image folder"
 msgstr "選擇隨機影像資料夾"
 
-#: frontend/ui/elements/screensaver_menu.lua:182
+#: frontend/ui/elements/screensaver_menu.lua:186
 #: frontend/ui/screensaver.lua:350
 msgid "Sleep screen message"
 msgstr "待機畫面訊息"
 
-#: frontend/ui/elements/screensaver_menu.lua:185
+#: frontend/ui/elements/screensaver_menu.lua:189
 msgid "Add custom message to sleep screen"
 msgstr "在屏保上新增自定義資訊"
 
-#: frontend/ui/elements/screensaver_menu.lua:195
+#: frontend/ui/elements/screensaver_menu.lua:199
 msgid "Edit sleep screen message"
 msgstr "編輯螢幕休眠資訊"
 
-#: frontend/ui/elements/screensaver_menu.lua:205
+#: frontend/ui/elements/screensaver_menu.lua:209
 msgid "Background fill"
 msgstr "背景填充"
 
-#: frontend/ui/elements/screensaver_menu.lua:207
+#: frontend/ui/elements/screensaver_menu.lua:211
 msgid ""
 "This option will only become available, if you have selected 'Leave screen "
 "as-is' as wallpaper and have 'Sleep screen message' on."
 msgstr "只有當您選擇了“將螢幕保持原樣”並且啟用了“屏保訊息”時，此選項才會可用。"
 
-#: frontend/ui/elements/screensaver_menu.lua:234
+#: frontend/ui/elements/screensaver_menu.lua:238
 msgid "Message position"
 msgstr "訊息位置"
 
-#: frontend/ui/elements/screensaver_menu.lua:241
+#: frontend/ui/elements/screensaver_menu.lua:245
 msgid "Middle"
 msgstr "中"
 
-#: frontend/ui/elements/screensaver_menu.lua:255
+#: frontend/ui/elements/screensaver_menu.lua:259
 msgid "Hide reboot/poweroff message"
 msgstr "隱藏重新啟動/關機訊息"
 
@@ -21600,66 +21599,66 @@ msgstr "郵遞區號"
 msgid "Format: "
 msgstr "格式: "
 
-#: plugins/weather.koplugin/main.lua:134
+#: plugins/weather.koplugin/main.lua:133
 msgid "Auth Token (%1)"
 msgstr "授權 Token (%1)"
 
-#: plugins/weather.koplugin/main.lua:141
+#: plugins/weather.koplugin/main.lua:140
 msgid "Auth token"
 msgstr "授權 Token"
 
-#: plugins/weather.koplugin/main.lua:145
+#: plugins/weather.koplugin/main.lua:144
 msgid ""
 "An auth token can be obtained from WeatherAPI.com. Simply signup for an "
 "account and request a token."
 msgstr ""
 "可以從 WeatherAPI.com 獲取授權 Token。只需註冊一個帳戶並申請 Token 即可。"
 
-#: plugins/weather.koplugin/main.lua:172
+#: plugins/weather.koplugin/main.lua:171
 msgid "Temperature Scale (%1)"
 msgstr "溫度單位 (%1)"
 
-#: plugins/weather.koplugin/main.lua:176
+#: plugins/weather.koplugin/main.lua:175
 msgid "Celsius"
 msgstr "攝氏度"
 
-#: plugins/weather.koplugin/main.lua:186
+#: plugins/weather.koplugin/main.lua:185
 msgid "Fahrenheit"
 msgstr "華氏度"
 
-#: plugins/weather.koplugin/main.lua:199
+#: plugins/weather.koplugin/main.lua:198
 msgid "Clock style (%1)"
 msgstr "時鐘樣式 (%1)"
 
-#: plugins/weather.koplugin/main.lua:203
+#: plugins/weather.koplugin/main.lua:202
 msgid "12 hour clock"
 msgstr "12小時制"
 
-#: plugins/weather.koplugin/main.lua:213
+#: plugins/weather.koplugin/main.lua:212
 msgid "24 hour clock"
 msgstr "24小時制"
 
-#: plugins/weather.koplugin/main.lua:227
+#: plugins/weather.koplugin/main.lua:226
 msgid "View weather forecast"
 msgstr "查看天氣預報"
 
-#: plugins/weather.koplugin/main.lua:242
+#: plugins/weather.koplugin/main.lua:241
 msgid "Error: "
 msgstr "錯誤: "
 
-#: plugins/weather.koplugin/main.lua:269
+#: plugins/weather.koplugin/main.lua:268
 msgid "Weekly forecast for %1"
 msgstr "%1 的週預報"
 
-#: plugins/weather.koplugin/main.lua:309 plugins/weather.koplugin/main.lua:334
+#: plugins/weather.koplugin/main.lua:308 plugins/weather.koplugin/main.lua:333
 msgid "Hourly forecast"
 msgstr "逐小時預報"
 
-#: plugins/weather.koplugin/main.lua:317
+#: plugins/weather.koplugin/main.lua:316
 msgid "%1 forecast"
 msgstr "%1 天氣預報"
 
-#: plugins/weather.koplugin/main.lua:368
+#: plugins/weather.koplugin/main.lua:367
 msgid "Forecast for %1"
 msgstr "%1 的天氣預報"
 

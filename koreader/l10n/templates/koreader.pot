@@ -3,13 +3,12 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: plugins/weather.koplugin/main.lua:108
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 19:38-0700\n"
+"POT-Creation-Date: 2026-10-19 22:15-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -249,7 +248,7 @@ msgstr ""
 #: plugins/wallabag.koplugin/main.lua:1155
 #: plugins/wallabag.koplugin/main.lua:1220
 #: plugins/wallabag.koplugin/main.lua:1265
-#: plugins/weather.koplugin/main.lua:112 plugins/weather.koplugin/main.lua:150
+#: plugins/weather.koplugin/main.lua:111 plugins/weather.koplugin/main.lua:149
 msgid "Cancel"
 msgstr ""
 
@@ -555,8 +554,8 @@ msgstr ""
 #: plugins/profiles.koplugin/main.lua:860
 #: plugins/profiles.koplugin/main.lua:974 plugins/SSH.koplugin/main.lua:180
 #: plugins/terminal.koplugin/aliases.lua:134
-#: plugins/terminal.koplugin/main.lua:812 plugins/weather.koplugin/main.lua:118
-#: plugins/weather.koplugin/main.lua:156
+#: plugins/terminal.koplugin/main.lua:812 plugins/weather.koplugin/main.lua:117
+#: plugins/weather.koplugin/main.lua:155
 msgid "Save"
 msgstr ""
 
@@ -3881,7 +3880,7 @@ msgstr ""
 #: frontend/apps/reader/modules/readerhighlight.lua:453
 #: frontend/ui/data/creoptions.lua:250 frontend/ui/data/creoptions.lua:306
 #: frontend/ui/elements/common_settings_menu_table.lua:420
-#: frontend/ui/elements/screensaver_menu.lua:239
+#: frontend/ui/elements/screensaver_menu.lua:243
 #: plugins/solitaire.koplugin/solitaireui.lua:216
 msgid "Top"
 msgstr ""
@@ -3889,7 +3888,7 @@ msgstr ""
 #: frontend/apps/reader/modules/readerhighlight.lua:455
 #: frontend/ui/data/creoptions.lua:255 frontend/ui/data/creoptions.lua:311
 #: frontend/ui/elements/common_settings_menu_table.lua:422
-#: frontend/ui/elements/screensaver_menu.lua:246
+#: frontend/ui/elements/screensaver_menu.lua:250
 msgid "Bottom"
 msgstr ""
 
@@ -11339,17 +11338,17 @@ msgid "Border fill, rotation, and fit"
 msgstr ""
 
 #: frontend/ui/elements/screensaver_menu.lua:78
-#: frontend/ui/elements/screensaver_menu.lua:215
+#: frontend/ui/elements/screensaver_menu.lua:219
 msgid "Black fill"
 msgstr ""
 
 #: frontend/ui/elements/screensaver_menu.lua:83
-#: frontend/ui/elements/screensaver_menu.lua:220
+#: frontend/ui/elements/screensaver_menu.lua:224
 msgid "White fill"
 msgstr ""
 
 #: frontend/ui/elements/screensaver_menu.lua:88
-#: frontend/ui/elements/screensaver_menu.lua:225
+#: frontend/ui/elements/screensaver_menu.lua:229
 msgid "No fill"
 msgstr ""
 
@@ -11374,73 +11373,73 @@ msgstr ""
 msgid "Never"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:137
+#: frontend/ui/elements/screensaver_menu.lua:138
 #: frontend/ui/elements/timeout_android.lua:29
 msgid "1 second"
 msgid_plural "%1 seconds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontend/ui/elements/screensaver_menu.lua:138
+#: frontend/ui/elements/screensaver_menu.lua:142
 msgid "3 seconds"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:139
+#: frontend/ui/elements/screensaver_menu.lua:143
 msgid "5 seconds"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:140
+#: frontend/ui/elements/screensaver_menu.lua:144
 msgid "Until a tap"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:142
+#: frontend/ui/elements/screensaver_menu.lua:146
 msgid "Until 'exit sleep screen' gesture"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:149
+#: frontend/ui/elements/screensaver_menu.lua:153
 msgid "Custom images"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:156
+#: frontend/ui/elements/screensaver_menu.lua:160
 msgid "Choose image or document cover"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:167
+#: frontend/ui/elements/screensaver_menu.lua:171
 msgid "Choose random image folder"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:182
+#: frontend/ui/elements/screensaver_menu.lua:186
 #: frontend/ui/screensaver.lua:350
 msgid "Sleep screen message"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:185
+#: frontend/ui/elements/screensaver_menu.lua:189
 msgid "Add custom message to sleep screen"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:195
+#: frontend/ui/elements/screensaver_menu.lua:199
 msgid "Edit sleep screen message"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:205
+#: frontend/ui/elements/screensaver_menu.lua:209
 msgid "Background fill"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:207
+#: frontend/ui/elements/screensaver_menu.lua:211
 msgid ""
 "This option will only become available, if you have selected 'Leave screen "
 "as-is' as wallpaper and have 'Sleep screen message' on."
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:234
+#: frontend/ui/elements/screensaver_menu.lua:238
 msgid "Message position"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:241
+#: frontend/ui/elements/screensaver_menu.lua:245
 msgid "Middle"
 msgstr ""
 
-#: frontend/ui/elements/screensaver_menu.lua:255
+#: frontend/ui/elements/screensaver_menu.lua:259
 msgid "Hide reboot/poweroff message"
 msgstr ""
 
@@ -19781,65 +19780,65 @@ msgstr ""
 msgid "Format: "
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:134
+#: plugins/weather.koplugin/main.lua:133
 msgid "Auth Token (%1)"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:141
+#: plugins/weather.koplugin/main.lua:140
 msgid "Auth token"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:145
+#: plugins/weather.koplugin/main.lua:144
 msgid ""
 "An auth token can be obtained from WeatherAPI.com. Simply signup for an "
 "account and request a token."
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:172
+#: plugins/weather.koplugin/main.lua:171
 msgid "Temperature Scale (%1)"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:176
+#: plugins/weather.koplugin/main.lua:175
 msgid "Celsius"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:186
+#: plugins/weather.koplugin/main.lua:185
 msgid "Fahrenheit"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:199
+#: plugins/weather.koplugin/main.lua:198
 msgid "Clock style (%1)"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:203
+#: plugins/weather.koplugin/main.lua:202
 msgid "12 hour clock"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:213
+#: plugins/weather.koplugin/main.lua:212
 msgid "24 hour clock"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:227
+#: plugins/weather.koplugin/main.lua:226
 msgid "View weather forecast"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:242
+#: plugins/weather.koplugin/main.lua:241
 msgid "Error: "
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:269
+#: plugins/weather.koplugin/main.lua:268
 msgid "Weekly forecast for %1"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:309 plugins/weather.koplugin/main.lua:334
+#: plugins/weather.koplugin/main.lua:308 plugins/weather.koplugin/main.lua:333
 msgid "Hourly forecast"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:317
+#: plugins/weather.koplugin/main.lua:316
 msgid "%1 forecast"
 msgstr ""
 
-#: plugins/weather.koplugin/main.lua:368
+#: plugins/weather.koplugin/main.lua:367
 msgid "Forecast for %1"
 msgstr ""
 
