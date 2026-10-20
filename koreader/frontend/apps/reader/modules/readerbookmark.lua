@@ -20,7 +20,6 @@ local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local gettext = require("gettext")
 local util = require("util")
-local N_ = gettext.ngettext
 local Screen = require("device").screen
 local T = require("ffi/util").template
 
@@ -824,8 +823,9 @@ function ReaderBookmark:onShowBookmark()
       local actions_enabled = self.select_count > 0
       local more_selections_enabled = self.select_count < #item_table
       if actions_enabled then
-        dialog_title = T(
-          N_("1 bookmark selected", "%1 bookmarks selected", self.select_count),
+        dialog_title = gettext.T_N(
+          "1 bookmark selected",
+          "%1 bookmarks selected",
           self.select_count
         )
       else

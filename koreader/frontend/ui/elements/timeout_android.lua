@@ -1,8 +1,7 @@
 local isAndroid, android = pcall(require, "android")
 local ffi = require("ffi")
 local gettext = require("gettext")
-local N_ = gettext.ngettext
-local T = require("ffi/util").template
+local T_N = gettext.T_N
 
 if not isAndroid then
   return
@@ -24,9 +23,9 @@ local timeout_custom7 = 30 * 60 * 1000
 local function humanReadableTimeout(timeout)
   local sec = timeout * (1 / 1000)
   if sec >= 60 then
-    return T(N_("1 minute", "%1 minutes", sec * (1 / 60)), sec * (1 / 60))
+    return T_N("1 minute", "%1 minutes", sec * (1 / 60))
   else
-    return T(N_("1 second", "%1 seconds", sec), sec)
+    return T_N("1 second", "%1 seconds", sec)
   end
 end
 

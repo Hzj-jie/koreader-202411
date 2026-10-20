@@ -16,8 +16,6 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
 local _ = gettext
-local N_ = gettext.ngettext
-local T = require("ffi/util").template
 
 local Screen = Device.screen
 
@@ -80,7 +78,7 @@ function MathPuzzleScreen:getTimeText()
   local mins = math.floor(math.max(0, os.time() - start_time) / 60)
   return string.format(
     _("Time: %s"),
-    T(N_("%1 minute", "%1 minutes", mins), mins)
+    gettext.T_N("%1 minute", "%1 minutes", mins)
   )
 end
 

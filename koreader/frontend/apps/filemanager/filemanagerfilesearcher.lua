@@ -15,7 +15,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = require("ffi/util").template
 
 local FileSearcher = InputContainer:extend({
@@ -280,12 +280,9 @@ function FileSearcher:showSearchResultsMessage(no_results)
       end,
     }))
   else
-    local txt = T(
-      N_(
-        "1 book has been skipped.",
-        "%1 books have been skipped.",
-        self.no_metadata_count
-      ),
+    local txt = T_N(
+      "1 book has been skipped.",
+      "%1 books have been skipped.",
       self.no_metadata_count
     ) .. "\n" .. gettext(
       "Not all books metadata extracted yet.\nExtract metadata now?"
@@ -501,10 +498,7 @@ function FileSearcher:showSelectModeDialog()
   local select_count = util.tableSize(self.selected_files)
   local actions_enabled = select_count > 0
   local title = actions_enabled
-      and T(
-        N_("1 file selected", "%1 files selected", select_count),
-        select_count
-      )
+      and T_N("1 file selected", "%1 files selected", select_count)
     or gettext("No files selected")
   local select_dialog
   local buttons = {

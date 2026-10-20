@@ -26,7 +26,6 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
 local SingleInstanceDeinflector = Deinflector:new()
@@ -215,12 +214,9 @@ function Japanese:genMenuItem()
     -- self.max_scan_length configuration
     {
       text_func = function()
-        return T(
-          N_(
-            "Text scan length: %1 character",
-            "Text scan length: %1 characters",
-            self.max_scan_length
-          ),
+        return gettext.T_N(
+          "Text scan length: %1 character",
+          "Text scan length: %1 characters",
           self.max_scan_length
         )
       end,

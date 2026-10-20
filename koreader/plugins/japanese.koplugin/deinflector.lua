@@ -21,7 +21,7 @@ local bit = require("bit")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = require("ffi/util").template
 
 local Deinflector = {}
@@ -631,12 +631,9 @@ function Deinflector:genMenuItems()
         if nenabled == 0 then
           return gettext("Text conversions: none enabled")
         else
-          return T(
-            N_(
-              "Text conversions: %1 enabled",
-              "Text conversions: %1 enabled",
-              nenabled
-            ),
+          return T_N(
+            "Text conversions: %1 enabled",
+            "Text conversions: %1 enabled",
             nenabled
           )
         end
@@ -659,9 +656,8 @@ Not every conversion will be applied at once. Instead, all possible combinations
           nvariants = nvariants + #rules
           nrules = nrules + 1
         end
-        local nrules_str = T(N_("%1 rule", "%1 rules", nrules), nrules)
-        local nvariants_str =
-          T(N_("%1 variant", "%1 variants", nvariants), nvariants)
+        local nrules_str = T_N("%1 rule", "%1 rules", nrules)
+        local nvariants_str = T_N("%1 variant", "%1 variants", nvariants)
         UIManager:show(InfoMessage:new({
           -- @translators %1 is the "%1 rule(s)" string, %2 is the "%1 variant(s)" string.
           text = T(
