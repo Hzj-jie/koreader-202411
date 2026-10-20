@@ -516,6 +516,8 @@ end
 local function getErrorMessage(body)
   if type(body) == "table" and body.message then
     return body.message
+  elseif body == "offline" then
+    return gettext("offline")
   elseif type(body) == "string" then
     return body
   end
