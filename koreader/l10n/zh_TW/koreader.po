@@ -24523,7 +24523,3 @@ msgstr "正確：%d  ·  錯誤：%d  ·  正確率：%s"
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:99
 msgid "Time: %s"
 msgstr "用時：%s"
-
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:462
-msgid "Check"
-msgstr "檢查"
