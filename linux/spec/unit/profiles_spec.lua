@@ -185,6 +185,4 @@ describe("Profiles plugin", function()
       assert.are.equal("EpubProfile", executed_profiles[1])
     end)
   end)
-
-
 end)

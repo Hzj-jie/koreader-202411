@@ -223,11 +223,17 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           shown_widgets[#shown_widgets].text
         )
         root_sub[5].callback()
-        assert.are.equal("No pending books.", shown_widgets[#shown_widgets].text)
+        assert.are.equal(
+          "No pending books.",
+          shown_widgets[#shown_widgets].text
+        )
 
         assert.is_true(root_sub[7].enabled_func())
         root_sub[7].callback()
-        assert.are.equal("No pending books.", shown_widgets[#shown_widgets].text)
+        assert.are.equal(
+          "No pending books.",
+          shown_widgets[#shown_widgets].text
+        )
 
         assert.is_true(root_sub[8].enabled_func())
         root_sub[8].callback()
@@ -248,29 +254,35 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       end
     )
 
-    it("enables push, pull and sync current book when sync_server url is empty root", function()
-      sync_instance.settings.sync_server = {
-        type = "webdav",
-        url = "",
-      }
-      G_reader_settings:save("cloud_download_dir", "")
+    it(
+      "enables push, pull and sync current book when sync_server url is empty root",
+      function()
+        sync_instance.settings.sync_server = {
+          type = "webdav",
+          url = "",
+        }
+        G_reader_settings:save("cloud_download_dir", "")
 
-      local menu_items = {}
-      sync_instance:addToMainMenu(menu_items)
-      local sub = menu_items.annotation_sync_plugin.sub_item_table
+        local menu_items = {}
+        sync_instance:addToMainMenu(menu_items)
+        local sub = menu_items.annotation_sync_plugin.sub_item_table
 
-      local push_item = sub[2]
-      local pull_item = sub[3]
-      local sync_now_item = sub[4]
+        local push_item = sub[2]
+        local pull_item = sub[3]
+        local sync_now_item = sub[4]
 
-      assert.are_equal(gettext("Push settings to cloud"), push_item.text)
-      assert.are_equal(gettext("Pull settings from cloud"), pull_item.text)
-      assert.are_equal(gettext("Sync current book now"), sync_now_item.text_func())
+        assert.are_equal(gettext("Push settings to cloud"), push_item.text)
+        assert.are_equal(gettext("Pull settings from cloud"), pull_item.text)
+        assert.are_equal(
+          gettext("Sync current book now"),
+          sync_now_item.text_func()
+        )
 
-      assert.is_true(push_item.enabled_func())
-      assert.is_true(pull_item.enabled_func())
-      assert.is_true(sync_now_item.enabled_func())
-    end)
+        assert.is_true(push_item.enabled_func())
+        assert.is_true(pull_item.enabled_func())
+        assert.is_true(sync_now_item.enabled_func())
+      end
+    )
 
     it(
       "scans reading history via 'Add books from reading history' menu item",
@@ -302,8 +314,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
 
         local menu_items = {}
         sync_instance:addToMainMenu(menu_items)
-        local history_item =
-          menu_items.annotation_sync_plugin.sub_item_table[6]
+        local history_item = menu_items.annotation_sync_plugin.sub_item_table[6]
         assert.is_true(history_item.enabled_func())
 
         history_item.callback()
@@ -317,7 +328,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           "1 book from reading history is pending.\nSyncing it may take a while and slow KOReader down.",
           shown_texts[2]
         )
-        local count, pending = sync_instance.manager:getPendingChangedDocuments()
+        local count, pending =
+          sync_instance.manager:getPendingChangedDocuments()
         assert.are.equal(1, count)
         assert.are.same({ doc_file }, pending)
       end
@@ -386,9 +398,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           finally(function()
             UIManager.show = orig_show
             os.remove(inactive_file)
-            os.execute(
-              "rm -rf " .. (inactive_file:gsub("%.epub$", ".sdr"))
-            )
+            os.execute("rm -rf " .. (inactive_file:gsub("%.epub$", ".sdr")))
           end)
           UIManager.show = function(_, widget)
             if widget and widget.text then
@@ -425,21 +435,18 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
         end
       )
 
-      it(
-        "handles onAnnotationsModified during apply",
-        function()
-          finally(function()
-            sync_instance.is_applying_sync = false
-          end)
+      it("handles onAnnotationsModified during apply", function()
+        finally(function()
+          sync_instance.is_applying_sync = false
+        end)
 
-          sync_instance.is_applying_sync = true
-          sync_instance:onAnnotationsModified({ { text = "ignored" } })
-          assert.are.equal(
-            0,
-            (sync_instance.manager:getPendingChangedDocuments())
-          )
-        end
-      )
+        sync_instance.is_applying_sync = true
+        sync_instance:onAnnotationsModified({ { text = "ignored" } })
+        assert.are.equal(
+          0,
+          (sync_instance.manager:getPendingChangedDocuments())
+        )
+      end)
     end
   )
 
@@ -629,8 +636,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             true
           )
 
-          local count, docs =
-            sync_instance.manager:getPendingChangedDocuments()
+          local count, docs = sync_instance.manager:getPendingChangedDocuments()
           assert.are.equal(1, count)
           assert.are.same({ test_data_dir .. "/legacy.epub" }, docs)
         end
@@ -700,8 +706,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       it(
         "writes nested settings/<name> keys, overwrites scalar parents, and rejects invalid setting keys",
         function()
-          local gestures_path =
-            DataStorage:getSettingsDir() .. "/gestures.lua"
+          local gestures_path = DataStorage:getSettingsDir() .. "/gestures.lua"
           finally(function()
             os.remove(gestures_path)
           end)
@@ -744,8 +749,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       it(
         "supports Select All, Clear Selection, branch navigation, and array formatting in SettingsSelection",
         function()
-          local gestures_path =
-            DataStorage:getSettingsDir() .. "/gestures.lua"
+          local gestures_path = DataStorage:getSettingsDir() .. "/gestures.lua"
           local shown_menus = {}
           local orig_show = UIManager.show
           finally(function()
@@ -854,8 +858,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
         "preserves imported defaults: settings in G_defaults and on disk after G_defaults:flush()",
         function()
           local orig_defaults = _G.G_defaults
-          local custom_defaults_path =
-            DataStorage:getDataDir() .. "/defaults.custom.lua"
+          local custom_defaults_path = DataStorage:getDataDir()
+            .. "/defaults.custom.lua"
           finally(function()
             _G.G_defaults = orig_defaults
             os.remove(custom_defaults_path)

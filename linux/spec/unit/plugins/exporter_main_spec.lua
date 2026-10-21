@@ -83,5 +83,4 @@ describe("Exporter Main plugin module", function()
       assert.is_table(menu_items.exporter.sub_item_table)
     end)
   end)
-
 end)

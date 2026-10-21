@@ -162,6 +162,4 @@ describe("Kobo device", function()
       end
     )
   end)
-
-
 end)

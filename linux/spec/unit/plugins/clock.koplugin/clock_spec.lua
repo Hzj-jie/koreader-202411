@@ -126,11 +126,9 @@ describe("Clock plugin tests", function()
 
     Clock:onShow()
 
-    assert.stub(UIManager.scheduleIn).was_called_with(
-      match.ref(UIManager),
-      5,
-      match.is_function()
-    )
+    assert
+      .stub(UIManager.scheduleIn)
+      .was_called_with(match.ref(UIManager), 5, match.is_function())
 
     local call = UIManager.scheduleIn.calls[1]
     local callback = call.refs[3]

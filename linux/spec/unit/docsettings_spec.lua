@@ -1992,8 +1992,7 @@ describe("docsettings module", function()
     local orig_metadata_folder
 
     before_each(function()
-      orig_metadata_folder =
-        G_reader_settings:read("document_metadata_folder")
+      orig_metadata_folder = G_reader_settings:read("document_metadata_folder")
     end)
 
     after_each(function()

@@ -225,7 +225,9 @@ describe("systemstat plugin", function()
         }
         table.insert(popen_handles, {
           cmd = cmd,
-          is_closed = function() return closed end,
+          is_closed = function()
+            return closed
+          end,
         })
         return wrapped
       end

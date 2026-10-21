@@ -1,7 +1,8 @@
 describe("AnnotationSync changed settings tree", function()
   local UIManager, AnnotationSyncPlugin, test_utils, DataStorage, LuaSettings, util
   local readerui, sync_instance
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_changed_settings_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_changed_settings_tmp"
   local old_getDataDir
 
   setup(function()
@@ -145,112 +146,130 @@ describe("AnnotationSync changed settings tree", function()
     assert.is_truthy(txt:find("nil -> [a, b]", 1, true))
   end)
 
-  it("groups a changed plugin settings file under its own branch and skips excluded files", function()
-    local bookshortcuts_file = DataStorage:getSettingsDir() .. "/bookshortcuts.lua"
-    local cloudstorage_file = DataStorage:getSettingsDir() .. "/cloudstorage.lua"
+  it(
+    "groups a changed plugin settings file under its own branch and skips excluded files",
+    function()
+      local bookshortcuts_file = DataStorage:getSettingsDir()
+        .. "/bookshortcuts.lua"
+      local cloudstorage_file = DataStorage:getSettingsDir()
+        .. "/cloudstorage.lua"
 
-    local bs_settings = LuaSettings:open(bookshortcuts_file)
-    bs_settings:save("settings", { directory_action = "Reader" })
-    bs_settings:flush()
+      local bs_settings = LuaSettings:open(bookshortcuts_file)
+      bs_settings:save("settings", { directory_action = "Reader" })
+      bs_settings:flush()
 
-    local cs_settings = LuaSettings:open(cloudstorage_file)
-    cs_settings:save("cs_servers", { { name = "x" } })
-    cs_settings:flush()
+      local cs_settings = LuaSettings:open(cloudstorage_file)
+      cs_settings:save("cs_servers", { { name = "x" } })
+      cs_settings:flush()
 
-    local root_menu, shown_menus, cleanup = open_tree()
-    finally(function()
-      cleanup()
-      os.remove(bookshortcuts_file)
-      os.remove(cloudstorage_file)
-    end)
+      local root_menu, shown_menus, cleanup = open_tree()
+      finally(function()
+        cleanup()
+        os.remove(bookshortcuts_file)
+        os.remove(cloudstorage_file)
+      end)
 
-    assert.is_not_nil(root_menu)
+      assert.is_not_nil(root_menu)
 
-    local bs_branch_item
-    for _, item in ipairs(root_menu.item_table) do
-      local txt = item.text or (item.text_func and item.text_func()) or ""
-      if txt:find("[settings/bookshortcuts] bookshortcuts >", 1, true) then
-        bs_branch_item = item
+      local bs_branch_item
+      for _, item in ipairs(root_menu.item_table) do
+        local txt = item.text or (item.text_func and item.text_func()) or ""
+        if txt:find("[settings/bookshortcuts] bookshortcuts >", 1, true) then
+          bs_branch_item = item
+        end
+        assert.is_nil(txt:find("settings/cloudstorage", 1, true))
+        if item.setting_id then
+          assert.is_nil(item.setting_id:find("cloudstorage", 1, true))
+        end
       end
-      assert.is_nil(txt:find("settings/cloudstorage", 1, true))
-      if item.setting_id then
-        assert.is_nil(item.setting_id:find("cloudstorage", 1, true))
+      assert.is_not_nil(bs_branch_item)
+
+      -- Open bookshortcuts branch
+      bs_branch_item.callback()
+      local bs_menu = shown_menus[#shown_menus]
+      assert.is_not_nil(bs_menu)
+
+      local settings_branch_item
+      for _, item in ipairs(bs_menu.item_table) do
+        local txt = item.text or (item.text_func and item.text_func()) or ""
+        if txt:find("settings >", 1, true) then
+          settings_branch_item = item
+          break
+        end
       end
+      assert.is_not_nil(settings_branch_item)
+
+      -- Open settings branch under bookshortcuts
+      settings_branch_item.callback()
+      local leaf_menu = shown_menus[#shown_menus]
+      assert.is_not_nil(leaf_menu)
+
+      local leaf_item
+      for _, item in ipairs(leaf_menu.item_table) do
+        if
+          item.setting_id == "settings/bookshortcuts:settings.directory_action"
+        then
+          leaf_item = item
+          break
+        end
+      end
+      assert.is_not_nil(leaf_item)
+      local leaf_txt = leaf_item.text_func and leaf_item.text_func() or ""
+      assert.is_truthy(leaf_txt:find("FM -> Reader", 1, true))
     end
-    assert.is_not_nil(bs_branch_item)
+  )
 
-    -- Open bookshortcuts branch
-    bs_branch_item.callback()
-    local bs_menu = shown_menus[#shown_menus]
-    assert.is_not_nil(bs_menu)
+  it(
+    "Select All and Clear Selection on a branch affect only the settings under it",
+    function()
+      G_reader_settings:save("rv_branch", { one = 1, two = 2 })
+      G_reader_settings:save("rv_other", 5)
 
-    local settings_branch_item
-    for _, item in ipairs(bs_menu.item_table) do
-      local txt = item.text or (item.text_func and item.text_func()) or ""
-      if txt:find("settings >", 1, true) then
-        settings_branch_item = item
-        break
+      local root_menu, shown_menus, cleanup = open_tree()
+      finally(function()
+        cleanup()
+        G_reader_settings:delete("rv_branch")
+        G_reader_settings:delete("rv_other")
+        sync_instance.settings.selected_settings = {}
+        sync_instance:saveSettings()
+      end)
+
+      assert.is_not_nil(root_menu)
+
+      local branch_item
+      for _, item in ipairs(root_menu.item_table) do
+        local txt = item.text or (item.text_func and item.text_func()) or ""
+        if txt:find("[reader] rv_branch >", 1, true) then
+          branch_item = item
+          break
+        end
       end
+      assert.is_not_nil(branch_item)
+
+      branch_item.callback()
+      local branch_menu = shown_menus[#shown_menus]
+      assert.is_not_nil(branch_menu)
+
+      -- 1. Tap Select All (item 1)
+      branch_menu.item_table[1].callback()
+      assert.is_true(
+        sync_instance.settings.selected_settings["reader:rv_branch.one"]
+      )
+      assert.is_true(
+        sync_instance.settings.selected_settings["reader:rv_branch.two"]
+      )
+      assert.is_nil(sync_instance.settings.selected_settings["reader:rv_other"])
+
+      -- 2. Tap Clear Selection (item 2)
+      branch_menu.item_table[2].callback()
+      assert.is_nil(
+        sync_instance.settings.selected_settings["reader:rv_branch.one"]
+      )
+      assert.is_nil(
+        sync_instance.settings.selected_settings["reader:rv_branch.two"]
+      )
     end
-    assert.is_not_nil(settings_branch_item)
-
-    -- Open settings branch under bookshortcuts
-    settings_branch_item.callback()
-    local leaf_menu = shown_menus[#shown_menus]
-    assert.is_not_nil(leaf_menu)
-
-    local leaf_item
-    for _, item in ipairs(leaf_menu.item_table) do
-      if item.setting_id == "settings/bookshortcuts:settings.directory_action" then
-        leaf_item = item
-        break
-      end
-    end
-    assert.is_not_nil(leaf_item)
-    local leaf_txt = leaf_item.text_func and leaf_item.text_func() or ""
-    assert.is_truthy(leaf_txt:find("FM -> Reader", 1, true))
-  end)
-
-  it("Select All and Clear Selection on a branch affect only the settings under it", function()
-    G_reader_settings:save("rv_branch", { one = 1, two = 2 })
-    G_reader_settings:save("rv_other", 5)
-
-    local root_menu, shown_menus, cleanup = open_tree()
-    finally(function()
-      cleanup()
-      G_reader_settings:delete("rv_branch")
-      G_reader_settings:delete("rv_other")
-      sync_instance.settings.selected_settings = {}
-      sync_instance:saveSettings()
-    end)
-
-    assert.is_not_nil(root_menu)
-
-    local branch_item
-    for _, item in ipairs(root_menu.item_table) do
-      local txt = item.text or (item.text_func and item.text_func()) or ""
-      if txt:find("[reader] rv_branch >", 1, true) then
-        branch_item = item
-        break
-      end
-    end
-    assert.is_not_nil(branch_item)
-
-    branch_item.callback()
-    local branch_menu = shown_menus[#shown_menus]
-    assert.is_not_nil(branch_menu)
-
-    -- 1. Tap Select All (item 1)
-    branch_menu.item_table[1].callback()
-    assert.is_true(sync_instance.settings.selected_settings["reader:rv_branch.one"])
-    assert.is_true(sync_instance.settings.selected_settings["reader:rv_branch.two"])
-    assert.is_nil(sync_instance.settings.selected_settings["reader:rv_other"])
-
-    -- 2. Tap Clear Selection (item 2)
-    branch_menu.item_table[2].callback()
-    assert.is_nil(sync_instance.settings.selected_settings["reader:rv_branch.one"])
-    assert.is_nil(sync_instance.settings.selected_settings["reader:rv_branch.two"])
-  end)
+  )
 
   it("does not list a setting this device never set", function()
     G_reader_settings:delete("auto_standby_timeout_seconds")
@@ -261,7 +280,10 @@ describe("AnnotationSync changed settings tree", function()
 
     assert.is_not_nil(root_menu)
     for _, item in ipairs(root_menu.item_table) do
-      assert.is_not_equal("reader:auto_standby_timeout_seconds", item.setting_id)
+      assert.is_not_equal(
+        "reader:auto_standby_timeout_seconds",
+        item.setting_id
+      )
     end
   end)
 

@@ -386,24 +386,21 @@ describe("Cache unit behavior", function()
     assert.are.equal(1000, cache:total_size())
   end)
 
-  it(
-    "should not retain references to evicted objects after chop",
-    function()
-      local lru = require("ffi/lru")
-      local cache = lru.new(10, 1000)
+  it("should not retain references to evicted objects after chop", function()
+    local lru = require("ffi/lru")
+    local cache = lru.new(10, 1000)
 
-      local weak_val
-      do
-        local obj = { name = "test_chop" }
-        weak_val = setmetatable({ val = obj }, { __mode = "v" })
-        cache:set("k1", obj, 100)
-      end
-      cache:chop()
-      collectgarbage()
-      collectgarbage()
-      assert.is_nil(weak_val.val)
+    local weak_val
+    do
+      local obj = { name = "test_chop" }
+      weak_val = setmetatable({ val = obj }, { __mode = "v" })
+      cache:set("k1", obj, 100)
     end
-  )
+    cache:chop()
+    collectgarbage()
+    collectgarbage()
+    assert.is_nil(weak_val.val)
+  end)
 
   it(
     "should enforce willAccept and reject oversized items in size-bounded mode",

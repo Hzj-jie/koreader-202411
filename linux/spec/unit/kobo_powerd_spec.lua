@@ -296,5 +296,4 @@ describe("KoboPowerD", function()
       end
     )
   end)
-
 end)

@@ -135,7 +135,13 @@ describe("AnnotationSync Settings Synchronization", function()
       local sync_called = false
       local remote_file_content = nil
 
-      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        is_silent,
+        finish_cb
+      )
         sync_called = true
         -- Create a fake remote/income file with another device's settings
         local income_path = local_path .. ".income"
@@ -207,7 +213,13 @@ describe("AnnotationSync Settings Synchronization", function()
       end)
       G_reader_settings:save("auto_suspend_timeout_seconds", 300)
       G_reader_settings:save("auto_standby_timeout_seconds", 100)
-      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        is_silent,
+        finish_cb
+      )
         sync_called = true
         local income_path = local_path .. ".income"
         -- Simulation: OtherDevice has differing auto_standby_timeout_seconds (50 instead of 100)
@@ -361,7 +373,13 @@ describe("AnnotationSync Settings Synchronization", function()
         util.writeToFile("{}", dummy_json)
 
         local queued_finish = nil
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          is_silent,
+          finish_cb
+        )
           queued_finish = function()
             if finish_cb then
               finish_cb(true)
@@ -515,7 +533,10 @@ describe("AnnotationSync Settings Synchronization", function()
       assert.is_equal(1, #uploads)
       local data = json.decode(uploads[1])
       assert.is_not_nil(data.Me)
-      assert.is_equal(300, data.Me.settings["reader:auto_suspend_timeout_seconds"])
+      assert.is_equal(
+        300,
+        data.Me.settings["reader:auto_suspend_timeout_seconds"]
+      )
       assert.is_nil(data.Other)
     end)
 
@@ -570,7 +591,10 @@ describe("AnnotationSync Settings Synchronization", function()
       assert.is_equal(1, #uploads)
       local data = json.decode(uploads[1])
       assert.is_not_nil(data.Me)
-      assert.is_equal(888, data.Me.settings["reader:auto_standby_timeout_seconds"])
+      assert.is_equal(
+        888,
+        data.Me.settings["reader:auto_standby_timeout_seconds"]
+      )
     end)
   end)
 

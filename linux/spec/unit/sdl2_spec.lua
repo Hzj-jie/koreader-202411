@@ -10,8 +10,12 @@ describe("ffi/SDL2_0 module", function()
     local i = 1
     while true do
       local n, v = debug.getupvalue(fn, i)
-      if not n then return nil end
-      if n == name then return i, v end
+      if not n then
+        return nil
+      end
+      if n == name then
+        return i, v
+      end
       i = i + 1
     end
   end

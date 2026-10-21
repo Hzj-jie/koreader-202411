@@ -126,23 +126,20 @@ describe("Exporter BaseExporter plugin module", function()
   end)
 
   describe("File path with realistic note attributes", function()
-    it(
-      "resolves valid title from output_filename in getFilePath",
-      function()
-        local exporter = BaseExporter:new({
-          name = "notes",
-          extension = "txt",
-          timestamp = 1700000000,
-        })
+    it("resolves valid title from output_filename in getFilePath", function()
+      local exporter = BaseExporter:new({
+        name = "notes",
+        extension = "txt",
+        timestamp = 1700000000,
+      })
 
-        local single_book_notes = {
-          { file = "/tmp/sample.epub", output_filename = "sample" },
-        }
+      local single_book_notes = {
+        { file = "/tmp/sample.epub", output_filename = "sample" },
+      }
 
-        local path = exporter:getFilePath(single_book_notes)
-        assert.is_string(path)
-        assert.is_truthy(path:match("%-sample%.txt$"))
-      end
-    )
+      local path = exporter:getFilePath(single_book_notes)
+      assert.is_string(path)
+      assert.is_truthy(path:match("%-sample%.txt$"))
+    end)
   end)
 end)

@@ -7,45 +7,45 @@ local utils = require("plugins/AnnotationSync.koplugin/utils")
 local SettingsSelection = {}
 
 local excluded = {
-    -- Global reader settings (settings.reader.lua)
-    ["reader:device_id"] = true,
-    ["reader:device_name"] = true,
-    ["reader:lastfile"] = true,
-    ["reader:home_dir"] = true,
-    ["reader:fontmap"] = true,
-    ["reader:color_rendering"] = true,
-    ["reader:folder_shortcuts_settings"] = true,
-    ["reader:cloud_server_object"] = true,
-    ["reader:cloud_download_dir"] = true,
-    ["reader:cloud_provider_type"] = true,
-    ["reader:dict_presets"] = true,
-    ["reader:dicts_disabled"] = true,
-    ["reader:dicts_order"] = true,
-    ["reader:input_ignore_gsensor"] = true,
-    ["reader:input_lock_gsensor"] = true,
-    ["reader:input_invert_page_turn_keys"] = true,
-    ["reader:input_invert_left_page_turn_keys"] = true,
-    ["reader:input_invert_right_page_turn_keys"] = true,
-    ["reader:timezone"] = true,
-    ["reader:annotation_sync_plugin"] = true,
-    ["reader:sdl_window"] = true,
+  -- Global reader settings (settings.reader.lua)
+  ["reader:device_id"] = true,
+  ["reader:device_name"] = true,
+  ["reader:lastfile"] = true,
+  ["reader:home_dir"] = true,
+  ["reader:fontmap"] = true,
+  ["reader:color_rendering"] = true,
+  ["reader:folder_shortcuts_settings"] = true,
+  ["reader:cloud_server_object"] = true,
+  ["reader:cloud_download_dir"] = true,
+  ["reader:cloud_provider_type"] = true,
+  ["reader:dict_presets"] = true,
+  ["reader:dicts_disabled"] = true,
+  ["reader:dicts_order"] = true,
+  ["reader:input_ignore_gsensor"] = true,
+  ["reader:input_lock_gsensor"] = true,
+  ["reader:input_invert_page_turn_keys"] = true,
+  ["reader:input_invert_left_page_turn_keys"] = true,
+  ["reader:input_invert_right_page_turn_keys"] = true,
+  ["reader:timezone"] = true,
+  ["reader:annotation_sync_plugin"] = true,
+  ["reader:sdl_window"] = true,
 
-    -- Expanded Font and Path settings exclusions:
-    ["reader:cre_font_family_fonts"] = true,
-    ["reader:cre_fonts_recently_selected"] = true,
-    ["reader:cover_image_cache_path"] = true,
-    ["reader:cover_image_fallback_path"] = true,
-    ["reader:document_metadata_folder"] = true,
+  -- Expanded Font and Path settings exclusions:
+  ["reader:cre_font_family_fonts"] = true,
+  ["reader:cre_fonts_recently_selected"] = true,
+  ["reader:cover_image_cache_path"] = true,
+  ["reader:cover_image_fallback_path"] = true,
+  ["reader:document_metadata_folder"] = true,
 
-    -- Plugin settings / databases / logs
-    ["settings/cloudstorage"] = true,
-    ["settings/battery_stats"] = true,
-    ["settings/profiles"] = true,
-    ["settings/terminal"] = true,
-    ["settings/bookinfo_cache"] = true,
-    ["settings/statistics"] = true,
-    ["settings/vocabulary_builder"] = true,
-  }
+  -- Plugin settings / databases / logs
+  ["settings/cloudstorage"] = true,
+  ["settings/battery_stats"] = true,
+  ["settings/profiles"] = true,
+  ["settings/terminal"] = true,
+  ["settings/bookinfo_cache"] = true,
+  ["settings/statistics"] = true,
+  ["settings/vocabulary_builder"] = true,
+}
 
 local function is_array(t)
   if type(t) ~= "table" then
@@ -263,7 +263,9 @@ function SettingsSelection.build_tree(plugin)
     for entry in lfs.dir(vanilla_settings_dir) do
       if entry ~= "." and entry ~= ".." then
         local filepath = vanilla_settings_dir .. "/" .. entry
-        if lfs.attributes(filepath, "mode") == "file" and entry:match("%.lua$") then
+        if
+          lfs.attributes(filepath, "mode") == "file" and entry:match("%.lua$")
+        then
           local name = entry:gsub("%.lua$", "")
           local domain = "settings/" .. name
           if not excluded[domain] then
@@ -301,7 +303,9 @@ function SettingsSelection.prune_selected_settings(plugin, root)
   end
 
   local valid_keys = {}
-  for _, key in ipairs(get_all_leaf_keys(root or SettingsSelection.build_tree(plugin))) do
+  for _, key in
+    ipairs(get_all_leaf_keys(root or SettingsSelection.build_tree(plugin)))
+  do
     valid_keys[key] = true
   end
 

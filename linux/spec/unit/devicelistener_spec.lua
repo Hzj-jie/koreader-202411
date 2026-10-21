@@ -887,5 +887,4 @@ describe("devicelistener", function()
       end)
     end)
   end)
-
 end)

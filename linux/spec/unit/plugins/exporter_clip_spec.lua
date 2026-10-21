@@ -89,58 +89,55 @@ describe("Exporter Clip plugin module", function()
       end
     )
 
-    it(
-      "sets output_filename in getClippingsFromBook",
-      function()
-        local mock_doc_path = "/tmp/test_book_clippings.epub"
-        local orig_open = DocSettings.open
-        local orig_extend = FileManagerBookInfo.extendProps
+    it("sets output_filename in getClippingsFromBook", function()
+      local mock_doc_path = "/tmp/test_book_clippings.epub"
+      local orig_open = DocSettings.open
+      local orig_extend = FileManagerBookInfo.extendProps
 
-        DocSettings.open = function()
-          return {
-            readTableRef = function(_, key)
-              if key == "doc_props" then
-                return { title = "Test Book Title", authors = "Author Name" }
-              end
-              return {}
-            end,
-            read = function(_, key)
-              if key == "doc_pages" then
-                return 350
-              end
-              return nil
-            end,
-            has = function()
-              return false
-            end,
-          }
-        end
-
-        FileManagerBookInfo.extendProps = function(props)
-          return props
-        end
-
-        finally(function()
-          DocSettings.open = orig_open
-          FileManagerBookInfo.extendProps = orig_extend
-        end)
-
-        local clippings = {}
-        MyClipping:getClippingsFromBook(clippings, mock_doc_path)
-
-        local book = clippings["Test Book Title"]
-        assert.is_not_nil(book)
-        assert.are.equal("Test Book Title", book.title)
-        assert.are.equal("Author Name", book.author)
-
-        -- parseCurrentDoc sets: output_filename = util.getSafeFilename(title)
-        -- getClippingsFromBook omits output_filename entirely, leaving it nil,
-        -- which causes BaseExporter:getFilePath() to produce a filename with '-nil.ext'.
-        assert.is_not_nil(
-          book.output_filename,
-          "getClippingsFromBook should set output_filename for exported clipping targets"
-        )
+      DocSettings.open = function()
+        return {
+          readTableRef = function(_, key)
+            if key == "doc_props" then
+              return { title = "Test Book Title", authors = "Author Name" }
+            end
+            return {}
+          end,
+          read = function(_, key)
+            if key == "doc_pages" then
+              return 350
+            end
+            return nil
+          end,
+          has = function()
+            return false
+          end,
+        }
       end
-    )
+
+      FileManagerBookInfo.extendProps = function(props)
+        return props
+      end
+
+      finally(function()
+        DocSettings.open = orig_open
+        FileManagerBookInfo.extendProps = orig_extend
+      end)
+
+      local clippings = {}
+      MyClipping:getClippingsFromBook(clippings, mock_doc_path)
+
+      local book = clippings["Test Book Title"]
+      assert.is_not_nil(book)
+      assert.are.equal("Test Book Title", book.title)
+      assert.are.equal("Author Name", book.author)
+
+      -- parseCurrentDoc sets: output_filename = util.getSafeFilename(title)
+      -- getClippingsFromBook omits output_filename entirely, leaving it nil,
+      -- which causes BaseExporter:getFilePath() to produce a filename with '-nil.ext'.
+      assert.is_not_nil(
+        book.output_filename,
+        "getClippingsFromBook should set output_filename for exported clipping targets"
+      )
+    end)
   end)
 end)

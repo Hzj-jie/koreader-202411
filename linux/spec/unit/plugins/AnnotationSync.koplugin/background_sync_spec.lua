@@ -224,30 +224,27 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "does not broadcast FlushSettings during a manual sync",
-      function()
-        local flush_broadcasted = false
-        local old_broadcast = UIManager.broadcastEvent
-        UIManager.broadcastEvent = function(self, event, ...)
-          local ev_name = type(event) == "string" and event
-            or (event and event.name)
-          if ev_name == "FlushSettings" then
-            flush_broadcasted = true
-          end
-          return old_broadcast(self, event, ...)
+    it("does not broadcast FlushSettings during a manual sync", function()
+      local flush_broadcasted = false
+      local old_broadcast = UIManager.broadcastEvent
+      UIManager.broadcastEvent = function(self, event, ...)
+        local ev_name = type(event) == "string" and event
+          or (event and event.name)
+        if ev_name == "FlushSettings" then
+          flush_broadcasted = true
         end
-        local restore_jobs = test_utils.run_jobs_inline()
-
-        plugin_instance:manualSync()
-        sync_manager:dispatchNextSync()
-
-        assert.is_false(flush_broadcasted)
-        assert.is_equal(0, (sync_manager:getPendingChangedDocuments()))
-        restore_jobs()
-        UIManager.broadcastEvent = old_broadcast
+        return old_broadcast(self, event, ...)
       end
-    )
+      local restore_jobs = test_utils.run_jobs_inline()
+
+      plugin_instance:manualSync()
+      sync_manager:dispatchNextSync()
+
+      assert.is_false(flush_broadcasted)
+      assert.is_equal(0, (sync_manager:getPendingChangedDocuments()))
+      restore_jobs()
+      UIManager.broadcastEvent = old_broadcast
+    end)
   end)
 
   describe("BackgroundJobs fork dispatching and execution", function()
@@ -261,9 +258,10 @@ describe("Background Sync Behavior", function()
         dispatched.file = file
         return old_startSync(self_m, file, ...)
       end
-      return dispatched, function()
-        sync_manager._startSync = old_startSync
-      end
+      return dispatched,
+        function()
+          sync_manager._startSync = old_startSync
+        end
     end
 
     it(
@@ -537,30 +535,27 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "dispatches pending documents in queue order (FIFO)",
-      function()
-        local doc1 = readerui.document.file
-        local doc2 = test_data_dir .. "/doc_fifo.epub"
-        require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
-        local dispatched, restore_start_sync = track_dispatched_file()
-        finally(function()
-          restore_start_sync()
-          os.remove(doc2)
-        end)
+    it("dispatches pending documents in queue order (FIFO)", function()
+      local doc1 = readerui.document.file
+      local doc2 = test_data_dir .. "/doc_fifo.epub"
+      require("ffi/util").copyFile("spec/front/unit/data/juliet.epub", doc2)
+      local dispatched, restore_start_sync = track_dispatched_file()
+      finally(function()
+        restore_start_sync()
+        os.remove(doc2)
+      end)
 
-        local track_path = sync_manager:changedDocumentsFile()
-        util.writeToFile(dump({ doc2, doc1 }), track_path, true)
+      local track_path = sync_manager:changedDocumentsFile()
+      util.writeToFile(dump({ doc2, doc1 }), track_path, true)
 
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_count = #jobs
+      local jobs = require("pluginshare").backgroundJobs
+      local initial_count = #jobs
 
-        sync_manager:dispatchNextSync()
+      sync_manager:dispatchNextSync()
 
-        assert.is_equal(initial_count + 1, #jobs)
-        assert.is_equal(doc2, dispatched.file)
-      end
-    )
+      assert.is_equal(initial_count + 1, #jobs)
+      assert.is_equal(doc2, dispatched.file)
+    end)
 
     it(
       "loads legacy map format into an array and appends newly added documents to the back",
@@ -1020,7 +1015,13 @@ describe("Background Sync Behavior", function()
         sync_manager:dispatchNextSync()
 
         local sync_called_silent = nil
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          is_silent,
+          finish_cb
+        )
           sync_called_silent = is_silent
           local res = callback(local_path, local_path, local_path)
           if finish_cb then
@@ -1116,7 +1117,9 @@ describe("Background Sync Behavior", function()
       local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync2.json"
       util.writeToFile("[]", tmp_json .. ".snapshot")
       util.writeToFile(
-        json.encode({ { text = "Background Synced Annotation", page = "/1/4/2/4" } }),
+        json.encode({
+          { text = "Background Synced Annotation", page = "/1/4/2/4" },
+        }),
         tmp_json .. ".uploaded"
       )
 
@@ -1197,7 +1200,11 @@ describe("Background Sync Behavior", function()
 
         local applied_annotations = nil
         local orig_apply = plugin_instance.applySyncedAnnotations
-        plugin_instance.applySyncedAnnotations = function(self_plugin, doc, active)
+        plugin_instance.applySyncedAnnotations = function(
+          self_plugin,
+          doc,
+          active
+        )
           applied_annotations = active
           return orig_apply(self_plugin, doc, active)
         end
@@ -1246,7 +1253,8 @@ describe("Background Sync Behavior", function()
         local job = require("pluginshare").backgroundJobs[#require(
           "pluginshare"
         ).backgroundJobs]
-        local dummy_ann = { { text = "Annotation for Leaves", page = "/1/4/2/4" } }
+        local dummy_ann =
+          { { text = "Annotation for Leaves", page = "/1/4/2/4" } }
         local tmp_json = DataStorage:getTmpDir() .. "/test_bg_sync3.json"
         util.writeToFile("[]", tmp_json .. ".snapshot")
         util.writeToFile(json.encode(dummy_ann), tmp_json .. ".uploaded")
@@ -1265,7 +1273,10 @@ describe("Background Sync Behavior", function()
         assert.is_equal(0, total)
 
         local sidecar = require("docsettings"):open(inactive_doc)
-        local loaded = require("apps/reader/modules/readerannotation").loadFromSettings(sidecar)
+        local loaded =
+          require("apps/reader/modules/readerannotation").loadFromSettings(
+            sidecar
+          )
         assert.is_equal(1, #loaded)
         assert.is_equal("Annotation for Leaves", loaded[1].text)
       end
@@ -1329,7 +1340,13 @@ describe("Background Sync Behavior", function()
       "calls on_complete strictly after sync finishes, passing captured merged_list",
       function()
         local order = {}
-        SyncService.sync = function(server, local_path, callback, silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          silent,
+          finish_cb
+        )
           table.insert(order, "sync_start")
           local cb_res = callback(local_path, local_path, local_path, 200)
           table.insert(order, "upload")
@@ -1382,7 +1399,13 @@ describe("Background Sync Behavior", function()
     it(
       "calls on_complete(false) if sync execution fails after sync_cb",
       function()
-        SyncService.sync = function(server, local_path, callback, silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          silent,
+          finish_cb
+        )
           local cb_res = callback(local_path, local_path, local_path, 200)
           if finish_cb then
             finish_cb(false)
@@ -1420,7 +1443,13 @@ describe("Background Sync Behavior", function()
       "passes sdr cached_path to sync_callback and passes uploaded_json to on_complete without mutating sdr directly",
       function()
         local received_cached_file = nil
-        SyncService.sync = function(server, local_path, callback, silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          silent,
+          finish_cb
+        )
           local tmp_cached = local_path .. ".sync"
           util.writeToFile('{"version":1,"cached":true}', tmp_cached)
           local cb_res = callback(local_path, tmp_cached, local_path, 200)
@@ -1430,12 +1459,7 @@ describe("Background Sync Behavior", function()
           return true
         end
 
-        annotations.sync_callback = function(
-          local_f,
-          cached_f,
-          inc_f,
-          code
-        )
+        annotations.sync_callback = function(local_f, cached_f, inc_f, code)
           received_cached_file = cached_f
           util.writeToFile('{"uploaded":true}', local_f)
           return true, {}
@@ -1477,7 +1501,13 @@ describe("Background Sync Behavior", function()
     )
 
     it("does not overwrite sdr cached_path if sync fails", function()
-      SyncService.sync = function(server, local_path, callback, silent, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        silent,
+        finish_cb
+      )
         local tmp_cached = local_path .. ".sync"
         util.writeToFile('{"corrupted":true}', tmp_cached)
         callback(local_path, tmp_cached, local_path, 200)
@@ -1502,12 +1532,7 @@ describe("Background Sync Behavior", function()
       util.writeToFile('{"initial":true}', sdr_cache)
       util.writeToFile("[]", dummy_json)
 
-      remote.sync_annotations(
-        mock_w,
-        dummy_json,
-        function() end,
-        sdr_cache
-      )
+      remote.sync_annotations(mock_w, dummy_json, function() end, sdr_cache)
 
       -- sdr_cache should remain unchanged
       local f = io.open(sdr_cache, "r")
@@ -1562,7 +1587,13 @@ describe("Background Sync Behavior", function()
       "sync_annotations, finish_cb(true) -> on_complete(true, merged, uploaded_json), sdr_cache untouched",
       function()
         local dummy_merged = { { page = 1, text = "merged_item" } }
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          is_silent,
+          finish_cb
+        )
           local tmp_sync = local_path .. ".sync"
           util.writeToFile('{"uploaded":true}', tmp_sync)
           callback(local_path, tmp_sync, local_path, 200)
@@ -1577,11 +1608,16 @@ describe("Background Sync Behavior", function()
         end
 
         local comp_res, comp_data, comp_uploaded
-        remote.sync_annotations(mock_w, dummy_json, function(success, merged, uploaded_json)
-          comp_res = success
-          comp_data = merged
-          comp_uploaded = uploaded_json
-        end, sdr_cache)
+        remote.sync_annotations(
+          mock_w,
+          dummy_json,
+          function(success, merged, uploaded_json)
+            comp_res = success
+            comp_data = merged
+            comp_uploaded = uploaded_json
+          end,
+          sdr_cache
+        )
 
         assert.is_true(comp_res)
         assert.are.same(dummy_merged, comp_data)
@@ -1601,7 +1637,13 @@ describe("Background Sync Behavior", function()
     it(
       "finish_cb(nil) (both sides empty) -> on_complete(true, ...), cached_path not replaced",
       function()
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          is_silent,
+          finish_cb
+        )
           callback(local_path, local_path .. ".sync", local_path, 200)
           if finish_cb then
             finish_cb(nil)
@@ -1634,7 +1676,13 @@ describe("Background Sync Behavior", function()
     it(
       "finish_cb(false) -> on_complete(false, ...), cached_path not replaced",
       function()
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          is_silent,
+          finish_cb
+        )
           local tmp_sync = local_path .. ".sync"
           util.writeToFile('{"fail":true}', tmp_sync)
           callback(local_path, tmp_sync, local_path, 200)
@@ -1674,7 +1722,13 @@ describe("Background Sync Behavior", function()
         util.writeToFile("temp_data", tmp_temp)
         util.writeToFile("sync_data", tmp_sync)
 
-        SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          is_silent,
+          finish_cb
+        )
           return nil
         end
 
@@ -1690,7 +1744,9 @@ describe("Background Sync Behavior", function()
         end)
 
         assert.is_false(ok)
-        assert.is_not_nil(err:find("AnnotationSync: SyncService postponed the sync"))
+        assert.is_not_nil(
+          err:find("AnnotationSync: SyncService postponed the sync")
+        )
         assert.is_true(comp_called)
         assert.is_false(comp_res)
 
@@ -1730,7 +1786,9 @@ describe("Background Sync Behavior", function()
         assert.is_false(comp_res)
         assert.is_nil(shown_widget)
         assert.is_not_nil(warned_msg)
-        assert.is_not_nil(warned_msg:find("No cloud destination set in settings"))
+        assert.is_not_nil(
+          warned_msg:find("No cloud destination set in settings")
+        )
       end
     )
 
@@ -1923,7 +1981,14 @@ describe("Background Sync Behavior", function()
           util.writeToFile(content, dest)
           return 200, "etag-1"
         end,
-        uploadFile = function(_, _url_base, _token, file_path, _etag, _overwrite)
+        uploadFile = function(
+          _,
+          _url_base,
+          _token,
+          file_path,
+          _etag,
+          _overwrite
+        )
           local f = io.open(file_path, "r")
           remote_store[basename(file_path)] = f:read("*a")
           f:close()
@@ -2021,15 +2086,35 @@ describe("Background Sync Behavior", function()
         end
 
         local H = mk(1, "H_keep", "2026-01-01 10:00:00")
-        local A_tomb =
-          mk(2, "A_restored", "2026-01-01 10:00:00", true, "2026-01-02 10:00:00")
-        local B_tomb =
-          mk(3, "B_restored", "2026-01-01 10:00:00", true, "2026-01-02 10:00:00")
+        local A_tomb = mk(
+          2,
+          "A_restored",
+          "2026-01-01 10:00:00",
+          true,
+          "2026-01-02 10:00:00"
+        )
+        local B_tomb = mk(
+          3,
+          "B_restored",
+          "2026-01-01 10:00:00",
+          true,
+          "2026-01-02 10:00:00"
+        )
 
-        local A_restored =
-          mk(2, "A_restored", "2026-01-01 10:00:00", false, "2026-01-03 10:00:00")
-        local B_restored =
-          mk(3, "B_restored", "2026-01-01 10:00:00", false, "2026-01-03 10:00:00")
+        local A_restored = mk(
+          2,
+          "A_restored",
+          "2026-01-01 10:00:00",
+          false,
+          "2026-01-03 10:00:00"
+        )
+        local B_restored = mk(
+          3,
+          "B_restored",
+          "2026-01-01 10:00:00",
+          false,
+          "2026-01-03 10:00:00"
+        )
 
         local ds = DocSettings:open(doc)
         ds:save("annotations", { H })
@@ -2097,7 +2182,10 @@ describe("Background Sync Behavior", function()
         local Q = hl(doc, 13, "Q_added_before_fork_deleted_during_job", T1)
         local R = hl(doc, 15, "R_remote", "2026-01-04 10:00:00")
 
-        util.writeToFile(encode({ K, A, D, X }), sync_manager:getSyncCachePath(file))
+        util.writeToFile(
+          encode({ K, A, D, X }),
+          sync_manager:getSyncCachePath(file)
+        )
         remote_store[name] = encode({ K, A_tomb, D, X, R })
         readerui.annotation.annotations = copy({ K, A, D, X, P, Q })
         readerui.annotation:updatePageNumbers(true)
@@ -2123,10 +2211,13 @@ describe("Background Sync Behavior", function()
           table.insert(notes_or_texts, ann.note or ann.text)
         end
         table.sort(notes_or_texts)
-        assert.are.same(
-          { "H_during", "K_keep", "P_added_before_fork", "R_remote", "new_note" },
-          notes_or_texts
-        )
+        assert.are.same({
+          "H_during",
+          "K_keep",
+          "P_added_before_fork",
+          "R_remote",
+          "new_note",
+        }, notes_or_texts)
 
         -- Document must remain pending in changed_documents!
         assert.is_true(is_pending(file))
@@ -2146,10 +2237,13 @@ describe("Background Sync Behavior", function()
           end
         end
         table.sort(active_remote)
-        assert.are.same(
-          { "H_during", "K_keep", "P_added_before_fork", "R_remote", "new_note" },
-          active_remote
-        )
+        assert.are.same({
+          "H_during",
+          "K_keep",
+          "P_added_before_fork",
+          "R_remote",
+          "new_note",
+        }, active_remote)
       end
     )
 
@@ -2189,7 +2283,8 @@ describe("Background Sync Behavior", function()
         assert.is_nil(last_child_res.uploaded_json)
 
         -- .sync file must not have been promoted (remains L0)
-        local cache_content = utils.read_json(sync_manager:getSyncCachePath(doc))
+        local cache_content =
+          utils.read_json(sync_manager:getSyncCachePath(doc))
         assert.are.equal(1, #cache_content)
         assert.are.equal("L0_base", cache_content[1].text)
 
@@ -2228,64 +2323,64 @@ describe("Background Sync Behavior", function()
         sync_manager:addToChangedDocumentsFile(file)
 
         assert.are.equal(1, #readerui.annotation.annotations)
-        assert.are.equal("H_during_noop", readerui.annotation.annotations[1].text)
-        assert.is_true(is_pending(file))
-      end
-    )
-
-    it(
-      "book reopened in a new ReaderUI while its job runs",
-      function()
-        local old_register = readerui.menu.registerToMainMenu
-        readerui.menu.registerToMainMenu = function() end
-        finally(function()
-          plugin_instance:init()
-          readerui.menu.registerToMainMenu = old_register
-        end)
-
-        local doc = readerui.document
-        local file = doc.file
-        local name = sync_manager:_getAnnotationFilename(file)
-        local A = hl(doc, 21, "A_existing", "2026-01-01 10:00:00")
-        local R = hl(doc, 23, "R_from_other_device", "2026-01-02 10:00:00")
-
-        local fm_ui = { menu = { registerToMainMenu = function() end } }
-        local fm_plugin = AnnotationSyncPlugin:new({
-          ui = fm_ui,
-          plugin_id = plugin_instance.plugin_id,
-          path = "plugins/AnnotationSync.koplugin",
-        })
-        fm_plugin:init()
-
-        local ds = DocSettings:open(file)
-        ds:save("annotations", { A })
-        ds:flush()
-        readerui.annotation.annotations = copy({ A })
-        readerui.annotation:updatePageNumbers(true)
-        util.writeToFile(encode({ A }), sync_manager:getSyncCachePath(file))
-        remote_store[name] = encode({ A, R })
-
-        fork_like(function()
-          plugin_instance:init()
-          local H = hl(doc, 25, "H_added_during_job")
-          readerui.annotation:addItem(H)
-          plugin_instance:onAnnotationsModified({ H })
-        end)
-
-        sync_manager:addToChangedDocumentsFile(file)
-
-        assert.are.equal(3, #readerui.annotation.annotations)
         assert.are.equal(
-          "A_existing, H_added_during_job, R_from_other_device",
-          texts(readerui.annotation.annotations)
-        )
-        assert.are.equal(
-          "A_existing, H_added_during_job, R_from_other_device",
-          texts(DocSettings:open(file):readTable("annotations"))
+          "H_during_noop",
+          readerui.annotation.annotations[1].text
         )
         assert.is_true(is_pending(file))
       end
     )
+
+    it("book reopened in a new ReaderUI while its job runs", function()
+      local old_register = readerui.menu.registerToMainMenu
+      readerui.menu.registerToMainMenu = function() end
+      finally(function()
+        plugin_instance:init()
+        readerui.menu.registerToMainMenu = old_register
+      end)
+
+      local doc = readerui.document
+      local file = doc.file
+      local name = sync_manager:_getAnnotationFilename(file)
+      local A = hl(doc, 21, "A_existing", "2026-01-01 10:00:00")
+      local R = hl(doc, 23, "R_from_other_device", "2026-01-02 10:00:00")
+
+      local fm_ui = { menu = { registerToMainMenu = function() end } }
+      local fm_plugin = AnnotationSyncPlugin:new({
+        ui = fm_ui,
+        plugin_id = plugin_instance.plugin_id,
+        path = "plugins/AnnotationSync.koplugin",
+      })
+      fm_plugin:init()
+
+      local ds = DocSettings:open(file)
+      ds:save("annotations", { A })
+      ds:flush()
+      readerui.annotation.annotations = copy({ A })
+      readerui.annotation:updatePageNumbers(true)
+      util.writeToFile(encode({ A }), sync_manager:getSyncCachePath(file))
+      remote_store[name] = encode({ A, R })
+
+      fork_like(function()
+        plugin_instance:init()
+        local H = hl(doc, 25, "H_added_during_job")
+        readerui.annotation:addItem(H)
+        plugin_instance:onAnnotationsModified({ H })
+      end)
+
+      sync_manager:addToChangedDocumentsFile(file)
+
+      assert.are.equal(3, #readerui.annotation.annotations)
+      assert.are.equal(
+        "A_existing, H_added_during_job, R_from_other_device",
+        texts(readerui.annotation.annotations)
+      )
+      assert.are.equal(
+        "A_existing, H_added_during_job, R_from_other_device",
+        texts(DocSettings:open(file):readTable("annotations"))
+      )
+      assert.is_true(is_pending(file))
+    end)
 
     it(
       "offline-queued sync uses the book opened before the network came back",
@@ -2440,8 +2535,10 @@ describe("Background Sync Behavior", function()
         local during_uploaded_exists = false
         fork_like(function()
           if last_child_res and last_child_res.json_path then
-            during_snapshot_exists = util.fileExists(last_child_res.json_path .. ".snapshot")
-            during_uploaded_exists = util.fileExists(last_child_res.json_path .. ".uploaded")
+            during_snapshot_exists =
+              util.fileExists(last_child_res.json_path .. ".snapshot")
+            during_uploaded_exists =
+              util.fileExists(last_child_res.json_path .. ".uploaded")
           end
         end)
 
@@ -2458,8 +2555,12 @@ describe("Background Sync Behavior", function()
         assert.is_true(during_snapshot_exists)
         assert.is_true(during_uploaded_exists)
 
-        assert.is_false(util.fileExists(last_child_res.json_path .. ".snapshot"))
-        assert.is_false(util.fileExists(last_child_res.json_path .. ".uploaded"))
+        assert.is_false(
+          util.fileExists(last_child_res.json_path .. ".snapshot")
+        )
+        assert.is_false(
+          util.fileExists(last_child_res.json_path .. ".uploaded")
+        )
       end
     )
 
@@ -2501,32 +2602,29 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "cleans all child tmp files after callback when sync fails",
-      function()
-        local doc, name = new_doc("cleanup_failed")
-        local H = mk(1, "H_fail")
-        local ds = DocSettings:open(doc)
-        ds:save("annotations", { H })
-        ds:flush()
+    it("cleans all child tmp files after callback when sync fails", function()
+      local doc, name = new_doc("cleanup_failed")
+      local H = mk(1, "H_fail")
+      local ds = DocSettings:open(doc)
+      ds:save("annotations", { H })
+      ds:flush()
 
-        SyncService.sync = function(server, path, sync_cb, is_silent, finish_cb)
-          if finish_cb then
-            finish_cb(false)
-          end
+      SyncService.sync = function(server, path, sync_cb, is_silent, finish_cb)
+        if finish_cb then
+          finish_cb(false)
         end
-
-        local json_path
-        fork_like(function()
-          json_path = last_child_res.json_path
-        end)
-        sync_manager:addToChangedDocumentsFile(doc)
-
-        assert.is_string(json_path)
-        assert.is_false(util.fileExists(json_path .. ".snapshot"))
-        assert.is_false(util.fileExists(json_path .. ".uploaded"))
       end
-    )
+
+      local json_path
+      fork_like(function()
+        json_path = last_child_res.json_path
+      end)
+      sync_manager:addToChangedDocumentsFile(doc)
+
+      assert.is_string(json_path)
+      assert.is_false(util.fileExists(json_path .. ".snapshot"))
+      assert.is_false(util.fileExists(json_path .. ".uploaded"))
+    end)
 
     it(
       "cleans all child tmp files after callback when book is deleted during job",
@@ -2552,51 +2650,51 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "logs the error when the background sync throws",
-      function()
-        local doc, name = new_doc("sync_throws")
-        local H = mk(1, "H_throws")
-        local ds = DocSettings:open(doc)
-        ds:save("annotations", { H })
-        ds:flush()
+    it("logs the error when the background sync throws", function()
+      local doc, name = new_doc("sync_throws")
+      local H = mk(1, "H_throws")
+      local ds = DocSettings:open(doc)
+      ds:save("annotations", { H })
+      ds:flush()
 
-        local logger = require("logger")
-        local old_err = logger.err
-        local logged_errors = {}
-        logger.err = function(...)
-          local args = { ... }
-          local parts = {}
-          for i = 1, select("#", ...) do
-            table.insert(parts, tostring(args[i]))
-          end
-          table.insert(logged_errors, table.concat(parts, " "))
+      local logger = require("logger")
+      local old_err = logger.err
+      local logged_errors = {}
+      logger.err = function(...)
+        local args = { ... }
+        local parts = {}
+        for i = 1, select("#", ...) do
+          table.insert(parts, tostring(args[i]))
         end
-        finally(function()
-          logger.err = old_err
-        end)
-
-        SyncService.sync = function()
-          error("simulated sync failure")
-        end
-
-        fork_like()
-        sync_manager:addToChangedDocumentsFile(doc)
-
-        assert.is_table(last_child_res)
-        assert.is_false(last_child_res.success)
-
-        local found_log = false
-        for _, err_msg in ipairs(logged_errors) do
-          if err_msg:find(doc, 1, true) and err_msg:find("simulated sync failure", 1, true) then
-            found_log = true
-            break
-          end
-        end
-        assert.is_true(found_log)
-        assert.is_true(is_pending(doc))
+        table.insert(logged_errors, table.concat(parts, " "))
       end
-    )
+      finally(function()
+        logger.err = old_err
+      end)
+
+      SyncService.sync = function()
+        error("simulated sync failure")
+      end
+
+      fork_like()
+      sync_manager:addToChangedDocumentsFile(doc)
+
+      assert.is_table(last_child_res)
+      assert.is_false(last_child_res.success)
+
+      local found_log = false
+      for _, err_msg in ipairs(logged_errors) do
+        if
+          err_msg:find(doc, 1, true)
+          and err_msg:find("simulated sync failure", 1, true)
+        then
+          found_log = true
+          break
+        end
+      end
+      assert.is_true(found_log)
+      assert.is_true(is_pending(doc))
+    end)
 
     it(
       "re-forks background sync after callback when book is edited during an in-flight job",
@@ -2904,7 +3002,7 @@ describe("Background Sync Behavior", function()
             end
             tapped = true
             sync_manager:syncNow(doc)
-          sync_manager:dispatchNextSync()
+            sync_manager:dispatchNextSync()
           end)
 
           local jobs = count_jobs()
@@ -2943,7 +3041,7 @@ describe("Background Sync Behavior", function()
               -- First sync succeeds, user taps syncNow during it
               local res = job.action()
               sync_manager:syncNow(doc)
-          sync_manager:dispatchNextSync()
+              sync_manager:dispatchNextSync()
               job.result = res
               job.callback(job)
             elseif jobs_started == 2 then
@@ -3099,17 +3197,20 @@ describe("Background Sync Behavior", function()
         end
       )
 
-      it("a book never synced on this device restores without asking", function()
-        local doc, name = new_doc("never_synced_here")
-        remote_store[name] = encode({ A, B })
+      it(
+        "a book never synced on this device restores without asking",
+        function()
+          local doc, name = new_doc("never_synced_here")
+          remote_store[name] = encode({ A, B })
 
-        sync_manager:addToChangedDocumentsFile(doc)
+          sync_manager:addToChangedDocumentsFile(doc)
 
-        assert.are.equal(0, #boxes)
-        assert.are.equal("A, B", book(doc))
-        assert.are.equal("A, B", base(doc))
-        assert.is_false(is_pending(doc))
-      end)
+          assert.are.equal(0, #boxes)
+          assert.are.equal("A, B", book(doc))
+          assert.are.equal("A, B", base(doc))
+          assert.is_false(is_pending(doc))
+        end
+      )
 
       it(
         "a book that synced only tombstones here restores without asking",
@@ -3221,12 +3322,7 @@ describe("Background Sync Behavior", function()
         if failing[name] then
           return on_complete(false)
         end
-        return old_sync_annotations(
-          widget,
-          json_path,
-          on_complete,
-          cached_path
-        )
+        return old_sync_annotations(widget, json_path, on_complete, cached_path)
       end
       toasts, boxes = {}, {}
       local Notification = require("ui/widget/notification")
@@ -3269,20 +3365,24 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it("Sync All syncs every pending book once and goes on after a failure", function()
-      local a = new_doc("a")
-      local b = new_doc("b")
-      sync_manager:addToChangedDocumentsFile(a)
-      sync_manager:addToChangedDocumentsFile(b)
-      failing["a.epub"] = true
+    it(
+      "Sync All syncs every pending book once and goes on after a failure",
+      function()
+        local a = new_doc("a")
+        local b = new_doc("b")
+        sync_manager:addToChangedDocumentsFile(a)
+        sync_manager:addToChangedDocumentsFile(b)
+        failing["a.epub"] = true
 
-      sync_manager:syncAllChangedDocuments()
-      while sync_manager:dispatchNextSync() do end
+        sync_manager:syncAllChangedDocuments()
+        while sync_manager:dispatchNextSync() do
+        end
 
-      assert.are.same({ "a.epub", "b.epub" }, synced)
-      assert.is_true(is_pending(a))
-      assert.is_false(is_pending(b))
-    end)
+        assert.are.same({ "a.epub", "b.epub" }, synced)
+        assert.is_true(is_pending(a))
+        assert.is_false(is_pending(b))
+      end
+    )
 
     it("Manual Sync goes before the books Sync All requested", function()
       sync_manager:addToChangedDocumentsFile(new_doc("a"))
@@ -3295,7 +3395,8 @@ describe("Background Sync Behavior", function()
       end
 
       sync_manager:syncAllChangedDocuments()
-      while sync_manager:dispatchNextSync() do end
+      while sync_manager:dispatchNextSync() do
+      end
 
       assert.are.same({ "a.epub", "juliet.epub", "b.epub" }, synced)
     end)
@@ -3318,23 +3419,20 @@ describe("Background Sync Behavior", function()
       assert.is_true(is_pending(juliet))
     end)
 
-    it(
-      "a tap during a failing sync is ignored while running",
-      function()
-        local juliet = readerui.document.file
-        sync_manager:addToChangedDocumentsFile(new_doc("a"))
-        failing["juliet.epub"] = true
-        during["juliet.epub"] = function()
-          plugin_instance:manualSync()
-        end
-
+    it("a tap during a failing sync is ignored while running", function()
+      local juliet = readerui.document.file
+      sync_manager:addToChangedDocumentsFile(new_doc("a"))
+      failing["juliet.epub"] = true
+      during["juliet.epub"] = function()
         plugin_instance:manualSync()
-        sync_manager:dispatchNextSync()
-
-        assert.are.same({ "juliet.epub" }, synced)
-        assert.is_true(is_pending(juliet))
       end
-    )
+
+      plugin_instance:manualSync()
+      sync_manager:dispatchNextSync()
+
+      assert.are.same({ "juliet.epub" }, synced)
+      assert.is_true(is_pending(juliet))
+    end)
 
     it(
       "a crashed job counts as a failure and the next requested book runs",
@@ -3355,7 +3453,8 @@ describe("Background Sync Behavior", function()
         end
 
         sync_manager:syncAllChangedDocuments()
-        while sync_manager:dispatchNextSync() do end
+        while sync_manager:dispatchNextSync() do
+        end
 
         assert.are.same({ "b.epub" }, synced)
         assert.is_true(is_pending(a))
@@ -3398,7 +3497,8 @@ describe("Background Sync Behavior", function()
         failing["a.epub"] = true
 
         sync_manager:syncAllChangedDocuments()
-        while sync_manager:dispatchNextSync() do end
+        while sync_manager:dispatchNextSync() do
+        end
 
         assert.are.same({ "a.epub", "b.epub" }, synced)
         assert.are.same(
@@ -3411,7 +3511,8 @@ describe("Background Sync Behavior", function()
         failing["a.epub"] = nil
         toasts = {}
         sync_manager:syncAllChangedDocuments()
-        while sync_manager:dispatchNextSync() do end
+        while sync_manager:dispatchNextSync() do
+        end
 
         assert.are.same({ "a.epub", "b.epub", "a.epub" }, synced)
         assert.are.same({ "Syncing 1 book in the background" }, toasts)
@@ -3622,7 +3723,9 @@ describe("Background Sync Behavior", function()
     end
 
     local function finish_job_success(job, file)
-      local tmp_json = DataStorage:getTmpDir() .. "/" .. sync_manager:_getAnnotationFilename(file)
+      local tmp_json = DataStorage:getTmpDir()
+        .. "/"
+        .. sync_manager:_getAnnotationFilename(file)
       util.writeToFile("[]", tmp_json .. ".snapshot")
       job.result = { file = file, json_path = tmp_json, success = true }
       job.callback(job)
@@ -3669,83 +3772,77 @@ describe("Background Sync Behavior", function()
       end
     )
 
-    it(
-      "failed automatic sync also enters 5-minute cooldown",
-      function()
-        local jobs = require("pluginshare").backgroundJobs
-        local doc = new_doc("cooldown_failed_sync")
-        finally(function()
-          os.remove(doc)
-        end)
+    it("failed automatic sync also enters 5-minute cooldown", function()
+      local jobs = require("pluginshare").backgroundJobs
+      local doc = new_doc("cooldown_failed_sync")
+      finally(function()
+        os.remove(doc)
+      end)
 
-        local initial_count = #jobs
-        sync_manager:addToChangedDocumentsFile(doc)
-        assert.is_true(sync_manager:dispatchNextSync())
-        assert.is_equal(initial_count + 1, #jobs)
+      local initial_count = #jobs
+      sync_manager:addToChangedDocumentsFile(doc)
+      assert.is_true(sync_manager:dispatchNextSync())
+      assert.is_equal(initial_count + 1, #jobs)
 
-        local job1 = jobs[#jobs]
-        job1.result = { file = doc, success = false }
-        job1.callback(job1)
+      local job1 = jobs[#jobs]
+      job1.result = { file = doc, success = false }
+      job1.callback(job1)
 
-        -- Failed sync stays pending, but enters cooldown
-        assert.is_true(is_pending(doc))
-        assert.is_not_nil(sync_manager.last_sync_time[doc])
-        local rem, failed = sync_manager:getRemainingCooldown(doc)
-        assert.is_true(rem > 0)
-        assert.is_true(failed)
+      -- Failed sync stays pending, but enters cooldown
+      assert.is_true(is_pending(doc))
+      assert.is_not_nil(sync_manager.last_sync_time[doc])
+      local rem, failed = sync_manager:getRemainingCooldown(doc)
+      assert.is_true(rem > 0)
+      assert.is_true(failed)
 
-        -- Another dispatch attempt while cooling down does not fork a new job
-        assert.is_false(sync_manager:dispatchNextSync())
-        assert.is_equal(initial_count + 1, #jobs)
+      -- Another dispatch attempt while cooling down does not fork a new job
+      assert.is_false(sync_manager:dispatchNextSync())
+      assert.is_equal(initial_count + 1, #jobs)
+    end)
+
+    it("while book A is in cooldown, book B dispatches immediately", function()
+      local jobs = require("pluginshare").backgroundJobs
+      local doc_a = new_doc("cooldown_book_a")
+      local doc_b = new_doc("cooldown_book_b")
+
+      local orig_startSync = sync_manager._startSync
+      local dispatched_file = nil
+      sync_manager._startSync = function(mgr, file, ...)
+        dispatched_file = file
+        return orig_startSync(mgr, file, ...)
       end
-    )
+      finally(function()
+        sync_manager._startSync = orig_startSync
+        os.remove(doc_a)
+        os.remove(doc_b)
+      end)
 
-    it(
-      "while book A is in cooldown, book B dispatches immediately",
-      function()
-        local jobs = require("pluginshare").backgroundJobs
-        local doc_a = new_doc("cooldown_book_a")
-        local doc_b = new_doc("cooldown_book_b")
+      local initial_count = #jobs
+      sync_manager:addToChangedDocumentsFile(doc_a)
+      assert.is_true(sync_manager:dispatchNextSync())
+      assert.is_equal(initial_count + 1, #jobs)
 
-        local orig_startSync = sync_manager._startSync
-        local dispatched_file = nil
-        sync_manager._startSync = function(mgr, file, ...)
-          dispatched_file = file
-          return orig_startSync(mgr, file, ...)
-        end
-        finally(function()
-          sync_manager._startSync = orig_startSync
-          os.remove(doc_a)
-          os.remove(doc_b)
-        end)
+      -- Complete sync for doc_a so it enters cooldown
+      local job_a = jobs[#jobs]
+      finish_job_success(job_a, doc_a)
+      assert.is_true(sync_manager:getRemainingCooldown(doc_a) > 0)
 
-        local initial_count = #jobs
-        sync_manager:addToChangedDocumentsFile(doc_a)
-        assert.is_true(sync_manager:dispatchNextSync())
-        assert.is_equal(initial_count + 1, #jobs)
+      -- Re-add doc_a to pending queue
+      sync_manager:addToChangedDocumentsFile(doc_a)
+      assert.is_false(sync_manager:dispatchNextSync())
+      assert.is_equal(initial_count + 1, #jobs)
 
-        -- Complete sync for doc_a so it enters cooldown
-        local job_a = jobs[#jobs]
-        finish_job_success(job_a, doc_a)
-        assert.is_true(sync_manager:getRemainingCooldown(doc_a) > 0)
+      -- Add doc_b to pending queue: doc_b is NOT in cooldown and dispatches immediately
+      sync_manager:addToChangedDocumentsFile(doc_b)
+      assert.is_true(sync_manager:dispatchNextSync())
+      assert.is_equal(initial_count + 2, #jobs)
+      assert.are.equal(doc_b, dispatched_file)
 
-        -- Re-add doc_a to pending queue
-        sync_manager:addToChangedDocumentsFile(doc_a)
-        assert.is_false(sync_manager:dispatchNextSync())
-        assert.is_equal(initial_count + 1, #jobs)
-
-        -- Add doc_b to pending queue: doc_b is NOT in cooldown and dispatches immediately
-        sync_manager:addToChangedDocumentsFile(doc_b)
-        assert.is_true(sync_manager:dispatchNextSync())
-        assert.is_equal(initial_count + 2, #jobs)
-        assert.are.equal(doc_b, dispatched_file)
-
-        local job_b = jobs[#jobs]
-        finish_job_success(job_b, doc_b)
-        assert.is_false(is_pending(doc_b))
-        assert.is_true(is_pending(doc_a))
-      end
-    )
+      local job_b = jobs[#jobs]
+      finish_job_success(job_b, doc_b)
+      assert.is_false(is_pending(doc_b))
+      assert.is_true(is_pending(doc_a))
+    end)
 
     it(
       "syncNow and syncAllChangedDocuments clear cooldown so books sync immediately",

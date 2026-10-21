@@ -155,7 +155,6 @@ describe("Flomo Exporter plugin target", function()
     http.request = old_request
   end)
 
-
   it(
     "should return false when highlight export fails due to HTTP error",
     function()

@@ -62,19 +62,16 @@ describe("AnnotationSync plugin unit tests", function()
       os.remove(tmp_file)
     end)
 
-    it(
-      "should return nil when reading HTML payload",
-      function()
-        local tmp_file = os.tmpname()
+    it("should return nil when reading HTML payload", function()
+      local tmp_file = os.tmpname()
 
-        local f = io.open(tmp_file, "w")
-        f:write("<html>500 Internal Error</html>")
-        f:close()
-        assert.is_nil(utils.read_json(tmp_file))
+      local f = io.open(tmp_file, "w")
+      f:write("<html>500 Internal Error</html>")
+      f:close()
+      assert.is_nil(utils.read_json(tmp_file))
 
-        os.remove(tmp_file)
-      end
-    )
+      os.remove(tmp_file)
+    end)
   end)
 
   describe("Annotations Schema Validation", function()
@@ -212,7 +209,6 @@ describe("AnnotationSync plugin unit tests", function()
         os.remove(income_path)
       end
     )
-
   end)
 
   describe("Position Comparison and Sorting", function()

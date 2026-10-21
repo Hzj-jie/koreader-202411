@@ -17,7 +17,6 @@ describe("ReadwiseExporter module", function()
     assert.is_true(ReadwiseExporter:isReadyToExport())
   end)
 
-
   it("decodes multi-chunk JSON responses from makeRequest", function()
     local orig_request = http.request
     http.request = function(req)

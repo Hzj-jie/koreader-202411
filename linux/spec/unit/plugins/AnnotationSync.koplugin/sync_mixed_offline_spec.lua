@@ -85,7 +85,13 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       -- 2. Mock OFFLINE server (callback never called)
       local sync_calls = 0
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         sync_calls = sync_calls + 1
         -- OFFLINE: we don't call the callback
         if finish_cb then
@@ -111,7 +117,13 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
       assert.truthy(util.arrayContains(changed_docs, doc_pdf))
 
       -- 5. Mock ONLINE server
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local res = callback(local_path, local_path, local_path)
         if finish_cb then
           finish_cb(res)
@@ -194,7 +206,13 @@ describe("AnnotationSync Mixed Documents & Offline Sync All", function()
 
       local epub_filename =
         sync_instance.manager:_getAnnotationFilename(doc_epub)
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local income = local_path:find(epub_filename, 1, true) and income_epub
           or income_pdf
         local cached_dest = local_path .. ".sync"

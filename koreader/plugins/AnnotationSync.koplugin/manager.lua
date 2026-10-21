@@ -164,10 +164,7 @@ end
 
 function SyncManager:_startSync(file, trigger, trash)
   if lfs.attributes(file, "mode") ~= "file" then
-    logger.warn(
-      "AnnotationSync: file missing, removing from sync list:",
-      file
-    )
+    logger.warn("AnnotationSync: file missing, removing from sync list:", file)
     self:removeFromChangedDocumentsFileByPath(file)
     if trigger == MANUAL_SYNC then
       utils.show_msg(
@@ -228,7 +225,9 @@ function SyncManager:_startSync(file, trigger, trash)
             sync_success = success
             if uploaded_json then
               uploaded = true
-              assert(util.writeToFile(uploaded_json, json_path .. UPLOADED_SUFFIX))
+              assert(
+                util.writeToFile(uploaded_json, json_path .. UPLOADED_SUFFIX)
+              )
             end
           end,
           cached_path
@@ -271,10 +270,7 @@ function SyncManager:_startSync(file, trigger, trash)
         self:_movePendingDocumentToBack(file)
         if item.success then
           self:recordSyncState()
-          logger.info(
-            "AnnotationSync: background sync completed for",
-            file
-          )
+          logger.info("AnnotationSync: background sync completed for", file)
         end
         self.last_sync_time[file] = {
           time = os.time(),
@@ -301,7 +297,12 @@ function SyncManager:_startSync(file, trigger, trash)
       end
 
       ReaderAnnotation.willChangeAnnotations(file, function()
-        local n = self:_applyBackgroundSync(file, snapshot_json, uploaded_json, not trash)
+        local n = self:_applyBackgroundSync(
+          file,
+          snapshot_json,
+          uploaded_json,
+          not trash
+        )
         if not n then
           finish()
           return
@@ -470,8 +471,12 @@ function SyncManager:_applyBackgroundSync(
       end
     else
       local _
-      _, active =
-        annotations.merge(util.tableDeepCopy(local_list), base_list, income_list, page_type)
+      _, active = annotations.merge(
+        util.tableDeepCopy(local_list),
+        base_list,
+        income_list,
+        page_type
+      )
     end
     if not util.tableEquals(active, annotations.sort(local_list)) then
       self.plugin:applySyncedAnnotations(document, active)
@@ -563,8 +568,7 @@ end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
-  local ok, err =
-    util.writeToFile(dump(changed_docs), track_path, true)
+  local ok, err = util.writeToFile(dump(changed_docs), track_path, true)
   if not ok then
     logger.warn(
       "AnnotationSync: Failed to write changed documents file:",
@@ -680,7 +684,9 @@ function SyncManager:cleanOrphanSyncFiles()
 end
 
 function SyncManager:getSelectedSettingsWithValues()
-  require("plugins/AnnotationSync.koplugin/settings_selection").prune_selected_settings(self.plugin)
+  require("plugins/AnnotationSync.koplugin/settings_selection").prune_selected_settings(
+    self.plugin
+  )
 
   local selected = self.plugin.settings.selected_settings
   if not next(selected) then

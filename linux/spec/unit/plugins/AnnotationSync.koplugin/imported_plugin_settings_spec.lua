@@ -2,7 +2,8 @@ describe("AnnotationSync imported plugin settings", function()
   local UIManager, AnnotationSyncPlugin, test_utils, json, LuaSettings, DataStorage
   local Dispatcher
   local readerui, sync_instance, manager
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_imported_plugin_settings_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_imported_plugin_settings_tmp"
   local old_getDataDir
   local settings_dir
 
@@ -34,7 +35,10 @@ describe("AnnotationSync imported plugin settings", function()
   end)
 
   before_each(function()
-    G_reader_settings:save("cloud_server_object", json.encode({ url = "http://mock", type = "webdav" }))
+    G_reader_settings:save(
+      "cloud_server_object",
+      json.encode({ url = "http://mock", type = "webdav" })
+    )
     readerui, sync_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",
       AnnotationSyncPlugin
@@ -53,44 +57,70 @@ describe("AnnotationSync imported plugin settings", function()
   end)
 
   -- Skipped as an edge case: an import into a plugin's settings file is lost only if that plugin saves its in-memory copy before KOReader restarts.
-  pending("an imported book shortcut is still there after a shortcut is added in the same session", function()
-    local bs_path = settings_dir .. "/bookshortcuts.lua"
-    os.remove(bs_path)
-    package.loaded["plugins/bookshortcuts.koplugin/main"] = nil
-    local BookShortcuts = require("plugins/bookshortcuts.koplugin/main")
-    local bs = BookShortcuts:new({ ui = { menu = { registerToMainMenu = function() end } } })
-    finally(function()
-      bs:deleteShortcut(test_data_dir)
+  pending(
+    "an imported book shortcut is still there after a shortcut is added in the same session",
+    function()
+      local bs_path = settings_dir .. "/bookshortcuts.lua"
       os.remove(bs_path)
       package.loaded["plugins/bookshortcuts.koplugin/main"] = nil
-    end)
+      local BookShortcuts = require("plugins/bookshortcuts.koplugin/main")
+      local bs = BookShortcuts:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      finally(function()
+        bs:deleteShortcut(test_data_dir)
+        os.remove(bs_path)
+        package.loaded["plugins/bookshortcuts.koplugin/main"] = nil
+      end)
 
-    assert.is_true(manager:_writeLocalSettingValue("settings/bookshortcuts:/books/Imported", true))
-    assert.is_true(LuaSettings:open(bs_path):read("/books/Imported"))
+      assert.is_true(
+        manager:_writeLocalSettingValue(
+          "settings/bookshortcuts:/books/Imported",
+          true
+        )
+      )
+      assert.is_true(LuaSettings:open(bs_path):read("/books/Imported"))
 
-    bs:addShortcut(test_data_dir)
-    bs:onFlushSettings()
+      bs:addShortcut(test_data_dir)
+      bs:onFlushSettings()
 
-    assert.is_true(LuaSettings:open(bs_path):read("/books/Imported"))
-  end)
+      assert.is_true(LuaSettings:open(bs_path):read("/books/Imported"))
+    end
+  )
 
-  pending("an imported Wallabag setting is still there after Wallabag saves its settings", function()
-    local wb_path = settings_dir .. "/wallabag.lua"
-    os.remove(wb_path)
-    package.loaded["plugins/wallabag.koplugin/main"] = nil
-    local Wallabag = require("plugins/wallabag.koplugin/main")
-    local wb = Wallabag:new({ ui = { menu = { registerToMainMenu = function() end } } })
-    finally(function()
-      Dispatcher:removeAction("wallabag_download")
+  pending(
+    "an imported Wallabag setting is still there after Wallabag saves its settings",
+    function()
+      local wb_path = settings_dir .. "/wallabag.lua"
       os.remove(wb_path)
       package.loaded["plugins/wallabag.koplugin/main"] = nil
-    end)
+      local Wallabag = require("plugins/wallabag.koplugin/main")
+      local wb = Wallabag:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      finally(function()
+        Dispatcher:removeAction("wallabag_download")
+        os.remove(wb_path)
+        package.loaded["plugins/wallabag.koplugin/main"] = nil
+      end)
 
-    assert.is_true(manager:_writeLocalSettingValue("settings/wallabag:wallabag.articles_per_sync", 99))
-    assert.are.equal(99, LuaSettings:open(wb_path):read("wallabag").articles_per_sync)
+      assert.is_true(
+        manager:_writeLocalSettingValue(
+          "settings/wallabag:wallabag.articles_per_sync",
+          99
+        )
+      )
+      assert.are.equal(
+        99,
+        LuaSettings:open(wb_path):read("wallabag").articles_per_sync
+      )
 
-    wb:saveSettings()
+      wb:saveSettings()
 
-    assert.are.equal(99, LuaSettings:open(wb_path):read("wallabag").articles_per_sync)
-  end)
+      assert.are.equal(
+        99,
+        LuaSettings:open(wb_path):read("wallabag").articles_per_sync
+      )
+    end
+  )
 end)

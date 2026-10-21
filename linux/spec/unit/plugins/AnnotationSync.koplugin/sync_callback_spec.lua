@@ -69,25 +69,19 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     }
   end
 
-  it(
-    "keeps unchanged annotations present in all three lists",
-    function()
-      local h1 = create_highlight(1, 10, 20, 100, 40, "note1")
-      write_json(local_file, { ["1|10|20||100|40"] = h1 })
-      write_json(last_sync_file, { ["1|10|20||100|40"] = h1 })
-      write_json(income_file, { ["1|10|20||100|40"] = h1 })
+  it("keeps unchanged annotations present in all three lists", function()
+    local h1 = create_highlight(1, 10, 20, 100, 40, "note1")
+    write_json(local_file, { ["1|10|20||100|40"] = h1 })
+    write_json(last_sync_file, { ["1|10|20||100|40"] = h1 })
+    write_json(income_file, { ["1|10|20||100|40"] = h1 })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+    local success, active =
+      annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
-      assert.is_true(success)
-      assert.are.equal(1, #active)
-      assert.are.equal("note1", active[1].note)
-    end
-  )
+    assert.is_true(success)
+    assert.are.equal(1, #active)
+    assert.are.equal("note1", active[1].note)
+  end)
 
   it("Remote newer update wins over local older", function()
     local h_local = create_highlight(
@@ -214,11 +208,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, {})
       write_json(income_file, { ["1|10|20||100|40"] = h_remote })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -250,11 +241,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, {})
       write_json(income_file, { ["1|10|20||100|40@11"] = h2 })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(2, #active)
@@ -292,11 +280,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, { ["1|10|20||100|40"] = h_local })
       write_json(income_file, { ["1|10|20||100|40"] = h_income })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -337,11 +322,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, { ["1|10|20||100|40"] = h_income })
       write_json(income_file, { ["1|10|20||100|40"] = h_income })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -392,11 +374,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, { ["1|10|20||100|40@old"] = h_old })
       write_json(income_file, { ["1|10|20||100|40@old_del"] = h_old_tombstone })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -448,11 +427,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, { ["1|10|20||100|40"] = h_synced })
       write_json(income_file, {}) -- remote does not have it (omitted, no tombstone)
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -464,48 +440,42 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     end
   )
 
-  it(
-    "receives remote tombstone and removes from active",
-    function()
-      local h_local = create_highlight(
-        1,
-        10,
-        20,
-        100,
-        40,
-        "active locally",
-        "2026-01-01 10:00:00",
-        "2026-01-01 10:00:00"
-      )
-      local h_remote_tombstone = create_highlight(
-        1,
-        10,
-        20,
-        100,
-        40,
-        "tombstone",
-        "2026-01-01 10:00:00",
-        "2026-01-01 11:00:00",
-        true
-      )
-      write_json(local_file, { ["1|10|20||100|40"] = h_local })
-      write_json(last_sync_file, { ["1|10|20||100|40"] = h_local })
-      write_json(income_file, { ["1|10|20||100|40"] = h_remote_tombstone })
+  it("receives remote tombstone and removes from active", function()
+    local h_local = create_highlight(
+      1,
+      10,
+      20,
+      100,
+      40,
+      "active locally",
+      "2026-01-01 10:00:00",
+      "2026-01-01 10:00:00"
+    )
+    local h_remote_tombstone = create_highlight(
+      1,
+      10,
+      20,
+      100,
+      40,
+      "tombstone",
+      "2026-01-01 10:00:00",
+      "2026-01-01 11:00:00",
+      true
+    )
+    write_json(local_file, { ["1|10|20||100|40"] = h_local })
+    write_json(last_sync_file, { ["1|10|20||100|40"] = h_local })
+    write_json(income_file, { ["1|10|20||100|40"] = h_remote_tombstone })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+    local success, active =
+      annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
-      assert.is_true(success)
-      assert.are.equal(0, #active)
+    assert.is_true(success)
+    assert.are.equal(0, #active)
 
-      local written = utils_mod.read_json(local_file)
-      assert.is_table(written[1])
-      assert.is_true(written[1].deleted)
-    end
-  )
+    local written = utils_mod.read_json(local_file)
+    assert.is_table(written[1])
+    assert.is_true(written[1].deleted)
+  end)
 
   it(
     "handles remote tombstone for an item local never had without crashing",
@@ -525,11 +495,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, {})
       write_json(income_file, { ["1|10|20||100|40"] = h_remote_tombstone })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(0, #active)
@@ -560,11 +527,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(local_file, {})
       write_json(income_file, {})
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_nil(success)
       assert.are.equal(0, #active)
@@ -586,11 +550,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       write_json(last_sync_file, {})
       write_json(income_file, {})
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(3, #active)
@@ -609,24 +570,84 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     it(
       "merges live edits with the snapshot base and the upload income",
       function()
-        local s_x = create_highlight(1, 10, 20, 100, 40, "note_orig", "2026-01-01 10:00:00")
-        local s_d = create_highlight(2, 10, 20, 100, 40, "to_delete_local", "2026-01-01 10:00:00")
-        local s_k = create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
+        local s_x = create_highlight(
+          1,
+          10,
+          20,
+          100,
+          40,
+          "note_orig",
+          "2026-01-01 10:00:00"
+        )
+        local s_d = create_highlight(
+          2,
+          10,
+          20,
+          100,
+          40,
+          "to_delete_local",
+          "2026-01-01 10:00:00"
+        )
+        local s_k =
+          create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
 
         -- Base (Snapshot S)
         local base = { s_x, s_d, s_k }
 
         -- Local at callback time: x edited note, d deleted locally, k unchanged, h added locally
-        local l_x = create_highlight(1, 10, 20, 100, 40, "note_edited", "2026-01-01 10:00:00", "2026-01-01 12:00:00")
-        local l_h = create_highlight(4, 10, 20, 100, 40, "new_local_hl", "2026-01-01 12:00:00")
-        local l_k = create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
+        local l_x = create_highlight(
+          1,
+          10,
+          20,
+          100,
+          40,
+          "note_edited",
+          "2026-01-01 10:00:00",
+          "2026-01-01 12:00:00"
+        )
+        local l_h = create_highlight(
+          4,
+          10,
+          20,
+          100,
+          40,
+          "new_local_hl",
+          "2026-01-01 12:00:00"
+        )
+        local l_k =
+          create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
         local local_list = { l_x, l_k, l_h }
 
         -- Income (Uploaded M): remote added r, x has original note, d was in S, k was in S
-        local m_x = create_highlight(1, 10, 20, 100, 40, "note_orig", "2026-01-01 10:00:00")
-        local m_d = create_highlight(2, 10, 20, 100, 40, "to_delete_local", "2026-01-01 10:00:00")
-        local m_k = create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
-        local m_r = create_highlight(5, 10, 20, 100, 40, "remote_added", "2026-01-01 11:00:00")
+        local m_x = create_highlight(
+          1,
+          10,
+          20,
+          100,
+          40,
+          "note_orig",
+          "2026-01-01 10:00:00"
+        )
+        local m_d = create_highlight(
+          2,
+          10,
+          20,
+          100,
+          40,
+          "to_delete_local",
+          "2026-01-01 10:00:00"
+        )
+        local m_k =
+          create_highlight(3, 10, 20, 100, 40, "keep", "2026-01-01 10:00:00")
+        local m_r = create_highlight(
+          5,
+          10,
+          20,
+          100,
+          40,
+          "remote_added",
+          "2026-01-01 11:00:00"
+        )
         local income = { m_x, m_d, m_k, m_r }
 
         local merged, active = annotations_mod.merge(local_list, base, income)
@@ -639,7 +660,10 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
           table.insert(active_texts, a.note or a.text)
         end
         table.sort(active_texts)
-        assert.are.same({ "keep", "new_local_hl", "note_edited", "remote_added" }, active_texts)
+        assert.are.same(
+          { "keep", "new_local_hl", "note_edited", "remote_added" },
+          active_texts
+        )
 
         -- Merged must have the tombstone for s_d
         local has_d_tombstone = false
@@ -667,23 +691,46 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
       end
     )
 
-
     it(
       "returns M minus tombstones in active when local_list == base_list",
       function()
         local s_str = json.encode({
           create_highlight(1, 10, 20, 100, 40, "live1", "2026-01-01 10:00:00"),
-          create_highlight(2, 10, 20, 100, 40, "to_be_deleted", "2026-01-01 10:00:00"),
+          create_highlight(
+            2,
+            10,
+            20,
+            100,
+            40,
+            "to_be_deleted",
+            "2026-01-01 10:00:00"
+          ),
         })
         local local_list = json.decode(s_str)
         local base_list = json.decode(s_str)
-        local tomb = create_highlight(2, 10, 20, 100, 40, "to_be_deleted", "2026-01-01 10:00:00")
+        local tomb = create_highlight(
+          2,
+          10,
+          20,
+          100,
+          40,
+          "to_be_deleted",
+          "2026-01-01 10:00:00"
+        )
         tomb.deleted = true
         tomb.datetime_updated = "2026-01-02 10:00:00"
         local income_list = {
           create_highlight(1, 10, 20, 100, 40, "live1", "2026-01-01 10:00:00"),
           tomb,
-          create_highlight(3, 10, 20, 100, 40, "remote_live", "2026-01-02 10:00:00"),
+          create_highlight(
+            3,
+            10,
+            20,
+            100,
+            40,
+            "remote_live",
+            "2026-01-02 10:00:00"
+          ),
         }
 
         local merged, active =
@@ -706,7 +753,8 @@ describe("AnnotationSync sync_callback (7-case 3-way merge)", function()
     it(
       "preserves restored annotations when local is missing them and base holds tombstones",
       function()
-        local h = create_highlight(1, 10, 20, 100, 40, "live_h", "2026-01-01 10:00:00")
+        local h =
+          create_highlight(1, 10, 20, 100, 40, "live_h", "2026-01-01 10:00:00")
         local base_a = create_highlight(
           2,
           10,

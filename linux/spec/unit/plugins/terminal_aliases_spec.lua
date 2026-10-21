@@ -348,7 +348,10 @@ describe("Terminal Aliases plugin module", function()
   end)
 
   it("should preserve internal quotes when loading alias", function()
-    local tmp_file = lfs.currentdir() .. "/test_aliases_quotes_" .. ffiUtil.getpid() .. ".sh"
+    local tmp_file = lfs.currentdir()
+      .. "/test_aliases_quotes_"
+      .. ffiUtil.getpid()
+      .. ".sh"
     local f = io.open(tmp_file, "w")
     f:write('alias greet="echo \\"hello world\\""\n')
     f:close()

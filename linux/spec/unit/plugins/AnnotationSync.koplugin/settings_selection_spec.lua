@@ -228,7 +228,9 @@ describe("AnnotationSync Settings Selection", function()
       branch_menu:onMenuSelect(leaf_item)
       assert.is_true(UIManager:isWindowWidget(branch_menu))
       assert.is_true(UIManager:isWindowWidget(submenu))
-      assert.is_true(sync_instance.settings.selected_settings["reader:footer.time"])
+      assert.is_true(
+        sync_instance.settings.selected_settings["reader:footer.time"]
+      )
 
       -- Now parent branch item should reflect the selection
       assert.is_not_nil(footer_item.text_func():find("[✓]", 1, true))
@@ -351,10 +353,13 @@ describe("AnnotationSync Settings Selection", function()
 
       -- Select it
       submenu:onMenuSelect(found_item)
-      assert.is_true(sync_instance.settings.selected_settings["reader:style_tweaks"])
+      assert.is_true(
+        sync_instance.settings.selected_settings["reader:style_tweaks"]
+      )
 
       -- Verify pushed value via getSelectedSettingsWithValues
-      local selected_values = sync_instance.manager:getSelectedSettingsWithValues()
+      local selected_values =
+        sync_instance.manager:getSelectedSettingsWithValues()
       assert.is_not_nil(selected_values)
       assert.are.same({}, selected_values["reader:style_tweaks"])
 
@@ -383,7 +388,8 @@ describe("AnnotationSync Settings Selection", function()
       -- Change setting and select it
       G_reader_settings:save("auto_standby_timeout_seconds", 777)
       G_reader_settings:flush()
-      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"] = true
+      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"] =
+        true
       sync_instance:saveSettings()
 
       -- Revert setting back to default (-1)
@@ -402,10 +408,14 @@ describe("AnnotationSync Settings Selection", function()
       sync_instance.manager:pushSettings()
 
       assert.is_false(pushed)
-      assert.is_nil(sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"])
+      assert.is_nil(
+        sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+      )
       assert.is_not_nil(msg_shown)
       assert.are.equal(
-        gettext("No settings are selected. Please select settings to sync in 'Show changed settings'."),
+        gettext(
+          "No settings are selected. Please select settings to sync in 'Show changed settings'."
+        ),
         msg_shown
       )
     end
@@ -475,7 +485,9 @@ describe("AnnotationSync Settings Selection", function()
     local old_show = UIManager.show
     local Device_mod = require("device")
     local old_hasDPad = Device_mod.hasDPad
-    Device_mod.hasDPad = function() return true end
+    Device_mod.hasDPad = function()
+      return true
+    end
     finally(function()
       Device_mod.hasDPad = old_hasDPad
       UIManager.show = old_show

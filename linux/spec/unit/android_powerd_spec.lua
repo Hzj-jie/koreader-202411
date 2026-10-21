@@ -143,27 +143,24 @@ describe("AndroidPowerD", function()
       end
     )
 
-    it(
-      "setWarmthHW sets hardware warmth value directly",
-      function()
-        mock_android.screen_min_warmth = 0
-        mock_android.screen_max_warmth = 10
-        mock_android.screen_warmth = 0
+    it("setWarmthHW sets hardware warmth value directly", function()
+      mock_android.screen_min_warmth = 0
+      mock_android.screen_max_warmth = 10
+      mock_android.screen_warmth = 0
 
-        local p = AndroidPowerD:new({
-          device = {
-            hasFrontlight = function()
-              return true
-            end,
-            hasNaturalLight = function()
-              return true
-            end,
-          },
-        })
+      local p = AndroidPowerD:new({
+        device = {
+          hasFrontlight = function()
+            return true
+          end,
+          hasNaturalLight = function()
+            return true
+          end,
+        },
+      })
 
-        p:setWarmthHW(8)
-        assert.are.equal(8, mock_android.screen_warmth)
-      end
-    )
+      p:setWarmthHW(8)
+      assert.are.equal(8, mock_android.screen_warmth)
+    end)
   end)
 end)

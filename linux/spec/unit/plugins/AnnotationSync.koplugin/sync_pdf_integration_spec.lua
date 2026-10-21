@@ -117,7 +117,13 @@ describe("AnnotationSync PDF Core Integration", function()
         "income_disjoint_pdf.json",
         { ann2 }
       )
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local cached_dest = local_path .. ".sync"
         callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
@@ -157,7 +163,13 @@ describe("AnnotationSync PDF Core Integration", function()
           { remote_ann }
         )
 
-        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          upload_only,
+          finish_cb
+        )
           local cached_dest = local_path .. ".sync"
           callback(local_path, cached_dest, income_path)
           local ffiutil = require("ffi/util")
@@ -178,12 +190,20 @@ describe("AnnotationSync PDF Core Integration", function()
     )
 
     it("resolves PDF conflicts using timestamps (latest wins)", function()
-      local ann_l =
-        create_pdf_ann_from_db(1, "Local Newer PDF", "2026-01-01 12:00:00", "2026-02-02 12:00:00")
+      local ann_l = create_pdf_ann_from_db(
+        1,
+        "Local Newer PDF",
+        "2026-01-01 12:00:00",
+        "2026-02-02 12:00:00"
+      )
       table.insert(readerui.annotation.annotations, ann_l)
 
-      local ann_r =
-        create_pdf_ann_from_db(1, "Remote Older PDF", "2026-01-01 12:00:00", "2026-02-01 12:00:00")
+      local ann_r = create_pdf_ann_from_db(
+        1,
+        "Remote Older PDF",
+        "2026-01-01 12:00:00",
+        "2026-02-01 12:00:00"
+      )
       local income_path = test_utils.write_mock_json(
         test_data_dir,
         "income_conflict_pdf.json",
@@ -196,7 +216,13 @@ describe("AnnotationSync PDF Core Integration", function()
       fc:write(json.encode({ ann_r }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local cached_dest = local_path .. ".sync"
         callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
@@ -238,7 +264,13 @@ describe("AnnotationSync PDF Core Integration", function()
       fc:write(json.encode({ ann }))
       fc:close()
 
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local cached_dest = local_path .. ".sync"
         callback(local_path, cached_dest, income_path)
         local ffiutil = require("ffi/util")
@@ -367,9 +399,7 @@ describe("AnnotationSync PDF Core Integration", function()
       assert.truthy(ann_cropped)
 
       -- Highlights should differ because we clicked different text (due to simulated crop shift)
-      assert.is_false(
-        ReaderAnnotation.doesMatch(ann_uncropped, ann_cropped)
-      )
+      assert.is_false(ReaderAnnotation.doesMatch(ann_uncropped, ann_cropped))
 
       -- Restore transform
       readerui.view.screenToPageTransform = old_s2p
@@ -377,91 +407,127 @@ describe("AnnotationSync PDF Core Integration", function()
       readerui.highlight:clear()
     end)
 
-    it("preserves numeric integer keys and drops null placeholders in multi-page highlights across JSON round-trip", function()
-      -- Highlight 1: pages 5-6 (JSON encodes as object with string keys "5", "6")
-      local ext1 = {}
-      ext1[5] = { pos0 = { x = 10, y = 20, page = 5 }, pos1 = { x = 30, y = 40, page = 5 }, pboxes = { { x = 10, y = 20, w = 20, h = 20 } } }
-      ext1[6] = { pos0 = { x = 10, y = 20, page = 6 }, pos1 = { x = 30, y = 40, page = 6 }, pboxes = { { x = 10, y = 20, w = 20, h = 20 } } }
-      local h1 = {
-        page = 5,
-        pos0 = { x = 10, y = 20, page = 5, zoom = 1, rotation = 0 },
-        pos1 = { x = 30, y = 40, page = 6, zoom = 1, rotation = 0 },
-        drawer = "lighten",
-        color = "yellow",
-        text = "multi page 5-6",
-        datetime = "2026-01-01 10:00:00",
-        ext = ext1,
-      }
+    it(
+      "preserves numeric integer keys and drops null placeholders in multi-page highlights across JSON round-trip",
+      function()
+        -- Highlight 1: pages 5-6 (JSON encodes as object with string keys "5", "6")
+        local ext1 = {}
+        ext1[5] = {
+          pos0 = { x = 10, y = 20, page = 5 },
+          pos1 = { x = 30, y = 40, page = 5 },
+          pboxes = { { x = 10, y = 20, w = 20, h = 20 } },
+        }
+        ext1[6] = {
+          pos0 = { x = 10, y = 20, page = 6 },
+          pos1 = { x = 30, y = 40, page = 6 },
+          pboxes = { { x = 10, y = 20, w = 20, h = 20 } },
+        }
+        local h1 = {
+          page = 5,
+          pos0 = { x = 10, y = 20, page = 5, zoom = 1, rotation = 0 },
+          pos1 = { x = 30, y = 40, page = 6, zoom = 1, rotation = 0 },
+          drawer = "lighten",
+          color = "yellow",
+          text = "multi page 5-6",
+          datetime = "2026-01-01 10:00:00",
+          ext = ext1,
+        }
 
-      -- Highlight 2: pages 2-3 (JSON encodes as array [null, {page 2}, {page 3}])
-      local ext2 = {}
-      ext2[2] = { pos0 = { x = 10, y = 20, page = 2 }, pos1 = { x = 30, y = 40, page = 2 }, pboxes = { { x = 10, y = 20, w = 20, h = 20 } } }
-      ext2[3] = { pos0 = { x = 10, y = 20, page = 3 }, pos1 = { x = 30, y = 40, page = 3 }, pboxes = { { x = 10, y = 20, w = 20, h = 20 } } }
-      local h2 = {
-        page = 2,
-        pos0 = { x = 10, y = 20, page = 2, zoom = 1, rotation = 0 },
-        pos1 = { x = 30, y = 40, page = 3, zoom = 1, rotation = 0 },
-        drawer = "lighten",
-        color = "yellow",
-        text = "multi page 2-3",
-        datetime = "2026-01-01 11:00:00",
-        ext = ext2,
-      }
+        -- Highlight 2: pages 2-3 (JSON encodes as array [null, {page 2}, {page 3}])
+        local ext2 = {}
+        ext2[2] = {
+          pos0 = { x = 10, y = 20, page = 2 },
+          pos1 = { x = 30, y = 40, page = 2 },
+          pboxes = { { x = 10, y = 20, w = 20, h = 20 } },
+        }
+        ext2[3] = {
+          pos0 = { x = 10, y = 20, page = 3 },
+          pos1 = { x = 30, y = 40, page = 3 },
+          pboxes = { { x = 10, y = 20, w = 20, h = 20 } },
+        }
+        local h2 = {
+          page = 2,
+          pos0 = { x = 10, y = 20, page = 2, zoom = 1, rotation = 0 },
+          pos1 = { x = 30, y = 40, page = 3, zoom = 1, rotation = 0 },
+          drawer = "lighten",
+          color = "yellow",
+          text = "multi page 2-3",
+          datetime = "2026-01-01 11:00:00",
+          ext = ext2,
+        }
 
-      readerui.annotation.annotations = { h1, h2 }
+        readerui.annotation.annotations = { h1, h2 }
 
-      local snapshot_json = json.encode(readerui.annotation.annotations)
-      local income = json.decode(snapshot_json)
-      table.insert(income, {
-        page = 1,
-        pos0 = { x = 1, y = 2, page = 1, zoom = 1, rotation = 0 },
-        pos1 = { x = 3, y = 4, page = 1, zoom = 1, rotation = 0 },
-        drawer = "lighten",
-        text = "from other device",
-        datetime = "2026-01-02 10:00:00",
-      })
+        local snapshot_json = json.encode(readerui.annotation.annotations)
+        local income = json.decode(snapshot_json)
+        table.insert(income, {
+          page = 1,
+          pos0 = { x = 1, y = 2, page = 1, zoom = 1, rotation = 0 },
+          pos1 = { x = 3, y = 4, page = 1, zoom = 1, rotation = 0 },
+          drawer = "lighten",
+          text = "from other device",
+          datetime = "2026-01-02 10:00:00",
+        })
 
-      sync_instance.manager:_applyBackgroundSync(readerui.document.file, snapshot_json, json.encode(income))
+        sync_instance.manager:_applyBackgroundSync(
+          readerui.document.file,
+          snapshot_json,
+          json.encode(income)
+        )
 
-      local found_h1, found_h2
-      for _, a in ipairs(readerui.annotation.annotations) do
-        if a.text == "multi page 5-6" then
-          found_h1 = a
-        elseif a.text == "multi page 2-3" then
-          found_h2 = a
+        local found_h1, found_h2
+        for _, a in ipairs(readerui.annotation.annotations) do
+          if a.text == "multi page 5-6" then
+            found_h1 = a
+          elseif a.text == "multi page 2-3" then
+            found_h2 = a
+          end
         end
+        assert.is_not_nil(found_h1)
+        assert.is_not_nil(found_h2)
+        assert.is_table(found_h1.ext[5])
+        assert.is_table(found_h1.ext[6])
+        assert.is_nil(found_h1.ext["5"])
+        assert.is_table(found_h2.ext[2])
+        assert.is_table(found_h2.ext[3])
+        assert.is_nil(found_h2.ext[1])
+
+        local ok5, res5 = pcall(
+          readerui.highlight.getPageSavedHighlights,
+          readerui.highlight,
+          5
+        )
+        assert.is_true(ok5)
+        assert.is_not_nil(res5)
+
+        local ok2, res2 = pcall(
+          readerui.highlight.getPageSavedHighlights,
+          readerui.highlight,
+          2
+        )
+        assert.is_true(ok2)
+        assert.is_not_nil(res2)
+
+        local ds_mod = require("frontend/docsettings")
+        local sidecar = ds_mod:getSidecarDir(readerui.document.file)
+          .. "/"
+          .. ds_mod.getSidecarFilename(readerui.document.file)
+        local f = io.open(sidecar, "r")
+        local content = f and f:read("*a")
+        if f then
+          f:close()
+        end
+        assert.is_not_nil(content)
+        assert.is_nil(content:find("function: 0x"))
+
+        local reloaded =
+          ds_mod:open(readerui.document.file):readTable("annotations")
+        assert.is_table(reloaded)
+        assert.are.equal(3, #reloaded)
+
+        readerui.annotation.annotations = {}
+        readerui.highlight:clear()
       end
-      assert.is_not_nil(found_h1)
-      assert.is_not_nil(found_h2)
-      assert.is_table(found_h1.ext[5])
-      assert.is_table(found_h1.ext[6])
-      assert.is_nil(found_h1.ext["5"])
-      assert.is_table(found_h2.ext[2])
-      assert.is_table(found_h2.ext[3])
-      assert.is_nil(found_h2.ext[1])
-
-      local ok5, res5 = pcall(readerui.highlight.getPageSavedHighlights, readerui.highlight, 5)
-      assert.is_true(ok5)
-      assert.is_not_nil(res5)
-
-      local ok2, res2 = pcall(readerui.highlight.getPageSavedHighlights, readerui.highlight, 2)
-      assert.is_true(ok2)
-      assert.is_not_nil(res2)
-
-      local ds_mod = require("frontend/docsettings")
-      local sidecar = ds_mod:getSidecarDir(readerui.document.file) .. "/" .. ds_mod.getSidecarFilename(readerui.document.file)
-      local f = io.open(sidecar, "r")
-      local content = f and f:read("*a")
-      if f then f:close() end
-      assert.is_not_nil(content)
-      assert.is_nil(content:find("function: 0x"))
-
-      local reloaded = ds_mod:open(readerui.document.file):readTable("annotations")
-      assert.is_table(reloaded)
-      assert.are.equal(3, #reloaded)
-
-      readerui.annotation.annotations = {}
-      readerui.highlight:clear()
-    end)
+    )
   end)
 end)

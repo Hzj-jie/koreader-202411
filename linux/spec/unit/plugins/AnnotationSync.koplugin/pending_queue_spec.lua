@@ -1,7 +1,8 @@
 describe("AnnotationSync pending queue", function()
   local UIManager, AnnotationSyncPlugin, test_utils, json, util, utils, Notification, menus
   local readerui, sync_instance, manager
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_pending_queue_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_pending_queue_tmp"
   local old_getDataDir
 
   setup(function()
@@ -22,7 +23,10 @@ describe("AnnotationSync pending queue", function()
     old_getDataDir = test_utils.setup_test_env(test_data_dir)
 
     G_reader_settings:save("cloud_download_dir", "http://mock")
-    G_reader_settings:save("cloud_server_object", json.encode({ url = "http://mock", type = "webdav" }))
+    G_reader_settings:save(
+      "cloud_server_object",
+      json.encode({ url = "http://mock", type = "webdav" })
+    )
 
     readerui, sync_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",
@@ -46,177 +50,198 @@ describe("AnnotationSync pending queue", function()
     manager.last_sync_time = {}
   end)
 
-  it("Sync current book now moves the book to the front of the pending books", function()
-    local path_a = test_data_dir .. "/A.epub"
-    local path_b = test_data_dir .. "/B.epub"
-    local path_c = test_data_dir .. "/C.epub"
+  it(
+    "Sync current book now moves the book to the front of the pending books",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      local path_b = test_data_dir .. "/B.epub"
+      local path_c = test_data_dir .. "/C.epub"
 
-    manager:_writeChangedDocumentsFile({ path_a, path_b, path_c })
-    manager.running = true
+      manager:_writeChangedDocumentsFile({ path_a, path_b, path_c })
+      manager.running = true
 
-    local toast_msg
-    local orig_notify = Notification.notify
-    Notification.notify = function(self_notif, text)
-      toast_msg = text
-    end
-
-    finally(function()
-      manager.running = nil
-      manager.requested = {}
-      Notification.notify = orig_notify
-    end)
-
-    manager:syncNow(path_c)
-
-    local _, list = manager:getPendingChangedDocuments()
-    assert.are.equal(3, #list)
-    assert.are.equal(path_c, list[1])
-    assert.are.equal(path_a, list[2])
-    assert.are.equal(path_b, list[3])
-
-    assert.are.equal("Manual Sync", manager.requested[path_c])
-    assert.are.equal("Syncing C.epub in the background", toast_msg)
-  end)
-
-  it("Sync current book now on the running book notifies that it is being synchronized", function()
-    local path_a = test_data_dir .. "/A.epub"
-    manager:_writeChangedDocumentsFile({ path_a })
-    manager.running = path_a
-    manager.last_sync_time[path_a] = { time = 12345, failed = false }
-
-    local toast_msg
-    local orig_notify = Notification.notify
-    Notification.notify = function(_, text)
-      toast_msg = text
-    end
-
-    finally(function()
-      manager.running = nil
-      manager.requested = {}
-      manager.last_sync_time = {}
-      Notification.notify = orig_notify
-    end)
-
-    manager:syncNow(path_a)
-
-    assert.are.equal("Current book is being synchronized", toast_msg)
-    assert.is_nil(manager.requested[path_a])
-    assert.are.same({ time = 12345, failed = false }, manager.last_sync_time[path_a])
-  end)
-
-  it("Sync current book now on a book that isn't pending adds it at the front", function()
-    local path_a = test_data_dir .. "/A.epub"
-    local path_b = test_data_dir .. "/B.epub"
-    local path_d = test_data_dir .. "/D.epub"
-
-    manager:_writeChangedDocumentsFile({ path_a, path_b })
-    manager.running = true
-
-    local orig_notify = Notification.notify
-    Notification.notify = function() end
-
-    finally(function()
-      manager.running = nil
-      manager.requested = {}
-      Notification.notify = orig_notify
-    end)
-
-    manager:syncNow(path_d)
-
-    local _, list = manager:getPendingChangedDocuments()
-    assert.are.equal(3, #list)
-    assert.are.equal(path_d, list[1])
-    assert.are.equal(path_a, list[2])
-    assert.are.equal(path_b, list[3])
-  end)
-
-  it("Sync all pending books with nothing pending says so and requests nothing", function()
-    manager:_writeChangedDocumentsFile({})
-    manager.running = true
-
-    local captured_msg
-    local orig_show_msg = utils.show_msg
-    utils.show_msg = function(msg)
-      captured_msg = msg
-    end
-
-    local toast_called = false
-    local orig_notify = Notification.notify
-    Notification.notify = function()
-      toast_called = true
-    end
-
-    finally(function()
-      manager.running = nil
-      manager.requested = {}
-      utils.show_msg = orig_show_msg
-      Notification.notify = orig_notify
-    end)
-
-    manager:syncAllChangedDocuments()
-
-    assert.are.equal("No pending books.", captured_msg)
-    assert.is_nil(next(manager.requested))
-    assert.is_false(toast_called)
-  end)
-
-  it("Show pending books with nothing pending says so instead of opening an empty list", function()
-    manager:_writeChangedDocumentsFile({})
-
-    local captured_msg
-    local orig_show_msg = utils.show_msg
-    utils.show_msg = function(msg)
-      captured_msg = msg
-    end
-
-    local shown_widgets = {}
-    local orig_show = UIManager.show
-    UIManager.show = function(ui_mgr, widget, ...)
-      table.insert(shown_widgets, widget)
-      return orig_show(ui_mgr, widget, ...)
-    end
-
-    finally(function()
-      utils.show_msg = orig_show_msg
-      UIManager.show = orig_show
-      for _, w in ipairs(shown_widgets) do
-        UIManager:closeIfShown(w)
+      local toast_msg
+      local orig_notify = Notification.notify
+      Notification.notify = function(self_notif, text)
+        toast_msg = text
       end
-    end)
 
-    menus.show_pending_documents(sync_instance)
+      finally(function()
+        manager.running = nil
+        manager.requested = {}
+        Notification.notify = orig_notify
+      end)
 
-    assert.are.equal("No pending books.", captured_msg)
-    assert.are.equal(0, #shown_widgets)
-  end)
+      manager:syncNow(path_c)
 
-  it("Show pending books sorts the books by file name, ignoring case and folders", function()
-    local files = { "/z/b.epub", "/a/C.epub", "/m/a.epub" }
-    manager:_writeChangedDocumentsFile(files)
+      local _, list = manager:getPendingChangedDocuments()
+      assert.are.equal(3, #list)
+      assert.are.equal(path_c, list[1])
+      assert.are.equal(path_a, list[2])
+      assert.are.equal(path_b, list[3])
 
-    local shown_widgets = {}
-    local orig_show = UIManager.show
-    UIManager.show = function(ui_mgr, widget, ...)
-      table.insert(shown_widgets, widget)
-      return orig_show(ui_mgr, widget, ...)
+      assert.are.equal("Manual Sync", manager.requested[path_c])
+      assert.are.equal("Syncing C.epub in the background", toast_msg)
     end
+  )
 
-    finally(function()
-      UIManager.show = orig_show
-      for _, w in ipairs(shown_widgets) do
-        UIManager:closeIfShown(w)
+  it(
+    "Sync current book now on the running book notifies that it is being synchronized",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      manager:_writeChangedDocumentsFile({ path_a })
+      manager.running = path_a
+      manager.last_sync_time[path_a] = { time = 12345, failed = false }
+
+      local toast_msg
+      local orig_notify = Notification.notify
+      Notification.notify = function(_, text)
+        toast_msg = text
       end
-    end)
 
-    menus.show_pending_documents(sync_instance)
+      finally(function()
+        manager.running = nil
+        manager.requested = {}
+        manager.last_sync_time = {}
+        Notification.notify = orig_notify
+      end)
 
-    local menu = shown_widgets[1]
-    assert.is_not_nil(menu)
-    assert.are.equal(3, #menu.item_table)
-    assert.are.equal("a.epub", menu.item_table[1].text)
-    assert.are.equal("b.epub", menu.item_table[2].text)
-    assert.are.equal("C.epub", menu.item_table[3].text)
-  end)
+      manager:syncNow(path_a)
+
+      assert.are.equal("Current book is being synchronized", toast_msg)
+      assert.is_nil(manager.requested[path_a])
+      assert.are.same(
+        { time = 12345, failed = false },
+        manager.last_sync_time[path_a]
+      )
+    end
+  )
+
+  it(
+    "Sync current book now on a book that isn't pending adds it at the front",
+    function()
+      local path_a = test_data_dir .. "/A.epub"
+      local path_b = test_data_dir .. "/B.epub"
+      local path_d = test_data_dir .. "/D.epub"
+
+      manager:_writeChangedDocumentsFile({ path_a, path_b })
+      manager.running = true
+
+      local orig_notify = Notification.notify
+      Notification.notify = function() end
+
+      finally(function()
+        manager.running = nil
+        manager.requested = {}
+        Notification.notify = orig_notify
+      end)
+
+      manager:syncNow(path_d)
+
+      local _, list = manager:getPendingChangedDocuments()
+      assert.are.equal(3, #list)
+      assert.are.equal(path_d, list[1])
+      assert.are.equal(path_a, list[2])
+      assert.are.equal(path_b, list[3])
+    end
+  )
+
+  it(
+    "Sync all pending books with nothing pending says so and requests nothing",
+    function()
+      manager:_writeChangedDocumentsFile({})
+      manager.running = true
+
+      local captured_msg
+      local orig_show_msg = utils.show_msg
+      utils.show_msg = function(msg)
+        captured_msg = msg
+      end
+
+      local toast_called = false
+      local orig_notify = Notification.notify
+      Notification.notify = function()
+        toast_called = true
+      end
+
+      finally(function()
+        manager.running = nil
+        manager.requested = {}
+        utils.show_msg = orig_show_msg
+        Notification.notify = orig_notify
+      end)
+
+      manager:syncAllChangedDocuments()
+
+      assert.are.equal("No pending books.", captured_msg)
+      assert.is_nil(next(manager.requested))
+      assert.is_false(toast_called)
+    end
+  )
+
+  it(
+    "Show pending books with nothing pending says so instead of opening an empty list",
+    function()
+      manager:_writeChangedDocumentsFile({})
+
+      local captured_msg
+      local orig_show_msg = utils.show_msg
+      utils.show_msg = function(msg)
+        captured_msg = msg
+      end
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        table.insert(shown_widgets, widget)
+        return orig_show(ui_mgr, widget, ...)
+      end
+
+      finally(function()
+        utils.show_msg = orig_show_msg
+        UIManager.show = orig_show
+        for _, w in ipairs(shown_widgets) do
+          UIManager:closeIfShown(w)
+        end
+      end)
+
+      menus.show_pending_documents(sync_instance)
+
+      assert.are.equal("No pending books.", captured_msg)
+      assert.are.equal(0, #shown_widgets)
+    end
+  )
+
+  it(
+    "Show pending books sorts the books by file name, ignoring case and folders",
+    function()
+      local files = { "/z/b.epub", "/a/C.epub", "/m/a.epub" }
+      manager:_writeChangedDocumentsFile(files)
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(ui_mgr, widget, ...)
+        table.insert(shown_widgets, widget)
+        return orig_show(ui_mgr, widget, ...)
+      end
+
+      finally(function()
+        UIManager.show = orig_show
+        for _, w in ipairs(shown_widgets) do
+          UIManager:closeIfShown(w)
+        end
+      end)
+
+      menus.show_pending_documents(sync_instance)
+
+      local menu = shown_widgets[1]
+      assert.is_not_nil(menu)
+      assert.are.equal(3, #menu.item_table)
+      assert.are.equal("a.epub", menu.item_table[1].text)
+      assert.are.equal("b.epub", menu.item_table[2].text)
+      assert.are.equal("C.epub", menu.item_table[3].text)
+    end
+  )
 
   it(
     "renders syncing book with mandatory Syncing and dim true, and refreshes menu on manual Sync",
@@ -293,7 +318,8 @@ describe("AnnotationSync pending queue", function()
       -- path_a is cooling down with 250s remaining (~5 minutes)
       manager.last_sync_time[path_a] = { time = os.time() - 50, failed = false }
       -- path_b is cooling down with 30s remaining (1 minute)
-      manager.last_sync_time[path_b] = { time = os.time() - 270, failed = false }
+      manager.last_sync_time[path_b] =
+        { time = os.time() - 270, failed = false }
 
       local shown_widgets = {}
       local orig_show = UIManager.show
@@ -386,12 +412,18 @@ describe("AnnotationSync pending queue", function()
 
       -- Item 1: path_a -> dimmed, mandatory = "Failed, retry in 5 minutes"
       assert.are.equal("A.epub", menu.item_table[1].text)
-      assert.are.equal("Failed, retry in 5 minutes", menu.item_table[1].mandatory)
+      assert.are.equal(
+        "Failed, retry in 5 minutes",
+        menu.item_table[1].mandatory
+      )
       assert.is_true(menu.item_table[1].dim)
 
       -- Item 2: path_b -> dimmed, mandatory = "Failed, retry in 1 minute"
       assert.are.equal("B.epub", menu.item_table[2].text)
-      assert.are.equal("Failed, retry in 1 minute", menu.item_table[2].mandatory)
+      assert.are.equal(
+        "Failed, retry in 1 minute",
+        menu.item_table[2].mandatory
+      )
       assert.is_true(menu.item_table[2].dim)
     end
   )
