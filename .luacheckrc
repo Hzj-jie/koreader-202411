@@ -13,6 +13,7 @@ globals = {
   "disable_plugins",
   "fastforward_ui_events",
   "io.open",
+  "io.popen",
   "io.write",
   "math.e",
   "math.finite",
