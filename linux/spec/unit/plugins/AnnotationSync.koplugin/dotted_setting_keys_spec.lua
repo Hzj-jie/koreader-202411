@@ -2,7 +2,8 @@ describe("AnnotationSync setting keys with dots", function()
   local UIManager, AnnotationSyncPlugin, test_utils, json, LuaSettings, DataStorage
   local remote, utils, menus
   local readerui, sync_instance, manager
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_dotted_setting_keys_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_dotted_setting_keys_tmp"
   local old_getDataDir
   local settings_dir
 
@@ -39,7 +40,10 @@ describe("AnnotationSync setting keys with dots", function()
   end)
 
   before_each(function()
-    G_reader_settings:save("cloud_server_object", json.encode({ url = "http://mock", type = "webdav" }))
+    G_reader_settings:save(
+      "cloud_server_object",
+      json.encode({ url = "http://mock", type = "webdav" })
+    )
     readerui, sync_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",
       AnnotationSyncPlugin
@@ -130,47 +134,55 @@ describe("AnnotationSync setting keys with dots", function()
     assert.is_true(settings[leaves[ENCODED].setting_id])
   end)
 
-  it("book shortcuts to files pulled from another device are imported as the same keys", function()
-    local shown = {}
-    local bs_path = settings_dir .. "/bookshortcuts.lua"
-    local old_show = UIManager.show
-    finally(function()
-      UIManager.show = old_show
+  it(
+    "book shortcuts to files pulled from another device are imported as the same keys",
+    function()
+      local shown = {}
+      local bs_path = settings_dir .. "/bookshortcuts.lua"
+      local old_show = UIManager.show
+      finally(function()
+        UIManager.show = old_show
+        for _, w in ipairs(shown) do
+          if UIManager:isWindowWidget(w) then
+            UIManager:close(w)
+          end
+        end
+        os.remove(bs_path)
+      end)
+
+      local leaves = open_shortcut_leaves(shown)
+      local hamlet_id = leaves[HAMLET].setting_id
+      local encoded_id = leaves[ENCODED].setting_id
+
       for _, w in ipairs(shown) do
         if UIManager:isWindowWidget(w) then
           UIManager:close(w)
         end
       end
       os.remove(bs_path)
-    end)
 
-    local leaves = open_shortcut_leaves(shown)
-    local hamlet_id = leaves[HAMLET].setting_id
-    local encoded_id = leaves[ENCODED].setting_id
+      menus.show_differing_settings_menu(
+        sync_instance,
+        "Other",
+        { [hamlet_id] = true, [encoded_id] = true },
+        nil
+      )
+      local diff_menu = shown[#shown]
+      assert.truthy(diff_menu)
 
-    for _, w in ipairs(shown) do
-      if UIManager:isWindowWidget(w) then
-        UIManager:close(w)
+      local all_text = ""
+      for _, item in ipairs(diff_menu.item_table) do
+        local text = item.text or (item.text_func and item.text_func()) or ""
+        all_text = all_text .. "\n" .. text
       end
+      assert.truthy(all_text:find(HAMLET, 1, true))
+      assert.truthy(all_text:find(ENCODED, 1, true))
+
+      diff_menu.item_table[1].callback()
+
+      local s = LuaSettings:open(bs_path)
+      assert.is_true(s:read(HAMLET))
+      assert.is_true(s:read(ENCODED))
     end
-    os.remove(bs_path)
-
-    menus.show_differing_settings_menu(sync_instance, "Other", { [hamlet_id] = true, [encoded_id] = true }, nil)
-    local diff_menu = shown[#shown]
-    assert.truthy(diff_menu)
-
-    local all_text = ""
-    for _, item in ipairs(diff_menu.item_table) do
-      local text = item.text or (item.text_func and item.text_func()) or ""
-      all_text = all_text .. "\n" .. text
-    end
-    assert.truthy(all_text:find(HAMLET, 1, true))
-    assert.truthy(all_text:find(ENCODED, 1, true))
-
-    diff_menu.item_table[1].callback()
-
-    local s = LuaSettings:open(bs_path)
-    assert.is_true(s:read(HAMLET))
-    assert.is_true(s:read(ENCODED))
-  end)
+  )
 end)

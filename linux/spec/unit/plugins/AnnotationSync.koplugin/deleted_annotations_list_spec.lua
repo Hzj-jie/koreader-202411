@@ -1,7 +1,8 @@
 describe("AnnotationSync deleted annotations list", function()
   local UIManager, AnnotationSyncPlugin, test_utils, json, util, utils
   local readerui, sync_instance, manager
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_deleted_annotations_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_deleted_annotations_tmp"
   local old_getDataDir
 
   setup(function()
@@ -21,7 +22,10 @@ describe("AnnotationSync deleted annotations list", function()
     _G.old_ImageViewer_new = test_utils.mock_image_viewer()
 
     G_reader_settings:save("cloud_download_dir", "mock")
-    G_reader_settings:save("cloud_server_object", json.encode({ url = "http://mock", type = "webdav" }))
+    G_reader_settings:save(
+      "cloud_server_object",
+      json.encode({ url = "http://mock", type = "webdav" })
+    )
 
     readerui, sync_instance = test_utils.init_integration_context(
       "spec/front/unit/data/juliet.epub",
@@ -85,13 +89,19 @@ describe("AnnotationSync deleted annotations list", function()
     return shown_widgets, captured_msg, cleanup
   end
 
-  it("says there is nothing to restore when the book has no deleted annotations", function()
-    local shown_widgets, captured_msg, cleanup = open_deleted_annotations(nil)
-    finally(cleanup)
+  it(
+    "says there is nothing to restore when the book has no deleted annotations",
+    function()
+      local shown_widgets, captured_msg, cleanup = open_deleted_annotations(nil)
+      finally(cleanup)
 
-    assert.are.equal("No deleted annotations found for this document.", captured_msg)
-    assert.are.equal(0, #shown_widgets)
-  end)
+      assert.are.equal(
+        "No deleted annotations found for this document.",
+        captured_msg
+      )
+      assert.are.equal(0, #shown_widgets)
+    end
+  )
 
   it("labels an annotation without text or note as Highlight", function()
     local tombstones = {
@@ -151,30 +161,33 @@ describe("AnnotationSync deleted annotations list", function()
     assert.are.equal(t, util.fixUtf8(t, "?"))
   end)
 
-  it("the restore confirmation shows the page number, not the EPUB position", function()
-    local tombstones = {
-      {
-        page = "/body/DocFragment[2]/body/p[3]/text().0",
-        pos0 = "/body/DocFragment[2]/body/p[3]/text().0",
-        pos1 = "/body/DocFragment[2]/body/p[3]/text().10",
-        pageno = 12,
-        text = "Romeo",
-        datetime = "2026-01-01 10:00:00",
-        deleted = true,
-      },
-    }
-    local shown_widgets, _, cleanup = open_deleted_annotations(tombstones)
-    finally(cleanup)
+  it(
+    "the restore confirmation shows the page number, not the EPUB position",
+    function()
+      local tombstones = {
+        {
+          page = "/body/DocFragment[2]/body/p[3]/text().0",
+          pos0 = "/body/DocFragment[2]/body/p[3]/text().0",
+          pos1 = "/body/DocFragment[2]/body/p[3]/text().10",
+          pageno = 12,
+          text = "Romeo",
+          datetime = "2026-01-01 10:00:00",
+          deleted = true,
+        },
+      }
+      local shown_widgets, _, cleanup = open_deleted_annotations(tombstones)
+      finally(cleanup)
 
-    local menu = shown_widgets[1]
-    assert.is_not_nil(menu)
+      local menu = shown_widgets[1]
+      assert.is_not_nil(menu)
 
-    menu.item_table[2].callback()
-    local confirm_box = shown_widgets[#shown_widgets]
-    assert.is_not_nil(confirm_box)
-    assert.is_truthy(confirm_box.text:find("Page 12: Romeo", 1, true))
-    assert.is_nil(confirm_box.text:find("/body/", 1, true))
-  end)
+      menu.item_table[2].callback()
+      local confirm_box = shown_widgets[#shown_widgets]
+      assert.is_not_nil(confirm_box)
+      assert.is_truthy(confirm_box.text:find("Page 12: Romeo", 1, true))
+      assert.is_nil(confirm_box.text:find("/body/", 1, true))
+    end
+  )
 
   it("Restore All of one annotation uses the singular", function()
     local tombstones = {
@@ -205,7 +218,10 @@ describe("AnnotationSync deleted annotations list", function()
     menu.item_table[1].callback()
     local confirm_box = shown_widgets[#shown_widgets]
     assert.is_not_nil(confirm_box)
-    assert.are.equal("Are you sure you want to restore 1 deleted annotation?", confirm_box.text)
+    assert.are.equal(
+      "Are you sure you want to restore 1 deleted annotation?",
+      confirm_box.text
+    )
     confirm_box.ok_callback()
 
     assert.are.equal("Restored 1 annotation.", captured_msg)

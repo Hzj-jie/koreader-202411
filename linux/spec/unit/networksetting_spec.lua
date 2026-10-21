@@ -367,15 +367,12 @@ describe("NetworkSetting module", function()
       end
     )
 
-    it(
-      "returns boolean false on onTapClose inside popup",
-      function()
-        local Geom = require("ui/geometry")
-        local ns = NetworkSetting:new({ network_list = {} })
-        ns.popup.dimen = Geom:new({ x = 50, y = 50, w = 500, h = 600 })
-        local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
-        assert.is_false(ns:onTapClose(nil, inside_ev))
-      end
-    )
+    it("returns boolean false on onTapClose inside popup", function()
+      local Geom = require("ui/geometry")
+      local ns = NetworkSetting:new({ network_list = {} })
+      ns.popup.dimen = Geom:new({ x = 50, y = 50, w = 500, h = 600 })
+      local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
+      assert.is_false(ns:onTapClose(nil, inside_ev))
+    end)
   end)
 end)

@@ -79,26 +79,23 @@ describe("ffi/framebuffer_pocketbook module", function()
     assert.is_true(called)
   end)
 
-  it(
-    "initializes blitbuffer pixel_stride based on screen width",
-    function()
-      local mock_device = {
-        hasColorScreen = function()
-          return false
-        end,
-      }
+  it("initializes blitbuffer pixel_stride based on screen width", function()
+    local mock_device = {
+      hasColorScreen = function()
+        return false
+      end,
+    }
 
-      local mock_fb = FramebufferPocketbook:extend({
-        device = mock_device,
-        getRawSize = function()
-          return { w = 1000, h = 1000 }
-        end,
-        debug = function() end,
-      })
+    local mock_fb = FramebufferPocketbook:extend({
+      device = mock_device,
+      getRawSize = function()
+        return { w = 1000, h = 1000 }
+      end,
+      debug = function() end,
+    })
 
-      mock_fb:init()
+    mock_fb:init()
 
-      assert.are.equal(1000, mock_fb.bb.pixel_stride)
-    end
-  )
+    assert.are.equal(1000, mock_fb.bb.pixel_stride)
+  end)
 end)

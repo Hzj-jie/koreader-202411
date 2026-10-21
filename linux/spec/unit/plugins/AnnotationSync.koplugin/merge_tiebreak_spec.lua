@@ -82,11 +82,8 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(last_sync_file, { local_ann })
       write_json(income_file, { income_ann })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -111,11 +108,8 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(last_sync_file, { income_ann })
       write_json(income_file, { income_ann })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(0, #active)
@@ -141,11 +135,8 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(last_sync_file, { local_bm })
       write_json(income_file, { income_bm })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -181,11 +172,8 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(last_sync_file, { local_ann })
       write_json(income_file, { income_ann })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)
@@ -221,11 +209,8 @@ describe("Merge Logic Tie-Break (Issue #39)", function()
       write_json(last_sync_file, { income_ann })
       write_json(income_file, { income_ann })
 
-      local success, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local success, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(success)
       assert.are.equal(1, #active)

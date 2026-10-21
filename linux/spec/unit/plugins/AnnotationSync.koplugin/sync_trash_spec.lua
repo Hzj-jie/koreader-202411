@@ -303,19 +303,22 @@ describe("AnnotationSync Trash & Restore", function()
     assert.is_false(UIManager:isWindowWidget(menu))
   end)
 
-  it("should restore only the remaining annotations with Restore All", function()
-    local menu, shown = open_show_deleted({ "One", "Two" })
-    tap_and_confirm(menu, shown, 2)
+  it(
+    "should restore only the remaining annotations with Restore All",
+    function()
+      local menu, shown = open_show_deleted({ "One", "Two" })
+      tap_and_confirm(menu, shown, 2)
 
-    tap_and_confirm(menu, shown, 1)
-    local texts = {}
-    for _, ann in ipairs(readerui.annotation.annotations) do
-      table.insert(texts, ann.text)
+      tap_and_confirm(menu, shown, 1)
+      local texts = {}
+      for _, ann in ipairs(readerui.annotation.annotations) do
+        table.insert(texts, ann.text)
+      end
+      table.sort(texts)
+      assert.are.same({ "One", "Two" }, texts)
+      assert.is_false(UIManager:isWindowWidget(menu))
     end
-    table.sort(texts)
-    assert.are.same({ "One", "Two" }, texts)
-    assert.is_false(UIManager:isWindowWidget(menu))
-  end)
+  )
 
   it("should stay on the same page of Show Deleted after a restore", function()
     local texts = {}
@@ -354,7 +357,13 @@ describe("AnnotationSync Trash & Restore", function()
 
       local uploaded_content
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local f_local = io.open(local_path, "r")
         uploaded_content = json.decode(f_local:read("*all"))
         f_local:close()

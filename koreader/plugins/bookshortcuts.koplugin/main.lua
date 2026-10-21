@@ -117,8 +117,7 @@ function BookShortcuts:getSubMenuItems()
       text_func = function()
         return T(
           gettext("Folder action: %1"),
-          G_named_settings.BookShortcuts_directory_action() == "FM"
-              and FM_text
+          G_named_settings.BookShortcuts_directory_action() == "FM" and FM_text
             or last_text
         )
       end,

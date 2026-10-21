@@ -1010,7 +1010,10 @@ describe("Wallabag plugin unit tests", function()
           mimetype = "application/octet-stream",
           url = "https://bucket.example.com/paper.pdf",
         })
-        assert.are.equal("https://bucket.example.com/paper.pdf", downloaded_urls[1])
+        assert.are.equal(
+          "https://bucket.example.com/paper.pdf",
+          downloaded_urls[1]
+        )
         assert.is_true(downloaded_paths[1]:sub(-4) == ".pdf")
 
         -- 2. CBZ URL served as application/zip -> should keep .cbz, not .fb2.zip
@@ -1050,7 +1053,10 @@ describe("Wallabag plugin unit tests", function()
           mimetype = "application/pdf",
           url = "https://example.com/download?id=105",
         })
-        assert.are.equal("https://example.com/download?id=105", downloaded_urls[5])
+        assert.are.equal(
+          "https://example.com/download?id=105",
+          downloaded_urls[5]
+        )
         assert.is_true(downloaded_paths[5]:sub(-4) == ".pdf")
       end
     )

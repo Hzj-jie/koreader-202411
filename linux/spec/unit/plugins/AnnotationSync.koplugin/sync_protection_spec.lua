@@ -70,7 +70,13 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       -- 3. Mock sync to check what's being sent
       local last_uploaded_data
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local result = callback(local_path, local_path, local_path)
         local f = io.open(local_path, "r")
         last_uploaded_data = json.decode(f:read("*all"))
@@ -199,11 +205,8 @@ describe("AnnotationSync Sync Protection & Regressions", function()
           },
         })
 
-      local ok, active = annotations_mod.sync_callback(
-        local_file,
-        last_sync_file,
-        income_file
-      )
+      local ok, active =
+        annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
       assert.is_true(ok)
       -- Issue 23 Protection: remote annotation is preserved, NOT deleted
@@ -217,8 +220,6 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       assert.falsy(disk_list[1].deleted)
     end
   )
-
-
 
   it(
     "should STILL propagate deletions if local list is NOT completely empty",
@@ -249,7 +250,13 @@ describe("AnnotationSync Sync Protection & Regressions", function()
       fc:close()
 
       local old_sync = SyncService.sync
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         local income_path = test_data_dir .. "/income_partial.json"
 
         local f = io.open(income_path, "w")
@@ -340,7 +347,13 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     fc:close()
 
     local old_sync = SyncService.sync
-    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      finish_cb
+    )
       local income_path = test_data_dir .. "/income_pdf.json"
 
       local f = io.open(income_path, "w")
@@ -444,11 +457,23 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local income_file = test_data_dir .. "/write_fail_income.json"
 
     test_utils.write_mock_json(test_data_dir, "write_fail_local.json", {
-      { pos0 = "p1", pos1 = "p2", page = "page_1", text = "Local", drawer = "lighten" },
+      {
+        pos0 = "p1",
+        pos1 = "p2",
+        page = "page_1",
+        text = "Local",
+        drawer = "lighten",
+      },
     })
     test_utils.write_mock_json(test_data_dir, "write_fail_base.json", {})
     test_utils.write_mock_json(test_data_dir, "write_fail_income.json", {
-      { pos0 = "p3", pos1 = "p4", page = "page_1", text = "Remote", drawer = "lighten" },
+      {
+        pos0 = "p3",
+        pos1 = "p4",
+        page = "page_1",
+        text = "Remote",
+        drawer = "lighten",
+      },
     })
 
     local util = require("util")

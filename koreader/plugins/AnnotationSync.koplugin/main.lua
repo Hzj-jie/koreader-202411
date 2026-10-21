@@ -310,7 +310,10 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
     local matched = {}
     for _, new_item in ipairs(merged_list) do
       for _, old_item in ipairs(existing) do
-        if not matched[old_item] and ReaderAnnotation.doesMatch(old_item, new_item) then
+        if
+          not matched[old_item]
+          and ReaderAnnotation.doesMatch(old_item, new_item)
+        then
           matched[old_item] = true
           break
         end

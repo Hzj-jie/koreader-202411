@@ -100,10 +100,7 @@ describe("ffi/framebuffer_mxcfb module", function()
 
       -- Line 1288 checks `if self.fb_bb ~= 32 then` matching upstream behavior.
       -- Since self.fb_bb is nil, self.waveform_night is set to AUTO.
-      assert.are.equal(
-        ffi.C.HWTCON_WAVEFORM_MODE_AUTO,
-        mock_fb.waveform_night
-      )
+      assert.are.equal(ffi.C.HWTCON_WAVEFORM_MODE_AUTO, mock_fb.waveform_night)
     end
   )
 end)

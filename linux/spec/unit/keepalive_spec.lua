@@ -249,37 +249,34 @@ describe("KeepAlive plugin tests", function()
     assert.is_true(KeepAliveClass.disabled)
   end)
 
-  it(
-    "restores pause_auto_suspend when ConfirmBox is cancelled",
-    function()
-      Device.isKobo.returns(true)
-      PluginShare.pause_auto_suspend = false
-      PluginShare.keepalive = false
+  it("restores pause_auto_suspend when ConfirmBox is cancelled", function()
+    Device.isKobo.returns(true)
+    PluginShare.pause_auto_suspend = false
+    PluginShare.keepalive = false
 
-      local KeepAliveClass = dofile("plugins/keepalive.koplugin/main.lua")
-      local mock_ui = {
-        menu = { registerToMainMenu = function() end },
-      }
-      local keepalive = KeepAliveClass:new({ ui = mock_ui })
-      keepalive:init()
+    local KeepAliveClass = dofile("plugins/keepalive.koplugin/main.lua")
+    local mock_ui = {
+      menu = { registerToMainMenu = function() end },
+    }
+    local keepalive = KeepAliveClass:new({ ui = mock_ui })
+    keepalive:init()
 
-      local menu_items = {}
-      keepalive:addToMainMenu(menu_items)
-      local menuItem = menu_items.keep_alive
+    local menu_items = {}
+    keepalive:addToMainMenu(menu_items)
+    local menuItem = menu_items.keep_alive
 
-      local mock_touchmenu = { updateItems = function() end }
-      -- User taps "Keep alive" menu item:
-      menuItem.callback(mock_touchmenu)
+    local mock_touchmenu = { updateItems = function() end }
+    -- User taps "Keep alive" menu item:
+    menuItem.callback(mock_touchmenu)
 
-      -- The plugin immediately enables pause_auto_suspend and displays the ConfirmBox:
-      assert.is_true(PluginShare.pause_auto_suspend)
-      local confirm_box = UIManager.show.calls[#UIManager.show.calls].refs[2]
-      assert.is_table(confirm_box)
+    -- The plugin immediately enables pause_auto_suspend and displays the ConfirmBox:
+    assert.is_true(PluginShare.pause_auto_suspend)
+    local confirm_box = UIManager.show.calls[#UIManager.show.calls].refs[2]
+    assert.is_table(confirm_box)
 
-      -- User dismisses the dialog via the "Close" button (cancel_callback):
-      confirm_box.cancel_callback()
+    -- User dismisses the dialog via the "Close" button (cancel_callback):
+    confirm_box.cancel_callback()
 
-      assert.is_false(PluginShare.pause_auto_suspend)
-    end
-  )
+    assert.is_false(PluginShare.pause_auto_suspend)
+  end)
 end)

@@ -521,24 +521,27 @@ describe("SSH plugin main module", function()
       G_reader_settings.isTrue = orig_isTrue
     end)
 
-    it("should retrieve network info as table and display in info message", function()
-      local instance = createInstance()
-      instance.SSH_port = "2222"
+    it(
+      "should retrieve network info as table and display in info message",
+      function()
+        local instance = createInstance()
+        instance.SSH_port = "2222"
 
-      local orig_retrieve = Device.retrieveNetworkInfo
-      Device.retrieveNetworkInfo = function()
-        return { "IP: 192.168.1.100" }
+        local orig_retrieve = Device.retrieveNetworkInfo
+        Device.retrieveNetworkInfo = function()
+          return { "IP: 192.168.1.100" }
+        end
+
+        finally(function()
+          Device.retrieveNetworkInfo = orig_retrieve
+        end)
+
+        instance:start(false)
+        assert.are.equal(1, #shown_widgets)
+        assert.is_true(
+          shown_widgets[1].text:find("192.168.1.100", 1, true) ~= nil
+        )
       end
-
-      finally(function()
-        Device.retrieveNetworkInfo = orig_retrieve
-      end)
-
-      instance:start(false)
-      assert.are.equal(1, #shown_widgets)
-      assert.is_true(
-        shown_widgets[1].text:find("192.168.1.100", 1, true) ~= nil
-      )
-    end)
+    )
   end)
 end)

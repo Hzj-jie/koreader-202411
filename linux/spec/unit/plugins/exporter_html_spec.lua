@@ -157,7 +157,6 @@ describe("HTML Exporter target module", function()
     assert.is_truthy(shared_text:find("Shared HTML Book"))
   end)
 
-
   it("should escape special characters in clipping chapter", function()
     local booknotes = {
       title = "Escaped Chapter Book",

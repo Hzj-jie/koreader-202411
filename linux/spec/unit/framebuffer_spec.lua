@@ -47,18 +47,15 @@ describe("ffi/framebuffer module", function()
     assert.are.equal(1, mock_fb:getCanonicalRotationMode(1))
   end)
 
-  it(
-    "validates viewport bounds against upright screen_size",
-    function()
-      -- Viewports are validated against upright screen_size (600x800)
-      assert.has_no.errors(function()
-        mock_fb:setViewport({ x = 0, y = 0, w = 500, h = 700 })
-      end)
+  it("validates viewport bounds against upright screen_size", function()
+    -- Viewports are validated against upright screen_size (600x800)
+    assert.has_no.errors(function()
+      mock_fb:setViewport({ x = 0, y = 0, w = 500, h = 700 })
+    end)
 
-      -- A viewport exceeding unrotated screen width (700 > 600) raises "bad viewport"
-      assert.has_error(function()
-        mock_fb:setViewport({ x = 0, y = 0, w = 700, h = 500 })
-      end, "fb:setViewport() bad viewport")
-    end
-  )
+    -- A viewport exceeding unrotated screen width (700 > 600) raises "bad viewport"
+    assert.has_error(function()
+      mock_fb:setViewport({ x = 0, y = 0, w = 700, h = 500 })
+    end, "fb:setViewport() bad viewport")
+  end)
 end)

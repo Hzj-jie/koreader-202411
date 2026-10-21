@@ -154,34 +154,31 @@ describe("OPDS Browser plugin module", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "omits search entry when getSearchTemplate returns nil",
-      function()
-        local browser = create_mock_browser()
-        local catalog = {
-          feed = {
-            link = {
-              {
-                rel = "search",
-                type = "application/opensearchdescription+xml",
-                href = "/opensearch.xml",
-              },
+    it("omits search entry when getSearchTemplate returns nil", function()
+      local browser = create_mock_browser()
+      local catalog = {
+        feed = {
+          link = {
+            {
+              rel = "search",
+              type = "application/opensearchdescription+xml",
+              href = "/opensearch.xml",
             },
-            entry = {},
           },
-        }
+          entry = {},
+        },
+      }
 
-        -- Stub getSearchTemplate to return nil (e.g. unreachable search descriptor)
-        browser.getSearchTemplate = function()
-          return nil
-        end
-
-        local res =
-          browser:genItemTableFromCatalog(catalog, "https://books.org/catalog")
-        assert.is_table(res)
-        assert.are.equal(0, #res)
+      -- Stub getSearchTemplate to return nil (e.g. unreachable search descriptor)
+      browser.getSearchTemplate = function()
+        return nil
       end
-    )
+
+      local res =
+        browser:genItemTableFromCatalog(catalog, "https://books.org/catalog")
+      assert.is_table(res)
+      assert.are.equal(0, #res)
+    end)
 
     it(
       "handles HTTP 302 redirect without crashing when Location header is missing",

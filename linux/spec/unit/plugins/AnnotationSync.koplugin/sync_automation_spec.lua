@@ -3,8 +3,7 @@ describe("AnnotationSync Automation & Settings", function()
   local AnnotationSyncPlugin, highlight_db, test_utils, json, util
   local readerui, sync_instance
   local DataStorage = require("datastorage")
-  local test_data_dir = DataStorage:getDataDir()
-    .. "/test_sync_automation_tmp"
+  local test_data_dir = DataStorage:getDataDir() .. "/test_sync_automation_tmp"
   local old_getDataDir
 
   setup(function()
@@ -80,7 +79,13 @@ describe("AnnotationSync Automation & Settings", function()
       test_utils.emulate_highlight(readerui, highlight_db[1])
 
       local captured_path
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         captured_path = local_path
         local res = callback(local_path, local_path, local_path)
         if finish_cb then
@@ -118,7 +123,13 @@ describe("AnnotationSync Automation & Settings", function()
         local initial_jobs_count = #jobs
 
         local sync_triggered = false
-        SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+        SyncService.sync = function(
+          server,
+          local_path,
+          callback,
+          upload_only,
+          finish_cb
+        )
           sync_triggered = true
           local res = callback(local_path, local_path, local_path)
           if finish_cb then
@@ -158,7 +169,13 @@ describe("AnnotationSync Automation & Settings", function()
       sync_instance.manager:addToChangedDocumentsFile(doc2)
 
       local synced_files = {}
-      SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        upload_only,
+        finish_cb
+      )
         table.insert(synced_files, local_path)
         local res = callback(local_path, local_path, local_path)
         if finish_cb then
@@ -174,20 +191,17 @@ describe("AnnotationSync Automation & Settings", function()
       assert.is_equal(2, #synced_files)
     end)
 
-    it(
-      "ignores onTimesChange_1M when network_auto_sync is disabled",
-      function()
-        sync_instance.settings.network_auto_sync = false
-        sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
+    it("ignores onTimesChange_1M when network_auto_sync is disabled", function()
+      sync_instance.settings.network_auto_sync = false
+      sync_instance.manager:addToChangedDocumentsFile(readerui.document.file)
 
-        local jobs = require("pluginshare").backgroundJobs
-        local initial_jobs_count = #jobs
+      local jobs = require("pluginshare").backgroundJobs
+      local initial_jobs_count = #jobs
 
-        sync_instance:onTimesChange_1M()
+      sync_instance:onTimesChange_1M()
 
-        assert.is_equal(initial_jobs_count, #jobs)
-      end
-    )
+      assert.is_equal(initial_jobs_count, #jobs)
+    end)
 
     it(
       "does not dispatch immediately on addToChangedDocumentsFile, but on next onTimesChange_1M",

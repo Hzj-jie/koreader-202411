@@ -140,32 +140,35 @@ describe("CheckersSettingsWidget widget", function()
     end
   )
 
-  it("does not pass dismiss_callback to InputDialog for dismiss handling", function()
-    local captured_args = nil
-    local orig_new = InputDialog.new
-    InputDialog.new = function(self, args)
-      captured_args = args
-      return orig_new(self, args)
+  it(
+    "does not pass dismiss_callback to InputDialog for dismiss handling",
+    function()
+      local captured_args = nil
+      local orig_new = InputDialog.new
+      InputDialog.new = function(self, args)
+        captured_args = args
+        return orig_new(self, args)
+      end
+      local orig_show = UIManager.show
+      UIManager.show = function() end
+      finally(function()
+        InputDialog.new = orig_new
+        UIManager.show = orig_show
+      end)
+
+      local widget = SettingsWidget:new({
+        parent = {
+          human = { true, false },
+          ai_depth = 5,
+        },
+        onApply = function() end,
+      })
+
+      widget:show()
+
+      assert.is_not_nil(captured_args)
+      assert.is_not_nil(captured_args.save_callback)
+      assert.is_nil(captured_args.close_callback)
     end
-    local orig_show = UIManager.show
-    UIManager.show = function() end
-    finally(function()
-      InputDialog.new = orig_new
-      UIManager.show = orig_show
-    end)
-
-    local widget = SettingsWidget:new({
-      parent = {
-        human = { true, false },
-        ai_depth = 5,
-      },
-      onApply = function() end,
-    })
-
-    widget:show()
-
-    assert.is_not_nil(captured_args)
-    assert.is_not_nil(captured_args.save_callback)
-    assert.is_nil(captured_args.close_callback)
-  end)
+  )
 end)

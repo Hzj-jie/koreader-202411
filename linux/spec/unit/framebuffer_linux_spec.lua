@@ -65,46 +65,43 @@ describe("ffi/framebuffer_linux module", function()
     end
   )
 
-  it(
-    "validates fb_size against smem_len in reinit",
-    function()
-      local mock_C = setmetatable({
-        ioctl = function(fd, req, arg)
-          if req == ffi.C.FBIOGET_FSCREENINFO then
-            local finfo = ffi.cast("struct fb_fix_screeninfo*", arg)
-            finfo.type = ffi.C.FB_TYPE_PACKED_PIXELS
-            finfo.line_length = 1000
-            finfo.smem_len = 1000000
-            return 0
-          elseif req == ffi.C.FBIOGET_VSCREENINFO then
-            local vinfo = ffi.cast("struct fb_var_screeninfo*", arg)
-            vinfo.xres = 500
-            vinfo.yres = 500
-            vinfo.bits_per_pixel = 16
-            return 0
-          end
-          return orig_C.ioctl(fd, req, arg)
-        end,
-        mmap = function()
-          return dummy_buf
-        end,
-      }, {
-        __index = orig_C,
-      })
+  it("validates fb_size against smem_len in reinit", function()
+    local mock_C = setmetatable({
+      ioctl = function(fd, req, arg)
+        if req == ffi.C.FBIOGET_FSCREENINFO then
+          local finfo = ffi.cast("struct fb_fix_screeninfo*", arg)
+          finfo.type = ffi.C.FB_TYPE_PACKED_PIXELS
+          finfo.line_length = 1000
+          finfo.smem_len = 1000000
+          return 0
+        elseif req == ffi.C.FBIOGET_VSCREENINFO then
+          local vinfo = ffi.cast("struct fb_var_screeninfo*", arg)
+          vinfo.xres = 500
+          vinfo.yres = 500
+          vinfo.bits_per_pixel = 16
+          return 0
+        end
+        return orig_C.ioctl(fd, req, arg)
+      end,
+      mmap = function()
+        return dummy_buf
+      end,
+    }, {
+      __index = orig_C,
+    })
 
-      debug.setupvalue(FramebufferLinux.reinit, 1, mock_C)
+    debug.setupvalue(FramebufferLinux.reinit, 1, mock_C)
 
-      local mock_fb = FramebufferLinux:extend({
-        fd = 99,
-        _finfo = ffi.new("struct fb_fix_screeninfo"),
-        _vinfo = ffi.new("struct fb_var_screeninfo"),
-        close = function() end,
-        debug = function() end,
-        fbinfoOverride = function() end,
-      })
+    local mock_fb = FramebufferLinux:extend({
+      fd = 99,
+      _finfo = ffi.new("struct fb_fix_screeninfo"),
+      _vinfo = ffi.new("struct fb_var_screeninfo"),
+      close = function() end,
+      debug = function() end,
+      fbinfoOverride = function() end,
+    })
 
-      mock_fb:reinit()
-      assert.are.equal(1000 * 500, mock_fb.fb_size)
-    end
-  )
+    mock_fb:reinit()
+    assert.are.equal(1000 * 500, mock_fb.fb_size)
+  end)
 end)

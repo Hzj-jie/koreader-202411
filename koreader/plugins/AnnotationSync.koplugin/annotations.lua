@@ -197,12 +197,7 @@ function M.merge(local_list, base_list, income_list, page_type)
 end
 
 -- Main orchestration for merging local and remote annotations
-function M.sync_callback(
-  local_file,
-  last_sync_file,
-  income_file,
-  code_response
-)
+function M.sync_callback(local_file, last_sync_file, income_file, code_response)
   logger.dbg("AnnotationSync:sync_callback: local_file:", local_file)
   logger.dbg("AnnotationSync:sync_callback: last_sync_file:", last_sync_file)
   logger.dbg("AnnotationSync:sync_callback: income_file:", income_file)
@@ -234,8 +229,12 @@ function M.sync_callback(
     return false
   end
 
-  local merged, active =
-    M.merge(local_list, last_sync_list, income_list, local_list[1] and type(local_list[1].page))
+  local merged, active = M.merge(
+    local_list,
+    last_sync_list,
+    income_list,
+    local_list[1] and type(local_list[1].page)
+  )
 
   logger.dbg("AnnotationSync:sync_callback: handling merged list")
 
@@ -329,7 +328,6 @@ function M.sort(array)
 
   return array
 end
-
 
 function M.is_before(a, b)
   local a_time = a.datetime_updated or a.datetime or ""

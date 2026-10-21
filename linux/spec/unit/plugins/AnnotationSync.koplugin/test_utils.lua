@@ -60,7 +60,8 @@ function M.setup_test_env(test_data_dir)
   end
 
   old_G_defaults = _G.G_defaults
-  _G.G_defaults = require("luadefaults"):open(test_data_dir .. "/defaults.custom.lua")
+  _G.G_defaults =
+    require("luadefaults"):open(test_data_dir .. "/defaults.custom.lua")
 
   local named_settings = require("named_settings")
   old_document_metadata_folder = named_settings.document_metadata_folder
@@ -243,7 +244,13 @@ end
 
 function M.mock_sync_service(SyncService)
   local old_sync = SyncService.sync
-  SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+  SyncService.sync = function(
+    server,
+    local_path,
+    callback,
+    upload_only,
+    finish_cb
+  )
     -- Robustness: ensure we have valid paths and files
     local test_data_dir = DataStorage.getDataDir()
     local function ensure_json_file(path)
@@ -257,7 +264,11 @@ function M.mock_sync_service(SyncService)
       end
 
       -- If file doesn't exist, is empty, or doesn't start with '{' or '[', make it a valid empty JSON object
-      if not content or content == "" or (content:sub(1, 1) ~= "{" and content:sub(1, 1) ~= "[") then
+      if
+        not content
+        or content == ""
+        or (content:sub(1, 1) ~= "{" and content:sub(1, 1) ~= "[")
+      then
         -- Ensure directory exists
         local dir = path:match("(.*)/")
         if dir then

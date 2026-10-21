@@ -1,6 +1,7 @@
 describe("AnnotationSync cloud calls and remote operations", function()
   local remote, SyncService, NetworkMgr, UIManager, json, utils, util, test_utils
-  local test_data_dir = require("datastorage"):getDataDir() .. "/test_cloud_calls_tmp"
+  local test_data_dir = require("datastorage"):getDataDir()
+    .. "/test_cloud_calls_tmp"
   local old_getDataDir
   local old_sync, old_isOnline, old_show
   local shown = {}
@@ -85,31 +86,34 @@ describe("AnnotationSync cloud calls and remote operations", function()
     UIManager.show = old_show
   end)
 
-  it("an offline book sync removes its temporary files and fails without calling the cloud", function()
-    NetworkMgr.isOnline = function()
-      return false
+  it(
+    "an offline book sync removes its temporary files and fails without calling the cloud",
+    function()
+      NetworkMgr.isOnline = function()
+        return false
+      end
+      local json_path = test_data_dir .. "/offline.json"
+      util.writeToFile("[]", json_path)
+      util.writeToFile("[]", json_path .. ".temp")
+      util.writeToFile("[]", json_path .. ".sync")
+
+      local sync_calls = 0
+      SyncService.sync = function()
+        sync_calls = sync_calls + 1
+      end
+
+      local completed_res = nil
+      remote.sync_annotations(widget(), json_path, function(res)
+        completed_res = res
+      end)
+
+      assert.is_false(completed_res)
+      assert.are.equal(0, sync_calls)
+      assert.is_nil(io.open(json_path, "r"))
+      assert.is_nil(io.open(json_path .. ".temp", "r"))
+      assert.is_nil(io.open(json_path .. ".sync", "r"))
     end
-    local json_path = test_data_dir .. "/offline.json"
-    util.writeToFile("[]", json_path)
-    util.writeToFile("[]", json_path .. ".temp")
-    util.writeToFile("[]", json_path .. ".sync")
-
-    local sync_calls = 0
-    SyncService.sync = function()
-      sync_calls = sync_calls + 1
-    end
-
-    local completed_res = nil
-    remote.sync_annotations(widget(), json_path, function(res)
-      completed_res = res
-    end)
-
-    assert.is_false(completed_res)
-    assert.are.equal(0, sync_calls)
-    assert.is_nil(io.open(json_path, "r"))
-    assert.is_nil(io.open(json_path .. ".temp", "r"))
-    assert.is_nil(io.open(json_path .. ".sync", "r"))
-  end)
+  )
 
   it("a book sync without a cloud fails quietly", function()
     local w = widget()
@@ -133,64 +137,81 @@ describe("AnnotationSync cloud calls and remote operations", function()
     assert.is_nil(io.open(json_path, "r"))
   end)
 
-  it("a book sync that uploads returns the live annotations and the uploaded list", function()
-    local json_path = test_data_dir .. "/upload.json"
-    local A = hl(1, 0)
-    local B = hl(2, 0)
-    util.writeToFile(json.encode({ A }), json_path)
+  it(
+    "a book sync that uploads returns the live annotations and the uploaded list",
+    function()
+      local json_path = test_data_dir .. "/upload.json"
+      local A = hl(1, 0)
+      local B = hl(2, 0)
+      util.writeToFile(json.encode({ A }), json_path)
 
-    local recorded_silent = nil
-    SyncService.sync = function(_, path, sync_cb, is_silent, finish_cb)
-      recorded_silent = is_silent
-      local income_path = path .. ".income"
-      util.writeToFile(json.encode({ B }), income_path)
-      local sync_res = sync_cb(path, path .. ".sync", income_path, 200)
-      os.remove(income_path)
-      finish_cb(sync_res)
+      local recorded_silent = nil
+      SyncService.sync = function(_, path, sync_cb, is_silent, finish_cb)
+        recorded_silent = is_silent
+        local income_path = path .. ".income"
+        util.writeToFile(json.encode({ B }), income_path)
+        local sync_res = sync_cb(path, path .. ".sync", income_path, 200)
+        os.remove(income_path)
+        finish_cb(sync_res)
+      end
+
+      local res_success, res_active, res_uploaded_json
+      remote.sync_annotations(
+        widget(),
+        json_path,
+        function(success, active, uploaded_json)
+          res_success = success
+          res_active = active
+          res_uploaded_json = uploaded_json
+        end
+      )
+
+      assert.is_true(res_success)
+      assert.is_true(recorded_silent)
+      assert.is_not_nil(res_active)
+      assert.are.equal(2, #res_active)
+      assert.are.same(
+        { "p1x0", "p2x0" },
+        { res_active[1].text, res_active[2].text }
+      )
+
+      assert.is_not_nil(res_uploaded_json)
+      local decoded = json.decode(res_uploaded_json)
+      assert.are.same({ "p1x0", "p2x0" }, { decoded[1].text, decoded[2].text })
+
+      assert.is_nil(io.open(json_path, "r"))
+      assert.is_nil(io.open(json_path .. ".temp", "r"))
+      assert.is_nil(io.open(json_path .. ".sync", "r"))
     end
+  )
 
-    local res_success, res_active, res_uploaded_json
-    remote.sync_annotations(widget(), json_path, function(success, active, uploaded_json)
-      res_success = success
-      res_active = active
-      res_uploaded_json = uploaded_json
-    end)
+  it(
+    "a book sync with nothing to upload succeeds without an uploaded list",
+    function()
+      local json_path = test_data_dir .. "/empty.json"
+      util.writeToFile("[]", json_path)
 
-    assert.is_true(res_success)
-    assert.is_true(recorded_silent)
-    assert.is_not_nil(res_active)
-    assert.are.equal(2, #res_active)
-    assert.are.same({ "p1x0", "p2x0" }, { res_active[1].text, res_active[2].text })
+      SyncService.sync = function(_, path, sync_cb, _, finish_cb)
+        local sync_res = sync_cb(path, path .. ".sync", path .. ".income", 404)
+        finish_cb(sync_res)
+      end
 
-    assert.is_not_nil(res_uploaded_json)
-    local decoded = json.decode(res_uploaded_json)
-    assert.are.same({ "p1x0", "p2x0" }, { decoded[1].text, decoded[2].text })
+      local res_success, res_active, res_uploaded_json
+      remote.sync_annotations(
+        widget(),
+        json_path,
+        function(success, active, uploaded_json)
+          res_success = success
+          res_active = active
+          res_uploaded_json = uploaded_json
+        end
+      )
 
-    assert.is_nil(io.open(json_path, "r"))
-    assert.is_nil(io.open(json_path .. ".temp", "r"))
-    assert.is_nil(io.open(json_path .. ".sync", "r"))
-  end)
-
-  it("a book sync with nothing to upload succeeds without an uploaded list", function()
-    local json_path = test_data_dir .. "/empty.json"
-    util.writeToFile("[]", json_path)
-
-    SyncService.sync = function(_, path, sync_cb, _, finish_cb)
-      local sync_res = sync_cb(path, path .. ".sync", path .. ".income", 404)
-      finish_cb(sync_res)
+      assert.is_true(res_success)
+      assert.are.same({}, res_active)
+      assert.is_nil(res_uploaded_json)
     end
-
-    local res_success, res_active, res_uploaded_json
-    remote.sync_annotations(widget(), json_path, function(success, active, uploaded_json)
-      res_success = success
-      res_active = active
-      res_uploaded_json = uploaded_json
-    end)
-
-    assert.is_true(res_success)
-    assert.are.same({}, res_active)
-    assert.is_nil(res_uploaded_json)
-  end)
+  )
 
   it("a book sync merges against the given merge base", function()
     local json_path = test_data_dir .. "/merge_base.json"
@@ -209,11 +230,16 @@ describe("AnnotationSync cloud calls and remote operations", function()
     end
 
     local res_success, res_active, res_uploaded_json
-    remote.sync_annotations(widget(), json_path, function(success, active, uploaded_json)
-      res_success = success
-      res_active = active
-      res_uploaded_json = uploaded_json
-    end, cached_path)
+    remote.sync_annotations(
+      widget(),
+      json_path,
+      function(success, active, uploaded_json)
+        res_success = success
+        res_active = active
+        res_uploaded_json = uploaded_json
+      end,
+      cached_path
+    )
 
     assert.is_true(res_success)
     assert.are.equal(1, #res_active)
@@ -240,9 +266,14 @@ describe("AnnotationSync cloud calls and remote operations", function()
     end
 
     local cb_res = nil
-    local ok, err = pcall(remote.sync_annotations, widget(), json_path, function(res)
-      cb_res = res
-    end)
+    local ok, err = pcall(
+      remote.sync_annotations,
+      widget(),
+      json_path,
+      function(res)
+        cb_res = res
+      end
+    )
 
     assert.is_false(ok)
     assert.is_truthy(string.find(err, "SyncService postponed the sync"))
@@ -250,57 +281,66 @@ describe("AnnotationSync cloud calls and remote operations", function()
     assert.is_nil(io.open(json_path, "r"))
   end)
 
-  it("a settings push keeps the other devices' entries and replaces this device's", function()
-    local json_path = test_data_dir .. "/settings_push.json"
-    util.writeToFile(json.encode({ Me = { settings = { x = 2 } } }), json_path)
-
-    local recorded_silent = nil
-    SyncService.sync = function(_, path, sync_cb, is_silent, finish_cb)
-      recorded_silent = is_silent
-      local income_path = test_data_dir .. "/settings_income.json"
+  it(
+    "a settings push keeps the other devices' entries and replaces this device's",
+    function()
+      local json_path = test_data_dir .. "/settings_push.json"
       util.writeToFile(
-        json.encode({
-          Me = { settings = { x = 1 } },
-          Other = { settings = { y = 3 } },
-        }),
-        income_path
+        json.encode({ Me = { settings = { x = 2 } } }),
+        json_path
       )
-      local sync_res = sync_cb(path, nil, income_path, 200)
-      os.remove(income_path)
-      finish_cb(sync_res)
+
+      local recorded_silent = nil
+      SyncService.sync = function(_, path, sync_cb, is_silent, finish_cb)
+        recorded_silent = is_silent
+        local income_path = test_data_dir .. "/settings_income.json"
+        util.writeToFile(
+          json.encode({
+            Me = { settings = { x = 1 } },
+            Other = { settings = { y = 3 } },
+          }),
+          income_path
+        )
+        local sync_res = sync_cb(path, nil, income_path, 200)
+        os.remove(income_path)
+        finish_cb(sync_res)
+      end
+
+      local completed_res = nil
+      remote.push_settings(widget(), json_path, function(res)
+        completed_res = res
+      end)
+
+      assert.is_true(completed_res)
+      assert.is_false(recorded_silent)
+      local updated = utils.read_json(json_path)
+      assert.are.equal(3, updated.Other.settings.y)
+      assert.are.equal(2, updated.Me.settings.x)
     end
+  )
 
-    local completed_res = nil
-    remote.push_settings(widget(), json_path, function(res)
-      completed_res = res
-    end)
+  it(
+    "a settings push without a cloud file uploads this device's entry as it is",
+    function()
+      local json_path = test_data_dir .. "/settings_push_404.json"
+      local initial_data = { Me = { settings = { x = 2 } } }
+      util.writeToFile(json.encode(initial_data), json_path)
 
-    assert.is_true(completed_res)
-    assert.is_false(recorded_silent)
-    local updated = utils.read_json(json_path)
-    assert.are.equal(3, updated.Other.settings.y)
-    assert.are.equal(2, updated.Me.settings.x)
-  end)
+      SyncService.sync = function(_, path, sync_cb, _, finish_cb)
+        local sync_res = sync_cb(path, nil, nil, 404)
+        finish_cb(sync_res)
+      end
 
-  it("a settings push without a cloud file uploads this device's entry as it is", function()
-    local json_path = test_data_dir .. "/settings_push_404.json"
-    local initial_data = { Me = { settings = { x = 2 } } }
-    util.writeToFile(json.encode(initial_data), json_path)
+      local completed_res = nil
+      remote.push_settings(widget(), json_path, function(res)
+        completed_res = res
+      end)
 
-    SyncService.sync = function(_, path, sync_cb, _, finish_cb)
-      local sync_res = sync_cb(path, nil, nil, 404)
-      finish_cb(sync_res)
+      assert.is_true(completed_res)
+      local updated = utils.read_json(json_path)
+      assert.are.same(initial_data, updated)
     end
-
-    local completed_res = nil
-    remote.push_settings(widget(), json_path, function(res)
-      completed_res = res
-    end)
-
-    assert.is_true(completed_res)
-    local updated = utils.read_json(json_path)
-    assert.are.same(initial_data, updated)
-  end)
+  )
 
   it("a settings push with an unreadable cloud file is aborted", function()
     local json_path = test_data_dir .. "/settings_push_bad.json"
@@ -353,7 +393,10 @@ describe("AnnotationSync cloud calls and remote operations", function()
 
     SyncService.sync = function(_, path, sync_cb, _, finish_cb)
       local income_path = test_data_dir .. "/settings_pull_income.json"
-      util.writeToFile(json.encode({ Alpha = { timestamp = "t" } }), income_path)
+      util.writeToFile(
+        json.encode({ Alpha = { timestamp = "t" } }),
+        income_path
+      )
       local sync_res = sync_cb(path, nil, income_path, 200)
       os.remove(income_path)
       finish_cb(sync_res)

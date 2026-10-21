@@ -92,13 +92,16 @@ describe("AnnotationSync Bookmark Synchronization", function()
       text = "Remote Bookmark",
       datetime = "2026-02-01 11:00:00",
     }
-    local income_path = test_utils.write_mock_json(
-      test_data_dir,
-      "income_bm.json",
-      { bm_r }
-    )
+    local income_path =
+      test_utils.write_mock_json(test_data_dir, "income_bm.json", { bm_r })
 
-    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      finish_cb
+    )
       local cached_dest = local_path .. ".sync"
       callback(local_path, cached_dest, income_path)
       local ffiutil = require("ffi/util")
@@ -132,11 +135,8 @@ describe("AnnotationSync Bookmark Synchronization", function()
         { page = 2, text = "I am still here" },
       })
 
-    local ok, active = annotations_mod.sync_callback(
-      local_file,
-      last_sync_file,
-      income_file
-    )
+    local ok, active =
+      annotations_mod.sync_callback(local_file, last_sync_file, income_file)
 
     assert.is_true(ok)
     assert.is_equal(1, #active)
@@ -183,7 +183,13 @@ describe("AnnotationSync Bookmark Synchronization", function()
     )
 
     local captured_json
-    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      finish_cb
+    )
       -- The callback updates local_path with merged data (including deletions)
       local cached_dest = local_path .. ".sync"
       local success = callback(local_path, cached_dest, income_path)
@@ -215,10 +221,7 @@ describe("AnnotationSync Bookmark Synchronization", function()
       end
     end
     assert.truthy(c_bm1, "bm1 should exist in sync json")
-    assert.is_true(
-      c_bm1.deleted,
-      "bm1 should be marked as deleted"
-    )
+    assert.is_true(c_bm1.deleted, "bm1 should be marked as deleted")
 
     -- Verify bm2 is still there and NOT deleted
     assert.truthy(c_bm2)
@@ -254,7 +257,13 @@ describe("AnnotationSync Bookmark Synchronization", function()
     fc:write(json.encode({ bm }))
     fc:close()
 
-    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      finish_cb
+    )
       local cached_dest = local_path .. ".sync"
       local result = callback(local_path, cached_dest, income_path)
       if result then
@@ -302,15 +311,18 @@ describe("AnnotationSync Bookmark Synchronization", function()
       datetime = "2026-02-01 11:00:00",
     }
 
-    local income_path = test_utils.write_mock_json(
-      test_data_dir,
-      "income_pdf_bm.json",
-      { bm_r }
-    )
+    local income_path =
+      test_utils.write_mock_json(test_data_dir, "income_pdf_bm.json", { bm_r })
 
     os.remove(sync_instance.manager:getSyncCachePath(readerui.document.file))
 
-    SyncService.sync = function(server, local_path, callback, upload_only, finish_cb)
+    SyncService.sync = function(
+      server,
+      local_path,
+      callback,
+      upload_only,
+      finish_cb
+    )
       local cached_dest = local_path .. ".sync"
       local result = callback(local_path, cached_dest, income_path)
       if result then

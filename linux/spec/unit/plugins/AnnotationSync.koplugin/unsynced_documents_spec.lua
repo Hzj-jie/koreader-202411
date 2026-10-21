@@ -105,7 +105,13 @@ describe("Unsynced / Pending Documents Feature", function()
         os.remove(file2)
       end)
       local tries = 0
-      SyncService.sync = function(server, local_path, callback, is_silent, finish_cb)
+      SyncService.sync = function(
+        server,
+        local_path,
+        callback,
+        is_silent,
+        finish_cb
+      )
         tries = tries + 1
         -- Simulate failure
         if finish_cb then
@@ -302,9 +308,17 @@ describe("Unsynced / Pending Documents Feature", function()
       local doc_a = scan_dir .. "/book_a.epub"
       local doc_b = scan_dir .. "/book_b.epub"
       local doc_c = scan_dir .. "/book_c.epub"
-      os.execute("mkdir -p " .. scan_dir .. "/book_b.sdr " .. scan_dir .. "/book_c.sdr")
+      os.execute(
+        "mkdir -p " .. scan_dir .. "/book_b.sdr " .. scan_dir .. "/book_c.sdr"
+      )
       os.execute("touch " .. doc_a .. " " .. doc_b .. " " .. doc_c)
-      os.execute("touch " .. scan_dir .. "/book_b.sdr/metadata.epub.lua " .. scan_dir .. "/book_c.sdr/metadata.epub.lua")
+      os.execute(
+        "touch "
+          .. scan_dir
+          .. "/book_b.sdr/metadata.epub.lua "
+          .. scan_dir
+          .. "/book_c.sdr/metadata.epub.lua"
+      )
 
       finally(function()
         readhistory.hist = old_hist

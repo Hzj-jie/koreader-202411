@@ -106,34 +106,30 @@ describe("Remote Response Parsing (Issue #39)", function()
     end
   )
 
-  it(
-    "treats HTTP 404 with no downloaded file as empty remote state",
-    function()
-      local local_path =
-        test_utils.write_mock_json(test_data_dir, "local.json", {
-          ["annot_1"] = {
-            datetime = "2024-01-01 12:00:00",
-            text = "sample text",
-            page = 1,
-          },
-        })
-      local last_sync_path =
-        test_utils.write_mock_json(test_data_dir, "last.json", {})
-      local non_existent_income = test_data_dir .. "/missing_income.json"
-      os.remove(non_existent_income)
+  it("treats HTTP 404 with no downloaded file as empty remote state", function()
+    local local_path = test_utils.write_mock_json(test_data_dir, "local.json", {
+      ["annot_1"] = {
+        datetime = "2024-01-01 12:00:00",
+        text = "sample text",
+        page = 1,
+      },
+    })
+    local last_sync_path =
+      test_utils.write_mock_json(test_data_dir, "last.json", {})
+    local non_existent_income = test_data_dir .. "/missing_income.json"
+    os.remove(non_existent_income)
 
-      local ok, merged = annotations_mod.sync_callback(
-        local_path,
-        last_sync_path,
-        non_existent_income,
-        404
-      )
-      assert.truthy(
-        ok,
-        "Should treat missing income file with HTTP 404 as empty remote"
-      )
-      assert.is_table(merged)
-      assert.are.equal(1, #merged)
-    end
-  )
+    local ok, merged = annotations_mod.sync_callback(
+      local_path,
+      last_sync_path,
+      non_existent_income,
+      404
+    )
+    assert.truthy(
+      ok,
+      "Should treat missing income file with HTTP 404 as empty remote"
+    )
+    assert.is_table(merged)
+    assert.are.equal(1, #merged)
+  end)
 end)

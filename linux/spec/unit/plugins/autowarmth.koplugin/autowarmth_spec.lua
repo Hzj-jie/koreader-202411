@@ -725,21 +725,18 @@ describe("AutoWarmth plugin tests", function()
   end)
 
   describe("Defect verifications", function()
-    it(
-      "saves updated timezone in scheduleMidnightUpdate",
-      function()
-        AutoWarmth.timezone = 0
-        G_reader_settings:save("autowarmth_timezone", 0)
-        SunTime.getTimezoneOffset.returns(2)
-        finally(function()
-          SunTime.getTimezoneOffset.returns(0)
-        end)
+    it("saves updated timezone in scheduleMidnightUpdate", function()
+      AutoWarmth.timezone = 0
+      G_reader_settings:save("autowarmth_timezone", 0)
+      SunTime.getTimezoneOffset.returns(2)
+      finally(function()
+        SunTime.getTimezoneOffset.returns(0)
+      end)
 
-        AutoWarmth:scheduleMidnightUpdate()
+      AutoWarmth:scheduleMidnightUpdate()
 
-        assert.are.equal(2, G_reader_settings:read("autowarmth_timezone"))
-      end
-    )
+      assert.are.equal(2, G_reader_settings:read("autowarmth_timezone"))
+    end)
 
     it("guards nil sunset time in toggleFrontlight arithmetic", function()
       AutoWarmth.fl_off_during_day = true

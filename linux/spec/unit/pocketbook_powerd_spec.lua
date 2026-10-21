@@ -166,12 +166,15 @@ describe("PocketBookPowerD", function()
       assert.is_false(powerd:isFrontlightOn())
     end)
 
-    it("frontlightWarmthHW returns inkview GetFrontlightColor directly", function()
-      frontlight_color = -1
-      assert.are.equal(-1, powerd:frontlightWarmthHW())
-      frontlight_color = 50
-      assert.are.equal(50, powerd:frontlightWarmthHW())
-    end)
+    it(
+      "frontlightWarmthHW returns inkview GetFrontlightColor directly",
+      function()
+        frontlight_color = -1
+        assert.are.equal(-1, powerd:frontlightWarmthHW())
+        frontlight_color = 50
+        assert.are.equal(50, powerd:frontlightWarmthHW())
+      end
+    )
 
     it("reports isFrontlightOn correctly with v1 api", function()
       v2_enabled_exists = false

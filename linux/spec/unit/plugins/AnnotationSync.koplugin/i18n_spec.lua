@@ -45,10 +45,7 @@ describe("AnnotationSync internationalization", function()
       )
     )
 
-    assert.are.equal(
-      "移到回收站",
-      _("Move to trash")
-    )
+    assert.are.equal("移到回收站", _("Move to trash"))
     assert.are.equal(
       "%1 在此设备上没有标注，但云存储中有 %2 条。要恢复，还是在所有设备上将其移到回收站？移到回收站的标注可以在“显示已删除的标注”中恢复。关闭此对话框也会恢复。",
       _.ngettext(
@@ -57,10 +54,7 @@ describe("AnnotationSync internationalization", function()
         3
       )
     )
-    assert.are.equal(
-      "上传设置到云端",
-      _("Push settings to cloud")
-    )
+    assert.are.equal("上传设置到云端", _("Push settings to cloud"))
     assert.are.equal(
       "无法读取 %1，已跳过同步。",
       _("Cannot read %1. Skipped syncing it.")
@@ -89,10 +83,7 @@ describe("AnnotationSync internationalization", function()
       "找不到 %1，已将其从待同步书籍中移除。",
       _("Cannot find %1. Removed it from pending books.")
     )
-    assert.are.equal(
-      "正在同步",
-      _("Syncing")
-    )
+    assert.are.equal("正在同步", _("Syncing"))
     assert.are.equal(
       "冷却 %1 分钟",
       _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 5)
@@ -125,10 +116,7 @@ describe("AnnotationSync internationalization", function()
         2
       )
     )
-    assert.are.equal(
-      "移至垃圾桶",
-      _("Move to trash")
-    )
+    assert.are.equal("移至垃圾桶", _("Move to trash"))
     assert.are.equal(
       "%1 在此裝置上沒有標註，但雲端儲存中有 %2 條。要還原，還是在所有裝置上將其移至垃圾桶？移至垃圾桶的標註可以在「顯示已刪除的標註」中還原。關閉此對話框也會還原。",
       _.ngettext(
@@ -137,10 +125,7 @@ describe("AnnotationSync internationalization", function()
         3
       )
     )
-    assert.are.equal(
-      "上傳設定至雲端",
-      _("Push settings to cloud")
-    )
+    assert.are.equal("上傳設定至雲端", _("Push settings to cloud"))
     assert.are.equal(
       "無法讀取 %1，已跳過同步。",
       _("Cannot read %1. Skipped syncing it.")
@@ -169,10 +154,7 @@ describe("AnnotationSync internationalization", function()
       "找不到 %1，已將其從待同步書籍中移除。",
       _("Cannot find %1. Removed it from pending books.")
     )
-    assert.are.equal(
-      "正在同步",
-      _("Syncing")
-    )
+    assert.are.equal("正在同步", _("Syncing"))
     assert.are.equal(
       "冷卻 %1 分鐘",
       _.ngettext("Cool down for 1 minute", "Cool down for %1 minutes", 5)
