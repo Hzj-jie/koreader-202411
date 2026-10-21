@@ -218,89 +218,86 @@ describe("Calibre plugin main module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes closeWirelessConnection calling non-existent CalibreWireless:disconnect()",
+      "disconnects active wireless connection in closeWirelessConnection",
       function()
         local plugin = Calibre:new({
           ui = { menu = { registerToMainMenu = function() end } },
         })
-        local dummy_socket = { stop = function() end }
+        local socket_stopped = false
+        local dummy_socket = {
+          stop = function()
+            socket_stopped = true
+          end,
+        }
         CalibreWireless.calibre_socket = dummy_socket
 
         finally(function()
           CalibreWireless.calibre_socket = nil
         end)
 
-        -- In main.lua:67:
-        -- if CalibreWireless.calibre_socket then CalibreWireless:disconnect() end
-        -- In wireless.lua, CalibreWireless defines _disconnect(), not disconnect().
-        -- Calling closeWirelessConnection() should disconnect cleanly and clear calibre_socket.
         plugin:closeWirelessConnection()
         assert.is_nil(CalibreWireless.calibre_socket)
+        assert.is_true(socket_stopped)
       end
     )
 
-    it(
-      "fails: exposes custom server address port validation upper bound 65355 instead of 65535",
-      function()
-        local plugin = Calibre:new({
-          ui = { menu = { registerToMainMenu = function() end } },
-        })
-        local menu_table = plugin:getWirelessMenuTable()
+    it("accepts custom server address port up to 65535", function()
+      local plugin = Calibre:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      local menu_table = plugin:getWirelessMenuTable()
 
-        -- Find server address config item
-        local config_item
-        for _, item in ipairs(menu_table) do
-          if item.sub_item_table then
-            for _, sub in ipairs(item.sub_item_table) do
-              if sub.text and sub.text:find("Manual") then
-                config_item = sub
-                break
-              end
+      -- Find server address config item
+      local config_item
+      for _, item in ipairs(menu_table) do
+        if item.sub_item_table then
+          for _, sub in ipairs(item.sub_item_table) do
+            if sub.text and sub.text:find("Manual") then
+              config_item = sub
+              break
             end
           end
-          if config_item then
-            break
-          end
         end
-        assert.is_table(config_item)
-
-        local orig_new = MultiInputDialog.new
-        local captured_dlg
-        MultiInputDialog.new = function(self, args)
-          local dlg = orig_new(self, args)
-          captured_dlg = dlg
-          return dlg
+        if config_item then
+          break
         end
-
-        local orig_show = UIManager.show
-        local orig_close = UIManager.close
-        UIManager.show = function() end
-        UIManager.close = function() end
-
-        finally(function()
-          MultiInputDialog.new = orig_new
-          UIManager.show = orig_show
-          UIManager.close = orig_close
-          G_reader_settings:delete("calibre_wireless_url")
-        end)
-
-        config_item.callback()
-        assert.is_table(captured_dlg)
-
-        captured_dlg.getFields = function()
-          return { "192.168.1.10", "65500" }
-        end
-
-        local ok_btn = captured_dlg.buttons[1][2]
-        assert.are.equal("OK", ok_btn.text)
-        ok_btn.callback()
-
-        local saved = G_reader_settings:read("calibre_wireless_url")
-        assert.is_table(saved)
-        -- Due to `port > 65355 then port = 9090`, 65500 is mistakenly reset to 9090.
-        -- Expected correct port is 65500.
-        assert.are.equal(65500, saved.port)
       end
-    )
+      assert.is_table(config_item)
+
+      local orig_new = MultiInputDialog.new
+      local captured_dlg
+      MultiInputDialog.new = function(self, args)
+        local dlg = orig_new(self, args)
+        captured_dlg = dlg
+        return dlg
+      end
+
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      UIManager.show = function() end
+      UIManager.close = function() end
+
+      finally(function()
+        MultiInputDialog.new = orig_new
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+        G_reader_settings:delete("calibre_wireless_url")
+      end)
+
+      config_item.callback()
+      assert.is_table(captured_dlg)
+
+      captured_dlg.getFields = function()
+        return { "192.168.1.10", "65500" }
+      end
+
+      local ok_btn = captured_dlg.buttons[1][2]
+      assert.are.equal("OK", ok_btn.text)
+      ok_btn.callback()
+
+      local saved = G_reader_settings:read("calibre_wireless_url")
+      assert.is_table(saved)
+      assert.are.equal(65500, saved.port)
+    end)
   end)
 end)

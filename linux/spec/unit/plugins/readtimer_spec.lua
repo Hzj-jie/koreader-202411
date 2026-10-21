@@ -230,35 +230,26 @@ describe("ReadTimer plugin main module", function()
       end
     )
 
-    it(
-      "reschedules active timer with remaining time on resume (fails: onResume reschedules for math.huge)",
-      function()
-        local mock_ui = {
-          menu = {
-            registerToMainMenu = function() end,
-          },
-        }
-        local rt = ReadTimer:new({
-          ui = mock_ui,
-        })
+    it("reschedules active timer with remaining time on resume", function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local rt = ReadTimer:new({
+        ui = mock_ui,
+      })
 
-        -- Schedule timer for 300 seconds
-        rt:rescheduleIn(300)
-        assert.is_true(rt:scheduled())
-        assert.is_true(rt:remaining() <= 300)
+      -- Schedule timer for 300 seconds
+      rt:rescheduleIn(300)
+      assert.is_true(rt:scheduled())
+      assert.is_true(rt:remaining() <= 300)
 
-        -- When device resumes from sleep, onResume should reschedule for the remaining duration.
-        -- In plugins/readtimer.koplugin/main.lua lines 400-406:
-        --   self:unschedule()
-        --   self:rescheduleIn(self:remaining())
-        -- Because self:unschedule() sets self.time = 0, subsequent self:remaining() returns math.huge.
-        -- As a result, rescheduleIn is called with math.huge, permanently losing the alarm.
-        rt:onResume()
+      rt:onResume()
 
-        assert.is_true(rt:scheduled())
-        assert.are_not.equal(math.huge, rt:remaining())
-        assert.is_true(rt:remaining() <= 300)
-      end
-    )
+      assert.is_true(rt:scheduled())
+      assert.are_not.equal(math.huge, rt:remaining())
+      assert.is_true(rt:remaining() <= 300)
+    end)
   end)
 end)

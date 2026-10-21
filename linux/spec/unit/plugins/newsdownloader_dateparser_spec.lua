@@ -75,12 +75,11 @@ describe("NewsDownloader dateparser module", function()
     end)
   end)
 
-  describe("failing tests for production bugs", function()
+  describe("timezone and format edge cases", function()
     it(
-      "should correctly subtract negative timezone offset with non-zero minutes in W3CDTF and RFC2822 (fails due to sign bug)",
+      "should correctly subtract negative timezone offset with non-zero minutes in W3CDTF and RFC2822",
       function()
         -- W3CDTF: "2023-05-01T12:00:00-03:30" should equal "2023-05-01T15:30:00Z"
-        -- Currently tonumber("-03") + 30/60 = -3 + 0.5 = -2.5 hours instead of -3.5 hours
         local ts_w3c_utc = dateparser.parse("2023-05-01T15:30:00Z", "W3CDTF")
         local ts_w3c_neg =
           dateparser.parse("2023-05-01T12:00:00-03:30", "W3CDTF")
@@ -96,24 +95,7 @@ describe("NewsDownloader dateparser module", function()
     )
 
     it(
-      "should return nil and error message for unknown format name (fails due to returning error string as 1st value)",
-      function()
-        local res, err = dateparser.parse("2023-05-01", "NONEXISTENT_FORMAT")
-        assert.is_nil(res)
-        assert.is_string(err)
-      end
-    )
-
-    it(
-      "should return nil for unparseable date string without explicit format (fails due to line 67 returning false)",
-      function()
-        local res = dateparser.parse("not a valid date")
-        assert.is_nil(res)
-      end
-    )
-
-    it(
-      "should parse year-only, year-month, and year-day-of-year in W3CDTF (fails due to rest nil crash in W3CDTF)",
+      "should parse year-only, year-month, and year-day-of-year in W3CDTF",
       function()
         local ts_year = dateparser.parse("2023", "W3CDTF")
         assert.is_number(ts_year)

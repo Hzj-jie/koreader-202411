@@ -281,4 +281,26 @@ describe("PdfDocument", function()
       assert.is_true(found_png)
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "registers pbm/pgm/pnm/ppm with standard ascii hyphen in mimetype",
+      function()
+        local registered = {}
+        local mock_registry = {
+          addProvider = function(_self, ext, mime, provider, weight)
+            registered[ext] = mime
+          end,
+        }
+        PdfDocument:register(mock_registry)
+
+        -- Bug: pdfdocument.lua lines 493, 494, 496, 497 register with U+2011 non-breaking hyphen
+        -- ("image/x\xe2\x80\x91portable\xe2\x80\x91bitmap") instead of ASCII hyphen ("image/x-portable-bitmap").
+        assert.are.equal("image/x-portable-bitmap", registered["pbm"])
+        assert.are.equal("image/x-portable-bitmap", registered["pgm"])
+        assert.are.equal("image/x-portable-bitmap", registered["pnm"])
+        assert.are.equal("image/x-portable-bitmap", registered["ppm"])
+      end
+    )
+  end)
 end)

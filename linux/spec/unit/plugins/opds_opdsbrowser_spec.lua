@@ -155,7 +155,7 @@ describe("OPDS Browser plugin module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes genItemTableFromCatalog creating invalid search entry when getSearchTemplate returns nil",
+      "omits search entry when getSearchTemplate returns nil",
       function()
         local browser = create_mock_browser()
         local catalog = {
@@ -176,24 +176,15 @@ describe("OPDS Browser plugin module", function()
           return nil
         end
 
-        -- In opdsbrowser.lua line 406:
-        -- url = build_href(self:getSearchTemplate(build_href(link.href)))
-        -- When getSearchTemplate returns nil, build_href(nil) returns the base catalog URL.
-        -- The search entry is inserted with url = "https://books.org/catalog", which lacks %s.
-        -- When tapped, searchCatalog fails to format the query into the URL.
         local res =
           browser:genItemTableFromCatalog(catalog, "https://books.org/catalog")
         assert.is_table(res)
-        assert.are.equal(1, #res)
-        assert.is_truthy(
-          res[1].url:find("%%s"),
-          "Search item URL must contain '%s' placeholder when search is available"
-        )
+        assert.are.equal(0, #res)
       end
     )
 
     it(
-      "fails: exposes fetchFeed crashing on HTTP 302 redirect when Location header is missing",
+      "handles HTTP 302 redirect without crashing when Location header is missing",
       function()
         local browser = create_mock_browser()
         local orig_request = http.request
@@ -224,6 +215,37 @@ describe("OPDS Browser plugin module", function()
           "fetchFeed should not crash on 302 redirect with missing Location header: "
             .. tostring(res)
         )
+      end
+    )
+
+    it(
+      "does not duplicate acquisition when link has both acquisition rel and application/pdf type",
+      function()
+        local browser = create_mock_browser()
+        local catalog = {
+          feed = {
+            entry = {
+              {
+                title = "Standard PDF Book",
+                id = "urn:pdf-book",
+                link = {
+                  {
+                    rel = "http://opds-spec.org/acquisition",
+                    href = "/download/book.pdf",
+                    type = "application/pdf",
+                  },
+                },
+              },
+            },
+          },
+        }
+
+        local res =
+          browser:genItemTableFromCatalog(catalog, "https://books.org/catalog")
+        assert.is_table(res)
+        assert.are.equal(1, #res)
+        local book = res[1]
+        assert.are.equal(1, #book.acquisitions)
       end
     )
   end)

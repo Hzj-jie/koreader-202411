@@ -614,6 +614,7 @@ local th6_sym = "\u{2756}" -- black diamond minus white x
 
 -- For optional prettification of the plain text full page
 function Wikipedia:prettifyText(text)
+  text = "\n" .. text
   -- We use \a for an additional leading \n that we don't want shortened later
   text = text:gsub("\n= ", "\n\a" .. th1_sym .. " ") -- 2 empty lines before
   text = text:gsub("\n== ", "\n\a" .. th2_sym .. " ") -- 2 empty lines before
@@ -631,6 +632,7 @@ function Wikipedia:prettifyText(text)
   text = text:gsub("\n*$", "") -- trim new lines at end
   text = text:gsub("\n\n+", "\n\n") -- shorten multiple new lines
   text = text:gsub("\a", "\n") -- re-add our wished \n
+  text = text:gsub("^\n+", "") -- trim new lines at start
   return text
 end
 

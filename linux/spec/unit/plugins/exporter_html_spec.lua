@@ -156,4 +156,24 @@ describe("HTML Exporter target module", function()
     assert.is_true(#shared_text > 0)
     assert.is_truthy(shared_text:find("Shared HTML Book"))
   end)
+
+
+  it("should escape special characters in clipping chapter", function()
+    local booknotes = {
+      title = "Escaped Chapter Book",
+      author = "Author & Co",
+      {
+        {
+          chapter = "Ch <1> & 2",
+          text = "Note text",
+          page = 1,
+          time = 1715774400,
+        },
+      },
+    }
+    local content = HtmlExporter:getRenderedContent({ booknotes })
+    assert.is_string(content)
+    assert.is_truthy(content:find("<b>Ch &lt;1&gt; &amp; 2</b>"))
+    assert.is_falsy(content:find("<b>Ch <1> & 2</b>"))
+  end)
 end)

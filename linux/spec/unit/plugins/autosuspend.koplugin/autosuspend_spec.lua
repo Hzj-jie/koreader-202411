@@ -365,4 +365,64 @@ describe("AutoSuspend", function()
       Device.isKindle:revert()
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "keeps remaining active timer when disabling autosuspend timeout in pickTimeoutValue",
+      function()
+        local UIManager = require("ui/uimanager")
+        local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
+        local widget = widget_class:new()
+        widget.auto_suspend_timeout_seconds = 180
+        widget.autoshutdown_timeout_seconds = 900
+
+        local scheduled = false
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        UIManager.scheduleIn = function(self_uim, sec, task)
+          if task == widget.task then
+            scheduled = true
+          end
+          return orig_scheduleIn(self_uim, sec, task)
+        end
+        UIManager.unschedule = function(self_uim, task)
+          if task == widget.task then
+            scheduled = false
+          end
+          return orig_unschedule(self_uim, task)
+        end
+
+        local spinner
+        local orig_show = UIManager.show
+        UIManager.show = function(self_uim, w)
+          spinner = w
+        end
+
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+        end)
+
+        widget:_start()
+        assert.is_true(scheduled)
+
+        widget:pickTimeoutValue(
+          nil,
+          "Timeout for autosuspend",
+          "Enter time",
+          "auto_suspend_timeout_seconds",
+          180,
+          { 60, 24 * 3600 },
+          1
+        )
+        assert.is_table(spinner)
+        spinner.extra_callback({ onExit = function() end })
+
+        assert.is_false(widget:_enabled())
+        assert.is_true(widget:_enabledShutdown())
+        assert.is_true(scheduled)
+      end
+    )
+  end)
 end)

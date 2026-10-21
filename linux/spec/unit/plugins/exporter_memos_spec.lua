@@ -164,37 +164,34 @@ describe("Memos Exporter target module", function()
     end
   )
 
-  describe("failing tests for production bugs", function()
-    it(
-      "should set Content-Length header in makeRequest (fails because Content-Length is omitted)",
-      function()
-        MemosExporter.settings = {
-          api = "https://memos.example.com/api/v1/memo",
-          token = "sample_token",
-        }
+  describe("HTTP request handling and edge cases", function()
+    it("should set Content-Length header in makeRequest", function()
+      MemosExporter.settings = {
+        api = "https://memos.example.com/api/v1/memo",
+        token = "sample_token",
+      }
 
-        local header_content_length = nil
-        http.request = function(req)
-          header_content_length = req.headers["Content-Length"]
-          req.sink('{"id": 1}')
-          return 1, 200, {}, "200 OK"
-        end
-
-        local booknotes = {
-          title = "Test",
-          {
-            { text = "Text", page = 1 },
-          },
-        }
-
-        MemosExporter:createHighlights(booknotes)
-        -- socket.http needs Content-Length header for POST body
-        assert.is_not_nil(header_content_length)
+      local header_content_length = nil
+      http.request = function(req)
+        header_content_length = req.headers["Content-Length"]
+        req.sink('{"id": 1}')
+        return 1, 200, {}, "200 OK"
       end
-    )
+
+      local booknotes = {
+        title = "Test",
+        {
+          { text = "Text", page = 1 },
+        },
+      }
+
+      MemosExporter:createHighlights(booknotes)
+      -- socket.http needs Content-Length header for POST body
+      assert.is_not_nil(header_content_length)
+    end)
 
     it(
-      "should return false from createHighlights and export when all HTTP requests fail (fails due to unconditional return true)",
+      "should return false from createHighlights and export when all HTTP requests fail",
       function()
         MemosExporter.settings = {
           api = "https://memos.example.com/api/v1/memo",
@@ -217,60 +214,30 @@ describe("Memos Exporter target module", function()
       end
     )
 
-    it(
-      "should handle bookmark clipping with nil text without crashing (fails concatenating nil clipping.text)",
-      function()
-        MemosExporter.settings = {
-          api = "https://memos.example.com/api/v1/memo",
-          token = "sample_token",
-        }
+    it("should handle multi-chunk ltn12 responses in makeRequest", function()
+      MemosExporter.settings = {
+        api = "https://memos.example.com/api/v1/memo",
+        token = "sample_token",
+      }
 
-        http.request = function(req)
-          req.sink('{"id": 1}')
-          return 1, 200, {}, "200 OK"
-        end
-
-        -- Bookmark clipping with nil text
-        local booknotes_with_bookmark = {
-          title = "Bookmark Book",
-          {
-            { text = nil, note = "Bookmark note", page = 50 },
-          },
-        }
-
-        assert.has_no.errors(function()
-          MemosExporter:createHighlights(booknotes_with_bookmark)
-        end)
+      http.request = function(req)
+        -- Multi-chunk response
+        req.sink('{"id":')
+        req.sink("1}")
+        return 1, 200, {}, "200 OK"
       end
-    )
 
-    it(
-      "should handle multi-chunk ltn12 responses in makeRequest (fails due to json.decode(sink[1]))",
-      function()
-        MemosExporter.settings = {
-          api = "https://memos.example.com/api/v1/memo",
-          token = "sample_token",
-        }
+      local booknotes = {
+        title = "Test Book",
+        {
+          { text = "Highlight", page = 1 },
+        },
+      }
 
-        http.request = function(req)
-          -- Multi-chunk response
-          req.sink('{"id":')
-          req.sink("1}")
-          return 1, 200, {}, "200 OK"
-        end
-
-        local booknotes = {
-          title = "Test Book",
-          {
-            { text = "Highlight", page = 1 },
-          },
-        }
-
-        assert.has_no.errors(function()
-          local ok = MemosExporter:createHighlights(booknotes)
-          assert.is_true(ok)
-        end)
-      end
-    )
+      assert.has_no.errors(function()
+        local ok = MemosExporter:createHighlights(booknotes)
+        assert.is_true(ok)
+      end)
+    end)
   end)
 end)

@@ -51,8 +51,7 @@ end
 
 function Utf8Proc.cased_dumb(str, is_lower)
   local cased = ""
-  local tmp_str = (" "):rep(10)
-  local tmp_p = ffi.cast("utf8proc_uint8_t *", tmp_str)
+  local tmp_p = ffi.new("utf8proc_uint8_t[10]")
   local str_p = ffi.cast("const utf8proc_uint8_t *", str)
   local codepoint = ffi.new("utf8proc_int32_t[1]")
   local count = 0

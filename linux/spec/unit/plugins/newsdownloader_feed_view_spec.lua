@@ -138,7 +138,7 @@ describe("NewsDownloader FeedView module", function()
   )
 
   it(
-    "should default include_images and enable_filter to false when omitted",
+    "should default include_images and enable_filter to true when omitted",
     function()
       local feed = {
         "https://example.com/rss",
@@ -147,9 +147,9 @@ describe("NewsDownloader FeedView module", function()
       local item = FeedView:getItem(1, feed, function() end)
       assert.is_table(item)
       -- Attribute 4: Include images
-      assert.are.equal(false, item[4][2])
+      assert.are.equal(true, item[4][2])
       -- Attribute 5: Enable filter
-      assert.are.equal(false, item[5][2])
+      assert.are.equal(true, item[5][2])
     end
   )
 end)

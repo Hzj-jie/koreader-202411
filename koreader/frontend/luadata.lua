@@ -140,20 +140,17 @@ function LuaData:reset()
     return
   end
   if lfs.attributes(self.file, "mode") == "file" then
-    for i = 1, self.max_backups, 1 do
-      if lfs.attributes(self.file .. ".old." .. i, "mode") == "file" then
-        logger.dbg(
-          "LuaData: Rename",
-          self.file .. ".old." .. i,
-          "to",
-          self.file .. ".old." .. i + 1
-        )
-        os.rename(self.file, self.file .. ".old." .. i + 1)
-      else
-        break
+    for i = self.max_backups - 1, 1, -1 do
+      local old_file = self.file .. ".old." .. i
+      if lfs.attributes(old_file, "mode") == "file" then
+        local next_file = self.file .. ".old." .. (i + 1)
+        logger.dbg("LuaData: Rename", old_file, "to", next_file)
+        os.remove(next_file)
+        os.rename(old_file, next_file)
       end
     end
     logger.dbg("LuaData: Rename", self.file, "to", self.file .. ".old.1")
+    os.remove(self.file .. ".old.1")
     os.rename(self.file, self.file .. ".old.1")
   end
 

@@ -144,48 +144,108 @@ describe("systemstat plugin", function()
       assert.are.equal(7, pending_item[2])
     end)
 
-    it(
-      'displays InfoMessage with pending job keys when jobs exist (fails: line 276 inverted msg == "" check)',
-      function()
-        local networklistener = require("ui/network/networklistener")
-        local orig_pendingJobKeys = networklistener.pendingJobKeys
-        networklistener.pendingJobKeys = function()
-          return { "kosync_push_progress" }, { "weather_fetch_forecast" }
-        end
-        finally(function()
-          networklistener.pendingJobKeys = orig_pendingJobKeys
-        end)
-
-        local widget = SystemStatWidget:new({
-          ui = { menu = { registerToMainMenu = function() end } },
-        })
-        widget:onShowSysStatistics()
-
-        local page = shown_widgets[1]
-        local pending_item
-        for _, pair in ipairs(page.kv_pairs) do
-          if pair[1] and pair[1]:find("Pending network jobs") then
-            pending_item = pair
-            break
-          end
-        end
-        assert.is_not_nil(pending_item)
-        assert.is_function(pending_item.callback)
-
-        shown_widgets = {}
-        pending_item.callback()
-
-        -- When pending jobs exist, InfoMessage should be shown with job details.
-        -- However, main.lua line 276 checks:
-        --   if msg == "" then UIManager:show(InfoMessage:new({ text = msg })) end
-        -- which inverts the logic and suppresses the message when msg is non-empty.
-        assert.are.equal(1, #shown_widgets)
-        local info = shown_widgets[1]
-        assert.is_not_nil(info)
-        assert.is_not_nil(info.text)
-        assert.is_true(info.text:find("kosync_push_progress") ~= nil)
-        assert.is_true(info.text:find("weather_fetch_forecast") ~= nil)
+    it("displays InfoMessage with pending job keys when jobs exist", function()
+      local networklistener = require("ui/network/networklistener")
+      local orig_pendingJobKeys = networklistener.pendingJobKeys
+      networklistener.pendingJobKeys = function()
+        return { "kosync_push_progress" }, { "weather_fetch_forecast" }
       end
-    )
+      finally(function()
+        networklistener.pendingJobKeys = orig_pendingJobKeys
+      end)
+
+      local widget = SystemStatWidget:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      widget:onShowSysStatistics()
+
+      local page = shown_widgets[1]
+      local pending_item
+      for _, pair in ipairs(page.kv_pairs) do
+        if pair[1] and pair[1]:find("Pending network jobs") then
+          pending_item = pair
+          break
+        end
+      end
+      assert.is_not_nil(pending_item)
+      assert.is_function(pending_item.callback)
+
+      shown_widgets = {}
+      pending_item.callback()
+
+      assert.are.equal(1, #shown_widgets)
+      local info = shown_widgets[1]
+      assert.is_not_nil(info)
+      assert.is_not_nil(info.text)
+      assert.is_true(info.text:find("kosync_push_progress") ~= nil)
+      assert.is_true(info.text:find("weather_fetch_forecast") ~= nil)
+    end)
+
+    it("closes /proc/uptime and popen handles in systemInfo", function()
+      local uptime_opened = false
+      local uptime_closed = false
+      local popen_handles = {}
+
+      local orig_io_open = io.open
+      io.open = function(path, mode)
+        if path == "/proc/uptime" then
+          uptime_opened = true
+          local real_h = orig_io_open(path, mode)
+          return {
+            read = function(self, fmt)
+              return real_h:read(fmt)
+            end,
+            lines = function(self)
+              return real_h:lines()
+            end,
+            close = function(self)
+              uptime_closed = true
+              return real_h:close()
+            end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+
+      local orig_io_popen = io.popen
+      io.popen = function(cmd, mode)
+        local real_h = orig_io_popen(cmd, mode)
+        local closed = false
+        local wrapped = {
+          read = function(self, fmt)
+            return real_h and real_h:read(fmt)
+          end,
+          lines = function(self)
+            return real_h and real_h:lines()
+          end,
+          close = function(self)
+            closed = true
+            return real_h and real_h:close()
+          end,
+        }
+        table.insert(popen_handles, {
+          cmd = cmd,
+          is_closed = function() return closed end,
+        })
+        return wrapped
+      end
+
+      finally(function()
+        io.open = orig_io_open
+        io.popen = orig_io_popen
+      end)
+
+      local widget = SystemStatWidget:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      widget:onShowSysStatistics()
+
+      assert.is_true(uptime_opened)
+      assert.is_true(uptime_closed)
+      assert.is_true(#popen_handles > 0)
+      for _, h in ipairs(popen_handles) do
+        assert.is_true(h.is_closed())
+      end
+    end)
   end)
 end)

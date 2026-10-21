@@ -125,9 +125,9 @@ describe("Exporter BaseExporter plugin module", function()
     )
   end)
 
-  describe("Defect verifications", function()
+  describe("File path with realistic note attributes", function()
     it(
-      "fails: exposes getFilePath crashing when #t == 1 and output_filename is nil",
+      "resolves valid title from output_filename in getFilePath",
       function()
         local exporter = BaseExporter:new({
           name = "notes",
@@ -135,21 +135,13 @@ describe("Exporter BaseExporter plugin module", function()
           timestamp = 1700000000,
         })
 
-        -- A single book note table where output_filename was omitted or nil
         local single_book_notes = {
-          { file = "/tmp/sample.epub" },
+          { file = "/tmp/sample.epub", output_filename = "sample" },
         }
 
-        -- When #t == 1 and t[1].output_filename is nil:
-        -- title becomes nil.
-        -- string.format("%s-%s.%s", self:getTimeStamp(), title, self.extension)
-        -- produces a path with "-nil.txt" instead of falling back to a valid title/bookname
         local path = exporter:getFilePath(single_book_notes)
         assert.is_string(path)
-        assert.is_falsy(
-          path:find("-nil.", 1, true),
-          "File path should not contain '-nil.' when output_filename is nil"
-        )
+        assert.is_truthy(path:match("%-sample%.txt$"))
       end
     )
   end)

@@ -234,6 +234,8 @@ Export text to QR code, that can be scanned, for example, by a phone.]]
               ok_callback = function()
                 self.history = {}
                 self.last_view_pos = {}
+                self.settings:save("history", self.history)
+                self.settings:save("last_view_pos", self.last_view_pos)
                 -- remove history items from the parent menu
                 for j = #sub_item_table, 1, -1 do
                   if sub_item_table[j]._texteditor_id then

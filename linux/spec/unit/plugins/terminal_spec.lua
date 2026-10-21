@@ -1126,4 +1126,74 @@ describe("Terminal plugin button tap integration", function()
     local TermInputText = dofile("plugins/terminal.koplugin/terminputtext.lua")
     assert.is_table(TermInputText)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "isExecutable handles executable paths containing spaces safely",
+      function()
+        local Terminal = require("plugins/terminal.koplugin/main")
+        local terminal = Terminal:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        local ffiUtil = require("ffi/util")
+        local test_file = "/tmp/test koreader shell " .. ffiUtil.getpid() .. ".sh"
+        local f = io.open(test_file, "w")
+        f:write("#!/bin/sh\nexit 0\n")
+        f:close()
+        os.execute("chmod +x " .. string.format("%q", test_file))
+        finally(function()
+          os.remove(test_file)
+        end)
+
+        assert.is_true(terminal:isExecutable(test_file))
+      end
+    )
+
+    it(
+      "refresh clamps refresh_time when backing off above 5 seconds",
+      function()
+        local Terminal = require("plugins/terminal.koplugin/main")
+        local terminal = Terminal:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        terminal.is_shell_open = true
+        terminal.refresh_time = 4.99
+        terminal.receive = function()
+          return ""
+        end
+
+        local orig_schedule = UIManager.scheduleIn
+        UIManager.scheduleIn = function() end
+        finally(function()
+          UIManager.scheduleIn = orig_schedule
+        end)
+
+        terminal:refresh()
+        assert.is_true(terminal.refresh_time > 5)
+        terminal:refresh()
+        assert.is_true(terminal.refresh_time <= 5)
+      end
+    )
+
+    it(
+      "killShell returns -1 and avoids crashes in menu enabled_func when pid file is empty",
+      function()
+        local Terminal = require("plugins/terminal.koplugin/main")
+        local terminal = Terminal:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        local f = io.open("terminal.pid", "w")
+        f:write("")
+        f:close()
+        finally(function()
+          os.remove("terminal.pid")
+        end)
+
+        assert.has_no.errors(function()
+          local running = terminal:killShell(true) >= 0
+          assert.is_boolean(running)
+        end)
+      end
+    )
+  end)
 end)

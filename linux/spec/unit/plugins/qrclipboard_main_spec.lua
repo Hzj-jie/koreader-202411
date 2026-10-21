@@ -72,7 +72,7 @@ describe("QRClipboard plugin", function()
     end
   )
 
-  it("should handle empty clipboard text string", function()
+  it("should show QRMessage when clipboard text is empty string", function()
     local mock_ui = {
       menu = { registerToMainMenu = function() end },
     }
@@ -88,8 +88,6 @@ describe("QRClipboard plugin", function()
     menu_items.qrclipboard.callback()
 
     assert.are.equal(1, #shown_widgets)
-    local qrmessage = shown_widgets[1]
-    assert.is_table(qrmessage)
-    assert.are.equal("", qrmessage.text)
+    assert.are.equal("", shown_widgets[1].text)
   end)
 end)

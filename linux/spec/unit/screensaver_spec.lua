@@ -268,4 +268,70 @@ describe("Screensaver module", function()
       assert.are_equal(mock_widget, closed_widget)
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure addOverlayMessage does not swap w/h or create a hole at [1] when widget is nil",
+      function()
+        local orig_show = UIManager.show
+        finally(function()
+          Screensaver:cleanup()
+          UIManager.show = orig_show
+          G_reader_settings:delete("screensaver_type")
+          G_reader_settings:delete("screensaver_show_message")
+          Screensaver.overlay_message = nil
+        end)
+        UIManager.show = function() end
+
+        G_reader_settings:save("screensaver_type", "disable")
+        G_reader_settings:makeFalse("screensaver_show_message")
+        Screensaver:setup()
+        Screensaver.overlay_message = "Low battery warning"
+        Screensaver:show()
+
+        assert.is_not_nil(Screensaver.screensaver_widget)
+        local root_widget = Screensaver.screensaver_widget.widget
+        assert.is_not_nil(root_widget)
+        assert.are.equal(Screen:getWidth(), root_widget.dimen.w)
+        assert.are.equal(Screen:getHeight(), root_widget.dimen.h)
+        assert.is_not_nil(root_widget[1])
+      end
+    )
+
+    it(
+      "should ensure expandSpecial reports 100% on page 1 of 1-page document",
+      function()
+        local ReaderUI = require("apps/reader/readerui")
+        local orig_instance = ReaderUI.instance
+        finally(function()
+          ReaderUI.instance = orig_instance
+          G_reader_settings:save("lastfile", nil)
+        end)
+        G_reader_settings:save("lastfile", "/fake/onepage.epub")
+
+        ReaderUI.instance = {
+          document = {
+            hasHiddenFlows = function()
+              return false
+            end,
+            getPageCount = function()
+              return 1
+            end,
+            getTotalPagesLeft = function()
+              return 0
+            end,
+          },
+          view = { state = { page = 1 } },
+          toc = {
+            getChapterPagesLeft = function()
+              return 0
+            end,
+          },
+        }
+
+        local res = Screensaver:expandSpecial("%p", "fallback")
+        assert.are.equal("100", res)
+      end
+    )
+  end)
 end)

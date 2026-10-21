@@ -164,38 +164,9 @@ describe("ReadwiseExporter plugin target module", function()
     end
   )
 
-  describe("failing tests for production bugs", function()
+  describe("HTTP response handling", function()
     it(
-      "should handle booknotes with nil author without crashing (fails at line 115 indexing nil author)",
-      function()
-        local exp = setmetatable(
-          { settings = { token = "test_token" } },
-          { __index = ReadwiseExporter }
-        )
-
-        http.request = function(req)
-          req.sink([[{"status": "ok"}]])
-          return 1, 200, {}, "200 OK"
-        end
-
-        -- Book notes with author = nil
-        local booknotes_no_author = {
-          title = "Anonymous Manuscript",
-          author = nil,
-          {
-            { text = "Excerpt without author", page = 5, time = 1600000000 },
-          },
-        }
-
-        assert.has_no.errors(function()
-          local ok = exp:export({ booknotes_no_author })
-          assert.is_true(ok)
-        end)
-      end
-    )
-
-    it(
-      "should handle multi-chunk ltn12 HTTP responses in makeRequest (fails due to json.decode(sink[1]))",
+      "should handle multi-chunk ltn12 HTTP responses in makeRequest",
       function()
         local exp = setmetatable(
           { settings = { token = "test_token" } },

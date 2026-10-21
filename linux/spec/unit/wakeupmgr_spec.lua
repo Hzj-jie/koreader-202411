@@ -171,4 +171,25 @@ describe("WakeupMgr", function()
       end
     )
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure removeTasks unsets hardware RTC alarm when queue becomes empty",
+      function()
+        local mgr = require("device/wakeupmgr"):new({})
+        stub(mgr, "setWakeupAlarm")
+        stub(mgr, "unsetWakeupAlarm")
+
+        mgr:addTask(300, function() end)
+        assert.are.equal(1, #mgr._task_queue)
+
+        -- Removing the only task in queue should unset the hardware alarm.
+        -- Bug: removeTasks checks if reschedule and self._task_queue[1] then setWakeupAlarm
+        -- without an else branch calling unsetWakeupAlarm(), leaving the hardware alarm active.
+        mgr:removeTasks(mgr._task_queue[1].epoch)
+        assert.are.equal(0, #mgr._task_queue)
+        assert.stub(mgr.unsetWakeupAlarm).was.called(1)
+      end
+    )
+  end)
 end)

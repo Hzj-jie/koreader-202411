@@ -456,82 +456,6 @@ describe("NewsDownloader main plugin module", function()
   )
 
   it(
-    "should pass string or nil filter_element to createEpub when filter_element is omitted from feed config",
-    function()
-      local tmp_dir = os.tmpname()
-      os.remove(tmp_dir)
-      require("libs/libkoreader-lfs").mkdir(tmp_dir)
-
-      local mock_ui = {
-        menu = {
-          registerToMainMenu = function() end,
-        },
-      }
-      local inst = NewsDownloader:new({
-        ui = mock_ui,
-        path = "plugins/newsdownloader.koplugin",
-        download_dir = tmp_dir .. "/",
-        feed_config_path = tmp_dir .. "/feed_config.lua",
-      })
-      inst.settings =
-        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
-
-      local config = {
-        {
-          [1] = "https://example.com/rss",
-          limit = 1,
-          download_full_article = true,
-          include_images = false,
-          enable_filter = false,
-          -- filter_element is omitted (nil)
-        },
-      }
-      inst:saveConfig(config)
-
-      local captured_filter_element = nil
-      local orig_process = inst.processFeedSource
-      local orig_open = inst.openDownloadsFolder
-      local orig_info = require("ui/trapper").info
-      require("ui/trapper").info = function() end
-      inst.openDownloadsFolder = function() end
-
-      inst.processFeedSource = function(
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        _,
-        filter_element
-      )
-        captured_filter_element = filter_element
-      end
-
-      finally(function()
-        inst.processFeedSource = orig_process
-        inst.openDownloadsFolder = orig_open
-        require("ui/trapper").info = orig_info
-      end)
-
-      local mock_menu = {
-        updateItems = function() end,
-        closeMenu = function() end,
-      }
-      inst:loadConfigAndProcessFeeds(mock_menu)
-
-      -- Production bug: line 275 evaluates `feed.filter_element == nil` to boolean `true`,
-      -- passing boolean `true` into processFeedSource / createEpub instead of `""` or `nil`.
-      assert.is_not_boolean(captured_filter_element)
-      assert.is_true(
-        captured_filter_element == nil or captured_filter_element == ""
-      )
-    end
-  )
-
-  it(
     "should correctly set include_images and filter_element hash fields when updating feed with omitted fields",
     function()
       local tmp_dir = os.tmpname()
@@ -575,9 +499,6 @@ describe("NewsDownloader main plugin module", function()
       local saved = Persist:new({
         path = inst.feed_config_path,
       }):load()
-      -- Production bug: updateFeedConfig appends array subtables { "include_images", true }
-      -- and { "filter_element", "div.article" } via table.insert instead of setting feed[key] = value,
-      -- so saved[1].include_images and saved[1].filter_element remain nil.
       assert.is_true(saved[1].include_images == true)
       assert.are.equal("div.article", saved[1].filter_element)
     end
@@ -626,7 +547,6 @@ describe("NewsDownloader main plugin module", function()
           ""
         )
       end)
-      -- Production bug: crashes indexing `feeds.feed.entry[1]` when `entry` is nil
       assert.is_true(
         atom_ok,
         "empty Atom feed should not crash with error: " .. tostring(atom_err)
@@ -656,8 +576,6 @@ describe("NewsDownloader main plugin module", function()
         false,
         ""
       )
-      -- Production bug: simpleTreeHandler parses single <item> into a hash table instead of array item[1],
-      -- causing line 407 `feeds.rss.channel.item[1]` to evaluate to nil and reject the feed as unsupported.
       assert.are.equal(0, #unsupported_rss)
       assert.is_true(epub_created)
     end

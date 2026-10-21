@@ -513,4 +513,40 @@ describe("MovableContainer widget", function()
       assert.is_false(container._moving)
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "handles onMovableHold testing moved dimen at moved position",
+      function()
+        local inner_widget = Widget:new({
+          dimen = Geom:new({ x = 100, y = 100, w = 100, h = 100 }),
+        })
+        local container = MovableContainer:new({
+          [1] = inner_widget,
+        })
+        container.dimen = Geom:new({ x = 100, y = 100, w = 100, h = 100 })
+        container:setMovedOffset(Geom:new({ x = 200, y = 200 }))
+
+        local inside_moved_pos = Geom:new({ x = 350, y = 350 })
+        assert.is_true(container:onMovableHold(nil, { pos = inside_moved_pos }))
+      end
+    )
+
+    it(
+      "returns false from onMovableHold outside moved area in vacated initial area",
+      function()
+        local inner_widget = Widget:new({
+          dimen = Geom:new({ x = 100, y = 100, w = 100, h = 100 }),
+        })
+        local container = MovableContainer:new({
+          [1] = inner_widget,
+        })
+        container.dimen = Geom:new({ x = 100, y = 100, w = 100, h = 100 })
+        container:setMovedOffset(Geom:new({ x = 200, y = 200 }))
+
+        local vacated_pos = Geom:new({ x = 150, y = 150 })
+        assert.is_false(container:onMovableHold(nil, { pos = vacated_pos }))
+      end
+    )
+  end)
 end)

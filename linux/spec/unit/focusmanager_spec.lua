@@ -423,4 +423,27 @@ describe("FocusManager module", function()
       end)
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "exposes onFocusHalfMove subtracting row index y instead of column index x",
+      function()
+        local w = layout[1][1]
+        local focusmanager = FocusManager:new({})
+        focusmanager.layout = {
+          { w, w, w, w },
+          { w, w, w, w },
+          { w, w, w, w },
+          { w, w, w, w },
+        }
+        -- Row 1, column 3: #row = 4. dx = floor(4/2) = 2.
+        -- dx + x = 2 + 3 = 5 > 4.
+        -- When direction is "right", dx should be #row - x = 4 - 3 = 1 (moving to column 4).
+        -- With bug: dx = #row - y = 4 - 1 = 3 (moving to column 6, out of bounds / wrapping).
+        focusmanager.selected = { y = 1, x = 3 }
+        focusmanager:onFocusHalfMove({ "right" })
+        assert.are.same({ y = 1, x = 4 }, focusmanager.selected)
+      end
+    )
+  end)
 end)

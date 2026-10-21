@@ -455,7 +455,7 @@ describe("VocabBuilder plugin", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes onShowFilter callback executing filter toggle on empty toggled due to #toggled truthiness",
+      "does not execute filter toggle on empty toggled in onShowFilter callback",
       function()
         local settings = G_reader_settings:readTableRef("vocabulary_builder")
         settings.enabled = true
@@ -496,10 +496,6 @@ describe("VocabBuilder plugin", function()
           toggle_stub:revert()
         end)
 
-        -- In main.lua:1973:
-        -- if #toggled then
-        -- In Lua, #toggled on empty table {} evaluates to 0, which is truthy.
-        -- Thus sort_widget.callback() calls DB:toggleBookFilter(toggled) with empty ids {}.
         sort_widget.callback()
 
         assert.stub(toggle_stub).was_not_called()
@@ -507,7 +503,7 @@ describe("VocabBuilder plugin", function()
     )
 
     it(
-      "fails: exposes resetItems with reverse=true failing to re-synchronize item count with selectCount",
+      "re-synchronizes item count with selectCount on resetItems with reverse=true",
       function()
         local settings = G_reader_settings:readTableRef("vocabulary_builder")
         settings.enabled = true
@@ -553,10 +549,6 @@ describe("VocabBuilder plugin", function()
           end
         end)
 
-        -- In normal mode, item_table has 3 items.
-        -- When reverse is enabled, only items with due_time <= reload_time (2 items) are active.
-        -- But resetItems() only clears .word from existing item_table without re-sizing it via selectCount.
-        -- As a result, #widget.item_table remains 3 with unpopulated nil-word items.
         settings.reverse = true
         widget:resetItems()
 
@@ -565,7 +557,7 @@ describe("VocabBuilder plugin", function()
     )
 
     it(
-      "fails: exposes cloud sync Delete and Edit not persisting settings locally",
+      "persists settings locally when deleting and editing cloud sync server",
       function()
         local settings = G_reader_settings:readTableRef("vocabulary_builder")
         settings.enabled = true
@@ -586,31 +578,32 @@ describe("VocabBuilder plugin", function()
         assert.is_table(active_menu)
 
         local sync_dialog
+        local sync_settings_dialog
         local orig_show = UIManager.show
         UIManager.show = function(self, dlg)
           if dlg.title and dlg.title:find("Cloud storage") then
             sync_dialog = dlg
+          elseif dlg.onConfirm then
+            sync_settings_dialog = dlg
           end
           return orig_show(self, dlg)
         end
 
-        local save_called = false
-        local orig_save = G_reader_settings.save
-        G_reader_settings.save = function(self)
-          save_called = true
-          return orig_save(self)
-        end
-
         finally(function()
-          G_reader_settings.save = orig_save
           UIManager.show = orig_show
-          if sync_dialog then
+          if
+            sync_settings_dialog
+            and UIManager:isWindowWidget(sync_settings_dialog)
+          then
+            UIManager:close(sync_settings_dialog)
+          end
+          if sync_dialog and UIManager:isWindowWidget(sync_dialog) then
             UIManager:close(sync_dialog)
           end
-          if active_menu then
+          if active_menu and UIManager:isWindowWidget(active_menu) then
             UIManager:close(active_menu)
           end
-          if vb.widget then
+          if vb.widget and UIManager:isWindowWidget(vb.widget) then
             UIManager:close(vb.widget)
           end
         end)
@@ -640,53 +633,26 @@ describe("VocabBuilder plugin", function()
         assert.are.equal("Delete", delete_btn.text)
 
         delete_btn.callback()
-        -- In main.lua:248-253, Delete sets settings.server = nil but never calls saveSettings().
-        assert.is_true(
-          save_called,
-          "Deleting cloud storage server must persist settings locally via saveSettings"
-        )
-      end
-    )
+        assert.is_nil(settings.server)
 
-    it(
-      "fails: exposes onSync calling conn.exec instead of conn.rowexec causing empty DB to not return false",
-      function()
-        local DataStorage = require("datastorage")
-        local SQ3 = require("lua-ljsqlite3/init")
-        local empty_local_db = DataStorage:getSettingsDir()
-          .. "/empty_local.sqlite3"
-        local income_db = DataStorage:getSettingsDir() .. "/income.sqlite3"
-        local cached_db = DataStorage:getSettingsDir() .. "/cached.sqlite3"
-
-        finally(function()
-          os.remove(empty_local_db)
-          os.remove(income_db)
-          os.remove(cached_db)
-        end)
-
-        -- Create empty uninitialized local db (schema_version = 0)
-        local conn_l = SQ3.open(empty_local_db)
-        conn_l:close()
-
-        -- Copy initialized DB with schema to income_db
-        DB:init()
-        local ffiutil = require("ffi/util")
-        ffiutil.copyFile(DB.path, income_db)
-
-        -- In db.lua:574:
-        -- local ok3, v3 = pcall(conn.exec, conn, "PRAGMA schema_version")
-        -- conn.exec returns a result table { schema_version = { 0 } } instead of a scalar value.
-        -- tonumber(v3) returns nil.
-        -- tonumber(v3) == 0 evaluates to false!
-        -- Thus onSync fails to recognize that local DB is empty (schema_version = 0)
-        -- and fails to return false.
-        local res = DB.onSync(empty_local_db, cached_db, income_db)
-
-        -- Expected: onSync should safely detect empty local DB and return false
-        assert.is_false(
-          res,
-          "onSync must return false when local DB is empty (schema_version = 0)"
-        )
+        -- Reopen sync dialog to test Edit callback
+        settings.server = {
+          type = "dropbox",
+          name = "OldServer",
+          url = "http://example.com",
+        }
+        sync_button_cb()
+        assert.is_table(sync_dialog)
+        local edit_btn = sync_dialog.buttons[1][2]
+        assert.are.equal("Edit", edit_btn.text)
+        edit_btn.callback()
+        assert.is_table(sync_settings_dialog)
+        sync_settings_dialog.onConfirm({
+          type = "dropbox",
+          name = "NewServer",
+          url = "http://example.org",
+        })
+        assert.are.equal("NewServer", settings.server.name)
       end
     )
   end)

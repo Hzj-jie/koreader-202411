@@ -213,7 +213,7 @@ describe("Sudoku plugin", function()
   end)
 
   it(
-    "should support undo when erasing pencil notes on an empty cell [exposes production bug in SudokuScreen:eraseDigit()]",
+    "should support undo when erasing pencil notes on an empty cell",
     function()
       local sudoku = createMockSudoku()
       local orig_show = UIManager.show
@@ -259,7 +259,7 @@ describe("Sudoku plugin", function()
   )
 
   it(
-    "should preserve pencil notes when eraseDigit is called while revealing solution [exposes production bug in SudokuScreen:eraseDigit()]",
+    "should preserve pencil notes when eraseDigit is called while revealing solution",
     function()
       local sudoku = createMockSudoku()
       local orig_show = UIManager.show
@@ -293,6 +293,33 @@ describe("Sudoku plugin", function()
       screen:eraseDigit()
       assert.is_not_nil(screen.board:getCellNotes(target_r, target_c))
       assert.is_true(screen.board:getCellNotes(target_r, target_c)[7])
+
+      UIManager.show = orig_show
+    end
+  )
+
+  it(
+    "should map right and bottom grid boundary points in SudokuBoardWidget:getCellFromPoint",
+    function()
+      local Geom = require("ui/geometry")
+      local sudoku = createMockSudoku()
+      local orig_show = UIManager.show
+      UIManager.show = function() end
+      sudoku:showGame()
+      local screen = sudoku.screen
+      local widget = screen.board_widget
+
+      widget.paint_rect = Geom:new({ x = 10, y = 20, w = 450, h = 450 })
+
+      -- Rightmost boundary pixel on row 1: x = 10 + 450 = 460, y = 20 + 25 = 45
+      local r, c = widget:getCellFromPoint(460, 45)
+      assert.are.equal(1, r)
+      assert.are.equal(9, c)
+
+      -- Bottommost boundary pixel on col 1: x = 10 + 25 = 35, y = 20 + 450 = 470
+      r, c = widget:getCellFromPoint(35, 470)
+      assert.are.equal(9, r)
+      assert.are.equal(1, c)
 
       UIManager.show = orig_show
     end

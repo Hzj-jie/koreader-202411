@@ -21,7 +21,8 @@ describe("AutoWarmth plugin tests", function()
       return original_os_date(format, time_val)
     end
 
-    SunTime = require("suntime")
+    SunTime = require("plugins/autowarmth.koplugin/suntime")
+    package.loaded["suntime"] = SunTime
     stub(SunTime, "getTimezoneOffset")
     SunTime.getTimezoneOffset.returns(0)
   end)
@@ -725,7 +726,7 @@ describe("AutoWarmth plugin tests", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes timezone update saving old timezone in scheduleMidnightUpdate",
+      "saves updated timezone in scheduleMidnightUpdate",
       function()
         AutoWarmth.timezone = 0
         G_reader_settings:save("autowarmth_timezone", 0)
@@ -736,25 +737,17 @@ describe("AutoWarmth plugin tests", function()
 
         AutoWarmth:scheduleMidnightUpdate()
 
-        -- In main.lua:350:
-        -- G_reader_settings:save("autowarmth_timezone", self.timezone)
-        -- self.timezone = timezone
-        -- It mistakenly saves self.timezone (0) before updating to timezone (2),
-        -- leaving autowarmth_timezone in settings as 0 instead of 2.
         assert.are.equal(2, G_reader_settings:read("autowarmth_timezone"))
       end
     )
 
-    it("fails: exposes toggleFrontlight checking sr instead of ss", function()
+    it("guards nil sunset time in toggleFrontlight arithmetic", function()
       AutoWarmth.fl_off_during_day = true
       AutoWarmth.fl_off_during_day_offset_s = 0
       AutoWarmth.current_times_h = {
         [5] = 6.0,
         [7] = nil,
       }
-      -- In main.lua:546:
-      -- local sunset_in_s = sr and (ss * 3600 - self.fl_off_during_day_offset_s - now_s) or 0
-      -- It checks "sr and" instead of "ss and", crashing on arithmetic with nil ss.
       local ok, err = pcall(function()
         AutoWarmth:toggleFrontlight(12 * 3600)
       end)

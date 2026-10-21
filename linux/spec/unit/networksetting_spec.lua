@@ -320,7 +320,7 @@ describe("NetworkSetting module", function()
 
     -- Inside popup
     local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
-    assert.is_nil(ns:onTapClose(nil, inside_ev))
+    assert.is_false(ns:onTapClose(nil, inside_ev))
 
     -- Outside popup
     local outside_ev = { pos = Geom:new({ x = -100, y = -100 }) }
@@ -331,5 +331,51 @@ describe("NetworkSetting module", function()
     NetworkMgr.pending_connection = true
     ns:onClose()
     assert.is_false(NetworkMgr.pending_connection)
+  end)
+
+  describe("Defect verifications", function()
+    it(
+      "does not close password dialog on empty WPA password in saveAndConnectToNetwork",
+      function()
+        local network_list = {
+          {
+            ssid = "wpa_net",
+            flags = "[WPA2-PSK-CCMP][ESS]",
+            signal_quality = 60,
+          },
+        }
+        local ns = NetworkSetting:new({ network_list = network_list })
+        local item = ns[1][1][1][3].items[1]
+        item.showWidget = function() end
+
+        local InputDialog = require("ui/widget/inputdialog")
+        local mock_pw_input = InputDialog:new({ input = "" })
+
+        local closed = false
+        local orig_close = UIManager.close
+        UIManager.close = function(mgr, w)
+          if w == mock_pw_input then
+            closed = true
+          end
+          return orig_close(mgr, w)
+        end
+
+        item:saveAndConnectToNetwork(mock_pw_input)
+        UIManager.close = orig_close
+
+        assert.is_false(closed)
+      end
+    )
+
+    it(
+      "returns boolean false on onTapClose inside popup",
+      function()
+        local Geom = require("ui/geometry")
+        local ns = NetworkSetting:new({ network_list = {} })
+        ns.popup.dimen = Geom:new({ x = 50, y = 50, w = 500, h = 600 })
+        local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
+        assert.is_false(ns:onTapClose(nil, inside_ev))
+      end
+    )
   end)
 end)

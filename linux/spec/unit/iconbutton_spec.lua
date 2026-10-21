@@ -127,4 +127,18 @@ describe("IconButton", function()
     btn:setIcon("search")
     assert.are.equal("search", btn.icon)
   end)
+
+  describe("Defect verifications", function()
+    it("exposes setIcon discarding custom width and height", function()
+      local btn = IconButton:new({
+        icon = "appbar.menu",
+        width = 80,
+        height = 80,
+      })
+
+      assert.are.equal(80, btn.image.width)
+      btn:setIcon("search")
+      assert.are.equal(80, btn.image.width)
+    end)
+  end)
 end)

@@ -136,4 +136,45 @@ describe("AutoDim widget tests", function()
     assert.is_nil(AutoDim.trap_widget)
     assert.is_nil(AutoDim.origin_fl)
   end)
+
+  it(
+    "_shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
+    function()
+      AutoDim.autodim_starttime_m = -1
+      UIManager:updateLastUserActionTime()
+      assert.is_true(
+        AutoDim:_shouldNotDim(),
+        "_shouldNotDim should return true (do not dim) when AutoDim is disabled"
+      )
+    end
+  )
+
+  it(
+    "_rampTask leaves trap_widget shown on user action until tap dismiss",
+    function()
+      local PluginShare = require("pluginshare")
+      Device:getPowerDevice():setIntensity(10)
+
+      MockTime:increase(301)
+      UIManager:handleInput()
+      assert.is_not_nil(AutoDim.trap_widget)
+      assert.is_true(PluginShare.DeviceIdling)
+
+      -- Touch-down bumps last user action time before tap dismiss
+      UIManager:updateLastUserActionTime()
+      assert.is_true(AutoDim:_shouldNotDim())
+
+      -- _rampTask leaves trap_widget shown, intensity unchanged
+      AutoDim:_rampTask(9, 0.15)
+      assert.is_not_nil(AutoDim.trap_widget)
+      assert.are.equal(9, Device:getPowerDevice():frontlightIntensity())
+      assert.is_true(PluginShare.DeviceIdling)
+
+      -- Tap dismiss restores intensity and clears DeviceIdling
+      AutoDim.trap_widget:onTapDismiss()
+      assert.is_nil(AutoDim.trap_widget)
+      assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
+      assert.is_false(PluginShare.DeviceIdling)
+    end
+  )
 end)

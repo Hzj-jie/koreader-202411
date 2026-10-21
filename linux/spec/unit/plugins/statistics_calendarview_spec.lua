@@ -75,24 +75,8 @@ describe("Statistics CalendarView widget module", function()
 
   describe("Defect verifications", function()
     it(
-      "fails: exposes MIN_MONTH permanently cached when getFirstTimestamp initially returns nil",
+      "does not permanently cache MIN_MONTH when getFirstTimestamp initially returns nil",
       function()
-        -- In calendarview.lua lines 1141 and 1212-1219:
-        -- local MIN_MONTH = nil
-        -- ...
-        -- if not MIN_MONTH then
-        --   local min_ts = self.reader_statistics:getFirstTimestamp()
-        --   if not min_ts then min_ts = now_ts end
-        --   MIN_MONTH = os.date("%Y-%m", min_ts)
-        -- end
-        -- self.min_month = MIN_MONTH
-        --
-        -- When a CalendarView is first created before any reading statistics exist,
-        -- getFirstTimestamp() returns nil. MIN_MONTH is cached permanently to the current month.
-        -- When a subsequent CalendarView instance is opened after statistics have been synced
-        -- or recorded (e.g. from 2 years earlier), MIN_MONTH is not refreshed and remains
-        -- locked to the current month, preventing the user from viewing earlier history.
-
         local empty_stats = create_mock_stats(nil)
         local view1 = CalendarView:new({
           reader_statistics = empty_stats,
@@ -112,10 +96,6 @@ describe("Statistics CalendarView widget module", function()
           height = 800,
         })
         assert.is_table(view2)
-
-        -- Expected: view2.min_month reflects earlier_ts
-        -- Defect: MIN_MONTH was permanently cached in the file-level upvalue, so view2.min_month
-        -- is still locked to the current month.
         assert.are.equal(expected_earlier_month, view2.min_month)
       end
     )

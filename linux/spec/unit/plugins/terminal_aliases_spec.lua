@@ -346,4 +346,31 @@ describe("Terminal Aliases plugin module", function()
 
     assert.is_true(found)
   end)
+
+  it("should preserve internal quotes when loading alias", function()
+    local tmp_file = lfs.currentdir() .. "/test_aliases_quotes_" .. ffiUtil.getpid() .. ".sh"
+    local f = io.open(tmp_file, "w")
+    f:write('alias greet="echo \\"hello world\\""\n')
+    f:close()
+
+    local inst = {
+      filename = tmp_file,
+      kv_pairs = {},
+    }
+    setmetatable(inst, { __index = Aliases })
+
+    inst:load()
+
+    local found = false
+    for i = 3, #inst.kv_pairs do
+      if inst.kv_pairs[i][1] == "greet" then
+        found = true
+        assert.are.equal('echo \\"hello world\\"', inst.kv_pairs[i][2])
+        break
+      end
+    end
+    os.remove(tmp_file)
+
+    assert.is_true(found)
+  end)
 end)

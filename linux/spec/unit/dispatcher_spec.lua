@@ -608,4 +608,30 @@ describe("dispatcher", function()
       UIManager.close = old_close
     end)
   end)
+
+  describe("Defect verifications", function()
+    after_each(function()
+      Dispatcher:removeAction("test_custom_str")
+    end)
+
+    it(
+      "getNameFromItem falls back to string format for unknown string setting",
+      function()
+        Dispatcher:registerAction("test_custom_str", {
+          category = "string",
+          title = "Custom String Action",
+          args = { "opt_a", "opt_b" },
+          toggle = { "Option A", "Option B" },
+        })
+
+        assert.has_no.errors(function()
+          local name = Dispatcher:getNameFromItem(
+            "test_custom_str",
+            { test_custom_str = "opt_unknown" }
+          )
+          assert.are.equal("Custom String Action: opt_unknown", name)
+        end)
+      end
+    )
+  end)
 end)

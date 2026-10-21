@@ -254,4 +254,65 @@ describe("ExternalKeyboard main plugin module", function()
 
     UIManager.scheduleIn = orig_schedule
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "closes duplicate event_fd when device path is already registered without closing live device",
+      function()
+        local inst = ExternalKeyboard:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+
+        local closed_paths = {}
+        local orig_input = Device.input
+        Device.input = {
+          fdopen = function()
+            error("fdopen should not be called for already-registered path")
+          end,
+          close = function(self_in, path)
+            closed_paths[path] = true
+          end,
+          event_map = {},
+        }
+
+        local dummy_fd = ffi.C.open("/dev/null", 0)
+        assert.is_true(dummy_fd >= 0)
+
+        finally(function()
+          Device.input = orig_input
+          ExternalKeyboard.keyboard_fds = {}
+          ExternalKeyboard.connected_keyboards = 0
+          ffi.C.close(dummy_fd)
+          while #UIManager._window_stack > 0 do
+            UIManager:close(
+              UIManager._window_stack[#UIManager._window_stack].widget
+            )
+          end
+        end)
+
+        local live_fd = 99
+        ExternalKeyboard.keyboard_fds["/dev/input/event15"] = live_fd
+
+        local kb_data = {
+          event_fd = dummy_fd,
+          event_path = "/dev/input/event15",
+          name = "Defect Keyboard",
+          has_dpad = false,
+        }
+
+        inst:setupKeyboard(kb_data)
+
+        -- Live device should not be closed and keyboard_fds entry stays
+        assert.is_nil(closed_paths["/dev/input/event15"])
+        assert.are.equal(
+          live_fd,
+          ExternalKeyboard.keyboard_fds["/dev/input/event15"]
+        )
+
+        -- Duplicate scan fd must have been closed by C.close
+        assert.are.equal(-1, ffi.C.close(dummy_fd))
+        assert.are.equal(9, ffi.errno())
+      end
+    )
+  end)
 end)
