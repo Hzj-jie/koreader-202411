@@ -67,19 +67,16 @@ describe("Game2048Config module", function()
     assert.is_false(config._did_show_size_notification)
   end)
 
-  it(
-    "should show config menu without error (fails due to production typo onShowConfigPanel)",
-    function()
-      local settings = Game2048Config.makeDefaultSettings()
-      local config = Game2048Config:new({
-        configurable = settings,
-      })
+  it("should show config menu without error", function()
+    local settings = Game2048Config.makeDefaultSettings()
+    local config = Game2048Config:new({
+      configurable = settings,
+    })
 
-      assert.has_no.errors(function()
-        config:showConfigMenu()
-      end)
-    end
-  )
+    assert.has_no.errors(function()
+      config:showConfigMenu()
+    end)
+  end)
 
   it("should handle onSetDimensions and onCloseCallback", function()
     local callback_called = false

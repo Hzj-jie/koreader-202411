@@ -186,14 +186,17 @@ end
 -- removes deleted books from table
 function CalibreMetadata:prune()
   local count = 0
-  for index, book in ipairs(self.books) do
+  local function keep_book(t, i)
+    local book = t[i]
     local path = self.path .. "/" .. book.lpath
     if not util.fileExists(path) then
-      logger.dbg("prunning book from DB at index", index, "path", path)
-      self:removeBook(book.lpath)
+      logger.dbg("pruning book from DB at index", i, "path", path)
       count = count + 1
+      return false
     end
+    return true
   end
+  util.arrayRemove(self.books, keep_book)
   if count > 0 then
     self:saveBookList()
   end

@@ -155,4 +155,38 @@ describe("TextViewer", function()
 
     UIManager:close(tv)
   end)
+
+  it("forwards arg to movable onHoldPanText", function()
+    local tv = TextViewer:new({
+      text = "Sample text",
+      title = "Viewer Test",
+    })
+    local forwarded_arg, forwarded_ges
+    tv.movable._touch_pre_pan_was_inside = true
+    tv.movable.onMovableHoldPan = function(self, arg, ges)
+      forwarded_arg = arg
+      forwarded_ges = ges
+      return true
+    end
+
+    local test_arg = { custom = "data" }
+    local test_ges = { pos = { x = 10, y = 10 } }
+    local res = tv:onHoldPanText(test_arg, test_ges)
+    assert.is_true(res)
+    assert.are.equal(test_arg, forwarded_arg)
+    assert.are.equal(test_ges, forwarded_ges)
+  end)
+
+  it("does not duplicate default buttons on reinit", function()
+    local custom_buttons = { { { text = "Custom", id = "custom" } } }
+    local tv = TextViewer:new({
+      text = "Sample text",
+      title = "Viewer Test",
+      buttons_table = custom_buttons,
+      add_default_buttons = true,
+    })
+    local row_count = #tv.buttons_table
+    tv:reinit()
+    assert.are.equal(row_count, #tv.buttons_table)
+  end)
 end)

@@ -29,7 +29,7 @@ local function doBuildHistory()
       "find '"
         .. G_named_settings.home_dir()
         .. "' "
-        .. "-name 'metadata.*.lua' -exec stat -c '%N %Y' {} \\;"
+        .. "-name 'metadata.*.lua' -exec stat -c '%n %Y' {} \\;"
     )
     local records = {}
     for line in file:lines() do

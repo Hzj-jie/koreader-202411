@@ -489,6 +489,10 @@ describe("MenuSorter module", function()
       assert.equals("tools", test_menu[2].id)
       -- main and setting should be disabled, so not in the menu (only search and tools should be present)
       assert.equals(2, #test_menu)
+
+      -- Caller's default_order table must not be mutated
+      assert.equals(4, #default_order["KOMenu:menu_buttons"])
+      assert.equals("setting", default_order["KOMenu:menu_buttons"][1])
     end)
 
     it("should successfully load redirected user overrides", function()

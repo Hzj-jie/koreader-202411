@@ -236,4 +236,35 @@ describe("Geometry", function()
     assert.are.equal(p_left, s1)
     assert.are.equal(p_right, s2)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "exposes Geom:intersect with zero area rect and disjoint negative rects",
+      function()
+        local r1 = Geom:new({ x = 0, y = 0, w = 100, h = 100 })
+        local zero_rect = Geom:new({ x = 10, y = 10, w = 0, h = 50 })
+        local inter_zero = r1:intersect(zero_rect)
+        assert.are.equal(0, inter_zero:area())
+
+        local r2 = Geom:new({ x = 200, y = 200, w = 50, h = 50 })
+        local disjoint = r1:intersect(r2)
+        assert.is_true(disjoint.w >= 0 and disjoint.h >= 0)
+        assert.are.equal(0, disjoint:area())
+      end
+    )
+
+    it(
+      "exposes centerWithin producing fractional coordinates on odd dimensions",
+      function()
+        local container = Geom:new({ x = 0, y = 0, w = 200, h = 200 })
+        local odd_box = Geom:new({ x = 0, y = 0, w = 25, h = 25 })
+        odd_box:centerWithin(container, 100, 100)
+
+        assert.is_true(
+          math.floor(odd_box.x) == odd_box.x
+            and math.floor(odd_box.y) == odd_box.y
+        )
+      end
+    )
+  end)
 end)

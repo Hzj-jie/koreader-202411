@@ -218,6 +218,22 @@ function ListMenuItem:update()
     self.file_deleted = self.entry.dim -- entry with deleted file from History or selected file from FM
     local fgcolor = self.file_deleted and Blitbuffer.COLOR_DARK_GRAY or nil
 
+    -- Create or replace corner_mark if needed
+    local mark_size = math.floor(dimen.h * (1 / 6))
+    -- Just fits under the page info text, which in turn adapts to the ListMenuItem height.
+    if mark_size ~= corner_mark_size then
+      corner_mark_size = mark_size
+      if corner_mark then
+        corner_mark:free()
+      end
+      corner_mark = IconWidget:new({
+        icon = "dogear.opaque",
+        rotation_angle = BD.mirroredUILayout() and 180 or 270,
+        width = corner_mark_size,
+        height = corner_mark_size,
+      })
+    end
+
     local bookinfo =
       BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
 
@@ -442,22 +458,6 @@ function ListMenuItem:update()
           VerticalGroup:new(wright_items),
         })
         wright_right_padding = Screen:scaleBySize(10)
-      end
-
-      -- Create or replace corner_mark if needed
-      local mark_size = math.floor(dimen.h * (1 / 6))
-      -- Just fits under the page info text, which in turn adapts to the ListMenuItem height.
-      if mark_size ~= corner_mark_size then
-        corner_mark_size = mark_size
-        if corner_mark then
-          corner_mark:free()
-        end
-        corner_mark = IconWidget:new({
-          icon = "dogear.opaque",
-          rotation_angle = BD.mirroredUILayout() and 180 or 270,
-          width = corner_mark_size,
-          height = corner_mark_size,
-        })
       end
 
       -- Build the middle main widget, in the space available

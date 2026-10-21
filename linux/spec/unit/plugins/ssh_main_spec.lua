@@ -119,7 +119,7 @@ describe("SSH plugin main module", function()
       assert.is_false(instance:isRunning())
     end)
 
-    it("should not disable SSH plugin on Kindle devices", function()
+    it("should disable SSH plugin on Kindle devices", function()
       local orig_isEmulator = Device.isEmulator
       local orig_isKobo = Device.isKobo
       local orig_isKindle = Device.isKindle
@@ -142,8 +142,7 @@ describe("SSH plugin main module", function()
       Device.isKindle = orig_isKindle
       package.loaded["plugins/SSH.koplugin/main"] = SSH
 
-      assert.is_nil(kindle_ssh.disabled)
-      assert.is_function(kindle_ssh.new)
+      assert.is_true(kindle_ssh.disabled)
     end)
   end)
 
@@ -520,6 +519,26 @@ describe("SSH plugin main module", function()
       assert.are.equal(1, #next_ticks) -- no new nextTick scheduled
 
       G_reader_settings.isTrue = orig_isTrue
+    end)
+
+    it("should retrieve network info as table and display in info message", function()
+      local instance = createInstance()
+      instance.SSH_port = "2222"
+
+      local orig_retrieve = Device.retrieveNetworkInfo
+      Device.retrieveNetworkInfo = function()
+        return { "IP: 192.168.1.100" }
+      end
+
+      finally(function()
+        Device.retrieveNetworkInfo = orig_retrieve
+      end)
+
+      instance:start(false)
+      assert.are.equal(1, #shown_widgets)
+      assert.is_true(
+        shown_widgets[1].text:find("192.168.1.100", 1, true) ~= nil
+      )
     end)
   end)
 end)

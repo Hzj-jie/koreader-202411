@@ -125,7 +125,6 @@ describe("Clock plugin tests", function()
     assert
       .stub(UIManager.close)
       .was_called_with(match.ref(UIManager), match.ref(Clock))
-    assert.is_false(PluginShare.pause_auto_suspend)
   end)
 
   it("handles show without scheduling timeout if not configured", function()
@@ -197,7 +196,10 @@ describe("Clock plugin tests", function()
     Clock.ui = { menu = { registerToMainMenu = function() end } }
     Clock:init()
 
+    PluginShare.pause_auto_suspend = true
     Clock:onClose()
+
+    assert.is_true(PluginShare.pause_auto_suspend)
 
     assert
       .stub(UIManager.setDirty)

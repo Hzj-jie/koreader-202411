@@ -139,7 +139,7 @@ describe("BookShortcuts plugin main module", function()
   )
 
   it(
-    "should default folder action to file browser (FM) when setting is unset [exposes production bug in BookShortcuts:onBookShortcut()]",
+    "should default folder action to file browser (FM) when setting is unset",
     function()
       local old_read = G_reader_settings.read
       local old_save = G_reader_settings.save
@@ -169,10 +169,8 @@ describe("BookShortcuts plugin main module", function()
       local folder_action_menu = items[2]
       local fm_radio = folder_action_menu.sub_item_table[2]
 
-      -- Production bug: checked_func returns false when setting is unset
       assert.is_true(fm_radio.checked_func())
 
-      -- Production bug: onBookShortcut falls back to ReadHistory instead of FM
       plugin:onBookShortcut(tmp_dir)
       assert.are.equal(tmp_dir, changed_path)
 

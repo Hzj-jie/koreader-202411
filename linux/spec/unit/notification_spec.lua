@@ -44,6 +44,7 @@ describe("Notification", function()
   end)
 
   after_each(function()
+    Notification._shown_list = {}
     UIManager.setDirty = orig_setDirty
     UIManager.show = orig_show
     UIManager.close = orig_close
@@ -247,6 +248,25 @@ describe("Notification", function()
         assert.is_true(notif:onResume())
         assert.is_true(notif:onPhysicalKeyboardDisconnected())
         assert.is_true(notif:onInput())
+      end
+    )
+  end)
+
+  describe("Defect verifications", function()
+    it(
+      "_cleanShownStack preserves unexpired notifications and trims expired ones from tail",
+      function()
+        Notification._shown_list = {}
+        local n1 = Notification:new({ text = "First" })
+        local n2 = Notification:new({ text = "Second" })
+        Notification._shown_list[1] = time.monotonic() - time.s(5)
+        Notification._shown_list[2] = time.monotonic() - time.s(35)
+
+        n2:onClose()
+
+        assert.are.equal(1, #Notification._shown_list)
+        assert.truthy(Notification._shown_list[1])
+        assert.is_nil(Notification._shown_list[2])
       end
     )
   end)

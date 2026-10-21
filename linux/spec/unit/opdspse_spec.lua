@@ -40,7 +40,7 @@ describe("OPDSPSE module", function()
         local remote_url =
           "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
         local page = OPDSPSE:getLastPage(remote_url, "testuser", "testpass")
-        assert.are.equal("7", page)
+        assert.are.equal(7, page)
         assert.are.equal(2, req_count)
         assert.are.equal(
           "Bearer mock_bearer_jwt",
@@ -70,7 +70,7 @@ describe("OPDSPSE module", function()
       local remote_url =
         "http://kavita.example/api/opds/myapikey123/image?chapterId=99"
       local page = OPDSPSE:getLastPage(remote_url, "testuser", "testpass")
-      assert.are.equal("7", page)
+      assert.are.equal(7, page)
 
       http.request = old_request
     end)

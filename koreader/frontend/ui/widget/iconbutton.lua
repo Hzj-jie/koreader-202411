@@ -32,11 +32,15 @@ local IconButton = InputContainer:extend({
 })
 
 function IconButton:init()
+  -- Keep a reference of the icon dimensions to support re-init (e.g. setIcon),
+  -- since self.width and self.height are cleared below to avoid forcing container size.
+  self._icon_width = self._icon_width or self.width
+  self._icon_height = self._icon_height or self.height
   self.image = IconWidget:new({
     icon = self.icon,
     rotation_angle = self.icon_rotation_angle,
-    width = self.width,
-    height = self.height,
+    width = self._icon_width,
+    height = self._icon_height,
   })
   -- Do not use the width and height as the whole widget size.
   self.width = nil

@@ -184,12 +184,21 @@ describe("Nonogram plugin main module", function()
   )
 
   it(
-    "should clear conflict_visible and incorrect_filled when revealHint resolves conflicts [exposes production bug in NonogramBoard:revealHint()]",
+    "should clear conflict_visible and incorrect_filled when revealHint resolves conflicts",
     function()
       local plugin = createMockNonogram()
       local board = plugin:getBoard()
       board:generateRandomPuzzle(5, 5, 0.5)
       board:resetProgress()
+
+      -- Fill all correct cells
+      for r = 1, 5 do
+        for c = 1, 5 do
+          if board.current.solution[r][c] then
+            board.user_grid[r][c] = 1
+          end
+        end
+      end
 
       -- Find a cell where solution is false
       local wrong_r, wrong_c

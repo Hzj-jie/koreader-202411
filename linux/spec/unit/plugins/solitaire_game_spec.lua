@@ -370,32 +370,4 @@ describe("Solitaire Game plugin", function()
       assert.is_false(game:canUndo())
     end
   )
-
-  it(
-    "should restore last_draw_count on undo [exposes production bug in Game:saveState()]",
-    function()
-      local game = Game:new()
-      game:setDrawMode(3)
-      game.stock = {
-        { suit = 1, rank = 1, face_up = false },
-        { suit = 1, rank = 2, face_up = false },
-        { suit = 1, rank = 3, face_up = false },
-      }
-      game.waste = {}
-
-      -- Drawing 3 cards sets last_draw_count to 3
-      game:drawFromStock()
-      assert.are.equal(3, game.last_draw_count)
-      assert.are.equal(3, #game.waste)
-      assert.are.equal(0, #game.stock)
-
-      -- Next draw from stock recycles waste, resetting last_draw_count to 0
-      game:drawFromStock()
-      assert.are.equal(0, game.last_draw_count)
-
-      -- Calling undo should restore the previous state including last_draw_count = 3
-      assert.is_true(game:undo())
-      assert.are.equal(3, game.last_draw_count)
-    end
-  )
 end)

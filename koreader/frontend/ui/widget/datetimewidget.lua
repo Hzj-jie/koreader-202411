@@ -186,6 +186,8 @@ function DateTimeWidget:createLayout()
       value_max = self.day_max or 31,
       value_step = 1,
       value_hold_step = self.day_hold_step or 3,
+      date_month = self.month and self.month_widget,
+      date_year = self.year and self.year_widget,
       width = number_picker_widgets_width,
     })
     self:mergeLayoutInHorizontal(self.day_widget)
@@ -340,6 +342,13 @@ function DateTimeWidget:createLayout()
           self.year = self.year_widget:getValue()
           self.month = self.month_widget:getValue()
           self.day = self.day_widget:getValue()
+          if self.day and self.month and self.year then
+            local max_days =
+              self.day_widget:getDaysInMonth(self.month, self.year)
+            if self.day > max_days then
+              self.day = max_days
+            end
+          end
           self.hour = self.hour_widget:getValue()
           self.min = self.min_widget:getValue()
           self.sec = self.sec_widget:getValue()

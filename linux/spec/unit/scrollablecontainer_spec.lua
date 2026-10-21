@@ -489,4 +489,30 @@ describe("ScrollableContainer module", function()
       mirrored_stub:revert()
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure _scrollBy does not crash on first_row.bottom when first row starts at top > 0",
+      function()
+        local content = createContent(200, 300)
+        local step_grid = {
+          { top = 10, bottom = 50, content_top = 10, content_bottom = 50 },
+        }
+        local container = ScrollableContainer:new({
+          width = 200,
+          height = 200,
+          hide_truncated_grid_items = true,
+          step_scroll_grid_func = function()
+            return step_grid
+          end,
+          [1] = content,
+        })
+        container:initState()
+        container._scroll_offset_y = 50
+        assert.has_no.errors(function()
+          container:_scrollBy(0, -100, true)
+        end)
+      end
+    )
+  end)
 end)

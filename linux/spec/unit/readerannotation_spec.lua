@@ -1451,6 +1451,26 @@ describe("ReaderAnnotation module", function()
     end)
   end)
 
+  describe("Defect verifications", function()
+    it(
+      "getNumberOfHighlightsAndNotes counts items with drawer",
+      function()
+        local annotation = ReaderAnnotation:new({
+          ui = {},
+          document = {},
+        })
+        annotation.annotations = {
+          { page = 3, note = "Chapter notes" },
+          { page = 4, drawer = "lighten", note = "Drawer note" },
+          { page = 5, drawer = "underscore" },
+        }
+        local highlights, notes = annotation:getNumberOfHighlightsAndNotes()
+        assert.are.equal(1, highlights)
+        assert.are.equal(1, notes)
+      end
+    )
+  end)
+
   describe("ReaderAnnotation.willChangeAnnotations API", function()
     local UIManager = require("ui/uimanager")
     local Widget = require("ui/widget/widget")

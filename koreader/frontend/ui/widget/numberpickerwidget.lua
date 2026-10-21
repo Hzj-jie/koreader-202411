@@ -289,14 +289,7 @@ function NumberPickerWidget:init()
     end
   end
 
-  local unit = ""
-  if self.unit then
-    if self.unit == "°" then
-      unit = self.unit
-    elseif self.unit ~= "" then
-      unit = "\u{202F}" .. self.unit -- use Narrow No-Break Space (NNBSP) here
-    end
-  end
+  local unit = self:getFormattedUnit()
   self.text_value = Button:new({
     text = tostring(self.formatted_value) .. unit,
     bordersize = 0,
@@ -336,6 +329,18 @@ function NumberPickerWidget:init()
   self:refocusWidget()
 end
 
+function NumberPickerWidget:getFormattedUnit()
+  local unit = ""
+  if self.unit then
+    if self.unit == "°" then
+      unit = self.unit
+    elseif self.unit ~= "" then
+      unit = "\u{202F}" .. self.unit -- use Narrow No-Break Space (NNBSP) here
+    end
+  end
+  return unit
+end
+
 --[[--
 Update.
 --]]
@@ -345,7 +350,10 @@ function NumberPickerWidget:update()
     self.formatted_value = string.format(self.precision, self.formatted_value)
   end
 
-  self.text_value:setText(tostring(self.formatted_value), self.width)
+  self.text_value:setText(
+    tostring(self.formatted_value) .. self:getFormattedUnit(),
+    self.width
+  )
 
   self:refocusWidget()
   self:scheduleRepaint()
@@ -361,17 +369,17 @@ function NumberPickerWidget:changeValue(value, step, max, min, wrap)
   if self.value_index then
     self.value_index = self.value_index + step
     if self.value_index > #self.value_table then
-      self.value_index = wrap and 1 or #self.value_table
+      self.value_index = (step > 0 and wrap) and 1 or #self.value_table
     elseif self.value_index < 1 then
-      self.value_index = wrap and #self.value_table or 1
+      self.value_index = (step < 0 and wrap) and #self.value_table or 1
     end
     value = self.value_table[self.value_index]
   else
     value = value + step
     if value > max then
-      value = wrap and min or max
+      value = (step > 0 and wrap) and min or max
     elseif value < min then
-      value = wrap and max or min
+      value = (step < 0 and wrap) and max or min
     end
   end
   return value

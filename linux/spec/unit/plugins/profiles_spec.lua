@@ -911,7 +911,7 @@ describe("Profiles plugin", function()
       function()
         profiles_instance.ui.rolling = true
         profiles_instance.ui.font = { font_face = "FreeSerif" }
-        profiles_instance.document = {
+        profiles_instance.ui.document = {
           configurable = {
             rotation_mode = 0,
             font_size = 20,
@@ -919,6 +919,7 @@ describe("Profiles plugin", function()
             render_dpi = 300,
           },
         }
+        profiles_instance.document = profiles_instance.ui.document
 
         local rolling_prof =
           profiles_instance:getProfileFromCurrentBookSettings("RollingProfile")

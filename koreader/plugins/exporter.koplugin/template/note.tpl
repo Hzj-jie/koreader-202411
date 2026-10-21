@@ -67,7 +67,7 @@
         <div style="padding-top:0.5em; padding-bottom:0.5em;#{ if index > 1 then }# border-top:1px dotted lightgray;#{ end }#">
           <div style="font-size:10pt; margin-bottom:0.2em; color:darkgray">
             <div style="display:inline-block; width:0.2em; height:0.9em; margin-right:0.2em; background-color:#{= timecolor(clipping.time)}#;"></div>
-            <span>#{= os.date("%x", clipping.time) }#</span><span style="float:right">#{ if clipping.chapter then }#<b>#{= clipping.chapter }#</b>: #{ end }# #{= clipping.page }#</span>
+            <span>#{= os.date("%x", clipping.time) }#</span><span style="float:right">#{ if clipping.chapter then }#<b>#{= htmlescape(clipping.chapter) }#</b>: #{ end }# #{= clipping.page }#</span>
           </div>
           <div style="font-size:12pt">
             <span>#{= newline_to_br(htmlescape(clipping.text)) }#</span>

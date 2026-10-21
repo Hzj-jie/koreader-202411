@@ -174,7 +174,10 @@ function PageBrowserWidget:init()
   -- Reference page numbers, for first row page display
   self.page_labels = nil
   if self.ui.pagemap and self.ui.pagemap:wantsPageLabels() then
-    self.page_labels = self.ui.document:getPageMap()
+    local page_labels = self.ui.document:getPageMap()
+    if page_labels and #page_labels > 0 then
+      self.page_labels = page_labels
+    end
   end
   -- Location stack
   self.previous_locations = self.ui.link:getPreviousLocationPages()
@@ -486,6 +489,7 @@ function PageBrowserWidget:update()
           if item.page >= p then
             if item.page == p then
               page_label = item.label
+              cur_page_label_idx = idx
             end
             break
           end
@@ -493,7 +497,10 @@ function PageBrowserWidget:update()
         end
         if page_label then
           page_text = self.ui.pagemap:cleanPageLabel(page_label)
-        elseif show_near_thumbnail then
+        elseif
+          show_near_thumbnail
+          and self.page_labels[cur_page_label_idx].page <= p
+        then
           -- When reference pages may span multiple screen pages, the above may not get
           -- a page_text for some pages, which is fine for the bottom ribbon: it will
           -- display it for the next slot where a new reference page starts.

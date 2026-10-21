@@ -222,6 +222,7 @@ function util.copyFile(from, to)
   end
   local tfp, terr = io.open(to, "wb")
   if not tfp then
+    ffp:close()
     return terr
   end
   while true do

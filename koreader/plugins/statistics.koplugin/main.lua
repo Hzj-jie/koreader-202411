@@ -742,6 +742,7 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
   then
     local read_pages = util.tableSize(book_stats.performance_in_pages)
     logger.dbg("Insert to database: " .. book_stats.title)
+    local partial_md5 = util.partialMD5(book_stats.file)
     sql_stmt = [[
       SELECT count(id)
       FROM   book
@@ -750,11 +751,12 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
         AND  md5 = ?;
     ]]
     local stmt = conn:prepare(sql_stmt)
-    local result =
-      stmt:reset():bind(self.data.title, self.data.authors, self.doc_md5):step()
+    local result = stmt
+      :reset()
+      :bind(book_stats.title, book_stats.authors, partial_md5)
+      :step()
     local nr_id = tonumber(result[1])
     if nr_id == 0 then
-      local partial_md5 = util.partialMD5(book_stats.file)
       stmt = conn:prepare(
         "INSERT INTO book VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
       )
@@ -789,7 +791,7 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
       stmt = conn:prepare(sql_stmt)
       result = stmt
         :reset()
-        :bind(self.data.title, self.data.authors, self.doc_md5)
+        :bind(book_stats.title, book_stats.authors, partial_md5)
         :step()
       id_book = result[1]
     end
@@ -800,7 +802,9 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
     table.sort(sorted_performance)
 
     conn:exec("BEGIN;")
-    stmt = conn:prepare("INSERT OR IGNORE INTO page_stat VALUES(?, ?, ?, ?);")
+    stmt = conn:prepare(
+      "INSERT OR IGNORE INTO page_stat_data VALUES(?, ?, ?, ?, ?);"
+    )
     local avg_time = math.ceil(book_stats.total_time_in_sec / read_pages)
     if avg_time > self.settings.max_sec then
       avg_time = self.settings.max_sec
@@ -814,7 +818,13 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
     --first page
     stmt
       :reset()
-      :bind(id_book, first_read_page, start_open_page - avg_time, avg_time)
+      :bind(
+        id_book,
+        first_read_page,
+        start_open_page - avg_time,
+        avg_time,
+        book_stats.pages
+      )
       :step()
     for i = 2, #sorted_performance do
       start_open_page = sorted_performance[i - 1]
@@ -826,7 +836,8 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
             id_book,
             book_stats.performance_in_pages[sorted_performance[i - 1]],
             start_open_page,
-            diff_time
+            diff_time,
+            book_stats.pages
           )
           :step()
       elseif diff_time > self.settings.max_sec then --and diff_time <= 2 * avg_time then
@@ -836,7 +847,8 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
             id_book,
             book_stats.performance_in_pages[sorted_performance[i - 1]],
             start_open_page,
-            avg_time
+            avg_time,
+            book_stats.pages
           )
           :step()
       end
@@ -848,7 +860,8 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
         id_book,
         book_stats.performance_in_pages[sorted_performance[#sorted_performance]],
         sorted_performance[#sorted_performance],
-        avg_time
+        avg_time,
+        book_stats.pages
       )
       :step()
     --last open book

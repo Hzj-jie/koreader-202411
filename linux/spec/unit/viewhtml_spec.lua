@@ -463,4 +463,40 @@ describe("ViewHTML module", function()
       assert.truthy(new_viewer.text:find("<stylesheet>%[%...%]</stylesheet>"))
     end
   )
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure multi-pass replace_in_html offset_shifts correctly identify element",
+      function()
+        local document = {}
+        local css_selectors_offsets = table.concat({
+          "0\t1\t10\tbody",
+          "20\t2\t20\tp",
+        }, "\n")
+        local offset_shifts = {
+          { 10, 15 },
+          { 25, 10 },
+        }
+
+        ViewHTML:_handleLongPress(
+          document,
+          css_selectors_offsets,
+          offset_shifts,
+          40,
+          function() end
+        )
+
+        assert.stub(UIManager.show).was_called(1)
+        local dialog = UIManager.show.calls[1].refs[2]
+        local has_p = false
+        for _, row in ipairs(dialog.buttons) do
+          if row[1] and row[1].text == "p" then
+            has_p = true
+            break
+          end
+        end
+        assert.is_false(has_p)
+      end
+    )
+  end)
 end)

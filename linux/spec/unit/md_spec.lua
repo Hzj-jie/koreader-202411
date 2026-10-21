@@ -216,4 +216,42 @@ describe("Markdown parser module (md.lua)", function()
       assert.is_truthy(res:find("<!%-%- end %-%->$"))
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "handles unclosed code block without crash",
+      function()
+        local res, err = MD("```lua\nlocal a = 1\nlocal b = 2")
+        assert.is_nil(err)
+        assert.is_string(res)
+      end
+    )
+
+    it(
+      "renders multiple inline links on one line without corrupting link targets",
+      function()
+        local html =
+          MD("Check [Link A](https://a.com) and [Link B](https://b.com)")
+        assert.is_truthy(html:find('<a href="https://a.com">Link A</a>'))
+        assert.is_truthy(html:find('<a href="https://b.com">Link B</a>'))
+      end
+    )
+
+    it(
+      "renders inline link with parentheses in URL without truncation",
+      function()
+        local html = MD("[Foo](http://w/Foo(bar))")
+        assert.is_truthy(html:find('<a href="http://w/Foo%(bar%)">Foo</a>'))
+      end
+    )
+
+    it(
+      "renders inline link preceded by plain bracketed text",
+      function()
+        local html = MD("Press [Enter] to open [the menu](url)")
+        assert.is_truthy(html:find("Press <a href=\"\">Enter</a> to open"))
+        assert.is_truthy(html:find('<a href="url">the menu</a>'))
+      end
+    )
+  end)
 end)

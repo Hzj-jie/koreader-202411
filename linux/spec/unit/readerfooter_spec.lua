@@ -1131,9 +1131,11 @@ describe("Readerfooter module", function()
       -- onTimeFormatChanged
       footer:onTimeFormatChanged()
 
-      -- onSwapPageTurnButtons
+      -- onSwapPageTurnButtons delays the footer update by 0.5s; cancel it so
+      -- it can't fire after this test closes the reader.
       footer.settings.page_turning_inverted = true
       footer:onSwapPageTurnButtons()
+      assert.is_true(UIManager:unschedule(footer.onUpdateFooter))
 
       -- onEnterFlippingMode & onExitFlippingMode
       footer:onEnterFlippingMode()

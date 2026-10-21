@@ -564,7 +564,9 @@ function Device:isValidPath(path)
   local real_path = FFIUtil.realpath(path)
 
   if real_path then
-    return real_path:sub(1, #real_ext_storage) == real_ext_storage
+    local prefix = real_ext_storage:sub(-1) == "/" and real_ext_storage
+      or (real_ext_storage .. "/")
+    return real_path == real_ext_storage or real_path:sub(1, #prefix) == prefix
   else
     return false
   end

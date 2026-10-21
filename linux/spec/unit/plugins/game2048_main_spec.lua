@@ -90,7 +90,7 @@ describe("Game2048 main plugin module", function()
   )
 
   it(
-    "should reset best score when switching to an uninitialized profile",
+    "should reset best score and apply board size when switching to an uninitialized profile",
     function()
       local mock_menu = { registerToMainMenu = function() end }
       local instance = Game2048:new({ ui = { menu = mock_menu } })
@@ -98,11 +98,14 @@ describe("Game2048 main plugin module", function()
 
       state.info.score = 256
       state.info.best = 512
+      state.settings.size = 5
       state.settings.profile = "uninitialized_profile"
 
       instance.storage:switchGameState(state)
       assert.are.equal(state.profile, "uninitialized_profile")
       assert.are.equal(state.info.best, 0)
+      assert.are.equal(state.history:current().info.best, 0)
+      assert.are.equal(state.board:getSize(), 5)
     end
   )
 

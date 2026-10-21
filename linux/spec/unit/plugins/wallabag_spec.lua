@@ -955,7 +955,7 @@ describe("Wallabag plugin unit tests", function()
     end)
 
     it(
-      "fails: exposes download checking type(article.mimetype) == string without quotes",
+      "properly detects mimetype and downloads original document when download_original_document is true",
       function()
         wallabag_instance.download_original_document = true
         local article = {
@@ -979,28 +979,93 @@ describe("Wallabag plugin unit tests", function()
 
         wallabag_instance:download(article)
 
-        -- In main.lua:670:
-        -- local mimetype = type(article.mimetype) == string
-        -- Evaluates type(article.mimetype) == string (comparing string against table string),
-        -- which is false, setting mimetype to nil.
-        -- When article.url lacks a file extension, DocumentRegistry:hasProvider(article.url)
-        -- returns false, so download falls back to exporting the Wallabag EPUB
-        -- (/api/entries/42/export.epub) instead of downloading the original document URL.
         assert.are.equal(article.url, captured_apiurl)
       end
     )
 
     it(
-      "fails: exposes history removal settings bugs across init, saveSettings and onCloseDocument",
+      "prefers supported url extension over mimeToExt for original documents and exports epub for html/xhtml",
       function()
-        -- 1. saveSettings drops remove_abandoned_from_history
+        wallabag_instance.download_original_document = true
+
+        local downloaded_urls = {}
+        local downloaded_paths = {}
+        local call_stub = stub(
+          wallabag_instance,
+          "callAPI",
+          function(self, method, apiurl, headers, body, filepath)
+            table.insert(downloaded_urls, apiurl)
+            table.insert(downloaded_paths, filepath)
+            return true
+          end
+        )
+        finally(function()
+          call_stub:revert()
+        end)
+
+        -- 1. PDF URL served as application/octet-stream -> should keep .pdf, not .cfb
+        wallabag_instance:download({
+          id = 101,
+          title = "Paper",
+          mimetype = "application/octet-stream",
+          url = "https://bucket.example.com/paper.pdf",
+        })
+        assert.are.equal("https://bucket.example.com/paper.pdf", downloaded_urls[1])
+        assert.is_true(downloaded_paths[1]:sub(-4) == ".pdf")
+
+        -- 2. CBZ URL served as application/zip -> should keep .cbz, not .fb2.zip
+        wallabag_instance:download({
+          id = 102,
+          title = "Comic",
+          mimetype = "application/zip",
+          url = "https://example.com/comic.cbz",
+        })
+        assert.are.equal("https://example.com/comic.cbz", downloaded_urls[2])
+        assert.is_true(downloaded_paths[2]:sub(-4) == ".cbz")
+
+        -- 3. Webpage with application/xhtml+xml -> should use Wallabag EPUB export, not raw .xhtml
+        wallabag_instance:download({
+          id = 103,
+          title = "Post",
+          mimetype = "application/xhtml+xml",
+          url = "https://example.com/post",
+        })
+        assert.are.equal("/api/entries/103/export.epub", downloaded_urls[3])
+        assert.is_true(downloaded_paths[3]:sub(-5) == ".epub")
+
+        -- 4. Webpage with text/html -> should use Wallabag EPUB export
+        wallabag_instance:download({
+          id = 104,
+          title = "WebArticle",
+          mimetype = "text/html; charset=utf-8",
+          url = "https://example.com/article.html",
+        })
+        assert.are.equal("/api/entries/104/export.epub", downloaded_urls[4])
+        assert.is_true(downloaded_paths[4]:sub(-5) == ".epub")
+
+        -- 5. Supported document via mimetype when URL has no extension
+        wallabag_instance:download({
+          id = 105,
+          title = "MimeOnlyDoc",
+          mimetype = "application/pdf",
+          url = "https://example.com/download?id=105",
+        })
+        assert.are.equal("https://example.com/download?id=105", downloaded_urls[5])
+        assert.is_true(downloaded_paths[5]:sub(-4) == ".pdf")
+      end
+    )
+
+    it(
+      "persists, loads, and respects history removal settings across init, saveSettings, and onCloseDocument",
+      function()
+        -- 1. saveSettings persists remove_abandoned_from_history
         wallabag_instance.remove_abandoned_from_history = true
         wallabag_instance:saveSettings()
         assert.is_true(
           wallabag_instance.wb_settings.data.wallabag.remove_abandoned_from_history
         )
 
-        -- 2. init fails to load remove_read_from_history
+        -- 2. init loads remove_read_from_history
         local custom_settings = {
           data = {
             wallabag = {
@@ -1009,6 +1074,9 @@ describe("Wallabag plugin unit tests", function()
               remove_abandoned_from_history = false,
             },
           },
+          readTableRef = function(self, key)
+            return self.data[key]
+          end,
           save = function() end,
           flush = function() end,
         }
@@ -1020,7 +1088,7 @@ describe("Wallabag plugin unit tests", function()
         open_stub:revert()
         assert.is_true(inst.remove_read_from_history)
 
-        -- 3. onCloseDocument ignores remove_abandoned_from_history in outer guard
+        -- 3. onCloseDocument checks remove_abandoned_from_history
         wallabag_instance.remove_finished_from_history = false
         wallabag_instance.remove_read_from_history = false
         wallabag_instance.remove_abandoned_from_history = true

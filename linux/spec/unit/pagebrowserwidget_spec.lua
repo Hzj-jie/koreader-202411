@@ -564,4 +564,31 @@ describe("PageBrowserWidget widget", function()
       assert.is_true(updated_editable)
     end
   )
+
+  describe("Defect verifications", function()
+    it("handles empty getPageMap table without crash on init", function()
+      local orig_pagemap = mock_ui.pagemap
+      local orig_getpagemap = mock_ui.document.getPageMap
+      finally(function()
+        mock_ui.pagemap = orig_pagemap
+        mock_ui.document.getPageMap = orig_getpagemap
+      end)
+
+      mock_ui.pagemap = {
+        wantsPageLabels = function()
+          return true
+        end,
+        cleanPageLabel = function(self, label)
+          return label
+        end,
+      }
+      mock_ui.document.getPageMap = function()
+        return {}
+      end
+
+      assert.has_no.errors(function()
+        PageBrowserWidget:new({ ui = mock_ui })
+      end)
+    end)
+  end)
 end)
