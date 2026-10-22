@@ -566,4 +566,45 @@ describe("Statistics plugin", function()
       )
     end
   )
+
+  it(
+    "flushes volatile page stats to database before syncing in onSyncBookStats",
+    function()
+      local stats = ReaderStatistics:new(helper_create_stats_opts())
+      local conn = SQ3.open(db_location)
+      conn:exec(
+        "INSERT OR IGNORE INTO book (id, title, total_read_time) VALUES (1, 'Test Book', 0);"
+      )
+      conn:close()
+
+      stats.is_doc_not_frozen = true
+      stats.curr_page = 10
+      stats.id_curr_book = 1
+      stats.data = { pages = 200 }
+      stats.settings.is_enabled = true
+      stats.settings.sync_server = { type = "dropbox" }
+      stats.page_stat = {
+        [5] = { { os.time() - 30, 25 } },
+        [10] = { { os.time(), 0 } },
+      }
+
+      local SyncService = require("frontend/apps/cloudstorage/syncservice")
+      local orig_sync = SyncService.sync
+      finally(function()
+        SyncService.sync = orig_sync
+        os.remove(db_location)
+      end)
+
+      SyncService.sync = function() end
+
+      stats:onSyncBookStats()
+
+      local conn_check = SQ3.open(db_location)
+      local count = conn_check:rowexec(
+        "SELECT count(*) FROM page_stat_data WHERE id_book = 1 AND page = 5 AND duration = 25"
+      )
+      conn_check:close()
+      assert.are.equal(1, tonumber(count))
+    end
+  )
 end)

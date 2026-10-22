@@ -3856,6 +3856,8 @@ function ReaderStatistics:onSyncBookStats()
     return
   end
 
+  self:insertDB()
+
   UIManager:show(InfoMessage:new({
     text = gettext("Syncing book statistics. This may take a while."),
     timeout = 1,
