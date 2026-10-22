@@ -1645,4 +1645,244 @@ describe("util module", function()
       end
     )
   end)
+
+  describe("runInSubProcess and subprocess output capture", function()
+    it("captures subprocess stdout and stderr in util.subprocesses", function()
+      local pid = ffiUtil.runInSubProcess(function()
+        io.stdout:write("hello from stdout\n")
+        io.stderr:write("hello from stderr\n")
+      end)
+      assert.is_number(pid)
+      local entry = ffiUtil.subprocesses[pid]
+      assert.is_not_nil(entry)
+      assert.is_string(entry.cmd)
+      assert.is_number(entry.start_time)
+      local saved_fd = entry.fd
+
+      local done = ffiUtil.isSubProcessDone(pid, true)
+      assert.is_true(done)
+      assert.are.equal("hello from stdout\nhello from stderr\n", entry.output)
+      assert.is_nil(ffiUtil.subprocesses[pid])
+
+      local C = require("ffi").C
+      local ret = C.fcntl(saved_fd, 1) -- F_GETFD
+      assert.are.equal(-1, ret)
+      assert.are.equal(9, require("ffi").errno()) -- EBADF
+    end)
+
+    it("uses custom label_func when provided", function()
+      local dummy_func = function() end
+      local info = debug.getinfo(dummy_func, "S")
+      local expected_cmd = info.short_src .. ":" .. info.linedefined
+
+      local pid = ffiUtil.runInSubProcess(function()
+        io.stdout:write("test cmd\n")
+      end, false, false, dummy_func)
+      assert.is_number(pid)
+      local entry = ffiUtil.subprocesses[pid]
+      assert.is_not_nil(entry)
+      assert.are.equal(expected_cmd, entry.cmd)
+      ffiUtil.isSubProcessDone(pid, true)
+    end)
+
+    it("resets subprocesses table in child process", function()
+      local pipe_fds = require("ffi").new("int[2]")
+      local C = require("ffi").C
+      assert.are.equal(0, C.pipe(pipe_fds))
+      local rfd, wfd = pipe_fds[0], pipe_fds[1]
+
+      local pid = ffiUtil.runInSubProcess(function()
+        local count = 0
+        for _ in pairs(ffiUtil.subprocesses) do
+          count = count + 1
+        end
+        local msg = count == 0 and "EMPTY" or "NOT_EMPTY"
+        C.write(wfd, msg, #msg)
+        C.close(wfd)
+      end)
+      C.close(wfd)
+
+      local buf = require("ffi").new("char[?]", 16)
+      local n = tonumber(C.read(rfd, buf, 16))
+      C.close(rfd)
+      ffiUtil.isSubProcessDone(pid, true)
+      assert.are.equal("EMPTY", require("ffi").string(buf, n))
+    end)
+
+    it("accumulates output incrementally across non-blocking polls", function()
+      local sync_fds = require("ffi").new("int[2]")
+      local ack_fds = require("ffi").new("int[2]")
+      local C = require("ffi").C
+      assert.are.equal(0, C.pipe(sync_fds))
+      assert.are.equal(0, C.pipe(ack_fds))
+      local sync_r, sync_w = sync_fds[0], sync_fds[1]
+      local ack_r, ack_w = ack_fds[0], ack_fds[1]
+
+      local pid = ffiUtil.runInSubProcess(function()
+        C.close(sync_r)
+        C.close(ack_w)
+        local ch = require("ffi").new("char[1]")
+
+        io.stdout:write("chunk 1\n")
+        io.stdout:flush()
+        C.write(sync_w, "1", 1)
+        C.read(ack_r, ch, 1)
+
+        io.stdout:write("chunk 2\n")
+        io.stdout:flush()
+        C.write(sync_w, "2", 1)
+        C.read(ack_r, ch, 1)
+
+        C.close(sync_w)
+        C.close(ack_r)
+      end)
+      C.close(sync_w)
+      C.close(ack_r)
+
+      local ch = require("ffi").new("char[1]")
+      -- Wait for chunk 1
+      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+      local done1 = ffiUtil.isSubProcessDone(pid, false)
+      assert.is_false(done1)
+      local entry = ffiUtil.subprocesses[pid]
+      assert.is_not_nil(entry)
+      assert.are.equal("chunk 1\n", entry.output)
+      C.write(ack_w, "a", 1)
+
+      -- Wait for chunk 2
+      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+      local done2 = ffiUtil.isSubProcessDone(pid, false)
+      assert.is_false(done2)
+      assert.are.equal("chunk 1\nchunk 2\n", entry.output)
+      C.write(ack_w, "b", 1)
+
+      -- Reap
+      local done3 = ffiUtil.isSubProcessDone(pid, true)
+      assert.is_true(done3)
+      assert.are.equal("chunk 1\nchunk 2\n", entry.output)
+      assert.is_nil(ffiUtil.subprocesses[pid])
+
+      C.close(sync_r)
+      C.close(ack_w)
+    end)
+
+    it("closes pipe fd on normal reap and upon termination", function()
+      local sync_fds = require("ffi").new("int[2]")
+      local C = require("ffi").C
+      assert.are.equal(0, C.pipe(sync_fds))
+      local sync_r, sync_w = sync_fds[0], sync_fds[1]
+
+      local pid = ffiUtil.runInSubProcess(function()
+        C.close(sync_r)
+        C.write(sync_w, "1", 1)
+        C.close(sync_w)
+        while true do
+          ffiUtil.usleep(50000)
+        end
+      end)
+      C.close(sync_w)
+
+      local ch = require("ffi").new("char[1]")
+      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+      C.close(sync_r)
+
+      assert.is_number(pid)
+      local entry = ffiUtil.subprocesses[pid]
+      assert.is_not_nil(entry)
+      local saved_fd = entry.fd
+
+      ffiUtil.terminateSubProcess(pid)
+      local done = ffiUtil.isSubProcessDone(pid, true)
+      assert.is_true(done)
+      assert.is_nil(ffiUtil.subprocesses[pid])
+
+      local ret = C.fcntl(saved_fd, 1)
+      assert.are.equal(-1, ret)
+      assert.are.equal(9, require("ffi").errno())
+    end)
+
+    it("caps captured output to 64 KiB", function()
+      local pid = ffiUtil.runInSubProcess(function()
+        local chunk = string.rep("x", 1024) .. "\n"
+        for _ = 1, 80 do
+          io.stdout:write(chunk)
+        end
+      end)
+      assert.is_number(pid)
+      local entry = ffiUtil.subprocesses[pid]
+      assert.is_not_nil(entry)
+      ffiUtil.isSubProcessDone(pid, true)
+      assert.are.equal(65536, #entry.output)
+      assert.is_nil(ffiUtil.subprocesses[pid])
+    end)
+
+    it("forwards complete lines to parent stdout and flushes partial line on completion", function()
+      local file_mt = debug.getmetatable(io.stdout).__index
+      local orig_write = file_mt.write
+      local forwarded = {}
+      finally(function()
+        file_mt.write = orig_write
+      end)
+      file_mt.write = function(self, data, ...)
+        if self == io.stdout and type(data) == "string" then
+          table.insert(forwarded, data)
+        end
+        return orig_write(self, data, ...)
+      end
+
+      local sync_fds = require("ffi").new("int[2]")
+      local ack_fds = require("ffi").new("int[2]")
+      local C = require("ffi").C
+      assert.are.equal(0, C.pipe(sync_fds))
+      assert.are.equal(0, C.pipe(ack_fds))
+      local sync_r, sync_w = sync_fds[0], sync_fds[1]
+      local ack_r, ack_w = ack_fds[0], ack_fds[1]
+
+      local pid = ffiUtil.runInSubProcess(function()
+        C.close(sync_r)
+        C.close(ack_w)
+        local ch = require("ffi").new("char[1]")
+
+        io.stdout:write("line 1\n")
+        io.stdout:flush()
+        C.write(sync_w, "1", 1)
+        C.read(ack_r, ch, 1)
+
+        io.stdout:write("line 2\npartial line")
+        io.stdout:flush()
+        C.write(sync_w, "2", 1)
+        C.read(ack_r, ch, 1)
+
+        C.close(sync_w)
+        C.close(ack_r)
+      end)
+      C.close(sync_w)
+      C.close(ack_r)
+
+      local ch = require("ffi").new("char[1]")
+      -- Line 1 forwarded while child runs
+      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+      ffiUtil.isSubProcessDone(pid, false)
+      local combined_mid = table.concat(forwarded, "")
+      assert.is_truthy(combined_mid:find("line 1\n", 1, true))
+      assert.is_falsy(combined_mid:find("line 2\n", 1, true))
+      C.write(ack_w, "a", 1)
+
+      -- Line 2 forwarded, partial buffered
+      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+      ffiUtil.isSubProcessDone(pid, false)
+      local combined_mid2 = table.concat(forwarded, "")
+      assert.is_truthy(combined_mid2:find("line 2\n", 1, true))
+      assert.is_falsy(combined_mid2:find("partial line", 1, true))
+      C.write(ack_w, "b", 1)
+
+      -- On reap, partial line is flushed with newline
+      ffiUtil.isSubProcessDone(pid, true)
+      local combined = table.concat(forwarded, "")
+      assert.is_truthy(combined:find("partial line\n", 1, true))
+
+      C.close(sync_r)
+      C.close(ack_w)
+    end)
+  end)
 end)

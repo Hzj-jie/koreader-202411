@@ -301,6 +301,8 @@ function util.execute(...)
   end
 end
 
+util.subprocesses = {}
+
 --- Run lua code (func) in a forked subprocess
 --
 -- With with_pipe=true, sets up a pipe for communication
@@ -317,7 +319,7 @@ end
 --             It is safe to do so, though, it'll just immediately return success,
 --             as waitpid will return -1 w/ an ECHILD errno.
 -- NOTE: Assumes the target platform is POSIX compliant.
-function util.runInSubProcess(func, with_pipe, double_fork)
+function util.runInSubProcess(func, with_pipe, double_fork, label_func)
   local parent_read_fd, child_write_fd
   if with_pipe then
     local pipe = ffi.new("int[2]", { -1, -1 })
@@ -333,9 +335,38 @@ function util.runInSubProcess(func, with_pipe, double_fork)
         )
     end
   end
+
+  local out_read_fd, out_write_fd, cmd
+  if not double_fork then
+    local info = debug.getinfo(label_func or func, "S")
+    cmd = info.short_src .. ":" .. info.linedefined
+    local out_pipe_fds = ffi.new("int[2]")
+    if C.pipe(out_pipe_fds) ~= 0 then
+      if parent_read_fd then
+        C.close(parent_read_fd)
+        C.close(child_write_fd)
+      end
+      return false,
+        "failed to create output pipe: " .. ffi.string(C.strerror(ffi.errno()))
+    end
+    out_read_fd = out_pipe_fds[0]
+    out_write_fd = out_pipe_fds[1]
+  end
+
+  io.stdout:flush()
+  io.stderr:flush()
+
   local parent_pid = util.getpid()
   local pid = C.fork()
   if pid == 0 then -- child process
+    if not double_fork then
+      util.subprocesses = {}
+      C.close(out_read_fd)
+      C.dup2(out_write_fd, 1)
+      C.dup2(out_write_fd, 2)
+      C.close(out_write_fd)
+      io.stdout:setvbuf("no")
+    end
     -- In production, UIManager is always loaded before any subprocess fork.
     -- The package.loaded check protects low-level base tests (e.g. util_spec)
     -- that test C fork/pipes in isolation without bootstrapping the full UI stack.
@@ -403,7 +434,26 @@ function util.runInSubProcess(func, with_pipe, double_fork)
   end
   -- parent/main process
   if pid < 0 then -- on failure, fork() returns -1
+    if not double_fork then
+      C.close(out_read_fd)
+      C.close(out_write_fd)
+    end
+    if parent_read_fd then
+      C.close(parent_read_fd)
+      C.close(child_write_fd)
+    end
     return false, "fork failed: " .. ffi.string(C.strerror(ffi.errno()))
+  end
+  if not double_fork then
+    C.close(out_write_fd)
+    util.subprocesses[pid] = {
+      pid = pid,
+      cmd = cmd,
+      start_time = os.time(),
+      fd = out_read_fd,
+      output = "",
+      partial = "",
+    }
   end
   -- If we double-fork, reap the outer fork now, since its only purpose is fork -> _exit
   if double_fork then
@@ -422,20 +472,72 @@ function util.runInSubProcess(func, with_pipe, double_fork)
   return pid, parent_read_fd
 end
 
+local DRAIN_BUF_SIZE = 4096
+local drain_buf = ffi.new("char[?]", DRAIN_BUF_SIZE)
+
+local function drainSubProcess(entry, flush_partial)
+  while (util.getNonBlockingReadSize(entry.fd) or 0) > 0 do
+    local n = C.read(entry.fd, drain_buf, DRAIN_BUF_SIZE)
+    if n <= 0 then
+      break
+    end
+    local chunk = ffi.string(drain_buf, n)
+    entry.output = entry.output .. chunk
+    if #entry.output > 65536 then
+      entry.output = entry.output:sub(-65536)
+    end
+    entry.partial = entry.partial .. chunk
+    local last_nl = entry.partial:match("^.*()\n")
+    if last_nl then
+      io.stdout:write(entry.partial:sub(1, last_nl))
+      io.stdout:flush()
+      entry.partial = entry.partial:sub(last_nl + 1)
+    end
+  end
+  if flush_partial and entry.partial ~= "" then
+    io.stdout:write(entry.partial .. "\n")
+    io.stdout:flush()
+    entry.partial = ""
+  end
+end
+
 --- Collect subprocess so it does not become a zombie.
 -- This does not block, unless `wait` is `true`.
 -- Returns true if process was collected or has already exited, false if process is still running.
 function util.isSubProcessDone(pid, wait)
-  local status = ffi.new("int[1]")
-  local ret = C.waitpid(pid, status, wait and 0 or C.WNOHANG)
-  -- status = tonumber(status[0])
-  -- If still running: ret = 0 , status = 0
-  -- If exited: ret = pid , status = 0 or 9 if killed
-  -- If no more running: ret = -1 , status = 0
-  if ret == pid or ret == -1 then
-    return true
+  local entry = util.subprocesses[pid]
+  if not entry then
+    local status = ffi.new("int[1]")
+    local ret = C.waitpid(pid, status, wait and 0 or C.WNOHANG)
+    -- status = tonumber(status[0])
+    -- If still running: ret = 0 , status = 0
+    -- If exited: ret = pid , status = 0 or 9 if killed
+    -- If no more running: ret = -1 , status = 0
+    if ret == pid or ret == -1 then
+      return true
+    end
+    return false
   end
-  return false
+
+  local status = ffi.new("int[1]")
+  while true do
+    drainSubProcess(entry, false)
+    local ret = C.waitpid(pid, status, C.WNOHANG)
+    -- status = tonumber(status[0])
+    -- If still running: ret = 0 , status = 0
+    -- If exited: ret = pid , status = 0 or 9 if killed
+    -- If no more running: ret = -1 , status = 0
+    if ret == pid or ret == -1 then
+      drainSubProcess(entry, true)
+      C.close(entry.fd)
+      util.subprocesses[pid] = nil
+      return true
+    end
+    if not wait then
+      return false
+    end
+    util.usleep(10000)
+  end
 end
 
 --- Terminate subprocess pid by sending SIGKILL
