@@ -25,6 +25,7 @@ local datetime = require("datetime")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local ui_time = require("ui/time")
 local util = require("util")
 local C_ = gettext.pgettext
 local N_ = gettext.ngettext
@@ -151,6 +152,7 @@ function ReaderStatistics:init()
     min_sec = DEFAULT_MIN_READ_SEC,
     max_sec = DEFAULT_MAX_READ_SEC,
     freeze_finished_books = false,
+    auto_sync = false,
     is_enabled = true,
     calendar_start_day_of_week = DEFAULT_CALENDAR_START_DAY_OF_WEEK,
     calendar_nb_book_spans = DEFAULT_CALENDAR_NB_BOOK_SPANS,
@@ -1636,6 +1638,19 @@ Time is in hours and minutes.]]),
               return self.settings.is_enabled
             end,
             keep_menu_open = true,
+          },
+          {
+            text = gettext("Auto sync when idle"),
+            checked_func = function()
+              return self.settings.auto_sync
+            end,
+            callback = function()
+              self.settings.auto_sync = not self.settings.auto_sync
+            end,
+            enabled_func = function()
+              return self:canSync()
+            end,
+            separator = true,
           },
         },
       },
@@ -3976,6 +3991,33 @@ function ReaderStatistics:onSyncBookStats()
   else
     NetworkMgr:runWhenConnected(run)
   end
+end
+
+function ReaderStatistics:onTimesChange_1M()
+  if not (self:canSync() and self.settings.auto_sync) then
+    return
+  end
+
+  if UIManager:timeSinceLastUserAction() < ui_time.s(300) then
+    return
+  end
+
+  local last_action = UIManager:lastUserActionTime()
+  if last_action == self.last_auto_sync_action_time then
+    return
+  end
+
+  local last_sync = SyncService.getLastSyncTime(db_location)
+  if last_sync and (os.time() - last_sync < 3600) then
+    return
+  end
+
+  if not isNetworkReady(self.settings.sync_server) then
+    return
+  end
+
+  self.last_auto_sync_action_time = last_action
+  self:_syncBookStats(true)
 end
 
 function ReaderStatistics.onSync(local_path, cached_path, income_path)

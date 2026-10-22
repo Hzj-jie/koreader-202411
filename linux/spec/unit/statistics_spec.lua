@@ -1149,4 +1149,141 @@ describe("Statistics plugin", function()
       end
     )
   end)
+
+  describe("Auto sync when idle", function()
+    it("adds auto sync toggle to settings menu", function()
+      local stats = ReaderStatistics:new(helper_create_stats_opts())
+      stats.settings.is_enabled = true
+      stats.settings.sync_server = { type = "dropbox" }
+
+      local menu_items = {}
+      stats:addToMainMenu(menu_items)
+      assert.is_table(menu_items.statistics)
+      local settings_item = menu_items.statistics.sub_item_table[2]
+      assert.are.equal(require("gettext")("Settings"), settings_item.text)
+
+      local auto_sync_item = nil
+      for _, item in ipairs(settings_item.sub_item_table) do
+        if item.text == require("gettext")("Auto sync when idle") then
+          auto_sync_item = item
+          break
+        end
+      end
+      assert.is_not_nil(auto_sync_item)
+      assert.is_false(auto_sync_item.checked_func())
+      assert.is_true(auto_sync_item.enabled_func())
+
+      auto_sync_item.callback()
+      assert.is_true(stats.settings.auto_sync)
+      assert.is_true(auto_sync_item.checked_func())
+    end)
+
+    it("gates onTimesChange_1M on auto_sync setting and canSync", function()
+      local stats = ReaderStatistics:new(helper_create_stats_opts())
+      local sync_called = false
+      stats._syncBookStats = function()
+        sync_called = true
+      end
+
+      -- Disabled when auto_sync is false
+      stats.settings.is_enabled = true
+      stats.settings.sync_server = { type = "dropbox" }
+      stats.settings.auto_sync = false
+      stats:onTimesChange_1M()
+      assert.is_false(sync_called)
+
+      -- Disabled when canSync is false
+      stats.settings.auto_sync = true
+      stats.settings.sync_server = nil
+      stats:onTimesChange_1M()
+      assert.is_false(sync_called)
+    end)
+
+    it("gates onTimesChange_1M on 5-minute idle time threshold", function()
+      local stats = ReaderStatistics:new(helper_create_stats_opts())
+      local sync_called = false
+      stats._syncBookStats = function()
+        sync_called = true
+      end
+
+      stats.settings.is_enabled = true
+      stats.settings.sync_server = { type = "dropbox" }
+      stats.settings.auto_sync = true
+
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+      local orig_timeSince = UIManager.timeSinceLastUserAction
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_timeSince
+      end)
+
+      -- Less than 5 minutes idle
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(299)
+      end
+      stats:onTimesChange_1M()
+      assert.is_false(sync_called)
+    end)
+
+    it("triggers silent auto sync when all conditions are met and avoids duplicate runs in same idle period", function()
+      local stats = ReaderStatistics:new(helper_create_stats_opts())
+      local sync_silent_arg = nil
+      stats._syncBookStats = function(_self_inst, is_silent)
+        sync_silent_arg = is_silent
+      end
+
+      stats.settings.is_enabled = true
+      stats.settings.sync_server = { type = "dropbox" }
+      stats.settings.auto_sync = true
+
+      local UIManager = require("ui/uimanager")
+      local NetworkMgr = require("ui/network/manager")
+      local SyncService = require("frontend/apps/cloudstorage/syncservice")
+      local time = require("ui/time")
+
+      local orig_timeSince = UIManager.timeSinceLastUserAction
+      local orig_lastAction = UIManager.lastUserActionTime
+      local orig_isOnline = NetworkMgr.isOnline
+      local orig_getLastSync = SyncService.getLastSyncTime
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_timeSince
+        UIManager.lastUserActionTime = orig_lastAction
+        NetworkMgr.isOnline = orig_isOnline
+        SyncService.getLastSyncTime = orig_getLastSync
+      end)
+
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(350)
+      end
+      UIManager.lastUserActionTime = function()
+        return 12345
+      end
+      NetworkMgr.isOnline = function()
+        return true
+      end
+      SyncService.getLastSyncTime = function()
+        return os.time() - 3601
+      end
+
+      stats:onTimesChange_1M()
+      assert.are.equal(true, sync_silent_arg)
+      assert.are.equal(12345, stats.last_auto_sync_action_time)
+
+      -- Second trigger in the same idle period should be blocked by last_auto_sync_action_time
+      sync_silent_arg = nil
+      stats:onTimesChange_1M()
+      assert.is_nil(sync_silent_arg)
+
+      -- If last_sync is recent (< 1 hour), should also block
+      UIManager.lastUserActionTime = function()
+        return 12346 -- new action
+      end
+      SyncService.getLastSyncTime = function()
+        return os.time() - 100 -- recently synced
+      end
+      stats:onTimesChange_1M()
+      assert.is_nil(sync_silent_arg)
+    end)
+  end)
 end)
