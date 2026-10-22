@@ -17,7 +17,6 @@ globals = {
   "io.write",
   "math.e",
   "math.finite",
-  "mock_cache_save_called",
   "notifyBackgroundJobsUpdated",
   "os.clock",
   "os.date",

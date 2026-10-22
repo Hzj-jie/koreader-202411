@@ -127,7 +127,6 @@ describe("FontList", function()
             return {}
           end,
           save = function()
-            mock_cache_save_called = true
             return true
           end,
         }
