@@ -590,7 +590,7 @@ end
 
 -- custom section
 
-function DocSettings:_getCustomLocationCandidate(doc_path)
+function DocSettings:getCustomLocationCandidate(doc_path)
   local sidecar_cand = self:_findSidecarFile(doc_path)
   if
     sidecar_cand
@@ -648,7 +648,7 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     logger.warn("Skipping custom cover flush in monkey test mode.")
     return
   end
-  local cand = self:_getCustomLocationCandidate(doc_path)
+  local cand = self:getCustomLocationCandidate(doc_path)
   local reason = getFallbackStatus(cand)
   if reason == "readonly" then
     showInfoMessage(
@@ -708,7 +708,7 @@ function DocSettings:getCustomMetadataFile(reset_cache)
 end
 
 function DocSettings:flushCustomMetadata(doc_path)
-  local cand = self:_getCustomLocationCandidate(doc_path)
+  local cand = self:getCustomLocationCandidate(doc_path)
   local reason = getFallbackStatus(cand)
   if reason == "readonly" then
     showInfoMessage(
