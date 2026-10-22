@@ -1,4 +1,5 @@
 local BD = require("ui/bidi")
+local BackgroundJobs = require("background_jobs")
 local BookStatusWidget = require("ui/widget/bookstatuswidget")
 local ButtonDialog = require("ui/widget/buttondialog")
 local ConfirmBox = require("ui/widget/confirmbox")
@@ -10,6 +11,8 @@ local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
+local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local ReadHistory = require("readhistory")
 local ReaderFooter = require("apps/reader/modules/readerfooter")
 local ReaderProgress = require("plugins/statistics.koplugin/readerprogress")
@@ -30,6 +33,9 @@ local T = FFIUtil.template
 
 local statistics_dir = DataStorage:getDataDir() .. "/statistics/"
 local db_location = DataStorage:getSettingsDir() .. "/statistics.sqlite3"
+local sync_dir = DataStorage:getSettingsDir() .. "/statistics_sync"
+local work_db_path = sync_dir .. "/statistics.sqlite3"
+local is_syncing = false
 local MAX_PAGETURNS_BEFORE_FLUSH = 50
 local DEFAULT_MIN_READ_SEC = 5
 local DEFAULT_MAX_READ_SEC = 120
@@ -250,6 +256,10 @@ function ReaderStatistics:_initData()
   self.data.highlights, self.data.notes =
     self.ui.annotation:getNumberOfHighlightsAndNotes()
   self.id_curr_book = self:getIdBookDB()
+  self:_updateBookReadTotals()
+end
+
+function ReaderStatistics:_updateBookReadTotals()
   if not self.id_curr_book then
     return
   end
@@ -1320,7 +1330,6 @@ function ReaderStatistics:onToggleStatistics(no_notification)
     UIManager:broadcastEvent("UpdateFooter")
   end
   if not no_notification then
-    local Notification = require("ui/widget/notification")
     Notification:notify(
       self.settings.is_enabled and gettext("Statistics enabled")
         or gettext("Statistics disabled")
@@ -3851,21 +3860,122 @@ function ReaderStatistics:canSync()
   return self.settings.sync_server ~= nil and self.settings.is_enabled
 end
 
+local function isNetworkReady(server)
+  if server.type == "dropbox" then
+    return NetworkMgr:isOnline()
+  end
+  return NetworkMgr:isConnected()
+end
+
+function ReaderStatistics:_syncBookStats(is_silent)
+  if not self:canSync() or is_syncing then
+    return
+  end
+
+  self:insertDB()
+
+  util.makePath(sync_dir)
+  os.remove(work_db_path)
+  os.remove(work_db_path .. ".sync")
+
+  FFIUtil.copyFile(db_location, work_db_path)
+
+  local server = self.settings.sync_server
+  is_syncing = true
+
+  if
+    not BackgroundJobs.insertKeyed({
+      executable = "fork",
+      action = function()
+        if not isNetworkReady(server) then
+          return false
+        end
+        local sync_result = false
+        SyncService.sync(
+          server,
+          work_db_path,
+          function(local_file, _cached_file, income_file)
+            return ReaderStatistics.onSync(
+              local_file,
+              db_location .. ".sync",
+              income_file
+            )
+          end,
+          true,
+          function(res)
+            sync_result = res
+          end
+        )
+        return sync_result
+      end,
+      callback = function(job)
+        is_syncing = false
+        local cur_server = self.settings.sync_server
+        if
+          job.result == true
+          and cur_server
+          and cur_server.type == server.type
+          and cur_server.url == server.url
+          and cur_server.address == server.address
+          and ReaderStatistics.onSync(
+            db_location,
+            db_location .. ".sync",
+            work_db_path .. ".sync"
+          )
+        then
+          os.rename(work_db_path .. ".sync", db_location .. ".sync")
+          self:_updateBookReadTotals()
+          if not is_silent then
+            UIManager:show(Notification:new({
+              text = gettext("Successfully synchronized."),
+              timeout = 2,
+            }))
+          end
+        else
+          if not is_silent then
+            UIManager:show(InfoMessage:new({
+              text = gettext(
+                "Something went wrong when syncing, please check your network connection and try again later."
+              ),
+              timeout = 3,
+            }))
+          end
+        end
+        os.remove(work_db_path)
+        os.remove(work_db_path .. ".sync")
+      end,
+    })
+  then
+    is_syncing = false
+  end
+end
+
 function ReaderStatistics:onSyncBookStats()
   if not self:canSync() then
     return
   end
 
-  self:insertDB()
+  if is_syncing then
+    UIManager:show(InfoMessage:new({
+      text = gettext("Sync is already in progress."),
+      timeout = 2,
+    }))
+    return
+  end
 
   UIManager:show(InfoMessage:new({
     text = gettext("Syncing book statistics. This may take a while."),
     timeout = 1,
   }))
 
-  UIManager:nextTick(function()
-    SyncService.sync(self.settings.sync_server, db_location, self.onSync)
-  end)
+  local function run()
+    self:_syncBookStats(false)
+  end
+  if self.settings.sync_server.type == "dropbox" then
+    NetworkMgr:runWhenOnline(run)
+  else
+    NetworkMgr:runWhenConnected(run)
+  end
 end
 
 function ReaderStatistics.onSync(local_path, cached_path, income_path)
@@ -3880,58 +3990,64 @@ function ReaderStatistics.onSync(local_path, cached_path, income_path)
 
   local sql = "attach '" .. income_path:gsub("'", "''") .. "' as income_db;"
   -- then we try to open cached db
-  local conn_cached = SQ3.open(cached_path)
-  local ok2, v2 =
-    pcall(conn_cached.rowexec, conn_cached, "PRAGMA schema_version")
   local attached_cache
-  if not ok2 or tonumber(v2) == 0 then
-    -- no cached or error, no item to delete
-    logger.warn("statistics open cached DB failed", v2)
-  else
-    attached_cache = true
-    sql = sql
-      .. "attach '"
-      .. cached_path:gsub("'", "''")
-      .. [[' as cached_db;
-      -- first we delete from income_db books that exist in cached_db but not in local_db,
-      -- namely the ones that were deleted since last sync
-      DELETE FROM income_db.page_stat_data WHERE id_book IN (
-        SELECT id FROM income_db.book WHERE (title, authors, md5) IN (
+  if
+    lfs.attributes(cached_path, "mode") == "file"
+    and lfs.attributes(cached_path, "size") > 0
+  then
+    local conn_cached = SQ3.open(cached_path)
+    local ok2, v2 =
+      pcall(conn_cached.rowexec, conn_cached, "PRAGMA schema_version")
+    if not ok2 or tonumber(v2) == 0 then
+      -- no cached or error, no item to delete
+      logger.warn("statistics open cached DB failed", v2)
+    else
+      attached_cache = true
+      sql = sql
+        .. "attach '"
+        .. cached_path:gsub("'", "''")
+        .. [[' as cached_db;
+        -- first we delete from income_db books that exist in cached_db but not in local_db,
+        -- namely the ones that were deleted since last sync
+        DELETE FROM income_db.page_stat_data WHERE id_book IN (
+          SELECT id FROM income_db.book WHERE (title, authors, md5) IN (
+            SELECT title, authors, md5 FROM cached_db.book WHERE (title, authors, md5) NOT IN (
+              SELECT title, authors, md5 FROM book
+            )
+          )
+        );
+        DELETE FROM income_db.book WHERE (title, authors, md5) IN (
           SELECT title, authors, md5 FROM cached_db.book WHERE (title, authors, md5) NOT IN (
             SELECT title, authors, md5 FROM book
           )
-        )
-      );
-      DELETE FROM income_db.book WHERE (title, authors, md5) IN (
-        SELECT title, authors, md5 FROM cached_db.book WHERE (title, authors, md5) NOT IN (
-          SELECT title, authors, md5 FROM book
-        )
-      );
+        );
 
-      -- then we delete books from local db that were present in last sync but
-      -- not any more (ie. deleted in other devices)
-      DELETE FROM page_stat_data WHERE id_book IN (
-        SELECT id FROM book WHERE (title, authors, md5) IN (
+        -- then we delete books from local db that were present in last sync but
+        -- not any more (ie. deleted in other devices)
+        DELETE FROM page_stat_data WHERE id_book IN (
+          SELECT id FROM book WHERE (title, authors, md5) IN (
+            SELECT title, authors, md5 FROM cached_db.book WHERE (title, authors, md5) NOT IN (
+              SELECT title, authors, md5 FROM income_db.book
+            )
+          )
+        );
+        DELETE FROM book WHERE (title, authors, md5) IN (
           SELECT title, authors, md5 FROM cached_db.book WHERE (title, authors, md5) NOT IN (
             SELECT title, authors, md5 FROM income_db.book
           )
-        )
-      );
-      DELETE FROM book WHERE (title, authors, md5) IN (
-        SELECT title, authors, md5 FROM cached_db.book WHERE (title, authors, md5) NOT IN (
-          SELECT title, authors, md5 FROM income_db.book
-        )
-      );
-    ]]
+        );
+      ]]
+    end
+    conn_cached:close()
   end
 
-  conn_cached:close()
   conn_income:close()
   local conn = SQ3.open(local_path)
-  local ok3, v3 = pcall(conn.exec, conn, "PRAGMA schema_version")
+  local ok3, v3 = pcall(conn.rowexec, conn, "PRAGMA schema_version")
   if not ok3 or tonumber(v3) == 0 then
     -- no local db, this is an error
     logger.err("statistics open local DB", v3)
+    conn:close()
     return false
   end
 
