@@ -20775,192 +20775,205 @@ msgid ""
 "when needed."
 msgstr "遊玩支援觸控操作的數獨遊戲，支援隨時繼續並可在需要時查看解答。"
 
-#: plugins/systemstat.koplugin/main.lua:181
+#: plugins/systemstat.koplugin/main.lua:185
 msgid "KOReader started at"
 msgstr "KOReader 啟動自"
 
-#: plugins/systemstat.koplugin/main.lua:186
+#: plugins/systemstat.koplugin/main.lua:190
 msgid "Last suspend time"
 msgstr "最近一次的休眠時間"
 
-#: plugins/systemstat.koplugin/main.lua:192
+#: plugins/systemstat.koplugin/main.lua:196
 msgid "Last resume time"
 msgstr "最近一次的喚醒時間"
 
-#: plugins/systemstat.koplugin/main.lua:206
-#: plugins/systemstat.koplugin/main.lua:309
+#: plugins/systemstat.koplugin/main.lua:210
+#: plugins/systemstat.koplugin/main.lua:358
 msgid "Up time"
 msgstr "執行時間"
 
-#: plugins/systemstat.koplugin/main.lua:212
-#: plugins/systemstat.koplugin/main.lua:316
+#: plugins/systemstat.koplugin/main.lua:216
+#: plugins/systemstat.koplugin/main.lua:365
 msgid "Time spent awake"
 msgstr "亮屏時長"
 
-#: plugins/systemstat.koplugin/main.lua:221
-#: plugins/systemstat.koplugin/main.lua:326
+#: plugins/systemstat.koplugin/main.lua:225
+#: plugins/systemstat.koplugin/main.lua:375
 msgid "Time in suspend"
 msgstr "休眠時間"
 
-#: plugins/systemstat.koplugin/main.lua:230
+#: plugins/systemstat.koplugin/main.lua:234
 msgid "Time in standby"
 msgstr "待機時間"
 
-#: plugins/systemstat.koplugin/main.lua:239
+#: plugins/systemstat.koplugin/main.lua:243
 msgid "Start discharging at"
 msgstr "開始放電於"
 
-#: plugins/systemstat.koplugin/main.lua:244
+#: plugins/systemstat.koplugin/main.lua:248
 msgid "Device model"
 msgstr "裝置型號"
 
-#: plugins/systemstat.koplugin/main.lua:248
+#: plugins/systemstat.koplugin/main.lua:252
 msgid "Counters"
 msgstr "計數器"
 
 #. @translators The number of "sleeps", that is the number of times the device has entered standby. This could also be translated as a rendition of a phrase like "entered sleep".
-#: plugins/systemstat.koplugin/main.lua:251
+#: plugins/systemstat.koplugin/main.lua:255
 msgid "  Wake-ups"
 msgstr "  喚醒"
 
-#: plugins/systemstat.koplugin/main.lua:251
+#: plugins/systemstat.koplugin/main.lua:255
 msgid "  sleeps"
 msgstr "  休眠"
 
-#: plugins/systemstat.koplugin/main.lua:254
+#: plugins/systemstat.koplugin/main.lua:258
 msgid "  Discharge cycles"
 msgstr "  放電週期"
 
-#: plugins/systemstat.koplugin/main.lua:256
+#: plugins/systemstat.koplugin/main.lua:260
 msgid "Background jobs"
 msgstr "背景工作"
 
-#: plugins/systemstat.koplugin/main.lua:260
+#: plugins/systemstat.koplugin/main.lua:264
 msgid "Pending network jobs"
 msgstr "掛起的網路工作"
 
-#: plugins/systemstat.koplugin/main.lua:266
+#: plugins/systemstat.koplugin/main.lua:270
 msgid "Pending jobs after being connected"
 msgstr "連線後掛起的工作"
 
-#: plugins/systemstat.koplugin/main.lua:275
+#: plugins/systemstat.koplugin/main.lua:279
 msgid "Pending jobs after being online"
 msgstr "在線後掛起的工作"
 
-#: plugins/systemstat.koplugin/main.lua:290
+#: plugins/systemstat.koplugin/main.lua:300
+#: plugins/systemstat.koplugin/main.lua:330
+msgid "Background processes"
+msgstr "後台程序"
+
+#: plugins/systemstat.koplugin/main.lua:301
+msgid "%1 (tap to view)"
+msgstr "%1（點擊查看）"
+
+#: plugins/systemstat.koplugin/main.lua:322
+msgid "No output."
+msgstr "無輸出。"
+
+#: plugins/systemstat.koplugin/main.lua:339
 msgid "Indexed files"
 msgstr "已索引檔案"
 
-#: plugins/systemstat.koplugin/main.lua:303
+#: plugins/systemstat.koplugin/main.lua:352
 msgid "System information"
 msgstr "系統資訊"
 
-#: plugins/systemstat.koplugin/main.lua:305
+#: plugins/systemstat.koplugin/main.lua:354
 msgid "  Number of processes"
 msgstr "  程序數"
 
-#: plugins/systemstat.koplugin/main.lua:333
+#: plugins/systemstat.koplugin/main.lua:382
 msgid "Number of processors"
 msgstr "處理器數量"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:336
+#: plugins/systemstat.koplugin/main.lua:385
 msgid "  Total ticks (million)"
 msgstr "  總處理器週期（百萬）"
 
 #. @translators Ticks is a highly technical term. See https://superuser.com/a/101202 The correct translation is likely to simply be "ticks".
-#: plugins/systemstat.koplugin/main.lua:341
+#: plugins/systemstat.koplugin/main.lua:390
 msgid "  Idle ticks (million)"
 msgstr "  閒置的處理器週期（百萬）"
 
-#: plugins/systemstat.koplugin/main.lua:346
-#: plugins/systemstat.koplugin/main.lua:424
+#: plugins/systemstat.koplugin/main.lua:395
+#: plugins/systemstat.koplugin/main.lua:473
 msgid "  Processor usage %"
 msgstr "  處理器用量百分比"
 
-#: plugins/systemstat.koplugin/main.lua:352
+#: plugins/systemstat.koplugin/main.lua:401
 msgid "5 minutes usage %"
 msgstr "5分鐘使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:358
+#: plugins/systemstat.koplugin/main.lua:407
 msgid "15 minutes usage %"
 msgstr "15分鐘使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:363
+#: plugins/systemstat.koplugin/main.lua:412
 msgid "Usage % during awake"
 msgstr "喚醒期間使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:370
+#: plugins/systemstat.koplugin/main.lua:419
 msgid "Usage % since boot"
 msgstr "自啟動以來的使用率 %"
 
-#: plugins/systemstat.koplugin/main.lua:380
+#: plugins/systemstat.koplugin/main.lua:429
 msgid "  Total memory (MB)"
 msgstr "  總記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:384
+#: plugins/systemstat.koplugin/main.lua:433
 msgid "  Free memory (MB)"
 msgstr "  閒置記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:388
+#: plugins/systemstat.koplugin/main.lua:437
 msgid "  Available memory (MB)"
 msgstr "  可用記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:405
+#: plugins/systemstat.koplugin/main.lua:454
 msgid "Process"
 msgstr "程序"
 
-#: plugins/systemstat.koplugin/main.lua:407
+#: plugins/systemstat.koplugin/main.lua:456
 msgid "  ID"
 msgstr "  ID"
 
-#: plugins/systemstat.koplugin/main.lua:420
+#: plugins/systemstat.koplugin/main.lua:469
 msgid "Total ticks"
 msgstr "總時脈滴答數"
 
-#: plugins/systemstat.koplugin/main.lua:433
+#: plugins/systemstat.koplugin/main.lua:482
 msgid "Priority / nice"
 msgstr "優先權 / Nice"
 
-#: plugins/systemstat.koplugin/main.lua:440
+#: plugins/systemstat.koplugin/main.lua:489
 msgid "  Threads"
 msgstr "  執行緒"
 
-#: plugins/systemstat.koplugin/main.lua:449
+#: plugins/systemstat.koplugin/main.lua:498
 msgid "  Virtual memory (MB)"
 msgstr "  虛擬記憶體 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:459
+#: plugins/systemstat.koplugin/main.lua:508
 msgid "  RAM usage (MB)"
 msgstr "  記憶體使用 (MB)"
 
-#: plugins/systemstat.koplugin/main.lua:475
+#: plugins/systemstat.koplugin/main.lua:524
 msgid "Storage information"
 msgstr "儲存系統資訊"
 
-#: plugins/systemstat.koplugin/main.lua:479
+#: plugins/systemstat.koplugin/main.lua:528
 msgid "  Unexpected"
 msgstr "  未預期的"
 
-#: plugins/systemstat.koplugin/main.lua:481
+#: plugins/systemstat.koplugin/main.lua:530
 msgid "  Mount point"
 msgstr "  掛載點"
 
-#: plugins/systemstat.koplugin/main.lua:482
+#: plugins/systemstat.koplugin/main.lua:531
 msgid "  Available"
 msgstr "  可用"
 
-#: plugins/systemstat.koplugin/main.lua:483
+#: plugins/systemstat.koplugin/main.lua:532
 msgid "  Total"
 msgstr "  總計"
 
-#: plugins/systemstat.koplugin/main.lua:484
+#: plugins/systemstat.koplugin/main.lua:533
 msgid "  Used percentage"
 msgstr "  使用百分比"
 
-#: plugins/systemstat.koplugin/main.lua:510
-#: plugins/systemstat.koplugin/main.lua:525
-#: plugins/systemstat.koplugin/main.lua:538
+#: plugins/systemstat.koplugin/main.lua:559
+#: plugins/systemstat.koplugin/main.lua:574
+#: plugins/systemstat.koplugin/main.lua:587
 #: plugins/systemstat.koplugin/_meta.lua:4
 msgid "System statistics"
 msgstr "系統統計訊息"
