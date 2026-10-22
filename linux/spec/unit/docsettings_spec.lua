@@ -1661,7 +1661,7 @@ describe("docsettings module", function()
     )
   end)
 
-  describe("_getCustomLocationCandidate", function()
+  describe("getCustomLocationCandidate", function()
     local test_doc = "/tmp/test_custom_cand.epub"
 
     before_each(function()
@@ -1681,7 +1681,7 @@ describe("docsettings module", function()
     it(
       "returns first writable candidate directory when no sidecar file exists",
       function()
-        local cand = docsettings:_getCustomLocationCandidate(test_doc)
+        local cand = docsettings:getCustomLocationCandidate(test_doc)
         assert.is_table(cand)
         assert.are.equal("/tmp/test_custom_cand.sdr", cand.dir)
       end
@@ -1689,7 +1689,7 @@ describe("docsettings module", function()
 
     it("returns hash directory when hash is preferred", function()
       G_reader_settings:save("document_metadata_folder", "hash")
-      local cand = docsettings:_getCustomLocationCandidate(test_doc)
+      local cand = docsettings:getCustomLocationCandidate(test_doc)
       assert.is_table(cand)
       assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
     end)
@@ -1700,7 +1700,7 @@ describe("docsettings module", function()
       d:flush()
       d:close()
 
-      local cand = docsettings:_getCustomLocationCandidate(test_doc)
+      local cand = docsettings:getCustomLocationCandidate(test_doc)
       assert.is_table(cand)
       assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
     end)
@@ -1722,7 +1722,7 @@ describe("docsettings module", function()
           return orig_isDirRW(dir, create)
         end
 
-        local cand = docsettings:_getCustomLocationCandidate(test_doc)
+        local cand = docsettings:getCustomLocationCandidate(test_doc)
         util.isDirRW = orig_isDirRW
 
         assert.is_table(cand)

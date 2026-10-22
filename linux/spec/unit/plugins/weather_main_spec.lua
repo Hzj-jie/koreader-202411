@@ -138,6 +138,42 @@ describe("Weather main plugin module", function()
       assert.is_table(captured_dialog)
       assert.is_nil(captured_dialog.description)
     end)
+
+    it("translates postal code format hint", function()
+      local tmp_file = os.tmpname()
+      local inst = Weather:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+        settings_file = tmp_file,
+      })
+      inst:loadSettings()
+
+      local menu_items = {}
+      inst:addToMainMenu(menu_items)
+
+      local captured_dialog
+      local old_show = UIManager.show
+      local gettext = require("gettext")
+      gettext.changeLang("zh_CN")
+      finally(function()
+        gettext.changeLang("C")
+        UIManager.show = old_show
+        os.remove(tmp_file)
+      end)
+      UIManager.show = function(first, second)
+        captured_dialog = second or first
+      end
+
+      menu_items.weather.sub_item_table_func()[1].sub_item_table[1].callback({})
+      assert.is_table(captured_dialog)
+      assert.are.equal(
+        gettext("Format: ") .. inst.default_postal_code,
+        captured_dialog.input_hint
+      )
+    end)
   end)
 
   describe("edge cases and display updates", function()

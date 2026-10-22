@@ -2798,6 +2798,51 @@ describe("Background Sync Behavior", function()
       end
     )
 
+    it(
+      "returns sync cache path in fallback directory when preferred sidecar dir is not writable",
+      function()
+        local DocSettings = require("docsettings")
+        local doc = new_doc("sync_cache_readonly_fallback")
+        local preferred_sdr = DocSettings:getSidecarDir(doc)
+        local orig_isDirRW = util.isDirRW
+        local fallback_cand
+        finally(function()
+          util.isDirRW = orig_isDirRW
+          os.remove(doc)
+          DocSettings.removeSidecarDir(preferred_sdr)
+          if fallback_cand then
+            DocSettings.removeSidecarDir(fallback_cand.dir)
+          end
+        end)
+
+        assert.are.equal(
+          preferred_sdr
+            .. "/"
+            .. sync_manager:_getAnnotationFilename(doc)
+            .. ".sync",
+          sync_manager:getSyncCachePath(doc)
+        )
+
+        util.isDirRW = function(dir, create)
+          if dir == preferred_sdr then
+            return false
+          end
+          return orig_isDirRW(dir, create)
+        end
+
+        fallback_cand = DocSettings:getCustomLocationCandidate(doc)
+        assert.is_table(fallback_cand)
+        assert.are_not.equal(preferred_sdr, fallback_cand.dir)
+        assert.are.equal(
+          fallback_cand.dir
+            .. "/"
+            .. sync_manager:_getAnnotationFilename(doc)
+            .. ".sync",
+          sync_manager:getSyncCachePath(doc)
+        )
+      end
+    )
+
     describe("a book with no annotations while the cloud has some", function()
       local ConfirmBox, Notification
       local A, B, C, D_tomb

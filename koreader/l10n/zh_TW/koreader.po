@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 14:39-0700\n"
+"POT-Creation-Date: 2026-10-21 20:45-0700\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -15234,25 +15234,25 @@ msgstr[0] ""
 msgid "Move to trash"
 msgstr "移至垃圾桶"
 
-#: plugins/AnnotationSync.koplugin/manager.lua:716
+#: plugins/AnnotationSync.koplugin/manager.lua:711
 msgid ""
 "No settings are selected. Please select settings to sync in 'Show changed "
 "settings'."
 msgstr "未選取任何設定。請在「顯示已變更的設定」中選取要同步的設定。"
 
-#: plugins/AnnotationSync.koplugin/manager.lua:740
+#: plugins/AnnotationSync.koplugin/manager.lua:735
 msgid "Failed to write settings to local storage."
 msgstr "無法將設定寫入本機儲存空間。"
 
-#: plugins/AnnotationSync.koplugin/manager.lua:745
+#: plugins/AnnotationSync.koplugin/manager.lua:740
 msgid "Pushing settings to cloud..."
 msgstr "正在上傳設定至雲端…"
 
-#: plugins/AnnotationSync.koplugin/manager.lua:855
+#: plugins/AnnotationSync.koplugin/manager.lua:850
 msgid "Fetching settings from cloud..."
 msgstr "正在從雲端取得設定…"
 
-#: plugins/AnnotationSync.koplugin/manager.lua:860
+#: plugins/AnnotationSync.koplugin/manager.lua:855
 msgid "Failed to fetch settings from cloud"
 msgstr "從雲端取得設定失敗"
 

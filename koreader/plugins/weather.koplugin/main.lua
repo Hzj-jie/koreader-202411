@@ -103,7 +103,7 @@ function Weather:getSubMenuItems()
             input = InputDialog:new({
               title = gettext("Postal Code"),
               input = postal_code,
-              input_hint = gettext("Format: " .. self.default_postal_code),
+              input_hint = gettext("Format: ") .. self.default_postal_code,
               input_type = "string",
               buttons = {
                 {
