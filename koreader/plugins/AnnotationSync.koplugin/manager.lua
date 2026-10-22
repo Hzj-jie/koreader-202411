@@ -507,16 +507,11 @@ function SyncManager:_promoteSyncBase(file, uploaded_json)
 end
 
 function SyncManager:getSyncCachePath(file)
-  local sdr_dir = docsettings:getSidecarDir(file)
-  if not sdr_dir or sdr_dir == "" then
+  local cand = docsettings:getCustomLocationCandidate(file)
+  if not cand then
     return nil
   end
-  if not lfs.attributes(sdr_dir, "mode") then
-    logger.info("AnnotationSync: creating missing sidecar directory:", sdr_dir)
-    util.makePath(sdr_dir)
-  end
-  local filename = self:_getAnnotationFilename(file)
-  return sdr_dir .. "/" .. filename .. ".sync"
+  return cand.dir .. "/" .. self:_getAnnotationFilename(file) .. ".sync"
 end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp
