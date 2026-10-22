@@ -11,7 +11,6 @@ return {
   closeAll = function() end,
   -- Tell front that we're a custom imp with no concept of paths/fd
   is_ffi = true,
-  hasClipboardText = SDL.hasClipboardText,
   getClipboardText = SDL.getClipboardText,
   setClipboardText = SDL.setClipboardText,
   gameControllerRumble = SDL.gameControllerRumble,
