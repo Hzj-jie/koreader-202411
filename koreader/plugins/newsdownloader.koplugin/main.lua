@@ -678,14 +678,17 @@ end
 
 function NewsDownloader:removeNewsButKeepFeedConfig()
   logger.dbg("NewsDownloader: Removing news from :", self.download_dir)
-  for entry in lfs.dir(self.download_dir) do
-    if entry ~= "." and entry ~= ".." and entry ~= self.feed_config_file then
-      local entry_path = self.download_dir .. "/" .. entry
-      local entry_mode = lfs.attributes(entry_path, "mode")
-      if entry_mode == "file" then
-        os.remove(entry_path)
-      elseif entry_mode == "directory" then
-        FFIUtil.purgeDir(entry_path)
+  local iter, dir_obj = lfs.dir(self.download_dir)
+  if iter then
+    for entry in iter, dir_obj do
+      if entry ~= "." and entry ~= ".." and entry ~= self.feed_config_file then
+        local entry_path = self.download_dir .. "/" .. entry
+        local entry_mode = lfs.attributes(entry_path, "mode")
+        if entry_mode == "file" then
+          os.remove(entry_path)
+        elseif entry_mode == "directory" then
+          FFIUtil.purgeDir(entry_path)
+        end
       end
     end
   end

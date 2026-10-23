@@ -451,12 +451,14 @@ function QuickStart:getQuickStart()
   if lfs.attributes(quickstart_filename, "mode") ~= "file" then
     -- purge old quickstart guides
     local iter, dir_obj = lfs.dir(quickstart_dir)
-    for f in iter, dir_obj do
-      if f:match("quickstart-.*%.html") then
-        local file_abs_path =
-          FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
-        os.remove(file_abs_path)
-        DocSettings:open(file_abs_path):purge()
+    if iter then
+      for f in iter, dir_obj do
+        if f:match("quickstart-.*%.html") then
+          local file_abs_path =
+            FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
+          os.remove(file_abs_path)
+          DocSettings:open(file_abs_path):purge()
+        end
       end
     end
 
