@@ -259,8 +259,9 @@ function SettingsSelection.build_tree(plugin)
   -- 3. Compare files in settings/ directory
   local vanilla_settings_dir = plugin.path .. "/defaults/settings"
   local active_settings_dir = DataStorage:getSettingsDir()
-  if lfs.attributes(vanilla_settings_dir, "mode") == "directory" then
-    for entry in lfs.dir(vanilla_settings_dir) do
+  local iter, dir_obj = lfs.dir(vanilla_settings_dir)
+  if iter then
+    for entry in iter, dir_obj do
       if entry ~= "." and entry ~= ".." then
         local filepath = vanilla_settings_dir .. "/" .. entry
         if

@@ -368,8 +368,9 @@ function Exporter:addToMainMenu(menu_items)
   -- need it, and base.lua cannot require("plugins/exporter.koplugin/main") due to circular dependency.
   local clipping_dir = BaseExporter.clipping_dir()
   local files = {}
-  if lfs.attributes(clipping_dir, "mode") == "directory" then
-    for file in lfs.dir(clipping_dir) do
+  local iter, dir_obj = lfs.dir(clipping_dir)
+  if iter then
+    for file in iter, dir_obj do
       if file ~= "." and file ~= ".." then
         local filepath = clipping_dir .. "/" .. file
         if lfs.attributes(filepath, "mode") == "file" then
