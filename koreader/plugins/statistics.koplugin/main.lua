@@ -3902,25 +3902,40 @@ function ReaderStatistics:_syncBookStats(is_silent)
     not BackgroundJobs.insertKeyed({
       executable = "fork",
       action = function()
+        logger.info("ReaderStatistics: background sync started")
         if not isNetworkReady(server) then
           return false
         end
+        logger.info(
+          "ReaderStatistics: network ready, syncing",
+          lfs.attributes(work_db_path, "size"),
+          "bytes with",
+          server.type
+        )
         local sync_result = false
         SyncService.sync(
           server,
           work_db_path,
           function(local_file, _cached_file, income_file)
-            return ReaderStatistics.onSync(
+            logger.info(
+              "ReaderStatistics: downloaded",
+              lfs.attributes(income_file, "size"),
+              "bytes, merging"
+            )
+            local merged = ReaderStatistics.onSync(
               local_file,
               db_location .. ".sync",
               income_file
             )
+            logger.info("ReaderStatistics: merge returned", merged)
+            return merged
           end,
           true,
           function(res)
             sync_result = res
           end
         )
+        logger.info("ReaderStatistics: background sync finished:", sync_result)
         return sync_result
       end,
       callback = function(job)
