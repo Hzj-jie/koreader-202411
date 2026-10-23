@@ -681,6 +681,7 @@ describe("Statistics plugin", function()
 
         local captured_job = nil
         local shown_notifications = {}
+        local shown_messages = {}
         local remote_db_file = nil
 
         finally(function()
@@ -765,8 +766,10 @@ describe("Statistics plugin", function()
         end
 
         UIManager.show = function(_self_ui, widget)
-          if widget and widget.text then
+          if widget and widget.toast then
             table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
+            table.insert(shown_messages, widget.text)
           end
         end
 
@@ -811,9 +814,14 @@ describe("Statistics plugin", function()
         assert.are.equal(90, stats.avg_time)
 
         assert.are.equal(
-          require("gettext")("Successfully synchronized."),
-          shown_notifications[#shown_notifications]
+          require("gettext")("Syncing book statistics in the background"),
+          shown_notifications[1]
         )
+        assert.are.equal(
+          require("gettext")("Successfully synchronized."),
+          shown_notifications[2]
+        )
+        assert.are.equal(0, #shown_messages)
       end
     )
 
@@ -845,6 +853,7 @@ describe("Statistics plugin", function()
 
         local captured_job = nil
         local shown_messages = {}
+        local shown_notifications = {}
 
         finally(function()
           webdavapi.downloadFile = orig_download
@@ -918,7 +927,9 @@ describe("Statistics plugin", function()
           return true
         end
         UIManager.show = function(_self_ui, widget)
-          if widget and widget.text then
+          if widget and widget.toast then
+            table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
             table.insert(shown_messages, widget.text)
           end
         end
@@ -944,11 +955,16 @@ describe("Statistics plugin", function()
         assert.is_nil(lfs.attributes(work_db_path .. ".sync", "mode"))
         -- Error message shown
         assert.are.equal(
+          require("gettext")("Syncing book statistics in the background"),
+          shown_notifications[1]
+        )
+        assert.are.equal(
           require("gettext")(
             "Something went wrong when syncing, please check your network connection and try again later."
           ),
-          shown_messages[#shown_messages]
+          shown_notifications[#shown_notifications]
         )
+        assert.are.equal(0, #shown_messages)
       end
     )
 
@@ -971,6 +987,7 @@ describe("Statistics plugin", function()
         local orig_show = UIManager.show
         local captured_job = nil
         local shown_messages = {}
+        local shown_notifications = {}
 
         finally(function()
           BackgroundJobs.insertKeyed = orig_insertKeyed
@@ -989,7 +1006,9 @@ describe("Statistics plugin", function()
           return true
         end
         UIManager.show = function(_self_ui, widget)
-          if widget and widget.text then
+          if widget and widget.toast then
+            table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
             table.insert(shown_messages, widget.text)
           end
         end
@@ -1009,13 +1028,14 @@ describe("Statistics plugin", function()
         -- db_location .. ".sync" must NOT exist because merge-back failed
         assert.is_nil(lfs.attributes(db_location .. ".sync", "mode"))
 
-        -- Error message should be shown
+        -- Error notification should be shown
         assert.are.equal(
           require("gettext")(
             "Something went wrong when syncing, please check your network connection and try again later."
           ),
-          shown_messages[#shown_messages]
+          shown_notifications[#shown_notifications]
         )
+        assert.are.equal(0, #shown_messages)
       end
     )
 
@@ -1031,6 +1051,7 @@ describe("Statistics plugin", function()
         local orig_show = UIManager.show
         local captured_job = nil
         local shown_messages = {}
+        local shown_notifications = {}
 
         finally(function()
           BackgroundJobs.insertKeyed = orig_insertKeyed
@@ -1045,7 +1066,9 @@ describe("Statistics plugin", function()
           return true
         end
         UIManager.show = function(_self_ui, widget)
-          if widget and widget.text then
+          if widget and widget.toast then
+            table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
             table.insert(shown_messages, widget.text)
           end
         end
@@ -1059,8 +1082,9 @@ describe("Statistics plugin", function()
           require("gettext")(
             "Something went wrong when syncing, please check your network connection and try again later."
           ),
-          shown_messages[#shown_messages]
+          shown_notifications[#shown_notifications]
         )
+        assert.are.equal(0, #shown_messages)
 
         -- Test sentinel 255 (e.g. CommandRunner error exit)
         stats:_syncBookStats(false)
@@ -1069,8 +1093,9 @@ describe("Statistics plugin", function()
           require("gettext")(
             "Something went wrong when syncing, please check your network connection and try again later."
           ),
-          shown_messages[#shown_messages]
+          shown_notifications[#shown_notifications]
         )
+        assert.are.equal(0, #shown_messages)
       end
     )
 
@@ -1091,6 +1116,7 @@ describe("Statistics plugin", function()
         local captured_job = nil
         local count_jobs = 0
         local shown_messages = {}
+        local shown_notifications = {}
 
         finally(function()
           BackgroundJobs.insertKeyed = orig_insertKeyed
@@ -1099,6 +1125,9 @@ describe("Statistics plugin", function()
           NetworkMgr.runWhenConnected = orig_runWhenConnected
           NetworkMgr.runWhenOnline = orig_runWhenOnline
           UIManager.show = orig_show
+          if captured_job and captured_job.callback then
+            pcall(captured_job.callback, { result = false })
+          end
           os.remove(db_location)
           os.remove(work_db_path)
           os.remove(work_db_path .. ".sync")
@@ -1124,7 +1153,9 @@ describe("Statistics plugin", function()
           return true
         end
         UIManager.show = function(_self_ui, widget)
-          if widget and widget.text then
+          if widget and widget.toast then
+            table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
             table.insert(shown_messages, widget.text)
           end
         end
@@ -1137,8 +1168,9 @@ describe("Statistics plugin", function()
         assert.are.equal(1, count_jobs)
         assert.are.equal(
           require("gettext")("Sync is already in progress."),
-          shown_messages[#shown_messages]
+          shown_notifications[#shown_notifications]
         )
+        assert.are.equal(0, #shown_messages)
 
         -- Finish first job
         captured_job.callback({ result = false })
@@ -1146,6 +1178,92 @@ describe("Statistics plugin", function()
         -- Subsequent sync should now be accepted
         stats:onSyncBookStats()
         assert.are.equal(2, count_jobs)
+        captured_job.callback({ result = false })
+      end
+    )
+
+    it(
+      "does not show start notification for silent auto sync or when job insertion fails",
+      function()
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        stats.settings.is_enabled = true
+        stats.settings.sync_server =
+          { type = "webdav", address = "http://example.com" }
+
+        local orig_insertKeyed = BackgroundJobs.insertKeyed
+        local orig_show = UIManager.show
+        local shown_notifications = {}
+        local shown_messages = {}
+
+        finally(function()
+          BackgroundJobs.insertKeyed = orig_insertKeyed
+          UIManager.show = orig_show
+          os.remove(db_location)
+          os.remove(work_db_path)
+          os.remove(work_db_path .. ".sync")
+        end)
+
+        UIManager.show = function(_self_ui, widget)
+          if widget and widget.toast then
+            table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
+            table.insert(shown_messages, widget.text)
+          end
+        end
+
+        -- Case 1: insertKeyed returns false
+        BackgroundJobs.insertKeyed = function()
+          return false
+        end
+        stats:_syncBookStats(false)
+        assert.are.equal(0, #shown_notifications)
+        assert.are.equal(0, #shown_messages)
+
+        -- Case 2: silent sync (auto sync)
+        BackgroundJobs.insertKeyed = function(job)
+          job.callback({ result = true })
+          return true
+        end
+        stats:_syncBookStats(true)
+        assert.are.equal(0, #shown_notifications)
+        assert.are.equal(0, #shown_messages)
+      end
+    )
+
+    it(
+      "does not show InfoMessage before network gate in onSyncBookStats",
+      function()
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        stats.settings.is_enabled = true
+        stats.settings.sync_server =
+          { type = "webdav", address = "http://example.com" }
+
+        local orig_runWhenConnected = NetworkMgr.runWhenConnected
+        local orig_show = UIManager.show
+        local shown_notifications = {}
+        local shown_messages = {}
+
+        finally(function()
+          NetworkMgr.runWhenConnected = orig_runWhenConnected
+          UIManager.show = orig_show
+        end)
+
+        NetworkMgr.runWhenConnected = function()
+          -- do not invoke callback immediately (simulates waiting for network)
+          return true
+        end
+
+        UIManager.show = function(_self_ui, widget)
+          if widget and widget.toast then
+            table.insert(shown_notifications, widget.text)
+          elseif widget and widget.text then
+            table.insert(shown_messages, widget.text)
+          end
+        end
+
+        stats:onSyncBookStats()
+        assert.are.equal(0, #shown_messages)
+        assert.are.equal(0, #shown_notifications)
       end
     )
   end)

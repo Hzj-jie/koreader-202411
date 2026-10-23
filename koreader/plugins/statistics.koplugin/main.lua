@@ -3941,19 +3941,15 @@ function ReaderStatistics:_syncBookStats(is_silent)
           os.rename(work_db_path .. ".sync", db_location .. ".sync")
           self:_updateBookReadTotals()
           if not is_silent then
-            UIManager:show(Notification:new({
-              text = gettext("Successfully synchronized."),
-              timeout = 2,
-            }))
+            Notification:notify(gettext("Successfully synchronized."))
           end
         else
           if not is_silent then
-            UIManager:show(InfoMessage:new({
-              text = gettext(
+            Notification:notify(
+              gettext(
                 "Something went wrong when syncing, please check your network connection and try again later."
-              ),
-              timeout = 3,
-            }))
+              )
+            )
           end
         end
         os.remove(work_db_path)
@@ -3962,6 +3958,8 @@ function ReaderStatistics:_syncBookStats(is_silent)
     })
   then
     is_syncing = false
+  elseif not is_silent then
+    Notification:notify(gettext("Syncing book statistics in the background"))
   end
 end
 
@@ -3971,17 +3969,9 @@ function ReaderStatistics:onSyncBookStats()
   end
 
   if is_syncing then
-    UIManager:show(InfoMessage:new({
-      text = gettext("Sync is already in progress."),
-      timeout = 2,
-    }))
+    Notification:notify(gettext("Sync is already in progress."))
     return
   end
-
-  UIManager:show(InfoMessage:new({
-    text = gettext("Syncing book statistics. This may take a while."),
-    timeout = 1,
-  }))
 
   local function run()
     self:_syncBookStats(false)
