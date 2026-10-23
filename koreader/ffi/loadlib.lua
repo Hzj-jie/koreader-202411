@@ -208,6 +208,7 @@ do
   local lfs = require("libs/libkoreader-lfs")
   local orig_dir = lfs.dir
   lfs.dir = function(path)
+    assert(type(path) == "string")
     local ok, iter, dir_obj = pcall(orig_dir, path)
     if not ok then
       return nil, nil, iter
