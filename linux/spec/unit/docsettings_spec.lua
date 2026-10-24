@@ -2047,5 +2047,41 @@ describe("docsettings module", function()
         end, "DocSettings: doc_path must not be nil or empty")
       end
     )
+
+    it(
+      "asserts when copyFile fails during flush with custom metadata and preserves file",
+      function()
+        local doc_path = "/tmp/test_copy_fail_doc.epub"
+        local inst = docsettings:open(doc_path)
+        local orig_getCustomMetadata = inst.getCustomMetadataFile
+        local orig_copyFile = ffiutil.copyFile
+        local removed = false
+        local orig_remove = os.remove
+
+        inst.getCustomMetadataFile = function()
+          return "/tmp/fake_custom_metadata.lua"
+        end
+        ffiutil.copyFile = function()
+          return "permission denied"
+        end
+        os.remove = function(file)
+          if file == "/tmp/fake_custom_metadata.lua" then
+            removed = true
+          end
+          return orig_remove(file)
+        end
+
+        local ok, _ = pcall(function()
+          inst:flush()
+        end)
+        assert.is_false(ok)
+        assert.is_false(removed)
+
+        inst.getCustomMetadataFile = orig_getCustomMetadata
+        ffiutil.copyFile = orig_copyFile
+        os.remove = orig_remove
+        ffiutil.purgeDir("/tmp/test_copy_fail_doc.sdr")
+      end
+    )
   end)
 end)

@@ -417,7 +417,10 @@ function DocSettings:flush(data, no_custom_metadata)
           if metadata_file then
             filepath, filename = util.splitFilePathName(metadata_file)
             if filepath ~= sidecar_dir_slash then
-              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+              assert(
+                ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+                  == nil
+              )
               os.remove(metadata_file)
               self:getCustomCoverFile(true) -- reset cache
             end
@@ -427,7 +430,10 @@ function DocSettings:flush(data, no_custom_metadata)
           if metadata_file then
             filepath, filename = util.splitFilePathName(metadata_file)
             if filepath ~= sidecar_dir_slash then
-              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+              assert(
+                ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+                  == nil
+              )
               os.remove(metadata_file)
               self:getCustomMetadataFile(true) -- reset cache
             end
@@ -548,15 +554,19 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
       if new_sidecar_dir then
         if custom_cover_file then
           local _, filename = util.splitFilePathName(custom_cover_file)
-          ffiutil.copyFile(
-            custom_cover_file,
-            new_sidecar_dir .. "/" .. filename
+          assert(
+            ffiutil.copyFile(
+              custom_cover_file,
+              new_sidecar_dir .. "/" .. filename
+            ) == nil
           )
         end
         if custom_metadata_file then
-          ffiutil.copyFile(
-            custom_metadata_file,
-            new_sidecar_dir .. "/" .. custom_metadata_filename
+          assert(
+            ffiutil.copyFile(
+              custom_metadata_file,
+              new_sidecar_dir .. "/" .. custom_metadata_filename
+            ) == nil
           )
         end
         do_purge = not copy
