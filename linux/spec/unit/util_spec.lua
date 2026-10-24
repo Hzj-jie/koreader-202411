@@ -1588,6 +1588,7 @@ describe("util module", function()
         assert.is_equal("string", type(err))
       end
     )
+
     it("raises an error when path is not a string", function()
       local lfs = require("libs/libkoreader-lfs")
       assert.has_error(function()
