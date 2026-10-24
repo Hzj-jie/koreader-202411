@@ -959,9 +959,7 @@ describe("Statistics plugin", function()
           shown_notifications[1]
         )
         assert.are.equal(
-          require("gettext")(
-            "Something went wrong when syncing, please check your network connection and try again later."
-          ),
+          require("gettext")("Failed to sync book statistics."),
           shown_notifications[#shown_notifications]
         )
         assert.are.equal(0, #shown_messages)
@@ -1030,9 +1028,7 @@ describe("Statistics plugin", function()
 
         -- Error notification should be shown
         assert.are.equal(
-          require("gettext")(
-            "Something went wrong when syncing, please check your network connection and try again later."
-          ),
+          require("gettext")("Failed to sync book statistics."),
           shown_notifications[#shown_notifications]
         )
         assert.are.equal(0, #shown_messages)
@@ -1079,9 +1075,7 @@ describe("Statistics plugin", function()
         -- Test sentinel 222 (e.g. CommandRunner killed/aborted)
         captured_job.callback({ result = 222 })
         assert.are.equal(
-          require("gettext")(
-            "Something went wrong when syncing, please check your network connection and try again later."
-          ),
+          require("gettext")("Failed to sync book statistics."),
           shown_notifications[#shown_notifications]
         )
         assert.are.equal(0, #shown_messages)
@@ -1090,9 +1084,7 @@ describe("Statistics plugin", function()
         stats:_syncBookStats(false)
         captured_job.callback({ result = 255 })
         assert.are.equal(
-          require("gettext")(
-            "Something went wrong when syncing, please check your network connection and try again later."
-          ),
+          require("gettext")("Failed to sync book statistics."),
           shown_notifications[#shown_notifications]
         )
         assert.are.equal(0, #shown_messages)

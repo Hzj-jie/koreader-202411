@@ -3961,11 +3961,7 @@ function ReaderStatistics:_syncBookStats(is_silent)
           end
         else
           if not is_silent then
-            Notification:notify(
-              gettext(
-                "Something went wrong when syncing, please check your network connection and try again later."
-              )
-            )
+            Notification:notify(gettext("Failed to sync book statistics."))
           end
         end
         os.remove(work_db_path)

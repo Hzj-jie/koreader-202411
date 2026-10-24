@@ -735,7 +735,6 @@ msgid "Add service"
 msgstr "添加服务"
 
 #: frontend/apps/cloudstorage/syncservice.lua:170
-#: plugins/statistics.koplugin/main.lua:3965
 msgid ""
 "Something went wrong when syncing, please check your network connection and "
 "try again later."
@@ -20604,11 +20603,15 @@ msgstr "没有移除任何书籍的统计信息。"
 msgid "Current statistics"
 msgstr "当前统计数据"
 
-#: plugins/statistics.koplugin/main.lua:3977
+#: plugins/statistics.koplugin/main.lua:3963
+msgid "Failed to sync book statistics."
+msgstr "同步阅读统计失败。"
+
+#: plugins/statistics.koplugin/main.lua:3973
 msgid "Syncing book statistics in the background"
 msgstr "正在后台同步阅读统计"
 
-#: plugins/statistics.koplugin/main.lua:3987
+#: plugins/statistics.koplugin/main.lua:3983
 msgid "Sync is already in progress."
 msgstr "同步已在进行中。"
 
