@@ -366,17 +366,25 @@ ReaderAnnotation.onDocumentRerendered = ReaderAnnotation.setNeedsUpdateFlag
 -- annotation dialog has been shown by then (close-then-open chains).
 function ReaderAnnotation:trackChangingWidget(widget)
   if not self._changing_file then
+    assert(self._changing_widgets == 0)
     local file = self.ui.document.file
     assert(_startChanging(file)) -- also catches a dialog opened from inside a callback
     self._changing_file = file
+    self._changing_widgets = 1
+  else
+    assert(
+      self._changing_widgets >= 0
+        and self._changing_file == self.ui.document.file
+    )
+    self._changing_widgets = self._changing_widgets + 1
   end
-  self._changing_widgets = self._changing_widgets + 1
   local orig_onClose = widget.onClose
   widget.onClose = function(w, ...)
     widget.onClose = orig_onClose
     if orig_onClose then
       orig_onClose(w, ...)
     end
+    assert(self._changing_widgets > 0)
     self._changing_widgets = self._changing_widgets - 1
     if self._changing_widgets == 0 then
       UIManager:nextTick(function()
