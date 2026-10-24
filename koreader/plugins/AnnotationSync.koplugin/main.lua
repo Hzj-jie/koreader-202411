@@ -302,6 +302,7 @@ function AnnotationSyncPlugin:onTimesChange_1M()
 end
 
 function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
+  assert(not self.is_applying_sync)
   self.is_applying_sync = true
   annotations.normalize(merged_list)
 
@@ -351,6 +352,7 @@ function AnnotationSyncPlugin:applySyncedAnnotations(document, merged_list)
     annotation_sidecar:save("annotations_externally_modified", true)
     annotation_sidecar:flush()
   end
+  assert(self.is_applying_sync)
   self.is_applying_sync = false
 end
 

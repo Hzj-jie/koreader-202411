@@ -163,6 +163,7 @@ function SyncManager:_moveToFront(file)
 end
 
 function SyncManager:_startSync(file, trigger, trash)
+  assert(self.running == file)
   if lfs.attributes(file, "mode") ~= "file" then
     logger.warn("AnnotationSync: file missing, removing from sync list:", file)
     self:removeFromChangedDocumentsFileByPath(file)
@@ -276,6 +277,7 @@ function SyncManager:_startSync(file, trigger, trash)
           time = os.time(),
           failed = not item.success,
         }
+        assert(self.running == file)
         self.running = nil
         -- A Manual Sync asked before this job ran is answered here.
         if trigger == MANUAL_SYNC then
@@ -563,16 +565,7 @@ end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
-  local ok, err = util.writeToFile(dump(changed_docs), track_path, true)
-  if not ok then
-    logger.warn(
-      "AnnotationSync: Failed to write changed documents file:",
-      track_path,
-      "(",
-      tostring(err),
-      ")"
-    )
-  end
+  assert(util.writeToFile(dump(changed_docs), track_path, true))
 end
 
 function SyncManager:scanLibraryForUnsyncedDocuments()
