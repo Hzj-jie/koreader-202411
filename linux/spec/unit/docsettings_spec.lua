@@ -2028,5 +2028,24 @@ describe("docsettings module", function()
         assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_name))
       end
     )
+
+    it("asserts doc_path is a non-empty string in DocSettings:open", function()
+      assert.has_error(function()
+        docsettings:open(nil)
+      end, "DocSettings: doc_path must not be nil or empty")
+      assert.has_error(function()
+        docsettings:open("")
+      end, "DocSettings: doc_path must not be nil or empty")
+    end)
+
+    it(
+      "asserts when flush is called on an instance created by openSettingsFile",
+      function()
+        local inst = docsettings.openSettingsFile("/tmp/dummy_settings.lua")
+        assert.has_error(function()
+          inst:flush()
+        end, "DocSettings: doc_path must not be nil or empty")
+      end
+    )
   end)
 end)

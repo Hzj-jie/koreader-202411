@@ -142,9 +142,10 @@ function DocSettings:getFileFromHistory(hist_name)
 end
 
 local function getCandidates(doc_path)
-  if not doc_path or doc_path == "" then
-    return {}
-  end
+  assert(
+    type(doc_path) == "string" and doc_path ~= "",
+    "DocSettings: doc_path must not be nil or empty"
+  )
 
   local dir, filename = util.splitFilePathName(doc_path)
   local stem_name = util.splitFileNameSuffix(filename)
@@ -303,16 +304,12 @@ end
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn DocSettings object
 function DocSettings:open(doc_path)
-  assert(
-    doc_path and doc_path ~= "",
-    "DocSettings: doc_path must not be nil or empty"
-  )
   -- NOTE: Beware, our new instance is new, but self is still DocSettings!
   local new = DocSettings:extend({})
 
+  new.candidates = getCandidates(doc_path)
   new.doc_path = doc_path
   new.sidecar_filename = DocSettings.getSidecarFilename(doc_path)
-  new.candidates = getCandidates(doc_path)
 
   local existing = {}
   for i, cand in ipairs(new.candidates) do
