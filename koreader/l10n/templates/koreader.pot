@@ -658,7 +658,6 @@ msgid "Add service"
 msgstr ""
 
 #: frontend/apps/cloudstorage/syncservice.lua:170
-#: plugins/statistics.koplugin/main.lua:3965
 msgid ""
 "Something went wrong when syncing, please check your network connection and "
 "try again later."
@@ -18901,11 +18900,15 @@ msgstr ""
 msgid "Current statistics"
 msgstr ""
 
-#: plugins/statistics.koplugin/main.lua:3977
+#: plugins/statistics.koplugin/main.lua:3963
+msgid "Failed to sync book statistics."
+msgstr ""
+
+#: plugins/statistics.koplugin/main.lua:3973
 msgid "Syncing book statistics in the background"
 msgstr ""
 
-#: plugins/statistics.koplugin/main.lua:3987
+#: plugins/statistics.koplugin/main.lua:3983
 msgid "Sync is already in progress."
 msgstr ""
 
