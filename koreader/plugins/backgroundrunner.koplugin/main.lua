@@ -173,7 +173,6 @@ end
 -- @treturn boolean true if job is valid.
 function BackgroundRunner:_executeJob(job)
   assert(job ~= nil)
-  job.start_sec = os.time()
   assert(type(job.executable) == "string" or type(job.executable) == "function")
 
   if type(job.executable) == "string" then
