@@ -1257,4 +1257,44 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(19, tonumber(pr))
     end
   )
+
+  it("asserts when ffiUtil.runInSubProcess fails in CommandRunner:start", function()
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local ffiUtil = require("ffi/util")
+    local old_runInSubProcess = ffiUtil.runInSubProcess
+    ffiUtil.runInSubProcess = function()
+      return false, "fork failed"
+    end
+
+    CommandRunner.running_jobs = {}
+    assert.has_error(function()
+      CommandRunner:start({
+        executable = "fork",
+        action = function() end,
+      })
+    end)
+    assert.are.equal(0, #CommandRunner.running_jobs)
+
+    ffiUtil.runInSubProcess = old_runInSubProcess
+  end)
+
+  it("asserts when io.popen fails in CommandRunner:start", function()
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local old_popen = io.popen
+    io.popen = function()
+      return nil, "popen failed"
+    end
+
+    CommandRunner.running_jobs = {}
+    assert.has_error(function()
+      CommandRunner:start({
+        executable = "dummy_command",
+      })
+    end)
+    assert.are.equal(0, #CommandRunner.running_jobs)
+
+    io.popen = old_popen
+  end)
 end)
