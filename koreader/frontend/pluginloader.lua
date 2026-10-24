@@ -68,10 +68,7 @@ function PluginLoader:loadPlugins()
     end
     if type(extra_paths) == "table" then
       for _, extra_path in ipairs(extra_paths) do
-        if
-          lfs.attributes(extra_path, "mode") == "directory"
-          and not util.arrayContains(lookup_path_list, extra_path)
-        then
+        if not util.arrayContains(lookup_path_list, extra_path) then
           table.insert(lookup_path_list, extra_path)
         end
       end
@@ -85,7 +82,11 @@ function PluginLoader:loadPlugins()
   end
   for _, lookup_path in ipairs(lookup_path_list) do
     logger.info("Loading plugins from directory:", lookup_path)
-    for entry in lfs.dir(lookup_path) do
+    local iter, dir_obj, err = lfs.dir(lookup_path)
+    if not iter then
+      logger.warn("Failed to open plugin directory:", lookup_path, err)
+    else
+      for entry in iter, dir_obj do
       local plugin_root = lookup_path .. "/" .. entry
       local plugin_code_name = entry:sub(1, -10)
       -- valid koreader plugin directory
@@ -141,6 +142,7 @@ function PluginLoader:loadPlugins()
         end
       end
     end
+  end
   end
 
   table.sort(self.enabled_plugins, function(v1, v2)
