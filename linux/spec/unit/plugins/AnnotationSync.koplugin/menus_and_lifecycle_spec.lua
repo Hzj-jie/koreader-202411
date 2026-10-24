@@ -711,18 +711,18 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             os.remove(gestures_path)
           end)
 
-          assert.is_nil(
+          assert.has_error(function()
             sync_instance.manager:getLocalSettingValue("no_colon", {})
-          )
-          assert.is_nil(
+          end)
+          assert.has_error(function()
             sync_instance.manager:getLocalSettingValue("unknown:foo", {})
-          )
-          assert.is_false(
+          end)
+          assert.has_error(function()
             sync_instance.manager:_writeLocalSettingValue("no_colon", 1)
-          )
-          assert.is_false(
+          end)
+          assert.has_error(function()
             sync_instance.manager:_writeLocalSettingValue("unknown:foo", 1)
-          )
+          end)
 
           assert.is_true(
             sync_instance.manager:_writeLocalSettingValue(

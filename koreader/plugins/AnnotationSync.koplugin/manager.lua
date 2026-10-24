@@ -143,6 +143,7 @@ function SyncManager:_loadChangedDocuments()
 end
 
 function SyncManager:_movePendingDocumentToBack(file)
+  assert(file)
   local list = self:_loadChangedDocuments()
   local idx = util.arrayContains(list, file)
   if idx then
@@ -545,6 +546,7 @@ function SyncManager:getPendingChangedDocuments()
 end
 
 function SyncManager:addToChangedDocumentsFile(file)
+  assert(file)
   local list = self:_loadChangedDocuments()
   if not util.arrayContains(list, file) then
     table.insert(list, file)
@@ -553,6 +555,7 @@ function SyncManager:addToChangedDocumentsFile(file)
 end
 
 function SyncManager:removeFromChangedDocumentsFileByPath(file)
+  assert(file)
   -- A request lives only while its book is queued.
   self.requested[file] = nil
   local list = self:_loadChangedDocuments()
@@ -572,15 +575,13 @@ function SyncManager:scanLibraryForUnsyncedDocuments()
   local added_files = {}
   local count = 0
 
-  if readhistory and type(readhistory.hist) == "table" then
-    for _, item in ipairs(readhistory.hist) do
-      if item and item.file and lfs.attributes(item.file, "mode") == "file" then
-        if
-          docsettings:hasSidecarFile(item.file) and not added_files[item.file]
-        then
-          added_files[item.file] = true
-          count = count + 1
-        end
+  for _, item in ipairs(readhistory.hist) do
+    if lfs.attributes(item.file, "mode") == "file" then
+      if
+        docsettings:hasSidecarFile(item.file) and not added_files[item.file]
+      then
+        added_files[item.file] = true
+        count = count + 1
       end
     end
   end
@@ -660,10 +661,6 @@ end
 
 function SyncManager:cleanOrphanSyncFiles()
   local tmp_dir = DataStorage:getTmpDir()
-  if not tmp_dir then
-    return
-  end
-
   for entry in lfs.dir(tmp_dir) do
     if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
       os.remove(tmp_dir .. "/" .. entry)
@@ -742,9 +739,7 @@ end
 
 function SyncManager:getLocalSettingValue(key, caches)
   local domain, full_key = key:match("^([^:]+):(.*)$")
-  if not domain or not full_key then
-    return nil
-  end
+  assert(domain and full_key ~= "")
 
   if domain == "reader" then
     if caches.reader == nil then
@@ -764,7 +759,8 @@ function SyncManager:getLocalSettingValue(key, caches)
       caches.defaults = ok and active_defaults or {}
     end
     return utils.get_nested_value(caches.defaults, full_key)
-  elseif domain:match("^settings/") then
+  else
+    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     if caches[settings_name] == nil then
       local filepath = DataStorage:getSettingsDir()
@@ -779,7 +775,6 @@ function SyncManager:getLocalSettingValue(key, caches)
       return utils.get_nested_value(tbl, full_key)
     end
   end
-  return nil
 end
 
 local function save_nested_setting(settings_obj, parts, value)
@@ -808,9 +803,7 @@ end
 
 function SyncManager:_writeLocalSettingValue(key, value)
   local domain, full_key = key:match("^([^:]+):(.*)$")
-  if not domain or not full_key then
-    return false
-  end
+  assert(domain and full_key ~= "")
 
   local LuaSettings = require("luasettings")
   local parts = utils.split_setting_path(full_key)
@@ -825,7 +818,8 @@ function SyncManager:_writeLocalSettingValue(key, value)
   elseif domain == "defaults" then
     save_nested_setting(G_defaults, parts, value)
     return true
-  elseif domain:match("^settings/") then
+  else
+    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     local filepath = DataStorage:getSettingsDir()
       .. "/"
@@ -835,7 +829,6 @@ function SyncManager:_writeLocalSettingValue(key, value)
     save_nested_setting(settings_obj, parts, value)
     return true
   end
-  return false
 end
 
 function SyncManager:pullSettings()

@@ -433,6 +433,7 @@ function AnnotationSyncPlugin:onSyncServiceConfirm(server)
 end
 
 function AnnotationSyncPlugin:manualSync()
+  assert(self.ui.document and self.ui.document.file)
   self.manager:syncNow(self.ui.document.file)
 end
 
@@ -477,6 +478,7 @@ function AnnotationSyncPlugin:onAnnotationsModified(_)
     return
   end
 
+  assert(self.ui.document and self.ui.document.file)
   logger.dbg(
     "AnnotationSync: Document annotations modified:",
     self.ui.document.file
