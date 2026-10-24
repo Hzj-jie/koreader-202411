@@ -218,6 +218,36 @@ describe("PluginLoader module", function()
       end
       assert.is_true(found_extra)
     end)
+
+    it("should warn and continue when extra_plugin_paths entry cannot be opened", function()
+      local logger = require("logger")
+      local orig_warn = logger.warn
+      local warned_path, warned_err
+      logger.warn = function(msg, path, err)
+        warned_path = path
+        warned_err = err
+      end
+      finally(function()
+        logger.warn = orig_warn
+        mock_extra_paths = nil
+      end)
+
+      mock_disabled_plugins["checkers"] = false
+      mock_extra_paths = { "/nonexistent/extra/plugins", "/extra/plugins" }
+
+      local enabled = PluginLoader:loadPlugins()
+      assert.is_not_nil(warned_path)
+      assert.are.equal("/nonexistent/extra/plugins", warned_path)
+      assert.is_not_nil(warned_err)
+
+      local found_extra = false
+      for _, p in ipairs(enabled) do
+        if p.name == "Extra1" then
+          found_extra = true
+        end
+      end
+      assert.is_true(found_extra)
+    end)
   end)
 
   describe("genPluginManagerMenu", function()

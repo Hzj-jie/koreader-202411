@@ -921,8 +921,9 @@ function ReaderStatistics:migrateToDB(conn)
     end
   end
   -- import from stats files (for backward compatibility)
-  if lfs.attributes(statistics_dir, "mode") == "directory" then
-    for curr_file in lfs.dir(statistics_dir) do
+  local iter, dir_obj = lfs.dir(statistics_dir)
+  if iter then
+    for curr_file in iter, dir_obj do
       local path = statistics_dir .. curr_file
       if lfs.attributes(path, "mode") == "file" then
         local old_data = self:importFromFile(statistics_dir, curr_file)
