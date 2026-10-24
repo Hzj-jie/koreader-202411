@@ -496,25 +496,14 @@ end
 -- merge has reached the book: a base ahead of the book makes the next sync
 -- read the remote additions as local deletions and tombstone them.
 function SyncManager:_promoteSyncBase(file, uploaded_json)
-  local cached_path = self:getSyncCachePath(file)
-  local ok, err = util.writeToFile(uploaded_json, cached_path)
-  if not ok then
-    logger.warn(
-      "AnnotationSync: Failed to write merge base:",
-      cached_path,
-      "(",
-      tostring(err),
-      ")"
-    )
-  end
+  assert(util.writeToFile(uploaded_json, self:getSyncCachePath(file)))
 end
 
 function SyncManager:getSyncCachePath(file)
-  local cand = docsettings:getCustomLocationCandidate(file)
-  if not cand then
-    return nil
-  end
-  return cand.dir .. "/" .. self:_getAnnotationFilename(file) .. ".sync"
+  return docsettings:getCustomLocationCandidate(file).dir
+    .. "/"
+    .. self:_getAnnotationFilename(file)
+    .. ".sync"
 end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp
@@ -523,15 +512,10 @@ function SyncManager:_writeAnnotationsJSON(document)
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
-  local tmp_dir = DataStorage:getTmpDir()
-  if not tmp_dir or tmp_dir == "" then
-    return false
-  end
-
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     self:getAnnotationsForDocument(document),
-    tmp_dir,
+    DataStorage:getTmpDir(),
     filename
   )
 end

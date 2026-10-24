@@ -528,4 +528,16 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     end)
     util.writeToFile = old_writeToFile
   end)
+
+  it("asserts in _promoteSyncBase when writeToFile fails", function()
+    local util = require("util")
+    local old_writeToFile = util.writeToFile
+    util.writeToFile = function(...)
+      return false, "write error"
+    end
+    assert.has_error(function()
+      sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
+    end)
+    util.writeToFile = old_writeToFile
+  end)
 end)

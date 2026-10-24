@@ -808,9 +808,9 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       it(
         "covers annotations.sort coordinate ordering and utils.read_json error cases",
         function()
-          assert.is_false(
+          assert.has_error(function()
             annotations.write_annotations_json({}, nil, "out.json")
-          )
+          end)
 
           local items = {
             {
