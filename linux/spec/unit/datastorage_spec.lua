@@ -381,6 +381,51 @@ describe("DataStorage module", function()
   )
 
   it(
+    "should log warning and show modal confirmation when mkdir fails in initDataDir",
+    function()
+      local mock_lfs = require("libs/libkoreader-lfs")
+      local orig_mkdir = mock_lfs.mkdir
+      local orig_attributes = mock_lfs.attributes
+      mock_lfs.attributes = function(path, mode)
+        if mode == "mode" then
+          if path == DataStorage:getDataDir() then
+            return "directory"
+          elseif path:find("tmp") then
+            return nil
+          end
+        end
+        return orig_attributes(path, mode)
+      end
+      mock_lfs.mkdir = function(path)
+        if path:find("tmp") then
+          return nil, "disk full"
+        end
+        return orig_mkdir(path)
+      end
+
+      DataStorage = require("datastorage")
+
+      local UIManager = require("ui/uimanager")
+      local shown_widget = nil
+      local orig_show = UIManager.show
+
+      UIManager.show = function(_, widget)
+        shown_widget = widget
+      end
+
+      DataStorage:showStorageWarningIfNeeded()
+      assert.is_not_nil(shown_widget)
+      assert.is_truthy(
+        shown_widget.text:find("Failed to create some application data directories")
+      )
+
+      UIManager.show = orig_show
+      mock_lfs.mkdir = orig_mkdir
+      mock_lfs.attributes = orig_attributes
+    end
+  )
+
+  it(
     "should make storage warning non-dismissable to prevent accidental quit",
     function()
       env_mock["KO_MULTIUSER"] = "true"

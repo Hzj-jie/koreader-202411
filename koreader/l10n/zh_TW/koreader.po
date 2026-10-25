@@ -93,6 +93,12 @@ msgid ""
 msgstr ""
 "主要儲存空間為唯讀。設定將儲存至暫存空間中，並在裝置重新啟動後可能遺失。"
 
+#: datastorage.lua:199
+msgid ""
+"Failed to create some application data directories. Some features may not "
+"work properly."
+msgstr "建立部分應用程式資料目錄失敗。部分功能可能無法正常運作。"
+
 #: datastorage.lua:201 frontend/ui/trapper.lua:162
 #: frontend/ui/wikipedia.lua:1728 plugins/calibre.koplugin/wireless.lua:234
 #: plugins/coverbrowser.koplugin/bookinfomanager.lua:891
