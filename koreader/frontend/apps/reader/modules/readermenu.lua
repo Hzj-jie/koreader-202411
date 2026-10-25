@@ -20,6 +20,7 @@ local ReaderMenu = InputContainer:extend({
 })
 
 function ReaderMenu:init()
+  assert(self.ui ~= nil and self.ui.document ~= nil)
   self.menu_items = {
     ["KOMenu:menu_buttons"] = {
       -- top menu
@@ -270,12 +271,8 @@ function ReaderMenu:setUpdateItemTable()
     local ss_book_settings = {
       text = gettext("Do not show this book cover on sleep screen"),
       enabled_func = function()
-        if self.ui and self.ui.document then
-          local screensaverType = G_reader_settings:read("screensaver_type")
-          return screensaverType == "cover" or screensaverType == "disable"
-        else
-          return false
-        end
+        local screensaverType = G_reader_settings:read("screensaver_type")
+        return screensaverType == "cover" or screensaverType == "disable"
       end,
       checked_func = function()
         return self.ui
