@@ -259,35 +259,34 @@ function SettingsSelection.build_tree(plugin)
   -- 3. Compare files in settings/ directory
   local vanilla_settings_dir = plugin.path .. "/defaults/settings"
   local active_settings_dir = DataStorage:getSettingsDir()
-  local iter, dir_obj = lfs.dir(vanilla_settings_dir)
-  if iter then
-    for entry in iter, dir_obj do
-      if entry ~= "." and entry ~= ".." then
-        local filepath = vanilla_settings_dir .. "/" .. entry
-        if
-          lfs.attributes(filepath, "mode") == "file" and entry:match("%.lua$")
-        then
-          local name = entry:gsub("%.lua$", "")
-          local domain = "settings/" .. name
-          if not excluded[domain] then
-            local file_branch = {
-              type = "branch",
-              domain = domain,
-              key = name,
-              full_key = name,
-              children = {},
-            }
+  local iter, dir_obj, err = lfs.dir(vanilla_settings_dir)
+  assert(iter, err)
+  for entry in iter, dir_obj do
+    if entry ~= "." and entry ~= ".." then
+      local filepath = vanilla_settings_dir .. "/" .. entry
+      if
+        lfs.attributes(filepath, "mode") == "file" and entry:match("%.lua$")
+      then
+        local name = entry:gsub("%.lua$", "")
+        local domain = "settings/" .. name
+        if not excluded[domain] then
+          local file_branch = {
+            type = "branch",
+            domain = domain,
+            key = name,
+            full_key = name,
+            children = {},
+          }
 
-            compare_settings_file(
-              domain,
-              filepath,
-              active_settings_dir .. "/" .. entry,
-              file_branch
-            )
+          compare_settings_file(
+            domain,
+            filepath,
+            active_settings_dir .. "/" .. entry,
+            file_branch
+          )
 
-            if #file_branch.children > 0 then
-              table.insert(root.children, file_branch)
-            end
+          if #file_branch.children > 0 then
+            table.insert(root.children, file_branch)
           end
         end
       end
