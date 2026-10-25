@@ -281,6 +281,38 @@ describe("InputDialog widget", function()
     dialog:onCloseDialog()
 
   end)
+
+  it("default enter_callback does not invoke callback when default button is disabled", function()
+    local called = false
+    local dialog = InputDialog:new({
+      title = "Enter Callback Test",
+      buttons = {
+        {
+          {
+            text = "Save",
+            id = "save",
+            is_enter_default = true,
+            enabled = false,
+            callback = function()
+              called = true
+            end,
+          },
+        },
+      },
+    })
+
+    dialog.enter_callback()
+    assert.is_false(called)
+
+    dialog:enableButton("save")
+    dialog.enter_callback()
+    assert.is_true(called)
+
+    called = false
+    dialog:disableButton("save")
+    dialog.enter_callback()
+    assert.is_false(called)
+  end)
 end)
 
 
