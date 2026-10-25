@@ -550,4 +550,20 @@ describe("InputText widget module", function()
       Device.input.setClipboardText = orig_set_cb
     end)
   end)
+
+  describe("onKeyPress Back key handling", function()
+    it("unfocuses and returns true when focused, returns false when unfocused", function()
+      local Key = require("device/key")
+      local input = require("ui/widget/inputtext"):new({
+        text = "sample",
+      })
+      input.focused = true
+      local back_key = Key:new("Back", {})
+      assert.is_true(input:onKeyPress(back_key))
+      assert.is_false(input.focused)
+
+      assert.is_false(input:onKeyPress(back_key))
+      assert.is_false(input:_handleControlKeys(back_key))
+    end)
+  end)
 end)
