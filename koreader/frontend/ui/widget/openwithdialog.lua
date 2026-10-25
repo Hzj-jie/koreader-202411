@@ -123,6 +123,7 @@ function OpenWithDialog:init()
 end
 
 function OpenWithDialog:onClose()
+  InputDialog.onClose(self)
   UIManager:setDirty(nil, function()
     return "ui", self.dialog_frame.dimen
   end)
