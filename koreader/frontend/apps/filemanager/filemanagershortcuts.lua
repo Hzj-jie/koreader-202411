@@ -141,6 +141,9 @@ function FileManagerShortcuts:editShortcut(folder, post_callback)
           enabled = (name == nil), -- New shortcut with default value as hint.
           callback = function()
             local new_name = input_dialog:getInputText()
+            if name == nil and new_name == "" then
+              new_name = FFIUtil.basename(folder)
+            end
             assert(new_name ~= nil and new_name ~= "" and new_name ~= name)
             UIManager:close(input_dialog)
             if item then
