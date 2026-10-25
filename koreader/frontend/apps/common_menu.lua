@@ -2,6 +2,8 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
+local logger = require("logger")
+local util = require("util")
 
 local CommonMenu = {}
 
@@ -24,6 +26,10 @@ function CommonMenu:exitOrRestart(before_exit, ui, after_exit, force)
   end
 
   before_exit()
+  if util.isMonkeyTest() then
+    logger.warn("exitOrRestart is ignored in monkey test mode.")
+    return
+  end
   UIManager:nextTick(function()
     ui:onExit()
     if after_exit then

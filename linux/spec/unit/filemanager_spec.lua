@@ -1254,4 +1254,78 @@ describe("FileManager module", function()
 
     assert.are.equal(1, on_exit_count)
   end)
+
+  describe("FileChooser:onBack in monkey test mode", function()
+    it("should ignore onBack exit when back_to_exit is 'always'", function()
+      local core_util = require("util")
+      local old_isMonkeyTest = core_util.isMonkeyTest
+      local old_back_to_exit = G_named_settings.back_to_exit
+      core_util.isMonkeyTest = function()
+        return true
+      end
+      G_named_settings.back_to_exit = function()
+        return "always"
+      end
+
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = "spec/unit/data",
+      })
+      local exit_called = false
+      filemanager.file_chooser.onExit = function()
+        exit_called = true
+      end
+
+      local ret = filemanager.file_chooser:onBack()
+
+      core_util.isMonkeyTest = old_isMonkeyTest
+      G_named_settings.back_to_exit = old_back_to_exit
+      filemanager:onExit()
+
+      assert.is_true(ret)
+      assert.is_false(exit_called)
+    end)
+
+    it(
+      "should show ConfirmBox but ignore OK callback when back_to_exit is 'prompt'",
+      function()
+        local core_util = require("util")
+        local old_isMonkeyTest = core_util.isMonkeyTest
+        local old_back_to_exit = G_named_settings.back_to_exit
+        core_util.isMonkeyTest = function()
+          return true
+        end
+        G_named_settings.back_to_exit = function()
+          return "prompt"
+        end
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = "spec/unit/data",
+        })
+        local exit_called = false
+        filemanager.file_chooser.onExit = function()
+          exit_called = true
+        end
+
+        local shown_widget
+        filemanager.file_chooser.showWidget = function(self, w)
+          shown_widget = w
+        end
+
+        local ret = filemanager.file_chooser:onBack()
+        assert.is_true(ret)
+        assert.is_not_nil(shown_widget)
+        assert.is_not_nil(shown_widget.ok_callback)
+
+        shown_widget.ok_callback()
+
+        core_util.isMonkeyTest = old_isMonkeyTest
+        G_named_settings.back_to_exit = old_back_to_exit
+        filemanager:onExit()
+
+        assert.is_false(exit_called)
+      end
+    )
+  end)
 end)
