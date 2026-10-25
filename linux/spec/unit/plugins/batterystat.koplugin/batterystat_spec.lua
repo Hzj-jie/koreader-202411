@@ -1,8 +1,14 @@
 describe("BatteryState plugin tests #nocov", function()
   local MockTime, module, time
 
+  local stub_ui = {
+    menu = {
+      registerToMainMenu = function() end,
+    },
+  }
+
   local stat = function() --luacheck: ignore
-    return module:new():stat()
+    return module:new({ ui = stub_ui }):stat()
   end
 
   local function resetAll(widget)
@@ -315,7 +321,7 @@ describe("BatteryState plugin tests #nocov", function()
 
   describe("BatteryStatWidget callbacks and menu registration", function()
     it("should forward events from BatteryStatWidget to BatteryStat", function()
-      local plugin_widget = module:new()
+      local plugin_widget = module:new({ ui = stub_ui })
       local bs = plugin_widget:stat()
       local flushed, suspended, resumed = false, false, false
       local orig_flush = bs.onFlushSettings
@@ -347,7 +353,7 @@ describe("BatteryState plugin tests #nocov", function()
     end)
 
     it("should register battery statistics in main menu", function()
-      local plugin_widget = module:new()
+      local plugin_widget = module:new({ ui = stub_ui })
       local menu_items = {}
       plugin_widget:addToMainMenu(menu_items)
 

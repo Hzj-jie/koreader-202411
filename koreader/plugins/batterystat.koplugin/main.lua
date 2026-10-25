@@ -325,10 +325,6 @@ function BatteryStatWidget:onDispatcherRegisterActions()
 end
 
 function BatteryStatWidget:init()
-  -- self.ui is nil in test cases.
-  if not self.ui or not self.ui.menu then
-    return
-  end
   self:onDispatcherRegisterActions()
   self.ui.menu:registerToMainMenu(self)
 end
