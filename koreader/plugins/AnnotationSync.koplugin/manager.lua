@@ -510,10 +510,15 @@ function SyncManager:_promoteSyncBase(file, uploaded_json)
 end
 
 function SyncManager:getSyncCachePath(file)
-  return docsettings:getCustomLocationCandidate(file).dir
-    .. "/"
-    .. self:_getAnnotationFilename(file)
-    .. ".sync"
+  local cand = docsettings:getCustomLocationCandidate(file)
+  if not cand or not cand.dir then
+    return nil
+  end
+  local filename = self:_getAnnotationFilename(file)
+  if not filename then
+    return nil
+  end
+  return cand.dir .. "/" .. filename .. ".sync"
 end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp

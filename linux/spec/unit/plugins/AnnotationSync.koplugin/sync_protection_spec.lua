@@ -556,4 +556,20 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     Notification.notify = orig_notify
     util.writeToFile = old_writeToFile
   end)
+
+  it("returns nil in getSyncCachePath when getCustomLocationCandidate returns nil", function()
+    local docsettings = require("frontend/docsettings")
+    local orig_getCustomLocationCandidate = docsettings.getCustomLocationCandidate
+    docsettings.getCustomLocationCandidate = function()
+      return nil
+    end
+
+    local path = sync_instance.manager:getSyncCachePath(readerui.document.file)
+    assert.is_nil(path)
+
+    local ok = sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
+    assert.is_false(ok)
+
+    docsettings.getCustomLocationCandidate = orig_getCustomLocationCandidate
+  end)
 end)
