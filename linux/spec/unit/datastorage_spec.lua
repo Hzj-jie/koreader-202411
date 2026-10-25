@@ -388,16 +388,14 @@ describe("DataStorage module", function()
       local orig_attributes = mock_lfs.attributes
       mock_lfs.attributes = function(path, mode)
         if mode == "mode" then
-          if path == DataStorage:getDataDir() then
-            return "directory"
-          elseif path:find("tmp") then
+          if path:match("/tmp$") then
             return nil
           end
         end
         return orig_attributes(path, mode)
       end
       mock_lfs.mkdir = function(path)
-        if path:find("tmp") then
+        if path:match("/tmp$") then
           return nil, "disk full"
         end
         return orig_mkdir(path)
