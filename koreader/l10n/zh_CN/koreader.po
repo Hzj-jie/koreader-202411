@@ -15236,6 +15236,14 @@ msgstr "未选择任何设置。请在“显示已更改的设置”中选择要
 msgid "Failed to write settings to local storage."
 msgstr "无法将设置写入本地存储。"
 
+#: plugins/AnnotationSync.koplugin/manager.lua:505
+msgid "Failed to save sync cache to disk."
+msgstr "无法将同步缓存保存到磁盘。"
+
+#: plugins/AnnotationSync.koplugin/manager.lua:571
+msgid "Failed to save sync queue to disk."
+msgstr "无法将同步队列保存到磁盘。"
+
 #: plugins/AnnotationSync.koplugin/manager.lua:740
 msgid "Pushing settings to cloud..."
 msgstr "正在上传设置到云端…"

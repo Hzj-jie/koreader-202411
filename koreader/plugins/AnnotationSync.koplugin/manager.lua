@@ -496,7 +496,17 @@ end
 -- merge has reached the book: a base ahead of the book makes the next sync
 -- read the remote additions as local deletions and tombstone them.
 function SyncManager:_promoteSyncBase(file, uploaded_json)
-  assert(util.writeToFile(uploaded_json, self:getSyncCachePath(file)))
+  local cache_path = self:getSyncCachePath(file)
+  if not cache_path then
+    return false
+  end
+  local ok, err = util.writeToFile(uploaded_json, cache_path)
+  if not ok then
+    logger.warn("AnnotationSync: failed to write sync base:", err)
+    Notification:notify(gettext("Failed to save sync cache to disk."))
+    return false
+  end
+  return true
 end
 
 function SyncManager:getSyncCachePath(file)
@@ -552,7 +562,13 @@ end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
-  assert(util.writeToFile(dump(changed_docs), track_path, true))
+  local ok, err = util.writeToFile(dump(changed_docs), track_path, true)
+  if not ok then
+    logger.warn("AnnotationSync: failed to write changed documents file:", err)
+    Notification:notify(gettext("Failed to save sync queue to disk."))
+    return false
+  end
+  return true
 end
 
 function SyncManager:scanLibraryForUnsyncedDocuments()
