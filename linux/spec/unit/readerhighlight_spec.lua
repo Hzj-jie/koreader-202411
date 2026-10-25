@@ -70,6 +70,7 @@ describe("Readerhighlight module", function()
     readerui.highlight:saveHighlight()
     readerui.highlight:clear()
     UIManager:close(readerui.highlight.highlight_dialog)
+    assert.is_nil(readerui.highlight.edit_highlight_dialog)
     readerui.highlight:onTap(nil, { pos = pos2 })
     assert.truthy(readerui.highlight.edit_highlight_dialog)
     UIManager:close(readerui.highlight.edit_highlight_dialog)
@@ -199,7 +200,7 @@ describe("Readerhighlight module", function()
           readerui,
           Geom:new({ x = 260, y = 70 }),
           Geom:new({ x = 260, y = 150 }),
-          Geom:new({ x = 280, y = 110 })
+          Geom:new({ x = 280, y = 100 })
         )
         Screen:shot("screenshots/reader_tap_highlight_text_pdf_scanned.png")
       end)
@@ -238,7 +239,7 @@ describe("Readerhighlight module", function()
           readerui,
           Geom:new({ x = 260, y = 70 }),
           Geom:new({ x = 260, y = 150 }),
-          Geom:new({ x = 280, y = 110 })
+          Geom:new({ x = 280, y = 73 })
         )
         Screen:shot("screenshots/reader_tap_highlight_text_pdf_reflowed.png")
       end)
@@ -384,7 +385,7 @@ describe("Readerhighlight module", function()
           readerui,
           Geom:new({ x = 260, y = 70 }),
           Geom:new({ x = 260, y = 150 }),
-          Geom:new({ x = 280, y = 110 })
+          Geom:new({ x = 280, y = 73 })
         )
         Screen:shot(
           "screenshots/reader_tap_highlight_text_pdf_reflowed_scroll.png"
