@@ -6807,6 +6807,10 @@ msgstr "通过连字符 ('-') 或空格 (' ') 添加断字位置。"
 msgid "Invalid hyphenation!"
 msgstr "无效连字符！"
 
+#: frontend/apps/reader/modules/readeruserhyph.lua:226
+msgid "Failed to save user hyphenation dictionary."
+msgstr "保存用户断字词典失败。"
+
 #: frontend/apps/reader/modules/readerview.lua:969
 msgid "Rotation mode set to: %1"
 msgstr "旋转模式已设为: %1"

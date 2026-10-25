@@ -6800,6 +6800,10 @@ msgstr "通過連字元 ('-') 或空格 (' ') 新增斷字位置。"
 msgid "Invalid hyphenation!"
 msgstr "無效的斷字！"
 
+#: frontend/apps/reader/modules/readeruserhyph.lua:226
+msgid "Failed to save user hyphenation dictionary."
+msgstr "儲存使用者斷字詞典失敗。"
+
 #: frontend/apps/reader/modules/readerview.lua:969
 msgid "Rotation mode set to: %1"
 msgstr "旋轉模式已設為：%1"
