@@ -269,34 +269,38 @@ end
 -- and dereference active widgets and their children upon closing, preventing
 -- memory and event propagation leaks.
 function Widget:uimanagedCleanUp() -- final
-  if not self._shown_widgets then
-    return
-  end
-
-  local UIManager = require("ui/uimanager")
   local shown = {}
-  for _, w in ipairs(self._shown_widgets) do
-    UIManager:closeIfShown(w)
-    shown[w] = true
-  end
-  self._shown_widgets = nil
+  if self._shown_widgets then
+    local UIManager = require("ui/uimanager")
+    for _, w in ipairs(self._shown_widgets) do
+      UIManager:closeIfShown(w)
+      shown[w] = true
+    end
+    self._shown_widgets = nil
 
-  -- Dereference the closed child widgets from the parent to prevent memory leaks
-  -- and stale-reference bugs (especially important when the parent widget is
-  -- reused, such as in unit tests).
-  --
-  -- Note on layout children (e.g., self[1]):
-  -- If a developer calls showWidget(self[1]) on a layout child, it gets promoted
-  -- to a top-level window in the UIManager stack. When the parent is closed,
-  -- we MUST close this child window in the first loop to prevent it from leaking
-  -- on the screen.
-  -- However, in this second loop, we MUST skip nilling the array portion
-  -- (type(k) ~= "number") so that the layout child remains in the parent's
-  -- array. Nilling it would create "holes" and corrupt the layout structure,
-  -- causing guaranteed crashes if the parent widget is ever reused.
-  for k, v in pairs(self) do
-    if type(k) ~= "number" and shown[v] then
-      self[k] = nil
+    -- Dereference the closed child widgets from the parent to prevent memory leaks
+    -- and stale-reference bugs (especially important when the parent widget is
+    -- reused, such as in unit tests).
+    --
+    -- Note on layout children (e.g., self[1]):
+    -- If a developer calls showWidget(self[1]) on a layout child, it gets promoted
+    -- to a top-level window in the UIManager stack. When the parent is closed,
+    -- we MUST close this child window in the first loop to prevent it from leaking
+    -- on the screen.
+    -- However, in this second loop, we MUST skip nilling the array portion
+    -- (type(k) ~= "number") so that the layout child remains in the parent's
+    -- array. Nilling it would create "holes" and corrupt the layout structure,
+    -- causing guaranteed crashes if the parent widget is ever reused.
+    for k, v in pairs(self) do
+      if type(k) ~= "number" and shown[v] then
+        self[k] = nil
+      end
+    end
+  end
+
+  for _, v in ipairs(self) do
+    if not shown[v] and type(v) == "table" and v.uimanagedCleanUp then
+      v:uimanagedCleanUp()
     end
   end
 end
