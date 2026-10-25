@@ -499,4 +499,45 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     assert.is_false(ok)
     assert.truthy(err:find("No space left on device"))
   end)
+
+  it("asserts in applySyncedAnnotations if already applying sync", function()
+    sync_instance.is_applying_sync = true
+    assert.has_error(function()
+      sync_instance:applySyncedAnnotations(readerui.document, {})
+    end)
+    sync_instance.is_applying_sync = false
+  end)
+
+  it("asserts in _startSync if self.running does not match file", function()
+    local file = readerui.document.file
+    sync_instance.manager.running = "/tmp/other_file.epub"
+    assert.has_error(function()
+      sync_instance.manager:_startSync(file, "manual")
+    end)
+    sync_instance.manager.running = nil
+  end)
+
+  it("asserts in _writeChangedDocumentsFile when writeToFile fails", function()
+    local util = require("util")
+    local old_writeToFile = util.writeToFile
+    util.writeToFile = function(...)
+      return false, "write error"
+    end
+    assert.has_error(function()
+      sync_instance.manager:_writeChangedDocumentsFile({ "/tmp/file.epub" })
+    end)
+    util.writeToFile = old_writeToFile
+  end)
+
+  it("asserts in _promoteSyncBase when writeToFile fails", function()
+    local util = require("util")
+    local old_writeToFile = util.writeToFile
+    util.writeToFile = function(...)
+      return false, "write error"
+    end
+    assert.has_error(function()
+      sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
+    end)
+    util.writeToFile = old_writeToFile
+  end)
 end)

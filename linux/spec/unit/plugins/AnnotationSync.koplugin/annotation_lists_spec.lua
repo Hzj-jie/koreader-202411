@@ -456,9 +456,9 @@ describe(
         assert.is_not_nil(read_back)
         assert.are.equal("p1x0", read_back[1].text)
 
-        assert.is_false(
+        assert.has_error(function()
           annotations.write_annotations_json({ hl(1, 0) }, nil, "w.json")
-        )
+        end)
         assert.is_false(
           annotations.write_annotations_json(
             { hl(1, 0) },

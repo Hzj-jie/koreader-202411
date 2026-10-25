@@ -1286,12 +1286,17 @@ describe("Background Sync Behavior", function()
       sync_manager:addToChangedDocumentsFile(readerui.document.file)
       sync_manager:dispatchNextSync()
 
-      local job =
-        require("pluginshare").backgroundJobs[#require("pluginshare").backgroundJobs]
+      local jobs =
+        require("pluginshare").backgroundJobs
+      local job1 = jobs[#jobs]
 
       -- Malformed results should not throw errors
-      job.callback({ result = nil })
-      job.callback({ result = "invalid_string" })
+      job1.callback({ result = nil })
+
+      sync_manager.last_sync_time[readerui.document.file] = nil
+      sync_manager:dispatchNextSync()
+      local job2 = jobs[#jobs]
+      job2.callback({ result = "invalid_string" })
 
       -- The changed document remains pending
       local total, _ = sync_manager:getPendingChangedDocuments()

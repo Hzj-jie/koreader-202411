@@ -67,24 +67,26 @@ function CommandRunner:start(job)
       type(job.action) == "function",
       "CommandRunner fork mode requires job.action function"
     )
-    local pid, parent_read_fd = ffiUtil.runInSubProcess(
-      function(_pid, child_write_fd)
-        local res = false
-        local ok, ret = pcall(job.action)
-        if ok then
-          res = ret
-        else
-          logger.warn("CommandRunner: fork action failed:", ret)
-        end
-        local output = string.format(
-          "return { result = %s, timeout = false }\n",
-          require("dump")(res)
-        )
-        ffiUtil.writeToFD(child_write_fd, output, true)
-      end,
-      true,
-      false,
-      job.action
+    local pid, parent_read_fd = assert(
+      ffiUtil.runInSubProcess(
+        function(_pid, child_write_fd)
+          local res = false
+          local ok, ret = pcall(job.action)
+          if ok then
+            res = ret
+          else
+            logger.warn("CommandRunner: fork action failed:", ret)
+          end
+          local output = string.format(
+            "return { result = %s, timeout = false }\n",
+            require("dump")(res)
+          )
+          ffiUtil.writeToFD(child_write_fd, output, true)
+        end,
+        true,
+        false,
+        job.action
+      )
     )
 
     entry = {
@@ -116,7 +118,7 @@ function CommandRunner:start(job)
       .. job.executable
       .. '"'
     logger.dbg("CommandRunner: Will execute command " .. command)
-    local pio = io.popen(command)
+    local pio = assert(io.popen(command))
 
     entry = {
       job = job,

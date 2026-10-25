@@ -143,6 +143,7 @@ function SyncManager:_loadChangedDocuments()
 end
 
 function SyncManager:_movePendingDocumentToBack(file)
+  assert(file)
   local list = self:_loadChangedDocuments()
   local idx = util.arrayContains(list, file)
   if idx then
@@ -163,6 +164,7 @@ function SyncManager:_moveToFront(file)
 end
 
 function SyncManager:_startSync(file, trigger, trash)
+  assert(self.running == file)
   if lfs.attributes(file, "mode") ~= "file" then
     logger.warn("AnnotationSync: file missing, removing from sync list:", file)
     self:removeFromChangedDocumentsFileByPath(file)
@@ -276,6 +278,7 @@ function SyncManager:_startSync(file, trigger, trash)
           time = os.time(),
           failed = not item.success,
         }
+        assert(self.running == file)
         self.running = nil
         -- A Manual Sync asked before this job ran is answered here.
         if trigger == MANUAL_SYNC then
@@ -493,25 +496,14 @@ end
 -- merge has reached the book: a base ahead of the book makes the next sync
 -- read the remote additions as local deletions and tombstone them.
 function SyncManager:_promoteSyncBase(file, uploaded_json)
-  local cached_path = self:getSyncCachePath(file)
-  local ok, err = util.writeToFile(uploaded_json, cached_path)
-  if not ok then
-    logger.warn(
-      "AnnotationSync: Failed to write merge base:",
-      cached_path,
-      "(",
-      tostring(err),
-      ")"
-    )
-  end
+  assert(util.writeToFile(uploaded_json, self:getSyncCachePath(file)))
 end
 
 function SyncManager:getSyncCachePath(file)
-  local cand = docsettings:getCustomLocationCandidate(file)
-  if not cand then
-    return nil
-  end
-  return cand.dir .. "/" .. self:_getAnnotationFilename(file) .. ".sync"
+  return docsettings:getCustomLocationCandidate(file).dir
+    .. "/"
+    .. self:_getAnnotationFilename(file)
+    .. ".sync"
 end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp
@@ -520,15 +512,10 @@ function SyncManager:_writeAnnotationsJSON(document)
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
-  local tmp_dir = DataStorage:getTmpDir()
-  if not tmp_dir or tmp_dir == "" then
-    return false
-  end
-
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     self:getAnnotationsForDocument(document),
-    tmp_dir,
+    DataStorage:getTmpDir(),
     filename
   )
 end
@@ -543,6 +530,7 @@ function SyncManager:getPendingChangedDocuments()
 end
 
 function SyncManager:addToChangedDocumentsFile(file)
+  assert(file)
   local list = self:_loadChangedDocuments()
   if not util.arrayContains(list, file) then
     table.insert(list, file)
@@ -551,6 +539,7 @@ function SyncManager:addToChangedDocumentsFile(file)
 end
 
 function SyncManager:removeFromChangedDocumentsFileByPath(file)
+  assert(file)
   -- A request lives only while its book is queued.
   self.requested[file] = nil
   local list = self:_loadChangedDocuments()
@@ -563,31 +552,20 @@ end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
   local track_path = self:changedDocumentsFile()
-  local ok, err = util.writeToFile(dump(changed_docs), track_path, true)
-  if not ok then
-    logger.warn(
-      "AnnotationSync: Failed to write changed documents file:",
-      track_path,
-      "(",
-      tostring(err),
-      ")"
-    )
-  end
+  assert(util.writeToFile(dump(changed_docs), track_path, true))
 end
 
 function SyncManager:scanLibraryForUnsyncedDocuments()
   local added_files = {}
   local count = 0
 
-  if readhistory and type(readhistory.hist) == "table" then
-    for _, item in ipairs(readhistory.hist) do
-      if item and item.file and lfs.attributes(item.file, "mode") == "file" then
-        if
-          docsettings:hasSidecarFile(item.file) and not added_files[item.file]
-        then
-          added_files[item.file] = true
-          count = count + 1
-        end
+  for _, item in ipairs(readhistory.hist) do
+    if lfs.attributes(item.file, "mode") == "file" then
+      if
+        docsettings:hasSidecarFile(item.file) and not added_files[item.file]
+      then
+        added_files[item.file] = true
+        count = count + 1
       end
     end
   end
@@ -667,10 +645,6 @@ end
 
 function SyncManager:cleanOrphanSyncFiles()
   local tmp_dir = DataStorage:getTmpDir()
-  if not tmp_dir then
-    return
-  end
-
   local iter, dir_obj, err = lfs.dir(tmp_dir)
   assert(iter, err)
   for entry in iter, dir_obj do
@@ -751,9 +725,7 @@ end
 
 function SyncManager:getLocalSettingValue(key, caches)
   local domain, full_key = key:match("^([^:]+):(.*)$")
-  if not domain or not full_key then
-    return nil
-  end
+  assert(domain and full_key ~= "")
 
   if domain == "reader" then
     if caches.reader == nil then
@@ -773,7 +745,8 @@ function SyncManager:getLocalSettingValue(key, caches)
       caches.defaults = ok and active_defaults or {}
     end
     return utils.get_nested_value(caches.defaults, full_key)
-  elseif domain:match("^settings/") then
+  else
+    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     if caches[settings_name] == nil then
       local filepath = DataStorage:getSettingsDir()
@@ -788,7 +761,6 @@ function SyncManager:getLocalSettingValue(key, caches)
       return utils.get_nested_value(tbl, full_key)
     end
   end
-  return nil
 end
 
 local function save_nested_setting(settings_obj, parts, value)
@@ -817,9 +789,7 @@ end
 
 function SyncManager:_writeLocalSettingValue(key, value)
   local domain, full_key = key:match("^([^:]+):(.*)$")
-  if not domain or not full_key then
-    return false
-  end
+  assert(domain and full_key ~= "")
 
   local LuaSettings = require("luasettings")
   local parts = utils.split_setting_path(full_key)
@@ -834,7 +804,8 @@ function SyncManager:_writeLocalSettingValue(key, value)
   elseif domain == "defaults" then
     save_nested_setting(G_defaults, parts, value)
     return true
-  elseif domain:match("^settings/") then
+  else
+    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     local filepath = DataStorage:getSettingsDir()
       .. "/"
@@ -844,7 +815,6 @@ function SyncManager:_writeLocalSettingValue(key, value)
     save_nested_setting(settings_obj, parts, value)
     return true
   end
-  return false
 end
 
 function SyncManager:pullSettings()
