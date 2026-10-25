@@ -48,6 +48,9 @@ function Trapper:wrap(func)
     UIManager:allowStandby()
     if not ok then
       logger.err("error in wrapped function:", err)
+      UIManager:nextTick(function()
+        error(err, 0)
+      end)
       return false
     end
     return true

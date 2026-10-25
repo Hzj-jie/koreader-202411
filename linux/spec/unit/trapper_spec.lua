@@ -55,7 +55,7 @@ describe("Trapper module", function()
     )
 
     it(
-      "should catch and log errors in wrapped functions while resetting standby",
+      "should catch and log errors in wrapped functions while resetting standby and scheduling nextTick error",
       function()
         local prevent_spy = spy.on(UIManager, "preventStandby")
         local allow_spy = spy.on(UIManager, "allowStandby")
@@ -64,6 +64,11 @@ describe("Trapper module", function()
         logger.err = function(...)
           err_called = true
           orig_err(...)
+        end
+        local next_tick_action = nil
+        local orig_nextTick = UIManager.nextTick
+        UIManager.nextTick = function(_, action)
+          next_tick_action = action
         end
 
         local ok, result = Trapper:wrap(function()
@@ -75,7 +80,10 @@ describe("Trapper module", function()
         assert.spy(prevent_spy).was.called(1)
         assert.spy(allow_spy).was.called(1)
         assert.is_true(err_called)
+        assert.is_function(next_tick_action)
+        assert.has_error(next_tick_action)
 
+        UIManager.nextTick = orig_nextTick
         prevent_spy:revert()
         allow_spy:revert()
         logger.err = orig_err
