@@ -1564,6 +1564,131 @@ describe("util module", function()
       assert.is_false(ok)
       assert.is_truthy(err)
     end)
+
+    it("cleans up .new and keeps original file when file:write fails", function()
+      local test_file = "/tmp/test_write_to_file_write_fail.txt"
+      local new_file = test_file .. ".new"
+      os.remove(test_file)
+      os.remove(new_file)
+      local f = io.open(test_file, "w")
+      f:write("original content")
+      f:close()
+
+      local orig_io_open = io.open
+      io.open = function(path, mode)
+        if path == new_file then
+          local real_file = orig_io_open(path, mode)
+          return {
+            write = function() return nil, "disk full" end,
+            close = function()
+              if real_file then real_file:close() end
+              return true
+            end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+      local ok, err = util.writeToFile("new content", test_file)
+      io.open = orig_io_open
+
+      assert.is_false(ok)
+      assert.same("disk full", err)
+      assert.is_nil(lfs.attributes(new_file))
+      local content = util.readFromFile(test_file)
+      assert.same("original content", content)
+      os.remove(test_file)
+    end)
+
+    it("cleans up .new and keeps original file when fsyncOpenedFile fails", function()
+      local test_file = "/tmp/test_write_to_file_sync_fail.txt"
+      local new_file = test_file .. ".new"
+      os.remove(test_file)
+      os.remove(new_file)
+      local f = io.open(test_file, "w")
+      f:write("original content")
+      f:close()
+
+      local ffiUtil = require("ffi/util")
+      local orig_fsync = ffiUtil.fsyncOpenedFile
+      ffiUtil.fsyncOpenedFile = function()
+        return false, "sync error"
+      end
+      local ok, err = util.writeToFile("new content", test_file)
+      ffiUtil.fsyncOpenedFile = orig_fsync
+
+      assert.is_false(ok)
+      assert.same("sync error", err)
+      assert.is_nil(lfs.attributes(new_file))
+      local content = util.readFromFile(test_file)
+      assert.same("original content", content)
+      os.remove(test_file)
+    end)
+
+    it("cleans up .new and keeps original file when file:close fails", function()
+      local test_file = "/tmp/test_write_to_file_close_fail.txt"
+      local new_file = test_file .. ".new"
+      os.remove(test_file)
+      os.remove(new_file)
+      local f = io.open(test_file, "w")
+      f:write("original content")
+      f:close()
+
+      local ffiUtil = require("ffi/util")
+      local orig_fsync = ffiUtil.fsyncOpenedFile
+      ffiUtil.fsyncOpenedFile = function() return true end
+
+      local orig_io_open = io.open
+      io.open = function(path, mode)
+        if path == new_file then
+          local real_file = orig_io_open(path, mode)
+          return {
+            write = function(self, d) return real_file:write(d) end,
+            close = function()
+              if real_file then real_file:close() end
+              return nil, "close error"
+            end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+      local ok, err = util.writeToFile("new content", test_file)
+      io.open = orig_io_open
+      ffiUtil.fsyncOpenedFile = orig_fsync
+
+      assert.is_false(ok)
+      assert.same("close error", err)
+      assert.is_nil(lfs.attributes(new_file))
+      local content = util.readFromFile(test_file)
+      assert.same("original content", content)
+      os.remove(test_file)
+    end)
+
+    it("cleans up .new and keeps original file when os.rename fails", function()
+      local test_file = "/tmp/test_write_to_file_rename_fail.txt"
+      local new_file = test_file .. ".new"
+      os.remove(test_file)
+      os.remove(new_file)
+      local f = io.open(test_file, "w")
+      f:write("original content")
+      f:close()
+
+      local orig_rename = os.rename
+      os.rename = function(from, to)
+        if from == new_file then
+          return nil, "rename error"
+        end
+        return orig_rename(from, to)
+      end
+      local ok, err = util.writeToFile("new content", test_file)
+      os.rename = orig_rename
+
+      assert.is_false(ok)
+      assert.same("rename error", err)
+      assert.is_nil(lfs.attributes(new_file))
+      local content = util.readFromFile(test_file)
+      assert.same("original content", content)
+      os.remove(test_file)
+    end)
   end)
 
   describe("getFilesystemType()", function()

@@ -128,4 +128,28 @@ describe("luasettings module", function()
 
     os.remove(test_file)
   end)
+
+  it("should show notification when flush fails to write", function()
+    local LuaSettings = require("frontend/luasettings")
+    local util = require("util")
+    local Notification = require("ui/widget/notification")
+    local test_file = "test_flush_fail.lua"
+
+    local orig_writeToFile = util.writeToFile
+    util.writeToFile = function()
+      return false, "simulated write failure"
+    end
+
+    local notify_spy = spy.on(Notification, "notify")
+
+    local settings = LuaSettings:open(test_file)
+    settings:save("test_key", "test_val")
+    settings:flush()
+
+    assert.spy(notify_spy).was_called(1)
+
+    util.writeToFile = orig_writeToFile
+    Notification.notify:revert()
+    os.remove(test_file)
+  end)
 end)
