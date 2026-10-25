@@ -494,6 +494,10 @@ function FileChooser:onBack()
   end
   local back_to_exit = G_named_settings.back_to_exit()
   if back_to_exit == "always" then
+    if util.isMonkeyTest() then
+      logger.warn("FileChooser:onBack exit is ignored in monkey test mode.")
+      return true
+    end
     return self:onExit()
   elseif back_to_exit == "disable" then
     return true
@@ -502,6 +506,12 @@ function FileChooser:onBack()
       text = gettext("Exit KOReader?"),
       ok_text = gettext("Exit"),
       ok_callback = function()
+        if util.isMonkeyTest() then
+          logger.warn(
+            "FileChooser:onBack exit prompt OK is ignored in monkey test mode."
+          )
+          return
+        end
         self:onExit()
       end,
     }))

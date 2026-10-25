@@ -231,6 +231,10 @@ function UIManager:init()
     end,
   }
   self.poweroff_action = function()
+    if util.isMonkeyTest() then
+      logger.warn("Power off is ignored in monkey test mode.")
+      return
+    end
     self._entered_poweroff_stage = true
     logger.info("Powering off the device...")
     self:broadcastEvent(Event:new("PowerOff"))
@@ -249,6 +253,10 @@ function UIManager:init()
     end)
   end
   self.reboot_action = function()
+    if util.isMonkeyTest() then
+      logger.warn("Reboot is ignored in monkey test mode.")
+      return
+    end
     self._entered_poweroff_stage = true
     logger.info("Rebooting the device...")
     self:broadcastEvent(Event:new("Reboot"))
@@ -784,10 +792,6 @@ end
 --- Signals to quit.
 -- An exit_code of false is not allowed.
 function UIManager:quit(exit_code, implicit)
-  if util.isMonkeyTest() then
-    logger.warn("Ignoring quit event during monkey test mode.")
-    return true
-  end
   if exit_code == false then
     logger.err("UIManager:quit() called with false")
     return

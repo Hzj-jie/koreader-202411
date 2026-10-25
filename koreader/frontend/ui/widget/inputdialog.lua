@@ -353,10 +353,14 @@ function InputDialog:init()
   end
   self.enter_callback = self.enter_callback
     or function()
-      for _, btn_row in ipairs(self.buttons) do
-        for _, btn in ipairs(btn_row) do
+      for r, btn_row in ipairs(self.buttons) do
+        for c, btn in ipairs(btn_row) do
           if btn.is_enter_default then
-            btn.callback()
+            local button = self.button_table.buttons_layout[r]
+              and self.button_table.buttons_layout[r][c]
+            if button and button.enabled then
+              btn.callback()
+            end
             return
           end
         end
