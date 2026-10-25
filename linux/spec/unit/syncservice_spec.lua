@@ -405,13 +405,10 @@ describe("SyncService", function()
 
         -- Cleanups
         -- Temporaries are removed (income_file_path twice: once inside retry loop start, and once at the end)
-        -- Wait, the loop removes it at start: `os.remove(income_file_path)`.
-        -- And at the end: `os.remove(income_file_path)` again.
-        -- Also `os.remove(cached_file_path)` before copy.
+        -- The copyFile replaces cached_file_path atomically without pre-removing.
         local expected_removed = {
           "/tmp/book.epub.temp", -- start of loop
           "/tmp/book.epub.temp", -- end of function
-          "/path/to/book.epub.sync", -- before copying to cached
         }
         assert.are.equal(#expected_removed, #mock_os.removed_files)
         for i, path in ipairs(expected_removed) do
