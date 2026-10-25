@@ -763,6 +763,37 @@ describe("SyncService", function()
         end
       )
 
+      it("Upload succeeds but copyFile fails -> false, failure notification, source preserved", function()
+        mock_dropbox_api.upload_code = 200
+        local orig_copyFile = mock_ffiutil.copyFile
+        mock_ffiutil.copyFile = function()
+          mock_ffiutil.copyFile_called = true
+          return "disk full"
+        end
+
+        local finish_res
+        SyncService.sync(
+          server,
+          "/path/to/book.epub",
+          function()
+            return true
+          end,
+          false,
+          function(res)
+            finish_res = res
+          end
+        )
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+        assert.is_true(mock_ffiutil.copyFile_called)
+        mock_ffiutil.copyFile = orig_copyFile
+      end)
+
       it("Upload fails -> false, generic message, .sync untouched", function()
         mock_dropbox_api.upload_code = 500
         local finish_res
