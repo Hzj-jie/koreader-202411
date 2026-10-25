@@ -631,6 +631,12 @@ end
 
 -- A workaround to handle most of the existing logic
 function UIManager:setDirty(widget, refreshMode, region)
+  assert(
+    refreshMode == nil
+      or type(refreshMode) == "string"
+      or type(refreshMode) == "function"
+  )
+  assert(region == nil or type(region) == "table")
   if type(refreshMode) == "function" then
     -- Have to repaint the widget first; still use :setDirty to handle various
     -- conditions of the widget itself.
