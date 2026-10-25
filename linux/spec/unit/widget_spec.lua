@@ -91,5 +91,23 @@ describe("Widget lifecycle and auto-cleanup", function()
         parent:uimanagedCleanUp()
       end)
     end)
+
+    it("recursively cleans up child widgets in array portion", function()
+      local child = Widget:new()
+      local grandchild = Widget:new()
+      parent[1] = child
+
+      child:showWidget(grandchild)
+      assert.same({ grandchild }, child._shown_widgets)
+
+      assert.is_nil(parent._shown_widgets)
+
+      parent:uimanagedCleanUp()
+
+      assert
+        .spy(mock_uimanager.closeIfShown)
+        .was_called_with(mock_uimanager, grandchild)
+      assert.is_nil(child._shown_widgets)
+    end)
   end)
 end)
