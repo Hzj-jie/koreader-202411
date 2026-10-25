@@ -782,10 +782,7 @@ end
 
 --- Same as `isSubwidgetShown`, but only check window-level widgets (e.g., what's directly registered in the window stack), don't recurse.
 function UIManager:isWindowWidget(widget)
-  -- TODO: Should assert
-  if not _isWidget(widget) then
-    return false
-  end
+  assert(_isWidget(widget))
 
   for i = #self._window_stack, 1, -1 do
     if self._window_stack[i].widget == widget then
@@ -1380,10 +1377,7 @@ Schedule a widget to be repainted, it or its Widget:showParent() must be in the
 _window_stack eventually before the next repaint or it will be ignored.
 --]]
 function UIManager:scheduleWidgetRepaint(widget)
-  -- TODO: Should assert.
-  if not _isWidget(widget) then
-    return false
-  end
+  assert(_isWidget(widget))
 
   -- Allows a widget being showed later.
   self._dirty[widget] = true
