@@ -105,7 +105,7 @@ function ReaderThumbnail:onShowBookMap(overview_mode)
     ui = self.ui,
     overview_mode = overview_mode,
     on_root_exit = function()
-      self.ui:setDirty(nil, "full")
+      self.ui:setDirty("full")
     end,
   }))
   return true
@@ -116,7 +116,7 @@ function ReaderThumbnail:onShowPageBrowser()
   self:showWidget(PageBrowserWidget:new({
     ui = self.ui,
     on_root_exit = function()
-      self.ui:setDirty(nil, "full")
+      self.ui:setDirty("full")
     end,
   }))
   return true

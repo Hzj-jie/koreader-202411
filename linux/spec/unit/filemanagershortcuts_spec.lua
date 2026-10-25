@@ -383,6 +383,34 @@ describe("FileManagerShortcuts", function()
       assert.is_true(post_callback_called)
       assert.is_true(fms.fm_updated)
     end)
+
+    it("should fallback to folder basename when new shortcut has empty input", function()
+      local fms = FileManagerShortcuts:new()
+      fms.shortcuts_menu = mock_menu:new()
+
+      fms:editShortcut("/path/to/new_folder")
+
+      local dialog = mock_uimanager.shown_widgets[1]
+      local save_btn
+      for _, row in ipairs(dialog.buttons) do
+        for _, btn in ipairs(row) do
+          if btn.text == "Save" then
+            save_btn = btn
+            break
+          end
+        end
+      end
+      assert.truthy(save_btn)
+
+      dialog.input_text = ""
+      save_btn.callback()
+
+      assert.are.equal(
+        "new_folder",
+        fms.folder_shortcuts["/path/to/new_folder"].text
+      )
+      assert.is_true(fms.fm_updated)
+    end)
   end)
 
   describe("addShortcut", function()

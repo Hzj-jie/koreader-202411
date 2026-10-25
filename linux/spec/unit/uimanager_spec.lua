@@ -1497,4 +1497,39 @@ describe("UIManager spec", function()
       UIManager:quit()
     end)
   end)
+
+  describe("monkey test mode", function()
+    local core_util = require("util")
+    local old_isMonkeyTest
+
+    before_each(function()
+      old_isMonkeyTest = core_util.isMonkeyTest
+      core_util.isMonkeyTest = function()
+        return true
+      end
+    end)
+
+    after_each(function()
+      core_util.isMonkeyTest = old_isMonkeyTest
+    end)
+
+    it("does not ignore UIManager:quit in monkey test mode", function()
+      UIManager._exit_code = nil
+      UIManager:quit(42)
+      assert.are.equal(42, UIManager._exit_code)
+      UIManager:quit()
+    end)
+
+    it("ignores poweroff_action in monkey test mode", function()
+      UIManager._entered_poweroff_stage = nil
+      UIManager.poweroff_action()
+      assert.is_nil(UIManager._entered_poweroff_stage)
+    end)
+
+    it("ignores reboot_action in monkey test mode", function()
+      UIManager._entered_poweroff_stage = nil
+      UIManager.reboot_action()
+      assert.is_nil(UIManager._entered_poweroff_stage)
+    end)
+  end)
 end)

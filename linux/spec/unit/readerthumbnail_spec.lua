@@ -195,7 +195,10 @@ describe("ReaderThumbnail module", function()
 
         local dirty_called = 0
         local orig_setDirty = readerui_pdf.setDirty
-        readerui_pdf.setDirty = function(self, widget, mode)
+        readerui_pdf.setDirty = function(self, mode, region)
+          assert.are.equal(readerui_pdf, self)
+          assert.are.equal("full", mode)
+          assert.is_nil(region)
           dirty_called = dirty_called + 1
         end
 
