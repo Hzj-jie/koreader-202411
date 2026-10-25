@@ -22,6 +22,7 @@ local fb = {
   blitbuffer_rotation_mode = nil,
   hw_dithering = false, -- will be setup via setupDithering @ startup by reader.lua
   sw_dithering = false, -- will be setup via setupDithering @ startup by reader.lua
+  night_mode = false,
   swipe_animations = false, -- will be toggled at page turn by the frontend
   is_always_portrait = false, -- true = SW flip landscape into portrait (historically a bit of misnomer)
   forced_rotation = nil, --[[{
@@ -507,6 +508,7 @@ function fb:setWindowTitle(new_title)
 end
 
 function fb:setNightmode(night_mode)
+  self.night_mode = night_mode
   if self.device:canHWInvert() then
     -- If the device supports global inversion via the grayscale flag, do that.
     self:setHWNightmode(night_mode)
