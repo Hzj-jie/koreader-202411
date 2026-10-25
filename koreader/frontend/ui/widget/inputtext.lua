@@ -750,9 +750,10 @@ function InputText:_handleControlKeys(key)
       self:addChars("    ")
       -- as stated before, we also don't need to unfocus when there is no keyboard, one less key press to exit widgets, yay!
     elseif key["Back"] then
-      if self.focused then
-        self:unfocus()
+      if not self.focused then
+        return false
       end
+      self:unfocus()
     else
       return false
     end
