@@ -17,7 +17,7 @@ ABI compatibility).
 --]]
 
 local ffi = require("ffi")
-local android = jit.os == "Linux"
+local android = ffi.os == "Linux"
   and os.getenv("IS_ANDROID")
   and require("android")
 
@@ -28,7 +28,7 @@ end
 local monolibtic = {
   path = (android and android.nativeLibraryDir or "libs")
     .. "/libkoreader-monolibtic."
-    .. (jit.os == "OSX" and "dylib" or "so"),
+    .. (ffi.os == "OSX" and "dylib" or "so"),
   redirects = {
     ["blitbuffer"] = true,
     ["czmq"] = true,
@@ -143,13 +143,13 @@ if android then
       return package.loadlib(path, "luaopen_" .. modulename:sub(18))
     end)
   end
-elseif jit.os == "Linux" then
+elseif ffi.os == "Linux" then
   lib_search_path = "libs/?"
   -- Unversioned: libz.so
   lib_basic_format = "lib%s.so"
   -- Versioned: libz.so.1
   lib_version_format = "lib%s.so.%s"
-elseif jit.os == "OSX" then
+elseif ffi.os == "OSX" then
   -- Apple M1 homebrew installs libraries outside of default search paths,
   -- and dyld environment variables are sip-protected on MacOS, cf.
   -- https://github.com/Homebrew/brew/issues/13481#issuecomment-1181592842

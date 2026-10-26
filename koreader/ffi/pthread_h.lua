@@ -31,17 +31,17 @@ EOF
 --]]
 local sizeof_pthread_attr_t
 local valueof_PTHREAD_CREATE_DETACHED
-if jit.os == "OSX" then
+if ffi.os == "OSX" then
   sizeof_pthread_attr_t = 64
   valueof_PTHREAD_CREATE_DETACHED = 2
-elseif jit.os == "Linux" then
+elseif ffi.os == "Linux" then
   if os.getenv("IS_ANDROID") then
     sizeof_pthread_attr_t = ffi.abi("32bit") and 24 or 56
-  elseif jit.arch == "arm" or jit.arch == "x86" then
+  elseif ffi.arch == "arm" or ffi.arch == "x86" then
     sizeof_pthread_attr_t = 36
-  elseif jit.arch == "x64" then
+  elseif ffi.arch == "x64" then
     sizeof_pthread_attr_t = 56
-  elseif jit.arch == "arm64" or jit.arch == "arm64be" then
+  elseif ffi.arch == "arm64" or ffi.arch == "arm64be" then
     sizeof_pthread_attr_t = 64
   end
   valueof_PTHREAD_CREATE_DETACHED = 1

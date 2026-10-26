@@ -24,7 +24,7 @@ local ffi = require("ffi")
 require("turbo.cdef")
 local platform = require("turbo.platform")
 
-if jit.arch == "mipsel" then
+if ffi.arch == "mipsel" then
   return {
     signal = ffi.C.sysv_signal, -- For sigprocmask(2)
     SIG_BLOCK = 1,
