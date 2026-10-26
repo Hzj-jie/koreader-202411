@@ -161,18 +161,7 @@ function M.show_differing_settings_menu(
   local differing = {}
   local caches = {}
   for key, r_val in pairs(remote_settings) do
-    local domain, full_key = key:match("^([^:]+):(.*)$")
-    if
-      not (
-        domain
-        and full_key ~= ""
-        and (
-          domain == "reader"
-          or domain == "defaults"
-          or domain:match("^settings/")
-        )
-      )
-    then
+    if not plugin.manager:parseSettingKey(key) then
       logger.warn(
         "AnnotationSync: skipping malformed or unknown-domain remote setting key:",
         key

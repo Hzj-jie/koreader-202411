@@ -734,9 +734,24 @@ function SyncManager:pushSettings()
   end)
 end
 
-function SyncManager:getLocalSettingValue(key, caches)
+function SyncManager:parseSettingKey(key)
   local domain, full_key = key:match("^([^:]+):(.*)$")
-  assert(domain and full_key ~= "")
+  if
+    domain
+    and full_key ~= ""
+    and (
+      domain == "reader"
+      or domain == "defaults"
+      or domain:match("^settings/")
+    )
+  then
+    return domain, full_key
+  end
+  return nil
+end
+
+function SyncManager:getLocalSettingValue(key, caches)
+  local domain, full_key = assert(self:parseSettingKey(key))
 
   if domain == "reader" then
     if caches.reader == nil then
@@ -757,7 +772,6 @@ function SyncManager:getLocalSettingValue(key, caches)
     end
     return utils.get_nested_value(caches.defaults, full_key)
   else
-    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     if caches[settings_name] == nil then
       local filepath = DataStorage:getSettingsDir()
@@ -799,8 +813,7 @@ local function save_nested_setting(settings_obj, parts, value)
 end
 
 function SyncManager:_writeLocalSettingValue(key, value)
-  local domain, full_key = key:match("^([^:]+):(.*)$")
-  assert(domain and full_key ~= "")
+  local domain, full_key = assert(self:parseSettingKey(key))
 
   local LuaSettings = require("luasettings")
   local parts = utils.split_setting_path(full_key)
@@ -816,7 +829,6 @@ function SyncManager:_writeLocalSettingValue(key, value)
     save_nested_setting(G_defaults, parts, value)
     return true
   else
-    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     local filepath = DataStorage:getSettingsDir()
       .. "/"
