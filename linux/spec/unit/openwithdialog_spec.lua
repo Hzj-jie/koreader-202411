@@ -73,7 +73,8 @@ describe("OpenWithDialog widget", function()
       dirty_func = func
     end
 
-    dialog:onClose()
+    UIManager:show(dialog)
+    UIManager:close(dialog)
     assert.is_nil(dirty_widget)
     assert.truthy(dirty_func)
     local mode, region = dirty_func()
