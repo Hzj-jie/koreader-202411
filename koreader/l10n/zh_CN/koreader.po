@@ -25512,36 +25512,3 @@ msgstr "注释"
 
 #~ msgid "%1/%2"
 #~ msgstr "%1/%2"
-msgid "Alternating blanks, step up to 3, numbers up to 30"
-msgstr "隔项填空，公差不超过3，数值不超过30"
-
-msgid "Alternating blanks, step up to 4, numbers up to 50"
-msgstr "隔项填空，公差不超过4，数值不超过50"
-
-msgid "Arithmetic Progression within 100"
-msgstr "100以内等差数列"
-
-msgid "Arithmetic Progression within 30 (Entry Level)"
-msgstr "30以内等差数列（入门）"
-
-msgid "Arithmetic Progression within 50"
-msgstr "50以内等差数列"
-
-msgid "Arithmetic Progression within 50 (Easy)"
-msgstr "50以内等差数列（简单）"
-
-msgid "Fill-in-the-Blank (+, -) within 100"
-msgstr "100以内填空题（仅加减法）"
-
-msgid "Find the missing number in addition and subtraction equations"
-msgstr "求加减法算式中的未知数"
-
-msgid "Step up to 10, numbers up to 100"
-msgstr "公差不超过10，数值不超过100"
-
-msgid "Step up to 4, numbers up to 50"
-msgstr "公差不超过4，数值不超过50"
-
-msgid "Tap to open batterystat.log."
-msgstr "点击打开 batterystat.log。"
-

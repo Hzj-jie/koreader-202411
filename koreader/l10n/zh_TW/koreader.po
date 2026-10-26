@@ -25139,36 +25139,3 @@ msgstr "註釋"
 
 #~ msgid "Every %1 mn"
 #~ msgstr "每 %1 分鐘"
-msgid "Alternating blanks, step up to 3, numbers up to 30"
-msgstr "隔項填空，公差不超過3，數值不超過30"
-
-msgid "Alternating blanks, step up to 4, numbers up to 50"
-msgstr "隔項填空，公差不超過4，數值不超過50"
-
-msgid "Arithmetic Progression within 100"
-msgstr "100以內等差數列"
-
-msgid "Arithmetic Progression within 30 (Entry Level)"
-msgstr "30以內等差數列（入門）"
-
-msgid "Arithmetic Progression within 50"
-msgstr "50以內等差數列"
-
-msgid "Arithmetic Progression within 50 (Easy)"
-msgstr "50以內等差數列（簡單）"
-
-msgid "Fill-in-the-Blank (+, -) within 100"
-msgstr "100以內填空題（僅加減法）"
-
-msgid "Find the missing number in addition and subtraction equations"
-msgstr "求加減法算式中的未知數"
-
-msgid "Step up to 10, numbers up to 100"
-msgstr "公差不超過10，數值不超過100"
-
-msgid "Step up to 4, numbers up to 50"
-msgstr "公差不超過4，數值不超過50"
-
-msgid "Tap to open batterystat.log."
-msgstr "點擊開啟 batterystat.log。"
-
