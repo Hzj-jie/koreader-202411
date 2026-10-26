@@ -308,6 +308,44 @@ describe("device/sdl/device", function()
 
       jit.os = old_os
     end)
+
+    it("skips command execution in monkey test mode for openLink and doExternalDictLookup", function()
+      local old_os = jit.os
+      jit.os = "Linux"
+
+      local util = require("util")
+      stub(util, "isMonkeyTest").returns(true)
+
+      local executed_commands = {}
+      os.execute.invokes(function(cmd)
+        table.insert(executed_commands, cmd)
+        if cmd == "command -v xdg-open >/dev/null" or cmd == "command -v goldendict >/dev/null" then
+          return 0
+        end
+        return 1
+      end)
+
+      local Device = require("device/sdl/device")
+      assert.is.same(true, Device:canOpenLink())
+      assert.is.same(true, Device:openLink("http://example.com"))
+
+      static_thirdparty_instance.checkMethod.returns(true, "goldendict")
+      local callback_called = false
+      Device:doExternalDictLookup("word", "goldendict", function()
+        callback_called = true
+      end)
+
+      assert.is.same(true, callback_called)
+      assert.is.same(3, #executed_commands)
+      for _, cmd in ipairs(executed_commands) do
+        assert.is_not_nil(cmd:match("^command %-v "))
+      end
+      assert.spy(os.execute).was_not.called_with("xdg-open 'http://example.com'")
+      assert.spy(os.execute).was_not.called_with("goldendict word &")
+
+      util.isMonkeyTest:revert()
+      jit.os = old_os
+    end)
   end)
 
   describe("input events", function()
