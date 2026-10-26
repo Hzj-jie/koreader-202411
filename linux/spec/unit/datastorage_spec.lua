@@ -413,9 +413,8 @@ describe("DataStorage module", function()
 
       DataStorage:showStorageWarningIfNeeded()
       assert.is_not_nil(shown_widget)
-      local gettext = require("gettext")
       assert.are.equal(
-        gettext(
+        require("gettext")(
           "Failed to create some application data directories. Some features may not work properly."
         ),
         shown_widget.text

@@ -644,8 +644,10 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           ["reader:valid_setting"] = true,
         })
         local diff_menu = shown_widgets[#shown_widgets]
-        local T = require("ffi/util").template
-        assert.are.equal(T(gettext("Settings from %1"), "RemoteReader"), diff_menu.title)
+        assert.are.equal(
+          require("ffi/util").template(gettext("Settings from %1"), "RemoteReader"),
+          diff_menu.title
+        )
         assert.are.equal(4, #diff_menu.item_table)
         assert.are.equal(
           "[✓] [reader] valid_setting: nil -> true",
