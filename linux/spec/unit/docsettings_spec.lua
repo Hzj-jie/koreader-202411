@@ -491,7 +491,6 @@ describe("docsettings module", function()
     "preserves original custom cover and metadata when move copyFile fails",
     function()
       local ffiutil = require("ffi/util")
-      local Notification = require("ui/widget/notification")
       local lfs = require("libs/libkoreader-lfs")
       local test_dir = "/tmp/test_docsettings_move_fail"
       util.removePath(test_dir)
@@ -2138,10 +2137,7 @@ describe("docsettings module", function()
           shown_notification = widget
         end
 
-        local ok, _ = pcall(function()
-          inst:flush()
-        end)
-        assert.is_true(ok)
+        inst:flush()
         assert.truthy(shown_notification)
         assert.are.equal(gettext("Failed to save custom metadata to disk."), shown_notification.text)
         assert.is_false(removed)
@@ -2183,10 +2179,7 @@ describe("docsettings module", function()
           shown_notification = widget
         end
 
-        local ok, _ = pcall(function()
-          inst:flush()
-        end)
-        assert.is_true(ok)
+        inst:flush()
         assert.truthy(shown_notification)
         assert.are.equal(gettext("Failed to save custom cover to disk."), shown_notification.text)
         assert.is_false(removed)
