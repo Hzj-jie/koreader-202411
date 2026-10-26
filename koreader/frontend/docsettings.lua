@@ -417,12 +417,17 @@ function DocSettings:flush(data, no_custom_metadata)
           if metadata_file then
             filepath, filename = util.splitFilePathName(metadata_file)
             if filepath ~= sidecar_dir_slash then
-              assert(
+              if
                 ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-                  == nil
-              )
-              os.remove(metadata_file)
-              self:getCustomCoverFile(true) -- reset cache
+                == nil
+              then
+                os.remove(metadata_file)
+                self:getCustomCoverFile(true) -- reset cache
+              else
+                showNotification(
+                  gettext("Failed to save custom cover to disk.")
+                )
+              end
             end
           end
           -- custom metadata
@@ -430,12 +435,17 @@ function DocSettings:flush(data, no_custom_metadata)
           if metadata_file then
             filepath, filename = util.splitFilePathName(metadata_file)
             if filepath ~= sidecar_dir_slash then
-              assert(
+              if
                 ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-                  == nil
-              )
-              os.remove(metadata_file)
-              self:getCustomMetadataFile(true) -- reset cache
+                == nil
+              then
+                os.remove(metadata_file)
+                self:getCustomMetadataFile(true) -- reset cache
+              else
+                showNotification(
+                  gettext("Failed to save custom metadata to disk.")
+                )
+              end
             end
           end
         end
@@ -554,20 +564,30 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
       if new_sidecar_dir then
         if custom_cover_file then
           local _, filename = util.splitFilePathName(custom_cover_file)
-          assert(
+          if
             ffiutil.copyFile(
               custom_cover_file,
               new_sidecar_dir .. "/" .. filename
-            ) == nil
-          )
+            ) ~= nil
+          then
+            showNotification(
+              gettext("Failed to save custom cover to disk.")
+            )
+            custom_cover_file = false
+          end
         end
         if custom_metadata_file then
-          assert(
+          if
             ffiutil.copyFile(
               custom_metadata_file,
               new_sidecar_dir .. "/" .. custom_metadata_filename
-            ) == nil
-          )
+            ) ~= nil
+          then
+            showNotification(
+              gettext("Failed to save custom metadata to disk.")
+            )
+            custom_metadata_file = false
+          end
         end
         do_purge = not copy
       else

@@ -1382,12 +1382,27 @@ function util.writeToFile(data, filepath, lua_dofile_ready)
   if not file then
     return false, err
   end
-  file:write(data)
-  ffiUtil.fsyncOpenedFile(file)
-  file:close()
-  file, err = os.rename(filepath .. ".new", filepath)
-  if not file then
-    return file, err
+  local ok, write_err = file:write(data)
+  if not ok then
+    file:close()
+    os.remove(filepath .. ".new")
+    return false, write_err or "write failed"
+  end
+  local sync_ok, sync_err = ffiUtil.fsyncOpenedFile(file)
+  if not sync_ok then
+    file:close()
+    os.remove(filepath .. ".new")
+    return false, sync_err or "fsync failed"
+  end
+  local close_ok, close_err = file:close()
+  if not close_ok then
+    os.remove(filepath .. ".new")
+    return false, close_err or "close failed"
+  end
+  local rename_ok, rename_err = os.rename(filepath .. ".new", filepath)
+  if not rename_ok then
+    os.remove(filepath .. ".new")
+    return false, rename_err
   end
   ffiUtil.fsyncDirectory(filepath)
   return true

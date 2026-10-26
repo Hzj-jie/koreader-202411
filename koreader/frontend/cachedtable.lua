@@ -22,8 +22,6 @@ print(t.dir) -- "/path/to/dir" (cached, resolver NOT called again)
 ```
 --]]
 
-local logger = require("logger")
-
 local CachedTable = {}
 
 --- Checks whether a CachedTable has already been resolved.
@@ -73,15 +71,13 @@ function CachedTable:new(resolver, initial_fields)
   local function do_resolve(t)
     if not resolved then
       resolved = true
-      local ok, data = pcall(resolver)
-      if ok and data then
+      local data = resolver()
+      if data then
         for field, val in pairs(data) do
           if rawget(t, field) == nil then
             rawset(t, field, val)
           end
         end
-      elseif not ok then
-        logger.warn("CachedTable: resolver failed:", tostring(data))
       end
     end
   end

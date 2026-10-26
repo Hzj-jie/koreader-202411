@@ -1,4 +1,10 @@
 describe("AutoSuspend", function()
+  local stub_ui = {
+    menu = {
+      registerToMainMenu = function() end,
+    },
+  }
+
   setup(function()
     require("commonrequire")
     package.unloadAll()
@@ -56,7 +62,7 @@ describe("AutoSuspend", function()
     it("should be able to execute suspend when timing out", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local UIManager = require("ui/uimanager")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -71,7 +77,7 @@ describe("AutoSuspend", function()
     it("should be able to deprecate last task", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
       local UIManager = require("ui/uimanager")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -94,7 +100,7 @@ describe("AutoSuspend", function()
     it("should only check shutdown after UnexpectedWakeupLimit", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
       local UIManager = require("ui/uimanager")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -112,7 +118,7 @@ describe("AutoSuspend", function()
       function()
         local mock_time = require("mock_time")
         local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-        local widget = widget_class:new()
+        local widget = widget_class:new({ ui = stub_ui })
         local UIManager = require("ui/uimanager")
         mock_time:increase(1)
         UIManager:handleInput()
@@ -173,7 +179,7 @@ describe("AutoSuspend", function()
     it("should be able to execute shutdown when timing out", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local UIManager = require("ui/uimanager")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -188,7 +194,7 @@ describe("AutoSuspend", function()
     it("should be able to deprecate last task", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
       local UIManager = require("ui/uimanager")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -279,7 +285,7 @@ describe("AutoSuspend", function()
 
     it("should prevent standby initially", function()
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local mock_time = require("mock_time")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -289,7 +295,7 @@ describe("AutoSuspend", function()
 
     it("should allow standby when timing out", function()
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local mock_time = require("mock_time")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -300,7 +306,7 @@ describe("AutoSuspend", function()
 
     it("should call Device:standby on AllowStandby event", function()
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
 
       -- Call handler directly since widget is not registered in UIManager
       widget:onAllowStandby()
@@ -312,7 +318,7 @@ describe("AutoSuspend", function()
     it("should call Device:standby with calculated wake_in time", function()
       UIManager.getNextTaskTime.returns(require("ui/time").s(2))
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
 
       -- Call handler directly since widget is not registered in UIManager
       widget:onAllowStandby()
@@ -324,7 +330,7 @@ describe("AutoSuspend", function()
     it("should delay standby if WiFi is on", function()
       NetworkMgr.isWifiOn.returns(true)
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local mock_time = require("mock_time")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -338,7 +344,7 @@ describe("AutoSuspend", function()
       PowerD.isCharging.returns(true)
       Device.canPowerSaveWhileCharging.returns(false)
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local mock_time = require("mock_time")
       mock_time:increase(1)
       UIManager:handleInput()
@@ -372,7 +378,7 @@ describe("AutoSuspend", function()
       function()
         local UIManager = require("ui/uimanager")
         local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-        local widget = widget_class:new()
+        local widget = widget_class:new({ ui = stub_ui })
         widget.auto_suspend_timeout_seconds = 180
         widget.autoshutdown_timeout_seconds = 900
 

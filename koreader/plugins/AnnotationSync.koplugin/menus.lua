@@ -2,6 +2,7 @@ local ConfirmBox = require("ui/widget/confirmbox")
 local Menu = require("ui/widget/menu")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
+local logger = require("logger")
 local T_N = gettext.T_N
 local T = require("ffi/util").template
 local util = require("util")
@@ -160,9 +161,26 @@ function M.show_differing_settings_menu(
   local differing = {}
   local caches = {}
   for key, r_val in pairs(remote_settings) do
-    local l_val = plugin.manager:getLocalSettingValue(key, caches)
-    if not util.tableEquals(l_val, r_val) then
-      -- Format values for display
+    local domain, full_key = key:match("^([^:]+):(.*)$")
+    if
+      not (
+        domain
+        and full_key ~= ""
+        and (
+          domain == "reader"
+          or domain == "defaults"
+          or domain:match("^settings/")
+        )
+      )
+    then
+      logger.warn(
+        "AnnotationSync: skipping malformed or unknown-domain remote setting key:",
+        key
+      )
+    else
+      local l_val = plugin.manager:getLocalSettingValue(key, caches)
+      if not util.tableEquals(l_val, r_val) then
+        -- Format values for display
       local function format_val(val)
         if val == nil then
           return "nil"
@@ -175,12 +193,13 @@ function M.show_differing_settings_menu(
         end
         return tostring(val)
       end
-      table.insert(differing, {
-        key = key,
-        local_val_str = format_val(l_val),
-        remote_val_str = format_val(r_val),
-        remote_val = r_val,
-      })
+        table.insert(differing, {
+          key = key,
+          local_val_str = format_val(l_val),
+          remote_val_str = format_val(r_val),
+          remote_val = r_val,
+        })
+      end
     end
   end
 

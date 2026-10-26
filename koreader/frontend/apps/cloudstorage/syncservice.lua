@@ -262,8 +262,10 @@ function SyncService.sync(server, file_path, sync_cb, is_silent, finish_cb)
       and code_response >= 200
       and code_response < 300
     then
-      os.remove(cached_file_path)
-      assert(ffiutil.copyFile(file_path, cached_file_path) == nil)
+      if ffiutil.copyFile(file_path, cached_file_path) ~= nil then
+        show_msg()
+        return false
+      end
       if not is_silent then
         UIManager:show(Notification:new({
           text = gettext("Successfully synchronized."),

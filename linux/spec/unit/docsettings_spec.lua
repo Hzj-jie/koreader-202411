@@ -486,6 +486,66 @@ describe("docsettings module", function()
     end
   )
 
+  it(
+    "preserves original custom cover and metadata when move copyFile fails",
+    function()
+      local ffiutil = require("ffi/util")
+      local Notification = require("ui/widget/notification")
+      local lfs = require("libs/libkoreader-lfs")
+      local test_dir = "/tmp/test_docsettings_move_fail"
+      util.removePath(test_dir)
+      lfs.mkdir(test_dir)
+      local orig_dir = test_dir .. "/orig"
+      local new_dir = test_dir .. "/new"
+      lfs.mkdir(orig_dir)
+      lfs.mkdir(new_dir)
+
+      local book = orig_dir .. "/book.epub"
+      local f = io.open(book, "w")
+      f:write("dummy book")
+      f:close()
+
+      local book_sdr = orig_dir .. "/book.sdr"
+      lfs.mkdir(book_sdr)
+      local cover_file = book_sdr .. "/cover.png"
+      f = io.open(cover_file, "w")
+      f:write("cover data")
+      f:close()
+
+      local meta_file = book_sdr .. "/custom_metadata.lua"
+      f = io.open(meta_file, "w")
+      f:write("return {}")
+      f:close()
+
+      local new_book = new_dir .. "/book.epub"
+
+      local orig_copyFile = ffiutil.copyFile
+      ffiutil.copyFile = function(src, dst)
+        if src == cover_file or src == meta_file then
+          return "copy failed: disk full"
+        end
+        return orig_copyFile(src, dst)
+      end
+
+      local notified = {}
+      local UIManager = require("ui/uimanager")
+      local orig_show = UIManager.show
+      UIManager.show = function(_, widget)
+        table.insert(notified, widget)
+      end
+
+      docsettings.updateLocation(book, new_book, false) -- move operation
+
+      assert.is_true(util.fileExists(cover_file))
+      assert.is_true(util.fileExists(meta_file))
+      assert.is_true(#notified >= 2)
+
+      ffiutil.copyFile = orig_copyFile
+      UIManager.show = orig_show
+      util.removePath(test_dir)
+    end
+  )
+
   describe("read-only storage fallbacks and notifications", function()
     local util = require("util")
     local UIManager = require("ui/uimanager")
@@ -2049,7 +2109,7 @@ describe("docsettings module", function()
     )
 
     it(
-      "asserts when copyFile fails during flush with custom metadata and preserves file",
+      "shows notification when copyFile fails during flush with custom metadata and preserves file",
       function()
         local doc_path = "/tmp/test_copy_fail_doc.epub"
         local inst = docsettings:open(doc_path)
@@ -2057,6 +2117,9 @@ describe("docsettings module", function()
         local orig_copyFile = ffiutil.copyFile
         local removed = false
         local orig_remove = os.remove
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local shown_notification
 
         inst.getCustomMetadataFile = function()
           return "/tmp/fake_custom_metadata.lua"
@@ -2070,17 +2133,68 @@ describe("docsettings module", function()
           end
           return orig_remove(file)
         end
+        UIManager.show = function(_, widget)
+          shown_notification = widget
+        end
 
         local ok, _ = pcall(function()
           inst:flush()
         end)
-        assert.is_false(ok)
+        assert.is_true(ok)
+        assert.truthy(shown_notification)
+        assert.are.equal("Failed to save custom metadata to disk.", shown_notification.text)
         assert.is_false(removed)
 
         inst.getCustomMetadataFile = orig_getCustomMetadata
         ffiutil.copyFile = orig_copyFile
         os.remove = orig_remove
+        UIManager.show = orig_show
         ffiutil.purgeDir("/tmp/test_copy_fail_doc.sdr")
+      end
+    )
+
+    it(
+      "shows notification when copyFile fails during flush with custom cover and preserves file",
+      function()
+        local doc_path = "/tmp/test_copy_cover_fail_doc.epub"
+        local inst = docsettings:open(doc_path)
+        local orig_getCustomCover = inst.getCustomCoverFile
+        local orig_copyFile = ffiutil.copyFile
+        local removed = false
+        local orig_remove = os.remove
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local shown_notification
+
+        inst.getCustomCoverFile = function()
+          return "/tmp/fake_custom_cover.png"
+        end
+        ffiutil.copyFile = function()
+          return "permission denied"
+        end
+        os.remove = function(file)
+          if file == "/tmp/fake_custom_cover.png" then
+            removed = true
+          end
+          return orig_remove(file)
+        end
+        UIManager.show = function(_, widget)
+          shown_notification = widget
+        end
+
+        local ok, _ = pcall(function()
+          inst:flush()
+        end)
+        assert.is_true(ok)
+        assert.truthy(shown_notification)
+        assert.are.equal("Failed to save custom cover to disk.", shown_notification.text)
+        assert.is_false(removed)
+
+        inst.getCustomCoverFile = orig_getCustomCover
+        ffiutil.copyFile = orig_copyFile
+        os.remove = orig_remove
+        UIManager.show = orig_show
+        ffiutil.purgeDir("/tmp/test_copy_cover_fail_doc.sdr")
       end
     )
   end)

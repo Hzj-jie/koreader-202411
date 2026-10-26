@@ -517,27 +517,59 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     sync_instance.manager.running = nil
   end)
 
-  it("asserts in _writeChangedDocumentsFile when writeToFile fails", function()
+  it("shows notification in _writeChangedDocumentsFile when writeToFile fails", function()
     local util = require("util")
     local old_writeToFile = util.writeToFile
+    local Notification = require("ui/widget/notification")
+    local orig_notify = Notification.notify
+    local notified_msg
+    Notification.notify = function(_, msg)
+      notified_msg = msg
+    end
     util.writeToFile = function(...)
       return false, "write error"
     end
-    assert.has_error(function()
-      sync_instance.manager:_writeChangedDocumentsFile({ "/tmp/file.epub" })
-    end)
+    local res = sync_instance.manager:_writeChangedDocumentsFile({ "/tmp/file.epub" })
+    assert.is_false(res)
+    assert.truthy(notified_msg)
+    assert.are.equal("Failed to save sync queue to disk.", notified_msg)
+    Notification.notify = orig_notify
     util.writeToFile = old_writeToFile
   end)
 
-  it("asserts in _promoteSyncBase when writeToFile fails", function()
+  it("shows notification in _promoteSyncBase when writeToFile fails", function()
     local util = require("util")
     local old_writeToFile = util.writeToFile
+    local Notification = require("ui/widget/notification")
+    local orig_notify = Notification.notify
+    local notified_msg
+    Notification.notify = function(_, msg)
+      notified_msg = msg
+    end
     util.writeToFile = function(...)
       return false, "write error"
     end
-    assert.has_error(function()
-      sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
-    end)
+    local res = sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
+    assert.is_false(res)
+    assert.truthy(notified_msg)
+    assert.are.equal("Failed to save sync cache to disk.", notified_msg)
+    Notification.notify = orig_notify
     util.writeToFile = old_writeToFile
+  end)
+
+  it("returns nil in getSyncCachePath when getCustomLocationCandidate returns nil", function()
+    local docsettings = require("frontend/docsettings")
+    local orig_getCustomLocationCandidate = docsettings.getCustomLocationCandidate
+    docsettings.getCustomLocationCandidate = function()
+      return nil
+    end
+
+    local path = sync_instance.manager:getSyncCachePath(readerui.document.file)
+    assert.is_nil(path)
+
+    local ok = sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
+    assert.is_false(ok)
+
+    docsettings.getCustomLocationCandidate = orig_getCustomLocationCandidate
   end)
 end)

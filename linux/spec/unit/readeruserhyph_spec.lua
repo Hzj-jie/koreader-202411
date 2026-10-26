@@ -82,6 +82,61 @@ describe("ReaderUserHyph module", function()
     os.remove(tmp_file)
   end)
 
+  it("should show notification and preserve old dictionary when write fails", function()
+    local tmp_file = os.tmpname()
+    local f = io.open(tmp_file, "w")
+    f:write("existing;ex-ist-ing\nsecond;sec-ond\n")
+    f:close()
+
+    local util = require("util")
+    local orig_writeToFile = util.writeToFile
+    util.writeToFile = function()
+      return false, "disk full"
+    end
+
+    local Notification = require("ui/widget/notification")
+    local notified = false
+    local notified_msg = nil
+    local orig_notify = Notification.notify
+    Notification.notify = function(_, msg)
+      notified = true
+      notified_msg = msg
+    end
+
+    local hyph = ReaderUserHyph:new({
+      ui = {
+        typography = { hyphenation = true },
+      },
+      getDictionaryPath = function()
+        return tmp_file
+      end,
+      loadUserDictionary = function() end,
+    })
+
+    hyph:updateDictionary("newword", "new-word")
+
+    assert.is_true(notified)
+    local gettext = require("gettext")
+    assert.are.equal(gettext("Failed to save user hyphenation dictionary."), notified_msg)
+
+    -- verify old file preserved
+    local f_read = io.open(tmp_file, "r")
+    local content = f_read:read("*all")
+    f_read:close()
+    assert.are.equal("existing;ex-ist-ing\nsecond;sec-ond\n", content)
+
+    -- reset notification flag and test scrubDictionary
+    notified = false
+    notified_msg = nil
+    hyph:scrubDictionary()
+    assert.is_true(notified)
+    assert.are.equal(gettext("Failed to save user hyphenation dictionary."), notified_msg)
+
+    Notification.notify = orig_notify
+    util.writeToFile = orig_writeToFile
+    os.remove(tmp_file)
+  end)
+
   it("should handle modifyUserEntry dialog workflow", function()
     local sample_epub = "spec/front/unit/data/leaves.epub"
     local readerui = ReaderUI:new({

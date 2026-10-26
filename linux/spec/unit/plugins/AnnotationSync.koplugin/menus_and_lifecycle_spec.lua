@@ -621,6 +621,37 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
         )
       end
     )
+
+    it(
+      "skips malformed and unknown-domain keys in show_differing_settings_menu with a warning",
+      function()
+        local shown_widgets = {}
+        local orig_show = UIManager.show
+        finally(function()
+          UIManager.show = orig_show
+          for _, w in ipairs(shown_widgets) do
+            UIManager:closeIfShown(w)
+          end
+        end)
+        UIManager.show = function(self, widget, ...)
+          table.insert(shown_widgets, widget)
+          return orig_show(self, widget, ...)
+        end
+
+        menus.show_differing_settings_menu(sync_instance, "RemoteReader", {
+          ["malformed_key_without_colon"] = true,
+          ["unknown_domain:some_setting"] = "invalid",
+          ["reader:valid_setting"] = true,
+        })
+        local diff_menu = shown_widgets[#shown_widgets]
+        assert.are.equal("Settings from RemoteReader", diff_menu.title)
+        assert.are.equal(4, #diff_menu.item_table)
+        assert.are.equal(
+          "[✓] [reader] valid_setting: nil -> true",
+          diff_menu.item_table[4].text_func()
+        )
+      end
+    )
   end)
 
   describe(

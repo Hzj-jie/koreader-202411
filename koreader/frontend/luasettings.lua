@@ -245,7 +245,12 @@ function LuaSettings:flush()
     end
     return self
   end
-  util.writeToFile(dump(self.data), self.file, true)
+  local ok = util.writeToFile(dump(self.data), self.file, true)
+  if not ok then
+    local Notification = require("ui/widget/notification")
+    local _ = require("gettext")
+    Notification:notify(_("Failed to write settings to local storage."))
+  end
   return self
 end
 

@@ -772,7 +772,8 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
           id = "close",
           callback = function()
             self:closeDialog()
-            coroutine.resume(self._coroutine)
+            local ok, err = coroutine.resume(self._coroutine)
+            assert(ok, debug.traceback(self._coroutine, err))
           end,
         },
         {
@@ -781,7 +782,8 @@ function ReaderUI:unlockDocumentWithPassword(document, try_again)
             local success = self:onVerifyPassword(document)
             self:closeDialog()
             if success then
-              coroutine.resume(self._coroutine, success)
+              local ok, err = coroutine.resume(self._coroutine, success)
+              assert(ok, debug.traceback(self._coroutine, err))
             else
               self:unlockDocumentWithPassword(document, true)
             end
@@ -908,7 +910,8 @@ function ReaderUI:dealWithLoadDocumentFailure()
         "Failed recognizing or parsing this file: unsupported or invalid document.\nKOReader will exit now."
       ),
       dismiss_callback = function()
-        coroutine.resume(_coroutine, false)
+        local ok, err = coroutine.resume(_coroutine, false)
+        assert(ok, debug.traceback(_coroutine, err))
       end,
     }))
     -- Restore input, so can catch the InfoMessage dismiss and exit

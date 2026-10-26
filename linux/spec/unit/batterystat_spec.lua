@@ -1,8 +1,14 @@
 describe("BatteryState plugin tests #nocov", function()
   local MockTime, module, time
 
+  local stub_ui = {
+    menu = {
+      registerToMainMenu = function() end,
+    },
+  }
+
   local stat = function() --luacheck: ignore
-    return module:new():stat()
+    return module:new({ ui = stub_ui }):stat()
   end
 
   local function resetAll(widget)
