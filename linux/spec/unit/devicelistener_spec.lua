@@ -256,6 +256,20 @@ describe("devicelistener", function()
         assert.spy(mock_document.resetCallCache).was_not.called()
       end
     )
+
+    it(
+      "flips saved setting both ways when called without arguments",
+      function()
+        local listener = DeviceListener:new({ ui = {} })
+        listener:onToggleNightMode()
+        assert.is_true(mock_reader_settings:read("night_mode"))
+        assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, true)
+
+        listener:onToggleNightMode()
+        assert.is_false(mock_reader_settings:read("night_mode"))
+        assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, false)
+      end
+    )
   end)
 
   describe("changeFlIntensity", function()

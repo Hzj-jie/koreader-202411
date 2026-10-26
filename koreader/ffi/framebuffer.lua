@@ -508,6 +508,7 @@ function fb:setWindowTitle(new_title)
 end
 
 function fb:setNightmode(night_mode)
+  assert(type(night_mode) == "boolean")
   self.night_mode = night_mode
   if self.device:canHWInvert() then
     -- If the device supports global inversion via the grayscale flag, do that.

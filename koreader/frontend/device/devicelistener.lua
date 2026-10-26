@@ -11,6 +11,9 @@ local T = require("ffi/util").template
 local DeviceListener = EventListener:extend({})
 
 function DeviceListener:onToggleNightMode(night_mode)
+  if night_mode == nil then
+    night_mode = G_reader_settings:nilOrFalse("night_mode")
+  end
   G_reader_settings:save("night_mode", night_mode, false)
   Screen:setNightmode(night_mode)
   -- Make sure CRe will bypass the call cache
