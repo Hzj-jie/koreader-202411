@@ -1,13 +1,9 @@
 local ffi = require("ffi")
 
--- If these types have been defined, ignore them.
-pcall(ffi.cdef, [[
+ffi.cdef([[
 typedef long int off_t;
 typedef long int time_t;
 typedef long int suseconds_t;
-]])
-
-ffi.cdef([[
 struct timeval {
   time_t tv_sec;
   suseconds_t tv_usec;
