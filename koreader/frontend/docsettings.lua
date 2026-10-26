@@ -573,7 +573,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
             showNotification(
               gettext("Failed to save custom cover to disk.")
             )
-            custom_cover_file = nil
+            custom_cover_file = false
           end
         end
         if custom_metadata_file then
@@ -586,7 +586,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
             showNotification(
               gettext("Failed to save custom metadata to disk.")
             )
-            custom_metadata_file = nil
+            custom_metadata_file = false
           end
         end
         do_purge = not copy
