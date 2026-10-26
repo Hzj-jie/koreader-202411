@@ -1,5 +1,5 @@
 describe("BatteryState plugin tests #nocov", function()
-  local MockTime, module, time
+  local MockTime, gettext, module, time
 
   local stub_ui = {
     menu = {
@@ -21,6 +21,7 @@ describe("BatteryState plugin tests #nocov", function()
   setup(function()
     require("commonrequire")
     package.unloadAll()
+    gettext = require("gettext")
     require("document/canvascontext"):init(require("device"))
     time = require("ui/time")
     MockTime = require("mock_time")
@@ -243,7 +244,7 @@ describe("BatteryState plugin tests #nocov", function()
         if
           type(pair) == "table"
           and pair[1]
-          and pair[1]:find("battery.*log")
+          and pair[1] == gettext("Tap to open batterystat.log.")
         then
           log_entry = pair
           break
@@ -276,7 +277,7 @@ describe("BatteryState plugin tests #nocov", function()
 
     local log_entry = nil
     for _, pair in ipairs(kv_page.kv_pairs) do
-      if type(pair) == "table" and pair[1] and pair[1]:find("battery.*log") then
+      if type(pair) == "table" and pair[1] and pair[1] == gettext("Tap to open batterystat.log.") then
         log_entry = pair
         break
       end

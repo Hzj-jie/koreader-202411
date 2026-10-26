@@ -203,7 +203,7 @@ msgstr ""
 #: frontend/ui/widget/numberpickerwidget.lua:182
 #: frontend/ui/widget/pathchooser.lua:167 frontend/ui/widget/textviewer.lua:499
 #: frontend/ui/widget/touchmenu.lua:1423
-#: plugins/AnnotationSync.koplugin/menus.lua:349
+#: plugins/AnnotationSync.koplugin/menus.lua:338
 #: plugins/autowarmth.koplugin/main.lua:928
 #: plugins/autowarmth.koplugin/main.lua:1267
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:380
@@ -245,7 +245,7 @@ msgstr ""
 #: plugins/statistics.koplugin/main.lua:3038
 #: plugins/statistics.koplugin/main.lua:3236
 #: plugins/statistics.koplugin/main.lua:3278
-#: plugins/terminal.koplugin/aliases.lua:121
+#: plugins/terminal.koplugin/aliases.lua:119
 #: plugins/terminal.koplugin/main.lua:797
 #: plugins/texteditor.koplugin/main.lua:396
 #: plugins/vocabbuilder.koplugin/main.lua:1271
@@ -322,7 +322,7 @@ msgstr ""
 #: plugins/profiles.koplugin/main.lua:290
 #: plugins/statistics.koplugin/main.lua:1591
 #: plugins/statistics.koplugin/main.lua:1600
-#: plugins/terminal.koplugin/aliases.lua:127
+#: plugins/terminal.koplugin/aliases.lua:125
 #: plugins/vocabbuilder.koplugin/main.lua:248
 msgid "Delete"
 msgstr ""
@@ -393,7 +393,7 @@ msgstr ""
 #: frontend/ui/widget/radiobuttonwidget.lua:56
 #: frontend/ui/widget/spinwidget.lua:36 frontend/ui/widget/textviewer.lua:275
 #: plugins/AnnotationSync.koplugin/menus.lua:79
-#: plugins/checkers.koplugin/main.lua:438
+#: plugins/checkers.koplugin/main.lua:436
 #: plugins/keepalive.koplugin/main.lua:29
 #: plugins/legacy_terminal.koplugin/main.lua:474
 #: plugins/newsdownloader.koplugin/main.lua:245
@@ -561,7 +561,7 @@ msgstr ""
 #: plugins/profiles.koplugin/main.lua:637
 #: plugins/profiles.koplugin/main.lua:860
 #: plugins/profiles.koplugin/main.lua:974 plugins/SSH.koplugin/main.lua:180
-#: plugins/terminal.koplugin/aliases.lua:141
+#: plugins/terminal.koplugin/aliases.lua:139
 #: plugins/terminal.koplugin/main.lua:816 plugins/weather.koplugin/main.lua:117
 #: plugins/weather.koplugin/main.lua:155
 msgid "Save"
@@ -1410,7 +1410,7 @@ msgstr ""
 #: frontend/apps/reader/modules/readerdevicestatus.lua:159
 #: frontend/ui/elements/common_exit_menu_table.lua:9
 #: frontend/ui/elements/common_exit_menu_table.lua:16
-#: plugins/checkers.koplugin/main.lua:266
+#: plugins/checkers.koplugin/main.lua:264
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:700
 msgid "Exit"
 msgstr ""
@@ -7654,8 +7654,8 @@ msgid ""
 "Plugin Management menu."
 msgstr ""
 
-#: frontend/luadefaults.lua:129 frontend/luasettings.lua:252
-#: frontend/readhistory.lua:104 plugins/AnnotationSync.koplugin/manager.lua:728
+#: frontend/luadefaults.lua:128 frontend/luasettings.lua:251
+#: frontend/readhistory.lua:103 plugins/AnnotationSync.koplugin/manager.lua:724
 msgid "Failed to write settings to local storage."
 msgstr ""
 
@@ -13784,7 +13784,7 @@ msgid "Syncing %1 in the background"
 msgstr ""
 
 #: plugins/AnnotationSync.koplugin/manager.lua:104
-#: plugins/AnnotationSync.koplugin/menus.lua:312
+#: plugins/AnnotationSync.koplugin/menus.lua:301
 msgid "No pending books."
 msgstr ""
 
@@ -13832,25 +13832,25 @@ msgstr ""
 msgid "Failed to save sync cache to disk."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:569
+#: plugins/AnnotationSync.koplugin/manager.lua:567
 msgid "Failed to save sync queue to disk."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:704
+#: plugins/AnnotationSync.koplugin/manager.lua:700
 msgid ""
 "No settings are selected. Please select settings to sync in 'Show changed "
 "settings'."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:733
+#: plugins/AnnotationSync.koplugin/manager.lua:729
 msgid "Pushing settings to cloud..."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:839
+#: plugins/AnnotationSync.koplugin/manager.lua:847
 msgid "Fetching settings from cloud..."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:844
+#: plugins/AnnotationSync.koplugin/manager.lua:852
 msgid "Failed to fetch settings from cloud"
 msgstr ""
 
@@ -13890,74 +13890,74 @@ msgstr ""
 msgid "No other devices found in cloud settings."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:212
+#: plugins/AnnotationSync.koplugin/menus.lua:201
 msgid "No differing settings found for this device."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:224
+#: plugins/AnnotationSync.koplugin/menus.lua:213
 msgid "Import Selected Settings"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:241
+#: plugins/AnnotationSync.koplugin/menus.lua:230
 msgid "Successfully imported 1 setting."
 msgid_plural "Successfully imported %1 settings."
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:247
+#: plugins/AnnotationSync.koplugin/menus.lua:236
 msgid "No settings imported."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:257
-#: plugins/AnnotationSync.koplugin/settings_selection.lua:340
+#: plugins/AnnotationSync.koplugin/menus.lua:246
+#: plugins/AnnotationSync.koplugin/settings_selection.lua:339
 msgid "Select All"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:268
-#: plugins/AnnotationSync.koplugin/settings_selection.lua:352
+#: plugins/AnnotationSync.koplugin/menus.lua:257
+#: plugins/AnnotationSync.koplugin/settings_selection.lua:351
 msgid "Clear Selection"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:303
+#: plugins/AnnotationSync.koplugin/menus.lua:292
 msgid "Settings from %1"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:336
+#: plugins/AnnotationSync.koplugin/menus.lua:325
 msgid "Syncing"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:347
+#: plugins/AnnotationSync.koplugin/menus.lua:336
 msgid ""
 "Sync this book now?\n"
 "\n"
 "%1"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:348
+#: plugins/AnnotationSync.koplugin/menus.lua:337
 msgid "Sync"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:357
+#: plugins/AnnotationSync.koplugin/menus.lua:346
 msgid "Remove from list"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:362
+#: plugins/AnnotationSync.koplugin/menus.lua:351
 msgid "Removed %1 from pending books."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:380
+#: plugins/AnnotationSync.koplugin/menus.lua:369
 msgid "Failed, retry in 1 minute"
 msgid_plural "Failed, retry in %1 minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:386
+#: plugins/AnnotationSync.koplugin/menus.lua:375
 msgid "Cool down for 1 minute"
 msgid_plural "Cool down for %1 minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:397
+#: plugins/AnnotationSync.koplugin/menus.lua:386
 msgid "Pending books"
 msgstr ""
 
@@ -13969,11 +13969,11 @@ msgstr ""
 msgid "No cloud destination set in settings."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/settings_selection.lua:427
+#: plugins/AnnotationSync.koplugin/settings_selection.lua:426
 msgid "No changed settings found."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/settings_selection.lua:442
+#: plugins/AnnotationSync.koplugin/settings_selection.lua:441
 msgid "Changed Settings"
 msgstr ""
 
@@ -15176,64 +15176,64 @@ msgid ""
 " %3"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:121
-#: plugins/checkers.koplugin/main.lua:131
-#: plugins/checkers.koplugin/main.lua:252
-#: plugins/checkers.koplugin/main.lua:314 plugins/checkers.koplugin/_meta.lua:4
+#: plugins/checkers.koplugin/main.lua:119
+#: plugins/checkers.koplugin/main.lua:129
+#: plugins/checkers.koplugin/main.lua:250
+#: plugins/checkers.koplugin/main.lua:312 plugins/checkers.koplugin/_meta.lua:4
 msgid "Checkers"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:265
+#: plugins/checkers.koplugin/main.lua:263
 msgid "Exit Checkers?"
+msgstr ""
+
+#: plugins/checkers.koplugin/main.lua:283
+#: plugins/checkers.koplugin/main.lua:427
+msgid "Black wins!"
 msgstr ""
 
 #: plugins/checkers.koplugin/main.lua:285
 #: plugins/checkers.koplugin/main.lua:429
-msgid "Black wins!"
-msgstr ""
-
-#: plugins/checkers.koplugin/main.lua:287
-#: plugins/checkers.koplugin/main.lua:431
 msgid "White wins!"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:289
+#: plugins/checkers.koplugin/main.lua:287
 msgid "Draw!"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:298
+#: plugins/checkers.koplugin/main.lua:296
 msgid "Black — must continue jump"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:300
-#: plugins/checkers.koplugin/main.lua:305
+#: plugins/checkers.koplugin/main.lua:298
+#: plugins/checkers.koplugin/main.lua:303
 msgid "AI thinking…"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:300
+#: plugins/checkers.koplugin/main.lua:298
 msgid "Black's turn"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:303
+#: plugins/checkers.koplugin/main.lua:301
 msgid "White — must continue jump"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:305
+#: plugins/checkers.koplugin/main.lua:303
 msgid "White's turn"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:417
+#: plugins/checkers.koplugin/main.lua:415
 #: plugins/game2048.koplugin/main.lua:403
 msgid "Start a new game?"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:418
-#: plugins/checkers.koplugin/main.lua:437
+#: plugins/checkers.koplugin/main.lua:416
+#: plugins/checkers.koplugin/main.lua:435
 #: plugins/checkers.koplugin/settingswidget.lua:193
 msgid "New Game"
 msgstr ""
 
-#: plugins/checkers.koplugin/main.lua:433
+#: plugins/checkers.koplugin/main.lua:431
 msgid "Draw — move limit reached."
 msgstr ""
 
@@ -17212,7 +17212,7 @@ msgstr ""
 #: plugins/legacy_terminal.koplugin/main.lua:425
 #: plugins/profiles.koplugin/main.lua:132
 #: plugins/profiles.koplugin/main.lua:1194
-#: plugins/terminal.koplugin/aliases.lua:181
+#: plugins/terminal.koplugin/aliases.lua:179
 msgid "Execute"
 msgstr ""
 
@@ -19345,23 +19345,23 @@ msgid "Shows system statistics."
 msgstr ""
 
 #: plugins/terminal.koplugin/aliases.lua:75
-#: plugins/terminal.koplugin/aliases.lua:168
+#: plugins/terminal.koplugin/aliases.lua:166
 msgid "Create a new alias"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:98
+#: plugins/terminal.koplugin/aliases.lua:96
 msgid "Terminal emulator: error saving: %1"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:107
+#: plugins/terminal.koplugin/aliases.lua:105
 msgid "Edit alias"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:110
+#: plugins/terminal.koplugin/aliases.lua:108
 msgid "Alias name:"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:114
+#: plugins/terminal.koplugin/aliases.lua:112
 msgid "Alias command:"
 msgstr ""
 
