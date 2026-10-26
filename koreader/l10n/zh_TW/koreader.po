@@ -1490,7 +1490,7 @@ msgstr "離開 KOReader 嗎？"
 #: frontend/ui/elements/common_exit_menu_table.lua:9
 #: frontend/ui/elements/common_exit_menu_table.lua:16
 #: plugins/checkers.koplugin/main.lua:265
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:562
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:691
 msgid "Exit"
 msgstr "離開"
 
@@ -18931,28 +18931,68 @@ msgid "Random +, -, ×, ÷ operations within 1,000"
 msgstr "1,000以內的隨機加減乘除運算"
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:71
+msgid "Fill-in-the-Blank (+, -) within 100"
+msgstr "100以內填空題（僅加減法）"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:72
+msgid "Find the missing number in addition and subtraction equations"
+msgstr "求加減法算式中的未知數"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:79
 msgid "Fill-in-the-Blank within 100"
 msgstr "100以內填空題"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:72
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:80
 msgid "Find the missing number in equations"
 msgstr "求算式中的未知數"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:78
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:86
 msgid "Square Numbers within 400"
 msgstr "400以內平方數"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:79
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:87
 msgid "Squares of numbers up to 20²"
 msgstr "20² 以內的平方計算"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:85
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:93
 msgid "3-Term Mental Math"
 msgstr "三數連算心算"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:86
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:94
 msgid "Order of operations with 3 numbers"
 msgstr "三數四則運算法則"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:101
+msgid "Arithmetic Progression within 30 (Entry Level)"
+msgstr "30以內等差數列（入門）"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:102
+msgid "Alternating blanks, step up to 3, numbers up to 30"
+msgstr "隔項填空，公差不超過3，數值不超過30"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:112
+msgid "Arithmetic Progression within 50 (Easy)"
+msgstr "50以內等差數列（簡單）"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:113
+msgid "Alternating blanks, step up to 4, numbers up to 50"
+msgstr "隔項填空，公差不超過4，數值不超過50"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:123
+msgid "Arithmetic Progression within 50"
+msgstr "50以內等差數列"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:124
+msgid "Step up to 4, numbers up to 50"
+msgstr "公差不超過4，數值不超過50"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:133
+msgid "Arithmetic Progression within 100"
+msgstr "100以內等差數列"
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:134
+msgid "Step up to 10, numbers up to 100"
+msgstr "公差不超過10，數值不超過100"
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:69
 #, lua-format
@@ -18969,19 +19009,19 @@ msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] "%1 分鐘"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:429
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:552
 #: plugins/nonogram.koplugin/main.lua:1047
 #: plugins/sudoku.koplugin/main.lua:1033
 msgid "Check"
 msgstr "檢查"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:433
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:556
 #: plugins/profiles.koplugin/main.lua:98
 #: plugins/solitaire.koplugin/solitaireui.lua:179
 msgid "New"
 msgstr "新增"
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:560
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:689
 msgid "Your progress will be lost if you exit. Are you sure you want to exit?"
 msgstr "退出後目前進度將遺失。確定要退出嗎？"
 

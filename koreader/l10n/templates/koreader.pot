@@ -186,7 +186,7 @@ msgstr ""
 #: frontend/apps/reader/modules/readeruserhyph.lua:329
 #: frontend/apps/reader/modules/readerwikipedia.lua:61
 #: frontend/apps/reader/modules/readerwikipedia.lua:196
-#: frontend/apps/reader/readerui.lua:771 frontend/device/android/device.lua:592
+#: frontend/apps/reader/readerui.lua:771 frontend/device/android/device.lua:589
 #: frontend/ui/elements/common_settings_menu_table.lua:274
 #: frontend/ui/elements/timeout_android.lua:64 frontend/ui/screensaver.lua:368
 #: frontend/ui/widget/bookstatuswidget.lua:588
@@ -1843,7 +1843,7 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:172
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:219
 #: frontend/apps/reader/modules/readermenu.lua:339
-#: frontend/apps/reader/readerui.lua:780 frontend/device/android/device.lua:591
+#: frontend/apps/reader/readerui.lua:780 frontend/device/android/device.lua:588
 #: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:47
 #: frontend/ui/widget/container/inputcontainer.lua:342
@@ -6862,23 +6862,23 @@ msgctxt "Date string"
 msgid "%1 %2"
 msgstr ""
 
-#: frontend/device/android/device.lua:379
+#: frontend/device/android/device.lua:376
 msgid "Not connected"
 msgstr ""
 
-#: frontend/device/android/device.lua:382
+#: frontend/device/android/device.lua:379
 msgid "Connected to Wi-Fi"
 msgstr ""
 
-#: frontend/device/android/device.lua:384
+#: frontend/device/android/device.lua:381
 msgid "Connected to mobile data network"
 msgstr ""
 
-#: frontend/device/android/device.lua:386
+#: frontend/device/android/device.lua:383
 msgid "Connected to Ethernet"
 msgstr ""
 
-#: frontend/device/android/device.lua:502
+#: frontend/device/android/device.lua:499
 msgid ""
 "%1\n"
 "\n"
@@ -6886,56 +6886,56 @@ msgid ""
 "Build flavor: %5\n"
 msgstr ""
 
-#: frontend/device/android/device.lua:512
+#: frontend/device/android/device.lua:509
 msgid "Device type: %1"
 msgstr ""
 
-#: frontend/device/android/device.lua:518
+#: frontend/device/android/device.lua:515
 msgid ""
 "E-ink display supported.\n"
 "Platform: %1"
 msgstr ""
 
-#: frontend/device/android/device.lua:526
+#: frontend/device/android/device.lua:523
 msgid ""
 "This device needs CPU, screen and touchscreen always on.\n"
 "Screen timeout will be ignored while the app is in the foreground!"
 msgstr ""
 
-#: frontend/device/android/device.lua:585
+#: frontend/device/android/device.lua:582
 msgid "Frontlight settings"
 msgstr ""
 
-#: frontend/device/android/device.lua:586
+#: frontend/device/android/device.lua:583
 msgid "Light settings"
 msgstr ""
 
-#: frontend/device/android/device.lua:589
+#: frontend/device/android/device.lua:586
 #: frontend/ui/widget/frontlightwidget.lua:149
 msgid "Brightness"
 msgstr ""
 
-#: frontend/device/android/device.lua:590
+#: frontend/device/android/device.lua:587
 #: frontend/ui/widget/frontlightwidget.lua:264
 msgid "Warmth"
 msgstr ""
 
-#: frontend/device/android/device.lua:638
+#: frontend/device/android/device.lua:635
 msgid ""
 "Your device seems to be unable to download packages.\n"
 "Retry using the browser?"
 msgstr ""
 
-#: frontend/device/android/device.lua:640
+#: frontend/device/android/device.lua:637
 msgid "Retry"
 msgstr ""
 
-#: frontend/device/android/device.lua:651
+#: frontend/device/android/device.lua:648
 #: frontend/device/generic/device.lua:453
 msgid "Update is ready. Install it now?"
 msgstr ""
 
-#: frontend/device/android/device.lua:652
+#: frontend/device/android/device.lua:649
 #: frontend/device/generic/device.lua:454
 msgid "Install"
 msgstr ""
