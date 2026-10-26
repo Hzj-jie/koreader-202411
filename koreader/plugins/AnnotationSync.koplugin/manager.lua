@@ -511,13 +511,10 @@ end
 
 function SyncManager:getSyncCachePath(file)
   local cand = docsettings:getCustomLocationCandidate(file)
-  if not cand or not cand.dir then
+  if not cand then
     return nil
   end
   local filename = self:_getAnnotationFilename(file)
-  if not filename then
-    return nil
-  end
   return cand.dir .. "/" .. filename .. ".sync"
 end
 
