@@ -237,29 +237,29 @@ struct disp_layer_config2 {
   unsigned int channel;
   unsigned int layer_id;
 };
-enum { DISP_EINK_UPDATE2 = 1030 };
-enum { DISP_EINK_WAIT_BEFORE_LCD_INT_COMPLETE = 16402 };
-enum { DISP_EINK_SET_UPDATE_CONTROL = 16403 };
-enum { DISP_EINK_WAIT_FRAME_SYNC_COMPLETE = 16404 };
-enum { DISP_EINK_SET_NTX_HANDWRITE_ONOFF = 16405 };
-enum { DISP_EINK_SET_WAIT_MODE_ONOFF = 16406 };
+static const int DISP_EINK_UPDATE2 = 1030;
+static const int DISP_EINK_WAIT_BEFORE_LCD_INT_COMPLETE = 16402;
+static const int DISP_EINK_SET_UPDATE_CONTROL = 16403;
+static const int DISP_EINK_WAIT_FRAME_SYNC_COMPLETE = 16404;
+static const int DISP_EINK_SET_NTX_HANDWRITE_ONOFF = 16405;
+static const int DISP_EINK_SET_WAIT_MODE_ONOFF = 16406;
 typedef struct {
-  unsigned long u0;
-  unsigned long u1;
-  unsigned long u2;
-  unsigned long u3;
-  unsigned long u4;
-  unsigned long u5;
-  unsigned long u6;
+  long unsigned int u0;
+  long unsigned int u1;
+  long unsigned int u2;
+  long unsigned int u3;
+  long unsigned int u4;
+  long unsigned int u5;
+  long unsigned int u6;
 } sunxi_disp_raw_ioctl;
 typedef struct {
   struct area_info *area;
-  unsigned long layer_num;
-  unsigned long update_mode;
+  long unsigned int layer_num;
+  long unsigned int update_mode;
   struct disp_layer_config2 *lyr_cfg2;
   unsigned int *frame_id;
   uint32_t *rotate;
-  unsigned long cfa_use;
+  long unsigned int cfa_use;
 } sunxi_disp_eink_update2;
 typedef struct {
   bool enable;
@@ -274,7 +274,7 @@ typedef struct {
   bool enable;
 } sunxi_disp_eink_set_wait_mode_onoff;
 struct disp_fb_info {
-  unsigned long long addr[3];
+  long long unsigned int addr[3];
   struct disp_rectsz size[3];
   unsigned int align[3];
   enum disp_pixel_format format;
@@ -307,21 +307,21 @@ struct disp_layer_config {
 };
 typedef struct {
   struct area_info *area;
-  unsigned long layer_num;
-  unsigned long update_mode;
+  long unsigned int layer_num;
+  long unsigned int update_mode;
   struct disp_layer_config *lyr_cfg;
-  unsigned long u4;
-  unsigned long rotate;
-  unsigned long cfa_use;
+  long unsigned int u4;
+  long unsigned int rotate;
+  long unsigned int cfa_use;
 } sunxi_disp_eink_update;
 typedef struct {
-  unsigned long temp;
+  long unsigned int temp;
 } sunxi_disp_eink_set_temp;
 typedef struct {
-  unsigned long skip;
+  long unsigned int skip;
 } sunxi_disp_eink_overlap_skip;
 typedef struct {
-  unsigned long count;
+  long unsigned int count;
 } sunxi_disp_eink_set_gc_count;
 struct cfa_enable {
   bool bg_enable;
@@ -333,12 +333,12 @@ typedef struct {
 typedef struct {
   int screen_id;
   struct disp_layer_config2 *lyr_cfg2;
-  unsigned long layer_num;
+  long unsigned int layer_num;
 } sunxi_disp_layer_get_config2;
 typedef struct {
   int screen_id;
   struct disp_layer_config *lyr_cfg;
-  unsigned long layer_num;
+  long unsigned int layer_num;
 } sunxi_disp_layer_get_config;
 typedef struct {
   int screen_id;

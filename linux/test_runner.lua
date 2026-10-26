@@ -1,9 +1,3 @@
-if jit == nil then
-    jit = require("jit")
-end
-if bit == nil then
-    bit = require("bit")
-end
 local ffi = require("ffi")
 local lfs = require("libs/libkoreader-lfs")
 
@@ -30,8 +24,8 @@ os.exit = function(code, close)
 end
 
 -- 1. Configure relative module search paths directly in Lua to avoid global env dependencies
-package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.4/?.lua;/usr/share/lua/5.4/?/init.lua;" .. package.path
-package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.4/?.so;;"
+package.path = "./luacov/?.lua;./luacov/?/init.lua;./base/spec/unit/?.lua;./spec/unit/?.lua;./?.lua;./common/?.lua;./frontend/?.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;" .. package.path
+package.cpath = "./?.so;./common/?.so;./libs/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
 
 local test_env = require("test_helper")
 
@@ -170,7 +164,7 @@ local function spawn_job(idx)
     local worker_tmp_dir = worker_config_dir .. "/tmp"
     lfs.mkdir(worker_tmp_dir)
 
-    local cmd = string.format("%sTMPDIR=%q KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./lua %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
+    local cmd = string.format("%sTMPDIR=%q KO_MULTIUSER=1 KO_TEST_WORKER=1 XDG_CONFIG_HOME=%q TESSDATA_PREFIX=data ./luajit %s test_runner.lua %q 2>&1; echo \"EXIT_STATUS:$?\"", luacov_env, worker_tmp_dir, worker_config_dir, lua_flags, spec_path)
     local pipe = io.popen(cmd)
     if pipe then
         active_jobs[idx] = {

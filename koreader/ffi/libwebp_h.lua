@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-enum { WEBP_DEMUX_ABI_VERSION = 263 };
+static const int WEBP_DEMUX_ABI_VERSION = 263;
 enum WEBP_CSP_MODE {
   MODE_RGB = 0,
   MODE_RGBA = 1,

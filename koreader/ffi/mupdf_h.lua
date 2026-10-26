@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 
 ffi.cdef([[
-enum { FZ_STEXT_BLOCK_TEXT = 0 };
+static const int FZ_STEXT_BLOCK_TEXT = 0;
 typedef struct {
   float x;
   float y;

@@ -4,7 +4,7 @@
 io.stdout:setvbuf("line")
 -- Enforce a reliable locale for numerical representations
 os.setlocale("C", "numeric")
-math.randomseed(math.floor(os.time() + os.clock() * 1000))
+math.randomseed(os.time() + os.clock() * 1000)
 
 io.write(
   [[
