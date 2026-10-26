@@ -413,4 +413,157 @@ describe("Statistics plugin", function()
       assert.is_same(0, tonumber(book2_count))
     end)
   end)
+
+  describe("Defect verifications", function()
+    it(
+      "inserts page statistics into page_stat_data table without view modification error",
+      function()
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        local conn = SQ3.open(":memory:")
+        stats:createDB(conn)
+        stats.data = {
+          title = "Different Book",
+          authors = "Different Author",
+        }
+        stats.doc_md5 = "different_md5"
+        local book_stats = {
+          title = "Test Book",
+          authors = "Test Author",
+          notes = 0,
+          highlights = 0,
+          pages = 100,
+          series = "Test Series",
+          language = "en",
+          file = "/dummy/test.epub",
+          total_time_in_sec = 60,
+          performance_in_pages = {
+            [1000] = 5,
+            [1030] = 6,
+          },
+        }
+
+        local ok, res = pcall(function()
+          return stats:addBookStatToDB(book_stats, conn)
+        end)
+        assert.is_true(ok, "addBookStatToDB should not throw an error")
+        assert.is_true(res)
+
+        local book_count =
+          conn:rowexec("SELECT count(*) FROM book WHERE title = 'Test Book'")
+        assert.are.equal(1, tonumber(book_count))
+
+        local count = conn:rowexec("SELECT count(*) FROM page_stat_data")
+        assert.are.equal(3, tonumber(count))
+
+        conn:close()
+      end
+    )
+
+    it(
+      "selects yesterday when current time is earlier than day start hour",
+      function()
+        local CalendarView = require("plugins/statistics.koplugin/calendarview")
+        local UIManager = require("ui/uimanager")
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        stats.settings.calendar_day_start_hour = 23
+        stats.settings.calendar_day_start_minute = 0
+
+        -- 22:00 on 2026-10-10 (earlier than 23:00 day start hour)
+        local fixed_time = os.time({
+          year = 2026,
+          month = 10,
+          day = 10,
+          hour = 22,
+          min = 0,
+          sec = 0,
+        })
+        local orig_time = os.time
+        local orig_show = UIManager.show
+        local captured_view
+
+        finally(function()
+          os.time = orig_time
+          UIManager.show = orig_show
+        end)
+
+        os.time = function(t)
+          if not t then
+            return fixed_time
+          end
+          return orig_time(t)
+        end
+
+        UIManager.show = function(self, view)
+          captured_view = view
+        end
+
+        local cal_view = CalendarView:new({
+          ui = stats.ui,
+          reader_statistics = stats,
+        })
+
+        cal_view:showCalendarDayView(stats)
+
+        assert.is_not_nil(captured_view)
+        local resolved_date = os.date("*t", captured_view.day_ts)
+        assert.are.equal(
+          9,
+          resolved_date.day,
+          "CalendarDayView day_ts should be for yesterday (day 9) when before day start hour"
+        )
+      end
+    )
+  end)
+
+  it(
+    "should use singular form when migrating 1 book in _checkInitDatabase",
+    function()
+      local UIManager = require("ui/uimanager")
+      local ReadHistory = require("readhistory")
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      local orig_forceRepaint = UIManager.forceRepaint
+      local orig_hist = ReadHistory.hist
+
+      local shown_texts = {}
+      UIManager.show = function(self, widget)
+        if widget and widget.text then
+          table.insert(shown_texts, widget.text)
+        end
+      end
+      UIManager.close = function() end
+      UIManager.forceRepaint = function() end
+      ReadHistory.hist = { { text = "/path/to/some_book.epub" } }
+
+      finally(function()
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+        UIManager.forceRepaint = orig_forceRepaint
+        ReadHistory.hist = orig_hist
+        os.remove(db_location)
+      end)
+
+      local opts = helper_create_stats_opts()
+      opts.ui.doc_props = nil
+      local stats = ReaderStatistics:new(opts)
+      stats.migrateToDB = function()
+        return 1
+      end
+
+      stats:_checkInitDatabase()
+
+      assert.is_true(#shown_texts >= 2)
+      assert.are.equal(
+        require("ffi/util").template(
+          require("gettext").ngettext(
+            "Conversion complete.\nImported one book to the database.\nTap to continue.",
+            "Conversion complete.\nImported %1 books to the database.\nTap to continue.",
+            1
+          ),
+          1
+        ),
+        shown_texts[#shown_texts]
+      )
+    end
+  )
 end)

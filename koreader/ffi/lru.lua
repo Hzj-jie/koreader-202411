@@ -142,6 +142,7 @@ function lru.new(max_size, max_bytes, enable_eviction_cb)
     while size > half do
       del(oldest[KEY], oldest)
     end
+    removed_tuple = nil
   end
 
   local function get(_, key)

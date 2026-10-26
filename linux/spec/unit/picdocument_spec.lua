@@ -38,4 +38,36 @@ describe("PicDocument module", function()
       doc._document:close()
     end
   end)
+
+  describe("Defect verifications", function()
+    it("getCoverPageImage closes the opened page handle", function()
+      local img_path = "base/spec/unit/data/sample.jpg"
+      local doc = PicDocument:new({ file = img_path })
+      doc:init()
+
+      local page_closed = false
+      local orig_openPage = doc._document.openPage
+      doc._document.openPage = function(self_d, pageno)
+        local page = orig_openPage(self_d, pageno)
+        local orig_close = page.close
+        page.close = function(self_p)
+          page_closed = true
+          if orig_close then
+            return orig_close(self_p)
+          end
+        end
+        return page
+      end
+
+      finally(function()
+        if doc._document and doc._document.close then
+          doc._document:close()
+        end
+      end)
+
+      local cover = doc:getCoverPageImage()
+      assert.is_not_nil(cover)
+      assert.is_true(page_closed)
+    end)
+  end)
 end)

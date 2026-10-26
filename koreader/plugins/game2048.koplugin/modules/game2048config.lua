@@ -143,7 +143,7 @@ function Game2048Config:showConfigMenu()
       self:onCloseCallback()
     end,
   })
-  self.config_dialog:onShowConfigPanel(self.last_panel_index)
+  self.config_dialog:showConfigPanel(self.last_panel_index)
   self._did_show_size_notification = false
   UIManager:show(self.config_dialog)
   return true

@@ -50,37 +50,40 @@ describe("ReaderStatus module", function()
       })
     end
 
-    it("should display book status and toggle reading/complete status", function()
-      local readerui = createReaderUI()
-      local status = readerui.status
-      local UIManager = require("ui/uimanager")
+    it(
+      "should display book status and toggle reading/complete status",
+      function()
+        local readerui = createReaderUI()
+        local status = readerui.status
+        local UIManager = require("ui/uimanager")
 
-      local shown_widget
-      local orig_show = UIManager.show
-      UIManager.show = function(self, w)
-        shown_widget = w
+        local shown_widget
+        local orig_show = UIManager.show
+        UIManager.show = function(self, w)
+          shown_widget = w
+        end
+
+        local callback_called = false
+        status:onShowBookStatus(function()
+          callback_called = true
+        end)
+        assert.is_true(callback_called)
+        assert.is_not_nil(shown_widget)
+
+        -- Mark book as complete
+        status:markBook(true)
+        local summary = readerui.doc_settings:readTableRef("summary")
+        assert.are.equal("complete", summary.status)
+
+        -- Toggle book status
+        status:markBook()
+        assert.are.equal("reading", summary.status)
+
+        UIManager.show = orig_show
+        readerui:onExit()
+        readerui:onClose()
       end
-
-      local callback_called = false
-      status:onShowBookStatus(function()
-        callback_called = true
-      end)
-      assert.is_true(callback_called)
-      assert.is_not_nil(shown_widget)
-
-      -- Mark book as complete
-      status:markBook(true)
-      local summary = readerui.doc_settings:readTableRef("summary")
-      assert.are.equal("complete", summary.status)
-
-      -- Toggle book status
-      status:markBook()
-      assert.are.equal("reading", summary.status)
-
-      UIManager.show = orig_show
-      readerui:onExit()
-      readerui:onClose()
-    end)
+    )
 
     it("should handle end of book popup and button actions", function()
       local readerui = createReaderUI()
@@ -99,9 +102,13 @@ describe("ReaderStatus module", function()
       if shown_widget and shown_widget.buttons then
         for _, row in ipairs(shown_widget.buttons) do
           for _, btn in ipairs(row) do
-            if btn.text_func then btn:text_func() end
+            if btn.text_func then
+              btn:text_func()
+            end
             if btn.callback then
-              pcall(function() btn.callback() end)
+              pcall(function()
+                btn.callback()
+              end)
             end
           end
         end
@@ -112,55 +119,66 @@ describe("ReaderStatus module", function()
       readerui:onClose()
     end)
 
-    it("should handle quickstart file and different end_document_action settings", function()
-      local readerui = createReaderUI()
-      local status = readerui.status
-      local UIManager = require("ui/uimanager")
+    it(
+      "should handle quickstart file and different end_document_action settings",
+      function()
+        local readerui = createReaderUI()
+        local status = readerui.status
+        local UIManager = require("ui/uimanager")
 
-      local orig_show = UIManager.show
-      UIManager.show = function() end
+        local orig_show = UIManager.show
+        UIManager.show = function() end
 
-      -- Quickstart file end of book
-      local QuickStart = require("ui/quickstart")
-      local orig_read = G_reader_settings.read
-      G_reader_settings.read = function(self, k)
-        if k == "lastfile" then return QuickStart.quickstart_filename end
-        return orig_read(self, k)
-      end
-      status:onEndOfBook()
-
-      local actions = {
-        "book_status",
-        "next_file",
-        "goto_beginning",
-        "file_browser",
-        "mark_read",
-        "book_status_file_browser",
-        "delete_file",
-      }
-
-      for _, act in ipairs(actions) do
+        -- Quickstart file end of book
+        local QuickStart = require("ui/quickstart")
+        local orig_read = G_reader_settings.read
         G_reader_settings.read = function(self, k)
-          if k == "end_document_action" then return act end
+          if k == "lastfile" then
+            return QuickStart.quickstart_filename
+          end
           return orig_read(self, k)
         end
         status:onEndOfBook()
-      end
 
-      local orig_collate = G_named_settings.collate
-      G_named_settings.collate = function() return "date" end
-      G_reader_settings.read = function(self, k)
-        if k == "end_document_action" then return "next_file" end
-        return orig_read(self, k)
-      end
-      status:onEndOfBook()
-      G_named_settings.collate = orig_collate
+        local actions = {
+          "book_status",
+          "next_file",
+          "goto_beginning",
+          "file_browser",
+          "mark_read",
+          "book_status_file_browser",
+          "delete_file",
+        }
 
-      G_reader_settings.read = orig_read
-      UIManager.show = orig_show
-      readerui:onExit()
-      readerui:onClose()
-    end)
+        for _, act in ipairs(actions) do
+          G_reader_settings.read = function(self, k)
+            if k == "end_document_action" then
+              return act
+            end
+            return orig_read(self, k)
+          end
+          status:onEndOfBook()
+        end
+
+        local orig_collate = G_named_settings.collate
+        G_named_settings.collate = function()
+          return "date"
+        end
+        G_reader_settings.read = function(self, k)
+          if k == "end_document_action" then
+            return "next_file"
+          end
+          return orig_read(self, k)
+        end
+        status:onEndOfBook()
+        G_named_settings.collate = orig_collate
+
+        G_reader_settings.read = orig_read
+        UIManager.show = orig_show
+        readerui:onExit()
+        readerui:onClose()
+      end
+    )
 
     it("should handle open next document and delete file workflows", function()
       local readerui = createReaderUI()

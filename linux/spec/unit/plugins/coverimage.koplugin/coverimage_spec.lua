@@ -231,6 +231,18 @@ describe("CoverImage plugin tests", function()
     end
   )
 
+  it(
+    "defaults cover_image_cache_path to DataStorage:getCacheDir() when setting is unset",
+    function()
+      G_reader_settings:delete("cover_image_cache_path")
+      local instance = CoverImage:new({ ui = createMockUI() })
+      assert.are.equal(
+        DataStorage:getCacheDir() .. "/cover_image.cache/",
+        instance.cover_image_cache_path
+      )
+    end
+  )
+
   it("should check coverEnabled and fallbackEnabled correctly", function()
     local instance = CoverImage:new({ ui = createMockUI() })
 
@@ -711,5 +723,32 @@ describe("CoverImage plugin tests", function()
     save_btn.callback()
     assert.are.equal(test_dir .. "/new_cover.png", instance.cover_image_path)
     assert.spy(dummy_menu.updateItems).was_called()
+  end)
+
+  it("preserves modification time when migrating cache files", function()
+    local instance = CoverImage:new({ ui = createMockUI() })
+    local old_cache = test_dir .. "/old_cache_migration/"
+    local new_cache = test_dir .. "/new_cache_migration/"
+    lfs.mkdir(old_cache)
+    lfs.mkdir(new_cache)
+    local old_file = old_cache .. "cover_mig.png"
+    local new_file = new_cache .. "cover_mig.png"
+    local fo = io.open(old_file, "w")
+    fo:write("migrated_data")
+    fo:close()
+
+    -- Set distinct access time (2000000000) and modification time (1500000000)
+    local original_atime = 2000000000
+    local original_mtime = 1500000000
+    lfs.touch(old_file, original_atime, original_mtime)
+
+    instance:migrateCache(old_cache, new_cache)
+
+    local new_file_mtime = lfs.attributes(new_file, "modification")
+    os.remove(new_file)
+    lfs.rmdir(old_cache)
+    lfs.rmdir(new_cache)
+
+    assert.are.equal(original_mtime, new_file_mtime)
   end)
 end)

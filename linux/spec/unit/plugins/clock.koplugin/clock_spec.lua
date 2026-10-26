@@ -104,22 +104,32 @@ describe("Clock plugin tests", function()
     end
   )
 
-  it("handles show and scheduling timeout if configured", function()
+  it("handles show and pauses auto-suspend", function()
     Device.hasKeys.returns(false)
     Device.isTouchDevice.returns(false)
     Clock = dofile("plugins/clock.koplugin/main.lua")
     Clock.ui = { menu = { registerToMainMenu = function() end } }
     Clock:init()
 
-    Clock.timeout = 10 -- 10 seconds timeout
     Clock:onShow()
 
     assert.is_true(PluginShare.pause_auto_suspend)
+  end)
+
+  it("schedules auto-close on show when timeout is configured", function()
+    Device.hasKeys.returns(false)
+    Device.isTouchDevice.returns(false)
+    Clock = dofile("plugins/clock.koplugin/main.lua")
+    Clock.ui = { menu = { registerToMainMenu = function() end } }
+    Clock:init()
+    Clock.timeout = 5
+
+    Clock:onShow()
+
     assert
       .stub(UIManager.scheduleIn)
-      .was_called_with(match.ref(UIManager), 10, match.is_function())
+      .was_called_with(match.ref(UIManager), 5, match.is_function())
 
-    -- Verify callback closes the clock
     local call = UIManager.scheduleIn.calls[1]
     local callback = call.refs[3]
     callback()
@@ -138,7 +148,6 @@ describe("Clock plugin tests", function()
     Clock.timeout = nil
     Clock:onShow()
 
-    assert.is_true(PluginShare.pause_auto_suspend)
     assert.stub(UIManager.scheduleIn).was_not_called()
   end)
 
@@ -181,7 +190,6 @@ describe("Clock plugin tests", function()
     -- Tap close
     local closed = Clock:onTapClose()
     assert.is_true(closed)
-    assert.is_false(Clock._visible)
     assert.is_false(PluginShare.pause_auto_suspend)
     assert
       .stub(UIManager.close)

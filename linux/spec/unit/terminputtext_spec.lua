@@ -264,4 +264,170 @@ describe("TermInputText widget module", function()
       end
     )
   end)
+
+  describe("ANSI cursor save/restore and navigation", function()
+    describe("interpretAnsiSeq cursor save and restore", function()
+      it("should handle SCO cursor save and restore (ESC[s / ESC[u)", function()
+        local term = TermInputText:new({
+          maxc = 10,
+          maxr = 3,
+          wrap = true,
+        })
+        term:interpretAnsiSeq("ab\027[scd\027[uX")
+        assert.are.equal("", term.sequence_state)
+        assert.are.equal(3, term.store_pos_sco)
+        assert.are.equal("a", term.charlist[1])
+        assert.are.equal("b", term.charlist[2])
+        assert.are.equal("X", term.charlist[3])
+        assert.are.equal("d", term.charlist[4])
+      end)
+
+      it("should handle DEC cursor save and restore (ESC7 / ESC8)", function()
+        local term = TermInputText:new({
+          maxc = 10,
+          maxr = 3,
+          wrap = true,
+        })
+        term:interpretAnsiSeq("12\027734\0278Y")
+        assert.are.equal(3, term.store_pos_dec)
+        assert.are.equal("1", term.charlist[1])
+        assert.are.equal("2", term.charlist[2])
+        assert.are.equal("Y", term.charlist[3])
+        assert.are.equal("4", term.charlist[4])
+      end)
+
+      it("should handle 3-parameter ANSI sequence and reset state", function()
+        local term = TermInputText:new({
+          maxc = 10,
+          maxr = 3,
+          wrap = true,
+        })
+        term:interpretAnsiSeq("\027[1;2;3m")
+        assert.are.equal("", term.sequence_state)
+        assert.are.equal("", term.sequence_mode)
+
+        -- Unsupported final byte after 3 params
+        term:interpretAnsiSeq("\027[1;2;3z")
+        assert.are.equal("", term.sequence_state)
+        assert.are.equal("", term.sequence_mode)
+      end)
+    end)
+
+    describe("goToStartOfLine and goToEndOfLine", function()
+      it(
+        "should send cursor_pos1 and cursor_end to strike_callback when skip_callback is false",
+        function()
+          local sent = {}
+          local term = TermInputText:new({
+            maxc = 10,
+            maxr = 3,
+            wrap = true,
+            strike_callback = function(seq)
+              table.insert(sent, seq)
+            end,
+          })
+          term.charpos = 5
+          term:goToStartOfLine(false)
+          assert.are.equal(5, term.charpos)
+          assert.are.same({ "\027[7~" }, sent)
+
+          term:goToEndOfLine(false)
+          assert.are.equal(5, term.charpos)
+          assert.are.same({ "\027[7~", "\027[8~" }, sent)
+        end
+      )
+
+      it(
+        "should navigate start and end of line when skip_callback is true",
+        function()
+          local term = TermInputText:new({
+            maxc = 20,
+            maxr = 5,
+            wrap = false,
+          })
+          term:addChars("hello\nworld")
+          term.strike_callback = function() end
+          -- "hello\nworld"
+          -- indices: 1='h', 2='e', 3='l', 4='l', 5='o', 6='\n', 7='w', 8='o', 9='r', 10='l', 11='d'
+          term.charpos = 9
+          term:goToStartOfLine(true)
+          assert.are.equal(7, term.charpos)
+
+          term.charpos = 1
+          term:goToEndOfLine(true)
+          assert.are.equal(6, term.charpos)
+        end
+      )
+    end)
+
+    describe("key and cursor movement methods", function()
+      it("should invoke strike_callback when skip_callback is false", function()
+        local sent = {}
+        local term = TermInputText:new({
+          maxc = 20,
+          maxr = 5,
+          wrap = true,
+        })
+        term:addChars("abc")
+        term.strike_callback = function(seq)
+          table.insert(sent, seq)
+        end
+        term:leftChar(false)
+        term:rightChar(false)
+        term:upLine(false)
+        term:downLine(false)
+        term:scrollUp(false)
+        term:scrollDown(false)
+        term:delChar()
+        term:reverseLineFeed(false)
+
+        assert.are.same({
+          "\027[D", -- leftChar
+          "\027[C", -- rightChar
+          "\027[A", -- upLine
+          "\027[B", -- downLine
+          "\027[5~", -- scrollUp
+          "\027[6~", -- scrollDown
+          "\008", -- delChar
+          "\027[6~", -- reverseLineFeed sends esc_seq.page_down
+        }, sent)
+      end)
+
+      it(
+        "should update buffer and cursor when skip_callback is true",
+        function()
+          local term = TermInputText:new({
+            maxc = 20,
+            maxr = 5,
+            wrap = false,
+          })
+          term:addChars("ab\ncd")
+          -- indices: 1='a', 2='b', 3='\n', 4='c', 5='d', 6=past end
+          term.charpos = 5
+          term:leftChar(true)
+          assert.are.equal(4, term.charpos)
+          term:leftChar(true) -- charlist[3] is '\n', leftChar should return without moving
+          assert.are.equal(4, term.charpos)
+
+          term.charpos = 1
+          term:leftChar(true)
+          assert.are.equal(1, term.charpos)
+
+          term:moveCursorToCharPos(1)
+          term:rightChar(true)
+          assert.are.equal(2, term.charpos)
+          term:rightChar(true) -- charlist[2] is 'b', rightChar moves to 3 ('\n')
+          assert.are.equal(3, term.charpos)
+          term:rightChar(true) -- charlist[3] is '\n', rightChar stops
+          assert.are.equal(3, term.charpos)
+
+          -- reverseLineFeed inserts 80 spaces
+          local initial_count = #term.charlist
+          term.charpos = 1
+          term:reverseLineFeed(true)
+          assert.are.equal(initial_count + 80, #term.charlist)
+        end
+      )
+    end)
+  end)
 end)

@@ -220,87 +220,98 @@ describe("NetworkSetting module", function()
     end)
   end)
 
-  it("handles NetworkItem onTapSelect, WEP check, edit, add, and saveAndConnectToNetwork", function()
-    stub(NetworkMgr, "saveNetwork")
-    stub(NetworkMgr, "deleteNetwork")
-    stub(NetworkMgr, "authenticateNetwork", function() return true end)
-    stub(NetworkMgr, "obtainIP")
+  it(
+    "handles NetworkItem onTapSelect, WEP check, edit, add, and saveAndConnectToNetwork",
+    function()
+      stub(NetworkMgr, "saveNetwork")
+      stub(NetworkMgr, "deleteNetwork")
+      stub(NetworkMgr, "authenticateNetwork", function()
+        return true
+      end)
+      stub(NetworkMgr, "obtainIP")
 
-    local network_list = {
-      {
-        ssid = "wep_net",
-        signal_level = -50,
-        flags = "[WEP][ESS]",
-        signal_quality = 90,
-      },
-      {
-        ssid = "wpa_net",
-        signal_level = -60,
-        flags = "[WPA2-PSK-CCMP][ESS]",
-        signal_quality = 60,
-        password = "secret_password",
-      },
-      {
-        ssid = "open_net",
-        signal_level = -70,
-        flags = "[ESS]",
-        signal_quality = 20,
-      },
-    }
+      local network_list = {
+        {
+          ssid = "wep_net",
+          signal_level = -50,
+          flags = "[WEP][ESS]",
+          signal_quality = 90,
+        },
+        {
+          ssid = "wpa_net",
+          signal_level = -60,
+          flags = "[WPA2-PSK-CCMP][ESS]",
+          signal_quality = 60,
+          password = "secret_password",
+        },
+        {
+          ssid = "open_net",
+          signal_level = -70,
+          flags = "[ESS]",
+          signal_quality = 20,
+        },
+      }
 
-    local ns = NetworkSetting:new({ network_list = network_list })
-    local items = ns[1][1][1][3].items
-    local wep_item = items[1]
-    local wpa_item = items[2]
-    local open_item = items[3]
+      local ns = NetworkSetting:new({ network_list = network_list })
+      local items = ns[1][1][1][3].items
+      local wep_item = items[1]
+      local wpa_item = items[2]
+      local open_item = items[3]
 
-    local Geom = require("ui/geometry")
-    local dummy_pos = Geom:new({ x = 10, y = 10 })
+      local Geom = require("ui/geometry")
+      local dummy_pos = Geom:new({ x = 10, y = 10 })
 
-    -- Test WEP onTapSelect
-    local shown_widget
-    wep_item.showWidget = function(self, w) shown_widget = w end
-    wep_item:onTapSelect(nil, { pos = dummy_pos })
-    assert.is_not_nil(shown_widget)
+      -- Test WEP onTapSelect
+      local shown_widget
+      wep_item.showWidget = function(self, w)
+        shown_widget = w
+      end
+      wep_item:onTapSelect(nil, { pos = dummy_pos })
+      assert.is_not_nil(shown_widget)
 
-    -- Test WPA onTapSelect edit button tap
-    local edit_dialog
-    wpa_item.showWidget = function(self, w) edit_dialog = w end
-    wpa_item.btn_edit_nw.dimen = Geom:new({ x = 50, y = 50, w = 40, h = 40 })
-    wpa_item:onTapSelect(nil, { pos = Geom:new({ x = 55, y = 55 }) })
-    assert.is_not_nil(edit_dialog)
+      -- Test WPA onTapSelect edit button tap
+      local edit_dialog
+      wpa_item.showWidget = function(self, w)
+        edit_dialog = w
+      end
+      wpa_item.btn_edit_nw.dimen = Geom:new({ x = 50, y = 50, w = 40, h = 40 })
+      wpa_item:onTapSelect(nil, { pos = Geom:new({ x = 55, y = 55 }) })
+      assert.is_not_nil(edit_dialog)
 
-    -- Test forget button in edit_dialog
-    local forget_btn = edit_dialog.buttons[1][2]
-    forget_btn.callback()
-    assert.stub(NetworkMgr.deleteNetwork).was_called()
+      -- Test forget button in edit_dialog
+      local forget_btn = edit_dialog.buttons[1][2]
+      forget_btn.callback()
+      assert.stub(NetworkMgr.deleteNetwork).was_called()
 
-    -- Test open net onAddNetwork
-    local add_dialog
-    open_item.showWidget = function(self, w) add_dialog = w end
-    open_item:onTapSelect(nil, { pos = dummy_pos })
-    assert.is_not_nil(add_dialog)
+      -- Test open net onAddNetwork
+      local add_dialog
+      open_item.showWidget = function(self, w)
+        add_dialog = w
+      end
+      open_item:onTapSelect(nil, { pos = dummy_pos })
+      assert.is_not_nil(add_dialog)
 
-    -- Test saveAndConnectToNetwork with empty password on WPA
-    local InputDialog = require("ui/widget/inputdialog")
-    local mock_pw_input = InputDialog:new({
-      input = "",
-    })
-    wep_item.info.flags = "[WPA2-PSK-CCMP][ESS]"
-    wep_item:saveAndConnectToNetwork(mock_pw_input)
+      -- Test saveAndConnectToNetwork with empty password on WPA
+      local InputDialog = require("ui/widget/inputdialog")
+      local mock_pw_input = InputDialog:new({
+        input = "",
+      })
+      wep_item.info.flags = "[WPA2-PSK-CCMP][ESS]"
+      wep_item:saveAndConnectToNetwork(mock_pw_input)
 
-    -- Test saveAndConnectToNetwork with valid password
-    local mock_valid_pw = InputDialog:new({
-      input = "new_valid_password",
-    })
-    wpa_item:saveAndConnectToNetwork(mock_valid_pw)
-    assert.stub(NetworkMgr.saveNetwork).was_called()
+      -- Test saveAndConnectToNetwork with valid password
+      local mock_valid_pw = InputDialog:new({
+        input = "new_valid_password",
+      })
+      wpa_item:saveAndConnectToNetwork(mock_valid_pw)
+      assert.stub(NetworkMgr.saveNetwork).was_called()
 
-    NetworkMgr.saveNetwork:revert()
-    NetworkMgr.deleteNetwork:revert()
-    NetworkMgr.authenticateNetwork:revert()
-    NetworkMgr.obtainIP:revert()
-  end)
+      NetworkMgr.saveNetwork:revert()
+      NetworkMgr.deleteNetwork:revert()
+      NetworkMgr.authenticateNetwork:revert()
+      NetworkMgr.obtainIP:revert()
+    end
+  )
 
   it("handles onTapClose and onClose", function()
     local Geom = require("ui/geometry")
@@ -309,7 +320,7 @@ describe("NetworkSetting module", function()
 
     -- Inside popup
     local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
-    assert.is_nil(ns:onTapClose(nil, inside_ev))
+    assert.is_false(ns:onTapClose(nil, inside_ev))
 
     -- Outside popup
     local outside_ev = { pos = Geom:new({ x = -100, y = -100 }) }
@@ -320,5 +331,48 @@ describe("NetworkSetting module", function()
     NetworkMgr.pending_connection = true
     ns:onClose()
     assert.is_false(NetworkMgr.pending_connection)
+  end)
+
+  describe("Defect verifications", function()
+    it(
+      "does not close password dialog on empty WPA password in saveAndConnectToNetwork",
+      function()
+        local network_list = {
+          {
+            ssid = "wpa_net",
+            flags = "[WPA2-PSK-CCMP][ESS]",
+            signal_quality = 60,
+          },
+        }
+        local ns = NetworkSetting:new({ network_list = network_list })
+        local item = ns[1][1][1][3].items[1]
+        item.showWidget = function() end
+
+        local InputDialog = require("ui/widget/inputdialog")
+        local mock_pw_input = InputDialog:new({ input = "" })
+
+        local closed = false
+        local orig_close = UIManager.close
+        UIManager.close = function(mgr, w)
+          if w == mock_pw_input then
+            closed = true
+          end
+          return orig_close(mgr, w)
+        end
+
+        item:saveAndConnectToNetwork(mock_pw_input)
+        UIManager.close = orig_close
+
+        assert.is_false(closed)
+      end
+    )
+
+    it("returns boolean false on onTapClose inside popup", function()
+      local Geom = require("ui/geometry")
+      local ns = NetworkSetting:new({ network_list = {} })
+      ns.popup.dimen = Geom:new({ x = 50, y = 50, w = 500, h = 600 })
+      local inside_ev = { pos = Geom:new({ x = 100, y = 100 }) }
+      assert.is_false(ns:onTapClose(nil, inside_ev))
+    end)
   end)
 end)

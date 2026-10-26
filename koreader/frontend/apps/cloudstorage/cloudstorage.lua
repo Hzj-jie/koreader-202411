@@ -17,7 +17,7 @@ local WebDav = require("apps/cloudstorage/webdav")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = require("ffi/util").template
 
 local CloudStorage = Menu:extend({
@@ -512,23 +512,17 @@ function CloudStorage:synchronizeCloud(item)
           if downloaded_files == 0 and failed_files == 0 then
             text = gettext("No files to download from Dropbox.")
           else
-            text = T(
-              N_(
-                "Successfully downloaded 1 file from Dropbox to local storage.",
-                "Successfully downloaded %1 files from Dropbox to local storage.",
-                downloaded_files
-              ),
+            text = T_N(
+              "Successfully downloaded 1 file from Dropbox to local storage.",
+              "Successfully downloaded %1 files from Dropbox to local storage.",
               downloaded_files
             )
             if failed_files > 0 then
               text = text
                 .. "\n"
-                .. T(
-                  N_(
-                    "Failed to download 1 file.",
-                    "Failed to download %1 files.",
-                    failed_files
-                  ),
+                .. T_N(
+                  "Failed to download 1 file.",
+                  "Failed to download %1 files.",
                   failed_files
                 )
             end
@@ -562,7 +556,7 @@ function CloudStorage:downloadListFiles(item)
     for f in iter, dir_obj do
       local filename = path .. "/" .. f
       local attributes = lfs.attributes(filename)
-      if attributes.mode == "file" then
+      if attributes and attributes.mode == "file" then
         local_files[f] = attributes.size
       end
     end

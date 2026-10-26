@@ -1643,6 +1643,12 @@ describe("docsettings module", function()
       assert.are.equal("", docsettings:getNameFromHistory("no_brackets.lua"))
     end)
 
+    it("handles history filenames with multiple hashes or symbols", function()
+      local hist = "[#sdcard#Books#] My #1 Book.lua"
+      assert.are.equal("/sdcard/Books", docsettings:getPathFromHistory(hist))
+      assert.are.equal("My #1 Book", docsettings:getNameFromHistory(hist))
+    end)
+
     it(
       "converts valid history path back and forth with getFileFromHistory",
       function()
@@ -1655,7 +1661,7 @@ describe("docsettings module", function()
     )
   end)
 
-  describe("_getCustomLocationCandidate", function()
+  describe("getCustomLocationCandidate", function()
     local test_doc = "/tmp/test_custom_cand.epub"
 
     before_each(function()
@@ -1675,7 +1681,7 @@ describe("docsettings module", function()
     it(
       "returns first writable candidate directory when no sidecar file exists",
       function()
-        local cand = docsettings:_getCustomLocationCandidate(test_doc)
+        local cand = docsettings:getCustomLocationCandidate(test_doc)
         assert.is_table(cand)
         assert.are.equal("/tmp/test_custom_cand.sdr", cand.dir)
       end
@@ -1683,7 +1689,7 @@ describe("docsettings module", function()
 
     it("returns hash directory when hash is preferred", function()
       G_reader_settings:save("document_metadata_folder", "hash")
-      local cand = docsettings:_getCustomLocationCandidate(test_doc)
+      local cand = docsettings:getCustomLocationCandidate(test_doc)
       assert.is_table(cand)
       assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
     end)
@@ -1694,7 +1700,7 @@ describe("docsettings module", function()
       d:flush()
       d:close()
 
-      local cand = docsettings:_getCustomLocationCandidate(test_doc)
+      local cand = docsettings:getCustomLocationCandidate(test_doc)
       assert.is_table(cand)
       assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
     end)
@@ -1716,7 +1722,7 @@ describe("docsettings module", function()
           return orig_isDirRW(dir, create)
         end
 
-        local cand = docsettings:_getCustomLocationCandidate(test_doc)
+        local cand = docsettings:getCustomLocationCandidate(test_doc)
         util.isDirRW = orig_isDirRW
 
         assert.is_table(cand)
@@ -1980,5 +1986,47 @@ describe("docsettings module", function()
     assert.has_no_errors(function()
       obj:purge()
     end)
+  end)
+
+  describe("Defect verifications", function()
+    local orig_metadata_folder
+
+    before_each(function()
+      orig_metadata_folder = G_reader_settings:read("document_metadata_folder")
+    end)
+
+    after_each(function()
+      if orig_metadata_folder ~= nil then
+        G_reader_settings:save("document_metadata_folder", orig_metadata_folder)
+      else
+        G_reader_settings:delete("document_metadata_folder")
+      end
+    end)
+
+    it(
+      "correctly handles getSidecarFilename and getSidecarDir matching across / in dot-directories",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_path = "/home/user/.books/README"
+        assert.are.equal(
+          "metadata._.lua",
+          docsettings.getSidecarFilename(doc_path)
+        )
+        assert.are.equal(
+          "/home/user/.books/README.sdr",
+          docsettings:getSidecarDir(doc_path)
+        )
+      end
+    )
+
+    it(
+      "recovers file path with getFileFromHistory for folder names with square brackets",
+      function()
+        local doc_path = "/books/[Sci-Fi]/Dune.epub"
+        local hist_path = docsettings:getHistoryPath(doc_path)
+        local _, hist_name = util.splitFilePathName(hist_path)
+        assert.are.equal(doc_path, docsettings:getFileFromHistory(hist_name))
+      end
+    )
   end)
 end)

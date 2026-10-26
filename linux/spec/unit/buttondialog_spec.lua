@@ -133,29 +133,32 @@ describe("ButtonDialog", function()
       assert.are.equal("Bold Title", dialog.title)
     end)
 
-    it("should wrap buttons in ScrollableContainer when height exceeds max_height", function()
-      local many_rows = {}
-      for i = 1, 30 do
-        table.insert(many_rows, {
-          { text = "Row " .. i, id = "row" .. i, callback = function() end },
+    it(
+      "should wrap buttons in ScrollableContainer when height exceeds max_height",
+      function()
+        local many_rows = {}
+        for i = 1, 30 do
+          table.insert(many_rows, {
+            { text = "Row " .. i, id = "row" .. i, callback = function() end },
+          })
+        end
+
+        local dialog = ButtonDialog:new({
+          title = "Scrollable Dialog",
+          rows_per_page = { 10, 5 },
+          buttons = many_rows,
         })
+
+        assert.truthy(dialog.cropping_widget)
+        assert.truthy(dialog:getScrolledOffset())
+
+        -- Test setScrolledOffset
+        dialog:setScrolledOffset({ x = 0, y = 100 })
+
+        -- Test _onPageScrollToRow
+        dialog:_onPageScrollToRow(5)
       end
-
-      local dialog = ButtonDialog:new({
-        title = "Scrollable Dialog",
-        rows_per_page = { 10, 5 },
-        buttons = many_rows,
-      })
-
-      assert.truthy(dialog.cropping_widget)
-      assert.truthy(dialog:getScrolledOffset())
-
-      -- Test setScrolledOffset
-      dialog:setScrolledOffset({ x = 0, y = 100 })
-
-      -- Test _onPageScrollToRow
-      dialog:_onPageScrollToRow(5)
-    end)
+    )
 
     it("should support numeric rows_per_page", function()
       local many_rows = {}
@@ -213,28 +216,31 @@ describe("ButtonDialog", function()
       assert.is_true(closed)
     end)
 
-    it("should handle onTapClose dismissing when tapped outside and ignoring inside", function()
-      local Geom = require("ui/geometry")
-      local closed = false
-      UIManager.close = function(_, widget)
-        closed = true
+    it(
+      "should handle onTapClose dismissing when tapped outside and ignoring inside",
+      function()
+        local Geom = require("ui/geometry")
+        local closed = false
+        UIManager.close = function(_, widget)
+          closed = true
+        end
+
+        local dialog = ButtonDialog:new({
+          buttons = { { { text = "Btn", id = "btn" } } },
+        })
+        dialog.movable.dimen = Geom:new({ x = 100, y = 100, w = 200, h = 200 })
+
+        -- Tap inside
+        local inside_ev = { pos = Geom:new({ x = 150, y = 150, w = 1, h = 1 }) }
+        assert.is_true(dialog:onTapClose(nil, inside_ev))
+        assert.is_false(closed)
+
+        -- Tap outside
+        local outside_ev = { pos = Geom:new({ x = 10, y = 10, w = 1, h = 1 }) }
+        assert.is_true(dialog:onTapClose(nil, outside_ev))
+        assert.is_true(closed)
       end
-
-      local dialog = ButtonDialog:new({
-        buttons = { { { text = "Btn", id = "btn" } } },
-      })
-      dialog.movable.dimen = Geom:new({ x = 100, y = 100, w = 200, h = 200 })
-
-      -- Tap inside
-      local inside_ev = { pos = Geom:new({ x = 150, y = 150, w = 1, h = 1 }) }
-      assert.is_true(dialog:onTapClose(nil, inside_ev))
-      assert.is_false(closed)
-
-      -- Tap outside
-      local outside_ev = { pos = Geom:new({ x = 10, y = 10, w = 1, h = 1 }) }
-      assert.is_true(dialog:onTapClose(nil, outside_ev))
-      assert.is_true(closed)
-    end)
+    )
 
     it("should handle onFocusMove with and without cropping_widget", function()
       local dialog_plain = ButtonDialog:new({

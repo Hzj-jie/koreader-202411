@@ -146,44 +146,50 @@ describe("TitleBar", function()
       assert.are.equal("Additional informative footnote", tb.info_text)
     end)
 
-    it("should support subtitle_fullwidth and subtitle_truncate_left", function()
-      local tb = TitleBar:new({
-        title = "File path bar",
-        subtitle = "/very/long/path/to/a/document/file.epub",
-        subtitle_truncate_left = true,
-        subtitle_fullwidth = true,
-        align = "left",
-      })
+    it(
+      "should support subtitle_fullwidth and subtitle_truncate_left",
+      function()
+        local tb = TitleBar:new({
+          title = "File path bar",
+          subtitle = "/very/long/path/to/a/document/file.epub",
+          subtitle_truncate_left = true,
+          subtitle_fullwidth = true,
+          align = "left",
+        })
 
-      assert.is_true(tb.subtitle_truncate_left)
-      assert.is_true(tb.subtitle_fullwidth)
-    end)
+        assert.is_true(tb.subtitle_truncate_left)
+        assert.is_true(tb.subtitle_fullwidth)
+      end
+    )
   end)
 
   describe("dynamic updates", function()
-    it("should update title with setTitle for single line and multilines", function()
-      local dirty_called = false
-      UIManager.setDirty = function()
-        dirty_called = true
+    it(
+      "should update title with setTitle for single line and multilines",
+      function()
+        local dirty_called = false
+        UIManager.setDirty = function()
+          dirty_called = true
+        end
+
+        -- Single line TextWidget
+        local tb_single = TitleBar:new({
+          title = "Initial",
+          align = "left",
+        })
+        tb_single:setTitle("Updated Single")
+        assert.is_true(dirty_called)
+
+        -- Multiline TextBoxWidget
+        dirty_called = false
+        local tb_multi = TitleBar:new({
+          title = "Initial Multi",
+          title_multilines = true,
+        })
+        tb_multi:setTitle("Updated Multi Title")
+        assert.is_true(dirty_called)
       end
-
-      -- Single line TextWidget
-      local tb_single = TitleBar:new({
-        title = "Initial",
-        align = "left",
-      })
-      tb_single:setTitle("Updated Single")
-      assert.is_true(dirty_called)
-
-      -- Multiline TextBoxWidget
-      dirty_called = false
-      local tb_multi = TitleBar:new({
-        title = "Initial Multi",
-        title_multilines = true,
-      })
-      tb_multi:setTitle("Updated Multi Title")
-      assert.is_true(dirty_called)
-    end)
+    )
 
     it("should update subtitle with setSubTitle", function()
       local dirty_called = false
@@ -200,25 +206,28 @@ describe("TitleBar", function()
       assert.is_true(dirty_called)
     end)
 
-    it("should update left and right icons with setLeftIcon and setRightIcon", function()
-      local dirty_count = 0
-      UIManager.setDirty = function()
-        dirty_count = dirty_count + 1
+    it(
+      "should update left and right icons with setLeftIcon and setRightIcon",
+      function()
+        local dirty_count = 0
+        UIManager.setDirty = function()
+          dirty_count = dirty_count + 1
+        end
+
+        local tb = TitleBar:new({
+          title = "Icons Bar",
+          left_icon = "appbar.menu",
+          right_icon = "search",
+        })
+
+        tb:setLeftIcon("star")
+        assert.are.equal("star", tb.left_button.icon)
+
+        tb:setRightIcon("bookmark")
+        assert.are.equal("bookmark", tb.right_button.icon)
+
+        assert.are.equal(2, dirty_count)
       end
-
-      local tb = TitleBar:new({
-        title = "Icons Bar",
-        left_icon = "appbar.menu",
-        right_icon = "search",
-      })
-
-      tb:setLeftIcon("star")
-      assert.are.equal("star", tb.left_button.icon)
-
-      tb:setRightIcon("bookmark")
-      assert.are.equal("bookmark", tb.right_button.icon)
-
-      assert.are.equal(2, dirty_count)
-    end)
+    )
   end)
 end)

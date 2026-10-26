@@ -2,7 +2,6 @@ local http = require("socket.http")
 local json = require("json")
 local logger = require("logger")
 local ltn12 = require("ltn12")
-local socket = require("socket")
 local socketutil = require("socketutil")
 
 local WeatherApi = {
@@ -34,7 +33,7 @@ function WeatherApi:_makeRequest(url)
     sink = ltn12.sink.table(sink),
   }
   -- Make request
-  local headers = socket.skip(2, http.request(request))
+  local _, _, headers = http.request(request)
   socketutil:reset_timeout()
   -- Check to see if headers exist
   if headers == nil then
@@ -46,11 +45,12 @@ function WeatherApi:_makeRequest(url)
   logger.dbg("result: ", result_response)
   -- Check for result
   if result_response ~= "" then
-    local _, result = pcall(json.decode, result_response)
-    return result
-  else
-    return nil
+    local ok, result = pcall(json.decode, result_response)
+    if ok then
+      return result
+    end
   end
+  return nil
 end
 --
 --

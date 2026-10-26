@@ -1,3 +1,4 @@
+local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local logger = require("logger")
@@ -5,7 +6,72 @@ local T = require("ffi/util").template
 
 local ReaderAnnotation = WidgetContainer:extend({
   annotations = nil, -- array sorted by annotation position order, ascending
+  _changing_file = nil,
+  _changing_widgets = 0,
 })
+
+local changing_files = {} -- file -> FIFO queue of pending callbacks (present iff the file is held)
+local running_files = {} -- file -> true while a willChangeAnnotations callback runs
+
+-- Takes the permission to change file's annotations; false if someone else holds it.
+local function _startChanging(file)
+  if changing_files[file] then
+    return false
+  end
+  changing_files[file] = {}
+  return true
+end
+
+-- Runs the queued callbacks one by one (FIFO) while holding the file, then frees it.
+-- Every callback runs even if an earlier one raises; the first error is re-raised
+-- (with its traceback) after the file is free.
+local function _endChanging(file)
+  local queue = changing_files[file]
+  assert(queue ~= nil, "Annotations are not being changed for " .. file)
+  local first_err
+  local callback = table.remove(queue, 1)
+  while callback do
+    assert(running_files[file] == nil)
+    running_files[file] = true
+    local ok, err = xpcall(callback, debug.traceback)
+    running_files[file] = nil
+    if not ok and first_err == nil then
+      first_err = err
+    end
+    callback = table.remove(queue, 1)
+  end
+  changing_files[file] = nil
+  if first_err then
+    error(first_err, 0)
+  end
+end
+
+--[[--
+Serializes changes to a book's annotations:
+- the callback runs now if the file is free, otherwise later (FIFO), and holds
+  the file only while it runs;
+- it must only make the actual change: any waiting (network, prompts, user
+  input) happens before the call;
+- because it may run later than requested, it must not use data read or
+  cached before the call, and must read the latest state inside the callback;
+- errors are re-raised after the file is released.
+]]
+function ReaderAnnotation.willChangeAnnotations(file, callback)
+  assert(type(file) == "string" and file ~= "")
+  assert(type(callback) == "function")
+  -- Before _startChanging: the file is held while a callback runs.
+  assert(
+    not running_files[file],
+    "willChangeAnnotations called from a callback changing " .. file
+  )
+  local taken = _startChanging(file)
+  table.insert(changing_files[file], callback)
+  if not taken then
+    return true
+  end
+  _endChanging(file) -- runs the callback now, as the first job of the loop
+  return false
+end
 
 -- build, read, save
 
@@ -48,9 +114,9 @@ local function getHighlightForBookmark(highlights, bookmark)
       local hl = {
         datetime = highlight.datetime,
         drawer = true,
-        page = type(highlight.pos0) == "string" and highlight.pos0
-          or tonumber(pageno)
-          or pageno,
+        page = type(highlight.pos0) == "string" and highlight.pos0 or tonumber(
+          pageno
+        ) or pageno,
         pos0 = highlight.pos0,
         pos1 = highlight.pos1,
       }
@@ -233,7 +299,8 @@ local function migrateToAnnotations(config, ui)
   else -- paging (rolling == false)
     if has_bookmarks and not bookmarks_rolling then
       if config:has("bookmarks_rolling") then
-        local saved_bookmarks_rolling = config:readTable("bookmarks_rolling") or {}
+        local saved_bookmarks_rolling = config:readTable("bookmarks_rolling")
+          or {}
         local highlights_rolling = config:readTable("highlight_rolling") or {}
         local annotations_rolling = getAnnotationsFromBookmarksHighlights(
           saved_bookmarks_rolling,
@@ -293,7 +360,48 @@ end
 
 ReaderAnnotation.onDocumentRerendered = ReaderAnnotation.setNeedsUpdateFlag
 
+-- Dialogs that keep an annotation index while waiting for the user call this
+-- when they are shown. The book's annotations stay taken while any of them is
+-- open, and are released one tick after the last one closes, unless another
+-- annotation dialog has been shown by then (close-then-open chains).
+function ReaderAnnotation:trackChangingWidget(widget)
+  if not self._changing_file then
+    local file = self.ui.document.file
+    assert(_startChanging(file)) -- also catches a dialog opened from inside a callback
+    self._changing_file = file
+  end
+  self._changing_widgets = self._changing_widgets + 1
+  local orig_onClose = widget.onClose
+  widget.onClose = function(w, ...)
+    widget.onClose = orig_onClose
+    if orig_onClose then
+      orig_onClose(w, ...)
+    end
+    self._changing_widgets = self._changing_widgets - 1
+    if self._changing_widgets == 0 then
+      UIManager:nextTick(function()
+        if self._changing_widgets == 0 then
+          self:_releaseChangingFile()
+        end
+      end)
+    end
+  end
+end
+
+function ReaderAnnotation:_releaseChangingFile()
+  local file = self._changing_file
+  if file then
+    self._changing_file = nil
+    _endChanging(file)
+  end
+end
+
+function ReaderAnnotation:onClose()
+  self:_releaseChangingFile()
+end
+
 function ReaderAnnotation:onCloseDocument()
+  self:_releaseChangingFile()
   self:updatePageNumbers()
 end
 

@@ -27,51 +27,54 @@ describe("ButtonProgressWidget", function()
     assert.are.equal(3, bpw.position)
   end)
 
-  it("should support fine_tune (- and + buttons) and more_options (⋮)", function()
-    local last_op = nil
-    local last_hold = nil
-    local bpw = ButtonProgressWidget:new({
-      num_buttons = 4,
-      position = 2,
-      fine_tune = true,
-      more_options = true,
-      callback = function(op)
-        last_op = op
-      end,
-      hold_callback = function(op)
-        last_hold = op
-      end,
-    })
+  it(
+    "should support fine_tune (- and + buttons) and more_options (⋮)",
+    function()
+      local last_op = nil
+      local last_hold = nil
+      local bpw = ButtonProgressWidget:new({
+        num_buttons = 4,
+        position = 2,
+        fine_tune = true,
+        more_options = true,
+        callback = function(op)
+          last_op = op
+        end,
+        hold_callback = function(op)
+          last_hold = op
+        end,
+      })
 
-    -- Layout structure:
-    -- [1] Minus button
-    -- [2] Span
-    -- [3..6] Segments
-    -- [7] Span
-    -- [8] Plus button
-    -- [9] Span
-    -- [10] More options button
-    local minus_btn = bpw.buttonprogress_content[1]
-    assert.are.equal("−", minus_btn.text)
-    minus_btn.callback()
-    assert.are.equal("-", last_op)
-    minus_btn.hold_callback()
-    assert.are.equal("-", last_hold)
+      -- Layout structure:
+      -- [1] Minus button
+      -- [2] Span
+      -- [3..6] Segments
+      -- [7] Span
+      -- [8] Plus button
+      -- [9] Span
+      -- [10] More options button
+      local minus_btn = bpw.buttonprogress_content[1]
+      assert.are.equal("−", minus_btn.text)
+      minus_btn.callback()
+      assert.are.equal("-", last_op)
+      minus_btn.hold_callback()
+      assert.are.equal("-", last_hold)
 
-    local plus_btn = bpw.buttonprogress_content[8]
-    assert.are.equal("＋", plus_btn.text)
-    plus_btn.callback()
-    assert.are.equal("+", last_op)
-    plus_btn.hold_callback()
-    assert.are.equal("+", last_hold)
+      local plus_btn = bpw.buttonprogress_content[8]
+      assert.are.equal("＋", plus_btn.text)
+      plus_btn.callback()
+      assert.are.equal("+", last_op)
+      plus_btn.hold_callback()
+      assert.are.equal("+", last_hold)
 
-    local more_btn = bpw.buttonprogress_content[10]
-    assert.are.equal("⋮", more_btn.text)
-    more_btn.callback()
-    assert.are.equal("⋮", last_op)
-    more_btn.hold_callback()
-    assert.are.equal("⋮", last_hold)
-  end)
+      local more_btn = bpw.buttonprogress_content[10]
+      assert.are.equal("⋮", more_btn.text)
+      more_btn.callback()
+      assert.are.equal("⋮", last_op)
+      more_btn.hold_callback()
+      assert.are.equal("⋮", last_hold)
+    end
+  )
 
   it("should support thin_grey_style and default_position", function()
     local bpw = ButtonProgressWidget:new({

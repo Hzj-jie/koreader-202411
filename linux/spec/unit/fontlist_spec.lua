@@ -127,7 +127,6 @@ describe("FontList", function()
             return {}
           end,
           save = function()
-            mock_cache_save_called = true
             return true
           end,
         }
@@ -552,6 +551,16 @@ describe("FontList", function()
           },
         },
       }, FontList.fontnames)
+    end)
+  end)
+
+  describe("Cachedir configuration", function()
+    it("initializes cachedir using DataStorage:getCacheDir()", function()
+      local DataStorage = require("datastorage")
+      assert.are.equal(
+        DataStorage:getCacheDir() .. "/fontlist",
+        FontList.cachedir
+      )
     end)
   end)
 end)

@@ -166,4 +166,3 @@ describe("ImageWidget module", function()
     imgw:onClose()
   end)
 end)
-

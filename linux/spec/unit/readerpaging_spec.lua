@@ -281,36 +281,39 @@ describe("Readerpaging module", function()
       UIManager:quit()
     end)
 
-    it("should exercise page and bookmark flipping in all directions", function()
-      paging:updateFlippingPage(2)
-      assert.are.equal(2, paging.flipping_page)
+    it(
+      "should exercise page and bookmark flipping in all directions",
+      function()
+        paging:updateFlippingPage(2)
+        assert.are.equal(2, paging.flipping_page)
 
-      local ges_east = { direction = "east", distance = 50 }
-      local ges_west = { direction = "west", distance = 50 }
-      local ges_north = { direction = "north", distance = 50 }
-      local ges_south = { direction = "south", distance = 50 }
+        local ges_east = { direction = "east", distance = 50 }
+        local ges_west = { direction = "west", distance = 50 }
+        local ges_north = { direction = "north", distance = 50 }
+        local ges_south = { direction = "south", distance = 50 }
 
-      paging:pageFlipping(2, ges_east)
-      paging:pageFlipping(2, ges_west)
-      paging:pageFlipping(2, ges_north)
-      paging:pageFlipping(2, ges_south)
+        paging:pageFlipping(2, ges_east)
+        paging:pageFlipping(2, ges_west)
+        paging:pageFlipping(2, ges_north)
+        paging:pageFlipping(2, ges_south)
 
-      paging:bookmarkFlipping(2, ges_east)
-      paging:bookmarkFlipping(2, ges_west)
+        paging:bookmarkFlipping(2, ges_east)
+        paging:bookmarkFlipping(2, ges_west)
 
-      -- On pan in flipping mode
-      paging.page_flipping_mode = true
-      readerui.view.zoom_mode = "page"
-      paging:onPan(nil, ges_east)
-      readerui.view.zoom_mode = "content"
-      paging:onPan(nil, { direction = "east", relative = { x = 10, y = 10 } })
+        -- On pan in flipping mode
+        paging.page_flipping_mode = true
+        readerui.view.zoom_mode = "page"
+        paging:onPan(nil, ges_east)
+        readerui.view.zoom_mode = "content"
+        paging:onPan(nil, { direction = "east", relative = { x = 10, y = 10 } })
 
-      -- On pan in bookmark mode
-      paging.page_flipping_mode = false
-      paging.bookmark_flipping_mode = true
-      assert.is_true(paging:onPan(nil, ges_east))
-      paging.bookmark_flipping_mode = false
-    end)
+        -- On pan in bookmark mode
+        paging.page_flipping_mode = false
+        paging.bookmark_flipping_mode = true
+        assert.is_true(paging:onPan(nil, ges_east))
+        paging.bookmark_flipping_mode = false
+      end
+    )
 
     it("should exercise touch zones and key event bindings", function()
       paging:setupTouchZones()
@@ -326,7 +329,6 @@ describe("Readerpaging module", function()
       -- Inertial scroll callback execution
       paging:onScrollSettingsUpdated("classic", true, 100)
     end)
-
   end)
 
   describe("Scroll mode", function()
@@ -409,38 +411,47 @@ describe("Readerpaging module", function()
       ReaderUI.instance = readerui
     end)
 
-    it("should handle inverse reading order, mousewheel pan, and PanningStop in page zoom mode", function()
-      -- Test onPanRelease with page_flipping_mode
-      local flipping_updated = false
-      paging.updateFlippingPage = function(self, p)
-        flipping_updated = true
+    it(
+      "should handle inverse reading order, mousewheel pan, and PanningStop in page zoom mode",
+      function()
+        -- Test onPanRelease with page_flipping_mode
+        local flipping_updated = false
+        paging.updateFlippingPage = function(self, p)
+          flipping_updated = true
+        end
+        paging.page_flipping_mode = true
+        paging.ui.view.zoom_mode = "page"
+        paging:onPanRelease(nil, {})
+        assert.is_true(flipping_updated)
+
+        local panning_stopped = false
+        paging.ui.view.zoom_mode = "contentwidth"
+        paging.ui.view.PanningStop = function()
+          panning_stopped = true
+        end
+        paging:onPanRelease(nil, {})
+        assert.is_true(panning_stopped)
+        paging.page_flipping_mode = false
+
+        -- Test inverse reading order swipe
+        paging.ui.view.inverse_reading_order = true
+        paging:onSwipe(nil, { direction = "west" })
+        paging:onSwipe(nil, { direction = "east" })
+        paging.ui.view.inverse_reading_order = false
+
+        -- Test onPan with mousewheel_direction and page_scroll
+        paging.ui.view.page_scroll = false
+        paging:onPan(
+          nil,
+          { mousewheel_direction = 1, distance = { x = 0, y = 10 } }
+        )
+
+        paging.ui.view.page_scroll = true
+        paging:onPan(
+          nil,
+          { mousewheel_direction = -1, distance = { x = 0, y = -10 } }
+        )
       end
-      paging.page_flipping_mode = true
-      paging.ui.view.zoom_mode = "page"
-      paging:onPanRelease(nil, {})
-      assert.is_true(flipping_updated)
-
-      local panning_stopped = false
-      paging.ui.view.zoom_mode = "contentwidth"
-      paging.ui.view.PanningStop = function()
-        panning_stopped = true
-      end
-      paging:onPanRelease(nil, {})
-      assert.is_true(panning_stopped)
-      paging.page_flipping_mode = false
-
-      -- Test inverse reading order swipe
-      paging.ui.view.inverse_reading_order = true
-      paging:onSwipe(nil, { direction = "west" })
-      paging:onSwipe(nil, { direction = "east" })
-      paging.ui.view.inverse_reading_order = false
-
-      -- Test onPan with mousewheel_direction and page_scroll
-      paging.ui.view.page_scroll = false
-      paging:onPan(nil, { mousewheel_direction = 1, distance = { x = 0, y = 10 } })
-
-      paging.ui.view.page_scroll = true
-      paging:onPan(nil, { mousewheel_direction = -1, distance = { x = 0, y = -10 } })
-    end)
+    )
   end)
 end)

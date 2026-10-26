@@ -434,7 +434,6 @@ describe("Readertoc module", function()
       assert.is_table(helper_toc.toc)
     end)
 
-
     it("should exercise all main menu TOC items and submenus", function()
       local UIManager = require("ui/uimanager")
       local menu_items = {}
@@ -446,23 +445,33 @@ describe("Readertoc module", function()
       -- Alternative TOC item
       if menu_items.toc_alt_toc then
         local alt = menu_items.toc_alt_toc
-        if alt.help_text_func then alt.help_text_func() end
-        if alt.enabled_func then alt.enabled_func() end
-        if alt.checked_func then alt.checked_func() end
+        if alt.help_text_func then
+          alt.help_text_func()
+        end
+        if alt.enabled_func then
+          alt.enabled_func()
+        end
+        if alt.checked_func then
+          alt.checked_func()
+        end
         if alt.callback then
           local dummy_menu = { closeMenu = function() end }
           -- Toggle on
           alt.callback(dummy_menu)
           local top = UIManager._window_stack[#UIManager._window_stack]
           if top and top.widget and top.widget ~= helper_readerui then
-            if top.widget.ok_callback then top.widget.ok_callback() end
+            if top.widget.ok_callback then
+              top.widget.ok_callback()
+            end
             UIManager:close(top.widget)
           end
           -- Toggle off
           alt.callback(dummy_menu)
           top = UIManager._window_stack[#UIManager._window_stack]
           if top and top.widget and top.widget ~= helper_readerui then
-            if top.widget.ok_callback then top.widget.ok_callback() end
+            if top.widget.ok_callback then
+              top.widget.ok_callback()
+            end
             UIManager:close(top.widget)
           end
         end
@@ -471,35 +480,56 @@ describe("Readertoc module", function()
       -- TOC ticks level ignore
       if menu_items.toc_ticks_level_ignore then
         local ti = menu_items.toc_ticks_level_ignore
-        if ti.text_func then ti.text_func() end
-        if ti.enabled_func then ti.enabled_func() end
+        if ti.text_func then
+          ti.text_func()
+        end
+        if ti.enabled_func then
+          ti.enabled_func()
+        end
         if ti.sub_item_table_func then
           local sub_items = ti.sub_item_table_func()
           assert.is_table(sub_items)
           for _, item in ipairs(sub_items) do
-            if item.text_func then item.text_func() end
-            if item.checked_func then item.checked_func() end
-            if item.enabled_func then item.enabled_func() end
-            if item.callback then item.callback() end
+            if item.text_func then
+              item.text_func()
+            end
+            if item.checked_func then
+              item.checked_func()
+            end
+            if item.enabled_func then
+              item.enabled_func()
+            end
+            if item.callback then
+              item.callback()
+            end
           end
         end
       end
 
       -- Spin widgets (entries per page, font size)
-      if menu_items.toc_items_per_page and menu_items.toc_items_per_page.callback then
+      if
+        menu_items.toc_items_per_page and menu_items.toc_items_per_page.callback
+      then
         menu_items.toc_items_per_page.callback()
         local top = UIManager._window_stack[#UIManager._window_stack]
         if top and top.widget and top.widget ~= helper_readerui then
-          if top.widget.callback then top.widget.callback({ value = 16 }) end
+          if top.widget.callback then
+            top.widget.callback({ value = 16 })
+          end
           UIManager:close(top.widget)
         end
       end
 
-      if menu_items.toc_items_font_size and menu_items.toc_items_font_size.callback then
+      if
+        menu_items.toc_items_font_size
+        and menu_items.toc_items_font_size.callback
+      then
         menu_items.toc_items_font_size.callback()
         local top = UIManager._window_stack[#UIManager._window_stack]
         if top and top.widget and top.widget ~= helper_readerui then
-          if top.widget.callback then top.widget.callback({ value = 22 }) end
+          if top.widget.callback then
+            top.widget.callback({ value = 22 })
+          end
           UIManager:close(top.widget)
         end
       end
@@ -543,7 +573,12 @@ describe("Readertoc module", function()
         -- Exercise onMenuHold
         menu:onMenuHold(first_item)
         local top = UIManager._window_stack[#UIManager._window_stack]
-        if top and top.widget and top.widget ~= helper_readerui and top.widget ~= menu then
+        if
+          top
+          and top.widget
+          and top.widget ~= helper_readerui
+          and top.widget ~= menu
+        then
           UIManager:close(top.widget)
         end
       end
@@ -555,5 +590,3 @@ describe("Readertoc module", function()
     end)
   end)
 end)
-
-

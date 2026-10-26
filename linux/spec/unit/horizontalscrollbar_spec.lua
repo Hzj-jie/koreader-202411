@@ -75,47 +75,54 @@ describe("HorizontalScrollBar module", function()
     assert.are.equal(0.25, scroll_ratio)
 
     -- RTL mode
-    local mirrored_stub = stub(BD, "mirroredUILayout", function() return true end)
+    local mirrored_stub = stub(BD, "mirroredUILayout", function()
+      return true
+    end)
     scroll_ratio = nil
     sb:onTapScroll(nil, ges)
     assert.are.equal(0.75, scroll_ratio) -- 1 - 0.25 = 0.75
     mirrored_stub:revert()
   end)
 
-  it("should calculate correct touch_dimen and draw separator line in LTR and RTL", function()
-    local bb = {
-      paintRect = spy.new(function() end),
-      paintBorder = spy.new(function() end),
-    }
+  it(
+    "should calculate correct touch_dimen and draw separator line in LTR and RTL",
+    function()
+      local bb = {
+        paintRect = spy.new(function() end),
+        paintBorder = spy.new(function() end),
+      }
 
-    local sb = HorizontalScrollBar:new({
-      width = 100,
-      height = 10,
-      bordersize = 1,
-      radius = 0,
-      bordercolor = 0,
-      rectcolor = 0,
-    })
-    sb:paintTo(bb, 50, 100)
+      local sb = HorizontalScrollBar:new({
+        width = 100,
+        height = 10,
+        bordersize = 1,
+        radius = 0,
+        bordercolor = 0,
+        rectcolor = 0,
+      })
+      sb:paintTo(bb, 50, 100)
 
-    -- Touch dimen: y = 100 - 10 = 90, h = 3 * 10 = 30
-    assert.are.equal(90, sb.touch_dimen.y)
-    assert.are.equal(30, sb.touch_dimen.h)
+      -- Touch dimen: y = 100 - 10 = 90, h = 3 * 10 = 30
+      assert.are.equal(90, sb.touch_dimen.y)
+      assert.are.equal(30, sb.touch_dimen.h)
 
-    -- Separator line: y - height = 100 - 10 = 90
-    assert.spy(bb.paintRect).was_called_with(bb, 50, 90, 100, 1, match._)
+      -- Separator line: y - height = 100 - 10 = 90
+      assert.spy(bb.paintRect).was_called_with(bb, 50, 90, 100, 1, match._)
 
-    -- RTL painting
-    bb.paintRect:clear()
-    local mirrored_stub = stub(BD, "mirroredUILayout", function() return true end)
-    sb:paintTo(bb, 50, 100)
-    assert.spy(bb.paintRect).was_called()
-    mirrored_stub:revert()
+      -- RTL painting
+      bb.paintRect:clear()
+      local mirrored_stub = stub(BD, "mirroredUILayout", function()
+        return true
+      end)
+      sb:paintTo(bb, 50, 100)
+      assert.spy(bb.paintRect).was_called()
+      mirrored_stub:revert()
 
-    -- Disabled painting
-    sb.enable = false
-    bb.paintRect:clear()
-    sb:paintTo(bb, 0, 0)
-    assert.spy(bb.paintRect).was_not_called()
-  end)
+      -- Disabled painting
+      sb.enable = false
+      bb.paintRect:clear()
+      sb:paintTo(bb, 0, 0)
+      assert.spy(bb.paintRect).was_not_called()
+    end
+  )
 end)

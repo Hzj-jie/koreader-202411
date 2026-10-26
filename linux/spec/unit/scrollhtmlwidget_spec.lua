@@ -108,22 +108,25 @@ describe("ScrollHtmlWidget module", function()
       assert.is_equal(1, widget.htmlbox_widget.page_number)
     end)
 
-    it("scrolls down and up via onScrollDown, onScrollUp, and scrollText", function()
-      -- Scroll down
-      assert.is_true(widget:onScrollDown())
-      assert.is_equal(2, widget.htmlbox_widget.page_number)
+    it(
+      "scrolls down and up via onScrollDown, onScrollUp, and scrollText",
+      function()
+        -- Scroll down
+        assert.is_true(widget:onScrollDown())
+        assert.is_equal(2, widget.htmlbox_widget.page_number)
 
-      -- Scroll up
-      assert.is_true(widget:onScrollUp())
-      assert.is_equal(1, widget.htmlbox_widget.page_number)
+        -- Scroll up
+        assert.is_true(widget:onScrollUp())
+        assert.is_equal(1, widget.htmlbox_widget.page_number)
 
-      -- Already at top, scrolling up returns nil / false
-      assert.is_nil(widget:onScrollUp())
+        -- Already at top, scrolling up returns nil / false
+        assert.is_nil(widget:onScrollUp())
 
-      -- scrollText with 0 is a no-op
-      widget:scrollText(0)
-      assert.is_equal(1, widget.htmlbox_widget.page_number)
-    end)
+        -- scrollText with 0 is a no-op
+        widget:scrollText(0)
+        assert.is_equal(1, widget.htmlbox_widget.page_number)
+      end
+    )
 
     it("handles onScrollText swipe gestures", function()
       assert.is_true(widget:onScrollText(nil, { direction = "north" }))

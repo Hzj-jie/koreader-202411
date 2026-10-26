@@ -29,7 +29,9 @@ describe("HorizontalGroup", function()
     local w3 = createMockWidget(30, 10)
 
     local hg = HorizontalGroup:new({
-      w1, w2, w3,
+      w1,
+      w2,
+      w3,
     })
 
     local size = hg:getSize()
@@ -42,7 +44,8 @@ describe("HorizontalGroup", function()
     local w2 = createMockWidget(60, 50)
     local hg = HorizontalGroup:new({
       align = "center",
-      w1, w2,
+      w1,
+      w2,
     })
 
     hg:paintTo({}, 10, 100)
@@ -58,7 +61,8 @@ describe("HorizontalGroup", function()
     local w2 = createMockWidget(60, 50)
     local hg = HorizontalGroup:new({
       align = "top",
-      w1, w2,
+      w1,
+      w2,
     })
 
     hg:paintTo({}, 10, 100)
@@ -71,7 +75,8 @@ describe("HorizontalGroup", function()
     local w2 = createMockWidget(60, 50)
     local hg = HorizontalGroup:new({
       align = "bottom",
-      w1, w2,
+      w1,
+      w2,
     })
 
     hg:paintTo({}, 10, 100)
@@ -95,7 +100,9 @@ describe("HorizontalGroup", function()
 
   it("should mirror layout when RTL mirroring is enabled", function()
     local orig_mirrored = BD.mirroredUILayout
-    BD.mirroredUILayout = function() return true end
+    BD.mirroredUILayout = function()
+      return true
+    end
 
     local w1 = createMockWidget(40, 20)
     w1.name = "w1"
@@ -104,7 +111,8 @@ describe("HorizontalGroup", function()
 
     local hg = HorizontalGroup:new({
       align = "top",
-      w1, w2,
+      w1,
+      w2,
     })
 
     local size = hg:getSize()
@@ -125,7 +133,9 @@ describe("HorizontalGroup", function()
 
   it("should not mirror layout when allow_mirroring is false", function()
     local orig_mirrored = BD.mirroredUILayout
-    BD.mirroredUILayout = function() return true end
+    BD.mirroredUILayout = function()
+      return true
+    end
 
     local w1 = createMockWidget(40, 20)
     local w2 = createMockWidget(60, 50)
@@ -133,7 +143,8 @@ describe("HorizontalGroup", function()
     local hg = HorizontalGroup:new({
       allow_mirroring = false,
       align = "top",
-      w1, w2,
+      w1,
+      w2,
     })
 
     hg:paintTo({}, 0, 0)

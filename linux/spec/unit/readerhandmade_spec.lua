@@ -329,29 +329,53 @@ describe("ReaderHandmade module", function()
   end)
 
   it("should handle settings migrations between rolling and paging", function()
-    local mock_doc = { getPageCount = function() return 10 end }
+    local mock_doc = {
+      getPageCount = function()
+        return 10
+      end,
+    }
     local mock_ui_rolling = {
       rolling = true,
       menu = { registerToMainMenu = function() end },
       document = mock_doc,
-      highlight = { addToHighlightDialog = function() end, removeFromHighlightDialog = function() end },
+      highlight = {
+        addToHighlightDialog = function() end,
+        removeFromHighlightDialog = function() end,
+      },
       annotation = { setNeedsUpdateFlag = function() end },
     }
-    local handmade = ReaderHandmade:new({ ui = mock_ui_rolling, document = mock_doc })
+    local handmade =
+      ReaderHandmade:new({ ui = mock_ui_rolling, document = mock_doc })
 
     local data = {
       handmade_toc = { { title = "PagingItem", page = 2 } },
       handmade_flow_points = { { page = 2, hidden = true } },
-      handmade_toc_rolling = { { title = "RollingItem", page = 2, xpointer = "/xp/2" } },
-      handmade_flow_points_rolling = { { page = 2, xpointer = "/xp/2", hidden = true } },
+      handmade_toc_rolling = {
+        { title = "RollingItem", page = 2, xpointer = "/xp/2" },
+      },
+      handmade_flow_points_rolling = {
+        { page = 2, xpointer = "/xp/2", hidden = true },
+      },
     }
     local config = {
-      read = function(self, k) return data[k] end,
-      readTableRef = function(self, k) return data[k] end,
-      save = function(self, k, v) data[k] = v end,
-      delete = function(self, k) data[k] = nil end,
-      isTrue = function() return false end,
-      nilOrTrue = function() return true end,
+      read = function(self, k)
+        return data[k]
+      end,
+      readTableRef = function(self, k)
+        return data[k]
+      end,
+      save = function(self, k, v)
+        data[k] = v
+      end,
+      delete = function(self, k)
+        data[k] = nil
+      end,
+      isTrue = function()
+        return false
+      end,
+      nilOrTrue = function()
+        return true
+      end,
     }
 
     handmade:onReadSettings(config)
@@ -359,4 +383,3 @@ describe("ReaderHandmade module", function()
     assert.is_not_nil(handmade.flow_points)
   end)
 end)
-

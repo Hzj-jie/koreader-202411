@@ -16,7 +16,8 @@ local MathPuzzle = WidgetContainer:extend({
 })
 
 function MathPuzzle:init()
-  self.settings = LuaSettings:open(DataStorage:getSettingsDir() .. "/mathpuzzle.lua")
+  self.settings =
+    LuaSettings:open(DataStorage:getSettingsDir() .. "/mathpuzzle.lua")
   self.active_mode = self.settings:read("last_mode") or "add_sub_100"
   self.session_correct = 0
   self.session_wrong = 0

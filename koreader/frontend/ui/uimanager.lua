@@ -231,6 +231,10 @@ function UIManager:init()
     end,
   }
   self.poweroff_action = function()
+    if util.isMonkeyTest() then
+      logger.warn("Power off is ignored in monkey test mode.")
+      return
+    end
     self._entered_poweroff_stage = true
     logger.info("Powering off the device...")
     self:broadcastEvent(Event:new("PowerOff"))
@@ -249,6 +253,10 @@ function UIManager:init()
     end)
   end
   self.reboot_action = function()
+    if util.isMonkeyTest() then
+      logger.warn("Reboot is ignored in monkey test mode.")
+      return
+    end
     self._entered_poweroff_stage = true
     logger.info("Rebooting the device...")
     self:broadcastEvent(Event:new("Reboot"))
@@ -558,7 +566,7 @@ function UIManager:debounce(seconds, immediate, action)
 
   local scheduled_action
   scheduled_action = function()
-    local passed_from_last_call = time.since(previous_call_at)
+    local passed_from_last_call = time.to_s(time.since(previous_call_at))
     if seconds > passed_from_last_call then
       self:scheduleIn(seconds - passed_from_last_call, scheduled_action)
       is_scheduled = true
@@ -784,10 +792,6 @@ end
 --- Signals to quit.
 -- An exit_code of false is not allowed.
 function UIManager:quit(exit_code, implicit)
-  if util.isMonkeyTest() then
-    logger.warn("Ignoring quit event during monkey test mode.")
-    return true
-  end
   if exit_code == false then
     logger.err("UIManager:quit() called with false")
     return
@@ -1730,21 +1734,36 @@ end
 
 function UIManager:askForRestartOrReload(message_text)
   local ReaderUI = require("apps/reader/readerui")
-  if not ReaderUI.instance then
-    self:askForRestart(message_text)
+  local FileManager = require("apps/filemanager/filemanager")
+  if ReaderUI.instance then
+    self:nextTick(function()
+      self:show(require("ui/widget/confirmbox"):new({
+        text = message_text
+          or gettext("Settings changed. Reload document to take effect?"),
+        cancel_text = gettext("Later"),
+        ok_callback = function()
+          ReaderUI.instance:reloadDocument()
+        end,
+      }))
+    end)
     return
   end
 
-  self:nextTick(function()
-    self:show(require("ui/widget/confirmbox"):new({
-      text = message_text
-        or gettext("Settings changed. Reload document to take effect?"),
-      cancel_text = gettext("Later"),
-      ok_callback = function()
-        ReaderUI.instance:reloadDocument()
-      end,
-    }))
-  end)
+  if FileManager.instance then
+    self:nextTick(function()
+      self:show(require("ui/widget/confirmbox"):new({
+        text = message_text
+          or gettext("Settings changed. Reload file manager to take effect?"),
+        cancel_text = gettext("Later"),
+        ok_callback = function()
+          FileManager.instance:restart()
+        end,
+      }))
+    end)
+    return
+  end
+
+  self:askForRestart(message_text)
 end
 
 --[[--
@@ -1831,17 +1850,15 @@ function UIManager:keyEvents()
       return
     end
     -- check w itself
-    local c = w.key_events
-    if not c then
-      return
-    end
-    for k, v in pairs(c) do
-      if
-        not v.is_inactive
-        and k ~= "AnyKeyPressed"
-        and k ~= "SelectByShortCut"
-      then
-        key_events[k] = v
+    if w.key_events then
+      for k, v in pairs(w.key_events) do
+        if
+          not v.is_inactive
+          and k ~= "AnyKeyPressed"
+          and k ~= "SelectByShortCut"
+        then
+          key_events[k] = v
+        end
       end
     end
 

@@ -75,6 +75,24 @@ describe("EpubDownloadBackend module", function()
     assert.are.equal("session", cookies[1].name)
     assert.are.equal("abc12345", cookies[1].value)
 
+    -- Response without set-cookie header
+    http.request = function(req)
+      return 1, 200, { ["content-type"] = "text/html" }, "200 OK"
+    end
+    local no_cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {})
+    assert.is_table(no_cookies)
+    assert.are.equal(0, #no_cookies)
+
+    -- Response with nil headers (e.g. error / connection failure)
+    http.request = function(req)
+      return nil, 500, nil, "500 Internal Server Error"
+    end
+    local nil_headers_cookies =
+      EpubDownloadBackend:getConnectionCookies("http://example.com/login", {})
+    assert.is_table(nil_headers_cookies)
+    assert.are.equal(0, #nil_headers_cookies)
+
     http.request = old_request
   end)
 
@@ -102,6 +120,43 @@ describe("EpubDownloadBackend module", function()
     assert.is_true(success)
 
     os.remove(tmp_epub)
+
+    -- Test HTML without title tag (falls back to "Untitled")
+    local tmp_epub_no_title = os.tmpname() .. ".epub"
+    local html_no_title =
+      '<html><head></head><body><div class="content">No title article</div></body></html>'
+    local success_no_title = pcall(function()
+      EpubDownloadBackend:createEpub(
+        tmp_epub_no_title,
+        html_no_title,
+        "http://example.com/no_title",
+        false,
+        "Downloading...",
+        true,
+        ".content"
+      )
+    end)
+    assert.is_true(success_no_title)
+    os.remove(tmp_epub_no_title)
+
+    -- Test HTML with multiline title tag
+    local tmp_epub_multiline = os.tmpname() .. ".epub"
+    local html_multiline =
+      '<html><head><title class="header">\n  Multiline Article Title\n</title></head><body><div class="content">Multiline body</div></body></html>'
+    local success_multiline = pcall(function()
+      EpubDownloadBackend:createEpub(
+        tmp_epub_multiline,
+        html_multiline,
+        "http://example.com/multiline",
+        false,
+        "Downloading...",
+        true,
+        ".content"
+      )
+    end)
+    assert.is_true(success_multiline)
+    os.remove(tmp_epub_multiline)
+
     http.request = old_request
   end)
 
@@ -119,7 +174,8 @@ describe("EpubDownloadBackend module", function()
       end
     end
 
-    local content = EpubDownloadBackend:loadPage("http://example.com/start.html")
+    local content =
+      EpubDownloadBackend:loadPage("http://example.com/start.html")
     assert.is_string(content)
     assert.is_true(content:find("Redirected Body") ~= nil)
 
@@ -170,7 +226,8 @@ describe("EpubDownloadBackend module", function()
     Trapper.dismissableRunInSubprocess = function(self_trapper, fn, widget)
       return true, true, "<html>Trapper Content</html>"
     end
-    local content = EpubDownloadBackend:loadPage("http://example.com/trapped.html")
+    local content =
+      EpubDownloadBackend:loadPage("http://example.com/trapped.html")
     assert.are.equal("<html>Trapper Content</html>", content)
 
     -- User interrupted / cancelled
@@ -181,15 +238,19 @@ describe("EpubDownloadBackend module", function()
       EpubDownloadBackend:loadPage("http://example.com/cancel.html")
     end)
     assert.is_false(ok)
-    assert.is_true(tostring(err):find(EpubDownloadBackend.dismissed_error_code) ~= nil)
+    assert.is_true(
+      tostring(err):find(EpubDownloadBackend.dismissed_error_code) ~= nil
+    )
 
     EpubDownloadBackend:resetTrapWidget()
     Trapper.dismissableRunInSubprocess = old_dismissable
   end)
 
-  it("should create an epub with images, srcset, SVG, and cover selection", function()
-    local tmp_epub = os.tmpname() .. ".epub"
-    local html = [[
+  it(
+    "should create an epub with images, srcset, SVG, and cover selection",
+    function()
+      local tmp_epub = os.tmpname() .. ".epub"
+      local html = [[
 <html>
   <head><title>Full Image Article</title></head>
   <body>
@@ -203,81 +264,86 @@ describe("EpubDownloadBackend module", function()
 </html>
 ]]
 
-    local old_request = http.request
-    http.request = function(req)
-      local img_data = "FAKE_IMAGE_DATA_12345"
-      if req.sink then
-        req.sink(img_data)
+      local old_request = http.request
+      http.request = function(req)
+        local img_data = "FAKE_IMAGE_DATA_12345"
+        if req.sink then
+          req.sink(img_data)
+        end
+        return 1, 200, { ["content-length"] = tostring(#img_data) }, "200 OK"
       end
-      return 1, 200, { ["content-length"] = tostring(#img_data) }, "200 OK"
-    end
 
-    local success = pcall(function()
-      EpubDownloadBackend:createEpub(
+      local success = pcall(function()
+        EpubDownloadBackend:createEpub(
+          tmp_epub,
+          html,
+          "http://example.com/article/full",
+          true, -- include_images
+          "Downloading with images...",
+          true, -- filter_enable
+          "article"
+        )
+      end)
+      assert.is_true(success)
+
+      os.remove(tmp_epub)
+      http.request = old_request
+    end
+  )
+
+  it(
+    "should handle image download failure and cancellation in createEpub",
+    function()
+      local tmp_epub = os.tmpname() .. ".epub"
+      local html =
+        '<html><head><title>Failed Img</title></head><body><img src="http://example.com/missing.png" width="80" height="80"/></body></html>'
+
+      local Trapper = require("ui/trapper")
+      local old_confirm = Trapper.confirm
+      local old_request = http.request
+
+      -- Simulate image HTTP 404
+      http.request = function(req)
+        return nil, 404, {}, "404 Not Found"
+      end
+
+      -- User chooses not to continue when image fails, and not to create epub
+      Trapper.confirm = function(self_trapper, msg, btn1, btn2)
+        return false
+      end
+
+      local result = EpubDownloadBackend:createEpub(
         tmp_epub,
         html,
-        "http://example.com/article/full",
-        true, -- include_images
-        "Downloading with images...",
-        true, -- filter_enable
-        "article"
+        "http://example.com/fail",
+        true,
+        "Downloading...",
+        false
       )
-    end)
-    assert.is_true(success)
+      assert.is_false(result)
 
-    os.remove(tmp_epub)
-    http.request = old_request
-  end)
-
-  it("should handle image download failure and cancellation in createEpub", function()
-    local tmp_epub = os.tmpname() .. ".epub"
-    local html = '<html><head><title>Failed Img</title></head><body><img src="http://example.com/missing.png" width="80" height="80"/></body></html>'
-
-    local Trapper = require("ui/trapper")
-    local old_confirm = Trapper.confirm
-    local old_request = http.request
-
-    -- Simulate image HTTP 404
-    http.request = function(req)
-      return nil, 404, {}, "404 Not Found"
-    end
-
-    -- User chooses not to continue when image fails, and not to create epub
-    Trapper.confirm = function(self_trapper, msg, btn1, btn2)
-      return false
-    end
-
-    local result = EpubDownloadBackend:createEpub(
-      tmp_epub,
-      html,
-      "http://example.com/fail",
-      true,
-      "Downloading...",
-      false
-    )
-    assert.is_false(result)
-
-    -- User chooses to create epub with partial images
-    Trapper.confirm = function(self_trapper, msg, btn1, btn2)
-      if msg:find("Continue anyway") then
-        return false
-      else
-        return true -- Create with already downloaded images
+      -- User chooses to create epub with partial images
+      Trapper.confirm = function(self_trapper, msg, btn1, btn2)
+        if msg:find("Continue anyway") then
+          return false
+        else
+          return true -- Create with already downloaded images
+        end
       end
+
+      result = EpubDownloadBackend:createEpub(
+        tmp_epub,
+        html,
+        "http://example.com/fail2",
+        true,
+        "Downloading...",
+        false
+      )
+      assert.is_true(result)
+
+      os.remove(tmp_epub)
+      Trapper.confirm = old_confirm
+      http.request = old_request
     end
-
-    result = EpubDownloadBackend:createEpub(
-      tmp_epub,
-      html,
-      "http://example.com/fail2",
-      true,
-      "Downloading...",
-      false
-    )
-    assert.is_true(result)
-
-    os.remove(tmp_epub)
-    Trapper.confirm = old_confirm
-    http.request = old_request
-  end)
+  )
 end)

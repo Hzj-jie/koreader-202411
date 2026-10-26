@@ -34,7 +34,6 @@ local CalculatorUnitsDialog = InputContainer:new({
   text_face = Font:getFace("smallinfofont"),
   button_padding = Size.padding.default,
   border_size = Size.border.window,
-  units = { { "cm", 0.01 }, { "inch", 254 } },
 })
 
 function CalculatorUnitsDialog:init()
@@ -80,7 +79,6 @@ function CalculatorUnitsDialog:init()
         is_enter_default = true,
         callback = function()
           UIManager:close(self.parent.units_dialog)
-          --                local value = self.
           local from =
             self.radio_button_table_units_from.checked_button.provider
           local too = self.radio_button_table_units_too.checked_button.provider

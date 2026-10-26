@@ -32,19 +32,27 @@ describe("TrapWidget", function()
     assert.truthy(tw[1])
   end)
 
-  it("should initialize visible TrapWidget with long text using TextBoxWidget", function()
-    local long_text = string.rep("Very long loading message that will definitely wrap across multiple lines ", 10)
-    local tw = TrapWidget:new({
-      text = long_text,
-    })
+  it(
+    "should initialize visible TrapWidget with long text using TextBoxWidget",
+    function()
+      local long_text = string.rep(
+        "Very long loading message that will definitely wrap across multiple lines ",
+        10
+      )
+      local tw = TrapWidget:new({
+        text = long_text,
+      })
 
-    assert.is_false(tw.invisible)
-    assert.truthy(tw.frame)
-  end)
+      assert.is_false(tw.invisible)
+      assert.truthy(tw.frame)
+    end
+  )
 
   it("should handle gesture events on touch device", function()
     local orig_is_touch = Device.isTouchDevice
-    Device.isTouchDevice = function() return true end
+    Device.isTouchDevice = function()
+      return true
+    end
 
     local tw = TrapWidget:new({
       text = nil,
@@ -57,44 +65,47 @@ describe("TrapWidget", function()
     Device.isTouchDevice = orig_is_touch
   end)
 
-  it("should invoke dismiss_callback and closeIfShown on input events", function()
-    local dismissed = false
-    local closed_widget = nil
-    local orig_closeIfShown = UIManager.closeIfShown
-    UIManager.closeIfShown = function(self, w)
-      closed_widget = w
+  it(
+    "should invoke dismiss_callback and closeIfShown on input events",
+    function()
+      local dismissed = false
+      local closed_widget = nil
+      local orig_closeIfShown = UIManager.closeIfShown
+      UIManager.closeIfShown = function(self, w)
+        closed_widget = w
+      end
+
+      local tw = TrapWidget:new({
+        dismiss_callback = function()
+          dismissed = true
+        end,
+      })
+
+      local ev = { code = 10 }
+      local res = tw:onAnyKeyPressed(nil, ev)
+      assert.is_true(res)
+      assert.is_true(dismissed)
+      assert.are.equal(tw, closed_widget)
+
+      dismissed = false
+      tw:onTapDismiss(nil, ev)
+      assert.is_true(dismissed)
+
+      dismissed = false
+      tw:onHoldDismiss(nil, ev)
+      assert.is_true(dismissed)
+
+      dismissed = false
+      tw:onSwipeDismiss(nil, ev)
+      assert.is_true(dismissed)
+
+      dismissed = false
+      tw:onPanReleaseDismiss(nil, ev)
+      assert.is_true(dismissed)
+
+      UIManager.closeIfShown = orig_closeIfShown
     end
-
-    local tw = TrapWidget:new({
-      dismiss_callback = function()
-        dismissed = true
-      end,
-    })
-
-    local ev = { code = 10 }
-    local res = tw:onAnyKeyPressed(nil, ev)
-    assert.is_true(res)
-    assert.is_true(dismissed)
-    assert.are.equal(tw, closed_widget)
-
-    dismissed = false
-    tw:onTapDismiss(nil, ev)
-    assert.is_true(dismissed)
-
-    dismissed = false
-    tw:onHoldDismiss(nil, ev)
-    assert.is_true(dismissed)
-
-    dismissed = false
-    tw:onSwipeDismiss(nil, ev)
-    assert.is_true(dismissed)
-
-    dismissed = false
-    tw:onPanReleaseDismiss(nil, ev)
-    assert.is_true(dismissed)
-
-    UIManager.closeIfShown = orig_closeIfShown
-  end)
+  )
 
   it("should resend event via nextTick when resend_event is true", function()
     local scheduled_tick = nil
@@ -150,6 +161,7 @@ describe("TrapWidget", function()
     assert.is_nil(dirty_widget)
     mode, region = dirty_func()
     assert.are.equal("ui", mode)
+    assert.are.equal(tw.frame.dimen, region)
 
     -- Without frame:
     local tw_no_frame = TrapWidget:new({ text = false })

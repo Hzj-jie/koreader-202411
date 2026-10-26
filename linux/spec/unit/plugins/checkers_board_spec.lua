@@ -64,7 +64,8 @@ describe("Checkers Board module", function()
         for f = 0, 7 do
           -- Dark squares
           if (r + f) % 2 == 1 then
-            local p = (r % 2 == 0) and (r * 4 + math.floor((f - 1) / 2) + 1) or (r * 4 + math.floor(f / 2) + 1)
+            local p = (r % 2 == 0) and (r * 4 + math.floor((f - 1) / 2) + 1)
+              or (r * 4 + math.floor(f / 2) + 1)
             if p == to_pos then
               board:handleClick(r, f)
               break

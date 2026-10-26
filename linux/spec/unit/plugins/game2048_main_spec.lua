@@ -13,22 +13,25 @@ describe("Game2048 main plugin module", function()
     Blitbuffer = require("ffi/blitbuffer")
   end)
 
-  it("should initialize Game2048 plugin instance, menu, and state storage", function()
-    local mock_menu = { registerToMainMenu = function() end }
-    local instance = Game2048:new({ ui = { menu = mock_menu } })
-    assert.is_table(instance)
-    assert.is_table(instance.state)
-    assert.is_table(instance.storage)
+  it(
+    "should initialize Game2048 plugin instance, menu, and state storage",
+    function()
+      local mock_menu = { registerToMainMenu = function() end }
+      local instance = Game2048:new({ ui = { menu = mock_menu } })
+      assert.is_table(instance)
+      assert.is_table(instance.state)
+      assert.is_table(instance.storage)
 
-    local menu_items = {}
-    instance:addToMainMenu(menu_items)
-    assert.is_table(menu_items.game2048)
+      local menu_items = {}
+      instance:addToMainMenu(menu_items)
+      assert.is_table(menu_items.game2048)
 
-    -- Storage save and read
-    instance.storage:saveState(instance.state)
-    instance.storage:readState(instance.state)
-    instance.storage:flush()
-  end)
+      -- Storage save and read
+      instance.storage:saveState(instance.state)
+      instance.storage:readState(instance.state)
+      instance.storage:flush()
+    end
+  )
 
   it("should manage Game2048Info timer and score state", function()
     local mock_menu = { registerToMainMenu = function() end }
@@ -59,73 +62,99 @@ describe("Game2048 main plugin module", function()
     assert.are.equal(info.moves, 0)
   end)
 
-  it("should manage Game2048State moves, history undo/redo, and profile switching", function()
-    local mock_menu = { registerToMainMenu = function() end }
-    local instance = Game2048:new({ ui = { menu = mock_menu } })
-    local state = instance.state
+  it(
+    "should manage Game2048State moves, history undo/redo, and profile switching",
+    function()
+      local mock_menu = { registerToMainMenu = function() end }
+      local instance = Game2048:new({ ui = { menu = mock_menu } })
+      local state = instance.state
 
-    state:reset()
-    state:newGame()
+      state:reset()
+      state:newGame()
 
-    -- Try moves in all 4 directions
-    state:move("up")
-    state:move("down")
-    state:move("left")
-    state:move("right")
+      -- Try moves in all 4 directions
+      state:move("up")
+      state:move("down")
+      state:move("left")
+      state:move("right")
 
-    state:pushToHistory()
-    state:historyUndo()
-    state:historyRedo()
+      state:pushToHistory()
+      state:historyUndo()
+      state:historyRedo()
 
-    -- Profile switch
-    state.settings.profile = "profile_2"
-    instance.storage:switchGameState(state)
-    assert.are.equal(state.profile, "profile_2")
-  end)
+      -- Profile switch
+      state.settings.profile = "profile_2"
+      instance.storage:switchGameState(state)
+      assert.are.equal(state.profile, "profile_2")
+    end
+  )
 
-  it("should manage Game2048Screen UI lifecycle, inputs, themes, and dialogs", function()
-    local orig_show = UIManager.show
-    local orig_close = UIManager.close
-    UIManager.show = function() end
-    UIManager.close = function() end
+  it(
+    "should reset best score and apply board size when switching to an uninitialized profile",
+    function()
+      local mock_menu = { registerToMainMenu = function() end }
+      local instance = Game2048:new({ ui = { menu = mock_menu } })
+      local state = instance.state
 
-    local mock_menu = { registerToMainMenu = function() end }
-    local instance = Game2048:new({ ui = { menu = mock_menu } })
+      state.info.score = 256
+      state.info.best = 512
+      state.settings.size = 5
+      state.settings.profile = "uninitialized_profile"
 
-    instance:showGame()
-    assert.is_table(instance.screen)
-    local screen = instance.screen
+      instance.storage:switchGameState(state)
+      assert.are.equal(state.profile, "uninitialized_profile")
+      assert.are.equal(state.info.best, 0)
+      assert.are.equal(state.history:current().info.best, 0)
+      assert.are.equal(state.board:getSize(), 5)
+    end
+  )
 
-    -- Screen moves, newGame, undo, redo
-    screen:onGame2048Move("left")
-    screen:onGame2048Move("right")
-    screen:onUndo()
-    screen:onRedo()
-    screen:newGame()
+  it(
+    "should manage Game2048Screen UI lifecycle, inputs, themes, and dialogs",
+    function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      UIManager.show = function() end
+      UIManager.close = function() end
 
-    -- Theme and Profile changes
-    screen:onThemeChange("light")
-    screen:onProfileChange("default")
+      local mock_menu = { registerToMainMenu = function() end }
+      local instance = Game2048:new({ ui = { menu = mock_menu } })
 
-    -- Settings, Suspend, Resume
-    screen._config.showConfigMenu = function() end
-    screen:onShowSettings()
-    screen:onNewSettings()
-    screen:onSuspend()
-    screen:onResume()
-    screen:onSettingsMenu()
-    screen:_showGameOver()
+      instance:showGame()
+      assert.is_table(instance.screen)
+      local screen = instance.screen
 
-    -- Paint to Blitbuffer
-    local bb = Blitbuffer.new(screen.dimen.w or 600, screen.dimen.h or 800)
-    screen:paintTo(bb, 0, 0)
-    bb:free()
+      -- Screen moves, newGame, undo, redo
+      screen:onGame2048Move("left")
+      screen:onGame2048Move("right")
+      screen:onUndo()
+      screen:onRedo()
+      screen:newGame()
 
-    -- Close
-    instance:closeScreen()
-    assert.is_nil(instance.screen)
+      -- Theme and Profile changes
+      screen:onThemeChange("light")
+      screen:onProfileChange("default")
 
-    UIManager.show = orig_show
-    UIManager.close = orig_close
-  end)
+      -- Settings, Suspend, Resume
+      screen._config.showConfigMenu = function() end
+      screen:onShowSettings()
+      screen:onNewSettings()
+      screen:onSuspend()
+      screen:onResume()
+      screen:onSettingsMenu()
+      screen:_showGameOver()
+
+      -- Paint to Blitbuffer
+      local bb = Blitbuffer.new(screen.dimen.w or 600, screen.dimen.h or 800)
+      screen:paintTo(bb, 0, 0)
+      bb:free()
+
+      -- Close
+      instance:closeScreen()
+      assert.is_nil(instance.screen)
+
+      UIManager.show = orig_show
+      UIManager.close = orig_close
+    end
+  )
 end)

@@ -332,7 +332,6 @@ function AutoWarmth:clearEventHandlers()
   self.onResume = nil
   self.onSuspend = nil
   self.onToggleNightMode = nil
-  self.onSetNightMode = nil
   self.onToggleFrontlight = nil
 end
 
@@ -347,8 +346,8 @@ function AutoWarmth:scheduleMidnightUpdate(from_resume)
   -- Calculate current timezone of device, which might change due to daylight saving.
   local timezone = SunTime:getTimezoneOffset()
   if timezone ~= self.timezone then
-    G_reader_settings:save("autowarmth_timezone", self.timezone)
     self.timezone = timezone
+    G_reader_settings:save("autowarmth_timezone", self.timezone)
   end
 
   SunTime:setPosition(
@@ -543,7 +542,7 @@ function AutoWarmth:toggleFrontlight(now_s)
   local sunrise_in_s = sr
       and (sr * 3600 + self.fl_off_during_day_offset_s - now_s)
     or 0
-  local sunset_in_s = sr
+  local sunset_in_s = ss
       and (ss * 3600 - self.fl_off_during_day_offset_s - now_s)
     or 0
 
@@ -626,7 +625,7 @@ function AutoWarmth:setWarmth(val, force_warmth)
   -- We use an offset of 1000 to "flag", that night mode is on.
   if val then
     if self.control_nightmode then
-      DeviceListener:onSetNightMode(val > 100)
+      DeviceListener:onToggleNightMode(val > 100)
     end
 
     if self.control_warmth and Device:hasNaturalLight() then

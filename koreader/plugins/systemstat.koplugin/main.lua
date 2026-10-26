@@ -66,6 +66,7 @@ local function systemInfo()
     assert(handle ~= nil)
     -- Exclude cpu line.
     result.cpu.count = tonumber(handle:read("*a")) - 1
+    handle:close()
   end
 
   do
@@ -106,6 +107,7 @@ local function systemInfo()
     assert(handle ~= nil)
     -- Exclude ps and wc
     result.processes.count = tonumber(handle:read("*a")) - 2
+    handle:close()
   end
 
   do
@@ -115,6 +117,7 @@ local function systemInfo()
     for word in handle:read("*a"):gmatch("[^,%s]+") do
       table.insert(result.cpu.average, tonumber(word))
     end
+    handle:close()
   end
 
   do
@@ -127,6 +130,7 @@ local function systemInfo()
     if #t > 0 then
       result.uptime.sec = tonumber(t[1])
     end
+    file:close()
   end
 
   return result
@@ -273,7 +277,7 @@ function SystemStat:appendCounters()
           msg = msg .. "\n" .. k
         end
       end
-      if msg == "" then
+      if msg ~= "" then
         UIManager:show(InfoMessage:new({
           text = msg,
         }))

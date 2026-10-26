@@ -74,21 +74,36 @@ dateparser.register_format("W3CDTF", function(rest)
   local alt_rest
 
   year, rest = rest:match("^(%d%d%d%d)%-?(.*)$")
+  if not year then
+    return nil
+  end
 
   day_of_year, alt_rest = rest:match("^(%d%d%d)%-?(.*)$")
-
   if day_of_year then
     rest = alt_rest
   end
 
-  month, rest = rest:match("^(%d%d)%-?(.*)$")
+  month, alt_rest = rest:match("^(%d%d)%-?(.*)$")
+  if month then
+    rest = alt_rest
+  end
 
-  day, rest = rest:match("^(%d%d)(.*)$")
+  day, alt_rest = rest:match("^(%d%d)(.*)$")
+  if day then
+    rest = alt_rest
+  end
+
   if #rest > 0 then
     rest = rest:match("^T(.*)$")
+    if not rest then
+      return nil
+    end
     hour, rest = rest:match("^([0-2][0-9]):?(.*)$")
     minute, rest = rest:match("^([0-6][0-9]):?(.*)$")
     second, rest = rest:match("^([0-6][0-9])(.*)$")
+    if not (hour and minute and second) then
+      return nil
+    end
     second_fraction, alt_rest = rest:match("^%.(%d+)(.*)$")
     if second_fraction then
       rest = alt_rest
@@ -99,11 +114,15 @@ dateparser.register_format("W3CDTF", function(rest)
     else
       local sign, offset_h, offset_m
       sign, offset_h, rest = rest:match("^([+-])(%d%d)%:?(.*)$")
+      if not sign then
+        return nil
+      end
       offset_m, alt_rest = rest:match("^(%d%d)(.*)$")
       if offset_m then
         rest = alt_rest
       end
-      offset_hours = tonumber(sign .. offset_h) + (tonumber(offset_m) or 0) / 60
+      offset_hours = (tonumber(offset_h) + (tonumber(offset_m) or 0) / 60)
+        * (sign == "-" and -1 or 1)
     end
     if #rest > 0 then
       return nil
@@ -214,11 +233,17 @@ do
     if tz then
       rest = alt_rest
       offset_hours = tz_table[tz]
+      if not offset_hours then
+        return nil
+      end
     else
       offset_sign, offset_h, offset_m, rest =
         rest:match("^%s+([+-])(%d%d)(%d%d)%s*(.*)$")
-      offset_hours = tonumber(offset_sign .. offset_h)
-        + (tonumber(offset_m) or 0) / 60
+      if not offset_sign then
+        return nil
+      end
+      offset_hours = (tonumber(offset_h) + (tonumber(offset_m) or 0) / 60)
+        * (offset_sign == "-" and -1 or 1)
     end
 
     if #rest > 0 or not (year and day and month and hour and minute) then

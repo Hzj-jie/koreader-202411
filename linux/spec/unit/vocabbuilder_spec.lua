@@ -403,4 +403,257 @@ describe("VocabBuilder plugin", function()
       end
     )
   end)
+
+  describe("Sync finish_cb and reloadItems contract", function()
+    it("footer manual sync reloads only after DB.onSync has merged", function()
+      -- vocabbuilder requires this path: a separate package.loaded entry
+      local SyncService = require("frontend/apps/cloudstorage/syncservice")
+      local settings = G_reader_settings:readTableRef("vocabulary_builder")
+      local old_sync, old_on_sync, old_next_tick =
+        SyncService.sync, DB.onSync, UIManager.nextTick
+      finally(function()
+        SyncService.sync, DB.onSync, UIManager.nextTick =
+          old_sync, old_on_sync, old_next_tick
+      end)
+
+      local order, queued_run = {}, nil
+      SyncService.sync = function(_, path, sync_cb, _, finish_cb)
+        table.insert(order, "sync()")
+        queued_run = function()
+          finish_cb(sync_cb(path, path .. ".sync", path .. ".temp"))
+        end
+      end
+      DB.onSync = function()
+        table.insert(order, "DB.onSync")
+        return true
+      end
+      UIManager.nextTick = function(_, f)
+        f()
+      end
+
+      settings.server =
+        { type = "dropbox", url = "/koreader", password = "t", address = "" }
+      local vb = VocabBuilder:new({
+        ui = { menu = { registerToMainMenu = function() end } },
+      })
+      vb:onShowVocabBuilder()
+      local widget = vb.widget
+      local real_reload = widget.reloadItems
+      widget.reloadItems = function(self)
+        table.insert(order, "reloadItems")
+        return real_reload(self)
+      end
+
+      widget.footer_sync.callback() -- production: manual-sync branch
+      assert.are.same({ "sync()" }, order) -- postponed: no reload yet
+
+      queued_run()
+      assert.are.same({ "sync()", "DB.onSync", "reloadItems" }, order)
+      UIManager:close(widget)
+    end)
+  end)
+
+  describe("Defect verifications", function()
+    it(
+      "does not execute filter toggle on empty toggled in onShowFilter callback",
+      function()
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        settings.enabled = true
+        DB:insertOrUpdate({
+          word = "testword",
+          book_title = "Filter Book",
+          time = os.time(),
+        })
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+
+        local sort_widget = nil
+        local orig_show = UIManager.show
+        UIManager.show = function(self, widget)
+          if widget.title == "Filter words from books" then
+            sort_widget = widget
+          end
+          return orig_show(self, widget)
+        end
+        finally(function()
+          UIManager.show = orig_show
+          if sort_widget then
+            UIManager:close(sort_widget)
+          end
+          if vb.widget then
+            UIManager:close(vb.widget)
+          end
+        end)
+
+        vb.widget:onShowFilter()
+        assert.is_table(sort_widget)
+
+        local toggle_stub = stub(DB, "toggleBookFilter")
+        finally(function()
+          toggle_stub:revert()
+        end)
+
+        sort_widget.callback()
+
+        assert.stub(toggle_stub).was_not_called()
+      end
+    )
+
+    it(
+      "re-synchronizes item count with selectCount on resetItems with reverse=true",
+      function()
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        settings.enabled = true
+        settings.reverse = nil
+
+        local now = os.time()
+        DB:insertOrUpdate({
+          word = "due_past1",
+          book_title = "Book A",
+          time = now - 300,
+        })
+        DB:insertOrUpdate({
+          word = "due_past2",
+          book_title = "Book A",
+          time = now - 200,
+        })
+        DB:insertOrUpdate({
+          word = "due_future",
+          book_title = "Book A",
+          time = now - 100,
+        })
+
+        local SQ3 = require("lua-ljsqlite3/init")
+        local db_conn = SQ3.open(DB.path)
+        db_conn:exec(
+          string.format(
+            "UPDATE vocabulary SET due_time = %d WHERE word = 'due_future';",
+            now + 100000
+          )
+        )
+        db_conn:close()
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+        local widget = vb.widget
+        assert.are.equal(3, #widget.item_table)
+
+        finally(function()
+          if widget then
+            UIManager:close(widget)
+          end
+        end)
+
+        settings.reverse = true
+        widget:resetItems()
+
+        assert.are.equal(DB:selectCount(widget), #widget.item_table)
+      end
+    )
+
+    it(
+      "persists settings locally when deleting and editing cloud sync server",
+      function()
+        local settings = G_reader_settings:readTableRef("vocabulary_builder")
+        settings.enabled = true
+        settings.server = {
+          type = "dropbox",
+          name = "MyDrop",
+          url = "http://example.com",
+        }
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        vb:onShowVocabBuilder()
+        vb.widget:onShowMenu()
+
+        local active_menu =
+          UIManager._window_stack[#UIManager._window_stack].widget
+        assert.is_table(active_menu)
+
+        local sync_dialog
+        local sync_settings_dialog
+        local orig_show = UIManager.show
+        UIManager.show = function(self, dlg)
+          if dlg.title and dlg.title:find("Cloud storage") then
+            sync_dialog = dlg
+          elseif dlg.onConfirm then
+            sync_settings_dialog = dlg
+          end
+          return orig_show(self, dlg)
+        end
+
+        finally(function()
+          UIManager.show = orig_show
+          if
+            sync_settings_dialog
+            and UIManager:isWindowWidget(sync_settings_dialog)
+          then
+            UIManager:close(sync_settings_dialog)
+          end
+          if sync_dialog and UIManager:isWindowWidget(sync_dialog) then
+            UIManager:close(sync_dialog)
+          end
+          if active_menu and UIManager:isWindowWidget(active_menu) then
+            UIManager:close(active_menu)
+          end
+          if vb.widget and UIManager:isWindowWidget(vb.widget) then
+            UIManager:close(vb.widget)
+          end
+        end)
+
+        -- Find sync_button in active_menu.layout
+        local sync_button_cb
+        for _, row in ipairs(active_menu.layout or {}) do
+          for _, item in ipairs(row) do
+            if
+              item.text
+              and (
+                item.text:find("Synchronize")
+                or item.text:find("sync", 1, true)
+                or item.text:find("Cloud storage")
+              )
+            then
+              sync_button_cb = item.callback
+              break
+            end
+          end
+        end
+        assert.is_function(sync_button_cb)
+        sync_button_cb()
+
+        assert.is_table(sync_dialog)
+        local delete_btn = sync_dialog.buttons[1][1]
+        assert.are.equal("Delete", delete_btn.text)
+
+        delete_btn.callback()
+        assert.is_nil(settings.server)
+
+        -- Reopen sync dialog to test Edit callback
+        settings.server = {
+          type = "dropbox",
+          name = "OldServer",
+          url = "http://example.com",
+        }
+        sync_button_cb()
+        assert.is_table(sync_dialog)
+        local edit_btn = sync_dialog.buttons[1][2]
+        assert.are.equal("Edit", edit_btn.text)
+        edit_btn.callback()
+        assert.is_table(sync_settings_dialog)
+        sync_settings_dialog.onConfirm({
+          type = "dropbox",
+          name = "NewServer",
+          url = "http://example.org",
+        })
+        assert.are.equal("NewServer", settings.server.name)
+      end
+    )
+  end)
 end)

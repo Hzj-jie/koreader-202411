@@ -176,6 +176,7 @@ function Trapper:info(text, fast_refresh)
       if not go_on then
         UIManager:close(self.current_widget)
         UIManager:forceRepaint()
+        self.current_widget = nil
         return false
       end
       if self.current_widget then

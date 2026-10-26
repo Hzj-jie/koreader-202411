@@ -23,38 +23,41 @@ describe("OptionsUtil module", function()
     assert.is_false(OptionsUtil.enableIfEquals(configurable, "option1", "val2"))
   end)
 
-  it("should format flex size string across different units and settings", function()
-    assert.are.equal("", OptionsUtil.formatFlexSize(nil))
-    assert.are.equal("auto", OptionsUtil.formatFlexSize("auto"))
-    assert.is_string(OptionsUtil.formatFlexSize(12, nil))
+  it(
+    "should format flex size string across different units and settings",
+    function()
+      assert.are.equal("", OptionsUtil.formatFlexSize(nil))
+      assert.are.equal("auto", OptionsUtil.formatFlexSize("auto"))
+      assert.is_string(OptionsUtil.formatFlexSize(12, nil))
 
-    local formatted_pt = OptionsUtil.formatFlexSize(12, "pt")
-    assert.is_string(formatted_pt)
+      local formatted_pt = OptionsUtil.formatFlexSize(12, "pt")
+      assert.is_string(formatted_pt)
 
-    local formatted_mm = OptionsUtil.formatFlexSize(10, "mm")
-    assert.is_string(formatted_mm)
+      local formatted_mm = OptionsUtil.formatFlexSize(10, "mm")
+      assert.is_string(formatted_mm)
 
-    local formatted_in = OptionsUtil.formatFlexSize(2, "in")
-    assert.is_string(formatted_in)
+      local formatted_in = OptionsUtil.formatFlexSize(2, "in")
+      assert.is_string(formatted_in)
 
-    local formatted_px = OptionsUtil.formatFlexSize(100, "px")
-    assert.is_string(formatted_px)
+      local formatted_px = OptionsUtil.formatFlexSize(100, "px")
+      assert.is_string(formatted_px)
 
-    local formatted_custom = OptionsUtil.formatFlexSize(10, "cm")
-    assert.is_string(formatted_custom)
+      local formatted_custom = OptionsUtil.formatFlexSize(10, "cm")
+      assert.is_string(formatted_custom)
 
-    -- Test with dimension_units_append_px enabled
-    G_reader_settings:save("dimension_units_append_px", true)
-    local formatted_append_pt = OptionsUtil.formatFlexSize(12, "pt")
-    assert.is_true(formatted_append_pt:find("%[") ~= nil)
-    local formatted_append_px = OptionsUtil.formatFlexSize(100, "px")
-    assert.is_true(formatted_append_px:find("%[") == nil)
-    G_reader_settings:save("dimension_units_append_px", nil)
+      -- Test with dimension_units_append_px enabled
+      G_reader_settings:save("dimension_units_append_px", true)
+      local formatted_append_pt = OptionsUtil.formatFlexSize(12, "pt")
+      assert.is_true(formatted_append_pt:find("%[") ~= nil)
+      local formatted_append_px = OptionsUtil.formatFlexSize(100, "px")
+      assert.is_true(formatted_append_px:find("%[") == nil)
+      G_reader_settings:save("dimension_units_append_px", nil)
 
-    -- Nil unit falls back to G_named_settings.dimension_units
-    local fallback = OptionsUtil.formatFlexSize(15)
-    assert.is_string(fallback)
-  end)
+      -- Nil unit falls back to G_named_settings.dimension_units
+      local fallback = OptionsUtil.formatFlexSize(15)
+      assert.is_string(fallback)
+    end
+  )
 
   it("should handle showValues for toggle and values combinations", function()
     -- Toggle with table values & current table
@@ -75,7 +78,9 @@ describe("OptionsUtil module", function()
       name_text_true_values = true,
       toggle = { "One", "Two" },
       values = { 1, 2 },
-      show_true_value_func = function(v) return v end,
+      show_true_value_func = function(v)
+        return v
+      end,
     }
     OptionsUtil.showValues({ custom_val = 50 }, opt_custom, "copt")
 
@@ -133,9 +138,13 @@ describe("OptionsUtil module", function()
     G_reader_settings:save("copt_standard", "val2")
     local opt_standard = {
       name = "standard",
-      name_text_func = function(cfg) return "Standard: " .. cfg.standard end,
+      name_text_func = function(cfg)
+        return "Standard: " .. cfg.standard
+      end,
       help_text = "Some help text",
-      help_text_func = function(cfg, doc) return "Additional help info" end,
+      help_text_func = function(cfg, doc)
+        return "Additional help info"
+      end,
       labels = { "First", "Second" },
       values = { "val1", "val2" },
       name_text_unit = "mm",
@@ -146,7 +155,9 @@ describe("OptionsUtil module", function()
     local opt_no_more_help = {
       name = "standard",
       name_text = "Standard",
-      help_text_func = function() return nil end,
+      help_text_func = function()
+        return nil
+      end,
       labels = { "First", "Second" },
       values = { "val1", "val2" },
     }
@@ -157,7 +168,9 @@ describe("OptionsUtil module", function()
     local opt_func_only = {
       name = "func_only",
       name_text = "Func Only",
-      show_true_value_func = function(v) return "Val: " .. tostring(v) end,
+      show_true_value_func = function(v)
+        return "Val: " .. tostring(v)
+      end,
       values = { 5, 10 },
     }
     OptionsUtil.showValues({ func_only = 10 }, opt_func_only, "copt")
@@ -167,43 +180,55 @@ describe("OptionsUtil module", function()
     G_reader_settings:save("copt_func_only", nil)
   end)
 
-  it("should show values and margin information dialogs with and without defaults", function()
-    local configurable = {
-      margin = { 10, 10 },
-    }
-    local margin_option = {
-      name = "margin",
-    }
+  it(
+    "should show values and margin information dialogs with and without defaults",
+    function()
+      local configurable = {
+        margin = { 10, 10 },
+      }
+      local margin_option = {
+        name = "margin",
+      }
 
-    -- Without default
-    G_reader_settings:save("copt_margin", nil)
-    OptionsUtil.showValuesHMargins(configurable, margin_option)
+      -- Without default
+      G_reader_settings:save("copt_margin", nil)
+      OptionsUtil.showValuesHMargins(configurable, margin_option)
 
-    -- With default
-    G_reader_settings:save("copt_margin", { 15, 20 })
-    OptionsUtil.showValuesHMargins(configurable, margin_option)
-    G_reader_settings:save("copt_margin", nil)
-  end)
+      -- With default
+      G_reader_settings:save("copt_margin", { 15, 20 })
+      OptionsUtil.showValuesHMargins(configurable, margin_option)
+      G_reader_settings:save("copt_margin", nil)
+    end
+  )
 
-  it("should generate and retrieve option text by event, value, and args", function()
-    OptionsUtil.option_text_table = nil
-    OptionsUtil.option_args_table = nil
+  it(
+    "should generate and retrieve option text by event, value, and args",
+    function()
+      OptionsUtil.option_text_table = nil
+      OptionsUtil.option_args_table = nil
 
-    -- Auto generates option_text_table
-    local text_rot = OptionsUtil:getOptionText("SetRotationMode", 0)
-    assert.is_string(text_rot)
+      -- Auto generates option_text_table
+      local text_rot = OptionsUtil:getOptionText("SetRotationMode", 0)
+      assert.is_string(text_rot)
 
-    -- Invalid / nil inputs
-    assert.are.equal("", OptionsUtil:getOptionText(nil, 1))
-    assert.are.equal("", OptionsUtil:getOptionText("SetRotationMode", nil))
-    assert.are.equal("", OptionsUtil:getOptionText("NonExistentEvent", 1))
+      -- Invalid / nil inputs
+      assert.are.equal("", OptionsUtil:getOptionText(nil, 1))
+      assert.are.equal("", OptionsUtil:getOptionText("SetRotationMode", nil))
+      assert.are.equal("", OptionsUtil:getOptionText("NonExistentEvent", 1))
 
-    -- Text lookup with args table
-    OptionsUtil.option_text_table["CustomEvent"] = { "First", "Second" }
-    OptionsUtil.option_args_table["CustomEvent"] = { "arg1", "arg2" }
-    assert.are.equal("Second", OptionsUtil:getOptionText("CustomEvent", "arg2"))
+      -- Text lookup with args table
+      OptionsUtil.option_text_table["CustomEvent"] = { "First", "Second" }
+      OptionsUtil.option_args_table["CustomEvent"] = { "arg1", "arg2" }
+      assert.are.equal(
+        "Second",
+        OptionsUtil:getOptionText("CustomEvent", "arg2")
+      )
 
-    -- Fallback when text not matched
-    assert.are.equal("unmatched", OptionsUtil:getOptionText("CustomEvent", "unmatched"))
-  end)
+      -- Fallback when text not matched
+      assert.are.equal(
+        "unmatched",
+        OptionsUtil:getOptionText("CustomEvent", "unmatched")
+      )
+    end
+  )
 end)

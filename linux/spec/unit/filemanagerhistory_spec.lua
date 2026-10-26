@@ -115,6 +115,9 @@ describe("FileManagerHistory", function()
     mock_gettext.ngettext = function(sing, plur, n)
       return n == 1 and sing or plur
     end
+    mock_gettext.T_N = function(sing, plur, n, ...)
+      return require("ffi/util").template(n == 1 and sing or plur, n, ...)
+    end
     setmetatable(mock_gettext, {
       __call = function(_, text)
         return text

@@ -22,7 +22,7 @@ local logger = require("logger")
 local time = require("ui/time")
 local util = require("util")
 local C_ = gettext.pgettext
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = ffiUtil.template
 local Screen = Device.screen
 
@@ -643,12 +643,9 @@ function ReaderHighlight:addToMainMenu(menu_items)
           end
           if total > 0 then
             self:showWidget(Notification:new({
-              text = T(
-                N_(
-                  "Applied style and color to 1 highlight",
-                  "Applied style and color to %1 highlights",
-                  total
-                ),
+              text = T_N(
+                "Applied style and color to 1 highlight",
+                "Applied style and color to %1 highlights",
                 total
               ),
             }))
@@ -764,12 +761,9 @@ If you wish your highlights to be saved in the document, just move it to a writa
                   end
                 end
                 self:showWidget(Notification:new({
-                  text = T(
-                    N_(
-                      "1 highlight written into PDF file",
-                      "%1 highlights written into PDF file",
-                      count
-                    ),
+                  text = T_N(
+                    "1 highlight written into PDF file",
+                    "%1 highlights written into PDF file",
                     count
                   ),
                 }))
@@ -798,12 +792,9 @@ If you wish your highlights to be saved in the document, just move it to a writa
                   end
                 end
                 self:showWidget(Notification:new({
-                  text = T(
-                    N_(
-                      "1 highlight deleted from PDF file",
-                      "%1 highlights deleted from PDF file",
-                      count
-                    ),
+                  text = T_N(
+                    "1 highlight deleted from PDF file",
+                    "%1 highlights deleted from PDF file",
                     count
                   ),
                 }))
@@ -1002,12 +993,9 @@ Except when in two columns mode, where this is limited to showing only the previ
         local highlight_non_touch_interval = G_reader_settings:read(
           "highlight_non_touch_interval"
         ) or 1
-        return T(
-          N_(
-            "Speed-up rate interval: 1 second",
-            "Speed-up rate interval: %1 seconds",
-            highlight_non_touch_interval
-          ),
+        return T_N(
+          "Speed-up rate interval: 1 second",
+          "Speed-up rate interval: %1 seconds",
           highlight_non_touch_interval
         )
       end,
@@ -1406,6 +1394,7 @@ function ReaderHighlight:showChooseHighlightDialog(highlights)
     dialog = ButtonDialog:new({
       buttons = buttons,
     })
+    self.ui.annotation:trackChangingWidget(dialog)
     self:showWidget(dialog)
   end
   return true
@@ -1440,6 +1429,7 @@ function ReaderHighlight:showHighlightNoteOrDialog(index)
         },
       },
     })
+    self.ui.annotation:trackChangingWidget(textviewer)
     self:showWidget(textviewer)
   else
     self:onShowHighlightDialog(index)
@@ -1565,6 +1555,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
       return self:_getDialogAnchor(self.edit_highlight_dialog, item)
     end,
   })
+  self.ui.annotation:trackChangingWidget(self.edit_highlight_dialog)
   self:showWidget(self.edit_highlight_dialog)
   return true
 end
@@ -1622,6 +1613,9 @@ function ReaderHighlight:onShowHighlightMenu(index)
       self:onTap()
     end,
   })
+  if index then
+    self.ui.annotation:trackChangingWidget(self.highlight_dialog)
+  end
   -- NOTE: Disable merging for this update,
   --     or the buggy Sage kernel may alpha-blend it into the page (with a bogus alpha value, to boot)...
   self:showWidget(self.highlight_dialog, "[ui]")
@@ -2625,7 +2619,7 @@ function ReaderHighlight:showHighlightStyleDialog(caller_callback, item_drawer)
       },
     })
   end
-  self:showWidget(RadioButtonWidget:new({
+  local dialog = RadioButtonWidget:new({
     title_text = gettext("Highlight style"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
@@ -2634,7 +2628,11 @@ function ReaderHighlight:showHighlightStyleDialog(caller_callback, item_drawer)
     callback = function(radio)
       caller_callback(radio.provider)
     end,
-  }))
+  })
+  if item_drawer then
+    self.ui.annotation:trackChangingWidget(dialog)
+  end
+  self:showWidget(dialog)
 end
 
 function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
@@ -2662,7 +2660,7 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
       },
     })
   end
-  self:showWidget(RadioButtonWidget:new({
+  local dialog = RadioButtonWidget:new({
     title_text = gettext("Highlight color"),
     width_factor = 0.5,
     keep_shown_on_apply = keep_shown_on_apply,
@@ -2674,7 +2672,11 @@ function ReaderHighlight:showHighlightColorDialog(caller_callback, item)
     -- This ensures the waveform mode will be upgraded to a Kaleido wfm on compatible devices
     colorful = true,
     dithered = true,
-  }))
+  })
+  if item then
+    self.ui.annotation:trackChangingWidget(dialog)
+  end
+  self:showWidget(dialog)
 end
 
 function ReaderHighlight:startSelection()

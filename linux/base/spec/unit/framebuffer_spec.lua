@@ -6,8 +6,17 @@ describe("Framebuffer unit tests", function()
             dummy = true,
             device = {
                 device_dpi = 167,
+                canHWInvert = function() return false end,
             }
         }
+    end)
+
+    it("should store logical night_mode state in setNightmode", function()
+        assert.is_false(fb.night_mode)
+        fb:setNightmode(true)
+        assert.is_true(fb.night_mode)
+        fb:setNightmode(false)
+        assert.is_false(fb.night_mode)
     end)
 
     it("should set & update DPI", function()

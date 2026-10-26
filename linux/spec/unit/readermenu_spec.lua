@@ -729,8 +729,14 @@ describe("ReaderMenu integration", function()
     local right_ges = { pos = Geom:new({ x = Screen:getWidth() - 10, y = 10 }) }
     local mid_ges = { pos = Geom:new({ x = Screen:getWidth() / 2, y = 10 }) }
     assert.are.equal(menu:_getTabIndexFromLocation(left_ges), 1)
-    assert.are.equal(menu:_getTabIndexFromLocation(right_ges), #menu.tab_item_table)
-    assert.are.equal(menu:_getTabIndexFromLocation(mid_ges), menu.last_tab_index)
+    assert.are.equal(
+      menu:_getTabIndexFromLocation(right_ges),
+      #menu.tab_item_table
+    )
+    assert.are.equal(
+      menu:_getTabIndexFromLocation(mid_ges),
+      menu.last_tab_index
+    )
 
     readerui:onExit()
     readerui:onClose()
@@ -753,90 +759,123 @@ describe("ReaderMenu integration", function()
     readerui:onClose()
   end)
 
-  it("should execute filemanager and document settings menu callbacks", function()
-    local readerui = createReaderUI()
-    local menu = readerui.menu
+  it(
+    "should execute filemanager and document settings menu callbacks",
+    function()
+      local readerui = createReaderUI()
+      local menu = readerui.menu
 
-    if menu.menu_items.filemanager and menu.menu_items.filemanager.callback then
-      local original_onHome = readerui.onHome
-      readerui.onHome = function() end
-      menu.menu_items.filemanager.callback()
-      readerui.onHome = original_onHome
-    end
-
-    if menu.menu_items.reset_document_settings and menu.menu_items.reset_document_settings.callback then
-      menu.menu_items.reset_document_settings.callback()
-      local confirm = UIManager:getTopmostVisibleWidget()
-      UIManager:close(confirm)
-    end
-
-    if menu.menu_items.save_document_settings and menu.menu_items.save_document_settings.callback then
-      menu.menu_items.save_document_settings.callback()
-      local confirm = UIManager:getTopmostVisibleWidget()
-      if confirm and confirm.ok_callback then
-        confirm.ok_callback()
+      if
+        menu.menu_items.filemanager and menu.menu_items.filemanager.callback
+      then
+        local original_onHome = readerui.onHome
+        readerui.onHome = function() end
+        menu.menu_items.filemanager.callback()
+        readerui.onHome = original_onHome
       end
-      UIManager:close(confirm)
-    end
 
-    readerui:onExit()
-    readerui:onClose()
-  end)
-
-  it("should exercise screensaver and open previous document menu items", function()
-    local readerui = createReaderUI()
-    local menu = readerui.menu
-
-    if menu.menu_items.screensaver then
-      local ss_table = menu.menu_items.screensaver.sub_item_table
-      if ss_table then
-        for _, itm in ipairs(ss_table) do
-          if itm.enabled_func then itm:enabled_func() end
-          if itm.checked_func then itm:checked_func() end
-          if itm.callback then
-            pcall(function() itm:callback() end)
-          end
-        end
-      end
-    end
-
-    if menu.menu_items.open_previous_document then
-      local prev_item = menu.menu_items.open_previous_document
-      if prev_item.text_func then prev_item:text_func() end
-      if prev_item.enabled_func then prev_item:enabled_func() end
-      if prev_item.callback then
-        local orig = readerui.onOpenLastDoc
-        readerui.onOpenLastDoc = function() end
-        prev_item.callback()
-        readerui.onOpenLastDoc = orig
-      end
-      if prev_item.hold_callback then
-        prev_item.hold_callback()
+      if
+        menu.menu_items.reset_document_settings
+        and menu.menu_items.reset_document_settings.callback
+      then
+        menu.menu_items.reset_document_settings.callback()
         local confirm = UIManager:getTopmostVisibleWidget()
         UIManager:close(confirm)
       end
+
+      if
+        menu.menu_items.save_document_settings
+        and menu.menu_items.save_document_settings.callback
+      then
+        menu.menu_items.save_document_settings.callback()
+        local confirm = UIManager:getTopmostVisibleWidget()
+        if confirm and confirm.ok_callback then
+          confirm.ok_callback()
+        end
+        UIManager:close(confirm)
+      end
+
+      readerui:onExit()
+      readerui:onClose()
     end
+  )
 
-    readerui:onExit()
-    readerui:onClose()
-  end)
+  it(
+    "should exercise screensaver and open previous document menu items",
+    function()
+      local readerui = createReaderUI()
+      local menu = readerui.menu
 
-  it("should register key events for devices with few keys or standard keyboard", function()
-    local readerui = createReaderUI()
-    local menu = readerui.menu
+      if menu.menu_items.screensaver then
+        local ss_table = menu.menu_items.screensaver.sub_item_table
+        if ss_table then
+          for _, itm in ipairs(ss_table) do
+            if itm.enabled_func then
+              itm:enabled_func()
+            end
+            if itm.checked_func then
+              itm:checked_func()
+            end
+            if itm.callback then
+              pcall(function()
+                itm:callback()
+              end)
+            end
+          end
+        end
+      end
 
-    local Device = require("device")
-    local old_keys = Device.hasKeys
-    local old_few = Device.hasFewKeys
-    Device.hasKeys = function() return true end
-    Device.hasFewKeys = function() return true end
-    menu:registerKeyEvents()
-    Device.hasFewKeys = function() return false end
-    menu:registerKeyEvents()
-    Device.hasKeys = old_keys
-    Device.hasFewKeys = old_few
+      if menu.menu_items.open_previous_document then
+        local prev_item = menu.menu_items.open_previous_document
+        if prev_item.text_func then
+          prev_item:text_func()
+        end
+        if prev_item.enabled_func then
+          prev_item:enabled_func()
+        end
+        if prev_item.callback then
+          local orig = readerui.onOpenLastDoc
+          readerui.onOpenLastDoc = function() end
+          prev_item.callback()
+          readerui.onOpenLastDoc = orig
+        end
+        if prev_item.hold_callback then
+          prev_item.hold_callback()
+          local confirm = UIManager:getTopmostVisibleWidget()
+          UIManager:close(confirm)
+        end
+      end
 
-    readerui:onExit()
-    readerui:onClose()
-  end)
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
+
+  it(
+    "should register key events for devices with few keys or standard keyboard",
+    function()
+      local readerui = createReaderUI()
+      local menu = readerui.menu
+
+      local Device = require("device")
+      local old_keys = Device.hasKeys
+      local old_few = Device.hasFewKeys
+      Device.hasKeys = function()
+        return true
+      end
+      Device.hasFewKeys = function()
+        return true
+      end
+      menu:registerKeyEvents()
+      Device.hasFewKeys = function()
+        return false
+      end
+      menu:registerKeyEvents()
+      Device.hasKeys = old_keys
+      Device.hasFewKeys = old_few
+
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
 end)

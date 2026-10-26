@@ -53,6 +53,31 @@ describe("SlidePuzzle main plugin module", function()
     end
   )
 
+  it(
+    "should not return an already-solved cached puzzle from getCurrentGame",
+    function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
+      local plugin = SlidePuzzle:new({
+        ui = mock_ui,
+      })
+
+      local game = plugin:getCurrentGame()
+      assert.is_false(game:isWon())
+
+      -- Mark current cached game as won/solved
+      game:resetToSolved()
+      assert.is_true(game:isWon())
+
+      -- getCurrentGame should never hand out a puzzle that is already solved
+      local next_game = plugin:getCurrentGame()
+      assert.is_false(next_game:isWon())
+    end
+  )
+
   it("should record game results and compute stats", function()
     local mock_ui = {
       menu = {

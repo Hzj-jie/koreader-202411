@@ -25,6 +25,7 @@ local logger = require("logger")
 local util = require("util")
 local C_ = gettext.pgettext
 local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local T = FFIUtil.template
 
 local statistics_dir = DataStorage:getDataDir() .. "/statistics/"
@@ -541,11 +542,9 @@ Please wait…
         UIManager:close(info)
         UIManager:forceRepaint()
         UIManager:show(InfoMessage:new({
-          text = T(
-            N_(
-              "Conversion complete.\nImported one book to the database.\nTap to continue.",
-              "Conversion complete.\nImported %1 books to the database.\nTap to continue."
-            ),
+          text = T_N(
+            "Conversion complete.\nImported one book to the database.\nTap to continue.",
+            "Conversion complete.\nImported %1 books to the database.\nTap to continue.",
             nr_book
           ),
         }))
@@ -743,6 +742,7 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
   then
     local read_pages = util.tableSize(book_stats.performance_in_pages)
     logger.dbg("Insert to database: " .. book_stats.title)
+    local partial_md5 = util.partialMD5(book_stats.file)
     sql_stmt = [[
       SELECT count(id)
       FROM   book
@@ -751,11 +751,12 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
         AND  md5 = ?;
     ]]
     local stmt = conn:prepare(sql_stmt)
-    local result =
-      stmt:reset():bind(self.data.title, self.data.authors, self.doc_md5):step()
+    local result = stmt
+      :reset()
+      :bind(book_stats.title, book_stats.authors, partial_md5)
+      :step()
     local nr_id = tonumber(result[1])
     if nr_id == 0 then
-      local partial_md5 = util.partialMD5(book_stats.file)
       stmt = conn:prepare(
         "INSERT INTO book VALUES(NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
       )
@@ -790,7 +791,7 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
       stmt = conn:prepare(sql_stmt)
       result = stmt
         :reset()
-        :bind(self.data.title, self.data.authors, self.doc_md5)
+        :bind(book_stats.title, book_stats.authors, partial_md5)
         :step()
       id_book = result[1]
     end
@@ -801,7 +802,9 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
     table.sort(sorted_performance)
 
     conn:exec("BEGIN;")
-    stmt = conn:prepare("INSERT OR IGNORE INTO page_stat VALUES(?, ?, ?, ?);")
+    stmt = conn:prepare(
+      "INSERT OR IGNORE INTO page_stat_data VALUES(?, ?, ?, ?, ?);"
+    )
     local avg_time = math.ceil(book_stats.total_time_in_sec / read_pages)
     if avg_time > self.settings.max_sec then
       avg_time = self.settings.max_sec
@@ -815,7 +818,13 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
     --first page
     stmt
       :reset()
-      :bind(id_book, first_read_page, start_open_page - avg_time, avg_time)
+      :bind(
+        id_book,
+        first_read_page,
+        start_open_page - avg_time,
+        avg_time,
+        book_stats.pages
+      )
       :step()
     for i = 2, #sorted_performance do
       start_open_page = sorted_performance[i - 1]
@@ -827,7 +836,8 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
             id_book,
             book_stats.performance_in_pages[sorted_performance[i - 1]],
             start_open_page,
-            diff_time
+            diff_time,
+            book_stats.pages
           )
           :step()
       elseif diff_time > self.settings.max_sec then --and diff_time <= 2 * avg_time then
@@ -837,7 +847,8 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
             id_book,
             book_stats.performance_in_pages[sorted_performance[i - 1]],
             start_open_page,
-            avg_time
+            avg_time,
+            book_stats.pages
           )
           :step()
       end
@@ -849,7 +860,8 @@ function ReaderStatistics:addBookStatToDB(book_stats, conn)
         id_book,
         book_stats.performance_in_pages[sorted_performance[#sorted_performance]],
         sorted_performance[#sorted_performance],
-        avg_time
+        avg_time,
+        book_stats.pages
       )
       :step()
     --last open book
@@ -2051,12 +2063,9 @@ function ReaderStatistics:getCurrentStat()
 
   local estimated_popup = function()
     UIManager:show(InfoMessage:new({
-      text = T(
-        N_(
-          "There is 1 page (%2%) left to read.",
-          "There are %1 pages (%2%) left to read.",
-          total_pages - current_page
-        ),
+      text = T_N(
+        "There is 1 page (%2%) left to read.",
+        "There are %1 pages (%2%) left to read.",
         total_pages - current_page,
         100 - percent_read
       )
@@ -2092,13 +2101,12 @@ function ReaderStatistics:getCurrentStat()
     }
     estimated_finish_date = {
       gettext("Estimated finish date") .. " ⓘ",
-      estimates_valid
-          and T(
-            N_("(in 1 day) %2", "(in %1 days) %2", estimate_days_to_read),
-            estimate_days_to_read,
-            estimate_end_of_read_date
-          )
-        or gettext("N/A"),
+      estimates_valid and T_N(
+        "(in 1 day) %2",
+        "(in %1 days) %2",
+        estimate_days_to_read,
+        estimate_end_of_read_date
+      ) or gettext("N/A"),
       callback = estimated_popup,
     }
   else
@@ -2199,8 +2207,9 @@ function ReaderStatistics:getCurrentStat()
     -- Date-focused book stats
     {
       gettext("Book start date"),
-      T(
-        N_("(1 day ago) %2", "(%1 days ago) %2", first_open_days_ago),
+      T_N(
+        "(1 day ago) %2",
+        "(%1 days ago) %2",
         first_open_days_ago,
         datetime.secondsToDate(tonumber(first_open), true)
       ),
@@ -2362,16 +2371,18 @@ function ReaderStatistics:getBookStat(id_book)
     -- Date-focused book stats
     {
       gettext("Book start date"),
-      T(
-        N_("(1 day ago) %2", "(%1 days ago) %2", first_open_days_ago),
+      T_N(
+        "(1 day ago) %2",
+        "(%1 days ago) %2",
         first_open_days_ago,
         datetime.secondsToDate(tonumber(first_open), true)
       ),
     },
     {
       gettext("Last read date"),
-      T(
-        N_("(1 day ago) %2", "(%1 days ago) %2", last_open_days_ago),
+      T_N(
+        "(1 day ago) %2",
+        "(%1 days ago) %2",
         last_open_days_ago,
         datetime.secondsToDate(tonumber(last_open), true)
       ),
@@ -3127,12 +3138,9 @@ function ReaderStatistics:genResetBookSubItemTable()
   })
   local reset_minutes = { 1, 5, 15, 30, 60 }
   for _, minutes in ipairs(reset_minutes) do
-    local text = T(
-      N_(
-        "Reset stats for books read for < 1 m",
-        "Reset stats for books read for < %1 m",
-        minutes
-      ),
+    local text = T_N(
+      "Reset stats for books read for < 1 m",
+      "Reset stats for books read for < %1 m",
       minutes
     )
     table.insert(sub_item_table, {
@@ -3290,12 +3298,9 @@ end
 function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
   local max_total_duration_sec = max_total_duration_mn * 60
   UIManager:show(ConfirmBox:new({
-    text = T(
-      N_(
-        "Permanently remove statistics for books read for less than 1 minute?",
-        "Permanently remove statistics for books read for less than %1 minutes?",
-        max_total_duration_mn
-      ),
+    text = T_N(
+      "Permanently remove statistics for books read for less than 1 minute?",
+      "Permanently remove statistics for books read for less than %1 minutes?",
       max_total_duration_mn
     ),
     ok_text = gettext("Remove"),
@@ -3335,12 +3340,9 @@ function ReaderStatistics:deleteBooksByTotalDuration(max_total_duration_mn)
       end
       conn:close()
       UIManager:show(InfoMessage:new({
-        text = nb_deleted > 0 and T(
-          N_(
-            "Statistics for 1 book removed.",
-            "Statistics for %1 books removed.",
-            nb_deleted
-          ),
+        text = nb_deleted > 0 and T_N(
+          "Statistics for 1 book removed.",
+          "Statistics for %1 books removed.",
           nb_deleted
         ) or T(gettext("No statistics removed.")),
       }))

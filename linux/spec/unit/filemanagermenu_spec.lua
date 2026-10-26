@@ -71,7 +71,8 @@ describe("filemanagermenu", function()
       },
     }
     package.loaded["device"] = mock_device
-    package.loaded["device/input"] = { group = { Back = "Back", Menu = "Menu" } }
+    package.loaded["device/input"] =
+      { group = { Back = "Back", Menu = "Menu" } }
 
     local reader_settings_data = {
       lastfile = "/books/book1.epub",
@@ -299,7 +300,7 @@ describe("filemanagermenu", function()
       menuItem = function()
         return {}
       end,
-      genPluginManagerSubItem = function()
+      genPluginManagerMenu = function()
         return {}
       end,
     }
@@ -460,9 +461,12 @@ describe("filemanagermenu", function()
     }
     package.loaded["ui/elements/common_exit_menu_table"] = {}
 
-    mock_gettext = setmetatable({
+    local mock_gettext = setmetatable({
       ngettext = function(sing, plur, n)
         return n == 1 and sing or plur
+      end,
+      T_N = function(sing, plur, n, ...)
+        return require("ffi/util").template(n == 1 and sing or plur, n, ...)
       end,
     }, {
       __call = function(self, text)
@@ -823,7 +827,8 @@ describe("filemanagermenu", function()
       menu.onShowMenu = function()
         show_called = true
       end
-      menu.menu_container = { is_center_container = true, [1] = { last_index = 1 } }
+      menu.menu_container =
+        { is_center_container = true, [1] = { last_index = 1 } }
       menu:onSetDimensions({ w = 800, h = 600 })
       assert.is_true(show_called)
 

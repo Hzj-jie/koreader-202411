@@ -1,10 +1,12 @@
+-- luacheck: ignore 122
 describe("util module", function()
-  local DataStorage, lfs, util
+  local DataStorage, lfs, util, ffiUtil
   setup(function()
     require("commonrequire")
     DataStorage = require("datastorage")
     lfs = require("libs/libkoreader-lfs")
     util = require("util")
+    ffiUtil = require("ffi/util")
   end)
 
   it("should strip punctuation marks around word", function()
@@ -638,33 +640,72 @@ describe("util module", function()
     end)
 
     it("returns false on empty directory", function()
-      local dir = "/tmp/test_dir_containing_files_empty"
+      local dir = "/tmp/test_dir_containing_files_empty_" .. ffiUtil.getpid()
       util.makePath(dir)
       assert.is_false(util.isDirContainingFiles(dir))
       lfs.rmdir(dir)
     end)
 
     it("returns false on directory with only empty subdirectories", function()
-      local base_dir = "/tmp/test_dir_containing_empty_subdirs"
+      local base_dir = "/tmp/test_dir_containing_empty_subdirs_"
+        .. ffiUtil.getpid()
       local nested = base_dir .. "/sub1/sub2/sub3"
       util.makePath(nested)
       assert.is_false(util.isDirContainingFiles(base_dir))
       util.removeEmptyTree(base_dir)
     end)
 
-    it("returns true on directory containing a file", function()
-      local base_dir = "/tmp/test_dir_containing_file"
-      local nested = base_dir .. "/a/b"
-      util.makePath(nested)
-      local file = nested .. "/hello.txt"
-      local f = io.open(file, "w")
-      if f then
+    it(
+      "returns true on directory containing a regular file or symlink",
+      function()
+        local base_dir = "/tmp/test_dir_containing_file_" .. ffiUtil.getpid()
+        local nested = base_dir .. "/a/b"
+        util.makePath(nested)
+        local file = nested .. "/hello.txt"
+        local f = assert(io.open(file, "w"))
         f:write("content")
         f:close()
+        assert.is_true(util.isDirContainingFiles(base_dir))
+        os.remove(file)
+        util.removeEmptyTree(base_dir)
+
+        -- Regular file at root
+        util.makePath(base_dir)
+        local root_file = base_dir .. "/root.txt"
+        local rf = assert(io.open(root_file, "w"))
+        rf:write("content")
+        rf:close()
+        assert.is_true(util.isDirContainingFiles(base_dir))
+        os.remove(root_file)
+
+        -- Symlink in directory
+        local target = "/tmp/test_target_symlink_" .. ffiUtil.getpid()
+        local tf = assert(io.open(target, "w"))
+        tf:write("target")
+        tf:close()
+        local link = base_dir .. "/test_link"
+        os.execute(string.format("ln -s %q %q", target, link))
+        assert.is_true(util.isDirContainingFiles(base_dir))
+        os.remove(link)
+        os.remove(target)
+        lfs.rmdir(base_dir)
       end
-      assert.is_true(util.isDirContainingFiles(base_dir))
-      os.remove(file)
-      util.removeEmptyTree(base_dir)
+    )
+
+    it("rethrows unexpected errors raised inside util.findFiles", function()
+      local orig_findFiles = util.findFiles
+      local dir = "/tmp/test_dir_findfiles_err_" .. ffiUtil.getpid()
+      util.makePath(dir)
+      finally(function()
+        util.findFiles = orig_findFiles
+        lfs.rmdir(dir)
+      end)
+      util.findFiles = function()
+        error("unexpected error in findFiles")
+      end
+      assert.has_error(function()
+        util.isDirContainingFiles(dir)
+      end)
     end)
   end)
 
@@ -1214,6 +1255,44 @@ describe("util module", function()
         util.functionFingerprint(nested3)
       )
     end)
+
+    it(
+      "should handle self-referencing recursive closure via visited cycle guard",
+      function()
+        local f
+        f = function()
+          return f
+        end
+        local fp = util.functionFingerprint(f)
+        assert.is_string(fp)
+        assert.is_equal(32, #fp)
+      end
+    )
+
+    it(
+      "should fallback to cfunc when string.dump fails on C functions and captured C function upvalues",
+      function()
+        -- Direct C function
+        local fp_cfunc = util.functionFingerprint(math.sin)
+        assert.is_string(fp_cfunc)
+        assert.is_equal(32, #fp_cfunc)
+
+        -- Lua closure capturing a C function upvalue
+        local sin = math.sin
+        local f_capture = function(x)
+          return sin(x)
+        end
+        local fp_closure = util.functionFingerprint(f_capture)
+        assert.is_string(fp_closure)
+        assert.is_equal(32, #fp_closure)
+
+        -- Distinguish different C functions
+        assert.is_not_equal(
+          util.functionFingerprint(math.sin),
+          util.functionFingerprint(math.cos)
+        )
+      end
+    )
   end)
 
   describe("isDirRW()", function()
@@ -1249,11 +1328,34 @@ describe("util module", function()
       os.remove(test_file)
     end)
 
+    it("handles trailing slashes and ensures no probe files remain", function()
+      local test_dir = "/tmp/koreader_test_trailing_" .. tostring(os.time())
+      lfs.mkdir(test_dir)
+      assert.is_true(util.isDirRW(test_dir .. "///"))
+      for file in lfs.dir(test_dir) do
+        assert.is_not_match("^%.rw_probe_", file)
+      end
+      lfs.rmdir(test_dir)
+    end)
+
     it("returns false for a read-only directory", function()
       local test_dir = "/tmp/koreader_test_isdirrw_ro_" .. tostring(os.time())
       os.execute("mkdir -p " .. test_dir .. " && chmod 555 " .. test_dir)
       assert.is_false(util.isDirRW(test_dir))
       os.execute("chmod 755 " .. test_dir .. " && rmdir " .. test_dir)
+    end)
+
+    it("returns false for directories without write permission", function()
+      local ro_dir = "/tmp/koreader_test_ro_" .. tostring(os.time())
+      lfs.mkdir(ro_dir)
+      os.execute("chmod 0500 " .. ro_dir)
+      assert.is_false(util.isDirRW(ro_dir))
+      os.execute("chmod 0700 " .. ro_dir)
+      lfs.rmdir(ro_dir)
+    end)
+
+    it("returns false when directory creation fails", function()
+      assert.is_false(util.isDirRW("/proc/koreader_impossible_dir", true))
     end)
   end)
 
@@ -1462,5 +1564,85 @@ describe("util module", function()
       assert.is_false(ok)
       assert.is_truthy(err)
     end)
+  end)
+
+  describe("getFilesystemType()", function()
+    local orig_io_open
+
+    setup(function()
+      orig_io_open = io.open
+    end)
+
+    teardown(function()
+      io.open = orig_io_open
+    end)
+
+    it("does not match mount points as substrings in filenames", function()
+      local mock_mounts = {
+        "/dev/root / ext4 rw,relatime 0 0",
+        "/dev/sda1 /boot vfat rw,relatime 0 0",
+      }
+
+      io.open = function(path, mode)
+        if path == "/proc/mounts" then
+          local idx = 0
+          return {
+            lines = function()
+              return function()
+                idx = idx + 1
+                return mock_mounts[idx]
+              end
+            end,
+            close = function() end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+
+      -- /tmp/boot.img is under root (/), not /boot
+      local fs = util.getFilesystemType("/tmp/boot.img")
+      assert.are.equal("ext4", fs)
+    end)
+
+    it(
+      "does not treat dashes in mount points as Lua pattern quantifiers",
+      function()
+        local mock_mounts = {
+          "/dev/root / ext4 rw,relatime 0 0",
+          "/dev/sda2 /mnt/sd-card f2fs rw,relatime 0 0",
+        }
+
+        io.open = function(path, mode)
+          if path == "/proc/mounts" then
+            local idx = 0
+            return {
+              lines = function()
+                return function()
+                  idx = idx + 1
+                  return mock_mounts[idx]
+                end
+              end,
+              close = function() end,
+            }
+          end
+          return orig_io_open(path, mode)
+        end
+
+        -- /mnt/scard should not match /mnt/sd-card
+        local fs = util.getFilesystemType("/mnt/scard/file.txt")
+        assert.are.equal("ext4", fs)
+      end
+    )
+  end)
+
+  describe("prettifyCSS()", function()
+    it(
+      "preserves multi-argument functional pseudo-classes on a single line",
+      function()
+        local css = ":is(td, th) { color: red; }"
+        local prettified = util.prettifyCSS(css)
+        assert.is_true(prettified:find(":is(td, th)", 1, true) ~= nil)
+      end
+    )
   end)
 end)

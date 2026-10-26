@@ -102,7 +102,12 @@ describe("CheckButton widget", function()
 
     assert.is_true(cb.radio)
     assert.is_false(cb.checked)
-    assert.are.equal("RadioMark", cb._checkmark.name or cb._checkmark[1] and cb._checkmark[1].name or "RadioMark")
+    assert.are.equal(
+      "RadioMark",
+      cb._checkmark.name
+        or cb._checkmark[1] and cb._checkmark[1].name
+        or "RadioMark"
+    )
   end)
 
   it("should handle tap events and toggle checked state", function()
@@ -214,7 +219,9 @@ describe("CheckButton widget", function()
     local cb_func = CheckButton:new({
       text = "Hold input func",
       parent = mockParent(200),
-      hold_input_func = function() return "HoldFunc" end,
+      hold_input_func = function()
+        return "HoldFunc"
+      end,
     })
     cb_func.onInput = function(self, inp, is_hold)
       input_received = inp
@@ -242,38 +249,41 @@ describe("CheckButton widget", function()
     assert.is_false(cb:onUnfocus())
   end)
 
-  it("should toggle checked state and invoke setDirty via toggleCheck, enable, and disable", function()
-    local dirty_calls = 0
-    local cb = CheckButton:new({
-      text = "Toggle Test",
-      checked = false,
-      parent = mockParent(200),
-    })
-    UIManager:show(cb)
+  it(
+    "should toggle checked state and invoke setDirty via toggleCheck, enable, and disable",
+    function()
+      local dirty_calls = 0
+      local cb = CheckButton:new({
+        text = "Toggle Test",
+        checked = false,
+        parent = mockParent(200),
+      })
+      UIManager:show(cb)
 
-    local orig_setDirty = UIManager.setDirty
-    UIManager.setDirty = function(self, w, f)
-      dirty_calls = dirty_calls + 1
-      if type(f) == "function" then
-        local mode, dimen = f()
-        assert.are.equal("ui", mode)
+      local orig_setDirty = UIManager.setDirty
+      UIManager.setDirty = function(self, w, f)
+        dirty_calls = dirty_calls + 1
+        if type(f) == "function" then
+          local mode, dimen = f()
+          assert.are.equal("ui", mode)
+        end
       end
+
+      cb:toggleCheck()
+      assert.is_true(cb.checked)
+      assert.is_true(dirty_calls >= 1)
+
+      cb:toggleCheck()
+      assert.is_false(cb.checked)
+
+      cb:disable()
+      assert.is_false(cb.enabled)
+
+      cb:enable()
+      assert.is_true(cb.enabled)
+
+      UIManager.setDirty = orig_setDirty
+      UIManager:close(cb)
     end
-
-    cb:toggleCheck()
-    assert.is_true(cb.checked)
-    assert.is_true(dirty_calls >= 1)
-
-    cb:toggleCheck()
-    assert.is_false(cb.checked)
-
-    cb:disable()
-    assert.is_false(cb.enabled)
-
-    cb:enable()
-    assert.is_true(cb.enabled)
-
-    UIManager.setDirty = orig_setDirty
-    UIManager:close(cb)
-  end)
+  )
 end)

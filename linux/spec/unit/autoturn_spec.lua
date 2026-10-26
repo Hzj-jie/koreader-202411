@@ -454,4 +454,24 @@ describe("AutoTurn plugin tests", function()
       assert.spy(mock_menu.updateItems).was_called(1)
     end
   )
+
+  it(
+    "onClose preserves PluginShare.pause_auto_suspend when autoturn is disabled",
+    function()
+      saveAutoTurnSettings({ enable = false, timeout = 30 })
+
+      class = dofile("plugins/autoturn.koplugin/main.lua")
+      widget = class:new({ ui = { menu = mock_menu } })
+      widget:init()
+      assert.is_false(widget:_enabled())
+
+      -- Another plugin (e.g. KeepAlive) set pause_auto_suspend:
+      PluginShare.pause_auto_suspend = true
+
+      -- When autoturn is disabled, closing document or suspending should NOT clobber
+      -- pause_auto_suspend held by other plugins.
+      widget:onClose()
+      assert.is_true(PluginShare.pause_auto_suspend)
+    end
+  )
 end)

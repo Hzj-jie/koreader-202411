@@ -73,4 +73,32 @@ describe("Math module", function()
       assert.are.same(10, Math.clamp(11, -1, 10))
     end)
   end)
+
+  describe("clamp guard", function()
+    it("should assert valid bounds when debug guards are enabled", function()
+      local dbg = require("dbg")
+      dbg:turnOn()
+      package.loaded["optmath"] = nil
+      local MathMod = require("optmath")
+
+      assert.has_error(function()
+        MathMod.clamp(5, nil, 10)
+      end, "Math.clamp: min and max must not be nil")
+
+      assert.has_error(function()
+        MathMod.clamp(5, 10, nil)
+      end, "Math.clamp: min and max must not be nil")
+
+      assert.has_error(function()
+        MathMod.clamp(5, 10, 5)
+      end, "Math.clamp: min 10 must be less than or equal to max 5")
+
+      assert.are.same(1, MathMod.clamp(1, 1, 1))
+      assert.are.same(5, MathMod.clamp(5, 1, 10))
+
+      dbg:turnOff()
+      package.loaded["optmath"] = nil
+      require("optmath")
+    end)
+  end)
 end)

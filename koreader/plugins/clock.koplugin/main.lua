@@ -81,12 +81,14 @@ Clock.onSuspend = function(self)
   if
     G_reader_settings:read("clock_on_suspend") and not self._was_suspending
   then
+    self._visible = true
     UIManager:show(self)
     self._was_suspending = true
   end
 end
 Clock.onResume = function(self)
   if self._was_suspending then
+    self._visible = true
     self:onShow()
   end
   self._was_suspending = false

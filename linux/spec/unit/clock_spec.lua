@@ -159,12 +159,14 @@ describe("Clock plugin tests", function()
       .stub(UIManager.show)
       .was_called_with(match.ref(UIManager), match.ref(Clock))
     assert.is_true(Clock._was_suspending)
+    assert.is_true(Clock._visible)
 
     -- Resume
     stub(Clock, "onShow")
     Clock:onResume()
     assert.stub(Clock.onShow).was_called()
     assert.is_false(Clock._was_suspending)
+    assert.is_true(Clock._visible)
   end)
 
   it("handles tap to close and key press close", function()
@@ -194,7 +196,10 @@ describe("Clock plugin tests", function()
     Clock.ui = { menu = { registerToMainMenu = function() end } }
     Clock:init()
 
+    PluginShare.pause_auto_suspend = true
     Clock:onClose()
+
+    assert.is_true(PluginShare.pause_auto_suspend)
 
     assert
       .stub(UIManager.setDirty)

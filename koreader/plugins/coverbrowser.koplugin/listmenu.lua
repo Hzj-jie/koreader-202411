@@ -30,7 +30,7 @@ local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local Screen = Device.screen
 local T = require("ffi/util").template
 
@@ -218,6 +218,22 @@ function ListMenuItem:update()
     self.file_deleted = self.entry.dim -- entry with deleted file from History or selected file from FM
     local fgcolor = self.file_deleted and Blitbuffer.COLOR_DARK_GRAY or nil
 
+    -- Create or replace corner_mark if needed
+    local mark_size = math.floor(dimen.h * (1 / 6))
+    -- Just fits under the page info text, which in turn adapts to the ListMenuItem height.
+    if mark_size ~= corner_mark_size then
+      corner_mark_size = mark_size
+      if corner_mark then
+        corner_mark:free()
+      end
+      corner_mark = IconWidget:new({
+        icon = "dogear.opaque",
+        rotation_angle = BD.mirroredUILayout() and 180 or 270,
+        width = corner_mark_size,
+        height = corner_mark_size,
+      })
+    end
+
     local bookinfo =
       BookInfoManager:getBookInfo(self.filepath, self.do_cover_image)
 
@@ -365,13 +381,10 @@ function ListMenuItem:update()
         -- Display these instead of the read %
         if pages then
           if status == "complete" then
-            pages_str = T(
-              N_("Finished – 1 page", "Finished – %1 pages", pages),
-              pages
-            )
-          else
             pages_str =
-              T(N_("On hold – 1 page", "On hold – %1 pages", pages), pages)
+              T_N("Finished – 1 page", "Finished – %1 pages", pages)
+          else
+            pages_str = T_N("On hold – 1 page", "On hold – %1 pages", pages)
           end
         else
           pages_str = status == "complete" and gettext("Finished")
@@ -405,7 +418,7 @@ function ListMenuItem:update()
         end
       else
         if pages then
-          pages_str = T(N_("1 page", "%1 pages", pages), pages)
+          pages_str = T_N("1 page", "%1 pages", pages)
         end
       end
 
@@ -445,22 +458,6 @@ function ListMenuItem:update()
           VerticalGroup:new(wright_items),
         })
         wright_right_padding = Screen:scaleBySize(10)
-      end
-
-      -- Create or replace corner_mark if needed
-      local mark_size = math.floor(dimen.h * (1 / 6))
-      -- Just fits under the page info text, which in turn adapts to the ListMenuItem height.
-      if mark_size ~= corner_mark_size then
-        corner_mark_size = mark_size
-        if corner_mark then
-          corner_mark:free()
-        end
-        corner_mark = IconWidget:new({
-          icon = "dogear.opaque",
-          rotation_angle = BD.mirroredUILayout() and 180 or 270,
-          width = corner_mark_size,
-          height = corner_mark_size,
-        })
       end
 
       -- Build the middle main widget, in the space available

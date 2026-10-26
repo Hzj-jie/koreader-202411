@@ -68,6 +68,16 @@ describe("luadata module", function()
       assert.Equals("file", lfs.attributes(d.file .. ".old.1", "mode"))
       assert.Equals("file", lfs.attributes(d.file .. ".old.2", "mode"))
     end)
+    it(
+      "should rotate backup files preserving newer data in lower index",
+      function()
+        -- file.old.1 should have latest backup "b", file.old.2 should have older "a"
+        local bak1 = require("frontend/luadata"):open(file .. ".old.1", "test")
+        local bak2 = require("frontend/luadata"):open(file .. ".old.2", "test")
+        assert.are.equal("b", bak1:read()[1])
+        assert.are.equal("a", bak2:read()[1])
+      end
+    )
     it("should open backup data file after garbage removal", function()
       -- write some garbage to file so open falls back to backup file.old.1.
       local f_out = io.open(d.file, "w")
@@ -75,7 +85,7 @@ describe("luadata module", function()
       f_out:close()
 
       d = require("frontend/luadata"):open(file, "test")
-      assert.Equals("a", d:read()[1])
+      assert.Equals("b", d:read()[1])
       assert.Equals("file", lfs.attributes(d.file .. ".old.1", "mode"))
       assert.Equals("file", lfs.attributes(d.file .. ".old.2", "mode"))
     end)

@@ -438,6 +438,9 @@ function ExternalKeyboard:setupKeyboard(data)
     if keyboard_info.has_dpad then
       has_dpad_func = util.yes
     end
+  else
+    C.close(keyboard_info.event_fd)
+    return
   end
 
   -- If this is our first external input device, keep a snapshot of the native input-related device caps.

@@ -113,7 +113,7 @@ function CreDocument:cacheInit()
   --   "cre_storage_size_factor"=1  (or 2, or 5)
   local default_cre_storage_size_factor = 40
   cre.initCache(
-    DataStorage:getDataDir() .. "/cache/cr3cache",
+    DataStorage:getCacheDir() .. "/cr3cache",
     (
       G_reader_settings:read("cre_disk_cache_max_size")
       or default_cre_disk_cache_max_size

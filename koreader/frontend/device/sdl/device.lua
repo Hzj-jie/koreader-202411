@@ -28,6 +28,10 @@ local function isCommand(s)
 end
 
 local function runCommand(command)
+  if util.isMonkeyTest() then
+    logger.warn("Skipping command in monkey test mode:", command)
+    return true
+  end
   return os.execute(command) == 0
 end
 
@@ -89,7 +93,7 @@ local Device = Generic:extend({
     if not enabled or not tool or not link or type(link) ~= "string" then
       return
     end
-    return runCommand(tool .. " '" .. link .. "'")
+    return runCommand(tool .. " '" .. link:gsub("'", "'\\''") .. "'")
   end,
   canExternalDictLookup = util.yes,
   getExternalDictLookupList = function()

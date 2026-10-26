@@ -94,7 +94,9 @@ describe("VocabBuilder plugin unit tests", function()
       builder:init()
 
       assert.stub(Dispatcher.registerAction).was_called()
-      assert.spy(mock_ui.menu.registerToMainMenu).was_called_with(mock_ui.menu, builder)
+      assert
+        .spy(mock_ui.menu.registerToMainMenu)
+        .was_called_with(mock_ui.menu, builder)
     end)
 
     it("adds vocabulary builder item to main menu", function()
@@ -141,16 +143,26 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("resets progress and purges database", function()
-      DB:insertOrUpdate({ word = "word1", book_title = "Book A", time = os.time() })
-      DB:insertOrUpdate({ word = "word2", book_title = "Book A", time = os.time() })
+      DB:insertOrUpdate({
+        word = "word1",
+        book_title = "Book A",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "word2",
+        book_title = "Book A",
+        time = os.time(),
+      })
 
       DB:resetProgress()
       local conn = SQ3.open(db_location)
-      local rev_count = tonumber(conn:rowexec("SELECT sum(review_count) FROM vocabulary;"))
+      local rev_count =
+        tonumber(conn:rowexec("SELECT sum(review_count) FROM vocabulary;"))
       assert.are.equal(0, rev_count)
 
       DB:purge()
-      local total_words = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
+      local total_words =
+        tonumber(conn:rowexec("SELECT count(0) FROM vocabulary;"))
       assert.are.equal(0, total_words)
       conn:close()
     end)
@@ -180,7 +192,9 @@ describe("VocabBuilder plugin unit tests", function()
       assert.is_true(res)
 
       local conn = SQ3.open(db_location)
-      local count = tonumber(conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='apple';"))
+      local count = tonumber(
+        conn:rowexec("SELECT count(0) FROM vocabulary WHERE word='apple';")
+      )
       conn:close()
       assert.are.equal(1, count)
     end)
@@ -195,7 +209,9 @@ describe("VocabBuilder plugin unit tests", function()
       assert.is_true(res)
 
       local conn = SQ3.open(db_location)
-      local row = conn:rowexec("SELECT prev_context, next_context, highlight FROM vocabulary WHERE word='banana';")
+      local row = conn:rowexec(
+        "SELECT prev_context, next_context, highlight FROM vocabulary WHERE word='banana';"
+      )
       conn:close()
       assert.is_not_nil(row)
     end)
@@ -225,8 +241,19 @@ describe("VocabBuilder plugin unit tests", function()
 
   describe("VocabularyBuilderWidget & UI workflows", function()
     it("creates widget, paints to Blitbuffer, and tests UI actions", function()
-      DB:insertOrUpdate({ word = "word1", book_title = "Book 1", time = os.time(), prev_context = "pre", next_context = "post", highlight = "word1" })
-      DB:insertOrUpdate({ word = "word2", book_title = "Book 2", time = os.time() })
+      DB:insertOrUpdate({
+        word = "word1",
+        book_title = "Book 1",
+        time = os.time(),
+        prev_context = "pre",
+        next_context = "post",
+        highlight = "word1",
+      })
+      DB:insertOrUpdate({
+        word = "word2",
+        book_title = "Book 2",
+        time = os.time(),
+      })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
@@ -250,7 +277,10 @@ describe("VocabBuilder plugin unit tests", function()
       widget:onShowFilter()
 
       -- Test change book title dialog
-      widget:showChangeBookTitleDialog({ id = 1, name = "Book 1" }, function() end)
+      widget:showChangeBookTitleDialog(
+        { id = 1, name = "Book 1" },
+        function() end
+      )
 
       -- Close
       widget:onExit()
@@ -258,7 +288,11 @@ describe("VocabBuilder plugin unit tests", function()
 
     it("handles pagination next, prev, and page navigation", function()
       for i = 1, 20 do
-        DB:insertOrUpdate({ word = "word" .. i, book_title = "Book 1", time = os.time() })
+        DB:insertOrUpdate({
+          word = "word" .. i,
+          book_title = "Book 1",
+          time = os.time(),
+        })
       end
 
       local builder = VocabBuilder:new({ ui = mock_ui })
@@ -275,9 +309,21 @@ describe("VocabBuilder plugin unit tests", function()
     end)
 
     it("handles search dialog and filtering", function()
-      DB:insertOrUpdate({ word = "apple", book_title = "Fruit", time = os.time() })
-      DB:insertOrUpdate({ word = "apricot", book_title = "Fruit", time = os.time() })
-      DB:insertOrUpdate({ word = "banana", book_title = "Fruit", time = os.time() })
+      DB:insertOrUpdate({
+        word = "apple",
+        book_title = "Fruit",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "apricot",
+        book_title = "Fruit",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "banana",
+        book_title = "Fruit",
+        time = os.time(),
+      })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()
@@ -292,71 +338,86 @@ describe("VocabBuilder plugin unit tests", function()
       widget:onExit()
     end)
 
-    it("handles VocabItemWidget review actions, showMore, detail and dict integration", function()
-      DB:insertOrUpdate({
-        word = "testword",
-        book_title = "Test Book",
-        time = os.time() - 100,
-        due_time = os.time() - 100,
-        prev_context = "prefix ",
-        next_context = " suffix",
-        highlight = "testword",
-      })
+    it(
+      "handles VocabItemWidget review actions, showMore, detail and dict integration",
+      function()
+        DB:insertOrUpdate({
+          word = "testword",
+          book_title = "Test Book",
+          time = os.time() - 100,
+          due_time = os.time() - 100,
+          prev_context = "prefix ",
+          next_context = " suffix",
+          highlight = "testword",
+        })
 
-      local builder = VocabBuilder:new({ ui = mock_ui })
-      builder:onShowVocabBuilder()
-      local widget = builder.widget
+        local builder = VocabBuilder:new({ ui = mock_ui })
+        builder:onShowVocabBuilder()
+        local widget = builder.widget
 
-      assert.is_true(#widget.item_table >= 1)
-      local item_entry = widget.item_table[1]
-      assert.is_table(item_entry)
+        assert.is_true(#widget.item_table >= 1)
+        local item_entry = widget.item_table[1]
+        assert.is_table(item_entry)
 
-      -- Exercise VocabItemWidget via main_content
-      for _, item in ipairs(widget.main_content) do
-        local item_widget = item.item
-        if item_widget and item_widget.item then
-          -- Time since due
-          local time_str = item_widget:getTimeSinceDue()
-          assert.is_string(time_str)
+        -- Exercise VocabItemWidget via main_content
+        for _, item in ipairs(widget.main_content) do
+          local item_widget = item.item
+          if item_widget and item_widget.item then
+            -- Time since due
+            local time_str = item_widget:getTimeSinceDue()
+            assert.is_string(time_str)
 
-          -- Review callbacks: onGotIt and onForgot
-          if item_widget.onGotIt then
-            item_widget:onGotIt()
-            assert.is_true(item_widget.item.is_dim)
+            -- Review callbacks: onGotIt and onForgot
+            if item_widget.onGotIt then
+              item_widget:onGotIt()
+              assert.is_true(item_widget.item.is_dim)
+            end
+            if item_widget.onForgot then
+              item_widget:onForgot(true) -- no_lookup = true
+              assert.is_false(item_widget.item.is_dim)
+            end
+
+            -- showMore / onShowDetail / onShowBookAssignment
+            if item_widget.showMore then
+              item_widget:showMore()
+            end
+            if item_widget.onShowDetail then
+              item_widget:onShowDetail()
+            end
+            if item_widget.onShowBookAssignment then
+              item_widget:onShowBookAssignment(function() end)
+            end
+
+            -- onDictButtonsReady hook
+            local dict_popup =
+              { word = item_widget.item.word, onExit = function() end }
+            local dict_buttons = {
+              {
+                { id = "highlight", enabled = false },
+                { id = "search", enabled = false },
+              },
+            }
+            item_widget:onDictButtonsReady(dict_popup, dict_buttons)
+            assert.are.equal("got_it", dict_buttons[1][1].id)
+            assert.are.equal("forgot", dict_buttons[1][2].id)
           end
-          if item_widget.onForgot then
-            item_widget:onForgot(true) -- no_lookup = true
-            assert.is_false(item_widget.item.is_dim)
-          end
-
-          -- showMore / onShowDetail / onShowBookAssignment
-          if item_widget.showMore then
-            item_widget:showMore()
-          end
-          if item_widget.onShowDetail then
-            item_widget:onShowDetail()
-          end
-          if item_widget.onShowBookAssignment then
-            item_widget:onShowBookAssignment(function() end)
-          end
-
-          -- onDictButtonsReady hook
-          local dict_popup = { word = item_widget.item.word, onExit = function() end }
-          local dict_buttons = {
-            { { id = "highlight", enabled = false }, { id = "search", enabled = false } },
-          }
-          item_widget:onDictButtonsReady(dict_popup, dict_buttons)
-          assert.are.equal("got_it", dict_buttons[1][1].id)
-          assert.are.equal("forgot", dict_buttons[1][2].id)
         end
-      end
 
-      widget:onExit()
-    end)
+        widget:onExit()
+      end
+    )
 
     it("handles MenuDialog actions, study settings, and DB methods", function()
-      DB:insertOrUpdate({ word = "word_db1", book_title = "Book A", time = os.time() })
-      DB:insertOrUpdate({ word = "word_db2", book_title = "Book B", time = os.time() })
+      DB:insertOrUpdate({
+        word = "word_db1",
+        book_title = "Book A",
+        time = os.time(),
+      })
+      DB:insertOrUpdate({
+        word = "word_db2",
+        book_title = "Book B",
+        time = os.time(),
+      })
 
       local builder = VocabBuilder:new({ ui = mock_ui })
       builder:onShowVocabBuilder()

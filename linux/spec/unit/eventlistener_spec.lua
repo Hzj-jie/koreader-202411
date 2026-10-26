@@ -124,27 +124,30 @@ describe("EventListener class", function()
     UIManager.isWindowWidget = orig_isWindowWidget
   end)
 
-  it("should handle broadcastEvent and table handlers with all returning false", function()
-    local handled_count = 0
-    local el = EventListener:new({
-      onTableEvent = {
-        function()
-          handled_count = handled_count + 1
-          return false
-        end,
-        function()
-          handled_count = handled_count + 1
-          return false
-        end,
-      },
-    })
+  it(
+    "should handle broadcastEvent and table handlers with all returning false",
+    function()
+      local handled_count = 0
+      local el = EventListener:new({
+        onTableEvent = {
+          function()
+            handled_count = handled_count + 1
+            return false
+          end,
+          function()
+            handled_count = handled_count + 1
+            return false
+          end,
+        },
+      })
 
-    local ev_user = Event:new("TableEvent"):asUserInput()
-    assert.is_false(el:handleEvent(ev_user))
-    assert.are.equal(2, handled_count)
+      local ev_user = Event:new("TableEvent"):asUserInput()
+      assert.is_false(el:handleEvent(ev_user))
+      assert.are.equal(2, handled_count)
 
-    -- broadcastEvent delegates to handleEvent
-    el:broadcastEvent(Event:new("TableEvent"))
-    assert.are.equal(4, handled_count)
-  end)
+      -- broadcastEvent delegates to handleEvent
+      el:broadcastEvent(Event:new("TableEvent"))
+      assert.are.equal(4, handled_count)
+    end
+  )
 end)

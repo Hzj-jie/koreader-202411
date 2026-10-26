@@ -44,7 +44,9 @@ describe("ReaderTypeset module", function()
     local typeset = readerui.typeset
 
     local applied = false
-    typeset:onSetPageHorizMargins({ 10, 10 }, function() applied = true end)
+    typeset:onSetPageHorizMargins({ 10, 10 }, function()
+      applied = true
+    end)
     local info_msg = UIManager:getTopmostVisibleWidget()
     if info_msg and info_msg.dismiss_callback then
       info_msg.dismiss_callback()
@@ -90,7 +92,9 @@ describe("ReaderTypeset module", function()
 
     readerui.view.footer.reclaim_height = true
     local callback_called = false
-    typeset:onSetPageMargins({ 10, 20, 10, 20 }, function() callback_called = true end)
+    typeset:onSetPageMargins({ 10, 20, 10, 20 }, function()
+      callback_called = true
+    end)
     local top_w = UIManager:getTopmostVisibleWidget()
     if top_w and top_w.dismiss_callback then
       top_w.dismiss_callback()
@@ -139,10 +143,18 @@ describe("ReaderTypeset module", function()
 
     local mock_menu = { updateItems = function() end }
     for _, item in ipairs(sheet_menu) do
-      if item.text_func then item:text_func() end
-      if item.checked_func then item:checked_func() end
-      if item.enabled_func then item:enabled_func() end
-      if item.callback then item:callback() end
+      if item.text_func then
+        item:text_func()
+      end
+      if item.checked_func then
+        item:checked_func()
+      end
+      if item.enabled_func then
+        item:enabled_func()
+      end
+      if item.callback then
+        item:callback()
+      end
       if item.hold_callback then
         item.hold_callback(mock_menu)
         local confirm = UIManager:getTopmostVisibleWidget()
@@ -153,10 +165,18 @@ describe("ReaderTypeset module", function()
       end
       if item.sub_item_table then
         for _, sub in ipairs(item.sub_item_table) do
-          if sub.text_func then sub:text_func() end
-          if sub.checked_func then sub:checked_func() end
-          if sub.enabled_func then sub:enabled_func() end
-          if sub.callback then sub:callback() end
+          if sub.text_func then
+            sub:text_func()
+          end
+          if sub.checked_func then
+            sub:checked_func()
+          end
+          if sub.enabled_func then
+            sub:enabled_func()
+          end
+          if sub.callback then
+            sub:callback()
+          end
           if sub.hold_callback then
             sub.hold_callback(mock_menu)
             local confirm = UIManager:getTopmostVisibleWidget()
@@ -181,9 +201,15 @@ describe("ReaderTypeset module", function()
     local mock_menu = { updateItems = function() end }
     local fb2_menu = typeset:genStyleSheetMenu()
     for _, item in ipairs(fb2_menu) do
-      if item.text_func then item:text_func() end
-      if item.checked_func then item:checked_func() end
-      if item.enabled_func then item:enabled_func() end
+      if item.text_func then
+        item:text_func()
+      end
+      if item.checked_func then
+        item:checked_func()
+      end
+      if item.enabled_func then
+        item:enabled_func()
+      end
       if item.hold_callback then
         item.hold_callback(mock_menu)
         local confirm = UIManager:getTopmostVisibleWidget()

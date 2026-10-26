@@ -107,7 +107,17 @@ describe("ReaderZooming module", function()
     local actions = zooming:getZoomModeActions()
     assert.is_table(actions)
 
-    local modes = { "contentwidth", "contentheight", "content", "page", "pagewidth", "pageheight", "free", "columns", "rows" }
+    local modes = {
+      "contentwidth",
+      "contentheight",
+      "content",
+      "page",
+      "pagewidth",
+      "pageheight",
+      "free",
+      "columns",
+      "rows",
+    }
     for _, m in ipairs(modes) do
       local cb = zooming:genSetZoomModeCallBack(m)
       assert.is_function(cb)
@@ -118,48 +128,50 @@ describe("ReaderZooming module", function()
     readerui:onClose()
   end)
 
-  it("should handle free zoom, rotation updates, define zoom, and settings persistence", function()
-    local sample_pdf = "spec/front/unit/data/sample.pdf"
-    local readerui = ReaderUI:new({
-      dimen = Screen:getSize(),
-      document = DocumentRegistry:openDocument(sample_pdf),
-    })
+  it(
+    "should handle free zoom, rotation updates, define zoom, and settings persistence",
+    function()
+      local sample_pdf = "spec/front/unit/data/sample.pdf"
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_pdf),
+      })
 
-    local zooming = readerui.zooming
-    zooming:setZoomMode("page")
-    zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
-    zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
+      local zooming = readerui.zooming
+      zooming:setZoomMode("page")
+      zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
+      zooming:onToggleFreeZoom(nil, { pos = { x = 200, y = 200 } })
 
-    zooming:onRotationUpdate(90)
-    zooming:onRotationUpdate(0)
+      zooming:onRotationUpdate(90)
+      zooming:onRotationUpdate(0)
 
-    zooming:onDefineZoom("columns")
-    zooming:onDefineZoom("rows")
-    zooming:onDefineZoom("manual")
-    zooming:onDefineZoom("set_zoom_overlap_h")
-    zooming:onDefineZoom("set_zoom_overlap_v")
+      zooming:onDefineZoom("columns")
+      zooming:onDefineZoom("rows")
+      zooming:onDefineZoom("manual")
+      zooming:onDefineZoom("set_zoom_overlap_h")
+      zooming:onDefineZoom("set_zoom_overlap_v")
 
-    zooming:onSaveSettings()
-    zooming:onReadSettings(readerui.doc_settings)
+      zooming:onSaveSettings()
+      zooming:onReadSettings(readerui.doc_settings)
 
-    -- Test oversized bbox triggering onBBoxUpdate(nil)
-    local bbox_updated = false
-    readerui.view.onBBoxUpdate = function(self, bbox)
-      if bbox == nil then
-        bbox_updated = true
+      -- Test oversized bbox triggering onBBoxUpdate(nil)
+      local bbox_updated = false
+      readerui.view.onBBoxUpdate = function(self, bbox)
+        if bbox == nil then
+          bbox_updated = true
+        end
       end
-    end
-    local orig_getUsedBBox = readerui.document.getUsedBBoxDimensions
-    readerui.document.getUsedBBoxDimensions = function()
-      return { x = 0, y = 0, w = 99999, h = 99999 }
-    end
-    zooming:setZoomMode("contentwidth")
-    zooming:getZoom(1)
-    assert.is_true(bbox_updated)
-    readerui.document.getUsedBBoxDimensions = orig_getUsedBBox
+      local orig_getUsedBBox = readerui.document.getUsedBBoxDimensions
+      readerui.document.getUsedBBoxDimensions = function()
+        return { x = 0, y = 0, w = 99999, h = 99999 }
+      end
+      zooming:setZoomMode("contentwidth")
+      zooming:getZoom(1)
+      assert.is_true(bbox_updated)
+      readerui.document.getUsedBBoxDimensions = orig_getUsedBBox
 
-    readerui:onExit()
-    readerui:onClose()
-  end)
+      readerui:onExit()
+      readerui:onClose()
+    end
+  )
 end)
-

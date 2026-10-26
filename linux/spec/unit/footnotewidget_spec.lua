@@ -17,28 +17,31 @@ describe("FootnoteWidget module", function()
     assert.is_true(size.h > 0)
   end)
 
-  it("should trigger follow and close callbacks on onFollow and onExit", function()
-    local close_called = false
-    local follow_called = false
+  it(
+    "should trigger follow and close callbacks on onFollow and onExit",
+    function()
+      local close_called = false
+      local follow_called = false
 
-    local footnote = FootnoteWidget:new({
-      html = "<html><body><p>Test footnote content</p></body></html>",
-      close_callback = function(_h)
-        close_called = true
-      end,
-      follow_callback = function()
-        follow_called = true
-      end,
-    })
+      local footnote = FootnoteWidget:new({
+        html = "<html><body><p>Test footnote content</p></body></html>",
+        close_callback = function(_h)
+          close_called = true
+        end,
+        follow_callback = function()
+          follow_called = true
+        end,
+      })
 
-    footnote:onFollow()
-    assert.is_true(follow_called)
-    assert.is_true(close_called)
+      footnote:onFollow()
+      assert.is_true(follow_called)
+      assert.is_true(close_called)
 
-    close_called = false
-    footnote:onExit()
-    assert.is_true(close_called)
-  end)
+      close_called = false
+      footnote:onExit()
+      assert.is_true(close_called)
+    end
+  )
 end)
 
 describe("FootnoteWidget", function()
@@ -53,33 +56,40 @@ describe("FootnoteWidget", function()
     Device = require("device")
   end)
 
-  it("should initialize footnote widget with HTML content and custom font settings", function()
-    G_reader_settings:save("footnote_popup_absolute_font_size", 18)
-    local widget = FootnoteWidget:new({
-      html = "<div>abc<br anyattr='val'/>def<span id='foot1'>note</span></div>",
-      doc_margins = { left = 20, right = 20 },
-    })
+  it(
+    "should initialize footnote widget with HTML content and custom font settings",
+    function()
+      G_reader_settings:save("footnote_popup_absolute_font_size", 18)
+      local widget = FootnoteWidget:new({
+        html = "<div>abc<br anyattr='val'/>def<span id='foot1'>note</span></div>",
+        doc_margins = { left = 20, right = 20 },
+      })
 
-    assert.is_table(widget)
-    assert.truthy(widget.html)
-    assert.is_not_nil(widget.width)
-    assert.is_not_nil(widget.height)
-    G_reader_settings:save("footnote_popup_absolute_font_size", nil)
-  end)
+      assert.is_table(widget)
+      assert.truthy(widget.html)
+      assert.is_not_nil(widget.width)
+      assert.is_not_nil(widget.height)
+      G_reader_settings:save("footnote_popup_absolute_font_size", nil)
+    end
+  )
 
-  it("should subtract VerticalScrollBar.SAFETY_MARGIN from doc_margins.right on init", function()
-    local VerticalScrollBar = require("ui/widget/verticalscrollbar")
-    local custom_right = 40
-    local widget = FootnoteWidget:new({
-      html = "<p>Test footnote with custom doc margins</p>",
-      doc_margins = { left = 10, right = custom_right, top = 5, bottom = 5 },
-    })
-    local expected_right = custom_right - Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
-    assert.are.equal(expected_right, widget.doc_margins.right)
-    assert.are.equal(10, widget.doc_margins.left)
-    assert.are.equal(5, widget.doc_margins.top)
-    assert.are.equal(5, widget.doc_margins.bottom)
-  end)
+  it(
+    "should subtract VerticalScrollBar.SAFETY_MARGIN from doc_margins.right on init",
+    function()
+      local VerticalScrollBar = require("ui/widget/verticalscrollbar")
+      local custom_right = 40
+      local widget = FootnoteWidget:new({
+        html = "<p>Test footnote with custom doc margins</p>",
+        doc_margins = { left = 10, right = custom_right, top = 5, bottom = 5 },
+      })
+      local expected_right = custom_right
+        - Device.screen:scaleBySize(VerticalScrollBar.SAFETY_MARGIN)
+      assert.are.equal(expected_right, widget.doc_margins.right)
+      assert.are.equal(10, widget.doc_margins.left)
+      assert.are.equal(5, widget.doc_margins.top)
+      assert.are.equal(5, widget.doc_margins.bottom)
+    end
+  )
 
   it("should handle onShow and onClose dirty regions", function()
     local widget = FootnoteWidget:new({
@@ -130,24 +140,30 @@ describe("FootnoteWidget", function()
     assert.is_true(followed)
   end)
 
-  it("should handle tap close gesture event when tapped outside container", function()
-    local tap_closed = false
-    local widget = FootnoteWidget:new({
-      html = "<p>Footnote text</p>",
-      on_tap_close_callback = function()
-        tap_closed = true
-      end,
-    })
+  it(
+    "should handle tap close gesture event when tapped outside container",
+    function()
+      local tap_closed = false
+      local widget = FootnoteWidget:new({
+        html = "<p>Footnote text</p>",
+        on_tap_close_callback = function()
+          tap_closed = true
+        end,
+      })
 
-    widget.container = { dimen = Geom:new({ x = 10, y = 10, w = 100, h = 100 }) }
-    local res = widget:onTapClose(nil, { pos = Geom:new({ x = 500, y = 500 }) })
-    assert.is_true(res)
-    assert.is_true(tap_closed)
+      widget.container =
+        { dimen = Geom:new({ x = 10, y = 10, w = 100, h = 100 }) }
+      local res =
+        widget:onTapClose(nil, { pos = Geom:new({ x = 500, y = 500 }) })
+      assert.is_true(res)
+      assert.is_true(tap_closed)
 
-    -- Inside container tap returns false
-    local res_inside = widget:onTapClose(nil, { pos = Geom:new({ x = 50, y = 50 }) })
-    assert.is_false(res_inside)
-  end)
+      -- Inside container tap returns false
+      local res_inside =
+        widget:onTapClose(nil, { pos = Geom:new({ x = 50, y = 50 }) })
+      assert.is_false(res_inside)
+    end
+  )
 
   it("should handle onSwipeFollow across all directions", function()
     local followed = false

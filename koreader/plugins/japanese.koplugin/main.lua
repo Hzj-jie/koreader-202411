@@ -26,7 +26,6 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
-local N_ = gettext.ngettext
 local T = require("ffi/util").template
 
 local SingleInstanceDeinflector = Deinflector:new()
@@ -129,6 +128,9 @@ function Japanese:onWordSelection(args)
   -- half-width katakana (ｶﾀｶﾅ) in strange ways that often overshoots the
   -- end of words.
   local pos0, pos1 = args.pos0, callbacks.get_next_char_pos(args.pos0)
+  if not pos1 then
+    return
+  end
 
   -- We try to advance the end position until we hit a word.
   --
@@ -147,17 +149,8 @@ function Japanese:onWordSelection(args)
 
   local current_end = pos1
   local num_expansions = 0
-  repeat
-    -- Move to the next character.
-    current_end = callbacks.get_next_char_pos(current_end)
+  while current_end do
     current_text = callbacks.get_text_in_range(pos0, current_end)
-    num_expansions = num_expansions + 1
-
-    -- If the text could not be a complete Japanese word (i.e. it contains
-    -- a punctuation or some other special character), quit early. We test
-    -- the whole string rather than the last character because finding the
-    -- last character requires a linear walk through the string anyway, and
-    -- get_next_char_pos() skips over newlines.
     if not isPossibleJapaneseWord(current_text) then
       logger.dbg(
         "japanese.koplugin: stopping expansion at",
@@ -183,7 +176,14 @@ function Japanese:onWordSelection(args)
       })
       table.insert(all_words, term)
     end
-  until current_end == nil or num_expansions >= self.max_scan_length
+
+    if num_expansions >= self.max_scan_length then
+      break
+    end
+
+    current_end = callbacks.get_next_char_pos(current_end)
+    num_expansions = num_expansions + 1
+  end
   logger.dbg(
     "japanese.koplugin: attempted",
     num_expansions,
@@ -215,12 +215,9 @@ function Japanese:genMenuItem()
     -- self.max_scan_length configuration
     {
       text_func = function()
-        return T(
-          N_(
-            "Text scan length: %1 character",
-            "Text scan length: %1 characters",
-            self.max_scan_length
-          ),
+        return gettext.T_N(
+          "Text scan length: %1 character",
+          "Text scan length: %1 characters",
           self.max_scan_length
         )
       end,

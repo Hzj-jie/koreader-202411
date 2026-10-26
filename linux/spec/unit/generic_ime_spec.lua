@@ -68,38 +68,41 @@ describe("GenericIME module", function()
       return box
     end
 
-    it("composes strokes, switches candidates, and separates on space", function()
-      local ime_comp = IME:new({
-        code_map = dummy_code_map,
-        show_candi_callback = function()
-          return true
-        end,
-        switch_char = "SWITCH",
-        switch_char_prev = "SWITCH_PREV",
-      })
-      local box = createMockInputBox()
+    it(
+      "composes strokes, switches candidates, and separates on space",
+      function()
+        local ime_comp = IME:new({
+          code_map = dummy_code_map,
+          show_candi_callback = function()
+            return true
+          end,
+          switch_char = "SWITCH",
+          switch_char_prev = "SWITCH_PREV",
+        })
+        local box = createMockInputBox()
 
-      -- Add first stroke 'n'
-      ime_comp:wrappedAddChars(box, "n")
-      assert.is_true(ime_comp:hasCandidates())
+        -- Add first stroke 'n'
+        ime_comp:wrappedAddChars(box, "n")
+        assert.is_true(ime_comp:hasCandidates())
 
-      -- Add second stroke 'i' -> candidate '你'
-      ime_comp:wrappedAddChars(box, "i")
-      local hint = ime_comp:getHintChars()
-      assert.is_truthy(hint:find("你"))
+        -- Add second stroke 'i' -> candidate '你'
+        ime_comp:wrappedAddChars(box, "i")
+        local hint = ime_comp:getHintChars()
+        assert.is_truthy(hint:find("你"))
 
-      -- Switch candidate forward
-      ime_comp:wrappedAddChars(box, "SWITCH")
-      assert.is_truthy(ime_comp:getHintChars():find("拟"))
+        -- Switch candidate forward
+        ime_comp:wrappedAddChars(box, "SWITCH")
+        assert.is_truthy(ime_comp:getHintChars():find("拟"))
 
-      -- Switch candidate backward
-      ime_comp:wrappedAddChars(box, "SWITCH_PREV")
-      assert.is_truthy(ime_comp:getHintChars():find("你"))
+        -- Switch candidate backward
+        ime_comp:wrappedAddChars(box, "SWITCH_PREV")
+        assert.is_truthy(ime_comp:getHintChars():find("你"))
 
-      -- Separate via space
-      ime_comp:wrappedAddChars(box, " ")
-      assert.is_false(ime_comp:hasCandidates())
-    end)
+        -- Separate via space
+        ime_comp:wrappedAddChars(box, " ")
+        assert.is_false(ime_comp:hasCandidates())
+      end
+    )
 
     it("handles stepped deletion and local deletion", function()
       local ime_del = IME:new({

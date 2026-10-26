@@ -53,6 +53,7 @@ describe("named_settings", function()
       "collate",
       "show_bottom_menu",
       "avoid_flashing_ui",
+      "BookShortcuts_directory_action",
     }
     for _, key in ipairs(keys) do
       G_reader_settings:delete(key)
@@ -160,6 +161,18 @@ describe("named_settings", function()
       named_settings.set.collate("nocase")
       assert.are.same("nocase", named_settings.collate())
     end)
+
+    it(
+      "should return default or saved value for BookShortcuts_directory_action",
+      function()
+        assert.are.same("FM", named_settings.BookShortcuts_directory_action())
+        named_settings.set.BookShortcuts_directory_action("Last")
+        assert.are.same("Last", named_settings.BookShortcuts_directory_action())
+        named_settings.set.BookShortcuts_directory_action("FM")
+        assert.are.same("FM", named_settings.BookShortcuts_directory_action())
+        assert.is_nil(G_reader_settings:read("BookShortcuts_directory_action"))
+      end
+    )
   end)
 
   describe("E-Ink / refresh rate logic", function()

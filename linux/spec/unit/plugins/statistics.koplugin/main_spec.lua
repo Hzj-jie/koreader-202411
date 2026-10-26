@@ -183,7 +183,10 @@ describe("ReaderStatistics plugin main spec", function()
   end)
 
   it("should create DB schema on a new connection", function()
-    local test_db = DataStorage:getSettingsDir() .. "/test_schema_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
+    local test_db = DataStorage:getSettingsDir()
+      .. "/test_schema_"
+      .. tostring(ffi.C.getpid())
+      .. ".sqlite3"
     os.remove(test_db)
     local conn = SQ3.open(test_db)
 
@@ -200,7 +203,10 @@ describe("ReaderStatistics plugin main spec", function()
   end)
 
   it("should handle DB schema upgrade routines from older versions", function()
-    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
+    local test_db = DataStorage:getSettingsDir()
+      .. "/test_upgrade_"
+      .. tostring(ffi.C.getpid())
+      .. ".sqlite3"
     os.remove(test_db)
     local conn = SQ3.open(test_db)
 
@@ -588,9 +594,18 @@ describe("ReaderStatistics plugin main spec", function()
     assert.stub(UIManager.nextTick).was_called()
 
     -- Test onSync function
-    local local_db = DataStorage:getSettingsDir() .. "/sync_local_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
-    local cached_db = DataStorage:getSettingsDir() .. "/sync_cached_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
-    local income_db = DataStorage:getSettingsDir() .. "/sync_income_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
+    local local_db = DataStorage:getSettingsDir()
+      .. "/sync_local_"
+      .. tostring(ffi.C.getpid())
+      .. ".sqlite3"
+    local cached_db = DataStorage:getSettingsDir()
+      .. "/sync_cached_"
+      .. tostring(ffi.C.getpid())
+      .. ".sqlite3"
+    local income_db = DataStorage:getSettingsDir()
+      .. "/sync_income_"
+      .. tostring(ffi.C.getpid())
+      .. ".sqlite3"
 
     os.remove(local_db)
     os.remove(cached_db)
@@ -612,76 +627,83 @@ describe("ReaderStatistics plugin main spec", function()
     os.remove(income_db)
   end)
 
-  it("should cover DB upgrades, rerendering, period queries, and helper getters", function()
-    local stats = createInstance()
-    stats.curr_page = 1
-    stats.page_stat[1] = { { os.time() - 15, 15 } }
-    stats:insertDB()
+  it(
+    "should cover DB upgrades, rerendering, period queries, and helper getters",
+    function()
+      local stats = createInstance()
+      stats.curr_page = 1
+      stats.page_stat[1] = { { os.time() - 15, 15 } }
+      stats:insertDB()
 
-    -- Test DB upgrades
-    local test_db = DataStorage:getSettingsDir() .. "/test_upgrade2_" .. tostring(ffi.C.getpid()) .. ".sqlite3"
-    os.remove(test_db)
-    local conn = SQ3.open(test_db)
-    ReaderStatistics:createDB(conn)
-    ReaderStatistics:upgradeDBto20221111(conn)
-    conn:close()
-    os.remove(test_db)
+      -- Test DB upgrades
+      local test_db = DataStorage:getSettingsDir()
+        .. "/test_upgrade2_"
+        .. tostring(ffi.C.getpid())
+        .. ".sqlite3"
+      os.remove(test_db)
+      local conn = SQ3.open(test_db)
+      ReaderStatistics:createDB(conn)
+      ReaderStatistics:upgradeDBto20221111(conn)
+      conn:close()
+      os.remove(test_db)
 
-    -- Test rerendering events
-    stats:onPreserveCurrentSession()
-    stats:onDocumentRerendered()
-    stats:onDocumentPartiallyRerendered(true)
-    stats:onDocumentPartiallyRerendered(false)
+      -- Test rerendering events
+      stats:onPreserveCurrentSession()
+      stats:onDocumentRerendered()
+      stats:onDocumentPartiallyRerendered(true)
+      stats:onDocumentPartiallyRerendered(false)
 
-    -- Test getStatsBookStatus
-    local status_str = stats:getStatsBookStatus(stats.id_curr_book, true)
-    assert.is_table(status_str)
-    local status_disabled = stats:getStatsBookStatus(stats.id_curr_book, false)
-    assert.is_table(status_disabled)
+      -- Test getStatsBookStatus
+      local status_str = stats:getStatsBookStatus(stats.id_curr_book, true)
+      assert.is_table(status_str)
+      local status_disabled =
+        stats:getStatsBookStatus(stats.id_curr_book, false)
+      assert.is_table(status_disabled)
 
-    -- Test getPageTimeTotalStats
-    local pages, duration = stats:getPageTimeTotalStats(stats.id_curr_book)
-    assert.is_number(pages)
-    assert.is_number(duration)
+      -- Test getPageTimeTotalStats
+      local pages, duration = stats:getPageTimeTotalStats(stats.id_curr_book)
+      assert.is_number(pages)
+      assert.is_number(duration)
 
-    -- Test period callbacks: monthly, weekly, daily
-    local now = os.time()
-    stats:callbackMonthly(now - 86400 * 30, now, "Last Month", false)
-    stats:callbackMonthly(now - 86400 * 30, now, "Last Month", true)
-    stats:callbackWeekly(now - 86400 * 7, now, "Last Week", false)
-    stats:callbackWeekly(now - 86400 * 7, now, "Last Week", true)
-    stats:callbackDaily(now - 86400, now, "Today")
+      -- Test period callbacks: monthly, weekly, daily
+      local now = os.time()
+      stats:callbackMonthly(now - 86400 * 30, now, "Last Month", false)
+      stats:callbackMonthly(now - 86400 * 30, now, "Last Month", true)
+      stats:callbackWeekly(now - 86400 * 7, now, "Last Week", false)
+      stats:callbackWeekly(now - 86400 * 7, now, "Last Week", true)
+      stats:callbackDaily(now - 86400, now, "Today")
 
-    -- Test getDaysFromPeriod & getBooksFromPeriod
-    local days = stats:getDaysFromPeriod(now - 86400 * 7, now)
-    assert.is_table(days)
-    local books = stats:getBooksFromPeriod(now - 86400 * 7, now)
-    assert.is_table(books)
+      -- Test getDaysFromPeriod & getBooksFromPeriod
+      local days = stats:getDaysFromPeriod(now - 86400 * 7, now)
+      assert.is_table(days)
+      local books = stats:getBooksFromPeriod(now - 86400 * 7, now)
+      assert.is_table(books)
 
-    -- Test genResetBookSubItemTable
-    local reset_sub = stats:genResetBookSubItemTable()
-    assert.is_table(reset_sub)
+      -- Test genResetBookSubItemTable
+      local reset_sub = stats:genResetBookSubItemTable()
+      assert.is_table(reset_sub)
 
-    -- Test widget helper closures from init
-    local BookStatusWidget = require("ui/widget/bookstatuswidget")
-    local ReaderFooter = require("apps/reader/modules/readerfooter")
-    local Screensaver = require("ui/screensaver")
+      -- Test widget helper closures from init
+      local BookStatusWidget = require("ui/widget/bookstatuswidget")
+      local ReaderFooter = require("apps/reader/modules/readerfooter")
+      local Screensaver = require("ui/screensaver")
 
-    if BookStatusWidget.getStats then
-      local bs_stats = BookStatusWidget.getStats()
-      assert.is_table(bs_stats)
+      if BookStatusWidget.getStats then
+        local bs_stats = BookStatusWidget.getStats()
+        assert.is_table(bs_stats)
+      end
+
+      if ReaderFooter.getAvgTimePerPage then
+        local avg = ReaderFooter.getAvgTimePerPage()
+        assert.truthy(avg == nil or type(avg) == "number")
+      end
+
+      if Screensaver.getReaderProgress then
+        local rp = Screensaver.getReaderProgress()
+        assert.truthy(rp ~= nil or rp == nil)
+      end
     end
-
-    if ReaderFooter.getAvgTimePerPage then
-      local avg = ReaderFooter.getAvgTimePerPage()
-      assert.truthy(avg == nil or type(avg) == "number")
-    end
-
-    if Screensaver.getReaderProgress then
-      local rp = Screensaver.getReaderProgress()
-      assert.truthy(rp ~= nil or rp == nil)
-    end
-  end)
+  )
 
   it("should test DB upgrade routines and addBookStatToDB", function()
     local conn = SQ3.open(":memory:")
@@ -715,17 +737,25 @@ describe("ReaderStatistics plugin main spec", function()
       document = mock_ui.document,
     })
 
-    conn:exec("INSERT INTO book (id, title, authors, pages, md5) VALUES (1, 'Upgraded Book', 'Upgraded Author', 200, 'md5_123');")
-    conn:exec("INSERT INTO page_stat (id_book, page, period, start_time) VALUES (1, 1, 60, 1000);")
+    conn:exec(
+      "INSERT INTO book (id, title, authors, pages, md5) VALUES (1, 'Upgraded Book', 'Upgraded Author', 200, 'md5_123');"
+    )
+    conn:exec(
+      "INSERT INTO page_stat (id_book, page, period, start_time) VALUES (1, 1, 60, 1000);"
+    )
 
     -- Run upgrades
     stats:upgradeDBto20201010(conn)
     stats:upgradeDBto20201022(conn)
     stats:upgradeDBto20221111(conn)
 
-    local book_count = tonumber(conn:rowexec("SELECT count(0) FROM book WHERE title='Upgraded Book';"))
+    local book_count = tonumber(
+      conn:rowexec("SELECT count(0) FROM book WHERE title='Upgraded Book';")
+    )
     assert.are.equal(1, book_count)
-    local page_stat_count = tonumber(conn:rowexec("SELECT count(0) FROM page_stat_data WHERE id_book=1;"))
+    local page_stat_count = tonumber(
+      conn:rowexec("SELECT count(0) FROM page_stat_data WHERE id_book=1;")
+    )
     assert.are.equal(1, page_stat_count)
 
     conn:close()

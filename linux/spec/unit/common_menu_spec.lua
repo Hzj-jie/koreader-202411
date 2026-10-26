@@ -209,5 +209,31 @@ describe("CommonMenu apps helper", function()
         assert.is_true(mock_power_device.turnOnFrontlight_called)
       end
     )
+
+    it("should ignore exitOrRestart in monkey test mode", function()
+      local util = require("util")
+      local old_isMonkeyTest = util.isMonkeyTest
+      util.isMonkeyTest = function()
+        return true
+      end
+
+      local before_exit_called = false
+      local on_exit_called = false
+      local ui = {
+        onExit = function()
+          on_exit_called = true
+        end,
+      }
+
+      CommonMenu:exitOrRestart(function()
+        before_exit_called = true
+      end, ui)
+
+      util.isMonkeyTest = old_isMonkeyTest
+
+      assert.is_true(before_exit_called)
+      assert.is_nil(mock_uimanager.next_tick_callback)
+      assert.is_false(on_exit_called)
+    end)
   end)
 end)

@@ -18,9 +18,15 @@ describe("Koptinterface module", function()
 
   teardown(function()
     DocCache:clear()
-    if doc then doc:close() end
-    if complex_doc then complex_doc:close() end
-    if paper_doc then paper_doc:close() end
+    if doc then
+      doc:close()
+    end
+    if complex_doc then
+      complex_doc:close()
+    end
+    if paper_doc then
+      paper_doc:close()
+    end
   end)
 
   before_each(function()

@@ -1,7 +1,5 @@
 describe("Checkers main plugin module", function()
-  local Checkers
-  local UIManager
-  local Blitbuffer
+  local Checkers, AI, Game, UIManager, Blitbuffer
 
   setup(function()
     require("commonrequire")
@@ -9,8 +7,14 @@ describe("Checkers main plugin module", function()
     require("document/canvascontext"):init(require("device"))
 
     Checkers = require("plugins/checkers.koplugin/main")
+    AI = require("plugins/checkers.koplugin/ai")
+    Game = require("plugins/checkers.koplugin/game")
     UIManager = require("ui/uimanager")
     Blitbuffer = require("ffi/blitbuffer")
+  end)
+
+  before_each(function()
+    UIManager.setDirty = function() end
   end)
 
   it("should expose Checkers main plugin class and handle settings", function()
@@ -28,20 +32,147 @@ describe("Checkers main plugin module", function()
     instance:loadSettings()
     assert.is_true(instance.human[1])
     assert.is_true(instance.human[2])
-    assert.are.equal(instance.ai_depth, 3)
+    assert.are.equal(3, instance.ai_depth)
 
     local menu_items = {}
     instance:addToMainMenu(menu_items)
     assert.is_table(menu_items.checkers)
   end)
 
-  it("should manage game lifecycle, layout, moves, AI, undo, and dialogs", function()
-    local orig_show = UIManager.show
-    local orig_close = UIManager.close
-    local orig_schedule = UIManager.scheduleIn
-    UIManager.show = function() end
-    UIManager.close = function() end
-    UIManager.scheduleIn = function(self_uim, delay, fn) fn() end
+  it("should format _mode_label and _turn_text for all game states", function()
+    local instance = Checkers:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+    instance:init()
+    instance.game = Game.new()
+
+    -- Mode labels
+    instance.human[1] = true
+    instance.human[2] = true
+    assert.are.equal("HvH", instance:_mode_label())
+    instance.human[2] = false
+    assert.are.equal("HvC", instance:_mode_label())
+    instance.human[1] = false
+    assert.are.equal("CvC", instance:_mode_label())
+    instance.human[2] = true
+    assert.are.equal("CvH", instance:_mode_label())
+
+    -- Turn text - Black human turn
+    instance.human[1] = true
+    assert.are.equal("Black's turn", instance:_turn_text())
+
+    -- Turn text - Black AI thinking
+    instance.human[1] = false
+    assert.are.equal("AI thinking…", instance:_turn_text())
+
+    -- Mock game over states
+    local old_is_over = instance.game.is_over
+    local old_get_winner = instance.game.get_winner
+    instance.game.is_over = function()
+      return true
+    end
+
+    instance.game.get_winner = function()
+      return 1
+    end
+    assert.are.equal("Black wins!", instance:_turn_text())
+
+    instance.game.get_winner = function()
+      return 2
+    end
+    assert.are.equal("White wins!", instance:_turn_text())
+
+    instance.game.get_winner = function()
+      return 0
+    end
+    assert.are.equal("Draw!", instance:_turn_text())
+
+    instance.game.is_over = old_is_over
+    instance.game.get_winner = old_get_winner
+  end)
+
+  it(
+    "should manage game lifecycle, layout, moves, AI, undo, and dialogs",
+    function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      local orig_schedule = UIManager.scheduleIn
+      UIManager.show = function() end
+      UIManager.close = function() end
+      UIManager.scheduleIn = function(self_uim, delay, fn)
+        fn()
+      end
+
+      local instance = Checkers:new({
+        ui = {
+          menu = { registerToMainMenu = function() end },
+        },
+      })
+      instance:init()
+
+      -- Start Game
+      instance:startGame()
+      assert.is_table(instance.game)
+      assert.is_table(instance.board)
+      assert.is_table(instance.status_bar)
+
+      -- Status updates
+      instance:updateStatus()
+
+      -- Moves and AI
+      local moves = instance.game:get_possible_moves()
+      if #moves > 0 then
+        instance.game:move(moves[1][1], moves[1][2])
+        instance:onMoveExecuted(moves[1][1], moves[1][2])
+      end
+      instance:doAIMove()
+
+      -- Undo
+      instance:doUndo()
+
+      -- Ask new game and reset
+      instance:askNewGame()
+      instance:resetGame()
+
+      -- Game over
+      instance:showGameOver()
+
+      -- Settings dialog
+      instance:openSettings()
+
+      -- Paint to Blitbuffer
+      local bb =
+        Blitbuffer.new(instance.full_width or 600, instance.full_height or 800)
+      instance:paintTo(bb, 0, 0)
+      bb:free()
+
+      -- Handle events
+      assert.is_true(instance:onCheckersStart())
+      assert.is_true(instance:handleEvent({ handler = "onCheckersStart" }))
+
+      UIManager.show = orig_show
+      UIManager.close = orig_close
+      UIManager.scheduleIn = orig_schedule
+    end
+  )
+
+  it("should find best move using AI.best_move at normal depth", function()
+    local game = Game.new()
+    local best = AI.best_move(game, 2)
+    assert.is_table(best)
+    assert.are.equal(2, #best)
+    assert.is_number(best[1])
+    assert.is_number(best[2])
+  end)
+
+  it("should schedule AI move after doUndo() leaves game on AI turn", function()
+    local scheduled = false
+    local old_schedule = UIManager.scheduleIn
+    UIManager.scheduleIn = function(self_uim, delay, fn)
+      scheduled = true
+    end
 
     local instance = Checkers:new({
       ui = {
@@ -49,52 +180,98 @@ describe("Checkers main plugin module", function()
       },
     })
     instance:init()
+    -- Black (1) is AI, White (2) is Human
+    instance.human[1] = false
+    instance.human[2] = true
 
-    -- Start Game
-    instance:startGame()
-    assert.is_table(instance.game)
-    assert.is_table(instance.board)
-    assert.is_table(instance.status_bar)
+    instance.game = Game.new()
+    instance.board = {
+      game = instance.game,
+      _clear_selection = function() end,
+      updateBoard = function() end,
+    }
+    instance.status_bar = {
+      setTitle = function() end,
+      setSubTitle = function() end,
+    }
 
-    -- Status updates and turn text
-    instance:updateStatus()
-    local turn_str = instance:_turn_text()
-    assert.is_string(turn_str)
-    local mode_str = instance:_mode_label()
-    assert.is_string(mode_str)
+    -- Black (AI) makes opening move
+    local m1 = instance.game:get_possible_moves()[1]
+    instance.game:move(m1[1], m1[2])
+    assert.are.equal(2, instance.game:whose_turn())
 
-    -- Moves and AI
-    local moves = instance.game:get_possible_moves()
-    if #moves > 0 then
-      instance.game:move(moves[1][1], moves[1][2])
-      instance:onMoveExecuted(moves[1][1], moves[1][2])
-    end
-    instance:doAIMove()
+    -- White (Human) makes move 2
+    local m2 = instance.game:get_possible_moves()[1]
+    instance.game:move(m2[1], m2[2])
+    assert.are.equal(1, instance.game:whose_turn())
 
-    -- Undo
+    -- First undo: undid White's move, turn is White (Human)
     instance:doUndo()
+    assert.are.equal(2, instance.game:whose_turn())
+    assert.is_false(scheduled)
 
-    -- Ask new game and reset
-    instance:askNewGame()
-    instance:resetGame()
+    -- Second undo: undid Black's opening move, turn is now Black (AI)
+    scheduled = false
+    instance:doUndo()
+    assert.are.equal(1, instance.game:whose_turn())
+    assert.is_false(instance.human[1])
 
-    -- Game over
-    instance:showGameOver()
+    -- Verify scheduleAIMove() was called
+    assert.is_true(scheduled)
 
-    -- Settings dialog
-    instance:openSettings()
+    UIManager.scheduleIn = old_schedule
+  end)
 
-    -- Paint to Blitbuffer
-    local bb = Blitbuffer.new(instance.full_width or 600, instance.full_height or 800)
-    instance:paintTo(bb, 0, 0)
-    bb:free()
+  it("should unschedule pending AI task on undo", function()
+    local scheduled = false
+    local unscheduled = false
+    local old_schedule = UIManager.scheduleIn
+    local old_unschedule = UIManager.unschedule
+    UIManager.scheduleIn = function(self_uim, delay, fn)
+      scheduled = true
+      return fn
+    end
+    UIManager.unschedule = function(self_uim, action)
+      unscheduled = true
+    end
 
-    -- Handle events
-    assert.is_true(instance:onCheckersStart())
-    assert.is_true(instance:handleEvent({ handler = "onCheckersStart" }))
+    local instance = Checkers:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+    instance:init()
+    instance.human[1] = false
+    instance.human[2] = true
 
-    UIManager.show = orig_show
-    UIManager.close = orig_close
-    UIManager.scheduleIn = orig_schedule
+    instance.game = Game.new()
+    instance.board = {
+      game = instance.game,
+      _clear_selection = function() end,
+      updateBoard = function() end,
+    }
+    instance.status_bar = {
+      setTitle = function() end,
+      setSubTitle = function() end,
+    }
+
+    -- Black (AI) makes opening move
+    local m1 = instance.game:get_possible_moves()[1]
+    instance.game:move(m1[1], m1[2])
+
+    -- White (Human) makes move 2
+    local m2 = instance.game:get_possible_moves()[1]
+    instance.game:move(m2[1], m2[2])
+
+    -- Simulate pending AI task
+    instance:scheduleAIMove()
+    assert.is_true(scheduled)
+
+    -- Undo while AI move is pending
+    instance:doUndo()
+    assert.is_true(unscheduled)
+
+    UIManager.scheduleIn = old_schedule
+    UIManager.unschedule = old_unschedule
   end)
 end)

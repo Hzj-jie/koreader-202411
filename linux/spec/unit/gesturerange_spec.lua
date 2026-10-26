@@ -44,7 +44,9 @@ describe("gesturerange module", function()
     local geom = Geom:new({ x = 10, y = 10, w = 50, h = 50 })
     local g = GestureRange:new({
       ges = "tap",
-      range = function() return geom end,
+      range = function()
+        return geom
+      end,
     })
     assert.is_true(g:match({
       ges = "tap",
@@ -58,7 +60,9 @@ describe("gesturerange module", function()
     -- When range function returns nil
     local g_nil = GestureRange:new({
       ges = "tap",
-      range = function() return nil end,
+      range = function()
+        return nil
+      end,
     })
     assert.is_false(g_nil:match({
       ges = "tap",

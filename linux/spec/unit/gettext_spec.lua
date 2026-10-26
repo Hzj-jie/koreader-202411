@@ -102,6 +102,15 @@ msgstr[5] ""
 #, fuzzy
 msgid "Fuzzy"
 msgstr "Fuzzy translated"
+
+#: frontend/ui/data/css_tweaks.lua:55
+#, fuzzy
+msgid ""
+msgstr ""
+
+#: frontend/ui/data/css_tweaks.lua:60
+msgid "Next Item"
+msgstr "Next Translated"
 ]]
 
 describe("GetText module", function()
@@ -204,12 +213,26 @@ describe("GetText module", function()
   end)
 
   describe("cannot find string", function()
+    setup(function()
+      GetText.changeLang("C")
+    end)
     it("gettext should return input string", function()
       assert.is_equal("bla", GetText("bla"))
     end)
     it("ngettext should return input string", function()
       assert.is_equal("bla", GetText.ngettext("bla", "blabla", 1))
       assert.is_equal("blabla", GetText.ngettext("bla", "blabla", 2))
+    end)
+    it("T_N should return formatted input string", function()
+      assert.is_equal("1 item", GetText.T_N("1 item", "%1 items", 1))
+      assert.is_equal("2 items", GetText.T_N("1 item", "%1 items", 2))
+      assert.is_equal(
+        "3 entries at depth 5",
+        GetText.T_N("1 entry at depth %2", "%1 entries at depth %2", 3, 5)
+      )
+      assert.has_error(function()
+        GetText.T_N("1 item", "%1 items")
+      end)
     end)
     it("pgettext should return input string", function()
       assert.is_equal("bla", GetText.pgettext("some context", "bla"))
@@ -233,6 +256,9 @@ describe("GetText module", function()
     it("gettext should ignore fuzzy strings", function()
       assert.is_equal("Fuzzy", GetText("Fuzzy"))
     end)
+    it("gettext should not leak fuzzy status across entries", function()
+      assert.is_equal("Next Translated", GetText("Next Item"))
+    end)
     it("gettext should translate multiline string", function()
       assert.is_equal("\nbericht", GetText("\nmessage"))
     end)
@@ -240,6 +266,11 @@ describe("GetText module", function()
       assert.is_equal("1 ding", GetText.ngettext("1 item", "%1 items", 1))
       assert.is_equal("%1 dingen", GetText.ngettext("1 item", "%1 items", 2))
       assert.is_equal("%1 dingen", GetText.ngettext("1 item", "%1 items", 5))
+    end)
+    it("T_N should translate and format plurals", function()
+      assert.is_equal("1 ding", GetText.T_N("1 item", "%1 items", 1))
+      assert.is_equal("2 dingen", GetText.T_N("1 item", "%1 items", 2))
+      assert.is_equal("5 dingen", GetText.T_N("1 item", "%1 items", 5))
     end)
     it("pgettext should distinguish context", function()
       assert.is_equal(
@@ -452,6 +483,11 @@ describe("GetText module", function()
       assert.is_equal("1 ding", GetText.ngettext("1 item", "%1 items", 1))
       assert.is_equal("%1 dingen", GetText.ngettext("1 item", "%1 items", 2))
       assert.is_equal("%1 dingen 2", GetText.ngettext("1 item", "%1 items", 5))
+    end)
+    it("T_N should translate and format plurals", function()
+      assert.is_equal("1 ding", GetText.T_N("1 item", "%1 items", 1))
+      assert.is_equal("2 dingen", GetText.T_N("1 item", "%1 items", 2))
+      assert.is_equal("5 dingen 2", GetText.T_N("1 item", "%1 items", 5))
     end)
     it("pgettext should distinguish context", function()
       assert.is_equal(

@@ -21,7 +21,8 @@ describe("AutoWarmth plugin tests", function()
       return original_os_date(format, time_val)
     end
 
-    SunTime = require("suntime")
+    SunTime = require("plugins/autowarmth.koplugin/suntime")
+    package.loaded["suntime"] = SunTime
     stub(SunTime, "getTimezoneOffset")
     SunTime.getTimezoneOffset.returns(0)
   end)
@@ -81,7 +82,7 @@ describe("AutoWarmth plugin tests", function()
     MockTime:set(1773964800)
 
     local DeviceListener = require("device/devicelistener")
-    stub(DeviceListener, "onSetNightMode")
+    stub(DeviceListener, "onToggleNightMode")
 
     AutoWarmth = class:new({ ui = mock_ui })
     notifyBackgroundJobsUpdated()
@@ -96,8 +97,8 @@ describe("AutoWarmth plugin tests", function()
       AutoWarmth = nil
     end
     local DeviceListener = require("device/devicelistener")
-    if DeviceListener.onSetNightMode.revert then
-      DeviceListener.onSetNightMode:revert()
+    if DeviceListener.onToggleNightMode.revert then
+      DeviceListener.onToggleNightMode:revert()
     end
     UIManager:handleInput()
     Device.hasNaturalLight:revert()
@@ -629,93 +630,153 @@ describe("AutoWarmth plugin tests", function()
       end
     )
 
+    it("should turn on night mode with control_nightmode and not toggle again when called a second time", function()
+      local DeviceListener = require("device/devicelistener")
+      DeviceListener.onToggleNightMode:revert()
+      G_reader_settings:save("night_mode", false, false)
+      local Screen = require("device").screen
+      stub(Screen, "setNightmode")
+      stub(UIManager, "toggleNightMode")
+
+      AutoWarmth.control_nightmode = true
+      AutoWarmth:setWarmth(150)
+
+      assert.is_true(G_reader_settings:isTrue("night_mode"))
+      assert.stub(Screen.setNightmode).was_called_with(match.is_table(), true)
+      assert.stub(UIManager.toggleNightMode).was_called(1)
+
+      -- Calling setWarmth(150) a second time should not toggle or re-apply night mode
+      AutoWarmth:setWarmth(150)
+      assert.stub(Screen.setNightmode).was_called(1)
+      assert.stub(UIManager.toggleNightMode).was_called(1)
+
+      Screen.setNightmode:revert()
+      UIManager.toggleNightMode:revert()
+      stub(DeviceListener, "onToggleNightMode")
+    end)
+
     it("should register dispatcher actions safely", function()
       if type(AutoWarmth.onDispatcherRegisterActions) == "function" then
         AutoWarmth:onDispatcherRegisterActions()
       end
     end)
 
-    it("should generate and exercise menus, submenus, and dialog callbacks", function()
-      local orig_show = UIManager.show
-      local orig_close = UIManager.close
-      UIManager.show = function() end
-      UIManager.close = function() end
+    it(
+      "should generate and exercise menus, submenus, and dialog callbacks",
+      function()
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        UIManager.show = function() end
+        UIManager.close = function() end
 
-      -- Add to main menu
-      local menu_items = {}
-      AutoWarmth:addToMainMenu(menu_items)
-      assert.is_table(menu_items.autowarmth)
+        -- Add to main menu
+        local menu_items = {}
+        AutoWarmth:addToMainMenu(menu_items)
+        assert.is_table(menu_items.autowarmth)
 
-      -- Submenu items
-      local sub_items = AutoWarmth:getSubMenuItems()
-      assert.is_table(sub_items)
+        -- Submenu items
+        local sub_items = AutoWarmth:getSubMenuItems()
+        assert.is_table(sub_items)
 
-      -- Activate Menu
-      local act_menu = AutoWarmth:getActivateMenu()
-      assert.is_table(act_menu)
-      for _, item in ipairs(act_menu) do
-        assert.is_boolean(item.checked_func())
-        item.callback()
-      end
-
-      -- Location Menu
-      local loc_menu = AutoWarmth:getLocationMenu()
-      assert.is_table(loc_menu)
-      for _, item in ipairs(loc_menu) do
-        assert.is_string(item.text_func())
-        item.callback({ updateItems = function() end })
-      end
-
-      -- Schedule Menu
-      local sched_menu = AutoWarmth:getScheduleMenu()
-      assert.is_table(sched_menu)
-      for _, item in ipairs(sched_menu) do
-        if item.text_func then
-          assert.is_string(item.text_func())
-        end
-        if item.checked_func then
+        -- Activate Menu
+        local act_menu = AutoWarmth:getActivateMenu()
+        assert.is_table(act_menu)
+        for _, item in ipairs(act_menu) do
           assert.is_boolean(item.checked_func())
+          item.callback()
         end
-        if item.callback then
-          item.callback({ updateItems = function() end })
-        end
-      end
 
-      -- Warmth Menu
-      local warmth_menu = AutoWarmth:getWarmthMenu()
-      assert.is_table(warmth_menu)
-      for _, item in ipairs(warmth_menu) do
-        if item.text_func then
+        -- Location Menu
+        local loc_menu = AutoWarmth:getLocationMenu()
+        assert.is_table(loc_menu)
+        for _, item in ipairs(loc_menu) do
           assert.is_string(item.text_func())
-        end
-        if item.callback then
           item.callback({ updateItems = function() end })
         end
+
+        -- Schedule Menu
+        local sched_menu = AutoWarmth:getScheduleMenu()
+        assert.is_table(sched_menu)
+        for _, item in ipairs(sched_menu) do
+          if item.text_func then
+            assert.is_string(item.text_func())
+          end
+          if item.checked_func then
+            assert.is_boolean(item.checked_func())
+          end
+          if item.callback then
+            item.callback({ updateItems = function() end })
+          end
+        end
+
+        -- Warmth Menu
+        local warmth_menu = AutoWarmth:getWarmthMenu()
+        assert.is_table(warmth_menu)
+        for _, item in ipairs(warmth_menu) do
+          if item.text_func then
+            assert.is_string(item.text_func())
+          end
+          if item.callback then
+            item.callback({ updateItems = function() end })
+          end
+        end
+
+        -- Frontlight off during day menu
+        local fl_menu = AutoWarmth:getFlOffDuringDayMenu()
+        assert.is_table(fl_menu)
+        assert.is_string(fl_menu.text_func())
+        fl_menu.callback({ updateItems = function() end })
+        fl_menu.hold_callback()
+
+        -- Times menus and info
+        local times_menu =
+          AutoWarmth:getTimesMenu("Currently active parameters")
+        assert.is_table(times_menu)
+        times_menu.callback()
+
+        AutoWarmth:showTimesInfo("Sun times", true, 1, false)
+
+        -- Hours to clock
+        assert.is_string(AutoWarmth:hoursToClock(12.5))
+
+        -- Night mode and frontlight event toggles
+        AutoWarmth:_onToggleNightMode()
+        AutoWarmth:_onToggleFrontlight()
+
+        UIManager.show = orig_show
+        UIManager.close = orig_close
       end
+    )
+  end)
 
-      -- Frontlight off during day menu
-      local fl_menu = AutoWarmth:getFlOffDuringDayMenu()
-      assert.is_table(fl_menu)
-      assert.is_string(fl_menu.text_func())
-      fl_menu.callback({ updateItems = function() end })
-      fl_menu.hold_callback()
+  describe("Defect verifications", function()
+    it("saves updated timezone in scheduleMidnightUpdate", function()
+      AutoWarmth.timezone = 0
+      G_reader_settings:save("autowarmth_timezone", 0)
+      SunTime.getTimezoneOffset.returns(2)
+      finally(function()
+        SunTime.getTimezoneOffset.returns(0)
+      end)
 
-      -- Times menus and info
-      local times_menu = AutoWarmth:getTimesMenu("Currently active parameters")
-      assert.is_table(times_menu)
-      times_menu.callback()
+      AutoWarmth:scheduleMidnightUpdate()
 
-      AutoWarmth:showTimesInfo("Sun times", true, 1, false)
+      assert.are.equal(2, G_reader_settings:read("autowarmth_timezone"))
+    end)
 
-      -- Hours to clock
-      assert.is_string(AutoWarmth:hoursToClock(12.5))
-
-      -- Night mode and frontlight event toggles
-      AutoWarmth:_onToggleNightMode()
-      AutoWarmth:_onToggleFrontlight()
-
-      UIManager.show = orig_show
-      UIManager.close = orig_close
+    it("guards nil sunset time in toggleFrontlight arithmetic", function()
+      AutoWarmth.fl_off_during_day = true
+      AutoWarmth.fl_off_during_day_offset_s = 0
+      AutoWarmth.current_times_h = {
+        [5] = 6.0,
+        [7] = nil,
+      }
+      local ok, err = pcall(function()
+        AutoWarmth:toggleFrontlight(12 * 3600)
+      end)
+      assert.is_true(
+        ok,
+        "toggleFrontlight should not crash when ss is nil: " .. tostring(err)
+      )
     end)
   end)
 end)

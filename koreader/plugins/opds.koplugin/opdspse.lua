@@ -62,7 +62,8 @@ function OPDSPSE:getLastPage(remote_url, username, password)
   if auth_code == 200 then
     -- if http request for bearer token was successful, pull bearer token from response and
     -- attempt to pull progress for chapterId in remote_url
-    local bearer_token = auth_data[1]:match('"token":"(.+)","refresh')
+    local auth_body = table.concat(auth_data)
+    local bearer_token = auth_body:match('"token":"([^"]+)"')
 
     -- Do HTTP GET request for chapter progress
     local progress_parsed = url.parse(progress_url)
@@ -97,7 +98,8 @@ function OPDSPSE:getLastPage(remote_url, username, password)
 
     if progress_code == 200 then
       -- if HTTP GET was successful, pull page number from response
-      last_page = progress_data[1]:match('"pageNum":(.+),"seriesId')
+      local progress_body = table.concat(progress_data)
+      last_page = tonumber(progress_body:match('"pageNum":([%d]+)'))
     else
       logger.dbg(
         "OPDSPSE:getLastPage: Progress Request failed:",
@@ -128,12 +130,16 @@ function OPDSPSE:streamPages(remote_url, count, continue, username, password)
   -- "Page Stream" button.
   -- We have to pull the progress here, otherwise the creation of the page_table
   -- will overwrite the book progress before we pull it, making it always 0.
-  local ok, last_page = pcall(function()
-    return self:getLastPage(remote_url, username, password)
-  end)
-  if not ok then
-    logger.warn("Couldn't pull progress, defaulting to Page 0.")
-    last_page = 0
+  local last_page = 0
+  if not continue then
+    local ok, page = pcall(function()
+      return self:getLastPage(remote_url, username, password)
+    end)
+    if ok then
+      last_page = page
+    else
+      logger.warn("Couldn't pull progress, defaulting to Page 0.")
+    end
   end
   local page_table = { image_disposable = true }
   setmetatable(page_table, {

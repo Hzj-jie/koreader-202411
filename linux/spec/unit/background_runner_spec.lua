@@ -31,6 +31,21 @@ describe("BackgroundRunner widget tests", function()
     requireBackgroundRunner():allowBlockingJobs(false)
   end)
 
+  local function getBackgroundRunner()
+    local widget = requireBackgroundRunner()
+    local i = 1
+    while true do
+      local name, val = debug.getupvalue(widget.init, i)
+      if not name then
+        break
+      end
+      if name == "BackgroundRunner" then
+        return val
+      end
+      i = i + 1
+    end
+  end
+
   it("should start job", function()
     local executed = false
     table.insert(PluginShare.backgroundJobs, {
@@ -934,6 +949,312 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(2, #results)
       assert.are.equal(1, results[2].result)
       assert.is_not_nil(results[2].exception)
+    end
+  )
+
+  it(
+    "should use doubled 2-second timeout threshold for idle function executable",
+    function()
+      PluginShare.DeviceIdling = true
+      finally(function()
+        PluginShare.DeviceIdling = nil
+      end)
+
+      local job_pass = {
+        when = "idle",
+        executable = function()
+          MockTime:increase(1.5)
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job_pass)
+      notifyBackgroundJobsUpdated()
+
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.is_false(job_pass.timeout)
+
+      local job_timeout = {
+        when = "idle",
+        executable = function()
+          MockTime:increase(2.5)
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, job_timeout)
+      notifyBackgroundJobsUpdated()
+
+      MockTime:increase(2)
+      UIManager:handleInput()
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.is_true(job_timeout.timeout)
+    end
+  )
+
+  it(
+    "should return false in BackgroundRunner:_executeJob when job.executable is an invalid type",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      assert.is_false(BackgroundRunner:_executeJob({ executable = 123 }))
+      assert.is_false(BackgroundRunner:_executeJob({ executable = true }))
+      assert.is_false(BackgroundRunner:_executeJob({ executable = {} }))
+      assert.is_false(BackgroundRunner:_executeJob({}))
+    end
+  )
+
+  it(
+    "should return empty string in CommandRunner:_createEnvironment when environment is error, nil, or empty table",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+
+      -- Function that throws an error
+      local error_job = {
+        environment = function()
+          error("environment resolution failure")
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(error_job))
+
+      -- Function that returns nil
+      local nil_job = {
+        environment = function()
+          return nil
+        end,
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(nil_job))
+
+      -- Function that returns an empty table
+      local empty_table_func_job = {
+        environment = function()
+          return {}
+        end,
+      }
+      assert.are.equal(
+        "",
+        CommandRunner:_createEnvironment(empty_table_func_job)
+      )
+
+      -- Literal empty table
+      local empty_table_job = {
+        environment = {},
+      }
+      assert.are.equal("", CommandRunner:_createEnvironment(empty_table_job))
+
+      -- Nil job or nil environment
+      assert.are.equal("", CommandRunner:_createEnvironment({}))
+      assert.are.equal("", CommandRunner:_createEnvironment(nil))
+    end
+  )
+
+  it(
+    "should propagate errors in job.repeated function in BackgroundRunner:_shouldRepeat",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local error_repeat_job = {
+        repeated = function()
+          error("repeated evaluation error")
+        end,
+      }
+      assert.has_error(function()
+        BackgroundRunner:_shouldRepeat(error_repeat_job)
+      end, "repeated evaluation error")
+    end
+  )
+
+  it(
+    "should propagate callback failure in BackgroundRunner:_finishJob",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local error_cb_job = {
+        callback = function()
+          error("callback failure")
+        end,
+      }
+      assert.has_error(function()
+        BackgroundRunner:_finishJob(error_cb_job)
+      end, "callback failure")
+    end
+  )
+
+  it(
+    "should repeat 1 time when repeated is 2 in BackgroundRunner:_shouldRepeat",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local job = { repeated = 2 }
+      -- repeated = 2 specifies 2 total executions (repeats 1 time after the initial run).
+      assert.is_true(BackgroundRunner:_shouldRepeat(job))
+      assert.is_false(BackgroundRunner:_shouldRepeat(job))
+    end
+  )
+
+  it("terminates subprocess if not done when entry:close is called", function()
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local ffiUtil = require("ffi/util")
+    local terminate_called = false
+    local done_blocking_called = false
+
+    local old_runInSubProcess = ffiUtil.runInSubProcess
+    local old_isSubProcessDone = ffiUtil.isSubProcessDone
+    local old_terminateSubProcess = ffiUtil.terminateSubProcess
+
+    ffiUtil.runInSubProcess = function()
+      return 12345, nil
+    end
+
+    ffiUtil.isSubProcessDone = function(pid, blocking)
+      if blocking then
+        done_blocking_called = true
+        return true
+      end
+      return false
+    end
+
+    ffiUtil.terminateSubProcess = function(pid)
+      assert.is_false(done_blocking_called)
+      terminate_called = true
+      return true
+    end
+
+    CommandRunner.running_jobs = {}
+    CommandRunner:start({
+      executable = "fork",
+      action = function() end,
+    })
+    local entry = CommandRunner.running_jobs[#CommandRunner.running_jobs]
+    assert.is_table(entry)
+    entry:close()
+
+    assert.is_true(terminate_called)
+    assert.is_true(done_blocking_called)
+
+    ffiUtil.runInSubProcess = old_runInSubProcess
+    ffiUtil.isSubProcessDone = old_isSubProcessDone
+    ffiUtil.terminateSubProcess = old_terminateSubProcess
+    CommandRunner.running_jobs = {}
+  end)
+
+  it("cleans up running jobs when BackgroundRunnerWidget exits", function()
+    local BackgroundRunnerWidget =
+      require("plugins/backgroundrunner.koplugin/main")
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local ffiUtil = require("ffi/util")
+
+    PluginShare.stopBackgroundRunner = false
+    CommandRunner.running_jobs = {}
+
+    local terminated_pids = {}
+    local old_terminateSubProcess = ffiUtil.terminateSubProcess
+    ffiUtil.terminateSubProcess = function(pid)
+      table.insert(terminated_pids, pid)
+      return true
+    end
+
+    local old_isSubProcessDone = ffiUtil.isSubProcessDone
+    ffiUtil.isSubProcessDone = function(pid, blocking)
+      return true
+    end
+
+    local closed_entries = 0
+    local mock_entry = {
+      pid = 9999,
+      close = function(self)
+        ffiUtil.terminateSubProcess(self.pid)
+        closed_entries = closed_entries + 1
+      end,
+    }
+    table.insert(CommandRunner.running_jobs, mock_entry)
+
+    local widget = BackgroundRunnerWidget:new()
+    assert.is_nil(BackgroundRunnerWidget.onExit)
+    widget:onExitKOReader()
+
+    assert.is_true(PluginShare.stopBackgroundRunner)
+    assert.are.equal(1, #terminated_pids)
+    assert.are.equal(9999, terminated_pids[1])
+    assert.are.equal(1, closed_entries)
+    assert.are.equal(0, #CommandRunner.running_jobs)
+
+    ffiUtil.terminateSubProcess = old_terminateSubProcess
+    ffiUtil.isSubProcessDone = old_isSubProcessDone
+    CommandRunner.running_jobs = {}
+  end)
+
+  it("cleans up running jobs on onRestart event", function()
+    local BackgroundRunnerWidget =
+      require("plugins/backgroundrunner.koplugin/main")
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local ffiUtil = require("ffi/util")
+
+    PluginShare.stopBackgroundRunner = false
+    CommandRunner.running_jobs = {}
+
+    local terminated_pids = {}
+    local old_terminateSubProcess = ffiUtil.terminateSubProcess
+    ffiUtil.terminateSubProcess = function(pid)
+      table.insert(terminated_pids, pid)
+      return true
+    end
+
+    local old_isSubProcessDone = ffiUtil.isSubProcessDone
+    ffiUtil.isSubProcessDone = function(pid, blocking)
+      return true
+    end
+
+    local closed_entries = 0
+    local mock_entry = {
+      pid = 8888,
+      close = function(self)
+        ffiUtil.terminateSubProcess(self.pid)
+        closed_entries = closed_entries + 1
+      end,
+    }
+    table.insert(CommandRunner.running_jobs, mock_entry)
+
+    local widget = BackgroundRunnerWidget:new()
+    assert.is_function(widget.onRestart)
+    widget:onRestart()
+
+    assert.is_true(PluginShare.stopBackgroundRunner)
+    assert.are.equal(1, #terminated_pids)
+    assert.are.equal(8888, terminated_pids[1])
+    assert.are.equal(1, closed_entries)
+    assert.are.equal(0, #CommandRunner.running_jobs)
+
+    ffiUtil.terminateSubProcess = old_terminateSubProcess
+    ffiUtil.isSubProcessDone = old_isSubProcessDone
+    CommandRunner.running_jobs = {}
+  end)
+
+  it(
+    "sets SCHED_IDLE and nice 19 for background subprocess on Linux",
+    function()
+      local ffi = require("ffi")
+      if ffi.os ~= "Linux" then
+        return
+      end
+      local ffiUtil = require("ffi/util")
+      local C = ffi.C
+
+      local pid, rfd = ffiUtil.runInSubProcess(function(child_pid, write_fd)
+        local policy = C.sched_getscheduler(0)
+        local prio = C.getpriority(0, 0)
+        local out = string.format("%d,%d\n", policy, prio)
+        ffiUtil.writeToFD(write_fd, out, true)
+      end, true)
+
+      assert.is_number(pid)
+      local result = ffiUtil.readAllFromFD(rfd)
+      ffiUtil.isSubProcessDone(pid, true)
+
+      assert.is_string(result)
+      local p, pr = result:match("(%d+),(%d+)")
+      assert.are.equal(C.SCHED_IDLE, tonumber(p))
+      assert.are.equal(19, tonumber(pr))
     end
   )
 end)

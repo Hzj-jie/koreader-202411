@@ -84,24 +84,32 @@ describe("ExternalKeyboard main plugin module", function()
       if path:find("ci_hdrc") then
         if mode:find("w") then
           return {
-            write = function(self_f, data) written_files[path] = data end,
+            write = function(self_f, data)
+              written_files[path] = data
+            end,
             close = function() end,
           }
         else
           return {
-            read = function() return "host" end,
+            read = function()
+              return "host"
+            end,
             close = function() end,
           }
         end
       elseif path:find("usbc0") then
         if mode:find("w") then
           return {
-            write = function(self_f, data) written_files[path] = data end,
+            write = function(self_f, data)
+              written_files[path] = data
+            end,
             close = function() end,
           }
         else
           return {
-            read = function() return "usb_device" end,
+            read = function()
+              return "usb_device"
+            end,
             close = function() end,
           }
         end
@@ -113,10 +121,16 @@ describe("ExternalKeyboard main plugin module", function()
     assert.are.equal("device", inst:sunxiGetOTGRole())
 
     inst:chipideaSetOTGRole("device")
-    assert.are.equal("gadget", written_files["/sys/kernel/debug/ci_hdrc.0/role"])
+    assert.are.equal(
+      "gadget",
+      written_files["/sys/kernel/debug/ci_hdrc.0/role"]
+    )
 
     inst:sunxiSetOTGRole("host")
-    assert.are.equal("usb_host", written_files["/sys/devices/platform/soc/usbc0/otg_role"])
+    assert.are.equal(
+      "usb_host",
+      written_files["/sys/devices/platform/soc/usbc0/otg_role"]
+    )
 
     io.open = old_open
   end)
@@ -155,8 +169,12 @@ describe("ExternalKeyboard main plugin module", function()
     })
 
     local set_role
-    inst.getOTGRole = function() return "host" end
-    inst.setOTGRole = function(self_i, r) set_role = r end
+    inst.getOTGRole = function()
+      return "host"
+    end
+    inst.setOTGRole = function(self_i, r)
+      set_role = r
+    end
 
     inst:onExit()
     assert.are.equal("device", set_role)
@@ -221,7 +239,10 @@ describe("ExternalKeyboard main plugin module", function()
     local scheduled = {}
     local orig_schedule = UIManager.scheduleIn
     UIManager.scheduleIn = function(self_uim, delay, func, target, arg)
-      table.insert(scheduled, { delay = delay, func = func, target = target, arg = arg })
+      table.insert(
+        scheduled,
+        { delay = delay, func = func, target = target, arg = arg }
+      )
     end
 
     inst:onEvdevInputInsert("/dev/input/event12")
@@ -232,5 +253,66 @@ describe("ExternalKeyboard main plugin module", function()
     assert.are.equal("/dev/input/event12", scheduled[2].arg)
 
     UIManager.scheduleIn = orig_schedule
+  end)
+
+  describe("Defect verifications", function()
+    it(
+      "closes duplicate event_fd when device path is already registered without closing live device",
+      function()
+        local inst = ExternalKeyboard:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+
+        local closed_paths = {}
+        local orig_input = Device.input
+        Device.input = {
+          fdopen = function()
+            error("fdopen should not be called for already-registered path")
+          end,
+          close = function(self_in, path)
+            closed_paths[path] = true
+          end,
+          event_map = {},
+        }
+
+        local dummy_fd = ffi.C.open("/dev/null", 0)
+        assert.is_true(dummy_fd >= 0)
+
+        finally(function()
+          Device.input = orig_input
+          ExternalKeyboard.keyboard_fds = {}
+          ExternalKeyboard.connected_keyboards = 0
+          ffi.C.close(dummy_fd)
+          while #UIManager._window_stack > 0 do
+            UIManager:close(
+              UIManager._window_stack[#UIManager._window_stack].widget
+            )
+          end
+        end)
+
+        local live_fd = 99
+        ExternalKeyboard.keyboard_fds["/dev/input/event15"] = live_fd
+
+        local kb_data = {
+          event_fd = dummy_fd,
+          event_path = "/dev/input/event15",
+          name = "Defect Keyboard",
+          has_dpad = false,
+        }
+
+        inst:setupKeyboard(kb_data)
+
+        -- Live device should not be closed and keyboard_fds entry stays
+        assert.is_nil(closed_paths["/dev/input/event15"])
+        assert.are.equal(
+          live_fd,
+          ExternalKeyboard.keyboard_fds["/dev/input/event15"]
+        )
+
+        -- Duplicate scan fd must have been closed by C.close
+        assert.are.equal(-1, ffi.C.close(dummy_fd))
+        assert.are.equal(9, ffi.errno())
+      end
+    )
   end)
 end)

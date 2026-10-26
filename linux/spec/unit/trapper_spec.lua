@@ -14,6 +14,7 @@ describe("Trapper module", function()
 
   before_each(function()
     Trapper:reset()
+    Trapper.current_widget = nil
   end)
 
   it("should initialize Trapper module", function()
@@ -195,84 +196,198 @@ describe("Trapper module", function()
       end
     )
 
-    it("should handle dismissal and resume on continue", function()
-      local orig_scheduleIn = UIManager.scheduleIn
-      local orig_show = UIManager.show
+    it(
+      "should handle dismissal and resume on continue with custom paused text",
+      function()
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
 
-      Trapper:wrap(function()
-        Trapper:info("Message 1")
-        local prev_widget = Trapper.current_widget
-
-        -- Intercept scheduleIn to trigger dismiss_callback instead of timeout
-        UIManager.scheduleIn = function(_, delay, callback)
-          prev_widget.dismiss_callback()
-        end
-
-        -- Intercept UIManager.show when ConfirmBox (abort_box) is shown to click 'Continue'
+        local abort_box
         UIManager.show = function(_, widget)
-          if widget.cancel_callback then
-            widget.cancel_callback()
+          if widget.ok_callback and widget.cancel_callback then
+            abort_box = widget
           end
         end
+        UIManager.close = function(_, widget) end
+        UIManager.forceRepaint = function(_) end
+        UIManager.unschedule = function(_, cb) end
 
-        local res = Trapper:info("Message 2")
-        assert.is_true(res)
-      end)
-
-      UIManager.scheduleIn = orig_scheduleIn
-      UIManager.show = orig_show
-    end)
-
-    it("should handle dismissal and abort on ok_callback", function()
-      local orig_scheduleIn = UIManager.scheduleIn
-      local orig_show = UIManager.show
-
-      Trapper:wrap(function()
-        Trapper:info("Message 1")
-        local prev_widget = Trapper.current_widget
-
+        local scheduled_cb
         UIManager.scheduleIn = function(_, delay, callback)
-          prev_widget.dismiss_callback()
+          scheduled_cb = callback
         end
 
+        local res1, res2
+        local first_widget
+        Trapper:wrap(function()
+          Trapper:setPausedText(
+            "Custom Pause",
+            "Custom Abort",
+            "Custom Continue"
+          )
+          res1 = Trapper:info("Step 1")
+          first_widget = Trapper.current_widget
+          res2 = Trapper:info("Step 2")
+        end)
+
+        assert.is_true(res1)
+        assert.is_not_nil(first_widget)
+        assert.is_true(first_widget.is_infomessage)
+        assert.is_not_nil(scheduled_cb)
+
+        -- Dismiss the first InfoMessage
+        first_widget.dismiss_callback()
+
+        assert.is_not_nil(abort_box)
+        assert.are.equal("Custom Pause", abort_box.text)
+        assert.are.equal("Custom Abort", abort_box.ok_text)
+        assert.are.equal("Custom Continue", abort_box.cancel_text)
+
+        -- Tap cancel_callback (Continue)
+        abort_box.cancel_callback()
+
+        assert.is_true(res2)
+        assert.is_not_nil(Trapper.current_widget)
+        assert.are.equal("Step 2", Trapper.current_widget.text)
+      end
+    )
+
+    it(
+      "should handle dismissal and abort on ok_callback closing current widget and abort box",
+      function()
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        local abort_box
+        local closed_widgets = {}
         UIManager.show = function(_, widget)
-          if widget.ok_callback then
-            widget.ok_callback()
+          if widget.ok_callback and widget.cancel_callback then
+            abort_box = widget
           end
         end
+        UIManager.close = function(_, widget)
+          table.insert(closed_widgets, widget)
+        end
+        UIManager.forceRepaint = function(_) end
+        UIManager.unschedule = function(_, cb) end
 
-        local res = Trapper:info("Message 2")
-        assert.is_false(res)
-      end)
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
 
-      UIManager.scheduleIn = orig_scheduleIn
-      UIManager.show = orig_show
-    end)
+        local res1, res2
+        local first_widget
+        Trapper:wrap(function()
+          Trapper:setPausedText(
+            "Custom Pause",
+            "Custom Abort",
+            "Custom Continue"
+          )
+          res1 = Trapper:info("Step 1")
+          first_widget = Trapper.current_widget
+          res2 = Trapper:info("Step 2")
+        end)
 
-    it("should perform fast refresh when fast_refresh is true", function()
-      local Screen = require("device").screen
-      local refresh_spy = spy.on(Screen, "refreshUI")
+        assert.is_true(res1)
+        assert.is_not_nil(first_widget)
+        assert.is_true(first_widget.is_infomessage)
+        assert.is_not_nil(scheduled_cb)
 
-      Trapper:wrap(function()
-        Trapper:info("Initial text")
-        local orig_widget = Trapper.current_widget
-        orig_widget.movable = {
-          getMovedOffset = function()
-            return { x = 0, y = 0 }
-          end,
-          setMovedOffset = function() end,
-        }
-        orig_widget.paintTo = function() end
-        orig_widget[1] = { { dimen = { x = 0, y = 0, w = 10, h = 10 } } }
+        -- Dismiss the first InfoMessage
+        first_widget.dismiss_callback()
 
-        local res = Trapper:info("Refreshed text", true)
-        assert.is_true(res)
-        assert.is_same("Refreshed text", Trapper.current_widget.text)
-        assert.is_same(orig_widget, Trapper.current_widget)
-      end)
+        assert.is_not_nil(abort_box)
+        assert.are.equal("Custom Pause", abort_box.text)
+        assert.are.equal("Custom Abort", abort_box.ok_text)
+        assert.are.equal("Custom Continue", abort_box.cancel_text)
 
-      refresh_spy:revert()
-    end)
+        -- Tap ok_callback (Abort)
+        abort_box.ok_callback()
+
+        assert.is_false(res2)
+        local closed_abort = false
+        local closed_info = false
+        for _, w in ipairs(closed_widgets) do
+          if w == abort_box then
+            closed_abort = true
+          end
+          if w == first_widget then
+            closed_info = true
+          end
+        end
+        assert.is_true(closed_abort)
+        assert.is_true(closed_info)
+      end
+    )
+
+    it(
+      "should perform fast refresh when fast_refresh is true and resumed via go_on_func",
+      function()
+        local Screen = require("device").screen
+        local refresh_spy = spy.on(Screen, "refreshUI")
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          refresh_spy:revert()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
+        UIManager.forceRepaint = function(_) end
+
+        local res1, res2
+        Trapper:wrap(function()
+          res1 = Trapper:info("Initial")
+          res2 = Trapper:info("Updated Fast", true)
+        end)
+
+        assert.is_true(res1)
+        assert.is_not_nil(scheduled_cb)
+
+        -- Resume coroutine past yield via go_on_func
+        scheduled_cb()
+
+        assert.is_true(res2)
+        assert.is_not_nil(Trapper.current_widget)
+        assert.are.equal("Updated Fast", Trapper.current_widget.text)
+        assert.spy(refresh_spy).was.called()
+      end
+    )
   end)
 
   describe("confirm method", function()
@@ -669,7 +784,8 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
         custom_widget.dismiss_callback()
       end
 
-      local ok, out = Trapper:dismissablePopen("echo 'dismissed'", custom_widget)
+      local ok, out =
+        Trapper:dismissablePopen("echo 'dismissed'", custom_widget)
       assert.is_false(ok)
       assert.is_nil(out)
     end)
@@ -677,120 +793,282 @@ describe("Trapper confirmation, pause, and popen edge cases", function()
     UIManager.scheduleIn = orig_scheduleIn
   end)
 
-  it("should handle dismissableRunInSubprocess with various return types and warnings", function()
-    local orig_scheduleIn = UIManager.scheduleIn
-    local orig_runInSubProcess = ffiutil.runInSubProcess
-    local orig_readAllFromFD = ffiutil.readAllFromFD
-    local orig_isSubProcessDone = ffiutil.isSubProcessDone
-    local orig_getNonBlockingReadSize = ffiutil.getNonBlockingReadSize
+  it(
+    "should handle dismissableRunInSubprocess with various return types and warnings",
+    function()
+      local orig_scheduleIn = UIManager.scheduleIn
+      local orig_runInSubProcess = ffiutil.runInSubProcess
+      local orig_readAllFromFD = ffiutil.readAllFromFD
+      local orig_isSubProcessDone = ffiutil.isSubProcessDone
+      local orig_getNonBlockingReadSize = ffiutil.getNonBlockingReadSize
 
-    -- 1. Task returning non-string when task_returns_simple_string is true
-    Trapper:wrap(function()
-      UIManager.scheduleIn = function(_, delay, cb) cb() end
-      local ok, res = Trapper:dismissableRunInSubprocess(function()
-        return 12345 -- not a string
-      end, "Checking...", true)
-      assert.is_true(ok)
-    end)
+      -- 1. Task returning non-string when task_returns_simple_string is true
+      Trapper:wrap(function()
+        UIManager.scheduleIn = function(_, delay, cb)
+          cb()
+        end
+        local ok, res = Trapper:dismissableRunInSubprocess(function()
+          return 12345 -- not a string
+        end, "Checking...", true)
+        assert.is_true(ok)
+      end)
 
-    -- 2. Task returning non-serializable object (e.g. function)
-    Trapper:wrap(function()
-      UIManager.scheduleIn = function(_, delay, cb) cb() end
-      local ok, res = Trapper:dismissableRunInSubprocess(function()
-        return function() end -- not serializable
-      end, "Checking...", false)
-      assert.is_true(ok)
-    end)
+      -- 2. Task returning non-serializable object (e.g. function)
+      Trapper:wrap(function()
+        UIManager.scheduleIn = function(_, delay, cb)
+          cb()
+        end
+        local ok, res = Trapper:dismissableRunInSubprocess(function()
+          return function() end -- not serializable
+        end, "Checking...", false)
+        assert.is_true(ok)
+      end)
 
-    -- 3. Subprocess done without output
-    Trapper:wrap(function()
-      UIManager.scheduleIn = function(_, delay, cb) cb() end
-      ffiutil.isSubProcessDone = function() return true end
-      ffiutil.getNonBlockingReadSize = function() return 0 end
-      ffiutil.readAllFromFD = function() return "" end
+      -- 3. Subprocess done without output
+      Trapper:wrap(function()
+        UIManager.scheduleIn = function(_, delay, cb)
+          cb()
+        end
+        ffiutil.isSubProcessDone = function()
+          return true
+        end
+        ffiutil.getNonBlockingReadSize = function()
+          return 0
+        end
+        ffiutil.readAllFromFD = function()
+          return ""
+        end
 
-      local ok, res = Trapper:dismissableRunInSubprocess(function() end, false, true)
-      assert.is_true(ok)
-      assert.is_nil(res)
-    end)
+        local ok, res = Trapper:dismissableRunInSubprocess(
+          function() end,
+          false,
+          true
+        )
+        assert.is_true(ok)
+        assert.is_nil(res)
+      end)
 
-    -- 4. Malformed serialized data handling
-    Trapper:wrap(function()
-      UIManager.scheduleIn = function(_, delay, cb) cb() end
-      ffiutil.isSubProcessDone = function() return true end
-      ffiutil.getNonBlockingReadSize = function() return 10 end
-      ffiutil.readAllFromFD = function() return "not_valid_msgpack_binary" end
+      -- 4. Malformed serialized data handling
+      Trapper:wrap(function()
+        UIManager.scheduleIn = function(_, delay, cb)
+          cb()
+        end
+        ffiutil.isSubProcessDone = function()
+          return true
+        end
+        ffiutil.getNonBlockingReadSize = function()
+          return 10
+        end
+        ffiutil.readAllFromFD = function()
+          return "not_valid_msgpack_binary"
+        end
 
-      local ok, res = Trapper:dismissableRunInSubprocess(function() end, false, false)
-      assert.is_true(ok)
-      assert.is_nil(res)
-    end)
+        local ok, res = Trapper:dismissableRunInSubprocess(
+          function() end,
+          false,
+          false
+        )
+        assert.is_true(ok)
+        assert.is_nil(res)
+      end)
 
-    -- 5. Subprocess output read while process still alive (scheduled cleanup)
-    Trapper:wrap(function()
-      local done_state = false
-      local cleanup_cb
-      UIManager.scheduleIn = function(_, delay, cb)
-        cleanup_cb = cb
-        cb()
+      -- 5. Subprocess output read while process still alive (scheduled cleanup)
+      Trapper:wrap(function()
+        local done_state = false
+        local cleanup_cb
+        UIManager.scheduleIn = function(_, delay, cb)
+          cleanup_cb = cb
+          cb()
+        end
+        ffiutil.isSubProcessDone = function()
+          return done_state
+        end
+        ffiutil.getNonBlockingReadSize = function()
+          return 5
+        end
+        ffiutil.readAllFromFD = function()
+          return buffer.encode({ "hello" })
+        end
+
+        local ok, res = Trapper:dismissableRunInSubprocess(function()
+          return "hello"
+        end, false, false)
+        assert.is_true(ok)
+        assert.are_equal("hello", res)
+
+        -- Trigger cleanup callback while still alive, then when done
+        if cleanup_cb then
+          cleanup_cb()
+          done_state = true
+          cleanup_cb()
+        end
+      end)
+
+      -- 6. Dismissed subprocess collect_and_clean callback
+      Trapper:wrap(function()
+        local custom_widget = {}
+        local cleanup_cb
+        UIManager.scheduleIn = function(_, delay, cb)
+          cleanup_cb = cb
+        end
+
+        -- Trigger dismissal
+        local old_term = ffiutil.terminateSubProcess
+        ffiutil.terminateSubProcess = function() end
+
+        -- Yield and trigger dismiss_callback
+        local co = coroutine.running()
+        UIManager.scheduleIn = function(_, delay, cb)
+          custom_widget.dismiss_callback()
+        end
+
+        local ok, res = Trapper:dismissableRunInSubprocess(function()
+          return "x"
+        end, custom_widget, true)
+        assert.is_false(ok)
+
+        -- Run collect_and_clean branches
+        ffiutil.isSubProcessDone = function()
+          return false
+        end
+        ffiutil.getNonBlockingReadSize = function()
+          return 1
+        end
+        if cleanup_cb then
+          cleanup_cb()
+        end
+        ffiutil.isSubProcessDone = function()
+          return true
+        end
+        if cleanup_cb then
+          cleanup_cb()
+        end
+
+        ffiutil.terminateSubProcess = old_term
+      end)
+
+      ffiutil.isSubProcessDone = orig_isSubProcessDone
+      ffiutil.getNonBlockingReadSize = orig_getNonBlockingReadSize
+      ffiutil.readAllFromFD = orig_readAllFromFD
+      ffiutil.runInSubProcess = orig_runInSubProcess
+      UIManager.scheduleIn = orig_scheduleIn
+    end
+  )
+
+  describe("Defect verifications", function()
+    it(
+      "should ensure Trapper.current_widget is cleared after user abort",
+      function()
+        local orig_scheduleIn = UIManager.scheduleIn
+        local orig_unschedule = UIManager.unschedule
+        local orig_show = UIManager.show
+        local orig_close = UIManager.close
+        local orig_forceRepaint = UIManager.forceRepaint
+        finally(function()
+          UIManager.scheduleIn = orig_scheduleIn
+          UIManager.unschedule = orig_unschedule
+          UIManager.show = orig_show
+          UIManager.close = orig_close
+          UIManager.forceRepaint = orig_forceRepaint
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        local abort_box
+        UIManager.show = function(_, widget)
+          if widget.ok_callback and widget.cancel_callback then
+            abort_box = widget
+          end
+        end
+        UIManager.close = function(_, widget) end
+        UIManager.forceRepaint = function(_) end
+        UIManager.unschedule = function(_, cb) end
+
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
+
+        Trapper:reset()
+        Trapper.current_widget = nil
+
+        local first_widget
+        local res1, res2
+        local current_after_abort
+        Trapper:wrap(function()
+          res1 = Trapper:info("Step 1")
+          first_widget = Trapper.current_widget
+          res2 = Trapper:info("Step 2")
+          current_after_abort = Trapper.current_widget
+        end)
+
+        assert.is_true(res1)
+        assert.is_not_nil(first_widget)
+        assert.is_not_nil(scheduled_cb)
+
+        first_widget.dismiss_callback()
+        assert.is_not_nil(abort_box)
+        abort_box.ok_callback()
+
+        assert.is_false(res2)
+        assert.is_nil(current_after_abort)
       end
-      ffiutil.isSubProcessDone = function()
-        return done_state
+    )
+
+    it(
+      "should ensure dismissableRunInSubprocess returns nil when subprocess exits with no output",
+      function()
+        local ffiutil = require("ffi/util")
+        local orig_isSubProcessDone = ffiutil.isSubProcessDone
+        local orig_getNonBlockingReadSize = ffiutil.getNonBlockingReadSize
+        local orig_readAllFromFD = ffiutil.readAllFromFD
+        local orig_runInSubProcess = ffiutil.runInSubProcess
+        local orig_scheduleIn = UIManager.scheduleIn
+
+        finally(function()
+          ffiutil.isSubProcessDone = orig_isSubProcessDone
+          ffiutil.getNonBlockingReadSize = orig_getNonBlockingReadSize
+          ffiutil.readAllFromFD = orig_readAllFromFD
+          ffiutil.runInSubProcess = orig_runInSubProcess
+          UIManager.scheduleIn = orig_scheduleIn
+          Trapper:clear()
+          Trapper:reset()
+        end)
+
+        ffiutil.runInSubProcess = function()
+          return 1234
+        end
+        ffiutil.isSubProcessDone = function()
+          return true
+        end
+        ffiutil.getNonBlockingReadSize = function()
+          return 0
+        end
+        ffiutil.readAllFromFD = function()
+          return ""
+        end
+
+        local scheduled_cb
+        UIManager.scheduleIn = function(_, delay, callback)
+          scheduled_cb = callback
+        end
+
+        Trapper:reset()
+        Trapper.current_widget = nil
+
+        local ok, res
+        Trapper:wrap(function()
+          ok, res = Trapper:dismissableRunInSubprocess(function()
+            return ""
+          end, false, true)
+        end)
+
+        assert.is_not_nil(scheduled_cb)
+        scheduled_cb()
+
+        assert.is_true(ok)
+        assert.is_nil(res)
       end
-      ffiutil.getNonBlockingReadSize = function() return 5 end
-      ffiutil.readAllFromFD = function() return buffer.encode({ "hello" }) end
-
-      local ok, res = Trapper:dismissableRunInSubprocess(function() return "hello" end, false, false)
-      assert.is_true(ok)
-      assert.are_equal("hello", res)
-
-      -- Trigger cleanup callback while still alive, then when done
-      if cleanup_cb then
-        cleanup_cb()
-        done_state = true
-        cleanup_cb()
-      end
-    end)
-
-    -- 6. Dismissed subprocess collect_and_clean callback
-    Trapper:wrap(function()
-      local custom_widget = {}
-      local cleanup_cb
-      UIManager.scheduleIn = function(_, delay, cb)
-        cleanup_cb = cb
-      end
-
-      -- Trigger dismissal
-      local old_term = ffiutil.terminateSubProcess
-      ffiutil.terminateSubProcess = function() end
-
-      -- Yield and trigger dismiss_callback
-      local co = coroutine.running()
-      UIManager.scheduleIn = function(_, delay, cb)
-        custom_widget.dismiss_callback()
-      end
-
-      local ok, res = Trapper:dismissableRunInSubprocess(function() return "x" end, custom_widget, true)
-      assert.is_false(ok)
-
-      -- Run collect_and_clean branches
-      ffiutil.isSubProcessDone = function() return false end
-      ffiutil.getNonBlockingReadSize = function() return 1 end
-      if cleanup_cb then
-        cleanup_cb()
-      end
-      ffiutil.isSubProcessDone = function() return true end
-      if cleanup_cb then
-        cleanup_cb()
-      end
-
-      ffiutil.terminateSubProcess = old_term
-    end)
-
-    ffiutil.isSubProcessDone = orig_isSubProcessDone
-    ffiutil.getNonBlockingReadSize = orig_getNonBlockingReadSize
-    ffiutil.readAllFromFD = orig_readAllFromFD
-    ffiutil.runInSubProcess = orig_runInSubProcess
-    UIManager.scheduleIn = orig_scheduleIn
+    )
   end)
 end)

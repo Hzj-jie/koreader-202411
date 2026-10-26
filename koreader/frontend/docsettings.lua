@@ -80,7 +80,11 @@ local function getFallbackStatus(cand)
 end
 
 function DocSettings.getSidecarFilename(doc_path)
-  local suffix = doc_path:match(".*%.(.+)") or "_"
+  local _, filename = util.splitFilePathName(doc_path)
+  local _, suffix = util.splitFileNameSuffix(filename)
+  if suffix == "" then
+    suffix = "_"
+  end
   return "metadata." .. suffix .. ".lua"
 end
 
@@ -142,7 +146,9 @@ local function getCandidates(doc_path)
     return {}
   end
 
-  local stem = doc_path:match("(.*)%.") or doc_path -- file path without the last suffix
+  local dir, filename = util.splitFilePathName(doc_path)
+  local stem_name = util.splitFileNameSuffix(filename)
+  local stem = dir .. stem_name
   local sidecar_filename = DocSettings.getSidecarFilename(doc_path)
 
   local doc_dir = stem .. ".sdr"
@@ -584,7 +590,7 @@ end
 
 -- custom section
 
-function DocSettings:_getCustomLocationCandidate(doc_path)
+function DocSettings:getCustomLocationCandidate(doc_path)
   local sidecar_cand = self:_findSidecarFile(doc_path)
   if
     sidecar_cand
@@ -642,7 +648,7 @@ function DocSettings:flushCustomCover(doc_path, image_file)
     logger.warn("Skipping custom cover flush in monkey test mode.")
     return
   end
-  local cand = self:_getCustomLocationCandidate(doc_path)
+  local cand = self:getCustomLocationCandidate(doc_path)
   local reason = getFallbackStatus(cand)
   if reason == "readonly" then
     showInfoMessage(
@@ -702,7 +708,7 @@ function DocSettings:getCustomMetadataFile(reset_cache)
 end
 
 function DocSettings:flushCustomMetadata(doc_path)
-  local cand = self:_getCustomLocationCandidate(doc_path)
+  local cand = self:getCustomLocationCandidate(doc_path)
   local reason = getFallbackStatus(cand)
   if reason == "readonly" then
     showInfoMessage(

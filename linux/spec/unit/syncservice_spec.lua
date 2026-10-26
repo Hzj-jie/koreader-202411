@@ -8,6 +8,7 @@ describe("SyncService", function()
   local mock_uimanager
   local original_os_remove
   local gettext_called_with
+  local mock_cs_servers
 
   setup(function()
     require("commonrequire")
@@ -30,6 +31,9 @@ describe("SyncService", function()
       getSettingsDir = function()
         return "/tmp"
       end,
+      getTmpDir = function()
+        return "/tmp"
+      end,
     }
     package.loaded["ui/font"] = {
       getFace = function()
@@ -41,10 +45,14 @@ describe("SyncService", function()
         return args
       end,
     }
+    mock_cs_servers = {}
     package.loaded["luasettings"] = {
       open = function(_, _path)
         return {
-          readTableRef = function(_, _key)
+          readTableRef = function(_, key)
+            if key == "cs_servers" then
+              return mock_cs_servers
+            end
             return {}
           end,
         }
@@ -53,13 +61,25 @@ describe("SyncService", function()
 
     -- Simple Mock Widget / Menu
     local Widget = {
+      init = function(self) end,
+      new = function(self, o)
+        o = o or {}
+        setmetatable(o, self)
+        self.__index = self
+        if o.init then
+          o:init()
+        end
+        return o
+      end,
       extend = function(self, props)
         local class = {}
         for k, v in pairs(props or {}) do
           class[k] = v
         end
-        class.init = function(self) end
-        class.showWidget = function(self, widget, ...)
+        setmetatable(class, self)
+        self.__index = self
+        class.init = function(self_inst) end
+        class.showWidget = function(self_inst, widget, ...)
           require("ui/uimanager"):show(widget, ...)
         end
         return class
@@ -238,6 +258,8 @@ describe("SyncService", function()
     package.loaded["gettext"] = nil
     package.loaded["apps/cloudstorage/dropboxapi"] = nil
     package.loaded["apps/cloudstorage/webdavapi"] = nil
+    package.loaded["ui/downloadmgr"] = nil
+    package.loaded["apps/cloudstorage/cloudstorage"] = nil
     package.loaded["logger"] = nil
   end)
 
@@ -288,6 +310,17 @@ describe("SyncService", function()
       SyncService.removeLastSyncDB("/path/to/file")
       assert.are.equal(1, #mock_os.removed_files)
       assert.are.equal("/path/to/file.sync", mock_os.removed_files[1])
+    end)
+  end)
+
+  describe("notFound", function()
+    it("treats 404 and 409 as a missing remote file", function()
+      assert.is_true(SyncService.notFound(404))
+      assert.is_true(SyncService.notFound(409))
+    end)
+
+    it("does not treat 200 as a missing remote file", function()
+      assert.is_false(SyncService.notFound(200))
     end)
   end)
 
@@ -357,15 +390,12 @@ describe("SyncService", function()
         assert.is_true(mock_dropbox_api.downloadFile_called)
         assert.are.equal("/books/book.epub", mock_dropbox_api.download_path)
         assert.are.equal("mypasstoken", mock_dropbox_api.download_token)
-        assert.are.equal(
-          "/path/to/book.epub.temp",
-          mock_dropbox_api.download_dest
-        )
+        assert.are.equal("/tmp/book.epub.temp", mock_dropbox_api.download_dest)
 
         assert.is_true(cb_called)
         assert.are.equal("/path/to/book.epub", cb_args[1])
         assert.are.equal("/path/to/book.epub.sync", cb_args[2])
-        assert.are.equal("/path/to/book.epub.temp", cb_args[3])
+        assert.are.equal("/tmp/book.epub.temp", cb_args[3])
 
         assert.is_true(mock_dropbox_api.uploadFile_called)
         assert.are.equal("/books", mock_dropbox_api.upload_url_base)
@@ -379,8 +409,8 @@ describe("SyncService", function()
         -- And at the end: `os.remove(income_file_path)` again.
         -- Also `os.remove(cached_file_path)` before copy.
         local expected_removed = {
-          "/path/to/book.epub.temp", -- start of loop
-          "/path/to/book.epub.temp", -- end of function
+          "/tmp/book.epub.temp", -- start of loop
+          "/tmp/book.epub.temp", -- end of function
           "/path/to/book.epub.sync", -- before copying to cached
         }
         assert.are.equal(#expected_removed, #mock_os.removed_files)
@@ -500,15 +530,12 @@ describe("SyncService", function()
         )
         assert.are.equal("davuser", mock_webdav_api.download_username)
         assert.are.equal("davpassword", mock_webdav_api.download_password)
-        assert.are.equal(
-          "/path/to/book.epub.temp",
-          mock_webdav_api.download_dest
-        )
+        assert.are.equal("/tmp/book.epub.temp", mock_webdav_api.download_dest)
 
         assert.is_true(cb_called)
         assert.are.equal("/path/to/book.epub", cb_args[1])
         assert.are.equal("/path/to/book.epub.sync", cb_args[2])
-        assert.are.equal("/path/to/book.epub.temp", cb_args[3])
+        assert.are.equal("/tmp/book.epub.temp", cb_args[3])
 
         assert.is_true(mock_webdav_api.uploadFile_called)
         assert.are.equal(
@@ -523,5 +550,484 @@ describe("SyncService", function()
         assert.is_true(mock_ffiutil.copyFile_called)
       end)
     end)
+
+    describe("exec exits and finish_cb contract", function()
+      local server
+      before_each(function()
+        server = {
+          type = "dropbox",
+          url = "/books",
+          password = "mypasstoken",
+          address = "",
+        }
+      end)
+
+      it("Wrong server type -> false, shows 'Wrong server type.'", function()
+        local wrong_server = { type = "unknown" }
+        local finish_res
+        local ret = SyncService.sync(
+          wrong_server,
+          "/path/to/file",
+          function() end,
+          false,
+          function(res)
+            finish_res = res
+          end
+        )
+        assert.is_nil(ret)
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("Wrong server type.", mock_uimanager.shown_widget.text)
+      end)
+
+      it(
+        "Download fails (e.g. 500) -> false, generic message, sync_cb not called",
+        function()
+          mock_dropbox_api.download_code = 500
+          local cb_called = false
+          local finish_res
+          local ret = SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              cb_called = true
+              return true
+            end,
+            false,
+            function(res)
+              finish_res = res
+            end
+          )
+          assert.is_nil(ret)
+          mock_network_mgr.cb()
+          assert.is_false(cb_called)
+          assert.is_false(finish_res)
+          assert.truthy(mock_uimanager.shown_widget)
+          assert.are.equal(
+            "Something went wrong when syncing, please check your network connection and try again later.",
+            mock_uimanager.shown_widget.text
+          )
+          local expected_removed = {
+            "/tmp/book.epub.temp",
+            "/tmp/book.epub.temp",
+          }
+          assert.are.equal(#expected_removed, #mock_os.removed_files)
+          for i, path in ipairs(expected_removed) do
+            assert.are.equal(path, mock_os.removed_files[i])
+          end
+        end
+      )
+
+      it(
+        "Dropbox 409 or 404 on download -> sync_cb is called with code, file treated as missing",
+        function()
+          for _, code in ipairs({ 409, 404 }) do
+            mock_dropbox_api.download_code = code
+            local cb_called = false
+            local received_code
+            local finish_res
+            SyncService.sync(
+              server,
+              "/path/to/book.epub",
+              function(file, cached, income, resp_code)
+                cb_called = true
+                received_code = resp_code
+                return nil
+              end,
+              false,
+              function(res)
+                finish_res = res
+              end
+            )
+            mock_network_mgr.cb()
+            assert.is_true(cb_called)
+            assert.are.equal(code, received_code)
+            assert.is_nil(finish_res)
+          end
+        end
+      )
+
+      it(
+        "sync_cb raises -> false, generic message, income temp file removed",
+        function()
+          local finish_res
+          SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              error("simulated callback crash")
+            end,
+            false,
+            function(res)
+              finish_res = res
+            end
+          )
+          mock_network_mgr.cb()
+          assert.is_false(finish_res)
+          assert.truthy(mock_uimanager.shown_widget)
+          assert.are.equal(
+            "Something went wrong when syncing, please check your network connection and try again later.",
+            mock_uimanager.shown_widget.text
+          )
+          local expected_removed = {
+            "/tmp/book.epub.temp",
+            "/tmp/book.epub.temp",
+          }
+          assert.are.equal(#expected_removed, #mock_os.removed_files)
+          for i, path in ipairs(expected_removed) do
+            assert.are.equal(path, mock_os.removed_files[i])
+          end
+        end
+      )
+
+      it(
+        "sync_cb returns nil -> nil, no message, no upload, income temp file removed",
+        function()
+          local finish_res = "unset"
+          SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              return nil
+            end,
+            false,
+            function(res)
+              finish_res = res
+            end
+          )
+          mock_network_mgr.cb()
+          assert.is_nil(finish_res)
+          assert.is_nil(mock_uimanager.shown_widget)
+          assert.is_false(mock_dropbox_api.uploadFile_called)
+          local expected_removed = {
+            "/tmp/book.epub.temp",
+            "/tmp/book.epub.temp",
+          }
+          assert.are.equal(#expected_removed, #mock_os.removed_files)
+          for i, path in ipairs(expected_removed) do
+            assert.are.equal(path, mock_os.removed_files[i])
+          end
+        end
+      )
+
+      it(
+        "sync_cb returns false -> false, generic message, no upload",
+        function()
+          local finish_res
+          SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              return false
+            end,
+            false,
+            function(res)
+              finish_res = res
+            end
+          )
+          mock_network_mgr.cb()
+          assert.is_false(finish_res)
+          assert.truthy(mock_uimanager.shown_widget)
+          assert.are.equal(
+            "Something went wrong when syncing, please check your network connection and try again later.",
+            mock_uimanager.shown_widget.text
+          )
+          assert.is_false(mock_dropbox_api.uploadFile_called)
+        end
+      )
+
+      it(
+        "Upload 2xx -> true, 'Successfully synchronized.' shown, .sync copy written",
+        function()
+          mock_dropbox_api.upload_code = 200
+          local finish_res
+          local ret = SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              return true
+            end,
+            false,
+            function(res)
+              finish_res = res
+            end
+          )
+          assert.is_nil(ret)
+          mock_network_mgr.cb()
+          assert.is_true(finish_res)
+          assert.truthy(mock_uimanager.shown_widget)
+          assert.are.equal(
+            "Successfully synchronized.",
+            mock_uimanager.shown_widget.text
+          )
+          assert.is_true(mock_ffiutil.copyFile_called)
+          assert.are.equal("/path/to/book.epub.sync", mock_ffiutil.copy_dest)
+        end
+      )
+
+      it("Upload fails -> false, generic message, .sync untouched", function()
+        mock_dropbox_api.upload_code = 500
+        local finish_res
+        SyncService.sync(
+          server,
+          "/path/to/book.epub",
+          function()
+            return true
+          end,
+          false,
+          function(res)
+            finish_res = res
+          end
+        )
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+        assert.is_false(mock_ffiutil.copyFile_called)
+      end)
+
+      it(
+        "is_silent = true: sync_cb returns false or the upload fails -> still false, no message",
+        function()
+          -- sync_cb returns false
+          local finish_res6
+          SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              return false
+            end,
+            true,
+            function(res)
+              finish_res6 = res
+            end
+          )
+          mock_network_mgr.cb()
+          assert.is_false(finish_res6)
+          assert.is_nil(mock_uimanager.shown_widget)
+
+          -- The upload fails
+          mock_dropbox_api.upload_code = 500
+          local finish_res8
+          SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              return true
+            end,
+            true,
+            function(res)
+              finish_res8 = res
+            end
+          )
+          mock_network_mgr.cb()
+          assert.is_false(finish_res8)
+          assert.is_nil(mock_uimanager.shown_widget)
+        end
+      )
+
+      it(
+        "No finish_cb passed -> nothing errors, so the statistics caller still works",
+        function()
+          assert.has_no.errors(function()
+            SyncService.sync(server, "/path/to/book.epub", function()
+              return true
+            end, false)
+            mock_network_mgr.cb()
+          end)
+          assert.truthy(mock_uimanager.shown_widget)
+          assert.are.equal(
+            "Successfully synchronized.",
+            mock_uimanager.shown_widget.text
+          )
+        end
+      )
+
+      it(
+        "Postponed (runWhenOnline / runWhenConnected queue callback) -> finish_cb runs once when callback fires",
+        function()
+          local finish_count = 0
+          local finish_res = nil
+          local ret = SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              return true
+            end,
+            false,
+            function(res)
+              finish_count = finish_count + 1
+              finish_res = res
+            end
+          )
+          assert.is_nil(ret)
+          assert.are.equal(0, finish_count)
+          assert.is_nil(finish_res)
+
+          mock_network_mgr.cb()
+          assert.are.equal(1, finish_count)
+          assert.is_true(finish_res)
+        end
+      )
+    end)
+  end)
+
+  describe("init and generateItemTable", function()
+    it(
+      "should handle empty or unsupported cs_servers list with only Add service item",
+      function()
+        mock_cs_servers = {
+          { name = "FTP", type = "ftp" },
+        }
+
+        local inst = SyncService:new()
+
+        assert.are.equal(800, inst.width)
+        assert.are.equal(600, inst.height)
+        assert.are.equal(1, #inst.item_table)
+        assert.are.equal("Add service", inst.item_table[1].text)
+        assert.is_true(inst.item_table[1].bold)
+        assert.is_true(inst.item_table[1].keep_menu_open)
+
+        for _, item in ipairs(inst.item_table) do
+          assert.are_not.equal("Choose cloud service:", item.text)
+        end
+      end
+    )
+
+    it(
+      "should generate items for dropbox and webdav and invoke DownloadMgr callback",
+      function()
+        local dropbox_server = {
+          name = "My Dropbox",
+          type = "dropbox",
+          address = "app_key",
+          password = "tok",
+          url = "/old",
+        }
+        local webdav_server = {
+          name = "My WebDAV",
+          type = "webdav",
+          address = "https://dav.example.com",
+          username = "u",
+          password = "p",
+          url = "/dav",
+        }
+        mock_cs_servers = {
+          dropbox_server,
+          webdav_server,
+          { name = "Ignored FTP", type = "ftp" },
+        }
+
+        local captured_opts = nil
+        local choose_cloud_dir_called = false
+        package.loaded["ui/downloadmgr"] = {
+          new = function(self, opts)
+            captured_opts = opts
+            return {
+              chooseCloudDir = function()
+                choose_cloud_dir_called = true
+              end,
+            }
+          end,
+        }
+
+        local confirmed_server = nil
+        local exit_called = false
+        local inst = SyncService:new({
+          onConfirm = function(server)
+            confirmed_server = server
+          end,
+          onExit = function()
+            exit_called = true
+          end,
+        })
+
+        local items = inst.item_table
+        assert.are.equal(4, #items)
+        assert.are.equal("Choose cloud service:", items[1].text)
+        assert.is_true(items[1].bold)
+
+        assert.are.equal("My Dropbox", items[2].text)
+        assert.are.equal("Dropbox", items[2].mandatory)
+        assert.are.equal("dropbox", items[2].type)
+
+        assert.are.equal("My WebDAV", items[3].text)
+        assert.are.equal("WebDAV", items[3].mandatory)
+        assert.are.equal("webdav", items[3].type)
+
+        assert.are.equal("Add service", items[4].text)
+        assert.is_true(items[4].bold)
+        assert.is_true(items[4].keep_menu_open)
+
+        items[2].callback()
+
+        assert.is_true(choose_cloud_dir_called)
+        assert.are.equal(items[2], captured_opts.item)
+
+        captured_opts.onConfirm("/new/cloud/dir")
+        assert.are.equal("/new/cloud/dir", dropbox_server.url)
+        assert.are.equal(dropbox_server, confirmed_server)
+        assert.is_true(exit_called)
+      end
+    )
+
+    it(
+      "should handle Add service item callback and refresh menu on CloudStorage onExit",
+      function()
+        mock_cs_servers = {}
+
+        local orig_onexit_called_with = nil
+        local mock_cloud_storage = {
+          onExit = function(this)
+            orig_onexit_called_with = this
+          end,
+        }
+        package.loaded["apps/cloudstorage/cloudstorage"] = {
+          new = function()
+            return mock_cloud_storage
+          end,
+        }
+
+        local switched_title = false
+        local switched_table = nil
+        local inst = SyncService:new()
+        inst.switchItemTable = function(self, title, new_table)
+          switched_title = title
+          switched_table = new_table
+        end
+
+        local add_item = inst.item_table[1]
+        assert.are.equal("Add service", add_item.text)
+        assert.is_true(add_item.keep_menu_open)
+
+        add_item.callback()
+
+        assert.are.equal(mock_cloud_storage, mock_uimanager.shown_widget)
+
+        -- Update mock_cs_servers before onExit to verify freshly generated item table
+        table.insert(mock_cs_servers, {
+          name = "New Dropbox",
+          type = "dropbox",
+          address = "k",
+          password = "p",
+          url = "/",
+        })
+
+        mock_cloud_storage:onExit()
+
+        assert.are.equal(mock_cloud_storage, orig_onexit_called_with)
+        assert.is_nil(switched_title)
+        assert.is_table(switched_table)
+        assert.are.equal(3, #switched_table)
+        assert.are.equal("Choose cloud service:", switched_table[1].text)
+        assert.are.equal("New Dropbox", switched_table[2].text)
+        assert.are.equal("Add service", switched_table[3].text)
+      end
+    )
   end)
 end)

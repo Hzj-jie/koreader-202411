@@ -318,6 +318,7 @@ describe("gesturedetector module", function()
       assert.is_equal("double_tap", g_up2[1].ges)
       assert.is_equal(105, g_up2[1].pos.x)
       assert.is_equal(105, g_up2[1].pos.y)
+      assert.is_equal(0, #timeouts)
     end)
 
     it("emits single tap when double_tap timer expires", function()
@@ -350,7 +351,26 @@ describe("gesturedetector module", function()
         { slot = 0, id = -1, x = 102, y = 102, timev = 1040 },
       })
       assert.is_equal(0, #g2)
+      assert.is_equal(0, #timeouts)
     end)
+
+    it(
+      "filters out bounced taps and clears pending hold timer when double tap is enabled",
+      function()
+        local gd = createGD(false, 100)
+        gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = 1000 } })
+        gd:feedEvent({ { slot = 0, id = -1, x = 100, y = 100, timev = 1010 } })
+        -- Bounced tap arrives 20ms later
+        gd:feedEvent({ { slot = 0, id = 2, x = 102, y = 102, timev = 1030 } })
+        local g2 = gd:feedEvent({
+          { slot = 0, id = -1, x = 102, y = 102, timev = 1040 },
+        })
+        assert.is_equal(0, #g2)
+        for _, t in ipairs(timeouts) do
+          assert.are_not.equal("hold", t.gesture)
+        end
+      end
+    )
   end)
 
   describe("Hold & Hold Pan Gestures", function()
@@ -453,9 +473,17 @@ describe("gesturedetector module", function()
       function()
         local time = require("ui/time")
         local gd = createGD()
-        gd:feedEvent({ { slot = 0, id = 1, x = 100, y = 100, timev = time.s(1) } })
+        gd:feedEvent({
+          { slot = 0, id = 1, x = 100, y = 100, timev = time.s(1) },
+        })
         local g_pan = gd:feedEvent({
-          { slot = 0, id = 1, x = 160, y = 100, timev = time.s(1) + time.ms(100) },
+          {
+            slot = 0,
+            id = 1,
+            x = 160,
+            y = 100,
+            timev = time.s(1) + time.ms(100),
+          },
         })
         assert.is_equal(1, #g_pan)
         assert.is_equal("pan", g_pan[1].ges)
@@ -464,7 +492,13 @@ describe("gesturedetector module", function()
 
         -- Lift > 900ms after start (1s + 1.5s = 2.5s)
         local g_rel = gd:feedEvent({
-          { slot = 0, id = -1, x = 160, y = 100, timev = time.s(1) + time.ms(1500) },
+          {
+            slot = 0,
+            id = -1,
+            x = 160,
+            y = 100,
+            timev = time.s(1) + time.ms(1500),
+          },
         })
         assert.is_equal(1, #g_rel)
         assert.is_equal("pan_release", g_rel[1].ges)
@@ -562,6 +596,43 @@ describe("gesturedetector module", function()
       assert.is_nil(gd:getContact(0))
       assert.is_nil(gd:getContact(1))
     end)
+
+    it(
+      "batch-updates current_tev across all slots before evaluating state",
+      function()
+        local gd = createGD()
+        -- Initial down frame with two contacts
+        gd:feedEvent({
+          { slot = 0, id = 1, x = 100, y = 100, timev = 1000 },
+          { slot = 1, id = 2, x = 120, y = 100, timev = 1000 },
+        })
+
+        -- Lift frame where slot 1 moved outside TWO_FINGER_TAP_REGION
+        local g_up = gd:feedEvent({
+          { slot = 0, id = -1, x = 100, y = 100, timev = 1050 },
+          { slot = 1, id = -1, x = 250, y = 100, timev = 1050 },
+        })
+        -- Slot 0 sees slot 1's updated current_tev and downgrades to single tap
+        assert.is_equal(1, #g_up)
+        assert.is_equal("tap", g_up[1].ges)
+        assert.is_equal(100, g_up[1].pos.x)
+        assert.is_equal(100, g_up[1].pos.y)
+
+        -- Test with both slots lifting at updated in-region coordinates
+        gd = createGD()
+        gd:feedEvent({
+          { slot = 0, id = 1, x = 100, y = 100, timev = 1000 },
+          { slot = 1, id = 2, x = 120, y = 100, timev = 1000 },
+        })
+        local g_up2 = gd:feedEvent({
+          { slot = 0, id = -1, x = 106, y = 100, timev = 1050 },
+          { slot = 1, id = -1, x = 126, y = 100, timev = 1050 },
+        })
+        assert.is_equal(1, #g_up2)
+        assert.is_equal("two_finger_tap", g_up2[1].ges)
+        assert.is_equal(116, g_up2[1].pos.x)
+      end
+    )
 
     it("detects two_finger_hold and two_finger_hold_release", function()
       local gd = createGD()

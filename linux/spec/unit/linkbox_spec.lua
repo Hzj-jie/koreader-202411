@@ -14,31 +14,41 @@ describe("LinkBox", function()
     UIManager = require("ui/uimanager")
   end)
 
-  it("should initialize LinkBox and set gesture events on touch device", function()
-    local orig_is_touch = Device.isTouchDevice
-    Device.isTouchDevice = function() return true end
+  it(
+    "should initialize LinkBox and set gesture events on touch device",
+    function()
+      local orig_is_touch = Device.isTouchDevice
+      Device.isTouchDevice = function()
+        return true
+      end
 
-    local box = Geom:new({ x = 10, y = 20, w = 100, h = 50 })
-    local lb = LinkBox:new({ box = box })
+      local box = Geom:new({ x = 10, y = 20, w = 100, h = 50 })
+      local lb = LinkBox:new({ box = box })
 
-    assert.are.equal(box, lb:getSize())
-    assert.truthy(lb.ges_events.TapClose)
+      assert.are.equal(box, lb:getSize())
+      assert.truthy(lb.ges_events.TapClose)
 
-    Device.isTouchDevice = orig_is_touch
-  end)
+      Device.isTouchDevice = orig_is_touch
+    end
+  )
 
-  it("should initialize LinkBox without gesture events on non-touch device", function()
-    local orig_is_touch = Device.isTouchDevice
-    Device.isTouchDevice = function() return false end
+  it(
+    "should initialize LinkBox without gesture events on non-touch device",
+    function()
+      local orig_is_touch = Device.isTouchDevice
+      Device.isTouchDevice = function()
+        return false
+      end
 
-    local box = Geom:new({ x = 0, y = 0, w = 50, h = 30 })
-    local lb = LinkBox:new({ box = box })
+      local box = Geom:new({ x = 0, y = 0, w = 50, h = 30 })
+      local lb = LinkBox:new({ box = box })
 
-    assert.are.equal(box, lb:getSize())
-    assert.is_nil(lb.ges_events.TapClose)
+      assert.are.equal(box, lb:getSize())
+      assert.is_nil(lb.ges_events.TapClose)
 
-    Device.isTouchDevice = orig_is_touch
-  end)
+      Device.isTouchDevice = orig_is_touch
+    end
+  )
 
   it("should paint border with correct coordinates and style", function()
     local box = Geom:new({ x = 15, y = 25, w = 80, h = 40 })
@@ -52,7 +62,10 @@ describe("LinkBox", function()
     local painted = {}
     local mock_bb = {
       paintBorder = function(self, x, y, w, h, bs, c, r)
-        table.insert(painted, { x = x, y = y, w = w, h = h, bordersize = bs, color = c, radius = r })
+        table.insert(
+          painted,
+          { x = x, y = y, w = w, h = h, bordersize = bs, color = c, radius = r }
+        )
       end,
     }
 

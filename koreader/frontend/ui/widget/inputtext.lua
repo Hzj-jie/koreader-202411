@@ -750,9 +750,10 @@ function InputText:_handleControlKeys(key)
       self:addChars("    ")
       -- as stated before, we also don't need to unfocus when there is no keyboard, one less key press to exit widgets, yay!
     elseif key["Back"] then
-      if self.focused then
-        self:unfocus()
+      if not self.focused then
+        return false
       end
+      self:unfocus()
     else
       return false
     end
@@ -1074,6 +1075,9 @@ function InputText:delWord(left_to_cursor)
   end
   local start_pos, end_pos = self:getStringPos(true, left_to_cursor)
   start_pos = math.min(start_pos, end_pos)
+  if start_pos < 1 then
+    return
+  end
   for i = end_pos, start_pos, -1 do
     table.remove(self.charlist, i)
   end

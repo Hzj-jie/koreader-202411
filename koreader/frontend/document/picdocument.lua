@@ -55,10 +55,12 @@ end
 
 function PicDocument:getCoverPageImage()
   local first_page = self._document:openPage(1)
+  local image
   if first_page.image_bb then
-    return first_page.image_bb:copy()
+    image = first_page.image_bb:copy()
   end
-  return nil
+  first_page:close()
+  return image
 end
 
 function PicDocument:register(registry)

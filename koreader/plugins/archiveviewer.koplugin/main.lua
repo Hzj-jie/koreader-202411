@@ -126,7 +126,7 @@ function ArchiveViewer:getZipListTable()
     for line in std_out:lines() do
       -- entry datetime not used so far
       local fsize, fname =
-        string.match(line, "%s+(%d+)%s+[-0-9]+%s+[0-9:]+%s+(.+)")
+        string.match(line, "%s*(%d+)%s+[-0-9]+%s+[0-9:]+%s+(.+)")
       parse_path(fname, fsize or 0)
     end
     std_out:close()

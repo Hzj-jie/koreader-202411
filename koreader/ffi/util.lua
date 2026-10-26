@@ -229,6 +229,7 @@ function util.copyFile(from, to)
   end
   local tfp, terr = io.open(to, "wb")
   if not tfp then
+    ffp:close()
     return terr
   end
   while true do
@@ -339,6 +340,7 @@ function util.runInSubProcess(func, with_pipe, double_fork)
         )
     end
   end
+  local parent_pid = util.getpid()
   local pid = C.fork()
   if pid == 0 then -- child process
     -- In production, UIManager is always loaded before any subprocess fork.
@@ -353,7 +355,7 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       if pid ~= 0 then
         -- Parent side of the outer fork, we don't need it anymore, so just exit.
         -- NOTE: Technically ought to be _exit, not exit.
-        os.exit((pid < 0) and 1 or 0)
+        C._exit((pid < 0) and 1 or 0)
       end
       -- pid == 0 -> inner child :)
     end
@@ -369,6 +371,13 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       -- util.isSubProcessDone() returning false until all the child's
       -- children are done.
       C.setpgid(0, 0)
+      if ffi.os == "Linux" and not double_fork then
+        -- PR_SET_PDEATHSIG = 1, SIGTERM = 15
+        C.prctl(1, 15, 0, 0, 0)
+        if C.getppid() ~= parent_pid then
+          C._exit(1)
+        end
+      end
       if parent_read_fd then
         -- close our duplicate of parent fd
         C.close(parent_read_fd)
@@ -378,10 +387,10 @@ function util.runInSubProcess(func, with_pipe, double_fork)
       if jit.os == "Linux" then
         -- On Linux, schedule it accordingly.
         local param = ffi.new("struct sched_param")
-        C.sched_setscheduler(0, C.SCHED_BATCH, param)
+        C.sched_setscheduler(0, C.SCHED_IDLE, param)
       end
       -- And nice it at lower priority, too (unlike the above call, this is POSIX).
-      C.setpriority(C.PRIO_PROCESS, 0, 5)
+      C.setpriority(C.PRIO_PROCESS, 0, 19)
 
       -- Just run the provided lua code object in this new process,
       -- and exit immediatly (so we do not release drivers and
@@ -395,7 +404,9 @@ function util.runInSubProcess(func, with_pipe, double_fork)
     if not ok then
       print("error in subprocess:", err)
     end
-    os.exit(0)
+    io.stdout:flush()
+    io.stderr:flush()
+    C._exit(0)
   end
   -- parent/main process
   if pid < 0 then -- on failure, fork() returns -1

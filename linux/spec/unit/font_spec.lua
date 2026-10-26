@@ -33,14 +33,17 @@ describe("Font module", function()
       assert.are.equal(Font.sizemap.cfont, f.orig_size)
     end)
 
-    it("should update orig_size in cached face when orig_size changes", function()
-      local f1 = Font:getFace("cfont", 20)
-      assert.are.equal(20, f1.orig_size)
+    it(
+      "should update orig_size in cached face when orig_size changes",
+      function()
+        local f1 = Font:getFace("cfont", 20)
+        assert.are.equal(20, f1.orig_size)
 
-      -- Fetch same scaled size but different orig_size
-      local f2 = Font:getFace("cfont", 20)
-      assert.are.equal(f1, f2)
-    end)
+        -- Fetch same scaled size but different orig_size
+        local f2 = Font:getFace("cfont", 20)
+        assert.are.equal(f1, f2)
+      end
+    )
 
     it("should handle custom faceindex in hash", function()
       local f = Font:getFace("cfont", 18, 0)
@@ -80,24 +83,32 @@ describe("Font module", function()
       assert.is_true(is_bold)
     end)
 
-    it("should promote regular font to real bold variant when available", function()
-      local reg_face = Font:getFace("NotoSans-Regular.ttf", 18)
-      local adj_face, is_bold = Font:getAdjustedFace(reg_face, true)
-      assert.is_true(adj_face.is_real_bold)
-      assert.are.equal("NotoSans-Bold.ttf", adj_face.realname)
-      assert.is_true(is_bold)
-    end)
+    it(
+      "should promote regular font to real bold variant when available",
+      function()
+        local reg_face = Font:getFace("NotoSans-Regular.ttf", 18)
+        local adj_face, is_bold = Font:getAdjustedFace(reg_face, true)
+        assert.is_true(adj_face.is_real_bold)
+        assert.are.equal("NotoSans-Bold.ttf", adj_face.realname)
+        assert.is_true(is_bold)
+      end
+    )
 
-    it("should synthesize bold when FORCE_SYNTHETIZED_BOLD requested", function()
-      local reg_face = Font:getFace("NotoSans-Regular.ttf", 18)
-      local adj_face, is_bold = Font:getAdjustedFace(reg_face, Font.FORCE_SYNTHETIZED_BOLD)
-      assert.are.equal(Font.FORCE_SYNTHETIZED_BOLD, is_bold)
-      assert.are.equal(Font.FORCE_SYNTHETIZED_BOLD, adj_face.wants_bold)
+    it(
+      "should synthesize bold when FORCE_SYNTHETIZED_BOLD requested",
+      function()
+        local reg_face = Font:getFace("NotoSans-Regular.ttf", 18)
+        local adj_face, is_bold =
+          Font:getAdjustedFace(reg_face, Font.FORCE_SYNTHETIZED_BOLD)
+        assert.are.equal(Font.FORCE_SYNTHETIZED_BOLD, is_bold)
+        assert.are.equal(Font.FORCE_SYNTHETIZED_BOLD, adj_face.wants_bold)
 
-      -- Cached lookup for same synth bold
-      local cached_adj = Font:getAdjustedFace(reg_face, Font.FORCE_SYNTHETIZED_BOLD)
-      assert.are.equal(adj_face, cached_adj)
-    end)
+        -- Cached lookup for same synth bold
+        local cached_adj =
+          Font:getAdjustedFace(reg_face, Font.FORCE_SYNTHETIZED_BOLD)
+        assert.are.equal(adj_face, cached_adj)
+      end
+    )
 
     it("should respect use_bold_font_for_bold setting", function()
       local orig_setting = Font.use_bold_font_for_bold
@@ -119,19 +130,22 @@ describe("Font module", function()
       assert.truthy(face.embolden_half_strength)
     end)
 
-    it("should iterate through fallback fonts and terminate with false", function()
-      local face = Font:getFace("cfont", 18)
-      local fallback_count = 0
-      for i = 1, 20 do
-        local fb = face.getFallbackFont(i)
-        if fb == false then
-          break
+    it(
+      "should iterate through fallback fonts and terminate with false",
+      function()
+        local face = Font:getFace("cfont", 18)
+        local fallback_count = 0
+        for i = 1, 20 do
+          local fb = face.getFallbackFont(i)
+          if fb == false then
+            break
+          end
+          assert.is_table(fb)
+          fallback_count = fallback_count + 1
         end
-        assert.is_table(fb)
-        fallback_count = fallback_count + 1
+        assert.is_true(fallback_count > 0)
       end
-      assert.is_true(fallback_count > 0)
-    end)
+    )
 
     it("should iterate fallbacks for bold face", function()
       local bold_face = Font:getFace("tfont", 18)
@@ -140,4 +154,3 @@ describe("Font module", function()
     end)
   end)
 end)
-

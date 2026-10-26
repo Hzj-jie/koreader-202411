@@ -33,6 +33,8 @@ REMOVED_FILES=(
   "plugins/weather.koplugin/settings.lua"
   "plugins/simpleui.koplugin"
   "plugins/kochess.koplugin"
+  "plugins/AnnotationSync.koplugin/l10n"
+  "plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua"
   "zsync2"
   "spinning_zsync"
 )

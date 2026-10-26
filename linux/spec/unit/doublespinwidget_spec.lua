@@ -91,7 +91,8 @@ describe("DoubleSpinWidget", function()
         right_default = 4,
         default_text = "Reset to 2/4",
       })
-      local default_custom_btn = dspin_custom.widget_frame[1][3][1].buttons[1][1]
+      local default_custom_btn =
+        dspin_custom.widget_frame[1][3][1].buttons[1][1]
       assert.are.equal("Reset to 2/4", default_custom_btn.text)
       default_custom_btn.callback()
     end)
@@ -216,7 +217,8 @@ describe("DoubleSpinWidget", function()
       dspin:onClose()
 
       -- Tap inside vs outside
-      dspin.widget_frame.dimen = Geom:new({ x = 100, y = 100, w = 200, h = 200 })
+      dspin.widget_frame.dimen =
+        Geom:new({ x = 100, y = 100, w = 200, h = 200 })
 
       local inside_ev = { pos = Geom:new({ x = 150, y = 150, w = 1, h = 1 }) }
       assert.is_true(dspin:onTapClose(nil, inside_ev))

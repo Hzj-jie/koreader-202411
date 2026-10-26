@@ -41,7 +41,7 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local C_ = gettext.pgettext
-local N_ = gettext.ngettext
+local T_N = gettext.T_N
 local Screen = Device.screen
 local T = ffiUtil.template
 
@@ -494,6 +494,10 @@ function FileChooser:onBack()
   end
   local back_to_exit = G_named_settings.back_to_exit()
   if back_to_exit == "always" then
+    if util.isMonkeyTest() then
+      logger.warn("FileChooser:onBack exit is ignored in monkey test mode.")
+      return true
+    end
     return self:onExit()
   elseif back_to_exit == "disable" then
     return true
@@ -502,6 +506,12 @@ function FileChooser:onBack()
       text = gettext("Exit KOReader?"),
       ok_text = gettext("Exit"),
       ok_callback = function()
+        if util.isMonkeyTest() then
+          logger.warn(
+            "FileChooser:onBack exit prompt OK is ignored in monkey test mode."
+          )
+          return
+        end
         self:onExit()
       end,
     }))
@@ -558,10 +568,7 @@ function FileManager:tapPlus()
     local select_count = util.tableSize(self.selected_files)
     local actions_enabled = select_count > 0
     title = actions_enabled
-        and T(
-          N_("1 file selected", "%1 files selected", select_count),
-          select_count
-        )
+        and T_N("1 file selected", "%1 files selected", select_count)
       or gettext("No files selected")
     buttons = {
       {
@@ -853,8 +860,18 @@ function FileManager:onShowingReader()
   self.tearing_down = true
   -- Clear the dither flag to prevent it from infecting the queue and re-inserting a full-screen refresh...
   self.dithered = nil
-
+  if self.menu and self.menu.menu_container then
+    self.menu:onClose()
+  end
   self:onExit()
+end
+
+function FileManager:restart()
+  local path = self:getCurrentDir()
+  local focused_file = self.file_chooser.prev_focused_path
+  local selected_files = self.selected_files
+  self:onShowingReader()
+  FileManager:showFiles(path, focused_file, selected_files)
 end
 
 -- Same as above, except we don't close it yet. Useful for plugins that need to close custom Menus before calling showReader.
@@ -1082,14 +1099,8 @@ function FileManager:pasteSelectedFiles(overwrite)
   end
   if skipped_nb > 0 then -- keep select mode on
     local text = self.cutfile
-        and T(
-          N_("1 file was not moved", "%1 files were not moved", skipped_nb),
-          skipped_nb
-        )
-      or T(
-        N_("1 file was not copied", "%1 files were not copied", skipped_nb),
-        skipped_nb
-      )
+        and T_N("1 file was not moved", "%1 files were not moved", skipped_nb)
+      or T_N("1 file was not copied", "%1 files were not copied", skipped_nb)
     self:showWidget(InfoMessage:new({
       text = text,
       icon = "notice-warning",
@@ -1262,8 +1273,9 @@ function FileManager:deleteSelectedFiles()
   end
   if skipped_nb > 0 then -- keep select mode on
     self:showWidget(InfoMessage:new({
-      text = T(
-        N_("Failed to delete 1 file.", "Failed to delete %1 files.", skipped_nb),
+      text = T_N(
+        "Failed to delete 1 file.",
+        "Failed to delete %1 files.",
         skipped_nb
       ),
       icon = "notice-warning",

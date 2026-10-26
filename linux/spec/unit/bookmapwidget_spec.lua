@@ -129,100 +129,106 @@ describe("BookMapWidget ReaderUI Integration", function()
     sample_epub = "spec/front/unit/data/juliet.epub"
   end)
 
-  it("should show BookMap from ReaderThumbnail with root exit handler", function()
-    DocSettings:open(sample_epub):purge()
-    local readerui = ReaderUI:new({
-      dimen = Screen:getSize(),
-      document = DocumentRegistry:openDocument(sample_epub),
-    })
-    readerui.status.enabled = false
+  it(
+    "should show BookMap from ReaderThumbnail with root exit handler",
+    function()
+      DocSettings:open(sample_epub):purge()
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      readerui.status.enabled = false
 
-    assert.truthy(UIManager:isWindowWidget(readerui))
+      assert.truthy(UIManager:isWindowWidget(readerui))
 
-    readerui.thumbnail:onShowBookMap()
-    local bookmap
-    for i = #UIManager._window_stack, 1, -1 do
-      local w = UIManager._window_stack[i].widget
-      if getmetatable(w) == BookMapWidget then
-        bookmap = w
-        break
+      readerui.thumbnail:onShowBookMap()
+      local bookmap
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if getmetatable(w) == BookMapWidget then
+          bookmap = w
+          break
+        end
       end
+      assert.truthy(bookmap)
+      assert.falsy(bookmap.on_exit)
+      assert.falsy(bookmap.on_update)
+      assert.truthy(bookmap.on_root_exit)
+
+      UIManager:close(bookmap)
+      UIManager:close(readerui)
+      UIManager:quit()
     end
-    assert.truthy(bookmap)
-    assert.falsy(bookmap.on_exit)
-    assert.falsy(bookmap.on_update)
-    assert.truthy(bookmap.on_root_exit)
+  )
 
-    UIManager:close(bookmap)
-    UIManager:close(readerui)
-    UIManager:quit()
-  end)
+  it(
+    "should transition from BookMap to PageBrowser and return on exit",
+    function()
+      DocSettings:open(sample_epub):purge()
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      readerui.status.enabled = false
 
-  it("should transition from BookMap to PageBrowser and return on exit", function()
-    DocSettings:open(sample_epub):purge()
-    local readerui = ReaderUI:new({
-      dimen = Screen:getSize(),
-      document = DocumentRegistry:openDocument(sample_epub),
-    })
-    readerui.status.enabled = false
-
-    readerui.thumbnail:onShowBookMap()
-    local bookmap
-    for i = #UIManager._window_stack, 1, -1 do
-      local w = UIManager._window_stack[i].widget
-      if getmetatable(w) == BookMapWidget then
-        bookmap = w
-        break
+      readerui.thumbnail:onShowBookMap()
+      local bookmap
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if getmetatable(w) == BookMapWidget then
+          bookmap = w
+          break
+        end
       end
-    end
-    assert.truthy(bookmap)
+      assert.truthy(bookmap)
 
-    bookmap.getVGroupRowAtY = function()
-      return {
-        start_page = 10,
-        getPageAtX = function()
-          return 10
-        end,
-      }
-    end
-
-    local original_settings_nilOrTrue = G_reader_settings.nilOrTrue
-    G_reader_settings.nilOrTrue = function()
-      return true
-    end
-
-    local Geom = require("ui/geometry")
-    bookmap:onTap(nil, { pos = Geom:new({ x = 100, y = 100 }) })
-
-    local pagebrowser
-    for i = #UIManager._window_stack, 1, -1 do
-      local w = UIManager._window_stack[i].widget
-      if getmetatable(w) == PageBrowserWidget then
-        pagebrowser = w
-        break
+      bookmap.getVGroupRowAtY = function()
+        return {
+          start_page = 10,
+          getPageAtX = function()
+            return 10
+          end,
+        }
       end
-    end
-    assert.truthy(pagebrowser)
-    assert.truthy(pagebrowser.on_exit)
-    assert.truthy(pagebrowser.on_update)
 
-    pagebrowser:onExit(false)
-
-    local found_bookmap = false
-    for i = #UIManager._window_stack, 1, -1 do
-      local w = UIManager._window_stack[i].widget
-      if getmetatable(w) == BookMapWidget then
-        found_bookmap = true
-        break
+      local original_settings_nilOrTrue = G_reader_settings.nilOrTrue
+      G_reader_settings.nilOrTrue = function()
+        return true
       end
-    end
-    assert.is_true(found_bookmap)
 
-    G_reader_settings.nilOrTrue = original_settings_nilOrTrue
-    UIManager:close(bookmap)
-    UIManager:close(readerui)
-    UIManager:quit()
-  end)
+      local Geom = require("ui/geometry")
+      bookmap:onTap(nil, { pos = Geom:new({ x = 100, y = 100 }) })
+
+      local pagebrowser
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if getmetatable(w) == PageBrowserWidget then
+          pagebrowser = w
+          break
+        end
+      end
+      assert.truthy(pagebrowser)
+      assert.truthy(pagebrowser.on_exit)
+      assert.truthy(pagebrowser.on_update)
+
+      pagebrowser:onExit(false)
+
+      local found_bookmap = false
+      for i = #UIManager._window_stack, 1, -1 do
+        local w = UIManager._window_stack[i].widget
+        if getmetatable(w) == BookMapWidget then
+          found_bookmap = true
+          break
+        end
+      end
+      assert.is_true(found_bookmap)
+
+      G_reader_settings.nilOrTrue = original_settings_nilOrTrue
+      UIManager:close(bookmap)
+      UIManager:close(readerui)
+      UIManager:quit()
+    end
+  )
 end)
 
 describe("BookMapWidget widget", function()
@@ -902,99 +908,109 @@ describe("BookMapWidget widget", function()
       end
     end)
 
-    it("should calculate page coordinates correctly in RTL mode for BookMapRow", function()
-      local font_face = Font:getFace("infofont", 14)
-      local row = BookMapRow:new({
-        width = 400,
-        height = 60,
-        left_spacing = 20,
-        span_height = 15,
-        font_face = font_face,
-        start_page_text = "1",
-        start_page = 1,
-        end_page = 20,
-        pages_per_row = 20,
-        cur_page = 10,
-        toc_items = {
-          [1] = {
-            {
-              title = "Chap 1",
-              p_start = 1,
-              p_end = 10,
-              seq_in_level = 1,
+    it(
+      "should calculate page coordinates correctly in RTL mode for BookMapRow",
+      function()
+        local font_face = Font:getFace("infofont", 14)
+        local row = BookMapRow:new({
+          width = 400,
+          height = 60,
+          left_spacing = 20,
+          span_height = 15,
+          font_face = font_face,
+          start_page_text = "1",
+          start_page = 1,
+          end_page = 20,
+          pages_per_row = 20,
+          cur_page = 10,
+          toc_items = {
+            [1] = {
+              {
+                title = "Chap 1",
+                p_start = 1,
+                p_end = 10,
+                seq_in_level = 1,
+              },
             },
           },
-        },
-        bookmarked_pages = {},
-        previous_locations = {},
-        extra_symbols_pages = {},
-        hidden_flows = {},
-        read_pages = {},
-        page_texts = {},
-      })
+          bookmarked_pages = {},
+          previous_locations = {},
+          extra_symbols_pages = {},
+          hidden_flows = {},
+          read_pages = {},
+          page_texts = {},
+        })
 
-      assert.is_table(row)
-      local x_start = row:getPageX(1)
-      local x_end = row:getPageX(20)
-      local x_start_right = row:getPageX(1, true)
-      local x_middle_right = row:getPageX(10, true)
-      assert.is_number(x_start)
-      assert.is_number(x_end)
-      assert.is_number(x_start_right)
-      assert.is_number(x_middle_right)
+        assert.is_table(row)
+        local x_start = row:getPageX(1)
+        local x_end = row:getPageX(20)
+        local x_start_right = row:getPageX(1, true)
+        local x_middle_right = row:getPageX(10, true)
+        assert.is_number(x_start)
+        assert.is_number(x_end)
+        assert.is_number(x_start_right)
+        assert.is_number(x_middle_right)
 
-      local page_at_x = row:getPageAtX(row.pages_frame_offset_x + 5)
-      assert.is_number(page_at_x)
+        local page_at_x = row:getPageAtX(row.pages_frame_offset_x + 5)
+        assert.is_number(page_at_x)
 
-      local bb = Blitbuffer.new(400, 60)
-      row:paintTo(bb, 0, 0)
-    end)
-
-    it("should paint swipe hints correctly in RTL mode for BookMapWidget", function()
-      local widget = BookMapWidget:new({
-        ui = mock_ui,
-      })
-      local bb = Blitbuffer.new(600, 800)
-      widget:paintTo(bb, 0, 0)
-
-      -- Test last unit in vertical swipe hint
-      widget.toc_depth = widget.max_toc_depth
-      widget.flat_map = false
-      widget.vs_hint_info = nil
-      widget:paintLeftVerticalSwipeHint(bb)
-      widget:paintBottomHorizontalSwipeHint(bb)
-    end)
-
-    it("should instantiate PageBrowserWidget with on_exit and on_update callbacks on page tap", function()
-      G_reader_settings:save("book_map_tap_to_page_browser", true)
-      local widget = BookMapWidget:new({
-        ui = mock_ui,
-      })
-      make_mock_window(widget)
-      local shown_subwidget
-      widget.showWidget = function(self, w)
-        shown_subwidget = w
+        local bb = Blitbuffer.new(400, 60)
+        row:paintTo(bb, 0, 0)
       end
-      local exited_parents, updated_editable
-      widget.onExit = function(self, close_all)
-        exited_parents = close_all
+    )
+
+    it(
+      "should paint swipe hints correctly in RTL mode for BookMapWidget",
+      function()
+        local widget = BookMapWidget:new({
+          ui = mock_ui,
+        })
+        local bb = Blitbuffer.new(600, 800)
+        widget:paintTo(bb, 0, 0)
+
+        -- Test last unit in vertical swipe hint
+        widget.toc_depth = widget.max_toc_depth
+        widget.flat_map = false
+        widget.vs_hint_info = nil
+        widget:paintLeftVerticalSwipeHint(bb)
+        widget:paintBottomHorizontalSwipeHint(bb)
       end
-      widget.updateEditableStuff = function(self, param)
-        updated_editable = param
+    )
+
+    it(
+      "should instantiate PageBrowserWidget with on_exit and on_update callbacks on page tap",
+      function()
+        G_reader_settings:save("book_map_tap_to_page_browser", true)
+        local widget = BookMapWidget:new({
+          ui = mock_ui,
+        })
+        make_mock_window(widget)
+        local shown_subwidget
+        widget.showWidget = function(self, w)
+          shown_subwidget = w
+        end
+        local exited_parents, updated_editable
+        widget.onExit = function(self, close_all)
+          exited_parents = close_all
+        end
+        widget.updateEditableStuff = function(self, param)
+          updated_editable = param
+        end
+
+        local tap_y = widget.title_bar_h + 50
+        local res =
+          widget:onTap(nil, { pos = Geom:new({ x = 200, y = tap_y }) })
+        assert.is_true(res)
+        assert.is_not_nil(shown_subwidget)
+        assert.is_function(shown_subwidget.on_exit)
+        assert.is_function(shown_subwidget.on_update)
+
+        shown_subwidget.on_exit(true)
+        assert.is_true(exited_parents)
+
+        shown_subwidget.on_update()
+        assert.is_true(updated_editable)
       end
-
-      local tap_y = widget.title_bar_h + 50
-      local res = widget:onTap(nil, { pos = Geom:new({ x = 200, y = tap_y }) })
-      assert.is_true(res)
-      assert.is_not_nil(shown_subwidget)
-      assert.is_function(shown_subwidget.on_exit)
-      assert.is_function(shown_subwidget.on_update)
-
-      shown_subwidget.on_exit(true)
-      assert.is_true(exited_parents)
-
-      shown_subwidget.on_update()
-      assert.is_true(updated_editable)
-    end)
+    )
   end)
 end)
