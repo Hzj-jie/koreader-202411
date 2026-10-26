@@ -42,6 +42,7 @@ describe("SyncService", function()
     }
     package.loaded["ui/widget/infomessage"] = {
       new = function(self, args)
+        args._type = "infomessage"
         return args
       end,
     }
@@ -103,6 +104,7 @@ describe("SyncService", function()
 
     package.loaded["ui/widget/notification"] = {
       new = function(self, args)
+        args._type = "notification"
         return args
       end,
     }
@@ -763,7 +765,7 @@ describe("SyncService", function()
         end
       )
 
-      it("Upload succeeds but copyFile fails -> false, failure notification, source preserved", function()
+      it("Upload succeeds but copyFile fails -> false, failure message, source preserved", function()
         mock_dropbox_api.upload_code = 200
         local orig_copyFile = mock_ffiutil.copyFile
         mock_ffiutil.copyFile = function()
@@ -786,6 +788,8 @@ describe("SyncService", function()
         mock_network_mgr.cb()
         assert.is_false(finish_res)
         assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("infomessage", mock_uimanager.shown_widget._type)
+        assert.are.equal(3, mock_uimanager.shown_widget.timeout)
         assert.are.equal(
           "Something went wrong when syncing, please check your network connection and try again later.",
           mock_uimanager.shown_widget.text
@@ -811,6 +815,8 @@ describe("SyncService", function()
         mock_network_mgr.cb()
         assert.is_false(finish_res)
         assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("infomessage", mock_uimanager.shown_widget._type)
+        assert.are.equal(3, mock_uimanager.shown_widget.timeout)
         assert.are.equal(
           "Something went wrong when syncing, please check your network connection and try again later.",
           mock_uimanager.shown_widget.text
