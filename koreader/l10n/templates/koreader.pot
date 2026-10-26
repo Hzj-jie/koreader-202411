@@ -49,7 +49,7 @@ msgstr ""
 #: frontend/ui/elements/common_settings_menu_table.lua:287
 #: frontend/ui/plugin/switch_plugin.lua:70
 #: plugins/autodim.koplugin/main.lua:104
-#: plugins/autosuspend.koplugin/main.lua:546
+#: plugins/autosuspend.koplugin/main.lua:543
 #: plugins/autoturn.koplugin/main.lua:165
 #: plugins/autowarmth.koplugin/main.lua:833
 #: plugins/kosync.koplugin/main.lua:123
@@ -64,19 +64,25 @@ msgid ""
 "Do you want to retry?"
 msgstr ""
 
-#: datastorage.lua:191
+#: datastorage.lua:192
 msgid ""
 "Storage is completely read-only. Settings and reading history cannot be "
 "saved to disk."
 msgstr ""
 
-#: datastorage.lua:195
+#: datastorage.lua:196
 msgid ""
 "Primary storage is read-only. Settings will be saved to temporary storage "
 "and may be lost when the device is restarted."
 msgstr ""
 
-#: datastorage.lua:201 frontend/ui/trapper.lua:162
+#: datastorage.lua:200
+msgid ""
+"Failed to create some application data directories. Some features may not "
+"work properly."
+msgstr ""
+
+#: datastorage.lua:206 frontend/ui/trapper.lua:165
 #: frontend/ui/wikipedia.lua:1728 plugins/calibre.koplugin/wireless.lua:234
 #: plugins/coverbrowser.koplugin/bookinfomanager.lua:891
 #: plugins/newsdownloader.koplugin/epubdownloadbackend.lua:732
@@ -84,7 +90,7 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: datastorage.lua:202 plugins/terminal.koplugin/main.lua:532
+#: datastorage.lua:207 plugins/terminal.koplugin/main.lua:532
 msgid "Quit"
 msgstr ""
 
@@ -162,14 +168,14 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagercollection.lua:582
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:67
 #: frontend/apps/filemanager/filemanagerhistory.lua:435
-#: frontend/apps/filemanager/filemanager.lua:1110
-#: frontend/apps/filemanager/filemanager.lua:1286
-#: frontend/apps/filemanager/filemanager.lua:1677
+#: frontend/apps/filemanager/filemanager.lua:1120
+#: frontend/apps/filemanager/filemanager.lua:1296
+#: frontend/apps/filemanager/filemanager.lua:1687
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:75
 #: frontend/apps/filemanager/filemanagershortcuts.lua:132
-#: frontend/apps/reader/modules/readerbookmark.lua:1382
-#: frontend/apps/reader/modules/readerbookmark.lua:1467
-#: frontend/apps/reader/modules/readerbookmark.lua:1538
+#: frontend/apps/reader/modules/readerbookmark.lua:1383
+#: frontend/apps/reader/modules/readerbookmark.lua:1468
+#: frontend/apps/reader/modules/readerbookmark.lua:1539
 #: frontend/apps/reader/modules/readercropping.lua:62
 #: frontend/apps/reader/modules/readerdictionary.lua:772
 #: frontend/apps/reader/modules/readerfooter.lua:701
@@ -187,9 +193,9 @@ msgstr ""
 #: frontend/ui/widget/confirmbox.lua:48
 #: frontend/ui/widget/container/inputcontainer.lua:335
 #: frontend/ui/widget/dictquicklookup.lua:1363
-#: frontend/ui/widget/inputdialog.lua:875
-#: frontend/ui/widget/inputdialog.lua:966
-#: frontend/ui/widget/inputdialog.lua:1031
+#: frontend/ui/widget/inputdialog.lua:879
+#: frontend/ui/widget/inputdialog.lua:970
+#: frontend/ui/widget/inputdialog.lua:1035
 #: frontend/ui/widget/keyboardlayoutdialog.lua:73
 #: frontend/ui/widget/menu.lua:819 frontend/ui/widget/multiconfirmbox.lua:49
 #: frontend/ui/widget/networksetting.lua:331
@@ -197,7 +203,7 @@ msgstr ""
 #: frontend/ui/widget/numberpickerwidget.lua:182
 #: frontend/ui/widget/pathchooser.lua:167 frontend/ui/widget/textviewer.lua:499
 #: frontend/ui/widget/touchmenu.lua:1423
-#: plugins/AnnotationSync.koplugin/menus.lua:330
+#: plugins/AnnotationSync.koplugin/menus.lua:349
 #: plugins/autowarmth.koplugin/main.lua:929
 #: plugins/autowarmth.koplugin/main.lua:1268
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:380
@@ -239,7 +245,7 @@ msgstr ""
 #: plugins/statistics.koplugin/main.lua:3013
 #: plugins/statistics.koplugin/main.lua:3211
 #: plugins/statistics.koplugin/main.lua:3253
-#: plugins/terminal.koplugin/aliases.lua:120
+#: plugins/terminal.koplugin/aliases.lua:121
 #: plugins/terminal.koplugin/main.lua:797
 #: plugins/texteditor.koplugin/main.lua:396
 #: plugins/vocabbuilder.koplugin/main.lua:1271
@@ -302,10 +308,10 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:413
 #: frontend/apps/filemanager/filemanagerhistory.lua:230
 #: frontend/apps/filemanager/filemanager.lua:247
-#: frontend/apps/filemanager/filemanager.lua:619
-#: frontend/apps/filemanager/filemanager.lua:626
-#: frontend/apps/filemanager/filemanager.lua:1191
-#: frontend/apps/reader/modules/readerbookmark.lua:888
+#: frontend/apps/filemanager/filemanager.lua:629
+#: frontend/apps/filemanager/filemanager.lua:636
+#: frontend/apps/filemanager/filemanager.lua:1201
+#: frontend/apps/reader/modules/readerbookmark.lua:889
 #: frontend/ui/widget/screenshoter.lua:58
 #: plugins/bookshortcuts.koplugin/main.lua:170
 #: plugins/legacy_terminal.koplugin/main.lua:208
@@ -316,7 +322,7 @@ msgstr ""
 #: plugins/profiles.koplugin/main.lua:290
 #: plugins/statistics.koplugin/main.lua:1579
 #: plugins/statistics.koplugin/main.lua:1588
-#: plugins/terminal.koplugin/aliases.lua:126
+#: plugins/terminal.koplugin/aliases.lua:127
 #: plugins/vocabbuilder.koplugin/main.lua:248
 msgid "Delete"
 msgstr ""
@@ -374,7 +380,7 @@ msgid "Choose local folder"
 msgstr ""
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:665
-#: frontend/apps/reader/modules/readerbookmark.lua:1288
+#: frontend/apps/reader/modules/readerbookmark.lua:1289
 #: frontend/apps/reader/modules/readerhighlight.lua:1143
 #: frontend/apps/reader/modules/readerstyletweak.lua:150
 #: frontend/ui/elements/menu_keyboard_layout.lua:190
@@ -383,10 +389,10 @@ msgstr ""
 #: frontend/ui/widget/dictquicklookup.lua:563
 #: frontend/ui/widget/doublespinwidget.lua:42
 #: frontend/ui/widget/imageviewer.lua:214
-#: frontend/ui/widget/inputdialog.lua:868
+#: frontend/ui/widget/inputdialog.lua:872
 #: frontend/ui/widget/radiobuttonwidget.lua:56
 #: frontend/ui/widget/spinwidget.lua:36 frontend/ui/widget/textviewer.lua:275
-#: plugins/AnnotationSync.koplugin/menus.lua:78
+#: plugins/AnnotationSync.koplugin/menus.lua:79
 #: plugins/checkers.koplugin/main.lua:437
 #: plugins/keepalive.koplugin/main.lua:29
 #: plugins/legacy_terminal.koplugin/main.lua:474
@@ -407,9 +413,9 @@ msgstr ""
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:691
 #: frontend/apps/cloudstorage/cloudstorage.lua:766
-#: frontend/apps/filemanager/filemanager.lua:654
-#: frontend/apps/filemanager/filemanager.lua:679
-#: frontend/apps/filemanager/filemanager.lua:1106
+#: frontend/apps/filemanager/filemanager.lua:664
+#: frontend/apps/filemanager/filemanager.lua:689
+#: frontend/apps/filemanager/filemanager.lua:1116
 #: frontend/ui/widget/pathchooser.lua:209
 msgid "New folder"
 msgstr ""
@@ -427,7 +433,7 @@ msgid "Uploading…"
 msgstr ""
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:777
-#: frontend/apps/filemanager/filemanager.lua:1117
+#: frontend/apps/filemanager/filemanager.lua:1127
 #: frontend/apps/reader/modules/readerhandmade.lua:524
 #: frontend/ui/wikipedia.lua:1746
 #: plugins/newsdownloader.koplugin/epubdownloadbackend.lua:750
@@ -437,7 +443,7 @@ msgid "Create"
 msgstr ""
 
 #: frontend/apps/cloudstorage/cloudstorage.lua:818
-#: frontend/apps/filemanager/filemanager.lua:1156
+#: frontend/apps/filemanager/filemanager.lua:1166
 msgid "Enter folder after creation"
 msgstr ""
 
@@ -532,15 +538,15 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:583
 #: frontend/apps/filemanager/filemanagercollection.lua:589
 #: frontend/apps/filemanager/filemanagershortcuts.lua:138
-#: frontend/apps/reader/modules/readerbookmark.lua:1400
-#: frontend/apps/reader/modules/readerbookmark.lua:1474
+#: frontend/apps/reader/modules/readerbookmark.lua:1401
+#: frontend/apps/reader/modules/readerbookmark.lua:1475
 #: frontend/apps/reader/modules/readerhandmade.lua:524
-#: frontend/apps/reader/modules/readermenu.lua:234
+#: frontend/apps/reader/modules/readermenu.lua:235
 #: frontend/apps/reader/modules/readerstyletweak.lua:1169
 #: frontend/apps/reader/modules/readeruserhyph.lua:343
 #: frontend/apps/reader/modules/readerwikipedia.lua:203
-#: frontend/ui/widget/inputdialog.lua:842
-#: frontend/ui/widget/inputdialog.lua:887
+#: frontend/ui/widget/inputdialog.lua:846
+#: frontend/ui/widget/inputdialog.lua:891
 #: plugins/calculator.koplugin/calculatorsettingsdialog.lua:386
 #: plugins/coverimage.koplugin/main.lua:504
 #: plugins/gestures.koplugin/main.lua:437
@@ -555,7 +561,7 @@ msgstr ""
 #: plugins/profiles.koplugin/main.lua:637
 #: plugins/profiles.koplugin/main.lua:860
 #: plugins/profiles.koplugin/main.lua:974 plugins/SSH.koplugin/main.lua:180
-#: plugins/terminal.koplugin/aliases.lua:140
+#: plugins/terminal.koplugin/aliases.lua:141
 #: plugins/terminal.koplugin/main.lua:816 plugins/weather.koplugin/main.lua:117
 #: plugins/weather.koplugin/main.lua:155
 msgid "Save"
@@ -667,7 +673,7 @@ msgstr ""
 msgid "Wrong server type."
 msgstr ""
 
-#: frontend/apps/cloudstorage/syncservice.lua:264
+#: frontend/apps/cloudstorage/syncservice.lua:266
 msgid "Successfully synchronized."
 msgstr ""
 
@@ -710,13 +716,13 @@ msgstr ""
 msgid "Start folder, for example /books"
 msgstr ""
 
-#: frontend/apps/common_menu.lua:16
+#: frontend/apps/common_menu.lua:18
 msgid ""
 "KOReader's startup script has been updated. You'll need to completely exit "
 "KOReader to finalize the update."
 msgstr ""
 
-#: frontend/apps/common_menu.lua:18
+#: frontend/apps/common_menu.lua:20
 msgid "Restart anyway"
 msgstr ""
 
@@ -727,7 +733,7 @@ msgid "Book information"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:40
-#: frontend/apps/filemanager/filemanager.lua:914
+#: frontend/apps/filemanager/filemanager.lua:924
 msgid "Cover image:"
 msgstr ""
 
@@ -767,7 +773,7 @@ msgid "Pages:"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:86
-#: frontend/apps/filemanager/filemanager.lua:912
+#: frontend/apps/filemanager/filemanager.lua:922
 msgid "Filename:"
 msgstr ""
 
@@ -795,7 +801,7 @@ msgid "File date:"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:100
-#: frontend/apps/filemanager/filemanager.lua:913
+#: frontend/apps/filemanager/filemanager.lua:923
 msgid "Folder:"
 msgstr ""
 
@@ -814,7 +820,7 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:881
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:884
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:885
-#: frontend/apps/filemanager/filemanager.lua:915
+#: frontend/apps/filemanager/filemanager.lua:925
 #: frontend/apps/reader/modules/readerfooter.lua:2166
 #: frontend/apps/reader/modules/readertypography.lua:1192
 #: frontend/device/pocketbook/device.lua:298 frontend/ui/screensaver.lua:102
@@ -910,8 +916,8 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:651
 #: frontend/apps/filemanager/filemanagerutil.lua:194
 #: frontend/apps/filemanager/filemanagerutil.lua:212
-#: frontend/apps/reader/modules/readermenu.lua:214
-#: frontend/ui/widget/inputdialog.lua:816
+#: frontend/apps/reader/modules/readermenu.lua:215
+#: frontend/ui/widget/inputdialog.lua:820
 #: plugins/solitaire.koplugin/solitaireui.lua:997
 #: plugins/statistics.koplugin/main.lua:3215
 #: plugins/statistics.koplugin/main.lua:3257
@@ -961,9 +967,9 @@ msgid "Move book metadata to your preferred location?"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerbookinfo.lua:833
-#: frontend/apps/filemanager/filemanager.lua:598
-#: frontend/apps/filemanager/filemanager.lua:1029
-#: frontend/apps/filemanager/filemanager.lua:1368
+#: frontend/apps/filemanager/filemanager.lua:608
+#: frontend/apps/filemanager/filemanager.lua:1039
+#: frontend/apps/filemanager/filemanager.lua:1378
 #: plugins/game2048.koplugin/main.lua:470
 msgid "Move"
 msgstr ""
@@ -1031,7 +1037,7 @@ msgid "Collections (%1)"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagercollection.lua:429
-#: frontend/apps/reader/modules/readerbookmark.lua:1094
+#: frontend/apps/reader/modules/readerbookmark.lua:1095
 msgid "Selected: %1"
 msgstr ""
 
@@ -1049,14 +1055,14 @@ msgstr ""
 
 #: frontend/apps/filemanager/filemanagercollection.lua:522
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:507
-#: frontend/apps/filemanager/filemanager.lua:608
-#: frontend/apps/reader/modules/readerbookmark.lua:868
+#: frontend/apps/filemanager/filemanager.lua:618
+#: frontend/apps/reader/modules/readerbookmark.lua:869
 msgid "Deselect all"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagercollection.lua:532
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:521
-#: frontend/apps/reader/modules/readerbookmark.lua:836
+#: frontend/apps/reader/modules/readerbookmark.lua:837
 msgid "Select all"
 msgstr ""
 
@@ -1082,9 +1088,9 @@ msgid "Remove collection?"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagercollection.lua:645
-#: frontend/apps/reader/modules/readerbookmark.lua:912
-#: frontend/apps/reader/modules/readerbookmark.lua:917
-#: frontend/apps/reader/modules/readerbookmark.lua:1266
+#: frontend/apps/reader/modules/readerbookmark.lua:913
+#: frontend/apps/reader/modules/readerbookmark.lua:918
+#: frontend/apps/reader/modules/readerbookmark.lua:1267
 #: frontend/apps/reader/modules/readerhandmade.lua:542
 #: frontend/apps/reader/modules/readeruserhyph.lua:336
 #: plugins/gestures.koplugin/main.lua:518
@@ -1116,8 +1122,8 @@ msgid "Overwrite existing HTML file?"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerconverter.lua:95
-#: frontend/apps/filemanager/filemanager.lua:1009
-#: frontend/apps/filemanager/filemanager.lua:1362
+#: frontend/apps/filemanager/filemanager.lua:1019
+#: frontend/apps/filemanager/filemanager.lua:1372
 #: frontend/apps/reader/modules/readerdictionary.lua:1176
 #: plugins/opds.koplugin/opdsbrowser.lua:913
 msgid "Overwrite"
@@ -1142,9 +1148,9 @@ msgstr ""
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:95
 #: frontend/apps/filemanager/filemanagerhistory.lua:466
-#: frontend/apps/reader/modules/readerbookmark.lua:1582
+#: frontend/apps/reader/modules/readerbookmark.lua:1583
 #: frontend/apps/reader/modules/readersearch.lua:352
-#: frontend/ui/widget/inputdialog.lua:995 frontend/ui/widget/textviewer.lua:524
+#: frontend/ui/widget/inputdialog.lua:999 frontend/ui/widget/textviewer.lua:524
 msgid "Case sensitive"
 msgstr ""
 
@@ -1190,7 +1196,7 @@ msgid "Extract"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:313
-#: frontend/apps/reader/modules/readerbookmark.lua:1106
+#: frontend/apps/reader/modules/readerbookmark.lua:1107
 #: frontend/apps/reader/modules/readersearch.lua:762
 msgid "Query: %1"
 msgstr ""
@@ -1202,8 +1208,8 @@ msgid "Search results (%1)"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:437
-#: frontend/apps/filemanager/filemanager.lua:925
-#: frontend/apps/filemanager/filemanager.lua:1684
+#: frontend/apps/filemanager/filemanager.lua:935
+#: frontend/apps/filemanager/filemanager.lua:1694
 #: frontend/ui/widget/textviewer.lua:764 frontend/ui/widget/touchmenu.lua:1341
 #: plugins/texteditor.koplugin/main.lua:497
 msgid "Open"
@@ -1218,20 +1224,20 @@ msgid "Authors: %1"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:501
-#: frontend/apps/filemanager/filemanager.lua:561
+#: frontend/apps/filemanager/filemanager.lua:571
 msgid "1 file selected"
 msgid_plural "%1 files selected"
 msgstr[0] ""
 msgstr[1] ""
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:502
-#: frontend/apps/filemanager/filemanager.lua:562
+#: frontend/apps/filemanager/filemanager.lua:572
 msgid "No files selected"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerfilesearcher.lua:536
-#: frontend/apps/filemanager/filemanager.lua:637
-#: frontend/apps/reader/modules/readerbookmark.lua:905
+#: frontend/apps/filemanager/filemanager.lua:647
+#: frontend/apps/reader/modules/readerbookmark.lua:906
 #: frontend/apps/reader/modules/readerhighlight.lua:1142
 msgid "Exit select mode"
 msgstr ""
@@ -1292,7 +1298,7 @@ msgid "Remove from history"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerhistory.lua:351
-#: frontend/apps/reader/modules/readerbookmark.lua:945
+#: frontend/apps/reader/modules/readerbookmark.lua:946
 #: frontend/ui/data/creoptions.lua:35
 msgid "%1 (%2)"
 msgstr ""
@@ -1334,7 +1340,7 @@ msgid "Enter text to search history for"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagerhistory.lua:442
-#: frontend/apps/reader/modules/readerbookmark.lua:1545
+#: frontend/apps/reader/modules/readerbookmark.lua:1546
 #: frontend/apps/reader/modules/readerhighlight.lua:161
 #: frontend/ui/widget/dictquicklookup.lua:545
 #: frontend/ui/widget/touchmenu.lua:1430
@@ -1375,7 +1381,7 @@ msgid "Cut"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanager.lua:255
-#: frontend/apps/filemanager/filemanager.lua:1293
+#: frontend/apps/filemanager/filemanager.lua:1303
 msgid "Rename"
 msgstr ""
 
@@ -1389,16 +1395,16 @@ msgid "Convert"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanager.lua:350
-#: frontend/apps/filemanager/filemanager.lua:698
+#: frontend/apps/filemanager/filemanager.lua:708
 msgid "Set as HOME folder"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:502
+#: frontend/apps/filemanager/filemanager.lua:506
 #: frontend/apps/reader/modules/readerback.lua:181
 msgid "Exit KOReader?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:503
+#: frontend/apps/filemanager/filemanager.lua:507
 #: frontend/apps/reader/modules/readerback.lua:182
 #: frontend/apps/reader/modules/readerdevicestatus.lua:159
 #: frontend/ui/elements/common_exit_menu_table.lua:9
@@ -1408,164 +1414,164 @@ msgstr ""
 msgid "Exit"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:573
+#: frontend/apps/filemanager/filemanager.lua:583
 msgid "Show selected files list"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:581
-#: frontend/apps/filemanager/filemanager.lua:1032
+#: frontend/apps/filemanager/filemanager.lua:591
+#: frontend/apps/filemanager/filemanager.lua:1042
 #: frontend/apps/reader/modules/readerlink.lua:157
 #: plugins/legacy_terminal.koplugin/main.lua:196
 msgid "Copy"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:591
+#: frontend/apps/filemanager/filemanager.lua:601
 msgid "Select all files in folder"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:624
+#: frontend/apps/filemanager/filemanager.lua:634
 msgid ""
 "Delete selected files?\n"
 "If you delete a file, it is permanently lost."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:644
+#: frontend/apps/filemanager/filemanager.lua:654
 #: plugins/exporter.koplugin/main.lua:450 plugins/exporter.koplugin/_meta.lua:4
 msgid "Export highlights"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:670
+#: frontend/apps/filemanager/filemanager.lua:680
 msgid "Select files"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:688
-#: frontend/apps/reader/modules/readerbookmark.lua:1394
+#: frontend/apps/filemanager/filemanager.lua:698
+#: frontend/apps/reader/modules/readerbookmark.lua:1395
 #: frontend/ui/widget/inputtext.lua:285
 msgid "Paste"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:710
+#: frontend/apps/filemanager/filemanager.lua:720
 msgid "Go to HOME folder"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:723
+#: frontend/apps/filemanager/filemanager.lua:733
 msgid "Open random document"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:749
+#: frontend/apps/filemanager/filemanager.lua:759
 msgid "Switch to SDCard"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:750
+#: frontend/apps/filemanager/filemanager.lua:760
 msgid "Switch to internal storage"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:770
+#: frontend/apps/filemanager/filemanager.lua:780
 msgid "Import files here"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:888
+#: frontend/apps/filemanager/filemanager.lua:898
 msgid "Set '%1' as HOME folder?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:889
+#: frontend/apps/filemanager/filemanager.lua:899
 msgid "Set as HOME"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:922
+#: frontend/apps/filemanager/filemanager.lua:932
 msgid "Do you want to open %1?"
 msgstr ""
 
 #. @translators Another file. This is a button on the open random file dialog. It presents a file with the choices Open/Another.
-#: frontend/apps/filemanager/filemanager.lua:931
+#: frontend/apps/filemanager/filemanager.lua:941
 msgid "Another"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:938
+#: frontend/apps/filemanager/filemanager.lua:948
 msgid "File not found"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1004
+#: frontend/apps/filemanager/filemanager.lua:1014
 msgid ""
 "File already exists:\n"
 "%1"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1005
+#: frontend/apps/filemanager/filemanager.lua:1015
 msgid ""
 "Folder already exists:\n"
 "%1"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1028
+#: frontend/apps/filemanager/filemanager.lua:1038
 msgid "Move selected files to the current folder?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1031
+#: frontend/apps/filemanager/filemanager.lua:1041
 msgid "Copy selected files to the current folder?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1044
+#: frontend/apps/filemanager/filemanager.lua:1054
 msgid "overwrite existing files"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1092
+#: frontend/apps/filemanager/filemanager.lua:1102
 msgid "1 file was not moved"
 msgid_plural "%1 files were not moved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontend/apps/filemanager/filemanager.lua:1093
+#: frontend/apps/filemanager/filemanager.lua:1103
 msgid "1 file was not copied"
 msgid_plural "%1 files were not copied"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontend/apps/filemanager/filemanager.lua:1144
+#: frontend/apps/filemanager/filemanager.lua:1154
 msgid ""
 "Failed to create folder:\n"
 "%1"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1172
+#: frontend/apps/filemanager/filemanager.lua:1182
 msgid ""
 "File not found:\n"
 "%1"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1179
+#: frontend/apps/filemanager/filemanager.lua:1189
 msgid "Delete file permanently?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1180
+#: frontend/apps/filemanager/filemanager.lua:1190
 msgid "Delete folder permanently?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1187
+#: frontend/apps/filemanager/filemanager.lua:1197
 msgid "Book settings, highlights and notes will be deleted."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1230
+#: frontend/apps/filemanager/filemanager.lua:1240
 msgid ""
 "Failed to delete:\n"
 "%1"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1267
+#: frontend/apps/filemanager/filemanager.lua:1277
 msgid "Failed to delete 1 file."
 msgid_plural "Failed to delete %1 files."
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontend/apps/filemanager/filemanager.lua:1281
+#: frontend/apps/filemanager/filemanager.lua:1291
 msgid "Rename file"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1281
+#: frontend/apps/filemanager/filemanager.lua:1291
 msgid "Rename folder"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1328
+#: frontend/apps/filemanager/filemanager.lua:1338
 msgid ""
 "Failed to rename:\n"
 "%1\n"
@@ -1573,80 +1579,80 @@ msgid ""
 "%2"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1343
+#: frontend/apps/filemanager/filemanager.lua:1353
 msgid ""
 "Folder already exists:\n"
 "%1\n"
 "File cannot be renamed."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1348
+#: frontend/apps/filemanager/filemanager.lua:1358
 msgid ""
 "File already exists:\n"
 "%1\n"
 "Folder cannot be renamed."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1359
+#: frontend/apps/filemanager/filemanager.lua:1369
 msgid ""
 "File already exists:\n"
 "%1\n"
 "Overwrite file?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1365
+#: frontend/apps/filemanager/filemanager.lua:1375
 msgid ""
 "Folder already exists:\n"
 "%1\n"
 "Move the folder inside it?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1547
+#: frontend/apps/filemanager/filemanager.lua:1557
 msgid "Selected files (%1)"
 msgstr ""
 
 #. @translators %1 is the provider name, such as Cool Reader Engine or MuPDF.
-#: frontend/apps/filemanager/filemanager.lua:1582
+#: frontend/apps/filemanager/filemanager.lua:1592
 msgid "%1 ~Unsupported"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1621
+#: frontend/apps/filemanager/filemanager.lua:1631
 msgid "Reset default for this file"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1633
+#: frontend/apps/filemanager/filemanager.lua:1643
 msgid "Reset default for %1 files"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1646
+#: frontend/apps/filemanager/filemanager.lua:1656
 msgid "View defaults for file types"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1691
+#: frontend/apps/filemanager/filemanager.lua:1701
 msgid "Always open '%2' with %1?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1695
-#: frontend/apps/filemanager/filemanager.lua:1709
+#: frontend/apps/filemanager/filemanager.lua:1705
+#: frontend/apps/filemanager/filemanager.lua:1719
 #: frontend/ui/elements/common_settings_menu_table.lua:286
 msgid "Always"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1705
+#: frontend/apps/filemanager/filemanager.lua:1715
 msgid "Always open %2 files with %1?"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1726
+#: frontend/apps/filemanager/filemanager.lua:1736
 msgid "Open %1 with:"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanager.lua:1764
+#: frontend/apps/filemanager/filemanager.lua:1774
 #: plugins/coverbrowser.koplugin/main.lua:54
 msgid "Classic (filename only)"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagermenu.lua:44
-#: frontend/apps/reader/modules/readermenu.lua:41
+#: frontend/apps/reader/modules/readermenu.lua:42
 msgid "Games"
 msgstr ""
 
@@ -1795,7 +1801,7 @@ msgid "Folders and files mixed"
 msgstr ""
 
 #: frontend/apps/filemanager/filemanagermenu.lua:512
-#: frontend/apps/reader/modules/readermenu.lua:297
+#: frontend/apps/reader/modules/readermenu.lua:294
 msgid "Sleep screen"
 msgstr ""
 
@@ -1835,8 +1841,8 @@ msgstr ""
 #: frontend/apps/filemanager/filemanagermenu.lua:593
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:172
 #: frontend/apps/filemanager/filemanagersetdefaults.lua:219
-#: frontend/apps/reader/modules/readermenu.lua:342
-#: frontend/apps/reader/readerui.lua:779 frontend/device/android/device.lua:591
+#: frontend/apps/reader/modules/readermenu.lua:339
+#: frontend/apps/reader/readerui.lua:780 frontend/device/android/device.lua:591
 #: frontend/ui/elements/common_settings_menu_table.lua:273
 #: frontend/ui/widget/confirmbox.lua:47
 #: frontend/ui/widget/container/inputcontainer.lua:342
@@ -1951,15 +1957,15 @@ msgstr ""
 msgid "Enter folder shortcut name"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagershortcuts.lua:177
+#: frontend/apps/filemanager/filemanagershortcuts.lua:180
 msgid "Shortcut already exists."
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagershortcuts.lua:204
+#: frontend/apps/filemanager/filemanagershortcuts.lua:207
 msgid "Remove from folder shortcuts"
 msgstr ""
 
-#: frontend/apps/filemanager/filemanagershortcuts.lua:213
+#: frontend/apps/filemanager/filemanagershortcuts.lua:216
 msgid "Add to folder shortcuts"
 msgstr ""
 
@@ -2055,7 +2061,7 @@ msgid "not set"
 msgstr ""
 
 #. @translators In which chapter title (%1) a note is found.
-#: frontend/apps/reader/modules/readerannotation.lua:457
+#: frontend/apps/reader/modules/readerannotation.lua:465
 #: frontend/apps/reader/modules/readerbookmark.lua:385
 msgid "in %1"
 msgstr ""
@@ -2183,134 +2189,134 @@ msgstr ""
 msgid "date, reverse"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:674
+#: frontend/apps/reader/modules/readerbookmark.lua:675
 #: plugins/exporter.koplugin/clip.lua:290
 msgid "Page %1 %2 @ %3"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:748
-#: frontend/apps/reader/modules/readerbookmark.lua:1089
+#: frontend/apps/reader/modules/readerbookmark.lua:749
+#: frontend/apps/reader/modules/readerbookmark.lua:1090
 msgid "Bookmarks (%1)"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:827
+#: frontend/apps/reader/modules/readerbookmark.lua:828
 msgid "1 bookmark selected"
 msgid_plural "%1 bookmarks selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:832
+#: frontend/apps/reader/modules/readerbookmark.lua:833
 msgid "No bookmarks selected"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:848
+#: frontend/apps/reader/modules/readerbookmark.lua:849
 msgid "Select page"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:883
+#: frontend/apps/reader/modules/readerbookmark.lua:884
 msgid "Delete note"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:887
+#: frontend/apps/reader/modules/readerbookmark.lua:888
 msgid "Delete bookmark notes?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:916
+#: frontend/apps/reader/modules/readerbookmark.lua:917
 msgid "Remove selected bookmarks?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:935
+#: frontend/apps/reader/modules/readerbookmark.lua:936
 msgid "Filter by bookmark type"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:959
+#: frontend/apps/reader/modules/readerbookmark.lua:960
 msgid "All (reset filters)"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:975
+#: frontend/apps/reader/modules/readerbookmark.lua:976
 msgid "Filter by edited highlighted text"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:984
+#: frontend/apps/reader/modules/readerbookmark.lua:985
 msgid "Filter by highlight style"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:994
+#: frontend/apps/reader/modules/readerbookmark.lua:995
 #: frontend/apps/reader/modules/readercoptlistener.lua:402
 msgid "Current page"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1012
+#: frontend/apps/reader/modules/readerbookmark.lua:1013
 #: frontend/dispatcher.lua:622
 msgid "Latest bookmark"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1035
+#: frontend/apps/reader/modules/readerbookmark.lua:1036
 msgid "Select bookmarks"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1043
-#: frontend/apps/reader/modules/readerbookmark.lua:1534
+#: frontend/apps/reader/modules/readerbookmark.lua:1044
+#: frontend/apps/reader/modules/readerbookmark.lua:1535
 msgid "Search bookmarks"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1097
+#: frontend/apps/reader/modules/readerbookmark.lua:1098
 msgid "Filter: edited highlighted text"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1099
+#: frontend/apps/reader/modules/readerbookmark.lua:1100
 msgid "Highlight style:"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1116
+#: frontend/apps/reader/modules/readerbookmark.lua:1117
 msgid "Bookmark type:"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1172
+#: frontend/apps/reader/modules/readerbookmark.lua:1173
 #: frontend/apps/reader/modules/readersearch.lua:789
 msgid "Page: %1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1174
+#: frontend/apps/reader/modules/readerbookmark.lua:1175
 msgid "Time: %1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1245
+#: frontend/apps/reader/modules/readerbookmark.lua:1246
 msgid "Reset text"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1252
+#: frontend/apps/reader/modules/readerbookmark.lua:1253
 msgid "Edit text"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1261
+#: frontend/apps/reader/modules/readerbookmark.lua:1262
 msgid "Remove bookmark"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1265
+#: frontend/apps/reader/modules/readerbookmark.lua:1266
 msgid "Remove this bookmark?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1279
-#: frontend/apps/reader/modules/readerbookmark.lua:1373
+#: frontend/apps/reader/modules/readerbookmark.lua:1280
+#: frontend/apps/reader/modules/readerbookmark.lua:1374
 msgid "Edit note"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1279
+#: frontend/apps/reader/modules/readerbookmark.lua:1280
 #: frontend/apps/reader/modules/readerhighlight.lua:112
 #: frontend/apps/reader/modules/readerhighlight.lua:445
 msgid "Add note"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1294
+#: frontend/apps/reader/modules/readerbookmark.lua:1295
 msgid "Go to bookmark"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1337
+#: frontend/apps/reader/modules/readerbookmark.lua:1338
 msgid "Bookmark details (%1/%2)"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerbookmark.lua:1458
+#: frontend/apps/reader/modules/readerbookmark.lua:1459
 msgid "Edit highlighted text"
 msgstr ""
 
@@ -3732,8 +3738,8 @@ msgstr ""
 #: frontend/apps/reader/modules/readerhighlight.lua:443
 #: frontend/ui/widget/dictquicklookup.lua:487
 #: frontend/ui/widget/dictquicklookup.lua:495
-#: plugins/AnnotationSync.koplugin/menus.lua:53
-#: plugins/AnnotationSync.koplugin/menus.lua:55
+#: plugins/AnnotationSync.koplugin/menus.lua:54
+#: plugins/AnnotationSync.koplugin/menus.lua:56
 #: plugins/exporter.koplugin/target/markdown.lua:37
 #: plugins/exporter.koplugin/template/md.lua:14
 msgid "Highlight"
@@ -4435,11 +4441,11 @@ msgid ""
 "%1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:207
+#: frontend/apps/reader/modules/readermenu.lua:208
 msgid "Reset document settings to default"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:212
+#: frontend/apps/reader/modules/readermenu.lua:213
 msgid ""
 "Reset current document settings to their default values?\n"
 "\n"
@@ -4447,35 +4453,35 @@ msgid ""
 "The document will be reloaded."
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:229
+#: frontend/apps/reader/modules/readermenu.lua:230
 msgid "Save document settings as default"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:233
+#: frontend/apps/reader/modules/readermenu.lua:234
 msgid "Save current document settings as default values?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:239
+#: frontend/apps/reader/modules/readermenu.lua:240
 msgid "Default settings updated"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:271
+#: frontend/apps/reader/modules/readermenu.lua:272
 msgid "Do not show this book cover on sleep screen"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:324 frontend/dispatcher.lua:63
+#: frontend/apps/reader/modules/readermenu.lua:321 frontend/dispatcher.lua:63
 msgid "Open previous document"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:327
+#: frontend/apps/reader/modules/readermenu.lua:324
 msgid "Previous: %1"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:339
+#: frontend/apps/reader/modules/readermenu.lua:336
 msgid "Would you like to open the previous document: %1?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readermenu.lua:411
+#: frontend/apps/reader/modules/readermenu.lua:408
 msgid "Document menu"
 msgstr ""
 
@@ -4644,7 +4650,7 @@ msgstr ""
 msgid "The current default (★) is to always do a full rendering."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1772
+#: frontend/apps/reader/modules/readerrolling.lua:1780
 msgid ""
 "This book was first opened, and has been handled since, by an older version "
 "of the rendering code.\n"
@@ -4655,13 +4661,13 @@ msgid ""
 "Proceed with this upgrade and reload the book?"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1784
+#: frontend/apps/reader/modules/readerrolling.lua:1792
 msgid ""
 "All your bookmarks and highlights are valid and will be available after the "
 "migration."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1792
+#: frontend/apps/reader/modules/readerrolling.lua:1800
 msgid ""
 "Note that %1 (out of %2) xpaths from your bookmarks and highlights aren't "
 "currently found in the book, and may have been lost. You might want to "
@@ -4669,7 +4675,7 @@ msgid ""
 "and see if they are found again, before proceeding."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1805
+#: frontend/apps/reader/modules/readerrolling.lua:1813
 msgid ""
 "Note that %1 (out of %2) xpaths from your bookmarks and highlights have been "
 "normalized, and may not work on previous KOReader versions (if you're "
@@ -4677,19 +4683,19 @@ msgid ""
 "KOReader on all of them)."
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1825
+#: frontend/apps/reader/modules/readerrolling.lua:1833
 msgid "Not now"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1829
+#: frontend/apps/reader/modules/readerrolling.lua:1837
 msgid "Not for this book"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1833
+#: frontend/apps/reader/modules/readerrolling.lua:1841
 msgid "Upgrade now"
 msgstr ""
 
-#: frontend/apps/reader/modules/readerrolling.lua:1845
+#: frontend/apps/reader/modules/readerrolling.lua:1853
 msgid "Upgrading and reloading book…"
 msgstr ""
 
@@ -4889,7 +4895,7 @@ msgid "Invalid regular expression."
 msgstr ""
 
 #: frontend/apps/reader/modules/readersearch.lua:313
-#: frontend/ui/widget/inputdialog.lua:960 frontend/ui/widget/textviewer.lua:494
+#: frontend/ui/widget/inputdialog.lua:964 frontend/ui/widget/textviewer.lua:494
 msgid "Enter text to search for"
 msgstr ""
 
@@ -5374,8 +5380,8 @@ msgid "Edit book-specific style tweak"
 msgstr ""
 
 #: frontend/apps/reader/modules/readerstyletweak.lua:1369
-#: plugins/AnnotationSync.koplugin/manager.lua:321
-#: plugins/AnnotationSync.koplugin/menus.lua:77
+#: plugins/AnnotationSync.koplugin/manager.lua:324
+#: plugins/AnnotationSync.koplugin/menus.lua:78
 #: plugins/findhistory.koplugin/main.lua:125
 msgid "Restore"
 msgstr ""
@@ -6151,7 +6157,7 @@ msgstr ""
 msgid "Changed language for typography rules to book language: %1."
 msgstr ""
 
-#: frontend/apps/reader/modules/readeruserhyph.lua:59
+#: frontend/apps/reader/modules/readeruserhyph.lua:61
 msgid ""
 "The user dictionary\n"
 "%1\n"
@@ -6160,7 +6166,7 @@ msgid ""
 "It will be disabled now."
 msgstr ""
 
-#: frontend/apps/reader/modules/readeruserhyph.lua:76
+#: frontend/apps/reader/modules/readeruserhyph.lua:78
 msgid ""
 "The user dictionary\n"
 "%1\n"
@@ -6169,14 +6175,19 @@ msgid ""
 "Only valid entries will be used."
 msgstr ""
 
-#: frontend/apps/reader/modules/readeruserhyph.lua:118
+#: frontend/apps/reader/modules/readeruserhyph.lua:120
 msgid "Custom hyphenation rules"
 msgstr ""
 
-#: frontend/apps/reader/modules/readeruserhyph.lua:120
+#: frontend/apps/reader/modules/readeruserhyph.lua:122
 msgid ""
 "The hyphenation of a word can be changed from its default by long pressing "
 "for 3 seconds and selecting 'Hyphenate'."
+msgstr ""
+
+#: frontend/apps/reader/modules/readeruserhyph.lua:229
+#: frontend/apps/reader/modules/readeruserhyph.lua:291
+msgid "Failed to save user hyphenation dictionary."
 msgstr ""
 
 #: frontend/apps/reader/modules/readeruserhyph.lua:319
@@ -6584,15 +6595,15 @@ msgstr ""
 msgid "Input document password"
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:832
+#: frontend/apps/reader/readerui.lua:834
 msgid "Book metadata saved."
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:880
+#: frontend/apps/reader/readerui.lua:882
 msgid "Saving progress of file %1"
 msgstr ""
 
-#: frontend/apps/reader/readerui.lua:908
+#: frontend/apps/reader/readerui.lua:910
 msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
@@ -6998,8 +7009,8 @@ msgstr ""
 msgid "Page-turn buttons inverted."
 msgstr ""
 
-#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1720
-#: frontend/ui/uimanager.lua:1739 frontend/ui/uimanager.lua:1753
+#: frontend/device/generic/device.lua:462 frontend/ui/uimanager.lua:1724
+#: frontend/ui/uimanager.lua:1743 frontend/ui/uimanager.lua:1757
 msgid "Later"
 msgstr ""
 
@@ -7127,7 +7138,7 @@ msgstr ""
 
 #: frontend/dispatcher.lua:171
 #: frontend/ui/elements/common_exit_menu_table.lua:51
-#: frontend/ui/uimanager.lua:1700
+#: frontend/ui/uimanager.lua:1704
 msgid "Power off"
 msgstr ""
 
@@ -7552,66 +7563,68 @@ msgstr ""
 msgid "Executing profile: %1"
 msgstr ""
 
-#: frontend/docsettings.lua:401
+#: frontend/docsettings.lua:398
 msgid ""
 "Storage is read-only. Reading progress for this book will be saved to "
 "temporary storage and may be lost."
 msgstr ""
 
-#: frontend/docsettings.lua:407
+#: frontend/docsettings.lua:404
 msgid ""
 "The selected storage for book settings is read-only. Settings for this book "
 "will be saved to an alternate storage location instead."
 msgstr ""
 
-#: frontend/docsettings.lua:450
+#: frontend/docsettings.lua:428 frontend/docsettings.lua:574
+#: frontend/docsettings.lua:692
+msgid "Failed to save custom cover to disk."
+msgstr ""
+
+#: frontend/docsettings.lua:446 frontend/docsettings.lua:587
+#: frontend/docsettings.lua:751
+msgid "Failed to save custom metadata to disk."
+msgstr ""
+
+#: frontend/docsettings.lua:463
 msgid ""
 "Storage is completely read-only. Reading progress for this book cannot be "
 "saved to disk."
 msgstr ""
 
-#: frontend/docsettings.lua:569
+#: frontend/docsettings.lua:596
 msgid ""
 "Failed to save book settings to the new location. Original settings have "
 "been preserved."
 msgstr ""
 
-#: frontend/docsettings.lua:656
+#: frontend/docsettings.lua:683
 msgid "Storage is completely read-only. Custom cover cannot be saved to disk."
 msgstr ""
 
-#: frontend/docsettings.lua:665
-msgid "Failed to save custom cover to disk."
-msgstr ""
-
-#: frontend/docsettings.lua:671
+#: frontend/docsettings.lua:698
 msgid ""
 "Storage is read-only. Custom cover was saved to temporary storage and may be "
 "lost."
 msgstr ""
 
-#: frontend/docsettings.lua:677
+#: frontend/docsettings.lua:704
 msgid ""
 "The selected storage for book settings is read-only. Custom cover was saved "
 "to an alternate storage location instead."
 msgstr ""
 
-#: frontend/docsettings.lua:716
+#: frontend/docsettings.lua:743
 msgid ""
 "Storage is completely read-only. Custom metadata cannot be saved to disk."
 msgstr ""
 
-#: frontend/docsettings.lua:724
-msgid "Failed to save custom metadata to disk."
-msgstr ""
-
-#: frontend/docsettings.lua:730
+#: frontend/docsettings.lua:757
 msgid ""
 "Storage is read-only. Custom metadata was saved to temporary storage and may "
 "be lost."
 msgstr ""
 
-#: frontend/docsettings.lua:736
+#: frontend/docsettings.lua:763
 msgid ""
 "The selected storage for book settings is read-only. Custom metadata was "
 "saved to an alternate storage location instead."
@@ -7638,6 +7651,11 @@ msgid ""
 "\n"
 "In order to disable a language plugin, you need to disable it from the "
 "Plugin Management menu."
+msgstr ""
+
+#: frontend/luadefaults.lua:129 frontend/luasettings.lua:252
+#: frontend/readhistory.lua:104 plugins/AnnotationSync.koplugin/manager.lua:727
+msgid "Failed to write settings to local storage."
 msgstr ""
 
 #: frontend/pluginloader.lua:221
@@ -12519,49 +12537,49 @@ msgstr ""
 msgid "Translation from %1"
 msgstr ""
 
-#: frontend/ui/trapper.lua:156
+#: frontend/ui/trapper.lua:159
 msgid "Paused"
 msgstr ""
 
-#: frontend/ui/trapper.lua:164
+#: frontend/ui/trapper.lua:167
 #: plugins/coverbrowser.koplugin/bookinfomanager.lua:930
 msgid "Abort"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:239
+#: frontend/ui/uimanager.lua:243
 msgid "Powered off"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:257
+#: frontend/ui/uimanager.lua:265
 msgid "Rebooting…"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1681
+#: frontend/ui/uimanager.lua:1685
 msgid "Are you sure you want to reboot the device?"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1682
+#: frontend/ui/uimanager.lua:1686
 msgid "Reboot"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1699
+#: frontend/ui/uimanager.lua:1703
 msgid "Are you sure you want to power off the device?"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1715 frontend/ui/uimanager.lua:1725
+#: frontend/ui/uimanager.lua:1719 frontend/ui/uimanager.lua:1729
 #: plugins/calibre.koplugin/main.lua:227
 msgid "This will take effect on next restart."
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1716
+#: frontend/ui/uimanager.lua:1720
 msgid "Restart now"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1738
+#: frontend/ui/uimanager.lua:1742
 msgid "Settings changed. Reload document to take effect?"
 msgstr ""
 
-#: frontend/ui/uimanager.lua:1752
+#: frontend/ui/uimanager.lua:1756
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
 
@@ -12968,76 +12986,76 @@ msgstr ""
 msgid "Image viewer"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:411
+#: frontend/ui/widget/inputdialog.lua:415
 msgid "Read only"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:413
+#: frontend/ui/widget/inputdialog.lua:417
 msgid "Not editable"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:828
+#: frontend/ui/widget/inputdialog.lua:832
 msgid "Text reset"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:833
+#: frontend/ui/widget/inputdialog.lua:837
 msgid "Resetting failed."
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:854
-#: frontend/ui/widget/inputdialog.lua:896
+#: frontend/ui/widget/inputdialog.lua:858
+#: frontend/ui/widget/inputdialog.lua:900
 msgid "Saving failed."
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:860
-#: frontend/ui/widget/inputdialog.lua:905
+#: frontend/ui/widget/inputdialog.lua:864
+#: frontend/ui/widget/inputdialog.lua:909
 msgid "Saved"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:874
+#: frontend/ui/widget/inputdialog.lua:878
 msgid "You have unsaved changes."
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:876
+#: frontend/ui/widget/inputdialog.lua:880
 msgid "Discard"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:884
+#: frontend/ui/widget/inputdialog.lua:888
 msgid "Changes discarded"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:954 frontend/ui/widget/textviewer.lua:237
+#: frontend/ui/widget/inputdialog.lua:958 frontend/ui/widget/textviewer.lua:237
 #: frontend/ui/widget/textviewer.lua:588
 msgid "Find"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:978 frontend/ui/widget/textviewer.lua:506
+#: frontend/ui/widget/inputdialog.lua:982 frontend/ui/widget/textviewer.lua:506
 msgid "Find first"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:984 frontend/ui/widget/textviewer.lua:513
+#: frontend/ui/widget/inputdialog.lua:988 frontend/ui/widget/textviewer.lua:513
 #: frontend/ui/widget/textviewer.lua:587
 msgid "Find next"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:1019
+#: frontend/ui/widget/inputdialog.lua:1023
 msgid "Enter line number"
 msgstr ""
 
 #. @translators %1 is the current line number, %2 is the last line number
-#: frontend/ui/widget/inputdialog.lua:1022
+#: frontend/ui/widget/inputdialog.lua:1026
 msgid "%1 (1 - %2)"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:1043
+#: frontend/ui/widget/inputdialog.lua:1047
 msgid "Go to line"
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:1173
+#: frontend/ui/widget/inputdialog.lua:1177
 msgid "Found in line %1."
 msgstr ""
 
-#: frontend/ui/widget/inputdialog.lua:1175
+#: frontend/ui/widget/inputdialog.lua:1179
 #: frontend/ui/widget/textviewer.lua:578
 msgid "Not found."
 msgstr ""
@@ -13664,7 +13682,7 @@ msgid "Push settings to cloud"
 msgstr ""
 
 #: plugins/AnnotationSync.koplugin/main.lua:188
-#: plugins/AnnotationSync.koplugin/menus.lua:144
+#: plugins/AnnotationSync.koplugin/menus.lua:145
 msgid "Pull settings from cloud"
 msgstr ""
 
@@ -13725,38 +13743,38 @@ msgid ""
 "%3"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:381
+#: plugins/AnnotationSync.koplugin/main.lua:383
 msgid "AnnotationSync: Sync current book now"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:389
+#: plugins/AnnotationSync.koplugin/main.lua:391
 msgid "AnnotationSync: Push settings to cloud"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:390
+#: plugins/AnnotationSync.koplugin/main.lua:392
 msgid "Push the selected settings to the cloud."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:397
+#: plugins/AnnotationSync.koplugin/main.lua:399
 msgid "AnnotationSync: Pull settings from cloud"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:398
+#: plugins/AnnotationSync.koplugin/main.lua:400
 msgid "Pull the selected settings from the cloud."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:405
+#: plugins/AnnotationSync.koplugin/main.lua:407
 msgid "AnnotationSync: Sync all pending books"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:425
+#: plugins/AnnotationSync.koplugin/main.lua:427
 msgid ""
 "Cloud destination set to:\n"
 "%1\n"
 "Provider: %2"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/main.lua:464
+#: plugins/AnnotationSync.koplugin/main.lua:467
 msgid "Annotation restored."
 msgstr ""
 
@@ -13765,7 +13783,7 @@ msgid "Syncing %1 in the background"
 msgstr ""
 
 #: plugins/AnnotationSync.koplugin/manager.lua:104
-#: plugins/AnnotationSync.koplugin/menus.lua:293
+#: plugins/AnnotationSync.koplugin/menus.lua:312
 msgid "No pending books."
 msgstr ""
 
@@ -13775,23 +13793,23 @@ msgid_plural "Syncing %1 books one by one in the background"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:172
+#: plugins/AnnotationSync.koplugin/manager.lua:174
 msgid "Cannot find %1. Removed it from pending books."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:283
+#: plugins/AnnotationSync.koplugin/manager.lua:286
 msgid "Synced: %1"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:286
+#: plugins/AnnotationSync.koplugin/manager.lua:289
 msgid "Cannot read %1. Skipped syncing it."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:289
+#: plugins/AnnotationSync.koplugin/manager.lua:292
 msgid "Failed to sync %1."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:313
+#: plugins/AnnotationSync.koplugin/manager.lua:316
 msgid ""
 "%1 has no annotations on this device, but 1 on your cloud storage. Restore "
 "it, or move it to the trash on all devices? Trashed annotations can be "
@@ -13805,136 +13823,140 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:320
+#: plugins/AnnotationSync.koplugin/manager.lua:323
 msgid "Move to trash"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:711
+#: plugins/AnnotationSync.koplugin/manager.lua:506
+msgid "Failed to save sync cache to disk."
+msgstr ""
+
+#: plugins/AnnotationSync.koplugin/manager.lua:570
+msgid "Failed to save sync queue to disk."
+msgstr ""
+
+#: plugins/AnnotationSync.koplugin/manager.lua:703
 msgid ""
 "No settings are selected. Please select settings to sync in 'Show changed "
 "settings'."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:735
-msgid "Failed to write settings to local storage."
-msgstr ""
-
-#: plugins/AnnotationSync.koplugin/manager.lua:740
+#: plugins/AnnotationSync.koplugin/manager.lua:732
 msgid "Pushing settings to cloud..."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:850
+#: plugins/AnnotationSync.koplugin/manager.lua:838
 msgid "Fetching settings from cloud..."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/manager.lua:855
+#: plugins/AnnotationSync.koplugin/manager.lua:843
 msgid "Failed to fetch settings from cloud"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:15
+#: plugins/AnnotationSync.koplugin/menus.lua:16
 msgid "No deleted annotations found for this document."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:25
-#: plugins/AnnotationSync.koplugin/menus.lua:35
+#: plugins/AnnotationSync.koplugin/menus.lua:26
+#: plugins/AnnotationSync.koplugin/menus.lua:36
 msgid "Restore All"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:31
+#: plugins/AnnotationSync.koplugin/menus.lua:32
 msgid "Are you sure you want to restore 1 deleted annotation?"
 msgid_plural "Are you sure you want to restore all %1 deleted annotations?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:40
+#: plugins/AnnotationSync.koplugin/menus.lua:41
 msgid "Restored 1 annotation."
 msgid_plural "Restored %1 annotations."
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:73
+#: plugins/AnnotationSync.koplugin/menus.lua:74
 msgid ""
 "Do you want to restore this annotation?\n"
 "\n"
 "Page %1: %2"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:98
+#: plugins/AnnotationSync.koplugin/menus.lua:99
 msgid "Deleted Annotations"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:139
+#: plugins/AnnotationSync.koplugin/menus.lua:140
 msgid "No other devices found in cloud settings."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:193
+#: plugins/AnnotationSync.koplugin/menus.lua:212
 msgid "No differing settings found for this device."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:205
+#: plugins/AnnotationSync.koplugin/menus.lua:224
 msgid "Import Selected Settings"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:222
+#: plugins/AnnotationSync.koplugin/menus.lua:241
 msgid "Successfully imported 1 setting."
 msgid_plural "Successfully imported %1 settings."
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:228
+#: plugins/AnnotationSync.koplugin/menus.lua:247
 msgid "No settings imported."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:238
+#: plugins/AnnotationSync.koplugin/menus.lua:257
 #: plugins/AnnotationSync.koplugin/settings_selection.lua:339
 msgid "Select All"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:249
+#: plugins/AnnotationSync.koplugin/menus.lua:268
 #: plugins/AnnotationSync.koplugin/settings_selection.lua:351
 msgid "Clear Selection"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:284
+#: plugins/AnnotationSync.koplugin/menus.lua:303
 msgid "Settings from %1"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:317
+#: plugins/AnnotationSync.koplugin/menus.lua:336
 msgid "Syncing"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:328
+#: plugins/AnnotationSync.koplugin/menus.lua:347
 msgid ""
 "Sync this book now?\n"
 "\n"
 "%1"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:329
+#: plugins/AnnotationSync.koplugin/menus.lua:348
 msgid "Sync"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:338
+#: plugins/AnnotationSync.koplugin/menus.lua:357
 msgid "Remove from list"
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:343
+#: plugins/AnnotationSync.koplugin/menus.lua:362
 msgid "Removed %1 from pending books."
 msgstr ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:361
+#: plugins/AnnotationSync.koplugin/menus.lua:380
 msgid "Failed, retry in 1 minute"
 msgid_plural "Failed, retry in %1 minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:367
+#: plugins/AnnotationSync.koplugin/menus.lua:386
 msgid "Cool down for 1 minute"
 msgid_plural "Cool down for %1 minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/AnnotationSync.koplugin/menus.lua:378
+#: plugins/AnnotationSync.koplugin/menus.lua:397
 msgid "Pending books"
 msgstr ""
 
@@ -14056,54 +14078,54 @@ msgstr ""
 msgid "Put into standby on no input, wake up from standby on UI input"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:495
+#: plugins/autosuspend.koplugin/main.lua:492
 #: plugins/autoturn.koplugin/main.lua:164
 msgid "Set timeout"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:522
+#: plugins/autosuspend.koplugin/main.lua:519
 #: plugins/autowarmth.koplugin/main.lua:1056
 msgid "%1: %2"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:561
+#: plugins/autosuspend.koplugin/main.lua:558
 msgid "%1: disabled"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:588
+#: plugins/autosuspend.koplugin/main.lua:585
 msgid "Autosuspend timeout: %1"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:590
+#: plugins/autosuspend.koplugin/main.lua:587
 msgid "Autosuspend timeout"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:600
+#: plugins/autosuspend.koplugin/main.lua:597
 msgid "Timeout for autosuspend"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:601
+#: plugins/autosuspend.koplugin/main.lua:598
 #: plugins/autowarmth.koplugin/main.lua:1073
 msgid "Enter time in hours and minutes."
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:625
+#: plugins/autosuspend.koplugin/main.lua:622
 msgid "Autoshutdown timeout: %1"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:627
+#: plugins/autosuspend.koplugin/main.lua:624
 msgid "Autoshutdown timeout"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:638
+#: plugins/autosuspend.koplugin/main.lua:635
 msgid "Timeout for autoshutdown"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:639
+#: plugins/autosuspend.koplugin/main.lua:636
 msgid "Enter time in days and hours."
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:650
+#: plugins/autosuspend.koplugin/main.lua:647
 msgid ""
 "Standby puts the device into a power-saving state in which the screen is on "
 "and user input can be performed.\n"
@@ -14115,26 +14137,26 @@ msgid ""
 "it can be fairly aggravating on slower devices."
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:661
+#: plugins/autosuspend.koplugin/main.lua:658
 msgid ""
 "Your device is known to be extremely unreliable, as such, failure to enter a "
 "power-saving state *may* hang the kernel, resulting in a full device hang or "
 "a device restart."
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:681
+#: plugins/autosuspend.koplugin/main.lua:678
 msgid "Autostandby timeout: %1"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:683
+#: plugins/autosuspend.koplugin/main.lua:680
 msgid "Autostandby timeout"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:695
+#: plugins/autosuspend.koplugin/main.lua:692
 msgid "Timeout for autostandby"
 msgstr ""
 
-#: plugins/autosuspend.koplugin/main.lua:696
+#: plugins/autosuspend.koplugin/main.lua:693
 #: plugins/autoturn.koplugin/main.lua:157
 msgid "Enter time in minutes and seconds."
 msgstr ""
@@ -14712,7 +14734,7 @@ msgid "Since last charge"
 msgstr ""
 
 #: plugins/batterystat.koplugin/main.lua:321
-#: plugins/batterystat.koplugin/main.lua:338
+#: plugins/batterystat.koplugin/main.lua:334
 #: plugins/batterystat.koplugin/_meta.lua:4
 msgid "Battery statistics"
 msgstr ""
@@ -17185,7 +17207,7 @@ msgstr ""
 #: plugins/legacy_terminal.koplugin/main.lua:425
 #: plugins/profiles.koplugin/main.lua:132
 #: plugins/profiles.koplugin/main.lua:1194
-#: plugins/terminal.koplugin/aliases.lua:180
+#: plugins/terminal.koplugin/aliases.lua:181
 msgid "Execute"
 msgstr ""
 
@@ -19253,23 +19275,23 @@ msgid "Shows system statistics."
 msgstr ""
 
 #: plugins/terminal.koplugin/aliases.lua:75
-#: plugins/terminal.koplugin/aliases.lua:167
+#: plugins/terminal.koplugin/aliases.lua:168
 msgid "Create a new alias"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:88
+#: plugins/terminal.koplugin/aliases.lua:98
 msgid "Terminal emulator: error saving: %1"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:106
+#: plugins/terminal.koplugin/aliases.lua:107
 msgid "Edit alias"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:109
+#: plugins/terminal.koplugin/aliases.lua:110
 msgid "Alias name:"
 msgstr ""
 
-#: plugins/terminal.koplugin/aliases.lua:113
+#: plugins/terminal.koplugin/aliases.lua:114
 msgid "Alias command:"
 msgstr ""
 
