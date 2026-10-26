@@ -1,5 +1,5 @@
 describe("AnnotationSync Sync Protection & Regressions", function()
-  local UIManager, SyncService
+  local UIManager, SyncService, gettext
   local AnnotationSyncPlugin, highlight_db, test_utils, json
   local readerui, sync_instance, restore_jobs
   local test_data_dir = require("datastorage"):getDataDir()
@@ -8,6 +8,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
 
   setup(function()
     require("commonrequire")
+    gettext = require("gettext")
     local plugin_path = "plugins/AnnotationSync.koplugin/?.lua"
     package.path = plugin_path .. ";" .. package.path
 
@@ -522,7 +523,6 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local old_writeToFile = util.writeToFile
     local Notification = require("ui/widget/notification")
     local orig_notify = Notification.notify
-    local gettext = require("gettext")
     local notified_msg
     Notification.notify = function(_, msg)
       notified_msg = msg
@@ -542,7 +542,6 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local old_writeToFile = util.writeToFile
     local Notification = require("ui/widget/notification")
     local orig_notify = Notification.notify
-    local gettext = require("gettext")
     local notified_msg
     Notification.notify = function(_, msg)
       notified_msg = msg
