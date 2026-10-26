@@ -630,6 +630,12 @@ describe("DataStorage module", function()
     isDirRW_mock = function(dir)
       return dir == "/fake/xdg/koreader"
     end
+    local lfs = require("libs/libkoreader-lfs")
+    local orig_mkdir = lfs.mkdir
+    lfs.mkdir = function()
+      return true
+    end
+
     DataStorage = require("datastorage")
     DataStorage:getDataDir()
 
@@ -644,6 +650,7 @@ describe("DataStorage module", function()
     assert.is_false(show_called)
 
     UIManager.show = orig_show
+    lfs.mkdir = orig_mkdir
   end)
 
   it(

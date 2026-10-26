@@ -231,10 +231,7 @@ local function initDataDir()
     "tmp",
   }
   local datadir = DataStorage:getDataDir()
-  if
-    not isStorageReadOnly()
-    and lfs.attributes(datadir, "mode") == "directory"
-  then
+  if not isStorageReadOnly() then
     for _, dir in ipairs(sub_data_dirs) do
       local sub_data_dir = string.format("%s/%s", datadir, dir)
       if lfs.attributes(sub_data_dir, "mode") ~= "directory" then
