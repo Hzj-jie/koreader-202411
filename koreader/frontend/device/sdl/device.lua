@@ -28,6 +28,10 @@ local function isCommand(s)
 end
 
 local function runCommand(command)
+  if util.isMonkeyTest() then
+    logger.warn("Skipping command in monkey test mode:", command)
+    return true
+  end
   return os.execute(command) == 0
 end
 
