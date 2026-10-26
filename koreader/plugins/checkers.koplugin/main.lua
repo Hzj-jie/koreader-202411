@@ -37,10 +37,8 @@ local function install_icons()
   local data_dir = DataStorage:getDataDir()
   local src_dir = PLUGIN_PATH .. "/icons"
   local dst_dir = data_dir .. "/icons/checkers"
-  local iter, dir_obj = lfs.dir(src_dir)
-  if not iter then
-    return
-  end
+  local iter, dir_obj, err = lfs.dir(src_dir)
+  assert(iter, err)
   util.makePath(dst_dir)
   for entry in iter, dir_obj do
     if entry:match("%.svg$") then
