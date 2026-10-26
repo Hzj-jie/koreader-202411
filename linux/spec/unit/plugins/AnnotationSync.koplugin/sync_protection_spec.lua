@@ -530,8 +530,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     util.writeToFile = function(...)
       return false, "write error"
     end
-    local res = sync_instance.manager:_writeChangedDocumentsFile({ "/tmp/file.epub" })
-    assert.is_false(res)
+    sync_instance.manager:_writeChangedDocumentsFile({ "/tmp/file.epub" })
     assert.truthy(notified_msg)
     assert.are.equal(gettext("Failed to save sync queue to disk."), notified_msg)
     Notification.notify = orig_notify
@@ -551,8 +550,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     util.writeToFile = function(...)
       return false, "write error"
     end
-    local res = sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
-    assert.is_false(res)
+    sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
     assert.truthy(notified_msg)
     assert.are.equal(gettext("Failed to save sync cache to disk."), notified_msg)
     Notification.notify = orig_notify
@@ -569,9 +567,18 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local path = sync_instance.manager:getSyncCachePath(readerui.document.file)
     assert.is_nil(path)
 
-    local ok = sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
-    assert.is_false(ok)
+    local util = require("util")
+    local old_writeToFile = util.writeToFile
+    local write_calls = 0
+    util.writeToFile = function(...)
+      write_calls = write_calls + 1
+      return old_writeToFile(...)
+    end
 
+    sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
+    assert.are.equal(0, write_calls)
+
+    util.writeToFile = old_writeToFile
     docsettings.getCustomLocationCandidate = orig_getCustomLocationCandidate
   end)
 end)

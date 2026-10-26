@@ -498,15 +498,13 @@ end
 function SyncManager:_promoteSyncBase(file, uploaded_json)
   local cache_path = self:getSyncCachePath(file)
   if not cache_path then
-    return false
+    return
   end
   local ok, err = util.writeToFile(uploaded_json, cache_path)
   if not ok then
     logger.warn("AnnotationSync: failed to write sync base:", err)
     Notification:notify(gettext("Failed to save sync cache to disk."))
-    return false
   end
-  return true
 end
 
 function SyncManager:getSyncCachePath(file)
@@ -562,14 +560,12 @@ function SyncManager:removeFromChangedDocumentsFileByPath(file)
 end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
-  local track_path = self:changedDocumentsFile()
-  local ok, err = util.writeToFile(dump(changed_docs), track_path, true)
+  local ok, err =
+    util.writeToFile(dump(changed_docs), self:changedDocumentsFile(), true)
   if not ok then
     logger.warn("AnnotationSync: failed to write changed documents file:", err)
     Notification:notify(gettext("Failed to save sync queue to disk."))
-    return false
   end
-  return true
 end
 
 function SyncManager:scanLibraryForUnsyncedDocuments()
