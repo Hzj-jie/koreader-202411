@@ -122,11 +122,11 @@ function LuaDefaults:flush()
   if not self.file then
     return
   end
-  local ok = util.writeToFile(dump(self.rw), self.file, true)
-  if not ok then
-    local Notification = require("ui/widget/notification")
-    local _ = require("gettext")
-    Notification:notify(_("Failed to write settings to local storage."))
+  if not util.writeToFile(dump(self.rw), self.file, true) then
+    local gettext = require("gettext")
+    require("ui/widget/notification"):notify(
+      gettext("Failed to write settings to local storage.")
+    )
   end
   return self
 end

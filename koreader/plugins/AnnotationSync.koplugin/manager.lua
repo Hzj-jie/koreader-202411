@@ -498,15 +498,13 @@ end
 function SyncManager:_promoteSyncBase(file, uploaded_json)
   local cache_path = self:getSyncCachePath(file)
   if not cache_path then
-    return false
+    return
   end
   local ok, err = util.writeToFile(uploaded_json, cache_path)
   if not ok then
     logger.warn("AnnotationSync: failed to write sync base:", err)
     Notification:notify(gettext("Failed to save sync cache to disk."))
-    return false
   end
-  return true
 end
 
 function SyncManager:getSyncCachePath(file)
@@ -562,14 +560,12 @@ function SyncManager:removeFromChangedDocumentsFileByPath(file)
 end
 
 function SyncManager:_writeChangedDocumentsFile(changed_docs)
-  local track_path = self:changedDocumentsFile()
-  local ok, err = util.writeToFile(dump(changed_docs), track_path, true)
+  local ok, err =
+    util.writeToFile(dump(changed_docs), self:changedDocumentsFile(), true)
   if not ok then
     logger.warn("AnnotationSync: failed to write changed documents file:", err)
     Notification:notify(gettext("Failed to save sync queue to disk."))
-    return false
   end
-  return true
 end
 
 function SyncManager:scanLibraryForUnsyncedDocuments()
@@ -740,9 +736,24 @@ function SyncManager:pushSettings()
   end)
 end
 
-function SyncManager:getLocalSettingValue(key, caches)
+function SyncManager:parseSettingKey(key)
   local domain, full_key = key:match("^([^:]+):(.*)$")
-  assert(domain and full_key ~= "")
+  if
+    domain
+    and full_key ~= ""
+    and (
+      domain == "reader"
+      or domain == "defaults"
+      or domain:match("^settings/")
+    )
+  then
+    return domain, full_key
+  end
+  return nil
+end
+
+function SyncManager:getLocalSettingValue(key, caches)
+  local domain, full_key = assert(self:parseSettingKey(key))
 
   if domain == "reader" then
     if caches.reader == nil then
@@ -763,7 +774,6 @@ function SyncManager:getLocalSettingValue(key, caches)
     end
     return utils.get_nested_value(caches.defaults, full_key)
   else
-    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     if caches[settings_name] == nil then
       local filepath = DataStorage:getSettingsDir()
@@ -805,8 +815,7 @@ local function save_nested_setting(settings_obj, parts, value)
 end
 
 function SyncManager:_writeLocalSettingValue(key, value)
-  local domain, full_key = key:match("^([^:]+):(.*)$")
-  assert(domain and full_key ~= "")
+  local domain, full_key = assert(self:parseSettingKey(key))
 
   local LuaSettings = require("luasettings")
   local parts = utils.split_setting_path(full_key)
@@ -822,7 +831,6 @@ function SyncManager:_writeLocalSettingValue(key, value)
     save_nested_setting(G_defaults, parts, value)
     return true
   else
-    assert(domain:match("^settings/"))
     local settings_name = domain:sub(10)
     local filepath = DataStorage:getSettingsDir()
       .. "/"

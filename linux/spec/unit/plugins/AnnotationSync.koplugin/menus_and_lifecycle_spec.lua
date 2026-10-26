@@ -644,7 +644,8 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           ["reader:valid_setting"] = true,
         })
         local diff_menu = shown_widgets[#shown_widgets]
-        assert.are.equal("Settings from RemoteReader", diff_menu.title)
+        local T = require("ffi/util").template
+        assert.are.equal(T(gettext("Settings from %1"), "RemoteReader"), diff_menu.title)
         assert.are.equal(4, #diff_menu.item_table)
         assert.are.equal(
           "[✓] [reader] valid_setting: nil -> true",
@@ -657,6 +658,27 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
   describe(
     "manager, settings_selection, remote, annotations, and utils edge cases",
     function()
+      it(
+        "parses valid setting keys and rejects malformed or unknown keys",
+        function()
+          local domain, key = sync_instance.manager:parseSettingKey("reader:x")
+          assert.are.equal("reader", domain)
+          assert.are.equal("x", key)
+
+          domain, key = sync_instance.manager:parseSettingKey("defaults:x")
+          assert.are.equal("defaults", domain)
+          assert.are.equal("x", key)
+
+          domain, key = sync_instance.manager:parseSettingKey("settings/foo:x")
+          assert.are.equal("settings/foo", domain)
+          assert.are.equal("x", key)
+
+          assert.is_nil(sync_instance.manager:parseSettingKey("malformed_key_without_colon"))
+          assert.is_nil(sync_instance.manager:parseSettingKey("reader:"))
+          assert.is_nil(sync_instance.manager:parseSettingKey("unknown:x"))
+        end
+      )
+
       it(
         "migrates legacy map format in changed_documents.lua to an array",
         function()
