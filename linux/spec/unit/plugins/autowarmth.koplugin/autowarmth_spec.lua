@@ -82,7 +82,7 @@ describe("AutoWarmth plugin tests", function()
     MockTime:set(1773964800)
 
     local DeviceListener = require("device/devicelistener")
-    stub(DeviceListener, "onSetNightMode")
+    stub(DeviceListener, "onToggleNightMode")
 
     AutoWarmth = class:new({ ui = mock_ui })
     notifyBackgroundJobsUpdated()
@@ -97,8 +97,8 @@ describe("AutoWarmth plugin tests", function()
       AutoWarmth = nil
     end
     local DeviceListener = require("device/devicelistener")
-    if DeviceListener.onSetNightMode.revert then
-      DeviceListener.onSetNightMode:revert()
+    if DeviceListener.onToggleNightMode.revert then
+      DeviceListener.onToggleNightMode:revert()
     end
     UIManager:handleInput()
     Device.hasNaturalLight:revert()
@@ -629,6 +629,31 @@ describe("AutoWarmth plugin tests", function()
           .was_called_with(match.is_table(), 20, true)
       end
     )
+
+    it("should turn on night mode with control_nightmode and not toggle again when called a second time", function()
+      local DeviceListener = require("device/devicelistener")
+      DeviceListener.onToggleNightMode:revert()
+      G_reader_settings:save("night_mode", false, false)
+      local Screen = require("device").screen
+      stub(Screen, "setNightmode")
+      stub(UIManager, "toggleNightMode")
+
+      AutoWarmth.control_nightmode = true
+      AutoWarmth:setWarmth(150)
+
+      assert.is_true(G_reader_settings:isTrue("night_mode"))
+      assert.stub(Screen.setNightmode).was_called_with(match.is_table(), true)
+      assert.stub(UIManager.toggleNightMode).was_called(1)
+
+      -- Calling setWarmth(150) a second time should not toggle or re-apply night mode
+      AutoWarmth:setWarmth(150)
+      assert.stub(Screen.setNightmode).was_called(1)
+      assert.stub(UIManager.toggleNightMode).was_called(1)
+
+      Screen.setNightmode:revert()
+      UIManager.toggleNightMode:revert()
+      stub(DeviceListener, "onToggleNightMode")
+    end)
 
     it("should register dispatcher actions safely", function()
       if type(AutoWarmth.onDispatcherRegisterActions) == "function" then

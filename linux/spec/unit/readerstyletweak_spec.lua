@@ -17,6 +17,48 @@ describe("ReaderStyleTweak module", function()
   end)
 
   describe("Settings & Tweak Operations", function()
+    it("should persist global style tweaks when modified from defaults", function()
+      local CssTweaks = require("ui/data/css_tweaks")
+      local LuaSettings = require("luasettings")
+      local util = require("util")
+      local old_settings = _G.G_reader_settings
+      local dummy_settings = LuaSettings:open("/tmp/dummy_reader_settings.lua")
+      dummy_settings:delete("style_tweaks")
+      _G.G_reader_settings = dummy_settings
+
+      local default_copy = util.tableDeepCopy(CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS)
+
+      local mock_ui = {
+        document = {
+          info = { has_crengine = true },
+          setStyleTweaks = function() end,
+        },
+        menu = { registerToMainMenu = function() end },
+        doc_settings = {
+          readTableRef = function() return {} end,
+          readTable = function() return {} end,
+          read = function() end,
+          nilOrTrue = function() return true end,
+          save = function() end,
+          delete = function() end,
+        },
+      }
+      local tweak = ReaderStyleTweak:new({ ui = mock_ui })
+      tweak:onReadSettings(mock_ui.doc_settings)
+
+      tweak.global_tweaks["tweak_custom_test"] = true
+      tweak:onSaveSettings()
+
+      local saved = _G.G_reader_settings:readTable("style_tweaks")
+      _G.G_reader_settings = old_settings
+      os.remove("/tmp/dummy_reader_settings.lua")
+
+      assert.is_not_nil(saved)
+      assert.is_true(saved["tweak_custom_test"])
+      assert.is_nil(CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS["tweak_custom_test"])
+      assert.are.same(default_copy, CssTweaks.DEFAULT_GLOBAL_STYLE_TWEAKS)
+    end)
+
     it("should handle reading and saving style tweak settings", function()
       local mock_ui = {
         document = {
