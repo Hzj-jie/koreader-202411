@@ -514,8 +514,7 @@ function SyncManager:getSyncCachePath(file)
   if not cand then
     return nil
   end
-  local filename = self:_getAnnotationFilename(file)
-  return cand.dir .. "/" .. filename .. ".sync"
+  return cand.dir .. "/" .. self:_getAnnotationFilename(file) .. ".sync"
 end
 
 -- Refreshes the local sync JSON file with latest memory/sidecar state in /tmp
