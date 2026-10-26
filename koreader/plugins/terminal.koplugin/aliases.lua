@@ -91,9 +91,7 @@ function Aliases:save()
       "alias " .. self.kv_pairs[i][1] .. '="' .. self.kv_pairs[i][2] .. '"\n'
     )
   end
-  local content = table.concat(lines)
-  local ok = util.writeToFile(content, self.filename)
-  if not ok then
+  if not util.writeToFile(table.concat(lines), self.filename) then
     UIManager:show(InfoMessage:new({
       text = T(gettext("Terminal emulator: error saving: %1"), self.filename),
     }))
