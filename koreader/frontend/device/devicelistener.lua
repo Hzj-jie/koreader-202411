@@ -13,6 +13,8 @@ local DeviceListener = EventListener:extend({})
 function DeviceListener:onToggleNightMode(night_mode)
   if night_mode == nil then
     night_mode = G_reader_settings:nilOrFalse("night_mode")
+  elseif night_mode == G_reader_settings:isTrue("night_mode") then
+    return
   end
   G_reader_settings:save("night_mode", night_mode, false)
   Screen:setNightmode(night_mode)

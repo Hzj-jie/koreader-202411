@@ -270,6 +270,21 @@ describe("devicelistener", function()
         assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, false)
       end
     )
+
+    it(
+      "does not toggle again if requested night_mode matches current state",
+      function()
+        local listener = DeviceListener:new({ ui = {} })
+        listener:onToggleNightMode(true)
+        assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, true)
+        mock_screen.setNightmode:clear()
+        mock_uimanager.toggleNightMode:clear()
+
+        listener:onToggleNightMode(true)
+        assert.spy(mock_screen.setNightmode).was_not.called()
+        assert.spy(mock_uimanager.toggleNightMode).was_not.called()
+      end
+    )
   end)
 
   describe("changeFlIntensity", function()

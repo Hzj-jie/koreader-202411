@@ -332,7 +332,6 @@ function AutoWarmth:clearEventHandlers()
   self.onResume = nil
   self.onSuspend = nil
   self.onToggleNightMode = nil
-  self.onSetNightMode = nil
   self.onToggleFrontlight = nil
 end
 
@@ -626,7 +625,7 @@ function AutoWarmth:setWarmth(val, force_warmth)
   -- We use an offset of 1000 to "flag", that night mode is on.
   if val then
     if self.control_nightmode then
-      DeviceListener:onSetNightMode(val > 100)
+      DeviceListener:onToggleNightMode(val > 100)
     end
 
     if self.control_warmth and Device:hasNaturalLight() then
