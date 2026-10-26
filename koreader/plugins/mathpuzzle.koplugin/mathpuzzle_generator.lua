@@ -150,21 +150,6 @@ function Generator.getModeById(mode_id)
       return mode
     end
   end
-  if mode_id == "arithmetic_progression_30_entry" or mode_id == "arithmetic_progression_entry" or mode_id == "ap_entry" or mode_id == "ap_30_entry" or mode_id == "ap_30" or mode_id == "arithmetic_progression_30" or mode_id == "arithmetic_progression_30_easy" or mode_id == "arithmetic_progression_20" or mode_id == "ap_20" or mode_id == "arithmetic_progression_20_entry" then
-    return Generator.getModeById("arithmetic_progression_30_entry")
-  end
-  if mode_id == "arithmetic_progression_50_easy" or mode_id == "arithmetic_progression_easy" or mode_id == "ap_easy" or mode_id == "ap_50_easy" then
-    return Generator.getModeById("arithmetic_progression_50_easy")
-  end
-  if mode_id == "arithmetic_progression" or mode_id == "arithmetic_progression_100" or mode_id == "ap_100" then
-    return Generator.getModeById("arithmetic_progression_100")
-  end
-  if mode_id == "arithmetic_progression_50" or mode_id == "ap_50" then
-    return Generator.getModeById("arithmetic_progression_50")
-  end
-  if mode_id == "missing_100_add_sub" or mode_id == "missing_add_sub_100" or mode_id == "missing_add_sub" then
-    return Generator.getModeById("missing_100_add_sub")
-  end
   return Generator.MODES[2] -- default to add_sub_100
 end
 
@@ -338,7 +323,7 @@ local function generateSingleProblem(mode)
     end
   elseif mode_type == "missing" then
     local op_roll
-    if mode.ops == "add_sub" or mode.only_add_sub then
+    if mode.ops == "add_sub" then
       op_roll = math.random(1, 2)
     else
       op_roll = math.random(1, 4)

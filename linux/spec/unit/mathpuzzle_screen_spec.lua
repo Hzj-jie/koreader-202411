@@ -63,8 +63,8 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should initialize MathPuzzleScreen for arithmetic_progression in single column with inline answer blocks", function()
-    local screen = createScreen(nil, "arithmetic_progression")
+  it("should initialize MathPuzzleScreen for arithmetic_progression_100 in single column with inline answer blocks", function()
+    local screen = createScreen(nil, "arithmetic_progression_100")
     UIManager:show(screen)
 
     assert.is_table(screen.problems)

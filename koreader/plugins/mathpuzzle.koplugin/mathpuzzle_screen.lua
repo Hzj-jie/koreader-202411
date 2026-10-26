@@ -99,9 +99,6 @@ end
 
 function MathPuzzleScreen:_updateInputButton(idx)
   local btn = self.input_buttons[idx]
-  if not btn then
-    return
-  end
   local is_focused = (idx == self.focused_idx)
   local val = btn:getText()
   local display_text = val ~= "" and val or (is_focused and "_" or " ")
@@ -127,9 +124,6 @@ end
 
 function MathPuzzleScreen:inputDigit(digit_char)
   local btn = self.input_buttons[self.focused_idx]
-  if not btn then
-    return
-  end
   local current = btn:getText()
   if #current < 6 then
     btn:setText(current .. digit_char)
@@ -138,9 +132,6 @@ end
 
 function MathPuzzleScreen:backspace()
   local btn = self.input_buttons[self.focused_idx]
-  if not btn then
-    return
-  end
   local current = btn:getText()
   if #current > 0 then
     btn:setText(current:sub(1, -2))
