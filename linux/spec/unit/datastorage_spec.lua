@@ -413,8 +413,12 @@ describe("DataStorage module", function()
 
       DataStorage:showStorageWarningIfNeeded()
       assert.is_not_nil(shown_widget)
-      assert.is_truthy(
-        shown_widget.text:find("Failed to create some application data directories")
+      local gettext = require("gettext")
+      assert.are.equal(
+        gettext(
+          "Failed to create some application data directories. Some features may not work properly."
+        ),
+        shown_widget.text
       )
 
       UIManager.show = orig_show

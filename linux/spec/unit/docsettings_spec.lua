@@ -1,5 +1,5 @@
 describe("docsettings module", function()
-  local DataStorage, docsettings, docsettings_dir, ffiutil, lfs, logger, util
+  local DataStorage, docsettings, docsettings_dir, ffiutil, gettext, lfs, logger, util
   local getSidecarFile = function(doc_path)
     return docsettings:getSidecarDir(doc_path)
       .. "/"
@@ -11,6 +11,7 @@ describe("docsettings module", function()
     DataStorage = require("datastorage")
     docsettings = require("docsettings")
     ffiutil = require("ffi/util")
+    gettext = require("gettext")
     lfs = require("libs/libkoreader-lfs")
     logger = require("logger")
     util = require("util")
@@ -2142,7 +2143,7 @@ describe("docsettings module", function()
         end)
         assert.is_true(ok)
         assert.truthy(shown_notification)
-        assert.are.equal("Failed to save custom metadata to disk.", shown_notification.text)
+        assert.are.equal(gettext("Failed to save custom metadata to disk."), shown_notification.text)
         assert.is_false(removed)
 
         inst.getCustomMetadataFile = orig_getCustomMetadata
@@ -2187,7 +2188,7 @@ describe("docsettings module", function()
         end)
         assert.is_true(ok)
         assert.truthy(shown_notification)
-        assert.are.equal("Failed to save custom cover to disk.", shown_notification.text)
+        assert.are.equal(gettext("Failed to save custom cover to disk."), shown_notification.text)
         assert.is_false(removed)
 
         inst.getCustomCoverFile = orig_getCustomCover

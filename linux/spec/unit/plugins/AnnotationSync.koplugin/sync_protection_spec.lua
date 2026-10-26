@@ -522,6 +522,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local old_writeToFile = util.writeToFile
     local Notification = require("ui/widget/notification")
     local orig_notify = Notification.notify
+    local gettext = require("gettext")
     local notified_msg
     Notification.notify = function(_, msg)
       notified_msg = msg
@@ -532,7 +533,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local res = sync_instance.manager:_writeChangedDocumentsFile({ "/tmp/file.epub" })
     assert.is_false(res)
     assert.truthy(notified_msg)
-    assert.are.equal("Failed to save sync queue to disk.", notified_msg)
+    assert.are.equal(gettext("Failed to save sync queue to disk."), notified_msg)
     Notification.notify = orig_notify
     util.writeToFile = old_writeToFile
   end)
@@ -542,6 +543,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local old_writeToFile = util.writeToFile
     local Notification = require("ui/widget/notification")
     local orig_notify = Notification.notify
+    local gettext = require("gettext")
     local notified_msg
     Notification.notify = function(_, msg)
       notified_msg = msg
@@ -552,7 +554,7 @@ describe("AnnotationSync Sync Protection & Regressions", function()
     local res = sync_instance.manager:_promoteSyncBase(readerui.document.file, "{}")
     assert.is_false(res)
     assert.truthy(notified_msg)
-    assert.are.equal("Failed to save sync cache to disk.", notified_msg)
+    assert.are.equal(gettext("Failed to save sync cache to disk."), notified_msg)
     Notification.notify = orig_notify
     util.writeToFile = old_writeToFile
   end)
