@@ -192,11 +192,6 @@ function Font:getRegularVariantName(name)
   return self.regular_font_variant[name] or name
 end
 
--- Synthesized bold strength can be tuned:
--- local bold_strength_factor = 1   -- really too bold
--- local bold_strength_factor = 1/2 -- bold enough
-local bold_strength_factor = 3 / 8 -- as crengine, lighter
-
 -- Callback to be used by libkoreader-xtext.so to get Freetype
 -- instantiated fallback fonts when needed for shaping text
 -- (Beware: any error in this code won't be noticed when this
@@ -350,9 +345,6 @@ function Font:getFace(font, size, faceindex)
       ftsize = ftsize,
       hash = hash,
       is_real_bold = is_real_bold,
-      embolden_half_strength = ftsize:getEmboldenHalfStrength(
-        bold_strength_factor
-      ),
     }
     self.faces[hash] = face_obj
 

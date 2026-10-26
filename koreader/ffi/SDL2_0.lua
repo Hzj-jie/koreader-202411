@@ -617,10 +617,6 @@ function S.waitForEvent(sec, usec)
   end
 end
 
-function S.hasClipboardText()
-  return SDL.SDL_HasClipboardText() == SDL.SDL_TRUE
-end
-
 function S.getClipboardText()
   return toluastring(SDL.SDL_GetClipboardText())
 end
