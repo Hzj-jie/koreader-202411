@@ -439,9 +439,7 @@ used to generate the file.
 ]]
 function QuickStart:getQuickStart()
   local quickstart_dir = ("%s/help"):format(DataStorage:getDataDir())
-  if lfs.attributes(quickstart_dir, "mode") ~= "dir" then
-    lfs.mkdir(quickstart_dir)
-  end
+  lfs.mkdir(quickstart_dir)
 
   local quickstart_filename = ("%s/quickstart-%s-%s.html"):format(
     quickstart_dir,
@@ -451,12 +449,14 @@ function QuickStart:getQuickStart()
   if lfs.attributes(quickstart_filename, "mode") ~= "file" then
     -- purge old quickstart guides
     local iter, dir_obj = lfs.dir(quickstart_dir)
-    for f in iter, dir_obj do
-      if f:match("quickstart-.*%.html") then
-        local file_abs_path =
-          FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
-        os.remove(file_abs_path)
-        DocSettings:open(file_abs_path):purge()
+    if iter then
+      for f in iter, dir_obj do
+        if f:match("quickstart-.*%.html") then
+          local file_abs_path =
+            FFIUtil.realpath(("%s/%s"):format(quickstart_dir, f))
+          os.remove(file_abs_path)
+          DocSettings:open(file_abs_path):purge()
+        end
       end
     end
 
