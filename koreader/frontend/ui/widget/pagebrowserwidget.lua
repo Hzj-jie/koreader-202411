@@ -50,7 +50,7 @@ function PageBrowserWidget:init()
   self:mergeSize(Screen:getSize())
 
   self.key_events = {
-    Close = { { Device.input.group.Back } },
+    Exit = { { Device.input.group.Back } },
     ScrollRowUp = { { "Up" } },
     ScrollRowDown = { { "Down" } },
     ScrollPageUp = { { Input.group.PgBack } },
