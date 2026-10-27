@@ -11,10 +11,6 @@ else
   require("ffi/posix_types_def_h")
 end
 
-if _VERSION ~= "Lua 5.1" then
-  return require("ffi/posix_h_ffi")
-end
-
 ffi.cdef([[
 static const int EPERM = 1;
 static const int EINTR = 4;
