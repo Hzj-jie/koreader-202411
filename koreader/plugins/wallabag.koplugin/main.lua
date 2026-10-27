@@ -921,7 +921,9 @@ function Wallabag:processRemoteDeletes(remote_article_ids)
   UIManager:forceRepaint()
   UIManager:close(info)
   local deleted_count = 0
-  for entry in lfs.dir(self.directory) do
+  local iter, dir_obj, err = lfs.dir(self.directory)
+  assert(iter, err)
+  for entry in iter, dir_obj do
     if entry ~= "." and entry ~= ".." then
       local entry_path = self.directory .. "/" .. entry
       local id = self:getArticleID(entry_path)
@@ -961,7 +963,9 @@ function Wallabag:processLocalFiles(mode)
     UIManager:show(info)
     UIManager:forceRepaint()
     UIManager:close(info)
-    for entry in lfs.dir(self.directory) do
+    local iter, dir_obj, err = lfs.dir(self.directory)
+    assert(iter, err)
+    for entry in iter, dir_obj do
       if entry ~= "." and entry ~= ".." then
         local entry_path = self.directory .. "/" .. entry
         if DocSettings:hasSidecarFile(entry_path) then
