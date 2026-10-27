@@ -354,8 +354,6 @@ function util.runInSubProcess(func, with_pipe, label_func)
     end
   end
 
-  local info = debug.getinfo(label_func or func, "S")
-  local cmd = info.short_src .. ":" .. info.linedefined
   local out_pipe_fds = ffi.new("int[2]")
   if C.pipe(out_pipe_fds) ~= 0 then
     if parent_read_fd then
@@ -447,9 +445,10 @@ function util.runInSubProcess(func, with_pipe, label_func)
     return false, "fork failed: " .. ffi.string(C.strerror(ffi.errno()))
   end
   C.close(out_write_fd)
+  local info = debug.getinfo(label_func or func, "S")
   util.subprocesses[pid] = {
     pid = pid,
-    cmd = cmd,
+    cmd = info.short_src .. ":" .. info.linedefined,
     start_time = os.time(),
     fd = out_read_fd,
     output = "",
