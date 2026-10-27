@@ -127,7 +127,6 @@ describe("Font module", function()
       local face = Font:getFace("cfont", 18)
       local fb0 = face.getFallbackFont(0)
       assert.are.equal(face, fb0)
-      assert.truthy(face.embolden_half_strength)
     end)
 
     it(

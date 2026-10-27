@@ -344,9 +344,6 @@ local Input = {
   gesture_detector = nil,
 
   -- simple internal clipboard implementation, can be overridden to use system clipboard
-  hasClipboardText = function()
-    return _internal_clipboard_text ~= ""
-  end,
   getClipboardText = function()
     return _internal_clipboard_text
   end,
@@ -375,9 +372,6 @@ function Input:init()
     -- Already setup (e.g. stubbed by the testsuite).
   elseif self.device:isSDL() then
     self.input = require("ffi/input_SDL2_0")
-    self.hasClipboardText = function()
-      return self.input.hasClipboardText()
-    end
     self.getClipboardText = function()
       return self.input.getClipboardText()
     end
