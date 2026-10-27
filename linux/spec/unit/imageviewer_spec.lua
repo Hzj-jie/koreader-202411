@@ -199,4 +199,19 @@ describe("ImageViewer", function()
     }
     ImageViewer:register(mock_registry)
   end)
+
+  it("dismisses from UIManager on Back key press", function()
+    local Blitbuffer = require("ffi/blitbuffer")
+    local Key = require("device/key")
+    local bb = Blitbuffer.new(100, 100)
+    local viewer = ImageViewer:new({
+      image = bb,
+      image_disposable = true,
+      file = nil,
+    })
+    UIManager:show(viewer)
+    assert.is_true(UIManager:isWindowWidget(viewer))
+    viewer:onKeyPress(Key:new("Back", {}))
+    assert.is_false(UIManager:isWindowWidget(viewer))
+  end)
 end)
