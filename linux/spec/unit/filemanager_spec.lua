@@ -1236,8 +1236,7 @@ describe("FileManager module", function()
   end)
 
   it("should not double-execute onExit on Exit broadcast event", function()
-    local Event = require("ui/event")
-    local filemanager = FileManager:new({
+    FileManager:new({
       dimen = Screen:getSize(),
       root_path = "spec/unit/data",
     })
@@ -1249,7 +1248,7 @@ describe("FileManager module", function()
       return orig_on_exit(self)
     end
 
-    UIManager:broadcastEvent(Event:new("Exit"))
+    UIManager:broadcastEvent(require("ui/event"):new("Exit"))
     FileManager.onExit = orig_on_exit
 
     assert.are.equal(1, on_exit_count)
