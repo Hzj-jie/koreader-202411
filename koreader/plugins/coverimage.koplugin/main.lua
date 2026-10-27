@@ -329,15 +329,18 @@ function CoverImage:getCacheFile(custom_cover)
 end
 
 function CoverImage:emptyCache()
-  for entry in lfs.dir(self.cover_image_cache_path) do
-    if entry ~= "." and entry ~= ".." then
-      local file = self.cover_image_cache_path .. entry
-      if
-        entry:sub(1, self.cover_image_cache_prefix:len())
-          == self.cover_image_cache_prefix
-        and lfs.attributes(file, "mode") == "file"
-      then
-        os.remove(file)
+  local iter, dir_obj = lfs.dir(self.cover_image_cache_path)
+  if iter then
+    for entry in iter, dir_obj do
+      if entry ~= "." and entry ~= ".." then
+        local file = self.cover_image_cache_path .. entry
+        if
+          entry:sub(1, self.cover_image_cache_prefix:len())
+            == self.cover_image_cache_prefix
+          and lfs.attributes(file, "mode") == "file"
+        then
+          os.remove(file)
+        end
       end
     end
   end
@@ -346,7 +349,9 @@ end
 function CoverImage:getCacheFiles(cache_path, cache_prefix)
   local cache_size = 0
   local files = {}
-  for entry in lfs.dir(self.cover_image_cache_path) do
+  local iter, dir_obj = lfs.dir(self.cover_image_cache_path)
+  if iter then
+    for entry in iter, dir_obj do
     if entry ~= "." and entry ~= ".." then
       local file = cache_path .. entry
       if
@@ -365,6 +370,7 @@ function CoverImage:getCacheFiles(cache_path, cache_prefix)
         cache_size = cache_size + size
       end
     end
+  end
   end
   logger.dbg(
     "CoverImage: start - cache size: "
@@ -431,18 +437,21 @@ function CoverImage:migrateCache(old_path, new_path)
   if old_path == new_path or not self:isCacheEnabled(new_path) then
     return
   end
-  for entry in lfs.dir(old_path) do
-    if entry ~= "." and entry ~= ".." then
-      local old_file = old_path .. entry
-      if
-        lfs.attributes(old_file, "mode") == "file"
-        and entry:sub(1, self.cover_image_cache_prefix:len())
-          == self.cover_image_cache_prefix
-      then
-        local old_modification_time = lfs.attributes(old_file, "modification")
-        local new_file = new_path .. entry
-        os.rename(old_file, new_file)
-        lfs.touch(new_file, old_modification_time) -- restore original time
+  local iter, dir_obj = lfs.dir(old_path)
+  if iter then
+    for entry in iter, dir_obj do
+      if entry ~= "." and entry ~= ".." then
+        local old_file = old_path .. entry
+        if
+          lfs.attributes(old_file, "mode") == "file"
+          and entry:sub(1, self.cover_image_cache_prefix:len())
+            == self.cover_image_cache_prefix
+        then
+          local old_modification_time = lfs.attributes(old_file, "modification")
+          local new_file = new_path .. entry
+          os.rename(old_file, new_file)
+          lfs.touch(new_file, old_modification_time) -- restore original time
+        end
       end
     end
   end

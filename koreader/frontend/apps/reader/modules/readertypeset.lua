@@ -250,7 +250,9 @@ function ReaderTypeset:genStyleSheetMenu()
   )
 
   local css_files = {}
-  for f in lfs.dir("./data") do
+  local iter, dir_obj, err = lfs.dir("./data")
+  assert(iter, err)
+  for f in iter, dir_obj do
     if
       lfs.attributes("./data/" .. f, "mode") == "file"
       and string.match(f, "%.css$")
