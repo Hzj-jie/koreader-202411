@@ -13,18 +13,18 @@ struct timespec {
   long int tv_nsec;
 };
 struct statvfs {
-  unsigned long int f_bsize;
-  unsigned long int f_frsize;
-  unsigned long int f_blocks;
-  unsigned long int f_bfree;
-  unsigned long int f_bavail;
-  unsigned long int f_files;
-  unsigned long int f_ffree;
-  unsigned long int f_favail;
-  unsigned long int f_fsid;
+  long unsigned int f_bsize;
+  long unsigned int f_frsize;
+  long unsigned int f_blocks;
+  long unsigned int f_bfree;
+  long unsigned int f_bavail;
+  long unsigned int f_files;
+  long unsigned int f_ffree;
+  long unsigned int f_favail;
+  long unsigned int f_fsid;
   int __f_unused;
-  unsigned long int f_flag;
-  unsigned long int f_namemax;
+  long unsigned int f_flag;
+  long unsigned int f_namemax;
   int __f_spare[6];
 };
 ]])
