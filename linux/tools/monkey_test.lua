@@ -48,6 +48,7 @@ if ip == "127.0.0.1" or ip == "localhost" then
   end
 
   -- Wait for httpinspector.port to be created and read it
+  port = nil
   print("[*] Waiting for httpinspector to bind a port...")
   for i = 1, 50 do
     socket.select(nil, nil, 0.2) -- sleep 200ms
