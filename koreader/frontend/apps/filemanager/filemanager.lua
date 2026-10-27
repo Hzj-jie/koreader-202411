@@ -833,6 +833,7 @@ function FileManager:getCurrentDir()
 end
 
 function FileManager:onExit()
+  self.onExit = function() end
   logger.dbg("close filemanager")
   -- See ReaderUI:onFlushSettings, this should only impact the widget and its
   -- sub widget.

@@ -261,9 +261,6 @@ function Device:init()
         end
       end
     end,
-    hasClipboardText = function()
-      return android.hasClipboardText()
-    end,
     getClipboardText = function()
       return android.getClipboardText()
     end,
