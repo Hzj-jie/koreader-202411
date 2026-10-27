@@ -131,4 +131,113 @@ describe("ReaderBack module", function()
     G_reader_settings:delete("back_in_reader")
     G_reader_settings:delete("back_to_exit")
   end)
+
+  it("broadcasts Exit event on back_to_exit always and prompt ok_callback", function()
+    local UIManager = require("ui/uimanager")
+    local broadcast_events = {}
+    stub(UIManager, "broadcastEvent", function(self, event)
+      table.insert(broadcast_events, event.handler)
+    end)
+
+    local shown_widget
+    local mock_ui = {
+      document = { info = { has_pages = false } },
+      rolling = {
+        getBookLocation = function()
+          return "/1/2"
+        end,
+      },
+      link = {
+        onGoBackLink = function()
+          return false
+        end,
+      },
+      showWidget = function(self, widget)
+        shown_widget = widget
+      end,
+      key_events = {},
+    }
+    local readerback = ReaderBack:new({
+      ui = mock_ui,
+      showWidget = function(self, widget)
+        shown_widget = widget
+      end,
+    })
+    readerback:onReadSettings()
+
+    G_reader_settings:save("back_in_reader", "default")
+    G_reader_settings:save("back_to_exit", "always")
+    assert.is_true(readerback:onBack())
+    assert.are.equal("onExit", broadcast_events[#broadcast_events])
+
+    G_reader_settings:save("back_to_exit", "prompt")
+    assert.is_true(readerback:onBack())
+    assert.is_not_nil(shown_widget)
+    assert.is_function(shown_widget.ok_callback)
+    shown_widget.ok_callback()
+    assert.are.equal("onExit", broadcast_events[#broadcast_events])
+
+    G_reader_settings:delete("back_in_reader")
+    G_reader_settings:delete("back_to_exit")
+    UIManager.broadcastEvent:revert()
+  end)
+
+  it("ignores Exit broadcast in monkey test mode on back_to_exit always and prompt ok_callback", function()
+    local core_util = require("util")
+    local old_isMonkeyTest = core_util.isMonkeyTest
+    local UIManager = require("ui/uimanager")
+    local broadcast_events = {}
+    stub(UIManager, "broadcastEvent", function(self, event)
+      table.insert(broadcast_events, event.handler)
+    end)
+
+    local shown_widget
+    local mock_ui = {
+      document = { info = { has_pages = false } },
+      rolling = {
+        getBookLocation = function()
+          return "/1/2"
+        end,
+      },
+      link = {
+        onGoBackLink = function()
+          return false
+        end,
+      },
+      showWidget = function(self, widget)
+        shown_widget = widget
+      end,
+      key_events = {},
+    }
+    local readerback = ReaderBack:new({
+      ui = mock_ui,
+      showWidget = function(self, widget)
+        shown_widget = widget
+      end,
+    })
+    readerback:onReadSettings()
+
+    core_util.isMonkeyTest = function()
+      return true
+    end
+
+    finally(function()
+      core_util.isMonkeyTest = old_isMonkeyTest
+      G_reader_settings:delete("back_in_reader")
+      G_reader_settings:delete("back_to_exit")
+      UIManager.broadcastEvent:revert()
+    end)
+
+    G_reader_settings:save("back_in_reader", "default")
+    G_reader_settings:save("back_to_exit", "always")
+    assert.is_true(readerback:onBack())
+    assert.are.equal(0, #broadcast_events)
+
+    G_reader_settings:save("back_to_exit", "prompt")
+    assert.is_true(readerback:onBack())
+    assert.is_not_nil(shown_widget)
+    assert.is_function(shown_widget.ok_callback)
+    shown_widget.ok_callback()
+    assert.are.equal(0, #broadcast_events)
+  end)
 end)

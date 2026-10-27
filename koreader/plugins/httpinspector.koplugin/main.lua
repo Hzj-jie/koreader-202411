@@ -1153,7 +1153,7 @@ local getOrderedDispatcherActions = function()
   table.insert(_dispatcher_actions, 2, {
     general = true,
     separator = true,
-    event = "Close",
+    event = "Exit",
     category = "none",
     title = "Close top most widget",
   })
