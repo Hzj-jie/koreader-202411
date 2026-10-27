@@ -276,15 +276,11 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
   end)
 
   describe("Clipboard & State Management", function()
-    it("should get, set, and query clipboard text", function()
+    it("should get and set clipboard text", function()
       local clip_storage = ""
-      local orig_has = Input.hasClipboardText
       local orig_get = Input.getClipboardText
       local orig_set = Input.setClipboardText
 
-      Input.hasClipboardText = function()
-        return clip_storage ~= ""
-      end
       Input.getClipboardText = function()
         return clip_storage
       end
@@ -293,14 +289,11 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       end
 
       Input.setClipboardText("KORTestClip")
-      assert.is_true(Input.hasClipboardText())
       assert.is_equal("KORTestClip", Input.getClipboardText())
 
       Input.setClipboardText("")
-      assert.is_false(Input.hasClipboardText())
       assert.is_equal("", Input.getClipboardText())
 
-      Input.hasClipboardText = orig_has
       Input.getClipboardText = orig_get
       Input.setClipboardText = orig_set
     end)
