@@ -839,28 +839,31 @@ local function findFilesInDir(path, recursive)
     -- handle each dir
     for __, d in pairs(dirs) do
       -- handle files in d
-      for f in lfs.dir(d) do
-        local fullpath = d .. "/" .. f
-        local attributes = lfs.attributes(fullpath)
-        -- Don't traverse hidden folders if we're not showing them
-        if
-          recursive
-          and attributes.mode == "directory"
-          and f ~= "."
-          and f ~= ".."
-          and (
-            G_reader_settings:isTrue("show_hidden")
-            or not util.stringStartsWith(f, ".")
-          )
-        then
-          table.insert(new_dirs, fullpath)
-          -- Always ignore macOS resource forks, too.
-        elseif
-          attributes.mode == "file"
-          and not util.stringStartsWith(f, "._")
-          and DocumentRegistry:hasProvider(fullpath)
-        then
-          table.insert(files, fullpath)
+      local iter, dir_obj = lfs.dir(d)
+      if iter then
+        for f in iter, dir_obj do
+          local fullpath = d .. "/" .. f
+          local attributes = lfs.attributes(fullpath)
+          -- Don't traverse hidden folders if we're not showing them
+          if
+            recursive
+            and attributes.mode == "directory"
+            and f ~= "."
+            and f ~= ".."
+            and (
+              G_reader_settings:isTrue("show_hidden")
+              or not util.stringStartsWith(f, ".")
+            )
+          then
+            table.insert(new_dirs, fullpath)
+            -- Always ignore macOS resource forks, too.
+          elseif
+            attributes.mode == "file"
+            and not util.stringStartsWith(f, "._")
+            and DocumentRegistry:hasProvider(fullpath)
+          then
+            table.insert(files, fullpath)
+          end
         end
       end
     end

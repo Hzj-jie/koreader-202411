@@ -350,9 +350,8 @@ end
 
 function FileChooser:getList(path, collate)
   local dirs, files = {}, {}
-  -- lfs.dir directory without permission will give error
-  local ok, iter, dir_obj = pcall(lfs.dir, path)
-  if ok then
+  local iter, dir_obj = lfs.dir(path)
+  if iter then
     unreadable_dir_content[path] = nil
     for f in iter, dir_obj do
       if FileChooser.show_hidden or not util.stringStartsWith(f, ".") then

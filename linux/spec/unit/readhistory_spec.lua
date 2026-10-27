@@ -146,6 +146,21 @@ describe("ReadHistory module", function()
     rm(test_file("f"))
   end)
 
+  it("should skip unreadable legacy history directory", function()
+    local orig_lfs_dir = lfs.dir
+    lfs.dir = function(path)
+      if path == DataStorage:getHistoryDir() then
+        return nil, nil, "permission denied"
+      end
+      return orig_lfs_dir(path)
+    end
+    finally(function()
+      lfs.dir = orig_lfs_dir
+    end)
+    local h = reload()
+    assert.is_not_nil(h)
+  end)
+
   it("should add item", function()
     rm(file("history.lua"))
     touch(test_file("a"))
