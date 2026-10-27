@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly CFFI_LUA_VERSION=bc4e0558f89e6ef218452c5c90cbf39697c5bf14
+readonly CFFI_LUA_VERSION=16feec2db0ec374dea89587b5ae223c7f63fb147
 rm -rf cffi-lua-$CFFI_LUA_VERSION cffi-lua.zip
 wget https://github.com/hzj-jie/cffi-lua/archive/$CFFI_LUA_VERSION.zip -O cffi-lua.zip
 unzip cffi-lua.zip
