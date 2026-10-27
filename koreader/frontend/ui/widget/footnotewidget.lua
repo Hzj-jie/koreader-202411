@@ -200,7 +200,7 @@ function FootnoteWidget:init()
     }
   end
   self.key_events = {
-    Close = { { Device.input.group.Back } },
+    Exit = { { Device.input.group.Back } },
     Follow = { { "Press" } },
   }
 

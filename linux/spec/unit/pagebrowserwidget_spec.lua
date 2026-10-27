@@ -565,6 +565,23 @@ describe("PageBrowserWidget widget", function()
     end
   )
 
+  it("dismisses from UIManager on Back key press via onKeyPress", function()
+    local Key = require("device/key")
+    local canceled_batch_id
+    mock_ui.thumbnail.cancelPageThumbnailRequests = function(self, batch_id)
+      canceled_batch_id = batch_id
+    end
+    local widget = PageBrowserWidget:new({
+      ui = mock_ui,
+    })
+    widget.requests_batch_id = "test_batch_123"
+    UIManager:show(widget)
+    assert.is_true(UIManager:isWindowWidget(widget))
+    widget:onKeyPress(Key:new("Back", {}))
+    assert.is_false(UIManager:isWindowWidget(widget))
+    assert.are.equal("test_batch_123", canceled_batch_id)
+  end)
+
   describe("Defect verifications", function()
     it("handles empty getPageMap table without crash on init", function()
       local orig_pagemap = mock_ui.pagemap
