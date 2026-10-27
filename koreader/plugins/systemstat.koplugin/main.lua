@@ -1,14 +1,18 @@
+local Blitbuffer = require("ffi/blitbuffer")
 local Device = require("device")
 local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
+local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
+local ffiUtil = require("ffi/util")
 local gettext = require("gettext")
 local time = require("ui/time")
 local util = require("util")
+local T = ffiUtil.template
 
 local function systemInfo()
   local result = {}
@@ -284,6 +288,51 @@ function SystemStat:appendCounters()
       end
     end,
   })
+  local bg_processes = {}
+  for _, entry in pairs(ffiUtil.subprocesses) do
+    table.insert(bg_processes, entry)
+  end
+  table.sort(bg_processes, function(a, b)
+    return a.pid < b.pid
+  end)
+  local bg_count = #bg_processes
+  local bg_row = {
+    "  " .. gettext("Background processes"),
+    bg_count > 0 and T(gettext("%1 (tap to view)"), bg_count) or 0,
+  }
+  if bg_count > 0 then
+    bg_row.callback = function()
+      local kv_pairs = {}
+      for _, entry in ipairs(bg_processes) do
+        local pid = entry.pid
+        local cmd = entry.cmd
+        table.insert(kv_pairs, {
+          string.format("[%d] %s", pid, cmd),
+          datetime.secondsToClockDuration(
+            "",
+            math.max(0, os.time() - entry.start_time),
+            false,
+            true
+          ),
+          callback = function()
+            local output = entry.output
+            local has_output = output ~= ""
+            UIManager:show(TextViewer:new({
+              title = string.format("[%d] %s", pid, cmd),
+              text = has_output and output or gettext("No output."),
+              fgcolor = not has_output and Blitbuffer.COLOR_DARK_GRAY or nil,
+              text_type = "code",
+            }))
+          end,
+        })
+      end
+      UIManager:show(KeyValuePage:new({
+        title = gettext("Background processes"),
+        kv_pairs = kv_pairs,
+      }))
+    end
+  end
+  self:put(bg_row)
   local BookInfoManager = package.loaded["bookinfomanager"]
   if BookInfoManager then
     self:put({
