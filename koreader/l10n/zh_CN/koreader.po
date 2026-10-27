@@ -906,7 +906,7 @@ msgstr "点击显示"
 #: frontend/ui/widget/bookstatuswidget.lua:125
 #: frontend/ui/widget/bookstatuswidget.lua:133
 #: frontend/ui/widget/notification.lua:25
-#: plugins/batterystat.koplugin/main.lua:80
+#: plugins/batterystat.koplugin/main.lua:81
 #: plugins/calibre.koplugin/wireless.lua:274
 #: plugins/exporter.koplugin/template/md.lua:46
 #: plugins/statistics.koplugin/main.lua:2082
@@ -1404,7 +1404,7 @@ msgstr "清除已删除文件的历史记录？"
 #: frontend/apps/reader/modules/readerfont.lua:786
 #: frontend/apps/reader/modules/readerlink.lua:363
 #: frontend/apps/reader/modules/readerlink.lua:382
-#: plugins/batterystat.koplugin/main.lua:229
+#: plugins/batterystat.koplugin/main.lua:230
 #: plugins/coverimage.koplugin/main.lua:708
 msgid "Clear"
 msgstr "清除"
@@ -16115,64 +16115,68 @@ msgid ""
 "Service to other plugins: allows tasks to run regularly in the background."
 msgstr "为其他插件提供定期后台运行的服务。"
 
-#: plugins/batterystat.koplugin/main.lua:92
+#: plugins/batterystat.koplugin/main.lua:93
 msgid "Consumed:"
 msgstr "已消耗："
 
-#: plugins/batterystat.koplugin/main.lua:95
+#: plugins/batterystat.koplugin/main.lua:96
 msgid "Total time:"
 msgstr "总时间："
 
-#: plugins/batterystat.koplugin/main.lua:99
+#: plugins/batterystat.koplugin/main.lua:100
 msgid "Change per hour:"
 msgstr "每小时充/放电百分比："
 
-#: plugins/batterystat.koplugin/main.lua:106
+#: plugins/batterystat.koplugin/main.lua:107
 msgid "Estimated remaining time:"
 msgstr "预计剩余用时："
 
-#: plugins/batterystat.koplugin/main.lua:113
+#: plugins/batterystat.koplugin/main.lua:114
 msgid "Estimated time for charging:"
 msgstr "预计充电用时："
 
-#: plugins/batterystat.koplugin/main.lua:228
+#: plugins/batterystat.koplugin/main.lua:229
 msgid "Are you sure that you want to clear battery statistics?"
 msgstr "确定要清除电池电量统计数据吗？"
 
-#: plugins/batterystat.koplugin/main.lua:245
+#: plugins/batterystat.koplugin/main.lua:246
 msgid "Tap to reset the data."
 msgstr "轻按重设数据。"
 
-#: plugins/batterystat.koplugin/main.lua:254
+#: plugins/batterystat.koplugin/main.lua:255
+msgid "Tap to open batterystat.log."
+msgstr "点击打开 batterystat.log。"
+
+#: plugins/batterystat.koplugin/main.lua:265
 msgid "Battery statistics (now %1%)"
 msgstr "电量统计（目前 %1%）"
 
-#: plugins/batterystat.koplugin/main.lua:284
+#: plugins/batterystat.koplugin/main.lua:295
 msgid "Dump at %1"
 msgstr "转储于 %1"
 
-#: plugins/batterystat.koplugin/main.lua:296
+#: plugins/batterystat.koplugin/main.lua:307
 msgid "Awake since last charge"
 msgstr "上次充电以来的唤醒时间"
 
-#: plugins/batterystat.koplugin/main.lua:299
+#: plugins/batterystat.koplugin/main.lua:310
 msgid "Sleeping since last charge"
 msgstr "上次充电以来的睡眠时间"
 
-#: plugins/batterystat.koplugin/main.lua:302
+#: plugins/batterystat.koplugin/main.lua:313
 msgid "During last charge"
 msgstr "上次充电时间"
 
-#: plugins/batterystat.koplugin/main.lua:303
+#: plugins/batterystat.koplugin/main.lua:314
 msgid "Charged:"
 msgstr "已充电："
 
-#: plugins/batterystat.koplugin/main.lua:305
+#: plugins/batterystat.koplugin/main.lua:316
 msgid "Since last charge"
 msgstr "自从上次充电"
 
-#: plugins/batterystat.koplugin/main.lua:321
-#: plugins/batterystat.koplugin/main.lua:338
+#: plugins/batterystat.koplugin/main.lua:332
+#: plugins/batterystat.koplugin/main.lua:349
 #: plugins/batterystat.koplugin/_meta.lua:4
 msgid "Battery statistics"
 msgstr "电量统计"
