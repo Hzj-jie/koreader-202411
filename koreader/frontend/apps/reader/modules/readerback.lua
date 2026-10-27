@@ -173,6 +173,10 @@ function ReaderBack:onBack()
 
   -- location stack empty, or back_in_reader == "default"
   if back_to_exit == "always" then
+    if util.isMonkeyTest() then
+      logger.warn("ReaderBack:onBack exit is ignored in monkey test mode.")
+      return true
+    end
     UIManager:broadcastEvent(Event:new("Exit"))
   elseif back_to_exit == "disable" then
     return true
@@ -181,6 +185,12 @@ function ReaderBack:onBack()
       text = gettext("Exit KOReader?"),
       ok_text = gettext("Exit"),
       ok_callback = function()
+        if util.isMonkeyTest() then
+          logger.warn(
+            "ReaderBack:onBack exit prompt OK is ignored in monkey test mode."
+          )
+          return
+        end
         UIManager:broadcastEvent(Event:new("Exit"))
       end,
     }))
