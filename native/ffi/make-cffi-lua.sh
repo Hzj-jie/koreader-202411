@@ -10,6 +10,6 @@ mkdir build
 pushd build
 meson -Dlua_version=5.4 ..
 ninja all
-cp cffi.so ../../../linux/ffi.so
+cp cffi.so ../../../../linux/ffi.so
 popd
 popd
