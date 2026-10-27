@@ -1405,7 +1405,7 @@ msgstr ""
 #: frontend/ui/elements/common_exit_menu_table.lua:9
 #: frontend/ui/elements/common_exit_menu_table.lua:16
 #: plugins/checkers.koplugin/main.lua:265
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:562
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:691
 msgid "Exit"
 msgstr ""
 
@@ -17304,27 +17304,67 @@ msgid "Random +, -, ×, ÷ operations within 1,000"
 msgstr ""
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:71
-msgid "Fill-in-the-Blank within 100"
+msgid "Fill-in-the-Blank (+, -) within 100"
 msgstr ""
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:72
-msgid "Find the missing number in equations"
-msgstr ""
-
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:78
-msgid "Square Numbers within 400"
+msgid "Find the missing number in addition and subtraction equations"
 msgstr ""
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:79
-msgid "Squares of numbers up to 20²"
+msgid "Fill-in-the-Blank within 100"
 msgstr ""
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:85
-msgid "3-Term Mental Math"
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:80
+msgid "Find the missing number in equations"
 msgstr ""
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:86
+msgid "Square Numbers within 400"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:87
+msgid "Squares of numbers up to 20²"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:93
+msgid "3-Term Mental Math"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:94
 msgid "Order of operations with 3 numbers"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:101
+msgid "Arithmetic Progression within 30 (Entry Level)"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:102
+msgid "Alternating blanks, step up to 3, numbers up to 30"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:112
+msgid "Arithmetic Progression within 50 (Easy)"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:113
+msgid "Alternating blanks, step up to 4, numbers up to 50"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:123
+msgid "Arithmetic Progression within 50"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:124
+msgid "Step up to 4, numbers up to 50"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:133
+msgid "Arithmetic Progression within 100"
+msgstr ""
+
+#: plugins/mathpuzzle.koplugin/mathpuzzle_generator.lua:134
+msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
 #: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:69
@@ -17343,19 +17383,19 @@ msgid_plural "%1 minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:429
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:552
 #: plugins/nonogram.koplugin/main.lua:1047
 #: plugins/sudoku.koplugin/main.lua:1033
 msgid "Check"
 msgstr ""
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:433
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:556
 #: plugins/profiles.koplugin/main.lua:98
 #: plugins/solitaire.koplugin/solitaireui.lua:179
 msgid "New"
 msgstr ""
 
-#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:560
+#: plugins/mathpuzzle.koplugin/mathpuzzle_screen.lua:689
 msgid "Your progress will be lost if you exit. Are you sure you want to exit?"
 msgstr ""
 
