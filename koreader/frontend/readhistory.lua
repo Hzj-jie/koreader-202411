@@ -141,11 +141,12 @@ end
 -- Legacy history file is deleted when respective book is opened or deleted.
 function ReadHistory:_readLegacyHistory()
   local history_dir = DataStorage:getHistoryDir()
-  if not lfs.attributes(history_dir) then
+  local iter, dir_obj = lfs.dir(history_dir)
+  if not iter then
     return
   end
   local history_updated
-  for f in lfs.dir(history_dir) do
+  for f in iter, dir_obj do
     local legacy_history_file = joinPath(history_dir, f)
     if lfs.attributes(legacy_history_file, "mode") == "file" then
       local item_path = DocSettings:getFileFromHistory(f)

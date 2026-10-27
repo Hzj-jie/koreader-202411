@@ -275,12 +275,12 @@ end
 
 --- Purges directory.
 function util.purgeDir(dir)
-  local ok, err
-  ok, err = lfs.attributes(dir)
-  if not ok or err ~= nil then
+  local iter, dir_obj, err = lfs.dir(dir)
+  if not iter then
     return nil, err
   end
-  for f in lfs.dir(dir) do
+  local ok
+  for f in iter, dir_obj do
     if f ~= "." and f ~= ".." then
       local fullpath = util.joinPath(dir, f)
       local attributes = lfs.symlinkattributes(fullpath)

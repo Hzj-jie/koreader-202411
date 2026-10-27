@@ -658,7 +658,9 @@ end
 
 function SyncManager:cleanOrphanSyncFiles()
   local tmp_dir = DataStorage:getTmpDir()
-  for entry in lfs.dir(tmp_dir) do
+  local iter, dir_obj, err = lfs.dir(tmp_dir)
+  assert(iter, err)
+  for entry in iter, dir_obj do
     if entry:match("%.json%.sync$") or entry:match("%.json%.temp$") then
       os.remove(tmp_dir .. "/" .. entry)
     end
