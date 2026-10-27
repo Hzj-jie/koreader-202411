@@ -1235,6 +1235,25 @@ describe("FileManager module", function()
     FileManager.instance:onExit()
   end)
 
+  it("should not double-execute onExit on Exit broadcast event", function()
+    FileManager:new({
+      dimen = Screen:getSize(),
+      root_path = "spec/unit/data",
+    })
+
+    local on_exit_count = 0
+    local orig_on_exit = FileManager.onExit
+    FileManager.onExit = function(self)
+      on_exit_count = on_exit_count + 1
+      return orig_on_exit(self)
+    end
+
+    UIManager:broadcastEvent(require("ui/event"):new("Exit"))
+    FileManager.onExit = orig_on_exit
+
+    assert.are.equal(1, on_exit_count)
+  end)
+
   describe("FileChooser:onBack in monkey test mode", function()
     it("should ignore onBack exit when back_to_exit is 'always'", function()
       local core_util = require("util")
