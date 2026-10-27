@@ -36,7 +36,7 @@ describe("MathPuzzle Screen and Plugin", function()
     return MathPuzzleScreen:new({
       plugin = plugin,
       mode = mode,
-      question_count = question_count or 10,
+      question_count = question_count or (mode and mode.question_count) or 10,
     })
   end
 
@@ -59,6 +59,205 @@ describe("MathPuzzle Screen and Plugin", function()
     assert.are.equal(10, #screen.mark_containers)
     assert.is_table(screen.title_bar_container)
     assert.is_table(screen.time_container)
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for arithmetic_progression_100 in single column with inline answer blocks", function()
+    local screen = createScreen(nil, "arithmetic_progression_100")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(5, #screen.problems)
+    assert.is_true(screen.mode.single_column)
+    assert.is_true(#screen.input_buttons >= 20 and #screen.input_buttons <= 25)
+
+    for _, prob in ipairs(screen.problems) do
+      assert.are.equal(8, #prob.terms)
+      assert.is_true(prob.inline_blanks)
+      assert.is_true(#prob.blank_indices >= 4 and #prob.blank_indices <= 5)
+    end
+
+    -- Fill all inline answer buttons with correct answers
+    for _, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[btn.prob_id]
+      btn:setText(tostring(prob.answers[btn.blank_idx]))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
+
+    -- Modifying an answer clears mark
+    local first_btn = screen.input_buttons[1]
+    first_btn:setText("999")
+    assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for arithmetic_progression_30_entry with strictly alternating blanks", function()
+    local screen = createScreen(nil, "arithmetic_progression_30_entry")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(5, #screen.problems)
+    assert.is_true(screen.mode.single_column)
+    assert.are.equal(30, screen.mode.max)
+    assert.are.equal(3, screen.mode.max_step)
+    assert.is_true(screen.mode.alternating_blanks)
+    assert.are.equal(20, #screen.input_buttons)
+
+    for _, prob in ipairs(screen.problems) do
+      assert.are.equal(8, #prob.terms)
+      assert.is_true(prob.inline_blanks)
+      assert.is_true(prob.step >= 1 and prob.step <= 3)
+      assert.are.equal(4, #prob.blank_indices)
+      local str = table.concat(prob.blank_indices, ",")
+      assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
+      for _, term in ipairs(prob.terms) do
+        assert.is_true(term >= 0 and term <= 30)
+      end
+    end
+
+    for _, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[btn.prob_id]
+      btn:setText(tostring(prob.answers[btn.blank_idx]))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for arithmetic_progression_50_easy with strictly alternating blanks", function()
+    local screen = createScreen(nil, "arithmetic_progression_50_easy")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(5, #screen.problems)
+    assert.is_true(screen.mode.single_column)
+    assert.are.equal(50, screen.mode.max)
+    assert.are.equal(4, screen.mode.max_step)
+    assert.is_true(screen.mode.alternating_blanks)
+    assert.are.equal(20, #screen.input_buttons)
+
+    for _, prob in ipairs(screen.problems) do
+      assert.are.equal(8, #prob.terms)
+      assert.is_true(prob.inline_blanks)
+      assert.is_true(prob.step >= 1 and prob.step <= 4)
+      assert.are.equal(4, #prob.blank_indices)
+      local str = table.concat(prob.blank_indices, ",")
+      assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
+      for _, term in ipairs(prob.terms) do
+        assert.is_true(term >= 0 and term <= 50)
+      end
+    end
+
+    for _, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[btn.prob_id]
+      btn:setText(tostring(prob.answers[btn.blank_idx]))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for arithmetic_progression_50 in single column with inline answer blocks", function()
+    local screen = createScreen(nil, "arithmetic_progression_50")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(5, #screen.problems)
+    assert.is_true(screen.mode.single_column)
+    assert.are.equal(50, screen.mode.max)
+    assert.are.equal(4, screen.mode.max_step)
+    assert.is_true(#screen.input_buttons >= 20 and #screen.input_buttons <= 25)
+
+    for _, prob in ipairs(screen.problems) do
+      assert.are.equal(8, #prob.terms)
+      assert.is_true(prob.inline_blanks)
+      assert.is_true(prob.step >= 1 and prob.step <= 4)
+      for _, term in ipairs(prob.terms) do
+        assert.is_true(term >= 0 and term <= 50)
+      end
+    end
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for missing_100 with inline blank button", function()
+    local screen = createScreen(nil, "missing_100")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(10, #screen.problems)
+    assert.are.equal(10, #screen.input_buttons)
+
+    for i, prob in ipairs(screen.problems) do
+      assert.is_true(prob.text:find("___") ~= nil)
+      local btn = screen.input_buttons[i]
+      assert.are.equal(i, btn.prob_id)
+      assert.is_true(btn.width > 0)
+      assert.is_true(btn.height > 0)
+    end
+
+    -- Fill all answer buttons with correct answers
+    for i, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[i]
+      btn:setText(tostring(prob.answer))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
+
+    -- Modifying an answer clears mark
+    local first_btn = screen.input_buttons[1]
+    first_btn:setText("999")
+    assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
+
+    UIManager:close(screen)
+  end)
+
+  it("should initialize MathPuzzleScreen for missing_100_add_sub with inline blank button", function()
+    local screen = createScreen(nil, "missing_100_add_sub")
+    UIManager:show(screen)
+
+    assert.is_table(screen.problems)
+    assert.are.equal(10, #screen.problems)
+    assert.are.equal(10, #screen.input_buttons)
+
+    for i, prob in ipairs(screen.problems) do
+      assert.is_true(prob.text:find("___") ~= nil)
+      assert.is_true(prob.op == "+" or prob.op == "-")
+      assert.is_nil(prob.text:find("×"))
+      assert.is_nil(prob.text:find("÷"))
+      local btn = screen.input_buttons[i]
+      assert.are.equal(i, btn.prob_id)
+      assert.is_true(btn.width > 0)
+      assert.is_true(btn.height > 0)
+    end
+
+    -- Fill all answer buttons with correct answers
+    for i, btn in ipairs(screen.input_buttons) do
+      local prob = screen.problems[i]
+      btn:setText(tostring(prob.answer))
+    end
+    screen:checkAnswers()
+
+    for _, prob in ipairs(screen.problems) do
+      assert.is_true(prob.is_correct)
+    end
 
     UIManager:close(screen)
   end)
@@ -776,4 +975,29 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:close(plugin.screen)
     end
   )
+
+  it("verifies localized titles and descriptions for new modes", function()
+    local gettext = require("gettext")
+    gettext.changeLang("zh_CN")
+    assert.are.equal(
+      "100以内填空题（仅加减法）",
+      gettext("Fill-in-the-Blank (+, -) within 100")
+    )
+    assert.are.equal(
+      "30以内等差数列（入门）",
+      gettext("Arithmetic Progression within 30 (Entry Level)")
+    )
+
+    gettext.changeLang("zh_TW")
+    assert.are.equal(
+      "100以內填空題（僅加減法）",
+      gettext("Fill-in-the-Blank (+, -) within 100")
+    )
+    assert.are.equal(
+      "30以內等差數列（入門）",
+      gettext("Arithmetic Progression within 30 (Entry Level)")
+    )
+
+    gettext.changeLang("C")
+  end)
 end)

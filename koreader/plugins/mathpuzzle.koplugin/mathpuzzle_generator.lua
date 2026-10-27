@@ -67,6 +67,14 @@ Generator.MODES = {
     max = 1000,
   },
   {
+    id = "missing_100_add_sub",
+    title = _("Fill-in-the-Blank (+, -) within 100"),
+    description = _("Find the missing number in addition and subtraction equations"),
+    type = "missing",
+    max = 100,
+    ops = "add_sub",
+  },
+  {
     id = "missing_100",
     title = _("Fill-in-the-Blank within 100"),
     description = _("Find the missing number in equations"),
@@ -87,6 +95,48 @@ Generator.MODES = {
     type = "three_term",
     max = 100,
     question_count = 5,
+  },
+  {
+    id = "arithmetic_progression_30_entry",
+    title = _("Arithmetic Progression within 30 (Entry Level)"),
+    description = _("Alternating blanks, step up to 3, numbers up to 30"),
+    type = "arithmetic_progression",
+    max = 30,
+    max_step = 3,
+    alternating_blanks = true,
+    question_count = 5,
+    single_column = true,
+  },
+  {
+    id = "arithmetic_progression_50_easy",
+    title = _("Arithmetic Progression within 50 (Easy)"),
+    description = _("Alternating blanks, step up to 4, numbers up to 50"),
+    type = "arithmetic_progression",
+    max = 50,
+    max_step = 4,
+    alternating_blanks = true,
+    question_count = 5,
+    single_column = true,
+  },
+  {
+    id = "arithmetic_progression_50",
+    title = _("Arithmetic Progression within 50"),
+    description = _("Step up to 4, numbers up to 50"),
+    type = "arithmetic_progression",
+    max = 50,
+    max_step = 4,
+    question_count = 5,
+    single_column = true,
+  },
+  {
+    id = "arithmetic_progression_100",
+    title = _("Arithmetic Progression within 100"),
+    description = _("Step up to 10, numbers up to 100"),
+    type = "arithmetic_progression",
+    max = 100,
+    max_step = 10,
+    question_count = 5,
+    single_column = true,
   },
 }
 
@@ -272,7 +322,12 @@ local function generateSingleProblem(mode)
       end
     end
   elseif mode_type == "missing" then
-    local op_roll = math.random(1, 4)
+    local op_roll
+    if mode.ops == "add_sub" then
+      op_roll = math.random(1, 2)
+    else
+      op_roll = math.random(1, 4)
+    end
     if op_roll == 1 then
       -- a + b = c
       local a = math.random(5, 50)
@@ -417,13 +472,102 @@ local function generateSingleProblem(mode)
         text = string.format("%d - %d × %d =", a, b, c),
       }
     end
+  elseif mode_type == "arithmetic_progression" then
+    local terms_count = mode.terms_count or 8
+    local is_addition = math.random(1, 2) == 1
+    local max_d = mode.max_step or (max_val <= 50 and 4 or 10)
+    local d = math.random(1, max_d)
+    local span = (terms_count - 1) * d
+    local terms = {}
+
+    if is_addition then
+      local min_start = 1
+      local max_start = math.max(1, max_val - span)
+      local start_val = math.random(min_start, max_start)
+      for i = 1, terms_count do
+        table.insert(terms, start_val + (i - 1) * d)
+      end
+    else
+      local min_start = span
+      local max_start = math.max(min_start, max_val)
+      local start_val = math.random(min_start, max_start)
+      for i = 1, terms_count do
+        table.insert(terms, start_val - (i - 1) * d)
+      end
+    end
+
+    local blanks = {}
+    local blank_indices = {}
+
+    if mode.alternating_blanks then
+      -- Strictly in either 1 3 5 7 or 2 4 6 8 (one number one gap)
+      local start_idx = math.random(1, 2)
+      for i = start_idx, terms_count, 2 do
+        blanks[i] = true
+        table.insert(blank_indices, i)
+      end
+    else
+      -- Randomly remove 4 or 5 numbers from the pattern
+      local num_blanks = math.random(4, 5)
+
+      -- Pick an adjacent pair (anchor, anchor+1) from 1..(terms_count-1) to remain visible, guaranteeing solvable pattern
+      local anchor = math.random(1, terms_count - 1)
+      local candidate_indices = {}
+      for i = 1, terms_count do
+        if i ~= anchor and i ~= (anchor + 1) then
+          table.insert(candidate_indices, i)
+        end
+      end
+      -- Fisher-Yates shuffle
+      for i = #candidate_indices, 2, -1 do
+        local j = math.random(1, i)
+        candidate_indices[i], candidate_indices[j] = candidate_indices[j], candidate_indices[i]
+      end
+
+      for i = 1, num_blanks do
+        local idx = candidate_indices[i]
+        blanks[idx] = true
+        table.insert(blank_indices, idx)
+      end
+      table.sort(blank_indices)
+    end
+
+    local answers = {}
+    local user_answers = {}
+    for _, idx in ipairs(blank_indices) do
+      answers[idx] = terms[idx]
+      user_answers[idx] = ""
+    end
+
+    local display_terms = {}
+    for idx, val in ipairs(terms) do
+      if blanks[idx] then
+        table.insert(display_terms, "___")
+      else
+        table.insert(display_terms, tostring(val))
+      end
+    end
+
+    return {
+      op = is_addition and "+" or "-",
+      step = d,
+      terms = terms,
+      blanks = blanks,
+      blank_indices = blank_indices,
+      answers = answers,
+      user_answers = user_answers,
+      answer = answers[blank_indices[1]],
+      user_answer = "",
+      text = table.concat(display_terms, ", "),
+      inline_blanks = true,
+    }
   end
 end
 
 function Generator.generateProblems(mode_id, count)
-  count = count or 10
   local mode = type(mode_id) == "table" and mode_id
     or Generator.getModeById(mode_id)
+  count = count or (mode and mode.question_count) or 10
   local problems = {}
   local seen = {}
 
@@ -454,17 +598,41 @@ function Generator.checkAnswers(problems)
   local answered_count = 0
 
   for _, prob in ipairs(problems) do
-    local uans_str = tostring(prob.user_answer or ""):gsub("^%s*(.-)%s*$", "%1")
-    local uans = tonumber(uans_str)
     prob.checked = true
-    if uans_str ~= "" then
-      answered_count = answered_count + 1
-    end
-    if uans ~= nil and uans == prob.answer then
-      prob.is_correct = true
-      correct_count = correct_count + 1
+    if prob.inline_blanks or prob.user_answers then
+      local all_blanks_correct = true
+      local any_answered = false
+      for _, b_idx in ipairs(prob.blank_indices) do
+        local uans_str = tostring(prob.user_answers[b_idx] or ""):gsub("^%s*(.-)%s*$", "%1")
+        local uans = tonumber(uans_str)
+        if uans_str ~= "" then
+          any_answered = true
+        end
+        if uans == nil or uans ~= prob.answers[b_idx] then
+          all_blanks_correct = false
+        end
+      end
+      if any_answered then
+        answered_count = answered_count + 1
+      end
+      if all_blanks_correct then
+        prob.is_correct = true
+        correct_count = correct_count + 1
+      else
+        prob.is_correct = false
+      end
     else
-      prob.is_correct = false
+      local uans_str = tostring(prob.user_answer or ""):gsub("^%s*(.-)%s*$", "%1")
+      local uans = tonumber(uans_str)
+      if uans_str ~= "" then
+        answered_count = answered_count + 1
+      end
+      if uans ~= nil and uans == prob.answer then
+        prob.is_correct = true
+        correct_count = correct_count + 1
+      else
+        prob.is_correct = false
+      end
     end
   end
 
