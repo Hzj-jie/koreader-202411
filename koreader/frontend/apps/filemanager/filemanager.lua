@@ -1416,7 +1416,7 @@ function FileManager:moveFile(from, to)
         .. ", to="
         .. tostring(to)
     )
-    return true
+    return false
   end
   return ffiUtil.execute(self.mv_bin, from, to) == 0
 end
@@ -1431,7 +1431,7 @@ function FileManager:copyFile(from, to)
         .. ", to="
         .. tostring(to)
     )
-    return true
+    return false
   end
   return ffiUtil.execute(self.cp_bin, from, to) == 0
 end
@@ -1446,7 +1446,7 @@ function FileManager:copyRecursive(from, to)
         .. ", to="
         .. tostring(to)
     )
-    return true
+    return false
   end
   return ffiUtil.execute(self.cp_bin, "-r", from, to) == 0
 end
