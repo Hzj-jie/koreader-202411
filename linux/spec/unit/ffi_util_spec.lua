@@ -92,4 +92,37 @@ describe("ffi/util module", function()
       assert.is_true(pid > 0)
     end)
   end)
+
+  describe("purgeDir()", function()
+    local lfs = require("libs/libkoreader-lfs")
+
+    it("returns nil and error without raising on missing directory", function()
+      local pid = ffiUtil.getpid()
+      local nonexistent = "/tmp/nonexistent_purge_dir_" .. pid
+      local ok, err
+      assert.has_no.errors(function()
+        ok, err = ffiUtil.purgeDir(nonexistent)
+      end)
+      assert.is_nil(ok)
+      assert.is_not_nil(err)
+    end)
+
+    it("returns nil and error without raising on unreadable directory", function()
+      local pid = ffiUtil.getpid()
+      local unreadable = "/tmp/unreadable_purge_dir_" .. pid
+      lfs.mkdir(unreadable)
+      os.execute("chmod 000 " .. unreadable)
+      finally(function()
+        os.execute("chmod 755 " .. unreadable)
+        os.remove(unreadable)
+      end)
+
+      local ok, err
+      assert.has_no.errors(function()
+        ok, err = ffiUtil.purgeDir(unreadable)
+      end)
+      assert.is_nil(ok)
+      assert.is_not_nil(err)
+    end)
+  end)
 end)
