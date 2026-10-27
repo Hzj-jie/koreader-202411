@@ -696,8 +696,9 @@ You can enable individual tweaks on this book with a tap, or view more details a
   process_tweaks_dir = function(dir, item_table, if_empty_menu_title)
     local file_list = {}
     local dir_list = {}
-    if lfs.attributes(dir, "mode") == "directory" then
-      for f in lfs.dir(dir) do
+    local iter, dir_obj = lfs.dir(dir)
+    if iter then
+      for f in iter, dir_obj do
         if f ~= "." and f ~= ".." then
           local mode = lfs.attributes(dir .. "/" .. f, "mode")
           if mode == "directory" then

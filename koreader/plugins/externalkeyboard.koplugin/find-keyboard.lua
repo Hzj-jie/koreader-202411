@@ -97,11 +97,14 @@ end
 
 function FindKeyboard:find()
   local keyboards = {}
-  for event_file_name in lfs.dir("/sys/class/input/") do
-    if event_file_name:match("event.*") then
-      local kb = self:check(event_file_name)
-      if kb then
-        table.insert(keyboards, kb)
+  local iter, dir_obj = lfs.dir("/sys/class/input/")
+  if iter then
+    for event_file_name in iter, dir_obj do
+      if event_file_name:match("event.*") then
+        local kb = self:check(event_file_name)
+        if kb then
+          table.insert(keyboards, kb)
+        end
       end
     end
   end

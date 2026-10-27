@@ -1,7 +1,7 @@
 -- luacheck: ignore 122
 describe("CoverBrowser BookInfoManager plugin module", function()
   local BookInfoManager, FFIUtil, UIManager, Trapper, DocumentRegistry
-  local util, SQ3
+  local util, SQ3, lfs
   local test_db_path
 
   setup(function()
@@ -13,6 +13,7 @@ describe("CoverBrowser BookInfoManager plugin module", function()
     DocumentRegistry = require("document/documentregistry")
     util = require("util")
     SQ3 = require("lua-ljsqlite3/init")
+    lfs = require("libs/libkoreader-lfs")
 
     test_db_path = "/tmp/test_coverbrowser_bim_"
       .. FFIUtil.getpid()
@@ -282,5 +283,110 @@ describe("CoverBrowser BookInfoManager plugin module", function()
         )
       end
     )
+
+    it("skips unreadable subdirectories when extracting books", function()
+      local orig_show = UIManager.show
+      local orig_close = UIManager.close
+      local orig_repaint = UIManager.forceRepaint
+      local orig_confirm = Trapper.confirm
+      local orig_clear = Trapper.clear
+      local orig_run_sub = Trapper.dismissableRunInSubprocess
+      local orig_lfs_dir = lfs.dir
+      local orig_has_provider = DocumentRegistry.hasProvider
+      local orig_attributes = lfs.attributes
+
+      local captured_messages = {}
+      UIManager.show = function(self, widget)
+        if widget and widget.text then
+          table.insert(captured_messages, widget.text)
+        end
+      end
+      UIManager.close = function() end
+      UIManager.forceRepaint = function() end
+
+      local confirm_step = 0
+      Trapper.confirm = function()
+        confirm_step = confirm_step + 1
+        if confirm_step == 1 then
+          return true -- go_on
+        elseif confirm_step == 2 then
+          return true -- recursive
+        elseif confirm_step == 3 then
+          return true -- refresh_existing
+        elseif confirm_step == 4 then
+          return false -- prune
+        end
+        return false
+      end
+      Trapper.clear = function() end
+
+      Trapper.dismissableRunInSubprocess = function(self, fn, info)
+        return true, fn()
+      end
+
+      lfs.dir = function(path)
+        if path == "/tmp/test_bim_dir" then
+          local list = { "book1.epub", "unreadable_dir", ".", ".." }
+          local i = 0
+          return function()
+            i = i + 1
+            return list[i]
+          end
+        elseif path == "/tmp/test_bim_dir/unreadable_dir" then
+          return nil, nil, "permission denied"
+        end
+        return orig_lfs_dir(path)
+      end
+
+      DocumentRegistry.hasProvider = function(self, f)
+        return f and f:match("%.epub$") ~= nil
+      end
+
+      lfs.attributes = function(path, req)
+        if path:find("^/tmp/test_bim_dir/unreadable_dir") then
+          return req == "mode" and "directory" or { mode = "directory" }
+        elseif path == "/tmp/test_bim_dir/book1.epub" then
+          return req == "mode" and "file" or { mode = "file" }
+        elseif path:find("^/tmp/test_bim_dir") then
+          return req == "mode" and "directory" or { mode = "directory" }
+        end
+        return orig_attributes(path, req)
+      end
+
+      finally(function()
+        UIManager.show = orig_show
+        UIManager.close = orig_close
+        UIManager.forceRepaint = orig_repaint
+        Trapper.confirm = orig_confirm
+        Trapper.clear = orig_clear
+        Trapper.dismissableRunInSubprocess = orig_run_sub
+        lfs.dir = orig_lfs_dir
+        lfs.attributes = orig_attributes
+        DocumentRegistry.hasProvider = orig_has_provider
+      end)
+
+      local ok, _ = pcall(function()
+        BookInfoManager:extractBooksInDirectory("/tmp/test_bim_dir", {})
+      end)
+      assert.is_true(ok)
+
+      local found_msg = nil
+      for _, msg in ipairs(captured_messages) do
+        if msg:match("to index%.") then
+          found_msg = msg
+          break
+        end
+      end
+
+      assert.is_not_nil(found_msg)
+      assert.are.equal(
+        require("gettext").T_N(
+          "Found 1 book to index.",
+          "Found %1 books to index.",
+          1
+        ),
+        found_msg
+      )
+    end)
   end)
 end)
