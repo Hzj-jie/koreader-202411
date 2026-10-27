@@ -262,11 +262,9 @@ describe("BatteryState plugin tests #nocov", function()
     stub(UIManager, "show")
     stub(UIManager, "close")
 
-    local file = io.open(widget.dump_file, "w")
-    if file then
-      file:write("dummy log\n")
-      file:close()
-    end
+    local file = assert(io.open(widget.dump_file, "w"))
+    file:write("dummy log\n")
+    file:close()
 
     widget:showStatistics()
 
