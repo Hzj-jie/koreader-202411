@@ -577,6 +577,18 @@ describe("HttpInspector plugin tests", function()
       )
     end)
 
+    it("exposes Close top most widget with Exit event in dispatcher actions list", function()
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/koreader/event",
+        uri = "/koreader/event",
+        fragments = { "event" },
+      }
+      HttpInspector:exposeEvent("", reqinfo)
+      assert.is_not_nil(sent_data:find("Close top most widget", 1, true))
+      assert.is_not_nil(sent_data:find("/koreader/event/Exit", 1, true))
+      assert.is_nil(sent_data:find("/koreader/event/Close", 1, true))
+    end)
     it("schedules event sending when event and args are provided", function()
       local reqinfo = {
         request_id = 1,
