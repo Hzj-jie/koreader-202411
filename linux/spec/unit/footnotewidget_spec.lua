@@ -60,4 +60,21 @@ describe("FootnoteWidget", function()
       assert.is_true(tap_closed)
     end
   )
+
+  it("dismisses from UIManager on Back key press via onKeyPress", function()
+    local UIManager = require("ui/uimanager")
+    local Key = require("device/key")
+    local callback_height
+    local widget = FootnoteWidget:new({
+      html = "<p>Footnote test</p>",
+      close_callback = function(height)
+        callback_height = height
+      end,
+    })
+    UIManager:show(widget)
+    assert.is_true(UIManager:isWindowWidget(widget))
+    widget:onKeyPress(Key:new("Back", {}))
+    assert.is_false(UIManager:isWindowWidget(widget))
+    assert.are.equal(widget.height, callback_height)
+  end)
 end)
