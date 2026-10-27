@@ -578,7 +578,6 @@ function Trapper:dismissableRunInSubprocess(
       ffiutil.writeToFD(child_write_fd, output_str, true)
     end,
     true,
-    false,
     task
   ) -- with_pipe = true
 

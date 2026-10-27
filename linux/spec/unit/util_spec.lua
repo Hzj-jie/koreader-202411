@@ -1708,7 +1708,7 @@ describe("util module", function()
 
       local pid = ffiUtil.runInSubProcess(function()
         io.stdout:write("test cmd\n")
-      end, false, false, dummy_func)
+      end, false, dummy_func)
       assert.is_number(pid)
       local entry = ffiUtil.subprocesses[pid]
       assert.is_not_nil(entry)

@@ -83,7 +83,6 @@ function CommandRunner:start(job)
         ffiUtil.writeToFD(child_write_fd, output, true)
       end,
       true,
-      false,
       job.action
     )
 
