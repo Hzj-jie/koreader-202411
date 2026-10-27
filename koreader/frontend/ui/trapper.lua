@@ -577,7 +577,8 @@ function Trapper:dismissableRunInSubprocess(
       end
       ffiutil.writeToFD(child_write_fd, output_str, true)
     end,
-    true
+    true,
+    task
   ) -- with_pipe = true
 
   if pid then
