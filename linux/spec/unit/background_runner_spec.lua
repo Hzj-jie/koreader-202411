@@ -1188,6 +1188,54 @@ describe("BackgroundRunner widget tests", function()
     CommandRunner.running_jobs = {}
   end)
 
+  it("logs error when forked background job action fails", function()
+    local logger = require("logger")
+    local old_warn = logger.warn
+    local warn_msg, warn_err
+    logger.warn = function(msg, err)
+      warn_msg = msg
+      warn_err = err
+    end
+
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local ffiUtil = require("ffi/util")
+    local old_runInSubProcess = ffiUtil.runInSubProcess
+    local old_writeToFD = ffiUtil.writeToFD
+    local child_func = nil
+    ffiUtil.runInSubProcess = function(fn)
+      child_func = fn
+      return 12345, 100
+    end
+
+    finally(function()
+      logger.warn = old_warn
+      ffiUtil.runInSubProcess = old_runInSubProcess
+      ffiUtil.writeToFD = old_writeToFD
+      CommandRunner.running_jobs = {}
+    end)
+
+    CommandRunner.running_jobs = {}
+    CommandRunner:start({
+      executable = "fork",
+      action = function()
+        error("simulated fork error")
+      end,
+    })
+
+    assert.is_function(child_func)
+    local written_output
+    ffiUtil.writeToFD = function(fd, data)
+      written_output = data
+    end
+
+    child_func(12345, 101)
+
+    assert.are.equal("CommandRunner: fork action failed:", warn_msg)
+    assert.truthy(tostring(warn_err):find("simulated fork error"))
+    assert.truthy(written_output:find("result = false"))
+  end)
+
   it("cleans up running jobs when BackgroundRunnerWidget exits", function()
     local BackgroundRunnerWidget =
       require("plugins/backgroundrunner.koplugin/main")

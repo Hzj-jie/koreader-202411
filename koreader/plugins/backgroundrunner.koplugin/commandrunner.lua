@@ -74,6 +74,8 @@ function CommandRunner:start(job)
           local ok, ret = pcall(job.action)
           if ok then
             res = ret
+          else
+            logger.warn("CommandRunner: fork action failed:", ret)
           end
           local output = string.format(
             "return { result = %s, timeout = false }\n",
@@ -81,7 +83,8 @@ function CommandRunner:start(job)
           )
           ffiUtil.writeToFD(child_write_fd, output, true)
         end,
-        true
+        true,
+        job.action
       )
     )
 
