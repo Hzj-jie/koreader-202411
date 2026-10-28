@@ -229,7 +229,37 @@ describe("ReadCollection module", function()
       ReadCollection:updateItems(files, "/mock/new_path")
 
       ReadCollection:addItem("mock-mv-2.epub", "batch_coll1")
+      ReadCollection:addItem("mock-mv-3.epub", "batch_coll1")
+      ReadCollection:addItem("mock-mv-4.epub", "batch_coll1")
       ReadCollection:updateItemsByPath("/mock/path", "/mock/folder_path")
+
+      assert.is_false(
+        ReadCollection:isFileInCollection("mock-mv-2.epub", "batch_coll1")
+      )
+      assert.is_false(
+        ReadCollection:isFileInCollection("mock-mv-3.epub", "batch_coll1")
+      )
+      assert.is_false(
+        ReadCollection:isFileInCollection("mock-mv-4.epub", "batch_coll1")
+      )
+      assert.is_true(
+        ReadCollection:isFileInCollection(
+          "/mock/folder_path/mock-mv-2.epub",
+          "batch_coll1"
+        )
+      )
+      assert.is_true(
+        ReadCollection:isFileInCollection(
+          "/mock/folder_path/mock-mv-3.epub",
+          "batch_coll1"
+        )
+      )
+      assert.is_true(
+        ReadCollection:isFileInCollection(
+          "/mock/folder_path/mock-mv-4.epub",
+          "batch_coll1"
+        )
+      )
     end)
   end)
 end)
