@@ -456,6 +456,95 @@ describe("HttpInspector plugin tests", function()
       )
     end)
 
+    it("shows function details on ? for multi-line signature function", function()
+      local multi_fn = function(
+        a,
+        b
+      )
+        return a + b
+      end
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test/multi_fn",
+        uri = "/test/multi_fn?",
+        fragments = { "multi_fn" },
+      }
+
+      HttpInspector:exposeObject(multi_fn, "?", reqinfo)
+      assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
+      assert.is_not_nil(
+        sent_data:find("accepting or requiring up to 2 arguments")
+      )
+    end)
+
+    it("shows function details on ? for method", function()
+      local obj = {}
+      function obj:m(a, b)
+        return a + b
+      end
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test/method",
+        uri = "/test/method?",
+        fragments = { "method" },
+      }
+
+      HttpInspector:exposeObject(obj.m, "?", reqinfo)
+      assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
+      assert.is_not_nil(sent_data:find("This is a <b>method</b>"))
+      assert.is_not_nil(
+        sent_data:find("accepting or requiring up to 2 arguments")
+      )
+    end)
+
+    it("shows function details on ? for vararg function", function()
+      local vararg_fn = function(...)
+        return ...
+      end
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test/vararg",
+        uri = "/test/vararg?",
+        fragments = { "vararg" },
+      }
+
+      HttpInspector:exposeObject(vararg_fn, "?", reqinfo)
+      assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
+      assert.is_not_nil(
+        sent_data:find("accepting or requiring up to many arguments")
+      )
+    end)
+
+    it("shows function details on ? for on-disk bytecode file", function()
+      local tmp = os.tmpname() .. ".lua"
+      finally(function()
+        os.remove(tmp)
+      end)
+      local f = assert(io.open(tmp, "w"))
+      f:write("return function(a, b) return a + b end\n")
+      f:close()
+
+      local compiled_chunk = string.dump(assert(loadfile(tmp)))
+      f = assert(io.open(tmp, "wb"))
+      f:write(compiled_chunk)
+      f:close()
+
+      local loaded_fn = assert(loadfile(tmp))()
+      local reqinfo = {
+        request_id = 1,
+        parsed_uri = "/test/bytecode",
+        uri = "/test/bytecode?",
+        fragments = { "bytecode" },
+      }
+
+      HttpInspector:exposeObject(loaded_fn, "?", reqinfo)
+      assert.is_not_nil(sent_data:find("HTTP/1.0 200 OK"))
+      assert.is_not_nil(sent_data:find("no source code available"))
+      assert.is_not_nil(
+        sent_data:find("accepting or requiring up to 2 arguments")
+      )
+    end)
+
     it("calls function and returns JSON or HTML results", function()
       local add_fn = function(a, b)
         return a + b
