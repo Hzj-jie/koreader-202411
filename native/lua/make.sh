@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly VERSION=e7d4a2f07b1e9863b2e8a36effd1bcb914a4b5b3
+readonly VERSION=48b78835287cf04bb9d323c92ea7a85ea6aeae66
 
 rm -rf lua-jit-5.5.1-$VERSION lua-jit-5.5.1-$VERSION-pw2 lua-jit-5.5.1.zip
 wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/$VERSION.zip" -O lua-jit-5.5.1.zip
@@ -11,6 +11,7 @@ cp -r lua-jit-5.5.1-$VERSION lua-jit-5.5.1-$VERSION-pw2
 pushd lua-jit-5.5.1-$VERSION
 make MYLDFLAGS="-Wl,-E -Wl,-rpath,'\$\$ORIGIN:\$\$ORIGIN/libs' -Wl,--disable-new-dtags" all
 cp lua ../../../linux/lua
+cp luac ../../../linux/luac
 popd
 
 pushd lua-jit-5.5.1-$VERSION-pw2

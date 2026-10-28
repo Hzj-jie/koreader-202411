@@ -3,7 +3,7 @@
 # Requires native/lua/make.sh to have run first to build linux/lua and unpack
 # lua-jit-5.5.1 headers.
 readonly CFFI_LUA_VERSION=9d220712a072e293be6ff141a454ed4037e41fe5
-readonly LUA_VERSION=e7d4a2f07b1e9863b2e8a36effd1bcb914a4b5b3
+readonly LUA_VERSION=48b78835287cf04bb9d323c92ea7a85ea6aeae66
 
 if [ ! -d "../lua/lua-jit-5.5.1-$LUA_VERSION" ]; then
     wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/$LUA_VERSION.zip" -O lua-jit-5.5.1.zip
