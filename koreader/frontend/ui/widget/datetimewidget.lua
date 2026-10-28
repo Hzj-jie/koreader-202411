@@ -269,7 +269,9 @@ function DateTimeWidget:createLayout()
   for i = #date_group, 1, -2 do
     if date_group[i] == dummy_widget then
       table.remove(date_group, i)
-      table.remove(date_group, i - 1)
+      if i > 1 then
+        table.remove(date_group, i - 1)
+      end
     end
   end
 
