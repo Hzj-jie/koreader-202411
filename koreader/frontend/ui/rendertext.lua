@@ -101,7 +101,7 @@ function RenderText:getGlyph(face, charcode, bold)
   end
   local rendered_glyph = face.ftsize:renderGlyph(charcode, bold)
   if not face.ftsize:hasGlyph(charcode) then
-    for index, font in pairs(Font.fallbacks) do
+    for _, font in ipairs(Font.fallbacks) do
       -- use original size before scaling by screen DPI
       local fb_face = Font:getFace(font, face.orig_size)
       if fb_face ~= nil then

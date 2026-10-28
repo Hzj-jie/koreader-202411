@@ -213,7 +213,7 @@ local _getFallbackFont = function(face_obj, num)
     -- Get the regular name, to skip it from Font.fallbacks
     realname = Font:getRegularVariantName(realname)
   end
-  for index, fontname in pairs(Font.fallbacks) do
+  for _, fontname in ipairs(Font.fallbacks) do
     if fontname ~= realname then -- Skip base one if among fallbacks
       -- If main font is a real bold, or if it's not but we want bold,
       -- get the bold variant of the fallback if one exists.
