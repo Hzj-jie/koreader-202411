@@ -295,9 +295,9 @@ local _function_info_cache = {}
 
 -- Get info about a function object
 local getFunctionInfo = function(func, full_code)
-  local info = debug.getinfo(func, "S")
+  local dinfo = debug.getinfo(func, "Su")
   local src, firstline, lastline =
-    info.source, info.linedefined, info.lastlinedefined
+    dinfo.source, dinfo.linedefined, dinfo.lastlinedefined
   if firstline < 0 then
     -- With builtin or C functions, we get: [C] -1 -1
     -- Get something like "function: builtin" or "function: 0x7f5931f03828" instead
@@ -309,52 +309,56 @@ local getFunctionInfo = function(func, full_code)
   end
   local path = src:match("^@(.*)$")
   local lines = nil
-  if path and info.what == "Lua" then
-    local f = io.open(path)
+  if path and dinfo.what == "Lua" then
+    local f = io.open(path, "rb")
     if f then
-      local num = 1
-      while true do
-        local line = f:read("*line")
-        if not line then
-          break
-        end
-        if num >= firstline then
-          if not lines then
-            lines = {}
+      local first_byte = f:read(1)
+      if first_byte and first_byte ~= "\27" then
+        f:seek("set", 0)
+        local num = 1
+        while true do
+          local line = f:read("*line")
+          if not line then
+            break
           end
-          table.insert(lines, line)
+          if num >= firstline then
+            if not lines then
+              lines = {}
+            end
+            table.insert(lines, line)
+          end
+          if num >= lastline then
+            break
+          end
+          num = num + 1
         end
-        if num >= lastline then
-          break
-        end
-        num = num + 1
       end
       f:close()
     end
   end
-  info = {
+  local info = {
     source = path,
     firstline = firstline,
     lastline = lastline,
   }
-  if lines then
-    local signature = util.trim(lines[1])
-    info.signature = signature
-    -- Try to guess (possibly wrongly) a few info from the signature string
-    local __, cnt = signature:gsub("%(%)", "") -- check for "()", no arg
-    if cnt > 0 then
-      info.nb_args = 0
+  if dinfo.what == "Lua" then
+    local param_name = debug.getlocal(func, 1)
+    local is_method = param_name == "self"
+    if lines then
+      local signature = util.trim(lines[1])
+      info.signature = signature
+      local _, cnt = signature:gsub("^[^(]*:", "")
+      is_method = is_method or (cnt > 0)
+      info.classname = signature:gsub(".-(%w+):.*", "%1")
     else
-      __, cnt = signature:gsub(",", "") -- check for nb of commas
-      info.nb_args = cnt and cnt + 1 or 1
+      lines = {}
+      info.no_source = true
+      info.signature = src
+      info.classname = ""
     end
-    __, cnt = signature:gsub("%.%.%.", "") -- check for "...", varargs
-    if cnt > 0 then
-      info.nb_args = -1
-    end
-    __, cnt = signature:gsub("^[^(]*:", "")
-    info.is_method = cnt > 0
-    info.classname = signature:gsub(".-(%w+):.*", "%1")
+    info.is_method = is_method
+    info.nb_args = dinfo.isvararg and -1
+      or (is_method and (dinfo.nparams - 1) or dinfo.nparams)
   else
     -- possibly some Lua builtin function or from some C-module
     lines = {}
