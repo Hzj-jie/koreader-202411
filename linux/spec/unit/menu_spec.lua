@@ -701,6 +701,11 @@ describe("Menu widget", function()
       local orig_hasFewKeys = Device.hasFewKeys
       local orig_hasSymKey = Device.hasSymKey
       local orig_hasScreenKB = Device.hasScreenKB
+      finally(function()
+        Device.hasFewKeys = orig_hasFewKeys
+        Device.hasSymKey = orig_hasSymKey
+        Device.hasScreenKB = orig_hasScreenKB
+      end)
       Device.hasFewKeys = function()
         return true
       end
@@ -727,10 +732,6 @@ describe("Menu widget", function()
       assert.has_no.errors(function()
         m:_sendGestureEventToFocusedWidget("Press")
       end)
-
-      Device.hasFewKeys = orig_hasFewKeys
-      Device.hasSymKey = orig_hasSymKey
-      Device.hasScreenKB = orig_hasScreenKB
     end)
 
     it("should keep selected.y stable across repeated updates on non-DPad devices", function()
@@ -738,6 +739,12 @@ describe("Menu widget", function()
       local orig_hasSymKey = Device.hasSymKey
       local orig_hasScreenKB = Device.hasScreenKB
       local orig_hasDPad = Device.hasDPad
+      finally(function()
+        Device.hasFewKeys = orig_hasFewKeys
+        Device.hasSymKey = orig_hasSymKey
+        Device.hasScreenKB = orig_hasScreenKB
+        Device.hasDPad = orig_hasDPad
+      end)
       Device.hasFewKeys = function()
         return true
       end
@@ -765,11 +772,6 @@ describe("Menu widget", function()
       assert.are.equal(3, m.selected.y)
       m:updateItems()
       assert.are.equal(3, m.selected.y)
-
-      Device.hasFewKeys = orig_hasFewKeys
-      Device.hasSymKey = orig_hasSymKey
-      Device.hasScreenKB = orig_hasScreenKB
-      Device.hasDPad = orig_hasDPad
     end)
 
     it("should return nil focus and not throw on empty no_title menu", function()
