@@ -3,7 +3,7 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly COMPAT_H="$(realpath "$SCRIPT_DIR/../arm_glibc_compat.h")"
-readonly CFFI_LUA_VERSION=9d220712a072e293be6ff141a454ed4037e41fe5
+readonly CFFI_LUA_VERSION=2621dd5eead161492d1e4a9a9e1a673274f1e7c6
 readonly LUA_VERSION=48b78835287cf04bb9d323c92ea7a85ea6aeae66
 readonly LIBFFI_VERSION=3.4.5
 
