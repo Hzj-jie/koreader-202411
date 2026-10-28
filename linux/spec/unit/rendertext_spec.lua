@@ -37,6 +37,46 @@ describe("RenderText", function()
     end
   )
 
+  it(
+    "should query fallback fonts in sequential index order when glyph is missing",
+    function()
+      local orig_getFace = Font.getFace
+      finally(function()
+        Font.getFace = orig_getFace
+      end)
+
+      local requested_fonts = {}
+      Font.getFace = function(self, fontname, size)
+        table.insert(requested_fonts, fontname)
+        return {
+          hash = "dummy_fb|" .. fontname,
+          orig_size = size,
+          ftsize = {
+            hasGlyph = function()
+              return false
+            end,
+          },
+        }
+      end
+
+      local dummy_face = {
+        hash = "dummy_face_hash",
+        orig_size = 14,
+        ftsize = {
+          renderGlyph = function()
+            return nil
+          end,
+          hasGlyph = function()
+            return false
+          end,
+        },
+      }
+
+      RenderText:getGlyph(dummy_face, 0x1234, false)
+      assert.are.same(Font.fallbacks, requested_fonts)
+    end
+  )
+
   it("should measure text size with sizeUtf8Text", function()
     local face = Font:getFace("infofont", 14)
     local size =
