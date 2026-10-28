@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 readonly LIBFFI_VERSION=3.4.5
 rm -rf libffi-$LIBFFI_VERSION libffi-$LIBFFI_VERSION.tar.gz
@@ -6,6 +7,7 @@ wget https://github.com/libffi/libffi/releases/download/v$LIBFFI_VERSION/libffi-
 tar xzf libffi-$LIBFFI_VERSION.tar.gz
 rm libffi-$LIBFFI_VERSION.tar.gz
 pushd libffi-$LIBFFI_VERSION
-./configure
-make
+./configure --prefix="$(pwd)/install" --enable-static --disable-shared --with-pic
+make -j"$(nproc)"
+make install
 popd
