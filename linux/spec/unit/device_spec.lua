@@ -928,7 +928,7 @@ describe("device module", function()
 
         local odd_bytes = ffi.new("uint8_t[3]", { 0x01, 0x02, 0x03 })
         local odd_cksum = inet_cksum(ffi.cast("const void *", odd_bytes), 3)
-        assert.is_number(tonumber(odd_cksum))
+        assert.are.equal(0xfdfb, tonumber(odd_cksum))
       end)
     end)
   end)
