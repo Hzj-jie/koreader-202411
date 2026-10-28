@@ -4,19 +4,28 @@ local FramebufferLinux
 
 describe("ffi/framebuffer_linux module", function()
   local orig_C
+  local upval_idx_C
   local dummy_buf
 
   setup(function()
     require("commonrequire")
     ffi = require("ffi")
     FramebufferLinux = require("ffi/framebuffer_linux")
-    local _, upval_C = debug.getupvalue(FramebufferLinux.reinit, 1)
-    orig_C = upval_C
+    for i = 1, 20 do
+      local name, val = debug.getupvalue(FramebufferLinux.reinit, i)
+      if not name then break end
+      if name == "C" then
+        upval_idx_C = i
+        orig_C = val
+        break
+      end
+    end
+    assert(upval_idx_C ~= nil, "could not find upvalue C in FramebufferLinux.reinit")
     dummy_buf = ffi.new("uint8_t[?]", 2097152)
   end)
 
   after_each(function()
-    debug.setupvalue(FramebufferLinux.reinit, 1, orig_C)
+    debug.setupvalue(FramebufferLinux.reinit, upval_idx_C, orig_C)
   end)
 
   it(
@@ -46,7 +55,7 @@ describe("ffi/framebuffer_linux module", function()
         __index = orig_C,
       })
 
-      debug.setupvalue(FramebufferLinux.reinit, 1, mock_C)
+      debug.setupvalue(FramebufferLinux.reinit, upval_idx_C, mock_C)
 
       local mock_fb = FramebufferLinux:extend({
         fd = 99,
@@ -90,7 +99,7 @@ describe("ffi/framebuffer_linux module", function()
       __index = orig_C,
     })
 
-    debug.setupvalue(FramebufferLinux.reinit, 1, mock_C)
+    debug.setupvalue(FramebufferLinux.reinit, upval_idx_C, mock_C)
 
     local mock_fb = FramebufferLinux:extend({
       fd = 99,
