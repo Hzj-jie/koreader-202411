@@ -96,10 +96,9 @@ describe("FileManagerShortcuts", function()
     }
     package.loaded["libs/libkoreader-lfs"] = mock_lfs
 
+    local ffi_util = require("ffi/util")
     mock_ffi_util = {
-      basename = function(path)
-        return path:match("([^/]+)$") or path
-      end,
+      basename = ffi_util.basename,
     }
     package.loaded["ffi/util"] = mock_ffi_util
 
@@ -408,6 +407,36 @@ describe("FileManagerShortcuts", function()
       assert.are.equal(
         "new_folder",
         fms.folder_shortcuts["/path/to/new_folder"].text
+      )
+      assert.is_true(fms.fm_updated)
+    end)
+
+    it("should allow editing root folder shortcut with empty input", function()
+      local fms = FileManagerShortcuts:new({
+        folder_shortcuts = {},
+      })
+      fms.shortcuts_menu = mock_menu:new()
+
+      fms:editShortcut("/")
+
+      local dialog = mock_uimanager.shown_widgets[1]
+      local save_btn
+      for _, row in ipairs(dialog.buttons) do
+        for _, btn in ipairs(row) do
+          if btn.text == "Save" then
+            save_btn = btn
+            break
+          end
+        end
+      end
+      assert.truthy(save_btn)
+
+      dialog.input_text = ""
+      save_btn.callback()
+
+      assert.are.equal(
+        "/",
+        fms.folder_shortcuts["/"].text
       )
       assert.is_true(fms.fm_updated)
     end)
