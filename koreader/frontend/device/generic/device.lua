@@ -640,7 +640,7 @@ end
 local function inet_cksum(ptr, nleft)
   local addr = ffi.new("const uint16_t *", ptr)
 
-  local sum = ffi.new("unsigned int", 0)
+  local sum = 0
   while nleft > 1 do
     sum = sum + addr[0]
     addr = addr + 1
