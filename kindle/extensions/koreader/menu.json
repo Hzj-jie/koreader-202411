@@ -6,16 +6,6 @@
 		"items": [
 		{
 			"name": "Start KOReader",
-			"if": "\"KindleVoyage\" -m!",
-			"priority": 2,
-			"action": "/mnt/us/koreader/koreader.sh",
-			"params": "--kual",
-			"status": false,
-			"internal": "status Start KOReader"
-		},
-		{
-			"name": "Start KOReader",
-			"if": "\"KindleVoyage\" -m",
 			"priority": 2,
 			"action": "/mnt/us/koreader/koreader.sh",
 			"params": "--kual",
@@ -24,15 +14,24 @@
 			"internal": "status Start KOReader"
 		},
 		{
-            "name": "Update KOReader",
-            "priority": 7,
-            "action": "./bin/update.sh",
-            "exitmenu": false,
-            "checked": true,
-            "refresh": false,
-            "status": false,
-            "internal": "status Try to update KOReader . . ."
-        }
+			"name": "Start KOReader (lua)",
+			"priority": 3,
+			"action": "/mnt/us/koreader/koreader.sh",
+			"params": "--kual --lua",
+			"exitmenu": false,
+			"status": false,
+			"internal": "status Start KOReader (lua)"
+		},
+		{
+			"name": "Update KOReader",
+			"priority": 7,
+			"action": "./bin/update.sh",
+			"exitmenu": false,
+			"checked": true,
+			"refresh": false,
+			"status": false,
+			"internal": "status Try to update KOReader . . ."
+		}
 		]
 	}
 	]
