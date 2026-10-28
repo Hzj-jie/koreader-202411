@@ -1069,6 +1069,7 @@ function Menu:init()
 end
 
 function Menu:updatePageInfo(select_number)
+  self.selected = { x = 1, y = 1 }
   if #self.item_table > 0 then
     local is_focused = self.itemnumber and self.itemnumber > 0
     if is_focused or Device:hasDPad() then
@@ -1230,18 +1231,21 @@ function Menu:mergeTitleBarIntoLayout()
   -- On hasFewKeys devices, Menu uses the "Right" key to trigger the context menu: we can't use it to move focus in horizontal directions.
   -- So, add title bar buttons to FocusManager's layout in a vertical-only layout
   local title_bar_layout = self.title_bar:generateVerticalLayout()
+  local has_items = #self.layout > 0
   for i, row in ipairs(title_bar_layout) do
     -- Insert the title bar in the top rows of our layout
     table.insert(self.layout, i, row)
   end
-  -- Adjust for the added rows to keep our current selection
-  self.selected.y = self.selected.y + #title_bar_layout
-  logger.dbg(
-    "Menu:mergeTitleBarIntoLayout: Adjusted focus position to account for added titlebar rows:",
-    self.selected.x,
-    ",",
-    self.selected.y
-  )
+  if has_items then
+    -- Adjust for the added rows to keep our current selection
+    self.selected.y = self.selected.y + #title_bar_layout
+    logger.dbg(
+      "Menu:mergeTitleBarIntoLayout: Adjusted focus position to account for added titlebar rows:",
+      self.selected.x,
+      ",",
+      self.selected.y
+    )
+  end
 end
 
 --[[
