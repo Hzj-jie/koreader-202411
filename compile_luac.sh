@@ -24,10 +24,7 @@ git archive "$REF" \
 
 LUAC_BIN="$DEST_ABS/linux/luac"
 if [ ! -x "$LUAC_BIN" ]; then
-    LUAC_BIN="$(cd "$(dirname "$0")" && pwd)/linux/luac"
-fi
-if [ ! -x "$LUAC_BIN" ]; then
-    echo "Error: luac binary not found or not executable." >&2
+    echo "Error: luac binary not found or not executable at '$LUAC_BIN'." >&2
     exit 1
 fi
 
