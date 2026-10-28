@@ -602,7 +602,12 @@ function FileChooser:refreshPath()
 end
 
 function FileChooser:changeToPath(path, focused_path)
-  path = ffiUtil.realpath(path)
+  local real_path = ffiUtil.realpath(path)
+  while not real_path do
+    path = ffiUtil.dirname(path)
+    real_path = ffiUtil.realpath(path)
+  end
+  path = real_path
   self.path = path
 
   if focused_path then
