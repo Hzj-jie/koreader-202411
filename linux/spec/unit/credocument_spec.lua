@@ -359,6 +359,7 @@ describe("CreDocument unit tests", function()
       doc:setupCallCache()
       local stats = doc.getCallCacheStatistics()
       assert.is_string(stats)
+      assert.truthy(stats:find("%(0%% saved%)"))
       G_reader_settings:delete("use_cre_call_cache_log_stats")
     end)
 

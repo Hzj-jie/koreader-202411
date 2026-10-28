@@ -2091,9 +2091,10 @@ function CreDocument:setupCallCache()
           total_duration = total_duration + missed_duration + hits_duration
         end
       end
-      local pct_duration_saved = 100.0
-        * total_duration_saved
-        / (total_duration + total_duration_saved)
+      local total = total_duration + total_duration_saved
+      local pct_duration_saved = total > 0
+          and (100.0 * total_duration_saved / total)
+        or 0
       table.insert(
         res,
         string.format(

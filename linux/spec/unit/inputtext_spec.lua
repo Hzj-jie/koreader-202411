@@ -33,7 +33,7 @@ describe("InputText widget module", function()
       util.splitToChars = function(s)
         if s == "inject_nil" then
           mock_called = true
-          return { "a", nil, "b", "c" }
+          return { nil, "a", "b", "c" }
         else
           return old_split(s)
         end

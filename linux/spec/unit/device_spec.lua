@@ -911,6 +911,25 @@ describe("device module", function()
         assert.is_string(gw_wlan)
         assert.is_equal("172.16.0.1", gw_wlan)
       end)
+
+      it("computes internet checksum according to RFC 1071", function()
+        local get_upvalue = function(fn, target_name)
+          for i = 1, 50 do
+            local name, val = debug.getupvalue(fn, i)
+            if not name then break end
+            if name == target_name then return val end
+          end
+        end
+        local inet_cksum = get_upvalue(test_dev.ping4, "inet_cksum")
+        assert.is_function(inet_cksum)
+        local bytes = ffi.new("uint8_t[8]", { 0x00, 0x01, 0xf2, 0x03, 0xf4, 0xf5, 0xf6, 0xf7 })
+        local cksum = inet_cksum(ffi.cast("const void *", bytes), 8)
+        assert.are.equal(0x0d22, tonumber(cksum))
+
+        local odd_bytes = ffi.new("uint8_t[3]", { 0x01, 0x02, 0x03 })
+        local odd_cksum = inet_cksum(ffi.cast("const void *", odd_bytes), 3)
+        assert.are.equal(0xfdfb, tonumber(odd_cksum))
+      end)
     end)
   end)
   -- luacheck: pop
