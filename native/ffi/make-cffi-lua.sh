@@ -26,7 +26,7 @@ pushd cffi-lua-$CFFI_LUA_VERSION
 mkdir build
 pushd build
 CXXFLAGS="-I$(realpath ../../../lua/lua-jit-5.5.1-$LUA_VERSION) -I$(realpath ../../libffi-$LIBFFI_VERSION/install/include)" \
-LDFLAGS="$(realpath ../../libffi-$LIBFFI_VERSION/install/lib/libffi.a)" \
+LDFLAGS="-Wl,--exclude-libs,ALL $(realpath ../../libffi-$LIBFFI_VERSION/install/lib/libffi.a)" \
 meson setup -Dlua_version=custom -Dlua_path="$(realpath ../../../../linux/lua)" -Dlibffi=custom ..
 ninja all
 cp cffi.so ../../../../linux/ffi.so
