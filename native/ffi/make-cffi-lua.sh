@@ -2,17 +2,19 @@
 
 # Requires native/lua/make.sh to have run first to build linux/lua and unpack
 # lua-jit-5.5.1 headers.
-readonly CFFI_LUA_VERSION=1fc4dc887ff6e5ee1e11acb293179b7ce08eb7d6
-readonly LUA_VERSION=a067bda2979a3b4642a812fe7bab264cc9a4f877
+readonly CFFI_LUA_VERSION=9d220712a072e293be6ff141a454ed4037e41fe5
+readonly LUA_VERSION=b343d716365a0b0207f03d20efaa129c133180ba
 
 if [ ! -d "../lua/lua-jit-5.5.1-$LUA_VERSION" ]; then
-    wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/$LUA_VERSION.zip" -O lua-jit-5.5.1.zip
+    wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/$LUA_VERSION.zip" -O lua-jit-5.5.1.zip 2>/dev/null || \
+      git -C /usr/local/google/home/zijiehe/git/lua-jit-5.5.1 archive --format=zip --prefix=lua-jit-5.5.1-$LUA_VERSION/ "$LUA_VERSION" > lua-jit-5.5.1.zip
     unzip lua-jit-5.5.1.zip -d ../lua/
     rm lua-jit-5.5.1.zip
 fi
 
 rm -rf cffi-lua-$CFFI_LUA_VERSION cffi-lua.zip
-wget https://github.com/hzj-jie/cffi-lua/archive/$CFFI_LUA_VERSION.zip -O cffi-lua.zip
+wget "https://github.com/hzj-jie/cffi-lua/archive/$CFFI_LUA_VERSION.zip" -O cffi-lua.zip 2>/dev/null || \
+  git -C /usr/local/google/home/zijiehe/git/cffi-lua archive --format=zip --prefix=cffi-lua-$CFFI_LUA_VERSION/ "$CFFI_LUA_VERSION" > cffi-lua.zip
 unzip cffi-lua.zip
 rm cffi-lua.zip
 
