@@ -917,4 +917,103 @@ describe("FileManager module", function()
     UIManager.show = old_show
     filemanager:onExit()
   end)
+
+  describe("showFileDialog missing item handling", function()
+    local test_root
+
+    setup(function()
+      local tmp = os.getenv("TMPDIR") or "/tmp"
+      test_root = tmp .. "/fm_dialog_test_" .. os.time()
+      lfs.mkdir(test_root)
+    end)
+
+    teardown(function()
+      local function rm_rf(dir)
+        for entry in lfs.dir(dir) do
+          if entry ~= "." and entry ~= ".." then
+            local p = dir .. "/" .. entry
+            local mode = lfs.attributes(p, "mode")
+            if mode == "directory" then
+              rm_rf(p)
+            else
+              os.remove(p)
+            end
+          end
+        end
+        lfs.rmdir(dir)
+      end
+      rm_rf(test_root)
+    end)
+
+    it("refreshes and climbs to existing ancestor on deleted parent folder", function()
+      local x = test_root .. "/parent_climb"
+      local a = x .. "/a"
+      local b = a .. "/b"
+      lfs.mkdir(x)
+      lfs.mkdir(a)
+      lfs.mkdir(b)
+      local real_a = util.realpath(a)
+
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = b,
+      })
+      local fc = filemanager.file_chooser
+
+      -- Remove b on disk
+      lfs.rmdir(b)
+
+      local ret = fc:showFileDialog({ path = b .. "/..", is_go_up = true })
+      assert.is_true(ret)
+      assert.is_nil(fc.file_dialog)
+      assert.are.equal(real_a, fc.path)
+
+      filemanager:onExit()
+    end)
+
+    it("refreshes path and skips dialog when item is missing", function()
+      local x = test_root .. "/missing_item"
+      local child = x .. "/deleted_folder"
+      lfs.mkdir(x)
+      lfs.mkdir(child)
+      local real_x = util.realpath(x)
+
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = x,
+      })
+      local fc = filemanager.file_chooser
+      assert.are.equal(real_x, fc.path)
+
+      -- Verify deleted_folder is present in item_table
+      local found = false
+      for _, it in ipairs(fc.item_table) do
+        if it.path == child or it.text == "deleted_folder/" then
+          found = true
+          break
+        end
+      end
+      assert.is_true(found)
+
+      -- Remove child on disk
+      lfs.rmdir(child)
+
+      local ret = fc:showFileDialog({ path = child, is_file = false })
+      assert.is_true(ret)
+      assert.is_nil(fc.file_dialog)
+      assert.are.equal(real_x, fc.path)
+
+      -- Child should be gone from refreshed item_table
+      local still_found = false
+      for _, it in ipairs(fc.item_table) do
+        if it.path == child or it.text == "deleted_folder/" then
+          still_found = true
+          break
+        end
+      end
+      assert.is_false(still_found)
+
+      filemanager:onExit()
+    end)
+  end)
 end)

@@ -189,6 +189,11 @@ function FileManager:setupLayout()
 
   function file_chooser:showFileDialog(item)
     local file = item.path
+    local real_path = ffiUtil.realpath(file)
+    if not real_path then
+      self:changeToPath(self.path)
+      return true
+    end
     local is_file = item.is_file
     local is_not_parent_folder = not item.is_go_up
 
@@ -344,22 +349,21 @@ function FileManager:setupLayout()
         })
       end
     else -- folder
-      local folder = ffiUtil.realpath(file)
       table.insert(buttons, {
         {
           text = gettext("Set as HOME folder"),
           enabled_func = function()
-            return folder ~= G_named_settings.home_dir()
+            return real_path ~= G_named_settings.home_dir()
           end,
           callback = function()
             UIManager:close(self.file_dialog)
-            file_manager:setHome(folder)
+            file_manager:setHome(real_path)
           end,
         },
       })
       table.insert(buttons, {
         file_manager.folder_shortcuts:genAddRemoveShortcutButton(
-          folder,
+          real_path,
           close_dialog_callback,
           refresh_callback
         ),
