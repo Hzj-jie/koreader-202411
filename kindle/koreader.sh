@@ -98,6 +98,12 @@ else
     NO_SLEEP="no"
 fi
 
+LUA_BIN="luajit"
+if [ "${1}" = "--lua" ]; then
+    shift 1
+    LUA_BIN="lua"
+fi
+
 # If we were started by KUAL (either Kindlet or Booklet), we have a few more things to do...
 if [ "${FROM_KUAL}" = "yes" ]; then
     # Yield a bit to let stuff stop properly...
@@ -254,7 +260,7 @@ mv -f crash.log crash.prev.log || true
 
 RETURN_VALUE=85
 while [ "${RETURN_VALUE}" -eq 85 ]; do
-    ./reader.lua "$@" >>crash.log 2>&1
+    ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
 done
 
@@ -264,9 +270,9 @@ if [ "${RETURN_VALUE}" -ne 0 ]; then
 fi
 
 # clean up our own process tree in case the reader crashed (if needed, to avoid flooding KUAL's log)
-if pidof reader.lua >/dev/null 2>&1; then
+if pidof "${LUA_BIN}" >/dev/null 2>&1; then
     logmsg "Sending a SIGTERM to stray KOreader processes . . ."
-    killall -TERM reader.lua
+    killall -TERM "${LUA_BIN}"
 fi
 
 # Resume volumd, if need be
