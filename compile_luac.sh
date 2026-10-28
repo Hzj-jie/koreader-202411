@@ -44,10 +44,6 @@ echo "[*] Compiling linux/ lua sources..."
 (
     cd "$DEST_ABS/linux"
     while IFS= read -r -d '' f; do
-        # httpinspector's getFunctionInfo reads source lines of functions defined in spec
-        if [ "$f" = "spec/unit/httpinspector_spec.lua" ]; then
-            continue
-        fi
         "$LUAC_BIN" -o "$f" "$f"
     done < <(find . -type f -name '*.lua' -printf '%P\0')
 )
