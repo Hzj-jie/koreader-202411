@@ -515,4 +515,98 @@ describe("Menu widget", function()
       end
     )
   end)
+
+  describe("Focus and layout on empty and non-empty menus", function()
+    local Device
+
+    setup(function()
+      Device = require("device")
+    end)
+
+    it("should keep focus on title bar in empty menu across updates", function()
+      local orig_hasFewKeys = Device.hasFewKeys
+      local orig_hasSymKey = Device.hasSymKey
+      local orig_hasScreenKB = Device.hasScreenKB
+      Device.hasFewKeys = function()
+        return true
+      end
+      Device.hasSymKey = function()
+        return false
+      end
+      Device.hasScreenKB = function()
+        return false
+      end
+
+      local m = Menu:new({
+        title = "Empty Menu",
+        item_table = {},
+      })
+      assert.are.same({ x = 1, y = 1 }, m.selected)
+      assert.is_not_nil(m:getFocusItem())
+      assert.has_no.errors(function()
+        m:_sendGestureEventToFocusedWidget("Press")
+      end)
+
+      m:updateItems()
+      assert.are.same({ x = 1, y = 1 }, m.selected)
+      assert.is_not_nil(m:getFocusItem())
+      assert.has_no.errors(function()
+        m:_sendGestureEventToFocusedWidget("Press")
+      end)
+
+      Device.hasFewKeys = orig_hasFewKeys
+      Device.hasSymKey = orig_hasSymKey
+      Device.hasScreenKB = orig_hasScreenKB
+    end)
+
+    it("should keep selected.y stable across repeated updates on non-DPad devices", function()
+      local orig_hasFewKeys = Device.hasFewKeys
+      local orig_hasSymKey = Device.hasSymKey
+      local orig_hasScreenKB = Device.hasScreenKB
+      local orig_hasDPad = Device.hasDPad
+      Device.hasFewKeys = function()
+        return true
+      end
+      Device.hasSymKey = function()
+        return false
+      end
+      Device.hasScreenKB = function()
+        return false
+      end
+      Device.hasDPad = function()
+        return false
+      end
+
+      local m = Menu:new({
+        title = "Non-DPad Menu",
+        title_bar_left_icon = "back",
+        item_table = {
+          { text = "Item 1" },
+          { text = "Item 2" },
+        },
+      })
+      -- With 2 title bar rows merged in front of items, item 1 is at y = 3
+      assert.are.equal(3, m.selected.y)
+      m:updateItems()
+      assert.are.equal(3, m.selected.y)
+      m:updateItems()
+      assert.are.equal(3, m.selected.y)
+
+      Device.hasFewKeys = orig_hasFewKeys
+      Device.hasSymKey = orig_hasSymKey
+      Device.hasScreenKB = orig_hasScreenKB
+      Device.hasDPad = orig_hasDPad
+    end)
+
+    it("should return nil focus and not throw on empty no_title menu", function()
+      local m = Menu:new({
+        no_title = true,
+        item_table = {},
+      })
+      assert.is_nil(m:getFocusItem())
+      assert.has_no.errors(function()
+        m:_sendGestureEventToFocusedWidget("Press")
+      end)
+    end)
+  end)
 end)
