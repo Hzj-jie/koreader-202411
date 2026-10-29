@@ -294,8 +294,8 @@ function Terminal:spawnShell(cols, rows)
 
     -- Here we attempt to use an existing readline wrapper
     if
-      (rlw and C.execlp(rlw, rlw, shell, unpack(args)) ~= 0)
-      or C.execlp(shell, shell, unpack(args)) ~= 0
+      (rlw and C.execlp(rlw, rlw, shell, unpack(args, 1, #args + 1)) ~= 0)
+      or C.execlp(shell, shell, unpack(args, 1, #args + 1)) ~= 0
     then
       -- the following two prints are shown in the terminal emulator.
       print(
