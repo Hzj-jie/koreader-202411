@@ -4,8 +4,6 @@
 native/**/.*.un~
 native/**/.*.swp
 native/lua/lua-*
-native/ffi/libffi-*
-native/ffi/cffi-lua-*
 native/lfs/luafilesystem-*
 origin.linux/
 .aider*
