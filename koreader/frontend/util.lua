@@ -1897,6 +1897,9 @@ end
 
 --- Returns a must-existing directory.
 function util.backup_dir()
+  if util.isMonkeyTest() then
+    return lfs.currentdir()
+  end
   return require("device").home_dir or "."
 end
 
