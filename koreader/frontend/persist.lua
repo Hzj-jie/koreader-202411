@@ -121,8 +121,11 @@ local codecs = {
       end
       C.fclose(f)
 
-      local buff, ulen = zstd.zstd_uncompress(data, size)
+      local z_ok, buff, ulen = pcall(zstd.zstd_uncompress, data, size)
       C.free(data)
+      if not z_ok then
+        return nil, "failed to uncompress file (" .. buff .. ")"
+      end
 
       local str = ffi.string(buff, ulen)
       C.free(buff)
