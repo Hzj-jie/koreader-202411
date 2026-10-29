@@ -80,8 +80,10 @@ function TileCacheItem:load(filename)
     self:fromtable(t)
 
     logger.dbg("Loaded tile cache from", filename, self)
+    return true
   else
     logger.warn("Failed to load tile cache from", filename)
+    return false
   end
 end
 
