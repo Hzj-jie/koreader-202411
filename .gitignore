@@ -4,7 +4,6 @@
 native/**/.*.un~
 native/**/.*.swp
 native/lua/lua-*
-native/lfs/luafilesystem-*
 origin.linux/
 .aider*
 scratch/
