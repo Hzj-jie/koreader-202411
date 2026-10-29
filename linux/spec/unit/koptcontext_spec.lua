@@ -57,4 +57,28 @@ describe("ffi/koptcontext module", function()
       restored.rectmaps.wrectmap = nil
     end
   end)
+
+  it("handles version mismatch gracefully by returning nil", function()
+    local kc = KOPTContext.new()
+    kc:setLanguage("eng")
+    kc.rectmaps.n = 1
+    kc.rectmaps.na = 1
+    kc.rectmaps.wrectmap = ffi.C.malloc(ffi.sizeof("WRECTMAP"))
+
+    local tbl = KOPTContext.totable(kc)
+    ffi.C.free(kc.rectmaps.wrectmap)
+    kc.rectmaps.wrectmap = nil
+
+    assert.is_not_nil(tbl)
+    local restored = KOPTContext.fromtable(tbl)
+    assert.is_not_nil(restored)
+    if restored.rectmaps.wrectmap ~= nil then
+      ffi.C.free(restored.rectmaps.wrectmap)
+      restored.rectmaps.wrectmap = nil
+    end
+
+    tbl.__version__ = "mismatched_version_0.0.0"
+    local mismatch_restored = KOPTContext.fromtable(tbl)
+    assert.is_nil(mismatch_restored)
+  end)
 end)

@@ -40,8 +40,15 @@ describe("ffi/mupdf module", function()
       local orig_bgr = mupdf.bgr
       mupdf.bgr = true
 
-      local _, orig_W = debug.getupvalue(mupdf.renderImage, 1)
-      local _, orig_M = debug.getupvalue(mupdf.renderImage, 5)
+      local orig_W, orig_M, idx_W, idx_M
+      local i = 1
+      while true do
+        local name, val = debug.getupvalue(mupdf.renderImage, i)
+        if not name then break end
+        if name == "W" then idx_W, orig_W = i, val end
+        if name == "M" then idx_M, orig_M = i, val end
+        i = i + 1
+      end
 
       local mock_W = setmetatable({
         mupdf_convert_pixmap = function(...)
@@ -64,15 +71,15 @@ describe("ffi/mupdf module", function()
         end,
       }, { __index = orig_M })
 
-      debug.setupvalue(mupdf.renderImage, 1, mock_W)
-      debug.setupvalue(mupdf.renderImage, 5, mock_M)
+      debug.setupvalue(mupdf.renderImage, idx_W, mock_W)
+      debug.setupvalue(mupdf.renderImage, idx_M, mock_M)
 
       local ok, err = pcall(function()
         mupdf.renderImageFile("resources/koreader.png")
       end)
 
-      debug.setupvalue(mupdf.renderImage, 1, orig_W)
-      debug.setupvalue(mupdf.renderImage, 5, orig_M)
+      debug.setupvalue(mupdf.renderImage, idx_W, orig_W)
+      debug.setupvalue(mupdf.renderImage, idx_M, orig_M)
       mupdf.bgr = orig_bgr
 
       assert.is_false(ok)
