@@ -146,6 +146,12 @@ if [ -n "${fail}" ] && [ "${fail}" -eq 0 ]; then
     exec ./koreader.sh "${@}"
 fi
 
+LUA_BIN="luajit"
+if [ "${1}" = "--lua" ]; then
+    shift 1
+    LUA_BIN="lua"
+fi
+
 # export dict directory
 export STARDICT_DATA_DIR="data/dict"
 
@@ -193,7 +199,7 @@ if [ "${VIA_NICKEL}" = "true" ]; then
             echo "0" >"/sys/devices/platform/bt/rfkill/rfkill0/state"
 
             # Power the chip down
-            ./luajit frontend/device/kobo/ntx_io.lua 126 0
+            ./"${LUA_BIN}" frontend/device/kobo/ntx_io.lua 126 0
         fi
     fi
     if grep -q "^sdio_bt_pwr " "/proc/modules"; then
@@ -420,7 +426,7 @@ while [ ${RETURN_VALUE} -ne 0 ]; do
         ko_do_dns
     fi
 
-    ./reader.lua "$@" >>crash.log 2>&1
+    ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
 
     # Did we crash?
