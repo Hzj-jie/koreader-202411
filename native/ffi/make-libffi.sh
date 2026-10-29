@@ -3,7 +3,7 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly COMPAT_H="$(realpath "$SCRIPT_DIR/../arm_glibc_compat.h")"
-readonly LIBFFI_VERSION=3.4.5
+readonly LIBFFI_VERSION=3.8.0
 
 TARGETS=("$@")
 if [ ${#TARGETS[@]} -eq 0 ]; then
