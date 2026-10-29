@@ -13,6 +13,7 @@ local ffiUtil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
+local logger = require("logger")
 local sort = require("sort")
 local util = require("util")
 local Screen = Device.screen
@@ -625,6 +626,16 @@ function FileChooser:changeToPath(path, focused_path)
   while not real_path do
     path = ffiUtil.dirname(path)
     real_path = ffiUtil.realpath(path)
+  end
+  if util.isMonkeyTest() then
+    local cwd = ffiUtil.realpath(lfs.currentdir())
+    if real_path ~= cwd and not util.stringStartsWith(real_path, cwd .. "/") then
+      logger.warn(
+        "FileChooser:changeToPath outside working directory is ignored in monkey test mode: path="
+          .. tostring(real_path)
+      )
+      return
+    end
   end
   path = real_path
   self.path = path
