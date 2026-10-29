@@ -1,8 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-readonly VERSION=48b78835287cf04bb9d323c92ea7a85ea6aeae66
-
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly WRAP_C="$(realpath "$SCRIPT_DIR/../arm_glibc_wrap.c")"
 readonly COMPAT_H="$(realpath "$SCRIPT_DIR/../arm_glibc_compat.h")"
@@ -12,20 +10,19 @@ if [ ${#TARGETS[@]} -eq 0 ]; then
     TARGETS=("linux" "pw2" "kobo" "legacy")
 fi
 
-if [ ! -d "lua-jit-5.5.1-$VERSION" ]; then
-    rm -rf "lua-jit-5.5.1-$VERSION" lua-jit-5.5.1.zip
-    wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/$VERSION.zip" -O lua-jit-5.5.1.zip
-    unzip lua-jit-5.5.1.zip
-    rm lua-jit-5.5.1.zip
-fi
+rm -rf "lua-jit-5.5.1-master" lua-jit-5.5.1.zip
+wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/master.zip" -O lua-jit-5.5.1.zip
+echo "Lua archive commit: $(unzip -z lua-jit-5.5.1.zip | tail -n 1)"
+unzip lua-jit-5.5.1.zip
+rm lua-jit-5.5.1.zip
 
 for TARGET in "${TARGETS[@]}"; do
     echo "========================================="
     echo "Building lua for target: $TARGET"
     echo "========================================="
-    BUILD_DIR="lua-jit-5.5.1-$VERSION-$TARGET"
+    BUILD_DIR="lua-jit-5.5.1-master-$TARGET"
     rm -rf "$BUILD_DIR"
-    cp -r "lua-jit-5.5.1-$VERSION" "$BUILD_DIR"
+    cp -r "lua-jit-5.5.1-master" "$BUILD_DIR"
     pushd "$BUILD_DIR"
 
     if [ "$TARGET" = "linux" ]; then

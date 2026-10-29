@@ -3,8 +3,6 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly COMPAT_H="$(realpath "$SCRIPT_DIR/../arm_glibc_compat.h")"
-readonly CFFI_LUA_VERSION=2621dd5eead161492d1e4a9a9e1a673274f1e7c6
-readonly LUA_VERSION=48b78835287cf04bb9d323c92ea7a85ea6aeae66
 readonly LIBFFI_VERSION=3.4.5
 
 TARGETS=("$@")
@@ -12,18 +10,19 @@ if [ ${#TARGETS[@]} -eq 0 ]; then
     TARGETS=("linux" "pw2" "kobo" "legacy")
 fi
 
-if [ ! -d "../lua/lua-jit-5.5.1-$LUA_VERSION" ]; then
-    wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/$LUA_VERSION.zip" -O lua-jit-5.5.1.zip
+if [ ! -d "../lua/lua-jit-5.5.1-master" ]; then
+    rm -rf "../lua/lua-jit-5.5.1-master" lua-jit-5.5.1.zip
+    wget "https://github.com/hzj-jie/lua-jit-5.5.1/archive/master.zip" -O lua-jit-5.5.1.zip
+    echo "Lua archive commit: $(unzip -z lua-jit-5.5.1.zip | tail -n 1)"
     unzip lua-jit-5.5.1.zip -d ../lua/
     rm lua-jit-5.5.1.zip
 fi
 
-if [ ! -d "cffi-lua-$CFFI_LUA_VERSION" ]; then
-    rm -rf "cffi-lua-$CFFI_LUA_VERSION" cffi-lua.zip
-    wget "https://github.com/hzj-jie/cffi-lua/archive/$CFFI_LUA_VERSION.zip" -O cffi-lua.zip
-    unzip cffi-lua.zip
-    rm cffi-lua.zip
-fi
+rm -rf "cffi-lua-master" cffi-lua.zip
+wget "https://github.com/hzj-jie/cffi-lua/archive/master.zip" -O cffi-lua.zip
+echo "cffi-lua archive commit: $(unzip -z cffi-lua.zip | tail -n 1)"
+unzip cffi-lua.zip
+rm cffi-lua.zip
 
 for TARGET in "${TARGETS[@]}"; do
     echo "========================================="
@@ -35,13 +34,13 @@ for TARGET in "${TARGETS[@]}"; do
         ./make-libffi.sh "$TARGET"
     fi
 
-    BUILD_DIR="$SCRIPT_DIR/cffi-lua-$CFFI_LUA_VERSION/build-$TARGET"
+    BUILD_DIR="$SCRIPT_DIR/cffi-lua-master/build-$TARGET"
     rm -rf "$BUILD_DIR"
     mkdir -p "$BUILD_DIR"
     pushd "$BUILD_DIR"
 
     if [ "$TARGET" = "linux" ]; then
-        CXXFLAGS="-I$(realpath "$SCRIPT_DIR/../lua/lua-jit-5.5.1-$LUA_VERSION") -I$(realpath "$SCRIPT_DIR/libffi-$LIBFFI_VERSION/install-linux/include")" \
+        CXXFLAGS="-I$(realpath "$SCRIPT_DIR/../lua/lua-jit-5.5.1-master") -I$(realpath "$SCRIPT_DIR/libffi-$LIBFFI_VERSION/install-linux/include")" \
         LDFLAGS="-Wl,--exclude-libs,ALL $(realpath "$SCRIPT_DIR/libffi-$LIBFFI_VERSION/install-linux/lib/libffi.a")" \
         meson setup -Dlua_version=custom -Dlua_path="$(realpath "$SCRIPT_DIR/../../linux/lua")" -Dlibffi=custom ..
         ninja all
@@ -98,7 +97,7 @@ cpu = '$CPU'
 endian = 'little'
 EOF
 
-    CXXFLAGS="$ARCH_FLAGS -O2 -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H -I$(realpath "$SCRIPT_DIR/../lua/lua-jit-5.5.1-$LUA_VERSION") -I$(realpath "$SCRIPT_DIR/libffi-$LIBFFI_VERSION/install-$TARGET/include")" \
+    CXXFLAGS="$ARCH_FLAGS -O2 -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H -I$(realpath "$SCRIPT_DIR/../lua/lua-jit-5.5.1-master") -I$(realpath "$SCRIPT_DIR/libffi-$LIBFFI_VERSION/install-$TARGET/include")" \
     LDFLAGS="$ARCH_FLAGS -Wl,--exclude-libs,ALL $(realpath "$LIBFFI_A")" \
     meson setup --cross-file cross.txt -Dlua_version=custom -Dtests=false -Dlibffi=custom ..
     ninja all
