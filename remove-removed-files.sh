@@ -35,6 +35,7 @@ REMOVED_FILES=(
   "plugins/kochess.koplugin"
   "zsync2"
   "spinning_zsync"
+  "libs/libcurl.so.4"
 )
 
 REMOTE_PATHS=()
