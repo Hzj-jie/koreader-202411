@@ -905,7 +905,7 @@ end
 function KOPTContext.fromtable(context)
   -- check version first
   if __VERSION__ ~= context.__version__ then
-    error("mismatched versions")
+    return nil
   end
   local kc = kctype()
   -- integer values
