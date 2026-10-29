@@ -73,8 +73,10 @@ function ContextCacheItem:load(filename)
   if t then
     self.size = t.cache_size
     self.kctx = KOPTContext.fromtable(t)
+    return true
   else
     logger.warn("Failed to load KOPTContext")
+    return false
   end
 end
 
