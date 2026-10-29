@@ -1127,6 +1127,131 @@ describe("Terminal plugin button tap integration", function()
     assert.is_table(TermInputText)
   end)
 
+  it("passes terminating NULL sentinel to C.execlp in Terminal:spawnShell (fix #527)", function()
+    local Terminal = require("plugins/terminal.koplugin/main")
+    local ffi = require("ffi")
+
+    -- Find upvalue C in Terminal.spawnShell
+    local c_idx, orig_C
+    for i = 1, 100 do
+      local name, val = debug.getupvalue(Terminal.spawnShell, i)
+      if not name then break end
+      if name == "C" then
+        c_idx = i
+        orig_C = val
+        break
+      end
+    end
+    assert.is_not_nil(c_idx, "upvalue C not found in Terminal.spawnShell")
+
+    local orig_os_exit = os.exit
+    local orig_print = _G.print
+    local recorded_calls = {}
+
+    local fake_C = setmetatable({
+      O_RDWR = 2,
+      O_NONBLOCK = 2048,
+      O_CLOEXEC = 524288,
+      open = function() return 10 end,
+      grantpt = function() return 0 end,
+      unlockpt = function() return 0 end,
+      ptsname = function()
+        return ffi.cast("char*", "/dev/pts/fake")
+      end,
+      close = function() return 0 end,
+      fork = function() return 0 end, -- child process branch
+      setsid = function() return 100 end,
+      getpid = function() return 100 end,
+      dup2 = function() return 0 end,
+      setenv = function() return 0 end,
+      execlp = function(...)
+        local argc = select("#", ...)
+        local args = {}
+        for i = 1, argc do
+          args[i] = select(i, ...)
+        end
+        table.insert(recorded_calls, {
+          argc = argc,
+          args = args,
+          last_arg = select(argc, ...),
+        })
+        return -1
+      end,
+    }, {
+      __index = orig_C,
+    })
+
+    debug.setupvalue(Terminal.spawnShell, c_idx, fake_C)
+    rawset(os, "exit", function() end)
+    _G.print = function() end
+
+    finally(function()
+      debug.setupvalue(Terminal.spawnShell, c_idx, orig_C)
+      rawset(os, "exit", orig_os_exit)
+      _G.print = orig_print
+      os.remove("terminal.pid")
+    end)
+
+    local inst = Terminal:new({
+      ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      },
+    })
+    inst.terminal_data = "/tmp"
+
+    -- 1. Test with /bin/sh (args = {})
+    inst.isExecutable = function(self_term, file)
+      return file == "/bin/sh"
+    end
+    G_reader_settings:save("terminal_shell", "/bin/sh")
+    recorded_calls = {}
+    inst:spawnShell(80, 24)
+
+    assert.are.equal(1, #recorded_calls)
+    local call = recorded_calls[1]
+    -- execlp("/bin/sh", "/bin/sh", nil) -> argc = 3, last_arg = nil
+    assert.are.equal("/bin/sh", call.args[1])
+    assert.are.equal("/bin/sh", call.args[2])
+    assert.are.equal(3, call.argc)
+    assert.is_nil(call.last_arg)
+
+    -- 2. Test with /bin/bash (args = {"--rcfile", profile})
+    inst.isExecutable = function(self_term, file)
+      return file == "/bin/bash"
+    end
+    G_reader_settings:save("terminal_shell", "/bin/bash")
+    recorded_calls = {}
+    inst:spawnShell(80, 24)
+
+    assert.are.equal(1, #recorded_calls)
+    call = recorded_calls[1]
+    -- execlp("/bin/bash", "/bin/bash", "--rcfile", profile, nil) -> argc = 5, last_arg = nil
+    assert.are.equal("/bin/bash", call.args[1])
+    assert.are.equal("/bin/bash", call.args[2])
+    assert.are.equal("--rcfile", call.args[3])
+    assert.are.equal(5, call.argc)
+    assert.is_nil(call.last_arg)
+
+    -- 3. Test with readline wrapper (rlwrap)
+    inst.isExecutable = function(self_term, file)
+      return file == "/bin/sh" or file == "rlwrap"
+    end
+    G_reader_settings:save("terminal_shell", "/bin/sh")
+    recorded_calls = {}
+    inst:spawnShell(80, 24)
+
+    assert.are.equal(1, #recorded_calls)
+    call = recorded_calls[1]
+    -- execlp("rlwrap", "rlwrap", "/bin/sh", nil) -> argc = 4, last_arg = nil
+    assert.are.equal("rlwrap", call.args[1])
+    assert.are.equal("rlwrap", call.args[2])
+    assert.are.equal("/bin/sh", call.args[3])
+    assert.are.equal(4, call.argc)
+    assert.is_nil(call.last_arg)
+  end)
+
   describe("Defect verifications", function()
     it(
       "isExecutable handles executable paths containing spaces safely",
