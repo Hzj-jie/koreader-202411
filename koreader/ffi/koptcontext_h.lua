@@ -29,9 +29,9 @@ typedef struct {
   int na;
 } WRECTMAPS;
 typedef struct {
-  int red[256];
-  int green[256];
-  int blue[256];
+  unsigned char red[256];
+  unsigned char green[256];
+  unsigned char blue[256];
   unsigned char *data;
   int width;
   int height;
@@ -107,7 +107,8 @@ typedef struct {
 struct KOPTContext {
   int trim;
   int wrap;
-  int white;
+  int white_threshold;
+  int paint_white_threshold;
   int indent;
   int rotate;
   int columns;

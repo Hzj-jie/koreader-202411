@@ -2500,8 +2500,10 @@ function TextBoxWidget:onHoldReleaseText(callback, ges)
     -- use libunibreak's wordbreak features.
     -- (50 is the nb of chars backward and ahead of selection indices
     -- to consider when looking for word boundaries)
+    local word_start_idx, word_end_idx =
+      self._xtext:getSelectedWordIndices(sel_start_idx, sel_end_idx, 50)
     local selected_text =
-      self._xtext:getSelectedWords(sel_start_idx, sel_end_idx, 50)
+      self._xtext:getText(word_start_idx, word_end_idx)
 
     logger.dbg(
       "onHoldReleaseText (duration:",

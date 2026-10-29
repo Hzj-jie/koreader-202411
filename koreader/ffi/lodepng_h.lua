@@ -25,10 +25,6 @@ struct LodePNGDecoderSettings {
   unsigned int ignore_critical;
   unsigned int ignore_end;
   unsigned int color_convert;
-  unsigned int read_text_chunks;
-  unsigned int remember_unknown_chunks;
-  size_t max_text_size;
-  size_t max_icc_size;
 };
 typedef struct LodePNGDecoderSettings LodePNGDecoderSettings;
 enum LodePNGFilterStrategy {
@@ -62,8 +58,6 @@ struct LodePNGEncoderSettings {
   LodePNGFilterStrategy filter_strategy;
   const unsigned char *predefined_filters;
   unsigned int force_palette;
-  unsigned int add_id;
-  unsigned int text_compression;
 };
 typedef struct LodePNGEncoderSettings LodePNGEncoderSettings;
 struct LodePNGColorMode {
@@ -77,62 +71,11 @@ struct LodePNGColorMode {
   unsigned int key_b;
 };
 typedef struct LodePNGColorMode LodePNGColorMode;
-struct LodePNGTime {
-  unsigned int year;
-  unsigned int month;
-  unsigned int day;
-  unsigned int hour;
-  unsigned int minute;
-  unsigned int second;
-};
-typedef struct LodePNGTime LodePNGTime;
 struct LodePNGInfo {
   unsigned int compression_method;
   unsigned int filter_method;
   unsigned int interlace_method;
   LodePNGColorMode color;
-  unsigned int background_defined;
-  unsigned int background_r;
-  unsigned int background_g;
-  unsigned int background_b;
-  size_t text_num;
-  char **text_keys;
-  char **text_strings;
-  size_t itext_num;
-  char **itext_keys;
-  char **itext_langtags;
-  char **itext_transkeys;
-  char **itext_strings;
-  unsigned int time_defined;
-  LodePNGTime time;
-  unsigned int phys_defined;
-  unsigned int phys_x;
-  unsigned int phys_y;
-  unsigned int phys_unit;
-  unsigned int gama_defined;
-  unsigned int gama_gamma;
-  unsigned int chrm_defined;
-  unsigned int chrm_white_x;
-  unsigned int chrm_white_y;
-  unsigned int chrm_red_x;
-  unsigned int chrm_red_y;
-  unsigned int chrm_green_x;
-  unsigned int chrm_green_y;
-  unsigned int chrm_blue_x;
-  unsigned int chrm_blue_y;
-  unsigned int srgb_defined;
-  unsigned int srgb_intent;
-  unsigned int iccp_defined;
-  char *iccp_name;
-  unsigned char *iccp_profile;
-  unsigned int iccp_profile_size;
-  unsigned int sbit_defined;
-  unsigned int sbit_r;
-  unsigned int sbit_g;
-  unsigned int sbit_b;
-  unsigned int sbit_a;
-  unsigned char *unknown_chunks_data[3];
-  size_t unknown_chunks_size[3];
 };
 typedef struct LodePNGInfo LodePNGInfo;
 struct LodePNGState {

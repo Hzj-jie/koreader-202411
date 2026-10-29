@@ -80,7 +80,7 @@ local KOPTContext = {
 }
 local KOPTContext_mt = { __index = {} }
 
-local __VERSION__ = "1.0.1"
+local __VERSION__ = "1.0.2"
 
 local function _gc_ptr(p, destructor)
   return p and ffi.gc(p, destructor)
@@ -198,9 +198,6 @@ function KOPTContext_mt.__index:setTrim(trim)
 end
 function KOPTContext_mt.__index:setWrap(wrap)
   self.wrap = wrap
-end
-function KOPTContext_mt.__index:setWhite(white)
-  self.white = white
 end
 function KOPTContext_mt.__index:setIndent(indent)
   self.indent = indent
@@ -769,7 +766,8 @@ function KOPTContext.new()
   -- integer values
   kc.trim = 1
   kc.wrap = 1
-  kc.white = -1
+  kc.white_threshold = -1
+  kc.paint_white_threshold = 0
   kc.indent = 1
   kc.rotate = 0
   kc.columns = 2
@@ -839,7 +837,8 @@ function KOPTContext.totable(kc)
   -- integer values
   context.trim = kc.trim
   context.wrap = kc.wrap
-  context.white = kc.white
+  context.white_threshold = kc.white_threshold
+  context.paint_white_threshold = kc.paint_white_threshold
   context.indent = kc.indent
   context.rotate = kc.rotate
   context.columns = kc.columns
@@ -911,7 +910,8 @@ function KOPTContext.fromtable(context)
   -- integer values
   kc.trim = context.trim
   kc.wrap = context.wrap
-  kc.white = context.white
+  kc.white_threshold = context.white_threshold
+  kc.paint_white_threshold = context.paint_white_threshold
   kc.indent = context.indent
   kc.rotate = context.rotate
   kc.columns = context.columns

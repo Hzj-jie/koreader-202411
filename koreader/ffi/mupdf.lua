@@ -33,7 +33,7 @@ local mupdf = {
 }
 -- this cannot get adapted by the cdecl file because it is a
 -- string constant. Must match the actual mupdf API:
-local FZ_VERSION = "1.24.10"
+local FZ_VERSION = "1.27.2"
 
 local document_mt = { __index = {} }
 local page_mt = { __index = {} }
@@ -124,9 +124,9 @@ function mupdf.openDocumentFromText(text, magic)
     #text
   )
   local mupdf_doc = {
-    doc = W.mupdf_open_document_with_stream(context(), magic, stream),
+    doc = W.mupdf_open_document_with_stream_and_dir(context(), magic, stream, nil),
   }
-  W.mupdf_drop_stream(context(), stream)
+  M.fz_drop_stream(context(), stream)
 
   if mupdf_doc.doc == nil then
     merror("MuPDF cannot open document from text")
@@ -359,7 +359,7 @@ function document_mt.__index:writeDocument(filename)
     filename,
     opts
   )
-  if ok == nil then
+  if not ok then
     merror("could not write document")
   end
 end
@@ -425,9 +425,9 @@ function page_mt.__index:getUsedBBox()
     merror("cannot allocate bbox_device")
   end
   local ok = W.mupdf_run_page(context(), self.page, dev, M.fz_identity, nil)
-  M.fz_close_device(context(), dev)
+    and W.mupdf_close_device(context(), dev)
   M.fz_drop_device(context(), dev)
-  if ok == nil then
+  if not ok then
     merror("cannot calculate bbox for page")
   end
 
@@ -672,9 +672,9 @@ local function run_page(page, pixmap, ctm)
   end
 
   local ok = W.mupdf_run_page(context(), page.page, dev, ctm, nil)
-  M.fz_close_device(context(), dev)
+    and W.mupdf_close_device(context(), dev)
   M.fz_drop_device(context(), dev)
-  if ok == nil then
+  if not ok then
     merror("could not run page")
   end
 end
@@ -808,18 +808,23 @@ function page_mt.__index:addMarkupAnnotation(points, n, type, bb_color)
   end
 
   local ok = W.mupdf_pdf_set_annot_quad_points(context(), annot, n, points)
-  if ok == nil then
+  if not ok then
     merror("could not set annotation quadpoints")
   end
 
   ok = W.mupdf_pdf_set_annot_color(context(), annot, 3, color)
-  if ok == nil then
+  if not ok then
     merror("could not set annotation color")
   end
 
   ok = W.mupdf_pdf_set_annot_opacity(context(), annot, alpha)
-  if ok == nil then
+  if not ok then
     merror("could not set annotation opacity")
+  end
+
+  ok = W.mupdf_pdf_update_annot(context(), annot)
+  if not ok then
+    merror("could not update markup annotation")
   end
 
   -- Fetch back MuPDF's stored coordinates of all quadpoints, as they may have been modified/rounded
@@ -832,7 +837,7 @@ end
 function page_mt.__index:deleteMarkupAnnotation(annot)
   local ok =
     W.mupdf_pdf_delete_annot(context(), ffi.cast("pdf_page*", self.page), annot)
-  if ok == nil then
+  if not ok then
     merror("could not delete markup annotation")
   end
 end
@@ -872,7 +877,7 @@ end
 
 function page_mt.__index:updateMarkupAnnotation(annot, contents)
   local ok = W.mupdf_pdf_set_annot_contents(context(), annot, contents)
-  if ok == nil then
+  if not ok then
     merror("could not update markup annot contents")
   end
 end
@@ -889,7 +894,7 @@ function mupdf.renderImage(data, size, width, height)
     size
   )
   local image = W.mupdf_new_image_from_buffer(context(), buffer)
-  W.mupdf_drop_buffer(context(), buffer)
+  M.fz_drop_buffer(context(), buffer)
   if image == nil then
     merror("could not load image data")
   end

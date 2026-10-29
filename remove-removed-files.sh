@@ -39,6 +39,8 @@ REMOVED_FILES=(
   "zsync2"
   "spinning_zsync"
   "libs/libcurl.so.4"
+  "libs/libturbojpeg.so.0.3.0"
+  "libs/libunibreak.so.6"
 )
 
 REMOTE_PATHS=()
