@@ -38,6 +38,7 @@ REMOVED_FILES=(
   "plugins/backgroundrunner.koplugin/keyed_job_filter.lua"
   "zsync2"
   "spinning_zsync"
+  "ffi.so"
 )
 
 REMOTE_PATHS=()
