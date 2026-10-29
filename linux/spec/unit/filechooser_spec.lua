@@ -715,4 +715,56 @@ describe("FileChooser module", function()
       assert.is_false(still_found)
     end)
   end)
+
+  describe("monkey test mode working directory restriction", function()
+    local ffiUtil = require("ffi/util")
+    local lfs = require("libs/libkoreader-lfs")
+    local util = require("util")
+    local test_subdir
+
+    setup(function()
+      test_subdir = lfs.currentdir() .. "/fc_monkey_test_" .. os.time()
+      lfs.mkdir(test_subdir)
+    end)
+
+    teardown(function()
+      if test_subdir and lfs.attributes(test_subdir) then
+        lfs.rmdir(test_subdir)
+      end
+    end)
+
+    it("prevents navigating outside working directory when isMonkeyTest is true", function()
+      local orig_isMonkeyTest = util.isMonkeyTest
+      finally(function()
+        util.isMonkeyTest = orig_isMonkeyTest
+      end)
+      util.isMonkeyTest = function()
+        return true
+      end
+
+      local cwd = ffiUtil.realpath(lfs.currentdir())
+      local real_subdir = ffiUtil.realpath(test_subdir)
+
+      local fc = FileChooser:new({
+        dimen = Screen:getSize(),
+        path = cwd,
+      })
+      assert.are.equal(cwd, fc.path)
+
+      -- Navigating into subdirectory under cwd is allowed
+      fc:changeToPath(test_subdir)
+      assert.are.equal(real_subdir, fc.path)
+
+      -- Navigating back to cwd is allowed
+      fc:changeToPath(cwd)
+      assert.are.equal(cwd, fc.path)
+
+      -- Navigating outside cwd (cwd .. "/.." or "/") is ignored, path remains cwd
+      fc:changeToPath(cwd .. "/..")
+      assert.are.equal(cwd, fc.path)
+
+      fc:changeToPath("/")
+      assert.are.equal(cwd, fc.path)
+    end)
+  end)
 end)

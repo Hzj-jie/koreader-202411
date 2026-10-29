@@ -2087,4 +2087,28 @@ describe("util module", function()
       assert.are.equal("", ffiUtil.basename(""))
     end)
   end)
+
+  describe("util.backup_dir()", function()
+    it("returns lfs.currentdir() in monkey test mode and Device.home_dir otherwise", function()
+      local Device = require("device")
+      local orig_isMonkeyTest = util.isMonkeyTest
+      local orig_home_dir = Device.home_dir
+      Device.home_dir = "/mock/home"
+
+      finally(function()
+        util.isMonkeyTest = orig_isMonkeyTest
+        Device.home_dir = orig_home_dir
+      end)
+
+      util.isMonkeyTest = function()
+        return true
+      end
+      assert.are.equal(lfs.currentdir(), util.backup_dir())
+
+      util.isMonkeyTest = function()
+        return false
+      end
+      assert.are.equal("/mock/home", util.backup_dir())
+    end)
+  end)
 end)
