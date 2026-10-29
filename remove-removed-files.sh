@@ -39,6 +39,7 @@ REMOVED_FILES=(
   "zsync2"
   "spinning_zsync"
   "ffi.so"
+  "libs/libcurl.so.4"
 )
 
 REMOTE_PATHS=()
