@@ -119,12 +119,11 @@ function Cache:check(key, ItemClass)
     local cached = self.cached[md5(key)]
     if cached then
       local item = ItemClass:new()
-      local ok, msg = pcall(item.load, item, cached)
-      if ok then
+      if item:load(cached) then
         self:insert(key, item)
         return item
       else
-        logger.warn("Failed to load on-disk cache:", msg)
+        logger.warn("Failed to load on-disk cache:", cached)
         --- It's apparently unusable, purge it and refresh the snapshot.
         os.remove(cached)
         self:refreshSnapshot()
