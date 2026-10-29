@@ -632,4 +632,42 @@ describe("Cache unit behavior", function()
     assert.is_not_nil(loaded.bb)
     loaded.bb:free()
   end)
+
+  it("purges truncated zstd on-disk cache file and returns nil", function()
+    local Cache = require("cache")
+    local TileCacheItem = require("document/tilecacheitem")
+    local ffi = require("ffi")
+    local lfs = require("libs/libkoreader-lfs")
+    local md5 = require("ffi/sha2").md5
+
+    local tmp_dir = (os.getenv("TMPDIR") or "/tmp") .. "/cache_trunc_test_" .. tostring(ffi.C.getpid())
+    lfs.mkdir(tmp_dir)
+
+    local c = Cache:new({
+      size = 1000,
+      avg_itemsize = 100,
+      enable_eviction_cb = true,
+      disk_cache = true,
+      cache_path = tmp_dir .. "/",
+    })
+    c:init()
+
+    local test_key = "trunc_key"
+    local cached_filename = tmp_dir .. "/" .. md5(test_key)
+    local f = assert(io.open(cached_filename, "wb"))
+    f:write("truncated zstd header")
+    f:close()
+
+    finally(function()
+      os.remove(cached_filename)
+      lfs.rmdir(tmp_dir)
+    end)
+
+    c:refreshSnapshot()
+    assert.is_not_nil(c.cached[md5(test_key)])
+
+    local res = c:check(test_key, TileCacheItem)
+    assert.is_nil(res)
+    assert.is_nil(lfs.attributes(cached_filename))
+  end)
 end)
