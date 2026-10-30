@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-LUA= ./_run.sh
+LUA=./luajit ./_run.sh

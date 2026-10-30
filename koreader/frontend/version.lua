@@ -6,6 +6,18 @@ local VERSION_LOG_FILE = "version.log"
 
 local Version = {}
 
+local function getArgvMinIndex()
+  local i = 0
+  while arg[i - 1] do
+    i = i - 1
+  end
+  return i
+end
+
+function Version:isLuaJIT()
+  return arg[getArgvMinIndex()]:match("[^/]*$") == "luajit"
+end
+
 --- Returns current KOReader git-rev.
 -- @treturn string full KOReader git-rev such as `v2015.11-982-g704d4238`
 function Version:getCurrentRevision()
