@@ -8,6 +8,7 @@ local Notification = require("ui/widget/notification")
 local Screen = require("device").screen
 local UIManager = require("ui/uimanager")
 local ffiutil = require("ffi/util")
+local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
 local gettext = require("gettext")
@@ -109,6 +110,10 @@ end
 
 function SyncService.removeLastSyncDB(path)
   os.remove(path .. ".sync")
+end
+
+function SyncService.getLastSyncTime(file_path)
+  return lfs.attributes(file_path .. ".sync", "modification")
 end
 
 -- Returns true if code_response, as passed to sync_cb, means the remote file

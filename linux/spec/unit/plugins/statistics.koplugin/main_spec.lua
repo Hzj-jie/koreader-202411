@@ -589,9 +589,31 @@ describe("ReaderStatistics plugin main spec", function()
     stats.settings.sync_server = { type = "dropbox", url = "http://localhost" }
     assert.is_true(stats:canSync())
 
+    local NetworkMgr = require("ui/network/manager")
+    local BackgroundJobs = require("background_jobs")
+    local orig_runWhenOnline = NetworkMgr.runWhenOnline
+    local orig_insertKeyed = BackgroundJobs.insertKeyed
+    local captured_job = nil
+
+    finally(function()
+      NetworkMgr.runWhenOnline = orig_runWhenOnline
+      BackgroundJobs.insertKeyed = orig_insertKeyed
+    end)
+
+    NetworkMgr.runWhenOnline = function(_self_net, cb)
+      cb()
+      return true
+    end
+    BackgroundJobs.insertKeyed = function(job)
+      captured_job = job
+      return true
+    end
+
     stats:onSyncBookStats()
     assert.stub(UIManager.show).was_called()
-    assert.stub(UIManager.nextTick).was_called()
+    assert.is_not_nil(captured_job)
+    assert.are.equal("fork", captured_job.executable)
+    captured_job.callback({ result = false })
 
     -- Test onSync function
     local local_db = DataStorage:getSettingsDir()
