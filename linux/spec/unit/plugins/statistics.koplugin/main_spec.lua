@@ -123,7 +123,22 @@ describe("ReaderStatistics plugin main spec", function()
       ui = createMockUI(),
       document = { is_pic = true },
     })
-    assert.is_nil(stats.is_doc)
+    assert.is_table(stats.settings)
+    assert.is_false(stats.is_doc)
+    assert.is_false(stats.is_doc_not_frozen)
+    assert.is_nil(stats.data_initialized)
+    assert.is_nil(stats.id_curr_book)
+
+    stats:onPostReaderReady()
+    assert.is_false(stats.is_doc)
+    assert.is_nil(stats.data_initialized)
+    assert.is_nil(stats.id_curr_book)
+
+    stats:onPosUpdate(nil, 1)
+    stats:onPageUpdate(1)
+    stats:onSuspend()
+    stats:onResume()
+    stats:onCloseDocument()
   end)
 
   it("should initialize instance and DB correctly when doc is ready", function()

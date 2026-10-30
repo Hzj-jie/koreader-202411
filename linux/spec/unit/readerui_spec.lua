@@ -108,4 +108,19 @@ describe("Readerui module", function()
       readerui.showFileManager = original_showFileManager
     end
   )
+
+  it("should open and close picture documents cleanly", function()
+    local sample_gif = "tools/eink_cmap.gif"
+    local doc = DocumentRegistry:openDocument(sample_gif)
+    assert.is_truthy(doc)
+    assert.is_true(doc.is_pic)
+
+    ReaderUI:_doShowReader(sample_gif)
+    local pic_readerui = ReaderUI.instance
+    assert.is_truthy(pic_readerui)
+
+    pic_readerui:onExit()
+    assert.is_nil(pic_readerui.document)
+    pic_readerui:onClose()
+  end)
 end)
