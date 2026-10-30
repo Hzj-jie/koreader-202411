@@ -9,6 +9,8 @@
     See LICENSE file for details
 */
 
+#include "crsetup.h"
+
 #include "../include/props.h"
 #include <stdio.h>
 
@@ -473,7 +475,7 @@ bool CRPropAccessor::getBool( const char * propName, bool &result ) const
 
 bool CRPropAccessor::getBoolDef( const char * propName, bool defValue ) const
 {
-    bool v = 0;
+    bool v = false;
     if ( !getBool( propName, v ) )
         return defValue;
     else

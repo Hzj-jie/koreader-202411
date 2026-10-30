@@ -1,8 +1,460 @@
+#include "crsetup.h"
+
 #include "../include/pdbfmt.h"
+#include "../include/crtxtenc.h"
 #include <ctype.h>
 
 // uncomment following line to save PDB content streams to /tmp
 //#define DUMP_PDB_CONTENTS
+
+// --- MOBI filepos fragment support ---
+// MOBI uses two independent mechanisms for internal links:
+// - <a filepos="NNNN"> points to byte offset NNNN in the uncompressed HTML.
+//   Nothing in the source marks that offset; we must add an anchor there.
+// - filepos-id="XXX" on an element marks it as a target (used by the NCX/TOC).
+// We resolve both by rewriting them into plain href/id attributes, so the
+// existing id->node map handles fragment resolution (and survives cache
+// serialization). For each referenced byte offset, we inject an anchor: either
+// a filepos-id attribute on the tag containing the offset, or (if the offset
+// lands in text/whitespace) a standalone <a id="fileposNNNN"></a> element.
+
+static const char * MOBI_FILEPOS_ID_PREFIX = "filepos";
+
+// Maps a filepos byte offset to the id a link should target. Only populated
+// when the target element already has its own id, so we point the link at that
+// id instead of injecting a synthetic one (which would duplicate it).
+struct MobiFileposResolver {
+    LVHashTable<lUInt32, lString32> targetIds;
+    MobiFileposResolver() : targetIds(256) {}
+};
+
+static int compareUInt32(const void * left, const void * right) {
+    lUInt32 a = *(const lUInt32 *)left, b = *(const lUInt32 *)right;
+    return (a < b) ? -1 : (a > b) ? 1 : 0;
+}
+
+// Case-insensitive match of a fixed-length ASCII string at data[pos].
+static bool matchAscii(const lUInt8 * data, int pos, const char * str, int len) {
+    for (int i = 0; i < len; i++) {
+        lUInt8 ch = data[pos + i];
+        lUInt8 expected = (lUInt8)str[i];
+        if (ch != expected && (ch < 'A' || ch > 'Z' || ch != (expected - 32)))
+            return false;
+    }
+    return true;
+}
+
+// Quick case-insensitive check: does data[pos..pos+6] match "filepos"?
+static bool matchFileposBytes(const lUInt8 * data, int dataSize, int pos) {
+    if (pos + 7 > dataSize) return false;
+    return matchAscii(data, pos, "filepos", 7);
+}
+
+// Does the start tag spanning [tagStart, tagEnd) already declare a non-empty
+// "id" or "filepos-id" attribute? If so, set *idValue to its value and return
+// true (so a link can point at it instead of us injecting a duplicate id).
+// Returns false if the tag has no such attribute, or if it is empty (id=""),
+// in which case the caller injects our own id="fileposNNNN" to override it.
+static bool tagGetIdAttr(const lUInt8 * data, int tagStart, int tagEnd, lString32 & idValue) {
+    for (int i = tagStart; i < tagEnd; i++) {
+        // An attribute name is preceded by whitespace (or the tag name).
+        bool atBoundary = (i == tagStart) || data[i-1] == ' ' || data[i-1] == '\t' || data[i-1] == '\r' || data[i-1] == '\n';
+        if (!atBoundary)
+            continue;
+        int remaining = tagEnd - i;
+        int nameLen = 0;
+        // "filepos-id" (9 chars)
+        if (remaining >= 9 && matchAscii(data, i, "filepos-id", 9)) {
+            nameLen = 9;
+        }
+        // "id" (2 chars)
+        else if (remaining >= 2 && matchAscii(data, i, "id", 2)) {
+            nameLen = 2;
+        }
+        if (nameLen == 0)
+            continue;
+        int afterName = i + nameLen;
+        if (afterName < tagEnd && data[afterName] != ' ' && data[afterName] != '\t' && data[afterName] != '=' && data[afterName] != '>')
+            continue; // e.g. "idle", "width": not the id attribute
+        // Skip whitespace and an optional '=' and quote to reach the value
+        int p = afterName;
+        while (p < tagEnd && (data[p] == ' ' || data[p] == '\t' || data[p] == '\r' || data[p] == '\n')) {
+            p++;
+        }
+        if (p < tagEnd && data[p] == '=') {
+            p++;
+            while (p < tagEnd && (data[p] == ' ' || data[p] == '\t' || data[p] == '\r' || data[p] == '\n')) {
+                p++;
+            }
+            if (p < tagEnd && (data[p] == '"' || data[p] == '\''))
+                p++;
+        }
+        int valStart = p;
+        while (p < tagEnd && data[p] != '"' && data[p] != '\'' && data[p] != ' ' && data[p] != '\t' && data[p] != '\r' && data[p] != '\n' && data[p] != '>') {
+            p++;
+        }
+        if (p > valStart)
+            idValue = lString32((const lChar8 *)(data + valStart), p - valStart);
+        else
+            return false; // empty id="": let the caller inject its own id
+        return true;
+    }
+    return false;
+}
+
+// Scan raw HTML bytes for filepos="NNNN" occurrences, record the numeric values.
+static void collectMobiFileposData(const lUInt8 * data, int dataSize,
+        LVArray<lUInt32> & fileposRefs) {
+    for (int i = 0; i < dataSize - 8; ) {
+        lUInt8 ch = data[i];
+        if (ch != 'f' && ch != 'F') { i++; continue; }
+        if (!matchFileposBytes(data, dataSize, i)) { i++; continue; }
+        int pos = i + 7;
+        // Skip whitespace before '='
+        while (pos < dataSize && (data[pos] == ' ' || data[pos] == '\t')) {
+            pos++;
+        }
+        if (pos >= dataSize || data[pos] != '=') { i++; continue; }
+        pos++; // skip '='
+        // Skip whitespace and an optional opening quote
+        while (pos < dataSize && (data[pos] == ' ' || data[pos] == '"' || data[pos] == '\'')) {
+            pos++;
+        }
+        // Parse the integer value
+        lUInt64 val = 0;
+        int numStart = pos;
+        while (pos < dataSize && data[pos] >= '0' && data[pos] <= '9') {
+            val = val * 10 + (data[pos] - '0');
+            pos++;
+        }
+        if (pos > numStart && val > 0 && val <= (lUInt64)dataSize) {
+            fileposRefs.add((lUInt32)val);
+        }
+        i = pos; // resume after the value
+    }
+}
+
+// Emit an id="fileposNNNN" attribute into the stream, to be placed inside a start tag.
+static void writeFileposIdAttr(LVStreamRef & out, lUInt32 filepos) {
+    char buf[64];
+    int len = snprintf(buf, sizeof(buf), " id=\"%s%u\"", MOBI_FILEPOS_ID_PREFIX, (unsigned)filepos);
+    out->Write(buf, len, NULL);
+}
+
+// Emit a standalone <a id="fileposNNNN"></a> marker.
+static void writeFileposMarker(LVStreamRef & out, lUInt32 filepos) {
+    char buf[64];
+    int len = snprintf(buf, sizeof(buf), "<a id=\"%s%u\"></a>", MOBI_FILEPOS_ID_PREFIX, (unsigned)filepos);
+    out->Write(buf, len, NULL);
+}
+
+// Does the start tag spanning [tagStart, tagEnd] (with data[tagEnd] == '>')
+// close itself, i.e. end with '/>' possibly preceded by whitespace?
+static bool isSelfClosingTag(const lUInt8 * data, int tagStart, int tagEnd) {
+    int i = tagEnd - 1;
+    while (i > tagStart && (data[i] == ' ' || data[i] == '\t'))
+        i--;
+    return i > tagStart && data[i] == '/';
+}
+
+// Locate a start tag we can attach a synthetic id to, given a byte offset pos.
+// If pos is inside a start tag, return that tag's [<, >) span. Otherwise, if
+// pos is immediately followed (after whitespace) by a start tag, return that
+// tag's span. Returns false (leaving tagStart/tagEnd untouched) if neither
+// applies, i.e. the offset lands in text/whitespace with no following start tag.
+static bool findStartTagAt(const lUInt8 * data, int dataSize, int pos, int & tagStart, int & tagEnd) {
+    // Is pos inside a start tag? Find the nearest '<' before pos that is not
+    // already closed by a '>'.
+    if (pos > 0 && pos < dataSize) {
+        int prevLT = -1;
+        for (int j = pos - 1; j >= 0; j--) {
+            if (data[j] == '<') { prevLT = j; break; }
+            if (data[j] == '>') break; // not inside a tag
+        }
+        if (prevLT >= 0 && data[prevLT + 1] != '/') {
+            // Find the nearest '>' after pos (stopping at any '<').
+            for (int j = pos; j < dataSize; j++) {
+                if (data[j] == '>') {
+                    // Skip self-closing void tags (e.g. <mbp:pagebreak/>): an
+                    // id on them is useless and they get autoBoxed, so fall
+                    // through to the following-tag scan instead.
+                    if (!isSelfClosingTag(data, prevLT, j)) {
+                        tagStart = prevLT; tagEnd = j; return true;
+                    }
+                    pos = j + 1; // skip past this self-closing tag
+                    break;
+                }
+                if (data[j] == '<') break;
+            }
+        }
+    }
+    // Is pos followed (after whitespace) by a start tag? Skip self-closing
+    // void tags (e.g. <mbp:pagebreak/>) and keep looking for a real element.
+    int j = pos;
+    // If we landed on '>' (end of a closing or start tag), advance past it so
+    // we can look for the following start tag.
+    if (j < dataSize && data[j] == '>')
+        j++;
+    while (true) {
+        while (j < dataSize && (data[j] == ' ' || data[j] == '\t' || data[j] == '\r' || data[j] == '\n')) {
+            j++;
+        }
+        if (!(j < dataSize && data[j] == '<' && j + 1 < dataSize && data[j + 1] != '/'))
+            break;
+        // Find the '>' closing this start tag.
+        int k = j + 1;
+        while (k < dataSize && data[k] != '>' && data[k] != '<')
+            k++;
+        if (k >= dataSize || data[k] != '>')
+            break; // malformed
+        if (!isSelfClosingTag(data, j, k)) {
+            tagStart = j; tagEnd = k; return true;
+        }
+        // Self-closing void tag: skip past it and continue.
+        j = k + 1;
+    }
+    return false;
+}
+
+// Pre-process the raw HTML stream: find all filepos=NNNN references and inject
+// anchors at those byte offsets, so the existing id->node map can resolve them
+// (and they survive cache serialization).
+// Where the offset falls inside a start tag, we add an id="fileposNNNN"
+// attribute to that tag, avoiding splitting any text node. Otherwise, if the
+// offset is immediately followed (after whitespace) by a start tag, we attach
+// the id to that tag too: an empty inline <a> anchor right after a page break
+// would resolve to the previous page, whereas attaching the id to the following
+// element keeps the target on the correct page. Only when the offset lands
+// mid-text do we insert a standalone <a id="fileposNNNN"></a> marker (the same
+// approach calibre uses).
+// extraFileposRefs allows adding byte offsets to anchor that are not referenced
+// by any filepos= link (used for the TOC/NCX index targets).
+static LVStreamRef preprocessMobiHtmlStream(LVStreamRef stream, MobiFileposResolver & resolver, bool allowInjectStandaloneId, const LVArray<lUInt32> * extraFileposRefs = NULL) {
+    stream->SetPos(0);
+    LVByteArrayRef rawData = stream->GetData();
+    stream->SetPos(0);
+    if (rawData.isNull() || rawData->empty()) {
+        return LVStreamRef();
+    }
+    const lUInt8 * data = rawData->get();
+    int dataSize = rawData->length();
+
+    LVArray<lUInt32> fileposRefs;
+    collectMobiFileposData(data, dataSize, fileposRefs);
+    if (extraFileposRefs) {
+        for (int i = 0; i < extraFileposRefs->length(); i++) {
+            lUInt32 fp = (*extraFileposRefs)[i];
+            if (fp > 0 && fp <= (lUInt32)dataSize)
+                fileposRefs.add(fp);
+        }
+    }
+    if (fileposRefs.empty()) {
+        return LVStreamRef();
+    }
+
+    // Sort for sequential insertion
+    qsort(fileposRefs.get(), fileposRefs.length(), sizeof(lUInt32), compareUInt32);
+
+    // Dedup in-place
+    int n = 1;
+    for (int i = 1; i < fileposRefs.length(); i++) {
+        if (fileposRefs[i] != fileposRefs[n-1])
+            fileposRefs[n++] = fileposRefs[i];
+    }
+    if (n < fileposRefs.length())
+        fileposRefs.erase(n, fileposRefs.length() - n);
+
+    // Build the rewritten byte array with markers inserted at filepos offsets.
+    LVStreamRef rewritten = LVCreateMemoryStream(NULL, 0, false, LVOM_READWRITE);
+    if (rewritten.isNull()) {
+        stream->SetPos(0);
+        return LVStreamRef();
+    }
+    int outPos = 0;
+    for (int i = 0; i < fileposRefs.length(); i++) {
+        lUInt32 filepos = fileposRefs[i];
+        int insertPos = (int)filepos;
+        // If the offset falls inside a tag (<...>), add an id attribute to that
+        // tag rather than inserting a separate <a> element (which would split a
+        // text node and break highlights).
+        bool injectIntoTag = false;
+        int tagEndPos = insertPos;
+        int tagStart;
+        if (findStartTagAt(data, dataSize, insertPos, tagStart, tagEndPos)) {
+            lString32 existingId;
+            if (tagGetIdAttr(data, tagStart, tagEndPos, existingId)) {
+                // The tag already has an id: point the link at it.
+                resolver.targetIds.set(filepos, existingId);
+            } else {
+                injectIntoTag = true;
+            }
+        }
+        if (insertPos < outPos)
+            insertPos = outPos;
+        if (injectIntoTag) {
+            // Copy up to (but not including) the closing '>', then emit the
+            // attribute, then the '>'. For a self-closing tag (<div/>), the
+            // attribute must go before the '/'.
+            bool selfClosing = (tagEndPos > outPos && data[tagEndPos - 1] == '/');
+            int copyEnd = selfClosing ? tagEndPos - 1 : tagEndPos;
+            rewritten->Write(data + outPos, copyEnd - outPos, NULL);
+            writeFileposIdAttr(rewritten, filepos);
+            if (selfClosing)
+                *rewritten << "/";
+            outPos = tagEndPos;
+        } else if (allowInjectStandaloneId) {
+            // Only inject a standalone <a> marker (which may split a text node
+            // and break highlights) when a recent DOM version is requested.
+            rewritten->Write(data + outPos, insertPos - outPos, NULL);
+            writeFileposMarker(rewritten, filepos);
+            outPos = insertPos;
+        } else {
+            // Older DOM: skip the marker entirely to avoid splitting text nodes.
+            rewritten->Write(data + outPos, insertPos - outPos, NULL);
+            outPos = insertPos;
+        }
+    }
+    rewritten->Write(data + outPos, dataSize - outPos, NULL);
+    rewritten->SetPos(0);
+    stream->SetPos(0);
+    return rewritten;
+}
+
+// Custom callback filter that rewrites MOBI-specific attributes during HTML parsing:
+// - filepos-id="XXX" -> id="XXX" (target marker, registered in the id->node map)
+// - filepos="NNNN" -> href="#fileposNNNN" (link to a byte-offset target)
+class MobiHtmlWriterFilter : public ldomDocumentWriterFilter {
+    MobiFileposResolver & _resolver;
+    bool _curTagHasId; // whether the current tag already got an id attribute
+public:
+    MobiHtmlWriterFilter(ldomDocument * document, MobiFileposResolver & resolver)
+        : ldomDocumentWriterFilter(document, false, HTML_AUTOCLOSE_TABLE)
+        , _resolver(resolver)
+        , _curTagHasId(false) {}
+
+    virtual ldomNode * OnTagOpen(const lChar32 * nsname, const lChar32 * tagname) {
+        _curTagHasId = false;
+        return ldomDocumentWriterFilter::OnTagOpen(nsname, tagname);
+    }
+
+    virtual void OnAttribute(const lChar32 * nsname, const lChar32 * attrname,
+                             const lChar32 * attrvalue) {
+        if (attrname && !lStr_cmp(attrname, U"filepos-id")) {
+            // MOBI target marker: rewrite to a regular id attribute so it is
+            // registered in the id->node map (and serialized to cache). But
+            // skip it if the tag already has a plain id, to avoid a duplicate.
+            if (!_curTagHasId) {
+                ldomDocumentWriterFilter::OnAttribute(nsname, U"id", attrvalue);
+                _curTagHasId = true;
+            }
+            return;
+        }
+        if (attrname && !lStr_cmp(attrname, U"id")) {
+            // If a filepos-id already claimed this tag's id slot, drop this
+            // plain id so the DOM's surviving id matches what tagGetIdAttr()
+            // picks first (avoids a duplicate id attribute).
+            if (_curTagHasId)
+                return;
+            _curTagHasId = true;
+        }
+        if (attrname && !lStr_cmp(attrname, U"filepos")) {
+            // Link to a byte offset: rewrite to href="#fileposNNNN", or to the
+            // target element's existing id if it already had one.
+            lInt64 filepos = 0;
+            if (lString32(attrvalue).atoi(filepos) && filepos >= 0 && filepos <= 0xFFFFFFFFLL) {
+                lString32 targetId;
+                if (_resolver.targetIds.get((lUInt32)filepos, targetId)) {
+                    lString32 href(U"#");
+                    href.append(targetId);
+                    ldomDocumentWriterFilter::OnAttribute(nsname, U"href", href.c_str());
+                    return;
+                }
+                lString32 href(U"#");
+                href.append(MOBI_FILEPOS_ID_PREFIX);
+                href.appendDecimal(filepos);
+                ldomDocumentWriterFilter::OnAttribute(nsname, U"href", href.c_str());
+                return;
+            }
+        }
+        ldomDocumentWriterFilter::OnAttribute(nsname, attrname, attrvalue);
+    }
+};
+
+// --- end MOBI filepos fragment support ---
+
+// --- MOBI TOC (INDX/NCX index) support ---
+// MOBI files store their TOC in a set of INDX records, referenced by the
+// "ncxidx" field (offset 244) of the MOBI header in record 0:
+//   [ncxidx]              INDX header record, containing a TAGX section that
+//                         describes how entries are encoded
+//   [ncxidx+1..+count]    index records, each holding entries listed in an
+//                         IDXT table at the end of the record
+//   [.. +ncncx]           CNCX records: a pool of <vwi length><utf-8 string>
+//                         holding all entry titles
+// The INDX/TAGX/IDXT parsing itself lives in PDBFile::readMobiToc() further
+// below, as it needs access to the record table; only the standalone helpers
+// (vwi decoding, CNCX string decoding) are defined here.
+// Each entry starts with a <vwi len><ident string>, followed by control
+// bytes (as many as TAGX says), then vwi-encoded values for the tags whose
+// control bits are set. For the TOC ("NCX") index, the interesting tags are:
+//   1 = filepos (byte offset into the uncompressed HTML)
+//   3 = offset of the title string in the CNCX pool
+//   4 = hierarchy level (0 = top level)
+// (Also see calibre's calibre/ebooks/mobi/reader/ncx.py.)
+
+struct MobiTocEntry {
+    lUInt32 filepos;
+    lString32 title;
+    int level;
+    MobiTocEntry() : filepos(0), level(0) {}
+};
+
+// Read a forward-encoded variable-width integer (7 bits per byte, big-endian,
+// last byte has its high bit set). Returns false if the data runs out or the
+// value doesn't fit in 32 bits — a silent truncation would corrupt offsets
+// and lengths.
+static bool readMobiVwi(const lUInt8 * data, int dataSize, int & pos, lUInt32 & value) {
+    value = 0;
+    while (pos < dataSize) {
+        lUInt8 b = data[pos++];
+        lUInt32 v = b & 0x7F;
+        // Exact overflow check: value<<7 | v must stay within 32 bits
+        if (value > (0xFFFFFFFFu - v) >> 7)
+            return false;
+        value = (value << 7) | v;
+        if (b & 0x80)
+            return true;
+    }
+    return false;
+}
+
+static int countSetBits(lUInt32 n) {
+    int c = 0;
+    while (n) {
+        c += n & 1;
+        n >>= 1;
+    }
+    return c;
+}
+
+// Decode a CNCX string (already sliced out of the pool) with the MOBI text
+// encoding (65001 = UTF-8, 1252 = cp1252, other Windows codepages supported).
+static lString32 decodeMobiCncxString(const lUInt8 * s, int len, lUInt32 encoding) {
+    if (encoding == 65001)
+        return Utf8ToUnicode(lString8((const char *)s, len));
+    // Map the upper 128 chars via the codepage table (unknown codepages
+    // fall back to cp1252 in GetCharsetByte2UnicodeTable())
+    const lChar32 * table = GetCharsetByte2UnicodeTable((int)encoding);
+    lString32 res;
+    res.reserve(len);
+    for (int i = 0; i < len; i++) {
+        lUInt8 ch = s[i];
+        res.append(1, ch < 128 ? (lChar32)ch : table[ch - 128]);
+    }
+    return res;
+}
+
+// --- end MOBI TOC support ---
 
 struct PDBHdr
 {
@@ -409,6 +861,8 @@ private:
     lvsize_t _bufSize;
     lvpos_t _pos;
     lUInt16 _mobiExtraDataFlags;
+    int _mobiNcxIdx;      // PDB record number of the TOC (INDX/NCX) header, -1 if none
+    lUInt32 _mobiEncoding; // MOBI text encoding (65001 = UTF-8, 1252 = cp1252)
     CRPropRef m_doc_props;
 
     // c.f., lvtinydom.cpp's legacy ldomUnpack
@@ -527,6 +981,8 @@ private:
         for (int flag = 0x8000; flag; flag >>= 1) {
             if (!(_mobiExtraDataFlags & flag))
                 continue;
+            if (buf.length() == 0)
+                return; // nothing to strip from an empty record
             lInt32 n = buf[buf.length()-1];
             if (flag == 1) {
                 n &= 3;
@@ -608,6 +1064,232 @@ private:
             return true;
         // unpack
         return unpack(*dstbuf, srcbuf);
+    }
+
+    // --- MOBI TOC (INDX/NCX index) support ---
+
+    // Read a big-endian u32 at byte offset off of an INDX record buffer.
+    static lUInt32 indxWord(LVArray<lUInt8> & r, int off) {
+        if (off < 0 || off + 4 > r.length())
+            return 0;
+        const lUInt8 * p = r.get() + off;
+        return ((lUInt32)p[0] << 24) | ((lUInt32)p[1] << 16) | ((lUInt32)p[2] << 8) | p[3];
+    }
+
+    // Read a big-endian u16 at byte offset off of an INDX record buffer.
+    static lUInt16 indxHalf(LVArray<lUInt8> & r, int off) {
+        if (off < 0 || off + 2 > r.length())
+            return 0;
+        const lUInt8 * p = r.get() + off;
+        return (lUInt16)((p[0] << 8) | p[1]);
+    }
+
+public:
+
+    // Parse the INDX records starting at PDB record ncxidx and collect TOC
+    // entries (filepos, title, level). See the "MOBI TOC support" comment
+    // block above for the record layout. Returns false on any structural
+    // error (caller then just gets no TOC from us).
+    bool readMobiToc(int ncxidx, lUInt32 encoding, LVPtrVector<MobiTocEntry> & toc) {
+        if (ncxidx < 0 || ncxidx + 1 >= _records.length())
+            return false;
+        LVArray<lUInt8> hdr;
+        if (!readRecordNoUnpack(ncxidx, &hdr) || hdr.length() < 0xC0)
+            return false;
+        if (hdr[0] != 'I' || hdr[1] != 'N' || hdr[2] != 'D' || hdr[3] != 'X')
+            return false;
+        lUInt32 indxCount = indxWord(hdr, 4 + 5 * 4);  // word 5: number of index records
+        lUInt32 ncncx = indxWord(hdr, 4 + 12 * 4);     // word 12: number of CNCX records
+        lUInt32 tagxOff = indxWord(hdr, 4 + 44 * 4);   // word 44: offset of TAGX section
+        if (indxCount < 1 || indxCount > 0xFFFF || ncncx > 0xFFFF)
+            return false;
+        // Compute in 64-bit: a crafted tagxOff near UINT32_MAX would wrap the
+        // u32 sum and pass the bounds check, leading to OOB reads below.
+        if ((lUInt64)tagxOff + 12 > (lUInt64)hdr.length())
+            tagxOff = 0; // invalid: try the fallback below
+        if (tagxOff == 0 || hdr[tagxOff] != 'T' || hdr[tagxOff+1] != 'A' || hdr[tagxOff+2] != 'G' || hdr[tagxOff+3] != 'X') {
+            // Word 44 can be junk on some files; KindleUnpack instead starts
+            // the TAGX section at the INDX header-length field (word 0).
+            // Retry with that before giving up (as calibre's
+            // get_tag_section_start() does with its own fallback).
+            lUInt32 alt = indxWord(hdr, 4);
+            if (alt != tagxOff && (lUInt64)alt + 12 <= (lUInt64)hdr.length()
+                    && hdr[alt] == 'T' && hdr[alt+1] == 'A' && hdr[alt+2] == 'G' && hdr[alt+3] == 'X')
+                tagxOff = alt;
+            else
+                return false;
+        }
+        lUInt32 firstEntryOff = indxWord(hdr, tagxOff + 4);
+        lUInt32 controlByteCount = indxWord(hdr, tagxOff + 8);
+        if (controlByteCount < 1 || controlByteCount > 32)
+            return false;
+        // TAGX entries: 4 bytes each (tag, num_of_values, bitmask, eof),
+        // from offset 12 to firstEntryOff within the TAGX section.
+        // (64-bit sum: firstEntryOff is attacker-controlled and could wrap a u32 sum.)
+        if (firstEntryOff <= 12 || (lUInt64)tagxOff + firstEntryOff > (lUInt64)hdr.length())
+            return false;
+        struct TagxTag { lUInt8 tag; lUInt8 numOfValues; lUInt8 bitmask; lUInt8 eof; };
+        TagxTag tagxTags[64];
+        int tagxTagCount = 0;
+        for (lUInt32 i = 12; i + 4 <= firstEntryOff && tagxTagCount < 64; i += 4) {
+            const lUInt8 * p = hdr.get() + tagxOff + i;
+            tagxTags[tagxTagCount].tag = p[0];
+            tagxTags[tagxTagCount].numOfValues = p[1];
+            tagxTags[tagxTagCount].bitmask = p[2];
+            tagxTags[tagxTagCount].eof = p[3];
+            tagxTagCount++;
+        }
+        if (12 + 4 * (lUInt64)tagxTagCount < firstEntryOff)
+            CRLog::trace("MOBI TOC: TAGX section declares more than %d tag entries (firstEntryOff=%u); extra entries ignored",
+                    tagxTagCount, firstEntryOff);
+
+        // CNCX records: pool of <vwi len><string> entries. Build offset->string map.
+        LVHashTable<lUInt32, lString32> cncxMap(1024);
+        for (lUInt32 k = 0; k < ncncx; k++) {
+            int recIdx = ncxidx + 1 + indxCount + k;
+            if (recIdx >= _records.length())
+                break;
+            LVArray<lUInt8> cn;
+            if (!readRecordNoUnpack(recIdx, &cn))
+                break;
+            lUInt32 base = k * 0x10000;
+            int p = 0;
+            while (p < cn.length()) {
+                lUInt32 len;
+                int lenStart = p;
+                // Unsigned compare: a crafted 5-byte vwi can exceed INT_MAX.
+                if (!readMobiVwi(cn.get(), cn.length(), p, len) || len > (lUInt32)(cn.length() - p))
+                    break;
+                cncxMap.set(base + lenStart, decodeMobiCncxString(cn.get() + p, len, encoding));
+                p += len;
+            }
+        }
+
+        // Index records: entries listed in the IDXT table at the end.
+        for (lUInt32 ri = 0; ri < indxCount; ri++) {
+            int recIdx = ncxidx + 1 + ri;
+            if (recIdx >= _records.length())
+                break;
+            LVArray<lUInt8> r;
+            if (!readRecordNoUnpack(recIdx, &r) || r.length() < 12)
+                continue;
+            if (r[0] != 'I' || r[1] != 'N' || r[2] != 'D' || r[3] != 'X')
+                break;
+            lUInt32 idxtOff = indxWord(r, 4 + 4 * 4); // word 4: offset of IDXT section
+            lUInt32 entryCount = indxWord(r, 4 + 5 * 4); // word 5: number of entries
+            // Cap entryCount (consistent with the other caps) and compute the
+            // table end in 64-bit: a crafted entryCount >= 0x80000000 would
+            // wrap the u32 sum and pass the bounds check.
+            if (entryCount > 0xFFFF)
+                continue;
+            if ((lUInt64)idxtOff + 4 + 2 * (lUInt64)entryCount > (lUInt64)r.length())
+                continue;
+            if (r[idxtOff] != 'I' || r[idxtOff+1] != 'D' || r[idxtOff+2] != 'X' || r[idxtOff+3] != 'T')
+                continue;
+            // Entry start offsets from the IDXT table; the last entry ends at IDXT.
+            for (lUInt32 j = 0; j < entryCount; j++) {
+                int start = indxHalf(r, idxtOff + 4 + 2 * j);
+                int end = (j + 1 < entryCount) ? indxHalf(r, idxtOff + 4 + 2 * (j + 1)) : idxtOff;
+                if (start < 0 || end <= start || end > r.length())
+                    continue;
+                const lUInt8 * rec = r.get() + start;
+                int recSize = end - start;
+                int pos = 0;
+                // Entry ident: <1-byte length><string> (unused for the TOC, skip it)
+                if (pos >= recSize)
+                    continue;
+                lUInt32 identLen = rec[pos++];
+                if (pos + (lUInt64)identLen > (lUInt64)recSize)
+                    continue;
+                pos += identLen;
+                // Control bytes
+                if (pos + (lUInt64)controlByteCount > (lUInt64)recSize)
+                    continue;
+                lUInt8 controlBytes[32] = { 0 };
+                memcpy(controlBytes, rec + pos, controlByteCount);
+                pos += controlByteCount;
+                // Tag values
+                lUInt32 filepos = 0;
+                lUInt32 titleOff = (lUInt32)-1;
+                int level = 0;
+                bool haveFilepos = false;
+                // Dispatch a decoded tag value to the TOC entry fields:
+                // tag 1 = filepos, tag 3 = title offset in CNCX, tag 4 = level.
+                auto assignTagValue = [&](lUInt8 tag, lUInt32 val) {
+                    if (tag == 1 && !haveFilepos) { filepos = val; haveFilepos = true; }
+                    else if (tag == 3 && titleOff == (lUInt32)-1) titleOff = val;
+                    else if (tag == 4) level = (int)val;
+                };
+                int cbIndex = 0;
+                for (int t = 0; t < tagxTagCount; t++) {
+                    const TagxTag & tg = tagxTags[t];
+                    if (cbIndex >= (int)controlByteCount)
+                        break;
+                    if (tg.eof == 0x01) {
+                        cbIndex++; // header-terminating entry: consume one control byte
+                        continue;
+                    }
+                    lUInt32 masked = controlBytes[cbIndex] & tg.bitmask;
+                    if (masked == 0)
+                        continue; // tag not present
+                    int valueCount = 0;
+                    int valueBytes = -1; // or byte-length of the value list
+                    if (masked == tg.bitmask && countSetBits(tg.bitmask) > 1) {
+                        // All bits set and multi-bit mask: a vwi byte-length follows
+                        lUInt32 vb;
+                        if (!readMobiVwi(rec, recSize, pos, vb))
+                            break;
+                        valueBytes = vb;
+                    } else {
+                        // Shift to get the count value from the masked bits
+                        lUInt32 mask = tg.bitmask, v = masked;
+                        while (mask && !(mask & 1)) {
+                            mask >>= 1;
+                            v >>= 1;
+                        }
+                        valueCount = (masked == tg.bitmask && countSetBits(tg.bitmask) == 1) ? 1 : (int)v;
+                    }
+                    // Read the values
+                    if (valueBytes >= 0) {
+                        int total = 0;
+                        while (total < valueBytes) {
+                            lUInt32 val;
+                            int before = pos;
+                            if (!readMobiVwi(rec, recSize, pos, val))
+                                break;
+                            total += pos - before;
+                            assignTagValue(tg.tag, val);
+                        }
+                    } else {
+                        for (int n = 0; n < valueCount * tg.numOfValues; n++) {
+                            lUInt32 val;
+                            if (!readMobiVwi(rec, recSize, pos, val))
+                                break;
+                            assignTagValue(tg.tag, val);
+                        }
+                    }
+                }
+                if (pos < recSize)
+                    CRLog::trace("MOBI TOC: index entry %u has %d unconsumed trailing byte(s)", j, recSize - pos);
+                if (!haveFilepos)
+                    continue;
+                lString32 title;
+                if (titleOff != (lUInt32)-1) {
+                    if (!cncxMap.get(titleOff, title))
+                        CRLog::trace("MOBI TOC: index entry %u title offset %u not found in CNCX pool; entry skipped", j, titleOff);
+                }
+                if (title.empty()) {
+                    // Skip blank TOC row (children, if any, will attach to this entry's parent).
+                    continue;
+                }
+                MobiTocEntry * entry = new MobiTocEntry();
+                entry->filepos = filepos;
+                entry->level = level;
+                entry->title = title;
+                toc.add(entry);
+            }
+        }
+        return toc.length() > 0;
     }
 
     bool readBlock( int index ) {
@@ -719,7 +1401,7 @@ public:
         if ( !hdr.read(stream) )
             return false;
         if ( hdr.recordCount==0 )
-            return 0;
+            return false;
 
         if ( hdr.checkType("TEXt") && hdr.checkCreator("REAd") )
             _format = PALMDOC;
@@ -803,8 +1485,29 @@ public:
                 _compression = 0;
             _textSize = preamble.textLength;
             _recordCount = preamble.firstNonBookIndex - 1;
+            _mobiEncoding = preamble.encoding;
+            // TOC (INDX/NCX) header record number, at offset 244 of record 0.
+            // The MOBI header starts at offset 16 and is hederLength bytes
+            // long; ncxidx sits at 244..248, so the header must be at least
+            // 232 bytes for those bytes to actually be the ncxidx field (on
+            // short-header files they'd belong to EXTH/fullname data instead).
+            // Note: on hybrid MOBI+KF8 files, the old (MOBI 6) part we render
+            // usually has ncxidx == 0xFFFFFFFF, so no TOC index there — the
+            // KF8 part (which we don't support) carries the real one.
+            _mobiNcxIdx = -1;
+            if (_records[0].size >= 248 && preamble.hederLength >= 232) {
+                lUInt32 ncxidx = 0;
+                stream->SetPos(_records[0].offset + 244);
+                if (stream->Read(&ncxidx)) {
+                    lvByteOrderConv cnv2;
+                    cnv2.rev(&ncxidx);
+                    if (ncxidx != 0xFFFFFFFF && ncxidx < (lUInt32)_records.length())
+                        _mobiNcxIdx = (int)ncxidx;
+                }
+            }
             lUInt32 coverOffset = (lUInt32)-1;
             lUInt32 thumbOffset = 0;
+            bool title_set = false;
             if (preamble.mobiFlags & 0x40) {
                 // EXTH present
                 stream->SetPos(_records[0].offset + 16 + preamble.hederLength);
@@ -822,6 +1525,12 @@ public:
                         cnv.rev(&recCount);
                     }
                     LVArray<lUInt8> buf2;
+                    lString32 authors;
+                    lString32 identifiers;
+                    lString32 keywords;
+                    bool authors_set = false;
+                    bool identifiers_set = false;
+                    bool keywords_set = false;
                     for (lUInt32 i=0; i<recCount; i++) {
                         lUInt32 recType = 0;
                         lUInt32 recLen = 0;
@@ -846,19 +1555,79 @@ public:
                                 if (stream->Read(buf2.get(), recLen - 8, NULL) != LVERR_OK)
                                     break;
                                 if (recType == 100) {
-                                    lString8 author((const char *)buf2.get(), recLen - 8);
-                                    CRLog::trace("MOBI author: %s", author.c_str());
-                                    m_doc_props->setString(DOC_PROP_AUTHORS, Utf8ToUnicode(author));
+                                    lString8 s((const char *)buf2.get(), recLen - 8);
+                                    CRLog::trace("MOBI author: %s", s.c_str());
+                                    if (authors_set) {
+                                        authors << "\n" << Utf8ToUnicode(s);
+                                    } else {
+                                        authors << Utf8ToUnicode(s);
+                                        authors_set = true;
+                                    }
+                                } else if (recType == 103) {
+                                    lString8 s((const char *)buf2.get(), recLen - 8);
+                                    CRLog::trace("MOBI description: %s", s.c_str());
+                                    m_doc_props->setString(DOC_PROP_DESCRIPTION, Utf8ToUnicode(s));
+                                } else if (recType == 104) {
+                                    lString8 s((const char *)buf2.get(), recLen - 8);
+                                    CRLog::trace("MOBI ISBN: %s", s.c_str());
+                                    if (identifiers_set) {
+                                        identifiers << "\nISBN:" << Utf8ToUnicode(s);
+                                    } else {
+                                        identifiers << "ISBN:" << Utf8ToUnicode(s);
+                                        identifiers_set = true;
+                                    }
                                 } else if (recType == 105) {
                                     lString8 s((const char *)buf2.get(), recLen - 8);
                                     CRLog::trace("MOBI subject: %s", s.c_str());
+                                    if (keywords_set) {
+                                        keywords << "\n" << Utf8ToUnicode(s);
+                                    } else {
+                                        keywords << Utf8ToUnicode(s);
+                                        keywords_set = true;
+                                    }
+                                } else if (recType == 113) {
+                                    lString8 s((const char *)buf2.get(), recLen - 8);
+                                    CRLog::trace("MOBI ASIN: %s", s.c_str());
+                                    if (identifiers_set) {
+                                        identifiers << "\nASIN:" << Utf8ToUnicode(s);
+                                    } else {
+                                        identifiers << "ASIN:" << Utf8ToUnicode(s);
+                                        identifiers_set = true;
+                                    }
+                                } else if (recType == 503) {
+                                    lString8 s((const char *)buf2.get(), recLen - 8);
+                                    CRLog::trace("MOBI updated title: %s", s.c_str());
                                     m_doc_props->setString(DOC_PROP_TITLE, Utf8ToUnicode(s));
+                                    title_set = true;
+                                } else if (recType == 524) {
+                                    lString8 s((const char *)buf2.get(), recLen - 8);
+                                    CRLog::trace("MOBI language: %s", s.c_str());
+                                    m_doc_props->setString(DOC_PROP_LANGUAGE, Utf8ToUnicode(s));
                                 }
                             }
                             //================================
                             stream->SetPos(nextPos);
                         }
                     }
+                    if (authors_set) {
+                        m_doc_props->setString(DOC_PROP_AUTHORS, authors);
+                    }
+                    if (identifiers_set) {
+                        m_doc_props->setString(DOC_PROP_IDENTIFIERS, identifiers);
+                    }
+                    if (keywords_set) {
+                        m_doc_props->setString(DOC_PROP_KEYWORDS, keywords);
+                    }
+                }
+            }
+            if (!title_set) {
+                LVArray<lUInt8> buf3;
+                buf3.addSpace(preamble.fullNameLength);
+                stream->SetPos(_records[0].offset + preamble.fullNameOffset);
+                if (stream->Read(buf3.get(), preamble.fullNameLength, NULL) == LVERR_OK) {
+                    lString8 s((const char *)buf3.get(), preamble.fullNameLength);
+                    CRLog::trace("MOBI title: %s", s.c_str());
+                    m_doc_props->setString(DOC_PROP_TITLE, Utf8ToUnicode(s));
                 }
             }
             if (container) {
@@ -1131,11 +1900,18 @@ public:
 
     Format getFormat() { return _format; }
 
+    /// PDB record number of the MOBI TOC (INDX/NCX) header, -1 if none
+    int getMobiNcxIdx() { return _mobiNcxIdx; }
+    /// MOBI text encoding (65001 = UTF-8, 1252 = cp1252)
+    lUInt32 getMobiEncoding() { return _mobiEncoding; }
+
     /// Constructor
     PDBFile() {
         //_container.AddRef();
         _bufIndex = -1;
         _mobiExtraDataFlags = 0;
+        _mobiNcxIdx = -1;
+        _mobiEncoding = 0;
         m_doc_props = LVCreatePropsContainer();
     }
 
@@ -1217,12 +1993,12 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
     contentFormat = doc_format_none;
     PDBFile * pdb = new PDBFile();
     LVPDBContainer * container = new LVPDBContainer();
+    pdb->getDocProps()->set(doc->getProps());
     if ( !pdb->open(stream, container, true, contentFormat) ) {
         delete container;
         delete pdb;
         return false;
     }
-    pdb->getDocProps()->set(doc->getProps());
     stream = LVStreamRef(pdb);
     container->setStream(stream);
     doc->setContainer(LVContainerRef(container));
@@ -1241,18 +2017,102 @@ bool ImportPDBDocument( LVStreamRef & stream, ldomDocument * doc, LVDocViewCallb
     case doc_format_html:
         // HTML
         {
+            LVStreamRef parserStream = stream;
+            bool isMobiHtml = pdb->getFormat() == PDBFile::MOBI;
 
-            ldomDocumentWriterFilter writerFilter(doc, false,
-                    HTML_AUTOCLOSE_TABLE);
-            LVHTMLParser parser(stream, &writerFilter);
-            parser.setProgressCallback(progressCallback);
-            if ( !parser.CheckFormat() ) {
-                return false;
-            } else {
-                if (pdb->getFormat()==PDBFile::MOBI && isCorrectUtf8Text(stream))
-                    parser.SetCharset(U"utf-8");
-                if (!parser.Parse()) {
+            // Injecting a standalone <a> marker into text could split a text node
+            // and break highlights; only do it on recent DOM versions.
+            bool allowInjectStandaloneId = doc->getDOMVersionRequested() >= 20260812;
+
+            if (isMobiHtml) {
+                // Read the TOC (INDX/NCX) index first: its entries target byte
+                // offsets in the HTML, which we need to anchor (like filepos
+                // links) before parsing, so we can then resolve each entry to
+                // a DOM node via its id="fileposNNNN".
+                LVPtrVector<MobiTocEntry> mobiToc;
+                bool haveMobiToc = pdb->getMobiNcxIdx() >= 0 && pdb->readMobiToc(pdb->getMobiNcxIdx(), pdb->getMobiEncoding(), mobiToc);
+                LVArray<lUInt32> tocFileposRefs;
+                if (haveMobiToc) {
+                    for (int i = 0; i < mobiToc.length(); i++)
+                        tocFileposRefs.add(mobiToc[i]->filepos);
+                }
+
+                MobiFileposResolver mobiResolver;
+                LVStreamRef rewrittenStream = preprocessMobiHtmlStream(stream, mobiResolver, allowInjectStandaloneId, haveMobiToc ? &tocFileposRefs : NULL);
+                if (!rewrittenStream.isNull())
+                    parserStream = rewrittenStream;
+
+                MobiHtmlWriterFilter mobiWriterFilter(doc, mobiResolver);
+                LVHTMLParser parser(parserStream, &mobiWriterFilter);
+                parser.setProgressCallback(progressCallback);
+                if ( !parser.CheckFormat() ) {
                     return false;
+                } else {
+                    if (isCorrectUtf8Text(parserStream))
+                        parser.SetCharset(U"utf-8");
+                    parserStream->SetPos(0);
+                    if (!parser.Parse()) {
+                        return false;
+                    }
+                }
+
+                // Build the TOC from the index entries, resolving each filepos
+                // target to the DOM node carrying the matching id="fileposNNNN".
+                if (haveMobiToc) {
+                    LVTocItem * toc = doc->getToc();
+                    toc->clear();
+                    // Stack of current parent items per level
+                    // Arbitrary limit of 15 + 2 levels so that we only need a small fixed-size array.
+                    // Root takes 0, 16 is there to avoid one more if branch when writing.
+                    LVTocItem * parents[17];
+                    for (int pi = 0; pi < 17; pi++) parents[pi] = toc;
+                    int curLevel = 0;
+                    int added = 0;
+                    for (int i = 0; i < mobiToc.length(); i++) {
+                        MobiTocEntry * e = mobiToc[i];
+                        // The target element may already have had its own id
+                        // (the pre-processor then pointed the offset at it via
+                        // the resolver instead of injecting a synthetic
+                        // id="fileposNNNN"), so look that up first.
+                        lString32 id;
+                        if (!mobiResolver.targetIds.get(e->filepos, id)) {
+                            id = lString32(MOBI_FILEPOS_ID_PREFIX);
+                            id.appendDecimal(e->filepos);
+                        }
+                        ldomNode * node = doc->getElementById(id.c_str());
+                        if (!node)
+                            continue; // target not anchored: skip entry
+                        ldomXPointer ptr(node, 0);
+                        int level = e->level;
+                        if (level < 0)
+                            level = 0;
+                        if (level > 15)
+                            level = 15;
+                        if (level > curLevel + 1)
+                            level = curLevel + 1; // no gaps in the hierarchy
+                        LVTocItem * item = parents[level]->addChild(e->title, ptr, ptr.toString());
+                        parents[level + 1] = item;
+                        curLevel = level;
+                        added++;
+                    }
+                    if (added > 0) {
+                        CRLog::info("MOBI: TOC built from NCX index (%d entries)", added);
+                        doc->setCacheFileStale(true); // cache must be updated with the TOC
+                    } else {
+                        toc->clear();
+                    }
+                }
+            } else {
+                ldomDocumentWriterFilter plainWriterFilter(doc, false, HTML_AUTOCLOSE_TABLE);
+                LVHTMLParser parser(parserStream, &plainWriterFilter);
+                parser.setProgressCallback(progressCallback);
+                if ( !parser.CheckFormat() ) {
+                    return false;
+                } else {
+                    parserStream->SetPos(0);
+                    if (!parser.Parse()) {
+                        return false;
+                    }
                 }
             }
         }

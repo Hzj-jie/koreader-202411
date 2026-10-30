@@ -366,10 +366,14 @@ public:
         // ZERO_WIDTH_JOINER before the ELLIPSIS (which might be needed with Arabic)
         size_t size = m_length + 1;
         m_charinfo = (xtext_charinfo_t *)calloc(size, sizeof(*m_charinfo)); // set all flags to 0
+        if ( !m_charinfo ) return;
         if ( m_has_rtl ) {
             m_bidi_ctypes = (FriBidiCharType *)malloc(size * sizeof(*m_bidi_ctypes));
+            if ( !m_bidi_ctypes ) { free(m_charinfo); m_charinfo = NULL; return; }
             m_bidi_btypes = (FriBidiBracketType *)malloc(size * sizeof(*m_bidi_btypes));
+            if ( !m_bidi_btypes ) { free(m_charinfo); m_charinfo = NULL; free(m_bidi_ctypes); m_bidi_ctypes = NULL; return; }
             m_bidi_levels = (FriBidiLevel *)malloc(size * sizeof(*m_bidi_levels));
+            if ( !m_bidi_levels ) { free(m_charinfo); m_charinfo = NULL; free(m_bidi_ctypes); m_bidi_ctypes = NULL; free(m_bidi_btypes); m_bidi_btypes = NULL; return; }
         }
     }
     void deallocate() {
@@ -538,7 +542,7 @@ public:
     // This must be a method of our XText object, as it uses the uservalue that has
     // been associated with the userdata that is wrapping this XText instance.
     xtext_hb_font_data * getHbFontData(int num) {
-        if ( num > MAX_FONT_NUM )
+        if ( num >= MAX_FONT_NUM )
             return NULL;
         // This uses the stack for C <-> Lua interaction, but we should put this
         // stack back in its original state, as it may carry additional arguments
@@ -620,10 +624,14 @@ public:
                     hb_feature_t f;
                     if ( hb_feature_from_string(feature, len, &f) ) {
                         hb_data->hb_features_nb++;
-                        hb_data->hb_features = (hb_feature_t*)realloc( hb_data->hb_features,
+                        hb_feature_t *tmp = (hb_feature_t*)realloc( hb_data->hb_features,
                                                     hb_data->hb_features_nb * sizeof(hb_feature_t) );
-                        if ( hb_data->hb_features )
+                        if ( tmp ) {
+                            hb_data->hb_features = tmp;
                             hb_data->hb_features[hb_data->hb_features_nb-1] = f;
+                        } else {
+                            hb_data->hb_features_nb--;
+                        }
                     }
                 }
                 lua_pop(m_L, 1); // remove fetched value, but keep key for next iteration
@@ -824,7 +832,7 @@ public:
     // - we don't use cumulative widths: we store individual char widths (to store them in 16 bits
     //   in m_charinfo, instead of needing a full 32 bits int for each char)
     int measureSegment(int font_num, int start, int end, int hints) {
-        if ( font_num > MAX_FONT_NUM )
+        if ( font_num >= MAX_FONT_NUM )
             return NOT_MEASURED;
 
         #ifdef DEBUG_MEASURE_TEXT
@@ -1730,7 +1738,7 @@ public:
     // Based on crengine/src/lvfntman.cpp drawTextString() with _kerningMode == KERNING_MODE_HARFBUZZ
     // and crengine/src/lvtextfm.cpp addLine()
     void shapeSegment(int font_num, int start, int end, int hints, int & nb_glyphs) {
-        if ( font_num > MAX_FONT_NUM )
+        if ( font_num >= MAX_FONT_NUM )
             return;
             // No need to add a tofu char to s_shape_result: font_num
             // should have been checked before calling us, and if
@@ -2057,15 +2065,18 @@ public:
         // Let's be cheap and not count the nb of bytes really needed to store the
         // UTF-8 encoding of each Unicode codepoint: go allocate for the max (4).
         int len = end - start;
-        char * s_utf8 = (char *)malloc(len * 4*sizeof(char) + 1);
+        char * s_utf8 = (char *)malloc((size_t)len * 4 + 1);
+        if (!s_utf8) {
+            lua_pushstring(m_L, "");
+            return;
+        }
         fribidi_unicode_to_charset(FRIBIDI_CHAR_SET_UTF8, m_text+start, len, s_utf8);
         lua_pushstring(m_L, s_utf8);
         free(s_utf8);
     }
 
-    // Get (as a single UTF-8 string) the segment of m_text, extended to include
-    // the full words that may be cut at boundaries (start, end).
-    void getSelectedWords(int start, int end, int context) {
+    // Get start and end indices of an extended segment of m_text that includes the full words that may be cut at boundaries (start, end).
+    void getSelectedWordIndices(int start, int end, int context) {
         // Not much documentation about libunibreak word breaking,
         // some insight in:
         //  http://www.unicode.org/reports/tr29/tr29-25.html
@@ -2125,20 +2136,8 @@ public:
             wend++;
         }
 
-        // FriBiDi provides a unicode to UTF-8 conversion function, so use it.
-        // Let's be cheap and not count the nb of bytes really needed to store the
-        // UTF-8 encoding of each Unicode codepoint: go allocate for the max (4).
-        // (As we're called to return user selected text, we shouldn't waste
-        // too much - and we'll free it just below.)
-        len = wend - wstart;
-        char * s_utf8 = (char *)malloc(len * 4*sizeof(char) + 1);
-        fribidi_unicode_to_charset(FRIBIDI_CHAR_SET_UTF8, m_text+wstart, len, s_utf8);
-        lua_pushstring(m_L, s_utf8);
-        #if 0
-            printf("getWords: %d>%d #%s#\n", wstart, wend, s_utf8);
-            lua_pushstring(m_L, ""); // prevent a dict lookup
-        #endif
-        free(s_utf8);
+        lua_pushinteger(m_L, wstart + 1); // Lua indices start at 1
+        lua_pushinteger(m_L, wend);
         free(breaks);
     }
 };
@@ -2171,6 +2170,7 @@ static int xtext_setDefaultParaDirection(lua_State *L) {
 // of the main one).
 static int xtext_setDefaultLang(lua_State *L) {
     const char * lang = luaL_checkstring(L, 1);
+    delete[] default_lang;
     default_lang = new char[strlen(lang)+1];
     strcpy(default_lang, lang);
     default_lang_hb_language = hb_language_from_string(default_lang, -1);
@@ -2300,13 +2300,12 @@ static int xtext_hb_font_data_destroy(lua_State *L) {
     FT_Library ft_lib = (FT_Library)ft_face->generic.data;
     int *refcount = (int *)hb_data->ft_size->generic.data;
     assert(*refcount > 0);
+    hb_font_destroy(hb_data->hb_font);  // Release HB's reference to face BEFORE FT_Done_Face
     if (!--*refcount) {
         free(refcount);
         FT_Done_Size(hb_data->ft_size);
         FT_Done_Face(ft_face);
-        FT_Done_Library(ft_lib);
     }
-    hb_font_destroy(hb_data->hb_font);
     FT_Done_Library(ft_lib);
     hb_buffer_destroy(hb_data->hb_buffer);
     if ( hb_data->hb_features )
@@ -2426,6 +2425,7 @@ static int XText_shapeLine(lua_State *L) {
     start--; // Lua to C index
     int end = luaL_checkint(L, 3);
     luaL_argcheck(L, end >= 1 && end <= xt->m_length, 3, "index out of range");
+    luaL_argcheck(L, end >= start, 3, "end must be >= start");
     // end--; // Lua to C index, but we don't as end is excluded in our C code,
               // but it is expected to be included in the Lua call
     int idx_to_substitute_with_ellipsis = -1;
@@ -2489,6 +2489,7 @@ static int XText_getText(lua_State *L) {
     start--; // Lua to C index
     int end = luaL_checkint(L, 3);
     luaL_argcheck(L, end >= 1 && end <= xt->m_length, 3, "index out of range");
+    luaL_argcheck(L, end >= start, 3, "end must be >= start");
     // end--; // Lua to C index, but we don't as end is excluded in our C code,
               // but it is expected to be included in the Lua call
     xt->getText(start, end);
@@ -2496,9 +2497,8 @@ static int XText_getText(lua_State *L) {
     return 1;
 }
 
-// Get (as a single UTF-8 string) the segment of m_text, extended to include
-// the full words that may be cut at boundaries (start, end).
-static int XText_getSelectedWords(lua_State *L) {
+// Get start and end indices of an extended segment of m_text that includes the full words that may be cut at boundaries (start, end).
+static int XText_getSelectedWordIndices(lua_State *L) {
     XText * xt = check_XText(L, 1);
     int start = luaL_checkint(L, 2);
     luaL_argcheck(L, start >= 1 && start <= xt->m_length, 2, "index out of range");
@@ -2511,9 +2511,9 @@ static int XText_getSelectedWords(lua_State *L) {
     // to inspect to find cut words' start/end.
     int context = luaL_checkint(L, 4);
     luaL_argcheck(L, context > 0, 3, "context must be strictly positive");
-    xt->getSelectedWords(start, end, context);
-    // getSelectedWords() will have pushed a Lua string onto the stack
-    return 1;
+    xt->getSelectedWordIndices(start, end, context);
+    // getSelectedWordIndices() will have pushed two Lua integers onto the stack
+    return 2;
 }
 
 
@@ -2538,7 +2538,7 @@ static const struct luaL_Reg xtext_meth[] = {
     {"getParaDirection", XText_getParaDirection},
     {"getSegmentFromEnd", XText_getSegmentFromEnd},
     {"getText", XText_getText},
-    {"getSelectedWords", XText_getSelectedWords},
+    {"getSelectedWordIndices", XText_getSelectedWordIndices},
     { "free", XText_free },
     { "__gc", XText_destroy },
     {NULL, NULL}

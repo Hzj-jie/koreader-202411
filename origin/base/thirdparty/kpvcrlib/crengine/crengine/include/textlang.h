@@ -1,6 +1,8 @@
 #ifndef __TEXTLANG_H_INCLUDED__
 #define __TEXTLANG_H_INCLUDED__
 
+#include "crsetup.h"
+
 #if USE_HARFBUZZ==1
 #include <hb.h>
 #include <hb-ft.h>
@@ -180,6 +182,7 @@ class TextLangMan
     static HyphMethod * _no_hyph_method;       // instance of hyphman NoHyph
     static HyphMethod * _soft_hyphens_method;  // instance of hyphman SoftHyphensHyph
     static HyphMethod * _algo_hyph_method;     // instance of hyphman AlgoHyph
+    static HyphMethod * _grapheme_hyph_method; // instance of hyphman AlgoHyph(use_graphemes=true)
 
     static HyphMethod * getHyphMethodForLang( lString32 lang_tag ); // Used by TextLangCfg
 public:
@@ -258,6 +261,8 @@ class TextLangCfg
     #endif
 
     bool _duplicate_real_hyphen_on_next_line;
+    bool _hide_hyphenation_mark;
+    bool _use_grapheme_based_hyphenation; // when _hyphenation_force_algorithmic
 
     bool _is_ja_zh;
     bool _is_ja;
@@ -278,7 +283,8 @@ public:
         if ( TextLangMan::_hyphenation_soft_hyphens_only )
             return TextLangMan::_soft_hyphens_method;
         if ( TextLangMan::_hyphenation_force_algorithmic )
-            return TextLangMan::_algo_hyph_method;
+            return _use_grapheme_based_hyphenation ? TextLangMan::_grapheme_hyph_method
+                                                   : TextLangMan::_algo_hyph_method;
         // Should not be reached
         return _hyph_method;
     }
@@ -305,6 +311,8 @@ public:
     #endif
 
     bool duplicateRealHyphenOnNextLine() const { return _duplicate_real_hyphen_on_next_line; }
+    // Applies to inserted hyphens, including soft-hyphen breaks, not literal hyphens.
+    bool hideHyphenationMark() const { return _hide_hyphenation_mark; }
 
     int getCJKWidthAdjustment( cjk_type_t current, cjk_type_t other ) const {
         return (int)(*_cjk_width_adjustment_table)[current][other];

@@ -12,6 +12,8 @@
 
 *******************************************************/
 
+#include "crsetup.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -59,11 +61,13 @@ typedef boolean wxjpeg_boolean;
 #define NANOSVG_ALL_COLOR_KEYWORDS
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVGRAST_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_STATIC
 #include <nanosvg.h>
 #include <nanosvgrast.h>
-#include <stb_image_write.h> // for svg to png conversion
+#if (USE_STB_IMAGE==1)
+# define STB_IMAGE_WRITE_IMPLEMENTATION
+# define STB_IMAGE_WRITE_STATIC
+# include <stb_image_write.h> // for svg to png conversion
+#endif
 #endif
 
 static lUInt32 NEXT_CACHEABLE_OBJECT_ID = 1;
@@ -270,8 +274,7 @@ public:
 
 #if (USE_LIBJPEG==1)
 
-METHODDEF(void)
-cr_jpeg_error (j_common_ptr cinfo);
+static void cr_jpeg_error (j_common_ptr cinfo);
 
 
 typedef struct {
@@ -288,8 +291,7 @@ typedef struct {
  * before any data is actually read.
  */
 
-METHODDEF(void)
-cr_init_source (j_decompress_ptr cinfo)
+static void cr_init_source (j_decompress_ptr cinfo)
 {
     cr_jpeg_source_mgr * src = (cr_jpeg_source_mgr*) cinfo->src;
 
@@ -333,8 +335,7 @@ cr_init_source (j_decompress_ptr cinfo)
  * the front of the buffer rather than discarding it.
  */
 
-METHODDEF(wxjpeg_boolean)
-cr_fill_input_buffer (j_decompress_ptr cinfo)
+static wxjpeg_boolean cr_fill_input_buffer (j_decompress_ptr cinfo)
 {
     cr_jpeg_source_mgr * src = (cr_jpeg_source_mgr *) cinfo->src;
     lvsize_t bytesRead = 0;
@@ -370,8 +371,7 @@ cr_fill_input_buffer (j_decompress_ptr cinfo)
  * buffer is the application writer's problem.
  */
 
-METHODDEF(void)
-cr_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
+static void cr_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 {
     cr_jpeg_source_mgr * src = (cr_jpeg_source_mgr *) cinfo->src;
 
@@ -392,6 +392,7 @@ cr_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
     }
 }
 
+#if 0
 /*
  * An additional method that can be provided by data source modules is the
  * resync_to_restart method for error recovery in the presence of RST markers.
@@ -399,12 +400,11 @@ cr_skip_input_data (j_decompress_ptr cinfo, long num_bytes)
  * provided by the JPEG library.  That method assumes that no backtracking
  * is possible.
  */
-GLOBAL(wxjpeg_boolean)
-cr_resync_to_restart (j_decompress_ptr, int)
+static wxjpeg_boolean cr_resync_to_restart (j_decompress_ptr, int)
 {
     return FALSE;
 }
-
+#endif
 
 /*
  * Terminate source --- called by jpeg_finish_decompress
@@ -415,14 +415,12 @@ cr_resync_to_restart (j_decompress_ptr, int)
  * for error exit.
  */
 
-METHODDEF(void)
-cr_term_source (j_decompress_ptr)
+static void cr_term_source (j_decompress_ptr)
 {
   /* no work necessary here */
 }
 
-GLOBAL(void)
-cr_jpeg_src (j_decompress_ptr cinfo, LVStream * stream)
+static void cr_jpeg_src (j_decompress_ptr cinfo, LVStream * stream)
 {
     cr_jpeg_source_mgr * src;
 
@@ -448,10 +446,9 @@ cr_jpeg_src (j_decompress_ptr cinfo, LVStream * stream)
     src->stream = stream;
     src->pub.bytes_in_buffer = 0; /* forces fill_input_buffer on first read */
     src->pub.next_input_byte = NULL; /* until buffer loaded */
-}
+} // cppcheck-suppress memleak; about src.buffer
 
-GLOBAL(void)
-cr_jpeg_src_free (j_decompress_ptr cinfo)
+static void cr_jpeg_src_free (j_decompress_ptr cinfo)
 {
     cr_jpeg_source_mgr * src = (cr_jpeg_source_mgr *) cinfo->src;
     if ( src && src->buffer )
@@ -498,8 +495,7 @@ typedef struct my_error_mgr * my_error_ptr;
  * Here's the routine that will replace the standard error_exit method:
  */
 
-METHODDEF(void)
-cr_jpeg_error (j_common_ptr cinfo)
+static void cr_jpeg_error (j_common_ptr cinfo)
 {
     //fprintf(stderr, "cr_jpeg_error() : fatal error while decoding JPEG image\n");
 
@@ -1052,7 +1048,7 @@ public:
     LVGifImageSource();
     virtual ~LVGifImageSource();
     void Clear();
-    const int GetColorTableColorCount() {
+    int GetColorTableColorCount() {
         if (m_flg_gtc)
             return m_global_color_table_color_count;
         else
@@ -1095,7 +1091,7 @@ public:
     LVGifFrame(LVGifImageSource * pImage);
     ~LVGifFrame();
     void Clear();
-    const int GetColorTableColorCount() {
+    int GetColorTableColorCount() {
         if (m_flg_ltc)
             return m_local_color_table_color_count;
         else
@@ -1944,6 +1940,8 @@ int LVSvgImageSource::DecodeFromBuffer(const unsigned char *buf, int buf_size, L
     return res;
 }
 
+#if (USE_STB_IMAGE==1)
+
 // Convenience function to convert SVG image data to PNG
 unsigned char * convertSVGtoPNG(const unsigned char *svg_data, int svg_data_size, float zoom_factor, int *png_data_len)
 {
@@ -1997,6 +1995,8 @@ unsigned char * convertSVGtoPNG(const unsigned char *svg_data, int svg_data_size
     return png;
 }
 
+#endif
+
 // ======= end of SVG support (with NanoSVG)
 #endif
 
@@ -2036,6 +2036,9 @@ static void lunasvgTextToPathsHelper(lunasvg::external_context_t * xcontext, con
         font_family << node->getFont()->getTypeFace().c_str();
     }
 
+    // Find the containing docFragmentIdx so @font-face declarations are scoped correctly.
+    int docFragmentIdx = (docId != -1 && node) ? node->getDocFragmentIdx() : -1;
+
     // We may get very small or very large font size from SVG, so work with a normal font
     // size that crengine will accept, and scale the coordinates we'll get.
     int font_size = 64;
@@ -2043,7 +2046,7 @@ static void lunasvgTextToPathsHelper(lunasvg::external_context_t * xcontext, con
     LunaSVGGlyphsCollector collector(scale, callback);
 
     LVFontRef font = fontMan->GetFont(font_size, font_spec->weight, font_spec->italic, css_ff_sans_serif,
-                                        font_family, font_spec->features, docId, true);
+                                        font_family, font_spec->features, docId, true, NULL, docFragmentIdx);
 
     TextLangCfg * lang_cfg = NULL;
     if ( font_spec->lang )
@@ -2068,16 +2071,16 @@ static void lunasvgTextToPathsHelper(lunasvg::external_context_t * xcontext, con
         0, 0, -1, 0, -1, -1, &collector);
 }
 
-static bool lunasvgDrawImageHelper(lunasvg::external_context_t * xcontext, const char * url, const unsigned char * bitmap, int width, int height, double & original_aspect_ratio)
+static LVImageSourceRef lunasvgGetImageSource(lunasvg::external_context_t * xcontext, const char * url)
 {
-    if ( !bitmap || width <= 0 || height <= 0 )
-        return false;
-
     LVImageSourceRef img;
     ldomDocument * doc = ((LVNodeImageSource *)xcontext->external_object)->GetSourceDocument();
     if ( doc ) {
         ldomNode * node = ((LVNodeImageSource *)xcontext->external_object)->GetSourceNode();
         img = doc->getObjectImageSource(Utf8ToUnicode(url), node);
+        if (img.isNull()) { // url may be url-encoded
+            img = doc->getObjectImageSource(DecodeHTMLUrlString(Utf8ToUnicode(url)), node);
+        }
     }
     else {
         // We may be used by frontends without a ldomDocument to render SVG, and
@@ -2098,8 +2101,10 @@ static bool lunasvgDrawImageHelper(lunasvg::external_context_t * xcontext, const
             if ( data.startsWith(lString32("data:image/svg+xml")) ) {
                 int pos = data.pos(U',');
                 if ( pos > 0 ) {
-                    // The attribute value has already been url-decoded at parsing time
-                    lString8 plaindata = UnicodeToUtf8(refName.substr(pos+1));
+                    // The payload may or may not be percent-encoded (eg. a CSS
+                    // background-image - DecodeHTMLUrlString() is a no-op when
+                    // there is nothing to decode.
+                    lString8 plaindata = UnicodeToUtf8(DecodeHTMLUrlString(refName.substr(pos+1)));
                     ref = LVCreateStringStream(plaindata);
                 }
             }
@@ -2107,7 +2112,27 @@ static bool lunasvgDrawImageHelper(lunasvg::external_context_t * xcontext, const
                 img = LVCreateStreamImageSource( ref );
         }
     }
-    if ( img.isNull() )
+    return img;
+}
+
+static bool lunasvgGetImageSizeHelper(lunasvg::external_context_t * xcontext, const char * url, int & width, int & height)
+{
+    LVImageSourceRef img = lunasvgGetImageSource(xcontext, url);
+    if ( img.isNull() || img->GetWidth() <= 0 || img->GetHeight() <= 0 )
+        return false;
+
+    width = img->GetWidth();
+    height = img->GetHeight();
+    return true;
+}
+
+static bool lunasvgDrawImageHelper(lunasvg::external_context_t * xcontext, const char * url, const unsigned char * bitmap, int width, int height, double & original_aspect_ratio)
+{
+    if ( !bitmap || width <= 0 || height <= 0 )
+        return false;
+
+    LVImageSourceRef img = lunasvgGetImageSource(xcontext, url);
+    if ( img.isNull() || img->GetWidth() <= 0 || img->GetHeight() <= 0 )
         return false;
 
     original_aspect_ratio = (double)img->GetWidth() / (double)img->GetHeight();
@@ -2164,6 +2189,7 @@ LVSvgImageSource::LVSvgImageSource( ldomNode * node, LVStreamRef stream )
     lunasvg_xcontext.external_object = this;
     lunasvg_xcontext.text_to_paths_helper = &lunasvgTextToPathsHelper;
     lunasvg_xcontext.draw_image_helper = &lunasvgDrawImageHelper;
+    lunasvg_xcontext.get_image_size_helper = &lunasvgGetImageSizeHelper;
 }
 LVSvgImageSource::~LVSvgImageSource() {}
 
@@ -2235,14 +2261,19 @@ lUInt8 * LVSvgImageSource::Render(int &width, int &height, lUInt32 fillcolor, bo
 }
 
 bool LVSvgImageSource::Decode( LVImageDecoderCallback * callback ) {
+    // If the callback can render itself at an exact target size (see
+    // LVStretchImgSource::GetTargetSize()), that's the size we want to
+    // rasterize at directly, instead of the SVG's own intrinsic size.
+    int target_w = 0, target_h = 0;
+    bool have_target_size = false;
     if ( callback ) { // We're going to draw
         // We can't just use doc->renderToBitmap(final_width, final_height) below
         // as lunasvg would just scale it to the final size. We need to tell it
         // this final size early, so it can ensure preserveAspectRatio in it.
-        int w, h;
-        if ( callback->GetTargetSize(w, h) ) {
-            lunasvg_xcontext.target_width = w;
-            lunasvg_xcontext.target_height = h;
+        if ( callback->GetTargetSize(target_w, target_h) ) {
+            have_target_size = true;
+            lunasvg_xcontext.target_width = target_w;
+            lunasvg_xcontext.target_height = target_h;
             // When drawing with Decode(callback), we're coming from NodeImageProxy()
             // which has created us with assume_valid=false, and the next LoadSVGDocument()
             // will be the first load, which will use these target_width/height.
@@ -2261,15 +2292,25 @@ bool LVSvgImageSource::Decode( LVImageDecoderCallback * callback ) {
     if ( ! callback ) // If no callback provided, only size is wanted
         return true;
 
-    lunasvg::Bitmap bitmap = lunasvg_doc->renderToBitmap(_width, _height, 0x00000000);
+    // Render at the requested target size when we have one (this is what
+    // actually rasterizes the vector content at that size -- setting
+    // target_width/height above only feeds preserveAspectRatio resolution
+    // for nested content), falling back to the SVG's own intrinsic size.
+    int render_w = have_target_size ? target_w : _width;
+    int render_h = have_target_size ? target_h : _height;
+    lunasvg::Bitmap bitmap = lunasvg_doc->renderToBitmap(render_w, render_h, 0x00000000);
     if ( ! bitmap.valid() )
         return false;
+    // Use the bitmap's actual size (lunasvg may adjust it, eg. clamping to
+    // preserve aspect ratio) rather than assuming it matches what we asked for.
+    render_w = bitmap.width();
+    render_h = bitmap.height();
 
     callback->OnStartDecode(this);
     lUInt32 * __restrict src = (lUInt32 *)bitmap.data();
-    lUInt32 * __restrict row = new lUInt32 [ _width ];
-    for (int y=0; y<_height; y++) {
-        size_t px_count = _width;
+    lUInt32 * __restrict row = new lUInt32 [ render_w ];
+    for (int y=0; y<render_h; y++) {
+        size_t px_count = render_w;
         lUInt32 * __restrict dst = row;
         while (px_count--) {
             // LunaSVG outputs BGRA with premultiplied alpha, crengine wants BGRa (inverted alpha)
@@ -2402,6 +2443,23 @@ LVImageSourceRef LVCreateStreamCopyImageSource( LVStreamRef stream )
 
 class LVStretchImgSource : public LVImageSource, public LVImageDecoderCallback
 {
+private:
+    // True when scaling from (srcW,srcH) to (dstW,dstH) preserves aspect ratio
+    // (within a small rounding tolerance), as opposed to a deliberately
+    // distorting stretch (eg. CSS background-size with independent width/height
+    // lengths). Only a ratio-preserving stretch is safe for the
+    // _srcIsScalableStretch fast path below: it asks a scalable source (SVG) to
+    // render itself directly via a target-size hint, but (at least with the
+    // vendored lunasvg) that hint always resolves like intrinsic/replaced-element
+    // sizing -- ie. aspect-preserving and letterboxed -- unlike a raw pixel
+    // remap, so it can't reproduce a genuine non-uniform distortion.
+    static bool isUniformScale(int srcW, int srcH, int dstW, int dstH) {
+        if (srcW <= 0 || srcH <= 0)
+            return false;
+        int expected_dstH = (int)(((lInt64)dstW * srcH) / srcW);
+        int diff = dstH - expected_dstH;
+        return (diff >= -2 && diff <= 2);
+    }
 protected:
 	LVImageSourceRef _src;
 	int _src_dx;
@@ -2414,8 +2472,26 @@ protected:
 	int _split_y;
 	LVArray<lUInt32> _line;
 	LVImageDecoderCallback * _callback;
+	// True when _src can render itself directly at our exact target size (eg. an
+	// SVG source) and we're doing a plain fill-the-whole-area stretch on both axes
+	// (not a 9-patch split or a tile, which need a fixed-size source to split/repeat).
+	// In that case there's no native-resolution raster to pixel-remap or smooth-scale
+	// at all: we tell _src our target size via GetTargetSize() below, and
+	// OnLineDecoded() just passes its (already correctly-sized) lines straight
+	// through instead of remapping them.
+	bool _srcIsScalableStretch;
+	// True when a smooth (interpolated) scale was requested *and* applies here: a
+	// genuine two-axis stretch of a fixed-resolution raster that actually changes
+	// size. We buffer the whole decoded source into _decoded, and OnEndDecode()
+	// runs it through the same smooth scaler used for normal <img> elements
+	// (CRe::qSmoothScaleImage), instead of nearest-neighbor remapping line by line.
+	// (Not used when _srcIsScalableStretch, as that path is strictly better: the
+	// source renders natively at the exact target size instead of being decoded
+	// at native resolution and then rescaled.)
+	bool _smoothscale;
+	lUInt8 * __restrict _decoded;
 public:
-    LVStretchImgSource( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform, ImageTransform vTransform, int splitX, int splitY )
+    LVStretchImgSource( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform, ImageTransform vTransform, int splitX, int splitY, bool smooth = false )
 		: _src( src )
 		, _src_dx( src->GetWidth() )
 		, _src_dy( src->GetHeight() )
@@ -2425,6 +2501,11 @@ public:
         , _vTransform(vTransform)
 		, _split_x( splitX )
 		, _split_y( splitY )
+		, _srcIsScalableStretch( src->IsScalable() && hTransform == IMG_TRANSFORM_STRETCH && vTransform == IMG_TRANSFORM_STRETCH
+		                         && isUniformScale(_src_dx, _src_dy, newWidth, newHeight) )
+		, _smoothscale( !_srcIsScalableStretch && smooth && hTransform == IMG_TRANSFORM_STRETCH && vTransform == IMG_TRANSFORM_STRETCH
+		                && (_src_dx != newWidth || _src_dy != newHeight) )
+		, _decoded(0)
 	{
         if ( _hTransform == IMG_TRANSFORM_TILE )
             if ( _split_x>=_src_dx )
@@ -2436,6 +2517,8 @@ public:
 			_split_x = _src_dx / 2;
 		if ( _split_y<0 || _split_y>=_src_dy )
 			_split_y = _src_dy / 2;
+        if ( _smoothscale )
+            _decoded = new lUInt8[ _src_dy * (_src_dx * 4) ];
 	}
     virtual void OnStartDecode( LVImageSource * )
 	{
@@ -2443,10 +2526,32 @@ public:
         _callback->OnStartDecode(this);
 	}
     virtual bool OnLineDecoded( LVImageSource * obj, int y, lUInt32 * __restrict data );
-    virtual void OnEndDecode( LVImageSource *, bool res)
+    virtual void OnEndDecode( LVImageSource * obj, bool res)
 	{
 		_line.clear();
+        if ( _smoothscale && !res ) {
+            lUInt8 * __restrict sdata = CRe::qSmoothScaleImage(_decoded, _src_dx, _src_dy, false, _dst_dx, _dst_dy);
+            if ( sdata ) {
+                for ( int y=0; y<_dst_dy; y++ )
+                    _callback->OnLineDecoded( obj, y, (lUInt32 *)(sdata + y * (_dst_dx * 4)) );
+                free(sdata);
+            }
+            // else: smooth scaling failed, draw nothing for this image (same as the
+            // normal <img> smooth scaler's failure behavior in LVImageScaledDrawCallback)
+        }
         _callback->OnEndDecode(this, res);
+    }
+    // LVImageDecoderCallback: called by _src->Decode(this) below to ask us (as
+    // its callback) what size it should render itself at. Only meaningful when
+    // _srcIsScalableStretch, in which case it's our own fixed target size --
+    // see the member comment above.
+    virtual bool GetTargetSize(int & width, int & height) const {
+        if ( !_srcIsScalableStretch ) {
+            return false;
+        }
+        width = _dst_dx;
+        height = _dst_dy;
+        return true;
     }
 	virtual ldomDocument * GetSourceDocument() { return _src.isNull() ? NULL : _src->GetSourceDocument(); }
 	virtual ldomNode * GetSourceNode() { return _src.isNull() ? NULL : _src->GetSourceNode(); }
@@ -2461,11 +2566,27 @@ public:
 	}
     virtual ~LVStretchImgSource()
 	{
+        if ( _decoded )
+            delete[] _decoded;
 	}
 };
 
 bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * __restrict data )
 {
+    if ( _srcIsScalableStretch ) {
+        // _src was told (via our GetTargetSize() above) to render itself directly
+        // at _dst_dx x _dst_dy, so this line is already exactly what we want:
+        // no pixel remapping needed, just forward it as-is.
+        return _callback->OnLineDecoded( obj, y, data );
+    }
+
+    if ( _smoothscale ) {
+        // Defer everything to OnEndDecode()'s smooth-scaling pass: just stash
+        // this source line at native resolution.
+        memcpy(_decoded + (y * (_src_dx * 4)), data, (_src_dx * 4));
+        return true;
+    }
+
     bool res = false;
 
     switch ( _hTransform ) {
@@ -2552,11 +2673,11 @@ bool LVStretchImgSource::OnLineDecoded( LVImageSource * obj, int y, lUInt32 * __
 }
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
-LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform, ImageTransform vTransform, int splitX, int splitY )
+LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform, ImageTransform vTransform, int splitX, int splitY, bool smooth )
 {
 	if ( src.isNull() )
 		return LVImageSourceRef();
-    return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, hTransform, vTransform, splitX, splitY ) );
+    return LVImageSourceRef( new LVStretchImgSource( src, newWidth, newHeight, hTransform, vTransform, splitX, splitY, smooth ) );
 }
 
 /// creates image which fills area with tiled copy
@@ -2866,7 +2987,7 @@ public:
             free( _grayImage );
         if ( _colorImage )
             free( _colorImage );
-        if ( _colorImage )
+        if ( _colorImage16 )
             free( _colorImage16 );
     }
 };

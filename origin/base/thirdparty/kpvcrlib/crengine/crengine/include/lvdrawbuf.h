@@ -42,6 +42,7 @@ class GLDrawBuf; // workaround for no-rtti builds
 class LVDrawBuf : public CacheableObject
 {
 public:
+#if 0
     // GL draw buffer support
     /// GL draw buffer compatibility - requires this call before any drawing
     virtual void beforeDrawing() {}
@@ -76,6 +77,7 @@ public:
         rc.right = GetWidth();
         rc.bottom = GetHeight();
     }
+#endif
 
     /// rotates buffer contents by specified angle
     virtual void Rotate( cr_rotate_angle_t angle ) = 0;
@@ -103,13 +105,18 @@ public:
     virtual bool WantsHiddenContent() const { return false; }
     /// set to true for drawing in Paged mode, false for Scroll mode
     virtual void setHidePartialGlyphs( bool hide ) = 0;
+    virtual bool getHidePartialGlyphs() const = 0;
     /// set to true to invert images only (so they get inverted back to normal by nightmode)
     virtual void setInvertImages( bool invert ) = 0;
     virtual bool getInvertImages() const = 0;
+    /// set to true to invert non-grayscale colors (so they get inverted back to normal by nightmode)
+    virtual void setInvertColors( bool invert ) = 0;
+    virtual bool getInvertColors() const = 0;
     /// set to true to enforce dithering (only relevant for 8bpp Gray drawBuf)
     virtual void setDitherImages( bool dither ) = 0;
     /// set to true to switch to a more costly smooth scaler instead of nearest neighbor
     virtual void setSmoothScalingImages( bool smooth ) = 0;
+    virtual bool getSmoothScalingImages() const = 0;
     /// invert image
     virtual void Invert() = 0;
     /// get buffer width, pixels
@@ -128,12 +135,15 @@ public:
     virtual lUInt32 GetAvgColor(lvRect & rc16) const = 0;
     /// get linearly interpolated pixel value (coordinates are fixed floating points *16)
     virtual lUInt32 GetInterpolatedColor(int x16, int y16) const = 0;
+#if 0
     /// draw gradient filled rectangle with colors for top-left, top-right, bottom-right, bottom-left
     virtual void GradientRect(int x0, int y0, int x1, int y1, lUInt32 color1, lUInt32 color2, lUInt32 color3, lUInt32 color4) {
         CR_UNUSED8(x0, x1, y0, y1, color1, color2, color3, color4);
     }
+#endif
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color ) = 0;
+#if 0
     /// draw frame
     inline void DrawFrame(const lvRect & rc, lUInt32 color, int width = 1)
     {
@@ -142,6 +152,7 @@ public:
         FillRect( rc.left, rc.top + width, rc.left + width, rc.bottom - width, color );
         FillRect( rc.right - width, rc.top + width, rc.right, rc.bottom - width, color );
     }
+#endif
     /// fills rectangle with specified color
     inline void FillRect( const lvRect & rc, lUInt32 color )
     {
@@ -175,18 +186,25 @@ public:
     {
         Rect( rc.left, rc.top, rc.right, rc.bottom, borderWidth, color );
     }
+#if 0
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, const lUInt8 * __restrict pattern ) = 0;
+#endif
     /// inverts image in specified rectangle
     virtual void InvertRect(int x0, int y0, int x1, int y1) = 0;
     /// sets new size
     virtual void Resize( int dx, int dy ) = 0;
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, const lUInt32 * __restrict palette ) = 0;
+    /// draws color bitmap (premultiplied BGRA, 4 bytes per pixel)
+    virtual void DrawColorGlyph( int x, int y, const lUInt8 * bitmap, int width, int height, int pitch, const lUInt32 * __restrict palette ) {
+        CR_UNUSED7(x, y, bitmap, width, height, pitch, palette);
+    }
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither=true ) = 0;
     /// draws part of source image, possible rescaled
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, int srcx, int srcy, int srcwidth, int srcheight, bool dither=true ) { CR_UNUSED10(img, x, y, width, height, srcx, srcy, srcwidth, srcheight, dither); }
+#if 0
     /// for GL buf only - rotated drawing
     virtual void DrawRotated( LVImageSourceRef img, int x, int y, int width, int height, int rotationAngle) { Draw(img, x, y, width, height); CR_UNUSED(rotationAngle); }
     /// draws buffer content to another buffer doing color conversion if necessary
@@ -199,11 +217,14 @@ public:
     virtual void DrawFragment(const LVDrawBuf * __restrict src, int srcx, int srcy, int srcdx, int srcdy, int x, int y, int dx, int dy, int options) {
         CR_UNUSED10(src, srcx, srcy, srcdx, srcdy, x, y, dx, dy, options);
     }
+#endif
     /// draw lines
     virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0, int length1, int length2, int direction) = 0;
+#if 0
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, const lUInt32 * __restrict palette ) = 0;
+#endif
 #endif
     /// draws text string
     /*
@@ -243,6 +264,7 @@ protected:
     lUInt32 _textColor;
     bool _hidePartialGlyphs;
     bool _invertImages;
+    bool _invertColors;
     bool _ditherImages;
     bool _smoothImages;
     int _drawnImagesCount;
@@ -250,13 +272,18 @@ protected:
 public:
     /// set to true for drawing in Paged mode, false for Scroll mode
     virtual void setHidePartialGlyphs( bool hide ) { _hidePartialGlyphs = hide; }
+    virtual bool getHidePartialGlyphs() const { return _hidePartialGlyphs; }
     /// set to true to invert images only (so they get inverted back to normal by nightmode)
     virtual void setInvertImages( bool invert ) { _invertImages = invert; }
     virtual bool getInvertImages() const { return _invertImages; }
+    /// set to true to invert non-grayscale colors (so they get inverted back to normal by nightmode)
+    virtual void setInvertColors( bool invert ) { _invertColors = invert; }
+    virtual bool getInvertColors() const { return _invertColors; }
     /// set to true to enforce dithering (only relevant for 8bpp Gray drawBuf)
     virtual void setDitherImages( bool dither ) { _ditherImages = dither; }
     /// set to true to switch to a more costly smooth scaler instead of nearest neighbor
     virtual void setSmoothScalingImages( bool smooth ) { _smoothImages = smooth; }
+    virtual bool getSmoothScalingImages() const { return _smoothImages; }
     /// returns current background color
     virtual lUInt32 GetBackgroundColor() const { return _backgroundColor; }
     /// sets current background color
@@ -300,7 +327,7 @@ public:
     int getDrawnImagesSurface() const { return _drawnImagesSurface; }
 
     LVBaseDrawBuf() : _dx(0), _dy(0), _rowsize(0), _data(NULL), _drawExtraInfo(NULL), _hidePartialGlyphs(true),
-                        _invertImages(false), _ditherImages(false), _smoothImages(false),
+                        _invertImages(false), _invertColors(false), _ditherImages(false), _smoothImages(false),
                         _drawnImagesCount(0), _drawnImagesSurface(0) { }
     virtual ~LVBaseDrawBuf() { }
 };
@@ -376,6 +403,7 @@ public:
     virtual lUInt32 GetWhiteColor() const;
     /// returns black pixel value
     virtual lUInt32 GetBlackColor() const;
+#if 0
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * __restrict buf, int x, int y, int options, const lUInt32 * __restrict palette );
     // draws buffer on top of another buffer to implement background
@@ -385,6 +413,7 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, const lUInt32 * __restrict palette );
+#endif
 #endif
     /// invert image
     virtual void Invert();
@@ -400,25 +429,44 @@ public:
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
     /// inverts image in specified rectangle
     virtual void InvertRect( int x0, int y0, int x1, int y1 );
+#if 0
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, const lUInt8 * __restrict pattern );
+#endif
     /// sets new size
     virtual void Resize( int dx, int dy );
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither );
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, const lUInt32 * __restrict palette );
+    /// draws color bitmap (premultiplied BGRA, 4 bytes per pixel)
+    virtual void DrawColorGlyph( int x, int y, const lUInt8 * bitmap, int width, int height, int pitch, const lUInt32 * __restrict palette );
     /// constructor
     LVGrayDrawBuf(int dx, int dy, int bpp=2, void * auxdata = NULL );
     /// destructor
     virtual ~LVGrayDrawBuf();
+#if 0
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
+#endif
     virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0, int length1, int length2, int direction=0);
 };
 
 inline lUInt32 RevRGB( lUInt32 cl ) {
     return ((cl<<16)&0xFF0000) | ((cl>>16)&0x0000FF) | (cl&0x00FF00);
+}
+
+// Pre-invert a non-grayscale color so night mode inverts it back to its original hue.
+// Preserves alpha, and leaves reserved, transparent, and grayscale values unchanged.
+inline lUInt32 invertNonGrayscaleColor( lUInt32 color ) {
+    if ( (color & 0xFFFFFFFE) == 0xFFFFFFFE || (color & 0xFF000000) == 0xFF000000 )
+        return color;
+    const lUInt8 b = color & 0xFF;
+    const lUInt8 g = (color >> 8) & 0xFF;
+    const lUInt8 r = (color >> 16) & 0xFF;
+    if ( r == g && g == b )
+        return color;
+    return color ^ 0x00FFFFFF;
 }
 
 inline lUInt32 rgb565to888( lUInt32 cl ) {
@@ -506,6 +554,7 @@ public:
     virtual lUInt32 GetWhiteColor() const;
     /// returns black pixel value
     virtual lUInt32 GetBlackColor() const;
+#if 0
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( LVDrawBuf * __restrict buf, int x, int y, int options, const lUInt32 * __restrict palette );
     // draws buffer on top of another buffer to implement background
@@ -515,6 +564,7 @@ public:
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     /// draws buffer content to another buffer doing color conversion if necessary
     virtual void DrawTo( HDC dc, int x, int y, int options, const lUInt32 * __restrict palette );
+#endif
 #endif
     /// invert image
     virtual void Invert();
@@ -526,8 +576,10 @@ public:
     virtual lUInt32 GetPixel( int x, int y ) const;
     /// fills rectangle with specified color
     virtual void FillRect( int x0, int y0, int x1, int y1, lUInt32 color );
+#if 0
     /// fills rectangle with pattern
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, const lUInt8 * __restrict pattern );
+#endif
     /// inverts specified rectangle
 	virtual void InvertRect( int x0, int y0, int x1, int y1 );
     /// sets new size
@@ -536,6 +588,8 @@ public:
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither );
     /// draws bitmap (1 byte per pixel) using specified palette
     virtual void Draw( int x, int y, const lUInt8 * bitmap, int width, int height, const lUInt32 * __restrict palette );
+    /// draws color bitmap (premultiplied BGRA, 4 bytes per pixel)
+    virtual void DrawColorGlyph( int x, int y, const lUInt8 * bitmap, int width, int height, int pitch, const lUInt32 * __restrict palette );
     /// returns scanline pointer
     virtual lUInt8 * GetScanLine( int y ) const;
 
@@ -545,8 +599,10 @@ public:
     LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer, int bpp=32 );
     /// destructor
     virtual ~LVColorDrawBuf();
+#if 0
     /// convert to 1-bit bitmap
     void ConvertToBitmap(bool flgDither);
+#endif
     /// draw line
     virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0, int length1=1, int length2=0, int direction=0);
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
@@ -608,11 +664,13 @@ public:
         // if ( color != GetBackgroundColor() )
         updateInkBounds(x0, y0, x1, y1);
     }
+#if 0
     virtual void FillRectPattern( int x0, int y0, int x1, int y1, lUInt32 color0, lUInt32 color1, const lUInt8 * __restrict pattern ) {
         if ( ignore_decorations )
             return;
         FillRect( x0, y0, x1, y1, color0);
     }
+#endif
     /// draws image
     virtual void Draw( LVImageSourceRef img, int x, int y, int width, int height, bool dither ) {
         // An image (even if empty) sets the ink area
@@ -666,11 +724,13 @@ public:
     virtual void Rotate( cr_rotate_angle_t angle ) {}
     virtual lUInt32 GetWhiteColor() const { return 0; }
     virtual lUInt32 GetBlackColor() const { return 0; }
+#if 0
     virtual void DrawTo( LVDrawBuf * __restrict buf, int x, int y, int options, const lUInt32 * __restrict palette ) {}
     virtual void DrawOnTop( LVDrawBuf * __restrict buf, int x, int y) {}
     virtual void DrawRescaled(const LVDrawBuf * __restrict src, int x, int y, int dx, int dy, int options) {}
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
     virtual void DrawTo( HDC dc, int x, int y, int options, const lUInt32 * __restrict palette ) {}
+#endif
 #endif
     virtual void Invert() {}
     virtual lUInt32 GetPixel( int x, int y ) const { return 0; }

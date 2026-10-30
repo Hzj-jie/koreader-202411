@@ -109,6 +109,8 @@ Current limitations:
 
 */
 
+#include "crsetup.h"
+
 #if MATHML_SUPPORT==1
 
 #include "../include/lvtypes.h"
@@ -742,9 +744,9 @@ static bool getOperatorProperties(const lChar32 * op, const mathml_operator_dict
     // (takes around 6 iterations for these, 11 otherwise vs.
     // mostly always 10 when starting from the middle)
     int middle = nb/20;
-    int iters = 0;
+    // int iters = 0;
     while ( left < right ) {
-        iters++;
+        // iters++;
         int res = lStr_cmp( mathml_operators[middle].op, op );
         if ( res >= 0 ) {
             right = middle;
@@ -1538,7 +1540,8 @@ void setMathMLElementNodeStyle( ldomNode * node, css_style_rec_t * style ) {
             int symbol_w, symbol_h;
             int fgcolor = parentNode->getStyle()->color.value;
             style->background_image = getRadicalSymbolSVGImageString( font->getSize(), thickness_px, fgcolor, symbol_w, symbol_h);
-            style->background_position = css_background_right_bottom;
+            style->background_position[0] = css_length_t(css_val_percent, 100 << 8);
+            style->background_position[1] = css_length_t(css_val_percent, 100 << 8);
             style->background_repeat = css_background_no_repeat;
             style->min_width.type = css_val_screen_px;
             style->min_width.value = symbol_w;

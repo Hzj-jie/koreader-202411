@@ -1,3 +1,5 @@
+list(APPEND PATCH_FILES trim_the_fat.patch)
+
 list(APPEND CFG_CMD COMMAND env)
 append_autotools_vars(CFG_CMD)
 list(APPEND CFG_CMD
@@ -12,7 +14,7 @@ list(APPEND BUILD_CMD COMMAND make)
 list(APPEND INSTALL_CMD COMMAND make install)
 
 if(NOT MONOLIBTIC)
-    set(LIB_SPEC unibreak VERSION 6)
+    set(LIB_SPEC unibreak VERSION 8)
     if(APPLE)
         append_shared_lib_fix_commands(INSTALL_CMD ${LIB_SPEC} ID)
     endif()
@@ -20,8 +22,9 @@ if(NOT MONOLIBTIC)
 endif()
 
 external_project(
-    DOWNLOAD URL 8df410d010e03de1a339a400a920335e
-    https://github.com/adah1972/libunibreak/releases/download/libunibreak_6_1/libunibreak-6.1.tar.gz
+    DOWNLOAD URL 8114d560b34581e385d9da96b5c8bfd9
+    https://github.com/adah1972/libunibreak/releases/download/libunibreak_8_0/libunibreak-8.0.tar.gz
+    PATCH_FILES ${PATCH_FILES}
     CONFIGURE_COMMAND ${CFG_CMD}
     BUILD_COMMAND ${BUILD_CMD}
     INSTALL_COMMAND ${INSTALL_CMD}

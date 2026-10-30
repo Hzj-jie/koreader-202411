@@ -13,6 +13,8 @@
 
 */
 
+#include "crsetup.h"
+
 // set to 1 for debug dump
 #if 0
 #define DUMP_HYPHENATION_WORDS 1
@@ -22,10 +24,11 @@
 #define DUMP_PATTERNS 0
 #endif
 
-#include "../include/crsetup.h"
-
 #include <stdlib.h>
 #include <string.h>
+#if USE_UTF8PROC==1
+#include <utf8proc.h>
+#endif
 #include "../include/lvxml.h"
 
 #if !defined(__SYMBIAN32__)
@@ -41,15 +44,7 @@
 #include "../include/textlang.h"
 
 
-#ifdef ANDROID
-
 #define _32(x) lString32(x)
-
-#else
-
-#include "../include/cri18n.h"
-
-#endif
 
 int HyphMan::_LeftHyphenMin = HYPH_DEFAULT_HYPHEN_MIN;
 int HyphMan::_RightHyphenMin = HYPH_DEFAULT_HYPHEN_MIN;
@@ -78,7 +73,7 @@ class TexHyph : public HyphMethod
 public:
     int largest_overflowed_word;
     bool match( const lChar32 * str, char * mask );
-    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    virtual bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     void addPattern( TexPattern * pattern );
     void checkForModifiers( lString32 str );
     TexHyph( lString32 id=HYPH_DICT_ID_DICTIONARY, int leftHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN, int rightHyphenMin=HYPHMETHOD_DEFAULT_HYPHEN_MIN );
@@ -92,9 +87,10 @@ public:
 
 class AlgoHyph : public HyphMethod
 {
+    bool _use_graphemes;
 public:
-    AlgoHyph(): HyphMethod(HYPH_DICT_ID_ALGORITHM) {};
-    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    AlgoHyph(bool use_graphemes=false): HyphMethod(HYPH_DICT_ID_ALGORITHM), _use_graphemes(use_graphemes) {};
+    virtual bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     virtual ~AlgoHyph();
 };
 
@@ -102,7 +98,7 @@ class SoftHyphensHyph : public HyphMethod
 {
 public:
     SoftHyphensHyph(): HyphMethod(HYPH_DICT_ID_SOFTHYPHENS) {};
-    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    virtual bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     virtual ~SoftHyphensHyph();
 };
 
@@ -110,7 +106,7 @@ class NoHyph : public HyphMethod
 {
 public:
     NoHyph(): HyphMethod(HYPH_DICT_ID_NONE) {};
-    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+    virtual bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
     {
         CR_UNUSED6(str, len, widths, flags, hyphCharWidth, maxWidth);
         return false;
@@ -120,6 +116,7 @@ public:
 
 static NoHyph NO_HYPH;
 static AlgoHyph ALGO_HYPH;
+static AlgoHyph GRAPHEME_HYPH(true);
 static SoftHyphensHyph SOFTHYPHENS_HYPH;
 
 // Obsolete: provided by TextLangMan main lang
@@ -245,7 +242,7 @@ bool HyphMan::isEnabled() {
     */
 }
 
-bool HyphMan::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool HyphMan::hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     return TextLangMan::getMainLangHyphMethod()->hyphenate( str, len, widths, flags, hyphCharWidth, maxWidth, flagSize );
     /* Obsolete:
@@ -262,6 +259,8 @@ HyphDictionary * HyphMan::getSelectedDictionary() {
 HyphMethod * HyphMan::getHyphMethodForDictionary( lString32 id, int leftHyphenMin, int rightHyphenMin ) {
     if ( id.empty() || NULL == _dataLoader)
         return &NO_HYPH;
+    if ( id == HYPH_DICT_ID_ALGORITHM_GRAPHEME )
+        return &GRAPHEME_HYPH;
     HyphDictionary * p = _dictList->find(id);
     if ( !p || p->getType() == HDT_NONE )
         return &NO_HYPH;
@@ -411,7 +410,6 @@ bool HyphDictionaryList::open(lString32 hyphDirectory, bool clear)
 
 	if ( !container.isNull() ) {
 		int len = container->GetObjectCount();
-        int count = 0;
         CRLog::info("%d items found in hyph directory", len);
 		for ( int i=0; i<len; i++ ) {
 			const LVContainerItemInfo * item = container->GetObjectInfo( i );
@@ -439,7 +437,6 @@ bool HyphDictionaryList::open(lString32 hyphDirectory, bool clear)
 			if (!suffix2add.empty())
 				title.append(suffix2add);
 			_list.add( new HyphDictionary( t, title, id, filename ) );
-            count++;
 		}
         _list.sort(HyphDictionary_comparator);
 		CRLog::info("%d dictionaries added to list", _list.length());
@@ -463,7 +460,7 @@ HyphMan::~HyphMan()
 // and AlgoHyph::hyphenate(): if soft hyphens are found in the
 // provided word, trust and use them; don't do the regular patterns
 // and algorithm matching.
-static bool softhyphens_hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+static bool softhyphens_hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     bool soft_hyphens_found = false;
     for ( int i = 0; i<len; i++ ) {
@@ -483,7 +480,7 @@ static bool softhyphens_hyphenate( const lChar32 * str, int len, lUInt16 * width
     return soft_hyphens_found;
 }
 
-bool SoftHyphensHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool SoftHyphensHyph::hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     if ( UserHyphDict::hasWords() ) {
         if ( UserHyphDict::hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize) )
@@ -941,7 +938,7 @@ bool TexHyph::match( const lChar32 * str, char * mask )
 //    return true;
 //}
 
-bool TexHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool TexHyph::hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     if ( UserHyphDict::hasWords() ) {
         if ( UserHyphDict::hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize) )
@@ -1080,7 +1077,7 @@ bool TexHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 
     return res;
 }
 
-bool AlgoHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool AlgoHyph::hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     if ( UserHyphDict::hasWords() ) {
         if ( UserHyphDict::hyphenate(str, len, widths, flags, hyphCharWidth, maxWidth, flagSize) )
@@ -1098,6 +1095,39 @@ bool AlgoHyph::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8
 
     if (len < left_hyphen_min + right_hyphen_min)
         return false; // too small
+
+#if USE_UTF8PROC==1
+    if ( _use_graphemes ) {
+        LVArray<int> ends;
+        utf8proc_int32_t state = 0;
+        int previous = -1;
+        for ( int i=0; i<len; i++ ) {
+            // Soft hyphens must not create or split graphemes when not trusted.
+            if ( str[i] == UNICODE_SOFT_HYPHEN_CODE )
+                continue;
+            if ( previous >= 0 && utf8proc_grapheme_break_stateful(str[previous], str[i], &state) )
+                ends.add(i-1);
+            previous = i;
+        }
+        if ( previous < 0 )
+            return false;
+        ends.add(len-1);
+        bool res = false;
+        // Leave at least left_hyphen_min/right_hyphen_min grapheme clusters on each side
+        // of the break. A cluster counts as one, even when made of several codepoints.
+        for ( int i=left_hyphen_min-1; i<ends.length()-right_hyphen_min; i++ ) {
+            int pos = ends[i];
+            if ( widths[pos] + hyphCharWidth >= maxWidth )
+                continue;
+            if ( flagSize == 2 )
+                ((lUInt16*)flags)[pos] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+            else
+                flags[pos] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;
+            res = true;
+        }
+        return res;
+    }
+#endif
 
     lUInt16 chprops[WORD_LENGTH];
     if ( len > WORD_LENGTH-2 )
@@ -1255,6 +1285,8 @@ lUInt8 UserHyphDict::addEntry(const char *word, const char* hyphenation)
 
     // generate mask
     masks[words_in_memory] = (char*) malloc((word_len+1) * sizeof(char)); // +1 for termination
+    if (masks[words_in_memory] == NULL)
+        return USER_HYPH_DICT_MALFORMED;
 
     size_t hyphenation_pos = 1;
     size_t i = hyphenation_pos;
@@ -1316,6 +1348,8 @@ lUInt8 UserHyphDict::init(lString32 filename, bool reload)
 
     // buffer to hold user hyphenation file
     char *buf = (char*) malloc(filesize * sizeof(char));
+    if (buf == NULL)
+        return USER_HYPH_DICT_ERROR_NOT_SORTED;
 
     lvsize_t count = 0;
     instream->Read(buf, filesize, &count);
@@ -1372,7 +1406,7 @@ lUInt8 UserHyphDict::init(lString32 filename, bool reload)
             printf("CRE WARNING: UserHyphDict dictionary word too long: '%s'\n", word);
 
         for ( i = 0; i<HYPHENATION_LENGTH-1; ++i ) { // -1 because of tailling NULL
-            if ( buf[i] == '\r' &&  i+1<filesize && buf[i+1] == '\n' ) {
+            if ( buf[pos] == '\r' &&  pos+1<filesize && buf[pos+1] == '\n' ) {
                 pos += 2;
                 break;
             }
@@ -1478,15 +1512,15 @@ lString32 UserHyphDict::getHyphenation(const char *word)
 
     lString32 word_str(orig_word_str.c_str() + start, end - start);
     size_t len = word_str.length();
-    lUInt16 widths[len+2]; // NOLINT(clang-diagnostic-vla-cxx-extension)
-    lUInt8 flags[len+2]; // NOLINT(clang-diagnostic-vla-cxx-extension)
+    lUInt16 widths[len+2];
+    lUInt8 flags[len+2];
 
     for ( size_t i = 0; i < len; ++i ) {
         widths[i] = 0;
         flags[i] = 0;
     }
 
-    TextLangMan::getTextLangCfg()->getHyphMethod()->hyphenate(word_str.c_str(), len, widths, flags, 0, 0xFFFF, 1);
+    TextLangMan::getTextLangCfg()->getHyphMethod()->hyphenate(word_str.c_str(), len, widths, flags, 0, 0xFFFF, 1); // cppcheck-suppress uninitvar
 
     lString32 hyphenation;
     size_t i;
@@ -1498,7 +1532,7 @@ lString32 UserHyphDict::getHyphenation(const char *word)
     return hyphenation;
 }
 
-bool UserHyphDict::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
+bool UserHyphDict::hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize )
 {
     if ( !UserHyphDict::hasWords() ) {
         return false;
@@ -1512,28 +1546,30 @@ bool UserHyphDict::hyphenate( const lChar32 * str, int len, lUInt16 * widths, lU
     char mask[WORD_LENGTH+4] = { 0 };
 
     // Make word from str, with soft-hyphens stripped out.
-    int wlen;
-    int w = 0;
+    int wlen = 0;
     for ( int i=0; i<len; i++ ) {
         if ( str[i] != UNICODE_SOFT_HYPHEN_CODE ) {
-            word[w++] = str[i];
+            word[wlen++] = str[i];
         }
     }
-    wlen = w-1;
-    if ( wlen<3 ) // don't hyphenate words with three letters
+    if ( wlen<=3 ) // don't hyphenate words with three letters
         return false;
     lStr_lowercase(word, wlen);
     // printf("word:%s => #%s# (%d => %d)\n", LCSTR(lString32(str, len)), LCSTR(lString32(word)), len, wlen);
-    memset( mask, '0', wlen+3 );
+    memset( mask, '0', wlen+2 );
 
     if ( !UserHyphDict::getMask(word, mask) ) {
         return false;
     }
 
-    for ( int i = 0 ; i<len ; ++i ) {
+    for ( int i = 0, soft_hyphen_offset = 0; i<len ; ++i ) {
+        if ( str[i] == UNICODE_SOFT_HYPHEN_CODE ) {
+             soft_hyphen_offset++;
+             continue;
+        }
         if ( widths[i] + hyphCharWidth > maxWidth )
             break;
-        if ( mask[i] == '1' ) {
+        if ( mask[i-soft_hyphen_offset] == '1' ) {
             if ( flagSize == 2 ) {
                 lUInt16* flags16 = (lUInt16*) flags;
                 flags16[i] |= LCHAR_ALLOW_HYPH_WRAP_AFTER;

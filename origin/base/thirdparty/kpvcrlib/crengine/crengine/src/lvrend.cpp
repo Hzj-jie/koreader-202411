@@ -11,12 +11,16 @@
 
 *******************************************************/
 
+#include "crsetup.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include "../include/lvtextfm.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
 #include "../include/lvrend.h"
+#include "../include/renderutil.h"
+#include "../include/drawutil.h"
 
 // Note about box model/sizing in crengine:
 // https://quirksmode.org/css/user-interface/boxsizing.html says:
@@ -1327,7 +1331,7 @@ public:
                 table_paddings_width = 0;
                 if ( !border_collapse ) { // padding were not applied when border-collapse
                     table_paddings_width += lengthToPx(elem, table_style->padding[0], table_width);
-                    table_paddings_width += lengthToPx(elem, table_style->padding[0], table_width);
+                    table_paddings_width += lengthToPx(elem, table_style->padding[1], table_width);
                 }
                 assignable_width = table_width - table_outer_borders_width - table_paddings_width - table_borderspacings_width;
                 restw = assignable_width - min_needed_width;
@@ -1540,7 +1544,7 @@ public:
                             const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
                             if ( src && src->object ) {
                                 ldomNode * node = (ldomNode*)src->object;
-                                ldomNode * parent = node->getParentNode();
+                                ldomNode * parent = node->getEffectiveParentNode();
                                 while (parent && parent->getNodeId() != el_a)
                                     parent = parent->getParentNode();
                                 if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href)
@@ -1757,7 +1761,7 @@ public:
                                         const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
                                         if ( src && src->object ) {
                                             ldomNode * node = (ldomNode*)src->object;
-                                            ldomNode * parent = node->getParentNode();
+                                            ldomNode * parent = node->getEffectiveParentNode();
                                             while (parent && parent->getNodeId() != el_a)
                                                 parent = parent->getParentNode();
                                             if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href)
@@ -2312,10 +2316,29 @@ public:
             MathML_checkAndTweakTableElement();
         #endif
         if ( is_ruby_table && rows.length() >= 2 ) {
-            // Move 2nd row (first ruby annotation) to 1st position,
-            // so base ruby text (initially 1st row) becomes 2nd
-            rows.move(0, 1);
-            rows_rendering_reordered = true;
+            // We may have to move rows around: row 0 is the base row, and
+            // we just need to move any "over" row at position 0 (later
+            // "over" and "under" row end up farther from the base row).
+            bool prev_was_over = false; // so first "alternate" goes over
+            for ( int i=1; i<rows.length(); i++ ) {
+                CCRTableRow * row = rows[i];
+                css_ruby_position_t ruby_position = css_rp_alternate;
+                if ( row->elem ) {
+                    css_style_ref_t row_style = row->elem->getStyle();
+                    if ( !row_style.isNull() ) {
+                        ruby_position = row_style->ruby_position;
+                    }
+                }
+                if ( ruby_position <= css_rp_alternate ) {
+                    ruby_position = prev_was_over ? css_rp_under : css_rp_over;
+                }
+                bool is_over = ruby_position == css_rp_over;
+                prev_was_over = is_over;
+                if ( is_over ) {
+                    rows.move(0, i);
+                    rows_rendering_reordered = true;
+                }
+            }
         }
         PlaceCells();
         if ( enhanced_rendering && rows_rendering_reordered ) {
@@ -2356,7 +2379,8 @@ bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 )
         && (style1->font_size == style2->font_size)
         && (style1->font_style == style2->font_style)
         && (style1->font_name == style2->font_name)
-        && (style1->font_weight == style2->font_weight);
+        && (style1->font_weight == style2->font_weight)
+        && (style1->font_width == style2->font_width);
 }
 
 static int rend_font_base_weight = 400;
@@ -2375,7 +2399,12 @@ int LVRendGetBaseFontWeight()
     return rend_font_base_weight;
 }
 
-LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
+/// docFragmentIdx: pass the node's DocFragment sibling index if the caller already
+/// knows it (eg. from a traversal that tracks it), or leave at the default to
+/// have it looked up by walking up from node (see ldomNode::getDocFragmentIdx()).
+/// This walk-up is meant as a fallback for callers that don't already know
+/// the DocFragment they're working in.
+LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId, int docFragmentIdx)
 {
     int sz;
     if ( style->font_size.type == css_val_em || style->font_size.type == css_val_ex ||
@@ -2395,8 +2424,8 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
     if ( sz > 340 )
         sz = 340;
     int fw;
-    if (style->font_weight>=css_fw_100 && style->font_weight<=css_fw_900)
-        fw = ((style->font_weight - css_fw_100)+1) * 100;
+    if (style->font_weight >= 1 && style->font_weight <= 1000)
+        fw = (int)style->font_weight;
     else
         fw = 400;
     fw += (rend_font_base_weight - 400);
@@ -2410,6 +2439,17 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
     else if ( fw>999 )
         fw = 999;
     // printf("cssd_font_family: %d %s", style->font_family, style->font_name.c_str());
+    // wght/ital are passed via the weight/italic params below, not here:
+    // GetFont's computeVariations() derives those from weight/italic and
+    // ignores requested.wght/requested.ital.
+    LVFontVariations variations;
+    if (style->font_optical_sizing != css_fos_none && gRenderDPI >= 100)
+        variations.set(LVFONT_TAG_OPSZ, sz * 72.0f / (float)gRenderDPI);
+    // font-width: selects among static width faces, and sets the wdth axis of variable ones.
+    if (style->font_width != css_fwd_normal)
+        variations.set(LVFONT_TAG_WDTH, style->font_width / 10.0f);
+    if (docFragmentIdx == DOC_FRAGMENT_IDX_UNKNOWN)
+        docFragmentIdx = (documentId != -1) ? node->getDocFragmentIdx() : -1;
     LVFontRef fnt = fontMan->GetFont(
         sz,
         fw,
@@ -2417,27 +2457,30 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
         style->font_family,
         lString8(style->font_name.c_str()),
         style->font_features.value, // (.type is always css_val_unspecified after setNodeStyle())
-        documentId, true); // useBias=true, so that our preferred font gets used
+        documentId, true, // useBias=true, so that our preferred font gets used
+        variations.empty() ? NULL : &variations,
+        docFragmentIdx);
     //fnt = LVCreateFontTransform( fnt, LVFONT_TRANSFORM_EMBOLDEN );
     return fnt;
 }
 
-inline lUInt32 getBackgroundColor(const css_style_ref_t style)
+inline lUInt32 getBackgroundColor(const css_style_ref_t style, lUInt32 parentBackgroundColor)
 {
         if ( style->background_color.type == css_val_color ) {
             if ( IS_COLOR_FULLY_TRANSPARENT(style->background_color.value) ) {
-                return LTEXT_COLOR_CURRENT; // keep using current background color
+                // If "transparent", we somehow ensure its inheritance from the parent
+                return parentBackgroundColor;
             }
             return LTEXT_COLOR_IS_RESERVED(style->background_color.value) ? LTEXT_COLOR_RESERVED_REPLACE : style->background_color.value;
         }
         // Othewise, it is (css_val_unspecified, css_generic_currentcolor), and we must use the font color.
         if ( style->color.type == css_val_color ) { // should always be true
             if ( IS_COLOR_FULLY_TRANSPARENT(style->color.value) ) {
-                return LTEXT_COLOR_CURRENT; // keep using current background color
+                return parentBackgroundColor;
             }
             return LTEXT_COLOR_IS_RESERVED(style->color.value) ? LTEXT_COLOR_RESERVED_REPLACE : style->color.value;
         }
-        return LTEXT_COLOR_CURRENT;
+        return parentBackgroundColor;
 }
 
 inline lUInt32 getForegroundColor(const css_style_ref_t style)
@@ -2550,6 +2593,72 @@ lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt
     return flg;
 }
 
+// Returns the used line-height in screen px for a node style.
+// All related values (%, em, ex, unitless) apply their factor to font->getSize().
+// Only "normal" uses font->getHeight(). Absolute units and rem-like units are
+// handled by lengthToPx().
+static int getLineHeightPx(ldomNode * node, css_style_rec_t * style, LVFontRef font)
+{
+    ldomDocument * doc = node->getDocument();
+    if ( style->line_height.type == css_val_screen_px ) {
+        // (If in screen_px, interline_scale_factor has already been
+        // applied in  setNodeStyle() when inherited.)
+        return style->line_height.value;
+    }
+    int line_h;
+    if ( style->line_height.type == css_val_unspecified && style->line_height.value == css_generic_normal ) {
+        line_h = font->getHeight();
+    }
+    else if ( style->line_height.type == css_val_lh || style->line_height.type == css_val_rlh
+            || style->line_height.type == css_val_urlh ) {
+        // setNodeStyle() resolves line-height: lh/rlh to screen_px, so seeing them
+        // here mostly means we are being asked too early: fall back to the font height.
+        line_h = font->getHeight();
+    }
+    else {
+        // In all other cases (%, em, unitless/unspecified), we can just
+        // scale 'em', and use the computed value for absolute sized
+        // values and 'rem' (related to root element font size).
+        int em = font->getSize();
+        line_h = lengthToPx(node, style->line_height, em, em, true);
+        if ( line_h < 0 )
+            line_h = font->getHeight();
+    }
+    // Scale line_h according to document's _interlineScaleFactor
+    int interline_scale_factor = doc->getInterlineScaleFactor();
+    if ( interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE )
+        line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
+    return line_h;
+}
+
+static int getUserRootLineHeightPx(ldomDocument * doc)
+{
+    // Our private u* root units stay anchored to the document default font,
+    // ie. the user/UI root baseline rather than the publisher's <html> style.
+    int line_h = doc->getDefaultFont()->getHeight();
+    int interline_scale_factor = doc->getInterlineScaleFactor();
+    if ( interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE )
+        line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
+    return line_h;
+}
+
+static ldomNode * getRootUnitNode(ldomNode * node)
+{
+    // The CSS root can be the real <html>/<FictionBook>, or a DocFragment in
+    // EPUB/CHM where <html> has been rewritten to that fragment wrapper. Walk up
+    // from the current node so rem/rlh stay local to the current fragment.
+    for ( ldomNode * n = node; n; n = n->getParentNode() ) {
+        lUInt16 node_id = n->getNodeId();
+        if ( node_id == el_DocFragment || node_id == el_html || node_id == el_FictionBook )
+            return n;
+    }
+    ldomDocument * doc = node->getDocument();
+    ldomNode * root = doc->getRootNode();
+    if ( root && root->getChildCount() > 0 )
+        root = root->getChildNode(0);
+    return root;
+}
+
 // Convert CSS value (type + number value) to screen px
 int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, bool unspecified_as_em )
 {
@@ -2605,8 +2714,45 @@ int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, boo
         break;
     }
 
-    case css_val_rem: // value = rem*256 (font size of the root element)
+    case css_val_urem: // value = urem*256 (engine/user root font size)
         px = (node->getDocument()->getDefaultFont()->getSize() * val.value) >> 8;
+        break;
+    case css_val_rem: // value = rem*256 (font size of the document root element)
+        {
+            ldomNode * root = getRootUnitNode(node);
+            // When the actual root element font is not available yet (typically
+            // while we are computing it), rem falls back to the initial document default.
+            int root_font_size = root && !root->getFont().isNull()
+                    ? root->getFont()->getSize()
+                    : node->getDocument()->getDefaultFont()->getSize();
+            px = (root_font_size * val.value) >> 8;
+        }
+        break;
+    case css_val_rex:
+    case css_val_rch: // Same approximation as ex/ch, but from the document root element font size.
+        {
+            ldomNode * root = getRootUnitNode(node);
+            int root_font_size = root && !root->getFont().isNull()
+                    ? root->getFont()->getSize()
+                    : node->getDocument()->getDefaultFont()->getSize();
+            px = (root_font_size * val.value) >> 9;
+        }
+        break;
+
+    case css_val_urlh: // engine/user root line height
+        px = (getUserRootLineHeightPx(node->getDocument()) * val.value) >> 8;
+        break;
+    case css_val_lh:
+        px = (getLineHeightPx(node, node->getStyle().get(), node->getFont()) * val.value) >> 8;
+        break;
+    case css_val_rlh:
+        {
+            ldomNode * root = getRootUnitNode(node);
+            int root_line_h = root && !root->getStyle().isNull() && !root->getFont().isNull()
+                    ? getLineHeightPx(root, root->getStyle().get(), root->getFont())
+                    : getUserRootLineHeightPx(node->getDocument());
+            px = (root_line_h * val.value) >> 8;
+        }
         break;
 
     /* absolute value, less often used - value = unit*256 */
@@ -2630,6 +2776,10 @@ int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, boo
     case css_val_pc: // 12 pt     6pc = 96px
         if (gRenderDPI)
             px = 96 * value / 6 >> 8;
+        break;
+    case css_val_q: // 40q = 1cm = 96/2.54px
+        if (gRenderDPI)
+            px = (int)(96 * value / 101.6) >> 8;
         break;
     case css_val_vw: {
         int page_width = node->getDocument()->getPageWidth();
@@ -2668,7 +2818,10 @@ int lengthToPx( ldomNode * node, css_length_t val, int base_px, int base_em, boo
 bool is_length_relative_unit(css_length_t val)
 {
     return (val.type == css_val_percent || val.type == css_val_em ||
-            val.type == css_val_ex || val.type == css_val_ch || val.type == css_val_rem ||
+            val.type == css_val_ex || val.type == css_val_ch ||
+            val.type == css_val_rem || val.type == css_val_urem ||
+            val.type == css_val_rex || val.type == css_val_rch ||
+            val.type == css_val_lh || val.type == css_val_rlh || val.type == css_val_urlh ||
             val.type == css_val_vw || val.type == css_val_vh ||
             val.type == css_val_vmin || val.type == css_val_vmax);
 }
@@ -2740,7 +2893,7 @@ bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, in
                         && (gRenderDPI > 0 || style->max_height.type < css_val_in || style->max_height.type > css_val_pc) )
         max_height = lengthToPx(enode, style->max_height, container_height);
 
-    if ( enforce_page_constraints ) {
+    if ( enforce_page_constraints && !STYLE_HAS_CR_HINT(style, NO_CAP_IMAGE_SIZE) ) {
         // lvtextfm.cpp, when drawing an image, will resize it so it does not overflow
         // the paragraph width and page height. If requested, have max_height and
         // max_width ensure that this resizing will not be needed.
@@ -2783,9 +2936,10 @@ bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, in
         //     https://wiki.mozilla.org/SVG:Sizing
         //     https://docs.google.com/presentation/d/1POUiroOBbLmXYlQKf0pIR8zVkHWH9jRVN-w8A4aNsIk/
         //     https://oreillymedia.github.io/Using_SVG/guide/units.html
-        //   ie. <svg width="100%" height="100%" viewBox="0 0 509 800" preserveAspectRatio="xMidYMid meet">
-        //   SVG wrappers for cover images use width="100%" and height="100%"
-        //   So, assume the % to be relative to the container width and the page height
+        //   We still resolve a % width against the known container width, as that gives
+        //   sensible results for the common wrappers like:
+        //     <svg width="100%" height="100%" viewBox="0 0 509 800" ...>
+        //   But for height we only resolve % when we have a definite container height.
         lString32 at_width = enode->getAttributeValue(attr_width);
         if ( !at_width.empty() ) {
             lString8 s8 = UnicodeToUtf8(at_width);
@@ -2804,8 +2958,20 @@ bool getStyledImageSize( ldomNode * enode, int & img_width, int & img_height, in
             css_length_t svg_h;
             if ( parse_number_value(s, svg_h) ) {
                 if ( svg_h.type == css_val_percent ) {
-                    int ref_height = enode->getDocument()->getPageHeight() - enode->getSurroundingAddedHeight(true);
-                    height = lengthToPx(enode, svg_h, ref_height);
+                    if ( container_height >= 0 ) {
+                        height = lengthToPx(enode, svg_h, container_height);
+                    }
+                    // We used to have:
+                    //  int ref_height = enode->getDocument()->getPageHeight() - enode->getSurroundingAddedHeight(true);
+                    //  height = lengthToPx(enode, svg_h, ref_height);
+                    // to treat height="100%" as "page height", but this makes
+                    // inline or inline-block SVG wrappers spuriously page-tall.
+                    // But it seems we can just leave it unset: the generic used-value
+                    // sizing code below will derive the missing height from the
+                    // resolved width and the SVG intrinsic aspect ratio.
+                    // Then, when formatted by lvtextfm.cpp, it may be scaled down
+                    // further so the final rendered height, plus surrounding
+                    // margins/borders/padding, does not overflow the page height.
                 }
                 else if ( is_length_relative_unit(svg_h) ) {
                     height = lengthToPx(enode, svg_h, 0);
@@ -3127,17 +3293,7 @@ lString32 renderListItemMarker( ldomNode * enode, int & marker_width, int * fina
         // kind of background, if inside it has already been drawn)
         lUInt32 bgcl = LTEXT_COLOR_TRANSPARENT;
         if (line_h < 0) { // -1, not specified by caller: find it out from the node
-            if ( style->line_height.type == css_val_unspecified &&
-                        style->line_height.value == css_generic_normal ) {
-                line_h = font->getHeight(); // line-height: normal
-            }
-            else {
-                int em = font->getSize();
-                line_h = lengthToPx(enode, style->line_height, em, em, true);
-            }
-            // Scale line_h according to document's _interlineScaleFactor
-            if (style->line_height.type != css_val_screen_px && doc->getInterlineScaleFactor() != INTERLINE_SCALE_FACTOR_NO_SCALE)
-                line_h = (line_h * doc->getInterlineScaleFactor()) >> INTERLINE_SCALE_FACTOR_SHIFT;
+            line_h = getLineHeightPx(enode, style.get(), font);
             if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) )
                 flags |= LTEXT_STRUT_CONFINED;
             if ( final_line_h ) {
@@ -3245,26 +3401,46 @@ bool renderAsListStylePositionInside( const css_style_ref_t style, bool is_rtl=f
 //   int h = LFormattedTextRef->Format((lUInt16)width, (lUInt16)page_h)
 // to do the actual width-constrained rendering of the AddSource*'ed objects.
 // Note: fmt is the RenderRectAccessor of the final block itself, and is passed
-// as is to the inline children elements: it is only used to get the width of
-// the container, which is only needed to compute indent (text-indent) values in %,
-// and to get paragraph direction (LTR/RTL/UNSET).
+// as is to the inline children elements: it is used to get the container width
+// for text-indent:NN%, paragraph direction (LTR/RTL/UNSET), and the height:NN%
+// base to keep in the formatter for measuring inline images.
 void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & baseflags,
-                       int indent, int line_h, TextLangCfg * lang_cfg, int valign_dy, bool * is_link_start,
-                       lString32 running_bidi_ctrlchars )
+                       int indent, int line_h, TextLangCfg * lang_cfg, lUInt32 bgcolor, int valign_dy,
+                       bool * is_link_start, lString32 running_bidi_ctrlchars )
 {
+    // In here, we use the *Effective* variants of most enode methods (except getStyle()/getFont()),
+    // to handle cloneNodes involved in the rendering of ::first-line. More details below.
+    // (cloneNodes being added for the ::first-line on a final block, we need to mostly only
+    // use them here, in a few other places dealing with erm_final block (ie. getRenderedWidths(),
+    // getRect() and createXPointer(pt)), and for footnote links in renderBlockElement().
+    // It's possible some other use of them elsewhere is needed, but has not yet been discovered.)
+    // Note: we now also pass cloneNodes for objects (floats and inline-block boxes, but not images),
+    // which needs renderBlockElementEnhanced() to also use a few *Effective* variants.
+
+    if ( baseflags & LTEXT_IS_FIRST_LINE_ENOUGH ) {
+        // Still a children of pseudoElem[FirstLine], but we have met a <br/> and
+        // we no longer need to AddSourceLine() them.
+        return;
+    }
+
     bool legacy_rendering = !BLOCK_RENDERING_N(enode, ENHANCED);
-    if ( enode->isElement() ) {
+    if ( enode->isEffectiveElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
         if ( rm == erm_invisible )
             return; // don't draw invisible
 
-        if ( enode->hasAttribute( attr_lang ) ) {
-            lString32 lang_tag = enode->getAttributeValue( attr_lang );
+        if ( rm == erm_final ) {
+            // txform may need it for inline images sizing
+            txform->setPercentHeightBase(fmt->getPercentHeightBase());
+        }
+
+        if ( enode->hasEffectiveAttribute( attr_lang ) ) {
+            lString32 lang_tag = enode->getEffectiveAttributeValue( attr_lang );
             if ( !lang_tag.empty() )
                 lang_cfg = TextLangMan::getTextLangCfg( lang_tag );
         }
 
-        if ( enode->isFloatingBox() && rm != erm_final ) {
+        if ( enode->isEffectiveFloatingBox() && rm != erm_final ) {
             // (A floating floatBox can't be erm_final: it is always erm_block,
             // but let's just be sure of that.)
             // If we meet a floatBox here, it's an embedded float (a float
@@ -3281,9 +3457,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
 
         css_style_ref_t style = enode->getStyle();
 
-        bool is_object = enode->isImage();
+        bool is_object = enode->isEffectiveImage();
         // inline-block boxes are handled below quite just like inline images/is_object
-        bool is_inline_box = enode->isBoxingInlineBox();
+        bool is_inline_box = enode->isEffectiveBoxingInlineBox();
 
         int direction = RENDER_RECT_PTR_GET_DIRECTION(fmt);
         bool is_rtl = direction == REND_DIRECTION_RTL;
@@ -3340,12 +3516,36 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         //   for them), and should carry inherited text decoration, vertical alignment
         //   and whitespace-pre state.
 
+        // A pseudoElem[FirstLine] contains only <cloneNode>s: they will each carry the
+        // style and font as styled by the ::first-line style. But for everything else (text,
+        // attributes), we will need to fetch them from the cloneNode's source, so the use
+        // of the isEffective/getEffective* variants of many ldomNode methods above and below.
+        // We flag the fragments we will add from these cloneNodes with LTEXT_IS_FIRST_LINE_CLONE,
+        // so that lvtextfm.cpp can skip the sequence once it has added the first line, and
+        // can resume from the normal text sequence.
+        bool is_pseudoElem_FirstLine = enode->getNodeId() == el_pseudoElem && enode->hasAttribute(attr_FirstLine);
+        if ( is_pseudoElem_FirstLine ) {
+            flags |= LTEXT_IS_FIRST_LINE_CLONE;
+        }
+        // About background-color:
+        // If erm_final, the background will be drawn by DrawDocument, and should not
+        // be drawn by the LFormattedText txform.
+        // Inline nodes' background color (CSS initial value is 'transparent') can specify
+        // a background-color, that will be passed to txform->AddSourceLine() to be drawn
+        // (if non-transparent) by lvtextfm->Draw().
+        // If some upper inline node has set a background color, it should be passed, to be
+        // drawn by, to its children inline nodes (so, getBackgroundColor() somehow ensures
+        // its inheritance among inline nodes; the CSS specs have it non-inheritable, so
+        // it is not handled by CSS).
+        lUInt32 bgcl = rm == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style, bgcolor);
+
         int width = fmt->getWidth();
         const int em = enode->getFont()->getSize();
 
         // Nodes with "display: run-in" are inline nodes brought at start of the final node
         bool isRunIn = style->display == css_d_run_in;
         if ( isRunIn ) {
+            // (Not modified and not tested with ::first-line.)
             // The text alignment of the paragraph should come from the following
             // sibling node. The one set from the parent final node has probably
             // not yet been consumed, so update it.
@@ -3447,6 +3647,15 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             }
         }
 
+        // Applied initial-letter uses a dedicated rendering layout bundle containing:
+        // the enlarged font, the line-height for the drawn run, and, when possible,
+        // a tighter ink-based inner band for the pseudo final block itself.
+        InitialLetterTextLayout initial_letter_layout;
+        bool has_initial_letter_layout = getInitialLetterTextLayout(enode, line_h, initial_letter_layout);
+        if ( has_initial_letter_layout && initial_letter_layout.tightened ) {
+            line_h = initial_letter_layout.line_height;
+        }
+
         if ( (flags & LTEXT_FLAG_NEWLINE) && ( rm == erm_final || ( legacy_rendering && is_block ) ) ) {
             // Top and single 'final' node (unless in the degenerate case
             // of obsolete css_d_list_item_legacy):
@@ -3543,7 +3752,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 int fh = enode->getFont()->getHeight();
                 int fb = enode->getFont()->getBaseline();
                 int f_half_leading = (line_h - fh) / 2;
-                txform->setStrut(line_h, fb + f_half_leading);
+                int strut_baseline = fb + f_half_leading;
+                if ( has_initial_letter_layout ) {
+                    strut_baseline = initial_letter_layout.strut_baseline;
+                }
+                txform->setStrut(line_h, strut_baseline);
             }
         }
         else if ( STYLE_HAS_CR_HINT(style, STRUT_CONFINED) ) {
@@ -3730,19 +3943,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 valign_dy -= lengthToPx(enode, vertical_align, base_pct, base_em);
             }
         }
-        switch ( style->text_decoration ) {
-            case css_td_underline:
-            case css_td_blink: // (render it underlined)
-                flags |= LTEXT_TD_UNDERLINE;
-                break;
-            case css_td_overline:
-                flags |= LTEXT_TD_OVERLINE;
-                break;
-            case css_td_line_through:
-                flags |= LTEXT_TD_LINE_THROUGH;
-                break;
-            default:
-                break;
+        if ( (style->text_decoration & css_td_underline) || (style->text_decoration & css_td_blink) ) {
+            flags |= LTEXT_TD_UNDERLINE; // (render blink as underline)
+        }
+        if ( style->text_decoration & css_td_overline ) {
+            flags |= LTEXT_TD_OVERLINE;
+        }
+        if ( style->text_decoration & css_td_line_through ) {
+            flags |= LTEXT_TD_LINE_THROUGH;
         }
         switch ( style->hyphenate ) {
             case css_hyph_auto:
@@ -3758,7 +3966,8 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         // Firefox has some specific behaviour with floats, which
         // is not obvious from the specs. Let's do as it does.
         // It looks like we should do the same for inline-block boxes
-        if ( parent && (parent->isFloatingBox() || parent->isBoxingInlineBox()) ) {
+        // (Not modified and not tested with ::first-line, if this can ever happen.)
+        if ( parent && (parent->isEffectiveFloatingBox() || parent->isEffectiveBoxingInlineBox()) ) {
             if ( rm == erm_final && is_object ) {
                 // When an image is the single top final node in a float (which is
                 // the case for individual floating images (<IMG style="float: left">),
@@ -3787,6 +3996,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         }
 
         if ( style->display == css_d_list_item_legacy ) { // obsolete (used only when gDOMVersionRequested < 20180524)
+            // (Not modified and not tested with ::first-line)
             // put item number/marker to list
             lString32 marker;
             int marker_width = 0;
@@ -3816,7 +4026,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 css_list_style_position_t sp = style->list_style_position;
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = getForegroundColor(style);
-                lUInt32 bgcl = getBackgroundColor(style);
                 int margin = 0;
                 if ( sp >= css_lsp_outside )
                     margin = -marker_width; // will ensure negative/hanging indent-like rendering
@@ -3837,8 +4046,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // list_item_block rendered as final (containing only text and inline elements)
             // (we don't draw anything when list-style-type=none)
             if ( renderAsListStylePositionInside(style, is_rtl) && style->list_style_type != css_lst_none ) {
+                // This may be emitted before a pseudoElem[FirstLine]: check if we will have one
+                lUInt32 flags_firstline = 0;
+                if (enode->getChildCount() > 0) {
+                    ldomNode * child = enode->getChildNode(0);
+                    if ( child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_FirstLine) && child->getRendMethod() != erm_invisible ) {
+                        flags_firstline = LTEXT_IS_FIRST_LINE_CLONE;
+                    }
+                }
                 int marker_width;
-                lString32 marker = renderListItemMarker( enode, marker_width, NULL, txform, flags, line_h );
+                lString32 marker = renderListItemMarker( enode, marker_width, NULL, txform, flags|flags_firstline, line_h );
                 if ( marker.length() ) {
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
                 }
@@ -3856,8 +4073,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             int listPropNodeIndex = fmt->getListPropNodeIndex();
             if ( listPropNodeIndex ) {
                 ldomNode * list_item_block_parent = enode->getDocument()->getTinyNode( listPropNodeIndex );
+                // This may be emitted before a pseudoElem[FirstLine]: check if we will have one
+                lUInt32 flags_firstline = 0;
+                if (enode->getChildCount() > 0) {
+                    ldomNode * child = enode->getChildNode(0);
+                    if ( child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_FirstLine) && child->getRendMethod() != erm_invisible ) {
+                        flags_firstline = LTEXT_IS_FIRST_LINE_CLONE;
+                    }
+                }
                 int marker_width;
-                lString32 marker = renderListItemMarker( list_item_block_parent, marker_width, NULL, txform, flags, line_h );
+                lString32 marker = renderListItemMarker( list_item_block_parent, marker_width, NULL, txform, flags|flags_firstline, line_h );
                 if ( marker.length() ) {
                     flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH;
                 }
@@ -3916,9 +4141,9 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // If block image, forget any current flags and start from baseflags (?)
                 lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
                 flags |= linkflags;
-                lString32 suptitle = enode->getAttributeValue(attr_suptitle);
-                lString32 subtitle = enode->getAttributeValue(attr_subtitle);
-                lString32 title = enode->getAttributeValue(attr_title);
+                lString32 suptitle = enode->getEffectiveAttributeValue(attr_suptitle);
+                lString32 subtitle = enode->getEffectiveAttributeValue(attr_subtitle);
+                lString32 title = enode->getEffectiveAttributeValue(attr_title);
                 if ( !suptitle.empty() || !subtitle.empty() || !title.empty() ) {
                     // If any of these exist and are not empty, we add them around the images.
                     // We can't easily ensure and adequate height to the image so they all fit
@@ -3926,14 +4151,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                     // as done below with standalone block images.
                     LVFontRef font = enode->getFont();
                     lUInt32 cl = getForegroundColor(style);
-                    lUInt32 bgcl = LTEXT_COLOR_CURRENT; // erm_final: any background will be drawn by DrawDocument
                     if ( !suptitle.empty() ) {
                         lString32Collection lines;
                         lines.parse(suptitle, cs32("\\n"), true);
                         for ( int i=0; i<lines.length(); i++ )
                             txform->AddSourceLine( lines[i].c_str(), lines[i].length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode );
                     }
-                    txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode, lang_cfg );
+                    txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode->getEffectiveNode(), lang_cfg );
                     if ( !subtitle.empty() ) {
                         lString32Collection lines;
                         lines.parse(subtitle, cs32("\\n"), true);
@@ -3954,7 +4178,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                         line_h = 0;
                         indent = 0;
                     }
-                    txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode, lang_cfg );
+                    txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode->getEffectiveNode(), lang_cfg );
                 }
 
             }
@@ -3970,13 +4194,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // Forget any current flags and start from baseflags
                 lUInt32 flags = styleToTextFmtFlags( true, enode->getStyle(), baseflags, direction );
                 flags |= linkflags;
-                txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode, lang_cfg );
+                txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode->getEffectiveNode(), lang_cfg );
             }
             else { // inline image
                 // We use the flags computed previously (and not baseflags) as they
                 // carry vertical alignment
                 flags |= linkflags;
-                txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode, lang_cfg );
+                txform->AddSourceObject(flags, LTEXT_OBJECT_IS_IMAGE, line_h, valign_dy, indent, enode->getEffectiveNode(), lang_cfg );
                 flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
             }
         }
@@ -3984,7 +4208,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             #ifdef DEBUG_DUMP_ENABLED
                 logfile << "+INLINEBOX ";
             #endif
-            if ( enode->isEmbeddedBlockBoxingInlineBox() ) {
+            if ( enode->isEffectiveEmbeddedBlockBoxingInlineBox() ) {
                 // If embedded-block wrapper: it should not be part of the lines
                 // made by the surrounding text/elements: we should ensure a new
                 // line before and after it.
@@ -4048,11 +4272,11 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // Usual elements
 
             // Some elements add some generated content
-            lUInt16 nodeElementId = enode->getNodeId();
+            lUInt16 nodeElementId = enode->getEffectiveNodeId();
             // Don't handle dir= for the erm_final (<p dir="auto"), as it would "isolate"
             // the whole content from the bidi algorithm and we would get a default paragraph
             // direction of LTR. It is handled directly in lvtextfm.cpp.
-            bool hasDirAttribute = rm != erm_final && enode->hasAttribute( attr_dir );
+            bool hasDirAttribute = rm != erm_final && enode->hasEffectiveAttribute( attr_dir );
             bool addGeneratedContent = hasDirAttribute ||
                                        nodeElementId == el_bdi ||
                                        nodeElementId == el_bdo ||
@@ -4067,9 +4291,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // char before, this other char would generate a new line.
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = getForegroundColor(style);
-                // If erm_final, the background will be drawn by DrawDocument, and should not
-                // be drawn by the LFormattedText txform
-                lUInt32 bgcl = rm == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style);
 
                 // The following is needed for fribidi to do the right thing when the content creator
                 // has provided hints to explicite ambiguous cases.
@@ -4077,7 +4298,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // When meeting them, we add the equivalent unicode opening and closing chars so
                 // that fribidi (working on text only) can ensure what's specified with HTML tags.
                 // See http://unicode.org/reports/tr9/#Markup_And_Formatting
-                lString32 dir = enode->getAttributeValueLC( attr_dir );
+                lString32 dir = enode->getEffectiveAttributeValueLC( attr_dir );
                 if ( nodeElementId == el_bdo ) {
                     // <bdo> (bidirectional override): prevents the bidirectional algorithm from
                     //       rearranging the sequence of characters it encloses
@@ -4169,13 +4390,62 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // BiDi stuff had to be outputed first, before any pseudo element
                 // (if <q dir="rtl">...</q>, the added quote (first child pseudo element)
                 // should be inside the RTL bidi isolation.
-                if ( nodeElementId == el_pseudoElem ) {
-                    lString32 content = get_applied_content_property(enode);
+                if ( nodeElementId == el_pseudoElem && (enode->hasEffectiveAttribute(attr_Before) || enode->hasEffectiveAttribute(attr_After)) ) {
+                    lString32 content = get_applied_content_property(enode->getEffectiveNode());
                     if ( !content.empty() ) {
+                        switch (style->text_transform) {
+                            case css_tt_uppercase: content.uppercase(); break;
+                            case css_tt_lowercase: content.lowercase(); break;
+                            case css_tt_capitalize: content.capitalize(); break;
+                            case css_tt_full_width: break;
+                            case css_tt_none: break;
+                            case css_tt_inherit: break;
+                        }
                         int em = font->getSize();
                         int letter_spacing = lengthToPx(enode, style->letter_spacing, em);
                         txform->AddSourceLine( content.c_str(), content.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode, 0, letter_spacing);
                         flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+                    }
+                }
+                if ( nodeElementId == el_pseudoElem && enode->hasEffectiveAttribute(attr_FirstLetter) ) {
+                    // Skip rendering if display:none
+                    if ( style->display != css_d_none ) {
+                        int firstLetterEnd = enode->getEffectiveAttributeValue(attr_FirstLetter).atoi();
+                        // Find the next sibling text node
+                        ldomNode * textNode = enode->getEffectiveFirstLetterTextNode();
+                        if ( textNode && firstLetterEnd > 0 ) {
+                            lString32 txt = textNode->getText();
+                            if ( txt.length() >= firstLetterEnd ) {
+                                // Extract first N characters for the first-letter
+                                lString32 firstLetterTxt = txt.substr(0, firstLetterEnd);
+                                switch (style->text_transform) {
+                                    case css_tt_uppercase: firstLetterTxt.uppercase(); break;
+                                    case css_tt_lowercase: firstLetterTxt.lowercase(); break;
+                                    case css_tt_capitalize: firstLetterTxt.capitalize(); break;
+                                    case css_tt_full_width: break;
+                                    case css_tt_none: break;
+                                    case css_tt_inherit: break;
+                                }
+                                int first_letter_line_h = line_h;
+                                LVFontRef initial_letter_font;
+                                if ( has_initial_letter_layout ) {
+                                    first_letter_line_h = initial_letter_layout.first_letter_line_height;
+                                    initial_letter_font = initial_letter_layout.font;
+                                    if ( !initial_letter_font.isNull() ) {
+                                        font = initial_letter_font;
+                                    }
+                                }
+                                int em = enode->getFont()->getSize();
+                                int letter_spacing = lengthToPx(enode, style->letter_spacing, em);
+                                // This is currently the only case where we pass to AddSourceLine()
+                                // a 'LVFontRef retained_font' with our initial_letter_font. It is actually
+                                // the same font as passed as 'font', but its LVFontRef must additionally
+                                // be passed for our here-local initial_letter_font to be kept alive for
+                                // later drawing after we have left this scope.
+                                txform->AddSourceLine( firstLetterTxt.c_str(), firstLetterTxt.length(), cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, first_letter_line_h, valign_dy, indent, enode, 0, letter_spacing, initial_letter_font );
+                                flags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
+                            }
+                        }
                     }
                 }
             }
@@ -4191,13 +4461,12 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             for (int i=0; i<cnt; i++)
             {
                 ldomNode * child = enode->getChildNode( i );
-                renderFinalBlock( child, txform, fmt, flags, indent, line_h, lang_cfg, valign_dy, is_link_start_p, running_bidi_ctrlchars );
+                renderFinalBlock( child, txform, fmt, flags, indent, line_h, lang_cfg, bgcl, valign_dy, is_link_start_p, running_bidi_ctrlchars );
             }
 
             if ( addGeneratedContent ) {
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = getForegroundColor(style);
-                lUInt32 bgcl = rm == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style);
                 // See comment above: these are the closing counterpart
                 if ( closeWithPDI ) {
                     txform->AddSourceLine( U"\x2069", 1, cl, bgcl, font.get(), lang_cfg, flags|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, indent, enode);
@@ -4230,7 +4499,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 LVFontRef font = enode->getFont();
                 css_style_ref_t style = enode->getStyle();
                 lUInt32 cl = getForegroundColor(style);
-                lUInt32 bgcl = rm == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style);
                 txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg, LTEXT_LOCKED_SPACING|LTEXT_FLAG_OWNTEXT, line_h, valign_dy, 0, enode);
                 /*
                 // We used to specify two UNICODE_NO_BREAK_SPACE (that would not collapse)
@@ -4277,7 +4545,14 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         else { // newline consumed
             baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
         }
-        if ( enode->getNodeId()==el_br ) {
+        if ( enode->getEffectiveNodeId()==el_br ) {
+            if ( flags & LTEXT_IS_FIRST_LINE_CLONE ) {
+                // We meet a <br/> while emiting the text with the CSS ::first-line style,
+                // we don't need to emit any followup text with that style, as the first-line
+                // will be done.
+                baseflags |= LTEXT_IS_FIRST_LINE_ENOUGH;
+                return;
+            }
             if (baseflags & LTEXT_FLAG_NEWLINE) {
                 // We meet a <BR/>, but no text node were met before (or it
                 // would have cleared the newline flag).
@@ -4286,7 +4561,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // (This makes consecutive and stuck <br><br><br> work)
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = getForegroundColor(style);
-                lUInt32 bgcl = rm == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style);
                 txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                                         baseflags | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                                         line_h, valign_dy, 0, enode);
@@ -4334,6 +4608,12 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             case css_c_right:
                 baseflags |= LTEXT_SRC_IS_CLEAR_RIGHT;
                 break;
+            case css_c_inline_start:
+                baseflags |= (is_rtl ? LTEXT_SRC_IS_CLEAR_RIGHT : LTEXT_SRC_IS_CLEAR_LEFT);
+                break;
+            case css_c_inline_end:
+                baseflags |= (is_rtl ? LTEXT_SRC_IS_CLEAR_LEFT : LTEXT_SRC_IS_CLEAR_RIGHT);
+                break;
             case css_c_both:
                 baseflags |= LTEXT_SRC_IS_CLEAR_BOTH;
                 break;
@@ -4346,7 +4626,6 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             if ( !running_bidi_ctrlchars.empty() && (baseflags & LTEXT_FLAG_NEWLINE)) {
                 LVFontRef font = enode->getFont();
                 lUInt32 cl = getForegroundColor(style);
-                lUInt32 bgcl = rm == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style);
                 txform->AddSourceLine( running_bidi_ctrlchars.c_str(), running_bidi_ctrlchars.length(), cl, bgcl, font.get(), lang_cfg, baseflags | LTEXT_FLAG_OWNTEXT,
                     line_h, valign_dy, 0, enode );
                 baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
@@ -4361,15 +4640,16 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             // string to text, and just call floatClearText().
             LVFontRef font = enode->getFont();
             lUInt32 cl = getForegroundColor(style);
-            lUInt32 bgcl = LTEXT_COLOR_CURRENT; // erm_final: any background will be drawn by DrawDocument
             txform->AddSourceLine( U" ", 1, cl, bgcl, font.get(), lang_cfg,
                             baseflags | LTEXT_SRC_IS_CLEAR_LAST | LTEXT_FLAG_PREFORMATTED | LTEXT_FLAG_OWNTEXT,
                             line_h, valign_dy, 0, enode);
         }
+        // This is not needed as flags is lost when we leave that pseudoElem:
+        // if ( is_pseudoElem_FirstLine ) { flags &= ~LTEXT_IS_FIRST_LINE_CLONE|~LTEXT_IS_FIRST_LINE_ENOUGH; }
     }
-    else if ( enode->isText() ) {
+    else if ( enode->isEffectiveText() ) {
         // text nodes
-        lString32 txt = enode->getText();
+        lString32 txt = enode->getEffectiveText();
         if ( !txt.empty() ) {
             #ifdef DEBUG_DUMP_ENABLED
                 for (int i=0; i<enode->getNodeLevel(); i++)
@@ -4393,9 +4673,7 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
             css_style_ref_t style = parent->getStyle();
 
             lUInt32 cl = getForegroundColor(style);
-            // If erm_final, the background will be drawn by DrawDocument, and should not
-            // be drawn over each word by the LFormattedText txform
-            lUInt32 bgcl = parent->getRendMethod() == erm_final ? LTEXT_COLOR_CURRENT : getBackgroundColor(style);
+            lUInt32 bgcl = bgcolor; // as provided, from parent node
 
             switch (style->text_transform) {
             case css_tt_uppercase:
@@ -4454,9 +4732,20 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 // legacy new line processing: set indentation for **each** new line
                 tflags |= LTEXT_LEGACY_RENDERING;
             }
-            if ( txt.length()>0 ) {
+
+            // If this text node has a preceding ::first-letter pseudo element,
+            // we should skip adding the leading text rendered by that pseudoElem
+            int textOffset = 0;
+            enode->getEffectiveFirstLetterPseudoElem(&textOffset);
+            // Just below, if it happens that txt.length()=textOffset (single letter
+            // text node that got to be a first-letter, with no remaining text),
+            // we will let an empty text source be added. An empty text node seems
+            // to cause no harm to text rendering, and it helps getRect() not
+            // ignoring this single letter.
+
+            if ( txt.length() > 0 ) {
                 txform->AddSourceLine( txt.c_str(), txt.length(), cl, bgcl, font.get(), lang_cfg, baseflags | tflags,
-                    line_h, valign_dy, indent, enode, 0, letter_spacing );
+                    line_h, valign_dy, indent, enode, textOffset, letter_spacing );
                 baseflags &= ~LTEXT_FLAG_NEWLINE & ~LTEXT_SRC_IS_CLEAR_BOTH; // clear newline flag
                 // To show the lang tag for the lang used for this text node AFTER it:
                 // lString32 lang_tag_txt = U"[" + (lang_cfg ? lang_cfg->getLangTag() : lString32("??")) + U"]";
@@ -4524,6 +4813,7 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->font_size.value = source->font_size.value ;
     dest->font_style = source->font_style ;
     dest->font_weight = source->font_weight ;
+    dest->font_width = source->font_width ;
     dest->font_features.type = source->font_features.type ;
     dest->font_features.value = source->font_features.value ;
     dest->text_indent = source->text_indent ;
@@ -4563,9 +4853,18 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->border_color[1]=source->border_color[1];
     dest->border_color[2]=source->border_color[2];
     dest->border_color[3]=source->border_color[3];
+    dest->border_radius_h[0]=source->border_radius_h[0];
+    dest->border_radius_h[1]=source->border_radius_h[1];
+    dest->border_radius_h[2]=source->border_radius_h[2];
+    dest->border_radius_h[3]=source->border_radius_h[3];
+    dest->border_radius_v[0]=source->border_radius_v[0];
+    dest->border_radius_v[1]=source->border_radius_v[1];
+    dest->border_radius_v[2]=source->border_radius_v[2];
+    dest->border_radius_v[3]=source->border_radius_v[3];
     dest->background_image=source->background_image;
     dest->background_repeat=source->background_repeat;
-    dest->background_position=source->background_position;
+    dest->background_position[0]=source->background_position[0];
+    dest->background_position[1]=source->background_position[1];
     dest->background_size[0]=source->background_size[0];
     dest->background_size[1]=source->background_size[1];
     dest->border_collapse=source->border_collapse;
@@ -4581,6 +4880,7 @@ void copystyle( css_style_ref_t source, css_style_ref_t dest )
     dest->word_break = source->word_break;
     dest->box_sizing = source->box_sizing;
     dest->caption_side = source->caption_side;
+    dest->ruby_position = source->ruby_position;
     dest->content = source->content ;
     dest->cr_hint.type = source->cr_hint.type ;
     dest->cr_hint.value = source->cr_hint.value ;
@@ -4696,16 +4996,7 @@ void getPageBreakStyle( ldomNode * el, css_page_break_t &before, css_page_break_
     }
 }
 
-// Default border width in screen px when border requested but no width specified
-// #define DEFAULT_BORDER_WIDTH 2
-// Note: the default style for border_width used to be (css_val_unspecified, 0),
-// and this was used when this value was met.
-// We since updated that default style to (css_val_px, 3) (3px, "medium), so this
-// would now only be used if lengthToPx() would round to 0 a non-zero value (which
-// it currently ensures to not have this happen...).
-// Let's keep the logic below, and set this to 1 as an added security, so we get
-// non-zero border always shown with a width of at least 1 screen px.
-#define DEFAULT_BORDER_WIDTH 1
+// DEFAULT_BORDER_WIDTH is declared in drawutil.h (shared with DrawBorder()).
 
 //measure border width, 0 for top,1 for right,2 for bottom,3 for left
 int measureBorder(ldomNode *enode,int border) {
@@ -5162,8 +5453,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                         if ( child->isText() ) {
                             // We may occasionally let empty text nodes among block elements,
                             // just skip them
-                            lString32 s = child->getText();
-                            if ( IsEmptySpace(s.c_str(), s.length() ) )
+                            if ( child->isWhitespaceText() )
                                 continue;
                             crFatalError(144, "Attempting to render non-empty Text node");
                         }
@@ -5346,7 +5636,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                                 const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
                                 if ( src && src->object ) {
                                     ldomNode * node = (ldomNode*)src->object;
-                                    ldomNode * parent = node->getParentNode();
+                                    ldomNode * parent = node->getEffectiveParentNode();
                                     while (parent && parent->getNodeId() != el_a)
                                         parent = parent->getParentNode();
                                     if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href)
@@ -5382,7 +5672,7 @@ int renderBlockElementLegacy( LVRendPageContext & context, ldomNode * enode, int
                                 const src_text_fragment_t * src = txform->GetSrcInfo( line->words[w].src_text_index );
                                 if ( src && src->object ) {
                                     ldomNode * node = (ldomNode*)src->object;
-                                    ldomNode * parent = node->getParentNode();
+                                    ldomNode * parent = node->getEffectiveParentNode();
                                     while (parent && parent->getNodeId() != el_a)
                                         parent = parent->getParentNode();
                                     if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href)
@@ -5476,7 +5766,8 @@ private:
         int in_y_min;
         int in_y_max;
         bool avoid_pb_inside;
-        void reset(int dir, lInt32 langNodeIdx, int xmin, int xmax, int overxmin, int overxmax, int ly, int iymin, int iymax, bool avoidpbinside) {
+        int percent_height_base; // content-box height of the parent level (used by children for height:NN%)
+        void reset(int dir, lInt32 langNodeIdx, int xmin, int xmax, int overxmin, int overxmax, int ly, int iymin, int iymax, bool avoidpbinside, int percentHeightBase) {
             direction = dir;
             lang_node_idx = langNodeIdx;
             x_min = xmin;
@@ -5487,8 +5778,9 @@ private:
             in_y_min = iymin;
             in_y_max = iymax;
             avoid_pb_inside = avoidpbinside;
+            percent_height_base = percentHeightBase;
         }
-        BlockShift(int dir, lInt32 langNodeIdx, int xmin, int xmax, int overxmin, int overxmax, int ly, int iymin, int iymax, bool avoidpbinside) :
+        BlockShift(int dir, lInt32 langNodeIdx, int xmin, int xmax, int overxmin, int overxmax, int ly, int iymin, int iymax, bool avoidpbinside, int percentHeightBase) :
                 direction(dir),
                 lang_node_idx(langNodeIdx),
                 x_min(xmin),
@@ -5498,7 +5790,8 @@ private:
                 l_y(ly),
                 in_y_min(iymin),
                 in_y_max(iymax),
-                avoid_pb_inside(avoidpbinside)
+                avoid_pb_inside(avoidpbinside),
+                percent_height_base(percentHeightBase)
                 { }
     };
     class BlockFloat : public lvRect {
@@ -5561,6 +5854,7 @@ private:
     int  l_y;         // absolute y at which current level started
     int  in_y_min;    // min/max children content abs y (for floats in current or inner levels
     int  in_y_max;    //   that overflow this level height)
+    int  percent_height_base; // content-box height for children to resolve height:NN% (-1 if no height to resolve %)
     int  x_min;       // current left min x
     int  x_max;       // current right max x
     int  usable_overflow_x_min;  // current left and right x usable for glyph overflows and hanging punctuation,
@@ -5577,6 +5871,9 @@ private:
     int  last_split_after_flag; // in case we need to adjust upcoming line's flag vs previous line's
     bool in_non_linear_sequence;
     bool in_combining_non_linear_sequence;
+    bool initial_letter_active;
+    lUInt32 initial_letter_id; // inlineBox id (x/width/side are rebuilt from it when needed)
+    int  initial_letter_end_y; // flow-relative end y, kept only for quick "already past current y?" checks
 
     // vm_* : state of our handling of collapsable vertical margins
     bool vm_has_some;              // true when some vertical margin added, reset to false when pushed
@@ -5602,6 +5899,7 @@ public:
         l_y(0),
         in_y_min(0),
         in_y_max(0),
+        percent_height_base(-1),
         x_min(0),
         x_max(width),
         baseline_req(REQ_BASELINE_NOT_NEEDED),
@@ -5614,6 +5912,9 @@ public:
         last_split_after_flag(RN_SPLIT_AUTO),
         in_non_linear_sequence(false),
         in_combining_non_linear_sequence(false),
+        initial_letter_active(false),
+        initial_letter_id(0),
+        initial_letter_end_y(0),
         vm_has_some(false),
         vm_disabled(false),
         vm_target_avoid_pb_inside(false),
@@ -5679,6 +5980,9 @@ public:
     }
     int getCurrentLevelAbsoluteY() {
         return l_y;
+    }
+    int getPercentHeightBase() {
+        return percent_height_base;
     }
     int getPageHeight() {
         return page_height;
@@ -5799,6 +6103,44 @@ public:
         return baseline_y;
     }
 
+    bool hasCarriedInitialLetter() {
+        return initial_letter_active;
+    }
+    bool hasCarriedInitialLetterAtY(int y) {
+        return initial_letter_active && initial_letter_end_y > y;
+    }
+    void resetCarriedInitialLetterExclusion() {
+        initial_letter_active = false;
+        initial_letter_id = 0;
+        initial_letter_end_y = 0;
+    }
+    void setCarriedInitialLetterExclusion( lUInt32 node_id, int end_y ) {
+        if ( node_id == 0 || end_y <= c_y ) {
+            resetCarriedInitialLetterExclusion();
+            return;
+        }
+        initial_letter_active = true;
+        initial_letter_id = node_id;
+        initial_letter_end_y = end_y;
+    }
+    bool advancePastCarriedInitialLetter() {
+        if ( !initial_letter_active ) {
+            return false;
+        }
+        int cleared_y = initial_letter_end_y;
+        int dy = cleared_y - c_y;
+        if ( dy > 0 ) {
+            addSpaceToContext(c_y, cleared_y, 1, false, false, false);
+            moveDown( dy );
+            seen_content_since_page_split = true;
+        }
+        resetCarriedInitialLetterExclusion();
+        return dy > 0;
+    }
+
+    bool hasActiveFloatFootprint() {
+        return _floats.length() > 0 || initial_letter_active;
+    }
     bool hasActiveFloats() {
         return _floats.length() > 0;
     }
@@ -5841,7 +6183,7 @@ public:
         // Ensure avoid_pb_inside
         if ( avoid_pb_inside_just_toggled_off ) {
             avoid_pb_inside_just_toggled_off = false;
-            if ( !split_avoid_before && !hasFloatRunningAtY(starty) ) {
+            if ( !split_avoid_before && !hasFloatRunningAtY(starty) && !hasCarriedInitialLetterAtY(starty) ) {
                 // Previous added line may have RN_SPLIT_AFTER_AVOID, but
                 // we want to allow a split between it and this new line:
                 // just add an empty line to cancel the split avoid
@@ -5882,7 +6224,7 @@ public:
                 flags |= RN_SPLIT_AFTER_AVOID;
             if ( split_avoid_inside && !is_first & !is_last )
                 flags |= RN_SPLIT_BEFORE_AVOID | RN_SPLIT_AFTER_AVOID;
-            if ( hasFloatRunningAtY(y0) )
+            if ( hasFloatRunningAtY(y0) || hasCarriedInitialLetterAtY(y0) )
                 flags |= RN_SPLIT_BEFORE_AVOID;
             flags |= line_dir_flag;
             context.AddLine(y0, y1, flags);
@@ -5901,7 +6243,7 @@ public:
             // but we want to allow a split between it and this new
             // line or the coming pushed vertical margin:
             // just add an empty line to cancel the split avoid
-            if ( !(flags & RN_SPLIT_BEFORE_AVOID) && !hasFloatRunningAtY(c_y) ) {
+            if ( !(flags & RN_SPLIT_BEFORE_AVOID) && !hasFloatRunningAtY(c_y) && !hasCarriedInitialLetterAtY(c_y) ) {
                 context.AddLine( c_y, c_y, RN_SPLIT_BOTH_AUTO|line_dir_flag );
                 last_split_after_flag = RN_SPLIT_AUTO;
             }
@@ -5927,7 +6269,7 @@ public:
         // Most often for content lines, lvtextfm.cpp's LVFormatter will
         // have already checked for float (via BlockFloatFootprint), so
         // avoid calling hasFloatRunningAtY() when not needed
-        if ( !(flags & RN_SPLIT_BEFORE_AVOID) && hasFloatRunningAtY(c_y) )
+        if ( !(flags & RN_SPLIT_BEFORE_AVOID) && (hasFloatRunningAtY(c_y) || hasCarriedInitialLetterAtY(c_y)) )
             flags |= RN_SPLIT_BEFORE_AVOID;
         flags |= line_dir_flag;
         context.AddLine( c_y, c_y + height, flags );
@@ -6077,6 +6419,12 @@ public:
             // Avoid consecutive page split when no real content in between
             if ( BLOCK_RENDERING(rend_flags, ALLOW_PAGE_BREAK_WHEN_NO_CONTENT) || seen_content_since_page_split ) {
                 if ( vm_active_pb_flag != RN_SPLIT_ALWAYS ) {
+                    if ( hasCarriedInitialLetter() ) {
+                        // Don't break through a carried initial letter.
+                        // (For floats, break-before is handled earlier when preparing the child
+                        // in renderBlockElementEnhanced() where we also handle clear:)
+                        advancePastCarriedInitialLetter();
+                    }
                     // First break-before or break-after:always seen.
                     // Forget any previously seen margin, as it would
                     // collapse at end of previous page, but we won't
@@ -6190,6 +6538,12 @@ public:
         int margin = getCurrentVerticalMargin();
         vm_back_usable_as_margin = 0;
         // printf("pushing vertical margin %d (%x %d)\n", margin, vm_target_node, vm_target_level);
+
+        // A nested child may have produced a carried initial after an outer
+        // break-*:always was queued. Clear it at the last possible point.
+        if ( vm_active_pb_flag == RN_SPLIT_ALWAYS && hasCarriedInitialLetter() ) {
+            advancePastCarriedInitialLetter();
+        }
 
         // Note: below, we allow some margin (previous page margin) to be discarded
         // if it can not fit on the previous page and is pushed on next page. This is
@@ -6312,11 +6666,11 @@ public:
                     flags &= ~RN_SPLIT_AFTER_ALWAYS;
                     flags |= RN_SPLIT_AFTER_AVOID;
                 }
-                if ( hasFloatRunningAtY(c_y, margin) ) {
+                if ( hasFloatRunningAtY(c_y, margin) || hasCarriedInitialLetterAtY(c_y) ) {
                     // Don't discard margin, or we would discard some part of a float
                     flags &= ~RN_SPLIT_DISCARD_AT_START;
                 }
-                if ( hasFloatRunningAtY(c_y) ) {
+                if ( hasFloatRunningAtY(c_y) || hasCarriedInitialLetterAtY(c_y) ) {
                     // Avoid a split
                     flags &= ~RN_SPLIT_BEFORE_ALWAYS;
                     flags |= RN_SPLIT_BEFORE_AVOID;
@@ -6462,18 +6816,18 @@ public:
     // Enter/leave a block level: backup/restore some of this FlowState
     // fields, and do some housekeeping.
     void newBlockLevel( int width, int d_left, int usable_overflow_reset_left, int usable_overflow_reset_right,
-                                bool avoid_pb, int dir, lInt32 langNodeIdx ) {
+                                bool avoid_pb, int dir, lInt32 langNodeIdx, int child_percent_height_base ) {
         // Don't new/delete to avoid too many malloc/free, keep and re-use/reset
         // the ones already created
         if ( _shifts.length() <= level ) {
             _shifts.push( new BlockShift( direction, lang_node_idx,
                                     x_min, x_max, usable_overflow_x_min, usable_overflow_x_max,
-                                    l_y, in_y_min, in_y_max, avoid_pb_inside ) );
+                                    l_y, in_y_min, in_y_max, avoid_pb_inside, percent_height_base ) );
         }
         else {
             _shifts[level]->reset( direction, lang_node_idx,
                                     x_min, x_max, usable_overflow_x_min, usable_overflow_x_max,
-                                    l_y, in_y_min, in_y_max, avoid_pb_inside );
+                                    l_y, in_y_min, in_y_max, avoid_pb_inside, percent_height_base );
         }
         direction = dir;
         if (langNodeIdx != -1)
@@ -6487,6 +6841,7 @@ public:
         l_y = c_y;
         in_y_min = c_y;
         in_y_max = c_y;
+        percent_height_base = child_percent_height_base;
         level++;
         // Don't disable any upper avoid_pb_inside
         if ( avoid_pb ) {
@@ -6510,6 +6865,7 @@ public:
         l_y = prev->l_y;
         in_y_min = in_y_min < prev->in_y_min ? in_y_min : prev->in_y_min; // keep sublevel's one if smaller
         in_y_max = in_y_max > prev->in_y_max ? in_y_max : prev->in_y_max; // keep sublevel's one if larger
+        percent_height_base = prev->percent_height_base;
         if ( prev->avoid_pb_inside != avoid_pb_inside )
             avoid_pb_inside_just_toggled_off = true;
         avoid_pb_inside = prev->avoid_pb_inside;
@@ -6535,6 +6891,11 @@ public:
                     // to be here for addSpaceToContext() to ensure
                     // no page split over them
                 }
+            }
+            if ( initial_letter_active && initial_letter_end_y > new_c_y ) {
+                // A carried initial-letter tail cannot escape the block
+                // formatting context either.
+                new_c_y = initial_letter_end_y;
             }
             // addSpaceToContext() will take care of avoiding page split
             // where some (non-cleared) floats are still running.
@@ -6609,12 +6970,21 @@ public:
                 delete flt;
             }
         }
+        if ( initial_letter_active && initial_letter_end_y <= c_y ) {
+            resetCarriedInitialLetterExclusion();
+        }
         return had_floats_running;
     }
 
     void clearFloats( css_clear_t clear ) {
         if (clear <= css_c_none)
             return;
+        if ( clear == css_c_inline_start ) {
+            clear = direction == REND_DIRECTION_RTL ? css_c_right : css_c_left;
+        }
+        else if ( clear == css_c_inline_end ) {
+            clear = direction == REND_DIRECTION_RTL ? css_c_left : css_c_right;
+        }
         int cleared_y = c_y;
         for (int i=0; i<_floats.length(); i++) {
             BlockFloat * flt = _floats[i];
@@ -6658,6 +7028,12 @@ public:
             if ( flt->top > y )
                 y = flt->top;
             if ( clear > css_c_none) {
+                if ( clear == css_c_inline_start ) {
+                    clear = direction == REND_DIRECTION_RTL ? css_c_right : css_c_left;
+                }
+                else if ( clear == css_c_inline_end ) {
+                    clear = direction == REND_DIRECTION_RTL ? css_c_left : css_c_right;
+                }
                 if ( (clear == css_c_both) || (clear == css_c_left && !flt->is_right)
                                            || (clear == css_c_right && flt->is_right) ) {
                     if (flt->bottom > y)
@@ -6829,10 +7205,11 @@ public:
     BlockFloatFootprint getFloatFootprint(ldomNode * node, int d_left, int d_right, int d_top ) {
         // Returns the footprint of current floats over a final block
         // to be laid out at current c_y (+d_top).
-        // This footprint will be a set of floats to represent outer
-        // floats possibly having some impact over the final block
-        // about to be formatted.
-        // These floats can be either:
+        // This footprint is mainly a set of floats that represents outer
+        // floats possibly having some impact over the final block about to be
+        // formatted. It may also carry one active initial-letter exclusion.
+        //
+        // The float part can be either:
         // - real floats rectangles, when they are no more than 5
         //   and ALLOW_EXACT_FLOATS_FOOTPRINTS is enabled
         // - or "fake" floats ("footprints") embodying all floats
@@ -6841,7 +7218,15 @@ public:
         //   intersecting with this final block, but whose y sets
         //   the minimal y for the possible upcoming embedded floats.
         //
-        // Why at most "5" real floats?
+        // When a carried initial-letter is present, we keep it separate from
+        // these fake float footprints when we can spare an exact saved id slot:
+        // a later formatting can then rebuild its own dedicated exclusion
+        // geometry from that initial-letter inlineBox rect. It must stay a
+        // distinct obstacle, not a normal float rect: ordinary float clear
+        // semantics should not apply to it, and later real floats should not
+        // stack against a previous initial-letter as if it were an actual float.
+        //
+        // Why at most "5" exact saved ids?
         // Because I initially went with the "fake" floats solution,
         // because otherwise, storing references (per final block) to
         // a variable number of other floatBox nodes would need another
@@ -6855,16 +7240,23 @@ public:
         // the real floatBoxes node (which I can if they are no more
         // than 5), so we can fetch their real positions and dimensions
         // each time a final block is to be (re-)formatted, to allow
-        // for a nicer layout of text around these (at most 5) floats.
+        // for a nicer layout of text around these floats. One of these
+        // slots may also be used by a carried initial-letter inlineBox.
 
         // We need erm_final at level 1 (body, floatBox or inlineBox child)
         // to clear their own floats, to get them accounted in the document,
         // float, or inlineBox height, so they are fully contained in it and
         // don't overflow. (Level 0 can't be erm_final).
         bool no_clear_own_floats = (level > 1) && BLOCK_RENDERING(rend_flags, DO_NOT_CLEAR_OWN_FLOATS);
-        BlockFloatFootprint footprint = BlockFloatFootprint( this, d_left, d_top, no_clear_own_floats);
-        if (_floats.length() == 0) // zero footprint if no float
+        // We will handle cross-block initial-letter carry, the formatter
+        // will give us back the exclusion and doesn't need to grow its
+        // height to its ink bottom
+        bool no_clear_own_initial_letter = true;
+        BlockFloatFootprint footprint = BlockFloatFootprint( this, d_left, d_top,
+                                            no_clear_own_floats, no_clear_own_initial_letter );
+        if ( !hasActiveFloatFootprint() ) // no float, no initial letter
             return footprint;
+        bool allow_exact = BLOCK_RENDERING(rend_flags, ALLOW_EXACT_FLOATS_FOOTPRINTS);
         int top_y = c_y + d_top;
         int left_x = x_min + d_left;
         int right_x = x_max - d_right;
@@ -6886,7 +7278,7 @@ public:
         // printf("left_x = x_min %d + d_left %d = %d  top_y=%d\n", x_min, d_left, left_x, top_y);
         for (int i=0; i<_floats.length(); i++) {
             BlockFloat * flt = _floats[i];
-            if ( BLOCK_RENDERING(rend_flags, ALLOW_EXACT_FLOATS_FOOTPRINTS) ) {
+            if ( allow_exact ) {
                 // Ignore floats already passed by and possibly not yet removed
                 if (flt->bottom > top_y) {
                     if (floats_involved < 5) { // at most 5 slots
@@ -6948,12 +7340,54 @@ public:
                 }
             }
         }
-        if ( floats_involved > 0 && floats_involved <= 5) {
+        if ( initial_letter_active && initial_letter_end_y > top_y ) {
+            // FlowState keeps only the inlineBox id: we must rebuild
+            // the formatter obstacle x/width/side from the current
+            // cached inlineBox geometry.
+            int abs_x;
+            int width;
+            int abs_end_y;
+            bool is_right;
+            if ( getInitialLetterInlineBoxExclusionById( node->getDocument(),
+                            initial_letter_id, abs_x, width, abs_end_y, is_right ) ) {
+                int exclusion_x = abs_x - left_x;
+                int exclusion_right = exclusion_x + width;
+                if ( exclusion_x < 0 )
+                    exclusion_x = 0;
+                if ( exclusion_right > final_width )
+                    exclusion_right = final_width;
+                if ( exclusion_right > exclusion_x ) {
+                    footprint.initial_letter_active = true;
+                    footprint.initial_letter_id = initial_letter_id;
+                    footprint.initial_letter_x = exclusion_x;
+                    footprint.initial_letter_width = exclusion_right - exclusion_x;
+                    footprint.initial_letter_is_right = is_right;
+                    // The carried exclusion end_y is already stored in the same
+                    // y-space as c_y, so just rebase it to this final block text top.
+                    footprint.initial_letter_end_y = initial_letter_end_y - top_y;
+                }
+            }
+        }
+        bool save_initial_letter_as_exact_id = footprint.initial_letter_active;
+        int exact_ids_involved = floats_involved + (save_initial_letter_as_exact_id ? 1 : 0);
+        bool use_exact_ids = allow_exact && exact_ids_involved > 0 && exact_ids_involved <= 5;
+        if ( !use_exact_ids && save_initial_letter_as_exact_id && _floats.length() == 0 ) {
+            // Even when exact float footprints are disabled, we can still use one
+            // saved id to preserve a carried initial-letter if no real floats are
+            // currently active: there is then no float footprint information to lose.
+            use_exact_ids = true;
+        }
+        if ( use_exact_ids ) {
             // We can use floatIds
             footprint.use_floatIds = true;
             footprint.nb_floatIds = floats_involved;
-            // No need to call generateEmbeddedFloatsFromFloatIds() as we
-            // already computed them above.
+            if ( save_initial_letter_as_exact_id ) {
+                footprint.floatIds[footprint.nb_floatIds] = footprint.initial_letter_id;
+                footprint.nb_floatIds++;
+            }
+            // No need to call generateEmbeddedFloatsFromFloatIds() as we already
+            // computed the float rectangles above. If an initial-letter inlineBox id
+            // is present, restore() will rebuild its carried exclusion from it.
             /* Uncomment for checking reproducible results (here and below)
                footprint.generateEmbeddedFloatsFromFloatIds( node, final_width );
             */
@@ -6983,13 +7417,41 @@ public:
                 footprint.left_min_y = 0;
             if (footprint.right_min_y < 0 )
                 footprint.right_min_y = 0;
-            // Generate the float to transfer
+            if ( footprint.initial_letter_active ) {
+                // Rare fallback when we cannot spare one saved exact-id slot for
+                // the initial-letter inlineBox: clear below it by turning the
+                // top footprint into a full-width exclusion.
+                int clear_y = footprint.initial_letter_end_y;
+                if ( footprint.left_h < clear_y )
+                    footprint.left_h = clear_y;
+                if ( footprint.right_h > footprint.left_h )
+                    footprint.left_h = footprint.right_h;
+                footprint.left_w = final_width;
+                footprint.right_w = final_width;
+                footprint.right_h = footprint.left_h;
+                if ( footprint.left_min_y < clear_y )
+                    footprint.left_min_y = clear_y;
+                if ( footprint.right_min_y < clear_y )
+                    footprint.right_min_y = clear_y;
+                footprint.initial_letter_active = false;
+                footprint.initial_letter_id = 0;
+            }
+            // Generate the floats to transfer
             footprint.generateEmbeddedFloatsFromFootprints( final_width );
         }
         return footprint;
     }
 
 }; // Done with FlowState
+
+void BlockFloatFootprint::forwardFoundInitialLetter(lUInt32 node_id, bool carry_on, int end_y)
+{
+    formatted_initial_letter_id = node_id;
+    if ( carry_on && node_id != 0 && end_y > 0 ) {
+        formatted_initial_letter_carry_on = true;
+        formatted_initial_letter_carry_end_y = end_y;
+    }
+}
 
 // Register overflowing embedded floats into the main flow
 void BlockFloatFootprint::forwardOverflowingFloat( int x, int y, int w, int h, bool r, ldomNode * node )
@@ -7013,13 +7475,66 @@ void BlockFloatFootprint::generateEmbeddedFloatsFromFloatIds( ldomNode * node,  
     // RenderRectAccessor of the current node, and all the floats
     // that were associated to the node because of their involvement
     // in text layout.
+    // Most saved ids are floatBox nodes; one slot may also contain
+    // a carried initial-letter inlineBox so we can rebuild its
+    // dedicated exclusion geometry.
     lvRect rc;
     node->getAbsRect( rc, true ); // get formatted text abs coordinates
     int node_x = rc.left;
     int node_y = rc.top;
+    initial_letter_active = false;
+    initial_letter_id = 0;
+    initial_letter_end_y = 0;
+    initial_letter_x = 0;
+    initial_letter_width = 0;
+    initial_letter_is_right = false;
     floats_cnt = 0;
     for (int i=0; i<nb_floatIds; i++) {
         ldomNode * fbox = node->getDocument()->getTinyNode(floatIds[i]); // get node from its dataIndex
+        if ( !fbox ) {
+            crFatalError(145, "Missing saved float footprint node");
+        }
+        if ( fbox->getEffectiveNodeId() == el_inlineBox ) {
+            int abs_x;
+            int width;
+            int abs_end_y;
+            bool is_right;
+            if ( !getInitialLetterInlineBoxPseudoElem(fbox) ) {
+                crFatalError(146, "Saved float footprint inlineBox is not an initial-letter");
+            }
+            if ( !getInitialLetterInlineBoxExclusion(fbox, abs_x, width, abs_end_y, is_right) ) {
+                crFatalError(147, "Failed to rebuild saved initial-letter exclusion");
+            }
+            int x0 = abs_x - node_x;
+            int x1 = x0 + width;
+            if ( x0 < 0 )
+                x0 = 0;
+            else if ( x0 > final_width )
+                x0 = final_width;
+            if ( x1 < 0 )
+                x1 = 0;
+            else if ( x1 > final_width )
+                x1 = final_width;
+            int end_y = abs_end_y - node_y;
+            if ( end_y <= 0 ) {
+                crFatalError(148, "Saved initial-letter exclusion has invalid end_y");
+            }
+            if ( x1 <= x0 ) {
+                // This carried exclusion does not overlap the current final
+                // block width, so it has no effect on this block layout.
+                continue;
+            }
+            initial_letter_active = true;
+            initial_letter_id = floatIds[i];
+            initial_letter_end_y = end_y;
+            initial_letter_x = x0;
+            initial_letter_width = x1 - x0;
+            initial_letter_is_right = is_right;
+            continue;
+        }
+        if ( fbox->getEffectiveNodeId() != el_floatBox ) {
+            crFatalError(149, "Saved float footprint node has unexpected type");
+        }
         // The floatBox rect values should be exactly the same as what was
         // used in the flow's _floats when rendering. We can check if this
         // is not the case (so a bug) by uncommenting a few things below.
@@ -7151,6 +7666,12 @@ void BlockFloatFootprint::store(ldomNode * node)
     else {
         RENDER_RECT_UNSET_FLAG(fmt, NO_CLEAR_OWN_FLOATS);
     }
+    if ( no_clear_own_initial_letter ) {
+        RENDER_RECT_SET_FLAG(fmt, NO_CLEAR_OWN_INITIAL_LETTER);
+    }
+    else {
+        RENDER_RECT_UNSET_FLAG(fmt, NO_CLEAR_OWN_INITIAL_LETTER);
+    }
     fmt.push();
 }
 
@@ -7166,8 +7687,18 @@ void BlockFloatFootprint::restore(ldomNode * node, int final_width)
         fmt.getTopRectsExcluded( left_w, left_h, right_w, right_h );
         fmt.getNextFloatMinYs( left_min_y, right_min_y );
         generateEmbeddedFloatsFromFootprints( final_width );
+        // No exact carried initial-letter was saved on this path. If there had
+        // been one earlier, getFloatFootprint() already degraded it into a
+        // full-width clear footprint before storing these generic top rects.
+        initial_letter_active = false;
+        initial_letter_id = 0;
+        initial_letter_end_y = 0;
+        initial_letter_x = 0;
+        initial_letter_width = 0;
+        initial_letter_is_right = false;
     }
     no_clear_own_floats = RENDER_RECT_HAS_FLAG(fmt, NO_CLEAR_OWN_FLOATS);
+    no_clear_own_initial_letter = RENDER_RECT_HAS_FLAG(fmt, NO_CLEAR_OWN_INITIAL_LETTER);
 }
 
 int BlockFloatFootprint::getTopShiftX(int final_width, bool get_right_shift)
@@ -7205,7 +7736,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         return;
 
     css_style_ref_t style = enode->getStyle();
-    lUInt16 nodeElementId = enode->getNodeId();
+    lUInt16 nodeElementId = enode->getEffectiveNodeId();
+    ldomNode * parent = enode->getParentNode();
 
     // <DocFragment NonLinear> in EPUBs are set "-cr-hint: non-linear", and so are 2nd++ <body> in FB2,
     // so they can start a new non-linear sequence/flow, that can be hidden from the normal paging flow.
@@ -7238,8 +7770,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // See if dir= attribute or CSS specified direction
     int direction = flow->getDirection();
-    if ( enode->hasAttribute( attr_dir ) ) {
-        lString32 dir = enode->getAttributeValueLC( attr_dir );
+    if ( enode->hasEffectiveAttribute( attr_dir ) ) {
+        lString32 dir = enode->getEffectiveAttributeValueLC( attr_dir );
         if ( dir == "rtl" ) {
             direction = REND_DIRECTION_RTL;
         }
@@ -7265,7 +7797,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // See if lang= attribute
     bool has_lang_attribute = false;
-    if ( enode->hasAttribute( attr_lang ) && !enode->getAttributeValue( attr_lang ).empty() ) {
+    if ( enode->hasEffectiveAttribute( attr_lang ) && !enode->getEffectiveAttributeValue( attr_lang ).empty() ) {
         // We'll probably have to check it is a valid lang specification
         // before overriding the upper one.
         //   lString32 lang = enode->getAttributeValue( attr_lang );
@@ -7278,14 +7810,29 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
 
     // See if this block is a footnote container, so we can deal with it accordingly
     bool isFootNoteBody = false;
+    bool appendingFootnote = false;
     lString32Collection footnoteIds;
     // Allow displaying footnote content at the bottom of all pages that contain a link
     // to it, when -cr-hint: footnote-inpage is set on the footnote block container.
-    if ( STYLE_HAS_CR_HINT(style, FOOTNOTE_INPAGE) &&
-                enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES)) {
-        enode->getAllInnerAttributeValues(attr_id, footnoteIds);
-        if ( footnoteIds.length() > 0 )
+    if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES)) {
+        if ( STYLE_HAS_CR_HINT(style, FOOTNOTE_INPAGE) ) {
+            enode->getAllInnerAttributeValues(attr_id, footnoteIds);
+        }
+        else if ( STYLE_HAS_CR_HINT(style, EXTEND_FOOTNOTE_INPAGE) ) {
+            lString32 previousActualFootnoteId = flow->getPageContext()->getCurrentFootNoteId();
+            if ( ! previousActualFootnoteId.empty() ) {
+                // prepend the id with which the footnote block that we are appending to
+                // is tracked within the PageContext to ensure any lines we add end up
+                // there and Ids in the current block are linked to it.
+                enode->getAllInnerAttributeValues(attr_id, footnoteIds);
+                footnoteIds.insert(0, previousActualFootnoteId);
+                appendingFootnote = true;
+            }
+        }
+
+        if ( footnoteIds.length() > 0 ) {
             isFootNoteBody = true;
+        }
         // Notes:
         // enterFootNote() takes care of not creating a new footnote if we are already
         // inside a footnotebody (in case of nested "-cr-hint: footnote-inpage"), which
@@ -7321,21 +7868,20 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     */
 
     // is this a floating float container (floatBox)?
-    bool is_floating = BLOCK_RENDERING(flags, FLOAT_FLOATBOXES) && enode->isFloatingBox();
-    bool is_floatbox_child = BLOCK_RENDERING(flags, FLOAT_FLOATBOXES)
-            && enode->getParentNode() && enode->getParentNode()->isFloatingBox();
+    bool is_floating = BLOCK_RENDERING(flags, FLOAT_FLOATBOXES) && enode->isEffectiveFloatingBox();
+    bool is_floatbox_child = BLOCK_RENDERING(flags, FLOAT_FLOATBOXES) && parent && parent->isEffectiveFloatingBox();
     // is this a inline block container (inlineBox)?
-    bool is_inline_box = enode->isBoxingInlineBox();
-    bool is_inline_box_child = enode->getParentNode() && enode->getParentNode()->isBoxingInlineBox();
+    bool is_inline_box = enode->isEffectiveBoxingInlineBox();
+    bool is_inline_box_child = parent && parent->isEffectiveBoxingInlineBox();
 
     // In the business of computing width and height, we should handle a bogus
     // embedded block (<inlineBox T="EmbeddedBlock">) (and its child) just
     // like any normal block element (taking the full width of its container
     // if no specified width, without the need to get its rendered width).
-    if ( is_inline_box && enode->isEmbeddedBlockBoxingInlineBox(true) ) {
+    if ( is_inline_box && enode->isEffectiveEmbeddedBlockBoxingInlineBox() ) {
         is_inline_box = false;
     }
-    if ( is_inline_box_child && enode->getParentNode()->isEmbeddedBlockBoxingInlineBox(true) ) {
+    if ( is_inline_box_child && parent->isEffectiveEmbeddedBlockBoxingInlineBox(true) ) {
         is_inline_box_child = false;
     }
 
@@ -7424,7 +7970,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     // element wheree it is usually ignored
     bool is_boxing_elem = nodeElementId <= EL_BOXING_END && nodeElementId >= EL_BOXING_START;
     // Images needs some specific handling
-    bool is_image = enode->isImage();
+    bool is_image = enode->isEffectiveImage();
     // <HR> gets its style width, height and margin:auto no matter flags
     bool is_hr = nodeElementId == el_hr;
     // <EMPTY-LINE> block element with height added for empty lines in txt document
@@ -7437,10 +7983,57 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // like it's just best to always force BR to be css_d_inline, which we do
         // in setNodeStyle(). So, we'll never meet any <BR> here.
 
-    // Get any style height to be ensured below (just before we add bottom
-    // padding when erm_block or erm_final)
-    // Otherwise, this block height will just be its rendered content height.
+    // We may ensure a style height below (just before we add bottom padding
+    // when erm_block or erm_final). Otherwise, this block height will just
+    // be its rendered content height.
+    // Note: we'll always use the height needed to show this block content
+    // without overflowing, even if we resolve a smaller height here.
     int style_h = -1;
+
+    // Resolve height:NN% when the parent content-box height is known. This
+    // both ensures the height of regular blocks and provides the base for
+    // nested percentage heights. In particular, when the formatter later
+    // meets a cover image in height:100% wrappers, it would not be able
+    // to easily recover that ancestor height: we keep/update it in FlowState
+    // while rendering the blocks so the formatter has it available.
+    int percent_height_base = -1;
+    int resolved_content_height = -1;
+    int page_style_height_limit = -1; // we may cap style_h to this when done
+    if ( style->height.type == css_val_percent ) {
+        int parent_percent_height_base = flow->getPercentHeightBase();
+        if ( parent_percent_height_base >= 0 ) {
+            resolved_content_height = lengthToPx(enode, style->height, parent_percent_height_base);
+        }
+    }
+    else if ( style->height.type != css_val_unspecified &&
+              ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
+                style->height.type == css_val_screen_px ||
+                is_length_relative_unit(style->height.type) ) ) {
+        resolved_content_height = lengthToPx(enode, style->height, 0);
+    }
+    if ( resolved_content_height >= 0 ) {
+        if ( style->box_sizing != css_bs_content_box ) { // border-box height
+            resolved_content_height -= padding_top + padding_bottom;
+            if ( resolved_content_height < 0 ) {
+                resolved_content_height = 0;
+            }
+        }
+        // The formatter later caps images to this same page budget. Cap this
+        // base too: otherwise a large percentage image would first resolve
+        // large, then shrink proportionally and get a different width.
+        int max_usable_height = flow->getPageHeight() - enode->getSurroundingAddedHeight(false);
+        if ( max_usable_height < 0 ) {
+            max_usable_height = 0;
+        }
+        if ( resolved_content_height > max_usable_height ) {
+            resolved_content_height = max_usable_height;
+        }
+        percent_height_base = resolved_content_height;
+        page_style_height_limit = max_usable_height + padding_top + padding_bottom;
+    }
+
+    // Get any style height to ensure. For height:NN%, use the just-resolved
+    // content-box height; for other values, use the usual CSS length handling.
     if ( is_floating || is_inline_box ) {
         // Nothing special to do: the child style height will be
         // enforced by subcall to renderBlockElement(child)
@@ -7452,28 +8045,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         if ( is_empty_line_elem && style_height.type == css_val_unspecified ) {
             // No height specified: default to line-height, just like
             // if it were rendered final.
-            int line_h;
-            if ( style->line_height.type == css_val_unspecified &&
-                        style->line_height.value == css_generic_normal ) {
-                line_h = enode->getFont()->getHeight(); // line-height: normal
-            }
-            else {
-                // In all other cases (%, em, unitless/unspecified), we can just
-                // scale 'em', and use the computed value for absolute sized
-                // values and 'rem' (related to root element font size).
-                line_h = lengthToPx(enode, style->line_height, em, em, true);
-            }
-            // Scale line_h according to document's _interlineScaleFactor, but
-            // not if it was already in screen_px, which means it has already
-            // been scaled (in setNodeStyle() when inherited).
-            int interline_scale_factor = enode->getDocument()->getInterlineScaleFactor();
-            if (style->line_height.type != css_val_screen_px && interline_scale_factor != INTERLINE_SCALE_FACTOR_NO_SCALE)
-                line_h = (line_h * interline_scale_factor) >> INTERLINE_SCALE_FACTOR_SHIFT;
-            style_height.value = line_h;
+            style_height.value = getLineHeightPx(enode, style.get(), enode->getFont());
             style_height.type = css_val_screen_px;
         }
-        // We don't have a container height to apply heights in %, so ignore them
-        if ( style_height.type != css_val_unspecified && style_height.type != css_val_percent ) {
+        if ( style_height.type == css_val_percent ) {
+            if ( resolved_content_height >= 0 ) {
+                style_h = resolved_content_height + padding_top + padding_bottom;
+            }
+        }
+        else if ( style_height.type != css_val_unspecified ) {
             if ( BLOCK_RENDERING(flags, ALLOW_STYLE_W_H_ABSOLUTE_UNITS) ||
                  style_height.type == css_val_screen_px ||
                  is_length_relative_unit(style_height.type) ||
@@ -7489,7 +8069,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 }
             }
         }
-        // Note: we'll always use the height needed to show this block content without overflowing
+        // css_val_unspecified + css_generic_fit_content needs nothing done:
+        // it is our default behaviour.
+
         css_length_t style_max_height = style->max_height;
         if ( style_max_height.type != css_val_unspecified &&
              style_max_height.type != css_val_percent &&
@@ -7522,6 +8104,11 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 }
             }
         }
+    }
+    // Don't let this height's empty fill exceed the same page budget used
+    // for the percentage base.
+    if ( page_style_height_limit >= 0 && style_h > page_style_height_limit ) {
+        style_h = page_style_height_limit;
     }
 
     // Compute this block width
@@ -7694,7 +8281,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // width, they should stick to the image.
         int img_width = 0;
         int img_height = 0;
-        getStyledImageSize( enode, img_width, img_height, container_width, -1, true );
+        getStyledImageSize( enode, img_width, img_height, container_width, flow->getPercentHeightBase(), true );
         // Not mentionned in the CSS2 specs, but browsers do apply any padding between the image and its borders
         width = padding_left + img_width + padding_right;
         // In case style's width and height were in %, update them to the computed value
@@ -7719,6 +8306,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
     else { // regular element (non-float)
         bool apply_style_width = false;
         css_length_t style_width = style->width;
+        bool is_fit_content_width = style_width.type == css_val_unspecified && style_width.value == css_generic_fit_content;
         // table sub-elements widths are managed by the table layout algorithm
         // (but trust width if the table sub element is one of our boxing elements)
         if ( style->display <= css_d_table || is_boxing_elem ) {
@@ -7745,9 +8333,30 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // when !ENSURE_STYLE_WIDTH.)
                 table_shrink_to_fit = true;
             }
+            else if ( is_fit_content_width ) {
+                // Also only if ENSURE_STYLE_WIDTH as we may prefer having
+                // full width text blocks to not waste reading width with blank areas.
+                if ( BLOCK_RENDERING(flags, ENSURE_STYLE_WIDTH) )
+                    apply_style_width = true;
+            }
         }
         if ( apply_style_width ) {
-            width = lengthToPx( enode, style_width, container_width );
+            if ( is_fit_content_width ) {
+                int max_content_width = 0;
+                int min_content_width = 0;
+                int rend_flags = flags | BLOCK_RENDERING_ENSURE_STYLE_WIDTH | BLOCK_RENDERING_ALLOW_STYLE_W_H_ABSOLUTE_UNITS;
+                // Compute shrink-to-fit width from rendered content, ignoring this element's
+                // own margins, and clamp it to the available container width.
+                getRenderedWidths(enode, max_content_width, min_content_width, direction, true, rend_flags);
+                int available_width = container_width - margin_left - margin_right;
+                width = max_content_width;
+                if ( width > available_width )
+                    width = available_width;
+                auto_width = false;
+            }
+            else { // Fixed specified width
+                width = lengthToPx( enode, style_width, container_width );
+            }
             // In all crengine computation, width/fmt.getWidth() is the width
             // of the border box (content box + paddings + borders).
             // If we use what we got directly, we are in the traditional
@@ -7761,7 +8370,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // should have it used - but we don't, to not complexify out table
                 // rendering algorithm
             }
-            else if ( style->box_sizing == css_bs_content_box ) {
+            else if ( style->box_sizing == css_bs_content_box || is_fit_content_width ) {
                 // If W3C box model requested, CSS width specifies the width
                 // of the content box.
                 // In crengine, the width we deal with is the border box, so we
@@ -7994,8 +8603,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     // https://html.spec.whatwg.org/multipage/rendering.html#align-descendants
                     // An align= should not impact the positionning of its node, only of its
                     // descendants, so we here need to look at the style of the parent.
-                    if ( enode->getParentNode() ) {
-                        css_style_ref_t pstyle = enode->getParentNode()->getStyle();
+                    if ( parent ) {
+                        css_style_ref_t pstyle = parent->getStyle();
                         if (pstyle->text_align >= css_ta_html_align_left && pstyle->text_align <= css_ta_html_align_center) {
                             // Our parent is, or is a descendant of, a <center> or a <div align="left/center/right">
                             // (and had not had this fact overridden by any classic text-align. In Firefox and
@@ -8080,8 +8689,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // We'll push it immediately below
         no_margin_collapse = true;
     }
-    else if ( flow->getCurrentLevel() == 1 && (enode->getParentNode()->isFloatingBox() ||
-                                               enode->getParentNode()->isBoxingInlineBox()) ) {
+    else if ( flow->getCurrentLevel() == 1 && parent && (parent->isEffectiveFloatingBox() ||
+                                               parent->isEffectiveBoxingInlineBox()) ) {
         // The inner margin of the real float element (the single child of a floatBox)
         // have to be pushed and not collapse with outer margins so they can
         // get accounted in the float height.
@@ -8106,6 +8715,15 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         // This flag is set when frontend activates "Hide non-linear fragments": we need such non-linear
         // sequences to be on individual pages, to be able to hide such pages from the normal paging flow.
         break_before = RN_SPLIT_ALWAYS;
+    }
+
+    // If we have a carried initial-letter still active, and we meet a block
+    // with HasFirstLetter (which may or may not be an initial-letter), clear
+    // that initial-letter (per-specs if initial-letter, otherwise not, but
+    // simpler to not check if it is (which is expensive) and do it in all
+    // cases, probably for the best).
+    if ( flow->hasCarriedInitialLetter() && enode->hasAttribute(attr_HasFirstLetter) ) {
+        flow->advancePastCarriedInitialLetter();
     }
 
     if ( no_margin_collapse ) {
@@ -8188,8 +8806,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
         case erm_table:
             {
                 // As we don't support laying tables aside floats, just clear
-                // all floats and push all margins
+                // all floats, pass by any initial letter, and push all margins
                 flow->clearFloats( css_c_both );
+                flow->advancePastCarriedInitialLetter();
                 flow->pushVerticalMargin();
 
                 // We need to update the RenderRectAccessor() as renderTable will
@@ -8198,7 +8817,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 fmt.push();
 
                 if ( isFootNoteBody )
-                    flow->getPageContext()->enterFootNote( footnoteIds );
+                    flow->getPageContext()->enterFootNote( footnoteIds , appendingFootnote );
 
                 // Ensure page-break-inside avoid, from the table's style or
                 // from outer containers
@@ -8214,8 +8833,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 int table_width = width;
                 int fitted_width = -1;
                 bool is_ruby_table = false;
-                if ( enode->getParentNode()->isBoxingInlineBox() && enode->getParentNode()->getParentNode()
-                        && enode->getParentNode()->getParentNode()->getStyle()->display == css_d_ruby ) {
+                if ( parent && parent->isEffectiveBoxingInlineBox() && parent->getEffectiveParentNode()
+                        && parent->getEffectiveParentNode()->getStyle()->display == css_d_ruby ) {
                     is_ruby_table = true;
                 }
                 // renderTable has not been updated to use 'flow', and it looks
@@ -8253,8 +8872,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     }
                     else {
                         // No margin auto, see if any HTML align=left/right/center (as done above)
-                        if ( enode->getParentNode() ) {
-                            css_style_ref_t pstyle = enode->getParentNode()->getStyle();
+                        if ( parent ) {
+                            css_style_ref_t pstyle = parent->getStyle();
                             if (pstyle->text_align >= css_ta_html_align_left && pstyle->text_align <= css_ta_html_align_center) {
                                 if ( pstyle->text_align == css_ta_html_align_center )
                                     shift_x = (width - table_width)/2;
@@ -8371,7 +8990,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                        usable_overflow_reset_left, usable_overflow_reset_right,
                        break_inside==RN_SPLIT_AVOID,
                        direction,
-                       has_lang_attribute ? enode->getDataIndex() : -1);
+                       has_lang_attribute ? enode->getDataIndex() : -1,
+                       percent_height_base);
 
                 if (padding_top>0) {
                     // This may push accumulated vertical margin
@@ -8387,7 +9007,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     if (padding_top==0) {
                         flow->addContentLine(0, RN_SPLIT_AFTER_AVOID, 0, true);
                     }
-                    flow->getPageContext()->enterFootNote( footnoteIds );
+                    flow->getPageContext()->enterFootNote( footnoteIds , appendingFootnote );
                 }
 
                 // recurse all sub-blocks for blocks
@@ -8397,8 +9017,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     if ( child->isText() ) {
                         // We may occasionally let empty text nodes among block elements,
                         // just skip them
-                        lString32 s = child->getText();
-                        if ( IsEmptySpace(s.c_str(), s.length() ) )
+                        if ( child->isWhitespaceText() )
                             continue;
                         crFatalError(144, "Attempting to render non-empty Text node");
                     }
@@ -8412,14 +9031,14 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     //   float on that side BUT the following non-floating blocks should
                     //   not move and continue being rendered at the current y
 
-                    // todo: if needed, implement float: and clear: inline-start / inline-end
-
                     if ( child->isFloatingBox() ) {
                         // Block floats are positioned respecting the current collapsed
                         // margin, without actually globally pushing it, and without
                         // collapsing with it.
                         int flt_vertical_margin = flow->getCurrentVerticalMargin();
-                        bool is_right = child_style->float_ == css_f_right;
+                        bool is_right = ( child_style->float_ == css_f_right ) ||
+                              ( is_rtl && child_style->float_ == css_f_inline_start ) ||
+                              (!is_rtl && child_style->float_ == css_f_inline_end );
                         // (style->clear has not been copied to the floatBox: we must
                         // get it from the floatBox single child)
                         css_clear_t child_clear = child->getChildNode(0)->getStyle()->clear;
@@ -8495,7 +9114,9 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     flow->getPageContext()->leaveFootNote();
 
                 if (style_h >= 0) {
-                    current_h = flow->getCurrentRelativeY() + padding_bottom;
+                    // addContentSpace() will push a pending child margin before adding fill,
+                    // so account for it when computing that fill.
+                    current_h = flow->getCurrentRelativeY() + flow->getCurrentVerticalMargin() + padding_bottom;
                     int pad_h = style_h - current_h;
                     if (pad_h > 0) {
                         if (pad_h > flow->getPageHeight()) // don't pad more than one page height
@@ -8690,8 +9311,10 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 // margin now (and not delay it to the first addContentLine()).
                 // This can mess with proper margins collapsing if we were to
                 // output no content (we don't know that yet).
-                // So, do it only if we have floats.
-                if ( flow->hasActiveFloats() )
+                // So, do it only if we have an active float footprint:
+                // renderFinalBlock() must see the final post-margin absolute y
+                // before it stores that footprint's geometry.
+                if ( flow->hasActiveFloatFootprint() )
                     flow->pushVerticalMargin();
 
                 int inner_width = width - padding_left - padding_right;
@@ -8780,6 +9403,10 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 }
                 fmt.setUsableLeftOverflow( usable_overflow_left );
                 fmt.setUsableRightOverflow( usable_overflow_right );
+                // For an erm_final image, its height:NN% uses the parent level base;
+                // a normal final block provides its own content-box base to its inline images.
+                int final_percent_height_base = is_image ? flow->getPercentHeightBase() : percent_height_base;
+                fmt.setPercentHeightBase(final_percent_height_base);
                 // Done with updating RenderRectAccessor fields, have them saved
                 fmt.push();
                 // (These setInner* needs to be set before creating float_footprint if
@@ -8803,6 +9430,69 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                 int final_h = enode->renderFinalBlock( txform, &fmt, inner_width, &float_footprint );
                 int final_min_y = float_footprint.getFinalMinY();
                 int final_max_y = float_footprint.getFinalMaxY();
+
+                lUInt32 carried_initial_letter_id = 0;
+                int carried_initial_letter_end_y = 0;
+                if ( float_footprint.formatted_initial_letter_id ) {
+                    // An initial-letter was discovered while formatting this block.
+                    // Emit any pending margin now (it would be done anyway when
+                    // AddContent*() the first content of this final block) before
+                    // recording the exclusion endpoint (this ensures that from now
+                    // on, all relevant coordinates - the final text top and the
+                    // initial-letter end y are in the same flow coordinate space,
+                    // and we can compute diffs).
+                    int next_split_before_flag = RN_SPLIT_AUTO;
+                    if ( padding_top == 0 && !isFootNoteBody && txform->GetLineCount() > 0
+                                          && (txform->GetLineInfo(0)->flags & LTEXT_LINE_SPLIT_AVOID_BEFORE) ) {
+                        next_split_before_flag = RN_SPLIT_AVOID;
+                    }
+                    flow->pushVerticalMargin(next_split_before_flag);
+
+                    ldomNode * initial_letter_inline_box = getInitialLetterInlineBoxById(enode->getDocument(),
+                                                                    float_footprint.formatted_initial_letter_id);
+                    if ( initial_letter_inline_box ) {
+                        // Initial-letter ink can extend beyond the formatter's own line box height,
+                        // so grow the final block overflow if that happens. As we can only get that
+                        // ink rect in abs coordinates, we must get our final rect abs coordinates
+                        // too (at this time, its x/y are set - they may be shifted later, but so
+                        // would the inlineBox: their difference will stay the same).
+                        lvRect final_abs_rect;
+                        enode->getAbsRect(final_abs_rect, true);
+                        lvRect initial_letter_abs_rect;
+                        if ( !getInitialLetterInlineBoxInkRect(initial_letter_inline_box, initial_letter_abs_rect) ) {
+                            // Fallback to the host inlineBox rect when precise ink geometry cannot be rebuilt;
+                            // it is less exact but still provides a safe conservative overflow bound.
+                            initial_letter_inline_box->getAbsRect(initial_letter_abs_rect);
+                        }
+                        int initial_letter_top = initial_letter_abs_rect.top - final_abs_rect.top;
+                        int initial_letter_bottom = initial_letter_abs_rect.bottom - final_abs_rect.top;
+                        if ( initial_letter_top < final_min_y ) {
+                            final_min_y = initial_letter_top;
+                        }
+                        if ( initial_letter_bottom > final_max_y ) {
+                            final_max_y = initial_letter_bottom;
+                        }
+                        // If formatting reported that our initial letter inline box overflows
+                        // its own rect, its exclusion must be carried onto following blocks.
+                        // (The above is about top and bottom ink overflows, used for drawing it,
+                        // this one is about the exclusion area affecting next rendering.)
+                        if ( float_footprint.formatted_initial_letter_carry_on ) {
+                            int final_text_top_in_flow = flow->getCurrentAbsoluteY() + padding_top;
+                            // Matches getFloatFootprint()'s top_y: convert between FlowState y-space
+                            // and the final block-local y-space used in BlockFloatFootprint.
+                            carried_initial_letter_id = float_footprint.formatted_initial_letter_id;
+                            carried_initial_letter_end_y = final_text_top_in_flow
+                                                         + float_footprint.formatted_initial_letter_carry_end_y;
+                            // We'll activate this (with flow->setCarriedInitialLetterExclusion()) below
+                            // when we are done with adding the lines (otherwise, its generic handling,
+                            // when AddContentLine() the first line, would wrongly add SPLIT_BEFORE_AVOID
+                            // to it; lvtextfm has itself set the correct SPLIT_BEFORE_AVOID on its
+                            // own lines passed by the initial letter exclusion).
+                        }
+                    }
+                }
+                // (If a previous carried exclusion has been passed over after this block height,
+                // it will be reset by any flow->addContent*() done below.)
 
                 flow->getPageContext()->updateRenderProgress(1);
                 #ifdef DEBUG_DUMP_ENABLED
@@ -8864,7 +9554,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     if (padding_top==0) {
                         flow->addContentLine(0, RN_SPLIT_AFTER_AVOID, 0, true);
                     }
-                    flow->getPageContext()->enterFootNote( footnoteIds );
+                    flow->getPageContext()->enterFootNote( footnoteIds, appendingFootnote );
                 }
 
                 // We have lines of text in 'txform', that we should register
@@ -8915,7 +9605,8 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                     // See if there are links to footnotes in that line, and add
                     // a reference to it so page splitting can bring the footnotes
                     // text on this page, and then decide about page split.
-                    if ( !isFootNoteBody && enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) { // disable footnotes for footnotes
+                    // (We do this also if we are isFootNoteBody so we can handle footnotes nested in footnotes.)
+                    if ( enode->getDocument()->getDocFlag(DOC_FLAG_ENABLE_FOOTNOTES) ) {
                         // If paragraph is RTL, we are meeting words in the reverse of the reading order:
                         // so, insert each link for this line at the same position, instead of at the end.
                         int link_insert_pos = -1; // append
@@ -8939,7 +9630,7 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                                 }
                                 if ( src && src->object ) {
                                     ldomNode * node = (ldomNode*)src->object;
-                                    ldomNode * parent = node->getParentNode();
+                                    ldomNode * parent = node->getEffectiveParentNode();
                                     while (parent && parent->getNodeId() != el_a)
                                         parent = parent->getParentNode();
                                     if ( parent && parent->hasAttribute(LXML_NS_ANY, attr_href)
@@ -8971,6 +9662,10 @@ void renderBlockElementEnhanced( FlowState * flow, ldomNode * enode, int x, int 
                             }
                         }
                     }
+                }
+
+                if ( carried_initial_letter_id ) {
+                    flow->setCarriedInitialLetterExclusion(carried_initial_letter_id, carried_initial_letter_end_y);
                 }
 
                 // Leave footnote body before style height and padding, to get
@@ -9075,858 +9770,6 @@ int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, in
                                         direction, baseline, enode->getDocument()->getRenderBlockRenderingFlags() );
 }
 
-//draw border lines,support color,width,all styles, not support border-collapse
-void DrawBorder(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int doc_y,RenderRectAccessor fmt)
-{
-    css_style_ref_t style = enode->getStyle();
-    bool hastopBorder = (style->border_style_top >=css_border_solid);
-    bool hasrightBorder = (style->border_style_right >=css_border_solid);
-    bool hasbottomBorder = (style->border_style_bottom >=css_border_solid);
-    bool hasleftBorder = (style->border_style_left >=css_border_solid);
-
-    // Check for explicit 'border-width: 0' which means no border.
-    css_length_t bw;
-    bw = style->border_width[0];
-    hastopBorder = hastopBorder & !(bw.value == 0 && bw.type > css_val_unspecified);
-    bw = style->border_width[1];
-    hasrightBorder = hasrightBorder & !(bw.value == 0 && bw.type > css_val_unspecified);
-    bw = style->border_width[2];
-    hasbottomBorder = hasbottomBorder & !(bw.value == 0 && bw.type > css_val_unspecified);
-    bw = style->border_width[3];
-    hasleftBorder = hasleftBorder & !(bw.value == 0 && bw.type > css_val_unspecified);
-
-    // We have css_val_unspecified only when css_generic_currentcolor, and we should use the current text color.
-    // If it is transparent, we have nothing to draw.
-    lUInt32 topBordercolor = style->border_color[0].type != css_val_unspecified ? style->border_color[0].value : style->color.value;
-    hastopBorder = hastopBorder & !IS_COLOR_FULLY_TRANSPARENT(topBordercolor);
-    lUInt32 rightBordercolor = style->border_color[1].type != css_val_unspecified ? style->border_color[1].value : style->color.value;
-    hasrightBorder = hasrightBorder & !IS_COLOR_FULLY_TRANSPARENT(rightBordercolor);
-    lUInt32 bottomBordercolor = style->border_color[2].type != css_val_unspecified ? style->border_color[2].value : style->color.value;
-    hasbottomBorder = hasbottomBorder & !IS_COLOR_FULLY_TRANSPARENT(bottomBordercolor);
-    lUInt32 leftBordercolor = style->border_color[3].type != css_val_unspecified ? style->border_color[3].value : style->color.value;
-    hasleftBorder = hasleftBorder & !IS_COLOR_FULLY_TRANSPARENT(leftBordercolor);
-
-    if (hasbottomBorder || hasleftBorder || hasrightBorder || hastopBorder) {
-        lUInt32 shadecolor=0x555555;
-        lUInt32 lightcolor=0xAAAAAA;
-        int width = 0; // values in % are invalid for borders, so we shouldn't get any
-        int topBorderwidth = lengthToPx(enode, style->border_width[0],width);
-        topBorderwidth = topBorderwidth!=0 ? topBorderwidth : DEFAULT_BORDER_WIDTH;
-        int rightBorderwidth = lengthToPx(enode, style->border_width[1],width);
-        rightBorderwidth = rightBorderwidth!=0 ? rightBorderwidth : DEFAULT_BORDER_WIDTH;
-        int bottomBorderwidth = lengthToPx(enode, style->border_width[2],width);
-        bottomBorderwidth = bottomBorderwidth!=0 ? bottomBorderwidth : DEFAULT_BORDER_WIDTH;
-        int leftBorderwidth = lengthToPx(enode, style->border_width[3],width);
-        leftBorderwidth = leftBorderwidth!=0 ? leftBorderwidth : DEFAULT_BORDER_WIDTH;
-        int tbw=topBorderwidth,rbw=rightBorderwidth,bbw=bottomBorderwidth,lbw=leftBorderwidth;
-        if (hastopBorder) {
-            int dot=1,interval=0;//default style
-            topBorderwidth=tbw;
-            rightBorderwidth=rbw;
-            // bottomBorderwidth=bbw; // (not used)
-            leftBorderwidth=lbw;
-            {
-                lUInt32 r,g,b,o;
-                r=g=b=o=topBordercolor;
-                r=r>>16&0xff;
-                g=g>>8&0xff;
-                b=b&0xff;
-                o=o&0xFF000000;
-                shadecolor=o|(r*160/255)<<16|(g*160/255)<<8|b*160/255;
-                lightcolor=topBordercolor;
-                if ( (topBordercolor & 0xFFFFFF) == 0 ) {
-                    shadecolor = o|0x4c4c4c; // Firefox uses these values when color is real black 0x000000 (but not if 0x010101)
-                    lightcolor = o|0xb2b2b2;
-                }
-            }
-            int left=1,right=1;
-            left=(hasleftBorder)?0:1;
-            right=(hasrightBorder)?0:1;
-            left=(style->border_style_left==css_border_dotted||style->border_style_left==css_border_dashed)?0:left;
-            right=(style->border_style_right==css_border_dotted||style->border_style_right==css_border_dashed)?0:right;
-            lvPoint leftpoint1=lvPoint(x0+doc_x,y0+doc_y),
-                    leftpoint2=lvPoint(x0+doc_x,y0+doc_y+0.5*topBorderwidth),
-                    leftpoint3=lvPoint(x0+doc_x,doc_y+y0+topBorderwidth),
-                    rightpoint1=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0),
-                    rightpoint2=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0+0.5*topBorderwidth),
-                    rightpoint3=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0+topBorderwidth);
-            double leftrate=1,rightrate=1;
-            if (left==0) {
-                leftpoint1.x=x0+doc_x;
-                leftpoint1.y=doc_y+y0;
-                leftpoint2.x=x0+doc_x+0.5*leftBorderwidth;
-                leftpoint2.y=doc_y+y0+0.5*topBorderwidth;
-                leftpoint3.x=x0+doc_x+leftBorderwidth;
-                leftpoint3.y=doc_y+y0+topBorderwidth;
-            }else leftBorderwidth=0;
-            leftrate=(double)leftBorderwidth/(double)topBorderwidth;
-            if (right==0) {
-                rightpoint1.x=x0+doc_x+fmt.getWidth()-1;
-                rightpoint1.y=doc_y+y0;
-                rightpoint2.x=x0+doc_x+fmt.getWidth()-1-0.5*rightBorderwidth;
-                rightpoint2.y=doc_y+y0+0.5*topBorderwidth;
-                rightpoint3.x=x0+doc_x+fmt.getWidth()-1-rightBorderwidth;
-                rightpoint3.y=doc_y+y0+topBorderwidth;
-            } else rightBorderwidth=0;
-            rightrate=(double)rightBorderwidth/(double)topBorderwidth;
-            switch (style->border_style_top){
-                case css_border_dotted:
-                    dot=interval=topBorderwidth;
-                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, topBordercolor,dot,interval,0);}
-                    break;
-                case css_border_dashed:
-                    dot=3*topBorderwidth;
-                    interval=3*topBorderwidth;
-                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, topBordercolor,dot,interval,0);}
-                    break;
-                case css_border_solid:
-                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, topBordercolor,dot,interval,0);}
-                    break;
-                case css_border_double:
-                    for(int i=0;i<=(leftpoint2.y-leftpoint1.y)/(leftpoint2.y-leftpoint1.y>2?3:2);i++)
-                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, topBordercolor);}
-                    for(int i=0;i<=(leftpoint3.y-leftpoint2.y)/(leftpoint3.y-leftpoint2.y>2?3:2);i++)
-                    {drawbuf.FillRect(leftpoint3.x-i*leftrate, leftpoint3.y-i, rightpoint3.x+i*rightrate+1,
-                                      rightpoint3.y-i+1, topBordercolor);}
-                    break;
-                case css_border_groove:
-                    for(int i=0;i<=leftpoint2.y-leftpoint1.y;i++)
-                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, shadecolor);}
-                    for(int i=0;i<leftpoint3.y-leftpoint2.y;i++)
-                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y+i, rightpoint2.x-i*rightrate+1,
-                                      rightpoint2.y+i+1, lightcolor);}
-                    break;
-                case css_border_inset:
-                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, shadecolor,dot,interval,0);}
-                    break;
-                case css_border_outset:
-                    for(int i=0;i<leftpoint3.y-leftpoint1.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y+i+1, lightcolor,dot,interval,0);}
-                    break;
-                case css_border_ridge:
-                    for(int i=0;i<=leftpoint2.y-leftpoint1.y;i++)
-                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y+i, rightpoint1.x-i*rightrate+1,
-                                     rightpoint1.y+i+1, lightcolor);}
-                    for(int i=0;i<leftpoint3.y-leftpoint2.y;i++)
-                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y+i, rightpoint2.x-i*rightrate+1,
-                                      rightpoint2.y+i+1, shadecolor);}
-                    break;
-                default:
-                    break;
-            }
-        }
-        //right
-        if (hasrightBorder) {
-            int dot=1,interval=0;//default style
-            topBorderwidth=tbw;
-            rightBorderwidth=rbw;
-            bottomBorderwidth=bbw;
-            // leftBorderwidth=lbw; // (not used)
-            {
-                lUInt32 r,g,b,o;
-                r=g=b=o=rightBordercolor;
-                r=r>>16&0xff;
-                g=g>>8&0xff;
-                b=b&0xff;
-                o=o&0xFF000000;
-                shadecolor=o|(r*160/255)<<16|(g*160/255)<<8|b*160/255;
-                lightcolor=rightBordercolor;
-                if ( (rightBordercolor & 0xFFFFFF) == 0 ) {
-                    shadecolor = o|0x4c4c4c;
-                    lightcolor = o|0xb2b2b2;
-                }
-            }
-            int up=1,down=1;
-            up=(hastopBorder)?0:1;
-            down=(hasbottomBorder)?0:1;
-            up=(style->border_style_top==css_border_dotted||style->border_style_top==css_border_dashed)?1:up;
-            down=(style->border_style_bottom==css_border_dotted||style->border_style_bottom==css_border_dashed)?1:down;
-            lvPoint toppoint1=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0),
-                    toppoint2=lvPoint(x0+doc_x+fmt.getWidth()-1-0.5*rightBorderwidth,doc_y+y0),
-                    toppoint3=lvPoint(x0+doc_x+fmt.getWidth()-1-rightBorderwidth,doc_y+y0),
-                    bottompoint1=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0+fmt.getHeight()-1),
-                    bottompoint2=lvPoint(x0+doc_x+fmt.getWidth()-1-0.5*rightBorderwidth,doc_y+y0+fmt.getHeight()-1),
-                    bottompoint3=lvPoint(x0+doc_x+fmt.getWidth()-1-rightBorderwidth,doc_y+y0+fmt.getHeight()-1);
-            double toprate=1,bottomrate=1;
-            if (up==0) {
-                toppoint3.y=doc_y+y0+topBorderwidth;
-                toppoint2.y=doc_y+y0+0.5*topBorderwidth;
-            } else topBorderwidth=0;
-            toprate=(double)topBorderwidth/(double)rightBorderwidth;
-            if (down==0) {
-                bottompoint3.y=y0+doc_y+fmt.getHeight()-1-bottomBorderwidth;
-                bottompoint2.y=y0+doc_y+fmt.getHeight()-1-0.5*bottomBorderwidth;
-            } else bottomBorderwidth=0;
-            bottomrate=(double)bottomBorderwidth/(double)rightBorderwidth;
-            switch (style->border_style_right){
-                case css_border_dotted:
-                    dot=interval=rightBorderwidth;
-                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
-                        drawbuf.DrawLine(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, rightBordercolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_dashed:
-                    dot=3*rightBorderwidth;
-                    interval=3*rightBorderwidth;
-                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
-                        drawbuf.DrawLine(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, rightBordercolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_solid:
-                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
-                        drawbuf.DrawLine(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, rightBordercolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_double:
-                    for (int i=0;i<=(toppoint1.x-toppoint2.x)/(toppoint1.x-toppoint2.x>2?3:2);i++){
-                        drawbuf.FillRect(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, rightBordercolor);
-                    }
-                    for (int i=0;i<=(toppoint2.x-toppoint3.x)/(toppoint2.x-toppoint3.x>2?3:2);i++){
-                        drawbuf.FillRect(toppoint3.x+i,toppoint3.y-i*toprate,bottompoint3.x+i+1,
-                                         bottompoint3.y+i*bottomrate+1, rightBordercolor);
-                    }
-                    break;
-                case css_border_groove:
-                    for (int i=0;i<toppoint1.x-toppoint2.x;i++){
-                        drawbuf.FillRect(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, lightcolor);
-                    }
-                    for (int i=0;i<=toppoint2.x-toppoint3.x;i++){
-                        drawbuf.FillRect(toppoint2.x-i,toppoint2.y+i*toprate,bottompoint2.x-i+1,
-                                         bottompoint2.y-i*bottomrate+1, shadecolor);
-                    }
-                    break;
-                case css_border_inset:
-                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
-                        drawbuf.DrawLine(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, lightcolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_outset:
-                    for (int i=0;i<toppoint1.x-toppoint3.x;i++){
-                        drawbuf.DrawLine(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, shadecolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_ridge:
-                    for (int i=0;i<toppoint1.x-toppoint2.x;i++){
-                        drawbuf.FillRect(toppoint1.x-i,toppoint1.y+i*toprate,bottompoint1.x-i+1,
-                                         bottompoint1.y-i*bottomrate+1, shadecolor);
-                    }
-                    for (int i=0;i<=toppoint2.x-toppoint3.x;i++){
-                        drawbuf.FillRect(toppoint2.x-i,toppoint2.y+i*toprate,bottompoint2.x-i+1,
-                                         bottompoint2.y-i*bottomrate+1,lightcolor);
-                    }
-                    break;
-                default:break;
-            }
-        }
-        //bottom
-        if (hasbottomBorder) {
-            int dot=1,interval=0;//default style
-            // topBorderwidth=tbw; // (not used)
-            rightBorderwidth=rbw;
-            bottomBorderwidth=bbw;
-            leftBorderwidth=lbw;
-            {
-                lUInt32 r,g,b,o;
-                r=g=b=o=bottomBordercolor;
-                r=r>>16&0xff;
-                g=g>>8&0xff;
-                b=b&0xff;
-                o=o&0xFF000000;
-                shadecolor=o|(r*160/255)<<16|(g*160/255)<<8|b*160/255;
-                lightcolor=bottomBordercolor;
-                if ( (bottomBordercolor & 0xFFFFFF) == 0 ) {
-                    shadecolor = o|0x4c4c4c;
-                    lightcolor = o|0xb2b2b2;
-                }
-            }
-            int left=1,right=1;
-            left=(hasleftBorder)?0:1;
-            right=(hasrightBorder)?0:1;
-            left=(style->border_style_left==css_border_dotted||style->border_style_left==css_border_dashed)?1:left;
-            right=(style->border_style_right==css_border_dotted||style->border_style_right==css_border_dashed)?1:right;
-            lvPoint leftpoint1=lvPoint(x0+doc_x,y0+doc_y+fmt.getHeight()-1),
-                    leftpoint2=lvPoint(x0+doc_x,y0+doc_y-0.5*bottomBorderwidth+fmt.getHeight()-1),
-                    leftpoint3=lvPoint(x0+doc_x,doc_y+y0+fmt.getHeight()-1-bottomBorderwidth),
-                    rightpoint1=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0+fmt.getHeight()-1),
-                    rightpoint2=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0+fmt.getHeight()-1-0.5*bottomBorderwidth),
-                    rightpoint3=lvPoint(x0+doc_x+fmt.getWidth()-1,doc_y+y0+fmt.getHeight()-1-bottomBorderwidth);
-            double leftrate=1,rightrate=1;
-            if (left==0) {
-                leftpoint3.x=x0+doc_x+leftBorderwidth;
-                leftpoint2.x=x0+doc_x+0.5*leftBorderwidth;
-            }else leftBorderwidth=0;
-            leftrate=(double)leftBorderwidth/(double)bottomBorderwidth;
-            if (right==0) {
-                rightpoint3.x=x0+doc_x+fmt.getWidth()-1-rightBorderwidth;
-                rightpoint2.x=x0+doc_x+fmt.getWidth()-1-0.5*rightBorderwidth;
-            } else rightBorderwidth=0;
-            rightrate=(double)rightBorderwidth/(double)bottomBorderwidth;
-            switch (style->border_style_bottom){
-                case css_border_dotted:
-                    dot=interval=bottomBorderwidth;
-                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
-                    break;
-                case css_border_dashed:
-                    dot=3*bottomBorderwidth;
-                    interval=3*bottomBorderwidth;
-                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
-                    break;
-                case css_border_solid:
-                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, bottomBordercolor,dot,interval,0);}
-                    break;
-                case css_border_double:
-                    for(int i=0;i<=(leftpoint1.y-leftpoint2.y)/(leftpoint1.y-leftpoint2.y>2?3:2);i++)
-                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, bottomBordercolor);}
-                    for(int i=0;i<=(leftpoint2.y-leftpoint3.y)/(leftpoint2.y-leftpoint3.y>2?3:2);i++)
-                    {drawbuf.FillRect(leftpoint3.x-i*leftrate, leftpoint3.y+i, rightpoint3.x+i*rightrate+1,
-                                      rightpoint3.y+i+1, bottomBordercolor);}
-                    break;
-                case css_border_groove:
-                    for(int i=0;i<=leftpoint1.y-leftpoint2.y;i++)
-                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, lightcolor);}
-                    for(int i=0;i<leftpoint2.y-leftpoint3.y;i++)
-                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y-i, rightpoint2.x-i*rightrate+1,
-                                      rightpoint2.y-i+1, shadecolor);}
-                    break;
-                case css_border_inset:
-                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, lightcolor,dot,interval,0);}
-                    break;
-                case css_border_outset:
-                    for(int i=0;i<leftpoint1.y-leftpoint3.y;i++)
-                    {drawbuf.DrawLine(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, shadecolor,dot,interval,0);}
-                    break;
-                case css_border_ridge:
-                    for(int i=0;i<=leftpoint1.y-leftpoint2.y;i++)
-                    {drawbuf.FillRect(leftpoint1.x+i*leftrate, leftpoint1.y-i, rightpoint1.x-i*rightrate+1,
-                                      rightpoint1.y-i+1, shadecolor);}
-                    for(int i=0;i<leftpoint2.y-leftpoint3.y;i++)
-                    {drawbuf.FillRect(leftpoint2.x+i*leftrate, leftpoint2.y-i, rightpoint2.x-i*rightrate+1,
-                                      rightpoint2.y-i+1, lightcolor);}
-                    break;
-                default:break;
-            }
-        }
-        //left
-        if (hasleftBorder) {
-            int dot=1,interval=0;//default style
-            topBorderwidth=tbw;
-            // rightBorderwidth=rbw; // (not used)
-            bottomBorderwidth=bbw;
-            leftBorderwidth=lbw;
-            {
-                lUInt32 r,g,b,o;
-                r=g=b=o=leftBordercolor;
-                r=r>>16&0xff;
-                g=g>>8&0xff;
-                b=b&0xff;
-                o=o&0xFF000000;
-                shadecolor=o|(r*160/255)<<16|(g*160/255)<<8|b*160/255;
-                lightcolor=leftBordercolor;
-                if ( (leftBordercolor & 0xFFFFFF) == 0 ) {
-                    shadecolor = o|0x4c4c4c;
-                    lightcolor = o|0xb2b2b2;
-                }
-            }
-            int up=1,down=1;
-            up=(hastopBorder)?0:1;
-            down=(hasbottomBorder)?0:1;
-            up=(style->border_style_top==css_border_dotted||style->border_style_top==css_border_dashed)?1:up;
-            down=(style->border_style_bottom==css_border_dotted||style->border_style_bottom==css_border_dashed)?1:down;
-            lvPoint toppoint1=lvPoint(x0+doc_x,doc_y+y0),
-                    toppoint2=lvPoint(x0+doc_x+0.5*leftBorderwidth,doc_y+y0),
-                    toppoint3=lvPoint(x0+doc_x+leftBorderwidth,doc_y+y0),
-                    bottompoint1=lvPoint(x0+doc_x,doc_y+y0+fmt.getHeight()-1),
-                    bottompoint2=lvPoint(x0+doc_x+0.5*leftBorderwidth,doc_y+y0+fmt.getHeight()-1),
-                    bottompoint3=lvPoint(x0+doc_x+leftBorderwidth,doc_y+y0+fmt.getHeight()-1);
-            double toprate=1,bottomrate=1;
-            if (up==0) {
-                toppoint3.y=doc_y+y0+topBorderwidth;
-                toppoint2.y=doc_y+y0+0.5*topBorderwidth;
-            } else topBorderwidth=0;
-            toprate=(double)topBorderwidth/(double)leftBorderwidth;
-            if (down==0) {
-                bottompoint3.y=y0+doc_y+fmt.getHeight()-1-bottomBorderwidth;
-                bottompoint2.y=y0+doc_y+fmt.getHeight()-1-0.5*bottomBorderwidth;
-            } else bottomBorderwidth=0;
-            bottomrate=(double)bottomBorderwidth/(double)leftBorderwidth;
-            switch (style->border_style_left){
-                case css_border_dotted:
-                    dot=interval=leftBorderwidth;
-                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
-                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,leftBordercolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_dashed:
-                    dot=3*leftBorderwidth;
-                    interval=3*leftBorderwidth;
-                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
-                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,leftBordercolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_solid:
-                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
-                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,leftBordercolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_double:
-                    for (int i=0;i<=(toppoint2.x-toppoint1.x)/(toppoint2.x-toppoint1.x>2?3:2);i++){
-                        drawbuf.FillRect(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,leftBordercolor);
-                    }
-                    for (int i=0;i<=(toppoint3.x-toppoint2.x)/(toppoint3.x-toppoint2.x>2?3:2);i++){
-                        drawbuf.FillRect(toppoint3.x-i,toppoint3.y-i*toprate,bottompoint3.x-i+1,
-                                         bottompoint3.y+i*bottomrate+1,leftBordercolor);
-                    }
-                    break;
-                case css_border_groove:
-                    for (int i=0;i<=toppoint2.x-toppoint1.x;i++){
-                        drawbuf.FillRect(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,shadecolor);
-                    }
-                    for (int i=0;i<toppoint3.x-toppoint2.x;i++){
-                        drawbuf.FillRect(toppoint2.x+i,toppoint2.y+i*toprate,bottompoint2.x+i+1,
-                                         bottompoint2.y-i*bottomrate+1,lightcolor);
-                    }
-                    break;
-                case css_border_inset:
-                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
-                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,shadecolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_outset:
-                    for (int i=0;i<toppoint3.x-toppoint1.x;i++){
-                        drawbuf.DrawLine(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,lightcolor,dot,interval,1);
-                    }
-                    break;
-                case css_border_ridge:
-                    for (int i=0;i<=toppoint2.x-toppoint1.x;i++){
-                        drawbuf.FillRect(toppoint1.x+i,toppoint1.y+i*toprate,bottompoint1.x+i+1,
-                                         bottompoint1.y-i*bottomrate+1,lightcolor);
-                    }
-                    for (int i=0;i<toppoint3.x-toppoint2.x;i++){
-                        drawbuf.FillRect(toppoint2.x+i,toppoint2.y+i*toprate,bottompoint2.x+i+1,
-                                         bottompoint2.y-i*bottomrate+1,shadecolor);
-                    }
-                    break;
-                default:break;
-            }
-        }
-    }
-}
-void DrawBackgroundImage(ldomNode *enode,LVDrawBuf & drawbuf,int x0,int y0,int doc_x,int doc_y, int width, int height, bool clip_to_target=true)
-{
-    // (The provided width and height gives the area we have to draw the background image on)
-    css_style_ref_t style=enode->getStyle();
-    if (!style->background_image.empty()) {
-        lString32 filepath = lString32(style->background_image.c_str());
-        LVImageSourceRef img = enode->getParentNode()->getDocument()->getObjectImageSource(filepath);
-        if (!img.isNull()) {
-            // Native image size
-            int img_w =img->GetWidth();
-            int img_h =img->GetHeight();
-
-            // See if background-size specified and we need to adjust image native size
-            // (if both auto, use image native size)
-            css_length_t bg_w = style->background_size[0];
-            css_length_t bg_h = style->background_size[1];
-            if ( bg_w.type != css_val_unspecified || bg_w.value != css_generic_auto ||
-                 bg_h.type != css_val_unspecified || bg_h.value != css_generic_auto ) {
-                int new_w = 0;
-                int new_h = 0;
-                RenderRectAccessor fmt( enode );
-                int container_w = fmt.getWidth();
-                int container_h = fmt.getHeight();
-                bool check_lengths = true;
-                if ( bg_w.type == css_val_unspecified && bg_h.type == css_val_unspecified ) {
-                    if ( bg_w.value == css_generic_contain && bg_h.value == css_generic_contain ) {
-                        // Image should be fully contained in container (no crop)
-                        int scale_w = 1024 * container_w / img_w;
-                        int scale_h = 1024 * container_h / img_h;
-                        if ( scale_w < scale_h ) {
-                            new_w = container_w;
-                            new_h = img_h * scale_w / 1024;
-                        }
-                        else {
-                            new_h = container_h;
-                            new_w = img_w * scale_h / 1024;
-                        }
-                        check_lengths = false;
-                    }
-                    else if ( bg_w.value == css_generic_cover && bg_h.value == css_generic_cover ) {
-                        // Image should fully cover container (crop allowed)
-                        int scale_w = 1024 * container_w / img_w;
-                        int scale_h = 1024 * container_h / img_h;
-                        if ( scale_w > scale_h ) {
-                            new_w = container_w;
-                            new_h = img_h * scale_w / 1024;
-                        }
-                        else {
-                            new_h = container_h;
-                            new_w = img_w * scale_h / 1024;
-                        }
-                        check_lengths = false;
-                    }
-                }
-                if ( check_lengths ) {
-                    // These will compute to 0 if (css_val_unspecified, css_generic_auto) when really not specified
-                    new_w = lengthToPx(enode, style->background_size[0], container_w);
-                    new_h = lengthToPx(enode, style->background_size[1], container_h);
-                    if ( new_w == 0 ) {
-                        if ( new_h == 0 ) { // keep image native size
-                            new_h = img_h;
-                            new_w = img_w;
-                        }
-                        else { // use style height, keep aspect ratio
-                            new_w = img_w * new_h / img_h;
-                        }
-                    }
-                    else if ( new_h == 0 ) { // use style width, keep aspect ratio
-                        new_h = new_w * img_h / img_w;
-                    }
-                }
-                if ( new_w == 0 || new_h == 0 ) {
-                    // width or height computed to 0: nothing to draw
-                    return;
-                }
-                if ( new_w != img_w || new_h != img_h ) {
-                    img = LVCreateStretchFilledTransform(img, new_w, new_h, IMG_TRANSFORM_STRETCH, IMG_TRANSFORM_STRETCH, 0, 0);
-                    img_w = new_w;
-                    img_h = new_h;
-                }
-            }
-
-            // We can use some crengine facilities for background repetition and position,
-            // which has the advantage that img will be decoded once even if tiling it many
-            // times and if the target is many screen-heights long (like <BODY> could be).
-            // Unfortunaly, it does not everything well when not using IMG_TRANSFORM_TILE,
-            // as it would fill the not-drawn part of the target buffer with garbage,
-            // instead of letting it as is.
-            ImageTransform hori_transform = IMG_TRANSFORM_NONE;
-            ImageTransform vert_transform = IMG_TRANSFORM_NONE;
-            int transform_w = img_w;
-            int transform_h = img_h;
-            switch (style->background_repeat) {
-                case css_background_no_repeat:
-                case css_background_repeat_y:
-                    break;
-                case css_background_repeat_x:
-                case css_background_repeat:
-                default:
-                    // No need to tile if image is larger than target
-                    if ( width > img_w ) {
-                        hori_transform = IMG_TRANSFORM_TILE;
-                        transform_w = width;
-                    }
-                    break;
-            }
-            switch (style->background_repeat) {
-                case css_background_no_repeat:
-                case css_background_repeat_x:
-                    break;
-                case css_background_repeat_y:
-                case css_background_repeat:
-                default:
-                    // No need to tile if image is larger than target
-                    if ( height > img_h ) {
-                        vert_transform = IMG_TRANSFORM_TILE;
-                        transform_h = height;
-                    }
-                    break;
-            }
-            // Compute the position where to draw top left of image, as if
-            // it was a single image when no-repeat
-            int draw_x = 0;
-            int draw_y = 0;
-            switch (style->background_position) {
-                case css_background_left_top:
-                case css_background_left_center:
-                case css_background_left_bottom:
-                    break;
-                case css_background_center_top:
-                case css_background_center_center:
-                case css_background_center_bottom:
-                    draw_x = (width - img_w)/2;
-                    break;
-                case css_background_right_top:
-                case css_background_right_center:
-                case css_background_right_bottom:
-                    draw_x = width - img_w;
-                    break;
-                default:
-                    break;
-            }
-            switch (style->background_position) {
-                case css_background_left_top:
-                case css_background_center_top:
-                case css_background_right_top:
-                    break;
-                case css_background_left_center:
-                case css_background_center_center:
-                case css_background_right_center:
-                    draw_y = (height - img_h)/2;
-                    break;
-                case css_background_left_bottom:
-                case css_background_center_bottom:
-                case css_background_right_bottom:
-                    draw_y = height - img_h;
-                    break;
-                default:
-                    break;
-            }
-            // If tiling, we need to adjust the transform x/y (the offset
-            // in img, so, a value between 0 and img_w/h) to the point
-            // inside image that should be at top left of target area
-            int transform_x = 0;
-            int transform_y = 0;
-            if ( hori_transform == IMG_TRANSFORM_TILE && draw_x ) {
-                transform_x = (draw_x % img_w);
-                draw_x = 0;
-            }
-            if ( vert_transform == IMG_TRANSFORM_TILE && draw_y ) {
-                // Strangely, using the following instead of what we did for x/w
-                // gives the expected result (not investigated, might be
-                // a bug in LVStretchImgSource::OnLineDecoded() )
-                transform_y = img_h - (draw_y % img_h);
-                draw_y = 0;
-            }
-            // Ready to have crengine do all the work.
-            /* Looks like we don't need that:
-
-                // (Inspired from LVDocView::drawPageBackground(),
-                // we have to do it the complex way to avoid memory leaks
-                LVRef<LVColorDrawBuf> buf = LVRef<LVColorDrawBuf>( new LVColorDrawBuf(img_w, img_h, 32) );
-                buf->Draw(img, 0, 0, img_w, img_h, false); // (dither=false doesn't matter with a color buffer)
-                LVImageSourceRef src = LVCreateDrawBufImageSource(buf.get(), false);
-                LVImageSourceRef transformed = LVCreateStretchFilledTransform(src, transform_w, transform_h,
-
-              We can just transform the original image, which will work in its original
-              colorspace/depth, ensure alpha/transparency, and will be converted only
-              at the end to the final drawbuf bit depth.
-            */
-            LVImageSourceRef transformed = LVCreateStretchFilledTransform(img, transform_w, transform_h,
-                                               hori_transform, vert_transform, transform_x, transform_y);
-            // We use the DrawBuf clip facility to ensure we don't draw outside this node fmt
-            lvRect orig_clip;
-            if (clip_to_target) {
-                drawbuf.GetClipRect( &orig_clip ); // Backup the original one
-                // Set a new one to the target area
-                lvRect target_clip = lvRect(x0+doc_x, y0+doc_y, x0+doc_x+width, y0+doc_y+height);;
-                // But don't overflow page top and bottom, in case target spans multiple pages
-                if ( target_clip.top < orig_clip.top )
-                    target_clip.top = orig_clip.top;
-                if ( target_clip.bottom > orig_clip.bottom )
-                    target_clip.bottom = orig_clip.bottom;
-                drawbuf.SetClipRect( &target_clip );
-            }
-            // Draw
-            drawbuf.Draw(transformed, x0+doc_x+draw_x, y0+doc_y+draw_y, transform_w, transform_h);
-            if (clip_to_target) {
-                drawbuf.SetClipRect( &orig_clip ); // Restore the original one
-            }
-        }
-    }
-}
-
-void DrawBodyBackground( LVDrawBuf & drawbuf, bool draw_bg_color, bool draw_bg_image, ldomNode * enode, int x0, int y0, int dx, int dy, int doc_x, int doc_y)
-{
-    // https://www.w3.org/TR/CSS2/colors.html#background
-    // <body> background does not obey margin rules, and it is to be drawn
-    // instead on the whole canvas/viewport.
-    // This is rather complex with EPUBs and DocFragment based documents,
-    // as there are multiple BODYs that are usually split on new pages,
-    // but could also meet on a page.
-    // We don't draw on the fmt width, but on the drawbuf width.
-    // Also, when in page mode, we'd rather have a fully fixed background,
-    // (so, not respecting background-repeat and background-position)
-    // to avoid ghosting and refreshes issues on eInk.
-    // We try to do this right when there are multiple <BODY>, with possibly
-    // different background colors/images, in the viewed page. This is a bit
-    // harder to do right when in 2-pages mode, which can have a few issues.
-
-    // We can draw on the whole buffer or clip area, unless some previous
-    // or next body restrict these
-    int bg_top = 0;
-    int bg_bottom = drawbuf.GetHeight();
-    int bg_left = 0;
-    int bg_right = drawbuf.GetWidth();
-
-    // Use the specific body background clip so the background is drawn
-    // on the full canvas even on pages with shorter text.
-    lvRect curclip;
-    drawbuf.GetClipRect( &curclip );
-    draw_extra_info_t * draw_extra_info = (draw_extra_info_t*)drawbuf.GetDrawExtraInfo();
-    if ( draw_extra_info ) {
-        // Set body background clip (we get one if in page mode)
-        drawbuf.SetClipRect( &draw_extra_info->body_background_clip );
-        // If there is a header or we are in 2-pages mode, the clip would ensure
-        // we don't draw over them. But we want to position the drawing
-        // adequately so the background-position can be ensured;
-        // just use the provided clip as the area to paint
-        bg_top = draw_extra_info->body_background_clip.top;
-        bg_bottom = draw_extra_info->body_background_clip.bottom;
-        bg_left = draw_extra_info->body_background_clip.left;
-        bg_right = draw_extra_info->body_background_clip.right;
-    }
-
-    // If the current body we're dealing starts on ends inside this page/screen,
-    // it does not necessarily mean there is a previous or next body that ends
-    // or starts inside this page/screen: we may have inter body margins, or
-    // some initial top margin above the first body.
-    // We need to check there is really none to be able to draw on the whole buffer.
-    bool no_visible_previous_body = doc_y <= 0; // This body started before page top
-    if ( !no_visible_previous_body ) {
-        // Find previous body if any, to see if would have some part in this page
-        // We expect either sibling BODY (FB2) or sibling DocFragement>BODY (EPUB)
-        ldomNode * prevBody = NULL;
-        ldomNode * n;
-        n = enode->getUnboxedPrevSibling(true);
-        if ( n && n->getNodeId() == el_body ) {
-            prevBody = n;
-        }
-        else {
-            n = enode->getUnboxedParent();
-            if ( n && n->getNodeId() == el_DocFragment ) {
-                n = n->getUnboxedPrevSibling(true);
-                if ( n && n->getNodeId() == el_DocFragment ) {
-                    n = n->getUnboxedLastChild(true);
-                    if ( n && n->getNodeId() == el_body ) {
-                        prevBody = n;
-                    }
-                }
-            }
-        }
-        if ( !prevBody ) {
-            no_visible_previous_body = true;
-        }
-        else {
-            // Make out the doc_y this prev body would have
-            lvRect prevrect;
-            prevBody->getAbsRect(prevrect);
-            lvRect thisrect;
-            enode->getAbsRect(thisrect);
-            int prev_bottom_doc_y = doc_y - thisrect.top + prevrect.bottom;
-            if ( prev_bottom_doc_y <= 0 ) { // previous body ends before this page
-                no_visible_previous_body = true;
-            }
-            else {
-                // There may be unused space between this prev body bottom and
-                // this body top, caused by collapsed body top/bottom margins.
-                // Make the boundary between backgrounds at the middle of this (round up)
-                bg_top = y0 + doc_y - (thisrect.top - prevrect.bottom)/2;
-            }
-        }
-    }
-    // Same checks as above, but for a next body below this one
-    RenderRectAccessor fmt( enode );
-    bool no_visible_next_body = doc_y + fmt.getHeight() >= dy; // this body ends after page bottom
-    if ( !no_visible_next_body ) {
-        // Find next body
-        ldomNode * nextBody = NULL;
-        ldomNode * n;
-        n = enode->getUnboxedNextSibling(true);
-        if ( n && n->getNodeId() == el_body ) {
-            nextBody = n;
-        }
-        else {
-            n = enode->getUnboxedParent();
-            if ( n && n->getNodeId() == el_DocFragment ) {
-                n = n->getUnboxedNextSibling(true);
-                if ( n && n->getNodeId() == el_DocFragment ) {
-                    n = n->getUnboxedLastChild(true); // body can be preceded by <styleSheet>
-                    if ( n && n->getNodeId() == el_body ) {
-                        nextBody = n;
-                    }
-                }
-            }
-        }
-        if ( !nextBody ) {
-            no_visible_next_body = true;
-        }
-        else {
-            lvRect nextrect;
-            nextBody->getAbsRect(nextrect);
-            lvRect thisrect;
-            enode->getAbsRect(thisrect);
-            int next_top_doc_y = doc_y - thisrect.top + nextrect.top;
-            if ( next_top_doc_y >= dy ) { // next body starts after this page
-                no_visible_next_body = true;
-            }
-            else {
-                // There may be unused space between this next body top and
-                // this body bottom, caused by collapsed body top/bottom margins
-                // Make the boundary between backgrounds at the middle of this (round down)
-                bg_bottom = y0 + doc_y + fmt.getHeight() + (nextrect.top - thisrect.bottom + 1)/2;
-            }
-        }
-    }
-
-    if ( draw_bg_color ) {
-        css_style_ref_t style = enode->getStyle();
-        // If not css_val_color, it must be (css_val_unspecified, css_generic_currentcolor)
-        lUInt32 bg_color = style->background_color.type == css_val_color ? style->background_color.value : style->color.value;
-        drawbuf.FillRect(bg_left, bg_top, bg_right, bg_bottom, bg_color);
-    }
-    if ( draw_bg_image ) {
-        // We will provide clip_to_target=false to DrawBackgroundImage() for it to not
-        // limit the clip to the body boundaries, which could give unexpected results
-        // and is tricky to visualize how it would behave in all cases... It's easier
-        // to just adjust the clip to limit the painted area.
-        lvRect clip;
-        drawbuf.GetClipRect( &clip );
-        // We got either the orig fullscreen clip in scroll mode, or body_background_clip
-        // in page mode, which have proper clip left and right.
-        if ( clip.top < bg_top )
-            clip.top = bg_top;
-        if ( clip.bottom > bg_bottom )
-            clip.bottom = bg_bottom;
-        drawbuf.SetClipRect(&clip);
-        // We provide x=0 w=screen width so that even if the clip crops out half of
-        // this width, we get the background image positionned (background-position)
-        // and repeated (backgroud-repeat) the same way whether we're drawing the
-        // left of the right page: that way, drawings will coincide and look like a
-        // single full page drawing, instead of having a cut in the middle.
-        // We provide y=bg_top, so that when the body starts in the middle of the
-        // page, the image have its top where it starts, as this might matter for
-        // some images.
-        DrawBackgroundImage(enode, drawbuf, 0, bg_top, 0, 0, drawbuf.GetWidth(), drawbuf.GetHeight()-bg_top, false);
-    }
-
-    drawbuf.SetClipRect(&curclip); // restore clip
-}
 
 //=======================================================================
 // Draw document
@@ -10025,6 +9868,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         bool restoreBackgroundColor = false;
         // If not css_val_color, it must be (css_val_unspecified, css_generic_currentcolor)
         lUInt32 bg_color = style->background_color.type == css_val_color ? style->background_color.value : style->color.value;
+        bg_color = drawbuf.getInvertColors() ? invertNonGrayscaleColor(bg_color) : bg_color;
         lUInt32 oldColor = 0;
 
         // Don't draw background color for TR and THEAD/TFOOT/TBODY as it could
@@ -10059,8 +9903,9 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
                 }
                 else {
                     // Regular element: draw bgcolor or image inside its border box
-                    if ( draw_bg_color )
-                        drawbuf.FillRect( x0 + doc_x, y0 + doc_y, x0 + doc_x+fmt.getWidth(), y0+doc_y+fmt.getHeight(), bg_color );
+                    if ( draw_bg_color ) {
+                        FillBackgroundRect(drawbuf, enode, style, fmt, x0 + doc_x, y0 + doc_y, bg_color);
+                    }
                     if ( draw_bg_image )
                         DrawBackgroundImage(enode, drawbuf, x0, y0, doc_x, doc_y, fmt.getWidth(), fmt.getHeight());
                         // (Commented identical calls below as they seem redundant with what was just done here)
@@ -10080,7 +9925,7 @@ void DrawDocument( LVDrawBuf & drawbuf, ldomNode * enode, int x0, int y0, int dx
         int m = enode->getRendMethod();
         // We should not get erm_inline, except for inlineBox elements, that
         // we must draw as erm_block
-        if ( m == erm_inline && enode->isBoxingInlineBox() ) {
+        if ( m == erm_inline && enode->isEffectiveBoxingInlineBox() ) {
             m = erm_block;
         }
         switch( m )
@@ -10514,9 +10359,8 @@ inline bool inheritLength( css_length_t & val, css_length_t & parent_val, int pa
     return true;
 }
 
-void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef parent_font )
+void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef parent_font, int docFragmentIdx )
 {
-    CR_UNUSED(parent_font);
     //lvdomElementFormatRec * fmt = node->getRenderData();
     css_style_ref_t style( new css_style_rec_t );
     css_style_rec_t * pstyle = style.get();
@@ -10540,6 +10384,23 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // init default style attribute values
     const css_elem_def_props_t * type_ptr = enode->getElementTypePtr();
     bool is_object = enode->isImage();
+
+    if ( nodeElementId == el_cloneNode ) {
+        if ( enode->hasAttribute(attr_T) ) {
+            // CloneNode of a Text node: a style won't be used, but it's safer
+            // to set one, so it is not null and we don't crash in odd places
+            // that check it (ie. recursed resetRendMethodToInline())
+            enode->setStyle( style );
+            // Doing initNodeFont(), even if the font won't ever be used, avoids "style hash mismatch".
+            enode->initNodeFont(docFragmentIdx);
+            return;
+        }
+        ldomNode * sourceNode = enode->getCloneNodeSource();
+        nodeElementId = sourceNode->getNodeId();
+        type_ptr = sourceNode->getElementTypePtr();
+        is_object = sourceNode->isImage();
+    }
+
     if (type_ptr) {
         pstyle->display = type_ptr->display;
         pstyle->white_space = type_ptr->white_space;
@@ -10590,9 +10451,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // Handle <epub:switch> <epub:case required-namespace="..."> <epub:default>
     if ( nodeElementId == el_case ) {
         // We only support MathML and SVG.
-        ldomNode * parent = enode->getParentNode();
+        ldomNode * parent = enode->getEffectiveParentNode();
         if ( parent && parent->getNodeId() == el_switch ) {
-            lString32 required_namespace = enode->getAttributeValue(attr_required_namespace);
+            lString32 required_namespace = enode->getEffectiveAttributeValue(attr_required_namespace);
             if ( false ) {
                 // dummy if
             }
@@ -10617,7 +10478,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         }
     }
     else if (nodeElementId == el_default ) { // <epub:default>
-        ldomNode * parent = enode->getParentNode();
+        ldomNode * parent = enode->getEffectiveParentNode();
         if (parent && parent->getNodeId() == el_switch) {
             // See if there is a sibling <epub:case> with a supported namespace
             bool has_supported_namespace = false;
@@ -10666,8 +10527,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     //////////////////////////////////////////////////////
     // apply node style= attribute
     //////////////////////////////////////////////////////
-    if ( doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasAttribute( LXML_NS_ANY, attr_style ) ) {
-        lString32 nodeStyle = enode->getAttributeValue( LXML_NS_ANY, attr_style );
+    if ( doc->getDocFlag(DOC_FLAG_ENABLE_INTERNAL_STYLES) && enode->hasEffectiveAttribute( attr_style ) ) {
+        lString32 nodeStyle = enode->getEffectiveAttributeValue( attr_style );
         if ( !nodeStyle.empty() ) {
             nodeStyle = cs32("{") + nodeStyle + "}";
             LVCssDeclaration decl;
@@ -10778,6 +10639,55 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->display = css_d_none;
     }
 
+    if ( nodeElementId == el_pseudoElem ) {
+        if ( enode->hasAttribute(attr_FirstLetter) ) {
+            // Many properties are not allowed, but we don't really want
+            // to check them all, as publishers would probably not use those
+            // that don't have any effect.
+            // There are a few (even if not provided, they could be
+            // inherited) that could cause unwanted effects:
+            // - display: avoid issues by ensuring it is either none or inline
+            //   (this has to be done here before the PREPARE_FLOATBOXES block
+            //   below, which may change it to css_d_block for rendering purpose)
+            if ( pstyle->display != css_d_none ) {
+                pstyle->display = css_d_inline;
+                if ( hasAppliedInitialLetter(pstyle) ) {
+                    // But with CSS initial-letter, our support for that
+                    // is done with inline-block: force disable any float.
+                    pstyle->display = css_d_inline_block;
+                    pstyle->float_ = css_f_none;
+                }
+            }
+            // - text-indent: it should apply to the paragraph, not to the
+            //   generated first-letter pseudo-element itself. This is valid
+            //   whether float (checked on Firefox) or not.
+            pstyle->text_indent.type = css_val_screen_px;
+            pstyle->text_indent.value = 0;
+            // Most of the ones we support but that are not allowed are
+            // block related (width, page-break...), and shouldn't have
+            // any effect.
+        }
+        else if ( enode->hasAttribute(attr_FirstLine) ) {
+            // Many properties are not allowed, but we don't really want
+            // to check them all, as publishers would probably not use those
+            // that don't have any effect.
+            // There are a few (even if not provided, they could be
+            // inherited) that could cause unwanted effects:
+            // - display: avoid issues by ensuring it is either none or inline
+            if ( pstyle->display != css_d_none ) {
+                pstyle->display = css_d_inline;
+            }
+            // - float: be sure we don't get it (currently, it would have no effect)
+            pstyle->float_ = css_f_none;
+            // Most of the ones we support but that are not allowed are
+            // block related (width, page-break...), and shouldn't have
+            // any effect.
+            // A few not allowed like margin/padding/border can have some effect
+            // (which might be useful for debugging), but let's not bother.
+        }
+        // The specs mention no property that would be not allowed for ::before/::after
+    }
+
     if ( BLOCK_RENDERING(rend_flags, PREPARE_FLOATBOXES) ) {
         // https://developer.mozilla.org/en-US/docs/Web/CSS/float
         //  As float implies the use of the block layout, it modifies the computed value
@@ -10793,7 +10703,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         // not there yet (or just added, which will be handled by next 'if'), or has
         // not yet got its float_ from its child. So the ->display of the floatBox
         // element will have to be updated too elsewhere.
-        if ( pstyle->float_ == css_f_left || pstyle->float_ == css_f_right ) {
+        if ( pstyle->float_ > css_f_none ) {
             if ( pstyle->display <= css_d_inline ) {
                 pstyle->display = css_d_block;
             }
@@ -10864,7 +10774,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                         pstyle->display = css_d_inline; // become an inline wrapper
                         pstyle->vertical_align = child_style->vertical_align;
                     }
-                    else if ( enode->hasAttribute( attr_T ) ) { // T="EmbeddedBlock"
+                    else if ( enode->hasEffectiveAttribute( attr_T ) ) { // T="EmbeddedBlock"
                                             // (no other possible value yet, no need to compare strings)
                         pstyle->display = css_d_inline; // wrap bogus "block among inlines" in inline
                     }
@@ -10961,6 +10871,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     /// Keywords properties
     // These have "inherit" as their initial value (others, less straightforward, are handled below)
     UPDATE_STYLE_FIELD( font_style, css_fs_inherit );
+    UPDATE_STYLE_FIELD( font_optical_sizing, css_fos_inherit );
+    UPDATE_STYLE_FIELD( font_width, css_fwd_inherit );
     UPDATE_STYLE_FIELD( white_space, css_ws_inherit );
     UPDATE_STYLE_FIELD( text_align, css_ta_inherit );
     UPDATE_STYLE_FIELD( text_align_last, css_ta_inherit );
@@ -10974,6 +10886,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( line_break, css_lb_inherit );
     UPDATE_STYLE_FIELD( word_break, css_wb_inherit );
     UPDATE_STYLE_FIELD( caption_side, css_cs_inherit );
+    UPDATE_STYLE_FIELD( ruby_position, css_rp_inherit );
     UPDATE_STYLE_FIELD( border_collapse, css_border_c_inherit );
 
     // Firefox and Webkit/Chromium reset text-align: to 'start' for table if it originates from
@@ -10999,10 +10912,19 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         */
     }
 
-    // text-decoration should not be inherited per CSS specs, but our quite
-    // limited support for it requires us to have its initial value be
-    // inherit, and to get it inherited by children.
-    UPDATE_STYLE_FIELD( text_decoration, css_td_inherit );
+    // text-decoration should not be inherited per CSS specs, but the resulting
+    // decorations apply across descendants. So, when a node specifies its own
+    // decorations, merge them with the parent's instead of replacing them.
+    if ( pstyle->text_decoration == css_td_inherit ) {
+        pstyle->text_decoration = parent_style->text_decoration;
+    }
+    else {
+        pstyle->text_decoration = (parent_style->text_decoration & ~css_td_none)
+                                | (pstyle->text_decoration & ~css_td_none);
+        if ( !pstyle->text_decoration ) {
+            pstyle->text_decoration = css_td_none;
+        }
+    }
 
     // Note: we don't inherit "direction" (which should be inherited per specs);
     // We'll handle inheritance of direction in renderBlockEnhanced, because
@@ -11014,7 +10936,6 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     UPDATE_STYLE_FIELD( page_break_after, css_pb_inherit );
     UPDATE_STYLE_FIELD( page_break_inside, css_pb_inherit );
     UPDATE_STYLE_FIELD( background_repeat, css_background_r_inherit );
-    UPDATE_STYLE_FIELD( background_position, css_background_p_inherit );
     UPDATE_STYLE_FIELD( float_, css_f_inherit );
     UPDATE_STYLE_FIELD( clear, css_c_inherit );
     UPDATE_STYLE_FIELD( box_sizing, css_bs_inherit );
@@ -11085,36 +11006,28 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->font_weight = parent_style->font_weight;
         break;
     case css_fw_normal:
-        pstyle->font_weight = css_fw_400;
+        pstyle->font_weight = 400;
         break;
     case css_fw_bold:
-        pstyle->font_weight = css_fw_700;
+        pstyle->font_weight = 700;
         break;
     case css_fw_bolder:
-        if (parent_style->font_weight < css_fw_400)
-            pstyle->font_weight = css_fw_400;
-        else if (parent_style->font_weight < css_fw_600)
-            pstyle->font_weight = css_fw_700;
+        if (parent_style->font_weight < 400)
+            pstyle->font_weight = 400;
+        else if (parent_style->font_weight < 600)
+            pstyle->font_weight = 700;
         else
-            pstyle->font_weight = css_fw_900;
+            pstyle->font_weight = 900;
         break;
     case css_fw_lighter:
-        if (parent_style->font_weight < css_fw_400)
-            pstyle->font_weight = css_fw_100;
-        else if (parent_style->font_weight < css_fw_600)
-            pstyle->font_weight = css_fw_300;
+        if (parent_style->font_weight < 400)
+            pstyle->font_weight = 100;
+        else if (parent_style->font_weight < 600)
+            pstyle->font_weight = 300;
         else
-            pstyle->font_weight = css_fw_700;
+            pstyle->font_weight = 700;
         break;
-    case css_fw_100:
-    case css_fw_200:
-    case css_fw_300:
-    case css_fw_400:
-    case css_fw_500:
-    case css_fw_600:
-    case css_fw_700:
-    case css_fw_800:
-    case css_fw_900:
+    default: // already a resolved numeric weight [1, 1000]
         break;
     }
 
@@ -11145,7 +11058,31 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         pstyle->font_size.type = parent_style->font_size.type;
         pstyle->font_size.value = parent_style->font_size.value * pstyle->font_size.value / 100 / 256;
         break;
+    case css_val_lh:
+        // In font-size, lh resolves against the parent's computed line-height.
+        pstyle->font_size.value = getLineHeightPx(enode, parent_style.get(), parent_font) * pstyle->font_size.value / 256;
+        pstyle->font_size.type = css_val_screen_px;
+        break;
+    case css_val_rlh:
+        {
+            // Publisher-facing root line-height, from the actual document root element.
+            ldomNode * root = getRootUnitNode(enode);
+            int root_line_h = root && !root->getStyle().isNull() && !root->getFont().isNull()
+                    ? getLineHeightPx(root, root->getStyle().get(), root->getFont())
+                    : getUserRootLineHeightPx(doc);
+            pstyle->font_size.value = root_line_h * pstyle->font_size.value / 256;
+            pstyle->font_size.type = css_val_screen_px;
+        }
+        break;
+    case css_val_urlh:
+        // Private engine/user root line-height, from the document default font.
+        pstyle->font_size.value = getUserRootLineHeightPx(doc) * pstyle->font_size.value / 256;
+        pstyle->font_size.type = css_val_screen_px;
+        break;
     case css_val_rem:
+    case css_val_urem:
+    case css_val_rex:
+    case css_val_rch:
     case css_val_vw:
     case css_val_vh:
     case css_val_vmin:
@@ -11157,6 +11094,7 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     case css_val_mm:
     case css_val_pt:
     case css_val_pc:
+    case css_val_q:
         // absolute size, nothing to do
         break;
     case css_val_unspecified:
@@ -11204,6 +11142,25 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
                 pstyle->line_height = parent_style->line_height; // inherit as-is
                 break;
         }
+    }
+    else if (pstyle->line_height.type == css_val_lh) {
+        // In line-height, lh resolves against the parent's computed line-height.
+        pstyle->line_height.value = getLineHeightPx(enode, parent_style.get(), parent_font) * pstyle->line_height.value / 256;
+        pstyle->line_height.type = css_val_screen_px;
+    }
+    else if (pstyle->line_height.type == css_val_rlh) {
+        ldomNode * root = getRootUnitNode(enode);
+        int root_line_h = root && !root->getStyle().isNull() && !root->getFont().isNull()
+                ? getLineHeightPx(root, root->getStyle().get(), root->getFont())
+                : getUserRootLineHeightPx(doc);
+        // Publisher-facing root line-height, from the actual document root element.
+        pstyle->line_height.value = root_line_h * pstyle->line_height.value / 256;
+        pstyle->line_height.type = css_val_screen_px;
+    }
+    else if (pstyle->line_height.type == css_val_urlh) {
+        // Private engine/user root line-height, from the document default font.
+        pstyle->line_height.value = getUserRootLineHeightPx(doc) * pstyle->line_height.value / 256;
+        pstyle->line_height.type = css_val_screen_px;
     }
 
     // vertical_align: computed value: "for percentage and length values, the absolute length, otherwise the keyword as specified"
@@ -11263,6 +11220,9 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // background_size[2] [WH]: computed value: "as specified, but with relative lengths converted into absolute lengths"
     inheritLength( pstyle->background_size[0], parent_style->background_size[0], parent_font_size );
     inheritLength( pstyle->background_size[1], parent_style->background_size[1], parent_font_size );
+    // background_position[2] [XY]: computed value: "as specified, but with relative lengths converted into absolute lengths"
+    inheritLength( pstyle->background_position[0], parent_style->background_position[0], parent_font_size );
+    inheritLength( pstyle->background_position[1], parent_style->background_position[1], parent_font_size );
 
     // border_width[4] [TRBL]: computed value: "the absolute length or 0 if border-style is none or hidden"
     if ( pstyle->border_width[0].type == css_val_inherited ) {
@@ -11288,6 +11248,14 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
             pstyle->border_width[3] = css_length_t(css_val_screen_px, 0);
         else
             inheritLength( pstyle->border_width[3], parent_style->border_width[3], parent_font_size );
+    }
+
+    // border-radius: not inherited by default, but if the CSS value was explicitly
+    // "inherit", grab the parent's computed value, like border-width
+    // and border-color do just above/below.
+    for ( int i=0; i < 4; i++ ) {
+        inheritLength( pstyle->border_radius_h[i], parent_style->border_radius_h[i], parent_font_size );
+        inheritLength( pstyle->border_radius_v[i], parent_style->border_radius_v[i], parent_font_size );
     }
 
     // About color properties:
@@ -11374,6 +11342,8 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     // See if applying styles requires pseudo element before/after
     bool requires_pseudo_element_before = false;
     bool requires_pseudo_element_after = false;
+    bool requires_has_first_letter_attribute = false;
+    bool requires_has_first_line_attribute = false;
     if ( pstyle->pseudo_elem_before_style ) {
         if ( pstyle->pseudo_elem_before_style->display != css_d_none
                 && pstyle->pseudo_elem_before_style->content.length() > 0
@@ -11396,8 +11366,24 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
         delete pstyle->pseudo_elem_after_style;
         pstyle->pseudo_elem_after_style = NULL;
     }
+    if ( pstyle->pseudo_elem_first_letter_catcher_style ) {
+        if ( pstyle->pseudo_elem_first_letter_catcher_style->display != css_d_none ) {
+            // Not "display: none": this pseudo element can be generated
+            requires_has_first_letter_attribute = true;
+        }
+        delete pstyle->pseudo_elem_first_letter_catcher_style;
+        pstyle->pseudo_elem_first_letter_catcher_style = NULL;
+    }
+    if ( pstyle->pseudo_elem_first_line_style ) {
+        if ( pstyle->pseudo_elem_first_line_style->display != css_d_none ) {
+            // Not "display: none": the ::first-line pseudo element can be generated
+            requires_has_first_line_attribute = true;
+        }
+        delete pstyle->pseudo_elem_first_line_style;
+        pstyle->pseudo_elem_first_line_style = NULL;
+    }
 
-    if ( nodeElementId == el_pseudoElem ) {
+    if ( nodeElementId == el_pseudoElem && (enode->hasAttribute(attr_Before) || enode->hasAttribute(attr_After)) ) {
         // Pseudo element ->content may need some update if it contains
         // any of the open-quote-like tokens, to account for the
         // quoting nested levels. setNodeStyle() is actually the good
@@ -11420,10 +11406,27 @@ void setNodeStyle( ldomNode * enode, css_style_ref_t parent_style, LVFontRef par
     }
 
     // set font
-    enode->initNodeFont();
+    enode->initNodeFont(docFragmentIdx);
 
     // Now that this node is fully styled, ensure these pseudo elements
-    // are there as children, creating them if needed and possible
+    // are there as children, creating them if needed and possible.
+    // DOM order: FirstLine(0), Before(1), FirstLetter(near first text), After(last).
+    // (Per-specs, FirstLetter should be before Before, and should grab the
+    // first letter from that Before - but this is quite involved and we don't
+    // support it. Having Before first may still allow for aesthetic prefixes.)
+    // FirstLine creation (with cloning) is deferred to initNodeRendMethod(),
+    // after all boxing is complete. Here we just set the attribute flag so
+    // initNodeRendMethod() knows to create the pseudoElem[FirstLine].
+    if ( requires_has_first_line_attribute ) {
+        if ( !enode->hasAttribute(attr_HasFirstLine) ) {
+            enode->setAttributeValue(LXML_NS_NONE, attr_HasFirstLine, U"");
+        }
+    }
+    // Note: we call ensureFirstLetter before ensurePseudoElement(true) to keep things simpler,
+    // but the pseudoElem[FirstLetter] will still end up after a pseudoElem[Before])
+    if ( requires_has_first_letter_attribute ) {
+        enode->ensureFirstLetter(false); // false = skip init style during stylesheet re-application
+    }
     if ( requires_pseudo_element_before )
         enode->ensurePseudoElement(true);
     if ( requires_pseudo_element_after )
@@ -11477,8 +11480,8 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         printf("GRW node: %s\n", UnicodeToLocal(ldomXPointer(node, 0).toString()).c_str());
     #endif
 
-    if ( node->isElement() && !processNodeAsText ) {
-        lUInt16 nodeElementId = node->getNodeId();
+    if ( node->isEffectiveElement() && !processNodeAsText ) {
+        lUInt16 nodeElementId = node->getEffectiveNodeId();
         int m = node->getRendMethod();
         if (m == erm_invisible)
             return;
@@ -11486,13 +11489,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         if ( isStartNode ) {
             lang_cfg = TextLangMan::getTextLangCfg( node ); // Fetch it from node or its parents
         }
-        else if ( node->hasAttribute( attr_lang ) ) {
-            lString32 lang_tag = node->getAttributeValue( attr_lang );
+        else if ( node->hasEffectiveAttribute( attr_lang ) ) {
+            lString32 lang_tag = node->getEffectiveAttributeValue( attr_lang );
             if ( !lang_tag.empty() )
                 lang_cfg = TextLangMan::getTextLangCfg( lang_tag );
         }
 
-        if ( isStartNode && node->isBoxingInlineBox() ) {
+        if ( isStartNode && node->isEffectiveBoxingInlineBox() ) {
             // The inlineBox is erm_inline, and we'll be measuring it below
             // as part of measuring other erm_inline in some erm_final.
             // If isStartNode, we want to measure its content, so switch
@@ -11510,14 +11513,14 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         // Get image size early
         bool is_img = false;
         int img_width = 0;
-        if ( node->isImage() ) {
+        if ( node->isEffectiveImage() ) {
             is_img = true;
             int unused_height = 0;
             // We have no container width/height to provide: CSS width and
             // height in % won't apply and default to their initial value
             // of none or auto, so as if there wasn't any.
             // https://drafts.csswg.org/css-sizing-3/#cyclic-percentage-contribution
-            getStyledImageSize( node, img_width, unused_height );
+            getStyledImageSize( node->getEffectiveNode(), img_width, unused_height );
                 // We got a single width (the normal image width, constrained
                 // between min-width and max-width if any): we use it to update
                 // both minWidth/maxWidth in here (the CSS properties with the
@@ -11552,7 +11555,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             // allowed between left/right pads and their followup/preceeding content)
             int pad_left  = lengthToPx( node, style->margin[0], 0 ) + measureBorder(node, 3) + lengthToPx( node, style->padding[0], 0 );
             int pad_right = lengthToPx( node, style->margin[1], 0 ) + measureBorder(node, 1) + lengthToPx( node, style->padding[1], 0 );
-            if ( is_img || node->isBoxingInlineBox() ) {
+            if ( is_img || node->isEffectiveBoxingInlineBox() ) {
                 if (!nowrap) {
                     // Get done with previous word
                     if (curWordWidth > minWidth)
@@ -11577,6 +11580,13 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 _minw += pad_left + pad_right; // these pads should be 0 on an inlineBox
                 _maxw += pad_left + pad_right;
                 curMaxWidth += _maxw;
+                if ( !nowrap && node->isEffectiveBoxingInlineBox() ) {
+                    // Avoid a wrap after, if this inlineBox wraps a pseudoElem[FirstLetter]
+                    ldomNode * child = node->getEffectiveNode()->getChildNode(0);
+                    if ( child && child->getEffectiveNodeId() == el_pseudoElem && child->hasEffectiveAttribute(attr_FirstLetter) ) {
+                        nowrap = true;
+                    }
+                }
                 if (nowrap) {
                     curWordWidth += _minw;
                 }
@@ -11590,7 +11600,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             // and not to next word as it should, if a space follows), but well...
             curMaxWidth += pad_left;
             curWordWidth += pad_left;
-            if ( nodeElementId == el_pseudoElem ) {
+            if ( nodeElementId == el_pseudoElem && !node->hasAttribute(attr_FirstLine) ) {
                 // pseudoElem has no children: reprocess this same node
                 // with processNodeAsText=true, to process its text content.
                 getRenderedWidths(node, maxWidth, minWidth, direction, false, rendFlags,
@@ -11610,6 +11620,20 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
             }
             curMaxWidth += pad_right;
             curWordWidth += pad_right;
+            if ( nodeElementId == el_pseudoElem && node->hasAttribute(attr_FirstLine) ) {
+                // End of ::first-line clones sequance: do exactly as above as if we met a <br/>,
+                // so we start afresh with the normal sequence
+                if (lastSpaceWidth)
+                    curMaxWidth -= lastSpaceWidth;
+                if (curMaxWidth > maxWidth)
+                    maxWidth = curMaxWidth;
+                if (curWordWidth > minWidth)
+                    minWidth = curWordWidth;
+                curMaxWidth = indent;
+                curWordWidth = indent;
+                collapseNextSpace = true;
+                lastSpaceWidth = 0;
+            }
             return;
         }
 
@@ -11642,7 +11666,9 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         bool is_boxing_elem = nodeElementId <= EL_BOXING_END && nodeElementId >= EL_BOXING_START;
         bool use_style_width = false;
         css_length_t style_width = style->width;
-        if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) ) {
+        // ('width: fit-content' is actually what this function returns as maxWidth)
+        bool has_fit_content_width = style_width.type == css_val_unspecified && style_width.value == css_generic_fit_content;
+        if ( BLOCK_RENDERING(rendFlags, ENSURE_STYLE_WIDTH) && !has_fit_content_width ) {
             // Ignore width for table sub-elements - but allow it for our boxing elements, as we can set it
             // for some explicit rendering purpose (i.e. for the MathML <msqrt> mathBox root symbol)
             if ( style->display <= css_d_table || is_boxing_elem ) {
@@ -11717,7 +11743,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                         curMaxWidth, curWordWidth, collapseNextSpace, lastSpaceWidth, indent, nowrap_in, lang_cfg);
                     // A <BR/> can happen deep among our children, so we deal with that when erm_inline above
                 }
-                if ( nodeElementId == el_pseudoElem ) {
+                if ( nodeElementId == el_pseudoElem && !node->hasAttribute(attr_FirstLine) ) {
                     // erm_final pseudoElem (which has no children): reprocess this same
                     // node with processNodeAsText=true, to process its text content.
                     getRenderedWidths(node, _maxWidth, _minWidth, direction, false, rendFlags,
@@ -11784,7 +11810,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             row.reserve(seen_nb_cells);
                             for (int i = 0; i < n->getChildCount(); i++) {
                                 ldomNode * child = n->getChildNode(i);
-                                if ( child->isText() ) {
+                                if ( child->isEffectiveText() ) {
                                     // Ignore text nodes among table elements (they are usually
                                     // dropped when parsing the HTML, but for <ruby>, parsed as
                                     // inline but later acquiring erm_table* rendering methods,
@@ -11824,7 +11850,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                             // Non-recursive sub tree walker (continued)
                             index = n->getChildCount(); // Skip walking/entering that row
                         }
-                        else if ( n->isElement() && n->getStyle()->display == css_d_table_caption && n->getRendMethod() != erm_invisible ) {
+                        else if ( n->isEffectiveElement() && n->getStyle()->display == css_d_table_caption && n->getRendMethod() != erm_invisible ) {
                             // Also measure caption(s)
                             int _maxw = 0;
                             int _minw = 0;
@@ -11985,7 +12011,7 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
                 int _maxw = 0;
                 int _minw = 0;
                 ldomNode * child = node->getChildNode(i);
-                if ( child->isText() ) {
+                if ( child->isEffectiveText() ) {
                     // Ignore text nodes between block nodes
                     // (we shouldn't find any, but well)
                     continue;
@@ -12207,13 +12233,44 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         int start = 0;
         int len = 0;
         ldomNode * parent;
-        if ( node->isText() ) {
-            text = node->getText();
+        bool is_first_letter_pseudo = false;
+        if ( node->isEffectiveText() ) {
+            text = node->getEffectiveText();
+            len = text.length();
             parent = node->getParentNode();
+            // Check if this text node has a preceding FirstLetter pseudoElem
+            int textOffset = 0;
+            ldomNode * firstLetterNode = node->getFirstLetterPseudoElem(&textOffset);
+            if ( firstLetterNode ) {
+                // Skip the first N characters already handled by FirstLetter
+                // getFirstLetterPseudoElem already checked display:none
+                start = textOffset;
+                len = text.length() - start;
+                if ( len < 0 ) // sanity check
+                    len = 0;
+            }
         }
-        else if ( node->getNodeId() == el_pseudoElem ) {
-            text = get_applied_content_property(node);
+        else if ( node->getEffectiveNodeId() == el_pseudoElem && (node->hasEffectiveAttribute(attr_Before) || node->hasEffectiveAttribute(attr_After)) ) {
+            text = get_applied_content_property(node->getEffectiveNode());
+            len = text.length();
             parent = node; // this pseudoElem node carries the font and style of the text
+            if ( isStartNode ) {
+                lang_cfg = TextLangMan::getTextLangCfg( node ); // Fetch it from node or its parents
+            }
+        }
+        else if ( node->getEffectiveNodeId() == el_pseudoElem && node->hasEffectiveAttribute(attr_FirstLetter) ) {
+            // FirstLetter pseudoElem: extract first N chars from following text node
+            // Skip if display:none
+            if ( node->getStyle()->display == css_d_none )
+                return;
+            int firstLetterEnd = node->getEffectiveAttributeValue(attr_FirstLetter).atoi();
+            ldomNode * textNode = node->getEffectiveFirstLetterTextNode();
+            if ( !textNode )
+                return;
+            text = textNode->getText();
+            len = firstLetterEnd; // Only measure the first N characters
+            parent = node; // this pseudoElem node carries the font and style of the text
+            is_first_letter_pseudo = true;
             if ( isStartNode ) {
                 lang_cfg = TextLangMan::getTextLangCfg( node ); // Fetch it from node or its parents
             }
@@ -12221,13 +12278,22 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         else {
             return;
         }
-        len = text.length();
         if ( len == 0 )
             return;
         // letter-spacing
         LVFontRef font = parent->getFont();
         int em = font->getSize();
         css_style_ref_t parent_style = parent->getStyle();
+        if ( is_first_letter_pseudo ) {
+            // initial-letter keeps the CSS 'computed font' for em-based properties such as
+            // letter-spacing, but the text rendered width must be measured with the same
+            // initial-letter layout bundle used by rendering.
+            InitialLetterTextLayout initial_letter_layout;
+            if ( getInitialLetterTextLayout(parent, font->getHeight(), initial_letter_layout)
+                    && !initial_letter_layout.font.isNull() ) {
+                font = initial_letter_layout.font;
+            }
+        }
         int letter_spacing = lengthToPx(parent, parent_style->letter_spacing, em);
         // text-transform
         switch (parent_style->text_transform) {
@@ -12292,9 +12358,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
         lb_process_next_char(&lbCtx, (utf32_t)(*txt));
         #endif
         while (true) {
+            int chunk_len = len > MAX_TEXT_CHUNK_SIZE ? MAX_TEXT_CHUNK_SIZE : len;
             int chars_measured = font->measureText(
                     txt + start,
-                    len,
+                    chunk_len,
                     widths, flags,
                     0x7FFF, // very wide width
                     '?',    // replacement char

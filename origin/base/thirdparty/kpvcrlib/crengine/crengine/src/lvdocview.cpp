@@ -11,7 +11,8 @@
 
  *******************************************************/
 
-#include "../include/crsetup.h"
+#include "crsetup.h"
+
 #include "../include/fb2def.h"
 #include "../include/lvdocview.h"
 #include "../include/rtfimp.h"
@@ -31,6 +32,7 @@
 #include "../include/fb3fmt.h"
 #include "../include/docxfmt.h"
 #include "../include/odtfmt.h"
+#include "mdfmt.h"
 
 /// to show page bounds rectangles
 //#define SHOW_PAGE_RECT
@@ -957,35 +959,54 @@ LVPageMap * LVDocView::getPageMap() {
 
 /// update page info for LVPageMapItems
 void LVDocView::updatePageMapInfo(LVPageMap * pagemap) {
-    // Ensure page and doc_y never go backward
-    int prev_page = 0;
+    // A page list is not required to be in reading order: a conversion may move
+    // front matter to the end of the spine while the page list keeps referencing
+    // it at its original place. So, don't assume list order is reading order:
+    // resolve each item's true position, and only then order and normalize.
+    int nb = pagemap->getChildCount();
+    // 1) Resolve each item's document Y and page from its XPointer, with no clamping.
+    //    Note whether these positions happen to be in ascending order, so we can
+    //    skip the sorting below in the usual case of a page list in reading order.
+    bool needs_sort = false;
     int prev_doc_y = 0;
-    for (int i = 0; i < pagemap->getChildCount(); i++) {
+    for (int i = 0; i < nb; i++) {
         LVPageMapItem * item = pagemap->getChild(i);
-        if (!item->getXPointer().isNull()) {
-            int doc_y = item->getDocY(true); // refresh
-            int page = -1;
-            if (doc_y >= 0) {
-                page = m_pages.FindNearestPage(doc_y, 0);
-                if (page < 0 || page >= getPageCount(true))
-                    page = -1;
-                else
-                    page = getExternalPageNumber(page);
-            }
-            item->_page = page;
-            if ( item->_page < prev_page )
-                item->_page = prev_page;
-            else
-                prev_page = item->_page;
-            if ( item->_doc_y < prev_doc_y )
-                item->_doc_y = prev_doc_y;
-            else
-                prev_doc_y = item->_doc_y;
-        }
-        else {
-            item->_page = prev_page;
+        int doc_y = -1;
+        if (!item->getXPointer().isNull())
+            doc_y = item->getDocY(true); // refresh
+        if (doc_y < 0) {
+            // Position not resolvable (ie. XPointer to a node not found): keep this
+            // item next to its predecessor in the list, and have it get its page
+            // number in 3) below.
             item->_doc_y = prev_doc_y;
+            item->_page = -1;
+            continue;
         }
+        int page = m_pages.FindNearestPage(doc_y, 0);
+        if (page < 0 || page >= getPageCount(true))
+            page = -1;
+        else
+            page = getExternalPageNumber(page);
+        item->_doc_y = doc_y;
+        item->_page = page;
+        if (doc_y < prev_doc_y)
+            needs_sort = true;
+        prev_doc_y = doc_y;
+    }
+    // 2) Order items by their resolved position, so consumers can expect the page
+    //    map to be in reading order (and can binary search it by position).
+    if (needs_sort)
+        pagemap->sortByDocY();
+    // 3) Ensure page numbers never go backward: items with no page number get the one
+    //    of their (now, in reading order) predecessor. Positions being ordered, the
+    //    page numbers computed above can't go backward otherwise.
+    int prev_page = 0;
+    for (int i = 0; i < nb; i++) {
+        LVPageMapItem * item = pagemap->getChild(i);
+        if (item->_page < 0)
+            item->_page = prev_page;
+        else
+            prev_page = item->_page;
     }
     pagemap->setPageValidForVisiblePageNumbers( getVisiblePageNumberCount() );
 }
@@ -1160,11 +1181,8 @@ void LVDocView::drawCoverTo(LVDrawBuf * drawBuf, lvRect & rc) {
         if (dst_dy > rc.height())
 			dst_dy = imgrc.height();
 		//CRLog::trace("drawCoverTo() - drawing image");
-        LVColorDrawBuf buf2(src_dx, src_dy, 32);
-        buf2.setInvertImages(drawBuf->getInvertImages());
-        buf2.Draw(imgsrc, 0, 0, src_dx, src_dy, true);
-        drawBuf->DrawRescaled(&buf2, imgrc.left + (imgrc.width() - dst_dx) / 2,
-                imgrc.top + (imgrc.height() - dst_dy) / 2, dst_dx, dst_dy, 0);
+        drawBuf->Draw(imgsrc, imgrc.left + (imgrc.width() - dst_dx) / 2,
+                imgrc.top + (imgrc.height() - dst_dy) / 2, dst_dx, dst_dy);
 	} else if (!defcover.isNull()) {
 		if (h)
 			imgrc.bottom -= h + 16;
@@ -2812,6 +2830,33 @@ ldomXPointer LVDocView::getNodeByPoint(lvPoint pt, bool strictBounds, bool forTe
 					direction = -direction;
 				}
 				ptr = m_doc->createXPointer(pt, direction, strictBounds);
+				// If this ptr is null or not on the screen. we may find a better one looking in the other direction
+				bool try_other_dir = false;
+				if ( ptr.isNull() ) {
+					try_other_dir = true;
+				}
+				else if ( ptr.isText() && ptr.getRect(rc) ) {
+					lvRect page_rect;
+					GetPos(page_rect);
+					if ( rc.bottom <= page_rect.top || rc.top >= page_rect.bottom ) { // Not in the current page
+						try_other_dir = true;
+					}
+				}
+				if ( try_other_dir ) {
+					ldomXPointer ptr2 = m_doc->createXPointer(pt, -direction, strictBounds);
+					if ( ptr.isNull() ) {
+						// Use it instead
+						ptr = ptr2;
+					}
+					else if ( !ptr2.isNull() && ptr2.isText() && ptr2.getRect(rc) ) {
+						lvRect page_rect;
+						GetPos(page_rect);
+						if ( !(rc.bottom <= page_rect.top || rc.top >= page_rect.bottom) ) {
+							// It is in current page: use it instead of previous one
+							ptr = ptr2;
+						}
+					}
+				}
 			}
 		}
 		return ptr;
@@ -2947,7 +2992,7 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
         // printf("  start (%d=%d): %s\n", start_h, start_y + start_h, UnicodeToLocal(start.toString()).c_str());
         if (!start.isNull()) {
             // Check what we got is really in current page
-            lvPoint pt = start.toPoint();
+            lvPoint pt = start.toPoint(true);
             // printf("start pt.y %d start_y %d end_y %d\n", pt.y, start_y, end_y);
             if (pt.y >= start_y && pt.y <= end_y)
                 break; // we found our start of page xpointer
@@ -2960,7 +3005,7 @@ LVRef<ldomXRange> LVDocView::getPageDocumentRange(int pageIndex) {
         // printf("  end (%d=%d): %s\n", end_h, start_y + end_h, UnicodeToLocal(end.toString()).c_str());
         if (!end.isNull()) {
             // Check what we got is really in current page
-            lvPoint pt = end.toPoint();
+            lvPoint pt = end.toPoint(true);
             // printf("end pt.y %d start_y %d end_y %d\n", pt.y, start_y, end_y);
             if (pt.y >= start_y && pt.y <= end_y)
                 break; // we found our end of page xpointer
@@ -4389,6 +4434,9 @@ bool LVDocView::LoadDocument(LVStreamRef stream, bool metadataOnly) {
 
 	setRenderProps(0, 0); // to allow apply styles and rend method while loading
 
+	// Reset counters (quotes nesting levels...)
+	TextLangMan::resetCounters();
+
 	if (m_callback) {
 		m_callback->OnLoadFileStart(m_doc_props->getStringDef(
 				DOC_PROP_FILE_NAME, ""));
@@ -4649,6 +4697,37 @@ bool LVDocView::LoadDocument(LVStreamRef stream, bool metadataOnly) {
         }
 #endif
 
+#if (USE_MD4C == 1)
+        if (DetectMarkdownFormat(m_stream, stream->GetName())) {
+            CRLog::info("Markdown format detected");
+            createEmptyDocument();
+            m_doc->setProps(m_doc_props);
+            setRenderProps(0, 0);
+            setDocFormat(doc_format_md);
+            if (m_callback)
+                m_callback->OnLoadFileFormatDetected(doc_format_md);
+            updateDocStyleSheet();
+            bool res = ImportMarkdownDocument(m_stream, stream->GetName(), m_doc, m_callback, this);
+            if (!res) {
+                setDocFormat(doc_format_none);
+                createDefaultDocument(cs32("ERROR: Error reading Markdown format"), cs32("Cannot open document"));
+                if (m_callback) {
+                    m_callback->OnLoadFileError(cs32("Error reading Markdown document"));
+                }
+                return false;
+            } else {
+                setRenderProps(0, 0);
+                REQUEST_RENDER("loadDocument")
+                if (m_callback) {
+                    m_callback->OnLoadFileEnd();
+                    //m_doc->compact();
+                    m_doc->dumpStatistics();
+                }
+                return true;
+            }
+        }
+#endif
+
 		bool repeat_recursively = false;
         m_arc = LVOpenArchieve( m_stream );
 		if (!m_arc.isNull())
@@ -4806,7 +4885,10 @@ bool LVDocView::LoadDocument(LVStreamRef stream, bool metadataOnly) {
 }
 
 const lChar32 * getDocFormatName(doc_format_t fmt) {
+	assert((unsigned)fmt <= doc_format_max);
 	switch (fmt) {
+	case doc_format_none:
+		break;
 	case doc_format_fb2:
 		return U"FictionBook (FB2)";
 	case doc_format_fb3:
@@ -4817,23 +4899,26 @@ const lChar32 * getDocFormatName(doc_format_t fmt) {
 		return U"Rich text (RTF)";
 	case doc_format_epub:
 		return U"EPUB";
-	case doc_format_chm:
-		return U"CHM";
 	case doc_format_html:
 		return U"HTML";
 	case doc_format_txt_bookmark:
 		return U"CR3 TXT Bookmark";
+	case doc_format_chm:
+		return U"CHM";
 	case doc_format_doc:
 		return U"DOC";
 	case doc_format_docx:
 		return U"DOCX";
+	case doc_format_pdb:
+		return U"PDB";
 	case doc_format_odt:
 		return U"OpenDocument (ODT)";
 	case doc_format_svg:
 		return U"SVG";
-	default:
-		return U"Unknown format";
+	case doc_format_md:
+		return U"Markdown";
 	}
+	return U"Unknown format";
 }
 
 /// sets current document format
@@ -6826,10 +6911,16 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
         //     REQUEST_RENDER("propsApply - kerning")
         } else if (name == PROP_FONT_KERNING) {
             int mode = props->getIntDef(PROP_FONT_KERNING, (int)KERNING_MODE_DISABLED);
-            if ((int)fontMan->GetKerningMode() != mode && mode>=0 && mode<=3) {
+            if ((int)fontMan->GetKerningMode() != mode && mode>=0 && mode<=(int)KERNING_MODE_HARFBUZZ) {
                 //CRLog::debug("Setting kerning mode to %d", mode);
                 fontMan->SetKerningMode((kerning_mode_t)mode);
                 REQUEST_RENDER("propsApply - font kerning")
+            }
+        } else if (name == PROP_FONT_FRACTIONAL_POSITIONING) {
+            int strength = props->getIntDef(PROP_FONT_FRACTIONAL_POSITIONING, 0);
+            if (fontMan->GetFractionalGlyphPositioning() != strength) {
+                fontMan->SetFractionalGlyphPositioning(strength);
+                REQUEST_RENDER("propsApply - font fractional positioning")
             }
         } else if (name == PROP_FONT_BASE_WEIGHT) {
             // replaces PROP_FONT_WEIGHT_EMBOLDEN

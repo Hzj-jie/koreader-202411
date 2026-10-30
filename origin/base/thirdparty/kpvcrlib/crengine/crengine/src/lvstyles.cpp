@@ -11,6 +11,8 @@
 
 *******************************************************/
 
+#include "crsetup.h"
+
 #include "../include/lvstyles.h"
 
 // #include <stdio.h>
@@ -36,6 +38,8 @@ lUInt32 calcHash(font_ref_t & f)
     v = v * 31 + (lUInt32)f->getBitmapMode();
     v = v * 31 + (lUInt32)f->getTypeFace().getHash();
     v = v * 31 + (lUInt32)f->getBaseline();
+    v = v * 31 + f->getVariationHash();
+    v = v * 31 + (lUInt32)f->getSynthWeight();
     f->_hash = v;
     return v;
 }
@@ -43,84 +47,99 @@ lUInt32 calcHash(font_ref_t & f)
 
 lUInt32 calcHash(css_style_rec_t & rec)
 {
-    if ( !rec.hash )
-        rec.hash = (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
-         + (lUInt32)rec.important[0]) * 31
-         + (lUInt32)rec.important[1]) * 31
-         + (lUInt32)rec.important[2]) * 31
-         + (lUInt32)rec.importance[0]) * 31
-         + (lUInt32)rec.importance[1]) * 31
-         + (lUInt32)rec.importance[2]) * 31
-         + (lUInt32)rec.display) * 31
-         + (lUInt32)rec.white_space) * 31
-         + (lUInt32)rec.text_align) * 31
-         + (lUInt32)rec.text_align_last) * 31
-         + (lUInt32)rec.text_decoration) * 31
-         + (lUInt32)rec.text_transform) * 31
-         + (lUInt32)rec.hyphenate) * 31
-         + (lUInt32)rec.list_style_type) * 31
-         + (lUInt32)rec.letter_spacing.pack()) * 31
-         + (lUInt32)rec.list_style_position) * 31
-         + (lUInt32)(rec.page_break_before | (rec.page_break_after<<4) | (rec.page_break_inside<<8))) * 31
-         + (lUInt32)rec.vertical_align.pack()) * 31
-         + (lUInt32)rec.font_size.type) * 31
-         + (lUInt32)rec.font_size.value) * 31
-         + (lUInt32)rec.font_style) * 31
-         + (lUInt32)rec.font_weight) * 31
-         + (lUInt32)rec.font_features.pack()) * 31
-         + (lUInt32)rec.line_height.pack()) * 31
-         + (lUInt32)rec.color.pack()) * 31
-         + (lUInt32)rec.background_color.pack()) * 31
-         + (lUInt32)rec.width.pack()) * 31
-         + (lUInt32)rec.height.pack()) * 31
-         + (lUInt32)rec.min_width.pack()) * 31
-         + (lUInt32)rec.min_height.pack()) * 31
-         + (lUInt32)rec.max_width.pack()) * 31
-         + (lUInt32)rec.max_height.pack()) * 31
-         + (lUInt32)rec.text_indent.pack()) * 31
-         + (lUInt32)rec.margin[0].pack()) * 31
-         + (lUInt32)rec.margin[1].pack()) * 31
-         + (lUInt32)rec.margin[2].pack()) * 31
-         + (lUInt32)rec.margin[3].pack()) * 31
-         + (lUInt32)rec.padding[0].pack()) * 31
-         + (lUInt32)rec.padding[1].pack()) * 31
-         + (lUInt32)rec.padding[2].pack()) * 31
-         + (lUInt32)rec.padding[3].pack()) * 31
-         + (lUInt32)rec.border_style_top) * 31
-         + (lUInt32)rec.border_style_right) * 31
-         + (lUInt32)rec.border_style_bottom) * 31
-         + (lUInt32)rec.border_style_left) * 31
-         + (lUInt32)rec.border_width[0].pack()) * 31
-         + (lUInt32)rec.border_width[1].pack()) * 31
-         + (lUInt32)rec.border_width[2].pack()) * 31
-         + (lUInt32)rec.border_width[3].pack()) * 31
-         + (lUInt32)rec.border_color[0].pack()) * 31
-         + (lUInt32)rec.border_color[1].pack()) * 31
-         + (lUInt32)rec.border_color[2].pack()) * 31
-         + (lUInt32)rec.border_color[3].pack()) * 31
-         + (lUInt32)rec.background_repeat)*31
-         + (lUInt32)rec.background_position)*31
-         + (lUInt32)rec.background_size[0].pack())*31
-         + (lUInt32)rec.background_size[1].pack())*31
-         + (lUInt32)rec.font_family) * 31
-         + (lUInt32)rec.border_collapse)*31
-         + (lUInt32)rec.border_spacing[0].pack())*31
-         + (lUInt32)rec.border_spacing[1].pack())*31
-         + (lUInt32)rec.orphans) * 31
-         + (lUInt32)rec.widows) * 31
-         + (lUInt32)rec.float_) * 31
-         + (lUInt32)rec.clear) * 31
-         + (lUInt32)rec.direction) * 31
-         + (lUInt32)rec.visibility) * 31
-         + (lUInt32)rec.line_break) * 31
-         + (lUInt32)rec.word_break) * 31
-         + (lUInt32)rec.box_sizing) * 31
-         + (lUInt32)rec.caption_side) * 31
-         + (lUInt32)rec.cr_hint.pack()) * 31
-         + (lUInt32)rec.font_name.getHash()
-         + (lUInt32)rec.background_image.getHash()
-         + (lUInt32)rec.content.getHash());
-    return rec.hash;
+    if ( rec.hash )
+        return rec.hash;
+    lUInt32 v = 31;
+    v = v * 31 + (lUInt32)rec.important[0];
+    v = v * 31 + (lUInt32)rec.important[1];
+    v = v * 31 + (lUInt32)rec.important[2];
+    v = v * 31 + (lUInt32)rec.importance[0];
+    v = v * 31 + (lUInt32)rec.importance[1];
+    v = v * 31 + (lUInt32)rec.importance[2];
+    v = v * 31 + (lUInt32)rec.display;
+    v = v * 31 + (lUInt32)rec.white_space;
+    v = v * 31 + (lUInt32)rec.text_align;
+    v = v * 31 + (lUInt32)rec.text_align_last;
+    v = v * 31 + (lUInt32)rec.text_decoration;
+    v = v * 31 + (lUInt32)rec.text_transform;
+    v = v * 31 + (lUInt32)rec.hyphenate;
+    v = v * 31 + (lUInt32)rec.list_style_type;
+    v = v * 31 + (lUInt32)rec.list_style_position;
+    v = v * 31 + (lUInt32)rec.letter_spacing.pack();
+    v = v * 31 + (lUInt32)rec.initial_letter.pack();
+    v = v * 31 + (lUInt32)(rec.page_break_before | (rec.page_break_after<<4) | (rec.page_break_inside<<8));
+    v = v * 31 + (lUInt32)rec.vertical_align.pack();
+    v = v * 31 + (lUInt32)rec.font_size.type;
+    v = v * 31 + (lUInt32)rec.font_size.value;
+    v = v * 31 + (lUInt32)rec.font_style;
+    v = v * 31 + (lUInt32)rec.font_weight;
+    v = v * 31 + (lUInt32)rec.font_width;
+    v = v * 31 + (lUInt32)rec.font_features.pack();
+    v = v * 31 + (lUInt32)rec.font_optical_sizing;
+    v = v * 31 + (lUInt32)rec.line_height.pack();
+    v = v * 31 + (lUInt32)rec.color.pack();
+    v = v * 31 + (lUInt32)rec.background_color.pack();
+    v = v * 31 + (lUInt32)rec.width.pack();
+    v = v * 31 + (lUInt32)rec.height.pack();
+    v = v * 31 + (lUInt32)rec.min_width.pack();
+    v = v * 31 + (lUInt32)rec.min_height.pack();
+    v = v * 31 + (lUInt32)rec.max_width.pack();
+    v = v * 31 + (lUInt32)rec.max_height.pack();
+    v = v * 31 + (lUInt32)rec.text_indent.pack();
+    v = v * 31 + (lUInt32)rec.margin[0].pack();
+    v = v * 31 + (lUInt32)rec.margin[1].pack();
+    v = v * 31 + (lUInt32)rec.margin[2].pack();
+    v = v * 31 + (lUInt32)rec.margin[3].pack();
+    v = v * 31 + (lUInt32)rec.padding[0].pack();
+    v = v * 31 + (lUInt32)rec.padding[1].pack();
+    v = v * 31 + (lUInt32)rec.padding[2].pack();
+    v = v * 31 + (lUInt32)rec.padding[3].pack();
+    v = v * 31 + (lUInt32)rec.border_style_top;
+    v = v * 31 + (lUInt32)rec.border_style_right;
+    v = v * 31 + (lUInt32)rec.border_style_bottom;
+    v = v * 31 + (lUInt32)rec.border_style_left;
+    v = v * 31 + (lUInt32)rec.border_width[0].pack();
+    v = v * 31 + (lUInt32)rec.border_width[1].pack();
+    v = v * 31 + (lUInt32)rec.border_width[2].pack();
+    v = v * 31 + (lUInt32)rec.border_width[3].pack();
+    v = v * 31 + (lUInt32)rec.border_color[0].pack();
+    v = v * 31 + (lUInt32)rec.border_color[1].pack();
+    v = v * 31 + (lUInt32)rec.border_color[2].pack();
+    v = v * 31 + (lUInt32)rec.border_color[3].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_h[0].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_h[1].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_h[2].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_h[3].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_v[0].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_v[1].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_v[2].pack();
+    v = v * 31 + (lUInt32)rec.border_radius_v[3].pack();
+    v = v * 31 + (lUInt32)rec.background_repeat;
+    v = v * 31 + (lUInt32)rec.background_position[0].pack();
+    v = v * 31 + (lUInt32)rec.background_position[1].pack();
+    v = v * 31 + (lUInt32)rec.background_size[0].pack();
+    v = v * 31 + (lUInt32)rec.background_size[1].pack();
+    v = v * 31 + (lUInt32)rec.font_family;
+    v = v * 31 + (lUInt32)rec.border_collapse;
+    v = v * 31 + (lUInt32)rec.border_spacing[0].pack();
+    v = v * 31 + (lUInt32)rec.border_spacing[1].pack();
+    v = v * 31 + (lUInt32)rec.orphans;
+    v = v * 31 + (lUInt32)rec.widows;
+    v = v * 31 + (lUInt32)rec.float_;
+    v = v * 31 + (lUInt32)rec.clear;
+    v = v * 31 + (lUInt32)rec.direction;
+    v = v * 31 + (lUInt32)rec.visibility;
+    v = v * 31 + (lUInt32)rec.line_break;
+    v = v * 31 + (lUInt32)rec.word_break;
+    v = v * 31 + (lUInt32)rec.box_sizing;
+    v = v * 31 + (lUInt32)rec.caption_side;
+    v = v * 31 + (lUInt32)rec.ruby_position;
+    v = v * 31 + (lUInt32)rec.cr_hint.pack();
+    v = v * 31 + (lUInt32)rec.font_name.getHash();
+    v = v * 31 + (lUInt32)rec.background_image.getHash();
+    v = v * 31 + (lUInt32)rec.content.getHash();
+    rec.hash = v;
+    return v;
 }
 
 bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
@@ -143,6 +162,11 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.hyphenate == r2.hyphenate &&
            r1.vertical_align == r2.vertical_align &&
            r1.line_height == r2.line_height &&
+           r1.letter_spacing == r2.letter_spacing &&
+           r1.initial_letter == r2.initial_letter &&
+           r1.page_break_before == r2.page_break_before &&
+           r1.page_break_after == r2.page_break_after &&
+           r1.page_break_inside == r2.page_break_inside &&
            r1.width == r2.width &&
            r1.height == r2.height &&
            r1.min_width == r2.min_width &&
@@ -164,9 +188,11 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.font_size.value == r2.font_size.value &&
            r1.font_style == r2.font_style &&
            r1.font_weight == r2.font_weight &&
+           r1.font_width == r2.font_width &&
            r1.font_name == r2.font_name &&
            r1.font_family == r2.font_family&&
            r1.font_features == r2.font_features&&
+           r1.font_optical_sizing == r2.font_optical_sizing&&
            r1.border_style_top==r2.border_style_top&&
            r1.border_style_right==r2.border_style_right&&
            r1.border_style_bottom==r2.border_style_bottom&&
@@ -179,9 +205,18 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.border_color[1]==r2.border_color[1]&&
            r1.border_color[2]==r2.border_color[2]&&
            r1.border_color[3]==r2.border_color[3]&&
+           r1.border_radius_h[0]==r2.border_radius_h[0]&&
+           r1.border_radius_h[1]==r2.border_radius_h[1]&&
+           r1.border_radius_h[2]==r2.border_radius_h[2]&&
+           r1.border_radius_h[3]==r2.border_radius_h[3]&&
+           r1.border_radius_v[0]==r2.border_radius_v[0]&&
+           r1.border_radius_v[1]==r2.border_radius_v[1]&&
+           r1.border_radius_v[2]==r2.border_radius_v[2]&&
+           r1.border_radius_v[3]==r2.border_radius_v[3]&&
            r1.background_image==r2.background_image&&
            r1.background_repeat==r2.background_repeat&&
-           r1.background_position==r2.background_position&&
+           r1.background_position[0]==r2.background_position[0]&&
+           r1.background_position[1]==r2.background_position[1]&&
            r1.background_size[0]==r2.background_size[0]&&
            r1.background_size[1]==r2.background_size[1]&&
            r1.border_collapse==r2.border_collapse&&
@@ -197,6 +232,7 @@ bool operator == (const css_style_rec_t & r1, const css_style_rec_t & r2)
            r1.word_break == r2.word_break&&
            r1.box_sizing == r2.box_sizing&&
            r1.caption_side == r2.caption_side&&
+           r1.ruby_position == r2.ruby_position&&
            r1.content == r2.content&&
            r1.cr_hint==r2.cr_hint;
 }
@@ -326,6 +362,8 @@ lString8 joinPropertyValueList( const lString8Collection & list )
 static const char * style_magic = "CR3STYLE";
 #define ST_PUT_ENUM(v) buf << (lUInt8)v
 #define ST_GET_ENUM(t,v) { lUInt8 tmp; buf >> tmp; v=(t)tmp; if (buf.error()) return false; }
+#define ST_PUT_U16(v) buf << (lUInt16)v
+#define ST_GET_U16(t,v) { lUInt16 tmp; buf >> tmp; v=(t)tmp; if (buf.error()) return false; }
 #define ST_PUT_LEN(v) buf << (lUInt8)v.type << (lInt32)v.value;
 #define ST_GET_LEN(v) { lUInt8 t; buf >> t; lInt32 val; buf >> val; v.type = (css_value_type_t)t; v.value = val; if (buf.error()) return false; }
 #define ST_PUT_LEN4(v) ST_PUT_LEN(v[0]);ST_PUT_LEN(v[1]);ST_PUT_LEN(v[2]);ST_PUT_LEN(v[3]);
@@ -354,8 +392,10 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     buf << font_name;               //    lString8             font_name;
     ST_PUT_LEN(font_size);          //    css_length_t         font_size;
     ST_PUT_ENUM(font_style);        //    css_font_style_t     font_style;
-    ST_PUT_ENUM(font_weight);       //    css_font_weight_t    font_weight;
+    ST_PUT_U16(font_weight);        //    lUInt16              font_weight;
+    ST_PUT_U16(font_width);         //    lUInt16              font_width;
     ST_PUT_LEN(font_features);      //    css_length_t         font_features;
+    ST_PUT_ENUM(font_optical_sizing);
     ST_PUT_LEN(text_indent);        //    css_length_t         text_indent;
     ST_PUT_LEN(line_height);        //    css_length_t         line_height;
     ST_PUT_LEN(width);              //    css_length_t         width;
@@ -369,6 +409,7 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_LEN(color);              //    css_length_t         color;
     ST_PUT_LEN(background_color);   //    css_length_t         background_color;
     ST_PUT_LEN(letter_spacing);     //    css_length_t         letter_spacing;
+    ST_PUT_LEN(initial_letter);     //    css_length_t         initial_letter;
     ST_PUT_ENUM(page_break_before); //    css_page_break_t     page_break_before;
     ST_PUT_ENUM(page_break_after);  //    css_page_break_t     page_break_after;
     ST_PUT_ENUM(page_break_inside); //    css_page_break_t     page_break_inside;
@@ -381,9 +422,12 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(border_style_left);
     ST_PUT_LEN4(border_width);
     ST_PUT_LEN4(border_color);
+    ST_PUT_LEN4(border_radius_h);
+    ST_PUT_LEN4(border_radius_v);
     buf<<background_image;
     ST_PUT_ENUM(background_repeat);
-    ST_PUT_ENUM(background_position);
+    ST_PUT_LEN(background_position[0]);
+    ST_PUT_LEN(background_position[1]);
     ST_PUT_LEN(background_size[0]);
     ST_PUT_LEN(background_size[1]);
     ST_PUT_ENUM(border_collapse);
@@ -399,6 +443,7 @@ bool css_style_rec_t::serialize( SerialBuf & buf )
     ST_PUT_ENUM(word_break);
     ST_PUT_ENUM(box_sizing);
     ST_PUT_ENUM(caption_side);
+    ST_PUT_ENUM(ruby_position);
     buf << content;
     ST_PUT_LEN(cr_hint);
     lUInt32 hash = calcHash(*this);
@@ -428,8 +473,10 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     buf >> font_name;                                       //    lString8             font_name;
     ST_GET_LEN(font_size);                                  //    css_length_t         font_size;
     ST_GET_ENUM(css_font_style_t, font_style);              //    css_font_style_t     font_style;
-    ST_GET_ENUM(css_font_weight_t, font_weight);            //    css_font_weight_t    font_weight;
+    ST_GET_U16(lUInt16, font_weight);
+    ST_GET_U16(lUInt16, font_width);
     ST_GET_LEN(font_features);                              //    css_length_t         font_features;
+    ST_GET_ENUM(css_font_optical_sizing_t, font_optical_sizing);
     ST_GET_LEN(text_indent);                                //    css_length_t         text_indent;
     ST_GET_LEN(line_height);                                //    css_length_t         line_height;
     ST_GET_LEN(width);                                      //    css_length_t         width;
@@ -443,6 +490,7 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_LEN(color);                                      //    css_length_t         color;
     ST_GET_LEN(background_color);                           //    css_length_t         background_color;
     ST_GET_LEN(letter_spacing);                             //    css_length_t         letter_spacing;
+    ST_GET_LEN(initial_letter);                             //    css_length_t         initial_letter;
     ST_GET_ENUM(css_page_break_t, page_break_before);       //    css_page_break_t     page_break_before;
     ST_GET_ENUM(css_page_break_t, page_break_after);        //    css_page_break_t     page_break_after;
     ST_GET_ENUM(css_page_break_t, page_break_inside);       //    css_page_break_t     page_break_inside;
@@ -455,9 +503,12 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_border_style_type_t ,border_style_left);
     ST_GET_LEN4(border_width);
     ST_GET_LEN4(border_color);
+    ST_GET_LEN4(border_radius_h);
+    ST_GET_LEN4(border_radius_v);
     buf>>background_image;
     ST_GET_ENUM(css_background_repeat_value_t ,background_repeat);
-    ST_GET_ENUM(css_background_position_value_t ,background_position);
+    ST_GET_LEN(background_position[0]);
+    ST_GET_LEN(background_position[1]);
     ST_GET_LEN(background_size[0]);
     ST_GET_LEN(background_size[1]);
     ST_GET_ENUM(css_border_collapse_value_t ,border_collapse);
@@ -473,6 +524,7 @@ bool css_style_rec_t::deserialize( SerialBuf & buf )
     ST_GET_ENUM(css_word_break_t, word_break);
     ST_GET_ENUM(css_box_sizing_t, box_sizing);
     ST_GET_ENUM(css_caption_side_t, caption_side);
+    ST_GET_ENUM(css_ruby_position_t, ruby_position);
     buf>>content;
     ST_GET_LEN(cr_hint);
     lUInt32 hash = 0;

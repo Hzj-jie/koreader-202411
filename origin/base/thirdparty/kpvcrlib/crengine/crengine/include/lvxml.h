@@ -15,6 +15,8 @@
 #ifndef __LVXML_H_INCLUDED__
 #define __LVXML_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include <time.h>
 #include "lvtypes.h"
 #include "lvstring.h"
@@ -394,6 +396,7 @@ private:
     LVXMLParserCallback * m_callback;
     int  m_state;
     bool m_in_cdata;
+    bool m_in_html_style_tag;
     bool m_in_html_script_tag;
     bool m_trimspaces;
     bool SkipSpaces();

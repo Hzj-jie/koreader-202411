@@ -1,161 +1,212 @@
 #include "xtextelement.h"
 #include "xtspanelement.h"
-#include "layoutcontext.h"
-#include "parser.h"
+#include "svglayoutstate.h"
+#include "svgrenderstate.h"
+
+#include <cstdio>
 
 namespace lunasvg {
 
-TextElement::TextElement()
-    : GraphicsElement(ElementID::Text)
+SVGTextElement::SVGTextElement(Document* document)
+    : SVGGraphicsElement(document, ElementID::Text)
 {
 }
 
-void TextElement::layout(LayoutContext* context, LayoutContainer* current) const
+void SVGTextElement::layout(SVGLayoutState& state)
 {
-    if ( !context->hasExternalContext() || !context->getExternalContext()->text_to_paths_helper ) {
-        // No external support to draw text
+    SVGLayoutState newState(state, this);
+    SVGGraphicsElement::layoutElement(newState);
+
+    m_groups.clear();
+    m_fillBoundingBox = Rect::Empty;
+    m_strokeBoundingBox = Rect::Empty;
+
+    if(!document()->hasExternalContext() || !document()->getExternalContext()->text_to_paths_helper)
         return;
+
+    if(isDisplayNone())
+        return;
+
+    if(hasAttribute(PropertyID::_Text_Internal)) {
+        printf("UNEXPECTED <text> text string: %s\n", getAttribute(PropertyID::_Text_Internal).c_str());
     }
 
-    if (isDisplayNone())
-        return;
-
-    if ( has(PropertyID::_Text_Internal) ) {
-        // <text> shouldn't have any text: we have put it into an added <tspan>
-        printf("UNEXPECTED <text> text string: %s\n", get(PropertyID::_Text_Internal).c_str());
-    }
-
-    // This text drawing state will be passed to/by all sub-<tspans>
     text_state_t text_state;
     text_state.cursor_x = 0;
     text_state.cursor_y = 0;
     text_state.current_group = nullptr;
     text_state.current_started = false;
-    text_state.current_length_adjust = LengthAdjust::None;
-    text_state.last_was_space = true; // so that leading spaces will be stripped
+    text_state.current_length_adjust = XLengthAdjust::None;
+    text_state.last_was_space = true;
     text_state.is_pre = false;
     text_state.is_vertical_rl = false;
 
     LengthContext lengthContext(this);
-    if (has(PropertyID::X)) {
-        // x= can be a list of x, see https://svgwg.org/svg2-draft/text.html#TextElementXAttribute
-        // We handle only the first value
-        LengthList xs = Parser::parseLengthList(get(PropertyID::X), AllowNegativeLengths);
-        if (not xs.empty()) {
-            text_state.cursor_x = lengthContext.valueForLength(xs[0], LengthMode::Width);
+    if(hasAttribute(PropertyID::X)) {
+        SVGLengthList xs(PropertyID::X, LengthDirection::Horizontal, LengthNegativeMode::Allow);
+        xs.parse(getAttribute(PropertyID::X));
+        if(!xs.values().empty()) {
+            text_state.cursor_x = lengthContext.valueForLength(xs.values()[0], LengthDirection::Horizontal);
         }
     }
-    if (has(PropertyID::Y)) {
-        LengthList ys = Parser::parseLengthList(get(PropertyID::Y), AllowNegativeLengths);
-        if (not ys.empty()) {
-            text_state.cursor_y = lengthContext.valueForLength(ys[0], LengthMode::Height);
+    if(hasAttribute(PropertyID::Y)) {
+        SVGLengthList ys(PropertyID::Y, LengthDirection::Vertical, LengthNegativeMode::Allow);
+        ys.parse(getAttribute(PropertyID::Y));
+        if(!ys.values().empty()) {
+            text_state.cursor_y = lengthContext.valueForLength(ys.values()[0], LengthDirection::Vertical);
         }
     }
 
-    auto text_anchor = find(PropertyID::Text_Anchor);
-    if (text_anchor.compare("end") == 0)
+    const auto& text_anchor = findInheritedAttribute(this, PropertyID::Text_Anchor);
+    if(text_anchor == "end")
         text_state.text_anchor = TextAnchor::End;
-    else if (text_anchor.compare("middle") == 0)
+    else if(text_anchor == "middle")
         text_state.text_anchor = TextAnchor::Middle;
     else
         text_state.text_anchor = TextAnchor::Start;
 
-    if (has(PropertyID::TextLength)) {
-        auto text_length = Parser::parseLength(get(PropertyID::TextLength), ForbidNegativeLengths, Length::Zero);
-        text_state.current_adjust_text_length = lengthContext.valueForLength(text_length, LengthMode::Width);
-        if ( text_state.current_adjust_text_length != 0 ) {
-            auto length_adjust = get(PropertyID::LengthAdjust);
-            if (length_adjust.compare("spacingAndGlyphs") == 0)
-                text_state.current_length_adjust = LengthAdjust::SpacingAndGlyphs;
-            else
-                text_state.current_length_adjust = LengthAdjust::Spacing; // default
+    if(hasAttribute(PropertyID::TextLength)) {
+        Length text_length(0, LengthUnits::None);
+        if(text_length.parse(getAttribute(PropertyID::TextLength), LengthNegativeMode::Forbid)) {
+            text_state.current_adjust_text_length = lengthContext.valueForLength(text_length, LengthDirection::Horizontal);
+            if(text_state.current_adjust_text_length != 0) {
+                const auto& length_adjust = getAttribute(PropertyID::LengthAdjust);
+                if(length_adjust == "spacingAndGlyphs")
+                    text_state.current_length_adjust = XLengthAdjust::SpacingAndGlyphs;
+                else
+                    text_state.current_length_adjust = XLengthAdjust::Spacing;
+            }
         }
     }
 
-    // Try to handle vertical text at minima just so we lay it out in the expected
-    // area (CJK glyphs should not be rotated, but we will; also, the baseline,
-    // which should be central, will be a bit off).
-    auto writing_mode = find(PropertyID::Writing_Mode);
-    if ( writing_mode.compare("tb") == 0 ||
-         writing_mode.compare("tb-rl") == 0 ||
-         writing_mode.compare("vertical-rl") == 0 ) {
-	text_state.is_vertical_rl = true;
+    const auto& writing_mode = findInheritedAttribute(this, PropertyID::Writing_Mode);
+    if(writing_mode == "tb" || writing_mode == "tb-rl" || writing_mode == "vertical-rl") {
+        text_state.is_vertical_rl = true;
     }
 
-    // We can't directly use find() to look at ancestors, because there are 2 possible
-    // attributes, and we wouldn't know which was found the nearest.
     bool space_prop_found = false;
-    if (has(PropertyID::White_Space)) {
-        auto white_space = get(PropertyID::White_Space);
-        if (white_space.compare("normal") == 0 || white_space.compare("nowrap") == 0 || white_space.compare("pre-line") == 0) {
+    if(hasAttribute(PropertyID::White_Space)) {
+        const auto& white_space = getAttribute(PropertyID::White_Space);
+        if(white_space == "normal" || white_space == "nowrap" || white_space == "pre-line") {
             text_state.is_pre = false;
             space_prop_found = true;
-        }
-        else if (white_space.compare("pre") == 0 || white_space.compare("pre-wrap") == 0 || white_space.compare("break-spaces") == 0) {
+        } else if(white_space == "pre" || white_space == "pre-wrap" || white_space == "break-spaces") {
             text_state.is_pre = true;
             space_prop_found = true;
         }
     }
-    if ( !space_prop_found && has(PropertyID::XMLSpace) ) {
-        // Legacy xml:space="preserve|default"
-        auto xml_space = get(PropertyID::XMLSpace);
-        if (xml_space.compare("default") == 0) {
+    if(!space_prop_found && hasAttribute(PropertyID::XMLSpace)) {
+        const auto& xml_space = getAttribute(PropertyID::XMLSpace);
+        if(xml_space == "default") {
             text_state.is_pre = false;
             space_prop_found = true;
-        }
-        else if (xml_space.compare("preserve") == 0) {
+        } else if(xml_space == "preserve") {
             text_state.is_pre = true;
             space_prop_found = true;
         }
     }
-    // If none found, use find() to get it from ancestors
-    if ( !space_prop_found ) {
-        auto white_space = find(PropertyID::White_Space);
-        if (white_space.compare("normal") == 0 || white_space.compare("nowrap") == 0 || white_space.compare("pre-line") == 0) {
+    if(!space_prop_found) {
+        const auto& white_space = findInheritedAttribute(this, PropertyID::White_Space);
+        if(white_space == "normal" || white_space == "nowrap" || white_space == "pre-line") {
             text_state.is_pre = false;
             space_prop_found = true;
-        }
-        else if (white_space.compare("pre") == 0 || white_space.compare("pre-wrap") == 0 || white_space.compare("break-spaces") == 0) {
+        } else if(white_space == "pre" || white_space == "pre-wrap" || white_space == "break-spaces") {
             text_state.is_pre = true;
             space_prop_found = true;
         }
     }
-    if ( !space_prop_found ) {
-        auto xml_space = find(PropertyID::XMLSpace);
-        if (xml_space.compare("default") == 0) {
+    if(!space_prop_found) {
+        const auto& xml_space = findInheritedAttribute(this, PropertyID::XMLSpace);
+        if(xml_space == "default") {
             text_state.is_pre = false;
-        }
-        else if (xml_space.compare("preserve") == 0) {
+        } else if(xml_space == "preserve") {
             text_state.is_pre = true;
         }
     }
 
-    // This <text> element can be handled just like a <g>
-    auto group = makeUnique<LayoutGroup>();
-    group->transform = transform();
-    group->opacity = opacity();
-    group->masker = context->getMasker(mask());
-    group->clipper = context->getClipper(clip_path());
-
-    for(auto& child : children) {
-        TSpanElement * tspan = dynamic_cast<TSpanElement*>(child.get());
-        if ( tspan == nullptr ) {
+    for(const auto& child : children()) {
+        auto element = toSVGElement(child);
+        if(element && (element->id() == ElementID::Tspan || element->id() == ElementID::TextPath)) {
+            static_cast<SVGTSpanElement*>(element)->layoutText(newState, m_groups, text_state);
+        } else if(element) {
             printf("UNEXPECTED non-tspan <text> child\n");
         }
-        else {
-            tspan->layoutText(context, group.get(), text_state);
+    }
+
+    SVGTSpanElement::addCurrentGroup(m_groups, text_state);
+
+    auto fillBoundingBox = Rect::Invalid;
+    auto strokeBoundingBox = Rect::Invalid;
+    for(const auto& group : m_groups) {
+        for(const auto& glyph : group->children) {
+            Transform t = group->transform * glyph.transform;
+            Rect fillBox = t.mapRect(glyph.path.boundingRect());
+            fillBoundingBox.unite(fillBox);
+            Rect strokeBox = fillBox;
+            if(glyph.element && glyph.element->stroke().isRenderable()) {
+                const auto& sd = glyph.element->strokeData();
+                float capLimit = sd.lineWidth() / 2.f;
+                if(sd.lineCap() == LineCap::Square)
+                    capLimit *= PLUTOVG_SQRT2;
+                float joinLimit = sd.lineWidth() / 2.f;
+                if(sd.lineJoin() == LineJoin::Miter)
+                    joinLimit *= sd.miterLimit();
+                strokeBox.inflate(std::max(capLimit, joinLimit));
+            }
+            strokeBoundingBox.unite(strokeBox);
+        }
+    }
+    if(fillBoundingBox.isValid())
+        m_fillBoundingBox = fillBoundingBox;
+    if(strokeBoundingBox.isValid())
+        m_strokeBoundingBox = strokeBoundingBox;
+}
+
+void SVGTextElement::clip(SVGRenderState& state) const
+{
+    if(isDisplayNone())
+        return;
+    for(const auto& group : m_groups) {
+        for(const auto& glyph : group->children) {
+            if(!glyph.element || glyph.element->isVisibilityHidden())
+                continue;
+            Transform t = state.currentTransform() * localTransform() * group->transform * glyph.transform;
+            state->clipPath(glyph.path, glyph.element->clip_rule(), t);
+        }
+    }
+}
+
+void SVGTextElement::render(SVGRenderState& state) const
+{
+    if(isDisplayNone() || m_groups.empty())
+        return;
+    if(state.mode() == SVGRenderMode::Clipping) {
+        clip(state);
+        return;
+    }
+
+    SVGBlendInfo blendInfo(this);
+    SVGRenderState newState(this, state, localTransform());
+    newState.beginGroup(blendInfo);
+
+    for(const auto& group : m_groups) {
+        Transform groupTransform = newState.currentTransform() * group->transform;
+        for(const auto& glyph : group->children) {
+            const SVGTSpanElement* el = glyph.element;
+            if(!el || el->isVisibilityHidden() || (!el->fill().isRenderable() && !el->stroke().isRenderable()))
+                continue;
+            SVGBlendInfo glyphBlend(el);
+            SVGRenderState glyphState(el, &newState, groupTransform * glyph.transform, newState.mode(), newState.canvas());
+            glyphState.beginGroup(glyphBlend);
+            if(el->fill().applyPaint(glyphState))
+                glyphState->fillPath(glyph.path, el->fill_rule(), glyphState.currentTransform());
+            if(el->stroke().applyPaint(glyphState))
+                glyphState->strokePath(glyph.path, el->strokeData(), glyphState.currentTransform());
+            glyphState.endGroup(glyphBlend);
         }
     }
 
-    // Done with tspans: add the last group held in text_state
-    TSpanElement::addCurrentGroup(group.get(), text_state);
-
-    current->addChildIfNotEmpty(std::move(group));
-}
-
-std::unique_ptr<Node> TextElement::clone() const
-{
-    return cloneElement<TextElement>();
+    newState.endGroup(blendInfo);
 }
 
 } // namespace lunasvg

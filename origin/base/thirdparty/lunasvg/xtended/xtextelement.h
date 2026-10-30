@@ -1,20 +1,27 @@
-#ifndef TEXTELEMENT_H
-#define TEXTELEMENT_H
+#ifndef XTEXTELEMENT_H
+#define XTEXTELEMENT_H
 
-#include "graphicselement.h"
+#include "xtspanelement.h"
 
 namespace lunasvg {
 
-class TextElement : public GraphicsElement
+class SVGTextElement final : public SVGGraphicsElement
 {
 public:
-    TextElement();
+    SVGTextElement(Document* document);
 
-    void layout(LayoutContext* context, LayoutContainer* current) const override;
+    void clip(SVGRenderState& state) const;
+    Rect fillBoundingBox() const override { return m_fillBoundingBox; }
+    Rect strokeBoundingBox() const override { return m_strokeBoundingBox; }
+    void layout(SVGLayoutState& state) override;
+    void render(SVGRenderState& state) const override;
 
-    std::unique_ptr<Node> clone() const override;
+private:
+    std::vector<std::unique_ptr<XTxtGlyphGroup>> m_groups;
+    Rect m_fillBoundingBox = Rect::Empty;
+    Rect m_strokeBoundingBox = Rect::Empty;
 };
 
 } // namespace lunasvg
 
-#endif // TEXTELEMENT_H
+#endif // XTEXTELEMENT_H
