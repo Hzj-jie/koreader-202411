@@ -58,12 +58,8 @@ describe("SlidePuzzle Settings module", function()
   it("should handle font selection and settings callback", function()
     tmp_settings_file = get_temp_file()
     local mock_settings = LuaSettings:open(tmp_settings_file)
-    local settings_changed = false
     local mock_plugin = {
       settings = mock_settings,
-      onSettingsChanged = function()
-        settings_changed = true
-      end,
     }
 
     local menu_items = Settings.buildSubMenu(mock_plugin)
@@ -82,7 +78,6 @@ describe("SlidePuzzle Settings module", function()
     assert.is_false(sans_sub_item.checked_func())
 
     sans_sub_item.callback()
-    assert.is_true(settings_changed)
     assert.are.equal("sans", mock_settings:read("font_id"))
     assert.are.equal("sans", Settings.getFont(mock_plugin).id)
     assert.is_true(sans_sub_item.checked_func())
@@ -91,13 +86,9 @@ describe("SlidePuzzle Settings module", function()
   it("should configure font size via SpinWidget dialog", function()
     tmp_settings_file = get_temp_file()
     local mock_settings = LuaSettings:open(tmp_settings_file)
-    local settings_changed = false
     local mock_plugin = {
       settings = mock_settings,
       active_size = 3,
-      onSettingsChanged = function()
-        settings_changed = true
-      end,
     }
 
     local shown_widget = nil
@@ -118,7 +109,6 @@ describe("SlidePuzzle Settings module", function()
 
     -- Test user picking explicit font size
     shown_widget.callback({ value = 40 })
-    assert.is_true(settings_changed)
     assert.are.equal(40, Settings.getFontSize(mock_plugin))
 
     -- Test user picking auto-computed size resets to AUTO_FONT_SIZE sentinel (0)
@@ -130,12 +120,8 @@ describe("SlidePuzzle Settings module", function()
   it("should handle language switching in settings menu", function()
     tmp_settings_file = get_temp_file()
     local mock_settings = LuaSettings:open(tmp_settings_file)
-    local settings_changed = false
     local mock_plugin = {
       settings = mock_settings,
-      onSettingsChanged = function()
-        settings_changed = true
-      end,
     }
 
     local orig_lang = I18n.getChoice()
@@ -158,7 +144,6 @@ describe("SlidePuzzle Settings module", function()
     assert.is_not_nil(de_sub_item)
     de_sub_item.callback()
 
-    assert.is_true(settings_changed)
     assert.are.equal("de", mock_settings:read("language"))
     assert.are.equal("de", I18n.getChoice())
   end)

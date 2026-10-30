@@ -106,7 +106,7 @@ function M.push_settings(widget, json_path, on_complete)
       return false
     end
 
-    local local_data = utils.read_json(local_file)
+    local local_data = assert(utils.read_json(local_file))
     -- Merge incoming settings from other devices
     for device_id, data in pairs(income_data) do
       if device_id ~= widget.manager:getDeviceName() then

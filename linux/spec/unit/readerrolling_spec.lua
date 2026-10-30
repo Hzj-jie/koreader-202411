@@ -864,6 +864,73 @@ describe("Readerrolling module", function()
       it("should exercise document close lifecycle", function()
         rolling:onCloseDocument()
       end)
+
+      it("should handle os.rename failure gracefully when backing up old DOM", function()
+        local logger = require("logger")
+        local orig_rename = os.rename
+        local orig_warn = logger.warn
+        local orig_scheduleIn = UIManager.scheduleIn
+        local warned = false
+        logger.warn = function(...)
+          warned = true
+          orig_warn(...)
+        end
+        os.rename = function() -- luacheck: ignore 122
+          return nil, "permission denied"
+        end
+
+        local scheduled_fn = nil
+        UIManager.scheduleIn = function(_, delay, fn)
+          if delay == 2 then
+            scheduled_fn = fn
+          else
+            fn()
+          end
+        end
+
+        local orig_filepath = readerui.doc_settings.filepath
+        readerui.doc_settings.filepath = "/tmp/test_backup_metadata.lua"
+        local orig_read = readerui.doc_settings.read
+        readerui.doc_settings.read = function(self, key)
+          if key == "cre_dom_version" then
+            return 1
+          end
+          return orig_read(self, key)
+        end
+        local orig_dom = readerui.document.dom_version
+        readerui.document.dom_version = 2
+
+        local shown_confirmbox = nil
+        local orig_show = rolling.showWidget
+        rolling.showWidget = function(self, w)
+          if w.ok_callback then
+            shown_confirmbox = w
+          else
+            orig_show(self, w)
+          end
+        end
+
+        local orig_reload = readerui.reloadDocument
+        readerui.reloadDocument = function() end
+
+        rolling:checkXPointersAndProposeDOMVersionUpgrade()
+        assert.is_not_nil(shown_confirmbox)
+        shown_confirmbox.ok_callback()
+        if scheduled_fn then
+          scheduled_fn()
+        end
+
+        assert.is_true(warned)
+
+        os.rename = orig_rename -- luacheck: ignore 122
+        logger.warn = orig_warn
+        UIManager.scheduleIn = orig_scheduleIn
+        rolling.showWidget = orig_show
+        readerui.reloadDocument = orig_reload
+        readerui.doc_settings.filepath = orig_filepath
+        readerui.doc_settings.read = orig_read
+        readerui.document.dom_version = orig_dom
+      end)
     end
   )
 end)

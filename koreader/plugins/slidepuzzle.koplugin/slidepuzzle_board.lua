@@ -89,22 +89,6 @@ function BoardWidget:setGame(game)
   self:_computeMetrics()
 end
 
-function BoardWidget:setMaxSize(px)
-  self.max_size = px
-  self:_computeMetrics()
-end
-
--- Update the font face name and/or override size and recompute the
--- cached number_face so the next paint reflects the change. A nil
--- `face_name` explicitly resets the face to the KOReader default
--- ("cfont"), a nil / zero `size_override` switches to the auto-sized
--- path in _computeMetrics().
-function BoardWidget:setFontPrefs(face_name, size_override)
-  self.font_face_name = face_name
-  self.font_size_override = size_override
-  self:_computeMetrics()
-end
-
 function BoardWidget:refresh()
   local rect = self.paint_rect
   if not rect then

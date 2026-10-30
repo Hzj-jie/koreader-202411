@@ -621,11 +621,66 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
         )
       end
     )
+
+    it(
+      "skips malformed and unknown-domain keys in show_differing_settings_menu with a warning",
+      function()
+        local shown_widgets = {}
+        local orig_show = UIManager.show
+        finally(function()
+          UIManager.show = orig_show
+          for _, w in ipairs(shown_widgets) do
+            UIManager:closeIfShown(w)
+          end
+        end)
+        UIManager.show = function(self, widget, ...)
+          table.insert(shown_widgets, widget)
+          return orig_show(self, widget, ...)
+        end
+
+        menus.show_differing_settings_menu(sync_instance, "RemoteReader", {
+          ["malformed_key_without_colon"] = true,
+          ["unknown_domain:some_setting"] = "invalid",
+          ["reader:valid_setting"] = true,
+        })
+        local diff_menu = shown_widgets[#shown_widgets]
+        assert.are.equal(
+          require("ffi/util").template(gettext("Settings from %1"), "RemoteReader"),
+          diff_menu.title
+        )
+        assert.are.equal(4, #diff_menu.item_table)
+        assert.are.equal(
+          "[✓] [reader] valid_setting: nil -> true",
+          diff_menu.item_table[4].text_func()
+        )
+      end
+    )
   end)
 
   describe(
     "manager, settings_selection, remote, annotations, and utils edge cases",
     function()
+      it(
+        "parses valid setting keys and rejects malformed or unknown keys",
+        function()
+          local domain, key = sync_instance.manager:parseSettingKey("reader:x")
+          assert.are.equal("reader", domain)
+          assert.are.equal("x", key)
+
+          domain, key = sync_instance.manager:parseSettingKey("defaults:x")
+          assert.are.equal("defaults", domain)
+          assert.are.equal("x", key)
+
+          domain, key = sync_instance.manager:parseSettingKey("settings/foo:x")
+          assert.are.equal("settings/foo", domain)
+          assert.are.equal("x", key)
+
+          assert.is_nil(sync_instance.manager:parseSettingKey("malformed_key_without_colon"))
+          assert.is_nil(sync_instance.manager:parseSettingKey("reader:"))
+          assert.is_nil(sync_instance.manager:parseSettingKey("unknown:x"))
+        end
+      )
+
       it(
         "migrates legacy map format in changed_documents.lua to an array",
         function()
@@ -711,18 +766,18 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             os.remove(gestures_path)
           end)
 
-          assert.is_nil(
+          assert.has_error(function()
             sync_instance.manager:getLocalSettingValue("no_colon", {})
-          )
-          assert.is_nil(
+          end)
+          assert.has_error(function()
             sync_instance.manager:getLocalSettingValue("unknown:foo", {})
-          )
-          assert.is_false(
+          end)
+          assert.has_error(function()
             sync_instance.manager:_writeLocalSettingValue("no_colon", 1)
-          )
-          assert.is_false(
+          end)
+          assert.has_error(function()
             sync_instance.manager:_writeLocalSettingValue("unknown:foo", 1)
-          )
+          end)
 
           assert.is_true(
             sync_instance.manager:_writeLocalSettingValue(
@@ -808,9 +863,9 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
       it(
         "covers annotations.sort coordinate ordering and utils.read_json error cases",
         function()
-          assert.is_false(
+          assert.has_error(function()
             annotations.write_annotations_json({}, nil, "out.json")
-          )
+          end)
 
           local items = {
             {

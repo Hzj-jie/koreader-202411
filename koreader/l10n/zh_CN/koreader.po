@@ -98,6 +98,12 @@ msgid ""
 "and may be lost when the device is restarted."
 msgstr "主要存储空间为只读。设置将保存到临时存储中，并在设备重启后可能丢失。"
 
+#: datastorage.lua:199
+msgid ""
+"Failed to create some application data directories. Some features may not "
+"work properly."
+msgstr "创建部分应用程序数据目录失败。部分功能可能无法正常工作。"
+
 #: datastorage.lua:201 frontend/ui/trapper.lua:162
 #: frontend/ui/wikipedia.lua:1728 plugins/calibre.koplugin/wireless.lua:234
 #: plugins/coverbrowser.koplugin/bookinfomanager.lua:891
@@ -6801,6 +6807,10 @@ msgstr "通过连字符 ('-') 或空格 (' ') 添加断字位置。"
 #: frontend/apps/reader/modules/readeruserhyph.lua:362
 msgid "Invalid hyphenation!"
 msgstr "无效连字符！"
+
+#: frontend/apps/reader/modules/readeruserhyph.lua:226
+msgid "Failed to save user hyphenation dictionary."
+msgstr "保存用户断字词典失败。"
 
 #: frontend/apps/reader/modules/readerview.lua:969
 msgid "Rotation mode set to: %1"
@@ -15236,6 +15246,14 @@ msgstr "未选择任何设置。请在“显示已更改的设置”中选择要
 #: plugins/AnnotationSync.koplugin/manager.lua:735
 msgid "Failed to write settings to local storage."
 msgstr "无法将设置写入本地存储。"
+
+#: plugins/AnnotationSync.koplugin/manager.lua:505
+msgid "Failed to save sync cache to disk."
+msgstr "无法将同步缓存保存到磁盘。"
+
+#: plugins/AnnotationSync.koplugin/manager.lua:571
+msgid "Failed to save sync queue to disk."
+msgstr "无法将同步队列保存到磁盘。"
 
 #: plugins/AnnotationSync.koplugin/manager.lua:740
 msgid "Pushing settings to cloud..."

@@ -97,7 +97,12 @@ function ReadHistory:_flush()
       file = v.file,
     })
   end
-  util.writeToFile(dump(content), history_file, true)
+  if not util.writeToFile(dump(content), history_file, true) then
+    local gettext = require("gettext")
+    require("ui/widget/notification"):notify(
+      gettext("Failed to write settings to local storage.")
+    )
+  end
   self:ensureLastFile()
 end
 

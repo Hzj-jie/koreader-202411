@@ -176,9 +176,6 @@ function Settings.buildSubMenu(plugin)
       callback = function()
         plugin.settings:save("font_id", font_def.id)
         plugin.settings:flush()
-        if plugin.onSettingsChanged then
-          plugin:onSettingsChanged()
-        end
       end,
     }
   end
@@ -246,9 +243,6 @@ function Settings.buildSubMenu(plugin)
           end
           plugin.settings:save("font_size", new_value)
           plugin.settings:flush()
-          if plugin.onSettingsChanged then
-            plugin:onSettingsChanged()
-          end
           refreshTouchMenu(touchmenu_instance)
         end,
       })
@@ -276,9 +270,6 @@ function Settings.buildSubMenu(plugin)
         plugin.settings:save("language", code)
         plugin.settings:flush()
         I18n.setActive(code)
-        if plugin.onSettingsChanged then
-          plugin:onSettingsChanged()
-        end
       end,
     }
   end

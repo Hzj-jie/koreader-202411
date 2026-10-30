@@ -248,10 +248,7 @@ function AutoSuspend:init()
   self:_start_kindle()
   self:_start_standby()
 
-  -- self.ui is nil in the testsuite
-  if not self.ui or not self.ui.menu then
-    return
-  end
+  assert(self.ui ~= nil and self.ui.menu ~= nil)
   self.ui.menu:registerToMainMenu(self)
 end
 

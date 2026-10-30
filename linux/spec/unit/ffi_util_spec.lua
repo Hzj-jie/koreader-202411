@@ -1,10 +1,12 @@
 -- luacheck: ignore 122
 local ffiUtil
+local lfs
 
 describe("ffi/util module", function()
   setup(function()
     require("commonrequire")
     ffiUtil = require("ffi/util")
+    lfs = require("libs/libkoreader-lfs")
   end)
 
   describe("joinPath()", function()
@@ -71,7 +73,7 @@ describe("ffi/util module", function()
                 source_closed = true
               end,
             }
-          elseif path == "dummy_dst" and mode == "wb" then
+          elseif (path == "dummy_dst" or path == "dummy_dst.new") and mode == "wb" then
             return nil, "Permission denied"
           end
           return orig_io_open(path, mode)
@@ -83,6 +85,166 @@ describe("ffi/util module", function()
         assert.is_true(source_closed)
       end
     )
+
+    it("cleans up .new and preserves original destination when write fails", function()
+      local pid = ffiUtil.getpid()
+      local src = "/tmp/koreader_test_copy_wfail_" .. pid .. "_src.txt"
+      local dst = "/tmp/koreader_test_copy_wfail_" .. pid .. "_dst.txt"
+      local new_dst = dst .. ".new"
+      finally(function()
+        os.remove(src)
+        os.remove(dst)
+        os.remove(new_dst)
+      end)
+
+      local f_src = io.open(src, "wb")
+      f_src:write("source data")
+      f_src:close()
+
+      local f_dst = io.open(dst, "wb")
+      f_dst:write("old destination")
+      f_dst:close()
+
+      io.open = function(path, mode)
+        if path == new_dst then
+          local real = orig_io_open(path, mode)
+          return {
+            write = function() return nil, "disk full" end,
+            close = function() if real then real:close() end return true end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+
+      local err = ffiUtil.copyFile(src, dst)
+      io.open = orig_io_open
+
+      assert.same("disk full", err)
+      assert.is_nil(lfs.attributes(new_dst))
+      local f_check = io.open(dst, "rb")
+      local content = f_check:read("*all")
+      f_check:close()
+      assert.same("old destination", content)
+    end)
+
+    it("cleans up .new and preserves original destination when fsync fails", function()
+      local pid = ffiUtil.getpid()
+      local src = "/tmp/koreader_test_copy_sfail_" .. pid .. "_src.txt"
+      local dst = "/tmp/koreader_test_copy_sfail_" .. pid .. "_dst.txt"
+      local new_dst = dst .. ".new"
+      finally(function()
+        os.remove(src)
+        os.remove(dst)
+        os.remove(new_dst)
+      end)
+
+      local f_src = io.open(src, "wb")
+      f_src:write("source data")
+      f_src:close()
+
+      local f_dst = io.open(dst, "wb")
+      f_dst:write("old destination")
+      f_dst:close()
+
+      local orig_fsync = ffiUtil.fsyncOpenedFile
+      ffiUtil.fsyncOpenedFile = function() return false, "sync error" end
+
+      local err = ffiUtil.copyFile(src, dst)
+      ffiUtil.fsyncOpenedFile = orig_fsync
+
+      assert.same("sync error", err)
+      assert.is_nil(lfs.attributes(new_dst))
+      local f_check = io.open(dst, "rb")
+      local content = f_check:read("*all")
+      f_check:close()
+      assert.same("old destination", content)
+    end)
+
+    it("cleans up .new and preserves original destination when close fails", function()
+      local pid = ffiUtil.getpid()
+      local src = "/tmp/koreader_test_copy_cfail_" .. pid .. "_src.txt"
+      local dst = "/tmp/koreader_test_copy_cfail_" .. pid .. "_dst.txt"
+      local new_dst = dst .. ".new"
+      finally(function()
+        os.remove(src)
+        os.remove(dst)
+        os.remove(new_dst)
+      end)
+
+      local f_src = io.open(src, "wb")
+      f_src:write("source data")
+      f_src:close()
+
+      local f_dst = io.open(dst, "wb")
+      f_dst:write("old destination")
+      f_dst:close()
+
+      local orig_fsync = ffiUtil.fsyncOpenedFile
+      ffiUtil.fsyncOpenedFile = function() return true end
+
+      io.open = function(path, mode)
+        if path == new_dst then
+          local real = orig_io_open(path, mode)
+          return {
+            write = function(self, d) return real:write(d) end,
+            close = function()
+              if real then real:close() end
+              return nil, "close failed"
+            end,
+          }
+        end
+        return orig_io_open(path, mode)
+      end
+
+      local err = ffiUtil.copyFile(src, dst)
+      io.open = orig_io_open
+      ffiUtil.fsyncOpenedFile = orig_fsync
+
+      assert.same("close failed", err)
+      assert.is_nil(lfs.attributes(new_dst))
+      local f_check = io.open(dst, "rb")
+      local content = f_check:read("*all")
+      f_check:close()
+      assert.same("old destination", content)
+    end)
+
+    it("cleans up .new and preserves original destination when rename fails", function()
+      local pid = ffiUtil.getpid()
+      local src = "/tmp/koreader_test_copy_rfail_" .. pid .. "_src.txt"
+      local dst = "/tmp/koreader_test_copy_rfail_" .. pid .. "_dst.txt"
+      local new_dst = dst .. ".new"
+      finally(function()
+        os.remove(src)
+        os.remove(dst)
+        os.remove(new_dst)
+      end)
+
+      local f_src = io.open(src, "wb")
+      f_src:write("source data")
+      f_src:close()
+
+      local f_dst = io.open(dst, "wb")
+      f_dst:write("old destination")
+      f_dst:close()
+
+      local orig_rename = os.rename
+      os.rename = function(from, to)
+        if from == new_dst then
+          return nil, "rename failed"
+        end
+        return orig_rename(from, to)
+      end
+
+      local err = ffiUtil.copyFile(src, dst)
+      os.rename = orig_rename
+
+      assert.same("rename failed", err)
+      assert.is_nil(lfs.attributes(new_dst))
+      local f_check = io.open(dst, "rb")
+      local content = f_check:read("*all")
+      f_check:close()
+      assert.same("old destination", content)
+    end)
   end)
 
   describe("getpid()", function()

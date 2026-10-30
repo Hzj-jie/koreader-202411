@@ -38,10 +38,16 @@ describe("AutoSuspend", function()
       require("mock_time"):uninstall()
     end)
 
+    local stub_ui = {
+      menu = {
+        registerToMainMenu = function() end,
+      },
+    }
+
     it("should be able to execute suspend when timing out", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local UIManager = require("ui/uimanager")
       mock_time:increase(5)
       UIManager:handleInput()
@@ -54,7 +60,7 @@ describe("AutoSuspend", function()
     it("should be able to deprecate last task", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
       mock_time:increase(5)
       local UIManager = require("ui/uimanager")
       UIManager:handleInput()
@@ -108,10 +114,16 @@ describe("AutoSuspend", function()
       require("mock_time"):uninstall()
     end)
 
+    local stub_ui = {
+      menu = {
+        registerToMainMenu = function() end,
+      },
+    }
+
     it("should be able to execute suspend when timing out", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new() --luacheck: ignore
+      local widget = widget_class:new({ ui = stub_ui }) --luacheck: ignore
       local UIManager = require("ui/uimanager")
       mock_time:increase(5)
       UIManager:handleInput()
@@ -124,7 +136,7 @@ describe("AutoSuspend", function()
     it("should be able to deprecate last task", function()
       local mock_time = require("mock_time")
       local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
-      local widget = widget_class:new()
+      local widget = widget_class:new({ ui = stub_ui })
       mock_time:increase(5)
       local UIManager = require("ui/uimanager")
       UIManager:handleInput()
@@ -138,6 +150,16 @@ describe("AutoSuspend", function()
       mock_time:increase(5)
       UIManager:handleInput()
       assert.stub(UIManager.poweroff_action).was.called(1)
+    end)
+
+    it("asserts when ui or ui.menu is missing", function()
+      local widget_class = dofile("plugins/autosuspend.koplugin/main.lua")
+      assert.has_error(function()
+        widget_class:new()
+      end)
+      assert.has_error(function()
+        widget_class:new({ ui = {} })
+      end)
     end)
   end)
 end)

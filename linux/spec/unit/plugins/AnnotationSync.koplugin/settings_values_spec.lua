@@ -100,11 +100,15 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
-    "getLocalSettingValue returns nil for a key without a domain, an unknown domain or a missing settings file",
+    "getLocalSettingValue asserts for a key without a domain or an unknown domain, and returns nil for a missing settings file",
     function()
       local caches = {}
-      assert.is_nil(manager:getLocalSettingValue("no_colon", caches))
-      assert.is_nil(manager:getLocalSettingValue("unknown:thing", caches))
+      assert.has_error(function()
+        manager:getLocalSettingValue("no_colon", caches)
+      end)
+      assert.has_error(function()
+        manager:getLocalSettingValue("unknown:thing", caches)
+      end)
       assert.is_nil(
         manager:getLocalSettingValue("settings/does_not_exist:a", caches)
       )
@@ -155,7 +159,9 @@ describe("AnnotationSync settings values and pull menus", function()
       local d_s = LuaSettings:open(test_data_dir .. "/defaults.custom.lua")
       assert.are.equal(3, d_s:read("RV_DEFAULT2"))
 
-      assert.is_false(manager:_writeLocalSettingValue("no_colon", 1))
+      assert.has_error(function()
+        manager:_writeLocalSettingValue("no_colon", 1)
+      end)
     end
   )
 
