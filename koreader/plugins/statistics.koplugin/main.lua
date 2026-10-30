@@ -121,10 +121,6 @@ function ReaderStatistics:onDispatcherRegisterActions()
 end
 
 function ReaderStatistics:init()
-  if self.document and self.document.is_pic then
-    return -- disable in PIC documents
-  end
-
   self.is_doc = false
   self.is_doc_not_frozen = false -- freeze finished books statistics
 
@@ -211,6 +207,9 @@ function ReaderStatistics:_isDocReady()
 end
 
 function ReaderStatistics:_initDocState(config)
+  if self.document.is_pic then
+    return
+  end
   assert(self:_isDocReady())
   if self.data_initialized then
     return
