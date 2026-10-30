@@ -453,6 +453,7 @@ function ReaderBookmark:removeItem(item, item_idx)
 end
 
 function ReaderBookmark:removeItemByIndex(index)
+  assert(index)
   local item = self.ui.annotation.annotations[index]
   local item_type = self.getBookmarkType(item)
   if item_type == "highlight" then

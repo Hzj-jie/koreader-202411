@@ -223,7 +223,7 @@ function util.copyFile(from, to)
   if not ffp then
     return ferr
   end
-  local tfp, terr = io.open(to, "wb")
+  local tfp, terr = io.open(to .. ".new", "wb")
   if not tfp then
     ffp:close()
     return terr
@@ -234,9 +234,31 @@ function util.copyFile(from, to)
       ffp:close()
       break
     end
-    tfp:write(bytes)
+    local ok, werr = tfp:write(bytes)
+    if not ok then
+      ffp:close()
+      tfp:close()
+      os.remove(to .. ".new")
+      return werr or "write failed"
+    end
   end
-  tfp:close()
+  local sync_ok, sync_err = util.fsyncOpenedFile(tfp)
+  if not sync_ok then
+    tfp:close()
+    os.remove(to .. ".new")
+    return sync_err or "fsync failed"
+  end
+  local close_ok, close_err = tfp:close()
+  if not close_ok then
+    os.remove(to .. ".new")
+    return close_err or "close failed"
+  end
+  local rename_ok, rename_err = os.rename(to .. ".new", to)
+  if not rename_ok then
+    os.remove(to .. ".new")
+    return rename_err
+  end
+  util.fsyncDirectory(to)
 end
 
 --[[--

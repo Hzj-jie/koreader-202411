@@ -142,9 +142,10 @@ function DocSettings:getFileFromHistory(hist_name)
 end
 
 local function getCandidates(doc_path)
-  if not doc_path or doc_path == "" then
-    return {}
-  end
+  assert(
+    type(doc_path) == "string" and doc_path ~= "",
+    "DocSettings: doc_path must not be nil or empty"
+  )
 
   local dir, filename = util.splitFilePathName(doc_path)
   local stem_name = util.splitFileNameSuffix(filename)
@@ -303,16 +304,12 @@ end
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn DocSettings object
 function DocSettings:open(doc_path)
-  assert(
-    doc_path and doc_path ~= "",
-    "DocSettings: doc_path must not be nil or empty"
-  )
   -- NOTE: Beware, our new instance is new, but self is still DocSettings!
   local new = DocSettings:extend({})
 
+  new.candidates = getCandidates(doc_path)
   new.doc_path = doc_path
   new.sidecar_filename = DocSettings.getSidecarFilename(doc_path)
-  new.candidates = getCandidates(doc_path)
 
   local existing = {}
   for i, cand in ipairs(new.candidates) do
@@ -420,9 +417,17 @@ function DocSettings:flush(data, no_custom_metadata)
           if metadata_file then
             filepath, filename = util.splitFilePathName(metadata_file)
             if filepath ~= sidecar_dir_slash then
-              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-              os.remove(metadata_file)
-              self:getCustomCoverFile(true) -- reset cache
+              if
+                ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+                == nil
+              then
+                os.remove(metadata_file)
+                self:getCustomCoverFile(true) -- reset cache
+              else
+                showNotification(
+                  gettext("Failed to save custom cover to disk.")
+                )
+              end
             end
           end
           -- custom metadata
@@ -430,9 +435,17 @@ function DocSettings:flush(data, no_custom_metadata)
           if metadata_file then
             filepath, filename = util.splitFilePathName(metadata_file)
             if filepath ~= sidecar_dir_slash then
-              ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
-              os.remove(metadata_file)
-              self:getCustomMetadataFile(true) -- reset cache
+              if
+                ffiutil.copyFile(metadata_file, sidecar_dir_slash .. filename)
+                == nil
+              then
+                os.remove(metadata_file)
+                self:getCustomMetadataFile(true) -- reset cache
+              else
+                showNotification(
+                  gettext("Failed to save custom metadata to disk.")
+                )
+              end
             end
           end
         end
@@ -551,16 +564,30 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
       if new_sidecar_dir then
         if custom_cover_file then
           local _, filename = util.splitFilePathName(custom_cover_file)
-          ffiutil.copyFile(
-            custom_cover_file,
-            new_sidecar_dir .. "/" .. filename
-          )
+          if
+            ffiutil.copyFile(
+              custom_cover_file,
+              new_sidecar_dir .. "/" .. filename
+            ) ~= nil
+          then
+            showNotification(
+              gettext("Failed to save custom cover to disk.")
+            )
+            custom_cover_file = false
+          end
         end
         if custom_metadata_file then
-          ffiutil.copyFile(
-            custom_metadata_file,
-            new_sidecar_dir .. "/" .. custom_metadata_filename
-          )
+          if
+            ffiutil.copyFile(
+              custom_metadata_file,
+              new_sidecar_dir .. "/" .. custom_metadata_filename
+            ) ~= nil
+          then
+            showNotification(
+              gettext("Failed to save custom metadata to disk.")
+            )
+            custom_metadata_file = false
+          end
         end
         do_purge = not copy
       else

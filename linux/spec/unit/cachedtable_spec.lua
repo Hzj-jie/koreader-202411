@@ -218,15 +218,14 @@ describe("CachedTable module", function()
     assert.are.same({ a = 1, b = 2, c = 3 }, collected)
   end)
 
-  it("handles resolver error gracefully via pcall", function()
+  it("propagates resolver error without pcall", function()
     local t = CachedTable:new(function()
       error("resolver failure")
     end, { fallback = "safe" })
 
     assert.is_false(CachedTable.isResolved(t))
-    -- Should not throw an unhandled error
-    assert.is_nil(t.missing)
-    assert.is_true(CachedTable.isResolved(t))
-    assert.are.equal("safe", t.fallback)
+    assert.has_error(function()
+      local _ = t.missing
+    end)
   end)
 end)

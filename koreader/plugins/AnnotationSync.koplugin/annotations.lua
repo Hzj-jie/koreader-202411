@@ -255,9 +255,7 @@ function M.write_annotations_json(
   sdr_dir,
   annotation_filename
 )
-  if not sdr_dir then
-    return false
-  end
+  assert(type(sdr_dir) == "string" and sdr_dir ~= "")
   local json_path = sdr_dir .. "/" .. annotation_filename
   if util.writeToFile(json.encode(stored_annotations), json_path) then
     return json_path

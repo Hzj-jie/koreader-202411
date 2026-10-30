@@ -1969,5 +1969,28 @@ describe("ReaderAnnotation module", function()
         fastforward()
       end)
     end)
+
+    it("asserts in trackChangingWidget and onClose on state violations", function()
+      local widget = Widget:new()
+      annotation:trackChangingWidget(widget)
+
+      local other_widget = Widget:new()
+      local orig_file = annotation.ui.document.file
+      annotation.ui.document.file = "/tmp/different_book.epub"
+      assert.has_error(function()
+        annotation:trackChangingWidget(other_widget)
+      end)
+      annotation.ui.document.file = orig_file
+
+      widget:onClose()
+
+      local dummy_widget = Widget:new()
+      annotation:trackChangingWidget(dummy_widget)
+      annotation._changing_widgets = 0
+      assert.has_error(function()
+        dummy_widget:onClose()
+      end)
+      fastforward()
+    end)
   end)
 end)

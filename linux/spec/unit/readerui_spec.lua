@@ -127,4 +127,23 @@ describe("Readerui module", function()
       )
     end
   )
+
+  it(
+    "asserts with traceback on coroutine failure when resuming password dialog",
+    function()
+      local dead_co = coroutine.create(function()
+        error("simulated coroutine boom")
+      end)
+      coroutine.resume(dead_co)
+
+      readerui._coroutine = dead_co
+      local document = {}
+      readerui:unlockDocumentWithPassword(document)
+
+      local cancel_btn = readerui.password_dialog.buttons[1][1]
+      assert.has_error(function()
+        cancel_btn.callback()
+      end)
+    end
+  )
 end)

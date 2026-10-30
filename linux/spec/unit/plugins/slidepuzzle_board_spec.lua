@@ -142,16 +142,37 @@ describe("SlidePuzzle BoardWidget module", function()
     assert.are.equal(45, widget.number_face.size)
 
     -- User override under max_px: 60 < 78 (math.floor(100 * 0.78))
-    widget:setFontPrefs("cfont", 60)
-    assert.are.equal(60, widget.number_face.size)
+    local w2 = BoardWidget:new({
+      game = mock_game,
+      max_size = 300,
+      font_face_name = "cfont",
+      font_size_override = 60,
+    })
+    w2.dimen = { w = 300, h = 300 }
+    w2:_computeMetrics()
+    assert.are.equal(60, w2.number_face.size)
 
     -- User override exceeding max_px: 200 > 78, capped to 78
-    widget:setFontPrefs("cfont", 200)
-    assert.are.equal(78, widget.number_face.size)
+    local w3 = BoardWidget:new({
+      game = mock_game,
+      max_size = 300,
+      font_face_name = "cfont",
+      font_size_override = 200,
+    })
+    w3.dimen = { w = 300, h = 300 }
+    w3:_computeMetrics()
+    assert.are.equal(78, w3.number_face.size)
 
     -- Reset to auto
-    widget:setFontPrefs(nil, 0)
-    assert.are.equal(45, widget.number_face.size)
+    local w4 = BoardWidget:new({
+      game = mock_game,
+      max_size = 300,
+      font_face_name = nil,
+      font_size_override = 0,
+    })
+    w4.dimen = { w = 300, h = 300 }
+    w4:_computeMetrics()
+    assert.are.equal(45, w4.number_face.size)
 
     -- Small board where cell < MIN_CELL (32)
     local small_game = {

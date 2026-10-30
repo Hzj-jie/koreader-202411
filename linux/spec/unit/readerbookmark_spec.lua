@@ -1603,5 +1603,31 @@ describe("ReaderBookmark module", function()
         assert.are.equal("Reset text from document", ann.text)
       end
     )
+
+    it(
+      "asserts index is not nil in removeItemByIndex and preserves annotations",
+      function()
+        local bookmark_mod = readerui.bookmark
+        local orig_annotations = bookmark_mod.ui.annotation.annotations
+        local item1 = { text = "First", page = 1 }
+        local item2 = { text = "Second", page = 2 }
+        bookmark_mod.ui.annotation.annotations = { item1, item2 }
+
+        assert.has_error(function()
+          bookmark_mod:removeItemByIndex(nil)
+        end)
+        assert.are.equal(2, #bookmark_mod.ui.annotation.annotations)
+        assert.are.equal(
+          "First",
+          bookmark_mod.ui.annotation.annotations[1].text
+        )
+        assert.are.equal(
+          "Second",
+          bookmark_mod.ui.annotation.annotations[2].text
+        )
+
+        bookmark_mod.ui.annotation.annotations = orig_annotations
+      end
+    )
   end)
 end)

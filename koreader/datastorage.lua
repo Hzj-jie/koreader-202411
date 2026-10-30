@@ -11,6 +11,7 @@ local full_data_dir
 local cache_dir
 local tmp_dir
 local is_storage_temporary = false
+local has_mkdir_failure = false
 
 local function isStorageReadOnly()
   return data_dir ~= nil and not util.isDirRW(data_dir, true)
@@ -179,7 +180,7 @@ end
 function DataStorage:showStorageWarningIfNeeded()
   self:getDataDir()
   local is_readonly = isStorageReadOnly()
-  if not (is_storage_temporary or is_readonly) then
+  if not (is_storage_temporary or is_readonly or has_mkdir_failure) then
     return
   end
   local UIManager = require("ui/uimanager")
@@ -190,9 +191,13 @@ function DataStorage:showStorageWarningIfNeeded()
     text = gettext(
       "Storage is completely read-only. Settings and reading history cannot be saved to disk."
     )
-  else
+  elseif is_storage_temporary then
     text = gettext(
       "Primary storage is read-only. Settings will be saved to temporary storage and may be lost when the device is restarted."
+    )
+  else
+    text = gettext(
+      "Failed to create some application data directories. Some features may not work properly."
     )
   end
 
@@ -230,7 +235,15 @@ local function initDataDir()
     for _, dir in ipairs(sub_data_dirs) do
       local sub_data_dir = string.format("%s/%s", datadir, dir)
       if lfs.attributes(sub_data_dir, "mode") ~= "directory" then
-        lfs.mkdir(sub_data_dir)
+        local ok, err = lfs.mkdir(sub_data_dir)
+        if not ok then
+          logger.warn(
+            "DataStorage: failed to create sub data directory:",
+            sub_data_dir,
+            err
+          )
+          has_mkdir_failure = true
+        end
       end
     end
   end
