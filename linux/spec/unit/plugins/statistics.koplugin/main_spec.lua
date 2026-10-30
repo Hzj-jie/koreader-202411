@@ -136,6 +136,7 @@ describe("ReaderStatistics plugin main spec", function()
 
     stats:onPosUpdate(nil, 1)
     stats:onPageUpdate(1)
+    stats:onTimesChange_1M()
     stats:onSuspend()
     stats:onResume()
     stats:onCloseDocument()
