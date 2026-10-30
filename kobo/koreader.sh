@@ -87,65 +87,6 @@ if [ "${current_cpufreq_gov}" != "interactive" ]; then
     fi
 fi
 
-# update to new version from OTA directory
-ko_update_check() {
-    NEWUPDATE="${KOREADER_DIR}/ota/koreader.updated.tar"
-    INSTALLED="${KOREADER_DIR}/ota/koreader.installed.tar"
-    if [ -f "${NEWUPDATE}" ]; then
-        # Clear screen to delete UI leftovers
-        ./fbink --cls
-        ./fbink -q -y -7 -pmh "Updating KOReader"
-        # Setup the FBInk daemon
-        export FBINK_NAMED_PIPE="/tmp/koreader.fbink"
-        rm -f "${FBINK_NAMED_PIPE}"
-        # We'll want to use REAGL on sunxi, because AUTO is slow, and fast merges are extremely broken outside of REAGL...
-        eval "$(./fbink -e | tr ';' '\n' | grep -e isSunxi | tr '\n' ';')"
-        # shellcheck disable=SC2154
-        if [ "${isSunxi}" = "1" ]; then
-            PBAR_WFM="REAGL"
-        else
-            PBAR_WFM="AUTO"
-        fi
-        FBINK_PID="$(./fbink --daemon 1 %KOREADER% -q -y -6 -P 0 -W ${PBAR_WFM})"
-        # NOTE: See frontend/ui/otamanager.lua for a few more details on how we squeeze a percentage out of tar's checkpoint feature
-        # NOTE: %B should always be 512 in our case, so let stat do part of the maths for us instead of using %s ;).
-        FILESIZE="$(stat -c %b "${NEWUPDATE}")"
-        BLOCKS="$((FILESIZE / 20))"
-        export CPOINTS="$((BLOCKS / 100))"
-        # shellcheck disable=SC2016
-        ./tar xf "${NEWUPDATE}" --strip-components=1 --no-same-permissions --no-same-owner --checkpoint="${CPOINTS}" --checkpoint-action=exec='printf "%s" $((TAR_CHECKPOINT / CPOINTS)) > ${FBINK_NAMED_PIPE}'
-        fail=$?
-        kill -TERM "${FBINK_PID}"
-        # Cleanup behind us...
-        if [ "${fail}" -eq 0 ]; then
-            mv "${NEWUPDATE}" "${INSTALLED}"
-            ./fbink -q -y -6 -pm "Update successful :)"
-            ./fbink -q -y -5 -pm "KOReader will start momentarily . . ."
-
-            # Warn if the startup script has been updated...
-            if [ "$(md5sum "/tmp/koreader.sh" | cut -f1 -d' ')" != "$(md5sum "${KOREADER_DIR}/koreader.sh" | cut -f1 -d' ')" ]; then
-                ./fbink -q -pmMh "Update contains a startup script update!"
-            fi
-        else
-            # Uh oh...
-            ./fbink -q -y -6 -pmh "Update failed :("
-            ./fbink -q -y -5 -pm "KOReader may fail to function properly!"
-        fi
-        rm -f "${NEWUPDATE}" # always purge newupdate to prevent update loops
-        unset CPOINTS FBINK_NAMED_PIPE
-        unset BLOCKS FILESIZE FBINK_PID
-        # Ensure everything is flushed to disk before we restart. This *will* stall for a while on slow storage!
-        sync
-    fi
-}
-# NOTE: Keep doing an initial update check, in addition to one during the restart loop, so we can pickup potential updates of this very script...
-ko_update_check
-# If an update happened, and was successful, reexec
-if [ -n "${fail}" ] && [ "${fail}" -eq 0 ]; then
-    # By now, we know we're in the right directory, and our script name is pretty much set in stone, so we can forgo using $0
-    exec ./koreader.sh "${@}"
-fi
-
 # export dict directory
 export STARDICT_DATA_DIR="data/dict"
 
@@ -412,8 +353,6 @@ KO_RC_HALT=88
 RETURN_VALUE=${KO_RC_RESTART}
 while [ ${RETURN_VALUE} -ne 0 ]; do
     if [ ${RETURN_VALUE} -eq ${KO_RC_RESTART} ]; then
-        # Do an update check now, so we can actually update KOReader via the "Restart KOReader" menu entry ;).
-        ko_update_check
         # Do or double-check the fb depth switch, or restore original bitdepth if requested
         ko_do_fbdepth
         # Make sure we have a sane resolv.conf
@@ -523,7 +462,7 @@ while [ ${RETURN_VALUE} -ne 0 ]; do
             continue
         fi
 
-        if ! ./tar xzf "./data/KoboUSBMS.tar.gz" -C "${USBMS_HOME}"; then
+        if ! tar xzf "./data/KoboUSBMS.tar.gz" -C "${USBMS_HOME}"; then
             echo "Couldn't unpack KoboUSBMS, restarting KOReader . . ." >>crash.log 2>&1
             if ! umount "${USBMS_HOME}"; then
                 echo "Couldn't unmount the USBMS tmpfs, shutting down in 30 sec!" >>crash.log 2>&1

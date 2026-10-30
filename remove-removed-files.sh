@@ -43,6 +43,7 @@ REMOVED_FILES=(
   "libs/libunibreak.so.6"
   "libs/libcrypto.so.1.1"
   "libs/libssl.so.1.1"
+  "tar"
 )
 
 REMOTE_PATHS=()

@@ -30,6 +30,7 @@ local monolibtic = {
     .. "/libkoreader-monolibtic."
     .. (ffi.os == "OSX" and "dylib" or "so"),
   redirects = {
+    ["archive"] = true,
     ["blitbuffer"] = true,
     ["crypto"] = true,
     ["czmq"] = true,

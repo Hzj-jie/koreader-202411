@@ -1110,36 +1110,30 @@ end
 function Device:unpackArchive(archive, extract_to, with_stripped_root)
   require("dbg").dassert(type(archive) == "string")
   local BD = require("ui/bidi")
-  local ok
-  if
-    archive:match("%.tar%.bz2$")
-    or archive:match("%.tar%.gz$")
-    or archive:match("%.tar%.lz$")
-    or archive:match("%.tgz$")
-  then
-    ok = self:untar(archive, extract_to, with_stripped_root)
-  else
+  local Archiver = require("ffi/archiver")
+  local arc = Archiver.Reader:new()
+  if not arc:open(archive) then
     return false,
-      T(
-        gettext(
-          "Couldn't extract archive:\n\n%1\n\nUnrecognized filename extension."
-        ),
-        BD.filepath(archive)
-      )
+      T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
   end
+  for entry in arc:iterate() do
+    local path = entry.path
+    if with_stripped_root then
+      path = path:gsub("^[^/]+/?", "")
+    end
+    if path ~= "" then
+      if not arc:extractToPath(entry.path, extract_to .. "/" .. path) then
+        break
+      end
+    end
+  end
+  local ok = not arc.err
+  arc:close()
   if not ok then
     return false,
       T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
   end
   return true
-end
-
-function Device:untar(archive, extract_to, with_stripped_root)
-  local cmd = "./tar xf %q -C %q"
-  if with_stripped_root then
-    cmd = cmd .. " --strip-components=1"
-  end
-  return os.execute(cmd:format(archive, extract_to))
 end
 
 -- Update our UIManager reference once it's ready

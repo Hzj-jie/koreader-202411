@@ -857,15 +857,187 @@ describe("device module", function()
         assert.is_false(test_dev:supportsScreensaver())
       end)
 
-      it("checks unpackArchive supported and unsupported formats", function()
-        os.execute.returns(0)
-        local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
-        assert.is_true(ok)
+      describe("Device:unpackArchive", function()
+        local ffiUtil = require("ffi/util")
+        local base_tmp_dir = (os.getenv("TMPDIR") or "/tmp") .. "/device_spec_" .. ffiUtil.getpid()
 
-        local bad_ok, err =
-          test_dev:unpackArchive("archive.zip", "/tmp/extracted")
-        assert.is_false(bad_ok)
-        assert.is_string(err)
+        local function rm_rf(path)
+          local lfs = require("libs/libkoreader-lfs")
+          local attr = lfs.attributes(path)
+          if not attr then return end
+          if attr.mode == "directory" then
+            for file in lfs.dir(path) do
+              if file ~= "." and file ~= ".." then
+                rm_rf(path .. "/" .. file)
+              end
+            end
+            lfs.rmdir(path)
+          else
+            os.remove(path)
+          end
+        end
+
+        local function mkdir_p(path)
+          local lfs = require("libs/libkoreader-lfs")
+          local current = ""
+          for part in path:gmatch("[^/]+") do
+            current = current .. "/" .. part
+            lfs.mkdir(current)
+          end
+        end
+
+        local function write_ustar_archive(path, entries)
+          local function make_tar_header(name, typeflag, linkname, size)
+            size = size or 0
+            local b = {}
+            for i = 1, 512 do b[i] = 0 end
+            local function put(offset, str)
+              for i = 1, #str do
+                b[offset + i] = str:byte(i)
+              end
+            end
+            put(0, name)
+            put(100, "0000644\0")
+            put(108, "0000000\0")
+            put(116, "0000000\0")
+            put(124, string.format("%011o\0", size))
+            put(136, "00000000000\0")
+            put(156, typeflag)
+            if linkname then
+              put(157, linkname)
+            end
+            put(257, "ustar\0")
+            put(263, "00")
+            local sum = 8 * 32
+            for i = 1, 512 do
+              if i < 149 or i > 156 then
+                sum = sum + b[i]
+              end
+            end
+            put(148, string.format("%06o\0 ", sum))
+            local chars = {}
+            for i = 1, 512 do
+              chars[i] = string.char(b[i])
+            end
+            return table.concat(chars)
+          end
+
+          local f = assert(io.open(path, "wb"))
+          for __, e in ipairs(entries) do
+            local data = e.data or ""
+            f:write(make_tar_header(e.name, e.typeflag, e.linkname, #data))
+            if #data > 0 then
+              f:write(data)
+              local pad = (512 - (#data % 512)) % 512
+              if pad > 0 then
+                f:write(string.rep("\0", pad))
+              end
+            end
+          end
+          f:write(string.rep("\0", 1024))
+          f:close()
+        end
+
+        it("unpacks archives using libarchive including stripped root", function()
+          finally(function()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir)
+
+          local ZipWriter = require("ffi/zipwriter")
+          local test_zip = base_tmp_dir .. "/test_archive.zip"
+          local zw = ZipWriter:new()
+          assert.is_true(zw:open(test_zip))
+          zw:add("root_folder/hello.txt", "hello archive world\n", true)
+          assert.is_true(zw:close())
+
+          local out_normal = base_tmp_dir .. "/test_unpack_normal"
+          local out_stripped = base_tmp_dir .. "/test_unpack_stripped"
+
+          local ok, err = test_dev:unpackArchive(test_zip, out_normal, false)
+          assert.is_true(ok)
+          assert.is_nil(err)
+          local f1 = io.open(out_normal .. "/root_folder/hello.txt", "r")
+          assert.is_not_nil(f1)
+          assert.are.equal("hello archive world", f1:read("*l"))
+          f1:close()
+
+          local ok_strip, err_strip =
+            test_dev:unpackArchive(test_zip, out_stripped, true)
+          assert.is_true(ok_strip)
+          assert.is_nil(err_strip)
+          local f2 = io.open(out_stripped .. "/hello.txt", "r")
+          assert.is_not_nil(f2)
+          assert.are.equal("hello archive world", f2:read("*l"))
+          f2:close()
+
+          local bad_ok, bad_err =
+            test_dev:unpackArchive(base_tmp_dir .. "/nonexistent_archive.zip", base_tmp_dir .. "/test_unpack_bad")
+          assert.is_false(bad_ok)
+          assert.is_string(bad_err)
+
+          local inv_ok, inv_err =
+            test_dev:unpackArchive("spec/unit/data/sample.txt", base_tmp_dir .. "/test_unpack_bad")
+          assert.is_false(inv_ok)
+          assert.is_string(inv_err)
+        end)
+
+        it("refuses to extract symlinks and prevents writing outside destination", function()
+          finally(function()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          local outside_dir = base_tmp_dir .. "/outside"
+          local extract_to = base_tmp_dir .. "/extract"
+          local tar_path = base_tmp_dir .. "/symlink_attack.tar"
+          mkdir_p(outside_dir)
+          mkdir_p(extract_to)
+
+          write_ustar_archive(tar_path, {
+            { name = "dict/link", typeflag = "2", linkname = outside_dir },
+            { name = "dict/link/pwned.txt", typeflag = "0", data = "pwned\n" },
+          })
+
+          local ok, err = test_dev:unpackArchive(tar_path, extract_to, false)
+          assert.is_false(ok)
+          assert.is_string(err)
+
+          local f = io.open(outside_dir .. "/pwned.txt", "r")
+          assert.is_nil(f)
+        end)
+
+        it("refuses to extract hardlinks and preserves outside target files", function()
+          finally(function()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          local outside_target = base_tmp_dir .. "/outside_target.ifo"
+          local extract_to = base_tmp_dir .. "/extract"
+          local tar_path = base_tmp_dir .. "/hardlink_attack.tar"
+          mkdir_p(extract_to)
+
+          local f_target = assert(io.open(outside_target, "w"))
+          f_target:write("original target content\n")
+          f_target:close()
+
+          write_ustar_archive(tar_path, {
+            { name = "dict/x.ifo", typeflag = "1", linkname = outside_target },
+          })
+
+          local ok, err = test_dev:unpackArchive(tar_path, extract_to, false)
+          assert.is_false(ok)
+          assert.is_string(err)
+
+          local f_extracted = io.open(extract_to .. "/dict/x.ifo", "r")
+          assert.is_nil(f_extracted)
+
+          local lfs = require("libs/libkoreader-lfs")
+          assert.are.equal(1, lfs.attributes(outside_target, "nlink"))
+          local f_read = assert(io.open(outside_target, "r"))
+          assert.are.equal("original target content\n", f_read:read("*a"))
+          f_read:close()
+        end)
       end)
 
       it("executes exit teardown cleanly", function()
