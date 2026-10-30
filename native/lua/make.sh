@@ -34,6 +34,10 @@ for TARGET in "${TARGETS[@]}"; do
 
         # Fail-fast validation checks for linux
         LUA_BIN="$(realpath "$SCRIPT_DIR/../../linux/lua")"
+        if ! readelf -h "$LUA_BIN" | grep -E "Type:[[:space:]]+EXEC" > /dev/null; then
+            echo "Error: Expected ET_EXEC binary for linux/lua"
+            exit 1
+        fi
         if readelf -d "$LUA_BIN" | grep -F "NEEDED" | grep -E "libffi|libstdc\+\+" > /dev/null; then
             echo "Error: Unexpected forbidden library in NEEDED for linux/lua"
             exit 1
@@ -76,7 +80,7 @@ for TARGET in "${TARGETS[@]}"; do
             ;;
     esac
 
-    $CC -std=gnu99 -c $ARCH_FLAGS -fno-pie -O2 -U_TIME_BITS -U_FILE_OFFSET_BITS \
+    $CC -std=gnu99 -c $ARCH_FLAGS -O2 -U_TIME_BITS -U_FILE_OFFSET_BITS \
         -include "$COMPAT_H" "$WRAP_C" -o arm_glibc_wrap.o
 
     make CC="$CC -std=gnu99" \
@@ -84,10 +88,10 @@ for TARGET in "${TARGETS[@]}"; do
          HOST="${CC%-gcc}" \
          AR="${CC%-gcc}-ar rcu" \
          RANLIB="${CC%-gcc}-ranlib" \
-         FFI_CFLAGS="$ARCH_FLAGS -fno-pie -O2 -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H" \
-         MYCFLAGS="-DLUA_USE_LINUX $ARCH_FLAGS -fno-pie -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H" \
-         MYCXXFLAGS="$ARCH_FLAGS -fno-pie -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H" \
-         MYLDFLAGS="-Wl,-E -Wl,-rpath,'\$\$ORIGIN:\$\$ORIGIN/libs' -Wl,--disable-new-dtags -Wl,--wrap=__libc_start_main -Wl,--no-as-needed -no-pie" \
+         FFI_CFLAGS="$ARCH_FLAGS -O2 -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H" \
+         MYCFLAGS="-DLUA_USE_LINUX $ARCH_FLAGS -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H" \
+         MYCXXFLAGS="$ARCH_FLAGS -U_TIME_BITS -U_FILE_OFFSET_BITS -include $COMPAT_H" \
+         MYLDFLAGS="-Wl,-E -Wl,-rpath,'\$\$ORIGIN:\$\$ORIGIN/libs' -Wl,--disable-new-dtags -Wl,--wrap=__libc_start_main -Wl,--no-as-needed" \
          MYLIBS="arm_glibc_wrap.o -l:libdl.so.2" \
          lua
 
