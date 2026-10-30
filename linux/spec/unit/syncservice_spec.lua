@@ -1030,4 +1030,25 @@ describe("SyncService", function()
       end
     )
   end)
+
+  describe("getLastSyncTime", function()
+    it("returns modification timestamp of .sync file or nil", function()
+      local tmp_file = "/tmp/test_stat_" .. os.time()
+      local sync_file = tmp_file .. ".sync"
+      finally(function()
+        os.remove(tmp_file)
+        os.remove(sync_file)
+      end)
+
+      assert.is_nil(SyncService.getLastSyncTime(tmp_file))
+
+      local f = io.open(sync_file, "w")
+      f:write("dummy")
+      f:close()
+
+      local mtime = SyncService.getLastSyncTime(tmp_file)
+      assert.is_number(mtime)
+      assert.is_true(mtime > 0)
+    end)
+  end)
 end)
