@@ -3,12 +3,14 @@ local Event = require("ui/event")
 local FFIUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
+local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local util = require("util")
 local T = require("ffi/util").template
 
 -- if sometime in the future crengine is updated to use normalized utf8 for hyphenation
@@ -154,13 +156,6 @@ function ReaderUserHyph:updateDictionary(word, hyphenation)
     logger.err("UserHyph: called without arguments")
   end
   local dict_file = self:getDictionaryPath()
-  local new_dict_file = dict_file .. ".new"
-
-  local new_dict = io.open(new_dict_file, "w")
-  if not new_dict then
-    logger.err("UserHyph: could not open " .. new_dict_file)
-    return
-  end
 
   if NORM then
     word = Utf8Proc.normalize_NFC(word)
@@ -168,6 +163,7 @@ function ReaderUserHyph:updateDictionary(word, hyphenation)
 
   local word_lower = Utf8Proc.lowercase(word, NORM)
   local line
+  local lines = {}
 
   local dict = io.open(dict_file, "r")
   if dict then
@@ -181,7 +177,7 @@ function ReaderUserHyph:updateDictionary(word, hyphenation)
       and Utf8Proc.lowercase(line:sub(1, line:find(";") - 1), NORM)
         < word_lower
     do
-      new_dict:write(line .. "\n")
+      table.insert(lines, line)
       line = dict:read()
       if NORM then
         line = line and Utf8Proc.normalize_NFC(line)
@@ -202,12 +198,12 @@ function ReaderUserHyph:updateDictionary(word, hyphenation)
 
   -- write new entry
   if hyphenation and hyphenation ~= "" then
-    new_dict:write(string.format("%s;%s\n", word, hyphenation))
+    table.insert(lines, string.format("%s;%s", word, hyphenation))
   end
 
   -- write old entry if there was one
   if line then
-    new_dict:write(line .. "\n")
+    table.insert(lines, line)
   end
 
   if dict then
@@ -217,15 +213,23 @@ function ReaderUserHyph:updateDictionary(word, hyphenation)
         line = line and Utf8Proc.normalize_NFC(line)
       end
       if line then
-        new_dict:write(line .. "\n")
+        table.insert(lines, line)
       end
     until not line
     dict:close()
-    os.remove(dict_file)
   end
 
-  new_dict:close()
-  os.rename(new_dict_file, dict_file)
+  local content = ""
+  if #lines > 0 then
+    content = table.concat(lines, "\n") .. "\n"
+  end
+
+  local ok, err = util.writeToFile(content, dict_file)
+  if not ok then
+    Notification:notify(gettext("Failed to save user hyphenation dictionary."))
+    logger.err("UserHyph: failed to save user hyphenation dictionary:", err)
+    return
+  end
 
   self:loadUserDictionary(true) -- dictionary has changed, force a reload here
 end
@@ -277,21 +281,17 @@ function ReaderUserHyph:scrubDictionary()
     later_key = former_key
   end
 
-  local new_dict_file = dict_file .. ".new"
+  local content = ""
+  if #dict_entries > 0 then
+    content = table.concat(dict_entries, "\n") .. "\n"
+  end
 
-  local new_dict = io.open(new_dict_file, "w")
-  if not new_dict then
-    logger.err("UserHyph: could not open " .. new_dict_file)
+  local ok, err = util.writeToFile(content, dict_file)
+  if not ok then
+    Notification:notify(gettext("Failed to save user hyphenation dictionary."))
+    logger.err("UserHyph: failed to save user hyphenation dictionary:", err)
     return
   end
-
-  for i = 1, #dict_entries do
-    new_dict:write(dict_entries[i], "\n")
-  end
-  new_dict:close()
-
-  os.remove(dict_file)
-  os.rename(new_dict_file, dict_file)
 end
 
 function ReaderUserHyph:modifyUserEntry(word)

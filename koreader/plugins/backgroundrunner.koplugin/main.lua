@@ -173,27 +173,13 @@ end
 -- @treturn boolean true if job is valid.
 function BackgroundRunner:_executeJob(job)
   assert(job ~= nil)
-  if job.executable == nil then
-    logger.dbg(
-      "BackgroundRunner: job ",
-      _debugJobStr(job),
-      " has no executable."
-    )
-    return false
-  end
+  assert(type(job.executable) == "string" or type(job.executable) == "function")
 
   if type(job.executable) == "string" then
-    if not CommandRunner:isJobSupported(job) then
-      logger.warn(
-        "BackgroundRunner: job not supported by CommandRunner, ",
-        _debugJobStr(job)
-      )
-      return false
-    end
+    assert(CommandRunner:isJobSupported(job))
     CommandRunner:start(job)
     return true
-  end
-  if type(job.executable) == "function" then
+  else
     job.start_time = time.monotonic()
     local status, err = pcall(job.executable)
     if status then
@@ -214,12 +200,6 @@ function BackgroundRunner:_executeJob(job)
     self:_finishJob(job)
     return true
   end
-  logger.dbg(
-    "BackgroundRunner: job ",
-    _debugJobStr(job),
-    " has no valid executable."
-  )
-  return false
 end
 
 --- Polls the status of the pending CommandRunner.
@@ -254,46 +234,41 @@ function BackgroundRunner:_execute()
       job.insert_time = time.monotonic()
     end
     local should_execute = false
-    local should_ignore = false
+    assert(
+      type(job.when) == "function"
+        or type(job.when) == "number"
+        or type(job.when) == "string",
+      "Invalid job.when"
+    )
     if type(job.when) == "function" then
       should_execute = job.when()
     elseif type(job.when) == "number" then
-      if job.when >= 0 then
-        -- Interval of two runs is 1 sec.
-        if job.when < 1 then
-          logger.warn(
-            "job.when is less than 1 seconds, ",
-            "changing to 1 seconds, ",
-            _debugJobStr(job)
-          )
-          job.when = 1
-        end
-        should_execute = (time.since(job.insert_time) >= time.s(job.when))
-      else
-        logger.warn("ignore negative job.when, ", _debugJobStr(job))
-        should_ignore = true
+      assert(job.when >= 0)
+      -- Interval of two runs is 1 sec.
+      if job.when < 1 then
+        logger.warn(
+          "job.when is less than 1 seconds, ",
+          "changing to 1 seconds, ",
+          _debugJobStr(job)
+        )
+        job.when = 1
       end
+      should_execute = (time.since(job.insert_time) >= time.s(job.when))
     elseif type(job.when) == "string" then
+      assert(job.when == "asap" or job.when == "best-effort" or job.when == "idle")
       if job.when == "asap" then
         should_execute = true
       elseif job.when == "best-effort" then
         -- TODO: Implement a better best-effort strategy.
         should_execute = (time.monotonic() - job.insert_time >= time.s(60))
-      elseif job.when == "idle" then
-        should_execute = PluginShare.DeviceIdling
       else
-        logger.warn("ignore unrecognized job.when, ", _debugJobStr(job))
-        should_ignore = true
+        should_execute = PluginShare.DeviceIdling
       end
-    else
-      logger.warn("ignore job without .when, ", _debugJobStr(job))
-      should_ignore = true
     end
 
     -- Gated check: string executable commands also require available CommandRunner slots
     if
       should_execute
-      and not should_ignore
       and type(job.executable) == "string"
     then
       should_execute = CommandRunner:canStart()
@@ -301,9 +276,8 @@ function BackgroundRunner:_execute()
 
     if should_execute then
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
-      assert(not should_ignore)
       self:_executeJob(job)
-    elseif not should_ignore then
+    else
       -- _finishJob would insert a clone, so this insert is only needed if the
       -- job wasn't executed.
       table.insert(PluginShare.backgroundJobs, job)

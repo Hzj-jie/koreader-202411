@@ -993,13 +993,65 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "should return false in BackgroundRunner:_executeJob when job.executable is an invalid type",
+    "should assert in BackgroundRunner:_executeJob when job.executable is an invalid type or unsupported",
     function()
       local BackgroundRunner = getBackgroundRunner()
-      assert.is_false(BackgroundRunner:_executeJob({ executable = 123 }))
-      assert.is_false(BackgroundRunner:_executeJob({ executable = true }))
-      assert.is_false(BackgroundRunner:_executeJob({ executable = {} }))
-      assert.is_false(BackgroundRunner:_executeJob({}))
+      assert.has_error(function()
+        BackgroundRunner:_executeJob({ executable = 123 })
+      end)
+      assert.has_error(function()
+        BackgroundRunner:_executeJob({ executable = true })
+      end)
+      assert.has_error(function()
+        BackgroundRunner:_executeJob({ executable = {} })
+      end)
+      assert.has_error(function()
+        BackgroundRunner:_executeJob({})
+      end)
+      assert.has_error(function()
+        BackgroundRunner:_executeJob({ executable = "fork" })
+      end)
+    end
+  )
+
+  it(
+    "should assert in BackgroundRunner:_execute when job.when is invalid",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      assert.has_error(function()
+        table.insert(PluginShare.backgroundJobs, {
+          when = -1,
+          executable = function() end,
+        })
+        BackgroundRunner:_execute()
+      end)
+      PluginShare.backgroundJobs = {}
+
+      assert.has_error(function()
+        table.insert(PluginShare.backgroundJobs, {
+          when = "invalid_string",
+          executable = function() end,
+        })
+        BackgroundRunner:_execute()
+      end)
+      PluginShare.backgroundJobs = {}
+
+      assert.has_error(function()
+        table.insert(PluginShare.backgroundJobs, {
+          when = {},
+          executable = function() end,
+        })
+        BackgroundRunner:_execute()
+      end)
+      PluginShare.backgroundJobs = {}
+
+      assert.has_error(function()
+        table.insert(PluginShare.backgroundJobs, {
+          executable = function() end,
+        })
+        BackgroundRunner:_execute()
+      end)
+      PluginShare.backgroundJobs = {}
     end
   )
 
@@ -1305,4 +1357,44 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(19, tonumber(pr))
     end
   )
+
+  it("asserts when ffiUtil.runInSubProcess fails in CommandRunner:start", function()
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local ffiUtil = require("ffi/util")
+    local old_runInSubProcess = ffiUtil.runInSubProcess
+    ffiUtil.runInSubProcess = function()
+      return false, "fork failed"
+    end
+
+    CommandRunner.running_jobs = {}
+    assert.has_error(function()
+      CommandRunner:start({
+        executable = "fork",
+        action = function() end,
+      })
+    end)
+    assert.are.equal(0, #CommandRunner.running_jobs)
+
+    ffiUtil.runInSubProcess = old_runInSubProcess
+  end)
+
+  it("asserts when io.popen fails in CommandRunner:start", function()
+    local CommandRunner =
+      require("plugins/backgroundrunner.koplugin/commandrunner")
+    local old_popen = io.popen
+    io.popen = function()
+      return nil, "popen failed"
+    end
+
+    CommandRunner.running_jobs = {}
+    assert.has_error(function()
+      CommandRunner:start({
+        executable = "dummy_command",
+      })
+    end)
+    assert.are.equal(0, #CommandRunner.running_jobs)
+
+    io.popen = old_popen
+  end)
 end)

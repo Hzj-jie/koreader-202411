@@ -42,6 +42,7 @@ describe("SyncService", function()
     }
     package.loaded["ui/widget/infomessage"] = {
       new = function(self, args)
+        args._type = "infomessage"
         return args
       end,
     }
@@ -103,6 +104,7 @@ describe("SyncService", function()
 
     package.loaded["ui/widget/notification"] = {
       new = function(self, args)
+        args._type = "notification"
         return args
       end,
     }
@@ -405,13 +407,10 @@ describe("SyncService", function()
 
         -- Cleanups
         -- Temporaries are removed (income_file_path twice: once inside retry loop start, and once at the end)
-        -- Wait, the loop removes it at start: `os.remove(income_file_path)`.
-        -- And at the end: `os.remove(income_file_path)` again.
-        -- Also `os.remove(cached_file_path)` before copy.
+        -- The copyFile replaces cached_file_path atomically without pre-removing.
         local expected_removed = {
           "/tmp/book.epub.temp", -- start of loop
           "/tmp/book.epub.temp", -- end of function
-          "/path/to/book.epub.sync", -- before copying to cached
         }
         assert.are.equal(#expected_removed, #mock_os.removed_files)
         for i, path in ipairs(expected_removed) do
@@ -766,6 +765,39 @@ describe("SyncService", function()
         end
       )
 
+      it("Upload succeeds but copyFile fails -> false, failure message, source preserved", function()
+        mock_dropbox_api.upload_code = 200
+        local orig_copyFile = mock_ffiutil.copyFile
+        mock_ffiutil.copyFile = function()
+          mock_ffiutil.copyFile_called = true
+          return "disk full"
+        end
+
+        local finish_res
+        SyncService.sync(
+          server,
+          "/path/to/book.epub",
+          function()
+            return true
+          end,
+          false,
+          function(res)
+            finish_res = res
+          end
+        )
+        mock_network_mgr.cb()
+        assert.is_false(finish_res)
+        assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("infomessage", mock_uimanager.shown_widget._type)
+        assert.are.equal(3, mock_uimanager.shown_widget.timeout)
+        assert.are.equal(
+          "Something went wrong when syncing, please check your network connection and try again later.",
+          mock_uimanager.shown_widget.text
+        )
+        assert.is_true(mock_ffiutil.copyFile_called)
+        mock_ffiutil.copyFile = orig_copyFile
+      end)
+
       it("Upload fails -> false, generic message, .sync untouched", function()
         mock_dropbox_api.upload_code = 500
         local finish_res
@@ -783,6 +815,8 @@ describe("SyncService", function()
         mock_network_mgr.cb()
         assert.is_false(finish_res)
         assert.truthy(mock_uimanager.shown_widget)
+        assert.are.equal("infomessage", mock_uimanager.shown_widget._type)
+        assert.are.equal(3, mock_uimanager.shown_widget.timeout)
         assert.are.equal(
           "Something went wrong when syncing, please check your network connection and try again later.",
           mock_uimanager.shown_widget.text

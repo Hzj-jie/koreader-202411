@@ -416,5 +416,20 @@ describe("background_jobs", function()
       job2.callback({ result = 2 })
       assert.is_false(background_jobs.hasKey("echo beta"))
     end)
+
+    it("should assert if active key is cleared before callback or invoked twice", function()
+      local res = background_jobs.insertKeyed({
+        executable = "echo double_callback",
+      })
+      assert.is_true(res)
+      local job =
+        mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
+      assert.is_function(job.callback)
+      job.callback({ result = 0 })
+
+      assert.has_error(function()
+        job.callback({ result = 0 })
+      end)
+    end)
   end)
 end)

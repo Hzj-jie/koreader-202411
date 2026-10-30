@@ -67,6 +67,7 @@ function BackgroundJobs.insertKeyed(job)
 
   local orig_callback = job.callback
   job.callback = function(res_job)
+    assert(_active_keys[key])
     _active_keys[key] = nil
     if orig_callback then
       orig_callback(res_job)
