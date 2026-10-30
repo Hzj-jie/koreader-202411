@@ -262,6 +262,14 @@ RETURN_VALUE=85
 while [ "${RETURN_VALUE}" -eq 85 ]; do
     ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
+    if [ "${RETURN_VALUE}" -eq 89 ]; then
+        if [ "${LUA_BIN}" = "lua" ]; then
+            LUA_BIN="luajit"
+        else
+            LUA_BIN="lua"
+        fi
+        RETURN_VALUE=85
+    fi
 done
 
 if [ "${RETURN_VALUE}" -ne 0 ]; then

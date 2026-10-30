@@ -92,6 +92,61 @@ describe("systemstat", function()
     assert.is_true(found, "Indexed files entry not found in system statistics")
   end)
 
+  it("shows current Lua runtime before device model in statistics", function()
+    local gettext = require("gettext")
+    local orig_arg = _G.arg
+
+    finally(function()
+      _G.arg = orig_arg
+    end)
+
+    local cases = {
+      {
+        arg = { [-1] = "./lua", [0] = "reader.lua" },
+        expected = "./lua",
+      },
+      {
+        arg = { [-1] = "./luajit", [0] = "reader.lua" },
+        expected = "./luajit",
+      },
+      {
+        arg = { [-2] = "./luajit", [-1] = "-O3", [0] = "./reader.lua" },
+        expected = "./luajit -O3",
+      },
+    }
+
+    local menu = {
+      registerToMainMenu = spy.new(function() end),
+    }
+
+    for _, c in ipairs(cases) do
+      _G.arg = c.arg
+      local widget = SystemStatWidget:new({
+        ui = {
+          menu = menu,
+        },
+      })
+      widget:onShowSysStatistics()
+
+      local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+      assert.is_not_nil(key_value_page)
+
+      local runtime_idx, model_idx
+      for idx, pair in ipairs(key_value_page.kv_pairs) do
+        if pair[1] == "  " .. gettext("Runtime") then
+          runtime_idx = idx
+          assert.are.equal(c.expected, pair[2])
+        elseif pair[1] == "  " .. gettext("Device model") then
+          model_idx = idx
+        end
+      end
+
+      assert.is_not_nil(runtime_idx, "Runtime entry not found in system statistics")
+      assert.is_not_nil(model_idx, "Device model entry not found in system statistics")
+      assert.are.equal(model_idx - 1, runtime_idx, "Runtime should appear immediately before Device model")
+    end
+  end)
+
   it("shows 0 for background processes when none are running", function()
     local ffiUtil = require("ffi/util")
     local gettext = require("gettext")

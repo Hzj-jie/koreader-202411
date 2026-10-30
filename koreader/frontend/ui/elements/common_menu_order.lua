@@ -64,6 +64,7 @@ local function mergeWith(b)
     },
     exit_menu = {
       "restart_koreader", -- if Device:canRestart()
+      "switch_lua", -- if Device:canRestart()
       "----------------------------",
       "sleep", -- if Device:canSuspend()
       "poweroff", -- if Device:canPowerOff()

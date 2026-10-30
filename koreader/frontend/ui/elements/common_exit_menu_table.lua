@@ -1,6 +1,7 @@
 local Device = require("device")
 local Event = require("ui/event")
 local UIManager = require("ui/uimanager")
+local Version = require("version")
 local gettext = require("gettext")
 
 local exit_settings = {}
@@ -24,10 +25,18 @@ exit_settings.restart_koreader = {
     UIManager:broadcastEvent(Event:new("Restart"))
   end,
 }
+exit_settings.switch_lua = {
+  text = Version:isLuaJIT() and gettext("Switch to Lua")
+    or gettext("Switch to LuaJIT"),
+  callback = function()
+    UIManager:broadcastEvent(Event:new("Restart", 89))
+  end,
+}
 if not Device:canRestart() then
   exit_settings.exit_menu = exit_settings.exit
   exit_settings.exit = nil
   exit_settings.restart_koreader = nil
+  exit_settings.switch_lua = nil
 end
 if Device:canSuspend() then
   exit_settings.sleep = {

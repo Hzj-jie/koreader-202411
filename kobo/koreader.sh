@@ -414,6 +414,7 @@ CRASH_PREV_TS=0
 KO_RC_RESTART=85
 KO_RC_USBMS=86
 KO_RC_HALT=88
+KO_RC_SWITCH_LUA=89
 # Because we *want* an initial fbdepth pass ;).
 RETURN_VALUE=${KO_RC_RESTART}
 while [ ${RETURN_VALUE} -ne 0 ]; do
@@ -428,6 +429,14 @@ while [ ${RETURN_VALUE} -ne 0 ]; do
 
     ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
+    if [ ${RETURN_VALUE} -eq ${KO_RC_SWITCH_LUA} ]; then
+        if [ "${LUA_BIN}" = "lua" ]; then
+            LUA_BIN="luajit"
+        else
+            LUA_BIN="lua"
+        fi
+        RETURN_VALUE=${KO_RC_RESTART}
+    fi
 
     # Did we crash?
     if [ ${RETURN_VALUE} -ne 0 ] && [ ${RETURN_VALUE} -ne ${KO_RC_RESTART} ] && [ ${RETURN_VALUE} -ne ${KO_RC_USBMS} ] && [ ${RETURN_VALUE} -ne ${KO_RC_HALT} ]; then

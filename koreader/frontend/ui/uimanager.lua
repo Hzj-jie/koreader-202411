@@ -1830,9 +1830,9 @@ function UIManager:flushSettings()
 end
 
 --- Sanely restart KOReader (on supported platforms).
-function UIManager:restartKOReader()
+function UIManager:restartKOReader(exit_code)
   -- This is just a magic number to indicate the restart request for shell scripts.
-  self:quit(85)
+  self:quit(exit_code or 85)
 end
 
 --- Sanely abort KOReader (e.g., exit sanely, but with a non-zero return code).

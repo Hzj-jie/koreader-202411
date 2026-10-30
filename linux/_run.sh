@@ -19,6 +19,14 @@ RETURN_VALUE=85
 while [ ${RETURN_VALUE} -eq 85 ]; do
     ${LUA} ./reader.lua "${ARGS}"
     RETURN_VALUE=$?
+    if [ ${RETURN_VALUE} -eq 89 ]; then
+        if [ "${LUA}" = "./lua" ]; then
+            LUA="./luajit"
+        else
+            LUA="./lua"
+        fi
+        RETURN_VALUE=85
+    fi
     # do not restart with saved arguments
     ARGS=""
 done | tee ${HOME}/.config/koreader/crash.log
