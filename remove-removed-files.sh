@@ -41,6 +41,7 @@ REMOVED_FILES=(
   "libs/libcurl.so.4"
   "libs/libturbojpeg.so.0.3.0"
   "libs/libunibreak.so.6"
+  "libs/libunibreak.so.7"
   "libs/libcrypto.so.1.1"
   "libs/libssl.so.1.1"
   "tar"
