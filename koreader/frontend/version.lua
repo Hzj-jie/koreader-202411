@@ -18,6 +18,14 @@ function Version:isLuaJIT()
   return arg[getArgvMinIndex()]:match("[^/]*$") == "luajit"
 end
 
+function Version:getRuntime()
+  local parts = {}
+  for i = getArgvMinIndex(), -1 do
+    table.insert(parts, arg[i])
+  end
+  return table.concat(parts, " ")
+end
+
 --- Returns current KOReader git-rev.
 -- @treturn string full KOReader git-rev such as `v2015.11-982-g704d4238`
 function Version:getCurrentRevision()
