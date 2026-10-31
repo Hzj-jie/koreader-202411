@@ -1,12 +1,16 @@
 describe("input module", function()
   local Input
   local ffi, C
+  local gettext
   setup(function()
     require("commonrequire")
     ffi = require("ffi")
     C = ffi.C
     require("ffi/linux_input_h")
+    -- Load UIManager before tests so InfoMessage's require doesn't trigger UIManager:init mid-test
+    require("ui/uimanager")
     Input = require("device").input
+    gettext = require("gettext")
   end)
 
   describe("handleTouchEvPhoenix", function()
@@ -511,6 +515,113 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       })
       assert.is_equal(-1, custom_input.ev_slots[0].id)
       assert.is_equal(-1, custom_input.ev_slots[1].id)
+    end)
+  end)
+
+  describe("UIManagerReady EVIOCGRAB conflict check", function()
+    local InputClass
+    local old_opened_devices
+    local execute_stub
+    local executed_cmds
+    local pipefd
+
+    before_each(function()
+      InputClass = require("device/input")
+      old_opened_devices = InputClass.opened_devices
+      InputClass.opened_devices = {}
+      pipefd = ffi.new("int[2]")
+      assert.is_equal(0, C.pipe(pipefd))
+      executed_cmds = {}
+      execute_stub = stub(os, "execute", function(cmd)
+        table.insert(executed_cmds, cmd)
+        return 0
+      end)
+    end)
+
+    after_each(function()
+      C.unsetenv("KO_DONT_GRAB_INPUT")
+      InputClass.opened_devices = old_opened_devices
+      InputClass:UIManagerReady(require("ui/uimanager"))
+      execute_stub:revert()
+      C.close(pipefd[0])
+      C.close(pipefd[1])
+    end)
+
+    it("should detect grab conflict on non-evdev fd and schedule quit", function()
+      InputClass.opened_devices["/dev/input/event0"] = pipefd[0]
+
+      local scheduled_fn
+      local scheduled_delay
+      local next_tick_fn
+      local shown_widget
+      local mock_uimgr = {
+        nextTick = function(_self, fn)
+          next_tick_fn = fn
+        end,
+        scheduleIn = function(_self, delay, fn)
+          scheduled_delay = delay
+          scheduled_fn = fn
+        end,
+        show = function(_self, widget)
+          shown_widget = widget
+        end,
+        quit = spy.new(function() end),
+      }
+
+      Input:UIManagerReady(mock_uimgr)
+
+      assert.is_function(next_tick_fn)
+      next_tick_fn()
+
+      assert.is_not_nil(shown_widget)
+      assert.is_equal(
+        gettext(
+          "Failed to grab input device. KOReader will try to terminate conflicting processes and exit in 10 seconds without restarting automatically to avoid a crash loop. Please try starting KOReader again afterward."
+        ),
+        shown_widget.text
+      )
+      assert.is_equal(10, scheduled_delay)
+      assert.is_function(scheduled_fn)
+
+      scheduled_fn()
+      assert.spy(mock_uimgr.quit).was.called(1)
+      assert.spy(mock_uimgr.quit).was.called_with(mock_uimgr)
+
+      assert.is_equal(1, #executed_cmds)
+      assert.is_equal("sh -c 'sleep 1; pkill lua; pkill luajit' &", executed_cmds[1])
+    end)
+
+    it("should ignore fake_events and not schedule quit", function()
+      InputClass.opened_devices["fake_events"] = pipefd[0]
+
+      local mock_uimgr = {
+        nextTick = spy.new(function() end),
+        scheduleIn = spy.new(function() end),
+        show = spy.new(function() end),
+        quit = spy.new(function() end),
+      }
+
+      Input:UIManagerReady(mock_uimgr)
+
+      assert.spy(mock_uimgr.nextTick).was_not.called()
+      assert.spy(mock_uimgr.scheduleIn).was_not.called()
+    end)
+
+    it("should skip grab check when KO_DONT_GRAB_INPUT is set", function()
+      InputClass.opened_devices["/dev/input/event0"] = pipefd[0]
+
+      local mock_uimgr = {
+        nextTick = spy.new(function() end),
+        scheduleIn = spy.new(function() end),
+        show = spy.new(function() end),
+        quit = spy.new(function() end),
+      }
+
+      C.setenv("KO_DONT_GRAB_INPUT", "1", 1)
+      Input:UIManagerReady(mock_uimgr)
+
+      assert.spy(mock_uimgr.nextTick).was_not.called()
+      assert.spy(mock_uimgr.scheduleIn).was_not.called()
     end)
   end)
 end)

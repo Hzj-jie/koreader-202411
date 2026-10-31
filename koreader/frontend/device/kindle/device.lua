@@ -110,8 +110,7 @@ local function kindleGetScanList()
     end
     C.usleep(250 * 1000)
   end
-  return nil,
-    require("gettext")("Cannot find any Wi-Fi, please try again later.")
+  return nil, gettext("Cannot find any Wi-Fi, please try again later.")
 end
 
 local function kindleScanThenGetResults()
