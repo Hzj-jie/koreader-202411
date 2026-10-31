@@ -7037,6 +7037,17 @@ msgid ""
 "%1"
 msgstr ""
 
+#: frontend/device/input.lua:535
+msgid ""
+"Failed to grab input device. KOReader will try to terminate conflicting "
+"processes and exit in 10 seconds without restarting automatically to avoid a "
+"crash loop. Please try starting KOReader again afterward."
+msgstr ""
+
+#: frontend/device/kindle/device.lua:114
+msgid "Cannot find any Wi-Fi, please try again later."
+msgstr ""
+
 #: frontend/device/kindle/device.lua:120
 msgid "Unable to communicate with the Wi-Fi backend"
 msgstr ""
