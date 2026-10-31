@@ -578,4 +578,47 @@ describe("GetText module", function()
       )
     end)
   end)
+
+  describe("xgettext extraction hygiene", function()
+    it("should not use inline require('gettext')(...) in translated sources", function()
+      local lfs = require("libs/libkoreader-lfs")
+      local violations = {}
+
+      local function scan_file(path)
+        local f = assert(io.open(path, "r"))
+        local line_num = 0
+        for line in f:lines() do
+          line_num = line_num + 1
+          if line:match('require%s*%(%s*["\']gettext["\']%s*%)%s*%(') then
+            table.insert(violations, string.format("%s:%d: %s", path, line_num, line))
+          end
+        end
+        f:close()
+      end
+
+      local function scan_dir(dir_path)
+        for entry in lfs.dir(dir_path) do
+          if entry ~= "." and entry ~= ".." then
+            local full_path = dir_path .. "/" .. entry
+            local mode = lfs.attributes(full_path, "mode")
+            if mode == "directory" then
+              scan_dir(full_path)
+            elseif mode == "file" and entry:match("%.lua$") then
+              scan_file(full_path)
+            end
+          end
+        end
+      end
+
+      for _, f in ipairs({ "reader.lua", "datastorage.lua" }) do
+        scan_file(f)
+      end
+
+      for _, d in ipairs({ "frontend", "plugins", "tools" }) do
+        scan_dir(d)
+      end
+
+      assert.is_equal(0, #violations, "Found inline require('gettext')(...) call(s):\n" .. table.concat(violations, "\n"))
+    end)
+  end)
 end)
